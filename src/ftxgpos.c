@@ -873,6 +873,8 @@
 
 	if ( gpi->face->glyph->format != ft_glyph_format_outline )
           return TTO_Err_Invalid_GPOS_SubTable;	  
+
+	ap = an->af.af2.AnchorPoint;
 	
 	outline = gpi->face->glyph->outline;
 

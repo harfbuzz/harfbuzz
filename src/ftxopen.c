@@ -851,7 +851,6 @@
 			   FT_Stream      stream )
   {
     FT_Error   error;
-    FT_Memory  memory = stream->memory;
 
     if ( ACCESS_Frame( 2L ) )
       return error;

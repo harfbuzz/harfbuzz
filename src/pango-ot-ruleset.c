@@ -133,7 +133,6 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
   TTO_GSUB_String *in_string = NULL;
   TTO_GSUB_String *out_string = NULL;
   TTO_GSUB_String *result_string = NULL;
-  TTO_GPOS_Data *pos_data;
 
   gboolean need_gsub = FALSE;
   gboolean need_gpos = FALSE;
