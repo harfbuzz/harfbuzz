@@ -205,7 +205,7 @@
 
   FT_Error
   otl_buffer_add_output_glyph( OTL_Buffer buffer,	
-		       FT_UInt    glyph_index,
+			       FT_UInt    glyph_index,
 			       FT_UShort  component,
 			       FT_UShort  ligID )
   {
@@ -224,7 +224,7 @@
     if ( error )
       return error;
     
-    buffer->out_string[buffer->out_pos++] = buffer->out_string[buffer->in_pos++];
+    buffer->out_string[buffer->out_pos++] = buffer->in_string[buffer->in_pos++];
     buffer->out_length = buffer->out_pos;
 
     return FT_Err_Ok;
