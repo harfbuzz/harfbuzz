@@ -48,5 +48,4 @@ ottest_LDADD = 		\
 
 EXTRA_DIST = 		\
 	README		\
-	pango-ot.def	\
-	makefile.mingw.in
+	pango-ot.def
