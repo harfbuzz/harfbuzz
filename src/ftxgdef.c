@@ -773,7 +773,7 @@
       glyph_index = glyphID - gcrr[index].End - 1;
     }
 
-    byte = ngc[array_index][glyph_index / 4 + 1];
+    byte = ngc[array_index][glyph_index / 4];
     bits = byte >> ( 16 - ( glyph_index % 4 + 1 ) * 4 );
 
     return bits & 0x000F;
@@ -1010,7 +1010,7 @@
 
     if ( gcrr[0].Start )
     {
-      if ( ALLOC_ARRAY( ngc[0], gcrr[0].Start / 4 + 1, FT_UShort ) )
+      if ( ALLOC_ARRAY( ngc[0], ( gcrr[0].Start + 3 ) / 4, FT_UShort ) )
         goto Fail1;
     }
 
@@ -1018,7 +1018,7 @@
     {
       if ( gcrr[n].Start - gcrr[n - 1].End > 1 )
         if ( ALLOC_ARRAY( ngc[n],
-                          ( gcrr[n].Start - gcrr[n - 1].End - 1 ) / 4 + 1,
+                          ( gcrr[n].Start - gcrr[n - 1].End + 2 ) / 4,
                           FT_UShort ) )
           goto Fail1;
     }
@@ -1026,7 +1026,7 @@
     if ( gcrr[count - 1].End != num_glyphs - 1 )
     {
       if ( ALLOC_ARRAY( ngc[count],
-                        ( num_glyphs - gcrr[count - 1].End - 1 ) / 4 + 1,
+                        ( num_glyphs - gcrr[count - 1].End + 2 ) / 4,
                         FT_UShort ) )
         goto Fail1;
     }
@@ -1141,7 +1141,7 @@
       glyph_index = glyphID - gcrr[index].End - 1;
     }
 
-    byte  = ngc[array_index][glyph_index / 4 + 1];
+    byte  = ngc[array_index][glyph_index / 4];
     bits  = byte >> ( 16 - ( glyph_index % 4 + 1 ) * 4 );
     class = bits & 0x000F;
 
@@ -1152,8 +1152,8 @@
       bits = new_class << ( 16 - ( glyph_index % 4 + 1 ) * 4 );
       mask = ~( 0x000F << ( 16 - ( glyph_index % 4 + 1 ) * 4 ) );
 
-      ngc[array_index][glyph_index / 4 + 1] &= mask;
-      ngc[array_index][glyph_index / 4 + 1] |= bits;
+      ngc[array_index][glyph_index / 4] &= mask;
+      ngc[array_index][glyph_index / 4] |= bits;
     }
 
     return TT_Err_Ok;
