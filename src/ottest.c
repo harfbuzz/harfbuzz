@@ -23,7 +23,6 @@
 #include <stdlib.h>
 
 #include "ftxopen.h"
-#include <freetype/internal/ftmemory.h>
 
 #include "disasm.h"
 

@@ -15,16 +15,16 @@
  *
  ******************************************************************/
 
-#include <freetype/tttags.h>
-
-#include <freetype/internal/ftstream.h>
-#include <freetype/internal/ftmemory.h>
-#include <freetype/internal/tttypes.h>
+#include "ftxopen.h"
+#include "ftxopenf.h"
 
 #include "fterrcompat.h"
 
-#include "ftxopen.h"
-#include "ftxopenf.h"
+#include FT_TRUETYPE_TAGS_H
+
+#include FT_INTERNAL_STREAM_H
+#include FT_INTERNAL_MEMORY_H
+#include FT_INTERNAL_TRUETYPE_TYPES_H
 
 #define TTAG_GDEF  FT_MAKE_TAG( 'G', 'D', 'E', 'F' )
 

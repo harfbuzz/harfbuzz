@@ -22,7 +22,8 @@
 #ifndef FTXOPEN_H
 #define FTXOPEN_H
 
-#include <freetype/freetype.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #ifdef __cplusplus
 extern "C" {

@@ -21,19 +21,18 @@
        sharing as much as possible with extensive use of macros.  This
        is something for a volunteer :-)                                  */
 
-#define TTAG_GPOS  FT_MAKE_TAG( 'G', 'P', 'O', 'S' )
-
-#include <freetype/tttags.h>
-
-#include <freetype/internal/ftstream.h>
-#include <freetype/internal/ftmemory.h>
-#include <freetype/internal/tttypes.h>
-
-#include "fterrcompat.h"
-
 #include "ftxopen.h"
 #include "ftxopenf.h"
 
+#include "fterrcompat.h"
+
+#include FT_TRUETYPE_TAGS_H
+
+#include FT_INTERNAL_STREAM_H
+#include FT_INTERNAL_MEMORY_H
+#include FT_INTERNAL_TRUETYPE_TYPES_H
+
+#define TTAG_GPOS  FT_MAKE_TAG( 'G', 'P', 'O', 'S' )
 
   struct  GPOS_Instance_
   {

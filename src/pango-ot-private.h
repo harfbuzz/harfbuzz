@@ -22,8 +22,6 @@
 #ifndef __PANGO_OT_PRIVATE_H__
 #define __PANGO_OT_PRIVATE_H__
 
-#include <freetype/freetype.h>
-
 #include <glib-object.h>
 
 #include <pango/pango-ot.h>

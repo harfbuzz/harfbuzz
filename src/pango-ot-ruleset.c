@@ -19,10 +19,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <freetype/internal/ftmemory.h>
-
 #include <pango/pango-ot.h>
 #include "pango-ot-private.h"
+
+#include FT_INTERNAL_MEMORY_H	/* For FT_Free() */
 
 #define PANGO_SCALE_26_6 (PANGO_SCALE / (1<<6))
 #define PANGO_UNITS_26_6(d) (PANGO_SCALE_26_6 * (d))
