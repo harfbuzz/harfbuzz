@@ -18,11 +18,17 @@ noinst_LTLIBRARIES = libpango-ot.la
 
 libpango_ot_la_SOURCES =  	\
 	ftxopen.c	 	\
+	ftxopen.h	 	\
+	ftxopenf.h	 	\
 	ftxgdef.c		\
+	ftxgdef.h		\
 	ftxgpos.c 		\
+	ftxgpos.h		\
+	ftxgsub.c		\
+	ftxgsub.h		\
 	pango-ot-info.c		\
-	pango-ot-ruleset.c	\
-	ftxgsub.c
+	pango-ot-private.h	\
+	pango-ot-ruleset.c
 
 noinst_PROGRAMS = ottest
 
