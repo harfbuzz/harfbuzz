@@ -584,7 +584,7 @@
 
     TTO_SubTable*  st;
 
-    Bool           is_extension = FALSE;
+    FT_Bool        is_extension = FALSE;
 
 
     base_offset = FILE_Pos();

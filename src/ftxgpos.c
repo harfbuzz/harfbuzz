@@ -6133,9 +6133,9 @@
     FT_UShort*  properties = gpos->LookupList.Properties;
     FT_UShort*  p_in       = in->properties;
 
-    int      nesting_level = 0;
-    UShort   i;
-    TT_Pos   offset;
+    int       nesting_level = 0;
+    FT_UShort i;
+    FT_Pos    offset;
 
 
     gpi->first = 0xFFFF;
