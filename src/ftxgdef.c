@@ -187,7 +187,7 @@
       gdef->GlyphClassDef.loaded = FALSE;
 
     if ( ACCESS_Frame( 2L ) )
-      goto Fail0;
+      goto Fail1;
 
     new_offset = GET_UShort();
 
@@ -208,7 +208,7 @@
       gdef->AttachList.loaded = FALSE;
 
     if ( ACCESS_Frame( 2L ) )
-      return error;
+      goto Fail2;
 
     new_offset = GET_UShort();
 
@@ -232,7 +232,12 @@
        first have to scan the LookupFlag values to find out whether we
        must load it or not.  Here we only store the offset of the table. */
 
+    if ( ACCESS_Frame( 2L ) )
+      goto Fail3;
+
     new_offset = GET_UShort();
+
+    FORGET_Frame();
 
     if ( new_offset )
       gdef->MarkAttachClassDef_offset = new_offset + base_offset;
@@ -248,6 +253,9 @@
 
     return TT_Err_Ok;
 
+  Fail3:
+    Free_LigCaretList( &gdef->LigCaretList, memory );
+    
   Fail2:
     Free_AttachList( &gdef->AttachList, memory );
 
