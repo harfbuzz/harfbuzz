@@ -267,19 +267,6 @@
         if ( lo[i].LookupFlag & IGNORE_SPECIAL_MARKS )
         {
           if ( FILE_Seek( gdef->MarkAttachClassDef_offset ) ||
-               ACCESS_Frame( 2L ) )
-            goto Fail1;
-
-          new_offset = GET_UShort();
-
-          FORGET_Frame();
-
-          if ( !new_offset )
-            return TTO_Err_Invalid_GDEF_SubTable;
-
-          new_offset += base_offset;
-
-          if ( FILE_Seek( new_offset ) ||
                ( error = Load_ClassDefinition( &gdef->MarkAttachClassDef,
                                                256, stream ) ) != TT_Err_Ok )
             goto Fail1;
@@ -2409,6 +2396,7 @@
                         &x_mark_value, &y_mark_value );
     if ( error )
       return error;
+
     error = Get_Anchor( gpi, base_anchor, in->string[j],
                         &x_base_value, &y_base_value );
     if ( error )
@@ -6116,7 +6104,7 @@
                                      TTO_GSUB_String*  in,
                                      TTO_GPOS_Data*    out )
   {
-    FT_Error         error = TTO_Err_Not_Covered;
+    FT_Error         error, retError = TTO_Err_Not_Covered;
     TTO_GPOSHeader*  gpos = gpi->gpos;
 
     FT_UShort*  properties = gpos->LookupList.Properties;
@@ -6158,9 +6146,11 @@
 
       if ( error == TTO_Err_Not_Covered )
         (in->pos)++;
+      else
+	retError = error;
     }
 
-    return error;
+    return retError;
   }
 
 
@@ -6253,7 +6243,7 @@
                                   FT_Bool            r2l )
   {
     FT_Memory      memory = gpos->memory;
-    FT_Error       error = TTO_Err_Not_Covered;
+    FT_Error       error, retError = TTO_Err_Not_Covered;
     GPOS_Instance  gpi;
 
     FT_UShort j;
@@ -6282,11 +6272,16 @@
       if ( !properties || properties[j] )
       {
         error = Do_String_Lookup( &gpi, j, in, *out );
-        if ( error && error != TTO_Err_Not_Covered )
-          return error;
+	if ( error )
+	  {
+	    if ( error != TTO_Err_Not_Covered )
+	      return error;
+	  }
+	else
+	  retError = error;
       }
 
-    return error;
+    return retError;
   }
 
 /* END */

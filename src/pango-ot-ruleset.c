@@ -24,6 +24,9 @@
 #include <pango/pango-ot.h>
 #include "pango-ot-private.h"
 
+#define PANGO_SCALE_26_6 (PANGO_SCALE / (1<<6))
+#define PANGO_UNITS_26_6(d) (PANGO_SCALE_26_6 * (d))
+
 typedef struct _PangoOTRule PangoOTRule;
 
 struct _PangoOTRule 
@@ -233,7 +236,37 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
     }
   else
     result_string = in_string;
-  
+
+  if (gpos)
+    {
+      TTO_GPOS_Data *outgpos = NULL;
+
+      if (!TT_GPOS_Apply_String (ruleset->info->face, gpos, 0, result_string, &outgpos,
+				 FALSE /* enable device-dependant values */,
+				 FALSE /* Even though this might be r2l text, RTL is handled elsewhere */))
+	{
+	  for (i = 0; i < result_string->length; i++)
+	    {
+	      int j;
+
+	      glyphs->glyphs[i].geometry.x_offset += PANGO_UNITS_26_6 (outgpos[i].x_pos);
+	      glyphs->glyphs[i].geometry.y_offset += PANGO_UNITS_26_6 (outgpos[i].y_pos);
+
+	      for (j = i - outgpos[i].back; j < i; j++)
+		glyphs->glyphs[i].geometry.x_offset -= glyphs->glyphs[j].geometry.width;
+	    
+	      if (outgpos[i].new_advance)
+		/* Can't set new x offset for marks, so just make sure not to increase it.
+		   Can do better than this by playing with ->x_offset. */
+		glyphs->glyphs[i].geometry.width = 0;
+	      else
+		glyphs->glyphs[i].geometry.width += PANGO_UNITS_26_6(outgpos[i].x_advance);
+	    }
+
+	  FT_Free(gpos->memory, (void *)outgpos);
+	}
+    }
+
   pango_glyph_string_set_size (glyphs, result_string->length);
 
   last_cluster = -1;

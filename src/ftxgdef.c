@@ -230,9 +230,15 @@
 
     /* OpenType 1.2 has introduced the `MarkAttachClassDef' field.  We
        first have to scan the LookupFlag values to find out whether we
-       must load it or not.  Here we only store the current file offset. */
+       must load it or not.  Here we only store the offset of the table. */
 
-    gdef->MarkAttachClassDef_offset = FILE_Pos();
+    new_offset = GET_UShort();
+
+    if ( new_offset )
+      gdef->MarkAttachClassDef_offset = new_offset + base_offset;
+    else
+      gdef->MarkAttachClassDef_offset = 0;
+
     gdef->MarkAttachClassDef.loaded = FALSE;
 
     gdef->LastGlyph       = 0;
