@@ -30,7 +30,9 @@ libpango_ot_la_SOURCES =  	\
 	pango-ot-private.h	\
 	pango-ot-ruleset.c
 
+if BUILD_OT_TESTS
 noinst_PROGRAMS = ottest
+endif
 
 ottest_SOURCES = 	\
 	ottest.c	\

@@ -19,11 +19,16 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <glib.h>		/* For G_HAVE_ISO_VARARGS */
 #include <stdarg.h>
 
 #include "disasm.h"
 
+#ifdef G_HAVE_ISO_VARARGS
+#define DUMP(...) dump (stream, indent, __VA_ARGS__)
+#elif defined (G_HAVE_GNUC_VARARGS)
 #define DUMP(args...) dump (stream, indent, args)
+#endif
 #define DUMP_FINT(strct,fld) dump (stream, indent, "<" #fld ">%d</" #fld ">\n", (strct)->fld)
 #define DUMP_FUINT(strct,fld) dump (stream, indent, "<" #fld ">%u</" #fld ">\n", (strct)->fld)
 #define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#4x</" #fld ">\n", (strct)->fld)
