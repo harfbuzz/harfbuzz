@@ -34,30 +34,38 @@
  * use them when necessary
  */
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3)
-#define ALLOC_ARRAY( _pointer_, _count_, _type_ ) ({            \
-  void *_tmp_;             	       		     	        \
-  FT_SET_ERROR (FT_MEM_ALLOC_ARRAY( _tmp_, _count_, _type_ ));  \
-  _pointer_ = _tmp_;                   				\
+#define ALLOC_ARRAY( _pointer_, _count_, _type_ ) ({		\
+  int result;							\
+  void *_tmp_;							\
+  result = FT_SET_ERROR ( FT_MEM_ALLOC_ARRAY ( _tmp_,		\
+                                               _count_,		\
+                                               _type_ ) );	\
+  _pointer_ = _tmp_;						\
+  result;							\
 })
 
 /* FT_MEM_REALLOC macro broken in 2.1.0 */
-#define REALLOC_ARRAY( _pointer_, _old_, _new_, _type_ ) ({       \
-  void *_tmp_;             	       		     	          \
-  FT_SET_ERROR ( FT_MEM_REALLOC( _tmp_,                           \
-				 (_old_) * sizeof ( _type_ ),     \
-		                 (_new_) * sizeof ( _type_ ) ) ); \
-  _pointer_ = _tmp_;                   				  \
+#define REALLOC_ARRAY( _pointer_, _old_, _new_, _type_ ) ({	\
+  int result;							\
+  void *_tmp_ = _pointer_;					\
+  result = FT_SET_ERROR ( FT_MEM_REALLOC( _tmp_,		\
+			 (_old_) * sizeof ( _type_ ),		\
+	                 (_new_) * sizeof ( _type_ ) ) );	\
+  _pointer_ = _tmp_;						\
+  result;							\
 })
  
-#define FREE( _pointer_ ) ({  \
-  void *_tmp_ = _pointer_;    \
-  FT_FREE ( _tmp_ );          \
-  _pointer_ = _tmp_;          \
+#define FREE( _pointer_ ) ({			\
+  void *_tmp_ = _pointer_;			\
+  FT_FREE ( _tmp_ );				\
+  _pointer_ = _tmp_;				\
 })
-#define ALLOC( _pointer_, _size_ ) ({  \
-  void *_tmp_;             	       \
-  FT_ALLOC( _tmp_, _size_ );           \
-  _pointer_ = _tmp_;                   \
+#define ALLOC( _pointer_, _size_ ) ({		\
+  int result;					\
+  void *_tmp_;					\
+  result = FT_ALLOC( _tmp_, _size_ );		\
+  _pointer_ = _tmp_;				\
+  result; 					\
 })
 #else
 #define ALLOC_ARRAY( _pointer_, _count_, _type_ ) \
