@@ -4303,7 +4303,7 @@
                                      TTO_GSUB_String*  in,
                                      TTO_GSUB_String*  out )
   {
-    FT_Error  error = TTO_Err_Not_Covered;
+    FT_Error  error, retError = TTO_Err_Not_Covered;
 
     FT_UShort*  properties = gsub->LookupList.Properties;
     FT_UShort*  p_in       = in->properties;
@@ -4319,8 +4319,13 @@
         /* 0xFFFF indicates that we don't have a context length yet */
         error = Do_Glyph_Lookup( gsub, lookup_index, in, out,
                                  0xFFFF, nesting_level );
-        if ( error && error != TTO_Err_Not_Covered )
-          return error;
+        if ( error )
+	{
+	  if ( error != TTO_Err_Not_Covered )
+	    return error;
+	}
+	else
+	  retError = error;
       }
       else
         error = TTO_Err_Not_Covered;
@@ -4330,7 +4335,7 @@
           return error;
     }
 
-    return error;
+    return retError;
   }
 
 
@@ -4473,7 +4478,7 @@
                                   TTO_GSUB_String*  in,
                                   TTO_GSUB_String*  out )
   {
-    FT_Error          error = TTO_Err_Not_Covered;
+    FT_Error          error, retError = TTO_Err_Not_Covered;
     FT_Memory         memory = in->memory;
     FT_UShort         j;
 
@@ -4492,32 +4497,16 @@
 
     properties = gsub->LookupList.Properties;
     
-    tmp1.memory    = memory;
-    tmp1.length    = in->length;
-    tmp1.allocated = in->length;
-    tmp1.pos       = in->pos;
-    tmp1.max_ligID = 1;
-
-    if ( ALLOC_ARRAY( tmp1.string, tmp1.length, FT_UShort ) )
-      return error;
-    MEM_Copy( tmp1.string, in->string, in->length * sizeof ( FT_UShort ) );
-
-    /* make sure that we always have a `properties', `components', and
-       `ligIDs' array in the string object                             */
-
-    if ( ALLOC_ARRAY( tmp1.components, tmp1.length, FT_UShort ) )
-      return error;
-    if ( ALLOC_ARRAY( tmp1.ligIDs, tmp1.length, FT_UShort ) )
-      return error;
-    if ( ALLOC_ARRAY( tmp1.properties, tmp1.length, FT_UShort ) )
-      return error;
-    if ( in->properties )
-      MEM_Copy( tmp1.properties, in->properties,
-                in->length * sizeof( FT_UShort ) );
-    if ( ALLOC_ARRAY( tmp1.logClusters, tmp1.length, FT_Int ) )
-      return error;
-    MEM_Copy( tmp1.logClusters, in->logClusters,
-	      in->length * sizeof( FT_Int ) );
+    tmp1.memory      = memory;
+    tmp1.length      = in->length;
+    tmp1.allocated   = in->length;
+    tmp1.pos         = in->pos;
+    tmp1.max_ligID   = 1;
+    tmp1.string      = NULL;
+    tmp1.properties  = NULL;
+    tmp1.components  = NULL;
+    tmp1.ligIDs      = NULL;
+    tmp1.logClusters = NULL;
 
     tmp2.memory      = memory;
     tmp2.allocated   = 0;
@@ -4531,12 +4520,39 @@
     ptmp1 = &tmp1;
     ptmp2 = &tmp2;
 
+    if ( ALLOC_ARRAY( tmp1.string, tmp1.length, FT_UShort ) )
+      return error;
+    MEM_Copy( tmp1.string, in->string, in->length * sizeof ( FT_UShort ) );
+
+    /* make sure that we always have a `properties', `components', and
+       `ligIDs' array in the string object                             */
+
+    if ( ALLOC_ARRAY( tmp1.components, tmp1.length, FT_UShort ) )
+      goto End;
+    if ( ALLOC_ARRAY( tmp1.ligIDs, tmp1.length, FT_UShort ) )
+      goto End;
+    if ( ALLOC_ARRAY( tmp1.properties, tmp1.length, FT_UShort ) )
+      goto End;
+    if ( in->properties )
+      MEM_Copy( tmp1.properties, in->properties,
+                in->length * sizeof( FT_UShort ) );
+    if ( ALLOC_ARRAY( tmp1.logClusters, tmp1.length, FT_Int ) )
+      goto End;
+    MEM_Copy( tmp1.logClusters, in->logClusters,
+	      in->length * sizeof( FT_Int ) );
+
     for ( j = 0; j < gsub->LookupList.LookupCount; j++ )
       if ( properties[j] )
       {
         error = Do_String_Lookup( gsub, j, ptmp1, ptmp2 );
-        if ( error && error != TTO_Err_Not_Covered )
-          return error;
+        if ( error )
+	{
+	  if ( error != TTO_Err_Not_Covered )
+	    goto End;
+	}
+	else
+	  retError = error;
+	  
 
         /* flipping `in' and `out', preparing the next loop */
 
@@ -4550,29 +4566,43 @@
         ptmp1 = t;
       }
 
-    out->length      = ptmp1->length;
-    out->pos         = 0;
-    out->allocated   = ptmp1->allocated;
-    out->string      = ptmp1->string;
-    out->components  = ptmp1->components;
-    out->ligIDs      = ptmp1->ligIDs;
-    out->logClusters = ptmp1->logClusters;
-
-    if ( in->properties )
-      out->properties = ptmp1->properties;
-    else
-    {
-      FREE( ptmp1->properties );
-      out->properties = NULL;
-    }
-
+  End:
     FREE( ptmp2->string );
     FREE( ptmp2->properties );
     FREE( ptmp2->components );
     FREE( ptmp2->ligIDs );
     FREE( ptmp2->logClusters );
 
-    return error;
+    if ( error && error != TTO_Err_Not_Covered )
+    {
+      FREE( ptmp1->string );
+      FREE( ptmp1->components );
+      FREE( ptmp1->ligIDs );
+      FREE( ptmp1->properties );
+      FREE( ptmp1->logClusters );
+      
+      return error;
+    }
+    else
+    {
+      out->length      = ptmp1->length;
+      out->pos         = 0;
+      out->allocated   = ptmp1->allocated;
+      out->string      = ptmp1->string;
+      out->components  = ptmp1->components;
+      out->ligIDs      = ptmp1->ligIDs;
+      out->logClusters = ptmp1->logClusters;
+      
+      if ( in->properties )
+	out->properties = ptmp1->properties;
+      else
+      {
+	FREE( ptmp1->properties );
+	out->properties = NULL;
+      }
+
+      return retError;
+    }
   }
 
 
