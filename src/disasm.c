@@ -384,7 +384,21 @@ DEF_DUMP (ChainContextSubstFormat2)
 
 DEF_DUMP (ChainContextSubstFormat3)
 {
-  DUMP("Not implemented!!!\n");
+  int i;
+  
+  DUMP_FUINT (ChainContextSubstFormat3, BacktrackGlyphCount);
+  for (i = 0; i < ChainContextSubstFormat3->BacktrackGlyphCount; i++)
+    RECURSE (BacktrackCoverage, Coverage, &ChainContextSubstFormat3->BacktrackCoverage[i]);
+  DUMP_FUINT (ChainContextSubstFormat3, InputGlyphCount);
+  for (i = 0; i < ChainContextSubstFormat3->InputGlyphCount; i++)
+    RECURSE (InputCoverage, Coverage, &ChainContextSubstFormat3->InputCoverage[i]);
+  DUMP_FUINT (ChainContextSubstFormat3, LookaheadGlyphCount);
+  for (i = 0; i < ChainContextSubstFormat3->LookaheadGlyphCount; i++)
+    RECURSE (LookaheadCoverage, Coverage, &ChainContextSubstFormat3->LookaheadCoverage[i]);
+
+  for (i = 0; i < ChainContextSubstFormat3->SubstCount; i++)
+    RECURSE_NUM (SubstLookupRecord, i, SubstLookupRecord, &ChainContextSubstFormat3->SubstLookupRecord[i]);
+
 }
 
 static void
