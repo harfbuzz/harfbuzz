@@ -5323,7 +5323,7 @@
       /* we are starting to check for lookahead glyphs right after the
          last context glyph                                            */
 
-      curr_pos = j;
+      curr_pos += j;
       s_in     = &in->string[curr_pos];
 
       for ( i = 0, j = 0; i < lgc; i++, j++ )
@@ -5521,7 +5521,7 @@
       /* we are starting to check for lookahead glyphs right after the
          last context glyph                                            */
 
-      curr_pos = j;
+      curr_pos += j;
       s_in     = &in->string[curr_pos];
       lc       = cpcr.Lookahead;
 
@@ -5669,7 +5669,7 @@
     /* we are starting to check for lookahead glyphs right after the
        last context glyph                                            */
 
-    curr_pos = j;
+    curr_pos += j;
     s_in     = &in->string[curr_pos];
     lc       = ccpf3->LookaheadCoverage;
 
