@@ -1941,7 +1941,7 @@
 
     /* Now comes the messiest part of the whole OpenType
        specification.  At first glance, cursive connections seem easy
-       to understand, but there are pitfalls!  The reason is, that
+       to understand, but there are pitfalls!  The reason is that
        the specs don't mention how to compute the advance values
        resp. glyph offsets.  I was told it would be an omission, to
        be fixed in the next OpenType version...  Again many thanks to
@@ -2343,7 +2343,7 @@
     if ( error )
       return error;
 
-    /* now we search backwards for a base glyph */
+    /* now we search backwards for a non-mark glyph */
 
     i = 1;
     j = in->pos - 1;
@@ -2362,8 +2362,11 @@
       j--;
     }
 
+    /* The following assertion is too strong -- at least for mangal.ttf. */
+#if 0
     if ( property != TTO_BASE_GLYPH )
       return TTO_Err_Not_Covered;
+#endif
 
     if ( i > in->pos )
       return TTO_Err_Not_Covered;
@@ -2751,7 +2754,7 @@
     if ( error )
       return error;
 
-    /* now we search backwards for a ligature */
+    /* now we search backwards for a non-mark glyph */
 
     i = 1;
     j = in->pos - 1;
@@ -2770,8 +2773,12 @@
       j--;
     }
 
+    /* Similar to Lookup_MarkBasePos(), I suspect that this assertion is
+       too strong, thus it is commented out.                             */
+#if 0
     if ( property != TTO_LIGATURE )
       return TTO_Err_Not_Covered;
+#endif
 
     if ( i > in->pos )
       return TTO_Err_Not_Covered;
