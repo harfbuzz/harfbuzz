@@ -1665,11 +1665,11 @@
 
     error = Get_Class( &ppf2->ClassDef1, in->string[first_pos],
                        &cl1, NULL );
-    if ( error )
+    if ( error && error != TTO_Err_Not_Covered )
       return error;
     error = Get_Class( &ppf2->ClassDef2, in->string[in->pos],
                        &cl2, NULL );
-    if ( error )
+    if ( error && error != TTO_Err_Not_Covered )
       return error;
 
     c1r = &ppf2->Class1Record[cl1];
@@ -4036,7 +4036,7 @@
 
     error = Get_Class( &cpf2->ClassDef, in->string[in->pos],
                        &classes[0], NULL );
-    if ( error )
+    if ( error && error != TTO_Err_Not_Covered )
       goto End;
     known_classes = 0;
 
@@ -5416,7 +5416,7 @@
 
     error = Get_Class( &ccpf2->InputClassDef, in->string[in->pos],
                        &input_classes[0], NULL );
-    if ( error )
+    if ( error && error != TTO_Err_Not_Covered )
       goto End1;
 
     cpcs = &ccpf2->ChainPosClassSet[input_classes[0]];
