@@ -4783,7 +4783,7 @@
     else
        error = Load_EmptyClassDefinition ( cd, stream );
 
-    if (error == TT_ERR_OK)
+    if (error == TT_Err_Ok)
       (void)FILE_Seek( cur_offset ); /* Changes error as a side-effect */
 
     return error;
