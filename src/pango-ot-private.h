@@ -84,8 +84,9 @@ struct _PangoOTBuffer
 {
   OTL_Buffer buffer;
   PangoFcFont *font;
-  gboolean rtl;
-  gboolean applied_gpos;
+  guint rtl : 1;
+  guint zero_width_marks : 1;
+  guint applied_gpos : 1;
 };
 
 GType pango_ot_info_get_type (void);

@@ -42,6 +42,7 @@ pango_ot_buffer_new (PangoFcFont *font)
   buffer->font = g_object_ref (font);
   buffer->applied_gpos = FALSE;
   buffer->rtl = FALSE;
+  buffer->zero_width_marks = FALSE;
 
   pango_fc_font_unlock_face (font);
 
@@ -80,6 +81,24 @@ pango_ot_buffer_set_rtl (PangoOTBuffer *buffer,
 {
   rtl = rtl != FALSE;
   buffer->rtl = rtl;
+}
+
+/**
+ * pango_ot_buffer_set_zero_width_marks:
+ * @buffer: a #PangoOTBuffer
+ * @zero_width_marks: %TRUE if characters with a mark class should
+ *  be forced to zero width.
+ * 
+ * Sets whether characters with a mark class should be forced to zero width.
+ * This setting is needed for proper positioning of Arabic accents,
+ * but will produce incorrect results with standard OpenType indic
+ * fonts.
+ **/
+void
+pango_ot_buffer_set_zero_width_marks (PangoOTBuffer     *buffer,
+				      gboolean           zero_width_marks)
+{
+  buffer->zero_width_marks = zero_width_marks != FALSE;
 }
 
 void
@@ -228,7 +247,8 @@ pango_ot_buffer_output (PangoOTBuffer    *buffer,
 	  
 	  FT_UShort property;
 
-	  if (gdef &&
+	  if (buffer->zero_width_marks &&
+	      gdef &&
 	      TT_GDEF_Get_Glyph_Property (gdef, glyphs->glyphs[i].glyph, &property) == FT_Err_Ok &&
 	      (property == TTO_MARK || (property & IGNORE_SPECIAL_MARKS) != 0))
 	    {
