@@ -1,0 +1,43 @@
+TOP = ../../..
+
+include $(TOP)/build/win32/make.mingw
+
+# Possibly override Pango version from build/win32/module.defs
+PANGO_VER = @VERSION@
+
+OPTIMIZE = -g -Wall
+
+INCLUDES = -I ../.. -I .
+DEFINES = -DPANGO_VERSION=\"$(PANGO_VER)\"
+DEPCFLAGS = $(GLIB_CFLAGS) $(FREETYPE2_CFLAGS)
+
+all :						\
+	../../config.h				\
+	pango-ot-$(PANGO_VER).dll		\
+	ottest.exe
+
+PANGO_OT_OBJS =			\
+	ftxopen.o	 	\
+	ftxgdef.o		\
+	ftxgpos.o 		\
+	pango-ot-info.o		\
+	pango-ot-ruleset.o	\
+	ftxgsub.o
+
+OTTEST_OBJS =		\
+	ottest.o	\
+	disasm.o
+	
+../../config.h : ../../config.h.win32
+	cp $< $@
+
+pango-ot-$(PANGO_VER).dll : $(PANGO_OT_OBJS) pango-ot.def
+	$(GLIB)/build-dll pango-ot $(PANGO_VER) pango-ot.def $(OPTIMIZE) $(PANGO_OT_OBJS) -L .. -lpango-$(PANGO_VER) $(GLIB_LIBS) $(FREETYPE2_LIBS)
+
+ottest.exe : $(OTTEST_OBJS) pango-ot-$(PANGO_VER).dll
+	$(CC) -o $@ $(OTTEST_OBJS) -L . -lpango-ot-$(PANGO_VER) $(GLIB_LIBS) $(FREETYPE2_LIBS)
+
+# Hack to get an updated makefile.mingw automatically after updating
+# makefile.mingw.in. Only for developer use.
+makefile.mingw: makefile.mingw.in
+	sed -e 's,@VER[S]ION@,@VERSION@,' <$< >$@

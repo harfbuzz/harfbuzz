@@ -36,4 +36,6 @@ ottest_LDADD = 		\
 	$(FREETYPE_LIBS)
 
 EXTRA_DIST = 		\
-	README
+	README		\
+	pango-ot.def	\
+	makefile.mingw.in
