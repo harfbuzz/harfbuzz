@@ -336,7 +336,7 @@
     FT_Memory memory = stream->memory;
     FT_Error  error;
 
-    FT_UShort         n, count;
+    FT_UShort         n, m, count;
     FT_ULong          cur_offset, new_offset, base_offset;
 
     TTO_AttachPoint*  ap;
@@ -392,8 +392,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_AttachPoint( &ap[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_AttachPoint( &ap[m], memory );
 
     FREE( ap );
 
@@ -531,7 +531,7 @@
     FT_Memory memory = stream->memory;
     FT_Error  error;
 
-    FT_UShort        n, count;
+    FT_UShort        n, m, count;
     FT_ULong         cur_offset, new_offset, base_offset;
 
     TTO_CaretValue*  cv;
@@ -572,8 +572,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_CaretValue( &cv[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_CaretValue( &cv[m], memory );
 
     FREE( cv );
     return error;
@@ -609,7 +609,7 @@
     FT_Memory memory = stream->memory;
     FT_Error  error;
 
-    FT_UShort      n, count;
+    FT_UShort      m, n, count;
     FT_ULong       cur_offset, new_offset, base_offset;
 
     TTO_LigGlyph*  lg;
@@ -665,8 +665,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_LigGlyph( &lg[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_LigGlyph( &lg[m], memory );
 
     FREE( lg );
 
@@ -854,7 +854,7 @@
                                            FT_UShort*       class_array )
   {
     FT_UShort              start, curr_glyph, curr_class;
-    FT_UShort              n, count;
+    FT_UShort              n, m, count;
     FT_Error               error;
     FT_Memory              memory = gdef->memory;
 
@@ -1005,8 +1005,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      FREE( ngc[n] );
+    for ( m = 0; m < n; m++ )
+      FREE( ngc[m] );
 
   Fail2:
     FREE( gdef->NewGlyphClasses );

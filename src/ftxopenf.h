@@ -39,6 +39,8 @@ extern "C" {
   FT_Error  Load_ClassDefinition( TTO_ClassDefinition*  cd,
                                   FT_UShort             limit,
                                   FT_Stream             input );
+  FT_Error  Load_EmptyClassDefinition( TTO_ClassDefinition*  cd,
+                                       FT_Stream             input );
   FT_Error  Load_Device( TTO_Device*  d,
                          FT_Stream    input );
 

@@ -940,7 +940,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort        n, count;
+    FT_UShort        n, m, count;
     FT_ULong         cur_offset, new_offset, base_offset;
 
     TTO_MarkRecord*  mr;
@@ -982,8 +982,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_Anchor( &mr[n].MarkAnchor, memory );
+    for ( m = 0; m < n; m++ )
+      Free_Anchor( &mr[m].MarkAnchor, memory );
 
     FREE( mr );
     return error;
@@ -1022,7 +1022,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort         n, count, format;
+    FT_UShort         n, m, count, format;
     FT_ULong          cur_offset, new_offset, base_offset;
 
     TTO_ValueRecord*  vr;
@@ -1088,8 +1088,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_ValueRecord( &vr[n], format, memory );
+    for ( m = 0; m < n; m++ )
+      Free_ValueRecord( &vr[m], format, memory );
 
     FREE( vr );
 
@@ -1195,7 +1195,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort             n, count;
+    FT_UShort             n, m, count;
     FT_ULong              base_offset;
 
     TTO_PairValueRecord*  pvr;
@@ -1238,19 +1238,23 @@
         error = Load_ValueRecord( &pvr[n].Value2, format2,
                                   base_offset, stream );
         if ( error )
+	{
+	  if ( format1 )
+	    Free_ValueRecord( &pvr[n].Value1, format1, memory );
           goto Fail;
+	}
       }
     }
 
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
+    for ( m = 0; m < n; m++ )
     {
       if ( format1 )
-        Free_ValueRecord( &pvr[n].Value1, format1, memory );
+        Free_ValueRecord( &pvr[m].Value1, format1, memory );
       if ( format2 )
-        Free_ValueRecord( &pvr[n].Value2, format2, memory );
+        Free_ValueRecord( &pvr[m].Value2, format2, memory );
     }
 
     FREE( pvr );
@@ -1296,7 +1300,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort     n, count;
+    FT_UShort     n, m, count;
     FT_ULong      cur_offset, new_offset, base_offset;
 
     TTO_PairSet*  ps;
@@ -1314,7 +1318,7 @@
     ppf1->PairSet = NULL;
 
     if ( ALLOC_ARRAY( ppf1->PairSet, count, TTO_PairSet ) )
-      goto Fail;
+      return error;
 
     ps = ppf1->PairSet;
 
@@ -1338,8 +1342,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_PairSet( &ps[n], format1, format2, memory );
+    for ( m = 0; m < n; m++ )
+      Free_PairSet( &ps[m], format1, format2, memory );
 
     FREE( ps );
     return error;
@@ -1379,7 +1383,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort          m, n, count1, count2;
+    FT_UShort          m, n, k, count1, count2;
     FT_ULong           cur_offset, new_offset1, new_offset2, base_offset;
 
     TTO_Class1Record*  c1r;
@@ -1410,13 +1414,13 @@
     if ( FILE_Seek( new_offset2 ) ||
          ( error = Load_ClassDefinition( &ppf2->ClassDef2, count2,
                                          stream ) ) != TT_Err_Ok )
-      goto Fail2;
+      goto Fail3;
     (void)FILE_Seek( cur_offset );
 
     ppf2->Class1Record = NULL;
 
     if ( ALLOC_ARRAY( ppf2->Class1Record, count1, TTO_Class1Record ) )
-      goto Fail1;
+      goto Fail2;
 
     c1r = ppf2->Class1Record;
 
@@ -1436,24 +1440,40 @@
           error = Load_ValueRecord( &c2r[n].Value1, format1,
                                     base_offset, stream );
           if ( error )
-            goto Fail1;
+            goto Fail0;
         }
         if ( format2 )
         {
           error = Load_ValueRecord( &c2r[n].Value2, format2,
                                     base_offset, stream );
           if ( error )
-            goto Fail1;
+	  {
+	    if ( format1 )
+	      Free_ValueRecord( &c2r[n].Value1, format1, memory );	      
+            goto Fail0;
+	  }
         }
       }
+
+      continue;
+
+    Fail0:
+      for ( k = 0; k < n; k++ )
+      {
+        if ( format1 )
+          Free_ValueRecord( &c2r[k].Value1, format1, memory );
+        if ( format2 )
+          Free_ValueRecord( &c2r[k].Value2, format2, memory );
+      }
+      goto Fail1;
     }
 
     return TT_Err_Ok;
 
   Fail1:
-    for ( m = 0; m < count1; m++ )
+    for ( k = 0; k < m; k++ )
     {
-      c2r = c1r[m].Class2Record;
+      c2r = c1r[k].Class2Record;
 
       for ( n = 0; n < count2; n++ )
       {
@@ -1467,10 +1487,11 @@
     }
 
     FREE( c1r );
+  Fail2:
 
     Free_ClassDefinition( &ppf2->ClassDef2, memory );
 
-  Fail2:
+  Fail3:
     Free_ClassDefinition( &ppf2->ClassDef1, memory );
     return error;
   }
@@ -1752,7 +1773,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort             n, count;
+    FT_UShort             n, m, count;
     FT_ULong              cur_offset, new_offset, base_offset;
 
     TTO_EntryExitRecord*  eer;
@@ -1790,10 +1811,12 @@
 
     for ( n = 0; n < count; n++ )
     {
+      FT_ULong entry_offset;
+      
       if ( ACCESS_Frame( 2L ) )
         return error;
 
-      new_offset = GET_UShort();
+      entry_offset = new_offset = GET_UShort();
 
       FORGET_Frame();
 
@@ -1826,7 +1849,11 @@
         if ( FILE_Seek( new_offset ) ||
              ( error = Load_Anchor( &eer[n].ExitAnchor,
                                     stream ) ) != TT_Err_Ok )
+	{
+	  if ( entry_offset )
+	    Free_Anchor( &eer[n].EntryAnchor, memory );
           goto Fail1;
+	}
         (void)FILE_Seek( cur_offset );
       }
       else
@@ -1836,10 +1863,10 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
+    for ( m = 0; m < n; m++ )
     {
-      Free_Anchor( &eer[n].EntryAnchor, memory );
-      Free_Anchor( &eer[n].ExitAnchor, memory );
+      Free_Anchor( &eer[m].EntryAnchor, memory );
+      Free_Anchor( &eer[m].ExitAnchor, memory );
     }
 
     FREE( eer );
@@ -2099,7 +2126,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort        m, n, count;
+    FT_UShort        m, n, k, count;
     FT_ULong         cur_offset, new_offset, base_offset;
 
     TTO_BaseRecord*  br;
@@ -2134,7 +2161,7 @@
       for ( n = 0; n < num_classes; n++ )
       {
         if ( ACCESS_Frame( 2L ) )
-          goto Fail;
+          goto Fail0;
 
         new_offset = GET_UShort() + base_offset;
 
@@ -2143,17 +2170,23 @@
         cur_offset = FILE_Pos();
         if ( FILE_Seek( new_offset ) ||
              ( error = Load_Anchor( &ban[n], stream ) ) != TT_Err_Ok )
-          goto Fail;
+          goto Fail0;
         (void)FILE_Seek( cur_offset );
       }
+
+      continue;
+    Fail0:
+      for ( k = 0; k < n; k++ )
+        Free_Anchor( &ban[k], memory );
+      goto Fail;
     }
 
     return TT_Err_Ok;
 
   Fail:
-    for ( m = 0; m < count; m++ )
+    for ( k = 0; k < m; k++ )
     {
-      ban = br[m].BaseAnchor;
+      ban = br[k].BaseAnchor;
       
       for ( n = 0; n < num_classes; n++ )
         Free_Anchor( &ban[n], memory );
@@ -2408,7 +2441,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort             m, n, count;
+    FT_UShort             m, n, k, count;
     FT_ULong              cur_offset, new_offset, base_offset;
 
     TTO_ComponentRecord*  cr;
@@ -2443,7 +2476,7 @@
       for ( n = 0; n < num_classes; n++ )
       {
         if ( ACCESS_Frame( 2L ) )
-          goto Fail;
+          goto Fail0;
 
         new_offset = GET_UShort();
 
@@ -2456,20 +2489,26 @@
           cur_offset = FILE_Pos();
           if ( FILE_Seek( new_offset ) ||
                ( error = Load_Anchor( &lan[n], stream ) ) != TT_Err_Ok )
-            goto Fail;
+            goto Fail0;
           (void)FILE_Seek( cur_offset );
         }
         else
           lan[n].PosFormat = 0;
       }
+
+      continue;
+    Fail0:
+      for ( k = 0; k < n; k++ )
+        Free_Anchor( &lan[k], memory );
+      goto Fail;
     }
 
     return TT_Err_Ok;
 
   Fail:
-    for ( m = 0; m < count; m++ )
+    for ( k = 0; k < m; k++ )
     {
-      lan = cr[m].LigatureAnchor;
+      lan = cr[k].LigatureAnchor;
       
       for ( n = 0; n < num_classes; n++ )
         Free_Anchor( &lan[n], memory );
@@ -2521,7 +2560,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort            n, count;
+    FT_UShort            n, m, count;
     FT_ULong             cur_offset, new_offset, base_offset;
 
     TTO_LigatureAttach*  lat;
@@ -2563,8 +2602,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_LigatureAttach( &lat[n], num_classes, memory );
+    for ( m = 0; m < n; m++ )
+      Free_LigatureAttach( &lat[m], num_classes, memory );
 
     FREE( lat );
     return error;
@@ -2826,7 +2865,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort         m, n, count;
+    FT_UShort         k, m, n, count;
     FT_ULong          cur_offset, new_offset, base_offset;
 
     TTO_Mark2Record*  m2r;
@@ -2861,7 +2900,7 @@
       for ( n = 0; n < num_classes; n++ )
       {
         if ( ACCESS_Frame( 2L ) )
-          goto Fail;
+          goto Fail0;
 
         new_offset = GET_UShort() + base_offset;
 
@@ -2870,17 +2909,23 @@
         cur_offset = FILE_Pos();
         if ( FILE_Seek( new_offset ) ||
              ( error = Load_Anchor( &m2an[n], stream ) ) != TT_Err_Ok )
-          goto Fail;
+          goto Fail0;
         (void)FILE_Seek( cur_offset );
       }
+
+      continue;
+    Fail0:
+      for ( k = 0; k < n; k++ )
+        Free_Anchor( &m2an[k], memory );
+      goto Fail;
     }
 
     return TT_Err_Ok;
 
   Fail:
-    for ( m = 0; m < count; m++ )
+    for ( k = 0; k < m; k++ )
     {
-      m2an = m2r[m].Mark2Anchor;
+      m2an = m2r[k].Mark2Anchor;
       
       for ( n = 0; n < num_classes; n++ )
         Free_Anchor( &m2an[n], memory );
@@ -3260,7 +3305,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort     n, count;
+    FT_UShort     n, m, count;
     FT_ULong      cur_offset, new_offset, base_offset;
 
     TTO_PosRule*  pr;
@@ -3301,8 +3346,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_PosRule( &pr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_PosRule( &pr[m], memory );
 
     FREE( pr );
     return error;
@@ -3338,7 +3383,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort        n, count;
+    FT_UShort        n, m, count;
     FT_ULong         cur_offset, new_offset, base_offset;
 
     TTO_PosRuleSet*  prs;
@@ -3392,8 +3437,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_PosRuleSet( &prs[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_PosRuleSet( &prs[m], memory );
 
     FREE( prs );
 
@@ -3527,7 +3572,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort          n, count;
+    FT_UShort          n, m, count;
     FT_ULong           cur_offset, new_offset, base_offset;
 
     TTO_PosClassRule*  pcr;
@@ -3569,8 +3614,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_PosClassRule( &pcr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_PosClassRule( &pcr[m], memory );
 
     FREE( pcr );
     return error;
@@ -3606,7 +3651,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort         n, count;
+    FT_UShort         n, m, count;
     FT_ULong          cur_offset, new_offset, base_offset;
 
     TTO_PosClassSet*  pcs;
@@ -3684,8 +3729,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_PosClassSet( &pcs[n], memory );
+    for ( m = 0; m < n; n++ )
+      Free_PosClassSet( &pcs[m], memory );
 
     FREE( pcs );
 
@@ -4301,7 +4346,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort          n, count;
+    FT_UShort          n, m, count;
     FT_ULong           cur_offset, new_offset, base_offset;
 
     TTO_ChainPosRule*  cpr;
@@ -4342,8 +4387,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_ChainPosRule( &cpr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainPosRule( &cpr[m], memory );
 
     FREE( cpr );
     return error;
@@ -4379,7 +4424,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort             n, count;
+    FT_UShort             n, m, count;
     FT_ULong              cur_offset, new_offset, base_offset;
 
     TTO_ChainPosRuleSet*  cprs;
@@ -4433,8 +4478,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_ChainPosRuleSet( &cprs[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainPosRuleSet( &cprs[m], memory );
 
     FREE( cprs );
 
@@ -4652,7 +4697,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort               n, count;
+    FT_UShort               n, m, count;
     FT_ULong                cur_offset, new_offset, base_offset;
 
     TTO_ChainPosClassRule*  cpcr;
@@ -4695,8 +4740,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_ChainPosClassRule( &cpcr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainPosClassRule( &cpcr[m], memory );
 
     FREE( cpcr );
     return error;
@@ -4724,6 +4769,30 @@
   }
 
 
+  static FT_Error Load_EmptyOrClassDefinition( TTO_ClassDefinition*  cd,
+                                               FT_UShort             limit,
+					       FT_ULong              class_offset,
+					       FT_ULong              base_offset,
+				               FT_Stream             stream )
+  {
+    FT_Error error;
+    FT_ULong               cur_offset;
+
+    cur_offset = FILE_Pos();
+
+    if ( class_offset )
+      {
+        if ( !FILE_Seek( class_offset + base_offset ) )
+          error = Load_ClassDefinition( cd, limit, stream ) == TT_Err_Ok;
+      }
+    else
+       error = Load_EmptyClassDefinition ( cd, stream );
+
+    (void)FILE_Seek( cur_offset );
+
+    return error;
+  }
+
   /* ChainContextPosFormat2 */
 
   static FT_Error  Load_ChainContextPos2( TTO_ChainContextPosFormat2*  ccpf2,
@@ -4732,7 +4801,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort              n, count;
+    FT_UShort              n, m, count;
     FT_ULong               cur_offset, new_offset, base_offset;
     FT_ULong               backtrack_offset, input_offset, lookahead_offset;
 
@@ -4757,9 +4826,9 @@
     if ( ACCESS_Frame( 8L ) )
       goto Fail5;
 
-    backtrack_offset = GET_UShort() + base_offset;
-    input_offset     = GET_UShort() + base_offset;
-    lookahead_offset = GET_UShort() + base_offset;
+    backtrack_offset = GET_UShort();
+    input_offset     = GET_UShort();
+    lookahead_offset = GET_UShort();
 
     /* `ChainPosClassSetCount' is the upper limit for input class values,
        thus we read it now to make an additional safety check.            */
@@ -4768,20 +4837,18 @@
 
     FORGET_Frame();
 
-    cur_offset = FILE_Pos();
-    if ( FILE_Seek( backtrack_offset ) ||
-         ( error = Load_ClassDefinition( &ccpf2->BacktrackClassDef, count,
-                                         stream ) ) != TT_Err_Ok )
+    if ( ( error = Load_EmptyOrClassDefinition( &ccpf2->BacktrackClassDef, count,
+						backtrack_offset, base_offset,
+						stream ) ) != TT_Err_Ok )
       goto Fail5;
-    if ( FILE_Seek( input_offset ) ||
-         ( error = Load_ClassDefinition( &ccpf2->InputClassDef, count,
-                                         stream ) ) != TT_Err_Ok )
+    if ( ( error = Load_EmptyOrClassDefinition( &ccpf2->InputClassDef, count,
+						input_offset, base_offset,
+						stream ) ) != TT_Err_Ok )
       goto Fail4;
-    if ( FILE_Seek( lookahead_offset ) ||
-         ( error = Load_ClassDefinition( &ccpf2->LookaheadClassDef, count,
-                                         stream ) ) != TT_Err_Ok )
+    if ( ( error = Load_EmptyOrClassDefinition( &ccpf2->LookaheadClassDef, count,
+						lookahead_offset, base_offset,
+						stream ) ) != TT_Err_Ok )
       goto Fail3;
-    (void)FILE_Seek( cur_offset );
 
     ccpf2->ChainPosClassSet   = NULL;
     ccpf2->MaxBacktrackLength = 0;
@@ -4823,8 +4890,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_ChainPosClassSet( &cpcs[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainPosClassSet( &cpcs[m], memory );
 
     FREE( cpcs );
 
@@ -4878,7 +4945,7 @@
     FT_Error  error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort             n, count;
+    FT_UShort             n, nb, ni, nl, m, count;
     FT_UShort             backtrack_count, input_count, lookahead_count;
     FT_ULong              cur_offset, new_offset, base_offset;
 
@@ -4907,7 +4974,7 @@
 
     b = ccpf3->BacktrackCoverage;
 
-    for ( n = 0; n < backtrack_count; n++ )
+    for ( nb = 0; nb < backtrack_count; nb++ )
     {
       if ( ACCESS_Frame( 2L ) )
         goto Fail4;
@@ -4918,7 +4985,7 @@
 
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
-           ( error = Load_Coverage( &b[n], stream ) ) != TT_Err_Ok )
+           ( error = Load_Coverage( &b[nb], stream ) ) != TT_Err_Ok )
         goto Fail4;
       (void)FILE_Seek( cur_offset );
     }
@@ -4939,7 +5006,7 @@
 
     i = ccpf3->InputCoverage;
 
-    for ( n = 0; n < input_count; n++ )
+    for ( ni = 0; ni < input_count; ni++ )
     {
       if ( ACCESS_Frame( 2L ) )
         goto Fail3;
@@ -4950,7 +5017,7 @@
 
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
-           ( error = Load_Coverage( &i[n], stream ) ) != TT_Err_Ok )
+           ( error = Load_Coverage( &i[ni], stream ) ) != TT_Err_Ok )
         goto Fail3;
       (void)FILE_Seek( cur_offset );
     }
@@ -4972,7 +5039,7 @@
 
     l = ccpf3->LookaheadCoverage;
 
-    for ( n = 0; n < lookahead_count; n++ )
+    for ( nl = 0; nl < lookahead_count; nl++ )
     {
       if ( ACCESS_Frame( 2L ) )
         goto Fail2;
@@ -4983,7 +5050,7 @@
 
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
-           ( error = Load_Coverage( &l[n], stream ) ) != TT_Err_Ok )
+           ( error = Load_Coverage( &l[nl], stream ) ) != TT_Err_Ok )
         goto Fail2;
       (void)FILE_Seek( cur_offset );
     }
@@ -5021,20 +5088,20 @@
     FREE( plr );
 
   Fail2:
-    for ( n = 0; n < lookahead_count; n++ )
-      Free_Coverage( &l[n], memory );
+    for ( m = 0; m < nl; nl++ )
+      Free_Coverage( &l[m], memory );
 
     FREE( l );
 
   Fail3:
-    for ( n = 0; n < input_count; n++ )
-      Free_Coverage( &i[n], memory );
+    for ( m = 0; m < ni; n++ )
+      Free_Coverage( &i[m], memory );
 
     FREE( i );
 
   Fail4:
-    for ( n = 0; n < backtrack_count; n++ )
-      Free_Coverage( &b[n], memory );
+    for ( m = 0; m < nb; n++ )
+      Free_Coverage( &b[m], memory );
 
     FREE( b );
     return error;

@@ -86,7 +86,7 @@
   {
     FT_Error   error;
     FT_Memory  memory = stream->memory;
-    FT_UShort  n, count;
+    FT_UShort  n, m, count;
     FT_ULong   cur_offset, new_offset, base_offset;
 
     TTO_LangSysRecord*  lsr;
@@ -163,8 +163,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_LangSys( &lsr[n].LangSys, memory );
+    for ( m = 0; m < n; m++ )
+      Free_LangSys( &lsr[m].LangSys, memory );
 
     FREE( s->LangSysRecord );
 
@@ -205,7 +205,7 @@
     FT_Error   error;
     FT_Memory  memory = stream->memory;
 
-    FT_UShort          n, count;
+    FT_UShort          n, m, count;
     FT_ULong           cur_offset, new_offset, base_offset;
 
     TTO_ScriptRecord*  sr;
@@ -247,8 +247,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_Script( &sr[n].Script, memory );
+    for ( m = 0; m < n; m++ )
+      Free_Script( &sr[m].Script, memory );
 
     FREE( sl->ScriptRecord );
     return error;
@@ -340,7 +340,7 @@
     FT_Error   error;
     FT_Memory  memory = stream->memory;
 
-    FT_UShort           n, count;
+    FT_UShort           n, m, count;
     FT_ULong            cur_offset, new_offset, base_offset;
 
     TTO_FeatureRecord*  fr;
@@ -382,8 +382,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_Feature( &fr[n].Feature, memory );
+    for ( m = 0; m < n; m++ )
+      Free_Feature( &fr[m].Feature, memory );
 
     FREE( fl->FeatureRecord );
     return error;
@@ -565,7 +565,7 @@
     FT_Error   error;
     FT_Memory  memory = stream->memory;
 
-    FT_UShort      n, count;
+    FT_UShort      n, m, count;
     FT_ULong       cur_offset, new_offset, base_offset;
 
     TTO_SubTable*  st;
@@ -609,8 +609,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_SubTable( &st[n], type, l->LookupType, memory );
+    for ( m = 0; m < n; m++ )
+      Free_SubTable( &st[m], type, l->LookupType, memory );
 
     FREE( l->SubTable );
     return error;
@@ -648,7 +648,7 @@
     FT_Error   error;
     FT_Memory  memory = stream->memory;
 
-    FT_UShort    n, count;
+    FT_UShort    n, m, count;
     FT_ULong     cur_offset, new_offset, base_offset;
 
     TTO_Lookup*  l;
@@ -693,8 +693,8 @@
   Fail1:
     FREE( ll->Properties );
 
-    for ( n = 0; n < count; n++ )
-      Free_Lookup( &l[n], type, memory );
+    for ( m = 0; m < n; m++ )
+      Free_Lookup( &l[m], type, memory );
 
   Fail2:
     FREE( ll->Lookup );
@@ -1199,6 +1199,29 @@
     return error;
   }
 
+
+  FT_Error  Load_EmptyClassDefinition( TTO_ClassDefinition*  cd,
+				       FT_Stream             stream )
+  {
+    FT_Error   error;
+    FT_Memory  memory = stream->memory;
+
+
+    if ( ALLOC_ARRAY( cd->Defined, 1, FT_Bool ) )
+      return error;
+
+    cd->ClassFormat = 1; /* Meaningless */
+    cd->Defined[0] = FALSE;
+
+    if ( ALLOC_ARRAY( cd->cd.cd1.ClassValueArray, 1, FT_UShort ) )
+      goto Fail;
+
+    return TT_Err_Ok;
+
+  Fail:
+    FREE( cd->Defined );
+    return error;
+  }
 
   void  Free_ClassDefinition( TTO_ClassDefinition*  cd,
 			      FT_Memory             memory )

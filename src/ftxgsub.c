@@ -630,7 +630,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort      n, count;
+    FT_UShort      n = 0, m, count;
     FT_ULong       cur_offset, new_offset, base_offset;
 
     TTO_Sequence*  s;
@@ -685,8 +685,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_Sequence( &s[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_Sequence( &s[m], memory );
 
     FREE( s );
 
@@ -827,7 +827,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort          n, count;
+    FT_UShort          n = 0, m, count;
     FT_ULong           cur_offset, new_offset, base_offset;
 
     TTO_AlternateSet*  aset;
@@ -882,8 +882,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_AlternateSet( &aset[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_AlternateSet( &aset[m], memory );
 
     FREE( aset );
 
@@ -1030,7 +1030,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort      n, count;
+    FT_UShort      n = 0, m, count;
     FT_ULong       cur_offset, new_offset, base_offset;
 
     TTO_Ligature*  l;
@@ -1071,8 +1071,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_Ligature( &l[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_Ligature( &l[m], memory );
 
     FREE( l );
     return error;
@@ -1108,7 +1108,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort         n, count;
+    FT_UShort         n = 0, m, count;
     FT_ULong          cur_offset, new_offset, base_offset;
 
     TTO_LigatureSet*  lset;
@@ -1163,8 +1163,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_LigatureSet( &lset[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_LigatureSet( &lset[m], memory );
 
     FREE( lset );
 
@@ -1478,7 +1478,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort     n, count;
+    FT_UShort     n = 0, m, count;
     FT_ULong      cur_offset, new_offset, base_offset;
 
     TTO_SubRule*  sr;
@@ -1519,8 +1519,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_SubRule( &sr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_SubRule( &sr[m], memory );
 
     FREE( sr );
     return error;
@@ -1556,7 +1556,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort        n, count;
+    FT_UShort        n = 0, m, count;
     FT_ULong         cur_offset, new_offset, base_offset;
 
     TTO_SubRuleSet*  srs;
@@ -1610,8 +1610,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_SubRuleSet( &srs[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_SubRuleSet( &srs[m], memory );
 
     FREE( srs );
 
@@ -1744,7 +1744,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort          n, count;
+    FT_UShort          n = 0, m, count;
     FT_ULong           cur_offset, new_offset, base_offset;
 
     TTO_SubClassRule*  scr;
@@ -1786,8 +1786,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_SubClassRule( &scr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_SubClassRule( &scr[m], memory );
 
     FREE( scr );
     return error;
@@ -1823,7 +1823,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort         n, count;
+    FT_UShort         n = 0, m, count;
     FT_ULong          cur_offset, new_offset, base_offset;
 
     TTO_SubClassSet*  scs;
@@ -1901,8 +1901,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_SubClassSet( &scs[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_SubClassSet( &scs[m], memory );
 
     FREE( scs );
 
@@ -1947,7 +1947,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort               n, count;
+    FT_UShort               n = 0, m, count;
     FT_ULong                cur_offset, new_offset, base_offset;
 
     TTO_Coverage*           c;
@@ -2016,8 +2016,8 @@
     FREE( slr );
 
   Fail2:
-    for ( n = 0; n < count; n++ )
-      Free_Coverage( &c[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_Coverage( &c[m], memory );
 
     FREE( c );
     return error;
@@ -2519,7 +2519,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort          n, count;
+    FT_UShort          n = 0, m, count;
     FT_ULong           cur_offset, new_offset, base_offset;
 
     TTO_ChainSubRule*  csr;
@@ -2560,8 +2560,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_ChainSubRule( &csr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainSubRule( &csr[m], memory );
 
     FREE( csr );
     return error;
@@ -2598,7 +2598,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort             n, count;
+    FT_UShort             n = 0, m, count;
     FT_ULong              cur_offset, new_offset, base_offset;
 
     TTO_ChainSubRuleSet*  csrs;
@@ -2652,8 +2652,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_ChainSubRuleSet( &csrs[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainSubRuleSet( &csrs[m], memory );
 
     FREE( csrs );
 
@@ -2872,7 +2872,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort               n, count;
+    FT_UShort               n = 0, m, count;
     FT_ULong                cur_offset, new_offset, base_offset;
 
     TTO_ChainSubClassRule*  cscr;
@@ -2915,8 +2915,8 @@
     return TT_Err_Ok;
 
   Fail:
-    for ( n = 0; n < count; n++ )
-      Free_ChainSubClassRule( &cscr[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainSubClassRule( &cscr[m], memory );
 
     FREE( cscr );
     return error;
@@ -2943,6 +2943,30 @@
     }
   }
 
+  static FT_Error Load_EmptyOrClassDefinition( TTO_ClassDefinition*  cd,
+                                               FT_UShort             limit,
+					       FT_ULong              class_offset,
+					       FT_ULong              base_offset,
+				               FT_Stream             stream )
+  {
+    FT_Error error;
+    FT_ULong               cur_offset;
+
+    cur_offset = FILE_Pos();
+
+    if ( class_offset )
+      {
+        if ( !FILE_Seek( class_offset + base_offset ) )
+          error = Load_ClassDefinition( cd, limit, stream ) == TT_Err_Ok;
+      }
+    else
+       error = Load_EmptyClassDefinition ( cd, stream );
+
+    (void)FILE_Seek( cur_offset );
+
+    return error;
+  }
+
 
   /* ChainContextSubstFormat2 */
 
@@ -2953,7 +2977,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort              n, count;
+    FT_UShort              n = 0, m, count;
     FT_ULong               cur_offset, new_offset, base_offset;
     FT_ULong               backtrack_offset, input_offset, lookahead_offset;
 
@@ -2978,9 +3002,9 @@
     if ( ACCESS_Frame( 8L ) )
       goto Fail5;
 
-    backtrack_offset = GET_UShort() + base_offset;
-    input_offset     = GET_UShort() + base_offset;
-    lookahead_offset = GET_UShort() + base_offset;
+    backtrack_offset = GET_UShort();
+    input_offset     = GET_UShort();
+    lookahead_offset = GET_UShort();
 
     /* `ChainSubClassSetCount' is the upper limit for input class values,
        thus we read it now to make an additional safety check.            */
@@ -2989,20 +3013,19 @@
 
     FORGET_Frame();
 
-    cur_offset = FILE_Pos();
-    if ( FILE_Seek( backtrack_offset ) ||
-         ( error = Load_ClassDefinition( &ccsf2->BacktrackClassDef, count,
-                                         stream ) ) != TT_Err_Ok )
-      goto Fail5;
-    if ( FILE_Seek( input_offset ) ||
-         ( error = Load_ClassDefinition( &ccsf2->InputClassDef, count,
-                                         stream ) ) != TT_Err_Ok )
-      goto Fail4;
-    if ( FILE_Seek( lookahead_offset ) ||
-         ( error = Load_ClassDefinition( &ccsf2->LookaheadClassDef, count,
-                                         stream ) ) != TT_Err_Ok )
+    if ( ( error = Load_EmptyOrClassDefinition( &ccsf2->BacktrackClassDef, count,
+                                                backtrack_offset, base_offset,
+					        stream ) ) != TT_Err_Ok )
+        goto Fail5;
+	       
+    if ( ( error = Load_EmptyOrClassDefinition( &ccsf2->InputClassDef, count,
+                                                input_offset, base_offset,
+                                                stream ) ) != TT_Err_Ok )
+        goto Fail4;
+    if ( ( error = Load_EmptyOrClassDefinition( &ccsf2->LookaheadClassDef, count,
+                                                lookahead_offset, base_offset,
+                                                stream ) ) != TT_Err_Ok )
       goto Fail3;
-    (void)FILE_Seek( cur_offset );
 
     ccsf2->ChainSubClassSet   = NULL;
     ccsf2->MaxBacktrackLength = 0;
@@ -3044,8 +3067,8 @@
     return TT_Err_Ok;
 
   Fail1:
-    for ( n = 0; n < count; n++ )
-      Free_ChainSubClassSet( &cscs[n], memory );
+    for ( m = 0; m < n; m++ )
+      Free_ChainSubClassSet( &cscs[m], memory );
 
     FREE( cscs );
 
@@ -3100,7 +3123,7 @@
     FT_Error error;
     FT_Memory memory = stream->memory;
 
-    FT_UShort               n, count;
+    FT_UShort               n, nb = 0, ni =0, nl = 0, m, count;
     FT_UShort               backtrack_count, input_count, lookahead_count;
     FT_ULong                cur_offset, new_offset, base_offset;
 
@@ -3129,7 +3152,7 @@
 
     b = ccsf3->BacktrackCoverage;
 
-    for ( n = 0; n < backtrack_count; n++ )
+    for ( nb = 0; nb < backtrack_count; nb++ )
     {
       if ( ACCESS_Frame( 2L ) )
         goto Fail4;
@@ -3140,7 +3163,7 @@
 
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
-           ( error = Load_Coverage( &b[n], stream ) ) != TT_Err_Ok )
+           ( error = Load_Coverage( &b[nb], stream ) ) != TT_Err_Ok )
         goto Fail4;
       (void)FILE_Seek( cur_offset );
     }
@@ -3161,7 +3184,7 @@
 
     i = ccsf3->InputCoverage;
 
-    for ( n = 0; n < input_count; n++ )
+    for ( ni = 0; ni < input_count; ni++ )
     {
       if ( ACCESS_Frame( 2L ) )
         goto Fail3;
@@ -3172,7 +3195,7 @@
 
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
-           ( error = Load_Coverage( &i[n], stream ) ) != TT_Err_Ok )
+           ( error = Load_Coverage( &i[ni], stream ) ) != TT_Err_Ok )
         goto Fail3;
       (void)FILE_Seek( cur_offset );
     }
@@ -3194,7 +3217,7 @@
 
     l = ccsf3->LookaheadCoverage;
 
-    for ( n = 0; n < lookahead_count; n++ )
+    for ( nl = 0; nl < lookahead_count; nl++ )
     {
       if ( ACCESS_Frame( 2L ) )
         goto Fail2;
@@ -3205,7 +3228,7 @@
 
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
-           ( error = Load_Coverage( &l[n], stream ) ) != TT_Err_Ok )
+           ( error = Load_Coverage( &l[nl], stream ) ) != TT_Err_Ok )
         goto Fail2;
       (void)FILE_Seek( cur_offset );
     }
@@ -3244,20 +3267,20 @@
     FREE( slr );
 
   Fail2:
-    for ( n = 0; n < lookahead_count; n++ )
-      Free_Coverage( &l[n], memory );
+    for ( m = 0; m < nl; m++ )
+      Free_Coverage( &l[m], memory );
 
     FREE( l );
 
   Fail3:
-    for ( n = 0; n < input_count; n++ )
-      Free_Coverage( &i[n], memory );
+    for ( m = 0; m < ni; m++ )
+      Free_Coverage( &i[m], memory );
 
     FREE( i );
 
   Fail4:
-    for ( n = 0; n < backtrack_count; n++ )
-      Free_Coverage( &b[n], memory );
+    for ( m = 0; m < nb; m++ )
+      Free_Coverage( &b[m], memory );
 
     FREE( b );
     return error;
