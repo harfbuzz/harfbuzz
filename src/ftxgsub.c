@@ -1194,7 +1194,8 @@
     FT_UShort      index, property;
     FT_Error       error;
     FT_UShort      numlig, i, j, is_mark, first_is_mark = FALSE;
-    FT_UShort*     s_in;
+    FT_UShort      first_ligID, first_comp;
+    FT_UShort      *s_in, *lig_in, *comp_in;
     FT_UShort*     c;
 
     TTO_Ligature*  lig;
@@ -1222,8 +1223,12 @@
       if ( in->pos + lig->ComponentCount > in->length )
         continue;                         /* Not enough glyphs in input */
 
-      s_in = &in->string[in->pos];
-      c    = lig->Component;
+      s_in        = &in->string[in->pos];
+      lig_in      = &in->ligIDs[in->pos];
+      comp_in     = &in->components[in->pos];
+      first_ligID = *lig_in;
+      first_comp  = *comp_in;
+      c           = lig->Component;
 
       is_mark = first_is_mark;
 
@@ -1242,6 +1247,26 @@
           else
             break;
         }
+
+        /* don't apply a ligature lookup to glyphs with different
+           ligature IDs.  Example:
+
+                                                       '
+                                  ^'              '    ^
+             f ^ l ' -> fl ^ ' -> fl  but not  fl ^ -> fl         */
+
+        if ( first_ligID != lig_in[j] )
+          break;
+
+        /* don't apply a ligature lookup to glyphs with different
+           component values.  Example:
+
+                                                            '
+                                     ^'                '    ^
+             f ^ f ' l -> ffl ^ ' -> ffl  but not  ffl ^ -> ffl   */
+
+        if ( first_comp != comp_in[j] )
+          break;
 
         if ( !( property == TTO_MARK || property & IGNORE_SPECIAL_MARKS ) )
           is_mark = FALSE;
