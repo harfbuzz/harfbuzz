@@ -149,12 +149,12 @@ add_features (TTO_GSUB gsub)
 void 
 dump_string (TTO_GSUB_String *str)
 {
-  int i;
+  FT_ULong i;
 
   fprintf (stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
   for (i = 0; i < str->length; i++)
     {
-      fprintf (stderr, "%2d: %#06x %#06x %4d %4d\n",
+      fprintf (stderr, "%2lu: %#06x %#06x %4d %4d\n",
 	       i,
 	       str->string[i],
 	       str->properties[i],
@@ -175,7 +175,7 @@ try_string (FT_Library library,
   FT_Error error;
   TTO_GSUB_String *in_str;
   TTO_GSUB_String *out_str;
-  int i;
+  FT_ULong i;
 
   if ((error = TT_GSUB_String_New (face->memory, &in_str)))
     croak ("TT_GSUB_String_New", error);
@@ -226,6 +226,7 @@ main (int argc, char **argv)
   if ((error = FT_New_Face (library, argv[1], 0, &face)))
     croak ("FT_New_Face", error);
 
+  printf("----> GSUB <----\n");
   if (!(error = TT_Load_GSUB_Table (face, &gsub, NULL)))
     {
       TT_Dump_GSUB_Table (gsub, stdout);
@@ -234,8 +235,9 @@ main (int argc, char **argv)
 	croak ("FT_Done_GSUB_Table", error);
     }
   else
-    fprintf (stderr, "TT_Load_GSUB_Table %d\n", error);
+    fprintf (stderr, "TT_Load_GSUB_Table %x\n", error);
 
+  printf("----> GPOS <----\n");
   if (!(error = TT_Load_GPOS_Table (face, &gpos, NULL)))
     {
       TT_Dump_GPOS_Table (gpos, stdout);
@@ -244,7 +246,7 @@ main (int argc, char **argv)
 	croak ("FT_Done_GPOS_Table", error);
     }
   else
-    fprintf (stderr, "TT_Load_GPOS_Table %d\n", error);
+    fprintf (stderr, "TT_Load_GPOS_Table %x\n", error);
 
 #if 0  
   select_cmap (face);

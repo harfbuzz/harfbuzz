@@ -32,9 +32,12 @@
 #define DUMP_FINT(strct,fld) dump (stream, indent, "<" #fld ">%d</" #fld ">\n", (strct)->fld)
 #define DUMP_FUINT(strct,fld) dump (stream, indent, "<" #fld ">%u</" #fld ">\n", (strct)->fld)
 #define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#4x</" #fld ">\n", (strct)->fld)
+#define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#4x</" #fld ">\n", (strct)->fld)
+#define DUMP_USHORT_ARRAY(strct,fld,cnt) Dump_UShort_Array ((strct)->fld, cnt, #fld, stream, indent, is_gsub);
 
 #define DEF_DUMP(type) static void Dump_ ## type (TTO_ ## type *type, FILE *stream, int indent, FT_Bool is_gsub)
 #define RECURSE(name, type, val) do {  DUMP ("<" #name ">\n"); Dump_ ## type (val, stream, indent + 1, is_gsub); DUMP ("</" #name ">\n"); } while (0)
+#define RECURSE_NUM(name, i, type, val) do {  DUMP ("<" #name "> <!-- %d -->\n", i); Dump_ ## type (val, stream, indent + 1, is_gsub); DUMP ("</" #name ">\n"); } while (0)
 #define DUMP_VALUE_RECORD(val, frmt) do {  DUMP ("<ValueRecord>\n"); Dump_ValueRecord (val, stream, indent + 1, is_gsub, frmt); DUMP ("</ValueRecord>\n"); } while (0)
 
 static void
@@ -56,6 +59,19 @@ dump (FILE *stream, int indent, const char *format, ...)
   va_start (list, format);
   vfprintf (stream, format, list);
   va_end (list);
+}
+
+static void 
+Dump_UShort_Array (FT_UShort *array, int count, const char *name, FILE *stream, int indent, FT_Bool is_gsub) 
+{
+  int i;
+  
+  do_indent (stream, indent);
+
+  printf ("<%s>", name);
+  for (i = 0; i < count; i++)
+    printf ("%d%s", array[i], i == 0 ? "" : " ");
+  printf ("</%s>\n", name);
 }
 
 static void 
@@ -94,7 +110,7 @@ DEF_DUMP (Script)
       fprintf (stream, "<LangSysTag>");
       Print_Tag (Script->LangSysRecord[i].LangSysTag, stream);
       fprintf (stream, "</LangSysTag>\n");
-      RECURSE (LangSys, LangSys, &Script->LangSysRecord[i].LangSys);
+      RECURSE_NUM (LangSys, i, LangSys, &Script->LangSysRecord[i].LangSys);
     }
 }
 
@@ -110,7 +126,7 @@ DEF_DUMP (ScriptList)
       fprintf (stream, "<ScriptTag>");
       Print_Tag (ScriptList->ScriptRecord[i].ScriptTag, stream);
       fprintf (stream, "</ScriptTag>\n");
-      RECURSE (Script, Script, &ScriptList->ScriptRecord[i].Script);
+      RECURSE_NUM (Script, i, Script, &ScriptList->ScriptRecord[i].Script);
     }
 }
 
@@ -125,6 +141,22 @@ DEF_DUMP (Feature)
     DUMP("<LookupIndex>%d</LookupIndex>\n", Feature->LookupListIndex[i]);
 }
 
+DEF_DUMP (MarkRecord)
+{
+  DUMP_FUINT (MarkRecord, Class);
+  DUMP("<Anchor>%d</Anchor>\n", MarkRecord->MarkAnchor.PosFormat );
+}
+
+DEF_DUMP (MarkArray)
+{
+  int i;
+
+  DUMP_FUINT (MarkArray, MarkCount);
+
+  for (i=0; i < MarkArray->MarkCount; i++)
+    RECURSE_NUM (MarkRecord, i, MarkRecord, &MarkArray->MarkRecord[i]);
+}
+
 DEF_DUMP (FeatureList)
 {
   int i;
@@ -136,8 +168,8 @@ DEF_DUMP (FeatureList)
       do_indent (stream, indent);
       fprintf (stream, "<FeatureTag>");
       Print_Tag (FeatureList->FeatureRecord[i].FeatureTag, stream);
-      fprintf (stream, "</FeatureTag>\n");
-      RECURSE (Feature, Feature, &FeatureList->FeatureRecord[i].Feature);
+      fprintf (stream, "</FeatureTag> <!-- %d -->\n", i);
+      RECURSE_NUM (Feature, i, Feature, &FeatureList->FeatureRecord[i].Feature);
     }
 }
 
@@ -151,11 +183,84 @@ DEF_DUMP (Coverage)
       DUMP_FUINT (&Coverage->cf.cf1, GlyphCount);
 
       for (i = 0; i < Coverage->cf.cf1.GlyphCount; i++)
-	DUMP("<Glyph>%#4x</Glyph> <!-- %d -->\n", Coverage->cf.cf1.GlyphArray[i], i);
+	DUMP("<Glyph>%#4x</Glyph> <!-- %d -->\n",
+	     Coverage->cf.cf1.GlyphArray[i], i);
     }
   else
     {
+      int i;
+      DUMP_FUINT (&Coverage->cf.cf2, RangeCount);
+      
+      for ( i = 0; i < Coverage->cf.cf2.RangeCount; i++ )
+	  DUMP("<Glyph>%#4x - %#4x</Glyph> <!-- %d -->\n",
+	       Coverage->cf.cf2.RangeRecord[i].Start,
+	       Coverage->cf.cf2.RangeRecord[i].End);
     }
+}
+
+DEF_DUMP (ClassRangeRecord)
+{
+  DUMP_FGLYPH (ClassRangeRecord, Start);
+  DUMP_FGLYPH (ClassRangeRecord, End);
+  DUMP_FUINT (ClassRangeRecord, Class);
+}
+     
+DEF_DUMP (ClassDefinition)
+{
+  DUMP_FUINT( ClassDefinition, ClassFormat);
+  DUMP_FUINT( ClassDefinition, loaded);
+
+  if (ClassDefinition->ClassFormat == 1)
+    {
+      int i;
+      TTO_ClassDefFormat1 *ClassDefFormat1 = &ClassDefinition->cd.cd1;
+      DUMP("<ClassDefinition>\n");
+      DUMP_FUINT (ClassDefFormat1, StartGlyph );
+      DUMP_FUINT (ClassDefFormat1, GlyphCount );
+      for (i = 0; i < ClassDefFormat1->GlyphCount; i++)
+	DUMP(" <Class>%d</Class> <!-- %#4x -->", ClassDefFormat1->ClassValueArray[i],
+	     ClassDefFormat1->StartGlyph+i );
+    }
+  else if (ClassDefinition->ClassFormat == 2)
+    {
+      int i;
+      TTO_ClassDefFormat2 *ClassDefFormat2 = &ClassDefinition->cd.cd2;
+      DUMP_FUINT (ClassDefFormat2, ClassRangeCount);
+      
+      for (i = 0; i < ClassDefFormat2->ClassRangeCount; i++)
+	RECURSE_NUM (ClassRangeRecord, i, ClassRangeRecord, &ClassDefFormat2->ClassRangeRecord[i]);
+    }
+  else
+    printf("invalid class def table!!!\n");
+}
+
+DEF_DUMP (SubstLookupRecord)
+{
+  DUMP_FUINT (SubstLookupRecord, SequenceIndex);
+  DUMP_FUINT (SubstLookupRecord, LookupListIndex);
+}
+
+DEF_DUMP (ChainSubClassRule)
+{
+  int i;
+
+  DUMP_USHORT_ARRAY (ChainSubClassRule, Backtrack, ChainSubClassRule->BacktrackGlyphCount);
+  DUMP_USHORT_ARRAY (ChainSubClassRule, Input, ChainSubClassRule->InputGlyphCount - 1);
+  DUMP_USHORT_ARRAY (ChainSubClassRule, Lookahead, ChainSubClassRule->LookaheadGlyphCount);
+  
+  for (i = 0; i < ChainSubClassRule->SubstCount; i++)
+    RECURSE_NUM (SubstLookupRecord, i, SubstLookupRecord, &ChainSubClassRule->SubstLookupRecord[i]);
+
+  indent--;
+}
+
+DEF_DUMP (ChainSubClassSet)
+{
+  int i;
+  
+  DUMP_FUINT( ChainSubClassSet, ChainSubClassRuleCount );
+  for (i = 0; i < ChainSubClassSet->ChainSubClassRuleCount; i++)
+    RECURSE_NUM (ChainSubClassRule, i, ChainSubClassRule, &ChainSubClassSet->ChainSubClassRule[i]);
 }
 
 static void
@@ -198,7 +303,7 @@ DEF_DUMP (LigatureSet)
   DUMP_FUINT (LigatureSet, LigatureCount);
 
   for (i=0; i < LigatureSet->LigatureCount; i++)
-    RECURSE (Ligature, Ligature, &LigatureSet->Ligature[i]);
+    RECURSE_NUM (Ligature, i, Ligature, &LigatureSet->Ligature[i]);
 }
 
 static void
@@ -213,7 +318,95 @@ Dump_GSUB_Lookup_Ligature (TTO_SubTable *subtable, FILE *stream, int indent, FT_
   DUMP_FUINT (LigatureSubst, LigatureSetCount);
 
   for (i=0; i < LigatureSubst->LigatureSetCount; i++)
-    RECURSE (LigatureSet, LigatureSet, &LigatureSubst->LigatureSet[i]);
+    RECURSE_NUM (LigatureSet, i, LigatureSet, &LigatureSubst->LigatureSet[i]);
+}
+
+DEF_DUMP (ContextSubstFormat1)
+{
+  DUMP("Not implemented!!!\n");
+}
+
+DEF_DUMP (ContextSubstFormat2)
+{
+  DUMP_FUINT (ContextSubstFormat2, MaxContextLength);
+  RECURSE (Coverage, Coverage, &ContextSubstFormat2->Coverage);
+  RECURSE (ClassDefinition, ClassDefinition, &ContextSubstFormat2->ClassDef);
+}
+
+DEF_DUMP (ContextSubstFormat3)
+{
+  DUMP("Not implemented!!!\n");
+}
+
+static void
+Dump_GSUB_Lookup_Context (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+{
+  TTO_ContextSubst *ContextSubst = &subtable->st.gsub.context;
+
+  DUMP_FUINT (ContextSubst, SubstFormat);
+  switch( ContextSubst->SubstFormat )
+    {
+    case 1:
+      Dump_ContextSubstFormat1 (&ContextSubst->csf.csf1, stream, indent+2, is_gsub);
+      break;
+    case 2:
+      Dump_ContextSubstFormat2 (&ContextSubst->csf.csf2, stream, indent+2, is_gsub);
+      break;
+    case 3:
+      Dump_ContextSubstFormat3 (&ContextSubst->csf.csf3, stream, indent+2, is_gsub);
+      break;
+    default:
+      printf("invalid subformat!!!!!\n");
+    }
+}
+
+DEF_DUMP (ChainContextSubstFormat1)
+{
+  DUMP("Not implemented!!!\n");
+}
+
+DEF_DUMP (ChainContextSubstFormat2)
+{
+  int i;
+  
+  RECURSE (Coverage, Coverage, &ChainContextSubstFormat2->Coverage);
+  DUMP_FUINT (ChainContextSubstFormat2, MaxBacktrackLength);
+  RECURSE (ClassDefinition, ClassDefinition, &ChainContextSubstFormat2->BacktrackClassDef);
+  DUMP_FUINT (ChainContextSubstFormat2, MaxInputLength);
+  RECURSE (ClassDefinition, ClassDefinition, &ChainContextSubstFormat2->InputClassDef);
+  DUMP_FUINT (ChainContextSubstFormat2, MaxLookaheadLength);
+  RECURSE (ClassDefinition, ClassDefinition, &ChainContextSubstFormat2->LookaheadClassDef);
+  
+  DUMP_FUINT (ChainContextSubstFormat2, ChainSubClassSetCount);
+  for (i = 0; i < ChainContextSubstFormat2->ChainSubClassSetCount; i++)
+    RECURSE (ChainSubClassSet, ChainSubClassSet, &ChainContextSubstFormat2->ChainSubClassSet[i]);
+}
+
+DEF_DUMP (ChainContextSubstFormat3)
+{
+  DUMP("Not implemented!!!\n");
+}
+
+static void
+Dump_GSUB_Lookup_Chain (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+{
+  TTO_ChainContextSubst *chain = &subtable->st.gsub.chain;
+  
+  DUMP_FUINT (chain, SubstFormat);
+  switch (chain->SubstFormat)
+    {
+    case 1:
+      Dump_ChainContextSubstFormat1 (&chain->ccsf.ccsf1, stream, indent+2, is_gsub);
+      break;
+    case 2:
+      Dump_ChainContextSubstFormat2 (&chain->ccsf.ccsf2, stream, indent+2, is_gsub);
+      break;
+    case 3:
+      Dump_ChainContextSubstFormat3 (&chain->ccsf.ccsf3, stream, indent+2, is_gsub);
+      break;
+    default:
+      printf("invalid subformat!!!!!\n");
+    }
 }
 
 static void
@@ -359,6 +552,36 @@ Dump_GPOS_Lookup_Pair (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool
     }
 }
 
+static void
+Dump_GPOS_Lookup_Markbase (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+{
+  int i;
+  TTO_MarkBasePos *markbase = &subtable->st.gpos.markbase;
+  
+  DUMP_FUINT (markbase, PosFormat);
+  RECURSE (Coverage, Coverage, &markbase->MarkCoverage);
+  RECURSE (Coverage, Coverage, &markbase->BaseCoverage);
+  DUMP_FUINT (markbase, ClassCount);
+  RECURSE (MarkArray, MarkArray, &markbase->MarkArray);
+  
+  DUMP ("<BaseArray>\n");
+  indent++;
+  
+  DUMP_FUINT (&markbase->BaseArray, BaseCount);
+  for (i = 0; i < markbase->BaseArray.BaseCount; i++)
+    {
+      int j;
+      TTO_BaseRecord *r = &markbase->BaseArray.BaseRecord[i];
+      DUMP ("<BaseRecord> <!-- %d -->\n",  i);
+      for (j = 0; j < markbase->ClassCount; j++)
+	DUMP ("  <Anchor>%d</Anchor>\n", r->BaseAnchor->PosFormat);
+      DUMP ("<BaseRecord>\n");
+    }
+  
+  indent--;
+  DUMP ("</BaseArray>\n");
+}
+
 DEF_DUMP (Lookup)
 {
   int i;
@@ -385,9 +608,11 @@ DEF_DUMP (Lookup)
 	  break;
 	case  GSUB_LOOKUP_CONTEXT:
 	  lookup_name = "CONTEXT";
+	  lookup_func = Dump_GSUB_Lookup_Context;
 	  break;
 	case  GSUB_LOOKUP_CHAIN:
 	  lookup_name = "CHAIN";
+	  lookup_func = Dump_GSUB_Lookup_Chain;
 	  break;
 	}
     }
@@ -408,6 +633,7 @@ DEF_DUMP (Lookup)
 	  break;
 	case GPOS_LOOKUP_MARKBASE:
 	  lookup_name = "MARKBASE";
+	  lookup_func = Dump_GPOS_Lookup_Markbase;
 	  break;
 	case GPOS_LOOKUP_MARKLIG:
 	  lookup_name = "MARKLIG";
@@ -442,7 +668,7 @@ DEF_DUMP (LookupList)
   DUMP_FUINT (LookupList, LookupCount);
 
   for (i=0; i < LookupList->LookupCount; i++)
-    RECURSE (Lookup, Lookup, &LookupList->Lookup[i]);
+    RECURSE_NUM (Lookup, i, Lookup, &LookupList->Lookup[i]);
 }
 
 void
