@@ -43,6 +43,8 @@
     FT_UShort        load_flags;  /* how the glyph should be loaded */
     FT_Bool          r2l;
 
+    FT_UShort        first;       /* the first glyph in a chain of
+                                     cursive connections           */
     FT_UShort        last;        /* the last valid glyph -- used
                                      with cursive positioning     */
     FT_Pos           anchor_x;    /* the coordinates of the anchor point */
@@ -2089,6 +2091,8 @@
       gpi->last = 0xFFFF;
     else
     {
+      if ( gpi->first == 0xFFFF )
+        gpi->first  = in->pos;
       gpi->last     = in->pos;
       gpi->anchor_x = exit_x;
       gpi->anchor_y = exit_y;
@@ -6120,9 +6124,12 @@
     FT_UShort*  p_in       = in->properties;
 
     int      nesting_level = 0;
+    UShort   i;
+    TT_Pos   offset;
 
 
-    gpi->last = 0xFFFF;      /* no last valid glyph for cursive pos. */
+    gpi->first = 0xFFFF;
+    gpi->last  = 0xFFFF;     /* no last valid glyph for cursive pos. */
 
     in->pos = 0;
 
@@ -6151,6 +6158,22 @@
         gpi->last = 0xFFFF;
 
         error = TTO_Err_Not_Covered;
+      }
+
+      /* test whether we have to adjust the offsets for cursive connections */
+
+      if ( gpi->first != 0xFFFF && gpi->last == 0xFFFF &&
+           gpos->LookupList.Lookup[lookup_index].LookupFlag & RIGHT_TO_LEFT )
+      {
+        offset = out[in->pos].y_pos;
+
+        /* no horizontal offsets (for vertical writing direction)
+           supported yet                                          */
+
+        for ( i = gpi->first; i <= in->pos; i++ )
+          out[i].y_pos -= offset;
+
+        gpi->first = 0xFFFF;
       }
 
       if ( error == TTO_Err_Not_Covered )

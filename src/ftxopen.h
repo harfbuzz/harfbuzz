@@ -155,9 +155,13 @@ extern "C" {
   typedef struct TTO_LookupList_  TTO_LookupList;
 
 
-/* Possible LookupFlag bit masks.  `IGNORE_SPECIAL_MARKS' comes from the
-   OpenType 1.2 specification.                                           */
+  /* Possible LookupFlag bit masks.  `IGNORE_SPECIAL_MARKS' comes from the
+     OpenType 1.2 specification; RIGHT_TO_LEFT has been (re)introduced in
+     OpenType 1.3 -- if set, the last glyph in a cursive attachment
+     sequence has to be positioned on the baseline -- regardless of the
+     writing direction.                                                    */
 
+#define RIGHT_TO_LEFT         0x0001
 #define IGNORE_BASE_GLYPHS    0x0002
 #define IGNORE_LIGATURES      0x0004
 #define IGNORE_MARKS          0x0008
