@@ -94,6 +94,13 @@ pango_ot_info_finalize (GObject *object)
     }
 }
 
+/**
+ * pango_ot_info_new:
+ * @face: a #FT_Face.
+ * @returns: a new #PangoOTInfo for @face.
+ * 
+ * Creates a new #PangoOTInfo structure for the given FreeType font.
+ **/
 PangoOTInfo *
 pango_ot_info_new (FT_Face face)
 {
@@ -223,6 +230,16 @@ get_tables (PangoOTInfo      *info,
     }
 }
 
+/**
+ * pango_ot_info_find_script:
+ * @info: a #PangoOTInfo.
+ * @table_type: the table type to obtain information about.
+ * @script_tag: the tag of the script to find.
+ * @script_index: location to store the index of the script, or %NULL.
+ * @returns: %TRUE if the script was found.
+ * 
+ * Finds the index of a script.
+ **/
 gboolean 
 pango_ot_info_find_script (PangoOTInfo      *info,
 			   PangoOTTableType  table_type,
@@ -251,6 +268,19 @@ pango_ot_info_find_script (PangoOTInfo      *info,
   return FALSE;
 }
 
+/**
+ * pango_ot_info_find_language:
+ * @info: a #PangoOTInfo.
+ * @table_type: the table type to obtain information about.
+ * @script_index: the index of the script whose languages are searched.
+ * @language_tag: the tag of the language to find.
+ * @language_index: location to store the index of the language, or %NULL.
+ * @required_feature_index: location to store the required feature index of 
+ *    the language, or %NULL.
+ * @returns: %TRUE if the language was found.
+ * 
+ * Finds the index of a language and its required feature index.  
+ **/
 gboolean
 pango_ot_info_find_language (PangoOTInfo      *info,
 			     PangoOTTableType  table_type,
@@ -287,6 +317,19 @@ pango_ot_info_find_language (PangoOTInfo      *info,
   return FALSE;
 }
 
+/**
+ * pango_ot_info_find_feature:
+ * @info: a #PangoOTInfo.
+ * @table_type: the table type to obtain information about.
+ * @feature_tag: the tag of the feature to find.
+ * @script_index: the index of the script.
+ * @language_index: the index of the language whose features are searched,
+ *     or 0xffff to use the default language of the script.
+ * @feature_index: location to store the index of the feature, or %NULL. 
+ * @returns: %TRUE if the feature was found.
+ * 
+ * Finds the index of a feature.
+ **/
 gboolean
 pango_ot_info_find_feature  (PangoOTInfo      *info,
 			     PangoOTTableType  table_type,
@@ -335,6 +378,15 @@ pango_ot_info_find_feature  (PangoOTInfo      *info,
   return FALSE;
 }
 
+/**
+ * pango_ot_info_list_scripts:
+ * @info: a #PangoOTInfo.
+ * @table_type: the table type to obtain information about.
+ * @returns: a newly-allocated array containing the tags of the
+ *   available scripts.
+ *
+ * Obtains the list of available scripts. 
+ **/
 PangoOTTag *
 pango_ot_info_list_scripts (PangoOTInfo      *info,
 			    PangoOTTableType  table_type)
@@ -358,6 +410,17 @@ pango_ot_info_list_scripts (PangoOTInfo      *info,
   return result;
 }
 
+/**
+ * pango_ot_info_list_languages:
+ * @info: a #PangoOTInfo.
+ * @table_type: the table type to obtain information about.
+ * @script_index: the index of the script to list languages for.
+ * @language_tag: unused parameter.
+ * @returns: a newly-allocated array containing the tags of the
+ *   available languages.
+ * 
+ * Obtains the list of available languages for a given script.
+ **/ 
 PangoOTTag *
 pango_ot_info_list_languages (PangoOTInfo      *info,
 			      PangoOTTableType  table_type,
@@ -388,6 +451,19 @@ pango_ot_info_list_languages (PangoOTInfo      *info,
   return result;
 }
 
+/** 
+ * pango_ot_info_list_features:
+ * @info: a #PangoOTInfo.
+ * @table_type: the table type to obtain information about.
+ * @tag: unused parameter.
+ * @script_index: the index of the script to obtain information about. 
+ * @language_index: the indes of the language to list features for, or
+ *     0xffff, to list features for the default language of the script.
+ * @returns: a newly-allocated array containing the tags of the available
+ *    features. 
+ *
+ * Obtains the list of features for the given language of the given script.
+ **/
 PangoOTTag *
 pango_ot_info_list_features  (PangoOTInfo      *info,
 			      PangoOTTableType  table_type,

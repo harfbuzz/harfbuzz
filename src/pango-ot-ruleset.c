@@ -90,6 +90,13 @@ pango_ot_ruleset_finalize (GObject *object)
   g_object_unref (G_OBJECT (ruleset->info));
 }
 
+/**
+ * pango_ot_ruleset_new:
+ * @info: a #PangoOTInfo.
+ * @returns: a new #PangoOTRuleset.
+ *
+ * Creates a new #PangoOTRuleset for the given OpenType info.
+ **/
 PangoOTRuleset *
 pango_ot_ruleset_new (PangoOTInfo *info)
 {
@@ -102,6 +109,16 @@ pango_ot_ruleset_new (PangoOTInfo *info)
   return ruleset;
 }
 
+/**
+ * pango_ot_ruleset_add_feature:
+ * @ruleset: a #PangoOTRuleset.
+ * @table_type: the table type to add a feature to.
+ * @feature_index: the index of the feature to add.
+ * @property_bit: the property bit to use for this feature. 
+ *
+ * Adds a feature to the ruleset. See pango_ot_ruleset_shape()
+ * for an explanation of @property_bit.
+ **/
 void
 pango_ot_ruleset_add_feature (PangoOTRuleset   *ruleset,
 			      PangoOTTableType  table_type,
@@ -119,6 +136,16 @@ pango_ot_ruleset_add_feature (PangoOTRuleset   *ruleset,
   g_array_append_val (ruleset->rules, tmp_rule);
 }
 
+/**
+ * pango_ot_ruleset_shape:
+ * @ruleset: a #PangoOTRuleset.
+ * @glyphs: a pointer to a #PangoGlyphString.
+ * @properties: an array containing one #gulong bitfield for each glyph,
+ *   which gives the glyph's properties: If a certain bit is set for a glyph, 
+ *   the feature which has the same bit set in its property value is applied.
+ *
+ * Shapes a string of glyphs with the given properties according to @ruleset.
+ **/
 void
 pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
 			PangoGlyphString *glyphs,
