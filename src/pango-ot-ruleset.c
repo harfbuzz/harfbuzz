@@ -247,18 +247,26 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
 	{
 	  for (i = 0; i < result_string->length; i++)
 	    {
+	      FT_Pos x_pos = outgpos[i].x_pos;
+	      FT_Pos y_pos = outgpos[i].y_pos;
+	      int back = i;
 	      int j;
 
-	      glyphs->glyphs[i].geometry.x_offset += PANGO_UNITS_26_6 (outgpos[i].x_pos);
-	      glyphs->glyphs[i].geometry.y_offset += PANGO_UNITS_26_6 (outgpos[i].y_pos);
+	      while (outgpos[back].back != 0)
+		{
+		  back  -= outgpos[back].back;
+		  x_pos += outgpos[back].x_pos;
+		  y_pos += outgpos[back].y_pos;
+		}
 
-	      for (j = i - outgpos[i].back; j < i; j++)
-		glyphs->glyphs[i].geometry.x_offset -= glyphs->glyphs[j].geometry.width;
-	    
+	      for (j = back; j < i; j++)
+	        glyphs->glyphs[i].geometry.x_offset -= glyphs->glyphs[j].geometry.width;
+
+	      glyphs->glyphs[i].geometry.x_offset += PANGO_UNITS_26_6(x_pos);
+	      glyphs->glyphs[i].geometry.y_offset += PANGO_UNITS_26_6(y_pos);
+
 	      if (outgpos[i].new_advance)
-		/* Can't set new x offset for marks, so just make sure not to increase it.
-		   Can do better than this by playing with ->x_offset. */
-		glyphs->glyphs[i].geometry.width = 0;
+		glyphs->glyphs[i].geometry.width  = PANGO_UNITS_26_6(outgpos[i].x_advance);
 	      else
 		glyphs->glyphs[i].geometry.width += PANGO_UNITS_26_6(outgpos[i].x_advance);
 	    }
@@ -272,7 +280,6 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
   last_cluster = -1;
   for (i = 0; i < result_string->length; i++)
     {
-      glyphs->glyphs[i].glyph = result_string->string[i];
       glyphs->glyphs[i].glyph = result_string->string[i];
 
       glyphs->log_clusters[i] = result_string->logClusters[i];
