@@ -746,7 +746,7 @@
 				   FT_UShort        glyphID,
 				   FT_UShort        index )
   {
-    FT_UShort              glyph_index, array_index;
+    FT_UShort              glyph_index, array_index, count;
     FT_UShort              byte, bits;
     
     TTO_ClassRangeRecord*  gcrr;
@@ -756,10 +756,11 @@
     if ( glyphID >= gdef->LastGlyph )
       return 0;
 
+    count = gdef->GlyphClassDef.cd.cd2.ClassRangeCount;
     gcrr = gdef->GlyphClassDef.cd.cd2.ClassRangeRecord;
     ngc  = gdef->NewGlyphClasses;
 
-    if ( glyphID < gcrr[index].Start )
+    if ( index < count && glyphID < gcrr[index].Start )
     {
       array_index = index;
       if ( index == 0 )
@@ -999,7 +1000,7 @@
 
     if ( ALLOC_ARRAY( gdef->NewGlyphClasses,
                       gcd->cd.cd2.ClassRangeCount + 1, FT_UShort* ) )
-      goto Fail2;
+      goto Fail3;
 
     count = gcd->cd.cd2.ClassRangeCount;
     gcrr  = gcd->cd.cd2.ClassRangeRecord;
@@ -1008,29 +1009,39 @@
     /* We allocate arrays for all glyphs not covered by the class range
        records.  Each element holds four class values.                  */
 
-    if ( gcrr[0].Start )
+    if ( count > 0 )
     {
-      if ( ALLOC_ARRAY( ngc[0], ( gcrr[0].Start + 3 ) / 4, FT_UShort ) )
-        goto Fail1;
-    }
+	if ( gcrr[0].Start )
+	{
+	  if ( ALLOC_ARRAY( ngc[0], ( gcrr[0].Start + 3 ) / 4, FT_UShort ) )
+	    goto Fail2;
+	}
 
-    for ( n = 1; n < count; n++ )
+	for ( n = 1; n < count; n++ )
+	{
+	  if ( gcrr[n].Start - gcrr[n - 1].End > 1 )
+	    if ( ALLOC_ARRAY( ngc[n],
+			      ( gcrr[n].Start - gcrr[n - 1].End + 2 ) / 4,
+			      FT_UShort ) )
+	      goto Fail1;
+	}
+
+	if ( gcrr[count - 1].End != num_glyphs - 1 )
+	{
+	  if ( ALLOC_ARRAY( ngc[count],
+			    ( num_glyphs - gcrr[count - 1].End + 2 ) / 4,
+			    FT_UShort ) )
+	      goto Fail1;
+	}
+    }
+    else if ( num_glyphs > 0 )
     {
-      if ( gcrr[n].Start - gcrr[n - 1].End > 1 )
-        if ( ALLOC_ARRAY( ngc[n],
-                          ( gcrr[n].Start - gcrr[n - 1].End + 2 ) / 4,
-                          FT_UShort ) )
-          goto Fail1;
+	if ( ALLOC_ARRAY( ngc[count],
+			  ( num_glyphs + 3 ) / 4,
+			  FT_UShort ) )
+	    goto Fail2;
     }
-
-    if ( gcrr[count - 1].End != num_glyphs - 1 )
-    {
-      if ( ALLOC_ARRAY( ngc[count],
-                        ( num_glyphs - gcrr[count - 1].End + 2 ) / 4,
-                        FT_UShort ) )
-        goto Fail1;
-    }
-
+	
     gdef->LastGlyph = num_glyphs - 1;
 
     gdef->MarkAttachClassDef_offset = 0L;
@@ -1083,7 +1094,7 @@
     FT_Error               error;
     FT_UShort              class, new_class, index;
     FT_UShort              byte, bits, mask;
-    FT_UShort              array_index, glyph_index;
+    FT_UShort              array_index, glyph_index, count;
 
     TTO_ClassRangeRecord*  gcrr;
     FT_UShort**            ngc;
@@ -1124,10 +1135,11 @@
       return TT_Err_Invalid_Argument;
     }
 
+    count = gdef->GlyphClassDef.cd.cd2.ClassRangeCount;
     gcrr = gdef->GlyphClassDef.cd.cd2.ClassRangeRecord;
     ngc  = gdef->NewGlyphClasses;
 
-    if ( glyphID < gcrr[index].Start )
+    if ( index < count && glyphID < gcrr[index].Start )
     {
       array_index = index;
       if ( index == 0 )

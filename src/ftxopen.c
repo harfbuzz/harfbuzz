@@ -940,6 +940,9 @@
 
     /* binary search */
 
+    if ( cf1->GlyphCount == 0 )
+      return TTO_Err_Not_Covered;
+
     new_min = 0;
     new_max = cf1->GlyphCount - 1;
 
@@ -986,6 +989,9 @@
 
 
     /* binary search */
+
+    if ( cf2->RangeCount == 0 )
+      return TTO_Err_Not_Covered;
 
     new_min = 0;
     new_max = cf2->RangeCount - 1;
@@ -1325,6 +1331,15 @@
 
 
     /* binary search */
+
+    if ( cdf2->ClassRangeCount == 0 )
+      {
+	*class = 0;
+	if ( index )
+	  *index = 0;
+	
+	return TTO_Err_Not_Covered;
+      }
 
     new_min = 0;
     new_max = cdf2->ClassRangeCount - 1;
