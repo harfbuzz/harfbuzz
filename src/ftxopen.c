@@ -708,7 +708,7 @@
 
     if ( ALLOC_ARRAY( ll->Lookup, count, TTO_Lookup ) )
       return error;
-    if ( ALLOC_ARRAY( ll->Properties, count, FT_UShort ) )
+    if ( ALLOC_ARRAY( ll->Properties, count, FT_UInt ) )
       goto Fail2;
 
     l = ll->Lookup;

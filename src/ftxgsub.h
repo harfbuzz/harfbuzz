@@ -551,7 +551,7 @@ extern "C" {
   EXPORT_DEF
   FT_Error  TT_GSUB_Add_Feature( TTO_GSUBHeader*  gsub,
                                  FT_UShort        feature_index,
-                                 FT_UShort        property );
+                                 FT_UInt          property );
   EXPORT_DEF
   FT_Error  TT_GSUB_Clear_Features( TTO_GSUBHeader*  gsub );
 

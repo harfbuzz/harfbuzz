@@ -152,7 +152,7 @@ extern "C" {
   {
     FT_UShort    LookupCount;           /* number of Lookups       */
     TTO_Lookup*  Lookup;                /* array of Lookup records */
-    FT_UShort*   Properties;            /* array of flags          */
+    FT_UInt*     Properties;            /* array of flags          */
   };
 
   typedef struct TTO_LookupList_  TTO_LookupList;

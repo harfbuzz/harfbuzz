@@ -5974,7 +5974,7 @@
     FT_Error         error, retError = TTO_Err_Not_Covered;
     TTO_GPOSHeader*  gpos = gpi->gpos;
 
-    FT_UShort*  properties = gpos->LookupList.Properties;
+    FT_UInt*  properties = gpos->LookupList.Properties;
 
     int       nesting_level = 0;
 
@@ -6047,12 +6047,12 @@
   EXPORT_FUNC
   FT_Error  TT_GPOS_Add_Feature( TTO_GPOSHeader*  gpos,
                                  FT_UShort        feature_index,
-                                 FT_UShort        property )
+                                 FT_UInt          property )
   {
     FT_UShort    i;
 
     TTO_Feature  feature;
-    FT_UShort*   properties;
+    FT_UInt*     properties;
     FT_UShort*   index;
 
     /* Each feature can only be added once once */
@@ -6081,7 +6081,7 @@
   {
     FT_UShort i;
 
-    FT_UShort*  properties;
+    FT_UInt*  properties;
 
 
     if ( !gpos )
