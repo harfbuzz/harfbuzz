@@ -60,8 +60,8 @@
 
 #define IN_GLYPH( pos )        (buffer->in_string[(pos)].gindex)
 #define IN_ITEM( pos )         (&buffer->in_string[(pos)])
-#define IN_CURGLYPH( pos )     (buffer->in_string[(pos) + buffer->in_pos].gindex)
-#define IN_CURITEM( pos )      (&buffer->in_string[(pos) + buffer->in_pos])
+#define IN_CURGLYPH()          (buffer->in_string[buffer->in_pos].gindex)
+#define IN_CURITEM()           (&buffer->in_string[buffer->in_pos])
 #define IN_PROPERTIES( pos )   (buffer->in_string[(pos)].properties)
 #define IN_LIGID( pos )        (buffer->in_string[(pos)].ligID)
 #define IN_COMPONENT( pos )    (buffer->in_string[(pos)].component)
@@ -1047,10 +1047,10 @@
     if ( context_length != 0xFFFF && context_length < 1 )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &sp->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &sp->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -1536,7 +1536,7 @@
     if ( !pvr )
       return TTO_Err_Invalid_GPOS_SubTable;
 
-    glyph2 = IN_CURGLYPH( 0 );
+    glyph2 = IN_CURGLYPH();
 
     for ( numpvr = ppf1->PairSet[index].PairValueCount;
           numpvr;
@@ -1575,7 +1575,7 @@
                        &cl1, NULL );
     if ( error && error != TTO_Err_Not_Covered )
       return error;
-    error = Get_Class( &ppf2->ClassDef2, IN_CURGLYPH( 0 ),
+    error = Get_Class( &ppf2->ClassDef2, IN_CURGLYPH(),
                        &cl2, NULL );
     if ( error && error != TTO_Err_Not_Covered )
       return error;
@@ -1609,10 +1609,10 @@
     if ( context_length != 0xFFFF && context_length < 2 )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &pp->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &pp->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -1621,7 +1621,7 @@
     first_pos = buffer->in_pos;
     (buffer->in_pos)++;
 
-    while ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ),
+    while ( CHECK_Property( gpos->gdef, IN_CURITEM(),
                             flags, &property ) )
     {
       if ( error && error != TTO_Err_Not_Covered )
@@ -1822,7 +1822,7 @@
     /* Glyphs not having the right GDEF properties will be ignored, i.e.,
        gpi->last won't be reset (contrary to user defined properties). */
 
-    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     /* We don't handle mark glyphs here.  According to Andrei, this isn't
@@ -1834,7 +1834,7 @@
       return TTO_Err_Not_Covered;
     }
 
-    error = Coverage_Index( &cp->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &cp->Coverage, IN_CURGLYPH(), &index );
     if ( error )
     {
       gpi->last = 0xFFFF;
@@ -1969,7 +1969,7 @@
     /* Get_Anchor() returns TTO_Err_Not_Covered if there is no anchor
        table.                                                         */
 
-    error = Get_Anchor( gpi, &eer->EntryAnchor, IN_CURGLYPH( 0 ),
+    error = Get_Anchor( gpi, &eer->EntryAnchor, IN_CURGLYPH(),
                         &entry_x, &entry_y );
     if ( error == TTO_Err_Not_Covered )
       goto end;
@@ -1999,7 +1999,7 @@
     }
 
   end:
-    error = Get_Anchor( gpi, &eer->ExitAnchor, IN_CURGLYPH( 0 ),
+    error = Get_Anchor( gpi, &eer->ExitAnchor, IN_CURGLYPH(),
                         &exit_x, &exit_y );
     if ( error == TTO_Err_Not_Covered )
       gpi->last = 0xFFFF;
@@ -2249,11 +2249,11 @@
     if ( flags & IGNORE_BASE_GLYPHS )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ),
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM(),
                          flags, &property ) )
       return error;
 
-    error = Coverage_Index( &mbp->MarkCoverage, IN_CURGLYPH( 0 ),
+    error = Coverage_Index( &mbp->MarkCoverage, IN_CURGLYPH(),
                             &mark_index );
     if ( error )
       return error;
@@ -2310,7 +2310,7 @@
     br          = &ba->BaseRecord[base_index];
     base_anchor = &br->BaseAnchor[class];
 
-    error = Get_Anchor( gpi, mark_anchor, IN_CURGLYPH( 0 ),
+    error = Get_Anchor( gpi, mark_anchor, IN_CURGLYPH(),
                         &x_mark_value, &y_mark_value );
     if ( error )
       return error;
@@ -2659,9 +2659,9 @@
     if ( flags & IGNORE_LIGATURES )
       return TTO_Err_Not_Covered;
 
-    mark_glyph = IN_CURGLYPH( 0 );
+    mark_glyph = IN_CURGLYPH();
 
-    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     error = Coverage_Index( &mlp->MarkCoverage, mark_glyph, &mark_index );
@@ -2737,7 +2737,7 @@
     cr         = &lat->ComponentRecord[comp_index];
     lig_anchor = &cr->LigatureAnchor[class];
 
-    error = Get_Anchor( gpi, mark_anchor, IN_CURGLYPH( 0 ),
+    error = Get_Anchor( gpi, mark_anchor, IN_CURGLYPH(),
                         &x_mark_value, &y_mark_value );
     if ( error )
       return error;
@@ -2996,11 +2996,11 @@
     if ( flags & IGNORE_MARKS )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ),
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM(),
                          flags, &property ) )
       return error;
 
-    error = Coverage_Index( &mmp->Mark1Coverage, IN_CURGLYPH( 0 ),
+    error = Coverage_Index( &mmp->Mark1Coverage, IN_CURGLYPH(),
                             &mark1_index );
     if ( error )
       return error;
@@ -3052,7 +3052,7 @@
     m2r          = &ma2->Mark2Record[mark2_index];
     mark2_anchor = &m2r->Mark2Anchor[class];
 
-    error = Get_Anchor( gpi, mark1_anchor, IN_CURGLYPH( 0 ),
+    error = Get_Anchor( gpi, mark1_anchor, IN_CURGLYPH(),
                         &x_mark1_value, &y_mark1_value );
     if ( error )
       return error;
@@ -3852,10 +3852,10 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &cpf1->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &cpf1->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -3922,21 +3922,21 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     /* Note: The coverage table in format 2 doesn't give an index into
              anything.  It just lets us know whether or not we need to
              do any lookup at all.                                     */
 
-    error = Coverage_Index( &cpf2->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &cpf2->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
     if ( ALLOC_ARRAY( classes, cpf2->MaxContextLength, FT_UShort ) )
       return error;
 
-    error = Get_Class( &cpf2->ClassDef, IN_CURGLYPH( 0 ),
+    error = Get_Class( &cpf2->ClassDef, IN_CURGLYPH(),
                        &classes[0], NULL );
     if ( error && error != TTO_Err_Not_Covered )
       goto End;
@@ -4024,7 +4024,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     if ( context_length != 0xFFFF && context_length < cpf3->GlyphCount )
@@ -5124,10 +5124,10 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &ccpf1->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &ccpf1->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -5265,14 +5265,14 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     /* Note: The coverage table in format 2 doesn't give an index into
              anything.  It just lets us know whether or not we need to
              do any lookup at all.                                     */
 
-    error = Coverage_Index( &ccpf2->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &ccpf2->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -5288,7 +5288,7 @@
       goto End2;
     known_lookahead_classes = 0;
 
-    error = Get_Class( &ccpf2->InputClassDef, IN_CURGLYPH( 0 ),
+    error = Get_Class( &ccpf2->InputClassDef, IN_CURGLYPH(),
                        &input_classes[0], NULL );
     if ( error && error != TTO_Err_Not_Covered )
       goto End1;
@@ -5456,7 +5456,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     bgc = ccpf3->BacktrackGlyphCount;

@@ -41,7 +41,7 @@
 #define IN_GLYPH( pos )      buffer->in_string[(pos)].gindex
 #define IN_ITEM( pos )       (&buffer->in_string[(pos)])
 #define IN_CURGLYPH()        buffer->in_string[buffer->in_pos].gindex
-#define IN_CURITEM( )        (&buffer->in_string[buffer->in_pos])
+#define IN_CURITEM()         (&buffer->in_string[buffer->in_pos])
 #define IN_PROPERTIES( pos ) buffer->in_string[(pos)].properties
 #define IN_LIGID( pos )      buffer->in_string[(pos)].ligID
 
