@@ -1,0 +1,21 @@
+TOP = ..\..\..
+!INCLUDE $(TOP)\glib\build\win32\make.msc
+
+INCLUDES = -I ..\.. $(FREETYPE2_CFLAGS) $(GLIB_CFLAGS)
+DEFINES = -DPANGO_ENABLE_ENGINE
+
+OBJECTS = \
+	ftxgdef.obj \
+	disasm.obj \
+	ftxgpos.obj \
+	ftxgsub.obj \
+	ftxopen.obj \
+	ottest.obj \
+	pango-ot-info.obj \
+	pango-ot-ruleset.obj \
+
+all : \
+	pango-ot.lib
+
+pango-ot.lib : $(OBJECTS)
+	lib /out:$@ $(OBJECTS)	
