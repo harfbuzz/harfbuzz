@@ -1625,10 +1625,9 @@
       if ( error && error != TTO_Err_Not_Covered )
         return error;
 
-      if ( buffer->in_pos < buffer->in_length )
-        (buffer->in_pos)++;
-      else
-        break;
+      if ( buffer->in_pos == buffer->in_length )
+        return TTO_Err_Not_Covered;
+      (buffer->in_pos)++;
     }
 
     switch ( pp->PosFormat )
@@ -3864,33 +3863,34 @@
     for ( k = 0; k < numpr; k++ )
     {
       if ( context_length != 0xFFFF && context_length < pr[k].GlyphCount )
-        continue;
+        goto next_posrule;
 
       if ( buffer->in_pos + pr[k].GlyphCount > buffer->in_length )
-        continue;                           /* context is too long */
+        goto next_posrule;                       /* context is too long */
 
-      for ( i = 1, j = 1; i < pr[k].GlyphCount; i++, j++ )
+      for ( i = 1, j = buffer->in_pos + 1; i < pr[k].GlyphCount; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_CURGLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             return error;
 
-          if ( buffer->in_pos + j < buffer->in_length )
-            j++;
-          else
-            break;
+          if ( j + pr[k].GlyphCount - i == buffer->in_length )
+            goto next_posrule;
+          j++;
         }
 
-        if ( IN_CURGLYPH( j ) != pr[k].Input[i - 1] )
-          break;
+        if ( IN_GLYPH( j ) != pr[k].Input[i - 1] )
+          goto next_posrule;
       }
 
-      if ( i == pr[k].GlyphCount )
-        return Do_ContextPos( gpi, pr[k].GlyphCount,
-                              pr[k].PosCount, pr[k].PosLookupRecord,
-                              buffer,
-                              nesting_level );
+      return Do_ContextPos( gpi, pr[k].GlyphCount,
+                            pr[k].PosCount, pr[k].PosLookupRecord,
+                            buffer,
+                            nesting_level );
+      
+      next_posrule:
+        ;
     }
 
     return TTO_Err_Not_Covered;
@@ -3952,50 +3952,49 @@
       pr = &pcs->PosClassRule[k];
 
       if ( context_length != 0xFFFF && context_length < pr->GlyphCount )
-        continue;
+        goto next_posclassrule;
 
       if ( buffer->in_pos + pr->GlyphCount > buffer->in_length )
-        continue;                           /* context is too long */
+        goto next_posclassrule;                /* context is too long */
 
       cl   = pr->Class;
 
       /* Start at 1 because [0] is implied */
 
-      for ( i = 1, j = 1; i < pr->GlyphCount; i++, j++ )
+      for ( i = 1, j = buffer->in_pos + 1; i < pr->GlyphCount; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_CURGLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             goto End;
 
-          if ( buffer->in_pos + j < buffer->in_length )
-            j++;
-          else
-            break;
+          if ( j + pr->GlyphCount - i == buffer->in_length )
+            goto next_posclassrule;
+          j++;
         }
 
         if ( i > known_classes )
         {
           /* Keeps us from having to do this for each rule */
 
-          error = Get_Class( &cpf2->ClassDef, IN_CURGLYPH( j ), &classes[i], NULL );
+          error = Get_Class( &cpf2->ClassDef, IN_GLYPH( j ), &classes[i], NULL );
           if ( error && error != TTO_Err_Not_Covered )
             goto End;
           known_classes = i;
         }
 
         if ( cl[i - 1] != classes[i] )
-          break;
+          goto next_posclassrule;
       }
 
-      if ( i == pr->GlyphCount )
-      {
-        error = Do_ContextPos( gpi, pr->GlyphCount,
-                               pr->PosCount, pr->PosLookupRecord,
-                               buffer,
-                               nesting_level );
-        goto End;
-      }
+      error = Do_ContextPos( gpi, pr->GlyphCount,
+                             pr->PosCount, pr->PosLookupRecord,
+                             buffer,
+                             nesting_level );
+      goto End;
+
+    next_posclassrule:
+      ;
     }
 
     error = TTO_Err_Not_Covered;
@@ -4036,18 +4035,17 @@
 
     for ( i = 1, j = 1; i < cpf3->GlyphCount; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_CURGLYPH( j ), flags, &property ) )
+      while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
       {
         if ( error && error != TTO_Err_Not_Covered )
           return error;
 
-        if ( buffer->in_pos + j < buffer->in_length )
-          j++;
-        else
+        if ( j + cpf3->GlyphCount - i == buffer->in_length )
           return TTO_Err_Not_Covered;
+        j++;
       }
 
-      error = Coverage_Index( &c[i], IN_CURGLYPH( j ), &index );
+      error = Coverage_Index( &c[i], IN_GLYPH( j ), &index );
       if ( error )
         return error;
     }
@@ -5112,7 +5110,7 @@
                      int                          nesting_level )
   {
     FT_UShort          index, property;
-    FT_UShort          i, j, k, num_cpr, curr_pos;
+    FT_UShort          i, j, k, num_cpr;
     FT_UShort          bgc, igc, lgc;
     FT_Error           error;
     TTO_GPOSHeader*    gpos = gpi->gpos;
@@ -5142,19 +5140,17 @@
       lgc      = curr_cpr.LookaheadGlyphCount;
 
       if ( context_length != 0xFFFF && context_length < igc )
-        continue;
+        goto next_chainposrule;
 
       /* check whether context is too long; it is a first guess only */
 
       if ( bgc > buffer->in_pos || buffer->in_pos + igc + lgc > buffer->in_length )
-        continue;
+        goto next_chainposrule;
 
       if ( bgc )
       {
         /* Since we don't know in advance the number of glyphs to inspect,
            we search backwards for matches in the backtrack glyph array    */
-
-        curr_pos = 0;
 
         for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
         {
@@ -5163,10 +5159,9 @@
             if ( error && error != TTO_Err_Not_Covered )
               return error;
 
-            if ( j > curr_pos )
-              j--;
-            else
-              break;
+            if ( j + 1 == bgc - i )
+              goto next_chainposrule;
+            j--;
           }
 
           /* In OpenType 1.3, it is undefined whether the offsets of
@@ -5180,65 +5175,55 @@
                Lookahead offsets -                    0  1  2  3           */
 
           if ( IN_GLYPH( j ) != curr_cpr.Backtrack[i] )
-            break;
+            goto next_chainposrule;
         }
-
-        if ( i != bgc )
-          continue;
       }
-
-      curr_pos = buffer->in_pos;
 
       /* Start at 1 because [0] is implied */
 
-      for ( i = 1, j = 1; i < igc; i++, j++ )
+      for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( curr_pos + j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             return error;
 
-          if ( curr_pos + j < buffer->in_length )
-            j++;
-          else
-            break;
+          if ( j + igc - i + lgc == buffer->in_length )
+            goto next_chainposrule;
+          j++;
         }
 
-        if ( IN_GLYPH( curr_pos + j ) != curr_cpr.Input[i - 1] )
-          break;
+        if ( IN_GLYPH( j ) != curr_cpr.Input[i - 1] )
+          goto next_chainposrule;
       }
-
-      if ( i != igc )
-        continue;
 
       /* we are starting to check for lookahead glyphs right after the
          last context glyph                                            */
 
-      curr_pos += j;
-
-      for ( i = 0, j = 0; i < lgc; i++, j++ )
+      for ( i = 0; i < lgc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( curr_pos + j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             return error;
 
-          if ( curr_pos + j < buffer->in_length )
-            j++;
-          else
-            break;
+          if ( j + lgc - i == buffer->in_length )
+            goto next_chainposrule;
+          j++;
         }
 
-        if ( IN_GLYPH( curr_pos + j ) != curr_cpr.Lookahead[i] )
-          break;
+        if ( IN_GLYPH( j ) != curr_cpr.Lookahead[i] )
+          goto next_chainposrule;
       }
 
-      if ( i == lgc )
-        return Do_ContextPos( gpi, igc,
-                              curr_cpr.PosCount,
-                              curr_cpr.PosLookupRecord,
-                              buffer,
-                              nesting_level );
+      return Do_ContextPos( gpi, igc,
+                            curr_cpr.PosCount,
+                            curr_cpr.PosLookupRecord,
+                            buffer,
+                            nesting_level );
+
+    next_chainposrule:
+      ;
     }
 
     return TTO_Err_Not_Covered;
@@ -5256,7 +5241,7 @@
     FT_UShort              index, property;
     FT_Memory              memory = gpi->face->memory;
     FT_Error               error;
-    FT_UShort              i, j, k, curr_pos;
+    FT_UShort              i, j, k;
     FT_UShort              bgc, igc, lgc;
     FT_UShort              known_backtrack_classes,
                            known_input_classes,
@@ -5321,12 +5306,12 @@
       lgc  = cpcr.LookaheadGlyphCount;
 
       if ( context_length != 0xFFFF && context_length < igc )
-        continue;
+        goto next_chainposclassrule;
 
       /* check whether context is too long; it is a first guess only */
 
       if ( bgc > buffer->in_pos || buffer->in_pos + igc + lgc > buffer->in_length )
-        continue;
+        goto next_chainposclassrule;
 
       if ( bgc )
       {
@@ -5334,7 +5319,6 @@
            we search backwards for matches in the backtrack glyph array.
            Note that `known_backtrack_classes' starts at index 0.         */
 
-        curr_pos = 0;
         bc       = cpcr.Backtrack;
 
         for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
@@ -5344,10 +5328,9 @@
             if ( error && error != TTO_Err_Not_Covered )
               goto End1;
 
-            if ( j > curr_pos )
-              j--;
-            else
-              break;
+            if ( j + 1 == bgc - i )
+              goto next_chainposclassrule;
+            j++;
           }
 
           if ( i >= known_backtrack_classes )
@@ -5362,34 +5345,29 @@
           }
 
           if ( bc[i] != backtrack_classes[i] )
-            break;
+            goto next_chainposclassrule;
         }
-
-        if ( i != bgc )
-          continue;
       }
 
-      curr_pos = buffer->in_pos;
       ic       = cpcr.Input;
 
       /* Start at 1 because [0] is implied */
 
-      for ( i = 1, j = 1; i < igc; i++, j++ )
+      for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( curr_pos + j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             goto End1;
 
-          if ( curr_pos + j < buffer->in_length )
-            j++;
-          else
-            break;
+          if ( j + igc - i + lgc == buffer->in_length )
+            goto next_chainposclassrule;
+          j++;
         }
 
         if ( i >= known_input_classes )
         {
-          error = Get_Class( &ccpf2->InputClassDef, IN_GLYPH( curr_pos + j ),
+          error = Get_Class( &ccpf2->InputClassDef, IN_GLYPH( j ),
                              &input_classes[i], NULL );
           if ( error && error != TTO_Err_Not_Covered )
             goto End1;
@@ -5397,34 +5375,29 @@
         }
 
         if ( ic[i - 1] != input_classes[i] )
-          break;
+          goto next_chainposclassrule;
       }
-
-      if ( i != igc )
-        continue;
 
       /* we are starting to check for lookahead glyphs right after the
          last context glyph                                            */
 
-      curr_pos += j;
       lc       = cpcr.Lookahead;
 
-      for ( i = 0, j = 0; i < lgc; i++, j++ )
+      for ( i = 0; i < lgc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( curr_pos + j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             goto End1;
 
-          if ( curr_pos + j < buffer->in_length )
-            j++;
-          else
-            break;
+          if ( j + lgc - i == buffer->in_length )
+            goto next_chainposclassrule;
+          j++;
         }
 
         if ( i >= known_lookahead_classes )
         {
-          error = Get_Class( &ccpf2->LookaheadClassDef, IN_GLYPH( curr_pos + j ),
+          error = Get_Class( &ccpf2->LookaheadClassDef, IN_GLYPH( j ),
                              &lookahead_classes[i], NULL );
           if ( error && error != TTO_Err_Not_Covered )
             goto End1;
@@ -5432,18 +5405,18 @@
         }
 
         if ( lc[i] != lookahead_classes[i] )
-          break;
+          goto next_chainposclassrule;
       }
 
-      if ( i == lgc )
-      {
-        error = Do_ContextPos( gpi, igc,
-                               cpcr.PosCount,
-                               cpcr.PosLookupRecord,
-                               buffer,
-                               nesting_level );
-        goto End1;
-      }
+      error = Do_ContextPos( gpi, igc,
+                             cpcr.PosCount,
+                             cpcr.PosLookupRecord,
+                             buffer,
+                             nesting_level );
+      goto End1;
+
+    next_chainposclassrule:
+      ;
     }
 
     error = TTO_Err_Not_Covered;
@@ -5468,7 +5441,7 @@
                      FT_UShort                    context_length,
                      int                          nesting_level )
   {
-    FT_UShort        index, i, j, curr_pos, property;
+    FT_UShort        index, i, j, property;
     FT_UShort        bgc, igc, lgc;
     FT_Error         error;
     TTO_GPOSHeader*  gpos = gpi->gpos;
@@ -5501,7 +5474,6 @@
       /* Since we don't know in advance the number of glyphs to inspect,
          we search backwards for matches in the backtrack glyph array    */
 
-      curr_pos = 0;
       bc       = ccpf3->BacktrackCoverage;
 
       for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
@@ -5511,10 +5483,9 @@
           if ( error && error != TTO_Err_Not_Covered )
             return error;
 
-          if ( j > curr_pos )
-            j--;
-          else
+          if ( j + 1 == bgc - i )
             return TTO_Err_Not_Covered;
+          j--;
         }
 
         error = Coverage_Index( &bc[i], IN_GLYPH( j ), &index );
@@ -5523,24 +5494,22 @@
       }
     }
 
-    curr_pos = buffer->in_pos;
     ic       = ccpf3->InputCoverage;
 
-    for ( i = 0, j = 0; i < igc; i++, j++ )
+    for ( i = 0, j = buffer->in_pos; i < igc; i++, j++ )
     {
-      /* We already called CHECK_Property for s_in[0] */
-      while ( j > 0 && CHECK_Property( gdef, IN_GLYPH( curr_pos + j ), flags, &property ) )
+      /* We already called CHECK_Property for IN_GLYPH ( buffer->in_pos ) */
+      while ( j > buffer->in_pos && CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
       {
         if ( error && error != TTO_Err_Not_Covered )
           return error;
 
-        if ( curr_pos + j < buffer->in_length )
-          j++;
-        else
+        if ( j + igc - i + lgc == buffer->in_length )
           return TTO_Err_Not_Covered;
+        j++;
       }
 
-      error = Coverage_Index( &ic[i], IN_GLYPH( curr_pos + j ), &index );
+      error = Coverage_Index( &ic[i], IN_GLYPH( j ), &index );
       if ( error )
         return error;
     }
@@ -5548,23 +5517,21 @@
     /* we are starting to check for lookahead glyphs right after the
        last context glyph                                            */
 
-    curr_pos += j;
     lc       = ccpf3->LookaheadCoverage;
 
-    for ( i = 0, j = 0; i < lgc; i++, j++ )
+    for ( i = 0; i < lgc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_GLYPH( curr_pos + j ), flags, &property ) )
+      while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
       {
         if ( error && error != TTO_Err_Not_Covered )
           return error;
 
-        if ( curr_pos + j < buffer->in_length )
-          j++;
-        else
+        if ( j + lgc - i == buffer->in_length )
           return TTO_Err_Not_Covered;
+        j++;
       }
 
-      error = Coverage_Index( &lc[i], IN_GLYPH( curr_pos + j ), &index );
+      error = Coverage_Index( &lc[i], IN_GLYPH( j ), &index );
       if ( error )
         return error;
     }
