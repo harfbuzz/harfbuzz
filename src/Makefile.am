@@ -18,6 +18,7 @@ LDADDS = @STRIP_BEGIN@ 	\
 noinst_LTLIBRARIES = libpango-ot.la
 
 libpango_ot_la_SOURCES =  	\
+	fterrcompat.h		\
 	ftxopen.c	 	\
 	ftxopen.h	 	\
 	ftxopenf.h	 	\

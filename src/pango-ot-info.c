@@ -20,7 +20,7 @@
  */
 
 #include "pango-ot-private.h"
-#include <freetype/internal/tterrors.h>
+#include "fterrcompat.h"
 #include <freetype/internal/ftobjs.h>
 #include <freetype/ftmodule.h>
 

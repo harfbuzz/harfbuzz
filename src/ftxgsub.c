@@ -27,8 +27,9 @@
 
 #include <freetype/internal/ftstream.h>
 #include <freetype/internal/ftmemory.h>
-#include <freetype/internal/tterrors.h>
 #include <freetype/internal/tttypes.h>
+
+#include "fterrcompat.h"
 
 #include "ftxopen.h"
 #include "ftxopenf.h"
