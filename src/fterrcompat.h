@@ -29,6 +29,37 @@
 #define GET_ULong()     FT_GET_ULONG()
 #define GET_Tag4()      FT_GET_TAG4()
 
+/* Macro definitions to avoid bogus warnings about strict
+ * aliasing. These make code generation worse, so we only
+ * use them when necessary
+ */
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3)
+#define ALLOC_ARRAY( _pointer_, _count_, _type_ ) ({            \
+  void *_tmp_;             	       		     	        \
+  FT_SET_ERROR (FT_MEM_ALLOC_ARRAY( _tmp_, _count_, _type_ ));  \
+  _pointer_ = _tmp_;                   				\
+})
+
+/* FT_MEM_REALLOC macro broken in 2.1.0 */
+#define REALLOC_ARRAY( _pointer_, _old_, _new_, _type_ ) ({       \
+  void *_tmp_;             	       		     	          \
+  FT_SET_ERROR ( FT_MEM_REALLOC( _tmp_,                           \
+				 (_old_) * sizeof ( _type_ ),     \
+		                 (_new_) * sizeof ( _type_ ) ) ); \
+  _pointer_ = _tmp_;                   				  \
+})
+ 
+#define FREE( _pointer_ ) ({  \
+  void *_tmp_ = _pointer_;    \
+  FT_FREE ( _tmp_ );          \
+  _pointer_ = _tmp_;          \
+})
+#define ALLOC( _pointer_, _size_ ) ({  \
+  void *_tmp_;             	       \
+  FT_ALLOC( _tmp_, _size_ );           \
+  _pointer_ = _tmp_;                   \
+})
+#else
 #define ALLOC_ARRAY( _pointer_, _count_, _type_ ) \
   FT_SET_ERROR (FT_MEM_ALLOC_ARRAY( _pointer_, _count_, _type_))
 
@@ -37,11 +68,12 @@
   FT_SET_ERROR ( FT_MEM_REALLOC( _pointer_, (_old_) * sizeof ( _type_ ),   \
 		(_new_) * sizeof ( _type_ ) ) )
 
-#define ALLOC( _pointer_, _size_ ) FT_ALLOC( _pointer_, _size_ )
 #define FREE( _pointer_ )          FT_FREE( _pointer_ )
+#define ALLOC( _pointer_, _size_ ) FT_ALLOC( _pointer_, _size_ )
+#endif /* gcc >= 3.3 */
 
 #define MEM_Copy( dest, source, count ) FT_MEM_COPY( dest, source, count )
 
-#endif /* >= 2.1.0 */
+#endif /* freetype >= 2.1.0 */
 
 #endif /* FTERRCOMPAT_H */
