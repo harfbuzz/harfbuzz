@@ -352,19 +352,6 @@
         if ( lo[i].LookupFlag & IGNORE_SPECIAL_MARKS )
         {
           if ( FILE_Seek( gdef->MarkAttachClassDef_offset ) ||
-               ACCESS_Frame( 2L ) )
-            goto Fail1;
-
-          new_offset = GET_UShort();
-
-          FORGET_Frame();
-
-          if ( !new_offset )
-            return TTO_Err_Invalid_GDEF_SubTable;
-
-          new_offset += base_offset;
-
-          if ( FILE_Seek( new_offset ) ||
                ( error = Load_ClassDefinition( &gdef->MarkAttachClassDef,
                                                256, stream ) ) != TT_Err_Ok )
             goto Fail1;

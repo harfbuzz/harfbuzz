@@ -1459,7 +1459,7 @@
 
     f = d->DeltaFormat;
 
-    if ( size >= d->StartSize && size <= d->EndSize )
+    if ( d->DeltaValue && size >= d->StartSize && size <= d->EndSize )
     {
       s    = size - d->StartSize;
       byte = d->DeltaValue[s >> ( 4 - f )];
