@@ -11,12 +11,11 @@ INCLUDES = 					\
 	$(X_CFLAGS)				\
 	-I$(top_srcdir)
 
-LDADDS = @STRIP_BEGIN@ 	\
-	@x_ldflags@	\
-	@x_libs@	\
-	@GLIB_LIBS@	\
-	-lm		\
-@STRIP_END@
+LDADDS = 	\
+	$(x_ldflags)	\
+	$(x_libs)	\
+	$(GLIB_LIBS)	\
+	-lm
 
 noinst_LTLIBRARIES = libpango-ot.la
 
