@@ -1203,7 +1203,7 @@
     if ( CHECK_Property( gdef, in->string[in->pos], flags, &property ) )
       return error;
 
-    if ( property == TTO_MARK )
+    if ( property == TTO_MARK || property & IGNORE_SPECIAL_MARKS )
       first_is_mark = TRUE;
 
     error = Coverage_Index( &ls->Coverage, in->string[in->pos], &index );
@@ -1243,7 +1243,7 @@
             break;
         }
 
-        if ( property != TTO_MARK )
+        if ( !( property == TTO_MARK || property & IGNORE_SPECIAL_MARKS ) )
           is_mark = FALSE;
 
         if ( s_in[j] != c[i - 1] )

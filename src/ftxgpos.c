@@ -1694,7 +1694,7 @@
     TTO_GPOSHeader*  gpos = gpi->gpos;
 
 
-    if ( in->pos >= in->length )
+    if ( in->pos >= in->length - 1 )
       return TTO_Err_Not_Covered;           /* Not enough glyphs in stream */
 
     if ( context_length != 0xFFFF && context_length < 2 )
@@ -2355,7 +2355,7 @@
       if ( error )
         return error;
 
-      if ( property != TTO_MARK )
+      if ( !( property == TTO_MARK || property & IGNORE_SPECIAL_MARKS ) )
         break;
 
       i++;
@@ -2763,7 +2763,7 @@
       if ( error )
         return error;
 
-      if ( property != TTO_MARK )
+      if ( !( property == TTO_MARK || property & IGNORE_SPECIAL_MARKS ) )
         break;
 
       i++;

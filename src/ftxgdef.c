@@ -1152,14 +1152,17 @@
       if ( error )
         return error;
 
-      /* This is OpenType 1.2 */
-
       if ( flags & IGNORE_SPECIAL_MARKS )
+      {
+        /* This is OpenType 1.2 */
+
         if ( (flags & 0xFF00) != *property )
           return TTO_Err_Not_Covered;
-
-      if ( flags & *property )
-        return TTO_Err_Not_Covered;
+      }
+      else {
+        if ( flags & *property )
+          return TTO_Err_Not_Covered;
+      }
     }
 
     return TT_Err_Ok;
