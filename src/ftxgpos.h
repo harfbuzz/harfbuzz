@@ -32,14 +32,15 @@ extern "C" {
 
 /* Lookup types for glyph positioning */
 
-#define GPOS_LOOKUP_SINGLE    1
-#define GPOS_LOOKUP_PAIR      2
-#define GPOS_LOOKUP_CURSIVE   3
-#define GPOS_LOOKUP_MARKBASE  4
-#define GPOS_LOOKUP_MARKLIG   5
-#define GPOS_LOOKUP_MARKMARK  6
-#define GPOS_LOOKUP_CONTEXT   7
-#define GPOS_LOOKUP_CHAIN     8
+#define GPOS_LOOKUP_SINGLE     1
+#define GPOS_LOOKUP_PAIR       2
+#define GPOS_LOOKUP_CURSIVE    3
+#define GPOS_LOOKUP_MARKBASE   4
+#define GPOS_LOOKUP_MARKLIG    5
+#define GPOS_LOOKUP_MARKMARK   6
+#define GPOS_LOOKUP_CONTEXT    7
+#define GPOS_LOOKUP_CHAIN      8
+#define GPOS_LOOKUP_EXTENSION  9
 
 
   /* A pointer to a function which loads a glyph.  Its parameters are

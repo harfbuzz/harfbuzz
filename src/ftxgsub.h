@@ -38,6 +38,7 @@ extern "C" {
 #define GSUB_LOOKUP_LIGATURE   4
 #define GSUB_LOOKUP_CONTEXT    5
 #define GSUB_LOOKUP_CHAIN      6
+#define GSUB_LOOKUP_EXTENSION  7
 
 
 /* Use this if a feature applies to all glyphs */
