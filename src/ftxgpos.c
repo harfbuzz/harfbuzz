@@ -4020,9 +4020,6 @@
 
     gdef = gpos->gdef;
 
-    if ( ALLOC_ARRAY( classes, cpf2->MaxContextLength, FT_UShort ) )
-      return error;
-
     if ( CHECK_Property( gdef, in->string[in->pos], flags, &property ) )
       return error;
 
@@ -4032,7 +4029,10 @@
 
     error = Coverage_Index( &cpf2->Coverage, in->string[in->pos], &index );
     if ( error )
-      goto End;
+      return error;
+
+    if ( ALLOC_ARRAY( classes, cpf2->MaxContextLength, FT_UShort ) )
+      return error;
 
     error = Get_Class( &cpf2->ClassDef, in->string[in->pos],
                        &classes[0], NULL );

@@ -2206,9 +2206,6 @@
 
     gdef = gsub->gdef;
 
-    if ( ALLOC_ARRAY( classes, csf2->MaxContextLength, FT_UShort ) )
-      return error;
-
     if ( CHECK_Property( gdef, in->string[in->pos], flags, &property ) )
       return error;
 
@@ -2218,7 +2215,10 @@
 
     error = Coverage_Index( &csf2->Coverage, in->string[in->pos], &index );
     if ( error )
-      goto End;
+      return error;
+
+    if ( ALLOC_ARRAY( classes, csf2->MaxContextLength, FT_UShort ) )
+      return error;
 
     error = Get_Class( &csf2->ClassDef, in->string[in->pos],
                        &classes[0], NULL );
@@ -3646,7 +3646,7 @@
           while ( CHECK_Property( gdef, s_in[j], flags, &property ) )
           {
             if ( error && error != TTO_Err_Not_Covered )
-              return error;
+              goto End1;
 
             if ( j > curr_pos )
               j--;
@@ -3720,7 +3720,7 @@
         while ( CHECK_Property( gdef, s_in[j], flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
-            return error;
+            goto End1;
 
           if ( curr_pos + j < in->length )
             j++;
