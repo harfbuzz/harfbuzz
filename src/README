@@ -1,0 +1,36 @@
+This directory includes code for using OpenType Layout tables from
+OpenType fonts with FreeType and 
+
+The table reading code in:
+
+ ftxopen.[ch]
+ ftxopenf.h
+ ftxgdef.[ch]
+ ftxgpos.[ch]
+ ftxgdef.[ch]
+
+Is derived from the OpenType code in FreeType-1.x, ported to FreeType2. 
+(This code has been abandoned for FreeType2, but until something better
+comes along, should serve our purposes.)
+
+This code should be left following the FreeType indentation style and
+coding conventions.
+
+In addition to porting to FreeType-2, it has been modified to
+add support for PangoGlyphString's log_clusters, and in various
+other ways. Bug reports on these files should be sent to 
+gtk-i18n-list@gtk.org, NOT to the freetype maintainers.
+
+The license for these files is in the file freetype-license.txt. 
+
+
+Most of the additional files in this directory implement a high-level
+interface to this that follows Pango conventions and integrates with
+Pango.
+
+disasm.[ch] is a partial dumper for OpenType layout tables useful
+in figuring out what is going on. Please extend to cover additional
+parts of the tables as you encounter fonts using them.
+
+Owen Taylor
+17 December 2000

@@ -1,0 +1,8 @@
+Makefile.in
+Makefile
+makefile.mingw
+ottest
+*.lo
+*.la
+.deps
+.libs
