@@ -24,9 +24,6 @@
 
 #include FT_INTERNAL_MEMORY_H	/* For FT_Free() */
 
-#define PANGO_SCALE_26_6 (PANGO_SCALE / (1<<6))
-#define PANGO_UNITS_26_6(d) (PANGO_SCALE_26_6 * (d))
-
 typedef struct _PangoOTRule PangoOTRule;
 
 struct _PangoOTRule 
@@ -139,34 +136,15 @@ pango_ot_ruleset_add_feature (PangoOTRuleset   *ruleset,
   g_array_append_val (ruleset->rules, tmp_rule);
 }
 
-/**
- * pango_ot_ruleset_shape:
- * @ruleset: a #PangoOTRuleset.
- * @glyphs: a pointer to a #PangoGlyphString.
- * @properties: an array containing one #gulong bitfield for each glyph,
- *   which gives the glyph's properties: If a certain bit is set for a glyph, 
- *   the feature which has the same bit set in its property value is applied.
- *
- * Shapes a string of glyphs with the given properties according to @ruleset.
- **/
 void
-pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
-			PangoGlyphString *glyphs,
-			gulong           *properties)
+pango_ot_ruleset_substitute  (PangoOTRuleset   *ruleset,
+			      PangoOTBuffer    *buffer)
 {
   int i;
-  int last_cluster;
-  int result;
   
   TTO_GSUB gsub = NULL;
-  TTO_GPOS gpos = NULL;
   
-  TTO_GSUB_String *in_string = NULL;
-  TTO_GSUB_String *out_string = NULL;
-  TTO_GSUB_String *result_string = NULL;
-
   gboolean need_gsub = FALSE;
-  gboolean need_gpos = FALSE;
 
   g_return_if_fail (PANGO_OT_IS_RULESET (ruleset));
 
@@ -176,24 +154,15 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
 
       if (rule->table_type == PANGO_OT_TABLE_GSUB)
 	need_gsub = TRUE;
-      else 
-	need_gpos = TRUE;
     }
 
   if (need_gsub)
     {
+
       gsub = pango_ot_info_get_gsub (ruleset->info);
 
       if (gsub)
 	TT_GSUB_Clear_Features (gsub);
-    }
-
-  if (need_gpos)
-    {
-      gpos = pango_ot_info_get_gpos (ruleset->info);
-
-      if (gpos)
-	TT_GPOS_Clear_Features (gpos);
     }
 
   for (i = 0; i < ruleset->rules->len; i++)
@@ -205,98 +174,59 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
 	  if (gsub)
 	    TT_GSUB_Add_Feature (gsub, rule->feature_index, rule->property_bit);
 	}
-      else
+    }
+
+  if (!gsub)
+    return;
+
+  TT_GSUB_Apply_String (gsub, buffer->buffer);
+}
+
+void
+pango_ot_ruleset_position (PangoOTRuleset   *ruleset,
+			   PangoOTBuffer    *buffer)
+{
+  int i;
+  
+  TTO_GPOS gpos = NULL;
+  
+  gboolean need_gpos = FALSE;
+
+  g_return_if_fail (PANGO_OT_IS_RULESET (ruleset));
+
+  for (i = 0; i < ruleset->rules->len; i++)
+    {
+      PangoOTRule *rule = &g_array_index (ruleset->rules, PangoOTRule, i);
+
+      if (rule->table_type == PANGO_OT_TABLE_GPOS)
+	need_gpos = TRUE;
+    }
+
+  if (need_gpos)
+    gpos = pango_ot_info_get_gpos (ruleset->info);
+
+  if (gpos)
+    {
+      TT_GPOS_Clear_Features (gpos);
+
+      for (i = 0; i < ruleset->rules->len; i++)
 	{
-	  if (gpos)
+	  PangoOTRule *rule = &g_array_index (ruleset->rules, PangoOTRule, i);
+	  
+	  if (rule->table_type == PANGO_OT_TABLE_GPOS)
 	    TT_GPOS_Add_Feature (gpos, rule->feature_index, rule->property_bit);
 	}
     }
 
-  if (!gsub && !gpos)
-    return;
-
-  result = TT_GSUB_String_New (ruleset->info->face->memory, &in_string);
-  g_assert (result == FT_Err_Ok);
-
-  result = TT_GSUB_String_Set_Length (in_string, glyphs->num_glyphs);
-  g_assert (result == FT_Err_Ok);
-
-  for (i = 0; i < glyphs->num_glyphs; i++)
-    {
-      in_string->string[i] = glyphs->glyphs[i].glyph;
-      in_string->properties[i] = properties[i];
-      in_string->logClusters[i] = glyphs->log_clusters[i];
-    }
-  in_string->max_ligID = i;
-  
-  if (gsub)
-    {
-      result = TT_GSUB_String_New (ruleset->info->face->memory,
-                                   &out_string);
-      g_assert (result == FT_Err_Ok);
-      result_string = out_string;
-
-      TT_GSUB_Apply_String (gsub, in_string, out_string);
-    }
-  else
-    result_string = in_string;
-
+  /* Apply GPOS rules */
   if (gpos)
     {
-      TTO_GPOS_Data *outgpos = NULL;
-
-      if (!TT_GPOS_Apply_String (ruleset->info->face, gpos, 0, result_string, &outgpos,
-				 FALSE /* enable device-dependant values */,
-				 FALSE /* Even though this might be r2l text, RTL is handled elsewhere */))
+      if (TT_GPOS_Apply_String (ruleset->info->face, gpos, 0, buffer->buffer,
+				FALSE /* enable device-dependant values */,
+				buffer->rtl) == FT_Err_Ok)
 	{
-	  for (i = 0; i < result_string->length; i++)
-	    {
-	      FT_Pos x_pos = outgpos[i].x_pos;
-	      FT_Pos y_pos = outgpos[i].y_pos;
-	      int back = i;
-	      int j;
-
-	      while (outgpos[back].back != 0)
-		{
-		  back  -= outgpos[back].back;
-		  x_pos += outgpos[back].x_pos;
-		  y_pos += outgpos[back].y_pos;
-		}
-
-	      for (j = back; j < i; j++)
-	        glyphs->glyphs[i].geometry.x_offset -= glyphs->glyphs[j].geometry.width;
-
-	      glyphs->glyphs[i].geometry.x_offset += PANGO_UNITS_26_6(x_pos);
-	      glyphs->glyphs[i].geometry.y_offset -= PANGO_UNITS_26_6(y_pos);
-
-	      if (outgpos[i].new_advance)
-		glyphs->glyphs[i].geometry.width  = PANGO_UNITS_26_6(outgpos[i].x_advance);
-	      else
-		glyphs->glyphs[i].geometry.width += PANGO_UNITS_26_6(outgpos[i].x_advance);
-	    }
-
-	  FT_Free(gpos->memory, (void *)outgpos);
+	  buffer->applied_gpos = TRUE;
 	}
     }
-
-  pango_glyph_string_set_size (glyphs, result_string->length);
-
-  last_cluster = -1;
-  for (i = 0; i < result_string->length; i++)
-    {
-      glyphs->glyphs[i].glyph = result_string->string[i];
-
-      glyphs->log_clusters[i] = result_string->logClusters[i];
-      if (glyphs->log_clusters[i] != last_cluster)
-	glyphs->glyphs[i].attr.is_cluster_start = 1;
-      else
-	glyphs->glyphs[i].attr.is_cluster_start = 0;
-
-      last_cluster = glyphs->log_clusters[i];
-    }
-
-  if (in_string)
-    TT_GSUB_String_Done (in_string);
-  if (out_string)
-    TT_GSUB_String_Done (out_string);
 }
+

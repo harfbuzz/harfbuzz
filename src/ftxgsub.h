@@ -504,23 +504,6 @@ extern "C" {
      TT_Add_String() will also handle allocation; you should use
      free() in case you want to destroy the arrays in the object. */
 
-  struct  TTO_GSUB_String_
-  {
-    FT_Memory   memory;
-    
-    FT_ULong    length;
-    FT_ULong    pos;
-    FT_ULong    allocated;
-    FT_UShort*  string;
-    FT_UShort*  properties;
-    FT_UShort*  components;
-    FT_UShort   max_ligID;
-    FT_UShort*  ligIDs;
-    FT_Int*     logClusters;
-  };
-
-  typedef struct TTO_GSUB_String_  TTO_GSUB_String;
-
 
   /* finally, the GSUB API */
 
@@ -578,30 +561,9 @@ extern "C" {
                                                  void*            data );
   
   EXPORT_DEF
-  FT_Error  TT_GSUB_String_New( FT_Memory           memory,
-				TTO_GSUB_String   **result );
-
-  EXPORT_DEF
-  FT_Error  TT_GSUB_String_Set_Length( TTO_GSUB_String *str,
-				       FT_ULong         new_length);
-
-  EXPORT_DEF
-  FT_Error  TT_GSUB_String_Done( TTO_GSUB_String   *str );
-
-
-  EXPORT_DEF
   FT_Error  TT_GSUB_Apply_String( TTO_GSUBHeader*   gsub,
-                                  TTO_GSUB_String*  in,
-                                  TTO_GSUB_String*  out );
+				  OTL_Buffer        buffer );
 
-  EXPORT_DEF
-  FT_Error  TT_GSUB_Add_String( TTO_GSUB_String*  in,
-                                FT_UShort         num_in,
-                                TTO_GSUB_String*  out,
-                                FT_UShort         num_out,
-                                FT_UShort*        glyph_data,
-                                FT_UShort         component,
-                                FT_UShort         ligID );
 
 #ifdef __cplusplus
 }

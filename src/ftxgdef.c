@@ -761,7 +761,7 @@
 
     if ( glyphID < gcrr[index].Start )
     {
-      array_index = 0;
+      array_index = index;
       if ( index == 0 )
         glyph_index = glyphID;
       else
@@ -1129,7 +1129,7 @@
 
     if ( glyphID < gcrr[index].Start )
     {
-      array_index = 0;
+      array_index = index;
       if ( index == 0 )
         glyph_index = glyphID;
       else

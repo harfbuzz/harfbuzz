@@ -162,17 +162,31 @@ compare_glyph_info (gconstpointer a,
 /* Make a guess at the appropriate class for a glyph given 
  * a character code that maps to the glyph
  */
-static FT_UShort
-get_glyph_class (gunichar charcode)
+static gboolean
+get_glyph_class (gunichar   charcode,
+		 FT_UShort *class)
 {
+  /* For characters mapped into the Arabic Presentation forms, using properties
+   * derived as we apply GSUB substitutions will be more reliable
+   */
+  if ((charcode >= 0xFB50 && charcode <= 0xFDFF) || /* Arabic Presentation Forms-A */
+      (charcode >= 0xFE70 && charcode <= 0XFEFF))   /* Arabic Presentation Forms-B */
+    return FALSE;
+  
   switch (g_unichar_type (charcode))
     {
     case G_UNICODE_COMBINING_MARK:
     case G_UNICODE_ENCLOSING_MARK:
     case G_UNICODE_NON_SPACING_MARK:
-      return 3;		/* Mark glyph (non-spacing combining glyph) */
+      *class = 3;		/* Mark glyph (non-spacing combining glyph) */
+      return TRUE;
+    case G_UNICODE_UNASSIGNED:
+    case G_UNICODE_PRIVATE_USE:
+      return FALSE;		/* Unknown, don't assign a class; classes get
+				 * propagated during GSUB application */
     default:
-      return 1;		/* Base glyph (single character, spacing glyph) */
+      *class = 1;               /* Base glyph (single character, spacing glyph) */
+      return TRUE;
     }
 }
 
@@ -225,9 +239,8 @@ synthesize_class_def (PangoOTInfo *info)
       if (glyph <= 65535)
 	{
 	  glyph_info.glyph = glyph;
-	  glyph_info.class = get_glyph_class (charcode);
-	  
-	  g_array_append_val (glyph_infos, glyph_info);
+	  if (get_glyph_class (charcode, &glyph_info.class))
+	    g_array_append_val (glyph_infos, glyph_info);
 	}
       
       charcode = FT_Get_Next_Char (info->face, charcode, &glyph);

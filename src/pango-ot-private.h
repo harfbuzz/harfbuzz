@@ -80,6 +80,14 @@ struct _PangoOTRulesetClass
   GObjectClass parent_class;
 };
 
+struct _PangoOTBuffer
+{
+  OTL_Buffer buffer;
+  PangoFcFont *font;
+  gboolean rtl;
+  gboolean applied_gpos;
+};
+
 GType pango_ot_info_get_type (void);
 
 TTO_GDEF pango_ot_info_get_gdef (PangoOTInfo *info);

@@ -758,26 +758,6 @@ extern "C" {
   typedef union TTO_GPOS_SubTable_  TTO_GPOS_SubTable;
 
 
-  /* This `string object' is much simpler compared to TTO_GSUB_String.
-     A call to TTO_GPOS_Apply_String() will allocate it.               */
-
-  struct TTO_GPOS_Data_
-  {
-    FT_Pos     x_pos;
-    FT_Pos     y_pos;
-    FT_Pos     x_advance;
-    FT_Pos     y_advance;
-    FT_UShort  back;            /* number of glyphs to go back
-                                   for drawing current glyph   */
-    FT_Bool    new_advance;     /* if set, the advance width values are
-                                   absolute, i.e., they won't be
-                                   added to the original glyph's value
-                                   but rather replace them.            */
-  };
-
-  typedef struct TTO_GPOS_Data_  TTO_GPOS_Data;
-
-
   /* finally, the GPOS API */
 
   /*  EXPORT_DEF
@@ -844,8 +824,7 @@ extern "C" {
   FT_Error  TT_GPOS_Apply_String( FT_Face           face,
                                   TTO_GPOSHeader*   gpos,
                                   FT_UShort         load_flags,
-                                  TTO_GSUB_String*  in,
-                                  TTO_GPOS_Data**   out,
+				  OTL_Buffer        buffer,
                                   FT_Bool           dvi,
                                   FT_Bool           r2l );
 

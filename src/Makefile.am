@@ -30,6 +30,9 @@ libpango_ot_la_SOURCES =  	\
 	ftxgpos.h		\
 	ftxgsub.c		\
 	ftxgsub.h		\
+	otlbuffer.c		\
+	otlbuffer.h		\
+	pango-ot-buffer.c	\
 	pango-ot-info.c		\
 	pango-ot-private.h	\
 	pango-ot-ruleset.c

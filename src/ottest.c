@@ -145,6 +145,7 @@ add_features (TTO_GSUB gsub)
   maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('l', 'i', 'g', 'a'), L);
 }
 
+#if 0
 void 
 dump_string (TTO_GSUB_String *str)
 {
@@ -203,6 +204,7 @@ try_string (FT_Library library,
   if ((error = TT_GSUB_String_Done (out_str)))
     croak ("TT_GSUB_String_New", error);
 }
+#endif
 
 int 
 main (int argc, char **argv)

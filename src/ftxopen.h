@@ -280,6 +280,7 @@ extern "C" {
   typedef struct TTO_Device_  TTO_Device;
 
 
+#include "otlbuffer.h"
 #include "ftxgdef.h"
 #include "ftxgsub.h"
 #include "ftxgpos.h"
