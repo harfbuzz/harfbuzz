@@ -133,6 +133,37 @@
 #endif
 
   EXPORT_FUNC
+  FT_Error  TT_New_GDEF_Table( FT_Face          face,
+			       TTO_GDEFHeader** retptr )
+  {
+    FT_Error         error;
+    FT_Memory        memory = face->memory;
+
+    TTO_GDEFHeader*  gdef;
+
+    if ( !retptr )
+      return TT_Err_Invalid_Argument;
+
+    if ( ALLOC( gdef, sizeof( *gdef ) ) )
+      return error;
+
+    gdef->memory = face->memory;
+
+    gdef->GlyphClassDef.loaded = FALSE;
+    gdef->AttachList.loaded = FALSE;
+    gdef->LigCaretList.loaded = FALSE;
+    gdef->MarkAttachClassDef_offset = 0;
+    gdef->MarkAttachClassDef.loaded = FALSE;
+
+    gdef->LastGlyph = 0;
+    gdef->NewGlyphClasses = NULL;
+
+    *retptr = gdef;
+
+    return TT_Err_Ok;
+  }
+
+  EXPORT_FUNC
   FT_Error  TT_Load_GDEF_Table( FT_Face          face,
                                 TTO_GDEFHeader** retptr )
   {
@@ -151,10 +182,8 @@
     if (( error = tt_face->goto_table( tt_face, TTAG_GDEF, stream, 0 ) ))
       return error;
 
-    if ( ALLOC( gdef, sizeof( *gdef ) ) )
+    if (( error = TT_New_GDEF_Table ( face, &gdef ) ))
       return error;
-
-    gdef->memory = face->memory;
 
     base_offset = FILE_Pos();
 
@@ -183,8 +212,6 @@
         goto Fail0;
       (void)FILE_Seek( cur_offset );
     }
-    else
-      gdef->GlyphClassDef.loaded = FALSE;
 
     if ( ACCESS_Frame( 2L ) )
       goto Fail1;
@@ -204,8 +231,6 @@
         goto Fail1;
       (void)FILE_Seek( cur_offset );
     }
-    else
-      gdef->AttachList.loaded = FALSE;
 
     if ( ACCESS_Frame( 2L ) )
       goto Fail2;
@@ -225,8 +250,6 @@
         goto Fail2;
       (void)FILE_Seek( cur_offset );
     }
-    else
-      gdef->LigCaretList.loaded = FALSE;
 
     /* OpenType 1.2 has introduced the `MarkAttachClassDef' field.  We
        first have to scan the LookupFlag values to find out whether we
@@ -243,11 +266,6 @@
       gdef->MarkAttachClassDef_offset = new_offset + base_offset;
     else
       gdef->MarkAttachClassDef_offset = 0;
-
-    gdef->MarkAttachClassDef.loaded = FALSE;
-
-    gdef->LastGlyph       = 0;
-    gdef->NewGlyphClasses = NULL;
 
     *retptr = gdef;
 

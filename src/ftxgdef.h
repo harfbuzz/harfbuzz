@@ -191,6 +191,10 @@ extern "C" {
   /*  EXPORT_DEF
       FT_Error  TT_Init_GDEF_Extension( TT_Engine  engine ); */
 
+  EXPORT_FUNC
+  FT_Error  TT_New_GDEF_Table( FT_Face          face,
+			       TTO_GDEFHeader** retptr );
+	
   EXPORT_DEF
   FT_Error  TT_Load_GDEF_Table( FT_Face          face,
                                 TTO_GDEFHeader** gdef );

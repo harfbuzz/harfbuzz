@@ -140,6 +140,108 @@ is_truetype (FT_Face face)
   return strcmp (FT_MODULE_CLASS (face->driver)->module_name, "truetype") == 0;
 }
 
+typedef struct _GlyphInfo GlyphInfo;
+
+struct _GlyphInfo {
+  FT_UShort glyph;
+  FT_UShort class;
+};
+
+static int
+compare_glyph_info (gconstpointer a,
+		    gconstpointer b)
+{
+  const GlyphInfo *info_a = a;
+  const GlyphInfo *info_b = b;
+
+  return (info_a->glyph < info_b->glyph) ? -1 :
+    (info_a->glyph == info_b->glyph) ? 0 : 1;
+}
+
+/* Make a guess at the appropriate class for a glyph given 
+ * a character code that maps to the glyph
+ */
+static FT_UShort
+get_glyph_class (gunichar charcode)
+{
+  switch (g_unichar_type (charcode))
+    {
+    case G_UNICODE_COMBINING_MARK:
+    case G_UNICODE_ENCLOSING_MARK:
+    case G_UNICODE_NON_SPACING_MARK:
+      return 3;		/* Mark glyph (non-spacing combining glyph) */
+    default:
+      return 1;		/* Base glyph (single character, spacing glyph) */
+    }
+}
+
+/* Synthesize a GDEF table using the font's charmap and the
+ * unicode property database. We'll fill in class definitions
+ * for glyphs not in the charmap as we walk through the tables.
+ */
+static void
+synthesize_class_def (PangoOTInfo *info)
+{
+  GArray *glyph_infos;
+  FT_UShort *glyph_indices;
+  FT_UShort *classes;
+  FT_ULong charcode;
+  FT_UInt glyph;
+  int i, j;
+  
+  if (info->face->charmap->encoding != ft_encoding_unicode)
+    return;
+
+  glyph_infos = g_array_new (FALSE, FALSE, sizeof (GlyphInfo));
+
+  /* Collect all the glyphs in the charmap, and guess
+   * the appropriate classes for them
+   */
+  charcode = FT_Get_First_Char (info->face, &glyph);
+  while (glyph != 0)
+    {
+      GlyphInfo glyph_info;
+
+      if (glyph > 65535)
+	continue;
+
+      glyph_info.glyph = glyph;
+      glyph_info.class = get_glyph_class (charcode);
+
+      g_array_append_val (glyph_infos, glyph_info);
+      
+      charcode = FT_Get_Next_Char (info->face, charcode, &glyph);
+    }
+
+  /* Sort and remove duplicates
+   */
+  g_array_sort (glyph_infos, compare_glyph_info);
+
+  glyph_indices = g_new (FT_UShort, glyph_infos->len);
+  classes = g_new (FT_UShort, glyph_infos->len);
+
+  for (i = 0, j = 0; i < glyph_infos->len; i++)
+    {
+      GlyphInfo *info = &g_array_index (glyph_infos, GlyphInfo, i);
+
+      if (j == 0 || info->glyph != glyph_indices[j - 1])
+	{
+	  glyph_indices[j] = info->glyph;
+	  classes[j] = info->class;
+	  
+	  j++;
+	}
+    }
+
+  g_array_free (glyph_infos, TRUE);
+
+  TT_GDEF_Build_ClassDefinition (info->gdef, info->face->num_glyphs, j,
+				 glyph_indices, classes);
+
+  g_free (glyph_indices);
+  g_free (classes);
+}
+
 TTO_GDEF 
 pango_ot_info_get_gdef (PangoOTInfo *info)
 {
@@ -157,6 +259,12 @@ pango_ot_info_get_gdef (PangoOTInfo *info)
 	  
 	  if (error && error != TT_Err_Table_Missing)
 	    g_warning ("Error loading GDEF table %d", error);
+
+	  if (!info->gdef)
+	    error = TT_New_GDEF_Table (info->face, &info->gdef);
+
+	  if (info->gdef && !info->gdef->GlyphClassDef.loaded)
+	    synthesize_class_def (info);
 	}
     }
 
