@@ -2253,7 +2253,7 @@
         while ( CHECK_Property( gdef, s_in[j], flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
-            return error;
+            goto End;
 
           if ( in->pos + j < in->length )
             j++;
@@ -2267,7 +2267,7 @@
 
           error = Get_Class( &csf2->ClassDef, s_in[j], &classes[i], NULL );
           if ( error && error != TTO_Err_Not_Covered )
-            return error;
+            goto End;
           known_classes = i;
         }
 
