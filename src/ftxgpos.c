@@ -5264,7 +5264,7 @@
         curr_pos = 0;
         s_in     = &in->string[curr_pos];
 
-        for ( i = bgc, j = in->pos - 1; i > 0; i--, j-- )
+        for ( i = 0, j = in->pos - 1; i < bgc; i++, j-- )
         {
           while ( CHECK_Property( gdef, s_in[j], flags, &property ) )
           {
@@ -5277,11 +5277,21 @@
               break;
           }
 
-          if ( s_in[j] != curr_cpr.Backtrack[i - 1] )
+          /* In OpenType 1.3, it is undefined whether the offsets of
+             backtrack glyphs is in logical order or not.  Version 1.4
+             will clarify this:
+
+               Logical order -      a  b  c  d  e  f  g  h  i  j
+                                                i
+               Input offsets -                  0  1
+               Backtrack offsets -  3  2  1  0
+               Lookahead offsets -                    0  1  2  3           */
+
+          if ( s_in[j] != curr_cpr.Backtrack[i] )
             break;
         }
 
-        if ( i != 0 )
+        if ( i != bgc )
           continue;
       }
 
@@ -5465,7 +5475,7 @@
             known_backtrack_classes = i;
           }
 
-          if ( bc[bgc - 1 - i] != backtrack_classes[i] )
+          if ( bc[i] != backtrack_classes[i] )
             break;
         }
 
@@ -5613,7 +5623,7 @@
       s_in     = &in->string[curr_pos];
       bc       = ccpf3->BacktrackCoverage;
 
-      for ( i = bgc, j = in->pos - 1; i > 0; i--, j-- )
+      for ( i = 0, j = in->pos - 1; i < bgc; i++, j-- )
       {
         while ( CHECK_Property( gdef, s_in[j], flags, &property ) )
         {
@@ -5626,7 +5636,7 @@
             return TTO_Err_Not_Covered;
         }
 
-        error = Coverage_Index( &bc[i - 1], s_in[j], &index );
+        error = Coverage_Index( &bc[i], s_in[j], &index );
         if ( error )
           return error;
       }
@@ -5656,8 +5666,8 @@
         return error;
     }
 
-    /* we are starting for lookahead glyphs right after the last context
-       glyph                                                             */
+    /* we are starting to check for lookahead glyphs right after the
+       last context glyph                                            */
 
     curr_pos = j;
     s_in     = &in->string[curr_pos];
