@@ -28,12 +28,15 @@
 
 	while (size > new_allocated)
 	  new_allocated += (new_allocated >> 1) + 8;
-	
-	if ( FT_REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
+
+	error = FT_REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, OTL_GlyphItemRec );
+	if ( error )
 	  return error;
-	if ( FT_REALLOC_ARRAY( buffer->out_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
+	error = FT_REALLOC_ARRAY( buffer->out_string, buffer->allocated, new_allocated, OTL_GlyphItemRec );
+	if ( error )
 	  return error;
-	if ( FT_REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, OTL_PositionRec ) )
+	error = FT_REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, OTL_PositionRec );
+	if ( error )
 	  return error;
 
 	buffer->allocated = new_allocated;
@@ -47,8 +50,9 @@
 		  OTL_Buffer *buffer )
   {
     FT_Error error;
-    
-    if ( FT_ALLOC( *buffer, sizeof( OTL_BufferRec ) ) )
+
+    error = FT_ALLOC( *buffer, sizeof( OTL_BufferRec ) );
+    if ( error ) 
       return error;
 
     (*buffer)->memory = memory;
@@ -91,6 +95,7 @@
 
     FT_FREE( buffer->in_string );
     FT_FREE( buffer->out_string );
+    FT_FREE( buffer->positions );
     FT_FREE( buffer );
 
     return FT_Err_Ok;
@@ -117,7 +122,7 @@
     OTL_GlyphItem glyph;
     
     error = otl_buffer_ensure( buffer, buffer->in_length + 1 );
-    if ( error != FT_Err_Ok )
+    if ( error )
       return error;
 
     glyph = &buffer->in_string[buffer->in_length];
@@ -165,7 +170,7 @@
     FT_UInt cluster;
 
     error = otl_buffer_ensure( buffer, buffer->out_pos + num_out );
-    if ( error != FT_Err_Ok )
+    if ( error )
       return error;
 
     properties = buffer->in_string[buffer->in_pos].properties;
