@@ -298,6 +298,8 @@
     
     Free_NewGlyphClasses( gdef, memory );
 
+    FREE( gdef );
+
     return TT_Err_Ok;
   }
 
@@ -1033,6 +1035,8 @@
 
     gdef->MarkAttachClassDef_offset = 0L;
     gdef->MarkAttachClassDef.loaded = FALSE;
+
+    gcd->loaded = TRUE;
 
     return TT_Err_Ok;
 
