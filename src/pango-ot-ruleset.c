@@ -90,7 +90,7 @@ pango_ot_ruleset_finalize (GObject *object)
   PangoOTRuleset *ruleset = PANGO_OT_RULESET (object);
 
   g_array_free (ruleset->rules, TRUE);
-  g_object_unref (G_OBJECT (ruleset->info));
+  g_object_unref (ruleset->info);
 }
 
 /**
@@ -107,7 +107,7 @@ pango_ot_ruleset_new (PangoOTInfo *info)
 
   ruleset = g_object_new (PANGO_TYPE_OT_RULESET, NULL);
 
-  ruleset->info = g_object_ref (G_OBJECT (info));
+  ruleset->info = g_object_ref (info);
 
   return ruleset;
 }
