@@ -373,13 +373,17 @@
 
     if ( ALLOC_ARRAY( fl->FeatureRecord, count, TTO_FeatureRecord ) )
       return error;
+    if ( ALLOC_ARRAY( fl->ApplyOrder, count, FT_UShort ) )
+      goto Fail2;
+    
+    fl->ApplyCount = 0;
 
     fr = fl->FeatureRecord;
 
     for ( n = 0; n < count; n++ )
     {
       if ( ACCESS_Frame( 6L ) )
-        goto Fail;
+        goto Fail1;
 
       fr[n].FeatureTag = GET_ULong();
       new_offset = GET_UShort() + base_offset;
@@ -389,17 +393,21 @@
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
            ( error = Load_Feature( &fr[n].Feature, stream ) ) != TT_Err_Ok )
-        goto Fail;
+        goto Fail1;
       (void)FILE_Seek( cur_offset );
     }
 
     return TT_Err_Ok;
 
-  Fail:
+  Fail1:
     for ( m = 0; m < n; m++ )
       Free_Feature( &fr[m].Feature, memory );
 
+    FREE( fl->ApplyOrder );
+
+  Fail2:
     FREE( fl->FeatureRecord );
+
     return error;
   }
 

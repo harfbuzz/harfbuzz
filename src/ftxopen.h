@@ -117,6 +117,8 @@ extern "C" {
   {
     FT_UShort           FeatureCount;   /* number of FeatureRecords */
     TTO_FeatureRecord*  FeatureRecord;  /* array of FeatureRecords  */
+    FT_UShort*		ApplyOrder;	/* order to apply features */
+    FT_UShort		ApplyCount;	/* number of elements in ApplyOrder */
   };
 
   typedef struct TTO_FeatureList_  TTO_FeatureList;

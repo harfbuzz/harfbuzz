@@ -4063,10 +4063,14 @@
     FT_UShort*   properties;
     FT_UShort*   index;
 
-
+    /* Each feature can only be added once once */
+    
     if ( !gsub ||
-         feature_index >= gsub->FeatureList.FeatureCount )
+         feature_index >= gsub->FeatureList.FeatureCount ||
+	 gsub->FeatureList.ApplyCount == gsub->FeatureList.FeatureCount )
       return TT_Err_Invalid_Argument;
+
+    gsub->FeatureList.ApplyOrder[gsub->FeatureList.ApplyCount++] = feature_index;
 
     properties = gsub->LookupList.Properties;
 
@@ -4090,6 +4094,8 @@
 
     if ( !gsub )
       return TT_Err_Invalid_Argument;
+
+    gsub->FeatureList.ApplyCount = 0;
 
     properties = gsub->LookupList.Properties;
 
@@ -4120,32 +4126,34 @@
 				  OTL_Buffer        buffer )
   {
     FT_Error          error, retError = TTO_Err_Not_Covered;
-    FT_UShort         j;
-
-    FT_UShort*        properties;
+    FT_UShort         i, j, feature_index;
+    TTO_Feature       feature;
 
     if ( !gsub ||
          !buffer || buffer->in_length == 0 || buffer->in_pos >= buffer->in_length )
       return TT_Err_Invalid_Argument;
 
-    properties = gsub->LookupList.Properties;
-    
-    for ( j = 0; j < gsub->LookupList.LookupCount; j++ )
-      if ( properties[j] )
+    for ( i = 0; i < gsub->FeatureList.ApplyCount; i++)
+    {
+      feature_index = gsub->FeatureList.ApplyOrder[i];
+      feature = gsub->FeatureList.FeatureRecord[feature_index].Feature;
+
+      for ( j = 0; j < feature.LookupListCount; j++ )
       {
-        error = Do_String_Lookup( gsub, j, buffer );
-        if ( error )
+        error = Do_String_Lookup( gsub, feature.LookupListIndex[j], buffer );
+	if ( error )
 	{
 	  if ( error != TTO_Err_Not_Covered )
 	    goto End;
 	}
 	else
 	  retError = error;
-	  
+        
 	error = otl_buffer_swap( buffer );
 	if ( error )
 	  goto End;
-      }
+      } 
+    }
     
     error = retError;
 

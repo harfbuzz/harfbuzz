@@ -6055,10 +6055,14 @@
     FT_UShort*   properties;
     FT_UShort*   index;
 
-
+    /* Each feature can only be added once once */
+    
     if ( !gpos ||
-         feature_index >= gpos->FeatureList.FeatureCount )
+         feature_index >= gpos->FeatureList.FeatureCount ||
+	 gpos->FeatureList.ApplyCount == gpos->FeatureList.FeatureCount )
       return TT_Err_Invalid_Argument;
+
+    gpos->FeatureList.ApplyOrder[gpos->FeatureList.ApplyCount++] = feature_index;
 
     properties = gpos->LookupList.Properties;
 
@@ -6082,6 +6086,8 @@
 
     if ( !gpos )
       return TT_Err_Invalid_Argument;
+
+    gpos->FeatureList.ApplyCount = 0;
 
     properties = gpos->LookupList.Properties;
 
@@ -6132,37 +6138,38 @@
   {
     FT_Error       error, retError = TTO_Err_Not_Covered;
     GPOS_Instance  gpi;
-
-    FT_UShort j;
-
-    FT_UShort* properties;
-
+    FT_UShort      i, j, feature_index;
+    TTO_Feature    feature;
 
     if ( !face || !gpos ||
          !buffer || buffer->in_length == 0 || buffer->in_pos >= buffer->in_length )
       return TT_Err_Invalid_Argument;
-
-    properties = gpos->LookupList.Properties;
 
     gpi.face       = face;
     gpi.gpos       = gpos;
     gpi.load_flags = load_flags;
     gpi.r2l        = r2l;
     gpi.dvi        = dvi;
+    
+    for ( i = 0; i < gpos->FeatureList.ApplyCount; i++ )
+    { 
+      /* index of i'th feature */
+      feature_index = gpos->FeatureList.ApplyOrder[i];
+      feature = gpos->FeatureList.FeatureRecord[feature_index].Feature;
 
-    for ( j = 0; j < gpos->LookupList.LookupCount; j++ )
-      if ( !properties || properties[j] )
+      for ( j = 0; j < feature.LookupListCount; j++ )
       {
-        error = Do_String_Lookup( &gpi, j, buffer );
+	error = Do_String_Lookup( &gpi, feature.LookupListIndex[j], buffer );
 	if ( error )
-	  {
-	    if ( error != TTO_Err_Not_Covered )
-	      return error;
-	  }
+	{
+	  if ( error != TTO_Err_Not_Covered )
+	    return error;
+	}
 	else
 	  retError = error;
       }
-
+    }
+    
     error = Position_CursiveChain ( buffer );
     if ( error )
       return error;
