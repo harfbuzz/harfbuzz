@@ -2197,7 +2197,7 @@
 
     error = Get_Class( &csf2->ClassDef, in->string[in->pos],
                        &classes[0], NULL );
-    if ( error )
+    if ( error && error != TTO_Err_Not_Covered )
       goto End;
     known_classes = 0;
 
@@ -3571,7 +3571,7 @@
 
     error = Get_Class( &ccsf2->InputClassDef, in->string[in->pos],
                        &input_classes[0], NULL );
-    if ( error )
+    if ( error && error != TTO_Err_Not_Covered )
       goto End1;
 
     cscs = &ccsf2->ChainSubClassSet[input_classes[0]];
