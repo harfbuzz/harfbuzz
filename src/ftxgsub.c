@@ -3811,11 +3811,10 @@
     s_in     = &in->string[curr_pos];
     ic       = ccsf3->InputCoverage;
 
-    /* Start at 1 because [0] is implied */
-
-    for ( i = 1, j = 1; i < igc; i++, j++ )
+    for ( i = 0, j = 0; i < igc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, s_in[j], flags, &property ) )
+      /* We already called CHECK_Property for s_in[0] */
+      while ( j > 0 && CHECK_Property( gdef, s_in[j], flags, &property ) )
       {
         if ( error && error != TTO_Err_Not_Covered )
           return error;
