@@ -93,6 +93,8 @@ pango_ot_buffer_set_rtl (PangoOTBuffer *buffer,
  * This setting is needed for proper positioning of Arabic accents,
  * but will produce incorrect results with standard OpenType indic
  * fonts.
+ *
+ * Since: 1.6
  **/
 void
 pango_ot_buffer_set_zero_width_marks (PangoOTBuffer     *buffer,
