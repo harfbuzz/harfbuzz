@@ -28,15 +28,12 @@
 
 	while (size > new_allocated)
 	  new_allocated += (new_allocated >> 1) + 8;
-
-	error = FT_REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, OTL_GlyphItemRec );
-	if ( error )
+	
+	if ( FT_REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
 	  return error;
-	error = FT_REALLOC_ARRAY( buffer->out_string, buffer->allocated, new_allocated, OTL_GlyphItemRec );
-	if ( error )
+	if ( FT_REALLOC_ARRAY( buffer->out_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
 	  return error;
-	error = FT_REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, OTL_PositionRec );
-	if ( error )
+	if ( FT_REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, OTL_PositionRec ) )
 	  return error;
 
 	buffer->allocated = new_allocated;
@@ -50,9 +47,8 @@
 		  OTL_Buffer *buffer )
   {
     FT_Error error;
-
-    error = FT_ALLOC( *buffer, sizeof( OTL_BufferRec ) );
-    if ( error ) 
+    
+    if ( FT_ALLOC( *buffer, sizeof( OTL_BufferRec ) ) )
       return error;
 
     (*buffer)->memory = memory;
