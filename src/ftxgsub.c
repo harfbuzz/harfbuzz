@@ -40,8 +40,8 @@
 
 #define IN_GLYPH( pos )      buffer->in_string[(pos)].gindex
 #define IN_ITEM( pos )       (&buffer->in_string[(pos)])
-#define IN_CURGLYPH( pos )   buffer->in_string[(pos) + buffer->in_pos].gindex
-#define IN_CURITEM( pos )    (&buffer->in_string[(pos) + buffer->in_pos])
+#define IN_CURGLYPH()        buffer->in_string[buffer->in_pos].gindex
+#define IN_CURITEM( )        (&buffer->in_string[buffer->in_pos])
 #define IN_PROPERTIES( pos ) buffer->in_string[(pos)].properties
 #define IN_LIGID( pos )      buffer->in_string[(pos)].ligID
 
@@ -330,17 +330,17 @@
     if ( context_length != 0xFFFF && context_length < 1 )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &ss->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &ss->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
     switch ( ss->SubstFormat )
     {
     case 1:
-	    value = ( IN_CURGLYPH( 0 ) + ss->ssf.ssf1.DeltaGlyphID ) & 0xFFFF;
+	    value = ( IN_CURGLYPH() + ss->ssf.ssf1.DeltaGlyphID ) & 0xFFFF;
       if ( ADD_Glyph( buffer, value, 0xFFFF, 0xFFFF ) )
         return error;
       break;
@@ -534,10 +534,10 @@
     if ( context_length != 0xFFFF && context_length < 1 )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &ms->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &ms->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -732,10 +732,10 @@
     if ( context_length != 0xFFFF && context_length < 1 )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &as->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &as->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -744,7 +744,7 @@
     /* we use a user-defined callback function to get the alternate index */
 
     if ( gsub->altfunc )
-      alt_index = (gsub->altfunc)( buffer->out_pos, IN_CURGLYPH( 0 ),
+      alt_index = (gsub->altfunc)( buffer->out_pos, IN_CURGLYPH(),
                                    aset.GlyphCount, aset.Alternate,
                                    gsub->data );
     else
@@ -1010,13 +1010,13 @@
     TTO_Ligature*  lig;
 
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     if ( property == TTO_MARK || property & IGNORE_SPECIAL_MARKS )
       first_is_mark = TRUE;
 
-    error = Coverage_Index( &ls->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &ls->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -1103,9 +1103,9 @@
 
 	for ( i = 0; i < lig->ComponentCount - 1; i++ )
 	{
-	  while ( CHECK_Property( gdef, IN_CURITEM( 0 ),
+	  while ( CHECK_Property( gdef, IN_CURITEM(),
 				  flags, &property ) )
-	    if ( ADD_Glyph( buffer, IN_CURGLYPH( 0 ),
+	    if ( ADD_Glyph( buffer, IN_CURGLYPH(),
 			    i, ligID ) )
 	      return error;
 
@@ -1159,7 +1159,7 @@
         {
           /* XXX "can't happen" -- but don't count on it */
 
-          if ( ADD_Glyph( buffer, IN_CURGLYPH( 0 ),
+          if ( ADD_Glyph( buffer, IN_CURGLYPH(),
 			  0xFFFF, 0xFFFF ) )
             return error;
           i++;
@@ -1171,7 +1171,7 @@
       {
         /* No substitution for this index */
 
-        if ( ADD_Glyph( buffer, IN_CURGLYPH( 0 ),
+        if ( ADD_Glyph( buffer, IN_CURGLYPH(),
 			0xFFFF, 0xFFFF ) )
           return error;
         i++;
@@ -1911,10 +1911,10 @@
 
     gdef = gsub->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &csf1->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &csf1->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -1980,21 +1980,21 @@
 
     gdef = gsub->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     /* Note: The coverage table in format 2 doesn't give an index into
              anything.  It just lets us know whether or not we need to
              do any lookup at all.                                     */
 
-    error = Coverage_Index( &csf2->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &csf2->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
     if ( ALLOC_ARRAY( classes, csf2->MaxContextLength, FT_UShort ) )
       return error;
 
-    error = Get_Class( &csf2->ClassDef, IN_CURGLYPH( 0 ),
+    error = Get_Class( &csf2->ClassDef, IN_CURGLYPH(),
                        &classes[0], NULL );
     if ( error && error != TTO_Err_Not_Covered )
       goto End;
@@ -2082,7 +2082,7 @@
 
     gdef = gsub->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     if ( context_length != 0xFFFF && context_length < csf3->GlyphCount )
@@ -3187,10 +3187,10 @@
 
     gdef = gsub->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
-    error = Coverage_Index( &ccsf1->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &ccsf1->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -3328,14 +3328,14 @@
     gdef = gsub->gdef;
     memory = gsub->memory;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     /* Note: The coverage table in format 2 doesn't give an index into
              anything.  It just lets us know whether or not we need to
              do any lookup at all.                                     */
 
-    error = Coverage_Index( &ccsf2->Coverage, IN_CURGLYPH( 0 ), &index );
+    error = Coverage_Index( &ccsf2->Coverage, IN_CURGLYPH(), &index );
     if ( error )
       return error;
 
@@ -3351,7 +3351,7 @@
       goto End2;
     known_lookahead_classes = 0;
 
-    error = Get_Class( &ccsf2->InputClassDef, IN_CURGLYPH( 0 ),
+    error = Get_Class( &ccsf2->InputClassDef, IN_CURGLYPH(),
                        &input_classes[0], NULL );
     if ( error && error != TTO_Err_Not_Covered )
       goto End1;
@@ -3518,7 +3518,7 @@
 
     gdef = gsub->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
       return error;
 
     bgc = ccsf3->BacktrackGlyphCount;
