@@ -45,6 +45,8 @@
 #define IN_PROPERTIES( pos ) buffer->in_string[(pos)].properties
 #define IN_LIGID( pos )      buffer->in_string[(pos)].ligID
 
+#define OUT_GLYPH( pos )     buffer->out_string[(pos)].gindex
+#define OUT_ITEM( pos )      (&buffer->out_string[(pos)])
 
 #define ADD_String( buffer, num_in, num_out, glyph_data, component, ligID )             \
           ( ( error = otl_buffer_add_output_glyphs( (buffer),                           \
