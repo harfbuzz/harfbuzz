@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 INCLUDES = 					\
+	-DG_LOG_DOMAIN=\"Pango\"		\
 	-DPANGO_ENABLE_ENGINE			\
 	-DSYSCONFDIR=\"$(sysconfdir)\"		\
 	-DLIBDIR=\"$(libdir)\"			\
