@@ -2,9 +2,10 @@
 
 INCLUDES = 					\
 	-DPANGO_ENABLE_ENGINE			\
-	-DSYSCONFDIR=\"$(sysconfdir)\" 		\
-	-DLIBDIR=\"$(libdir)\" 			\
+	-DSYSCONFDIR=\"$(sysconfdir)\"		\
+	-DLIBDIR=\"$(libdir)\"			\
 	-DG_DISABLE_DEPRECATED			\
+	$(GLIB_CFLAGS)				\
 	$(FREETYPE_CFLAGS)			\
 	$(X_CFLAGS)				\
 	-I$(top_srcdir)
