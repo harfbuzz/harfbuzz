@@ -1161,21 +1161,25 @@
 
 
   FT_Error  Check_Property( TTO_GDEFHeader*  gdef,
-                            FT_UShort        index,
+			    OTL_GlyphItem    gitem,
                             FT_UShort        flags,
                             FT_UShort*       property )
   {
     FT_Error  error;
 
-
     if ( gdef )
     {
       FT_UShort basic_glyph_class;
       FT_UShort desired_attachment_class;
-	    
-      error = TT_GDEF_Get_Glyph_Property( gdef, index, property );
-      if ( error )
-        return error;
+
+      if ( gitem->gproperties == OTL_GLYPH_PROPERTIES_UNKNOWN )
+      {
+	error = TT_GDEF_Get_Glyph_Property( gdef, gitem->gindex, &gitem->gproperties );
+	if ( error )
+	  return error;
+      }
+
+      *property = gitem->gproperties;
 
       /* If the glyph was found in the MarkAttachmentClass table,
        * then that class value is the high byte of the result,

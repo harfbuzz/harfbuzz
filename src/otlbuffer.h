@@ -18,12 +18,15 @@
 
 G_BEGIN_DECLS
 
+#define OTL_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
+
   typedef struct OTL_GlyphItemRec_ {
     FT_UInt     gindex;
     FT_UInt     properties;
     FT_UInt     cluster;
     FT_UShort   component;
     FT_UShort   ligID;
+    FT_UShort   gproperties;
   } OTL_GlyphItemRec, *OTL_GlyphItem;
 
   typedef struct OTL_PositionRec_ {
@@ -90,6 +93,9 @@ G_BEGIN_DECLS
 			        FT_UInt    glyph_index,
 			        FT_UShort  component,
 			        FT_UShort  ligID );
+
+  FT_Error
+  otl_buffer_copy_output_glyph ( OTL_Buffer buffer );
 
   FT_UShort
   otl_buffer_allocate_ligid( OTL_Buffer buffer );

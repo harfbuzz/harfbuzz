@@ -59,7 +59,9 @@
 
 
 #define IN_GLYPH( pos )        (buffer->in_string[(pos)].gindex)
+#define IN_ITEM( pos )         (&buffer->in_string[(pos)])
 #define IN_CURGLYPH( pos )     (buffer->in_string[(pos) + buffer->in_pos].gindex)
+#define IN_CURITEM( pos )      (&buffer->in_string[(pos) + buffer->in_pos])
 #define IN_PROPERTIES( pos )   (buffer->in_string[(pos)].properties)
 #define IN_LIGID( pos )        (buffer->in_string[(pos)].ligID)
 #define IN_COMPONENT( pos )    (buffer->in_string[(pos)].component)
@@ -1045,7 +1047,7 @@
     if ( context_length != 0xFFFF && context_length < 1 )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     error = Coverage_Index( &sp->Coverage, IN_CURGLYPH( 0 ), &index );
@@ -1607,7 +1609,7 @@
     if ( context_length != 0xFFFF && context_length < 2 )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     error = Coverage_Index( &pp->Coverage, IN_CURGLYPH( 0 ), &index );
@@ -1619,7 +1621,7 @@
     first_pos = buffer->in_pos;
     (buffer->in_pos)++;
 
-    while ( CHECK_Property( gpos->gdef, IN_CURGLYPH( 0 ),
+    while ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ),
                             flags, &property ) )
     {
       if ( error && error != TTO_Err_Not_Covered )
@@ -1820,7 +1822,7 @@
     /* Glyphs not having the right GDEF properties will be ignored, i.e.,
        gpi->last won't be reset (contrary to user defined properties). */
 
-    if ( CHECK_Property( gpos->gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     /* We don't handle mark glyphs here.  According to Andrei, this isn't
@@ -2247,7 +2249,7 @@
     if ( flags & IGNORE_BASE_GLYPHS )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURGLYPH( 0 ),
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ),
                          flags, &property ) )
       return error;
 
@@ -2659,7 +2661,7 @@
 
     mark_glyph = IN_CURGLYPH( 0 );
 
-    if ( CHECK_Property( gpos->gdef, mark_glyph, flags, &property ) )
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     error = Coverage_Index( &mlp->MarkCoverage, mark_glyph, &mark_index );
@@ -2994,7 +2996,7 @@
     if ( flags & IGNORE_MARKS )
       return TTO_Err_Not_Covered;
 
-    if ( CHECK_Property( gpos->gdef, IN_CURGLYPH( 0 ),
+    if ( CHECK_Property( gpos->gdef, IN_CURITEM( 0 ),
                          flags, &property ) )
       return error;
 
@@ -3850,7 +3852,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     error = Coverage_Index( &cpf1->Coverage, IN_CURGLYPH( 0 ), &index );
@@ -3870,7 +3872,7 @@
 
       for ( i = 1, j = buffer->in_pos + 1; i < pr[k].GlyphCount; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             return error;
@@ -3920,7 +3922,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     /* Note: The coverage table in format 2 doesn't give an index into
@@ -3963,7 +3965,7 @@
 
       for ( i = 1, j = buffer->in_pos + 1; i < pr->GlyphCount; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             goto End;
@@ -4022,7 +4024,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     if ( context_length != 0xFFFF && context_length < cpf3->GlyphCount )
@@ -4035,7 +4037,7 @@
 
     for ( i = 1, j = 1; i < cpf3->GlyphCount; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
       {
         if ( error && error != TTO_Err_Not_Covered )
           return error;
@@ -5122,7 +5124,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     error = Coverage_Index( &ccpf1->Coverage, IN_CURGLYPH( 0 ), &index );
@@ -5154,7 +5156,7 @@
 
         for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
         {
-          while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+          while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
           {
             if ( error && error != TTO_Err_Not_Covered )
               return error;
@@ -5183,7 +5185,7 @@
 
       for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             return error;
@@ -5202,7 +5204,7 @@
 
       for ( i = 0; i < lgc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             return error;
@@ -5263,7 +5265,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     /* Note: The coverage table in format 2 doesn't give an index into
@@ -5323,7 +5325,7 @@
 
         for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
         {
-          while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+          while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
           {
             if ( error && error != TTO_Err_Not_Covered )
               goto End1;
@@ -5355,7 +5357,7 @@
 
       for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             goto End1;
@@ -5385,7 +5387,7 @@
 
       for ( i = 0; i < lgc; i++, j++ )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             goto End1;
@@ -5454,7 +5456,7 @@
 
     gdef = gpos->gdef;
 
-    if ( CHECK_Property( gdef, IN_CURGLYPH( 0 ), flags, &property ) )
+    if ( CHECK_Property( gdef, IN_CURITEM( 0 ), flags, &property ) )
       return error;
 
     bgc = ccpf3->BacktrackGlyphCount;
@@ -5478,7 +5480,7 @@
 
       for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
       {
-        while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
         {
           if ( error && error != TTO_Err_Not_Covered )
             return error;
@@ -5499,7 +5501,7 @@
     for ( i = 0, j = buffer->in_pos; i < igc; i++, j++ )
     {
       /* We already called CHECK_Property for IN_GLYPH ( buffer->in_pos ) */
-      while ( j > buffer->in_pos && CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+      while ( j > buffer->in_pos && CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
       {
         if ( error && error != TTO_Err_Not_Covered )
           return error;
@@ -5521,7 +5523,7 @@
 
     for ( i = 0; i < lgc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_GLYPH( j ), flags, &property ) )
+      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
       {
         if ( error && error != TTO_Err_Not_Covered )
           return error;

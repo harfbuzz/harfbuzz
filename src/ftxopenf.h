@@ -145,7 +145,7 @@ extern "C" {
                                 FT_UShort        property );
 
   FT_Error  Check_Property( TTO_GDEFHeader*  gdef,
-                            FT_UShort        index,
+                            OTL_GlyphItem    item,
                             FT_UShort        flags,
                             FT_UShort*       property );
 

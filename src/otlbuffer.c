@@ -133,6 +133,7 @@
     glyph->cluster = cluster;
     glyph->component = 0;
     glyph->ligID = 0;
+    glyph->gproperties = OTL_GLYPH_PROPERTIES_UNKNOWN;
     
     buffer->in_length++;
 
@@ -191,6 +192,7 @@
       item->cluster = cluster;
       item->component = component;
       item->ligID = ligID;
+      item->gproperties = OTL_GLYPH_PROPERTIES_UNKNOWN;
     }
 
     buffer->in_pos  += num_in;
@@ -202,8 +204,8 @@
   }
 
   FT_Error
-  otl_buffer_add_output_glyph( OTL_Buffer buffer,
-			       FT_UInt    glyph_index,
+  otl_buffer_add_output_glyph( OTL_Buffer buffer,	
+		       FT_UInt    glyph_index,
 			       FT_UShort  component,
 			       FT_UShort  ligID )
   {
@@ -211,6 +213,21 @@
 
     return otl_buffer_add_output_glyphs ( buffer, 1, 1,
 					  &glyph_data, component, ligID );
+  }
+
+  FT_Error
+  otl_buffer_copy_output_glyph ( OTL_Buffer buffer )
+  {  
+    FT_Error  error;
+
+    error = otl_buffer_ensure( buffer, buffer->out_pos + 1 );
+    if ( error )
+      return error;
+    
+    buffer->out_string[buffer->out_pos++] = buffer->out_string[buffer->in_pos++];
+    buffer->out_length = buffer->out_pos;
+
+    return FT_Err_Ok;
   }
 
   FT_UShort
