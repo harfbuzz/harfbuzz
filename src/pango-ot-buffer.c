@@ -138,7 +138,7 @@ apply_gpos_ltr (PangoGlyphString *glyphs,
 	glyphs->glyphs[i].geometry.x_offset -= glyphs->glyphs[j].geometry.width;
       
       glyphs->glyphs[i].geometry.x_offset += PANGO_UNITS_26_6(x_pos);
-      glyphs->glyphs[i].geometry.y_offset += PANGO_UNITS_26_6(y_pos);
+      glyphs->glyphs[i].geometry.y_offset -= PANGO_UNITS_26_6(y_pos);
       
       if (positions[i].new_advance)
 	glyphs->glyphs[i].geometry.width  = PANGO_UNITS_26_6(positions[i].x_advance);
