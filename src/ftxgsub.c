@@ -2994,13 +2994,14 @@
     lookahead_offset = GET_UShort();
 
     /* `ChainSubClassSetCount' is the upper limit for input class values,
-       thus we read it now to make an additional safety check.            */
+       thus we read it now to make an additional safety check. No limit
+       is known or needed for the other two class definitions          */
 
     count = ccsf2->ChainSubClassSetCount = GET_UShort();
 
     FORGET_Frame();
 
-    if ( ( error = Load_EmptyOrClassDefinition( &ccsf2->BacktrackClassDef, count,
+    if ( ( error = Load_EmptyOrClassDefinition( &ccsf2->BacktrackClassDef, 65535,
                                                 backtrack_offset, base_offset,
 					        stream ) ) != TT_Err_Ok )
         goto Fail5;
@@ -3009,7 +3010,7 @@
                                                 input_offset, base_offset,
                                                 stream ) ) != TT_Err_Ok )
         goto Fail4;
-    if ( ( error = Load_EmptyOrClassDefinition( &ccsf2->LookaheadClassDef, count,
+    if ( ( error = Load_EmptyOrClassDefinition( &ccsf2->LookaheadClassDef, 65535,
                                                 lookahead_offset, base_offset,
                                                 stream ) ) != TT_Err_Ok )
       goto Fail3;
