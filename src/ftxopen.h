@@ -38,6 +38,7 @@ extern "C" {
 #define TTO_Err_Not_Covered               0x1002
 #define TTO_Err_Too_Many_Nested_Contexts  0x1003
 #define TTO_Err_No_MM_Interpreter         0x1004
+#define TTO_Err_Empty_Script              0x1005
 
 
   /* Script list related structures */

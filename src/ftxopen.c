@@ -130,7 +130,7 @@
 
     if ( s->LangSysCount == 0 && s->DefaultLangSys.FeatureCount == 0 )
     {
-      error = TTO_Err_Invalid_SubTable;
+      error = TTO_Err_Empty_Script;
       goto Fail2;
     }
 
@@ -205,7 +205,7 @@
     FT_Error   error;
     FT_Memory  memory = stream->memory;
 
-    FT_UShort          n, m, count;
+    FT_UShort          n, script_count;
     FT_ULong           cur_offset, new_offset, base_offset;
 
     TTO_ScriptRecord*  sr;
@@ -216,39 +216,53 @@
     if ( ACCESS_Frame( 2L ) )
       return error;
 
-    count = sl->ScriptCount = GET_UShort();
+    script_count = GET_UShort();
 
     FORGET_Frame();
 
     sl->ScriptRecord = NULL;
 
-    if ( ALLOC_ARRAY( sl->ScriptRecord, count, TTO_ScriptRecord ) )
+    if ( ALLOC_ARRAY( sl->ScriptRecord, script_count, TTO_ScriptRecord ) )
       return error;
 
     sr = sl->ScriptRecord;
 
-    for ( n = 0; n < count; n++ )
+    sl->ScriptCount= 0;
+    for ( n = 0; n < script_count; n++ )
     {
       if ( ACCESS_Frame( 6L ) )
         goto Fail;
 
-      sr[n].ScriptTag = GET_ULong();
+      sr[sl->ScriptCount].ScriptTag = GET_ULong();
       new_offset = GET_UShort() + base_offset;
 
       FORGET_Frame();
 
       cur_offset = FILE_Pos();
-      if ( FILE_Seek( new_offset ) ||
-           ( error = Load_Script( &sr[n].Script, stream ) ) != TT_Err_Ok )
-        goto Fail;
+
+      if ( FILE_Seek( new_offset ) )
+	goto Fail;
+
+      error = Load_Script( &sr[sl->ScriptCount].Script, stream );
+      if ( error == TT_Err_Ok )
+	sl->ScriptCount += 1;
+      else if ( error != TTO_Err_Empty_Script )
+	goto Fail;
+
       (void)FILE_Seek( cur_offset );
     }
 
+    if ( sl->ScriptCount == 0 )
+    {
+      error = TTO_Err_Invalid_SubTable;
+      goto Fail;
+    }
+    
     return TT_Err_Ok;
 
   Fail:
-    for ( m = 0; m < n; m++ )
-      Free_Script( &sr[m].Script, memory );
+    for ( n = 0; n < sl->ScriptCount; n++ )
+      Free_Script( &sr[n].Script, memory );
 
     FREE( sl->ScriptRecord );
     return error;
