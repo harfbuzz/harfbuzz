@@ -1266,7 +1266,8 @@
     FT_UShort*  cva = cdf1->ClassValueArray;
 
 
-    *index = 0;
+    if ( index )
+      *index = 0;
 
     if ( glyphID >= cdf1->StartGlyph &&
          glyphID <= cdf1->StartGlyph + cdf1->GlyphCount )

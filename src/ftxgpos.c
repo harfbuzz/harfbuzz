@@ -4778,12 +4778,13 @@
     if ( class_offset )
       {
         if ( !FILE_Seek( class_offset + base_offset ) )
-          error = Load_ClassDefinition( cd, limit, stream ) == TT_Err_Ok;
+          error = Load_ClassDefinition( cd, limit, stream );
       }
     else
        error = Load_EmptyClassDefinition ( cd, stream );
 
-    (void)FILE_Seek( cur_offset );
+    if (error == TT_ERR_OK)
+      (void)FILE_Seek( cur_offset ); /* Changes error as a side-effect */
 
     return error;
   }
