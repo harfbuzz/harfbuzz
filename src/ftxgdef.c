@@ -238,7 +238,6 @@
     gdef->NewGlyphClasses = NULL;
 
     *retptr = gdef;
-    DONE_Stream( stream );
 
     return TT_Err_Ok;
 
