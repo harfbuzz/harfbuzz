@@ -156,6 +156,7 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
 {
   int i;
   int last_cluster;
+  int result;
   
   TTO_GSUB gsub = NULL;
   TTO_GPOS gpos = NULL;
@@ -214,9 +215,11 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
   if (!gsub && !gpos)
     return;
 
-  g_assert (TT_GSUB_String_New (ruleset->info->face->memory,
-				&in_string) == FT_Err_Ok);
-  g_assert (TT_GSUB_String_Set_Length (in_string, glyphs->num_glyphs) == FT_Err_Ok);
+  result = TT_GSUB_String_New (ruleset->info->face->memory, &in_string);
+  g_assert (result == FT_Err_Ok);
+
+  result = TT_GSUB_String_Set_Length (in_string, glyphs->num_glyphs);
+  g_assert (result == FT_Err_Ok);
 
   for (i = 0; i < glyphs->num_glyphs; i++)
     {
@@ -228,8 +231,9 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
   
   if (gsub)
     {
-      g_assert (TT_GSUB_String_New (ruleset->info->face->memory,
-				    &out_string) == FT_Err_Ok);
+      result = TT_GSUB_String_New (ruleset->info->face->memory,
+                                   &out_string);
+      g_assert (result == FT_Err_Ok);
       result_string = out_string;
 
       TT_GSUB_Apply_String (gsub, in_string, out_string);
