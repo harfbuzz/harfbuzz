@@ -202,13 +202,13 @@ synthesize_class_def (PangoOTInfo *info)
     {
       GlyphInfo glyph_info;
 
-      if (glyph > 65535)
-	continue;
-
-      glyph_info.glyph = glyph;
-      glyph_info.class = get_glyph_class (charcode);
-
-      g_array_append_val (glyph_infos, glyph_info);
+      if (glyph <= 65535)
+	{
+	  glyph_info.glyph = glyph;
+	  glyph_info.class = get_glyph_class (charcode);
+	  
+	  g_array_append_val (glyph_infos, glyph_info);
+	}
       
       charcode = FT_Get_Next_Char (info->face, charcode, &glyph);
     }
