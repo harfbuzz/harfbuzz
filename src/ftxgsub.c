@@ -90,7 +90,7 @@
     if ( !retptr )
       return TT_Err_Invalid_Argument;
 
-    if (( error = tt_face->goto_table( tt_face, TTAG_GSUB, stream, 0 ) ))
+    if (( error = tt_face->goto_table( tt_face, TTAG_GSUB, stream, NULL ) ))
       return error;
 
     base_offset = FILE_Pos();

@@ -179,7 +179,7 @@
     if ( !retptr )
       return TT_Err_Invalid_Argument;
 
-    if (( error = tt_face->goto_table( tt_face, TTAG_GDEF, stream, 0 ) ))
+    if (( error = tt_face->goto_table( tt_face, TTAG_GDEF, stream, NULL ) ))
       return error;
 
     if (( error = TT_New_GDEF_Table ( face, &gdef ) ))

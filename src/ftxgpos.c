@@ -102,7 +102,7 @@
     if ( !stream )
       return TT_Err_Invalid_Face_Handle;
 
-    if (( error = tt_face->goto_table( tt_face, TTAG_GPOS, stream, 0 ) ))
+    if (( error = tt_face->goto_table( tt_face, TTAG_GPOS, stream, NULL ) ))
       return error;
 
     base_offset = FILE_Pos();
@@ -663,7 +663,7 @@
       {
         an->af.af3.XDeviceTable.StartSize  = 0;
         an->af.af3.XDeviceTable.EndSize    = 0;
-        an->af.af3.XDeviceTable.DeltaValue = 0;
+        an->af.af3.XDeviceTable.DeltaValue = NULL;
       }
 
       if ( ACCESS_Frame( 2L ) )
@@ -688,7 +688,7 @@
       {
         an->af.af3.YDeviceTable.StartSize  = 0;
         an->af.af3.YDeviceTable.EndSize    = 0;
-        an->af.af3.YDeviceTable.DeltaValue = 0;
+        an->af.af3.YDeviceTable.DeltaValue = NULL;
       }
       break;
 
