@@ -35,6 +35,7 @@
 
 #define DEF_DUMP(type) static void Dump_ ## type (TTO_ ## type *type, FILE *stream, int indent, FT_Bool is_gsub)
 #define RECURSE(name, type, val) do {  DUMP ("<" #name ">\n"); Dump_ ## type (val, stream, indent + 1, is_gsub); DUMP ("</" #name ">\n"); } while (0)
+#define DUMP_VALUE_RECORD(val, frmt) do {  DUMP ("<ValueRecord>\n"); Dump_ValueRecord (val, stream, indent + 1, is_gsub, frmt); DUMP ("</ValueRecord>\n"); } while (0)
 
 static void
 do_indent (FILE *stream, int indent)
@@ -215,6 +216,149 @@ Dump_GSUB_Lookup_Ligature (TTO_SubTable *subtable, FILE *stream, int indent, FT_
     RECURSE (LigatureSet, LigatureSet, &LigatureSubst->LigatureSet[i]);
 }
 
+static void
+Dump_Device (TTO_Device *Device, FILE *stream, int indent, FT_Bool is_gsub)
+{
+  int i;
+  int bits = 0;
+  int n_per;
+  unsigned int mask;
+  
+  DUMP_FUINT (Device, StartSize);
+  DUMP_FUINT (Device, EndSize);
+  DUMP_FUINT (Device, DeltaFormat);
+  switch (Device->DeltaFormat)
+    {
+    case 1:
+      bits = 2;
+      break;
+    case 2:
+      bits = 4;
+      break;
+    case 3:
+      bits = 8;
+      break;
+    }
+
+  n_per = 16 / bits;
+  mask = (1 << bits) - 1;
+  mask = mask << (16 - bits);
+
+  DUMP ("<DeltaValue>");
+  for (i = Device->StartSize; i <= Device->EndSize ; i++)
+    {
+      FT_UShort val = Device->DeltaValue[i / n_per];
+      FT_Short signed_val = ((val << ((i % n_per) * bits)) & mask);
+      dump (stream, indent, "%d", signed_val >> (16 - bits));
+      if (i != Device->EndSize)
+	DUMP (", ");
+    }
+  DUMP ("</DeltaValue>\n");
+}
+     
+static void
+Dump_ValueRecord (TTO_ValueRecord *ValueRecord, FILE *stream, int indent, FT_Bool is_gsub, FT_UShort value_format)
+{
+  if (value_format & HAVE_X_PLACEMENT)
+    DUMP_FINT (ValueRecord, XPlacement);
+  if (value_format & HAVE_Y_PLACEMENT)
+    DUMP_FINT (ValueRecord, YPlacement);
+  if (value_format & HAVE_X_ADVANCE)
+    DUMP_FINT (ValueRecord, XAdvance);
+  if (value_format & HAVE_Y_ADVANCE)
+    DUMP_FINT (ValueRecord, XAdvance);
+  if (value_format & HAVE_X_PLACEMENT_DEVICE)
+    RECURSE (Device, Device, &ValueRecord->XPlacementDevice);
+  if (value_format & HAVE_Y_PLACEMENT_DEVICE)
+    RECURSE (Device, Device, &ValueRecord->YPlacementDevice);
+  if (value_format & HAVE_X_ADVANCE_DEVICE)
+    RECURSE (Device, Device, &ValueRecord->XAdvanceDevice);
+  if (value_format & HAVE_Y_ADVANCE_DEVICE)
+    RECURSE (Device, Device, &ValueRecord->YAdvanceDevice);
+  if (value_format & HAVE_X_ID_PLACEMENT)
+    DUMP_FUINT (ValueRecord, XIdPlacement);
+  if (value_format & HAVE_Y_ID_PLACEMENT)
+    DUMP_FUINT (ValueRecord, YIdPlacement);
+  if (value_format & HAVE_X_ID_ADVANCE)
+    DUMP_FUINT (ValueRecord, XIdAdvance);
+  if (value_format & HAVE_Y_ID_ADVANCE)
+    DUMP_FUINT (ValueRecord, XIdAdvance);
+}
+
+static void
+Dump_GPOS_Lookup_Single (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+{
+  TTO_SinglePos *SinglePos = &subtable->st.gpos.single;
+
+  DUMP_FUINT (SinglePos, PosFormat);
+  RECURSE (Coverage, Coverage, &SinglePos->Coverage);
+
+  DUMP_FUINT (SinglePos, ValueFormat);
+
+  if (SinglePos->PosFormat == 1)
+    {
+      DUMP_VALUE_RECORD (&SinglePos->spf.spf1.Value, SinglePos->ValueFormat);
+    }
+  else
+    {
+      int i;
+      
+      DUMP_FUINT (&SinglePos->spf.spf2, ValueCount);
+      for (i = 0; i < SinglePos->spf.spf2.ValueCount; i++)
+	DUMP_VALUE_RECORD (&SinglePos->spf.spf2.Value[i], SinglePos->ValueFormat);
+    }
+}
+
+static void
+Dump_PairValueRecord (TTO_PairValueRecord *PairValueRecord, FILE *stream, int indent, FT_Bool is_gsub, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
+{
+  DUMP_FUINT (PairValueRecord, SecondGlyph);
+  DUMP_VALUE_RECORD (&PairValueRecord->Value1, ValueFormat1);
+  DUMP_VALUE_RECORD (&PairValueRecord->Value2, ValueFormat2);
+}
+
+static void
+Dump_PairSet (TTO_PairSet *PairSet, FILE *stream, int indent, FT_Bool is_gsub, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
+{
+  int i;
+  DUMP_FUINT (PairSet, PairValueCount);
+
+  for (i = 0; i < PairSet->PairValueCount; i++)
+    {
+      DUMP ("<PairValueRecord>\n");
+      Dump_PairValueRecord (&PairSet->PairValueRecord[i], stream, indent + 1, is_gsub, ValueFormat1, ValueFormat2);
+      DUMP ("</PairValueRecord>\n");
+    }
+}
+
+static void
+Dump_GPOS_Lookup_Pair (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+{
+  TTO_PairPos *PairPos = &subtable->st.gpos.pair;
+
+  DUMP_FUINT (PairPos, PosFormat);
+  RECURSE (Coverage, Coverage, &PairPos->Coverage);
+
+  DUMP_FUINT (PairPos, ValueFormat1);
+  DUMP_FUINT (PairPos, ValueFormat2);
+
+  if (PairPos->PosFormat == 1)
+    {
+      int i;
+
+      DUMP_FUINT (&PairPos->ppf.ppf1, PairSetCount);
+      for (i = 0; i < PairPos->ppf.ppf1.PairSetCount; i++)
+	{
+	  DUMP ("<PairSet>\n");
+	  Dump_PairSet (&PairPos->ppf.ppf1.PairSet[i], stream, indent + 1, is_gsub, PairPos->ValueFormat1, PairPos->ValueFormat2);
+	  DUMP ("</PairSet>\n");
+	}
+    }
+  else
+    {
+    }
+}
+
 DEF_DUMP (Lookup)
 {
   int i;
@@ -253,9 +397,11 @@ DEF_DUMP (Lookup)
 	{
 	case GPOS_LOOKUP_SINGLE:
 	  lookup_name = "SINGLE";
+	  lookup_func = Dump_GPOS_Lookup_Single;
 	  break;
 	case GPOS_LOOKUP_PAIR:
 	  lookup_name = "PAIR";
+	  lookup_func = Dump_GPOS_Lookup_Pair;
 	  break;
 	case GPOS_LOOKUP_CURSIVE:
 	  lookup_name = "CURSIVE";

@@ -454,7 +454,6 @@
     else
       switch ( lookup_type )
       {
-#if 0
         case GPOS_LOOKUP_SINGLE:
           return Load_SinglePos( &st->st.gpos.single, stream );
 
@@ -479,7 +478,6 @@
         case GPOS_LOOKUP_CHAIN:
           return Load_ChainContextPos( &st->st.gpos.chain, stream );
 
-#endif
         default:
           return TTO_Err_Invalid_GPOS_SubTable_Format;
       }
@@ -523,39 +521,37 @@
     else
       switch ( lookup_type )
       {
-#if 0
       case GPOS_LOOKUP_SINGLE:
-        Free_SinglePos( &st->st.gpos.single );
+        Free_SinglePos( &st->st.gpos.single, memory );
         break;
 
       case GPOS_LOOKUP_PAIR:
-        Free_PairPos( &st->st.gpos.pair );
+        Free_PairPos( &st->st.gpos.pair, memory );
         break;
 
       case GPOS_LOOKUP_CURSIVE:
-        Free_CursivePos( &st->st.gpos.cursive );
+        Free_CursivePos( &st->st.gpos.cursive, memory );
         break;
 
       case GPOS_LOOKUP_MARKBASE:
-        Free_MarkBasePos( &st->st.gpos.markbase );
+        Free_MarkBasePos( &st->st.gpos.markbase, memory );
         break;
 
       case GPOS_LOOKUP_MARKLIG:
-        Free_MarkLigPos( &st->st.gpos.marklig );
+        Free_MarkLigPos( &st->st.gpos.marklig, memory );
         break;
 
       case GPOS_LOOKUP_MARKMARK:
-        Free_MarkMarkPos( &st->st.gpos.markmark );
+        Free_MarkMarkPos( &st->st.gpos.markmark, memory );
         break;
 
       case GPOS_LOOKUP_CONTEXT:
-        Free_ContextPos( &st->st.gpos.context );
+        Free_ContextPos( &st->st.gpos.context, memory );
         break;
 
       case GPOS_LOOKUP_CHAIN:
-        Free_ChainContextPos ( &st->st.gpos.chain );
+        Free_ChainContextPos ( &st->st.gpos.chain, memory );
         break;
-#endif
       }
   }
 
