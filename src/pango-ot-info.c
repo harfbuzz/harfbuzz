@@ -94,21 +94,38 @@ pango_ot_info_finalize (GObject *object)
     }
 }
 
+void
+pango_ot_info_finalizer (void *object)
+{
+  FT_Face face = object;	
+  PangoOTInfo *info = face->generic.data;
+  
+  info->face = NULL;
+  g_object_unref (info);
+}
+
 /**
  * pango_ot_info_new:
  * @face: a #FT_Face.
- * @returns: a new #PangoOTInfo for @face.
+ * @returns: the #PangoOTInfo for @face. This object will
+ *   have the same lifetime as FT_Face.
  * 
- * Creates a new #PangoOTInfo structure for the given FreeType font.
+ * Returns the #PangoOTInfo structure for the given FreeType font.
  **/
 PangoOTInfo *
-pango_ot_info_new (FT_Face face)
+pango_ot_info_get (FT_Face face)
 {
   PangoOTInfo *info;
 
-  info = g_object_new (PANGO_TYPE_OT_INFO, NULL);
-
-  info->face = face;
+  if (face->generic.data)
+    return face->generic.data;
+  else
+    {
+      info = face->generic.data = g_object_new (PANGO_TYPE_OT_INFO, NULL);
+      face->generic.finalizer = pango_ot_info_finalizer;
+      
+      info->face = face;
+    }
 
   return info;
 }
