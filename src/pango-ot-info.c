@@ -137,7 +137,8 @@ pango_ot_info_get (FT_Face face)
 static gboolean
 is_truetype (FT_Face face)
 {
-  return strcmp (FT_MODULE_CLASS (face->driver)->module_name, "truetype") == 0;
+  return strcmp (FT_MODULE_CLASS (face->driver)->module_name, "truetype") == 0 ||
+	 strcmp (FT_MODULE_CLASS (face->driver)->module_name, "cff") == 0;
 }
 
 typedef struct _GlyphInfo GlyphInfo;
