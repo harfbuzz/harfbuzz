@@ -267,7 +267,7 @@ pango_ot_ruleset_shape (PangoOTRuleset   *ruleset,
 	        glyphs->glyphs[i].geometry.x_offset -= glyphs->glyphs[j].geometry.width;
 
 	      glyphs->glyphs[i].geometry.x_offset += PANGO_UNITS_26_6(x_pos);
-	      glyphs->glyphs[i].geometry.y_offset += PANGO_UNITS_26_6(y_pos);
+	      glyphs->glyphs[i].geometry.y_offset -= PANGO_UNITS_26_6(y_pos);
 
 	      if (outgpos[i].new_advance)
 		glyphs->glyphs[i].geometry.width  = PANGO_UNITS_26_6(outgpos[i].x_advance);
