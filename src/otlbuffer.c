@@ -15,6 +15,12 @@
 
 #include FT_INTERNAL_MEMORY_H
 
+/* To get the gcc-3.3 strict-aliasing compatible versions
+ * FREE/REALLOC_ARRAY/etc. rather than the FT_* versions
+ * that
+ */
+#include "fterrcompat.h"
+
   static FT_Error
   otl_buffer_ensure( OTL_Buffer buffer,
 		     FT_ULong   size )
@@ -29,11 +35,11 @@
 	while (size > new_allocated)
 	  new_allocated += (new_allocated >> 1) + 8;
 	
-	if ( FT_REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
+	if ( REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
 	  return error;
-	if ( FT_REALLOC_ARRAY( buffer->out_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
+	if ( REALLOC_ARRAY( buffer->out_string, buffer->allocated, new_allocated, OTL_GlyphItemRec ) )
 	  return error;
-	if ( FT_REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, OTL_PositionRec ) )
+	if ( REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, OTL_PositionRec ) )
 	  return error;
 
 	buffer->allocated = new_allocated;
@@ -48,7 +54,7 @@
   {
     FT_Error error;
     
-    if ( FT_ALLOC( *buffer, sizeof( OTL_BufferRec ) ) )
+    if ( ALLOC( *buffer, sizeof( OTL_BufferRec ) ) )
       return error;
 
     (*buffer)->memory = memory;
@@ -89,10 +95,10 @@
   {
     FT_Memory memory = buffer->memory;
 
-    FT_FREE( buffer->in_string );
-    FT_FREE( buffer->out_string );
-    FT_FREE( buffer->positions );
-    FT_FREE( buffer );
+    FREE( buffer->in_string );
+    FREE( buffer->out_string );
+    FREE( buffer->positions );
+    FREE( buffer );
 
     return FT_Err_Ok;
   }
