@@ -175,6 +175,21 @@ get_glyph_class (gunichar charcode)
     }
 }
 
+static gboolean
+set_unicode_charmap (FT_Face face)
+{
+  int charmap;
+
+  for (charmap = 0; charmap < face->num_charmaps; charmap++)
+    if (face->charmaps[charmap]->encoding == ft_encoding_unicode)
+      {
+	FT_Error error = FT_Set_Charmap(face, face->charmaps[charmap]);
+	return error == FT_Err_Ok;
+      }
+
+  return FALSE;
+}
+
 /* Synthesize a GDEF table using the font's charmap and the
  * unicode property database. We'll fill in class definitions
  * for glyphs not in the charmap as we walk through the tables.
@@ -188,9 +203,13 @@ synthesize_class_def (PangoOTInfo *info)
   FT_ULong charcode;
   FT_UInt glyph;
   int i, j;
+  FT_CharMap old_charmap;
   
-  if (info->face->charmap->encoding != ft_encoding_unicode)
-    return;
+  old_charmap = info->face->charmap;
+
+  if (!old_charmap || !old_charmap->encoding != ft_encoding_unicode)
+    if (!set_unicode_charmap (info->face))
+      return;
 
   glyph_infos = g_array_new (FALSE, FALSE, sizeof (GlyphInfo));
 
@@ -240,6 +259,9 @@ synthesize_class_def (PangoOTInfo *info)
 
   g_free (glyph_indices);
   g_free (classes);
+
+  if (old_charmap && info->face->charmap != old_charmap)
+    FT_Set_Charmap (info->face, old_charmap);
 }
 
 TTO_GDEF 
