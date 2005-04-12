@@ -12,12 +12,6 @@ INCLUDES = 					\
 	$(X_CFLAGS)				\
 	-I$(top_srcdir)
 
-LDADDS = 	\
-	$(x_ldflags)	\
-	$(x_libs)	\
-	$(GLIB_LIBS)	\
-	-lm
-
 noinst_LTLIBRARIES = libpango-ot.la
 
 libpango_ot_la_SOURCES =  	\
@@ -37,6 +31,12 @@ libpango_ot_la_SOURCES =  	\
 	pango-ot-info.c		\
 	pango-ot-private.h	\
 	pango-ot-ruleset.c
+
+libpango_ot_la_LIBADD = \
+	$(x_ldflags)	\
+	$(x_libs)	\
+	$(GLIB_LIBS)	\
+	-lm
 
 if BUILD_OT_TESTS
 noinst_PROGRAMS = ottest
