@@ -88,6 +88,8 @@ pango_ot_ruleset_finalize (GObject *object)
 
   g_array_free (ruleset->rules, TRUE);
   g_object_unref (ruleset->info);
+
+  parent_class->finalize (object);
 }
 
 /**

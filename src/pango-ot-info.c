@@ -92,9 +92,11 @@ pango_ot_info_finalize (GObject *object)
       TT_Done_GPOS_Table (info->gpos);
       info->gpos = NULL;
     }
+
+  parent_class->finalize (object);
 }
 
-void
+static void
 pango_ot_info_finalizer (void *object)
 {
   FT_Face face = object;	
