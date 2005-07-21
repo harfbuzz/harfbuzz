@@ -1,4 +1,12 @@
-
+/* Pango
+ * fterrcompat.h: Compat defines for compiling with newer versions
+ *                of FreeType
+ *
+ * Copyright © 2003 Red Hat, Inc
+ *
+ * The code is dual-licensed under the GNU Public License and the
+ * FreeType license. See see FT-license.txt for full details.
+ */
 #ifndef FTERRCOMPAT_H
 #define FTERRCOMPAT_H
 
