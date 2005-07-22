@@ -91,7 +91,6 @@ ftglue_realloc( FT_Memory   memory,
   else if ( new_size == 0 )
   {
     ftglue_free( memory, block );
-    block2 = NULL;
   }
   else
   {
