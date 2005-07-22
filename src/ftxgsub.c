@@ -26,14 +26,9 @@
 #include "ftxopen.h"
 #include "ftxopenf.h"
 
-#include "fterrcompat.h"
+#include "ftglue.h"
 
 #include FT_TRUETYPE_TAGS_H
-
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_MEMORY_H
-#include FT_INTERNAL_TRUETYPE_TYPES_H
-
 
 #define GSUB_ID  Build_Extension_ID( 'G', 'S', 'U', 'B' )
 
@@ -81,7 +76,6 @@
     FT_Memory        memory = face->memory;
     FT_Error         error;
     FT_ULong         cur_offset, new_offset, base_offset;
-    TT_Face          tt_face = (TT_Face)face;
 
     FT_UShort        i, num_lookups;
     TTO_GSUBHeader*  gsub;
@@ -90,7 +84,7 @@
     if ( !retptr )
       return TT_Err_Invalid_Argument;
 
-    if (( error = tt_face->goto_table( tt_face, TTAG_GSUB, stream, NULL ) ))
+    if (( error = ftglue_face_goto_table( face, TTAG_GSUB, stream ) ))
       return error;
 
     base_offset = FILE_Pos();

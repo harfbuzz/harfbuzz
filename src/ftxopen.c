@@ -18,11 +18,7 @@
 #include "ftxopen.h"
 #include "ftxopenf.h"
 
-#include "fterrcompat.h"
-
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_MEMORY_H
-#include FT_INTERNAL_TRUETYPE_TYPES_H
+#include "ftglue.h"
 
 
   /***************************
@@ -430,6 +426,8 @@
 
       FREE( fr );
     }
+    
+    FREE( fl->ApplyOrder );
   }
 
 

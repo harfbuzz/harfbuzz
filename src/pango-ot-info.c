@@ -20,8 +20,7 @@
  */
 
 #include "pango-ot-private.h"
-#include "fterrcompat.h"
-#include FT_INTERNAL_OBJECTS_H
+#include "ftglue.h"
 #include FT_MODULE_H
 
 static void pango_ot_info_class_init (GObjectClass *object_class);
@@ -139,8 +138,7 @@ pango_ot_info_get (FT_Face face)
 static gboolean
 is_truetype (FT_Face face)
 {
-  return strcmp (FT_MODULE_CLASS (face->driver)->module_name, "truetype") == 0 ||
-	 strcmp (FT_MODULE_CLASS (face->driver)->module_name, "cff") == 0;
+  return FT_IS_SFNT(face);
 }
 
 typedef struct _GlyphInfo GlyphInfo;

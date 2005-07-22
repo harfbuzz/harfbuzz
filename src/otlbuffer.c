@@ -13,13 +13,11 @@
  */
 #include <otlbuffer.h>
 
-#include FT_INTERNAL_MEMORY_H
-
 /* To get the gcc-3.3 strict-aliasing compatible versions
  * FREE/REALLOC_ARRAY/etc. rather than the FT_* versions
  * that
  */
-#include "fterrcompat.h"
+#include "ftglue.h"
 
   static FT_Error
   otl_buffer_ensure( OTL_Buffer buffer,

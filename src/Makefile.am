@@ -15,7 +15,8 @@ INCLUDES = 					\
 noinst_LTLIBRARIES = libpango-ot.la
 
 libpango_ot_la_SOURCES =  	\
-	fterrcompat.h		\
+	ftglue.h		\
+	ftglue.c		\
 	ftxopen.c	 	\
 	ftxopen.h	 	\
 	ftxopenf.h	 	\

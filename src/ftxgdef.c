@@ -18,13 +18,9 @@
 #include "ftxopen.h"
 #include "ftxopenf.h"
 
-#include "fterrcompat.h"
+#include "ftglue.h"
 
 #include FT_TRUETYPE_TAGS_H
-
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_MEMORY_H
-#include FT_INTERNAL_TRUETYPE_TYPES_H
 
 #define TTAG_GDEF  FT_MAKE_TAG( 'G', 'D', 'E', 'F' )
 
@@ -170,7 +166,6 @@
     FT_Error         error;
     FT_Memory        memory = face->memory;
     FT_Stream        stream = face->stream;
-    TT_Face          tt_face = (TT_Face)face;
     FT_ULong         cur_offset, new_offset, base_offset;
 
     TTO_GDEFHeader*  gdef;
@@ -179,7 +174,7 @@
     if ( !retptr )
       return TT_Err_Invalid_Argument;
 
-    if (( error = tt_face->goto_table( tt_face, TTAG_GDEF, stream, NULL ) ))
+    if (( error = ftglue_face_goto_table( face, TTAG_GDEF, stream ) ))
       return error;
 
     if (( error = TT_New_GDEF_Table ( face, &gdef ) ))

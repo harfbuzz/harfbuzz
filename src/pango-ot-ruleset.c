@@ -22,8 +22,6 @@
 #include <pango/pango-ot.h>
 #include "pango-ot-private.h"
 
-#include FT_INTERNAL_MEMORY_H	/* For FT_Free() */
-
 typedef struct _PangoOTRule PangoOTRule;
 
 struct _PangoOTRule 

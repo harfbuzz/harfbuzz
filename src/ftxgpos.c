@@ -24,13 +24,9 @@
 #include "ftxopen.h"
 #include "ftxopenf.h"
 
-#include "fterrcompat.h"
+#include "ftglue.h"
 
 #include FT_TRUETYPE_TAGS_H
-
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_MEMORY_H
-#include FT_INTERNAL_TRUETYPE_TYPES_H
 
 #define TTAG_GPOS  FT_MAKE_TAG( 'G', 'P', 'O', 'S' )
 
@@ -89,7 +85,6 @@
     FT_UShort        i, num_lookups;
     TTO_GPOSHeader*  gpos;
     TTO_Lookup*      lo;
-    TT_Face          tt_face = (TT_Face)face;
 
     FT_Stream  stream = face->stream;
     FT_Error   error;
@@ -102,7 +97,7 @@
     if ( !stream )
       return TT_Err_Invalid_Face_Handle;
 
-    if (( error = tt_face->goto_table( tt_face, TTAG_GPOS, stream, NULL ) ))
+    if (( error = ftglue_face_goto_table( face, TTAG_GPOS, stream ) ))
       return error;
 
     base_offset = FILE_Pos();
