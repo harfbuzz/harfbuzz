@@ -5872,8 +5872,8 @@
                                     FT_UShort         context_length,
                                     int               nesting_level )
   {
-    FT_Error         error = TT_Err_Ok;
-    FT_UShort        i, flags;
+    FT_Error         error = TTO_Err_Not_Covered;
+    FT_UShort        i, flags, lookup_count;
     TTO_GPOSHeader*  gpos = gpi->gpos;
     TTO_Lookup*      lo;
 
@@ -5882,6 +5882,10 @@
 
     if ( nesting_level > TTO_MAX_NESTING_LEVEL )
       return TTO_Err_Too_Many_Nested_Contexts;
+
+    lookup_count = gpos->LookupList.LookupCount;
+    if (lookup_index >= lookup_count)
+      return error;
 
     lo    = &gpos->LookupList.Lookup[lookup_index];
     flags = lo->LookupFlag;
@@ -6049,8 +6053,9 @@
     TTO_Feature  feature;
     FT_UInt*     properties;
     FT_UShort*   index;
+    FT_UShort    lookup_count;
 
-    /* Each feature can only be added once once */
+    /* Each feature can only be added once */
     
     if ( !gpos ||
          feature_index >= gpos->FeatureList.FeatureCount ||
@@ -6063,9 +6068,14 @@
 
     feature = gpos->FeatureList.FeatureRecord[feature_index].Feature;
     index   = feature.LookupListIndex;
+    lookup_count = gpos->LookupList.LookupCount;
 
     for ( i = 0; i < feature.LookupListCount; i++ )
-      properties[index[i]] |= property;
+    {
+      FT_UShort lookup_index = index[i];
+      if (lookup_index < lookup_count)
+	properties[lookup_index] |= property;
+    }
 
     return TT_Err_Ok;
   }
@@ -6133,7 +6143,7 @@
   {
     FT_Error       error, retError = TTO_Err_Not_Covered;
     GPOS_Instance  gpi;
-    FT_UShort      i, j, feature_index;
+    FT_UShort      i, j, feature_index, lookup_count;
     TTO_Feature    feature;
 
     if ( !face || !gpos ||
@@ -6146,6 +6156,8 @@
     gpi.r2l        = r2l;
     gpi.dvi        = dvi;
     
+    lookup_count = gpos->LookupList.LookupCount;
+
     for ( i = 0; i < gpos->FeatureList.ApplyCount; i++ )
     { 
       /* index of i'th feature */
@@ -6154,7 +6166,13 @@
 
       for ( j = 0; j < feature.LookupListCount; j++ )
       {
-	error = Do_String_Lookup( &gpi, feature.LookupListIndex[j], buffer );
+	FT_UShort lookup_index = feature.LookupListIndex[j];
+
+	/* Skip nonexistant lookups */
+        if (lookup_index >= lookup_count)
+	 continue;
+
+	error = Do_String_Lookup( &gpi, lookup_index, buffer );
 	if ( error )
 	{
 	  if ( error != TTO_Err_Not_Covered )
