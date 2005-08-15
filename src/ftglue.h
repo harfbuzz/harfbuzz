@@ -116,13 +116,13 @@ ftglue_face_goto_table( FT_Face    face,
            ( (_ptr) = ftglue_realloc( memory, (_ptr), (_oldsz), (_newsz), &error ), error != 0 )
 
 #define  FREE(_ptr)                    \
-  FT_BEGIN_STMNT                       \
+  do {                                 \
     if ( (_ptr) )                      \
     {                                  \
       ftglue_free( memory, _ptr );     \
       _ptr = NULL;                     \
     }                                  \
-  FT_END_STMNT
+  } while (0)
 
 #define  ALLOC_ARRAY(_ptr,_count,_type)   \
            ALLOC(_ptr,(_count)*sizeof(_type))
@@ -136,14 +136,14 @@ ftglue_face_goto_table( FT_Face    face,
 FTGLUE_API( FT_Pointer )
 ftglue_alloc( FT_Memory  memory,
               FT_ULong   size,
-              FT_Error  *perror );
+              FT_Error  *perror_ );
 
 FTGLUE_API( FT_Pointer )
 ftglue_realloc( FT_Memory   memory,
                 FT_Pointer  block,
                 FT_ULong    old_size,
                 FT_ULong    new_size,
-                FT_Error   *perror );
+                FT_Error   *perror_ );
 
 FTGLUE_API( void )
 ftglue_free( FT_Memory   memory,
