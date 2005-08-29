@@ -28,7 +28,7 @@
 
 #define N_ELEMENTS(arr) (sizeof(arr)/ sizeof((arr)[0]))
 
-int
+static int
 croak (const char *situation, FT_Error error)
 {
   fprintf (stderr, "%s: Error %d\n", situation, error);
@@ -36,6 +36,7 @@ croak (const char *situation, FT_Error error)
   exit (1);
 }
 
+#if 0
 enum {
   I = 1 << 0,
   M = 1 << 1,
@@ -43,17 +44,17 @@ enum {
   L = 1 << 3
 };
 
-void
+static void
 print_tag (FT_ULong tag)
 {
   fprintf (stderr, "%c%c%c%c", 
 	  (unsigned char)(tag >> 24),
-	  (unsigned char)((tag & 0xff0000) >> 16),
-	  (unsigned char)((tag & 0xff00) >> 8),
+	  (unsigned char)((tag >> 16) & 0xff),
+	  (unsigned char)((tag >> 8) & 0xff),
 	  (unsigned char)(tag & 0xff));
 }
 
-void
+static void
 maybe_add_feature (TTO_GSUB  gsub,
 		   FT_UShort script_index,
 		   FT_ULong  tag,
@@ -81,7 +82,7 @@ maybe_add_feature (TTO_GSUB  gsub,
     croak ("TT_GSUB_Add_Feature", error);
 }
 
-void
+static void
 select_cmap (FT_Face face)
 {
   FT_UShort  i;
@@ -119,7 +120,7 @@ select_cmap (FT_Face face)
     }
 }
 
-void
+static void
 add_features (TTO_GSUB gsub)
 {
   FT_Error error;
@@ -144,6 +145,7 @@ add_features (TTO_GSUB gsub)
   maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('f', 'i', 'n', 'a'), F);
   maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('l', 'i', 'g', 'a'), L);
 }
+#endif
 
 #if 0
 void 
@@ -227,7 +229,9 @@ main (int argc, char **argv)
   if ((error = FT_New_Face (library, argv[1], 0, &face)))
     croak ("FT_New_Face", error);
 
-  printf("----> GSUB <----\n");
+  printf ("<?xml version=\"1.0\"?>\n");
+  printf ("<OpenType>\n");
+
   if (!(error = TT_Load_GSUB_Table (face, &gsub, NULL)))
     {
       TT_Dump_GSUB_Table (gsub, stdout);
@@ -238,7 +242,6 @@ main (int argc, char **argv)
   else
     fprintf (stderr, "TT_Load_GSUB_Table %x\n", error);
 
-  printf("----> GPOS <----\n");
   if (!(error = TT_Load_GPOS_Table (face, &gpos, NULL)))
     {
       TT_Dump_GPOS_Table (gpos, stdout);
@@ -248,6 +251,8 @@ main (int argc, char **argv)
     }
   else
     fprintf (stderr, "TT_Load_GPOS_Table %x\n", error);
+
+  printf ("</OpenType>\n");
 
 #if 0  
   select_cmap (face);

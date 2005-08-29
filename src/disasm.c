@@ -31,11 +31,11 @@
 #endif
 #define DUMP_FINT(strct,fld) dump (stream, indent, "<" #fld ">%d</" #fld ">\n", (strct)->fld)
 #define DUMP_FUINT(strct,fld) dump (stream, indent, "<" #fld ">%u</" #fld ">\n", (strct)->fld)
-#define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#4x</" #fld ">\n", (strct)->fld)
-#define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#4x</" #fld ">\n", (strct)->fld)
-#define DUMP_USHORT_ARRAY(strct,fld,cnt) Dump_UShort_Array ((strct)->fld, cnt, #fld, stream, indent, is_gsub);
+#define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#06x</" #fld ">\n", (strct)->fld)
+#define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#06x</" #fld ">\n", (strct)->fld)
+#define DUMP_USHORT_ARRAY(strct,fld,cnt) Dump_UShort_Array ((strct)->fld, cnt, #fld, stream, indent);
 
-#define DEF_DUMP(type) static void Dump_ ## type (TTO_ ## type *type, FILE *stream, int indent, FT_Bool is_gsub)
+#define DEF_DUMP(type) static void Dump_ ## type (TTO_ ## type *type, FILE *stream, int indent, FT_Bool G_GNUC_UNUSED is_gsub)
 #define RECURSE(name, type, val) do {  DUMP ("<" #name ">\n"); Dump_ ## type (val, stream, indent + 1, is_gsub); DUMP ("</" #name ">\n"); } while (0)
 #define RECURSE_NUM(name, i, type, val) do {  DUMP ("<" #name "> <!-- %d -->\n", i); Dump_ ## type (val, stream, indent + 1, is_gsub); DUMP ("</" #name ">\n"); } while (0)
 #define DUMP_VALUE_RECORD(val, frmt) do {  DUMP ("<ValueRecord>\n"); Dump_ValueRecord (val, stream, indent + 1, is_gsub, frmt); DUMP ("</ValueRecord>\n"); } while (0)
@@ -43,10 +43,7 @@
 static void
 do_indent (FILE *stream, int indent)
 {
-  int i;
-
-  for (i = 0; i < indent * 3; i++)
-    fputc (' ', stream);
+  fprintf (stream, "%*s", indent * 3, "");
 }
 
 static void 
@@ -62,16 +59,16 @@ dump (FILE *stream, int indent, const char *format, ...)
 }
 
 static void 
-Dump_UShort_Array (FT_UShort *array, int count, const char *name, FILE *stream, int indent, FT_Bool is_gsub) 
+Dump_UShort_Array (FT_UShort *array, int count, const char *name, FILE *stream, int indent) 
 {
   int i;
   
   do_indent (stream, indent);
 
-  printf ("<%s>", name);
+  fprintf (stream, "<%s>", name);
   for (i = 0; i < count; i++)
-    printf ("%d%s", array[i], i == 0 ? "" : " ");
-  printf ("</%s>\n", name);
+    fprintf (stream, "%d%s", array[i], i == 0 ? "" : " ");
+  fprintf (stream, "</%s>\n", name);
 }
 
 static void 
@@ -79,8 +76,8 @@ Print_Tag (FT_ULong tag, FILE *stream)
 {
   fprintf (stream, "%c%c%c%c", 
 	   (unsigned char)(tag >> 24),
-	   (unsigned char)((tag & 0xff0000) >> 16),
-	   (unsigned char)((tag & 0xff00) >> 8),
+	   (unsigned char)((tag >> 16) & 0xff),
+	   (unsigned char)((tag >> 8) & 0xff),
 	   (unsigned char)(tag & 0xff));
 }
 
@@ -183,7 +180,7 @@ DEF_DUMP (Coverage)
       DUMP_FUINT (&Coverage->cf.cf1, GlyphCount);
 
       for (i = 0; i < Coverage->cf.cf1.GlyphCount; i++)
-	DUMP("<Glyph>%#4x</Glyph> <!-- %d -->\n",
+	DUMP("<Glyph>%#06x</Glyph> <!-- %d -->\n",
 	     Coverage->cf.cf1.GlyphArray[i], i);
     }
   else
@@ -192,7 +189,7 @@ DEF_DUMP (Coverage)
       DUMP_FUINT (&Coverage->cf.cf2, RangeCount);
       
       for ( i = 0; i < Coverage->cf.cf2.RangeCount; i++ )
-	  DUMP("<Glyph>%#4x - %#4x</Glyph> <!-- %d -->\n",
+	  DUMP("<Glyph>%#06x - %#06x</Glyph> <!-- %d -->\n",
 	       Coverage->cf.cf2.RangeRecord[i].Start,
 	       Coverage->cf.cf2.RangeRecord[i].End);
     }
@@ -218,7 +215,7 @@ DEF_DUMP (ClassDefinition)
       DUMP_FUINT (ClassDefFormat1, StartGlyph );
       DUMP_FUINT (ClassDefFormat1, GlyphCount );
       for (i = 0; i < ClassDefFormat1->GlyphCount; i++)
-	DUMP(" <Class>%d</Class> <!-- %#4x -->", ClassDefFormat1->ClassValueArray[i],
+	DUMP(" <Class>%d</Class> <!-- %#06x -->", ClassDefFormat1->ClassValueArray[i],
 	     ClassDefFormat1->StartGlyph+i );
     }
   else if (ClassDefinition->ClassFormat == 2)
@@ -231,7 +228,7 @@ DEF_DUMP (ClassDefinition)
 	RECURSE_NUM (ClassRangeRecord, i, ClassRangeRecord, &ClassDefFormat2->ClassRangeRecord[i]);
     }
   else
-    printf("invalid class def table!!!\n");
+    fprintf(stderr, "invalid class def table!!!\n");
 }
 
 DEF_DUMP (SubstLookupRecord)
@@ -281,7 +278,7 @@ Dump_GSUB_Lookup_Single (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bo
       
       DUMP_FINT (&SingleSubst->ssf.ssf2, GlyphCount);
       for (i=0; i < SingleSubst->ssf.ssf2.GlyphCount; i++)
-	DUMP("<Substitute>%#4x</Substitute> <!-- %d -->\n", SingleSubst->ssf.ssf2.Substitute[i], i);
+	DUMP("<Substitute>%#06x</Substitute> <!-- %d -->\n", SingleSubst->ssf.ssf2.Substitute[i], i);
     }
 }
 
@@ -293,7 +290,7 @@ DEF_DUMP (Ligature)
   DUMP_FUINT (Ligature, ComponentCount);
 
   for (i=0; i < Ligature->ComponentCount - 1; i++)
-    DUMP("<Component>%#4x</Component>\n", Ligature->Component[i]);
+    DUMP("<Component>%#06x</Component>\n", Ligature->Component[i]);
 }
 
 DEF_DUMP (LigatureSet)
@@ -323,7 +320,7 @@ Dump_GSUB_Lookup_Ligature (TTO_SubTable *subtable, FILE *stream, int indent, FT_
 
 DEF_DUMP (ContextSubstFormat1)
 {
-  DUMP("Not implemented!!!\n");
+  DUMP("<!-- Not implemented!!! -->\n");
 }
 
 DEF_DUMP (ContextSubstFormat2)
@@ -335,7 +332,7 @@ DEF_DUMP (ContextSubstFormat2)
 
 DEF_DUMP (ContextSubstFormat3)
 {
-  DUMP("Not implemented!!!\n");
+  DUMP("<!-- Not implemented!!! -->\n");
 }
 
 static void
@@ -356,13 +353,13 @@ Dump_GSUB_Lookup_Context (TTO_SubTable *subtable, FILE *stream, int indent, FT_B
       Dump_ContextSubstFormat3 (&ContextSubst->csf.csf3, stream, indent+2, is_gsub);
       break;
     default:
-      printf("invalid subformat!!!!!\n");
+      fprintf(stderr, "invalid subformat!!!!!\n");
     }
 }
 
 DEF_DUMP (ChainContextSubstFormat1)
 {
-  DUMP("Not implemented!!!\n");
+  DUMP("<!-- Not implemented!!! -->\n");
 }
 
 DEF_DUMP (ChainContextSubstFormat2)
@@ -419,7 +416,7 @@ Dump_GSUB_Lookup_Chain (TTO_SubTable *subtable, FILE *stream, int indent, FT_Boo
       Dump_ChainContextSubstFormat3 (&chain->ccsf.ccsf3, stream, indent+2, is_gsub);
       break;
     default:
-      printf("invalid subformat!!!!!\n");
+      fprintf(stderr, "invalid subformat!!!!!\n");
     }
 }
 
@@ -664,7 +661,8 @@ DEF_DUMP (Lookup)
 	}
     }
 
-  DUMP("<LookupType>%s</LookupType>\n", lookup_name);
+  DUMP("<LookupType>%s</LookupType> <!-- %d -->\n", lookup_name, Lookup->LookupType);
+  DUMP("<LookupFlag>%#06x</LookupFlag>\n", Lookup->LookupFlag);
 
   for (i=0; i < Lookup->SubTableCount; i++)
     {
@@ -688,9 +686,11 @@ DEF_DUMP (LookupList)
 void
 TT_Dump_GSUB_Table (TTO_GSUB gsub, FILE *stream)
 {
-  int indent = 0;
+  int indent = 1;
   FT_Bool is_gsub = 1;
 
+  do_indent (stream, indent);
+  fprintf(stream, "<!-- GSUB -->\n");
   RECURSE (ScriptList, ScriptList, &gsub->ScriptList);
   RECURSE (FeatureList, FeatureList, &gsub->FeatureList);
   RECURSE (LookupList, LookupList, &gsub->LookupList);
@@ -699,9 +699,11 @@ TT_Dump_GSUB_Table (TTO_GSUB gsub, FILE *stream)
 void
 TT_Dump_GPOS_Table (TTO_GPOS gpos, FILE *stream)
 {
-  int indent = 0;
+  int indent = 1;
   FT_Bool is_gsub = 0;
 
+  do_indent (stream, indent);
+  fprintf(stream, "<!-- GPOS -->\n");
   RECURSE (ScriptList, ScriptList, &gpos->ScriptList);
   RECURSE (FeatureList, FeatureList, &gpos->FeatureList);
   RECURSE (LookupList, LookupList, &gpos->LookupList);
