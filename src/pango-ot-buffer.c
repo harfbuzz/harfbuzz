@@ -79,8 +79,7 @@ void
 pango_ot_buffer_set_rtl (PangoOTBuffer *buffer,
 			 gboolean       rtl)
 {
-  rtl = rtl != FALSE;
-  buffer->rtl = rtl;
+  buffer->rtl = rtl != FALSE;
 }
 
 /**

@@ -144,40 +144,27 @@ pango_ot_ruleset_substitute  (PangoOTRuleset   *ruleset,
   
   TTO_GSUB gsub = NULL;
   
-  gboolean need_gsub = FALSE;
-
   g_return_if_fail (PANGO_OT_IS_RULESET (ruleset));
 
   for (i = 0; i < ruleset->rules->len; i++)
     {
       PangoOTRule *rule = &g_array_index (ruleset->rules, PangoOTRule, i);
 
-      if (rule->table_type == PANGO_OT_TABLE_GSUB)
-	need_gsub = TRUE;
-    }
+      if (rule->table_type != PANGO_OT_TABLE_GSUB)
+	continue;
 
-  if (need_gsub)
-    {
-
-      gsub = pango_ot_info_get_gsub (ruleset->info);
-
-      if (gsub)
-	TT_GSUB_Clear_Features (gsub);
-    }
-
-  for (i = 0; i < ruleset->rules->len; i++)
-    {
-      PangoOTRule *rule = &g_array_index (ruleset->rules, PangoOTRule, i);
-
-      if (rule->table_type == PANGO_OT_TABLE_GSUB)
+      if (!gsub)
 	{
-	  if (gsub)
-	    TT_GSUB_Add_Feature (gsub, rule->feature_index, rule->property_bit);
-	}
-    }
+	  gsub = pango_ot_info_get_gsub (ruleset->info);
 
-  if (!gsub)
-    return;
+	  if (gsub)
+	    TT_GSUB_Clear_Features (gsub);
+	  else
+	    return;
+	}
+
+      TT_GSUB_Add_Feature (gsub, rule->feature_index, rule->property_bit);
+    }
 
   TT_GSUB_Apply_String (gsub, buffer->buffer);
 }
@@ -190,43 +177,31 @@ pango_ot_ruleset_position (PangoOTRuleset   *ruleset,
   
   TTO_GPOS gpos = NULL;
   
-  gboolean need_gpos = FALSE;
-
   g_return_if_fail (PANGO_OT_IS_RULESET (ruleset));
 
   for (i = 0; i < ruleset->rules->len; i++)
     {
       PangoOTRule *rule = &g_array_index (ruleset->rules, PangoOTRule, i);
 
-      if (rule->table_type == PANGO_OT_TABLE_GPOS)
-	need_gpos = TRUE;
+      if (rule->table_type != PANGO_OT_TABLE_GPOS)
+	continue;
+
+      if (!gpos)
+        {
+	  gpos = pango_ot_info_get_gpos (ruleset->info);
+
+	  if (gpos)
+	    TT_GPOS_Clear_Features (gpos);
+	  else
+	    return;
+        }
+
+      TT_GPOS_Add_Feature (gpos, rule->feature_index, rule->property_bit);
     }
 
-  if (need_gpos)
-    gpos = pango_ot_info_get_gpos (ruleset->info);
-
-  if (gpos)
-    {
-      TT_GPOS_Clear_Features (gpos);
-
-      for (i = 0; i < ruleset->rules->len; i++)
-	{
-	  PangoOTRule *rule = &g_array_index (ruleset->rules, PangoOTRule, i);
-	  
-	  if (rule->table_type == PANGO_OT_TABLE_GPOS)
-	    TT_GPOS_Add_Feature (gpos, rule->feature_index, rule->property_bit);
-	}
-    }
-
-  /* Apply GPOS rules */
-  if (gpos)
-    {
-      if (TT_GPOS_Apply_String (ruleset->info->face, gpos, 0, buffer->buffer,
-				FALSE /* enable device-dependant values */,
-				buffer->rtl) == FT_Err_Ok)
-	{
-	  buffer->applied_gpos = TRUE;
-	}
-    }
+  if (TT_GPOS_Apply_String (ruleset->info->face, gpos, 0, buffer->buffer,
+			    FALSE /* enable device-dependant values */,
+			    buffer->rtl) == FT_Err_Ok)
+    buffer->applied_gpos = TRUE;
 }
 

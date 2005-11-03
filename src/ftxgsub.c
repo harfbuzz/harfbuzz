@@ -208,6 +208,16 @@
    * SubTable related functions
    *****************************/
 
+  static FT_Error  Lookup_DefaultSubst(  TTO_GSUBHeader*   gsub,
+					 TTO_GSUB_SubTable* st,
+					 OTL_Buffer        buffer,
+					 FT_UShort         flags,
+					 FT_UShort         context_length,
+					 int               nesting_level )
+  {
+    return TTO_Err_Not_Covered;
+  }
+
 
   /* LookupType 1 */
 
@@ -311,14 +321,17 @@
   }
 
 
-  static FT_Error  Lookup_SingleSubst( TTO_SingleSubst*  ss,
+  static FT_Error  Lookup_SingleSubst( TTO_GSUBHeader*   gsub,
+				       TTO_GSUB_SubTable* st,
 				       OTL_Buffer        buffer,
                                        FT_UShort         flags,
                                        FT_UShort         context_length,
-                                       TTO_GDEFHeader*   gdef )
+				       int               nesting_level )
   {
     FT_UShort index, value, property;
     FT_Error  error;
+    TTO_SingleSubst*  ss = &st->single;
+    TTO_GDEFHeader*   gdef = gsub->gdef;
 
 
     if ( context_length != 0xFFFF && context_length < 1 )
@@ -514,15 +527,18 @@
   }
 
 
-  static FT_Error  Lookup_MultipleSubst( TTO_MultipleSubst*  ms,
+  static FT_Error  Lookup_MultipleSubst( TTO_GSUBHeader*   gsub,
+					 TTO_GSUB_SubTable* st,
 					 OTL_Buffer          buffer,
                                          FT_UShort           flags,
                                          FT_UShort           context_length,
-                                         TTO_GDEFHeader*     gdef )
+					 int               nesting_level )
   {
     FT_Error  error;
     FT_UShort index, property, n, count;
     FT_UShort*s;
+    TTO_MultipleSubst*  ms = &st->multiple;
+    TTO_GDEFHeader*     gdef = gsub->gdef;
 
 
     if ( context_length != 0xFFFF && context_length < 1 )
@@ -711,14 +727,17 @@
 
 
   static FT_Error  Lookup_AlternateSubst( TTO_GSUBHeader*      gsub,
-                                          TTO_AlternateSubst*  as,
+					  TTO_GSUB_SubTable*   st,
 					  OTL_Buffer           buffer,
                                           FT_UShort            flags,
                                           FT_UShort            context_length,
-                                          TTO_GDEFHeader*      gdef )
+					  int                  nesting_level )
   {
     FT_Error          error;
     FT_UShort         index, alt_index, property;
+    TTO_AlternateSubst*  as = &st->alternate;
+    TTO_GDEFHeader*     gdef = gsub->gdef;
+
 
     TTO_AlternateSet  aset;
 
@@ -990,16 +1009,19 @@
   }
 
 
-  static FT_Error  Lookup_LigatureSubst( TTO_LigatureSubst*  ls,
+  static FT_Error  Lookup_LigatureSubst( TTO_GSUBHeader*     gsub,
+					 TTO_GSUB_SubTable* st,
 					 OTL_Buffer          buffer,
                                          FT_UShort           flags,
                                          FT_UShort           context_length,
-                                         TTO_GDEFHeader*     gdef )
+					 int                 nesting_level )
   {
     FT_UShort      index, property;
     FT_Error       error;
     FT_UShort      numlig, i, j, is_mark, first_is_mark = FALSE;
     FT_UShort*     c;
+    TTO_LigatureSubst*  ls = &st->ligature;
+    TTO_GDEFHeader*     gdef = gsub->gdef;
 
     TTO_Ligature*  lig;
 
@@ -2112,12 +2134,14 @@
 
 
   static FT_Error  Lookup_ContextSubst( TTO_GSUBHeader*    gsub,
-                                        TTO_ContextSubst*  cs,
+					TTO_GSUB_SubTable* st,
 					OTL_Buffer         buffer,
                                         FT_UShort          flags,
                                         FT_UShort          context_length,
                                         int                nesting_level )
   {
+    TTO_ContextSubst*  cs = &st->context;
+
     switch ( cs->SubstFormat )
     {
     case 1:
@@ -3604,12 +3628,14 @@
 
   static FT_Error  Lookup_ChainContextSubst(
                      TTO_GSUBHeader*         gsub,
-                     TTO_ChainContextSubst*  ccs,
+		     TTO_GSUB_SubTable*      st,
 		     OTL_Buffer              buffer,
                      FT_UShort               flags,
                      FT_UShort               context_length,
                      int                     nesting_level )
   {
+    TTO_ChainContextSubst*  ccs = &st->chain;
+
     switch ( ccs->SubstFormat )
     {
     case 1:
@@ -3930,6 +3956,23 @@
   }
 
 
+  typedef FT_Error  (*Lookup_Func_Type)  ( TTO_GSUBHeader*   gsub,
+					   TTO_GSUB_SubTable* st,
+					   OTL_Buffer        buffer,
+					   FT_UShort         flags,
+					   FT_UShort         context_length,
+					   int               nesting_level );
+  static const Lookup_Func_Type Lookup_Call_Table[] = {
+    Lookup_DefaultSubst,
+    Lookup_SingleSubst,		/* GSUB_LOOKUP_SINGLE     1 */
+    Lookup_MultipleSubst,	/* GSUB_LOOKUP_MULTIPLE   2 */
+    Lookup_AlternateSubst,	/* GSUB_LOOKUP_ALTERNATE  3 */
+    Lookup_LigatureSubst,	/* GSUB_LOOKUP_LIGATURE   4 */
+    Lookup_ContextSubst,	/* GSUB_LOOKUP_CONTEXT    5 */
+    Lookup_ChainContextSubst,	/* GSUB_LOOKUP_CHAIN      6 */
+    Lookup_DefaultSubst,	/* GSUB_LOOKUP_EXTENSION  7 */
+  };
+
   /* Do an individual subtable lookup.  Returns TT_Err_Ok if substitution
      has been done, or TTO_Err_Not_Covered if not.                        */
 
@@ -3942,6 +3985,8 @@
     FT_Error     error = TTO_Err_Not_Covered;
     FT_UShort    i, flags, lookup_count;
     TTO_Lookup*  lo;
+    int          lt;
+    Lookup_Func_Type Lookup_Func;
 
 
     nesting_level++;
@@ -3955,50 +4000,18 @@
 
     lo    = &gsub->LookupList.Lookup[lookup_index];
     flags = lo->LookupFlag;
+    lt = lo->LookupType;
+    if (lt >= sizeof Lookup_Call_Table / sizeof Lookup_Call_Table[0])
+      lt = 0;
+    Lookup_Func = Lookup_Call_Table[lt];
 
     for ( i = 0; i < lo->SubTableCount; i++ )
     {
-      switch ( lo->LookupType )
-      {
-      case GSUB_LOOKUP_SINGLE:
-        error = Lookup_SingleSubst( &lo->SubTable[i].st.gsub.single,
-                                    buffer,
-                                    flags, context_length, gsub->gdef );
-        break;
-
-      case GSUB_LOOKUP_MULTIPLE:
-        error = Lookup_MultipleSubst( &lo->SubTable[i].st.gsub.multiple,
-                                      buffer,
-                                      flags, context_length, gsub->gdef );
-        break;
-
-      case GSUB_LOOKUP_ALTERNATE:
-        error = Lookup_AlternateSubst( gsub,
-                                       &lo->SubTable[i].st.gsub.alternate,
-                                       buffer,
-                                       flags, context_length, gsub->gdef );
-        break;
-
-      case GSUB_LOOKUP_LIGATURE:
-        error = Lookup_LigatureSubst( &lo->SubTable[i].st.gsub.ligature,
-				      buffer,
-                                      flags, context_length, gsub->gdef );
-        break;
-
-      case GSUB_LOOKUP_CONTEXT:
-        error = Lookup_ContextSubst( gsub, &lo->SubTable[i].st.gsub.context,
-                                     buffer,
-                                     flags, context_length, nesting_level );
-        break;
-
-      case GSUB_LOOKUP_CHAIN:
-        error = Lookup_ChainContextSubst( gsub,
-                                          &lo->SubTable[i].st.gsub.chain,
-					  buffer,
-                                          flags, context_length,
-                                          nesting_level );
-        break;
-      }
+      error = Lookup_Func ( gsub,
+			    &lo->SubTable[i].st.gsub,
+			    buffer,
+			    flags, context_length,
+			    nesting_level );
 
       /* Check whether we have a successful substitution or an error other
          than TTO_Err_Not_Covered                                          */

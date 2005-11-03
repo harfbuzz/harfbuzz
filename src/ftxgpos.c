@@ -1027,16 +1027,27 @@
     Free_Coverage( &sp->Coverage, memory );
   }
 
+  static FT_Error  Lookup_DefaultPos(  GPOS_Instance*    gpi,
+				       TTO_GPOS_SubTable* st,
+				       OTL_Buffer        buffer,
+				       FT_UShort         flags,
+				       FT_UShort         context_length,
+				       int               nesting_level )
+  {
+    return TTO_Err_Not_Covered;
+  }
 
   static FT_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
-                                     TTO_SinglePos*    sp,
+                                     TTO_GPOS_SubTable* st,
 				     OTL_Buffer        buffer,
                                      FT_UShort         flags,
-                                     FT_UShort         context_length )
+                                     FT_UShort         context_length,
+                                     int               nesting_level )
   {
     FT_UShort        index, property;
     FT_Error         error;
     TTO_GPOSHeader*  gpos = gpi->gpos;
+    TTO_SinglePos*   sp = &st->single;
 
 
     if ( context_length != 0xFFFF && context_length < 1 )
@@ -1588,14 +1599,16 @@
 
 
   static FT_Error  Lookup_PairPos( GPOS_Instance*    gpi,
-                                   TTO_PairPos*      pp,
+                                   TTO_GPOS_SubTable* st,
 				   OTL_Buffer        buffer,
                                    FT_UShort         flags,
-                                   FT_UShort         context_length )
+                                   FT_UShort         context_length,
+                                   int               nesting_level )
   {
     FT_Error         error;
     FT_UShort        index, property, first_pos;
     TTO_GPOSHeader*  gpos = gpi->gpos;
+    TTO_PairPos*     pp = &st->pair;
 
 
     if ( buffer->in_pos >= buffer->in_length - 1 )
@@ -1794,14 +1807,16 @@
 
 
   static FT_Error  Lookup_CursivePos( GPOS_Instance*    gpi,
-                                      TTO_CursivePos*   cp,
+                                      TTO_GPOS_SubTable* st,
 				      OTL_Buffer        buffer,
                                       FT_UShort         flags,
-                                      FT_UShort         context_length )
+                                      FT_UShort         context_length,
+                                      int               nesting_level )
   {
     FT_UShort        index, property;
     FT_Error         error;
     TTO_GPOSHeader*  gpos = gpi->gpos;
+    TTO_CursivePos*  cp = &st->cursive;
 
     TTO_EntryExitRecord*  eer;
     FT_Pos                entry_x, entry_y;
@@ -2219,15 +2234,17 @@
 
 
   static FT_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
-                                       TTO_MarkBasePos*  mbp,
+                                       TTO_GPOS_SubTable* st,
 				       OTL_Buffer        buffer,
                                        FT_UShort         flags,
-                                       FT_UShort         context_length )
+                                       FT_UShort         context_length,
+                                       int               nesting_level )
   {
     FT_UShort        i, j, mark_index, base_index, property, class;
     FT_Pos           x_mark_value, y_mark_value, x_base_value, y_base_value;
     FT_Error         error;
     TTO_GPOSHeader*  gpos = gpi->gpos;
+    TTO_MarkBasePos* mbp = &st->markbase;
 
     TTO_MarkArray*   ma;
     TTO_BaseArray*   ba;
@@ -2626,16 +2643,18 @@
 
 
   static FT_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
-                                      TTO_MarkLigPos*   mlp,
+                                      TTO_GPOS_SubTable* st,
 				      OTL_Buffer        buffer,
                                       FT_UShort         flags,
-                                      FT_UShort         context_length )
+                                      FT_UShort         context_length,
+                                      int               nesting_level )
   {
     FT_UShort        i, j, mark_index, lig_index, property, class;
     FT_UShort        mark_glyph;
     FT_Pos           x_mark_value, y_mark_value, x_lig_value, y_lig_value;
     FT_Error         error;
     TTO_GPOSHeader*  gpos = gpi->gpos;
+    TTO_MarkLigPos*  mlp = &st->marklig;
 
     TTO_MarkArray*        ma;
     TTO_LigatureArray*    la;
@@ -2965,16 +2984,18 @@
 
 
   static FT_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
-                                       TTO_MarkMarkPos*  mmp,
+                                       TTO_GPOS_SubTable* st,
 				       OTL_Buffer        buffer,
                                        FT_UShort         flags,
-                                       FT_UShort         context_length )
+                                       FT_UShort         context_length,
+                                       int               nesting_level )
   {
     FT_UShort        j, mark1_index, mark2_index, property, class;
     FT_Pos           x_mark1_value, y_mark1_value,
                      x_mark2_value, y_mark2_value;
     FT_Error         error;
     TTO_GPOSHeader*  gpos = gpi->gpos;
+    TTO_MarkMarkPos* mmp = &st->markmark;
 
     TTO_MarkArray*    ma1;
     TTO_Mark2Array*   ma2;
@@ -4055,12 +4076,14 @@
 
 
   static FT_Error  Lookup_ContextPos( GPOS_Instance*    gpi,
-                                      TTO_ContextPos*   cp,
+                                      TTO_GPOS_SubTable* st,
 				      OTL_Buffer        buffer,
                                       FT_UShort         flags,
                                       FT_UShort         context_length,
                                       int               nesting_level )
   {
+    TTO_ContextPos*   cp = &st->context;
+
     switch ( cp->PosFormat )
     {
     case 1:
@@ -5543,12 +5566,14 @@
 
   static FT_Error  Lookup_ChainContextPos(
                      GPOS_Instance*        gpi,
-                     TTO_ChainContextPos*  ccp,
+		     TTO_GPOS_SubTable* st,
 		     OTL_Buffer            buffer,
                      FT_UShort             flags,
                      FT_UShort             context_length,
                      int                   nesting_level )
   {
+    TTO_ChainContextPos*  ccp = &st->chain;
+
     switch ( ccp->PosFormat )
     {
     case 1:
@@ -5863,6 +5888,25 @@
   }
 
 
+  typedef FT_Error  (*Lookup_Func_Type)  ( GPOS_Instance*    gpi,
+					   TTO_GPOS_SubTable* st,
+					   OTL_Buffer        buffer,
+					   FT_UShort         flags,
+					   FT_UShort         context_length,
+					   int               nesting_level );
+  static const Lookup_Func_Type Lookup_Call_Table[] = {
+    Lookup_DefaultPos,
+    Lookup_SinglePos,		/* GPOS_LOOKUP_SINGLE     1 */
+    Lookup_PairPos,		/* GPOS_LOOKUP_PAIR       2 */
+    Lookup_CursivePos,		/* GPOS_LOOKUP_CURSIVE    3 */
+    Lookup_MarkBasePos,		/* GPOS_LOOKUP_MARKBASE   4 */
+    Lookup_MarkLigPos,		/* GPOS_LOOKUP_MARKLIG    5 */
+    Lookup_MarkMarkPos,		/* GPOS_LOOKUP_MARKMARK   6 */
+    Lookup_ContextPos,		/* GPOS_LOOKUP_CONTEXT    7 */
+    Lookup_ChainContextPos,	/* GPOS_LOOKUP_CHAIN      8 */
+    Lookup_DefaultPos,		/* GPOS_LOOKUP_EXTENSION  9 */
+  };
+
   /* Do an individual subtable lookup.  Returns TT_Err_Ok if positioning
      has been done, or TTO_Err_Not_Covered if not.                        */
 
@@ -5876,6 +5920,8 @@
     FT_UShort        i, flags, lookup_count;
     TTO_GPOSHeader*  gpos = gpi->gpos;
     TTO_Lookup*      lo;
+    int		     lt;
+    Lookup_Func_Type Lookup_Func;
 
 
     nesting_level++;
@@ -5889,69 +5935,18 @@
 
     lo    = &gpos->LookupList.Lookup[lookup_index];
     flags = lo->LookupFlag;
+    lt = lo->LookupType;
+    if (lt >= sizeof Lookup_Call_Table / sizeof Lookup_Call_Table[0])
+      lt = 0;
+    Lookup_Func = Lookup_Call_Table[lt];
 
     for ( i = 0; i < lo->SubTableCount; i++ )
     {
-      switch ( lo->LookupType )
-      {
-      case GPOS_LOOKUP_SINGLE:
-        error = Lookup_SinglePos( gpi,
-                                  &lo->SubTable[i].st.gpos.single,
-                                  buffer,
-                                  flags, context_length );
-        break;
-
-      case GPOS_LOOKUP_PAIR:
-        error = Lookup_PairPos( gpi,
-                                &lo->SubTable[i].st.gpos.pair,
-                                buffer,
-                                flags, context_length );
-        break;
-
-      case GPOS_LOOKUP_CURSIVE:
-        error = Lookup_CursivePos( gpi,
-                                   &lo->SubTable[i].st.gpos.cursive,
-                                   buffer,
-                                   flags, context_length );
-        break;
-
-      case GPOS_LOOKUP_MARKBASE:
-        error = Lookup_MarkBasePos( gpi,
-                                    &lo->SubTable[i].st.gpos.markbase,
-                                    buffer,
-                                    flags, context_length );
-        break;
-
-      case GPOS_LOOKUP_MARKLIG:
-        error = Lookup_MarkLigPos( gpi,
-                                   &lo->SubTable[i].st.gpos.marklig,
-                                   buffer,
-                                   flags, context_length );
-        break;
-
-      case GPOS_LOOKUP_MARKMARK:
-        error = Lookup_MarkMarkPos( gpi,
-                                    &lo->SubTable[i].st.gpos.markmark,
-                                    buffer,
-                                    flags, context_length );
-        break;
-
-      case GPOS_LOOKUP_CONTEXT:
-        error = Lookup_ContextPos( gpi,
-                                   &lo->SubTable[i].st.gpos.context,
-                                   buffer,
-                                   flags, context_length,
-                                   nesting_level );
-        break;
-
-      case GPOS_LOOKUP_CHAIN:
-        error = Lookup_ChainContextPos( gpi,
-                                        &lo->SubTable[i].st.gpos.chain,
-                                        buffer,
-                                        flags, context_length,
-                                        nesting_level );
-        break;
-      }
+      error = Lookup_Func ( gpi,
+			    &lo->SubTable[i].st.gpos,
+			    buffer,
+			    flags, context_length,
+			    nesting_level );
 
       /* Check whether we have a successful positioning or an error other
          than TTO_Err_Not_Covered                                         */
