@@ -2154,6 +2154,7 @@
 
 
     base_offset = FILE_Pos();
+    fprintf (stderr, "%04lx base offset (behdad)\n", base_offset);
 
     if ( ACCESS_Frame( 4L ) )
       return error;
@@ -2162,6 +2163,9 @@
     new_offset     = GET_UShort() + base_offset;
 
     FORGET_Frame();
+
+    if (mbp->PosFormat != 1)
+      return TTO_Err_Invalid_SubTable_Format;
 
     cur_offset = FILE_Pos();
     if ( FILE_Seek( new_offset ) ||

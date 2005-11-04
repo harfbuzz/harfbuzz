@@ -138,7 +138,7 @@ ftglue_stream_seek( FT_Stream   stream,
     if ( stream->read( stream, pos, 0, 0 ) )
       error = FT_Err_Invalid_Stream_Operation;
   }
-  else if ( pos > stream->size )
+  else if ( pos > (FT_Long)stream->size )
     error = FT_Err_Invalid_Stream_Operation;
 
   LOG(( "ftglue:stream:seek(%ld) -> %d\n", pos, error ));

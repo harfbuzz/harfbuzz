@@ -211,7 +211,7 @@ pango_ot_buffer_output (PangoOTBuffer    *buffer,
   FT_Face face;
   PangoOTInfo *info;
   TTO_GDEF gdef = NULL;
-  int i;
+  unsigned int i;
   int last_cluster;
 
   face = pango_fc_font_lock_face (buffer->font);
@@ -240,7 +240,7 @@ pango_ot_buffer_output (PangoOTBuffer    *buffer,
   gdef = pango_ot_info_get_gdef (info);
   
   /* Apply default positioning */
-  for (i = 0; i < glyphs->num_glyphs; i++)
+  for (i = 0; i < (unsigned int)glyphs->num_glyphs; i++)
     {
       if (glyphs->glyphs[i].glyph)
 	{

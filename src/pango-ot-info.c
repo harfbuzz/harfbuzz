@@ -52,7 +52,8 @@ pango_ot_info_get_type (void)
         NULL,           /* class_data */
         sizeof (PangoOTInfo),
         0,              /* n_preallocs */
-	NULL            /* init */
+	NULL,           /* init */
+	NULL,           /* value_table */
       };
       
       object_type = g_type_register_static (G_TYPE_OBJECT,
@@ -217,7 +218,7 @@ synthesize_class_def (PangoOTInfo *info)
   FT_UShort *classes;
   FT_ULong charcode;
   FT_UInt glyph;
-  int i, j;
+  unsigned int i, j;
   FT_CharMap old_charmap;
   
   old_charmap = info->face->charmap;

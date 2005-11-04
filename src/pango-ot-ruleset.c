@@ -55,6 +55,7 @@ pango_ot_ruleset_get_type (void)
         sizeof (PangoOTRuleset),
         0,              /* n_preallocs */
         (GInstanceInitFunc)pango_ot_ruleset_init,
+	NULL            /* value_table */
       };
       
       object_type = g_type_register_static (G_TYPE_OBJECT,
@@ -140,7 +141,7 @@ void
 pango_ot_ruleset_substitute  (PangoOTRuleset   *ruleset,
 			      PangoOTBuffer    *buffer)
 {
-  int i;
+  unsigned int i;
   
   TTO_GSUB gsub = NULL;
   
@@ -173,7 +174,7 @@ void
 pango_ot_ruleset_position (PangoOTRuleset   *ruleset,
 			   PangoOTBuffer    *buffer)
 {
-  int i;
+  unsigned int i;
   
   TTO_GPOS gpos = NULL;
   
