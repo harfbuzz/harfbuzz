@@ -904,7 +904,6 @@
       return Load_Coverage2( &c->cf.cf2, stream );
 
     default:
-      fprintf (stderr, "at ftxopen.c:907, got %d (behdad)\n", c->CoverageFormat);
       return TTO_Err_Invalid_SubTable_Format;
     }
 
