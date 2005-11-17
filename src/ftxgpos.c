@@ -2080,6 +2080,12 @@
 
         FORGET_Frame();
 
+	if (new_offset == base_offset) {
+	  /* Doulos SIL Regular is buggy and has zer offsets here.  Skip */
+	  ban[n].PosFormat = 0;
+	  continue;
+	}
+
         cur_offset = FILE_Pos();
         if ( FILE_Seek( new_offset ) ||
              ( error = Load_Anchor( &ban[n], stream ) ) != TT_Err_Ok )

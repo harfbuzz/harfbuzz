@@ -631,9 +631,11 @@
         if ( FILE_Seek( new_offset ) || ACCESS_Frame( 8L ) )
           goto Fail;
 
-        (void)GET_UShort();                     /* format should be 1 */
+        if (GET_UShort() != 1) /* format should be 1 */
+	  goto Fail;
+
         l->LookupType = GET_UShort();
-        new_offset = GET_ULong() + base_offset;
+        new_offset += GET_ULong();
 
         FORGET_Frame();
       }
