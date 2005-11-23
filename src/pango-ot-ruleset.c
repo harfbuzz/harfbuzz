@@ -115,10 +115,10 @@ pango_ot_ruleset_new (PangoOTInfo *info)
  * @ruleset: a #PangoOTRuleset.
  * @table_type: the table type to add a feature to.
  * @feature_index: the index of the feature to add.
- * @property_bit: the property bit to use for this feature. 
+ * @property_bit: the property bit to use for this feature. Used to identify
+ *                the glyphs that this feature should be applied to.
  *
- * Adds a feature to the ruleset. See pango_ot_ruleset_shape()
- * for an explanation of @property_bit.
+ * Adds a feature to the ruleset.
  **/
 void
 pango_ot_ruleset_add_feature (PangoOTRuleset   *ruleset,
