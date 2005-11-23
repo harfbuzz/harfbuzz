@@ -24,6 +24,12 @@
 #define PANGO_SCALE_26_6 (PANGO_SCALE / (1<<6))
 #define PANGO_UNITS_26_6(d) (PANGO_SCALE_26_6 * (d))
 
+/**
+ * pango_ot_buffer_new
+ * @font: a #PangoFcFont
+ *
+ * Since: 1.4
+ **/ 
 PangoOTBuffer *
 pango_ot_buffer_new (PangoFcFont *font)
 {
@@ -49,6 +55,12 @@ pango_ot_buffer_new (PangoFcFont *font)
   return buffer;
 }
 
+/**
+ * pango_ot_buffer_destroy
+ * @buffer: a #PangoOTBuffer
+ *
+ * Since: 1.4
+ **/ 
 void
 pango_ot_buffer_destroy (PangoOTBuffer *buffer)
 {
@@ -57,6 +69,12 @@ pango_ot_buffer_destroy (PangoOTBuffer *buffer)
   g_free (buffer);
 }
 
+/**
+ * pango_ot_buffer_clear
+ * @buffer: a #PangoOTBuffer
+ *
+ * Since: 1.4
+ **/ 
 void
 pango_ot_buffer_clear (PangoOTBuffer *buffer)
 {
@@ -64,6 +82,15 @@ pango_ot_buffer_clear (PangoOTBuffer *buffer)
   buffer->applied_gpos = FALSE;
 }
 
+/**
+ * pango_ot_buffer_add_glyph
+ * @buffer: a #PangoOTBuffer
+ * @glyph_index:
+ * @properties:
+ * @cluster: 
+ *
+ * Since: 1.4
+ **/ 
 void
 pango_ot_buffer_add_glyph (PangoOTBuffer *buffer,
 			   guint          glyph_index,
@@ -75,6 +102,13 @@ pango_ot_buffer_add_glyph (PangoOTBuffer *buffer,
 
 }
 
+/**
+ * pango_ot_buffer_set_rtl
+ * @buffer: a #PangoOTBuffer
+ * @rtl: %TRUE for right-to-left 
+ *
+ * Since: 1.4
+ **/ 
 void
 pango_ot_buffer_set_rtl (PangoOTBuffer *buffer,
 			 gboolean       rtl)
@@ -102,6 +136,14 @@ pango_ot_buffer_set_zero_width_marks (PangoOTBuffer     *buffer,
   buffer->zero_width_marks = zero_width_marks != FALSE;
 }
 
+/**
+ * pango_ot_buffer_get_glyphs
+ * @buffer: a #PangoOTBuffer
+ * @glyph: 
+ * @n_glyphs:
+ *
+ * Since: 1.4
+ **/ 
 void
 pango_ot_buffer_get_glyphs (PangoOTBuffer  *buffer,
 			    PangoOTGlyph  **glyphs,
@@ -204,6 +246,13 @@ apply_gpos_rtl (PangoGlyphString *glyphs,
     }
 }
 
+/**
+ * pango_ot_buffer_output
+ * @buffer: a #PangoOTBuffer
+ * @glyphs: a #PangoGlyphString
+ *
+ * Since: 1.4
+ **/ 
 void
 pango_ot_buffer_output (PangoOTBuffer    *buffer,
 			PangoGlyphString *glyphs)

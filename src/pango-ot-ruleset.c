@@ -137,6 +137,13 @@ pango_ot_ruleset_add_feature (PangoOTRuleset   *ruleset,
   g_array_append_val (ruleset->rules, tmp_rule);
 }
 
+/**
+ * pango_ot_ruleset_substitute:
+ * @ruleset: a #PangoOTRuleset.
+ * @buffer: a #PangoOTBuffer.
+ *
+ * Since: 1.4
+ **/
 void
 pango_ot_ruleset_substitute  (PangoOTRuleset   *ruleset,
 			      PangoOTBuffer    *buffer)
@@ -170,6 +177,13 @@ pango_ot_ruleset_substitute  (PangoOTRuleset   *ruleset,
   TT_GSUB_Apply_String (gsub, buffer->buffer);
 }
 
+/**
+ * pango_ot_ruleset_position:
+ * @ruleset: a #PangoOTRuleset.
+ * @buffer: a #PangoOTBuffer.
+ *
+ * Since: 1.4
+ **/
 void
 pango_ot_ruleset_position (PangoOTRuleset   *ruleset,
 			   PangoOTBuffer    *buffer)
