@@ -444,18 +444,26 @@ Dump_Device (TTO_Device *Device, FILE *stream, int indent, FT_Bool is_gsub)
       break;
     }
 
-  n_per = 16 / bits;
-  mask = (1 << bits) - 1;
-  mask = mask << (16 - bits);
-
   DUMP ("<DeltaValue>");
-  for (i = Device->StartSize; i <= Device->EndSize ; i++)
+  if (!bits)
     {
-      FT_UShort val = Device->DeltaValue[i / n_per];
-      FT_Short signed_val = ((val << ((i % n_per) * bits)) & mask);
-      dump (stream, indent, "%d", signed_val >> (16 - bits));
-      if (i != Device->EndSize)
-	DUMP (", ");
+
+      fprintf(stderr, "invalid DeltaFormat!!!!!\n");
+    }
+  else
+    {
+      n_per = 16 / bits;
+      mask = (1 << bits) - 1;
+      mask = mask << (16 - bits);
+
+      for (i = Device->StartSize; i <= Device->EndSize ; i++)
+	{
+	  FT_UShort val = Device->DeltaValue[i / n_per];
+	  FT_Short signed_val = ((val << ((i % n_per) * bits)) & mask);
+	  dump (stream, indent, "%d", signed_val >> (16 - bits));
+	  if (i != Device->EndSize)
+	    DUMP (", ");
+	}
     }
   DUMP ("</DeltaValue>\n");
 }
