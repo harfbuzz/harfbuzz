@@ -28,6 +28,8 @@
  * pango_ot_buffer_new
  * @font: a #PangoFcFont
  *
+ * Return value: the new #PangoOTBuffer
+ *
  * Since: 1.4
  **/ 
 PangoOTBuffer *
@@ -139,7 +141,7 @@ pango_ot_buffer_set_zero_width_marks (PangoOTBuffer     *buffer,
 /**
  * pango_ot_buffer_get_glyphs
  * @buffer: a #PangoOTBuffer
- * @glyph: 
+ * @glyphs: 
  * @n_glyphs:
  *
  * Since: 1.4
