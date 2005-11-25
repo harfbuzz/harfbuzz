@@ -110,7 +110,7 @@ pango_ot_info_finalizer (void *object)
  * pango_ot_info_get:
  * @face: a #FT_Face.
  * @returns: the #PangoOTInfo for @face. This object will
- *   have the same lifetime as FT_Face.
+ *   have the same lifetime as @face.
  * 
  * Returns the #PangoOTInfo structure for the given FreeType font.
  *
