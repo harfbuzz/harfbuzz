@@ -41,7 +41,7 @@ pango_ot_buffer_new (PangoFcFont *font)
    * probably already have the font locked, however,
    * so there is little performance penalty.
    */
-  PangoOTBuffer *buffer = g_new (PangoOTBuffer, 1);
+  PangoOTBuffer *buffer = g_slice_new (PangoOTBuffer);
   FT_Face face = pango_fc_font_lock_face (font);
 
   if (otl_buffer_new (face->memory, &buffer->buffer) != FT_Err_Ok)
@@ -68,7 +68,7 @@ pango_ot_buffer_destroy (PangoOTBuffer *buffer)
 {
   otl_buffer_free (buffer->buffer);
   g_object_unref (buffer->font);
-  g_free (buffer);
+  g_slice_free (PangoOTBuffer, buffer);
 }
 
 /**
