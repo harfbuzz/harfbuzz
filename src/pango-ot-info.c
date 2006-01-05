@@ -20,6 +20,7 @@
  */
 
 #include "pango-ot-private.h"
+#include "../pango-utils.h"
 #include "ftglue.h"
 #include FT_MODULE_H
 
@@ -57,7 +58,7 @@ pango_ot_info_get_type (void)
       };
       
       object_type = g_type_register_static (G_TYPE_OBJECT,
-                                            "PangoOTInfo",
+                                            I_("PangoOTInfo"),
                                             &object_info, 0);
     }
   

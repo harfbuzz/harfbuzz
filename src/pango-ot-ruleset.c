@@ -21,6 +21,7 @@
 
 #include <pango/pango-ot.h>
 #include "pango-ot-private.h"
+#include "../pango-utils.h"
 
 typedef struct _PangoOTRule PangoOTRule;
 
@@ -59,7 +60,7 @@ pango_ot_ruleset_get_type (void)
       };
       
       object_type = g_type_register_static (G_TYPE_OBJECT,
-                                            "PangoOTRuleset",
+                                            I_("PangoOTRuleset"),
                                             &object_info, 0);
     }
   
