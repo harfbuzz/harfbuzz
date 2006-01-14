@@ -15,6 +15,7 @@
  *
  ******************************************************************/
 
+#include <config.h>
 #include "ftxopen.h"
 #include "ftxopenf.h"
 

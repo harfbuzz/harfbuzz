@@ -19,6 +19,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
+
 #include "pango-ot-private.h"
 
 #define PANGO_SCALE_26_6 (PANGO_SCALE / (1<<6))

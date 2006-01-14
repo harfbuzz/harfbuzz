@@ -15,6 +15,8 @@
  *
  ******************************************************************/
 
+#include <config.h>
+
 /* XXX There is *a lot* of duplicated code (cf. formats 5 and 6), but
        I don't care currently.  I believe that it would be possible to
        save about 50% of TTO code by carefully designing the structures,

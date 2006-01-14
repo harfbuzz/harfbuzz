@@ -8,6 +8,7 @@
  * See ftglue.h for more information.
  */
 
+#include <config.h>
 #include "ftglue.h"
 
 #if 0

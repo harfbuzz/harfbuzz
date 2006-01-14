@@ -11,6 +11,9 @@
  * this file you indicate that you have read the license and
  * understand and accept it fully.
  */
+
+#include <config.h>
+
 #include <otlbuffer.h>
 
 /* To get the gcc-3.3 strict-aliasing compatible versions
