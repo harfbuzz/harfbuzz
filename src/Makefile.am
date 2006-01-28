@@ -1,19 +1,16 @@
 ## Process this file with automake to produce Makefile.in
 
 INCLUDES = 					\
-	-DG_LOG_DOMAIN=\"Pango\"		\
-	-DPANGO_ENABLE_ENGINE			\
-	-DSYSCONFDIR=\"$(sysconfdir)\"		\
-	-DLIBDIR=\"$(libdir)\"			\
+	-DSYSCONFDIR=\"$(sysconfdir)\" 		\
+	-DLIBDIR=\"$(libdir)\" 			\
 	$(PANGO_DEBUG_FLAGS)			\
+	-I$(top_srcdir)				\
 	$(GLIB_CFLAGS)				\
-	$(FREETYPE_CFLAGS)			\
-	$(X_CFLAGS)				\
-	-I$(top_srcdir)
+	$(FREETYPE_CFLAGS)
 
-noinst_LTLIBRARIES = libpango-ot.la
+noinst_LTLIBRARIES = libmini-harfbuzz.la
 
-libpango_ot_la_SOURCES =  	\
+libmini_harfbuzz_la_SOURCES =  	\
 	ftglue.h		\
 	ftglue.c		\
 	ftxopen.c	 	\
@@ -26,13 +23,9 @@ libpango_ot_la_SOURCES =  	\
 	ftxgsub.c		\
 	ftxgsub.h		\
 	otlbuffer.c		\
-	otlbuffer.h		\
-	pango-ot-buffer.c	\
-	pango-ot-info.c		\
-	pango-ot-private.h	\
-	pango-ot-ruleset.c
+	otlbuffer.h
 
-libpango_ot_la_LIBADD = \
+libmini_harfbuzz_la_LIBADD = \
 	$(x_ldflags)	\
 	$(x_libs)	\
 	$(GLIB_LIBS)	\
@@ -48,8 +41,11 @@ ottest_SOURCES = 	\
 	disasm.h
 
 ottest_LDADD = 		\
-	libpango-ot.la	\
+	libmini-harfbuzz.la	\
 	$(FREETYPE_LIBS)
 
 EXTRA_DIST = 		\
-	README
+	README		\
+	FTL.TXT		\
+	FT-license.txt
+
