@@ -210,12 +210,12 @@
    * SubTable related functions
    *****************************/
 
-  static FT_Error  Lookup_DefaultSubst(  TTO_GSUBHeader*   gsub,
-					 TTO_GSUB_SubTable* st,
-					 OTL_Buffer        buffer,
-					 FT_UShort         flags,
-					 FT_UShort         context_length,
-					 int               nesting_level )
+  static FT_Error  Lookup_DefaultSubst( TTO_GSUBHeader*    gsub,
+					TTO_GSUB_SubTable* st,
+					OTL_Buffer         buffer,
+					FT_UShort          flags,
+					FT_UShort          context_length,
+					int                nesting_level )
   {
     return TTO_Err_Not_Covered;
   }
@@ -529,12 +529,12 @@
   }
 
 
-  static FT_Error  Lookup_MultipleSubst( TTO_GSUBHeader*   gsub,
+  static FT_Error  Lookup_MultipleSubst( TTO_GSUBHeader*    gsub,
 					 TTO_GSUB_SubTable* st,
-					 OTL_Buffer          buffer,
-                                         FT_UShort           flags,
-                                         FT_UShort           context_length,
-					 int               nesting_level )
+					 OTL_Buffer         buffer,
+                                         FT_UShort          flags,
+                                         FT_UShort          context_length,
+					 int                nesting_level )
   {
     FT_Error  error;
     FT_UShort index, property, n, count;
@@ -728,12 +728,12 @@
   }
 
 
-  static FT_Error  Lookup_AlternateSubst( TTO_GSUBHeader*      gsub,
-					  TTO_GSUB_SubTable*   st,
-					  OTL_Buffer           buffer,
-                                          FT_UShort            flags,
-                                          FT_UShort            context_length,
-					  int                  nesting_level )
+  static FT_Error  Lookup_AlternateSubst( TTO_GSUBHeader*    gsub,
+					  TTO_GSUB_SubTable* st,
+					  OTL_Buffer         buffer,
+                                          FT_UShort          flags,
+                                          FT_UShort          context_length,
+					  int                nesting_level )
   {
     FT_Error          error;
     FT_UShort         index, alt_index, property;
@@ -1011,12 +1011,12 @@
   }
 
 
-  static FT_Error  Lookup_LigatureSubst( TTO_GSUBHeader*     gsub,
+  static FT_Error  Lookup_LigatureSubst( TTO_GSUBHeader*    gsub,
 					 TTO_GSUB_SubTable* st,
-					 OTL_Buffer          buffer,
-                                         FT_UShort           flags,
-                                         FT_UShort           context_length,
-					 int                 nesting_level )
+					 OTL_Buffer         buffer,
+                                         FT_UShort          flags,
+                                         FT_UShort          context_length,
+					 int                nesting_level )
   {
     FT_UShort      index, property;
     FT_Error       error;
@@ -1145,12 +1145,12 @@
      5 or 6).  This is only called after we've determined that the input
      matches the subrule.                                                 */
 
-  static FT_Error  Do_ContextSubst( TTO_GSUBHeader*         gsub,
-                                    FT_UShort               GlyphCount,
-                                    FT_UShort               SubstCount,
-                                    TTO_SubstLookupRecord*  subst,
-				    OTL_Buffer              buffer,
-                                    int                     nesting_level )
+  static FT_Error  Do_ContextSubst( TTO_GSUBHeader*        gsub,
+                                    FT_UShort              GlyphCount,
+                                    FT_UShort              SubstCount,
+                                    TTO_SubstLookupRecord* subst,
+				    OTL_Buffer             buffer,
+                                    int                    nesting_level )
   {
     FT_Error  error;
     FT_UShort i, old_pos;
@@ -1911,13 +1911,12 @@
   }
 
 
-  static FT_Error  Lookup_ContextSubst1(
-                     TTO_GSUBHeader*           gsub,
-                     TTO_ContextSubstFormat1*  csf1,
-		     OTL_Buffer                buffer,
-                     FT_UShort                 flags,
-                     FT_UShort                 context_length,
-                     int                       nesting_level )
+  static FT_Error  Lookup_ContextSubst1( TTO_GSUBHeader*          gsub,
+					 TTO_ContextSubstFormat1* csf1,
+					 OTL_Buffer               buffer,
+					 FT_UShort                flags,
+					 FT_UShort                context_length,
+					 int                      nesting_level )
   {
     FT_UShort        index, property;
     FT_UShort        i, j, k, numsr;
@@ -1975,13 +1974,12 @@
   }
 
 
-  static FT_Error  Lookup_ContextSubst2(
-                     TTO_GSUBHeader*           gsub,
-                     TTO_ContextSubstFormat2*  csf2,
-		     OTL_Buffer                buffer,
-                     FT_UShort                 flags,
-                     FT_UShort                 context_length,
-                     int                       nesting_level )
+  static FT_Error  Lookup_ContextSubst2( TTO_GSUBHeader*          gsub,
+					 TTO_ContextSubstFormat2* csf2,
+					 OTL_Buffer               buffer,
+					 FT_UShort                flags,
+					 FT_UShort                context_length,
+					 int                      nesting_level )
   {
     FT_UShort          index, property;
     FT_Error           error;
@@ -2083,13 +2081,12 @@
   }
 
 
-  static FT_Error  Lookup_ContextSubst3(
-                     TTO_GSUBHeader*           gsub,
-                     TTO_ContextSubstFormat3*  csf3,
-		     OTL_Buffer                buffer,
-                     FT_UShort                 flags,
-                     FT_UShort                 context_length,
-                     int                       nesting_level )
+  static FT_Error  Lookup_ContextSubst3( TTO_GSUBHeader*          gsub,
+					 TTO_ContextSubstFormat3* csf3,
+					 OTL_Buffer               buffer,
+					 FT_UShort                flags,
+					 FT_UShort                context_length,
+					 int                      nesting_level )
   {
     FT_Error         error;
     FT_UShort        index, i, j, property;
@@ -3187,13 +3184,12 @@
   }
 
 
-  static FT_Error  Lookup_ChainContextSubst1(
-                     TTO_GSUBHeader*                gsub,
-                     TTO_ChainContextSubstFormat1*  ccsf1,
-		     OTL_Buffer                     buffer,
-                     FT_UShort                      flags,
-                     FT_UShort                      context_length,
-                     int                            nesting_level )
+  static FT_Error  Lookup_ChainContextSubst1( TTO_GSUBHeader*               gsub,
+					      TTO_ChainContextSubstFormat1* ccsf1,
+					      OTL_Buffer                    buffer,
+					      FT_UShort                     flags,
+					      FT_UShort                     context_length,
+					      int                           nesting_level )
   {
     FT_UShort          index, property;
     FT_UShort          i, j, k, num_csr;
@@ -3315,13 +3311,12 @@
   }
 
 
-  static FT_Error  Lookup_ChainContextSubst2(
-                     TTO_GSUBHeader*                gsub,
-                     TTO_ChainContextSubstFormat2*  ccsf2,
-		     OTL_Buffer                     buffer,
-                     FT_UShort                      flags,
-                     FT_UShort                      context_length,
-                     int                            nesting_level )
+  static FT_Error  Lookup_ChainContextSubst2( TTO_GSUBHeader*               gsub,
+					      TTO_ChainContextSubstFormat2* ccsf2,
+					      OTL_Buffer                    buffer,
+					      FT_UShort                     flags,
+					      FT_UShort                     context_length,
+					      int                           nesting_level )
   {
     FT_UShort              index, property;
     FT_Memory              memory;
@@ -3518,13 +3513,12 @@
   }
 
 
-  static FT_Error  Lookup_ChainContextSubst3(
-                     TTO_GSUBHeader*                gsub,
-                     TTO_ChainContextSubstFormat3*  ccsf3,
-		     OTL_Buffer                     buffer,
-                     FT_UShort                      flags,
-                     FT_UShort                      context_length,
-                     int                            nesting_level )
+  static FT_Error  Lookup_ChainContextSubst3( TTO_GSUBHeader*               gsub,
+					      TTO_ChainContextSubstFormat3* ccsf3,
+					      OTL_Buffer                    buffer,
+					      FT_UShort                     flags,
+					      FT_UShort                     context_length,
+					      int                           nesting_level )
   {
     FT_UShort        index, i, j, property;
     FT_UShort        bgc, igc, lgc;
@@ -3628,13 +3622,12 @@
   }
 
 
-  static FT_Error  Lookup_ChainContextSubst(
-                     TTO_GSUBHeader*         gsub,
-		     TTO_GSUB_SubTable*      st,
-		     OTL_Buffer              buffer,
-                     FT_UShort               flags,
-                     FT_UShort               context_length,
-                     int                     nesting_level )
+  static FT_Error  Lookup_ChainContextSubst( TTO_GSUBHeader*    gsub,
+					     TTO_GSUB_SubTable* st,
+					     OTL_Buffer         buffer,
+					     FT_UShort          flags,
+					     FT_UShort          context_length,
+					     int                nesting_level )
   {
     TTO_ChainContextSubst*  ccs = &st->chain;
 
@@ -3663,7 +3656,288 @@
   }
 
 
+  FT_Error  Load_ReverseChainContextSubst( TTO_ReverseChainContextSubst*  rccs,
+					   FT_Stream                      stream )
+  {
+    FT_Error error;
+    FT_Memory memory = stream->memory;
 
+    FT_UShort               m, count;
+
+    FT_UShort               nb = 0, nl = 0, n;
+    FT_UShort               backtrack_count, lookahead_count;
+    FT_ULong                cur_offset, new_offset, base_offset;
+
+    TTO_Coverage*           b;
+    TTO_Coverage*           l;
+    FT_UShort*              sub;
+
+    base_offset = FILE_Pos();
+
+    if ( ACCESS_Frame( 2L ) )
+      return error;
+    
+    rccs->SubstFormat = GET_UShort();
+    
+    if ( rccs->SubstFormat != 1 )
+      return TTO_Err_Invalid_GSUB_SubTable_Format;
+
+    FORGET_Frame();   
+
+    if ( ACCESS_Frame( 2L ) )
+      return error;
+    
+    new_offset = GET_UShort() + base_offset;
+
+    FORGET_Frame();
+
+    cur_offset = FILE_Pos();
+    if ( FILE_Seek( new_offset ) ||
+         ( error = Load_Coverage( &rccs->Coverage, stream ) ) != TT_Err_Ok )
+      return error;
+    (void)FILE_Seek( cur_offset );
+
+    
+    if ( ACCESS_Frame( 2L ) )
+      goto Fail4;
+
+    rccs->BacktrackGlyphCount = GET_UShort();
+    
+    FORGET_Frame();
+
+    rccs->BacktrackCoverage = NULL;
+
+    backtrack_count = rccs->BacktrackGlyphCount;
+
+    if ( ALLOC_ARRAY( rccs->BacktrackCoverage, backtrack_count,
+                      TTO_Coverage ) )
+      goto Fail4;
+    
+    b = rccs->BacktrackCoverage;
+
+    for ( nb = 0; nb < backtrack_count; nb++ )
+    {
+      if ( ACCESS_Frame( 2L ) )
+        goto Fail3;
+
+      new_offset = GET_UShort() + base_offset;
+
+      FORGET_Frame();
+
+      cur_offset = FILE_Pos();
+      if ( FILE_Seek( new_offset ) ||
+           ( error = Load_Coverage( &b[nb], stream ) ) != TT_Err_Ok )
+        goto Fail3;
+      (void)FILE_Seek( cur_offset );
+    }
+
+
+    if ( ACCESS_Frame( 2L ) )
+      goto Fail3;
+  
+    rccs->LookaheadGlyphCount = GET_UShort();
+    
+    FORGET_Frame();
+
+    rccs->LookaheadCoverage = NULL;
+
+    lookahead_count = rccs->LookaheadGlyphCount;
+
+    if ( ALLOC_ARRAY( rccs->LookaheadCoverage, lookahead_count,
+                      TTO_Coverage ) )
+      goto Fail3;
+
+    l = rccs->LookaheadCoverage;
+  
+    for ( nl = 0; nl < lookahead_count; nl++ )
+    {
+      if ( ACCESS_Frame( 2L ) )
+        goto Fail2;
+
+      new_offset = GET_UShort() + base_offset;
+
+      FORGET_Frame();
+
+      cur_offset = FILE_Pos();
+      if ( FILE_Seek( new_offset ) ||
+           ( error = Load_Coverage( &l[nl], stream ) ) != TT_Err_Ok )
+        goto Fail2;
+      (void)FILE_Seek( cur_offset );
+    }
+   
+    if ( ACCESS_Frame( 2L ) )
+      goto Fail2;
+  
+    rccs->GlyphCount = GET_UShort();
+    
+    FORGET_Frame();
+
+    rccs->Substitute = NULL;
+
+    count = rccs->GlyphCount;
+
+    if ( ALLOC_ARRAY( rccs->Substitute, count,
+                      FT_UShort ) )
+      goto Fail2;
+
+    sub = rccs->Substitute;
+    
+    if ( ACCESS_Frame( count * 2L ) )
+      goto Fail1;
+    
+    for ( n = 0; n < count; n++ )
+      sub[n] = GET_UShort();
+            
+    FORGET_Frame();
+    
+    return TT_Err_Ok;
+
+  Fail1:
+    FREE( sub );
+    
+  Fail2:
+    for ( m = 0; m < nl; m++ )
+      Free_Coverage( &l[m], memory );
+
+    FREE( l );
+
+  Fail3:
+    for ( m = 0; m < nb; m++ )
+      Free_Coverage( &b[m], memory );
+
+    FREE( b );
+
+  Fail4:
+    Free_Coverage( &rccs->Coverage, memory );    
+    return error;
+  }
+
+
+  void  Free_ReverseChainContextSubst( TTO_ReverseChainContextSubst*  rccs,
+	 			       FT_Memory                      memory )
+  {  
+    FT_UShort      n, count;
+
+    TTO_Coverage*  c;
+
+    Free_Coverage( &rccs->Coverage, memory );
+    
+    if ( rccs->LookaheadCoverage )
+    {
+      count = rccs->LookaheadGlyphCount;
+      c     = rccs->LookaheadCoverage;
+
+      for ( n = 0; n < count; n++ )
+        Free_Coverage( &c[n], memory );
+
+      FREE( c );
+    }
+
+    if ( rccs->BacktrackCoverage )
+    {
+      count = rccs->BacktrackGlyphCount;
+      c     = rccs->BacktrackCoverage;
+
+      for ( n = 0; n < count; n++ )
+        Free_Coverage( &c[n], memory );
+
+      FREE( c );
+    }
+
+    FREE ( rccs->Substitute );
+  }
+  
+ 
+  static FT_Error  Lookup_ReverseChainContextSubst( TTO_GSUBHeader*    gsub,
+						    TTO_GSUB_SubTable* st,
+						    OTL_Buffer         buffer,
+						    FT_UShort          flags,
+	/* note different signature here: */	    FT_ULong           string_index )
+  {
+    FT_UShort        index, input_index, i, j, property;
+    FT_UShort        bgc, lgc;
+    FT_Error         error;
+
+    TTO_ReverseChainContextSubst*  rccs = &st->reverse;
+    TTO_Coverage*    bc;
+    TTO_Coverage*    lc;
+    TTO_GDEFHeader*  gdef;
+ 
+    gdef = gsub->gdef;
+
+    if ( CHECK_Property( gdef, IN_ITEM( string_index ), flags, &property ) )
+      return error;
+
+    bgc = rccs->BacktrackGlyphCount;
+    lgc = rccs->LookaheadGlyphCount;
+
+    /* check whether context is too long; it is a first guess only */
+    
+    if ( bgc > string_index || string_index + 1 + lgc > buffer->in_length )
+      return TTO_Err_Not_Covered;
+    
+    if ( bgc )
+    {
+      /* Since we don't know in advance the number of glyphs to inspect,
+         we search backwards for matches in the backtrack glyph array    */
+
+      bc       = rccs->BacktrackCoverage;
+
+      for ( i = 0, j = string_index - 1; i < bgc; i++, j-- )
+      {
+        while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+        {
+          if ( error && error != TTO_Err_Not_Covered )
+            return error;
+
+	  if ( j + 1 == bgc - i )
+	    return TTO_Err_Not_Covered;
+	  j--;
+        }
+
+        error = Coverage_Index( &bc[i], IN_GLYPH( j ), &index );
+        if ( error )
+          return error;
+      }
+    }
+
+    j = string_index;
+   
+    error = Coverage_Index( &rccs->Coverage, IN_GLYPH( j ), &input_index );
+    if ( error )
+        return error;
+
+    /* we are starting for lookahead glyphs right after the last context
+       glyph                                                             */
+    
+    j += 1;
+
+    lc       = rccs->LookaheadCoverage;
+
+    for ( i = 0; i < lgc; i++, j++ )
+    {
+      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      {
+        if ( error && error != TTO_Err_Not_Covered )
+          return error;
+
+	if ( j + lgc - i == buffer->in_length )
+	  return TTO_Err_Not_Covered;
+	j++;
+      }
+
+      error = Coverage_Index( &lc[i], IN_GLYPH( j ), &index );
+      if ( error )
+        return error;
+    }
+
+    IN_GLYPH( string_index ) = rccs->Substitute[input_index];
+	
+    return error;
+  }
+
+
+ 
   /***********
    * GSUB API
    ***********/
@@ -3958,31 +4232,36 @@
   }
 
 
-  typedef FT_Error  (*Lookup_Func_Type)  ( TTO_GSUBHeader*   gsub,
-					   TTO_GSUB_SubTable* st,
-					   OTL_Buffer        buffer,
-					   FT_UShort         flags,
-					   FT_UShort         context_length,
-					   int               nesting_level );
+  typedef FT_Error  (*Lookup_Func_Type)( TTO_GSUBHeader*    gsub,
+					 TTO_GSUB_SubTable* st,
+					 OTL_Buffer         buffer,
+					 FT_UShort          flags,
+					 FT_UShort          context_length,
+					 int                nesting_level );
   static const Lookup_Func_Type Lookup_Call_Table[] = {
     Lookup_DefaultSubst,
-    Lookup_SingleSubst,		/* GSUB_LOOKUP_SINGLE     1 */
-    Lookup_MultipleSubst,	/* GSUB_LOOKUP_MULTIPLE   2 */
-    Lookup_AlternateSubst,	/* GSUB_LOOKUP_ALTERNATE  3 */
-    Lookup_LigatureSubst,	/* GSUB_LOOKUP_LIGATURE   4 */
-    Lookup_ContextSubst,	/* GSUB_LOOKUP_CONTEXT    5 */
-    Lookup_ChainContextSubst,	/* GSUB_LOOKUP_CHAIN      6 */
-    Lookup_DefaultSubst,	/* GSUB_LOOKUP_EXTENSION  7 */
+    Lookup_SingleSubst,			/* GSUB_LOOKUP_SINGLE        1 */
+    Lookup_MultipleSubst,		/* GSUB_LOOKUP_MULTIPLE      2 */
+    Lookup_AlternateSubst,		/* GSUB_LOOKUP_ALTERNATE     3 */
+    Lookup_LigatureSubst,		/* GSUB_LOOKUP_LIGATURE      4 */
+    Lookup_ContextSubst,		/* GSUB_LOOKUP_CONTEXT       5 */
+    Lookup_ChainContextSubst,		/* GSUB_LOOKUP_CHAIN         6 */
+    Lookup_DefaultSubst,		/* GSUB_LOOKUP_EXTENSION     7 */
   };
+  /* Note that the following lookup does not belong to the table above:
+   * Lookup_ReverseChainContextSubst,	 GSUB_LOOKUP_REVERSE_CHAIN 8
+   * because it's invalid to happen where this table is used.  It's
+   * signature is different too...
+   */
 
   /* Do an individual subtable lookup.  Returns TT_Err_Ok if substitution
      has been done, or TTO_Err_Not_Covered if not.                        */
 
-  static FT_Error  Do_Glyph_Lookup( TTO_GSUBHeader*   gsub,
-                                    FT_UShort         lookup_index,
-				    OTL_Buffer        buffer,
-                                    FT_UShort         context_length,
-                                    int               nesting_level )
+  static FT_Error  Do_Glyph_Lookup( TTO_GSUBHeader* gsub,
+                                    FT_UShort       lookup_index,
+				    OTL_Buffer      buffer,
+                                    FT_UShort       context_length,
+                                    int             nesting_level )
   {
     FT_Error     error = TTO_Err_Not_Covered;
     FT_UShort    i, flags, lookup_count;
@@ -4061,6 +4340,47 @@
           return error;
     }
 
+    return retError;
+  }
+
+
+  static FT_Error  Apply_ReverseChainContextSubst( TTO_GSUBHeader*   gsub,
+						   FT_UShort         lookup_index,
+						   OTL_Buffer        buffer )
+  {
+    FT_UInt*     properties =  gsub->LookupList.Properties;
+    FT_Error     error, retError = TTO_Err_Not_Covered;
+    FT_ULong     subtable_Count, string_index;
+    FT_UShort    flags;
+    TTO_Lookup*  lo;      
+
+    if ( buffer->in_length == 0 )
+      return TTO_Err_Not_Covered;
+    
+    lo    = &gsub->LookupList.Lookup[lookup_index];
+    flags = lo->LookupFlag;      
+    
+    for ( subtable_Count = 0; subtable_Count < lo->SubTableCount; subtable_Count++ )
+    {
+      string_index  = buffer->in_length - 1;
+      do
+      {
+	if ( ~IN_PROPERTIES( buffer->in_pos ) & properties[lookup_index] )
+	  {
+	    error = Lookup_ReverseChainContextSubst( gsub, &lo->SubTable[subtable_Count].st.gsub,
+						     buffer, flags, string_index );
+	    if ( error )
+	      {
+		if ( error != TTO_Err_Not_Covered )
+		  return error;
+	      }
+	    else
+	      retError = error;
+	  }
+      }
+      while (string_index--);
+    }
+    
     return retError;
   }
 
@@ -4145,8 +4465,7 @@
 				  OTL_Buffer        buffer )
   {
     FT_Error          error, retError = TTO_Err_Not_Covered;
-    FT_UShort         i, j, feature_index, lookup_count;
-    TTO_Feature       feature;
+    FT_UShort         i, j, lookup_count;
 
     if ( !gsub ||
          !buffer || buffer->in_length == 0 || buffer->in_pos >= buffer->in_length )
@@ -4156,18 +4475,37 @@
 
     for ( i = 0; i < gsub->FeatureList.ApplyCount; i++)
     {
+      FT_UShort         feature_index;
+      TTO_Feature       feature;
+
       feature_index = gsub->FeatureList.ApplyOrder[i];
       feature = gsub->FeatureList.FeatureRecord[feature_index].Feature;
 
       for ( j = 0; j < feature.LookupListCount; j++ )
       {
-	FT_UShort lookup_index = feature.LookupListIndex[j];
+	FT_UShort         lookup_index;
+        TTO_Lookup*       lookup;
+        FT_Bool           need_swap;
+
+	lookup_index = feature.LookupListIndex[j];
 
 	/* Skip nonexistant lookups */
         if (lookup_index >= lookup_count)
 	 continue;
 
-        error = Do_String_Lookup( gsub, lookup_index, buffer );
+	lookup = &gsub->LookupList.Lookup[lookup_index];
+
+	if ( lookup->LookupType == GSUB_LOOKUP_REVERSE_CHAIN )
+	{
+	  error = Apply_ReverseChainContextSubst( gsub, lookup_index, buffer);
+	  need_swap = FALSE; /* We do ReverseChainContextSubst in-place */
+	}
+	else
+	{
+	  error = Do_String_Lookup( gsub, lookup_index, buffer );
+	  need_swap = TRUE;
+	}
+
 	if ( error )
 	{
 	  if ( error != TTO_Err_Not_Covered )
@@ -4176,9 +4514,12 @@
 	else
 	  retError = error;
         
-	error = otl_buffer_swap( buffer );
-	if ( error )
-	  goto End;
+	if ( need_swap )
+	{
+	  error = otl_buffer_swap( buffer );
+	  if ( error )
+	    goto End;
+	}
       } 
     }
     

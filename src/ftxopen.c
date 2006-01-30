@@ -469,6 +469,9 @@
 
       case GSUB_LOOKUP_CHAIN:
         return Load_ChainContextSubst( &st->st.gsub.chain, stream );
+	
+      case GSUB_LOOKUP_REVERSE_CHAIN:
+        return Load_ReverseChainContextSubst( &st->st.gsub.reverse, stream );
 
       default:
         return TTO_Err_Invalid_GSUB_SubTable_Format;
@@ -534,6 +537,10 @@
 
       case GSUB_LOOKUP_CONTEXT:
         Free_ContextSubst( &st->st.gsub.context, memory );
+        break;
+
+      case GSUB_LOOKUP_REVERSE_CHAIN:
+        Free_ReverseChainContextSubst( &st->st.gsub.reverse, memory );
         break;
 
       case GSUB_LOOKUP_CHAIN:

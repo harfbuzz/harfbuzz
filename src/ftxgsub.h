@@ -32,14 +32,14 @@ extern "C" {
 
 /* Lookup types for glyph substitution */
 
-#define GSUB_LOOKUP_SINGLE     1
-#define GSUB_LOOKUP_MULTIPLE   2
-#define GSUB_LOOKUP_ALTERNATE  3
-#define GSUB_LOOKUP_LIGATURE   4
-#define GSUB_LOOKUP_CONTEXT    5
-#define GSUB_LOOKUP_CHAIN      6
-#define GSUB_LOOKUP_EXTENSION  7
-
+#define GSUB_LOOKUP_SINGLE        1
+#define GSUB_LOOKUP_MULTIPLE      2
+#define GSUB_LOOKUP_ALTERNATE     3
+#define GSUB_LOOKUP_LIGATURE      4
+#define GSUB_LOOKUP_CONTEXT       5
+#define GSUB_LOOKUP_CHAIN         6
+#define GSUB_LOOKUP_EXTENSION     7
+#define GSUB_LOOKUP_REVERSE_CHAIN 8
 
 /* Use this if a feature applies to all glyphs */
 
@@ -467,14 +467,33 @@ extern "C" {
   typedef struct TTO_ChainContextSubst_  TTO_ChainContextSubst;
 
 
+  /* LookupType 8 */
+  struct TTO_ReverseChainContextSubst_
+  {
+    FT_UShort      SubstFormat;         /* always 1 */
+    TTO_Coverage   Coverage;	        /* coverage table for input glyphs */
+    FT_UShort      BacktrackGlyphCount; /* number of backtrack glyphs      */
+    TTO_Coverage*  BacktrackCoverage;   /* array of backtrack Coverage
+                                           tables                          */
+    FT_UShort      LookaheadGlyphCount; /* number of lookahead glyphs      */
+    TTO_Coverage*  LookaheadCoverage;   /* array of lookahead Coverage
+                                           tables                          */
+    FT_UShort      GlyphCount;          /* number of Glyph IDs             */
+    FT_UShort*     Substitute;          /* array of substitute Glyph ID    */
+  };
+
+  typedef struct TTO_ReverseChainContextSubst_  TTO_ReverseChainContextSubst;
+
+
   union  TTO_GSUB_SubTable_
   {
-    TTO_SingleSubst        single;
-    TTO_MultipleSubst      multiple;
-    TTO_AlternateSubst     alternate;
-    TTO_LigatureSubst      ligature;
-    TTO_ContextSubst       context;
-    TTO_ChainContextSubst  chain;
+    TTO_SingleSubst              single;
+    TTO_MultipleSubst            multiple;
+    TTO_AlternateSubst           alternate;
+    TTO_LigatureSubst            ligature;
+    TTO_ContextSubst             context;
+    TTO_ChainContextSubst        chain;
+    TTO_ReverseChainContextSubst reverse;
   };
 
   typedef union TTO_GSUB_SubTable_  TTO_GSUB_SubTable;

@@ -74,6 +74,8 @@ extern "C" {
                                FT_Stream          input );
   FT_Error  Load_ChainContextSubst( TTO_ChainContextSubst*  ccs,
                                     FT_Stream               input );
+  FT_Error  Load_ReverseChainContextSubst( TTO_ReverseChainContextSubst*  rccs,
+					   FT_Stream                      input );
 
   void  Free_SingleSubst( TTO_SingleSubst*  ss,
 			  FT_Memory         memory );
@@ -87,7 +89,8 @@ extern "C" {
 			   FT_Memory         memory );
   void  Free_ChainContextSubst( TTO_ChainContextSubst*  ccs,
 				FT_Memory               memory );
-
+  void  Free_ReverseChainContextSubst( TTO_ReverseChainContextSubst*  rccs,
+				       FT_Memory                      memory );
 
   /* functions from ftxgpos.c */
 
