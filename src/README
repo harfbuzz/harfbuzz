@@ -21,7 +21,7 @@ add support for PangoGlyphString's log_clusters, and in various
 other ways. Bug reports on these files should be sent to 
 gtk-i18n-list@gtk.org, NOT to the freetype maintainers.
 
-The license for these files is in the file freetype-license.txt. 
+The license for these files is in the file FT-license.txt. 
 
 
 Most of the additional files in this directory implement a high-level
