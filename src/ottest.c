@@ -240,7 +240,7 @@ main (int argc, char **argv)
       if ((error = TT_Done_GSUB_Table (gsub)))
 	croak ("FT_Done_GSUB_Table", error);
     }
-  else
+  else if (error != FT_Err_Table_Missing)
     fprintf (stderr, "TT_Load_GSUB_Table %x\n", error);
 
   if (!(error = TT_Load_GPOS_Table (face, &gpos, NULL)))
@@ -250,7 +250,7 @@ main (int argc, char **argv)
       if ((error = TT_Done_GPOS_Table (gpos)))
 	croak ("FT_Done_GPOS_Table", error);
     }
-  else
+  else if (error != FT_Err_Table_Missing)
     fprintf (stderr, "TT_Load_GPOS_Table %x\n", error);
 
   printf ("</OpenType>\n");
