@@ -18,7 +18,9 @@
 
 FT_BEGIN_HEADER
 
-#include "ftglue.h"
+#ifndef NULL
+# define NULL ((void *)0)
+#endif
 
 #ifndef FALSE
 # define FALSE 0
@@ -27,6 +29,8 @@ FT_BEGIN_HEADER
 #ifndef TRUE
 # define TRUE 1
 #endif
+
+#include "ftglue.h"
 
 #define ARRAY_LEN(Array) ((int)(sizeof (Array) / sizeof (Array)[0]))
 
