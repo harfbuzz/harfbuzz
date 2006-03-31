@@ -1,4 +1,4 @@
-/* ftglue.c: Glue code for compiling the OpenType code from
+/* ftglue.h: Glue code for compiling the OpenType code from
  *           FreeType 1 using only the public API of FreeType 2
  *
  * By David Turner, The FreeType Project (www.freetype.org)
@@ -40,8 +40,8 @@
  *
  * PS: This "glue" code is explicitely put in the public domain
  */
-#ifndef __OPENTYPE_FTGLUE_H__
-#define __OPENTYPE_FTGLUE_H__
+#ifndef FTGLUE_H
+#define FTGLUE_H
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -50,10 +50,6 @@ FT_BEGIN_HEADER
 
 
 /* utility macros */
-#define  TT_Err_Ok                   FT_Err_Ok
-#define  TT_Err_Invalid_Argument     FT_Err_Invalid_Argument
-#define  TT_Err_Invalid_Face_Handle  FT_Err_Invalid_Face_Handle
-#define  TT_Err_Table_Missing        FT_Err_Table_Missing
 
 #define  SET_ERR(c)   ( (error = (c)) != 0 )
 
@@ -66,14 +62,23 @@ FT_BEGIN_HEADER
 #endif
 
 /* stream macros used by the OpenType parser */
-#define  FILE_Pos()      ftglue_stream_pos( stream )
-#define  FILE_Seek(pos)  SET_ERR( ftglue_stream_seek( stream, pos ) )
-#define  ACCESS_Frame(size)  SET_ERR( ftglue_stream_frame_enter( stream, size ) )
-#define  FORGET_Frame()      ftglue_stream_frame_exit( stream )
+#define  FILE_Pos()      _hb_ftglue_stream_pos( stream )
+#define  FILE_Seek(pos)  SET_ERR( _hb_ftglue_stream_seek( stream, pos ) )
+#define  ACCESS_Frame(size)  SET_ERR( _hb_ftglue_stream_frame_enter( stream, size ) )
+#define  FORGET_Frame()      _hb_ftglue_stream_frame_exit( stream )
 
-#define  GET_Byte()      ftglue_stream_get_byte( stream )
-#define  GET_Short()     ftglue_stream_get_short( stream )
-#define  GET_Long()      ftglue_stream_get_long( stream )
+#define  GET_Byte()      (*stream->cursor++)
+#define  GET_Short()     (stream->cursor += 2, (FT_Short)( \
+				(*(((FT_Byte*)stream->cursor)-2) << 8) | \
+				 *(((FT_Byte*)stream->cursor)-1) \
+			 ))
+#define  GET_Long()      (stream->cursor += 4, (FT_Long)( \
+				(*(((FT_Byte*)stream->cursor)-4) << 24) | \
+				(*(((FT_Byte*)stream->cursor)-3) << 16) | \
+				(*(((FT_Byte*)stream->cursor)-2) << 8) | \
+				 *(((FT_Byte*)stream->cursor)-1) \
+			 ))
+
 
 #define  GET_Char()      ((FT_Char)GET_Byte())
 #define  GET_UShort()    ((FT_UShort)GET_Short())
@@ -81,45 +86,36 @@ FT_BEGIN_HEADER
 #define  GET_Tag4()      GET_ULong()
 
 FTGLUE_API( FT_Long )
-ftglue_stream_pos( FT_Stream   stream );
+_hb_ftglue_stream_pos( FT_Stream   stream );
 
 FTGLUE_API( FT_Error )
-ftglue_stream_seek( FT_Stream   stream,
+_hb_ftglue_stream_seek( FT_Stream   stream,
                     FT_Long     pos );
 
 FTGLUE_API( FT_Error )
-ftglue_stream_frame_enter( FT_Stream   stream,
+_hb_ftglue_stream_frame_enter( FT_Stream   stream,
                            FT_ULong    size );
 
 FTGLUE_API( void )
-ftglue_stream_frame_exit( FT_Stream  stream );
-
-FTGLUE_API( FT_Byte )
-ftglue_stream_get_byte( FT_Stream  stream );
-
-FTGLUE_API( FT_Short )
-ftglue_stream_get_short( FT_Stream  stream );
-
-FTGLUE_API( FT_Long )
-ftglue_stream_get_long( FT_Stream   stream );
+_hb_ftglue_stream_frame_exit( FT_Stream  stream );
 
 FTGLUE_API( FT_Error )
-ftglue_face_goto_table( FT_Face    face,
+_hb_ftglue_face_goto_table( FT_Face    face,
                         FT_ULong   tag,
                         FT_Stream  stream );
 
 /* memory macros used by the OpenType parser */
 #define  ALLOC(_ptr,_size)   \
-           ( (_ptr) = ftglue_alloc( memory, _size, &error ), error != 0 )
+           ( (_ptr) = _hb_ftglue_alloc( memory, _size, &error ), error != 0 )
 
 #define  REALLOC(_ptr,_oldsz,_newsz)  \
-           ( (_ptr) = ftglue_realloc( memory, (_ptr), (_oldsz), (_newsz), &error ), error != 0 )
+           ( (_ptr) = _hb_ftglue_realloc( memory, (_ptr), (_oldsz), (_newsz), &error ), error != 0 )
 
 #define  FREE(_ptr)                    \
   do {                                 \
     if ( (_ptr) )                      \
     {                                  \
-      ftglue_free( memory, _ptr );     \
+      _hb_ftglue_free( memory, _ptr );     \
       _ptr = NULL;                     \
     }                                  \
   } while (0)
@@ -134,23 +130,21 @@ ftglue_face_goto_table( FT_Face    face,
 
 
 FTGLUE_API( FT_Pointer )
-ftglue_alloc( FT_Memory  memory,
+_hb_ftglue_alloc( FT_Memory  memory,
               FT_ULong   size,
               FT_Error  *perror_ );
 
 FTGLUE_API( FT_Pointer )
-ftglue_realloc( FT_Memory   memory,
+_hb_ftglue_realloc( FT_Memory   memory,
                 FT_Pointer  block,
                 FT_ULong    old_size,
                 FT_ULong    new_size,
                 FT_Error   *perror_ );
 
 FTGLUE_API( void )
-ftglue_free( FT_Memory   memory,
+_hb_ftglue_free( FT_Memory   memory,
              FT_Pointer  block );
-
-/* */
 
 FT_END_HEADER
 
-#endif /* __OPENTYPE_FTGLUE_H__ */
+#endif /* FTGLUE_H */

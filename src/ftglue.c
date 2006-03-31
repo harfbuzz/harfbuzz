@@ -8,15 +8,14 @@
  * See ftglue.h for more information.
  */
 
-#include <config.h>
 #include "ftglue.h"
 
 #if 0
 #include <stdio.h>
-#define  LOG(x)  ftglue_log x
+#define  LOG(x)  _hb_ftglue_log x
 
 static void
-ftglue_log( const char*   format, ... )
+_hb_ftglue_log( const char*   format, ... )
 {
   va_list  ap;
  
@@ -31,7 +30,7 @@ ftglue_log( const char*   format, ... )
 
 /* only used internally */
 static FT_Pointer
-ftglue_qalloc( FT_Memory  memory,
+_hb_ftglue_qalloc( FT_Memory  memory,
                FT_ULong   size,
                FT_Error  *perror )
 {
@@ -50,11 +49,11 @@ ftglue_qalloc( FT_Memory  memory,
 }
 
 #undef   QALLOC  /* just in case */
-#define  QALLOC(ptr,size)    ( (ptr) = ftglue_qalloc( memory, (size), &error ), error != 0 )
+#define  QALLOC(ptr,size)    ( (ptr) = _hb_ftglue_qalloc( memory, (size), &error ), error != 0 )
 
 
 FTGLUE_APIDEF( FT_Pointer )
-ftglue_alloc( FT_Memory  memory,
+_hb_ftglue_alloc( FT_Memory  memory,
               FT_ULong   size,
               FT_Error  *perror )
 {
@@ -76,7 +75,7 @@ ftglue_alloc( FT_Memory  memory,
 
 
 FTGLUE_APIDEF( FT_Pointer )
-ftglue_realloc( FT_Memory   memory,
+_hb_ftglue_realloc( FT_Memory   memory,
                 FT_Pointer  block,
                 FT_ULong    old_size,
                 FT_ULong    new_size,
@@ -87,11 +86,11 @@ ftglue_realloc( FT_Memory   memory,
 
   if ( old_size == 0 || block == NULL )
   {
-    block2 = ftglue_alloc( memory, new_size, &error );
+    block2 = _hb_ftglue_alloc( memory, new_size, &error );
   }
   else if ( new_size == 0 )
   {
-    ftglue_free( memory, block );
+    _hb_ftglue_free( memory, block );
   }
   else
   {
@@ -111,7 +110,7 @@ ftglue_realloc( FT_Memory   memory,
 
 
 FTGLUE_APIDEF( void )
-ftglue_free( FT_Memory   memory,
+_hb_ftglue_free( FT_Memory   memory,
              FT_Pointer  block )
 {
   if ( block )
@@ -120,7 +119,7 @@ ftglue_free( FT_Memory   memory,
 
 
 FTGLUE_APIDEF( FT_Long )
-ftglue_stream_pos( FT_Stream   stream )
+_hb_ftglue_stream_pos( FT_Stream   stream )
 {
   LOG(( "ftglue:stream:pos() -> %ld\n", stream->pos ));
   return stream->pos;
@@ -128,7 +127,7 @@ ftglue_stream_pos( FT_Stream   stream )
 
 
 FTGLUE_APIDEF( FT_Error )
-ftglue_stream_seek( FT_Stream   stream,
+_hb_ftglue_stream_seek( FT_Stream   stream,
                     FT_Long     pos )
 {
   FT_Error  error = 0;
@@ -136,7 +135,7 @@ ftglue_stream_seek( FT_Stream   stream,
   stream->pos = pos;
   if ( stream->read )
   {
-    if ( stream->read( stream, pos, 0, 0 ) )
+    if ( stream->read( stream, pos, NULL, 0 ) )
       error = FT_Err_Invalid_Stream_Operation;
   }
   else if ( pos > (FT_Long)stream->size )
@@ -148,7 +147,7 @@ ftglue_stream_seek( FT_Stream   stream,
 
 
 FTGLUE_APIDEF( FT_Error )
-ftglue_stream_frame_enter( FT_Stream   stream,
+_hb_ftglue_stream_frame_enter( FT_Stream   stream,
                            FT_ULong    count )
 {
   FT_Error  error = FT_Err_Ok;
@@ -198,7 +197,7 @@ Exit:
 
 
 FTGLUE_APIDEF( void )
-ftglue_stream_frame_exit( FT_Stream  stream )
+_hb_ftglue_stream_frame_exit( FT_Stream  stream )
 {
   if ( stream->read )
   {
@@ -206,68 +205,21 @@ ftglue_stream_frame_exit( FT_Stream  stream )
 
     FREE( stream->base );
   }
-  stream->cursor = 0;
-  stream->limit  = 0;
+  stream->cursor = NULL;
+  stream->limit  = NULL;
 
   LOG(( "ftglue:stream:frame_exit()\n" ));
 }
 
 
-FTGLUE_APIDEF( FT_Byte )
-ftglue_stream_get_byte( FT_Stream  stream )
-{
-  FT_Byte  result = 0;
-
-  if ( stream->cursor < stream->limit )
-    result = *stream->cursor++;
-
-  return result;
-}
-
-
-FTGLUE_APIDEF( FT_Short )
-ftglue_stream_get_short( FT_Stream  stream )
-{
-  FT_Byte*  p;
-  FT_Short  result = 0;
-
-  p = stream->cursor;
-  if ( p + 2 <= stream->limit )
-  {
-    result         = (FT_Short)((p[0] << 8) | p[1]);
-    stream->cursor = p+2;
-  }
-  return result;
-}
-
-
-FTGLUE_APIDEF( FT_Long )
-ftglue_stream_get_long( FT_Stream   stream )
-{
-  FT_Byte*  p;
-  FT_Long   result = 0;
-
-  p = stream->cursor;
-  if ( p + 4 <= stream->limit )
-  {
-    result         = (FT_Long)(((FT_Long)p[0] << 24) |
-                               ((FT_Long)p[1] << 16) |
-                               ((FT_Long)p[2] << 8)  |
-                                         p[3]        );
-    stream->cursor = p+4;
-  }
-  return result;
-}
-
-
 FTGLUE_APIDEF( FT_Error )
-ftglue_face_goto_table( FT_Face    face,
+_hb_ftglue_face_goto_table( FT_Face    face,
                         FT_ULong   the_tag,
                         FT_Stream  stream )
 {
   FT_Error  error;
 
-  LOG(( "ftglue_face_goto_table( %p, %c%c%c%c, %p )\n",
+  LOG(( "_hb_ftglue_face_goto_table( %p, %c%c%c%c, %p )\n",
                 face, 
                 (int)((the_tag >> 24) & 0xFF), 
                 (int)((the_tag >> 16) & 0xFF), 
@@ -331,11 +283,11 @@ ftglue_face_goto_table( FT_Face    face,
       if ( tag == the_tag )
       {
         LOG(( "TrueType table (start: %ld) (size: %ld)\n", start, size ));
-        error = ftglue_stream_seek( stream, offset+start );
+        error = _hb_ftglue_stream_seek( stream, offset+start );
         goto FoundIt;
       }
     }
-    error = TT_Err_Table_Missing;
+    error = FT_Err_Table_Missing;
 
   FoundIt:
     FORGET_Frame();

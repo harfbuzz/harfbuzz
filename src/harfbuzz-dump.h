@@ -1,5 +1,4 @@
-/* Pango
- * disasm.h: Dump OpenType layout tables
+/* harfbuzz-dump.h: Dump OpenType layout tables
  *
  * Copyright (C) 2000 Red Hat Software
  *
@@ -18,9 +17,18 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
+#ifndef HARFBUZZ_DUMP_H
+#define HARFBUZZ_DUMP_H
 
 #include <stdio.h>
-#include "ftxopen.h"
+#include "harfbuzz-gsub.h"
+#include "harfbuzz-gpos.h"
 
-void TT_Dump_GSUB_Table (TTO_GSUB gsub, FILE *stream);
-void TT_Dump_GPOS_Table (TTO_GPOS gpos, FILE *stream);
+FT_BEGIN_HEADER
+
+void HB_Dump_GSUB_Table (HB_GSUB gsub, FILE *stream);
+void HB_Dump_GPOS_Table (HB_GPOS gpos, FILE *stream);
+
+FT_END_HEADER
+
+#endif /* HARFBUZZ_DUMP_H */

@@ -1,51 +1,58 @@
 ## Process this file with automake to produce Makefile.in
 
 INCLUDES = 					\
-	-DSYSCONFDIR=\"$(sysconfdir)\" 		\
-	-DLIBDIR=\"$(libdir)\" 			\
-	$(PANGO_DEBUG_FLAGS)			\
-	-I$(top_srcdir)				\
-	$(GLIB_CFLAGS)				\
 	$(FREETYPE_CFLAGS)
 
-noinst_LTLIBRARIES = libmini-harfbuzz.la
+noinst_LTLIBRARIES = libharfbuzz-1.la
 
-libmini_harfbuzz_la_SOURCES =  	\
-	ftglue.h		\
-	ftglue.c		\
-	ftxopen.c	 	\
-	ftxopen.h	 	\
-	ftxopenf.h	 	\
-	ftxgdef.c		\
-	ftxgdef.h		\
-	ftxgpos.c 		\
-	ftxgpos.h		\
-	ftxgsub.c		\
-	ftxgsub.h		\
-	otlbuffer.c		\
-	otlbuffer.h
+SOURCES =  \
+	ftglue.c \
+	harfbuzz-buffer.c \
+	harfbuzz-dump.c \
+	harfbuzz-gdef.c \
+	harfbuzz-gpos.c \
+	harfbuzz-gsub.c \
+	harfbuzz-open.c
 
-libmini_harfbuzz_la_LIBADD = \
-	$(x_ldflags)	\
-	$(x_libs)	\
-	$(GLIB_LIBS)	\
-	-lm
+EXTRA_SOURCES = harfbuzz.c
 
-if BUILD_OT_TESTS
-noinst_PROGRAMS = ottest
-endif
+PUBLICHEADERS = \
+	harfbuzz.h \
+	harfbuzz-buffer.h \
+	harfbuzz-dump.h \
+	harfbuzz-gdef.h \
+	harfbuzz-gpos.h \
+	harfbuzz-gsub.h \
+	harfbuzz-open.h
 
-ottest_SOURCES = 	\
-	ottest.c	\
-	disasm.c	\
-	disasm.h
+PRIVATEHEADERS = \
+	ftglue.h \
+	harfbuzz-impl.h \
+	harfbuzz-gdef-private.h \
+	harfbuzz-gpos-private.h \
+	harfbuzz-gsub-private.h \
+	harfbuzz-open-private.h
 
-ottest_LDADD = 		\
-	libmini-harfbuzz.la	\
+libharfbuzz_1_la_SOURCES = \
+	$(SOURCES) \
+	$(PUBLICHEADERS) \
+	$(PRIVATEHEADERS)
+
+libharfbuzz_1_la_LIBADD = \
 	$(FREETYPE_LIBS)
+
+noinst_PROGRAMS = harfbuzz-dump
+
+harfbuzz_dump_SOURCES = 	\
+	harfbuzz-dump-main.c
+
+harfbuzz_dump_LDADD = 		\
+	libharfbuzz-1.la
 
 EXTRA_DIST = 		\
 	README		\
-	FTL.TXT		\
-	FT-license.txt
+	COPYING.FTL	\
+	COPYING.GPL	\
+	COPYING		\
+	$(EXTRA_SOURCES)
 

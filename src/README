@@ -1,36 +1,18 @@
-This directory includes code for using OpenType Layout tables from
-OpenType fonts with FreeType and 
+This is HarfBuzz, an OpenType Layout engine.
 
-The table reading code in:
+It was derived originally from the OpenType code in FreeType-1.x, ported to
+FreeType2.  (This code has been abandoned for FreeType2, but until something
+better comes along, should serve our purposes.) In addition to porting to
+FreeType-2, it has been modified in various other ways.
 
- ftxopen.[ch]
- ftxopenf.h
- ftxgdef.[ch]
- ftxgpos.[ch]
- ftxgdef.[ch]
+It also includes a partial XML dumper for OpenType Layout tables useful for
+figuring out what is going on. Please extend to cover additional parts of the
+tables as you encounter fonts using them.  The dumper is written by Owen Taylor.
 
-Is derived from the OpenType code in FreeType-1.x, ported to FreeType2. 
-(This code has been abandoned for FreeType2, but until something better
-comes along, should serve our purposes.)
+Bug reports on these files should be sent to the HarfBuzz mailing list as
+listed on http://freedesktop.org/wiki/Software/harfbuzz
 
-This code should be left following the FreeType indentation style and
-coding conventions.
+For license information, see the file COPYING. 
 
-In addition to porting to FreeType-2, it has been modified to
-add support for PangoGlyphString's log_clusters, and in various
-other ways. Bug reports on these files should be sent to 
-gtk-i18n-list@gtk.org, NOT to the freetype maintainers.
-
-The license for these files is in the file FT-license.txt. 
-
-
-Most of the additional files in this directory implement a high-level
-interface to this that follows Pango conventions and integrates with
-Pango.
-
-disasm.[ch] is a partial dumper for OpenType layout tables useful
-in figuring out what is going on. Please extend to cover additional
-parts of the tables as you encounter fonts using them.
-
-Owen Taylor
-17 December 2000
+Behdad Esfahbod
+April 1st, 2006

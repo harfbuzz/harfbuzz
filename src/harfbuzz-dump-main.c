@@ -1,5 +1,4 @@
-/* Pango
- * otttest.c: Test program for OpenType
+/* harfbuzz-dump-main.c: Test program for OpenType
  *
  * Copyright (C) 2000 Red Hat Software
  *
@@ -19,13 +18,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "ftxopen.h"
+#include "harfbuzz-open.h"
 
-#include "disasm.h"
+#include "harfbuzz-dump.h"
 
 #define N_ELEMENTS(arr) (sizeof(arr)/ sizeof((arr)[0]))
 
@@ -56,7 +54,7 @@ print_tag (FT_ULong tag)
 }
 
 static void
-maybe_add_feature (TTO_GSUB  gsub,
+maybe_add_feature (HB_GSUB  gsub,
 		   FT_UShort script_index,
 		   FT_ULong  tag,
 		   FT_UShort property)
@@ -65,22 +63,22 @@ maybe_add_feature (TTO_GSUB  gsub,
   FT_UShort feature_index;
   
   /* 0xffff == default language system */
-  error = TT_GSUB_Select_Feature (gsub, tag, script_index, 0xffff, &feature_index);
+  error = HB_GSUB_Select_Feature (gsub, tag, script_index, 0xffff, &feature_index);
   
   if (error)
     {
-      if (error == TTO_Err_Not_Covered)
+      if (error == HB_Err_Not_Covered)
 	{
 	  print_tag (tag);
 	  fprintf (stderr, " not covered, ignored\n");
 	  return;
 	}
 
-      croak ("TT_GSUB_Select_Feature", error);
+      croak ("HB_GSUB_Select_Feature", error);
     }
 
-  if ((error = TT_GSUB_Add_Feature (gsub, feature_index, property)))
-    croak ("TT_GSUB_Add_Feature", error);
+  if ((error = HB_GSUB_Add_Feature (gsub, feature_index, property)))
+    croak ("HB_GSUB_Add_Feature", error);
 }
 
 static void
@@ -122,23 +120,23 @@ select_cmap (FT_Face face)
 }
 
 static void
-add_features (TTO_GSUB gsub)
+add_features (HB_GSUB gsub)
 {
   FT_Error error;
   FT_ULong tag = FT_MAKE_TAG ('a', 'r', 'a', 'b');
   FT_UShort script_index;
 
-  error = TT_GSUB_Select_Script (gsub, tag, &script_index);
+  error = HB_GSUB_Select_Script (gsub, tag, &script_index);
 
   if (error)
     {
-      if (error == TTO_Err_Not_Covered)
+      if (error == HB_Err_Not_Covered)
 	{
 	  fprintf (stderr, "Arabic not covered, no features used\n");
 	  return;
 	}
 
-      croak ("TT_GSUB_Select_Script", error);
+      croak ("HB_GSUB_Select_Script", error);
     }
 
   maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('i', 'n', 'i', 't'), I);
@@ -150,7 +148,7 @@ add_features (TTO_GSUB gsub)
 
 #if 0
 void 
-dump_string (TTO_GSUB_String *str)
+dump_string (HB_GSUB_String *str)
 {
   FT_ULong i;
 
@@ -173,20 +171,20 @@ FT_UShort arabic_props[] = { I|L,   M|L,   M|L,   M|L,   M|L,   F|L,   I|L,  M|L
 void
 try_string (FT_Library library,
 	    FT_Face    face,
-	    TTO_GSUB   gsub)
+	    HB_GSUB   gsub)
 {
   FT_Error error;
-  TTO_GSUB_String *in_str;
-  TTO_GSUB_String *out_str;
+  HB_GSUB_String *in_str;
+  HB_GSUB_String *out_str;
   FT_ULong i;
 
-  if ((error = TT_GSUB_String_New (face->memory, &in_str)))
-    croak ("TT_GSUB_String_New", error);
-  if ((error = TT_GSUB_String_New (face->memory, &out_str)))
-    croak ("TT_GSUB_String_New", error);
+  if ((error = HB_GSUB_String_New (face->memory, &in_str)))
+    croak ("HB_GSUB_String_New", error);
+  if ((error = HB_GSUB_String_New (face->memory, &out_str)))
+    croak ("HB_GSUB_String_New", error);
 
-  if ((error = TT_GSUB_String_Set_Length (in_str, N_ELEMENTS (arabic_str))))
-    croak ("TT_GSUB_String_Set_Length", error);
+  if ((error = HB_GSUB_String_Set_Length (in_str, N_ELEMENTS (arabic_str))))
+    croak ("HB_GSUB_String_Set_Length", error);
 
   for (i=0; i < N_ELEMENTS (arabic_str); i++)
     {
@@ -196,16 +194,16 @@ try_string (FT_Library library,
       in_str->ligIDs[i] = i;
     }
 
-  if ((error = TT_GSUB_Apply_String (gsub, in_str, out_str)))
-    croak ("TT_GSUB_Apply_String", error);
+  if ((error = HB_GSUB_Apply_String (gsub, in_str, out_str)))
+    croak ("HB_GSUB_Apply_String", error);
 
   dump_string (in_str);
   dump_string (out_str);
 
-  if ((error = TT_GSUB_String_Done (in_str)))
-    croak ("TT_GSUB_String_New", error);
-  if ((error = TT_GSUB_String_Done (out_str)))
-    croak ("TT_GSUB_String_New", error);
+  if ((error = HB_GSUB_String_Done (in_str)))
+    croak ("HB_GSUB_String_New", error);
+  if ((error = HB_GSUB_String_Done (out_str)))
+    croak ("HB_GSUB_String_New", error);
 }
 #endif
 
@@ -215,8 +213,8 @@ main (int argc, char **argv)
   FT_Error error;
   FT_Library library;
   FT_Face face;
-  TTO_GSUB gsub;
-  TTO_GPOS gpos;
+  HB_GSUB gsub;
+  HB_GPOS gpos;
 
   if (argc != 2)
     {
@@ -233,25 +231,25 @@ main (int argc, char **argv)
   printf ("<?xml version=\"1.0\"?>\n");
   printf ("<OpenType>\n");
 
-  if (!(error = TT_Load_GSUB_Table (face, &gsub, NULL)))
+  if (!(error = HB_Load_GSUB_Table (face, &gsub, NULL)))
     {
-      TT_Dump_GSUB_Table (gsub, stdout);
+      HB_Dump_GSUB_Table (gsub, stdout);
       
-      if ((error = TT_Done_GSUB_Table (gsub)))
-	croak ("FT_Done_GSUB_Table", error);
+      if ((error = HB_Done_GSUB_Table (gsub)))
+	croak ("HB_Done_GSUB_Table", error);
     }
   else if (error != FT_Err_Table_Missing)
-    fprintf (stderr, "TT_Load_GSUB_Table %x\n", error);
+    fprintf (stderr, "HB_Load_GSUB_Table %x\n", error);
 
-  if (!(error = TT_Load_GPOS_Table (face, &gpos, NULL)))
+  if (!(error = HB_Load_GPOS_Table (face, &gpos, NULL)))
     {
-      TT_Dump_GPOS_Table (gpos, stdout);
+      HB_Dump_GPOS_Table (gpos, stdout);
       
-      if ((error = TT_Done_GPOS_Table (gpos)))
-	croak ("FT_Done_GPOS_Table", error);
+      if ((error = HB_Done_GPOS_Table (gpos)))
+	croak ("HB_Done_GPOS_Table", error);
     }
   else if (error != FT_Err_Table_Missing)
-    fprintf (stderr, "TT_Load_GPOS_Table %x\n", error);
+    fprintf (stderr, "HB_Load_GPOS_Table %x\n", error);
 
   printf ("</OpenType>\n");
 

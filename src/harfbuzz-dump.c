@@ -1,5 +1,4 @@
-/* Pango
- * disasm.c: Dump OpenType layout tables
+/* harfbuzz-dump.c: Dump OpenType layout tables
  *
  * Copyright (C) 2000 Red Hat Software
  *
@@ -19,28 +18,29 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <config.h>
-
-#include <glib.h>		/* For G_HAVE_ISO_VARARGS */
+#include "harfbuzz-impl.h"
+#include "harfbuzz-dump.h"
+#include "harfbuzz-gdef-private.h"
+#include "harfbuzz-gsub-private.h"
+#include "harfbuzz-gpos-private.h"
+#include "harfbuzz-open-private.h"
 #include <stdarg.h>
 
-#include "disasm.h"
+#define DUMP(format) dump (stream, indent, format)
+#define DUMP1(format, arg1) dump (stream, indent, format, arg1)
+#define DUMP2(format, arg1, arg2) dump (stream, indent, format, arg1, arg2)
+#define DUMP3(format, arg1, arg2, arg3) dump (stream, indent, format, arg1, arg2, arg3)
 
-#ifdef G_HAVE_ISO_VARARGS
-#define DUMP(...) dump (stream, indent, __VA_ARGS__)
-#elif defined (G_HAVE_GNUC_VARARGS)
-#define DUMP(args...) dump (stream, indent, args)
-#endif
 #define DUMP_FINT(strct,fld) dump (stream, indent, "<" #fld ">%d</" #fld ">\n", (strct)->fld)
 #define DUMP_FUINT(strct,fld) dump (stream, indent, "<" #fld ">%u</" #fld ">\n", (strct)->fld)
 #define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#06x</" #fld ">\n", (strct)->fld)
 #define DUMP_FGLYPH(strct,fld) dump (stream, indent, "<" #fld ">%#06x</" #fld ">\n", (strct)->fld)
 #define DUMP_USHORT_ARRAY(strct,fld,cnt) Dump_UShort_Array ((strct)->fld, cnt, #fld, stream, indent);
 
-#define DEF_DUMP(type) static void Dump_ ## type (TTO_ ## type *type, FILE *stream, int indent, FT_Bool G_GNUC_UNUSED is_gsub)
-#define RECURSE(name, type, val) do {  DUMP ("<" #name ">\n"); Dump_ ## type (val, stream, indent + 1, is_gsub); DUMP ("</" #name ">\n"); } while (0)
-#define RECURSE_NUM(name, i, type, val) do {  DUMP ("<" #name "> <!-- %d -->\n", i); Dump_ ## type (val, stream, indent + 1, is_gsub); DUMP ("</" #name ">\n"); } while (0)
-#define DUMP_VALUE_RECORD(val, frmt) do {  DUMP ("<ValueRecord>\n"); Dump_ValueRecord (val, stream, indent + 1, is_gsub, frmt); DUMP ("</ValueRecord>\n"); } while (0)
+#define DEF_DUMP(type) static void Dump_ ## type (HB_ ## type *type, FILE *stream, int indent, HB_Type hb_type)
+#define RECURSE(name, type, val) do {  DUMP ("<" #name ">\n"); Dump_ ## type (val, stream, indent + 1, hb_type); DUMP ("</" #name ">\n"); } while (0)
+#define RECURSE_NUM(name, i, type, val) do {  DUMP1 ("<" #name "> <!-- %d -->\n", i); Dump_ ## type (val, stream, indent + 1, hb_type); DUMP ("</" #name ">\n"); } while (0)
+#define DUMP_VALUE_RECORD(val, frmt) do {  DUMP ("<ValueRecord>\n"); Dump_ValueRecord (val, stream, indent + 1, hb_type, frmt); DUMP ("</ValueRecord>\n"); } while (0)
 
 static void
 do_indent (FILE *stream, int indent)
@@ -92,7 +92,7 @@ DEF_DUMP (LangSys)
   DUMP_FUINT (LangSys, FeatureCount);
 
   for (i=0; i < LangSys->FeatureCount; i++)
-    DUMP("<FeatureIndex>%d</FeatureIndex>\n", LangSys->FeatureIndex[i]);
+    DUMP1("<FeatureIndex>%d</FeatureIndex>\n", LangSys->FeatureIndex[i]);
 }
 
 DEF_DUMP (Script)
@@ -137,13 +137,13 @@ DEF_DUMP (Feature)
   DUMP_FUINT (Feature, LookupListCount);
 
   for (i=0; i < Feature->LookupListCount; i++)
-    DUMP("<LookupIndex>%d</LookupIndex>\n", Feature->LookupListIndex[i]);
+    DUMP1("<LookupIndex>%d</LookupIndex>\n", Feature->LookupListIndex[i]);
 }
 
 DEF_DUMP (MarkRecord)
 {
   DUMP_FUINT (MarkRecord, Class);
-  DUMP("<Anchor>%d</Anchor>\n", MarkRecord->MarkAnchor.PosFormat );
+  DUMP1("<Anchor>%d</Anchor>\n", MarkRecord->MarkAnchor.PosFormat );
 }
 
 DEF_DUMP (MarkArray)
@@ -182,8 +182,8 @@ DEF_DUMP (Coverage)
       DUMP_FUINT (&Coverage->cf.cf1, GlyphCount);
 
       for (i = 0; i < Coverage->cf.cf1.GlyphCount; i++)
-	DUMP("<Glyph>%#06x</Glyph> <!-- %d -->\n",
-	     Coverage->cf.cf1.GlyphArray[i], i);
+	DUMP2("<Glyph>%#06x</Glyph> <!-- %d -->\n",
+	      Coverage->cf.cf1.GlyphArray[i], i);
     }
   else
     {
@@ -191,9 +191,9 @@ DEF_DUMP (Coverage)
       DUMP_FUINT (&Coverage->cf.cf2, RangeCount);
       
       for ( i = 0; i < Coverage->cf.cf2.RangeCount; i++ )
-	  DUMP("<Glyph>%#06x - %#06x</Glyph> <!-- %d -->\n",
-	       Coverage->cf.cf2.RangeRecord[i].Start,
-	       Coverage->cf.cf2.RangeRecord[i].End);
+	  DUMP3("<Glyph>%#06x - %#06x</Glyph> <!-- %d -->\n",
+	        Coverage->cf.cf2.RangeRecord[i].Start,
+	        Coverage->cf.cf2.RangeRecord[i].End, i);
     }
 }
 
@@ -212,18 +212,18 @@ DEF_DUMP (ClassDefinition)
   if (ClassDefinition->ClassFormat == 1)
     {
       int i;
-      TTO_ClassDefFormat1 *ClassDefFormat1 = &ClassDefinition->cd.cd1;
+      HB_ClassDefFormat1 *ClassDefFormat1 = &ClassDefinition->cd.cd1;
       DUMP("<ClassDefinition>\n");
       DUMP_FUINT (ClassDefFormat1, StartGlyph );
       DUMP_FUINT (ClassDefFormat1, GlyphCount );
       for (i = 0; i < ClassDefFormat1->GlyphCount; i++)
-	DUMP(" <Class>%d</Class> <!-- %#06x -->", ClassDefFormat1->ClassValueArray[i],
-	     ClassDefFormat1->StartGlyph+i );
+	DUMP2(" <Class>%d</Class> <!-- %#06x -->", ClassDefFormat1->ClassValueArray[i],
+	      ClassDefFormat1->StartGlyph+i );
     }
   else if (ClassDefinition->ClassFormat == 2)
     {
       int i;
-      TTO_ClassDefFormat2 *ClassDefFormat2 = &ClassDefinition->cd.cd2;
+      HB_ClassDefFormat2 *ClassDefFormat2 = &ClassDefinition->cd.cd2;
       DUMP_FUINT (ClassDefFormat2, ClassRangeCount);
       
       for (i = 0; i < ClassDefFormat2->ClassRangeCount; i++)
@@ -263,9 +263,9 @@ DEF_DUMP (ChainSubClassSet)
 }
 
 static void
-Dump_GSUB_Lookup_Single (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_GSUB_Lookup_Single (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type)
 {
-  TTO_SingleSubst *SingleSubst = &subtable->st.gsub.single;
+  HB_SingleSubst *SingleSubst = &subtable->st.gsub.single;
 
   DUMP_FUINT (SingleSubst, SubstFormat);
   RECURSE (Coverage, Coverage, &SingleSubst->Coverage);
@@ -280,7 +280,7 @@ Dump_GSUB_Lookup_Single (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bo
       
       DUMP_FINT (&SingleSubst->ssf.ssf2, GlyphCount);
       for (i=0; i < SingleSubst->ssf.ssf2.GlyphCount; i++)
-	DUMP("<Substitute>%#06x</Substitute> <!-- %d -->\n", SingleSubst->ssf.ssf2.Substitute[i], i);
+	DUMP2("<Substitute>%#06x</Substitute> <!-- %d -->\n", SingleSubst->ssf.ssf2.Substitute[i], i);
     }
 }
 
@@ -292,7 +292,7 @@ DEF_DUMP (Ligature)
   DUMP_FUINT (Ligature, ComponentCount);
 
   for (i=0; i < Ligature->ComponentCount - 1; i++)
-    DUMP("<Component>%#06x</Component>\n", Ligature->Component[i]);
+    DUMP1("<Component>%#06x</Component>\n", Ligature->Component[i]);
 }
 
 DEF_DUMP (LigatureSet)
@@ -306,10 +306,10 @@ DEF_DUMP (LigatureSet)
 }
 
 static void
-Dump_GSUB_Lookup_Ligature (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_GSUB_Lookup_Ligature (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type)
 {
   int i;
-  TTO_LigatureSubst *LigatureSubst = &subtable->st.gsub.ligature;
+  HB_LigatureSubst *LigatureSubst = &subtable->st.gsub.ligature;
 
   DUMP_FUINT (LigatureSubst, SubstFormat);
   RECURSE (Coverage, Coverage, &LigatureSubst->Coverage);
@@ -338,21 +338,21 @@ DEF_DUMP (ContextSubstFormat3)
 }
 
 static void
-Dump_GSUB_Lookup_Context (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_GSUB_Lookup_Context (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type)
 {
-  TTO_ContextSubst *ContextSubst = &subtable->st.gsub.context;
+  HB_ContextSubst *ContextSubst = &subtable->st.gsub.context;
 
   DUMP_FUINT (ContextSubst, SubstFormat);
   switch( ContextSubst->SubstFormat )
     {
     case 1:
-      Dump_ContextSubstFormat1 (&ContextSubst->csf.csf1, stream, indent+2, is_gsub);
+      Dump_ContextSubstFormat1 (&ContextSubst->csf.csf1, stream, indent+2, hb_type);
       break;
     case 2:
-      Dump_ContextSubstFormat2 (&ContextSubst->csf.csf2, stream, indent+2, is_gsub);
+      Dump_ContextSubstFormat2 (&ContextSubst->csf.csf2, stream, indent+2, hb_type);
       break;
     case 3:
-      Dump_ContextSubstFormat3 (&ContextSubst->csf.csf3, stream, indent+2, is_gsub);
+      Dump_ContextSubstFormat3 (&ContextSubst->csf.csf3, stream, indent+2, hb_type);
       break;
     default:
       fprintf(stderr, "invalid subformat!!!!!\n");
@@ -401,21 +401,21 @@ DEF_DUMP (ChainContextSubstFormat3)
 }
 
 static void
-Dump_GSUB_Lookup_Chain (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_GSUB_Lookup_Chain (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type)
 {
-  TTO_ChainContextSubst *chain = &subtable->st.gsub.chain;
+  HB_ChainContextSubst *chain = &subtable->st.gsub.chain;
   
   DUMP_FUINT (chain, SubstFormat);
   switch (chain->SubstFormat)
     {
     case 1:
-      Dump_ChainContextSubstFormat1 (&chain->ccsf.ccsf1, stream, indent+2, is_gsub);
+      Dump_ChainContextSubstFormat1 (&chain->ccsf.ccsf1, stream, indent+2, hb_type);
       break;
     case 2:
-      Dump_ChainContextSubstFormat2 (&chain->ccsf.ccsf2, stream, indent+2, is_gsub);
+      Dump_ChainContextSubstFormat2 (&chain->ccsf.ccsf2, stream, indent+2, hb_type);
       break;
     case 3:
-      Dump_ChainContextSubstFormat3 (&chain->ccsf.ccsf3, stream, indent+2, is_gsub);
+      Dump_ChainContextSubstFormat3 (&chain->ccsf.ccsf3, stream, indent+2, hb_type);
       break;
     default:
       fprintf(stderr, "invalid subformat!!!!!\n");
@@ -423,7 +423,7 @@ Dump_GSUB_Lookup_Chain (TTO_SubTable *subtable, FILE *stream, int indent, FT_Boo
 }
 
 static void
-Dump_Device (TTO_Device *Device, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_Device (HB_Device *Device, FILE *stream, int indent, HB_Type hb_type)
 {
   int i;
   int bits = 0;
@@ -471,38 +471,38 @@ Dump_Device (TTO_Device *Device, FILE *stream, int indent, FT_Bool is_gsub)
 }
      
 static void
-Dump_ValueRecord (TTO_ValueRecord *ValueRecord, FILE *stream, int indent, FT_Bool is_gsub, FT_UShort value_format)
+Dump_ValueRecord (HB_ValueRecord *ValueRecord, FILE *stream, int indent, HB_Type hb_type, FT_UShort value_format)
 {
-  if (value_format & HAVE_X_PLACEMENT)
+  if (value_format & HB_GPOS_FORMAT_HAVE_X_PLACEMENT)
     DUMP_FINT (ValueRecord, XPlacement);
-  if (value_format & HAVE_Y_PLACEMENT)
+  if (value_format & HB_GPOS_FORMAT_HAVE_Y_PLACEMENT)
     DUMP_FINT (ValueRecord, YPlacement);
-  if (value_format & HAVE_X_ADVANCE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_X_ADVANCE)
     DUMP_FINT (ValueRecord, XAdvance);
-  if (value_format & HAVE_Y_ADVANCE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_Y_ADVANCE)
     DUMP_FINT (ValueRecord, XAdvance);
-  if (value_format & HAVE_X_PLACEMENT_DEVICE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_X_PLACEMENT_DEVICE)
     RECURSE (Device, Device, &ValueRecord->XPlacementDevice);
-  if (value_format & HAVE_Y_PLACEMENT_DEVICE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_Y_PLACEMENT_DEVICE)
     RECURSE (Device, Device, &ValueRecord->YPlacementDevice);
-  if (value_format & HAVE_X_ADVANCE_DEVICE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_X_ADVANCE_DEVICE)
     RECURSE (Device, Device, &ValueRecord->XAdvanceDevice);
-  if (value_format & HAVE_Y_ADVANCE_DEVICE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_Y_ADVANCE_DEVICE)
     RECURSE (Device, Device, &ValueRecord->YAdvanceDevice);
-  if (value_format & HAVE_X_ID_PLACEMENT)
+  if (value_format & HB_GPOS_FORMAT_HAVE_X_ID_PLACEMENT)
     DUMP_FUINT (ValueRecord, XIdPlacement);
-  if (value_format & HAVE_Y_ID_PLACEMENT)
+  if (value_format & HB_GPOS_FORMAT_HAVE_Y_ID_PLACEMENT)
     DUMP_FUINT (ValueRecord, YIdPlacement);
-  if (value_format & HAVE_X_ID_ADVANCE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_X_ID_ADVANCE)
     DUMP_FUINT (ValueRecord, XIdAdvance);
-  if (value_format & HAVE_Y_ID_ADVANCE)
+  if (value_format & HB_GPOS_FORMAT_HAVE_Y_ID_ADVANCE)
     DUMP_FUINT (ValueRecord, XIdAdvance);
 }
 
 static void
-Dump_GPOS_Lookup_Single (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_GPOS_Lookup_Single (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type)
 {
-  TTO_SinglePos *SinglePos = &subtable->st.gpos.single;
+  HB_SinglePos *SinglePos = &subtable->st.gpos.single;
 
   DUMP_FUINT (SinglePos, PosFormat);
   RECURSE (Coverage, Coverage, &SinglePos->Coverage);
@@ -524,7 +524,7 @@ Dump_GPOS_Lookup_Single (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bo
 }
 
 static void
-Dump_PairValueRecord (TTO_PairValueRecord *PairValueRecord, FILE *stream, int indent, FT_Bool is_gsub, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
+Dump_PairValueRecord (HB_PairValueRecord *PairValueRecord, FILE *stream, int indent, HB_Type hb_type, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
 {
   DUMP_FUINT (PairValueRecord, SecondGlyph);
   DUMP_VALUE_RECORD (&PairValueRecord->Value1, ValueFormat1);
@@ -532,7 +532,7 @@ Dump_PairValueRecord (TTO_PairValueRecord *PairValueRecord, FILE *stream, int in
 }
 
 static void
-Dump_PairSet (TTO_PairSet *PairSet, FILE *stream, int indent, FT_Bool is_gsub, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
+Dump_PairSet (HB_PairSet *PairSet, FILE *stream, int indent, HB_Type hb_type, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
 {
   int i;
   DUMP_FUINT (PairSet, PairValueCount);
@@ -540,15 +540,15 @@ Dump_PairSet (TTO_PairSet *PairSet, FILE *stream, int indent, FT_Bool is_gsub, F
   for (i = 0; i < PairSet->PairValueCount; i++)
     {
       DUMP ("<PairValueRecord>\n");
-      Dump_PairValueRecord (&PairSet->PairValueRecord[i], stream, indent + 1, is_gsub, ValueFormat1, ValueFormat2);
+      Dump_PairValueRecord (&PairSet->PairValueRecord[i], stream, indent + 1, hb_type, ValueFormat1, ValueFormat2);
       DUMP ("</PairValueRecord>\n");
     }
 }
 
 static void
-Dump_GPOS_Lookup_Pair (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_GPOS_Lookup_Pair (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type)
 {
-  TTO_PairPos *PairPos = &subtable->st.gpos.pair;
+  HB_PairPos *PairPos = &subtable->st.gpos.pair;
 
   DUMP_FUINT (PairPos, PosFormat);
   RECURSE (Coverage, Coverage, &PairPos->Coverage);
@@ -564,7 +564,7 @@ Dump_GPOS_Lookup_Pair (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool
       for (i = 0; i < PairPos->ppf.ppf1.PairSetCount; i++)
 	{
 	  DUMP ("<PairSet>\n");
-	  Dump_PairSet (&PairPos->ppf.ppf1.PairSet[i], stream, indent + 1, is_gsub, PairPos->ValueFormat1, PairPos->ValueFormat2);
+	  Dump_PairSet (&PairPos->ppf.ppf1.PairSet[i], stream, indent + 1, hb_type, PairPos->ValueFormat1, PairPos->ValueFormat2);
 	  DUMP ("</PairSet>\n");
 	}
     }
@@ -574,10 +574,10 @@ Dump_GPOS_Lookup_Pair (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool
 }
 
 static void
-Dump_GPOS_Lookup_Markbase (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub)
+Dump_GPOS_Lookup_Markbase (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type)
 {
   int i;
-  TTO_MarkBasePos *markbase = &subtable->st.gpos.markbase;
+  HB_MarkBasePos *markbase = &subtable->st.gpos.markbase;
   
   DUMP_FUINT (markbase, PosFormat);
   RECURSE (Coverage, Coverage, &markbase->MarkCoverage);
@@ -592,10 +592,10 @@ Dump_GPOS_Lookup_Markbase (TTO_SubTable *subtable, FILE *stream, int indent, FT_
   for (i = 0; i < markbase->BaseArray.BaseCount; i++)
     {
       int j;
-      TTO_BaseRecord *r = &markbase->BaseArray.BaseRecord[i];
-      DUMP ("<BaseRecord> <!-- %d -->\n",  i);
+      HB_BaseRecord *r = &markbase->BaseArray.BaseRecord[i];
+      DUMP1 ("<BaseRecord> <!-- %d -->\n",  i);
       for (j = 0; j < markbase->ClassCount; j++)
-	DUMP ("  <Anchor>%d</Anchor>\n", r->BaseAnchor->PosFormat);
+	DUMP1 ("  <Anchor>%d</Anchor>\n", r->BaseAnchor->PosFormat);
       DUMP ("<BaseRecord>\n");
     }
   
@@ -607,31 +607,31 @@ DEF_DUMP (Lookup)
 {
   int i;
   const char *lookup_name = NULL;
-  void (*lookup_func) (TTO_SubTable *subtable, FILE *stream, int indent, FT_Bool is_gsub) = NULL;
+  void (*lookup_func) (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type) = NULL;
 
-  if (is_gsub)
+  if (hb_type == HB_Type_GSUB)
     {
       switch (Lookup->LookupType)
 	{
-	case  GSUB_LOOKUP_SINGLE:
+	case  HB_GSUB_LOOKUP_SINGLE:
 	  lookup_name = "SINGLE";
 	  lookup_func = Dump_GSUB_Lookup_Single;
 	  break;
-	case  GSUB_LOOKUP_MULTIPLE:
+	case  HB_GSUB_LOOKUP_MULTIPLE:
 	  lookup_name = "MULTIPLE";
 	  break;
-	case  GSUB_LOOKUP_ALTERNATE:
+	case  HB_GSUB_LOOKUP_ALTERNATE:
 	  lookup_name = "ALTERNATE";
 	  break;
-	case  GSUB_LOOKUP_LIGATURE:
+	case  HB_GSUB_LOOKUP_LIGATURE:
 	  lookup_name = "LIGATURE";
 	  lookup_func = Dump_GSUB_Lookup_Ligature;
 	  break;
-	case  GSUB_LOOKUP_CONTEXT:
+	case  HB_GSUB_LOOKUP_CONTEXT:
 	  lookup_name = "CONTEXT";
 	  lookup_func = Dump_GSUB_Lookup_Context;
 	  break;
-	case  GSUB_LOOKUP_CHAIN:
+	case  HB_GSUB_LOOKUP_CHAIN:
 	  lookup_name = "CHAIN";
 	  lookup_func = Dump_GSUB_Lookup_Chain;
 	  break;
@@ -641,44 +641,44 @@ DEF_DUMP (Lookup)
     {
       switch (Lookup->LookupType)
 	{
-	case GPOS_LOOKUP_SINGLE:
+	case HB_GPOS_LOOKUP_SINGLE:
 	  lookup_name = "SINGLE";
 	  lookup_func = Dump_GPOS_Lookup_Single;
 	  break;
-	case GPOS_LOOKUP_PAIR:
+	case HB_GPOS_LOOKUP_PAIR:
 	  lookup_name = "PAIR";
 	  lookup_func = Dump_GPOS_Lookup_Pair;
 	  break;
-	case GPOS_LOOKUP_CURSIVE:
+	case HB_GPOS_LOOKUP_CURSIVE:
 	  lookup_name = "CURSIVE";
 	  break;
-	case GPOS_LOOKUP_MARKBASE:
+	case HB_GPOS_LOOKUP_MARKBASE:
 	  lookup_name = "MARKBASE";
 	  lookup_func = Dump_GPOS_Lookup_Markbase;
 	  break;
-	case GPOS_LOOKUP_MARKLIG:
+	case HB_GPOS_LOOKUP_MARKLIG:
 	  lookup_name = "MARKLIG";
 	  break;
-	case GPOS_LOOKUP_MARKMARK:
+	case HB_GPOS_LOOKUP_MARKMARK:
 	  lookup_name = "MARKMARK";
 	  break;
-	case GPOS_LOOKUP_CONTEXT:
+	case HB_GPOS_LOOKUP_CONTEXT:
 	  lookup_name = "CONTEXT";
 	  break;
-	case GPOS_LOOKUP_CHAIN:
+	case HB_GPOS_LOOKUP_CHAIN:
 	  lookup_name = "CHAIN";
 	  break;
 	}
     }
 
-  DUMP("<LookupType>%s</LookupType> <!-- %d -->\n", lookup_name, Lookup->LookupType);
-  DUMP("<LookupFlag>%#06x</LookupFlag>\n", Lookup->LookupFlag);
+  DUMP2("<LookupType>%s</LookupType> <!-- %d -->\n", lookup_name, Lookup->LookupType);
+  DUMP1("<LookupFlag>%#06x</LookupFlag>\n", Lookup->LookupFlag);
 
   for (i=0; i < Lookup->SubTableCount; i++)
     {
       DUMP ("<Subtable>\n");
       if (lookup_func)
-	(*lookup_func) (&Lookup->SubTable[i], stream, indent + 1, is_gsub);
+	(*lookup_func) (&Lookup->SubTable[i], stream, indent + 1, hb_type);
       DUMP ("</Subtable>\n");
     }
 }
@@ -694,10 +694,10 @@ DEF_DUMP (LookupList)
 }
 
 void
-TT_Dump_GSUB_Table (TTO_GSUB gsub, FILE *stream)
+HB_Dump_GSUB_Table (HB_GSUB gsub, FILE *stream)
 {
   int indent = 1;
-  FT_Bool is_gsub = 1;
+  HB_Type hb_type = HB_Type_GSUB;
 
   do_indent (stream, indent);
   fprintf(stream, "<!-- GSUB -->\n");
@@ -707,10 +707,10 @@ TT_Dump_GSUB_Table (TTO_GSUB gsub, FILE *stream)
 }
 
 void
-TT_Dump_GPOS_Table (TTO_GPOS gpos, FILE *stream)
+HB_Dump_GPOS_Table (HB_GPOS gpos, FILE *stream)
 {
   int indent = 1;
-  FT_Bool is_gsub = 0;
+  HB_Type hb_type = HB_Type_GPOS;
 
   do_indent (stream, indent);
   fprintf(stream, "<!-- GPOS -->\n");
