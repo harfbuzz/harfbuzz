@@ -6,3 +6,4 @@ ottest
 *.la
 .deps
 .libs
+harfbuzz-dump
