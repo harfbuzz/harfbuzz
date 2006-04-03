@@ -15,9 +15,6 @@
 #include "harfbuzz-open-private.h"
 #include "harfbuzz-gdef-private.h"
 
-#include FT_TRUETYPE_TAGS_H
-
-
 static FT_Error  GSUB_Do_Glyph_Lookup( HB_GSUBHeader*   gsub,
 				       FT_UShort         lookup_index,
 				       HB_Buffer        buffer,

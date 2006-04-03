@@ -15,9 +15,6 @@
 #include "harfbuzz-open-private.h"
 #include "harfbuzz-gdef-private.h"
 
-#include FT_TRUETYPE_TAGS_H
-
-
 struct  GPOS_Instance_
 {
   HB_GPOSHeader*  gpos;

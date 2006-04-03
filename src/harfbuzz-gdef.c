@@ -14,9 +14,6 @@
 #include "harfbuzz-gdef-private.h"
 #include "harfbuzz-open-private.h"
 
-#include FT_TRUETYPE_TAGS_H
-
-
 static FT_Error  Load_AttachList( HB_AttachList*  al,
 				  FT_Stream        stream );
 static FT_Error  Load_LigCaretList( HB_LigCaretList*  lcl,

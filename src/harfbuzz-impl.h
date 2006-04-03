@@ -15,6 +15,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_TRUETYPE_TAGS_H
 
 FT_BEGIN_HEADER
 
@@ -28,6 +29,16 @@ FT_BEGIN_HEADER
 
 #ifndef TRUE
 # define TRUE 1
+#endif
+
+#ifndef TTAG_GDEF
+# define TTAG_GDEF  FT_MAKE_TAG( 'G', 'D', 'E', 'F' )
+#endif
+#ifndef TTAG_GPOS
+# define TTAG_GPOS  FT_MAKE_TAG( 'G', 'P', 'O', 'S' )
+#endif
+#ifndef TTAG_GSUB
+# define TTAG_GSUB  FT_MAKE_TAG( 'G', 'S', 'U', 'B' )
 #endif
 
 #include "ftglue.h"
