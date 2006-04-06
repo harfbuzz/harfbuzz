@@ -41,6 +41,10 @@ FT_BEGIN_HEADER
 # define TTAG_GSUB  FT_MAKE_TAG( 'G', 'S', 'U', 'B' )
 #endif
 
+#ifndef FT_UNUSED
+# define FT_UNUSED(arg) ((arg) = (arg))
+#endif
+
 #include "ftglue.h"
 
 #define ARRAY_LEN(Array) ((int)(sizeof (Array) / sizeof (Array)[0]))

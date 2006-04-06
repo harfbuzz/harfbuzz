@@ -155,7 +155,7 @@ Fail4:
 FT_Error   HB_Done_GSUB_Table( HB_GSUBHeader* gsub )
 {
   FT_Memory memory = gsub->memory;
-  
+
   _HB_OPEN_Free_LookupList( &gsub->LookupList, HB_Type_GSUB, memory );
   _HB_OPEN_Free_FeatureList( &gsub->FeatureList, memory );
   _HB_OPEN_Free_ScriptList( &gsub->ScriptList, memory );
@@ -176,6 +176,12 @@ static FT_Error  Lookup_DefaultSubst( HB_GSUBHeader*    gsub,
 				      FT_UShort          context_length,
 				      int                nesting_level )
 {
+  FT_UNUSED(gsub);
+  FT_UNUSED(st);
+  FT_UNUSED(buffer);
+  FT_UNUSED(flags);
+  FT_UNUSED(context_length);
+  FT_UNUSED(nesting_level);
   return HB_Err_Not_Covered;
 }
 
@@ -296,6 +302,8 @@ static FT_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
   FT_Error  error;
   HB_SingleSubst*  ss = &st->single;
   HB_GDEFHeader*   gdef = gsub->gdef;
+
+  FT_UNUSED(nesting_level);
 
 
   if ( context_length != 0xFFFF && context_length < 1 )
@@ -506,6 +514,7 @@ static FT_Error  Lookup_MultipleSubst( HB_GSUBHeader*    gsub,
   HB_MultipleSubst*  ms = &st->multiple;
   HB_GDEFHeader*     gdef = gsub->gdef;
 
+  FT_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -705,10 +714,9 @@ static FT_Error  Lookup_AlternateSubst( HB_GSUBHeader*    gsub,
   FT_UShort         index, alt_index, property;
   HB_AlternateSubst* as = &st->alternate;
   HB_GDEFHeader*     gdef = gsub->gdef;
-
-
   HB_AlternateSet  aset;
 
+  FT_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -995,6 +1003,7 @@ static FT_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
 
   HB_Ligature*  lig;
 
+  FT_UNUSED(nesting_level);
 
   if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
     return error;
@@ -1032,7 +1041,7 @@ static FT_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + lig->ComponentCount - i == buffer->in_length )
+	if ( j + lig->ComponentCount - i == (FT_Long)buffer->in_length )
 	  goto next_ligature;
 	j++;
       }
@@ -1924,7 +1933,7 @@ static FT_Error  Lookup_ContextSubst1( HB_GSUBHeader*          gsub,
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + sr[k].GlyphCount - i == buffer->in_length )
+	if ( j + sr[k].GlyphCount - i == (FT_Long)buffer->in_length )
 	  goto next_subrule;
 	j++;
       }
@@ -2015,7 +2024,7 @@ static FT_Error  Lookup_ContextSubst2( HB_GSUBHeader*          gsub,
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End;
 
-	if ( j + sr->GlyphCount - i < buffer->in_length )
+	if ( j + sr->GlyphCount - i < (FT_Long)buffer->in_length )
 	  goto next_subclassrule;
 	j++;
       }
@@ -2086,7 +2095,7 @@ static FT_Error  Lookup_ContextSubst3( HB_GSUBHeader*          gsub,
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + csf3->GlyphCount - i == buffer->in_length )
+      if ( j + csf3->GlyphCount - i == (FT_Long)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -2786,7 +2795,7 @@ static FT_Error  Load_ChainContextSubst2(
 					      backtrack_offset, base_offset,
 					      stream ) ) != FT_Err_Ok )
       goto Fail5;
-	     
+
   if ( ( error = GSUB_Load_EmptyOrClassDefinition( &ccsf2->InputClassDef, count,
 					      input_offset, base_offset,
 					      stream ) ) != FT_Err_Ok )
@@ -3242,7 +3251,7 @@ static FT_Error  Lookup_ChainContextSubst1( HB_GSUBHeader*               gsub,
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + igc - i + lgc == buffer->in_length )
+	if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
 	  goto next_chainsubrule;
 	j++;
       }
@@ -3261,7 +3270,7 @@ static FT_Error  Lookup_ChainContextSubst1( HB_GSUBHeader*               gsub,
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + lgc - i == buffer->in_length )
+	if ( j + lgc - i == (FT_Long)buffer->in_length )
 	  goto next_chainsubrule;
 	j++;
       }
@@ -3413,7 +3422,7 @@ static FT_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
 
-	if ( j + igc - i + lgc == buffer->in_length )
+	if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
 	  goto next_chainsubclassrule;
 	j++;
       }
@@ -3443,7 +3452,7 @@ static FT_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
 
-	if ( j + lgc - i == buffer->in_length )
+	if ( j + lgc - i == (FT_Long)buffer->in_length )
 	  goto next_chainsubclassrule;
 	j++;
       }
@@ -3554,8 +3563,8 @@ static FT_Error  Lookup_ChainContextSubst3( HB_GSUBHeader*               gsub,
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;
-      
-      if ( j + igc - i + lgc == buffer->in_length )
+
+      if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -3577,7 +3586,7 @@ static FT_Error  Lookup_ChainContextSubst3( HB_GSUBHeader*               gsub,
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + lgc - i == buffer->in_length )
+      if ( j + lgc - i == (FT_Long)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -3650,17 +3659,17 @@ static FT_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
 
   if ( ACCESS_Frame( 2L ) )
     return error;
-  
+
   rccs->SubstFormat = GET_UShort();
-  
+
   if ( rccs->SubstFormat != 1 )
     return HB_Err_Invalid_GSUB_SubTable_Format;
 
-  FORGET_Frame();   
+  FORGET_Frame();
 
   if ( ACCESS_Frame( 2L ) )
     return error;
-  
+
   new_offset = GET_UShort() + base_offset;
 
   FORGET_Frame();
@@ -3671,12 +3680,12 @@ static FT_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
     return error;
   (void)FILE_Seek( cur_offset );
 
-  
+
   if ( ACCESS_Frame( 2L ) )
     goto Fail4;
 
   rccs->BacktrackGlyphCount = GET_UShort();
-  
+
   FORGET_Frame();
 
   rccs->BacktrackCoverage = NULL;
@@ -3686,7 +3695,7 @@ static FT_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
   if ( ALLOC_ARRAY( rccs->BacktrackCoverage, backtrack_count,
 		    HB_Coverage ) )
     goto Fail4;
-  
+
   b = rccs->BacktrackCoverage;
 
   for ( nb = 0; nb < backtrack_count; nb++ )
@@ -3710,7 +3719,7 @@ static FT_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
     goto Fail3;
 
   rccs->LookaheadGlyphCount = GET_UShort();
-  
+
   FORGET_Frame();
 
   rccs->LookaheadCoverage = NULL;
@@ -3738,12 +3747,12 @@ static FT_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
       goto Fail2;
     (void)FILE_Seek( cur_offset );
   }
- 
+
   if ( ACCESS_Frame( 2L ) )
     goto Fail2;
 
   rccs->GlyphCount = GET_UShort();
-  
+
   FORGET_Frame();
 
   rccs->Substitute = NULL;
@@ -3755,20 +3764,20 @@ static FT_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
     goto Fail2;
 
   sub = rccs->Substitute;
-  
+
   if ( ACCESS_Frame( count * 2L ) )
     goto Fail1;
-  
+
   for ( n = 0; n < count; n++ )
     sub[n] = GET_UShort();
-	  
+
   FORGET_Frame();
-  
+
   return FT_Err_Ok;
 
 Fail1:
   FREE( sub );
-  
+
 Fail2:
   for ( m = 0; m < nl; m++ )
     _HB_OPEN_Free_Coverage( &l[m], memory );
@@ -3782,21 +3791,21 @@ Fail3:
   FREE( b );
 
 Fail4:
-  _HB_OPEN_Free_Coverage( &rccs->Coverage, memory );    
+  _HB_OPEN_Free_Coverage( &rccs->Coverage, memory );
   return error;
 }
 
 
 static void  Free_ReverseChainContextSubst( HB_GSUB_SubTable* st,
 					    FT_Memory         memory )
-{  
+{
   FT_UShort      n, count;
   HB_ReverseChainContextSubst*  rccs = &st->reverse;
 
   HB_Coverage*  c;
 
   _HB_OPEN_Free_Coverage( &rccs->Coverage, memory );
-  
+
   if ( rccs->LookaheadCoverage )
   {
     count = rccs->LookaheadGlyphCount;
@@ -3847,10 +3856,10 @@ static FT_Error  Lookup_ReverseChainContextSubst( HB_GSUBHeader*    gsub,
   lgc = rccs->LookaheadGlyphCount;
 
   /* check whether context is too long; it is a first guess only */
-  
+
   if ( bgc > string_index || string_index + 1 + lgc > buffer->in_length )
     return HB_Err_Not_Covered;
-  
+
   if ( bgc )
   {
     /* Since we don't know in advance the number of glyphs to inspect,
@@ -3877,14 +3886,14 @@ static FT_Error  Lookup_ReverseChainContextSubst( HB_GSUBHeader*    gsub,
   }
 
   j = string_index;
- 
+
   error = _HB_OPEN_Coverage_Index( &rccs->Coverage, IN_GLYPH( j ), &input_index );
   if ( error )
       return error;
 
   /* we are starting for lookahead glyphs right after the last context
      glyph                                                             */
-  
+
   j += 1;
 
   lc       = rccs->LookaheadCoverage;
@@ -3896,7 +3905,7 @@ static FT_Error  Lookup_ReverseChainContextSubst( HB_GSUBHeader*    gsub,
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + lgc - i == buffer->in_length )
+      if ( j + lgc - i == (FT_Long)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -3907,7 +3916,7 @@ static FT_Error  Lookup_ReverseChainContextSubst( HB_GSUBHeader*    gsub,
   }
 
   IN_GLYPH( string_index ) = rccs->Substitute[input_index];
-      
+
   return error;
 }
 
@@ -4110,7 +4119,7 @@ FT_Error  HB_GSUB_Query_Languages( HB_GSUBHeader*  gsub,
     return FT_Err_Invalid_Argument;
 
   memory = gsub->memory;
-  
+
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
 
@@ -4162,7 +4171,7 @@ FT_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
     return FT_Err_Invalid_Argument;
 
   memory = gsub->memory;
-  
+
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
 
@@ -4283,6 +4292,9 @@ static FT_Error  GSUB_Do_Glyph_Lookup( HB_GSUBHeader* gsub,
 static FT_Error  Load_DefaultSubst( HB_GSUB_SubTable* st,
 				    FT_Stream         stream )
 {
+  FT_UNUSED(st);
+  FT_UNUSED(stream);
+
   return HB_Err_Invalid_GSUB_SubTable_Format;
 }
 
@@ -4318,6 +4330,8 @@ FT_Error  _HB_GSUB_Load_SubTable( HB_GSUB_SubTable*  st,
 static void  Free_DefaultSubst( HB_GSUB_SubTable* st,
 				FT_Memory         memory )
 {
+  FT_UNUSED(st);
+  FT_UNUSED(memory);
 }
 
 typedef void  (*Free_Subst_Func_Type)( HB_GSUB_SubTable* st,
@@ -4398,14 +4412,14 @@ static FT_Error  Apply_ReverseChainContextSubst( HB_GSUBHeader*   gsub,
   FT_Error     error, retError = HB_Err_Not_Covered;
   FT_ULong     subtable_Count, string_index;
   FT_UShort    flags;
-  HB_Lookup*  lo;      
+  HB_Lookup*  lo;
 
   if ( buffer->in_length == 0 )
     return HB_Err_Not_Covered;
-  
+
   lo    = &gsub->LookupList.Lookup[lookup_index];
-  flags = lo->LookupFlag;      
-  
+  flags = lo->LookupFlag;
+
   for ( subtable_Count = 0; subtable_Count < lo->SubTableCount; subtable_Count++ )
   {
     string_index  = buffer->in_length - 1;
@@ -4426,7 +4440,7 @@ static FT_Error  Apply_ReverseChainContextSubst( HB_GSUBHeader*   gsub,
     }
     while (string_index--);
   }
-  
+
   return retError;
 }
 
@@ -4443,7 +4457,7 @@ FT_Error  HB_GSUB_Add_Feature( HB_GSUBHeader*  gsub,
   FT_UShort    lookup_count;
 
   /* Each feature can only be added once */
-  
+
   if ( !gsub ||
        feature_index >= gsub->FeatureList.FeatureCount ||
        gsub->FeatureList.ApplyCount == gsub->FeatureList.FeatureCount )
@@ -4558,16 +4572,16 @@ FT_Error  HB_GSUB_Apply_String( HB_GSUBHeader*   gsub,
       }
       else
 	retError = error;
-      
+
       if ( need_swap )
       {
 	error = hb_buffer_swap( buffer );
 	if ( error )
 	  goto End;
       }
-    } 
+    }
   }
-  
+
   error = retError;
 
 End:

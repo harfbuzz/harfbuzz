@@ -48,6 +48,10 @@ static FT_Error  default_mmfunc( FT_Face      face,
 				 FT_Pos*      metric_value,
 				 void*        data )
 {
+  FT_UNUSED(face);
+  FT_UNUSED(metric_id);
+  FT_UNUSED(metric_value);
+  FT_UNUSED(data);
   return HB_Err_No_MM_Interpreter;
 }
 
@@ -184,7 +188,7 @@ Fail4:
 FT_Error  HB_Done_GPOS_Table( HB_GPOSHeader* gpos )
 {
   FT_Memory memory = gpos->memory;
-  
+
   _HB_OPEN_Free_LookupList( &gpos->LookupList, HB_Type_GPOS, memory );
   _HB_OPEN_Free_FeatureList( &gpos->FeatureList, memory );
   _HB_OPEN_Free_ScriptList( &gpos->ScriptList, memory );
@@ -212,7 +216,7 @@ static FT_Error  Load_ValueRecord( HB_ValueRecord*  vr,
 {
   FT_Error  error;
   FT_Memory memory = stream->memory;
-  
+
   FT_ULong cur_offset, new_offset;
 
 
@@ -745,10 +749,10 @@ static FT_Error  Get_Anchor( GPOS_Instance*   gpi,
 	return error;
 
       if ( gpi->face->glyph->format != ft_glyph_format_outline )
-	return HB_Err_Invalid_GPOS_SubTable;	  
+	return HB_Err_Invalid_GPOS_SubTable;
 
       ap = an->af.af2.AnchorPoint;
-      
+
       outline = gpi->face->glyph->outline;
 
       /* if outline.n_points is set to zero by gfunc(), we use the
@@ -824,7 +828,7 @@ static FT_Error  Load_MarkArray ( HB_MarkArray*  ma,
     return error;
 
   count = ma->MarkCount = GET_UShort();
-  
+
   FORGET_Frame();
 
   ma->MarkRecord = NULL;
@@ -1013,6 +1017,12 @@ static FT_Error  Lookup_DefaultPos(  GPOS_Instance*    gpi,
 				     FT_UShort         context_length,
 				     int               nesting_level )
 {
+  FT_UNUSED(gpi);
+  FT_UNUSED(st);
+  FT_UNUSED(buffer);
+  FT_UNUSED(flags);
+  FT_UNUSED(context_length);
+  FT_UNUSED(nesting_level);
   return HB_Err_Not_Covered;
 }
 
@@ -1028,6 +1038,7 @@ static FT_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
   HB_GPOSHeader*  gpos = gpi->gpos;
   HB_SinglePos*   sp = &st->single;
 
+  FT_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -1091,7 +1102,7 @@ static FT_Error  Load_PairSet ( HB_PairSet*  ps,
     return error;
 
   count = ps->PairValueCount = GET_UShort();
-  
+
   FORGET_Frame();
 
   ps->PairValueRecord = NULL;
@@ -1333,7 +1344,7 @@ static FT_Error  Load_PairPos2( HB_PairPosFormat2*  ppf2,
 	if ( error )
 	{
 	  if ( format1 )
-	    Free_ValueRecord( &c2r[n].Value1, format1, memory );	      
+	    Free_ValueRecord( &c2r[n].Value1, format1, memory );
 	  goto Fail0;
 	}
       }
@@ -1591,6 +1602,7 @@ static FT_Error  Lookup_PairPos( GPOS_Instance*    gpi,
   HB_GPOSHeader*  gpos = gpi->gpos;
   HB_PairPos*     pp = &st->pair;
 
+  FT_UNUSED(nesting_level);
 
   if ( buffer->in_pos >= buffer->in_length - 1 )
     return HB_Err_Not_Covered;           /* Not enough glyphs in stream */
@@ -1697,7 +1709,7 @@ static FT_Error  Load_CursivePos( HB_GPOS_SubTable* st,
   for ( n = 0; n < count; n++ )
   {
     FT_ULong entry_offset;
-    
+
     if ( ACCESS_Frame( 2L ) )
       return error;
 
@@ -1805,6 +1817,7 @@ static FT_Error  Lookup_CursivePos( GPOS_Instance*    gpi,
   FT_Pos                entry_x, entry_y;
   FT_Pos                exit_x, exit_y;
 
+  FT_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
   {
@@ -2035,7 +2048,7 @@ static FT_Error  Load_BaseArray( HB_BaseArray*  ba,
     return error;
 
   count = ba->BaseCount = GET_UShort();
-  
+
   FORGET_Frame();
 
   ba->BaseRecord = NULL;
@@ -2089,7 +2102,7 @@ Fail:
   for ( k = 0; k < m; k++ )
   {
     ban = br[k].BaseAnchor;
-    
+
     for ( n = 0; n < num_classes; n++ )
       Free_Anchor( &ban[n], memory );
 
@@ -2249,6 +2262,7 @@ static FT_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 
   HB_Position     o;
 
+  FT_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -2367,7 +2381,7 @@ static FT_Error  Load_LigatureAttach( HB_LigatureAttach*  lat,
     return error;
 
   count = lat->ComponentCount = GET_UShort();
-  
+
   FORGET_Frame();
 
   lat->ComponentRecord = NULL;
@@ -2422,7 +2436,7 @@ Fail:
   for ( k = 0; k < m; k++ )
   {
     lan = cr[k].LigatureAnchor;
-    
+
     for ( n = 0; n < num_classes; n++ )
       Free_Anchor( &lan[n], memory );
 
@@ -2664,6 +2678,7 @@ static FT_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 
   HB_Position    o;
 
+  FT_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -2798,7 +2813,7 @@ static FT_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
     return error;
 
   count = m2a->Mark2Count = GET_UShort();
-  
+
   FORGET_Frame();
 
   m2a->Mark2Record = NULL;
@@ -2846,7 +2861,7 @@ Fail:
   for ( k = 0; k < m; k++ )
   {
     m2an = m2r[k].Mark2Anchor;
-    
+
     for ( n = 0; n < num_classes; n++ )
       Free_Anchor( &m2an[n], memory );
 
@@ -3006,6 +3021,7 @@ static FT_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
 
   HB_Position    o;
 
+  FT_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -3897,7 +3913,7 @@ static FT_Error  Lookup_ContextPos1( GPOS_Instance*          gpi,
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + pr[k].GlyphCount - i == buffer->in_length )
+	if ( j + pr[k].GlyphCount - i == (FT_Long)buffer->in_length )
 	  goto next_posrule;
 	j++;
       }
@@ -3910,7 +3926,7 @@ static FT_Error  Lookup_ContextPos1( GPOS_Instance*          gpi,
 			  pr[k].PosCount, pr[k].PosLookupRecord,
 			  buffer,
 			  nesting_level );
-    
+
     next_posrule:
       ;
   }
@@ -3990,7 +4006,7 @@ static FT_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End;
 
-	if ( j + pr->GlyphCount - i == buffer->in_length )
+	if ( j + pr->GlyphCount - i == (FT_Long)buffer->in_length )
 	  goto next_posclassrule;
 	j++;
       }
@@ -4062,7 +4078,7 @@ static FT_Error  Lookup_ContextPos3( GPOS_Instance*          gpi,
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + cpf3->GlyphCount - i == buffer->in_length )
+      if ( j + cpf3->GlyphCount - i == (FT_Long)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -5215,7 +5231,7 @@ static FT_Error  Lookup_ChainContextPos1(
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + igc - i + lgc == buffer->in_length )
+	if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
 	  goto next_chainposrule;
 	j++;
       }
@@ -5234,7 +5250,7 @@ static FT_Error  Lookup_ChainContextPos1(
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + lgc - i == buffer->in_length )
+	if ( j + lgc - i == (FT_Long)buffer->in_length )
 	  goto next_chainposrule;
 	j++;
       }
@@ -5387,7 +5403,7 @@ static FT_Error  Lookup_ChainContextPos2(
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
 
-	if ( j + igc - i + lgc == buffer->in_length )
+	if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
 	  goto next_chainposclassrule;
 	j++;
       }
@@ -5417,7 +5433,7 @@ static FT_Error  Lookup_ChainContextPos2(
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
 
-	if ( j + lgc - i == buffer->in_length )
+	if ( j + lgc - i == (FT_Long)buffer->in_length )
 	  goto next_chainposclassrule;
 	j++;
       }
@@ -5531,7 +5547,7 @@ static FT_Error  Lookup_ChainContextPos3(
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + igc - i + lgc == buffer->in_length )
+      if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -5553,7 +5569,7 @@ static FT_Error  Lookup_ChainContextPos3(
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + lgc - i == buffer->in_length )
+      if ( j + lgc - i == (FT_Long)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -5968,6 +5984,8 @@ static FT_Error  GPOS_Do_Glyph_Lookup( GPOS_Instance*    gpi,
 static FT_Error  Load_DefaultPos( HB_GPOS_SubTable* st,
 				  FT_Stream         stream )
 {
+  FT_UNUSED(st);
+  FT_UNUSED(stream);
   return HB_Err_Invalid_GPOS_SubTable_Format;
 }
 
@@ -6004,6 +6022,8 @@ FT_Error  _HB_GPOS_Load_SubTable( HB_GPOS_SubTable*  st,
 static void  Free_DefaultPos( HB_GPOS_SubTable* st,
 			      FT_Memory         memory )
 {
+  FT_UNUSED(st);
+  FT_UNUSED(memory);
 }
 
 typedef void (*Free_Pos_Func_Type)( HB_GPOS_SubTable* st,
@@ -6103,7 +6123,7 @@ static FT_Error  Position_CursiveChain ( HB_Buffer     buffer )
     if (positions[j].cursive_chain > 0)
       positions[j].y_pos += positions[j - positions[j].cursive_chain].y_pos;
   }
-  
+
   /* Then handle all right-to-left connections */
   for (i = buffer->in_length; i > 0; i--)
   {
@@ -6112,7 +6132,7 @@ static FT_Error  Position_CursiveChain ( HB_Buffer     buffer )
     if (positions[j].cursive_chain < 0)
       positions[j].y_pos += positions[j - positions[j].cursive_chain].y_pos;
   }
-  
+
   return FT_Err_Ok;
 }
 
@@ -6129,7 +6149,7 @@ FT_Error  HB_GPOS_Add_Feature( HB_GPOSHeader*  gpos,
   FT_UShort    lookup_count;
 
   /* Each feature can only be added once */
-  
+
   if ( !gpos ||
        feature_index >= gpos->FeatureList.FeatureCount ||
        gpos->FeatureList.ApplyCount == gpos->FeatureList.FeatureCount )
@@ -6228,11 +6248,11 @@ FT_Error  HB_GPOS_Apply_String( FT_Face            face,
   gpi.load_flags = load_flags;
   gpi.r2l        = r2l;
   gpi.dvi        = dvi;
-  
+
   lookup_count = gpos->LookupList.LookupCount;
 
   for ( i = 0; i < gpos->FeatureList.ApplyCount; i++ )
-  { 
+  {
     /* index of i'th feature */
     feature_index = gpos->FeatureList.ApplyOrder[i];
     feature = gpos->FeatureList.FeatureRecord[feature_index].Feature;
@@ -6255,7 +6275,7 @@ FT_Error  HB_GPOS_Apply_String( FT_Face            face,
 	retError = error;
     }
   }
-  
+
   error = Position_CursiveChain ( buffer );
   if ( error )
     return error;
