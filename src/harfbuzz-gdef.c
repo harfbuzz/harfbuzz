@@ -887,7 +887,7 @@ FT_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
   FT_UShort              start, curr_glyph, curr_class;
   FT_UShort              n, m, count;
   FT_Error               error;
-  FT_Memory              memory = gdef->memory;
+  FT_Memory              memory;
 
   HB_ClassDefinition*   gcd;
   HB_ClassRangeRecord*  gcrr;
@@ -897,6 +897,7 @@ FT_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
   if ( !gdef || !glyph_array || !class_array )
     return FT_Err_Invalid_Argument;
 
+  memory = gdef->memory;
   gcd = &gdef->GlyphClassDef;
 
   /* We build a format 2 table */

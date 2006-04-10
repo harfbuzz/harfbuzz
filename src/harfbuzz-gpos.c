@@ -5771,7 +5771,7 @@ FT_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
 				 FT_ULong**       script_tag_list )
 {
   FT_Error           error;
-  FT_Memory          memory = gpos->memory;
+  FT_Memory          memory;
   FT_UShort          n;
   FT_ULong*          stl;
 
@@ -5782,6 +5782,7 @@ FT_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
   if ( !gpos || !script_tag_list )
     return FT_Err_Invalid_Argument;
 
+  memory = gpos->memory;
   sl = &gpos->ScriptList;
   sr = sl->ScriptRecord;
 
@@ -5804,7 +5805,7 @@ FT_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
 				   FT_ULong**       language_tag_list )
 {
   FT_Error            error;
-  FT_Memory           memory = gpos->memory;
+  FT_Memory           memory;
   FT_UShort           n;
   FT_ULong*           ltl;
 
@@ -5817,6 +5818,7 @@ FT_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
   if ( !gpos || !language_tag_list )
     return FT_Err_Invalid_Argument;
 
+  memory = gpos->memory;
   sl = &gpos->ScriptList;
   sr = sl->ScriptRecord;
 
@@ -5850,7 +5852,7 @@ FT_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
 {
   FT_UShort           n;
   FT_Error            error;
-  FT_Memory           memory = gpos->memory;
+  FT_Memory           memory;
   FT_ULong*           ftl;
 
   HB_ScriptList*     sl;
@@ -5867,6 +5869,7 @@ FT_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
   if ( !gpos || !feature_tag_list )
     return FT_Err_Invalid_Argument;
 
+  memory = gpos->memory;
   sl = &gpos->ScriptList;
   sr = sl->ScriptRecord;
 
