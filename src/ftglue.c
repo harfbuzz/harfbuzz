@@ -243,8 +243,6 @@ _hb_ftglue_face_goto_table( FT_Face    face,
     if ( face->num_faces > 1 )
     {
       /* deal with TrueType collections */
-      FT_ULong  offset;
-
       LOG(( ">> This is a TrueType Collection\n" ));
 
       if ( FILE_Seek( 12 + face->face_index*4 ) ||
