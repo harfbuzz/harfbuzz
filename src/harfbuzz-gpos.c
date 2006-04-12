@@ -5022,19 +5022,19 @@ Fail1:
   FREE( plr );
 
 Fail2:
-  for ( m = 0; m < nl; nl++ )
+  for ( m = 0; m < nl; m++ )
     _HB_OPEN_Free_Coverage( &l[m], memory );
 
   FREE( l );
 
 Fail3:
-  for ( m = 0; m < ni; n++ )
+  for ( m = 0; m < ni; m++ )
     _HB_OPEN_Free_Coverage( &i[m], memory );
 
   FREE( i );
 
 Fail4:
-  for ( m = 0; m < nb; n++ )
+  for ( m = 0; m < nb; m++ )
     _HB_OPEN_Free_Coverage( &b[m], memory );
 
   FREE( b );
