@@ -3006,7 +3006,7 @@ static FT_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
 				     FT_UShort         context_length,
 				     int               nesting_level )
 {
-  FT_UShort        j, mark1_index, mark2_index, property, class;
+  FT_UShort        i, j, mark1_index, mark2_index, property, class;
   FT_Pos           x_mark1_value, y_mark1_value,
 		   x_mark2_value, y_mark2_value;
   FT_Error         error;
@@ -3038,27 +3038,34 @@ static FT_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
   if ( error )
     return error;
 
-  /* now we check the preceding glyph whether it is a suitable
-     mark glyph                                                */
+  /* now we search backwards for a suitable mark glyph until a non-mark
+     glyph                                                */
 
   if ( buffer->in_pos == 0 )
     return HB_Err_Not_Covered;
 
+  i = 1;
   j = buffer->in_pos - 1;
-  error = HB_GDEF_Get_Glyph_Property( gpos->gdef, IN_GLYPH( j ),
-				      &property );
-  if ( error )
-    return error;
+  while ( i <= buffer->in_pos )
+  {
+    error = HB_GDEF_Get_Glyph_Property( gpos->gdef, IN_GLYPH( j ),
+					&property );
+    if ( error )
+      return error;
 
-  if ( flags & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS )
-  {
-    if ( property != (flags & 0xFF00) )
+    if ( !( property == HB_GDEF_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
       return HB_Err_Not_Covered;
-  }
-  else
-  {
-    if ( property != HB_GDEF_MARK )
-      return HB_Err_Not_Covered;
+
+    if ( flags & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS )
+    {
+      if ( property == (flags & 0xFF00) )
+        break;
+    }
+    else
+      break;
+
+    i++;
+    j--;
   }
 
   error = _HB_OPEN_Coverage_Index( &mmp->Mark2Coverage, IN_GLYPH( j ),
