@@ -5,7 +5,7 @@ INCLUDES = 					\
 
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
-SOURCES =  \
+MAINSOURCES =  \
 	ftglue.c \
 	harfbuzz-buffer.c \
 	harfbuzz-dump.c \
@@ -34,7 +34,7 @@ PRIVATEHEADERS = \
 	harfbuzz-open-private.h
 
 libharfbuzz_1_la_SOURCES = \
-	$(SOURCES) \
+	$(MAINSOURCES) \
 	$(PUBLICHEADERS) \
 	$(PRIVATEHEADERS)
 
