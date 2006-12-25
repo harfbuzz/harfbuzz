@@ -256,9 +256,9 @@ struct TTCHeader {
 
 typedef struct OpenTypeFontFile {
   DEFINE_NOT_INSTANTIABLE(OpenTypeFontFile);
-  static const hb_tag_t truetype_tag	= HB_TAG ( 0 , 1 , 0 , 0 );
-  static const hb_tag_t cff_tag		= HB_TAG ('O','T','T','O');
-  static const hb_tag_t ttc_tag		= HB_TAG ('t','t','c','f');
+  static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
+  static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
+  static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
 
   /* Factory: ::get(font_data)
    * This is how you get a handle to one of these
@@ -274,22 +274,22 @@ typedef struct OpenTypeFontFile {
   inline unsigned int get_len (void) const {
     switch (tag) {
     default: return 0;
-    case truetype_tag: case cff_tag: return 1;
-    case ttc_tag: return ((const TTCHeader&)*this).get_len();
+    case TrueTypeTag: case CFFTag: return 1;
+    case TTCTag: return ((const TTCHeader&)*this).get_len();
     }
   }
   inline const OpenTypeFont& operator[] (unsigned int i) const {
     assert (i < get_len ());
     switch (tag) {
-    default: case truetype_tag: case cff_tag: return (const OffsetTable&)*this;
-    case ttc_tag: return ((const TTCHeader&)*this)[i];
+    default: case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
+    case TTCTag: return ((const TTCHeader&)*this)[i];
     }
   }
   inline OpenTypeFont& operator[] (unsigned int i) {
     assert (i < get_len ());
     switch (tag) {
-    default: case truetype_tag: case cff_tag: return (OffsetTable&)*this;
-    case ttc_tag: return ((TTCHeader&)*this)[i];
+    default: case TrueTypeTag: case CFFTag: return (OffsetTable&)*this;
+    case TTCTag: return ((TTCHeader&)*this)[i];
     }
   }
 
@@ -363,18 +363,17 @@ main (int argc, char **argv)
   const OpenTypeFontFile &ot = OpenTypeFontFile::get (font_data);
 
   switch (ot.tag) {
-  case HB_TAG (0,1,0,0):
+  case OpenTypeFontFile::TrueTypeTag:
     printf ("OpenType font with TrueType outlines\n");
     break;
-  case HB_TAG ('O','T','T','O'):
+  case OpenTypeFontFile::CFFTag:
     printf ("OpenType font with CFF (Type1) outlines\n");
     break;
-  case HB_TAG ('t','t','c','f'):
+  case OpenTypeFontFile::TTCTag:
     printf ("TrueType Collection of OpenType fonts\n");
     break;
   default:
-    fprintf (stderr, "Unknown font format\n");
-    exit (1);
+    printf ("Unknown font format\n");
     break;
   }
 
@@ -382,7 +381,7 @@ main (int argc, char **argv)
   printf ("%d font(s) found in file\n", num_fonts);
   for (int n_font = 0; n_font < num_fonts; n_font++) {
     const OpenTypeFont &font = ot[n_font];
-    printf ("Font %d of %d\n", n_font+1, num_fonts);
+    printf ("Font %d of %d:\n", n_font+1, num_fonts);
 
     int num_tables = font.get_len ();
     printf ("%d table(s) found in font\n", num_tables);
