@@ -2,7 +2,13 @@
 #include <assert.h>
 #include <glib.h>
 
+/* Public header */
 
+typedef uint32_t hb_tag_t;
+#define HB_TAG(a,b,c,d) ((hb_tag_t)(((uint8_t)a<<24)|((uint8_t)b<<16)|((uint8_t)c<<8)|(uint8_t)d))
+
+
+/* Implementation */
 
 /* Macros to convert to/from BigEndian */
 #define hb_be_uint8_t
@@ -146,7 +152,7 @@ struct F2DOT14 : SHORT {
  * system, feature, or baseline */
 struct Tag {
   inline Tag (void) { v[0] = v[1] = v[2] = v[3] = 0; }
-  inline Tag (char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
+  inline Tag (const char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
   inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; } \
   private: char v[4];
 };
@@ -189,6 +195,10 @@ struct Fixed_Version : Fixed {
  * Organization of an OpenType Font
  */
 
+struct OpenTypeFontFile;
+struct OffsetTable;
+struct TTCHeader;
+
 struct TableDirectory {
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
@@ -206,7 +216,6 @@ struct OffsetTable {
   USHORT	entrySelector;	/* Log2(maximum power of 2 <= numTables). */
   USHORT	rangeShift;	/* NumTables x 16-searchRange. */
   TableDirectory tableDir[];	/* TableDirectory entries. numTables items */
-
 };
 
 
@@ -229,6 +238,62 @@ struct TTCHeader {
 };
 
 
+/*
+ * OpenType Font File
+ */
+
+struct OpenTypeFontFile {
+  Tag		tag;		/* 4-byte identifier. */
+
+  unsigned int get_len (void) const {
+    switch (tag) {
+    default:
+      return 0;
+    case HB_TAG (0,1,0,0):
+    case HB_TAG ('O','T','T','O'):
+      return 1;
+    case HB_TAG ('t','t','c','f'):
+      const TTCHeader &ttc = (TTCHeader&)*this;
+      return ttc.get_len ();
+    }
+  }
+
+  inline const OffsetTable& operator[] (unsigned int i) const {
+    assert (i < get_len ());
+    switch (tag) {
+    default:
+    case HB_TAG (0,1,0,0):
+    case HB_TAG ('O','T','T','O'):
+      return (const OffsetTable&)*this;
+    case HB_TAG ('t','t','c','f'):
+      const TTCHeader &ttc = (const TTCHeader&)*this;
+      return ttc[i];
+    }
+  }
+  inline OffsetTable& operator[] (unsigned int i) {
+    assert (i < get_len ());
+    switch (tag) {
+    default:
+    case HB_TAG (0,1,0,0):
+    case HB_TAG ('O','T','T','O'):
+      return (OffsetTable&)*this;
+    case HB_TAG ('t','t','c','f'):
+      TTCHeader &ttc = (TTCHeader&)*this;
+      return ttc[i];
+    }
+  }
+
+  /* ::get(font_data).  This is how you get a handle to one of these */
+  static inline const OpenTypeFontFile& get (const char *font_data) {
+    return (const OpenTypeFontFile&)*font_data;
+  }
+  static inline OpenTypeFontFile& get (char *font_data) {
+    return (OpenTypeFontFile&)*font_data;
+  }
+
+  /* cannot be instantiated */
+  private: OpenTypeFontFile() {}
+};
 
 
 
@@ -270,19 +335,53 @@ struct Script {
 };
 
 struct LangSys {
+  
 
 };
 
 
+#include <stdlib.h>
 #include <stdio.h>
 
 int
-main (void)
+main (int argc, char **argv)
 {
-//  Tag y("abcd");
-//  Tag &x = y;
-//  BYTE b(0);
+  if (argc != 2) {
+    fprintf (stderr, "usage: %s font-file.ttf\n", argv[0]);
+    exit (1);
+  }
 
-  printf ("%d\n", sizeof (ScriptList));//, x+0, y+0);
+  GMappedFile *mf = g_mapped_file_new (argv[1], FALSE, NULL);
+  const char *font_data = g_mapped_file_get_contents (mf);
+  int len = g_mapped_file_get_length (mf);
+  
+  printf ("Opened font file %s: %d bytes long\n", argv[1], len);
+  
+  const OpenTypeFontFile &ot = OpenTypeFontFile::get (font_data);
+
+  switch (ot.tag) {
+  case HB_TAG (0,1,0,0):
+    printf ("OpenType font with TrueType outlines\n");
+    break;
+  case HB_TAG ('O','T','T','O'):
+    printf ("OpenType font with CFF (Type1) outlines\n");
+    break;
+  case HB_TAG ('t','t','c','f'):
+    printf ("TrueType Collection of OpenType fonts\n");
+    break;
+  default:
+    fprintf (stderr, "Unknown font format\n");
+    exit (1);
+    break;
+  }
+
+  int num_fonts = ot.get_len ();
+  printf ("%d font(s) found in file\n", num_fonts);
+  for (int i = 0; i < num_fonts; i++) {
+    printf ("Font %d of %d\n", i+1, num_fonts);
+    const OffsetTable &offset_table = ot[i];
+
+  }
+
   return 0;
 }
