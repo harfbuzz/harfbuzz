@@ -27,7 +27,7 @@ typedef uint32_t hb_tag_t;
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
 struct NAME { \
   inline NAME (void) { v = 0; } \
-  inline NAME (TYPE i) { v = BIG_ENDIAN(i); } \
+  explicit inline NAME (TYPE i) { v = BIG_ENDIAN(i); } \
   inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
   inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
   inline bool operator== (NAME o) const { return v == o.v; } \
@@ -157,10 +157,11 @@ struct F2DOT14 : SHORT {
  * system, feature, or baseline */
 struct Tag {
   inline Tag (void) { v[0] = v[1] = v[2] = v[3] = 0; }
+  inline Tag (uint32_t v) { (ULONG&)(*this) = v; }
   inline Tag (const char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
-  inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; } \
-
-  /* The char* these two return is NOT nul-terminated.  Print using "%.4s" */
+  inline bool operator== (Tag o) const { return v[0]==o.v[0]&&v[1]==o.v[1]&&v[2]==o.v[2]&&v[3]==o.v[3]; }
+  inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; }
+  /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return (const char *)this; }
   inline operator char* (void) { return (char *)this; }
 
@@ -219,6 +220,7 @@ typedef struct TableDirectory {
 
 typedef struct OffsetTable {
   DEFINE_NOT_INSTANTIABLE(OffsetTable);
+  /* OpenTypeTables, in no particular order */
   DEFINE_ARRAY_TYPE (TableDirectory, tableDir, numTables);
   // TODO: Implement find_table
 
@@ -236,8 +238,7 @@ typedef struct OffsetTable {
 
 struct TTCHeader {
   DEFINE_NOT_INSTANTIABLE(TTCHeader);
-  /* This works as an array type because TTCHeader is always located at the
-   * beginning of the file */
+  /* OpenTypeFonts, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
 
   Tag	TTCTag;		/* TrueType Collection ID string: 'ttcf' */
@@ -318,6 +319,7 @@ struct Script;
 
 struct ScriptList {
   DEFINE_NOT_INSTANTIABLE(ScriptList);
+  /* Scripts, in sorted alphabetical order */
   DEFINE_RECORD_ARRAY_TYPE (Script, scriptRecord, scriptCount);
 
   USHORT	scriptCount;	/* Number of ScriptRecords */
@@ -327,7 +329,20 @@ struct ScriptList {
 
 struct Script {
   DEFINE_NOT_INSTANTIABLE(Script);
+  /* LangSys', in sorted alphabetical order */
   DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
+
+  /* Return NULL if none */
+  inline const LangSys* get_default_language_system (void) const {
+    if (!defaultLangSys)
+      return NULL;
+    return (const LangSys *)((const char*)this + defaultLangSys);
+  }
+  inline LangSys* get_default_language_system (void) {
+    if (!defaultLangSys)
+      return NULL;
+    return (LangSys *)((char*)this + defaultLangSys);
+  }
 
   Offset	defaultLangSys;	/* Offset to DefaultLangSys table--from
 				 * beginning of Script table--may be NULL */
@@ -338,8 +353,27 @@ struct Script {
 };
 
 struct LangSys {
+  DEFINE_NOT_INSTANTIABLE(LangSys);
+  /* FeatureIndexes, in no particular order */
+  DEFINE_ARRAY_TYPE (USHORT, featureIndex, featureCount);
   
+  /* Returns -1 if none */
+  inline int get_required_feature_index (void) const {
+    if (reqFeatureIndex == 0xffff)
+      return -1;
+    return reqFeatureIndex;;
+  }
 
+  Offset	lookupOrder;	/* = NULL (reserved for an offset to a
+				 * reordering table) */
+  USHORT	reqFeatureIndex;/* Index of a feature required for this
+				 * language system--if no required features
+				 * = 0xFFFF */
+  USHORT	featureCount;	/* Number of FeatureIndex values for this
+				 * language system--excludes the required
+				 * feature */
+  USHORT	featureIndex[];	/* Array of indices into the FeatureList--in
+				 * arbitrary order */
 };
 
 
@@ -387,10 +421,13 @@ main (int argc, char **argv)
     printf ("%d table(s) found in font\n", num_tables);
     for (int n_table = 0; n_table < num_tables; n_table++) {
       const OpenTypeTable &table = font[n_table];
-      printf ("Table %d of %d: %.4s (%04x+%04x)\n", n_table+1, num_tables,
+      printf ("Table %2d of %2d: %.4s (0x%06x+0x%06x)\n", n_table+1, num_tables,
 	      (const char *)table.tag, (int)table.offset, (int)table.length);
     }
   }
+
+  Tag a;
+  a == ((Tag)"1234");
 
   return 0;
 }
