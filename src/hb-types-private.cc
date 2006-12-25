@@ -241,7 +241,7 @@ struct TTCHeader {
   /* OpenTypeFonts, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
 
-  Tag	TTCTag;		/* TrueType Collection ID string: 'ttcf' */
+  Tag	ttcTag;		/* TrueType Collection ID string: 'ttcf' */
   ULONG	version;	/* Version of the TTC Header (1.0 or 2.0),
 				 * 0x00010000 or 0x00020000 */
   ULONG	numFonts;	/* Number of fonts in TTC */
@@ -306,7 +306,13 @@ typedef struct OpenTypeFontFile {
  */
 
 struct Script;
+struct ScriptList;
 struct LangSys;
+struct Feature;
+struct FeatureList;
+struct Lookup;
+struct LookupList;
+struct SubTable;
 
 
 typedef struct Record {
@@ -314,8 +320,6 @@ typedef struct Record {
   Offset	offset;		/* Offset from beginning of object holding
 				 * the Record */
 } ScriptRecord, LangSysRecord, FeatureRecord;
-
-struct Script;
 
 struct ScriptList {
   DEFINE_NOT_INSTANTIABLE(ScriptList);
@@ -376,8 +380,6 @@ struct LangSys {
 				 * arbitrary order. featureCount entires long */
 };
 
-struct Feature;
-
 struct FeatureList {
   DEFINE_NOT_INSTANTIABLE(FeatureList);
   /* Feature indices, in sorted alphabetical tag order */
@@ -407,6 +409,46 @@ struct Feature {
 				 * feature--zero-based (first lookup is
 				 * LookupListIndex = 0). lookupCount
 				 * entries long */
+};
+
+struct LookupList {
+  DEFINE_NOT_INSTANTIABLE(LookupList);
+  /* Lookup indices, in sorted alphabetical tag order */
+  DEFINE_OFFSET_ARRAY_TYPE (Lookup, lookupOffset, lookupCount);
+
+  USHORT	lookupCount;	/* Number of lookups in this table */
+  Offset	lookupOffset[];	/* Array of offsets to Lookup tables--from
+				 * beginning of LookupList--zero based (first
+				 * lookup is Lookup index = 0).  lookupCount
+				 * entries long */
+};
+
+struct LookupFlag : USHORT {
+  static const uint16_t RightToLeft		= 0x0001u;
+  static const uint16_t IgnoreBaseGlyphs	= 0x0002u;
+  static const uint16_t IgnoreLigatures		= 0x0004u;
+  static const uint16_t IgnoreMarks		= 0x0008u;
+  static const uint16_t Reserved		= 0x00F0u;
+  static const uint16_t MarkAttachmentType	= 0xFF00u;
+};
+
+struct Lookup {
+  DEFINE_NOT_INSTANTIABLE(Lookup);
+  /* SubTables, in the desired order */
+  DEFINE_OFFSET_ARRAY_TYPE (SubTable, subTableOffset, subTableCount);
+
+  inline bool is_right_to_left	(void) const { return lookupFlag & LookupFlag::RightToLeft; }
+  inline bool ignore_base_glyphs(void) const { return lookupFlag & LookupFlag::IgnoreBaseGlyphs; }
+  inline bool ignore_ligatures	(void) const { return lookupFlag & LookupFlag::IgnoreLigatures; }
+  inline bool ignore_marks	(void) const { return lookupFlag & LookupFlag::IgnoreMarks; }
+  inline bool get_mark_attachment_type (void) const { return (lookupFlag & LookupFlag::MarkAttachmentType) >> 8; }
+
+  USHORT	lookupType;	/* Different enumerations for GSUB and GPOS */
+  USHORT	lookupFlag;	/* Lookup qualifiers */
+  USHORT	subTableCount;	/* Number of SubTables for this lookup */
+  Offset	subTableOffset[];/* Array of offsets to SubTables-from
+				  * beginning of Lookup table. subTableCount
+				  * entries long. */
 };
 
 
