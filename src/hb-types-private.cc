@@ -319,7 +319,7 @@ struct Script;
 
 struct ScriptList {
   DEFINE_NOT_INSTANTIABLE(ScriptList);
-  /* Scripts, in sorted alphabetical order */
+  /* Scripts, in sorted alphabetical tag order */
   DEFINE_RECORD_ARRAY_TYPE (Script, scriptRecord, scriptCount);
 
   USHORT	scriptCount;	/* Number of ScriptRecords */
@@ -329,7 +329,7 @@ struct ScriptList {
 
 struct Script {
   DEFINE_NOT_INSTANTIABLE(Script);
-  /* LangSys', in sorted alphabetical order */
+  /* LangSys', in sorted alphabetical tag order */
   DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
 
   /* Return NULL if none */
@@ -354,7 +354,7 @@ struct Script {
 
 struct LangSys {
   DEFINE_NOT_INSTANTIABLE(LangSys);
-  /* FeatureIndexes, in no particular order */
+  /* Feature indices, in no particular order */
   DEFINE_ARRAY_TYPE (USHORT, featureIndex, featureCount);
   
   /* Returns -1 if none */
@@ -373,8 +373,46 @@ struct LangSys {
 				 * language system--excludes the required
 				 * feature */
   USHORT	featureIndex[];	/* Array of indices into the FeatureList--in
-				 * arbitrary order */
+				 * arbitrary order. featureCount entires long */
 };
+
+struct Feature;
+
+struct FeatureList {
+  DEFINE_NOT_INSTANTIABLE(FeatureList);
+  /* Feature indices, in sorted alphabetical tag order */
+  DEFINE_RECORD_ARRAY_TYPE (Feature, featureRecord, featureCount);
+
+  USHORT	featureCount;	/* Number of FeatureRecords in this table */
+  FeatureRecord	featureRecord[];/* Array of FeatureRecords--zero-based (first
+				 * feature has FeatureIndex = 0)--listed
+				 * alphabetically by FeatureTag. featureCount
+				 * entries long */
+};
+
+struct Feature {
+  DEFINE_NOT_INSTANTIABLE(Feature);
+  /* LookupList indices, in no particular order */
+  DEFINE_ARRAY_TYPE (USHORT, lookupIndex, lookupCount);
+
+  // TODO: implement get_feature_params()
+
+  Offset	featureParams;	/* Offset to Feature Parameters table (if one
+				 * has been defined for the feature), relative
+				 * to the beginning of the Feature Table; = NULL
+				 * if not required */
+  USHORT	lookupCount;	/* Number of LookupList indices for this
+				 * feature */
+  USHORT	lookupIndex[];	/* Array of LookupList indices for this
+				 * feature--zero-based (first lookup is
+				 * LookupListIndex = 0). lookupCount
+				 * entries long */
+};
+
+
+
+
+
 
 
 #include <stdlib.h>
