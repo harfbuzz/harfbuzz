@@ -26,6 +26,7 @@ typedef uint32_t hb_tag_t;
 
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
 struct NAME { \
+  inline NAME (void) { v = 0; } \
   inline NAME (TYPE i) { v = BIG_ENDIAN(i); } \
   inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
   inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
@@ -51,6 +52,10 @@ struct NAME { \
 #define DEFINE_LEN_AND_SIZE(Type, array, num) \
   DEFINE_LEN(Type, array, num) \
   DEFINE_SIZE(Type, array, num)
+
+#define DEFINE_NOT_INSTANTIABLE(Type) \
+  private: inline Type() {} /* cannot be instantiated */ \
+  public:
 
 /* An array type is one that contains a variable number of objects
  * as its last item.  An array object is extended with len() and size()
@@ -154,6 +159,11 @@ struct Tag {
   inline Tag (void) { v[0] = v[1] = v[2] = v[3] = 0; }
   inline Tag (const char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
   inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; } \
+
+  /* The char* these two return is NOT nul-terminated.  Print using "%.4s" */
+  inline operator const char* (void) const { return (const char *)this; }
+  inline operator char* (void) { return (char *)this; }
+
   private: char v[4];
 };
 
@@ -199,16 +209,18 @@ struct OpenTypeFontFile;
 struct OffsetTable;
 struct TTCHeader;
 
-struct TableDirectory {
+typedef struct TableDirectory {
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
   ULONG		offset;		/* Offset from beginning of TrueType font
 				 * file. */
   ULONG		length;		/* Length of this table. */
-};
+} OpenTypeTable;
 
-struct OffsetTable {
+typedef struct OffsetTable {
+  DEFINE_NOT_INSTANTIABLE(OffsetTable);
   DEFINE_ARRAY_TYPE (TableDirectory, tableDir, numTables);
+  // TODO: Implement find_table
 
   Tag		sfnt_version;	/* '\0\001\0\00' if TrueType / 'OTTO' if CFF */
   USHORT	numTables;	/* Number of tables. */
@@ -216,14 +228,14 @@ struct OffsetTable {
   USHORT	entrySelector;	/* Log2(maximum power of 2 <= numTables). */
   USHORT	rangeShift;	/* NumTables x 16-searchRange. */
   TableDirectory tableDir[];	/* TableDirectory entries. numTables items */
-};
-
+} OpenTypeFont;
 
 /*
  * TrueType Collections
  */
 
 struct TTCHeader {
+  DEFINE_NOT_INSTANTIABLE(TTCHeader);
   /* This works as an array type because TTCHeader is always located at the
    * beginning of the file */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
@@ -242,48 +254,15 @@ struct TTCHeader {
  * OpenType Font File
  */
 
-struct OpenTypeFontFile {
-  Tag		tag;		/* 4-byte identifier. */
+typedef struct OpenTypeFontFile {
+  DEFINE_NOT_INSTANTIABLE(OpenTypeFontFile);
+  static const hb_tag_t truetype_tag	= HB_TAG ( 0 , 1 , 0 , 0 );
+  static const hb_tag_t cff_tag		= HB_TAG ('O','T','T','O');
+  static const hb_tag_t ttc_tag		= HB_TAG ('t','t','c','f');
 
-  unsigned int get_len (void) const {
-    switch (tag) {
-    default:
-      return 0;
-    case HB_TAG (0,1,0,0):
-    case HB_TAG ('O','T','T','O'):
-      return 1;
-    case HB_TAG ('t','t','c','f'):
-      const TTCHeader &ttc = (TTCHeader&)*this;
-      return ttc.get_len ();
-    }
-  }
-
-  inline const OffsetTable& operator[] (unsigned int i) const {
-    assert (i < get_len ());
-    switch (tag) {
-    default:
-    case HB_TAG (0,1,0,0):
-    case HB_TAG ('O','T','T','O'):
-      return (const OffsetTable&)*this;
-    case HB_TAG ('t','t','c','f'):
-      const TTCHeader &ttc = (const TTCHeader&)*this;
-      return ttc[i];
-    }
-  }
-  inline OffsetTable& operator[] (unsigned int i) {
-    assert (i < get_len ());
-    switch (tag) {
-    default:
-    case HB_TAG (0,1,0,0):
-    case HB_TAG ('O','T','T','O'):
-      return (OffsetTable&)*this;
-    case HB_TAG ('t','t','c','f'):
-      TTCHeader &ttc = (TTCHeader&)*this;
-      return ttc[i];
-    }
-  }
-
-  /* ::get(font_data).  This is how you get a handle to one of these */
+  /* Factory: ::get(font_data)
+   * This is how you get a handle to one of these
+   */
   static inline const OpenTypeFontFile& get (const char *font_data) {
     return (const OpenTypeFontFile&)*font_data;
   }
@@ -291,8 +270,30 @@ struct OpenTypeFontFile {
     return (OpenTypeFontFile&)*font_data;
   }
 
-  /* cannot be instantiated */
-  private: OpenTypeFontFile() {}
+  /* Array interface sans get_size() */
+  inline unsigned int get_len (void) const {
+    switch (tag) {
+    default: return 0;
+    case truetype_tag: case cff_tag: return 1;
+    case ttc_tag: return ((const TTCHeader&)*this).get_len();
+    }
+  }
+  inline const OpenTypeFont& operator[] (unsigned int i) const {
+    assert (i < get_len ());
+    switch (tag) {
+    default: case truetype_tag: case cff_tag: return (const OffsetTable&)*this;
+    case ttc_tag: return ((const TTCHeader&)*this)[i];
+    }
+  }
+  inline OpenTypeFont& operator[] (unsigned int i) {
+    assert (i < get_len ());
+    switch (tag) {
+    default: case truetype_tag: case cff_tag: return (OffsetTable&)*this;
+    case ttc_tag: return ((TTCHeader&)*this)[i];
+    }
+  }
+
+  Tag		tag;		/* 4-byte identifier. */
 };
 
 
@@ -316,6 +317,7 @@ typedef struct Record {
 struct Script;
 
 struct ScriptList {
+  DEFINE_NOT_INSTANTIABLE(ScriptList);
   DEFINE_RECORD_ARRAY_TYPE (Script, scriptRecord, scriptCount);
 
   USHORT	scriptCount;	/* Number of ScriptRecords */
@@ -324,6 +326,7 @@ struct ScriptList {
 };
 
 struct Script {
+  DEFINE_NOT_INSTANTIABLE(Script);
   DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
 
   Offset	defaultLangSys;	/* Offset to DefaultLangSys table--from
@@ -377,10 +380,17 @@ main (int argc, char **argv)
 
   int num_fonts = ot.get_len ();
   printf ("%d font(s) found in file\n", num_fonts);
-  for (int i = 0; i < num_fonts; i++) {
-    printf ("Font %d of %d\n", i+1, num_fonts);
-    const OffsetTable &offset_table = ot[i];
+  for (int n_font = 0; n_font < num_fonts; n_font++) {
+    const OpenTypeFont &font = ot[n_font];
+    printf ("Font %d of %d\n", n_font+1, num_fonts);
 
+    int num_tables = font.get_len ();
+    printf ("%d table(s) found in font\n", num_tables);
+    for (int n_table = 0; n_table < num_tables; n_table++) {
+      const OpenTypeTable &table = font[n_table];
+      printf ("Table %d of %d: %.4s (%04x+%04x)\n", n_table+1, num_tables,
+	      (const char *)table.tag, (int)table.offset, (int)table.length);
+    }
   }
 
   return 0;
