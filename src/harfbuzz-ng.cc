@@ -169,8 +169,9 @@ struct Tag {
 };
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-struct GlyphID : USHORT {
-};
+//struct GlyphID : USHORT {
+//};
+DEFINE_INT_TYPE (GlyphID, u, 16);	/* 16-bit unsigned integer. */
 
 /* Offset to a table, same as uint16 (length = 16 bits), NULL offset = 0x0000 */
 struct Offset : USHORT {
@@ -219,7 +220,6 @@ typedef struct TableDirectory {
 } OpenTypeTable;
 
 typedef struct OffsetTable {
-  DEFINE_NOT_INSTANTIABLE(OffsetTable);
   /* OpenTypeTables, in no particular order */
   DEFINE_ARRAY_TYPE (TableDirectory, tableDir, numTables);
   // TODO: Implement find_table
@@ -237,7 +237,6 @@ typedef struct OffsetTable {
  */
 
 struct TTCHeader {
-  DEFINE_NOT_INSTANTIABLE(TTCHeader);
   /* OpenTypeFonts, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
 
@@ -255,7 +254,7 @@ struct TTCHeader {
  * OpenType Font File
  */
 
-typedef struct OpenTypeFontFile {
+struct OpenTypeFontFile {
   DEFINE_NOT_INSTANTIABLE(OpenTypeFontFile);
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
@@ -322,7 +321,6 @@ typedef struct Record {
 } ScriptRecord, LangSysRecord, FeatureRecord;
 
 struct ScriptList {
-  DEFINE_NOT_INSTANTIABLE(ScriptList);
   /* Scripts, in sorted alphabetical tag order */
   DEFINE_RECORD_ARRAY_TYPE (Script, scriptRecord, scriptCount);
 
@@ -332,7 +330,6 @@ struct ScriptList {
 };
 
 struct Script {
-  DEFINE_NOT_INSTANTIABLE(Script);
   /* LangSys', in sorted alphabetical tag order */
   DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
 
@@ -357,7 +354,6 @@ struct Script {
 };
 
 struct LangSys {
-  DEFINE_NOT_INSTANTIABLE(LangSys);
   /* Feature indices, in no particular order */
   DEFINE_ARRAY_TYPE (USHORT, featureIndex, featureCount);
   
@@ -381,7 +377,6 @@ struct LangSys {
 };
 
 struct FeatureList {
-  DEFINE_NOT_INSTANTIABLE(FeatureList);
   /* Feature indices, in sorted alphabetical tag order */
   DEFINE_RECORD_ARRAY_TYPE (Feature, featureRecord, featureCount);
 
@@ -393,7 +388,6 @@ struct FeatureList {
 };
 
 struct Feature {
-  DEFINE_NOT_INSTANTIABLE(Feature);
   /* LookupList indices, in no particular order */
   DEFINE_ARRAY_TYPE (USHORT, lookupIndex, lookupCount);
 
@@ -412,7 +406,6 @@ struct Feature {
 };
 
 struct LookupList {
-  DEFINE_NOT_INSTANTIABLE(LookupList);
   /* Lookup indices, in sorted alphabetical tag order */
   DEFINE_OFFSET_ARRAY_TYPE (Lookup, lookupOffset, lookupCount);
 
@@ -433,7 +426,6 @@ struct LookupFlag : USHORT {
 };
 
 struct Lookup {
-  DEFINE_NOT_INSTANTIABLE(Lookup);
   /* SubTables, in the desired order */
   DEFINE_OFFSET_ARRAY_TYPE (SubTable, subTableOffset, subTableCount);
 
@@ -451,6 +443,81 @@ struct Lookup {
 				  * entries long. */
 };
 
+struct CoverageFormat1 {
+  /* GlyphIDs, in sorted numerical order */
+  DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
+
+  inline unsigned int get_coverage (uint16_t glyph_id) const {
+    GlyphID gid (glyph_id);
+    // TODO: bsearch
+    for (int i = 0; i < glyphCount; i++)
+      if (gid == glyphArray[i])
+        return i;
+    return -1;
+  }
+
+  USHORT	coverageFormat;		/* Format identifier--format = 1 */
+  USHORT	glyphCount;		/* Number of glyphs in the GlyphArray */
+  GlyphID	glyphArray[];		/* Array of GlyphIDs--in numerical
+					 * order. glyphCount entries long */
+};
+
+struct RangeRecord {
+  inline unsigned int get_coverage (uint16_t glyph_id) const {
+    if (glyph_id >= start && glyph_id <= end)
+      return startCoverageIndex + (glyph_id - start);
+    return -1;
+  }
+
+  GlyphID	start;			/* First GlyphID in the range */
+  GlyphID	end;			/* Last GlyphID in the range */
+  USHORT	startCoverageIndex;	/* Coverage Index of first GlyphID in
+					 * range */
+};
+
+struct CoverageFormat2 {
+  /* RangeRecords, in sorted numerical start order */
+  DEFINE_ARRAY_TYPE (RangeRecord, rangeRecord, rangeCount);
+
+  inline unsigned int get_coverage (uint16_t glyph_id) const {
+    // TODO: bsearch
+    for (int i = 0; i < rangeCount; i++) {
+      int coverage = rangeRecord[i].get_coverage (glyph_id);
+      if (coverage >= 0)
+        return coverage;
+    }
+    return -1;
+  }
+
+  USHORT	coverageFormat;		/* Format identifier--format = 2 */
+  USHORT	rangeCount;		/* Number of RangeRecords */
+  RangeRecord	rangeRecord[];		/* Array of glyph ranges--ordered by
+					 * Start GlyphID. rangeCount entries
+					 * long */
+};
+
+struct CoverageFormat {
+  DEFINE_NOT_INSTANTIABLE(CoverageFormat);
+
+  inline unsigned int get_size (void) const {
+    switch (coverageFormat) {
+    case 1: return ((const CoverageFormat1&)*this).get_size ();
+    case 2: return ((const CoverageFormat2&)*this).get_size ();
+    default: return sizeof (coverageFormat);
+    }
+  }
+
+  /* Returns -1 if not covered. */
+  inline unsigned int get_coverage (uint16_t glyph_id) const {
+    switch (coverageFormat) {
+    case 1: return ((const CoverageFormat1&)*this).get_coverage(glyph_id);
+    case 2: return ((const CoverageFormat2&)*this).get_coverage(glyph_id);
+    default: return -1;
+    }
+  }
+
+  USHORT	coverageFormat;		/* Format identifier */
+};
 
 
 
