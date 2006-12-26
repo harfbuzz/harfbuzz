@@ -53,7 +53,7 @@ struct NAME { \
   DEFINE_LEN(Type, array, num) \
   DEFINE_SIZE(Type, array, num)
 
-#define DEFINE_NOT_INSTANTIABLE(Type) \
+#define DEFINE_NON_INSTANTIABLE(Type) \
   private: inline Type() {} /* cannot be instantiated */ \
   public:
 
@@ -255,7 +255,7 @@ struct TTCHeader {
  */
 
 struct OpenTypeFontFile {
-  DEFINE_NOT_INSTANTIABLE(OpenTypeFontFile);
+  DEFINE_NON_INSTANTIABLE(OpenTypeFontFile);
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
@@ -497,7 +497,7 @@ struct CoverageFormat2 {
 };
 
 struct CoverageFormat {
-  DEFINE_NOT_INSTANTIABLE(CoverageFormat);
+  DEFINE_NON_INSTANTIABLE(CoverageFormat);
 
   inline unsigned int get_size (void) const {
     switch (coverageFormat) {
