@@ -25,17 +25,19 @@ typedef uint32_t hb_tag_t;
  */
 
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
-struct NAME { \
   inline NAME (void) { v = 0; } \
   explicit inline NAME (TYPE i) { v = BIG_ENDIAN(i); } \
   inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
   inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
   inline bool operator== (NAME o) const { return v == o.v; } \
   private: TYPE v; \
-}
+  public:
 #define DEFINE_INT_TYPE0(NAME, type) DEFINE_INT_TYPE1 (NAME, type, hb_be_##type)
 #define DEFINE_INT_TYPE(NAME, u, w)  DEFINE_INT_TYPE0 (NAME, u##int##w##_t)
-
+#define DEFINE_INT_TYPE_STRUCT(NAME, u, w) \
+  struct NAME { \
+    DEFINE_INT_TYPE(NAME, u, w) \
+  }
 
 /*
  * Array types
@@ -119,16 +121,16 @@ struct NAME { \
  *  All OpenType fonts use Motorola-style byte ordering (Big Endian):" */
 
 
-DEFINE_INT_TYPE (BYTE,	 u, 8);		/* 8-bit unsigned integer. */
-DEFINE_INT_TYPE (CHAR,	  , 8);		/* 8-bit signed integer. */
-DEFINE_INT_TYPE (USHORT, u, 16);	/* 16-bit unsigned integer. */
-DEFINE_INT_TYPE (SHORT,	  , 16);	/* 16-bit signed integer. */
-DEFINE_INT_TYPE (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
-DEFINE_INT_TYPE (LONG,	  , 32);	/* 32-bit signed integer. */
+DEFINE_INT_TYPE_STRUCT (BYTE,	 u, 8);		/* 8-bit unsigned integer. */
+DEFINE_INT_TYPE_STRUCT (CHAR,	  , 8);		/* 8-bit signed integer. */
+DEFINE_INT_TYPE_STRUCT (USHORT, u, 16);	/* 16-bit unsigned integer. */
+DEFINE_INT_TYPE_STRUCT (SHORT,	  , 16);	/* 16-bit signed integer. */
+DEFINE_INT_TYPE_STRUCT (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
+DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
 
 /* Date represented in number of seconds since 12:00 midnight, January 1,
  * 1904. The value is represented as a signed 64-bit integer. */
-DEFINE_INT_TYPE (LONGDATETIME, , 64);
+DEFINE_INT_TYPE_STRUCT (LONGDATETIME, , 64);
 
 /* 32-bit signed fixed-point number (16.16) */
 struct Fixed : LONG {
@@ -169,13 +171,10 @@ struct Tag {
 };
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-//struct GlyphID : USHORT {
-//};
-DEFINE_INT_TYPE (GlyphID, u, 16);	/* 16-bit unsigned integer. */
+DEFINE_INT_TYPE_STRUCT (GlyphID, u, 16);
 
 /* Offset to a table, same as uint16 (length = 16 bits), NULL offset = 0x0000 */
-struct Offset : USHORT {
-};
+DEFINE_INT_TYPE_STRUCT (Offset, u, 16);
 
 /* CheckSum */
 struct CheckSum : ULONG {
@@ -462,7 +461,7 @@ struct CoverageFormat1 {
 					 * order. glyphCount entries long */
 };
 
-struct RangeRecord {
+struct CoverageRangeRecord {
   inline unsigned int get_coverage (uint16_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return startCoverageIndex + (glyph_id - start);
@@ -476,8 +475,8 @@ struct RangeRecord {
 };
 
 struct CoverageFormat2 {
-  /* RangeRecords, in sorted numerical start order */
-  DEFINE_ARRAY_TYPE (RangeRecord, rangeRecord, rangeCount);
+  /* CoverageRangeRecords, in sorted numerical start order */
+  DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
 
   inline unsigned int get_coverage (uint16_t glyph_id) const {
     // TODO: bsearch
@@ -490,8 +489,8 @@ struct CoverageFormat2 {
   }
 
   USHORT	coverageFormat;		/* Format identifier--format = 2 */
-  USHORT	rangeCount;		/* Number of RangeRecords */
-  RangeRecord	rangeRecord[];		/* Array of glyph ranges--ordered by
+  USHORT	rangeCount;		/* Number of CoverRangeRecords */
+  CoverRangeRecord rangeRecord[];	/* Array of glyph ranges--ordered by
 					 * Start GlyphID. rangeCount entries
 					 * long */
 };
