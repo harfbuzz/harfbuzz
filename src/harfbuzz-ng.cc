@@ -162,6 +162,7 @@ struct Tag {
   inline Tag (uint32_t v) { (ULONG&)(*this) = v; }
   inline Tag (const char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
   inline bool operator== (Tag o) const { return v[0]==o.v[0]&&v[1]==o.v[1]&&v[2]==o.v[2]&&v[3]==o.v[3]; }
+  inline bool operator== (const char *c) const { return v[0]==c[0]&&v[1]==c[1]&&v[2]==c[2]&&v[3]==c[3]; }
   inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return (const char *)this; }
@@ -266,6 +267,20 @@ struct OpenTypeFontFile {
   }
   static inline OpenTypeFontFile& get (char *font_data) {
     return (OpenTypeFontFile&)*font_data;
+  }
+
+  /* This is how you get a table */
+  inline const char* get_table (const OpenTypeTable& table) const {
+    return ((const char*)this) + table.offset;
+  }
+  inline char* get_table (const OpenTypeTable& table) {
+    return ((char*)this) + table.offset;
+  }
+  inline const char* operator[] (const OpenTypeTable& table) const {
+    return ((const char*)this) + table.offset;
+  }
+  inline char* operator[] (const OpenTypeTable& table) {
+    return ((char*)this) + table.offset;
   }
 
   /* Array interface sans get_size() */
@@ -643,6 +658,45 @@ struct Device {
 
 
 
+/*
+ *
+ * The Glyph Substitution Table
+ *
+ */
+
+
+
+
+#define DEFINE_LIST_ACCESSOR0(const, Type, name) \
+  inline const Type##List* get_##name##_list (void) const { \
+    assert (name##List); \
+    return (const Type##List *)((const char*)this + name##List); \
+  } \
+  inline const Type& name (unsigned int i) const { \
+    return (*get_##name##_list())[i]; \
+  }
+#define DEFINE_LIST_ACCESSOR(Type, name) \
+	DEFINE_LIST_ACCESSOR0(const, Type, name) \
+	DEFINE_LIST_ACCESSOR0(     , Type, name)
+
+struct GSUBGPOSHeader {
+
+  DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list and script(i) */
+  DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list and feature(i) */
+  DEFINE_LIST_ACCESSOR(Lookup, lookup);	 /* get_lookup_list and lookup(i) */
+
+  Fixed_Version	version;	/* Version of the GSUB table-initially set to
+				 * 0x00010000 */
+  Offset	scriptList;  	/* Offset to ScriptList table-from beginning of
+				 * GSUB table */
+  Offset	featureList; 	/* Offset to FeatureList table-from beginning of
+				 * GSUB table */
+  Offset	lookupList; 	/* Offset to LookupList table-from beginning of
+				 * GSUB table */
+};
+
+struct GSUB : GSUBGPOSHeader {
+};
 
 
 #include <stdlib.h>
@@ -686,16 +740,55 @@ main (int argc, char **argv)
     printf ("Font %d of %d:\n", n_font+1, num_fonts);
 
     int num_tables = font.get_len ();
-    printf ("%d table(s) found in font\n", num_tables);
+    printf ("  %d table(s) found in font\n", num_tables);
     for (int n_table = 0; n_table < num_tables; n_table++) {
       const OpenTypeTable &table = font[n_table];
-      printf ("Table %2d of %2d: %.4s (0x%06x+0x%06x)\n", n_table+1, num_tables,
+      printf ("  Table %2d of %2d: %.4s (0x%06x+0x%06x)\n", n_table+1, num_tables,
 	      (const char *)table.tag, (int)table.offset, (int)table.length);
+
+      if (table.tag == "GSUB" || table.tag == "GPOS") {
+        const GSUBGPOSHeader &g = (const GSUBGPOSHeader&)*ot[table];
+
+	const ScriptList &scripts = *g.get_script_list();
+	int num_scripts = scripts.get_len ();
+	printf ("    %d script(s) found in table\n", num_scripts);
+	for (int n_script = 0; n_script < num_scripts; n_script++) {
+	  const Script &script = scripts[n_script];
+	  printf ("    Script %2d of %2d: %.4s\n", n_script+1, num_scripts,
+	          (const char *)scripts.get_tag(n_script));
+
+	  if (script.get_default_language_system () == NULL)
+	    printf ("      No default language system\n");
+	  int num_langsys = script.get_len ();
+	  printf ("      %d language system(s) found in script\n", num_langsys);
+	  for (int n_langsys = 0; n_langsys < num_langsys; n_langsys++) {
+	    const LangSys &langsys = script[n_langsys];
+	    printf ("      Language System %2d of %2d: %.4s\n", n_langsys+1, num_langsys,
+	            (const char *)script.get_tag(n_langsys));
+	  }
+	}
+        
+	const FeatureList &features = *g.get_feature_list();
+	int num_features = features.get_len ();
+	printf ("    %d feature(s) found in table\n", num_features);
+	for (int n_feature = 0; n_feature < num_features; n_feature++) {
+	  const Feature &feature = features[n_feature];
+	  printf ("    Feature %2d of %2d: %.4s; %d lookup(s)\n", n_feature+1, num_features,
+	          (const char *)features.get_tag(n_feature),
+		  (int)feature.lookupCount);
+	}
+        
+	const LookupList &lookups = *g.get_lookup_list();
+	int num_lookups = lookups.get_len ();
+	printf ("    %d lookup(s) found in table\n", num_lookups);
+	for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
+	  const Lookup &lookup = lookups[n_lookup];
+	  printf ("    Lookup %2d of %2d: type %d, flags %04x\n", n_lookup+1, num_lookups,
+	          (int)lookup.lookupType, (unsigned int)lookup.lookupFlag);
+	}
+      }
     }
   }
-
-  Tag a;
-  a == ((Tag)"1234");
 
   return 0;
 }
