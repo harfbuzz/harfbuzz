@@ -123,7 +123,7 @@ typedef uint32_t hb_tag_t;
 
 DEFINE_INT_TYPE_STRUCT (BYTE,	 u, 8);		/* 8-bit unsigned integer. */
 DEFINE_INT_TYPE_STRUCT (CHAR,	  , 8);		/* 8-bit signed integer. */
-DEFINE_INT_TYPE_STRUCT (USHORT, u, 16);	/* 16-bit unsigned integer. */
+DEFINE_INT_TYPE_STRUCT (USHORT, u, 16);		/* 16-bit unsigned integer. */
 DEFINE_INT_TYPE_STRUCT (SHORT,	  , 16);	/* 16-bit signed integer. */
 DEFINE_INT_TYPE_STRUCT (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
 DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
