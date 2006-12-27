@@ -82,7 +82,7 @@ typedef uint32_t hb_tag_t;
 #define DEFINE_OFFSET_INDEX_OPERATOR(const, Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
     assert (i < num); \
-    assert (array[i]); \
+    assert (array[i]); /* TODO: should just skip them */ \
     return *(const Type *)((const char*)this + array[i]); \
   }
 
@@ -93,7 +93,7 @@ typedef uint32_t hb_tag_t;
 #define DEFINE_RECORD_ACCESSOR(const, Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
     assert (i < num); \
-    assert (array[i].offset); \
+    assert (array[i].offset); /* TODO: should just skip them */ \
     return *(const Type *)((const char*)this + array[i].offset); \
   } \
   inline const Tag& get_tag (unsigned int i) const { \
@@ -441,7 +441,7 @@ struct Lookup {
 };
 
 /*
- * Coverage
+ * Coverage Table
  */
 
 struct CoverageFormat1 {
@@ -521,7 +521,7 @@ struct Coverage {
 };
 
 /*
- * Class Definition
+ * Class Definition Table
  */
 
 struct ClassDefFormat1 {
@@ -597,7 +597,48 @@ struct ClassDef {
   USHORT		classFormat;	/* Format identifier */
 };
 
+/*
+ * Device Tables
+ */
 
+struct Device {
+
+  inline unsigned int get_size (void) const {
+    int count = endSize - startSize + 1;
+    if (count < 0) count = 0;
+    switch (deltaFormat) {
+    case 1: return sizeof (Device) + sizeof (USHORT) * ((count+7)/8);
+    case 2: return sizeof (Device) + sizeof (USHORT) * ((count+3)/4);
+    case 3: return sizeof (Device) + sizeof (USHORT) * ((count+1)/2);
+    default:return sizeof (Device);
+    }
+  }
+
+  inline int get_delta (int ppem_size) {
+    if (ppem_size >= startSize && ppem_size <= endSize &&
+        deltaFormat >= 1 && deltaFormat <= 3) {
+      int s = ppem_size - startSize;
+      int f = deltaFormat;
+
+      uint16_t byte = deltaValue[s >> (4 - f)];
+      uint16_t bits = byte >> (16 - (((s & ((1 << (4 - f)) - 1)) + 1) << f));
+      uint16_t mask = 0xFFFF >> (16 - (1 << f));
+      
+      int delta = bits & mask;
+
+      if (delta >= ((mask + 1) >> 1))
+        delta -= mask + 1;
+
+      return delta;
+    }
+    return 0;
+  }
+
+  USHORT	startSize;	/* Smallest size to correct--in ppem */
+  USHORT	endSize;	/* Largest size to correct--in ppem */
+  USHORT	deltaFormat;	/* Format of DeltaValue array data: 1, 2, or 3 */
+  USHORT	deltaValue[];	/* Array of compressed data */
+};
 
 
 
