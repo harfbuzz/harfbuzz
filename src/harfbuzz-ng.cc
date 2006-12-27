@@ -244,8 +244,7 @@ struct TTCHeader {
 				 * 0x00010000 or 0x00020000 */
   ULONG	numFonts;	/* Number of fonts in TTC */
   ULONG	offsetTable[];	/* Array of offsets to the OffsetTable for each font
-			 * from the beginning of the file.
-			 * numFonts entries long. */
+			 * from the beginning of the file */
 };
 
 
@@ -328,7 +327,7 @@ struct ScriptList {
 
   USHORT	scriptCount;	/* Number of ScriptRecords */
   ScriptRecord	scriptRecord[]; /* Array of ScriptRecords--listed alphabetically
-				 * by ScriptTag. scriptCount entries long */
+				 * by ScriptTag */
 };
 
 struct Script {
@@ -385,8 +384,7 @@ struct FeatureList {
   USHORT	featureCount;	/* Number of FeatureRecords in this table */
   FeatureRecord	featureRecord[];/* Array of FeatureRecords--zero-based (first
 				 * feature has FeatureIndex = 0)--listed
-				 * alphabetically by FeatureTag. featureCount
-				 * entries long */
+				 * alphabetically by FeatureTag */
 };
 
 struct Feature {
@@ -403,8 +401,7 @@ struct Feature {
 				 * feature */
   USHORT	lookupIndex[];	/* Array of LookupList indices for this
 				 * feature--zero-based (first lookup is
-				 * LookupListIndex = 0). lookupCount
-				 * entries long */
+				 * LookupListIndex = 0) */
 };
 
 struct LookupList {
@@ -414,8 +411,7 @@ struct LookupList {
   USHORT	lookupCount;	/* Number of lookups in this table */
   Offset	lookupOffset[];	/* Array of offsets to Lookup tables--from
 				 * beginning of LookupList--zero based (first
-				 * lookup is Lookup index = 0).  lookupCount
-				 * entries long */
+				 * lookup is Lookup index = 0) */
 };
 
 struct LookupFlag : USHORT {
@@ -441,8 +437,7 @@ struct Lookup {
   USHORT	lookupFlag;	/* Lookup qualifiers */
   USHORT	subTableCount;	/* Number of SubTables for this lookup */
   Offset	subTableOffset[];/* Array of offsets to SubTables-from
-				  * beginning of Lookup table. subTableCount
-				  * entries long. */
+				  * beginning of Lookup table */
 };
 
 /*
@@ -453,7 +448,7 @@ struct CoverageFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
 
-  inline unsigned int get_coverage (uint16_t glyph_id) const {
+  inline int get_coverage (uint16_t glyph_id) const {
     GlyphID gid (glyph_id);
     // TODO: bsearch
     for (int i = 0; i < glyphCount; i++)
@@ -462,14 +457,14 @@ struct CoverageFormat1 {
     return -1;
   }
 
-  USHORT	coverageFormat;		/* Format identifier--format = 1 */
-  USHORT	glyphCount;		/* Number of glyphs in the GlyphArray */
-  GlyphID	glyphArray[];		/* Array of GlyphIDs--in numerical
-					 * order. glyphCount entries long */
+  USHORT	coverageFormat;	/* Format identifier--format = 1 */
+  USHORT	glyphCount;	/* Number of glyphs in the GlyphArray */
+  GlyphID	glyphArray[];	/* Array of GlyphIDs--in numerical order */
 };
 
 struct CoverageRangeRecord {
-  inline unsigned int get_coverage (uint16_t glyph_id) const {
+
+  inline int get_coverage (uint16_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return startCoverageIndex + (glyph_id - start);
     return -1;
@@ -485,7 +480,7 @@ struct CoverageFormat2 {
   /* CoverageRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
 
-  inline unsigned int get_coverage (uint16_t glyph_id) const {
+  inline int get_coverage (uint16_t glyph_id) const {
     // TODO: bsearch
     for (int i = 0; i < rangeCount; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
@@ -495,9 +490,9 @@ struct CoverageFormat2 {
     return -1;
   }
 
-  USHORT	coverageFormat;		/* Format identifier--format = 2 */
-  USHORT	rangeCount;		/* Number of CoverRangeRecords */
-  CoverageRangeRecord rangeRecord[];	/* Array of glyph ranges--ordered by
+  USHORT		coverageFormat;	/* Format identifier--format = 2 */
+  USHORT		rangeCount;	/* Number of CoverageRangeRecords */
+  CoverageRangeRecord	rangeRecord[];	/* Array of glyph ranges--ordered by
 					 * Start GlyphID. rangeCount entries
 					 * long */
 };
@@ -509,21 +504,99 @@ struct Coverage {
     switch (coverageFormat) {
     case 1: return ((const CoverageFormat1&)*this).get_size ();
     case 2: return ((const CoverageFormat2&)*this).get_size ();
-    default: return sizeof (Coverage);
+    default:return sizeof (Coverage);
     }
   }
 
   /* Returns -1 if not covered. */
-  inline unsigned int get_coverage (uint16_t glyph_id) const {
+  inline int get_coverage (uint16_t glyph_id) const {
     switch (coverageFormat) {
     case 1: return ((const CoverageFormat1&)*this).get_coverage(glyph_id);
     case 2: return ((const CoverageFormat2&)*this).get_coverage(glyph_id);
-    default: return -1;
+    default:return -1;
     }
   }
 
   USHORT	coverageFormat;		/* Format identifier */
 };
+
+/*
+ * Class Definition
+ */
+
+struct ClassDefFormat1 {
+  /* GlyphIDs, in sorted numerical order */
+  DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
+
+  inline int get_class (uint16_t glyph_id) const {
+    if (glyph_id >= startGlyph && glyph_id < startGlyph + glyphCount)
+      return classValueArray[glyph_id - startGlyph];
+    return 0;
+  }
+
+  USHORT	classFormat;		/* Format identifier--format = 1 */
+  GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
+  USHORT	glyphCount;		/* Size of the classValueArray */
+  USHORT	classValueArray[];	/* Array of Class Values--one per GlyphID */
+};
+
+struct ClassRangeRecord {
+
+  inline int get_class (uint16_t glyph_id) const {
+    if (glyph_id >= start && glyph_id <= end)
+      return classValue;
+    return 0;
+  }
+
+  GlyphID	start;		/* First GlyphID in the range */
+  GlyphID	end;		/* Last GlyphID in the range */
+  USHORT	classValue;	/* Applied to all glyphs in the range
+  */
+};
+
+struct ClassDefFormat2 {
+  /* ClassRangeRecords, in sorted numerical start order */
+  DEFINE_ARRAY_TYPE (ClassRangeRecord, rangeRecord, rangeCount);
+
+  inline int get_class (uint16_t glyph_id) const {
+    // TODO: bsearch
+    for (int i = 0; i < rangeCount; i++) {
+      int classValue = rangeRecord[i].get_class (glyph_id);
+      if (classValue > 0)
+        return classValue;
+    }
+    return 0;
+  }
+
+  USHORT		classFormat;	/* Format identifier--format = 2 */
+  USHORT		rangeCount;	/* Number of Number of ClassRangeRecords */
+  ClassRangeRecord	rangeRecord[];	/* Array of glyph ranges--ordered by
+					 * Start GlyphID */
+};
+
+struct ClassDef {
+  DEFINE_NON_INSTANTIABLE(ClassDef);
+
+  inline unsigned int get_size (void) const {
+    switch (classFormat) {
+    case 1: return ((const ClassDefFormat1&)*this).get_size ();
+    case 2: return ((const ClassDefFormat2&)*this).get_size ();
+    default:return sizeof (ClassDef);
+    }
+  }
+
+  /* Returns 0 if not found. */
+  inline int get_class (uint16_t glyph_id) const {
+    switch (classFormat) {
+    case 1: return ((const ClassDefFormat1&)*this).get_class(glyph_id);
+    case 2: return ((const ClassDefFormat2&)*this).get_class(glyph_id);
+    default:return 0;
+    }
+  }
+
+  USHORT		classFormat;	/* Format identifier */
+};
+
 
 
 
