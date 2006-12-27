@@ -303,6 +303,10 @@ struct OpenTypeFontFile {
  *
  */
 
+/*
+ * Script, ScriptList, LangSys, Feature, FeatureList, Lookup, LookupList, SubTable
+ */
+
 struct Script;
 struct ScriptList;
 struct LangSys;
@@ -311,7 +315,6 @@ struct FeatureList;
 struct Lookup;
 struct LookupList;
 struct SubTable;
-
 
 typedef struct Record {
   Tag		tag;		/* 4-byte Tag identifier */
@@ -442,6 +445,10 @@ struct Lookup {
 				  * entries long. */
 };
 
+/*
+ * Coverage
+ */
+
 struct CoverageFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
@@ -490,19 +497,19 @@ struct CoverageFormat2 {
 
   USHORT	coverageFormat;		/* Format identifier--format = 2 */
   USHORT	rangeCount;		/* Number of CoverRangeRecords */
-  CoverRangeRecord rangeRecord[];	/* Array of glyph ranges--ordered by
+  CoverageRangeRecord rangeRecord[];	/* Array of glyph ranges--ordered by
 					 * Start GlyphID. rangeCount entries
 					 * long */
 };
 
-struct CoverageFormat {
-  DEFINE_NON_INSTANTIABLE(CoverageFormat);
+struct Coverage {
+  DEFINE_NON_INSTANTIABLE(Coverage);
 
   inline unsigned int get_size (void) const {
     switch (coverageFormat) {
     case 1: return ((const CoverageFormat1&)*this).get_size ();
     case 2: return ((const CoverageFormat2&)*this).get_size ();
-    default: return sizeof (coverageFormat);
+    default: return sizeof (Coverage);
     }
   }
 
@@ -517,6 +524,7 @@ struct CoverageFormat {
 
   USHORT	coverageFormat;		/* Format identifier */
 };
+
 
 
 
