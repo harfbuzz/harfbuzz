@@ -25,8 +25,6 @@ typedef uint32_t hb_tag_t;
  */
 
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
-  inline NAME (void) { v = 0; } \
-  explicit inline NAME (TYPE i) { v = BIG_ENDIAN(i); } \
   inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
   inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
   inline bool operator== (NAME o) const { return v == o.v; } \
@@ -463,7 +461,8 @@ struct CoverageFormat1 {
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
 
   inline int get_coverage (uint16_t glyph_id) const {
-    GlyphID gid (glyph_id);
+    GlyphID gid;
+    gid = glyph_id;
     // TODO: bsearch
     for (int i = 0; i < glyphCount; i++)
       if (gid == glyphArray[i])
@@ -511,27 +510,29 @@ struct CoverageFormat2 {
 					 * long */
 };
 
-struct Coverage {
+union Coverage {
   DEFINE_NON_INSTANTIABLE(Coverage);
 
   inline unsigned int get_size (void) const {
     switch (coverageFormat) {
-    case 1: return ((const CoverageFormat1&)*this).get_size ();
-    case 2: return ((const CoverageFormat2&)*this).get_size ();
-    default:return sizeof (Coverage);
+    case 1: return format1.get_size ();
+    case 2: return format2.get_size ();
+    default:return sizeof (coverageFormat);
     }
   }
 
   /* Returns -1 if not covered. */
   inline int get_coverage (uint16_t glyph_id) const {
     switch (coverageFormat) {
-    case 1: return ((const CoverageFormat1&)*this).get_coverage(glyph_id);
-    case 2: return ((const CoverageFormat2&)*this).get_coverage(glyph_id);
+    case 1: return format1.get_coverage(glyph_id);
+    case 2: return format2.get_coverage(glyph_id);
     default:return -1;
     }
   }
 
-  USHORT	coverageFormat;		/* Format identifier */
+  USHORT		coverageFormat;	/* Format identifier */
+  CoverageFormat1	format1;
+  CoverageFormat2	format2;
 };
 
 /*
