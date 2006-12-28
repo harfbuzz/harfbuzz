@@ -440,7 +440,7 @@ struct Lookup {
   inline bool ignore_base_glyphs(void) const { return lookupFlag & LookupFlag::IgnoreBaseGlyphs; }
   inline bool ignore_ligatures	(void) const { return lookupFlag & LookupFlag::IgnoreLigatures; }
   inline bool ignore_marks	(void) const { return lookupFlag & LookupFlag::IgnoreMarks; }
-  inline bool get_mark_attachment_type (void) const { return (lookupFlag & LookupFlag::MarkAttachmentType) >> 8; }
+  inline bool get_mark_attachment_type (void) const { return lookupFlag & LookupFlag::MarkAttachmentType; }
 
   USHORT	lookupType;	/* Different enumerations for GSUB and GPOS */
   USHORT	lookupFlag;	/* Lookup qualifiers */
