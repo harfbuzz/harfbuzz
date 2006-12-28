@@ -205,7 +205,7 @@ struct Fixed_Version : Fixed {
  * Organization of an OpenType Font
  */
 
-struct OpenTypeFontFaceFile;
+struct OpenTypeFontFile;
 struct OffsetTable;
 struct TTCHeader;
 
@@ -251,8 +251,8 @@ struct TTCHeader {
  * OpenType Font File
  */
 
-struct OpenTypeFontFaceFile {
-  DEFINE_NON_INSTANTIABLE(OpenTypeFontFaceFile);
+struct OpenTypeFontFile {
+  DEFINE_NON_INSTANTIABLE(OpenTypeFontFile);
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
@@ -260,11 +260,11 @@ struct OpenTypeFontFaceFile {
   /* Factory: ::get(font_data)
    * This is how you get a handle to one of these
    */
-  static inline const OpenTypeFontFaceFile& get (const char *font_data) {
-    return (const OpenTypeFontFaceFile&)*font_data;
+  static inline const OpenTypeFontFile& get (const char *font_data) {
+    return (const OpenTypeFontFile&)*font_data;
   }
-  static inline OpenTypeFontFaceFile& get (char *font_data) {
-    return (OpenTypeFontFaceFile&)*font_data;
+  static inline OpenTypeFontFile& get (char *font_data) {
+    return (OpenTypeFontFile&)*font_data;
   }
 
   /* This is how you get a table */
@@ -721,16 +721,16 @@ main (int argc, char **argv)
   
   printf ("Opened font file %s: %d bytes long\n", argv[1], len);
   
-  const OpenTypeFontFaceFile &ot = OpenTypeFontFaceFile::get (font_data);
+  const OpenTypeFontFile &ot = OpenTypeFontFile::get (font_data);
 
   switch (ot.tag) {
-  case OpenTypeFontFaceFile::TrueTypeTag:
+  case OpenTypeFontFile::TrueTypeTag:
     printf ("OpenType font with TrueType outlines\n");
     break;
-  case OpenTypeFontFaceFile::CFFTag:
+  case OpenTypeFontFile::CFFTag:
     printf ("OpenType font with CFF (Type1) outlines\n");
     break;
-  case OpenTypeFontFaceFile::TTCTag:
+  case OpenTypeFontFile::TTCTag:
     printf ("TrueType Collection of OpenType fonts\n");
     break;
   default:
