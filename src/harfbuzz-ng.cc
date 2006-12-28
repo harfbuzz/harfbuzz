@@ -697,6 +697,9 @@ struct GSUBGPOSHeader {
 struct GSUB : GSUBGPOSHeader {
 };
 
+struct GPOS : GSUBGPOSHeader {
+};
+
 
 #include <stdlib.h>
 #include <stdio.h>
