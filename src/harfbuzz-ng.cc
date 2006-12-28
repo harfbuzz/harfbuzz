@@ -207,7 +207,7 @@ struct Fixed_Version : Fixed {
  * Organization of an OpenType Font
  */
 
-struct OpenTypeFontFile;
+struct OpenTypeFontFaceFile;
 struct OffsetTable;
 struct TTCHeader;
 
@@ -230,14 +230,14 @@ typedef struct OffsetTable {
   USHORT	entrySelector;	/* Log2(maximum power of 2 <= numTables). */
   USHORT	rangeShift;	/* NumTables x 16-searchRange. */
   TableDirectory tableDir[];	/* TableDirectory entries. numTables items */
-} OpenTypeFont;
+} OpenTypeFontFace;
 
 /*
  * TrueType Collections
  */
 
 struct TTCHeader {
-  /* OpenTypeFonts, in no particular order */
+  /* OpenTypeFontFaces, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
 
   Tag	ttcTag;		/* TrueType Collection ID string: 'ttcf' */
@@ -253,8 +253,8 @@ struct TTCHeader {
  * OpenType Font File
  */
 
-struct OpenTypeFontFile {
-  DEFINE_NON_INSTANTIABLE(OpenTypeFontFile);
+struct OpenTypeFontFaceFile {
+  DEFINE_NON_INSTANTIABLE(OpenTypeFontFaceFile);
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
@@ -262,11 +262,11 @@ struct OpenTypeFontFile {
   /* Factory: ::get(font_data)
    * This is how you get a handle to one of these
    */
-  static inline const OpenTypeFontFile& get (const char *font_data) {
-    return (const OpenTypeFontFile&)*font_data;
+  static inline const OpenTypeFontFaceFile& get (const char *font_data) {
+    return (const OpenTypeFontFaceFile&)*font_data;
   }
-  static inline OpenTypeFontFile& get (char *font_data) {
-    return (OpenTypeFontFile&)*font_data;
+  static inline OpenTypeFontFaceFile& get (char *font_data) {
+    return (OpenTypeFontFaceFile&)*font_data;
   }
 
   /* This is how you get a table */
@@ -291,14 +291,14 @@ struct OpenTypeFontFile {
     case TTCTag: return ((const TTCHeader&)*this).get_len();
     }
   }
-  inline const OpenTypeFont& operator[] (unsigned int i) const {
+  inline const OpenTypeFontFace& operator[] (unsigned int i) const {
     assert (i < get_len ());
     switch (tag) {
     default: case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
     case TTCTag: return ((const TTCHeader&)*this)[i];
     }
   }
-  inline OpenTypeFont& operator[] (unsigned int i) {
+  inline OpenTypeFontFace& operator[] (unsigned int i) {
     assert (i < get_len ());
     switch (tag) {
     default: case TrueTypeTag: case CFFTag: return (OffsetTable&)*this;
@@ -318,7 +318,7 @@ struct OpenTypeFontFile {
  */
 
 /*
- * Script, ScriptList, LangSys, Feature, FeatureList, Lookup, LookupList, SubTable
+ * Script, ScriptList, LangSys, Feature, FeatureList, Lookup, LookupList
  */
 
 struct Script;
@@ -328,7 +328,6 @@ struct Feature;
 struct FeatureList;
 struct Lookup;
 struct LookupList;
-struct SubTable;
 
 typedef struct Record {
   Tag		tag;		/* 4-byte Tag identifier */
@@ -440,7 +439,7 @@ struct LookupFlag : USHORT {
 
 struct Lookup {
   /* SubTables, in the desired order */
-  DEFINE_OFFSET_ARRAY_TYPE (SubTable, subTableOffset, subTableCount);
+  DEFINE_OFFSET_ARRAY_TYPE (char*, subTableOffset, subTableCount);
 
   inline bool is_right_to_left	(void) const { return lookupFlag & LookupFlag::RightToLeft; }
   inline bool ignore_base_glyphs(void) const { return lookupFlag & LookupFlag::IgnoreBaseGlyphs; }
@@ -716,16 +715,16 @@ main (int argc, char **argv)
   
   printf ("Opened font file %s: %d bytes long\n", argv[1], len);
   
-  const OpenTypeFontFile &ot = OpenTypeFontFile::get (font_data);
+  const OpenTypeFontFaceFile &ot = OpenTypeFontFaceFile::get (font_data);
 
   switch (ot.tag) {
-  case OpenTypeFontFile::TrueTypeTag:
+  case OpenTypeFontFaceFile::TrueTypeTag:
     printf ("OpenType font with TrueType outlines\n");
     break;
-  case OpenTypeFontFile::CFFTag:
+  case OpenTypeFontFaceFile::CFFTag:
     printf ("OpenType font with CFF (Type1) outlines\n");
     break;
-  case OpenTypeFontFile::TTCTag:
+  case OpenTypeFontFaceFile::TTCTag:
     printf ("TrueType Collection of OpenType fonts\n");
     break;
   default:
@@ -736,7 +735,7 @@ main (int argc, char **argv)
   int num_fonts = ot.get_len ();
   printf ("%d font(s) found in file\n", num_fonts);
   for (int n_font = 0; n_font < num_fonts; n_font++) {
-    const OpenTypeFont &font = ot[n_font];
+    const OpenTypeFontFace &font = ot[n_font];
     printf ("Font %d of %d:\n", n_font+1, num_fonts);
 
     int num_tables = font.get_len ();
@@ -763,8 +762,11 @@ main (int argc, char **argv)
 	  printf ("      %d language system(s) found in script\n", num_langsys);
 	  for (int n_langsys = 0; n_langsys < num_langsys; n_langsys++) {
 	    const LangSys &langsys = script[n_langsys];
-	    printf ("      Language System %2d of %2d: %.4s\n", n_langsys+1, num_langsys,
-	            (const char *)script.get_tag(n_langsys));
+	    printf ("      Language System %2d of %2d: %.4s; %d features\n", n_langsys+1, num_langsys,
+	            (const char *)script.get_tag(n_langsys),
+		    langsys.get_len ());
+	    if (!langsys.get_required_feature_index ())
+	      printf ("        No required feature\n");
 	  }
 	}
         
