@@ -1,10 +1,9 @@
 #ifndef HARFBUZZ_OPEN_PRIVATE_H
 #define HARFBUZZ_OPEN_PRIVATE_H
 
+#include "harfbuzz-private.h"
 #include "harfbuzz-open.h"
 
-#include <stdint.h>
-#include <assert.h>
 #include <glib.h>
 
 /* Macros to convert to/from BigEndian */

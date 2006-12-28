@@ -1,4 +1,5 @@
 #include "harfbuzz-open-private.h"
+#include "harfbuzz-gdef-private.h"
 
 #include <stdlib.h>
 #include <stdio.h>
