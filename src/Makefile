@@ -1,3 +1,3 @@
-all: harfbuzz-ng
+all: main
 
 CXXFLAGS = -Wall -Wextra  `pkg-config --cflags --libs glib-2.0`
