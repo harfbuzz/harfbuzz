@@ -594,22 +594,24 @@ struct ClassDef {
 
   inline unsigned int get_size (void) const {
     switch (classFormat) {
-    case 1: return ((const ClassDefFormat1&)*this).get_size ();
-    case 2: return ((const ClassDefFormat2&)*this).get_size ();
-    default:return sizeof (ClassDef);
+    case 1: return format1.get_size ();
+    case 2: return format2.get_size ();
+    default:return sizeof (classFormat);
     }
   }
 
   /* Returns 0 if not found. */
   inline int get_class (uint16_t glyph_id) const {
     switch (classFormat) {
-    case 1: return ((const ClassDefFormat1&)*this).get_class(glyph_id);
-    case 2: return ((const ClassDefFormat2&)*this).get_class(glyph_id);
+    case 1: format1.get_class(glyph_id);
+    case 2: format2.get_class(glyph_id);
     default:return 0;
     }
   }
 
   USHORT		classFormat;	/* Format identifier */
+  ClassDefFormat1	format1;
+  ClassDefFormat2	format2;
 };
 
 /*
