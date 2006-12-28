@@ -656,16 +656,6 @@ struct Device {
 
 
 
-
-/*
- *
- * The Glyph Substitution Table
- *
- */
-
-
-
-
 #define DEFINE_LIST_ACCESSOR0(const, Type, name) \
   inline const Type##List* get_##name##_list (void) const { \
     assert (name##List); \
