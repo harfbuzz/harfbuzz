@@ -5,16 +5,12 @@ INCLUDES = -I . -I ..\.. $(FREETYPE2_CFLAGS) $(GLIB_CFLAGS)
 DEFINES = -DPANGO_ENABLE_ENGINE
 
 OBJECTS = \
-	ftxgdef.obj \
-	disasm.obj \
-	ftxgpos.obj \
-	ftxgsub.obj \
-	ftxopen.obj \
-	otlbuffer.obj \
-#	ottest.obj \
-	pango-ot-buffer.obj \
-	pango-ot-info.obj \
-	pango-ot-ruleset.obj \
+	ftglue.obj \
+	harfbuzz-buffer.obj \
+	harfbuzz-gdef.obj \
+	harfbuzz-gpos.obj \
+	harfbuzz-gsub.obj \
+	harfbuzz-open.obj \
 
 all : \
 	pango-ot.lib
