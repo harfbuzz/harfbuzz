@@ -193,6 +193,8 @@ FT_Error  HB_Done_GPOS_Table( HB_GPOSHeader* gpos )
   _HB_OPEN_Free_FeatureList( &gpos->FeatureList, memory );
   _HB_OPEN_Free_ScriptList( &gpos->ScriptList, memory );
 
+  FREE( gpos );
+
   return FT_Err_Ok;
 }
 
@@ -1649,6 +1651,12 @@ static FT_Error  Lookup_PairPos( GPOS_Instance*    gpi,
   default:
     return HB_Err_Invalid_GPOS_SubTable_Format;
   }
+
+  /* if we don't have coverage for the second glyph don't skip it for
+     further lookups but reset in_pos back to the first_glyph and let
+     the caller in Do_String_Lookup increment in_pos */
+  if ( error == HB_Err_Not_Covered )
+      buffer->in_pos = first_pos;
 
   /* adjusting the `next' glyph */
 

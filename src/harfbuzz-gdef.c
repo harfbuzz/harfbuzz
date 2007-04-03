@@ -1217,6 +1217,8 @@ FT_Error  _HB_GDEF_Check_Property( HB_GDEFHeader*  gdef,
 	   *property != desired_attachment_class )
 	return HB_Err_Not_Covered;
     }
+  } else {
+      *property = 0;
   }
 
   return FT_Err_Ok;
