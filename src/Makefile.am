@@ -43,10 +43,11 @@ libharfbuzz_1_la_LIBADD = \
 
 noinst_PROGRAMS = harfbuzz-dump
 
-harfbuzz_dump_SOURCES = 	\
+harfbuzz_dump_SOURCES =	\
 	harfbuzz-dump-main.c
 
-harfbuzz_dump_LDADD = 		\
+harfbuzz_dump_LDADD = \
+	$(libharfbuzz_1_la_LIBADD) \
 	libharfbuzz-1.la
 
 EXTRA_DIST = 		\
