@@ -236,7 +236,7 @@ struct TTCHeader {
 
   Tag	ttcTag;		/* TrueType Collection ID string: 'ttcf' */
   ULONG	version;	/* Version of the TTC Header (1.0 or 2.0),
-				 * 0x00010000 or 0x00020000 */
+			 * 0x00010000 or 0x00020000 */
   ULONG	numFonts;	/* Number of fonts in TTC */
   ULONG	offsetTable[];	/* Array of offsets to the OffsetTable for each font
 			 * from the beginning of the file */
@@ -506,29 +506,31 @@ struct CoverageFormat2 {
 					 * long */
 };
 
-union Coverage {
+struct Coverage {
   DEFINE_NON_INSTANTIABLE(Coverage);
 
   inline unsigned int get_size (void) const {
-    switch (coverageFormat) {
-    case 1: return format1.get_size ();
-    case 2: return format2.get_size ();
-    default:return sizeof (coverageFormat);
+    switch (u.coverageFormat) {
+    case 1: return u.format1.get_size ();
+    case 2: return u.format2.get_size ();
+    default:return sizeof (u.coverageFormat);
     }
   }
 
   /* Returns -1 if not covered. */
   inline int get_coverage (uint16_t glyph_id) const {
-    switch (coverageFormat) {
-    case 1: return format1.get_coverage(glyph_id);
-    case 2: return format2.get_coverage(glyph_id);
+    switch (u.coverageFormat) {
+    case 1: return u.format1.get_coverage(glyph_id);
+    case 2: return u.format2.get_coverage(glyph_id);
     default:return -1;
     }
   }
 
+  union {
   USHORT		coverageFormat;	/* Format identifier */
   CoverageFormat1	format1;
   CoverageFormat2	format2;
+  } u;
 };
 
 /*
@@ -589,25 +591,27 @@ struct ClassDef {
   DEFINE_NON_INSTANTIABLE(ClassDef);
 
   inline unsigned int get_size (void) const {
-    switch (classFormat) {
-    case 1: return format1.get_size ();
-    case 2: return format2.get_size ();
-    default:return sizeof (classFormat);
+    switch (u.classFormat) {
+    case 1: return u.format1.get_size ();
+    case 2: return u.format2.get_size ();
+    default:return sizeof (u.classFormat);
     }
   }
 
   /* Returns 0 if not found. */
   inline int get_class (uint16_t glyph_id) const {
-    switch (classFormat) {
-    case 1: format1.get_class(glyph_id);
-    case 2: format2.get_class(glyph_id);
+    switch (u.classFormat) {
+    case 1: u.format1.get_class(glyph_id);
+    case 2: u.format2.get_class(glyph_id);
     default:return 0;
     }
   }
 
+  union {
   USHORT		classFormat;	/* Format identifier */
   ClassDefFormat1	format1;
   ClassDefFormat2	format2;
+  } u;
 };
 
 /*
@@ -627,7 +631,7 @@ struct Device {
     }
   }
 
-  inline int get_delta (int ppem_size) {
+  inline int get_delta (int ppem_size) const {
     if (ppem_size >= startSize && ppem_size <= endSize &&
         deltaFormat >= 1 && deltaFormat <= 3) {
       int s = ppem_size - startSize;
@@ -673,14 +677,14 @@ struct GSUBGPOSHeader {
   DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list and feature(i) */
   DEFINE_LIST_ACCESSOR(Lookup, lookup);	 /* get_lookup_list and lookup(i) */
 
-  Fixed_Version	version;	/* Version of the GSUB table-initially set to
-				 * 0x00010000 */
-  Offset	scriptList;  	/* Offset to ScriptList table-from beginning of
-				 * GSUB table */
-  Offset	featureList; 	/* Offset to FeatureList table-from beginning of
-				 * GSUB table */
-  Offset	lookupList; 	/* Offset to LookupList table-from beginning of
-				 * GSUB table */
+  Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set
+				 * to 0x00010000 */
+  Offset	scriptList;  	/* Offset to ScriptList table--from beginning of
+				 * GSUB/GPOS table */
+  Offset	featureList; 	/* Offset to FeatureList table--from beginning of
+				 * GSUB/GPOS table */
+  Offset	lookupList; 	/* Offset to LookupList table--from beginning of
+				 * GSUB/GPOS table */
 };
 
 #endif /* HARFBUZZ_OPEN_PRIVATE_H */
