@@ -4396,7 +4396,7 @@ static FT_Error  GSUB_Do_String_Lookup( HB_GSUBHeader*   gsub,
       error = HB_Err_Not_Covered;
 
     if ( error == HB_Err_Not_Covered )
-      if ( hb_buffer_copy_output_glyph ( buffer ) )
+      if ( (error = hb_buffer_copy_output_glyph ( buffer ) ) )
 	return error;
   }
 
