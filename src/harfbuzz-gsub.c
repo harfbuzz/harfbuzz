@@ -1130,7 +1130,7 @@ static FT_Error  Do_ContextSubst( HB_GSUBHeader*        gsub,
 				  int                    nesting_level )
 {
   FT_Error  error;
-  FT_UShort i, old_pos;
+  FT_ULong i, old_pos;
 
 
   i = 0;
