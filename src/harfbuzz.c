@@ -16,4 +16,3 @@
 #include "harfbuzz-gdef.c"
 #include "harfbuzz-gsub.c"
 #include "harfbuzz-gpos.c"
-#include "harfbuzz-dump.c"
