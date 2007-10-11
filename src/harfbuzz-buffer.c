@@ -34,8 +34,8 @@
  * in_string and alt_string.  alt_string is not allocated until its needed,
  * but after that it's grown with in_string unconditionally.
  *
- * The buffer->inplace boolean keeps status of whether out_string points to
- * in_string or alt_string.
+ * The buffer->separate_out boolean keeps status of whether out_string points
+ * to in_string (FALSE) or alt_string (TRUE).
  */
 
 static HB_Error
@@ -60,7 +60,14 @@ hb_buffer_ensure( HB_Buffer buffer,
       if ( REALLOC_ARRAY( buffer->in_string, new_allocated, HB_GlyphItemRec ) )
 	return error;
 
-      if ( buffer->inplace )
+      if ( buffer->separate_out )
+        {
+	  if ( REALLOC_ARRAY( buffer->alt_string, new_allocated, HB_GlyphItemRec ) )
+	    return error;
+
+	  buffer->out_string = buffer->alt_string;
+	}
+      else
         {
 	  buffer->out_string = buffer->in_string;
 
@@ -69,13 +76,6 @@ hb_buffer_ensure( HB_Buffer buffer,
 	      if ( REALLOC_ARRAY( buffer->alt_string, new_allocated, HB_GlyphItemRec ) )
 		return error;
 	    }
-	}
-      else
-        {
-	  if ( REALLOC_ARRAY( buffer->alt_string, new_allocated, HB_GlyphItemRec ) )
-	    return error;
-
-	  buffer->out_string = buffer->alt_string;
 	}
 
       buffer->allocated = new_allocated;
@@ -97,7 +97,7 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 
   buffer->out_string = buffer->alt_string;
   memcpy( buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]) );
-  buffer->inplace = FALSE;
+  buffer->separate_out = TRUE;
 
   return HB_Err_Ok;
 }
@@ -121,7 +121,7 @@ hb_buffer_new( HB_Buffer *buffer )
   (*buffer)->alt_string = NULL;
   (*buffer)->positions = NULL;
   (*buffer)->max_ligID = 0;
-  (*buffer)->inplace = TRUE;
+  (*buffer)->separate_out = FALSE;
 
   return HB_Err_Ok;
 }
@@ -148,7 +148,7 @@ hb_buffer_clear_output( HB_Buffer buffer )
   buffer->out_length = 0;
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
-  buffer->inplace = TRUE;
+  buffer->separate_out = FALSE;
 }
 
 void
@@ -158,7 +158,7 @@ hb_buffer_swap( HB_Buffer buffer )
   int tmp_length;
   int tmp_pos;
 
-  if ( ! buffer->inplace )
+  if ( buffer->separate_out )
     {
       tmp_string = buffer->in_string;
       buffer->in_string = buffer->out_string;
@@ -193,7 +193,7 @@ hb_buffer_clear( HB_Buffer buffer )
   buffer->in_pos = 0;
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
-  buffer->inplace = TRUE;
+  buffer->separate_out = FALSE;
 }
 
 HB_Error
@@ -258,7 +258,7 @@ hb_buffer_add_output_glyphs( HB_Buffer buffer,
   if ( error )
     return error;
 
-  if ( buffer->inplace )
+  if ( !buffer->separate_out )
     {
       error = hb_buffer_duplicate_out_buffer( buffer );
       if ( error )
@@ -313,7 +313,7 @@ hb_buffer_copy_output_glyph ( HB_Buffer buffer )
   if ( error )
     return error;
   
-  if ( ! buffer->inplace )
+  if ( buffer->separate_out )
     {
       buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
     }

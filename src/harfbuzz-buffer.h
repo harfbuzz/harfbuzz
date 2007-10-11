@@ -55,7 +55,7 @@ typedef struct HB_BufferRec_{
   FT_ULong    in_pos;
   FT_ULong    out_pos;
   
-  FT_Bool       inplace;
+  FT_Bool       separate_out;
   HB_GlyphItem  in_string;
   HB_GlyphItem  out_string;
   HB_GlyphItem  alt_string;
