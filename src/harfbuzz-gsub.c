@@ -4319,7 +4319,7 @@ HB_Error  HB_GSUB_Apply_String( HB_GSUBHeader*   gsub,
 				HB_Buffer        buffer )
 {
   HB_Error          error, retError = HB_Err_Not_Covered;
-  FT_UShort         i, j, lookup_count;
+  int               i, j, lookup_count, num_features;
 
   if ( !gsub ||
        !buffer)
@@ -4329,8 +4329,9 @@ HB_Error  HB_GSUB_Apply_String( HB_GSUBHeader*   gsub,
     return retError;
 
   lookup_count = gsub->LookupList.LookupCount;
+  num_features = gsub->FeatureList.ApplyCount;
 
-  for ( i = 0; i < gsub->FeatureList.ApplyCount; i++)
+  for ( i = 0; i < num_features; i++)
   {
     FT_UShort  feature_index = gsub->FeatureList.ApplyOrder[i];
     HB_Feature feature = gsub->FeatureList.FeatureRecord[feature_index].Feature;

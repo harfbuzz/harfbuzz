@@ -6091,7 +6091,7 @@ HB_Error  HB_GPOS_Apply_String( FT_Face           face,
 {
   HB_Error       error, retError = HB_Err_Not_Covered;
   GPOS_Instance  gpi;
-  FT_UShort      i, j, lookup_count;
+  int            i, j, lookup_count, num_features;
 
   if ( !face || !gpos || !buffer )
     return HB_Err_Invalid_Argument;
@@ -6106,13 +6106,16 @@ HB_Error  HB_GPOS_Apply_String( FT_Face           face,
   gpi.dvi        = dvi;
 
   lookup_count = gpos->LookupList.LookupCount;
+  num_features = gpos->FeatureList.ApplyCount;
 
-  if ( gpos->FeatureList.ApplyCount )
+  if ( num_features )
     {
-      memset (buffer->positions, 0, sizeof (buffer->positions[0]) * buffer->in_length);
+      error = hb_buffer_clear_positions( buffer );
+      if ( error )
+	return error;
     }
 
-  for ( i = 0; i < gpos->FeatureList.ApplyCount; i++ )
+  for ( i = 0; i < num_features; i++ )
   {
     FT_UShort  feature_index = gpos->FeatureList.ApplyOrder[i];
     HB_Feature feature = gpos->FeatureList.FeatureRecord[feature_index].Feature;
@@ -6136,7 +6139,7 @@ HB_Error  HB_GPOS_Apply_String( FT_Face           face,
     }
   }
 
-  if ( gpos->FeatureList.ApplyCount )
+  if ( num_features )
     {
       error = Position_CursiveChain ( buffer );
       if ( error )

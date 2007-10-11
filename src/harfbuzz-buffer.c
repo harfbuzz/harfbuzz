@@ -51,10 +51,15 @@ hb_buffer_ensure( HB_Buffer buffer,
       while (size > new_allocated)
 	new_allocated += (new_allocated >> 1) + 8;
       
-      if ( REALLOC_ARRAY( buffer->positions, new_allocated, HB_PositionRec ) )
-	return error;
+      if ( buffer->positions )
+        {
+	  if ( REALLOC_ARRAY( buffer->positions, new_allocated, HB_PositionRec ) )
+	    return error;
+	}
+
       if ( REALLOC_ARRAY( buffer->in_string, new_allocated, HB_GlyphItemRec ) )
 	return error;
+
       if ( buffer->inplace )
         {
 	  buffer->out_string = buffer->in_string;
@@ -117,6 +122,22 @@ hb_buffer_new( HB_Buffer *buffer )
   (*buffer)->positions = NULL;
   (*buffer)->max_ligID = 0;
   (*buffer)->inplace = TRUE;
+
+  return HB_Err_Ok;
+}
+
+HB_Error
+hb_buffer_clear_positions( HB_Buffer buffer )
+{
+  if ( !buffer->positions )
+    {
+      HB_Error error;
+
+      if ( ALLOC_ARRAY( buffer->positions, buffer->allocated, HB_PositionRec ) )
+	return error;
+    }
+
+  memset (buffer->positions, 0, sizeof (buffer->positions[0]) * buffer->in_length);
 
   return HB_Err_Ok;
 }

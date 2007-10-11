@@ -79,6 +79,9 @@ void
 hb_buffer_clear_output( HB_Buffer buffer );
 
 HB_Error
+hb_buffer_clear_positions( HB_Buffer buffer );
+
+HB_Error
 hb_buffer_add_glyph( HB_Buffer buffer,
 		      FT_UInt    glyph_index,
 		      FT_UInt    properties,
