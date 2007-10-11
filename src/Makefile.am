@@ -8,7 +8,6 @@ noinst_LTLIBRARIES = libharfbuzz-1.la
 MAINSOURCES =  \
 	ftglue.c \
 	harfbuzz-buffer.c \
-	harfbuzz-dump.c \
 	harfbuzz-gdef.c \
 	harfbuzz-gpos.c \
 	harfbuzz-gsub.c \
@@ -19,7 +18,6 @@ EXTRA_SOURCES = harfbuzz.c
 PUBLICHEADERS = \
 	harfbuzz.h \
 	harfbuzz-buffer.h \
-	harfbuzz-dump.h \
 	harfbuzz-gdef.h \
 	harfbuzz-gpos.h \
 	harfbuzz-gsub.h \
@@ -44,6 +42,8 @@ libharfbuzz_1_la_LIBADD = \
 noinst_PROGRAMS = harfbuzz-dump
 
 harfbuzz_dump_SOURCES =	\
+	harfbuzz-dump.c \
+	harfbuzz-dump.h \
 	harfbuzz-dump-main.c
 
 harfbuzz_dump_LDADD = \
