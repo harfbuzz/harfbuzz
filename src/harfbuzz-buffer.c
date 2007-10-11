@@ -116,12 +116,12 @@ hb_buffer_new( HB_Buffer *buffer )
   (*buffer)->in_pos = 0;
   (*buffer)->out_pos = 0;
 
+  (*buffer)->separate_out = FALSE;
   (*buffer)->in_string = NULL;
   (*buffer)->out_string = NULL;
   (*buffer)->alt_string = NULL;
   (*buffer)->positions = NULL;
   (*buffer)->max_ligID = 0;
-  (*buffer)->separate_out = FALSE;
 
   return HB_Err_Ok;
 }
