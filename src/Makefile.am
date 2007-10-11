@@ -6,14 +6,16 @@ INCLUDES = 					\
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
 MAINSOURCES =  \
+	harfbuzz.c
+
+# included from harfbuzz.c
+INCLUDEDSOURCES = \
 	ftglue.c \
 	harfbuzz-buffer.c \
 	harfbuzz-gdef.c \
 	harfbuzz-gpos.c \
 	harfbuzz-gsub.c \
 	harfbuzz-open.c
-
-EXTRA_SOURCES = harfbuzz.c
 
 PUBLICHEADERS = \
 	harfbuzz.h \
@@ -55,5 +57,4 @@ EXTRA_DIST = 		\
 	COPYING.FTL	\
 	COPYING.GPL	\
 	COPYING		\
-	$(EXTRA_SOURCES)
-
+	$(INCLUDED_SOURCES)
