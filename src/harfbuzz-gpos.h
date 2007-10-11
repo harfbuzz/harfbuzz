@@ -72,8 +72,6 @@ typedef HB_Error  (*HB_MMFunction)(FT_Face      face,
 
 struct  HB_GPOSHeader_
 {
-  FT_Memory          memory;
-  
   FT_Fixed           Version;
 
   HB_ScriptList     ScriptList;

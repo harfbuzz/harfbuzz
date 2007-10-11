@@ -440,7 +440,6 @@ HB_Error  _HB_GSUB_Load_SubTable( HB_GSUB_SubTable*  st,
 				  FT_UShort     lookup_type );
 
 void  _HB_GSUB_Free_SubTable( HB_GSUB_SubTable*  st,
-			      FT_Memory     memory,
 			      FT_UShort     lookup_type );
 
 FT_END_HEADER

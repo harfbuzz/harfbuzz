@@ -70,7 +70,6 @@ HB_Error  HB_Load_GPOS_Table( FT_Face          face,
 
   FT_Stream  stream = face->stream;
   HB_Error   error;
-  FT_Memory  memory = face->memory;
 
 
   if ( !retptr )
@@ -84,7 +83,6 @@ HB_Error  HB_Load_GPOS_Table( FT_Face          face,
   if ( ALLOC ( gpos, sizeof( *gpos ) ) )
     return error;
 
-  gpos->memory = memory;
   gpos->gfunc = FT_Load_Glyph;
   gpos->mmfunc = default_mmfunc;
 
@@ -168,13 +166,13 @@ HB_Error  HB_Load_GPOS_Table( FT_Face          face,
   return HB_Err_Ok;
 
 Fail1:
-  _HB_OPEN_Free_LookupList( &gpos->LookupList, HB_Type_GPOS, memory );
+  _HB_OPEN_Free_LookupList( &gpos->LookupList, HB_Type_GPOS );
 
 Fail2:
-  _HB_OPEN_Free_FeatureList( &gpos->FeatureList, memory );
+  _HB_OPEN_Free_FeatureList( &gpos->FeatureList );
 
 Fail3:
-  _HB_OPEN_Free_ScriptList( &gpos->ScriptList, memory );
+  _HB_OPEN_Free_ScriptList( &gpos->ScriptList );
 
 Fail4:
   FREE( gpos );
@@ -185,11 +183,9 @@ Fail4:
 
 HB_Error  HB_Done_GPOS_Table( HB_GPOSHeader* gpos )
 {
-  FT_Memory memory = gpos->memory;
-
-  _HB_OPEN_Free_LookupList( &gpos->LookupList, HB_Type_GPOS, memory );
-  _HB_OPEN_Free_FeatureList( &gpos->FeatureList, memory );
-  _HB_OPEN_Free_ScriptList( &gpos->ScriptList, memory );
+  _HB_OPEN_Free_LookupList( &gpos->LookupList, HB_Type_GPOS );
+  _HB_OPEN_Free_FeatureList( &gpos->FeatureList );
+  _HB_OPEN_Free_ScriptList( &gpos->ScriptList );
 
   FREE( gpos );
 
@@ -215,7 +211,6 @@ static HB_Error  Load_ValueRecord( HB_ValueRecord*  vr,
 				   FT_Stream         stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_ULong cur_offset, new_offset;
 
@@ -443,29 +438,28 @@ static HB_Error  Load_ValueRecord( HB_ValueRecord*  vr,
   return HB_Err_Ok;
 
 Fail1:
-  _HB_OPEN_Free_Device( &vr->YAdvanceDevice, memory );
+  _HB_OPEN_Free_Device( &vr->YAdvanceDevice );
 
 Fail2:
-  _HB_OPEN_Free_Device( &vr->XAdvanceDevice, memory );
+  _HB_OPEN_Free_Device( &vr->XAdvanceDevice );
 
 Fail3:
-  _HB_OPEN_Free_Device( &vr->YPlacementDevice, memory );
+  _HB_OPEN_Free_Device( &vr->YPlacementDevice );
   return error;
 }
 
 
 static void  Free_ValueRecord( HB_ValueRecord*  vr,
-			       FT_UShort         format,
-			       FT_Memory         memory )
+			       FT_UShort         format )
 {
   if ( format & HB_GPOS_FORMAT_HAVE_Y_ADVANCE_DEVICE )
-    _HB_OPEN_Free_Device( &vr->YAdvanceDevice, memory );
+    _HB_OPEN_Free_Device( &vr->YAdvanceDevice );
   if ( format & HB_GPOS_FORMAT_HAVE_X_ADVANCE_DEVICE )
-    _HB_OPEN_Free_Device( &vr->XAdvanceDevice, memory );
+    _HB_OPEN_Free_Device( &vr->XAdvanceDevice );
   if ( format & HB_GPOS_FORMAT_HAVE_Y_PLACEMENT_DEVICE )
-    _HB_OPEN_Free_Device( &vr->YPlacementDevice, memory );
+    _HB_OPEN_Free_Device( &vr->YPlacementDevice );
   if ( format & HB_GPOS_FORMAT_HAVE_X_PLACEMENT_DEVICE )
-    _HB_OPEN_Free_Device( &vr->XPlacementDevice, memory );
+    _HB_OPEN_Free_Device( &vr->XPlacementDevice );
 }
 
 
@@ -576,7 +570,6 @@ static HB_Error  Load_Anchor( HB_Anchor*  an,
 			      FT_Stream    stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_ULong cur_offset, new_offset, base_offset;
 
@@ -685,18 +678,17 @@ static HB_Error  Load_Anchor( HB_Anchor*  an,
   return HB_Err_Ok;
 
 Fail:
-  _HB_OPEN_Free_Device( &an->af.af3.XDeviceTable, memory );
+  _HB_OPEN_Free_Device( &an->af.af3.XDeviceTable );
   return error;
 }
 
 
-static void  Free_Anchor( HB_Anchor*  an,
-			  FT_Memory    memory)
+static void  Free_Anchor( HB_Anchor*  an )
 {
   if ( an->PosFormat == 3 )
   {
-    _HB_OPEN_Free_Device( &an->af.af3.YDeviceTable, memory );
-    _HB_OPEN_Free_Device( &an->af.af3.XDeviceTable, memory );
+    _HB_OPEN_Free_Device( &an->af.af3.YDeviceTable );
+    _HB_OPEN_Free_Device( &an->af.af3.XDeviceTable );
   }
 }
 
@@ -815,7 +807,6 @@ static HB_Error  Load_MarkArray ( HB_MarkArray*  ma,
 				  FT_Stream       stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort        n, m, count;
   FT_ULong         cur_offset, new_offset, base_offset;
@@ -860,15 +851,14 @@ static HB_Error  Load_MarkArray ( HB_MarkArray*  ma,
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_Anchor( &mr[m].MarkAnchor, memory );
+    Free_Anchor( &mr[m].MarkAnchor );
 
   FREE( mr );
   return error;
 }
 
 
-static void  Free_MarkArray( HB_MarkArray*  ma,
-			     FT_Memory       memory )
+static void  Free_MarkArray( HB_MarkArray*  ma )
 {
   FT_UShort        n, count;
 
@@ -881,7 +871,7 @@ static void  Free_MarkArray( HB_MarkArray*  ma,
     mr    = ma->MarkRecord;
 
     for ( n = 0; n < count; n++ )
-      Free_Anchor( &mr[n].MarkAnchor, memory );
+      Free_Anchor( &mr[n].MarkAnchor );
 
     FREE( mr );
   }
@@ -897,7 +887,6 @@ static HB_Error  Load_SinglePos( HB_GPOS_SubTable* st,
 				 FT_Stream       stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
   HB_SinglePos*   sp = &st->single;
 
   FT_UShort         n, m, count, format;
@@ -967,18 +956,17 @@ static HB_Error  Load_SinglePos( HB_GPOS_SubTable* st,
 
 Fail1:
   for ( m = 0; m < n; m++ )
-    Free_ValueRecord( &vr[m], format, memory );
+    Free_ValueRecord( &vr[m], format );
 
   FREE( vr );
 
 Fail2:
-  _HB_OPEN_Free_Coverage( &sp->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &sp->Coverage );
   return error;
 }
 
 
-static void  Free_SinglePos( HB_GPOS_SubTable* st,
-			     FT_Memory       memory )
+static void  Free_SinglePos( HB_GPOS_SubTable* st )
 {
   FT_UShort         n, count, format;
   HB_SinglePos*   sp = &st->single;
@@ -991,7 +979,7 @@ static void  Free_SinglePos( HB_GPOS_SubTable* st,
   switch ( sp->PosFormat )
   {
   case 1:
-    Free_ValueRecord( &sp->spf.spf1.Value, format, memory );
+    Free_ValueRecord( &sp->spf.spf1.Value, format );
     break;
 
   case 2:
@@ -1001,7 +989,7 @@ static void  Free_SinglePos( HB_GPOS_SubTable* st,
       v     = sp->spf.spf2.Value;
 
       for ( n = 0; n < count; n++ )
-	Free_ValueRecord( &v[n], format, memory );
+	Free_ValueRecord( &v[n], format );
 
       FREE( v );
     }
@@ -1010,7 +998,7 @@ static void  Free_SinglePos( HB_GPOS_SubTable* st,
     break;
   }
 
-  _HB_OPEN_Free_Coverage( &sp->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &sp->Coverage );
 }
 
 static HB_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
@@ -1075,7 +1063,6 @@ static HB_Error  Load_PairSet ( HB_PairSet*  ps,
 				FT_Stream     stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, m, count;
   FT_ULong              base_offset;
@@ -1122,7 +1109,7 @@ static HB_Error  Load_PairSet ( HB_PairSet*  ps,
       if ( error )
       {
 	if ( format1 )
-	  Free_ValueRecord( &pvr[n].Value1, format1, memory );
+	  Free_ValueRecord( &pvr[n].Value1, format1 );
 	goto Fail;
       }
     }
@@ -1134,9 +1121,9 @@ Fail:
   for ( m = 0; m < n; m++ )
   {
     if ( format1 )
-      Free_ValueRecord( &pvr[m].Value1, format1, memory );
+      Free_ValueRecord( &pvr[m].Value1, format1 );
     if ( format2 )
-      Free_ValueRecord( &pvr[m].Value2, format2, memory );
+      Free_ValueRecord( &pvr[m].Value2, format2 );
   }
 
   FREE( pvr );
@@ -1146,8 +1133,7 @@ Fail:
 
 static void  Free_PairSet( HB_PairSet*  ps,
 			   FT_UShort     format1,
-			   FT_UShort     format2,
-			   FT_Memory     memory )
+			   FT_UShort     format2 )
 {
   FT_UShort             n, count;
 
@@ -1162,9 +1148,9 @@ static void  Free_PairSet( HB_PairSet*  ps,
     for ( n = 0; n < count; n++ )
     {
       if ( format1 )
-	Free_ValueRecord( &pvr[n].Value1, format1, memory );
+	Free_ValueRecord( &pvr[n].Value1, format1 );
       if ( format2 )
-	Free_ValueRecord( &pvr[n].Value2, format2, memory );
+	Free_ValueRecord( &pvr[n].Value2, format2 );
     }
 
     FREE( pvr );
@@ -1180,7 +1166,6 @@ static HB_Error  Load_PairPos1( HB_PairPosFormat1*  ppf1,
 				FT_Stream            stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort     n, m, count;
   FT_ULong      cur_offset, new_offset, base_offset;
@@ -1225,7 +1210,7 @@ static HB_Error  Load_PairPos1( HB_PairPosFormat1*  ppf1,
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_PairSet( &ps[m], format1, format2, memory );
+    Free_PairSet( &ps[m], format1, format2 );
 
   FREE( ps );
   return error;
@@ -1234,8 +1219,7 @@ Fail:
 
 static void  Free_PairPos1( HB_PairPosFormat1*  ppf1,
 			    FT_UShort            format1,
-			    FT_UShort            format2,
-			    FT_Memory            memory )
+			    FT_UShort            format2 )
 {
   FT_UShort     n, count;
 
@@ -1248,7 +1232,7 @@ static void  Free_PairPos1( HB_PairPosFormat1*  ppf1,
     ps    = ppf1->PairSet;
 
     for ( n = 0; n < count; n++ )
-      Free_PairSet( &ps[n], format1, format2, memory );
+      Free_PairSet( &ps[n], format1, format2 );
 
     FREE( ps );
   }
@@ -1263,7 +1247,6 @@ static HB_Error  Load_PairPos2( HB_PairPosFormat2*  ppf2,
 				FT_Stream            stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort          m, n, k, count1, count2;
   FT_ULong           cur_offset, new_offset1, new_offset2, base_offset;
@@ -1331,7 +1314,7 @@ static HB_Error  Load_PairPos2( HB_PairPosFormat2*  ppf2,
 	if ( error )
 	{
 	  if ( format1 )
-	    Free_ValueRecord( &c2r[n].Value1, format1, memory );
+	    Free_ValueRecord( &c2r[n].Value1, format1 );
 	  goto Fail0;
 	}
       }
@@ -1343,9 +1326,9 @@ static HB_Error  Load_PairPos2( HB_PairPosFormat2*  ppf2,
     for ( k = 0; k < n; k++ )
     {
       if ( format1 )
-	Free_ValueRecord( &c2r[k].Value1, format1, memory );
+	Free_ValueRecord( &c2r[k].Value1, format1 );
       if ( format2 )
-	Free_ValueRecord( &c2r[k].Value2, format2, memory );
+	Free_ValueRecord( &c2r[k].Value2, format2 );
     }
     goto Fail1;
   }
@@ -1360,9 +1343,9 @@ Fail1:
     for ( n = 0; n < count2; n++ )
     {
       if ( format1 )
-	Free_ValueRecord( &c2r[n].Value1, format1, memory );
+	Free_ValueRecord( &c2r[n].Value1, format1 );
       if ( format2 )
-	Free_ValueRecord( &c2r[n].Value2, format2, memory );
+	Free_ValueRecord( &c2r[n].Value2, format2 );
     }
 
     FREE( c2r );
@@ -1371,18 +1354,17 @@ Fail1:
   FREE( c1r );
 Fail2:
 
-  _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef2, memory );
+  _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef2 );
 
 Fail3:
-  _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef1, memory );
+  _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef1 );
   return error;
 }
 
 
 static void  Free_PairPos2( HB_PairPosFormat2*  ppf2,
 			    FT_UShort            format1,
-			    FT_UShort            format2,
-			    FT_Memory            memory )
+			    FT_UShort            format2 )
 {
   FT_UShort          m, n, count1, count2;
 
@@ -1403,9 +1385,9 @@ static void  Free_PairPos2( HB_PairPosFormat2*  ppf2,
       for ( n = 0; n < count2; n++ )
       {
 	if ( format1 )
-	  Free_ValueRecord( &c2r[n].Value1, format1, memory );
+	  Free_ValueRecord( &c2r[n].Value1, format1 );
 	if ( format2 )
-	  Free_ValueRecord( &c2r[n].Value2, format2, memory );
+	  Free_ValueRecord( &c2r[n].Value2, format2 );
       }
 
       FREE( c2r );
@@ -1413,8 +1395,8 @@ static void  Free_PairPos2( HB_PairPosFormat2*  ppf2,
 
     FREE( c1r );
 
-    _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef2, memory );
-    _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef1, memory );
+    _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef2 );
+    _HB_OPEN_Free_ClassDefinition( &ppf2->ClassDef1 );
   }
 }
 
@@ -1423,7 +1405,6 @@ static HB_Error  Load_PairPos( HB_GPOS_SubTable* st,
 			       FT_Stream     stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
   HB_PairPos*     pp = &st->pair;
 
   FT_UShort         format1, format2;
@@ -1470,13 +1451,12 @@ static HB_Error  Load_PairPos( HB_GPOS_SubTable* st,
   return HB_Err_Ok;
 
 Fail:
-  _HB_OPEN_Free_Coverage( &pp->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &pp->Coverage );
   return error;
 }
 
 
-static void  Free_PairPos( HB_GPOS_SubTable* st,
-			   FT_Memory     memory )
+static void  Free_PairPos( HB_GPOS_SubTable* st )
 {
   FT_UShort  format1, format2;
   HB_PairPos*     pp = &st->pair;
@@ -1488,18 +1468,18 @@ static void  Free_PairPos( HB_GPOS_SubTable* st,
   switch ( pp->PosFormat )
   {
   case 1:
-    Free_PairPos1( &pp->ppf.ppf1, format1, format2, memory );
+    Free_PairPos1( &pp->ppf.ppf1, format1, format2 );
     break;
 
   case 2:
-    Free_PairPos2( &pp->ppf.ppf2, format1, format2, memory );
+    Free_PairPos2( &pp->ppf.ppf2, format1, format2 );
     break;
 
   default:
     break;
   }
 
-  _HB_OPEN_Free_Coverage( &pp->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &pp->Coverage );
 }
 
 
@@ -1668,7 +1648,6 @@ static HB_Error  Load_CursivePos( HB_GPOS_SubTable* st,
 				  FT_Stream        stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
   HB_CursivePos*  cp = &st->cursive;
 
   FT_UShort             n, m, count;
@@ -1749,7 +1728,7 @@ static HB_Error  Load_CursivePos( HB_GPOS_SubTable* st,
 				  stream ) ) != HB_Err_Ok )
       {
 	if ( entry_offset )
-	  Free_Anchor( &eer[n].EntryAnchor, memory );
+	  Free_Anchor( &eer[n].EntryAnchor );
 	goto Fail1;
       }
       (void)FILE_Seek( cur_offset );
@@ -1763,20 +1742,19 @@ static HB_Error  Load_CursivePos( HB_GPOS_SubTable* st,
 Fail1:
   for ( m = 0; m < n; m++ )
   {
-    Free_Anchor( &eer[m].EntryAnchor, memory );
-    Free_Anchor( &eer[m].ExitAnchor, memory );
+    Free_Anchor( &eer[m].EntryAnchor );
+    Free_Anchor( &eer[m].ExitAnchor );
   }
 
   FREE( eer );
 
 Fail2:
-  _HB_OPEN_Free_Coverage( &cp->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &cp->Coverage );
   return error;
 }
 
 
-static void  Free_CursivePos( HB_GPOS_SubTable* st,
-			      FT_Memory        memory )
+static void  Free_CursivePos( HB_GPOS_SubTable* st )
 {
   FT_UShort             n, count;
   HB_CursivePos*  cp = &st->cursive;
@@ -1791,14 +1769,14 @@ static void  Free_CursivePos( HB_GPOS_SubTable* st,
 
     for ( n = 0; n < count; n++ )
     {
-      Free_Anchor( &eer[n].EntryAnchor, memory );
-      Free_Anchor( &eer[n].ExitAnchor, memory );
+      Free_Anchor( &eer[n].EntryAnchor );
+      Free_Anchor( &eer[n].ExitAnchor );
     }
 
     FREE( eer );
   }
 
-  _HB_OPEN_Free_Coverage( &cp->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &cp->Coverage );
 }
 
 
@@ -2034,7 +2012,6 @@ static HB_Error  Load_BaseArray( HB_BaseArray*  ba,
 				 FT_Stream       stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort        m, n, k, count;
   FT_ULong         cur_offset, new_offset, base_offset;
@@ -2096,7 +2073,7 @@ static HB_Error  Load_BaseArray( HB_BaseArray*  ba,
     continue;
   Fail0:
     for ( k = 0; k < n; k++ )
-      Free_Anchor( &ban[k], memory );
+      Free_Anchor( &ban[k] );
     goto Fail;
   }
 
@@ -2108,7 +2085,7 @@ Fail:
     ban = br[k].BaseAnchor;
 
     for ( n = 0; n < num_classes; n++ )
-      Free_Anchor( &ban[n], memory );
+      Free_Anchor( &ban[n] );
 
     FREE( ban );
   }
@@ -2119,8 +2096,7 @@ Fail:
 
 
 static void  Free_BaseArray( HB_BaseArray*  ba,
-			     FT_UShort       num_classes,
-			     FT_Memory       memory )
+			     FT_UShort       num_classes )
 {
   FT_UShort        m, n, count;
 
@@ -2138,7 +2114,7 @@ static void  Free_BaseArray( HB_BaseArray*  ba,
       ban = br[m].BaseAnchor;
 
       for ( n = 0; n < num_classes; n++ )
-	Free_Anchor( &ban[n], memory );
+	Free_Anchor( &ban[n] );
 
       FREE( ban );
     }
@@ -2154,7 +2130,6 @@ static HB_Error  Load_MarkBasePos( HB_GPOS_SubTable* st,
 				   FT_Stream         stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
   HB_MarkBasePos* mbp = &st->markbase;
 
   FT_ULong  cur_offset, new_offset, base_offset;
@@ -2222,26 +2197,25 @@ static HB_Error  Load_MarkBasePos( HB_GPOS_SubTable* st,
   return HB_Err_Ok;
 
 Fail1:
-  Free_MarkArray( &mbp->MarkArray, memory );
+  Free_MarkArray( &mbp->MarkArray );
 
 Fail2:
-  _HB_OPEN_Free_Coverage( &mbp->BaseCoverage, memory );
+  _HB_OPEN_Free_Coverage( &mbp->BaseCoverage );
 
 Fail3:
-  _HB_OPEN_Free_Coverage( &mbp->MarkCoverage, memory );
+  _HB_OPEN_Free_Coverage( &mbp->MarkCoverage );
   return error;
 }
 
 
-static void  Free_MarkBasePos( HB_GPOS_SubTable* st,
-			       FT_Memory         memory )
+static void  Free_MarkBasePos( HB_GPOS_SubTable* st )
 {
   HB_MarkBasePos* mbp = &st->markbase;
 
-  Free_BaseArray( &mbp->BaseArray, mbp->ClassCount, memory );
-  Free_MarkArray( &mbp->MarkArray, memory );
-  _HB_OPEN_Free_Coverage( &mbp->BaseCoverage, memory );
-  _HB_OPEN_Free_Coverage( &mbp->MarkCoverage, memory );
+  Free_BaseArray( &mbp->BaseArray, mbp->ClassCount );
+  Free_MarkArray( &mbp->MarkArray );
+  _HB_OPEN_Free_Coverage( &mbp->BaseCoverage );
+  _HB_OPEN_Free_Coverage( &mbp->MarkCoverage );
 }
 
 
@@ -2370,7 +2344,6 @@ static HB_Error  Load_LigatureAttach( HB_LigatureAttach*  lat,
 				      FT_Stream            stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             m, n, k, count;
   FT_ULong              cur_offset, new_offset, base_offset;
@@ -2430,7 +2403,7 @@ static HB_Error  Load_LigatureAttach( HB_LigatureAttach*  lat,
     continue;
   Fail0:
     for ( k = 0; k < n; k++ )
-      Free_Anchor( &lan[k], memory );
+      Free_Anchor( &lan[k] );
     goto Fail;
   }
 
@@ -2442,7 +2415,7 @@ Fail:
     lan = cr[k].LigatureAnchor;
 
     for ( n = 0; n < num_classes; n++ )
-      Free_Anchor( &lan[n], memory );
+      Free_Anchor( &lan[n] );
 
     FREE( lan );
   }
@@ -2453,8 +2426,7 @@ Fail:
 
 
 static void  Free_LigatureAttach( HB_LigatureAttach*  lat,
-				  FT_UShort            num_classes,
-				  FT_Memory            memory )
+				  FT_UShort            num_classes )
 {
   FT_UShort        m, n, count;
 
@@ -2472,7 +2444,7 @@ static void  Free_LigatureAttach( HB_LigatureAttach*  lat,
       lan = cr[m].LigatureAnchor;
 
       for ( n = 0; n < num_classes; n++ )
-	Free_Anchor( &lan[n], memory );
+	Free_Anchor( &lan[n] );
 
       FREE( lan );
     }
@@ -2489,7 +2461,6 @@ static HB_Error  Load_LigatureArray( HB_LigatureArray*  la,
 				     FT_Stream           stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort            n, m, count;
   FT_ULong             cur_offset, new_offset, base_offset;
@@ -2534,7 +2505,7 @@ static HB_Error  Load_LigatureArray( HB_LigatureArray*  la,
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_LigatureAttach( &lat[m], num_classes, memory );
+    Free_LigatureAttach( &lat[m], num_classes );
 
   FREE( lat );
   return error;
@@ -2542,8 +2513,7 @@ Fail:
 
 
 static void  Free_LigatureArray( HB_LigatureArray*  la,
-				 FT_UShort           num_classes,
-				 FT_Memory           memory )
+				 FT_UShort          num_classes )
 {
   FT_UShort            n, count;
 
@@ -2556,7 +2526,7 @@ static void  Free_LigatureArray( HB_LigatureArray*  la,
     lat   = la->LigatureAttach;
 
     for ( n = 0; n < count; n++ )
-      Free_LigatureAttach( &lat[n], num_classes, memory );
+      Free_LigatureAttach( &lat[n], num_classes );
 
     FREE( lat );
   }
@@ -2569,7 +2539,6 @@ static HB_Error  Load_MarkLigPos( HB_GPOS_SubTable* st,
 				  FT_Stream        stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
   HB_MarkLigPos*  mlp = &st->marklig;
 
   FT_ULong  cur_offset, new_offset, base_offset;
@@ -2635,26 +2604,25 @@ static HB_Error  Load_MarkLigPos( HB_GPOS_SubTable* st,
   return HB_Err_Ok;
 
 Fail1:
-  Free_MarkArray( &mlp->MarkArray, memory );
+  Free_MarkArray( &mlp->MarkArray );
 
 Fail2:
-  _HB_OPEN_Free_Coverage( &mlp->LigatureCoverage, memory );
+  _HB_OPEN_Free_Coverage( &mlp->LigatureCoverage );
 
 Fail3:
-  _HB_OPEN_Free_Coverage( &mlp->MarkCoverage, memory );
+  _HB_OPEN_Free_Coverage( &mlp->MarkCoverage );
   return error;
 }
 
 
-static void  Free_MarkLigPos( HB_GPOS_SubTable* st,
-			      FT_Memory        memory)
+static void  Free_MarkLigPos( HB_GPOS_SubTable* st )
 {
   HB_MarkLigPos*  mlp = &st->marklig;
 
-  Free_LigatureArray( &mlp->LigatureArray, mlp->ClassCount, memory );
-  Free_MarkArray( &mlp->MarkArray, memory );
-  _HB_OPEN_Free_Coverage( &mlp->LigatureCoverage, memory );
-  _HB_OPEN_Free_Coverage( &mlp->MarkCoverage, memory );
+  Free_LigatureArray( &mlp->LigatureArray, mlp->ClassCount );
+  Free_MarkArray( &mlp->MarkArray );
+  _HB_OPEN_Free_Coverage( &mlp->LigatureCoverage );
+  _HB_OPEN_Free_Coverage( &mlp->MarkCoverage );
 }
 
 
@@ -2802,7 +2770,6 @@ static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
 				  FT_Stream        stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort         k, m, n, count;
   FT_ULong          cur_offset, new_offset, base_offset;
@@ -2855,7 +2822,7 @@ static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
     continue;
   Fail0:
     for ( k = 0; k < n; k++ )
-      Free_Anchor( &m2an[k], memory );
+      Free_Anchor( &m2an[k] );
     goto Fail;
   }
 
@@ -2867,7 +2834,7 @@ Fail:
     m2an = m2r[k].Mark2Anchor;
 
     for ( n = 0; n < num_classes; n++ )
-      Free_Anchor( &m2an[n], memory );
+      Free_Anchor( &m2an[n] );
 
     FREE( m2an );
   }
@@ -2878,8 +2845,7 @@ Fail:
 
 
 static void  Free_Mark2Array( HB_Mark2Array*  m2a,
-			      FT_UShort        num_classes,
-			      FT_Memory        memory )
+			      FT_UShort        num_classes )
 {
   FT_UShort         m, n, count;
 
@@ -2897,7 +2863,7 @@ static void  Free_Mark2Array( HB_Mark2Array*  m2a,
       m2an = m2r[m].Mark2Anchor;
 
       for ( n = 0; n < num_classes; n++ )
-	Free_Anchor( &m2an[n], memory );
+	Free_Anchor( &m2an[n] );
 
       FREE( m2an );
     }
@@ -2913,7 +2879,6 @@ static HB_Error  Load_MarkMarkPos( HB_GPOS_SubTable* st,
 				   FT_Stream         stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
   HB_MarkMarkPos* mmp = &st->markmark;
 
   FT_ULong  cur_offset, new_offset, base_offset;
@@ -2980,26 +2945,25 @@ static HB_Error  Load_MarkMarkPos( HB_GPOS_SubTable* st,
   return HB_Err_Ok;
 
 Fail1:
-  Free_MarkArray( &mmp->Mark1Array, memory );
+  Free_MarkArray( &mmp->Mark1Array );
 
 Fail2:
-  _HB_OPEN_Free_Coverage( &mmp->Mark2Coverage, memory );
+  _HB_OPEN_Free_Coverage( &mmp->Mark2Coverage );
 
 Fail3:
-  _HB_OPEN_Free_Coverage( &mmp->Mark1Coverage, memory );
+  _HB_OPEN_Free_Coverage( &mmp->Mark1Coverage );
   return error;
 }
 
 
-static void  Free_MarkMarkPos( HB_GPOS_SubTable* st,
-			       FT_Memory         memory)
+static void  Free_MarkMarkPos( HB_GPOS_SubTable* st )
 {
   HB_MarkMarkPos* mmp = &st->markmark;
 
-  Free_Mark2Array( &mmp->Mark2Array, mmp->ClassCount, memory );
-  Free_MarkArray( &mmp->Mark1Array, memory );
-  _HB_OPEN_Free_Coverage( &mmp->Mark2Coverage, memory );
-  _HB_OPEN_Free_Coverage( &mmp->Mark1Coverage, memory );
+  Free_Mark2Array( &mmp->Mark2Array, mmp->ClassCount );
+  Free_MarkArray( &mmp->Mark1Array );
+  _HB_OPEN_Free_Coverage( &mmp->Mark2Coverage );
+  _HB_OPEN_Free_Coverage( &mmp->Mark1Coverage );
 }
 
 
@@ -3175,7 +3139,6 @@ static HB_Error  Load_PosRule( HB_PosRule*  pr,
 			       FT_Stream     stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, count;
   FT_UShort*            i;
@@ -3239,8 +3202,7 @@ Fail2:
 }
 
 
-static void  Free_PosRule( HB_PosRule*  pr,
-			   FT_Memory     memory )
+static void  Free_PosRule( HB_PosRule*  pr )
 {
   FREE( pr->PosLookupRecord );
   FREE( pr->Input );
@@ -3253,7 +3215,6 @@ static HB_Error  Load_PosRuleSet( HB_PosRuleSet*  prs,
 				  FT_Stream        stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort     n, m, count;
   FT_ULong      cur_offset, new_offset, base_offset;
@@ -3297,15 +3258,14 @@ static HB_Error  Load_PosRuleSet( HB_PosRuleSet*  prs,
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_PosRule( &pr[m], memory );
+    Free_PosRule( &pr[m] );
 
   FREE( pr );
   return error;
 }
 
 
-static void  Free_PosRuleSet( HB_PosRuleSet*  prs,
-			      FT_Memory        memory )
+static void  Free_PosRuleSet( HB_PosRuleSet*  prs )
 {
   FT_UShort     n, count;
 
@@ -3318,7 +3278,7 @@ static void  Free_PosRuleSet( HB_PosRuleSet*  prs,
     pr    = prs->PosRule;
 
     for ( n = 0; n < count; n++ )
-      Free_PosRule( &pr[n], memory );
+      Free_PosRule( &pr[n] );
 
     FREE( pr );
   }
@@ -3331,7 +3291,6 @@ static HB_Error  Load_ContextPos1( HB_ContextPosFormat1*  cpf1,
 				   FT_Stream               stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort        n, m, count;
   FT_ULong         cur_offset, new_offset, base_offset;
@@ -3388,18 +3347,17 @@ static HB_Error  Load_ContextPos1( HB_ContextPosFormat1*  cpf1,
 
 Fail1:
   for ( m = 0; m < n; m++ )
-    Free_PosRuleSet( &prs[m], memory );
+    Free_PosRuleSet( &prs[m] );
 
   FREE( prs );
 
 Fail2:
-  _HB_OPEN_Free_Coverage( &cpf1->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &cpf1->Coverage );
   return error;
 }
 
 
-static void  Free_ContextPos1( HB_ContextPosFormat1*  cpf1,
-			    FT_Memory               memory )
+static void  Free_ContextPos1( HB_ContextPosFormat1*  cpf1 )
 {
   FT_UShort        n, count;
 
@@ -3412,12 +3370,12 @@ static void  Free_ContextPos1( HB_ContextPosFormat1*  cpf1,
     prs   = cpf1->PosRuleSet;
 
     for ( n = 0; n < count; n++ )
-      Free_PosRuleSet( &prs[n], memory );
+      Free_PosRuleSet( &prs[n] );
 
     FREE( prs );
   }
 
-  _HB_OPEN_Free_Coverage( &cpf1->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &cpf1->Coverage );
 }
 
 
@@ -3428,7 +3386,6 @@ static HB_Error  Load_PosClassRule( HB_ContextPosFormat2*  cpf2,
 				    FT_Stream               stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, count;
 
@@ -3505,8 +3462,7 @@ Fail2:
 }
 
 
-static void  Free_PosClassRule( HB_PosClassRule*  pcr,
-				FT_Memory          memory )
+static void  Free_PosClassRule( HB_PosClassRule*  pcr )
 {
   FREE( pcr->PosLookupRecord );
   FREE( pcr->Class );
@@ -3520,7 +3476,6 @@ static HB_Error  Load_PosClassSet( HB_ContextPosFormat2*  cpf2,
 				   FT_Stream               stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort          n, m, count;
   FT_ULong           cur_offset, new_offset, base_offset;
@@ -3565,15 +3520,14 @@ static HB_Error  Load_PosClassSet( HB_ContextPosFormat2*  cpf2,
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_PosClassRule( &pcr[m], memory );
+    Free_PosClassRule( &pcr[m] );
 
   FREE( pcr );
   return error;
 }
 
 
-static void  Free_PosClassSet( HB_PosClassSet*  pcs,
-			       FT_Memory         memory )
+static void  Free_PosClassSet( HB_PosClassSet*  pcs )
 {
   FT_UShort          n, count;
 
@@ -3586,7 +3540,7 @@ static void  Free_PosClassSet( HB_PosClassSet*  pcs,
     pcr   = pcs->PosClassRule;
 
     for ( n = 0; n < count; n++ )
-      Free_PosClassRule( &pcr[n], memory );
+      Free_PosClassRule( &pcr[n] );
 
     FREE( pcr );
   }
@@ -3599,7 +3553,6 @@ static HB_Error  Load_ContextPos2( HB_ContextPosFormat2*  cpf2,
 				   FT_Stream               stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort         n, m, count;
   FT_ULong          cur_offset, new_offset, base_offset;
@@ -3680,21 +3633,20 @@ static HB_Error  Load_ContextPos2( HB_ContextPosFormat2*  cpf2,
 
 Fail1:
   for ( m = 0; m < n; n++ )
-    Free_PosClassSet( &pcs[m], memory );
+    Free_PosClassSet( &pcs[m] );
 
   FREE( pcs );
 
 Fail2:
-  _HB_OPEN_Free_ClassDefinition( &cpf2->ClassDef, memory );
+  _HB_OPEN_Free_ClassDefinition( &cpf2->ClassDef );
 
 Fail3:
-  _HB_OPEN_Free_Coverage( &cpf2->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &cpf2->Coverage );
   return error;
 }
 
 
-static void  Free_ContextPos2( HB_ContextPosFormat2*  cpf2,
-			    FT_Memory               memory )
+static void  Free_ContextPos2( HB_ContextPosFormat2*  cpf2 )
 {
   FT_UShort         n, count;
 
@@ -3707,13 +3659,13 @@ static void  Free_ContextPos2( HB_ContextPosFormat2*  cpf2,
     pcs   = cpf2->PosClassSet;
 
     for ( n = 0; n < count; n++ )
-      Free_PosClassSet( &pcs[n], memory );
+      Free_PosClassSet( &pcs[n] );
 
     FREE( pcs );
   }
 
-  _HB_OPEN_Free_ClassDefinition( &cpf2->ClassDef, memory );
-  _HB_OPEN_Free_Coverage( &cpf2->Coverage, memory );
+  _HB_OPEN_Free_ClassDefinition( &cpf2->ClassDef );
+  _HB_OPEN_Free_Coverage( &cpf2->Coverage );
 }
 
 
@@ -3723,7 +3675,6 @@ static HB_Error  Load_ContextPos3( HB_ContextPosFormat3*  cpf3,
 				   FT_Stream               stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, count;
   FT_ULong              cur_offset, new_offset, base_offset;
@@ -3794,15 +3745,14 @@ Fail1:
 
 Fail2:
   for ( n = 0; n < count; n++ )
-    _HB_OPEN_Free_Coverage( &c[n], memory );
+    _HB_OPEN_Free_Coverage( &c[n] );
 
   FREE( c );
   return error;
 }
 
 
-static void  Free_ContextPos3( HB_ContextPosFormat3*  cpf3,
-			    FT_Memory               memory )
+static void  Free_ContextPos3( HB_ContextPosFormat3*  cpf3 )
 {
   FT_UShort      n, count;
 
@@ -3817,7 +3767,7 @@ static void  Free_ContextPos3( HB_ContextPosFormat3*  cpf3,
     c     = cpf3->Coverage;
 
     for ( n = 0; n < count; n++ )
-      _HB_OPEN_Free_Coverage( &c[n], memory );
+      _HB_OPEN_Free_Coverage( &c[n] );
 
     FREE( c );
   }
@@ -3859,16 +3809,15 @@ static HB_Error  Load_ContextPos( HB_GPOS_SubTable* st,
 }
 
 
-static void  Free_ContextPos( HB_GPOS_SubTable* st,
-			      FT_Memory        memory )
+static void  Free_ContextPos( HB_GPOS_SubTable* st )
 {
   HB_ContextPos*   cp = &st->context;
 
   switch ( cp->PosFormat )
   {
-  case 1:  Free_ContextPos1( &cp->cpf.cpf1, memory ); break;
-  case 2:  Free_ContextPos2( &cp->cpf.cpf2, memory ); break;
-  case 3:  Free_ContextPos3( &cp->cpf.cpf3, memory ); break;
+  case 1:  Free_ContextPos1( &cp->cpf.cpf1 ); break;
+  case 2:  Free_ContextPos2( &cp->cpf.cpf2 ); break;
+  case 3:  Free_ContextPos3( &cp->cpf.cpf3 ); break;
   default:					      break;
   }
 }
@@ -3948,7 +3897,6 @@ static HB_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
 {
   FT_UShort          index, property;
   HB_Error           error;
-  FT_Memory          memory = gpi->face->memory;
   FT_UShort          i, j, k, known_classes;
 
   FT_UShort*         classes;
@@ -4138,7 +4086,6 @@ static HB_Error  Load_ChainPosRule( HB_ChainPosRule*  cpr,
 				    FT_Stream          stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, count;
   FT_UShort*            b;
@@ -4264,8 +4211,7 @@ Fail4:
 }
 
 
-static void  Free_ChainPosRule( HB_ChainPosRule*  cpr,
-				FT_Memory          memory )
+static void  Free_ChainPosRule( HB_ChainPosRule*  cpr )
 {
   FREE( cpr->PosLookupRecord );
   FREE( cpr->Lookahead );
@@ -4280,7 +4226,6 @@ static HB_Error  Load_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs,
 				       FT_Stream             stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort          n, m, count;
   FT_ULong           cur_offset, new_offset, base_offset;
@@ -4324,15 +4269,14 @@ static HB_Error  Load_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs,
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_ChainPosRule( &cpr[m], memory );
+    Free_ChainPosRule( &cpr[m] );
 
   FREE( cpr );
   return error;
 }
 
 
-static void  Free_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs,
-				   FT_Memory             memory )
+static void  Free_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs )
 {
   FT_UShort          n, count;
 
@@ -4345,7 +4289,7 @@ static void  Free_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs,
     cpr   = cprs->ChainPosRule;
 
     for ( n = 0; n < count; n++ )
-      Free_ChainPosRule( &cpr[n], memory );
+      Free_ChainPosRule( &cpr[n] );
 
     FREE( cpr );
   }
@@ -4358,7 +4302,6 @@ static HB_Error  Load_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1,
 					FT_Stream                    stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, m, count;
   FT_ULong              cur_offset, new_offset, base_offset;
@@ -4415,18 +4358,17 @@ static HB_Error  Load_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1,
 
 Fail1:
   for ( m = 0; m < n; m++ )
-    Free_ChainPosRuleSet( &cprs[m], memory );
+    Free_ChainPosRuleSet( &cprs[m] );
 
   FREE( cprs );
 
 Fail2:
-  _HB_OPEN_Free_Coverage( &ccpf1->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &ccpf1->Coverage );
   return error;
 }
 
 
-static void  Free_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1,
-				 FT_Memory                    memory )
+static void  Free_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1 )
 {
   FT_UShort             n, count;
 
@@ -4439,12 +4381,12 @@ static void  Free_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1,
     cprs  = ccpf1->ChainPosRuleSet;
 
     for ( n = 0; n < count; n++ )
-      Free_ChainPosRuleSet( &cprs[n], memory );
+      Free_ChainPosRuleSet( &cprs[n] );
 
     FREE( cprs );
   }
 
-  _HB_OPEN_Free_Coverage( &ccpf1->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &ccpf1->Coverage );
 }
 
 
@@ -4456,7 +4398,6 @@ static HB_Error  Load_ChainPosClassRule(
 		   FT_Stream                    stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, count;
 
@@ -4613,8 +4554,7 @@ Fail4:
 }
 
 
-static void  Free_ChainPosClassRule( HB_ChainPosClassRule*  cpcr,
-				     FT_Memory               memory )
+static void  Free_ChainPosClassRule( HB_ChainPosClassRule*  cpcr )
 {
   FREE( cpcr->PosLookupRecord );
   FREE( cpcr->Lookahead );
@@ -4631,7 +4571,6 @@ static HB_Error  Load_ChainPosClassSet(
 		   FT_Stream                    stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort               n, m, count;
   FT_ULong                cur_offset, new_offset, base_offset;
@@ -4677,15 +4616,14 @@ static HB_Error  Load_ChainPosClassSet(
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_ChainPosClassRule( &cpcr[m], memory );
+    Free_ChainPosClassRule( &cpcr[m] );
 
   FREE( cpcr );
   return error;
 }
 
 
-static void  Free_ChainPosClassSet( HB_ChainPosClassSet*  cpcs,
-				    FT_Memory              memory )
+static void  Free_ChainPosClassSet( HB_ChainPosClassSet*  cpcs )
 {
   FT_UShort               n, count;
 
@@ -4698,37 +4636,12 @@ static void  Free_ChainPosClassSet( HB_ChainPosClassSet*  cpcs,
     cpcr  = cpcs->ChainPosClassRule;
 
     for ( n = 0; n < count; n++ )
-      Free_ChainPosClassRule( &cpcr[n], memory );
+      Free_ChainPosClassRule( &cpcr[n] );
 
     FREE( cpcr );
   }
 }
 
-
-static HB_Error GPOS_Load_EmptyOrClassDefinition( HB_ClassDefinition*  cd,
-					     FT_UShort             limit,
-					     FT_ULong              class_offset,
-					     FT_ULong              base_offset,
-					     FT_Stream             stream )
-{
-  HB_Error error;
-  FT_ULong               cur_offset;
-
-  cur_offset = FILE_Pos();
-
-  if ( class_offset )
-    {
-      if ( !FILE_Seek( class_offset + base_offset ) )
-	error = _HB_OPEN_Load_ClassDefinition( cd, limit, stream );
-    }
-  else
-     error = _HB_OPEN_Load_EmptyClassDefinition ( cd, stream );
-
-  if (error == HB_Err_Ok)
-    (void)FILE_Seek( cur_offset ); /* Changes error as a side-effect */
-
-  return error;
-}
 
 /* ChainContextPosFormat2 */
 
@@ -4736,7 +4649,6 @@ static HB_Error  Load_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2,
 					FT_Stream                    stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort              n, m, count;
   FT_ULong               cur_offset, new_offset, base_offset;
@@ -4775,15 +4687,15 @@ static HB_Error  Load_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2,
 
   FORGET_Frame();
 
-  if ( ( error = GPOS_Load_EmptyOrClassDefinition( &ccpf2->BacktrackClassDef, 65535,
+  if ( ( error = _HB_OPEN_Load_EmptyOrClassDefinition( &ccpf2->BacktrackClassDef, 65535,
 					      backtrack_offset, base_offset,
 					      stream ) ) != HB_Err_Ok )
     goto Fail5;
-  if ( ( error = GPOS_Load_EmptyOrClassDefinition( &ccpf2->InputClassDef, count,
+  if ( ( error = _HB_OPEN_Load_EmptyOrClassDefinition( &ccpf2->InputClassDef, count,
 					      input_offset, base_offset,
 					      stream ) ) != HB_Err_Ok )
     goto Fail4;
-  if ( ( error = GPOS_Load_EmptyOrClassDefinition( &ccpf2->LookaheadClassDef, 65535,
+  if ( ( error = _HB_OPEN_Load_EmptyOrClassDefinition( &ccpf2->LookaheadClassDef, 65535,
 					      lookahead_offset, base_offset,
 					      stream ) ) != HB_Err_Ok )
     goto Fail3;
@@ -4829,27 +4741,26 @@ static HB_Error  Load_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2,
 
 Fail1:
   for ( m = 0; m < n; m++ )
-    Free_ChainPosClassSet( &cpcs[m], memory );
+    Free_ChainPosClassSet( &cpcs[m] );
 
   FREE( cpcs );
 
 Fail2:
-  _HB_OPEN_Free_ClassDefinition( &ccpf2->LookaheadClassDef, memory );
+  _HB_OPEN_Free_ClassDefinition( &ccpf2->LookaheadClassDef );
 
 Fail3:
-  _HB_OPEN_Free_ClassDefinition( &ccpf2->InputClassDef, memory );
+  _HB_OPEN_Free_ClassDefinition( &ccpf2->InputClassDef );
 
 Fail4:
-  _HB_OPEN_Free_ClassDefinition( &ccpf2->BacktrackClassDef, memory );
+  _HB_OPEN_Free_ClassDefinition( &ccpf2->BacktrackClassDef );
 
 Fail5:
-  _HB_OPEN_Free_Coverage( &ccpf2->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &ccpf2->Coverage );
   return error;
 }
 
 
-static void  Free_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2,
-				 FT_Memory                    memory )
+static void  Free_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2 )
 {
   FT_UShort              n, count;
 
@@ -4862,16 +4773,16 @@ static void  Free_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2,
     cpcs  = ccpf2->ChainPosClassSet;
 
     for ( n = 0; n < count; n++ )
-      Free_ChainPosClassSet( &cpcs[n], memory );
+      Free_ChainPosClassSet( &cpcs[n] );
 
     FREE( cpcs );
   }
 
-  _HB_OPEN_Free_ClassDefinition( &ccpf2->LookaheadClassDef, memory );
-  _HB_OPEN_Free_ClassDefinition( &ccpf2->InputClassDef, memory );
-  _HB_OPEN_Free_ClassDefinition( &ccpf2->BacktrackClassDef, memory );
+  _HB_OPEN_Free_ClassDefinition( &ccpf2->LookaheadClassDef );
+  _HB_OPEN_Free_ClassDefinition( &ccpf2->InputClassDef );
+  _HB_OPEN_Free_ClassDefinition( &ccpf2->BacktrackClassDef );
 
-  _HB_OPEN_Free_Coverage( &ccpf2->Coverage, memory );
+  _HB_OPEN_Free_Coverage( &ccpf2->Coverage );
 }
 
 
@@ -4881,7 +4792,6 @@ static HB_Error  Load_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3,
 					FT_Stream                    stream )
 {
   HB_Error  error;
-  FT_Memory memory = stream->memory;
 
   FT_UShort             n, nb, ni, nl, m, count;
   FT_UShort             backtrack_count, input_count, lookahead_count;
@@ -5027,27 +4937,26 @@ Fail1:
 
 Fail2:
   for ( m = 0; m < nl; m++ )
-    _HB_OPEN_Free_Coverage( &l[m], memory );
+    _HB_OPEN_Free_Coverage( &l[m] );
 
   FREE( l );
 
 Fail3:
   for ( m = 0; m < ni; m++ )
-    _HB_OPEN_Free_Coverage( &i[m], memory );
+    _HB_OPEN_Free_Coverage( &i[m] );
 
   FREE( i );
 
 Fail4:
   for ( m = 0; m < nb; m++ )
-    _HB_OPEN_Free_Coverage( &b[m], memory );
+    _HB_OPEN_Free_Coverage( &b[m] );
 
   FREE( b );
   return error;
 }
 
 
-static void  Free_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3,
-				 FT_Memory                    memory )
+static void  Free_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3 )
 {
   FT_UShort      n, count;
 
@@ -5062,7 +4971,7 @@ static void  Free_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3,
     c     = ccpf3->LookaheadCoverage;
 
     for ( n = 0; n < count; n++ )
-      _HB_OPEN_Free_Coverage( &c[n], memory );
+      _HB_OPEN_Free_Coverage( &c[n] );
 
     FREE( c );
   }
@@ -5073,7 +4982,7 @@ static void  Free_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3,
     c     = ccpf3->InputCoverage;
 
     for ( n = 0; n < count; n++ )
-      _HB_OPEN_Free_Coverage( &c[n], memory );
+      _HB_OPEN_Free_Coverage( &c[n] );
 
     FREE( c );
   }
@@ -5084,7 +4993,7 @@ static void  Free_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3,
     c     = ccpf3->BacktrackCoverage;
 
     for ( n = 0; n < count; n++ )
-      _HB_OPEN_Free_Coverage( &c[n], memory );
+      _HB_OPEN_Free_Coverage( &c[n] );
 
     FREE( c );
   }
@@ -5126,16 +5035,15 @@ static HB_Error  Load_ChainContextPos( HB_GPOS_SubTable* st,
 }
 
 
-static void  Free_ChainContextPos( HB_GPOS_SubTable* st,
-				   FT_Memory             memory )
+static void  Free_ChainContextPos( HB_GPOS_SubTable* st )
 {
   HB_ChainContextPos*  ccp = &st->chain;
 
   switch ( ccp->PosFormat )
   {
-  case 1:  Free_ChainContextPos1( &ccp->ccpf.ccpf1, memory ); break;
-  case 2:  Free_ChainContextPos2( &ccp->ccpf.ccpf2, memory ); break;
-  case 3:  Free_ChainContextPos3( &ccp->ccpf.ccpf3, memory ); break;
+  case 1:  Free_ChainContextPos1( &ccp->ccpf.ccpf1 ); break;
+  case 2:  Free_ChainContextPos2( &ccp->ccpf.ccpf2 ); break;
+  case 3:  Free_ChainContextPos3( &ccp->ccpf.ccpf3 ); break;
   default:						      break;
   }
 }
@@ -5279,7 +5187,6 @@ static HB_Error  Lookup_ChainContextPos2(
 		   int                          nesting_level )
 {
   FT_UShort              index, property;
-  FT_Memory              memory = gpi->face->memory;
   HB_Error               error;
   FT_UShort              i, j, k;
   FT_UShort              bgc, igc, lgc;
@@ -5768,7 +5675,6 @@ HB_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
 				 FT_ULong**       script_tag_list )
 {
   HB_Error           error;
-  FT_Memory          memory;
   FT_UShort          n;
   FT_ULong*          stl;
 
@@ -5779,7 +5685,6 @@ HB_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
   if ( !gpos || !script_tag_list )
     return HB_Err_Invalid_Argument;
 
-  memory = gpos->memory;
   sl = &gpos->ScriptList;
   sr = sl->ScriptRecord;
 
@@ -5802,7 +5707,6 @@ HB_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
 				   FT_ULong**       language_tag_list )
 {
   HB_Error            error;
-  FT_Memory           memory;
   FT_UShort           n;
   FT_ULong*           ltl;
 
@@ -5815,7 +5719,6 @@ HB_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
   if ( !gpos || !language_tag_list )
     return HB_Err_Invalid_Argument;
 
-  memory = gpos->memory;
   sl = &gpos->ScriptList;
   sr = sl->ScriptRecord;
 
@@ -5849,7 +5752,6 @@ HB_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
 {
   FT_UShort           n;
   HB_Error            error;
-  FT_Memory           memory;
   FT_ULong*           ftl;
 
   HB_ScriptList*     sl;
@@ -5866,7 +5768,6 @@ HB_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
   if ( !gpos || !feature_tag_list )
     return HB_Err_Invalid_Argument;
 
-  memory = gpos->memory;
   sl = &gpos->ScriptList;
   sr = sl->ScriptRecord;
 
@@ -5996,19 +5897,18 @@ HB_Error  _HB_GPOS_Load_SubTable( HB_GPOS_SubTable*  st,
 
 
 void  _HB_GPOS_Free_SubTable( HB_GPOS_SubTable*  st,
-			      FT_Memory     memory,
 			      FT_UShort     lookup_type )
 {
   switch ( lookup_type ) {
-    case HB_GPOS_LOOKUP_SINGLE:		Free_SinglePos		( st, memory ); return;
-    case HB_GPOS_LOOKUP_PAIR:		Free_PairPos		( st, memory ); return;
-    case HB_GPOS_LOOKUP_CURSIVE:	Free_CursivePos		( st, memory ); return;
-    case HB_GPOS_LOOKUP_MARKBASE:	Free_MarkBasePos	( st, memory ); return;
-    case HB_GPOS_LOOKUP_MARKLIG:	Free_MarkLigPos		( st, memory ); return;
-    case HB_GPOS_LOOKUP_MARKMARK:	Free_MarkMarkPos	( st, memory ); return;
-    case HB_GPOS_LOOKUP_CONTEXT:	Free_ContextPos		( st, memory ); return;
-    case HB_GPOS_LOOKUP_CHAIN:		Free_ChainContextPos	( st, memory ); return;
-  /*case HB_GPOS_LOOKUP_EXTENSION:	Free_ExtensionPos	( st, memory ); return;*/
+    case HB_GPOS_LOOKUP_SINGLE:		Free_SinglePos		( st ); return;
+    case HB_GPOS_LOOKUP_PAIR:		Free_PairPos		( st ); return;
+    case HB_GPOS_LOOKUP_CURSIVE:	Free_CursivePos		( st ); return;
+    case HB_GPOS_LOOKUP_MARKBASE:	Free_MarkBasePos	( st ); return;
+    case HB_GPOS_LOOKUP_MARKLIG:	Free_MarkLigPos		( st ); return;
+    case HB_GPOS_LOOKUP_MARKMARK:	Free_MarkMarkPos	( st ); return;
+    case HB_GPOS_LOOKUP_CONTEXT:	Free_ContextPos		( st ); return;
+    case HB_GPOS_LOOKUP_CHAIN:		Free_ChainContextPos	( st ); return;
+  /*case HB_GPOS_LOOKUP_EXTENSION:	Free_ExtensionPos	( st ); return;*/
     default:									return;
   }
 }
@@ -6207,6 +6107,11 @@ HB_Error  HB_GPOS_Apply_String( FT_Face           face,
 
   lookup_count = gpos->LookupList.LookupCount;
 
+  if ( gpos->FeatureList.ApplyCount )
+    {
+      memset (buffer->positions, 0, sizeof (buffer->positions[0]) * buffer->in_length);
+    }
+
   for ( i = 0; i < gpos->FeatureList.ApplyCount; i++ )
   {
     FT_UShort  feature_index = gpos->FeatureList.ApplyOrder[i];
@@ -6231,9 +6136,12 @@ HB_Error  HB_GPOS_Apply_String( FT_Face           face,
     }
   }
 
-  error = Position_CursiveChain ( buffer );
-  if ( error )
-    return error;
+  if ( gpos->FeatureList.ApplyCount )
+    {
+      error = Position_CursiveChain ( buffer );
+      if ( error )
+	return error;
+    }
 
   return retError;
 }

@@ -42,7 +42,6 @@ static HB_Error
 hb_buffer_ensure( HB_Buffer buffer,
 		   FT_ULong   size )
 {
-  FT_Memory memory = buffer->memory;
   FT_ULong new_allocated = buffer->allocated;
 
   if (size > new_allocated)
@@ -52,9 +51,9 @@ hb_buffer_ensure( HB_Buffer buffer,
       while (size > new_allocated)
 	new_allocated += (new_allocated >> 1) + 8;
       
-      if ( REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, HB_PositionRec ) )
+      if ( REALLOC_ARRAY( buffer->positions, new_allocated, HB_PositionRec ) )
 	return error;
-      if ( REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
+      if ( REALLOC_ARRAY( buffer->in_string, new_allocated, HB_GlyphItemRec ) )
 	return error;
       if ( buffer->inplace )
         {
@@ -62,13 +61,13 @@ hb_buffer_ensure( HB_Buffer buffer,
 
 	  if ( buffer->alt_string )
 	    {
-	      if ( REALLOC_ARRAY( buffer->alt_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
+	      if ( REALLOC_ARRAY( buffer->alt_string, new_allocated, HB_GlyphItemRec ) )
 		return error;
 	    }
 	}
       else
         {
-	  if ( REALLOC_ARRAY( buffer->alt_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
+	  if ( REALLOC_ARRAY( buffer->alt_string, new_allocated, HB_GlyphItemRec ) )
 	    return error;
 
 	  buffer->out_string = buffer->alt_string;
@@ -85,7 +84,6 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 {
   if ( !buffer->alt_string )
     {
-      FT_Memory memory = buffer->memory;
       HB_Error error;
 
       if ( ALLOC_ARRAY( buffer->alt_string, buffer->allocated, HB_GlyphItemRec ) )
@@ -100,15 +98,13 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 }
 
 HB_Error
-hb_buffer_new( FT_Memory   memory,
-		HB_Buffer *buffer )
+hb_buffer_new( HB_Buffer *buffer )
 {
   HB_Error error;
   
   if ( ALLOC( *buffer, sizeof( HB_BufferRec ) ) )
     return error;
 
-  (*buffer)->memory = memory;
   (*buffer)->in_length = 0;
   (*buffer)->out_length = 0;
   (*buffer)->allocated = 0;
@@ -161,8 +157,6 @@ hb_buffer_swap( HB_Buffer buffer )
 void
 hb_buffer_free( HB_Buffer buffer )
 {
-  FT_Memory memory = buffer->memory;
-
   FREE( buffer->in_string );
   FREE( buffer->alt_string );
   buffer->out_string = NULL;

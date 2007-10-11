@@ -112,16 +112,16 @@ _hb_ftglue_face_goto_table( FT_Face    face,
 
 /* memory macros used by the OpenType parser */
 #define  ALLOC(_ptr,_size)   \
-           ( (_ptr) = _hb_ftglue_alloc( memory, _size, &error ), error != 0 )
+           ( (_ptr) = _hb_ftglue_alloc( _size, &error ), error != 0 )
 
-#define  REALLOC(_ptr,_oldsz,_newsz)  \
-           ( (_ptr) = _hb_ftglue_realloc( memory, (_ptr), (_oldsz), (_newsz), &error ), error != 0 )
+#define  REALLOC(_ptr,_newsz)  \
+           ( (_ptr) = _hb_ftglue_realloc( (_ptr), (_newsz), &error ), error != 0 )
 
 #define  FREE(_ptr)                    \
   do {                                 \
     if ( (_ptr) )                      \
     {                                  \
-      _hb_ftglue_free( memory, _ptr );     \
+      _hb_ftglue_free( _ptr );         \
       _ptr = NULL;                     \
     }                                  \
   } while (0)
@@ -129,27 +129,23 @@ _hb_ftglue_face_goto_table( FT_Face    face,
 #define  ALLOC_ARRAY(_ptr,_count,_type)   \
            ALLOC(_ptr,(_count)*sizeof(_type))
 
-#define  REALLOC_ARRAY(_ptr,_oldcnt,_newcnt,_type) \
-           REALLOC(_ptr,(_oldcnt)*sizeof(_type),(_newcnt)*sizeof(_type))
+#define  REALLOC_ARRAY(_ptr,_newcnt,_type) \
+           REALLOC(_ptr,(_newcnt)*sizeof(_type))
 
 #define  MEM_Copy(dest,source,count)   memcpy( (char*)(dest), (const char*)(source), (size_t)(count) )
 
 
 FTGLUE_API( FT_Pointer )
-_hb_ftglue_alloc( FT_Memory  memory,
-              FT_ULong   size,
-              HB_Error  *perror_ );
+_hb_ftglue_alloc( FT_ULong   size,
+		  HB_Error  *perror_ );
 
 FTGLUE_API( FT_Pointer )
-_hb_ftglue_realloc( FT_Memory   memory,
-                FT_Pointer  block,
-                FT_ULong    old_size,
-                FT_ULong    new_size,
-                HB_Error   *perror_ );
+_hb_ftglue_realloc( FT_Pointer  block,
+		    FT_ULong    new_size,
+		    HB_Error   *perror_ );
 
 FTGLUE_API( void )
-_hb_ftglue_free( FT_Memory   memory,
-             FT_Pointer  block );
+_hb_ftglue_free( FT_Pointer  block );
 
 /* abuse these private header/source files */
 

@@ -675,7 +675,6 @@ HB_Error  _HB_GPOS_Load_SubTable( HB_GPOS_SubTable*  st,
 				  FT_UShort     lookup_type );
 
 void  _HB_GPOS_Free_SubTable( HB_GPOS_SubTable*  st,
-			      FT_Memory     memory,
 			      FT_UShort     lookup_type );
 
 FT_END_HEADER

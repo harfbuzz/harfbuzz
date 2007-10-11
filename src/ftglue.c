@@ -30,16 +30,15 @@ _hb_ftglue_log( const char*   format, ... )
 
 /* only used internally */
 static FT_Pointer
-_hb_ftglue_qalloc( FT_Memory  memory,
-               FT_ULong   size,
-               HB_Error  *perror )
+_hb_ftglue_qalloc( FT_ULong   size,
+		   HB_Error  *perror )
 {
   HB_Error    error = 0;
   FT_Pointer  block = NULL;
 
   if ( size > 0 )
   {
-    block = memory->alloc( memory, size );
+    block = malloc( size );
     if ( !block )
       error = HB_Err_Out_Of_Memory;
   }
@@ -49,20 +48,19 @@ _hb_ftglue_qalloc( FT_Memory  memory,
 }
 
 #undef   QALLOC  /* just in case */
-#define  QALLOC(ptr,size)    ( (ptr) = _hb_ftglue_qalloc( memory, (size), &error ), error != 0 )
+#define  QALLOC(ptr,size)    ( (ptr) = _hb_ftglue_qalloc( (size), &error ), error != 0 )
 
 
 FTGLUE_APIDEF( FT_Pointer )
-_hb_ftglue_alloc( FT_Memory  memory,
-              FT_ULong   size,
-              HB_Error  *perror )
+_hb_ftglue_alloc( FT_ULong   size,
+		  HB_Error  *perror )
 {
   HB_Error    error = 0;
   FT_Pointer  block = NULL;
 
   if ( size > 0 )
   {
-    block = memory->alloc( memory, size );
+    block = malloc( size );
     if ( !block )
       error = HB_Err_Out_Of_Memory;
     else
@@ -75,31 +73,16 @@ _hb_ftglue_alloc( FT_Memory  memory,
 
 
 FTGLUE_APIDEF( FT_Pointer )
-_hb_ftglue_realloc( FT_Memory   memory,
-                FT_Pointer  block,
-                FT_ULong    old_size,
-                FT_ULong    new_size,
-                HB_Error   *perror )
+_hb_ftglue_realloc( FT_Pointer  block,
+		    FT_ULong    new_size,
+		    HB_Error   *perror )
 {
   FT_Pointer  block2 = NULL;
   HB_Error    error  = 0;
 
-  if ( old_size == 0 || block == NULL )
-  {
-    block2 = _hb_ftglue_alloc( memory, new_size, &error );
-  }
-  else if ( new_size == 0 )
-  {
-    _hb_ftglue_free( memory, block );
-  }
-  else
-  {
-    block2 = memory->realloc( memory, old_size, new_size, block );
-    if ( block2 == NULL )
-      error = HB_Err_Out_Of_Memory;
-    else if ( new_size > old_size )
-      memset( (char*)block2 + old_size, 0, (size_t)(new_size - old_size) );
-  }
+  block2 = realloc( block, new_size );
+  if ( block2 == NULL && new_size != 0 )
+    error = HB_Err_Out_Of_Memory;
 
   if ( !error )
     block = block2;
@@ -110,11 +93,10 @@ _hb_ftglue_realloc( FT_Memory   memory,
 
 
 FTGLUE_APIDEF( void )
-_hb_ftglue_free( FT_Memory   memory,
-             FT_Pointer  block )
+_hb_ftglue_free( FT_Pointer  block )
 {
   if ( block )
-    memory->free( memory, block );
+    free( block );
 }
 
 
@@ -156,8 +138,6 @@ _hb_ftglue_stream_frame_enter( FT_Stream   stream,
   if ( stream->read )
   {
     /* allocate the frame in memory */
-    FT_Memory  memory = stream->memory;
-
 
     if ( QALLOC( stream->base, count ) )
       goto Exit;
@@ -201,8 +181,6 @@ _hb_ftglue_stream_frame_exit( FT_Stream  stream )
 {
   if ( stream->read )
   {
-    FT_Memory  memory = stream->memory;
-
     FREE( stream->base );
   }
   stream->cursor = NULL;

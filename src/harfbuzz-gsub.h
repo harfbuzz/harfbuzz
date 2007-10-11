@@ -50,8 +50,6 @@ typedef FT_UShort  (*HB_AltFunction)(FT_ULong    pos,
 
 struct  HB_GSUBHeader_
 {
-  FT_Memory        memory;
-  
   FT_ULong         offset;
 
   FT_Fixed         Version;

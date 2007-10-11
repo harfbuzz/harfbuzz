@@ -81,7 +81,6 @@ typedef struct HB_LigCaretList_  HB_LigCaretList;
 
 struct  HB_GDEFHeader_
 {
-  FT_Memory            memory;
   FT_ULong             offset;
 
   FT_Fixed             Version;
@@ -100,11 +99,10 @@ typedef struct HB_GDEFHeader_   HB_GDEFHeader;
 typedef struct HB_GDEFHeader_*  HB_GDEF;
 
 
-HB_Error  HB_New_GDEF_Table( FT_Face          face,
-			     HB_GDEFHeader** retptr );
+HB_Error  HB_New_GDEF_Table( HB_GDEFHeader** retptr );
       
 
-HB_Error  HB_Load_GDEF_Table( FT_Face          face,
+HB_Error  HB_Load_GDEF_Table( FT_Face         face,
 			      HB_GDEFHeader** gdef );
 
 

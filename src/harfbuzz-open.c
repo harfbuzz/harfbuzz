@@ -25,7 +25,6 @@ static HB_Error  Load_LangSys( HB_LangSys*  ls,
 			       FT_Stream     stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
   FT_UShort  n, count;
   FT_UShort* fi;
 
@@ -61,8 +60,7 @@ static HB_Error  Load_LangSys( HB_LangSys*  ls,
 }
 
 
-static void  Free_LangSys( HB_LangSys*  ls,
-			   FT_Memory     memory )
+static void  Free_LangSys( HB_LangSys*  ls )
 {
   FREE( ls->FeatureIndex );
 }
@@ -74,7 +72,6 @@ static HB_Error  Load_Script( HB_Script*  s,
 			      FT_Stream    stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
   FT_UShort  n, m, count;
   FT_ULong   cur_offset, new_offset, base_offset;
 
@@ -153,25 +150,24 @@ static HB_Error  Load_Script( HB_Script*  s,
 
 Fail1:
   for ( m = 0; m < n; m++ )
-    Free_LangSys( &lsr[m].LangSys, memory );
+    Free_LangSys( &lsr[m].LangSys );
 
   FREE( s->LangSysRecord );
 
 Fail2:
-  Free_LangSys( &s->DefaultLangSys, memory );
+  Free_LangSys( &s->DefaultLangSys );
   return error;
 }
 
 
-static void  Free_Script( HB_Script*  s,
-			  FT_Memory    memory )
+static void  Free_Script( HB_Script*  s )
 {
   FT_UShort           n, count;
 
   HB_LangSysRecord*  lsr;
 
 
-  Free_LangSys( &s->DefaultLangSys, memory );
+  Free_LangSys( &s->DefaultLangSys );
 
   if ( s->LangSysRecord )
   {
@@ -179,7 +175,7 @@ static void  Free_Script( HB_Script*  s,
     lsr   = s->LangSysRecord;
 
     for ( n = 0; n < count; n++ )
-      Free_LangSys( &lsr[n].LangSys, memory );
+      Free_LangSys( &lsr[n].LangSys );
 
     FREE( lsr );
   }
@@ -192,7 +188,6 @@ HB_Error  _HB_OPEN_Load_ScriptList( HB_ScriptList*  sl,
 			   FT_Stream        stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort          n, script_count;
   FT_ULong           cur_offset, new_offset, base_offset;
@@ -256,15 +251,14 @@ HB_Error  _HB_OPEN_Load_ScriptList( HB_ScriptList*  sl,
 
 Fail:
   for ( n = 0; n < sl->ScriptCount; n++ )
-    Free_Script( &sr[n].Script, memory );
+    Free_Script( &sr[n].Script );
 
   FREE( sl->ScriptRecord );
   return error;
 }
 
 
-void  _HB_OPEN_Free_ScriptList( HB_ScriptList*  sl,
-		       FT_Memory        memory )
+void  _HB_OPEN_Free_ScriptList( HB_ScriptList*  sl )
 {
   FT_UShort          n, count;
 
@@ -277,7 +271,7 @@ void  _HB_OPEN_Free_ScriptList( HB_ScriptList*  sl,
     sr    = sl->ScriptRecord;
 
     for ( n = 0; n < count; n++ )
-      Free_Script( &sr[n].Script, memory );
+      Free_Script( &sr[n].Script );
 
     FREE( sr );
   }
@@ -296,7 +290,6 @@ static HB_Error  Load_Feature( HB_Feature*  f,
 			       FT_Stream     stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort   n, count;
 
@@ -333,8 +326,7 @@ static HB_Error  Load_Feature( HB_Feature*  f,
 }
 
 
-static void  Free_Feature( HB_Feature*  f,
-			   FT_Memory     memory )
+static void  Free_Feature( HB_Feature*  f )
 {
   FREE( f->LookupListIndex );
 }
@@ -346,7 +338,6 @@ HB_Error  _HB_OPEN_Load_FeatureList( HB_FeatureList*  fl,
 			    FT_Stream         stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort           n, m, count;
   FT_ULong            cur_offset, new_offset, base_offset;
@@ -395,7 +386,7 @@ HB_Error  _HB_OPEN_Load_FeatureList( HB_FeatureList*  fl,
 
 Fail1:
   for ( m = 0; m < n; m++ )
-    Free_Feature( &fr[m].Feature, memory );
+    Free_Feature( &fr[m].Feature );
 
   FREE( fl->ApplyOrder );
 
@@ -406,8 +397,7 @@ Fail2:
 }
 
 
-void  _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl,
-			FT_Memory         memory)
+void  _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl )
 {
   FT_UShort           n, count;
 
@@ -420,7 +410,7 @@ void  _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl,
     fr    = fl->FeatureRecord;
 
     for ( n = 0; n < count; n++ )
-      Free_Feature( &fr[n].Feature, memory );
+      Free_Feature( &fr[n].Feature );
 
     FREE( fr );
   }
@@ -454,13 +444,12 @@ static HB_Error  Load_SubTable( HB_SubTable*  st,
 
 static void  Free_SubTable( HB_SubTable*  st,
 			    HB_Type       table_type,
-			    FT_UShort      lookup_type,
-			    FT_Memory      memory )
+			    FT_UShort     lookup_type )
 {
   if ( table_type == HB_Type_GSUB )
-    _HB_GSUB_Free_SubTable ( &st->st.gsub, memory, lookup_type );
+    _HB_GSUB_Free_SubTable ( &st->st.gsub, lookup_type );
   else
-    _HB_GPOS_Free_SubTable ( &st->st.gpos, memory, lookup_type );
+    _HB_GPOS_Free_SubTable ( &st->st.gpos, lookup_type );
 }
 
 
@@ -471,7 +460,6 @@ static HB_Error  Load_Lookup( HB_Lookup*   l,
 			      HB_Type      type )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort      n, m, count;
   FT_ULong       cur_offset, new_offset, base_offset;
@@ -539,7 +527,7 @@ static HB_Error  Load_Lookup( HB_Lookup*   l,
 
 Fail:
   for ( m = 0; m < n; m++ )
-    Free_SubTable( &st[m], type, l->LookupType, memory );
+    Free_SubTable( &st[m], type, l->LookupType );
 
   FREE( l->SubTable );
   return error;
@@ -547,8 +535,7 @@ Fail:
 
 
 static void  Free_Lookup( HB_Lookup*   l,
-			  HB_Type      type,
-			  FT_Memory     memory)
+			  HB_Type      type )
 {
   FT_UShort      n, count;
 
@@ -561,7 +548,7 @@ static void  Free_Lookup( HB_Lookup*   l,
     st    = l->SubTable;
 
     for ( n = 0; n < count; n++ )
-      Free_SubTable( &st[n], type, l->LookupType, memory );
+      Free_SubTable( &st[n], type, l->LookupType );
 
     FREE( st );
   }
@@ -575,7 +562,6 @@ HB_Error  _HB_OPEN_Load_LookupList( HB_LookupList*  ll,
 			   HB_Type         type )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort    n, m, count;
   FT_ULong     cur_offset, new_offset, base_offset;
@@ -623,7 +609,7 @@ Fail1:
   FREE( ll->Properties );
 
   for ( m = 0; m < n; m++ )
-    Free_Lookup( &l[m], type, memory );
+    Free_Lookup( &l[m], type );
 
 Fail2:
   FREE( ll->Lookup );
@@ -632,8 +618,7 @@ Fail2:
 
 
 void  _HB_OPEN_Free_LookupList( HB_LookupList*  ll,
-		       HB_Type         type,
-		       FT_Memory        memory )
+				HB_Type         type )
 {
   FT_UShort    n, count;
 
@@ -648,7 +633,7 @@ void  _HB_OPEN_Free_LookupList( HB_LookupList*  ll,
     l     = ll->Lookup;
 
     for ( n = 0; n < count; n++ )
-      Free_Lookup( &l[n], type, memory );
+      Free_Lookup( &l[n], type );
 
     FREE( l );
   }
@@ -667,7 +652,6 @@ static HB_Error  Load_Coverage1( HB_CoverageFormat1*  cf1,
 				 FT_Stream             stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort  n, count;
 
@@ -703,8 +687,7 @@ static HB_Error  Load_Coverage1( HB_CoverageFormat1*  cf1,
 }
 
 
-static void  Free_Coverage1( HB_CoverageFormat1*  cf1,
-			     FT_Memory             memory)
+static void  Free_Coverage1( HB_CoverageFormat1*  cf1 )
 {
   FREE( cf1->GlyphArray );
 }
@@ -716,7 +699,6 @@ static HB_Error  Load_Coverage2( HB_CoverageFormat2*  cf2,
 				 FT_Stream             stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort         n, count;
 
@@ -766,8 +748,7 @@ Fail:
 }
 
 
-static void  Free_Coverage2( HB_CoverageFormat2*  cf2,
-			     FT_Memory             memory )
+static void  Free_Coverage2( HB_CoverageFormat2*  cf2 )
 {
   FREE( cf2->RangeRecord );
 }
@@ -796,13 +777,12 @@ HB_Error  _HB_OPEN_Load_Coverage( HB_Coverage*  c,
 }
 
 
-void  _HB_OPEN_Free_Coverage( HB_Coverage*  c,
-		     FT_Memory      memory )
+void  _HB_OPEN_Free_Coverage( HB_Coverage*  c )
 {
   switch ( c->CoverageFormat )
   {
-  case 1:  Free_Coverage1( &c->cf.cf1, memory ); break;
-  case 2:  Free_Coverage2( &c->cf.cf2, memory ); break;
+  case 1:  Free_Coverage1( &c->cf.cf1 ); break;
+  case 2:  Free_Coverage2( &c->cf.cf2 ); break;
   default:					 break;
   }
 }
@@ -936,7 +916,6 @@ static HB_Error  Load_ClassDef1( HB_ClassDefinition*  cd,
 				 FT_Stream             stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort             n, count;
 
@@ -994,8 +973,7 @@ Fail:
 }
 
 
-static void  Free_ClassDef1( HB_ClassDefFormat1*  cdf1,
-			     FT_Memory             memory )
+static void  Free_ClassDef1( HB_ClassDefFormat1*  cdf1 )
 {
   FREE( cdf1->ClassValueArray );
 }
@@ -1008,7 +986,6 @@ static HB_Error  Load_ClassDef2( HB_ClassDefinition*  cd,
 				 FT_Stream             stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort              n, count;
 
@@ -1074,8 +1051,7 @@ Fail:
 }
 
 
-static void  Free_ClassDef2( HB_ClassDefFormat2*  cdf2,
-			     FT_Memory             memory )
+static void  Free_ClassDef2( HB_ClassDefFormat2*  cdf2 )
 {
   FREE( cdf2->ClassRangeRecord );
 }
@@ -1088,8 +1064,6 @@ HB_Error  _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition*  cd,
 				FT_Stream             stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
-
 
   if ( ALLOC_ARRAY( cd->Defined, limit, FT_Bool ) )
     return error;
@@ -1121,12 +1095,9 @@ Fail:
 }
 
 
-HB_Error  _HB_OPEN_Load_EmptyClassDefinition( HB_ClassDefinition*  cd,
-				     FT_Stream             stream )
+static HB_Error  _HB_OPEN_Load_EmptyClassDefinition( HB_ClassDefinition*  cd )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
-
 
   if ( ALLOC_ARRAY( cd->Defined, 1, FT_Bool ) )
     return error;
@@ -1144,8 +1115,32 @@ Fail:
   return error;
 }
 
-void  _HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd,
-			    FT_Memory             memory )
+HB_Error _HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition*  cd,
+					       FT_UShort            limit,
+					       FT_ULong             class_offset,
+					       FT_ULong             base_offset,
+					       FT_Stream            stream )
+{
+  HB_Error error;
+  FT_ULong               cur_offset;
+
+  cur_offset = FILE_Pos();
+
+  if ( class_offset )
+    {
+      if ( !FILE_Seek( class_offset + base_offset ) )
+	error = _HB_OPEN_Load_ClassDefinition( cd, limit, stream );
+    }
+  else
+     error = _HB_OPEN_Load_EmptyClassDefinition ( cd );
+
+  if (error == HB_Err_Ok)
+    (void)FILE_Seek( cur_offset ); /* Changes error as a side-effect */
+
+  return error;
+}
+
+void  _HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd )
 {
   if ( !cd->loaded )
     return;
@@ -1154,9 +1149,9 @@ void  _HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd,
 
   switch ( cd->ClassFormat )
   {
-  case 1:  Free_ClassDef1( &cd->cd.cd1, memory ); break;
-  case 2:  Free_ClassDef2( &cd->cd.cd2, memory ); break;
-  default:					  break;
+  case 1:  Free_ClassDef1( &cd->cd.cd1 ); break;
+  case 2:  Free_ClassDef2( &cd->cd.cd2 ); break;
+  default:				  break;
   }
 }
 
@@ -1285,7 +1280,6 @@ HB_Error  _HB_OPEN_Load_Device( HB_Device*  d,
 		       FT_Stream    stream )
 {
   HB_Error   error;
-  FT_Memory  memory = stream->memory;
 
   FT_UShort   n, count;
 
@@ -1337,8 +1331,7 @@ HB_Error  _HB_OPEN_Load_Device( HB_Device*  d,
 }
 
 
-void  _HB_OPEN_Free_Device( HB_Device*  d,
-		   FT_Memory    memory )
+void  _HB_OPEN_Free_Device( HB_Device*  d )
 {
   FREE( d->DeltaValue );
 }
