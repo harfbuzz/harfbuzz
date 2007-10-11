@@ -103,27 +103,62 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 }
 
 HB_Error
-hb_buffer_new( HB_Buffer *buffer )
+hb_buffer_new( HB_Buffer *pbuffer )
 {
+  HB_Buffer buffer;
   HB_Error error;
   
-  if ( ALLOC( *buffer, sizeof( HB_BufferRec ) ) )
+  if ( ALLOC( buffer, sizeof( HB_BufferRec ) ) )
     return error;
 
-  (*buffer)->in_length = 0;
-  (*buffer)->out_length = 0;
-  (*buffer)->allocated = 0;
-  (*buffer)->in_pos = 0;
-  (*buffer)->out_pos = 0;
+  /* not these ones */
+  buffer->allocated = 0;
+  buffer->in_string = NULL;
+  buffer->alt_string = NULL;
+  buffer->positions = NULL;
 
-  (*buffer)->separate_out = FALSE;
-  (*buffer)->in_string = NULL;
-  (*buffer)->out_string = NULL;
-  (*buffer)->alt_string = NULL;
-  (*buffer)->positions = NULL;
-  (*buffer)->max_ligID = 0;
+  /* these should be reset when reusing buffer */
+  buffer->in_length = 0;
+  buffer->out_length = 0;
+  buffer->in_pos = 0;
+  buffer->out_pos = 0;
+  buffer->separate_out = FALSE;
+  buffer->out_string = buffer->in_string;
+  buffer->max_ligID = 0;
+
+  *pbuffer = buffer;
 
   return HB_Err_Ok;
+}
+
+void
+hb_buffer_free( HB_Buffer buffer )
+{
+  FREE( buffer->in_string );
+  FREE( buffer->alt_string );
+  buffer->out_string = NULL;
+  FREE( buffer->positions );
+  FREE( buffer );
+}
+
+void
+hb_buffer_clear( HB_Buffer buffer )
+{
+  buffer->in_length = 0;
+  buffer->out_length = 0;
+  buffer->in_pos = 0;
+  buffer->out_pos = 0;
+  buffer->out_string = buffer->in_string;
+  buffer->separate_out = FALSE;
+}
+
+void
+hb_buffer_clear_output( HB_Buffer buffer )
+{
+  buffer->out_length = 0;
+  buffer->out_pos = 0;
+  buffer->out_string = buffer->in_string;
+  buffer->separate_out = FALSE;
 }
 
 HB_Error
@@ -140,15 +175,6 @@ hb_buffer_clear_positions( HB_Buffer buffer )
   memset (buffer->positions, 0, sizeof (buffer->positions[0]) * buffer->in_length);
 
   return HB_Err_Ok;
-}
-
-void
-hb_buffer_clear_output( HB_Buffer buffer )
-{
-  buffer->out_length = 0;
-  buffer->out_pos = 0;
-  buffer->out_string = buffer->in_string;
-  buffer->separate_out = FALSE;
 }
 
 void
@@ -173,27 +199,6 @@ hb_buffer_swap( HB_Buffer buffer )
   tmp_pos = buffer->in_pos;
   buffer->in_pos = buffer->out_pos;
   buffer->out_pos = tmp_pos;
-}
-
-void
-hb_buffer_free( HB_Buffer buffer )
-{
-  FREE( buffer->in_string );
-  FREE( buffer->alt_string );
-  buffer->out_string = NULL;
-  FREE( buffer->positions );
-  FREE( buffer );
-}
-
-void
-hb_buffer_clear( HB_Buffer buffer )
-{
-  buffer->in_length = 0;
-  buffer->out_length = 0;
-  buffer->in_pos = 0;
-  buffer->out_pos = 0;
-  buffer->out_string = buffer->in_string;
-  buffer->separate_out = FALSE;
 }
 
 HB_Error
