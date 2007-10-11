@@ -670,7 +670,7 @@ typedef union HB_GPOS_SubTable_  HB_GPOS_SubTable;
 
 
 
-FT_Error  _HB_GPOS_Load_SubTable( HB_GPOS_SubTable*  st,
+HB_Error  _HB_GPOS_Load_SubTable( HB_GPOS_SubTable*  st,
 				  FT_Stream     stream,
 				  FT_UShort     lookup_type );
 

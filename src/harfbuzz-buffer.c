@@ -1,6 +1,6 @@
 /* harfbuzz-buffer.c: Buffer of glyphs for substitution/positioning
  *
- * Copyright 2004 Red Hat Software
+ * Copyright 2004,2007 Red Hat Software
  *
  * Portions Copyright 1996-2000 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
@@ -11,7 +11,34 @@
 #include "harfbuzz-gsub-private.h"
 #include "harfbuzz-gpos-private.h"
 
-static FT_Error
+/* Here is how the buffer works internally:
+ *
+ * There are two string pointers: in_string and out_string.  They
+ * always have same allocated size, but different length and positions.
+ *
+ * As an optimization, both in_string and out_string may point to the
+ * same piece of memory, which is owned by in_string.  This remains the
+ * case as long as:
+ *
+ *   - copy_glyph() is called
+ *   - replace_glyph() is called with inplace=TRUE
+ *   - add_output_glyph() and add_output_glyphs() are not called
+ *
+ * In that case swap(), and copy_glyph(), and replace_glyph() are all
+ * mostly no-op.
+ *
+ * As soon an add_output_glyph[s]() or replace_glyph() with inplace=FALSE is
+ * called, out_string is moved over to an alternate buffer (alt_string), and
+ * its current contents (out_length entries) are copied to the alt buffer.
+ * This should all remain transparent to the user.  swap() then switches
+ * in_string and alt_string.  alt_string is not allocated until its needed,
+ * but after that it's grown with in_string unconditionally.
+ *
+ * The buffer->inplace boolean keeps status of whether out_string points to
+ * in_string or alt_string.
+ */
+
+static HB_Error
 hb_buffer_ensure( HB_Buffer buffer,
 		   FT_ULong   size )
 {
@@ -20,29 +47,63 @@ hb_buffer_ensure( HB_Buffer buffer,
 
   if (size > new_allocated)
     {
-      FT_Error error;
+      HB_Error error;
 
       while (size > new_allocated)
 	new_allocated += (new_allocated >> 1) + 8;
       
-      if ( REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
-	return error;
-      if ( REALLOC_ARRAY( buffer->out_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
-	return error;
       if ( REALLOC_ARRAY( buffer->positions, buffer->allocated, new_allocated, HB_PositionRec ) )
 	return error;
+      if ( REALLOC_ARRAY( buffer->in_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
+	return error;
+      if ( buffer->inplace )
+        {
+	  buffer->out_string = buffer->in_string;
+
+	  if ( buffer->alt_string )
+	    {
+	      if ( REALLOC_ARRAY( buffer->alt_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
+		return error;
+	    }
+	}
+      else
+        {
+	  if ( REALLOC_ARRAY( buffer->alt_string, buffer->allocated, new_allocated, HB_GlyphItemRec ) )
+	    return error;
+
+	  buffer->out_string = buffer->alt_string;
+	}
 
       buffer->allocated = new_allocated;
     }
 
-  return FT_Err_Ok;
+  return HB_Err_Ok;
 }
 
-FT_Error
+static HB_Error
+hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
+{
+  if ( !buffer->alt_string )
+    {
+      FT_Memory memory = buffer->memory;
+      HB_Error error;
+
+      if ( ALLOC_ARRAY( buffer->alt_string, buffer->allocated, HB_GlyphItemRec ) )
+	return error;
+    }
+
+  buffer->out_string = buffer->alt_string;
+  memcpy( buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]) );
+  buffer->inplace = FALSE;
+
+  return HB_Err_Ok;
+}
+
+HB_Error
 hb_buffer_new( FT_Memory   memory,
 		HB_Buffer *buffer )
 {
-  FT_Error error;
+  HB_Error error;
   
   if ( ALLOC( *buffer, sizeof( HB_BufferRec ) ) )
     return error;
@@ -56,61 +117,77 @@ hb_buffer_new( FT_Memory   memory,
 
   (*buffer)->in_string = NULL;
   (*buffer)->out_string = NULL;
+  (*buffer)->alt_string = NULL;
   (*buffer)->positions = NULL;
   (*buffer)->max_ligID = 0;
+  (*buffer)->inplace = TRUE;
 
-  return FT_Err_Ok;
+  return HB_Err_Ok;
 }
 
-FT_Error
+void
+hb_buffer_clear_output( HB_Buffer buffer )
+{
+  buffer->out_length = 0;
+  buffer->out_pos = 0;
+  buffer->out_string = buffer->in_string;
+  buffer->inplace = TRUE;
+}
+
+void
 hb_buffer_swap( HB_Buffer buffer )
 {
   HB_GlyphItem tmp_string;
+  int tmp_length;
+  int tmp_pos;
 
-  tmp_string = buffer->in_string;
-  buffer->in_string = buffer->out_string;
-  buffer->out_string = tmp_string;
+  if ( ! buffer->inplace )
+    {
+      tmp_string = buffer->in_string;
+      buffer->in_string = buffer->out_string;
+      buffer->out_string = tmp_string;
+      buffer->alt_string = buffer->out_string;
+    }
 
+  tmp_length = buffer->in_length;
   buffer->in_length = buffer->out_length;
-  buffer->out_length = 0;
-  
-  buffer->in_pos = 0;
-  buffer->out_pos = 0;
+  buffer->out_length = tmp_length;
 
-  return FT_Err_Ok;
+  tmp_pos = buffer->in_pos;
+  buffer->in_pos = buffer->out_pos;
+  buffer->out_pos = tmp_pos;
 }
 
-FT_Error
+void
 hb_buffer_free( HB_Buffer buffer )
 {
   FT_Memory memory = buffer->memory;
 
   FREE( buffer->in_string );
-  FREE( buffer->out_string );
+  FREE( buffer->alt_string );
+  buffer->out_string = NULL;
   FREE( buffer->positions );
   FREE( buffer );
-
-  return FT_Err_Ok;
 }
 
-FT_Error
+void
 hb_buffer_clear( HB_Buffer buffer )
 {
   buffer->in_length = 0;
   buffer->out_length = 0;
   buffer->in_pos = 0;
   buffer->out_pos = 0;
-  
-  return FT_Err_Ok;
+  buffer->out_string = buffer->in_string;
+  buffer->inplace = TRUE;
 }
 
-FT_Error
+HB_Error
 hb_buffer_add_glyph( HB_Buffer buffer,
 		      FT_UInt    glyph_index,
 		      FT_UInt    properties,
 		      FT_UInt    cluster )
 {
-  FT_Error error;
+  HB_Error error;
   HB_GlyphItem glyph;
   
   error = hb_buffer_ensure( buffer, buffer->in_length + 1 );
@@ -127,7 +204,7 @@ hb_buffer_add_glyph( HB_Buffer buffer,
   
   buffer->in_length++;
 
-  return FT_Err_Ok;
+  return HB_Err_Ok;
 }
 
 /* The following function copies `num_out' elements from `glyph_data'
@@ -149,7 +226,7 @@ hb_buffer_add_glyph( HB_Buffer buffer,
 
    The cluster value for the glyph at position buffer->in_pos is used
    for all replacement glyphs */
-FT_Error
+HB_Error
 hb_buffer_add_output_glyphs( HB_Buffer buffer,
 			      FT_UShort  num_in,
 			      FT_UShort  num_out,
@@ -157,7 +234,7 @@ hb_buffer_add_output_glyphs( HB_Buffer buffer,
 			      FT_UShort  component,
 			      FT_UShort  ligID )
 {
-  FT_Error  error;
+  HB_Error  error;
   FT_UShort i;
   FT_UInt properties;
   FT_UInt cluster;
@@ -165,6 +242,13 @@ hb_buffer_add_output_glyphs( HB_Buffer buffer,
   error = hb_buffer_ensure( buffer, buffer->out_pos + num_out );
   if ( error )
     return error;
+
+  if ( buffer->inplace )
+    {
+      error = hb_buffer_duplicate_out_buffer( buffer );
+      if ( error )
+	return error;
+    }
 
   properties = buffer->in_string[buffer->in_pos].properties;
   cluster = buffer->in_string[buffer->in_pos].cluster;
@@ -190,10 +274,10 @@ hb_buffer_add_output_glyphs( HB_Buffer buffer,
 
   buffer->out_length = buffer->out_pos;
 
-  return FT_Err_Ok;
+  return HB_Err_Ok;
 }
 
-FT_Error
+HB_Error
 hb_buffer_add_output_glyph( HB_Buffer buffer,	
 			     FT_UInt    glyph_index,
 			     FT_UShort  component,
@@ -205,19 +289,49 @@ hb_buffer_add_output_glyph( HB_Buffer buffer,
 					&glyph_data, component, ligID );
 }
 
-FT_Error
+HB_Error
 hb_buffer_copy_output_glyph ( HB_Buffer buffer )
 {  
-  FT_Error  error;
+  HB_Error  error;
 
   error = hb_buffer_ensure( buffer, buffer->out_pos + 1 );
   if ( error )
     return error;
   
-  buffer->out_string[buffer->out_pos++] = buffer->in_string[buffer->in_pos++];
+  if ( ! buffer->inplace )
+    {
+      buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+    }
+
+  buffer->in_pos++;
+  buffer->out_pos++;
   buffer->out_length = buffer->out_pos;
 
-  return FT_Err_Ok;
+  return HB_Err_Ok;
+}
+
+HB_Error
+hb_buffer_replace_output_glyph( HB_Buffer buffer,	
+				FT_UInt   glyph_index,
+				FT_Bool   inplace )
+{
+
+  HB_Error error;
+
+  if ( inplace )
+    {
+      error = hb_buffer_copy_output_glyph ( buffer );
+      if ( error )
+	return error;
+
+      buffer->out_string[buffer->out_pos-1].gindex = glyph_index;
+    }
+  else
+    {
+      return hb_buffer_add_output_glyph( buffer, glyph_index, 0xFFFF, 0xFFFF );
+    }
+
+  return HB_Err_Ok;
 }
 
 FT_UShort

@@ -87,11 +87,11 @@ struct  HB_LigGlyph_
 };
 
 
-FT_Error  _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader*   gdef,
+HB_Error  _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader*   gdef,
 				       FT_UShort        glyphID,
 				       FT_UShort        property );
 
-FT_Error  _HB_GDEF_Check_Property( HB_GDEFHeader*   gdef,
+HB_Error  _HB_GDEF_Check_Property( HB_GDEFHeader*   gdef,
 				   HB_GlyphItem    item,
 				   FT_UShort        flags,
 				   FT_UShort*       property );

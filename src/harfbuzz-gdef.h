@@ -100,22 +100,22 @@ typedef struct HB_GDEFHeader_   HB_GDEFHeader;
 typedef struct HB_GDEFHeader_*  HB_GDEF;
 
 
-FT_Error  HB_New_GDEF_Table( FT_Face          face,
+HB_Error  HB_New_GDEF_Table( FT_Face          face,
 			     HB_GDEFHeader** retptr );
       
 
-FT_Error  HB_Load_GDEF_Table( FT_Face          face,
+HB_Error  HB_Load_GDEF_Table( FT_Face          face,
 			      HB_GDEFHeader** gdef );
 
 
-FT_Error  HB_Done_GDEF_Table ( HB_GDEFHeader* gdef );
+HB_Error  HB_Done_GDEF_Table ( HB_GDEFHeader* gdef );
 
 
-FT_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
+HB_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
 				      FT_UShort        glyphID,
 				      FT_UShort*       property );
 
-FT_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
+HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 					 FT_UShort        num_glyphs,
 					 FT_UShort        glyph_count,
 					 FT_UShort*       glyph_array,

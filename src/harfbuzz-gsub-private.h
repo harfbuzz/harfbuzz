@@ -435,7 +435,7 @@ union  HB_GSUB_SubTable_
 
 
 
-FT_Error  _HB_GSUB_Load_SubTable( HB_GSUB_SubTable*  st,
+HB_Error  _HB_GSUB_Load_SubTable( HB_GSUB_SubTable*  st,
 				  FT_Stream     stream,
 				  FT_UShort     lookup_type );
 

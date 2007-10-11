@@ -73,57 +73,57 @@ typedef struct HB_GSUBHeader_   HB_GSUBHeader;
 typedef HB_GSUBHeader*  HB_GSUB;
 
 
-FT_Error  HB_Load_GSUB_Table( FT_Face          face,
+HB_Error  HB_Load_GSUB_Table( FT_Face          face,
 			      HB_GSUBHeader** gsub,
 			      HB_GDEFHeader*  gdef );
 
 
-FT_Error  HB_Done_GSUB_Table( HB_GSUBHeader*  gsub );
+HB_Error  HB_Done_GSUB_Table( HB_GSUBHeader*  gsub );
 
 
-FT_Error  HB_GSUB_Select_Script( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Select_Script( HB_GSUBHeader*  gsub,
 				 FT_ULong         script_tag,
 				 FT_UShort*       script_index );
 
-FT_Error  HB_GSUB_Select_Language( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Select_Language( HB_GSUBHeader*  gsub,
 				   FT_ULong         language_tag,
 				   FT_UShort        script_index,
 				   FT_UShort*       language_index,
 				   FT_UShort*       req_feature_index );
 
-FT_Error  HB_GSUB_Select_Feature( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Select_Feature( HB_GSUBHeader*  gsub,
 				  FT_ULong         feature_tag,
 				  FT_UShort        script_index,
 				  FT_UShort        language_index,
 				  FT_UShort*       feature_index );
 
 
-FT_Error  HB_GSUB_Query_Scripts( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Query_Scripts( HB_GSUBHeader*  gsub,
 				 FT_ULong**       script_tag_list );
 
-FT_Error  HB_GSUB_Query_Languages( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Query_Languages( HB_GSUBHeader*  gsub,
 				   FT_UShort        script_index,
 				   FT_ULong**       language_tag_list );
 
-FT_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
 				  FT_UShort        script_index,
 				  FT_UShort        language_index,
 				  FT_ULong**       feature_tag_list );
 
 
-FT_Error  HB_GSUB_Add_Feature( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Add_Feature( HB_GSUBHeader*  gsub,
 			       FT_UShort        feature_index,
 			       FT_UInt          property );
 
-FT_Error  HB_GSUB_Clear_Features( HB_GSUBHeader*  gsub );
+HB_Error  HB_GSUB_Clear_Features( HB_GSUBHeader*  gsub );
 
 
-FT_Error  HB_GSUB_Register_Alternate_Function( HB_GSUBHeader*  gsub,
+HB_Error  HB_GSUB_Register_Alternate_Function( HB_GSUBHeader*  gsub,
 					       HB_AltFunction  altfunc,
 					       void*            data );
 
 
-FT_Error  HB_GSUB_Apply_String( HB_GSUBHeader*   gsub,
+HB_Error  HB_GSUB_Apply_String( HB_GSUBHeader*   gsub,
 				HB_Buffer        buffer );
 
 

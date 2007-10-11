@@ -46,10 +46,16 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include "harfbuzz-open.h"
+
 FT_BEGIN_HEADER
 
 
 /* utility macros */
+
+#ifndef HB_Error
+#define HB_Error FT_Error
+#endif
 
 #define  SET_ERR(c)   ( (error = (c)) != 0 )
 
@@ -88,18 +94,18 @@ FT_BEGIN_HEADER
 FTGLUE_API( FT_Long )
 _hb_ftglue_stream_pos( FT_Stream   stream );
 
-FTGLUE_API( FT_Error )
+FTGLUE_API( HB_Error )
 _hb_ftglue_stream_seek( FT_Stream   stream,
                     FT_Long     pos );
 
-FTGLUE_API( FT_Error )
+FTGLUE_API( HB_Error )
 _hb_ftglue_stream_frame_enter( FT_Stream   stream,
                            FT_ULong    size );
 
 FTGLUE_API( void )
 _hb_ftglue_stream_frame_exit( FT_Stream  stream );
 
-FTGLUE_API( FT_Error )
+FTGLUE_API( HB_Error )
 _hb_ftglue_face_goto_table( FT_Face    face,
                         FT_ULong   tag,
                         FT_Stream  stream );
@@ -132,18 +138,23 @@ _hb_ftglue_face_goto_table( FT_Face    face,
 FTGLUE_API( FT_Pointer )
 _hb_ftglue_alloc( FT_Memory  memory,
               FT_ULong   size,
-              FT_Error  *perror_ );
+              HB_Error  *perror_ );
 
 FTGLUE_API( FT_Pointer )
 _hb_ftglue_realloc( FT_Memory   memory,
                 FT_Pointer  block,
                 FT_ULong    old_size,
                 FT_ULong    new_size,
-                FT_Error   *perror_ );
+                HB_Error   *perror_ );
 
 FTGLUE_API( void )
 _hb_ftglue_free( FT_Memory   memory,
              FT_Pointer  block );
+
+/* abuse these private header/source files */
+
+/* helper func to set a breakpoint on */
+HB_Error _hb_err (HB_Error code);
 
 FT_END_HEADER
 

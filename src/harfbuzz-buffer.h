@@ -56,32 +56,37 @@ typedef struct HB_BufferRec_{
   FT_ULong    in_pos;
   FT_ULong    out_pos;
   
+  FT_Bool       inplace;
   HB_GlyphItem  in_string;
   HB_GlyphItem  out_string;
+  HB_GlyphItem  alt_string;
   HB_Position   positions;
   FT_UShort      max_ligID;
 } HB_BufferRec, *HB_Buffer;
 
-FT_Error
+HB_Error
 hb_buffer_new( FT_Memory   memory,
 		HB_Buffer *buffer );
 
-FT_Error
+void
 hb_buffer_swap( HB_Buffer buffer );
 
-FT_Error
+void
 hb_buffer_free( HB_Buffer buffer );
 
-FT_Error
+void
 hb_buffer_clear( HB_Buffer buffer );
 
-FT_Error
+void
+hb_buffer_clear_output( HB_Buffer buffer );
+
+HB_Error
 hb_buffer_add_glyph( HB_Buffer buffer,
 		      FT_UInt    glyph_index,
 		      FT_UInt    properties,
 		      FT_UInt    cluster );
 
-FT_Error
+HB_Error
 hb_buffer_add_output_glyphs( HB_Buffer buffer,
 			      FT_UShort  num_in,
 			      FT_UShort  num_out,
@@ -89,14 +94,19 @@ hb_buffer_add_output_glyphs( HB_Buffer buffer,
 			      FT_UShort  component,
 			      FT_UShort  ligID );
 
-FT_Error
+HB_Error
 hb_buffer_add_output_glyph ( HB_Buffer buffer,
 			      FT_UInt    glyph_index,
 			      FT_UShort  component,
 			      FT_UShort  ligID );
 
-FT_Error
+HB_Error
 hb_buffer_copy_output_glyph ( HB_Buffer buffer );
+
+HB_Error
+hb_buffer_replace_output_glyph ( HB_Buffer buffer,
+				 FT_UInt   glyph_index,
+				 FT_Bool   inplace );
 
 FT_UShort
 hb_buffer_allocate_ligid( HB_Buffer buffer );

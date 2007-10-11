@@ -32,16 +32,16 @@ _hb_ftglue_log( const char*   format, ... )
 static FT_Pointer
 _hb_ftglue_qalloc( FT_Memory  memory,
                FT_ULong   size,
-               FT_Error  *perror )
+               HB_Error  *perror )
 {
-  FT_Error    error = 0;
+  HB_Error    error = 0;
   FT_Pointer  block = NULL;
 
   if ( size > 0 )
   {
     block = memory->alloc( memory, size );
     if ( !block )
-      error = FT_Err_Out_Of_Memory;
+      error = HB_Err_Out_Of_Memory;
   }
 
   *perror = error;
@@ -55,16 +55,16 @@ _hb_ftglue_qalloc( FT_Memory  memory,
 FTGLUE_APIDEF( FT_Pointer )
 _hb_ftglue_alloc( FT_Memory  memory,
               FT_ULong   size,
-              FT_Error  *perror )
+              HB_Error  *perror )
 {
-  FT_Error    error = 0;
+  HB_Error    error = 0;
   FT_Pointer  block = NULL;
 
   if ( size > 0 )
   {
     block = memory->alloc( memory, size );
     if ( !block )
-      error = FT_Err_Out_Of_Memory;
+      error = HB_Err_Out_Of_Memory;
     else
       memset( (char*)block, 0, (size_t)size );
   }
@@ -79,10 +79,10 @@ _hb_ftglue_realloc( FT_Memory   memory,
                 FT_Pointer  block,
                 FT_ULong    old_size,
                 FT_ULong    new_size,
-                FT_Error   *perror )
+                HB_Error   *perror )
 {
   FT_Pointer  block2 = NULL;
-  FT_Error    error  = 0;
+  HB_Error    error  = 0;
 
   if ( old_size == 0 || block == NULL )
   {
@@ -96,7 +96,7 @@ _hb_ftglue_realloc( FT_Memory   memory,
   {
     block2 = memory->realloc( memory, old_size, new_size, block );
     if ( block2 == NULL )
-      error = FT_Err_Out_Of_Memory;
+      error = HB_Err_Out_Of_Memory;
     else if ( new_size > old_size )
       memset( (char*)block2 + old_size, 0, (size_t)(new_size - old_size) );
   }
@@ -126,31 +126,31 @@ _hb_ftglue_stream_pos( FT_Stream   stream )
 }
 
 
-FTGLUE_APIDEF( FT_Error )
+FTGLUE_APIDEF( HB_Error )
 _hb_ftglue_stream_seek( FT_Stream   stream,
                     FT_Long     pos )
 {
-  FT_Error  error = 0;
+  HB_Error  error = 0;
 
   stream->pos = pos;
   if ( stream->read )
   {
     if ( stream->read( stream, pos, NULL, 0 ) )
-      error = FT_Err_Invalid_Stream_Operation;
+      error = HB_Err_Invalid_Stream_Operation;
   }
   else if ( pos > (FT_Long)stream->size )
-    error = FT_Err_Invalid_Stream_Operation;
+    error = HB_Err_Invalid_Stream_Operation;
 
   LOG(( "ftglue:stream:seek(%ld) -> %d\n", pos, error ));
   return error;
 }
 
 
-FTGLUE_APIDEF( FT_Error )
+FTGLUE_APIDEF( HB_Error )
 _hb_ftglue_stream_frame_enter( FT_Stream   stream,
                            FT_ULong    count )
 {
-  FT_Error  error = FT_Err_Ok;
+  HB_Error  error = HB_Err_Ok;
   FT_ULong  read_bytes;
 
   if ( stream->read )
@@ -168,7 +168,7 @@ _hb_ftglue_stream_frame_enter( FT_Stream   stream,
     if ( read_bytes < count )
     {
       FREE( stream->base );
-      error = FT_Err_Invalid_Stream_Operation;
+      error = HB_Err_Invalid_Stream_Operation;
     }
     stream->cursor = stream->base;
     stream->limit  = stream->cursor + count;
@@ -180,7 +180,7 @@ _hb_ftglue_stream_frame_enter( FT_Stream   stream,
     if ( stream->pos >= stream->size        ||
          stream->pos + count > stream->size )
     {
-      error = FT_Err_Invalid_Stream_Operation;
+      error = HB_Err_Invalid_Stream_Operation;
       goto Exit;
     }
 
@@ -212,12 +212,12 @@ _hb_ftglue_stream_frame_exit( FT_Stream  stream )
 }
 
 
-FTGLUE_APIDEF( FT_Error )
+FTGLUE_APIDEF( HB_Error )
 _hb_ftglue_face_goto_table( FT_Face    face,
                         FT_ULong   the_tag,
                         FT_Stream  stream )
 {
-  FT_Error  error;
+  HB_Error  error;
 
   LOG(( "_hb_ftglue_face_goto_table( %p, %c%c%c%c, %p )\n",
                 face, 
@@ -230,7 +230,7 @@ _hb_ftglue_face_goto_table( FT_Face    face,
   if ( !FT_IS_SFNT(face) )
   {
     LOG(( "not a SFNT face !!\n" ));
-    error = FT_Err_Invalid_Face_Handle;
+    error = HB_Err_Invalid_Face_Handle;
   }
   else
   {
@@ -285,7 +285,7 @@ _hb_ftglue_face_goto_table( FT_Face    face,
         goto FoundIt;
       }
     }
-    error = FT_Err_Table_Missing;
+    error = HB_Err_Table_Missing;
 
   FoundIt:
     FORGET_Frame();
@@ -298,3 +298,12 @@ Exit:
 }                        
 
 #undef QALLOC
+
+/* abuse these private header/source files */
+
+/* helper func to set a breakpoint on */
+HB_Error
+_hb_err (HB_Error code)
+{
+  return code;
+}

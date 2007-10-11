@@ -452,7 +452,7 @@ static void
 Dump_Device (HB_Device *Device, FILE *stream, int indent, HB_Type hb_type)
 {
   int i;
-  int bits = 0;
+  int bits;
   int n_per;
   unsigned int mask;
 
@@ -471,6 +471,9 @@ Dump_Device (HB_Device *Device, FILE *stream, int indent, HB_Type hb_type)
       break;
     case 3:
       bits = 8;
+      break;
+    default:
+      bits = 0;
       break;
     }
 
@@ -634,7 +637,7 @@ Dump_GPOS_Lookup_Markbase (HB_SubTable *subtable, FILE *stream, int indent, HB_T
 DEF_DUMP (Lookup)
 {
   int i;
-  const char *lookup_name = NULL;
+  const char *lookup_name;
   void (*lookup_func) (HB_SubTable *subtable, FILE *stream, int indent, HB_Type hb_type) = NULL;
 
   if (hb_type == HB_Type_GSUB)
@@ -662,6 +665,10 @@ DEF_DUMP (Lookup)
 	case  HB_GSUB_LOOKUP_CHAIN:
 	  lookup_name = "CHAIN";
 	  lookup_func = Dump_GSUB_Lookup_Chain;
+	  break;
+	default:
+	  lookup_name = "(unknown)";
+	  lookup_func = NULL;
 	  break;
 	}
     }
@@ -695,6 +702,10 @@ DEF_DUMP (Lookup)
 	  break;
 	case HB_GPOS_LOOKUP_CHAIN:
 	  lookup_name = "CHAIN";
+	  break;
+	default:
+	  lookup_name = "(unknown)";
+	  lookup_func = NULL;
 	  break;
 	}
     }

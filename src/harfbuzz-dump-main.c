@@ -28,7 +28,7 @@
 #define N_ELEMENTS(arr) (sizeof(arr)/ sizeof((arr)[0]))
 
 static int
-croak (const char *situation, FT_Error error)
+croak (const char *situation, HB_Error error)
 {
   fprintf (stderr, "%s: Error %d\n", situation, error);
 
@@ -59,7 +59,7 @@ maybe_add_feature (HB_GSUB  gsub,
 		   FT_ULong  tag,
 		   FT_UShort property)
 {
-  FT_Error error;
+  HB_Error error;
   FT_UShort feature_index;
   
   /* 0xffff == default language system */
@@ -122,7 +122,7 @@ select_cmap (FT_Face face)
 static void
 add_features (HB_GSUB gsub)
 {
-  FT_Error error;
+  HB_Error error;
   FT_ULong tag = FT_MAKE_TAG ('a', 'r', 'a', 'b');
   FT_UShort script_index;
 
@@ -173,7 +173,7 @@ try_string (FT_Library library,
 	    FT_Face    face,
 	    HB_GSUB   gsub)
 {
-  FT_Error error;
+  HB_Error error;
   HB_GSUB_String *in_str;
   HB_GSUB_String *out_str;
   FT_ULong i;
@@ -210,7 +210,7 @@ try_string (FT_Library library,
 int 
 main (int argc, char **argv)
 {
-  FT_Error error;
+  HB_Error error;
   FT_Library library;
   FT_Face face;
   HB_GSUB gsub;
@@ -238,7 +238,7 @@ main (int argc, char **argv)
       if ((error = HB_Done_GSUB_Table (gsub)))
 	croak ("HB_Done_GSUB_Table", error);
     }
-  else if (error != FT_Err_Table_Missing)
+  else if (error != HB_Err_Table_Missing)
     fprintf (stderr, "HB_Load_GSUB_Table %x\n", error);
 
   if (!(error = HB_Load_GPOS_Table (face, &gpos, NULL)))
@@ -248,7 +248,7 @@ main (int argc, char **argv)
       if ((error = HB_Done_GPOS_Table (gpos)))
 	croak ("HB_Done_GPOS_Table", error);
     }
-  else if (error != FT_Err_Table_Missing)
+  else if (error != HB_Err_Table_Missing)
     fprintf (stderr, "HB_Load_GPOS_Table %x\n", error);
 
   printf ("</OpenType>\n");

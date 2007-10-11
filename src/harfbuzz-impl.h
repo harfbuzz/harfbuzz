@@ -63,20 +63,24 @@ FT_BEGIN_HEADER
 #define OUT_GLYPH( pos )       (buffer->out_string[(pos)].gindex)
 #define OUT_ITEM( pos )        (&buffer->out_string[(pos)])
 
-#define CHECK_Property( gdef, index, flags, property )              \
-          ( ( error = _HB_GDEF_Check_Property( (gdef), (index), (flags),     \
-                                      (property) ) ) != FT_Err_Ok )
+#define CHECK_Property( gdef, index, flags, property )					\
+          ( ( error = _HB_GDEF_Check_Property( (gdef), (index), (flags),		\
+                                      (property) ) ) != HB_Err_Ok )
 
 #define ADD_String( buffer, num_in, num_out, glyph_data, component, ligID )             \
-          ( ( error = hb_buffer_add_output_glyphs( (buffer),                           \
+          ( ( error = hb_buffer_add_output_glyphs( (buffer),                            \
 						    (num_in), (num_out),                \
                                                     (glyph_data), (component), (ligID)  \
-                                                  ) ) != FT_Err_Ok )
-#define ADD_Glyph( buffer, glyph_index, component, ligID )             		 	 \
+                                                  ) ) != HB_Err_Ok )
+#define ADD_Glyph( buffer, glyph_index, component, ligID )				\
           ( ( error = hb_buffer_add_output_glyph( (buffer),                             \
-                                                    (glyph_index), (component), (ligID)  \
-                                                  ) ) != FT_Err_Ok )
-
+                                                    (glyph_index), (component), (ligID) \
+                                                  ) ) != HB_Err_Ok )
+#define REPLACE_Glyph( buffer, glyph_index, nesting_level )				\
+          ( ( error = hb_buffer_replace_output_glyph( (buffer), (glyph_index),		\
+						      (nesting_level) == 1 ) ) != HB_Err_Ok )
+#define COPY_Glyph( buffer )								\
+	  ( (error = hb_buffer_copy_output_glyph ( buffer ) ) != HB_Err_Ok )
 
 FT_END_HEADER
 
