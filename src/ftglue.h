@@ -59,14 +59,6 @@ FT_BEGIN_HEADER
 
 #define  SET_ERR(c)   ( (error = (c)) != 0 )
 
-#ifndef FTGLUE_API
-#define FTGLUE_API(x)  extern x
-#endif
-
-#ifndef FTGLUE_APIDEF
-#define FTGLUE_APIDEF(x)  x
-#endif
-
 /* stream macros used by the OpenType parser */
 #define  FILE_Pos()      _hb_ftglue_stream_pos( stream )
 #define  FILE_Seek(pos)  SET_ERR( _hb_ftglue_stream_seek( stream, pos ) )
@@ -91,21 +83,21 @@ FT_BEGIN_HEADER
 #define  GET_ULong()     ((FT_ULong)GET_Long())
 #define  GET_Tag4()      GET_ULong()
 
-FTGLUE_API( FT_Long )
+FT_Long
 _hb_ftglue_stream_pos( FT_Stream   stream );
 
-FTGLUE_API( HB_Error )
+HB_Error
 _hb_ftglue_stream_seek( FT_Stream   stream,
                     FT_Long     pos );
 
-FTGLUE_API( HB_Error )
+HB_Error
 _hb_ftglue_stream_frame_enter( FT_Stream   stream,
                            FT_ULong    size );
 
-FTGLUE_API( void )
+void
 _hb_ftglue_stream_frame_exit( FT_Stream  stream );
 
-FTGLUE_API( HB_Error )
+HB_Error
 _hb_ftglue_face_goto_table( FT_Face    face,
                         FT_ULong   tag,
                         FT_Stream  stream );
@@ -135,16 +127,16 @@ _hb_ftglue_face_goto_table( FT_Face    face,
 #define  MEM_Copy(dest,source,count)   memcpy( (char*)(dest), (const char*)(source), (size_t)(count) )
 
 
-FTGLUE_API( FT_Pointer )
+FT_Pointer
 _hb_ftglue_alloc( FT_ULong   size,
 		  HB_Error  *perror_ );
 
-FTGLUE_API( FT_Pointer )
+FT_Pointer
 _hb_ftglue_realloc( FT_Pointer  block,
 		    FT_ULong    new_size,
 		    HB_Error   *perror_ );
 
-FTGLUE_API( void )
+void
 _hb_ftglue_free( FT_Pointer  block );
 
 /* abuse these private header/source files */
