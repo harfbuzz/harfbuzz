@@ -111,20 +111,12 @@ hb_buffer_new( HB_Buffer *pbuffer )
   if ( ALLOC( buffer, sizeof( HB_BufferRec ) ) )
     return error;
 
-  /* not these ones */
   buffer->allocated = 0;
   buffer->in_string = NULL;
   buffer->alt_string = NULL;
   buffer->positions = NULL;
 
-  /* these should be reset when reusing buffer */
-  buffer->in_length = 0;
-  buffer->out_length = 0;
-  buffer->in_pos = 0;
-  buffer->out_pos = 0;
-  buffer->separate_out = FALSE;
-  buffer->out_string = buffer->in_string;
-  buffer->max_ligID = 0;
+  hb_buffer_clear( buffer );
 
   *pbuffer = buffer;
 
@@ -150,6 +142,7 @@ hb_buffer_clear( HB_Buffer buffer )
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
   buffer->separate_out = FALSE;
+  buffer->max_ligID = 0;
 }
 
 void
