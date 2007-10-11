@@ -28,6 +28,7 @@ PUBLICHEADERS = \
 PRIVATEHEADERS = \
 	ftglue.h \
 	harfbuzz-impl.h \
+	harfbuzz-buffer-private.h \
 	harfbuzz-gdef-private.h \
 	harfbuzz-gpos-private.h \
 	harfbuzz-gsub-private.h \

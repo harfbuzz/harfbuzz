@@ -1533,7 +1533,7 @@ static HB_Error  Lookup_PairPos2( GPOS_Instance*       gpi,
 				  FT_UShort            format2 )
 {
   HB_Error           error;
-  FT_UShort          cl1, cl2;
+  FT_UShort          cl1 = 0, cl2 = 0; /* shut compiler up */
 
   HB_Class1Record*  c1r;
   HB_Class2Record*  c2r;
@@ -5877,9 +5877,10 @@ static HB_Error  GPOS_Do_Glyph_Lookup( GPOS_Instance*    gpi,
 }
 
 
-HB_Error  _HB_GPOS_Load_SubTable( HB_GPOS_SubTable*  st,
-				  FT_Stream     stream,
-				  FT_UShort     lookup_type )
+HB_INTERNAL HB_Error
+_HB_GPOS_Load_SubTable( HB_GPOS_SubTable* st,
+			FT_Stream         stream,
+			FT_UShort         lookup_type )
 {
   switch ( lookup_type ) {
     case HB_GPOS_LOOKUP_SINGLE:		return Load_SinglePos		( st, stream );
@@ -5896,8 +5897,9 @@ HB_Error  _HB_GPOS_Load_SubTable( HB_GPOS_SubTable*  st,
 }
 
 
-void  _HB_GPOS_Free_SubTable( HB_GPOS_SubTable*  st,
-			      FT_UShort     lookup_type )
+HB_INTERNAL void
+_HB_GPOS_Free_SubTable( HB_GPOS_SubTable* st,
+			FT_UShort         lookup_type )
 {
   switch ( lookup_type ) {
     case HB_GPOS_LOOKUP_SINGLE:		Free_SinglePos		( st ); return;
@@ -6110,7 +6112,7 @@ HB_Error  HB_GPOS_Apply_String( FT_Face           face,
 
   if ( num_features )
     {
-      error = hb_buffer_clear_positions( buffer );
+      error = _hb_buffer_clear_positions( buffer );
       if ( error )
 	return error;
     }

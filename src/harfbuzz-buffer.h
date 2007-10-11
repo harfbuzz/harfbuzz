@@ -1,6 +1,6 @@
 /* harfbuzz-buffer.h: Buffer of glyphs for substitution/positioning
  *
- * Copyrigh 2004 Red Hat Software
+ * Copyright 2004,7 Red Hat Software
  *
  * Portions Copyright 1996-2000 by
  * David Turner, Robert Wilhelm, and Werner Lemberg.
@@ -18,8 +18,6 @@
 #include FT_FREETYPE_H
 
 FT_BEGIN_HEADER
-
-#define HB_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
 
 typedef struct HB_GlyphItemRec_ {
   FT_UInt     gindex;
@@ -67,50 +65,16 @@ HB_Error
 hb_buffer_new( HB_Buffer *buffer );
 
 void
-hb_buffer_swap( HB_Buffer buffer );
-
-void
 hb_buffer_free( HB_Buffer buffer );
 
 void
 hb_buffer_clear( HB_Buffer buffer );
-
-void
-hb_buffer_clear_output( HB_Buffer buffer );
-
-HB_Error
-hb_buffer_clear_positions( HB_Buffer buffer );
 
 HB_Error
 hb_buffer_add_glyph( HB_Buffer buffer,
 		      FT_UInt    glyph_index,
 		      FT_UInt    properties,
 		      FT_UInt    cluster );
-
-HB_Error
-hb_buffer_add_output_glyphs( HB_Buffer buffer,
-			      FT_UShort  num_in,
-			      FT_UShort  num_out,
-			      FT_UShort *glyph_data,
-			      FT_UShort  component,
-			      FT_UShort  ligID );
-
-HB_Error
-hb_buffer_add_output_glyph ( HB_Buffer buffer,
-			      FT_UInt    glyph_index,
-			      FT_UShort  component,
-			      FT_UShort  ligID );
-
-HB_Error
-hb_buffer_copy_output_glyph ( HB_Buffer buffer );
-
-HB_Error
-hb_buffer_replace_output_glyph ( HB_Buffer buffer,
-				 FT_UInt   glyph_index,
-				 FT_Bool   inplace );
-
-FT_UShort
-hb_buffer_allocate_ligid( HB_Buffer buffer );
 
 FT_END_HEADER
 

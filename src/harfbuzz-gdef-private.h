@@ -13,6 +13,7 @@
 #ifndef HARFBUZZ_GDEF_PRIVATE_H
 #define HARFBUZZ_GDEF_PRIVATE_H
 
+#include "harfbuzz-impl.h"
 #include "harfbuzz-gdef.h"
 #include "harfbuzz-buffer.h"
 
@@ -87,14 +88,16 @@ struct  HB_LigGlyph_
 };
 
 
-HB_Error  _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader*   gdef,
-				       FT_UShort        glyphID,
-				       FT_UShort        property );
+HB_INTERNAL HB_Error
+_HB_GDEF_Add_Glyph_Property( HB_GDEFHeader* gdef,
+		             FT_UShort      glyphID,
+		             FT_UShort      property );
 
-HB_Error  _HB_GDEF_Check_Property( HB_GDEFHeader*   gdef,
-				   HB_GlyphItem    item,
-				   FT_UShort        flags,
-				   FT_UShort*       property );
+HB_INTERNAL HB_Error
+_HB_GDEF_Check_Property( HB_GDEFHeader* gdef,
+		         HB_GlyphItem   item,
+		         FT_UShort      flags,
+		         FT_UShort*     property );
 
 FT_END_HEADER
 

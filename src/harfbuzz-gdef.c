@@ -762,7 +762,7 @@ HB_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
 				      FT_UShort        glyphID,
 				      FT_UShort*       property )
 {
-  FT_UShort class, index;
+  FT_UShort class = 0, index = 0; /* shut compiler up */
 
   HB_Error  error;
 
@@ -1057,12 +1057,13 @@ static void  Free_NewGlyphClasses( HB_GDEFHeader*  gdef )
 }
 
 
-HB_Error  _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader*  gdef,
-			      FT_UShort        glyphID,
-			      FT_UShort        property )
+HB_INTERNAL HB_Error
+_HB_GDEF_Add_Glyph_Property( HB_GDEFHeader* gdef,
+			     FT_UShort      glyphID,
+			     FT_UShort      property )
 {
   HB_Error               error;
-  FT_UShort              class, new_class, index;
+  FT_UShort              class, new_class, index = 0; /* shut compiler up */
   FT_UShort              byte, bits, mask;
   FT_UShort              array_index, glyph_index, count;
 
@@ -1142,10 +1143,11 @@ HB_Error  _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader*  gdef,
 }
 
 
-HB_Error  _HB_GDEF_Check_Property( HB_GDEFHeader*  gdef,
-			  HB_GlyphItem    gitem,
-			  FT_UShort        flags,
-			  FT_UShort*       property )
+HB_INTERNAL HB_Error
+_HB_GDEF_Check_Property( HB_GDEFHeader* gdef,
+			 HB_GlyphItem   gitem,
+			 FT_UShort      flags,
+			 FT_UShort*     property )
 {
   HB_Error  error;
 

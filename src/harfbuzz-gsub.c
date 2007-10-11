@@ -1042,7 +1042,7 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
       }
       else
       {
-	FT_UShort ligID = hb_buffer_allocate_ligid( buffer );
+	FT_UShort ligID = _hb_buffer_allocate_ligid( buffer );
 	if ( ADD_String( buffer, i, 1, &lig->LigGlyph,
 			0xFFFF, ligID ) )
 	  return error;
@@ -1050,7 +1050,7 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
     }
     else
     {
-      FT_UShort ligID = hb_buffer_allocate_ligid( buffer );
+      FT_UShort ligID = _hb_buffer_allocate_ligid( buffer );
       if ( ADD_Glyph( buffer, lig->LigGlyph, 0xFFFF, ligID ) )
 	return error;
 
@@ -4112,9 +4112,10 @@ static HB_Error  GSUB_Do_Glyph_Lookup( HB_GSUBHeader* gsub,
 }
 
 
-HB_Error  _HB_GSUB_Load_SubTable( HB_GSUB_SubTable*  st,
-				  FT_Stream     stream,
-				  FT_UShort     lookup_type )
+HB_INTERNAL HB_Error
+_HB_GSUB_Load_SubTable( HB_GSUB_SubTable* st,
+			FT_Stream         stream,
+			FT_UShort         lookup_type )
 {
   switch (lookup_type) {
     case HB_GSUB_LOOKUP_SINGLE:		return Load_SingleSubst			( st, stream );
@@ -4130,8 +4131,9 @@ HB_Error  _HB_GSUB_Load_SubTable( HB_GSUB_SubTable*  st,
 }
 
 
-void  _HB_GSUB_Free_SubTable( HB_GSUB_SubTable*  st,
-			      FT_UShort     lookup_type )
+HB_INTERNAL void
+_HB_GSUB_Free_SubTable( HB_GSUB_SubTable* st,
+			FT_UShort         lookup_type )
 {
   switch ( lookup_type ) {
     case HB_GSUB_LOOKUP_SINGLE:		Free_SingleSubst		( st ); return;
@@ -4173,7 +4175,7 @@ static HB_Error  GSUB_Do_String_Lookup( HB_GSUBHeader* gsub,
     case HB_GSUB_LOOKUP_CHAIN:
       /* in/out forward substitution (implemented lazy) */
 
-      hb_buffer_clear_output ( buffer );
+      _hb_buffer_clear_output ( buffer );
       buffer->in_pos = 0;
       while ( buffer->in_pos < buffer->in_length )
       {
@@ -4201,7 +4203,7 @@ static HB_Error  GSUB_Do_String_Lookup( HB_GSUBHeader* gsub,
        * shouldn't matter in that case though.
        */
       if ( retError == HB_Err_Ok )
-	hb_buffer_swap( buffer );
+	_hb_buffer_swap( buffer );
 
       return retError;
 

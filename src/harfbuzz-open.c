@@ -184,8 +184,9 @@ static void  Free_Script( HB_Script*  s )
 
 /* ScriptList */
 
-HB_Error  _HB_OPEN_Load_ScriptList( HB_ScriptList*  sl,
-			   FT_Stream        stream )
+HB_INTERNAL HB_Error
+_HB_OPEN_Load_ScriptList( HB_ScriptList* sl,
+			  FT_Stream      stream )
 {
   HB_Error   error;
 
@@ -258,7 +259,8 @@ Fail:
 }
 
 
-void  _HB_OPEN_Free_ScriptList( HB_ScriptList*  sl )
+HB_INTERNAL void
+_HB_OPEN_Free_ScriptList( HB_ScriptList* sl )
 {
   FT_UShort          n, count;
 
@@ -334,8 +336,9 @@ static void  Free_Feature( HB_Feature*  f )
 
 /* FeatureList */
 
-HB_Error  _HB_OPEN_Load_FeatureList( HB_FeatureList*  fl,
-			    FT_Stream         stream )
+HB_INTERNAL HB_Error
+_HB_OPEN_Load_FeatureList( HB_FeatureList* fl,
+			   FT_Stream       stream )
 {
   HB_Error   error;
 
@@ -397,7 +400,8 @@ Fail2:
 }
 
 
-void  _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl )
+HB_INTERNAL void
+_HB_OPEN_Free_FeatureList( HB_FeatureList*  fl )
 {
   FT_UShort           n, count;
 
@@ -557,9 +561,10 @@ static void  Free_Lookup( HB_Lookup*   l,
 
 /* LookupList */
 
-HB_Error  _HB_OPEN_Load_LookupList( HB_LookupList*  ll,
-			   FT_Stream        stream,
-			   HB_Type         type )
+HB_INTERNAL HB_Error
+_HB_OPEN_Load_LookupList( HB_LookupList* ll,
+			  FT_Stream      stream,
+			  HB_Type        type )
 {
   HB_Error   error;
 
@@ -617,8 +622,9 @@ Fail2:
 }
 
 
-void  _HB_OPEN_Free_LookupList( HB_LookupList*  ll,
-				HB_Type         type )
+HB_INTERNAL void
+_HB_OPEN_Free_LookupList( HB_LookupList* ll,
+			  HB_Type        type )
 {
   FT_UShort    n, count;
 
@@ -754,8 +760,9 @@ static void  Free_Coverage2( HB_CoverageFormat2*  cf2 )
 }
 
 
-HB_Error  _HB_OPEN_Load_Coverage( HB_Coverage*  c,
-			 FT_Stream      stream )
+HB_INTERNAL HB_Error
+_HB_OPEN_Load_Coverage( HB_Coverage* c,
+			FT_Stream    stream )
 {
   HB_Error   error;
 
@@ -777,7 +784,8 @@ HB_Error  _HB_OPEN_Load_Coverage( HB_Coverage*  c,
 }
 
 
-void  _HB_OPEN_Free_Coverage( HB_Coverage*  c )
+HB_INTERNAL void
+_HB_OPEN_Free_Coverage( HB_Coverage* c )
 {
   switch ( c->CoverageFormat )
   {
@@ -888,9 +896,10 @@ static HB_Error  Coverage_Index2( HB_CoverageFormat2*  cf2,
 }
 
 
-HB_Error  _HB_OPEN_Coverage_Index( HB_Coverage*  c,
-			  FT_UShort      glyphID,
-			  FT_UShort*     index )
+HB_INTERNAL HB_Error
+_HB_OPEN_Coverage_Index( HB_Coverage* c,
+			 FT_UShort    glyphID,
+			 FT_UShort*   index )
 {
   switch ( c->CoverageFormat )
   {
@@ -1059,9 +1068,10 @@ static void  Free_ClassDef2( HB_ClassDefFormat2*  cdf2 )
 
 /* ClassDefinition */
 
-HB_Error  _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition*  cd,
-				FT_UShort             limit,
-				FT_Stream             stream )
+HB_INTERNAL HB_Error
+_HB_OPEN_Load_ClassDefinition( HB_ClassDefinition* cd,
+			       FT_UShort           limit,
+			       FT_Stream           stream )
 {
   HB_Error   error;
 
@@ -1095,7 +1105,8 @@ Fail:
 }
 
 
-static HB_Error  _HB_OPEN_Load_EmptyClassDefinition( HB_ClassDefinition*  cd )
+static HB_Error
+_HB_OPEN_Load_EmptyClassDefinition( HB_ClassDefinition*  cd )
 {
   HB_Error   error;
 
@@ -1115,11 +1126,12 @@ Fail:
   return error;
 }
 
-HB_Error _HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition*  cd,
-					       FT_UShort            limit,
-					       FT_ULong             class_offset,
-					       FT_ULong             base_offset,
-					       FT_Stream            stream )
+HB_INTERNAL HB_Error
+_HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition* cd,
+				      FT_UShort           limit,
+				      FT_ULong            class_offset,
+				      FT_ULong            base_offset,
+				      FT_Stream           stream )
 {
   HB_Error error;
   FT_ULong               cur_offset;
@@ -1140,7 +1152,8 @@ HB_Error _HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition*  cd,
   return error;
 }
 
-void  _HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd )
+HB_INTERNAL void
+_HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd )
 {
   if ( !cd->loaded )
     return;
@@ -1158,7 +1171,7 @@ void  _HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd )
 
 static HB_Error  Get_Class1( HB_ClassDefFormat1*  cdf1,
 			     FT_UShort             glyphID,
-			     FT_UShort*            class,
+			     FT_UShort*            klass,
 			     FT_UShort*            index )
 {
   FT_UShort*  cva = cdf1->ClassValueArray;
@@ -1170,12 +1183,12 @@ static HB_Error  Get_Class1( HB_ClassDefFormat1*  cdf1,
   if ( glyphID >= cdf1->StartGlyph &&
        glyphID < cdf1->StartGlyph + cdf1->GlyphCount )
   {
-    *class = cva[glyphID - cdf1->StartGlyph];
+    *klass = cva[glyphID - cdf1->StartGlyph];
     return HB_Err_Ok;
   }
   else
   {
-    *class = 0;
+    *klass = 0;
     return HB_Err_Not_Covered;
   }
 }
@@ -1186,7 +1199,7 @@ static HB_Error  Get_Class1( HB_ClassDefFormat1*  cdf1,
 
 static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
 			     FT_UShort             glyphID,
-			     FT_UShort*            class,
+			     FT_UShort*            klass,
 			     FT_UShort*            index )
 {
   HB_Error               error = HB_Err_Ok;
@@ -1199,7 +1212,7 @@ static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
 
   if ( cdf2->ClassRangeCount == 0 )
     {
-      *class = 0;
+      *klass = 0;
       if ( index )
 	*index = 0;
       
@@ -1221,7 +1234,7 @@ static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
 
     if ( glyphID >= crr[middle].Start && glyphID <= crr[middle].End )
     {
-      *class = crr[middle].Class;
+      *klass = crr[middle].Class;
       error  = HB_Err_Ok;
       break;
     }
@@ -1229,7 +1242,7 @@ static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
     {
       if ( middle == min )
       {
-	*class = 0;
+	*klass = 0;
 	error  = HB_Err_Not_Covered;
 	break;
       }
@@ -1239,7 +1252,7 @@ static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
     {
       if ( middle == max )
       {
-	*class = 0;
+	*klass = 0;
 	error  = HB_Err_Not_Covered;
 	break;
       }
@@ -1254,15 +1267,16 @@ static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
 }
 
 
-HB_Error  _HB_OPEN_Get_Class( HB_ClassDefinition*  cd,
-		     FT_UShort             glyphID,
-		     FT_UShort*            class,
-		     FT_UShort*            index )
+HB_INTERNAL HB_Error
+_HB_OPEN_Get_Class( HB_ClassDefinition* cd,
+		    FT_UShort           glyphID,
+		    FT_UShort*          klass,
+		    FT_UShort*          index )
 {
   switch ( cd->ClassFormat )
   {
-  case 1:  return Get_Class1( &cd->cd.cd1, glyphID, class, index );
-  case 2:  return Get_Class2( &cd->cd.cd2, glyphID, class, index );
+  case 1:  return Get_Class1( &cd->cd.cd1, glyphID, klass, index );
+  case 2:  return Get_Class2( &cd->cd.cd2, glyphID, klass, index );
   default: return _hb_err(HB_Err_Invalid_SubTable_Format);
   }
 
@@ -1276,8 +1290,9 @@ HB_Error  _HB_OPEN_Get_Class( HB_ClassDefinition*  cd,
  ***************************/
 
 
-HB_Error  _HB_OPEN_Load_Device( HB_Device*  d,
-		       FT_Stream    stream )
+HB_INTERNAL HB_Error
+_HB_OPEN_Load_Device( HB_Device* d,
+		      FT_Stream  stream )
 {
   HB_Error   error;
 
@@ -1331,7 +1346,8 @@ HB_Error  _HB_OPEN_Load_Device( HB_Device*  d,
 }
 
 
-void  _HB_OPEN_Free_Device( HB_Device*  d )
+HB_INTERNAL void
+_HB_OPEN_Free_Device( HB_Device* d )
 {
   FREE( d->DeltaValue );
 }
@@ -1372,9 +1388,10 @@ void  _HB_OPEN_Free_Device( HB_Device*  d )
 
      mask = 0x00FF                                    */
 
-HB_Error  _HB_OPEN_Get_Device( HB_Device*  d,
-		      FT_UShort    size,
-		      FT_Short*    value )
+HB_INTERNAL HB_Error
+_HB_OPEN_Get_Device( HB_Device* d,
+		     FT_UShort  size,
+		     FT_Short*  value )
 {
   FT_UShort  byte, bits, mask, f, s;
 

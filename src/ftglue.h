@@ -46,6 +46,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include "harfbuzz-impl.h"
 #include "harfbuzz-open.h"
 
 FT_BEGIN_HEADER
@@ -83,21 +84,21 @@ FT_BEGIN_HEADER
 #define  GET_ULong()     ((FT_ULong)GET_Long())
 #define  GET_Tag4()      GET_ULong()
 
-FT_Long
+HB_INTERNAL FT_Long
 _hb_ftglue_stream_pos( FT_Stream   stream );
 
-HB_Error
+HB_INTERNAL HB_Error
 _hb_ftglue_stream_seek( FT_Stream   stream,
                     FT_Long     pos );
 
-HB_Error
+HB_INTERNAL HB_Error
 _hb_ftglue_stream_frame_enter( FT_Stream   stream,
                            FT_ULong    size );
 
-void
+HB_INTERNAL void
 _hb_ftglue_stream_frame_exit( FT_Stream  stream );
 
-HB_Error
+HB_INTERNAL HB_Error
 _hb_ftglue_face_goto_table( FT_Face    face,
                         FT_ULong   tag,
                         FT_Stream  stream );
@@ -127,22 +128,23 @@ _hb_ftglue_face_goto_table( FT_Face    face,
 #define  MEM_Copy(dest,source,count)   memcpy( (char*)(dest), (const char*)(source), (size_t)(count) )
 
 
-FT_Pointer
+HB_INTERNAL FT_Pointer
 _hb_ftglue_alloc( FT_ULong   size,
 		  HB_Error  *perror_ );
 
-FT_Pointer
+HB_INTERNAL FT_Pointer
 _hb_ftglue_realloc( FT_Pointer  block,
 		    FT_ULong    new_size,
 		    HB_Error   *perror_ );
 
-void
+HB_INTERNAL void
 _hb_ftglue_free( FT_Pointer  block );
 
 /* abuse these private header/source files */
 
 /* helper func to set a breakpoint on */
-HB_Error _hb_err (HB_Error code);
+HB_INTERNAL HB_Error
+_hb_err (HB_Error code);
 
 FT_END_HEADER
 

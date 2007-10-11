@@ -7,7 +7,7 @@
  */
 
 #include "harfbuzz-impl.h"
-#include "harfbuzz-buffer.h"
+#include "harfbuzz-buffer-private.h"
 #include "harfbuzz-gsub-private.h"
 #include "harfbuzz-gpos-private.h"
 
@@ -37,6 +37,8 @@
  * The buffer->separate_out boolean keeps status of whether out_string points
  * to in_string (FALSE) or alt_string (TRUE).
  */
+
+/* Internal API */
 
 static HB_Error
 hb_buffer_ensure( HB_Buffer buffer,
@@ -102,6 +104,8 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
   return HB_Err_Ok;
 }
 
+/* Public API */
+
 HB_Error
 hb_buffer_new( HB_Buffer *pbuffer )
 {
@@ -145,8 +149,36 @@ hb_buffer_clear( HB_Buffer buffer )
   buffer->max_ligID = 0;
 }
 
-void
-hb_buffer_clear_output( HB_Buffer buffer )
+HB_Error
+hb_buffer_add_glyph( HB_Buffer buffer,
+		      FT_UInt   glyph_index,
+		      FT_UInt   properties,
+		      FT_UInt   cluster )
+{
+  HB_Error error;
+  HB_GlyphItem glyph;
+  
+  error = hb_buffer_ensure( buffer, buffer->in_length + 1 );
+  if ( error )
+    return error;
+
+  glyph = &buffer->in_string[buffer->in_length];
+  glyph->gindex = glyph_index;
+  glyph->properties = properties;
+  glyph->cluster = cluster;
+  glyph->component = 0;
+  glyph->ligID = 0;
+  glyph->gproperties = HB_GLYPH_PROPERTIES_UNKNOWN;
+  
+  buffer->in_length++;
+
+  return HB_Err_Ok;
+}
+
+/* HarfBuzz-Internal API */
+
+HB_INTERNAL void
+_hb_buffer_clear_output( HB_Buffer buffer )
 {
   buffer->out_length = 0;
   buffer->out_pos = 0;
@@ -154,8 +186,8 @@ hb_buffer_clear_output( HB_Buffer buffer )
   buffer->separate_out = FALSE;
 }
 
-HB_Error
-hb_buffer_clear_positions( HB_Buffer buffer )
+HB_INTERNAL HB_Error
+_hb_buffer_clear_positions( HB_Buffer buffer )
 {
   if ( !buffer->positions )
     {
@@ -170,8 +202,8 @@ hb_buffer_clear_positions( HB_Buffer buffer )
   return HB_Err_Ok;
 }
 
-void
-hb_buffer_swap( HB_Buffer buffer )
+HB_INTERNAL void
+_hb_buffer_swap( HB_Buffer buffer )
 {
   HB_GlyphItem tmp_string;
   int tmp_length;
@@ -194,32 +226,6 @@ hb_buffer_swap( HB_Buffer buffer )
   buffer->out_pos = tmp_pos;
 }
 
-HB_Error
-hb_buffer_add_glyph( HB_Buffer buffer,
-		      FT_UInt    glyph_index,
-		      FT_UInt    properties,
-		      FT_UInt    cluster )
-{
-  HB_Error error;
-  HB_GlyphItem glyph;
-  
-  error = hb_buffer_ensure( buffer, buffer->in_length + 1 );
-  if ( error )
-    return error;
-
-  glyph = &buffer->in_string[buffer->in_length];
-  glyph->gindex = glyph_index;
-  glyph->properties = properties;
-  glyph->cluster = cluster;
-  glyph->component = 0;
-  glyph->ligID = 0;
-  glyph->gproperties = HB_GLYPH_PROPERTIES_UNKNOWN;
-  
-  buffer->in_length++;
-
-  return HB_Err_Ok;
-}
-
 /* The following function copies `num_out' elements from `glyph_data'
    to `buffer->out_string', advancing the in array pointer in the structure
    by `num_in' elements, and the out array pointer by `num_out' elements.
@@ -239,8 +245,8 @@ hb_buffer_add_glyph( HB_Buffer buffer,
 
    The cluster value for the glyph at position buffer->in_pos is used
    for all replacement glyphs */
-HB_Error
-hb_buffer_add_output_glyphs( HB_Buffer buffer,
+HB_INTERNAL HB_Error
+_hb_buffer_add_output_glyphs( HB_Buffer  buffer,
 			      FT_UShort  num_in,
 			      FT_UShort  num_out,
 			      FT_UShort *glyph_data,
@@ -290,20 +296,20 @@ hb_buffer_add_output_glyphs( HB_Buffer buffer,
   return HB_Err_Ok;
 }
 
-HB_Error
-hb_buffer_add_output_glyph( HB_Buffer buffer,	
-			     FT_UInt    glyph_index,
-			     FT_UShort  component,
-			     FT_UShort  ligID )
+HB_INTERNAL HB_Error
+_hb_buffer_add_output_glyph( HB_Buffer buffer,	
+			     FT_UInt   glyph_index,
+			     FT_UShort component,
+			     FT_UShort ligID )
 {
   FT_UShort glyph_data =  glyph_index;
 
-  return hb_buffer_add_output_glyphs ( buffer, 1, 1,
+  return _hb_buffer_add_output_glyphs ( buffer, 1, 1,
 					&glyph_data, component, ligID );
 }
 
-HB_Error
-hb_buffer_copy_output_glyph ( HB_Buffer buffer )
+HB_INTERNAL HB_Error
+_hb_buffer_copy_output_glyph ( HB_Buffer buffer )
 {  
   HB_Error  error;
 
@@ -323,17 +329,17 @@ hb_buffer_copy_output_glyph ( HB_Buffer buffer )
   return HB_Err_Ok;
 }
 
-HB_Error
-hb_buffer_replace_output_glyph( HB_Buffer buffer,	
-				FT_UInt   glyph_index,
-				FT_Bool   inplace )
+HB_INTERNAL HB_Error
+_hb_buffer_replace_output_glyph( HB_Buffer buffer,	
+				 FT_UInt   glyph_index,
+				 FT_Bool   inplace )
 {
 
   HB_Error error;
 
   if ( inplace )
     {
-      error = hb_buffer_copy_output_glyph ( buffer );
+      error = _hb_buffer_copy_output_glyph ( buffer );
       if ( error )
 	return error;
 
@@ -341,14 +347,14 @@ hb_buffer_replace_output_glyph( HB_Buffer buffer,
     }
   else
     {
-      return hb_buffer_add_output_glyph( buffer, glyph_index, 0xFFFF, 0xFFFF );
+      return _hb_buffer_add_output_glyph( buffer, glyph_index, 0xFFFF, 0xFFFF );
     }
 
   return HB_Err_Ok;
 }
 
-FT_UShort
-hb_buffer_allocate_ligid( HB_Buffer buffer )
+HB_INTERNAL FT_UShort
+_hb_buffer_allocate_ligid( HB_Buffer buffer )
 {
   return ++buffer->max_ligID;
 }

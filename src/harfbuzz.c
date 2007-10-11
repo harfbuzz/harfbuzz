@@ -10,6 +10,7 @@
  *  See the file name COPYING for licensing information.
  *
  ******************************************************************/
+#define HB_INTERNAL static
 #include "ftglue.c"
 #include "harfbuzz-open.c"
 #include "harfbuzz-buffer.c"

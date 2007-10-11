@@ -51,7 +51,7 @@ _hb_ftglue_qalloc( FT_ULong   size,
 #define  QALLOC(ptr,size)    ( (ptr) = _hb_ftglue_qalloc( (size), &error ), error != 0 )
 
 
-FT_Pointer
+HB_INTERNAL FT_Pointer
 _hb_ftglue_alloc( FT_ULong   size,
 		  HB_Error  *perror )
 {
@@ -72,7 +72,7 @@ _hb_ftglue_alloc( FT_ULong   size,
 }
 
 
-FT_Pointer
+HB_INTERNAL FT_Pointer
 _hb_ftglue_realloc( FT_Pointer  block,
 		    FT_ULong    new_size,
 		    HB_Error   *perror )
@@ -92,7 +92,7 @@ _hb_ftglue_realloc( FT_Pointer  block,
 }
 
 
-void
+HB_INTERNAL void
 _hb_ftglue_free( FT_Pointer  block )
 {
   if ( block )
@@ -100,7 +100,7 @@ _hb_ftglue_free( FT_Pointer  block )
 }
 
 
-FT_Long
+HB_INTERNAL FT_Long
 _hb_ftglue_stream_pos( FT_Stream   stream )
 {
   LOG(( "ftglue:stream:pos() -> %ld\n", stream->pos ));
@@ -108,7 +108,7 @@ _hb_ftglue_stream_pos( FT_Stream   stream )
 }
 
 
-HB_Error
+HB_INTERNAL HB_Error
 _hb_ftglue_stream_seek( FT_Stream   stream,
                     FT_Long     pos )
 {
@@ -128,7 +128,7 @@ _hb_ftglue_stream_seek( FT_Stream   stream,
 }
 
 
-HB_Error
+HB_INTERNAL HB_Error
 _hb_ftglue_stream_frame_enter( FT_Stream   stream,
                            FT_ULong    count )
 {
@@ -176,7 +176,7 @@ Exit:
 }
 
 
-void
+HB_INTERNAL void
 _hb_ftglue_stream_frame_exit( FT_Stream  stream )
 {
   if ( stream->read )
@@ -190,7 +190,7 @@ _hb_ftglue_stream_frame_exit( FT_Stream  stream )
 }
 
 
-HB_Error
+HB_INTERNAL HB_Error
 _hb_ftglue_face_goto_table( FT_Face    face,
                         FT_ULong   the_tag,
                         FT_Stream  stream )
@@ -280,7 +280,7 @@ Exit:
 /* abuse these private header/source files */
 
 /* helper func to set a breakpoint on */
-HB_Error
+HB_INTERNAL HB_Error
 _hb_err (HB_Error code)
 {
   return code;

@@ -19,6 +19,10 @@
 
 FT_BEGIN_HEADER
 
+#ifndef HB_INTERNAL
+# define HB_INTERNAL
+#endif
+
 #ifndef NULL
 # define NULL ((void *)0)
 #endif
@@ -68,19 +72,19 @@ FT_BEGIN_HEADER
                                       (property) ) ) != HB_Err_Ok )
 
 #define ADD_String( buffer, num_in, num_out, glyph_data, component, ligID )             \
-          ( ( error = hb_buffer_add_output_glyphs( (buffer),                            \
+          ( ( error = _hb_buffer_add_output_glyphs( (buffer),                            \
 						    (num_in), (num_out),                \
                                                     (glyph_data), (component), (ligID)  \
                                                   ) ) != HB_Err_Ok )
 #define ADD_Glyph( buffer, glyph_index, component, ligID )				\
-          ( ( error = hb_buffer_add_output_glyph( (buffer),                             \
+          ( ( error = _hb_buffer_add_output_glyph( (buffer),                             \
                                                     (glyph_index), (component), (ligID) \
                                                   ) ) != HB_Err_Ok )
 #define REPLACE_Glyph( buffer, glyph_index, nesting_level )				\
-          ( ( error = hb_buffer_replace_output_glyph( (buffer), (glyph_index),		\
+          ( ( error = _hb_buffer_replace_output_glyph( (buffer), (glyph_index),		\
 						      (nesting_level) == 1 ) ) != HB_Err_Ok )
 #define COPY_Glyph( buffer )								\
-	  ( (error = hb_buffer_copy_output_glyph ( buffer ) ) != HB_Err_Ok )
+	  ( (error = _hb_buffer_copy_output_glyph ( buffer ) ) != HB_Err_Ok )
 
 FT_END_HEADER
 
