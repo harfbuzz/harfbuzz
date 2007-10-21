@@ -356,5 +356,9 @@ _hb_buffer_replace_output_glyph( HB_Buffer buffer,
 HB_INTERNAL FT_UShort
 _hb_buffer_allocate_ligid( HB_Buffer buffer )
 {
-  return ++buffer->max_ligID;
+  buffer->max_ligID++;
+  if (HB_UNLIKELY (buffer->max_ligID == 0))
+    buffer->max_ligID++;
+
+  return buffer->max_ligID;
 }

@@ -49,6 +49,9 @@ FT_BEGIN_HEADER
 # define FT_UNUSED(arg) ((arg) = (arg))
 #endif
 
+#define HB_LIKELY(cond) (cond)
+#define HB_UNLIKELY(cond) (cond)
+
 #include "ftglue.h"
 
 #define ARRAY_LEN(Array) ((int)(sizeof (Array) / sizeof (Array)[0]))
