@@ -42,9 +42,9 @@
 
 static HB_Error
 hb_buffer_ensure( HB_Buffer buffer,
-		   FT_ULong   size )
+		   HB_UInt   size )
 {
-  FT_ULong new_allocated = buffer->allocated;
+  HB_UInt new_allocated = buffer->allocated;
 
   if (size > new_allocated)
     {
@@ -151,9 +151,9 @@ hb_buffer_clear( HB_Buffer buffer )
 
 HB_Error
 hb_buffer_add_glyph( HB_Buffer buffer,
-		      FT_UInt   glyph_index,
-		      FT_UInt   properties,
-		      FT_UInt   cluster )
+		      HB_UInt   glyph_index,
+		      HB_UInt   properties,
+		      HB_UInt   cluster )
 {
   HB_Error error;
   HB_GlyphItem glyph;
@@ -247,16 +247,16 @@ _hb_buffer_swap( HB_Buffer buffer )
    for all replacement glyphs */
 HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyphs( HB_Buffer  buffer,
-			      FT_UShort  num_in,
-			      FT_UShort  num_out,
-			      FT_UShort *glyph_data,
-			      FT_UShort  component,
-			      FT_UShort  ligID )
+			      HB_UShort  num_in,
+			      HB_UShort  num_out,
+			      HB_UShort *glyph_data,
+			      HB_UShort  component,
+			      HB_UShort  ligID )
 {
   HB_Error  error;
-  FT_UShort i;
-  FT_UInt properties;
-  FT_UInt cluster;
+  HB_UShort i;
+  HB_UInt properties;
+  HB_UInt cluster;
 
   error = hb_buffer_ensure( buffer, buffer->out_pos + num_out );
   if ( error )
@@ -298,11 +298,11 @@ _hb_buffer_add_output_glyphs( HB_Buffer  buffer,
 
 HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyph( HB_Buffer buffer,	
-			     FT_UInt   glyph_index,
-			     FT_UShort component,
-			     FT_UShort ligID )
+			     HB_UInt   glyph_index,
+			     HB_UShort component,
+			     HB_UShort ligID )
 {
-  FT_UShort glyph_data =  glyph_index;
+  HB_UShort glyph_data =  glyph_index;
 
   return _hb_buffer_add_output_glyphs ( buffer, 1, 1,
 					&glyph_data, component, ligID );
@@ -331,8 +331,8 @@ _hb_buffer_copy_output_glyph ( HB_Buffer buffer )
 
 HB_INTERNAL HB_Error
 _hb_buffer_replace_output_glyph( HB_Buffer buffer,	
-				 FT_UInt   glyph_index,
-				 FT_Bool   inplace )
+				 HB_UInt   glyph_index,
+				 HB_Bool   inplace )
 {
 
   HB_Error error;
@@ -353,7 +353,7 @@ _hb_buffer_replace_output_glyph( HB_Buffer buffer,
   return HB_Err_Ok;
 }
 
-HB_INTERNAL FT_UShort
+HB_INTERNAL HB_UShort
 _hb_buffer_allocate_ligid( HB_Buffer buffer )
 {
   buffer->max_ligID++;

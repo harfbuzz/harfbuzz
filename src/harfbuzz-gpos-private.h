@@ -16,20 +16,20 @@
 #include "harfbuzz-impl.h"
 #include "harfbuzz-gpos.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 
 /* shared tables */
 
 struct  HB_ValueRecord_
 {
-  FT_Short    XPlacement;             /* horizontal adjustment for
+  HB_Short    XPlacement;             /* horizontal adjustment for
 					 placement                      */
-  FT_Short    YPlacement;             /* vertical adjustment for
+  HB_Short    YPlacement;             /* vertical adjustment for
 					 placement                      */
-  FT_Short    XAdvance;               /* horizontal adjustment for
+  HB_Short    XAdvance;               /* horizontal adjustment for
 					 advance                        */
-  FT_Short    YAdvance;               /* vertical adjustment for
+  HB_Short    YAdvance;               /* vertical adjustment for
 					 advance                        */
   HB_Device  XPlacementDevice;       /* device table for horizontal
 					 placement                      */
@@ -39,10 +39,10 @@ struct  HB_ValueRecord_
 					 advance                        */
   HB_Device  YAdvanceDevice;         /* device table for vertical
 					 advance                        */
-  FT_UShort   XIdPlacement;           /* horizontal placement metric ID */
-  FT_UShort   YIdPlacement;           /* vertical placement metric ID   */
-  FT_UShort   XIdAdvance;             /* horizontal advance metric ID   */
-  FT_UShort   YIdAdvance;             /* vertical advance metric ID     */
+  HB_UShort   XIdPlacement;           /* horizontal placement metric ID */
+  HB_UShort   YIdPlacement;           /* vertical placement metric ID   */
+  HB_UShort   XIdAdvance;             /* horizontal advance metric ID   */
+  HB_UShort   YIdAdvance;             /* vertical advance metric ID     */
 };
 
 typedef struct HB_ValueRecord_  HB_ValueRecord;
@@ -67,8 +67,8 @@ typedef struct HB_ValueRecord_  HB_ValueRecord;
 
 struct  HB_AnchorFormat1_
 {
-  FT_Short   XCoordinate;             /* horizontal value */
-  FT_Short   YCoordinate;             /* vertical value   */
+  HB_Short   XCoordinate;             /* horizontal value */
+  HB_Short   YCoordinate;             /* vertical value   */
 };
 
 typedef struct HB_AnchorFormat1_  HB_AnchorFormat1;
@@ -76,9 +76,9 @@ typedef struct HB_AnchorFormat1_  HB_AnchorFormat1;
 
 struct  HB_AnchorFormat2_
 {
-  FT_Short   XCoordinate;             /* horizontal value             */
-  FT_Short   YCoordinate;             /* vertical value               */
-  FT_UShort  AnchorPoint;             /* index to glyph contour point */
+  HB_Short   XCoordinate;             /* horizontal value             */
+  HB_Short   YCoordinate;             /* vertical value               */
+  HB_UShort  AnchorPoint;             /* index to glyph contour point */
 };
 
 typedef struct HB_AnchorFormat2_  HB_AnchorFormat2;
@@ -86,8 +86,8 @@ typedef struct HB_AnchorFormat2_  HB_AnchorFormat2;
 
 struct  HB_AnchorFormat3_
 {
-  FT_Short    XCoordinate;            /* horizontal value              */
-  FT_Short    YCoordinate;            /* vertical value                */
+  HB_Short    XCoordinate;            /* horizontal value              */
+  HB_Short    YCoordinate;            /* vertical value                */
   HB_Device  XDeviceTable;           /* device table for X coordinate */
   HB_Device  YDeviceTable;           /* device table for Y coordinate */
 };
@@ -97,8 +97,8 @@ typedef struct HB_AnchorFormat3_  HB_AnchorFormat3;
 
 struct  HB_AnchorFormat4_
 {
-  FT_UShort  XIdAnchor;               /* horizontal metric ID */
-  FT_UShort  YIdAnchor;               /* vertical metric ID   */
+  HB_UShort  XIdAnchor;               /* horizontal metric ID */
+  HB_UShort  YIdAnchor;               /* vertical metric ID   */
 };
 
 typedef struct HB_AnchorFormat4_  HB_AnchorFormat4;
@@ -106,7 +106,7 @@ typedef struct HB_AnchorFormat4_  HB_AnchorFormat4;
 
 struct  HB_Anchor_
 {
-  FT_UShort  PosFormat;               /* 1, 2, 3, or 4 -- 0 indicates
+  HB_UShort  PosFormat;               /* 1, 2, 3, or 4 -- 0 indicates
 					 that there is no Anchor table */
 
   union
@@ -123,7 +123,7 @@ typedef struct HB_Anchor_  HB_Anchor;
 
 struct  HB_MarkRecord_
 {
-  FT_UShort   Class;                  /* mark class   */
+  HB_UShort   Class;                  /* mark class   */
   HB_Anchor  MarkAnchor;             /* anchor table */
 };
 
@@ -132,7 +132,7 @@ typedef struct HB_MarkRecord_  HB_MarkRecord;
 
 struct  HB_MarkArray_
 {
-  FT_UShort        MarkCount;         /* number of MarkRecord tables */
+  HB_UShort        MarkCount;         /* number of MarkRecord tables */
   HB_MarkRecord*  MarkRecord;        /* array of MarkRecord tables  */
 };
 
@@ -152,7 +152,7 @@ typedef struct HB_SinglePosFormat1_  HB_SinglePosFormat1;
 
 struct  HB_SinglePosFormat2_
 {
-  FT_UShort         ValueCount;       /* number of ValueRecord tables */
+  HB_UShort         ValueCount;       /* number of ValueRecord tables */
   HB_ValueRecord*  Value;            /* array of ValueRecord tables  */
 };
 
@@ -161,10 +161,10 @@ typedef struct HB_SinglePosFormat2_  HB_SinglePosFormat2;
 
 struct  HB_SinglePos_
 {
-  FT_UShort     PosFormat;            /* 1 or 2         */
+  HB_UShort     PosFormat;            /* 1 or 2         */
   HB_Coverage  Coverage;             /* Coverage table */
 
-  FT_UShort     ValueFormat;          /* format of ValueRecord table */
+  HB_UShort     ValueFormat;          /* format of ValueRecord table */
 
   union
   {
@@ -180,7 +180,7 @@ typedef struct HB_SinglePos_  HB_SinglePos;
 
 struct  HB_PairValueRecord_
 {
-  FT_UShort        SecondGlyph;       /* glyph ID for second glyph  */
+  HB_UShort        SecondGlyph;       /* glyph ID for second glyph  */
   HB_ValueRecord  Value1;            /* pos. data for first glyph  */
   HB_ValueRecord  Value2;            /* pos. data for second glyph */
 };
@@ -190,7 +190,7 @@ typedef struct HB_PairValueRecord_  HB_PairValueRecord;
 
 struct  HB_PairSet_
 {
-  FT_UShort             PairValueCount;
+  HB_UShort             PairValueCount;
 				      /* number of PairValueRecord tables */
   HB_PairValueRecord*  PairValueRecord;
 				      /* array of PairValueRecord tables  */
@@ -201,7 +201,7 @@ typedef struct HB_PairSet_  HB_PairSet;
 
 struct  HB_PairPosFormat1_
 {
-  FT_UShort     PairSetCount;         /* number of PairSet tables    */
+  HB_UShort     PairSetCount;         /* number of PairSet tables    */
   HB_PairSet*  PairSet;              /* array of PairSet tables     */
 };
 
@@ -229,9 +229,9 @@ struct  HB_PairPosFormat2_
 {
   HB_ClassDefinition  ClassDef1;     /* class def. for first glyph     */
   HB_ClassDefinition  ClassDef2;     /* class def. for second glyph    */
-  FT_UShort            Class1Count;   /* number of classes in ClassDef1
+  HB_UShort            Class1Count;   /* number of classes in ClassDef1
 					 table                          */
-  FT_UShort            Class2Count;   /* number of classes in ClassDef2
+  HB_UShort            Class2Count;   /* number of classes in ClassDef2
 					 table                          */
   HB_Class1Record*    Class1Record;  /* array of Class1Record tables   */
 };
@@ -241,11 +241,11 @@ typedef struct HB_PairPosFormat2_  HB_PairPosFormat2;
 
 struct  HB_PairPos_
 {
-  FT_UShort     PosFormat;            /* 1 or 2         */
+  HB_UShort     PosFormat;            /* 1 or 2         */
   HB_Coverage  Coverage;             /* Coverage table */
-  FT_UShort     ValueFormat1;         /* format of ValueRecord table
+  HB_UShort     ValueFormat1;         /* format of ValueRecord table
 					 for first glyph             */
-  FT_UShort     ValueFormat2;         /* format of ValueRecord table
+  HB_UShort     ValueFormat2;         /* format of ValueRecord table
 					 for second glyph            */
 
   union
@@ -271,9 +271,9 @@ typedef struct HB_EntryExitRecord_  HB_EntryExitRecord;
 
 struct  HB_CursivePos_
 {
-  FT_UShort             PosFormat;    /* always 1                         */
+  HB_UShort             PosFormat;    /* always 1                         */
   HB_Coverage          Coverage;     /* Coverage table                   */
-  FT_UShort             EntryExitCount;
+  HB_UShort             EntryExitCount;
 				      /* number of EntryExitRecord tables */
   HB_EntryExitRecord*  EntryExitRecord;
 				      /* array of EntryExitRecord tables  */
@@ -295,7 +295,7 @@ typedef struct HB_BaseRecord_  HB_BaseRecord;
 
 struct  HB_BaseArray_
 {
-  FT_UShort        BaseCount;         /* number of BaseRecord tables */
+  HB_UShort        BaseCount;         /* number of BaseRecord tables */
   HB_BaseRecord*  BaseRecord;        /* array of BaseRecord tables  */
 };
 
@@ -304,10 +304,10 @@ typedef struct HB_BaseArray_  HB_BaseArray;
 
 struct  HB_MarkBasePos_
 {
-  FT_UShort      PosFormat;           /* always 1                  */
+  HB_UShort      PosFormat;           /* always 1                  */
   HB_Coverage   MarkCoverage;        /* mark glyph coverage table */
   HB_Coverage   BaseCoverage;        /* base glyph coverage table */
-  FT_UShort      ClassCount;          /* number of mark classes    */
+  HB_UShort      ClassCount;          /* number of mark classes    */
   HB_MarkArray  MarkArray;           /* mark array table          */
   HB_BaseArray  BaseArray;           /* base array table          */
 };
@@ -328,7 +328,7 @@ typedef struct HB_ComponentRecord_  HB_ComponentRecord;
 
 struct  HB_LigatureAttach_
 {
-  FT_UShort             ComponentCount;
+  HB_UShort             ComponentCount;
 				      /* number of ComponentRecord tables */
   HB_ComponentRecord*  ComponentRecord;
 				      /* array of ComponentRecord tables  */
@@ -339,7 +339,7 @@ typedef struct HB_LigatureAttach_  HB_LigatureAttach;
 
 struct  HB_LigatureArray_
 {
-  FT_UShort            LigatureCount; /* number of LigatureAttach tables */
+  HB_UShort            LigatureCount; /* number of LigatureAttach tables */
   HB_LigatureAttach*  LigatureAttach;
 				      /* array of LigatureAttach tables  */
 };
@@ -349,11 +349,11 @@ typedef struct HB_LigatureArray_  HB_LigatureArray;
 
 struct  HB_MarkLigPos_
 {
-  FT_UShort          PosFormat;       /* always 1                      */
+  HB_UShort          PosFormat;       /* always 1                      */
   HB_Coverage       MarkCoverage;    /* mark glyph coverage table     */
   HB_Coverage       LigatureCoverage;
 				      /* ligature glyph coverage table */
-  FT_UShort          ClassCount;      /* number of mark classes        */
+  HB_UShort          ClassCount;      /* number of mark classes        */
   HB_MarkArray      MarkArray;       /* mark array table              */
   HB_LigatureArray  LigatureArray;   /* ligature array table          */
 };
@@ -374,7 +374,7 @@ typedef struct HB_Mark2Record_  HB_Mark2Record;
 
 struct  HB_Mark2Array_
 {
-  FT_UShort         Mark2Count;       /* number of Mark2Record tables */
+  HB_UShort         Mark2Count;       /* number of Mark2Record tables */
   HB_Mark2Record*  Mark2Record;      /* array of Mark2Record tables  */
 };
 
@@ -383,10 +383,10 @@ typedef struct HB_Mark2Array_  HB_Mark2Array;
 
 struct  HB_MarkMarkPos_
 {
-  FT_UShort       PosFormat;          /* always 1                         */
+  HB_UShort       PosFormat;          /* always 1                         */
   HB_Coverage    Mark1Coverage;      /* first mark glyph coverage table  */
   HB_Coverage    Mark2Coverage;      /* second mark glyph coverave table */
-  FT_UShort       ClassCount;         /* number of combining mark classes */
+  HB_UShort       ClassCount;         /* number of combining mark classes */
   HB_MarkArray   Mark1Array;         /* MarkArray table for first mark   */
   HB_Mark2Array  Mark2Array;         /* MarkArray table for second mark  */
 };
@@ -398,9 +398,9 @@ typedef struct HB_MarkMarkPos_  HB_MarkMarkPos;
 
 struct  HB_PosLookupRecord_
 {
-  FT_UShort  SequenceIndex;           /* index into current
+  HB_UShort  SequenceIndex;           /* index into current
 					 glyph sequence               */
-  FT_UShort  LookupListIndex;         /* Lookup to apply to that pos. */
+  HB_UShort  LookupListIndex;         /* Lookup to apply to that pos. */
 };
 
 typedef struct HB_PosLookupRecord_  HB_PosLookupRecord;
@@ -410,9 +410,9 @@ typedef struct HB_PosLookupRecord_  HB_PosLookupRecord;
 
 struct  HB_PosRule_
 {
-  FT_UShort             GlyphCount;   /* total number of input glyphs     */
-  FT_UShort             PosCount;     /* number of PosLookupRecord tables */
-  FT_UShort*            Input;        /* array of input glyph IDs         */
+  HB_UShort             GlyphCount;   /* total number of input glyphs     */
+  HB_UShort             PosCount;     /* number of PosLookupRecord tables */
+  HB_UShort*            Input;        /* array of input glyph IDs         */
   HB_PosLookupRecord*  PosLookupRecord;
 				      /* array of PosLookupRecord tables  */
 };
@@ -422,7 +422,7 @@ typedef struct HB_PosRule_  HB_PosRule;
 
 struct  HB_PosRuleSet_
 {
-  FT_UShort     PosRuleCount;         /* number of PosRule tables */
+  HB_UShort     PosRuleCount;         /* number of PosRule tables */
   HB_PosRule*  PosRule;              /* array of PosRule tables  */
 };
 
@@ -432,7 +432,7 @@ typedef struct HB_PosRuleSet_  HB_PosRuleSet;
 struct  HB_ContextPosFormat1_
 {
   HB_Coverage     Coverage;          /* Coverage table              */
-  FT_UShort        PosRuleSetCount;   /* number of PosRuleSet tables */
+  HB_UShort        PosRuleSetCount;   /* number of PosRuleSet tables */
   HB_PosRuleSet*  PosRuleSet;        /* array of PosRuleSet tables  */
 };
 
@@ -441,9 +441,9 @@ typedef struct HB_ContextPosFormat1_  HB_ContextPosFormat1;
 
 struct  HB_PosClassRule_
 {
-  FT_UShort             GlyphCount;   /* total number of context classes  */
-  FT_UShort             PosCount;     /* number of PosLookupRecord tables */
-  FT_UShort*            Class;        /* array of classes                 */
+  HB_UShort             GlyphCount;   /* total number of context classes  */
+  HB_UShort             PosCount;     /* number of PosLookupRecord tables */
+  HB_UShort*            Class;        /* array of classes                 */
   HB_PosLookupRecord*  PosLookupRecord;
 				      /* array of PosLookupRecord tables  */
 };
@@ -453,7 +453,7 @@ typedef struct HB_PosClassRule_  HB_PosClassRule;
 
 struct  HB_PosClassSet_
 {
-  FT_UShort          PosClassRuleCount;
+  HB_UShort          PosClassRuleCount;
 				      /* number of PosClassRule tables */
   HB_PosClassRule*  PosClassRule;    /* array of PosClassRule tables  */
 };
@@ -467,11 +467,11 @@ typedef struct HB_PosClassSet_  HB_PosClassSet;
 
 struct  HB_ContextPosFormat2_
 {
-  FT_UShort            MaxContextLength;
+  HB_UShort            MaxContextLength;
 				      /* maximal context length       */
   HB_Coverage         Coverage;      /* Coverage table               */
   HB_ClassDefinition  ClassDef;      /* ClassDef table               */
-  FT_UShort            PosClassSetCount;
+  HB_UShort            PosClassSetCount;
 				      /* number of PosClassSet tables */
   HB_PosClassSet*     PosClassSet;   /* array of PosClassSet tables  */
 };
@@ -481,8 +481,8 @@ typedef struct HB_ContextPosFormat2_  HB_ContextPosFormat2;
 
 struct  HB_ContextPosFormat3_
 {
-  FT_UShort             GlyphCount;   /* number of input glyphs           */
-  FT_UShort             PosCount;     /* number of PosLookupRecord tables */
+  HB_UShort             GlyphCount;   /* number of input glyphs           */
+  HB_UShort             PosCount;     /* number of PosLookupRecord tables */
   HB_Coverage*         Coverage;     /* array of Coverage tables         */
   HB_PosLookupRecord*  PosLookupRecord;
 				      /* array of PosLookupRecord tables  */
@@ -493,7 +493,7 @@ typedef struct HB_ContextPosFormat3_  HB_ContextPosFormat3;
 
 struct  HB_ContextPos_
 {
-  FT_UShort  PosFormat;               /* 1, 2, or 3     */
+  HB_UShort  PosFormat;               /* 1, 2, or 3     */
 
   union
   {
@@ -510,16 +510,16 @@ typedef struct HB_ContextPos_  HB_ContextPos;
 
 struct  HB_ChainPosRule_
 {
-  FT_UShort             BacktrackGlyphCount;
+  HB_UShort             BacktrackGlyphCount;
 				      /* total number of backtrack glyphs */
-  FT_UShort*            Backtrack;    /* array of backtrack glyph IDs     */
-  FT_UShort             InputGlyphCount;
+  HB_UShort*            Backtrack;    /* array of backtrack glyph IDs     */
+  HB_UShort             InputGlyphCount;
 				      /* total number of input glyphs     */
-  FT_UShort*            Input;        /* array of input glyph IDs         */
-  FT_UShort             LookaheadGlyphCount;
+  HB_UShort*            Input;        /* array of input glyph IDs         */
+  HB_UShort             LookaheadGlyphCount;
 				      /* total number of lookahead glyphs */
-  FT_UShort*            Lookahead;    /* array of lookahead glyph IDs     */
-  FT_UShort             PosCount;     /* number of PosLookupRecords       */
+  HB_UShort*            Lookahead;    /* array of lookahead glyph IDs     */
+  HB_UShort             PosCount;     /* number of PosLookupRecords       */
   HB_PosLookupRecord*  PosLookupRecord;
 				      /* array of PosLookupRecords       */
 };
@@ -529,7 +529,7 @@ typedef struct HB_ChainPosRule_  HB_ChainPosRule;
 
 struct  HB_ChainPosRuleSet_
 {
-  FT_UShort          ChainPosRuleCount;
+  HB_UShort          ChainPosRuleCount;
 				      /* number of ChainPosRule tables */
   HB_ChainPosRule*  ChainPosRule;    /* array of ChainPosRule tables  */
 };
@@ -540,7 +540,7 @@ typedef struct HB_ChainPosRuleSet_  HB_ChainPosRuleSet;
 struct  HB_ChainContextPosFormat1_
 {
   HB_Coverage          Coverage;     /* Coverage table                   */
-  FT_UShort             ChainPosRuleSetCount;
+  HB_UShort             ChainPosRuleSetCount;
 				      /* number of ChainPosRuleSet tables */
   HB_ChainPosRuleSet*  ChainPosRuleSet;
 				      /* array of ChainPosRuleSet tables  */
@@ -551,18 +551,18 @@ typedef struct HB_ChainContextPosFormat1_  HB_ChainContextPosFormat1;
 
 struct  HB_ChainPosClassRule_
 {
-  FT_UShort             BacktrackGlyphCount;
+  HB_UShort             BacktrackGlyphCount;
 				      /* total number of backtrack
 					 classes                         */
-  FT_UShort*            Backtrack;    /* array of backtrack classes      */
-  FT_UShort             InputGlyphCount;
+  HB_UShort*            Backtrack;    /* array of backtrack classes      */
+  HB_UShort             InputGlyphCount;
 				      /* total number of context classes */
-  FT_UShort*            Input;        /* array of context classes        */
-  FT_UShort             LookaheadGlyphCount;
+  HB_UShort*            Input;        /* array of context classes        */
+  HB_UShort             LookaheadGlyphCount;
 				      /* total number of lookahead
 					 classes                         */
-  FT_UShort*            Lookahead;    /* array of lookahead classes      */
-  FT_UShort             PosCount;     /* number of PosLookupRecords      */
+  HB_UShort*            Lookahead;    /* array of lookahead classes      */
+  HB_UShort             PosCount;     /* number of PosLookupRecords      */
   HB_PosLookupRecord*  PosLookupRecord;
 				      /* array of substitution lookups   */
 };
@@ -572,7 +572,7 @@ typedef struct HB_ChainPosClassRule_  HB_ChainPosClassRule;
 
 struct  HB_ChainPosClassSet_
 {
-  FT_UShort               ChainPosClassRuleCount;
+  HB_UShort               ChainPosClassRuleCount;
 				      /* number of ChainPosClassRule
 					 tables                      */
   HB_ChainPosClassRule*  ChainPosClassRule;
@@ -591,20 +591,20 @@ struct  HB_ChainContextPosFormat2_
 {
   HB_Coverage           Coverage;    /* Coverage table             */
 
-  FT_UShort              MaxBacktrackLength;
+  HB_UShort              MaxBacktrackLength;
 				      /* maximal backtrack length   */
   HB_ClassDefinition    BacktrackClassDef;
 				      /* BacktrackClassDef table    */
-  FT_UShort              MaxInputLength;
+  HB_UShort              MaxInputLength;
 				      /* maximal input length       */
   HB_ClassDefinition    InputClassDef;
 				      /* InputClassDef table        */
-  FT_UShort              MaxLookaheadLength;
+  HB_UShort              MaxLookaheadLength;
 				      /* maximal lookahead length   */
   HB_ClassDefinition    LookaheadClassDef;
 				      /* LookaheadClassDef table    */
 
-  FT_UShort              ChainPosClassSetCount;
+  HB_UShort              ChainPosClassSetCount;
 				      /* number of ChainPosClassSet
 					 tables                     */
   HB_ChainPosClassSet*  ChainPosClassSet;
@@ -617,22 +617,22 @@ typedef struct HB_ChainContextPosFormat2_  HB_ChainContextPosFormat2;
 
 struct  HB_ChainContextPosFormat3_
 {
-  FT_UShort             BacktrackGlyphCount;
+  HB_UShort             BacktrackGlyphCount;
 				      /* number of backtrack glyphs    */
   HB_Coverage*         BacktrackCoverage;
 				      /* array of backtrack Coverage
 					 tables                        */
-  FT_UShort             InputGlyphCount;
+  HB_UShort             InputGlyphCount;
 				      /* number of input glyphs        */
   HB_Coverage*         InputCoverage;
 				      /* array of input coverage
 					 tables                        */
-  FT_UShort             LookaheadGlyphCount;
+  HB_UShort             LookaheadGlyphCount;
 				      /* number of lookahead glyphs    */
   HB_Coverage*         LookaheadCoverage;
 				      /* array of lookahead coverage
 					 tables                        */
-  FT_UShort             PosCount;     /* number of PosLookupRecords    */
+  HB_UShort             PosCount;     /* number of PosLookupRecords    */
   HB_PosLookupRecord*  PosLookupRecord;
 				      /* array of substitution lookups */
 };
@@ -642,7 +642,7 @@ typedef struct HB_ChainContextPosFormat3_  HB_ChainContextPosFormat3;
 
 struct  HB_ChainContextPos_
 {
-  FT_UShort  PosFormat;             /* 1, 2, or 3 */
+  HB_UShort  PosFormat;             /* 1, 2, or 3 */
 
   union
   {
@@ -659,8 +659,8 @@ typedef struct HB_ChainContextPos_  HB_ChainContextPos;
 /* LookupType 10 */
 struct HB_ExtensionPos_
 {
-  FT_UShort      PosFormat;           /* always 1 */
-  FT_UShort      LookuptType;         /* lookup-type of referenced subtable */
+  HB_UShort      PosFormat;           /* always 1 */
+  HB_UShort      LookuptType;         /* lookup-type of referenced subtable */
   HB_GPOS_SubTable *subtable;         /* referenced subtable */
 };
 
@@ -687,12 +687,12 @@ typedef union HB_GPOS_SubTable_  HB_GPOS_SubTable;
 HB_INTERNAL HB_Error
 _HB_GPOS_Load_SubTable( HB_GPOS_SubTable* st,
 			FT_Stream         stream,
-			FT_UShort         lookup_type );
+			HB_UShort         lookup_type );
 
 HB_INTERNAL void
 _HB_GPOS_Free_SubTable( HB_GPOS_SubTable* st,
-		        FT_UShort         lookup_type );
+		        HB_UShort         lookup_type );
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_GPOS_PRIVATE_H */

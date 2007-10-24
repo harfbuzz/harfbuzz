@@ -18,7 +18,7 @@
 #include "harfbuzz-gsub-private.h"
 #include "harfbuzz-gpos-private.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 
 struct  HB_SubTable_
@@ -47,13 +47,13 @@ _HB_OPEN_Load_Coverage( HB_Coverage* c,
 			FT_Stream    input );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition* cd,
-			       FT_UShort           limit,
+			       HB_UShort           limit,
 			       FT_Stream           input );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition* cd,
-				      FT_UShort           limit,
-				      FT_ULong            class_offset,
-				      FT_ULong            base_offset,
+				      HB_UShort           limit,
+				      HB_UInt            class_offset,
+				      HB_UInt            base_offset,
 				      FT_Stream           stream );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_Device( HB_Device* d,
@@ -72,18 +72,18 @@ HB_INTERNAL void  _HB_OPEN_Free_Device( HB_Device*  d );
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Coverage_Index( HB_Coverage* c,
-			 FT_UShort    glyphID,
-			 FT_UShort*   index );
+			 HB_UShort    glyphID,
+			 HB_UShort*   index );
 HB_INTERNAL HB_Error
 _HB_OPEN_Get_Class( HB_ClassDefinition* cd,
-		    FT_UShort           glyphID,
-		    FT_UShort*          klass,
-		    FT_UShort*          index );
+		    HB_UShort           glyphID,
+		    HB_UShort*          klass,
+		    HB_UShort*          index );
 HB_INTERNAL HB_Error
 _HB_OPEN_Get_Device( HB_Device* d,
-		     FT_UShort  size,
-		     FT_Short*  value );
+		     HB_UShort  size,
+		     HB_Short*  value );
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_OPEN_PRIVATE_H */

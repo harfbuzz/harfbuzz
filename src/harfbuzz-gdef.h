@@ -15,7 +15,7 @@
 
 #include "harfbuzz-open.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 #define HB_Err_Invalid_GDEF_SubTable_Format  0x1030
 #define HB_Err_Invalid_GDEF_SubTable         0x1031
@@ -34,10 +34,10 @@ typedef struct HB_AttachPoint_  HB_AttachPoint;
 
 struct  HB_AttachList_
 {
-  FT_Bool           loaded;
+  HB_Bool           loaded;
 
   HB_Coverage       Coverage;         /* Coverage table              */
-  FT_UShort         GlyphCount;       /* number of glyphs with
+  HB_UShort         GlyphCount;       /* number of glyphs with
 					 attachments                 */
   HB_AttachPoint*   AttachPoint;      /* array of AttachPoint tables */
 };
@@ -48,10 +48,10 @@ typedef struct HB_LigGlyph_  HB_LigGlyph;
 
 struct  HB_LigCaretList_
 {
-  FT_Bool        loaded;
+  HB_Bool        loaded;
 
   HB_Coverage    Coverage;            /* Coverage table            */
-  FT_UShort      LigGlyphCount;       /* number of ligature glyphs */
+  HB_UShort      LigGlyphCount;       /* number of ligature glyphs */
   HB_LigGlyph*   LigGlyph;            /* array of LigGlyph tables  */
 };
 
@@ -81,18 +81,18 @@ typedef struct HB_LigCaretList_  HB_LigCaretList;
 
 struct  HB_GDEFHeader_
 {
-  FT_ULong             offset;
+  HB_UInt             offset;
 
   FT_Fixed             Version;
 
   HB_ClassDefinition   GlyphClassDef;
   HB_AttachList        AttachList;
   HB_LigCaretList      LigCaretList;
-  FT_ULong             MarkAttachClassDef_offset;
+  HB_UInt             MarkAttachClassDef_offset;
   HB_ClassDefinition   MarkAttachClassDef;        /* new in OT 1.2 */
 
-  FT_UShort            LastGlyph;
-  FT_UShort**          NewGlyphClasses;
+  HB_UShort            LastGlyph;
+  HB_UShort**          NewGlyphClasses;
 };
 
 typedef struct HB_GDEFHeader_   HB_GDEFHeader;
@@ -110,16 +110,16 @@ HB_Error  HB_Done_GDEF_Table ( HB_GDEFHeader* gdef );
 
 
 HB_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
-				      FT_UShort        glyphID,
-				      FT_UShort*       property );
+				      HB_UShort        glyphID,
+				      HB_UShort*       property );
 
 HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
-					 FT_UShort        num_glyphs,
-					 FT_UShort        glyph_count,
-					 FT_UShort*       glyph_array,
-					 FT_UShort*       class_array );
+					 HB_UShort        num_glyphs,
+					 HB_UShort        glyph_count,
+					 HB_UShort*       glyph_array,
+					 HB_UShort*       class_array );
 
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_GDEF_H */

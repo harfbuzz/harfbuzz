@@ -13,6 +13,7 @@
 #ifndef HARFBUZZ_H
 #define HARFBUZZ_H
 
+#include "harfbuzz-global.h"
 #include "harfbuzz-open.h"
 #include "harfbuzz-buffer.h"
 #include "harfbuzz-gdef.h"

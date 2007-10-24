@@ -61,7 +61,7 @@ dump (FILE *stream, int indent, const char *format, ...)
 }
 
 static void
-Dump_UShort_Array (FT_UShort *array, int count, const char *name, FILE *stream, int indent)
+Dump_UShort_Array (HB_UShort *array, int count, const char *name, FILE *stream, int indent)
 {
   int i;
 
@@ -74,7 +74,7 @@ Dump_UShort_Array (FT_UShort *array, int count, const char *name, FILE *stream, 
 }
 
 static void
-Print_Tag (FT_ULong tag, FILE *stream)
+Print_Tag (HB_UInt tag, FILE *stream)
 {
   fprintf (stream, "%c%c%c%c",
 	   (unsigned char)(tag >> 24),
@@ -491,8 +491,8 @@ Dump_Device (HB_Device *Device, FILE *stream, int indent, HB_Type hb_type)
 
       for (i = Device->StartSize; i <= Device->EndSize ; i++)
 	{
-	  FT_UShort val = Device->DeltaValue[i / n_per];
-	  FT_Short signed_val = ((val << ((i % n_per) * bits)) & mask);
+	  HB_UShort val = Device->DeltaValue[i / n_per];
+	  HB_Short signed_val = ((val << ((i % n_per) * bits)) & mask);
 	  dump (stream, indent, "%d", signed_val >> (16 - bits));
 	  if (i != Device->EndSize)
 	    DUMP (", ");
@@ -502,7 +502,7 @@ Dump_Device (HB_Device *Device, FILE *stream, int indent, HB_Type hb_type)
 }
 
 static void
-Dump_ValueRecord (HB_ValueRecord *ValueRecord, FILE *stream, int indent, HB_Type hb_type, FT_UShort value_format)
+Dump_ValueRecord (HB_ValueRecord *ValueRecord, FILE *stream, int indent, HB_Type hb_type, HB_UShort value_format)
 {
   if (value_format & HB_GPOS_FORMAT_HAVE_X_PLACEMENT)
     DUMP_FINT (ValueRecord, XPlacement);
@@ -555,7 +555,7 @@ Dump_GPOS_Lookup_Single (HB_SubTable *subtable, FILE *stream, int indent, HB_Typ
 }
 
 static void
-Dump_PairValueRecord (HB_PairValueRecord *PairValueRecord, FILE *stream, int indent, HB_Type hb_type, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
+Dump_PairValueRecord (HB_PairValueRecord *PairValueRecord, FILE *stream, int indent, HB_Type hb_type, HB_UShort ValueFormat1, HB_UShort ValueFormat2)
 {
   DUMP_FUINT (PairValueRecord, SecondGlyph);
   DUMP_VALUE_RECORD (&PairValueRecord->Value1, ValueFormat1);
@@ -563,7 +563,7 @@ Dump_PairValueRecord (HB_PairValueRecord *PairValueRecord, FILE *stream, int ind
 }
 
 static void
-Dump_PairSet (HB_PairSet *PairSet, FILE *stream, int indent, HB_Type hb_type, FT_UShort ValueFormat1, FT_UShort ValueFormat2)
+Dump_PairSet (HB_PairSet *PairSet, FILE *stream, int indent, HB_Type hb_type, HB_UShort ValueFormat1, HB_UShort ValueFormat2)
 {
   int i;
   DUMP_FUINT (PairSet, PairValueCount);

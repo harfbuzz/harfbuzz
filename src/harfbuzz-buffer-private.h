@@ -17,7 +17,7 @@
 #include "harfbuzz-impl.h"
 #include "harfbuzz-buffer.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 #define HB_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
 
@@ -32,29 +32,29 @@ _hb_buffer_clear_positions( HB_Buffer buffer );
 
 HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyphs( HB_Buffer  buffer,
-			      FT_UShort  num_in,
-			      FT_UShort  num_out,
-			      FT_UShort *glyph_data,
-			      FT_UShort  component,
-			      FT_UShort  ligID );
+			      HB_UShort  num_in,
+			      HB_UShort  num_out,
+			      HB_UShort *glyph_data,
+			      HB_UShort  component,
+			      HB_UShort  ligID );
 
 HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyph ( HB_Buffer buffer,
-			      FT_UInt   glyph_index,
-			      FT_UShort component,
-			      FT_UShort ligID );
+			      HB_UInt   glyph_index,
+			      HB_UShort component,
+			      HB_UShort ligID );
 
 HB_INTERNAL HB_Error
 _hb_buffer_copy_output_glyph ( HB_Buffer buffer );
 
 HB_INTERNAL HB_Error
 _hb_buffer_replace_output_glyph ( HB_Buffer buffer,
-				  FT_UInt   glyph_index,
-				  FT_Bool   inplace );
+				  HB_UInt   glyph_index,
+				  HB_Bool   inplace );
 
-HB_INTERNAL FT_UShort
+HB_INTERNAL HB_UShort
 _hb_buffer_allocate_ligid( HB_Buffer buffer );
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_BUFFER_PRIVATE_H */

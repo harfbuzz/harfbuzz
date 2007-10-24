@@ -16,7 +16,9 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-FT_BEGIN_HEADER
+#include "harfbuzz-global.h"
+
+HB_BEGIN_HEADER
 
 /* Use this if a feature applies to all glyphs */
 #define HB_ALL_GLYPHS                    0xFFFF
@@ -46,10 +48,10 @@ typedef FT_Error HB_Error;
 
 struct  HB_LangSys_
 {
-  FT_UShort   LookupOrderOffset;      /* always 0 for TT Open 1.0  */
-  FT_UShort   ReqFeatureIndex;        /* required FeatureIndex     */
-  FT_UShort   FeatureCount;           /* number of Feature indices */
-  FT_UShort*  FeatureIndex;           /* array of Feature indices  */
+  HB_UShort   LookupOrderOffset;      /* always 0 for TT Open 1.0  */
+  HB_UShort   ReqFeatureIndex;        /* required FeatureIndex     */
+  HB_UShort   FeatureCount;           /* number of Feature indices */
+  HB_UShort*  FeatureIndex;           /* array of Feature indices  */
 };
 
 typedef struct HB_LangSys_  HB_LangSys;
@@ -57,7 +59,7 @@ typedef struct HB_LangSys_  HB_LangSys;
 
 struct  HB_LangSysRecord_
 {
-  FT_ULong     LangSysTag;            /* LangSysTag identifier */
+  HB_UInt     LangSysTag;            /* LangSysTag identifier */
   HB_LangSys  LangSys;               /* LangSys table         */
 };
 
@@ -67,7 +69,7 @@ typedef struct HB_LangSysRecord_  HB_LangSysRecord;
 struct  HB_Script_
 {
   HB_LangSys         DefaultLangSys; /* DefaultLangSys table     */
-  FT_UShort           LangSysCount;   /* number of LangSysRecords */
+  HB_UShort           LangSysCount;   /* number of LangSysRecords */
   HB_LangSysRecord*  LangSysRecord;  /* array of LangSysRecords  */
 };
 
@@ -76,7 +78,7 @@ typedef struct HB_Script_  HB_Script;
 
 struct  HB_ScriptRecord_
 {
-  FT_ULong    ScriptTag;              /* ScriptTag identifier */
+  HB_UInt    ScriptTag;              /* ScriptTag identifier */
   HB_Script  Script;                 /* Script table         */
 };
 
@@ -85,7 +87,7 @@ typedef struct HB_ScriptRecord_  HB_ScriptRecord;
 
 struct  HB_ScriptList_
 {
-  FT_UShort          ScriptCount;     /* number of ScriptRecords */
+  HB_UShort          ScriptCount;     /* number of ScriptRecords */
   HB_ScriptRecord*  ScriptRecord;    /* array of ScriptRecords  */
 };
 
@@ -96,9 +98,9 @@ typedef struct HB_ScriptList_  HB_ScriptList;
 
 struct HB_Feature_
 {
-  FT_UShort   FeatureParams;          /* always 0 for TT Open 1.0     */
-  FT_UShort   LookupListCount;        /* number of LookupList indices */
-  FT_UShort*  LookupListIndex;        /* array of LookupList indices  */
+  HB_UShort   FeatureParams;          /* always 0 for TT Open 1.0     */
+  HB_UShort   LookupListCount;        /* number of LookupList indices */
+  HB_UShort*  LookupListIndex;        /* array of LookupList indices  */
 };
 
 typedef struct HB_Feature_  HB_Feature;
@@ -106,7 +108,7 @@ typedef struct HB_Feature_  HB_Feature;
 
 struct  HB_FeatureRecord_
 {
-  FT_ULong     FeatureTag;            /* FeatureTag identifier */
+  HB_UInt     FeatureTag;            /* FeatureTag identifier */
   HB_Feature  Feature;               /* Feature table         */
 };
 
@@ -115,10 +117,10 @@ typedef struct HB_FeatureRecord_  HB_FeatureRecord;
 
 struct  HB_FeatureList_
 {
-  FT_UShort           FeatureCount;   /* number of FeatureRecords */
+  HB_UShort           FeatureCount;   /* number of FeatureRecords */
   HB_FeatureRecord*  FeatureRecord;  /* array of FeatureRecords  */
-  FT_UShort*		ApplyOrder;	/* order to apply features */
-  FT_UShort		ApplyCount;	/* number of elements in ApplyOrder */
+  HB_UShort*		ApplyOrder;	/* order to apply features */
+  HB_UShort		ApplyCount;	/* number of elements in ApplyOrder */
 };
 
 typedef struct HB_FeatureList_  HB_FeatureList;
@@ -131,9 +133,9 @@ typedef struct HB_SubTable_  HB_SubTable;
 
 struct  HB_Lookup_
 {
-  FT_UShort      LookupType;          /* Lookup type         */
-  FT_UShort      LookupFlag;          /* Lookup qualifiers   */
-  FT_UShort      SubTableCount;       /* number of SubTables */
+  HB_UShort      LookupType;          /* Lookup type         */
+  HB_UShort      LookupFlag;          /* Lookup qualifiers   */
+  HB_UShort      SubTableCount;       /* number of SubTables */
   HB_SubTable*  SubTable;            /* array of SubTables  */
 };
 
@@ -148,9 +150,9 @@ typedef struct HB_Lookup_  HB_Lookup;
 
 struct  HB_LookupList_
 {
-  FT_UShort    LookupCount;           /* number of Lookups       */
+  HB_UShort    LookupCount;           /* number of Lookups       */
   HB_Lookup*  Lookup;                /* array of Lookup records */
-  FT_UInt*     Properties;            /* array of flags          */
+  HB_UInt*     Properties;            /* array of flags          */
 };
 
 typedef struct HB_LookupList_  HB_LookupList;
@@ -171,8 +173,8 @@ typedef struct HB_LookupList_  HB_LookupList;
 
 struct  HB_CoverageFormat1_
 {
-  FT_UShort   GlyphCount;             /* number of glyphs in GlyphArray */
-  FT_UShort*  GlyphArray;             /* array of glyph IDs             */
+  HB_UShort   GlyphCount;             /* number of glyphs in GlyphArray */
+  HB_UShort*  GlyphArray;             /* array of glyph IDs             */
 };
 
 typedef struct HB_CoverageFormat1_  HB_CoverageFormat1;
@@ -180,9 +182,9 @@ typedef struct HB_CoverageFormat1_  HB_CoverageFormat1;
 
 struct HB_RangeRecord_
 {
-  FT_UShort  Start;                   /* first glyph ID in the range */
-  FT_UShort  End;                     /* last glyph ID in the range  */
-  FT_UShort  StartCoverageIndex;      /* coverage index of first
+  HB_UShort  Start;                   /* first glyph ID in the range */
+  HB_UShort  End;                     /* last glyph ID in the range  */
+  HB_UShort  StartCoverageIndex;      /* coverage index of first
 					 glyph ID in the range       */
 };
 
@@ -191,7 +193,7 @@ typedef struct HB_RangeRecord_  HB_RangeRecord;
 
 struct  HB_CoverageFormat2_
 {
-  FT_UShort         RangeCount;       /* number of RangeRecords */
+  HB_UShort         RangeCount;       /* number of RangeRecords */
   HB_RangeRecord*  RangeRecord;      /* array of RangeRecords  */
 };
 
@@ -200,7 +202,7 @@ typedef struct HB_CoverageFormat2_  HB_CoverageFormat2;
 
 struct  HB_Coverage_
 {
-  FT_UShort  CoverageFormat;          /* 1 or 2 */
+  HB_UShort  CoverageFormat;          /* 1 or 2 */
 
   union
   {
@@ -214,10 +216,10 @@ typedef struct HB_Coverage_  HB_Coverage;
 
 struct  HB_ClassDefFormat1_
 {
-  FT_UShort   StartGlyph;             /* first glyph ID of the
+  HB_UShort   StartGlyph;             /* first glyph ID of the
 					 ClassValueArray             */
-  FT_UShort   GlyphCount;             /* size of the ClassValueArray */
-  FT_UShort*  ClassValueArray;        /* array of class values       */
+  HB_UShort   GlyphCount;             /* size of the ClassValueArray */
+  HB_UShort*  ClassValueArray;        /* array of class values       */
 };
 
 typedef struct HB_ClassDefFormat1_  HB_ClassDefFormat1;
@@ -225,9 +227,9 @@ typedef struct HB_ClassDefFormat1_  HB_ClassDefFormat1;
 
 struct  HB_ClassRangeRecord_
 {
-  FT_UShort  Start;                   /* first glyph ID in the range    */
-  FT_UShort  End;                     /* last glyph ID in the range     */
-  FT_UShort  Class;                   /* applied to all glyphs in range */
+  HB_UShort  Start;                   /* first glyph ID in the range    */
+  HB_UShort  End;                     /* last glyph ID in the range     */
+  HB_UShort  Class;                   /* applied to all glyphs in range */
 };
 
 typedef struct HB_ClassRangeRecord_  HB_ClassRangeRecord;
@@ -235,7 +237,7 @@ typedef struct HB_ClassRangeRecord_  HB_ClassRangeRecord;
 
 struct  HB_ClassDefFormat2_
 {
-  FT_UShort              ClassRangeCount;
+  HB_UShort              ClassRangeCount;
 				      /* number of ClassRangeRecords */
   HB_ClassRangeRecord*  ClassRangeRecord;
 				      /* array of ClassRangeRecords  */
@@ -251,12 +253,12 @@ typedef struct HB_ClassDefFormat2_  HB_ClassDefFormat2;
 
 struct  HB_ClassDefinition_
 {
-  FT_Bool    loaded;
+  HB_Bool    loaded;
 
-  FT_Bool*   Defined;                 /* array of Booleans.
+  HB_Bool*   Defined;                 /* array of Booleans.
 					 If Defined[n] is FALSE,
 					 class n contains no glyphs. */
-  FT_UShort  ClassFormat;             /* 1 or 2                      */
+  HB_UShort  ClassFormat;             /* 1 or 2                      */
 
   union
   {
@@ -270,11 +272,11 @@ typedef struct HB_ClassDefinition_  HB_ClassDefinition;
 
 struct HB_Device_
 {
-  FT_UShort   StartSize;              /* smallest size to correct      */
-  FT_UShort   EndSize;                /* largest size to correct       */
-  FT_UShort   DeltaFormat;            /* DeltaValue array data format:
+  HB_UShort   StartSize;              /* smallest size to correct      */
+  HB_UShort   EndSize;                /* largest size to correct       */
+  HB_UShort   DeltaFormat;            /* DeltaValue array data format:
 					 1, 2, or 3                    */
-  FT_UShort*  DeltaValue;             /* array of compressed data      */
+  HB_UShort*  DeltaValue;             /* array of compressed data      */
 };
 
 typedef struct HB_Device_  HB_Device;
@@ -289,6 +291,6 @@ enum  HB_Type_
 typedef enum HB_Type_  HB_Type;
 
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_OPEN_H */

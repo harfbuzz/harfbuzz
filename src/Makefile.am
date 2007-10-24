@@ -19,6 +19,7 @@ INCLUDEDSOURCES = \
 
 PUBLICHEADERS = \
 	harfbuzz.h \
+	harfbuzz-global.h \
 	harfbuzz-buffer.h \
 	harfbuzz-gdef.h \
 	harfbuzz-gpos.h \

@@ -44,7 +44,7 @@ enum {
 };
 
 static void
-print_tag (FT_ULong tag)
+print_tag (HB_UInt tag)
 {
   fprintf (stderr, "%c%c%c%c", 
 	  (unsigned char)(tag >> 24),
@@ -55,12 +55,12 @@ print_tag (FT_ULong tag)
 
 static void
 maybe_add_feature (HB_GSUB  gsub,
-		   FT_UShort script_index,
-		   FT_ULong  tag,
-		   FT_UShort property)
+		   HB_UShort script_index,
+		   HB_UInt  tag,
+		   HB_UShort property)
 {
   HB_Error error;
-  FT_UShort feature_index;
+  HB_UShort feature_index;
   
   /* 0xffff == default language system */
   error = HB_GSUB_Select_Feature (gsub, tag, script_index, 0xffff, &feature_index);
@@ -84,7 +84,7 @@ maybe_add_feature (HB_GSUB  gsub,
 static void
 select_cmap (FT_Face face)
 {
-  FT_UShort  i;
+  HB_UShort  i;
   FT_CharMap cmap = NULL;
   
   for (i = 0; i < face->num_charmaps; i++)
@@ -123,8 +123,8 @@ static void
 add_features (HB_GSUB gsub)
 {
   HB_Error error;
-  FT_ULong tag = FT_MAKE_TAG ('a', 'r', 'a', 'b');
-  FT_UShort script_index;
+  HB_UInt tag = FT_MAKE_TAG ('a', 'r', 'a', 'b');
+  HB_UShort script_index;
 
   error = HB_GSUB_Select_Script (gsub, tag, &script_index);
 
@@ -150,7 +150,7 @@ add_features (HB_GSUB gsub)
 void 
 dump_string (HB_GSUB_String *str)
 {
-  FT_ULong i;
+  HB_UInt i;
 
   fprintf (stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
   for (i = 0; i < str->length; i++)
@@ -165,8 +165,8 @@ dump_string (HB_GSUB_String *str)
   fprintf (stderr, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 }
 
-FT_UShort arabic_str[]   = { 0x645, 0x643, 0x64a, 0x644, 0x639, 0x20, 0x645, 0x627, 0x644, 0x633, 0x644, 0x627 };
-FT_UShort arabic_props[] = { I|L,   M|L,   M|L,   M|L,   M|L,   F|L,   I|L,  M|L,   M|L,   M|L,   M|L,   F|L };
+HB_UShort arabic_str[]   = { 0x645, 0x643, 0x64a, 0x644, 0x639, 0x20, 0x645, 0x627, 0x644, 0x633, 0x644, 0x627 };
+HB_UShort arabic_props[] = { I|L,   M|L,   M|L,   M|L,   M|L,   F|L,   I|L,  M|L,   M|L,   M|L,   M|L,   F|L };
 
 void
 try_string (FT_Library library,
@@ -176,7 +176,7 @@ try_string (FT_Library library,
   HB_Error error;
   HB_GSUB_String *in_str;
   HB_GSUB_String *out_str;
-  FT_ULong i;
+  HB_UInt i;
 
   if ((error = HB_GSUB_String_New (face->memory, &in_str)))
     croak ("HB_GSUB_String_New", error);

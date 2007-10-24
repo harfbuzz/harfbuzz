@@ -24,11 +24,11 @@
 #include "harfbuzz-gsub.h"
 #include "harfbuzz-gpos.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 void HB_Dump_GSUB_Table (HB_GSUB gsub, FILE *stream);
 void HB_Dump_GPOS_Table (HB_GPOS gpos, FILE *stream);
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_DUMP_H */

@@ -17,22 +17,22 @@
 #include "harfbuzz-gdef.h"
 #include "harfbuzz-buffer.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 
 /* Attachment related structures */
 
 struct  HB_AttachPoint_
 {
-  FT_UShort   PointCount;             /* size of the PointIndex array */
-  FT_UShort*  PointIndex;             /* array of contour points      */
+  HB_UShort   PointCount;             /* size of the PointIndex array */
+  HB_UShort*  PointIndex;             /* array of contour points      */
 };
 
 /* Ligature Caret related structures */
 
 struct  HB_CaretValueFormat1_
 {
-  FT_Short  Coordinate;               /* x or y value (in design units) */
+  HB_Short  Coordinate;               /* x or y value (in design units) */
 };
 
 typedef struct HB_CaretValueFormat1_  HB_CaretValueFormat1;
@@ -40,7 +40,7 @@ typedef struct HB_CaretValueFormat1_  HB_CaretValueFormat1;
 
 struct  HB_CaretValueFormat2_
 {
-  FT_UShort  CaretValuePoint;         /* contour point index on glyph */
+  HB_UShort  CaretValuePoint;         /* contour point index on glyph */
 };
 
 typedef struct HB_CaretValueFormat2_  HB_CaretValueFormat2;
@@ -48,7 +48,7 @@ typedef struct HB_CaretValueFormat2_  HB_CaretValueFormat2;
 
 struct  HB_CaretValueFormat3_
 {
-  FT_Short    Coordinate;             /* x or y value (in design units) */
+  HB_Short    Coordinate;             /* x or y value (in design units) */
   HB_Device  Device;                 /* Device table for x or y value  */
 };
 
@@ -57,7 +57,7 @@ typedef struct HB_CaretValueFormat3_  HB_CaretValueFormat3;
 
 struct  HB_CaretValueFormat4_
 {
-  FT_UShort  IdCaretValue;            /* metric ID */
+  HB_UShort  IdCaretValue;            /* metric ID */
 };
 
 typedef struct HB_CaretValueFormat4_  HB_CaretValueFormat4;
@@ -65,7 +65,7 @@ typedef struct HB_CaretValueFormat4_  HB_CaretValueFormat4;
 
 struct  HB_CaretValue_
 {
-  FT_UShort  CaretValueFormat;        /* 1, 2, 3, or 4 */
+  HB_UShort  CaretValueFormat;        /* 1, 2, 3, or 4 */
 
   union
   {
@@ -81,24 +81,24 @@ typedef struct HB_CaretValue_  HB_CaretValue;
 
 struct  HB_LigGlyph_
 {
-  FT_Bool          loaded;
+  HB_Bool          loaded;
 
-  FT_UShort        CaretCount;        /* number of caret values */
+  HB_UShort        CaretCount;        /* number of caret values */
   HB_CaretValue*  CaretValue;        /* array of caret values  */
 };
 
 
 HB_INTERNAL HB_Error
 _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader* gdef,
-		             FT_UShort      glyphID,
-		             FT_UShort      property );
+		             HB_UShort      glyphID,
+		             HB_UShort      property );
 
 HB_INTERNAL HB_Error
 _HB_GDEF_Check_Property( HB_GDEFHeader* gdef,
 		         HB_GlyphItem   item,
-		         FT_UShort      flags,
-		         FT_UShort*     property );
+		         HB_UShort      flags,
+		         HB_UShort*     property );
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_GDEF_PRIVATE_H */

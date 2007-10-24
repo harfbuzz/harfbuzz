@@ -25,8 +25,8 @@ static HB_Error  Load_LangSys( HB_LangSys*  ls,
 			       FT_Stream     stream )
 {
   HB_Error   error;
-  FT_UShort  n, count;
-  FT_UShort* fi;
+  HB_UShort  n, count;
+  HB_UShort* fi;
 
 
   if ( ACCESS_Frame( 6L ) )
@@ -40,7 +40,7 @@ static HB_Error  Load_LangSys( HB_LangSys*  ls,
 
   ls->FeatureIndex = NULL;
 
-  if ( ALLOC_ARRAY( ls->FeatureIndex, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( ls->FeatureIndex, count, HB_UShort ) )
     return error;
 
   if ( ACCESS_Frame( count * 2L ) )
@@ -72,8 +72,8 @@ static HB_Error  Load_Script( HB_Script*  s,
 			      FT_Stream    stream )
 {
   HB_Error   error;
-  FT_UShort  n, m, count;
-  FT_ULong   cur_offset, new_offset, base_offset;
+  HB_UShort  n, m, count;
+  HB_UInt   cur_offset, new_offset, base_offset;
 
   HB_LangSysRecord*  lsr;
 
@@ -162,7 +162,7 @@ Fail2:
 
 static void  Free_Script( HB_Script*  s )
 {
-  FT_UShort           n, count;
+  HB_UShort           n, count;
 
   HB_LangSysRecord*  lsr;
 
@@ -190,8 +190,8 @@ _HB_OPEN_Load_ScriptList( HB_ScriptList* sl,
 {
   HB_Error   error;
 
-  FT_UShort          n, script_count;
-  FT_ULong           cur_offset, new_offset, base_offset;
+  HB_UShort          n, script_count;
+  HB_UInt           cur_offset, new_offset, base_offset;
 
   HB_ScriptRecord*  sr;
 
@@ -262,7 +262,7 @@ Fail:
 HB_INTERNAL void
 _HB_OPEN_Free_ScriptList( HB_ScriptList* sl )
 {
-  FT_UShort          n, count;
+  HB_UShort          n, count;
 
   HB_ScriptRecord*  sr;
 
@@ -293,9 +293,9 @@ static HB_Error  Load_Feature( HB_Feature*  f,
 {
   HB_Error   error;
 
-  FT_UShort   n, count;
+  HB_UShort   n, count;
 
-  FT_UShort*  lli;
+  HB_UShort*  lli;
 
 
   if ( ACCESS_Frame( 4L ) )
@@ -308,7 +308,7 @@ static HB_Error  Load_Feature( HB_Feature*  f,
 
   f->LookupListIndex = NULL;
 
-  if ( ALLOC_ARRAY( f->LookupListIndex, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( f->LookupListIndex, count, HB_UShort ) )
     return error;
 
   lli = f->LookupListIndex;
@@ -342,8 +342,8 @@ _HB_OPEN_Load_FeatureList( HB_FeatureList* fl,
 {
   HB_Error   error;
 
-  FT_UShort           n, m, count;
-  FT_ULong            cur_offset, new_offset, base_offset;
+  HB_UShort           n, m, count;
+  HB_UInt            cur_offset, new_offset, base_offset;
 
   HB_FeatureRecord*  fr;
 
@@ -361,7 +361,7 @@ _HB_OPEN_Load_FeatureList( HB_FeatureList* fl,
 
   if ( ALLOC_ARRAY( fl->FeatureRecord, count, HB_FeatureRecord ) )
     return error;
-  if ( ALLOC_ARRAY( fl->ApplyOrder, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( fl->ApplyOrder, count, HB_UShort ) )
     goto Fail2;
   
   fl->ApplyCount = 0;
@@ -403,7 +403,7 @@ Fail2:
 HB_INTERNAL void
 _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl )
 {
-  FT_UShort           n, count;
+  HB_UShort           n, count;
 
   HB_FeatureRecord*  fr;
 
@@ -437,7 +437,7 @@ _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl )
 static HB_Error  Load_SubTable( HB_SubTable*  st,
 				FT_Stream     stream,
 				HB_Type       table_type,
-				FT_UShort     lookup_type )
+				HB_UShort     lookup_type )
 {
   if ( table_type == HB_Type_GSUB )
     return _HB_GSUB_Load_SubTable ( &st->st.gsub, stream, lookup_type );
@@ -448,7 +448,7 @@ static HB_Error  Load_SubTable( HB_SubTable*  st,
 
 static void  Free_SubTable( HB_SubTable*  st,
 			    HB_Type       table_type,
-			    FT_UShort     lookup_type )
+			    HB_UShort     lookup_type )
 {
   if ( table_type == HB_Type_GSUB )
     _HB_GSUB_Free_SubTable ( &st->st.gsub, lookup_type );
@@ -465,12 +465,12 @@ static HB_Error  Load_Lookup( HB_Lookup*   l,
 {
   HB_Error   error;
 
-  FT_UShort      n, m, count;
-  FT_ULong       cur_offset, new_offset, base_offset;
+  HB_UShort      n, m, count;
+  HB_UInt       cur_offset, new_offset, base_offset;
 
   HB_SubTable*  st;
 
-  FT_Bool        is_extension = FALSE;
+  HB_Bool        is_extension = FALSE;
 
 
   base_offset = FILE_Pos();
@@ -541,7 +541,7 @@ Fail:
 static void  Free_Lookup( HB_Lookup*   l,
 			  HB_Type      type )
 {
-  FT_UShort      n, count;
+  HB_UShort      n, count;
 
   HB_SubTable*  st;
 
@@ -568,8 +568,8 @@ _HB_OPEN_Load_LookupList( HB_LookupList* ll,
 {
   HB_Error   error;
 
-  FT_UShort    n, m, count;
-  FT_ULong     cur_offset, new_offset, base_offset;
+  HB_UShort    n, m, count;
+  HB_UInt     cur_offset, new_offset, base_offset;
 
   HB_Lookup*  l;
 
@@ -587,7 +587,7 @@ _HB_OPEN_Load_LookupList( HB_LookupList* ll,
 
   if ( ALLOC_ARRAY( ll->Lookup, count, HB_Lookup ) )
     return error;
-  if ( ALLOC_ARRAY( ll->Properties, count, FT_UInt ) )
+  if ( ALLOC_ARRAY( ll->Properties, count, HB_UInt ) )
     goto Fail2;
 
   l = ll->Lookup;
@@ -626,7 +626,7 @@ HB_INTERNAL void
 _HB_OPEN_Free_LookupList( HB_LookupList* ll,
 			  HB_Type        type )
 {
-  FT_UShort    n, count;
+  HB_UShort    n, count;
 
   HB_Lookup*  l;
 
@@ -659,9 +659,9 @@ static HB_Error  Load_Coverage1( HB_CoverageFormat1*  cf1,
 {
   HB_Error   error;
 
-  FT_UShort  n, count;
+  HB_UShort  n, count;
 
-  FT_UShort* ga;
+  HB_UShort* ga;
 
 
   if ( ACCESS_Frame( 2L ) )
@@ -673,7 +673,7 @@ static HB_Error  Load_Coverage1( HB_CoverageFormat1*  cf1,
 
   cf1->GlyphArray = NULL;
 
-  if ( ALLOC_ARRAY( cf1->GlyphArray, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cf1->GlyphArray, count, HB_UShort ) )
     return error;
 
   ga = cf1->GlyphArray;
@@ -706,7 +706,7 @@ static HB_Error  Load_Coverage2( HB_CoverageFormat2*  cf2,
 {
   HB_Error   error;
 
-  FT_UShort         n, count;
+  HB_UShort         n, count;
 
   HB_RangeRecord*  rr;
 
@@ -797,12 +797,12 @@ _HB_OPEN_Free_Coverage( HB_Coverage* c )
 
 
 static HB_Error  Coverage_Index1( HB_CoverageFormat1*  cf1,
-				  FT_UShort             glyphID,
-				  FT_UShort*            index )
+				  HB_UShort             glyphID,
+				  HB_UShort*            index )
 {
-  FT_UShort min, max, new_min, new_max, middle;
+  HB_UShort min, max, new_min, new_max, middle;
 
-  FT_UShort*  array = cf1->GlyphArray;
+  HB_UShort*  array = cf1->GlyphArray;
 
 
   /* binary search */
@@ -847,10 +847,10 @@ static HB_Error  Coverage_Index1( HB_CoverageFormat1*  cf1,
 
 
 static HB_Error  Coverage_Index2( HB_CoverageFormat2*  cf2,
-				  FT_UShort             glyphID,
-				  FT_UShort*            index )
+				  HB_UShort             glyphID,
+				  HB_UShort*            index )
 {
-  FT_UShort         min, max, new_min, new_max, middle;
+  HB_UShort         min, max, new_min, new_max, middle;
 
   HB_RangeRecord*  rr = cf2->RangeRecord;
 
@@ -898,8 +898,8 @@ static HB_Error  Coverage_Index2( HB_CoverageFormat2*  cf2,
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Coverage_Index( HB_Coverage* c,
-			 FT_UShort    glyphID,
-			 FT_UShort*   index )
+			 HB_UShort    glyphID,
+			 HB_UShort*   index )
 {
   switch ( c->CoverageFormat )
   {
@@ -921,15 +921,15 @@ _HB_OPEN_Coverage_Index( HB_Coverage* c,
 /* ClassDefFormat1 */
 
 static HB_Error  Load_ClassDef1( HB_ClassDefinition*  cd,
-				 FT_UShort             limit,
+				 HB_UShort             limit,
 				 FT_Stream             stream )
 {
   HB_Error   error;
 
-  FT_UShort             n, count;
+  HB_UShort             n, count;
 
-  FT_UShort*            cva;
-  FT_Bool*              d;
+  HB_UShort*            cva;
+  HB_Bool*              d;
 
   HB_ClassDefFormat1*  cdf1;
 
@@ -951,7 +951,7 @@ static HB_Error  Load_ClassDef1( HB_ClassDefinition*  cd,
 
   cdf1->ClassValueArray = NULL;
 
-  if ( ALLOC_ARRAY( cdf1->ClassValueArray, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cdf1->ClassValueArray, count, HB_UShort ) )
     return error;
 
   d   = cd->Defined;
@@ -991,15 +991,15 @@ static void  Free_ClassDef1( HB_ClassDefFormat1*  cdf1 )
 /* ClassDefFormat2 */
 
 static HB_Error  Load_ClassDef2( HB_ClassDefinition*  cd,
-				 FT_UShort             limit,
+				 HB_UShort             limit,
 				 FT_Stream             stream )
 {
   HB_Error   error;
 
-  FT_UShort              n, count;
+  HB_UShort              n, count;
 
   HB_ClassRangeRecord*  crr;
-  FT_Bool*               d;
+  HB_Bool*               d;
 
   HB_ClassDefFormat2*   cdf2;
 
@@ -1070,12 +1070,12 @@ static void  Free_ClassDef2( HB_ClassDefFormat2*  cdf2 )
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition* cd,
-			       FT_UShort           limit,
+			       HB_UShort           limit,
 			       FT_Stream           stream )
 {
   HB_Error   error;
 
-  if ( ALLOC_ARRAY( cd->Defined, limit, FT_Bool ) )
+  if ( ALLOC_ARRAY( cd->Defined, limit, HB_Bool ) )
     return error;
 
   if ( ACCESS_Frame( 2L ) )
@@ -1110,13 +1110,13 @@ _HB_OPEN_Load_EmptyClassDefinition( HB_ClassDefinition*  cd )
 {
   HB_Error   error;
 
-  if ( ALLOC_ARRAY( cd->Defined, 1, FT_Bool ) )
+  if ( ALLOC_ARRAY( cd->Defined, 1, HB_Bool ) )
     return error;
 
   cd->ClassFormat = 1; /* Meaningless */
   cd->Defined[0] = FALSE;
 
-  if ( ALLOC_ARRAY( cd->cd.cd1.ClassValueArray, 1, FT_UShort ) )
+  if ( ALLOC_ARRAY( cd->cd.cd1.ClassValueArray, 1, HB_UShort ) )
     goto Fail;
 
   return HB_Err_Ok;
@@ -1128,13 +1128,13 @@ Fail:
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition* cd,
-				      FT_UShort           limit,
-				      FT_ULong            class_offset,
-				      FT_ULong            base_offset,
+				      HB_UShort           limit,
+				      HB_UInt            class_offset,
+				      HB_UInt            base_offset,
 				      FT_Stream           stream )
 {
   HB_Error error;
-  FT_ULong               cur_offset;
+  HB_UInt               cur_offset;
 
   cur_offset = FILE_Pos();
 
@@ -1170,11 +1170,11 @@ _HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd )
 
 
 static HB_Error  Get_Class1( HB_ClassDefFormat1*  cdf1,
-			     FT_UShort             glyphID,
-			     FT_UShort*            klass,
-			     FT_UShort*            index )
+			     HB_UShort             glyphID,
+			     HB_UShort*            klass,
+			     HB_UShort*            index )
 {
-  FT_UShort*  cva = cdf1->ClassValueArray;
+  HB_UShort*  cva = cdf1->ClassValueArray;
 
 
   if ( index )
@@ -1198,12 +1198,12 @@ static HB_Error  Get_Class1( HB_ClassDefFormat1*  cdf1,
    in case of failure for constructed GDEF tables                  */
 
 static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
-			     FT_UShort             glyphID,
-			     FT_UShort*            klass,
-			     FT_UShort*            index )
+			     HB_UShort             glyphID,
+			     HB_UShort*            klass,
+			     HB_UShort*            index )
 {
   HB_Error               error = HB_Err_Ok;
-  FT_UShort              min, max, new_min, new_max, middle;
+  HB_UShort              min, max, new_min, new_max, middle;
 
   HB_ClassRangeRecord*  crr = cdf2->ClassRangeRecord;
 
@@ -1269,9 +1269,9 @@ static HB_Error  Get_Class2( HB_ClassDefFormat2*  cdf2,
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Get_Class( HB_ClassDefinition* cd,
-		    FT_UShort           glyphID,
-		    FT_UShort*          klass,
-		    FT_UShort*          index )
+		    HB_UShort           glyphID,
+		    HB_UShort*          klass,
+		    HB_UShort*          index )
 {
   switch ( cd->ClassFormat )
   {
@@ -1296,9 +1296,9 @@ _HB_OPEN_Load_Device( HB_Device* d,
 {
   HB_Error   error;
 
-  FT_UShort   n, count;
+  HB_UShort   n, count;
 
-  FT_UShort*  dv;
+  HB_UShort*  dv;
 
 
   if ( ACCESS_Frame( 6L ) )
@@ -1326,7 +1326,7 @@ _HB_OPEN_Load_Device( HB_Device* d,
   count = ( ( d->EndSize - d->StartSize + 1 ) >>
 	      ( 4 - d->DeltaFormat ) ) + 1;
 
-  if ( ALLOC_ARRAY( d->DeltaValue, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( d->DeltaValue, count, HB_UShort ) )
     return error;
 
   if ( ACCESS_Frame( count * 2L ) )
@@ -1390,10 +1390,10 @@ _HB_OPEN_Free_Device( HB_Device* d )
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Get_Device( HB_Device* d,
-		     FT_UShort  size,
-		     FT_Short*  value )
+		     HB_UShort  size,
+		     HB_Short*  value )
 {
-  FT_UShort  byte, bits, mask, f, s;
+  HB_UShort  byte, bits, mask, f, s;
 
 
   f = d->DeltaFormat;
@@ -1405,7 +1405,7 @@ _HB_OPEN_Get_Device( HB_Device* d,
     bits = byte >> ( 16 - ( ( s % ( 1 << ( 4 - f ) ) + 1 ) << f ) );
     mask = 0xFFFF >> ( 16 - ( 1 << f ) );
 
-    *value = (FT_Short)( bits & mask );
+    *value = (HB_Short)( bits & mask );
 
     /* conversion to a signed value */
 

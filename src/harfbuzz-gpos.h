@@ -16,7 +16,7 @@
 #include "harfbuzz-gdef.h"
 #include "harfbuzz-buffer.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 #define HB_Err_Invalid_GPOS_SubTable_Format  0x1020
 #define HB_Err_Invalid_GPOS_SubTable         0x1021
@@ -49,8 +49,8 @@ FT_BEGIN_HEADER
       _glyph = HANDLE_Glyph( glyph )                                    */
 
 typedef HB_Error  (*HB_GlyphFunction)(FT_Face      face,
-				       FT_UInt      glyphIndex,
-				       FT_Int       loadFlags );
+				       HB_UInt      glyphIndex,
+				       HB_Int       loadFlags );
 
 
 /* A pointer to a function which accesses the PostScript interpreter.
@@ -65,7 +65,7 @@ typedef HB_Error  (*HB_GlyphFunction)(FT_Face      face,
    be rounded).                                                       */
 
 typedef HB_Error  (*HB_MMFunction)(FT_Face      face,
-				    FT_UShort    metric_id,
+				    HB_UShort    metric_id,
 				    FT_Pos*      metric_value,
 				    void*        data );
 
@@ -106,38 +106,38 @@ HB_Error  HB_Done_GPOS_Table( HB_GPOSHeader* gpos );
 
 
 HB_Error  HB_GPOS_Select_Script( HB_GPOSHeader*  gpos,
-				 FT_ULong         script_tag,
-				 FT_UShort*       script_index );
+				 HB_UInt         script_tag,
+				 HB_UShort*       script_index );
 
 HB_Error  HB_GPOS_Select_Language( HB_GPOSHeader*  gpos,
-				   FT_ULong         language_tag,
-				   FT_UShort        script_index,
-				   FT_UShort*       language_index,
-				   FT_UShort*       req_feature_index );
+				   HB_UInt         language_tag,
+				   HB_UShort        script_index,
+				   HB_UShort*       language_index,
+				   HB_UShort*       req_feature_index );
 
 HB_Error  HB_GPOS_Select_Feature( HB_GPOSHeader*  gpos,
-				  FT_ULong         feature_tag,
-				  FT_UShort        script_index,
-				  FT_UShort        language_index,
-				  FT_UShort*       feature_index );
+				  HB_UInt         feature_tag,
+				  HB_UShort        script_index,
+				  HB_UShort        language_index,
+				  HB_UShort*       feature_index );
 
 
 HB_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
-				 FT_ULong**       script_tag_list );
+				 HB_UInt**       script_tag_list );
 
 HB_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
-				   FT_UShort        script_index,
-				   FT_ULong**       language_tag_list );
+				   HB_UShort        script_index,
+				   HB_UInt**       language_tag_list );
 
 HB_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
-				  FT_UShort        script_index,
-				  FT_UShort        language_index,
-				  FT_ULong**       feature_tag_list );
+				  HB_UShort        script_index,
+				  HB_UShort        language_index,
+				  HB_UInt**       feature_tag_list );
 
 
 HB_Error  HB_GPOS_Add_Feature( HB_GPOSHeader*  gpos,
-			       FT_UShort        feature_index,
-			       FT_UInt          property );
+			       HB_UShort        feature_index,
+			       HB_UInt          property );
 
 HB_Error  HB_GPOS_Clear_Features( HB_GPOSHeader*  gpos );
 
@@ -156,11 +156,11 @@ HB_Error  HB_GPOS_Register_MM_Function( HB_GPOSHeader*  gpos,
 
 HB_Error  HB_GPOS_Apply_String( FT_Face           face,
 				HB_GPOSHeader*   gpos,
-				FT_UShort         load_flags,
+				HB_UShort         load_flags,
 				HB_Buffer        buffer,
-				FT_Bool           dvi,
-				FT_Bool           r2l );
+				HB_Bool           dvi,
+				HB_Bool           r2l );
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_GPOS_H */

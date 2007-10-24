@@ -46,10 +46,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "harfbuzz-impl.h"
 #include "harfbuzz-open.h"
+#include "harfbuzz-impl.h"
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 
 /* utility macros */
@@ -67,11 +67,11 @@ FT_BEGIN_HEADER
 #define  FORGET_Frame()      _hb_ftglue_stream_frame_exit( stream )
 
 #define  GET_Byte()      (*stream->cursor++)
-#define  GET_Short()     (stream->cursor += 2, (FT_Short)( \
+#define  GET_Short()     (stream->cursor += 2, (HB_Short)( \
 				(*(((FT_Byte*)stream->cursor)-2) << 8) | \
 				 *(((FT_Byte*)stream->cursor)-1) \
 			 ))
-#define  GET_Long()      (stream->cursor += 4, (FT_Long)( \
+#define  GET_Long()      (stream->cursor += 4, (HB_Int)( \
 				(*(((FT_Byte*)stream->cursor)-4) << 24) | \
 				(*(((FT_Byte*)stream->cursor)-3) << 16) | \
 				(*(((FT_Byte*)stream->cursor)-2) << 8) | \
@@ -80,27 +80,27 @@ FT_BEGIN_HEADER
 
 
 #define  GET_Char()      ((FT_Char)GET_Byte())
-#define  GET_UShort()    ((FT_UShort)GET_Short())
-#define  GET_ULong()     ((FT_ULong)GET_Long())
+#define  GET_UShort()    ((HB_UShort)GET_Short())
+#define  GET_ULong()     ((HB_UInt)GET_Long())
 #define  GET_Tag4()      GET_ULong()
 
-HB_INTERNAL FT_Long
+HB_INTERNAL HB_Int
 _hb_ftglue_stream_pos( FT_Stream   stream );
 
 HB_INTERNAL HB_Error
 _hb_ftglue_stream_seek( FT_Stream   stream,
-                    FT_Long     pos );
+                    HB_Int     pos );
 
 HB_INTERNAL HB_Error
 _hb_ftglue_stream_frame_enter( FT_Stream   stream,
-                           FT_ULong    size );
+                           HB_UInt    size );
 
 HB_INTERNAL void
 _hb_ftglue_stream_frame_exit( FT_Stream  stream );
 
 HB_INTERNAL HB_Error
 _hb_ftglue_face_goto_table( FT_Face    face,
-                        FT_ULong   tag,
+                        HB_UInt   tag,
                         FT_Stream  stream );
 
 /* memory macros used by the OpenType parser */
@@ -129,12 +129,12 @@ _hb_ftglue_face_goto_table( FT_Face    face,
 
 
 HB_INTERNAL FT_Pointer
-_hb_ftglue_alloc( FT_ULong   size,
+_hb_ftglue_alloc( HB_UInt   size,
 		  HB_Error  *perror_ );
 
 HB_INTERNAL FT_Pointer
 _hb_ftglue_realloc( FT_Pointer  block,
-		    FT_ULong    new_size,
+		    HB_UInt    new_size,
 		    HB_Error   *perror_ );
 
 HB_INTERNAL void
@@ -146,6 +146,6 @@ _hb_ftglue_free( FT_Pointer  block );
 HB_INTERNAL HB_Error
 _hb_err (HB_Error code);
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* FTGLUE_H */

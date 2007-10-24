@@ -17,15 +17,15 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-FT_BEGIN_HEADER
+HB_BEGIN_HEADER
 
 typedef struct HB_GlyphItemRec_ {
-  FT_UInt     gindex;
-  FT_UInt     properties;
-  FT_UInt     cluster;
-  FT_UShort   component;
-  FT_UShort   ligID;
-  FT_UShort   gproperties;
+  HB_UInt     gindex;
+  HB_UInt     properties;
+  HB_UInt     cluster;
+  HB_UShort   component;
+  HB_UShort   ligID;
+  HB_UShort   gproperties;
 } HB_GlyphItemRec, *HB_GlyphItem;
 
 typedef struct HB_PositionRec_ {
@@ -33,32 +33,32 @@ typedef struct HB_PositionRec_ {
   FT_Pos     y_pos;
   FT_Pos     x_advance;
   FT_Pos     y_advance;
-  FT_UShort  back;            /* number of glyphs to go back
+  HB_UShort  back;            /* number of glyphs to go back
 				 for drawing current glyph   */
-  FT_Bool    new_advance;     /* if set, the advance width values are
+  HB_Bool    new_advance;     /* if set, the advance width values are
 				 absolute, i.e., they won't be
 				 added to the original glyph's value
 				 but rather replace them.            */
-  FT_Short  cursive_chain;   /* character to which this connects,
+  HB_Short  cursive_chain;   /* character to which this connects,
 				 may be positive or negative; used
 				 only internally                     */
 } HB_PositionRec, *HB_Position;
 
 
 typedef struct HB_BufferRec_{ 
-  FT_ULong    allocated;
+  HB_UInt    allocated;
 
-  FT_ULong    in_length;
-  FT_ULong    out_length;
-  FT_ULong    in_pos;
-  FT_ULong    out_pos;
+  HB_UInt    in_length;
+  HB_UInt    out_length;
+  HB_UInt    in_pos;
+  HB_UInt    out_pos;
   
-  FT_Bool       separate_out;
+  HB_Bool       separate_out;
   HB_GlyphItem  in_string;
   HB_GlyphItem  out_string;
   HB_GlyphItem  alt_string;
   HB_Position   positions;
-  FT_UShort      max_ligID;
+  HB_UShort      max_ligID;
 } HB_BufferRec, *HB_Buffer;
 
 HB_Error
@@ -72,10 +72,10 @@ hb_buffer_clear( HB_Buffer buffer );
 
 HB_Error
 hb_buffer_add_glyph( HB_Buffer buffer,
-		      FT_UInt    glyph_index,
-		      FT_UInt    properties,
-		      FT_UInt    cluster );
+		      HB_UInt    glyph_index,
+		      HB_UInt    properties,
+		      HB_UInt    cluster );
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_BUFFER_H */

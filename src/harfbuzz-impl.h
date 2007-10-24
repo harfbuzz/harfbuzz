@@ -17,7 +17,9 @@
 #include FT_FREETYPE_H
 #include FT_TRUETYPE_TAGS_H
 
-FT_BEGIN_HEADER
+#include "harfbuzz-global.h"
+
+HB_BEGIN_HEADER
 
 #ifndef HB_INTERNAL
 # define HB_INTERNAL
@@ -89,6 +91,6 @@ FT_BEGIN_HEADER
 #define COPY_Glyph( buffer )								\
 	  ( (error = _hb_buffer_copy_output_glyph ( buffer ) ) != HB_Err_Ok )
 
-FT_END_HEADER
+HB_END_HEADER
 
 #endif /* HARFBUZZ_IMPL_H */

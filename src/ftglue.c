@@ -30,7 +30,7 @@ _hb_ftglue_log( const char*   format, ... )
 
 /* only used internally */
 static FT_Pointer
-_hb_ftglue_qalloc( FT_ULong   size,
+_hb_ftglue_qalloc( HB_UInt   size,
 		   HB_Error  *perror )
 {
   HB_Error    error = 0;
@@ -52,7 +52,7 @@ _hb_ftglue_qalloc( FT_ULong   size,
 
 
 HB_INTERNAL FT_Pointer
-_hb_ftglue_alloc( FT_ULong   size,
+_hb_ftglue_alloc( HB_UInt   size,
 		  HB_Error  *perror )
 {
   HB_Error    error = 0;
@@ -74,7 +74,7 @@ _hb_ftglue_alloc( FT_ULong   size,
 
 HB_INTERNAL FT_Pointer
 _hb_ftglue_realloc( FT_Pointer  block,
-		    FT_ULong    new_size,
+		    HB_UInt    new_size,
 		    HB_Error   *perror )
 {
   FT_Pointer  block2 = NULL;
@@ -100,7 +100,7 @@ _hb_ftglue_free( FT_Pointer  block )
 }
 
 
-HB_INTERNAL FT_Long
+HB_INTERNAL HB_Int
 _hb_ftglue_stream_pos( FT_Stream   stream )
 {
   LOG(( "ftglue:stream:pos() -> %ld\n", stream->pos ));
@@ -110,7 +110,7 @@ _hb_ftglue_stream_pos( FT_Stream   stream )
 
 HB_INTERNAL HB_Error
 _hb_ftglue_stream_seek( FT_Stream   stream,
-                    FT_Long     pos )
+                    HB_Int     pos )
 {
   HB_Error  error = 0;
 
@@ -120,7 +120,7 @@ _hb_ftglue_stream_seek( FT_Stream   stream,
     if ( stream->read( stream, pos, NULL, 0 ) )
       error = HB_Err_Invalid_Stream_Operation;
   }
-  else if ( pos > (FT_Long)stream->size )
+  else if ( pos > (HB_Int)stream->size )
     error = HB_Err_Invalid_Stream_Operation;
 
   LOG(( "ftglue:stream:seek(%ld) -> %d\n", pos, error ));
@@ -130,10 +130,10 @@ _hb_ftglue_stream_seek( FT_Stream   stream,
 
 HB_INTERNAL HB_Error
 _hb_ftglue_stream_frame_enter( FT_Stream   stream,
-                           FT_ULong    count )
+                           HB_UInt    count )
 {
   HB_Error  error = HB_Err_Ok;
-  FT_ULong  read_bytes;
+  HB_UInt  read_bytes;
 
   if ( stream->read )
   {
@@ -192,7 +192,7 @@ _hb_ftglue_stream_frame_exit( FT_Stream  stream )
 
 HB_INTERNAL HB_Error
 _hb_ftglue_face_goto_table( FT_Face    face,
-                        FT_ULong   the_tag,
+                        HB_UInt   the_tag,
                         FT_Stream  stream )
 {
   HB_Error  error;
@@ -215,8 +215,8 @@ _hb_ftglue_face_goto_table( FT_Face    face,
    /* parse the directory table directly, without using
     * FreeType's built-in data structures
     */
-    FT_ULong  offset = 0;
-    FT_UInt   count, nn;
+    HB_UInt  offset = 0;
+    HB_UInt   count, nn;
 
     if ( face->num_faces > 1 )
     {
@@ -248,10 +248,10 @@ _hb_ftglue_face_goto_table( FT_Face    face,
 
     for ( nn = 0; nn < count; nn++ )
     {
-      FT_ULong  tag      = GET_ULong();
-      FT_ULong  checksum = GET_ULong();
-      FT_ULong  start    = GET_ULong();
-      FT_ULong  size     = GET_ULong();
+      HB_UInt  tag      = GET_ULong();
+      HB_UInt  checksum = GET_ULong();
+      HB_UInt  start    = GET_ULong();
+      HB_UInt  size     = GET_ULong();
 
       FT_UNUSED(checksum);
       FT_UNUSED(size);

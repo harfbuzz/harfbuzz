@@ -20,11 +20,11 @@ struct  GPOS_Instance_
 {
   HB_GPOSHeader*  gpos;
   FT_Face          face;
-  FT_Bool          dvi;
-  FT_UShort        load_flags;  /* how the glyph should be loaded */
-  FT_Bool          r2l;
+  HB_Bool          dvi;
+  HB_UShort        load_flags;  /* how the glyph should be loaded */
+  HB_Bool          r2l;
 
-  FT_UShort        last;        /* the last valid glyph -- used
+  HB_UShort        last;        /* the last valid glyph -- used
 				   with cursive positioning     */
   FT_Pos           anchor_x;    /* the coordinates of the anchor point */
   FT_Pos           anchor_y;    /* of the last valid glyph             */
@@ -34,9 +34,9 @@ typedef struct GPOS_Instance_  GPOS_Instance;
 
 
 static HB_Error  GPOS_Do_Glyph_Lookup( GPOS_Instance*    gpi,
-				       FT_UShort         lookup_index,
+				       HB_UShort         lookup_index,
 				       HB_Buffer        buffer,
-				       FT_UShort         context_length,
+				       HB_UShort         context_length,
 				       int               nesting_level );
 
 
@@ -45,7 +45,7 @@ static HB_Error  GPOS_Do_Glyph_Lookup( GPOS_Instance*    gpi,
    meaningful if multiple master fonts are to be supported.     */
 
 static HB_Error  default_mmfunc( FT_Face      face,
-				 FT_UShort    metric_id,
+				 HB_UShort    metric_id,
 				 FT_Pos*      metric_value,
 				 void*        data )
 {
@@ -62,9 +62,9 @@ HB_Error  HB_Load_GPOS_Table( FT_Face          face,
 			      HB_GPOSHeader** retptr,
 			      HB_GDEFHeader*  gdef )
 {
-  FT_ULong         cur_offset, new_offset, base_offset;
+  HB_UInt         cur_offset, new_offset, base_offset;
 
-  FT_UShort        i, num_lookups;
+  HB_UShort        i, num_lookups;
   HB_GPOSHeader*  gpos;
   HB_Lookup*      lo;
 
@@ -206,13 +206,13 @@ HB_Error  HB_Done_GPOS_Table( HB_GPOSHeader* gpos )
    the parent table and not the parent record.                          */
 
 static HB_Error  Load_ValueRecord( HB_ValueRecord*  vr,
-				   FT_UShort         format,
-				   FT_ULong          base_offset,
+				   HB_UShort         format,
+				   HB_UInt          base_offset,
 				   FT_Stream         stream )
 {
   HB_Error  error;
 
-  FT_ULong cur_offset, new_offset;
+  HB_UInt cur_offset, new_offset;
 
 
   if ( format & HB_GPOS_FORMAT_HAVE_X_PLACEMENT )
@@ -450,7 +450,7 @@ Fail3:
 
 
 static void  Free_ValueRecord( HB_ValueRecord*  vr,
-			       FT_UShort         format )
+			       HB_UShort         format )
 {
   if ( format & HB_GPOS_FORMAT_HAVE_Y_ADVANCE_DEVICE )
     _HB_OPEN_Free_Device( &vr->YAdvanceDevice );
@@ -465,15 +465,15 @@ static void  Free_ValueRecord( HB_ValueRecord*  vr,
 
 static HB_Error  Get_ValueRecord( GPOS_Instance*    gpi,
 				  HB_ValueRecord*  vr,
-				  FT_UShort         format,
+				  HB_UShort         format,
 				  HB_Position      gd )
 {
   FT_Pos           value;
-  FT_Short         pixel_value;
+  HB_Short         pixel_value;
   HB_Error         error = HB_Err_Ok;
   HB_GPOSHeader*  gpos = gpi->gpos;
 
-  FT_UShort  x_ppem, y_ppem;
+  HB_UShort  x_ppem, y_ppem;
   FT_Fixed   x_scale, y_scale;
 
 
@@ -571,7 +571,7 @@ static HB_Error  Load_Anchor( HB_Anchor*  an,
 {
   HB_Error  error;
 
-  FT_ULong cur_offset, new_offset, base_offset;
+  HB_UInt cur_offset, new_offset, base_offset;
 
 
   base_offset = FILE_Pos();
@@ -695,7 +695,7 @@ static void  Free_Anchor( HB_Anchor*  an )
 
 static HB_Error  Get_Anchor( GPOS_Instance*   gpi,
 			     HB_Anchor*      an,
-			     FT_UShort        glyph_index,
+			     HB_UShort        glyph_index,
 			     FT_Pos*          x_value,
 			     FT_Pos*          y_value )
 {
@@ -703,12 +703,12 @@ static HB_Error  Get_Anchor( GPOS_Instance*   gpi,
 
   FT_Outline       outline;
   HB_GPOSHeader*  gpos = gpi->gpos;
-  FT_UShort        ap;
+  HB_UShort        ap;
 
-  FT_Short         pixel_value;
-  FT_UShort        load_flags;
+  HB_Short         pixel_value;
+  HB_UShort        load_flags;
 
-  FT_UShort        x_ppem, y_ppem;
+  HB_UShort        x_ppem, y_ppem;
   FT_Fixed         x_scale, y_scale;
 
 
@@ -808,8 +808,8 @@ static HB_Error  Load_MarkArray ( HB_MarkArray*  ma,
 {
   HB_Error  error;
 
-  FT_UShort        n, m, count;
-  FT_ULong         cur_offset, new_offset, base_offset;
+  HB_UShort        n, m, count;
+  HB_UInt         cur_offset, new_offset, base_offset;
 
   HB_MarkRecord*  mr;
 
@@ -860,7 +860,7 @@ Fail:
 
 static void  Free_MarkArray( HB_MarkArray*  ma )
 {
-  FT_UShort        n, count;
+  HB_UShort        n, count;
 
   HB_MarkRecord*  mr;
 
@@ -889,8 +889,8 @@ static HB_Error  Load_SinglePos( HB_GPOS_SubTable* st,
   HB_Error  error;
   HB_SinglePos*   sp = &st->single;
 
-  FT_UShort         n, m, count, format;
-  FT_ULong          cur_offset, new_offset, base_offset;
+  HB_UShort         n, m, count, format;
+  HB_UInt          cur_offset, new_offset, base_offset;
 
   HB_ValueRecord*  vr;
 
@@ -968,7 +968,7 @@ Fail2:
 
 static void  Free_SinglePos( HB_GPOS_SubTable* st )
 {
-  FT_UShort         n, count, format;
+  HB_UShort         n, count, format;
   HB_SinglePos*   sp = &st->single;
 
   HB_ValueRecord*  v;
@@ -1004,11 +1004,11 @@ static void  Free_SinglePos( HB_GPOS_SubTable* st )
 static HB_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
 				   HB_GPOS_SubTable* st,
 				   HB_Buffer        buffer,
-				   FT_UShort         flags,
-				   FT_UShort         context_length,
+				   HB_UShort         flags,
+				   HB_UShort         context_length,
 				   int               nesting_level )
 {
-  FT_UShort        index, property;
+  HB_UShort        index, property;
   HB_Error         error;
   HB_GPOSHeader*  gpos = gpi->gpos;
   HB_SinglePos*   sp = &st->single;
@@ -1058,14 +1058,14 @@ static HB_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
 /* PairSet */
 
 static HB_Error  Load_PairSet ( HB_PairSet*  ps,
-				FT_UShort     format1,
-				FT_UShort     format2,
+				HB_UShort     format1,
+				HB_UShort     format2,
 				FT_Stream     stream )
 {
   HB_Error  error;
 
-  FT_UShort             n, m, count;
-  FT_ULong              base_offset;
+  HB_UShort             n, m, count;
+  HB_UInt              base_offset;
 
   HB_PairValueRecord*  pvr;
 
@@ -1132,10 +1132,10 @@ Fail:
 
 
 static void  Free_PairSet( HB_PairSet*  ps,
-			   FT_UShort     format1,
-			   FT_UShort     format2 )
+			   HB_UShort     format1,
+			   HB_UShort     format2 )
 {
-  FT_UShort             n, count;
+  HB_UShort             n, count;
 
   HB_PairValueRecord*  pvr;
 
@@ -1161,14 +1161,14 @@ static void  Free_PairSet( HB_PairSet*  ps,
 /* PairPosFormat1 */
 
 static HB_Error  Load_PairPos1( HB_PairPosFormat1*  ppf1,
-				FT_UShort            format1,
-				FT_UShort            format2,
+				HB_UShort            format1,
+				HB_UShort            format2,
 				FT_Stream            stream )
 {
   HB_Error  error;
 
-  FT_UShort     n, m, count;
-  FT_ULong      cur_offset, new_offset, base_offset;
+  HB_UShort     n, m, count;
+  HB_UInt      cur_offset, new_offset, base_offset;
 
   HB_PairSet*  ps;
 
@@ -1218,10 +1218,10 @@ Fail:
 
 
 static void  Free_PairPos1( HB_PairPosFormat1*  ppf1,
-			    FT_UShort            format1,
-			    FT_UShort            format2 )
+			    HB_UShort            format1,
+			    HB_UShort            format2 )
 {
-  FT_UShort     n, count;
+  HB_UShort     n, count;
 
   HB_PairSet*  ps;
 
@@ -1242,14 +1242,14 @@ static void  Free_PairPos1( HB_PairPosFormat1*  ppf1,
 /* PairPosFormat2 */
 
 static HB_Error  Load_PairPos2( HB_PairPosFormat2*  ppf2,
-				FT_UShort            format1,
-				FT_UShort            format2,
+				HB_UShort            format1,
+				HB_UShort            format2,
 				FT_Stream            stream )
 {
   HB_Error  error;
 
-  FT_UShort          m, n, k, count1, count2;
-  FT_ULong           cur_offset, new_offset1, new_offset2, base_offset;
+  HB_UShort          m, n, k, count1, count2;
+  HB_UInt           cur_offset, new_offset1, new_offset2, base_offset;
 
   HB_Class1Record*  c1r;
   HB_Class2Record*  c2r;
@@ -1363,10 +1363,10 @@ Fail3:
 
 
 static void  Free_PairPos2( HB_PairPosFormat2*  ppf2,
-			    FT_UShort            format1,
-			    FT_UShort            format2 )
+			    HB_UShort            format1,
+			    HB_UShort            format2 )
 {
-  FT_UShort          m, n, count1, count2;
+  HB_UShort          m, n, count1, count2;
 
   HB_Class1Record*  c1r;
   HB_Class2Record*  c2r;
@@ -1407,8 +1407,8 @@ static HB_Error  Load_PairPos( HB_GPOS_SubTable* st,
   HB_Error  error;
   HB_PairPos*     pp = &st->pair;
 
-  FT_UShort         format1, format2;
-  FT_ULong          cur_offset, new_offset, base_offset;
+  HB_UShort         format1, format2;
+  HB_UInt          cur_offset, new_offset, base_offset;
 
 
   base_offset = FILE_Pos();
@@ -1458,7 +1458,7 @@ Fail:
 
 static void  Free_PairPos( HB_GPOS_SubTable* st )
 {
-  FT_UShort  format1, format2;
+  HB_UShort  format1, format2;
   HB_PairPos*     pp = &st->pair;
 
 
@@ -1486,13 +1486,13 @@ static void  Free_PairPos( HB_GPOS_SubTable* st )
 static HB_Error  Lookup_PairPos1( GPOS_Instance*       gpi,
 				  HB_PairPosFormat1*  ppf1,
 				  HB_Buffer           buffer,
-				  FT_ULong             first_pos,
-				  FT_UShort            index,
-				  FT_UShort            format1,
-				  FT_UShort            format2 )
+				  HB_UInt             first_pos,
+				  HB_UShort            index,
+				  HB_UShort            format1,
+				  HB_UShort            format2 )
 {
   HB_Error              error;
-  FT_UShort             numpvr, glyph2;
+  HB_UShort             numpvr, glyph2;
 
   HB_PairValueRecord*  pvr;
 
@@ -1528,12 +1528,12 @@ static HB_Error  Lookup_PairPos1( GPOS_Instance*       gpi,
 static HB_Error  Lookup_PairPos2( GPOS_Instance*       gpi,
 				  HB_PairPosFormat2*  ppf2,
 				  HB_Buffer           buffer,
-				  FT_ULong             first_pos,
-				  FT_UShort            format1,
-				  FT_UShort            format2 )
+				  HB_UInt             first_pos,
+				  HB_UShort            format1,
+				  HB_UShort            format2 )
 {
   HB_Error           error;
-  FT_UShort          cl1 = 0, cl2 = 0; /* shut compiler up */
+  HB_UShort          cl1 = 0, cl2 = 0; /* shut compiler up */
 
   HB_Class1Record*  c1r;
   HB_Class2Record*  c2r;
@@ -1563,13 +1563,13 @@ static HB_Error  Lookup_PairPos2( GPOS_Instance*       gpi,
 static HB_Error  Lookup_PairPos( GPOS_Instance*    gpi,
 				 HB_GPOS_SubTable* st,
 				 HB_Buffer        buffer,
-				 FT_UShort         flags,
-				 FT_UShort         context_length,
+				 HB_UShort         flags,
+				 HB_UShort         context_length,
 				 int               nesting_level )
 {
   HB_Error         error;
-  FT_UShort        index, property;
-  FT_ULong         first_pos;
+  HB_UShort        index, property;
+  HB_UInt         first_pos;
   HB_GPOSHeader*  gpos = gpi->gpos;
   HB_PairPos*     pp = &st->pair;
 
@@ -1650,8 +1650,8 @@ static HB_Error  Load_CursivePos( HB_GPOS_SubTable* st,
   HB_Error  error;
   HB_CursivePos*  cp = &st->cursive;
 
-  FT_UShort             n, m, count;
-  FT_ULong              cur_offset, new_offset, base_offset;
+  HB_UShort             n, m, count;
+  HB_UInt              cur_offset, new_offset, base_offset;
 
   HB_EntryExitRecord*  eer;
 
@@ -1688,7 +1688,7 @@ static HB_Error  Load_CursivePos( HB_GPOS_SubTable* st,
 
   for ( n = 0; n < count; n++ )
   {
-    FT_ULong entry_offset;
+    HB_UInt entry_offset;
 
     if ( ACCESS_Frame( 2L ) )
       return error;
@@ -1756,7 +1756,7 @@ Fail2:
 
 static void  Free_CursivePos( HB_GPOS_SubTable* st )
 {
-  FT_UShort             n, count;
+  HB_UShort             n, count;
   HB_CursivePos*  cp = &st->cursive;
 
   HB_EntryExitRecord*  eer;
@@ -1783,11 +1783,11 @@ static void  Free_CursivePos( HB_GPOS_SubTable* st )
 static HB_Error  Lookup_CursivePos( GPOS_Instance*    gpi,
 				    HB_GPOS_SubTable* st,
 				    HB_Buffer        buffer,
-				    FT_UShort         flags,
-				    FT_UShort         context_length,
+				    HB_UShort         flags,
+				    HB_UShort         context_length,
 				    int               nesting_level )
 {
-  FT_UShort        index, property;
+  HB_UShort        index, property;
   HB_Error         error;
   HB_GPOSHeader*  gpos = gpi->gpos;
   HB_CursivePos*  cp = &st->cursive;
@@ -2008,13 +2008,13 @@ end:
 /* BaseArray */
 
 static HB_Error  Load_BaseArray( HB_BaseArray*  ba,
-				 FT_UShort       num_classes,
+				 HB_UShort       num_classes,
 				 FT_Stream       stream )
 {
   HB_Error  error;
 
-  FT_UShort        m, n, k, count;
-  FT_ULong         cur_offset, new_offset, base_offset;
+  HB_UShort        m, n, k, count;
+  HB_UInt         cur_offset, new_offset, base_offset;
 
   HB_BaseRecord*  br;
   HB_Anchor*      ban;
@@ -2096,9 +2096,9 @@ Fail:
 
 
 static void  Free_BaseArray( HB_BaseArray*  ba,
-			     FT_UShort       num_classes )
+			     HB_UShort       num_classes )
 {
-  FT_UShort        m, n, count;
+  HB_UShort        m, n, count;
 
   HB_BaseRecord*  br;
   HB_Anchor*      ban;
@@ -2132,7 +2132,7 @@ static HB_Error  Load_MarkBasePos( HB_GPOS_SubTable* st,
   HB_Error  error;
   HB_MarkBasePos* mbp = &st->markbase;
 
-  FT_ULong  cur_offset, new_offset, base_offset;
+  HB_UInt  cur_offset, new_offset, base_offset;
 
 
   base_offset = FILE_Pos();
@@ -2222,11 +2222,11 @@ static void  Free_MarkBasePos( HB_GPOS_SubTable* st )
 static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 				     HB_GPOS_SubTable* st,
 				     HB_Buffer        buffer,
-				     FT_UShort         flags,
-				     FT_UShort         context_length,
+				     HB_UShort         flags,
+				     HB_UShort         context_length,
 				     int               nesting_level )
 {
-  FT_UShort        i, j, mark_index, base_index, property, class;
+  HB_UShort        i, j, mark_index, base_index, property, class;
   FT_Pos           x_mark_value, y_mark_value, x_base_value, y_base_value;
   HB_Error         error;
   HB_GPOSHeader*  gpos = gpi->gpos;
@@ -2340,13 +2340,13 @@ static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 /* LigatureAttach */
 
 static HB_Error  Load_LigatureAttach( HB_LigatureAttach*  lat,
-				      FT_UShort            num_classes,
+				      HB_UShort            num_classes,
 				      FT_Stream            stream )
 {
   HB_Error  error;
 
-  FT_UShort             m, n, k, count;
-  FT_ULong              cur_offset, new_offset, base_offset;
+  HB_UShort             m, n, k, count;
+  HB_UInt              cur_offset, new_offset, base_offset;
 
   HB_ComponentRecord*  cr;
   HB_Anchor*           lan;
@@ -2426,9 +2426,9 @@ Fail:
 
 
 static void  Free_LigatureAttach( HB_LigatureAttach*  lat,
-				  FT_UShort            num_classes )
+				  HB_UShort            num_classes )
 {
-  FT_UShort        m, n, count;
+  HB_UShort        m, n, count;
 
   HB_ComponentRecord*  cr;
   HB_Anchor*           lan;
@@ -2457,13 +2457,13 @@ static void  Free_LigatureAttach( HB_LigatureAttach*  lat,
 /* LigatureArray */
 
 static HB_Error  Load_LigatureArray( HB_LigatureArray*  la,
-				     FT_UShort           num_classes,
+				     HB_UShort           num_classes,
 				     FT_Stream           stream )
 {
   HB_Error  error;
 
-  FT_UShort            n, m, count;
-  FT_ULong             cur_offset, new_offset, base_offset;
+  HB_UShort            n, m, count;
+  HB_UInt             cur_offset, new_offset, base_offset;
 
   HB_LigatureAttach*  lat;
 
@@ -2513,9 +2513,9 @@ Fail:
 
 
 static void  Free_LigatureArray( HB_LigatureArray*  la,
-				 FT_UShort          num_classes )
+				 HB_UShort          num_classes )
 {
-  FT_UShort            n, count;
+  HB_UShort            n, count;
 
   HB_LigatureAttach*  lat;
 
@@ -2541,7 +2541,7 @@ static HB_Error  Load_MarkLigPos( HB_GPOS_SubTable* st,
   HB_Error  error;
   HB_MarkLigPos*  mlp = &st->marklig;
 
-  FT_ULong  cur_offset, new_offset, base_offset;
+  HB_UInt  cur_offset, new_offset, base_offset;
 
 
   base_offset = FILE_Pos();
@@ -2629,12 +2629,12 @@ static void  Free_MarkLigPos( HB_GPOS_SubTable* st )
 static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 				    HB_GPOS_SubTable* st,
 				    HB_Buffer        buffer,
-				    FT_UShort         flags,
-				    FT_UShort         context_length,
+				    HB_UShort         flags,
+				    HB_UShort         context_length,
 				    int               nesting_level )
 {
-  FT_UShort        i, j, mark_index, lig_index, property, class;
-  FT_UShort        mark_glyph;
+  HB_UShort        i, j, mark_index, lig_index, property, class;
+  HB_UShort        mark_glyph;
   FT_Pos           x_mark_value, y_mark_value, x_lig_value, y_lig_value;
   HB_Error         error;
   HB_GPOSHeader*  gpos = gpi->gpos;
@@ -2644,7 +2644,7 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
   HB_LigatureArray*    la;
   HB_LigatureAttach*   lat;
   HB_ComponentRecord*  cr;
-  FT_UShort             comp_index;
+  HB_UShort             comp_index;
   HB_Anchor*           mark_anchor;
   HB_Anchor*           lig_anchor;
 
@@ -2766,13 +2766,13 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 /* Mark2Array */
 
 static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
-				  FT_UShort        num_classes,
+				  HB_UShort        num_classes,
 				  FT_Stream        stream )
 {
   HB_Error  error;
 
-  FT_UShort         k, m, n, count;
-  FT_ULong          cur_offset, new_offset, base_offset;
+  HB_UShort         k, m, n, count;
+  HB_UInt          cur_offset, new_offset, base_offset;
 
   HB_Mark2Record*  m2r;
   HB_Anchor*       m2an;
@@ -2845,9 +2845,9 @@ Fail:
 
 
 static void  Free_Mark2Array( HB_Mark2Array*  m2a,
-			      FT_UShort        num_classes )
+			      HB_UShort        num_classes )
 {
-  FT_UShort         m, n, count;
+  HB_UShort         m, n, count;
 
   HB_Mark2Record*  m2r;
   HB_Anchor*       m2an;
@@ -2881,7 +2881,7 @@ static HB_Error  Load_MarkMarkPos( HB_GPOS_SubTable* st,
   HB_Error  error;
   HB_MarkMarkPos* mmp = &st->markmark;
 
-  FT_ULong  cur_offset, new_offset, base_offset;
+  HB_UInt  cur_offset, new_offset, base_offset;
 
 
   base_offset = FILE_Pos();
@@ -2970,11 +2970,11 @@ static void  Free_MarkMarkPos( HB_GPOS_SubTable* st )
 static HB_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
 				     HB_GPOS_SubTable* st,
 				     HB_Buffer        buffer,
-				     FT_UShort         flags,
-				     FT_UShort         context_length,
+				     HB_UShort         flags,
+				     HB_UShort         context_length,
 				     int               nesting_level )
 {
-  FT_UShort        i, j, mark1_index, mark2_index, property, class;
+  HB_UShort        i, j, mark1_index, mark2_index, property, class;
   FT_Pos           x_mark1_value, y_mark1_value,
 		   x_mark2_value, y_mark2_value;
   HB_Error         error;
@@ -3090,14 +3090,14 @@ static HB_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
    matches the subrule.                                                 */
 
 static HB_Error  Do_ContextPos( GPOS_Instance*        gpi,
-				FT_UShort             GlyphCount,
-				FT_UShort             PosCount,
+				HB_UShort             GlyphCount,
+				HB_UShort             PosCount,
 				HB_PosLookupRecord*  pos,
 				HB_Buffer            buffer,
 				int                   nesting_level )
 {
   HB_Error  error;
-  FT_ULong i, old_pos;
+  HB_UInt i, old_pos;
 
 
   i = 0;
@@ -3140,8 +3140,8 @@ static HB_Error  Load_PosRule( HB_PosRule*  pr,
 {
   HB_Error  error;
 
-  FT_UShort             n, count;
-  FT_UShort*            i;
+  HB_UShort             n, count;
+  HB_UShort*            i;
 
   HB_PosLookupRecord*  plr;
 
@@ -3158,7 +3158,7 @@ static HB_Error  Load_PosRule( HB_PosRule*  pr,
 
   count = pr->GlyphCount - 1;         /* only GlyphCount - 1 elements */
 
-  if ( ALLOC_ARRAY( pr->Input, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( pr->Input, count, HB_UShort ) )
     return error;
 
   i = pr->Input;
@@ -3216,8 +3216,8 @@ static HB_Error  Load_PosRuleSet( HB_PosRuleSet*  prs,
 {
   HB_Error  error;
 
-  FT_UShort     n, m, count;
-  FT_ULong      cur_offset, new_offset, base_offset;
+  HB_UShort     n, m, count;
+  HB_UInt      cur_offset, new_offset, base_offset;
 
   HB_PosRule*  pr;
 
@@ -3267,7 +3267,7 @@ Fail:
 
 static void  Free_PosRuleSet( HB_PosRuleSet*  prs )
 {
-  FT_UShort     n, count;
+  HB_UShort     n, count;
 
   HB_PosRule*  pr;
 
@@ -3292,8 +3292,8 @@ static HB_Error  Load_ContextPos1( HB_ContextPosFormat1*  cpf1,
 {
   HB_Error  error;
 
-  FT_UShort        n, m, count;
-  FT_ULong         cur_offset, new_offset, base_offset;
+  HB_UShort        n, m, count;
+  HB_UInt         cur_offset, new_offset, base_offset;
 
   HB_PosRuleSet*  prs;
 
@@ -3359,7 +3359,7 @@ Fail2:
 
 static void  Free_ContextPos1( HB_ContextPosFormat1*  cpf1 )
 {
-  FT_UShort        n, count;
+  HB_UShort        n, count;
 
   HB_PosRuleSet*  prs;
 
@@ -3387,11 +3387,11 @@ static HB_Error  Load_PosClassRule( HB_ContextPosFormat2*  cpf2,
 {
   HB_Error  error;
 
-  FT_UShort             n, count;
+  HB_UShort             n, count;
 
-  FT_UShort*            c;
+  HB_UShort*            c;
   HB_PosLookupRecord*  plr;
-  FT_Bool*              d;
+  HB_Bool*              d;
 
 
   if ( ACCESS_Frame( 4L ) )
@@ -3409,7 +3409,7 @@ static HB_Error  Load_PosClassRule( HB_ContextPosFormat2*  cpf2,
 
   count = pcr->GlyphCount - 1;        /* only GlyphCount - 1 elements */
 
-  if ( ALLOC_ARRAY( pcr->Class, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( pcr->Class, count, HB_UShort ) )
     return error;
 
   c = pcr->Class;
@@ -3477,8 +3477,8 @@ static HB_Error  Load_PosClassSet( HB_ContextPosFormat2*  cpf2,
 {
   HB_Error  error;
 
-  FT_UShort          n, m, count;
-  FT_ULong           cur_offset, new_offset, base_offset;
+  HB_UShort          n, m, count;
+  HB_UInt           cur_offset, new_offset, base_offset;
 
   HB_PosClassRule*  pcr;
 
@@ -3529,7 +3529,7 @@ Fail:
 
 static void  Free_PosClassSet( HB_PosClassSet*  pcs )
 {
-  FT_UShort          n, count;
+  HB_UShort          n, count;
 
   HB_PosClassRule*  pcr;
 
@@ -3554,8 +3554,8 @@ static HB_Error  Load_ContextPos2( HB_ContextPosFormat2*  cpf2,
 {
   HB_Error  error;
 
-  FT_UShort         n, m, count;
-  FT_ULong          cur_offset, new_offset, base_offset;
+  HB_UShort         n, m, count;
+  HB_UInt          cur_offset, new_offset, base_offset;
 
   HB_PosClassSet*  pcs;
 
@@ -3648,7 +3648,7 @@ Fail3:
 
 static void  Free_ContextPos2( HB_ContextPosFormat2*  cpf2 )
 {
-  FT_UShort         n, count;
+  HB_UShort         n, count;
 
   HB_PosClassSet*  pcs;
 
@@ -3676,8 +3676,8 @@ static HB_Error  Load_ContextPos3( HB_ContextPosFormat3*  cpf3,
 {
   HB_Error  error;
 
-  FT_UShort             n, count;
-  FT_ULong              cur_offset, new_offset, base_offset;
+  HB_UShort             n, count;
+  HB_UInt              cur_offset, new_offset, base_offset;
 
   HB_Coverage*         c;
   HB_PosLookupRecord*  plr;
@@ -3754,7 +3754,7 @@ Fail2:
 
 static void  Free_ContextPos3( HB_ContextPosFormat3*  cpf3 )
 {
-  FT_UShort      n, count;
+  HB_UShort      n, count;
 
   HB_Coverage*  c;
 
@@ -3826,12 +3826,12 @@ static void  Free_ContextPos( HB_GPOS_SubTable* st )
 static HB_Error  Lookup_ContextPos1( GPOS_Instance*          gpi,
 				     HB_ContextPosFormat1*  cpf1,
 				     HB_Buffer              buffer,
-				     FT_UShort               flags,
-				     FT_UShort               context_length,
+				     HB_UShort               flags,
+				     HB_UShort               context_length,
 				     int                     nesting_level )
 {
-  FT_UShort        index, property;
-  FT_UShort        i, j, k, numpr;
+  HB_UShort        index, property;
+  HB_UShort        i, j, k, numpr;
   HB_Error         error;
   HB_GPOSHeader*  gpos = gpi->gpos;
 
@@ -3866,7 +3866,7 @@ static HB_Error  Lookup_ContextPos1( GPOS_Instance*          gpi,
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + pr[k].GlyphCount - i == (FT_Long)buffer->in_length )
+	if ( j + pr[k].GlyphCount - i == (HB_Int)buffer->in_length )
 	  goto next_posrule;
 	j++;
       }
@@ -3891,16 +3891,16 @@ static HB_Error  Lookup_ContextPos1( GPOS_Instance*          gpi,
 static HB_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
 				     HB_ContextPosFormat2*  cpf2,
 				     HB_Buffer              buffer,
-				     FT_UShort               flags,
-				     FT_UShort               context_length,
+				     HB_UShort               flags,
+				     HB_UShort               context_length,
 				     int                     nesting_level )
 {
-  FT_UShort          index, property;
+  HB_UShort          index, property;
   HB_Error           error;
-  FT_UShort          i, j, k, known_classes;
+  HB_UShort          i, j, k, known_classes;
 
-  FT_UShort*         classes;
-  FT_UShort*         cl;
+  HB_UShort*         classes;
+  HB_UShort*         cl;
   HB_GPOSHeader*    gpos = gpi->gpos;
 
   HB_PosClassSet*   pcs;
@@ -3921,7 +3921,7 @@ static HB_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
   if ( error )
     return error;
 
-  if ( ALLOC_ARRAY( classes, cpf2->MaxContextLength, FT_UShort ) )
+  if ( ALLOC_ARRAY( classes, cpf2->MaxContextLength, HB_UShort ) )
     return error;
 
   error = _HB_OPEN_Get_Class( &cpf2->ClassDef, IN_CURGLYPH(),
@@ -3958,7 +3958,7 @@ static HB_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End;
 
-	if ( j + pr->GlyphCount - i == (FT_Long)buffer->in_length )
+	if ( j + pr->GlyphCount - i == (HB_Int)buffer->in_length )
 	  goto next_posclassrule;
 	j++;
       }
@@ -3998,12 +3998,12 @@ End:
 static HB_Error  Lookup_ContextPos3( GPOS_Instance*          gpi,
 				     HB_ContextPosFormat3*  cpf3,
 				     HB_Buffer              buffer,
-				     FT_UShort               flags,
-				     FT_UShort               context_length,
+				     HB_UShort               flags,
+				     HB_UShort               context_length,
 				     int                     nesting_level )
 {
   HB_Error         error;
-  FT_UShort        index, i, j, property;
+  HB_UShort        index, i, j, property;
   HB_GPOSHeader*  gpos = gpi->gpos;
 
   HB_Coverage*    c;
@@ -4030,7 +4030,7 @@ static HB_Error  Lookup_ContextPos3( GPOS_Instance*          gpi,
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + cpf3->GlyphCount - i == (FT_Long)buffer->in_length )
+      if ( j + cpf3->GlyphCount - i == (HB_Int)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -4050,8 +4050,8 @@ static HB_Error  Lookup_ContextPos3( GPOS_Instance*          gpi,
 static HB_Error  Lookup_ContextPos( GPOS_Instance*    gpi,
 				    HB_GPOS_SubTable* st,
 				    HB_Buffer        buffer,
-				    FT_UShort         flags,
-				    FT_UShort         context_length,
+				    HB_UShort         flags,
+				    HB_UShort         context_length,
 				    int               nesting_level )
 {
   HB_ContextPos*   cp = &st->context;
@@ -4087,10 +4087,10 @@ static HB_Error  Load_ChainPosRule( HB_ChainPosRule*  cpr,
 {
   HB_Error  error;
 
-  FT_UShort             n, count;
-  FT_UShort*            b;
-  FT_UShort*            i;
-  FT_UShort*            l;
+  HB_UShort             n, count;
+  HB_UShort*            b;
+  HB_UShort*            i;
+  HB_UShort*            l;
 
   HB_PosLookupRecord*  plr;
 
@@ -4106,7 +4106,7 @@ static HB_Error  Load_ChainPosRule( HB_ChainPosRule*  cpr,
 
   count = cpr->BacktrackGlyphCount;
 
-  if ( ALLOC_ARRAY( cpr->Backtrack, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cpr->Backtrack, count, HB_UShort ) )
     return error;
 
   b = cpr->Backtrack;
@@ -4130,7 +4130,7 @@ static HB_Error  Load_ChainPosRule( HB_ChainPosRule*  cpr,
 
   count = cpr->InputGlyphCount - 1;  /* only InputGlyphCount - 1 elements */
 
-  if ( ALLOC_ARRAY( cpr->Input, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cpr->Input, count, HB_UShort ) )
     goto Fail4;
 
   i = cpr->Input;
@@ -4154,7 +4154,7 @@ static HB_Error  Load_ChainPosRule( HB_ChainPosRule*  cpr,
 
   count = cpr->LookaheadGlyphCount;
 
-  if ( ALLOC_ARRAY( cpr->Lookahead, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cpr->Lookahead, count, HB_UShort ) )
     goto Fail3;
 
   l = cpr->Lookahead;
@@ -4227,8 +4227,8 @@ static HB_Error  Load_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs,
 {
   HB_Error  error;
 
-  FT_UShort          n, m, count;
-  FT_ULong           cur_offset, new_offset, base_offset;
+  HB_UShort          n, m, count;
+  HB_UInt           cur_offset, new_offset, base_offset;
 
   HB_ChainPosRule*  cpr;
 
@@ -4278,7 +4278,7 @@ Fail:
 
 static void  Free_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs )
 {
-  FT_UShort          n, count;
+  HB_UShort          n, count;
 
   HB_ChainPosRule*  cpr;
 
@@ -4303,8 +4303,8 @@ static HB_Error  Load_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1,
 {
   HB_Error  error;
 
-  FT_UShort             n, m, count;
-  FT_ULong              cur_offset, new_offset, base_offset;
+  HB_UShort             n, m, count;
+  HB_UInt              cur_offset, new_offset, base_offset;
 
   HB_ChainPosRuleSet*  cprs;
 
@@ -4370,7 +4370,7 @@ Fail2:
 
 static void  Free_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1 )
 {
-  FT_UShort             n, count;
+  HB_UShort             n, count;
 
   HB_ChainPosRuleSet*  cprs;
 
@@ -4399,13 +4399,13 @@ static HB_Error  Load_ChainPosClassRule(
 {
   HB_Error  error;
 
-  FT_UShort             n, count;
+  HB_UShort             n, count;
 
-  FT_UShort*            b;
-  FT_UShort*            i;
-  FT_UShort*            l;
+  HB_UShort*            b;
+  HB_UShort*            i;
+  HB_UShort*            l;
   HB_PosLookupRecord*  plr;
-  FT_Bool*              d;
+  HB_Bool*              d;
 
 
   if ( ACCESS_Frame( 2L ) )
@@ -4422,7 +4422,7 @@ static HB_Error  Load_ChainPosClassRule(
 
   count = cpcr->BacktrackGlyphCount;
 
-  if ( ALLOC_ARRAY( cpcr->Backtrack, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cpcr->Backtrack, count, HB_UShort ) )
     return error;
 
   b = cpcr->Backtrack;
@@ -4458,7 +4458,7 @@ static HB_Error  Load_ChainPosClassRule(
 
   count = cpcr->InputGlyphCount - 1; /* only InputGlyphCount - 1 elements */
 
-  if ( ALLOC_ARRAY( cpcr->Input, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cpcr->Input, count, HB_UShort ) )
     goto Fail4;
 
   i = cpcr->Input;
@@ -4491,7 +4491,7 @@ static HB_Error  Load_ChainPosClassRule(
 
   count = cpcr->LookaheadGlyphCount;
 
-  if ( ALLOC_ARRAY( cpcr->Lookahead, count, FT_UShort ) )
+  if ( ALLOC_ARRAY( cpcr->Lookahead, count, HB_UShort ) )
     goto Fail3;
 
   l = cpcr->Lookahead;
@@ -4572,8 +4572,8 @@ static HB_Error  Load_ChainPosClassSet(
 {
   HB_Error  error;
 
-  FT_UShort               n, m, count;
-  FT_ULong                cur_offset, new_offset, base_offset;
+  HB_UShort               n, m, count;
+  HB_UInt                cur_offset, new_offset, base_offset;
 
   HB_ChainPosClassRule*  cpcr;
 
@@ -4625,7 +4625,7 @@ Fail:
 
 static void  Free_ChainPosClassSet( HB_ChainPosClassSet*  cpcs )
 {
-  FT_UShort               n, count;
+  HB_UShort               n, count;
 
   HB_ChainPosClassRule*  cpcr;
 
@@ -4650,9 +4650,9 @@ static HB_Error  Load_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2,
 {
   HB_Error  error;
 
-  FT_UShort              n, m, count;
-  FT_ULong               cur_offset, new_offset, base_offset;
-  FT_ULong               backtrack_offset, input_offset, lookahead_offset;
+  HB_UShort              n, m, count;
+  HB_UInt               cur_offset, new_offset, base_offset;
+  HB_UInt               backtrack_offset, input_offset, lookahead_offset;
 
   HB_ChainPosClassSet*  cpcs;
 
@@ -4762,7 +4762,7 @@ Fail5:
 
 static void  Free_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2 )
 {
-  FT_UShort              n, count;
+  HB_UShort              n, count;
 
   HB_ChainPosClassSet*  cpcs;
 
@@ -4793,9 +4793,9 @@ static HB_Error  Load_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3,
 {
   HB_Error  error;
 
-  FT_UShort             n, nb, ni, nl, m, count;
-  FT_UShort             backtrack_count, input_count, lookahead_count;
-  FT_ULong              cur_offset, new_offset, base_offset;
+  HB_UShort             n, nb, ni, nl, m, count;
+  HB_UShort             backtrack_count, input_count, lookahead_count;
+  HB_UInt              cur_offset, new_offset, base_offset;
 
   HB_Coverage*         b;
   HB_Coverage*         i;
@@ -4958,7 +4958,7 @@ Fail4:
 
 static void  Free_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3 )
 {
-  FT_UShort      n, count;
+  HB_UShort      n, count;
 
   HB_Coverage*  c;
 
@@ -5053,13 +5053,13 @@ static HB_Error  Lookup_ChainContextPos1(
 		   GPOS_Instance*               gpi,
 		   HB_ChainContextPosFormat1*  ccpf1,
 		   HB_Buffer                   buffer,
-		   FT_UShort                    flags,
-		   FT_UShort                    context_length,
+		   HB_UShort                    flags,
+		   HB_UShort                    context_length,
 		   int                          nesting_level )
 {
-  FT_UShort          index, property;
-  FT_UShort          i, j, k, num_cpr;
-  FT_UShort          bgc, igc, lgc;
+  HB_UShort          index, property;
+  HB_UShort          i, j, k, num_cpr;
+  HB_UShort          bgc, igc, lgc;
   HB_Error           error;
   HB_GPOSHeader*    gpos = gpi->gpos;
 
@@ -5136,7 +5136,7 @@ static HB_Error  Lookup_ChainContextPos1(
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
+	if ( j + igc - i + lgc == (HB_Int)buffer->in_length )
 	  goto next_chainposrule;
 	j++;
       }
@@ -5155,7 +5155,7 @@ static HB_Error  Lookup_ChainContextPos1(
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
 
-	if ( j + lgc - i == (FT_Long)buffer->in_length )
+	if ( j + lgc - i == (HB_Int)buffer->in_length )
 	  goto next_chainposrule;
 	j++;
       }
@@ -5182,25 +5182,25 @@ static HB_Error  Lookup_ChainContextPos2(
 		   GPOS_Instance*               gpi,
 		   HB_ChainContextPosFormat2*  ccpf2,
 		   HB_Buffer                   buffer,
-		   FT_UShort                    flags,
-		   FT_UShort                    context_length,
+		   HB_UShort                    flags,
+		   HB_UShort                    context_length,
 		   int                          nesting_level )
 {
-  FT_UShort              index, property;
+  HB_UShort              index, property;
   HB_Error               error;
-  FT_UShort              i, j, k;
-  FT_UShort              bgc, igc, lgc;
-  FT_UShort              known_backtrack_classes,
+  HB_UShort              i, j, k;
+  HB_UShort              bgc, igc, lgc;
+  HB_UShort              known_backtrack_classes,
 			 known_input_classes,
 			 known_lookahead_classes;
 
-  FT_UShort*             backtrack_classes;
-  FT_UShort*             input_classes;
-  FT_UShort*             lookahead_classes;
+  HB_UShort*             backtrack_classes;
+  HB_UShort*             input_classes;
+  HB_UShort*             lookahead_classes;
 
-  FT_UShort*             bc;
-  FT_UShort*             ic;
-  FT_UShort*             lc;
+  HB_UShort*             bc;
+  HB_UShort*             ic;
+  HB_UShort*             lc;
   HB_GPOSHeader*        gpos = gpi->gpos;
 
   HB_ChainPosClassSet*  cpcs;
@@ -5221,15 +5221,15 @@ static HB_Error  Lookup_ChainContextPos2(
   if ( error )
     return error;
 
-  if ( ALLOC_ARRAY( backtrack_classes, ccpf2->MaxBacktrackLength, FT_UShort ) )
+  if ( ALLOC_ARRAY( backtrack_classes, ccpf2->MaxBacktrackLength, HB_UShort ) )
     return error;
   known_backtrack_classes = 0;
 
-  if ( ALLOC_ARRAY( input_classes, ccpf2->MaxInputLength, FT_UShort ) )
+  if ( ALLOC_ARRAY( input_classes, ccpf2->MaxInputLength, HB_UShort ) )
     goto End3;
   known_input_classes = 1;
 
-  if ( ALLOC_ARRAY( lookahead_classes, ccpf2->MaxLookaheadLength, FT_UShort ) )
+  if ( ALLOC_ARRAY( lookahead_classes, ccpf2->MaxLookaheadLength, HB_UShort ) )
     goto End2;
   known_lookahead_classes = 0;
 
@@ -5307,7 +5307,7 @@ static HB_Error  Lookup_ChainContextPos2(
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
 
-	if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
+	if ( j + igc - i + lgc == (HB_Int)buffer->in_length )
 	  goto next_chainposclassrule;
 	j++;
       }
@@ -5337,7 +5337,7 @@ static HB_Error  Lookup_ChainContextPos2(
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
 
-	if ( j + lgc - i == (FT_Long)buffer->in_length )
+	if ( j + lgc - i == (HB_Int)buffer->in_length )
 	  goto next_chainposclassrule;
 	j++;
       }
@@ -5384,12 +5384,12 @@ static HB_Error  Lookup_ChainContextPos3(
 		   GPOS_Instance*               gpi,
 		   HB_ChainContextPosFormat3*  ccpf3,
 		   HB_Buffer                   buffer,
-		   FT_UShort                    flags,
-		   FT_UShort                    context_length,
+		   HB_UShort                    flags,
+		   HB_UShort                    context_length,
 		   int                          nesting_level )
 {
-  FT_UShort        index, i, j, property;
-  FT_UShort        bgc, igc, lgc;
+  HB_UShort        index, i, j, property;
+  HB_UShort        bgc, igc, lgc;
   HB_Error         error;
   HB_GPOSHeader*  gpos = gpi->gpos;
 
@@ -5451,7 +5451,7 @@ static HB_Error  Lookup_ChainContextPos3(
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + igc - i + lgc == (FT_Long)buffer->in_length )
+      if ( j + igc - i + lgc == (HB_Int)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -5473,7 +5473,7 @@ static HB_Error  Lookup_ChainContextPos3(
       if ( error && error != HB_Err_Not_Covered )
 	return error;
 
-      if ( j + lgc - i == (FT_Long)buffer->in_length )
+      if ( j + lgc - i == (HB_Int)buffer->in_length )
 	return HB_Err_Not_Covered;
       j++;
     }
@@ -5495,8 +5495,8 @@ static HB_Error  Lookup_ChainContextPos(
 		   GPOS_Instance*        gpi,
 		   HB_GPOS_SubTable* st,
 		   HB_Buffer            buffer,
-		   FT_UShort             flags,
-		   FT_UShort             context_length,
+		   HB_UShort             flags,
+		   HB_UShort             context_length,
 		   int                   nesting_level )
 {
   HB_ChainContextPos*  ccp = &st->chain;
@@ -5534,10 +5534,10 @@ static HB_Error  Lookup_ChainContextPos(
 
 
 HB_Error  HB_GPOS_Select_Script( HB_GPOSHeader*  gpos,
-				 FT_ULong         script_tag,
-				 FT_UShort*       script_index )
+				 HB_UInt         script_tag,
+				 HB_UShort*       script_index )
 {
-  FT_UShort          n;
+  HB_UShort          n;
 
   HB_ScriptList*    sl;
   HB_ScriptRecord*  sr;
@@ -5563,12 +5563,12 @@ HB_Error  HB_GPOS_Select_Script( HB_GPOSHeader*  gpos,
 
 
 HB_Error  HB_GPOS_Select_Language( HB_GPOSHeader*  gpos,
-				   FT_ULong         language_tag,
-				   FT_UShort        script_index,
-				   FT_UShort*       language_index,
-				   FT_UShort*       req_feature_index )
+				   HB_UInt         language_tag,
+				   HB_UShort        script_index,
+				   HB_UShort*       language_index,
+				   HB_UShort*       req_feature_index )
 {
-  FT_UShort           n;
+  HB_UShort           n;
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
@@ -5606,19 +5606,19 @@ HB_Error  HB_GPOS_Select_Language( HB_GPOSHeader*  gpos,
 
 
 HB_Error  HB_GPOS_Select_Feature( HB_GPOSHeader*  gpos,
-				  FT_ULong         feature_tag,
-				  FT_UShort        script_index,
-				  FT_UShort        language_index,
-				  FT_UShort*       feature_index )
+				  HB_UInt         feature_tag,
+				  HB_UShort        script_index,
+				  HB_UShort        language_index,
+				  HB_UShort*       feature_index )
 {
-  FT_UShort           n;
+  HB_UShort           n;
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
   HB_Script*         s;
   HB_LangSysRecord*  lsr;
   HB_LangSys*        ls;
-  FT_UShort*          fi;
+  HB_UShort*          fi;
 
   HB_FeatureList*    fl;
   HB_FeatureRecord*  fr;
@@ -5672,11 +5672,11 @@ HB_Error  HB_GPOS_Select_Feature( HB_GPOSHeader*  gpos,
 
 
 HB_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
-				 FT_ULong**       script_tag_list )
+				 HB_UInt**       script_tag_list )
 {
   HB_Error           error;
-  FT_UShort          n;
-  FT_ULong*          stl;
+  HB_UShort          n;
+  HB_UInt*          stl;
 
   HB_ScriptList*    sl;
   HB_ScriptRecord*  sr;
@@ -5688,7 +5688,7 @@ HB_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
   sl = &gpos->ScriptList;
   sr = sl->ScriptRecord;
 
-  if ( ALLOC_ARRAY( stl, sl->ScriptCount + 1, FT_ULong ) )
+  if ( ALLOC_ARRAY( stl, sl->ScriptCount + 1, HB_UInt ) )
     return error;
 
   for ( n = 0; n < sl->ScriptCount; n++ )
@@ -5703,12 +5703,12 @@ HB_Error  HB_GPOS_Query_Scripts( HB_GPOSHeader*  gpos,
 
 
 HB_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
-				   FT_UShort        script_index,
-				   FT_ULong**       language_tag_list )
+				   HB_UShort        script_index,
+				   HB_UInt**       language_tag_list )
 {
   HB_Error            error;
-  FT_UShort           n;
-  FT_ULong*           ltl;
+  HB_UShort           n;
+  HB_UInt*           ltl;
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
@@ -5728,7 +5728,7 @@ HB_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
   s   = &sr[script_index].Script;
   lsr = s->LangSysRecord;
 
-  if ( ALLOC_ARRAY( ltl, s->LangSysCount + 1, FT_ULong ) )
+  if ( ALLOC_ARRAY( ltl, s->LangSysCount + 1, HB_UInt ) )
     return error;
 
   for ( n = 0; n < s->LangSysCount; n++ )
@@ -5746,20 +5746,20 @@ HB_Error  HB_GPOS_Query_Languages( HB_GPOSHeader*  gpos,
 
 
 HB_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
-				  FT_UShort        script_index,
-				  FT_UShort        language_index,
-				  FT_ULong**       feature_tag_list )
+				  HB_UShort        script_index,
+				  HB_UShort        language_index,
+				  HB_UInt**       feature_tag_list )
 {
-  FT_UShort           n;
+  HB_UShort           n;
   HB_Error            error;
-  FT_ULong*           ftl;
+  HB_UInt*           ftl;
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
   HB_Script*         s;
   HB_LangSysRecord*  lsr;
   HB_LangSys*        ls;
-  FT_UShort*          fi;
+  HB_UShort*          fi;
 
   HB_FeatureList*    fl;
   HB_FeatureRecord*  fr;
@@ -5792,7 +5792,7 @@ HB_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
 
   fi = ls->FeatureIndex;
 
-  if ( ALLOC_ARRAY( ftl, ls->FeatureCount + 1, FT_ULong ) )
+  if ( ALLOC_ARRAY( ftl, ls->FeatureCount + 1, HB_UInt ) )
     return error;
 
   for ( n = 0; n < ls->FeatureCount; n++ )
@@ -5815,13 +5815,13 @@ HB_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
 /* Do an individual subtable lookup.  Returns HB_Err_Ok if positioning
    has been done, or HB_Err_Not_Covered if not.                        */
 static HB_Error  GPOS_Do_Glyph_Lookup( GPOS_Instance*    gpi,
-				       FT_UShort         lookup_index,
+				       HB_UShort         lookup_index,
 				       HB_Buffer        buffer,
-				       FT_UShort         context_length,
+				       HB_UShort         context_length,
 				       int               nesting_level )
 {
   HB_Error             error = HB_Err_Not_Covered;
-  FT_UShort            i, flags, lookup_count;
+  HB_UShort            i, flags, lookup_count;
   HB_GPOSHeader*       gpos = gpi->gpos;
   HB_Lookup*           lo;
   int		       lookup_type;
@@ -5880,7 +5880,7 @@ static HB_Error  GPOS_Do_Glyph_Lookup( GPOS_Instance*    gpi,
 HB_INTERNAL HB_Error
 _HB_GPOS_Load_SubTable( HB_GPOS_SubTable* st,
 			FT_Stream         stream,
-			FT_UShort         lookup_type )
+			HB_UShort         lookup_type )
 {
   switch ( lookup_type ) {
     case HB_GPOS_LOOKUP_SINGLE:		return Load_SinglePos		( st, stream );
@@ -5899,7 +5899,7 @@ _HB_GPOS_Load_SubTable( HB_GPOS_SubTable* st,
 
 HB_INTERNAL void
 _HB_GPOS_Free_SubTable( HB_GPOS_SubTable* st,
-			FT_UShort         lookup_type )
+			HB_UShort         lookup_type )
 {
   switch ( lookup_type ) {
     case HB_GPOS_LOOKUP_SINGLE:		Free_SinglePos		( st ); return;
@@ -5919,17 +5919,17 @@ _HB_GPOS_Free_SubTable( HB_GPOS_SubTable* st,
 /* apply one lookup to the input string object */
 
 static HB_Error  GPOS_Do_String_Lookup( GPOS_Instance*    gpi,
-				   FT_UShort         lookup_index,
+				   HB_UShort         lookup_index,
 				   HB_Buffer        buffer )
 {
   HB_Error         error, retError = HB_Err_Not_Covered;
   HB_GPOSHeader*  gpos = gpi->gpos;
 
-  FT_UInt*  properties = gpos->LookupList.Properties;
+  HB_UInt*  properties = gpos->LookupList.Properties;
 
   const int       nesting_level = 0;
   /* 0xFFFF indicates that we don't have a context length yet */
-  const FT_UShort context_length = 0xFFFF;
+  const HB_UShort context_length = 0xFFFF;
 
 
   gpi->last  = 0xFFFF;     /* no last valid glyph for cursive pos. */
@@ -5971,7 +5971,7 @@ static HB_Error  GPOS_Do_String_Lookup( GPOS_Instance*    gpi,
 
 static HB_Error  Position_CursiveChain ( HB_Buffer     buffer )
 {
-  FT_ULong   i, j;
+  HB_UInt   i, j;
   HB_Position positions = buffer->positions;
 
   /* First handle all left-to-right connections */
@@ -5995,15 +5995,15 @@ static HB_Error  Position_CursiveChain ( HB_Buffer     buffer )
 
 
 HB_Error  HB_GPOS_Add_Feature( HB_GPOSHeader*  gpos,
-			       FT_UShort        feature_index,
-			       FT_UInt          property )
+			       HB_UShort        feature_index,
+			       HB_UInt          property )
 {
-  FT_UShort    i;
+  HB_UShort    i;
 
   HB_Feature  feature;
-  FT_UInt*     properties;
-  FT_UShort*   index;
-  FT_UShort    lookup_count;
+  HB_UInt*     properties;
+  HB_UShort*   index;
+  HB_UShort    lookup_count;
 
   /* Each feature can only be added once */
 
@@ -6022,7 +6022,7 @@ HB_Error  HB_GPOS_Add_Feature( HB_GPOSHeader*  gpos,
 
   for ( i = 0; i < feature.LookupListCount; i++ )
   {
-    FT_UShort lookup_index = index[i];
+    HB_UShort lookup_index = index[i];
     if (lookup_index < lookup_count)
       properties[lookup_index] |= property;
   }
@@ -6034,9 +6034,9 @@ HB_Error  HB_GPOS_Add_Feature( HB_GPOSHeader*  gpos,
 
 HB_Error  HB_GPOS_Clear_Features( HB_GPOSHeader*  gpos )
 {
-  FT_UShort i;
+  HB_UShort i;
 
-  FT_UInt*  properties;
+  HB_UInt*  properties;
 
 
   if ( !gpos )
@@ -6086,10 +6086,10 @@ HB_Error  HB_GPOS_Register_MM_Function( HB_GPOSHeader*  gpos,
 
 HB_Error  HB_GPOS_Apply_String( FT_Face           face,
 				HB_GPOSHeader*    gpos,
-				FT_UShort         load_flags,
+				HB_UShort         load_flags,
 				HB_Buffer         buffer,
-				FT_Bool           dvi,
-				FT_Bool           r2l )
+				HB_Bool           dvi,
+				HB_Bool           r2l )
 {
   HB_Error       error, retError = HB_Err_Not_Covered;
   GPOS_Instance  gpi;
@@ -6119,12 +6119,12 @@ HB_Error  HB_GPOS_Apply_String( FT_Face           face,
 
   for ( i = 0; i < num_features; i++ )
   {
-    FT_UShort  feature_index = gpos->FeatureList.ApplyOrder[i];
+    HB_UShort  feature_index = gpos->FeatureList.ApplyOrder[i];
     HB_Feature feature = gpos->FeatureList.FeatureRecord[feature_index].Feature;
 
     for ( j = 0; j < feature.LookupListCount; j++ )
     {
-      FT_UShort lookup_index = feature.LookupListIndex[j];
+      HB_UShort lookup_index = feature.LookupListIndex[j];
 
       /* Skip nonexistant lookups */
       if (lookup_index >= lookup_count)

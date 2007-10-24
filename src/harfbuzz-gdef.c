@@ -158,7 +158,7 @@ HB_Error  HB_Load_GDEF_Table( FT_Face          face,
 {
   HB_Error         error;
   FT_Stream        stream = face->stream;
-  FT_ULong         cur_offset, new_offset, base_offset;
+  HB_UInt         cur_offset, new_offset, base_offset;
 
   HB_GDEFHeader*  gdef;
 
@@ -303,8 +303,8 @@ static HB_Error  Load_AttachPoint( HB_AttachPoint*  ap,
 {
   HB_Error  error;
 
-  FT_UShort   n, count;
-  FT_UShort*  pi;
+  HB_UShort   n, count;
+  HB_UShort*  pi;
 
 
   if ( ACCESS_Frame( 2L ) )
@@ -318,7 +318,7 @@ static HB_Error  Load_AttachPoint( HB_AttachPoint*  ap,
 
   if ( count )
   {
-    if ( ALLOC_ARRAY( ap->PointIndex, count, FT_UShort ) )
+    if ( ALLOC_ARRAY( ap->PointIndex, count, HB_UShort ) )
       return error;
 
     pi = ap->PointIndex;
@@ -352,8 +352,8 @@ static HB_Error  Load_AttachList( HB_AttachList*  al,
 {
   HB_Error  error;
 
-  FT_UShort         n, m, count;
-  FT_ULong          cur_offset, new_offset, base_offset;
+  HB_UShort         n, m, count;
+  HB_UInt          cur_offset, new_offset, base_offset;
 
   HB_AttachPoint*  ap;
 
@@ -421,7 +421,7 @@ Fail2:
 
 static void  Free_AttachList( HB_AttachList*  al )
 {
-  FT_UShort         n, count;
+  HB_UShort         n, count;
 
   HB_AttachPoint*  ap;
 
@@ -460,7 +460,7 @@ static HB_Error  Load_CaretValue( HB_CaretValue*  cv,
 {
   HB_Error  error;
 
-  FT_ULong cur_offset, new_offset, base_offset;
+  HB_UInt cur_offset, new_offset, base_offset;
 
 
   base_offset = FILE_Pos();
@@ -544,8 +544,8 @@ static HB_Error  Load_LigGlyph( HB_LigGlyph*  lg,
 {
   HB_Error  error;
 
-  FT_UShort        n, m, count;
-  FT_ULong         cur_offset, new_offset, base_offset;
+  HB_UShort        n, m, count;
+  HB_UInt         cur_offset, new_offset, base_offset;
 
   HB_CaretValue*  cv;
 
@@ -595,7 +595,7 @@ Fail:
 
 static void  Free_LigGlyph( HB_LigGlyph*  lg )
 {
-  FT_UShort        n, count;
+  HB_UShort        n, count;
 
   HB_CaretValue*  cv;
 
@@ -620,8 +620,8 @@ static HB_Error  Load_LigCaretList( HB_LigCaretList*  lcl,
 {
   HB_Error  error;
 
-  FT_UShort      m, n, count;
-  FT_ULong       cur_offset, new_offset, base_offset;
+  HB_UShort      m, n, count;
+  HB_UInt       cur_offset, new_offset, base_offset;
 
   HB_LigGlyph*  lg;
 
@@ -689,7 +689,7 @@ Fail2:
 
 static void  Free_LigCaretList( HB_LigCaretList*  lcl )
 {
-  FT_UShort      n, count;
+  HB_UShort      n, count;
 
   HB_LigGlyph*  lg;
 
@@ -718,15 +718,15 @@ static void  Free_LigCaretList( HB_LigCaretList*  lcl )
  ***********/
 
 
-static FT_UShort  Get_New_Class( HB_GDEFHeader*  gdef,
-				 FT_UShort        glyphID,
-				 FT_UShort        index )
+static HB_UShort  Get_New_Class( HB_GDEFHeader*  gdef,
+				 HB_UShort        glyphID,
+				 HB_UShort        index )
 {
-  FT_UShort              glyph_index, array_index, count;
-  FT_UShort              byte, bits;
+  HB_UShort              glyph_index, array_index, count;
+  HB_UShort              byte, bits;
   
   HB_ClassRangeRecord*  gcrr;
-  FT_UShort**            ngc;
+  HB_UShort**            ngc;
 
 
   if ( glyphID >= gdef->LastGlyph )
@@ -759,10 +759,10 @@ static FT_UShort  Get_New_Class( HB_GDEFHeader*  gdef,
 
 
 HB_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
-				      FT_UShort        glyphID,
-				      FT_UShort*       property )
+				      HB_UShort        glyphID,
+				      HB_UShort*       property )
 {
-  FT_UShort class = 0, index = 0; /* shut compiler up */
+  HB_UShort class = 0, index = 0; /* shut compiler up */
 
   HB_Error  error;
 
@@ -823,12 +823,12 @@ HB_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
 
 
 static HB_Error  Make_ClassRange( HB_ClassDefinition*  cd,
-				  FT_UShort             start,
-				  FT_UShort             end,
-				  FT_UShort             class )
+				  HB_UShort             start,
+				  HB_UShort             end,
+				  HB_UShort             class )
 {
   HB_Error               error;
-  FT_UShort              index;
+  HB_UShort              index;
 
   HB_ClassDefFormat2*   cdf2;
   HB_ClassRangeRecord*  crr;
@@ -858,18 +858,18 @@ static HB_Error  Make_ClassRange( HB_ClassDefinition*  cd,
 
 
 HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
-					 FT_UShort        num_glyphs,
-					 FT_UShort        glyph_count,
-					 FT_UShort*       glyph_array,
-					 FT_UShort*       class_array )
+					 HB_UShort        num_glyphs,
+					 HB_UShort        glyph_count,
+					 HB_UShort*       glyph_array,
+					 HB_UShort*       class_array )
 {
-  FT_UShort              start, curr_glyph, curr_class;
-  FT_UShort              n, m, count;
+  HB_UShort              start, curr_glyph, curr_class;
+  HB_UShort              n, m, count;
   HB_Error               error;
 
   HB_ClassDefinition*   gcd;
   HB_ClassRangeRecord*  gcrr;
-  FT_UShort**            ngc;
+  HB_UShort**            ngc;
 
 
   if ( !gdef || !glyph_array || !class_array )
@@ -883,7 +883,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 
   /* A GlyphClassDef table contains at most 5 different class values */
 
-  if ( ALLOC_ARRAY( gcd->Defined, 5, FT_Bool ) )
+  if ( ALLOC_ARRAY( gcd->Defined, 5, HB_Bool ) )
     return error;
 
   gcd->cd.cd2.ClassRangeCount  = 0;
@@ -970,7 +970,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
      process                                                            */
 
   if ( ALLOC_ARRAY( gdef->NewGlyphClasses,
-		    gcd->cd.cd2.ClassRangeCount + 1, FT_UShort* ) )
+		    gcd->cd.cd2.ClassRangeCount + 1, HB_UShort* ) )
     goto Fail3;
 
   count = gcd->cd.cd2.ClassRangeCount;
@@ -984,7 +984,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
   {
       if ( gcrr[0].Start )
       {
-	if ( ALLOC_ARRAY( ngc[0], ( gcrr[0].Start + 3 ) / 4, FT_UShort ) )
+	if ( ALLOC_ARRAY( ngc[0], ( gcrr[0].Start + 3 ) / 4, HB_UShort ) )
 	  goto Fail2;
       }
 
@@ -993,7 +993,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 	if ( gcrr[n].Start - gcrr[n - 1].End > 1 )
 	  if ( ALLOC_ARRAY( ngc[n],
 			    ( gcrr[n].Start - gcrr[n - 1].End + 2 ) / 4,
-			    FT_UShort ) )
+			    HB_UShort ) )
 	    goto Fail1;
       }
 
@@ -1001,7 +1001,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
       {
 	if ( ALLOC_ARRAY( ngc[count],
 			  ( num_glyphs - gcrr[count - 1].End + 2 ) / 4,
-			  FT_UShort ) )
+			  HB_UShort ) )
 	    goto Fail1;
       }
   }
@@ -1009,7 +1009,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
   {
       if ( ALLOC_ARRAY( ngc[count],
 			( num_glyphs + 3 ) / 4,
-			FT_UShort ) )
+			HB_UShort ) )
 	  goto Fail2;
   }
       
@@ -1040,8 +1040,8 @@ Fail4:
 
 static void  Free_NewGlyphClasses( HB_GDEFHeader*  gdef )
 {
-  FT_UShort**  ngc;
-  FT_UShort    n, count;
+  HB_UShort**  ngc;
+  HB_UShort    n, count;
 
 
   if ( gdef->NewGlyphClasses )
@@ -1059,16 +1059,16 @@ static void  Free_NewGlyphClasses( HB_GDEFHeader*  gdef )
 
 HB_INTERNAL HB_Error
 _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader* gdef,
-			     FT_UShort      glyphID,
-			     FT_UShort      property )
+			     HB_UShort      glyphID,
+			     HB_UShort      property )
 {
   HB_Error               error;
-  FT_UShort              class, new_class, index = 0; /* shut compiler up */
-  FT_UShort              byte, bits, mask;
-  FT_UShort              array_index, glyph_index, count;
+  HB_UShort              class, new_class, index = 0; /* shut compiler up */
+  HB_UShort              byte, bits, mask;
+  HB_UShort              array_index, glyph_index, count;
 
   HB_ClassRangeRecord*  gcrr;
-  FT_UShort**            ngc;
+  HB_UShort**            ngc;
 
 
   error = _HB_OPEN_Get_Class( &gdef->GlyphClassDef, glyphID, &class, &index );
@@ -1146,15 +1146,15 @@ _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader* gdef,
 HB_INTERNAL HB_Error
 _HB_GDEF_Check_Property( HB_GDEFHeader* gdef,
 			 HB_GlyphItem   gitem,
-			 FT_UShort      flags,
-			 FT_UShort*     property )
+			 HB_UShort      flags,
+			 HB_UShort*     property )
 {
   HB_Error  error;
 
   if ( gdef )
   {
-    FT_UShort basic_glyph_class;
-    FT_UShort desired_attachment_class;
+    HB_UShort basic_glyph_class;
+    HB_UShort desired_attachment_class;
 
     if ( gitem->gproperties == HB_GLYPH_PROPERTIES_UNKNOWN )
     {
