@@ -403,6 +403,19 @@ struct  HB_ChainContextSubst_
 typedef struct HB_ChainContextSubst_  HB_ChainContextSubst;
 
 
+#if 0
+/* LookupType 7 */
+struct HB_ExtensionSubst_
+{
+  FT_UShort      SubstFormat;         /* always 1 */
+  FT_UShort      LookuptType;         /* lookup-type of referenced subtable */
+  HB_GSUB_SubTable *subtable;         /* referenced subtable */
+};
+
+typedef struct HB_ExtensionSubst_  HB_ExtensionSubst;
+#endif
+
+
 /* LookupType 8 */
 struct HB_ReverseChainContextSubst_
 {

@@ -655,6 +655,19 @@ struct  HB_ChainContextPos_
 typedef struct HB_ChainContextPos_  HB_ChainContextPos;
 
 
+#if 0
+/* LookupType 10 */
+struct HB_ExtensionPos_
+{
+  FT_UShort      PosFormat;           /* always 1 */
+  FT_UShort      LookuptType;         /* lookup-type of referenced subtable */
+  HB_GPOS_SubTable *subtable;         /* referenced subtable */
+};
+
+typedef struct HB_ExtensionPos_  HB_ExtensionPos;
+#endif
+
+
 union  HB_GPOS_SubTable_
 {
   HB_SinglePos        single;
