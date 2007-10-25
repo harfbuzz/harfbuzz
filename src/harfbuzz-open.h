@@ -13,9 +13,6 @@
 #ifndef HARFBUZZ_OPEN_H
 #define HARFBUZZ_OPEN_H
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include "harfbuzz-global.h"
 
 HB_BEGIN_HEADER

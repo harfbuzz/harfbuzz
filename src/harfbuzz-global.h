@@ -13,6 +13,9 @@
 #ifndef HARFBUZZ_GLOBAL_H
 #define HARFBUZZ_GLOBAL_H
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #ifdef __cplusplus
 #define HB_BEGIN_HEADER  extern "C" {
 #define HB_END_HEADER  }
@@ -23,11 +26,14 @@
 
 HB_BEGIN_HEADER
 
+typedef unsigned char HB_Byte;
+typedef signed char HB_Char;
 typedef unsigned short HB_UShort;
 typedef signed short HB_Short;
 typedef unsigned int HB_UInt;
 typedef signed int HB_Int;
 typedef int HB_Bool;
+typedef void *HB_Pointer;
 
 
 typedef enum {

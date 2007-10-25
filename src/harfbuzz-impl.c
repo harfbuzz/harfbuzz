@@ -25,12 +25,12 @@ _hb_log( const char*   format, ... )
 #endif
 
 /* only used internally */
-static FT_Pointer
+static HB_Pointer
 _hb_qalloc( HB_UInt   size,
 	    HB_Error  *perror )
 {
   HB_Error    error = 0;
-  FT_Pointer  block = NULL;
+  HB_Pointer  block = NULL;
 
   if ( size > 0 )
   {
@@ -47,12 +47,12 @@ _hb_qalloc( HB_UInt   size,
 #define  QALLOC(ptr,size)    ( (ptr) = _hb_qalloc( (size), &error ), error != 0 )
 
 
-HB_INTERNAL FT_Pointer
+HB_INTERNAL HB_Pointer
 _hb_alloc( HB_UInt   size,
 	   HB_Error *perror )
 {
   HB_Error    error = 0;
-  FT_Pointer  block = NULL;
+  HB_Pointer  block = NULL;
 
   if ( size > 0 )
   {
@@ -68,12 +68,12 @@ _hb_alloc( HB_UInt   size,
 }
 
 
-HB_INTERNAL FT_Pointer
-_hb_realloc( FT_Pointer  block,
+HB_INTERNAL HB_Pointer
+_hb_realloc( HB_Pointer  block,
 	     HB_UInt     new_size,
 	     HB_Error   *perror )
 {
-  FT_Pointer  block2 = NULL;
+  HB_Pointer  block2 = NULL;
   HB_Error    error  = 0;
 
   block2 = realloc( block, new_size );
@@ -89,7 +89,7 @@ _hb_realloc( FT_Pointer  block,
 
 
 HB_INTERNAL void
-_hb_free( FT_Pointer  block )
+_hb_free( HB_Pointer  block )
 {
   if ( block )
     free( block );

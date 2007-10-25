@@ -81,18 +81,18 @@ typedef FT_Stream HB_Stream;
 
 #define  GET_Byte()      (*stream->cursor++)
 #define  GET_Short()     (stream->cursor += 2, (HB_Short)( \
-				(*(((FT_Byte*)stream->cursor)-2) << 8) | \
-				 *(((FT_Byte*)stream->cursor)-1) \
+				(*(((HB_Byte*)stream->cursor)-2) << 8) | \
+				 *(((HB_Byte*)stream->cursor)-1) \
 			 ))
 #define  GET_Long()      (stream->cursor += 4, (HB_Int)( \
-				(*(((FT_Byte*)stream->cursor)-4) << 24) | \
-				(*(((FT_Byte*)stream->cursor)-3) << 16) | \
-				(*(((FT_Byte*)stream->cursor)-2) << 8) | \
-				 *(((FT_Byte*)stream->cursor)-1) \
+				(*(((HB_Byte*)stream->cursor)-4) << 24) | \
+				(*(((HB_Byte*)stream->cursor)-3) << 16) | \
+				(*(((HB_Byte*)stream->cursor)-2) << 8) | \
+				 *(((HB_Byte*)stream->cursor)-1) \
 			 ))
 
 
-#define  GET_Char()      ((FT_Char)GET_Byte())
+#define  GET_Char()      ((HB_Char)GET_Byte())
 #define  GET_UShort()    ((HB_UShort)GET_Short())
 #define  GET_ULong()     ((HB_UInt)GET_Long())
 #define  GET_Tag4()      GET_ULong()
@@ -143,17 +143,17 @@ _hb_face_goto_table( FT_Face    face,
 #define ERR(err)   _hb_err (err)
 
 
-HB_INTERNAL FT_Pointer
+HB_INTERNAL HB_Pointer
 _hb_alloc( HB_UInt   size,
 	   HB_Error  *perror_ );
 
-HB_INTERNAL FT_Pointer
-_hb_realloc( FT_Pointer  block,
+HB_INTERNAL HB_Pointer
+_hb_realloc( HB_Pointer  block,
 	     HB_UInt    new_size,
 	     HB_Error   *perror_ );
 
 HB_INTERNAL void
-_hb_free( FT_Pointer  block );
+_hb_free( HB_Pointer  block );
 
 
 /* helper func to set a breakpoint on */
