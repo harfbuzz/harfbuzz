@@ -36,7 +36,7 @@ _hb_qalloc( HB_UInt   size,
   {
     block = malloc( size );
     if ( !block )
-      error = HB_Err_Out_Of_Memory;
+      error = ERR(HB_Err_Out_Of_Memory);
   }
 
   *perror = error;
@@ -58,7 +58,7 @@ _hb_alloc( HB_UInt   size,
   {
     block = malloc( size );
     if ( !block )
-      error = HB_Err_Out_Of_Memory;
+      error = ERR(HB_Err_Out_Of_Memory);
     else
       memset( (char*)block, 0, (size_t)size );
   }
@@ -78,7 +78,7 @@ _hb_realloc( FT_Pointer  block,
 
   block2 = realloc( block, new_size );
   if ( block2 == NULL && new_size != 0 )
-    error = HB_Err_Out_Of_Memory;
+    error = ERR(HB_Err_Out_Of_Memory);
 
   if ( !error )
     block = block2;
@@ -114,10 +114,10 @@ _hb_stream_seek( HB_Stream stream,
   if ( stream->read )
   {
     if ( stream->read( stream, pos, NULL, 0 ) )
-      error = HB_Err_Invalid_Stream_Operation;
+      error = ERR(HB_Err_Read_Error);
   }
   else if ( pos > (HB_Int)stream->size )
-    error = HB_Err_Invalid_Stream_Operation;
+    error = ERR(HB_Err_Read_Error);
 
   LOG(( "_hb_stream_seek(%ld) -> %d\n", pos, error ));
   return error;
@@ -144,7 +144,7 @@ _hb_stream_frame_enter( HB_Stream stream,
     if ( read_bytes < count )
     {
       FREE( stream->base );
-      error = HB_Err_Invalid_Stream_Operation;
+      error = ERR(HB_Err_Read_Error);
     }
     stream->cursor = stream->base;
     stream->limit  = stream->cursor + count;
@@ -156,7 +156,7 @@ _hb_stream_frame_enter( HB_Stream stream,
     if ( stream->pos >= stream->size        ||
          stream->pos + count > stream->size )
     {
-      error = HB_Err_Invalid_Stream_Operation;
+      error = ERR(HB_Err_Read_Error);
       goto Exit;
     }
 
@@ -204,7 +204,7 @@ _hb_face_goto_table( FT_Face    face,
   if ( !FT_IS_SFNT(face) )
   {
     LOG(( "not a SFNT face !!\n" ));
-    error = HB_Err_Invalid_Face_Handle;
+    error = ERR(HB_Err_Invalid_Argument);
   }
   else
   {
@@ -259,7 +259,7 @@ _hb_face_goto_table( FT_Face    face,
         goto FoundIt;
       }
     }
-    error = HB_Err_Table_Missing;
+    error = HB_Err_Not_Covered;
 
   FoundIt:
     FORGET_Frame();

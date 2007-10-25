@@ -97,21 +97,21 @@ DEF_DUMP (LangSys)
     DUMP1("<FeatureIndex>%d</FeatureIndex>\n", LangSys->FeatureIndex[i]);
 }
 
-DEF_DUMP (Script)
+DEF_DUMP (ScriptTable)
 {
   int i;
 
-  RECURSE (DefaultLangSys, LangSys, &Script->DefaultLangSys);
+  RECURSE (DefaultLangSys, LangSys, &ScriptTable->DefaultLangSys);
 
-  DUMP_FUINT (Script, LangSysCount);
+  DUMP_FUINT (ScriptTable, LangSysCount);
 
-  for (i=0; i < Script->LangSysCount; i++)
+  for (i=0; i < ScriptTable->LangSysCount; i++)
     {
       do_indent (stream, indent);
       fprintf (stream, "<LangSysTag>");
-      Print_Tag (Script->LangSysRecord[i].LangSysTag, stream);
+      Print_Tag (ScriptTable->LangSysRecord[i].LangSysTag, stream);
       fprintf (stream, "</LangSysTag>\n");
-      RECURSE_NUM (LangSys, i, LangSys, &Script->LangSysRecord[i].LangSys);
+      RECURSE_NUM (LangSys, i, LangSys, &ScriptTable->LangSysRecord[i].LangSys);
     }
 }
 
@@ -127,7 +127,7 @@ DEF_DUMP (ScriptList)
       fprintf (stream, "<ScriptTag>");
       Print_Tag (ScriptList->ScriptRecord[i].ScriptTag, stream);
       fprintf (stream, "</ScriptTag>\n");
-      RECURSE_NUM (Script, i, Script, &ScriptList->ScriptRecord[i].Script);
+      RECURSE_NUM (Script, i, ScriptTable, &ScriptList->ScriptRecord[i].Script);
     }
 }
 

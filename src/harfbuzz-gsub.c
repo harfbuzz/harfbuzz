@@ -43,7 +43,7 @@ HB_Error  HB_Load_GSUB_Table( FT_Face          face,
   HB_Lookup*      lo;
 
   if ( !retptr )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   if ( GOTO_Table( TTAG_GSUB ) )
     return error;
@@ -238,7 +238,7 @@ static HB_Error  Load_SingleSubst( HB_GSUB_SubTable* st,
     break;
 
   default:
-    return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+    return ERR(HB_Err_Invalid_SubTable_Format);
   }
 
   return HB_Err_Ok;
@@ -307,14 +307,14 @@ static HB_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
 
   case 2:
     if ( index >= ss->ssf.ssf2.GlyphCount )
-      return _hb_err(HB_Err_Invalid_GSUB_SubTable);
+      return ERR(HB_Err_Invalid_SubTable);
     value = ss->ssf.ssf2.Substitute[index];
     if ( REPLACE_Glyph( buffer, value, nesting_level ) )
       return error;
     break;
 
   default:
-    return _hb_err(HB_Err_Invalid_GSUB_SubTable);
+    return ERR(HB_Err_Invalid_SubTable);
   }
 
   if ( gdef && gdef->NewGlyphClasses )
@@ -504,7 +504,7 @@ static HB_Error  Lookup_MultipleSubst( HB_GSUBHeader*    gsub,
     return error;
 
   if ( index >= ms->SequenceCount )
-    return _hb_err(HB_Err_Invalid_GSUB_SubTable);
+    return ERR(HB_Err_Invalid_SubTable);
 
   count = ms->Sequence[index].GlyphCount;
   s     = ms->Sequence[index].Substitute;
@@ -982,7 +982,7 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
     return error;
 
   if ( index >= ls->LigatureSetCount )
-     return _hb_err(HB_Err_Invalid_GSUB_SubTable);
+     return ERR(HB_Err_Invalid_SubTable);
 
   lig = ls->LigatureSet[index].Ligature;
 
@@ -1801,7 +1801,7 @@ static HB_Error  Load_ContextSubst( HB_GSUB_SubTable* st,
   case 1:  return Load_ContextSubst1( &cs->csf.csf1, stream );
   case 2:  return Load_ContextSubst2( &cs->csf.csf2, stream );
   case 3:  return Load_ContextSubst3( &cs->csf.csf3, stream );
-  default: return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+  default: return ERR(HB_Err_Invalid_SubTable_Format);
   }
 
   return HB_Err_Ok;               /* never reached */
@@ -1929,7 +1929,7 @@ static HB_Error  Lookup_ContextSubst2( HB_GSUBHeader*          gsub,
   scs = &csf2->SubClassSet[classes[0]];
   if ( !scs )
   {
-    error = _hb_err(HB_Err_Invalid_GSUB_SubTable);
+    error = ERR(HB_Err_Invalid_SubTable);
     goto End;
   }
 
@@ -2056,7 +2056,7 @@ static HB_Error  Lookup_ContextSubst( HB_GSUBHeader*    gsub,
   case 1:  return Lookup_ContextSubst1( gsub, &cs->csf.csf1, buffer, flags, context_length, nesting_level );
   case 2:  return Lookup_ContextSubst2( gsub, &cs->csf.csf2, buffer, flags, context_length, nesting_level );
   case 3:  return Lookup_ContextSubst3( gsub, &cs->csf.csf3, buffer, flags, context_length, nesting_level );
-  default: return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+  default: return ERR(HB_Err_Invalid_SubTable_Format);
   }
 
   return HB_Err_Ok;               /* never reached */
@@ -2676,17 +2676,17 @@ static HB_Error  Load_ChainContextSubst2(
   FORGET_Frame();
 
   if ( ( error = _HB_OPEN_Load_EmptyOrClassDefinition( &ccsf2->BacktrackClassDef, 65535,
-					      backtrack_offset, base_offset,
-					      stream ) ) != HB_Err_Ok )
+						       backtrack_offset, base_offset,
+						       stream ) ) != HB_Err_Ok )
       goto Fail5;
 
   if ( ( error = _HB_OPEN_Load_EmptyOrClassDefinition( &ccsf2->InputClassDef, count,
-					      input_offset, base_offset,
-					      stream ) ) != HB_Err_Ok )
+						       input_offset, base_offset,
+						       stream ) ) != HB_Err_Ok )
       goto Fail4;
   if ( ( error = _HB_OPEN_Load_EmptyOrClassDefinition( &ccsf2->LookaheadClassDef, 65535,
-					      lookahead_offset, base_offset,
-					      stream ) ) != HB_Err_Ok )
+						       lookahead_offset, base_offset,
+						       stream ) ) != HB_Err_Ok )
     goto Fail3;
 
   ccsf2->ChainSubClassSet   = NULL;
@@ -3010,7 +3010,7 @@ static HB_Error  Load_ChainContextSubst( HB_GSUB_SubTable* st,
     case 1:  return Load_ChainContextSubst1( &ccs->ccsf.ccsf1, stream );
     case 2:  return Load_ChainContextSubst2( &ccs->ccsf.ccsf2, stream );
     case 3:  return Load_ChainContextSubst3( &ccs->ccsf.ccsf3, stream );
-    default: return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+    default: return ERR(HB_Err_Invalid_SubTable_Format);
   }
 
   return HB_Err_Ok;               /* never reached */
@@ -3218,7 +3218,7 @@ static HB_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
   cscs = &ccsf2->ChainSubClassSet[input_classes[0]];
   if ( !cscs )
   {
-    error = _hb_err(HB_Err_Invalid_GSUB_SubTable);
+    error = ERR(HB_Err_Invalid_SubTable);
     goto End1;
   }
 
@@ -3479,7 +3479,7 @@ static HB_Error  Lookup_ChainContextSubst( HB_GSUBHeader*    gsub,
     case 1:  return Lookup_ChainContextSubst1( gsub, &ccs->ccsf.ccsf1, buffer, flags, context_length, nesting_level );
     case 2:  return Lookup_ChainContextSubst2( gsub, &ccs->ccsf.ccsf2, buffer, flags, context_length, nesting_level );
     case 3:  return Lookup_ChainContextSubst3( gsub, &ccs->ccsf.ccsf3, buffer, flags, context_length, nesting_level );
-    default: return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+    default: return ERR(HB_Err_Invalid_SubTable_Format);
   }
 }
 
@@ -3508,7 +3508,7 @@ static HB_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
   rccs->SubstFormat = GET_UShort();
 
   if ( rccs->SubstFormat != 1 )
-    return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+    return ERR(HB_Err_Invalid_SubTable_Format);
 
   FORGET_Frame();
 
@@ -3783,7 +3783,7 @@ HB_Error  HB_GSUB_Select_Script( HB_GSUBHeader*  gsub,
 
 
   if ( !gsub || !script_index )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
@@ -3811,18 +3811,18 @@ HB_Error  HB_GSUB_Select_Language( HB_GSUBHeader*  gsub,
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
-  HB_Script*         s;
+  HB_ScriptTable*         s;
   HB_LangSysRecord*  lsr;
 
 
   if ( !gsub || !language_index || !req_feature_index )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
 
   if ( script_index >= sl->ScriptCount )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   s   = &sr[script_index].Script;
   lsr = s->LangSysRecord;
@@ -3854,7 +3854,7 @@ HB_Error  HB_GSUB_Select_Feature( HB_GSUBHeader*  gsub,
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
-  HB_Script*         s;
+  HB_ScriptTable*         s;
   HB_LangSysRecord*  lsr;
   HB_LangSys*        ls;
   HB_UShort*          fi;
@@ -3864,7 +3864,7 @@ HB_Error  HB_GSUB_Select_Feature( HB_GSUBHeader*  gsub,
 
 
   if ( !gsub || !feature_index )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
@@ -3873,7 +3873,7 @@ HB_Error  HB_GSUB_Select_Feature( HB_GSUBHeader*  gsub,
   fr = fl->FeatureRecord;
 
   if ( script_index >= sl->ScriptCount )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   s   = &sr[script_index].Script;
   lsr = s->LangSysRecord;
@@ -3883,7 +3883,7 @@ HB_Error  HB_GSUB_Select_Feature( HB_GSUBHeader*  gsub,
   else
   {
     if ( language_index >= s->LangSysCount )
-      return HB_Err_Invalid_Argument;
+      return ERR(HB_Err_Invalid_Argument);
 
     ls = &lsr[language_index].LangSys;
   }
@@ -3893,7 +3893,7 @@ HB_Error  HB_GSUB_Select_Feature( HB_GSUBHeader*  gsub,
   for ( n = 0; n < ls->FeatureCount; n++ )
   {
     if ( fi[n] >= fl->FeatureCount )
-      return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+      return ERR(HB_Err_Invalid_SubTable_Format);
 
     if ( feature_tag == fr[fi[n]].FeatureTag )
     {
@@ -3922,7 +3922,7 @@ HB_Error  HB_GSUB_Query_Scripts( HB_GSUBHeader*  gsub,
 
 
   if ( !gsub || !script_tag_list )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
@@ -3951,18 +3951,18 @@ HB_Error  HB_GSUB_Query_Languages( HB_GSUBHeader*  gsub,
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
-  HB_Script*         s;
+  HB_ScriptTable*         s;
   HB_LangSysRecord*  lsr;
 
 
   if ( !gsub || !language_tag_list )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
 
   if ( script_index >= sl->ScriptCount )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   s   = &sr[script_index].Script;
   lsr = s->LangSysRecord;
@@ -3995,7 +3995,7 @@ HB_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
 
   HB_ScriptList*     sl;
   HB_ScriptRecord*   sr;
-  HB_Script*         s;
+  HB_ScriptTable*         s;
   HB_LangSysRecord*  lsr;
   HB_LangSys*        ls;
   HB_UShort*          fi;
@@ -4005,7 +4005,7 @@ HB_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
 
 
   if ( !gsub || !feature_tag_list )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   sl = &gsub->ScriptList;
   sr = sl->ScriptRecord;
@@ -4014,7 +4014,7 @@ HB_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
   fr = fl->FeatureRecord;
 
   if ( script_index >= sl->ScriptCount )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   s   = &sr[script_index].Script;
   lsr = s->LangSysRecord;
@@ -4024,7 +4024,7 @@ HB_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
   else
   {
     if ( language_index >= s->LangSysCount )
-      return HB_Err_Invalid_Argument;
+      return ERR(HB_Err_Invalid_Argument);
 
     ls = &lsr[language_index].LangSys;
   }
@@ -4039,7 +4039,7 @@ HB_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
     if ( fi[n] >= fl->FeatureCount )
     {
       FREE( ftl );
-      return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+      return ERR(HB_Err_Invalid_SubTable_Format);
     }
     ftl[n] = fr[fi[n]].FeatureTag;
   }
@@ -4067,7 +4067,7 @@ static HB_Error  GSUB_Do_Glyph_Lookup( HB_GSUBHeader* gsub,
   nesting_level++;
 
   if ( nesting_level > HB_MAX_NESTING_LEVEL )
-    return _hb_err(HB_Err_Too_Many_Nested_Contexts);
+    return ERR(HB_Err_Not_Covered); /* ERR() call intended */
 
   lookup_count = gsub->LookupList.LookupCount;
   if (lookup_index >= lookup_count)
@@ -4126,7 +4126,7 @@ _HB_GSUB_Load_SubTable( HB_GSUB_SubTable* st,
     case HB_GSUB_LOOKUP_CHAIN:		return Load_ChainContextSubst		( st, stream );
   /*case HB_GSUB_LOOKUP_EXTENSION:	return Load_ExtensionSubst		( st, stream );*/
     case HB_GSUB_LOOKUP_REVERSE_CHAIN:	return Load_ReverseChainContextSubst	( st, stream );
-    default:				return _hb_err(HB_Err_Invalid_GSUB_SubTable_Format);
+    default:				return ERR(HB_Err_Invalid_SubTable_Format);
   };
 }
 
@@ -4257,7 +4257,7 @@ HB_Error  HB_GSUB_Add_Feature( HB_GSUBHeader*  gsub,
   if ( !gsub ||
        feature_index >= gsub->FeatureList.FeatureCount ||
        gsub->FeatureList.ApplyCount == gsub->FeatureList.FeatureCount )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   gsub->FeatureList.ApplyOrder[gsub->FeatureList.ApplyCount++] = feature_index;
 
@@ -4287,7 +4287,7 @@ HB_Error  HB_GSUB_Clear_Features( HB_GSUBHeader*  gsub )
 
 
   if ( !gsub )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   gsub->FeatureList.ApplyCount = 0;
 
@@ -4306,7 +4306,7 @@ HB_Error  HB_GSUB_Register_Alternate_Function( HB_GSUBHeader*  gsub,
 					       void*            data )
 {
   if ( !gsub )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   gsub->altfunc = altfunc;
   gsub->data    = data;
@@ -4325,7 +4325,7 @@ HB_Error  HB_GSUB_Apply_String( HB_GSUBHeader*   gsub,
 
   if ( !gsub ||
        !buffer)
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   if ( buffer->in_length == 0 )
     return retError;

@@ -18,9 +18,6 @@
 
 HB_BEGIN_HEADER
 
-#define HB_Err_Invalid_GPOS_SubTable_Format  0x1020
-#define HB_Err_Invalid_GPOS_SubTable         0x1021
-
 
 /* Lookup types for glyph positioning */
 

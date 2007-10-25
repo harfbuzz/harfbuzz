@@ -21,6 +21,7 @@ static HB_Error  Load_LigCaretList( HB_LigCaretList*  lcl,
 
 static void  Free_AttachList( HB_AttachList*  al );
 static void  Free_LigCaretList( HB_LigCaretList*  lcl );
+
 static void  Free_NewGlyphClasses( HB_GDEFHeader*  gdef );
 
 
@@ -104,7 +105,7 @@ HB_Error  HB_Init_GDEF_Extension( HB_Engine  engine )
 
 
   if ( !_engine )
-    return HB_Err_Invalid_Engine;
+    return ERR(HB_Err_Invalid_Engine);
 
   return  HB_Register_Extension( _engine,
 				 GDEF_ID,
@@ -133,7 +134,7 @@ HB_Error  HB_New_GDEF_Table( HB_GDEFHeader** retptr )
   HB_GDEFHeader*  gdef;
 
   if ( !retptr )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   if ( ALLOC( gdef, sizeof( *gdef ) ) )
     return error;
@@ -164,7 +165,7 @@ HB_Error  HB_Load_GDEF_Table( FT_Face          face,
 
 
   if ( !retptr )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   if ( GOTO_Table( TTAG_GDEF ) )
     return error;
@@ -523,7 +524,7 @@ static HB_Error  Load_CaretValue( HB_CaretValue*  cv,
     break;
 
   default:
-    return _hb_err(HB_Err_Invalid_GDEF_SubTable_Format);
+    return ERR(HB_Err_Invalid_SubTable_Format);
   }
 
   return HB_Err_Ok;
@@ -768,7 +769,7 @@ HB_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
 
 
   if ( !gdef || !property )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   /* first, we check for mark attach classes */
 
@@ -873,7 +874,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 
 
   if ( !gdef || !glyph_array || !class_array )
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
 
   gcd = &gdef->GlyphClassDef;
 
@@ -895,7 +896,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 
   if ( curr_class >= 5 )
   {
-    error = HB_Err_Invalid_Argument;
+    error = ERR(HB_Err_Invalid_Argument);
     goto Fail4;
   }
 
@@ -916,7 +917,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
       {
 	if ( curr_glyph == 0xFFFF )
 	{
-	  error = HB_Err_Invalid_Argument;
+	  error = ERR(HB_Err_Invalid_Argument);
 	  goto Fail3;
 	}
 	else
@@ -932,7 +933,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 
       if ( curr_glyph > glyph_array[n] )
       {
-	error = HB_Err_Invalid_Argument;
+	error = ERR(HB_Err_Invalid_Argument);
 	goto Fail3;
       }
 
@@ -942,7 +943,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 
       if ( curr_class >= 5 )
       {
-	error = HB_Err_Invalid_Argument;
+	error = ERR(HB_Err_Invalid_Argument);
 	goto Fail3;
       }
 
@@ -957,7 +958,7 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
       {
 	if ( curr_glyph == 0xFFFF )
 	{
-	  error = HB_Err_Invalid_Argument;
+	  error = ERR(HB_Err_Invalid_Argument);
 	  goto Fail3;
 	}
 	else
@@ -1103,7 +1104,7 @@ _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader* gdef,
     break;
 
   default:
-    return HB_Err_Invalid_Argument;
+    return ERR(HB_Err_Invalid_Argument);
   }
 
   count = gdef->GlyphClassDef.cd.cd2.ClassRangeCount;

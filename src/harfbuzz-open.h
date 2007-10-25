@@ -50,20 +50,20 @@ struct  HB_LangSysRecord_
 typedef struct HB_LangSysRecord_  HB_LangSysRecord;
 
 
-struct  HB_Script_
+struct  HB_ScriptTable_
 {
   HB_LangSys         DefaultLangSys; /* DefaultLangSys table     */
   HB_UShort           LangSysCount;   /* number of LangSysRecords */
   HB_LangSysRecord*  LangSysRecord;  /* array of LangSysRecords  */
 };
 
-typedef struct HB_Script_  HB_Script;
+typedef struct HB_ScriptTable_  HB_ScriptTable;
 
 
 struct  HB_ScriptRecord_
 {
   HB_UInt    ScriptTag;              /* ScriptTag identifier */
-  HB_Script  Script;                 /* Script table         */
+  HB_ScriptTable  Script;                 /* Script table         */
 };
 
 typedef struct HB_ScriptRecord_  HB_ScriptRecord;

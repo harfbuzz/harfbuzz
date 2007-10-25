@@ -18,9 +18,6 @@
 
 HB_BEGIN_HEADER
 
-#define HB_Err_Invalid_GSUB_SubTable_Format  0x1010
-#define HB_Err_Invalid_GSUB_SubTable         0x1011
-
 
 /* Lookup types for glyph substitution */
 

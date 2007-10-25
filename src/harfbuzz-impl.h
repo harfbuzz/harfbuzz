@@ -140,6 +140,8 @@ _hb_face_goto_table( FT_Face    face,
 
 #define  MEM_Copy(dest,source,count)   memcpy( (char*)(dest), (const char*)(source), (size_t)(count) )
 
+#define ERR(err)   _hb_err (err)
+
 
 HB_INTERNAL FT_Pointer
 _hb_alloc( HB_UInt   size,
