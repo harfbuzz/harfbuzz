@@ -49,10 +49,10 @@ static HB_Error  default_mmfunc( FT_Face      face,
 				 FT_Pos*      metric_value,
 				 void*        data )
 {
-  FT_UNUSED(face);
-  FT_UNUSED(metric_id);
-  FT_UNUSED(metric_value);
-  FT_UNUSED(data);
+  HB_UNUSED(face);
+  HB_UNUSED(metric_id);
+  HB_UNUSED(metric_value);
+  HB_UNUSED(data);
   return _hb_err(HB_Err_No_MM_Interpreter);
 }
 
@@ -68,14 +68,14 @@ HB_Error  HB_Load_GPOS_Table( FT_Face          face,
   HB_GPOSHeader*  gpos;
   HB_Lookup*      lo;
 
-  FT_Stream  stream = face->stream;
+  HB_Stream  stream = face->stream;
   HB_Error   error;
 
 
   if ( !retptr )
     return HB_Err_Invalid_Argument;
 
-  if (( error = _hb_ftglue_face_goto_table( face, TTAG_GPOS, stream ) ))
+  if ( GOTO_Table( TTAG_GPOS ) )
     return error;
 
   base_offset = FILE_Pos();
@@ -208,7 +208,7 @@ HB_Error  HB_Done_GPOS_Table( HB_GPOSHeader* gpos )
 static HB_Error  Load_ValueRecord( HB_ValueRecord*  vr,
 				   HB_UShort         format,
 				   HB_UInt          base_offset,
-				   FT_Stream         stream )
+				   HB_Stream         stream )
 {
   HB_Error  error;
 
@@ -567,7 +567,7 @@ static HB_Error  Get_ValueRecord( GPOS_Instance*    gpi,
 /* AnchorFormat4 */
 
 static HB_Error  Load_Anchor( HB_Anchor*  an,
-			      FT_Stream    stream )
+			      HB_Stream    stream )
 {
   HB_Error  error;
 
@@ -804,7 +804,7 @@ static HB_Error  Get_Anchor( GPOS_Instance*   gpi,
 /* MarkArray */
 
 static HB_Error  Load_MarkArray ( HB_MarkArray*  ma,
-				  FT_Stream       stream )
+				  HB_Stream       stream )
 {
   HB_Error  error;
 
@@ -884,7 +884,7 @@ static void  Free_MarkArray( HB_MarkArray*  ma )
 /* SinglePosFormat2 */
 
 static HB_Error  Load_SinglePos( HB_GPOS_SubTable* st,
-				 FT_Stream       stream )
+				 HB_Stream       stream )
 {
   HB_Error  error;
   HB_SinglePos*   sp = &st->single;
@@ -1013,7 +1013,7 @@ static HB_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
   HB_GPOSHeader*  gpos = gpi->gpos;
   HB_SinglePos*   sp = &st->single;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -1060,7 +1060,7 @@ static HB_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
 static HB_Error  Load_PairSet ( HB_PairSet*  ps,
 				HB_UShort     format1,
 				HB_UShort     format2,
-				FT_Stream     stream )
+				HB_Stream     stream )
 {
   HB_Error  error;
 
@@ -1163,7 +1163,7 @@ static void  Free_PairSet( HB_PairSet*  ps,
 static HB_Error  Load_PairPos1( HB_PairPosFormat1*  ppf1,
 				HB_UShort            format1,
 				HB_UShort            format2,
-				FT_Stream            stream )
+				HB_Stream            stream )
 {
   HB_Error  error;
 
@@ -1244,7 +1244,7 @@ static void  Free_PairPos1( HB_PairPosFormat1*  ppf1,
 static HB_Error  Load_PairPos2( HB_PairPosFormat2*  ppf2,
 				HB_UShort            format1,
 				HB_UShort            format2,
-				FT_Stream            stream )
+				HB_Stream            stream )
 {
   HB_Error  error;
 
@@ -1402,7 +1402,7 @@ static void  Free_PairPos2( HB_PairPosFormat2*  ppf2,
 
 
 static HB_Error  Load_PairPos( HB_GPOS_SubTable* st,
-			       FT_Stream     stream )
+			       HB_Stream     stream )
 {
   HB_Error  error;
   HB_PairPos*     pp = &st->pair;
@@ -1573,7 +1573,7 @@ static HB_Error  Lookup_PairPos( GPOS_Instance*    gpi,
   HB_GPOSHeader*  gpos = gpi->gpos;
   HB_PairPos*     pp = &st->pair;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( buffer->in_pos >= buffer->in_length - 1 )
     return HB_Err_Not_Covered;           /* Not enough glyphs in stream */
@@ -1645,7 +1645,7 @@ static HB_Error  Lookup_PairPos( GPOS_Instance*    gpi,
 /* CursivePosFormat1 */
 
 static HB_Error  Load_CursivePos( HB_GPOS_SubTable* st,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error  error;
   HB_CursivePos*  cp = &st->cursive;
@@ -1796,7 +1796,7 @@ static HB_Error  Lookup_CursivePos( GPOS_Instance*    gpi,
   FT_Pos                entry_x, entry_y;
   FT_Pos                exit_x, exit_y;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
   {
@@ -2009,7 +2009,7 @@ end:
 
 static HB_Error  Load_BaseArray( HB_BaseArray*  ba,
 				 HB_UShort       num_classes,
-				 FT_Stream       stream )
+				 HB_Stream       stream )
 {
   HB_Error  error;
 
@@ -2127,7 +2127,7 @@ static void  Free_BaseArray( HB_BaseArray*  ba,
 /* MarkBasePosFormat1 */
 
 static HB_Error  Load_MarkBasePos( HB_GPOS_SubTable* st,
-				   FT_Stream         stream )
+				   HB_Stream         stream )
 {
   HB_Error  error;
   HB_MarkBasePos* mbp = &st->markbase;
@@ -2240,7 +2240,7 @@ static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 
   HB_Position     o;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -2341,7 +2341,7 @@ static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 
 static HB_Error  Load_LigatureAttach( HB_LigatureAttach*  lat,
 				      HB_UShort            num_classes,
-				      FT_Stream            stream )
+				      HB_Stream            stream )
 {
   HB_Error  error;
 
@@ -2458,7 +2458,7 @@ static void  Free_LigatureAttach( HB_LigatureAttach*  lat,
 
 static HB_Error  Load_LigatureArray( HB_LigatureArray*  la,
 				     HB_UShort           num_classes,
-				     FT_Stream           stream )
+				     HB_Stream           stream )
 {
   HB_Error  error;
 
@@ -2536,7 +2536,7 @@ static void  Free_LigatureArray( HB_LigatureArray*  la,
 /* MarkLigPosFormat1 */
 
 static HB_Error  Load_MarkLigPos( HB_GPOS_SubTable* st,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error  error;
   HB_MarkLigPos*  mlp = &st->marklig;
@@ -2650,7 +2650,7 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 
   HB_Position    o;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -2767,7 +2767,7 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 
 static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
 				  HB_UShort        num_classes,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error  error;
 
@@ -2876,7 +2876,7 @@ static void  Free_Mark2Array( HB_Mark2Array*  m2a,
 /* MarkMarkPosFormat1 */
 
 static HB_Error  Load_MarkMarkPos( HB_GPOS_SubTable* st,
-				   FT_Stream         stream )
+				   HB_Stream         stream )
 {
   HB_Error  error;
   HB_MarkMarkPos* mmp = &st->markmark;
@@ -2989,7 +2989,7 @@ static HB_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
 
   HB_Position    o;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -3136,7 +3136,7 @@ static HB_Error  Do_ContextPos( GPOS_Instance*        gpi,
 /* PosRule */
 
 static HB_Error  Load_PosRule( HB_PosRule*  pr,
-			       FT_Stream     stream )
+			       HB_Stream     stream )
 {
   HB_Error  error;
 
@@ -3212,7 +3212,7 @@ static void  Free_PosRule( HB_PosRule*  pr )
 /* PosRuleSet */
 
 static HB_Error  Load_PosRuleSet( HB_PosRuleSet*  prs,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error  error;
 
@@ -3288,7 +3288,7 @@ static void  Free_PosRuleSet( HB_PosRuleSet*  prs )
 /* ContextPosFormat1 */
 
 static HB_Error  Load_ContextPos1( HB_ContextPosFormat1*  cpf1,
-				   FT_Stream               stream )
+				   HB_Stream               stream )
 {
   HB_Error  error;
 
@@ -3383,7 +3383,7 @@ static void  Free_ContextPos1( HB_ContextPosFormat1*  cpf1 )
 
 static HB_Error  Load_PosClassRule( HB_ContextPosFormat2*  cpf2,
 				    HB_PosClassRule*       pcr,
-				    FT_Stream               stream )
+				    HB_Stream               stream )
 {
   HB_Error  error;
 
@@ -3473,7 +3473,7 @@ static void  Free_PosClassRule( HB_PosClassRule*  pcr )
 
 static HB_Error  Load_PosClassSet( HB_ContextPosFormat2*  cpf2,
 				   HB_PosClassSet*        pcs,
-				   FT_Stream               stream )
+				   HB_Stream               stream )
 {
   HB_Error  error;
 
@@ -3550,7 +3550,7 @@ static void  Free_PosClassSet( HB_PosClassSet*  pcs )
 /* ContextPosFormat2 */
 
 static HB_Error  Load_ContextPos2( HB_ContextPosFormat2*  cpf2,
-				   FT_Stream               stream )
+				   HB_Stream               stream )
 {
   HB_Error  error;
 
@@ -3672,7 +3672,7 @@ static void  Free_ContextPos2( HB_ContextPosFormat2*  cpf2 )
 /* ContextPosFormat3 */
 
 static HB_Error  Load_ContextPos3( HB_ContextPosFormat3*  cpf3,
-				   FT_Stream               stream )
+				   HB_Stream               stream )
 {
   HB_Error  error;
 
@@ -3777,7 +3777,7 @@ static void  Free_ContextPos3( HB_ContextPosFormat3*  cpf3 )
 /* ContextPos */
 
 static HB_Error  Load_ContextPos( HB_GPOS_SubTable* st,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error  error;
   HB_ContextPos*   cp = &st->context;
@@ -4083,7 +4083,7 @@ static HB_Error  Lookup_ContextPos( GPOS_Instance*    gpi,
 /* ChainPosRule */
 
 static HB_Error  Load_ChainPosRule( HB_ChainPosRule*  cpr,
-				    FT_Stream          stream )
+				    HB_Stream          stream )
 {
   HB_Error  error;
 
@@ -4223,7 +4223,7 @@ static void  Free_ChainPosRule( HB_ChainPosRule*  cpr )
 /* ChainPosRuleSet */
 
 static HB_Error  Load_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs,
-				       FT_Stream             stream )
+				       HB_Stream             stream )
 {
   HB_Error  error;
 
@@ -4299,7 +4299,7 @@ static void  Free_ChainPosRuleSet( HB_ChainPosRuleSet*  cprs )
 /* ChainContextPosFormat1 */
 
 static HB_Error  Load_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1,
-					FT_Stream                    stream )
+					HB_Stream                    stream )
 {
   HB_Error  error;
 
@@ -4395,7 +4395,7 @@ static void  Free_ChainContextPos1( HB_ChainContextPosFormat1*  ccpf1 )
 static HB_Error  Load_ChainPosClassRule(
 		   HB_ChainContextPosFormat2*  ccpf2,
 		   HB_ChainPosClassRule*       cpcr,
-		   FT_Stream                    stream )
+		   HB_Stream                    stream )
 {
   HB_Error  error;
 
@@ -4568,7 +4568,7 @@ static void  Free_ChainPosClassRule( HB_ChainPosClassRule*  cpcr )
 static HB_Error  Load_ChainPosClassSet(
 		   HB_ChainContextPosFormat2*  ccpf2,
 		   HB_ChainPosClassSet*        cpcs,
-		   FT_Stream                    stream )
+		   HB_Stream                    stream )
 {
   HB_Error  error;
 
@@ -4646,7 +4646,7 @@ static void  Free_ChainPosClassSet( HB_ChainPosClassSet*  cpcs )
 /* ChainContextPosFormat2 */
 
 static HB_Error  Load_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2,
-					FT_Stream                    stream )
+					HB_Stream                    stream )
 {
   HB_Error  error;
 
@@ -4789,7 +4789,7 @@ static void  Free_ChainContextPos2( HB_ChainContextPosFormat2*  ccpf2 )
 /* ChainContextPosFormat3 */
 
 static HB_Error  Load_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3,
-					FT_Stream                    stream )
+					HB_Stream                    stream )
 {
   HB_Error  error;
 
@@ -5003,7 +5003,7 @@ static void  Free_ChainContextPos3( HB_ChainContextPosFormat3*  ccpf3 )
 /* ChainContextPos */
 
 static HB_Error  Load_ChainContextPos( HB_GPOS_SubTable* st,
-				       FT_Stream             stream )
+				       HB_Stream             stream )
 {
   HB_Error  error;
   HB_ChainContextPos*  ccp = &st->chain;
@@ -5879,7 +5879,7 @@ static HB_Error  GPOS_Do_Glyph_Lookup( GPOS_Instance*    gpi,
 
 HB_INTERNAL HB_Error
 _HB_GPOS_Load_SubTable( HB_GPOS_SubTable* st,
-			FT_Stream         stream,
+			HB_Stream         stream,
 			HB_UShort         lookup_type )
 {
   switch ( lookup_type ) {

@@ -450,7 +450,7 @@ union  HB_GSUB_SubTable_
 
 HB_INTERNAL HB_Error
 _HB_GSUB_Load_SubTable( HB_GSUB_SubTable* st,
-		        FT_Stream         stream,
+		        HB_Stream         stream,
 		        HB_UShort         lookup_type );
 
 HB_INTERNAL void

@@ -15,9 +15,9 @@
 #include "harfbuzz-open-private.h"
 
 static HB_Error  Load_AttachList( HB_AttachList*  al,
-				  FT_Stream        stream );
+				  HB_Stream        stream );
 static HB_Error  Load_LigCaretList( HB_LigCaretList*  lcl,
-				    FT_Stream          stream );
+				    HB_Stream          stream );
 
 static void  Free_AttachList( HB_AttachList*  al );
 static void  Free_LigCaretList( HB_LigCaretList*  lcl );
@@ -157,7 +157,7 @@ HB_Error  HB_Load_GDEF_Table( FT_Face          face,
 			      HB_GDEFHeader** retptr )
 {
   HB_Error         error;
-  FT_Stream        stream = face->stream;
+  HB_Stream        stream = face->stream;
   HB_UInt         cur_offset, new_offset, base_offset;
 
   HB_GDEFHeader*  gdef;
@@ -166,7 +166,7 @@ HB_Error  HB_Load_GDEF_Table( FT_Face          face,
   if ( !retptr )
     return HB_Err_Invalid_Argument;
 
-  if (( error = _hb_ftglue_face_goto_table( face, TTAG_GDEF, stream ) ))
+  if ( GOTO_Table( TTAG_GDEF ) )
     return error;
 
   if (( error = HB_New_GDEF_Table ( &gdef ) ))
@@ -299,7 +299,7 @@ HB_Error  HB_Done_GDEF_Table ( HB_GDEFHeader* gdef )
 /* AttachPoint */
 
 static HB_Error  Load_AttachPoint( HB_AttachPoint*  ap,
-				   FT_Stream         stream )
+				   HB_Stream         stream )
 {
   HB_Error  error;
 
@@ -348,7 +348,7 @@ static void  Free_AttachPoint( HB_AttachPoint*  ap )
 /* AttachList */
 
 static HB_Error  Load_AttachList( HB_AttachList*  al,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error  error;
 
@@ -456,7 +456,7 @@ static void  Free_AttachList( HB_AttachList*  al )
 /* CaretValueFormat4 */
 
 static HB_Error  Load_CaretValue( HB_CaretValue*  cv,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error  error;
 
@@ -540,7 +540,7 @@ static void  Free_CaretValue( HB_CaretValue*  cv )
 /* LigGlyph */
 
 static HB_Error  Load_LigGlyph( HB_LigGlyph*  lg,
-				FT_Stream      stream )
+				HB_Stream      stream )
 {
   HB_Error  error;
 
@@ -616,7 +616,7 @@ static void  Free_LigGlyph( HB_LigGlyph*  lg )
 /* LigCaretList */
 
 static HB_Error  Load_LigCaretList( HB_LigCaretList*  lcl,
-				    FT_Stream          stream )
+				    HB_Stream          stream )
 {
   HB_Error  error;
 

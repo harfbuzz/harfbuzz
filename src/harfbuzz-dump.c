@@ -87,7 +87,7 @@ DEF_DUMP (LangSys)
 {
   int i;
 
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FUINT (LangSys, LookupOrderOffset);
   DUMP_FUINT (LangSys, ReqFeatureIndex);
@@ -135,7 +135,7 @@ DEF_DUMP (Feature)
 {
   int i;
 
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FUINT (Feature, FeatureParams);
   DUMP_FUINT (Feature, LookupListCount);
@@ -146,7 +146,7 @@ DEF_DUMP (Feature)
 
 DEF_DUMP (MarkRecord)
 {
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FUINT (MarkRecord, Class);
   DUMP1("<Anchor>%d</Anchor>\n", MarkRecord->MarkAnchor.PosFormat );
@@ -180,7 +180,7 @@ DEF_DUMP (FeatureList)
 
 DEF_DUMP (Coverage)
 {
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FUINT (Coverage, CoverageFormat);
 
@@ -207,7 +207,7 @@ DEF_DUMP (Coverage)
 
 DEF_DUMP (ClassRangeRecord)
 {
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FGLYPH (ClassRangeRecord, Start);
   DUMP_FGLYPH (ClassRangeRecord, End);
@@ -216,7 +216,7 @@ DEF_DUMP (ClassRangeRecord)
 
 DEF_DUMP (ClassDefinition)
 {
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FUINT( ClassDefinition, ClassFormat);
   DUMP_FUINT( ClassDefinition, loaded);
@@ -247,7 +247,7 @@ DEF_DUMP (ClassDefinition)
 
 DEF_DUMP (SubstLookupRecord)
 {
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FUINT (SubstLookupRecord, SequenceIndex);
   DUMP_FUINT (SubstLookupRecord, LookupListIndex);
@@ -302,7 +302,7 @@ DEF_DUMP (Ligature)
 {
   int i;
 
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FGLYPH (Ligature, LigGlyph);
   DUMP_FUINT (Ligature, ComponentCount);
@@ -338,8 +338,8 @@ Dump_GSUB_Lookup_Ligature (HB_SubTable *subtable, FILE *stream, int indent, HB_T
 
 DEF_DUMP (ContextSubstFormat1)
 {
-  FT_UNUSED(hb_type);
-  FT_UNUSED(ContextSubstFormat1);
+  HB_UNUSED(hb_type);
+  HB_UNUSED(ContextSubstFormat1);
 
 
   DUMP("<!-- Not implemented!!! -->\n");
@@ -354,8 +354,8 @@ DEF_DUMP (ContextSubstFormat2)
 
 DEF_DUMP (ContextSubstFormat3)
 {
-  FT_UNUSED(hb_type);
-  FT_UNUSED(ContextSubstFormat3);
+  HB_UNUSED(hb_type);
+  HB_UNUSED(ContextSubstFormat3);
 
   DUMP("<!-- Not implemented!!! -->\n");
 }
@@ -384,8 +384,8 @@ Dump_GSUB_Lookup_Context (HB_SubTable *subtable, FILE *stream, int indent, HB_Ty
 
 DEF_DUMP (ChainContextSubstFormat1)
 {
-  FT_UNUSED(hb_type);
-  FT_UNUSED(ChainContextSubstFormat1);
+  HB_UNUSED(hb_type);
+  HB_UNUSED(ChainContextSubstFormat1);
 
   DUMP("<!-- Not implemented!!! -->\n");
 }
@@ -456,7 +456,7 @@ Dump_Device (HB_Device *Device, FILE *stream, int indent, HB_Type hb_type)
   int n_per;
   unsigned int mask;
 
-  FT_UNUSED(hb_type);
+  HB_UNUSED(hb_type);
 
   DUMP_FUINT (Device, StartSize);
   DUMP_FUINT (Device, EndSize);

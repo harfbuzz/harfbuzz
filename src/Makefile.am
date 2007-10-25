@@ -10,11 +10,11 @@ MAINSOURCES =  \
 
 # included from harfbuzz.c
 INCLUDEDSOURCES = \
-	ftglue.c \
 	harfbuzz-buffer.c \
 	harfbuzz-gdef.c \
 	harfbuzz-gpos.c \
 	harfbuzz-gsub.c \
+	harfbuzz-impl.c \
 	harfbuzz-open.c
 
 PUBLICHEADERS = \
@@ -27,7 +27,6 @@ PUBLICHEADERS = \
 	harfbuzz-open.h
 
 PRIVATEHEADERS = \
-	ftglue.h \
 	harfbuzz-impl.h \
 	harfbuzz-buffer-private.h \
 	harfbuzz-gdef-private.h \

@@ -34,7 +34,7 @@ HB_Error  HB_Load_GSUB_Table( FT_Face          face,
 			      HB_GSUBHeader** retptr,
 			      HB_GDEFHeader*  gdef )
 {
-  FT_Stream        stream = face->stream;
+  HB_Stream        stream = face->stream;
   HB_Error         error;
   HB_UInt         cur_offset, new_offset, base_offset;
 
@@ -45,7 +45,7 @@ HB_Error  HB_Load_GSUB_Table( FT_Face          face,
   if ( !retptr )
     return HB_Err_Invalid_Argument;
 
-  if (( error = _hb_ftglue_face_goto_table( face, TTAG_GSUB, stream ) ))
+  if ( GOTO_Table( TTAG_GSUB ) )
     return error;
 
   base_offset = FILE_Pos();
@@ -173,7 +173,7 @@ HB_Error   HB_Done_GSUB_Table( HB_GSUBHeader* gsub )
 /* SingleSubstFormat2 */
 
 static HB_Error  Load_SingleSubst( HB_GSUB_SubTable* st,
-				   FT_Stream         stream )
+				   HB_Stream         stream )
 {
   HB_Error error;
   HB_SingleSubst*  ss = &st->single;
@@ -285,7 +285,7 @@ static HB_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
   HB_SingleSubst*  ss = &st->single;
   HB_GDEFHeader*   gdef = gsub->gdef;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -335,7 +335,7 @@ static HB_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
 /* Sequence */
 
 static HB_Error  Load_Sequence( HB_Sequence*  s,
-				FT_Stream      stream )
+				HB_Stream      stream )
 {
   HB_Error error;
 
@@ -384,7 +384,7 @@ static void  Free_Sequence( HB_Sequence*  s )
 /* MultipleSubstFormat1 */
 
 static HB_Error  Load_MultipleSubst( HB_GSUB_SubTable* st,
-				     FT_Stream         stream )
+				     HB_Stream         stream )
 {
   HB_Error error;
   HB_MultipleSubst*  ms = &st->multiple;
@@ -491,7 +491,7 @@ static HB_Error  Lookup_MultipleSubst( HB_GSUBHeader*    gsub,
   HB_MultipleSubst*  ms = &st->multiple;
   HB_GDEFHeader*     gdef = gsub->gdef;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -536,7 +536,7 @@ static HB_Error  Lookup_MultipleSubst( HB_GSUBHeader*    gsub,
 /* AlternateSet */
 
 static HB_Error  Load_AlternateSet( HB_AlternateSet*  as,
-				    FT_Stream          stream )
+				    HB_Stream          stream )
 {
   HB_Error error;
 
@@ -582,7 +582,7 @@ static void  Free_AlternateSet( HB_AlternateSet*  as )
 /* AlternateSubstFormat1 */
 
 static HB_Error  Load_AlternateSubst( HB_GSUB_SubTable* st,
-				      FT_Stream         stream )
+				      HB_Stream         stream )
 {
   HB_Error error;
   HB_AlternateSubst* as = &st->alternate;
@@ -689,7 +689,7 @@ static HB_Error  Lookup_AlternateSubst( HB_GSUBHeader*    gsub,
   HB_GDEFHeader*     gdef = gsub->gdef;
   HB_AlternateSet  aset;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
@@ -734,7 +734,7 @@ static HB_Error  Lookup_AlternateSubst( HB_GSUBHeader*    gsub,
 /* Ligature */
 
 static HB_Error  Load_Ligature( HB_Ligature*  l,
-				FT_Stream      stream )
+				HB_Stream      stream )
 {
   HB_Error error;
 
@@ -783,7 +783,7 @@ static void  Free_Ligature( HB_Ligature*  l )
 /* LigatureSet */
 
 static HB_Error  Load_LigatureSet( HB_LigatureSet*  ls,
-				   FT_Stream         stream )
+				   HB_Stream         stream )
 {
   HB_Error error;
 
@@ -859,7 +859,7 @@ static void  Free_LigatureSet( HB_LigatureSet*  ls )
 /* LigatureSubstFormat1 */
 
 static HB_Error  Load_LigatureSubst( HB_GSUB_SubTable* st,
-				     FT_Stream         stream )
+				     HB_Stream         stream )
 {
   HB_Error error;
   HB_LigatureSubst*  ls = &st->ligature;
@@ -969,7 +969,7 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
 
   HB_Ligature*  lig;
 
-  FT_UNUSED(nesting_level);
+  HB_UNUSED(nesting_level);
 
   if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
     return error;
@@ -1142,7 +1142,7 @@ static HB_Error  Do_ContextSubst( HB_GSUBHeader*        gsub,
 /* SubRule */
 
 static HB_Error  Load_SubRule( HB_SubRule*  sr,
-			       FT_Stream     stream )
+			       HB_Stream     stream )
 {
   HB_Error error;
 
@@ -1218,7 +1218,7 @@ static void  Free_SubRule( HB_SubRule*  sr )
 /* SubRuleSet */
 
 static HB_Error  Load_SubRuleSet( HB_SubRuleSet*  srs,
-				  FT_Stream        stream )
+				  HB_Stream        stream )
 {
   HB_Error error;
 
@@ -1294,7 +1294,7 @@ static void  Free_SubRuleSet( HB_SubRuleSet*  srs )
 /* ContextSubstFormat1 */
 
 static HB_Error  Load_ContextSubst1( HB_ContextSubstFormat1*  csf1,
-				     FT_Stream                 stream )
+				     HB_Stream                 stream )
 {
   HB_Error error;
 
@@ -1389,7 +1389,7 @@ static void  Free_ContextSubst1( HB_ContextSubstFormat1* csf1 )
 
 static HB_Error  Load_SubClassRule( HB_ContextSubstFormat2*  csf2,
 				    HB_SubClassRule*         scr,
-				    FT_Stream                 stream )
+				    HB_Stream                 stream )
 {
   HB_Error error;
 
@@ -1478,7 +1478,7 @@ static void  Free_SubClassRule( HB_SubClassRule*  scr )
 
 static HB_Error  Load_SubClassSet( HB_ContextSubstFormat2*  csf2,
 				   HB_SubClassSet*          scs,
-				   FT_Stream                 stream )
+				   HB_Stream                 stream )
 {
   HB_Error error;
 
@@ -1555,7 +1555,7 @@ static void  Free_SubClassSet( HB_SubClassSet*  scs )
 /* ContextSubstFormat2 */
 
 static HB_Error  Load_ContextSubst2( HB_ContextSubstFormat2*  csf2,
-				     FT_Stream                 stream )
+				     HB_Stream                 stream )
 {
   HB_Error error;
 
@@ -1677,7 +1677,7 @@ static void  Free_ContextSubst2( HB_ContextSubstFormat2*  csf2 )
 /* ContextSubstFormat3 */
 
 static HB_Error  Load_ContextSubst3( HB_ContextSubstFormat3*  csf3,
-				     FT_Stream                 stream )
+				     HB_Stream                 stream )
 {
   HB_Error error;
 
@@ -1783,7 +1783,7 @@ static void  Free_ContextSubst3( HB_ContextSubstFormat3*  csf3 )
 /* ContextSubst */
 
 static HB_Error  Load_ContextSubst( HB_GSUB_SubTable* st,
-				    FT_Stream         stream )
+				    HB_Stream         stream )
 {
   HB_Error error;
   HB_ContextSubst*  cs = &st->context;
@@ -2068,7 +2068,7 @@ static HB_Error  Lookup_ContextSubst( HB_GSUBHeader*    gsub,
 /* ChainSubRule */
 
 static HB_Error  Load_ChainSubRule( HB_ChainSubRule*  csr,
-				    FT_Stream          stream )
+				    HB_Stream          stream )
 {
   HB_Error error;
 
@@ -2208,7 +2208,7 @@ static void  Free_ChainSubRule( HB_ChainSubRule*  csr )
 /* ChainSubRuleSet */
 
 static HB_Error  Load_ChainSubRuleSet( HB_ChainSubRuleSet*  csrs,
-				       FT_Stream             stream )
+				       HB_Stream             stream )
 {
   HB_Error error;
 
@@ -2285,7 +2285,7 @@ static void  Free_ChainSubRuleSet( HB_ChainSubRuleSet*  csrs )
 
 static HB_Error  Load_ChainContextSubst1(
 		   HB_ChainContextSubstFormat1*  ccsf1,
-		   FT_Stream                      stream )
+		   HB_Stream                      stream )
 {
   HB_Error error;
 
@@ -2381,7 +2381,7 @@ static void  Free_ChainContextSubst1( HB_ChainContextSubstFormat1*  ccsf1 )
 static HB_Error  Load_ChainSubClassRule(
 		   HB_ChainContextSubstFormat2*  ccsf2,
 		   HB_ChainSubClassRule*         cscr,
-		   FT_Stream                      stream )
+		   HB_Stream                      stream )
 {
   HB_Error error;
 
@@ -2555,7 +2555,7 @@ static void  Free_ChainSubClassRule( HB_ChainSubClassRule*  cscr )
 static HB_Error  Load_ChainSubClassSet(
 		   HB_ChainContextSubstFormat2*  ccsf2,
 		   HB_ChainSubClassSet*          cscs,
-		   FT_Stream                      stream )
+		   HB_Stream                      stream )
 {
   HB_Error error;
 
@@ -2634,7 +2634,7 @@ static void  Free_ChainSubClassSet( HB_ChainSubClassSet*  cscs )
 
 static HB_Error  Load_ChainContextSubst2(
 		   HB_ChainContextSubstFormat2*  ccsf2,
-		   FT_Stream                      stream )
+		   HB_Stream                      stream )
 {
   HB_Error error;
 
@@ -2779,7 +2779,7 @@ static void  Free_ChainContextSubst2( HB_ChainContextSubstFormat2*  ccsf2 )
 
 static HB_Error  Load_ChainContextSubst3(
 		   HB_ChainContextSubstFormat3*  ccsf3,
-		   FT_Stream                      stream )
+		   HB_Stream                      stream )
 {
   HB_Error error;
 
@@ -2994,7 +2994,7 @@ static void  Free_ChainContextSubst3( HB_ChainContextSubstFormat3*  ccsf3 )
 /* ChainContextSubst */
 
 static HB_Error  Load_ChainContextSubst( HB_GSUB_SubTable* st,
-					 FT_Stream         stream )
+					 HB_Stream         stream )
 {
   HB_Error error;
   HB_ChainContextSubst*  ccs = &st->chain;
@@ -3485,7 +3485,7 @@ static HB_Error  Lookup_ChainContextSubst( HB_GSUBHeader*    gsub,
 
 
 static HB_Error  Load_ReverseChainContextSubst( HB_GSUB_SubTable* st,
-					        FT_Stream         stream )
+					        HB_Stream         stream )
 {
   HB_Error error;
   HB_ReverseChainContextSubst*  rccs = &st->reverse;
@@ -4114,7 +4114,7 @@ static HB_Error  GSUB_Do_Glyph_Lookup( HB_GSUBHeader* gsub,
 
 HB_INTERNAL HB_Error
 _HB_GSUB_Load_SubTable( HB_GSUB_SubTable* st,
-			FT_Stream         stream,
+			HB_Stream         stream,
 			HB_UShort         lookup_type )
 {
   switch (lookup_type) {

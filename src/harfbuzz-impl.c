@@ -1,21 +1,17 @@
-/* ftglue.c: Glue code for compiling the OpenType code from
- *           FreeType 1 using only the public API of FreeType 2
- *
+/*
  * By David Turner, The FreeType Project (www.freetype.org)
  *
  * This code is explicitely put in the public domain
- *
- * See ftglue.h for more information.
  */
 
-#include "ftglue.h"
+#include "harfbuzz-impl.h"
 
 #if 0
 #include <stdio.h>
-#define  LOG(x)  _hb_ftglue_log x
+#define  LOG(x)  _hb_log x
 
 static void
-_hb_ftglue_log( const char*   format, ... )
+_hb_log( const char*   format, ... )
 {
   va_list  ap;
  
@@ -30,8 +26,8 @@ _hb_ftglue_log( const char*   format, ... )
 
 /* only used internally */
 static FT_Pointer
-_hb_ftglue_qalloc( HB_UInt   size,
-		   HB_Error  *perror )
+_hb_qalloc( HB_UInt   size,
+	    HB_Error  *perror )
 {
   HB_Error    error = 0;
   FT_Pointer  block = NULL;
@@ -48,12 +44,12 @@ _hb_ftglue_qalloc( HB_UInt   size,
 }
 
 #undef   QALLOC  /* just in case */
-#define  QALLOC(ptr,size)    ( (ptr) = _hb_ftglue_qalloc( (size), &error ), error != 0 )
+#define  QALLOC(ptr,size)    ( (ptr) = _hb_qalloc( (size), &error ), error != 0 )
 
 
 HB_INTERNAL FT_Pointer
-_hb_ftglue_alloc( HB_UInt   size,
-		  HB_Error  *perror )
+_hb_alloc( HB_UInt   size,
+	   HB_Error *perror )
 {
   HB_Error    error = 0;
   FT_Pointer  block = NULL;
@@ -73,9 +69,9 @@ _hb_ftglue_alloc( HB_UInt   size,
 
 
 HB_INTERNAL FT_Pointer
-_hb_ftglue_realloc( FT_Pointer  block,
-		    HB_UInt    new_size,
-		    HB_Error   *perror )
+_hb_realloc( FT_Pointer  block,
+	     HB_UInt     new_size,
+	     HB_Error   *perror )
 {
   FT_Pointer  block2 = NULL;
   HB_Error    error  = 0;
@@ -93,7 +89,7 @@ _hb_ftglue_realloc( FT_Pointer  block,
 
 
 HB_INTERNAL void
-_hb_ftglue_free( FT_Pointer  block )
+_hb_free( FT_Pointer  block )
 {
   if ( block )
     free( block );
@@ -101,16 +97,16 @@ _hb_ftglue_free( FT_Pointer  block )
 
 
 HB_INTERNAL HB_Int
-_hb_ftglue_stream_pos( FT_Stream   stream )
+_hb_stream_pos( HB_Stream   stream )
 {
-  LOG(( "ftglue:stream:pos() -> %ld\n", stream->pos ));
+  LOG(( "_hb_stream_pos() -> %ld\n", stream->pos ));
   return stream->pos;
 }
 
 
 HB_INTERNAL HB_Error
-_hb_ftglue_stream_seek( FT_Stream   stream,
-                    HB_Int     pos )
+_hb_stream_seek( HB_Stream stream,
+		 HB_Int    pos )
 {
   HB_Error  error = 0;
 
@@ -123,14 +119,14 @@ _hb_ftglue_stream_seek( FT_Stream   stream,
   else if ( pos > (HB_Int)stream->size )
     error = HB_Err_Invalid_Stream_Operation;
 
-  LOG(( "ftglue:stream:seek(%ld) -> %d\n", pos, error ));
+  LOG(( "_hb_stream_seek(%ld) -> %d\n", pos, error ));
   return error;
 }
 
 
 HB_INTERNAL HB_Error
-_hb_ftglue_stream_frame_enter( FT_Stream   stream,
-                           HB_UInt    count )
+_hb_stream_frame_enter( HB_Stream stream,
+			HB_UInt   count )
 {
   HB_Error  error = HB_Err_Ok;
   HB_UInt  read_bytes;
@@ -171,13 +167,13 @@ _hb_ftglue_stream_frame_enter( FT_Stream   stream,
   }
 
 Exit:
-  LOG(( "ftglue:stream:frame_enter(%ld) -> %d\n", count, error ));
+  LOG(( "_hb_stream_frame_enter(%ld) -> %d\n", count, error ));
   return error;
 }
 
 
 HB_INTERNAL void
-_hb_ftglue_stream_frame_exit( FT_Stream  stream )
+_hb_stream_frame_exit( HB_Stream  stream )
 {
   if ( stream->read )
   {
@@ -186,18 +182,18 @@ _hb_ftglue_stream_frame_exit( FT_Stream  stream )
   stream->cursor = NULL;
   stream->limit  = NULL;
 
-  LOG(( "ftglue:stream:frame_exit()\n" ));
+  LOG(( "_hb_stream_frame_exit()\n" ));
 }
 
 
 HB_INTERNAL HB_Error
-_hb_ftglue_face_goto_table( FT_Face    face,
-                        HB_UInt   the_tag,
-                        FT_Stream  stream )
+_hb_face_goto_table( FT_Face    face,
+		     HB_UInt   the_tag,
+		     HB_Stream  stream )
 {
   HB_Error  error;
 
-  LOG(( "_hb_ftglue_face_goto_table( %p, %c%c%c%c, %p )\n",
+  LOG(( "_hb_face_goto_table( %p, %c%c%c%c, %p )\n",
                 face, 
                 (int)((the_tag >> 24) & 0xFF), 
                 (int)((the_tag >> 16) & 0xFF), 
@@ -253,13 +249,13 @@ _hb_ftglue_face_goto_table( FT_Face    face,
       HB_UInt  start    = GET_ULong();
       HB_UInt  size     = GET_ULong();
 
-      FT_UNUSED(checksum);
-      FT_UNUSED(size);
+      HB_UNUSED(checksum);
+      HB_UNUSED(size);
       
       if ( tag == the_tag )
       {
         LOG(( "TrueType table (start: %ld) (size: %ld)\n", start, size ));
-        error = _hb_ftglue_stream_seek( stream, start );
+        error = _hb_stream_seek( stream, start );
         goto FoundIt;
       }
     }

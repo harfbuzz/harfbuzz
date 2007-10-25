@@ -22,7 +22,7 @@
 /* LangSys */
 
 static HB_Error  Load_LangSys( HB_LangSys*  ls,
-			       FT_Stream     stream )
+			       HB_Stream     stream )
 {
   HB_Error   error;
   HB_UShort  n, count;
@@ -69,7 +69,7 @@ static void  Free_LangSys( HB_LangSys*  ls )
 /* Script */
 
 static HB_Error  Load_Script( HB_Script*  s,
-			      FT_Stream    stream )
+			      HB_Stream    stream )
 {
   HB_Error   error;
   HB_UShort  n, m, count;
@@ -186,7 +186,7 @@ static void  Free_Script( HB_Script*  s )
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_ScriptList( HB_ScriptList* sl,
-			  FT_Stream      stream )
+			  HB_Stream      stream )
 {
   HB_Error   error;
 
@@ -289,7 +289,7 @@ _HB_OPEN_Free_ScriptList( HB_ScriptList* sl )
 /* Feature */
 
 static HB_Error  Load_Feature( HB_Feature*  f,
-			       FT_Stream     stream )
+			       HB_Stream     stream )
 {
   HB_Error   error;
 
@@ -338,7 +338,7 @@ static void  Free_Feature( HB_Feature*  f )
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_FeatureList( HB_FeatureList* fl,
-			   FT_Stream       stream )
+			   HB_Stream       stream )
 {
   HB_Error   error;
 
@@ -435,7 +435,7 @@ _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl )
 /* SubTable */
 
 static HB_Error  Load_SubTable( HB_SubTable*  st,
-				FT_Stream     stream,
+				HB_Stream     stream,
 				HB_Type       table_type,
 				HB_UShort     lookup_type )
 {
@@ -460,7 +460,7 @@ static void  Free_SubTable( HB_SubTable*  st,
 /* Lookup */
 
 static HB_Error  Load_Lookup( HB_Lookup*   l,
-			      FT_Stream     stream,
+			      HB_Stream     stream,
 			      HB_Type      type )
 {
   HB_Error   error;
@@ -563,7 +563,7 @@ static void  Free_Lookup( HB_Lookup*   l,
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_LookupList( HB_LookupList* ll,
-			  FT_Stream      stream,
+			  HB_Stream      stream,
 			  HB_Type        type )
 {
   HB_Error   error;
@@ -655,7 +655,7 @@ _HB_OPEN_Free_LookupList( HB_LookupList* ll,
 /* CoverageFormat1 */
 
 static HB_Error  Load_Coverage1( HB_CoverageFormat1*  cf1,
-				 FT_Stream             stream )
+				 HB_Stream             stream )
 {
   HB_Error   error;
 
@@ -702,7 +702,7 @@ static void  Free_Coverage1( HB_CoverageFormat1*  cf1 )
 /* CoverageFormat2 */
 
 static HB_Error  Load_Coverage2( HB_CoverageFormat2*  cf2,
-				 FT_Stream             stream )
+				 HB_Stream             stream )
 {
   HB_Error   error;
 
@@ -762,7 +762,7 @@ static void  Free_Coverage2( HB_CoverageFormat2*  cf2 )
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_Coverage( HB_Coverage* c,
-			FT_Stream    stream )
+			HB_Stream    stream )
 {
   HB_Error   error;
 
@@ -922,7 +922,7 @@ _HB_OPEN_Coverage_Index( HB_Coverage* c,
 
 static HB_Error  Load_ClassDef1( HB_ClassDefinition*  cd,
 				 HB_UShort             limit,
-				 FT_Stream             stream )
+				 HB_Stream             stream )
 {
   HB_Error   error;
 
@@ -992,7 +992,7 @@ static void  Free_ClassDef1( HB_ClassDefFormat1*  cdf1 )
 
 static HB_Error  Load_ClassDef2( HB_ClassDefinition*  cd,
 				 HB_UShort             limit,
-				 FT_Stream             stream )
+				 HB_Stream             stream )
 {
   HB_Error   error;
 
@@ -1071,7 +1071,7 @@ static void  Free_ClassDef2( HB_ClassDefFormat2*  cdf2 )
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition* cd,
 			       HB_UShort           limit,
-			       FT_Stream           stream )
+			       HB_Stream           stream )
 {
   HB_Error   error;
 
@@ -1131,7 +1131,7 @@ _HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition* cd,
 				      HB_UShort           limit,
 				      HB_UInt            class_offset,
 				      HB_UInt            base_offset,
-				      FT_Stream           stream )
+				      HB_Stream           stream )
 {
   HB_Error error;
   HB_UInt               cur_offset;
@@ -1292,7 +1292,7 @@ _HB_OPEN_Get_Class( HB_ClassDefinition* cd,
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_Device( HB_Device* d,
-		      FT_Stream  stream )
+		      HB_Stream  stream )
 {
   HB_Error   error;
 

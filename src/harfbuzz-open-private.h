@@ -33,31 +33,31 @@ struct  HB_SubTable_
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_ScriptList( HB_ScriptList* sl,
-			   FT_Stream     stream );
+			   HB_Stream     stream );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_FeatureList( HB_FeatureList* fl,
-			   FT_Stream       input );
+			   HB_Stream       input );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_LookupList( HB_LookupList*  ll,
-			  FT_Stream       input,
+			  HB_Stream       input,
 			  HB_Type         type );
 
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_Coverage( HB_Coverage* c,
-			FT_Stream    input );
+			HB_Stream    input );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition* cd,
 			       HB_UShort           limit,
-			       FT_Stream           input );
+			       HB_Stream           input );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_EmptyOrClassDefinition( HB_ClassDefinition* cd,
 				      HB_UShort           limit,
 				      HB_UInt            class_offset,
 				      HB_UInt            base_offset,
-				      FT_Stream           stream );
+				      HB_Stream           stream );
 HB_INTERNAL HB_Error
 _HB_OPEN_Load_Device( HB_Device* d,
-		      FT_Stream  input );
+		      HB_Stream  input );
 
 HB_INTERNAL void  _HB_OPEN_Free_ScriptList( HB_ScriptList*  sl );
 HB_INTERNAL void  _HB_OPEN_Free_FeatureList( HB_FeatureList*  fl );

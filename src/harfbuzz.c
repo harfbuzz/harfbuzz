@@ -11,9 +11,9 @@
  *
  ******************************************************************/
 #define HB_INTERNAL static
-#include "ftglue.c"
-#include "harfbuzz-open.c"
 #include "harfbuzz-buffer.c"
 #include "harfbuzz-gdef.c"
 #include "harfbuzz-gsub.c"
 #include "harfbuzz-gpos.c"
+#include "harfbuzz-impl.c"
+#include "harfbuzz-open.c"

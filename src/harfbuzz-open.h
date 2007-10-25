@@ -27,22 +27,6 @@ HB_BEGIN_HEADER
 
 #define HB_MAX_NESTING_LEVEL             100
 
-typedef FT_Error HB_Error;
-
-#define HB_Err_Invalid_Argument          FT_Err_Invalid_Argument
-#define HB_Err_Invalid_Face_Handle       FT_Err_Invalid_Face_Handle
-#define HB_Err_Invalid_Stream_Operation  FT_Err_Invalid_Stream_Operation
-#define HB_Err_Empty_Script              0x1005
-
-#define HB_Err_Ok                        FT_Err_Ok
-#define HB_Err_Not_Covered               0x1002
-#define HB_Err_Out_Of_Memory             FT_Err_Out_Of_Memory
-#define HB_Err_Table_Missing             FT_Err_Table_Missing
-#define HB_Err_Invalid_SubTable_Format   0x1000
-#define HB_Err_Invalid_SubTable          0x1001
-#define HB_Err_Too_Many_Nested_Contexts  0x1003
-#define HB_Err_No_MM_Interpreter         0x1004
-
 
 /* Script list related structures */
 

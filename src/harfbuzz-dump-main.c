@@ -82,48 +82,10 @@ maybe_add_feature (HB_GSUB  gsub,
 }
 
 static void
-select_cmap (FT_Face face)
-{
-  HB_UShort  i;
-  FT_CharMap cmap = NULL;
-  
-  for (i = 0; i < face->num_charmaps; i++)
-    {
-      if (face->charmaps[i]->platform_id == 3 && face->charmaps[i]->encoding_id == 1)
-	{
-	  cmap = face->charmaps[i];
-	  break;
-	}
-    }
-  
-  /* we try only pid/eid (0,0) if no (3,1) map is found -- many Windows
-     fonts have only rudimentary (0,0) support.                         */
-
-  if (!cmap)
-    for (i = 0; i < face->num_charmaps; i++)
-      {
-	if (face->charmaps[i]->platform_id == 3 && face->charmaps[i]->encoding_id == 1)
-	  {
-	    cmap = face->charmaps[i];
-	    break;
-	  }
-      }
-
-  if (cmap)
-    FT_Set_Charmap (face, cmap);
-  else
-    {
-      fprintf (stderr, "Sorry, but this font doesn't contain"
-	       " any Unicode mapping table.\n");
-      exit (1);
-    }
-}
-
-static void
 add_features (HB_GSUB gsub)
 {
   HB_Error error;
-  HB_UInt tag = FT_MAKE_TAG ('a', 'r', 'a', 'b');
+  HB_UInt tag = HB_MAKE_TAG ('a', 'r', 'a', 'b');
   HB_UShort script_index;
 
   error = HB_GSUB_Select_Script (gsub, tag, &script_index);
@@ -139,10 +101,10 @@ add_features (HB_GSUB gsub)
       croak ("HB_GSUB_Select_Script", error);
     }
 
-  maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('i', 'n', 'i', 't'), I);
-  maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('m', 'e', 'd', 'i'), M);
-  maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('f', 'i', 'n', 'a'), F);
-  maybe_add_feature (gsub, script_index, FT_MAKE_TAG ('l', 'i', 'g', 'a'), L);
+  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('i', 'n', 'i', 't'), I);
+  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('m', 'e', 'd', 'i'), M);
+  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('f', 'i', 'n', 'a'), F);
+  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('l', 'i', 'g', 'a'), L);
 }
 #endif
 

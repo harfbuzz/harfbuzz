@@ -686,7 +686,7 @@ typedef union HB_GPOS_SubTable_  HB_GPOS_SubTable;
 
 HB_INTERNAL HB_Error
 _HB_GPOS_Load_SubTable( HB_GPOS_SubTable* st,
-			FT_Stream         stream,
+			HB_Stream         stream,
 			HB_UShort         lookup_type );
 
 HB_INTERNAL void
