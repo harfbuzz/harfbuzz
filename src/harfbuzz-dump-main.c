@@ -131,7 +131,7 @@ HB_UShort arabic_props[] = { I|L,   M|L,   M|L,   M|L,   M|L,   F|L,   I|L,  M|L
 
 void
 try_string (FT_Library library,
-	    FT_Face    face,
+	    HB_Font    font,
 	    HB_GSUB   gsub)
 {
   HB_Error error;
@@ -139,9 +139,9 @@ try_string (FT_Library library,
   HB_GSUB_String *out_str;
   HB_UInt i;
 
-  if ((error = HB_GSUB_String_New (face->memory, &in_str)))
+  if ((error = HB_GSUB_String_New (font->memory, &in_str)))
     croak ("HB_GSUB_String_New", error);
-  if ((error = HB_GSUB_String_New (face->memory, &out_str)))
+  if ((error = HB_GSUB_String_New (font->memory, &out_str)))
     croak ("HB_GSUB_String_New", error);
 
   if ((error = HB_GSUB_String_Set_Length (in_str, N_ELEMENTS (arabic_str))))
@@ -149,7 +149,7 @@ try_string (FT_Library library,
 
   for (i=0; i < N_ELEMENTS (arabic_str); i++)
     {
-      in_str->string[i] = FT_Get_Char_Index (face, arabic_str[i]);
+      in_str->string[i] = FT_Get_Char_Index (font, arabic_str[i]);
       in_str->properties[i] = arabic_props[i];
       in_str->components[i] = i;
       in_str->ligIDs[i] = i;
@@ -173,7 +173,7 @@ main (int argc, char **argv)
 {
   HB_Error error;
   FT_Library library;
-  FT_Face face;
+  HB_Font font;
   HB_GSUB gsub;
   HB_GPOS gpos;
 
@@ -186,13 +186,13 @@ main (int argc, char **argv)
   if ((error = FT_Init_FreeType (&library)))
     croak ("FT_Init_FreeType", error);
 
-  if ((error = FT_New_Face (library, argv[1], 0, &face)))
+  if ((error = FT_New_Face (library, argv[1], 0, &font)))
     croak ("FT_New_Face", error);
 
   printf ("<?xml version=\"1.0\"?>\n");
   printf ("<OpenType>\n");
 
-  if (!(error = HB_Load_GSUB_Table (face, &gsub, NULL)))
+  if (!(error = HB_Load_GSUB_Table (font, &gsub, NULL)))
     {
       HB_Dump_GSUB_Table (gsub, stdout);
       
@@ -202,7 +202,7 @@ main (int argc, char **argv)
   else if (error != HB_Err_Not_Covered)
     fprintf (stderr, "HB_Load_GSUB_Table %x\n", error);
 
-  if (!(error = HB_Load_GPOS_Table (face, &gpos, NULL)))
+  if (!(error = HB_Load_GPOS_Table (font, &gpos, NULL)))
     {
       HB_Dump_GPOS_Table (gpos, stdout);
       
@@ -215,14 +215,14 @@ main (int argc, char **argv)
   printf ("</OpenType>\n");
 
 #if 0  
-  select_cmap (face);
+  select_cmap (font);
 
   add_features (gsub);
-  try_string (library, face, gsub);
+  try_string (library, font, gsub);
 #endif
 
 
-  if ((error = FT_Done_Face (face)))
+  if ((error = FT_Done_Face (font)))
     croak ("FT_Done_Face", error);
 
   if ((error = FT_Done_FreeType (library)))

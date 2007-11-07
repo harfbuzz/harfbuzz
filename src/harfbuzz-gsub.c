@@ -30,11 +30,11 @@ static HB_Error  GSUB_Do_Glyph_Lookup( HB_GSUBHeader*   gsub,
 
 
 
-HB_Error  HB_Load_GSUB_Table( FT_Face          face,
+HB_Error  HB_Load_GSUB_Table( HB_Font          font,
 			      HB_GSUBHeader** retptr,
 			      HB_GDEFHeader*  gdef )
 {
-  HB_Stream        stream = face->stream;
+  HB_Stream        stream = font->stream;
   HB_Error         error;
   HB_UInt         cur_offset, new_offset, base_offset;
 

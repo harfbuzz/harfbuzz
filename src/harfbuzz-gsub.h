@@ -49,7 +49,7 @@ struct  HB_GSUBHeader_
 {
   HB_UInt         offset;
 
-  FT_Fixed         Version;
+  HB_16Dot16         Version;
 
   HB_ScriptList   ScriptList;
   HB_FeatureList  FeatureList;
@@ -68,7 +68,7 @@ typedef struct HB_GSUBHeader_   HB_GSUBHeader;
 typedef HB_GSUBHeader*  HB_GSUB;
 
 
-HB_Error  HB_Load_GSUB_Table( FT_Face          face,
+HB_Error  HB_Load_GSUB_Table( HB_Font          font,
 			      HB_GSUBHeader** gsub,
 			      HB_GDEFHeader*  gdef );
 

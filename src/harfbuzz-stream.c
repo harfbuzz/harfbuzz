@@ -145,24 +145,24 @@ _hb_stream_frame_exit( HB_Stream stream )
 
 
 HB_INTERNAL HB_Error
-_hb_face_goto_table( FT_Face    face,
+_hb_font_goto_table( HB_Font    font,
 		     HB_UInt    the_tag )
 {
-  HB_Stream  stream = face->stream;
+  HB_Stream  stream = font->stream;
 
   HB_Error  error;
 
-  LOG(( "_hb_face_goto_table( %p, %c%c%c%c, %p )\n",
-                face, 
+  LOG(( "_hb_font_goto_table( %p, %c%c%c%c, %p )\n",
+                font, 
                 (int)((the_tag >> 24) & 0xFF), 
                 (int)((the_tag >> 16) & 0xFF), 
                 (int)((the_tag >> 8) & 0xFF), 
                 (int)(the_tag & 0xFF),
                 stream ));
 
-  if ( !FT_IS_SFNT(face) )
+  if ( !FT_IS_SFNT(font) )
   {
-    LOG(( "not a SFNT face !!\n" ));
+    LOG(( "not a SFNT font !!\n" ));
     error = ERR(HB_Err_Invalid_Argument);
   }
   else
@@ -173,12 +173,12 @@ _hb_face_goto_table( FT_Face    face,
     HB_UInt  offset = 0;
     HB_UInt   count, nn;
 
-    if ( face->num_faces > 1 )
+    if ( font->num_faces > 1 )
     {
       /* deal with TrueType collections */
       LOG(( ">> This is a TrueType Collection\n" ));
 
-      if ( FILE_Seek( 12 + face->face_index*4 ) ||
+      if ( FILE_Seek( 12 + font->face_index*4 ) ||
            ACCESS_Frame( 4 )                    )
         goto Exit;
 

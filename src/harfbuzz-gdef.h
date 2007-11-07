@@ -80,7 +80,7 @@ struct  HB_GDEFHeader_
 {
   HB_UInt             offset;
 
-  FT_Fixed             Version;
+  HB_16Dot16             Version;
 
   HB_ClassDefinition   GlyphClassDef;
   HB_AttachList        AttachList;
@@ -99,7 +99,7 @@ typedef struct HB_GDEFHeader_*  HB_GDEF;
 HB_Error  HB_New_GDEF_Table( HB_GDEFHeader** retptr );
       
 
-HB_Error  HB_Load_GDEF_Table( FT_Face         face,
+HB_Error  HB_Load_GDEF_Table( HB_Font         font,
 			      HB_GDEFHeader** gdef );
 
 

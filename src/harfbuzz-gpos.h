@@ -45,7 +45,7 @@ HB_BEGIN_HEADER
 
       _glyph = HANDLE_Glyph( glyph )                                    */
 
-typedef HB_Error  (*HB_GlyphFunction)(FT_Face      face,
+typedef HB_Error  (*HB_GlyphFunction)(HB_Font      font,
 				       HB_UInt      glyphIndex,
 				       HB_Int       loadFlags );
 
@@ -61,15 +61,15 @@ typedef HB_Error  (*HB_GlyphFunction)(FT_Face      face,
    `metric_value' must be returned as a scaled value (but shouldn't
    be rounded).                                                       */
 
-typedef HB_Error  (*HB_MMFunction)(FT_Face      face,
+typedef HB_Error  (*HB_MMFunction)(HB_Font      font,
 				    HB_UShort    metric_id,
-				    FT_Pos*      metric_value,
+				    HB_Fixed*      metric_value,
 				    void*        data );
 
 
 struct  HB_GPOSHeader_
 {
-  FT_Fixed           Version;
+  HB_16Dot16           Version;
 
   HB_ScriptList     ScriptList;
   HB_FeatureList    FeatureList;
@@ -94,7 +94,7 @@ typedef struct HB_GPOSHeader_  HB_GPOSHeader;
 typedef HB_GPOSHeader* HB_GPOS;
 
 
-HB_Error  HB_Load_GPOS_Table( FT_Face          face,
+HB_Error  HB_Load_GPOS_Table( HB_Font          font,
 			      HB_GPOSHeader** gpos,
 			      HB_GDEFHeader*  gdef );
 
@@ -151,7 +151,7 @@ HB_Error  HB_GPOS_Register_MM_Function( HB_GPOSHeader*  gpos,
    tables are ignored -- you will get device independent values.         */
 
 
-HB_Error  HB_GPOS_Apply_String( FT_Face           face,
+HB_Error  HB_GPOS_Apply_String( HB_Font           font,
 				HB_GPOSHeader*   gpos,
 				HB_UShort         load_flags,
 				HB_Buffer        buffer,

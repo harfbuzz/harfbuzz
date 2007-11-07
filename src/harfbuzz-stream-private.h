@@ -34,14 +34,14 @@ HB_INTERNAL void
 _hb_stream_frame_exit( HB_Stream stream );
 
 HB_INTERNAL HB_Error
-_hb_face_goto_table( FT_Face   face,
+_hb_font_goto_table( HB_Font   font,
                      HB_UInt   tag );
 
 /* convenience macros */
 
 #define  SET_ERR(c)   ( (error = (c)) != 0 )
 
-#define  GOTO_Table(tag) SET_ERR( _hb_face_goto_table( face, tag ) )
+#define  GOTO_Table(tag) SET_ERR( _hb_font_goto_table( font, tag ) )
 #define  FILE_Pos()      _hb_stream_pos( stream )
 #define  FILE_Seek(pos)  SET_ERR( _hb_stream_seek( stream, pos ) )
 #define  ACCESS_Frame(size)  SET_ERR( _hb_stream_frame_enter( stream, size ) )

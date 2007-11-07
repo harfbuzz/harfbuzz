@@ -1,7 +1,5 @@
 /*******************************************************************
  *
- *  Copyright 1996-2000 by
- *  David Turner, Robert Wilhelm, and Werner Lemberg.
  *  Copyright 2007  Trolltech ASA
  *  Copyright 2007  Behdad Esfahbod
  *
@@ -27,15 +25,18 @@
 HB_BEGIN_HEADER
 
 #define HB_MAKE_TAG(a,b,c,d) FT_MAKE_TAG(a,b,c,d)
+typedef FT_Pos		HB_Fixed;	/* 26.6 */
+typedef FT_Fixed	HB_16Dot16;	/* 16.6 */
+typedef FT_Face		HB_Font;
 
-typedef unsigned char HB_Byte;
-typedef signed char HB_Char;
-typedef unsigned short HB_UShort;
-typedef signed short HB_Short;
-typedef unsigned int HB_UInt;
-typedef signed int HB_Int;
-typedef int HB_Bool;
-typedef void *HB_Pointer;
+typedef unsigned char	HB_Byte;
+typedef signed char	HB_Char;
+typedef unsigned short	HB_UShort;
+typedef signed short	HB_Short;
+typedef unsigned int	HB_UInt;
+typedef signed int	HB_Int;
+typedef int		HB_Bool;
+typedef void *		HB_Pointer;
 
 
 typedef enum {

@@ -35,9 +35,9 @@ static void  Free_NewGlyphClasses( HB_GDEFHeader*  gdef );
 
 
 static HB_Error  GDEF_Create( void*  ext,
-			      PFace  face )
+			      PFace  font )
 {
-  DEFINE_LOAD_LOCALS( face->stream );
+  DEFINE_LOAD_LOCALS( font->stream );
 
   HB_GDEFHeader*  gdef = (HB_GDEFHeader*)ext;
   Long             table;
@@ -54,11 +54,11 @@ static HB_Error  GDEF_Create( void*  ext,
 
   /* we store the start offset and the size of the subtable */
 
-  table = HB_LookUp_Table( face, TTAG_GDEF );
+  table = HB_LookUp_Table( font, TTAG_GDEF );
   if ( table < 0 )
     return HB_Err_Ok;             /* The table is optional */
 
-  if ( FILE_Seek( face->dirTables[table].Offset ) ||
+  if ( FILE_Seek( font->dirTables[table].Offset ) ||
        ACCESS_Frame( 4L ) )
     return error;
 
@@ -74,7 +74,7 @@ static HB_Error  GDEF_Create( void*  ext,
 
 
 static HB_Error  GDEF_Destroy( void*  ext,
-			       PFace  face )
+			       PFace  font )
 {
   HB_GDEFHeader*  gdef = (HB_GDEFHeader*)ext;
 
@@ -154,11 +154,11 @@ HB_Error  HB_New_GDEF_Table( HB_GDEFHeader** retptr )
 }
 
 
-HB_Error  HB_Load_GDEF_Table( FT_Face          face,
+HB_Error  HB_Load_GDEF_Table( HB_Font          font,
 			      HB_GDEFHeader** retptr )
 {
   HB_Error         error;
-  HB_Stream        stream = face->stream;
+  HB_Stream        stream = font->stream;
   HB_UInt         cur_offset, new_offset, base_offset;
 
   HB_GDEFHeader*  gdef;
