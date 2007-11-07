@@ -297,7 +297,7 @@ _hb_buffer_add_output_glyphs( HB_Buffer  buffer,
 }
 
 HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyph( HB_Buffer buffer,	
+_hb_buffer_add_output_glyph( HB_Buffer buffer,
 			     HB_UInt   glyph_index,
 			     HB_UShort component,
 			     HB_UShort ligID )
@@ -330,7 +330,7 @@ _hb_buffer_copy_output_glyph ( HB_Buffer buffer )
 }
 
 HB_INTERNAL HB_Error
-_hb_buffer_replace_output_glyph( HB_Buffer buffer,	
+_hb_buffer_replace_output_glyph( HB_Buffer buffer,
 				 HB_UInt   glyph_index,
 				 HB_Bool   inplace )
 {

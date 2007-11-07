@@ -14,6 +14,7 @@
 #define HARFBUZZ_GPOS_PRIVATE_H
 
 #include "harfbuzz-impl.h"
+#include "harfbuzz-stream-private.h"
 #include "harfbuzz-gpos.h"
 
 HB_BEGIN_HEADER

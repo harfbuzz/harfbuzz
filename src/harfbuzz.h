@@ -14,11 +14,10 @@
 #define HARFBUZZ_H
 
 #include "harfbuzz-global.h"
-#include "harfbuzz-open.h"
 #include "harfbuzz-buffer.h"
 #include "harfbuzz-gdef.h"
 #include "harfbuzz-gsub.h"
 #include "harfbuzz-gpos.h"
-#include "harfbuzz-dump.h"
+#include "harfbuzz-open.h"
 
 #endif /* HARFBUZZ_OPEN_H */

@@ -21,8 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "harfbuzz-open.h"
-
+#include "harfbuzz.h"
 #include "harfbuzz-dump.h"
 
 #define N_ELEMENTS(arr) (sizeof(arr)/ sizeof((arr)[0]))

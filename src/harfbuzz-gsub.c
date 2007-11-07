@@ -38,9 +38,7 @@ HB_Error  HB_Load_GSUB_Table( FT_Face          face,
   HB_Error         error;
   HB_UInt         cur_offset, new_offset, base_offset;
 
-  HB_UShort        i, num_lookups;
   HB_GSUBHeader*  gsub;
-  HB_Lookup*      lo;
 
   if ( !retptr )
     return ERR(HB_Err_Invalid_Argument);
@@ -100,35 +98,10 @@ HB_Error  HB_Load_GSUB_Table( FT_Face          face,
 
   gsub->gdef = gdef;      /* can be NULL */
 
-  /* We now check the LookupFlags for values larger than 0xFF to find
-     out whether we need to load the `MarkAttachClassDef' field of the
-     GDEF table -- this hack is necessary for OpenType 1.2 tables since
-     the version field of the GDEF table hasn't been incremented.
-
-     For constructed GDEF tables, we only load it if
-     `MarkAttachClassDef_offset' is not zero (nevertheless, a build of
-     a constructed mark attach table is not supported currently).       */
-
-  if ( gdef &&
-       gdef->MarkAttachClassDef_offset && !gdef->MarkAttachClassDef.loaded )
-  {
-    lo          = gsub->LookupList.Lookup;
-    num_lookups = gsub->LookupList.LookupCount;
-
-    for ( i = 0; i < num_lookups; i++ )
-    {
-
-      if ( lo[i].LookupFlag & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS )
-      {
-	if ( FILE_Seek( gdef->MarkAttachClassDef_offset ) ||
-	     ( error = _HB_OPEN_Load_ClassDefinition( &gdef->MarkAttachClassDef,
-					     256, stream ) ) != HB_Err_Ok )
+  if ( ( error =  _HB_GDEF_LoadMarkAttachClassDef_From_LookupFlags( gdef, stream,
+								     gsub->LookupList.Lookup,
+								     gsub->LookupList.LookupCount ) ) )
 	  goto Fail1;
-
-	break;
-      }
-    }
-  }
 
   *retptr = gsub;
 

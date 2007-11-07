@@ -1200,5 +1200,44 @@ _HB_GDEF_Check_Property( HB_GDEFHeader* gdef,
   return HB_Err_Ok;
 }
 
+HB_INTERNAL HB_Error
+_HB_GDEF_LoadMarkAttachClassDef_From_LookupFlags( HB_GDEFHeader* gdef,
+						  HB_Stream      stream,
+						  HB_Lookup*     lo,
+						  HB_UShort      num_lookups)
+{
+  HB_Error   error = HB_Err_Ok;
+  HB_UShort  i;
+
+  /* We now check the LookupFlags for values larger than 0xFF to find
+     out whether we need to load the `MarkAttachClassDef' field of the
+     GDEF table -- this hack is necessary for OpenType 1.2 tables since
+     the version field of the GDEF table hasn't been incremented.
+
+     For constructed GDEF tables, we only load it if
+     `MarkAttachClassDef_offset' is not zero (nevertheless, a build of
+     a constructed mark attach table is not supported currently).       */
+
+  if ( gdef &&
+       gdef->MarkAttachClassDef_offset && !gdef->MarkAttachClassDef.loaded )
+  {
+    for ( i = 0; i < num_lookups; i++ )
+    {
+
+      if ( lo[i].LookupFlag & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS )
+      {
+	if ( FILE_Seek( gdef->MarkAttachClassDef_offset ) ||
+	     ( error = _HB_OPEN_Load_ClassDefinition( &gdef->MarkAttachClassDef,
+					     256, stream ) ) != HB_Err_Ok )
+	  goto Done;
+
+	break;
+      }
+    }
+  }
+
+Done:
+  return error;
+}
 
 /* END */

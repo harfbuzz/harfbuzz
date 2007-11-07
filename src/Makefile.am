@@ -16,7 +16,8 @@ INCLUDEDSOURCES = \
 	harfbuzz-gpos.c \
 	harfbuzz-gsub.c \
 	harfbuzz-impl.c \
-	harfbuzz-open.c
+	harfbuzz-open.c \
+	harfbuzz-stream.c
 
 PUBLICHEADERS = \
 	harfbuzz.h \
@@ -33,7 +34,8 @@ PRIVATEHEADERS = \
 	harfbuzz-gdef-private.h \
 	harfbuzz-gpos-private.h \
 	harfbuzz-gsub-private.h \
-	harfbuzz-open-private.h
+	harfbuzz-open-private.h \
+	harfbuzz-stream-private.h
 
 libharfbuzz_1_la_SOURCES = \
 	$(MAINSOURCES) \

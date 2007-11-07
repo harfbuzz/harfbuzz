@@ -21,17 +21,6 @@
 
 HB_BEGIN_HEADER
 
-/***********************************************************************/
-/************************ remaining freetype bits **********************/
-/***********************************************************************/
-
-typedef FT_Stream HB_Stream;
-#define HB_MAKE_TAG(a,b,c,d) FT_MAKE_TAG(a,b,c,d)
-
-/***********************************************************************/
-/***********************************************************************/
-/***********************************************************************/
-
 #ifndef HB_INTERNAL
 # define HB_INTERNAL
 #endif
@@ -68,55 +57,6 @@ typedef FT_Stream HB_Stream;
 #define ARRAY_LEN(Array) ((int)(sizeof (Array) / sizeof (Array)[0]))
 
 
-/* memory and stream management */
-
-#define  SET_ERR(c)   ( (error = (c)) != 0 )
-
-/* stream macros used by the OpenType parser */
-#define  GOTO_Table(tag) SET_ERR( _hb_face_goto_table( face, tag, stream ) )
-#define  FILE_Pos()      _hb_stream_pos( stream )
-#define  FILE_Seek(pos)  SET_ERR( _hb_stream_seek( stream, pos ) )
-#define  ACCESS_Frame(size)  SET_ERR( _hb_stream_frame_enter( stream, size ) )
-#define  FORGET_Frame()      _hb_stream_frame_exit( stream )
-
-#define  GET_Byte()      (*stream->cursor++)
-#define  GET_Short()     (stream->cursor += 2, (HB_Short)( \
-				(*(((HB_Byte*)stream->cursor)-2) << 8) | \
-				 *(((HB_Byte*)stream->cursor)-1) \
-			 ))
-#define  GET_Long()      (stream->cursor += 4, (HB_Int)( \
-				(*(((HB_Byte*)stream->cursor)-4) << 24) | \
-				(*(((HB_Byte*)stream->cursor)-3) << 16) | \
-				(*(((HB_Byte*)stream->cursor)-2) << 8) | \
-				 *(((HB_Byte*)stream->cursor)-1) \
-			 ))
-
-
-#define  GET_Char()      ((HB_Char)GET_Byte())
-#define  GET_UShort()    ((HB_UShort)GET_Short())
-#define  GET_ULong()     ((HB_UInt)GET_Long())
-#define  GET_Tag4()      GET_ULong()
-
-
-HB_INTERNAL HB_Int
-_hb_stream_pos( HB_Stream   stream );
-
-HB_INTERNAL HB_Error
-_hb_stream_seek( HB_Stream   stream,
-                    HB_Int     pos );
-
-HB_INTERNAL HB_Error
-_hb_stream_frame_enter( HB_Stream   stream,
-                           HB_UInt    size );
-
-HB_INTERNAL void
-_hb_stream_frame_exit( HB_Stream  stream );
-
-HB_INTERNAL HB_Error
-_hb_face_goto_table( FT_Face    face,
-                        HB_UInt   tag,
-                        HB_Stream  stream );
-
 #define  ALLOC(_ptr,_size)   \
            ( (_ptr) = _hb_alloc( _size, &error ), error != 0 )
 
@@ -145,53 +85,21 @@ _hb_face_goto_table( FT_Face    face,
 
 HB_INTERNAL HB_Pointer
 _hb_alloc( HB_UInt   size,
-	   HB_Error  *perror_ );
+	   HB_Error *perror_ );
 
 HB_INTERNAL HB_Pointer
-_hb_realloc( HB_Pointer  block,
+_hb_realloc( HB_Pointer block,
 	     HB_UInt    new_size,
-	     HB_Error   *perror_ );
+	     HB_Error  *perror_ );
 
 HB_INTERNAL void
-_hb_free( HB_Pointer  block );
+_hb_free( HB_Pointer block );
 
 
 /* helper func to set a breakpoint on */
 HB_INTERNAL HB_Error
 _hb_err (HB_Error code);
 
-
-/* buffer access macros */
-
-#define IN_GLYPH( pos )        (buffer->in_string[(pos)].gindex)
-#define IN_ITEM( pos )         (&buffer->in_string[(pos)])
-#define IN_CURGLYPH()          (buffer->in_string[buffer->in_pos].gindex)
-#define IN_CURITEM()           (&buffer->in_string[buffer->in_pos])
-#define IN_PROPERTIES( pos )   (buffer->in_string[(pos)].properties)
-#define IN_LIGID( pos )        (buffer->in_string[(pos)].ligID)
-#define IN_COMPONENT( pos )    (buffer->in_string[(pos)].component)
-#define POSITION( pos )        (&buffer->positions[(pos)])
-#define OUT_GLYPH( pos )       (buffer->out_string[(pos)].gindex)
-#define OUT_ITEM( pos )        (&buffer->out_string[(pos)])
-
-#define CHECK_Property( gdef, index, flags, property )					\
-          ( ( error = _HB_GDEF_Check_Property( (gdef), (index), (flags),		\
-                                      (property) ) ) != HB_Err_Ok )
-
-#define ADD_String( buffer, num_in, num_out, glyph_data, component, ligID )             \
-          ( ( error = _hb_buffer_add_output_glyphs( (buffer),                            \
-						    (num_in), (num_out),                \
-                                                    (glyph_data), (component), (ligID)  \
-                                                  ) ) != HB_Err_Ok )
-#define ADD_Glyph( buffer, glyph_index, component, ligID )				\
-          ( ( error = _hb_buffer_add_output_glyph( (buffer),                             \
-                                                    (glyph_index), (component), (ligID) \
-                                                  ) ) != HB_Err_Ok )
-#define REPLACE_Glyph( buffer, glyph_index, nesting_level )				\
-          ( ( error = _hb_buffer_replace_output_glyph( (buffer), (glyph_index),		\
-						      (nesting_level) == 1 ) ) != HB_Err_Ok )
-#define COPY_Glyph( buffer )								\
-	  ( (error = _hb_buffer_copy_output_glyph ( buffer ) ) != HB_Err_Ok )
 
 HB_END_HEADER
 

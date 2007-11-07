@@ -17,3 +17,4 @@
 #include "harfbuzz-gpos.c"
 #include "harfbuzz-impl.c"
 #include "harfbuzz-open.c"
+#include "harfbuzz-stream.c"

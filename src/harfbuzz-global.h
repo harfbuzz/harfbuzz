@@ -26,6 +26,8 @@
 
 HB_BEGIN_HEADER
 
+#define HB_MAKE_TAG(a,b,c,d) FT_MAKE_TAG(a,b,c,d)
+
 typedef unsigned char HB_Byte;
 typedef signed char HB_Char;
 typedef unsigned short HB_UShort;

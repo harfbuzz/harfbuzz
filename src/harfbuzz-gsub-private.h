@@ -14,6 +14,7 @@
 #define HARFBUZZ_GSUB_PRIVATE_H
 
 #include "harfbuzz-impl.h"
+#include "harfbuzz-stream-private.h"
 #include "harfbuzz-gsub.h"
 
 HB_BEGIN_HEADER
