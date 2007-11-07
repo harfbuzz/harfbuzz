@@ -41,9 +41,7 @@ HB_BEGIN_HEADER
 
    If for some reason no outline data is available (e.g. for an
    embedded bitmap glyph), _glyph->outline.n_points should be set to
-   zero.  _glyph can be computed with
-
-      _glyph = HANDLE_Glyph( glyph )                                    */
+   zero.                                                                */
 
 typedef HB_Error  (*HB_GlyphFunction)(HB_Font      font,
 				       HB_UInt      glyphIndex,
