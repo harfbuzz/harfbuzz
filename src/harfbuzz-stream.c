@@ -164,65 +164,64 @@ _hb_font_goto_table( HB_Font    font,
   {
     LOG(( "not a SFNT font !!\n" ));
     error = ERR(HB_Err_Invalid_Argument);
+    goto Exit;
   }
-  else
+
+ /* parse the directory table directly, without using
+  * FreeType's built-in data structures
+  */
+  HB_UInt  offset = 0;
+  HB_UInt   count, nn;
+
+  if ( font->num_faces > 1 )
   {
-   /* parse the directory table directly, without using
-    * FreeType's built-in data structures
-    */
-    HB_UInt  offset = 0;
-    HB_UInt   count, nn;
+    /* deal with TrueType collections */
+    LOG(( ">> This is a TrueType Collection\n" ));
 
-    if ( font->num_faces > 1 )
-    {
-      /* deal with TrueType collections */
-      LOG(( ">> This is a TrueType Collection\n" ));
-
-      if ( FILE_Seek( 12 + font->face_index*4 ) ||
-           ACCESS_Frame( 4 )                    )
-        goto Exit;
-
-      offset = GET_ULong();
-
-      FORGET_Frame();
-    }
-
-    LOG(( "TrueType offset = %ld\n", offset ));
-
-    if ( FILE_Seek( offset+4 ) ||
-         ACCESS_Frame( 2 )     )
+    if ( FILE_Seek( 12 + font->face_index*4 ) ||
+	 ACCESS_Frame( 4 )                    )
       goto Exit;
 
-    count = GET_UShort();
+    offset = GET_ULong();
 
-    FORGET_Frame();
-
-    if ( FILE_Seek( offset+12 )   ||
-         ACCESS_Frame( count*16 ) )
-      goto Exit;
-
-    for ( nn = 0; nn < count; nn++ )
-    {
-      HB_UInt  tag      = GET_ULong();
-      HB_UInt  checksum = GET_ULong();
-      HB_UInt  start    = GET_ULong();
-      HB_UInt  size     = GET_ULong();
-
-      HB_UNUSED(checksum);
-      HB_UNUSED(size);
-      
-      if ( tag == the_tag )
-      {
-        LOG(( "TrueType table (start: %ld) (size: %ld)\n", start, size ));
-        error = _hb_stream_seek( stream, start );
-        goto FoundIt;
-      }
-    }
-    error = HB_Err_Not_Covered;
-
-  FoundIt:
     FORGET_Frame();
   }
+
+  LOG(( "TrueType offset = %ld\n", offset ));
+
+  if ( FILE_Seek( offset+4 ) ||
+       ACCESS_Frame( 2 )     )
+    goto Exit;
+
+  count = GET_UShort();
+
+  FORGET_Frame();
+
+  if ( FILE_Seek( offset+12 )   ||
+       ACCESS_Frame( count*16 ) )
+    goto Exit;
+
+  for ( nn = 0; nn < count; nn++ )
+  {
+    HB_UInt  tag      = GET_ULong();
+    HB_UInt  checksum = GET_ULong();
+    HB_UInt  start    = GET_ULong();
+    HB_UInt  size     = GET_ULong();
+
+    HB_UNUSED(checksum);
+    HB_UNUSED(size);
+    
+    if ( tag == the_tag )
+    {
+      LOG(( "TrueType table (start: %ld) (size: %ld)\n", start, size ));
+      error = _hb_stream_seek( stream, start );
+      goto FoundIt;
+    }
+  }
+  error = HB_Err_Not_Covered;
+
+FoundIt:
+  FORGET_Frame();
 
 Exit:
   LOG(( "TrueType error=%d\n", error ));

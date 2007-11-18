@@ -200,7 +200,7 @@ main (int argc, char **argv)
 	croak ("HB_Done_GSUB_Table", error);
     }
   else if (error != HB_Err_Not_Covered)
-    fprintf (stderr, "HB_Load_GSUB_Table %x\n", error);
+    fprintf (stderr, "HB_Load_GSUB_Table: error 0x%x\n", error);
 
   if (!(error = HB_Load_GPOS_Table (font, &gpos, NULL)))
     {
@@ -210,7 +210,7 @@ main (int argc, char **argv)
 	croak ("HB_Done_GPOS_Table", error);
     }
   else if (error != HB_Err_Not_Covered)
-    fprintf (stderr, "HB_Load_GPOS_Table %x\n", error);
+    fprintf (stderr, "HB_Load_GPOS_Table: error 0x%x\n", error);
 
   printf ("</OpenType>\n");
 
