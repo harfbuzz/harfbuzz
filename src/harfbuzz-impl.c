@@ -11,24 +11,6 @@
  ******************************************************************/
 #include "harfbuzz-impl.h"
 
-#if 0
-#include <stdio.h>
-#define  LOG(x)  _hb_log x
-
-static void
-_hb_log( const char*   format, ... )
-{
-  va_list  ap;
- 
-  va_start( ap, format );
-  vfprintf( stderr, format, ap );
-  va_end( ap );
-}
-
-#else
-#define  LOG(x)  do {} while (0)
-#endif
-
 
 HB_INTERNAL HB_Pointer
 _hb_alloc( HB_UInt   size,
