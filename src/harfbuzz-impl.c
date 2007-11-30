@@ -65,7 +65,5 @@ _hb_free( HB_Pointer  block )
 HB_INTERNAL HB_Error
 _hb_err (HB_Error code)
 {
-  static int numerr = 0;
-  numerr++;
   return code;
 }
