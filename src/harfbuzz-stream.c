@@ -150,6 +150,8 @@ _hb_font_goto_table( HB_Font    font,
 {
   HB_Stream  stream = font->stream;
 
+  HB_UInt  offset = 0;
+  HB_UInt   count, nn;
   HB_Error  error;
 
   LOG(( "_hb_font_goto_table( %p, %c%c%c%c, %p )\n",
@@ -170,8 +172,6 @@ _hb_font_goto_table( HB_Font    font,
  /* parse the directory table directly, without using
   * FreeType's built-in data structures
   */
-  HB_UInt  offset = 0;
-  HB_UInt   count, nn;
 
   if ( font->num_faces > 1 )
   {
