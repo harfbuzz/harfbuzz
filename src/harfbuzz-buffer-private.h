@@ -1,16 +1,30 @@
-/* harfbuzz-buffer-private.h: Buffer of glyphs for substitution/positioning
+/*
+ * Copyright (C) 1998-2004  David Turner and Werner Lemberg
+ * Copyright (C) 2004,2007  Red Hat, Inc.
  *
- * Copyright 2004,7 Red Hat Software
+ * This is part of HarfBuzz, an OpenType Layout engine library.
  *
- * Portions Copyright 1996-2000 by
- * David Turner, Robert Wilhelm, and Werner Lemberg.
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
  *
- * This file is part of the FreeType project, and may only be used
- * modified and distributed under the terms of the FreeType project
- * license, LICENSE.TXT.  By continuing to use, modify, or distribute
- * this file you indicate that you have read the license and
- * understand and accept it fully.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Red Hat Author(s): Owen Taylor, Behdad Esfahbod
  */
+
 #ifndef HARFBUZZ_BUFFER_PRIVATE_H
 #define HARFBUZZ_BUFFER_PRIVATE_H
 
