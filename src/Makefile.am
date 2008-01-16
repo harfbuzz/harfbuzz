@@ -58,7 +58,5 @@ harfbuzz_dump_LDADD = \
 
 EXTRA_DIST = 		\
 	README		\
-	COPYING.FTL	\
-	COPYING.GPL	\
 	COPYING		\
 	$(INCLUDEDSOURCES)
