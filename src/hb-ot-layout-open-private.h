@@ -314,6 +314,12 @@ typedef struct TableDirectory {
 DEFINE_NULL_ASSERT_SIZE (TableDirectory, 16);
 
 typedef struct OffsetTable {
+
+  friend struct OpenTypeFontFile;
+  friend struct TTCHeader;
+
+  // XXX private:
+  // Add get_num_tables and get_table...
   /* OpenTypeTables, in no particular order */
   DEFINE_ARRAY_TYPE (TableDirectory, tableDir, numTables);
   // TODO: Implement find_table
@@ -334,6 +340,10 @@ DEFINE_NULL_ALIAS (OpenTypeFontFace, OffsetTable);
  */
 
 struct TTCHeader {
+
+  friend struct OpenTypeFontFile;
+
+  private:
   /* OpenTypeFontFaces, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
   /* XXX check version here? */
@@ -376,14 +386,14 @@ struct OpenTypeFontFile {
   }
 
   /* Array interface sans get_size() */
-  inline unsigned int get_len (void) const {
+  unsigned int get_len (void) const {
     switch (tag) {
     default: return 0;
     case TrueTypeTag: case CFFTag: return 1;
     case TTCTag: return ((const TTCHeader&)*this).get_len();
     }
   }
-  inline const OpenTypeFontFace& operator[] (unsigned int i) const {
+  const OpenTypeFontFace& operator[] (unsigned int i) const {
     if (HB_UNLIKELY (i >= get_len ())) return NullOpenTypeFontFace;
     switch (tag) {
     default: case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
@@ -566,6 +576,10 @@ DEFINE_NULL_ASSERT_SIZE (LookupList, 2);
  */
 
 struct CoverageFormat1 {
+
+  friend struct Coverage;
+
+  private:
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
 
@@ -588,6 +602,9 @@ ASSERT_SIZE (CoverageFormat1, 4);
 
 struct CoverageRangeRecord {
 
+  friend struct CoverageFormat2;
+
+  private:
   inline int get_coverage (uint16_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return startCoverageIndex + (glyph_id - start);
@@ -603,6 +620,10 @@ struct CoverageRangeRecord {
 DEFINE_NULL_ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\001");
 
 struct CoverageFormat2 {
+
+  friend struct Coverage;
+
+  private:
   /* CoverageRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
 
@@ -628,7 +649,7 @@ ASSERT_SIZE (CoverageFormat2, 4);
 struct Coverage {
   DEFINE_NON_INSTANTIABLE(Coverage);
 
-  inline unsigned int get_size (void) const {
+  unsigned int get_size (void) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_size ();
     case 2: return u.format2.get_size ();
@@ -637,7 +658,7 @@ struct Coverage {
   }
 
   /* Returns -1 if not covered. */
-  inline int get_coverage (uint16_t glyph_id) const {
+  int get_coverage (uint16_t glyph_id) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_coverage(glyph_id);
     case 2: return u.format2.get_coverage(glyph_id);
@@ -659,6 +680,10 @@ DEFINE_NULL (Coverage, 2);
  */
 
 struct ClassDefFormat1 {
+
+  friend struct ClassDef;
+
+  private:
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
 
@@ -678,6 +703,9 @@ ASSERT_SIZE (ClassDefFormat1, 6);
 
 struct ClassRangeRecord {
 
+  friend struct ClassDefFormat2;
+
+  private:
   inline int get_class (uint16_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return classValue;
@@ -692,6 +720,10 @@ struct ClassRangeRecord {
 DEFINE_NULL_ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\001");
 
 struct ClassDefFormat2 {
+
+  friend struct ClassDef;
+
+  private:
   /* ClassRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (ClassRangeRecord, rangeRecord, rangeCount);
 
@@ -716,7 +748,7 @@ ASSERT_SIZE (ClassDefFormat2, 4);
 struct ClassDef {
   DEFINE_NON_INSTANTIABLE(ClassDef);
 
-  inline unsigned int get_size (void) const {
+  unsigned int get_size (void) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_size ();
     case 2: return u.format2.get_size ();
@@ -725,7 +757,7 @@ struct ClassDef {
   }
 
   /* Returns 0 if not found. */
-  inline int get_class (uint16_t glyph_id) const {
+  int get_class (uint16_t glyph_id) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_class(glyph_id);
     case 2: return u.format2.get_class(glyph_id);
@@ -747,8 +779,9 @@ DEFINE_NULL (ClassDef, 2);
  */
 
 struct Device {
+  DEFINE_NON_INSTANTIABLE(Device);
 
-  inline unsigned int get_size (void) const {
+   unsigned int get_size (void) const {
     int count = endSize - startSize + 1;
     if (count < 0) count = 0;
     switch (deltaFormat) {
@@ -759,7 +792,7 @@ struct Device {
     }
   }
 
-  inline int get_delta (int ppem_size) const {
+  int get_delta (int ppem_size) const {
     if (ppem_size >= startSize && ppem_size <= endSize &&
         deltaFormat >= 1 && deltaFormat <= 3) {
       int s = ppem_size - startSize;

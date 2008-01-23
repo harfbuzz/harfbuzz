@@ -41,6 +41,8 @@
 
 #define HB_LIKELY	G_LIKEYLY
 #define HB_UNLIKELY	G_UNLIKELY
+#define HB_UNUSED(arg) ((arg) = (arg))
+
 
 #include <assert.h>
 

@@ -450,4 +450,17 @@ struct ReverseChainSingleSubstFormat1 {
 };
 ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
 
+/*
+ * GSUB
+ */
+
+struct GSUB : GSUBGPOS {
+  static const hb_tag_t Tag		= HB_TAG ('G','S','U','B');
+
+  STATIC_DEFINE_GET_FOR_DATA (GSUB);
+  /* XXX check version here? */
+};
+DEFINE_NULL_ALIAS (GSUB, GSUBGPOS);
+
+
 #endif /* HB_OT_LAYOUT_GSUB_PRIVATE_H */

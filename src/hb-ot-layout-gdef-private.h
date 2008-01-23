@@ -53,6 +53,10 @@ struct GlyphClassDef : ClassDef {
  */
 
 struct AttachPoint {
+
+  friend struct AttachList;
+
+  private:
   /* countour point indices, in increasing numerical order */
   DEFINE_ARRAY_TYPE (USHORT, pointIndex, pointCount);
 
@@ -65,6 +69,10 @@ struct AttachPoint {
 DEFINE_NULL_ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList {
+
+  friend struct GDEF;
+
+  private:
   /* const AttachPoint& get_attach_points (uint16_t glyph_id); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, get_attach_points);
 
@@ -90,6 +98,9 @@ DEFINE_NULL_ASSERT_SIZE (AttachList, 4);
 
 struct CaretValueFormat1 {
 
+  friend struct CaretValue;
+
+  private:
   inline int get_caret_value (int ppem) const {
     return /* TODO garbage */ coordinate / ppem;
   }
@@ -102,6 +113,9 @@ ASSERT_SIZE (CaretValueFormat1, 4);
 
 struct CaretValueFormat2 {
 
+  friend struct CaretValue;
+
+  private:
   inline int get_caret_value (int ppem) const {
     return /* TODO garbage */ 0 / ppem;
   }
@@ -114,6 +128,9 @@ ASSERT_SIZE (CaretValueFormat2, 4);
 
 struct CaretValueFormat3 {
 
+  friend struct CaretValue;
+
+  private:
   inline const Device& get_device (void) const {
     if (HB_UNLIKELY (!deviceTable)) return NullDevice;
     return *(const Device*)((const char*)this + deviceTable);
@@ -135,7 +152,7 @@ ASSERT_SIZE (CaretValueFormat3, 6);
 struct CaretValue {
   DEFINE_NON_INSTANTIABLE(CaretValue);
 
-  inline unsigned int get_size (void) const {
+  unsigned int get_size (void) const {
     switch (u.caretValueFormat) {
     case 1: return sizeof (u.format1);
     case 2: return sizeof (u.format2);
@@ -145,7 +162,7 @@ struct CaretValue {
   }
 
   /* XXX  we need access to a load-contour-point vfunc here */
-  inline int get_caret_value (int ppem) const {
+  int get_caret_value (int ppem) const {
     switch (u.caretValueFormat) {
     case 1: return u.format1.get_caret_value(ppem);
     case 2: return u.format2.get_caret_value(ppem);
@@ -166,6 +183,10 @@ struct CaretValue {
 DEFINE_NULL (CaretValue, 2);
 
 struct LigGlyph {
+
+  friend struct LigCaretList;
+
+  private:
   /* Caret value tables, in increasing coordinate order */
   DEFINE_OFFSET_ARRAY_TYPE (CaretValue, caretValue, caretCount);
   /* TODO */
@@ -181,6 +202,10 @@ struct LigGlyph {
 DEFINE_NULL_ASSERT_SIZE (LigGlyph, 2);
 
 struct LigCaretList {
+
+  friend struct GDEF;
+
+  private:
   /* const LigGlyph& get_lig_glyph (uint16_t glyph_id); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, get_lig_glyph);
 
@@ -205,7 +230,7 @@ DEFINE_NULL_ASSERT_SIZE (LigCaretList, 4);
  */
 
 struct GDEF {
-  static const hb_tag_t GDEFTag		= HB_TAG ('G','D','E','F');
+  static const hb_tag_t Tag		= HB_TAG ('G','D','E','F');
 
   STATIC_DEFINE_GET_FOR_DATA (GDEF);
   /* XXX check version here? */
@@ -217,14 +242,12 @@ struct GDEF {
 
   /* Returns 0 if not found. */
   inline int get_glyph_class (uint16_t glyph_id) const {
-    const ClassDef &class_def = get_glyph_class_def ();
-    return class_def.get_class (glyph_id);
+    return get_glyph_class_def ().get_class (glyph_id);
   }
 
   /* Returns 0 if not found. */
   inline int get_mark_attachment_type (uint16_t glyph_id) const {
-    const ClassDef &class_def = get_mark_attach_class_def ();
-    return class_def.get_class (glyph_id);
+    return get_mark_attach_class_def ().get_class (glyph_id);
   }
 
   /* TODO get_glyph_property */
