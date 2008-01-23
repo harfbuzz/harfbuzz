@@ -1,5 +1,5 @@
-#ifndef HARFBUZZ_PRIVATE_H
-#define HARFBUZZ_PRIVATE_H
+#ifndef HB_PRIVATE_H
+#define HB_PRIVATE_H
 
 #include <assert.h>
 
@@ -9,4 +9,4 @@
 
 #define ASSERT_SIZE(_type, _size) ASSERT_STATIC (sizeof (_type) == (_size))
 
-#endif /* HARFBUZZ_PRIVATE_H */
+#endif /* HB_PRIVATE_H */

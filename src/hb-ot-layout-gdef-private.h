@@ -1,7 +1,7 @@
-#ifndef HARFBUZZ_GDEF_PRIVATE_H
-#define HARFBUZZ_GDEF_PRIVATE_H
+#ifndef HB_OT_LAYOUT_GDEF_PRIVATE_H
+#define HB_OT_LAYOUT_GDEF_PRIVATE_H
 
-#include "harfbuzz-open-private.h"
+#include "hb-ot-layout-open-private.h"
 
 struct GlyphClassDef : ClassDef {
   static const uint16_t BaseGlyph		= 0x0001u;
@@ -210,4 +210,4 @@ struct GDEFHeader {
 };
 DEFINE_NULL_ASSERT_SIZE (GDEFHeader, 12);
 
-#endif /* HARFBUZZ_GDEF_PRIVATE_H */
+#endif /* HB_OT_LAYOUT_GDEF_PRIVATE_H */

@@ -1,8 +1,8 @@
-#ifndef HARFBUZZ_OPEN_PRIVATE_H
-#define HARFBUZZ_OPEN_PRIVATE_H
+#ifndef HB_OT_LAYOUT_OPEN_PRIVATE_H
+#define HB_OT_LAYOUT_OPEN_PRIVATE_H
 
-#include "harfbuzz-private.h"
-#include "harfbuzz-open.h"
+#include "hb-private.h"
+#include "hb-ot-layout.h"
 
 #include <glib.h>
 
@@ -801,4 +801,4 @@ DEFINE_NULL_ASSERT_SIZE (GSUBGPOSHeader, 10);
 DEFINE_NULL_ALIAS (GSUBHeader, GSUBGPOSHeader);
 DEFINE_NULL_ALIAS (GPOSHeader, GSUBGPOSHeader);
 
-#endif /* HARFBUZZ_OPEN_PRIVATE_H */
+#endif /* HB_OT_LAYOUT_OPEN_PRIVATE_H */

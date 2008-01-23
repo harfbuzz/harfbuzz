@@ -1,5 +1,5 @@
-#include "harfbuzz-open-private.h"
-#include "harfbuzz-gdef-private.h"
+#include "hb-ot-layout-open-private.h"
+#include "hb-ot-layout-gdef-private.h"
 
 #include <stdlib.h>
 #include <stdio.h>
