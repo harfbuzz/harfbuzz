@@ -3,27 +3,6 @@
 
 #include "harfbuzz-open-private.h"
 
-struct GDEFHeader {
-  /* TODO */
-
-  private:
-  Fixed		version;		/* Version of the GDEF table--initially
-					 * 0x00010000 */
-  Offset	glyphClassDef;		/* Offset to class definition table
-					 * for glyph type--from beginning of
-					 * GDEF header (may be NULL) */
-  Offset	attachList;		/* Offset to list of glyphs with
-					 * attachment points--from beginning
-					 * of GDEF header (may be NULL) */
-  Offset	ligCaretList;		/* Offset to list of positioning points
-					 * for ligature carets--from beginning
-					 * of GDEF header (may be NULL) */
-  Offset	markAttachClassDef;	/* Offset to class definition table for
-					 * mark attachment type--from beginning
-					 * of GDEF header (may be NULL) */
-};
-ASSERT_SIZE (GDEFHeader, 12);
-
 struct GlyphClassDef : ClassDef {
   static const uint16_t BaseGlyph		= 0x0001u;
   static const uint16_t LigatureGlyph		= 0x0002u;
@@ -179,5 +158,56 @@ struct CaretValue {
   /* FIXME old HarfBuzz code has a format 4 here! */
   } u;
 };
+
+
+#define DEFINE_ACCESSOR0(const, Type, name, Name) \
+  inline const Type* name (void) const { \
+    if (!Name) return NULL; \
+    return (const Type *)((const char*)this + Name); \
+  }
+#define DEFINE_ACCESSOR(Type, name, Name) \
+	DEFINE_ACCESSOR0(const, Type, name, Name) \
+	DEFINE_ACCESSOR0(     , Type, name, Name)
+
+struct GDEFHeader {
+
+  DEFINE_ACCESSOR (ClassDef, get_glyph_class_def, glyphClassDef);
+  DEFINE_ACCESSOR (AttachList, get_attach_list, attachList);
+  DEFINE_ACCESSOR (LigCaretList, get_lig_caret_list, ligCaretList);
+  DEFINE_ACCESSOR (ClassDef, get_mark_attach_class_def, markAttachClassDef);
+
+  /* Returns 0 if not found. */
+  inline int get_glyph_class (uint16_t glyph_id) const {
+    const ClassDef *class_def = get_glyph_class_def ();
+    if (!class_def) return 0;
+    return class_def->get_class (glyph_id);
+  }
+
+  /* Returns 0 if not found. */
+  inline int get_mark_attachment_type (uint16_t glyph_id) const {
+    const ClassDef *class_def = get_mark_attach_class_def ();
+    if (!class_def) return 0;
+    return class_def->get_class (glyph_id);
+  }
+
+  /* TODO get_attach and get_lig_caret */
+
+  private:
+  Fixed		version;		/* Version of the GDEF table--initially
+					 * 0x00010000 */
+  Offset	glyphClassDef;		/* Offset to class definition table
+					 * for glyph type--from beginning of
+					 * GDEF header (may be NULL) */
+  Offset	attachList;		/* Offset to list of glyphs with
+					 * attachment points--from beginning
+					 * of GDEF header (may be NULL) */
+  Offset	ligCaretList;		/* Offset to list of positioning points
+					 * for ligature carets--from beginning
+					 * of GDEF header (may be NULL) */
+  Offset	markAttachClassDef;	/* Offset to class definition table for
+					 * mark attachment type--from beginning
+					 * of GDEF header (may be NULL) */
+};
+ASSERT_SIZE (GDEFHeader, 12);
 
 #endif /* HARFBUZZ_GDEF_PRIVATE_H */

@@ -175,6 +175,7 @@ struct Tag {
   inline Tag (const char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
   inline bool operator== (Tag o) const { return v[0]==o.v[0]&&v[1]==o.v[1]&&v[2]==o.v[2]&&v[3]==o.v[3]; }
   inline bool operator== (const char *c) const { return v[0]==c[0]&&v[1]==c[1]&&v[2]==c[2]&&v[3]==c[3]; }
+  inline bool operator== (uint32_t i) const { return i == (uint32_t) *this; }
   inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return (const char *)this; }
@@ -399,6 +400,8 @@ struct Script {
     return (LangSys *)((char*)this + defaultLangSys);
   }
 
+  /* TODO implement find_language_system based on find_tag */
+
   private:
   Offset	defaultLangSys;	/* Offset to DefaultLangSys table--from
 				 * beginning of Script table--may be NULL */
@@ -419,6 +422,8 @@ struct LangSys {
       return -1;
     return reqFeatureIndex;;
   }
+
+  /* TODO implement find_feature */
 
   private:
   Offset	lookupOrder;	/* = NULL (reserved for an offset to a
@@ -674,8 +679,8 @@ struct ClassDef {
   /* Returns 0 if not found. */
   inline int get_class (uint16_t glyph_id) const {
     switch (u.classFormat) {
-    case 1: u.format1.get_class(glyph_id);
-    case 2: u.format2.get_class(glyph_id);
+    case 1: return u.format1.get_class(glyph_id);
+    case 2: return u.format2.get_class(glyph_id);
     default:return 0;
     }
   }
@@ -740,7 +745,7 @@ ASSERT_SIZE (Device, 6);
     assert (name##List); \
     return (const Type##List *)((const char*)this + name##List); \
   } \
-  inline const Type& name (unsigned int i) const { \
+  inline const Type& get_##name (unsigned int i) const { \
     return (*get_##name##_list())[i]; \
   }
 #define DEFINE_LIST_ACCESSOR(Type, name) \
@@ -749,15 +754,11 @@ ASSERT_SIZE (Device, 6);
 
 struct GSUBGPOSHeader {
 
-/*
-  inline unsigned int get_size (void) const {
-    return offsetof (GSUBGPOSHeader, padding);
-  }
-  */
+  DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list, get_script(i) */
+  DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list, get_feature(i) */
+  DEFINE_LIST_ACCESSOR(Lookup, lookup);	 /* get_lookup_list, get_lookup(i) */
 
-  DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list and script(i) */
-  DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list and feature(i) */
-  DEFINE_LIST_ACCESSOR(Lookup, lookup);	 /* get_lookup_list and lookup(i) */
+  /* TODO implement find_script */
 
   private:
   Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set

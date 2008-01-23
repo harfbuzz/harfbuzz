@@ -91,6 +91,16 @@ main (int argc, char **argv)
 	  printf ("    Lookup %2d of %2d: type %d, flags %04x\n", n_lookup+1, num_lookups,
 	          lookup.get_type(), lookup.get_flag());
 	}
+      } else if (table.get_tag() == "GDEF") {
+        const GDEFHeader &gdef = (const GDEFHeader&)*ot[table];
+
+	/*
+	for (int glyph = 0; glyph < 1000; glyph++)
+	  printf ("    glyph %d has class %d and mark attachment type %d\n",
+		  glyph,
+		  gdef.get_glyph_class (glyph),
+		  gdef.get_mark_attachment_type (glyph));
+	 */
       }
     }
   }
