@@ -49,10 +49,6 @@
   DEFINE_LEN(Type, array, num) \
   DEFINE_SIZE(Type, array, num)
 
-#define DEFINE_NON_INSTANTIABLE(Type) \
-  private: inline Type() {} /* cannot be instantiated */ \
-  public:
-
 /* An array type is one that contains a variable number of objects
  * as its last item.  An array object is extended with len() and size()
  * methods, as well as overloaded [] operator. */
@@ -95,6 +91,30 @@
     return array[i].tag; \
   } \
   /* TODO: implement find_tag() */
+
+
+
+
+/*
+ * Class features
+ */
+
+/* makes class uninstantiable.  should be used for union classes that don't
+ * contain any complete type */
+#define DEFINE_NON_INSTANTIABLE(Type) \
+  private: inline Type() {} /* cannot be instantiated */ \
+  public:
+
+/* get_for_data() is a static class method returning a reference to an
+ * instance of Type located at the input data location.  It's just a
+ * fancy cast! */
+#define STATIC_DEFINE_GET_FOR_DATA0(const, Type) \
+  static inline const Type& get_for_data (const char *data) { \
+    return *(const Type*)data; \
+  }
+#define STATIC_DEFINE_GET_FOR_DATA(Type) \
+	STATIC_DEFINE_GET_FOR_DATA0(const, Type) \
+	STATIC_DEFINE_GET_FOR_DATA0(     , Type)
 
 
 
@@ -293,15 +313,7 @@ struct OpenTypeFontFile {
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
 
-  /* Factory: ::get(font_data)
-   * This is how you get a handle to one of these
-   */
-  static inline const OpenTypeFontFile& get (const char *font_data) {
-    return (const OpenTypeFontFile&)*font_data;
-  }
-  static inline OpenTypeFontFile& get (char *font_data) {
-    return (OpenTypeFontFile&)*font_data;
-  }
+  STATIC_DEFINE_GET_FOR_DATA (OpenTypeFontFile);
 
   /* This is how you get a table */
   inline const char* get_table (const OpenTypeTable& table) const {
@@ -753,6 +765,10 @@ ASSERT_SIZE (Device, 6);
 	DEFINE_LIST_ACCESSOR0(     , Type, name)
 
 struct GSUBGPOSHeader {
+  static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
+  static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
+
+  STATIC_DEFINE_GET_FOR_DATA (GSUBGPOSHeader);
 
   DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list, get_script(i) */
   DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list, get_feature(i) */

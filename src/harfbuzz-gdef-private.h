@@ -170,6 +170,9 @@ struct CaretValue {
 	DEFINE_ACCESSOR0(     , Type, name, Name)
 
 struct GDEFHeader {
+  static const hb_tag_t GDEFTag		= HB_TAG ('G','D','E','F');
+
+  STATIC_DEFINE_GET_FOR_DATA (GDEFHeader);
 
   DEFINE_ACCESSOR (ClassDef, get_glyph_class_def, glyphClassDef);
   DEFINE_ACCESSOR (AttachList, get_attach_list, attachList);
