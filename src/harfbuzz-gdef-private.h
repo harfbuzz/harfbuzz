@@ -10,22 +10,34 @@ struct GlyphClassDef : ClassDef {
   static const uint16_t ComponentGlyph		= 0x0004u;
 };
 
-struct AttachPoint;
+/*
+ * Attachment List Table
+ */
+
+struct AttachPoint {
+  /* countour point indices, in increasing numerical order */
+  DEFINE_ARRAY_TYPE (USHORT, pointIndex, pointCount);
+
+  private:
+  USHORT	pointCount;		/* Number of attachment points on
+					 * this glyph */
+  USHORT	pointIndex[];		/* Array of contour point indices--in
+					 * increasing numerical order */
+};
+DEFINE_NULL_ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList {
-  /* AttachPoint tables, in Coverage Index order */
-  /* TODO get attach lists */
-/*  DEFINE_INDIRECT_OFFSET_ARRAY_TYPE (AttachPoint, attachPoint, glyphCount, get_coverage);
 
-//  get_coverage
-
-  inline Coverage* get_default_language_system (void) {
-    if (!defaultLangSys)
-      return NULL;
-    return (LangSys *)((char*)this + defaultLangSys);
+  inline const AttachPoint* get_attach_points (uint16_t glyph_id) {
+    const Coverage &c = get_coverage ();
+    int c_index = c.get_coverage (glyph_id);
+    return &(*this)[c_index];
   }
 
-*/
+  private:
+  /* AttachPoint tables, in Coverage Index order */
+  DEFINE_OFFSET_ARRAY_TYPE (AttachPoint, attachPoint, glyphCount);
+  DEFINE_ACCESSOR (Coverage, get_coverage, coverage);
 
   private:
   Offset	coverage;		/* Offset to Coverage table -- from
@@ -36,18 +48,7 @@ struct AttachList {
 					 * tables--from beginning of AttachList
 					 * table--in Coverage Index order */
 };
-ASSERT_SIZE (AttachList, 4);
-
-struct AttachPoint {
-  /* TODO */
-
-  private:
-  USHORT	pointCount;		/* Number of attachment points on
-					 * this glyph */
-  USHORT	pointIndex[];		/* Array of contour point indices--in
-					 * increasing numerical order */
-};
-ASSERT_SIZE (AttachPoint, 2);
+DEFINE_NULL_ASSERT_SIZE (AttachList, 4);
 
 /*
  * Ligature Caret Table
@@ -67,22 +68,7 @@ struct LigCaretList {
 					 * LigCaretList table--in Coverage
 					 * Index order */
 };
-ASSERT_SIZE (LigCaretList, 4);
-
-struct LigGlyph {
-  /* Caret value tables, in increasing coordinate order */
-  DEFINE_OFFSET_ARRAY_TYPE (CaretValue, caretValue, caretCount);
-  /* TODO */
-
-  private:
-  USHORT	caretCount;		/* Number of CaretValues for this
-					 * ligature (components - 1) */
-  Offset	caretValue[];		/* Array of offsets to CaretValue
-					 * tables--from beginning of LigGlyph
-					 * table--in increasing coordinate
-					 * order */
-};
-ASSERT_SIZE (LigGlyph, 2);
+DEFINE_NULL_ASSERT_SIZE (LigCaretList, 4);
 
 struct CaretValueFormat1 {
 
@@ -94,7 +80,7 @@ struct CaretValueFormat1 {
   USHORT	caretValueFormat;	/* Format identifier--format = 1 */
   SHORT		coordinate;		/* X or Y value, in design units */
 };
-ASSERT_SIZE (CaretValueFormat1, 4);
+DEFINE_NULL_ASSERT_SIZE (CaretValueFormat1, 4);
 
 struct CaretValueFormat2 {
 
@@ -106,16 +92,17 @@ struct CaretValueFormat2 {
   USHORT	caretValueFormat;	/* Format identifier--format = 2 */
   USHORT	caretValuePoint;	/* Contour point index on glyph */
 };
-ASSERT_SIZE (CaretValueFormat2, 4);
+DEFINE_NULL_ASSERT_SIZE (CaretValueFormat2, 4);
 
 struct CaretValueFormat3 {
 
-  inline const Device* get_device (void) const {
-    return (const Device*)((const char*)this + deviceTable);
+  inline const Device& get_device (void) const {
+    if (!deviceTable) return NullDevice;
+    return *(const Device*)((const char*)this + deviceTable);
   }
 
   inline int get_caret_value (int ppem) const {
-    return /* TODO garbage */ (coordinate + get_device()->get_delta (ppem)) / ppem;
+    return /* TODO garbage */ (coordinate + get_device().get_delta (ppem)) / ppem;
   }
 
   private:
@@ -125,7 +112,7 @@ struct CaretValueFormat3 {
 					 * value--from beginning of CaretValue
 					 * table */
 };
-ASSERT_SIZE (CaretValueFormat3, 6);
+DEFINE_NULL_ASSERT_SIZE (CaretValueFormat3, 6);
 
 struct CaretValue {
   DEFINE_NON_INSTANTIABLE(CaretValue);
@@ -158,16 +145,26 @@ struct CaretValue {
   /* FIXME old HarfBuzz code has a format 4 here! */
   } u;
 };
+DEFINE_NULL (CaretValue, 2);
 
+struct LigGlyph {
+  /* Caret value tables, in increasing coordinate order */
+  DEFINE_OFFSET_ARRAY_TYPE (CaretValue, caretValue, caretCount);
+  /* TODO */
 
-#define DEFINE_ACCESSOR0(const, Type, name, Name) \
-  inline const Type* name (void) const { \
-    if (!Name) return NULL; \
-    return (const Type *)((const char*)this + Name); \
-  }
-#define DEFINE_ACCESSOR(Type, name, Name) \
-	DEFINE_ACCESSOR0(const, Type, name, Name) \
-	DEFINE_ACCESSOR0(     , Type, name, Name)
+  private:
+  USHORT	caretCount;		/* Number of CaretValues for this
+					 * ligature (components - 1) */
+  Offset	caretValue[];		/* Array of offsets to CaretValue
+					 * tables--from beginning of LigGlyph
+					 * table--in increasing coordinate
+					 * order */
+};
+DEFINE_NULL_ASSERT_SIZE (LigGlyph, 2);
+
+/*
+ * GDEF Header
+ */
 
 struct GDEFHeader {
   static const hb_tag_t GDEFTag		= HB_TAG ('G','D','E','F');
@@ -181,17 +178,17 @@ struct GDEFHeader {
 
   /* Returns 0 if not found. */
   inline int get_glyph_class (uint16_t glyph_id) const {
-    const ClassDef *class_def = get_glyph_class_def ();
-    if (!class_def) return 0;
-    return class_def->get_class (glyph_id);
+    const ClassDef &class_def = get_glyph_class_def ();
+    return class_def.get_class (glyph_id);
   }
 
   /* Returns 0 if not found. */
   inline int get_mark_attachment_type (uint16_t glyph_id) const {
-    const ClassDef *class_def = get_mark_attach_class_def ();
-    if (!class_def) return 0;
-    return class_def->get_class (glyph_id);
+    const ClassDef &class_def = get_mark_attach_class_def ();
+    return class_def.get_class (glyph_id);
   }
+
+  /* TODO get_glyph_property */
 
   /* TODO get_attach and get_lig_caret */
 
@@ -200,17 +197,17 @@ struct GDEFHeader {
 					 * 0x00010000 */
   Offset	glyphClassDef;		/* Offset to class definition table
 					 * for glyph type--from beginning of
-					 * GDEF header (may be NULL) */
+					 * GDEF header (may be Null) */
   Offset	attachList;		/* Offset to list of glyphs with
 					 * attachment points--from beginning
-					 * of GDEF header (may be NULL) */
+					 * of GDEF header (may be Null) */
   Offset	ligCaretList;		/* Offset to list of positioning points
 					 * for ligature carets--from beginning
-					 * of GDEF header (may be NULL) */
+					 * of GDEF header (may be Null) */
   Offset	markAttachClassDef;	/* Offset to class definition table for
 					 * mark attachment type--from beginning
-					 * of GDEF header (may be NULL) */
+					 * of GDEF header (may be Null) */
 };
-ASSERT_SIZE (GDEFHeader, 12);
+DEFINE_NULL_ASSERT_SIZE (GDEFHeader, 12);
 
 #endif /* HARFBUZZ_GDEF_PRIVATE_H */

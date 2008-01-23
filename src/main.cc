@@ -51,7 +51,7 @@ main (int argc, char **argv)
       if (table.get_tag() == "GSUB" || table.get_tag() == "GPOS") {
         const GSUBGPOSHeader &g = GSUBGPOSHeader::get_for_data (ot[table]);
 
-	const ScriptList &scripts = *g.get_script_list();
+	const ScriptList &scripts = g.get_script_list();
 	int num_scripts = scripts.get_len ();
 	printf ("    %d script(s) found in table\n", num_scripts);
 	for (int n_script = 0; n_script < num_scripts; n_script++) {
@@ -59,7 +59,7 @@ main (int argc, char **argv)
 	  printf ("    Script %2d of %2d: %.4s\n", n_script+1, num_scripts,
 	          (const char *)scripts.get_tag(n_script));
 
-	  if (script.get_default_language_system () == NULL)
+	  if (!script.has_default_language_system())
 	    printf ("      No default language system\n");
 	  int num_langsys = script.get_len ();
 	  printf ("      %d language system(s) found in script\n", num_langsys);
@@ -73,7 +73,7 @@ main (int argc, char **argv)
 	  }
 	}
         
-	const FeatureList &features = *g.get_feature_list();
+	const FeatureList &features = g.get_feature_list();
 	int num_features = features.get_len ();
 	printf ("    %d feature(s) found in table\n", num_features);
 	for (int n_feature = 0; n_feature < num_features; n_feature++) {
@@ -83,7 +83,7 @@ main (int argc, char **argv)
 		  feature.get_len());
 	}
         
-	const LookupList &lookups = *g.get_lookup_list();
+	const LookupList &lookups = g.get_lookup_list();
 	int num_lookups = lookups.get_len ();
 	printf ("    %d lookup(s) found in table\n", num_lookups);
 	for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
