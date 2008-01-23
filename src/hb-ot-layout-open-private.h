@@ -336,7 +336,7 @@ DEFINE_NULL_ALIAS (OpenTypeFontFace, OffsetTable);
 struct TTCHeader {
   /* OpenTypeFontFaces, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
-  /* XXX check version here */
+  /* XXX check version here? */
 
   private:
   Tag	ttcTag;		/* TrueType Collection ID string: 'ttcf' */
@@ -788,15 +788,15 @@ struct Device {
 DEFINE_NULL_ASSERT_SIZE (Device, 6);
 
 /*
- * GSUB/GPOS Header
+ * GSUB/GPOS Common
  */
 
-typedef struct GSUBGPOSHeader {
+typedef struct GSUBGPOS {
   static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
   static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
 
-  STATIC_DEFINE_GET_FOR_DATA (GSUBGPOSHeader);
-  /* XXX check version here */
+  STATIC_DEFINE_GET_FOR_DATA (GSUBGPOS);
+  /* XXX check version here? */
 
   DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list, get_script(i) */
   DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list, get_feature(i) */
@@ -813,9 +813,7 @@ typedef struct GSUBGPOSHeader {
 				 * GSUB/GPOS table */
   Offset	lookupList; 	/* Offset to LookupList table--from beginning of
 				 * GSUB/GPOS table */
-} GSUBHeader, GPOSHeader;
-DEFINE_NULL_ASSERT_SIZE (GSUBGPOSHeader, 10);
-DEFINE_NULL_ALIAS (GSUBHeader, GSUBGPOSHeader);
-DEFINE_NULL_ALIAS (GPOSHeader, GSUBGPOSHeader);
+};
+DEFINE_NULL_ASSERT_SIZE (GSUBGPOS, 10);
 
 #endif /* HB_OT_LAYOUT_OPEN_PRIVATE_H */

@@ -76,7 +76,7 @@ main (int argc, char **argv)
 	      (const char *)table.get_tag(), table.get_offset(), table.get_length());
 
       if (table.get_tag() == "GSUB" || table.get_tag() == "GPOS") {
-        const GSUBGPOSHeader &g = GSUBGPOSHeader::get_for_data (ot[table]);
+        const GSUBGPOS &g = GSUBGPOS::get_for_data (ot[table]);
 
 	const ScriptList &scripts = g.get_script_list();
 	int num_scripts = scripts.get_len ();
@@ -119,7 +119,7 @@ main (int argc, char **argv)
 	          lookup.get_type(), lookup.get_flag());
 	}
       } else if (table.get_tag() == "GDEF") {
-        const GDEFHeader &gdef = GDEFHeader::get_for_data (ot[table]);
+        const GDEF &gdef = GDEF::get_for_data (ot[table]);
 
 	for (int glyph = 0; glyph < 1; glyph++)
 	  printf ("    glyph %d has class %d and mark attachment type %d\n",

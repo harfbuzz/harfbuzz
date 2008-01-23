@@ -201,14 +201,14 @@ struct LigCaretList {
 DEFINE_NULL_ASSERT_SIZE (LigCaretList, 4);
 
 /*
- * GDEF Header
+ * GDEF
  */
 
-struct GDEFHeader {
+struct GDEF {
   static const hb_tag_t GDEFTag		= HB_TAG ('G','D','E','F');
 
-  STATIC_DEFINE_GET_FOR_DATA (GDEFHeader);
-  /* XXX check version here */
+  STATIC_DEFINE_GET_FOR_DATA (GDEF);
+  /* XXX check version here? */
 
   DEFINE_ACCESSOR (ClassDef, get_glyph_class_def, glyphClassDef);
   DEFINE_ACCESSOR (AttachList, get_attach_list, attachList);
@@ -247,6 +247,6 @@ struct GDEFHeader {
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be Null) */
 };
-DEFINE_NULL_ASSERT_SIZE (GDEFHeader, 12);
+DEFINE_NULL_ASSERT_SIZE (GDEF, 12);
 
 #endif /* HB_OT_LAYOUT_GDEF_PRIVATE_H */
