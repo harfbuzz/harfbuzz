@@ -20,7 +20,7 @@ main (int argc, char **argv)
   
   const OpenTypeFontFile &ot = OpenTypeFontFile::get (font_data);
 
-  switch (ot.tag) {
+  switch (ot.get_tag()) {
   case OpenTypeFontFile::TrueTypeTag:
     printf ("OpenType font with TrueType outlines\n");
     break;
@@ -45,10 +45,10 @@ main (int argc, char **argv)
     printf ("  %d table(s) found in font\n", num_tables);
     for (int n_table = 0; n_table < num_tables; n_table++) {
       const OpenTypeTable &table = font[n_table];
-      printf ("  Table %2d of %2d: %.4s (0x%06x+0x%06x)\n", n_table+1, num_tables,
-	      (const char *)table.tag, (int)table.offset, (int)table.length);
+      printf ("  Table %2d of %2d: %.4s (0x%08lx+0x%08lx)\n", n_table+1, num_tables,
+	      (const char *)table.get_tag(), table.get_offset(), table.get_length());
 
-      if (table.tag == "GSUB" || table.tag == "GPOS") {
+      if (table.get_tag() == "GSUB" || table.get_tag() == "GPOS") {
         const GSUBGPOSHeader &g = (const GSUBGPOSHeader&)*ot[table];
 
 	const ScriptList &scripts = *g.get_script_list();
@@ -80,7 +80,7 @@ main (int argc, char **argv)
 	  const Feature &feature = features[n_feature];
 	  printf ("    Feature %2d of %2d: %.4s; %d lookup(s)\n", n_feature+1, num_features,
 	          (const char *)features.get_tag(n_feature),
-		  (int)feature.lookupCount);
+		  feature.get_len());
 	}
         
 	const LookupList &lookups = *g.get_lookup_list();
@@ -89,7 +89,7 @@ main (int argc, char **argv)
 	for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
 	  const Lookup &lookup = lookups[n_lookup];
 	  printf ("    Lookup %2d of %2d: type %d, flags %04x\n", n_lookup+1, num_lookups,
-	          (int)lookup.lookupType, (unsigned int)lookup.lookupFlag);
+	          lookup.get_type(), lookup.get_flag());
 	}
       }
     }

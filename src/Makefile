@@ -1,5 +1,11 @@
 all: main
 
-CXXFLAGS = -Wall -Wextra  `pkg-config --cflags --libs glib-2.0`
+CPPFLAGS = -Wall -Wextra  `pkg-config --cflags glib-2.0`
+LDFLAGS = `pkg-config --libs glib-2.0`
+CXX = gcc $(GCCOPTS) -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 
-main: *.h
+main: main.cc *.h
+	$(CXX) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $<
+
+clean:
+	rm -f main main.o

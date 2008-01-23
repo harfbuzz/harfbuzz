@@ -4,6 +4,9 @@
 #include "harfbuzz-open-private.h"
 
 struct GDEFHeader {
+  /* TODO */
+
+  private:
   Fixed		version;		/* Version of the GDEF table--initially
 					 * 0x00010000 */
   Offset	glyphClassDef;		/* Offset to class definition table
@@ -19,6 +22,7 @@ struct GDEFHeader {
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be NULL) */
 };
+ASSERT_SIZE (GDEFHeader, 12);
 
 struct GlyphClassDef : ClassDef {
   static const uint16_t BaseGlyph		= 0x0001u;
@@ -27,10 +31,24 @@ struct GlyphClassDef : ClassDef {
   static const uint16_t ComponentGlyph		= 0x0004u;
 };
 
+struct AttachPoint;
 
 struct AttachList {
-  /* XXX */
+  /* AttachPoint tables, in Coverage Index order */
+  /* TODO get attach lists */
+/*  DEFINE_INDIRECT_OFFSET_ARRAY_TYPE (AttachPoint, attachPoint, glyphCount, get_coverage);
 
+//  get_coverage
+
+  inline Coverage* get_default_language_system (void) {
+    if (!defaultLangSys)
+      return NULL;
+    return (LangSys *)((char*)this + defaultLangSys);
+  }
+
+*/
+
+  private:
   Offset	coverage;		/* Offset to Coverage table -- from
 					 * beginning of AttachList table */
   USHORT	glyphCount;		/* Number of glyphs with attachment
@@ -39,15 +57,18 @@ struct AttachList {
 					 * tables--from beginning of AttachList
 					 * table--in Coverage Index order */
 };
+ASSERT_SIZE (AttachList, 4);
 
 struct AttachPoint {
-  /* XXX */
+  /* TODO */
 
+  private:
   USHORT	pointCount;		/* Number of attachment points on
 					 * this glyph */
   USHORT	pointIndex[];		/* Array of contour point indices--in
 					 * increasing numerical order */
 };
+ASSERT_SIZE (AttachPoint, 2);
 
 /*
  * Ligature Caret Table
@@ -56,8 +77,9 @@ struct AttachPoint {
 struct CaretValue;
 
 struct LigCaretList {
-  /* XXX */
+  /* TODO */
 
+  private:
   Offset	coverage;		/* Offset to Coverage table--from
 					 * beginning of LigCaretList table */
   USHORT	ligGlyphCount;		/* Number of ligature glyphs */
@@ -66,12 +88,14 @@ struct LigCaretList {
 					 * LigCaretList table--in Coverage
 					 * Index order */
 };
+ASSERT_SIZE (LigCaretList, 4);
 
 struct LigGlyph {
   /* Caret value tables, in increasing coordinate order */
   DEFINE_OFFSET_ARRAY_TYPE (CaretValue, caretValue, caretCount);
-  /* XXX */
+  /* TODO */
 
+  private:
   USHORT	caretCount;		/* Number of CaretValues for this
 					 * ligature (components - 1) */
   Offset	caretValue[];		/* Array of offsets to CaretValue
@@ -79,40 +103,50 @@ struct LigGlyph {
 					 * table--in increasing coordinate
 					 * order */
 };
+ASSERT_SIZE (LigGlyph, 2);
 
 struct CaretValueFormat1 {
+
+  inline int get_caret_value (int ppem) const {
+    return /* TODO garbage */ coordinate / ppem;
+  }
+
+  private:
   USHORT	caretValueFormat;	/* Format identifier--format = 1 */
   SHORT		coordinate;		/* X or Y value, in design units */
-
-  inline int get_caret_value (int ppem) const {
-    return /* XXX garbage */ coordinate / ppem;
-  }
 };
+ASSERT_SIZE (CaretValueFormat1, 4);
 
 struct CaretValueFormat2 {
-  USHORT	caretValueFormat;	/* Format identifier--format = 2 */
-  USHORT	caretValuePoint;	/* Contour point index on glyph */
 
   inline int get_caret_value (int ppem) const {
-    return /* XXX garbage */ 0 / ppem;
+    return /* TODO garbage */ 0 / ppem;
   }
+
+  private:
+  USHORT	caretValueFormat;	/* Format identifier--format = 2 */
+  USHORT	caretValuePoint;	/* Contour point index on glyph */
 };
+ASSERT_SIZE (CaretValueFormat2, 4);
 
 struct CaretValueFormat3 {
+
   inline const Device* get_device (void) const {
     return (const Device*)((const char*)this + deviceTable);
   }
 
+  inline int get_caret_value (int ppem) const {
+    return /* TODO garbage */ (coordinate + get_device()->get_delta (ppem)) / ppem;
+  }
+
+  private:
   USHORT	caretValueFormat;	/* Format identifier--format = 3 */
   SHORT		coordinate;		/* X or Y value, in design units */
   Offset	deviceTable;		/* Offset to Device table for X or Y
 					 * value--from beginning of CaretValue
 					 * table */
-
-  inline int get_caret_value (int ppem) const {
-    return /* XXX garbage */ (coordinate + get_device()->get_delta (ppem)) / ppem;
-  }
 };
+ASSERT_SIZE (CaretValueFormat3, 6);
 
 struct CaretValue {
   DEFINE_NON_INSTANTIABLE(CaretValue);
@@ -136,12 +170,13 @@ struct CaretValue {
     }
   }
 
+  private:
   union {
   USHORT	caretValueFormat;	/* Format identifier */
   CaretValueFormat1	format1;
   CaretValueFormat2	format2;
   CaretValueFormat3	format3;
-  /* XXX old HarfBuzz code has a format 4 here! */
+  /* FIXME old HarfBuzz code has a format 4 here! */
   } u;
 };
 
