@@ -1,6 +1,21 @@
 #ifndef HB_PRIVATE_H
 #define HB_PRIVATE_H
 
+#include <glib.h>
+
+/* Macros to convert to/from BigEndian */
+#define hb_be_uint8_t
+#define hb_be_int8_t
+#define hb_be_uint16_t	GUINT16_TO_BE
+#define hb_be_int16_t	GINT16_TO_BE
+#define hb_be_uint32_t	GUINT32_TO_BE
+#define hb_be_int32_t	GINT32_TO_BE
+#define hb_be_uint64_t	GUINT64_TO_BE
+#define hb_be_int64_t	GINT64_TO_BE
+
+#define HB_LIKELY	G_LIKEYLY
+#define HB_UNLIKELY	G_UNLIKELY
+
 #include <assert.h>
 
 #define _ASSERT_STATIC1(_line, _cond) typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]

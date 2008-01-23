@@ -4,18 +4,6 @@
 #include "hb-private.h"
 #include "hb-ot-layout.h"
 
-#include <glib.h>
-
-/* Macros to convert to/from BigEndian */
-#define hb_be_uint8_t
-#define hb_be_int8_t
-#define hb_be_uint16_t	GUINT16_TO_BE
-#define hb_be_int16_t	GINT16_TO_BE
-#define hb_be_uint32_t	GUINT32_TO_BE
-#define hb_be_int32_t	GINT32_TO_BE
-#define hb_be_uint64_t	GUINT64_TO_BE
-#define hb_be_int64_t	GINT64_TO_BE
-
 /*
  * Int types
  */
@@ -57,7 +45,7 @@
   DEFINE_LEN_AND_SIZE(Type, array, num)
 #define DEFINE_INDEX_OPERATOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
-    if (i >= num) return Null##Type; \
+    if (HB_UNLIKELY (i >= num)) return Null##Type; \
     return array[i]; \
   }
 
@@ -69,8 +57,8 @@
   DEFINE_LEN_AND_SIZE(Offset, array, num)
 #define DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
-    if (i >= num) return Null##Type; \
-    if (!array[i]) return Null##Type; \
+    if (HB_UNLIKELY (i >= num)) return Null##Type; \
+    if (HB_UNLIKELY (!array[i])) return Null##Type; \
     return *(const Type *)((const char*)this + array[i]); \
   }
 
@@ -79,12 +67,12 @@
   DEFINE_LEN_AND_SIZE(Record, array, num)
 #define DEFINE_RECORD_ACCESSOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
-    if (i >= num) return Null##Type; \
-    if (!array[i].offset) return Null##Type; \
+    if (HB_UNLIKELY (i >= num)) return Null##Type; \
+    if (HB_UNLIKELY (!array[i].offset)) return Null##Type; \
     return *(const Type *)((const char*)this + array[i].offset); \
   } \
   inline const Tag& get_tag (unsigned int i) const { \
-    if (i >= num) return NullTag; \
+    if (HB_UNLIKELY (i >= num)) return NullTag; \
     return array[i].tag; \
   } \
   /* TODO: implement find_tag() */
@@ -95,7 +83,7 @@
 
 #define DEFINE_LIST_ACCESSOR(Type, name) \
   inline const Type##List& get_##name##_list (void) const { \
-    if (!name##List) return Null##Type##List; \
+    if (HB_UNLIKELY (!name##List)) return Null##Type##List; \
     return *(const Type##List *)((const char*)this + name##List); \
   } \
   inline const Type& get_##name (unsigned int i) const { \
@@ -140,7 +128,7 @@
 
 #define DEFINE_ACCESSOR(Type, name, Name) \
   inline const Type& name (void) const { \
-    if (!Name) return Null##Type; \
+    if (HB_UNLIKELY (!Name)) return Null##Type; \
     return *(const Type*)((const char*)this + Name); \
   }
 
@@ -368,7 +356,7 @@ struct OpenTypeFontFile {
     }
   }
   inline const OpenTypeFontFace& operator[] (unsigned int i) const {
-    if (i >= get_len ()) return NullOpenTypeFontFace;
+    if (HB_UNLIKELY (i >= get_len ())) return NullOpenTypeFontFace;
     switch (tag) {
     default: case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
     case TTCTag: return ((const TTCHeader&)*this)[i];
@@ -435,7 +423,7 @@ struct Script {
     return defaultLangSys != 0;
   }
   inline const LangSys& get_default_language_system (void) const {
-    if (!defaultLangSys)
+    if (HB_UNLIKELY (!defaultLangSys))
       return NullLangSys;
     return *(LangSys*)((const char*)this + defaultLangSys);
   }
@@ -557,7 +545,7 @@ struct CoverageFormat1 {
     GlyphID gid;
     gid = glyph_id;
     // TODO: bsearch
-    for (int i = 0; i < glyphCount; i++)
+    for (unsigned int i = 0; i < glyphCount; i++)
       if (gid == glyphArray[i])
         return i;
     return -1;
@@ -592,7 +580,7 @@ struct CoverageFormat2 {
 
   inline int get_coverage (uint16_t glyph_id) const {
     // TODO: bsearch
-    for (int i = 0; i < rangeCount; i++) {
+    for (unsigned int i = 0; i < rangeCount; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
       if (coverage >= 0)
         return coverage;
