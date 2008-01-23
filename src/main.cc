@@ -26,6 +26,7 @@
 
 #include "hb-ot-layout-open-private.h"
 #include "hb-ot-layout-gdef-private.h"
+#include "hb-ot-layout-gsub-private.h"
 
 #include <stdlib.h>
 #include <stdio.h>

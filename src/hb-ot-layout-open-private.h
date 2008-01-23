@@ -30,6 +30,7 @@
 #include "hb-private.h"
 #include "hb-ot-layout.h"
 
+
 /*
  * Int types
  */
@@ -335,6 +336,7 @@ DEFINE_NULL_ALIAS (OpenTypeFontFace, OffsetTable);
 struct TTCHeader {
   /* OpenTypeFontFaces, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
+  /* XXX check version here */
 
   private:
   Tag	ttcTag;		/* TrueType Collection ID string: 'ttcf' */
@@ -794,6 +796,7 @@ typedef struct GSUBGPOSHeader {
   static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
 
   STATIC_DEFINE_GET_FOR_DATA (GSUBGPOSHeader);
+  /* XXX check version here */
 
   DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list, get_script(i) */
   DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list, get_feature(i) */

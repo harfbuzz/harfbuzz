@@ -27,6 +27,9 @@
 #ifndef HB_OT_LAYOUT_GDEF_PRIVATE_H
 #define HB_OT_LAYOUT_GDEF_PRIVATE_H
 
+#include "hb-private.h"
+#include "hb-ot-layout.h"
+
 #include "hb-ot-layout-open-private.h"
 
 
@@ -205,6 +208,7 @@ struct GDEFHeader {
   static const hb_tag_t GDEFTag		= HB_TAG ('G','D','E','F');
 
   STATIC_DEFINE_GET_FOR_DATA (GDEFHeader);
+  /* XXX check version here */
 
   DEFINE_ACCESSOR (ClassDef, get_glyph_class_def, glyphClassDef);
   DEFINE_ACCESSOR (AttachList, get_attach_list, attachList);
