@@ -27,8 +27,7 @@
 #ifndef HB_OT_LAYOUT_GSUB_PRIVATE_H
 #define HB_OT_LAYOUT_GSUB_PRIVATE_H
 
-#include "hb-private.h"
-#include "hb-ot-layout.h"
+#include "hb-ot-layout-private.h"
 
 #include "hb-ot-layout-open-private.h"
 #include "hb-ot-layout-gdef-private.h"

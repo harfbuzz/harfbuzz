@@ -27,8 +27,7 @@
 #ifndef HB_OT_LAYOUT_OPEN_PRIVATE_H
 #define HB_OT_LAYOUT_OPEN_PRIVATE_H
 
-#include "hb-private.h"
-#include "hb-ot-layout.h"
+#include "hb-ot-layout-private.h"
 
 
 /*
@@ -89,6 +88,9 @@
     return *(const Type *)((const char*)this + array[i]); \
   }
 
+/* A record array type is like an array type, but it contains a table
+ * of records to the objects.  Each record has a tag, and an offset
+ * relative to the beginning of the current object. */
 #define DEFINE_RECORD_ARRAY_TYPE(Type, array, num) \
   DEFINE_RECORD_ACCESSOR(Type, array, num) \
   DEFINE_LEN_AND_SIZE(Record, array, num)
@@ -103,6 +105,37 @@
     return array[i].tag; \
   } \
   /* TODO: implement find_tag() */
+
+
+#define DEFINE_ARRAY_INTERFACE(Type, name) \
+  inline const Type& get_##name (unsigned int i) const { \
+    return (*this)[i]; \
+  } \
+  inline unsigned int get_##name##_count (void) const { \
+    return this->get_len (); \
+  }
+#define DEFINE_INDEX_ARRAY_INTERFACE(name) \
+  inline unsigned int get_##name##_index (unsigned int i) const { \
+    return (*this)[i]; \
+  } \
+  inline unsigned int get_##name##_count (void) const { \
+    return this->get_len (); \
+  }
+
+#define DEFINE_FIND_TAG_INTERFACE(Type, name) \
+  inline const Type* find_##name (hb_tag_t tag) const { \
+    for (unsigned int i = 0; i < this->get_len (); i++) \
+      if (tag == (*this)[i].tag) \
+        return &(*this)[i]; \
+    return NULL; \
+  } \
+  inline const Type& get_##name_by_tag (hb_tag_t tag) const { \
+    for (unsigned int i = 0; i < this->get_len (); i++) \
+      if (tag == (*this)[i].tag) \
+        return (*this)[i]; \
+    return Null##Type; \
+  }
+
 
 /*
  * List types
@@ -144,13 +177,15 @@
 /* get_for_data() is a static class method returning a reference to an
  * instance of Type located at the input data location.  It's just a
  * fancy cast! */
-#define STATIC_DEFINE_GET_FOR_DATA0(const, Type) \
-  static inline const Type& get_for_data (const char *data) { \
-    return *(const Type*)data; \
-  }
 #define STATIC_DEFINE_GET_FOR_DATA(Type) \
-	STATIC_DEFINE_GET_FOR_DATA0(const, Type) \
-	STATIC_DEFINE_GET_FOR_DATA0(     , Type)
+  static inline const Type& get_for_data (const char *data) { \
+    extern const Type &Null##Type; \
+    if (HB_UNLIKELY (data == NULL)) return Null##Type; \
+    return *(const Type*)data; \
+  } \
+  static inline Type& get_for_data (char *data) { \
+    return *(Type*)data; \
+  }
 
 
 #define DEFINE_ACCESSOR(Type, name, Name) \
@@ -297,8 +332,9 @@ struct TTCHeader;
 
 typedef struct TableDirectory {
 
-  friend struct OpenTypeFontFile;
+  friend struct OffsetTable;
 
+  inline bool is_null (void) const { return length == 0; }
   inline const Tag& get_tag (void) const { return tag; }
   inline unsigned long get_checksum (void) const { return checkSum; }
   inline unsigned long get_offset (void) const { return offset; }
@@ -312,17 +348,19 @@ typedef struct TableDirectory {
   ULONG		length;		/* Length of this table. */
 } OpenTypeTable;
 DEFINE_NULL_ASSERT_SIZE (TableDirectory, 16);
+DEFINE_NULL_ALIAS (OpenTypeTable, TableDirectory);
 
 typedef struct OffsetTable {
 
   friend struct OpenTypeFontFile;
   friend struct TTCHeader;
 
-  // XXX private:
-  // Add get_num_tables and get_table...
+  DEFINE_ARRAY_INTERFACE (OpenTypeTable, table);
+  DEFINE_FIND_TAG_INTERFACE (OpenTypeTable, table);
+
+  private:
   /* OpenTypeTables, in no particular order */
   DEFINE_ARRAY_TYPE (TableDirectory, tableDir, numTables);
-  // TODO: Implement find_table
 
   private:
   Tag		sfnt_version;	/* '\0\001\0\00' if TrueType / 'OTTO' if CFF */
@@ -427,9 +465,9 @@ typedef struct Record {
 DEFINE_NULL_ASSERT_SIZE (Record, 6);
 
 struct LangSys {
-  /* Feature indices, in no particular order */
-  DEFINE_ARRAY_TYPE (USHORT, featureIndex, featureCount);
-  
+
+  DEFINE_INDEX_ARRAY_INTERFACE (feature);
+
   /* Returns -1 if none */
   inline int get_required_feature_index (void) const {
     if (reqFeatureIndex == 0xffff)
@@ -437,7 +475,9 @@ struct LangSys {
     return reqFeatureIndex;;
   }
 
-  /* TODO implement find_feature */
+  private:
+  /* Feature indices, in no particular order */
+  DEFINE_ARRAY_TYPE (USHORT, featureIndex, featureCount);
 
   private:
   Offset	lookupOrder;	/* = Null (reserved for an offset to a
@@ -490,6 +530,10 @@ private:
 DEFINE_NULL_ASSERT_SIZE (ScriptList, 2);
 
 struct Feature {
+
+  DEFINE_INDEX_ARRAY_INTERFACE (lookup);
+
+  private:
   /* LookupList indices, in no particular order */
   DEFINE_ARRAY_TYPE (USHORT, lookupIndex, lookupCount);
 
@@ -583,7 +627,7 @@ struct CoverageFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
 
-  inline int get_coverage (uint16_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
     GlyphID gid;
     gid = glyph_id;
     // TODO: bsearch
@@ -605,7 +649,7 @@ struct CoverageRangeRecord {
   friend struct CoverageFormat2;
 
   private:
-  inline int get_coverage (uint16_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return startCoverageIndex + (glyph_id - start);
     return -1;
@@ -627,7 +671,7 @@ struct CoverageFormat2 {
   /* CoverageRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
 
-  inline int get_coverage (uint16_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
     // TODO: bsearch
     for (unsigned int i = 0; i < rangeCount; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
@@ -657,8 +701,7 @@ struct Coverage {
     }
   }
 
-  /* Returns -1 if not covered. */
-  int get_coverage (uint16_t glyph_id) const {
+  hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_coverage(glyph_id);
     case 2: return u.format2.get_coverage(glyph_id);
@@ -687,7 +730,7 @@ struct ClassDefFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
 
-  inline int get_class (uint16_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
     if (glyph_id >= startGlyph && glyph_id < startGlyph + glyphCount)
       return classValueArray[glyph_id - startGlyph];
     return 0;
@@ -706,7 +749,7 @@ struct ClassRangeRecord {
   friend struct ClassDefFormat2;
 
   private:
-  inline int get_class (uint16_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return classValue;
     return 0;
@@ -727,7 +770,7 @@ struct ClassDefFormat2 {
   /* ClassRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (ClassRangeRecord, rangeRecord, rangeCount);
 
-  inline int get_class (uint16_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
     // TODO: bsearch
     for (int i = 0; i < rangeCount; i++) {
       int classValue = rangeRecord[i].get_class (glyph_id);
@@ -756,8 +799,7 @@ struct ClassDef {
     }
   }
 
-  /* Returns 0 if not found. */
-  int get_class (uint16_t glyph_id) const {
+  hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_class(glyph_id);
     case 2: return u.format2.get_class(glyph_id);
@@ -834,8 +876,6 @@ typedef struct GSUBGPOS {
   DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list, get_script(i) */
   DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list, get_feature(i) */
   DEFINE_LIST_ACCESSOR(Lookup, lookup);	 /* get_lookup_list, get_lookup(i) */
-
-  /* TODO implement find_script */
 
   private:
   Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set

@@ -27,16 +27,15 @@
 #ifndef HB_OT_LAYOUT_GDEF_PRIVATE_H
 #define HB_OT_LAYOUT_GDEF_PRIVATE_H
 
-#include "hb-private.h"
-#include "hb-ot-layout.h"
+#include "hb-ot-layout-private.h"
 
 #include "hb-ot-layout-open-private.h"
 
 
 #define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, name) \
-  inline const Type& name (uint16_t glyph_id) { \
+  inline const Type& name (hb_ot_layout_glyph_t glyph_id) { \
     const Coverage &c = get_coverage (); \
-    int c_index = c.get_coverage (glyph_id); \
+    hb_ot_layout_coverage_t c_index = c.get_coverage (glyph_id); \
     return (*this)[c_index]; \
   }
 
@@ -73,7 +72,7 @@ struct AttachList {
   friend struct GDEF;
 
   private:
-  /* const AttachPoint& get_attach_points (uint16_t glyph_id); */
+  /* const AttachPoint& get_attach_points (hb_ot_layout_glyph_t glyph_id); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, get_attach_points);
 
   private:
@@ -206,7 +205,7 @@ struct LigCaretList {
   friend struct GDEF;
 
   private:
-  /* const LigGlyph& get_lig_glyph (uint16_t glyph_id); */
+  /* const LigGlyph& get_lig_glyph (hb_ot_layout_glyph_t glyph_id); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, get_lig_glyph);
 
   private:
@@ -241,16 +240,14 @@ struct GDEF {
   DEFINE_ACCESSOR (ClassDef, get_mark_attach_class_def, markAttachClassDef);
 
   /* Returns 0 if not found. */
-  inline int get_glyph_class (uint16_t glyph_id) const {
+  inline int get_glyph_class (hb_ot_layout_glyph_t glyph_id) const {
     return get_glyph_class_def ().get_class (glyph_id);
   }
 
   /* Returns 0 if not found. */
-  inline int get_mark_attachment_type (uint16_t glyph_id) const {
+  inline int get_mark_attachment_type (hb_ot_layout_glyph_t glyph_id) const {
     return get_mark_attach_class_def ().get_class (glyph_id);
   }
-
-  /* TODO get_glyph_property */
 
   /* TODO get_attach and get_lig_caret */
 
