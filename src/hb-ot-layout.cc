@@ -34,6 +34,8 @@
 #include "hb-ot-layout-gsub-private.h"
 
 #include <stdlib.h>
+#include <string.h>
+
 
 HB_OT_Layout *
 hb_ot_layout_create (const char *font_data,
@@ -57,18 +59,86 @@ hb_ot_layout_destroy (HB_OT_Layout *layout)
   free (layout);
 }
 
-hb_ot_layout_glyph_properties_t
-hb_ot_layout_get_glyph_properties (HB_OT_Layout                    *layout,
-				   hb_ot_layout_glyph_t             glyph)
+static hb_ot_layout_glyph_properties_t
+_hb_ot_layout_get_glyph_properties (HB_OT_Layout         *layout,
+				    hb_ot_layout_glyph_t  glyph)
 {
+  hb_ot_layout_class_t klass;
 
+  /* TODO old harfbuzz doesn't always parse mark attachments as it says it was
+   * introduced without a version bump, so it may not be safe */
+  klass = layout->gdef->get_mark_attachment_type (glyph);
+  if (klass)
+    return klass << 8;
+
+  klass = layout->gdef->get_glyph_class (glyph);
+
+  if (!klass && glyph < layout->new_gdef.len)
+    klass = layout->new_gdef.klasses[glyph];
+
+  switch (klass) {
+  default:
+  case GDEF::UnclassifiedGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED;
+  case GDEF::BaseGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
+  case GDEF::LigatureGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
+  case GDEF::MarkGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_MARK;
+  case GDEF::ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT;
+  }
+}
+
+hb_ot_layout_glyph_class_t
+hb_ot_layout_get_glyph_class (HB_OT_Layout         *layout,
+			      hb_ot_layout_glyph_t  glyph)
+{
+  hb_ot_layout_glyph_properties_t properties;
+  hb_ot_layout_class_t klass;
+
+  properties = _hb_ot_layout_get_glyph_properties (layout, glyph);
+
+  if (properties & 0xFF)
+    return HB_OT_LAYOUT_GLYPH_CLASS_MARK;
+
+  return (hb_ot_layout_glyph_class_t) properties;
 }
 
 void
-hb_ot_layout_set_glyph_properties (HB_OT_Layout                    *layout,
-				   hb_ot_layout_glyph_t             glyph,
-				   hb_ot_layout_glyph_properties_t  properties)
+hb_ot_layout_set_glyph_class (HB_OT_Layout               *layout,
+			      hb_ot_layout_glyph_t        glyph,
+			      hb_ot_layout_glyph_class_t  klass)
 {
+  /* TODO optimize this, similar to old harfbuzz code for example */
+  /* TODO our semantics are a bit different from old harfbuzz code too */
 
+  hb_ot_layout_class_t gdef_klass;
+  int len = layout->new_gdef.len;
+
+  if (glyph >= len) {
+    int new_len;
+    uint8_t *new_klasses;
+
+    new_len = len == 0 ? 120 : 2 * len;
+    if (new_len > 65535)
+      new_len = 65535;
+    new_klasses = (uint8_t *) realloc (layout->new_gdef.klasses, new_len * sizeof (uint8_t));
+
+    if (G_UNLIKELY (!new_klasses))
+      return;
+      
+    memset (new_klasses + len, 0, new_len - len);
+
+    layout->new_gdef.klasses = new_klasses;
+    layout->new_gdef.len = new_len;
+  }
+
+  switch (klass) {
+  default:
+  case HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED:	gdef_klass = GDEF::UnclassifiedGlyph;	break;
+  case HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH:	gdef_klass = GDEF::BaseGlyph;		break;
+  case HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE:	gdef_klass = GDEF::LigatureGlyph;	break;
+  case HB_OT_LAYOUT_GLYPH_CLASS_MARK:		gdef_klass = GDEF::MarkGlyph;		break;
+  case HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT:	gdef_klass = GDEF::ComponentGlyph;	break;
+  }
+
+  layout->new_gdef.klasses[glyph] = gdef_klass;
+  return;
 }
-

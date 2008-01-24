@@ -231,6 +231,12 @@ DEFINE_NULL_ASSERT_SIZE (LigCaretList, 4);
 struct GDEF {
   static const hb_tag_t Tag		= HB_TAG ('G','D','E','F');
 
+  static const hb_ot_layout_class_t UnclassifiedGlyph	= 0;
+  static const hb_ot_layout_class_t BaseGlyph		= 1;
+  static const hb_ot_layout_class_t LigatureGlyph	= 2;
+  static const hb_ot_layout_class_t MarkGlyph		= 3;
+  static const hb_ot_layout_class_t ComponentGlyph	= 4;
+
   STATIC_DEFINE_GET_FOR_DATA (GDEF);
   /* XXX check version here? */
 
@@ -240,12 +246,12 @@ struct GDEF {
   DEFINE_ACCESSOR (ClassDef, get_mark_attach_class_def, markAttachClassDef);
 
   /* Returns 0 if not found. */
-  inline int get_glyph_class (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_glyph_class (hb_ot_layout_glyph_t glyph_id) const {
     return get_glyph_class_def ().get_class (glyph_id);
   }
 
   /* Returns 0 if not found. */
-  inline int get_mark_attachment_type (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_mark_attachment_type (hb_ot_layout_glyph_t glyph_id) const {
     return get_mark_attach_class_def ().get_class (glyph_id);
   }
 
