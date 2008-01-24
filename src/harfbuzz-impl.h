@@ -67,8 +67,6 @@ HB_BEGIN_HEADER
 #define HB_LIKELY(cond) (cond)
 #define HB_UNLIKELY(cond) (cond)
 
-#define ARRAY_LEN(Array) ((int)(sizeof (Array) / sizeof (Array)[0]))
-
 
 #define  ALLOC(_ptr,_size)   \
            ( (_ptr) = _hb_alloc( _size, &error ), error != 0 )
