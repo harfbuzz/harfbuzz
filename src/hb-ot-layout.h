@@ -40,8 +40,6 @@ typedef uint32_t hb_tag_t;
 
 typedef uint16_t hb_ot_layout_glyph_properties_t;
 typedef uint16_t hb_ot_layout_glyph_t;
-typedef uint16_t hb_ot_layout_class_t;
-typedef int hb_ot_layout_coverage_t;	/* -1 is not covered, >= 0 otherwise */
 
 typedef struct _HB_OT_Layout HB_OT_Layout;
 

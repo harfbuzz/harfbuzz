@@ -41,12 +41,12 @@ hb_ot_layout_create (const char *font_data,
 {
   HB_OT_Layout *layout = (HB_OT_Layout *) calloc (1, sizeof (HB_OT_Layout));
 
-  const OpenTypeFontFile &ot = OpenTypeFontFile::get_for_data (font_data);
-  const OpenTypeFontFace &font = ot[face_index];
+  const OpenTypeFontFile &font = OpenTypeFontFile::get_for_data (font_data);
+  const OpenTypeFontFace &face = font.get_face (face_index);
 
-  layout->gdef = font.find_table (GDEF::Tag);
-  layout->gsub = font.find_table (GSUB::Tag);
-  layout->gpos = font.find_table (GPOS::Tag);
+  layout->gdef = &GDEF::get_for_data (font.get_table_data (face.get_table (GDEF::Tag)));
+  layout->gsub = &GSUB::get_for_data (font.get_table_data (face.get_table (GSUB::Tag)));
+//layout->gpos = &GPOS::get_for_data (font.get_table_data (face.get_table (GPOS::Tag)));
 
   return layout;
 }
@@ -59,9 +59,16 @@ hb_ot_layout_destroy (HB_OT_Layout *layout)
 
 hb_ot_layout_glyph_properties_t
 hb_ot_layout_get_glyph_properties (HB_OT_Layout                    *layout,
-				   hb_ot_layout_glyph_t             glyph);
+				   hb_ot_layout_glyph_t             glyph)
+{
+
+}
 
 void
 hb_ot_layout_set_glyph_properties (HB_OT_Layout                    *layout,
 				   hb_ot_layout_glyph_t             glyph,
-				   hb_ot_layout_glyph_properties_t  properties);
+				   hb_ot_layout_glyph_properties_t  properties)
+{
+
+}
+

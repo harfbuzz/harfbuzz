@@ -34,6 +34,9 @@
 #include "hb-private.h"
 #include "hb-ot-layout.h"
 
+typedef uint16_t hb_ot_layout_class_t;
+typedef int hb_ot_layout_coverage_t;	/* -1 is not covered, >= 0 otherwise */
+
 struct GDEF;
 struct GSUB;
 struct GPOS;
@@ -41,9 +44,9 @@ struct GPOS;
 HB_BEGIN_DECLS();
 
 struct _HB_OT_Layout {
-  GDEF *gdef;
-  GSUB *gsub;
-  GPOS *gpos;
+  const GDEF *gdef;
+  const GSUB *gsub;
+  const GPOS *gpos;
 };
 
 HB_END_DECLS();

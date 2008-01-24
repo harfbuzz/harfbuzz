@@ -34,6 +34,8 @@
  * Int types
  */
 
+/* XXX define these as structs of chars on machines that do not allow
+ * unaligned access */
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
   inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
   inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
@@ -100,11 +102,7 @@
     if (HB_UNLIKELY (!array[i].offset)) return Null##Type; \
     return *(const Type *)((const char*)this + array[i].offset); \
   } \
-  inline const Tag& get_tag (unsigned int i) const { \
-    if (HB_UNLIKELY (i >= num)) return NullTag; \
-    return array[i].tag; \
-  } \
-  /* TODO: implement find_tag() */
+  /* TODO: implement find_tag() and get_tag() publicly */
 
 
 #define DEFINE_ARRAY_INTERFACE(Type, name) \
@@ -332,10 +330,11 @@ struct TTCHeader;
 
 typedef struct TableDirectory {
 
+  friend struct OpenTypeFontFile;
   friend struct OffsetTable;
 
   inline bool is_null (void) const { return length == 0; }
-  inline const Tag& get_tag (void) const { return tag; }
+  inline hb_tag_t get_tag (void) const { return tag; }
   inline unsigned long get_checksum (void) const { return checkSum; }
   inline unsigned long get_offset (void) const { return offset; }
   inline unsigned long get_length (void) const { return length; }
@@ -409,17 +408,25 @@ struct OpenTypeFontFile {
 
   STATIC_DEFINE_GET_FOR_DATA (OpenTypeFontFile);
 
+  DEFINE_ARRAY_INTERFACE (OpenTypeFontFace, face);
+
+  inline hb_tag_t get_tag (void) const { return tag; }
+
   /* This is how you get a table */
-  inline const char* get_table (const OpenTypeTable& table) const {
-    return ((const char*)this) + table.offset;
+  inline const char* get_table_data (const OpenTypeTable& table) const {
+    return (*this)[table];
   }
-  inline char* get_table (const OpenTypeTable& table) {
-    return ((char*)this) + table.offset;
+  inline char* get_table_data (const OpenTypeTable& table) {
+    return (*this)[table];
   }
+
+  private:
   inline const char* operator[] (const OpenTypeTable& table) const {
+    if (G_UNLIKELY (table.offset == 0)) return NULL;
     return ((const char*)this) + table.offset;
   }
   inline char* operator[] (const OpenTypeTable& table) {
+    if (G_UNLIKELY (table.offset == 0)) return NULL;
     return ((char*)this) + table.offset;
   }
 
@@ -438,7 +445,6 @@ struct OpenTypeFontFile {
     case TTCTag: return ((const TTCHeader&)*this)[i];
     }
   }
-  inline const Tag& get_tag (void) const { return tag; }
 
   private:
   Tag		tag;		/* 4-byte identifier. */
@@ -731,7 +737,7 @@ struct ClassDefFormat1 {
   DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
 
   inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
-    if (glyph_id >= startGlyph && glyph_id < startGlyph + glyphCount)
+    if (glyph_id >= startGlyph && glyph_id - startGlyph < glyphCount)
       return classValueArray[glyph_id - startGlyph];
     return 0;
   }
@@ -799,7 +805,7 @@ struct ClassDef {
     }
   }
 
-  hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_class(glyph_id);
     case 2: return u.format2.get_class(glyph_id);
