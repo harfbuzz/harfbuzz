@@ -34,19 +34,30 @@
 #include "hb-private.h"
 #include "hb-ot-layout.h"
 
+/* XXX */
+#include "harfbuzz-buffer.h"
+
+
 typedef uint16_t hb_ot_layout_class_t;
 typedef uint16_t hb_ot_layout_glyph_properties_t;
+typedef uint16_t hb_ot_layout_lookup_flags_t;
 typedef int hb_ot_layout_coverage_t;	/* -1 is not covered, >= 0 otherwise */
 
 
 HB_BEGIN_DECLS();
 
+static hb_bool_t
+_hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout);
+
 static hb_ot_layout_glyph_properties_t
 _hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
 				    hb_glyph_t    glyph);
 
-static hb_bool_t
-_hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout);
+static bool
+_hb_ot_layout_check_glyph_properties (HB_OT_Layout                    *layout,
+				      HB_GlyphItem                     gitem,
+				      hb_ot_layout_lookup_flags_t      lookup_flags,
+				      hb_ot_layout_glyph_properties_t *property);
 
 HB_END_DECLS();
 

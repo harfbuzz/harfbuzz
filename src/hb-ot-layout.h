@@ -31,14 +31,6 @@
 
 HB_BEGIN_DECLS();
 
-typedef enum {
-  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0000,
-  HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
-  HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 0x0004,
-  HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 0x0008,
-  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010
-} hb_ot_layout_glyph_class_t;
-
 /*
  * HB_OT_Layout
  */
@@ -61,6 +53,14 @@ hb_ot_layout_create_sanitize (char *data,
 /*
  * GDEF
  */
+
+typedef enum {
+  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0000,
+  HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
+  HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 0x0004,
+  HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 0x0008,
+  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010
+} hb_ot_layout_glyph_class_t;
 
 hb_bool_t
 hb_ot_layout_has_font_glyph_classes (HB_OT_Layout              *layout);

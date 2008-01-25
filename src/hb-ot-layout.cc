@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 1998-2004  David Turner and Werner Lemberg
+ * Copyright (C) 2006  Behdad Esfahbod
  * Copyright (C) 2007,2008  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, an OpenType Layout engine library.
@@ -32,6 +34,7 @@
 #include "hb-ot-layout-open-private.h"
 #include "hb-ot-layout-gdef-private.h"
 #include "hb-ot-layout-gsub-private.h"
+
 
 #include <stdlib.h>
 #include <string.h>
@@ -114,63 +117,55 @@ _hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
   }
 }
 
-#if 0
 static bool
-_hb_ot_layout_check_glyph_properties (HB_OT_Layout *layout,
-				      HB_GlyphItem  gitem,
-				      HB_UShort     flags,
-				      HB_UShort*    property)
+_hb_ot_layout_check_glyph_properties (HB_OT_Layout                    *layout,
+				      HB_GlyphItem                     gitem,
+				      hb_ot_layout_lookup_flags_t      lookup_flags,
+				      hb_ot_layout_glyph_properties_t *property)
 {
-  HB_Error  error;
+  /* TODO ugh, clean this mess up */
+  hb_ot_layout_glyph_class_t basic_glyph_class;
+  hb_ot_layout_glyph_properties_t desired_attachment_class;
 
-  if ( gdef )
+  if (gitem->gproperties == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
   {
-    HB_UShort basic_glyph_class;
-    HB_UShort desired_attachment_class;
-
-    if ( gitem->gproperties == HB_GLYPH_PROPERTIES_UNKNOWN )
-    {
-      error = HB_GDEF_Get_Glyph_Property( gdef, gitem->gindex, &gitem->gproperties );
-      if ( error )
-	return error;
-    }
-
-    *property = gitem->gproperties;
-
-    /* If the glyph was found in the MarkAttachmentClass table,
-     * then that class value is the high byte of the result,
-     * otherwise the low byte contains the basic type of the glyph
-     * as defined by the GlyphClassDef table.
-     */
-    if ( *property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS  )
-      basic_glyph_class = HB_GDEF_MARK;
-    else
-      basic_glyph_class = *property;
-
-    /* Return Not_Covered, if, for example, basic_glyph_class
-     * is HB_GDEF_LIGATURE and LookFlags includes HB_LOOKUP_FLAG_IGNORE_LIGATURES
-     */
-    if ( flags & basic_glyph_class )
-      return HB_Err_Not_Covered;
-
-    /* The high byte of LookupFlags has the meaning
-     * "ignore marks of attachment type different than
-     * the attachment type specified."
-     */
-    desired_attachment_class = flags & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS;
-    if ( desired_attachment_class )
-    {
-      if ( basic_glyph_class == HB_GDEF_MARK &&
-	   *property != desired_attachment_class )
-	return HB_Err_Not_Covered;
-    }
-  } else {
-      *property = 0;
+    gitem->gproperties = _hb_ot_layout_get_glyph_properties (layout, gitem->gindex);
+    if (gitem->gproperties == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
+      return false;
   }
 
-  return HB_Err_Ok;
+  *property = gitem->gproperties;
+
+  /* If the glyph was found in the MarkAttachmentClass table,
+   * then that class value is the high byte of the result,
+   * otherwise the low byte contains the basic type of the glyph
+   * as defined by the GlyphClassDef table.
+   */
+  if (*property & LookupFlag::MarkAttachmentType)
+    basic_glyph_class = HB_OT_LAYOUT_GLYPH_CLASS_MARK;
+  else
+    basic_glyph_class = (hb_ot_layout_glyph_class_t) *property;
+
+  /* Not covered, if, for example, basic_glyph_class
+   * is HB_GDEF_LIGATURE and lookup_flags includes LookupFlags::IgnoreLigatures
+   */
+  if (lookup_flags & basic_glyph_class)
+    return false;
+
+  /* The high byte of lookup_flags has the meaning
+   * "ignore marks of attachment type different than
+   * the attachment type specified."
+   */
+  desired_attachment_class = lookup_flags & LookupFlag::MarkAttachmentType;
+  if (desired_attachment_class)
+  {
+    if (basic_glyph_class == HB_OT_LAYOUT_GLYPH_CLASS_MARK &&
+        *property != desired_attachment_class )
+      return false;
+  }
+
+  return true;
 }
-#endif
 
 
 hb_ot_layout_glyph_class_t
