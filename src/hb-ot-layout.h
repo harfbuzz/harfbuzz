@@ -31,13 +31,6 @@
 
 HB_BEGIN_DECLS();
 
-typedef uint32_t hb_tag_t;
-#define HB_TAG(a,b,c,d) ((hb_tag_t)(((uint8_t)a<<24)|((uint8_t)b<<16)|((uint8_t)c<<8)|(uint8_t)d))
-#define HB_TAG_STR(s)   (HB_TAG(((const char *) s)[0], \
-				((const char *) s)[1], \
-				((const char *) s)[2], \
-				((const char *) s)[3]))
-
 typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0000,
   HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
@@ -45,8 +38,6 @@ typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 0x0008,
   HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010
 } hb_ot_layout_glyph_class_t;
-
-typedef uint16_t hb_ot_layout_glyph_t;
 
 /*
  * HB_OT_Layout
@@ -67,14 +58,28 @@ hb_ot_layout_create_sanitize (char *data,
 			      make_writable_func);
 */
 
+/*
+ * GDEF
+ */
+
+hb_bool_t
+hb_ot_layout_has_font_glyph_classes (HB_OT_Layout              *layout);
+
 hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (HB_OT_Layout              *layout,
-			      hb_ot_layout_glyph_t       glyph);
+hb_ot_layout_get_glyph_class (HB_OT_Layout *layout,
+			      hb_glyph_t    glyph);
 
 void
 hb_ot_layout_set_glyph_class (HB_OT_Layout              *layout,
-			      hb_ot_layout_glyph_t       glyph,
+			      hb_glyph_t                 glyph,
 			      hb_ot_layout_glyph_class_t klass);
+
+void
+hb_ot_layout_build_glyph_classes (HB_OT_Layout  *layout,
+				  uint16_t       num_total_glyphs,
+				  hb_glyph_t    *glyphs,
+				  unsigned char *klasses,
+				  uint16_t       count);
 
 HB_END_DECLS();
 

@@ -37,6 +37,18 @@
 #include <string.h>
 
 
+struct _HB_OT_Layout {
+  const GDEF *gdef;
+  const GSUB *gsub;
+//const GPOS *gpos;
+
+  struct {
+    unsigned char *klasses;
+    unsigned int len;
+  } new_gdef;
+
+};
+
 HB_OT_Layout *
 hb_ot_layout_create (const char *font_data,
                      int         face_index)
@@ -59,9 +71,25 @@ hb_ot_layout_destroy (HB_OT_Layout *layout)
   free (layout);
 }
 
+/*
+ * GDEF
+ */
+
+hb_bool_t
+hb_ot_layout_has_font_glyph_classes (HB_OT_Layout *layout)
+{
+  return layout->gdef->has_glyph_classes ();
+}
+
+static hb_bool_t
+_hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout)
+{
+  return layout->new_gdef.len > 0;
+}
+
 static hb_ot_layout_glyph_properties_t
-_hb_ot_layout_get_glyph_properties (HB_OT_Layout         *layout,
-				    hb_ot_layout_glyph_t  glyph)
+_hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
+				    hb_glyph_t    glyph)
 {
   hb_ot_layout_class_t klass;
 
@@ -86,9 +114,68 @@ _hb_ot_layout_get_glyph_properties (HB_OT_Layout         *layout,
   }
 }
 
+#if 0
+static bool
+_hb_ot_layout_check_glyph_properties (HB_OT_Layout *layout,
+				      HB_GlyphItem  gitem,
+				      HB_UShort     flags,
+				      HB_UShort*    property)
+{
+  HB_Error  error;
+
+  if ( gdef )
+  {
+    HB_UShort basic_glyph_class;
+    HB_UShort desired_attachment_class;
+
+    if ( gitem->gproperties == HB_GLYPH_PROPERTIES_UNKNOWN )
+    {
+      error = HB_GDEF_Get_Glyph_Property( gdef, gitem->gindex, &gitem->gproperties );
+      if ( error )
+	return error;
+    }
+
+    *property = gitem->gproperties;
+
+    /* If the glyph was found in the MarkAttachmentClass table,
+     * then that class value is the high byte of the result,
+     * otherwise the low byte contains the basic type of the glyph
+     * as defined by the GlyphClassDef table.
+     */
+    if ( *property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS  )
+      basic_glyph_class = HB_GDEF_MARK;
+    else
+      basic_glyph_class = *property;
+
+    /* Return Not_Covered, if, for example, basic_glyph_class
+     * is HB_GDEF_LIGATURE and LookFlags includes HB_LOOKUP_FLAG_IGNORE_LIGATURES
+     */
+    if ( flags & basic_glyph_class )
+      return HB_Err_Not_Covered;
+
+    /* The high byte of LookupFlags has the meaning
+     * "ignore marks of attachment type different than
+     * the attachment type specified."
+     */
+    desired_attachment_class = flags & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS;
+    if ( desired_attachment_class )
+    {
+      if ( basic_glyph_class == HB_GDEF_MARK &&
+	   *property != desired_attachment_class )
+	return HB_Err_Not_Covered;
+    }
+  } else {
+      *property = 0;
+  }
+
+  return HB_Err_Ok;
+}
+#endif
+
+
 hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (HB_OT_Layout         *layout,
-			      hb_ot_layout_glyph_t  glyph)
+hb_ot_layout_get_glyph_class (HB_OT_Layout *layout,
+			      hb_glyph_t    glyph)
 {
   hb_ot_layout_glyph_properties_t properties;
   hb_ot_layout_class_t klass;
@@ -103,23 +190,22 @@ hb_ot_layout_get_glyph_class (HB_OT_Layout         *layout,
 
 void
 hb_ot_layout_set_glyph_class (HB_OT_Layout               *layout,
-			      hb_ot_layout_glyph_t        glyph,
+			      hb_glyph_t                  glyph,
 			      hb_ot_layout_glyph_class_t  klass)
 {
   /* TODO optimize this, similar to old harfbuzz code for example */
-  /* TODO our semantics are a bit different from old harfbuzz code too */
 
   hb_ot_layout_class_t gdef_klass;
   int len = layout->new_gdef.len;
 
   if (glyph >= len) {
     int new_len;
-    uint8_t *new_klasses;
+    unsigned char *new_klasses;
 
     new_len = len == 0 ? 120 : 2 * len;
     if (new_len > 65535)
       new_len = 65535;
-    new_klasses = (uint8_t *) realloc (layout->new_gdef.klasses, new_len * sizeof (uint8_t));
+    new_klasses = (unsigned char *) realloc (layout->new_gdef.klasses, new_len * sizeof (unsigned char));
 
     if (G_UNLIKELY (!new_klasses))
       return;
@@ -141,4 +227,25 @@ hb_ot_layout_set_glyph_class (HB_OT_Layout               *layout,
 
   layout->new_gdef.klasses[glyph] = gdef_klass;
   return;
+}
+
+void
+hb_ot_layout_build_glyph_classes (HB_OT_Layout  *layout,
+				  uint16_t       num_total_glyphs,
+				  hb_glyph_t    *glyphs,
+				  unsigned char *klasses,
+				  uint16_t       count)
+{
+  int i;
+
+  if (G_UNLIKELY (!count || !glyphs || !klasses))
+    return;
+
+  if (layout->new_gdef.len == 0) {
+    layout->new_gdef.klasses = (unsigned char *) calloc (num_total_glyphs, sizeof (unsigned char));
+    layout->new_gdef.len = count;
+  }
+
+  for (i = 0; i < count; i++)
+    hb_ot_layout_set_glyph_class (layout, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
 }

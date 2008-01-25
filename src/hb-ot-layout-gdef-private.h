@@ -33,7 +33,7 @@
 
 
 #define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, name) \
-  inline const Type& name (hb_ot_layout_glyph_t glyph_id) { \
+  inline const Type& name (hb_glyph_t glyph_id) { \
     const Coverage &c = get_coverage (); \
     hb_ot_layout_coverage_t c_index = c.get_coverage (glyph_id); \
     return (*this)[c_index]; \
@@ -72,13 +72,13 @@ struct AttachList {
   friend struct GDEF;
 
   private:
-  /* const AttachPoint& get_attach_points (hb_ot_layout_glyph_t glyph_id); */
+  /* const AttachPoint& get_attach_points (hb_glyph_t glyph_id); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, get_attach_points);
 
   private:
   /* AttachPoint tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (AttachPoint, attachPoint, glyphCount);
-  DEFINE_ACCESSOR (Coverage, get_coverage, coverage);
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
 
  private:
   Offset	coverage;		/* Offset to Coverage table -- from
@@ -205,13 +205,13 @@ struct LigCaretList {
   friend struct GDEF;
 
   private:
-  /* const LigGlyph& get_lig_glyph (hb_ot_layout_glyph_t glyph_id); */
+  /* const LigGlyph& get_lig_glyph (hb_glyph_t glyph_id); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, get_lig_glyph);
 
   private:
   /* AttachPoint tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (LigGlyph, ligGlyph, ligGlyphCount);
-  DEFINE_ACCESSOR (Coverage, get_coverage, coverage);
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
 
   private:
   Offset	coverage;		/* Offset to Coverage table--from
@@ -240,19 +240,17 @@ struct GDEF {
   STATIC_DEFINE_GET_FOR_DATA (GDEF);
   /* XXX check version here? */
 
-  DEFINE_ACCESSOR (ClassDef, get_glyph_class_def, glyphClassDef);
-  DEFINE_ACCESSOR (AttachList, get_attach_list, attachList);
-  DEFINE_ACCESSOR (LigCaretList, get_lig_caret_list, ligCaretList);
-  DEFINE_ACCESSOR (ClassDef, get_mark_attach_class_def, markAttachClassDef);
+  DEFINE_GET_HAS_ACCESSOR (ClassDef, glyph_classes, glyphClassDef);
+  DEFINE_GET_HAS_ACCESSOR (AttachList, attach_list, attachList);
+  DEFINE_GET_HAS_ACCESSOR (LigCaretList, lig_caret_list, ligCaretList);
+  DEFINE_GET_HAS_ACCESSOR (ClassDef, mark_attachment_types, markAttachClassDef);
 
-  /* Returns 0 if not found. */
-  inline hb_ot_layout_class_t get_glyph_class (hb_ot_layout_glyph_t glyph_id) const {
-    return get_glyph_class_def ().get_class (glyph_id);
+  inline hb_ot_layout_class_t get_glyph_class (hb_glyph_t glyph_id) const {
+    return get_glyph_classes ().get_class (glyph_id);
   }
 
-  /* Returns 0 if not found. */
-  inline hb_ot_layout_class_t get_mark_attachment_type (hb_ot_layout_glyph_t glyph_id) const {
-    return get_mark_attach_class_def ().get_class (glyph_id);
+  inline hb_ot_layout_class_t get_mark_attachment_type (hb_glyph_t glyph_id) const {
+    return get_mark_attachment_types ().get_class (glyph_id);
   }
 
   /* TODO get_attach and get_lig_caret */

@@ -38,28 +38,15 @@ typedef uint16_t hb_ot_layout_class_t;
 typedef uint16_t hb_ot_layout_glyph_properties_t;
 typedef int hb_ot_layout_coverage_t;	/* -1 is not covered, >= 0 otherwise */
 
-struct GDEF;
-struct GSUB;
-struct GPOS;
-
-struct _HB_OT_Layout {
-  const GDEF *gdef;
-  const GSUB *gsub;
-  const GPOS *gpos;
-
-  struct {
-    uint8_t *klasses;
-    unsigned int len;
-  } new_gdef;
-
-};
-
 
 HB_BEGIN_DECLS();
 
 static hb_ot_layout_glyph_properties_t
-_hb_ot_layout_get_glyph_properties (HB_OT_Layout         *layout,
-				    hb_ot_layout_glyph_t  glyph);
+_hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
+				    hb_glyph_t    glyph);
+
+static hb_bool_t
+_hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout);
 
 HB_END_DECLS();
 

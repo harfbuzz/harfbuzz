@@ -186,10 +186,15 @@
   }
 
 
-#define DEFINE_ACCESSOR(Type, name, Name) \
-  inline const Type& name (void) const { \
+#define DEFINE_GET_ACCESSOR(Type, name, Name) \
+  inline const Type& get_##name (void) const { \
     if (HB_UNLIKELY (!Name)) return Null##Type; \
     return *(const Type*)((const char*)this + Name); \
+  }
+#define DEFINE_GET_HAS_ACCESSOR(Type, name, Name) \
+  DEFINE_GET_ACCESSOR (Type, name, Name); \
+  inline bool has_##name (void) const { \
+    return Name != 0; \
   }
 
 
@@ -633,7 +638,7 @@ struct CoverageFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
 
-  inline hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
     GlyphID gid;
     gid = glyph_id;
     // TODO: bsearch
@@ -655,7 +660,7 @@ struct CoverageRangeRecord {
   friend struct CoverageFormat2;
 
   private:
-  inline hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return startCoverageIndex + (glyph_id - start);
     return -1;
@@ -677,7 +682,7 @@ struct CoverageFormat2 {
   /* CoverageRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
 
-  inline hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
     // TODO: bsearch
     for (unsigned int i = 0; i < rangeCount; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
@@ -707,7 +712,7 @@ struct Coverage {
     }
   }
 
-  hb_ot_layout_coverage_t get_coverage (hb_ot_layout_glyph_t glyph_id) const {
+  hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_coverage(glyph_id);
     case 2: return u.format2.get_coverage(glyph_id);
@@ -736,7 +741,7 @@ struct ClassDefFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
 
-  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
     if (glyph_id >= startGlyph && glyph_id - startGlyph < glyphCount)
       return classValueArray[glyph_id - startGlyph];
     return 0;
@@ -755,7 +760,7 @@ struct ClassRangeRecord {
   friend struct ClassDefFormat2;
 
   private:
-  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return classValue;
     return 0;
@@ -776,7 +781,7 @@ struct ClassDefFormat2 {
   /* ClassRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (ClassRangeRecord, rangeRecord, rangeCount);
 
-  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
     // TODO: bsearch
     for (int i = 0; i < rangeCount; i++) {
       int classValue = rangeRecord[i].get_class (glyph_id);
@@ -805,7 +810,7 @@ struct ClassDef {
     }
   }
 
-  inline hb_ot_layout_class_t get_class (hb_ot_layout_glyph_t glyph_id) const {
+  hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_class(glyph_id);
     case 2: return u.format2.get_class(glyph_id);
