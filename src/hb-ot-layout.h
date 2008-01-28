@@ -38,6 +38,9 @@ HB_BEGIN_DECLS();
 typedef struct _hb_ot_layout_t hb_ot_layout_t;
 
 hb_ot_layout_t *
+hb_ot_layout_create (void);
+
+hb_ot_layout_t *
 hb_ot_layout_create_for_data (const char *font_data,
 			      int         face_index);
 
@@ -125,8 +128,35 @@ hb_ot_layout_find_language (hb_ot_layout_t            *layout,
 			    hb_ot_layout_table_type_t  table_type,
 			    unsigned int               script_index,
 			    hb_tag_t                   language_tag,
-			    unsigned int              *language_index,
-			    unsigned int              *required_features_index);
+			    unsigned int              *language_index);
+
+hb_bool_t
+hb_ot_layout_get_required_feature_index (hb_ot_layout_t            *layout,
+					 hb_ot_layout_table_type_t  table_type,
+					 unsigned int               script_index,
+					 unsigned int               language_index,
+					 unsigned int              *feature_index);
+
+unsigned int
+hb_ot_layout_get_feature_count (hb_ot_layout_t            *layout,
+				hb_ot_layout_table_type_t  table_type,
+				unsigned int               script_index,
+				unsigned int               language_index);
+
+hb_tag_t
+hb_ot_layout_get_feature_tag (hb_ot_layout_t            *layout,
+			      hb_ot_layout_table_type_t  table_type,
+			      unsigned int               script_index,
+			      unsigned int               language_index,
+			      unsigned int               feature_index);
+
+hb_bool_t
+hb_ot_layout_find_feature (hb_ot_layout_t            *layout,
+			   hb_ot_layout_table_type_t  table_type,
+			   unsigned int               script_index,
+			   unsigned int               language_index,
+			   hb_tag_t                   feature_tag,
+			   unsigned int              *feature_index);
 
 
 /*

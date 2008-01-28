@@ -112,7 +112,6 @@
     if (HB_UNLIKELY (i >= num)) return NullTag; \
     return array[i].tag; \
   }
-  /* TODO: implement bsearch find_tag() and use it */
 
 
 #define DEFINE_ARRAY_INTERFACE(Type, name) \
@@ -124,10 +123,11 @@
   }
 #define DEFINE_INDEX_ARRAY_INTERFACE(name) \
   inline unsigned int get_##name##_index (unsigned int i) const { \
+    if (HB_UNLIKELY (i >= get_len ())) return NO_INDEX; \
     return (*this)[i]; \
   } \
   inline unsigned int get_##name##_count (void) const { \
-    return this->get_len (); \
+    return get_len (); \
   }
 
 
@@ -194,7 +194,7 @@
   private: inline Type() {} /* cannot be instantiated */ \
   public:
 
-/* TODO use a global nul-array for most Null's */
+// TODO use a global nul-array for most Null's
 /* defines Null##Type as a safe nil instance of Type */
 #define DEFINE_NULL_DATA(Type, size, data) \
   static const unsigned char Null##Type##Data[size] = data; \
@@ -546,13 +546,21 @@ DEFINE_NULL_ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
 
 struct Script {
 
-  DEFINE_ARRAY_INTERFACE (LangSys, lang_sys);	/* get_lang_sys_count(), get_lang_sys(i) */
+  /* DEFINE_ARRAY_INTERFACE (LangSys, lang_sys) but handling defaultLangSys */
+
+  inline const LangSys& get_lang_sys (unsigned int i) const {
+    if (i == NO_INDEX) return get_default_lang_sys ();
+    return (*this)[i];
+  }
+  inline unsigned int get_lang_sys_count (void) const {
+    return this->get_len ();
+  }
 
   inline const Tag& get_lang_sys_tag (unsigned int i) const {
     return get_tag (i);
   }
 
-  /* TODO bsearch */
+  // LONGTERMTODO bsearch
   DEFINE_TAG_FIND_INTERFACE (LangSys, lang_sys);	/* find_lang_sys_index (), get_lang_sys_by_tag (tag) */
 
   inline const bool has_default_lang_sys (void) const {
@@ -595,7 +603,7 @@ DEFINE_NULL_ASSERT_SIZE (ScriptList, 2);
 
 struct Feature {
 
-  DEFINE_INDEX_ARRAY_INTERFACE (lookup);
+  DEFINE_INDEX_ARRAY_INTERFACE (lookup);	/* get_feature_count(), get_feature_index(i) */
 
   private:
   /* LookupList indices, in no particular order */
@@ -949,7 +957,7 @@ typedef struct GSUBGPOS {
   DEFINE_TAG_LIST_INTERFACE (Feature, feature);	/* get_feature_count(), get_feature(i), get_feature_tag(i) */
   DEFINE_LIST_INTERFACE     (Lookup,  lookup );	/* get_lookup_count (), get_lookup (i) */
 
-  /* TODO bsearch */
+  // LONGTERMTODO bsearch
   DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script_index (), get_script_by_tag (tag) */
   DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
 
