@@ -40,7 +40,7 @@
 #include <string.h>
 
 
-struct _HB_OT_Layout {
+struct _hb_ot_layout_t {
   const GDEF *gdef;
   const GSUB *gsub;
 //const GPOS *gpos;
@@ -52,11 +52,11 @@ struct _HB_OT_Layout {
 
 };
 
-HB_OT_Layout *
+hb_ot_layout_t *
 hb_ot_layout_create_for_data (const char *font_data,
 			      int         face_index)
 {
-  HB_OT_Layout *layout = (HB_OT_Layout *) calloc (1, sizeof (HB_OT_Layout));
+  hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
 
   const OpenTypeFontFile &font = OpenTypeFontFile::get_for_data (font_data);
   const OpenTypeFontFace &face = font.get_face (face_index);
@@ -69,7 +69,7 @@ hb_ot_layout_create_for_data (const char *font_data,
 }
 
 void
-hb_ot_layout_destroy (HB_OT_Layout *layout)
+hb_ot_layout_destroy (hb_ot_layout_t *layout)
 {
   free (layout);
 }
@@ -79,20 +79,20 @@ hb_ot_layout_destroy (HB_OT_Layout *layout)
  */
 
 hb_bool_t
-hb_ot_layout_has_font_glyph_classes (HB_OT_Layout *layout)
+hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout)
 {
   return layout->gdef->has_glyph_classes ();
 }
 
 HB_OT_LAYOUT_INTERNAL hb_bool_t
-_hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout)
+_hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout)
 {
   return layout->new_gdef.len > 0;
 }
 
 HB_OT_LAYOUT_INTERNAL hb_ot_layout_glyph_properties_t
-_hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
-				    hb_glyph_t    glyph)
+_hb_ot_layout_get_glyph_properties (hb_ot_layout_t *layout,
+				    hb_glyph_t      glyph)
 {
   hb_ot_layout_class_t klass;
 
@@ -118,7 +118,7 @@ _hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
 }
 
 HB_OT_LAYOUT_INTERNAL hb_bool_t
-_hb_ot_layout_check_glyph_properties (HB_OT_Layout                    *layout,
+_hb_ot_layout_check_glyph_properties (hb_ot_layout_t                  *layout,
 				      HB_GlyphItem                     gitem,
 				      hb_ot_layout_lookup_flags_t      lookup_flags,
 				      hb_ot_layout_glyph_properties_t *property)
@@ -168,8 +168,8 @@ _hb_ot_layout_check_glyph_properties (HB_OT_Layout                    *layout,
 
 
 hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (HB_OT_Layout *layout,
-			      hb_glyph_t    glyph)
+hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
+			      hb_glyph_t      glyph)
 {
   hb_ot_layout_glyph_properties_t properties;
   hb_ot_layout_class_t klass;
@@ -183,7 +183,7 @@ hb_ot_layout_get_glyph_class (HB_OT_Layout *layout,
 }
 
 void
-hb_ot_layout_set_glyph_class (HB_OT_Layout               *layout,
+hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
 			      hb_glyph_t                  glyph,
 			      hb_ot_layout_glyph_class_t  klass)
 {
@@ -224,11 +224,11 @@ hb_ot_layout_set_glyph_class (HB_OT_Layout               *layout,
 }
 
 void
-hb_ot_layout_build_glyph_classes (HB_OT_Layout  *layout,
-				  uint16_t       num_total_glyphs,
-				  hb_glyph_t    *glyphs,
-				  unsigned char *klasses,
-				  uint16_t       count)
+hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
+				  uint16_t        num_total_glyphs,
+				  hb_glyph_t     *glyphs,
+				  unsigned char  *klasses,
+				  uint16_t        count)
 {
   int i;
 

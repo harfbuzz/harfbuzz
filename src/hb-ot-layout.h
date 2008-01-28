@@ -32,23 +32,20 @@
 HB_BEGIN_DECLS();
 
 /*
- * HB_OT_Layout
+ * hb_ot_layout_t
  */
 
-typedef struct _HB_OT_Layout HB_OT_Layout;
+typedef struct _hb_ot_layout_t hb_ot_layout_t;
 
-HB_OT_Layout *
+hb_ot_layout_t *
 hb_ot_layout_create_for_data (const char *font_data,
 			      int         face_index);
 
 void
-hb_ot_layout_destroy (HB_OT_Layout *layout);
+hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
-/* TODO 
-HB_OT_Layout *
-hb_ot_layout_create_sanitize (char *data,
-			      make_writable_func);
-*/
+/* TODO sanitizing API/constructor (make_wrieable_func_t) */
+/* TODO get_table_func_t constructor */
 
 /*
  * GDEF
@@ -63,23 +60,23 @@ typedef enum {
 } hb_ot_layout_glyph_class_t;
 
 hb_bool_t
-hb_ot_layout_has_font_glyph_classes (HB_OT_Layout              *layout);
+hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout);
 
 hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (HB_OT_Layout *layout,
-			      hb_glyph_t    glyph);
+hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
+			      hb_glyph_t      glyph);
 
 void
-hb_ot_layout_set_glyph_class (HB_OT_Layout              *layout,
+hb_ot_layout_set_glyph_class (hb_ot_layout_t            *layout,
 			      hb_glyph_t                 glyph,
 			      hb_ot_layout_glyph_class_t klass);
 
 void
-hb_ot_layout_build_glyph_classes (HB_OT_Layout  *layout,
-				  uint16_t       num_total_glyphs,
-				  hb_glyph_t    *glyphs,
-				  unsigned char *klasses,
-				  uint16_t       count);
+hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
+				  uint16_t        num_total_glyphs,
+				  hb_glyph_t     *glyphs,
+				  unsigned char  *klasses,
+				  uint16_t        count);
 
 HB_END_DECLS();
 

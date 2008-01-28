@@ -49,14 +49,14 @@ HB_BEGIN_DECLS();
  */
 
 HB_OT_LAYOUT_INTERNAL hb_bool_t
-_hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout);
+_hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout);
 
 HB_OT_LAYOUT_INTERNAL hb_ot_layout_glyph_properties_t
-_hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
-				    hb_glyph_t    glyph);
+_hb_ot_layout_get_glyph_properties (hb_ot_layout_t *layout,
+				    hb_glyph_t      glyph);
 
 HB_OT_LAYOUT_INTERNAL hb_bool_t
-_hb_ot_layout_check_glyph_properties (HB_OT_Layout                    *layout,
+_hb_ot_layout_check_glyph_properties (hb_ot_layout_t                  *layout,
 				      HB_GlyphItem                     gitem,
 				      hb_ot_layout_lookup_flags_t      lookup_flags,
 				      hb_ot_layout_glyph_properties_t *property);
