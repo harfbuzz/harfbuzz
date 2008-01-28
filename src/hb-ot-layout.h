@@ -38,8 +38,8 @@ HB_BEGIN_DECLS();
 typedef struct _HB_OT_Layout HB_OT_Layout;
 
 HB_OT_Layout *
-hb_ot_layout_create (const char *font_data,
-                     int         face_index);
+hb_ot_layout_create_for_data (const char *font_data,
+			      int         face_index);
 
 void
 hb_ot_layout_destroy (HB_OT_Layout *layout);

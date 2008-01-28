@@ -53,8 +53,8 @@ struct _HB_OT_Layout {
 };
 
 HB_OT_Layout *
-hb_ot_layout_create (const char *font_data,
-                     int         face_index)
+hb_ot_layout_create_for_data (const char *font_data,
+			      int         face_index)
 {
   HB_OT_Layout *layout = (HB_OT_Layout *) calloc (1, sizeof (HB_OT_Layout));
 
