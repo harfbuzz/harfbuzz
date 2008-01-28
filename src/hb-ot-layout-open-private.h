@@ -106,7 +106,11 @@
     if (HB_UNLIKELY (!array[i].offset)) return Null##Type; \
     return *(const Type *)((const char*)this + array[i].offset); \
   } \
-  /* TODO: implement find_tag() and get_tag() publicly */
+  inline const Tag& get_tag (unsigned int i) const { \
+    if (HB_UNLIKELY (i >= num)) return NullTag; \
+    return array[i].tag; \
+  }
+  /* TODO: implement bsearch find_tag() and use it */
 
 
 #define DEFINE_ARRAY_INTERFACE(Type, name) \
@@ -124,32 +128,53 @@
     return this->get_len (); \
   }
 
-#define DEFINE_FIND_TAG_INTERFACE(Type, name) \
-  inline const Type* find_##name (hb_tag_t tag) const { \
-    for (unsigned int i = 0; i < this->get_len (); i++) \
-      if (tag == (*this)[i].tag) \
-        return &(*this)[i]; \
-    return NULL; \
-  } \
-  inline const Type& get_##name##_by_tag (hb_tag_t tag) const { \
-    for (unsigned int i = 0; i < this->get_len (); i++) \
-      if (tag == (*this)[i].tag) \
-        return (*this)[i]; \
-    return Null##Type; \
-  }
-
 
 /*
  * List types
  */
 
-#define DEFINE_LIST_ACCESSOR(Type, name) \
+#define DEFINE_LIST_ARRAY(Type, name) \
   inline const Type##List& get_##name##_list (void) const { \
     if (HB_UNLIKELY (!name##List)) return Null##Type##List; \
     return *(const Type##List *)((const char*)this + name##List); \
-  } \
+  }
+
+#define DEFINE_LIST_INTERFACE(Type, name) \
   inline const Type& get_##name (unsigned int i) const { \
-    return get_##name##_list()[i]; \
+    return get_##name##_list ()[i]; \
+  } \
+  inline unsigned int get_##name##_count (void) const { \
+    return get_##name##_list ().get_len (); \
+  }
+
+/*
+ * Tag types
+ */
+
+#define DEFINE_TAG_ARRAY_INTERFACE(Type, name) \
+  DEFINE_ARRAY_INTERFACE (Type, name); \
+  inline hb_tag_t get_##name##_tag (unsigned int i) const { \
+    return (*this)[i].tag; \
+  }
+#define DEFINE_TAG_LIST_INTERFACE(Type, name) \
+  DEFINE_LIST_INTERFACE (Type, name); \
+  inline const Tag& get_##name##_tag (unsigned int i) const { \
+    return get_##name##_list ().get_tag (i); \
+  }
+
+#define DEFINE_TAG_FIND_INTERFACE(Type, name) \
+  inline const Type* find_##name (hb_tag_t tag) const { \
+    for (unsigned int i = 0; i < get_##name##_count (); i++) \
+      if (tag == get_##name##_tag (i)) \
+        return &get_##name (i); \
+    return NULL; \
+  } \
+  inline const Type& get_##name##_by_tag (hb_tag_t tag) const { \
+    const Type* res = find_##name (tag); \
+    if (res) \
+      return *res; \
+    else \
+      return Null##Type; \
   }
 
 /*
@@ -344,7 +369,7 @@ typedef struct TableDirectory {
   friend struct OffsetTable;
 
   inline bool is_null (void) const { return length == 0; }
-  inline hb_tag_t get_tag (void) const { return tag; }
+  inline const Tag& get_tag (void) const { return tag; }
   inline unsigned long get_checksum (void) const { return checkSum; }
   inline unsigned long get_offset (void) const { return offset; }
   inline unsigned long get_length (void) const { return length; }
@@ -364,8 +389,8 @@ typedef struct OffsetTable {
   friend struct OpenTypeFontFile;
   friend struct TTCHeader;
 
-  DEFINE_ARRAY_INTERFACE (OpenTypeTable, table);
-  DEFINE_FIND_TAG_INTERFACE (OpenTypeTable, table);
+  DEFINE_TAG_ARRAY_INTERFACE (OpenTypeTable, table);	/* get_table_count(), get_table(i), get_table_tag(i) */
+  DEFINE_TAG_FIND_INTERFACE  (OpenTypeTable, table);	/* find_table(tag), get_table_by_tag(tag) */
 
   private:
   /* OpenTypeTables, in no particular order */
@@ -418,9 +443,9 @@ struct OpenTypeFontFile {
 
   STATIC_DEFINE_GET_FOR_DATA (OpenTypeFontFile);
 
-  DEFINE_ARRAY_INTERFACE (OpenTypeFontFace, face);
+  DEFINE_ARRAY_INTERFACE (OpenTypeFontFace, face);	/* get_face_count(), get_face(i) */
 
-  inline hb_tag_t get_tag (void) const { return tag; }
+  inline const Tag& get_tag (void) const { return tag; }
 
   /* This is how you get a table */
   inline const char* get_table_data (const OpenTypeTable& table) const {
@@ -510,19 +535,28 @@ struct LangSys {
 DEFINE_NULL_ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
 
 struct Script {
-  /* LangSys', in sorted alphabetical tag order */
-  DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
 
-  inline const bool has_default_language_system (void) const {
+  DEFINE_ARRAY_INTERFACE (LangSys, lang_sys);	/* get_lang_sys_count(), get_lang_sys(i) */
+
+  inline const Tag& get_lang_sys_tag (unsigned int i) const {
+    return get_tag (i);
+  }
+
+  /* TODO bsearch */
+  DEFINE_TAG_FIND_INTERFACE (LangSys, lang_sys);	/* find_lang_sys (), get_lang_sys_by_tag (tag) */
+
+  inline const bool has_default_lang_sys (void) const {
     return defaultLangSys != 0;
   }
-  inline const LangSys& get_default_language_system (void) const {
+  inline const LangSys& get_default_lang_sys (void) const {
     if (HB_UNLIKELY (!defaultLangSys))
       return NullLangSys;
     return *(LangSys*)((const char*)this + defaultLangSys);
   }
 
-  /* TODO implement find_language_system based on find_tag */
+  private:
+  /* LangSys', in sorted alphabetical tag order */
+  DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
 
   private:
   Offset	defaultLangSys;	/* Offset to DefaultLangSys table--from
@@ -535,6 +569,10 @@ struct Script {
 DEFINE_NULL_ASSERT_SIZE (Script, 4);
 
 struct ScriptList {
+
+  friend struct GSUBGPOS;
+
+private:
   /* Scripts, in sorted alphabetical tag order */
   DEFINE_RECORD_ARRAY_TYPE (Script, scriptRecord, scriptCount);
 
@@ -567,6 +605,10 @@ struct Feature {
 DEFINE_NULL_ASSERT_SIZE (Feature, 4);
 
 struct FeatureList {
+
+  friend struct GSUBGPOS;
+
+  private:
   /* Feature indices, in sorted alphabetical tag order */
   DEFINE_RECORD_ARRAY_TYPE (Feature, featureRecord, featureCount);
 
@@ -620,6 +662,10 @@ struct Lookup {
 DEFINE_NULL_ASSERT_SIZE (Lookup, 6);
 
 struct LookupList {
+
+  friend struct GSUBGPOS;
+
+  private:
   /* Lookup indices, in sorted alphabetical tag order */
   DEFINE_OFFSET_ARRAY_TYPE (Lookup, lookupOffset, lookupCount);
 
@@ -889,9 +935,18 @@ typedef struct GSUBGPOS {
   STATIC_DEFINE_GET_FOR_DATA (GSUBGPOS);
   /* XXX check version here? */
 
-  DEFINE_LIST_ACCESSOR(Script, script);	 /* get_script_list, get_script(i) */
-  DEFINE_LIST_ACCESSOR(Feature, feature);/* get_feature_list, get_feature(i) */
-  DEFINE_LIST_ACCESSOR(Lookup, lookup);	 /* get_lookup_list, get_lookup(i) */
+  DEFINE_TAG_LIST_INTERFACE (Script,  script );	/* get_script_count (), get_script (i), get_script_tag (i) */
+  DEFINE_TAG_LIST_INTERFACE (Feature, feature);	/* get_feature_count(), get_feature(i), get_feature_tag(i) */
+  DEFINE_LIST_INTERFACE     (Lookup,  lookup );	/* get_lookup_count (), get_lookup (i) */
+
+  /* TODO bsearch */
+  DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script (), get_script_by_tag (tag) */
+  DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature(), get_feature_by_tag(tag) */
+
+  private:
+  DEFINE_LIST_ARRAY(Script,  script);
+  DEFINE_LIST_ARRAY(Feature, feature);
+  DEFINE_LIST_ARRAY(Lookup,  lookup);
 
   private:
   Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set

@@ -67,66 +67,105 @@ main (int argc, char **argv)
   printf ("%d font(s) found in file\n", num_fonts);
   for (int n_font = 0; n_font < num_fonts; n_font++) {
     const OpenTypeFontFace &font = ot.get_face (n_font);
-    printf ("Font %d of %d:\n", n_font+1, num_fonts);
+    printf ("Font %d of %d:\n", n_font, num_fonts);
 
     int num_tables = font.get_table_count ();
     printf ("  %d table(s) found in font\n", num_tables);
     for (int n_table = 0; n_table < num_tables; n_table++) {
       const OpenTypeTable &table = font.get_table (n_table);
-      printf ("  Table %2d of %2d: %.4s (0x%08lx+0x%08lx)\n", n_table+1, num_tables,
+      printf ("  Table %2d of %2d: %.4s (0x%08lx+0x%08lx)\n", n_table, num_tables,
 	      (const char *)table.get_tag(), table.get_offset(), table.get_length());
 
-      if (table.get_tag() == GSUBGPOS::GSUBTag || table.get_tag() == GSUBGPOS::GPOSTag) {
-        const GSUBGPOS &g = GSUBGPOS::get_for_data (ot.get_table_data (table));
+      switch (table.get_tag ()) {
 
-	const ScriptList &scripts = g.get_script_list();
-	int num_scripts = scripts.get_len ();
+      case GSUBGPOS::GSUBTag:
+      case GSUBGPOS::GPOSTag:
+	{
+
+	const GSUBGPOS &g = GSUBGPOS::get_for_data (ot.get_table_data (table));
+
+	int num_scripts = g.get_script_count ();
 	printf ("    %d script(s) found in table\n", num_scripts);
 	for (int n_script = 0; n_script < num_scripts; n_script++) {
-	  const Script &script = scripts[n_script];
-	  printf ("    Script %2d of %2d: %.4s\n", n_script+1, num_scripts,
-	          (const char *)scripts.get_tag(n_script));
+	  const Script &script = g.get_script (n_script);
+	  printf ("    Script %2d of %2d: %.4s\n", n_script, num_scripts,
+	          (const char *)g.get_script_tag(n_script));
 
-	  if (!script.has_default_language_system())
+	  if (!script.has_default_lang_sys())
 	    printf ("      No default language system\n");
-	  int num_langsys = script.get_len ();
+	  int num_langsys = script.get_lang_sys_count ();
 	  printf ("      %d language system(s) found in script\n", num_langsys);
-	  for (int n_langsys = 0; n_langsys < num_langsys; n_langsys++) {
-	    const LangSys &langsys = script[n_langsys];
-	    printf ("      Language System %2d of %2d: %.4s; %d features\n", n_langsys+1, num_langsys,
-	            (const char *)script.get_tag(n_langsys),
-		    langsys.get_len ());
+	  for (int n_langsys = script.has_default_lang_sys() ? -1 : 0; n_langsys < num_langsys; n_langsys++) {
+	    const LangSys &langsys = n_langsys == -1
+				   ? script.get_default_lang_sys ()
+				   : script.get_lang_sys (n_langsys);
+	    printf (n_langsys == -1
+		   ? "      Default Language System\n"
+		   : "      Language System %2d of %2d: %.4s\n", n_langsys, num_langsys,
+	            (const char *)script.get_lang_sys_tag (n_langsys));
 	    if (!langsys.get_required_feature_index ())
 	      printf ("        No required feature\n");
+
+	    int num_features = langsys.get_feature_count ();
+	    printf ("        %d feature(s) found in language system\n", num_features);
+	    for (int n_feature = 0; n_feature < num_features; n_feature++) {
+	      unsigned int feature_index = langsys.get_feature_index (n_feature);
+	      printf ("        Feature index %2d of %2d: %d\n", n_feature, num_features,
+	              langsys.get_feature_index (n_feature));
+	    }
 	  }
 	}
-        
-	const FeatureList &features = g.get_feature_list();
-	int num_features = features.get_len ();
+
+	int num_features = g.get_feature_count ();
 	printf ("    %d feature(s) found in table\n", num_features);
 	for (int n_feature = 0; n_feature < num_features; n_feature++) {
-	  const Feature &feature = features[n_feature];
-	  printf ("    Feature %2d of %2d: %.4s; %d lookup(s)\n", n_feature+1, num_features,
-	          (const char *)features.get_tag(n_feature),
-		  feature.get_len());
+	  const Feature &feature = g.get_feature (n_feature);
+	  printf ("    Feature %2d of %2d: %.4s; %d lookup(s)\n", n_feature, num_features,
+	          (const char *)g.get_feature_tag(n_feature),
+		  feature.get_lookup_count());
+
+	  int num_lookups = feature.get_lookup_count ();
+	  printf ("        %d lookup(s) found in language system\n", num_lookups);
+	  for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
+	    unsigned int lookup_index = feature.get_lookup_index (n_lookup);
+	    printf ("        Feature index %2d of %2d: %d\n", n_lookup, num_lookups,
+	            feature.get_lookup_index (n_lookup));
+	  }
 	}
-        
-	const LookupList &lookups = g.get_lookup_list();
-	int num_lookups = lookups.get_len ();
+
+	int num_lookups = g.get_lookup_count ();
 	printf ("    %d lookup(s) found in table\n", num_lookups);
 	for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
-	  const Lookup &lookup = lookups[n_lookup];
-	  printf ("    Lookup %2d of %2d: type %d, flags %04x\n", n_lookup+1, num_lookups,
+	  const Lookup &lookup = g.get_lookup (n_lookup);
+	  printf ("    Lookup %2d of %2d: type %d, flags 0x%04X\n", n_lookup, num_lookups,
 	          lookup.get_type(), lookup.get_flag());
 	}
-      } else if (table.get_tag() == "GDEF") {
-        const GDEF &gdef = GDEF::get_for_data (ot[table]);
+
+	}
+	break;
+
+      case GDEF::Tag:
+	{
+
+	const GDEF &gdef = GDEF::get_for_data (ot.get_table_data (table));
+
+	printf ("    Has %sglyph classes\n",
+		  gdef.has_glyph_classes () ? "" : "no ");
+	printf ("    Has %smark attachment types\n",
+		  gdef.has_mark_attachment_types () ? "" : "no ");
+	printf ("    Has %sattach list\n",
+		  gdef.has_attach_list () ? "" : "no ");
+	printf ("    Has %slig caret list\n",
+		  gdef.has_lig_caret_list () ? "" : "no ");
 
 	for (int glyph = 0; glyph < 1; glyph++)
 	  printf ("    glyph %d has class %d and mark attachment type %d\n",
 		  glyph,
 		  gdef.get_glyph_class (glyph),
 		  gdef.get_mark_attachment_type (glyph));
+
+	}
+	break;
       }
     }
   }
