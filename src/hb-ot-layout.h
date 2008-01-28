@@ -78,6 +78,62 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
 				  unsigned char  *klasses,
 				  uint16_t        count);
 
+/*
+ * GSUB/GPOS
+ */
+
+typedef enum {
+  HB_OT_LAYOUT_TABLE_TYPE_GSUB,
+  HB_OT_LAYOUT_TABLE_TYPE_GPOS,
+  HB_OT_LAYOUT_TABLE_TYPE_NONE
+} hb_ot_layout_table_type_t;
+
+#define HB_OT_LAYOUT_NO_SCRIPT_INDEX		((unsigned int) 0xFFFF)
+#define HB_OT_LAYOUT_NO_FEATURE_INDEX		((unsigned int) 0xFFFF)
+#define HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX	((unsigned int) 0xFFFF)
+#define HB_OT_LAYOUT_TAG_DEFAULT_SCRIPT		HB_TAG ('D', 'F', 'L', 'T')
+#define HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
+
+unsigned int
+hb_ot_layout_get_script_count (hb_ot_layout_t            *layout,
+			       hb_ot_layout_table_type_t  table_type);
+
+hb_tag_t
+hb_ot_layout_get_script_tag (hb_ot_layout_t            *layout,
+			     hb_ot_layout_table_type_t  table_type,
+			     unsigned int               script_index);
+
+hb_bool_t
+hb_ot_layout_find_script (hb_ot_layout_t            *layout,
+			  hb_ot_layout_table_type_t  table_type,
+			  hb_tag_t                   script_tag,
+			  unsigned int              *script_index);
+
+unsigned int
+hb_ot_layout_get_language_count (hb_ot_layout_t            *layout,
+				 hb_ot_layout_table_type_t  table_type,
+				 unsigned int               script_index);
+
+hb_tag_t
+hb_ot_layout_get_language_tag (hb_ot_layout_t            *layout,
+			       hb_ot_layout_table_type_t  table_type,
+			       unsigned int               script_index,
+			       unsigned int               language_index);
+
+hb_bool_t
+hb_ot_layout_find_language (hb_ot_layout_t            *layout,
+			    hb_ot_layout_table_type_t  table_type,
+			    unsigned int               script_index,
+			    hb_tag_t                   language_tag,
+			    unsigned int              *language_index,
+			    unsigned int              *required_features_index);
+
+
+/*
+#define PANGO_OT_ALL_GLYPHS			((guint) 0xFFFF)
+
+*/
+
 HB_END_DECLS();
 
 #endif /* HB_OT_LAYOUT_H */

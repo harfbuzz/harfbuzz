@@ -34,6 +34,8 @@
 #include "hb-ot-layout-private.h"
 
 
+#define NO_INDEX		((unsigned int) 0xFFFF)
+
 /*
  * Int types
  */
@@ -153,7 +155,7 @@
 
 #define DEFINE_TAG_ARRAY_INTERFACE(Type, name) \
   DEFINE_ARRAY_INTERFACE (Type, name); \
-  inline hb_tag_t get_##name##_tag (unsigned int i) const { \
+  inline const Tag& get_##name##_tag (unsigned int i) const { \
     return (*this)[i].tag; \
   }
 #define DEFINE_TAG_LIST_INTERFACE(Type, name) \
@@ -163,16 +165,21 @@
   }
 
 #define DEFINE_TAG_FIND_INTERFACE(Type, name) \
-  inline const Type* find_##name (hb_tag_t tag) const { \
-    for (unsigned int i = 0; i < get_##name##_count (); i++) \
-      if (tag == get_##name##_tag (i)) \
-        return &get_##name (i); \
-    return NULL; \
+  inline bool find_##name##_index (hb_tag_t tag, unsigned int *name##_index) const { \
+    const Tag t = tag; \
+    for (unsigned int i = 0; i < get_##name##_count (); i++) { \
+      if (t == get_##name##_tag (i)) { \
+        if (name##_index) *name##_index = i; \
+        return true; \
+      } \
+    } \
+    if (name##_index) *name##_index = NO_INDEX; \
+    return false; \
   } \
   inline const Type& get_##name##_by_tag (hb_tag_t tag) const { \
-    const Type* res = find_##name (tag); \
-    if (res) \
-      return *res; \
+    unsigned int i; \
+    if (find_##name##_index (tag, &i)) \
+      return get_##name (i); \
     else \
       return Null##Type; \
   }
@@ -390,7 +397,7 @@ typedef struct OffsetTable {
   friend struct TTCHeader;
 
   DEFINE_TAG_ARRAY_INTERFACE (OpenTypeTable, table);	/* get_table_count(), get_table(i), get_table_tag(i) */
-  DEFINE_TAG_FIND_INTERFACE  (OpenTypeTable, table);	/* find_table(tag), get_table_by_tag(tag) */
+  DEFINE_TAG_FIND_INTERFACE  (OpenTypeTable, table);	/* find_table_index(tag), get_table_by_tag(tag) */
 
   private:
   /* OpenTypeTables, in no particular order */
@@ -509,10 +516,13 @@ struct LangSys {
 
   DEFINE_INDEX_ARRAY_INTERFACE (feature);
 
-  /* Returns -1 if none */
+  inline const bool has_required_feature (void) const {
+    return reqFeatureIndex != 0xffff;
+  }
+  /* Returns NO_INDEX if none */
   inline int get_required_feature_index (void) const {
     if (reqFeatureIndex == 0xffff)
-      return -1;
+      return NO_INDEX;
     return reqFeatureIndex;;
   }
 
@@ -543,7 +553,7 @@ struct Script {
   }
 
   /* TODO bsearch */
-  DEFINE_TAG_FIND_INTERFACE (LangSys, lang_sys);	/* find_lang_sys (), get_lang_sys_by_tag (tag) */
+  DEFINE_TAG_FIND_INTERFACE (LangSys, lang_sys);	/* find_lang_sys_index (), get_lang_sys_by_tag (tag) */
 
   inline const bool has_default_lang_sys (void) const {
     return defaultLangSys != 0;
@@ -940,8 +950,8 @@ typedef struct GSUBGPOS {
   DEFINE_LIST_INTERFACE     (Lookup,  lookup );	/* get_lookup_count (), get_lookup (i) */
 
   /* TODO bsearch */
-  DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script (), get_script_by_tag (tag) */
-  DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature(), get_feature_by_tag(tag) */
+  DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script_index (), get_script_by_tag (tag) */
+  DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
 
   private:
   DEFINE_LIST_ARRAY(Script,  script);

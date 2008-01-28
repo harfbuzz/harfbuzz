@@ -43,7 +43,7 @@
 struct _hb_ot_layout_t {
   const GDEF *gdef;
   const GSUB *gsub;
-//const GPOS *gpos;
+  const /*XXX*/GSUBGPOS *gpos;
 
   struct {
     unsigned char *klasses;
@@ -63,7 +63,7 @@ hb_ot_layout_create_for_data (const char *font_data,
 
   layout->gdef = &GDEF::get_for_data (font.get_table_data (face.get_table_by_tag (GDEF::Tag)));
   layout->gsub = &GSUB::get_for_data (font.get_table_data (face.get_table_by_tag (GSUB::Tag)));
-//layout->gpos = &GPOS::get_for_data (font.get_table_data (face.get_table_by_tag (GPOS::Tag)));
+  layout->gpos = &/*XXX*/GSUBGPOS::get_for_data (font.get_table_data (face.get_table_by_tag (/*XXX*/GSUBGPOS::GPOSTag)));
 
   return layout;
 }
@@ -242,4 +242,127 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
 
   for (i = 0; i < count; i++)
     hb_ot_layout_set_glyph_class (layout, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
+}
+
+/*
+ * GSUB/GPOS
+ */
+
+static const GSUBGPOS&
+get_gsubgpos_table (hb_ot_layout_t            *layout,
+		    hb_ot_layout_table_type_t  table_type)
+{
+  switch (table_type) {
+    case HB_OT_LAYOUT_TABLE_TYPE_GSUB: return *(layout->gsub);
+    case HB_OT_LAYOUT_TABLE_TYPE_GPOS: return *(layout->gpos);
+    default:                           return NullGSUBGPOS;
+  }
+}
+
+
+unsigned int
+hb_ot_layout_get_script_count (hb_ot_layout_t            *layout,
+			       hb_ot_layout_table_type_t  table_type)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+
+  return g.get_script_count ();
+}
+
+hb_tag_t
+hb_ot_layout_get_script_tag (hb_ot_layout_t            *layout,
+			     hb_ot_layout_table_type_t  table_type,
+			     unsigned int               script_index)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+
+  return g.get_script_tag (script_index);
+}
+
+hb_bool_t
+hb_ot_layout_find_script (hb_ot_layout_t            *layout,
+			  hb_ot_layout_table_type_t  table_type,
+			  hb_tag_t                   script_tag,
+			  unsigned int              *script_index)
+{
+  unsigned int i;
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+
+  if (g.find_script_index (script_tag, script_index))
+    return TRUE;
+
+  /* try finding 'DFLT' */
+  if (g.find_script_index (HB_OT_LAYOUT_TAG_DEFAULT_SCRIPT, script_index))
+    return FALSE;
+
+  /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
+  if (g.find_script_index (HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE, script_index))
+    return FALSE;
+
+  if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
+  return FALSE;
+}
+
+
+unsigned int
+hb_ot_layout_get_language_count (hb_ot_layout_t            *layout,
+				 hb_ot_layout_table_type_t  table_type,
+				 unsigned int               script_index)
+{
+  const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
+
+  return s.get_lang_sys_count ();
+}
+
+hb_tag_t
+hb_ot_layout_get_language_tag (hb_ot_layout_t            *layout,
+			       hb_ot_layout_table_type_t  table_type,
+			       unsigned int               script_index,
+			       unsigned int               language_index)
+{
+  const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
+
+  return s.get_lang_sys_tag (language_index);
+}
+
+hb_bool_t
+hb_ot_layout_find_language (hb_ot_layout_t            *layout,
+			    hb_ot_layout_table_type_t  table_type,
+			    unsigned int               script_index,
+			    hb_tag_t                   language_tag,
+			    unsigned int              *language_index,
+			    unsigned int              *required_features_index)
+{
+  unsigned int i;
+  const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
+
+#if 0
+  if (s.find_script_index (script_tag, script_index))
+    return TRUE;
+
+  /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
+  if (s.find_script_index (HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE, script_index))
+    return FALSE;
+
+  ////////////////////////
+  if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
+  return FALSE;
+
+  if (language_index)
+    *language_index = PANGO_OT_DEFAULT_LANGUAGE;
+  if (required_feature_index)
+    *required_feature_index = PANGO_OT_NO_FEATURE;
+
+  if (script_index == PANGO_OT_NO_SCRIPT)
+    return FALSE;
+
+
+  /* DefaultLangSys */
+  if (language_index)
+    *language_index = PANGO_OT_DEFAULT_LANGUAGE;
+  if (required_feature_index)
+    *required_feature_index = script->DefaultLangSys.ReqFeatureIndex;
+#endif
+
+  return FALSE;
 }
