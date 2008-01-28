@@ -27,6 +27,10 @@
 #ifndef HB_OT_LAYOUT_OPEN_PRIVATE_H
 #define HB_OT_LAYOUT_OPEN_PRIVATE_H
 
+#ifndef HB_OT_LAYOUT_CC
+#error "This file should only be included from hb-ot-layout.c"
+#endif
+
 #include "hb-ot-layout-private.h"
 
 
@@ -127,7 +131,7 @@
         return &(*this)[i]; \
     return NULL; \
   } \
-  inline const Type& get_##name_by_tag (hb_tag_t tag) const { \
+  inline const Type& get_##name##_by_tag (hb_tag_t tag) const { \
     for (unsigned int i = 0; i < this->get_len (); i++) \
       if (tag == (*this)[i].tag) \
         return (*this)[i]; \
@@ -158,6 +162,7 @@
   private: inline Type() {} /* cannot be instantiated */ \
   public:
 
+/* TODO use a global nul-array for most Null's */
 /* defines Null##Type as a safe nil instance of Type */
 #define DEFINE_NULL_DATA(Type, size, data) \
   static const unsigned char Null##Type##Data[size] = data; \
@@ -170,11 +175,11 @@
   ASSERT_SIZE (Type, size); \
   DEFINE_NULL_DATA (Type, size, data)
 #define DEFINE_NULL_ALIAS(NewType, OldType) \
-  static const NewType &Null##NewType = *(NewType *)Null##OldType##Data
+  /* XXX static */ const NewType &Null##NewType = *(NewType *)Null##OldType##Data
 
 /* get_for_data() is a static class method returning a reference to an
  * instance of Type located at the input data location.  It's just a
- * fancy cast! */
+ * fancy, NULL-safe, cast! */
 #define STATIC_DEFINE_GET_FOR_DATA(Type) \
   static inline const Type& get_for_data (const char *data) { \
     extern const Type &Null##Type; \

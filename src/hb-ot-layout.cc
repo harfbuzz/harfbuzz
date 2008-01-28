@@ -61,9 +61,9 @@ hb_ot_layout_create (const char *font_data,
   const OpenTypeFontFile &font = OpenTypeFontFile::get_for_data (font_data);
   const OpenTypeFontFace &face = font.get_face (face_index);
 
-  layout->gdef = &GDEF::get_for_data (font.get_table_data (face.get_table (GDEF::Tag)));
-  layout->gsub = &GSUB::get_for_data (font.get_table_data (face.get_table (GSUB::Tag)));
-//layout->gpos = &GPOS::get_for_data (font.get_table_data (face.get_table (GPOS::Tag)));
+  layout->gdef = &GDEF::get_for_data (font.get_table_data (face.get_table_by_tag (GDEF::Tag)));
+  layout->gsub = &GSUB::get_for_data (font.get_table_data (face.get_table_by_tag (GSUB::Tag)));
+//layout->gpos = &GPOS::get_for_data (font.get_table_data (face.get_table_by_tag (GPOS::Tag)));
 
   return layout;
 }
@@ -84,13 +84,13 @@ hb_ot_layout_has_font_glyph_classes (HB_OT_Layout *layout)
   return layout->gdef->has_glyph_classes ();
 }
 
-static hb_bool_t
+HB_OT_LAYOUT_INTERNAL hb_bool_t
 _hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout)
 {
   return layout->new_gdef.len > 0;
 }
 
-static hb_ot_layout_glyph_properties_t
+HB_OT_LAYOUT_INTERNAL hb_ot_layout_glyph_properties_t
 _hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
 				    hb_glyph_t    glyph)
 {
@@ -117,19 +117,18 @@ _hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
   }
 }
 
-static bool
+HB_OT_LAYOUT_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_properties (HB_OT_Layout                    *layout,
 				      HB_GlyphItem                     gitem,
 				      hb_ot_layout_lookup_flags_t      lookup_flags,
 				      hb_ot_layout_glyph_properties_t *property)
 {
-  /* TODO ugh, clean this mess up */
   hb_ot_layout_glyph_class_t basic_glyph_class;
   hb_ot_layout_glyph_properties_t desired_attachment_class;
 
-  if (gitem->gproperties == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
+  if (gitem->gproperties == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
   {
-    gitem->gproperties = _hb_ot_layout_get_glyph_properties (layout, gitem->gindex);
+    gitem->gproperties = *property = _hb_ot_layout_get_glyph_properties (layout, gitem->gindex);
     if (gitem->gproperties == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
       return false;
   }
@@ -177,7 +176,7 @@ hb_ot_layout_get_glyph_class (HB_OT_Layout *layout,
 
   properties = _hb_ot_layout_get_glyph_properties (layout, glyph);
 
-  if (properties & 0xFF)
+  if (properties & 0xFF00)
     return HB_OT_LAYOUT_GLYPH_CLASS_MARK;
 
   return (hb_ot_layout_glyph_class_t) properties;

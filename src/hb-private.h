@@ -52,4 +52,11 @@
 
 #define ASSERT_SIZE(_type, _size) ASSERT_STATIC (sizeof (_type) == (_size))
 
+/*
+ * buffer
+ */
+
+/* XXX */
+#define HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
+
 #endif /* HB_PRIVATE_H */

@@ -63,21 +63,21 @@ main (int argc, char **argv)
     break;
   }
 
-  int num_fonts = ot.get_len ();
+  int num_fonts = ot.get_face_count ();
   printf ("%d font(s) found in file\n", num_fonts);
   for (int n_font = 0; n_font < num_fonts; n_font++) {
-    const OpenTypeFontFace &font = ot[n_font];
+    const OpenTypeFontFace &font = ot.get_face (n_font);
     printf ("Font %d of %d:\n", n_font+1, num_fonts);
 
-    int num_tables = font.get_len ();
+    int num_tables = font.get_table_count ();
     printf ("  %d table(s) found in font\n", num_tables);
     for (int n_table = 0; n_table < num_tables; n_table++) {
-      const OpenTypeTable &table = font[n_table];
+      const OpenTypeTable &table = font.get_table (n_table);
       printf ("  Table %2d of %2d: %.4s (0x%08lx+0x%08lx)\n", n_table+1, num_tables,
 	      (const char *)table.get_tag(), table.get_offset(), table.get_length());
 
-      if (table.get_tag() == "GSUB" || table.get_tag() == "GPOS") {
-        const GSUBGPOS &g = GSUBGPOS::get_for_data (ot[table]);
+      if (table.get_tag() == GSUBGPOS::GSUBTag || table.get_tag() == GSUBGPOS::GPOSTag) {
+        const GSUBGPOS &g = GSUBGPOS::get_for_data (ot.get_table_data (table));
 
 	const ScriptList &scripts = g.get_script_list();
 	int num_scripts = scripts.get_len ();

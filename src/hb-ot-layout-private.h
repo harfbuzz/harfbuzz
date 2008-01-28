@@ -27,10 +27,6 @@
 #ifndef HB_OT_LAYOUT_PRIVATE_H
 #define HB_OT_LAYOUT_PRIVATE_H
 
-#ifndef HB_OT_LAYOUT_CC
-#error "This file should only be included from hb-ot-layout.c"
-#endif
-
 #include "hb-private.h"
 #include "hb-ot-layout.h"
 
@@ -43,17 +39,23 @@ typedef uint16_t hb_ot_layout_glyph_properties_t;
 typedef uint16_t hb_ot_layout_lookup_flags_t;
 typedef int hb_ot_layout_coverage_t;	/* -1 is not covered, >= 0 otherwise */
 
+/* XXX #define HB_OT_LAYOUT_INTERNAL static */
+#define HB_OT_LAYOUT_INTERNAL
 
 HB_BEGIN_DECLS();
 
-static hb_bool_t
+/*
+ * GDEF
+ */
+
+HB_OT_LAYOUT_INTERNAL hb_bool_t
 _hb_ot_layout_has_new_glyph_classes (HB_OT_Layout *layout);
 
-static hb_ot_layout_glyph_properties_t
+HB_OT_LAYOUT_INTERNAL hb_ot_layout_glyph_properties_t
 _hb_ot_layout_get_glyph_properties (HB_OT_Layout *layout,
 				    hb_glyph_t    glyph);
 
-static bool
+HB_OT_LAYOUT_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_properties (HB_OT_Layout                    *layout,
 				      HB_GlyphItem                     gitem,
 				      hb_ot_layout_lookup_flags_t      lookup_flags,
