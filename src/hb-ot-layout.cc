@@ -278,8 +278,8 @@ get_gsubgpos_table (hb_ot_layout_t            *layout,
 
 
 unsigned int
-hb_ot_layout_get_script_count (hb_ot_layout_t            *layout,
-			       hb_ot_layout_table_type_t  table_type)
+hb_ot_layout_table_get_script_count (hb_ot_layout_t            *layout,
+				     hb_ot_layout_table_type_t  table_type)
 {
   const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
 
@@ -287,9 +287,9 @@ hb_ot_layout_get_script_count (hb_ot_layout_t            *layout,
 }
 
 hb_tag_t
-hb_ot_layout_get_script_tag (hb_ot_layout_t            *layout,
-			     hb_ot_layout_table_type_t  table_type,
-			     unsigned int               script_index)
+hb_ot_layout_table_get_script_tag (hb_ot_layout_t            *layout,
+				   hb_ot_layout_table_type_t  table_type,
+				   unsigned int               script_index)
 {
   const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
 
@@ -297,10 +297,10 @@ hb_ot_layout_get_script_tag (hb_ot_layout_t            *layout,
 }
 
 hb_bool_t
-hb_ot_layout_find_script (hb_ot_layout_t            *layout,
-			  hb_ot_layout_table_type_t  table_type,
-			  hb_tag_t                   script_tag,
-			  unsigned int              *script_index)
+hb_ot_layout_table_find_script (hb_ot_layout_t            *layout,
+				hb_ot_layout_table_type_t  table_type,
+				hb_tag_t                   script_tag,
+				unsigned int              *script_index)
 {
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX);
   const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
@@ -320,11 +320,55 @@ hb_ot_layout_find_script (hb_ot_layout_t            *layout,
   return FALSE;
 }
 
+unsigned int
+hb_ot_layout_table_get_feature_count (hb_ot_layout_t            *layout,
+				      hb_ot_layout_table_type_t  table_type)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+
+  return g.get_feature_count ();
+}
+
+hb_tag_t
+hb_ot_layout_table_get_feature_tag (hb_ot_layout_t            *layout,
+				    hb_ot_layout_table_type_t  table_type,
+				    unsigned int               feature_index)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+
+  return g.get_feature_tag (feature_index);
+}
+
+hb_bool_t
+hb_ot_layout_table_find_feature (hb_ot_layout_t            *layout,
+				 hb_ot_layout_table_type_t  table_type,
+				 hb_tag_t                   feature_tag,
+				 unsigned int              *feature_index)
+{
+  ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+
+  if (g.find_feature_index (feature_tag, feature_index))
+    return TRUE;
+
+  if (feature_index) *feature_index = HB_OT_LAYOUT_NO_FEATURE_INDEX;
+  return FALSE;
+}
 
 unsigned int
-hb_ot_layout_get_language_count (hb_ot_layout_t            *layout,
-				 hb_ot_layout_table_type_t  table_type,
-				 unsigned int               script_index)
+hb_ot_layout_table_get_lookup_count (hb_ot_layout_t            *layout,
+				     hb_ot_layout_table_type_t  table_type)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+
+  return g.get_lookup_count ();
+}
+
+
+unsigned int
+hb_ot_layout_script_get_language_count (hb_ot_layout_t            *layout,
+					hb_ot_layout_table_type_t  table_type,
+					unsigned int               script_index)
 {
   const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
 
@@ -332,10 +376,10 @@ hb_ot_layout_get_language_count (hb_ot_layout_t            *layout,
 }
 
 hb_tag_t
-hb_ot_layout_get_language_tag (hb_ot_layout_t            *layout,
-			       hb_ot_layout_table_type_t  table_type,
-			       unsigned int               script_index,
-			       unsigned int               language_index)
+hb_ot_layout_script_get_language_tag (hb_ot_layout_t            *layout,
+				      hb_ot_layout_table_type_t  table_type,
+				      unsigned int               script_index,
+				      unsigned int               language_index)
 {
   const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
 
@@ -343,11 +387,11 @@ hb_ot_layout_get_language_tag (hb_ot_layout_t            *layout,
 }
 
 hb_bool_t
-hb_ot_layout_find_language (hb_ot_layout_t            *layout,
-			    hb_ot_layout_table_type_t  table_type,
-			    unsigned int               script_index,
-			    hb_tag_t                   language_tag,
-			    unsigned int              *language_index)
+hb_ot_layout_script_find_language (hb_ot_layout_t            *layout,
+				   hb_ot_layout_table_type_t  table_type,
+				   unsigned int               script_index,
+				   hb_tag_t                   language_tag,
+				   unsigned int              *language_index)
 {
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX);
   const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
@@ -364,11 +408,11 @@ hb_ot_layout_find_language (hb_ot_layout_t            *layout,
 }
 
 hb_bool_t
-hb_ot_layout_get_required_feature_index (hb_ot_layout_t            *layout,
-					 hb_ot_layout_table_type_t  table_type,
-					 unsigned int               script_index,
-					 unsigned int               language_index,
-					 unsigned int              *feature_index)
+hb_ot_layout_language_get_required_feature_index (hb_ot_layout_t            *layout,
+						  hb_ot_layout_table_type_t  table_type,
+						  unsigned int               script_index,
+						  unsigned int               language_index,
+						  unsigned int              *feature_index)
 {
   const LangSys &l = get_gsubgpos_table (layout, table_type).get_script (script_index).get_lang_sys (language_index);
 
@@ -378,39 +422,51 @@ hb_ot_layout_get_required_feature_index (hb_ot_layout_t            *layout,
 }
 
 unsigned int
-hb_ot_layout_get_feature_count (hb_ot_layout_t            *layout,
-				hb_ot_layout_table_type_t  table_type,
-				unsigned int               script_index,
-				unsigned int               language_index)
+hb_ot_layout_language_get_feature_count (hb_ot_layout_t            *layout,
+					 hb_ot_layout_table_type_t  table_type,
+					 unsigned int               script_index,
+					 unsigned int               language_index)
 {
   const LangSys &l = get_gsubgpos_table (layout, table_type).get_script (script_index).get_lang_sys (language_index);
 
   return l.get_feature_count ();
 }
 
-hb_tag_t
-hb_ot_layout_get_feature_tag (hb_ot_layout_t            *layout,
-			      hb_ot_layout_table_type_t  table_type,
-			      unsigned int               script_index,
-			      unsigned int               language_index,
-			      unsigned int               feature_index)
+unsigned int
+hb_ot_layout_language_get_feature_index (hb_ot_layout_t            *layout,
+					 hb_ot_layout_table_type_t  table_type,
+					 unsigned int               script_index,
+					 unsigned int               language_index,
+					 unsigned int               num_feature)
 {
   const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
-  feature_index = l.get_feature_index (feature_index);
+  return l.get_feature_index (num_feature);
+}
+
+hb_tag_t
+hb_ot_layout_language_get_feature_tag (hb_ot_layout_t            *layout,
+				       hb_ot_layout_table_type_t  table_type,
+				       unsigned int               script_index,
+				       unsigned int               language_index,
+				       unsigned int               num_feature)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
+  unsigned int feature_index = l.get_feature_index (num_feature);
 
   return g.get_feature_tag (feature_index);
 }
 
 
 hb_bool_t
-hb_ot_layout_find_feature (hb_ot_layout_t            *layout,
-			   hb_ot_layout_table_type_t  table_type,
-			   unsigned int               script_index,
-			   unsigned int               language_index,
-			   hb_tag_t                   feature_tag,
-			   unsigned int              *feature_index)
+hb_ot_layout_language_find_feature (hb_ot_layout_t            *layout,
+				    hb_ot_layout_table_type_t  table_type,
+				    unsigned int               script_index,
+				    unsigned int               language_index,
+				    hb_tag_t                   feature_tag,
+				    unsigned int              *feature_index)
 {
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
   const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
@@ -428,4 +484,27 @@ hb_ot_layout_find_feature (hb_ot_layout_t            *layout,
 
   if (feature_index) *feature_index = HB_OT_LAYOUT_NO_FEATURE_INDEX;
   return FALSE;
+}
+
+unsigned int
+hb_ot_layout_feature_get_lookup_count (hb_ot_layout_t            *layout,
+				       hb_ot_layout_table_type_t  table_type,
+				       unsigned int               feature_index)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  const Feature &f = g.get_feature (feature_index);
+
+  return f.get_lookup_count ();
+}
+
+unsigned int
+hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
+				       hb_ot_layout_table_type_t  table_type,
+				       unsigned int               feature_index,
+				       unsigned int               num_lookup)
+{
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  const Feature &f = g.get_feature (feature_index);
+
+  return f.get_lookup_index (num_lookup);
 }

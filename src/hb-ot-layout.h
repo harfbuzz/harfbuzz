@@ -98,65 +98,102 @@ typedef enum {
 #define HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
 
 unsigned int
-hb_ot_layout_get_script_count (hb_ot_layout_t            *layout,
-			       hb_ot_layout_table_type_t  table_type);
+hb_ot_layout_table_get_script_count (hb_ot_layout_t            *layout,
+				     hb_ot_layout_table_type_t  table_type);
 
 hb_tag_t
-hb_ot_layout_get_script_tag (hb_ot_layout_t            *layout,
-			     hb_ot_layout_table_type_t  table_type,
-			     unsigned int               script_index);
+hb_ot_layout_table_get_script_tag (hb_ot_layout_t            *layout,
+				   hb_ot_layout_table_type_t  table_type,
+				   unsigned int               script_index);
 
 hb_bool_t
-hb_ot_layout_find_script (hb_ot_layout_t            *layout,
-			  hb_ot_layout_table_type_t  table_type,
-			  hb_tag_t                   script_tag,
-			  unsigned int              *script_index);
+hb_ot_layout_table_find_script (hb_ot_layout_t            *layout,
+				hb_ot_layout_table_type_t  table_type,
+				hb_tag_t                   script_tag,
+				unsigned int              *script_index);
 
 unsigned int
-hb_ot_layout_get_language_count (hb_ot_layout_t            *layout,
-				 hb_ot_layout_table_type_t  table_type,
-				 unsigned int               script_index);
+hb_ot_layout_table_get_feature_count (hb_ot_layout_t            *layout,
+				      hb_ot_layout_table_type_t  table_type);
 
 hb_tag_t
-hb_ot_layout_get_language_tag (hb_ot_layout_t            *layout,
-			       hb_ot_layout_table_type_t  table_type,
-			       unsigned int               script_index,
-			       unsigned int               language_index);
+hb_ot_layout_table_get_feature_tag (hb_ot_layout_t            *layout,
+				    hb_ot_layout_table_type_t  table_type,
+				    unsigned int               feature_index);
 
 hb_bool_t
-hb_ot_layout_find_language (hb_ot_layout_t            *layout,
-			    hb_ot_layout_table_type_t  table_type,
-			    unsigned int               script_index,
-			    hb_tag_t                   language_tag,
-			    unsigned int              *language_index);
+hb_ot_layout_table_find_script (hb_ot_layout_t            *layout,
+				hb_ot_layout_table_type_t  table_type,
+				hb_tag_t                   feature_tag,
+				unsigned int              *feature_index);
+
+unsigned int
+hb_ot_layout_table_get_lookup_count (hb_ot_layout_t            *layout,
+				     hb_ot_layout_table_type_t  table_type);
+
+unsigned int
+hb_ot_layout_script_get_language_count (hb_ot_layout_t            *layout,
+					hb_ot_layout_table_type_t  table_type,
+					unsigned int               script_index);
+
+hb_tag_t
+hb_ot_layout_script_get_language_tag (hb_ot_layout_t            *layout,
+				      hb_ot_layout_table_type_t  table_type,
+				      unsigned int               script_index,
+				      unsigned int               language_index);
 
 hb_bool_t
-hb_ot_layout_get_required_feature_index (hb_ot_layout_t            *layout,
+hb_ot_layout_script_find_language (hb_ot_layout_t            *layout,
+				   hb_ot_layout_table_type_t  table_type,
+				   unsigned int               script_index,
+				   hb_tag_t                   language_tag,
+				   unsigned int              *language_index);
+
+hb_bool_t
+hb_ot_layout_language_get_required_feature_index (hb_ot_layout_t            *layout,
+						  hb_ot_layout_table_type_t  table_type,
+						  unsigned int               script_index,
+						  unsigned int               language_index,
+						  unsigned int              *feature_index);
+
+unsigned int
+hb_ot_layout_language_get_feature_count (hb_ot_layout_t            *layout,
 					 hb_ot_layout_table_type_t  table_type,
 					 unsigned int               script_index,
-					 unsigned int               language_index,
-					 unsigned int              *feature_index);
+					 unsigned int               language_index);
 
 unsigned int
-hb_ot_layout_get_feature_count (hb_ot_layout_t            *layout,
-				hb_ot_layout_table_type_t  table_type,
-				unsigned int               script_index,
-				unsigned int               language_index);
+hb_ot_layout_language_get_feature_index (hb_ot_layout_t            *layout,
+				         hb_ot_layout_table_type_t  table_type,
+				         unsigned int               script_index,
+				         unsigned int               language_index,
+				         unsigned int               num_feature);
 
 hb_tag_t
-hb_ot_layout_get_feature_tag (hb_ot_layout_t            *layout,
-			      hb_ot_layout_table_type_t  table_type,
-			      unsigned int               script_index,
-			      unsigned int               language_index,
-			      unsigned int               feature_index);
+hb_ot_layout_language_get_feature_tag (hb_ot_layout_t            *layout,
+				       hb_ot_layout_table_type_t  table_type,
+				       unsigned int               script_index,
+				       unsigned int               language_index,
+				       unsigned int               num_feature);
 
 hb_bool_t
-hb_ot_layout_find_feature (hb_ot_layout_t            *layout,
-			   hb_ot_layout_table_type_t  table_type,
-			   unsigned int               script_index,
-			   unsigned int               language_index,
-			   hb_tag_t                   feature_tag,
-			   unsigned int              *feature_index);
+hb_ot_layout_language_find_feature (hb_ot_layout_t            *layout,
+				    hb_ot_layout_table_type_t  table_type,
+				    unsigned int               script_index,
+				    unsigned int               language_index,
+				    hb_tag_t                   feature_tag,
+				    unsigned int              *feature_index);
+
+unsigned int
+hb_ot_layout_feature_get_lookup_count (hb_ot_layout_t            *layout,
+				       hb_ot_layout_table_type_t  table_type,
+				       unsigned int               feature_index);
+
+unsigned int
+hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
+				       hb_ot_layout_table_type_t  table_type,
+				       unsigned int               feature_index,
+				       unsigned int               num_lookup);
 
 
 /*
