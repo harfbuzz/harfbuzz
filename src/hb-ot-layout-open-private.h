@@ -603,11 +603,14 @@ DEFINE_NULL_ASSERT_SIZE (ScriptList, 2);
 
 struct Feature {
 
-  DEFINE_INDEX_ARRAY_INTERFACE (lookup);	/* get_feature_count(), get_feature_index(i) */
+  DEFINE_INDEX_ARRAY_INTERFACE (lookup);	/* get_lookup_count(), get_lookup_index(i) */
 
   private:
   /* LookupList indices, in no particular order */
   DEFINE_ARRAY_TYPE (USHORT, lookupIndex, lookupCount);
+
+  /* TODO: implement get_feature_parameters() */
+  /* TODO: implement FeatureSize and other special features? */
 
   private:
   Offset	featureParams;	/* Offset to Feature Parameters table (if one
