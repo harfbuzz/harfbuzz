@@ -4218,7 +4218,7 @@ static HB_Error  GSUB_Do_String_Lookup( HB_GSUBHeader* gsub,
 	if ( error == HB_Err_Not_Covered )
 	  buffer->in_pos--;
       }
-      while (buffer->in_pos);
+      while ((HB_Int) buffer->in_pos >= 0);
 
       return retError;
 
