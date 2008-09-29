@@ -5962,7 +5962,7 @@ static HB_Error  Position_CursiveChain ( HB_Buffer     buffer )
   HB_Position positions = buffer->positions;
 
   /* First handle all left-to-right connections */
-  for (j = 0; j < buffer->in_length; j--)
+  for (j = 0; j < buffer->in_length; j++)
   {
     if (positions[j].cursive_chain > 0)
       positions[j].y_pos += positions[j - positions[j].cursive_chain].y_pos;
