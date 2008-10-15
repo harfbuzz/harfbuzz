@@ -2799,6 +2799,13 @@ static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
 
       FORGET_Frame();
 
+      if (new_offset == base_offset) {
+        /* Anchor table not provided.  Skip loading.
+	 * Some versions of FreeSans hit this. */
+        m2an[n].PosFormat = 0;
+	continue;
+      }
+
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
 	   ( error = Load_Anchor( &m2an[n], stream ) ) != HB_Err_Ok )
