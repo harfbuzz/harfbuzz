@@ -54,6 +54,9 @@ do_indent (FILE *stream, int indent)
   fprintf (stream, "%*s", indent * 3, "");
 }
 
+#if __GNUC__ >= 3
+__attribute__((__format__(__printf__, 3, 4)))
+#endif
 static void
 dump (FILE *stream, int indent, const char *format, ...)
 {
