@@ -96,7 +96,7 @@ HB_Error  HB_Load_GPOS_Table( HB_Font          font,
   if ( ALLOC ( gpos, sizeof( *gpos ) ) )
     return error;
 
-  gpos->gfunc = FT_Load_Glyph;
+  gpos->gfunc = (HB_GlyphFunction) FT_Load_Glyph;
   gpos->mmfunc = default_mmfunc;
 
   /* skip version */
