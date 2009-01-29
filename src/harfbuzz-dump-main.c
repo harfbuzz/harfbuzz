@@ -40,140 +40,6 @@ croak (const char *situation, HB_Error error)
   exit (1);
 }
 
-#if 0
-enum {
-  I = 1 << 0,
-  M = 1 << 1,
-  F = 1 << 2,
-  L = 1 << 3
-};
-
-static void
-print_tag (HB_UInt tag)
-{
-  fprintf (stderr, "%c%c%c%c", 
-	  (unsigned char)(tag >> 24),
-	  (unsigned char)((tag >> 16) & 0xff),
-	  (unsigned char)((tag >> 8) & 0xff),
-	  (unsigned char)(tag & 0xff));
-}
-
-static void
-maybe_add_feature (HB_GSUB  gsub,
-		   HB_UShort script_index,
-		   HB_UInt  tag,
-		   HB_UShort property)
-{
-  HB_Error error;
-  HB_UShort feature_index;
-  
-  /* 0xffff == default language system */
-  error = HB_GSUB_Select_Feature (gsub, tag, script_index, 0xffff, &feature_index);
-  
-  if (error)
-    {
-      if (error == HB_Err_Not_Covered)
-	{
-	  print_tag (tag);
-	  fprintf (stderr, " not covered, ignored\n");
-	  return;
-	}
-
-      croak ("HB_GSUB_Select_Feature", error);
-    }
-
-  if ((error = HB_GSUB_Add_Feature (gsub, feature_index, property)))
-    croak ("HB_GSUB_Add_Feature", error);
-}
-
-static void
-add_features (HB_GSUB gsub)
-{
-  HB_Error error;
-  HB_UInt tag = HB_MAKE_TAG ('a', 'r', 'a', 'b');
-  HB_UShort script_index;
-
-  error = HB_GSUB_Select_Script (gsub, tag, &script_index);
-
-  if (error)
-    {
-      if (error == HB_Err_Not_Covered)
-	{
-	  fprintf (stderr, "Arabic not covered, no features used\n");
-	  return;
-	}
-
-      croak ("HB_GSUB_Select_Script", error);
-    }
-
-  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('i', 'n', 'i', 't'), I);
-  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('m', 'e', 'd', 'i'), M);
-  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('f', 'i', 'n', 'a'), F);
-  maybe_add_feature (gsub, script_index, HB_MAKE_TAG ('l', 'i', 'g', 'a'), L);
-}
-#endif
-
-#if 0
-void 
-dump_string (HB_GSUB_String *str)
-{
-  HB_UInt i;
-
-  fprintf (stderr, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n");
-  for (i = 0; i < str->length; i++)
-    {
-      fprintf (stderr, "%2lu: %#06x %#06x %4d %4d\n",
-	       i,
-	       str->string[i],
-	       str->properties[i],
-	       str->components[i],
-	       str->ligIDs[i]);
-    }
-  fprintf (stderr, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
-}
-
-HB_UShort arabic_str[]   = { 0x645, 0x643, 0x64a, 0x644, 0x639, 0x20, 0x645, 0x627, 0x644, 0x633, 0x644, 0x627 };
-HB_UShort arabic_props[] = { I|L,   M|L,   M|L,   M|L,   M|L,   F|L,   I|L,  M|L,   M|L,   M|L,   M|L,   F|L };
-
-void
-try_string (FT_Library library,
-	    HB_Font    font,
-	    HB_GSUB   gsub)
-{
-  HB_Error error;
-  HB_GSUB_String *in_str;
-  HB_GSUB_String *out_str;
-  HB_UInt i;
-
-  if ((error = HB_GSUB_String_New (font->memory, &in_str)))
-    croak ("HB_GSUB_String_New", error);
-  if ((error = HB_GSUB_String_New (font->memory, &out_str)))
-    croak ("HB_GSUB_String_New", error);
-
-  if ((error = HB_GSUB_String_Set_Length (in_str, N_ELEMENTS (arabic_str))))
-    croak ("HB_GSUB_String_Set_Length", error);
-
-  for (i=0; i < N_ELEMENTS (arabic_str); i++)
-    {
-      in_str->string[i] = FT_Get_Char_Index (font, arabic_str[i]);
-      in_str->properties[i] = arabic_props[i];
-      in_str->components[i] = i;
-      in_str->ligIDs[i] = i;
-    }
-
-  if ((error = HB_GSUB_Apply_String (gsub, in_str, out_str)))
-    croak ("HB_GSUB_Apply_String", error);
-
-  dump_string (in_str);
-  dump_string (out_str);
-
-  if ((error = HB_GSUB_String_Done (in_str)))
-    croak ("HB_GSUB_String_New", error);
-  if ((error = HB_GSUB_String_Done (out_str)))
-    croak ("HB_GSUB_String_New", error);
-}
-#endif
-
 int 
 main (int argc, char **argv)
 {
@@ -185,7 +51,7 @@ main (int argc, char **argv)
 
   if (argc != 2)
     {
-      fprintf (stderr, "Usage: ottest MYFONT.TTF\n");
+      fprintf (stderr, "Usage: harfbuzz-dump MYFONT.TTF\n");
       exit(1);
     }
 
@@ -219,14 +85,6 @@ main (int argc, char **argv)
     fprintf (stderr, "HB_Load_GPOS_Table: error 0x%x\n", error);
 
   printf ("</OpenType>\n");
-
-#if 0  
-  select_cmap (font);
-
-  add_features (gsub);
-  try_string (library, font, gsub);
-#endif
-
 
   if ((error = FT_Done_Face (font)))
     croak ("FT_Done_Face", error);
