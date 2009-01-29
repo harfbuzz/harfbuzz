@@ -776,8 +776,6 @@ static HB_Error  Make_ClassRange( HB_ClassDefinition*  cd,
   crr[index].End   = end;
   crr[index].Class = class;
 
-  cd->Defined[class] = TRUE;
-
   return HB_Err_Ok;
 }
 
@@ -806,11 +804,6 @@ HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
   /* We build a format 2 table */
 
   gcd->ClassFormat = 2;
-
-  /* A GlyphClassDef table contains at most 5 different class values */
-
-  if ( ALLOC_ARRAY( gcd->Defined, 5, HB_Bool ) )
-    return error;
 
   gcd->cd.cd2.ClassRangeCount  = 0;
   gcd->cd.cd2.ClassRangeRecord = NULL;
@@ -959,7 +952,6 @@ Fail3:
   FREE( gcd->cd.cd2.ClassRangeRecord );
 
 Fail4:
-  FREE( gcd->Defined );
   return error;
 }
 

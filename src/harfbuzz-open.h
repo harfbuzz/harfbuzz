@@ -240,18 +240,10 @@ struct  HB_ClassDefFormat2_
 typedef struct HB_ClassDefFormat2_  HB_ClassDefFormat2;
 
 
-/* The `Defined' field is not defined in the OpenType specification but
-   apparently needed for processing fonts like trado.ttf: This font
-   refers to a class which contains not a single element.  We map such
-   classes to class 0.                                                 */
-
 struct  HB_ClassDefinition_
 {
   HB_Bool    loaded;
 
-  HB_Bool*   Defined;                 /* array of Booleans.
-					 If Defined[n] is FALSE,
-					 class n contains no glyphs. */
   HB_UShort  ClassFormat;             /* 1 or 2                      */
 
   union

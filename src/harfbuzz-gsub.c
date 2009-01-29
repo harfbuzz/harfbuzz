@@ -1385,7 +1385,6 @@ static HB_Error  Load_SubClassRule( HB_ContextSubstFormat2*  csf2,
 
   HB_UShort*              c;
   HB_SubstLookupRecord*  slr;
-  HB_Bool*                d;
 
 
   if ( ACCESS_Frame( 4L ) )
@@ -1407,20 +1406,12 @@ static HB_Error  Load_SubClassRule( HB_ContextSubstFormat2*  csf2,
     return error;
 
   c = scr->Class;
-  d = csf2->ClassDef.Defined;
 
   if ( ACCESS_Frame( count * 2L ) )
     goto Fail2;
 
   for ( n = 0; n < count; n++ )
-  {
     c[n] = GET_UShort();
-
-    /* We check whether the specific class is used at all.  If not,
-       class 0 is used instead.                                     */
-    if ( !d[c[n]] )
-      c[n] = 0;
-  }
 
   FORGET_Frame();
 
@@ -2379,7 +2370,6 @@ static HB_Error  Load_ChainSubClassRule(
   HB_UShort*              i;
   HB_UShort*              l;
   HB_SubstLookupRecord*  slr;
-  HB_Bool*                d;
 
 
   if ( ACCESS_Frame( 2L ) )
@@ -2400,21 +2390,12 @@ static HB_Error  Load_ChainSubClassRule(
     return error;
 
   b = cscr->Backtrack;
-  d = ccsf2->BacktrackClassDef.Defined;
 
   if ( ACCESS_Frame( count * 2L ) )
     goto Fail4;
 
   for ( n = 0; n < count; n++ )
-  {
     b[n] = GET_UShort();
-
-    /* We check whether the specific class is used at all.  If not,
-       class 0 is used instead.                                     */
-
-    if ( !d[b[n]] )
-      b[n] = 0;
-  }
 
   FORGET_Frame();
 
@@ -2436,18 +2417,12 @@ static HB_Error  Load_ChainSubClassRule(
     goto Fail4;
 
   i = cscr->Input;
-  d = ccsf2->InputClassDef.Defined;
 
   if ( ACCESS_Frame( count * 2L ) )
     goto Fail3;
 
   for ( n = 0; n < count; n++ )
-  {
     i[n] = GET_UShort();
-
-    if ( !d[i[n]] )
-      i[n] = 0;
-  }
 
   FORGET_Frame();
 
@@ -2469,18 +2444,12 @@ static HB_Error  Load_ChainSubClassRule(
     goto Fail3;
 
   l = cscr->Lookahead;
-  d = ccsf2->LookaheadClassDef.Defined;
 
   if ( ACCESS_Frame( count * 2L ) )
     goto Fail2;
 
   for ( n = 0; n < count; n++ )
-  {
     l[n] = GET_UShort();
-
-    if ( !d[l[n]] )
-      l[n] = 0;
-  }
 
   FORGET_Frame();
 

@@ -942,7 +942,6 @@ static HB_Error  Load_ClassDef1( HB_ClassDefinition*  cd,
   HB_UShort             n, count;
 
   HB_UShort*            cva;
-  HB_Bool*              d;
 
   HB_ClassDefFormat1*  cdf1;
 
@@ -967,7 +966,6 @@ static HB_Error  Load_ClassDef1( HB_ClassDefinition*  cd,
   if ( ALLOC_ARRAY( cdf1->ClassValueArray, count, HB_UShort ) )
     return error;
 
-  d   = cd->Defined;
   cva = cdf1->ClassValueArray;
 
   if ( ACCESS_Frame( count * 2L ) )
@@ -981,7 +979,6 @@ static HB_Error  Load_ClassDef1( HB_ClassDefinition*  cd,
       error = ERR(HB_Err_Invalid_SubTable);
       goto Fail;
     }
-    d[cva[n]] = TRUE;
   }
 
   FORGET_Frame();
@@ -1012,7 +1009,6 @@ static HB_Error  Load_ClassDef2( HB_ClassDefinition*  cd,
   HB_UShort              n, count;
 
   HB_ClassRangeRecord*  crr;
-  HB_Bool*               d;
 
   HB_ClassDefFormat2*   cdf2;
 
@@ -1032,7 +1028,6 @@ static HB_Error  Load_ClassDef2( HB_ClassDefinition*  cd,
   if ( ALLOC_ARRAY( cdf2->ClassRangeRecord, count, HB_ClassRangeRecord ) )
     return error;
 
-  d   = cd->Defined;
   crr = cdf2->ClassRangeRecord;
 
   if ( ACCESS_Frame( count * 6L ) )
@@ -1056,8 +1051,6 @@ static HB_Error  Load_ClassDef2( HB_ClassDefinition*  cd,
        n--;
        count--;
     }
-    else
-      d[crr[n].Class] = TRUE;
   }
 
   FORGET_Frame();
@@ -1088,11 +1081,8 @@ _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition* cd,
 {
   HB_Error   error;
 
-  if ( ALLOC_ARRAY( cd->Defined, limit, HB_Bool ) )
-    return error;
-
   if ( ACCESS_Frame( 2L ) )
-    goto Fail;
+    return error;
 
   cd->ClassFormat = GET_UShort();
 
@@ -1106,15 +1096,11 @@ _HB_OPEN_Load_ClassDefinition( HB_ClassDefinition* cd,
   }
 
   if ( error )
-    goto Fail;
+    return error;
 
   cd->loaded = TRUE;
 
   return HB_Err_Ok;
-
-Fail:
-  FREE( cd->Defined );
-  return error;
 }
 
 
@@ -1123,20 +1109,12 @@ _HB_OPEN_Load_EmptyClassDefinition( HB_ClassDefinition*  cd )
 {
   HB_Error   error;
 
-  if ( ALLOC_ARRAY( cd->Defined, 1, HB_Bool ) )
-    return error;
-
   cd->ClassFormat = 1; /* Meaningless */
-  cd->Defined[0] = FALSE;
 
   if ( ALLOC_ARRAY( cd->cd.cd1.ClassValueArray, 1, HB_UShort ) )
-    goto Fail;
+    return error;
 
   return HB_Err_Ok;
-
-Fail:
-  FREE( cd->Defined );
-  return error;
 }
 
 HB_INTERNAL HB_Error
@@ -1170,8 +1148,6 @@ _HB_OPEN_Free_ClassDefinition( HB_ClassDefinition*  cd )
 {
   if ( !cd->loaded )
     return;
-
-  FREE( cd->Defined );
 
   switch ( cd->ClassFormat )
   {
