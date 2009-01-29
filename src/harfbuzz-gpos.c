@@ -2000,11 +2000,11 @@ static HB_Error  Load_BaseArray( HB_BaseArray*  ba,
 {
   HB_Error  error;
 
-  HB_UShort        m, n, k, count;
+  HB_UShort       m, n, count;
   HB_UInt         cur_offset, new_offset, base_offset;
 
-  HB_BaseRecord*  br;
-  HB_Anchor*      ban;
+  HB_BaseRecord  *br;
+  HB_Anchor      *ban, *bans;
 
 
   base_offset = FILE_Pos();
@@ -2023,19 +2023,21 @@ static HB_Error  Load_BaseArray( HB_BaseArray*  ba,
 
   br = ba->BaseRecord;
 
+  bans = NULL;
+
+  if ( ALLOC_ARRAY( bans, count * num_classes, HB_Anchor ) )
+    goto Fail;
+
   for ( m = 0; m < count; m++ )
   {
     br[m].BaseAnchor = NULL;
 
-    if ( ALLOC_ARRAY( br[m].BaseAnchor, num_classes, HB_Anchor ) )
-      goto Fail;
-
-    ban = br[m].BaseAnchor;
+    ban = br[m].BaseAnchor = bans + m * num_classes;
 
     for ( n = 0; n < num_classes; n++ )
     {
       if ( ACCESS_Frame( 2L ) )
-	goto Fail0;
+	goto Fail;
 
       new_offset = GET_UShort() + base_offset;
 
@@ -2053,30 +2055,15 @@ static HB_Error  Load_BaseArray( HB_BaseArray*  ba,
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
 	   ( error = Load_Anchor( &ban[n], stream ) ) != HB_Err_Ok )
-	goto Fail0;
+	goto Fail;
       (void)FILE_Seek( cur_offset );
     }
-
-    continue;
-  Fail0:
-    for ( k = 0; k < n; k++ )
-      Free_Anchor( &ban[k] );
-    goto Fail;
   }
 
   return HB_Err_Ok;
 
 Fail:
-  for ( k = 0; k < m; k++ )
-  {
-    ban = br[k].BaseAnchor;
-
-    for ( n = 0; n < num_classes; n++ )
-      Free_Anchor( &ban[n] );
-
-    FREE( ban );
-  }
-
+  FREE( bans );
   FREE( br );
   return error;
 }
@@ -2085,27 +2072,17 @@ Fail:
 static void  Free_BaseArray( HB_BaseArray*  ba,
 			     HB_UShort       num_classes )
 {
-  HB_UShort        m, n, count;
+  HB_BaseRecord  *br;
+  HB_Anchor      *bans;
 
-  HB_BaseRecord*  br;
-  HB_Anchor*      ban;
-
+  HB_UNUSED(num_classes);
 
   if ( ba->BaseRecord )
   {
-    count = ba->BaseCount;
     br    = ba->BaseRecord;
+    bans = br[0].BaseAnchor;
 
-    for ( m = 0; m < count; m++ )
-    {
-      ban = br[m].BaseAnchor;
-
-      for ( n = 0; n < num_classes; n++ )
-	Free_Anchor( &ban[n] );
-
-      FREE( ban );
-    }
-
+    FREE( bans );
     FREE( br );
   }
 }
