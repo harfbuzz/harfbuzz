@@ -38,11 +38,9 @@ _hb_alloc( HB_UInt   size,
 
   if ( size > 0 )
   {
-    block = malloc( size );
+    block = calloc( 1, size );
     if ( !block )
       error = ERR(HB_Err_Out_Of_Memory);
-    else
-      memset( (char*)block, 0, (size_t)size );
   }
 
   *perror = error;
