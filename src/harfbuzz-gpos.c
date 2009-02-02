@@ -2735,11 +2735,11 @@ static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
 {
   HB_Error  error;
 
-  HB_UShort         k, m, n, count;
+  HB_UShort        k, m, n, count;
   HB_UInt          cur_offset, new_offset, base_offset;
 
-  HB_Mark2Record*  m2r;
-  HB_Anchor*       m2an;
+  HB_Mark2Record  *m2r;
+  HB_Anchor       *m2an, *m2ans;
 
 
   base_offset = FILE_Pos();
@@ -2758,19 +2758,19 @@ static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
 
   m2r = m2a->Mark2Record;
 
+  m2ans = NULL;
+
+  if ( ALLOC_ARRAY( m2ans, count * num_classes, HB_Anchor ) )
+    goto Fail;
+
   for ( m = 0; m < count; m++ )
   {
-    m2r[m].Mark2Anchor = NULL;
-
-    if ( ALLOC_ARRAY( m2r[m].Mark2Anchor, num_classes, HB_Anchor ) )
-      goto Fail;
-
-    m2an = m2r[m].Mark2Anchor;
+    m2an = m2r[m].Mark2Anchor = m2ans + m * num_classes;
 
     for ( n = 0; n < num_classes; n++ )
     {
       if ( ACCESS_Frame( 2L ) )
-	goto Fail0;
+	goto Fail;
 
       new_offset = GET_UShort() + base_offset;
 
@@ -2786,30 +2786,15 @@ static HB_Error  Load_Mark2Array( HB_Mark2Array*  m2a,
       cur_offset = FILE_Pos();
       if ( FILE_Seek( new_offset ) ||
 	   ( error = Load_Anchor( &m2an[n], stream ) ) != HB_Err_Ok )
-	goto Fail0;
+	goto Fail;
       (void)FILE_Seek( cur_offset );
     }
-
-    continue;
-  Fail0:
-    for ( k = 0; k < n; k++ )
-      Free_Anchor( &m2an[k] );
-    goto Fail;
   }
 
   return HB_Err_Ok;
 
 Fail:
-  for ( k = 0; k < m; k++ )
-  {
-    m2an = m2r[k].Mark2Anchor;
-
-    for ( n = 0; n < num_classes; n++ )
-      Free_Anchor( &m2an[n] );
-
-    FREE( m2an );
-  }
-
+  FREE( m2ans );
   FREE( m2r );
   return error;
 }
@@ -2818,27 +2803,17 @@ Fail:
 static void  Free_Mark2Array( HB_Mark2Array*  m2a,
 			      HB_UShort        num_classes )
 {
-  HB_UShort         m, n, count;
+  HB_Mark2Record  *m2r;
+  HB_Anchor       *m2ans;
 
-  HB_Mark2Record*  m2r;
-  HB_Anchor*       m2an;
-
+  HB_UNUSED(num_classes);
 
   if ( m2a->Mark2Record )
   {
-    count = m2a->Mark2Count;
     m2r   = m2a->Mark2Record;
+    m2ans = m2r[0].Mark2Anchor;
 
-    for ( m = 0; m < count; m++ )
-    {
-      m2an = m2r[m].Mark2Anchor;
-
-      for ( n = 0; n < num_classes; n++ )
-	Free_Anchor( &m2an[n] );
-
-      FREE( m2an );
-    }
-
+    FREE( m2ans );
     FREE( m2r );
   }
 }
