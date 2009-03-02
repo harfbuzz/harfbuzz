@@ -1,8 +1,8 @@
 ## Process this file with automake to produce Makefile.in
 
 INCLUDES = 					\
-	$(FREETYPE_CFLAGS)			\
-	-I $(srcdir)
+	-I $(srcdir)				\
+	$(FREETYPE_CFLAGS)
 
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
