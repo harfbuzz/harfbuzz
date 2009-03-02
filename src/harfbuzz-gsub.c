@@ -1896,6 +1896,9 @@ static HB_Error  Lookup_ContextSubst2( HB_GSUBHeader*          gsub,
   if ( error )
     return error;
 
+  if (csf2->MaxContextLength < 1)
+    return HB_Err_Not_Covered;
+
   if ( ALLOC_ARRAY( classes, csf2->MaxContextLength, HB_UShort ) )
     return error;
 
@@ -3158,6 +3161,9 @@ static HB_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
   if ( ALLOC_ARRAY( backtrack_classes, ccsf2->MaxBacktrackLength, HB_UShort ) )
     return error;
   known_backtrack_classes = 0;
+
+  if (ccsf2->MaxInputLength < 1)
+    return HB_Err_Not_Covered;
 
   if ( ALLOC_ARRAY( input_classes, ccsf2->MaxInputLength, HB_UShort ) )
     goto End3;

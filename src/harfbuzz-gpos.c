@@ -2080,9 +2080,13 @@ static void  Free_BaseArray( HB_BaseArray*  ba,
   if ( ba->BaseRecord )
   {
     br    = ba->BaseRecord;
-    bans = br[0].BaseAnchor;
 
-    FREE( bans );
+    if ( ba->BaseCount )
+    {
+      bans = br[0].BaseAnchor;
+      FREE( bans );
+    }
+
     FREE( br );
   }
 }
@@ -2811,9 +2815,13 @@ static void  Free_Mark2Array( HB_Mark2Array*  m2a,
   if ( m2a->Mark2Record )
   {
     m2r   = m2a->Mark2Record;
-    m2ans = m2r[0].Mark2Anchor;
 
-    FREE( m2ans );
+    if ( m2a->Mark2Count )
+    {
+      m2ans = m2r[0].Mark2Anchor;
+      FREE( m2ans );
+    }
+
     FREE( m2r );
   }
 }
@@ -3856,6 +3864,9 @@ static HB_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
   error = _HB_OPEN_Coverage_Index( &cpf2->Coverage, IN_CURGLYPH(), &index );
   if ( error )
     return error;
+
+  if (cpf2->MaxContextLength < 1)
+    return HB_Err_Not_Covered;
 
   if ( ALLOC_ARRAY( classes, cpf2->MaxContextLength, HB_UShort ) )
     return error;
@@ -5138,6 +5149,9 @@ static HB_Error  Lookup_ChainContextPos2(
   if ( ALLOC_ARRAY( backtrack_classes, ccpf2->MaxBacktrackLength, HB_UShort ) )
     return error;
   known_backtrack_classes = 0;
+
+  if (ccpf2->MaxInputLength < 1)
+    return HB_Err_Not_Covered;
 
   if ( ALLOC_ARRAY( input_classes, ccpf2->MaxInputLength, HB_UShort ) )
     goto End3;
