@@ -167,7 +167,7 @@ _hb_font_goto_table( HB_Font    font,
 {
   HB_Stream  stream = font->stream;
 
-  HB_UInt  offset = 0;
+  HB_UInt   offset = 0, sig;
   HB_UInt   count, nn;
   HB_Error  error;
 
@@ -190,7 +190,14 @@ _hb_font_goto_table( HB_Font    font,
   * FreeType's built-in data structures
   */
 
-  if ( font->num_faces > 1 )
+  if ( FILE_Seek( 0 ) || ACCESS_Frame( 4 ) )
+    goto Exit;
+
+  sig = GET_Tag4();
+
+  FORGET_Frame();
+
+  if ( sig == HB_MAKE_TAG( 't', 't', 'c', 'f' ) )
   {
     /* deal with TrueType collections */
     LOG(( ">> This is a TrueType Collection\n" ));
