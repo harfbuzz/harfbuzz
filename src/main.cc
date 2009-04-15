@@ -125,10 +125,10 @@ main (int argc, char **argv)
 		  feature.get_lookup_count());
 
 	  int num_lookups = feature.get_lookup_count ();
-	  printf ("        %d lookup(s) found in language system\n", num_lookups);
+	  printf ("        %d lookup(s) found in feature\n", num_lookups);
 	  for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
 	    unsigned int lookup_index = feature.get_lookup_index (n_lookup);
-	    printf ("        Feature index %2d of %2d: %d\n", n_lookup, num_lookups,
+	    printf ("        Lookup index %2d of %2d: %d\n", n_lookup, num_lookups,
 	            feature.get_lookup_index (n_lookup));
 	  }
 	}

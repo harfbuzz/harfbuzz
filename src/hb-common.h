@@ -46,6 +46,9 @@ typedef uint32_t hb_tag_t;
 				((const char *) s)[2], \
 				((const char *) s)[3]))
 
-typedef uint16_t hb_glyph_t;
+typedef uint32_t hb_codepoint_t;
+
+/* XXX */
+typedef struct HB_BufferRec_ hb_buffer_t;
 
 #endif /* HB_COMMON_H */

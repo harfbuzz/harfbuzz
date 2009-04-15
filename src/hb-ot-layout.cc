@@ -35,6 +35,8 @@
 #include "hb-ot-layout-gdef-private.h"
 #include "hb-ot-layout-gsub-private.h"
 
+/* XXX */
+#include "harfbuzz-buffer-private.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +52,7 @@ struct _hb_ot_layout_t {
     unsigned int len;
   } new_gdef;
 
+  /* TODO add max-nesting-level here? */
 };
 
 hb_ot_layout_t *
@@ -109,7 +112,7 @@ _hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout)
 
 HB_OT_LAYOUT_INTERNAL hb_ot_layout_glyph_properties_t
 _hb_ot_layout_get_glyph_properties (hb_ot_layout_t *layout,
-				    hb_glyph_t      glyph)
+				    hb_codepoint_t  glyph)
 {
   hb_ot_layout_class_t klass;
 
@@ -186,7 +189,7 @@ _hb_ot_layout_check_glyph_properties (hb_ot_layout_t                  *layout,
 
 hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
-			      hb_glyph_t      glyph)
+			      hb_codepoint_t  glyph)
 {
   hb_ot_layout_glyph_properties_t properties;
   hb_ot_layout_class_t klass;
@@ -201,7 +204,7 @@ hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
 
 void
 hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
-			      hb_glyph_t                  glyph,
+			      hb_codepoint_t              glyph,
 			      hb_ot_layout_glyph_class_t  klass)
 {
   /* TODO optimize this, similar to old harfbuzz code for example */
@@ -243,7 +246,7 @@ hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
 void
 hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
 				  uint16_t        num_total_glyphs,
-				  hb_glyph_t     *glyphs,
+				  hb_codepoint_t *glyphs,
 				  unsigned char  *klasses,
 				  uint16_t        count)
 {
@@ -507,4 +510,56 @@ hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
   const Feature &f = g.get_feature (feature_index);
 
   return f.get_lookup_index (num_lookup);
+}
+
+/*
+ * GSUB
+ */
+
+hb_bool_t
+hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
+				hb_buffer_t                 *buffer,
+			        unsigned int                 lookup_index,
+				hb_ot_layout_feature_mask_t  mask)
+{
+  const GSUB &gsub = *(layout->gsub);
+  const SubstLookup &l = gsub.get_lookup (lookup_index);
+  unsigned int lookup_type = l.get_type ();
+  unsigned int nesting_level_left = HB_OT_LAYOUT_MAX_NESTING_LEVEL;
+  unsigned int context_length = NO_CONTEXT;
+  bool handled, ret = false;
+
+  if (!l.is_reverse ()) {
+
+      /* in/out forward substitution */
+      _hb_buffer_clear_output (buffer);
+      buffer->in_pos = 0;
+      while (buffer->in_pos < buffer->in_length) {
+
+	if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
+	    l.substitute (layout, buffer, context_length, nesting_level_left))
+	  ret = true;
+	else
+	  _hb_buffer_copy_output_glyph (buffer);
+
+      }
+      _hb_buffer_swap (buffer);
+
+  } else {
+
+      /* in-place backward substitution */
+      buffer->in_pos = buffer->in_length - 1;
+      do {
+
+	if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
+	    l.substitute (layout, buffer, context_length, nesting_level_left))
+	  ret = true;
+	else
+	  buffer->in_pos--;
+
+      } while (buffer->in_pos);
+
+  }
+
+  return ret;
 }

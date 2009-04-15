@@ -34,7 +34,17 @@
 
 
 struct SingleSubstFormat1 {
-  /* TODO */
+
+  friend struct SingleSubst;
+
+  private:
+  inline bool substitute (hb_ot_layout_t *layout,
+			  hb_buffer_t    *buffer,
+			  unsigned int    context_length,
+			  unsigned int    nesting_level_left) const {
+//    if (get_coverage (IN_CURGLYPH()))
+//      return ;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -450,6 +460,108 @@ struct ReverseChainSingleSubstFormat1 {
 ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
 
 /*
+ * SubstLookup
+ */
+
+struct SubstLookupSubTable {
+  DEFINE_NON_INSTANTIABLE(SubstLookupSubTable);
+
+  friend struct SubstLookup;
+
+  unsigned int get_size (unsigned int lookup_type) const {
+    switch (lookup_type) {
+//    case 1: return u.format1.get_size ();
+//    case 2: return u.format2.get_size ();
+    /*
+    case Single:
+    case Multiple:
+    case Alternate:
+    case Ligature:
+    case Context:
+    case ChainingContext:
+    case Extension:
+    case ReverseChainingContextSingle:
+    */
+    default:return sizeof (LookupSubTable);
+    }
+  }
+
+  inline bool substitute (hb_ot_layout_t *layout,
+			  hb_buffer_t    *buffer,
+			  unsigned int    context_length,
+			  unsigned int    nesting_level_left,
+			  unsigned int    lookup_type) const {
+  }
+
+  private:
+  union {
+  USHORT		substFormat;
+  CoverageFormat1	format1;
+  CoverageFormat2	format2;
+  } u;
+};
+
+struct SubstLookup : Lookup {
+
+  DEFINE_NON_INSTANTIABLE(SubstLookup);
+
+  static const unsigned int Single				= 1;
+  static const unsigned int Multiple				= 2;
+  static const unsigned int Alternate				= 3;
+  static const unsigned int Ligature				= 4;
+  static const unsigned int Context				= 5;
+  static const unsigned int ChainingContext			= 6;
+  static const unsigned int Extension				= 7;
+  static const unsigned int ReverseChainingContextSingle	= 8;
+
+  inline const SubstLookupSubTable& get_subtable (unsigned int i) const {
+    return *(SubstLookupSubTable*)&(((Lookup *)this)->get_subtable (i));
+  }
+
+  /* Like get_type(), but looks through extension lookups.
+   * Never returns SubstLookup::Extension */
+  inline unsigned int get_effective_type (void) const {
+    unsigned int type = get_type ();
+
+    if (HB_UNLIKELY (type == Extension)) {
+      /* Return lookup type of first extension subtable.
+       * The spec says all of them should have the same type.
+       * XXX check for that somehow */
+//XXX      type = get_subtable(0).v.extension.get_type ();
+    }
+
+    return type;
+  }
+
+  inline bool is_reverse (void) const {
+    switch (get_effective_type ()) {
+    case ReverseChainingContextSingle:	return true;
+    default:				return false;
+    }
+  }
+
+  inline bool substitute (hb_ot_layout_t *layout,
+			  hb_buffer_t    *buffer,
+			  unsigned int    context_length,
+			  unsigned int    nesting_level_left) const {
+    unsigned int lookup_type = get_type ();
+
+    if (HB_UNLIKELY (nesting_level_left == 0))
+      return false;
+    nesting_level_left--;
+  
+    for (unsigned int i = 0; i < get_subtable_count (); i++)
+      if (get_subtable (i).substitute (layout, buffer,
+				       context_length, nesting_level_left,
+				       lookup_type))
+	return true;
+  
+    return false;
+  }
+};
+DEFINE_NULL_ALIAS (SubstLookup, Lookup);
+
+/*
  * GSUB
  */
 
@@ -458,6 +570,12 @@ struct GSUB : GSUBGPOS {
 
   STATIC_DEFINE_GET_FOR_DATA (GSUB);
   /* XXX check version here? */
+
+  inline const SubstLookup& get_lookup (unsigned int i) const {
+    return *(SubstLookup*)&(((GSUBGPOS *)this)->get_lookup (i));
+  }
+
+
 };
 DEFINE_NULL_ALIAS (GSUB, GSUBGPOS);
 

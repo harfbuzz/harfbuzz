@@ -33,18 +33,18 @@
 
 
 #define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, name) \
-  inline const Type& name (hb_glyph_t glyph_id) { \
+  inline const Type& name (hb_codepoint_t glyph) { \
     const Coverage &c = get_coverage (); \
-    hb_ot_layout_coverage_t c_index = c.get_coverage (glyph_id); \
+    hb_ot_layout_coverage_t c_index = c.get_coverage (glyph); \
     return (*this)[c_index]; \
   }
 
 
 struct GlyphClassDef : ClassDef {
-  static const uint16_t BaseGlyph		= 0x0001u;
-  static const uint16_t LigatureGlyph		= 0x0002u;
-  static const uint16_t MarkGlyph		= 0x0003u;
-  static const uint16_t ComponentGlyph		= 0x0004u;
+  static const unsigned int BaseGlyph		= 0x0001u;
+  static const unsigned int LigatureGlyph	= 0x0002u;
+  static const unsigned int MarkGlyph		= 0x0003u;
+  static const unsigned int ComponentGlyph	= 0x0004u;
 };
 
 /*
@@ -72,7 +72,7 @@ struct AttachList {
   friend struct GDEF;
 
   private:
-  /* const AttachPoint& get_attach_points (hb_glyph_t glyph_id); */
+  /* const AttachPoint& get_attach_points (hb_codepoint_t glyph); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, get_attach_points);
 
   private:
@@ -205,7 +205,7 @@ struct LigCaretList {
   friend struct GDEF;
 
   private:
-  /* const LigGlyph& get_lig_glyph (hb_glyph_t glyph_id); */
+  /* const LigGlyph& get_lig_glyph (hb_codepoint_t glyph); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, get_lig_glyph);
 
   private:
@@ -245,12 +245,12 @@ struct GDEF {
   DEFINE_GET_HAS_ACCESSOR (LigCaretList, lig_caret_list, ligCaretList);
   DEFINE_GET_HAS_ACCESSOR (ClassDef, mark_attachment_types, markAttachClassDef);
 
-  inline hb_ot_layout_class_t get_glyph_class (hb_glyph_t glyph_id) const {
-    return get_glyph_classes ().get_class (glyph_id);
+  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const {
+    return get_glyph_classes ().get_class (glyph);
   }
 
-  inline hb_ot_layout_class_t get_mark_attachment_type (hb_glyph_t glyph_id) const {
-    return get_mark_attachment_types ().get_class (glyph_id);
+  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const {
+    return get_mark_attachment_types ().get_class (glyph);
   }
 
   /* TODO get_attach and get_lig_caret */

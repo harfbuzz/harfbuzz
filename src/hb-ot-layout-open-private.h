@@ -35,6 +35,7 @@
 
 
 #define NO_INDEX		((unsigned int) 0xFFFF)
+#define NO_CONTEXT		((unsigned int) -1)
 
 /*
  * Int types
@@ -191,7 +192,7 @@
 /* makes class uninstantiable.  should be used for union classes that don't
  * contain any complete type */
 #define DEFINE_NON_INSTANTIABLE(Type) \
-  private: inline Type() {} /* cannot be instantiated */ \
+  protected: inline Type() {} /* cannot be instantiated */ \
   public:
 
 // TODO use a global nul-array for most Null's
@@ -233,6 +234,7 @@
   inline bool has_##name (void) const { \
     return Name != 0; \
   }
+
 
 
 
@@ -642,12 +644,12 @@ struct FeatureList {
 DEFINE_NULL_ASSERT_SIZE (FeatureList, 2);
 
 struct LookupFlag : USHORT {
-  static const uint16_t RightToLeft		= 0x0001u;
-  static const uint16_t IgnoreBaseGlyphs	= 0x0002u;
-  static const uint16_t IgnoreLigatures		= 0x0004u;
-  static const uint16_t IgnoreMarks		= 0x0008u;
-  static const uint16_t Reserved		= 0x00F0u;
-  static const uint16_t MarkAttachmentType	= 0xFF00u;
+  static const unsigned int RightToLeft		= 0x0001u;
+  static const unsigned int IgnoreBaseGlyphs	= 0x0002u;
+  static const unsigned int IgnoreLigatures	= 0x0004u;
+  static const unsigned int IgnoreMarks		= 0x0008u;
+  static const unsigned int Reserved		= 0x00F0u;
+  static const unsigned int MarkAttachmentType	= 0xFF00u;
 };
 DEFINE_NULL_ASSERT_SIZE (LookupFlag, 2);
 
@@ -661,8 +663,9 @@ DEFINE_NULL_ASSERT_SIZE (LookupSubTable, 2);
 
 
 struct Lookup {
-  /* SubTables, in the desired order */
-  DEFINE_OFFSET_ARRAY_TYPE (LookupSubTable, subTableOffset, subTableCount);
+  DEFINE_NON_INSTANTIABLE(Lookup);
+
+  DEFINE_ARRAY_INTERFACE (LookupSubTable, subtable);	/* get_subtable_count(), get_subtable(i) */
 
   inline bool is_right_to_left	(void) const { return lookupFlag & LookupFlag::RightToLeft; }
   inline bool ignore_base_glyphs(void) const { return lookupFlag & LookupFlag::IgnoreBaseGlyphs; }
@@ -670,10 +673,14 @@ struct Lookup {
   inline bool ignore_marks	(void) const { return lookupFlag & LookupFlag::IgnoreMarks; }
   inline bool get_mark_attachment_type (void) const { return lookupFlag & LookupFlag::MarkAttachmentType; }
 
-  inline uint16_t get_type (void) const { return lookupType; }
-  inline uint16_t get_flag (void) const { return lookupFlag; }
+  inline unsigned int get_type (void) const { return lookupType; }
+  inline unsigned int get_flag (void) const { return lookupFlag; }
 
   private:
+  /* SubTables, in the desired order */
+  DEFINE_OFFSET_ARRAY_TYPE (LookupSubTable, subTableOffset, subTableCount);
+
+  protected:
   USHORT	lookupType;	/* Different enumerations for GSUB and GPOS */
   USHORT	lookupFlag;	/* Lookup qualifiers */
   USHORT	subTableCount;	/* Number of SubTables for this lookup */
@@ -710,8 +717,10 @@ struct CoverageFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
 
-  inline hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
     GlyphID gid;
+    if (HB_UNLIKELY (glyph_id > 65535))
+      return -1;
     gid = glyph_id;
     // TODO: bsearch
     for (unsigned int i = 0; i < glyphCount; i++)
@@ -732,7 +741,7 @@ struct CoverageRangeRecord {
   friend struct CoverageFormat2;
 
   private:
-  inline hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return startCoverageIndex + (glyph_id - start);
     return -1;
@@ -754,7 +763,7 @@ struct CoverageFormat2 {
   /* CoverageRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
 
-  inline hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
+  inline hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
     // TODO: bsearch
     for (unsigned int i = 0; i < rangeCount; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
@@ -784,7 +793,7 @@ struct Coverage {
     }
   }
 
-  hb_ot_layout_coverage_t get_coverage (hb_glyph_t glyph_id) const {
+  hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_coverage(glyph_id);
     case 2: return u.format2.get_coverage(glyph_id);
@@ -813,7 +822,7 @@ struct ClassDefFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
 
-  inline hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     if (glyph_id >= startGlyph && glyph_id - startGlyph < glyphCount)
       return classValueArray[glyph_id - startGlyph];
     return 0;
@@ -832,7 +841,7 @@ struct ClassRangeRecord {
   friend struct ClassDefFormat2;
 
   private:
-  inline hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return classValue;
     return 0;
@@ -853,9 +862,9 @@ struct ClassDefFormat2 {
   /* ClassRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (ClassRangeRecord, rangeRecord, rangeCount);
 
-  inline hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     // TODO: bsearch
-    for (int i = 0; i < rangeCount; i++) {
+    for (unsigned int i = 0; i < rangeCount; i++) {
       int classValue = rangeRecord[i].get_class (glyph_id);
       if (classValue > 0)
         return classValue;
@@ -882,7 +891,7 @@ struct ClassDef {
     }
   }
 
-  hb_ot_layout_class_t get_class (hb_glyph_t glyph_id) const {
+  hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_class(glyph_id);
     case 2: return u.format2.get_class(glyph_id);
@@ -949,7 +958,7 @@ DEFINE_NULL_ASSERT_SIZE (Device, 6);
  * GSUB/GPOS Common
  */
 
-typedef struct GSUBGPOS {
+struct GSUBGPOS {
   static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
   static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
 

@@ -67,17 +67,17 @@ hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout);
 
 hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
-			      hb_glyph_t      glyph);
+			      hb_codepoint_t  glyph);
 
 void
 hb_ot_layout_set_glyph_class (hb_ot_layout_t            *layout,
-			      hb_glyph_t                 glyph,
+			      hb_codepoint_t             glyph,
 			      hb_ot_layout_glyph_class_t klass);
 
 void
 hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
 				  uint16_t        num_total_glyphs,
-				  hb_glyph_t     *glyphs,
+				  hb_codepoint_t *glyphs,
 				  unsigned char  *klasses,
 				  uint16_t        count);
 
@@ -90,6 +90,10 @@ typedef enum {
   HB_OT_LAYOUT_TABLE_TYPE_GPOS,
   HB_OT_LAYOUT_TABLE_TYPE_NONE
 } hb_ot_layout_table_type_t;
+
+typedef uint16_t hb_ot_layout_feature_mask_t;
+
+#define HB_OT_LAYOUT_MAX_NESTING_LEVEL		100
 
 #define HB_OT_LAYOUT_NO_SCRIPT_INDEX		((unsigned int) 0xFFFF)
 #define HB_OT_LAYOUT_NO_FEATURE_INDEX		((unsigned int) 0xFFFF)
@@ -194,6 +198,25 @@ hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
 				       hb_ot_layout_table_type_t  table_type,
 				       unsigned int               feature_index,
 				       unsigned int               num_lookup);
+
+/*
+ * GSUB
+ */
+
+hb_bool_t
+hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
+				hb_buffer_t                 *buffer,
+			        unsigned int                 lookup_index,
+				hb_ot_layout_feature_mask_t  mask);
+
+
+
+
+
+
+
+
+
 
 
 /*
