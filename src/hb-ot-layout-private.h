@@ -35,7 +35,6 @@
 
 
 typedef unsigned int hb_ot_layout_class_t;
-typedef int hb_ot_layout_coverage_t;	/* -1 is not covered, >= 0 otherwise */
 
 /* XXX #define HB_OT_LAYOUT_INTERNAL static */
 #define HB_OT_LAYOUT_INTERNAL
@@ -63,6 +62,11 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
 				    HB_GlyphItem    gitem,
 				    unsigned int    lookup_flags,
 				    unsigned int   *property);
+
+/* XXX */
+HB_Error
+hb_buffer_ensure( HB_Buffer buffer,
+		   HB_UInt   size );
 
 HB_END_DECLS();
 

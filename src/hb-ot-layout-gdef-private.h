@@ -35,7 +35,7 @@
 #define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, name) \
   inline const Type& name (hb_codepoint_t glyph) { \
     const Coverage &c = get_coverage (); \
-    hb_ot_layout_coverage_t c_index = c.get_coverage (glyph); \
+    unsigned int c_index = c.get_coverage (glyph); \
     return (*this)[c_index]; \
   }
 
@@ -209,7 +209,7 @@ struct LigCaretList {
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, get_lig_glyph);
 
   private:
-  /* AttachPoint tables, in Coverage Index order */
+  /* LigGlyph tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (LigGlyph, ligGlyph, ligGlyphCount);
   DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
 

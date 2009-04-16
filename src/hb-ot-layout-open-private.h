@@ -36,6 +36,9 @@
 
 #define NO_INDEX		((unsigned int) 0xFFFF)
 #define NO_CONTEXT		((unsigned int) -1)
+#define NOT_COVERED		((unsigned int) -1)
+#define MAX_NESTING_LEVEL	32
+
 
 /*
  * Int types
@@ -717,16 +720,16 @@ struct CoverageFormat1 {
   /* GlyphIDs, in sorted numerical order */
   DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
 
-  inline hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
+  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     GlyphID gid;
     if (HB_UNLIKELY (glyph_id > 65535))
-      return -1;
+      return NOT_COVERED;
     gid = glyph_id;
     // TODO: bsearch
     for (unsigned int i = 0; i < glyphCount; i++)
       if (gid == glyphArray[i])
         return i;
-    return -1;
+    return NOT_COVERED;
   }
 
   private:
@@ -741,10 +744,10 @@ struct CoverageRangeRecord {
   friend struct CoverageFormat2;
 
   private:
-  inline hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
+  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
       return startCoverageIndex + (glyph_id - start);
-    return -1;
+    return NOT_COVERED;
   }
 
   private:
@@ -763,14 +766,14 @@ struct CoverageFormat2 {
   /* CoverageRangeRecords, in sorted numerical start order */
   DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
 
-  inline hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
+  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     // TODO: bsearch
     for (unsigned int i = 0; i < rangeCount; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
       if (coverage >= 0)
         return coverage;
     }
-    return -1;
+    return NOT_COVERED;
   }
 
   private:
@@ -793,11 +796,11 @@ struct Coverage {
     }
   }
 
-  hb_ot_layout_coverage_t get_coverage (hb_codepoint_t glyph_id) const {
+  unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_coverage(glyph_id);
     case 2: return u.format2.get_coverage(glyph_id);
-    default:return -1;
+    default:return NOT_COVERED;
     }
   }
 
@@ -989,5 +992,15 @@ struct GSUBGPOS {
 				 * GSUB/GPOS table */
 };
 DEFINE_NULL_ASSERT_SIZE (GSUBGPOS, 10);
+
+/* XXX */
+#include "harfbuzz-impl.h"
+HB_INTERNAL HB_Error
+_hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
+			      HB_UShort  num_in,
+			      HB_UShort  num_out,
+			      const GlyphID *glyph_data,
+			      HB_UShort  component,
+			      HB_UShort  ligID );
 
 #endif /* HB_OT_LAYOUT_OPEN_PRIVATE_H */

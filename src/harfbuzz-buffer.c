@@ -59,7 +59,7 @@
 
 /* Internal API */
 
-static HB_Error
+/*static XXX */ HB_Error
 hb_buffer_ensure( HB_Buffer buffer,
 		   HB_UInt   size )
 {

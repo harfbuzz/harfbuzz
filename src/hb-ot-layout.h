@@ -93,8 +93,6 @@ typedef enum {
 
 typedef uint32_t hb_ot_layout_feature_mask_t;
 
-#define HB_OT_LAYOUT_MAX_NESTING_LEVEL		100
-
 #define HB_OT_LAYOUT_NO_SCRIPT_INDEX		((unsigned int) 0xFFFF)
 #define HB_OT_LAYOUT_NO_FEATURE_INDEX		((unsigned int) 0xFFFF)
 #define HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX	((unsigned int) 0xFFFF)

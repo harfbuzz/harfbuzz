@@ -24,7 +24,6 @@
 
 #define HB_INTERNAL static
 #include "harfbuzz-buffer.c"
-#include "harfbuzz-gdef.c"
 #include "harfbuzz-gsub.c"
 #include "harfbuzz-gpos.c"
 #include "harfbuzz-impl.c"

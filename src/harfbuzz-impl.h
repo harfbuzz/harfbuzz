@@ -78,7 +78,7 @@ HB_BEGIN_HEADER
 
 
 #define  ALLOC(_ptr,_size)   \
-           ( (_ptr) = _hb_alloc( _size, &error ), error != 0 )
+           ( *(void**)&(_ptr) = _hb_alloc( _size, &error ), error != 0 )
 
 #define  REALLOC(_ptr,_newsz)  \
            ( (_ptr) = _hb_realloc( (_ptr), (_newsz), &error ), error != 0 )

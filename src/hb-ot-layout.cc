@@ -544,42 +544,82 @@ hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
 {
   const GSUB &gsub = *(layout->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
-  unsigned int lookup_type = l.get_type ();
-  unsigned int nesting_level_left = HB_OT_LAYOUT_MAX_NESTING_LEVEL;
-  unsigned int context_length = NO_CONTEXT;
-  bool handled, ret = false;
 
-  if (!l.is_reverse ()) {
+  return l.substitute_string (layout, buffer, mask);
+}
 
-      /* in/out forward substitution */
-      _hb_buffer_clear_output (buffer);
-      buffer->in_pos = 0;
-      while (buffer->in_pos < buffer->in_length) {
 
-	if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
-	    l.substitute (layout, buffer, context_length, nesting_level_left))
-	  ret = true;
-	else
-	  _hb_buffer_copy_output_glyph (buffer);
 
-      }
-      _hb_buffer_swap (buffer);
+/* XXX dupped, until he old code can be removed */
 
-  } else {
+static HB_Error
+hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
+{
+  if ( !buffer->alt_string )
+    {
+      HB_Error error;
 
-      /* in-place backward substitution */
-      buffer->in_pos = buffer->in_length - 1;
-      do {
+      if ( ALLOC_ARRAY( buffer->alt_string, buffer->allocated, HB_GlyphItemRec ) )
+	return error;
+    }
 
-	if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
-	    l.substitute (layout, buffer, context_length, nesting_level_left))
-	  ret = true;
-	else
-	  buffer->in_pos--;
+  buffer->out_string = buffer->alt_string;
+  memcpy( buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]) );
+  buffer->separate_out = TRUE;
 
-      } while (buffer->in_pos);
+  return HB_Err_Ok;
+}
 
+
+
+HB_INTERNAL HB_Error
+_hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
+			      HB_UShort  num_in,
+			      HB_UShort  num_out,
+			      const GlyphID *glyph_data,
+			      HB_UShort  component,
+			      HB_UShort  ligID )
+{
+  HB_Error  error;
+  HB_UShort i;
+  HB_UInt properties;
+  HB_UInt cluster;
+
+  error = hb_buffer_ensure( buffer, buffer->out_pos + num_out );
+  if ( error )
+    return error;
+
+  if ( !buffer->separate_out )
+    {
+      error = hb_buffer_duplicate_out_buffer( buffer );
+      if ( error )
+	return error;
+    }
+
+  properties = buffer->in_string[buffer->in_pos].properties;
+  cluster = buffer->in_string[buffer->in_pos].cluster;
+  if ( component == 0xFFFF )
+    component = buffer->in_string[buffer->in_pos].component;
+  if ( ligID == 0xFFFF )
+    ligID = buffer->in_string[buffer->in_pos].ligID;
+
+  for ( i = 0; i < num_out; i++ )
+  {
+    HB_GlyphItem item = &buffer->out_string[buffer->out_pos + i];
+
+    item->gindex = glyph_data[i];
+    item->properties = properties;
+    item->cluster = cluster;
+    item->component = component;
+    item->ligID = ligID;
+    item->gproperty = HB_GLYPH_PROPERTY_UNKNOWN;
   }
 
-  return ret;
+  buffer->in_pos  += num_in;
+  buffer->out_pos += num_out;
+
+  buffer->out_length = buffer->out_pos;
+
+  return HB_Err_Ok;
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007,2008  Red Hat, Inc.
+ * Copyright (C) 2007,2008,2009  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, an OpenType Layout engine library.
  *
@@ -35,7 +35,7 @@
 #include "harfbuzz-buffer-private.h" /* XXX */
 
 #define DEFINE_GET_GLYPH_COVERAGE(name) \
-  inline hb_ot_layout_coverage_t get_##name (hb_codepoint_t glyph) const { \
+  inline unsigned int get_##name (hb_codepoint_t glyph) const { \
     const Coverage &c = get_coverage (); \
     return c.get_coverage (glyph); \
   }
@@ -46,6 +46,12 @@
 			 unsigned int    context_length, \
 			 unsigned int    nesting_level_left, \
 			 unsigned int    lookup_flag) const
+#define SUBTABLE_SUBSTITUTE_CHAIN(obj) \
+	obj.substitute (layout, \
+			buffer, \
+			context_length, \
+			nesting_level_left, \
+			lookup_flag)
 
 struct SingleSubstFormat1 {
 
@@ -55,9 +61,163 @@ struct SingleSubstFormat1 {
   DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
   DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
+  inline bool single_substitute (hb_codepoint_t &glyph_id) const {
+
+    unsigned int index;
+
+    index = get_glyph_coverage (glyph_id);
+    if (NOT_COVERED == index)
+      return false;
+
+    glyph_id += deltaGlyphID;
+
+    return true;
+  }
+
+#if 0
+
+  case 2:
+    if ( index >= ss->ssf.ssf2.GlyphCount )
+      return ERR(HB_Err_Invalid_SubTable);
+    value = ss->ssf.ssf2.Substitute[index];
+    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
+      return error;
+    break;
+#endif
+
+  private:
+  USHORT	substFormat;		/* Format identifier--format = 1 */
+  Offset	coverage;		/* Offset to Coverage table--from
+					 * beginning of Substitution table */
+  SHORT		deltaGlyphID;		/* Add to original GlyphID to get
+					 * substitute GlyphID */
+};
+ASSERT_SIZE (SingleSubstFormat1, 6);
+
+struct SingleSubstFormat2 {
+
+  friend struct SingleSubst;
+
+  private:
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
+  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
+
+  inline bool single_substitute (hb_codepoint_t &glyph_id) const {
+
+    unsigned int index;
+
+    index = get_glyph_coverage (glyph_id);
+
+    if (index >= glyphCount)
+      return false;
+
+    glyph_id = substitute[index];
+    return true;
+  }
+
+  private:
+  USHORT	substFormat;		/* Format identifier--format = 2 */
+  Offset	coverage;		/* Offset to Coverage table--from
+					 * beginning of Substitution table */
+  USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
+					 * array */
+  GlyphID	substitute[];		/* Array of substitute
+					 * GlyphIDs--ordered by Coverage  Index */
+};
+ASSERT_SIZE (SingleSubstFormat2, 6);
+
+struct SingleSubst {
+
+  friend struct SubstLookupSubTable;
+
+  unsigned int get_size (void) const {
+    switch (u.substFormat) {
+    case 1: return sizeof (u.format1);
+    case 2: return sizeof (u.format2);
+    default:return sizeof (u.substFormat);
+    }
+  }
+
+  private:
   inline SUBTABLE_SUBSTITUTE {
+
     hb_codepoint_t glyph_id;
-    hb_ot_layout_coverage_t index;
+    unsigned int property;
+
+    HB_UNUSED (nesting_level_left);
+
+    if (HB_UNLIKELY (context_length < 1))
+      return false;
+
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
+    glyph_id = IN_CURGLYPH ();
+
+    switch (u.substFormat) {
+    case 1: if (!u.format1.single_substitute (glyph_id)) return false;
+    case 2: if (!u.format2.single_substitute (glyph_id)) return false;
+    default:return false;
+    }
+
+    _hb_buffer_replace_output_glyph (buffer, glyph_id, context_length == NO_CONTEXT);
+
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+    {
+      /* we inherit the old glyph class to the substituted glyph */
+      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    }
+
+    return true;
+  }
+
+  private:
+  union {
+  USHORT	substFormat;	/* Format identifier */
+  SingleSubstFormat1	format1;
+  SingleSubstFormat2	format2;
+  } u;
+};
+DEFINE_NULL (SingleSubst, 2);
+
+
+struct Sequence {
+
+  friend struct MultipleSubstFormat1;
+
+  private:
+  /* GlyphID tables, in Coverage Index order */
+  DEFINE_OFFSET_ARRAY_TYPE (GlyphID, substitute, glyphCount);
+
+  inline void set_glyph_class (hb_ot_layout_t *layout, unsigned int property) const {
+    unsigned int n, count = glyphCount;
+
+    for (n = 0; n < count; n++)
+      _hb_ot_layout_set_glyph_property (layout, substitute[n], property);
+  }
+
+  private:
+  USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
+					 * array. This should always  be
+					 * greater than 0. */
+  GlyphID	substitute[];		/* String of GlyphIDs to substitute */
+};
+DEFINE_NULL_ASSERT_SIZE (Sequence, 2);
+
+struct MultipleSubstFormat1 {
+
+  friend struct MultipleSubst;
+
+  private:
+  /* Sequence tables, in Coverage Index order */
+  DEFINE_OFFSET_ARRAY_TYPE (Sequence, sequence, sequenceCount);
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
+  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
+
+  inline SUBTABLE_SUBSTITUTE {
+
+    hb_codepoint_t glyph_id;
+    unsigned int index;
     unsigned int property;
 
     HB_UNUSED (nesting_level_left);
@@ -71,76 +231,26 @@ struct SingleSubstFormat1 {
     glyph_id = IN_CURGLYPH ();
 
     index = get_glyph_coverage (glyph_id);
-    if (-1 == index)
+    if (index >= sequenceCount)
       return false;
 
-    glyph_id += deltaGlyphID;
-    _hb_buffer_replace_output_glyph (buffer, glyph_id, context_length == NO_CONTEXT);
+    const Sequence &seq = (*this)[index];
+    _hb_buffer_add_output_glyph_ids (buffer, 1,
+				     seq.glyphCount, seq.substitute,
+				     0xFFFF, 0xFFFF);
 
     if ( _hb_ot_layout_has_new_glyph_classes (layout) )
     {
-      /* we inherit the old glyph class to the substituted glyph */
-      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+      /* this is a guess only ... */
+
+      if ( property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE )
+        property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
+
+      seq.set_glyph_class (layout, property);
     }
 
     return true;
-}
-
-#if 0
-
-  switch ( ss->SubstFormat )
-  {
-  case 1:
-    value = (IN_CURGLYPH() + ss->ssf.ssf1.DeltaGlyphID ) & 0xFFFF;
-    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
-      return error;
-    break;
-
-  case 2:
-    if ( index >= ss->ssf.ssf2.GlyphCount )
-      return ERR(HB_Err_Invalid_SubTable);
-    value = ss->ssf.ssf2.Substitute[index];
-    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
-      return error;
-    break;
-
-  default:
-    return ERR(HB_Err_Invalid_SubTable);
   }
-
-  if ( _hb_ot_layout_has_new_glyph_classes (layout) )
-  {
-    /* we inherit the old glyph class to the substituted glyph */
-
-    hb_ot_layout_set_glyph_class (layout, value, properties);
-  }
-#endif
-
-  private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
-					 * beginning of Substitution table */
-  SHORT		deltaGlyphID;		/* Add to original GlyphID to get
-					 * substitute GlyphID */
-};
-ASSERT_SIZE (SingleSubstFormat1, 6);
-
-struct SingleSubstFormat2 {
-  /* TODO */
-
-  private:
-  USHORT	substFormat;		/* Format identifier--format = 2 */
-  Offset	coverage;		/* Offset to Coverage table--from
-					 * beginning of Substitution table */
-  USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
-					 * array */
-  GlyphID	substitute[];		/* Array of substitute
-					 * GlyphIDs--ordered by Coverage  Index */
-};
-ASSERT_SIZE (SingleSubstFormat2, 6);
-
-struct MultipleSubstFormat1 {
-  /* TODO */
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -155,16 +265,42 @@ struct MultipleSubstFormat1 {
 };
 ASSERT_SIZE (MultipleSubstFormat1, 6);
 
-struct Sequence {
+struct MultipleSubst {
+
+  unsigned int get_size (void) const {
+    switch (u.substFormat) {
+    case 1: return sizeof (u.format1);
+    default:return sizeof (u.substFormat);
+    }
+  }
+
+  private:
+  inline SUBTABLE_SUBSTITUTE {
+    switch (u.substFormat) {
+    case 1: return SUBTABLE_SUBSTITUTE_CHAIN(u.format1);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT	substFormat;	/* Format identifier */
+  MultipleSubstFormat1	format1;
+  } u;
+};
+DEFINE_NULL (MultipleSubst, 2);
+
+
+struct AlternateSet {
   /* TODO */
 
   private:
-  USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
-					 * array. This should always  be
-					 * greater than 0. */
-  GlyphID	substitute[];		/* String of GlyphIDs to substitute */
+  USHORT	glyphCount;		/* Number of GlyphIDs in the Alternate
+					 * array */
+  GlyphID	alternate[];		/* Array of alternate GlyphIDs--in
+					 * arbitrary order */
 };
-DEFINE_NULL_ASSERT_SIZE (Sequence, 2);
+DEFINE_NULL_ASSERT_SIZE (AlternateSet, 2);
 
 struct AlternateSubstFormat1 {
   /* TODO */
@@ -181,16 +317,30 @@ struct AlternateSubstFormat1 {
 };
 ASSERT_SIZE (AlternateSubstFormat1, 6);
 
-struct AlternateSet {
+
+struct Ligature {
   /* TODO */
 
   private:
-  USHORT	glyphCount;		/* Number of GlyphIDs in the Alternate
-					 * array */
-  GlyphID	alternate[];		/* Array of alternate GlyphIDs--in
-					 * arbitrary order */
+  GlyphID	ligGlyph;		/* GlyphID of ligature to substitute */
+  USHORT	compCount;		/* Number of components in the ligature */
+  GlyphID	component[];		/* Array of component GlyphIDs--start
+					 * with the second  component--ordered
+					 * in writing direction */
 };
-DEFINE_NULL_ASSERT_SIZE (AlternateSet, 2);
+DEFINE_NULL_ASSERT_SIZE (Ligature, 4);
+
+struct LigatureSet {
+  /* TODO */
+
+  private:
+  USHORT	ligatureCount;		/* Number of Ligature tables */
+  Offset	ligature[];		/* Array of offsets to Ligature
+					 * tables--from beginning of
+					 * LigatureSet table--ordered by
+					 * preference */
+};
+DEFINE_NULL_ASSERT_SIZE (LigatureSet, 2);
 
 struct LigatureSubstFormat1 {
   /* TODO */
@@ -207,29 +357,6 @@ struct LigatureSubstFormat1 {
 };
 ASSERT_SIZE (LigatureSubstFormat1, 6);
 
-struct LigatureSet {
-  /* TODO */
-
-  private:
-  USHORT	ligatureCount;		/* Number of Ligature tables */
-  Offset	ligature[];		/* Array of offsets to Ligature
-					 * tables--from beginning of
-					 * LigatureSet table--ordered by
-					 * preference */
-};
-DEFINE_NULL_ASSERT_SIZE (LigatureSet, 2);
-
-struct Ligature {
-  /* TODO */
-
-  private:
-  GlyphID	ligGlyph;		/* GlyphID of ligature to substitute */
-  USHORT	compCount;		/* Number of components in the ligature */
-  GlyphID	component[];		/* Array of component GlyphIDs--start
-					 * with the second  component--ordered
-					 * in writing direction */
-};
-DEFINE_NULL_ASSERT_SIZE (Ligature, 4);
 
 struct SubstLookupRecord {
   /* TODO */
@@ -533,6 +660,17 @@ ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
  * SubstLookup
  */
 
+enum {
+  GSUB_Single				= 1,
+  GSUB_Multiple				= 2,
+  GSUB_Alternate				= 3,
+  GSUB_Ligature				= 4,
+  GSUB_Context				= 5,
+  GSUB_ChainingContext			= 6,
+  GSUB_Extension				= 7,
+  GSUB_ReverseChainingContextSingle		= 8,
+};
+
 struct SubstLookupSubTable {
   DEFINE_NON_INSTANTIABLE(SubstLookupSubTable);
 
@@ -543,14 +681,14 @@ struct SubstLookupSubTable {
 //    case 1: return u.format1.get_size ();
 //    case 2: return u.format2.get_size ();
     /*
-    case Single:
-    case Multiple:
-    case Alternate:
-    case Ligature:
-    case Context:
-    case ChainingContext:
-    case Extension:
-    case ReverseChainingContextSingle:
+    case GSUB_Single:
+    case GSUB_Multiple:
+    case GSUB_Alternate:
+    case GSUB_Ligature:
+    case GSUB_Context:
+    case GSUB_ChainingContext:
+    case GSUB_Extension:
+    case GSUB_ReverseChainingContextSingle:
     */
     default:return sizeof (LookupSubTable);
     }
@@ -562,13 +700,25 @@ struct SubstLookupSubTable {
 			  unsigned int    nesting_level_left,
 			  unsigned int    lookup_type,
 			  unsigned int    lookup_flag) const {
+    switch (lookup_type) {
+    case GSUB_Single:	return SUBTABLE_SUBSTITUTE_CHAIN (u.singleSubst);
+    /*
+    case GSUB_Multiple:
+    case GSUB_Alternate:
+    case GSUB_Ligature:
+    case GSUB_Context:
+    case GSUB_ChainingContext:
+    case GSUB_Extension:
+    case GSUB_ReverseChainingContextSingle:
+    */
+    default:return false;
+    }
   }
 
   private:
   union {
   USHORT		substFormat;
-  CoverageFormat1	format1;
-  CoverageFormat2	format2;
+  SingleSubst		singleSubst;
   } u;
 };
 
@@ -576,25 +726,16 @@ struct SubstLookup : Lookup {
 
   DEFINE_NON_INSTANTIABLE(SubstLookup);
 
-  static const unsigned int Single				= 1;
-  static const unsigned int Multiple				= 2;
-  static const unsigned int Alternate				= 3;
-  static const unsigned int Ligature				= 4;
-  static const unsigned int Context				= 5;
-  static const unsigned int ChainingContext			= 6;
-  static const unsigned int Extension				= 7;
-  static const unsigned int ReverseChainingContextSingle	= 8;
-
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const {
     return *(SubstLookupSubTable*)&(((Lookup *)this)->get_subtable (i));
   }
 
   /* Like get_type(), but looks through extension lookups.
-   * Never returns SubstLookup::Extension */
+   * Never returns Extension */
   inline unsigned int get_effective_type (void) const {
     unsigned int type = get_type ();
 
-    if (HB_UNLIKELY (type == Extension)) {
+    if (HB_UNLIKELY (type == GSUB_Extension)) {
       /* Return lookup type of first extension subtable.
        * The spec says all of them should have the same type.
        * XXX check for that somehow */
@@ -606,15 +747,16 @@ struct SubstLookup : Lookup {
 
   inline bool is_reverse (void) const {
     switch (get_effective_type ()) {
-    case ReverseChainingContextSingle:	return true;
-    default:				return false;
+    case GSUB_ReverseChainingContextSingle:	return true;
+    default:					return false;
     }
   }
 
-  inline bool substitute (hb_ot_layout_t *layout,
-			  hb_buffer_t    *buffer,
-			  unsigned int    context_length,
-			  unsigned int    nesting_level_left) const {
+  inline bool substitute_once (hb_ot_layout_t *layout,
+			       hb_buffer_t    *buffer,
+			       unsigned int    context_length,
+			       unsigned int    nesting_level_left) const {
+
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
 
@@ -629,6 +771,47 @@ struct SubstLookup : Lookup {
 	return true;
 
     return false;
+  }
+
+  inline bool substitute_string (hb_ot_layout_t *layout,
+				 hb_buffer_t    *buffer,
+				 hb_ot_layout_feature_mask_t mask) const {
+
+    bool ret = false;
+
+    if (!is_reverse ()) {
+
+	/* in/out forward substitution */
+	_hb_buffer_clear_output (buffer);
+	buffer->in_pos = 0;
+	while (buffer->in_pos < buffer->in_length) {
+
+	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
+	      substitute_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	    ret = true;
+	  else
+	    _hb_buffer_copy_output_glyph (buffer);
+
+	}
+	if (ret)
+	  _hb_buffer_swap (buffer);
+
+    } else {
+
+	/* in-place backward substitution */
+	buffer->in_pos = buffer->in_length - 1;
+	do {
+
+	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
+	      substitute_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	    ret = true;
+	  else
+	    buffer->in_pos--;
+
+	} while (buffer->in_pos);
+    }
+
+    return ret;
   }
 };
 DEFINE_NULL_ALIAS (SubstLookup, Lookup);
