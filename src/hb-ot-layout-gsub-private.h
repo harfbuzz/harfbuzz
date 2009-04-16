@@ -40,18 +40,18 @@
     return c.get_coverage (glyph); \
   }
 
-#define SUBTABLE_SUBSTITUTE \
-	bool substitute (hb_ot_layout_t *layout, \
-			 hb_buffer_t    *buffer, \
-			 unsigned int    context_length, \
-			 unsigned int    nesting_level_left, \
-			 unsigned int    lookup_flag) const
-#define SUBTABLE_SUBSTITUTE_CHAIN(obj) \
-	obj.substitute (layout, \
-			buffer, \
-			context_length, \
-			nesting_level_left, \
-			lookup_flag)
+#define SUBTABLE_SUBSTITUTE_ARGS_DEF \
+	hb_ot_layout_t *layout, \
+	hb_buffer_t    *buffer, \
+	unsigned int    context_length, \
+	unsigned int    nesting_level_left, \
+	unsigned int    lookup_flag
+#define SUBTABLE_SUBSTITUTE_ARGS \
+	layout, \
+	buffer, \
+	context_length, \
+	nesting_level_left, \
+	lookup_flag
 
 struct SingleSubstFormat1 {
 
@@ -73,17 +73,6 @@ struct SingleSubstFormat1 {
 
     return true;
   }
-
-#if 0
-
-  case 2:
-    if ( index >= ss->ssf.ssf2.GlyphCount )
-      return ERR(HB_Err_Invalid_SubTable);
-    value = ss->ssf.ssf2.Substitute[index];
-    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
-      return error;
-    break;
-#endif
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -130,6 +119,8 @@ struct SingleSubst {
 
   friend struct SubstLookupSubTable;
 
+  private:
+
   unsigned int get_size (void) const {
     switch (u.substFormat) {
     case 1: return sizeof (u.format1);
@@ -138,8 +129,7 @@ struct SingleSubst {
     }
   }
 
-  private:
-  inline SUBTABLE_SUBSTITUTE {
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
     hb_codepoint_t glyph_id;
     unsigned int property;
@@ -214,7 +204,7 @@ struct MultipleSubstFormat1 {
   DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
   DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
-  inline SUBTABLE_SUBSTITUTE {
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
     hb_codepoint_t glyph_id;
     unsigned int index;
@@ -267,6 +257,10 @@ ASSERT_SIZE (MultipleSubstFormat1, 6);
 
 struct MultipleSubst {
 
+  friend struct SubstLookupSubTable;
+
+  private:
+
   unsigned int get_size (void) const {
     switch (u.substFormat) {
     case 1: return sizeof (u.format1);
@@ -274,10 +268,9 @@ struct MultipleSubst {
     }
   }
 
-  private:
-  inline SUBTABLE_SUBSTITUTE {
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
     switch (u.substFormat) {
-    case 1: return SUBTABLE_SUBSTITUTE_CHAIN(u.format1);
+    case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     default:return false;
     }
   }
@@ -619,8 +612,14 @@ struct ChainContextSubstFormat3 {
 };
 ASSERT_SIZE (ChainContextSubstFormat3, 10);
 
+
 struct ExtensionSubstFormat1 {
-  /* TODO */
+
+  friend struct ExtensionSubst;
+
+  private:
+  inline unsigned int get_type (void) const { return extensionLookupType; }
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const;
 
   private:
   USHORT	substFormat;		/* Format identifier. Set to 1. */
@@ -631,6 +630,44 @@ struct ExtensionSubstFormat1 {
 					 * of lookup type  subtable. */
 };
 ASSERT_SIZE (ExtensionSubstFormat1, 8);
+
+struct ExtensionSubst {
+
+  friend struct SubstLookup;
+  friend struct SubstLookupSubTable;
+
+  private:
+
+  unsigned int get_size (void) const {
+    switch (u.substFormat) {
+    case 1: return sizeof (u.format1);
+    default:return sizeof (u.substFormat);
+    }
+  }
+
+  inline unsigned int get_type (void) const {
+    switch (u.substFormat) {
+    case 1: return u.format1.get_type ();
+    default:return 0;
+    }
+  }
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    switch (u.substFormat) {
+    case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT	substFormat;	/* Format identifier */
+  ExtensionSubstFormat1	format1;
+  } u;
+};
+DEFINE_NULL (ExtensionSubst, 2);
+
+
 
 struct ReverseChainSingleSubstFormat1 {
   /* TODO */
@@ -663,12 +700,12 @@ ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
 enum {
   GSUB_Single				= 1,
   GSUB_Multiple				= 2,
-  GSUB_Alternate				= 3,
+  GSUB_Alternate			= 3,
   GSUB_Ligature				= 4,
   GSUB_Context				= 5,
   GSUB_ChainingContext			= 6,
-  GSUB_Extension				= 7,
-  GSUB_ReverseChainingContextSingle		= 8,
+  GSUB_Extension			= 7,
+  GSUB_ReverseChainingContextSingle	= 8,
 };
 
 struct SubstLookupSubTable {
@@ -678,37 +715,35 @@ struct SubstLookupSubTable {
 
   unsigned int get_size (unsigned int lookup_type) const {
     switch (lookup_type) {
-//    case 1: return u.format1.get_size ();
-//    case 2: return u.format2.get_size ();
-    /*
-    case GSUB_Single:
-    case GSUB_Multiple:
+    case GSUB_Single:				return u.single.get_size ();
+    case GSUB_Multiple:			return u.multiple.get_size ();
+  /*
     case GSUB_Alternate:
     case GSUB_Ligature:
     case GSUB_Context:
     case GSUB_ChainingContext:
-    case GSUB_Extension:
+   */
+    case GSUB_Extension:			return u.extension.get_size ();
+ /*
     case GSUB_ReverseChainingContextSingle:
-    */
+  */
     default:return sizeof (LookupSubTable);
     }
   }
 
-  inline bool substitute (hb_ot_layout_t *layout,
-			  hb_buffer_t    *buffer,
-			  unsigned int    context_length,
-			  unsigned int    nesting_level_left,
-			  unsigned int    lookup_type,
-			  unsigned int    lookup_flag) const {
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF,
+			  unsigned int    lookup_type) const {
     switch (lookup_type) {
-    case GSUB_Single:	return SUBTABLE_SUBSTITUTE_CHAIN (u.singleSubst);
+    case GSUB_Single:				return u.single.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case GSUB_Multiple:				return u.multiple.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     /*
-    case GSUB_Multiple:
     case GSUB_Alternate:
     case GSUB_Ligature:
     case GSUB_Context:
     case GSUB_ChainingContext:
-    case GSUB_Extension:
+    */
+    case GSUB_Extension:			return u.extension.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+			/*
     case GSUB_ReverseChainingContextSingle:
     */
     default:return false;
@@ -718,9 +753,22 @@ struct SubstLookupSubTable {
   private:
   union {
   USHORT		substFormat;
-  SingleSubst		singleSubst;
+  SingleSubst		single;
+  MultipleSubst		multiple;
+
+  ExtensionSubst	extension;
   } u;
 };
+
+
+/* Out-of-class implementation for methods chaining */
+
+inline bool ExtensionSubstFormat1::substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+  return (*(SubstLookupSubTable *)(((char *) this) + extensionOffset)).substitute (SUBTABLE_SUBSTITUTE_ARGS,
+										   get_type ());
+}
+
+
 
 struct SubstLookup : Lookup {
 
@@ -739,7 +787,7 @@ struct SubstLookup : Lookup {
       /* Return lookup type of first extension subtable.
        * The spec says all of them should have the same type.
        * XXX check for that somehow */
-//XXX      type = get_subtable(0).v.extension.get_type ();
+      type = get_subtable(0).u.extension.get_type ();
     }
 
     return type;
@@ -752,10 +800,10 @@ struct SubstLookup : Lookup {
     }
   }
 
-  inline bool substitute_once (hb_ot_layout_t *layout,
-			       hb_buffer_t    *buffer,
-			       unsigned int    context_length,
-			       unsigned int    nesting_level_left) const {
+  bool substitute_once (hb_ot_layout_t *layout,
+			hb_buffer_t    *buffer,
+			unsigned int    context_length,
+			unsigned int    nesting_level_left) const {
 
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
@@ -765,17 +813,16 @@ struct SubstLookup : Lookup {
     nesting_level_left--;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).substitute (layout, buffer,
-				       context_length, nesting_level_left,
-				       lookup_type, lookup_flag))
+      if (get_subtable (i).substitute (SUBTABLE_SUBSTITUTE_ARGS,
+				       lookup_type))
 	return true;
 
     return false;
   }
 
-  inline bool substitute_string (hb_ot_layout_t *layout,
-				 hb_buffer_t    *buffer,
-				 hb_ot_layout_feature_mask_t mask) const {
+  bool substitute_string (hb_ot_layout_t *layout,
+			  hb_buffer_t    *buffer,
+			  hb_ot_layout_feature_mask_t mask) const {
 
     bool ret = false;
 
