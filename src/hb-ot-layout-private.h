@@ -34,9 +34,7 @@
 #include "harfbuzz-buffer.h"
 
 
-typedef uint16_t hb_ot_layout_class_t;
-typedef uint16_t hb_ot_layout_glyph_properties_t;
-typedef uint16_t hb_ot_layout_lookup_flags_t;
+typedef unsigned int hb_ot_layout_class_t;
 typedef int hb_ot_layout_coverage_t;	/* -1 is not covered, >= 0 otherwise */
 
 /* XXX #define HB_OT_LAYOUT_INTERNAL static */
@@ -51,15 +49,20 @@ HB_BEGIN_DECLS();
 HB_OT_LAYOUT_INTERNAL hb_bool_t
 _hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout);
 
-HB_OT_LAYOUT_INTERNAL hb_ot_layout_glyph_properties_t
-_hb_ot_layout_get_glyph_properties (hb_ot_layout_t *layout,
-				    hb_codepoint_t  glyph);
+HB_OT_LAYOUT_INTERNAL unsigned int
+_hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
+				  hb_codepoint_t  glyph);
+
+HB_OT_LAYOUT_INTERNAL void
+_hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
+				  hb_codepoint_t  glyph,
+				  unsigned int    property);
 
 HB_OT_LAYOUT_INTERNAL hb_bool_t
-_hb_ot_layout_check_glyph_properties (hb_ot_layout_t                  *layout,
-				      HB_GlyphItem                     gitem,
-				      hb_ot_layout_lookup_flags_t      lookup_flags,
-				      hb_ot_layout_glyph_properties_t *property);
+_hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
+				    HB_GlyphItem    gitem,
+				    unsigned int    lookup_flags,
+				    unsigned int   *property);
 
 HB_END_DECLS();
 

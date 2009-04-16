@@ -38,7 +38,7 @@ typedef struct HB_GlyphItemRec_ {
   HB_UInt     cluster;
   HB_UShort   component;
   HB_UShort   ligID;
-  HB_UShort   gproperties;
+  HB_UShort   gproperty;
 } HB_GlyphItemRec, *HB_GlyphItem;
 
 typedef struct HB_PositionRec_ {

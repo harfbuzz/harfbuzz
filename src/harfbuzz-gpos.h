@@ -145,7 +145,7 @@ HB_Error  HB_GPOS_Query_Features( HB_GPOSHeader*  gpos,
 
 HB_Error  HB_GPOS_Add_Feature( HB_GPOSHeader*  gpos,
 			       HB_UShort        feature_index,
-			       HB_UInt          property );
+			       HB_UInt          properties );
 
 HB_Error  HB_GPOS_Clear_Features( HB_GPOSHeader*  gpos );
 

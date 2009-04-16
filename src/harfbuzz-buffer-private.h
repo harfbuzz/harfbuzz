@@ -33,7 +33,7 @@
 
 HB_BEGIN_HEADER
 
-#define HB_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
+#define HB_GLYPH_PROPERTY_UNKNOWN 0xFFFF
 
 HB_INTERNAL void
 _hb_buffer_swap( HB_Buffer buffer );
@@ -83,9 +83,9 @@ _hb_buffer_allocate_ligid( HB_Buffer buffer );
 #define OUT_GLYPH( pos )       (buffer->out_string[(pos)].gindex)
 #define OUT_ITEM( pos )        (&buffer->out_string[(pos)])
 
-#define CHECK_Property( layout, index, flags, property )					\
-          (error = _hb_ot_layout_check_glyph_properties((layout), (index), (flags), (property)) \
-	         ? HB_Err_Ok : HB_Err_Not_Covered)
+#define CHECK_Property( layout, index, flags, properties )					\
+          ({unsigned int _p; error = _hb_ot_layout_check_glyph_property((layout), (index), (flags), (&_p)) \
+	         ? HB_Err_Ok : HB_Err_Not_Covered, *(properties) = _p; error;})
 
 #define ADD_String( buffer, num_in, num_out, glyph_data, component, ligID )             \
           ( ( error = _hb_buffer_add_output_glyphs( (buffer),                            \

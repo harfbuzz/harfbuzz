@@ -121,7 +121,7 @@ HB_Error  HB_GSUB_Query_Features( HB_GSUBHeader*  gsub,
 
 HB_Error  HB_GSUB_Add_Feature( HB_GSUBHeader*  gsub,
 			       HB_UShort        feature_index,
-			       HB_UInt          property );
+			       HB_UInt          properties );
 
 HB_Error  HB_GSUB_Clear_Features( HB_GSUBHeader*  gsub );
 

@@ -1783,7 +1783,7 @@ static HB_Error  Lookup_CursivePos( GPOS_Instance*    gpi,
     return HB_Err_Not_Covered;
   }
 
-  /* Glyphs not having the right GDEF properties will be ignored, i.e.,
+  /* Glyphs not having the right GDEF property will be ignored, i.e.,
      gpi->last won't be reset (contrary to user defined properties). */
 
   if ( CHECK_Property( gpos->layout, IN_CURITEM(), flags, &property ) )
@@ -2224,7 +2224,7 @@ static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 
   while ( i <= buffer->in_pos )
   {
-    property = _hb_ot_layout_get_glyph_properties (gpos->layout, IN_GLYPH(j));
+    property = _hb_ot_layout_get_glyph_property (gpos->layout, IN_GLYPH(j));
     if ( !property )
       return HB_Err_Not_Covered;
 
@@ -2633,7 +2633,7 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 
   while ( i <= buffer->in_pos )
   {
-    property = _hb_ot_layout_get_glyph_properties (gpos->layout, IN_GLYPH(j));
+    property = _hb_ot_layout_get_glyph_property (gpos->layout, IN_GLYPH(j));
     if ( !property )
       return HB_Err_Not_Covered;
 
@@ -2960,7 +2960,7 @@ static HB_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
   j = buffer->in_pos - 1;
   while ( i <= buffer->in_pos )
   {
-    property = _hb_ot_layout_get_glyph_properties (gpos->layout, IN_GLYPH(j));
+    property = _hb_ot_layout_get_glyph_property (gpos->layout, IN_GLYPH(j));
     if ( !property )
       return HB_Err_Not_Covered;
 

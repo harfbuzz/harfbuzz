@@ -32,19 +32,89 @@
 #include "hb-ot-layout-open-private.h"
 #include "hb-ot-layout-gdef-private.h"
 
+#include "harfbuzz-buffer-private.h" /* XXX */
+
+#define DEFINE_GET_GLYPH_COVERAGE(name) \
+  inline hb_ot_layout_coverage_t get_##name (hb_codepoint_t glyph) const { \
+    const Coverage &c = get_coverage (); \
+    return c.get_coverage (glyph); \
+  }
+
+#define SUBTABLE_SUBSTITUTE \
+	bool substitute (hb_ot_layout_t *layout, \
+			 hb_buffer_t    *buffer, \
+			 unsigned int    context_length, \
+			 unsigned int    nesting_level_left, \
+			 unsigned int    lookup_flag) const
 
 struct SingleSubstFormat1 {
 
   friend struct SingleSubst;
 
   private:
-  inline bool substitute (hb_ot_layout_t *layout,
-			  hb_buffer_t    *buffer,
-			  unsigned int    context_length,
-			  unsigned int    nesting_level_left) const {
-//    if (get_coverage (IN_CURGLYPH()))
-//      return ;
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
+  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
+
+  inline SUBTABLE_SUBSTITUTE {
+    hb_codepoint_t glyph_id;
+    hb_ot_layout_coverage_t index;
+    unsigned int property;
+
+    HB_UNUSED (nesting_level_left);
+
+    if (HB_UNLIKELY (context_length < 1))
+      return false;
+
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
+    glyph_id = IN_CURGLYPH ();
+
+    index = get_glyph_coverage (glyph_id);
+    if (-1 == index)
+      return false;
+
+    glyph_id += deltaGlyphID;
+    _hb_buffer_replace_output_glyph (buffer, glyph_id, context_length == NO_CONTEXT);
+
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+    {
+      /* we inherit the old glyph class to the substituted glyph */
+      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    }
+
+    return true;
+}
+
+#if 0
+
+  switch ( ss->SubstFormat )
+  {
+  case 1:
+    value = (IN_CURGLYPH() + ss->ssf.ssf1.DeltaGlyphID ) & 0xFFFF;
+    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
+      return error;
+    break;
+
+  case 2:
+    if ( index >= ss->ssf.ssf2.GlyphCount )
+      return ERR(HB_Err_Invalid_SubTable);
+    value = ss->ssf.ssf2.Substitute[index];
+    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
+      return error;
+    break;
+
+  default:
+    return ERR(HB_Err_Invalid_SubTable);
   }
+
+  if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+  {
+    /* we inherit the old glyph class to the substituted glyph */
+
+    hb_ot_layout_set_glyph_class (layout, value, properties);
+  }
+#endif
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -490,7 +560,8 @@ struct SubstLookupSubTable {
 			  hb_buffer_t    *buffer,
 			  unsigned int    context_length,
 			  unsigned int    nesting_level_left,
-			  unsigned int    lookup_type) const {
+			  unsigned int    lookup_type,
+			  unsigned int    lookup_flag) const {
   }
 
   private:
@@ -545,6 +616,7 @@ struct SubstLookup : Lookup {
 			  unsigned int    context_length,
 			  unsigned int    nesting_level_left) const {
     unsigned int lookup_type = get_type ();
+    unsigned int lookup_flag = get_flag ();
 
     if (HB_UNLIKELY (nesting_level_left == 0))
       return false;
@@ -553,7 +625,7 @@ struct SubstLookup : Lookup {
     for (unsigned int i = 0; i < get_subtable_count (); i++)
       if (get_subtable (i).substitute (layout, buffer,
 				       context_length, nesting_level_left,
-				       lookup_type))
+				       lookup_type, lookup_flag))
 	return true;
 
     return false;

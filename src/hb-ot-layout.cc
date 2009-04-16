@@ -98,6 +98,8 @@ hb_ot_layout_destroy (hb_ot_layout_t *layout)
  * GDEF
  */
 
+/* XXX the public class_t is a mess */
+
 hb_bool_t
 hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout)
 {
@@ -110,9 +112,9 @@ _hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout)
   return layout->new_gdef.len > 0;
 }
 
-HB_OT_LAYOUT_INTERNAL hb_ot_layout_glyph_properties_t
-_hb_ot_layout_get_glyph_properties (hb_ot_layout_t *layout,
-				    hb_codepoint_t  glyph)
+HB_OT_LAYOUT_INTERNAL unsigned int
+_hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
+				  hb_codepoint_t  glyph)
 {
   hb_ot_layout_class_t klass;
 
@@ -138,22 +140,22 @@ _hb_ot_layout_get_glyph_properties (hb_ot_layout_t *layout,
 }
 
 HB_OT_LAYOUT_INTERNAL hb_bool_t
-_hb_ot_layout_check_glyph_properties (hb_ot_layout_t                  *layout,
-				      HB_GlyphItem                     gitem,
-				      hb_ot_layout_lookup_flags_t      lookup_flags,
-				      hb_ot_layout_glyph_properties_t *property)
+_hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
+				    HB_GlyphItem    gitem,
+				    unsigned int    lookup_flags,
+				    unsigned int   *property)
 {
   hb_ot_layout_glyph_class_t basic_glyph_class;
-  hb_ot_layout_glyph_properties_t desired_attachment_class;
+  unsigned int desired_attachment_class;
 
-  if (gitem->gproperties == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+  if (gitem->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
   {
-    gitem->gproperties = *property = _hb_ot_layout_get_glyph_properties (layout, gitem->gindex);
-    if (gitem->gproperties == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
+    gitem->gproperty = *property = _hb_ot_layout_get_glyph_property (layout, gitem->gindex);
+    if (gitem->gproperty == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
       return false;
   }
 
-  *property = gitem->gproperties;
+  *property = gitem->gproperty;
 
   /* If the glyph was found in the MarkAttachmentClass table,
    * then that class value is the high byte of the result,
@@ -179,11 +181,26 @@ _hb_ot_layout_check_glyph_properties (hb_ot_layout_t                  *layout,
   if (desired_attachment_class)
   {
     if (basic_glyph_class == HB_OT_LAYOUT_GLYPH_CLASS_MARK &&
-        *property != desired_attachment_class )
+        *property != desired_attachment_class)
       return false;
   }
 
   return true;
+}
+
+HB_OT_LAYOUT_INTERNAL void
+_hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
+				  hb_codepoint_t  glyph,
+				  unsigned int    property)
+{
+  hb_ot_layout_glyph_class_t klass;
+
+  if (property & LookupFlag::MarkAttachmentType)
+    klass = HB_OT_LAYOUT_GLYPH_CLASS_MARK;
+  else
+    klass = (hb_ot_layout_glyph_class_t) property;
+
+  hb_ot_layout_set_glyph_class (layout, glyph, klass);
 }
 
 
@@ -191,15 +208,15 @@ hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
 			      hb_codepoint_t  glyph)
 {
-  hb_ot_layout_glyph_properties_t properties;
+  unsigned int property;
   hb_ot_layout_class_t klass;
 
-  properties = _hb_ot_layout_get_glyph_properties (layout, glyph);
+  property = _hb_ot_layout_get_glyph_property (layout, glyph);
 
-  if (properties & 0xFF00)
+  if (property & LookupFlag::MarkAttachmentType)
     return HB_OT_LAYOUT_GLYPH_CLASS_MARK;
 
-  return (hb_ot_layout_glyph_class_t) properties;
+  return (hb_ot_layout_glyph_class_t) property;
 }
 
 void
@@ -211,6 +228,9 @@ hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
 
   hb_ot_layout_class_t gdef_klass;
   int len = layout->new_gdef.len;
+
+  if (G_UNLIKELY (glyph > 65535))
+    return;
 
   if (glyph >= len) {
     int new_len;

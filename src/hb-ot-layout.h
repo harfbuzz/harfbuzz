@@ -91,7 +91,7 @@ typedef enum {
   HB_OT_LAYOUT_TABLE_TYPE_NONE
 } hb_ot_layout_table_type_t;
 
-typedef uint16_t hb_ot_layout_feature_mask_t;
+typedef uint32_t hb_ot_layout_feature_mask_t;
 
 #define HB_OT_LAYOUT_MAX_NESTING_LEVEL		100
 

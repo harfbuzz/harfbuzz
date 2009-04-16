@@ -105,13 +105,13 @@ struct  HB_LigGlyph_
 HB_INTERNAL HB_Error
 _HB_GDEF_Add_Glyph_Property( HB_GDEFHeader* gdef,
 		             HB_UShort      glyphID,
-		             HB_UShort      property );
+		             HB_UShort      properties );
 
 HB_INTERNAL HB_Error
 _HB_GDEF_Check_Property( HB_GDEFHeader* gdef,
 		         HB_GlyphItem   item,
 		         HB_UShort      flags,
-		         HB_UShort*     property );
+		         HB_UShort*     properties );
 
 HB_INTERNAL HB_Error
 _HB_GDEF_LoadMarkAttachClassDef_From_LookupFlags( HB_GDEFHeader* gdef,

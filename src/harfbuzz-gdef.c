@@ -1074,14 +1074,14 @@ _HB_GDEF_Check_Property( HB_GDEFHeader* gdef,
     HB_UShort basic_glyph_class;
     HB_UShort desired_attachment_class;
 
-    if ( gitem->gproperties == HB_GLYPH_PROPERTIES_UNKNOWN )
+    if ( gitem->gproperty == HB_GLYPH_PROPERTY_UNKNOWN )
     {
-      error = HB_GDEF_Get_Glyph_Property( gdef, gitem->gindex, &gitem->gproperties );
+      error = HB_GDEF_Get_Glyph_Property( gdef, gitem->gindex, &gitem->gproperty );
       if ( error )
 	return error;
     }
 
-    *property = gitem->gproperties;
+    *property = gitem->gproperty;
 
     /* If the glyph was found in the MarkAttachmentClass table,
      * then that class value is the high byte of the result,

@@ -121,7 +121,7 @@ HB_Error  HB_Done_GDEF_Table ( HB_GDEFHeader* gdef );
 
 HB_Error  HB_GDEF_Get_Glyph_Property( HB_GDEFHeader*  gdef,
 				      HB_UShort        glyphID,
-				      HB_UShort*       property );
+				      HB_UShort*       properties );
 
 HB_Error  HB_GDEF_Build_ClassDefinition( HB_GDEFHeader*  gdef,
 					 HB_UShort        num_glyphs,

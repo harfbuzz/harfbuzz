@@ -187,7 +187,7 @@ hb_buffer_add_glyph( HB_Buffer buffer,
   glyph->cluster = cluster;
   glyph->component = 0;
   glyph->ligID = 0;
-  glyph->gproperties = HB_GLYPH_PROPERTIES_UNKNOWN;
+  glyph->gproperty = HB_GLYPH_PROPERTY_UNKNOWN;
   
   buffer->in_length++;
 
@@ -304,7 +304,7 @@ _hb_buffer_add_output_glyphs( HB_Buffer  buffer,
     item->cluster = cluster;
     item->component = component;
     item->ligID = ligID;
-    item->gproperties = HB_GLYPH_PROPERTIES_UNKNOWN;
+    item->gproperty = HB_GLYPH_PROPERTY_UNKNOWN;
   }
 
   buffer->in_pos  += num_in;
