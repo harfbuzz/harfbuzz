@@ -63,9 +63,7 @@ struct SingleSubstFormat1 {
 
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
 
-    unsigned int index;
-
-    index = get_glyph_coverage (glyph_id);
+    unsigned int index = get_glyph_coverage (glyph_id);
     if (NOT_COVERED == index)
       return false;
 
@@ -93,9 +91,7 @@ struct SingleSubstFormat2 {
 
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
 
-    unsigned int index;
-
-    index = get_glyph_coverage (glyph_id);
+    unsigned int index = get_glyph_coverage (glyph_id);
 
     if (index >= glyphCount)
       return false;
@@ -131,18 +127,16 @@ struct SingleSubst {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    hb_codepoint_t glyph_id;
-    unsigned int property;
-
     HB_UNUSED (nesting_level_left);
 
     if (HB_UNLIKELY (context_length < 1))
       return false;
 
+    unsigned int property;
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
-    glyph_id = IN_CURGLYPH ();
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     switch (u.substFormat) {
     case 1: if (!u.format1.single_substitute (glyph_id)) return false;
@@ -180,9 +174,9 @@ struct Sequence {
   DEFINE_OFFSET_ARRAY_TYPE (GlyphID, substitute, glyphCount);
 
   inline void set_glyph_class (hb_ot_layout_t *layout, unsigned int property) const {
-    unsigned int n, count = glyphCount;
 
-    for (n = 0; n < count; n++)
+    unsigned int count = glyphCount;
+    for (unsigned int n = 0; n < count; n++)
       _hb_ot_layout_set_glyph_property (layout, substitute[n], property);
   }
 
@@ -206,21 +200,18 @@ struct MultipleSubstFormat1 {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    hb_codepoint_t glyph_id;
-    unsigned int index;
-    unsigned int property;
-
     HB_UNUSED (nesting_level_left);
 
     if (HB_UNLIKELY (context_length < 1))
       return false;
 
+    unsigned int property;
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
-    glyph_id = IN_CURGLYPH ();
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    index = get_glyph_coverage (glyph_id);
+    unsigned int index = get_glyph_coverage (glyph_id);
 
     const Sequence &seq = (*this)[index];
 
@@ -311,21 +302,18 @@ struct AlternateSubstFormat1 {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    hb_codepoint_t glyph_id;
-    unsigned int index;
-    unsigned int property;
-
     HB_UNUSED (nesting_level_left);
 
     if (HB_UNLIKELY (context_length < 1))
       return false;
 
+    unsigned int property;
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
-    glyph_id = IN_CURGLYPH ();
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    index = get_glyph_coverage (glyph_id);
+    unsigned int index = get_glyph_coverage (glyph_id);
 
     const AlternateSet &alt_set = (*this)[index];
 
@@ -423,7 +411,42 @@ struct LigatureSet {
 DEFINE_NULL_ASSERT_SIZE (LigatureSet, 2);
 
 struct LigatureSubstFormat1 {
-  /* TODO */
+
+  friend struct LigatureSubst;
+
+  private:
+  /* LigatureSet tables, in Coverage Index order */
+  DEFINE_OFFSET_ARRAY_TYPE (LigatureSet, ligatureSet, ligSetCount);
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
+  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+
+    HB_UNUSED (nesting_level_left);
+
+    unsigned int property;
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
+
+    unsigned int index = get_glyph_coverage (glyph_id);
+
+    const LigatureSet &lig_set = (*this)[index];
+
+    bool first_is_mark = (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
+			  property &  LookupFlag::MarkAttachmentType);
+
+    unsigned int num_sets = get_len ();
+    for (unsigned int i = 0; i < num_sets; i++) {
+
+      const LigatureSet &lig_set = (*this)[i];
+
+
+    }
+
+    return false;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -436,6 +459,34 @@ struct LigatureSubstFormat1 {
 					 * Coverage Index */
 };
 ASSERT_SIZE (LigatureSubstFormat1, 6);
+
+struct LigatureSubst {
+
+  friend struct SubstLookupSubTable;
+
+  private:
+
+  unsigned int get_size (void) const {
+    switch (u.substFormat) {
+    case 1: return sizeof (u.format1);
+    default:return sizeof (u.substFormat);
+    }
+  }
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    switch (u.substFormat) {
+    case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT	substFormat;	/* Format identifier */
+  LigatureSubstFormat1	format1;
+  } u;
+};
+DEFINE_NULL (LigatureSubst, 2);
 
 
 struct SubstLookupRecord {
@@ -805,8 +856,8 @@ struct SubstLookupSubTable {
     case GSUB_Single:				return u.single.get_size ();
     case GSUB_Multiple:				return u.multiple.get_size ();
     case GSUB_Alternate:			return u.alternate.get_size ();
+    case GSUB_Ligature:				return u.ligature.get_size ();
    /*
-    case GSUB_Ligature:
     case GSUB_Context:
     case GSUB_ChainingContext:
    */
@@ -824,14 +875,14 @@ struct SubstLookupSubTable {
     case GSUB_Single:				return u.single.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     case GSUB_Multiple:				return u.multiple.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     case GSUB_Alternate:			return u.alternate.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case GSUB_Ligature:				return u.ligature.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     /*
-    case GSUB_Ligature:
-    case GSUB_Context:
-    case GSUB_ChainingContext:
+    case GSUB_Context:				return u.context.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case GSUB_ChainingContext:			return u.chainingContext.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     */
     case GSUB_Extension:			return u.extension.substitute (SUBTABLE_SUBSTITUTE_ARGS);
 			/*
-    case GSUB_ReverseChainingContextSingle:
+    case GSUB_ReverseChainingContextSingle:	return u.reverseChainingContextSingle.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     */
     default:return false;
     }
@@ -839,12 +890,19 @@ struct SubstLookupSubTable {
 
   private:
   union {
-  USHORT		substFormat;
-  SingleSubst		single;
-  MultipleSubst		multiple;
-  AlternateSubst	alternate;
-
-  ExtensionSubst	extension;
+  USHORT				substFormat;
+  SingleSubst				single;
+  MultipleSubst				multiple;
+  AlternateSubst			alternate;
+  LigatureSubst				ligature;
+  /*
+  ContextSubst				context;
+  ChainingContextSubst			chainingContext;
+  */
+  ExtensionSubst			extension;
+  /*
+  ReverseChainingContextSingleSubst	reverseChainingContextSingle;
+  */
   } u;
 };
 
@@ -914,7 +972,7 @@ struct SubstLookup : Lookup {
 
     bool ret = false;
 
-    if (!is_reverse ()) {
+    if (HB_LIKELY (!is_reverse ())) {
 
 	/* in/out forward substitution */
 	_hb_buffer_clear_output (buffer);

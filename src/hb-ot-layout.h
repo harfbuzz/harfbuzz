@@ -47,7 +47,7 @@ hb_ot_layout_create_for_data (const char *font_data,
 void
 hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
-/* TODO sanitizing API/constructor (make_wrieable_func_t) */
+/* TODO sanitizing API/constructor (make_writable_func_t) */
 /* TODO get_table_func_t constructor */
 
 /*
