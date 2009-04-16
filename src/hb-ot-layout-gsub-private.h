@@ -808,7 +808,7 @@ struct SubstLookup : Lookup {
 	  else
 	    buffer->in_pos--;
 
-	} while (buffer->in_pos);
+	} while ((int) buffer->in_pos >= 0);
     }
 
     return ret;
