@@ -221,10 +221,12 @@ struct MultipleSubstFormat1 {
     glyph_id = IN_CURGLYPH ();
 
     index = get_glyph_coverage (glyph_id);
-    if (index >= sequenceCount)
-      return false;
 
     const Sequence &seq = (*this)[index];
+
+    if (HB_UNLIKELY (!seq.get_len ()))
+      return false;
+
     _hb_buffer_add_output_glyph_ids (buffer, 1,
 				     seq.glyphCount, seq.substitute,
 				     0xFFFF, 0xFFFF);
@@ -285,7 +287,9 @@ DEFINE_NULL (MultipleSubst, 2);
 
 
 struct AlternateSet {
-  /* TODO */
+
+  /* GlyphIDs, in no particular order */
+  DEFINE_ARRAY_TYPE (GlyphID, alternate, glyphCount);
 
   private:
   USHORT	glyphCount;		/* Number of GlyphIDs in the Alternate
@@ -296,7 +300,62 @@ struct AlternateSet {
 DEFINE_NULL_ASSERT_SIZE (AlternateSet, 2);
 
 struct AlternateSubstFormat1 {
-  /* TODO */
+
+  friend struct AlternateSubst;
+
+  private:
+  /* AlternateSet tables, in Coverage Index order */
+  DEFINE_OFFSET_ARRAY_TYPE (AlternateSet, alternateSet, alternateSetCount);
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
+  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+
+    hb_codepoint_t glyph_id;
+    unsigned int index;
+    unsigned int property;
+
+    HB_UNUSED (nesting_level_left);
+
+    if (HB_UNLIKELY (context_length < 1))
+      return false;
+
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
+    glyph_id = IN_CURGLYPH ();
+
+    index = get_glyph_coverage (glyph_id);
+
+    const AlternateSet &alt_set = (*this)[index];
+
+    if (HB_UNLIKELY (!alt_set.get_len ()))
+      return false;
+
+    unsigned int alt_index = 0;
+
+    /* XXX callback to user to choose alternate
+    if ( gsub->altfunc )
+      alt_index = (gsub->altfunc)( buffer->out_pos, glyph_id,
+				   aset.GlyphCount, aset.Alternate,
+				   gsub->data );
+				   */
+
+    if (HB_UNLIKELY (alt_index >= alt_set.get_len ()))
+      return false;
+
+    glyph_id = alt_set[alt_index];
+
+    _hb_buffer_replace_output_glyph (buffer, glyph_id, context_length == NO_CONTEXT);
+
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+    {
+      /* we inherit the old glyph class to the substituted glyph */
+      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    }
+
+    return true;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -309,6 +368,34 @@ struct AlternateSubstFormat1 {
 					 * Coverage Index */
 };
 ASSERT_SIZE (AlternateSubstFormat1, 6);
+
+struct AlternateSubst {
+
+  friend struct SubstLookupSubTable;
+
+  private:
+
+  unsigned int get_size (void) const {
+    switch (u.substFormat) {
+    case 1: return sizeof (u.format1);
+    default:return sizeof (u.substFormat);
+    }
+  }
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    switch (u.substFormat) {
+    case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT	substFormat;	/* Format identifier */
+  AlternateSubstFormat1	format1;
+  } u;
+};
+DEFINE_NULL (AlternateSubst, 2);
 
 
 struct Ligature {
@@ -716,9 +803,9 @@ struct SubstLookupSubTable {
   unsigned int get_size (unsigned int lookup_type) const {
     switch (lookup_type) {
     case GSUB_Single:				return u.single.get_size ();
-    case GSUB_Multiple:			return u.multiple.get_size ();
-  /*
-    case GSUB_Alternate:
+    case GSUB_Multiple:				return u.multiple.get_size ();
+    case GSUB_Alternate:			return u.alternate.get_size ();
+   /*
     case GSUB_Ligature:
     case GSUB_Context:
     case GSUB_ChainingContext:
@@ -736,8 +823,8 @@ struct SubstLookupSubTable {
     switch (lookup_type) {
     case GSUB_Single:				return u.single.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     case GSUB_Multiple:				return u.multiple.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case GSUB_Alternate:			return u.alternate.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     /*
-    case GSUB_Alternate:
     case GSUB_Ligature:
     case GSUB_Context:
     case GSUB_ChainingContext:
@@ -755,6 +842,7 @@ struct SubstLookupSubTable {
   USHORT		substFormat;
   SingleSubst		single;
   MultipleSubst		multiple;
+  AlternateSubst	alternate;
 
   ExtensionSubst	extension;
   } u;

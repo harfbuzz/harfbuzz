@@ -822,7 +822,7 @@ struct ClassDefFormat1 {
   friend struct ClassDef;
 
   private:
-  /* GlyphIDs, in sorted numerical order */
+  /* Class Values, in sorted numerical order */
   DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
 
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
