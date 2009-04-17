@@ -60,3 +60,5 @@ EXTRA_DIST = 		\
 	README		\
 	COPYING		\
 	$(INCLUDEDSOURCES)
+
+-include $(top_srcdir)/git.mk
