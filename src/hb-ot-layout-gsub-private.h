@@ -125,6 +125,14 @@ struct SingleSubst {
     }
   }
 
+  inline bool single_substitute (hb_codepoint_t &glyph_id) const {
+    switch (u.substFormat) {
+    case 1: return u.format1.single_substitute (glyph_id);
+    case 2: return u.format2.single_substitute (glyph_id);
+    default:return false;
+    }
+  }
+
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
     HB_UNUSED (nesting_level_left);
@@ -138,11 +146,8 @@ struct SingleSubst {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    switch (u.substFormat) {
-    case 1: if (!u.format1.single_substitute (glyph_id)) return false;
-    case 2: if (!u.format2.single_substitute (glyph_id)) return false;
-    default:return false;
-    }
+    if (!single_substitute (glyph_id))
+      return false;
 
     _hb_buffer_replace_output_glyph (buffer, glyph_id, context_length == NO_CONTEXT);
 
