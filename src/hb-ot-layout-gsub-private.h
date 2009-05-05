@@ -44,7 +44,7 @@
 	hb_ot_layout_t *layout, \
 	hb_buffer_t    *buffer, \
 	unsigned int    context_length, \
-	unsigned int    nesting_level_left, \
+	unsigned int    nesting_level_left HB_GNUC_UNUSED, \
 	unsigned int    lookup_flag
 #define SUBTABLE_SUBSTITUTE_ARGS \
 	layout, \
@@ -135,8 +135,6 @@ struct SingleSubst {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    HB_UNUSED (nesting_level_left);
-
     if (HB_UNLIKELY (context_length < 1))
       return false;
 
@@ -204,8 +202,6 @@ struct MultipleSubstFormat1 {
   DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
-
-    HB_UNUSED (nesting_level_left);
 
     if (HB_UNLIKELY (context_length < 1))
       return false;
@@ -307,8 +303,6 @@ struct AlternateSubstFormat1 {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    HB_UNUSED (nesting_level_left);
-
     if (HB_UNLIKELY (context_length < 1))
       return false;
 
@@ -392,7 +386,77 @@ DEFINE_NULL (AlternateSubst, 2);
 
 
 struct Ligature {
-  /* TODO */
+
+  friend struct LigatureSet;
+
+  private:
+  DEFINE_ARRAY_TYPE (GlyphID, component, (compCount ? compCount - 1 : 0));
+
+  inline bool substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS_DEF, bool is_mark) const {
+
+    unsigned int i, j;
+    unsigned int property;
+    unsigned int count = compCount;
+
+    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
+		     context_length < count))
+      return false; /* Not enough glyphs in input or context */
+
+    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
+      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+	if (HB_UNLIKELY (j + count - i == buffer->in_length))
+	  return false;
+	j++;
+      }
+
+      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
+	    property &  LookupFlag::MarkAttachmentType))
+	is_mark = FALSE;
+
+      if (HB_LIKELY (IN_GLYPH(j) != (*this)[i - 1]))
+        return false;
+    }
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+      /* this is just a guess ... */
+      hb_ot_layout_set_glyph_class (layout, ligGlyph,
+				    is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK
+					    : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
+
+    if (j == buffer->in_pos + i) /* No input glyphs skipped */
+      /* We don't use a new ligature ID if there are no skipped
+	 glyphs and the ligature already has an ID. */
+      _hb_buffer_add_output_glyph_ids (buffer, i,
+				       1, &ligGlyph,
+				       0xFFFF,
+				       IN_LIGID (buffer->in_pos) ?
+				       0xFFFF : _hb_buffer_allocate_ligid (buffer));
+    else
+    {
+      unsigned int lig_id = _hb_buffer_allocate_ligid (buffer);
+      _hb_buffer_add_output_glyph (buffer, ligGlyph, 0xFFFF, lig_id);
+
+      /* Now we must do a second loop to copy the skipped glyphs to
+	 `out' and assign component values to it.  We start with the
+	 glyph after the first component.  Glyphs between component
+	 i and i+1 belong to component i.  Together with the lig_id
+	 value it is later possible to check whether a specific
+	 component value really belongs to a given ligature. */
+
+      for ( i = 0; i < count - 1; i++ )
+      {
+	while (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM(), lookup_flag, &property))
+	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH(), i, lig_id);
+
+	(buffer->in_pos)++;
+      }
+
+      /* XXX We  should possibly reassign lig_id and component for any
+       * components of a previous ligature that s now being removed as part of
+       * this ligature. */
+    }
+
+    return true;
+  }
 
   private:
   GlyphID	ligGlyph;		/* GlyphID of ligature to substitute */
@@ -404,7 +468,23 @@ struct Ligature {
 DEFINE_NULL_ASSERT_SIZE (Ligature, 4);
 
 struct LigatureSet {
-  /* TODO */
+
+  friend struct LigatureSubstFormat1;
+
+  private:
+  DEFINE_OFFSET_ARRAY_TYPE (Ligature, ligature, ligatureCount);
+
+  inline bool substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS_DEF, bool is_mark) const {
+
+    unsigned int num_ligs = get_len ();
+    for (unsigned int i = 0; i < num_ligs; i++) {
+      const Ligature &lig = (*this)[i];
+      if (lig.substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS, is_mark))
+        return true;
+    }
+
+    return false;
+  }
 
   private:
   USHORT	ligatureCount;		/* Number of Ligature tables */
@@ -427,8 +507,6 @@ struct LigatureSubstFormat1 {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    HB_UNUSED (nesting_level_left);
-
     unsigned int property;
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
@@ -437,20 +515,11 @@ struct LigatureSubstFormat1 {
 
     unsigned int index = get_glyph_coverage (glyph_id);
 
-    const LigatureSet &lig_set = (*this)[index];
-
     bool first_is_mark = (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
 			  property &  LookupFlag::MarkAttachmentType);
 
-    unsigned int num_sets = get_len ();
-    for (unsigned int i = 0; i < num_sets; i++) {
-
-      const LigatureSet &lig_set = (*this)[i];
-
-
-    }
-
-    return false;
+    const LigatureSet &lig_set = (*this)[index];
+    return lig_set.substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS, first_is_mark);
   }
 
   private:

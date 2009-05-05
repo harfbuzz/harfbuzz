@@ -57,6 +57,8 @@ harfbuzz_dump_LDADD = \
 	$(libharfbuzz_1_la_LIBADD) \
 	libharfbuzz-1.la
 
+main_SOURCES = \
+	main.cc
 main_LDADD = \
 	$(GLIB_LIBS)
 
