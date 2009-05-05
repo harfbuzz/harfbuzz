@@ -183,6 +183,28 @@ struct Sequence {
       _hb_ot_layout_set_glyph_property (layout, substitute[n], property);
   }
 
+  inline bool substitute_sequence (SUBTABLE_SUBSTITUTE_ARGS_DEF, unsigned int property) const {
+
+    if (HB_UNLIKELY (!get_len ()))
+      return false;
+
+    _hb_buffer_add_output_glyph_ids (buffer, 1,
+				     glyphCount, substitute,
+				     0xFFFF, 0xFFFF);
+
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+    {
+      /* this is a guess only ... */
+
+      if ( property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE )
+        property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
+
+      set_glyph_class (layout, property);
+    }
+
+    return true;
+  }
+
   private:
   USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
 					 * array. This should always  be
@@ -215,25 +237,7 @@ struct MultipleSubstFormat1 {
     unsigned int index = get_glyph_coverage (glyph_id);
 
     const Sequence &seq = (*this)[index];
-
-    if (HB_UNLIKELY (!seq.get_len ()))
-      return false;
-
-    _hb_buffer_add_output_glyph_ids (buffer, 1,
-				     seq.glyphCount, seq.substitute,
-				     0xFFFF, 0xFFFF);
-
-    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
-    {
-      /* this is a guess only ... */
-
-      if ( property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE )
-        property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
-
-      seq.set_glyph_class (layout, property);
-    }
-
-    return true;
+    return seq.substitute_sequence (SUBTABLE_SUBSTITUTE_ARGS, property);
   }
 
   private:
