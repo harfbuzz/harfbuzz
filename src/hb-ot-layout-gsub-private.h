@@ -578,8 +578,64 @@ struct SubstLookupRecord {
 };
 DEFINE_NULL_ASSERT_SIZE (SubstLookupRecord, 4);
 
+struct SubRule {
+
+  friend struct SubRuleSet;
+
+  private:
+  DEFINE_ARRAY_TYPE (GlyphID, input, (glyphCount ? glyphCount - 1 : 0));
+  /* XXX */
+
+  private:
+  USHORT	glyphCount;		/* Total number of glyphs in input
+					 * glyph sequence--includes the  first
+					 * glyph */
+  USHORT	substCount;		/* Number of SubstLookupRecords */
+  GlyphID	input[];		/* Array of input GlyphIDs--start with
+					 * second glyph */
+  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
+					 * design order */
+};
+DEFINE_NULL_ASSERT_SIZE (SubRule, 4);
+
+struct SubRuleSet {
+
+  friend struct ChainSubstFormat1;
+
+  private:
+  DEFINE_OFFSET_ARRAY_TYPE (SubRule, subRule, subRuleCount);
+
+  private:
+  USHORT	subRuleCount;		/* Number of SubRule tables */
+  Offset	subRule[];		/* Array of offsets to SubRule
+					 * tables--from beginning of SubRuleSet
+					 * table--ordered by preference */
+};
+DEFINE_NULL_ASSERT_SIZE (SubRuleSet, 2);
+
 struct ContextSubstFormat1 {
-  /* TODO */
+
+  friend struct ContextSubst;
+
+  private:
+  /* SubRuleSet tables, in Coverage Index order */
+  DEFINE_OFFSET_ARRAY_TYPE (SubRuleSet, subRuleSet, subRuleSetCount);
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
+  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+
+    unsigned int property;
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
+
+    unsigned int index = get_glyph_coverage (glyph_id);
+
+    //const SubRuleSet &lig_set = (*this)[index];
+    //return lig_set.substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS, first_is_mark);
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -594,34 +650,15 @@ struct ContextSubstFormat1 {
 };
 ASSERT_SIZE (ContextSubstFormat1, 6);
 
-struct SubRuleSet {
-  /* TODO */
-
-  private:
-  USHORT	subRuleCount;		/* Number of SubRule tables */
-  Offset	subRule[];		/* Array of offsets to SubRule
-					 * tables--from beginning of SubRuleSet
-					 * table--ordered by preference */
-};
-DEFINE_NULL_ASSERT_SIZE (SubRuleSet, 2);
-
-struct SubRule {
-  /* TODO */
-
-  private:
-  USHORT	glyphCount;		/* Total number of glyphs in input
-					 * glyph sequence--includes the  first
-					 * glyph */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
-  GlyphID	input[];		/* Array of input GlyphIDs--start with
-					 * second glyph */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
-					 * design order */
-};
-DEFINE_NULL_ASSERT_SIZE (SubRule, 4);
-
 struct ContextSubstFormat2 {
-  /* TODO */
+
+  friend struct ContextSubst;
+
+  private:
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    return false;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 2 */
@@ -665,7 +702,14 @@ struct SubClassRule {
 DEFINE_NULL_ASSERT_SIZE (SubClassRule, 4);
 
 struct ContextSubstFormat3 {
-  /* TODO */
+
+  friend struct ContextSubst;
+
+  private:
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    return false;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 3 */
@@ -680,6 +724,41 @@ struct ContextSubstFormat3 {
 					 * design order */
 };
 ASSERT_SIZE (ContextSubstFormat3, 6);
+
+struct ContextSubst {
+
+  friend struct SubstLookupSubTable;
+
+  private:
+
+  unsigned int get_size (void) const {
+    switch (u.substFormat) {
+    case 1: return sizeof (u.format1);
+    case 2: return sizeof (u.format2);
+    case 3: return sizeof (u.format3);
+    default:return sizeof (u.substFormat);
+    }
+  }
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    switch (u.substFormat) {
+    case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case 2: return u.format2.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case 3: return u.format3.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT	substFormat;	/* Format identifier */
+  ContextSubstFormat1	format1;
+  ContextSubstFormat2	format2;
+  ContextSubstFormat3	format3;
+  } u;
+};
+DEFINE_NULL (ContextSubst, 2);
+
 
 struct ChainContextSubstFormat1 {
   /* TODO */
@@ -935,8 +1014,8 @@ struct SubstLookupSubTable {
     case GSUB_Multiple:				return u.multiple.get_size ();
     case GSUB_Alternate:			return u.alternate.get_size ();
     case GSUB_Ligature:				return u.ligature.get_size ();
-   /*
     case GSUB_Context:
+   /*
     case GSUB_ChainingContext:
    */
     case GSUB_Extension:			return u.extension.get_size ();
@@ -954,8 +1033,8 @@ struct SubstLookupSubTable {
     case GSUB_Multiple:				return u.multiple.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     case GSUB_Alternate:			return u.alternate.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     case GSUB_Ligature:				return u.ligature.substitute (SUBTABLE_SUBSTITUTE_ARGS);
-    /*
     case GSUB_Context:				return u.context.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    /*
     case GSUB_ChainingContext:			return u.chainingContext.substitute (SUBTABLE_SUBSTITUTE_ARGS);
     */
     case GSUB_Extension:			return u.extension.substitute (SUBTABLE_SUBSTITUTE_ARGS);
@@ -973,8 +1052,8 @@ struct SubstLookupSubTable {
   MultipleSubst				multiple;
   AlternateSubst			alternate;
   LigatureSubst				ligature;
-  /*
   ContextSubst				context;
+  /*
   ChainingContextSubst			chainingContext;
   */
   ExtensionSubst			extension;
