@@ -768,7 +768,8 @@ struct CoverageFormat2 {
 
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     // TODO: bsearch
-    for (unsigned int i = 0; i < rangeCount; i++) {
+    unsigned int count = rangeCount;
+    for (unsigned int i = 0; i < count; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
       if (coverage >= 0)
         return coverage;
@@ -867,7 +868,8 @@ struct ClassDefFormat2 {
 
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     // TODO: bsearch
-    for (unsigned int i = 0; i < rangeCount; i++) {
+    unsigned int count = rangeCount;
+    for (unsigned int i = 0; i < count; i++) {
       int classValue = rangeRecord[i].get_class (glyph_id);
       if (classValue > 0)
         return classValue;
