@@ -568,9 +568,6 @@ DEFINE_NULL (LigatureSubst, 2);
 
 
 struct SubstLookupRecord {
-  /* TODO */
-
-  private:
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
@@ -584,7 +581,36 @@ struct SubRule {
 
   private:
   DEFINE_ARRAY_TYPE (GlyphID, input, (glyphCount ? glyphCount - 1 : 0));
-  /* XXX */
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+
+    unsigned int i, j;
+    unsigned int property;
+    unsigned int count = glyphCount;
+
+    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
+		     context_length < count))
+      return false; /* Not enough glyphs in input or context */
+
+    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
+      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+	if (HB_UNLIKELY (j + count - i == buffer->in_length))
+	  return false;
+	j++;
+      }
+
+      if (HB_LIKELY (IN_GLYPH(j) != (*this)[i - 1]))
+        return false;
+    }
+
+    /*
+    return Do_ContextSubst( gsub, sr[k].GlyphCount,
+			    sr[k].SubstCount, sr[k].SubstLookupRecord,
+			    buffer,
+			    nesting_level );
+			    */
+  }
+
 
   private:
   USHORT	glyphCount;		/* Total number of glyphs in input
@@ -600,10 +626,22 @@ DEFINE_NULL_ASSERT_SIZE (SubRule, 4);
 
 struct SubRuleSet {
 
-  friend struct ChainSubstFormat1;
+  friend struct ContextSubstFormat1;
 
   private:
   DEFINE_OFFSET_ARRAY_TYPE (SubRule, subRule, subRuleCount);
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+
+    unsigned int num_rules = get_len ();
+    for (unsigned int i = 0; i < num_rules; i++) {
+      const SubRule &rule = (*this)[i];
+      if (rule.substitute (SUBTABLE_SUBSTITUTE_ARGS))
+        return true;
+    }
+
+    return false;
+  }
 
   private:
   USHORT	subRuleCount;		/* Number of SubRule tables */
@@ -633,8 +671,8 @@ struct ContextSubstFormat1 {
 
     unsigned int index = get_glyph_coverage (glyph_id);
 
-    //const SubRuleSet &lig_set = (*this)[index];
-    //return lig_set.substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS, first_is_mark);
+    const SubRuleSet &rule_set = (*this)[index];
+    return rule_set.substitute (SUBTABLE_SUBSTITUTE_ARGS);
   }
 
   private:
