@@ -650,6 +650,33 @@ struct ContextSubstFormat1 {
 };
 ASSERT_SIZE (ContextSubstFormat1, 6);
 
+struct SubClassRule {
+  /* TODO */
+
+  private:
+  USHORT	glyphCount;		/* Total number of classes
+					 * specified for the context in the
+					 * rule--includes the first class */
+  USHORT	substCount;		/* Number of SubstLookupRecords */
+  USHORT	klass[];		/* Array of classes--beginning with the
+					 * second class--to be matched  to the
+					 * input glyph class sequence */
+  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
+					 * design order */
+};
+DEFINE_NULL_ASSERT_SIZE (SubClassRule, 4);
+
+struct SubClassSet {
+  /* TODO */
+
+  private:
+  USHORT	subClassRuleCnt;	/* Number of SubClassRule tables */
+  Offset	subClassRule[];		/* Array of offsets to SubClassRule
+					 * tables--from beginning of
+					 * SubClassSet--ordered by preference */
+};
+DEFINE_NULL_ASSERT_SIZE (SubClassSet, 2);
+
 struct ContextSubstFormat2 {
 
   friend struct ContextSubst;
@@ -673,33 +700,6 @@ struct ContextSubstFormat2 {
 					 * class--may be NULL */
 };
 ASSERT_SIZE (ContextSubstFormat2, 8);
-
-struct SubClassSet {
-  /* TODO */
-
-  private:
-  USHORT	subClassRuleCnt;	/* Number of SubClassRule tables */
-  Offset	subClassRule[];		/* Array of offsets to SubClassRule
-					 * tables--from beginning of
-					 * SubClassSet--ordered by preference */
-};
-DEFINE_NULL_ASSERT_SIZE (SubClassSet, 2);
-
-struct SubClassRule {
-  /* TODO */
-
-  private:
-  USHORT	glyphCount;		/* Total number of classes
-					 * specified for the context in the
-					 * rule--includes the first class */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
-  USHORT	klass[];		/* Array of classes--beginning with the
-					 * second class--to be matched  to the
-					 * input glyph class sequence */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
-					 * design order */
-};
-DEFINE_NULL_ASSERT_SIZE (SubClassRule, 4);
 
 struct ContextSubstFormat3 {
 
@@ -760,35 +760,6 @@ struct ContextSubst {
 DEFINE_NULL (ContextSubst, 2);
 
 
-struct ChainContextSubstFormat1 {
-  /* TODO */
-
-  private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
-					 * beginning of Substitution table */
-  USHORT	chainSubRuleSetCount;	/* Number of ChainSubRuleSet
-					 * tables--must equal GlyphCount in
-					 * Coverage table */
-  Offset	chainSubRuleSet[];	/* Array of offsets to ChainSubRuleSet
-					 * tables--from beginning of
-					 * Substitution table--ordered by
-					 * Coverage Index */
-};
-ASSERT_SIZE (ChainContextSubstFormat1, 6);
-
-struct ChainSubRuleSet {
-  /* TODO */
-
-  private:
-  USHORT	chainSubRuleCount;	/* Number of ChainSubRule tables */
-  Offset	chainSubRule[];		/* Array of offsets to ChainSubRule
-					 * tables--from beginning of
-					 * ChainSubRuleSet table--ordered
-					 * by preference */
-};
-DEFINE_NULL_ASSERT_SIZE (ChainSubRuleSet, 2);
-
 struct ChainSubRule {
   /* TODO */
 
@@ -815,45 +786,34 @@ struct ChainSubRule {
 };
 DEFINE_NULL_ASSERT_SIZE (ChainSubRule, 8);
 
-struct ChainContextSubstFormat2 {
+struct ChainSubRuleSet {
   /* TODO */
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 2 */
+  USHORT	chainSubRuleCount;	/* Number of ChainSubRule tables */
+  Offset	chainSubRule[];		/* Array of offsets to ChainSubRule
+					 * tables--from beginning of
+					 * ChainSubRuleSet table--ordered
+					 * by preference */
+};
+DEFINE_NULL_ASSERT_SIZE (ChainSubRuleSet, 2);
+
+struct ChainContextSubstFormat1 {
+  /* TODO */
+
+  private:
+  USHORT	substFormat;		/* Format identifier--format = 1 */
   Offset	coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  Offset	backtrackClassDef;	/* Offset to glyph ClassDef table
-					 * containing backtrack sequence
-					 * data--from beginning of Substitution
-					 * table */
-  Offset	inputClassDef;		/* Offset to glyph ClassDef
-					 * table containing input sequence
-					 * data--from beginning of Substitution
-					 * table */
-  Offset	lookaheadClassDef;	/* Offset to glyph ClassDef table
-					 * containing lookahead sequence
-					 * data--from beginning of Substitution
-					 * table */
-  USHORT	chainSubClassSetCnt;	/* Number of ChainSubClassSet tables */
-  Offset	chainSubClassSet[];	/* Array of offsets to ChainSubClassSet
+  USHORT	chainSubRuleSetCount;	/* Number of ChainSubRuleSet
+					 * tables--must equal GlyphCount in
+					 * Coverage table */
+  Offset	chainSubRuleSet[];	/* Array of offsets to ChainSubRuleSet
 					 * tables--from beginning of
-					 * Substitution table--ordered by input
-					 * class--may be NULL */
+					 * Substitution table--ordered by
+					 * Coverage Index */
 };
-ASSERT_SIZE (ChainContextSubstFormat2, 12);
-
-struct ChainSubClassSet {
-  /* TODO */
-
-  private:
-  USHORT	chainSubClassRuleCnt;	/* Number of ChainSubClassRule tables */
-  Offset	chainSubClassRule[];	/* Array of offsets
-					 * to ChainSubClassRule
-					 * tables--from beginning of
-					 * ChainSubClassSet--ordered by
-					 * preference */
-};
-DEFINE_NULL_ASSERT_SIZE (ChainSubClassSet, 2);
+ASSERT_SIZE (ChainContextSubstFormat1, 6);
 
 struct ChainSubClassRule {
   /* TODO */
@@ -881,6 +841,46 @@ struct ChainSubClassRule {
 					 * design order) */
 };
 DEFINE_NULL_ASSERT_SIZE (ChainSubClassRule, 8);
+
+struct ChainSubClassSet {
+  /* TODO */
+
+  private:
+  USHORT	chainSubClassRuleCnt;	/* Number of ChainSubClassRule tables */
+  Offset	chainSubClassRule[];	/* Array of offsets
+					 * to ChainSubClassRule
+					 * tables--from beginning of
+					 * ChainSubClassSet--ordered by
+					 * preference */
+};
+DEFINE_NULL_ASSERT_SIZE (ChainSubClassSet, 2);
+
+struct ChainContextSubstFormat2 {
+  /* TODO */
+
+  private:
+  USHORT	substFormat;		/* Format identifier--format = 2 */
+  Offset	coverage;		/* Offset to Coverage table--from
+					 * beginning of Substitution table */
+  Offset	backtrackClassDef;	/* Offset to glyph ClassDef table
+					 * containing backtrack sequence
+					 * data--from beginning of Substitution
+					 * table */
+  Offset	inputClassDef;		/* Offset to glyph ClassDef
+					 * table containing input sequence
+					 * data--from beginning of Substitution
+					 * table */
+  Offset	lookaheadClassDef;	/* Offset to glyph ClassDef table
+					 * containing lookahead sequence
+					 * data--from beginning of Substitution
+					 * table */
+  USHORT	chainSubClassSetCnt;	/* Number of ChainSubClassSet tables */
+  Offset	chainSubClassSet[];	/* Array of offsets to ChainSubClassSet
+					 * tables--from beginning of
+					 * Substitution table--ordered by input
+					 * class--may be NULL */
+};
+ASSERT_SIZE (ChainContextSubstFormat2, 12);
 
 struct ChainContextSubstFormat3 {
   /* TODO */
@@ -1067,6 +1067,8 @@ struct SubstLookupSubTable {
 /* Out-of-class implementation for methods chaining */
 
 inline bool ExtensionSubstFormat1::substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+  /* XXX either check in sanitize or here that the lookuptype is not 7 again,
+   * or we can loop indefinitely. */
   return (*(SubstLookupSubTable *)(((char *) this) + extensionOffset)).substitute (SUBTABLE_SUBSTITUTE_ARGS,
 										   get_type ());
 }
