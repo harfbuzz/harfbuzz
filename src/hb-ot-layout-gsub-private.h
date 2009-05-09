@@ -997,7 +997,6 @@ enum {
 };
 
 struct SubstLookupSubTable {
-  DEFINE_NON_INSTANTIABLE(SubstLookupSubTable);
 
   friend struct SubstLookup;
 
@@ -1051,8 +1050,6 @@ inline bool ExtensionSubstFormat1::substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) con
 
 
 struct SubstLookup : Lookup {
-
-  DEFINE_NON_INSTANTIABLE(SubstLookup);
 
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const {
     return *(SubstLookupSubTable*)&(((Lookup *)this)->get_subtable (i));

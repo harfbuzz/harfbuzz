@@ -184,12 +184,6 @@
  * Class features
  */
 
-/* makes class uninstantiable.  should be used for union classes that don't
- * contain any complete type */
-#define DEFINE_NON_INSTANTIABLE(Type) \
-  protected: inline Type() {} /* cannot be instantiated */ \
-  public:
-
 // TODO use a global nul-array for most Null's
 /* defines Null##Type as a safe nil instance of Type */
 #define DEFINE_NULL_DATA(Type, size, data) \
@@ -440,7 +434,7 @@ DEFINE_NULL_ASSERT_SIZE (TTCHeader, 12);
  */
 
 struct OpenTypeFontFile {
-  DEFINE_NON_INSTANTIABLE(OpenTypeFontFile);
+
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
@@ -648,8 +642,6 @@ struct LookupFlag : USHORT {
 DEFINE_NULL_ASSERT_SIZE (LookupFlag, 2);
 
 struct LookupSubTable {
-  DEFINE_NON_INSTANTIABLE(LookupSubTable);
-
   private:
   USHORT	format;		/* Subtable format.  Different for GSUB and GPOS */
 };
@@ -657,8 +649,6 @@ DEFINE_NULL_ASSERT_SIZE (LookupSubTable, 2);
 
 
 struct Lookup {
-  DEFINE_NON_INSTANTIABLE(Lookup);
-
   DEFINE_ARRAY_INTERFACE (LookupSubTable, subtable);	/* get_subtable_count(), get_subtable(i) */
 
   inline bool is_right_to_left	(void) const { return lookupFlag & LookupFlag::RightToLeft; }
@@ -778,8 +768,6 @@ struct CoverageFormat2 {
 ASSERT_SIZE (CoverageFormat2, 4);
 
 struct Coverage {
-  DEFINE_NON_INSTANTIABLE(Coverage);
-
   unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_coverage(glyph_id);
@@ -869,8 +857,6 @@ struct ClassDefFormat2 {
 ASSERT_SIZE (ClassDefFormat2, 4);
 
 struct ClassDef {
-  DEFINE_NON_INSTANTIABLE(ClassDef);
-
   hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_class(glyph_id);
@@ -893,8 +879,6 @@ DEFINE_NULL (ClassDef, 2);
  */
 
 struct Device {
-  DEFINE_NON_INSTANTIABLE(Device);
-
   int get_delta (int ppem_size) const {
     if (ppem_size >= startSize && ppem_size <= endSize &&
         deltaFormat >= 1 && deltaFormat <= 3) {

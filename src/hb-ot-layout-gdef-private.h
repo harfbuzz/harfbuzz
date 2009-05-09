@@ -149,8 +149,6 @@ struct CaretValueFormat3 {
 ASSERT_SIZE (CaretValueFormat3, 6);
 
 struct CaretValue {
-  DEFINE_NON_INSTANTIABLE(CaretValue);
-
   /* XXX  we need access to a load-contour-point vfunc here */
   int get_caret_value (int ppem) const {
     switch (u.caretValueFormat) {
