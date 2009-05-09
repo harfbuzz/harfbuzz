@@ -117,14 +117,6 @@ struct SingleSubst {
 
   private:
 
-  unsigned int get_size (void) const {
-    switch (u.substFormat) {
-    case 1: return sizeof (u.format1);
-    case 2: return sizeof (u.format2);
-    default:return sizeof (u.substFormat);
-    }
-  }
-
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
     switch (u.substFormat) {
     case 1: return u.format1.single_substitute (glyph_id);
@@ -259,13 +251,6 @@ struct MultipleSubst {
 
   private:
 
-  unsigned int get_size (void) const {
-    switch (u.substFormat) {
-    case 1: return sizeof (u.format1);
-    default:return sizeof (u.substFormat);
-    }
-  }
-
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
     switch (u.substFormat) {
     case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
@@ -365,13 +350,6 @@ struct AlternateSubst {
   friend struct SubstLookupSubTable;
 
   private:
-
-  unsigned int get_size (void) const {
-    switch (u.substFormat) {
-    case 1: return sizeof (u.format1);
-    default:return sizeof (u.substFormat);
-    }
-  }
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
     switch (u.substFormat) {
@@ -543,13 +521,6 @@ struct LigatureSubst {
   friend struct SubstLookupSubTable;
 
   private:
-
-  unsigned int get_size (void) const {
-    switch (u.substFormat) {
-    case 1: return sizeof (u.format1);
-    default:return sizeof (u.substFormat);
-    }
-  }
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
     switch (u.substFormat) {
@@ -769,15 +740,6 @@ struct ContextSubst {
 
   private:
 
-  unsigned int get_size (void) const {
-    switch (u.substFormat) {
-    case 1: return sizeof (u.format1);
-    case 2: return sizeof (u.format2);
-    case 3: return sizeof (u.format3);
-    default:return sizeof (u.substFormat);
-    }
-  }
-
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
     switch (u.substFormat) {
     case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
@@ -971,13 +933,6 @@ struct ExtensionSubst {
 
   private:
 
-  unsigned int get_size (void) const {
-    switch (u.substFormat) {
-    case 1: return sizeof (u.format1);
-    default:return sizeof (u.substFormat);
-    }
-  }
-
   inline unsigned int get_type (void) const {
     switch (u.substFormat) {
     case 1: return u.format1.get_type ();
@@ -1045,24 +1000,6 @@ struct SubstLookupSubTable {
   DEFINE_NON_INSTANTIABLE(SubstLookupSubTable);
 
   friend struct SubstLookup;
-
-  unsigned int get_size (unsigned int lookup_type) const {
-    switch (lookup_type) {
-    case GSUB_Single:				return u.single.get_size ();
-    case GSUB_Multiple:				return u.multiple.get_size ();
-    case GSUB_Alternate:			return u.alternate.get_size ();
-    case GSUB_Ligature:				return u.ligature.get_size ();
-    case GSUB_Context:
-   /*
-    case GSUB_ChainingContext:
-   */
-    case GSUB_Extension:			return u.extension.get_size ();
- /*
-    case GSUB_ReverseChainingContextSingle:
-  */
-    default:return sizeof (LookupSubTable);
-    }
-  }
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF,
 			  unsigned int    lookup_type) const {

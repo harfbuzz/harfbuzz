@@ -151,15 +151,6 @@ ASSERT_SIZE (CaretValueFormat3, 6);
 struct CaretValue {
   DEFINE_NON_INSTANTIABLE(CaretValue);
 
-  unsigned int get_size (void) const {
-    switch (u.caretValueFormat) {
-    case 1: return sizeof (u.format1);
-    case 2: return sizeof (u.format2);
-    case 3: return sizeof (u.format3);
-    default:return sizeof (u.caretValueFormat);
-    }
-  }
-
   /* XXX  we need access to a load-contour-point vfunc here */
   int get_caret_value (int ppem) const {
     switch (u.caretValueFormat) {

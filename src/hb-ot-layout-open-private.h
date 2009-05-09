@@ -67,20 +67,12 @@
 #define DEFINE_LEN(Type, array, num) \
   inline unsigned int get_len(void) const { return num; } \
 
-/* get_size() is a method returning the size in bytes of an array-like object */
-#define DEFINE_SIZE(Type, array, num) \
-  inline unsigned int get_size(void) const { return sizeof (*this) + sizeof (Type) * num; }
-
-#define DEFINE_LEN_AND_SIZE(Type, array, num) \
-  DEFINE_LEN(Type, array, num) \
-  DEFINE_SIZE(Type, array, num)
-
 /* An array type is one that contains a variable number of objects
  * as its last item.  An array object is extended with len() and size()
  * methods, as well as overloaded [] operator. */
 #define DEFINE_ARRAY_TYPE(Type, array, num) \
   DEFINE_INDEX_OPERATOR(Type, array, num) \
-  DEFINE_LEN_AND_SIZE(Type, array, num)
+  DEFINE_LEN(Type, array, num)
 #define DEFINE_INDEX_OPERATOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
     if (HB_UNLIKELY (i >= num)) return Null##Type; \
@@ -92,7 +84,7 @@
  * object. */
 #define DEFINE_OFFSET_ARRAY_TYPE(Type, array, num) \
   DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
-  DEFINE_LEN_AND_SIZE(Offset, array, num)
+  DEFINE_LEN(Offset, array, num)
 #define DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
     if (HB_UNLIKELY (i >= num)) return Null##Type; \
@@ -105,7 +97,7 @@
  * relative to the beginning of the current object. */
 #define DEFINE_RECORD_ARRAY_TYPE(Type, array, num) \
   DEFINE_RECORD_ACCESSOR(Type, array, num) \
-  DEFINE_LEN_AND_SIZE(Record, array, num)
+  DEFINE_LEN(Record, array, num)
 #define DEFINE_RECORD_ACCESSOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
     if (HB_UNLIKELY (i >= num)) return Null##Type; \
@@ -477,7 +469,6 @@ struct OpenTypeFontFile {
     return ((char*)this) + table.offset;
   }
 
-  /* Array interface sans get_size() */
   unsigned int get_len (void) const {
     switch (tag) {
     default: return 0;
@@ -789,14 +780,6 @@ ASSERT_SIZE (CoverageFormat2, 4);
 struct Coverage {
   DEFINE_NON_INSTANTIABLE(Coverage);
 
-  unsigned int get_size (void) const {
-    switch (u.coverageFormat) {
-    case 1: return u.format1.get_size ();
-    case 2: return u.format2.get_size ();
-    default:return sizeof (u.coverageFormat);
-    }
-  }
-
   unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     switch (u.coverageFormat) {
     case 1: return u.format1.get_coverage(glyph_id);
@@ -888,14 +871,6 @@ ASSERT_SIZE (ClassDefFormat2, 4);
 struct ClassDef {
   DEFINE_NON_INSTANTIABLE(ClassDef);
 
-  unsigned int get_size (void) const {
-    switch (u.classFormat) {
-    case 1: return u.format1.get_size ();
-    case 2: return u.format2.get_size ();
-    default:return sizeof (u.classFormat);
-    }
-  }
-
   hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     switch (u.classFormat) {
     case 1: return u.format1.get_class(glyph_id);
@@ -919,17 +894,6 @@ DEFINE_NULL (ClassDef, 2);
 
 struct Device {
   DEFINE_NON_INSTANTIABLE(Device);
-
-   unsigned int get_size (void) const {
-    int count = endSize - startSize + 1;
-    if (count < 0) count = 0;
-    switch (deltaFormat) {
-    case 1: return sizeof (Device) + sizeof (USHORT) * ((count+7)/8);
-    case 2: return sizeof (Device) + sizeof (USHORT) * ((count+3)/4);
-    case 3: return sizeof (Device) + sizeof (USHORT) * ((count+1)/2);
-    default:return sizeof (Device);
-    }
-  }
 
   int get_delta (int ppem_size) const {
     if (ppem_size >= startSize && ppem_size <= endSize &&
