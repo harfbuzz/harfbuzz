@@ -850,7 +850,7 @@ struct ClassDefFormat2 {
 
   private:
   USHORT		classFormat;	/* Format identifier--format = 2 */
-  USHORT		rangeCount;	/* Number of Number of ClassRangeRecords */
+  USHORT		rangeCount;	/* Number of ClassRangeRecords */
   ClassRangeRecord	rangeRecord[];	/* Array of glyph ranges--ordered by
 					 * Start GlyphID */
 };
