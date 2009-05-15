@@ -42,19 +42,6 @@
 #include <string.h>
 
 
-struct _hb_ot_layout_t {
-  const GDEF *gdef;
-  const GSUB *gsub;
-  const /*XXX*/GSUBGPOS *gpos;
-
-  struct {
-    unsigned char *klasses;
-    unsigned int len;
-  } new_gdef;
-
-  /* TODO add max-nesting-level here? */
-};
-
 hb_ot_layout_t *
 hb_ot_layout_create (void)
 {

@@ -36,6 +36,20 @@
 
 typedef unsigned int hb_ot_layout_class_t;
 
+struct _hb_ot_layout_t {
+  const struct GDEF *gdef;
+  const struct GSUB *gsub;
+  const struct /*XXX*/GSUBGPOS *gpos;
+
+  struct {
+    unsigned char *klasses;
+    unsigned int len;
+  } new_gdef;
+
+  /* TODO add max-nesting-level here? */
+};
+
+
 /* XXX #define HB_OT_LAYOUT_INTERNAL static */
 #define HB_OT_LAYOUT_INTERNAL
 

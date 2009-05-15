@@ -539,6 +539,13 @@ DEFINE_NULL (LigatureSubst, 2);
 
 
 struct SubstLookupRecord {
+
+  friend struct SubRule;
+
+  private:
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const;
+
+  private:
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
@@ -563,6 +570,9 @@ struct SubRule {
 		     context_length < count))
       return false; /* Not enough glyphs in input or context */
 
+    /* XXX context_length should also be checked when skipping glyphs, right?
+     * What does context_length really mean, anyway? */
+
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
       while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
 	if (HB_UNLIKELY (j + count - i == buffer->in_length))
@@ -574,12 +584,35 @@ struct SubRule {
         return false;
     }
 
-    /*
-    return Do_ContextSubst( gsub, sr[k].GlyphCount,
-			    sr[k].SubstCount, sr[k].SubstLookupRecord,
-			    buffer,
-			    nesting_level );
-			    */
+    /* XXX right? or j - buffer_inpos? */
+    context_length = count;
+
+    unsigned int subst_count = substCount;
+    const SubstLookupRecord *subst = (const SubstLookupRecord *) ((const char *) input + sizeof (input[0]) * glyphCount);
+    for (i = 0; i < count;)
+    {
+      if ( subst_count && i == subst->sequenceIndex )
+      {
+	unsigned int old_pos = buffer->in_pos;
+
+	/* Do a substitution */
+	bool done = subst->substitute (SUBTABLE_SUBSTITUTE_ARGS);
+
+	subst++;
+	subst_count--;
+	i += buffer->in_pos - old_pos;
+
+	if (!done)
+	  goto no_subst;
+      }
+      else
+      {
+      no_subst:
+	/* No substitution for this index */
+	_hb_buffer_copy_output_glyph (buffer);
+	i++;
+      }
+    }
   }
 
 
@@ -1038,17 +1071,6 @@ struct SubstLookupSubTable {
 };
 
 
-/* Out-of-class implementation for methods chaining */
-
-inline bool ExtensionSubstFormat1::substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
-  /* XXX either check in sanitize or here that the lookuptype is not 7 again,
-   * or we can loop indefinitely. */
-  return (*(SubstLookupSubTable *)(((char *) this) + extensionOffset)).substitute (SUBTABLE_SUBSTITUTE_ARGS,
-										   get_type ());
-}
-
-
-
 struct SubstLookup : Lookup {
 
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const {
@@ -1140,6 +1162,7 @@ struct SubstLookup : Lookup {
 };
 DEFINE_NULL_ALIAS (SubstLookup, Lookup);
 
+
 /*
  * GSUB
  */
@@ -1157,6 +1180,26 @@ struct GSUB : GSUBGPOS {
 
 };
 DEFINE_NULL_ALIAS (GSUB, GSUBGPOS);
+
+
+
+
+/* Out-of-class implementation for methods chaining */
+
+inline bool ExtensionSubstFormat1::substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+  /* XXX either check in sanitize or here that the lookuptype is not 7 again,
+   * or we can loop indefinitely. */
+  return (*(SubstLookupSubTable *)(((char *) this) + extensionOffset)).substitute (SUBTABLE_SUBSTITUTE_ARGS,
+										   get_type ());
+}
+
+inline bool SubstLookupRecord::substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+  const GSUB &gsub = *(layout->gsub);
+  const SubstLookup &l = gsub.get_lookup (lookupListIndex);
+
+  return l.substitute_once (layout, buffer, context_length, nesting_level_left);
+}
+
 
 
 #endif /* HB_OT_LAYOUT_GSUB_PRIVATE_H */
