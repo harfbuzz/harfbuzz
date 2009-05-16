@@ -127,9 +127,6 @@ struct SingleSubst {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    if (HB_UNLIKELY (context_length < 1))
-      return false;
-
     unsigned int property;
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
@@ -217,9 +214,6 @@ struct MultipleSubstFormat1 {
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    if (HB_UNLIKELY (context_length < 1))
-      return false;
-
     unsigned int property;
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
@@ -291,9 +285,6 @@ struct AlternateSubstFormat1 {
   DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
-
-    if (HB_UNLIKELY (context_length < 1))
-      return false;
 
     unsigned int property;
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
@@ -983,6 +974,9 @@ DEFINE_NULL_ASSERT_SIZE (ChainSubRuleSet, 2);
 
 struct ChainContextSubstFormat1 {
   /* TODO */
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    return false;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
@@ -1006,7 +1000,7 @@ struct ChainSubClassRule {
 					 * backtrack sequence (number of
 					 * glyphs to be matched before the
 					 * first glyph) */
-  USHORT	backtrack[];		/* Array of backtracking classes(to be
+  USHORT	backtrack[];		/* Array of backtracking classes (to be
 					 * matched before the input  sequence) */
   USHORT	inputGlyphCount;	/* Total number of classes in the input
 					 * sequence (includes the  first class) */
@@ -1017,7 +1011,7 @@ struct ChainSubClassRule {
 					 * look ahead sequence (number of
 					 * classes to be matched after the
 					 * input sequence) */
-  USHORT	lookAhead[];		/* Array of lookahead classes(to be
+  USHORT	lookAhead[];		/* Array of lookahead classes (to be
 					 * matched after the  input sequence) */
   USHORT	substCount;		/* Number of SubstLookupRecords */
   SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
@@ -1040,6 +1034,9 @@ DEFINE_NULL_ASSERT_SIZE (ChainSubClassSet, 2);
 
 struct ChainContextSubstFormat2 {
   /* TODO */
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    return false;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 2 */
@@ -1067,6 +1064,9 @@ ASSERT_SIZE (ChainContextSubstFormat2, 12);
 
 struct ChainContextSubstFormat3 {
   /* TODO */
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    return false;
+  }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 3 */
@@ -1089,6 +1089,31 @@ struct ChainContextSubstFormat3 {
 					 * design order */
 };
 ASSERT_SIZE (ChainContextSubstFormat3, 10);
+
+struct ChainContextSubst {
+
+  friend struct SubstLookupSubTable;
+
+  private:
+
+  inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
+    switch (u.substFormat) {
+    case 1: return u.format1.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case 2: return u.format2.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    case 3: return u.format3.substitute (SUBTABLE_SUBSTITUTE_ARGS);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT	substFormat;	/* Format identifier */
+  ChainContextSubstFormat1	format1;
+  ChainContextSubstFormat2	format2;
+  ChainContextSubstFormat3	format3;
+  } u;
+};
+DEFINE_NULL (ChainContextSubst, 2);
 
 
 struct ExtensionSubstFormat1 {
@@ -1260,6 +1285,9 @@ struct SubstLookup : Lookup {
     if (HB_UNLIKELY (nesting_level_left == 0))
       return false;
     nesting_level_left--;
+
+    if (HB_UNLIKELY (context_length < 1))
+      return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
       if (get_subtable (i).substitute (SUBTABLE_SUBSTITUTE_ARGS,
