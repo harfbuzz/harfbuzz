@@ -839,8 +839,68 @@ struct ContextSubstFormat3 {
 
   private:
 
+  /* Coverage tables, in glyph sequence order */
+  DEFINE_OFFSET_ARRAY_TYPE (Coverage, coverage, glyphCount);
+
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
-    return false;
+
+    unsigned int property;
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
+    if ((*this)[0].get_coverage (IN_CURGLYPH () == NOT_COVERED))
+      return false;
+
+    unsigned int i, j;
+    unsigned int count = glyphCount;
+
+    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
+		     context_length < count))
+      return false; /* Not enough glyphs in input or context */
+
+    /* XXX context_length should also be checked when skipping glyphs, right?
+     * What does context_length really mean, anyway? */
+
+    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
+      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+	if (HB_UNLIKELY (j + count - i == buffer->in_length))
+	  return false;
+	j++;
+      }
+
+      if (HB_LIKELY ((*this)[i].get_coverage (IN_GLYPH(j) == NOT_COVERED)))
+        return false;
+    }
+
+    /* XXX right? or j - buffer_inpos? */
+    context_length = count;
+
+    unsigned int subst_count = substCount;
+    const SubstLookupRecord *subst = (const SubstLookupRecord *) ((const char *) coverage + sizeof (coverage[0]) * glyphCount);
+    for (i = 0; i < count;)
+    {
+      if ( subst_count && i == subst->sequenceIndex )
+      {
+	unsigned int old_pos = buffer->in_pos;
+
+	/* Do a substitution */
+	bool done = subst->substitute (SUBTABLE_SUBSTITUTE_ARGS);
+
+	subst++;
+	subst_count--;
+	i += buffer->in_pos - old_pos;
+
+	if (!done)
+	  goto no_subst;
+      }
+      else
+      {
+      no_subst:
+	/* No substitution for this index */
+	_hb_buffer_copy_output_glyph (buffer);
+	i++;
+      }
+    }
   }
 
   private:
