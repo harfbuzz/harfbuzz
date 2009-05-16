@@ -529,10 +529,7 @@ hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
 			        unsigned int                 lookup_index,
 				hb_ot_layout_feature_mask_t  mask)
 {
-  const GSUB &gsub = *(layout->gsub);
-  const SubstLookup &l = gsub.get_lookup (lookup_index);
-
-  return l.substitute_string (layout, buffer, mask);
+  return layout->gsub->substitute_lookup (layout, buffer, lookup_index, mask);
 }
 
 

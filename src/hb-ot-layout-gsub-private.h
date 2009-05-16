@@ -692,6 +692,7 @@ struct ContextSubstFormat1 {
 };
 ASSERT_SIZE (ContextSubstFormat1, 6);
 
+
 struct SubClassRule {
   /* TODO */
 
@@ -1177,6 +1178,12 @@ struct GSUB : GSUBGPOS {
     return *(SubstLookup*)&(((GSUBGPOS *)this)->get_lookup (i));
   }
 
+  inline bool substitute_lookup (hb_ot_layout_t *layout,
+				 hb_buffer_t    *buffer,
+			         unsigned int    lookup_index,
+				 hb_ot_layout_feature_mask_t  mask) const {
+    return get_lookup (lookup_index).substitute_string (layout, buffer, mask);
+  }
 
 };
 DEFINE_NULL_ALIAS (GSUB, GSUBGPOS);
