@@ -540,12 +540,8 @@ DEFINE_NULL (LigatureSubst, 2);
 
 struct SubstLookupRecord {
 
-  friend struct SubRule;
-
-  private:
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const;
 
-  private:
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
@@ -614,7 +610,6 @@ struct SubRule {
       }
     }
   }
-
 
   private:
   USHORT	glyphCount;		/* Total number of glyphs in input
@@ -694,7 +689,66 @@ ASSERT_SIZE (ContextSubstFormat1, 6);
 
 
 struct SubClassRule {
-  /* TODO */
+
+  friend struct SubClassSet;
+
+  private:
+  DEFINE_ARRAY_TYPE (USHORT, klass, (glyphCount ? glyphCount - 1 : 0));
+
+  inline bool substitute_class (SUBTABLE_SUBSTITUTE_ARGS_DEF, const ClassDef &class_def) const {
+
+    unsigned int i, j;
+    unsigned int property;
+    unsigned int count = glyphCount;
+
+    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
+		     context_length < count))
+      return false; /* Not enough glyphs in input or context */
+
+    /* XXX context_length should also be checked when skipping glyphs, right?
+     * What does context_length really mean, anyway? */
+
+    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
+      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+	if (HB_UNLIKELY (j + count - i == buffer->in_length))
+	  return false;
+	j++;
+      }
+
+      if (HB_LIKELY (class_def.get_class (IN_GLYPH(j)) != (*this)[i - 1]))
+        return false;
+    }
+
+    /* XXX right? or j - buffer_inpos? */
+    context_length = count;
+
+    unsigned int subst_count = substCount;
+    const SubstLookupRecord *subst = (const SubstLookupRecord *) ((const char *) klass + sizeof (klass[0]) * glyphCount);
+    for (i = 0; i < count;)
+    {
+      if ( subst_count && i == subst->sequenceIndex )
+      {
+	unsigned int old_pos = buffer->in_pos;
+
+	/* Do a substitution */
+	bool done = subst->substitute (SUBTABLE_SUBSTITUTE_ARGS);
+
+	subst++;
+	subst_count--;
+	i += buffer->in_pos - old_pos;
+
+	if (!done)
+	  goto no_subst;
+      }
+      else
+      {
+      no_subst:
+	/* No substitution for this index */
+	_hb_buffer_copy_output_glyph (buffer);
+	i++;
+      }
+    }
+  }
 
   private:
   USHORT	glyphCount;		/* Total number of classes
@@ -710,7 +764,27 @@ struct SubClassRule {
 DEFINE_NULL_ASSERT_SIZE (SubClassRule, 4);
 
 struct SubClassSet {
-  /* TODO */
+
+  friend struct ContextSubstFormat2;
+
+  private:
+  DEFINE_OFFSET_ARRAY_TYPE (SubClassRule, subClassRule, subClassRuleCnt);
+
+  inline bool substitute_class (SUBTABLE_SUBSTITUTE_ARGS_DEF, const ClassDef &class_def) const {
+
+    /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
+     * them across subrule lookups.  Not sure it's worth it.
+     */
+
+    unsigned int num_rules = get_len ();
+    for (unsigned int i = 0; i < num_rules; i++) {
+      const SubClassRule &rule = (*this)[i];
+      if (rule.substitute_class (SUBTABLE_SUBSTITUTE_ARGS, class_def))
+        return true;
+    }
+
+    return false;
+  }
 
   private:
   USHORT	subClassRuleCnt;	/* Number of SubClassRule tables */
@@ -725,9 +799,24 @@ struct ContextSubstFormat2 {
   friend struct ContextSubst;
 
   private:
+  /* SubClassSet tables, in Coverage Index order */
+  DEFINE_OFFSET_ARRAY_TYPE (SubClassSet, subClassSet, subClassSetCnt);
+  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
+  DEFINE_GET_ACCESSOR (ClassDef, class_def, classDef);
+  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
-    return false;
+
+    unsigned int property;
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
+
+    unsigned int index = get_glyph_coverage (glyph_id);
+
+    const SubClassSet &class_set = (*this)[index];
+    return class_set.substitute_class (SUBTABLE_SUBSTITUTE_ARGS, get_class_def ());
   }
 
   private:
