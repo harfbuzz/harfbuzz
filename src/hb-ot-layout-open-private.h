@@ -112,18 +112,12 @@
  * List types
  */
 
-#define DEFINE_LIST_ARRAY(Type, name) \
-  inline const Type##List& get_##name##_list (void) const { \
-    if (HB_UNLIKELY (!name##List)) return Null(Type##List); \
-    return *(const Type##List *)((const char*)this + name##List); \
-  }
-
 #define DEFINE_LIST_INTERFACE(Type, name) \
   inline const Type& get_##name (unsigned int i) const { \
-    return get_##name##_list ()[i]; \
+    return (this+name##List)[i]; \
   } \
   inline unsigned int get_##name##_count (void) const { \
-    return get_##name##_list ().get_len (); \
+    return (this+name##List).len; \
   }
 
 /*
@@ -138,7 +132,7 @@
 #define DEFINE_TAG_LIST_INTERFACE(Type, name) \
   DEFINE_LIST_INTERFACE (Type, name); \
   inline const Tag& get_##name##_tag (unsigned int i) const { \
-    return get_##name##_list ().get_tag (i); \
+    return (this+name##List).get_tag (i); \
   }
 
 #define DEFINE_TAG_FIND_INTERFACE(Type, name) \
@@ -544,16 +538,45 @@ ASSERT_SIZE (OpenTypeFontFile, 4);
  * Script, ScriptList, LangSys, Feature, FeatureList, Lookup, LookupList
  */
 
-typedef struct Record {
+template <typename Type>
+struct Record {
   Tag		tag;		/* 4-byte Tag identifier */
-  Offset	offset;		/* Offset from beginning of object holding
+  OffsetTo<Type>
+		offset;		/* Offset from beginning of object holding
 				 * the Record */
-} ScriptRecord, LangSysRecord, FeatureRecord;
-ASSERT_SIZE (Record, 6);
+};
+
+template <typename Type>
+struct RecordListOf : ArrayOf<Record<Type> > {
+  inline const Type& operator [] (unsigned int i) const {
+    if (HB_UNLIKELY (i >= this->len)) return Null(Type);
+    return this+this->array[i].offset;
+  }
+  inline const Tag& get_tag (unsigned int i) const {
+    if (HB_UNLIKELY (i >= this->len)) return Null(Tag);
+    return this->array[i].tag;
+  }
+};
+
+
+struct Script;
+typedef Record<Script> ScriptRecord;
+ASSERT_SIZE (ScriptRecord, 6);
+struct LangSys;
+typedef Record<LangSys> LangSysRecord;
+ASSERT_SIZE (LangSysRecord, 6);
+struct Feature;
+typedef Record<Feature> FeatureRecord;
+ASSERT_SIZE (FeatureRecord, 6);
 
 struct LangSys {
 
-  DEFINE_INDEX_ARRAY_INTERFACE (feature);
+  inline const unsigned int get_feature_index (unsigned int i) const {
+    return featureIndex[i];
+  }
+  inline unsigned int get_feature_count (void) const {
+    return featureIndex.len;
+  }
 
   inline const bool has_required_feature (void) const {
     return reqFeatureIndex != 0xffff;
@@ -562,41 +585,30 @@ struct LangSys {
   inline int get_required_feature_index (void) const {
     if (reqFeatureIndex == 0xffff)
       return NO_INDEX;
-    return reqFeatureIndex;;
+   return reqFeatureIndex;;
   }
 
-  private:
-  /* Feature indices, in no particular order */
-  DEFINE_ARRAY_TYPE (USHORT, featureIndex, featureCount);
-
-  private:
   Offset	lookupOrder;	/* = Null (reserved for an offset to a
 				 * reordering table) */
   USHORT	reqFeatureIndex;/* Index of a feature required for this
 				 * language system--if no required features
 				 * = 0xFFFF */
-  USHORT	featureCount;	/* Number of FeatureIndex values for this
-				 * language system--excludes the required
-				 * feature */
-  USHORT	featureIndex[];	/* Array of indices into the FeatureList--in
-				 * arbitrary order. featureCount entires long */
+  ArrayOf<USHORT>
+		featureIndex;	/* Array of indices into the FeatureList */
 };
 ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
 
 struct Script {
 
-  /* DEFINE_ARRAY_INTERFACE (LangSys, lang_sys) but handling defaultLangSys */
-
   inline const LangSys& get_lang_sys (unsigned int i) const {
     if (i == NO_INDEX) return get_default_lang_sys ();
-    return (*this)[i];
+    return this+langSys[i].offset;
   }
   inline unsigned int get_lang_sys_count (void) const {
-    return this->get_len ();
+    return langSys.len;
   }
-
   inline const Tag& get_lang_sys_tag (unsigned int i) const {
-    return get_tag (i);
+    return langSys[i].tag;
   }
 
   // LONGTERMTODO bsearch
@@ -610,73 +622,39 @@ struct Script {
   }
 
   private:
-  /* LangSys', in sorted alphabetical tag order */
-  DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
-
-  private:
   OffsetTo<LangSys>
 		defaultLangSys;	/* Offset to DefaultLangSys table--from
 				 * beginning of Script table--may be Null */
-  USHORT	langSysCount;	/* Number of LangSysRecords for this script--
-				 * excluding the DefaultLangSys */
-  LangSysRecord	langSysRecord[];/* Array of LangSysRecords--listed
+  ArrayOf<LangSysRecord>
+		langSys;	/* Array of LangSysRecords--listed
 				 * alphabetically by LangSysTag */
 };
 ASSERT_SIZE (Script, 4);
 
-struct ScriptList {
-
-  friend struct GSUBGPOS;
-
-private:
-  /* Scripts, in sorted alphabetical tag order */
-  DEFINE_RECORD_ARRAY_TYPE (Script, scriptRecord, scriptCount);
-
-private:
-  USHORT	scriptCount;	/* Number of ScriptRecords */
-  ScriptRecord	scriptRecord[]; /* Array of ScriptRecords--listed alphabetically
-				 * by ScriptTag */
-};
+typedef RecordListOf<Script> ScriptList;
 ASSERT_SIZE (ScriptList, 2);
 
 struct Feature {
 
-  DEFINE_INDEX_ARRAY_INTERFACE (lookup);	/* get_lookup_count(), get_lookup_index(i) */
-
-  private:
-  /* LookupList indices, in no particular order */
-  DEFINE_ARRAY_TYPE (USHORT, lookupIndex, lookupCount);
+  inline const unsigned int get_lookup_index (unsigned int i) const {
+    return lookupIndex[i];
+  }
+  inline unsigned int get_lookup_count (void) const {
+    return lookupIndex.len;
+  }
 
   /* TODO: implement get_feature_parameters() */
   /* TODO: implement FeatureSize and other special features? */
-
-  private:
   Offset	featureParams;	/* Offset to Feature Parameters table (if one
 				 * has been defined for the feature), relative
 				 * to the beginning of the Feature Table; = Null
 				 * if not required */
-  USHORT	lookupCount;	/* Number of LookupList indices for this
-				 * feature */
-  USHORT	lookupIndex[];	/* Array of LookupList indices for this
-				 * feature--zero-based (first lookup is
-				 * LookupListIndex = 0) */
+  ArrayOf<USHORT>
+		lookupIndex;	/* Array of LookupList indices */
 };
 ASSERT_SIZE (Feature, 4);
 
-struct FeatureList {
-
-  friend struct GSUBGPOS;
-
-  private:
-  /* Feature indices, in sorted alphabetical tag order */
-  DEFINE_RECORD_ARRAY_TYPE (Feature, featureRecord, featureCount);
-
-  private:
-  USHORT	featureCount;	/* Number of FeatureRecords in this table */
-  FeatureRecord	featureRecord[];/* Array of FeatureRecords--zero-based (first
-				 * feature has FeatureIndex = 0)--listed
-				 * alphabetically by FeatureTag */
-};
+typedef RecordListOf<Feature> FeatureList;
 ASSERT_SIZE (FeatureList, 2);
 
 struct LookupFlag : USHORT {
@@ -697,7 +675,13 @@ ASSERT_SIZE (LookupSubTable, 2);
 
 
 struct Lookup {
-  DEFINE_ARRAY_INTERFACE (LookupSubTable, subtable);	/* get_subtable_count(), get_subtable(i) */
+
+  inline const LookupSubTable& get_subtable (unsigned int i) const {
+    return this+subTable[i];
+  }
+  inline unsigned int get_subtable_count (void) const {
+    return subTable.len;
+  }
 
   inline bool is_right_to_left	(void) const { return lookupFlag & LookupFlag::RightToLeft; }
   inline bool ignore_base_glyphs(void) const { return lookupFlag & LookupFlag::IgnoreBaseGlyphs; }
@@ -708,33 +692,22 @@ struct Lookup {
   inline unsigned int get_type (void) const { return lookupType; }
   inline unsigned int get_flag (void) const { return lookupFlag; }
 
-  private:
-  /* SubTables, in the desired order */
-  DEFINE_OFFSET_ARRAY_TYPE (LookupSubTable, subTableOffset, subTableCount);
-
-  protected:
   USHORT	lookupType;	/* Different enumerations for GSUB and GPOS */
   USHORT	lookupFlag;	/* Lookup qualifiers */
-  USHORT	subTableCount;	/* Number of SubTables for this lookup */
-  Offset	subTableOffset[];/* Array of offsets to SubTables-from
-				  * beginning of Lookup table */
+  OffsetArrayOf<LookupSubTable>
+		subTable;	/* Array of SubTables */
 };
 ASSERT_SIZE (Lookup, 6);
 
-struct LookupList {
-
-  friend struct GSUBGPOS;
-
-  private:
-  /* Lookup indices, in sorted alphabetical tag order */
-  DEFINE_OFFSET_ARRAY_TYPE (Lookup, lookupOffset, lookupCount);
-
-  private:
-  USHORT	lookupCount;	/* Number of lookups in this table */
-  Offset	lookupOffset[];	/* Array of offsets to Lookup tables--from
-				 * beginning of LookupList--zero based (first
-				 * lookup is Lookup index = 0) */
+template <typename Type>
+struct OffsetListOf : OffsetArrayOf<Type> {
+  inline const Type& operator [] (unsigned int i) const {
+    if (HB_UNLIKELY (i >= this->len)) return Null(Type);
+    return this+this->array[i];
+  }
 };
+
+typedef OffsetListOf<Lookup> LookupList;
 ASSERT_SIZE (LookupList, 2);
 
 /*
@@ -746,25 +719,22 @@ struct CoverageFormat1 {
   friend struct Coverage;
 
   private:
-  /* GlyphIDs, in sorted numerical order */
-  DEFINE_ARRAY_TYPE (GlyphID, glyphArray, glyphCount);
-
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     GlyphID gid;
     if (HB_UNLIKELY (glyph_id > 65535))
       return NOT_COVERED;
     gid = glyph_id;
     // TODO: bsearch
-    for (unsigned int i = 0; i < glyphCount; i++)
+    unsigned int num_glyphs = glyphArray.len;
+    for (unsigned int i = 0; i < num_glyphs; i++)
       if (gid == glyphArray[i])
         return i;
     return NOT_COVERED;
   }
 
-  private:
   USHORT	coverageFormat;	/* Format identifier--format = 1 */
-  USHORT	glyphCount;	/* Number of glyphs in the GlyphArray */
-  GlyphID	glyphArray[];	/* Array of GlyphIDs--in numerical order */
+  ArrayOf<GlyphID>
+		glyphArray;	/* Array of GlyphIDs--in numerical order */
 };
 ASSERT_SIZE (CoverageFormat1, 4);
 
@@ -792,12 +762,9 @@ struct CoverageFormat2 {
   friend struct Coverage;
 
   private:
-  /* CoverageRangeRecords, in sorted numerical start order */
-  DEFINE_ARRAY_TYPE (CoverageRangeRecord, rangeRecord, rangeCount);
-
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     // TODO: bsearch
-    unsigned int count = rangeCount;
+    unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++) {
       int coverage = rangeRecord[i].get_coverage (glyph_id);
       if (coverage >= 0)
@@ -806,12 +773,11 @@ struct CoverageFormat2 {
     return NOT_COVERED;
   }
 
-  private:
-  USHORT		coverageFormat;	/* Format identifier--format = 2 */
-  USHORT		rangeCount;	/* Number of CoverageRangeRecords */
-  CoverageRangeRecord	rangeRecord[];	/* Array of glyph ranges--ordered by
-					 * Start GlyphID. rangeCount entries
-					 * long */
+  USHORT	coverageFormat;	/* Format identifier--format = 2 */
+  ArrayOf<CoverageRangeRecord>
+		rangeRecord;	/* Array of glyph ranges--ordered by
+				 * Start GlyphID. rangeCount entries
+				 * long */
 };
 ASSERT_SIZE (CoverageFormat2, 4);
 
@@ -846,20 +812,16 @@ struct ClassDefFormat1 {
   friend struct ClassDef;
 
   private:
-  /* Class Values, in sorted numerical order */
-  DEFINE_ARRAY_TYPE (USHORT, classValueArray, glyphCount);
-
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
-    if (glyph_id >= startGlyph && glyph_id - startGlyph < glyphCount)
-      return classValueArray[glyph_id - startGlyph];
+    if ((unsigned int) (glyph_id - startGlyph) < classValue.len)
+      return classValue[glyph_id - startGlyph];
     return 0;
   }
 
-  private:
   USHORT	classFormat;		/* Format identifier--format = 1 */
   GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
-  USHORT	glyphCount;		/* Size of the classValueArray */
-  USHORT	classValueArray[];	/* Array of Class Values--one per GlyphID */
+  ArrayOf<USHORT>
+		classValue;		/* Array of Class Values--one per GlyphID */
 };
 ASSERT_SIZE (ClassDefFormat1, 6);
 
@@ -886,12 +848,9 @@ struct ClassDefFormat2 {
   friend struct ClassDef;
 
   private:
-  /* ClassRangeRecords, in sorted numerical start order */
-  DEFINE_ARRAY_TYPE (ClassRangeRecord, rangeRecord, rangeCount);
-
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
     // TODO: bsearch
-    unsigned int count = rangeCount;
+    unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++) {
       int classValue = rangeRecord[i].get_class (glyph_id);
       if (classValue > 0)
@@ -900,11 +859,10 @@ struct ClassDefFormat2 {
     return 0;
   }
 
-  private:
-  USHORT		classFormat;	/* Format identifier--format = 2 */
-  USHORT		rangeCount;	/* Number of ClassRangeRecords */
-  ClassRangeRecord	rangeRecord[];	/* Array of glyph ranges--ordered by
-					 * Start GlyphID */
+  USHORT	classFormat;	/* Format identifier--format = 2 */
+  ArrayOf<ClassRangeRecord>
+		rangeRecord;	/* Array of glyph ranges--ordered by
+				 * Start GlyphID */
 };
 ASSERT_SIZE (ClassDefFormat2, 4);
 
@@ -979,19 +937,14 @@ struct GSUBGPOS {
   DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
 
   private:
-  DEFINE_LIST_ARRAY(Script,  script);
-  DEFINE_LIST_ARRAY(Feature, feature);
-  DEFINE_LIST_ARRAY(Lookup,  lookup);
-
-  private:
   Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000 */
-  Offset	scriptList;  	/* Offset to ScriptList table--from beginning of
-				 * GSUB/GPOS table */
-  Offset	featureList; 	/* Offset to FeatureList table--from beginning of
-				 * GSUB/GPOS table */
-  Offset	lookupList; 	/* Offset to LookupList table--from beginning of
-				 * GSUB/GPOS table */
+  OffsetTo<ScriptList>
+		scriptList;  	/* ScriptList table */
+  OffsetTo<FeatureList>
+		featureList; 	/* FeatureList table */
+  OffsetTo<LookupList>
+		lookupList; 	/* LookupList table */
 };
 ASSERT_SIZE (GSUBGPOS, 10);
 

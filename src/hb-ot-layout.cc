@@ -257,8 +257,6 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
 				  unsigned char  *klasses,
 				  uint16_t        count)
 {
-  int i;
-
   if (G_UNLIKELY (!count || !glyphs || !klasses))
     return;
 
@@ -267,7 +265,7 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
     layout->new_gdef.len = count;
   }
 
-  for (i = 0; i < count; i++)
+  for (unsigned int i = 0; i < count; i++)
     hb_ot_layout_set_glyph_class (layout, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
 }
 
@@ -481,9 +479,9 @@ hb_ot_layout_language_find_feature (hb_ot_layout_t            *layout,
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
   const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
-  unsigned int i;
 
-  for (i = 0; i < l.get_feature_count (); i++) {
+  unsigned int num_features = l.get_feature_count ();
+  for (unsigned int i = 0; i < num_features; i++) {
     unsigned int f_index = l.get_feature_index (i);
 
     if (feature_tag == g.get_feature_tag (f_index)) {
