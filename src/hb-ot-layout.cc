@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 1998-2004  David Turner and Werner Lemberg
  * Copyright (C) 2006  Behdad Esfahbod
- * Copyright (C) 2007,2008  Red Hat, Inc.
+ * Copyright (C) 2007,2008,2009  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, an OpenType Layout engine library.
  *
