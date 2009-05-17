@@ -32,9 +32,9 @@
 #include "hb-ot-layout-open-private.h"
 
 
-#define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, name) \
+#define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, array, name) \
   inline const Type& name (hb_codepoint_t glyph) { \
-    return (*this)[(this+coverage)(glyph)]; \
+    return this+array[(this+coverage)(glyph)]; \
   }
 
 
@@ -50,42 +50,23 @@ struct GlyphClassDef : ClassDef {
  */
 
 struct AttachPoint {
-
-  friend struct AttachList;
-
-  private:
-  /* countour point indices, in increasing numerical order */
-  DEFINE_ARRAY_TYPE (USHORT, pointIndex, pointCount);
-
-  private:
-  USHORT	pointCount;		/* Number of attachment points on
-					 * this glyph */
-  USHORT	pointIndex[];		/* Array of contour point indices--in
+  Array		pointIndex;		/* Array of contour point indices--in
 					 * increasing numerical order */
 };
 ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList {
 
-  friend struct GDEF;
-
-  private:
   /* const AttachPoint& get_attach_points (hb_codepoint_t glyph); */
-  DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, get_attach_points);
-
-  private:
-  /* AttachPoint tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (AttachPoint, attachPoint, glyphCount);
+  DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, attachPoint, get_attach_points);
 
  private:
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table -- from
 					 * beginning of AttachList table */
-  USHORT	glyphCount;		/* Number of glyphs with attachment
-					 * points */
-  Offset	attachPoint[];		/* Array of offsets to AttachPoint
-					 * tables--from beginning of AttachList
-					 * table--in Coverage Index order */
+  OffsetArrayOf<AttachPoint>
+		attachPoint;		/* Array of AttachPoint tables
+					 * in Coverage Index order */
 };
 ASSERT_SIZE (AttachList, 4);
 
@@ -171,18 +152,9 @@ struct LigGlyph {
 
   friend struct LigCaretList;
 
-  private:
-  /* Caret value tables, in increasing coordinate order */
-  DEFINE_OFFSET_ARRAY_TYPE (CaretValue, caretValue, caretCount);
-  /* TODO */
-
-  private:
-  USHORT	caretCount;		/* Number of CaretValues for this
-					 * ligature (components - 1) */
-  Offset	caretValue[];		/* Array of offsets to CaretValue
-					 * tables--from beginning of LigGlyph
-					 * table--in increasing coordinate
-					 * order */
+  OffsetArrayOf<CaretValue>
+		caret;			/* Array of CaretValue tables
+					 * in increasing coordinate order */
 };
 ASSERT_SIZE (LigGlyph, 2);
 
@@ -192,21 +164,15 @@ struct LigCaretList {
 
   private:
   /* const LigGlyph& get_lig_glyph (hb_codepoint_t glyph); */
-  DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, get_lig_glyph);
-
-  private:
-  /* LigGlyph tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (LigGlyph, ligGlyph, ligGlyphCount);
+  DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, ligGlyph, get_lig_glyph);
 
   private:
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of LigCaretList table */
-  USHORT	ligGlyphCount;		/* Number of ligature glyphs */
-  Offset	ligGlyph[];		/* Array of offsets to LigGlyph
-					 * tables--from beginning of
-					 * LigCaretList table--in Coverage
-					 * Index order */
+  OffsetArrayOf<LigGlyph>
+		ligGlyph;		/* Array of LigGlyph tables
+					 * in Coverage Index order */
 };
 ASSERT_SIZE (LigCaretList, 4);
 

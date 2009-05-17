@@ -41,26 +41,6 @@
 
 
 /*
- * Int types
- */
-
-/* XXX define these as structs of chars on machines that do not allow
- * unaligned access (using templates?). */
-#define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
-  inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
-  inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
-  inline bool operator== (NAME o) const { return v == o.v; } \
-  private: TYPE v; \
-  public:
-#define DEFINE_INT_TYPE0(NAME, type) DEFINE_INT_TYPE1 (NAME, type, hb_be_##type)
-#define DEFINE_INT_TYPE(NAME, u, w)  DEFINE_INT_TYPE0 (NAME, u##int##w##_t)
-#define DEFINE_INT_TYPE_STRUCT(NAME, u, w) \
-  struct NAME { \
-    DEFINE_INT_TYPE(NAME, u, w) \
-  }; \
-  ASSERT_SIZE (NAME, w / 8)
-
-/*
  * Array types
  */
 
@@ -254,6 +234,26 @@ struct Null <Type> { \
 /* "The following data types are used in the OpenType font file.
  *  All OpenType fonts use Motorola-style byte ordering (Big Endian):" */
 
+/*
+ * Int types
+ */
+
+/* XXX define these as structs of chars on machines that do not allow
+ * unaligned access (using templates?). */
+#define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
+  inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
+  inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
+  inline bool operator== (NAME o) const { return v == o.v; } \
+  private: TYPE v; \
+  public:
+#define DEFINE_INT_TYPE0(NAME, type) DEFINE_INT_TYPE1 (NAME, type, hb_be_##type)
+#define DEFINE_INT_TYPE(NAME, u, w)  DEFINE_INT_TYPE0 (NAME, u##int##w##_t)
+#define DEFINE_INT_TYPE_STRUCT(NAME, u, w) \
+  struct NAME { \
+    DEFINE_INT_TYPE(NAME, u, w) \
+  }; \
+  ASSERT_SIZE (NAME, w / 8)
+
 
 DEFINE_INT_TYPE_STRUCT (BYTE,	 u,  8);	/*  8-bit unsigned integer. */
 DEFINE_INT_TYPE_STRUCT (CHAR,	  ,  8);	/*  8-bit signed integer. */
@@ -370,6 +370,43 @@ struct Fixed_Version : Fixed {
   inline int16_t minor (void) const { return this->frac_part(); }
 };
 ASSERT_SIZE (Fixed_Version, 4);
+
+/*
+ * Array Types
+ */
+
+/* An array with a USHORT number of elements. */
+template <typename Type>
+struct ArrayOf {
+  inline const Type& operator [] (unsigned int i) const {
+    if (HB_UNLIKELY (i >= len)) return Null(Type);
+    return array[i];
+  }
+
+  USHORT len;
+  private:
+  Type array[];
+};
+
+/* Array of USHORT's */
+typedef ArrayOf<USHORT> Array;
+
+/* Array of Offset's */
+template <typename Type>
+struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {
+};
+
+/* An array type is one that contains a variable number of objects
+ * as its last item.  An array object is extended with get_len()
+ * methods, as well as overloaded [] operator. */
+#define DEFINE_ARRAY_TYPE(Type, array, num) \
+  DEFINE_INDEX_OPERATOR(Type, array, num) \
+  DEFINE_LEN(Type, array, num)
+#define DEFINE_INDEX_OPERATOR(Type, array, num) \
+  inline const Type& operator[] (unsigned int i) const { \
+    if (HB_UNLIKELY (i >= num)) return Null(Type); \
+    return array[i]; \
+  }
 
 
 /*
