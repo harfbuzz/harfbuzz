@@ -313,7 +313,9 @@ struct Tag {
   char v[4];
 };
 ASSERT_SIZE (Tag, 4);
-DEFINE_NULL_DATA (Tag, 5, "    ");
+#define _NULL_TAG_INIT  {' ', ' ', ' ', ' '}
+DEFINE_NULL_DATA (Tag, 4, _NULL_TAG_INIT);
+#undef _NULL_TAG_INIT
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 DEFINE_INT_TYPE_STRUCT (GlyphID, u, 16);
