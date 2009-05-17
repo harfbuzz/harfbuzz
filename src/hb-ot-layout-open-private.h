@@ -242,11 +242,6 @@ struct Null <Type> { \
     if (HB_UNLIKELY (!Name)) return Null(Type); \
     return *(const Type*)((const char*)this + Name); \
   }
-#define DEFINE_GET_HAS_ACCESSOR(Type, name, Name) \
-  DEFINE_GET_ACCESSOR (Type, name, Name); \
-  inline bool has_##name (void) const { \
-    return Name != 0; \
-  }
 
 
 
@@ -339,6 +334,21 @@ DEFINE_INT_TYPE_STRUCT (GlyphID, u, 16);
 
 /* Offset to a table, same as uint16 (length = 16 bits), Null offset = 0x0000 */
 DEFINE_INT_TYPE_STRUCT (Offset, u, 16);
+
+/* Template subclass of Offset that does the dereferencing.  Use: (this+memberName) */
+template <typename Type>
+struct OffsetTo : Offset {
+  inline const Type& operator() (const void *base) const {
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return Null(Type);
+    return * (const Type *) ((const char *) base + offset);
+  }
+};
+
+template <typename Base, typename Type>
+inline const Type& operator + (const Base &base, OffsetTo<Type> offset) {
+  return offset(base);
+}
 
 
 /* CheckSum */
@@ -572,9 +582,7 @@ struct Script {
     return defaultLangSys != 0;
   }
   inline const LangSys& get_default_lang_sys (void) const {
-    if (HB_UNLIKELY (!defaultLangSys))
-      return Null(LangSys);
-    return *(LangSys*)((const char*)this + defaultLangSys);
+    return this+defaultLangSys;
   }
 
   private:
@@ -582,7 +590,8 @@ struct Script {
   DEFINE_RECORD_ARRAY_TYPE (LangSys, langSysRecord, langSysCount);
 
   private:
-  Offset	defaultLangSys;	/* Offset to DefaultLangSys table--from
+  OffsetTo<LangSys>
+		defaultLangSys;	/* Offset to DefaultLangSys table--from
 				 * beginning of Script table--may be Null */
   USHORT	langSysCount;	/* Number of LangSysRecords for this script--
 				 * excluding the DefaultLangSys */

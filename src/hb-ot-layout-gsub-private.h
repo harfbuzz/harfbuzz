@@ -793,7 +793,6 @@ struct ContextSubstFormat2 {
   /* SubClassSet tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (SubClassSet, subClassSet, subClassSetCnt);
   DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_ACCESSOR (ClassDef, class_def, classDef);
   DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
@@ -807,14 +806,15 @@ struct ContextSubstFormat2 {
     unsigned int index = get_glyph_coverage (glyph_id);
 
     const SubClassSet &class_set = (*this)[index];
-    return class_set.substitute_class (SUBTABLE_SUBSTITUTE_ARGS, get_class_def ());
+    return class_set.substitute_class (SUBTABLE_SUBSTITUTE_ARGS, this+classDef);
   }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 2 */
   Offset	coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  Offset	classDef;		/* Offset to glyph ClassDef table--from
+  OffsetTo<ClassDef>
+		classDef;		/* Offset to glyph ClassDef table--from
 					 * beginning of Substitution  table */
   USHORT	subClassSetCnt;		/* Number of SubClassSet tables */
   Offset	subClassSet[];		/* Array of offsets to SubClassSet

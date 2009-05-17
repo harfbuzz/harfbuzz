@@ -228,34 +228,36 @@ struct GDEF {
   STATIC_DEFINE_GET_FOR_DATA (GDEF);
   /* XXX check version here? */
 
-  DEFINE_GET_HAS_ACCESSOR (ClassDef, glyph_classes, glyphClassDef);
-  DEFINE_GET_HAS_ACCESSOR (AttachList, attach_list, attachList);
-  DEFINE_GET_HAS_ACCESSOR (LigCaretList, lig_caret_list, ligCaretList);
-  DEFINE_GET_HAS_ACCESSOR (ClassDef, mark_attachment_types, markAttachClassDef);
-
+  inline bool has_glyph_classes () const { return glyphClassDef != 0; }
   inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const {
-    return get_glyph_classes ().get_class (glyph);
+    return glyphClassDef(this).get_class (glyph);
   }
 
+  inline bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
   inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const {
-    return get_mark_attachment_types ().get_class (glyph);
+    return markAttachClassDef(this).get_class (glyph);
   }
 
   /* TODO get_attach and get_lig_caret */
+  inline bool has_attach_list () const { return attachList != 0; }
+  inline bool has_lig_caret_list () const { return ligCaretList != 0; }
 
-  private:
   Fixed		version;		/* Version of the GDEF table--initially
 					 * 0x00010000 */
-  Offset	glyphClassDef;		/* Offset to class definition table
+  OffsetTo<ClassDef>
+		glyphClassDef;		/* Offset to class definition table
 					 * for glyph type--from beginning of
 					 * GDEF header (may be Null) */
-  Offset	attachList;		/* Offset to list of glyphs with
+  OffsetTo<AttachList>
+		attachList;		/* Offset to list of glyphs with
 					 * attachment points--from beginning
 					 * of GDEF header (may be Null) */
-  Offset	ligCaretList;		/* Offset to list of positioning points
+  OffsetTo<LigCaretList>
+		ligCaretList;		/* Offset to list of positioning points
 					 * for ligature carets--from beginning
 					 * of GDEF header (may be Null) */
-  Offset	markAttachClassDef;	/* Offset to class definition table for
+  OffsetTo<ClassDef>
+		markAttachClassDef;	/* Offset to class definition table for
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be Null) */
 };
