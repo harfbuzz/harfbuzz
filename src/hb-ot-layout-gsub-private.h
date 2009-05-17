@@ -482,103 +482,132 @@ struct LigatureSubst {
 DEFINE_NULL (LigatureSubst, 2);
 
 
-struct SubstLookupRecord {
+typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, char *data);
+typedef bool (*apply_lookup_func_t) (LOOKUP_ARGS_DEF, unsigned int lookup_index);
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const;
+struct ContextLookupContext {
+  inline bool match (hb_codepoint_t glyph_id, const USHORT &value) const {
+    return match_func (glyph_id, value, match_data);
+  }
+  inline bool apply (LOOKUP_ARGS_DEF, unsigned int lookup_index) const {
+    return apply_func (LOOKUP_ARGS, lookup_index);
+  }
+
+  match_func_t match_func;
+  char *match_data;
+  apply_lookup_func_t apply_func;
+};
+
+struct LookupRecord {
+
+  inline bool apply (LOOKUP_ARGS_DEF, ContextLookupContext &context) const {
+    return context.apply (LOOKUP_ARGS, lookupListIndex);
+  }
 
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
 					 * position--zero--based */
 };
-ASSERT_SIZE (SubstLookupRecord, 4);
+ASSERT_SIZE (LookupRecord, 4);
 
-struct SubRule {
+static inline bool context_lookup (LOOKUP_ARGS_DEF,
+				   USHORT glyphCount, /* Including the first glyph (not matched) */
+				   USHORT recordCount,
+				   const USHORT value[], /* Array of match values--start with second glyph */
+				   const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
+				   ContextLookupContext &context) {
 
-  friend struct SubRuleSet;
+  unsigned int i, j;
+  unsigned int property;
+  unsigned int count = glyphCount;
+
+  if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
+		   context_length < count))
+    return false; /* Not enough glyphs in input or context */
+
+  /* XXX context_length should also be checked when skipping glyphs, right?
+   * What does context_length really mean, anyway? */
+
+  for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+      if (HB_UNLIKELY (j + count - i == buffer->in_length))
+	return false;
+      j++;
+    }
+
+    if (HB_LIKELY (context.match (IN_GLYPH(j), value[i - 1])))
+      return false;
+  }
+
+  /* XXX right? or j - buffer_inpos? */
+  context_length = count;
+
+  unsigned int record_count = recordCount;
+  const LookupRecord *record = lookupRecord;
+  for (i = 0; i < count;)
+  {
+    if ( record_count && i == record->sequenceIndex )
+    {
+      unsigned int old_pos = buffer->in_pos;
+
+      /* Apply a lookup */
+      bool done = record->apply (LOOKUP_ARGS, context);
+
+      record++;
+      record_count--;
+      i += buffer->in_pos - old_pos;
+
+      if (!done)
+	goto not_applied;
+    }
+    else
+    {
+    not_applied:
+      /* No lookup applied for this index */
+      _hb_buffer_next_glyph (buffer);
+      i++;
+    }
+  }
+
+  return true;
+}
+struct Rule {
+
+  friend struct RuleSet;
 
   private:
-  DEFINE_ARRAY_TYPE (GlyphID, input, (glyphCount ? glyphCount - 1 : 0));
+  DEFINE_ARRAY_TYPE (USHORT, value, (glyphCount ? glyphCount - 1 : 0));
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-
-    unsigned int i, j;
-    unsigned int property;
-    unsigned int count = glyphCount;
-
-    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
-		     context_length < count))
-      return false; /* Not enough glyphs in input or context */
-
-    /* XXX context_length should also be checked when skipping glyphs, right?
-     * What does context_length really mean, anyway? */
-
-    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
-      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
-	if (HB_UNLIKELY (j + count - i == buffer->in_length))
-	  return false;
-	j++;
-      }
-
-      if (HB_LIKELY (IN_GLYPH(j) != (*this)[i - 1]))
-        return false;
-    }
-
-    /* XXX right? or j - buffer_inpos? */
-    context_length = count;
-
-    unsigned int subst_count = substCount;
-    const SubstLookupRecord *subst = (const SubstLookupRecord *) ((const char *) input + sizeof (input[0]) * glyphCount);
-    for (i = 0; i < count;)
-    {
-      if ( subst_count && i == subst->sequenceIndex )
-      {
-	unsigned int old_pos = buffer->in_pos;
-
-	/* Do a substitution */
-	bool done = subst->substitute (LOOKUP_ARGS);
-
-	subst++;
-	subst_count--;
-	i += buffer->in_pos - old_pos;
-
-	if (!done)
-	  goto no_subst;
-      }
-      else
-      {
-      no_subst:
-	/* No substitution for this index */
-	_hb_buffer_next_glyph (buffer);
-	i++;
-      }
-    }
+  bool apply (LOOKUP_ARGS_DEF, ContextLookupContext &context) const {
+    const LookupRecord *record = (const LookupRecord *) ((const char *) value + sizeof (value[0]) * (glyphCount - 1));
+    return context_lookup (LOOKUP_ARGS,
+			   glyphCount,
+			   recordCount,
+			   value,
+			   record,
+			   context);
   }
 
   private:
   USHORT	glyphCount;		/* Total number of glyphs in input
 					 * glyph sequence--includes the  first
 					 * glyph */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
-  GlyphID	input[];		/* Array of input GlyphIDs--start with
+  USHORT	recordCount;		/* Number of LookupRecords */
+  USHORT	value[];		/* Array of match values--start with
 					 * second glyph */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
+  LookupRecord	lookupRecord[];		/* Array of LookupRecords--in
 					 * design order */
 };
-ASSERT_SIZE (SubRule, 4);
+ASSERT_SIZE (Rule, 4);
 
-struct SubRuleSet {
+struct RuleSet {
 
-  friend struct ContextSubstFormat1;
+  bool apply (LOOKUP_ARGS_DEF, ContextLookupContext &context) const {
 
-  private:
-
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-
-    unsigned int num_rules = subRule.len;
+    unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++) {
-      const SubRule &rule = this+subRule[i];
-      if (rule.substitute (LOOKUP_ARGS))
+      if ((this+rule[i]).apply (LOOKUP_ARGS, context))
         return true;
     }
 
@@ -586,9 +615,25 @@ struct SubRuleSet {
   }
 
   private:
-  OffsetArrayOf<SubRule>
-		subRule;		/* Array SubRule tables
+  OffsetArrayOf<Rule>
+		rule;			/* Array SubRule tables
 					 * ordered by preference */
+};
+
+static inline bool substitute_one_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index);
+
+static inline bool glyph_match (hb_codepoint_t glyph_id, const USHORT &value, char *data) {
+  return glyph_id == value;
+}
+
+struct SubRuleSet : RuleSet {
+  inline bool substitute (LOOKUP_ARGS_DEF) const {
+    struct ContextLookupContext context = {
+      glyph_match, NULL,
+      substitute_one_lookup
+    };
+    return apply (LOOKUP_ARGS, context);
+  }
 };
 ASSERT_SIZE (SubRuleSet, 2);
 
@@ -620,110 +665,25 @@ struct ContextSubstFormat1 {
 };
 ASSERT_SIZE (ContextSubstFormat1, 6);
 
+static inline bool class_match (hb_codepoint_t glyph_id, const USHORT &value, char *data) {
+  const ClassDef &class_def = * (const ClassDef *) data;
+  return class_def.get_class (glyph_id) == value;
+}
 
-struct SubClassRule {
-
-  friend struct SubClassSet;
-
-  private:
-  DEFINE_ARRAY_TYPE (USHORT, klass, (glyphCount ? glyphCount - 1 : 0));
-
+struct SubClassSet : RuleSet {
   inline bool substitute_class (LOOKUP_ARGS_DEF, const ClassDef &class_def) const {
-
-    unsigned int i, j;
-    unsigned int property;
-    unsigned int count = glyphCount;
-
-    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
-		     context_length < count))
-      return false; /* Not enough glyphs in input or context */
-
-    /* XXX context_length should also be checked when skipping glyphs, right?
-     * What does context_length really mean, anyway? */
-
-    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
-      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
-	if (HB_UNLIKELY (j + count - i == buffer->in_length))
-	  return false;
-	j++;
-      }
-
-      if (HB_LIKELY (class_def.get_class (IN_GLYPH(j)) != (*this)[i - 1]))
-        return false;
-    }
-
-    /* XXX right? or j - buffer_inpos? */
-    context_length = count;
-
-    unsigned int subst_count = substCount;
-    const SubstLookupRecord *subst = (const SubstLookupRecord *) ((const char *) klass + sizeof (klass[0]) * glyphCount);
-    for (i = 0; i < count;)
-    {
-      if ( subst_count && i == subst->sequenceIndex )
-      {
-	unsigned int old_pos = buffer->in_pos;
-
-	/* Do a substitution */
-	bool done = subst->substitute (LOOKUP_ARGS);
-
-	subst++;
-	subst_count--;
-	i += buffer->in_pos - old_pos;
-
-	if (!done)
-	  goto no_subst;
-      }
-      else
-      {
-      no_subst:
-	/* No substitution for this index */
-	_hb_buffer_next_glyph (buffer);
-	i++;
-      }
-    }
-  }
-
-  private:
-  USHORT	glyphCount;		/* Total number of classes
-					 * specified for the context in the
-					 * rule--includes the first class */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
-  USHORT	klass[];		/* Array of classes--beginning with the
-					 * second class--to be matched  to the
-					 * input glyph class sequence */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
-					 * design order */
-};
-ASSERT_SIZE (SubClassRule, 4);
-
-struct SubClassSet {
-
-  friend struct ContextSubstFormat2;
-
-  private:
-
-  inline bool substitute_class (LOOKUP_ARGS_DEF, const ClassDef &class_def) const {
-
     /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
      * them across subrule lookups.  Not sure it's worth it.
      */
-
-    unsigned int num_rules = subClassRule.len;
-    for (unsigned int i = 0; i < num_rules; i++) {
-      const SubClassRule &rule = this+subClassRule[i];
-      if (rule.substitute_class (LOOKUP_ARGS, class_def))
-        return true;
-    }
-
-    return false;
+    struct ContextLookupContext context = {
+      class_match, (char *) &class_def,
+      substitute_one_lookup
+    };
+    return apply (LOOKUP_ARGS, context);
   }
-
-  private:
-  OffsetArrayOf<SubClassRule>
-		subClassRule;		/* Array of SubClassRule tables
-					 * ordered by preference */
 };
 ASSERT_SIZE (SubClassSet, 2);
+
 
 struct ContextSubstFormat2 {
 
@@ -756,6 +716,11 @@ struct ContextSubstFormat2 {
 };
 ASSERT_SIZE (ContextSubstFormat2, 8);
 
+static inline bool coverage_match (hb_codepoint_t glyph_id, const USHORT &value, char *data) {
+  const OffsetTo<Coverage> &coverage = * (const OffsetTo<Coverage> *) &value;
+  return (data+coverage) (glyph_id) != NOT_COVERED;
+}
+
 struct ContextSubstFormat3 {
 
   friend struct ContextSubst;
@@ -764,6 +729,20 @@ struct ContextSubstFormat3 {
 
   /* Coverage tables, in glyph sequence order */
   DEFINE_OFFSET_ARRAY_TYPE (Coverage, coverage, glyphCount);
+
+  inline bool substitute_coverage (LOOKUP_ARGS_DEF) const {
+    struct ContextLookupContext context = {
+      coverage_match, (char *) this,
+      substitute_one_lookup
+    };
+    const LookupRecord *record = (const LookupRecord *) ((const char *) coverage + sizeof (coverage[0]) * glyphCount);
+    return context_lookup (LOOKUP_ARGS,
+			   glyphCount,
+			   recordCount,
+			   (const USHORT *) (coverage + 1),
+			   record,
+			   context);
+  }
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
 
@@ -774,68 +753,19 @@ struct ContextSubstFormat3 {
     if ((*this)[0].get_coverage (IN_CURGLYPH () == NOT_COVERED))
       return false;
 
-    unsigned int i, j;
-    unsigned int count = glyphCount;
-
-    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
-		     context_length < count))
-      return false; /* Not enough glyphs in input or context */
-
-    /* XXX context_length should also be checked when skipping glyphs, right?
-     * What does context_length really mean, anyway? */
-
-    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
-      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
-	if (HB_UNLIKELY (j + count - i == buffer->in_length))
-	  return false;
-	j++;
-      }
-
-      if (HB_LIKELY ((*this)[i].get_coverage (IN_GLYPH(j) == NOT_COVERED)))
-        return false;
-    }
-
-    /* XXX right? or j - buffer_inpos? */
-    context_length = count;
-
-    unsigned int subst_count = substCount;
-    const SubstLookupRecord *subst = (const SubstLookupRecord *) ((const char *) coverage + sizeof (coverage[0]) * glyphCount);
-    for (i = 0; i < count;)
-    {
-      if ( subst_count && i == subst->sequenceIndex )
-      {
-	unsigned int old_pos = buffer->in_pos;
-
-	/* Do a substitution */
-	bool done = subst->substitute (LOOKUP_ARGS);
-
-	subst++;
-	subst_count--;
-	i += buffer->in_pos - old_pos;
-
-	if (!done)
-	  goto no_subst;
-      }
-      else
-      {
-      no_subst:
-	/* No substitution for this index */
-	_hb_buffer_next_glyph (buffer);
-	i++;
-      }
-    }
+    return substitute_coverage (LOOKUP_ARGS);
   }
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 3 */
   USHORT	glyphCount;		/* Number of glyphs in the input glyph
 					 * sequence */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
+  USHORT	recordCount;		/* Number of LookupRecords */
   Offset	coverage[];		/* Array of offsets to Coverage
 					 * table--from beginning of
 					 * Substitution table--in glyph
 					 * sequence order */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
+  LookupRecord	lookupRecord[];		/* Array of LookupRecords--in
 					 * design order */
 };
 ASSERT_SIZE (ContextSubstFormat3, 6);
@@ -886,8 +816,8 @@ struct ChainSubRule {
 					 * be matched after the input sequence) */
   GlyphID	lookAhead[];		/* Array of lookahead GlyphID's (to be
 					 * matched after  the input sequence) */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
+  USHORT	substCount;		/* Number of LookupRecords */
+  LookupRecord	substLookupRecord[];	/* Array of LookupRecords--in
 					 * design order) */
 };
 ASSERT_SIZE (ChainSubRule, 8);
@@ -945,8 +875,8 @@ struct ChainSubClassRule {
 					 * input sequence) */
   USHORT	lookAhead[];		/* Array of lookahead classes (to be
 					 * matched after the  input sequence) */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
+  USHORT	substCount;		/* Number of LookupRecords */
+  LookupRecord	substLookupRecord[];	/* Array of LookupRecords--in
 					 * design order) */
 };
 ASSERT_SIZE (ChainSubClassRule, 8);
@@ -1016,8 +946,8 @@ struct ChainContextSubstFormat3 {
   Offset	lookaheadCoverage[];	/* Array of offsets to coverage tables
 					 * in lookahead sequence, in  glyph
 					 * sequence order */
-  USHORT	substCount;		/* Number of SubstLookupRecords */
-  SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
+  USHORT	substCount;		/* Number of LookupRecords */
+  LookupRecord	substLookupRecord[];	/* Array of LookupRecords--in
 					 * design order */
 };
 ASSERT_SIZE (ChainContextSubstFormat3, 10);
@@ -1307,9 +1237,9 @@ inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
 										   get_type ());
 }
 
-inline bool SubstLookupRecord::substitute (LOOKUP_ARGS_DEF) const {
+static inline bool substitute_one_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {
   const GSUB &gsub = *(layout->gsub);
-  const SubstLookup &l = gsub.get_lookup (lookupListIndex);
+  const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   return l.substitute_once (layout, buffer, context_length, nesting_level_left);
 }
