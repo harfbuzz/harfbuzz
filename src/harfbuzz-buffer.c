@@ -71,7 +71,7 @@ hb_buffer_ensure( HB_Buffer buffer,
 
       while (size > new_allocated)
 	new_allocated += (new_allocated >> 1) + 8;
-      
+
       if ( buffer->positions )
         {
 	  if ( REALLOC_ARRAY( buffer->positions, new_allocated, HB_PositionRec ) )
