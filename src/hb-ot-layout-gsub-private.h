@@ -346,10 +346,10 @@ struct Ligature {
 	 value it is later possible to check whether a specific
 	 component value really belongs to a given ligature. */
 
-      for ( i = 0; i < count - 1; i++ )
+      for ( i = 1; i < count; i++ )
       {
 	while (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM(), lookup_flag, &property))
-	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH(), i, lig_id);
+	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH(), i - 1, lig_id);
 
 	(buffer->in_pos)++;
       }
@@ -833,6 +833,9 @@ struct SubstLookup : Lookup {
 			  hb_ot_layout_feature_mask_t mask) const {
 
     bool ret = false;
+
+    if (HB_UNLIKELY (!buffer->in_length))
+      return false;
 
     if (HB_LIKELY (!is_reverse ())) {
 

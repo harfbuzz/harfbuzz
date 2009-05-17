@@ -755,7 +755,7 @@ struct CoverageRangeRecord {
   USHORT	startCoverageIndex;	/* Coverage Index of first GlyphID in
 					 * range */
 };
-ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\001");
+ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\000\001");
 
 struct CoverageFormat2 {
 
@@ -841,7 +841,7 @@ struct ClassRangeRecord {
   GlyphID	end;		/* Last GlyphID in the range */
   USHORT	classValue;	/* Applied to all glyphs in the range */
 };
-ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\001");
+ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\000\001");
 
 struct ClassDefFormat2 {
 

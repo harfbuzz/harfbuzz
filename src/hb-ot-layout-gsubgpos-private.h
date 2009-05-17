@@ -113,7 +113,7 @@ static inline bool context_lookup (LOOKUP_ARGS_DEF,
   const LookupRecord *record = lookupRecord;
   for (i = 0; i < count;)
   {
-    if ( record_count && i == record->sequenceIndex )
+    if (record_count && i == record->sequenceIndex)
     {
       unsigned int old_pos = buffer->in_pos;
 
@@ -146,7 +146,7 @@ struct Rule {
   DEFINE_ARRAY_TYPE (USHORT, value, (glyphCount ? glyphCount - 1 : 0));
 
   inline bool apply (LOOKUP_ARGS_DEF, ContextLookupContext &context) const {
-    const LookupRecord *record = (const LookupRecord *) ((const char *) value + sizeof (value[0]) * (glyphCount - 1));
+    const LookupRecord *record = (const LookupRecord *) ((const char *) value + sizeof (value[0]) * (glyphCount ? glyphCount - 1 : 0));
     return context_lookup (LOOKUP_ARGS,
 			   glyphCount,
 			   recordCount,
