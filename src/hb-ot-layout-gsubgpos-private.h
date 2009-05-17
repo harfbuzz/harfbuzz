@@ -315,22 +315,22 @@ struct Context {
   protected:
   bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
     switch (u.format) {
-    case 1: return u.format1.apply (LOOKUP_ARGS, apply_func);
-    case 2: return u.format2.apply (LOOKUP_ARGS, apply_func);
-    case 3: return u.format3.apply (LOOKUP_ARGS, apply_func);
+    case 1: return u.format1->apply (LOOKUP_ARGS, apply_func);
+    case 2: return u.format2->apply (LOOKUP_ARGS, apply_func);
+    case 3: return u.format3->apply (LOOKUP_ARGS, apply_func);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT		format;	/* Format identifier */
-  ContextFormat1	format1;
-  ContextFormat2	format2;
-  ContextFormat3	format3;
+  USHORT		format;		/* Format identifier */
+  ContextFormat1	format1[];
+  ContextFormat2	format2[];
+  ContextFormat3	format3[];
   } u;
 };
-DEFINE_NULL (Context, 2);
+ASSERT_SIZE (Context, 2);
 
 
 #endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H */

@@ -91,9 +91,9 @@ struct SingleSubst {
   private:
 
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
-    switch (u.substFormat) {
-    case 1: return u.format1.single_substitute (glyph_id);
-    case 2: return u.format2.single_substitute (glyph_id);
+    switch (u.format) {
+    case 1: return u.format1->single_substitute (glyph_id);
+    case 2: return u.format2->single_substitute (glyph_id);
     default:return false;
     }
   }
@@ -118,12 +118,12 @@ struct SingleSubst {
 
   private:
   union {
-  USHORT	substFormat;	/* Format identifier */
-  SingleSubstFormat1	format1;
-  SingleSubstFormat2	format2;
+  USHORT		format;		/* Format identifier */
+  SingleSubstFormat1	format1[];
+  SingleSubstFormat2	format2[];
   } u;
 };
-DEFINE_NULL (SingleSubst, 2);
+ASSERT_SIZE (SingleSubst, 2);
 
 
 struct Sequence {
@@ -197,19 +197,19 @@ struct MultipleSubst {
   private:
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
-    switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    switch (u.format) {
+    case 1: return u.format1->substitute (LOOKUP_ARGS);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT	substFormat;	/* Format identifier */
-  MultipleSubstFormat1	format1;
+  USHORT		format;		/* Format identifier */
+  MultipleSubstFormat1	format1[];
   } u;
 };
-DEFINE_NULL (MultipleSubst, 2);
+ASSERT_SIZE (MultipleSubst, 2);
 
 
 typedef ArrayOf<GlyphID> AlternateSet;	/* Array of alternate GlyphIDs--in
@@ -275,19 +275,19 @@ struct AlternateSubst {
   private:
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
-    switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    switch (u.format) {
+    case 1: return u.format1->substitute (LOOKUP_ARGS);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT	substFormat;	/* Format identifier */
-  AlternateSubstFormat1	format1;
+  USHORT		format;		/* Format identifier */
+  AlternateSubstFormat1	format1[];
   } u;
 };
-DEFINE_NULL (AlternateSubst, 2);
+ASSERT_SIZE (AlternateSubst, 2);
 
 
 struct Ligature {
@@ -432,19 +432,19 @@ struct LigatureSubst {
   private:
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
-    switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    switch (u.format) {
+    case 1: return u.format1->substitute (LOOKUP_ARGS);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT	substFormat;	/* Format identifier */
-  LigatureSubstFormat1	format1;
+  USHORT		format;		/* Format identifier */
+  LigatureSubstFormat1	format1[];
   } u;
 };
-DEFINE_NULL (LigatureSubst, 2);
+ASSERT_SIZE (LigatureSubst, 2);
 
 
 
@@ -456,7 +456,7 @@ struct ContextSubst : Context {
     return this->apply (LOOKUP_ARGS, substitute_lookup);
   }
 };
-DEFINE_NULL (ContextSubst, 2);
+ASSERT_SIZE (ContextSubst, 2);
 
 
 struct ChainSubRule {
@@ -622,23 +622,23 @@ struct ChainContextSubst {
   private:
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
-    switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
-    case 2: return u.format2.substitute (LOOKUP_ARGS);
-    case 3: return u.format3.substitute (LOOKUP_ARGS);
+    switch (u.format) {
+    case 1: return u.format1->substitute (LOOKUP_ARGS);
+    case 2: return u.format2->substitute (LOOKUP_ARGS);
+    case 3: return u.format3->substitute (LOOKUP_ARGS);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT	substFormat;	/* Format identifier */
-  ChainContextSubstFormat1	format1;
-  ChainContextSubstFormat2	format2;
-  ChainContextSubstFormat3	format3;
+  USHORT			format;	/* Format identifier */
+  ChainContextSubstFormat1	format1[];
+  ChainContextSubstFormat2	format2[];
+  ChainContextSubstFormat3	format3[];
   } u;
 };
-DEFINE_NULL (ChainContextSubst, 2);
+ASSERT_SIZE (ChainContextSubst, 2);
 
 
 struct ExtensionSubstFormat1 {
@@ -647,6 +647,7 @@ struct ExtensionSubstFormat1 {
 
   private:
   inline unsigned int get_type (void) const { return extensionLookupType; }
+  inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
   inline bool substitute (LOOKUP_ARGS_DEF) const;
 
   private:
@@ -654,8 +655,10 @@ struct ExtensionSubstFormat1 {
   USHORT	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
 					 * extension subtable). */
-  ULONG		extensionOffset;	/* Offset to the extension subtable,
-					 * of lookup type  subtable. */
+  USHORT	extensionOffset[2];	/* Offset to the extension subtable,
+					 * of lookup type subtable.
+					 * Defined as two shorts to avoid
+					 * alignment requirements. */
 };
 ASSERT_SIZE (ExtensionSubstFormat1, 8);
 
@@ -667,26 +670,26 @@ struct ExtensionSubst {
   private:
 
   inline unsigned int get_type (void) const {
-    switch (u.substFormat) {
-    case 1: return u.format1.get_type ();
+    switch (u.format) {
+    case 1: return u.format1->get_type ();
     default:return 0;
     }
   }
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
-    switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    switch (u.format) {
+    case 1: return u.format1->substitute (LOOKUP_ARGS);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT	substFormat;	/* Format identifier */
-  ExtensionSubstFormat1	format1;
+  USHORT		format;		/* Format identifier */
+  ExtensionSubstFormat1	format1[];
   } u;
 };
-DEFINE_NULL (ExtensionSubst, 2);
+ASSERT_SIZE (ExtensionSubst, 2);
 
 
 
@@ -905,7 +908,7 @@ struct GSUB : GSUBGPOS {
 inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
   /* XXX either check in sanitize or here that the lookuptype is not 7 again,
    * or we can loop indefinitely. */
-  return (*(SubstLookupSubTable *)(((char *) this) + extensionOffset)).substitute (LOOKUP_ARGS,
+  return (*(SubstLookupSubTable *)(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS,
 										   get_type ());
 }
 

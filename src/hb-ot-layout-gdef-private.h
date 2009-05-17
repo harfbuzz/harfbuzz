@@ -129,23 +129,23 @@ ASSERT_SIZE (CaretValueFormat3, 6);
 struct CaretValue {
   /* XXX  we need access to a load-contour-point vfunc here */
   int get_caret_value (int ppem) const {
-    switch (u.caretValueFormat) {
-    case 1: return u.format1.get_caret_value(ppem);
-    case 2: return u.format2.get_caret_value(ppem);
-    case 3: return u.format3.get_caret_value(ppem);
+    switch (u.format) {
+    case 1: return u.format1->get_caret_value(ppem);
+    case 2: return u.format2->get_caret_value(ppem);
+    case 3: return u.format3->get_caret_value(ppem);
     default:return 0;
     }
   }
 
   private:
   union {
-  USHORT	caretValueFormat;	/* Format identifier */
-  CaretValueFormat1	format1;
-  CaretValueFormat2	format2;
-  CaretValueFormat3	format3;
+  USHORT		format;		/* Format identifier */
+  CaretValueFormat1	format1[];
+  CaretValueFormat2	format2[];
+  CaretValueFormat3	format3[];
   } u;
 };
-DEFINE_NULL (CaretValue, 2);
+ASSERT_SIZE (CaretValue, 2);
 
 struct LigGlyph {
 

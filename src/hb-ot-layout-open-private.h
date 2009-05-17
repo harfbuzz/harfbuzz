@@ -167,21 +167,10 @@ static const char NullPool[16] = "";
 
 /* Generic template for nul-content sizeof-sized Null objects. */
 template <typename Type>
-struct NullSize {
-  char bytes[sizeof (Type)];
-};
-template <typename Type>
 struct Null {
-  ASSERT_STATIC (sizeof (NullSize<Type>) <= sizeof (NullPool));
+  ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
   static inline const Type &get () { return (const Type&) *(const Type*) NullPool; }
 };
-
-/* Specializaiton for nul-content arbitrary-sized Null objects. */
-#define DEFINE_NULL(Type, size) \
-template <> \
-struct NullSize <Type> { \
-  char bytes[size]; \
-}
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
 #define DEFINE_NULL_DATA(Type, size, data) \
@@ -785,9 +774,9 @@ ASSERT_SIZE (CoverageFormat2, 4);
 
 struct Coverage {
   unsigned int get_coverage (hb_codepoint_t glyph_id) const {
-    switch (u.coverageFormat) {
-    case 1: return u.format1.get_coverage(glyph_id);
-    case 2: return u.format2.get_coverage(glyph_id);
+    switch (u.format) {
+    case 1: return u.format1->get_coverage(glyph_id);
+    case 2: return u.format2->get_coverage(glyph_id);
     default:return NOT_COVERED;
     }
   }
@@ -798,12 +787,12 @@ struct Coverage {
 
   private:
   union {
-  USHORT		coverageFormat;	/* Format identifier */
-  CoverageFormat1	format1;
-  CoverageFormat2	format2;
+  USHORT		format;		/* Format identifier */
+  CoverageFormat1	format1[];
+  CoverageFormat2	format2[];
   } u;
 };
-DEFINE_NULL (Coverage, 2);
+ASSERT_SIZE (Coverage, 2);
 
 /*
  * Class Definition Table
@@ -870,21 +859,21 @@ ASSERT_SIZE (ClassDefFormat2, 4);
 
 struct ClassDef {
   hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
-    switch (u.classFormat) {
-    case 1: return u.format1.get_class(glyph_id);
-    case 2: return u.format2.get_class(glyph_id);
+    switch (u.format) {
+    case 1: return u.format1->get_class(glyph_id);
+    case 2: return u.format2->get_class(glyph_id);
     default:return 0;
     }
   }
 
   private:
   union {
-  USHORT		classFormat;	/* Format identifier */
-  ClassDefFormat1	format1;
-  ClassDefFormat2	format2;
+  USHORT		format;		/* Format identifier */
+  ClassDefFormat1	format1[];
+  ClassDefFormat2	format2[];
   } u;
 };
-DEFINE_NULL (ClassDef, 2);
+ASSERT_SIZE (ClassDef, 2);
 
 /*
  * Device Tables
