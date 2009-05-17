@@ -165,7 +165,6 @@ struct CaretValue {
   CaretValueFormat1	format1;
   CaretValueFormat2	format2;
   CaretValueFormat3	format3;
-  /* FIXME old HarfBuzz code has a format 4 here! */
   } u;
 };
 DEFINE_NULL (CaretValue, 2);
