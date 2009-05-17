@@ -336,7 +336,6 @@ struct OffsetTo : Offset {
     return * (const Type *) ((const char *) base + offset);
   }
 };
-
 template <typename Base, typename Type>
 inline const Type& operator + (const Base &base, OffsetTo<Type> offset) {
   return offset(base);
@@ -384,12 +383,8 @@ struct ArrayOf {
   }
 
   USHORT len;
-  private:
   Type array[];
 };
-
-/* Array of USHORT's */
-typedef ArrayOf<USHORT> Array;
 
 /* Array of Offset's */
 template <typename Type>

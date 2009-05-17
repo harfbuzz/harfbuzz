@@ -84,7 +84,7 @@ struct SingleSubstFormat2 {
 
     unsigned int index = (this+coverage) (glyph_id);
 
-    if (index >= glyphCount)
+    if (index >= substitute.len)
       return false;
 
     glyph_id = substitute[index];
@@ -96,10 +96,9 @@ struct SingleSubstFormat2 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
-					 * array */
-  GlyphID	substitute[];		/* Array of substitute
-					 * GlyphIDs--ordered by Coverage  Index */
+  ArrayOf<GlyphID>
+		substitute;		/* Array of substitute
+					 * GlyphIDs--ordered by Coverage Index */
 };
 ASSERT_SIZE (SingleSubstFormat2, 6);
 
@@ -154,23 +153,21 @@ struct Sequence {
   friend struct MultipleSubstFormat1;
 
   private:
-  /* GlyphID tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (GlyphID, substitute, glyphCount);
 
   inline void set_glyph_class (hb_ot_layout_t *layout, unsigned int property) const {
 
-    unsigned int count = glyphCount;
+    unsigned int count = substitute.len;
     for (unsigned int n = 0; n < count; n++)
       _hb_ot_layout_set_glyph_property (layout, substitute[n], property);
   }
 
   inline bool substitute_sequence (SUBTABLE_SUBSTITUTE_ARGS_DEF, unsigned int property) const {
 
-    if (HB_UNLIKELY (!get_len ()))
+    if (HB_UNLIKELY (!substitute.len))
       return false;
 
     _hb_buffer_add_output_glyph_ids (buffer, 1,
-				     glyphCount, substitute,
+				     substitute.len, substitute.array,
 				     0xFFFF, 0xFFFF);
 
     if ( _hb_ot_layout_has_new_glyph_classes (layout) )
@@ -187,10 +184,8 @@ struct Sequence {
   }
 
   private:
-  USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
-					 * array. This should always  be
-					 * greater than 0. */
-  GlyphID	substitute[];		/* String of GlyphIDs to substitute */
+  ArrayOf<GlyphID>
+		substitute;		/* String of GlyphIDs to substitute */
 };
 ASSERT_SIZE (Sequence, 2);
 
@@ -199,8 +194,6 @@ struct MultipleSubstFormat1 {
   friend struct MultipleSubst;
 
   private:
-  /* Sequence tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (Sequence, sequence, sequenceCount);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -208,12 +201,8 @@ struct MultipleSubstFormat1 {
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
-
-    unsigned int index = (this+coverage) (glyph_id);
-
-    const Sequence &seq = (*this)[index];
-    return seq.substitute_sequence (SUBTABLE_SUBSTITUTE_ARGS, property);
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    return (this+sequence[index]).substitute_sequence (SUBTABLE_SUBSTITUTE_ARGS, property);
   }
 
   private:
@@ -221,12 +210,9 @@ struct MultipleSubstFormat1 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  USHORT	sequenceCount;		/* Number of Sequence table offsets in
-					 * the Sequence array */
-  Offset	sequence[];		/* Array of offsets to Sequence
-					 * tables--from beginning of
-					 * Substitution table--ordered by
-					 * Coverage Index */
+  OffsetArrayOf<Sequence>
+		sequence;		/* Array of Sequence tables
+					 * ordered by Coverage Index */
 };
 ASSERT_SIZE (MultipleSubstFormat1, 6);
 
@@ -252,17 +238,8 @@ struct MultipleSubst {
 DEFINE_NULL (MultipleSubst, 2);
 
 
-struct AlternateSet {
-
-  /* GlyphIDs, in no particular order */
-  DEFINE_ARRAY_TYPE (GlyphID, alternate, glyphCount);
-
-  private:
-  USHORT	glyphCount;		/* Number of GlyphIDs in the Alternate
-					 * array */
-  GlyphID	alternate[];		/* Array of alternate GlyphIDs--in
+typedef ArrayOf<GlyphID> AlternateSet;	/* Array of alternate GlyphIDs--in
 					 * arbitrary order */
-};
 ASSERT_SIZE (AlternateSet, 2);
 
 struct AlternateSubstFormat1 {
@@ -270,8 +247,6 @@ struct AlternateSubstFormat1 {
   friend struct AlternateSubst;
 
   private:
-  /* AlternateSet tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (AlternateSet, alternateSet, alternateSetCount);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -282,10 +257,9 @@ struct AlternateSubstFormat1 {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     unsigned int index = (this+coverage) (glyph_id);
+    const AlternateSet &alt_set = this+alternateSet[index];
 
-    const AlternateSet &alt_set = (*this)[index];
-
-    if (HB_UNLIKELY (!alt_set.get_len ()))
+    if (HB_UNLIKELY (!alt_set.len))
       return false;
 
     unsigned int alt_index = 0;
@@ -297,7 +271,7 @@ struct AlternateSubstFormat1 {
 				   gsub->data );
 				   */
 
-    if (HB_UNLIKELY (alt_index >= alt_set.get_len ()))
+    if (HB_UNLIKELY (alt_index >= alt_set.len))
       return false;
 
     glyph_id = alt_set[alt_index];
@@ -318,11 +292,9 @@ struct AlternateSubstFormat1 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  USHORT	alternateSetCount;	/* Number of AlternateSet tables */
-  Offset	alternateSet[];		/* Array of offsets to AlternateSet
-					 * tables--from beginning of
-					 * Substitution table--ordered by
-					 * Coverage Index */
+  OffsetArrayOf<AlternateSet>
+		alternateSet;		/* Array of AlternateSet tables
+					 * ordered by Coverage Index */
 };
 ASSERT_SIZE (AlternateSubstFormat1, 6);
 
@@ -435,13 +407,12 @@ struct LigatureSet {
   friend struct LigatureSubstFormat1;
 
   private:
-  DEFINE_OFFSET_ARRAY_TYPE (Ligature, ligature, ligatureCount);
 
   inline bool substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS_DEF, bool is_mark) const {
 
-    unsigned int num_ligs = get_len ();
+    unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++) {
-      const Ligature &lig = (*this)[i];
+      const Ligature &lig = this+ligature[i];
       if (lig.substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS, is_mark))
         return true;
     }
@@ -450,11 +421,9 @@ struct LigatureSet {
   }
 
   private:
-  USHORT	ligatureCount;		/* Number of Ligature tables */
-  Offset	ligature[];		/* Array of offsets to Ligature
-					 * tables--from beginning of
-					 * LigatureSet table--ordered by
-					 * preference */
+  OffsetArrayOf<Ligature>
+		ligature;		/* Array LigatureSet tables
+					 * ordered by preference */
 };
 ASSERT_SIZE (LigatureSet, 2);
 
@@ -463,8 +432,6 @@ struct LigatureSubstFormat1 {
   friend struct LigatureSubst;
 
   private:
-  /* LigatureSet tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (LigatureSet, ligatureSet, ligSetCount);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -474,12 +441,11 @@ struct LigatureSubstFormat1 {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    unsigned int index = (this+coverage) (glyph_id);
-
     bool first_is_mark = (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
 			  property &  LookupFlag::MarkAttachmentType);
 
-    const LigatureSet &lig_set = (*this)[index];
+    unsigned int index = (this+coverage) (glyph_id);
+    const LigatureSet &lig_set = this+ligatureSet[index];
     return lig_set.substitute_ligature (SUBTABLE_SUBSTITUTE_ARGS, first_is_mark);
   }
 
@@ -488,11 +454,9 @@ struct LigatureSubstFormat1 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  USHORT	ligSetCount;		/* Number of LigatureSet tables */
-  Offset	ligatureSet[];		/* Array of offsets to LigatureSet
-					 * tables--from beginning of
-					 * Substitution table--ordered by
-					 * Coverage Index */
+  OffsetArrayOf<LigatureSet>\
+		ligatureSet;		/* Array LigatureSet tables
+					 * ordered by Coverage Index */
 };
 ASSERT_SIZE (LigatureSubstFormat1, 6);
 
@@ -608,13 +572,12 @@ struct SubRuleSet {
   friend struct ContextSubstFormat1;
 
   private:
-  DEFINE_OFFSET_ARRAY_TYPE (SubRule, subRule, subRuleCount);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
-    unsigned int num_rules = get_len ();
+    unsigned int num_rules = subRule.len;
     for (unsigned int i = 0; i < num_rules; i++) {
-      const SubRule &rule = (*this)[i];
+      const SubRule &rule = this+subRule[i];
       if (rule.substitute (SUBTABLE_SUBSTITUTE_ARGS))
         return true;
     }
@@ -623,10 +586,9 @@ struct SubRuleSet {
   }
 
   private:
-  USHORT	subRuleCount;		/* Number of SubRule tables */
-  Offset	subRule[];		/* Array of offsets to SubRule
-					 * tables--from beginning of SubRuleSet
-					 * table--ordered by preference */
+  OffsetArrayOf<SubRule>
+		subRule;		/* Array SubRule tables
+					 * ordered by preference */
 };
 ASSERT_SIZE (SubRuleSet, 2);
 
@@ -635,8 +597,6 @@ struct ContextSubstFormat1 {
   friend struct ContextSubst;
 
   private:
-  /* SubRuleSet tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (SubRuleSet, subRuleSet, subRuleSetCount);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -644,11 +604,8 @@ struct ContextSubstFormat1 {
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
-
-    unsigned int index = (this+coverage) (glyph_id);
-
-    const SubRuleSet &rule_set = (*this)[index];
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    const SubRuleSet &rule_set = this+subRuleSet[index];
     return rule_set.substitute (SUBTABLE_SUBSTITUTE_ARGS);
   }
 
@@ -657,12 +614,9 @@ struct ContextSubstFormat1 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  USHORT	subRuleSetCount;	/* Number of SubRuleSet tables--must
-					 * equal GlyphCount in Coverage  table */
-  Offset	subRuleSet[];		/* Array of offsets to SubRuleSet
-					 * tables--from beginning of
-					 * Substitution table--ordered by
-					 * Coverage Index */
+  OffsetArrayOf<SubRuleSet>
+		subRuleSet;		/* Array of SubRuleSet tables
+					 * ordered by Coverage Index */
 };
 ASSERT_SIZE (ContextSubstFormat1, 6);
 
@@ -747,7 +701,6 @@ struct SubClassSet {
   friend struct ContextSubstFormat2;
 
   private:
-  DEFINE_OFFSET_ARRAY_TYPE (SubClassRule, subClassRule, subClassRuleCnt);
 
   inline bool substitute_class (SUBTABLE_SUBSTITUTE_ARGS_DEF, const ClassDef &class_def) const {
 
@@ -755,9 +708,9 @@ struct SubClassSet {
      * them across subrule lookups.  Not sure it's worth it.
      */
 
-    unsigned int num_rules = get_len ();
+    unsigned int num_rules = subClassRule.len;
     for (unsigned int i = 0; i < num_rules; i++) {
-      const SubClassRule &rule = (*this)[i];
+      const SubClassRule &rule = this+subClassRule[i];
       if (rule.substitute_class (SUBTABLE_SUBSTITUTE_ARGS, class_def))
         return true;
     }
@@ -766,10 +719,9 @@ struct SubClassSet {
   }
 
   private:
-  USHORT	subClassRuleCnt;	/* Number of SubClassRule tables */
-  Offset	subClassRule[];		/* Array of offsets to SubClassRule
-					 * tables--from beginning of
-					 * SubClassSet--ordered by preference */
+  OffsetArrayOf<SubClassRule>
+		subClassRule;		/* Array of SubClassRule tables
+					 * ordered by preference */
 };
 ASSERT_SIZE (SubClassSet, 2);
 
@@ -778,8 +730,6 @@ struct ContextSubstFormat2 {
   friend struct ContextSubst;
 
   private:
-  /* SubClassSet tables, in Coverage Index order */
-  DEFINE_OFFSET_ARRAY_TYPE (SubClassSet, subClassSet, subClassSetCnt);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -787,11 +737,8 @@ struct ContextSubstFormat2 {
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
-
-    unsigned int index = (this+coverage) (glyph_id);
-
-    const SubClassSet &class_set = (*this)[index];
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    const SubClassSet &class_set = this+subClassSet[index];
     return class_set.substitute_class (SUBTABLE_SUBSTITUTE_ARGS, this+classDef);
   }
 
@@ -803,11 +750,9 @@ struct ContextSubstFormat2 {
   OffsetTo<ClassDef>
 		classDef;		/* Offset to glyph ClassDef table--from
 					 * beginning of Substitution  table */
-  USHORT	subClassSetCnt;		/* Number of SubClassSet tables */
-  Offset	subClassSet[];		/* Array of offsets to SubClassSet
-					 * tables--from beginning of
-					 * Substitution table--ordered by
-					 * class--may be NULL */
+  OffsetArrayOf<SubClassSet>
+		subClassSet;		/* Array of SubClassSet tables
+					 * ordered by class */
 };
 ASSERT_SIZE (ContextSubstFormat2, 8);
 

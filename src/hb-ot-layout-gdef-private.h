@@ -50,7 +50,8 @@ struct GlyphClassDef : ClassDef {
  */
 
 struct AttachPoint {
-  Array		pointIndex;		/* Array of contour point indices--in
+  ArrayOf<USHORT>
+		pointIndex;		/* Array of contour point indices--in
 					 * increasing numerical order */
 };
 ASSERT_SIZE (AttachPoint, 2);
