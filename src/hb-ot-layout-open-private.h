@@ -800,6 +800,10 @@ struct Coverage {
     }
   }
 
+  unsigned int operator() (hb_codepoint_t glyph_id) const {
+    return get_coverage (glyph_id);
+  }
+
   private:
   union {
   USHORT		coverageFormat;	/* Format identifier */
