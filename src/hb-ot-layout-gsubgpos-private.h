@@ -35,13 +35,15 @@
 	hb_buffer_t    *buffer, \
 	unsigned int    context_length HB_GNUC_UNUSED, \
 	unsigned int    nesting_level_left HB_GNUC_UNUSED, \
-	unsigned int    lookup_flag
+	unsigned int    lookup_flag, \
+	unsigned int    property HB_GNUC_UNUSED /* propety of first glyph */
 #define LOOKUP_ARGS \
 	layout, \
 	buffer, \
 	context_length, \
 	nesting_level_left, \
-	lookup_flag
+	lookup_flag, \
+	property
 
 
 /* Context lookups */
@@ -83,7 +85,6 @@ static inline bool context_lookup (LOOKUP_ARGS_DEF,
 				   ContextLookupContext &context) {
 
   unsigned int i, j;
-  unsigned int property;
   unsigned int count = glyphCount;
 
   if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
