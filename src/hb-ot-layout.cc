@@ -47,9 +47,9 @@ hb_ot_layout_create (void)
 {
   hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
 
-  layout->gdef = &NullGDEF;
-  layout->gsub = &NullGSUB;
-  layout->gpos = &/*XXX*/NullGSUBGPOS;
+  layout->gdef = &Null(GDEF);
+  layout->gsub = &Null(GSUB);
+  layout->gpos = &/*XXX*/Null(GSUBGPOS);
 
   return layout;
 }
@@ -282,7 +282,7 @@ get_gsubgpos_table (hb_ot_layout_t            *layout,
   switch (table_type) {
     case HB_OT_LAYOUT_TABLE_TYPE_GSUB: return *(layout->gsub);
     case HB_OT_LAYOUT_TABLE_TYPE_GPOS: return *(layout->gpos);
-    default:                           return NullGSUBGPOS;
+    default:                           return Null(GSUBGPOS);
   }
 }
 

@@ -65,7 +65,7 @@ struct AttachPoint {
   USHORT	pointIndex[];		/* Array of contour point indices--in
 					 * increasing numerical order */
 };
-DEFINE_NULL_ASSERT_SIZE (AttachPoint, 2);
+ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList {
 
@@ -89,7 +89,7 @@ struct AttachList {
 					 * tables--from beginning of AttachList
 					 * table--in Coverage Index order */
 };
-DEFINE_NULL_ASSERT_SIZE (AttachList, 4);
+ASSERT_SIZE (AttachList, 4);
 
 /*
  * Ligature Caret Table
@@ -131,7 +131,7 @@ struct CaretValueFormat3 {
 
   private:
   inline const Device& get_device (void) const {
-    if (HB_UNLIKELY (!deviceTable)) return NullDevice;
+    if (HB_UNLIKELY (!deviceTable)) return Null(Device);
     return *(const Device*)((const char*)this + deviceTable);
   }
 
@@ -186,7 +186,7 @@ struct LigGlyph {
 					 * table--in increasing coordinate
 					 * order */
 };
-DEFINE_NULL_ASSERT_SIZE (LigGlyph, 2);
+ASSERT_SIZE (LigGlyph, 2);
 
 struct LigCaretList {
 
@@ -210,7 +210,7 @@ struct LigCaretList {
 					 * LigCaretList table--in Coverage
 					 * Index order */
 };
-DEFINE_NULL_ASSERT_SIZE (LigCaretList, 4);
+ASSERT_SIZE (LigCaretList, 4);
 
 /*
  * GDEF
@@ -259,6 +259,6 @@ struct GDEF {
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be Null) */
 };
-DEFINE_NULL_ASSERT_SIZE (GDEF, 12);
+ASSERT_SIZE (GDEF, 12);
 
 #endif /* HB_OT_LAYOUT_GDEF_PRIVATE_H */

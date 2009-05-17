@@ -200,7 +200,7 @@ struct Sequence {
 					 * greater than 0. */
   GlyphID	substitute[];		/* String of GlyphIDs to substitute */
 };
-DEFINE_NULL_ASSERT_SIZE (Sequence, 2);
+ASSERT_SIZE (Sequence, 2);
 
 struct MultipleSubstFormat1 {
 
@@ -272,7 +272,7 @@ struct AlternateSet {
   GlyphID	alternate[];		/* Array of alternate GlyphIDs--in
 					 * arbitrary order */
 };
-DEFINE_NULL_ASSERT_SIZE (AlternateSet, 2);
+ASSERT_SIZE (AlternateSet, 2);
 
 struct AlternateSubstFormat1 {
 
@@ -438,7 +438,7 @@ struct Ligature {
 					 * with the second  component--ordered
 					 * in writing direction */
 };
-DEFINE_NULL_ASSERT_SIZE (Ligature, 4);
+ASSERT_SIZE (Ligature, 4);
 
 struct LigatureSet {
 
@@ -466,7 +466,7 @@ struct LigatureSet {
 					 * LigatureSet table--ordered by
 					 * preference */
 };
-DEFINE_NULL_ASSERT_SIZE (LigatureSet, 2);
+ASSERT_SIZE (LigatureSet, 2);
 
 struct LigatureSubstFormat1 {
 
@@ -538,7 +538,7 @@ struct SubstLookupRecord {
   USHORT	lookupListIndex;	/* Lookup to apply to that
 					 * position--zero--based */
 };
-DEFINE_NULL_ASSERT_SIZE (SubstLookupRecord, 4);
+ASSERT_SIZE (SubstLookupRecord, 4);
 
 struct SubRule {
 
@@ -612,7 +612,7 @@ struct SubRule {
   SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
 					 * design order */
 };
-DEFINE_NULL_ASSERT_SIZE (SubRule, 4);
+ASSERT_SIZE (SubRule, 4);
 
 struct SubRuleSet {
 
@@ -639,7 +639,7 @@ struct SubRuleSet {
 					 * tables--from beginning of SubRuleSet
 					 * table--ordered by preference */
 };
-DEFINE_NULL_ASSERT_SIZE (SubRuleSet, 2);
+ASSERT_SIZE (SubRuleSet, 2);
 
 struct ContextSubstFormat1 {
 
@@ -752,7 +752,7 @@ struct SubClassRule {
   SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
 					 * design order */
 };
-DEFINE_NULL_ASSERT_SIZE (SubClassRule, 4);
+ASSERT_SIZE (SubClassRule, 4);
 
 struct SubClassSet {
 
@@ -783,7 +783,7 @@ struct SubClassSet {
 					 * tables--from beginning of
 					 * SubClassSet--ordered by preference */
 };
-DEFINE_NULL_ASSERT_SIZE (SubClassSet, 2);
+ASSERT_SIZE (SubClassSet, 2);
 
 struct ContextSubstFormat2 {
 
@@ -958,7 +958,7 @@ struct ChainSubRule {
   SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
 					 * design order) */
 };
-DEFINE_NULL_ASSERT_SIZE (ChainSubRule, 8);
+ASSERT_SIZE (ChainSubRule, 8);
 
 struct ChainSubRuleSet {
   /* TODO */
@@ -970,7 +970,7 @@ struct ChainSubRuleSet {
 					 * ChainSubRuleSet table--ordered
 					 * by preference */
 };
-DEFINE_NULL_ASSERT_SIZE (ChainSubRuleSet, 2);
+ASSERT_SIZE (ChainSubRuleSet, 2);
 
 struct ChainContextSubstFormat1 {
   /* TODO */
@@ -1017,7 +1017,7 @@ struct ChainSubClassRule {
   SubstLookupRecord substLookupRecord[];/* Array of SubstLookupRecords--in
 					 * design order) */
 };
-DEFINE_NULL_ASSERT_SIZE (ChainSubClassRule, 8);
+ASSERT_SIZE (ChainSubClassRule, 8);
 
 struct ChainSubClassSet {
   /* TODO */
@@ -1030,7 +1030,7 @@ struct ChainSubClassSet {
 					 * ChainSubClassSet--ordered by
 					 * preference */
 };
-DEFINE_NULL_ASSERT_SIZE (ChainSubClassSet, 2);
+ASSERT_SIZE (ChainSubClassSet, 2);
 
 struct ChainContextSubstFormat2 {
   /* TODO */
@@ -1338,7 +1338,6 @@ struct SubstLookup : Lookup {
     return ret;
   }
 };
-DEFINE_NULL_ALIAS (SubstLookup, Lookup);
 
 
 /*
@@ -1363,7 +1362,6 @@ struct GSUB : GSUBGPOS {
   }
 
 };
-DEFINE_NULL_ALIAS (GSUB, GSUBGPOS);
 
 
 

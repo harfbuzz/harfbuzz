@@ -28,7 +28,7 @@
 #define HB_OT_LAYOUT_OPEN_PRIVATE_H
 
 #ifndef HB_OT_LAYOUT_CC
-#error "This file should only be included from hb-ot-layout.c"
+#error "This file should only be included from hb-ot-layout.cc"
 #endif
 
 #include "hb-ot-layout-private.h"
@@ -75,7 +75,7 @@
   DEFINE_LEN(Type, array, num)
 #define DEFINE_INDEX_OPERATOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
-    if (HB_UNLIKELY (i >= num)) return Null##Type; \
+    if (HB_UNLIKELY (i >= num)) return Null(Type); \
     return array[i]; \
   }
 
@@ -87,8 +87,8 @@
   DEFINE_LEN(Offset, array, num)
 #define DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
-    if (HB_UNLIKELY (i >= num)) return Null##Type; \
-    if (HB_UNLIKELY (!array[i])) return Null##Type; \
+    if (HB_UNLIKELY (i >= num)) return Null(Type); \
+    if (HB_UNLIKELY (!array[i])) return Null(Type); \
     return *(const Type *)((const char*)this + array[i]); \
   }
 
@@ -100,12 +100,12 @@
   DEFINE_LEN(Record, array, num)
 #define DEFINE_RECORD_ACCESSOR(Type, array, num) \
   inline const Type& operator[] (unsigned int i) const { \
-    if (HB_UNLIKELY (i >= num)) return Null##Type; \
-    if (HB_UNLIKELY (!array[i].offset)) return Null##Type; \
+    if (HB_UNLIKELY (i >= num)) return Null(Type); \
+    if (HB_UNLIKELY (!array[i].offset)) return Null(Type); \
     return *(const Type *)((const char*)this + array[i].offset); \
   } \
   inline const Tag& get_tag (unsigned int i) const { \
-    if (HB_UNLIKELY (i >= num)) return NullTag; \
+    if (HB_UNLIKELY (i >= num)) return Null(Tag); \
     return array[i].tag; \
   }
 
@@ -133,7 +133,7 @@
 
 #define DEFINE_LIST_ARRAY(Type, name) \
   inline const Type##List& get_##name##_list (void) const { \
-    if (HB_UNLIKELY (!name##List)) return Null##Type##List; \
+    if (HB_UNLIKELY (!name##List)) return Null(Type##List); \
     return *(const Type##List *)((const char*)this + name##List); \
   }
 
@@ -177,35 +177,58 @@
     if (find_##name##_index (tag, &i)) \
       return get_##name (i); \
     else \
-      return Null##Type; \
+      return Null(Type); \
   }
 
 /*
  * Class features
  */
 
-// TODO use a global nul-array for most Null's
-/* defines Null##Type as a safe nil instance of Type */
-#define DEFINE_NULL_DATA(Type, size, data) \
-  static const unsigned char Null##Type##Data[size] = data; \
-  DEFINE_NULL_ALIAS (Type, Type)
+
+/* Null objects */
+
+/* Global nul-content Null pool.  Enlarge as necessary. */
+static const char NullPool[16] = "";
+
+/* Generic template for nul-content sizeof-sized Null objects. */
+template <typename Type>
+struct NullSize {
+  char bytes[sizeof (Type)];
+};
+template <typename Type>
+struct Null {
+  ASSERT_STATIC (sizeof (NullSize<Type>) <= sizeof (NullPool));
+  static inline const Type &get () { return (const Type&) *(const Type*) NullPool; }
+};
+
+/* Specializaiton for nul-content arbitrary-sized Null objects. */
 #define DEFINE_NULL(Type, size) \
-	DEFINE_NULL_DATA(Type, size, "")
-#define DEFINE_NULL_ASSERT_SIZE(Type, size) \
-	DEFINE_NULL_ASSERT_SIZE_DATA(Type, size, "")
-#define DEFINE_NULL_ASSERT_SIZE_DATA(Type, size, data) \
+template <> \
+struct NullSize <Type> { \
+  char bytes[size]; \
+}
+
+/* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
+#define DEFINE_NULL_DATA(Type, size, data) \
+template <> \
+struct Null <Type> { \
+  static inline const Type &get () { static const char bytes[size] = data; return (const Type&) *(const Type*) bytes; } \
+}
+
+/* Accessor macro. */
+#define Null(Type) (Null<Type>::get())
+
+
+#define ASSERT_SIZE_DATA(Type, size, data) \
   ASSERT_SIZE (Type, size); \
   DEFINE_NULL_DATA (Type, size, data)
-#define DEFINE_NULL_ALIAS(NewType, OldType) \
-  /* XXX static */ const NewType &Null##NewType = *(NewType *)Null##OldType##Data
 
 /* get_for_data() is a static class method returning a reference to an
  * instance of Type located at the input data location.  It's just a
  * fancy, NULL-safe, cast! */
 #define STATIC_DEFINE_GET_FOR_DATA(Type) \
   static inline const Type& get_for_data (const char *data) { \
-    extern const Type &Null##Type; \
-    if (HB_UNLIKELY (data == NULL)) return Null##Type; \
+    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
     return *(const Type*)data; \
   } \
   static inline Type& get_for_data (char *data) { \
@@ -215,7 +238,7 @@
 
 #define DEFINE_GET_ACCESSOR(Type, name, Name) \
   inline const Type& get_##name (void) const { \
-    if (HB_UNLIKELY (!Name)) return Null##Type; \
+    if (HB_UNLIKELY (!Name)) return Null(Type); \
     return *(const Type*)((const char*)this + Name); \
   }
 #define DEFINE_GET_HAS_ACCESSOR(Type, name, Name) \
@@ -245,17 +268,17 @@
 
 
 DEFINE_INT_TYPE_STRUCT (BYTE,	 u,  8);	/*  8-bit unsigned integer. */
-DEFINE_NULL_ASSERT_SIZE (BYTE, 1);
+ASSERT_SIZE (BYTE, 1);
 DEFINE_INT_TYPE_STRUCT (CHAR,	  ,  8);	/*  8-bit signed integer. */
-DEFINE_NULL_ASSERT_SIZE (CHAR, 1);
+ASSERT_SIZE (CHAR, 1);
 DEFINE_INT_TYPE_STRUCT (USHORT,  u, 16);	/* 16-bit unsigned integer. */
-DEFINE_NULL_ASSERT_SIZE (USHORT, 2);
+ASSERT_SIZE (USHORT, 2);
 DEFINE_INT_TYPE_STRUCT (SHORT,	  , 16);	/* 16-bit signed integer. */
-DEFINE_NULL_ASSERT_SIZE (SHORT, 2);
+ASSERT_SIZE (SHORT, 2);
 DEFINE_INT_TYPE_STRUCT (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
-DEFINE_NULL_ASSERT_SIZE (ULONG, 4);
+ASSERT_SIZE (ULONG, 4);
 DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
-DEFINE_NULL_ASSERT_SIZE (LONG, 4);
+ASSERT_SIZE (LONG, 4);
 
 /* Date represented in number of seconds since 12:00 midnight, January 1,
  * 1904. The value is represented as a signed 64-bit integer. */
@@ -275,7 +298,7 @@ struct Fixed {
   SHORT i;
   USHORT f;
 };
-DEFINE_NULL_ASSERT_SIZE (Fixed, 4);
+ASSERT_SIZE (Fixed, 4);
 
 /* Smallest measurable distance in the em space. */
 struct FUNIT;
@@ -283,18 +306,18 @@ struct FUNIT;
 /* 16-bit signed integer (SHORT) that describes a quantity in FUnits. */
 struct FWORD : SHORT {
 };
-DEFINE_NULL_ASSERT_SIZE (FWORD, 2);
+ASSERT_SIZE (FWORD, 2);
 
 /* 16-bit unsigned integer (USHORT) that describes a quantity in FUnits. */
 struct UFWORD : USHORT {
 };
-DEFINE_NULL_ASSERT_SIZE (UFWORD, 2);
+ASSERT_SIZE (UFWORD, 2);
 
 /* 16-bit signed fixed number with the low 14 bits of fraction (2.14). */
 struct F2DOT14 : SHORT {
   inline operator double() const { return (uint32_t) this / 16384.; }
 };
-DEFINE_NULL_ASSERT_SIZE (F2DOT14, 2);
+ASSERT_SIZE (F2DOT14, 2);
 
 /* Array of four uint8s (length = 32 bits) used to identify a script, language
  * system, feature, or baseline */
@@ -318,11 +341,12 @@ DEFINE_NULL_DATA (Tag, 5, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 DEFINE_INT_TYPE_STRUCT (GlyphID, u, 16);
-DEFINE_NULL_ASSERT_SIZE (GlyphID, 2);
+ASSERT_SIZE (GlyphID, 2);
 
 /* Offset to a table, same as uint16 (length = 16 bits), Null offset = 0x0000 */
 DEFINE_INT_TYPE_STRUCT (Offset, u, 16);
-DEFINE_NULL_ASSERT_SIZE (Offset, 2);
+ASSERT_SIZE (Offset, 2);
+
 
 /* CheckSum */
 struct CheckSum : ULONG {
@@ -335,7 +359,7 @@ struct CheckSum : ULONG {
     return Sum;
   }
 };
-DEFINE_NULL_ASSERT_SIZE (CheckSum, 4);
+ASSERT_SIZE (CheckSum, 4);
 
 
 /*
@@ -344,13 +368,13 @@ DEFINE_NULL_ASSERT_SIZE (CheckSum, 4);
 
 struct USHORT_Version : USHORT {
 };
-DEFINE_NULL_ASSERT_SIZE (USHORT_Version, 2);
+ASSERT_SIZE (USHORT_Version, 2);
 
 struct Fixed_Version : Fixed {
   inline int16_t major (void) const { return this->int_part(); }
   inline int16_t minor (void) const { return this->frac_part(); }
 };
-DEFINE_NULL_ASSERT_SIZE (Fixed_Version, 4);
+ASSERT_SIZE (Fixed_Version, 4);
 
 
 /*
@@ -379,8 +403,7 @@ typedef struct TableDirectory {
 				 * file. */
   ULONG		length;		/* Length of this table. */
 } OpenTypeTable;
-DEFINE_NULL_ASSERT_SIZE (TableDirectory, 16);
-DEFINE_NULL_ALIAS (OpenTypeTable, TableDirectory);
+ASSERT_SIZE (TableDirectory, 16);
 
 typedef struct OffsetTable {
 
@@ -402,8 +425,7 @@ typedef struct OffsetTable {
   USHORT	rangeShift;	/* NumTables x 16-searchRange. */
   TableDirectory tableDir[];	/* TableDirectory entries. numTables items */
 } OpenTypeFontFace;
-DEFINE_NULL_ASSERT_SIZE (OffsetTable, 12);
-DEFINE_NULL_ALIAS (OpenTypeFontFace, OffsetTable);
+ASSERT_SIZE (OffsetTable, 12);
 
 /*
  * TrueType Collections
@@ -426,7 +448,7 @@ struct TTCHeader {
   ULONG	offsetTable[];	/* Array of offsets to the OffsetTable for each font
 			 * from the beginning of the file */
 };
-DEFINE_NULL_ASSERT_SIZE (TTCHeader, 12);
+ASSERT_SIZE (TTCHeader, 12);
 
 
 /*
@@ -471,7 +493,7 @@ struct OpenTypeFontFile {
     }
   }
   const OpenTypeFontFace& operator[] (unsigned int i) const {
-    if (HB_UNLIKELY (i >= get_len ())) return NullOpenTypeFontFace;
+    if (HB_UNLIKELY (i >= get_len ())) return Null(OpenTypeFontFace);
     switch (tag) {
     default: case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
     case TTCTag: return ((const TTCHeader&)*this)[i];
@@ -481,7 +503,7 @@ struct OpenTypeFontFile {
   private:
   Tag		tag;		/* 4-byte identifier. */
 };
-DEFINE_NULL_ASSERT_SIZE (OpenTypeFontFile, 4);
+ASSERT_SIZE (OpenTypeFontFile, 4);
 
 
 
@@ -500,7 +522,7 @@ typedef struct Record {
   Offset	offset;		/* Offset from beginning of object holding
 				 * the Record */
 } ScriptRecord, LangSysRecord, FeatureRecord;
-DEFINE_NULL_ASSERT_SIZE (Record, 6);
+ASSERT_SIZE (Record, 6);
 
 struct LangSys {
 
@@ -532,7 +554,7 @@ struct LangSys {
   USHORT	featureIndex[];	/* Array of indices into the FeatureList--in
 				 * arbitrary order. featureCount entires long */
 };
-DEFINE_NULL_ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
+ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
 
 struct Script {
 
@@ -558,7 +580,7 @@ struct Script {
   }
   inline const LangSys& get_default_lang_sys (void) const {
     if (HB_UNLIKELY (!defaultLangSys))
-      return NullLangSys;
+      return Null(LangSys);
     return *(LangSys*)((const char*)this + defaultLangSys);
   }
 
@@ -574,7 +596,7 @@ struct Script {
   LangSysRecord	langSysRecord[];/* Array of LangSysRecords--listed
 				 * alphabetically by LangSysTag */
 };
-DEFINE_NULL_ASSERT_SIZE (Script, 4);
+ASSERT_SIZE (Script, 4);
 
 struct ScriptList {
 
@@ -589,7 +611,7 @@ private:
   ScriptRecord	scriptRecord[]; /* Array of ScriptRecords--listed alphabetically
 				 * by ScriptTag */
 };
-DEFINE_NULL_ASSERT_SIZE (ScriptList, 2);
+ASSERT_SIZE (ScriptList, 2);
 
 struct Feature {
 
@@ -613,7 +635,7 @@ struct Feature {
 				 * feature--zero-based (first lookup is
 				 * LookupListIndex = 0) */
 };
-DEFINE_NULL_ASSERT_SIZE (Feature, 4);
+ASSERT_SIZE (Feature, 4);
 
 struct FeatureList {
 
@@ -629,7 +651,7 @@ struct FeatureList {
 				 * feature has FeatureIndex = 0)--listed
 				 * alphabetically by FeatureTag */
 };
-DEFINE_NULL_ASSERT_SIZE (FeatureList, 2);
+ASSERT_SIZE (FeatureList, 2);
 
 struct LookupFlag : USHORT {
   static const unsigned int RightToLeft		= 0x0001u;
@@ -639,13 +661,13 @@ struct LookupFlag : USHORT {
   static const unsigned int Reserved		= 0x00F0u;
   static const unsigned int MarkAttachmentType	= 0xFF00u;
 };
-DEFINE_NULL_ASSERT_SIZE (LookupFlag, 2);
+ASSERT_SIZE (LookupFlag, 2);
 
 struct LookupSubTable {
   private:
   USHORT	format;		/* Subtable format.  Different for GSUB and GPOS */
 };
-DEFINE_NULL_ASSERT_SIZE (LookupSubTable, 2);
+ASSERT_SIZE (LookupSubTable, 2);
 
 
 struct Lookup {
@@ -671,7 +693,7 @@ struct Lookup {
   Offset	subTableOffset[];/* Array of offsets to SubTables-from
 				  * beginning of Lookup table */
 };
-DEFINE_NULL_ASSERT_SIZE (Lookup, 6);
+ASSERT_SIZE (Lookup, 6);
 
 struct LookupList {
 
@@ -687,7 +709,7 @@ struct LookupList {
 				 * beginning of LookupList--zero based (first
 				 * lookup is Lookup index = 0) */
 };
-DEFINE_NULL_ASSERT_SIZE (LookupList, 2);
+ASSERT_SIZE (LookupList, 2);
 
 /*
  * Coverage Table
@@ -737,7 +759,7 @@ struct CoverageRangeRecord {
   USHORT	startCoverageIndex;	/* Coverage Index of first GlyphID in
 					 * range */
 };
-DEFINE_NULL_ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\001");
+ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\001");
 
 struct CoverageFormat2 {
 
@@ -827,7 +849,7 @@ struct ClassRangeRecord {
   GlyphID	end;		/* Last GlyphID in the range */
   USHORT	classValue;	/* Applied to all glyphs in the range */
 };
-DEFINE_NULL_ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\001");
+ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\001");
 
 struct ClassDefFormat2 {
 
@@ -905,7 +927,7 @@ struct Device {
   USHORT	deltaFormat;	/* Format of DeltaValue array data: 1, 2, or 3 */
   USHORT	deltaValue[];	/* Array of compressed data */
 };
-DEFINE_NULL_ASSERT_SIZE (Device, 6);
+ASSERT_SIZE (Device, 6);
 
 /*
  * GSUB/GPOS Common
@@ -941,7 +963,7 @@ struct GSUBGPOS {
   Offset	lookupList; 	/* Offset to LookupList table--from beginning of
 				 * GSUB/GPOS table */
 };
-DEFINE_NULL_ASSERT_SIZE (GSUBGPOS, 10);
+ASSERT_SIZE (GSUBGPOS, 10);
 
 /* XXX */
 #include "harfbuzz-impl.h"
