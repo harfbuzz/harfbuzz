@@ -198,10 +198,6 @@ struct ContextFormat1 {
 
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
-
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextLookupContext context = {
@@ -235,10 +231,6 @@ struct ContextFormat2 {
   private:
 
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     const RuleSet &rule_set = this+ruleSet[index];
@@ -296,10 +288,6 @@ struct ContextFormat3 {
   }
 
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
 
     if ((*this)[0].get_coverage (IN_CURGLYPH () == NOT_COVERED))
       return false;

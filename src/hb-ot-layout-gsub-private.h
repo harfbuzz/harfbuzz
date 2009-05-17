@@ -98,11 +98,7 @@ struct SingleSubst {
     }
   }
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
@@ -177,11 +173,7 @@ struct MultipleSubstFormat1 {
 
   private:
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     return (this+sequence[index]).substitute_sequence (LOOKUP_ARGS, property);
@@ -204,9 +196,9 @@ struct MultipleSubst {
 
   private:
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    case 1: return u.format1.substitute (LOOKUP_ARGS, property);
     default:return false;
     }
   }
@@ -230,11 +222,7 @@ struct AlternateSubstFormat1 {
 
   private:
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
@@ -286,9 +274,9 @@ struct AlternateSubst {
 
   private:
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    case 1: return u.format1.substitute (LOOKUP_ARGS, property);
     default:return false;
     }
   }
@@ -415,11 +403,7 @@ struct LigatureSubstFormat1 {
 
   private:
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
@@ -448,9 +432,9 @@ struct LigatureSubst {
 
   private:
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    case 1: return u.format1.substitute (LOOKUP_ARGS, property);
     default:return false;
     }
   }
@@ -469,7 +453,7 @@ static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index
 
 struct ContextSubst : Context {
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     return this->apply (LOOKUP_ARGS, substitute_lookup);
   }
 };
@@ -516,7 +500,7 @@ ASSERT_SIZE (ChainSubRuleSet, 2);
 
 struct ChainContextSubstFormat1 {
   /* TODO */
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     return false;
   }
 
@@ -576,7 +560,7 @@ ASSERT_SIZE (ChainSubClassSet, 2);
 
 struct ChainContextSubstFormat2 {
   /* TODO */
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     return false;
   }
 
@@ -606,7 +590,7 @@ ASSERT_SIZE (ChainContextSubstFormat2, 12);
 
 struct ChainContextSubstFormat3 {
   /* TODO */
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     return false;
   }
 
@@ -638,11 +622,11 @@ struct ChainContextSubst {
 
   private:
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
-    case 2: return u.format2.substitute (LOOKUP_ARGS);
-    case 3: return u.format3.substitute (LOOKUP_ARGS);
+    case 1: return u.format1.substitute (LOOKUP_ARGS, property);
+    case 2: return u.format2.substitute (LOOKUP_ARGS, property);
+    case 3: return u.format3.substitute (LOOKUP_ARGS, property);
     default:return false;
     }
   }
@@ -664,7 +648,7 @@ struct ExtensionSubstFormat1 {
 
   private:
   inline unsigned int get_type (void) const { return extensionLookupType; }
-  inline bool substitute (LOOKUP_ARGS_DEF) const;
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const;
 
   private:
   USHORT	substFormat;		/* Format identifier. Set to 1. */
@@ -690,9 +674,9 @@ struct ExtensionSubst {
     }
   }
 
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
     switch (u.substFormat) {
-    case 1: return u.format1.substitute (LOOKUP_ARGS);
+    case 1: return u.format1.substitute (LOOKUP_ARGS, property);
     default:return false;
     }
   }
@@ -752,18 +736,23 @@ struct SubstLookupSubTable {
 
   inline bool substitute (LOOKUP_ARGS_DEF,
 			  unsigned int    lookup_type) const {
+
+    unsigned int property;
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
+
     switch (lookup_type) {
-    case GSUB_Single:				return u.single.substitute (LOOKUP_ARGS);
-    case GSUB_Multiple:				return u.multiple.substitute (LOOKUP_ARGS);
-    case GSUB_Alternate:			return u.alternate.substitute (LOOKUP_ARGS);
-    case GSUB_Ligature:				return u.ligature.substitute (LOOKUP_ARGS);
-    case GSUB_Context:				return u.context.substitute (LOOKUP_ARGS);
+    case GSUB_Single:				return u.single.substitute (LOOKUP_ARGS, property);
+    case GSUB_Multiple:				return u.multiple.substitute (LOOKUP_ARGS, property);
+    case GSUB_Alternate:			return u.alternate.substitute (LOOKUP_ARGS, property);
+    case GSUB_Ligature:				return u.ligature.substitute (LOOKUP_ARGS, property);
+    case GSUB_Context:				return u.context.substitute (LOOKUP_ARGS, property);
     /*
-    case GSUB_ChainingContext:			return u.chainingContext.substitute (LOOKUP_ARGS);
+    case GSUB_ChainingContext:			return u.chainingContext.substitute (LOOKUP_ARGS, property);
     */
-    case GSUB_Extension:			return u.extension.substitute (LOOKUP_ARGS);
+    case GSUB_Extension:			return u.extension.substitute (LOOKUP_ARGS, property);
 			/*
-    case GSUB_ReverseChainingContextSingle:	return u.reverseChainingContextSingle.substitute (LOOKUP_ARGS);
+    case GSUB_ReverseChainingContextSingle:	return u.reverseChainingContextSingle.substitute (LOOKUP_ARGS, property);
     */
     default:return false;
     }
@@ -910,7 +899,7 @@ struct GSUB : GSUBGPOS {
 
 /* Out-of-class implementation for methods chaining */
 
-inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
+inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF, unsigned int property) const {
   /* XXX either check in sanitize or here that the lookuptype is not 7 again,
    * or we can loop indefinitely. */
   return (*(SubstLookupSubTable *)(((char *) this) + extensionOffset)).substitute (LOOKUP_ARGS,
