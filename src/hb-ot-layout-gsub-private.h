@@ -735,11 +735,8 @@ struct SubstLookupSubTable {
   friend struct SubstLookup;
 
   inline bool substitute (LOOKUP_ARGS_DEF,
-			  unsigned int    lookup_type) const {
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
+			  unsigned int property,
+			  unsigned int lookup_type) const {
 
     switch (lookup_type) {
     case GSUB_Single:				return u.single.substitute (LOOKUP_ARGS, property);
@@ -805,23 +802,21 @@ struct SubstLookup : Lookup {
     }
   }
 
-  bool substitute_once (hb_ot_layout_t *layout,
-			hb_buffer_t    *buffer,
-			unsigned int    context_length,
-			unsigned int    nesting_level_left) const {
+  inline bool substitute_once (hb_ot_layout_t *layout,
+			       hb_buffer_t    *buffer,
+			       unsigned int    context_length,
+			       unsigned int    nesting_level_left) const {
 
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
 
-    if (HB_UNLIKELY (nesting_level_left == 0))
-      return false;
-    nesting_level_left--;
-
-    if (HB_UNLIKELY (context_length < 1))
+    unsigned int property;
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
       if (get_subtable (i).substitute (LOOKUP_ARGS,
+				       property,
 				       lookup_type))
 	return true;
 
@@ -903,12 +898,20 @@ inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF, unsigned int pro
   /* XXX either check in sanitize or here that the lookuptype is not 7 again,
    * or we can loop indefinitely. */
   return (*(SubstLookupSubTable *)(((char *) this) + extensionOffset)).substitute (LOOKUP_ARGS,
+										   property,
 										   get_type ());
 }
 
 static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {
   const GSUB &gsub = *(layout->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
+
+  if (HB_UNLIKELY (nesting_level_left == 0))
+    return false;
+  nesting_level_left--;
+
+  if (HB_UNLIKELY (context_length < 1))
+    return false;
 
   return l.substitute_once (layout, buffer, context_length, nesting_level_left);
 }
