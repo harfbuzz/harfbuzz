@@ -69,7 +69,7 @@
   inline unsigned int get_len(void) const { return num; } \
 
 /* An array type is one that contains a variable number of objects
- * as its last item.  An array object is extended with len() and size()
+ * as its last item.  An array object is extended with get_len()
  * methods, as well as overloaded [] operator. */
 #define DEFINE_ARRAY_TYPE(Type, array, num) \
   DEFINE_INDEX_OPERATOR(Type, array, num) \
@@ -235,14 +235,6 @@ struct Null <Type> { \
   static inline Type& get_for_data (char *data) { \
     return *(Type*)data; \
   }
-
-
-#define DEFINE_GET_ACCESSOR(Type, name, Name) \
-  inline const Type& get_##name (void) const { \
-    if (HB_UNLIKELY (!Name)) return Null(Type); \
-    return *(const Type*)((const char*)this + Name); \
-  }
-
 
 
 

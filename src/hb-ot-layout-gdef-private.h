@@ -240,6 +240,7 @@ struct GDEF {
   inline bool has_attach_list () const { return attachList != 0; }
   inline bool has_lig_caret_list () const { return ligCaretList != 0; }
 
+  private:
   Fixed		version;		/* Version of the GDEF table--initially
 					 * 0x00010000 */
   OffsetTo<ClassDef>

@@ -34,12 +34,6 @@
 
 #include "harfbuzz-buffer-private.h" /* XXX */
 
-#define DEFINE_GET_GLYPH_COVERAGE(name) \
-  inline unsigned int get_##name (hb_codepoint_t glyph) const { \
-    const Coverage &c = get_coverage (); \
-    return c.get_coverage (glyph); \
-  }
-
 #define SUBTABLE_SUBSTITUTE_ARGS_DEF \
 	hb_ot_layout_t *layout, \
 	hb_buffer_t    *buffer, \
@@ -58,12 +52,10 @@ struct SingleSubstFormat1 {
   friend struct SingleSubst;
 
   private:
-  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
 
-    unsigned int index = get_glyph_coverage (glyph_id);
+    unsigned int index = (this+coverage) (glyph_id);
     if (NOT_COVERED == index)
       return false;
 
@@ -74,7 +66,8 @@ struct SingleSubstFormat1 {
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   SHORT		deltaGlyphID;		/* Add to original GlyphID to get
 					 * substitute GlyphID */
@@ -86,12 +79,10 @@ struct SingleSubstFormat2 {
   friend struct SingleSubst;
 
   private:
-  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
 
-    unsigned int index = get_glyph_coverage (glyph_id);
+    unsigned int index = (this+coverage) (glyph_id);
 
     if (index >= glyphCount)
       return false;
@@ -102,7 +93,8 @@ struct SingleSubstFormat2 {
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 2 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
 					 * array */
@@ -209,8 +201,6 @@ struct MultipleSubstFormat1 {
   private:
   /* Sequence tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (Sequence, sequence, sequenceCount);
-  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -220,7 +210,7 @@ struct MultipleSubstFormat1 {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    unsigned int index = get_glyph_coverage (glyph_id);
+    unsigned int index = (this+coverage) (glyph_id);
 
     const Sequence &seq = (*this)[index];
     return seq.substitute_sequence (SUBTABLE_SUBSTITUTE_ARGS, property);
@@ -228,7 +218,8 @@ struct MultipleSubstFormat1 {
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   USHORT	sequenceCount;		/* Number of Sequence table offsets in
 					 * the Sequence array */
@@ -281,8 +272,6 @@ struct AlternateSubstFormat1 {
   private:
   /* AlternateSet tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (AlternateSet, alternateSet, alternateSetCount);
-  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -292,7 +281,7 @@ struct AlternateSubstFormat1 {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    unsigned int index = get_glyph_coverage (glyph_id);
+    unsigned int index = (this+coverage) (glyph_id);
 
     const AlternateSet &alt_set = (*this)[index];
 
@@ -326,7 +315,8 @@ struct AlternateSubstFormat1 {
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   USHORT	alternateSetCount;	/* Number of AlternateSet tables */
   Offset	alternateSet[];		/* Array of offsets to AlternateSet
@@ -475,8 +465,6 @@ struct LigatureSubstFormat1 {
   private:
   /* LigatureSet tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (LigatureSet, ligatureSet, ligSetCount);
-  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -486,7 +474,7 @@ struct LigatureSubstFormat1 {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    unsigned int index = get_glyph_coverage (glyph_id);
+    unsigned int index = (this+coverage) (glyph_id);
 
     bool first_is_mark = (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
 			  property &  LookupFlag::MarkAttachmentType);
@@ -497,7 +485,8 @@ struct LigatureSubstFormat1 {
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   USHORT	ligSetCount;		/* Number of LigatureSet tables */
   Offset	ligatureSet[];		/* Array of offsets to LigatureSet
@@ -648,8 +637,6 @@ struct ContextSubstFormat1 {
   private:
   /* SubRuleSet tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (SubRuleSet, subRuleSet, subRuleSetCount);
-  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -659,7 +646,7 @@ struct ContextSubstFormat1 {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    unsigned int index = get_glyph_coverage (glyph_id);
+    unsigned int index = (this+coverage) (glyph_id);
 
     const SubRuleSet &rule_set = (*this)[index];
     return rule_set.substitute (SUBTABLE_SUBSTITUTE_ARGS);
@@ -667,7 +654,8 @@ struct ContextSubstFormat1 {
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   USHORT	subRuleSetCount;	/* Number of SubRuleSet tables--must
 					 * equal GlyphCount in Coverage  table */
@@ -792,8 +780,6 @@ struct ContextSubstFormat2 {
   private:
   /* SubClassSet tables, in Coverage Index order */
   DEFINE_OFFSET_ARRAY_TYPE (SubClassSet, subClassSet, subClassSetCnt);
-  DEFINE_GET_ACCESSOR (Coverage, coverage, coverage);
-  DEFINE_GET_GLYPH_COVERAGE (glyph_coverage);
 
   inline bool substitute (SUBTABLE_SUBSTITUTE_ARGS_DEF) const {
 
@@ -803,7 +789,7 @@ struct ContextSubstFormat2 {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    unsigned int index = get_glyph_coverage (glyph_id);
+    unsigned int index = (this+coverage) (glyph_id);
 
     const SubClassSet &class_set = (*this)[index];
     return class_set.substitute_class (SUBTABLE_SUBSTITUTE_ARGS, this+classDef);
@@ -811,7 +797,8 @@ struct ContextSubstFormat2 {
 
   private:
   USHORT	substFormat;		/* Format identifier--format = 2 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   OffsetTo<ClassDef>
 		classDef;		/* Offset to glyph ClassDef table--from
