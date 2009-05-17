@@ -45,7 +45,7 @@
  */
 
 /* XXX define these as structs of chars on machines that do not allow
- * unaligned access */
+ * unaligned access (using templates?). */
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
   inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
   inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
@@ -57,7 +57,8 @@
 #define DEFINE_INT_TYPE_STRUCT(NAME, u, w) \
   struct NAME { \
     DEFINE_INT_TYPE(NAME, u, w) \
-  }
+  }; \
+  ASSERT_SIZE (NAME, w / 8)
 
 /*
  * Array types
@@ -268,17 +269,11 @@ struct Null <Type> { \
 
 
 DEFINE_INT_TYPE_STRUCT (BYTE,	 u,  8);	/*  8-bit unsigned integer. */
-ASSERT_SIZE (BYTE, 1);
 DEFINE_INT_TYPE_STRUCT (CHAR,	  ,  8);	/*  8-bit signed integer. */
-ASSERT_SIZE (CHAR, 1);
 DEFINE_INT_TYPE_STRUCT (USHORT,  u, 16);	/* 16-bit unsigned integer. */
-ASSERT_SIZE (USHORT, 2);
 DEFINE_INT_TYPE_STRUCT (SHORT,	  , 16);	/* 16-bit signed integer. */
-ASSERT_SIZE (SHORT, 2);
 DEFINE_INT_TYPE_STRUCT (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
-ASSERT_SIZE (ULONG, 4);
 DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
-ASSERT_SIZE (LONG, 4);
 
 /* Date represented in number of seconds since 12:00 midnight, January 1,
  * 1904. The value is represented as a signed 64-bit integer. */
@@ -341,11 +336,9 @@ DEFINE_NULL_DATA (Tag, 5, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 DEFINE_INT_TYPE_STRUCT (GlyphID, u, 16);
-ASSERT_SIZE (GlyphID, 2);
 
 /* Offset to a table, same as uint16 (length = 16 bits), Null offset = 0x0000 */
 DEFINE_INT_TYPE_STRUCT (Offset, u, 16);
-ASSERT_SIZE (Offset, 2);
 
 
 /* CheckSum */
