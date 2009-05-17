@@ -59,12 +59,11 @@ _hb_buffer_add_output_glyph ( HB_Buffer buffer,
 			      HB_UShort ligID );
 
 HB_INTERNAL HB_Error
-_hb_buffer_copy_output_glyph ( HB_Buffer buffer );
+_hb_buffer_next_glyph ( HB_Buffer buffer );
 
 HB_INTERNAL HB_Error
-_hb_buffer_replace_output_glyph ( HB_Buffer buffer,
-				  HB_UInt   glyph_index,
-				  HB_Bool   inplace );
+_hb_buffer_replace_glyph ( HB_Buffer buffer,
+			   HB_UInt   glyph_index );
 
 HB_INTERNAL HB_UShort
 _hb_buffer_allocate_ligid( HB_Buffer buffer );
@@ -96,11 +95,10 @@ _hb_buffer_allocate_ligid( HB_Buffer buffer );
           ( ( error = _hb_buffer_add_output_glyph( (buffer),                             \
                                                     (glyph_index), (component), (ligID) \
                                                   ) ) != HB_Err_Ok )
-#define REPLACE_Glyph( buffer, glyph_index, nesting_level )				\
-          ( ( error = _hb_buffer_replace_output_glyph( (buffer), (glyph_index),		\
-						      (nesting_level) == 1 ) ) != HB_Err_Ok )
+#define REPLACE_Glyph( buffer, glyph_index )				\
+          ( ( error = _hb_buffer_replace_glyph( (buffer), (glyph_index) ) ) != HB_Err_Ok )
 #define COPY_Glyph( buffer )								\
-	  ( (error = _hb_buffer_copy_output_glyph ( buffer ) ) != HB_Err_Ok )
+	  ( (error = _hb_buffer_next_glyph ( buffer ) ) != HB_Err_Ok )
 
 HB_END_HEADER
 

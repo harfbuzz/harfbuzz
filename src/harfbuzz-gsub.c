@@ -281,7 +281,7 @@ static HB_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
   {
   case 1:
     value = (IN_CURGLYPH() + ss->ssf.ssf1.DeltaGlyphID ) & 0xFFFF;
-    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
+    if ( REPLACE_Glyph( buffer, value ) )
       return error;
     break;
 
@@ -289,7 +289,7 @@ static HB_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
     if ( index >= ss->ssf.ssf2.GlyphCount )
       return ERR(HB_Err_Invalid_SubTable);
     value = ss->ssf.ssf2.Substitute[index];
-    if ( REPLACE_Glyph( buffer, value, nesting_level ) )
+    if ( REPLACE_Glyph( buffer, value ) )
       return error;
     break;
 
@@ -687,7 +687,7 @@ static HB_Error  Lookup_AlternateSubst( HB_GSUBHeader*    gsub,
     alt_index = 0;
 
   value = aset.Alternate[alt_index];
-  if ( REPLACE_Glyph( buffer, value, nesting_level ) )
+  if ( REPLACE_Glyph( buffer, value ) )
     return error;
 
   if ( _hb_ot_layout_has_new_glyph_classes (layout) )

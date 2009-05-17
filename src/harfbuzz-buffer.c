@@ -208,6 +208,8 @@ _hb_buffer_clear_output( HB_Buffer buffer )
 HB_INTERNAL HB_Error
 _hb_buffer_clear_positions( HB_Buffer buffer )
 {
+  _hb_buffer_clear_output (buffer);
+
   if ( !buffer->positions )
     {
       HB_Error error;
@@ -328,16 +330,16 @@ _hb_buffer_add_output_glyph( HB_Buffer buffer,
 }
 
 HB_INTERNAL HB_Error
-_hb_buffer_copy_output_glyph ( HB_Buffer buffer )
-{  
+_hb_buffer_next_glyph ( HB_Buffer buffer )
+{
   HB_Error  error;
 
-  error = hb_buffer_ensure( buffer, buffer->out_pos + 1 );
-  if ( error )
-    return error;
-  
   if ( buffer->separate_out )
     {
+      error = hb_buffer_ensure( buffer, buffer->out_pos + 1 );
+      if ( error )
+	return error;
+
       buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
     }
 
@@ -349,20 +351,19 @@ _hb_buffer_copy_output_glyph ( HB_Buffer buffer )
 }
 
 HB_INTERNAL HB_Error
-_hb_buffer_replace_output_glyph( HB_Buffer buffer,
-				 HB_UInt   glyph_index,
-				 HB_Bool   inplace )
+_hb_buffer_replace_glyph( HB_Buffer buffer,
+			  HB_UInt   glyph_index )
 {
 
   HB_Error error;
 
-  if ( inplace )
+  if ( !buffer->separate_out )
     {
-      error = _hb_buffer_copy_output_glyph ( buffer );
-      if ( error )
-	return error;
+      buffer->out_string[buffer->out_pos].gindex = glyph_index;
 
-      buffer->out_string[buffer->out_pos-1].gindex = glyph_index;
+      buffer->in_pos++;
+      buffer->out_pos++;
+      buffer->out_length = buffer->out_pos;
     }
   else
     {
@@ -375,9 +376,5 @@ _hb_buffer_replace_output_glyph( HB_Buffer buffer,
 HB_INTERNAL HB_UShort
 _hb_buffer_allocate_ligid( HB_Buffer buffer )
 {
-  buffer->max_ligID++;
-  if (HB_UNLIKELY (buffer->max_ligID == 0))
-    buffer->max_ligID++;
-
-  return buffer->max_ligID;
+  return ++buffer->max_ligID;
 }

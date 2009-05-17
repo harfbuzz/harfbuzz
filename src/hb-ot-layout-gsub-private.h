@@ -127,7 +127,7 @@ struct SingleSubst {
     if (!single_substitute (glyph_id))
       return false;
 
-    _hb_buffer_replace_output_glyph (buffer, glyph_id, context_length == NO_CONTEXT);
+    _hb_buffer_replace_glyph (buffer, glyph_id);
 
     if ( _hb_ot_layout_has_new_glyph_classes (layout) )
     {
@@ -276,7 +276,7 @@ struct AlternateSubstFormat1 {
 
     glyph_id = alt_set[alt_index];
 
-    _hb_buffer_replace_output_glyph (buffer, glyph_id, context_length == NO_CONTEXT);
+    _hb_buffer_replace_glyph (buffer, glyph_id);
 
     if ( _hb_ot_layout_has_new_glyph_classes (layout) )
     {
@@ -549,7 +549,7 @@ struct SubRule {
       {
       no_subst:
 	/* No substitution for this index */
-	_hb_buffer_copy_output_glyph (buffer);
+	_hb_buffer_next_glyph (buffer);
 	i++;
       }
     }
@@ -677,7 +677,7 @@ struct SubClassRule {
       {
       no_subst:
 	/* No substitution for this index */
-	_hb_buffer_copy_output_glyph (buffer);
+	_hb_buffer_next_glyph (buffer);
 	i++;
       }
     }
@@ -820,7 +820,7 @@ struct ContextSubstFormat3 {
       {
       no_subst:
 	/* No substitution for this index */
-	_hb_buffer_copy_output_glyph (buffer);
+	_hb_buffer_next_glyph (buffer);
 	i++;
       }
     }
@@ -1246,7 +1246,7 @@ struct SubstLookup : Lookup {
 	      substitute_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
-	    _hb_buffer_copy_output_glyph (buffer);
+	    _hb_buffer_next_glyph (buffer);
 
 	}
 	if (ret)
