@@ -46,7 +46,7 @@ struct SingleSubstFormat1 {
 
   private:
 
-  inline bool single_substitute (hb_codepoint_t &glyph_id) const {
+  inline bool get_substitute (hb_codepoint_t &glyph_id) const {
 
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))
@@ -73,7 +73,7 @@ struct SingleSubstFormat2 {
 
   private:
 
-  inline bool single_substitute (hb_codepoint_t &glyph_id) const {
+  inline bool get_substitute (hb_codepoint_t &glyph_id) const {
 
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))
@@ -103,10 +103,10 @@ struct SingleSubst {
 
   private:
 
-  inline bool single_substitute (hb_codepoint_t &glyph_id) const {
+  inline bool get_substitute (hb_codepoint_t &glyph_id) const {
     switch (u.format) {
-    case 1: return u.format1->single_substitute (glyph_id);
-    case 2: return u.format2->single_substitute (glyph_id);
+    case 1: return u.format1->get_substitute (glyph_id);
+    case 2: return u.format2->get_substitute (glyph_id);
     default:return false;
     }
   }
@@ -115,7 +115,7 @@ struct SingleSubst {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    if (!single_substitute (glyph_id))
+    if (!get_substitute (glyph_id))
       return false;
 
     _hb_buffer_replace_glyph (buffer, glyph_id);
@@ -314,7 +314,7 @@ struct Ligature {
   friend struct LigatureSet;
 
   private:
-  inline bool substitute_ligature (LOOKUP_ARGS_DEF, bool is_mark) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, bool is_mark) const {
 
     unsigned int i, j;
     unsigned int count = component.len;
@@ -393,12 +393,12 @@ struct LigatureSet {
 
   private:
 
-  inline bool substitute_ligature (LOOKUP_ARGS_DEF, bool is_mark) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, bool is_mark) const {
 
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++) {
       const Ligature &lig = this+ligature[i];
-      if (lig.substitute_ligature (LOOKUP_ARGS, is_mark))
+      if (lig.substitute (LOOKUP_ARGS, is_mark))
         return true;
     }
 
@@ -430,7 +430,7 @@ struct LigatureSubstFormat1 {
       return false;
 
     const LigatureSet &lig_set = this+ligatureSet[index];
-    return lig_set.substitute_ligature (LOOKUP_ARGS, first_is_mark);
+    return lig_set.substitute (LOOKUP_ARGS, first_is_mark);
   }
 
   private:
@@ -438,7 +438,7 @@ struct LigatureSubstFormat1 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  OffsetArrayOf<LigatureSet>\
+  OffsetArrayOf<LigatureSet>
 		ligatureSet;		/* Array LigatureSet tables
 					 * ordered by Coverage Index */
 };
