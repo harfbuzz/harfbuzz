@@ -164,8 +164,6 @@ static inline bool apply_lookup (LOOKUP_ARGS_DEF,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 apply_lookup_func_t apply_func)
 {
-  unsigned int record_count = lookupCount;
-  const LookupRecord *record = lookupRecord;
   unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
   if (HB_UNLIKELY (buffer->in_pos + count > end))
     return false;
@@ -180,15 +178,15 @@ static inline bool apply_lookup (LOOKUP_ARGS_DEF,
       _hb_buffer_next_glyph (buffer);
     }
 
-    if (record_count && i == record->sequenceIndex)
+    if (lookupCount && i == lookupRecord->sequenceIndex)
     {
       unsigned int old_pos = buffer->in_pos;
 
       /* Apply a lookup */
-      bool done = apply_func (LOOKUP_ARGS, record->lookupListIndex);
+      bool done = apply_func (LOOKUP_ARGS, lookupRecord->lookupListIndex);
 
-      record++;
-      record_count--;
+      lookupRecord++;
+      lookupCount--;
       i += buffer->in_pos - old_pos;
 
       if (!done)
