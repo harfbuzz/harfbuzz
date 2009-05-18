@@ -760,13 +760,13 @@ struct GSUB : GSUBGPOS {
 ASSERT_SIZE (GSUB, 10);
 
 
-/* Out-of-class implementation for methods chaining */
+/* Out-of-class implementation for methods recursing */
 
 inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
   /* XXX either check in sanitize or here that the lookuptype is not 7 again,
    * or we can loop indefinitely. */
   return (*(SubstLookupSubTable *)(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS,
-										   get_type ());
+										 get_type ());
 }
 
 static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {
