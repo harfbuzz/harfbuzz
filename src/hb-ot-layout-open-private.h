@@ -203,7 +203,7 @@ struct Null <Type> { \
  * Int types
  */
 
-/* XXX define these as structs of chars on machines that do not allow
+/* TODO define these as structs of chars on machines that do not allow
  * unaligned access (using templates?). */
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
   inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \

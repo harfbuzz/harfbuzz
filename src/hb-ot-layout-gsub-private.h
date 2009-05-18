@@ -254,10 +254,10 @@ struct AlternateSubstFormat1 {
     unsigned int alt_index = 0;
 
     /* XXX callback to user to choose alternate
-    if ( gsub->altfunc )
-      alt_index = (gsub->altfunc)( buffer->out_pos, glyph_id,
-				   aset.GlyphCount, aset.Alternate,
-				   gsub->data );
+    if (layout->altfunc)
+      alt_index = (layout->altfunc)(layout, buffer,
+				    buffer->out_pos, glyph_id,
+				    alt_set.len, alt_set.array);
 				   */
 
     if (HB_UNLIKELY (alt_index >= alt_set.len))
@@ -370,7 +370,7 @@ struct Ligature {
 	(buffer->in_pos)++;
       }
 
-      /* XXX We  should possibly reassign lig_id and component for any
+      /* TODO We should possibly reassign lig_id and component for any
        * components of a previous ligature that s now being removed as part of
        * this ligature. */
     }
@@ -773,7 +773,7 @@ ASSERT_SIZE (GSUB, 10);
 inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
   unsigned int lookup_type = get_type ();
 
-  /* TODO: belongs to sanitize() */
+  /* TODO belongs to sanitize() */
   if (HB_UNLIKELY (lookup_type == GSUB_ReverseChainSingle))
     return false;
 

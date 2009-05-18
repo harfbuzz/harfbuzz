@@ -85,7 +85,7 @@ hb_ot_layout_destroy (hb_ot_layout_t *layout)
  * GDEF
  */
 
-/* XXX the public class_t is a mess */
+/* TODO the public class_t is a mess */
 
 hb_bool_t
 hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout)
@@ -532,7 +532,7 @@ hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
 
 
 
-/* XXX dupped, until he old code can be removed */
+/* TODO dupped, until he old code can be removed */
 
 static HB_Error
 hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
