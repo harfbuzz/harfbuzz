@@ -71,28 +71,6 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
 }
 
 
-static inline bool match_backtrack (LOOKUP_ARGS_DEF,
-				    unsigned int count,
-				    const USHORT backtrack[],
-				    match_func_t match_func,
-				    char *match_data)
-{
-  unsigned int i, j;
-
-  for (i = 0, j = buffer->out_pos - 1; i < count; i++, j--) {
-    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
-      if (HB_UNLIKELY (j + 1 == count - i))
-	return false;
-      j--;
-    }
-
-    if (HB_LIKELY (match_func (OUT_GLYPH(j), backtrack[i], match_data)))
-      return false;
-  }
-
-  return true;
-}
-
 static inline bool match_input (LOOKUP_ARGS_DEF,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
@@ -112,12 +90,56 @@ static inline bool match_input (LOOKUP_ARGS_DEF,
       j++;
     }
 
-    if (HB_LIKELY (match_func (IN_GLYPH(j), input[i - 1], match_data)))
+    if (HB_LIKELY (!match_func (IN_GLYPH(j), input[i - 1], match_data)))
       return false;
   }
 
-  /* XXX right? or j - buffer_inpos? */
-  *context_length_out = count;
+  *context_length_out = j - buffer->in_pos;
+
+  return true;
+}
+
+static inline bool match_backtrack (LOOKUP_ARGS_DEF,
+				    unsigned int count,
+				    const USHORT backtrack[],
+				    match_func_t match_func,
+				    char *match_data)
+{
+  unsigned int i, j;
+
+  for (i = 0, j = buffer->out_pos - 1; i < count; i++, j--) {
+    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
+      if (HB_UNLIKELY (j + 1 == count - i))
+	return false;
+      j--;
+    }
+
+    if (HB_LIKELY (!match_func (OUT_GLYPH(j), backtrack[i], match_data)))
+      return false;
+  }
+
+  return true;
+}
+
+static inline bool match_lookahead (LOOKUP_ARGS_DEF,
+				    unsigned int count,
+				    const USHORT lookahead[],
+				    match_func_t match_func,
+				    char *match_data,
+				    unsigned int offset)
+{
+  unsigned int i, j;
+
+  for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++) {
+    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
+      if (HB_UNLIKELY (j + count - i == buffer->in_length))
+	return false;
+      j++;
+    }
+
+    if (HB_LIKELY (!match_func (IN_GLYPH(j), lookahead[i], match_data)))
+      return false;
+  }
 
   return true;
 }
@@ -406,13 +428,20 @@ static inline bool chain_context_lookup (LOOKUP_ARGS_DEF,
 		   buffer->in_pos + inputCount + lookaheadCount > buffer->in_length))
     return false;
 
+  unsigned int offset;
   return match_backtrack (LOOKUP_ARGS,
 			  backtrackCount, backtrack,
 			  context.funcs.match, context.match_data[0]) &&
 	 match_input (LOOKUP_ARGS,
 		      inputCount, input,
 		      context.funcs.match, context.match_data[1],
-		      &context_length) &&
+		      &offset) &&
+	 (context_length -= offset, true) &&
+	 match_lookahead (LOOKUP_ARGS,
+			  lookaheadCount, lookahead,
+			  context.funcs.match, context.match_data[2],
+			  offset) &&
+	 (context_length = offset, true) &&
 	 apply_lookup (LOOKUP_ARGS,
 		       inputCount,
 		       lookupCount, lookupRecord,
