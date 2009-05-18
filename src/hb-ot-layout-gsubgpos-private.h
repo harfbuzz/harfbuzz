@@ -155,8 +155,6 @@ struct Rule {
   friend struct RuleSet;
 
   private:
-  DEFINE_ARRAY_TYPE (USHORT, input, (inputCount ? inputCount - 1 : 0));
-
   inline bool apply (LOOKUP_ARGS_DEF, ContextLookupContext &context) const {
     const LookupRecord *record = (const LookupRecord *) ((const char *) input + sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
     return context_lookup (LOOKUP_ARGS,
@@ -174,7 +172,7 @@ struct Rule {
   USHORT	lookupCount;		/* Number of LookupRecords */
   USHORT	input[];		/* Array of match inputs--start with
 					 * second glyph */
-  LookupRecord	lookupRecord[];		/* Array of LookupRecords--in
+  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
 					 * design order */
 };
 ASSERT_SIZE (Rule, 4);
@@ -207,6 +205,9 @@ struct ContextFormat1 {
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (G_LIKELY (index == NOT_COVERED))
+      return false;
+
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextLookupContext context = {
       {match_glyph, apply_func},
@@ -235,13 +236,18 @@ struct ContextFormat2 {
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (G_LIKELY (index == NOT_COVERED))
+      return false;
+
+    const ClassDef &class_def = this+classDef;
+    index = class_def (IN_CURGLYPH ());
     const RuleSet &rule_set = this+ruleSet[index];
     /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
      * them across subrule lookups.  Not sure it's worth it.
      */
     struct ContextLookupContext context = {
      {match_class, apply_func},
-      (char *) &(this+classDef)
+      (char *) &class_def
     };
     return rule_set.apply (LOOKUP_ARGS, context);
   }
@@ -267,9 +273,6 @@ struct ContextFormat3 {
 
   private:
 
-  /* Coverage tables, in glyph sequence order */
-  DEFINE_OFFSET_ARRAY_TYPE (Coverage, coverage, glyphCount);
-
   inline bool apply_coverage (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
     const LookupRecord *record = (const LookupRecord *) ((const char *) coverage + sizeof (coverage[0]) * glyphCount);
     struct ContextLookupContext context = {
@@ -286,7 +289,8 @@ struct ContextFormat3 {
 
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
-    if ((*this)[0].get_coverage (IN_CURGLYPH () == NOT_COVERED))
+    unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
+    if (G_LIKELY (index == NOT_COVERED))
       return false;
 
     return apply_coverage (LOOKUP_ARGS, apply_func);
@@ -297,11 +301,10 @@ struct ContextFormat3 {
   USHORT	glyphCount;		/* Number of glyphs in the input glyph
 					 * sequence */
   USHORT	lookupCount;		/* Number of LookupRecords */
-  Offset	coverage[];		/* Array of offsets to Coverage
-					 * table--from beginning of
-					 * table--in glyph
-					 * sequence order */
-  LookupRecord	lookupRecord[];		/* Array of LookupRecords--in
+  OffsetTo<Coverage>
+		coverage[];		/* Array of offsets to Coverage
+					 * table in glyph sequence order */
+  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
 					 * design order */
 };
 ASSERT_SIZE (ContextFormat3, 6);
@@ -337,9 +340,22 @@ struct ChainContextLookupContext {
 };
 
 
-
 struct ChainRule {
-  /* TODO */
+
+  friend struct ChainRuleSet;
+
+  private:
+  inline bool apply (LOOKUP_ARGS_DEF, ChainContextLookupContext &context) const {
+    return false;
+//    const LookupRecord *record = (const LookupRecord *) ((const char *) input + sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
+//    return context_lookup (LOOKUP_ARGS,
+//			   inputCount,
+//			   input,
+//			   lookupCount,
+//			   record,
+//			   context);
+  }
+
 
   private:
   USHORT	backtrackCount;		/* Total number of glyphs in the
@@ -349,24 +365,23 @@ struct ChainRule {
   USHORT	backtrack[];		/* Array of backtracking values
 					 * (to be matched before the input
 					 * sequence) */
-  USHORT	inputCount;		/* Total number of values in the input
+  USHORT	inputCountX;		/* Total number of values in the input
 					 * sequence (includes the first glyph) */
-  USHORT	input[];		/* Array of input values (start with
+  USHORT	inputX[];		/* Array of input values (start with
 					 * second glyph) */
-  USHORT	lookaheadCount;		/* Total number of glyphs in the look
+  USHORT	lookaheadCountX;	/* Total number of glyphs in the look
 					 * ahead sequence (number of glyphs to
 					 * be matched after the input sequence) */
-  USHORT	lookahead[];		/* Array of lookahead values's (to be
+  USHORT	lookaheadX[];		/* Array of lookahead values's (to be
 					 * matched after the input sequence) */
-  USHORT	lookupCount;		/* Number of LookupRecords */
-  LookupRecord	lookupRecord[];		/* Array of LookupRecords--in
+  USHORT	lookupCountX;		/* Number of LookupRecords */
+  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
 					 * design order) */
 };
 ASSERT_SIZE (ChainRule, 8);
 
 struct ChainRuleSet {
 
-/*
   inline bool apply (LOOKUP_ARGS_DEF, ChainContextLookupContext &context) const {
 
     unsigned int num_rules = rule.len;
@@ -377,7 +392,6 @@ struct ChainRuleSet {
 
     return false;
   }
-  */
 
   private:
   OffsetArrayOf<ChainRule>
@@ -392,30 +406,26 @@ struct ChainContextFormat1 {
 
   private:
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
-  /* TODO */
 
-//    unsigned int index = (this+coverage) (IN_CURGLYPH ());
-//    const RuleSet &rule_set = this+ruleSet[index];
-//    struct ContextLookupContext context = {
-//      glyph_match, NULL,
-//      apply_func
-//    };
-//    return rule_set.apply (LOOKUP_ARGS, context);
-    return false;
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (G_LIKELY (index == NOT_COVERED))
+      return false;
+
+    const ChainRuleSet &rule_set = this+ruleSet[index];
+    struct ChainContextLookupContext context = {
+      {match_glyph, apply_func},
+      {NULL, NULL, NULL}
+    };
+    return rule_set.apply (LOOKUP_ARGS, context);
   }
-
-
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  USHORT	chainRuleSetCount;	/* Number of ChainRuleSet
-					 * tables--must equal GlyphCount in
-					 * Coverage table */
-  Offset	chainRuleSet[];		/* Array of offsets to ChainRuleSet
-					 * tables--from beginning of
-					 * table--ordered by Coverage Index */
+  OffsetArrayOf<ChainRuleSet>
+		ruleSet;		/* Array of ChainRuleSet tables
+					 * ordered by Coverage Index */
 };
 ASSERT_SIZE (ChainContextFormat1, 6);
 
@@ -426,37 +436,48 @@ struct ChainContextFormat2 {
   private:
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
-//    unsigned int index = (this+coverage) (IN_CURGLYPH ());
-//    const RuleSet &rule_set = this+ruleSet[index];
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (G_LIKELY (index == NOT_COVERED))
+      return false;
+
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
+    const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+
+    index = input_class_def (IN_CURGLYPH ());
+    const ChainRuleSet &rule_set = this+ruleSet[index];
     /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
      * them across subrule lookups.  Not sure it's worth it.
      */
-//    struct ContextLookupContext context = {
-//      class_match, (char *) &(this+classDef),
-//      apply_func
-//    };
-//    return rule_set.apply (LOOKUP_ARGS, context);
-    return false;
+    struct ChainContextLookupContext context = {
+     {match_class, apply_func},
+     {(char *) &backtrack_class_def,
+      (char *) &input_class_def,
+      (char *) &lookahead_class_def}
+    };
+    return rule_set.apply (LOOKUP_ARGS, context);
   }
 
   private:
   USHORT	format;			/* Format identifier--format = 2 */
-  Offset	coverage;		/* Offset to Coverage table--from
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  Offset	backtrackClassDef;	/* Offset to glyph ClassDef table
+  OffsetTo<ClassDef>
+		backtrackClassDef;	/* Offset to glyph ClassDef table
 					 * containing backtrack sequence
 					 * data--from beginning of table */
-  Offset	inputClassDef;		/* Offset to glyph ClassDef
+  OffsetTo<ClassDef>
+		inputClassDef;		/* Offset to glyph ClassDef
 					 * table containing input sequence
 					 * data--from beginning of table */
-  Offset	lookaheadClassDef;	/* Offset to glyph ClassDef table
+  OffsetTo<ClassDef>
+		lookaheadClassDef;	/* Offset to glyph ClassDef table
 					 * containing lookahead sequence
 					 * data--from beginning of table */
-  USHORT	chainClassSetCnt;	/* Number of ChainClassSet tables */
-  Offset	chainClassSet[];	/* Array of offsets to ChainClassSet
-					 * tables--from beginning of
-					 * table--ordered by input
-					 * class--may be NULL */
+  OffsetArrayOf<ChainRuleSet>
+		ruleSet;		/* Array of ChainRuleSet tables
+					 * ordered by class */
 };
 ASSERT_SIZE (ChainContextFormat2, 12);
 
@@ -465,13 +486,32 @@ struct ChainContextFormat3 {
   friend struct ChainContext;
 
   private:
+
+  inline bool apply_coverage (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+//    const LookupRecord *record = (const LookupRecord *) ((const char *) coverage + sizeof (coverage[0]) * glyphCount);
+    struct ChainContextLookupContext context = {
+      {match_coverage, apply_func},
+      {(char *) this, (char *) this, (char *) this}
+    };
+    /*
+    return context_lookup (LOOKUP_ARGS,
+			   glyphCount,
+			   (const USHORT *) (coverage + 1),
+			   lookupCount,
+			   record,
+			   context);
+			   */
+    return false;
+  }
+
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
-//    if ((*this)[0].get_coverage (IN_CURGLYPH () == NOT_COVERED))
-//      return false;
+    /* XXX */
+    unsigned int index = 0;//(this+coverage[0]) (IN_CURGLYPH ());
+    if (G_LIKELY (index == NOT_COVERED))
+      return false;
 
-//    return apply_coverage (LOOKUP_ARGS, apply_func);
-    return false;
+    return apply_coverage (LOOKUP_ARGS, apply_func);
   }
 
   private:
@@ -481,17 +521,17 @@ struct ChainContextFormat3 {
   Offset	backtrackCoverage[];	/* Array of offsets to coverage tables
 					 * in backtracking sequence, in  glyph
 					 * sequence order */
-  USHORT	inputGlyphCount;	/* Number of glyphs in input sequence */
-  Offset	inputCoverage[];	/* Array of offsets to coverage
+  USHORT	inputGlyphCountX;	/* Number of glyphs in input sequence */
+  Offset	inputCoverageX[];	/* Array of offsets to coverage
 					 * tables in input sequence, in glyph
 					 * sequence order */
-  USHORT	lookaheadGlyphCount;	/* Number of glyphs in lookahead
+  USHORT	lookaheadGlyphCountX;	/* Number of glyphs in lookahead
 					 * sequence */
-  Offset	lookaheadCoverage[];	/* Array of offsets to coverage tables
+  Offset	lookaheadCoverageX[];	/* Array of offsets to coverage tables
 					 * in lookahead sequence, in glyph
 					 * sequence order */
-  USHORT	substCount;		/* Number of LookupRecords */
-  LookupRecord	substLookupRecord[];	/* Array of LookupRecords--in
+  USHORT	lookupCountX;		/* Number of LookupRecords */
+  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
 					 * design order */
 };
 ASSERT_SIZE (ChainContextFormat3, 10);

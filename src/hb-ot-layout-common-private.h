@@ -296,7 +296,7 @@ struct Coverage {
     }
   }
 
-  unsigned int operator() (hb_codepoint_t glyph_id) const {
+  inline unsigned int operator() (hb_codepoint_t glyph_id) const {
     return get_coverage (glyph_id);
   }
 
@@ -380,6 +380,10 @@ struct ClassDef {
     case 2: return u.format2->get_class(glyph_id);
     default:return 0;
     }
+  }
+
+  inline unsigned int operator() (hb_codepoint_t glyph_id) const {
+    return get_class (glyph_id);
   }
 
   private:
