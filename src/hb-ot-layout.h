@@ -124,10 +124,10 @@ hb_ot_layout_table_get_feature_tag (hb_ot_layout_t            *layout,
 				    unsigned int               feature_index);
 
 hb_bool_t
-hb_ot_layout_table_find_script (hb_ot_layout_t            *layout,
-				hb_ot_layout_table_type_t  table_type,
-				hb_tag_t                   feature_tag,
-				unsigned int              *feature_index);
+hb_ot_layout_table_find_feature (hb_ot_layout_t            *layout,
+				 hb_ot_layout_table_type_t  table_type,
+				 hb_tag_t                   feature_tag,
+				 unsigned int              *feature_index);
 
 unsigned int
 hb_ot_layout_table_get_lookup_count (hb_ot_layout_t            *layout,

@@ -34,6 +34,7 @@
 #include "hb-ot-layout-open-private.h"
 #include "hb-ot-layout-gdef-private.h"
 #include "hb-ot-layout-gsub-private.h"
+#include "hb-ot-layout-gpos-private.h"
 
 /* XXX */
 #include "harfbuzz-buffer-private.h"
@@ -49,7 +50,7 @@ hb_ot_layout_create (void)
 
   layout->gdef = &Null(GDEF);
   layout->gsub = &Null(GSUB);
-  layout->gpos = &/*XXX*/Null(GSUBGPOS);
+  layout->gpos = &Null(GPOS);
 
   return layout;
 }
@@ -70,7 +71,7 @@ hb_ot_layout_create_for_data (const char *font_data,
 
   layout->gdef = &GDEF::get_for_data (font.get_table_data (face.get_table_by_tag (GDEF::Tag)));
   layout->gsub = &GSUB::get_for_data (font.get_table_data (face.get_table_by_tag (GSUB::Tag)));
-  layout->gpos = &/*XXX*/GSUBGPOS::get_for_data (font.get_table_data (face.get_table_by_tag (/*XXX*/GSUBGPOS::GPOSTag)));
+  layout->gpos = &GPOS::get_for_data (font.get_table_data (face.get_table_by_tag (GPOS::Tag)));
 
   return layout;
 }

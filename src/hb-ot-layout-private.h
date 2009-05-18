@@ -39,12 +39,25 @@ typedef unsigned int hb_ot_layout_class_t;
 struct _hb_ot_layout_t {
   const struct GDEF *gdef;
   const struct GSUB *gsub;
-  const struct /*XXX*/GSUBGPOS *gpos;
+  const struct GPOS *gpos;
 
   struct {
     unsigned char *klasses;
     unsigned int len;
   } new_gdef;
+
+  /* TODO full-matrix transformation? */
+  struct {
+    unsigned int x_ppem, y_ppem;
+    hb_16dot16_t x_scale, y_scale;
+
+    hb_bool_t dvi;
+    hb_bool_t r2l;
+
+    unsigned int last;        /* the last valid glyph--used with cursive positioning */
+    hb_position_t anchor_x;   /* the coordinates of the anchor point */
+    hb_position_t anchor_y;   /* of the last valid glyph */
+  } gpos_info;
 };
 
 

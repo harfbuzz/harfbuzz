@@ -469,7 +469,6 @@ ASSERT_SIZE (LigatureSubst, 2);
 
 static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index);
 
-
 struct ContextSubst : Context {
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
@@ -477,7 +476,6 @@ struct ContextSubst : Context {
   }
 };
 ASSERT_SIZE (ContextSubst, 2);
-
 
 struct ChainContextSubst : ChainContext {
 
