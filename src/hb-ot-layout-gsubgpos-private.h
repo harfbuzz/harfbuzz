@@ -55,6 +55,7 @@ struct ContextFuncs {
   apply_lookup_func_t apply;
 };
 
+
 static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, char *data) {
   return glyph_id == value;
 }
@@ -69,30 +70,14 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
   return (data+coverage) (glyph_id) != NOT_COVERED;
 }
 
-struct LookupRecord {
 
-  USHORT	sequenceIndex;		/* Index into current glyph
-					 * sequence--first glyph = 0 */
-  USHORT	lookupListIndex;	/* Lookup to apply to that
-					 * position--zero--based */
-};
-ASSERT_SIZE (LookupRecord, 4);
-
-
-/* Contextual lookups */
-
-struct ContextLookupContext {
-  ContextFuncs funcs;
-  char *match_data;
-};
-
-static inline bool context_lookup (LOOKUP_ARGS_DEF,
-				   USHORT inputCount, /* Including the first glyph (not matched) */
-				   const USHORT input[], /* Array of input values--start with second glyph */
-				   USHORT lookupCount,
-				   const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
-				   ContextLookupContext &context) {
-
+static inline bool match_input (LOOKUP_ARGS_DEF,
+				USHORT inputCount, /* Including the first glyph (not matched) */
+				const USHORT input[], /* Array of input values--start with second glyph */
+				match_func_t match_func,
+				char *match_data,
+				unsigned int *context_length_out)
+{
   unsigned int i, j;
   unsigned int count = inputCount;
 
@@ -110,26 +95,47 @@ static inline bool context_lookup (LOOKUP_ARGS_DEF,
       j++;
     }
 
-    if (HB_LIKELY (context.funcs.match (IN_GLYPH(j), input[i - 1], context.match_data)))
+    if (HB_LIKELY (match_func (IN_GLYPH(j), input[i - 1], match_data)))
       return false;
   }
 
   /* XXX right? or j - buffer_inpos? */
-  context_length = count;
+  *context_length_out = count;
+
+  return true;
+}
+
+
+struct LookupRecord {
+
+  USHORT	sequenceIndex;		/* Index into current glyph
+					 * sequence--first glyph = 0 */
+  USHORT	lookupListIndex;	/* Lookup to apply to that
+					 * position--zero--based */
+};
+ASSERT_SIZE (LookupRecord, 4);
+
+static inline bool apply_lookup (LOOKUP_ARGS_DEF,
+				 USHORT inputCount, /* Including the first glyph */
+				 USHORT lookupCount,
+				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
+				 apply_lookup_func_t apply_func)
+{
+  unsigned int count = inputCount;
+  unsigned int record_count = lookupCount;
+  const LookupRecord *record = lookupRecord;
 
   /* XXX We have to jump non-matching glyphs when applying too, right? */
   /* XXX We don't support lookupRecord arrays that are not increasing:
    *     Should be easy for in_place ones at least. */
-  unsigned int record_count = lookupCount;
-  const LookupRecord *record = lookupRecord;
-  for (i = 0; i < count;)
+  for (unsigned int i = 0; i < count;)
   {
     if (record_count && i == record->sequenceIndex)
     {
       unsigned int old_pos = buffer->in_pos;
 
       /* Apply a lookup */
-      bool done = context.funcs.apply (LOOKUP_ARGS, record->lookupListIndex);
+      bool done = apply_func (LOOKUP_ARGS, record->lookupListIndex);
 
       record++;
       record_count--;
@@ -148,6 +154,34 @@ static inline bool context_lookup (LOOKUP_ARGS_DEF,
   }
 
   return true;
+}
+
+
+/* Contextual lookups */
+
+struct ContextLookupContext {
+  ContextFuncs funcs;
+  char *match_data;
+};
+
+static inline bool context_lookup (LOOKUP_ARGS_DEF,
+				   USHORT inputCount, /* Including the first glyph (not matched) */
+				   const USHORT input[], /* Array of input values--start with second glyph */
+				   USHORT lookupCount,
+				   const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
+				   ContextLookupContext &context)
+{
+  unsigned int i, j;
+  unsigned int count = inputCount;
+
+  return match_input (LOOKUP_ARGS,
+		      inputCount, input,
+		      context.funcs.match, context.match_data,
+		      &context_length) &&
+	 apply_lookup (LOOKUP_ARGS,
+		       inputCount,
+		       lookupCount, lookupRecord,
+		       context.funcs.apply);
 }
 
 struct Rule {
