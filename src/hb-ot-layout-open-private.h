@@ -348,6 +348,25 @@ struct ArrayOf {
     if (HB_UNLIKELY (i >= len)) return Null(Type);
     return array[i];
   }
+  inline unsigned int get_size () const {
+    return sizeof (len) + len * sizeof (array[0]);
+  }
+
+  USHORT len;
+  Type array[];
+};
+
+/* An array with a USHORT number of elements,
+ * starting at second element. */
+template <typename Type>
+struct HeadlessArrayOf {
+  inline const Type& operator [] (unsigned int i) const {
+    if (HB_UNLIKELY (i >= len || !i)) return Null(Type);
+    return array[i-1];
+  }
+  inline unsigned int get_size () const {
+    return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]);
+  }
 
   USHORT len;
   Type array[];

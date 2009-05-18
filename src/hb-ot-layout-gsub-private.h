@@ -314,12 +314,10 @@ struct Ligature {
   friend struct LigatureSet;
 
   private:
-  DEFINE_ARRAY_TYPE (GlyphID, component, (compCount ? compCount - 1 : 0));
-
   inline bool substitute_ligature (LOOKUP_ARGS_DEF, bool is_mark) const {
 
     unsigned int i, j;
-    unsigned int count = compCount;
+    unsigned int count = component.len;
 
     if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
 		     context_length < count))
@@ -336,7 +334,7 @@ struct Ligature {
 	    property &  LookupFlag::MarkAttachmentType))
 	is_mark = FALSE;
 
-      if (HB_LIKELY (IN_GLYPH(j) != (*this)[i - 1]))
+      if (HB_LIKELY (IN_GLYPH(j) != component[i]))
         return false;
     }
     if ( _hb_ot_layout_has_new_glyph_classes (layout) )
@@ -383,8 +381,8 @@ struct Ligature {
 
   private:
   GlyphID	ligGlyph;		/* GlyphID of ligature to substitute */
-  USHORT	compCount;		/* Number of components in the ligature */
-  GlyphID	component[];		/* Array of component GlyphIDs--start
+  HeadlessArrayOf<GlyphID>
+		component;		/* Array of component GlyphIDs--start
 					 * with the second  component--ordered
 					 * in writing direction */
 };

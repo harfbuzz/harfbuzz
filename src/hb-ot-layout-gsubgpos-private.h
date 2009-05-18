@@ -362,9 +362,8 @@ struct ChainRule {
 		backtrack;		/* Array of backtracking values
 					 * (to be matched before the input
 					 * sequence) */
-  USHORT	inputCountX;		/* Total number of values in the input
-					 * sequence (includes the first glyph) */
-  USHORT	inputX[];		/* Array of input values (start with
+  HeadlessArrayOf<USHORT>
+		inputX;			/* Array of input values (start with
 					 * second glyph) */
   ArrayOf<USHORT>
 		lookaheadX;		/* Array of lookahead values's (to be
