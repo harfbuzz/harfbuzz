@@ -71,19 +71,36 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
 }
 
 
+static inline bool match_backtrack (LOOKUP_ARGS_DEF,
+				    unsigned int count,
+				    const USHORT backtrack[],
+				    match_func_t match_func,
+				    char *match_data)
+{
+  unsigned int i, j;
+
+  for (i = 0, j = buffer->out_pos - 1; i < count; i++, j--) {
+    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
+      if (HB_UNLIKELY (j + 1 == count - i))
+	return false;
+      j--;
+    }
+
+    if (HB_LIKELY (match_func (OUT_GLYPH(j), backtrack[i], match_data)))
+      return false;
+  }
+
+  return true;
+}
+
 static inline bool match_input (LOOKUP_ARGS_DEF,
-				USHORT inputCount, /* Including the first glyph (not matched) */
+				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
 				char *match_data,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
-  unsigned int count = inputCount;
-
-  if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
-		   context_length < count))
-    return false; /* Not enough glyphs in input or context */
 
   /* XXX context_length should also be checked when skipping glyphs, right?
    * What does context_length really mean, anyway? */
@@ -116,12 +133,11 @@ struct LookupRecord {
 ASSERT_SIZE (LookupRecord, 4);
 
 static inline bool apply_lookup (LOOKUP_ARGS_DEF,
-				 USHORT inputCount, /* Including the first glyph */
-				 USHORT lookupCount,
+				 unsigned int count, /* Including the first glyph */
+				 unsigned int lookupCount,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 apply_lookup_func_t apply_func)
 {
-  unsigned int count = inputCount;
   unsigned int record_count = lookupCount;
   const LookupRecord *record = lookupRecord;
 
@@ -165,12 +181,17 @@ struct ContextLookupContext {
 };
 
 static inline bool context_lookup (LOOKUP_ARGS_DEF,
-				   USHORT inputCount, /* Including the first glyph (not matched) */
+				   unsigned int inputCount, /* Including the first glyph (not matched) */
 				   const USHORT input[], /* Array of input values--start with second glyph */
-				   USHORT lookupCount,
+				   unsigned int lookupCount,
 				   const LookupRecord lookupRecord[],
 				   ContextLookupContext &context)
 {
+  /* First guess */
+  if (HB_UNLIKELY (buffer->in_pos + inputCount > buffer->in_length ||
+		   context_length < inputCount))
+    return false;
+
   return match_input (LOOKUP_ARGS,
 		      inputCount, input,
 		      context.funcs.match, context.match_data,
@@ -370,17 +391,25 @@ struct ChainContextLookupContext {
 };
 
 static inline bool chain_context_lookup (LOOKUP_ARGS_DEF,
-					 USHORT backtrackCount,
+					 unsigned int backtrackCount,
 					 const USHORT backtrack[],
-					 USHORT inputCount, /* Including the first glyph (not matched) */
+					 unsigned int inputCount, /* Including the first glyph (not matched) */
 					 const USHORT input[], /* Array of input values--start with second glyph */
-					 USHORT lookaheadCount,
+					 unsigned int lookaheadCount,
 					 const USHORT lookahead[],
-					 USHORT lookupCount,
+					 unsigned int lookupCount,
 					 const LookupRecord lookupRecord[],
 					 ChainContextLookupContext &context)
 {
-  return match_input (LOOKUP_ARGS,
+  /* First guess */
+  if (HB_UNLIKELY (buffer->out_pos < backtrackCount ||
+		   buffer->in_pos + inputCount + lookaheadCount > buffer->in_length))
+    return false;
+
+  return match_backtrack (LOOKUP_ARGS,
+			  backtrackCount, backtrack,
+			  context.funcs.match, context.match_data[0]) &&
+	 match_input (LOOKUP_ARGS,
 		      inputCount, input,
 		      context.funcs.match, context.match_data[1],
 		      &context_length) &&
