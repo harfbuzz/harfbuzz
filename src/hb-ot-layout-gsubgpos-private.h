@@ -166,12 +166,20 @@ static inline bool apply_lookup (LOOKUP_ARGS_DEF,
 {
   unsigned int record_count = lookupCount;
   const LookupRecord *record = lookupRecord;
+  unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
+  if (HB_UNLIKELY (buffer->in_pos + count > end))
+    return false;
 
-  /* XXX We have to jump non-matching glyphs when applying too, right? */
   /* TODO We don't support lookupRecord arrays that are not increasing:
    *      Should be easy for in_place ones at least. */
-  for (unsigned int i = 0; i < count;)
-  {
+  for (unsigned int i = 0; i < count; i++) {
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property)) {
+      if (HB_UNLIKELY (buffer->in_pos == end))
+	return true;
+      /* No lookup applied for this index */
+      _hb_buffer_next_glyph (buffer);
+    }
+
     if (record_count && i == record->sequenceIndex)
     {
       unsigned int old_pos = buffer->in_pos;
