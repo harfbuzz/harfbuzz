@@ -221,11 +221,6 @@ static inline bool context_lookup (LOOKUP_ARGS_DEF,
 				   const LookupRecord lookupRecord[],
 				   ContextLookupContext &context)
 {
-  /* First guess */
-  if (HB_UNLIKELY (buffer->in_pos + inputCount > buffer->in_length ||
-		   inputCount > context_length))
-    return false;
-
   return match_input (LOOKUP_ARGS,
 		      inputCount, input,
 		      context.funcs.match, context.match_data,
@@ -246,10 +241,8 @@ struct Rule {
 				       ((const char *) input +
 					sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
     return context_lookup (LOOKUP_ARGS,
-			   inputCount,
-			   input,
-			   lookupCount,
-			   lookupRecord,
+			   inputCount, input,
+			   lookupCount, lookupRecord,
 			   context);
   }
 
@@ -374,10 +367,8 @@ struct ContextFormat3 {
       (char *) this
     };
     return context_lookup (LOOKUP_ARGS,
-			   glyphCount,
-			   (const USHORT *) (coverage + 1),
-			   lookupCount,
-			   lookupRecord,
+			   glyphCount, (const USHORT *) (coverage + 1),
+			   lookupCount, lookupRecord,
 			   context);
   }
 
@@ -473,14 +464,10 @@ struct ChainRule {
     const ArrayOf<LookupRecord> &lookup = * (const ArrayOf<LookupRecord> *)
 					    ((const char *) &lookahead + lookahead.get_size ());
     return chain_context_lookup (LOOKUP_ARGS,
-				 backtrack.len,
-				 backtrack.array,
-				 input.len,
-				 input.array + 1,
-				 lookahead.len,
-				 lookahead.array,
-				 lookup.len,
-				 lookup.array,
+				 backtrack.len, backtrack.array,
+				 input.len, input.array + 1,
+				 lookahead.len, lookahead.array,
+				 lookup.len, lookup.array,
 				 context);
     return false;
   }
@@ -623,7 +610,7 @@ struct ChainContextFormat3 {
       return false;
 
     const OffsetArrayOf<Coverage> &lookahead = * (const OffsetArrayOf<Coverage> *)
-					 ((const char *) &input + input.get_size ());
+						 ((const char *) &input + input.get_size ());
     const ArrayOf<LookupRecord> &lookup = * (const ArrayOf<LookupRecord> *)
 					    ((const char *) &lookahead + lookahead.get_size ());
     struct ChainContextLookupContext context = {
@@ -631,14 +618,10 @@ struct ChainContextFormat3 {
       {(char *) this, (char *) this, (char *) this}
     };
     return chain_context_lookup (LOOKUP_ARGS,
-				 backtrack.len,
-				 (USHORT *) backtrack.array,
-				 input.len,
-				 (USHORT *) input.array,
-				 lookahead.len,
-				 (USHORT *) lookahead.array,
-				 lookup.len,
-				 lookup.array,
+				 backtrack.len, (USHORT *) backtrack.array,
+				 input.len, (USHORT *) input.array,
+				 lookahead.len, (USHORT *) lookahead.array,
+				 lookup.len, lookup.array,
 				 context);
     return false;
   }

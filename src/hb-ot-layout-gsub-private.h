@@ -540,29 +540,56 @@ ASSERT_SIZE (ExtensionSubst, 2);
 
 
 struct ReverseChainSingleSubstFormat1 {
-  /* TODO */
+
+  friend struct ReverseChainSingleSubst;
+
+  private:
   inline bool substitute (LOOKUP_ARGS_DEF) const {
+
+    if (HB_UNLIKELY (context_length != NO_CONTEXT))
+      return false; /* No chaining to this type */
+
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (index == NOT_COVERED))
+      return false;
+
+    const OffsetArrayOf<Coverage> &lookahead = * (const OffsetArrayOf<Coverage> *)
+						 ((const char *) &backtrack + backtrack.get_size ());
+    const ArrayOf<GlyphID> &substitute = * (const ArrayOf<GlyphID> *)
+					   ((const char *) &lookahead + lookahead.get_size ());
+
+    if (match_backtrack (LOOKUP_ARGS,
+			 backtrack.len, (USHORT *) backtrack.array,
+			 match_coverage, (char *) this) &&
+        match_lookahead (LOOKUP_ARGS,
+			 lookahead.len, (USHORT *) lookahead.array,
+			 match_coverage, (char *) this,
+			 1))
+    {
+      IN_CURGLYPH() = substitute[index];
+      buffer->in_pos--; /* Reverse! */
+      return true;
+    }
+
     return false;
   }
 
   private:
   USHORT	format;			/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table -- from
-					 * beginning of Substitution table */
-  USHORT	backtrackGlyphCount;	/* Number of glyphs in the backtracking
-					 * sequence */
-  Offset	backtrackCoverage[];	/* Array of offsets to coverage tables
+  OffsetTo<Coverage>
+		coverage;		/* Offset to Coverage table--from
+					 * beginning of table */
+  OffsetArrayOf<Coverage>
+		backtrack;		/* Array of coverage tables
 					 * in backtracking sequence, in  glyph
 					 * sequence order */
-  USHORT	lookaheadGlyphCount;	/* Number of glyphs in lookahead
-					 * sequence */
-  Offset	lookaheadCoverage[];	/* Array of offsets to coverage tables
-					 * in lookahead sequence, in  glyph
+  OffsetArrayOf<Coverage>
+		lookaheadX;		/* Array of coverage tables
+					 * in lookahead sequence, in glyph
 					 * sequence order */
-  USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
-					 * array */
-  GlyphID	substituteGlyphs[];	/* Array of substitute
-					 * GlyphIDs--ordered by Coverage  Index */
+  ArrayOf<GlyphID>
+		substituteX;		/* Array of substitute
+					 * GlyphIDs--ordered by Coverage Index */
 };
 ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
 
