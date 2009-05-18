@@ -773,8 +773,7 @@ ASSERT_SIZE (GSUB, 10);
 inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
   unsigned int lookup_type = get_type ();
 
-  /* TODO belongs to sanitize() */
-  if (HB_UNLIKELY (lookup_type == GSUB_ReverseChainSingle))
+  if (HB_UNLIKELY (lookup_type ==  GSUB_Extension))
     return false;
 
   return (*(SubstLookupSubTable *)(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS,
