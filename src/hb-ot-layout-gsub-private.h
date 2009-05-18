@@ -646,7 +646,7 @@ struct SubstLookup : Lookup {
     if (HB_UNLIKELY (type == GSUB_Extension)) {
       /* Return lookup type of first extension subtable.
        * The spec says all of them should have the same type.
-       * XXX check for that somehow */
+       * XXX check for that in sanitize() */
       type = get_subtable(0).u.extension->get_type ();
     }
 
@@ -763,10 +763,14 @@ ASSERT_SIZE (GSUB, 10);
 /* Out-of-class implementation for methods recursing */
 
 inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
-  /* XXX either check in sanitize or here that the lookuptype is not 7 again,
-   * or we can loop indefinitely. */
+  unsigned int lookup_type = get_type ();
+
+  /* TODO: belongs to sanitize() */
+  if (HB_UNLIKELY (lookup_type == GSUB_ReverseChainSingle))
+    return false;
+
   return (*(SubstLookupSubTable *)(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS,
-										 get_type ());
+										 lookup_type);
 }
 
 static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {
