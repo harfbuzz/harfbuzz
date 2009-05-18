@@ -221,7 +221,7 @@ static inline bool context_lookup (LOOKUP_ARGS_DEF,
 {
   /* First guess */
   if (HB_UNLIKELY (buffer->in_pos + inputCount > buffer->in_length ||
-		   context_length < inputCount))
+		   inputCount > context_length))
     return false;
 
   return match_input (LOOKUP_ARGS,
@@ -435,7 +435,8 @@ static inline bool chain_context_lookup (LOOKUP_ARGS_DEF,
 {
   /* First guess */
   if (HB_UNLIKELY (buffer->out_pos < backtrackCount ||
-		   buffer->in_pos + inputCount + lookaheadCount > buffer->in_length))
+		   buffer->in_pos + inputCount + lookaheadCount > buffer->in_length ||
+		   inputCount + lookaheadCount > context_length))
     return false;
 
   unsigned int offset;

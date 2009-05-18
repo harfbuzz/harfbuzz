@@ -318,14 +318,13 @@ struct Ligature {
 
     unsigned int i, j;
     unsigned int count = component.len;
-
-    if (HB_UNLIKELY (buffer->in_pos + count > buffer->in_length ||
-		     context_length < count))
-      return false; /* Not enough glyphs in input or context */
+    unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
+    if (HB_UNLIKELY (buffer->in_pos + count > end))
+      return false;
 
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
       while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
-	if (HB_UNLIKELY (j + count - i == buffer->in_length))
+	if (HB_UNLIKELY (j + count - i == end))
 	  return false;
 	j++;
       }
