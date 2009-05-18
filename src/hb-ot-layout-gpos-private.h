@@ -211,7 +211,7 @@ struct SinglePosFormat1 {
   friend struct SinglePos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -234,7 +234,7 @@ struct SinglePosFormat2 {
   friend struct SinglePos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -258,10 +258,10 @@ struct SinglePos {
 
   private:
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->position (LOOKUP_ARGS);
-    case 2: return u.format2->position (LOOKUP_ARGS);
+    case 1: return u.format1->apply (LOOKUP_ARGS);
+    case 2: return u.format2->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -297,7 +297,7 @@ struct PairPosFormat1 {
   friend struct PairPos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -324,7 +324,7 @@ struct PairPosFormat2 {
   friend struct PairPos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -364,10 +364,10 @@ struct PairPos {
 
   private:
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->position (LOOKUP_ARGS);
-    case 2: return u.format2->position (LOOKUP_ARGS);
+    case 1: return u.format1->apply (LOOKUP_ARGS);
+    case 2: return u.format2->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -402,7 +402,7 @@ struct CursivePosFormat1 {
   friend struct CursivePos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -424,9 +424,9 @@ struct CursivePos {
 
   private:
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->position (LOOKUP_ARGS);
+    case 1: return u.format1->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -466,7 +466,7 @@ struct MarkBasePosFormat1 {
   friend struct MarkBasePos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -492,9 +492,9 @@ struct MarkBasePos {
 
   private:
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->position (LOOKUP_ARGS);
+    case 1: return u.format1->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -551,7 +551,7 @@ struct MarkLigPosFormat1 {
   friend struct MarkLigPos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -577,9 +577,9 @@ struct MarkLigPos {
 
   private:
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->position (LOOKUP_ARGS);
+    case 1: return u.format1->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -618,7 +618,7 @@ struct MarkMarkPosFormat1 {
   friend struct MarkMarkPos;
 
   private:
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     /* TODO */
     return false;
   }
@@ -644,9 +644,9 @@ struct MarkMarkPos {
 
   private:
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->position (LOOKUP_ARGS);
+    case 1: return u.format1->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -664,16 +664,16 @@ static inline bool position_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index);
 
 struct ContextPos : Context {
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
-    return this->apply (LOOKUP_ARGS, position_lookup);
+  inline bool apply (LOOKUP_ARGS_DEF) const {
+    return Context::apply (LOOKUP_ARGS, position_lookup);
   }
 };
 ASSERT_SIZE (ContextPos, 2);
 
 struct ChainContextPos : ChainContext {
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
-    return this->apply (LOOKUP_ARGS, position_lookup);
+  inline bool apply (LOOKUP_ARGS_DEF) const {
+    return ChainContext::apply (LOOKUP_ARGS, position_lookup);
   }
 };
 ASSERT_SIZE (ChainContextPos, 2);
@@ -686,7 +686,7 @@ struct ExtensionPosFormat1 {
   private:
   inline unsigned int get_type (void) const { return extensionLookupType; }
   inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
-  inline bool position (LOOKUP_ARGS_DEF) const;
+  inline bool apply (LOOKUP_ARGS_DEF) const;
 
   private:
   USHORT	format;			/* Format identifier. Set to 1. */
@@ -714,9 +714,9 @@ struct ExtensionPos {
     }
   }
 
-  inline bool position (LOOKUP_ARGS_DEF) const {
+  inline bool apply (LOOKUP_ARGS_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->position (LOOKUP_ARGS);
+    case 1: return u.format1->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -751,18 +751,18 @@ struct PosLookupSubTable {
 
   friend struct PosLookup;
 
-  inline bool position (LOOKUP_ARGS_DEF, unsigned int lookup_type) const {
+  inline bool apply (LOOKUP_ARGS_DEF, unsigned int lookup_type) const {
 
     switch (lookup_type) {
-    case GPOS_Single:			return u.single->position (LOOKUP_ARGS);
-    case GPOS_Pair:			return u.pair->position (LOOKUP_ARGS);
-    case GPOS_Cursive:			return u.cursive->position (LOOKUP_ARGS);
-    case GPOS_MarkBase:			return u.markBase->position (LOOKUP_ARGS);
-    case GPOS_MarkLig:			return u.markLig->position (LOOKUP_ARGS);
-    case GPOS_MarkMark:			return u.markMark->position (LOOKUP_ARGS);
-    case GPOS_Context:			return u.context->position (LOOKUP_ARGS);
-    case GPOS_ChainContext:		return u.chainContext->position (LOOKUP_ARGS);
-    case GPOS_Extension:		return u.extension->position (LOOKUP_ARGS);
+    case GPOS_Single:			return u.single->apply (LOOKUP_ARGS);
+    case GPOS_Pair:			return u.pair->apply (LOOKUP_ARGS);
+    case GPOS_Cursive:			return u.cursive->apply (LOOKUP_ARGS);
+    case GPOS_MarkBase:			return u.markBase->apply (LOOKUP_ARGS);
+    case GPOS_MarkLig:			return u.markLig->apply (LOOKUP_ARGS);
+    case GPOS_MarkMark:			return u.markMark->apply (LOOKUP_ARGS);
+    case GPOS_Context:			return u.context->apply (LOOKUP_ARGS);
+    case GPOS_ChainContext:		return u.chainContext->apply (LOOKUP_ARGS);
+    case GPOS_Extension:		return u.extension->apply (LOOKUP_ARGS);
     default:return false;
     }
   }
@@ -808,22 +808,22 @@ struct PosLookup : Lookup {
     return type;
   }
 
-  inline bool position_subtables (hb_ot_layout_t *layout,
-				  hb_buffer_t    *buffer,
-				  unsigned int    context_length,
-				  unsigned int    nesting_level_left,
-				  unsigned int    property) const {
+  inline bool apply_subtables (hb_ot_layout_t *layout,
+			       hb_buffer_t    *buffer,
+			       unsigned int    context_length,
+			       unsigned int    nesting_level_left,
+			       unsigned int    property) const {
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).position (LOOKUP_ARGS, lookup_type))
+      if (get_subtable (i).apply (LOOKUP_ARGS, lookup_type))
 	return true;
 
     return false;
   }
 
-  inline bool position_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const {
+  inline bool apply_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const {
 
     unsigned int lookup_flag = get_flag ();
 
@@ -831,12 +831,12 @@ struct PosLookup : Lookup {
     if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
       return false;
 
-    return position_subtables (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, property);
+    return apply_subtables (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, property);
   }
 
-  bool position_string (hb_ot_layout_t *layout,
-			hb_buffer_t    *buffer,
-			hb_ot_layout_feature_mask_t mask) const {
+  bool apply_string (hb_ot_layout_t *layout,
+		     hb_buffer_t    *buffer,
+		     hb_ot_layout_feature_mask_t mask) const {
 
     bool ret = false;
 
@@ -850,7 +850,7 @@ struct PosLookup : Lookup {
 
       bool done;
       if (~IN_PROPERTIES (buffer->in_pos) & mask) {
-	  done = position_once (layout, buffer);
+	  done = apply_once (layout, buffer);
 	  ret |= done;
       } else {
           done = false;
@@ -887,7 +887,7 @@ struct GPOS : GSUBGPOS {
 			       hb_buffer_t    *buffer,
 			       unsigned int    lookup_index,
 			       hb_ot_layout_feature_mask_t  mask) const {
-    return get_lookup (lookup_index).position_string (layout, buffer, mask);
+    return get_lookup (lookup_index).apply_string (layout, buffer, mask);
   }
 
 };
@@ -896,13 +896,13 @@ ASSERT_SIZE (GPOS, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionPosFormat1::position (LOOKUP_ARGS_DEF) const {
+inline bool ExtensionPosFormat1::apply (LOOKUP_ARGS_DEF) const {
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type ==  GPOS_Extension))
     return false;
 
-  return ((PosLookupSubTable&)*(((char *) this) + get_offset ())).position (LOOKUP_ARGS, lookup_type);
+  return ((PosLookupSubTable&)*(((char *) this) + get_offset ())).apply (LOOKUP_ARGS, lookup_type);
 }
 
 static inline bool position_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {
@@ -916,7 +916,7 @@ static inline bool position_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) 
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  return l.position_subtables (layout, buffer, context_length, nesting_level_left, property);
+  return l.apply_subtables (layout, buffer, context_length, nesting_level_left, property);
 }
 
 
