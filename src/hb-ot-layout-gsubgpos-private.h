@@ -358,24 +358,19 @@ struct ChainRule {
 
 
   private:
-  USHORT	backtrackCount;		/* Total number of glyphs in the
-					 * backtrack sequence (number of
-					 * glyphs to be matched before the
-					 * first glyph) */
-  USHORT	backtrack[];		/* Array of backtracking values
+  ArrayOf<USHORT>
+		backtrack;		/* Array of backtracking values
 					 * (to be matched before the input
 					 * sequence) */
   USHORT	inputCountX;		/* Total number of values in the input
 					 * sequence (includes the first glyph) */
   USHORT	inputX[];		/* Array of input values (start with
 					 * second glyph) */
-  USHORT	lookaheadCountX;	/* Total number of glyphs in the look
-					 * ahead sequence (number of glyphs to
-					 * be matched after the input sequence) */
-  USHORT	lookaheadX[];		/* Array of lookahead values's (to be
+  ArrayOf<USHORT>
+		lookaheadX;		/* Array of lookahead values's (to be
 					 * matched after the input sequence) */
-  USHORT	lookupCountX;		/* Number of LookupRecords */
-  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
+  ArrayOf<LookupRecord>
+		lookupRecordX;		/* Array of LookupRecords--in
 					 * design order) */
 };
 ASSERT_SIZE (ChainRule, 8);
@@ -516,23 +511,21 @@ struct ChainContextFormat3 {
 
   private:
   USHORT	format;			/* Format identifier--format = 3 */
-  USHORT	backtrackGlyphCount;	/* Number of glyphs in the backtracking
-					 * sequence */
-  Offset	backtrackCoverage[];	/* Array of offsets to coverage tables
+  OffsetArrayOf<Coverage>
+		backtrackCoverage;	/* Array of coverage tables
 					 * in backtracking sequence, in  glyph
 					 * sequence order */
-  USHORT	inputGlyphCountX;	/* Number of glyphs in input sequence */
-  Offset	inputCoverageX[];	/* Array of offsets to coverage
+  OffsetArrayOf<Coverage>
+		inputCoverageX	;	/* Array of coverage
 					 * tables in input sequence, in glyph
 					 * sequence order */
-  USHORT	lookaheadGlyphCountX;	/* Number of glyphs in lookahead
-					 * sequence */
-  Offset	lookaheadCoverageX[];	/* Array of offsets to coverage tables
+  OffsetArrayOf<Coverage>
+		lookaheadCoverageX;	/* Array of coverage tables
 					 * in lookahead sequence, in glyph
 					 * sequence order */
-  USHORT	lookupCountX;		/* Number of LookupRecords */
-  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
-					 * design order */
+  ArrayOf<LookupRecord>
+		lookupRecordX;		/* Array of LookupRecords--in
+					 * design order) */
 };
 ASSERT_SIZE (ChainContextFormat3, 10);
 
