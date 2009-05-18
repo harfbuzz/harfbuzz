@@ -635,8 +635,7 @@ struct SubstLookupSubTable {
 
   friend struct SubstLookup;
 
-  inline bool substitute (LOOKUP_ARGS_DEF,
-			  unsigned int lookup_type) const {
+  inline bool substitute (LOOKUP_ARGS_DEF, unsigned int lookup_type) const {
 
     switch (lookup_type) {
     case GSUB_Single:			return u.single->substitute (LOOKUP_ARGS);
@@ -644,7 +643,7 @@ struct SubstLookupSubTable {
     case GSUB_Alternate:		return u.alternate->substitute (LOOKUP_ARGS);
     case GSUB_Ligature:			return u.ligature->substitute (LOOKUP_ARGS);
     case GSUB_Context:			return u.context->substitute (LOOKUP_ARGS);
-    case GSUB_ChainContext:		return u.chainingContext->substitute (LOOKUP_ARGS);
+    case GSUB_ChainContext:		return u.chainContext->substitute (LOOKUP_ARGS);
     case GSUB_Extension:		return u.extension->substitute (LOOKUP_ARGS);
     case GSUB_ReverseChainSingle:	return u.reverseChainContextSingle->substitute (LOOKUP_ARGS);
     default:return false;
@@ -659,7 +658,7 @@ struct SubstLookupSubTable {
   AlternateSubst		alternate[];
   LigatureSubst			ligature[];
   ContextSubst			context[];
-  ChainContextSubst		chainingContext[];
+  ChainContextSubst		chainContext[];
   ExtensionSubst		extension[];
   ReverseChainSingleSubst	reverseChainContextSingle[];
   } u;
@@ -707,15 +706,13 @@ struct SubstLookup : Lookup {
     unsigned int lookup_flag = get_flag ();
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).substitute (LOOKUP_ARGS,
-				       lookup_type))
+      if (get_subtable (i).substitute (LOOKUP_ARGS, lookup_type))
 	return true;
 
     return false;
   }
 
-  inline bool substitute_once (hb_ot_layout_t *layout,
-			       hb_buffer_t    *buffer) const {
+  inline bool substitute_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const {
 
     unsigned int lookup_flag = get_flag ();
 
@@ -806,8 +803,7 @@ inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
   if (HB_UNLIKELY (lookup_type ==  GSUB_Extension))
     return false;
 
-  return (*(SubstLookupSubTable *)(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS,
-										 lookup_type);
+  return (*(SubstLookupSubTable *)(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS, lookup_type);
 }
 
 static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {
