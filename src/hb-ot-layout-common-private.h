@@ -165,12 +165,14 @@ ASSERT_SIZE (FeatureList, 2);
 
 
 struct LookupFlag : USHORT {
-  static const unsigned int RightToLeft		= 0x0001u;
-  static const unsigned int IgnoreBaseGlyphs	= 0x0002u;
-  static const unsigned int IgnoreLigatures	= 0x0004u;
-  static const unsigned int IgnoreMarks		= 0x0008u;
-  static const unsigned int Reserved		= 0x00F0u;
-  static const unsigned int MarkAttachmentType	= 0xFF00u;
+  enum {
+    RightToLeft		= 0x0001u,
+    IgnoreBaseGlyphs	= 0x0002u,
+    IgnoreLigatures	= 0x0004u,
+    IgnoreMarks		= 0x0008u,
+    Reserved		= 0x00F0u,
+    MarkAttachmentType	= 0xFF00u,
+  };
 };
 ASSERT_SIZE (LookupFlag, 2);
 

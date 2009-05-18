@@ -37,10 +37,12 @@
 
 
 struct GlyphClassDef : ClassDef {
-  static const unsigned int BaseGlyph		= 0x0001u;
-  static const unsigned int LigatureGlyph	= 0x0002u;
-  static const unsigned int MarkGlyph		= 0x0003u;
-  static const unsigned int ComponentGlyph	= 0x0004u;
+  enum {
+    BaseGlyph		= 0x0001u,
+    LigatureGlyph	= 0x0002u,
+    MarkGlyph		= 0x0003u,
+    ComponentGlyph	= 0x0004u,
+  };
 };
 
 /*
@@ -182,11 +184,13 @@ ASSERT_SIZE (LigCaretList, 4);
 struct GDEF {
   static const hb_tag_t Tag		= HB_TAG ('G','D','E','F');
 
-  static const hb_ot_layout_class_t UnclassifiedGlyph	= 0;
-  static const hb_ot_layout_class_t BaseGlyph		= 1;
-  static const hb_ot_layout_class_t LigatureGlyph	= 2;
-  static const hb_ot_layout_class_t MarkGlyph		= 3;
-  static const hb_ot_layout_class_t ComponentGlyph	= 4;
+  enum {
+    UnclassifiedGlyph	= 0,
+    BaseGlyph		= 1,
+    LigatureGlyph	= 2,
+    MarkGlyph		= 3,
+    ComponentGlyph	= 4,
+  };
 
   STATIC_DEFINE_GET_FOR_DATA (GDEF);
   /* XXX check version here? */
