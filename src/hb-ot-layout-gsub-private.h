@@ -461,6 +461,7 @@ ASSERT_SIZE (LigatureSubst, 2);
 
 static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index);
 
+
 struct ContextSubst : Context {
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
@@ -470,184 +471,11 @@ struct ContextSubst : Context {
 ASSERT_SIZE (ContextSubst, 2);
 
 
-struct ChainSubRule {
-  /* TODO */
-
-  private:
-  USHORT	backtrackGlyphCount;	/* Total number of glyphs in the
-					 * backtrack sequence (number of
-					 * glyphs to be matched before the
-					 * first glyph) */
-  GlyphID	backtrack[];		/* Array of backtracking GlyphID's
-					 * (to be matched before the input
-					 * sequence) */
-  USHORT	inputGlyphCount;	/* Total number of glyphs in the input
-					 * sequence (includes the first  glyph) */
-  GlyphID	input[];		/* Array of input GlyphIDs (start with
-					 * second glyph) */
-  USHORT	lookaheadGlyphCount;	/* Total number of glyphs in the look
-					 * ahead sequence (number of  glyphs to
-					 * be matched after the input sequence) */
-  GlyphID	lookAhead[];		/* Array of lookahead GlyphID's (to be
-					 * matched after  the input sequence) */
-  USHORT	substCount;		/* Number of LookupRecords */
-  LookupRecord	substLookupRecord[];	/* Array of LookupRecords--in
-					 * design order) */
-};
-ASSERT_SIZE (ChainSubRule, 8);
-
-struct ChainSubRuleSet {
-  /* TODO */
-
-  private:
-  USHORT	chainSubRuleCount;	/* Number of ChainSubRule tables */
-  Offset	chainSubRule[];		/* Array of offsets to ChainSubRule
-					 * tables--from beginning of
-					 * ChainSubRuleSet table--ordered
-					 * by preference */
-};
-ASSERT_SIZE (ChainSubRuleSet, 2);
-
-struct ChainContextSubstFormat1 {
-  /* TODO */
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-    return false;
-  }
-
-  private:
-  USHORT	format;			/* Format identifier--format = 1 */
-  Offset	coverage;		/* Offset to Coverage table--from
-					 * beginning of Substitution table */
-  USHORT	chainSubRuleSetCount;	/* Number of ChainSubRuleSet
-					 * tables--must equal GlyphCount in
-					 * Coverage table */
-  Offset	chainSubRuleSet[];	/* Array of offsets to ChainSubRuleSet
-					 * tables--from beginning of
-					 * Substitution table--ordered by
-					 * Coverage Index */
-};
-ASSERT_SIZE (ChainContextSubstFormat1, 6);
-
-struct ChainSubClassRule {
-  /* TODO */
-
-  private:
-  USHORT	backtrackGlyphCount;	/* Total number of glyphs in the
-					 * backtrack sequence (number of
-					 * glyphs to be matched before the
-					 * first glyph) */
-  USHORT	backtrack[];		/* Array of backtracking classes (to be
-					 * matched before the input  sequence) */
-  USHORT	inputGlyphCount;	/* Total number of classes in the input
-					 * sequence (includes the  first class) */
-  USHORT	input[];		/* Array of input classes(start with
-					 * second class; to  be matched with
-					 * the input glyph sequence) */
-  USHORT	lookaheadGlyphCount;	/* Total number of classes in the
-					 * look ahead sequence (number of
-					 * classes to be matched after the
-					 * input sequence) */
-  USHORT	lookAhead[];		/* Array of lookahead classes (to be
-					 * matched after the  input sequence) */
-  USHORT	substCount;		/* Number of LookupRecords */
-  LookupRecord	substLookupRecord[];	/* Array of LookupRecords--in
-					 * design order) */
-};
-ASSERT_SIZE (ChainSubClassRule, 8);
-
-struct ChainSubClassSet {
-  /* TODO */
-
-  private:
-  USHORT	chainSubClassRuleCnt;	/* Number of ChainSubClassRule tables */
-  Offset	chainSubClassRule[];	/* Array of offsets
-					 * to ChainSubClassRule
-					 * tables--from beginning of
-					 * ChainSubClassSet--ordered by
-					 * preference */
-};
-ASSERT_SIZE (ChainSubClassSet, 2);
-
-struct ChainContextSubstFormat2 {
-  /* TODO */
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-    return false;
-  }
-
-  private:
-  USHORT	format;			/* Format identifier--format = 2 */
-  Offset	coverage;		/* Offset to Coverage table--from
-					 * beginning of Substitution table */
-  Offset	backtrackClassDef;	/* Offset to glyph ClassDef table
-					 * containing backtrack sequence
-					 * data--from beginning of Substitution
-					 * table */
-  Offset	inputClassDef;		/* Offset to glyph ClassDef
-					 * table containing input sequence
-					 * data--from beginning of Substitution
-					 * table */
-  Offset	lookaheadClassDef;	/* Offset to glyph ClassDef table
-					 * containing lookahead sequence
-					 * data--from beginning of Substitution
-					 * table */
-  USHORT	chainSubClassSetCnt;	/* Number of ChainSubClassSet tables */
-  Offset	chainSubClassSet[];	/* Array of offsets to ChainSubClassSet
-					 * tables--from beginning of
-					 * Substitution table--ordered by input
-					 * class--may be NULL */
-};
-ASSERT_SIZE (ChainContextSubstFormat2, 12);
-
-struct ChainContextSubstFormat3 {
-  /* TODO */
-  inline bool substitute (LOOKUP_ARGS_DEF) const {
-    return false;
-  }
-
-  private:
-  USHORT	format;			/* Format identifier--format = 3 */
-  USHORT	backtrackGlyphCount;	/* Number of glyphs in the backtracking
-					 * sequence */
-  Offset	backtrackCoverage[];	/* Array of offsets to coverage tables
-					 * in backtracking sequence, in  glyph
-					 * sequence order */
-  USHORT	inputGlyphCount;	/* Number of glyphs in input sequence */
-  Offset	inputCoverage[];	/* Array of offsets to coverage
-					 * tables in input sequence, in glyph
-					 * sequence order */
-  USHORT	lookaheadGlyphCount;	/* Number of glyphs in lookahead
-					 * sequence */
-  Offset	lookaheadCoverage[];	/* Array of offsets to coverage tables
-					 * in lookahead sequence, in  glyph
-					 * sequence order */
-  USHORT	substCount;		/* Number of LookupRecords */
-  LookupRecord	substLookupRecord[];	/* Array of LookupRecords--in
-					 * design order */
-};
-ASSERT_SIZE (ChainContextSubstFormat3, 10);
-
-struct ChainContextSubst {
-
-  friend struct SubstLookupSubTable;
-
-  private:
+struct ChainContextSubst : ChainContext {
 
   inline bool substitute (LOOKUP_ARGS_DEF) const {
-    switch (u.format) {
-    case 1: return u.format1->substitute (LOOKUP_ARGS);
-    case 2: return u.format2->substitute (LOOKUP_ARGS);
-    case 3: return u.format3->substitute (LOOKUP_ARGS);
-    default:return false;
-    }
+    return this->apply (LOOKUP_ARGS, substitute_lookup);
   }
-
-  private:
-  union {
-  USHORT			format;	/* Format identifier */
-  ChainContextSubstFormat1	format1[];
-  ChainContextSubstFormat2	format2[];
-  ChainContextSubstFormat3	format3[];
-  } u;
 };
 ASSERT_SIZE (ChainContextSubst, 2);
 
@@ -703,9 +531,11 @@ struct ExtensionSubst {
 ASSERT_SIZE (ExtensionSubst, 2);
 
 
-
 struct ReverseChainSingleSubstFormat1 {
   /* TODO */
+  inline bool substitute (LOOKUP_ARGS_DEF) const {
+    return false;
+  }
 
   private:
   USHORT	format;			/* Format identifier--format = 1 */
@@ -723,24 +553,47 @@ struct ReverseChainSingleSubstFormat1 {
 					 * sequence order */
   USHORT	glyphCount;		/* Number of GlyphIDs in the Substitute
 					 * array */
-  GlyphID	substitute[];		/* Array of substitute
+  GlyphID	substituteGlyphs[];	/* Array of substitute
 					 * GlyphIDs--ordered by Coverage  Index */
 };
 ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
+
+struct ReverseChainSingleSubst {
+
+  friend struct SubstLookupSubTable;
+
+  private:
+
+  inline bool substitute (LOOKUP_ARGS_DEF) const {
+    switch (u.format) {
+    case 1: return u.format1->substitute (LOOKUP_ARGS);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT				format;		/* Format identifier */
+  ReverseChainSingleSubstFormat1	format1[];
+  } u;
+};
+ASSERT_SIZE (ReverseChainSingleSubst, 2);
+
+
 
 /*
  * SubstLookup
  */
 
 enum {
-  GSUB_Single				= 1,
-  GSUB_Multiple				= 2,
-  GSUB_Alternate			= 3,
-  GSUB_Ligature				= 4,
-  GSUB_Context				= 5,
-  GSUB_ChainingContext			= 6,
-  GSUB_Extension			= 7,
-  GSUB_ReverseChainingContextSingle	= 8,
+  GSUB_Single			= 1,
+  GSUB_Multiple			= 2,
+  GSUB_Alternate		= 3,
+  GSUB_Ligature			= 4,
+  GSUB_Context			= 5,
+  GSUB_ChainContext		= 6,
+  GSUB_Extension		= 7,
+  GSUB_ReverseChainSingle	= 8,
 };
 
 struct SubstLookupSubTable {
@@ -751,37 +604,29 @@ struct SubstLookupSubTable {
 			  unsigned int lookup_type) const {
 
     switch (lookup_type) {
-    case GSUB_Single:				return u.single->substitute (LOOKUP_ARGS);
-    case GSUB_Multiple:				return u.multiple->substitute (LOOKUP_ARGS);
-    case GSUB_Alternate:			return u.alternate->substitute (LOOKUP_ARGS);
-    case GSUB_Ligature:				return u.ligature->substitute (LOOKUP_ARGS);
-    case GSUB_Context:				return u.context->substitute (LOOKUP_ARGS);
-    /*
-    case GSUB_ChainingContext:			return u.chainingContext->substitute (LOOKUP_ARGS);
-    */
-    case GSUB_Extension:			return u.extension->substitute (LOOKUP_ARGS);
-			/*
-    case GSUB_ReverseChainingContextSingle:	return u.reverseChainingContextSingle->substitute (LOOKUP_ARGS);
-    */
+    case GSUB_Single:			return u.single->substitute (LOOKUP_ARGS);
+    case GSUB_Multiple:			return u.multiple->substitute (LOOKUP_ARGS);
+    case GSUB_Alternate:		return u.alternate->substitute (LOOKUP_ARGS);
+    case GSUB_Ligature:			return u.ligature->substitute (LOOKUP_ARGS);
+    case GSUB_Context:			return u.context->substitute (LOOKUP_ARGS);
+    case GSUB_ChainContext:		return u.chainingContext->substitute (LOOKUP_ARGS);
+    case GSUB_Extension:		return u.extension->substitute (LOOKUP_ARGS);
+    case GSUB_ReverseChainSingle:	return u.reverseChainContextSingle->substitute (LOOKUP_ARGS);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT				format;
-  SingleSubst				single[];
-  MultipleSubst				multiple[];
-  AlternateSubst			alternate[];
-  LigatureSubst				ligature[];
-  ContextSubst				context[];
-  /*
-  ChainingContextSubst			chainingContext[];
-  */
-  ExtensionSubst			extension[];
-  /*
-  ReverseChainingContextSingleSubst	reverseChainingContextSingle[];
-  */
+  USHORT			format;
+  SingleSubst			single[];
+  MultipleSubst			multiple[];
+  AlternateSubst		alternate[];
+  LigatureSubst			ligature[];
+  ContextSubst			context[];
+  ChainContextSubst		chainingContext[];
+  ExtensionSubst		extension[];
+  ReverseChainSingleSubst	reverseChainContextSingle[];
   } u;
 };
 ASSERT_SIZE (SubstLookupSubTable, 2);
@@ -810,8 +655,8 @@ struct SubstLookup : Lookup {
 
   inline bool is_reverse (void) const {
     switch (get_effective_type ()) {
-    case GSUB_ReverseChainingContextSingle:	return true;
-    default:					return false;
+    case GSUB_ReverseChainSingle:	return true;
+    default:				return false;
     }
   }
 
