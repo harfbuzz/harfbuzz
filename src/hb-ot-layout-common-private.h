@@ -36,6 +36,7 @@
  *
  */
 
+
 /*
  * Script, ScriptList, LangSys, Feature, FeatureList, Lookup, LookupList
  */
@@ -226,9 +227,9 @@ struct CoverageFormat1 {
 
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
-    GlyphID gid;
-    if (HB_UNLIKELY (glyph_id > 65535))
+    if (HB_UNLIKELY (glyph_id > 0xFFFF))
       return NOT_COVERED;
+    GlyphID gid;
     gid = glyph_id;
     // TODO: bsearch
     unsigned int num_glyphs = glyphArray.len;
@@ -251,7 +252,7 @@ struct CoverageRangeRecord {
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
     if (glyph_id >= start && glyph_id <= end)
-      return startCoverageIndex + (glyph_id - start);
+      return (unsigned int) startCoverageIndex + (glyph_id - start);
     return NOT_COVERED;
   }
 
@@ -272,8 +273,8 @@ struct CoverageFormat2 {
     // TODO: bsearch
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++) {
-      int coverage = rangeRecord[i].get_coverage (glyph_id);
-      if (coverage >= 0)
+      unsigned int coverage = rangeRecord[i].get_coverage (glyph_id);
+      if (coverage != NOT_COVERED)
         return coverage;
     }
     return NOT_COVERED;

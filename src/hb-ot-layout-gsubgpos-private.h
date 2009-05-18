@@ -188,6 +188,8 @@ static inline bool apply_lookup (LOOKUP_ARGS_DEF,
       lookupRecord++;
       lookupCount--;
       i += buffer->in_pos - old_pos;
+      if (HB_UNLIKELY (buffer->in_pos == end))
+	return true;
 
       if (!done)
 	goto not_applied;

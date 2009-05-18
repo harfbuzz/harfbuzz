@@ -35,9 +35,9 @@
 
 
 #define NO_INDEX		((unsigned int) 0xFFFF)
-#define NO_CONTEXT		((unsigned int) -0x20000)
-#define NOT_COVERED		((unsigned int) -1)
-#define MAX_NESTING_LEVEL	32
+#define NO_CONTEXT		((unsigned int) 0x110000)
+#define NOT_COVERED		((unsigned int) 0x110000)
+#define MAX_NESTING_LEVEL	8
 
 
 /*
