@@ -551,10 +551,10 @@ struct ReverseChainSingleSubstFormat1 {
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = * (const OffsetArrayOf<Coverage> *)
-						 ((const char *) &backtrack + backtrack.get_size ());
-    const ArrayOf<GlyphID> &substitute = * (const ArrayOf<GlyphID> *)
-					   ((const char *) &lookahead + lookahead.get_size ());
+    const OffsetArrayOf<Coverage> &lookahead = (const OffsetArrayOf<Coverage>&)
+					       *((const char *) &backtrack + backtrack.get_size ());
+    const ArrayOf<GlyphID> &substitute = (const ArrayOf<GlyphID>&)
+					 *((const char *) &lookahead + lookahead.get_size ());
 
     if (match_backtrack (APPLY_ARG,
 			 backtrack.len, (USHORT *) backtrack.array,

@@ -300,7 +300,7 @@ struct OffsetTo : Offset {
   inline const Type& operator() (const void *base) const {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return * (const Type *) ((const char *) base + offset);
+    return (const Type&)*((const char *) base + offset);
   }
 };
 template <typename Base, typename Type>
