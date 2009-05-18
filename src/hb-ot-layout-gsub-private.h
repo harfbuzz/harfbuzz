@@ -667,7 +667,7 @@ ASSERT_SIZE (SubstLookupSubTable, 2);
 struct SubstLookup : Lookup {
 
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const {
-    return *(SubstLookupSubTable*)&(((Lookup *)this)->get_subtable (i));
+    return (const SubstLookupSubTable&) Lookup::get_subtable (i);
   }
 
   /* Like get_type(), but looks through extension lookups.
@@ -779,7 +779,7 @@ struct GSUB : GSUBGPOS {
   /* XXX check version here? */
 
   inline const SubstLookup& get_lookup (unsigned int i) const {
-    return *(SubstLookup*)&(((GSUBGPOS *)this)->get_lookup (i));
+    return (SubstLookup&)(((GSUBGPOS *)this)->get_lookup (i));
   }
 
   inline bool substitute_lookup (hb_ot_layout_t *layout,
@@ -801,7 +801,7 @@ inline bool ExtensionSubstFormat1::substitute (LOOKUP_ARGS_DEF) const {
   if (HB_UNLIKELY (lookup_type ==  GSUB_Extension))
     return false;
 
-  return (*(SubstLookupSubTable *)(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS, lookup_type);
+  return ((SubstLookupSubTable&)*(((char *) this) + get_offset ())).substitute (LOOKUP_ARGS, lookup_type);
 }
 
 static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {

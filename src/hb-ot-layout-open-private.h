@@ -70,7 +70,7 @@
   inline const Type& operator[] (unsigned int i) const { \
     if (HB_UNLIKELY (i >= num)) return Null(Type); \
     if (HB_UNLIKELY (!array[i])) return Null(Type); \
-    return *(const Type *)((const char*)this + array[i]); \
+    return (const Type&)*((const char*)this + array[i]); \
   }
 
 
@@ -152,14 +152,14 @@ static const char NullPool[16] = "";
 template <typename Type>
 struct Null {
   ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
-  static inline const Type &get () { return (const Type&) *(const Type*) NullPool; }
+  static inline const Type &get () { return (const Type&) *NullPool; }
 };
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
 #define DEFINE_NULL_DATA(Type, size, data) \
 template <> \
 struct Null <Type> { \
-  static inline const Type &get () { static const char bytes[size] = data; return (const Type&) *(const Type*) bytes; } \
+  static inline const Type &get () { static const char bytes[size] = data; return (const Type&) *bytes; /* XXX */ } \
 }
 
 /* Accessor macro. */
@@ -176,10 +176,10 @@ struct Null <Type> { \
 #define STATIC_DEFINE_GET_FOR_DATA(Type) \
   static inline const Type& get_for_data (const char *data) { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    return *(const Type*)data; \
+    return (const Type&)*data; \
   } \
   static inline Type& get_for_data (char *data) { \
-    return *(Type*)data; \
+    return (Type&)*data; \
   }
 
 

@@ -787,7 +787,7 @@ ASSERT_SIZE (PosLookupSubTable, 2);
 struct PosLookup : Lookup {
 
   inline const PosLookupSubTable& get_subtable (unsigned int i) const {
-    return *(PosLookupSubTable*)&(((Lookup *)this)->get_subtable (i));
+    return (const PosLookupSubTable&) Lookup::get_subtable (i);
   }
 
   /* Like get_type(), but looks through extension lookups.
@@ -880,7 +880,7 @@ struct GPOS : GSUBGPOS {
   /* XXX check version here? */
 
   inline const PosLookup& get_lookup (unsigned int i) const {
-    return *(PosLookup*)&(((GSUBGPOS *)this)->get_lookup (i));
+    return (PosLookup&)(((GSUBGPOS *)this)->get_lookup (i));
   }
 
   inline bool position_lookup (hb_ot_layout_t *layout,
@@ -902,7 +902,7 @@ inline bool ExtensionPosFormat1::position (LOOKUP_ARGS_DEF) const {
   if (HB_UNLIKELY (lookup_type ==  GPOS_Extension))
     return false;
 
-  return (*(PosLookupSubTable *)(((char *) this) + get_offset ())).position (LOOKUP_ARGS, lookup_type);
+  return ((PosLookupSubTable&)*(((char *) this) + get_offset ())).position (LOOKUP_ARGS, lookup_type);
 }
 
 static inline bool position_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {

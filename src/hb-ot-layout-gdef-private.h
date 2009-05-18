@@ -110,7 +110,7 @@ struct CaretValueFormat3 {
   private:
   inline const Device& get_device (void) const {
     if (HB_UNLIKELY (!deviceTable)) return Null(Device);
-    return *(const Device*)((const char*)this + deviceTable);
+    return (const Device&)*((const char*)this + deviceTable);
   }
 
   inline int get_caret_value (int ppem) const {
