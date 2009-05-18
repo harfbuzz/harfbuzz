@@ -679,10 +679,13 @@ struct SubstLookup : Lookup {
     unsigned int type = get_type ();
 
     if (HB_UNLIKELY (type == GSUB_Extension)) {
-      /* Return lookup type of first extension subtable.
-       * The spec says all of them should have the same type.
-       * XXX check for that in sanitize() */
+      unsigned int count = get_subtable_count ();
       type = get_subtable(0).u.extension->get_type ();
+      /* The spec says all subtables should have the same type.
+       * This is specially important if one has a reverse type! */
+      for (unsigned int i = 1; i < count; i++)
+        if (get_subtable(i).u.extension->get_type () != type)
+	  return 0;
     }
 
     return type;
