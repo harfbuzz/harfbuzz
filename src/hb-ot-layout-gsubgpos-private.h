@@ -79,13 +79,13 @@ static inline bool match_input (LOOKUP_ARGS_DEF,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
-
-  /* XXX context_length should also be checked when skipping glyphs, right?
-   * What does context_length really mean, anyway? */
+  unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
+  if (HB_UNLIKELY (buffer->in_pos + count > end))
+    return false;
 
   for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
     while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
-      if (HB_UNLIKELY (j + count - i == buffer->in_length))
+      if (HB_UNLIKELY (j + count - i == end))
 	return false;
       j++;
     }
@@ -105,9 +105,10 @@ static inline bool match_backtrack (LOOKUP_ARGS_DEF,
 				    match_func_t match_func,
 				    char *match_data)
 {
-  unsigned int i, j;
+  if (HB_UNLIKELY (buffer->out_pos < count))
+    return false;
 
-  for (i = 0, j = buffer->out_pos - 1; i < count; i++, j--) {
+  for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--) {
     while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
       if (HB_UNLIKELY (j + 1 == count - i))
 	return false;
@@ -129,10 +130,13 @@ static inline bool match_lookahead (LOOKUP_ARGS_DEF,
 				    unsigned int offset)
 {
   unsigned int i, j;
+  unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
+  if (HB_UNLIKELY (buffer->in_pos + offset + count > end))
+    return false;
 
   for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++) {
     while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
-      if (HB_UNLIKELY (j + count - i == buffer->in_length))
+      if (HB_UNLIKELY (j + count - i == end))
 	return false;
       j++;
     }
@@ -164,8 +168,8 @@ static inline bool apply_lookup (LOOKUP_ARGS_DEF,
   const LookupRecord *record = lookupRecord;
 
   /* XXX We have to jump non-matching glyphs when applying too, right? */
-  /* XXX We don't support lookupRecord arrays that are not increasing:
-   *     Should be easy for in_place ones at least. */
+  /* TODO We don't support lookupRecord arrays that are not increasing:
+   *      Should be easy for in_place ones at least. */
   for (unsigned int i = 0; i < count;)
   {
     if (record_count && i == record->sequenceIndex)
@@ -436,7 +440,6 @@ static inline bool chain_context_lookup (LOOKUP_ARGS_DEF,
 		      inputCount, input,
 		      context.funcs.match, context.match_data[1],
 		      &offset) &&
-	 (context_length -= offset, true) &&
 	 match_lookahead (LOOKUP_ARGS,
 			  lookaheadCount, lookahead,
 			  context.funcs.match, context.match_data[2],
