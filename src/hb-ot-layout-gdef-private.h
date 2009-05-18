@@ -27,7 +27,7 @@
 #ifndef HB_OT_LAYOUT_GDEF_PRIVATE_H
 #define HB_OT_LAYOUT_GDEF_PRIVATE_H
 
-#include "hb-ot-layout-open-private.h"
+#include "hb-ot-layout-common-private.h"
 
 
 #define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, array, name) \
@@ -226,5 +226,6 @@ struct GDEF {
 					 * of GDEF header (may be Null) */
 };
 ASSERT_SIZE (GDEF, 12);
+
 
 #endif /* HB_OT_LAYOUT_GDEF_PRIVATE_H */

@@ -39,6 +39,7 @@ _hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
 			      HB_UShort  component,
 			      HB_UShort  ligID );
 
+
 struct SingleSubstFormat1 {
 
   friend struct SingleSubst;

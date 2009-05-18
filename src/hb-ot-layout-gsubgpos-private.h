@@ -30,6 +30,7 @@
 #include "hb-ot-layout-gdef-private.h"
 #include "harfbuzz-buffer-private.h" /* XXX */
 
+
 #define LOOKUP_ARGS_DEF \
 	hb_ot_layout_t *layout, \
 	hb_buffer_t    *buffer, \
@@ -362,5 +363,6 @@ struct GSUBGPOS {
 		lookupList; 	/* LookupList table */
 };
 ASSERT_SIZE (GSUBGPOS, 10);
+
 
 #endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H */
