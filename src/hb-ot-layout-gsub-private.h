@@ -111,7 +111,7 @@ struct SingleSubst {
     }
   }
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
@@ -152,7 +152,7 @@ struct Sequence {
       _hb_ot_layout_set_glyph_property (layout, substitute[n], property);
   }
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
 
     if (HB_UNLIKELY (!substitute.len))
       return false;
@@ -186,13 +186,13 @@ struct MultipleSubstFormat1 {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    return (this+sequence[index]).apply (LOOKUP_ARGS);
+    return (this+sequence[index]).apply (APPLY_ARG);
   }
 
   private:
@@ -212,9 +212,9 @@ struct MultipleSubst {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->apply (LOOKUP_ARGS);
+    case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
     }
   }
@@ -238,7 +238,7 @@ struct AlternateSubstFormat1 {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
@@ -293,9 +293,9 @@ struct AlternateSubst {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->apply (LOOKUP_ARGS);
+    case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
     }
   }
@@ -314,7 +314,7 @@ struct Ligature {
   friend struct LigatureSet;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, bool is_mark) const {
+  inline bool apply (APPLY_ARG_DEF, bool is_mark) const {
 
     unsigned int i, j;
     unsigned int count = component.len;
@@ -393,12 +393,12 @@ struct LigatureSet {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF, bool is_mark) const {
+  inline bool apply (APPLY_ARG_DEF, bool is_mark) const {
 
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++) {
       const Ligature &lig = this+ligature[i];
-      if (lig.apply (LOOKUP_ARGS, is_mark))
+      if (lig.apply (APPLY_ARG, is_mark))
         return true;
     }
 
@@ -418,7 +418,7 @@ struct LigatureSubstFormat1 {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
 
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
@@ -430,7 +430,7 @@ struct LigatureSubstFormat1 {
       return false;
 
     const LigatureSet &lig_set = this+ligatureSet[index];
-    return lig_set.apply (LOOKUP_ARGS, first_is_mark);
+    return lig_set.apply (APPLY_ARG, first_is_mark);
   }
 
   private:
@@ -450,9 +450,9 @@ struct LigatureSubst {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->apply (LOOKUP_ARGS);
+    case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
     }
   }
@@ -467,20 +467,20 @@ ASSERT_SIZE (LigatureSubst, 2);
 
 
 
-static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index);
+static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
 
 struct ContextSubst : Context {
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
-    return Context::apply (LOOKUP_ARGS, substitute_lookup);
+  inline bool apply (APPLY_ARG_DEF) const {
+    return Context::apply (APPLY_ARG, substitute_lookup);
   }
 };
 ASSERT_SIZE (ContextSubst, 2);
 
 struct ChainContextSubst : ChainContext {
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
-    return ChainContext::apply (LOOKUP_ARGS, substitute_lookup);
+  inline bool apply (APPLY_ARG_DEF) const {
+    return ChainContext::apply (APPLY_ARG, substitute_lookup);
   }
 };
 ASSERT_SIZE (ChainContextSubst, 2);
@@ -493,7 +493,7 @@ struct ExtensionSubstFormat1 {
   private:
   inline unsigned int get_type (void) const { return extensionLookupType; }
   inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
-  inline bool apply (LOOKUP_ARGS_DEF) const;
+  inline bool apply (APPLY_ARG_DEF) const;
 
   private:
   USHORT	format;			/* Format identifier. Set to 1. */
@@ -521,9 +521,9 @@ struct ExtensionSubst {
     }
   }
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->apply (LOOKUP_ARGS);
+    case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
     }
   }
@@ -542,7 +542,7 @@ struct ReverseChainSingleSubstFormat1 {
   friend struct ReverseChainSingleSubst;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
 
     if (HB_UNLIKELY (context_length != NO_CONTEXT))
       return false; /* No chaining to this type */
@@ -556,10 +556,10 @@ struct ReverseChainSingleSubstFormat1 {
     const ArrayOf<GlyphID> &substitute = * (const ArrayOf<GlyphID> *)
 					   ((const char *) &lookahead + lookahead.get_size ());
 
-    if (match_backtrack (LOOKUP_ARGS,
+    if (match_backtrack (APPLY_ARG,
 			 backtrack.len, (USHORT *) backtrack.array,
 			 match_coverage, (char *) this) &&
-        match_lookahead (LOOKUP_ARGS,
+        match_lookahead (APPLY_ARG,
 			 lookahead.len, (USHORT *) lookahead.array,
 			 match_coverage, (char *) this,
 			 1))
@@ -597,9 +597,9 @@ struct ReverseChainSingleSubst {
 
   private:
 
-  inline bool apply (LOOKUP_ARGS_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const {
     switch (u.format) {
-    case 1: return u.format1->apply (LOOKUP_ARGS);
+    case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
     }
   }
@@ -633,17 +633,17 @@ struct SubstLookupSubTable {
 
   friend struct SubstLookup;
 
-  inline bool apply (LOOKUP_ARGS_DEF, unsigned int lookup_type) const {
+  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const {
 
     switch (lookup_type) {
-    case GSUB_Single:			return u.single->apply (LOOKUP_ARGS);
-    case GSUB_Multiple:			return u.multiple->apply (LOOKUP_ARGS);
-    case GSUB_Alternate:		return u.alternate->apply (LOOKUP_ARGS);
-    case GSUB_Ligature:			return u.ligature->apply (LOOKUP_ARGS);
-    case GSUB_Context:			return u.context->apply (LOOKUP_ARGS);
-    case GSUB_ChainContext:		return u.chainContext->apply (LOOKUP_ARGS);
-    case GSUB_Extension:		return u.extension->apply (LOOKUP_ARGS);
-    case GSUB_ReverseChainSingle:	return u.reverseChainContextSingle->apply (LOOKUP_ARGS);
+    case GSUB_Single:			return u.single->apply (APPLY_ARG);
+    case GSUB_Multiple:			return u.multiple->apply (APPLY_ARG);
+    case GSUB_Alternate:		return u.alternate->apply (APPLY_ARG);
+    case GSUB_Ligature:			return u.ligature->apply (APPLY_ARG);
+    case GSUB_Context:			return u.context->apply (APPLY_ARG);
+    case GSUB_ChainContext:		return u.chainContext->apply (APPLY_ARG);
+    case GSUB_Extension:		return u.extension->apply (APPLY_ARG);
+    case GSUB_ReverseChainSingle:	return u.reverseChainContextSingle->apply (APPLY_ARG);
     default:return false;
     }
   }
@@ -704,7 +704,7 @@ struct SubstLookup : Lookup {
     unsigned int lookup_flag = get_flag ();
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).apply (LOOKUP_ARGS, lookup_type))
+      if (get_subtable (i).apply (APPLY_ARG, lookup_type))
 	return true;
 
     return false;
@@ -795,16 +795,16 @@ ASSERT_SIZE (GSUB, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionSubstFormat1::apply (LOOKUP_ARGS_DEF) const {
+inline bool ExtensionSubstFormat1::apply (APPLY_ARG_DEF) const {
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type ==  GSUB_Extension))
     return false;
 
-  return ((SubstLookupSubTable&)*(((char *) this) + get_offset ())).apply (LOOKUP_ARGS, lookup_type);
+  return ((SubstLookupSubTable&)*(((char *) this) + get_offset ())).apply (APPLY_ARG, lookup_type);
 }
 
-static inline bool substitute_lookup (LOOKUP_ARGS_DEF, unsigned int lookup_index) {
+static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index) {
   const GSUB &gsub = *(layout->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 

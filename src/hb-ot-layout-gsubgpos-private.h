@@ -31,14 +31,14 @@
 #include "harfbuzz-buffer-private.h" /* XXX */
 
 
-#define LOOKUP_ARGS_DEF \
+#define APPLY_ARG_DEF \
 	hb_ot_layout_t *layout, \
 	hb_buffer_t    *buffer, \
 	unsigned int    context_length HB_GNUC_UNUSED, \
 	unsigned int    nesting_level_left HB_GNUC_UNUSED, \
 	unsigned int    lookup_flag, \
 	unsigned int    property HB_GNUC_UNUSED /* propety of first glyph */
-#define LOOKUP_ARGS \
+#define APPLY_ARG \
 	layout, \
 	buffer, \
 	context_length, \
@@ -48,7 +48,7 @@
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, char *data);
-typedef bool (*apply_lookup_func_t) (LOOKUP_ARGS_DEF, unsigned int lookup_index);
+typedef bool (*apply_lookup_func_t) (APPLY_ARG_DEF, unsigned int lookup_index);
 
 struct ContextFuncs {
   match_func_t match;
@@ -71,7 +71,7 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
 }
 
 
-static inline bool match_input (LOOKUP_ARGS_DEF,
+static inline bool match_input (APPLY_ARG_DEF,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
@@ -99,7 +99,7 @@ static inline bool match_input (LOOKUP_ARGS_DEF,
   return true;
 }
 
-static inline bool match_backtrack (LOOKUP_ARGS_DEF,
+static inline bool match_backtrack (APPLY_ARG_DEF,
 				    unsigned int count,
 				    const USHORT backtrack[],
 				    match_func_t match_func,
@@ -122,7 +122,7 @@ static inline bool match_backtrack (LOOKUP_ARGS_DEF,
   return true;
 }
 
-static inline bool match_lookahead (LOOKUP_ARGS_DEF,
+static inline bool match_lookahead (APPLY_ARG_DEF,
 				    unsigned int count,
 				    const USHORT lookahead[],
 				    match_func_t match_func,
@@ -158,7 +158,7 @@ struct LookupRecord {
 };
 ASSERT_SIZE (LookupRecord, 4);
 
-static inline bool apply_lookup (LOOKUP_ARGS_DEF,
+static inline bool apply_lookup (APPLY_ARG_DEF,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int lookupCount,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
@@ -183,7 +183,7 @@ static inline bool apply_lookup (LOOKUP_ARGS_DEF,
       unsigned int old_pos = buffer->in_pos;
 
       /* Apply a lookup */
-      bool done = apply_func (LOOKUP_ARGS, lookupRecord->lookupListIndex);
+      bool done = apply_func (APPLY_ARG, lookupRecord->lookupListIndex);
 
       lookupRecord++;
       lookupCount--;
@@ -214,18 +214,18 @@ struct ContextLookupContext {
   char *match_data;
 };
 
-static inline bool context_lookup (LOOKUP_ARGS_DEF,
+static inline bool context_lookup (APPLY_ARG_DEF,
 				   unsigned int inputCount, /* Including the first glyph (not matched) */
 				   const USHORT input[], /* Array of input values--start with second glyph */
 				   unsigned int lookupCount,
 				   const LookupRecord lookupRecord[],
 				   ContextLookupContext &context)
 {
-  return match_input (LOOKUP_ARGS,
+  return match_input (APPLY_ARG,
 		      inputCount, input,
 		      context.funcs.match, context.match_data,
 		      &context_length) &&
-	 apply_lookup (LOOKUP_ARGS,
+	 apply_lookup (APPLY_ARG,
 		       inputCount,
 		       lookupCount, lookupRecord,
 		       context.funcs.apply);
@@ -236,11 +236,11 @@ struct Rule {
   friend struct RuleSet;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, ContextLookupContext &context) const {
+  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const {
     const LookupRecord *lookupRecord = (const LookupRecord *)
 				       ((const char *) input +
 					sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
-    return context_lookup (LOOKUP_ARGS,
+    return context_lookup (APPLY_ARG,
 			   inputCount, input,
 			   lookupCount, lookupRecord,
 			   context);
@@ -260,11 +260,11 @@ ASSERT_SIZE (Rule, 4);
 
 struct RuleSet {
 
-  inline bool apply (LOOKUP_ARGS_DEF, ContextLookupContext &context) const {
+  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const {
 
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++) {
-      if ((this+rule[i]).apply (LOOKUP_ARGS, context))
+      if ((this+rule[i]).apply (APPLY_ARG, context))
         return true;
     }
 
@@ -283,7 +283,7 @@ struct ContextFormat1 {
   friend struct Context;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
@@ -294,7 +294,7 @@ struct ContextFormat1 {
       {match_glyph, apply_func},
       NULL
     };
-    return rule_set.apply (LOOKUP_ARGS, context);
+    return rule_set.apply (APPLY_ARG, context);
   }
 
   private:
@@ -314,7 +314,7 @@ struct ContextFormat2 {
   friend struct Context;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
@@ -330,7 +330,7 @@ struct ContextFormat2 {
      {match_class, apply_func},
       (char *) &class_def
     };
-    return rule_set.apply (LOOKUP_ARGS, context);
+    return rule_set.apply (APPLY_ARG, context);
   }
 
   private:
@@ -353,7 +353,7 @@ struct ContextFormat3 {
   friend struct Context;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
@@ -366,7 +366,7 @@ struct ContextFormat3 {
       {match_coverage, apply_func},
       (char *) this
     };
-    return context_lookup (LOOKUP_ARGS,
+    return context_lookup (APPLY_ARG,
 			   glyphCount, (const USHORT *) (coverage + 1),
 			   lookupCount, lookupRecord,
 			   context);
@@ -388,11 +388,11 @@ ASSERT_SIZE (ContextFormat3, 6);
 struct Context {
 
   protected:
-  bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
     switch (u.format) {
-    case 1: return u.format1->apply (LOOKUP_ARGS, apply_func);
-    case 2: return u.format2->apply (LOOKUP_ARGS, apply_func);
-    case 3: return u.format3->apply (LOOKUP_ARGS, apply_func);
+    case 1: return u.format1->apply (APPLY_ARG, apply_func);
+    case 2: return u.format2->apply (APPLY_ARG, apply_func);
+    case 3: return u.format3->apply (APPLY_ARG, apply_func);
     default:return false;
     }
   }
@@ -415,7 +415,7 @@ struct ChainContextLookupContext {
   char *match_data[3];
 };
 
-static inline bool chain_context_lookup (LOOKUP_ARGS_DEF,
+static inline bool chain_context_lookup (APPLY_ARG_DEF,
 					 unsigned int backtrackCount,
 					 const USHORT backtrack[],
 					 unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -433,19 +433,19 @@ static inline bool chain_context_lookup (LOOKUP_ARGS_DEF,
     return false;
 
   unsigned int offset;
-  return match_backtrack (LOOKUP_ARGS,
+  return match_backtrack (APPLY_ARG,
 			  backtrackCount, backtrack,
 			  context.funcs.match, context.match_data[0]) &&
-	 match_input (LOOKUP_ARGS,
+	 match_input (APPLY_ARG,
 		      inputCount, input,
 		      context.funcs.match, context.match_data[1],
 		      &offset) &&
-	 match_lookahead (LOOKUP_ARGS,
+	 match_lookahead (APPLY_ARG,
 			  lookaheadCount, lookahead,
 			  context.funcs.match, context.match_data[2],
 			  offset) &&
 	 (context_length = offset, true) &&
-	 apply_lookup (LOOKUP_ARGS,
+	 apply_lookup (APPLY_ARG,
 		       inputCount,
 		       lookupCount, lookupRecord,
 		       context.funcs.apply);
@@ -456,14 +456,14 @@ struct ChainRule {
   friend struct ChainRuleSet;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, ChainContextLookupContext &context) const {
+  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const {
     const HeadlessArrayOf<USHORT> &input = * (const HeadlessArrayOf<USHORT> *)
 					     ((const char *) &backtrack + backtrack.get_size ());
     const ArrayOf<USHORT> &lookahead = * (const ArrayOf<USHORT> *)
 					 ((const char *) &input + input.get_size ());
     const ArrayOf<LookupRecord> &lookup = * (const ArrayOf<LookupRecord> *)
 					    ((const char *) &lookahead + lookahead.get_size ());
-    return chain_context_lookup (LOOKUP_ARGS,
+    return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, backtrack.array,
 				 input.len, input.array + 1,
 				 lookahead.len, lookahead.array,
@@ -492,11 +492,11 @@ ASSERT_SIZE (ChainRule, 8);
 
 struct ChainRuleSet {
 
-  inline bool apply (LOOKUP_ARGS_DEF, ChainContextLookupContext &context) const {
+  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const {
 
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++) {
-      if ((this+rule[i]).apply (LOOKUP_ARGS, context))
+      if ((this+rule[i]).apply (APPLY_ARG, context))
         return true;
     }
 
@@ -515,7 +515,7 @@ struct ChainContextFormat1 {
   friend struct ChainContext;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
@@ -526,7 +526,7 @@ struct ChainContextFormat1 {
       {match_glyph, apply_func},
       {NULL, NULL, NULL}
     };
-    return rule_set.apply (LOOKUP_ARGS, context);
+    return rule_set.apply (APPLY_ARG, context);
   }
   private:
   USHORT	format;			/* Format identifier--format = 1 */
@@ -544,7 +544,7 @@ struct ChainContextFormat2 {
   friend struct ChainContext;
 
   private:
-  inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
@@ -565,7 +565,7 @@ struct ChainContextFormat2 {
       (char *) &input_class_def,
       (char *) &lookahead_class_def}
     };
-    return rule_set.apply (LOOKUP_ARGS, context);
+    return rule_set.apply (APPLY_ARG, context);
   }
 
   private:
@@ -597,10 +597,10 @@ struct ChainContextFormat3 {
 
   private:
 
-  inline bool apply_coverage (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  inline bool apply_coverage (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
   }
 
-  inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
 
     const OffsetArrayOf<Coverage> &input = * (const OffsetArrayOf<Coverage> *)
 					     ((const char *) &backtrack + backtrack.get_size ());
@@ -617,7 +617,7 @@ struct ChainContextFormat3 {
       {match_coverage, apply_func},
       {(char *) this, (char *) this, (char *) this}
     };
-    return chain_context_lookup (LOOKUP_ARGS,
+    return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, (USHORT *) backtrack.array,
 				 input.len, (USHORT *) input.array,
 				 lookahead.len, (USHORT *) lookahead.array,
@@ -649,11 +649,11 @@ ASSERT_SIZE (ChainContextFormat3, 10);
 struct ChainContext {
 
   protected:
-  bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
+  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
     switch (u.format) {
-    case 1: return u.format1->apply (LOOKUP_ARGS, apply_func);
-    case 2: return u.format2->apply (LOOKUP_ARGS, apply_func);
-    case 3: return u.format3->apply (LOOKUP_ARGS, apply_func);
+    case 1: return u.format1->apply (APPLY_ARG, apply_func);
+    case 2: return u.format2->apply (APPLY_ARG, apply_func);
+    case 3: return u.format3->apply (APPLY_ARG, apply_func);
     default:return false;
     }
   }
