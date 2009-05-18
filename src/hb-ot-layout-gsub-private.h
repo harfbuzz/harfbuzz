@@ -29,6 +29,16 @@
 
 #include "hb-ot-layout-gsubgpos-private.h"
 
+/* XXX */
+#include "harfbuzz-impl.h"
+HB_INTERNAL HB_Error
+_hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
+			      HB_UShort  num_in,
+			      HB_UShort  num_out,
+			      const GlyphID *glyph_data,
+			      HB_UShort  component,
+			      HB_UShort  ligID );
+
 struct SingleSubstFormat1 {
 
   friend struct SingleSubst;
@@ -47,7 +57,7 @@ struct SingleSubstFormat1 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
+  USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -74,7 +84,7 @@ struct SingleSubstFormat2 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 2 */
+  USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -180,7 +190,7 @@ struct MultipleSubstFormat1 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
+  USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -258,7 +268,7 @@ struct AlternateSubstFormat1 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
+  USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -415,7 +425,7 @@ struct LigatureSubstFormat1 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
+  USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
@@ -504,7 +514,7 @@ struct ChainContextSubstFormat1 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
+  USHORT	format;			/* Format identifier--format = 1 */
   Offset	coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   USHORT	chainSubRuleSetCount;	/* Number of ChainSubRuleSet
@@ -564,7 +574,7 @@ struct ChainContextSubstFormat2 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 2 */
+  USHORT	format;			/* Format identifier--format = 2 */
   Offset	coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   Offset	backtrackClassDef;	/* Offset to glyph ClassDef table
@@ -594,7 +604,7 @@ struct ChainContextSubstFormat3 {
   }
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 3 */
+  USHORT	format;			/* Format identifier--format = 3 */
   USHORT	backtrackGlyphCount;	/* Number of glyphs in the backtracking
 					 * sequence */
   Offset	backtrackCoverage[];	/* Array of offsets to coverage tables
@@ -651,7 +661,7 @@ struct ExtensionSubstFormat1 {
   inline bool substitute (LOOKUP_ARGS_DEF) const;
 
   private:
-  USHORT	substFormat;		/* Format identifier. Set to 1. */
+  USHORT	format;			/* Format identifier. Set to 1. */
   USHORT	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
 					 * extension subtable). */
@@ -697,7 +707,7 @@ struct ReverseChainSingleSubstFormat1 {
   /* TODO */
 
   private:
-  USHORT	substFormat;		/* Format identifier--format = 1 */
+  USHORT	format;			/* Format identifier--format = 1 */
   Offset	coverage;		/* Offset to Coverage table -- from
 					 * beginning of Substitution table */
   USHORT	backtrackGlyphCount;	/* Number of glyphs in the backtracking
@@ -740,17 +750,17 @@ struct SubstLookupSubTable {
 			  unsigned int lookup_type) const {
 
     switch (lookup_type) {
-    case GSUB_Single:				return u.single.substitute (LOOKUP_ARGS);
-    case GSUB_Multiple:				return u.multiple.substitute (LOOKUP_ARGS);
-    case GSUB_Alternate:			return u.alternate.substitute (LOOKUP_ARGS);
-    case GSUB_Ligature:				return u.ligature.substitute (LOOKUP_ARGS);
-    case GSUB_Context:				return u.context.substitute (LOOKUP_ARGS);
+    case GSUB_Single:				return u.single->substitute (LOOKUP_ARGS);
+    case GSUB_Multiple:				return u.multiple->substitute (LOOKUP_ARGS);
+    case GSUB_Alternate:			return u.alternate->substitute (LOOKUP_ARGS);
+    case GSUB_Ligature:				return u.ligature->substitute (LOOKUP_ARGS);
+    case GSUB_Context:				return u.context->substitute (LOOKUP_ARGS);
     /*
-    case GSUB_ChainingContext:			return u.chainingContext.substitute (LOOKUP_ARGS);
+    case GSUB_ChainingContext:			return u.chainingContext->substitute (LOOKUP_ARGS);
     */
-    case GSUB_Extension:			return u.extension.substitute (LOOKUP_ARGS);
+    case GSUB_Extension:			return u.extension->substitute (LOOKUP_ARGS);
 			/*
-    case GSUB_ReverseChainingContextSingle:	return u.reverseChainingContextSingle.substitute (LOOKUP_ARGS);
+    case GSUB_ReverseChainingContextSingle:	return u.reverseChainingContextSingle->substitute (LOOKUP_ARGS);
     */
     default:return false;
     }
@@ -758,21 +768,22 @@ struct SubstLookupSubTable {
 
   private:
   union {
-  USHORT				substFormat;
-  SingleSubst				single;
-  MultipleSubst				multiple;
-  AlternateSubst			alternate;
-  LigatureSubst				ligature;
-  ContextSubst				context;
+  USHORT				format;
+  SingleSubst				single[];
+  MultipleSubst				multiple[];
+  AlternateSubst			alternate[];
+  LigatureSubst				ligature[];
+  ContextSubst				context[];
   /*
-  ChainingContextSubst			chainingContext;
+  ChainingContextSubst			chainingContext[];
   */
-  ExtensionSubst			extension;
+  ExtensionSubst			extension[];
   /*
-  ReverseChainingContextSingleSubst	reverseChainingContextSingle;
+  ReverseChainingContextSingleSubst	reverseChainingContextSingle[];
   */
   } u;
 };
+ASSERT_SIZE (SubstLookupSubTable, 2);
 
 
 struct SubstLookup : Lookup {
@@ -790,7 +801,7 @@ struct SubstLookup : Lookup {
       /* Return lookup type of first extension subtable.
        * The spec says all of them should have the same type.
        * XXX check for that somehow */
-      type = get_subtable(0).u.extension.get_type ();
+      type = get_subtable(0).u.extension->get_type ();
     }
 
     return type;
@@ -875,6 +886,7 @@ struct SubstLookup : Lookup {
     return ret;
   }
 };
+ASSERT_SIZE (SubstLookup, 6);
 
 
 /*
@@ -899,8 +911,7 @@ struct GSUB : GSUBGPOS {
   }
 
 };
-
-
+ASSERT_SIZE (GSUB, 10);
 
 
 /* Out-of-class implementation for methods chaining */

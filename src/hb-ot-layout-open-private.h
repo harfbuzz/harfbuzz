@@ -908,45 +908,4 @@ struct Device {
 };
 ASSERT_SIZE (Device, 6);
 
-/*
- * GSUB/GPOS Common
- */
-
-struct GSUBGPOS {
-  static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
-  static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
-
-  STATIC_DEFINE_GET_FOR_DATA (GSUBGPOS);
-  /* XXX check version here? */
-
-  DEFINE_TAG_LIST_INTERFACE (Script,  script );	/* get_script_count (), get_script (i), get_script_tag (i) */
-  DEFINE_TAG_LIST_INTERFACE (Feature, feature);	/* get_feature_count(), get_feature(i), get_feature_tag(i) */
-  DEFINE_LIST_INTERFACE     (Lookup,  lookup );	/* get_lookup_count (), get_lookup (i) */
-
-  // LONGTERMTODO bsearch
-  DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script_index (), get_script_by_tag (tag) */
-  DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
-
-  private:
-  Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set
-				 * to 0x00010000 */
-  OffsetTo<ScriptList>
-		scriptList;  	/* ScriptList table */
-  OffsetTo<FeatureList>
-		featureList; 	/* FeatureList table */
-  OffsetTo<LookupList>
-		lookupList; 	/* LookupList table */
-};
-ASSERT_SIZE (GSUBGPOS, 10);
-
-/* XXX */
-#include "harfbuzz-impl.h"
-HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
-			      HB_UShort  num_in,
-			      HB_UShort  num_out,
-			      const GlyphID *glyph_data,
-			      HB_UShort  component,
-			      HB_UShort  ligID );
-
 #endif /* HB_OT_LAYOUT_OPEN_PRIVATE_H */
