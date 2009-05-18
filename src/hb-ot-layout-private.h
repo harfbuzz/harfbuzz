@@ -45,8 +45,6 @@ struct _hb_ot_layout_t {
     unsigned char *klasses;
     unsigned int len;
   } new_gdef;
-
-  /* TODO add max-nesting-level here? */
 };
 
 
