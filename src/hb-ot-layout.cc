@@ -216,7 +216,7 @@ hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
   hb_ot_layout_class_t gdef_klass;
   int len = layout->new_gdef.len;
 
-  if (G_UNLIKELY (glyph > 65535))
+  if (HB_UNLIKELY (glyph > 65535))
     return;
 
   if (glyph >= len) {
@@ -228,7 +228,7 @@ hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
       new_len = 65535;
     new_klasses = (unsigned char *) realloc (layout->new_gdef.klasses, new_len * sizeof (unsigned char));
 
-    if (G_UNLIKELY (!new_klasses))
+    if (HB_UNLIKELY (!new_klasses))
       return;
 
     memset (new_klasses + len, 0, new_len - len);
@@ -257,7 +257,7 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
 				  unsigned char  *klasses,
 				  uint16_t        count)
 {
-  if (G_UNLIKELY (!count || !glyphs || !klasses))
+  if (HB_UNLIKELY (!count || !glyphs || !klasses))
     return;
 
   if (layout->new_gdef.len == 0) {

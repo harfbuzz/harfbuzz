@@ -490,11 +490,11 @@ struct OpenTypeFontFile {
 
   private:
   inline const char* operator[] (const OpenTypeTable& table) const {
-    if (G_UNLIKELY (table.offset == 0)) return NULL;
+    if (HB_UNLIKELY (table.offset == 0)) return NULL;
     return ((const char*)this) + table.offset;
   }
   inline char* operator[] (const OpenTypeTable& table) {
-    if (G_UNLIKELY (table.offset == 0)) return NULL;
+    if (HB_UNLIKELY (table.offset == 0)) return NULL;
     return ((char*)this) + table.offset;
   }
 

@@ -49,7 +49,7 @@ struct SingleSubstFormat1 {
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
 
     unsigned int index = (this+coverage) (glyph_id);
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     glyph_id += deltaGlyphID;
@@ -76,10 +76,10 @@ struct SingleSubstFormat2 {
   inline bool single_substitute (hb_codepoint_t &glyph_id) const {
 
     unsigned int index = (this+coverage) (glyph_id);
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    if (G_UNLIKELY (index >= substitute.len))
+    if (HB_UNLIKELY (index >= substitute.len))
       return false;
 
     glyph_id = substitute[index];
@@ -189,7 +189,7 @@ struct MultipleSubstFormat1 {
   inline bool substitute (LOOKUP_ARGS_DEF) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     return (this+sequence[index]).substitute_sequence (LOOKUP_ARGS);
@@ -243,7 +243,7 @@ struct AlternateSubstFormat1 {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     unsigned int index = (this+coverage) (glyph_id);
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const AlternateSet &alt_set = this+alternateSet[index];
@@ -426,7 +426,7 @@ struct LigatureSubstFormat1 {
 			  property &  LookupFlag::MarkAttachmentType);
 
     unsigned int index = (this+coverage) (glyph_id);
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const LigatureSet &lig_set = this+ligatureSet[index];

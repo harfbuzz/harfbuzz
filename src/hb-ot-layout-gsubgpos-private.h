@@ -293,7 +293,7 @@ struct ContextFormat1 {
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const RuleSet &rule_set = this+ruleSet[index];
@@ -324,7 +324,7 @@ struct ContextFormat2 {
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const ClassDef &class_def = this+classDef;
@@ -363,7 +363,7 @@ struct ContextFormat3 {
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const LookupRecord *lookupRecord = (const LookupRecord *)
@@ -531,7 +531,7 @@ struct ChainContextFormat1 {
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const ChainRuleSet &rule_set = this+ruleSet[index];
@@ -560,7 +560,7 @@ struct ChainContextFormat2 {
   inline bool apply (LOOKUP_ARGS_DEF, apply_lookup_func_t apply_func) const {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
@@ -619,7 +619,7 @@ struct ChainContextFormat3 {
 					     ((const char *) &backtrack + backtrack.get_size ());
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
-    if (G_LIKELY (index == NOT_COVERED))
+    if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const OffsetArrayOf<Coverage> &lookahead = * (const OffsetArrayOf<Coverage> *)
