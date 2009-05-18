@@ -404,24 +404,31 @@ ASSERT_SIZE (ClassDef, 2);
  */
 
 struct Device {
-  int get_delta (int ppem_size) const {
-    if (ppem_size >= startSize && ppem_size <= endSize &&
-        deltaFormat >= 1 && deltaFormat <= 3) {
-      int s = ppem_size - startSize;
-      int f = deltaFormat;
+  int get_delta (unsigned int ppem_size) const {
 
-      uint16_t byte = deltaValue[s >> (4 - f)];
-      uint16_t bits = byte >> (16 - (((s & ((1 << (4 - f)) - 1)) + 1) << f));
-      uint16_t mask = 0xFFFF >> (16 - (1 << f));
+    unsigned int f = deltaFormat;
+    if (HB_UNLIKELY (f < 1 || f > 3))
+      return 0;
 
-      int delta = bits & mask;
+    if (ppem_size < startSize || ppem_size > endSize)
+      return 0;
 
-      if (delta >= ((mask + 1) >> 1))
-        delta -= mask + 1;
+    unsigned int s = ppem_size - startSize;
 
-      return delta;
-    }
-    return 0;
+    unsigned int byte = deltaValue[s >> (4 - f)];
+    unsigned int bits = byte >> (16 - (((s & ((1 << (4 - f)) - 1)) + 1) << f));
+    unsigned int mask = 0xFFFF >> (16 - (1 << f));
+
+    int delta = bits & mask;
+
+    if (delta >= ((mask + 1) >> 1))
+      delta -= mask + 1;
+
+    return delta;
+  }
+
+  inline int operator() (unsigned int ppem_size) const {
+    return get_delta (ppem_size);
   }
 
   private:

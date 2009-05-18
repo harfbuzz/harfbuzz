@@ -79,6 +79,7 @@ _hb_buffer_allocate_ligid( HB_Buffer buffer );
 #define IN_LIGID( pos )        (buffer->in_string[(pos)].ligID)
 #define IN_COMPONENT( pos )    (buffer->in_string[(pos)].component)
 #define POSITION( pos )        (&buffer->positions[(pos)])
+#define CURPOSITION()          (&buffer->positions[buffer->in_pos])
 #define OUT_GLYPH( pos )       (buffer->out_string[(pos)].gindex)
 #define OUT_ITEM( pos )        (&buffer->out_string[(pos)])
 

@@ -354,9 +354,6 @@ HB_INTERNAL HB_Error
 _hb_buffer_replace_glyph( HB_Buffer buffer,
 			  HB_UInt   glyph_index )
 {
-
-  HB_Error error;
-
   if ( !buffer->separate_out )
     {
       buffer->out_string[buffer->out_pos].gindex = glyph_index;

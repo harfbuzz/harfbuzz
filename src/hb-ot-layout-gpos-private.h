@@ -67,31 +67,77 @@ struct ValueRecord {
 					 * PosTable (may be NULL) */
 };
 ASSERT_SIZE (ValueRecord, 16);
-
-struct ValueFormat {
-  /* TODO */
-
-  private:
-  0x0001	xPlacement;		/* Includes horizontal adjustment
-					 * for placement */
-  0x0002	yPlacement;		/* Includes vertical adjustment for
-					 * placement */
-  0x0004	xAdvance;		/* Includes horizontal adjustment
-					 * for advance */
-  0x0008	yAdvance;		/* Includes vertical adjustment for
-					 * advance */
-  0x0010	xPlaDevice;		/* Includes horizontal Device table
-					 * for placement */
-  0x0020	yPlaDevice;		/* Includes vertical Device table
-					 * for placement */
-  0x0040	xAdvDevice;		/* Includes horizontal Device table
-					 * for advance */
-  0x0080	yAdvDevice;		/* Includes vertical Device table
-					 * for advance */
-  0xF000	reserved;		/* For future use */
-};
-ASSERT_SIZE (ValueFormat, 18);
 #endif
+
+struct ValueFormat : USHORT {
+
+  enum {
+    xPlacement	= 0x0001,	/* Includes horizontal adjustment for placement */
+    yPlacement	= 0x0002,	/* Includes vertical adjustment for placement */
+    xAdvance	= 0x0004,	/* Includes horizontal adjustment for advance */
+    yAdvance	= 0x0008,	/* Includes vertical adjustment for advance */
+    xPlaDevice	= 0x0010,	/* Includes horizontal Device table for placement */
+    yPlaDevice	= 0x0020,	/* Includes vertical Device table for placement */
+    xAdvDevice	= 0x0040,	/* Includes horizontal Device table for advance */
+    yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
+    reserved	= 0xF000,	/* For future use */
+  };
+
+  inline unsigned int get_len () const {
+    return _hb_popcount32 ((unsigned int) *this);
+  }
+
+  const Value* apply_value (hb_ot_layout_t *layout,
+			    const char     *base,
+			    const Value    *values,
+			    HB_Position     glyph_pos) const
+  {
+    unsigned int x_ppem, y_ppem;
+    hb_16dot16_t x_scale, y_scale;
+    unsigned int pixel_value;
+    unsigned int format = *this;
+
+    if (!format)
+      return values;
+
+    x_scale = layout->gpos_info.x_scale;
+    y_scale = layout->gpos_info.y_scale;
+    /* design units -> fractional pixel */
+    if (format & xPlacement)
+      glyph_pos->x_pos += x_scale * *(USHORT*)values++ / 0x10000;
+    if (format & yPlacement)
+      glyph_pos->y_pos += y_scale * *(USHORT*)values++ / 0x10000;
+    if (format & xAdvance)
+      glyph_pos->x_advance += x_scale * *(USHORT*)values++ / 0x10000;
+    if (format & yAdvance)
+      glyph_pos->y_advance += y_scale * *(USHORT*)values++ / 0x10000;
+
+    if (HB_LIKELY (!layout->gpos_info.dvi))
+    {
+      x_ppem = layout->gpos_info.x_ppem;
+      y_ppem = layout->gpos_info.y_ppem;
+      /* pixel -> fractional pixel */
+      if (format & xPlaDevice)
+	glyph_pos->x_pos += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6;
+      if (format & yPlaDevice)
+	glyph_pos->y_pos += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6;
+      if (format & xAdvDevice)
+	glyph_pos->x_advance += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6;
+      if (format & yAdvDevice)
+	glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6;
+    }
+    else
+    {
+      if (format & xPlaDevice) values++;
+      if (format & yPlaDevice) values++;
+      if (format & xAdvDevice) values++;
+      if (format & yAdvDevice) values++;
+    }
+
+    return values;
+  }
+};
+ASSERT_SIZE (ValueFormat, 2);
 
 
 struct AnchorFormat1 {
@@ -212,8 +258,13 @@ struct SinglePosFormat1 {
 
   private:
   inline bool apply (APPLY_ARG_DEF) const {
-    /* TODO */
-    return false;
+
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (index == NOT_COVERED))
+      return false;
+
+    valueFormat.apply_value (layout, (const char *) this, values, CURPOSITION ());
+    return true;
   }
 
   private:
@@ -221,7 +272,7 @@ struct SinglePosFormat1 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
-  USHORT	valueFormat;		/* Defines the types of data in the
+  ValueFormat	valueFormat;		/* Defines the types of data in the
 					 * ValueRecord */
   ValueRecord	values;			/* Defines positioning
 					 * value(s)--applied to all glyphs in
@@ -235,8 +286,18 @@ struct SinglePosFormat2 {
 
   private:
   inline bool apply (APPLY_ARG_DEF) const {
-    /* TODO */
-    return false;
+
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (index == NOT_COVERED))
+      return false;
+
+    if (HB_LIKELY (index >= valueCount))
+      return false;
+
+    valueFormat.apply_value (layout, (const char *) this,
+			     values + index * valueFormat.get_len (),
+			     CURPOSITION ());
+    return true;
   }
 
   private:
@@ -244,7 +305,7 @@ struct SinglePosFormat2 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
-  USHORT	valueFormat;		/* Defines the types of data in the
+  ValueFormat	valueFormat;		/* Defines the types of data in the
 					 * ValueRecord */
   USHORT	valueCount;		/* Number of ValueRecords */
   ValueRecord	values;			/* Array of ValueRecords--positioning
@@ -307,10 +368,10 @@ struct PairPosFormat1 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
-  USHORT	valueFormat1;		/* Defines the types of data in
+  ValueFormat	valueFormat1;		/* Defines the types of data in
 					 * ValueRecord1--for the first glyph
 					 * in the pair--may be zero (0) */
-  USHORT	valueFormat2;		/* Defines the types of data in
+  ValueFormat	valueFormat2;		/* Defines the types of data in
 					 * ValueRecord2--for the second glyph
 					 * in the pair--may be zero (0) */
   OffsetArrayOf<PairSet>
@@ -334,10 +395,10 @@ struct PairPosFormat2 {
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
-  USHORT	valueFormat1;		/* ValueRecord definition--for the
+  ValueFormat	valueFormat1;		/* ValueRecord definition--for the
 					 * first glyph of the pair--may be zero
 					 * (0) */
-  USHORT	valueFormat2;		/* ValueRecord definition--for the
+  ValueFormat	valueFormat2;		/* ValueRecord definition--for the
 					 * second glyph of the pair--may be
 					 * zero (0) */
   OffsetTo<ClassDef>
