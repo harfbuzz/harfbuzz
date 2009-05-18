@@ -843,16 +843,24 @@ struct PosLookup : Lookup {
     if (HB_UNLIKELY (!buffer->in_length))
       return false;
 
-    _hb_buffer_clear_positions (buffer);
+    layout->gpos_info.last = 0xFFFF; /* no last valid glyph for cursive pos. */
+
     buffer->in_pos = 0;
     while (buffer->in_pos < buffer->in_length) {
 
-      if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
-	  position_once (layout, buffer))
-	ret = true;
-      else
-	_hb_buffer_next_glyph (buffer);
+      bool done;
+      if (~IN_PROPERTIES (buffer->in_pos) & mask) {
+	  done = position_once (layout, buffer);
+	  ret |= done;
+      } else {
+          done = false;
+	  /* Contrary to properties defined in GDEF, user-defined properties
+	     will always stop a possible cursive positioning.                */
+	  layout->gpos_info.last = 0xFFFF;
+      }
 
+      if (!done)
+	buffer->in_pos++;
     }
 
     return ret;

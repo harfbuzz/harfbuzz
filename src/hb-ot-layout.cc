@@ -531,6 +531,19 @@ hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
   return layout->gsub->substitute_lookup (layout, buffer, lookup_index, mask);
 }
 
+/*
+ * GPOS
+ */
+
+hb_bool_t
+hb_ot_layout_position_lookup   (hb_ot_layout_t              *layout,
+				hb_buffer_t                 *buffer,
+			        unsigned int                 lookup_index,
+				hb_ot_layout_feature_mask_t  mask)
+{
+  return layout->gpos->position_lookup (layout, buffer, lookup_index, mask);
+}
+
 
 
 /* TODO dupped, until he old code can be removed */
