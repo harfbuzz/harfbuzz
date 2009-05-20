@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
+NULL =
+
 INCLUDES = 					\
 	-I $(srcdir)				\
 	$(FREETYPE_CFLAGS)			\
@@ -8,63 +10,33 @@ CXX = gcc $(GCCOPTS) -g -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
-MAINSOURCES =  \
-	$(INCLUDEDSOURCES) \
-	hb-ot-layout.cc
-#	harfbuzz.c
-
-# included from harfbuzz.c
-INCLUDEDSOURCES = \
+HBSOURCES =  \
 	harfbuzz-buffer.c \
-	harfbuzz-gpos.c \
-	harfbuzz-gsub.c \
-	harfbuzz-impl.c \
-	harfbuzz-open.c \
-	harfbuzz-stream.c
+	hb-private.h \
+	hb-ot-layout.cc \
+	hb-ot-layout-common-private.h \
+	hb-ot-layout-gdef-private.h \
+	hb-ot-layout-gpos-private.h \
+	hb-ot-layout-gsubgpos-private.h \
+	hb-ot-layout-gsub-private.h \
+	hb-ot-layout-open-private.h \
+	hb-ot-layout-private.h \
+	$(NULL)
 
-PUBLICHEADERS = \
-	harfbuzz.h \
-	harfbuzz-global.h \
+HBHEADERS = \
+	hb-common.h \
 	harfbuzz-buffer.h \
-	harfbuzz-gpos.h \
-	harfbuzz-gsub.h \
-	harfbuzz-open.h
+	hb-ot-layout.h \
+	$(NULL)
 
-PRIVATEHEADERS = \
-	harfbuzz-impl.h \
-	harfbuzz-buffer-private.h \
-	harfbuzz-gpos-private.h \
-	harfbuzz-gsub-private.h \
-	harfbuzz-open-private.h \
-	harfbuzz-stream-private.h
+libharfbuzz_1_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
+libharfbuzz_1_la_LIBADD = $(FREETYPE_LIBS)
 
-libharfbuzz_1_la_SOURCES = \
-	$(MAINSOURCES) \
-	$(PUBLICHEADERS) \
-	$(PRIVATEHEADERS)
+noinst_PROGRAMS = main
 
-libharfbuzz_1_la_LIBADD = \
-	$(FREETYPE_LIBS)
+main_SOURCES = main.cc
+main_LDADD = $(GLIB_LIBS)
 
-noinst_PROGRAMS = harfbuzz-dump main
-
-harfbuzz_dump_SOURCES =	\
-	harfbuzz-dump.c \
-	harfbuzz-dump.h \
-	harfbuzz-dump-main.c
-
-harfbuzz_dump_LDADD = \
-	$(libharfbuzz_1_la_LIBADD) \
-	libharfbuzz-1.la
-
-main_SOURCES = \
-	main.cc
-main_LDADD = \
-	$(GLIB_LIBS)
-
-EXTRA_DIST = 		\
-	README		\
-	COPYING		\
-	$(INCLUDEDSOURCES)
+EXTRA_DIST = README COPYING
 
 -include $(top_srcdir)/git.mk

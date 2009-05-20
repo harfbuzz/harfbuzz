@@ -92,9 +92,9 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
 				    unsigned int   *property);
 
 /* XXX */
-HB_Error
-hb_buffer_ensure( HB_Buffer buffer,
-		   HB_UInt   size );
+void
+hb_buffer_ensure (hb_buffer_t  *buffer,
+		  unsigned int  size);
 
 HB_END_DECLS();
 

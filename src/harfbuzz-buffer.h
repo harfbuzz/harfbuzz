@@ -28,67 +28,67 @@
 #ifndef HARFBUZZ_BUFFER_H
 #define HARFBUZZ_BUFFER_H
 
-#include "harfbuzz-global.h"
+#include "hb-common.h"
 
-HB_BEGIN_HEADER
+HB_BEGIN_DECLS();
 
 typedef struct HB_GlyphItemRec_ {
-  HB_UInt     gindex;
-  HB_UInt     properties;
-  HB_UInt     cluster;
-  HB_UShort   component;
-  HB_UShort   ligID;
-  HB_UShort   gproperty;
+  hb_codepoint_t gindex;
+  unsigned int   properties;
+  unsigned int   cluster;
+  unsigned short component;
+  unsigned short ligID;
+  unsigned short gproperty;
 } HB_GlyphItemRec, *HB_GlyphItem;
 
 typedef struct HB_PositionRec_ {
-  HB_Fixed   x_pos;
-  HB_Fixed   y_pos;
-  HB_Fixed   x_advance;
-  HB_Fixed   y_advance;
-  HB_UShort  back;            /* number of glyphs to go back
-				 for drawing current glyph   */
-  HB_Bool    new_advance;     /* if set, the advance width values are
-				 absolute, i.e., they won't be
-				 added to the original glyph's value
-				 but rather replace them.            */
-  HB_Short  cursive_chain;   /* character to which this connects,
-				 may be positive or negative; used
-				 only internally                     */
+  hb_position_t  x_pos;
+  hb_position_t  y_pos;
+  hb_position_t  x_advance;
+  hb_position_t  y_advance;
+  unsigned short back;		/* number of glyphs to go back
+				   for drawing current glyph   */
+  hb_bool_t      new_advance;	/* if set, the advance width values are
+				   absolute, i.e., they won't be
+				   added to the original glyph's value
+				   but rather replace them.            */
+  short          cursive_chain; /* character to which this connects,
+				   may be positive or negative; used
+				   only internally                     */
 } HB_PositionRec, *HB_Position;
 
 
-typedef struct HB_BufferRec_{ 
-  HB_UInt    allocated;
+typedef struct _hb_buffer_t {
+  unsigned int allocated;
 
-  HB_UInt    in_length;
-  HB_UInt    out_length;
-  HB_UInt    in_pos;
-  HB_UInt    out_pos;
+  unsigned int in_length;
+  unsigned int out_length;
+  unsigned int in_pos;
+  unsigned int out_pos;
   
-  HB_Bool       separate_out;
+  hb_bool_t     separate_out;
   HB_GlyphItem  in_string;
   HB_GlyphItem  out_string;
   HB_GlyphItem  alt_string;
   HB_Position   positions;
-  HB_UShort      max_ligID;
-} HB_BufferRec, *HB_Buffer;
+  unsigned int  max_ligID;
+} HB_BufferRec, *HB_Buffer, hb_buffer_t;
 
-HB_Error
-hb_buffer_new( HB_Buffer *buffer );
-
-void
-hb_buffer_free( HB_Buffer buffer );
+hb_buffer_t *
+hb_buffer_new (void);
 
 void
-hb_buffer_clear( HB_Buffer buffer );
+hb_buffer_free (hb_buffer_t *buffer);
 
-HB_Error
-hb_buffer_add_glyph( HB_Buffer buffer,
-		      HB_UInt    glyph_index,
-		      HB_UInt    properties,
-		      HB_UInt    cluster );
+void
+hb_buffer_clear (hb_buffer_t *buffer);
 
-HB_END_HEADER
+void
+hb_buffer_add_glyph (hb_buffer_t    *buffer,
+		     hb_codepoint_t  glyph_index,
+		     unsigned int    properties,
+		     unsigned int    cluster);
+
+HB_END_DECLS();
 
 #endif /* HARFBUZZ_BUFFER_H */

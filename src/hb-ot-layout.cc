@@ -582,16 +582,11 @@ hb_ot_layout_position_lookup   (hb_ot_layout_t              *layout,
 static HB_Error
 hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 {
-  if ( !buffer->alt_string )
-    {
-      HB_Error error;
-
-      if ( ALLOC_ARRAY( buffer->alt_string, buffer->allocated, HB_GlyphItemRec ) )
-	return error;
-    }
+  if (!buffer->alt_string)
+    buffer->alt_string = (HB_GlyphItemRec_ *) malloc (buffer->allocated * sizeof (buffer->out_string[0]));
 
   buffer->out_string = buffer->alt_string;
-  memcpy( buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]) );
+  memcpy (buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]));
   buffer->separate_out = TRUE;
 
   return HB_Err_Ok;
@@ -599,6 +594,7 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 
 
 
+/* XXX */
 HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
 			      HB_UShort  num_in,
@@ -612,9 +608,8 @@ _hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
   HB_UInt properties;
   HB_UInt cluster;
 
-  error = hb_buffer_ensure( buffer, buffer->out_pos + num_out );
-  if ( error )
-    return error;
+  hb_buffer_ensure( buffer, buffer->out_pos + num_out );
+  /* XXX */
 
   if ( !buffer->separate_out )
     {
