@@ -191,12 +191,6 @@ struct Lookup {
     return subTable.len;
   }
 
-  inline bool is_right_to_left	(void) const { return lookupFlag & LookupFlag::RightToLeft; }
-  inline bool ignore_base_glyphs(void) const { return lookupFlag & LookupFlag::IgnoreBaseGlyphs; }
-  inline bool ignore_ligatures	(void) const { return lookupFlag & LookupFlag::IgnoreLigatures; }
-  inline bool ignore_marks	(void) const { return lookupFlag & LookupFlag::IgnoreMarks; }
-  inline unsigned int get_mark_attachment_type (void) const { return lookupFlag & LookupFlag::MarkAttachmentType; }
-
   inline unsigned int get_type (void) const { return lookupType; }
   inline unsigned int get_flag (void) const { return lookupFlag; }
 
