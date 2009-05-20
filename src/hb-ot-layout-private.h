@@ -47,7 +47,7 @@ struct _hb_ot_layout_t {
   } new_gdef;
 
   /* TODO full-matrix transformation? */
-  struct {
+  struct gpos_info_t {
     unsigned int x_ppem, y_ppem;
     hb_16dot16_t x_scale, y_scale;
 
