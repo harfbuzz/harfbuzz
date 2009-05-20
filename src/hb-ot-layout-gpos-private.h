@@ -397,8 +397,8 @@ struct PairPosFormat1 {
 
     const PairSet &pair_set = this+pairSet[index];
 
-    unsigned int len1 = valueFormat1.get_len (),
-		 len2 = valueFormat2.get_len ();
+    unsigned int len1 = valueFormat1.get_len ();
+    unsigned int len2 = valueFormat2.get_len ();
     unsigned int record_len = 1 + len1 + len2;
 
     unsigned int count = pair_set.len;
@@ -440,10 +440,43 @@ struct PairPosFormat2 {
   friend struct PairPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
-    /* TODO */
-    return false;
+  inline bool apply (APPLY_ARG_DEF) const
+  {
+    unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
+    if (HB_UNLIKELY (buffer->in_pos + 2 > end))
+      return false;
+
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (index == NOT_COVERED))
+      return false;
+
+    unsigned int j = buffer->in_pos + 1;
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+      if (HB_UNLIKELY (j == end))
+	return false;
+      j++;
+    }
+
+    unsigned int len1 = valueFormat1.get_len ();
+    unsigned int len2 = valueFormat2.get_len ();
+    unsigned int record_len = len1 + len2;
+
+    unsigned int klass1 = (this+classDef1) (IN_CURGLYPH ());
+    unsigned int klass2 = (this+classDef2) (IN_GLYPH (j));
+    if (HB_UNLIKELY (klass1 >= class1Count || klass2 >= class2Count))
+      return false;
+
+    const Value *v = values + record_len * (klass1 * class2Count + klass2);
+    valueFormat1.apply_value (layout, (const char *) this, v, CURPOSITION ());
+    valueFormat2.apply_value (layout, (const char *) this, v + len1, POSITION (j));
+
+    if (len2)
+      j++;
+    buffer->in_pos = j;
+
+    return true;
   }
+
 
   private:
   USHORT	format;			/* Format identifier--format = 2 */
