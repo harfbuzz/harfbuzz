@@ -89,6 +89,30 @@ hb_ot_layout_set_direction (hb_ot_layout_t *layout,
   layout->gpos_info.r2l = !!r2l;
 }
 
+void
+hb_ot_layout_set_hinting (hb_ot_layout_t *layout,
+			  hb_bool_t hinted)
+{
+  layout->gpos_info.dvi = !hinted;
+}
+
+void
+hb_ot_layout_set_scale (hb_ot_layout_t *layout,
+			hb_16dot16_t x_scale, hb_16dot16_t y_scale)
+{
+  layout->gpos_info.x_scale = x_scale;
+  layout->gpos_info.y_scale = y_scale;
+}
+
+void
+hb_ot_layout_set_ppem (hb_ot_layout_t *layout,
+		       unsigned int x_ppem, unsigned int y_ppem)
+{
+  layout->gpos_info.x_ppem = x_ppem;
+  layout->gpos_info.y_ppem = y_ppem;
+}
+
+
 /*
  * GDEF
  */

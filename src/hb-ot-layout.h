@@ -52,6 +52,18 @@ void
 hb_ot_layout_set_direction (hb_ot_layout_t *layout,
 			    hb_bool_t r2l);
 
+void
+hb_ot_layout_set_hinting (hb_ot_layout_t *layout,
+			  hb_bool_t hinted);
+
+void
+hb_ot_layout_set_scale (hb_ot_layout_t *layout,
+			hb_16dot16_t x_scale, hb_16dot16_t y_scale);
+
+void
+hb_ot_layout_set_ppem (hb_ot_layout_t *layout,
+		       unsigned int x_ppem, unsigned int y_ppem);
+
 /* TODO sanitizing API/constructor (make_writable_func_t) */
 /* TODO get_table_func_t constructor */
 
