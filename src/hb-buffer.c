@@ -25,7 +25,6 @@
  * Red Hat Author(s): Owen Taylor, Behdad Esfahbod
  */
 
-#include "harfbuzz-impl.h"
 #include "hb-buffer-private.h"
 
 /* Here is how the buffer works internally:
@@ -61,7 +60,7 @@
 hb_buffer_ensure (hb_buffer_t  *buffer,
 		  unsigned int  size)
 {
-  HB_UInt new_allocated = buffer->allocated;
+  unsigned int new_allocated = buffer->allocated;
   /* XXX err handling */
 
   if (size > new_allocated)
@@ -152,10 +151,10 @@ hb_buffer_clear (HB_Buffer buffer)
 }
 
 void
-hb_buffer_add_glyph (HB_Buffer buffer,
-		      HB_UInt   glyph_index,
-		      HB_UInt   properties,
-		      HB_UInt   cluster)
+hb_buffer_add_glyph (hb_buffer_t    *buffer,
+		     hb_codepoint_t  glyph_index,
+		     unsigned int    properties,
+		     unsigned int    cluster)
 {
   HB_Error error;
   HB_GlyphItem glyph;
@@ -241,17 +240,17 @@ _hb_buffer_swap (HB_Buffer buffer)
    The cluster value for the glyph at position buffer->in_pos is used
    for all replacement glyphs */
 HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyphs (HB_Buffer  buffer,
-			      HB_UShort  num_in,
-			      HB_UShort  num_out,
-			      HB_UShort *glyph_data,
-			      HB_UShort  component,
-			      HB_UShort  ligID)
+_hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
+			      unsigned int num_in,
+			      unsigned int num_out,
+			      unsigned short *glyph_data,
+			      unsigned short component,
+			      unsigned short ligID)
 {
   HB_Error  error;
-  HB_UShort i;
-  HB_UInt properties;
-  HB_UInt cluster;
+  unsigned int i;
+  unsigned int properties;
+  unsigned int cluster;
 
   hb_buffer_ensure (buffer, buffer->out_pos + num_out);
 
@@ -290,12 +289,12 @@ _hb_buffer_add_output_glyphs (HB_Buffer  buffer,
 }
 
 HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyph (HB_Buffer buffer,
-			     HB_UInt   glyph_index,
-			     HB_UShort component,
-			     HB_UShort ligID)
+_hb_buffer_add_output_glyph (hb_buffer_t *buffer,
+			     hb_codepoint_t glyph_index,
+			     unsigned short component,
+			     unsigned short ligID)
 {
-  HB_UShort glyph_data =  glyph_index;
+  unsigned short glyph_data =  glyph_index;
 
   return _hb_buffer_add_output_glyphs (buffer, 1, 1,
 					&glyph_data, component, ligID);
@@ -321,8 +320,8 @@ _hb_buffer_next_glyph (HB_Buffer buffer)
 }
 
 HB_INTERNAL HB_Error
-_hb_buffer_replace_glyph (HB_Buffer buffer,
-			  HB_UInt   glyph_index)
+_hb_buffer_replace_glyph (hb_buffer_t *buffer,
+			  hb_codepoint_t glyph_index)
 {
   if (!buffer->separate_out)
     {
@@ -340,8 +339,8 @@ _hb_buffer_replace_glyph (HB_Buffer buffer,
   return HB_Err_Ok;
 }
 
-HB_INTERNAL HB_UShort
-_hb_buffer_allocate_ligid (HB_Buffer buffer)
+HB_INTERNAL unsigned short
+_hb_buffer_allocate_ligid (hb_buffer_t *buffer)
 {
   return ++buffer->max_ligID;
 }

@@ -28,79 +28,79 @@
 #ifndef HB_BUFFER_PRIVATE_H
 #define HB_BUFFER_PRIVATE_H
 
-#include "harfbuzz-impl.h"
+#include "hb-private.h"
 #include "hb-buffer.h"
 
-HB_BEGIN_HEADER
+HB_BEGIN_DECLS();
 
 #define HB_GLYPH_PROPERTY_UNKNOWN 0xFFFF
 
 HB_INTERNAL void
-_hb_buffer_swap( HB_Buffer buffer );
+_hb_buffer_swap (hb_buffer_t *buffer);
 
 HB_INTERNAL void
-_hb_buffer_clear_output( HB_Buffer buffer );
+_hb_buffer_clear_output (hb_buffer_t *buffer);
 
 HB_INTERNAL HB_Error
-_hb_buffer_clear_positions( HB_Buffer buffer );
+_hb_buffer_clear_positions (hb_buffer_t *buffer);
 
 HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyphs( HB_Buffer  buffer,
-			      HB_UShort  num_in,
-			      HB_UShort  num_out,
-			      HB_UShort *glyph_data,
-			      HB_UShort  component,
-			      HB_UShort  ligID );
+_hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
+			      unsigned int num_in,
+			      unsigned int num_out,
+			      unsigned short *glyph_data,
+			      unsigned short component,
+			      unsigned short ligID);
 
 HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyph ( HB_Buffer buffer,
-			      HB_UInt   glyph_index,
-			      HB_UShort component,
-			      HB_UShort ligID );
+_hb_buffer_add_output_glyph (hb_buffer_t *buffer,
+			     hb_codepoint_t glyph_index,
+			     unsigned short component,
+			     unsigned short ligID);
 
 HB_INTERNAL HB_Error
-_hb_buffer_next_glyph ( HB_Buffer buffer );
+_hb_buffer_next_glyph (hb_buffer_t *buffer);
 
 HB_INTERNAL HB_Error
-_hb_buffer_replace_glyph ( HB_Buffer buffer,
-			   HB_UInt   glyph_index );
+_hb_buffer_replace_glyph (hb_buffer_t *buffer,
+			  hb_codepoint_t glyph_index);
 
-HB_INTERNAL HB_UShort
-_hb_buffer_allocate_ligid( HB_Buffer buffer );
+HB_INTERNAL unsigned short
+_hb_buffer_allocate_ligid (hb_buffer_t *buffer);
 
 
 /* convenience macros */
 
-#define IN_GLYPH( pos )        (buffer->in_string[(pos)].gindex)
-#define IN_ITEM( pos )         (&buffer->in_string[(pos)])
-#define IN_CURGLYPH()          (buffer->in_string[buffer->in_pos].gindex)
-#define IN_CURITEM()           (&buffer->in_string[buffer->in_pos])
-#define IN_PROPERTIES( pos )   (buffer->in_string[(pos)].properties)
-#define IN_LIGID( pos )        (buffer->in_string[(pos)].ligID)
-#define IN_COMPONENT( pos )    (buffer->in_string[(pos)].component)
-#define POSITION( pos )        (&buffer->positions[(pos)])
-#define CURPOSITION()          (&buffer->positions[buffer->in_pos])
-#define OUT_GLYPH( pos )       (buffer->out_string[(pos)].gindex)
-#define OUT_ITEM( pos )        (&buffer->out_string[(pos)])
+#define IN_GLYPH(pos)		(buffer->in_string[(pos)].gindex)
+#define IN_ITEM(pos)		(&buffer->in_string[(pos)])
+#define IN_CURGLYPH()		(buffer->in_string[buffer->in_pos].gindex)
+#define IN_CURITEM()		(&buffer->in_string[buffer->in_pos])
+#define IN_PROPERTIES(pos)	(buffer->in_string[(pos)].properties)
+#define IN_LIGID(pos)		(buffer->in_string[(pos)].ligID)
+#define IN_COMPONENT(pos)	(buffer->in_string[(pos)].component)
+#define POSITION(pos)		(&buffer->positions[(pos)])
+#define CURPOSITION()		(&buffer->positions[buffer->in_pos])
+#define OUT_GLYPH(pos)		(buffer->out_string[(pos)].gindex)
+#define OUT_ITEM(pos)		(&buffer->out_string[(pos)])
 
-#define CHECK_Property( layout, index, flags, properties )					\
+#define CHECK_Property (layout, index, flags, properties)					\
           ({unsigned int _p; error = _hb_ot_layout_check_glyph_property((layout), (index), (flags), (&_p)) \
 	         ? HB_Err_Ok : HB_Err_Not_Covered, *(properties) = _p; error;})
 
-#define ADD_String( buffer, num_in, num_out, glyph_data, component, ligID )             \
-          ( ( error = _hb_buffer_add_output_glyphs( (buffer),                            \
+#define ADD_String (buffer, num_in, num_out, glyph_data, component, ligID)             \
+            ((error = _hb_buffer_add_output_glyphs ((buffer),                            \
 						    (num_in), (num_out),                \
                                                     (glyph_data), (component), (ligID)  \
-                                                  ) ) != HB_Err_Ok )
-#define ADD_Glyph( buffer, glyph_index, component, ligID )				\
-          ( ( error = _hb_buffer_add_output_glyph( (buffer),                             \
+                                                 )) != HB_Err_Ok)
+#define ADD_Glyph (buffer, glyph_index, component, ligID)				\
+            ((error = _hb_buffer_add_output_glyph ((buffer),                             \
                                                     (glyph_index), (component), (ligID) \
-                                                  ) ) != HB_Err_Ok )
-#define REPLACE_Glyph( buffer, glyph_index )				\
-          ( ( error = _hb_buffer_replace_glyph( (buffer), (glyph_index) ) ) != HB_Err_Ok )
-#define COPY_Glyph( buffer )								\
-	  ( (error = _hb_buffer_next_glyph ( buffer ) ) != HB_Err_Ok )
+                                                 )) != HB_Err_Ok)
+#define REPLACE_Glyph (buffer, glyph_index)				\
+            ((error = _hb_buffer_replace_glyph ((buffer), (glyph_index))) != HB_Err_Ok)
+#define COPY_Glyph (buffer)								\
+	   ((error = _hb_buffer_next_glyph  (buffer)) != HB_Err_Ok)
 
-HB_END_HEADER
+HB_END_DECLS();
 
 #endif /* HB_BUFFER_PRIVATE_H */

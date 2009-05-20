@@ -29,9 +29,6 @@
 
 #include "hb-ot-layout-gsubgpos-private.h"
 
-/* XXX */
-#include "harfbuzz-impl.h"
-
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
 
@@ -670,7 +667,7 @@ struct CursivePosFormat1
 
     struct hb_ot_layout_t::gpos_info_t *gpi = &layout->gpos_info;
     hb_codepoint_t last_pos = gpi->last;
-    gpi->last = 0xFFFF;
+    gpi->last = HB_OT_GPOS_NO_LAST;
 
     /* We don't handle mark glyphs here. */
     if (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
@@ -684,7 +681,7 @@ struct CursivePosFormat1
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
 
-    if (last_pos == 0xFFFF || !record.entryAnchor)
+    if (last_pos == HB_OT_GPOS_NO_LAST || !record.entryAnchor)
       goto end;
 
     (this+record.entryAnchor).get_anchor (layout, IN_CURGLYPH (), &entry_x, &entry_y);
@@ -1180,7 +1177,7 @@ struct PosLookup : Lookup
     if (HB_UNLIKELY (!buffer->in_length))
       return false;
 
-    layout->gpos_info.last = 0xFFFF; /* no last valid glyph for cursive pos. */
+    layout->gpos_info.last = HB_OT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
 
     buffer->in_pos = 0;
     while (buffer->in_pos < buffer->in_length)
@@ -1196,7 +1193,7 @@ struct PosLookup : Lookup
           done = false;
 	  /* Contrary to properties defined in GDEF, user-defined properties
 	     will always stop a possible cursive positioning.                */
-	  layout->gpos_info.last = 0xFFFF;
+	  layout->gpos_info.last = HB_OT_GPOS_NO_LAST;
       }
 
       if (!done)

@@ -597,17 +597,17 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 
 /* XXX */
 HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
-			      HB_UShort  num_in,
-			      HB_UShort  num_out,
+_hb_buffer_add_output_glyph_ids (hb_buffer_t *buffer,
+			      unsigned int num_in,
+			      unsigned int num_out,
 			      const GlyphID *glyph_data,
-			      HB_UShort  component,
-			      HB_UShort  ligID )
+			      unsigned short component,
+			      unsigned short ligID)
 {
   HB_Error  error;
-  HB_UShort i;
-  HB_UInt properties;
-  HB_UInt cluster;
+  unsigned int i;
+  unsigned int properties;
+  unsigned int cluster;
 
   hb_buffer_ensure( buffer, buffer->out_pos + num_out );
   /* XXX */
