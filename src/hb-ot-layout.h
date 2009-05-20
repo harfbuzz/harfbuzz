@@ -28,7 +28,7 @@
 #define HB_OT_LAYOUT_H
 
 #include "hb-common.h"
-#include "harfbuzz-buffer.h"
+#include "hb-buffer.h"
 
 HB_BEGIN_DECLS();
 

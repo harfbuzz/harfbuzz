@@ -28,6 +28,9 @@
 
 #define HB_OT_LAYOUT_CC
 
+/* XXX */
+#include "hb-buffer-private.h"
+
 #include "hb-ot-layout.h"
 #include "hb-ot-layout-private.h"
 
@@ -36,8 +39,6 @@
 #include "hb-ot-layout-gsub-private.h"
 #include "hb-ot-layout-gpos-private.h"
 
-/* XXX */
-#include "harfbuzz-buffer-private.h"
 
 #include <stdlib.h>
 #include <string.h>

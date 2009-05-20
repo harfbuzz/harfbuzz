@@ -31,7 +31,7 @@
 #include "hb-ot-layout.h"
 
 /* XXX */
-#include "harfbuzz-buffer.h"
+#include "hb-buffer.h"
 
 
 typedef unsigned int hb_ot_layout_class_t;

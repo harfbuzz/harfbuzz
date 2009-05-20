@@ -25,11 +25,11 @@
  * Red Hat Author(s): Owen Taylor, Behdad Esfahbod
  */
 
-#ifndef HARFBUZZ_BUFFER_PRIVATE_H
-#define HARFBUZZ_BUFFER_PRIVATE_H
+#ifndef HB_BUFFER_PRIVATE_H
+#define HB_BUFFER_PRIVATE_H
 
 #include "harfbuzz-impl.h"
-#include "harfbuzz-buffer.h"
+#include "hb-buffer.h"
 
 HB_BEGIN_HEADER
 
@@ -103,4 +103,4 @@ _hb_buffer_allocate_ligid( HB_Buffer buffer );
 
 HB_END_HEADER
 
-#endif /* HARFBUZZ_BUFFER_PRIVATE_H */
+#endif /* HB_BUFFER_PRIVATE_H */

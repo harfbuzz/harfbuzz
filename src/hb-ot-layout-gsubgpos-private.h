@@ -28,7 +28,7 @@
 #define HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H
 
 #include "hb-ot-layout-gdef-private.h"
-#include "harfbuzz-buffer-private.h" /* XXX */
+#include "hb-buffer-private.h" /* XXX */
 
 
 #define APPLY_ARG_DEF \

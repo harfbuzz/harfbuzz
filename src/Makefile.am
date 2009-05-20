@@ -11,7 +11,8 @@ CXX = gcc $(GCCOPTS) -g -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
 HBSOURCES =  \
-	harfbuzz-buffer.c \
+	hb-buffer.c \
+	hb-buffer-private.h \
 	hb-private.h \
 	hb-ot-layout.cc \
 	hb-ot-layout-common-private.h \
@@ -25,7 +26,7 @@ HBSOURCES =  \
 
 HBHEADERS = \
 	hb-common.h \
-	harfbuzz-buffer.h \
+	hb-buffer.h \
 	hb-ot-layout.h \
 	$(NULL)
 

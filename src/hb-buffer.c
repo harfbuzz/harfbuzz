@@ -26,9 +26,7 @@
  */
 
 #include "harfbuzz-impl.h"
-#include "harfbuzz-buffer-private.h"
-#include "harfbuzz-gsub-private.h"
-#include "harfbuzz-gpos-private.h"
+#include "hb-buffer-private.h"
 
 /* Here is how the buffer works internally:
  *
@@ -161,7 +159,7 @@ hb_buffer_add_glyph (HB_Buffer buffer,
 {
   HB_Error error;
   HB_GlyphItem glyph;
-  
+
   hb_buffer_ensure (buffer, buffer->in_length + 1);
 
   glyph = &buffer->in_string[buffer->in_length];
