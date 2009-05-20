@@ -1064,51 +1064,51 @@ ASSERT_SIZE (ExtensionPos, 2);
  * PosLookup
  */
 
-enum {
-  GPOS_Single			= 1,
-  GPOS_Pair			= 2,
-  GPOS_Cursive			= 3,
-  GPOS_MarkBase			= 4,
-  GPOS_MarkLig			= 5,
-  GPOS_MarkMark			= 6,
-  GPOS_Context			= 7,
-  GPOS_ChainContext		= 8,
-  GPOS_Extension		= 9,
-};
-
 
 struct PosLookupSubTable
 {
   friend struct PosLookup;
 
+  enum {
+    Single		= 1,
+    Pair		= 2,
+    Cursive		= 3,
+    MarkBase		= 4,
+    MarkLig		= 5,
+    MarkMark		= 6,
+    Context		= 7,
+    ChainContext	= 8,
+    Extension		= 9,
+  };
+
   inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
   {
     switch (lookup_type) {
-    case GPOS_Single:			return u.single->apply (APPLY_ARG);
-    case GPOS_Pair:			return u.pair->apply (APPLY_ARG);
-    case GPOS_Cursive:			return u.cursive->apply (APPLY_ARG);
-    case GPOS_MarkBase:			return u.markBase->apply (APPLY_ARG);
-    case GPOS_MarkLig:			return u.markLig->apply (APPLY_ARG);
-    case GPOS_MarkMark:			return u.markMark->apply (APPLY_ARG);
-    case GPOS_Context:			return u.context->apply (APPLY_ARG);
-    case GPOS_ChainContext:		return u.chainContext->apply (APPLY_ARG);
-    case GPOS_Extension:		return u.extension->apply (APPLY_ARG);
+    case Single:		return u.single->apply (APPLY_ARG);
+    case Pair:			return u.pair->apply (APPLY_ARG);
+    case Cursive:		return u.cursive->apply (APPLY_ARG);
+    case MarkBase:		return u.markBase->apply (APPLY_ARG);
+    case MarkLig:		return u.markLig->apply (APPLY_ARG);
+    case MarkMark:		return u.markMark->apply (APPLY_ARG);
+    case Context:		return u.context->apply (APPLY_ARG);
+    case ChainContext:		return u.chainContext->apply (APPLY_ARG);
+    case Extension:		return u.extension->apply (APPLY_ARG);
     default:return false;
     }
   }
 
   private:
   union {
-  USHORT			format;
-  SinglePos			single[];
-  PairPos			pair[];
-  CursivePos			cursive[];
-  MarkBasePos			markBase[];
-  MarkLigPos			markLig[];
-  MarkMarkPos			markMark[];
-  ContextPos			context[];
-  ChainContextPos		chainContext[];
-  ExtensionPos			extension[];
+  USHORT		format;
+  SinglePos		single[];
+  PairPos		pair[];
+  CursivePos		cursive[];
+  MarkBasePos		markBase[];
+  MarkLigPos		markLig[];
+  MarkMarkPos		markMark[];
+  ContextPos		context[];
+  ChainContextPos	chainContext[];
+  ExtensionPos		extension[];
   } u;
 };
 ASSERT_SIZE (PosLookupSubTable, 2);
@@ -1127,7 +1127,7 @@ struct PosLookup : Lookup
   {
     unsigned int type = get_type ();
 
-    if (HB_UNLIKELY (type == GPOS_Extension))
+    if (HB_UNLIKELY (type == PosLookupSubTable::Extension))
     {
       unsigned int count = get_subtable_count ();
       type = get_subtable(0).u.extension->get_type ();
@@ -1240,7 +1240,7 @@ inline bool ExtensionPosFormat1::apply (APPLY_ARG_DEF) const
 {
   unsigned int lookup_type = get_type ();
 
-  if (HB_UNLIKELY (lookup_type ==  GPOS_Extension))
+  if (HB_UNLIKELY (lookup_type == PosLookupSubTable::Extension))
     return false;
 
   return ((PosLookupSubTable&)*(((char *) this) + get_offset ())).apply (APPLY_ARG, lookup_type);

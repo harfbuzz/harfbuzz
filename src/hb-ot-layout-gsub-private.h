@@ -630,32 +630,32 @@ ASSERT_SIZE (ReverseChainSingleSubst, 2);
  * SubstLookup
  */
 
-enum {
-  GSUB_Single			= 1,
-  GSUB_Multiple			= 2,
-  GSUB_Alternate		= 3,
-  GSUB_Ligature			= 4,
-  GSUB_Context			= 5,
-  GSUB_ChainContext		= 6,
-  GSUB_Extension		= 7,
-  GSUB_ReverseChainSingle	= 8,
-};
-
 struct SubstLookupSubTable
 {
   friend struct SubstLookup;
 
+  enum {
+    Single		= 1,
+    Multiple		= 2,
+    Alternate		= 3,
+    Ligature		= 4,
+    Context		= 5,
+    ChainContext	= 6,
+    Extension		= 7,
+    ReverseChainSingle	= 8,
+  };
+
   inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
   {
     switch (lookup_type) {
-    case GSUB_Single:			return u.single->apply (APPLY_ARG);
-    case GSUB_Multiple:			return u.multiple->apply (APPLY_ARG);
-    case GSUB_Alternate:		return u.alternate->apply (APPLY_ARG);
-    case GSUB_Ligature:			return u.ligature->apply (APPLY_ARG);
-    case GSUB_Context:			return u.context->apply (APPLY_ARG);
-    case GSUB_ChainContext:		return u.chainContext->apply (APPLY_ARG);
-    case GSUB_Extension:		return u.extension->apply (APPLY_ARG);
-    case GSUB_ReverseChainSingle:	return u.reverseChainContextSingle->apply (APPLY_ARG);
+    case Single:		return u.single->apply (APPLY_ARG);
+    case Multiple:		return u.multiple->apply (APPLY_ARG);
+    case Alternate:		return u.alternate->apply (APPLY_ARG);
+    case Ligature:		return u.ligature->apply (APPLY_ARG);
+    case Context:		return u.context->apply (APPLY_ARG);
+    case ChainContext:		return u.chainContext->apply (APPLY_ARG);
+    case Extension:		return u.extension->apply (APPLY_ARG);
+    case ReverseChainSingle:	return u.reverseChainContextSingle->apply (APPLY_ARG);
     default:return false;
     }
   }
@@ -689,7 +689,7 @@ struct SubstLookup : Lookup
   {
     unsigned int type = get_type ();
 
-    if (HB_UNLIKELY (type == GSUB_Extension))
+    if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
     {
       unsigned int count = get_subtable_count ();
       type = get_subtable(0).u.extension->get_type ();
@@ -705,7 +705,7 @@ struct SubstLookup : Lookup
 
   inline bool is_reverse (void) const
   {
-    return HB_UNLIKELY (get_effective_type () == GSUB_ReverseChainSingle);
+    return HB_UNLIKELY (get_effective_type () == SubstLookupSubTable::ReverseChainSingle);
   }
 
   inline bool apply_subtables (hb_ot_layout_t *layout,
@@ -819,7 +819,7 @@ inline bool ExtensionSubstFormat1::apply (APPLY_ARG_DEF) const
 {
   unsigned int lookup_type = get_type ();
 
-  if (HB_UNLIKELY (lookup_type ==  GSUB_Extension))
+  if (HB_UNLIKELY (lookup_type ==  SubstLookupSubTable::Extension))
     return false;
 
   return ((SubstLookupSubTable&)*(((char *) this) + get_offset ())).apply (APPLY_ARG, lookup_type);
