@@ -40,9 +40,6 @@ typedef Value ValueRecord[];
 
 #if 0
 struct ValueRecord {
-  /* TODO */
-
-  private:
   SHORT		xPlacement;		/* Horizontal adjustment for
 					 * placement--in design units */
   SHORT		yPlacement;		/* Vertical adjustment for
@@ -66,7 +63,6 @@ struct ValueRecord {
 					 * advance--measured from beginning of
 					 * PosTable (may be NULL) */
 };
-ASSERT_SIZE (ValueRecord, 16);
 #endif
 
 struct ValueFormat : USHORT {
@@ -146,7 +142,8 @@ struct AnchorFormat1 {
 
   private:
   inline void get_anchor (hb_ot_layout_t *layout, hb_codepoint_t glyph_id,
-			  hb_position_t *x, hb_position_t *y) const {
+			  hb_position_t *x, hb_position_t *y) const
+  {
       *x = layout->gpos_info.x_scale * xCoordinate / 0x10000;
       *y = layout->gpos_info.y_scale * yCoordinate / 0x10000;
   }
@@ -164,7 +161,8 @@ struct AnchorFormat2 {
 
   private:
   inline void get_anchor (hb_ot_layout_t *layout, hb_codepoint_t glyph_id,
-			  hb_position_t *x, hb_position_t *y) const {
+			  hb_position_t *x, hb_position_t *y) const
+  {
       /* TODO Contour */
       *x = layout->gpos_info.x_scale * xCoordinate / 0x10000;
       *y = layout->gpos_info.y_scale * yCoordinate / 0x10000;
@@ -184,7 +182,8 @@ struct AnchorFormat3 {
 
   private:
   inline void get_anchor (hb_ot_layout_t *layout, hb_codepoint_t glyph_id,
-			  hb_position_t *x, hb_position_t *y) const {
+			  hb_position_t *x, hb_position_t *y) const
+  {
       /* TODO Device */
       *x += layout->gpos_info.x_scale * xCoordinate / 0x10000;
       *y += layout->gpos_info.y_scale * yCoordinate / 0x10000;
@@ -208,7 +207,8 @@ ASSERT_SIZE (AnchorFormat3, 10);
 struct Anchor {
 
   inline void get_anchor (hb_ot_layout_t *layout, hb_codepoint_t glyph_id,
-			  hb_position_t *x, hb_position_t *y) const {
+			  hb_position_t *x, hb_position_t *y) const
+  {
     *x = *y = 0;
     switch (u.format) {
     case 1: u.format1->get_anchor (layout, glyph_id, x, y); return;
@@ -257,8 +257,8 @@ struct SinglePosFormat1 {
   friend struct SinglePos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -285,8 +285,8 @@ struct SinglePosFormat2 {
   friend struct SinglePos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -319,7 +319,8 @@ struct SinglePos {
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
@@ -338,7 +339,8 @@ ASSERT_SIZE (SinglePos, 2);
 
 
 struct PairValueRecord {
-  /* TODO */
+
+  friend struct PairPosFormat1;
 
   private:
   GlyphID	secondGlyph;		/* GlyphID of second glyph in the
@@ -349,8 +351,26 @@ struct PairValueRecord {
 };
 ASSERT_SIZE (PairValueRecord, 2);
 
-/* XXXXXXXXXXXXXXXXXXXX */
-typedef ArrayOf<PairValueRecord> PairSet;
+struct PairSet {
+
+  friend struct PairPosFormat1;
+
+  private:
+  inline bool apply (APPLY_ARG_DEF,
+		     ValueFormat &f1, ValueFormat &f2,
+		     unsigned int next_pos) const {
+
+
+    return true;
+  }
+
+  private:
+  USHORT	len;			/* Number of PairValueRecords */
+  /* XXX */
+  PairValueRecord
+		array[];		/* Array of PairValueRecords--ordered
+					 * by GlyphID of the second glyph */
+};
 ASSERT_SIZE (PairSet, 2);
 
 struct PairPosFormat1 {
@@ -358,8 +378,43 @@ struct PairPosFormat1 {
   friend struct PairPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
-    /* TODO */
+  inline bool apply (APPLY_ARG_DEF) const
+  {
+    unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
+    if (HB_UNLIKELY (buffer->in_pos + 2 > end))
+      return false;
+
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (index == NOT_COVERED))
+      return false;
+
+    unsigned int j = buffer->in_pos + 1;
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+      if (HB_UNLIKELY (j == end))
+	return false;
+      j++;
+    }
+
+    const PairSet &pair_set = this+pairSet[index];
+
+    unsigned int len1 = valueFormat1.get_len (),
+		 len2 = valueFormat2.get_len ();
+    unsigned int record_len = 1 + len1 + len2;
+
+    unsigned int count = pair_set.len;
+    const PairValueRecord *record = pair_set.array;
+    for (unsigned int i = 0; i < count; i++) {
+      if (IN_GLYPH (j) == record->secondGlyph) {
+	valueFormat1.apply_value (layout, (const char *) this, record->values, CURPOSITION ());
+	valueFormat2.apply_value (layout, (const char *) this, record->values + len1, POSITION (j));
+	if (len2)
+	  j++;
+	buffer->in_pos = j;
+	return true;
+      }
+      record += record_len;
+    }
+
     return false;
   }
 
