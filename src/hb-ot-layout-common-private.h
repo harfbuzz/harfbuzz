@@ -42,7 +42,8 @@
  */
 
 template <typename Type>
-struct Record {
+struct Record
+{
   Tag		tag;		/* 4-byte Tag identifier */
   OffsetTo<Type>
 		offset;		/* Offset from beginning of object holding
@@ -50,12 +51,15 @@ struct Record {
 };
 
 template <typename Type>
-struct RecordListOf : ArrayOf<Record<Type> > {
-  inline const Type& operator [] (unsigned int i) const {
+struct RecordListOf : ArrayOf<Record<Type> >
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
     if (HB_UNLIKELY (i >= this->len)) return Null(Type);
     return this+this->array[i].offset;
   }
-  inline const Tag& get_tag (unsigned int i) const {
+  inline const Tag& get_tag (unsigned int i) const
+  {
     if (HB_UNLIKELY (i >= this->len)) return Null(Tag);
     return this->array[i].tag;
   }
@@ -73,20 +77,14 @@ typedef Record<Feature> FeatureRecord;
 ASSERT_SIZE (FeatureRecord, 6);
 
 
-struct LangSys {
+struct LangSys
+{
+  inline const unsigned int get_feature_index (unsigned int i) const { return featureIndex[i]; }
+  inline unsigned int get_feature_count (void) const { return featureIndex.len; }
 
-  inline const unsigned int get_feature_index (unsigned int i) const {
-    return featureIndex[i];
-  }
-  inline unsigned int get_feature_count (void) const {
-    return featureIndex.len;
-  }
-
-  inline const bool has_required_feature (void) const {
-    return reqFeatureIndex != 0xffff;
-  }
-  /* Returns NO_INDEX if none */
-  inline int get_required_feature_index (void) const {
+  inline const bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
+  inline int get_required_feature_index (void) const
+  {
     if (reqFeatureIndex == 0xffff)
       return NO_INDEX;
    return reqFeatureIndex;;
@@ -103,28 +101,21 @@ struct LangSys {
 ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
 
 
-struct Script {
-
-  inline const LangSys& get_lang_sys (unsigned int i) const {
+struct Script
+{
+  inline const LangSys& get_lang_sys (unsigned int i) const
+  {
     if (i == NO_INDEX) return get_default_lang_sys ();
     return this+langSys[i].offset;
   }
-  inline unsigned int get_lang_sys_count (void) const {
-    return langSys.len;
-  }
-  inline const Tag& get_lang_sys_tag (unsigned int i) const {
-    return langSys[i].tag;
-  }
+  inline unsigned int get_lang_sys_count (void) const { return langSys.len; }
+  inline const Tag& get_lang_sys_tag (unsigned int i) const { return langSys[i].tag; }
 
   // LONGTERMTODO bsearch
   DEFINE_TAG_FIND_INTERFACE (LangSys, lang_sys);	/* find_lang_sys_index (), get_lang_sys_by_tag (tag) */
 
-  inline const bool has_default_lang_sys (void) const {
-    return defaultLangSys != 0;
-  }
-  inline const LangSys& get_default_lang_sys (void) const {
-    return this+defaultLangSys;
-  }
+  inline const bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
+  inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   private:
   OffsetTo<LangSys>
@@ -140,14 +131,10 @@ typedef RecordListOf<Script> ScriptList;
 ASSERT_SIZE (ScriptList, 2);
 
 
-struct Feature {
-
-  inline const unsigned int get_lookup_index (unsigned int i) const {
-    return lookupIndex[i];
-  }
-  inline unsigned int get_lookup_count (void) const {
-    return lookupIndex.len;
-  }
+struct Feature
+{
+  inline const unsigned int get_lookup_index (unsigned int i) const { return lookupIndex[i]; }
+  inline unsigned int get_lookup_count (void) const { return lookupIndex.len; }
 
   /* TODO: implement get_feature_parameters() */
   /* TODO: implement FeatureSize and other special features? */
@@ -164,7 +151,8 @@ typedef RecordListOf<Feature> FeatureList;
 ASSERT_SIZE (FeatureList, 2);
 
 
-struct LookupFlag : USHORT {
+struct LookupFlag : USHORT
+{
   enum {
     RightToLeft		= 0x0001u,
     IgnoreBaseGlyphs	= 0x0002u,
@@ -176,20 +164,17 @@ struct LookupFlag : USHORT {
 };
 ASSERT_SIZE (LookupFlag, 2);
 
-struct LookupSubTable {
+struct LookupSubTable
+{
   private:
   USHORT	format;		/* Subtable format.  Different for GSUB and GPOS */
 };
 ASSERT_SIZE (LookupSubTable, 2);
 
-struct Lookup {
-
-  inline const LookupSubTable& get_subtable (unsigned int i) const {
-    return this+subTable[i];
-  }
-  inline unsigned int get_subtable_count (void) const {
-    return subTable.len;
-  }
+struct Lookup
+{
+  inline const LookupSubTable& get_subtable (unsigned int i) const { return this+subTable[i]; }
+  inline unsigned int get_subtable_count (void) const { return subTable.len; }
 
   inline unsigned int get_type (void) const { return lookupType; }
   inline unsigned int get_flag (void) const { return lookupFlag; }
@@ -202,8 +187,10 @@ struct Lookup {
 ASSERT_SIZE (Lookup, 6);
 
 template <typename Type>
-struct OffsetListOf : OffsetArrayOf<Type> {
-  inline const Type& operator [] (unsigned int i) const {
+struct OffsetListOf : OffsetArrayOf<Type>
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
     if (HB_UNLIKELY (i >= this->len)) return Null(Type);
     return this+this->array[i];
   }
@@ -217,12 +204,13 @@ ASSERT_SIZE (LookupList, 2);
  * Coverage Table
  */
 
-struct CoverageFormat1 {
-
+struct CoverageFormat1
+{
   friend struct Coverage;
 
   private:
-  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
+  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  {
     if (HB_UNLIKELY (glyph_id > 0xFFFF))
       return NOT_COVERED;
     GlyphID gid;
@@ -241,12 +229,13 @@ struct CoverageFormat1 {
 };
 ASSERT_SIZE (CoverageFormat1, 4);
 
-struct CoverageRangeRecord {
-
+struct CoverageRangeRecord
+{
   friend struct CoverageFormat2;
 
   private:
-  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
+  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  {
     if (glyph_id >= start && glyph_id <= end)
       return (unsigned int) startCoverageIndex + (glyph_id - start);
     return NOT_COVERED;
@@ -260,15 +249,17 @@ struct CoverageRangeRecord {
 };
 ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\000\001");
 
-struct CoverageFormat2 {
-
+struct CoverageFormat2
+{
   friend struct Coverage;
 
   private:
-  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const {
+  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  {
     // TODO: bsearch
     unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++) {
+    for (unsigned int i = 0; i < count; i++)
+    {
       unsigned int coverage = rangeRecord[i].get_coverage (glyph_id);
       if (coverage != NOT_COVERED)
         return coverage;
@@ -284,8 +275,10 @@ struct CoverageFormat2 {
 };
 ASSERT_SIZE (CoverageFormat2, 4);
 
-struct Coverage {
-  unsigned int get_coverage (hb_codepoint_t glyph_id) const {
+struct Coverage
+{
+  unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  {
     switch (u.format) {
     case 1: return u.format1->get_coverage(glyph_id);
     case 2: return u.format2->get_coverage(glyph_id);
@@ -293,9 +286,7 @@ struct Coverage {
     }
   }
 
-  inline unsigned int operator() (hb_codepoint_t glyph_id) const {
-    return get_coverage (glyph_id);
-  }
+  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_coverage (glyph_id); }
 
   private:
   union {
@@ -311,12 +302,13 @@ ASSERT_SIZE (Coverage, 2);
  * Class Definition Table
  */
 
-struct ClassDefFormat1 {
-
+struct ClassDefFormat1
+{
   friend struct ClassDef;
 
   private:
-  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  {
     if ((unsigned int) (glyph_id - startGlyph) < classValue.len)
       return classValue[glyph_id - startGlyph];
     return 0;
@@ -329,12 +321,13 @@ struct ClassDefFormat1 {
 };
 ASSERT_SIZE (ClassDefFormat1, 6);
 
-struct ClassRangeRecord {
-
+struct ClassRangeRecord
+{
   friend struct ClassDefFormat2;
 
   private:
-  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  {
     if (glyph_id >= start && glyph_id <= end)
       return classValue;
     return 0;
@@ -347,15 +340,17 @@ struct ClassRangeRecord {
 };
 ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\000\001");
 
-struct ClassDefFormat2 {
-
+struct ClassDefFormat2
+{
   friend struct ClassDef;
 
   private:
-  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
+  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  {
     // TODO: bsearch
     unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++) {
+    for (unsigned int i = 0; i < count; i++)
+    {
       int classValue = rangeRecord[i].get_class (glyph_id);
       if (classValue > 0)
         return classValue;
@@ -370,8 +365,10 @@ struct ClassDefFormat2 {
 };
 ASSERT_SIZE (ClassDefFormat2, 4);
 
-struct ClassDef {
-  hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const {
+struct ClassDef
+{
+  hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  {
     switch (u.format) {
     case 1: return u.format1->get_class(glyph_id);
     case 2: return u.format2->get_class(glyph_id);
@@ -379,9 +376,7 @@ struct ClassDef {
     }
   }
 
-  inline unsigned int operator() (hb_codepoint_t glyph_id) const {
-    return get_class (glyph_id);
-  }
+  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
 
   private:
   union {
@@ -397,9 +392,10 @@ ASSERT_SIZE (ClassDef, 2);
  * Device Tables
  */
 
-struct Device {
-  int get_delta (unsigned int ppem_size) const {
-
+struct Device
+{
+  int get_delta (unsigned int ppem_size) const
+  {
     unsigned int f = deltaFormat;
     if (HB_UNLIKELY (f < 1 || f > 3))
       return 0;
@@ -421,9 +417,7 @@ struct Device {
     return delta;
   }
 
-  inline int operator() (unsigned int ppem_size) const {
-    return get_delta (ppem_size);
-  }
+  inline int operator() (unsigned int ppem_size) const { return get_delta (ppem_size); }
 
   private:
   USHORT	startSize;	/* Smallest size to correct--in ppem */

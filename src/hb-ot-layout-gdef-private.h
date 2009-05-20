@@ -31,12 +31,11 @@
 
 
 #define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, array, name) \
-  inline const Type& name (hb_codepoint_t glyph) { \
-    return this+array[(this+coverage)(glyph)]; \
-  }
+  inline const Type& name (hb_codepoint_t glyph) { return this+array[(this+coverage)(glyph)]; }
 
 
-struct GlyphClassDef : ClassDef {
+struct GlyphClassDef : ClassDef
+{
   enum {
     BaseGlyph		= 0x0001u,
     LigatureGlyph	= 0x0002u,
@@ -49,15 +48,16 @@ struct GlyphClassDef : ClassDef {
  * Attachment List Table
  */
 
-struct AttachPoint {
+struct AttachPoint
+{
   ArrayOf<USHORT>
 		pointIndex;		/* Array of contour point indices--in
 					 * increasing numerical order */
 };
 ASSERT_SIZE (AttachPoint, 2);
 
-struct AttachList {
-
+struct AttachList
+{
   /* const AttachPoint& get_attach_points (hb_codepoint_t glyph); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, attachPoint, get_attach_points);
 
@@ -75,12 +75,14 @@ ASSERT_SIZE (AttachList, 4);
  * Ligature Caret Table
  */
 
-struct CaretValueFormat1 {
-
+struct CaretValueFormat1
+{
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (int ppem) const {
+  inline int get_caret_value (int ppem) const
+  {
+    /* XXX unsigned int */
     return /* TODO garbage */ coordinate / ppem;
   }
 
@@ -90,12 +92,13 @@ struct CaretValueFormat1 {
 };
 ASSERT_SIZE (CaretValueFormat1, 4);
 
-struct CaretValueFormat2 {
-
+struct CaretValueFormat2
+{
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (int ppem) const {
+  inline int get_caret_value (int ppem) const
+  {
     return /* TODO garbage */ 0 / ppem;
   }
 
@@ -105,17 +108,19 @@ struct CaretValueFormat2 {
 };
 ASSERT_SIZE (CaretValueFormat2, 4);
 
-struct CaretValueFormat3 {
-
+struct CaretValueFormat3
+{
   friend struct CaretValue;
 
   private:
-  inline const Device& get_device (void) const {
+  inline const Device& get_device (void) const
+  {
     if (HB_UNLIKELY (!deviceTable)) return Null(Device);
     return (const Device&)*((const char*)this + deviceTable);
   }
 
-  inline int get_caret_value (int ppem) const {
+  inline int get_caret_value (int ppem) const
+  {
     return /* TODO garbage */ (coordinate + get_device().get_delta (ppem)) / ppem;
   }
 
@@ -128,9 +133,11 @@ struct CaretValueFormat3 {
 };
 ASSERT_SIZE (CaretValueFormat3, 6);
 
-struct CaretValue {
+struct CaretValue
+{
   /* XXX  we need access to a load-contour-point vfunc here */
-  int get_caret_value (int ppem) const {
+  int get_caret_value (int ppem) const
+  {
     switch (u.format) {
     case 1: return u.format1->get_caret_value(ppem);
     case 2: return u.format2->get_caret_value(ppem);
@@ -149,18 +156,19 @@ struct CaretValue {
 };
 ASSERT_SIZE (CaretValue, 2);
 
-struct LigGlyph {
-
+struct LigGlyph
+{
   friend struct LigCaretList;
 
+  private:
   OffsetArrayOf<CaretValue>
 		caret;			/* Array of CaretValue tables
 					 * in increasing coordinate order */
 };
 ASSERT_SIZE (LigGlyph, 2);
 
-struct LigCaretList {
-
+struct LigCaretList
+{
   friend struct GDEF;
 
   private:
@@ -181,7 +189,8 @@ ASSERT_SIZE (LigCaretList, 4);
  * GDEF
  */
 
-struct GDEF {
+struct GDEF
+{
   static const hb_tag_t Tag		= HB_TAG ('G','D','E','F');
 
   enum {
@@ -196,14 +205,10 @@ struct GDEF {
   /* XXX check version here? */
 
   inline bool has_glyph_classes () const { return glyphClassDef != 0; }
-  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const {
-    return glyphClassDef(this).get_class (glyph);
-  }
+  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const { return glyphClassDef(this).get_class (glyph); }
 
   inline bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
-  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const {
-    return markAttachClassDef(this).get_class (glyph);
-  }
+  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const { return markAttachClassDef(this).get_class (glyph); }
 
   /* TODO get_attach and get_lig_caret */
   inline bool has_attach_list () const { return attachList != 0; }

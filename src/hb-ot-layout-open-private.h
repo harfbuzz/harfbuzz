@@ -55,7 +55,8 @@
   DEFINE_INDEX_OPERATOR(Type, array, num) \
   DEFINE_LEN(Type, array, num)
 #define DEFINE_INDEX_OPERATOR(Type, array, num) \
-  inline const Type& operator[] (unsigned int i) const { \
+  inline const Type& operator[] (unsigned int i) const \
+  { \
     if (HB_UNLIKELY (i >= num)) return Null(Type); \
     return array[i]; \
   }
@@ -67,7 +68,8 @@
   DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
   DEFINE_LEN(Offset, array, num)
 #define DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
-  inline const Type& operator[] (unsigned int i) const { \
+  inline const Type& operator[] (unsigned int i) const \
+  { \
     if (HB_UNLIKELY (i >= num)) return Null(Type); \
     if (HB_UNLIKELY (!array[i])) return Null(Type); \
     return (const Type&)*((const char*)this + array[i]); \
@@ -75,20 +77,15 @@
 
 
 #define DEFINE_ARRAY_INTERFACE(Type, name) \
-  inline const Type& get_##name (unsigned int i) const { \
-    return (*this)[i]; \
-  } \
-  inline unsigned int get_##name##_count (void) const { \
-    return this->get_len (); \
-  }
+  inline const Type& get_##name (unsigned int i) const { return (*this)[i]; } \
+  inline unsigned int get_##name##_count (void) const { return this->get_len (); }
 #define DEFINE_INDEX_ARRAY_INTERFACE(name) \
-  inline unsigned int get_##name##_index (unsigned int i) const { \
+  inline unsigned int get_##name##_index (unsigned int i) const \
+  { \
     if (HB_UNLIKELY (i >= get_len ())) return NO_INDEX; \
     return (*this)[i]; \
   } \
-  inline unsigned int get_##name##_count (void) const { \
-    return get_len (); \
-  }
+  inline unsigned int get_##name##_count (void) const { return get_len (); }
 
 
 /*
@@ -96,12 +93,8 @@
  */
 
 #define DEFINE_LIST_INTERFACE(Type, name) \
-  inline const Type& get_##name (unsigned int i) const { \
-    return (this+name##List)[i]; \
-  } \
-  inline unsigned int get_##name##_count (void) const { \
-    return (this+name##List).len; \
-  }
+  inline const Type& get_##name (unsigned int i) const { return (this+name##List)[i]; } \
+  inline unsigned int get_##name##_count (void) const { return (this+name##List).len; }
 
 /*
  * Tag types
@@ -109,20 +102,18 @@
 
 #define DEFINE_TAG_ARRAY_INTERFACE(Type, name) \
   DEFINE_ARRAY_INTERFACE (Type, name); \
-  inline const Tag& get_##name##_tag (unsigned int i) const { \
-    return (*this)[i].tag; \
-  }
+  inline const Tag& get_##name##_tag (unsigned int i) const { return (*this)[i].tag; }
 #define DEFINE_TAG_LIST_INTERFACE(Type, name) \
   DEFINE_LIST_INTERFACE (Type, name); \
-  inline const Tag& get_##name##_tag (unsigned int i) const { \
-    return (this+name##List).get_tag (i); \
-  }
+  inline const Tag& get_##name##_tag (unsigned int i) const { return (this+name##List).get_tag (i); }
 
 #define DEFINE_TAG_FIND_INTERFACE(Type, name) \
   inline bool find_##name##_index (hb_tag_t tag, unsigned int *name##_index) const { \
     const Tag t = tag; \
-    for (unsigned int i = 0; i < get_##name##_count (); i++) { \
-      if (t == get_##name##_tag (i)) { \
+    for (unsigned int i = 0; i < get_##name##_count (); i++) \
+    { \
+      if (t == get_##name##_tag (i)) \
+      { \
         if (name##_index) *name##_index = i; \
         return true; \
       } \
@@ -130,7 +121,8 @@
     if (name##_index) *name##_index = NO_INDEX; \
     return false; \
   } \
-  inline const Type& get_##name##_by_tag (hb_tag_t tag) const { \
+  inline const Type& get_##name##_by_tag (hb_tag_t tag) const \
+  { \
     unsigned int i; \
     if (find_##name##_index (tag, &i)) \
       return get_##name (i); \
@@ -150,7 +142,8 @@ static const char NullPool[16] = "";
 
 /* Generic template for nul-content sizeof-sized Null objects. */
 template <typename Type>
-struct Null {
+struct Null
+{
   ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
   static inline const Type &get () { return (const Type&) *NullPool; }
 };
@@ -158,7 +151,8 @@ struct Null {
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
 #define DEFINE_NULL_DATA(Type, size, data) \
 template <> \
-struct Null <Type> { \
+struct Null <Type> \
+{ \
   static inline const Type &get () { static const char bytes[size] = data; return (const Type&) *bytes; /* XXX */ } \
 }
 
@@ -174,13 +168,12 @@ struct Null <Type> { \
  * instance of Type located at the input data location.  It's just a
  * fancy, NULL-safe, cast! */
 #define STATIC_DEFINE_GET_FOR_DATA(Type) \
-  static inline const Type& get_for_data (const char *data) { \
+  static inline const Type& get_for_data (const char *data) \
+  { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
     return (const Type&)*data; \
   } \
-  static inline Type& get_for_data (char *data) { \
-    return (Type&)*data; \
-  }
+  static inline Type& get_for_data (char *data) { return (Type&)*data; }
 
 
 
@@ -214,7 +207,8 @@ struct Null <Type> { \
 #define DEFINE_INT_TYPE0(NAME, type) DEFINE_INT_TYPE1 (NAME, type, hb_be_##type)
 #define DEFINE_INT_TYPE(NAME, u, w)  DEFINE_INT_TYPE0 (NAME, u##int##w##_t)
 #define DEFINE_INT_TYPE_STRUCT(NAME, u, w) \
-  struct NAME { \
+  struct NAME \
+  { \
     DEFINE_INT_TYPE(NAME, u, w) \
   }; \
   ASSERT_SIZE (NAME, w / 8)
@@ -232,7 +226,8 @@ DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
 DEFINE_INT_TYPE_STRUCT (LONGDATETIME, , 64);
 
 /* 32-bit signed fixed-point number (16.16) */
-struct Fixed {
+struct Fixed
+{
   inline Fixed& operator = (int32_t v) { i = (int16_t) (v >> 16); f = (uint16_t) v; return *this; } \
   inline operator int32_t(void) const { return (((int32_t) i) << 16) + (uint16_t) f; } \
   inline bool operator== (Fixed o) const { return i == o.i && f == o.f; } \
@@ -251,24 +246,24 @@ ASSERT_SIZE (Fixed, 4);
 struct FUNIT;
 
 /* 16-bit signed integer (SHORT) that describes a quantity in FUnits. */
-struct FWORD : SHORT {
-};
+struct FWORD : SHORT {};
 ASSERT_SIZE (FWORD, 2);
 
 /* 16-bit unsigned integer (USHORT) that describes a quantity in FUnits. */
-struct UFWORD : USHORT {
-};
+struct UFWORD : USHORT {};
 ASSERT_SIZE (UFWORD, 2);
 
 /* 16-bit signed fixed number with the low 14 bits of fraction (2.14). */
-struct F2DOT14 : SHORT {
+struct F2DOT14 : SHORT
+{
   inline operator double() const { return (uint32_t) this / 16384.; }
 };
 ASSERT_SIZE (F2DOT14, 2);
 
 /* Array of four uint8s (length = 32 bits) used to identify a script, language
  * system, feature, or baseline */
-struct Tag {
+struct Tag
+{
   inline Tag (void) { v[0] = v[1] = v[2] = v[3] = 0; }
   inline Tag (uint32_t v) { (ULONG&)(*this) = v; }
   inline Tag (const char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
@@ -296,22 +291,24 @@ DEFINE_INT_TYPE_STRUCT (Offset, u, 16);
 
 /* Template subclass of Offset that does the dereferencing.  Use: (this+memberName) */
 template <typename Type>
-struct OffsetTo : Offset {
-  inline const Type& operator() (const void *base) const {
+struct OffsetTo : Offset
+{
+  inline const Type& operator() (const void *base) const
+  {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
     return (const Type&)*((const char *) base + offset);
   }
 };
 template <typename Base, typename Type>
-inline const Type& operator + (const Base &base, OffsetTo<Type> offset) {
-  return offset(base);
-}
+inline const Type& operator + (const Base &base, OffsetTo<Type> offset) { return offset (base); }
 
 
 /* CheckSum */
-struct CheckSum : ULONG {
-  static uint32_t CalcTableChecksum (ULONG *Table, uint32_t Length) {
+struct CheckSum : ULONG
+{
+  static uint32_t CalcTableChecksum (ULONG *Table, uint32_t Length)
+  {
     uint32_t Sum = 0L;
     ULONG *EndPtr = Table+((Length+3) & ~3) / sizeof(ULONG);
 
@@ -327,11 +324,11 @@ ASSERT_SIZE (CheckSum, 4);
  * Version Numbers
  */
 
-struct USHORT_Version : USHORT {
-};
+struct USHORT_Version : USHORT {};
 ASSERT_SIZE (USHORT_Version, 2);
 
-struct Fixed_Version : Fixed {
+struct Fixed_Version : Fixed
+{
   inline int16_t major (void) const { return this->int_part(); }
   inline int16_t minor (void) const { return this->frac_part(); }
 };
@@ -343,12 +340,15 @@ ASSERT_SIZE (Fixed_Version, 4);
 
 /* An array with a USHORT number of elements. */
 template <typename Type>
-struct ArrayOf {
-  inline const Type& operator [] (unsigned int i) const {
+struct ArrayOf
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
     if (HB_UNLIKELY (i >= len)) return Null(Type);
     return array[i];
   }
-  inline unsigned int get_size () const {
+  inline unsigned int get_size () const
+  {
     return sizeof (len) + len * sizeof (array[0]);
   }
 
@@ -359,12 +359,15 @@ struct ArrayOf {
 /* An array with a USHORT number of elements,
  * starting at second element. */
 template <typename Type>
-struct HeadlessArrayOf {
-  inline const Type& operator [] (unsigned int i) const {
+struct HeadlessArrayOf
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
     if (HB_UNLIKELY (i >= len || !i)) return Null(Type);
     return array[i-1];
   }
-  inline unsigned int get_size () const {
+  inline unsigned int get_size () const
+  {
     return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]);
   }
 
@@ -374,8 +377,7 @@ struct HeadlessArrayOf {
 
 /* Array of Offset's */
 template <typename Type>
-struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {
-};
+struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
 
 /* An array type is one that contains a variable number of objects
  * as its last item.  An array object is extended with get_len()
@@ -384,7 +386,8 @@ struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {
   DEFINE_INDEX_OPERATOR(Type, array, num) \
   DEFINE_LEN(Type, array, num)
 #define DEFINE_INDEX_OPERATOR(Type, array, num) \
-  inline const Type& operator[] (unsigned int i) const { \
+  inline const Type& operator[] (unsigned int i) const \
+  { \
     if (HB_UNLIKELY (i >= num)) return Null(Type); \
     return array[i]; \
   }
@@ -398,8 +401,8 @@ struct OpenTypeFontFile;
 struct OffsetTable;
 struct TTCHeader;
 
-typedef struct TableDirectory {
-
+typedef struct TableDirectory
+{
   friend struct OpenTypeFontFile;
   friend struct OffsetTable;
 
@@ -418,8 +421,8 @@ typedef struct TableDirectory {
 } OpenTypeTable;
 ASSERT_SIZE (TableDirectory, 16);
 
-typedef struct OffsetTable {
-
+typedef struct OffsetTable
+{
   friend struct OpenTypeFontFile;
   friend struct TTCHeader;
 
@@ -444,8 +447,8 @@ ASSERT_SIZE (OffsetTable, 12);
  * TrueType Collections
  */
 
-struct TTCHeader {
-
+struct TTCHeader
+{
   friend struct OpenTypeFontFile;
 
   private:
@@ -468,8 +471,8 @@ ASSERT_SIZE (TTCHeader, 12);
  * OpenType Font File
  */
 
-struct OpenTypeFontFile {
-
+struct OpenTypeFontFile
+{
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
@@ -481,31 +484,31 @@ struct OpenTypeFontFile {
   inline const Tag& get_tag (void) const { return tag; }
 
   /* This is how you get a table */
-  inline const char* get_table_data (const OpenTypeTable& table) const {
-    return (*this)[table];
-  }
-  inline char* get_table_data (const OpenTypeTable& table) {
-    return (*this)[table];
-  }
+  inline const char* get_table_data (const OpenTypeTable& table) const { return (*this)[table]; }
+  inline char* get_table_data (const OpenTypeTable& table) { return (*this)[table]; }
 
   private:
-  inline const char* operator[] (const OpenTypeTable& table) const {
+  inline const char* operator[] (const OpenTypeTable& table) const
+  {
     if (HB_UNLIKELY (table.offset == 0)) return NULL;
     return ((const char*)this) + table.offset;
   }
-  inline char* operator[] (const OpenTypeTable& table) {
+  inline char* operator[] (const OpenTypeTable& table)
+  {
     if (HB_UNLIKELY (table.offset == 0)) return NULL;
     return ((char*)this) + table.offset;
   }
 
-  unsigned int get_len (void) const {
+  unsigned int get_len (void) const
+  {
     switch (tag) {
     default: return 0;
     case TrueTypeTag: case CFFTag: return 1;
     case TTCTag: return ((const TTCHeader&)*this).get_len();
     }
   }
-  const OpenTypeFontFace& operator[] (unsigned int i) const {
+  const OpenTypeFontFace& operator[] (unsigned int i) const
+  {
     if (HB_UNLIKELY (i >= get_len ())) return Null(OpenTypeFontFace);
     switch (tag) {
     default: case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;

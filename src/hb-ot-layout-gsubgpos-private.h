@@ -50,22 +50,26 @@
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, char *data);
 typedef bool (*apply_lookup_func_t) (APPLY_ARG_DEF, unsigned int lookup_index);
 
-struct ContextFuncs {
+struct ContextFuncs
+{
   match_func_t match;
   apply_lookup_func_t apply;
 };
 
 
-static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, char *data) {
+static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, char *data)
+{
   return glyph_id == value;
 }
 
-static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, char *data) {
+static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, char *data)
+{
   const ClassDef &class_def = (const ClassDef &)*data;
   return class_def.get_class (glyph_id) == value;
 }
 
-static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value, char *data) {
+static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value, char *data)
+{
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   return (data+coverage) (glyph_id) != NOT_COVERED;
 }
@@ -83,8 +87,10 @@ static inline bool match_input (APPLY_ARG_DEF,
   if (HB_UNLIKELY (buffer->in_pos + count > end))
     return false;
 
-  for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+  for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
+  {
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+    {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
       j++;
@@ -108,8 +114,10 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
   if (HB_UNLIKELY (buffer->out_pos < count))
     return false;
 
-  for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--) {
-    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
+  for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--)
+  {
+    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property))
+    {
       if (HB_UNLIKELY (j + 1 == count - i))
 	return false;
       j--;
@@ -134,8 +142,10 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
   if (HB_UNLIKELY (buffer->in_pos + offset + count > end))
     return false;
 
-  for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++) {
-    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property)) {
+  for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++)
+  {
+    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property))
+    {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
       j++;
@@ -149,8 +159,8 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 }
 
 
-struct LookupRecord {
-
+struct LookupRecord
+{
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
@@ -170,8 +180,10 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 
   /* TODO We don't support lookupRecord arrays that are not increasing:
    *      Should be easy for in_place ones at least. */
-  for (unsigned int i = 0; i < count; i++) {
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property)) {
+  for (unsigned int i = 0; i < count; i++)
+  {
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+    {
       if (HB_UNLIKELY (buffer->in_pos == end))
 	return true;
       /* No lookup applied for this index */
@@ -209,7 +221,8 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 
 /* Contextual lookups */
 
-struct ContextLookupContext {
+struct ContextLookupContext
+{
   ContextFuncs funcs;
   char *match_data;
 };
@@ -231,12 +244,13 @@ static inline bool context_lookup (APPLY_ARG_DEF,
 		       context.funcs.apply);
 }
 
-struct Rule {
-
+struct Rule
+{
   friend struct RuleSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const {
+  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const
+  {
     const LookupRecord *lookupRecord = (const LookupRecord *)
 				       ((const char *) input +
 					sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
@@ -258,12 +272,13 @@ struct Rule {
 };
 ASSERT_SIZE (Rule, 4);
 
-struct RuleSet {
-
-  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const {
-
+struct RuleSet
+{
+  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const
+  {
     unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++) {
+    for (unsigned int i = 0; i < num_rules; i++)
+    {
       if ((this+rule[i]).apply (APPLY_ARG, context))
         return true;
     }
@@ -278,13 +293,13 @@ struct RuleSet {
 };
 
 
-struct ContextFormat1 {
-
+struct ContextFormat1
+{
   friend struct Context;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
-
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -309,13 +324,13 @@ struct ContextFormat1 {
 ASSERT_SIZE (ContextFormat1, 6);
 
 
-struct ContextFormat2 {
-
+struct ContextFormat2
+{
   friend struct Context;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
-
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -348,13 +363,13 @@ struct ContextFormat2 {
 ASSERT_SIZE (ContextFormat2, 8);
 
 
-struct ContextFormat3 {
-
+struct ContextFormat3
+{
   friend struct Context;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
-
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -385,10 +400,11 @@ struct ContextFormat3 {
 };
 ASSERT_SIZE (ContextFormat3, 6);
 
-struct Context {
-
+struct Context
+{
   protected:
-  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
+  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG, apply_func);
     case 2: return u.format2->apply (APPLY_ARG, apply_func);
@@ -410,7 +426,8 @@ ASSERT_SIZE (Context, 2);
 
 /* Chaining Contextual lookups */
 
-struct ChainContextLookupContext {
+struct ChainContextLookupContext
+{
   ContextFuncs funcs;
   char *match_data[3];
 };
@@ -451,12 +468,13 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
 		       context.funcs.apply);
 }
 
-struct ChainRule {
-
+struct ChainRule
+{
   friend struct ChainRuleSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const {
+  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const
+  {
     const HeadlessArrayOf<USHORT> &input = (const HeadlessArrayOf<USHORT>&)
 					   *((const char *) &backtrack + backtrack.get_size ());
     const ArrayOf<USHORT> &lookahead = (const ArrayOf<USHORT>&)
@@ -490,12 +508,13 @@ struct ChainRule {
 };
 ASSERT_SIZE (ChainRule, 8);
 
-struct ChainRuleSet {
-
-  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const {
-
+struct ChainRuleSet
+{
+  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const
+  {
     unsigned int num_rules = rule.len;
-    for (unsigned int i = 0; i < num_rules; i++) {
+    for (unsigned int i = 0; i < num_rules; i++)
+    {
       if ((this+rule[i]).apply (APPLY_ARG, context))
         return true;
     }
@@ -510,13 +529,13 @@ struct ChainRuleSet {
 };
 ASSERT_SIZE (ChainRuleSet, 2);
 
-struct ChainContextFormat1 {
-
+struct ChainContextFormat1
+{
   friend struct ChainContext;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
-
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -539,13 +558,13 @@ struct ChainContextFormat1 {
 };
 ASSERT_SIZE (ChainContextFormat1, 6);
 
-struct ChainContextFormat2 {
-
+struct ChainContextFormat2
+{
   friend struct ChainContext;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
-
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -591,17 +610,14 @@ struct ChainContextFormat2 {
 };
 ASSERT_SIZE (ChainContextFormat2, 12);
 
-struct ChainContextFormat3 {
-
+struct ChainContextFormat3
+{
   friend struct ChainContext;
 
   private:
 
-  inline bool apply_coverage (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
-  }
-
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
-
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     const OffsetArrayOf<Coverage> &input = (const OffsetArrayOf<Coverage>&)
 					   *((const char *) &backtrack + backtrack.get_size ());
 
@@ -646,10 +662,11 @@ struct ChainContextFormat3 {
 };
 ASSERT_SIZE (ChainContextFormat3, 10);
 
-struct ChainContext {
-
+struct ChainContext
+{
   protected:
-  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const {
+  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG, apply_func);
     case 2: return u.format2->apply (APPLY_ARG, apply_func);
@@ -673,7 +690,8 @@ ASSERT_SIZE (ChainContext, 2);
  * GSUB/GPOS Common
  */
 
-struct GSUBGPOS {
+struct GSUBGPOS
+{
   static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
   static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
 

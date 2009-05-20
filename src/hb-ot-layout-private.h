@@ -36,18 +36,21 @@
 
 typedef unsigned int hb_ot_layout_class_t;
 
-struct _hb_ot_layout_t {
+struct _hb_ot_layout_t
+{
   const struct GDEF *gdef;
   const struct GSUB *gsub;
   const struct GPOS *gpos;
 
-  struct {
+  struct
+  {
     unsigned char *klasses;
     unsigned int len;
   } new_gdef;
 
   /* TODO full-matrix transformation? */
-  struct gpos_info_t {
+  struct gpos_info_t
+  {
     unsigned int x_ppem, y_ppem;
     hb_16dot16_t x_scale, y_scale;
 
