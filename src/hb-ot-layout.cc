@@ -82,6 +82,13 @@ hb_ot_layout_destroy (hb_ot_layout_t *layout)
   free (layout);
 }
 
+void
+hb_ot_layout_set_direction (hb_ot_layout_t *layout,
+			    hb_bool_t r2l)
+{
+  layout->gpos_info.r2l = !!r2l;
+}
+
 /*
  * GDEF
  */

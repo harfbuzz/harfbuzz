@@ -551,18 +551,6 @@ struct CursivePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    struct hb_ot_layout_t::gpos_info_t *gpi = &layout->gpos_info;
-    hb_codepoint_t last_pos = gpi->last;
-    gpi->last = 0xFFFF;
-
-    /* We don't handle mark glyphs here. */
-    if (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
-      return false;
-
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
-      return false;
-
     /* Now comes the messiest part of the whole OpenType
        specification.  At first glance, cursive connections seem easy
        to understand, but there are pitfalls!  The reason is that
@@ -680,6 +668,18 @@ struct CursivePosFormat1
        Since horizontal advance widths or vertical advance heights
        can be used alone but not together, no ambiguity occurs.        */
 
+    struct hb_ot_layout_t::gpos_info_t *gpi = &layout->gpos_info;
+    hb_codepoint_t last_pos = gpi->last;
+    gpi->last = 0xFFFF;
+
+    /* We don't handle mark glyphs here. */
+    if (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+      return false;
+
+    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (index == NOT_COVERED))
+      return false;
+
     const EntryExitRecord &record = entryExitRecord[index];
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
@@ -696,24 +696,27 @@ struct CursivePosFormat1
     }
     else
     {
-      POSITION (gpi->last)->x_advance   = gpi->anchor_x - entry_x;
-      POSITION (gpi->last)->new_advance = TRUE;
+      POSITION (last_pos)->x_advance   = gpi->anchor_x - entry_x;
+      POSITION (last_pos)->new_advance = TRUE;
     }
 
     if  (lookup_flag & LookupFlag::RightToLeft)
     {
-      POSITION (gpi->last)->cursive_chain = gpi->last - buffer->in_pos;
-      POSITION (gpi->last)->y_pos = entry_y - gpi->anchor_y;
+      POSITION (last_pos)->cursive_chain = last_pos - buffer->in_pos;
+      POSITION (last_pos)->y_pos = entry_y - gpi->anchor_y;
     }
     else
     {
-      POSITION (buffer->in_pos)->cursive_chain = buffer->in_pos - gpi->last;
+      POSITION (buffer->in_pos)->cursive_chain = buffer->in_pos - last_pos;
       POSITION (buffer->in_pos)->y_pos = gpi->anchor_y - entry_y;
     }
 
   end:
     if (record.exitAnchor)
+    {
+      gpi->last = buffer->in_pos;
       (this+record.exitAnchor).get_anchor (layout, IN_CURGLYPH (), &gpi->anchor_x, &gpi->anchor_y);
+    }
 
     buffer->in_pos++;
     return true;
