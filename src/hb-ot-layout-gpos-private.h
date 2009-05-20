@@ -65,9 +65,10 @@ struct ValueRecord {
 };
 #endif
 
-struct ValueFormat : USHORT {
-
-  enum {
+struct ValueFormat : USHORT
+{
+  enum
+  {
     xPlacement	= 0x0001,	/* Includes horizontal adjustment for placement */
     yPlacement	= 0x0002,	/* Includes vertical adjustment for placement */
     xAdvance	= 0x0004,	/* Includes horizontal adjustment for advance */
@@ -79,7 +80,8 @@ struct ValueFormat : USHORT {
     reserved	= 0xF000,	/* For future use */
   };
 
-  inline unsigned int get_len () const {
+  inline unsigned int get_len () const
+  {
     return _hb_popcount32 ((unsigned int) *this);
   }
 
@@ -136,8 +138,8 @@ struct ValueFormat : USHORT {
 ASSERT_SIZE (ValueFormat, 2);
 
 
-struct AnchorFormat1 {
-
+struct AnchorFormat1
+{
   friend struct Anchor;
 
   private:
@@ -155,8 +157,8 @@ struct AnchorFormat1 {
 };
 ASSERT_SIZE (AnchorFormat1, 6);
 
-struct AnchorFormat2 {
-
+struct AnchorFormat2
+{
   friend struct Anchor;
 
   private:
@@ -176,8 +178,8 @@ struct AnchorFormat2 {
 };
 ASSERT_SIZE (AnchorFormat2, 8);
 
-struct AnchorFormat3 {
-
+struct AnchorFormat3
+{
   friend struct Anchor;
 
   private:
@@ -204,8 +206,8 @@ struct AnchorFormat3 {
 };
 ASSERT_SIZE (AnchorFormat3, 10);
 
-struct Anchor {
-
+struct Anchor
+{
   inline void get_anchor (hb_ot_layout_t *layout, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
@@ -229,7 +231,8 @@ struct Anchor {
 ASSERT_SIZE (Anchor, 2);
 
 
-struct MarkRecord {
+struct MarkRecord
+{
   /* TODO */
 
   private:
@@ -240,7 +243,8 @@ struct MarkRecord {
 };
 ASSERT_SIZE (MarkRecord, 4);
 
-struct MarkArray {
+struct MarkArray
+{
   /* TODO */
 
   private:
@@ -252,8 +256,8 @@ ASSERT_SIZE (MarkArray, 2);
 
 /* Lookups */
 
-struct SinglePosFormat1 {
-
+struct SinglePosFormat1
+{
   friend struct SinglePos;
 
   private:
@@ -280,8 +284,8 @@ struct SinglePosFormat1 {
 };
 ASSERT_SIZE (SinglePosFormat1, 6);
 
-struct SinglePosFormat2 {
-
+struct SinglePosFormat2
+{
   friend struct SinglePos;
 
   private:
@@ -313,8 +317,8 @@ struct SinglePosFormat2 {
 };
 ASSERT_SIZE (SinglePosFormat2, 8);
 
-struct SinglePos {
-
+struct SinglePos
+{
   friend struct PosLookupSubTable;
 
   private:
@@ -338,8 +342,8 @@ struct SinglePos {
 ASSERT_SIZE (SinglePos, 2);
 
 
-struct PairValueRecord {
-
+struct PairValueRecord
+{
   friend struct PairPosFormat1;
 
   private:
@@ -351,18 +355,9 @@ struct PairValueRecord {
 };
 ASSERT_SIZE (PairValueRecord, 2);
 
-struct PairSet {
-
+struct PairSet
+{
   friend struct PairPosFormat1;
-
-  private:
-  inline bool apply (APPLY_ARG_DEF,
-		     ValueFormat &f1, ValueFormat &f2,
-		     unsigned int next_pos) const {
-
-
-    return true;
-  }
 
   private:
   USHORT	len;			/* Number of PairValueRecords */
@@ -373,8 +368,8 @@ struct PairSet {
 };
 ASSERT_SIZE (PairSet, 2);
 
-struct PairPosFormat1 {
-
+struct PairPosFormat1
+{
   friend struct PairPos;
 
   private:
@@ -389,7 +384,8 @@ struct PairPosFormat1 {
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+    {
       if (HB_UNLIKELY (j == end))
 	return false;
       j++;
@@ -403,8 +399,10 @@ struct PairPosFormat1 {
 
     unsigned int count = pair_set.len;
     const PairValueRecord *record = pair_set.array;
-    for (unsigned int i = 0; i < count; i++) {
-      if (IN_GLYPH (j) == record->secondGlyph) {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (IN_GLYPH (j) == record->secondGlyph)
+      {
 	valueFormat1.apply_value (layout, (const char *) this, record->values, CURPOSITION ());
 	valueFormat2.apply_value (layout, (const char *) this, record->values + len1, POSITION (j));
 	if (len2)
@@ -435,8 +433,8 @@ struct PairPosFormat1 {
 };
 ASSERT_SIZE (PairPosFormat1, 10);
 
-struct PairPosFormat2 {
-
+struct PairPosFormat2
+{
   friend struct PairPos;
 
   private:
@@ -451,7 +449,8 @@ struct PairPosFormat2 {
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+    {
       if (HB_UNLIKELY (j == end))
 	return false;
       j++;
@@ -507,13 +506,14 @@ struct PairPosFormat2 {
 };
 ASSERT_SIZE (PairPosFormat2, 16);
 
-struct PairPos {
-
+struct PairPos
+{
   friend struct PosLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
@@ -531,7 +531,8 @@ struct PairPos {
 ASSERT_SIZE (PairPos, 2);
 
 
-struct EntryExitRecord {
+struct EntryExitRecord
+{
   OffsetTo<Anchor>
 		entryAnchor;		/* Offset to EntryAnchor table--from
 					 * beginning of CursivePos
@@ -543,8 +544,8 @@ struct EntryExitRecord {
 };
 ASSERT_SIZE (EntryExitRecord, 4);
 
-struct CursivePosFormat1 {
-
+struct CursivePosFormat1
+{
   friend struct CursivePos;
 
   private:
@@ -729,13 +730,14 @@ struct CursivePosFormat1 {
 };
 ASSERT_SIZE (CursivePosFormat1, 6);
 
-struct CursivePos {
-
+struct CursivePos
+{
   friend struct PosLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -751,7 +753,8 @@ struct CursivePos {
 ASSERT_SIZE (CursivePos, 2);
 
 
-struct BaseRecord {
+struct BaseRecord
+{
   /* TODO */
 
   private:
@@ -762,7 +765,8 @@ struct BaseRecord {
 };
 ASSERT_SIZE (BaseRecord, 0);
 
-struct BaseArray {
+struct BaseArray
+{
   /* TODO */
 
   private:
@@ -772,12 +776,13 @@ struct BaseArray {
 };
 ASSERT_SIZE (BaseArray, 2);
 
-struct MarkBasePosFormat1 {
-
+struct MarkBasePosFormat1
+{
   friend struct MarkBasePos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     /* TODO */
     return false;
   }
@@ -797,13 +802,14 @@ struct MarkBasePosFormat1 {
 };
 ASSERT_SIZE (MarkBasePosFormat1, 12);
 
-struct MarkBasePos {
-
+struct MarkBasePos
+{
   friend struct PosLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -819,7 +825,8 @@ struct MarkBasePos {
 ASSERT_SIZE (MarkBasePos, 2);
 
 
-struct ComponentRecord {
+struct ComponentRecord
+{
   /* TODO */
 
   private:
@@ -833,7 +840,8 @@ struct ComponentRecord {
 };
 ASSERT_SIZE (ComponentRecord, 0);
 
-struct LigatureAttach {
+struct LigatureAttach
+{
   /* TODO */
 
   private:
@@ -846,7 +854,8 @@ struct LigatureAttach {
 };
 ASSERT_SIZE (LigatureAttach, 2);
 
-struct LigatureArray {
+struct LigatureArray
+{
   /* TODO */
 
   private:
@@ -857,12 +866,13 @@ struct LigatureArray {
 };
 ASSERT_SIZE (LigatureArray, 2);
 
-struct MarkLigPosFormat1 {
-
+struct MarkLigPosFormat1
+{
   friend struct MarkLigPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     /* TODO */
     return false;
   }
@@ -882,13 +892,14 @@ struct MarkLigPosFormat1 {
 };
 ASSERT_SIZE (MarkLigPosFormat1, 12);
 
-struct MarkLigPos {
-
+struct MarkLigPos
+{
   friend struct PosLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -904,7 +915,8 @@ struct MarkLigPos {
 ASSERT_SIZE (MarkLigPos, 2);
 
 
-struct Mark2Record {
+struct Mark2Record
+{
   /* TODO */
 
   private:
@@ -914,7 +926,8 @@ struct Mark2Record {
 					 * Mark2Array table--zero--based array */
 };
 
-struct Mark2Array {
+struct Mark2Array
+{
   /* TODO */
 
   private:
@@ -924,12 +937,13 @@ struct Mark2Array {
 };
 ASSERT_SIZE (Mark2Array, 2);
 
-struct MarkMarkPosFormat1 {
-
+struct MarkMarkPosFormat1
+{
   friend struct MarkMarkPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     /* TODO */
     return false;
   }
@@ -949,13 +963,14 @@ struct MarkMarkPosFormat1 {
 };
 ASSERT_SIZE (MarkMarkPosFormat1, 10);
 
-struct MarkMarkPos {
-
+struct MarkMarkPos
+{
   friend struct PosLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -973,25 +988,27 @@ ASSERT_SIZE (MarkMarkPos, 2);
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
 
-struct ContextPos : Context {
-
-  inline bool apply (APPLY_ARG_DEF) const {
+struct ContextPos : Context
+{
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     return Context::apply (APPLY_ARG, position_lookup);
   }
 };
 ASSERT_SIZE (ContextPos, 2);
 
-struct ChainContextPos : ChainContext {
-
-  inline bool apply (APPLY_ARG_DEF) const {
+struct ChainContextPos : ChainContext
+{
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     return ChainContext::apply (APPLY_ARG, position_lookup);
   }
 };
 ASSERT_SIZE (ChainContextPos, 2);
 
 
-struct ExtensionPosFormat1 {
-
+struct ExtensionPosFormat1
+{
   friend struct ExtensionPos;
 
   private:
@@ -1011,21 +1028,23 @@ struct ExtensionPosFormat1 {
 };
 ASSERT_SIZE (ExtensionPosFormat1, 8);
 
-struct ExtensionPos {
-
+struct ExtensionPos
+{
   friend struct PosLookup;
   friend struct PosLookupSubTable;
 
   private:
 
-  inline unsigned int get_type (void) const {
+  inline unsigned int get_type (void) const
+  {
     switch (u.format) {
     case 1: return u.format1->get_type ();
     default:return 0;
     }
   }
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -1058,12 +1077,12 @@ enum {
 };
 
 
-struct PosLookupSubTable {
-
+struct PosLookupSubTable
+{
   friend struct PosLookup;
 
-  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const {
-
+  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
+  {
     switch (lookup_type) {
     case GPOS_Single:			return u.single->apply (APPLY_ARG);
     case GPOS_Pair:			return u.pair->apply (APPLY_ARG);
@@ -1095,18 +1114,21 @@ struct PosLookupSubTable {
 ASSERT_SIZE (PosLookupSubTable, 2);
 
 
-struct PosLookup : Lookup {
-
-  inline const PosLookupSubTable& get_subtable (unsigned int i) const {
+struct PosLookup : Lookup
+{
+  inline const PosLookupSubTable& get_subtable (unsigned int i) const
+  {
     return (const PosLookupSubTable&) Lookup::get_subtable (i);
   }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
-  inline unsigned int get_effective_type (void) const {
+  inline unsigned int get_effective_type (void) const
+  {
     unsigned int type = get_type ();
 
-    if (HB_UNLIKELY (type == GPOS_Extension)) {
+    if (HB_UNLIKELY (type == GPOS_Extension))
+    {
       unsigned int count = get_subtable_count ();
       type = get_subtable(0).u.extension->get_type ();
       /* The spec says all subtables should have the same type.
@@ -1123,7 +1145,8 @@ struct PosLookup : Lookup {
 			       hb_buffer_t    *buffer,
 			       unsigned int    context_length,
 			       unsigned int    nesting_level_left,
-			       unsigned int    property) const {
+			       unsigned int    property) const
+  {
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
 
@@ -1134,8 +1157,8 @@ struct PosLookup : Lookup {
     return false;
   }
 
-  inline bool apply_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const {
-
+  inline bool apply_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const
+  {
     unsigned int lookup_flag = get_flag ();
 
     unsigned int property;
@@ -1147,8 +1170,8 @@ struct PosLookup : Lookup {
 
   bool apply_string (hb_ot_layout_t *layout,
 		     hb_buffer_t    *buffer,
-		     hb_ot_layout_feature_mask_t mask) const {
-
+		     hb_ot_layout_feature_mask_t mask) const
+  {
     bool ret = false;
 
     if (HB_UNLIKELY (!buffer->in_length))
@@ -1157,13 +1180,16 @@ struct PosLookup : Lookup {
     layout->gpos_info.last = 0xFFFF; /* no last valid glyph for cursive pos. */
 
     buffer->in_pos = 0;
-    while (buffer->in_pos < buffer->in_length) {
-
+    while (buffer->in_pos < buffer->in_length)
+    {
       bool done;
-      if (~IN_PROPERTIES (buffer->in_pos) & mask) {
+      if (~IN_PROPERTIES (buffer->in_pos) & mask)
+      {
 	  done = apply_once (layout, buffer);
 	  ret |= done;
-      } else {
+      }
+      else
+      {
           done = false;
 	  /* Contrary to properties defined in GDEF, user-defined properties
 	     will always stop a possible cursive positioning.                */
@@ -1184,20 +1210,23 @@ ASSERT_SIZE (PosLookup, 6);
  * GPOS
  */
 
-struct GPOS : GSUBGPOS {
+struct GPOS : GSUBGPOS
+{
   static const hb_tag_t Tag		= HB_TAG ('G','P','O','S');
 
   STATIC_DEFINE_GET_FOR_DATA (GPOS);
   /* XXX check version here? */
 
-  inline const PosLookup& get_lookup (unsigned int i) const {
-    return (PosLookup&)(((GSUBGPOS *)this)->get_lookup (i));
+  inline const PosLookup& get_lookup (unsigned int i) const
+  {
+    return (const PosLookup&) GSUBGPOS::get_lookup (i);
   }
 
   inline bool position_lookup (hb_ot_layout_t *layout,
 			       hb_buffer_t    *buffer,
 			       unsigned int    lookup_index,
-			       hb_ot_layout_feature_mask_t  mask) const {
+			       hb_ot_layout_feature_mask_t  mask) const
+  {
     return get_lookup (lookup_index).apply_string (layout, buffer, mask);
   }
 
@@ -1207,7 +1236,8 @@ ASSERT_SIZE (GPOS, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionPosFormat1::apply (APPLY_ARG_DEF) const {
+inline bool ExtensionPosFormat1::apply (APPLY_ARG_DEF) const
+{
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type ==  GPOS_Extension))
@@ -1216,7 +1246,8 @@ inline bool ExtensionPosFormat1::apply (APPLY_ARG_DEF) const {
   return ((PosLookupSubTable&)*(((char *) this) + get_offset ())).apply (APPLY_ARG, lookup_type);
 }
 
-static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index) {
+static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
+{
   const GPOS &gpos = *(layout->gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 

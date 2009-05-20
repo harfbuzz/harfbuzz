@@ -40,19 +40,27 @@ _hb_buffer_add_output_glyph_ids( HB_Buffer  buffer,
 			      HB_UShort  ligID );
 
 
-struct SingleSubstFormat1 {
-
+struct SingleSubstFormat1
+{
   friend struct SingleSubst;
 
   private:
 
-  inline bool get_substitute (hb_codepoint_t &glyph_id) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     glyph_id += deltaGlyphID;
+    _hb_buffer_replace_glyph (buffer, glyph_id);
+
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+    {
+      /* we inherit the old glyph class to the substituted glyph */
+      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    }
 
     return true;
   }
@@ -67,14 +75,15 @@ struct SingleSubstFormat1 {
 };
 ASSERT_SIZE (SingleSubstFormat1, 6);
 
-struct SingleSubstFormat2 {
-
+struct SingleSubstFormat2
+{
   friend struct SingleSubst;
 
   private:
 
-  inline bool get_substitute (hb_codepoint_t &glyph_id) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
+    hb_codepoint_t glyph_id = IN_CURGLYPH ();
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -83,6 +92,14 @@ struct SingleSubstFormat2 {
       return false;
 
     glyph_id = substitute[index];
+    _hb_buffer_replace_glyph (buffer, glyph_id);
+
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+    {
+      /* we inherit the old glyph class to the substituted glyph */
+      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    }
+
     return true;
   }
 
@@ -97,36 +114,19 @@ struct SingleSubstFormat2 {
 };
 ASSERT_SIZE (SingleSubstFormat2, 6);
 
-struct SingleSubst {
-
+struct SingleSubst
+{
   friend struct SubstLookupSubTable;
 
   private:
 
-  inline bool get_substitute (hb_codepoint_t &glyph_id) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
-    case 1: return u.format1->get_substitute (glyph_id);
-    case 2: return u.format2->get_substitute (glyph_id);
+    case 1: return u.format1->apply (APPLY_ARG);
+    case 2: return u.format2->apply (APPLY_ARG);
     default:return false;
     }
-  }
-
-  inline bool apply (APPLY_ARG_DEF) const {
-
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
-
-    if (!get_substitute (glyph_id))
-      return false;
-
-    _hb_buffer_replace_glyph (buffer, glyph_id);
-
-    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
-    {
-      /* we inherit the old glyph class to the substituted glyph */
-      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
-    }
-
-    return true;
   }
 
   private:
@@ -139,21 +139,21 @@ struct SingleSubst {
 ASSERT_SIZE (SingleSubst, 2);
 
 
-struct Sequence {
-
+struct Sequence
+{
   friend struct MultipleSubstFormat1;
 
   private:
 
-  inline void set_glyph_class (hb_ot_layout_t *layout, unsigned int property) const {
-
+  inline void set_glyph_class (hb_ot_layout_t *layout, unsigned int property) const
+  {
     unsigned int count = substitute.len;
     for (unsigned int n = 0; n < count; n++)
       _hb_ot_layout_set_glyph_property (layout, substitute[n], property);
   }
 
-  inline bool apply (APPLY_ARG_DEF) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     if (HB_UNLIKELY (!substitute.len))
       return false;
 
@@ -180,13 +180,14 @@ struct Sequence {
 };
 ASSERT_SIZE (Sequence, 2);
 
-struct MultipleSubstFormat1 {
-
+struct MultipleSubstFormat1
+{
   friend struct MultipleSubst;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
@@ -206,13 +207,14 @@ struct MultipleSubstFormat1 {
 };
 ASSERT_SIZE (MultipleSubstFormat1, 6);
 
-struct MultipleSubst {
-
+struct MultipleSubst
+{
   friend struct SubstLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -232,14 +234,14 @@ typedef ArrayOf<GlyphID> AlternateSet;	/* Array of alternate GlyphIDs--in
 					 * arbitrary order */
 ASSERT_SIZE (AlternateSet, 2);
 
-struct AlternateSubstFormat1 {
-
+struct AlternateSubstFormat1
+{
   friend struct AlternateSubst;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     unsigned int index = (this+coverage) (glyph_id);
@@ -287,13 +289,14 @@ struct AlternateSubstFormat1 {
 };
 ASSERT_SIZE (AlternateSubstFormat1, 6);
 
-struct AlternateSubst {
-
+struct AlternateSubst
+{
   friend struct SubstLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -309,21 +312,23 @@ struct AlternateSubst {
 ASSERT_SIZE (AlternateSubst, 2);
 
 
-struct Ligature {
-
+struct Ligature
+{
   friend struct LigatureSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, bool is_mark) const {
-
+  inline bool apply (APPLY_ARG_DEF, bool is_mark) const
+  {
     unsigned int i, j;
     unsigned int count = component.len;
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
     if (HB_UNLIKELY (buffer->in_pos + count > end))
       return false;
 
-    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++) {
-      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property)) {
+    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
+    {
+      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+      {
 	if (HB_UNLIKELY (j + count - i == end))
 	  return false;
 	j++;
@@ -387,16 +392,17 @@ struct Ligature {
 };
 ASSERT_SIZE (Ligature, 4);
 
-struct LigatureSet {
-
+struct LigatureSet
+{
   friend struct LigatureSubstFormat1;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF, bool is_mark) const {
-
+  inline bool apply (APPLY_ARG_DEF, bool is_mark) const
+  {
     unsigned int num_ligs = ligature.len;
-    for (unsigned int i = 0; i < num_ligs; i++) {
+    for (unsigned int i = 0; i < num_ligs; i++)
+    {
       const Ligature &lig = this+ligature[i];
       if (lig.apply (APPLY_ARG, is_mark))
         return true;
@@ -412,14 +418,14 @@ struct LigatureSet {
 };
 ASSERT_SIZE (LigatureSet, 2);
 
-struct LigatureSubstFormat1 {
-
+struct LigatureSubstFormat1
+{
   friend struct LigatureSubst;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     bool first_is_mark = (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
@@ -444,13 +450,14 @@ struct LigatureSubstFormat1 {
 };
 ASSERT_SIZE (LigatureSubstFormat1, 6);
 
-struct LigatureSubst {
-
+struct LigatureSubst
+{
   friend struct SubstLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -469,25 +476,27 @@ ASSERT_SIZE (LigatureSubst, 2);
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
 
-struct ContextSubst : Context {
-
-  inline bool apply (APPLY_ARG_DEF) const {
+struct ContextSubst : Context
+{
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     return Context::apply (APPLY_ARG, substitute_lookup);
   }
 };
 ASSERT_SIZE (ContextSubst, 2);
 
-struct ChainContextSubst : ChainContext {
-
-  inline bool apply (APPLY_ARG_DEF) const {
+struct ChainContextSubst : ChainContext
+{
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     return ChainContext::apply (APPLY_ARG, substitute_lookup);
   }
 };
 ASSERT_SIZE (ChainContextSubst, 2);
 
 
-struct ExtensionSubstFormat1 {
-
+struct ExtensionSubstFormat1
+{
   friend struct ExtensionSubst;
 
   private:
@@ -507,21 +516,23 @@ struct ExtensionSubstFormat1 {
 };
 ASSERT_SIZE (ExtensionSubstFormat1, 8);
 
-struct ExtensionSubst {
-
+struct ExtensionSubst
+{
   friend struct SubstLookup;
   friend struct SubstLookupSubTable;
 
   private:
 
-  inline unsigned int get_type (void) const {
+  inline unsigned int get_type (void) const
+  {
     switch (u.format) {
     case 1: return u.format1->get_type ();
     default:return 0;
     }
   }
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -537,13 +548,13 @@ struct ExtensionSubst {
 ASSERT_SIZE (ExtensionSubst, 2);
 
 
-struct ReverseChainSingleSubstFormat1 {
-
+struct ReverseChainSingleSubstFormat1
+{
   friend struct ReverseChainSingleSubst;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const {
-
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     if (HB_UNLIKELY (context_length != NO_CONTEXT))
       return false; /* No chaining to this type */
 
@@ -591,13 +602,14 @@ struct ReverseChainSingleSubstFormat1 {
 };
 ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
 
-struct ReverseChainSingleSubst {
-
+struct ReverseChainSingleSubst
+{
   friend struct SubstLookupSubTable;
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const {
+  inline bool apply (APPLY_ARG_DEF) const
+  {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -629,12 +641,12 @@ enum {
   GSUB_ReverseChainSingle	= 8,
 };
 
-struct SubstLookupSubTable {
-
+struct SubstLookupSubTable
+{
   friend struct SubstLookup;
 
-  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const {
-
+  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
+  {
     switch (lookup_type) {
     case GSUB_Single:			return u.single->apply (APPLY_ARG);
     case GSUB_Multiple:			return u.multiple->apply (APPLY_ARG);
@@ -664,18 +676,21 @@ struct SubstLookupSubTable {
 ASSERT_SIZE (SubstLookupSubTable, 2);
 
 
-struct SubstLookup : Lookup {
-
-  inline const SubstLookupSubTable& get_subtable (unsigned int i) const {
+struct SubstLookup : Lookup
+{
+  inline const SubstLookupSubTable& get_subtable (unsigned int i) const
+  {
     return (const SubstLookupSubTable&) Lookup::get_subtable (i);
   }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
-  inline unsigned int get_effective_type (void) const {
+  inline unsigned int get_effective_type (void) const
+  {
     unsigned int type = get_type ();
 
-    if (HB_UNLIKELY (type == GSUB_Extension)) {
+    if (HB_UNLIKELY (type == GSUB_Extension))
+    {
       unsigned int count = get_subtable_count ();
       type = get_subtable(0).u.extension->get_type ();
       /* The spec says all subtables should have the same type.
@@ -688,18 +703,17 @@ struct SubstLookup : Lookup {
     return type;
   }
 
-  inline bool is_reverse (void) const {
-    switch (get_effective_type ()) {
-    case GSUB_ReverseChainSingle:	return true;
-    default:				return false;
-    }
+  inline bool is_reverse (void) const
+  {
+    return HB_UNLIKELY (get_effective_type () == GSUB_ReverseChainSingle);
   }
 
   inline bool apply_subtables (hb_ot_layout_t *layout,
 			       hb_buffer_t    *buffer,
 			       unsigned int    context_length,
 			       unsigned int    nesting_level_left,
-			       unsigned int    property) const {
+			       unsigned int    property) const
+  {
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
 
@@ -710,8 +724,8 @@ struct SubstLookup : Lookup {
     return false;
   }
 
-  inline bool apply_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const {
-
+  inline bool apply_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const
+  {
     unsigned int lookup_flag = get_flag ();
 
     unsigned int property;
@@ -723,20 +737,20 @@ struct SubstLookup : Lookup {
 
   bool apply_string (hb_ot_layout_t *layout,
 		     hb_buffer_t    *buffer,
-		     hb_ot_layout_feature_mask_t mask) const {
-
+		     hb_ot_layout_feature_mask_t mask) const
+  {
     bool ret = false;
 
     if (HB_UNLIKELY (!buffer->in_length))
       return false;
 
-    if (HB_LIKELY (!is_reverse ())) {
-
+    if (HB_LIKELY (!is_reverse ()))
+    {
 	/* in/out forward substitution */
 	_hb_buffer_clear_output (buffer);
 	buffer->in_pos = 0;
-	while (buffer->in_pos < buffer->in_length) {
-
+	while (buffer->in_pos < buffer->in_length)
+	{
 	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
 	      apply_once (layout, buffer))
 	    ret = true;
@@ -747,19 +761,22 @@ struct SubstLookup : Lookup {
 	if (ret)
 	  _hb_buffer_swap (buffer);
 
-    } else {
+    }
+    else
+    {
 
 	/* in-place backward substitution */
 	buffer->in_pos = buffer->in_length - 1;
-	do {
-
+	do
+	{
 	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
 	      apply_once (layout, buffer))
 	    ret = true;
 	  else
 	    buffer->in_pos--;
 
-	} while ((int) buffer->in_pos >= 0);
+	}
+	while ((int) buffer->in_pos >= 0);
     }
 
     return ret;
@@ -772,20 +789,23 @@ ASSERT_SIZE (SubstLookup, 6);
  * GSUB
  */
 
-struct GSUB : GSUBGPOS {
+struct GSUB : GSUBGPOS
+{
   static const hb_tag_t Tag		= HB_TAG ('G','S','U','B');
 
   STATIC_DEFINE_GET_FOR_DATA (GSUB);
   /* XXX check version here? */
 
-  inline const SubstLookup& get_lookup (unsigned int i) const {
-    return (SubstLookup&)(((GSUBGPOS *)this)->get_lookup (i));
+  inline const SubstLookup& get_lookup (unsigned int i) const
+  {
+    return (const SubstLookup&) GSUBGPOS::get_lookup (i);
   }
 
   inline bool substitute_lookup (hb_ot_layout_t *layout,
 				 hb_buffer_t    *buffer,
 			         unsigned int    lookup_index,
-				 hb_ot_layout_feature_mask_t  mask) const {
+				 hb_ot_layout_feature_mask_t  mask) const
+  {
     return get_lookup (lookup_index).apply_string (layout, buffer, mask);
   }
 
@@ -795,7 +815,8 @@ ASSERT_SIZE (GSUB, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionSubstFormat1::apply (APPLY_ARG_DEF) const {
+inline bool ExtensionSubstFormat1::apply (APPLY_ARG_DEF) const
+{
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type ==  GSUB_Extension))
@@ -804,7 +825,8 @@ inline bool ExtensionSubstFormat1::apply (APPLY_ARG_DEF) const {
   return ((SubstLookupSubTable&)*(((char *) this) + get_offset ())).apply (APPLY_ARG, lookup_type);
 }
 
-static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index) {
+static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
+{
   const GSUB &gsub = *(layout->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
