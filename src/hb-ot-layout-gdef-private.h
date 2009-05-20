@@ -112,22 +112,16 @@ struct CaretValueFormat3
 {
   friend struct CaretValue;
 
-  private:
-  inline const Device& get_device (void) const
-  {
-    if (HB_UNLIKELY (!deviceTable)) return Null(Device);
-    return (const Device&)*((const char*)this + deviceTable);
-  }
-
   inline int get_caret_value (int ppem) const
   {
-    return /* TODO garbage */ (coordinate + get_device().get_delta (ppem)) / ppem;
+    return /* TODO garbage */ (coordinate + (this+deviceTable).get_delta (ppem)) / ppem;
   }
 
   private:
   USHORT	caretValueFormat;	/* Format identifier--format = 3 */
   SHORT		coordinate;		/* X or Y value, in design units */
-  Offset	deviceTable;		/* Offset to Device table for X or Y
+  OffsetTo<Device>
+		deviceTable;		/* Offset to Device table for X or Y
 					 * value--from beginning of CaretValue
 					 * table */
 };
