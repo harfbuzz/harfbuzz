@@ -837,6 +837,7 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
+  /* XXX This should be apply_one I guess */
   return l.apply_subtables (layout, buffer, context_length, nesting_level_left, property);
 }
 
