@@ -1,3 +1,4 @@
 - Support for new, OpenType 1.6, mark filtering sets
 - When sanitizing, have to do a second round to make sure no toe-stepping
 - Implement is_simple()
+- Static assert PangoOTGlyph vs hb */
