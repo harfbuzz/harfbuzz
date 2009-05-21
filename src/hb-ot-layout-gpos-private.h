@@ -753,26 +753,18 @@ struct CursivePos
 ASSERT_SIZE (CursivePos, 2);
 
 
-struct BaseRecord
-{
-  /* TODO */
-
-  private:
-  Offset	baseAnchor[];		/* Array of offsets (one per class)
-					 * to Anchor tables--from beginning
-					 * of BaseArray table--ordered by
-					 * class--zero--based */
-};
-ASSERT_SIZE (BaseRecord, 0);
-
 struct BaseArray
 {
-  /* TODO */
+  friend struct MarkBasePosFormat1;
 
   private:
-  USHORT	baseCount;		/* Number of BaseRecords */
-  BaseRecord	baseRecord[];		/* Array of BaseRecords--in order of
-					 * BaseCoverage Index */
+  USHORT	len;			/* Number of rows */
+  OffsetTo<Anchor>
+		matrix[];		/* Matrix of offsets to Anchor tables--
+					 * from beginning of BaseArray table--
+					 * base-major--in order of
+					 * BaseCoverage Index--, mark-minor--
+					 * ordered by class--zero-based. */
 };
 ASSERT_SIZE (BaseArray, 2);
 
@@ -784,20 +776,24 @@ struct MarkBasePosFormat1
   inline bool apply (APPLY_ARG_DEF) const
   {
     /* TODO */
+   /* XXXXXXXXXXXXXXX */
     return false;
   }
 
   private:
   USHORT	format;			/* Format identifier--format = 1 */
-  Offset	markCoverage;		/* Offset to MarkCoverage table--from
+  OffsetTo<Coverage>
+		markCoverage;		/* Offset to MarkCoverage table--from
 					 * beginning of MarkBasePos subtable */
-  Offset	baseCoverage;		/* Offset to BaseCoverage table--from
+  OffsetTo<Coverage>
+		baseCoverage;		/* Offset to BaseCoverage table--from
 					 * beginning of MarkBasePos subtable */
   USHORT	classCount;		/* Number of classes defined for marks */
-  Offset	markArray;		/* Offset to MarkArray table--from
+  OffsetTo<MarkArray>
+		markArray;		/* Offset to MarkArray table--from
 					 * beginning of MarkBasePos subtable */
-  /* XXXXXXXXXXXXX */
-  Offset	baseArray;		/* Offset to BaseArray table--from
+  OffsetTo<BaseArray>
+		baseArray;		/* Offset to BaseArray table--from
 					 * beginning of MarkBasePos subtable */
 };
 ASSERT_SIZE (MarkBasePosFormat1, 12);
