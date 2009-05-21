@@ -782,26 +782,26 @@ struct MarkBasePosFormat1
       return false;
 
     /* now we search backwards for a non-mark glyph */
-
     unsigned int count = buffer->in_pos;
     unsigned int i = 1, j = count - 1;
     while (i <= count)
     {
       property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
-      if (!(property == LookupFlag::IgnoreMarks || property & LookupFlag::MarkAttachmentType))
+      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & LookupFlag::MarkAttachmentType))
 	break;
       i++, j--;
     }
-
     if (HB_UNLIKELY (i > buffer->in_pos))
       return false;
 
     /* The following assertion is too strong -- at least for mangal.ttf. */
+#if 0
     if (property != HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH)
       return false;
+#endif
 
     unsigned int base_index = (this+baseCoverage) (IN_GLYPH (j));
-    if (HB_LIKELY (base_index == NOT_COVERED))
+    if (base_index == NOT_COVERED)
       return false;
 
     const MarkArray& mark_array = this+markArray;
@@ -819,7 +819,6 @@ struct MarkBasePosFormat1
     unsigned int index = base_index * classCount + mark_class;
     (&base_array+base_array.matrix[index]).get_anchor (layout, IN_GLYPH (j), &base_x, &base_y);
 
-    /* anchor points are not cumulative */
     HB_Position o = POSITION (buffer->in_pos);
     o->x_pos     = base_x - mark_x;
     o->y_pos     = base_y - mark_y;
@@ -962,25 +961,18 @@ struct MarkLigPos
 ASSERT_SIZE (MarkLigPos, 2);
 
 
-struct Mark2Record
-{
-  /* TODO */
-
-  private:
-  OffsetTo<Anchor>
-		mark2Anchor[];		/* Array of offsets (one per class)
-					 * to Anchor tables--from beginning of
-					 * Mark2Array table--zero--based array */
-};
-
 struct Mark2Array
 {
-  /* TODO */
+  friend struct MarkMarkPosFormat1;
 
   private:
-  USHORT	mark2Count;		/* Number of Mark2 records */
-  Mark2Record	mark2Record[];		/* Array of Mark2Records--in Coverage
-					 * order */
+  USHORT	len;			/* Number of rows */
+  OffsetTo<Anchor>
+		matrix[];		/* Matrix of offsets to Anchor tables--
+					 * from beginning of Mark2Array table--
+					 * mark2-major--in order of
+					 * Mark2Coverage Index--, mark1-minor--
+					 * ordered by class--zero-based. */
 };
 ASSERT_SIZE (Mark2Array, 2);
 
@@ -991,24 +983,79 @@ struct MarkMarkPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    /* TODO */
-    return false;
+    if  (lookup_flag & LookupFlag::IgnoreMarks)
+      return false;
+
+    unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (mark1_index == NOT_COVERED))
+      return false;
+
+    /* now we search backwards for a suitable mark glyph until a non-mark glyph */
+    unsigned int count = buffer->in_pos;
+    unsigned int i = 1, j = count - 1;
+    while (i <= count)
+    {
+      property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
+      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & LookupFlag::MarkAttachmentType))
+        return false;
+      if (!(lookup_flag & LookupFlag::MarkAttachmentType) ||
+	   (lookup_flag & LookupFlag::MarkAttachmentType) == property)
+        break;
+      i++, j--;
+    }
+    if (HB_UNLIKELY (i > buffer->in_pos))
+      return false;
+
+    unsigned int mark2_index = (this+mark2Coverage) (IN_GLYPH (j));
+    if (mark2_index == NOT_COVERED)
+      return false;
+
+    const MarkArray& mark1_array = this+mark1Array;
+    const Mark2Array& mark2_array = this+mark2Array;
+
+    unsigned int mark1_class = mark1_array.get_class (mark1_index);
+    const Anchor& mark1_anchor = mark1_array.get_anchor (mark1_index);
+
+    if (HB_UNLIKELY (mark1_class >= classCount || mark2_index >= mark2_array.len))
+      return false;
+    printf ("here4\n");
+
+    hb_position_t mark1_x, mark1_y, mark2_x, mark2_y;
+
+    mark1_anchor.get_anchor (layout, IN_CURGLYPH (), &mark1_x, &mark1_y);
+    unsigned int index = mark2_index * classCount + mark1_class;
+    (&mark2_array+mark2_array.matrix[index]).get_anchor (layout, IN_GLYPH (j), &mark2_x, &mark2_y);
+
+    HB_Position o = POSITION (buffer->in_pos);
+    o->x_pos     = mark2_x - mark1_x;
+    o->y_pos     = mark2_y - mark1_y;
+    o->x_advance = 0;
+    o->y_advance = 0;
+    o->back      = i;
+
+    buffer->in_pos++;
+    return true;
   }
 
   private:
   USHORT	format;			/* Format identifier--format = 1 */
-  Offset	mark1Coverage;		/* Offset to Combining Mark Coverage
+  OffsetTo<Coverage>
+		mark1Coverage;		/* Offset to Combining Mark1 Coverage
 					 * table--from beginning of MarkMarkPos
 					 * subtable */
-  Offset	mark2Coverage;		/* Offset to Base Mark Coverage
+  OffsetTo<Coverage>
+		mark2Coverage;		/* Offset to Combining Mark2 Coverage
 					 * table--from beginning of MarkMarkPos
 					 * subtable */
-  USHORT	offset;			/* Mark1Array */
-  Offset	mark2Array;		/* Offset to Mark2Array table for
-					 * Mark2--from beginning of MarkMarkPos
-					 * subtable */
+  USHORT	classCount;		/* Number of defined mark classes */
+  OffsetTo<MarkArray>
+		mark1Array;		/* Offset to Mark1Array table--from
+					 * beginning of MarkMarkPos subtable */
+  OffsetTo<Mark2Array>
+		mark2Array;		/* Offset to Mark2Array table--from
+					 * beginning of MarkMarkPos subtable */
 };
-ASSERT_SIZE (MarkMarkPosFormat1, 10);
+ASSERT_SIZE (MarkMarkPosFormat1, 12);
 
 struct MarkMarkPos
 {
