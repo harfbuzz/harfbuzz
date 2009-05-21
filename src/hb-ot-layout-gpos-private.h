@@ -228,7 +228,7 @@ ASSERT_SIZE (Anchor, 2);
 
 struct MarkRecord
 {
-  /* TODO */
+  friend struct MarkArray;
 
   private:
   USHORT	klass;			/* Class defined for this mark */
@@ -240,7 +240,8 @@ ASSERT_SIZE (MarkRecord, 4);
 
 struct MarkArray
 {
-  /* TODO */
+  inline unsigned int get_class (unsigned int index) { return markRecord[index].klass; }
+  inline const Anchor& get_anchor (unsigned int index) { return this+markRecord[index].markAnchor; }
 
   private:
   ArrayOf<MarkRecord>
