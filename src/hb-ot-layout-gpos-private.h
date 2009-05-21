@@ -35,6 +35,41 @@
 typedef SHORT Value;
 typedef Value ValueRecord[];
 
+struct ValueFormat : USHORT
+{
+  enum
+  {
+    xPlacement	= 0x0001,	/* Includes horizontal adjustment for placement */
+    yPlacement	= 0x0002,	/* Includes vertical adjustment for placement */
+    xAdvance	= 0x0004,	/* Includes horizontal adjustment for advance */
+    yAdvance	= 0x0008,	/* Includes vertical adjustment for advance */
+    xPlaDevice	= 0x0010,	/* Includes horizontal Device table for placement */
+    yPlaDevice	= 0x0020,	/* Includes vertical Device table for placement */
+    xAdvDevice	= 0x0040,	/* Includes horizontal Device table for advance */
+    yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
+    reserved	= 0xF000,	/* For future use */
+  };
+
+  inline unsigned int get_len () const
+  {
+    return _hb_popcount32 ((unsigned int) *this);
+  }
+
+  const void apply_value (hb_ot_layout_t *layout,
+			  const char     *base,
+			  const Value    *values,
+			  HB_Position     glyph_pos) const
+  {
+    unsigned int x_ppem, y_ppem;
+    hb_16dot16_t x_scale, y_scale;
+    unsigned int pixel_value;
+    unsigned int format = *this;
+
+    if (!format)
+      return;
+
+    /* All fields are options.  Only those available advance the value
+     * pointer. */
 #if 0
 struct ValueRecord {
   SHORT		xPlacement;		/* Horizontal adjustment for
@@ -62,39 +97,6 @@ struct ValueRecord {
 };
 #endif
 
-struct ValueFormat : USHORT
-{
-  enum
-  {
-    xPlacement	= 0x0001,	/* Includes horizontal adjustment for placement */
-    yPlacement	= 0x0002,	/* Includes vertical adjustment for placement */
-    xAdvance	= 0x0004,	/* Includes horizontal adjustment for advance */
-    yAdvance	= 0x0008,	/* Includes vertical adjustment for advance */
-    xPlaDevice	= 0x0010,	/* Includes horizontal Device table for placement */
-    yPlaDevice	= 0x0020,	/* Includes vertical Device table for placement */
-    xAdvDevice	= 0x0040,	/* Includes horizontal Device table for advance */
-    yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
-    reserved	= 0xF000,	/* For future use */
-  };
-
-  inline unsigned int get_len () const
-  {
-    return _hb_popcount32 ((unsigned int) *this);
-  }
-
-  const Value* apply_value (hb_ot_layout_t *layout,
-			    const char     *base,
-			    const Value    *values,
-			    HB_Position     glyph_pos) const
-  {
-    unsigned int x_ppem, y_ppem;
-    hb_16dot16_t x_scale, y_scale;
-    unsigned int pixel_value;
-    unsigned int format = *this;
-
-    if (!format)
-      return values;
-
     x_scale = layout->gpos_info.x_scale;
     y_scale = layout->gpos_info.y_scale;
     /* design units -> fractional pixel */
@@ -121,15 +123,6 @@ struct ValueFormat : USHORT
       if (format & yAdvDevice)
 	glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6;
     }
-    else
-    {
-      if (format & xPlaDevice) values++;
-      if (format & yPlaDevice) values++;
-      if (format & xAdvDevice) values++;
-      if (format & yAdvDevice) values++;
-    }
-
-    return values;
   }
 };
 ASSERT_SIZE (ValueFormat, 2);
