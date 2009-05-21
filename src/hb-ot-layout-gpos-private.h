@@ -1018,7 +1018,6 @@ struct MarkMarkPosFormat1
 
     if (HB_UNLIKELY (mark1_class >= classCount || mark2_index >= mark2_array.len))
       return false;
-    printf ("here4\n");
 
     hb_position_t mark1_x, mark1_y, mark2_x, mark2_y;
 
