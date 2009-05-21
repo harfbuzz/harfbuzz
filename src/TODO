@@ -3,3 +3,4 @@
 - Implement is_simple()
 - Static assert PangoOTGlyph vs hb */
 - Face index > 0 and dfont fonts
+- assert static HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH

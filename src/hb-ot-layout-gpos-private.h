@@ -240,8 +240,8 @@ ASSERT_SIZE (MarkRecord, 4);
 
 struct MarkArray
 {
-  inline unsigned int get_class (unsigned int index) { return markRecord[index].klass; }
-  inline const Anchor& get_anchor (unsigned int index) { return this+markRecord[index].markAnchor; }
+  inline unsigned int get_class (unsigned int index) const { return markRecord[index].klass; }
+  inline const Anchor& get_anchor (unsigned int index) const { return this+markRecord[index].markAnchor; }
 
   private:
   ArrayOf<MarkRecord>
@@ -774,9 +774,61 @@ struct MarkBasePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    /* TODO */
-   /* XXXXXXXXXXXXXXX */
-    return false;
+    if  (lookup_flag & LookupFlag::IgnoreBaseGlyphs)
+      return false;
+
+    unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (mark_index == NOT_COVERED))
+      return false;
+
+    /* now we search backwards for a non-mark glyph */
+
+    unsigned int count = buffer->in_pos;
+    unsigned int i = 1, j = count - 1;
+    while (i <= count)
+    {
+      property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
+      if (!(property == LookupFlag::IgnoreMarks || property & LookupFlag::MarkAttachmentType))
+	break;
+      i++, j--;
+    }
+
+    if (HB_UNLIKELY (i > buffer->in_pos))
+      return false;
+
+    /* The following assertion is too strong -- at least for mangal.ttf. */
+    if (property != HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH)
+      return false;
+
+    unsigned int base_index = (this+baseCoverage) (IN_GLYPH (j));
+    if (HB_LIKELY (base_index == NOT_COVERED))
+      return false;
+
+    const MarkArray& mark_array = this+markArray;
+    const BaseArray& base_array = this+baseArray;
+
+    unsigned int mark_class = mark_array.get_class (mark_index);
+    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
+
+    if (HB_UNLIKELY (mark_class >= classCount || base_index >= base_array.len))
+      return false;
+
+    hb_position_t mark_x, mark_y, base_x, base_y;
+
+    mark_anchor.get_anchor (layout, IN_CURGLYPH (), &mark_x, &mark_y);
+    unsigned int index = base_index * classCount + mark_class;
+    (&base_array+base_array.matrix[index]).get_anchor (layout, IN_GLYPH (j), &base_x, &base_y);
+
+    /* anchor points are not cumulative */
+    HB_Position o = POSITION (buffer->in_pos);
+    o->x_pos     = base_x - mark_x;
+    o->y_pos     = base_y - mark_y;
+    o->x_advance = 0;
+    o->y_advance = 0;
+    o->back      = i;
+
+    buffer->in_pos++;
+    return true;
   }
 
   private:
