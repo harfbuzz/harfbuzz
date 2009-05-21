@@ -176,9 +176,14 @@ struct AnchorFormat3
   inline void get_anchor (hb_ot_layout_t *layout, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      /* TODO Device */
-      *x += layout->gpos_info.x_scale * xCoordinate / 0x10000;
-      *y += layout->gpos_info.y_scale * yCoordinate / 0x10000;
+      *x = layout->gpos_info.x_scale * xCoordinate / 0x10000;
+      *y = layout->gpos_info.y_scale * yCoordinate / 0x10000;
+
+      if (!layout->gpos_info.dvi)
+      {
+	*x += (this+xDeviceTable).get_delta (layout->gpos_info.x_ppem) << 6;
+	*y += (this+yDeviceTable).get_delta (layout->gpos_info.y_ppem) << 6;
+      }
   }
 
   private:
