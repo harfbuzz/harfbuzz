@@ -590,7 +590,7 @@ struct SubstLookupSubTable
     ReverseChainSingle	= 8,
   };
 
-  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
+  bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
   {
     switch (lookup_type) {
     case Single:		return u.single->apply (APPLY_ARG);
@@ -653,31 +653,23 @@ struct SubstLookup : Lookup
     return HB_UNLIKELY (get_effective_type () == SubstLookupSubTable::ReverseChainSingle);
   }
 
-  inline bool apply_subtables (hb_ot_layout_t *layout,
-			       hb_buffer_t    *buffer,
-			       unsigned int    context_length,
-			       unsigned int    nesting_level_left,
-			       unsigned int    property) const
+  inline bool apply_once (hb_ot_layout_t *layout,
+			  hb_buffer_t    *buffer,
+			  unsigned int    context_length,
+			  unsigned int    nesting_level_left) const
   {
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
+    unsigned int property;
+
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+      return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
       if (get_subtable (i).apply (APPLY_ARG, lookup_type))
 	return true;
 
     return false;
-  }
-
-  inline bool apply_once (hb_ot_layout_t *layout, hb_buffer_t *buffer) const
-  {
-    unsigned int lookup_flag = get_flag ();
-
-    unsigned int property;
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
-      return false;
-
-    return apply_subtables (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, property);
   }
 
   bool apply_string (hb_ot_layout_t *layout,
@@ -697,7 +689,7 @@ struct SubstLookup : Lookup
 	while (buffer->in_pos < buffer->in_length)
 	{
 	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
-	      apply_once (layout, buffer))
+	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    _hb_buffer_next_glyph (buffer);
@@ -715,7 +707,7 @@ struct SubstLookup : Lookup
 	do
 	{
 	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
-	      apply_once (layout, buffer))
+	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    buffer->in_pos--;
@@ -782,8 +774,7 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  /* XXX This should be apply_one I guess */
-  return l.apply_subtables (layout, buffer, context_length, nesting_level_left, property);
+  return l.apply_once (layout, buffer, context_length, nesting_level_left);
 }
 
 
