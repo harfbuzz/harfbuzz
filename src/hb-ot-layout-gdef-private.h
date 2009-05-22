@@ -48,16 +48,13 @@ struct GlyphClassDef : ClassDef
  * Attachment List Table
  */
 
-struct AttachPoint
-{
-  ArrayOf<USHORT>
-		pointIndex;		/* Array of contour point indices--in
+typedef ArrayOf<USHORT> AttachPoint;	/* Array of contour point indices--in
 					 * increasing numerical order */
-};
 ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList
 {
+  /* XXX We need enumeration API here */
   /* const AttachPoint& get_attach_points (hb_codepoint_t glyph); */
   DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, attachPoint, get_attach_points);
 
@@ -80,10 +77,10 @@ struct CaretValueFormat1
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (int ppem) const
+  inline int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
-    /* XXX unsigned int */
-    return /* TODO garbage */ coordinate / ppem;
+    /* XXX vertical */
+    return layout->gpos_info.x_scale * coordinate / 0x10000;
   }
 
   private:
@@ -97,9 +94,9 @@ struct CaretValueFormat2
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (int ppem) const
+  inline int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
-    return /* TODO garbage */ 0 / ppem;
+    return /* TODO contour point */ 0;
   }
 
   private:
@@ -112,9 +109,11 @@ struct CaretValueFormat3
 {
   friend struct CaretValue;
 
-  inline int get_caret_value (int ppem) const
+  inline int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
-    return /* TODO garbage */ (coordinate + (this+deviceTable).get_delta (ppem)) / ppem;
+    /* XXX vertical */
+    return layout->gpos_info.x_scale * coordinate / 0x10000 +
+	   (this+deviceTable).get_delta (layout->gpos_info.x_ppem) << 6;
   }
 
   private:
@@ -130,12 +129,12 @@ ASSERT_SIZE (CaretValueFormat3, 6);
 struct CaretValue
 {
   /* XXX  we need access to a load-contour-point vfunc here */
-  int get_caret_value (int ppem) const
+  int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_caret_value(ppem);
-    case 2: return u.format2->get_caret_value(ppem);
-    case 3: return u.format3->get_caret_value(ppem);
+    case 1: return u.format1->get_caret_value (layout, glyph_id);
+    case 2: return u.format2->get_caret_value (layout, glyph_id);
+    case 3: return u.format3->get_caret_value (layout, glyph_id);
     default:return 0;
     }
   }
@@ -156,8 +155,9 @@ struct LigGlyph
 
   private:
   OffsetArrayOf<CaretValue>
-		caret;			/* Array of CaretValue tables
-					 * in increasing coordinate order */
+		caret;			/* Offset rrray of CaretValue tables
+					 * --from beginning of LigGlyph table
+					 * --in increasing coordinate order */
 };
 ASSERT_SIZE (LigGlyph, 2);
 
