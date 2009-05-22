@@ -867,45 +867,26 @@ struct MarkBasePos
 ASSERT_SIZE (MarkBasePos, 2);
 
 
-struct ComponentRecord
-{
-  /* TODO */
-
-  private:
-  OffsetTo<Anchor>
-		ligatureAnchor[];	/* Array of offsets (one per class)
-					 * to Anchor tables--from beginning
-					 * of LigatureAttach table--ordered
-					 * by class--NULL if a component
-					 * does not have an attachment for a
-					 * class--zero--based array */
-};
-ASSERT_SIZE (ComponentRecord, 0);
-
 struct LigatureAttach
 {
-  /* TODO */
+  friend struct MarkLigPosFormat1;
 
   private:
-    /* XXXXXXXXXXXXX */
-  USHORT	componentCount;		/* Number of ComponentRecords in this
-					 * ligature */
-  ComponentRecord
-		componentRecord[];	/* Array of ComponentRecords--ordered
-					 * in writing direction */
+  USHORT	len;			/* Number of ComponentRecords in this
+					 * ligature, ie. number of rows */
+  OffsetTo<Anchor>
+		matrix[];		/* Matrix of offsets to Anchor tables--
+					 * from beginning of LigatureAttach table--
+					 * component-major--in order of
+					 * writing direction--, mark-minor--
+					 * ordered by class--zero-based. */
 };
 ASSERT_SIZE (LigatureAttach, 2);
 
-struct LigatureArray
-{
-  /* TODO */
-
-  private:
-  OffsetArrayOf<LigatureAttach>
-		ligatureAttach;		/* Array of LigatureAttach
+typedef OffsetArrayOf<LigatureAttach> LigatureArray;
+					/* Array of LigatureAttach
 					 * tables ordered by
 					 * LigatureCoverage Index */
-};
 ASSERT_SIZE (LigatureArray, 2);
 
 struct MarkLigPosFormat1
@@ -915,21 +896,96 @@ struct MarkLigPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    /* TODO */
-    return false;
+    if  (lookup_flag & LookupFlag::IgnoreLigatures)
+      return false;
+
+    unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
+    if (HB_LIKELY (mark_index == NOT_COVERED))
+      return false;
+
+    /* now we search backwards for a non-mark glyph */
+    unsigned int count = buffer->in_pos;
+    unsigned int i = 1, j = count - 1;
+    while (i <= count)
+    {
+      property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
+      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & LookupFlag::MarkAttachmentType))
+	break;
+      i++, j--;
+    }
+    if (HB_UNLIKELY (i > buffer->in_pos))
+      return false;
+
+    /* The following assertion is too strong -- at least for mangal.ttf. */
+#if 0
+    if (property != HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
+      return false;
+#endif
+
+    unsigned int lig_index = (this+ligatureCoverage) (IN_GLYPH (j));
+    if (lig_index == NOT_COVERED)
+      return false;
+
+    const MarkArray& mark_array = this+markArray;
+    const LigatureArray& lig_array = this+ligatureArray;
+
+    unsigned int mark_class = mark_array.get_class (mark_index);
+    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
+
+    if (HB_UNLIKELY (mark_class >= classCount || lig_index >= lig_array.len))
+      return false;
+
+    const LigatureAttach& lig_attach = &lig_array+lig_array[lig_index];
+    count = lig_attach.len;
+    if (HB_UNLIKELY (!count))
+      return false;
+
+    unsigned int comp_index;
+    /* We must now check whether the ligature ID of the current mark glyph
+     * is identical to the ligature ID of the found ligature.  If yes, we
+     * can directly use the component index.  If not, we attach the mark
+     * glyph to the last component of the ligature. */
+    if (IN_LIGID (j) == IN_LIGID (buffer->in_pos))
+    {
+      comp_index = IN_COMPONENT (buffer->in_pos);
+      if (comp_index >= count)
+	comp_index = count - 1;
+    }
+    else
+      comp_index = count - 1;
+
+    hb_position_t mark_x, mark_y, lig_x, lig_y;
+
+    mark_anchor.get_anchor (layout, IN_CURGLYPH (), &mark_x, &mark_y);
+    unsigned int index = comp_index * classCount + mark_class;
+    (&lig_attach+lig_attach.matrix[index]).get_anchor (layout, IN_GLYPH (j), &lig_x, &lig_y);
+
+    HB_Position o = POSITION (buffer->in_pos);
+    o->x_pos     = lig_x - mark_x;
+    o->y_pos     = lig_y - mark_y;
+    o->x_advance = 0;
+    o->y_advance = 0;
+    o->back      = i;
+
+    buffer->in_pos++;
+    return true;
   }
 
   private:
   USHORT	format;			/* Format identifier--format = 1 */
-  Offset	markCoverage;		/* Offset to Mark Coverage table--from
+  OffsetTo<Coverage>
+		markCoverage;		/* Offset to Mark Coverage table--from
 					 * beginning of MarkLigPos subtable */
-  Offset	ligatureCoverage;	/* Offset to Ligature Coverage
+  OffsetTo<Coverage>
+		ligatureCoverage;	/* Offset to Ligature Coverage
 					 * table--from beginning of MarkLigPos
 					 * subtable */
   USHORT	classCount;		/* Number of defined mark classes */
-  Offset	markArray;		/* Offset to MarkArray table--from
+  OffsetTo<MarkArray>
+		markArray;		/* Offset to MarkArray table--from
 					 * beginning of MarkLigPos subtable */
-  Offset	ligatureArray;		/* Offset to LigatureArray table--from
+  OffsetTo<LigatureArray>
+		ligatureArray;		/* Offset to LigatureArray table--from
 					 * beginning of MarkLigPos subtable */
 };
 ASSERT_SIZE (MarkLigPosFormat1, 12);
