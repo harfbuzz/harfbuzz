@@ -45,7 +45,6 @@ struct SingleSubstFormat1
   friend struct SingleSubst;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -80,7 +79,6 @@ struct SingleSubstFormat2
   friend struct SingleSubst;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -119,7 +117,6 @@ struct SingleSubst
   friend struct SubstLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -144,14 +141,6 @@ struct Sequence
   friend struct MultipleSubstFormat1;
 
   private:
-
-  inline void set_glyph_class (hb_ot_layout_t *layout, unsigned int property) const
-  {
-    unsigned int count = substitute.len;
-    for (unsigned int n = 0; n < count; n++)
-      _hb_ot_layout_set_glyph_property (layout, substitute[n], property);
-  }
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     if (HB_UNLIKELY (!substitute.len))
@@ -164,11 +153,12 @@ struct Sequence
     if ( _hb_ot_layout_has_new_glyph_classes (layout) )
     {
       /* this is a guess only ... */
-
       if ( property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE )
         property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
 
-      set_glyph_class (layout, property);
+      unsigned int count = substitute.len;
+      for (unsigned int n = 0; n < count; n++)
+	_hb_ot_layout_set_glyph_property (layout, substitute[n], property);
     }
 
     return true;
@@ -185,7 +175,6 @@ struct MultipleSubstFormat1
   friend struct MultipleSubst;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
 
@@ -212,7 +201,6 @@ struct MultipleSubst
   friend struct SubstLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -239,7 +227,6 @@ struct AlternateSubstFormat1
   friend struct AlternateSubst;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -294,7 +281,6 @@ struct AlternateSubst
   friend struct SubstLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -397,7 +383,6 @@ struct LigatureSet
   friend struct LigatureSubstFormat1;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF, bool is_mark) const
   {
     unsigned int num_ligs = ligature.len;
@@ -423,7 +408,6 @@ struct LigatureSubstFormat1
   friend struct LigatureSubst;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -455,7 +439,6 @@ struct LigatureSubst
   friend struct SubstLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -478,6 +461,9 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
 
 struct ContextSubst : Context
 {
+  friend struct SubstLookupSubTable;
+
+  private:
   inline bool apply (APPLY_ARG_DEF) const
   {
     return Context::apply (APPLY_ARG, substitute_lookup);
@@ -487,6 +473,9 @@ ASSERT_SIZE (ContextSubst, 2);
 
 struct ChainContextSubst : ChainContext
 {
+  friend struct SubstLookupSubTable;
+
+  private:
   inline bool apply (APPLY_ARG_DEF) const
   {
     return ChainContext::apply (APPLY_ARG, substitute_lookup);
@@ -495,55 +484,12 @@ struct ChainContextSubst : ChainContext
 ASSERT_SIZE (ChainContextSubst, 2);
 
 
-struct ExtensionSubstFormat1
+struct ExtensionSubst : Extension
 {
-  friend struct ExtensionSubst;
-
-  private:
-  inline unsigned int get_type (void) const { return extensionLookupType; }
-  inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
-  inline bool apply (APPLY_ARG_DEF) const;
-
-  private:
-  USHORT	format;			/* Format identifier. Set to 1. */
-  USHORT	extensionLookupType;	/* Lookup type of subtable referenced
-					 * by ExtensionOffset (i.e. the
-					 * extension subtable). */
-  USHORT	extensionOffset[2];	/* Offset to the extension subtable,
-					 * of lookup type subtable.
-					 * Defined as two shorts to avoid
-					 * alignment requirements. */
-};
-ASSERT_SIZE (ExtensionSubstFormat1, 8);
-
-struct ExtensionSubst
-{
-  friend struct SubstLookup;
   friend struct SubstLookupSubTable;
 
   private:
-
-  inline unsigned int get_type (void) const
-  {
-    switch (u.format) {
-    case 1: return u.format1->get_type ();
-    default:return 0;
-    }
-  }
-
-  inline bool apply (APPLY_ARG_DEF) const
-  {
-    switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
-    default:return false;
-    }
-  }
-
-  private:
-  union {
-  USHORT		format;		/* Format identifier */
-  ExtensionSubstFormat1	format1[];
-  } u;
+  inline bool apply (APPLY_ARG_DEF) const;
 };
 ASSERT_SIZE (ExtensionSubst, 2);
 
@@ -607,7 +553,6 @@ struct ReverseChainSingleSubst
   friend struct SubstLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -815,14 +760,14 @@ ASSERT_SIZE (GSUB, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionSubstFormat1::apply (APPLY_ARG_DEF) const
+inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 {
   unsigned int lookup_type = get_type ();
 
-  if (HB_UNLIKELY (lookup_type ==  SubstLookupSubTable::Extension))
+  if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
     return false;
 
-  return ((SubstLookupSubTable&)*(((char *) this) + get_offset ())).apply (APPLY_ARG, lookup_type);
+  return ((SubstLookupSubTable&) get_subtable ()).apply (APPLY_ARG, lookup_type);
 }
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)

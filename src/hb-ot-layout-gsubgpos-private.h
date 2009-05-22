@@ -686,6 +686,58 @@ struct ChainContext
 ASSERT_SIZE (ChainContext, 2);
 
 
+struct ExtensionFormat1
+{
+  friend struct Extension;
+
+  private:
+  inline unsigned int get_type (void) const { return extensionLookupType; }
+  inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
+  inline const LookupSubTable& get_subtable (void) const
+  {
+    unsigned int offset = get_offset ();
+    if (HB_UNLIKELY (!offset)) return Null(LookupSubTable);
+    return (LookupSubTable&) *(((char *) this) + offset);
+  }
+
+  private:
+  USHORT	format;			/* Format identifier. Set to 1. */
+  USHORT	extensionLookupType;	/* Lookup type of subtable referenced
+					 * by ExtensionOffset (i.e. the
+					 * extension subtable). */
+  USHORT	extensionOffset[2];	/* Offset to the extension subtable,
+					 * of lookup type subtable.
+					 * Defined as two shorts to avoid
+					 * alignment requirements. */
+};
+ASSERT_SIZE (ExtensionFormat1, 8);
+
+struct Extension
+{
+  inline unsigned int get_type (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1->get_type ();
+    default:return 0;
+    }
+  }
+  inline const LookupSubTable& get_subtable (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1->get_subtable ();
+    default:return Null(LookupSubTable);
+    }
+  }
+
+  private:
+  union {
+  USHORT		format;		/* Format identifier */
+  ExtensionFormat1	format1[];
+  } u;
+};
+ASSERT_SIZE (Extension, 2);
+
+
 /*
  * GSUB/GPOS Common
  */

@@ -318,7 +318,6 @@ struct SinglePos
   friend struct PosLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -507,7 +506,6 @@ struct PairPos
   friend struct PosLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -734,7 +732,6 @@ struct CursivePos
   friend struct PosLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -853,7 +850,6 @@ struct MarkBasePos
   friend struct PosLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -943,7 +939,6 @@ struct MarkLigPos
   friend struct PosLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -1061,7 +1056,6 @@ struct MarkMarkPos
   friend struct PosLookupSubTable;
 
   private:
-
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
@@ -1083,6 +1077,9 @@ static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
 
 struct ContextPos : Context
 {
+  friend struct PosLookupSubTable;
+
+  private:
   inline bool apply (APPLY_ARG_DEF) const
   {
     return Context::apply (APPLY_ARG, position_lookup);
@@ -1092,6 +1089,9 @@ ASSERT_SIZE (ContextPos, 2);
 
 struct ChainContextPos : ChainContext
 {
+  friend struct PosLookupSubTable;
+
+  private:
   inline bool apply (APPLY_ARG_DEF) const
   {
     return ChainContext::apply (APPLY_ARG, position_lookup);
@@ -1100,57 +1100,15 @@ struct ChainContextPos : ChainContext
 ASSERT_SIZE (ChainContextPos, 2);
 
 
-struct ExtensionPosFormat1
+struct ExtensionPos : Extension
 {
-  friend struct ExtensionPos;
-
-  private:
-  inline unsigned int get_type (void) const { return extensionLookupType; }
-  inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
-  inline bool apply (APPLY_ARG_DEF) const;
-
-  private:
-  USHORT	format;			/* Format identifier. Set to 1. */
-  USHORT	extensionLookupType;	/* Lookup type of subtable referenced
-					 * by ExtensionOffset (i.e. the
-					 * extension subtable). */
-  USHORT	extensionOffset[2];	/* Offset to the extension subtable,
-					 * of lookup type subtable.
-					 * Defined as two shorts to avoid
-					 * alignment requirements. */
-};
-ASSERT_SIZE (ExtensionPosFormat1, 8);
-
-struct ExtensionPos
-{
-  friend struct PosLookup;
   friend struct PosLookupSubTable;
 
   private:
-
-  inline unsigned int get_type (void) const
-  {
-    switch (u.format) {
-    case 1: return u.format1->get_type ();
-    default:return 0;
-    }
-  }
-
-  inline bool apply (APPLY_ARG_DEF) const
-  {
-    switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
-    default:return false;
-    }
-  }
-
-  private:
-  union {
-  USHORT		format;		/* Format identifier */
-  ExtensionPosFormat1	format1[];
-  } u;
+  inline bool apply (APPLY_ARG_DEF) const;
 };
 ASSERT_SIZE (ExtensionPos, 2);
+
 
 
 /*
@@ -1329,14 +1287,14 @@ ASSERT_SIZE (GPOS, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionPosFormat1::apply (APPLY_ARG_DEF) const
+inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 {
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type == PosLookupSubTable::Extension))
     return false;
 
-  return ((PosLookupSubTable&)*(((char *) this) + get_offset ())).apply (APPLY_ARG, lookup_type);
+  return ((PosLookupSubTable&) get_subtable ()).apply (APPLY_ARG, lookup_type);
 }
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
