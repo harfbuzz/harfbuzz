@@ -67,7 +67,7 @@ struct _hb_ot_layout_t
 /* XXX #define HB_OT_LAYOUT_INTERNAL static */
 #define HB_OT_LAYOUT_INTERNAL
 
-HB_BEGIN_DECLS();
+HB_BEGIN_DECLS
 
 /*
  * GDEF
@@ -96,6 +96,6 @@ void
 hb_buffer_ensure (hb_buffer_t  *buffer,
 		  unsigned int  size);
 
-HB_END_DECLS();
+HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_PRIVATE_H */

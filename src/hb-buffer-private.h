@@ -31,7 +31,7 @@
 #include "hb-private.h"
 #include "hb-buffer.h"
 
-HB_BEGIN_DECLS();
+HB_BEGIN_DECLS
 
 #define HB_GLYPH_PROPERTY_UNKNOWN 0xFFFF
 
@@ -101,6 +101,6 @@ _hb_buffer_allocate_ligid (hb_buffer_t *buffer);
 #define COPY_Glyph (buffer)								\
 	   ((error = _hb_buffer_next_glyph  (buffer)) != HB_Err_Ok)
 
-HB_END_DECLS();
+HB_END_DECLS
 
 #endif /* HB_BUFFER_PRIVATE_H */

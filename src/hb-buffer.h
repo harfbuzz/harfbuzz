@@ -30,7 +30,7 @@
 
 #include "hb-common.h"
 
-HB_BEGIN_DECLS();
+HB_BEGIN_DECLS
 
 typedef struct HB_GlyphItemRec_ {
   hb_codepoint_t gindex;
@@ -89,6 +89,6 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     unsigned int    properties,
 		     unsigned int    cluster);
 
-HB_END_DECLS();
+HB_END_DECLS
 
 #endif /* HB_BUFFER_H */

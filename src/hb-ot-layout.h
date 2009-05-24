@@ -30,7 +30,7 @@
 #include "hb-common.h"
 #include "hb-buffer.h"
 
-HB_BEGIN_DECLS();
+HB_BEGIN_DECLS
 
 /*
  * hb_ot_layout_t
@@ -245,6 +245,6 @@ hb_ot_layout_position_lookup   (hb_ot_layout_t              *layout,
 
 */
 
-HB_END_DECLS();
+HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_H */

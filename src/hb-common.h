@@ -30,11 +30,11 @@
 #include <stdint.h>
 
 # ifdef __cplusplus
-#  define HB_BEGIN_DECLS() extern "C" { extern int _hb_dummy_prototype1 (int)
-#  define HB_END_DECLS() } extern "C" int _hb_dummy_prototype2 (int)
+#  define HB_BEGIN_DECLS	extern "C" {
+#  define HB_END_DECLS		}
 # else /* !__cplusplus */
-#  define HB_BEGIN_DECLS()   extern int _hb_dummy_prototype1 (int)
-#  define HB_END_DECLS()     extern int _hb_dummy_prototype2 (int)
+#  define HB_BEGIN_DECLS
+#  define HB_END_DECLS
 # endif /* !__cplusplus */
 
 typedef int hb_bool_t;
