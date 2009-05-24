@@ -420,7 +420,6 @@ struct TTCHeader
   private:
   /* OpenTypeFontFaces, in no particular order */
   DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
-  /* XXX check version here? */
 
   private:
   Tag	ttcTag;		/* TrueType Collection ID string: 'ttcf' */
