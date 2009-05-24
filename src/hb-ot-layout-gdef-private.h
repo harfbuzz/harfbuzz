@@ -199,17 +199,17 @@ struct GDEF
   /* XXX check version here? */
 
   inline bool has_glyph_classes () const { return glyphClassDef != 0; }
-  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const { return glyphClassDef(this).get_class (glyph); }
+  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const { return (this+glyphClassDef).get_class (glyph); }
 
   inline bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
-  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const { return markAttachClassDef(this).get_class (glyph); }
+  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const { return (this+markAttachClassDef).get_class (glyph); }
 
   /* TODO get_attach and get_lig_caret */
   inline bool has_attach_list () const { return attachList != 0; }
   inline bool has_lig_caret_list () const { return ligCaretList != 0; }
 
   private:
-  Fixed		version;		/* Version of the GDEF table--initially
+  Fixed_Version	version;		/* Version of the GDEF table--initially
 					 * 0x00010000 */
   OffsetTo<ClassDef>
 		glyphClassDef;		/* Offset to class definition table

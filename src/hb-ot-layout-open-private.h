@@ -173,7 +173,6 @@ struct Null <Type> \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
     return (const Type&)*data; \
   } \
-  static inline Type& get_for_data (char *data) { return (Type&)*data; }
 
 
 
@@ -511,7 +510,8 @@ struct OpenTypeFontFile
   {
     if (HB_UNLIKELY (i >= get_len ())) return Null(OpenTypeFontFace);
     switch (tag) {
-    default: case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
+    default: /* Never happens because of the if above */
+    case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
     case TTCTag: return ((const TTCHeader&)*this)[i];
     }
   }
