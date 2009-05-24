@@ -1,18 +1,9 @@
 This is HarfBuzz, an OpenType Layout engine.
 
-It was derived originally from the OpenType code in FreeType-1.x, ported to
-FreeType2.  (This code has been abandoned for FreeType2, but until something
-better comes along, should serve our purposes.) In addition to porting to
-FreeType-2, it has been modified in various other ways.
-
-It also includes a partial XML dumper for OpenType Layout tables useful for
-figuring out what is going on. Please extend to cover additional parts of the
-tables as you encounter fonts using them.  The dumper is written by Owen Taylor.
-
 Bug reports on these files should be sent to the HarfBuzz mailing list as
 listed on http://freedesktop.org/wiki/Software/harfbuzz
 
-For license information, see the file COPYING. 
+For license information, see the file COPYING.
 
 Behdad Esfahbod
-April 1st, 2006
+May 24, 2009
