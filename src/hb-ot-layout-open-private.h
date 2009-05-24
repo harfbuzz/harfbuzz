@@ -231,11 +231,11 @@ DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
  * system, feature, or baseline */
 struct Tag
 {
-  inline Tag (void) { v[0] = v[1] = v[2] = v[3] = 0; }
-  inline Tag (uint32_t v) { (ULONG&)(*this) = v; }
-  inline Tag (const char *c) { v[0] = c[0]; v[1] = c[1]; v[2] = c[2]; v[3] = c[3]; }
-  inline bool operator== (Tag o) const { return v[0]==o.v[0]&&v[1]==o.v[1]&&v[2]==o.v[2]&&v[3]==o.v[3]; }
-  inline bool operator== (const char *c) const { return v[0]==c[0]&&v[1]==c[1]&&v[2]==c[2]&&v[3]==c[3]; }
+  inline Tag (const Tag &o) { (ULONG&)v = (ULONG&)o.v; }
+  inline Tag (uint32_t i) { (ULONG&)v = i; }
+  inline Tag (const char *c) { (ULONG&)v = (ULONG&)*c; }
+  inline bool operator== (Tag o) const { return (ULONG&)v == (ULONG&)o.v; }
+  inline bool operator== (const char *c) const { return (ULONG&)v == (ULONG&)*c; }
   inline bool operator== (uint32_t i) const { return i == (uint32_t) *this; }
   inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
