@@ -172,7 +172,16 @@ struct Null <Type> \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
     return (const Type&)*data; \
-  } \
+  }
+/* Like get_for_data(), but checks major version first. */
+#define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, Major) \
+  static inline const Type& get_for_data (const char *data) \
+  { \
+    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
+    const Type& t = (const Type&)*data; \
+    if (HB_UNLIKELY (t.version.major () != Major)) return Null(Type); \
+    return t; \
+  }
 
 
 

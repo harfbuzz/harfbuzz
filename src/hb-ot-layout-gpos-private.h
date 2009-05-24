@@ -1313,8 +1313,7 @@ struct GPOS : GSUBGPOS
 {
   static const hb_tag_t Tag		= HB_TAG ('G','P','O','S');
 
-  STATIC_DEFINE_GET_FOR_DATA (GPOS);
-  /* XXX check version here? */
+  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GPOS, 1);
 
   inline const PosLookup& get_lookup (unsigned int i) const
   {

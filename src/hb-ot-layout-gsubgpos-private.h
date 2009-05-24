@@ -747,8 +747,7 @@ struct GSUBGPOS
   static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
   static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
 
-  STATIC_DEFINE_GET_FOR_DATA (GSUBGPOS);
-  /* XXX check version here? */
+  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GSUBGPOS, 1);
 
   DEFINE_TAG_LIST_INTERFACE (Script,  script );	/* get_script_count (), get_script (i), get_script_tag (i) */
   DEFINE_TAG_LIST_INTERFACE (Feature, feature);	/* get_feature_count(), get_feature(i), get_feature_tag(i) */
@@ -758,7 +757,7 @@ struct GSUBGPOS
   DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script_index (), get_script_by_tag (tag) */
   DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
 
-  private:
+  protected:
   Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000 */
   OffsetTo<ScriptList>

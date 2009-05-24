@@ -730,8 +730,7 @@ struct GSUB : GSUBGPOS
 {
   static const hb_tag_t Tag		= HB_TAG ('G','S','U','B');
 
-  STATIC_DEFINE_GET_FOR_DATA (GSUB);
-  /* XXX check version here? */
+  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GSUB, 1);
 
   inline const SubstLookup& get_lookup (unsigned int i) const
   {

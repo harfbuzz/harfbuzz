@@ -195,8 +195,7 @@ struct GDEF
     ComponentGlyph	= 4,
   };
 
-  STATIC_DEFINE_GET_FOR_DATA (GDEF);
-  /* XXX check version here? */
+  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GDEF, 1);
 
   inline bool has_glyph_classes () const { return glyphClassDef != 0; }
   inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const { return (this+glyphClassDef).get_class (glyph); }
