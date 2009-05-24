@@ -208,7 +208,7 @@ struct GDEF
   inline bool has_lig_caret_list () const { return ligCaretList != 0; }
 
   private:
-  Fixed_Version	version;		/* Version of the GDEF table--initially
+  FixedVersion	version;		/* Version of the GDEF table--initially
 					 * 0x00010000 */
   OffsetTo<ClassDef>
 		glyphClassDef;		/* Offset to class definition table

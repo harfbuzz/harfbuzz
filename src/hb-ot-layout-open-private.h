@@ -179,7 +179,7 @@ struct Null <Type> \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
     const Type& t = (const Type&)*data; \
-    if (HB_UNLIKELY (t.version.major () != Major)) return Null(Type); \
+    if (HB_UNLIKELY (t.version.major != Major)) return Null(Type); \
     return t; \
   }
 
@@ -222,51 +222,10 @@ struct Null <Type> \
   ASSERT_SIZE (NAME, w / 8)
 
 
-DEFINE_INT_TYPE_STRUCT (BYTE,	 u,  8);	/*  8-bit unsigned integer. */
-DEFINE_INT_TYPE_STRUCT (CHAR,	  ,  8);	/*  8-bit signed integer. */
 DEFINE_INT_TYPE_STRUCT (USHORT,  u, 16);	/* 16-bit unsigned integer. */
 DEFINE_INT_TYPE_STRUCT (SHORT,	  , 16);	/* 16-bit signed integer. */
 DEFINE_INT_TYPE_STRUCT (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
 DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
-
-/* Date represented in number of seconds since 12:00 midnight, January 1,
- * 1904. The value is represented as a signed 64-bit integer. */
-DEFINE_INT_TYPE_STRUCT (LONGDATETIME, , 64);
-
-/* 32-bit signed fixed-point number (16.16) */
-struct Fixed
-{
-  inline Fixed& operator = (int32_t v) { i = (int16_t) (v >> 16); f = (uint16_t) v; return *this; } \
-  inline operator int32_t(void) const { return (((int32_t) i) << 16) + (uint16_t) f; } \
-  inline bool operator== (Fixed o) const { return i == o.i && f == o.f; } \
-
-  inline operator double(void) const { return (uint32_t) this / 65536.; }
-  inline int16_t int_part (void) const { return i; }
-  inline uint16_t frac_part (void) const { return f; }
-
-  private:
-  SHORT i;
-  USHORT f;
-};
-ASSERT_SIZE (Fixed, 4);
-
-/* Smallest measurable distance in the em space. */
-struct FUNIT;
-
-/* 16-bit signed integer (SHORT) that describes a quantity in FUnits. */
-struct FWORD : SHORT {};
-ASSERT_SIZE (FWORD, 2);
-
-/* 16-bit unsigned integer (USHORT) that describes a quantity in FUnits. */
-struct UFWORD : USHORT {};
-ASSERT_SIZE (UFWORD, 2);
-
-/* 16-bit signed fixed number with the low 14 bits of fraction (2.14). */
-struct F2DOT14 : SHORT
-{
-  inline operator double() const { return (uint32_t) this / 16384.; }
-};
-ASSERT_SIZE (F2DOT14, 2);
 
 /* Array of four uint8s (length = 32 bits) used to identify a script, language
  * system, feature, or baseline */
@@ -332,15 +291,12 @@ ASSERT_SIZE (CheckSum, 4);
  * Version Numbers
  */
 
-struct USHORT_Version : USHORT {};
-ASSERT_SIZE (USHORT_Version, 2);
-
-struct Fixed_Version : Fixed
+struct FixedVersion
 {
-  inline int16_t major (void) const { return this->int_part(); }
-  inline int16_t minor (void) const { return this->frac_part(); }
+  SHORT  major;
+  USHORT minor;
 };
-ASSERT_SIZE (Fixed_Version, 4);
+ASSERT_SIZE (FixedVersion, 4);
 
 /*
  * Array Types

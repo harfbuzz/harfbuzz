@@ -758,7 +758,7 @@ struct GSUBGPOS
   DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
 
   protected:
-  Fixed_Version	version;	/* Version of the GSUB/GPOS table--initially set
+  FixedVersion	version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000 */
   OffsetTo<ScriptList>
 		scriptList;  	/* ScriptList table */
