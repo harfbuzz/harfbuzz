@@ -204,46 +204,36 @@ struct Null <Type> \
  * Int types
  */
 
-/* TODO define these as structs of chars on machines that do not allow
- * unaligned access (using templates?). */
-#define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN) \
-  inline NAME& operator = (TYPE i) { v = BIG_ENDIAN(i); return *this; } \
-  inline operator TYPE(void) const { return BIG_ENDIAN(v); } \
-  inline bool operator== (NAME o) const { return v == o.v; } \
-  private: TYPE v; \
-  public:
-#define DEFINE_INT_TYPE0(NAME, type) DEFINE_INT_TYPE1 (NAME, type, hb_be_##type)
-#define DEFINE_INT_TYPE(NAME, u, w)  DEFINE_INT_TYPE0 (NAME, u##int##w##_t)
-#define DEFINE_INT_TYPE_STRUCT(NAME, u, w) \
+/* TODO On machines that do not allow unaligned access, fix the accessors. */
+#define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN, BYTES) \
   struct NAME \
   { \
-    DEFINE_INT_TYPE(NAME, u, w) \
+    inline NAME& operator = (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
+    inline operator TYPE(void) const { return BIG_ENDIAN ((TYPE&) v); } \
+    inline bool operator== (NAME o) const { return (TYPE&) v == (TYPE&) o.v; } \
+    private: char v[BYTES]; \
   }; \
-  ASSERT_SIZE (NAME, w / 8)
+  ASSERT_SIZE (NAME, BYTES)
+#define DEFINE_INT_TYPE0(NAME, type, b)	DEFINE_INT_TYPE1 (NAME, type, hb_be_##type, b)
+#define DEFINE_INT_TYPE(NAME, u, w)	DEFINE_INT_TYPE0 (NAME, u##int##w##_t, (w / 8))
 
 
-DEFINE_INT_TYPE_STRUCT (USHORT,  u, 16);	/* 16-bit unsigned integer. */
-DEFINE_INT_TYPE_STRUCT (SHORT,	  , 16);	/* 16-bit signed integer. */
-DEFINE_INT_TYPE_STRUCT (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
-DEFINE_INT_TYPE_STRUCT (LONG,	  , 32);	/* 32-bit signed integer. */
+DEFINE_INT_TYPE (USHORT,  u, 16);	/* 16-bit unsigned integer. */
+DEFINE_INT_TYPE (SHORT,	  , 16);	/* 16-bit signed integer. */
+DEFINE_INT_TYPE (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
+DEFINE_INT_TYPE (LONG,	  , 32);	/* 32-bit signed integer. */
 
 /* Array of four uint8s (length = 32 bits) used to identify a script, language
  * system, feature, or baseline */
-struct Tag
+struct Tag : ULONG
 {
-  inline Tag (const Tag &o) { (ULONG&)v = (ULONG&)o.v; }
-  inline Tag (uint32_t i) { (ULONG&)v = i; }
-  inline Tag (const char *c) { (ULONG&)v = (ULONG&)*c; }
-  inline bool operator== (Tag o) const { return (ULONG&)v == (ULONG&)o.v; }
-  inline bool operator== (const char *c) const { return (ULONG&)v == (ULONG&)*c; }
-  inline bool operator== (uint32_t i) const { return i == (uint32_t) *this; }
-  inline operator uint32_t(void) const { return (v[0]<<24)+(v[1]<<16) +(v[2]<<8)+v[3]; }
+  inline Tag (const Tag &o) { (ULONG&) *this = (ULONG&) o; }
+  inline Tag (uint32_t i) { (ULONG&) *this = i; }
+  inline Tag (const char *c) { (ULONG&) *this = (ULONG&)*c; }
+  inline bool operator== (const char *c) const { return (ULONG&) *this == (ULONG&) *c; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return (const char *)this; }
   inline operator char* (void) { return (char *)this; }
-
-  private:
-  char v[4];
 };
 ASSERT_SIZE (Tag, 4);
 #define _NULL_TAG_INIT  {' ', ' ', ' ', ' '}
