@@ -64,8 +64,7 @@ struct _hb_ot_layout_t
 };
 
 
-/* XXX #define HB_OT_LAYOUT_INTERNAL static */
-#define HB_OT_LAYOUT_INTERNAL
+#define HB_OT_LAYOUT_INTERNAL static
 
 HB_BEGIN_DECLS
 

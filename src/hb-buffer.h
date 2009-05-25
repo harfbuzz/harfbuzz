@@ -32,6 +32,8 @@
 
 HB_BEGIN_DECLS
 
+/* XXX  Hide structs? */
+
 typedef struct HB_GlyphItemRec_ {
   hb_codepoint_t gindex;
   unsigned int   properties;
