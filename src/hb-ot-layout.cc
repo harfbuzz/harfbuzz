@@ -126,13 +126,13 @@ hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout)
   return layout->gdef->has_glyph_classes ();
 }
 
-HB_OT_LAYOUT_INTERNAL hb_bool_t
+HB_INTERNAL hb_bool_t
 _hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout)
 {
   return layout->new_gdef.len > 0;
 }
 
-HB_OT_LAYOUT_INTERNAL unsigned int
+HB_INTERNAL unsigned int
 _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
 				  hb_codepoint_t  glyph)
 {
@@ -159,7 +159,7 @@ _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
   }
 }
 
-HB_OT_LAYOUT_INTERNAL hb_bool_t
+HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
 				    HB_GlyphItem    gitem,
 				    unsigned int    lookup_flags,
@@ -208,7 +208,7 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
   return true;
 }
 
-HB_OT_LAYOUT_INTERNAL void
+HB_INTERNAL void
 _hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
 				  hb_codepoint_t  glyph,
 				  unsigned int    property)

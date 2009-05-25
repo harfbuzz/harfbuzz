@@ -64,27 +64,25 @@ struct _hb_ot_layout_t
 };
 
 
-#define HB_OT_LAYOUT_INTERNAL static
-
 HB_BEGIN_DECLS
 
 /*
  * GDEF
  */
 
-HB_OT_LAYOUT_INTERNAL hb_bool_t
+HB_INTERNAL hb_bool_t
 _hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout);
 
-HB_OT_LAYOUT_INTERNAL unsigned int
+HB_INTERNAL unsigned int
 _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
 				  hb_codepoint_t  glyph);
 
-HB_OT_LAYOUT_INTERNAL void
+HB_INTERNAL void
 _hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
 				  hb_codepoint_t  glyph,
 				  unsigned int    property);
 
-HB_OT_LAYOUT_INTERNAL hb_bool_t
+HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
 				    HB_GlyphItem    gitem,
 				    unsigned int    lookup_flags,
