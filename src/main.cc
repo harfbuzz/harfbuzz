@@ -48,7 +48,7 @@ main (int argc, char **argv)
 
   const OpenTypeFontFile &ot = OpenTypeFontFile::get_for_data (font_data);
 
-  switch (ot.get_tag()) {
+  switch (ot.tag) {
   case OpenTypeFontFile::TrueTypeTag:
     printf ("OpenType font with TrueType outlines\n");
     break;
@@ -74,9 +74,11 @@ main (int argc, char **argv)
     for (int n_table = 0; n_table < num_tables; n_table++) {
       const OpenTypeTable &table = font.get_table (n_table);
       printf ("  Table %2d of %2d: %.4s (0x%08lx+0x%08lx)\n", n_table, num_tables,
-	      (const char *)table.get_tag(), table.get_offset(), table.get_length());
+	      (const char *)table.tag,
+	      (unsigned int) table.offset,
+	      (unsigned int) table.length);
 
-      switch (table.get_tag ()) {
+      switch (table.tag) {
 
       case GSUBGPOS::GSUBTag:
       case GSUBGPOS::GPOSTag:

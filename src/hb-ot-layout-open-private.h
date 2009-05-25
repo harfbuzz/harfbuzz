@@ -179,7 +179,7 @@ struct Null <Type> \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
     const Type& t = (const Type&)*data; \
-    if (HB_UNLIKELY (t.version.major != Major)) return Null(Type); \
+    if (HB_UNLIKELY (!t.version.major || t.version.major > Major)) return Null(Type); \
     return t; \
   }
 
@@ -251,12 +251,16 @@ DEFINE_NULL_DATA (Tag, 4, _NULL_TAG_INIT);
 #undef _NULL_TAG_INIT
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-DEFINE_INT_TYPE_STRUCT (GlyphID, u, 16);
+typedef USHORT GlyphID;
 
 /* Offset to a table, same as uint16 (length = 16 bits), Null offset = 0x0000 */
-DEFINE_INT_TYPE_STRUCT (Offset, u, 16);
+typedef USHORT Offset;
 
-/* Template subclass of Offset that does the dereferencing.  Use: (this+memberName) */
+/* LongOffset to a table, same as uint32 (length = 32 bits), Null offset = 0x00000000 */
+typedef ULONG LongOffset;
+
+/* Template subclasses of Offset and LongOffset that do the dereferencing.  Use: (this+memberName) */
+
 template <typename Type>
 struct OffsetTo : Offset
 {
@@ -269,6 +273,19 @@ struct OffsetTo : Offset
 };
 template <typename Base, typename Type>
 inline const Type& operator + (const Base &base, OffsetTo<Type> offset) { return offset (base); }
+
+template <typename Type>
+struct LongOffsetTo : LongOffset
+{
+  inline const Type& operator() (const void *base) const
+  {
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return Null(Type);
+    return (const Type&)*((const char *) base + offset);
+  }
+};
+template <typename Base, typename Type>
+inline const Type& operator + (const Base &base, LongOffsetTo<Type> offset) { return offset (base); }
 
 
 /* CheckSum */
@@ -293,9 +310,9 @@ ASSERT_SIZE (CheckSum, 4);
 
 struct FixedVersion
 {
-  inline operator uint32_t(void) const { return major << 16 + minor; }
+  inline operator uint32_t (void) const { return major << 16 + minor; }
 
-  SHORT  major;
+  USHORT major;
   USHORT minor;
 };
 ASSERT_SIZE (FixedVersion, 4);
@@ -341,9 +358,35 @@ struct HeadlessArrayOf
   Type array[];
 };
 
+/* An array with a ULONG number of elements. */
+template <typename Type>
+struct LongArrayOf
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
+    if (HB_UNLIKELY (i >= len)) return Null(Type);
+    return array[i];
+  }
+  inline unsigned int get_size () const
+  {
+    return sizeof (len) + len * sizeof (array[0]);
+  }
+
+  ULONG len;
+  Type array[];
+};
+
 /* Array of Offset's */
 template <typename Type>
 struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
+
+/* Array of LongOffset's */
+template <typename Type>
+struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {};
+
+/* LongArray of LongOffset's */
+template <typename Type>
+struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
 
 /* An array type is one that contains a variable number of objects
  * as its last item.  An array object is extended with get_len()
@@ -369,16 +412,6 @@ struct TTCHeader;
 
 typedef struct TableDirectory
 {
-  friend struct OpenTypeFontFile;
-  friend struct OffsetTable;
-
-  inline bool is_null (void) const { return length == 0; }
-  inline const Tag& get_tag (void) const { return tag; }
-  inline unsigned long get_checksum (void) const { return checkSum; }
-  inline unsigned long get_offset (void) const { return offset; }
-  inline unsigned long get_length (void) const { return length; }
-
-  private:
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
   ULONG		offset;		/* Offset from beginning of TrueType font
@@ -417,17 +450,15 @@ struct TTCHeader
 {
   friend struct OpenTypeFontFile;
 
-  private:
-  /* OpenTypeFontFaces, in no particular order */
-  DEFINE_OFFSET_ARRAY_TYPE (OffsetTable, offsetTable, numFonts);
+  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (TTCHeader, 2);
 
   private:
-  Tag	ttcTag;		/* TrueType Collection ID string: 'ttcf' */
-  ULONG	version;	/* Version of the TTC Header (1.0 or 2.0),
-			 * 0x00010000 or 0x00020000 */
-  ULONG	numFonts;	/* Number of fonts in TTC */
-  ULONG	offsetTable[];	/* Array of offsets to the OffsetTable for each font
-			 * from the beginning of the file */
+  Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */
+  FixedVersion	version;	/* Version of the TTC Header (1.0 or 2.0),
+				 * 0x00010000 or 0x00020000 */
+  LongOffsetLongArrayOf<OffsetTable>
+		table;		/* Array of offsets to the OffsetTable for each font
+				 * from the beginning of the file */
 };
 ASSERT_SIZE (TTCHeader, 12);
 
@@ -446,11 +477,8 @@ struct OpenTypeFontFile
 
   DEFINE_ARRAY_INTERFACE (OpenTypeFontFace, face);	/* get_face_count(), get_face(i) */
 
-  inline const Tag& get_tag (void) const { return tag; }
-
   /* This is how you get a table */
   inline const char* get_table_data (const OpenTypeTable& table) const { return (*this)[table]; }
-  inline char* get_table_data (const OpenTypeTable& table) { return (*this)[table]; }
 
   private:
   inline const char* operator[] (const OpenTypeTable& table) const
@@ -469,7 +497,7 @@ struct OpenTypeFontFile
     switch (tag) {
     default: return 0;
     case TrueTypeTag: case CFFTag: return 1;
-    case TTCTag: return ((const TTCHeader&)*this).get_len();
+    case TTCTag: return TTCHeader::get_for_data ((const char *) this).table.len;
     }
   }
   const OpenTypeFontFace& operator[] (unsigned int i) const
@@ -478,11 +506,11 @@ struct OpenTypeFontFile
     switch (tag) {
     default: /* Never happens because of the if above */
     case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
-    case TTCTag: return ((const TTCHeader&)*this)[i];
+    case TTCTag: return this+TTCHeader::get_for_data ((const char *) this).table[i];
     }
   }
 
-  private:
+  public:
   Tag		tag;		/* 4-byte identifier. */
 };
 ASSERT_SIZE (OpenTypeFontFile, 4);
