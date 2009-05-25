@@ -34,16 +34,16 @@ HB_BEGIN_DECLS
 
 /* XXX  Hide structs? */
 
-typedef struct HB_GlyphItemRec_ {
+typedef struct _hb_glyph_info_t {
   hb_codepoint_t gindex;
   unsigned int   properties;
   unsigned int   cluster;
   unsigned short component;
   unsigned short ligID;
   unsigned short gproperty;
-} HB_GlyphItemRec, *HB_GlyphItem;
+} hb_glyph_info_t;
 
-typedef struct HB_PositionRec_ {
+typedef struct _hb_glyph_position_t {
   hb_position_t  x_pos;
   hb_position_t  y_pos;
   hb_position_t  x_advance;
@@ -57,7 +57,7 @@ typedef struct HB_PositionRec_ {
   short          cursive_chain; /* character to which this connects,
 				   may be positive or negative; used
 				   only internally                     */
-} HB_PositionRec, *HB_Position;
+} hb_glyph_position_t;
 
 
 typedef struct _hb_buffer_t {
@@ -68,13 +68,13 @@ typedef struct _hb_buffer_t {
   unsigned int in_pos;
   unsigned int out_pos;
 
-  hb_bool_t     separate_out;
-  HB_GlyphItem  in_string;
-  HB_GlyphItem  out_string;
-  HB_GlyphItem  alt_string;
-  HB_Position   positions;
-  unsigned int  max_ligID;
-} HB_BufferRec, *HB_Buffer, hb_buffer_t;
+  hb_bool_t            separate_out;
+  hb_glyph_info_t     *in_string;
+  hb_glyph_info_t     *out_string;
+  hb_glyph_info_t     *alt_string;
+  hb_glyph_position_t *positions;
+  unsigned int         max_lig_id;
+} hb_buffer_t;
 
 hb_buffer_t *
 hb_buffer_new (void);

@@ -100,33 +100,4 @@ _hb_popcount32 (uint32_t mask)
 #endif
 }
 
-/*
- * buffer
- */
-
-/* XXX */
-#define HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
-#define HB_OT_GPOS_NO_LAST ((unsigned int) -1)
-
-/* XXX */
-typedef enum {
-  /* no error */
-  HB_Err_Ok                           = 0x0000,
-  HB_Err_Not_Covered                  = 0xFFFF,
-
-  /* _hb_err() is called whenever returning the following errors,
-   * and in a couple places for HB_Err_Not_Covered too. */
-
-  /* programmer error */
-  HB_Err_Invalid_Argument             = 0x1A66,
-
-  /* font error */
-  HB_Err_Invalid_SubTable_Format      = 0x157F,
-  HB_Err_Invalid_SubTable             = 0x1570,
-  HB_Err_Read_Error                   = 0x6EAD,
-
-  /* system error */
-  HB_Err_Out_Of_Memory                = 0xDEAD
-} HB_Error;
-
 #endif /* HB_PRIVATE_H */

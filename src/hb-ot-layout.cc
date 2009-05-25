@@ -160,22 +160,22 @@ _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
 }
 
 HB_INTERNAL hb_bool_t
-_hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
-				    HB_GlyphItem    gitem,
-				    unsigned int    lookup_flags,
-				    unsigned int   *property)
+_hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
+				    hb_glyph_info_t *ginfo,
+				    unsigned int     lookup_flags,
+				    unsigned int    *property)
 {
   hb_ot_layout_glyph_class_t basic_glyph_class;
   unsigned int desired_attachment_class;
 
-  if (gitem->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+  if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
   {
-    gitem->gproperty = *property = _hb_ot_layout_get_glyph_property (layout, gitem->gindex);
-    if (gitem->gproperty == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
+    ginfo->gproperty = *property = _hb_ot_layout_get_glyph_property (layout, ginfo->gindex);
+    if (ginfo->gproperty == HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED)
       return false;
   }
 
-  *property = gitem->gproperty;
+  *property = ginfo->gproperty;
 
   /* If the glyph was found in the MarkAttachmentClass table,
    * then that class value is the high byte of the result,

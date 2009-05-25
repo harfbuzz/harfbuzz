@@ -303,7 +303,7 @@ struct Ligature
 
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
     {
-      while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+      while (!_hb_ot_layout_check_glyph_property (layout, IN_INFO (j), lookup_flag, &property))
       {
 	if (HB_UNLIKELY (j + count - i == end))
 	  return false;
@@ -330,10 +330,10 @@ struct Ligature
 				    1, (const uint16_t *) &ligGlyph,
 				    0xFFFF,
 				    IN_LIGID (buffer->in_pos) ?
-				    0xFFFF : _hb_buffer_allocate_ligid (buffer));
+				    0xFFFF : _hb_buffer_allocate_lig_id (buffer));
     else
     {
-      unsigned int lig_id = _hb_buffer_allocate_ligid (buffer);
+      unsigned int lig_id = _hb_buffer_allocate_lig_id (buffer);
       _hb_buffer_add_output_glyph (buffer, ligGlyph, 0xFFFF, lig_id);
 
       /* Now we must do a second loop to copy the skipped glyphs to
@@ -345,7 +345,7 @@ struct Ligature
 
       for ( i = 1; i < count; i++ )
       {
-	while (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM(), lookup_flag, &property))
+	while (!_hb_ot_layout_check_glyph_property (layout, IN_CURINFO(), lookup_flag, &property))
 	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH(), i - 1, lig_id);
 
 	(buffer->in_pos)++;
@@ -652,7 +652,7 @@ struct SubstLookup : Lookup
     unsigned int lookup_flag = get_flag ();
     unsigned int property;
 
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURINFO (), lookup_flag, &property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)

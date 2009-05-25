@@ -29,6 +29,7 @@
 
 #include "hb-ot-layout-gsubgpos-private.h"
 
+#define HB_OT_LAYOUT_GPOS_NO_LAST ((unsigned int) -1)
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
 
@@ -55,10 +56,10 @@ struct ValueFormat : USHORT
     return _hb_popcount32 ((unsigned int) *this);
   }
 
-  const void apply_value (hb_ot_layout_t *layout,
-			  const char     *base,
-			  const Value    *values,
-			  HB_Position     glyph_pos) const
+  const void apply_value (hb_ot_layout_t      *layout,
+			  const char          *base,
+			  const Value         *values,
+			  hb_glyph_position_t *glyph_pos) const
   {
     unsigned int x_ppem, y_ppem;
     hb_16dot16_t x_scale, y_scale;
@@ -379,7 +380,7 @@ struct PairPosFormat1
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_INFO (j), lookup_flag, &property))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -444,7 +445,7 @@ struct PairPosFormat2
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_INFO (j), lookup_flag, &property))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -664,7 +665,7 @@ struct CursivePosFormat1
 
     struct hb_ot_layout_t::gpos_info_t *gpi = &layout->gpos_info;
     hb_codepoint_t last_pos = gpi->last;
-    gpi->last = HB_OT_GPOS_NO_LAST;
+    gpi->last = HB_OT_LAYOUT_GPOS_NO_LAST;
 
     /* We don't handle mark glyphs here. */
     if (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
@@ -678,7 +679,7 @@ struct CursivePosFormat1
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
 
-    if (last_pos == HB_OT_GPOS_NO_LAST || !record.entryAnchor)
+    if (last_pos == HB_OT_LAYOUT_GPOS_NO_LAST || !record.entryAnchor)
       goto end;
 
     (this+record.entryAnchor).get_anchor (layout, IN_CURGLYPH (), &entry_x, &entry_y);
@@ -816,7 +817,7 @@ struct MarkBasePosFormat1
     unsigned int index = base_index * classCount + mark_class;
     (&base_array+base_array.matrix[index]).get_anchor (layout, IN_GLYPH (j), &base_x, &base_y);
 
-    HB_Position o = POSITION (buffer->in_pos);
+    hb_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = base_x - mark_x;
     o->y_pos     = base_y - mark_y;
     o->x_advance = 0;
@@ -960,7 +961,7 @@ struct MarkLigPosFormat1
     unsigned int index = comp_index * classCount + mark_class;
     (&lig_attach+lig_attach.matrix[index]).get_anchor (layout, IN_GLYPH (j), &lig_x, &lig_y);
 
-    HB_Position o = POSITION (buffer->in_pos);
+    hb_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = lig_x - mark_x;
     o->y_pos     = lig_y - mark_y;
     o->x_advance = 0;
@@ -1076,7 +1077,7 @@ struct MarkMarkPosFormat1
     unsigned int index = mark2_index * classCount + mark1_class;
     (&mark2_array+mark2_array.matrix[index]).get_anchor (layout, IN_GLYPH (j), &mark2_x, &mark2_y);
 
-    HB_Position o = POSITION (buffer->in_pos);
+    hb_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = mark2_x - mark1_x;
     o->y_pos     = mark2_y - mark1_y;
     o->x_advance = 0;
@@ -1257,7 +1258,7 @@ struct PosLookup : Lookup
     unsigned int lookup_flag = get_flag ();
     unsigned int property;
 
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURINFO (), lookup_flag, &property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
@@ -1276,7 +1277,7 @@ struct PosLookup : Lookup
     if (HB_UNLIKELY (!buffer->in_length))
       return false;
 
-    layout->gpos_info.last = HB_OT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
+    layout->gpos_info.last = HB_OT_LAYOUT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
 
     buffer->in_pos = 0;
     while (buffer->in_pos < buffer->in_length)
@@ -1292,7 +1293,7 @@ struct PosLookup : Lookup
           done = false;
 	  /* Contrary to properties defined in GDEF, user-defined properties
 	     will always stop a possible cursive positioning.                */
-	  layout->gpos_info.last = HB_OT_GPOS_NO_LAST;
+	  layout->gpos_info.last = HB_OT_LAYOUT_GPOS_NO_LAST;
       }
 
       if (!done)

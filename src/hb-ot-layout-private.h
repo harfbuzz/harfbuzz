@@ -83,15 +83,10 @@ _hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
 				  unsigned int    property);
 
 HB_INTERNAL hb_bool_t
-_hb_ot_layout_check_glyph_property (hb_ot_layout_t *layout,
-				    HB_GlyphItem    gitem,
-				    unsigned int    lookup_flags,
-				    unsigned int   *property);
-
-/* XXX */
-void
-hb_buffer_ensure (hb_buffer_t  *buffer,
-		  unsigned int  size);
+_hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
+				    hb_glyph_info_t *ginfo,
+				    unsigned int     lookup_flags,
+				    unsigned int    *property);
 
 HB_END_DECLS
 

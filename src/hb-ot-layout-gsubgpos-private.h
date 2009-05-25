@@ -89,7 +89,7 @@ static inline bool match_input (APPLY_ARG_DEF,
 
   for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
   {
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_ITEM (j), lookup_flag, &property))
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_INFO (j), lookup_flag, &property))
     {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
@@ -116,7 +116,7 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
 
   for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--)
   {
-    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property))
+    while (!_hb_ot_layout_check_glyph_property (layout, OUT_INFO (j), lookup_flag, &property))
     {
       if (HB_UNLIKELY (j + 1 == count - i))
 	return false;
@@ -144,7 +144,7 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 
   for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++)
   {
-    while (!_hb_ot_layout_check_glyph_property (layout, OUT_ITEM (j), lookup_flag, &property))
+    while (!_hb_ot_layout_check_glyph_property (layout, OUT_INFO (j), lookup_flag, &property))
     {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
@@ -182,7 +182,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
    *      Should be easy for in_place ones at least. */
   for (unsigned int i = 0; i < count; i++)
   {
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_CURITEM (), lookup_flag, &property))
+    while (!_hb_ot_layout_check_glyph_property (layout, IN_CURINFO (), lookup_flag, &property))
     {
       if (HB_UNLIKELY (buffer->in_pos == end))
 	return true;
