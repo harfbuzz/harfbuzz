@@ -64,7 +64,7 @@ static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, ch
 
 static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, char *data)
 {
-  const ClassDef &class_def = (const ClassDef &)*data;
+  const ClassDef &class_def = *(const ClassDef *)data;
   return class_def.get_class (glyph_id) == value;
 }
 
@@ -697,7 +697,7 @@ struct ExtensionFormat1
   {
     unsigned int offset = get_offset ();
     if (HB_UNLIKELY (!offset)) return Null(LookupSubTable);
-    return (LookupSubTable&) *(((char *) this) + offset);
+    return *(LookupSubTable*)(((char *) this) + offset);
   }
 
   private:

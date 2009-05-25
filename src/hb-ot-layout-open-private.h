@@ -72,7 +72,7 @@
   { \
     if (HB_UNLIKELY (i >= num)) return Null(Type); \
     if (HB_UNLIKELY (!array[i])) return Null(Type); \
-    return (const Type&)*((const char*)this + array[i]); \
+    return *(const Type)((const char*)this + array[i]); \
   }
 
 
@@ -145,7 +145,7 @@ template <typename Type>
 struct Null
 {
   ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
-  static inline const Type &get () { return (const Type&) *NullPool; }
+  static inline const Type &get () { return *(const Type*)NullPool; }
 };
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
@@ -154,7 +154,7 @@ static const char _Null##Type[size] = data; \
 template <> \
 struct Null <Type> \
 { \
-  static inline const Type &get () { return (const Type&) *_Null##Type; } \
+  static inline const Type &get () { return *(const Type*)_Null##Type; } \
 }
 
 /* Accessor macro. */
@@ -172,14 +172,14 @@ struct Null <Type> \
   static inline const Type& get_for_data (const char *data) \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    return (const Type&)*data; \
+    return *(const Type*)data; \
   }
 /* Like get_for_data(), but checks major version first. */
 #define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, Major) \
   static inline const Type& get_for_data (const char *data) \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    const Type& t = (const Type&)*data; \
+    const Type& t = *(const Type*)data; \
     if (HB_UNLIKELY (!t.version.major || t.version.major > Major)) return Null(Type); \
     return t; \
   }
@@ -228,10 +228,10 @@ DEFINE_INT_TYPE (LONG,	  , 32);	/* 32-bit signed integer. */
  * system, feature, or baseline */
 struct Tag : ULONG
 {
-  inline Tag (const Tag &o) { (ULONG&) *this = (ULONG&) o; }
-  inline Tag (uint32_t i) { (ULONG&) *this = i; }
-  inline Tag (const char *c) { (ULONG&) *this = (ULONG&)*c; }
-  inline bool operator== (const char *c) const { return (ULONG&) *this == (ULONG&) *c; }
+  inline Tag (const Tag &o) { *(ULONG*)this = (ULONG&) o; }
+  inline Tag (uint32_t i) { *(ULONG*)this = i; }
+  inline Tag (const char *c) { *(ULONG*)this = *(ULONG*)c; }
+  inline bool operator== (const char *c) const { return *(ULONG*)this == *(ULONG*)c; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return (const char *)this; }
   inline operator char* (void) { return (char *)this; }
@@ -259,7 +259,7 @@ struct OffsetTo : Offset
   {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return (const Type&)*((const char *) base + offset);
+    return *(const Type*)((const char *) base + offset);
   }
 };
 template <typename Base, typename Type>
@@ -272,7 +272,7 @@ struct LongOffsetTo : LongOffset
   {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return (const Type&)*((const char *) base + offset);
+    return *(const Type*)((const char *) base + offset);
   }
 };
 template <typename Base, typename Type>
@@ -479,7 +479,7 @@ struct OpenTypeFontFile
     if (HB_UNLIKELY (i >= get_face_count ())) return Null(OpenTypeFontFace);
     switch (tag) {
     default: /* Never happens because of the if above */
-    case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
+    case TrueTypeTag: case CFFTag: return *(const OffsetTable*)this;
     case TTCTag: return this+TTCHeader::get_for_data ((const char *) this).table[i];
     }
   }
