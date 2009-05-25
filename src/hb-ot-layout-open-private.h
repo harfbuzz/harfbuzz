@@ -475,24 +475,7 @@ struct OpenTypeFontFile
 
   STATIC_DEFINE_GET_FOR_DATA (OpenTypeFontFile);
 
-  DEFINE_ARRAY_INTERFACE (OpenTypeFontFace, face);	/* get_face_count(), get_face(i) */
-
-  /* This is how you get a table */
-  inline const char* get_table_data (const OpenTypeTable& table) const { return (*this)[table]; }
-
-  private:
-  inline const char* operator[] (const OpenTypeTable& table) const
-  {
-    if (HB_UNLIKELY (table.offset == 0)) return NULL;
-    return ((const char*)this) + table.offset;
-  }
-  inline char* operator[] (const OpenTypeTable& table)
-  {
-    if (HB_UNLIKELY (table.offset == 0)) return NULL;
-    return ((char*)this) + table.offset;
-  }
-
-  unsigned int get_len (void) const
+  unsigned int get_face_count (void) const
   {
     switch (tag) {
     default: return 0;
@@ -500,9 +483,9 @@ struct OpenTypeFontFile
     case TTCTag: return TTCHeader::get_for_data ((const char *) this).table.len;
     }
   }
-  const OpenTypeFontFace& operator[] (unsigned int i) const
+  const OpenTypeFontFace& get_face (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= get_len ())) return Null(OpenTypeFontFace);
+    if (HB_UNLIKELY (i >= get_face_count ())) return Null(OpenTypeFontFace);
     switch (tag) {
     default: /* Never happens because of the if above */
     case TrueTypeTag: case CFFTag: return (const OffsetTable&)*this;
@@ -510,7 +493,13 @@ struct OpenTypeFontFile
     }
   }
 
-  public:
+  /* This is how you get a table */
+  inline const char* get_table_data (const OpenTypeTable& table) const
+  {
+    if (HB_UNLIKELY (table.offset == 0)) return NULL;
+    return ((const char*) this) + table.offset;
+  }
+
   Tag		tag;		/* 4-byte identifier. */
 };
 ASSERT_SIZE (OpenTypeFontFile, 4);
