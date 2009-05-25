@@ -82,7 +82,7 @@ struct LangSys
   inline const unsigned int get_feature_index (unsigned int i) const { return featureIndex[i]; }
   inline unsigned int get_feature_count (void) const { return featureIndex.len; }
 
-  inline const bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
+  inline bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
   inline int get_required_feature_index (void) const
   {
     if (reqFeatureIndex == 0xffff)
@@ -114,7 +114,7 @@ struct Script
   // LONGTERMTODO bsearch
   DEFINE_TAG_FIND_INTERFACE (LangSys, lang_sys);	/* find_lang_sys_index (), get_lang_sys_by_tag (tag) */
 
-  inline const bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
+  inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   private:

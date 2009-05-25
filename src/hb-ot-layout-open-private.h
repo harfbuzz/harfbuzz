@@ -108,17 +108,17 @@
   inline const Tag& get_##name##_tag (unsigned int i) const { return (this+name##List).get_tag (i); }
 
 #define DEFINE_TAG_FIND_INTERFACE(Type, name) \
-  inline bool find_##name##_index (hb_tag_t tag, unsigned int *name##_index) const { \
+  inline bool find_##name##_index (hb_tag_t tag, unsigned int *index) const { \
     const Tag t = tag; \
     for (unsigned int i = 0; i < get_##name##_count (); i++) \
     { \
       if (t == get_##name##_tag (i)) \
       { \
-        if (name##_index) *name##_index = i; \
+        if (index) *index = i; \
         return true; \
       } \
     } \
-    if (name##_index) *name##_index = NO_INDEX; \
+    if (index) *index = NO_INDEX; \
     return false; \
   } \
   inline const Type& get_##name##_by_tag (hb_tag_t tag) const \
@@ -150,10 +150,11 @@ struct Null
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
 #define DEFINE_NULL_DATA(Type, size, data) \
+static const char _Null##Type[size] = data; \
 template <> \
 struct Null <Type> \
 { \
-  static inline const Type &get () { static const char bytes[size] = data; return (const Type&) *bytes; /* XXX */ } \
+  static inline const Type &get () { return (const Type&) *_Null##Type; } \
 }
 
 /* Accessor macro. */
