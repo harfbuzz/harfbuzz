@@ -27,6 +27,8 @@
 
 #include "hb-buffer-private.h"
 
+#include <string.h>
+
 /* Here is how the buffer works internally:
  *
  * There are two string pointers: in_string and out_string.  They
@@ -56,7 +58,7 @@
 
 /* Internal API */
 
-/*static XXX */ void
+static void
 hb_buffer_ensure (hb_buffer_t  *buffer,
 		  unsigned int  size)
 {
@@ -243,7 +245,7 @@ HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned int num_in,
 			      unsigned int num_out,
-			      unsigned short *glyph_data,
+			      const uint16_t *glyph_data_be,
 			      unsigned short component,
 			      unsigned short ligID)
 {
@@ -252,27 +254,28 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   unsigned int properties;
   unsigned int cluster;
 
-  hb_buffer_ensure (buffer, buffer->out_pos + num_out);
+  hb_buffer_ensure( buffer, buffer->out_pos + num_out );
+  /* XXX */
 
-  if (!buffer->separate_out)
+  if ( !buffer->separate_out )
     {
-      error = hb_buffer_duplicate_out_buffer (buffer);
-      if (error)
+      error = hb_buffer_duplicate_out_buffer( buffer );
+      if ( error )
 	return error;
     }
 
   properties = buffer->in_string[buffer->in_pos].properties;
   cluster = buffer->in_string[buffer->in_pos].cluster;
-  if (component == 0xFFFF)
+  if ( component == 0xFFFF )
     component = buffer->in_string[buffer->in_pos].component;
-  if (ligID == 0xFFFF)
+  if ( ligID == 0xFFFF )
     ligID = buffer->in_string[buffer->in_pos].ligID;
 
-  for (i = 0; i < num_out; i++)
+  for ( i = 0; i < num_out; i++ )
   {
     HB_GlyphItem item = &buffer->out_string[buffer->out_pos + i];
 
-    item->gindex = glyph_data[i];
+    item->gindex = hb_be_uint16_t (glyph_data_be[i]);
     item->properties = properties;
     item->cluster = cluster;
     item->component = component;
@@ -288,13 +291,14 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   return HB_Err_Ok;
 }
 
+
 HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 			     hb_codepoint_t glyph_index,
 			     unsigned short component,
 			     unsigned short ligID)
 {
-  unsigned short glyph_data =  glyph_index;
+  uint16_t  glyph_data =  hb_be_uint16_t (glyph_index);
 
   return _hb_buffer_add_output_glyphs (buffer, 1, 1,
 					&glyph_data, component, ligID);

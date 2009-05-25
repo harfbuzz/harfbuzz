@@ -29,16 +29,6 @@
 
 #include "hb-ot-layout-gsubgpos-private.h"
 
-/* XXX */
-#include "hb-buffer-private.h"
-HB_INTERNAL HB_Error
-_hb_buffer_add_output_glyph_ids (hb_buffer_t *buffer,
-			      unsigned int num_in,
-			      unsigned int num_out,
-			      const GlyphID *glyph_data,
-			      unsigned short component,
-			      unsigned short ligID);
-
 
 struct SingleSubstFormat1
 {
@@ -146,9 +136,9 @@ struct Sequence
     if (HB_UNLIKELY (!substitute.len))
       return false;
 
-    _hb_buffer_add_output_glyph_ids (buffer, 1,
-				     substitute.len, substitute.array,
-				     0xFFFF, 0xFFFF);
+    _hb_buffer_add_output_glyphs (buffer, 1,
+				  substitute.len, (const uint16_t *) substitute.array,
+				  0xFFFF, 0xFFFF);
 
     if ( _hb_ot_layout_has_new_glyph_classes (layout) )
     {
@@ -336,11 +326,11 @@ struct Ligature
     if (j == buffer->in_pos + i) /* No input glyphs skipped */
       /* We don't use a new ligature ID if there are no skipped
 	 glyphs and the ligature already has an ID. */
-      _hb_buffer_add_output_glyph_ids (buffer, i,
-				       1, &ligGlyph,
-				       0xFFFF,
-				       IN_LIGID (buffer->in_pos) ?
-				       0xFFFF : _hb_buffer_allocate_ligid (buffer));
+      _hb_buffer_add_output_glyphs (buffer, i,
+				    1, (const uint16_t *) &ligGlyph,
+				    0xFFFF,
+				    IN_LIGID (buffer->in_pos) ?
+				    0xFFFF : _hb_buffer_allocate_ligid (buffer));
     else
     {
       unsigned int lig_id = _hb_buffer_allocate_ligid (buffer);

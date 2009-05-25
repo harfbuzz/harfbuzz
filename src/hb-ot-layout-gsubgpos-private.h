@@ -27,8 +27,8 @@
 #ifndef HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H
 #define HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H
 
+#include "hb-buffer-private.h"
 #include "hb-ot-layout-gdef-private.h"
-#include "hb-buffer-private.h" /* XXX */
 
 
 #define APPLY_ARG_DEF \

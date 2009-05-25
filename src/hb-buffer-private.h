@@ -48,7 +48,7 @@ HB_INTERNAL HB_Error
 _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned int num_in,
 			      unsigned int num_out,
-			      unsigned short *glyph_data,
+			      const uint16_t *glyph_data_be,
 			      unsigned short component,
 			      unsigned short ligID);
 
