@@ -30,10 +30,6 @@
 #include "hb-ot-layout-common-private.h"
 
 
-#define DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP(Type, array, name) \
-  inline const Type& name (hb_codepoint_t glyph) { return this+array[(this+coverage)(glyph)]; }
-
-
 struct GlyphClassDef : ClassDef
 {
   enum {
@@ -55,10 +51,12 @@ ASSERT_SIZE (AttachPoint, 2);
 struct AttachList
 {
   /* XXX We need enumeration API here */
-  /* const AttachPoint& get_attach_points (hb_codepoint_t glyph); */
-  DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (AttachPoint, attachPoint, get_attach_points);
+  inline const AttachPoint& get_attach_points (hb_codepoint_t glyph)
+  {
+    return this+attachPoint[(this+coverage) (glyph)];
+  }
 
- private:
+  private:
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table -- from
 					 * beginning of AttachList table */
@@ -166,8 +164,10 @@ struct LigCaretList
   friend struct GDEF;
 
   private:
-  /* const LigGlyph& get_lig_glyph (hb_codepoint_t glyph); */
-  DEFINE_INDIRECT_GLYPH_ARRAY_LOOKUP (LigGlyph, ligGlyph, get_lig_glyph);
+  inline const LigGlyph& get_lig_glyph (hb_codepoint_t glyph)
+  {
+    return this+ligGlyph[(this+coverage) (glyph)];
+  }
 
   private:
   OffsetTo<Coverage>
