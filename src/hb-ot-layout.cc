@@ -153,7 +153,7 @@ _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
 	/* TODO old harfbuzz doesn't always parse mark attachments as it says it was
 	 * introduced without a version bump, so it may not be safe */
 	klass = layout->gdef->get_mark_attachment_type (glyph);
-	return HB_OT_LAYOUT_GLYPH_CLASS_MARK + klass << 8;
+	return HB_OT_LAYOUT_GLYPH_CLASS_MARK + (klass << 8);
   }
 }
 

@@ -185,7 +185,7 @@ struct Lookup
     {
       const USHORT &markFilteringSet = *(const USHORT*)
 					((const char *) &subTable + subTable.get_size ());
-      flag += markFilteringSet << 16;
+      flag += (markFilteringSet << 16);
     }
     return flag;
   }
@@ -420,8 +420,8 @@ struct Device
     unsigned int s = ppem_size - startSize;
 
     unsigned int byte = deltaValue[s >> (4 - f)];
-    unsigned int bits = byte >> (16 - (((s & ((1 << (4 - f)) - 1)) + 1) << f));
-    unsigned int mask = 0xFFFF >> (16 - (1 << f));
+    unsigned int bits = (byte >> (16 - (((s & ((1 << (4 - f)) - 1)) + 1) << f)));
+    unsigned int mask = (0xFFFF >> (16 - (1 << f)));
 
     int delta = bits & mask;
 

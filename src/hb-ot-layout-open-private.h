@@ -301,7 +301,7 @@ ASSERT_SIZE (CheckSum, 4);
 
 struct FixedVersion
 {
-  inline operator uint32_t (void) const { return major << 16 + minor; }
+  inline operator uint32_t (void) const { return (major << 16) + minor; }
 
   USHORT major;
   USHORT minor;
