@@ -163,7 +163,7 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
 				    unsigned int     lookup_flags,
 				    unsigned int    *property)
 {
-  hb_ot_layout_glyph_class_t basic_glyph_class;
+  hb_ot_layout_glyph_class_t glyph_class;
   unsigned int desired_attachment_class;
 
   if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
@@ -180,28 +180,30 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
    * The low byte contains the basic type of the glyph as defined by
    * the GlyphClassDef table.
    */
-  if (*property & LookupFlag::MarkAttachmentType)
-    basic_glyph_class = HB_OT_LAYOUT_GLYPH_CLASS_MARK;
-  else
-    basic_glyph_class = (hb_ot_layout_glyph_class_t) *property;
+  glyph_class = (hb_ot_layout_glyph_class_t) *property;
 
-  /* Not covered, if, for example, basic_glyph_class
-   * is HB_GDEF_LIGATURE and lookup_flags includes LookupFlags::IgnoreLigatures
+  /* Not covered, if, for example, glyph_class is HB_GDEF_LIGATURE and
+   * lookup_flags includes LookupFlags::IgnoreLigatures
    */
-  if (lookup_flags & basic_glyph_class)
+  if (lookup_flags & glyph_class)
     return false;
 
-  /* The high byte of lookup_flags has the meaning
-   * "ignore marks of attachment type different than
-   * the attachment type specified."
-   */
-  desired_attachment_class = lookup_flags & LookupFlag::MarkAttachmentType;
-  if (desired_attachment_class)
+  if (glyph_class & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
   {
-    if (basic_glyph_class == HB_OT_LAYOUT_GLYPH_CLASS_MARK &&
-        *property != desired_attachment_class)
-      return false;
+    /* If using mark filtering sets, the high short of
+     * lookup_flags hsa the set index.
+     */
+    if (lookup_flags & LookupFlag::UseMarkFilteringSet)
+      return layout->gdef->mark_set_covers (lookup_flags >> 16, ginfo->gindex);
+
+    /* The second byte of lookup_flags has the meaning
+     * "ignore marks of attachment type different than
+     * the attachment type specified."
+     */
+    if (lookup_flags & LookupFlag::MarkAttachmentType && *property & LookupFlag::MarkAttachmentType)
+      return (lookup_flags & LookupFlag::MarkAttachmentType) == (*property & LookupFlag::MarkAttachmentType);
   }
+
 
   return true;
 }
@@ -210,32 +212,13 @@ HB_INTERNAL void
 _hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
 				  hb_codepoint_t  glyph,
 				  unsigned int    property)
-{
-  hb_ot_layout_glyph_class_t klass;
-
-  if (property & LookupFlag::MarkAttachmentType)
-    klass = HB_OT_LAYOUT_GLYPH_CLASS_MARK;
-  else
-    klass = (hb_ot_layout_glyph_class_t) property;
-
-  hb_ot_layout_set_glyph_class (layout, glyph, klass);
-}
+{ hb_ot_layout_set_glyph_class (layout, glyph, (hb_ot_layout_glyph_class_t) (property & 0xff)); }
 
 
 hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
 			      hb_codepoint_t  glyph)
-{
-  unsigned int property;
-  hb_ot_layout_class_t klass;
-
-  property = _hb_ot_layout_get_glyph_property (layout, glyph);
-
-  if (property & LookupFlag::MarkAttachmentType)
-    return HB_OT_LAYOUT_GLYPH_CLASS_MARK;
-
-  return (hb_ot_layout_glyph_class_t) property;
-}
+{ return (hb_ot_layout_glyph_class_t) (_hb_ot_layout_get_glyph_property (layout, glyph) & 0xff); }
 
 void
 hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
