@@ -784,7 +784,7 @@ struct MarkBasePosFormat1
     while (i <= count)
     {
       property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
-      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & LookupFlag::MarkAttachmentType))
+      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
 	break;
       i++, j--;
     }
@@ -909,7 +909,7 @@ struct MarkLigPosFormat1
     while (i <= count)
     {
       property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
-      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & LookupFlag::MarkAttachmentType))
+      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
 	break;
       i++, j--;
     }
@@ -1047,7 +1047,7 @@ struct MarkMarkPosFormat1
     while (i <= count)
     {
       property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
-      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & LookupFlag::MarkAttachmentType))
+      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
         return false;
       if (!(lookup_flag & LookupFlag::MarkAttachmentType) ||
 	   (lookup_flag & LookupFlag::MarkAttachmentType) == property)

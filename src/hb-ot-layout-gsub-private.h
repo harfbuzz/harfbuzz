@@ -310,8 +310,7 @@ struct Ligature
 	j++;
       }
 
-      if (!(property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
-	    property &  LookupFlag::MarkAttachmentType))
+      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
 	is_mark = FALSE;
 
       if (HB_LIKELY (IN_GLYPH(j) != component[i]))
@@ -402,8 +401,7 @@ struct LigatureSubstFormat1
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    bool first_is_mark = (property == HB_OT_LAYOUT_GLYPH_CLASS_MARK ||
-			  property &  LookupFlag::MarkAttachmentType);
+    bool first_is_mark = !!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))

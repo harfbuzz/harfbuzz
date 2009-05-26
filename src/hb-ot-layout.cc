@@ -138,12 +138,6 @@ _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
 {
   hb_ot_layout_class_t klass;
 
-  /* TODO old harfbuzz doesn't always parse mark attachments as it says it was
-   * introduced without a version bump, so it may not be safe */
-  klass = layout->gdef->get_mark_attachment_type (glyph);
-  if (klass)
-    return klass << 8;
-
   klass = layout->gdef->get_glyph_class (glyph);
 
   if (!klass && glyph < layout->new_gdef.len)
@@ -154,8 +148,12 @@ _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
   case GDEF::UnclassifiedGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED;
   case GDEF::BaseGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
   case GDEF::LigatureGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
-  case GDEF::MarkGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_MARK;
   case GDEF::ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT;
+  case GDEF::MarkGlyph:
+	/* TODO old harfbuzz doesn't always parse mark attachments as it says it was
+	 * introduced without a version bump, so it may not be safe */
+	klass = layout->gdef->get_mark_attachment_type (glyph);
+	return HB_OT_LAYOUT_GLYPH_CLASS_MARK + klass << 8;
   }
 }
 
@@ -178,9 +176,9 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
   *property = ginfo->gproperty;
 
   /* If the glyph was found in the MarkAttachmentClass table,
-   * then that class value is the high byte of the result,
-   * otherwise the low byte contains the basic type of the glyph
-   * as defined by the GlyphClassDef table.
+   * then that class value is stored in the high byte of the result.
+   * The low byte contains the basic type of the glyph as defined by
+   * the GlyphClassDef table.
    */
   if (*property & LookupFlag::MarkAttachmentType)
     basic_glyph_class = HB_OT_LAYOUT_GLYPH_CLASS_MARK;
