@@ -140,11 +140,11 @@ _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
 
   /* TODO old harfbuzz doesn't always parse mark attachments as it says it was
    * introduced without a version bump, so it may not be safe */
-  klass = layout->gdef->get_mark_attachment_type (glyph);
+  klass = layout->gdef->get_mark_attachment_type (layout, glyph);
   if (klass)
     return klass << 8;
 
-  klass = layout->gdef->get_glyph_class (glyph);
+  klass = layout->gdef->get_glyph_class (layout, glyph);
 
   if (!klass && glyph < layout->new_gdef.len)
     klass = layout->new_gdef.klasses[glyph];
@@ -302,13 +302,22 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
     hb_ot_layout_set_glyph_class (layout, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
 }
 
-void
+hb_bool_t
 hb_ot_layout_get_attach_points (hb_ot_layout_t *layout,
 				hb_codepoint_t  glyph,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
-  layout->gdef->get_attach_points (glyph, point_count, point_array);
+  return layout->gdef->get_attach_points (layout, glyph, point_count, point_array);
+}
+
+hb_bool_t
+hb_ot_layout_get_lig_carets (hb_ot_layout_t *layout,
+			     hb_codepoint_t  glyph,
+			     unsigned int   *caret_count /* IN/OUT */,
+			     int            *caret_array /* OUT */)
+{
+  return layout->gdef->get_lig_carets (layout, glyph, caret_count, caret_array);
 }
 
 /*

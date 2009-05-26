@@ -50,11 +50,16 @@ ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList
 {
-  inline void get_attach_points (hb_codepoint_t glyph_id,
+  inline bool get_attach_points (hb_codepoint_t glyph_id,
 				 unsigned int *point_count /* IN/OUT */,
 				 unsigned int *point_array /* OUT */) const
   {
     unsigned int index = (this+coverage) (glyph_id);
+    if (index == NOT_COVERED)
+    {
+      *point_count = 0;
+      return false;
+    }
     const AttachPoint &points = this+attachPoint[index];
 
     unsigned int count = MIN (points.len, *point_count);
@@ -62,6 +67,8 @@ struct AttachList
       point_array[i] = points[i];
 
     *point_count = points.len;
+
+    return true;
   }
 
   private:
@@ -157,11 +164,22 @@ ASSERT_SIZE (CaretValue, 2);
 
 struct LigGlyph
 {
-  friend struct LigCaretList;
+  inline void get_lig_carets (hb_ot_layout_t *layout,
+			      hb_codepoint_t glyph_id,
+			      unsigned int *caret_count /* IN/OUT */,
+			      int *caret_array /* OUT */) const
+  {
+
+    unsigned int count = MIN (carets.len, *caret_count);
+    for (unsigned int i = 0; i < count; i++)
+      caret_array[i] = (this+carets[i]).get_caret_value (layout, glyph_id);
+
+    *caret_count = carets.len;
+  }
 
   private:
   OffsetArrayOf<CaretValue>
-		caret;			/* Offset rrray of CaretValue tables
+		carets;			/* Offset rrray of CaretValue tables
 					 * --from beginning of LigGlyph table
 					 * --in increasing coordinate order */
 };
@@ -169,13 +187,20 @@ ASSERT_SIZE (LigGlyph, 2);
 
 struct LigCaretList
 {
-  friend struct GDEF;
-
-  private:
-  inline const LigGlyph& get_lig_glyph (hb_codepoint_t glyph_id)
+  inline bool get_lig_carets (hb_ot_layout_t *layout,
+			      hb_codepoint_t glyph_id,
+			      unsigned int *caret_count /* IN/OUT */,
+			      int *caret_array /* OUT */) const
   {
     unsigned int index = (this+coverage) (glyph_id);
-    return this+ligGlyph[index];
+    if (index == NOT_COVERED)
+    {
+      *caret_count = 0;
+      return false;
+    }
+    const LigGlyph &lig_glyph = this+ligGlyph[index];
+    lig_glyph.get_lig_carets (layout, glyph_id, caret_count, caret_array);
+    return true;
   }
 
   private:
@@ -207,20 +232,28 @@ struct GDEF
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GDEF, 1);
 
   inline bool has_glyph_classes () const { return glyphClassDef != 0; }
-  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const
+  inline hb_ot_layout_class_t get_glyph_class (hb_ot_layout_t *layout,
+					       hb_codepoint_t glyph) const
   { return (this+glyphClassDef).get_class (glyph); }
 
   inline bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
-  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const
+  inline hb_ot_layout_class_t get_mark_attachment_type (hb_ot_layout_t *layout,
+							hb_codepoint_t glyph) const
   { return (this+markAttachClassDef).get_class (glyph); }
 
   inline bool has_attach_points () const { return attachList != 0; }
-  inline void get_attach_points (hb_codepoint_t glyph_id,
+  inline bool get_attach_points (hb_ot_layout_t *layout,
+				 hb_codepoint_t glyph_id,
 				 unsigned int *point_count /* IN/OUT */,
 				 unsigned int *point_array /* OUT */) const
-  { (this+attachList).get_attach_points (glyph_id, point_count, point_array); }
+  { return (this+attachList).get_attach_points (glyph_id, point_count, point_array); }
 
   inline bool has_lig_carets () const { return ligCaretList != 0; }
+  inline bool get_lig_carets (hb_ot_layout_t *layout,
+			      hb_codepoint_t glyph_id,
+			      unsigned int *caret_count /* IN/OUT */,
+			      int *caret_array /* OUT */) const
+  { return (this+ligCaretList).get_lig_carets (layout, glyph_id, caret_count, caret_array); }
 
   private:
   FixedVersion	version;		/* Version of the GDEF table--initially
