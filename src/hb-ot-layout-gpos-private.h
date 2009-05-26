@@ -778,19 +778,16 @@ struct MarkBasePosFormat1
     /* now we search backwards for a non-mark glyph */
     unsigned int count = buffer->in_pos;
     unsigned int i = 1, j = count - 1;
-    while (i <= count)
+    while (_hb_ot_layout_skip_mark (layout, IN_INFO (j), LookupFlag::IgnoreMarks, NULL))
     {
-      property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
-      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-	break;
+      if (HB_UNLIKELY (i == count))
+	return false;
       i++, j--;
     }
-    if (HB_UNLIKELY (i > buffer->in_pos))
-      return false;
 
-    /* The following assertion is too strong -- at least for mangal.ttf. */
 #if 0
-    if (property != HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH)
+    /* The following assertion is too strong. */
+    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
       return false;
 #endif
 
@@ -900,19 +897,16 @@ struct MarkLigPosFormat1
     /* now we search backwards for a non-mark glyph */
     unsigned int count = buffer->in_pos;
     unsigned int i = 1, j = count - 1;
-    while (i <= count)
+    while (_hb_ot_layout_skip_mark (layout, IN_INFO (j), LookupFlag::IgnoreMarks, NULL))
     {
-      property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
-      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-	break;
+      if (HB_UNLIKELY (i == count))
+	return false;
       i++, j--;
     }
-    if (HB_UNLIKELY (i > buffer->in_pos))
-      return false;
 
-    /* The following assertion is too strong -- at least for mangal.ttf. */
 #if 0
-    if (property != HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
+    /* The following assertion is too strong. */
+    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
       return false;
 #endif
 
@@ -1035,17 +1029,19 @@ struct MarkMarkPosFormat1
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int count = buffer->in_pos;
     unsigned int i = 1, j = count - 1;
-    while (i <= count)
+    while (_hb_ot_layout_skip_mark (layout, IN_INFO (j), lookup_flag, NULL))
     {
-      property = _hb_ot_layout_get_glyph_property (layout, IN_GLYPH (j));
-      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-        return false;
-      if (!(lookup_flag & LookupFlag::MarkAttachmentType) ||
-	   (lookup_flag & LookupFlag::MarkAttachmentType) == property)
-        break;
+      if (HB_UNLIKELY (i == count))
+	return false;
       i++, j--;
     }
-    if (HB_UNLIKELY (i > buffer->in_pos))
+    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+      return false;
+
+    /* Two marks match only if they belong to the same base, or same component
+     * of the same ligature. */
+    if (IN_LIGID (j) != IN_LIGID (buffer->in_pos) ||
+        IN_COMPONENT (j) != IN_COMPONENT (buffer->in_pos))
       return false;
 
     unsigned int mark2_index = (this+mark2Coverage) (IN_GLYPH (j));
