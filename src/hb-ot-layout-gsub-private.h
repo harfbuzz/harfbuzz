@@ -455,9 +455,7 @@ struct ContextSubst : Context
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  {
-    return Context::apply (APPLY_ARG, substitute_lookup);
-  }
+  { return Context::apply (APPLY_ARG, substitute_lookup); }
 };
 ASSERT_SIZE (ContextSubst, 2);
 
@@ -467,9 +465,7 @@ struct ChainContextSubst : ChainContext
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  {
-    return ChainContext::apply (APPLY_ARG, substitute_lookup);
-  }
+  { return ChainContext::apply (APPLY_ARG, substitute_lookup); }
 };
 ASSERT_SIZE (ChainContextSubst, 2);
 
@@ -614,9 +610,7 @@ ASSERT_SIZE (SubstLookupSubTable, 2);
 struct SubstLookup : Lookup
 {
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  {
-    return (const SubstLookupSubTable&) Lookup::get_subtable (i);
-  }
+  { return (const SubstLookupSubTable&) Lookup::get_subtable (i); }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -639,9 +633,7 @@ struct SubstLookup : Lookup
   }
 
   inline bool is_reverse (void) const
-  {
-    return HB_UNLIKELY (get_effective_type () == SubstLookupSubTable::ReverseChainSingle);
-  }
+  { return HB_UNLIKELY (get_effective_type () == SubstLookupSubTable::ReverseChainSingle); }
 
   inline bool apply_once (hb_ot_layout_t *layout,
 			  hb_buffer_t    *buffer,
@@ -721,22 +713,16 @@ struct GSUB : GSUBGPOS
   static const hb_tag_t Tag		= HB_TAG ('G','S','U','B');
 
   static inline const GSUB& get_for_data (const char *data)
-  {
-    return (const GSUB&) GSUBGPOS::get_for_data (data);
-  }
+  { return (const GSUB&) GSUBGPOS::get_for_data (data); }
 
   inline const SubstLookup& get_lookup (unsigned int i) const
-  {
-    return (const SubstLookup&) GSUBGPOS::get_lookup (i);
-  }
+  { return (const SubstLookup&) GSUBGPOS::get_lookup (i); }
 
   inline bool substitute_lookup (hb_ot_layout_t *layout,
 				 hb_buffer_t    *buffer,
 			         unsigned int    lookup_index,
 				 hb_ot_layout_feature_mask_t  mask) const
-  {
-    return get_lookup (lookup_index).apply_string (layout, buffer, mask);
-  }
+  { return get_lookup (lookup_index).apply_string (layout, buffer, mask); }
 
 };
 ASSERT_SIZE (GSUB, 10);

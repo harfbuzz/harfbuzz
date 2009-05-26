@@ -155,10 +155,10 @@ main (int argc, char **argv)
 		  gdef.has_glyph_classes () ? "" : "no ");
 	printf ("    Has %smark attachment types\n",
 		  gdef.has_mark_attachment_types () ? "" : "no ");
-	printf ("    Has %sattach list\n",
-		  gdef.has_attach_list () ? "" : "no ");
-	printf ("    Has %slig caret list\n",
-		  gdef.has_lig_caret_list () ? "" : "no ");
+	printf ("    Has %sattach points\n",
+		  gdef.has_attach_points () ? "" : "no ");
+	printf ("    Has %slig carets\n",
+		  gdef.has_lig_carets () ? "" : "no ");
 
 	for (int glyph = 0; glyph < 1; glyph++)
 	  printf ("    glyph %d has class %d and mark attachment type %d\n",

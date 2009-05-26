@@ -6,7 +6,7 @@ INCLUDES = 					\
 	-I $(srcdir)				\
 	$(FREETYPE_CFLAGS)			\
 	$(GLIB_CFLAGS)
-CXX = gcc $(GCCOPTS) -g -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
+CXX = gcc -g -O2 -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 
 noinst_LTLIBRARIES = libharfbuzz-1.la
 

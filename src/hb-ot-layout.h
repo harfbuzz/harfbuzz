@@ -99,6 +99,12 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
 				  unsigned char  *klasses,
 				  uint16_t        count);
 
+void
+hb_ot_layout_get_attach_points (hb_ot_layout_t *layout,
+				hb_codepoint_t  glyph,
+				unsigned int   *point_count /* IN/OUT */,
+				unsigned int   *point_array /* OUT */);
+
 /*
  * GSUB/GPOS
  */

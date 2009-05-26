@@ -302,6 +302,15 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
     hb_ot_layout_set_glyph_class (layout, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
 }
 
+void
+hb_ot_layout_get_attach_points (hb_ot_layout_t *layout,
+				hb_codepoint_t  glyph,
+				unsigned int   *point_count /* IN/OUT */,
+				unsigned int   *point_array /* OUT */)
+{
+  layout->gdef->get_attach_points (glyph, point_count, point_array);
+}
+
 /*
  * GSUB/GPOS
  */

@@ -52,9 +52,7 @@ struct ValueFormat : USHORT
   };
 
   inline unsigned int get_len () const
-  {
-    return _hb_popcount32 ((unsigned int) *this);
-  }
+  { return _hb_popcount32 ((unsigned int) *this); }
 
   const void apply_value (hb_ot_layout_t      *layout,
 			  const char          *base,
@@ -1138,9 +1136,7 @@ struct ContextPos : Context
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  {
-    return Context::apply (APPLY_ARG, position_lookup);
-  }
+  { return Context::apply (APPLY_ARG, position_lookup); }
 };
 ASSERT_SIZE (ContextPos, 2);
 
@@ -1150,9 +1146,7 @@ struct ChainContextPos : ChainContext
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  {
-    return ChainContext::apply (APPLY_ARG, position_lookup);
-  }
+  { return ChainContext::apply (APPLY_ARG, position_lookup); }
 };
 ASSERT_SIZE (ChainContextPos, 2);
 
@@ -1225,9 +1219,7 @@ ASSERT_SIZE (PosLookupSubTable, 2);
 struct PosLookup : Lookup
 {
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
-  {
-    return (const PosLookupSubTable&) Lookup::get_subtable (i);
-  }
+  { return (const PosLookupSubTable&) Lookup::get_subtable (i); }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -1315,22 +1307,16 @@ struct GPOS : GSUBGPOS
   static const hb_tag_t Tag		= HB_TAG ('G','P','O','S');
 
   static inline const GPOS& get_for_data (const char *data)
-  {
-    return (const GPOS&) GSUBGPOS::get_for_data (data);
-  }
+  { return (const GPOS&) GSUBGPOS::get_for_data (data); }
 
   inline const PosLookup& get_lookup (unsigned int i) const
-  {
-    return (const PosLookup&) GSUBGPOS::get_lookup (i);
-  }
+  { return (const PosLookup&) GSUBGPOS::get_lookup (i); }
 
   inline bool position_lookup (hb_ot_layout_t *layout,
 			       hb_buffer_t    *buffer,
 			       unsigned int    lookup_index,
 			       hb_ot_layout_feature_mask_t  mask) const
-  {
-    return get_lookup (lookup_index).apply_string (layout, buffer, mask);
-  }
+  { return get_lookup (lookup_index).apply_string (layout, buffer, mask); }
 
 };
 ASSERT_SIZE (GPOS, 10);
