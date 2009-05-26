@@ -213,6 +213,39 @@ struct LigCaretList
 };
 ASSERT_SIZE (LigCaretList, 4);
 
+
+struct MarkGlyphSetsFormat1
+{
+  inline bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
+  { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
+
+  private:
+  USHORT	format;			/* Format identifier--format = 1 */
+  LongOffsetArrayOf<Coverage>
+		coverage;		/* Array of long offsets to mark set
+					 * coverage tables */
+};
+ASSERT_SIZE (MarkGlyphSetsFormat1, 4);
+
+struct MarkGlyphSets
+{
+  inline bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
+  {
+    switch (u.format) {
+    case 1: return u.format1->covers (set_index, glyph_id);
+    default:return false;
+    }
+  }
+
+  private:
+  union {
+  USHORT		format;		/* Format identifier */
+  MarkGlyphSetsFormat1	format1[];
+  } u;
+};
+ASSERT_SIZE (MarkGlyphSets, 2);
+
+
 /*
  * GDEF
  */
@@ -232,18 +265,15 @@ struct GDEF
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GDEF, 1);
 
   inline bool has_glyph_classes () const { return glyphClassDef != 0; }
-  inline hb_ot_layout_class_t get_glyph_class (hb_ot_layout_t *layout,
-					       hb_codepoint_t glyph) const
+  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const
   { return (this+glyphClassDef).get_class (glyph); }
 
   inline bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
-  inline hb_ot_layout_class_t get_mark_attachment_type (hb_ot_layout_t *layout,
-							hb_codepoint_t glyph) const
+  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const
   { return (this+markAttachClassDef).get_class (glyph); }
 
   inline bool has_attach_points () const { return attachList != 0; }
-  inline bool get_attach_points (hb_ot_layout_t *layout,
-				 hb_codepoint_t glyph_id,
+  inline bool get_attach_points (hb_codepoint_t glyph_id,
 				 unsigned int *point_count /* IN/OUT */,
 				 unsigned int *point_array /* OUT */) const
   { return (this+attachList).get_attach_points (glyph_id, point_count, point_array); }
@@ -255,9 +285,13 @@ struct GDEF
 			      int *caret_array /* OUT */) const
   { return (this+ligCaretList).get_lig_carets (layout, glyph_id, caret_count, caret_array); }
 
+  inline bool has_mark_sets () const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
+  inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
+  { return version >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
+
   private:
-  FixedVersion	version;		/* Version of the GDEF table--initially
-					 * 0x00010000 */
+  FixedVersion	version;		/* Version of the GDEF table--currently
+					 * 0x00010002 */
   OffsetTo<ClassDef>
 		glyphClassDef;		/* Offset to class definition table
 					 * for glyph type--from beginning of
@@ -274,6 +308,11 @@ struct GDEF
 		markAttachClassDef;	/* Offset to class definition table for
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be Null) */
+  OffsetTo<MarkGlyphSets>
+		markGlyphSetsDef[0];	/* Offset to the table of mark set
+					 * definitions--from beginning of GDEF
+					 * header (may be NULL).  Introduced
+					 * in version 00010002. */
 };
 ASSERT_SIZE (GDEF, 12);
 

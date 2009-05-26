@@ -48,6 +48,7 @@ struct ValueFormat : USHORT
     yPlaDevice	= 0x0020,	/* Includes vertical Device table for placement */
     xAdvDevice	= 0x0040,	/* Includes horizontal Device table for advance */
     yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
+    ignored	= 0x0F00,	/* Was used in TrueType Open for MM fonts */
     reserved	= 0xF000,	/* For future use */
   };
 
