@@ -475,12 +475,12 @@ struct ChainRule
   private:
   inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const
   {
-    const HeadlessArrayOf<USHORT> &input = (const HeadlessArrayOf<USHORT>&)
-					   *((const char *) &backtrack + backtrack.get_size ());
-    const ArrayOf<USHORT> &lookahead = (const ArrayOf<USHORT>&)
-				       *((const char *) &input + input.get_size ());
-    const ArrayOf<LookupRecord> &lookup = (const ArrayOf<LookupRecord>&)
-					  *((const char *) &lookahead + lookahead.get_size ());
+    const HeadlessArrayOf<USHORT> &input = *(const HeadlessArrayOf<USHORT>*)
+					    ((const char *) &backtrack + backtrack.get_size ());
+    const ArrayOf<USHORT> &lookahead = *(const ArrayOf<USHORT>*)
+				        ((const char *) &input + input.get_size ());
+    const ArrayOf<LookupRecord> &lookup = *(const ArrayOf<LookupRecord>*)
+					   ((const char *) &lookahead + lookahead.get_size ());
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, backtrack.array,
 				 input.len, input.array + 1,
@@ -618,17 +618,17 @@ struct ChainContextFormat3
 
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    const OffsetArrayOf<Coverage> &input = (const OffsetArrayOf<Coverage>&)
-					   *((const char *) &backtrack + backtrack.get_size ());
+    const OffsetArrayOf<Coverage> &input = *(const OffsetArrayOf<Coverage>*)
+					    ((const char *) &backtrack + backtrack.get_size ());
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = (const OffsetArrayOf<Coverage>&)
-					       *((const char *) &input + input.get_size ());
-    const ArrayOf<LookupRecord> &lookup = (const ArrayOf<LookupRecord>&)
-					  *((const char *) &lookahead + lookahead.get_size ());
+    const OffsetArrayOf<Coverage> &lookahead = *(const OffsetArrayOf<Coverage>*)
+					        ((const char *) &input + input.get_size ());
+    const ArrayOf<LookupRecord> &lookup = *(const ArrayOf<LookupRecord>*)
+					   ((const char *) &lookahead + lookahead.get_size ());
     struct ChainContextLookupContext context = {
       {match_coverage, apply_func},
       {(char *) this, (char *) this, (char *) this}
