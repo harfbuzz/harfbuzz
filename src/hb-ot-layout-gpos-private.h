@@ -101,13 +101,13 @@ struct ValueRecord {
     y_scale = layout->gpos_info.y_scale;
     /* design units -> fractional pixel */
     if (format & xPlacement)
-      glyph_pos->x_pos += x_scale * *(USHORT*)values++ / 0x10000;
+      glyph_pos->x_pos += x_scale * *(SHORT*)values++ / 0x10000;
     if (format & yPlacement)
-      glyph_pos->y_pos += y_scale * *(USHORT*)values++ / 0x10000;
+      glyph_pos->y_pos += y_scale * *(SHORT*)values++ / 0x10000;
     if (format & xAdvance)
-      glyph_pos->x_advance += x_scale * *(USHORT*)values++ / 0x10000;
+      glyph_pos->x_advance += x_scale * *(SHORT*)values++ / 0x10000;
     if (format & yAdvance)
-      glyph_pos->y_advance += y_scale * *(USHORT*)values++ / 0x10000;
+      glyph_pos->y_advance += y_scale * *(SHORT*)values++ / 0x10000;
 
     if (HB_LIKELY (!layout->gpos_info.dvi))
     {
@@ -356,7 +356,6 @@ struct PairSet
 
   private:
   USHORT	len;			/* Number of PairValueRecords */
-  /* XXX */
   PairValueRecord
 		array[];		/* Array of PairValueRecords--ordered
 					 * by GlyphID of the second glyph */
@@ -784,7 +783,6 @@ struct MarkBasePosFormat1
 	return false;
       i++, j--;
     }
-
 #if 0
     /* The following assertion is too strong. */
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
@@ -903,7 +901,6 @@ struct MarkLigPosFormat1
 	return false;
       i++, j--;
     }
-
 #if 0
     /* The following assertion is too strong. */
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
