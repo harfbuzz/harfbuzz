@@ -158,7 +158,8 @@ struct LookupFlag : USHORT
     IgnoreBaseGlyphs	= 0x0002u,
     IgnoreLigatures	= 0x0004u,
     IgnoreMarks		= 0x0008u,
-    Reserved		= 0x00F0u,
+    UseMarkFilteringSet	= 0x0010u,
+    Reserved		= 0x00E0u,
     MarkAttachmentType	= 0xFF00u,
   };
 };
@@ -177,12 +178,25 @@ struct Lookup
   inline unsigned int get_subtable_count (void) const { return subTable.len; }
 
   inline unsigned int get_type (void) const { return lookupType; }
-  inline unsigned int get_flag (void) const { return lookupFlag; }
+  inline unsigned int get_flag (void) const
+  {
+    unsigned int flag = lookupFlag;
+    if (HB_UNLIKELY (flag & LookupFlag::UseMarkFilteringSet))
+    {
+      const USHORT &markFilteringSet = *(const USHORT*)
+					((const char *) &subTable + subTable.get_size ());
+      flag += markFilteringSet << 16;
+    }
+    return flag;
+  }
 
-  USHORT	lookupType;	/* Different enumerations for GSUB and GPOS */
-  USHORT	lookupFlag;	/* Lookup qualifiers */
+  USHORT	lookupType;		/* Different enumerations for GSUB and GPOS */
+  USHORT	lookupFlag;		/* Lookup qualifiers */
   OffsetArrayOf<LookupSubTable>
-		subTable;	/* Array of SubTables */
+		subTable;		/* Array of SubTables */
+  USHORT	markFilteringSetX[0];	/* Index (base 0) into GDEF mark glyph sets
+					 * structure. This field is only present if bit
+					 * UseMarkFilteringSet of lookup flags is set. */
 };
 ASSERT_SIZE (Lookup, 6);
 
