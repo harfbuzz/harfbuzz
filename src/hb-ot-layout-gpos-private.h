@@ -379,7 +379,7 @@ struct PairPosFormat1
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_INFO (j), lookup_flag, &property))
+    while (_hb_ot_layout_skip_mark (layout, IN_INFO (j), lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -444,7 +444,7 @@ struct PairPosFormat2
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (!_hb_ot_layout_check_glyph_property (layout, IN_INFO (j), lookup_flag, &property))
+    while (_hb_ot_layout_skip_mark (layout, IN_INFO (j), lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -771,9 +771,6 @@ struct MarkBasePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    if  (lookup_flag & LookupFlag::IgnoreBaseGlyphs)
-      return false;
-
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark_index == NOT_COVERED))
       return false;
@@ -896,9 +893,6 @@ struct MarkLigPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    if  (lookup_flag & LookupFlag::IgnoreLigatures)
-      return false;
-
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark_index == NOT_COVERED))
       return false;
@@ -1034,9 +1028,6 @@ struct MarkMarkPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    if  (lookup_flag & LookupFlag::IgnoreMarks)
-      return false;
-
     unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark1_index == NOT_COVERED))
       return false;

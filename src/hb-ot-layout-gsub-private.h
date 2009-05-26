@@ -45,11 +45,9 @@ struct SingleSubstFormat1
     glyph_id += deltaGlyphID;
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
-    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
-    {
-      /* we inherit the old glyph class to the substituted glyph */
+    /* We inherit the old glyph class to the substituted glyph */
+    if (_hb_ot_layout_has_new_glyph_classes (layout))
       _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
-    }
 
     return true;
   }
@@ -82,11 +80,9 @@ struct SingleSubstFormat2
     glyph_id = substitute[index];
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
-    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
-    {
-      /* we inherit the old glyph class to the substituted glyph */
+    /* We inherit the old glyph class to the substituted glyph */
+    if (_hb_ot_layout_has_new_glyph_classes (layout))
       _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
-    }
 
     return true;
   }
@@ -140,10 +136,10 @@ struct Sequence
 				  substitute.len, (const uint16_t *) substitute.array,
 				  0xFFFF, 0xFFFF);
 
-    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
+    /* This is a guess only ... */
+    if (_hb_ot_layout_has_new_glyph_classes (layout))
     {
-      /* this is a guess only ... */
-      if ( property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE )
+      if (property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
         property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
 
       unsigned int count = substitute.len;
@@ -246,11 +242,9 @@ struct AlternateSubstFormat1
 
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
-    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
-    {
-      /* we inherit the old glyph class to the substituted glyph */
+    /* We inherit the old glyph class to the substituted glyph */
+    if (_hb_ot_layout_has_new_glyph_classes (layout))
       _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
-    }
 
     return true;
   }
@@ -303,7 +297,7 @@ struct Ligature
 
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
     {
-      while (!_hb_ot_layout_check_glyph_property (layout, IN_INFO (j), lookup_flag, &property))
+      while (_hb_ot_layout_skip_mark (layout, IN_INFO (j), lookup_flag, &property))
       {
 	if (HB_UNLIKELY (j + count - i == end))
 	  return false;
@@ -313,11 +307,11 @@ struct Ligature
       if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
 	is_mark = FALSE;
 
-      if (HB_LIKELY (IN_GLYPH(j) != component[i]))
+      if (HB_LIKELY (IN_GLYPH (j) != component[i]))
         return false;
     }
-    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
-      /* this is just a guess ... */
+    /* This is just a guess ... */
+    if (_hb_ot_layout_has_new_glyph_classes (layout))
       hb_ot_layout_set_glyph_class (layout, ligGlyph,
 				    is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK
 					    : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
@@ -344,8 +338,8 @@ struct Ligature
 
       for ( i = 1; i < count; i++ )
       {
-	while (!_hb_ot_layout_check_glyph_property (layout, IN_CURINFO(), lookup_flag, &property))
-	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH(), i - 1, lig_id);
+	while (_hb_ot_layout_skip_mark (layout, IN_CURINFO (), lookup_flag, NULL))
+	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH (), i - 1, lig_id);
 
 	(buffer->in_pos)++;
       }
@@ -505,7 +499,7 @@ struct ReverseChainSingleSubstFormat1
 			 match_coverage, (char *) this,
 			 1))
     {
-      IN_CURGLYPH() = substitute[index];
+      IN_CURGLYPH () = substitute[index];
       buffer->in_pos--; /* Reverse! */
       return true;
     }

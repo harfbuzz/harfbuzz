@@ -5,7 +5,6 @@
 - Face index > 0 and dfont fonts
 - HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH vs LookupType::... mess
 - Rename LookupFlag::MarkAttachmentType to LookupFlag:IgnoreSpecialMarks
-- Skip forward/backward should only skip marks, not whatever lookupflags say!
 - layout vs font split
 - gpi again
 
