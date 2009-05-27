@@ -681,6 +681,8 @@ struct CursivePosFormat1
     hb_position_t entry_x, entry_y;
     (this+record.entryAnchor).get_anchor (layout, IN_CURGLYPH (), &entry_x, &entry_y);
 
+    /* TODO vertical */
+
     if (gpi->r2l)
     {
       POSITION (buffer->in_pos)->x_advance   = entry_x - gpi->anchor_x;
