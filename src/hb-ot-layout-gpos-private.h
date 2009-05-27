@@ -675,11 +675,10 @@ struct CursivePosFormat1
 
     const EntryExitRecord &record = entryExitRecord[index];
 
-    hb_position_t entry_x, entry_y, exit_x, exit_y;
-
     if (last_pos == HB_OT_LAYOUT_GPOS_NO_LAST || !record.entryAnchor)
       goto end;
 
+    hb_position_t entry_x, entry_y;
     (this+record.entryAnchor).get_anchor (layout, IN_CURGLYPH (), &entry_x, &entry_y);
 
     if (gpi->r2l)
