@@ -30,9 +30,6 @@
 #include "hb-private.h"
 #include "hb-ot-layout.h"
 
-/* XXX */
-#include "hb-buffer.h"
-
 
 typedef unsigned int hb_ot_layout_class_t;
 
