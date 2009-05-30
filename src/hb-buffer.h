@@ -49,14 +49,14 @@ typedef struct _hb_glyph_position_t {
   hb_position_t  x_advance;
   hb_position_t  y_advance;
   unsigned short back;		/* number of glyphs to go back
-				   for drawing current glyph   */
+				   for drawing current glyph */
   hb_bool_t      new_advance;	/* if set, the advance width values are
 				   absolute, i.e., they won't be
 				   added to the original glyph's value
-				   but rather replace them.            */
+				   but rather replace them */
   short          cursive_chain; /* character to which this connects,
 				   may be positive or negative; used
-				   only internally                     */
+				   only internally */
 } hb_glyph_position_t;
 
 
@@ -68,7 +68,6 @@ typedef struct _hb_buffer_t {
   unsigned int in_pos;
   unsigned int out_pos;
 
-  hb_bool_t            separate_out;
   hb_glyph_info_t     *in_string;
   hb_glyph_info_t     *out_string;
   hb_glyph_info_t     *alt_string;

@@ -36,24 +36,16 @@
  *
  * As an optimization, both in_string and out_string may point to the
  * same piece of memory, which is owned by in_string.  This remains the
- * case as long as:
+ * case as long as out_length doesn't exceed in_length at any time.
+ * In that case, swap() is no-op and the glyph operations operate mostly
+ * in-place.
  *
- *   - copy_glyph() is called
- *   - replace_glyph() is called with inplace=TRUE
- *   - add_output_glyph() and add_output_glyphs() are not called
- *
- * In that case swap(), and copy_glyph(), and replace_glyph() are all
- * mostly no-op.
- *
- * As soon an add_output_glyph[s]() or replace_glyph() with inplace=FALSE is
- * called, out_string is moved over to an alternate buffer (alt_string), and
- * its current contents (out_length entries) are copied to the alt buffer.
- * This should all remain transparent to the user.  swap() then switches
- * in_string and alt_string.  alt_string is not allocated until its needed,
- * but after that it's grown with in_string unconditionally.
- *
- * The buffer->separate_out boolean keeps status of whether out_string points
- * to in_string (FALSE) or alt_string (TRUE).
+ * As soon as out_string gets longer than in_string, out_string is moved over
+ * to an alternate buffer (alt_string), and its current contents (out_length
+ * entries) are copied to the alt buffer.  This should all remain transparent
+ * to the user.  swap() then switches in_string and alt_string.  alt_string is
+ * not allocated until its needed, but after that it's grown with in_string
+ * unconditionally.
  */
 
 /* XXX err handling */
@@ -66,52 +58,47 @@ hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
   unsigned int new_allocated = buffer->allocated;
 
   if (size > new_allocated)
+  {
+    while (size > new_allocated)
+      new_allocated += (new_allocated >> 1) + 8;
+
+    if (buffer->positions)
+      buffer->positions = realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
+
+    buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
+
+    if (buffer->out_string != buffer->in_string)
     {
-      while (size > new_allocated)
-	new_allocated += (new_allocated >> 1) + 8;
-
-      if (buffer->positions)
-	buffer->positions = realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
-
-      buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
-
-      if (buffer->separate_out)
-        {
-	  buffer->alt_string = realloc (buffer->alt_string, new_allocated * sizeof (buffer->alt_string[0]));
-	  buffer->out_string = buffer->alt_string;
-	}
-      else
-        {
-	  buffer->out_string = buffer->in_string;
-
-	  if (buffer->alt_string)
-	    {
-	      free (buffer->alt_string);
-	      buffer->alt_string = NULL;
-	    }
-	}
-
-      buffer->allocated = new_allocated;
+      buffer->alt_string = realloc (buffer->alt_string, new_allocated * sizeof (buffer->alt_string[0]));
+      buffer->out_string = buffer->alt_string;
     }
-}
+    else
+    {
+      buffer->out_string = buffer->in_string;
 
-static void
-hb_buffer_duplicate_out_buffer (hb_buffer_t *buffer)
-{
-  if (!buffer->alt_string)
-    buffer->alt_string = malloc (buffer->allocated * sizeof (buffer->alt_string[0]));
+      if (buffer->alt_string)
+      {
+	free (buffer->alt_string);
+	buffer->alt_string = NULL;
+      }
+    }
 
-  buffer->out_string = buffer->alt_string;
-  memcpy (buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]));
-  buffer->separate_out = TRUE;
+    buffer->allocated = new_allocated;
+  }
 }
 
 static void
 hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 {
   hb_buffer_ensure (buffer, size);
-  if ( !buffer->separate_out )
-    hb_buffer_duplicate_out_buffer (buffer);
+  if (buffer->out_string == buffer->in_string)
+  {
+    if (!buffer->alt_string)
+      buffer->alt_string = malloc (buffer->allocated * sizeof (buffer->alt_string[0]));
+
+    buffer->out_string = buffer->alt_string;
+    memcpy (buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]));
+  }
 }
 
 /* Public API */
@@ -152,7 +139,6 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->in_pos = 0;
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
-  buffer->separate_out = FALSE;
   buffer->max_lig_id = 0;
 }
 
@@ -185,7 +171,6 @@ _hb_buffer_clear_output (hb_buffer_t *buffer)
   buffer->out_length = 0;
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
-  buffer->separate_out = FALSE;
 }
 
 HB_INTERNAL void
@@ -207,14 +192,14 @@ _hb_buffer_swap (hb_buffer_t *buffer)
 {
   unsigned int tmp;
 
-  if (buffer->separate_out)
-    {
-      hb_glyph_info_t *tmp_string;
-      tmp_string = buffer->in_string;
-      buffer->in_string = buffer->out_string;
-      buffer->out_string = tmp_string;
-      buffer->alt_string = buffer->out_string;
-    }
+  if (buffer->out_string != buffer->in_string)
+  {
+    hb_glyph_info_t *tmp_string;
+    tmp_string = buffer->in_string;
+    buffer->in_string = buffer->out_string;
+    buffer->out_string = tmp_string;
+    buffer->alt_string = buffer->out_string;
+  }
 
   tmp = buffer->in_length;
   buffer->in_length = buffer->out_length;
@@ -256,7 +241,11 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   unsigned int properties;
   unsigned int cluster;
 
-  hb_buffer_ensure_separate (buffer, buffer->out_pos + num_out);
+  if (buffer->out_string == buffer->in_string &&
+      buffer->out_pos + num_out > buffer->in_pos + num_in)
+  {
+    hb_buffer_ensure_separate (buffer, buffer->out_pos + num_out);
+  }
 
   properties = buffer->in_string[buffer->in_pos].properties;
   cluster = buffer->in_string[buffer->in_pos].cluster;
@@ -268,7 +257,6 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   for (i = 0; i < num_out; i++)
   {
     hb_glyph_info_t *info = &buffer->out_string[buffer->out_pos + i];
-
     info->gindex = hb_be_uint16_t (glyph_data_be[i]);
     info->properties = properties;
     info->cluster = cluster;
@@ -279,7 +267,6 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 
   buffer->in_pos  += num_in;
   buffer->out_pos += num_out;
-
   buffer->out_length = buffer->out_pos;
 }
 
@@ -292,11 +279,15 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 {
   hb_glyph_info_t *info;
 
-  hb_buffer_ensure_separate (buffer, buffer->out_pos + 1);
+  if (buffer->out_string != buffer->in_string)
+  {
+    hb_buffer_ensure (buffer, buffer->out_pos + 1);
+    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+  }
+  else if (buffer->out_pos != buffer->in_pos)
+    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
 
   info = &buffer->out_string[buffer->out_pos];
-  *info = buffer->in_string[buffer->in_pos];
-
   info->gindex = glyph_index;
   if (component != 0xFFFF)
     info->component = component;
@@ -306,19 +297,19 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 
   buffer->in_pos++;
   buffer->out_pos++;
-
   buffer->out_length = buffer->out_pos;
 }
 
 HB_INTERNAL void
 _hb_buffer_next_glyph (hb_buffer_t *buffer)
 {
-  if (buffer->separate_out)
-    {
-      hb_buffer_ensure (buffer, buffer->out_pos + 1);
-
-      buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
-    }
+  if (buffer->out_string != buffer->in_string)
+  {
+    hb_buffer_ensure (buffer, buffer->out_pos + 1);
+    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+  }
+  else if (buffer->out_pos != buffer->in_pos)
+    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
 
   buffer->in_pos++;
   buffer->out_pos++;
@@ -329,18 +320,7 @@ HB_INTERNAL void
 _hb_buffer_replace_glyph (hb_buffer_t *buffer,
 			  hb_codepoint_t glyph_index)
 {
-  if (!buffer->separate_out)
-    {
-      buffer->out_string[buffer->out_pos].gindex = glyph_index;
-
-      buffer->in_pos++;
-      buffer->out_pos++;
-      buffer->out_length = buffer->out_pos;
-    }
-  else
-    {
-      return _hb_buffer_add_output_glyph (buffer, glyph_index, 0xFFFF, 0xFFFF);
-    }
+  _hb_buffer_add_output_glyph (buffer, glyph_index, 0xFFFF, 0xFFFF);
 }
 
 HB_INTERNAL unsigned short
