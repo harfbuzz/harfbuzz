@@ -264,6 +264,8 @@ struct SinglePosFormat1
       return false;
 
     valueFormat.apply_value (layout, (const char *) this, values, CURPOSITION ());
+
+    buffer->in_pos++;
     return true;
   }
 
@@ -297,6 +299,8 @@ struct SinglePosFormat2
     valueFormat.apply_value (layout, (const char *) this,
 			     values + index * valueFormat.get_len (),
 			     CURPOSITION ());
+
+    buffer->in_pos++;
     return true;
   }
 
