@@ -11,6 +11,8 @@ CXX = gcc -g -O2 -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
 HBSOURCES =  \
+	hb-common.c \
+	hb-common-private.h \
 	hb-buffer.c \
 	hb-buffer-private.h \
 	hb-private.h \

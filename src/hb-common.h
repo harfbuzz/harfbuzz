@@ -50,4 +50,7 @@ typedef uint32_t hb_codepoint_t;
 typedef int32_t hb_position_t;
 typedef int32_t hb_16dot16_t;
 
+typedef struct _hb_face_t hb_face_t;
+typedef struct _hb_font_t hb_font_t;
+
 #endif /* HB_COMMON_H */

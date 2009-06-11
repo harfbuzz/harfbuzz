@@ -46,8 +46,8 @@ struct SingleSubstFormat1
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (layout))
-      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    if (_hb_ot_layout_has_new_glyph_classes (context->layout))
+      _hb_ot_layout_set_glyph_property (context->layout, glyph_id, property);
 
     return true;
   }
@@ -81,8 +81,8 @@ struct SingleSubstFormat2
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (layout))
-      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    if (_hb_ot_layout_has_new_glyph_classes (context->layout))
+      _hb_ot_layout_set_glyph_property (context->layout, glyph_id, property);
 
     return true;
   }
@@ -137,14 +137,14 @@ struct Sequence
 				  0xFFFF, 0xFFFF);
 
     /* This is a guess only ... */
-    if (_hb_ot_layout_has_new_glyph_classes (layout))
+    if (_hb_ot_layout_has_new_glyph_classes (context->layout))
     {
       if (property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
         property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
 
       unsigned int count = substitute.len;
       for (unsigned int n = 0; n < count; n++)
-	_hb_ot_layout_set_glyph_property (layout, substitute[n], property);
+	_hb_ot_layout_set_glyph_property (context->layout, substitute[n], property);
     }
 
     return true;
@@ -229,8 +229,8 @@ struct AlternateSubstFormat1
     unsigned int alt_index = 0;
 
     /* XXX callback to user to choose alternate
-    if (layout->altfunc)
-      alt_index = (layout->altfunc)(layout, buffer,
+    if (context->layout->altfunc)
+      alt_index = (context->layout->altfunc)(context->layout, buffer,
 				    buffer->out_pos, glyph_id,
 				    alt_set.len, alt_set.array);
 				   */
@@ -243,8 +243,8 @@ struct AlternateSubstFormat1
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (layout))
-      _hb_ot_layout_set_glyph_property (layout, glyph_id, property);
+    if (_hb_ot_layout_has_new_glyph_classes (context->layout))
+      _hb_ot_layout_set_glyph_property (context->layout, glyph_id, property);
 
     return true;
   }
@@ -297,7 +297,7 @@ struct Ligature
 
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
     {
-      while (_hb_ot_layout_skip_mark (layout, IN_INFO (j), lookup_flag, &property))
+      while (_hb_ot_layout_skip_mark (context->layout, IN_INFO (j), lookup_flag, &property))
       {
 	if (HB_UNLIKELY (j + count - i == end))
 	  return false;
@@ -311,8 +311,8 @@ struct Ligature
         return false;
     }
     /* This is just a guess ... */
-    if (_hb_ot_layout_has_new_glyph_classes (layout))
-      hb_ot_layout_set_glyph_class (layout, ligGlyph,
+    if (_hb_ot_layout_has_new_glyph_classes (context->layout))
+      hb_ot_layout_set_glyph_class (context->layout, ligGlyph,
 				    is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK
 					    : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
 
@@ -338,7 +338,7 @@ struct Ligature
 
       for ( i = 1; i < count; i++ )
       {
-	while (_hb_ot_layout_skip_mark (layout, IN_CURINFO (), lookup_flag, NULL))
+	while (_hb_ot_layout_skip_mark (context->layout, IN_CURINFO (), lookup_flag, NULL))
 	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH (), i - 1, lig_id);
 
 	(buffer->in_pos)++;
@@ -627,7 +627,7 @@ struct SubstLookup : Lookup
   inline bool is_reverse (void) const
   { return HB_UNLIKELY (get_effective_type () == SubstLookupSubTable::ReverseChainSingle); }
 
-  inline bool apply_once (hb_ot_layout_t *layout,
+  inline bool apply_once (hb_ot_layout_context_t *context,
 			  hb_buffer_t    *buffer,
 			  unsigned int    context_length,
 			  unsigned int    nesting_level_left) const
@@ -636,7 +636,7 @@ struct SubstLookup : Lookup
     unsigned int lookup_flag = get_flag ();
     unsigned int property;
 
-    if (!_hb_ot_layout_check_glyph_property (layout, IN_CURINFO (), lookup_flag, &property))
+    if (!_hb_ot_layout_check_glyph_property (context->layout, IN_CURINFO (), lookup_flag, &property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
@@ -646,7 +646,7 @@ struct SubstLookup : Lookup
     return false;
   }
 
-  bool apply_string (hb_ot_layout_t *layout,
+  bool apply_string (hb_ot_layout_context_t *context,
 		     hb_buffer_t    *buffer,
 		     hb_ot_layout_feature_mask_t mask) const
   {
@@ -663,7 +663,7 @@ struct SubstLookup : Lookup
 	while (buffer->in_pos < buffer->in_length)
 	{
 	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
-	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    _hb_buffer_next_glyph (buffer);
@@ -681,7 +681,7 @@ struct SubstLookup : Lookup
 	do
 	{
 	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
-	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    buffer->in_pos--;
@@ -710,11 +710,11 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return (const SubstLookup&) GSUBGPOS::get_lookup (i); }
 
-  inline bool substitute_lookup (hb_ot_layout_t *layout,
+  inline bool substitute_lookup (hb_ot_layout_context_t *context,
 				 hb_buffer_t    *buffer,
 			         unsigned int    lookup_index,
 				 hb_ot_layout_feature_mask_t  mask) const
-  { return get_lookup (lookup_index).apply_string (layout, buffer, mask); }
+  { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
 };
 ASSERT_SIZE (GSUB, 10);
@@ -734,7 +734,7 @@ inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
 {
-  const GSUB &gsub = *(layout->gsub);
+  const GSUB &gsub = *(context->layout->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   if (HB_UNLIKELY (nesting_level_left == 0))
@@ -744,7 +744,7 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  return l.apply_once (layout, buffer, context_length, nesting_level_left);
+  return l.apply_once (context, buffer, context_length, nesting_level_left);
 }
 
 
