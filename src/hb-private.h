@@ -100,20 +100,4 @@ _hb_popcount32 (uint32_t mask)
 #endif
 }
 
-
-struct _hb_face_t
-{
-  struct _hb_ot_layout_t *layout;
-};
-
-struct _hb_font_t
-{
-  hb_face_t *face;
-
-  unsigned int x_ppem, y_ppem;
-  hb_16dot16_t x_scale, y_scale;
-
-  hb_bool_t dvi;
-};
-
 #endif /* HB_PRIVATE_H */

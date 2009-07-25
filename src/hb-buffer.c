@@ -163,15 +163,6 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   buffer->in_length++;
 }
 
-void
-hb_buffer_set_direction (hb_buffer_t    *buffer,
-			 hb_direction_t  direction)
-
-{
-  buffer->direction = direction;
-}
-
-
 /* HarfBuzz-Internal API */
 
 HB_INTERNAL void

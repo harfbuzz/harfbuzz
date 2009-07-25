@@ -90,10 +90,10 @@ struct CaretValueFormat1
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
+  inline int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
     /* XXX vertical */
-    return context->font->x_scale * coordinate / 0x10000;
+    return layout->gpos_info.x_scale * coordinate / 0x10000;
   }
 
   private:
@@ -107,7 +107,7 @@ struct CaretValueFormat2
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
+  inline int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
     return /* TODO contour point */ 0;
   }
@@ -122,11 +122,11 @@ struct CaretValueFormat3
 {
   friend struct CaretValue;
 
-  inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
+  inline int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
     /* XXX vertical */
-    return context->font->x_scale * coordinate / 0x10000 +
-	   (this+deviceTable).get_delta (context->font->x_ppem) << 6;
+    return layout->gpos_info.x_scale * coordinate / 0x10000 +
+	   (this+deviceTable).get_delta (layout->gpos_info.x_ppem) << 6;
   }
 
   private:
@@ -142,12 +142,12 @@ ASSERT_SIZE (CaretValueFormat3, 6);
 struct CaretValue
 {
   /* XXX  we need access to a load-contour-point vfunc here */
-  int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
+  int get_caret_value (hb_ot_layout_t *layout, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_caret_value (context, glyph_id);
-    case 2: return u.format2->get_caret_value (context, glyph_id);
-    case 3: return u.format3->get_caret_value (context, glyph_id);
+    case 1: return u.format1->get_caret_value (layout, glyph_id);
+    case 2: return u.format2->get_caret_value (layout, glyph_id);
+    case 3: return u.format3->get_caret_value (layout, glyph_id);
     default:return 0;
     }
   }
@@ -164,7 +164,7 @@ ASSERT_SIZE (CaretValue, 2);
 
 struct LigGlyph
 {
-  inline void get_lig_carets (hb_ot_layout_context_t *context,
+  inline void get_lig_carets (hb_ot_layout_t *layout,
 			      hb_codepoint_t glyph_id,
 			      unsigned int *caret_count /* IN/OUT */,
 			      int *caret_array /* OUT */) const
@@ -172,7 +172,7 @@ struct LigGlyph
 
     unsigned int count = MIN (carets.len, *caret_count);
     for (unsigned int i = 0; i < count; i++)
-      caret_array[i] = (this+carets[i]).get_caret_value (context, glyph_id);
+      caret_array[i] = (this+carets[i]).get_caret_value (layout, glyph_id);
 
     *caret_count = carets.len;
   }
@@ -187,7 +187,7 @@ ASSERT_SIZE (LigGlyph, 2);
 
 struct LigCaretList
 {
-  inline bool get_lig_carets (hb_ot_layout_context_t *context,
+  inline bool get_lig_carets (hb_ot_layout_t *layout,
 			      hb_codepoint_t glyph_id,
 			      unsigned int *caret_count /* IN/OUT */,
 			      int *caret_array /* OUT */) const
@@ -199,7 +199,7 @@ struct LigCaretList
       return false;
     }
     const LigGlyph &lig_glyph = this+ligGlyph[index];
-    lig_glyph.get_lig_carets (context, glyph_id, caret_count, caret_array);
+    lig_glyph.get_lig_carets (layout, glyph_id, caret_count, caret_array);
     return true;
   }
 
@@ -279,11 +279,11 @@ struct GDEF
   { return (this+attachList).get_attach_points (glyph_id, point_count, point_array); }
 
   inline bool has_lig_carets () const { return ligCaretList != 0; }
-  inline bool get_lig_carets (hb_ot_layout_context_t *context,
+  inline bool get_lig_carets (hb_ot_layout_t *layout,
 			      hb_codepoint_t glyph_id,
 			      unsigned int *caret_count /* IN/OUT */,
 			      int *caret_array /* OUT */) const
-  { return (this+ligCaretList).get_lig_carets (context, glyph_id, caret_count, caret_array); }
+  { return (this+ligCaretList).get_lig_carets (layout, glyph_id, caret_count, caret_array); }
 
   inline bool has_mark_sets () const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const

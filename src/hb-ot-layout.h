@@ -48,6 +48,11 @@ hb_ot_layout_create_for_data (const char *font_data,
 void
 hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
+/* XXX */
+void
+hb_ot_layout_set_direction (hb_ot_layout_t *layout,
+			    hb_bool_t r2l);
+
 void
 hb_ot_layout_set_hinting (hb_ot_layout_t *layout,
 			  hb_bool_t hinted);
