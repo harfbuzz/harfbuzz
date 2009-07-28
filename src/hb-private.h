@@ -27,7 +27,7 @@
 #ifndef HB_PRIVATE_H
 #define HB_PRIVATE_H
 
-#include <hb-common.h>
+#include "hb-common.h"
 
 #include <glib.h>
 

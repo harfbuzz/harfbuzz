@@ -53,41 +53,6 @@
 /* Internal API */
 
 static void
-hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
-{
-  unsigned int new_allocated = buffer->allocated;
-
-  if (size > new_allocated)
-  {
-    while (size > new_allocated)
-      new_allocated += (new_allocated >> 1) + 8;
-
-    if (buffer->positions)
-      buffer->positions = realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
-
-    buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
-
-    if (buffer->out_string != buffer->in_string)
-    {
-      buffer->alt_string = realloc (buffer->alt_string, new_allocated * sizeof (buffer->alt_string[0]));
-      buffer->out_string = buffer->alt_string;
-    }
-    else
-    {
-      buffer->out_string = buffer->in_string;
-
-      if (buffer->alt_string)
-      {
-	free (buffer->alt_string);
-	buffer->alt_string = NULL;
-      }
-    }
-
-    buffer->allocated = new_allocated;
-  }
-}
-
-static void
 hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 {
   hb_buffer_ensure (buffer, size);
@@ -104,7 +69,7 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 /* Public API */
 
 hb_buffer_t *
-hb_buffer_new (void)
+hb_buffer_new (unsigned int allocation_size)
 {
   hb_buffer_t *buffer;
 
@@ -118,6 +83,9 @@ hb_buffer_new (void)
   buffer->positions = NULL;
 
   hb_buffer_clear (buffer);
+
+  if (allocation_size)
+    hb_buffer_ensure(buffer, allocation_size);
 
   return buffer;
 }
@@ -140,6 +108,41 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
   buffer->max_lig_id = 0;
+}
+
+void
+hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
+{
+  unsigned int new_allocated = buffer->allocated;
+
+  if (size > new_allocated)
+  {
+    while (size > new_allocated)
+      new_allocated += (new_allocated >> 1) + 8;
+
+    if (buffer->positions)
+      buffer->positions = realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
+
+    if (buffer->out_string != buffer->in_string)
+    {
+      buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
+      buffer->alt_string = realloc (buffer->alt_string, new_allocated * sizeof (buffer->alt_string[0]));
+      buffer->out_string = buffer->alt_string;
+    }
+    else
+    {
+      buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
+      buffer->out_string = buffer->in_string;
+
+      if (buffer->alt_string)
+      {
+	free (buffer->alt_string);
+	buffer->alt_string = NULL;
+      }
+    }
+
+    buffer->allocated = new_allocated;
+  }
 }
 
 void

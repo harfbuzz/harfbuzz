@@ -76,13 +76,17 @@ typedef struct _hb_buffer_t {
 } hb_buffer_t;
 
 hb_buffer_t *
-hb_buffer_new (void);
+hb_buffer_new (unsigned int allocation_size);
 
 void
 hb_buffer_free (hb_buffer_t *buffer);
 
 void
 hb_buffer_clear (hb_buffer_t *buffer);
+
+void
+hb_buffer_ensure (hb_buffer_t  *buffer,
+		  unsigned int  size);
 
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,

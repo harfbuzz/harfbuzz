@@ -45,6 +45,11 @@ hb_ot_layout_t *
 hb_ot_layout_create_for_data (const char *font_data,
 			      int         face_index);
 
+hb_ot_layout_t *
+hb_ot_layout_create_for_tables (const char *gdef_data,
+				const char *gsub_data,
+				const char *gpos_data);
+
 void
 hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
@@ -232,10 +237,20 @@ hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
  */
 
 hb_bool_t
+hb_ot_layout_has_substitution (hb_ot_layout_t *layout);
+
+hb_bool_t
 hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
 				hb_buffer_t                 *buffer,
 			        unsigned int                 lookup_index,
 				hb_ot_layout_feature_mask_t  mask);
+
+/*
+ * GPOS
+ */
+
+hb_bool_t
+hb_ot_layout_has_positioning (hb_ot_layout_t *layout);
 
 hb_bool_t
 hb_ot_layout_position_lookup   (hb_ot_layout_t              *layout,

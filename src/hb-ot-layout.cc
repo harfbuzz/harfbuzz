@@ -56,6 +56,18 @@ hb_ot_layout_create (void)
   return layout;
 }
 
+hb_bool_t
+hb_ot_layout_has_substitution (hb_ot_layout_t *layout)
+{
+  return layout->gsub != &Null(GSUB);
+}
+
+hb_bool_t
+hb_ot_layout_has_positioning (hb_ot_layout_t *layout)
+{
+  return layout->gpos != &Null(GPOS);
+}
+
 hb_ot_layout_t *
 hb_ot_layout_create_for_data (const char *font_data,
 			      int         face_index)
@@ -73,6 +85,25 @@ hb_ot_layout_create_for_data (const char *font_data,
   layout->gdef = &GDEF::get_for_data (font.get_table_data (face.get_table_by_tag (GDEF::Tag)));
   layout->gsub = &GSUB::get_for_data (font.get_table_data (face.get_table_by_tag (GSUB::Tag)));
   layout->gpos = &GPOS::get_for_data (font.get_table_data (face.get_table_by_tag (GPOS::Tag)));
+
+  return layout;
+}
+
+hb_ot_layout_t *
+hb_ot_layout_create_for_tables (const char *gdef_data,
+				const char *gsub_data,
+				const char *gpos_data)
+{
+  hb_ot_layout_t *layout;
+
+  if (HB_UNLIKELY (gdef_data == NULL && gsub_data == NULL && gpos_data == NULL))
+    return hb_ot_layout_create ();
+
+  layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
+
+  layout->gdef = &GDEF::get_for_data (gdef_data);
+  layout->gsub = &GSUB::get_for_data (gsub_data);
+  layout->gpos = &GPOS::get_for_data (gpos_data);
 
   return layout;
 }
