@@ -244,7 +244,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   unsigned int properties;
   unsigned int cluster;
 
-  if (buffer->out_string == buffer->in_string &&
+  if (buffer->out_string != buffer->in_string ||
       buffer->out_pos + num_out > buffer->in_pos + num_in)
   {
     hb_buffer_ensure_separate (buffer, buffer->out_pos + num_out);
