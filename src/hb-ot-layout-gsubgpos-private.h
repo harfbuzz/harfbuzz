@@ -232,16 +232,16 @@ static inline bool context_lookup (APPLY_ARG_DEF,
 				   const USHORT input[], /* Array of input values--start with second glyph */
 				   unsigned int lookupCount,
 				   const LookupRecord lookupRecord[],
-				   ContextLookupContext &context)
+				   ContextLookupContext &lookup_context)
 {
   return match_input (APPLY_ARG,
 		      inputCount, input,
-		      context.funcs.match, context.match_data,
+		      lookup_context.funcs.match, lookup_context.match_data,
 		      &context_length) &&
 	 apply_lookup (APPLY_ARG,
 		       inputCount,
 		       lookupCount, lookupRecord,
-		       context.funcs.apply);
+		       lookup_context.funcs.apply);
 }
 
 struct Rule
@@ -249,7 +249,7 @@ struct Rule
   friend struct RuleSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const
+  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
     const LookupRecord *lookupRecord = (const LookupRecord *)
 				       ((const char *) input +
@@ -257,7 +257,7 @@ struct Rule
     return context_lookup (APPLY_ARG,
 			   inputCount, input,
 			   lookupCount, lookupRecord,
-			   context);
+			   lookup_context);
   }
 
   private:
@@ -274,12 +274,12 @@ ASSERT_SIZE (Rule, 4);
 
 struct RuleSet
 {
-  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &context) const
+  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
-      if ((this+rule[i]).apply (APPLY_ARG, context))
+      if ((this+rule[i]).apply (APPLY_ARG, lookup_context))
         return true;
     }
 
@@ -305,11 +305,11 @@ struct ContextFormat1
       return false;
 
     const RuleSet &rule_set = this+ruleSet[index];
-    struct ContextLookupContext context = {
+    struct ContextLookupContext lookup_context = {
       {match_glyph, apply_func},
       NULL
     };
-    return rule_set.apply (APPLY_ARG, context);
+    return rule_set.apply (APPLY_ARG, lookup_context);
   }
 
   private:
@@ -341,11 +341,11 @@ struct ContextFormat2
     /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
      * them across subrule lookups.  Not sure it's worth it.
      */
-    struct ContextLookupContext context = {
+    struct ContextLookupContext lookup_context = {
      {match_class, apply_func},
       (char *) &class_def
     };
-    return rule_set.apply (APPLY_ARG, context);
+    return rule_set.apply (APPLY_ARG, lookup_context);
   }
 
   private:
@@ -377,14 +377,14 @@ struct ContextFormat3
     const LookupRecord *lookupRecord = (const LookupRecord *)
 				       ((const char *) coverage +
 					sizeof (coverage[0]) * glyphCount);
-    struct ContextLookupContext context = {
+    struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
       (char *) this
     };
     return context_lookup (APPLY_ARG,
 			   glyphCount, (const USHORT *) (coverage + 1),
 			   lookupCount, lookupRecord,
-			   context);
+			   lookup_context);
   }
 
   private:
@@ -441,7 +441,7 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
 					 const USHORT lookahead[],
 					 unsigned int lookupCount,
 					 const LookupRecord lookupRecord[],
-					 ChainContextLookupContext &context)
+					 ChainContextLookupContext &lookup_context)
 {
   /* First guess */
   if (HB_UNLIKELY (buffer->out_pos < backtrackCount ||
@@ -452,20 +452,20 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
   unsigned int offset;
   return match_backtrack (APPLY_ARG,
 			  backtrackCount, backtrack,
-			  context.funcs.match, context.match_data[0]) &&
+			  lookup_context.funcs.match, lookup_context.match_data[0]) &&
 	 match_input (APPLY_ARG,
 		      inputCount, input,
-		      context.funcs.match, context.match_data[1],
+		      lookup_context.funcs.match, lookup_context.match_data[1],
 		      &offset) &&
 	 match_lookahead (APPLY_ARG,
 			  lookaheadCount, lookahead,
-			  context.funcs.match, context.match_data[2],
+			  lookup_context.funcs.match, lookup_context.match_data[2],
 			  offset) &&
 	 (context_length = offset, true) &&
 	 apply_lookup (APPLY_ARG,
 		       inputCount,
 		       lookupCount, lookupRecord,
-		       context.funcs.apply);
+		       lookup_context.funcs.apply);
 }
 
 struct ChainRule
@@ -473,7 +473,7 @@ struct ChainRule
   friend struct ChainRuleSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const
+  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
     const HeadlessArrayOf<USHORT> &input = *(const HeadlessArrayOf<USHORT>*)
 					    ((const char *) &backtrack + backtrack.get_size ());
@@ -486,7 +486,7 @@ struct ChainRule
 				 input.len, input.array + 1,
 				 lookahead.len, lookahead.array,
 				 lookup.len, lookup.array,
-				 context);
+				 lookup_context);
     return false;
   }
 
@@ -510,12 +510,12 @@ ASSERT_SIZE (ChainRule, 8);
 
 struct ChainRuleSet
 {
-  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &context) const
+  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
-      if ((this+rule[i]).apply (APPLY_ARG, context))
+      if ((this+rule[i]).apply (APPLY_ARG, lookup_context))
         return true;
     }
 
@@ -541,11 +541,11 @@ struct ChainContextFormat1
       return false;
 
     const ChainRuleSet &rule_set = this+ruleSet[index];
-    struct ChainContextLookupContext context = {
+    struct ChainContextLookupContext lookup_context = {
       {match_glyph, apply_func},
       {NULL, NULL, NULL}
     };
-    return rule_set.apply (APPLY_ARG, context);
+    return rule_set.apply (APPLY_ARG, lookup_context);
   }
   private:
   USHORT	format;			/* Format identifier--format = 1 */
@@ -578,13 +578,13 @@ struct ChainContextFormat2
     /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
      * them across subrule lookups.  Not sure it's worth it.
      */
-    struct ChainContextLookupContext context = {
+    struct ChainContextLookupContext lookup_context = {
      {match_class, apply_func},
      {(char *) &backtrack_class_def,
       (char *) &input_class_def,
       (char *) &lookahead_class_def}
     };
-    return rule_set.apply (APPLY_ARG, context);
+    return rule_set.apply (APPLY_ARG, lookup_context);
   }
 
   private:
@@ -629,7 +629,7 @@ struct ChainContextFormat3
 					        ((const char *) &input + input.get_size ());
     const ArrayOf<LookupRecord> &lookup = *(const ArrayOf<LookupRecord>*)
 					   ((const char *) &lookahead + lookahead.get_size ());
-    struct ChainContextLookupContext context = {
+    struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
       {(char *) this, (char *) this, (char *) this}
     };
@@ -638,7 +638,7 @@ struct ChainContextFormat3
 				 input.len, (USHORT *) input.array,
 				 lookahead.len, (USHORT *) lookahead.array,
 				 lookup.len, lookup.array,
-				 context);
+				 lookup_context);
     return false;
   }
 
