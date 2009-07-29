@@ -52,7 +52,6 @@ struct _hb_ot_layout_t
     hb_16dot16_t x_scale, y_scale;
 
     hb_bool_t dvi;
-    hb_bool_t r2l;
 
     unsigned int last;        /* the last valid glyph--used with cursive positioning */
     hb_position_t anchor_x;   /* the coordinates of the anchor point */

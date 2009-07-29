@@ -32,6 +32,13 @@
 
 HB_BEGIN_DECLS
 
+typedef enum _hb_direction_t {
+  HB_DIRECTION_LTR,
+  HB_DIRECTION_RTL,
+  HB_DIRECTION_TTB,
+  HB_DIRECTION_BTT
+} hb_direction_t;
+
 /* XXX  Hide structs? */
 
 typedef struct _hb_glyph_info_t {
@@ -72,6 +79,8 @@ typedef struct _hb_buffer_t {
   hb_glyph_info_t     *out_string;
   hb_glyph_info_t     *alt_string;
   hb_glyph_position_t *positions;
+
+  hb_direction_t       direction;
   unsigned int         max_lig_id;
 } hb_buffer_t;
 
@@ -93,6 +102,11 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     hb_codepoint_t  glyph_index,
 		     unsigned int    properties,
 		     unsigned int    cluster);
+
+void
+hb_buffer_set_direction (hb_buffer_t    *buffer,
+			 hb_direction_t  direction);
+
 
 HB_END_DECLS
 
