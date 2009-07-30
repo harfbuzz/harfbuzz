@@ -31,9 +31,6 @@
 
 HB_BEGIN_DECLS
 
-typedef struct _hb_blob_t hb_blob_t;
-typedef void (*hb_destroy_func_t) (void *user_data);
-
 typedef enum {
   HB_MEMORY_MODE_DUPLICATE,
   HB_MEMORY_MODE_READONLY,

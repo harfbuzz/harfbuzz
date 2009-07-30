@@ -109,19 +109,32 @@ struct ValueRecord {
     if (format & yAdvance)
       glyph_pos->y_advance += y_scale * *(SHORT*)values++ / 0x10000;
 
-    if (HB_LIKELY (!layout->gpos_info.dvi))
-    {
-      x_ppem = layout->gpos_info.x_ppem;
-      y_ppem = layout->gpos_info.y_ppem;
-      /* pixel -> fractional pixel */
-      if (format & xPlaDevice)
+    x_ppem = layout->gpos_info.x_ppem;
+    y_ppem = layout->gpos_info.y_ppem;
+    /* pixel -> fractional pixel */
+    if (format & xPlaDevice) {
+      if (x_ppem)
 	glyph_pos->x_pos += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6;
-      if (format & yPlaDevice)
+      else
+        values++;
+    }
+    if (format & yPlaDevice) {
+      if (y_ppem)
 	glyph_pos->y_pos += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6;
-      if (format & xAdvDevice)
+      else
+        values++;
+    }
+    if (format & xAdvDevice) {
+      if (x_ppem)
 	glyph_pos->x_advance += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6;
-      if (format & yAdvDevice)
+      else
+        values++;
+    }
+    if (format & yAdvDevice) {
+      if (y_ppem)
 	glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6;
+      else
+        values++;
     }
   }
 };
@@ -179,11 +192,10 @@ struct AnchorFormat3
       *x = layout->gpos_info.x_scale * xCoordinate / 0x10000;
       *y = layout->gpos_info.y_scale * yCoordinate / 0x10000;
 
-      if (!layout->gpos_info.dvi)
-      {
+      if (layout->gpos_info.x_ppem)
 	*x += (this+xDeviceTable).get_delta (layout->gpos_info.x_ppem) << 6;
+      if (layout->gpos_info.y_ppem)
 	*y += (this+yDeviceTable).get_delta (layout->gpos_info.y_ppem) << 6;
-      }
   }
 
   private:

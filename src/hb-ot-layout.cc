@@ -115,13 +115,6 @@ hb_ot_layout_destroy (hb_ot_layout_t *layout)
 }
 
 void
-hb_ot_layout_set_hinting (hb_ot_layout_t *layout,
-			  hb_bool_t hinted)
-{
-  layout->gpos_info.dvi = !hinted;
-}
-
-void
 hb_ot_layout_set_scale (hb_ot_layout_t *layout,
 			hb_16dot16_t x_scale, hb_16dot16_t y_scale)
 {
