@@ -49,6 +49,8 @@
 
 #include <stdlib.h>
 #include <stdio.h> /* XXX */
+#include <string.h>
+#include <assert.h>
 
 /* Basics */
 

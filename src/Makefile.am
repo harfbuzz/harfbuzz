@@ -11,6 +11,7 @@ CXX = gcc -g -O2 -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
 HBSOURCES =  \
+	hb-blob.c \
 	hb-buffer.c \
 	hb-buffer-private.h \
 	hb-private.h \
@@ -22,11 +23,13 @@ HBSOURCES =  \
 	hb-ot-layout-gsub-private.h \
 	hb-ot-layout-open-private.h \
 	hb-ot-layout-private.h \
+	hb-refcount-private.h \
 	$(NULL)
 
 HBHEADERS = \
-	hb-common.h \
+	hb-blob.h \
 	hb-buffer.h \
+	hb-common.h \
 	hb-ot-layout.h \
 	$(NULL)
 
