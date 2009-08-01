@@ -54,25 +54,29 @@ typedef struct {
 #define HB_REFERENCE_COUNT_HAS_REFERENCE(RC) (HB_REFERENCE_COUNT_GET_VALUE (RC) > 0)
 
 
+
 /* Helper macros */
 
-#define HB_REFERENCE_COUNT_DO_CREATE(obj) \
+#define HB_OBJECT_IS_INERT(obj) \
+    ((obj) == NULL || HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count))
+
+#define HB_OBJECT_DO_CREATE(obj) \
   HB_STMT_START { \
     HB_REFERENCE_COUNT_INIT (obj->ref_count, 1); \
   } HB_STMT_END
 
-#define HB_REFERENCE_COUNT_DO_REFERENCE(obj) \
+#define HB_OBJECT_DO_REFERENCE(obj) \
   HB_STMT_START { \
-    if (obj == NULL || HB_REFERENCE_COUNT_IS_INVALID (obj->ref_count)) \
+    if (HB_OBJECT_IS_INERT (obj)) \
       return obj; \
     assert (HB_REFERENCE_COUNT_HAS_REFERENCE (obj->ref_count)); \
     _hb_reference_count_inc (obj->ref_count); \
     return obj; \
   } HB_STMT_END
 
-#define HB_REFERENCE_COUNT_DO_DESTROY(obj) \
+#define HB_OBJECT_DO_DESTROY(obj) \
   HB_STMT_START { \
-    if (obj == NULL || HB_REFERENCE_COUNT_IS_INVALID (obj->ref_count)) \
+    if (HB_OBJECT_IS_INERT (obj)) \
       return; \
     assert (HB_REFERENCE_COUNT_HAS_REFERENCE (obj->ref_count)); \
     if (!_hb_reference_count_dec_and_test (obj->ref_count)) \

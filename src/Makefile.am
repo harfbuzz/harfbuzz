@@ -14,6 +14,8 @@ HBSOURCES =  \
 	hb-blob.c \
 	hb-buffer.c \
 	hb-buffer-private.h \
+	hb-font.c \
+	hb-font-private.h \
 	hb-private.h \
 	hb-ot-layout.cc \
 	hb-ot-layout-common-private.h \
@@ -30,6 +32,7 @@ HBHEADERS = \
 	hb-blob.h \
 	hb-buffer.h \
 	hb-common.h \
+	hb-font.h \
 	hb-ot-layout.h \
 	$(NULL)
 

@@ -76,7 +76,7 @@ hb_blob_create (const char        *data,
     return &_hb_blob_nil;
   }
 
-  HB_REFERENCE_COUNT_DO_CREATE (blob);
+  HB_OBJECT_DO_CREATE (blob);
 
   blob->data = data;
   blob->len = len;
@@ -96,13 +96,13 @@ hb_blob_create (const char        *data,
 hb_blob_t *
 hb_blob_reference (hb_blob_t *blob)
 {
-  HB_REFERENCE_COUNT_DO_REFERENCE (blob);
+  HB_OBJECT_DO_REFERENCE (blob);
 }
 
 void
 hb_blob_destroy (hb_blob_t *blob)
 {
-  HB_REFERENCE_COUNT_DO_DESTROY (blob);
+  HB_OBJECT_DO_DESTROY (blob);
 
   _hb_blob_destroy_user_data (blob);
 
