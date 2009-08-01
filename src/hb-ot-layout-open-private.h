@@ -470,9 +470,11 @@ struct OpenTypeFontFile
   }
   const OpenTypeFontFace& get_face (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= get_face_count ())) return Null(OpenTypeFontFace);
     switch (tag) {
-    default: /* Never happens because of the if above */
+    default: return Null(OpenTypeFontFace);
+    /* Note: for non-collection SFNT data we ignore index.  This is because
+     * Apple dfont container is a container of SFNT's.  So each SFNT is a
+     * non-TTC, but the index is more than zero. */
     case TrueTypeTag: case CFFTag: return *(const OffsetTable*)this;
     case TTCTag: return this+TTCHeader::get_for_data ((const char *) this).table[i];
     }
