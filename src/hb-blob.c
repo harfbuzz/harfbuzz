@@ -40,14 +40,14 @@ struct _hb_blob_t {
   void *user_data;
 };
 static hb_blob_t _hb_blob_nil = {
-  HB_REFERENCE_COUNT_INVALID,
+  HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
-  NULL,
-  0,
-  HB_MEMORY_MODE_READONLY,
+  NULL, /* data */
+  0, /* len */
+  HB_MEMORY_MODE_READONLY, /* mode */
 
-  NULL,
-  NULL
+  NULL, /* destroy */
+  NULL /* user_data */
 };
 
 static void
@@ -76,11 +76,12 @@ hb_blob_create (const char        *data,
     return &_hb_blob_nil;
   }
 
+  HB_REFERENCE_COUNT_DO_CREATE (blob);
+
   blob->data = data;
   blob->len = len;
   blob->mode = mode;
 
-  HB_REFERENCE_COUNT_INIT (blob->ref_count, 1);
   blob->destroy = destroy;
   blob->user_data = user_data;
 
@@ -95,26 +96,13 @@ hb_blob_create (const char        *data,
 hb_blob_t *
 hb_blob_reference (hb_blob_t *blob)
 {
-  if (blob == NULL || HB_REFERENCE_COUNT_IS_INVALID (blob->ref_count))
-    return blob;
-
-  assert (HB_REFERENCE_COUNT_HAS_REFERENCE (blob->ref_count));
-
-  _hb_reference_count_inc (blob->ref_count);
-
-  return blob;
+  HB_REFERENCE_COUNT_DO_REFERENCE (blob);
 }
 
 void
 hb_blob_destroy (hb_blob_t *blob)
 {
-  if (blob == NULL || HB_REFERENCE_COUNT_IS_INVALID (blob->ref_count))
-    return;
-
-  assert (HB_REFERENCE_COUNT_HAS_REFERENCE (blob->ref_count));
-
-  if (!_hb_reference_count_dec_and_test (blob->ref_count))
-    return;
+  HB_REFERENCE_COUNT_DO_DESTROY (blob);
 
   _hb_blob_destroy_user_data (blob);
 

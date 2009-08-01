@@ -1,5 +1,6 @@
 /*
- * Copyright © 2007 Chris Wilson
+ * Copyright (C) 2007 Chris Wilson
+ * Copyright (C) 2009  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, an OpenType Layout engine library.
  *
@@ -23,6 +24,7 @@
  *
  * Contributor(s):
  *	Chris Wilson <chris@chris-wilson.co.uk>
+ * Red Hat Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_REFCOUNT_PRIVATE_H
@@ -50,5 +52,32 @@ typedef struct {
 #define HB_REFERENCE_COUNT_IS_INVALID(RC) (HB_REFERENCE_COUNT_GET_VALUE (RC) == HB_REFERENCE_COUNT_INVALID_VALUE)
 
 #define HB_REFERENCE_COUNT_HAS_REFERENCE(RC) (HB_REFERENCE_COUNT_GET_VALUE (RC) > 0)
+
+
+/* Helper macros */
+
+#define HB_REFERENCE_COUNT_DO_CREATE(obj) \
+  HB_STMT_START { \
+    HB_REFERENCE_COUNT_INIT (obj->ref_count, 1); \
+  } HB_STMT_END
+
+#define HB_REFERENCE_COUNT_DO_REFERENCE(obj) \
+  HB_STMT_START { \
+    if (obj == NULL || HB_REFERENCE_COUNT_IS_INVALID (obj->ref_count)) \
+      return obj; \
+    assert (HB_REFERENCE_COUNT_HAS_REFERENCE (obj->ref_count)); \
+    _hb_reference_count_inc (obj->ref_count); \
+    return obj; \
+  } HB_STMT_END
+
+#define HB_REFERENCE_COUNT_DO_DESTROY(obj) \
+  HB_STMT_START { \
+    if (obj == NULL || HB_REFERENCE_COUNT_IS_INVALID (obj->ref_count)) \
+      return; \
+    assert (HB_REFERENCE_COUNT_HAS_REFERENCE (obj->ref_count)); \
+    if (!_hb_reference_count_dec_and_test (obj->ref_count)) \
+      return; \
+  } HB_STMT_END
+
 
 #endif /* HB_REFCOUNT_PRIVATE_H */

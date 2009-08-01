@@ -59,4 +59,6 @@ typedef struct _hb_unicode_callbacks_t hb_unicode_callbacks_t;
 typedef struct _hb_face_t hb_face_t;
 typedef struct _hb_font_t hb_font_t;
 
+typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
+
 #endif /* HB_COMMON_H */

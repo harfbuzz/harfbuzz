@@ -73,6 +73,8 @@
 # define TRUE 1
 #endif
 
+#define HB_STMT_START do
+#define HB_STMT_END   while (0)
 
 #define _ASSERT_STATIC1(_line, _cond) typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]
 #define _ASSERT_STATIC0(_line, _cond) _ASSERT_STATIC1 (_line, (_cond))
