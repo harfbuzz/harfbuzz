@@ -59,7 +59,7 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
   if (buffer->out_string == buffer->in_string)
   {
     if (!buffer->alt_string)
-      buffer->alt_string = malloc (buffer->allocated * sizeof (buffer->alt_string[0]));
+      buffer->alt_string = calloc (buffer->allocated, sizeof (buffer->alt_string[0]));
 
     buffer->out_string = buffer->alt_string;
     memcpy (buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]));
@@ -73,7 +73,7 @@ hb_buffer_new (unsigned int allocation_size)
 {
   hb_buffer_t *buffer;
 
-  buffer = malloc (sizeof (hb_buffer_t));
+  buffer = calloc (1, sizeof (hb_buffer_t));
   if (HB_UNLIKELY (!buffer))
     return NULL;
 

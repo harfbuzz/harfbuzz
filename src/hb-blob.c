@@ -30,20 +30,22 @@
 #include "hb-refcount-private.h"
 
 struct _hb_blob_t {
+  hb_reference_count_t ref_count;
+
   const char *data;
   unsigned int len;
   hb_memory_mode_t mode;
 
-  hb_reference_count_t ref_count;
   hb_destroy_func_t destroy;
   void *user_data;
 };
 static hb_blob_t _hb_blob_nil = {
+  HB_REFERENCE_COUNT_INVALID,
+
   NULL,
   0,
   HB_MEMORY_MODE_READONLY,
 
-  HB_REFERENCE_COUNT_INVALID,
   NULL,
   NULL
 };
@@ -67,7 +69,7 @@ hb_blob_create (const char        *data,
 {
   hb_blob_t *blob;
 
-  blob = malloc (sizeof (hb_blob_t));
+  blob = calloc (1, sizeof (hb_blob_t));
   if (!blob) {
     if (destroy)
       destroy (user_data);
