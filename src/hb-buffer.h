@@ -32,6 +32,8 @@
 
 HB_BEGIN_DECLS
 
+typedef struct _hb_buffer_t hb_buffer_t;
+
 typedef enum _hb_direction_t {
   HB_DIRECTION_LTR,
   HB_DIRECTION_RTL,
@@ -39,7 +41,7 @@ typedef enum _hb_direction_t {
   HB_DIRECTION_BTT
 } hb_direction_t;
 
-/* XXX  Hide structs? */
+/* XXX these structs need review before we can commit to them */
 
 typedef struct _hb_glyph_info_t {
   hb_codepoint_t gindex;
@@ -67,35 +69,37 @@ typedef struct _hb_glyph_position_t {
 } hb_glyph_position_t;
 
 
-typedef struct _hb_buffer_t {
-  unsigned int allocated;
-
-  unsigned int in_length;
-  unsigned int out_length;
-  unsigned int in_pos;
-  unsigned int out_pos;
-
-  hb_glyph_info_t     *in_string;
-  hb_glyph_info_t     *out_string;
-  hb_glyph_info_t     *alt_string;
-  hb_glyph_position_t *positions;
-
-  hb_direction_t       direction;
-  unsigned int         max_lig_id;
-} hb_buffer_t;
+hb_buffer_t *
+hb_buffer_create (unsigned int pre_alloc_size);
 
 hb_buffer_t *
-hb_buffer_new (unsigned int allocation_size);
+hb_buffer_reference (hb_buffer_t *buffer);
+
+unsigned int
+hb_buffer_get_reference_count (hb_buffer_t *buffer);
 
 void
-hb_buffer_free (hb_buffer_t *buffer);
+hb_buffer_destroy (hb_buffer_t *buffer);
+
+
+void
+hb_buffer_set_direction (hb_buffer_t    *buffer,
+			 hb_direction_t  direction);
+
+hb_direction_t
+hb_buffer_get_direction (hb_buffer_t *buffer);
+
 
 void
 hb_buffer_clear (hb_buffer_t *buffer);
 
 void
+hb_buffer_clear_positions (hb_buffer_t *buffer);
+
+void
 hb_buffer_ensure (hb_buffer_t  *buffer,
 		  unsigned int  size);
+
 
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,
@@ -103,9 +107,18 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     unsigned int    properties,
 		     unsigned int    cluster);
 
-void
-hb_buffer_set_direction (hb_buffer_t    *buffer,
-			 hb_direction_t  direction);
+
+/* Return value valid as long as buffer not modified */
+unsigned int
+hb_buffer_get_len (hb_buffer_t *buffer);
+
+/* Return value valid as long as buffer not modified */
+hb_glyph_info_t *
+hb_buffer_get_glyph_infos (hb_buffer_t *buffer);
+
+/* Return value valid as long as buffer not modified */
+hb_glyph_position_t *
+hb_buffer_get_glyph_positions (hb_buffer_t *buffer);
 
 
 HB_END_DECLS

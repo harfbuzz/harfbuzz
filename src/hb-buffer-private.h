@@ -35,14 +35,32 @@ HB_BEGIN_DECLS
 
 #define HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
 
+
+struct _hb_buffer_t {
+  hb_reference_count_t ref_count;
+
+  unsigned int allocated;
+
+  unsigned int in_length;
+  unsigned int out_length;
+  unsigned int in_pos;
+  unsigned int out_pos;
+
+  hb_glyph_info_t     *in_string;
+  hb_glyph_info_t     *out_string;
+  hb_glyph_info_t     *alt_string;
+  hb_glyph_position_t *positions;
+
+  hb_direction_t       direction;
+  unsigned int         max_lig_id;
+};
+
+
 HB_INTERNAL void
 _hb_buffer_swap (hb_buffer_t *buffer);
 
 HB_INTERNAL void
 _hb_buffer_clear_output (hb_buffer_t *buffer);
-
-HB_INTERNAL void
-_hb_buffer_clear_positions (hb_buffer_t *buffer);
 
 HB_INTERNAL void
 _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,

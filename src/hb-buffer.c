@@ -29,6 +29,10 @@
 
 #include <string.h>
 
+static hb_buffer_t _hb_buffer_nil = {
+  HB_REFERENCE_COUNT_INVALID /* ref_count */
+};
+
 /* Here is how the buffer works internally:
  *
  * There are two string pointers: in_string and out_string.  They
@@ -69,33 +73,40 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 /* Public API */
 
 hb_buffer_t *
-hb_buffer_new (unsigned int allocation_size)
+hb_buffer_create (unsigned int pre_alloc_size)
 {
   hb_buffer_t *buffer;
 
-  buffer = calloc (1, sizeof (hb_buffer_t));
-  if (HB_UNLIKELY (!buffer))
-    return NULL;
+  if (!HB_OBJECT_DO_CREATE (buffer))
+    return &_hb_buffer_nil;
 
-  buffer->allocated = 0;
-  buffer->in_string = NULL;
-  buffer->alt_string = NULL;
-  buffer->positions = NULL;
-
-  hb_buffer_clear (buffer);
-
-  if (allocation_size)
-    hb_buffer_ensure(buffer, allocation_size);
+  if (pre_alloc_size)
+    hb_buffer_ensure(buffer, pre_alloc_size);
 
   return buffer;
 }
 
-void
-hb_buffer_free (hb_buffer_t *buffer)
+hb_buffer_t *
+hb_buffer_reference (hb_buffer_t *buffer)
 {
+  HB_OBJECT_DO_REFERENCE (buffer);
+}
+
+unsigned int
+hb_buffer_get_reference_count (hb_buffer_t *buffer)
+{
+  HB_OBJECT_DO_GET_REFERENCE_COUNT (buffer);
+}
+
+void
+hb_buffer_destroy (hb_buffer_t *buffer)
+{
+  HB_OBJECT_DO_DESTROY (buffer);
+
   free (buffer->in_string);
   free (buffer->alt_string);
   free (buffer->positions);
+
   free (buffer);
 }
 
@@ -185,8 +196,8 @@ _hb_buffer_clear_output (hb_buffer_t *buffer)
   buffer->out_string = buffer->in_string;
 }
 
-HB_INTERNAL void
-_hb_buffer_clear_positions (hb_buffer_t *buffer)
+void
+hb_buffer_clear_positions (hb_buffer_t *buffer)
 {
   _hb_buffer_clear_output (buffer);
 
@@ -339,4 +350,28 @@ HB_INTERNAL unsigned short
 _hb_buffer_allocate_lig_id (hb_buffer_t *buffer)
 {
   return ++buffer->max_lig_id;
+}
+
+
+unsigned int
+hb_buffer_get_len (hb_buffer_t *buffer)
+{
+  return buffer->in_length;
+}
+
+/* Return value valid as long as buffer not modified */
+hb_glyph_info_t *
+hb_buffer_get_glyph_infos (hb_buffer_t *buffer)
+{
+  return buffer->in_string;
+}
+
+/* Return value valid as long as buffer not modified */
+hb_glyph_position_t *
+hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
+{
+  if (buffer->in_length && !buffer->positions)
+    hb_buffer_clear_positions (buffer);
+
+  return buffer->positions;
 }
