@@ -28,7 +28,9 @@
 #define HB_OT_LAYOUT_PRIVATE_H
 
 #include "hb-private.h"
+
 #include "hb-ot-layout.h"
+
 #include "hb-buffer-private.h"
 
 

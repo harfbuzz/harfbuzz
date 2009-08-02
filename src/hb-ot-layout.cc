@@ -28,10 +28,6 @@
 
 #define HB_OT_LAYOUT_CC
 
-/* XXX */
-#include "hb-buffer-private.h"
-
-#include "hb-ot-layout.h"
 #include "hb-ot-layout-private.h"
 
 #include "hb-ot-layout-open-private.h"
@@ -263,7 +259,7 @@ hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
 			      hb_codepoint_t              glyph,
 			      hb_ot_layout_glyph_class_t  klass)
 {
-  /* TODO optimize this, similar to old harfbuzz code for example */
+  /* TODO optimize this? similar to old harfbuzz code for example */
 
   hb_ot_layout_class_t gdef_klass;
   int len = layout->new_gdef.len;
@@ -271,6 +267,7 @@ hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
   if (HB_UNLIKELY (glyph > 65535))
     return;
 
+  /* XXX this is not threadsafe */
   if (glyph >= len) {
     int new_len;
     unsigned char *new_klasses;
