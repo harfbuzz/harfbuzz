@@ -2,10 +2,6 @@
 
 NULL =
 
-INCLUDES = 					\
-	-I $(srcdir)				\
-	$(FREETYPE_CFLAGS)			\
-	$(GLIB_CFLAGS)
 CXX = gcc -g -O2 -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 
 noinst_LTLIBRARIES = libharfbuzz-1.la
@@ -37,11 +33,12 @@ HBHEADERS = \
 	$(NULL)
 
 libharfbuzz_1_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
-libharfbuzz_1_la_LIBADD = $(FREETYPE_LIBS)
+libharfbuzz_1_la_LIBADD =
 
 noinst_PROGRAMS = main
 
 main_SOURCES = main.cc
+main_CXXFLAGS = $(GLIB_CFLAGS)
 main_LDADD = $(GLIB_LIBS)
 
 EXTRA_DIST = README COPYING

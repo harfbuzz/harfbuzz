@@ -269,7 +269,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   for (i = 0; i < num_out; i++)
   {
     hb_glyph_info_t *info = &buffer->out_string[buffer->out_pos + i];
-    info->gindex = hb_be_uint16_t (glyph_data_be[i]);
+    info->gindex = hb_be_uint16 (glyph_data_be[i]);
     info->properties = properties;
     info->cluster = cluster;
     info->component = component;

@@ -38,18 +38,6 @@
 
 #include "hb-common.h"
 
-#include <glib.h>
-
-/* Macros to convert to/from BigEndian */
-#define hb_be_uint8
-#define hb_be_int8
-#define hb_be_uint16	GUINT16_TO_BE
-#define hb_be_int16	GINT16_TO_BE
-#define hb_be_uint32	GUINT32_TO_BE
-#define hb_be_int32	GINT32_TO_BE
-#define hb_be_uint64	GUINT64_TO_BE
-#define hb_be_int64	GINT64_TO_BE
-
 /* Basics */
 
 #undef MIN
@@ -150,6 +138,24 @@ _hb_popcount32 (uint32_t mask)
 #endif
 }
 
+static HB_GNUC_UNUSED inline uint16_t
+_hb_be_uint16 (uint16_t v)
+{
+  return (v>>8) + (v<<8);
+}
+static HB_GNUC_UNUSED inline uint32_t
+_hb_be_uint32 (uint32_t v)
+{
+  return _hb_be_uint16 (v>>16) + (_hb_be_uint16 (v) <<16);
+}
+
+/* Macros to convert to/from BigEndian */
+#define hb_be_uint8
+#define hb_be_int8
+#define hb_be_uint16(v)	_hb_be_uint16 (v)
+#define hb_be_int16(v)	((int16_t) hb_be_uint16 (v))
+#define hb_be_uint32(v)	_hb_be_uint32 (v)
+#define hb_be_int32(v)	((int32_t) hb_be_uint32 (v))
 
 
 #include "hb-object-private.h"
