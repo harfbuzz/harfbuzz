@@ -31,10 +31,17 @@
 
 #include "hb-ot-layout.h"
 
+#include "hb-font-private.h"
 #include "hb-buffer-private.h"
 
 
 typedef unsigned int hb_ot_layout_class_t;
+
+/*
+ * hb_ot_layout_t
+ */
+
+typedef struct _hb_ot_layout_t hb_ot_layout_t;
 
 struct _hb_ot_layout_t
 {
@@ -47,17 +54,23 @@ struct _hb_ot_layout_t
     unsigned char *klasses;
     unsigned int len;
   } new_gdef;
+};
 
-  /* TODO full-matrix transformation? */
-  struct gpos_info_t
+typedef struct _hb_ot_layout_context_t hb_ot_layout_context_t;
+struct _hb_ot_layout_context_t
+{
+  hb_ot_layout_t *layout;
+  hb_font_t *font;
+
+  union info_t
   {
-    unsigned int x_ppem, y_ppem;
-    hb_16dot16_t x_scale, y_scale;
-
-    unsigned int last;        /* the last valid glyph--used with cursive positioning */
-    hb_position_t anchor_x;   /* the coordinates of the anchor point */
-    hb_position_t anchor_y;   /* of the last valid glyph */
-  } gpos_info;
+    struct gpos_t
+    {
+      unsigned int last;        /* the last valid glyph--used with cursive positioning */
+      hb_position_t anchor_x;   /* the coordinates of the anchor point */
+      hb_position_t anchor_y;   /* of the last valid glyph */
+    } gpos;
+  } info;
 };
 
 
@@ -78,6 +91,11 @@ HB_INTERNAL void
 _hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
 				  hb_codepoint_t  glyph,
 				  unsigned int    property);
+
+HB_INTERNAL void
+_hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
+			       hb_codepoint_t              glyph,
+			       hb_ot_layout_glyph_class_t  klass);
 
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,

@@ -176,6 +176,9 @@ hb_font_get_reference_count (hb_font_t *font);
 void
 hb_font_destroy (hb_font_t *font);
 
+hb_face_t *
+hb_font_get_face (hb_font_t *font);
+
 /*
  * XXX
  * should we decompose this to units_per_EM and font-size?

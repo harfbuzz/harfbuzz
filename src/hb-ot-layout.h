@@ -29,40 +29,13 @@
 
 #include "hb-common.h"
 #include "hb-buffer.h"
+#include "hb-font.h"
 
 HB_BEGIN_DECLS
 
-/*
- * hb_ot_layout_t
- */
-
-typedef struct _hb_ot_layout_t hb_ot_layout_t;
-
-hb_ot_layout_t *
-hb_ot_layout_create (void);
-
-hb_ot_layout_t *
-hb_ot_layout_create_for_data (const char *font_data,
-			      int         face_index);
-
-hb_ot_layout_t *
-hb_ot_layout_create_for_tables (const char *gdef_data,
-				const char *gsub_data,
-				const char *gpos_data);
-
-void
-hb_ot_layout_destroy (hb_ot_layout_t *layout);
-
-void
-hb_ot_layout_set_scale (hb_ot_layout_t *layout,
-			hb_16dot16_t x_scale, hb_16dot16_t y_scale);
-
-void
-hb_ot_layout_set_ppem (hb_ot_layout_t *layout,
-		       unsigned int x_ppem, unsigned int y_ppem);
-
-/* TODO sanitizing API/constructor (make_writable_func_t) */
-/* TODO get_table_func_t constructor */
+#define HB_OT_TAG_GDEF HB_TAG('G','D','E','F')
+#define HB_OT_TAG_GSUB HB_TAG('G','S','U','B')
+#define HB_OT_TAG_GPOS HB_TAG('G','P','O','S')
 
 /*
  * GDEF
@@ -76,33 +49,37 @@ typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010
 } hb_ot_layout_glyph_class_t;
 
+/* XXX These should eventually be removed as we move synthesized glyph
+ * classes in harfbuzz. */
+
 hb_bool_t
-hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout);
+hb_ot_layout_has_font_glyph_classes (hb_face_t *face);
 
 hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
+hb_ot_layout_get_glyph_class (hb_face_t      *face,
 			      hb_codepoint_t  glyph);
 
 void
-hb_ot_layout_set_glyph_class (hb_ot_layout_t            *layout,
+hb_ot_layout_set_glyph_class (hb_face_t                 *face,
 			      hb_codepoint_t             glyph,
 			      hb_ot_layout_glyph_class_t klass);
 
 void
-hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
-				  uint16_t        num_total_glyphs,
-				  hb_codepoint_t *glyphs,
-				  unsigned char  *klasses,
-				  uint16_t        count);
+hb_ot_layout_build_glyph_classes (hb_face_t      *face,
+				uint16_t        num_total_glyphs,
+				hb_codepoint_t *glyphs,
+				unsigned char  *klasses,
+				uint16_t        count);
 
 hb_bool_t
-hb_ot_layout_get_attach_points (hb_ot_layout_t *layout,
+hb_ot_layout_get_attach_points (hb_face_t      *face,
 				hb_codepoint_t  glyph,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */);
 
 hb_bool_t
-hb_ot_layout_get_lig_carets (hb_ot_layout_t *layout,
+hb_ot_layout_get_lig_carets (hb_face_t      *face,
+			     hb_font_t      *font,
 			     hb_codepoint_t  glyph,
 			     unsigned int   *caret_count /* IN/OUT */,
 			     int            *caret_array /* OUT */);
@@ -110,12 +87,6 @@ hb_ot_layout_get_lig_carets (hb_ot_layout_t *layout,
 /*
  * GSUB/GPOS
  */
-
-typedef enum {
-  HB_OT_LAYOUT_TABLE_TYPE_GSUB,
-  HB_OT_LAYOUT_TABLE_TYPE_GPOS,
-  HB_OT_LAYOUT_TABLE_TYPE_NONE
-} hb_ot_layout_table_type_t;
 
 typedef uint32_t hb_ot_layout_feature_mask_t;
 
@@ -126,114 +97,115 @@ typedef uint32_t hb_ot_layout_feature_mask_t;
 #define HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
 
 unsigned int
-hb_ot_layout_table_get_script_count (hb_ot_layout_t            *layout,
-				     hb_ot_layout_table_type_t  table_type);
+hb_ot_layout_table_get_script_count (hb_face_t *face,
+				     hb_tag_t   table_tag);
 
 hb_tag_t
-hb_ot_layout_table_get_script_tag (hb_ot_layout_t            *layout,
-				   hb_ot_layout_table_type_t  table_type,
-				   unsigned int               script_index);
+hb_ot_layout_table_get_script_tag (hb_face_t    *face,
+				   hb_tag_t      table_tag,
+				   unsigned int  script_index);
 
 hb_bool_t
-hb_ot_layout_table_find_script (hb_ot_layout_t            *layout,
-				hb_ot_layout_table_type_t  table_type,
-				hb_tag_t                   script_tag,
-				unsigned int              *script_index);
+hb_ot_layout_table_find_script (hb_face_t    *face,
+				hb_tag_t      table_tag,
+				hb_tag_t      script_tag,
+				unsigned int *script_index);
 
 unsigned int
-hb_ot_layout_table_get_feature_count (hb_ot_layout_t            *layout,
-				      hb_ot_layout_table_type_t  table_type);
+hb_ot_layout_table_get_feature_count (hb_face_t *face,
+				      hb_tag_t   table_tag);
 
 hb_tag_t
-hb_ot_layout_table_get_feature_tag (hb_ot_layout_t            *layout,
-				    hb_ot_layout_table_type_t  table_type,
-				    unsigned int               feature_index);
+hb_ot_layout_table_get_feature_tag (hb_face_t    *face,
+				    hb_tag_t      table_tag,
+				    unsigned int  feature_index);
 
 hb_bool_t
-hb_ot_layout_table_find_feature (hb_ot_layout_t            *layout,
-				 hb_ot_layout_table_type_t  table_type,
-				 hb_tag_t                   feature_tag,
-				 unsigned int              *feature_index);
+hb_ot_layout_table_find_feature (hb_face_t    *face,
+				 hb_tag_t      table_tag,
+				 hb_tag_t      feature_tag,
+				 unsigned int *feature_index);
 
 unsigned int
-hb_ot_layout_table_get_lookup_count (hb_ot_layout_t            *layout,
-				     hb_ot_layout_table_type_t  table_type);
+hb_ot_layout_table_get_lookup_count (hb_face_t  *face,
+				     hb_tag_t    table_tag);
 
 unsigned int
-hb_ot_layout_script_get_language_count (hb_ot_layout_t            *layout,
-					hb_ot_layout_table_type_t  table_type,
-					unsigned int               script_index);
+hb_ot_layout_script_get_language_count (hb_face_t    *face,
+					hb_tag_t      table_tag,
+					unsigned int  script_index);
 
 hb_tag_t
-hb_ot_layout_script_get_language_tag (hb_ot_layout_t            *layout,
-				      hb_ot_layout_table_type_t  table_type,
-				      unsigned int               script_index,
-				      unsigned int               language_index);
+hb_ot_layout_script_get_language_tag (hb_face_t    *face,
+				      hb_tag_t      table_tag,
+				      unsigned int  script_index,
+				      unsigned int  language_index);
 
 hb_bool_t
-hb_ot_layout_script_find_language (hb_ot_layout_t            *layout,
-				   hb_ot_layout_table_type_t  table_type,
-				   unsigned int               script_index,
-				   hb_tag_t                   language_tag,
-				   unsigned int              *language_index);
+hb_ot_layout_script_find_language (hb_face_t    *face,
+				   hb_tag_t      table_tag,
+				   unsigned int  script_index,
+				   hb_tag_t      language_tag,
+				   unsigned int *language_index);
 
 hb_bool_t
-hb_ot_layout_language_get_required_feature_index (hb_ot_layout_t            *layout,
-						  hb_ot_layout_table_type_t  table_type,
-						  unsigned int               script_index,
-						  unsigned int               language_index,
-						  unsigned int              *feature_index);
+hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
+						  hb_tag_t      table_tag,
+						  unsigned int  script_index,
+						  unsigned int  language_index,
+						  unsigned int *feature_index);
 
 unsigned int
-hb_ot_layout_language_get_feature_count (hb_ot_layout_t            *layout,
-					 hb_ot_layout_table_type_t  table_type,
-					 unsigned int               script_index,
-					 unsigned int               language_index);
+hb_ot_layout_language_get_feature_count (hb_face_t    *face,
+					 hb_tag_t      table_tag,
+					 unsigned int  script_index,
+					 unsigned int  language_index);
 
 unsigned int
-hb_ot_layout_language_get_feature_index (hb_ot_layout_t            *layout,
-				         hb_ot_layout_table_type_t  table_type,
-				         unsigned int               script_index,
-				         unsigned int               language_index,
-				         unsigned int               num_feature);
+hb_ot_layout_language_get_feature_index (hb_face_t    *face,
+					 hb_tag_t      table_tag,
+					 unsigned int  script_index,
+					 unsigned int  language_index,
+					 unsigned int  num_feature);
 
 hb_tag_t
-hb_ot_layout_language_get_feature_tag (hb_ot_layout_t            *layout,
-				       hb_ot_layout_table_type_t  table_type,
-				       unsigned int               script_index,
-				       unsigned int               language_index,
-				       unsigned int               num_feature);
+hb_ot_layout_language_get_feature_tag (hb_face_t    *face,
+				       hb_tag_t      table_tag,
+				       unsigned int  script_index,
+				       unsigned int  language_index,
+				       unsigned int  num_feature);
 
 hb_bool_t
-hb_ot_layout_language_find_feature (hb_ot_layout_t            *layout,
-				    hb_ot_layout_table_type_t  table_type,
-				    unsigned int               script_index,
-				    unsigned int               language_index,
-				    hb_tag_t                   feature_tag,
-				    unsigned int              *feature_index);
+hb_ot_layout_language_find_feature (hb_face_t    *face,
+				    hb_tag_t      table_tag,
+				    unsigned int  script_index,
+				    unsigned int  language_index,
+				    hb_tag_t      feature_tag,
+				    unsigned int *feature_index);
 
 unsigned int
-hb_ot_layout_feature_get_lookup_count (hb_ot_layout_t            *layout,
-				       hb_ot_layout_table_type_t  table_type,
-				       unsigned int               feature_index);
+hb_ot_layout_feature_get_lookup_count (hb_face_t    *face,
+				       hb_tag_t      table_tag,
+				       unsigned int  feature_index);
 
 unsigned int
-hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
-				       hb_ot_layout_table_type_t  table_type,
-				       unsigned int               feature_index,
-				       unsigned int               num_lookup);
+hb_ot_layout_feature_get_lookup_index (hb_face_t    *face,
+				       hb_tag_t      table_tag,
+				       unsigned int  feature_index,
+				       unsigned int  num_lookup);
 
 /*
  * GSUB
  */
 
 hb_bool_t
-hb_ot_layout_has_substitution (hb_ot_layout_t *layout);
+hb_ot_layout_has_substitution (hb_face_t *face);
 
+/* GSUB is not font-size dependent, so we apply on face */
 hb_bool_t
-hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
+hb_ot_layout_substitute_lookup (hb_face_t                   *face,
 				hb_buffer_t                 *buffer,
-			        unsigned int                 lookup_index,
+				unsigned int                 lookup_index,
 				hb_ot_layout_feature_mask_t  mask);
 
 /*
@@ -241,12 +213,13 @@ hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
  */
 
 hb_bool_t
-hb_ot_layout_has_positioning (hb_ot_layout_t *layout);
+hb_ot_layout_has_positioning (hb_face_t *face);
 
 hb_bool_t
-hb_ot_layout_position_lookup   (hb_ot_layout_t              *layout,
+hb_ot_layout_position_lookup   (hb_face_t                   *face,
+				hb_font_t                   *font,
 				hb_buffer_t                 *buffer,
-			        unsigned int                 lookup_index,
+				unsigned int                 lookup_index,
 				hb_ot_layout_feature_mask_t  mask);
 
 

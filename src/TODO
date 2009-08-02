@@ -1,3 +1,4 @@
+- Get rid of custom GSUB/GPOS table type enum?
 - Test OpenType 1.6 mark filtering sets
 - When sanitizing, have to do a second round to make sure no toe-stepping
 - HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH vs LookupType::... mess

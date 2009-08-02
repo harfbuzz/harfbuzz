@@ -40,30 +40,16 @@
 #include <string.h>
 
 
-hb_ot_layout_t *
-hb_ot_layout_create (void)
+void
+_hb_ot_layout_init (hb_ot_layout_t *layout,
+		    hb_face_t      *face)
 {
-  hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
-
   layout->gdef = &Null(GDEF);
   layout->gsub = &Null(GSUB);
   layout->gpos = &Null(GPOS);
-
-  return layout;
 }
 
-hb_bool_t
-hb_ot_layout_has_substitution (hb_ot_layout_t *layout)
-{
-  return layout->gsub != &Null(GSUB);
-}
-
-hb_bool_t
-hb_ot_layout_has_positioning (hb_ot_layout_t *layout)
-{
-  return layout->gpos != &Null(GPOS);
-}
-
+#if 0
 hb_ot_layout_t *
 hb_ot_layout_create_for_data (const char *font_data,
 			      int         face_index)
@@ -103,29 +89,19 @@ hb_ot_layout_create_for_tables (const char *gdef_data,
 
   return layout;
 }
+#endif
 
 void
-hb_ot_layout_destroy (hb_ot_layout_t *layout)
+_hb_ot_layout_fini (hb_ot_layout_t *layout,
+		    hb_face_t      *face)
 {
-  free (layout);
 }
 
-void
-hb_ot_layout_set_scale (hb_ot_layout_t *layout,
-			hb_16dot16_t x_scale, hb_16dot16_t y_scale)
+static hb_ot_layout_t *
+_hb_ot_face_get_layout (hb_face_t *face)
 {
-  layout->gpos_info.x_scale = x_scale;
-  layout->gpos_info.y_scale = y_scale;
+  return NULL; /* XXX */
 }
-
-void
-hb_ot_layout_set_ppem (hb_ot_layout_t *layout,
-		       unsigned int x_ppem, unsigned int y_ppem)
-{
-  layout->gpos_info.x_ppem = x_ppem;
-  layout->gpos_info.y_ppem = y_ppem;
-}
-
 
 /*
  * GDEF
@@ -134,8 +110,9 @@ hb_ot_layout_set_ppem (hb_ot_layout_t *layout,
 /* TODO the public class_t is a mess */
 
 hb_bool_t
-hb_ot_layout_has_font_glyph_classes (hb_ot_layout_t *layout)
+hb_ot_layout_has_font_glyph_classes (hb_face_t *face)
 {
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
   return layout->gdef->has_glyph_classes ();
 }
 
@@ -243,21 +220,9 @@ _hb_ot_layout_skip_mark (hb_ot_layout_t  *layout,
 }
 
 HB_INTERNAL void
-_hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
-				  hb_codepoint_t  glyph,
-				  unsigned int    property)
-{ hb_ot_layout_set_glyph_class (layout, glyph, (hb_ot_layout_glyph_class_t) (property & 0xff)); }
-
-
-hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (hb_ot_layout_t *layout,
-			      hb_codepoint_t  glyph)
-{ return (hb_ot_layout_glyph_class_t) (_hb_ot_layout_get_glyph_property (layout, glyph) & 0xff); }
-
-void
-hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
-			      hb_codepoint_t              glyph,
-			      hb_ot_layout_glyph_class_t  klass)
+_hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
+			       hb_codepoint_t              glyph,
+			       hb_ot_layout_glyph_class_t  klass)
 {
   /* TODO optimize this? similar to old harfbuzz code for example */
 
@@ -299,13 +264,39 @@ hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
   return;
 }
 
+HB_INTERNAL void
+_hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
+				  hb_codepoint_t  glyph,
+				  unsigned int    property)
+{ _hb_ot_layout_set_glyph_class (layout, glyph, (hb_ot_layout_glyph_class_t) (property & 0xff)); }
+
+
+hb_ot_layout_glyph_class_t
+hb_ot_layout_get_glyph_class (hb_face_t      *face,
+			      hb_codepoint_t  glyph)
+{
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  return (hb_ot_layout_glyph_class_t) (_hb_ot_layout_get_glyph_property (layout, glyph) & 0xff);
+}
+
 void
-hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
+hb_ot_layout_set_glyph_class (hb_face_t                 *face,
+			      hb_codepoint_t             glyph,
+			      hb_ot_layout_glyph_class_t klass)
+{
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  _hb_ot_layout_set_glyph_class (layout, glyph, klass);
+}
+
+void
+hb_ot_layout_build_glyph_classes (hb_face_t      *face,
 				  uint16_t        num_total_glyphs,
 				  hb_codepoint_t *glyphs,
 				  unsigned char  *klasses,
 				  uint16_t        count)
 {
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+
   if (HB_UNLIKELY (!count || !glyphs || !klasses))
     return;
 
@@ -315,25 +306,30 @@ hb_ot_layout_build_glyph_classes (hb_ot_layout_t *layout,
   }
 
   for (unsigned int i = 0; i < count; i++)
-    hb_ot_layout_set_glyph_class (layout, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
+    _hb_ot_layout_set_glyph_class (layout, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
 }
 
 hb_bool_t
-hb_ot_layout_get_attach_points (hb_ot_layout_t *layout,
+hb_ot_layout_get_attach_points (hb_face_t      *face,
 				hb_codepoint_t  glyph,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */)
 {
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
   return layout->gdef->get_attach_points (glyph, point_count, point_array);
 }
 
 hb_bool_t
-hb_ot_layout_get_lig_carets (hb_ot_layout_t *layout,
+hb_ot_layout_get_lig_carets (hb_face_t      *face,
+			     hb_font_t      *font,
 			     hb_codepoint_t  glyph,
 			     unsigned int   *caret_count /* IN/OUT */,
 			     int            *caret_array /* OUT */)
 {
-  return layout->gdef->get_lig_carets (layout, glyph, caret_count, caret_array);
+  hb_ot_layout_context_t context;
+  context.font = font;
+  context.layout = _hb_ot_face_get_layout (face);
+  return context.layout->gdef->get_lig_carets (&context, glyph, caret_count, caret_array);
 }
 
 /*
@@ -341,44 +337,47 @@ hb_ot_layout_get_lig_carets (hb_ot_layout_t *layout,
  */
 
 static const GSUBGPOS&
-get_gsubgpos_table (hb_ot_layout_t            *layout,
-		    hb_ot_layout_table_type_t  table_type)
+get_gsubgpos_table (hb_ot_layout_t *layout,
+		    hb_tag_t        table_tag)
 {
-  switch (table_type) {
-    case HB_OT_LAYOUT_TABLE_TYPE_GSUB: return *(layout->gsub);
-    case HB_OT_LAYOUT_TABLE_TYPE_GPOS: return *(layout->gpos);
-    default:                           return Null(GSUBGPOS);
+  switch (table_tag) {
+    case HB_OT_TAG_GSUB: return *(layout->gsub);
+    case HB_OT_TAG_GPOS: return *(layout->gpos);
+    default:             return Null(GSUBGPOS);
   }
 }
 
 
 unsigned int
-hb_ot_layout_table_get_script_count (hb_ot_layout_t            *layout,
-				     hb_ot_layout_table_type_t  table_type)
+hb_ot_layout_table_get_script_count (hb_face_t *face,
+				     hb_tag_t   table_tag)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
 
   return g.get_script_count ();
 }
 
 hb_tag_t
-hb_ot_layout_table_get_script_tag (hb_ot_layout_t            *layout,
-				   hb_ot_layout_table_type_t  table_type,
-				   unsigned int               script_index)
+hb_ot_layout_table_get_script_tag (hb_face_t    *face,
+				   hb_tag_t      table_tag,
+				   unsigned int  script_index)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
 
   return g.get_script_tag (script_index);
 }
 
 hb_bool_t
-hb_ot_layout_table_find_script (hb_ot_layout_t            *layout,
-				hb_ot_layout_table_type_t  table_type,
-				hb_tag_t                   script_tag,
-				unsigned int              *script_index)
+hb_ot_layout_table_find_script (hb_face_t    *face,
+				hb_tag_t      table_tag,
+				hb_tag_t      script_tag,
+				unsigned int *script_index)
 {
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX);
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
 
   if (g.find_script_index (script_tag, script_index))
     return TRUE;
@@ -396,32 +395,35 @@ hb_ot_layout_table_find_script (hb_ot_layout_t            *layout,
 }
 
 unsigned int
-hb_ot_layout_table_get_feature_count (hb_ot_layout_t            *layout,
-				      hb_ot_layout_table_type_t  table_type)
+hb_ot_layout_table_get_feature_count (hb_face_t *face,
+				      hb_tag_t   table_tag)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
 
   return g.get_feature_count ();
 }
 
 hb_tag_t
-hb_ot_layout_table_get_feature_tag (hb_ot_layout_t            *layout,
-				    hb_ot_layout_table_type_t  table_type,
-				    unsigned int               feature_index)
+hb_ot_layout_table_get_feature_tag (hb_face_t    *face,
+				    hb_tag_t      table_tag,
+				    unsigned int  feature_index)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
 
   return g.get_feature_tag (feature_index);
 }
 
 hb_bool_t
-hb_ot_layout_table_find_feature (hb_ot_layout_t            *layout,
-				 hb_ot_layout_table_type_t  table_type,
-				 hb_tag_t                   feature_tag,
-				 unsigned int              *feature_index)
+hb_ot_layout_table_find_feature (hb_face_t    *face,
+				 hb_tag_t      table_tag,
+				 hb_tag_t      feature_tag,
+				 unsigned int *feature_index)
 {
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
 
   if (g.find_feature_index (feature_tag, feature_index))
     return TRUE;
@@ -431,45 +433,49 @@ hb_ot_layout_table_find_feature (hb_ot_layout_t            *layout,
 }
 
 unsigned int
-hb_ot_layout_table_get_lookup_count (hb_ot_layout_t            *layout,
-				     hb_ot_layout_table_type_t  table_type)
+hb_ot_layout_table_get_lookup_count (hb_face_t *face,
+				     hb_tag_t   table_tag)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
 
   return g.get_lookup_count ();
 }
 
 
 unsigned int
-hb_ot_layout_script_get_language_count (hb_ot_layout_t            *layout,
-					hb_ot_layout_table_type_t  table_type,
-					unsigned int               script_index)
+hb_ot_layout_script_get_language_count (hb_face_t    *face,
+					hb_tag_t      table_tag,
+					unsigned int  script_index)
 {
-  const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const Script &s = get_gsubgpos_table (layout, table_tag).get_script (script_index);
 
   return s.get_lang_sys_count ();
 }
 
 hb_tag_t
-hb_ot_layout_script_get_language_tag (hb_ot_layout_t            *layout,
-				      hb_ot_layout_table_type_t  table_type,
-				      unsigned int               script_index,
-				      unsigned int               language_index)
+hb_ot_layout_script_get_language_tag (hb_face_t    *face,
+				      hb_tag_t      table_tag,
+				      unsigned int  script_index,
+				      unsigned int  language_index)
 {
-  const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const Script &s = get_gsubgpos_table (layout, table_tag).get_script (script_index);
 
   return s.get_lang_sys_tag (language_index);
 }
 
 hb_bool_t
-hb_ot_layout_script_find_language (hb_ot_layout_t            *layout,
-				   hb_ot_layout_table_type_t  table_type,
-				   unsigned int               script_index,
-				   hb_tag_t                   language_tag,
-				   unsigned int              *language_index)
+hb_ot_layout_script_find_language (hb_face_t    *face,
+				   hb_tag_t      table_tag,
+				   unsigned int  script_index,
+				   hb_tag_t      language_tag,
+				   unsigned int *language_index)
 {
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX);
-  const Script &s = get_gsubgpos_table (layout, table_type).get_script (script_index);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const Script &s = get_gsubgpos_table (layout, table_tag).get_script (script_index);
 
   if (s.find_lang_sys_index (language_tag, language_index))
     return TRUE;
@@ -483,13 +489,14 @@ hb_ot_layout_script_find_language (hb_ot_layout_t            *layout,
 }
 
 hb_bool_t
-hb_ot_layout_language_get_required_feature_index (hb_ot_layout_t            *layout,
-						  hb_ot_layout_table_type_t  table_type,
-						  unsigned int               script_index,
-						  unsigned int               language_index,
-						  unsigned int              *feature_index)
+hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
+						  hb_tag_t      table_tag,
+						  unsigned int  script_index,
+						  unsigned int  language_index,
+						  unsigned int *feature_index)
 {
-  const LangSys &l = get_gsubgpos_table (layout, table_type).get_script (script_index).get_lang_sys (language_index);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const LangSys &l = get_gsubgpos_table (layout, table_tag).get_script (script_index).get_lang_sys (language_index);
 
   if (feature_index) *feature_index = l.get_required_feature_index ();
 
@@ -497,37 +504,40 @@ hb_ot_layout_language_get_required_feature_index (hb_ot_layout_t            *lay
 }
 
 unsigned int
-hb_ot_layout_language_get_feature_count (hb_ot_layout_t            *layout,
-					 hb_ot_layout_table_type_t  table_type,
-					 unsigned int               script_index,
-					 unsigned int               language_index)
+hb_ot_layout_language_get_feature_count (hb_face_t    *face,
+					 hb_tag_t      table_tag,
+					 unsigned int  script_index,
+					 unsigned int  language_index)
 {
-  const LangSys &l = get_gsubgpos_table (layout, table_type).get_script (script_index).get_lang_sys (language_index);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const LangSys &l = get_gsubgpos_table (layout, table_tag).get_script (script_index).get_lang_sys (language_index);
 
   return l.get_feature_count ();
 }
 
 unsigned int
-hb_ot_layout_language_get_feature_index (hb_ot_layout_t            *layout,
-					 hb_ot_layout_table_type_t  table_type,
-					 unsigned int               script_index,
-					 unsigned int               language_index,
-					 unsigned int               num_feature)
+hb_ot_layout_language_get_feature_index (hb_face_t    *face,
+					 hb_tag_t      table_tag,
+					 unsigned int  script_index,
+					 unsigned int  language_index,
+					 unsigned int  num_feature)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
   return l.get_feature_index (num_feature);
 }
 
 hb_tag_t
-hb_ot_layout_language_get_feature_tag (hb_ot_layout_t            *layout,
-				       hb_ot_layout_table_type_t  table_type,
-				       unsigned int               script_index,
-				       unsigned int               language_index,
-				       unsigned int               num_feature)
+hb_ot_layout_language_get_feature_tag (hb_face_t    *face,
+				       hb_tag_t      table_tag,
+				       unsigned int  script_index,
+				       unsigned int  language_index,
+				       unsigned int  num_feature)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
   unsigned int feature_index = l.get_feature_index (num_feature);
 
@@ -536,15 +546,16 @@ hb_ot_layout_language_get_feature_tag (hb_ot_layout_t            *layout,
 
 
 hb_bool_t
-hb_ot_layout_language_find_feature (hb_ot_layout_t            *layout,
-				    hb_ot_layout_table_type_t  table_type,
-				    unsigned int               script_index,
-				    unsigned int               language_index,
-				    hb_tag_t                   feature_tag,
-				    unsigned int              *feature_index)
+hb_ot_layout_language_find_feature (hb_face_t    *face,
+				    hb_tag_t      table_tag,
+				    unsigned int  script_index,
+				    unsigned int  language_index,
+				    hb_tag_t      feature_tag,
+				    unsigned int *feature_index)
 {
   ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
   unsigned int num_features = l.get_feature_count ();
@@ -562,23 +573,25 @@ hb_ot_layout_language_find_feature (hb_ot_layout_t            *layout,
 }
 
 unsigned int
-hb_ot_layout_feature_get_lookup_count (hb_ot_layout_t            *layout,
-				       hb_ot_layout_table_type_t  table_type,
-				       unsigned int               feature_index)
+hb_ot_layout_feature_get_lookup_count (hb_face_t    *face,
+				       hb_tag_t      table_tag,
+				       unsigned int  feature_index)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
   const Feature &f = g.get_feature (feature_index);
 
   return f.get_lookup_count ();
 }
 
 unsigned int
-hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
-				       hb_ot_layout_table_type_t  table_type,
-				       unsigned int               feature_index,
-				       unsigned int               num_lookup)
+hb_ot_layout_feature_get_lookup_index (hb_face_t    *face,
+				       hb_tag_t      table_tag,
+				       unsigned int  feature_index,
+				       unsigned int  num_lookup)
 {
-  const GSUBGPOS &g = get_gsubgpos_table (layout, table_type);
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  const GSUBGPOS &g = get_gsubgpos_table (layout, table_tag);
   const Feature &f = g.get_feature (feature_index);
 
   return f.get_lookup_index (num_lookup);
@@ -589,12 +602,22 @@ hb_ot_layout_feature_get_lookup_index (hb_ot_layout_t            *layout,
  */
 
 hb_bool_t
-hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
+hb_ot_layout_has_substitution (hb_face_t *face)
+{
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  return layout->gsub != &Null(GSUB);
+}
+
+hb_bool_t
+hb_ot_layout_substitute_lookup (hb_face_t                   *face,
 				hb_buffer_t                 *buffer,
-			        unsigned int                 lookup_index,
+				unsigned int                 lookup_index,
 				hb_ot_layout_feature_mask_t  mask)
 {
-  return layout->gsub->substitute_lookup (layout, buffer, lookup_index, mask);
+  hb_ot_layout_context_t context;
+  context.font = NULL;
+  context.layout = _hb_ot_face_get_layout (face);
+  return context.layout->gsub->substitute_lookup (&context, buffer, lookup_index, mask);
 }
 
 /*
@@ -602,10 +625,21 @@ hb_ot_layout_substitute_lookup (hb_ot_layout_t              *layout,
  */
 
 hb_bool_t
-hb_ot_layout_position_lookup   (hb_ot_layout_t              *layout,
+hb_ot_layout_has_positioning (hb_face_t *face)
+{
+  hb_ot_layout_t *layout = _hb_ot_face_get_layout (face);
+  return layout->gpos != &Null(GPOS);
+}
+
+hb_bool_t
+hb_ot_layout_position_lookup   (hb_face_t                   *face,
+				hb_font_t                   *font,
 				hb_buffer_t                 *buffer,
-			        unsigned int                 lookup_index,
+				unsigned int                 lookup_index,
 				hb_ot_layout_feature_mask_t  mask)
 {
-  return layout->gpos->position_lookup (layout, buffer, lookup_index, mask);
+  hb_ot_layout_context_t context;
+  context.font = font;
+  context.layout = _hb_ot_face_get_layout (font->face);
+  return context.layout->gpos->position_lookup (&context, buffer, lookup_index, mask);
 }

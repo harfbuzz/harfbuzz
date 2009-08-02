@@ -314,6 +314,15 @@ hb_font_destroy (hb_font_t *font)
   free (font);
 }
 
+hb_face_t *
+hb_font_get_face (hb_font_t *font)
+{
+  if (HB_OBJECT_IS_INERT (font))
+    return &_hb_face_nil;
+
+  return font->face;
+}
+
 void
 hb_font_set_scale (hb_font_t *font,
 		   hb_16dot16_t x_scale,
