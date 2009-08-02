@@ -13,13 +13,14 @@ HBSOURCES =  \
 	hb-font.c \
 	hb-font-private.h \
 	hb-private.h \
+	hb-open-file-private.h \
+	hb-open-types-private.h \
 	hb-ot-layout.cc \
 	hb-ot-layout-common-private.h \
 	hb-ot-layout-gdef-private.h \
 	hb-ot-layout-gpos-private.h \
 	hb-ot-layout-gsubgpos-private.h \
 	hb-ot-layout-gsub-private.h \
-	hb-ot-layout-open-private.h \
 	hb-ot-layout-private.h \
 	hb-object-private.h \
 	$(NULL)

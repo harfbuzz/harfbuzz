@@ -30,7 +30,7 @@
 
 #include "hb-ot-layout-private.h"
 
-#include "hb-ot-layout-open-private.h"
+#include "hb-open-file-private.h"
 #include "hb-ot-layout-gdef-private.h"
 #include "hb-ot-layout-gsub-private.h"
 #include "hb-ot-layout-gpos-private.h"
