@@ -25,7 +25,7 @@ HBSOURCES =  \
 	hb-ot-layout-gsub-private.h \
 	hb-ot-layout-open-private.h \
 	hb-ot-layout-private.h \
-	hb-refcount-private.h \
+	hb-object-private.h \
 	$(NULL)
 
 HBHEADERS = \

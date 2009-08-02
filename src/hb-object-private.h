@@ -60,10 +60,20 @@ typedef struct {
 #define HB_OBJECT_IS_INERT(obj) \
     ((obj) == NULL || HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count))
 
-#define HB_OBJECT_DO_CREATE(obj) \
+#define HB_OBJECT_DO_INIT_EXPR(obj) \
+    HB_REFERENCE_COUNT_INIT (obj->ref_count, 1)
+
+#define HB_OBJECT_DO_INIT(obj) \
   HB_STMT_START { \
-    HB_REFERENCE_COUNT_INIT (obj->ref_count, 1); \
+    HB_OBJECT_DO_INIT_EXPR (obj); \
   } HB_STMT_END
+
+#define HB_OBJECT_DO_CREATE(obj) \
+  HB_LIKELY (( \
+	     (obj) = calloc (1, sizeof (*(obj))), \
+	     HB_OBJECT_DO_INIT_EXPR (obj), \
+	     (obj) \
+	     ))
 
 #define HB_OBJECT_DO_REFERENCE(obj) \
   HB_STMT_START { \

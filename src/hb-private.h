@@ -104,4 +104,6 @@ _hb_popcount32 (uint32_t mask)
 #endif
 }
 
+#include "hb-object-private.h"
+
 #endif /* HB_PRIVATE_H */

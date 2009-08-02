@@ -50,11 +50,8 @@ hb_font_callbacks_create (void)
 {
   hb_font_callbacks_t *fcallbacks;
 
-  fcallbacks = calloc (1, sizeof (hb_font_callbacks_t));
-  if (!fcallbacks)
+  if (!HB_OBJECT_DO_CREATE (fcallbacks))
     return &_hb_font_callbacks_nil;
-
-  HB_OBJECT_DO_CREATE (fcallbacks);
 
   return fcallbacks;
 }
@@ -78,12 +75,13 @@ hb_font_callbacks_duplicate (hb_font_callbacks_t *other_fcallbacks)
 {
   hb_font_callbacks_t *fcallbacks;
 
-  fcallbacks = calloc (1, sizeof (hb_font_callbacks_t));
-  if (!fcallbacks)
+  if (!HB_OBJECT_DO_CREATE (fcallbacks))
     return &_hb_font_callbacks_nil;
 
   *fcallbacks = *other_fcallbacks;
-  HB_OBJECT_DO_CREATE (fcallbacks);
+
+  /* re-init refcount */
+  HB_OBJECT_DO_INIT (fcallbacks);
 
   return fcallbacks;
 }
@@ -110,11 +108,8 @@ hb_unicode_callbacks_create (void)
 {
   hb_unicode_callbacks_t *ucallbacks;
 
-  ucallbacks = calloc (1, sizeof (hb_unicode_callbacks_t));
-  if (!ucallbacks)
+  if (!HB_OBJECT_DO_CREATE (ucallbacks))
     return &_hb_unicode_callbacks_nil;
-
-  HB_OBJECT_DO_CREATE (ucallbacks);
 
   return ucallbacks;
 }
@@ -138,12 +133,11 @@ hb_unicode_callbacks_duplicate (hb_unicode_callbacks_t *other_ucallbacks)
 {
   hb_unicode_callbacks_t *ucallbacks;
 
-  ucallbacks = calloc (1, sizeof (hb_unicode_callbacks_t));
-  if (!ucallbacks)
+  if (!HB_OBJECT_DO_CREATE (ucallbacks))
     return &_hb_unicode_callbacks_nil;
 
   *ucallbacks = *other_ucallbacks;
-  HB_OBJECT_DO_CREATE (ucallbacks);
+  HB_OBJECT_DO_INIT (ucallbacks);
 
   return ucallbacks;
 }
@@ -174,11 +168,8 @@ hb_face_create_for_data (hb_blob_t    *blob,
 {
   hb_face_t *face;
 
-  face = calloc (1, sizeof (hb_face_t));
-  if (!face)
+  if (!HB_OBJECT_DO_CREATE (face))
     return &_hb_face_nil;
-
-  HB_OBJECT_DO_CREATE (face);
 
   face->blob = hb_blob_reference (blob);
   face->index = index;
@@ -193,14 +184,11 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 {
   hb_face_t *face;
 
-  face = calloc (1, sizeof (hb_face_t));
-  if (!face) {
+  if (!HB_OBJECT_DO_CREATE (face)) {
     if (destroy)
       destroy (user_data);
     return &_hb_face_nil;
   }
-
-  HB_OBJECT_DO_CREATE (face);
 
   face->get_table = get_table;
   face->destroy = destroy;
@@ -278,11 +266,8 @@ hb_font_create (hb_face_t *face)
 {
   hb_font_t *font;
 
-  font = calloc (1, sizeof (hb_font_t));
-  if (!font)
+  if (!HB_OBJECT_DO_CREATE (font))
     return &_hb_font_nil;
-
-  HB_OBJECT_DO_CREATE (font);
 
   font->face = hb_face_reference (face);
 

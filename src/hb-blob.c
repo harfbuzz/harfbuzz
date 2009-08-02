@@ -27,7 +27,6 @@
 #include "hb-private.h"
 
 #include "hb-blob.h"
-#include "hb-refcount-private.h"
 
 struct _hb_blob_t {
   hb_reference_count_t ref_count;
@@ -69,14 +68,11 @@ hb_blob_create (const char        *data,
 {
   hb_blob_t *blob;
 
-  blob = calloc (1, sizeof (hb_blob_t));
-  if (!blob) {
+  if (!HB_OBJECT_DO_CREATE (blob)) {
     if (destroy)
       destroy (user_data);
     return &_hb_blob_nil;
   }
-
-  HB_OBJECT_DO_CREATE (blob);
 
   blob->data = data;
   blob->len = len;

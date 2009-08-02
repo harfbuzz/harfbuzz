@@ -30,7 +30,6 @@
 #include "hb-private.h"
 
 #include "hb-font.h"
-#include "hb-refcount-private.h"
 
 HB_BEGIN_DECLS
 
