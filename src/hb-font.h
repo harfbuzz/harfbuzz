@@ -58,7 +58,7 @@ void
 hb_font_callbacks_destroy (hb_font_callbacks_t *fcallbacks);
 
 hb_font_callbacks_t *
-hb_font_callbacks_duplicate (hb_font_callbacks_t *fcallbacks);
+hb_font_callbacks_copy (hb_font_callbacks_t *fcallbacks);
 
 /*
 
@@ -98,7 +98,7 @@ void
 hb_unicode_callbacks_destroy (hb_unicode_callbacks_t *ucallbacks);
 
 hb_unicode_callbacks_t *
-hb_unicode_callbacks_duplicate (hb_unicode_callbacks_t *ucallbacks);
+hb_unicode_callbacks_copy (hb_unicode_callbacks_t *ucallbacks);
 
 /*
 
