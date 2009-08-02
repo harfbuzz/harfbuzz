@@ -62,6 +62,12 @@ hb_font_callbacks_reference (hb_font_callbacks_t *fcallbacks)
   HB_OBJECT_DO_REFERENCE (fcallbacks);
 }
 
+unsigned int
+hb_font_callbacks_get_reference_count (hb_font_callbacks_t *fcallbacks)
+{
+  HB_OBJECT_DO_GET_REFERENCE_COUNT (fcallbacks);
+}
+
 void
 hb_font_callbacks_destroy (hb_font_callbacks_t *fcallbacks)
 {
@@ -118,6 +124,12 @@ hb_unicode_callbacks_t *
 hb_unicode_callbacks_reference (hb_unicode_callbacks_t *ucallbacks)
 {
   HB_OBJECT_DO_REFERENCE (ucallbacks);
+}
+
+unsigned int
+hb_unicode_callbacks_get_reference_count (hb_unicode_callbacks_t *ucallbacks)
+{
+  HB_OBJECT_DO_GET_REFERENCE_COUNT (ucallbacks);
 }
 
 void
@@ -203,6 +215,12 @@ hb_face_reference (hb_face_t *face)
   HB_OBJECT_DO_REFERENCE (face);
 }
 
+unsigned int
+hb_face_get_reference_count (hb_face_t *face)
+{
+  HB_OBJECT_DO_GET_REFERENCE_COUNT (face);
+}
+
 void
 hb_face_destroy (hb_face_t *face)
 {
@@ -278,6 +296,12 @@ hb_font_t *
 hb_font_reference (hb_font_t *font)
 {
   HB_OBJECT_DO_REFERENCE (font);
+}
+
+unsigned int
+hb_font_get_reference_count (hb_font_t *font)
+{
+  HB_OBJECT_DO_GET_REFERENCE_COUNT (font);
 }
 
 void

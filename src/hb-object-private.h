@@ -84,6 +84,13 @@ typedef struct {
     return obj; \
   } HB_STMT_END
 
+#define HB_OBJECT_DO_GET_REFERENCE_COUNT(obj) \
+  HB_STMT_START { \
+    if (HB_OBJECT_IS_INERT (obj)) \
+      return 0; \
+    return HB_REFERENCE_COUNT_GET_VALUE (obj->ref_count); \
+  } HB_STMT_END
+
 #define HB_OBJECT_DO_DESTROY(obj) \
   HB_STMT_START { \
     if (HB_OBJECT_IS_INERT (obj)) \

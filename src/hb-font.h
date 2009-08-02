@@ -41,6 +41,9 @@ hb_font_callbacks_create (void);
 hb_font_callbacks_t *
 hb_font_callbacks_reference (hb_font_callbacks_t *fcallbacks);
 
+unsigned int
+hb_font_callbacks_get_reference_count (hb_font_callbacks_t *fcallbacks);
+
 void
 hb_font_callbacks_destroy (hb_font_callbacks_t *fcallbacks);
 
@@ -77,6 +80,9 @@ hb_unicode_callbacks_create (void);
 
 hb_unicode_callbacks_t *
 hb_unicode_callbacks_reference (hb_unicode_callbacks_t *ucallbacks);
+
+unsigned int
+hb_unicode_callbacks_get_reference_count (hb_unicode_callbacks_t *ucallbacks);
 
 void
 hb_unicode_callbacks_destroy (hb_unicode_callbacks_t *ucallbacks);
@@ -126,6 +132,9 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 hb_face_t *
 hb_face_reference (hb_face_t *face);
 
+unsigned int
+hb_face_get_reference_count (hb_face_t *face);
+
 void
 hb_face_destroy (hb_face_t *face);
 
@@ -150,6 +159,9 @@ hb_font_create (hb_face_t *face);
 
 hb_font_t *
 hb_font_reference (hb_font_t *font);
+
+unsigned int
+hb_font_get_reference_count (hb_font_t *font);
 
 void
 hb_font_destroy (hb_font_t *font);
