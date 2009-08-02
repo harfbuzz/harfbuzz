@@ -182,9 +182,9 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
 {
   unsigned int property;
 
-  if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->gproperty = _hb_ot_layout_get_glyph_property (layout, ginfo->gindex);
-  property = ginfo->gproperty;
+  if (ginfo->internal == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+    ginfo->internal = _hb_ot_layout_get_glyph_property (layout, ginfo->gindex);
+  property = ginfo->internal;
   if (property_out)
     *property_out = property;
 
@@ -221,9 +221,9 @@ _hb_ot_layout_skip_mark (hb_ot_layout_t  *layout,
 {
   unsigned int property;
 
-  if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->gproperty = _hb_ot_layout_get_glyph_property (layout, ginfo->gindex);
-  property = ginfo->gproperty;
+  if (ginfo->internal == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+    ginfo->internal = _hb_ot_layout_get_glyph_property (layout, ginfo->gindex);
+  property = ginfo->internal;
   if (property_out)
     *property_out = property;
 

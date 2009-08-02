@@ -49,7 +49,7 @@ typedef struct _hb_glyph_info_t {
   unsigned int   cluster;
   unsigned short component;
   unsigned short ligID;
-  unsigned short gproperty;
+  unsigned int   internal;
 } hb_glyph_info_t;
 
 typedef struct _hb_glyph_position_t {
