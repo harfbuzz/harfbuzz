@@ -1,13 +1,5 @@
-- Support for new, OpenType 1.6, mark filtering sets
+- Test OpenType 1.6 mark filtering sets
 - When sanitizing, have to do a second round to make sure no toe-stepping
-- Implement is_simple()
-- Static assert PangoOTGlyph vs hb */
-- Face index > 0 and dfont fonts
 - HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH vs LookupType::... mess
 - Rename LookupFlag::MarkAttachmentType to LookupFlag:IgnoreSpecialMarks
-- layout vs font split
-- gpi again
-
-In Pango:
-- rtla, etc
 - cmap14
