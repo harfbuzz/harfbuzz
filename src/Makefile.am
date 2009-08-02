@@ -25,10 +25,12 @@ HBSOURCES =  \
 	$(NULL)
 
 HBHEADERS = \
+	hb.h \
 	hb-blob.h \
 	hb-buffer.h \
 	hb-common.h \
 	hb-font.h \
+	hb-ot.h \
 	hb-ot-layout.h \
 	$(NULL)
 
