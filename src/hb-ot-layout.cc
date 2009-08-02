@@ -176,15 +176,15 @@ _hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
 
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
-				    hb_glyph_info_t *ginfo,
+				    hb_internal_glyph_info_t *ginfo,
 				    unsigned int     lookup_flags,
 				    unsigned int    *property_out)
 {
   unsigned int property;
 
-  if (ginfo->internal == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->internal = _hb_ot_layout_get_glyph_property (layout, ginfo->gindex);
-  property = ginfo->internal;
+  if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+    ginfo->gproperty = _hb_ot_layout_get_glyph_property (layout, ginfo->codepoint);
+  property = ginfo->gproperty;
   if (property_out)
     *property_out = property;
 
@@ -200,7 +200,7 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
      * lookup_flags has the set index.
      */
     if (lookup_flags & LookupFlag::UseMarkFilteringSet)
-      return layout->gdef->mark_set_covers (lookup_flags >> 16, ginfo->gindex);
+      return layout->gdef->mark_set_covers (lookup_flags >> 16, ginfo->codepoint);
 
     /* The second byte of lookup_flags has the meaning
      * "ignore marks of attachment type different than
@@ -215,15 +215,15 @@ _hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
 
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_skip_mark (hb_ot_layout_t  *layout,
-			 hb_glyph_info_t *ginfo,
+			 hb_internal_glyph_info_t *ginfo,
 			 unsigned int     lookup_flags,
 			 unsigned int    *property_out)
 {
   unsigned int property;
 
-  if (ginfo->internal == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->internal = _hb_ot_layout_get_glyph_property (layout, ginfo->gindex);
-  property = ginfo->internal;
+  if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+    ginfo->gproperty = _hb_ot_layout_get_glyph_property (layout, ginfo->codepoint);
+  property = ginfo->gproperty;
   if (property_out)
     *property_out = property;
 
@@ -235,7 +235,7 @@ _hb_ot_layout_skip_mark (hb_ot_layout_t  *layout,
 
     /* If using mark filtering sets, the high short of lookup_flags has the set index. */
     if (lookup_flags & LookupFlag::UseMarkFilteringSet)
-      return !layout->gdef->mark_set_covers (lookup_flags >> 16, ginfo->gindex);
+      return !layout->gdef->mark_set_covers (lookup_flags >> 16, ginfo->codepoint);
 
     /* The second byte of lookup_flags has the meaning "ignore marks of attachment type
      * different than the attachment type specified." */

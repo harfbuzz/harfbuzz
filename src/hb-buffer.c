@@ -29,6 +29,7 @@
 
 #include <string.h>
 
+
 static hb_buffer_t _hb_buffer_nil = {
   HB_REFERENCE_COUNT_INVALID /* ref_count */
 };
@@ -158,21 +159,21 @@ hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
 
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,
-		     hb_codepoint_t  glyph_index,
+		     hb_codepoint_t  codepoint,
 		     unsigned int    properties,
 		     unsigned int    cluster)
 {
-  hb_glyph_info_t *glyph;
+  hb_internal_glyph_info_t *glyph;
 
   hb_buffer_ensure (buffer, buffer->in_length + 1);
 
   glyph = &buffer->in_string[buffer->in_length];
-  glyph->gindex = glyph_index;
+  glyph->codepoint = codepoint;
   glyph->properties = properties;
   glyph->cluster = cluster;
   glyph->component = 0;
-  glyph->ligID = 0;
-  glyph->internal = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
+  glyph->lig_id = 0;
+  glyph->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->in_length++;
 }
@@ -217,7 +218,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
 
   if (buffer->out_string != buffer->in_string)
   {
-    hb_glyph_info_t *tmp_string;
+    hb_internal_glyph_info_t *tmp_string;
     tmp_string = buffer->in_string;
     buffer->in_string = buffer->out_string;
     buffer->out_string = tmp_string;
@@ -243,9 +244,9 @@ _hb_buffer_swap (hb_buffer_t *buffer)
    will copied `num_out' times, otherwise `component' itself will
    be used to fill the `component' fields.
 
-   If `ligID' is 0xFFFF, the ligID value from buffer->in_pos
-   will copied `num_out' times, otherwise `ligID' itself will
-   be used to fill the `ligID' fields.
+   If `lig_id' is 0xFFFF, the lig_id value from buffer->in_pos
+   will copied `num_out' times, otherwise `lig_id' itself will
+   be used to fill the `lig_id' fields.
 
    The properties for all replacement glyphs are taken
    from the glyph at position `buffer->in_pos'.
@@ -258,7 +259,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned int num_out,
 			      const uint16_t *glyph_data_be,
 			      unsigned short component,
-			      unsigned short ligID)
+			      unsigned short lig_id)
 {
   unsigned int i;
   unsigned int properties;
@@ -274,18 +275,18 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   cluster = buffer->in_string[buffer->in_pos].cluster;
   if (component == 0xFFFF)
     component = buffer->in_string[buffer->in_pos].component;
-  if (ligID == 0xFFFF)
-    ligID = buffer->in_string[buffer->in_pos].ligID;
+  if (lig_id == 0xFFFF)
+    lig_id = buffer->in_string[buffer->in_pos].lig_id;
 
   for (i = 0; i < num_out; i++)
   {
-    hb_glyph_info_t *info = &buffer->out_string[buffer->out_pos + i];
-    info->gindex = hb_be_uint16 (glyph_data_be[i]);
+    hb_internal_glyph_info_t *info = &buffer->out_string[buffer->out_pos + i];
+    info->codepoint = hb_be_uint16 (glyph_data_be[i]);
     info->properties = properties;
     info->cluster = cluster;
     info->component = component;
-    info->ligID = ligID;
-    info->internal = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
+    info->lig_id = lig_id;
+    info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
   buffer->in_pos  += num_in;
@@ -298,9 +299,9 @@ HB_INTERNAL void
 _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 			     hb_codepoint_t glyph_index,
 			     unsigned short component,
-			     unsigned short ligID)
+			     unsigned short lig_id)
 {
-  hb_glyph_info_t *info;
+  hb_internal_glyph_info_t *info;
 
   if (buffer->out_string != buffer->in_string)
   {
@@ -311,12 +312,12 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
     buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
 
   info = &buffer->out_string[buffer->out_pos];
-  info->gindex = glyph_index;
+  info->codepoint = glyph_index;
   if (component != 0xFFFF)
     info->component = component;
-  if (ligID != 0xFFFF)
-    info->ligID = ligID;
-  info->internal = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
+  if (lig_id != 0xFFFF)
+    info->lig_id = lig_id;
+  info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->in_pos++;
   buffer->out_pos++;
@@ -363,7 +364,7 @@ hb_buffer_get_len (hb_buffer_t *buffer)
 hb_glyph_info_t *
 hb_buffer_get_glyph_infos (hb_buffer_t *buffer)
 {
-  return buffer->in_string;
+  return (hb_glyph_info_t *) buffer->in_string;
 }
 
 /* Return value valid as long as buffer not modified */
@@ -373,5 +374,5 @@ hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
   if (buffer->in_length && !buffer->positions)
     hb_buffer_clear_positions (buffer);
 
-  return buffer->positions;
+  return (hb_glyph_position_t *) buffer->positions;
 }

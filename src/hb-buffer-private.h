@@ -36,6 +36,36 @@ HB_BEGIN_DECLS
 #define HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
 
 
+typedef struct _hb_internal_glyph_info_t {
+  hb_codepoint_t codepoint;
+  uint32_t       properties;
+  uint32_t       cluster;
+  uint16_t       component;
+  uint16_t       lig_id;
+  uint32_t       gproperty;
+} hb_internal_glyph_info_t;
+
+typedef struct _hb_internal_glyph_position_t {
+  hb_position_t  x_pos;
+  hb_position_t  y_pos;
+  hb_position_t  x_advance;
+  hb_position_t  y_advance;
+  hb_bool_t      new_advance :1;	/* if set, the advance width values are
+					   absolute, i.e., they won't be
+					   added to the original glyph's value
+					   but rather replace them */
+  unsigned short back : 15;		/* number of glyphs to go back
+					   for drawing current glyph */
+  short          cursive_chain : 16;	/* character to which this connects,
+					   may be positive or negative; used
+					   only internally */
+} hb_internal_glyph_position_t;
+
+ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_internal_glyph_info_t));
+ASSERT_STATIC (sizeof (hb_glyph_position_t) == sizeof (hb_internal_glyph_position_t));
+ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
+
+
 struct _hb_buffer_t {
   hb_reference_count_t ref_count;
 
@@ -46,10 +76,10 @@ struct _hb_buffer_t {
   unsigned int in_pos;
   unsigned int out_pos;
 
-  hb_glyph_info_t     *in_string;
-  hb_glyph_info_t     *out_string;
-  hb_glyph_info_t     *alt_string;
-  hb_glyph_position_t *positions;
+  hb_internal_glyph_info_t     *in_string;
+  hb_internal_glyph_info_t     *out_string;
+  hb_internal_glyph_info_t     *alt_string;
+  hb_internal_glyph_position_t *positions;
 
   hb_direction_t       direction;
   unsigned int         max_lig_id;
@@ -88,16 +118,16 @@ _hb_buffer_allocate_lig_id (hb_buffer_t *buffer);
 
 
 /* convenience macros */
-#define IN_GLYPH(pos)		(buffer->in_string[(pos)].gindex)
+#define IN_GLYPH(pos)		(buffer->in_string[(pos)].codepoint)
 #define IN_INFO(pos)		(&buffer->in_string[(pos)])
-#define IN_CURGLYPH()		(buffer->in_string[buffer->in_pos].gindex)
+#define IN_CURGLYPH()		(buffer->in_string[buffer->in_pos].codepoint)
 #define IN_CURINFO()		(&buffer->in_string[buffer->in_pos])
 #define IN_PROPERTIES(pos)	(buffer->in_string[(pos)].properties)
-#define IN_LIGID(pos)		(buffer->in_string[(pos)].ligID)
+#define IN_LIGID(pos)		(buffer->in_string[(pos)].lig_id)
 #define IN_COMPONENT(pos)	(buffer->in_string[(pos)].component)
 #define POSITION(pos)		(&buffer->positions[(pos)])
 #define CURPOSITION()		(&buffer->positions[buffer->in_pos])
-#define OUT_GLYPH(pos)		(buffer->out_string[(pos)].gindex)
+#define OUT_GLYPH(pos)		(buffer->out_string[(pos)].codepoint)
 #define OUT_INFO(pos)		(&buffer->out_string[(pos)])
 
 HB_END_DECLS

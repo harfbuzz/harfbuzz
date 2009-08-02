@@ -58,7 +58,7 @@ struct ValueFormat : USHORT
   const void apply_value (hb_ot_layout_t      *layout,
 			  const char          *base,
 			  const Value         *values,
-			  hb_glyph_position_t *glyph_pos) const
+			  hb_internal_glyph_position_t *glyph_pos) const
   {
     unsigned int x_ppem, y_ppem;
     hb_16dot16_t x_scale, y_scale;
@@ -825,7 +825,7 @@ struct MarkBasePosFormat1
     unsigned int index = base_index * classCount + mark_class;
     (&base_array+base_array.matrix[index]).get_anchor (layout, IN_GLYPH (j), &base_x, &base_y);
 
-    hb_glyph_position_t *o = POSITION (buffer->in_pos);
+    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = base_x - mark_x;
     o->y_pos     = base_y - mark_y;
     o->x_advance = 0;
@@ -962,7 +962,7 @@ struct MarkLigPosFormat1
     unsigned int index = comp_index * classCount + mark_class;
     (&lig_attach+lig_attach.matrix[index]).get_anchor (layout, IN_GLYPH (j), &lig_x, &lig_y);
 
-    hb_glyph_position_t *o = POSITION (buffer->in_pos);
+    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = lig_x - mark_x;
     o->y_pos     = lig_y - mark_y;
     o->x_advance = 0;
@@ -1077,7 +1077,7 @@ struct MarkMarkPosFormat1
     unsigned int index = mark2_index * classCount + mark1_class;
     (&mark2_array+mark2_array.matrix[index]).get_anchor (layout, IN_GLYPH (j), &mark2_x, &mark2_y);
 
-    hb_glyph_position_t *o = POSITION (buffer->in_pos);
+    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = mark2_x - mark1_x;
     o->y_pos     = mark2_y - mark1_y;
     o->x_advance = 0;

@@ -41,15 +41,13 @@ typedef enum _hb_direction_t {
   HB_DIRECTION_BTT
 } hb_direction_t;
 
-/* XXX these structs need review before we can commit to them */
-
 typedef struct _hb_glyph_info_t {
-  hb_codepoint_t gindex;
-  unsigned int   properties;
-  unsigned int   cluster;
-  unsigned short component;
-  unsigned short ligID;
-  unsigned int   internal;
+  hb_codepoint_t codepoint;
+  uint32_t       properties;
+  uint32_t       cluster;
+  uint16_t       component;
+  uint16_t       lig_id;
+  uint32_t       internal;
 } hb_glyph_info_t;
 
 typedef struct _hb_glyph_position_t {
@@ -57,15 +55,16 @@ typedef struct _hb_glyph_position_t {
   hb_position_t  y_pos;
   hb_position_t  x_advance;
   hb_position_t  y_advance;
-  unsigned short back;		/* number of glyphs to go back
-				   for drawing current glyph */
-  hb_bool_t      new_advance;	/* if set, the advance width values are
-				   absolute, i.e., they won't be
-				   added to the original glyph's value
-				   but rather replace them */
-  short          cursive_chain; /* character to which this connects,
-				   may be positive or negative; used
-				   only internally */
+  /* XXX these should all be replaced by "uint32_t internal" */
+  hb_bool_t      new_advance :1;	/* if set, the advance width values are
+					   absolute, i.e., they won't be
+					   added to the original glyph's value
+					   but rather replace them */
+  unsigned short back : 15;		/* number of glyphs to go back
+					   for drawing current glyph */
+  short          cursive_chain : 16;	/* character to which this connects,
+					   may be positive or negative; used
+					   only internally */
 } hb_glyph_position_t;
 
 
@@ -103,7 +102,7 @@ hb_buffer_ensure (hb_buffer_t  *buffer,
 
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,
-		     hb_codepoint_t  glyph_index,
+		     hb_codepoint_t  codepoint,
 		     unsigned int    properties,
 		     unsigned int    cluster);
 
