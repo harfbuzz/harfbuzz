@@ -215,8 +215,8 @@ struct Null <Type> \
     private: char v[BYTES]; \
   }; \
   ASSERT_SIZE (NAME, BYTES)
-#define DEFINE_INT_TYPE0(NAME, type, b)	DEFINE_INT_TYPE1 (NAME, type, hb_be_##type, b)
-#define DEFINE_INT_TYPE(NAME, u, w)	DEFINE_INT_TYPE0 (NAME, u##int##w##_t, (w / 8))
+#define DEFINE_INT_TYPE0(NAME, type, b)	DEFINE_INT_TYPE1 (NAME, type##_t, hb_be_##type, b)
+#define DEFINE_INT_TYPE(NAME, u, w)	DEFINE_INT_TYPE0 (NAME, u##int##w, (w / 8))
 
 
 DEFINE_INT_TYPE (USHORT,  u, 16);	/* 16-bit unsigned integer. */
