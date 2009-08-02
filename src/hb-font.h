@@ -28,8 +28,18 @@
 #define HB_FONT_H
 
 #include "hb-common.h"
+#include "hb-blob.h"
 
 HB_BEGIN_DECLS
+
+typedef struct _hb_font_callbacks_t hb_font_callbacks_t;
+typedef struct _hb_unicode_callbacks_t hb_unicode_callbacks_t;
+
+typedef struct _hb_face_t hb_face_t;
+typedef struct _hb_font_t hb_font_t;
+
+typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
+
 
 /*
  * hb_font_callbacks_t

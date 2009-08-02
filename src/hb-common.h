@@ -50,15 +50,6 @@ typedef uint32_t hb_codepoint_t;
 typedef int32_t hb_position_t;
 typedef int32_t hb_16dot16_t;
 
-typedef struct _hb_blob_t hb_blob_t;
 typedef void (*hb_destroy_func_t) (void *user_data);
-
-typedef struct _hb_font_callbacks_t hb_font_callbacks_t;
-typedef struct _hb_unicode_callbacks_t hb_unicode_callbacks_t;
-
-typedef struct _hb_face_t hb_face_t;
-typedef struct _hb_font_t hb_font_t;
-
-typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
 
 #endif /* HB_COMMON_H */
