@@ -28,11 +28,17 @@
 
 #include "hb-blob.h"
 
+#include <unistd.h>
+#include <sys/mman.h>
+
 struct _hb_blob_t {
   hb_reference_count_t ref_count;
 
+  hb_blob_t *parent;
+
   const char *data;
-  unsigned int len;
+  unsigned int offset;
+  unsigned int length;
   hb_memory_mode_t mode;
 
   hb_destroy_func_t destroy;
@@ -41,8 +47,11 @@ struct _hb_blob_t {
 static hb_blob_t _hb_blob_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
+  NULL, /* parent */
+
   NULL, /* data */
-  0, /* len */
+  0, /* offset */
+  0, /* length */
   HB_MEMORY_MODE_READONLY, /* mode */
 
   NULL, /* destroy */
@@ -53,29 +62,71 @@ static void
 _hb_blob_destroy_user_data (hb_blob_t *blob)
 {
   if (blob->destroy) {
+    if (blob->parent == blob->user_data)
+      blob->parent = NULL;
     blob->destroy (blob->user_data);
     blob->destroy = NULL;
     blob->user_data = NULL;
   }
 }
 
+static void
+_hb_blob_nullify (hb_blob_t *blob)
+{
+  _hb_blob_destroy_user_data (blob);
+  blob->data = NULL;
+  blob->offset = 0;
+  blob->length = 0;
+}
+
+static void
+_hb_blob_sync_parent_mode (hb_blob_t *blob)
+{
+  if (blob->parent) {
+    if (blob->mode != HB_MEMORY_MODE_WRITEABLE && hb_blob_is_writeable (blob->parent))
+      blob->mode = HB_MEMORY_MODE_WRITEABLE;
+  }
+}
+
+static void
+_hb_blob_sync_parent_data (hb_blob_t *blob)
+{
+  if (blob->parent) {
+    const char *pdata;
+    unsigned int plength;
+
+    pdata = hb_blob_get_data (blob->parent, &plength);
+
+    if (pdata != blob->data) {
+      if (blob->offset >= plength) {
+        /* nothing left */
+	_hb_blob_nullify (blob);
+      } else {
+	blob->data = pdata;
+	blob->length = MIN (blob->length, plength - blob->offset);
+      }
+    }
+  }
+}
+
 hb_blob_t *
 hb_blob_create (const char        *data,
-		unsigned int       len,
+		unsigned int       length,
 		hb_memory_mode_t   mode,
 		hb_destroy_func_t  destroy,
 		void              *user_data)
 {
   hb_blob_t *blob;
 
-  if (!HB_OBJECT_DO_CREATE (blob)) {
+  if (!length || !HB_OBJECT_DO_CREATE (blob)) {
     if (destroy)
       destroy (user_data);
     return &_hb_blob_nil;
   }
 
   blob->data = data;
-  blob->len = len;
+  blob->offset = 0;
+  blob->length = length;
   blob->mode = mode;
 
   blob->destroy = destroy;
@@ -87,6 +138,37 @@ hb_blob_create (const char        *data,
   }
 
   return blob;
+}
+
+hb_blob_t *
+hb_blob_create_sub_blob (hb_blob_t    *parent,
+			 unsigned int  offset,
+			 unsigned int  length)
+{
+  hb_blob_t *blob;
+
+  if (!length || !HB_OBJECT_DO_CREATE (blob))
+    return &_hb_blob_nil;
+
+  blob->parent = parent; /* we keep the ref in user_data */
+
+  blob->data = parent->data + 1; /* make sure they're not equal */
+  blob->offset = offset;
+  blob->length = length;
+  blob->mode = parent->mode;
+
+  blob->destroy = (hb_destroy_func_t) hb_blob_destroy;
+  blob->user_data = hb_blob_reference (parent);
+
+  _hb_blob_sync_parent_data (blob);
+
+  return blob;
+}
+
+hb_blob_t *
+hb_blob_create_empty (void)
+{
+  return &_hb_blob_nil;
 }
 
 hb_blob_t *
@@ -113,28 +195,50 @@ hb_blob_destroy (hb_blob_t *blob)
 
 const char *
 hb_blob_get_data (hb_blob_t    *blob,
-		  unsigned int *len)
+		  unsigned int *length)
 {
-  if (len)
-    *len = blob->len;
+  _hb_blob_sync_parent_data (blob);
 
-  return blob->data;
+  if (length)
+    *length = blob->length;
+
+  return blob->data + blob->offset;
 }
 
 hb_bool_t
 hb_blob_is_writeable (hb_blob_t *blob)
 {
+  _hb_blob_sync_parent_mode (blob);
+
   return blob->mode == HB_MEMORY_MODE_WRITEABLE;
 }
 
 hb_bool_t
 hb_blob_try_writeable_inplace (hb_blob_t *blob)
 {
+  if (HB_OBJECT_IS_INERT (blob))
+    return FALSE;
+
+  _hb_blob_sync_parent_mode (blob);
+
   if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITEABLE) {
-    /* XXX
-     * mprotect
-    blob->mode == HB_MEMORY_MODE_WRITEABLE;
-    */
+    _hb_blob_sync_parent_data (blob);
+
+    if (blob->length) {
+      int pagesize;
+      unsigned int length;
+      const char *addr;
+
+      pagesize = sysconf(_SC_PAGE_SIZE);
+      if (-1 == pagesize)
+	return FALSE;
+
+      addr = (const char *) (((size_t) blob->data + blob->offset) & pagesize);
+      length = (const char *) (((size_t) blob->data + blob->offset + blob->length + pagesize-1) & pagesize)  - addr;
+      if (-1 == mprotect ((void *) addr, length, PROT_READ | PROT_WRITE))
+        return FALSE;
+    }
+    blob->mode = HB_MEMORY_MODE_WRITEABLE;
   }
 
   return blob->mode == HB_MEMORY_MODE_WRITEABLE;
@@ -144,27 +248,35 @@ hb_blob_try_writeable_inplace (hb_blob_t *blob)
 void
 hb_blob_make_writeable (hb_blob_t *blob)
 {
+  if (HB_OBJECT_IS_INERT (blob))
+    return;
+
+  _hb_blob_sync_parent_mode (blob);
+
   if (blob->mode == HB_MEMORY_MODE_READONLY_NEVER_DUPLICATE)
   {
-    _hb_blob_destroy_user_data (blob);
-    blob->data = NULL;
-    blob->len = 0;
+    _hb_blob_nullify (blob);
   }
   else if (blob->mode == HB_MEMORY_MODE_READONLY)
   {
     char *new_data;
 
-    new_data = malloc (blob->len);
-    if (new_data)
-      memcpy (new_data, blob->data, blob->len);
+    _hb_blob_sync_parent_data (blob);
 
-    _hb_blob_destroy_user_data (blob);
+    if (blob->length) {
+      new_data = malloc (blob->length);
+      if (new_data)
+	memcpy (new_data, blob->data + blob->offset, blob->length);
 
-    if (!new_data) {
-      blob->data = NULL;
-      blob->len = 0;
-    } else
-      blob->data = new_data;
+      _hb_blob_destroy_user_data (blob);
+
+      if (!new_data) {
+	_hb_blob_nullify (blob);
+      } else {
+	blob->data = new_data;
+	blob->offset = 0;
+      }
+    }
 
     blob->mode = HB_MEMORY_MODE_WRITEABLE;
   }

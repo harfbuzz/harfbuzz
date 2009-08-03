@@ -43,10 +43,18 @@ typedef struct _hb_blob_t hb_blob_t;
 
 hb_blob_t *
 hb_blob_create (const char        *data,
-		unsigned int       len,
+		unsigned int       length,
 		hb_memory_mode_t   mode,
 		hb_destroy_func_t  destroy,
 		void              *user_data);
+
+hb_blob_t *
+hb_blob_create_sub_blob (hb_blob_t    *parent,
+			 unsigned int  offset,
+			 unsigned int  length);
+
+hb_blob_t *
+hb_blob_create_empty (void);
 
 hb_blob_t *
 hb_blob_reference (hb_blob_t *blob);
@@ -59,7 +67,7 @@ hb_blob_destroy (hb_blob_t *blob);
 
 const char *
 hb_blob_get_data (hb_blob_t    *blob,
-		  unsigned int *len);
+		  unsigned int *length);
 
 hb_bool_t
 hb_blob_is_writeable (hb_blob_t *blob);
