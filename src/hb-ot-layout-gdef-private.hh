@@ -24,10 +24,10 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_LAYOUT_GDEF_PRIVATE_H
-#define HB_OT_LAYOUT_GDEF_PRIVATE_H
+#ifndef HB_OT_LAYOUT_GDEF_PRIVATE_HH
+#define HB_OT_LAYOUT_GDEF_PRIVATE_HH
 
-#include "hb-ot-layout-common-private.h"
+#include "hb-ot-layout-common-private.hh"
 
 
 struct GlyphClassDef : ClassDef
@@ -317,4 +317,4 @@ struct GDEF
 ASSERT_SIZE (GDEF, 12);
 
 
-#endif /* HB_OT_LAYOUT_GDEF_PRIVATE_H */
+#endif /* HB_OT_LAYOUT_GDEF_PRIVATE_HH */

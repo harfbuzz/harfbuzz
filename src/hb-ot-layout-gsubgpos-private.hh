@@ -24,11 +24,11 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H
-#define HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H
+#ifndef HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH
+#define HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH
 
 #include "hb-buffer-private.h"
-#include "hb-ot-layout-gdef-private.h"
+#include "hb-ot-layout-gdef-private.hh"
 
 
 #define APPLY_ARG_DEF \
@@ -770,4 +770,4 @@ struct GSUBGPOS
 ASSERT_SIZE (GSUBGPOS, 10);
 
 
-#endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_H */
+#endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH */

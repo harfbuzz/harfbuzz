@@ -25,9 +25,9 @@
  */
 
 #define HB_OT_LAYOUT_CC
-#include "hb-open-file-private.h"
-#include "hb-ot-layout-gdef-private.h"
-#include "hb-ot-layout-gsubgpos-private.h"
+#include "hb-open-file-private.hh"
+#include "hb-ot-layout-gdef-private.hh"
+#include "hb-ot-layout-gsubgpos-private.hh"
 
 #include <glib.h>
 #include <stdlib.h>

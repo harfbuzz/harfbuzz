@@ -24,12 +24,12 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_LAYOUT_COMMON_PRIVATE_H
-#define HB_OT_LAYOUT_COMMON_PRIVATE_H
+#ifndef HB_OT_LAYOUT_COMMON_PRIVATE_HH
+#define HB_OT_LAYOUT_COMMON_PRIVATE_HH
 
 #include "hb-ot-layout-private.h"
 
-#include "hb-open-types-private.h"
+#include "hb-open-types-private.hh"
 
 
 /*
@@ -444,4 +444,4 @@ struct Device
 ASSERT_SIZE (Device, 6);
 
 
-#endif /* HB_OT_LAYOUT_COMMON_PRIVATE_H */
+#endif /* HB_OT_LAYOUT_COMMON_PRIVATE_HH */

@@ -24,8 +24,8 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OPEN_TYPES_PRIVATE_H
-#define HB_OPEN_TYPES_PRIVATE_H
+#ifndef HB_OPEN_TYPES_PRIVATE_HH
+#define HB_OPEN_TYPES_PRIVATE_HH
 
 #include "hb-private.h"
 
@@ -383,4 +383,4 @@ struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
   }
 
 
-#endif /* HB_OPEN_TYPES_PRIVATE_H */
+#endif /* HB_OPEN_TYPES_PRIVATE_HH */

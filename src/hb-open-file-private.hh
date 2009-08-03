@@ -24,10 +24,10 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OPEN_FILE_PRIVATE_H
-#define HB_OPEN_FILE_PRIVATE_H
+#ifndef HB_OPEN_FILE_PRIVATE_HH
+#define HB_OPEN_FILE_PRIVATE_HH
 
-#include "hb-open-types-private.h"
+#include "hb-open-types-private.hh"
 
 
 /*
@@ -142,4 +142,4 @@ struct OpenTypeFontFile
 ASSERT_SIZE (OpenTypeFontFile, 4);
 
 
-#endif /* HB_OPEN_FILE_PRIVATE_H */
+#endif /* HB_OPEN_FILE_PRIVATE_HH */

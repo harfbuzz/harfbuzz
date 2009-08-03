@@ -30,10 +30,10 @@
 
 #include "hb-ot-layout-private.h"
 
-#include "hb-open-file-private.h"
-#include "hb-ot-layout-gdef-private.h"
-#include "hb-ot-layout-gsub-private.h"
-#include "hb-ot-layout-gpos-private.h"
+#include "hb-open-file-private.hh"
+#include "hb-ot-layout-gdef-private.hh"
+#include "hb-ot-layout-gsub-private.hh"
+#include "hb-ot-layout-gpos-private.hh"
 
 
 #include <stdlib.h>
