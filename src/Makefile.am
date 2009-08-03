@@ -10,7 +10,7 @@ HBSOURCES =  \
 	hb-blob.c \
 	hb-buffer.c \
 	hb-buffer-private.h \
-	hb-font.c \
+	hb-font.cc \
 	hb-font-private.h \
 	hb-private.h \
 	hb-open-file-private.hh \
