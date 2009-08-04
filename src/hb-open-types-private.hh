@@ -68,11 +68,14 @@ struct _hb_sanitize_context_t
 	context
 
 #define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
-#define SANITIZE2(X,Y) SANITIZE (X) && SANITIZE (Y)
+#define SANITIZE2(X,Y) (SANITIZE (X) && SANITIZE (Y))
 
 #define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, CONST_CHARP(this)))
-#define SANITIZE_THIS2(X,Y) SANITIZE_THIS (X) && SANITIZE_THIS (Y)
-#define SANITIZE_THIS3(X,Y,Z) SANITIZE_THIS (X) && SANITIZE_THIS (Y) && SANITIZE_THIS(Z)
+#define SANITIZE_THIS2(X,Y) (SANITIZE_THIS (X) && SANITIZE_THIS (Y))
+#define SANITIZE_THIS3(X,Y,Z) (SANITIZE_THIS (X) && SANITIZE_THIS (Y) && SANITIZE_THIS(Z))
+
+#define SANITIZE_BASE(X,B) HB_LIKELY ((X).sanitize (SANITIZE_ARG, B))
+#define SANITIZE_BASE2(X,Y,B) (SANITIZE_BASE (X,B) && SANITIZE_BASE (Y,B))
 
 #define SANITIZE_SELF() SANITIZE_OBJ (*this)
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
@@ -351,6 +354,12 @@ struct GenericOffsetTo : OffsetType
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (*this, 0);
   }
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+    if (!SANITIZE_OBJ (*this)) return false;
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return true;
+    return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), user_data) || NEUTER (*this, 0);
+  }
 };
 template <typename Base, typename OffsetType, typename Type>
 inline const Type& operator + (const Base &base, GenericOffsetTo<OffsetType, Type> offset) { return offset (base); }
@@ -389,6 +398,13 @@ struct GenericArrayOf
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array[i].sanitize (SANITIZE_ARG, base))
+        return false;
+  }
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+    if (!SANITIZE_GET_SIZE()) return false;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!array[i].sanitize (SANITIZE_ARG, base, user_data))
         return false;
   }
 

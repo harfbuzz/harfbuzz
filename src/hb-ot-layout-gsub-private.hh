@@ -830,8 +830,6 @@ struct GSUB : GSUBGPOS
 
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return (const SubstLookup&) GSUBGPOS::get_lookup (i); }
-  inline SubstLookup& get_lookup (unsigned int i)
-  { return (SubstLookup&) GSUBGPOS::get_lookup (i); }
 
   inline bool substitute_lookup (hb_ot_layout_context_t *context,
 				 hb_buffer_t    *buffer,

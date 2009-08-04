@@ -54,6 +54,8 @@ struct ValueFormat : USHORT
 
   inline unsigned int get_len () const
   { return _hb_popcount32 ((unsigned int) *this); }
+  inline unsigned int get_size () const
+  { return get_len () * sizeof (Value); }
 
   const void apply_value (hb_ot_layout_context_t *context,
 			  const char          *base,
@@ -153,6 +155,10 @@ struct AnchorFormat1
       *y = context->font->y_scale * yCoordinate / 0x10000;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   SHORT		xCoordinate;		/* Horizontal value--in design units */
@@ -171,6 +177,10 @@ struct AnchorFormat2
       /* TODO Contour */
       *x = context->font->x_scale * xCoordinate / 0x10000;
       *y = context->font->y_scale * yCoordinate / 0x10000;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
   }
 
   private:
@@ -196,6 +206,10 @@ struct AnchorFormat3
 	*x += (this+xDeviceTable).get_delta (context->font->x_ppem) << 6;
       if (context->font->y_ppem)
 	*y += (this+yDeviceTable).get_delta (context->font->y_ppem) << 6;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS2 (xDeviceTable, yDeviceTable);
   }
 
   private:
@@ -227,6 +241,16 @@ struct Anchor
     }
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
+
   private:
   union {
   USHORT		format;		/* Format identifier */
@@ -242,6 +266,10 @@ struct MarkRecord
 {
   friend struct MarkArray;
 
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    return SANITIZE_SELF () && SANITIZE_BASE (markAnchor, base);
+  }
+
   private:
   USHORT	klass;			/* Class defined for this mark */
   OffsetTo<Anchor>
@@ -254,6 +282,10 @@ struct MarkArray
 {
   inline unsigned int get_class (unsigned int index) const { return markRecord[index].klass; }
   inline const Anchor& get_anchor (unsigned int index) const { return this+markRecord[index].markAnchor; }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (markRecord);
+  }
 
   private:
   ArrayOf<MarkRecord>
@@ -279,6 +311,11 @@ struct SinglePosFormat1
 
     buffer->in_pos++;
     return true;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
+	   SANITIZE_MEM (values, valueFormat.get_size ());
   }
 
   private:
@@ -316,6 +353,11 @@ struct SinglePosFormat2
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
+	   SANITIZE_MEM (values, valueFormat.get_size () * valueCount);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
@@ -340,6 +382,15 @@ struct SinglePos
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -369,6 +420,12 @@ ASSERT_SIZE (PairValueRecord, 2);
 struct PairSet
 {
   friend struct PairPosFormat1;
+
+  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int format_len) {
+    if (!SANITIZE_SELF ()) return false;
+    unsigned int count = (1 + format_len) * len;
+    return SANITIZE_MEM (array, sizeof (array[0]) * count);
+  }
 
   private:
   USHORT	len;			/* Number of PairValueRecords */
@@ -424,6 +481,12 @@ struct PairPosFormat1
     }
 
     return false;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
+	   pairSet.sanitize (SANITIZE_ARG, CONST_CHARP(this),
+			     valueFormat1.get_len () + valueFormat2.get_len ());
   }
 
   private:
@@ -486,6 +549,13 @@ struct PairPosFormat2
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
+	   SANITIZE_THIS2 (classDef1, classDef2) &&
+	   SANITIZE_MEM (values,
+			 (valueFormat1.get_size () + valueFormat2.get_size ()) *
+			 class1Count * class2Count);
+  }
 
   private:
   USHORT	format;			/* Format identifier--format = 2 */
@@ -530,6 +600,15 @@ struct PairPos
     }
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
+
   private:
   union {
   USHORT		format;		/* Format identifier */
@@ -542,6 +621,10 @@ ASSERT_SIZE (PairPos, 2);
 
 struct EntryExitRecord
 {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    return SANITIZE_BASE2 (entryAnchor, exitAnchor, base);
+  }
+
   OffsetTo<Anchor>
 		entryAnchor;		/* Offset to EntryAnchor table--from
 					 * beginning of CursivePos
@@ -732,6 +815,10 @@ struct CursivePosFormat1
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, entryExitRecord);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -756,6 +843,14 @@ struct CursivePos
     }
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
+
   private:
   union {
   USHORT		format;		/* Format identifier */
@@ -768,6 +863,15 @@ ASSERT_SIZE (CursivePos, 2);
 struct BaseArray
 {
   friend struct MarkBasePosFormat1;
+
+  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
+    if (!SANITIZE_SELF ()) return false;
+    unsigned int count = cols * len;
+    if (!SANITIZE_MEM (matrix, sizeof (matrix[0]) * count)) return false;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (matrix[i])) return false;
+    return true;
+  }
 
   private:
   USHORT	len;			/* Number of rows */
@@ -836,6 +940,11 @@ struct MarkBasePosFormat1
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS2 (markCoverage, baseCoverage) &&
+	   SANITIZE_THIS (markArray) && baseArray.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -864,6 +973,14 @@ struct MarkBasePos
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -973,6 +1090,12 @@ struct MarkLigPosFormat1
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () &&
+	   SANITIZE_THIS2 (markCoverage, ligatureCoverage) &&
+	   SANITIZE_THIS2 (markArray, ligatureArray);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -1005,6 +1128,14 @@ struct MarkLigPos
     }
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
+
   private:
   union {
   USHORT		format;		/* Format identifier */
@@ -1017,6 +1148,15 @@ ASSERT_SIZE (MarkLigPos, 2);
 struct Mark2Array
 {
   friend struct MarkMarkPosFormat1;
+
+  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
+    if (!SANITIZE_SELF ()) return false;
+    unsigned int count = cols * len;
+    if (!SANITIZE_MEM (matrix, sizeof (matrix[0]) * count)) return false;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (matrix[i])) return false;
+    return true;
+  }
 
   private:
   USHORT	len;			/* Number of rows */
@@ -1088,6 +1228,11 @@ struct MarkMarkPosFormat1
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS2 (mark1Coverage, mark2Coverage) &&
+	   SANITIZE_THIS (mark1Array) && mark2Array.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -1118,6 +1263,14 @@ struct MarkMarkPos
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -1158,7 +1311,12 @@ struct ExtensionPos : Extension
   friend struct PosLookupSubTable;
 
   private:
+  inline const struct PosLookupSubTable& get_subtable (void) const
+  { return CONST_CAST (PosLookupSubTable, Extension::get_subtable (), 0); }
+
   inline bool apply (APPLY_ARG_DEF) const;
+
+  inline bool sanitize (SANITIZE_ARG_DEF);
 };
 ASSERT_SIZE (ExtensionPos, 2);
 
@@ -1198,6 +1356,22 @@ struct PosLookupSubTable
     case ChainContext:		return u.chainContext->apply (APPLY_ARG);
     case Extension:		return u.extension->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case Single:		return u.single->sanitize (SANITIZE_ARG);
+    case Pair:			return u.pair->sanitize (SANITIZE_ARG);
+    case Cursive:		return u.cursive->sanitize (SANITIZE_ARG);
+    case MarkBase:		return u.markBase->sanitize (SANITIZE_ARG);
+    case MarkLig:		return u.markLig->sanitize (SANITIZE_ARG);
+    case MarkMark:		return u.markMark->sanitize (SANITIZE_ARG);
+    case Context:		return u.context->sanitize (SANITIZE_ARG);
+    case ChainContext:		return u.chainContext->sanitize (SANITIZE_ARG);
+    case Extension:		return u.extension->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -1296,9 +1470,17 @@ struct PosLookup : Lookup
 
     return ret;
   }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (Lookup::sanitize (SANITIZE_ARG)) return false;
+    OffsetArrayOf<PosLookupSubTable> &list = (OffsetArrayOf<PosLookupSubTable> &) subTable;
+    return SANITIZE_THIS (list);
+  }
 };
 ASSERT_SIZE (PosLookup, 6);
 
+typedef OffsetListOf<PosLookup> PosLookupList;
+ASSERT_SIZE (PosLookupList, 2);
 
 /*
  * GPOS
@@ -1320,6 +1502,11 @@ struct GPOS : GSUBGPOS
 			       hb_ot_layout_feature_mask_t  mask) const
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
+    OffsetTo<PosLookupList> &list = CAST(OffsetTo<PosLookupList>, lookupList, 0);
+    return SANITIZE_THIS (list);
+  }
 };
 ASSERT_SIZE (GPOS, 10);
 
@@ -1333,7 +1520,13 @@ inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
   if (HB_UNLIKELY (lookup_type == PosLookupSubTable::Extension))
     return false;
 
-  return ((PosLookupSubTable&) get_subtable ()).apply (APPLY_ARG, lookup_type);
+  return get_subtable ().apply (APPLY_ARG, lookup_type);
+}
+
+inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
+{
+  return Extension::sanitize (SANITIZE_ARG) &&
+	 DECONST_CAST (PosLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG);
 }
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
