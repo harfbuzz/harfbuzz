@@ -52,6 +52,154 @@
 
 
 /*
+ * Array types
+ */
+
+/* get_len() is a method returning the number of items in an array-like object */
+#define DEFINE_LEN(Type, array, num) \
+  inline unsigned int get_len(void) const { return num; } \
+
+/* An array type is one that contains a variable number of objects
+ * as its last item.  An array object is extended with get_len()
+ * methods, as well as overloaded [] operator. */
+#define DEFINE_ARRAY_TYPE(Type, array, num) \
+  DEFINE_INDEX_OPERATOR(Type, array, num) \
+  DEFINE_LEN(Type, array, num)
+#define DEFINE_INDEX_OPERATOR(Type, array, num) \
+  inline const Type& operator[] (unsigned int i) const \
+  { \
+    if (HB_UNLIKELY (i >= num)) return Null(Type); \
+    return array[i]; \
+  }
+
+/* An offset array type is like an array type, but it contains a table
+ * of offsets to the objects, relative to the beginning of the current
+ * object. */
+#define DEFINE_OFFSET_ARRAY_TYPE(Type, array, num) \
+  DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
+  DEFINE_LEN(Offset, array, num)
+#define DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
+  inline const Type& operator[] (unsigned int i) const \
+  { \
+    if (HB_UNLIKELY (i >= num)) return Null(Type); \
+    if (HB_UNLIKELY (!array[i])) return Null(Type); \
+    return *(const Type)((const char*)this + array[i]); \
+  }
+
+
+#define DEFINE_ARRAY_INTERFACE(Type, name) \
+  inline const Type& get_##name (unsigned int i) const { return (*this)[i]; } \
+  inline unsigned int get_##name##_count (void) const { return this->get_len (); }
+#define DEFINE_INDEX_ARRAY_INTERFACE(name) \
+  inline unsigned int get_##name##_index (unsigned int i) const \
+  { \
+    if (HB_UNLIKELY (i >= get_len ())) return NO_INDEX; \
+    return (*this)[i]; \
+  } \
+  inline unsigned int get_##name##_count (void) const { return get_len (); }
+
+
+/*
+ * List types
+ */
+
+#define DEFINE_LIST_INTERFACE(Type, name) \
+  inline const Type& get_##name (unsigned int i) const { return (this+name##List)[i]; } \
+  inline unsigned int get_##name##_count (void) const { return (this+name##List).len; }
+
+
+/*
+ * Tag types
+ */
+
+#define DEFINE_TAG_ARRAY_INTERFACE(Type, name) \
+  DEFINE_ARRAY_INTERFACE (Type, name); \
+  inline const Tag& get_##name##_tag (unsigned int i) const { return (*this)[i].tag; }
+#define DEFINE_TAG_LIST_INTERFACE(Type, name) \
+  DEFINE_LIST_INTERFACE (Type, name); \
+  inline const Tag& get_##name##_tag (unsigned int i) const { return (this+name##List).get_tag (i); }
+
+#define DEFINE_TAG_FIND_INTERFACE(Type, name) \
+  inline bool find_##name##_index (hb_tag_t tag, unsigned int *index) const { \
+    const Tag t = tag; \
+    for (unsigned int i = 0; i < get_##name##_count (); i++) \
+    { \
+      if (t == get_##name##_tag (i)) \
+      { \
+        if (index) *index = i; \
+        return true; \
+      } \
+    } \
+    if (index) *index = NO_INDEX; \
+    return false; \
+  } \
+  inline const Type& get_##name##_by_tag (hb_tag_t tag) const \
+  { \
+    unsigned int i; \
+    if (find_##name##_index (tag, &i)) \
+      return get_##name (i); \
+    else \
+      return Null(Type); \
+  }
+
+
+
+/*
+ * Class features
+ */
+
+
+/* Null objects */
+
+/* Global nul-content Null pool.  Enlarge as necessary. */
+static const char NullPool[16] = "";
+
+/* Generic template for nul-content sizeof-sized Null objects. */
+template <typename Type>
+struct Null
+{
+  ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
+  static inline const Type &get () { return *(const Type*)NullPool; }
+};
+
+/* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
+#define DEFINE_NULL_DATA(Type, size, data) \
+static const char _Null##Type[size] = data; \
+template <> \
+struct Null <Type> \
+{ \
+  static inline const Type &get () { return *(const Type*)_Null##Type; } \
+}
+
+/* Accessor macro. */
+#define Null(Type) (Null<Type>::get())
+
+
+#define ASSERT_SIZE_DATA(Type, size, data) \
+  ASSERT_SIZE (Type, size); \
+  DEFINE_NULL_DATA (Type, size, data)
+
+/* get_for_data() is a static class method returning a reference to an
+ * instance of Type located at the input data location.  It's just a
+ * fancy, NULL-safe, cast! */
+#define STATIC_DEFINE_GET_FOR_DATA(Type) \
+  static inline const Type& get_for_data (const char *data) \
+  { \
+    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
+    return *(const Type*)data; \
+  }
+/* Like get_for_data(), but checks major version first. */
+#define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, MajorMin, MajorMax) \
+  static inline const Type& get_for_data (const char *data) \
+  { \
+    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
+    const Type& t = *(const Type*)data; \
+    if (HB_UNLIKELY (t.version.major < MajorMin || t.version.major > MajorMax)) return Null(Type); \
+    return t; \
+  }
+
+
+/*
  * Sanitize
  */
 
@@ -111,151 +259,6 @@ hb_sanitize_edit (hb_sanitize_context_t *context)
 #define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
 
 #define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && hb_sanitize_edit (context) && ((Var) = (Val), true))
-
-
-/*
- * Array types
- */
-
-/* get_len() is a method returning the number of items in an array-like object */
-#define DEFINE_LEN(Type, array, num) \
-  inline unsigned int get_len(void) const { return num; } \
-
-/* An array type is one that contains a variable number of objects
- * as its last item.  An array object is extended with get_len()
- * methods, as well as overloaded [] operator. */
-#define DEFINE_ARRAY_TYPE(Type, array, num) \
-  DEFINE_INDEX_OPERATOR(Type, array, num) \
-  DEFINE_LEN(Type, array, num)
-#define DEFINE_INDEX_OPERATOR(Type, array, num) \
-  inline const Type& operator[] (unsigned int i) const \
-  { \
-    if (HB_UNLIKELY (i >= num)) return Null(Type); \
-    return array[i]; \
-  }
-
-/* An offset array type is like an array type, but it contains a table
- * of offsets to the objects, relative to the beginning of the current
- * object. */
-#define DEFINE_OFFSET_ARRAY_TYPE(Type, array, num) \
-  DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
-  DEFINE_LEN(Offset, array, num)
-#define DEFINE_OFFSET_INDEX_OPERATOR(Type, array, num) \
-  inline const Type& operator[] (unsigned int i) const \
-  { \
-    if (HB_UNLIKELY (i >= num)) return Null(Type); \
-    if (HB_UNLIKELY (!array[i])) return Null(Type); \
-    return *(const Type)((const char*)this + array[i]); \
-  }
-
-
-#define DEFINE_ARRAY_INTERFACE(Type, name) \
-  inline const Type& get_##name (unsigned int i) const { return (*this)[i]; } \
-  inline unsigned int get_##name##_count (void) const { return this->get_len (); }
-#define DEFINE_INDEX_ARRAY_INTERFACE(name) \
-  inline unsigned int get_##name##_index (unsigned int i) const \
-  { \
-    if (HB_UNLIKELY (i >= get_len ())) return NO_INDEX; \
-    return (*this)[i]; \
-  } \
-  inline unsigned int get_##name##_count (void) const { return get_len (); }
-
-
-/*
- * List types
- */
-
-#define DEFINE_LIST_INTERFACE(Type, name) \
-  inline const Type& get_##name (unsigned int i) const { return (this+name##List)[i]; } \
-  inline unsigned int get_##name##_count (void) const { return (this+name##List).len; }
-
-/*
- * Tag types
- */
-
-#define DEFINE_TAG_ARRAY_INTERFACE(Type, name) \
-  DEFINE_ARRAY_INTERFACE (Type, name); \
-  inline const Tag& get_##name##_tag (unsigned int i) const { return (*this)[i].tag; }
-#define DEFINE_TAG_LIST_INTERFACE(Type, name) \
-  DEFINE_LIST_INTERFACE (Type, name); \
-  inline const Tag& get_##name##_tag (unsigned int i) const { return (this+name##List).get_tag (i); }
-
-#define DEFINE_TAG_FIND_INTERFACE(Type, name) \
-  inline bool find_##name##_index (hb_tag_t tag, unsigned int *index) const { \
-    const Tag t = tag; \
-    for (unsigned int i = 0; i < get_##name##_count (); i++) \
-    { \
-      if (t == get_##name##_tag (i)) \
-      { \
-        if (index) *index = i; \
-        return true; \
-      } \
-    } \
-    if (index) *index = NO_INDEX; \
-    return false; \
-  } \
-  inline const Type& get_##name##_by_tag (hb_tag_t tag) const \
-  { \
-    unsigned int i; \
-    if (find_##name##_index (tag, &i)) \
-      return get_##name (i); \
-    else \
-      return Null(Type); \
-  }
-
-/*
- * Class features
- */
-
-
-/* Null objects */
-
-/* Global nul-content Null pool.  Enlarge as necessary. */
-static const char NullPool[16] = "";
-
-/* Generic template for nul-content sizeof-sized Null objects. */
-template <typename Type>
-struct Null
-{
-  ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
-  static inline const Type &get () { return *(const Type*)NullPool; }
-};
-
-/* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
-#define DEFINE_NULL_DATA(Type, size, data) \
-static const char _Null##Type[size] = data; \
-template <> \
-struct Null <Type> \
-{ \
-  static inline const Type &get () { return *(const Type*)_Null##Type; } \
-}
-
-/* Accessor macro. */
-#define Null(Type) (Null<Type>::get())
-
-
-#define ASSERT_SIZE_DATA(Type, size, data) \
-  ASSERT_SIZE (Type, size); \
-  DEFINE_NULL_DATA (Type, size, data)
-
-/* get_for_data() is a static class method returning a reference to an
- * instance of Type located at the input data location.  It's just a
- * fancy, NULL-safe, cast! */
-#define STATIC_DEFINE_GET_FOR_DATA(Type) \
-  static inline const Type& get_for_data (const char *data) \
-  { \
-    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    return *(const Type*)data; \
-  }
-/* Like get_for_data(), but checks major version first. */
-#define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, MajorMin, MajorMax) \
-  static inline const Type& get_for_data (const char *data) \
-  { \
-    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    const Type& t = *(const Type*)data; \
-    if (HB_UNLIKELY (t.version.major < MajorMin || t.version.major > MajorMax)) return Null(Type); \
-    return t; \
-  }
 
 
 
