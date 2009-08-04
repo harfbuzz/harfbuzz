@@ -47,6 +47,11 @@ struct TTCHeader;
 
 typedef struct TableDirectory
 {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    return SANITIZE_SELF () && SANITIZE (tag) &&
+	   SANITIZE_MEM (CONST_CHARP(base) + (unsigned long) offset, length);
+  }
+
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
   ULONG		offset;		/* Offset from beginning of TrueType font
@@ -60,12 +65,24 @@ typedef struct OffsetTable
   friend struct OpenTypeFontFile;
   friend struct TTCHeader;
 
+  STATIC_DEFINE_GET_FOR_DATA (OffsetTable);
   DEFINE_TAG_ARRAY_INTERFACE (OpenTypeTable, table);	/* get_table_count(), get_table(i), get_table_tag(i) */
   DEFINE_TAG_FIND_INTERFACE  (OpenTypeTable, table);	/* find_table_index(tag), get_table_by_tag(tag) */
+
+  unsigned int get_face_count (void) const { return 1; }
 
   private:
   /* OpenTypeTables, in no particular order */
   DEFINE_ARRAY_TYPE (TableDirectory, tableDir, numTables);
+
+  public:
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    if (!(SANITIZE_SELF () && SANITIZE_MEM (tableDir, sizeof (tableDir[0]) * numTables))) return false;
+    unsigned int count = numTables;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_BASE (tableDir[i], base))
+        return false;
+  }
 
   private:
   Tag		sfnt_version;	/* '\0\001\0\00' if TrueType / 'OTTO' if CFF */
@@ -86,6 +103,19 @@ struct TTCHeader
   friend struct OpenTypeFontFile;
 
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (TTCHeader, 1, 2);
+
+  unsigned int get_face_count (void) const { return table.len; }
+
+  const OpenTypeFontFace& get_face (unsigned int i) const
+  {
+    return this+table[i];
+  }
+
+  bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (version)) return false;
+    if (version.major < 1 || version.major > 2) return true;
+    return table.sanitize (SANITIZE_ARG, CONST_CHARP(this), CONST_CHARP(this));
+  }
 
   private:
   Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */
@@ -114,8 +144,8 @@ struct OpenTypeFontFile
   {
     switch (tag) {
     default: return 0;
-    case TrueTypeTag: case CFFTag: return 1;
-    case TTCTag: return TTCHeader::get_for_data (CONST_CHARP(this)).table.len;
+    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (CONST_CHARP(this)).get_face_count ();
+    case TTCTag: return TTCHeader::get_for_data (CONST_CHARP(this)).get_face_count ();
     }
   }
   const OpenTypeFontFace& get_face (unsigned int i) const
@@ -125,8 +155,8 @@ struct OpenTypeFontFile
     /* Note: for non-collection SFNT data we ignore index.  This is because
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
      * non-TTC, but the index is more than zero. */
-    case TrueTypeTag: case CFFTag: return *(const OffsetTable*)this;
-    case TTCTag: return this+TTCHeader::get_for_data (CONST_CHARP(this)).table[i];
+    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (CONST_CHARP(this));
+    case TTCTag: return TTCHeader::get_for_data (CONST_CHARP(this)).get_face (i);
     }
   }
 
@@ -135,6 +165,14 @@ struct OpenTypeFontFile
   {
     if (HB_UNLIKELY (table.offset == 0)) return NULL;
     return ((const char*) this) + table.offset;
+  }
+
+  bool sanitize (SANITIZE_ARG_DEF) {
+    switch (tag) {
+    default: return true;
+    case TrueTypeTag: case CFFTag: return SANITIZE_THIS (CAST (OffsetTable, *this, 0));
+    case TTCTag: return SANITIZE (CAST (TTCHeader, *this, 0));
+    }
   }
 
   Tag		tag;		/* 4-byte identifier. */

@@ -362,6 +362,12 @@ struct GenericOffsetTo : OffsetType
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+    if (!SANITIZE_OBJ (*this)) return false;
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return true;
+    return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+  }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
@@ -406,6 +412,13 @@ struct GenericArrayOf
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array[i].sanitize (SANITIZE_ARG, base))
+        return false;
+  }
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+    if (!SANITIZE_GET_SIZE()) return false;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!array[i].sanitize (SANITIZE_ARG, base, base2))
         return false;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
