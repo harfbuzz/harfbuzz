@@ -31,9 +31,11 @@
 
 #include "hb-ot-layout.h"
 
-#include "hb-font-private.h"
+#include "hb-font.h"
 #include "hb-buffer-private.h"
 
+
+HB_BEGIN_DECLS
 
 typedef unsigned int hb_ot_layout_class_t;
 
@@ -45,6 +47,8 @@ typedef struct _hb_ot_layout_t hb_ot_layout_t;
 
 struct _hb_ot_layout_t
 {
+  hb_face_t *face; /* XXX can do without this */
+
   const struct GDEF *gdef;
   const struct GSUB *gsub;
   const struct GPOS *gpos;
@@ -59,7 +63,7 @@ struct _hb_ot_layout_t
 typedef struct _hb_ot_layout_context_t hb_ot_layout_context_t;
 struct _hb_ot_layout_context_t
 {
-  hb_ot_layout_t *layout;
+  hb_face_t *face;
   hb_font_t *font;
 
   union info_t
@@ -74,40 +78,42 @@ struct _hb_ot_layout_context_t
 };
 
 
-HB_BEGIN_DECLS
+void
+_hb_ot_layout_init (hb_ot_layout_t *layout,
+		    hb_face_t      *face);
+
+void
+_hb_ot_layout_fini (hb_ot_layout_t *layout);
+
 
 /*
  * GDEF
  */
 
 HB_INTERNAL hb_bool_t
-_hb_ot_layout_has_new_glyph_classes (hb_ot_layout_t *layout);
-
-HB_INTERNAL unsigned int
-_hb_ot_layout_get_glyph_property (hb_ot_layout_t *layout,
-				  hb_codepoint_t  glyph);
+_hb_ot_layout_has_new_glyph_classes (hb_face_t *face);
 
 HB_INTERNAL void
-_hb_ot_layout_set_glyph_property (hb_ot_layout_t *layout,
+_hb_ot_layout_set_glyph_property (hb_face_t      *face,
 				  hb_codepoint_t  glyph,
 				  unsigned int    property);
 
 HB_INTERNAL void
-_hb_ot_layout_set_glyph_class (hb_ot_layout_t             *layout,
+_hb_ot_layout_set_glyph_class (hb_face_t                  *face,
 			       hb_codepoint_t              glyph,
 			       hb_ot_layout_glyph_class_t  klass);
 
 HB_INTERNAL hb_bool_t
-_hb_ot_layout_check_glyph_property (hb_ot_layout_t  *layout,
+_hb_ot_layout_check_glyph_property (hb_face_t    *face,
 				    hb_internal_glyph_info_t *ginfo,
-				    unsigned int     lookup_flags,
-				    unsigned int    *property);
+				    unsigned int  lookup_flags,
+				    unsigned int *property);
 
 HB_INTERNAL hb_bool_t
-_hb_ot_layout_skip_mark (hb_ot_layout_t  *layout,
-			  hb_internal_glyph_info_t *ginfo,
-			  unsigned int     lookup_flags,
-			  unsigned int    *property);
+_hb_ot_layout_skip_mark (hb_face_t    *face,
+			 hb_internal_glyph_info_t *ginfo,
+			 unsigned int  lookup_flags,
+			 unsigned int *property);
 
 HB_END_DECLS
 

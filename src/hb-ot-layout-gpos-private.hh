@@ -394,7 +394,7 @@ struct PairPosFormat1
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (context->layout, IN_INFO (j), lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -459,7 +459,7 @@ struct PairPosFormat2
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (context->layout, IN_INFO (j), lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -794,7 +794,7 @@ struct MarkBasePosFormat1
     /* now we search backwards for a non-mark glyph */
     unsigned int count = buffer->in_pos;
     unsigned int i = 1, j = count - 1;
-    while (_hb_ot_layout_skip_mark (context->layout, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
+    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
     {
       if (HB_UNLIKELY (i == count))
 	return false;
@@ -912,7 +912,7 @@ struct MarkLigPosFormat1
     /* now we search backwards for a non-mark glyph */
     unsigned int count = buffer->in_pos;
     unsigned int i = 1, j = count - 1;
-    while (_hb_ot_layout_skip_mark (context->layout, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
+    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
     {
       if (HB_UNLIKELY (i == count))
 	return false;
@@ -1043,7 +1043,7 @@ struct MarkMarkPosFormat1
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int count = buffer->in_pos;
     unsigned int i = 1, j = count - 1;
-    while (_hb_ot_layout_skip_mark (context->layout, IN_INFO (j), lookup_flag, &property))
+    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), lookup_flag, &property))
     {
       if (HB_UNLIKELY (i == count))
 	return false;
@@ -1252,7 +1252,7 @@ struct PosLookup : Lookup
     unsigned int lookup_flag = get_flag ();
     unsigned int property;
 
-    if (!_hb_ot_layout_check_glyph_property (context->layout, IN_CURINFO (), lookup_flag, &property))
+    if (!_hb_ot_layout_check_glyph_property (context->face, IN_CURINFO (), lookup_flag, &property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
@@ -1338,7 +1338,7 @@ inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
 {
-  const GPOS &gpos = *(context->layout->gpos);
+  const GPOS &gpos = *(context->face->ot_layout.gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 
   if (HB_UNLIKELY (nesting_level_left == 0))

@@ -156,6 +156,9 @@ void
 hb_face_set_unicode_callbacks (hb_face_t *face,
 			       hb_unicode_callbacks_t *ucallbacks);
 
+hb_blob_t *
+hb_face_get_table (hb_face_t *face,
+		   hb_tag_t tag);
 
 
 /*

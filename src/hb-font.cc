@@ -28,6 +28,7 @@
 
 #include "hb-font-private.h"
 
+#include "hb-open-file-private.hh"
 #include "hb-blob.h"
 
 
@@ -160,6 +161,33 @@ hb_unicode_callbacks_copy (hb_unicode_callbacks_t *other_ucallbacks)
  * hb_face_t
  */
 
+hb_blob_t *
+_hb_face_get_table (hb_tag_t tag, void *user_data)
+{
+  hb_face_t *face = (hb_face_t *) user_data;
+  const char *data = hb_blob_lock (face->blob);
+
+  const OpenTypeFontFile &ot_file = OpenTypeFontFile::get_for_data (data);
+  const OpenTypeFontFace &ot_face = ot_file.get_face (face->index);
+
+  const OpenTypeTable &table = ot_face.get_table_by_tag (tag);
+
+  hb_blob_t *blob = hb_blob_create_sub_blob (face->blob, table.offset, table.length);
+
+  hb_blob_unlock (face->blob);
+
+  return blob;
+}
+
+void
+_hb_face_destroy_blob (void *user_data)
+{
+  hb_face_t *face = (hb_face_t *) user_data;
+
+  hb_blob_destroy (face->blob);
+  face->blob = NULL;
+}
+
 static hb_face_t _hb_face_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
@@ -173,21 +201,6 @@ static hb_face_t _hb_face_nil = {
   NULL, /* fcallbacks */
   NULL  /* ucallbacks */
 };
-
-hb_face_t *
-hb_face_create_for_data (hb_blob_t    *blob,
-			 unsigned int  index)
-{
-  hb_face_t *face;
-
-  if (!HB_OBJECT_DO_CREATE (face))
-    return &_hb_face_nil;
-
-  face->blob = hb_blob_reference (blob);
-  face->index = index;
-
-  return face;
-}
 
 hb_face_t *
 hb_face_create_for_tables (hb_get_table_func_t  get_table,
@@ -205,6 +218,26 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
   face->get_table = get_table;
   face->destroy = destroy;
   face->user_data = user_data;
+
+  _hb_ot_layout_init (&face->ot_layout, face);
+
+  return face;
+}
+
+hb_face_t *
+hb_face_create_for_data (hb_blob_t    *blob,
+			 unsigned int  index)
+{
+  hb_face_t *face;
+
+  face = hb_face_create_for_tables (_hb_face_get_table, NULL, NULL);
+
+  if (!HB_OBJECT_IS_INERT (face)) {
+    face->blob = hb_blob_reference (blob);
+    face->index = index;
+    face->destroy = _hb_face_destroy_blob,
+    face->user_data = face;
+  }
 
   return face;
 }
@@ -225,6 +258,8 @@ void
 hb_face_destroy (hb_face_t *face)
 {
   HB_OBJECT_DO_DESTROY (face);
+
+  _hb_ot_layout_fini (&face->ot_layout);
 
   hb_blob_destroy (face->blob);
 
@@ -261,6 +296,15 @@ hb_face_set_unicode_callbacks (hb_face_t *face,
   face->ucallbacks = ucallbacks;
 }
 
+hb_blob_t *
+hb_face_get_table (hb_face_t *face,
+		   hb_tag_t tag)
+{
+  if (HB_UNLIKELY (!face || !face->get_table))
+    return hb_blob_create_empty ();
+
+  return face->get_table (tag, face->user_data);
+}
 
 
 /*

@@ -29,6 +29,8 @@
 
 #include "hb-ot-layout-common-private.hh"
 
+#include "hb-font-private.h"
+
 
 struct GlyphClassDef : ClassDef
 {

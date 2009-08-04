@@ -31,6 +31,8 @@
 
 #include "hb-font.h"
 
+#include "hb-ot-layout-private.h"
+
 HB_BEGIN_DECLS
 
 /*
@@ -82,6 +84,8 @@ struct _hb_face_t {
 
   hb_font_callbacks_t *fcallbacks;
   hb_unicode_callbacks_t *ucallbacks;
+
+  hb_ot_layout_t ot_layout;
 };
 
 

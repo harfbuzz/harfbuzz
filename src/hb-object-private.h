@@ -32,19 +32,24 @@
 
 typedef int hb_atomic_int_t;
 
+/* XXX add real atomic ops */
+#define _hb_atomic_fetch_and_add(AI, V) ((AI) += (V), (AI)-(V))
+#define _hb_atomic_int_get(AI) ((AI)+0)
+#define _hb_atomic_int_set(AI, VALUE) HB_STMT_START { (AI) = (VALUE); } HB_STMT_END
+
+
 /* Encapsulate operations on the object's reference count */
 typedef struct {
   hb_atomic_int_t ref_count;
 } hb_reference_count_t;
 
-/* XXX add real atomic ops */
-#define _hb_reference_count_inc(RC) ((RC).ref_count++)
-#define _hb_reference_count_dec_and_test(RC) ((RC).ref_count-- == 1)
+#define _hb_reference_count_inc(RC) _hb_atomic_fetch_and_add ((RC).ref_count, 1)
+#define _hb_reference_count_dec(RC) _hb_atomic_fetch_and_add ((RC).ref_count, -1)
 
 #define HB_REFERENCE_COUNT_INIT(RC, VALUE) ((RC).ref_count = (VALUE))
 
-#define HB_REFERENCE_COUNT_GET_VALUE(RC) ((RC).ref_count+0)
-#define HB_REFERENCE_COUNT_SET_VALUE(RC, VALUE) ((RC).ref_count = (VALUE), 0)
+#define HB_REFERENCE_COUNT_GET_VALUE(RC) _hb_atomic_int_get ((RC).ref_count)
+#define HB_REFERENCE_COUNT_SET_VALUE(RC, VALUE) _hb_atomic_int_set ((RC).ref_count, (VALUE))
 
 #define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
 #define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
@@ -58,7 +63,7 @@ typedef struct {
 /* Helper macros */
 
 #define HB_OBJECT_IS_INERT(obj) \
-    ((obj) == NULL || HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count))
+    (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count))
 
 #define HB_OBJECT_DO_INIT_EXPR(obj) \
     HB_REFERENCE_COUNT_INIT (obj->ref_count, 1)
@@ -70,33 +75,36 @@ typedef struct {
 
 #define HB_OBJECT_DO_CREATE(obj) \
   HB_LIKELY (( \
-	     (obj) = calloc (1, sizeof (*(obj))), \
+	     (obj) = /* XXX */(typeof (obj)) calloc (1, sizeof (*(obj))), \
 	     HB_OBJECT_DO_INIT_EXPR (obj), \
 	     (obj) \
 	     ))
 
 #define HB_OBJECT_DO_REFERENCE(obj) \
   HB_STMT_START { \
-    if (HB_OBJECT_IS_INERT (obj)) \
+    int old_count; \
+    if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return obj; \
-    assert (HB_REFERENCE_COUNT_HAS_REFERENCE (obj->ref_count)); \
-    _hb_reference_count_inc (obj->ref_count); \
+    old_count = _hb_reference_count_inc (obj->ref_count); \
+    assert (old_count > 0); \
     return obj; \
   } HB_STMT_END
 
 #define HB_OBJECT_DO_GET_REFERENCE_COUNT(obj) \
   HB_STMT_START { \
-    if (HB_OBJECT_IS_INERT (obj)) \
+    if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return 0; \
     return HB_REFERENCE_COUNT_GET_VALUE (obj->ref_count); \
   } HB_STMT_END
 
 #define HB_OBJECT_DO_DESTROY(obj) \
   HB_STMT_START { \
-    if (HB_OBJECT_IS_INERT (obj)) \
+    int old_count; \
+    if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return; \
-    assert (HB_REFERENCE_COUNT_HAS_REFERENCE (obj->ref_count)); \
-    if (!_hb_reference_count_dec_and_test (obj->ref_count)) \
+    old_count = _hb_reference_count_dec (obj->ref_count); \
+    assert (old_count > 0); \
+    if (old_count != 1) \
       return; \
   } HB_STMT_END
 
