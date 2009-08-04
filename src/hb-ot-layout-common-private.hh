@@ -47,8 +47,10 @@ template <typename Type>
 struct Record
 {
   inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
-    /* Note: Doesn't sanitize referenced object */
-    /* Only accept ASCII-visible tags (mind DEL) */
+    /* Note: Only accept ASCII-visible tags (mind DEL)
+     * This is one of the few times (only time?) we check
+     * for data integrity, as opposed o just boundary checks
+     */
     return (tag & 0x80808080) == 0 && offset.sanitize (SANITIZE_ARG, base);
   }
 
