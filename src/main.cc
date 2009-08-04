@@ -74,7 +74,7 @@ main (int argc, char **argv)
     printf ("  %d table(s) found in font\n", num_tables);
     for (int n_table = 0; n_table < num_tables; n_table++) {
       const OpenTypeTable &table = font.get_table (n_table);
-      printf ("  Table %2d of %2d: %.4s (0x%08lx+0x%08lx)\n", n_table, num_tables,
+      printf ("  Table %2d of %2d: %.4s (0x%08x+0x%08x)\n", n_table, num_tables,
 	      (const char *)table.tag,
 	      (unsigned int) table.offset,
 	      (unsigned int) table.length);
@@ -112,7 +112,6 @@ main (int argc, char **argv)
 	    int num_features = langsys.get_feature_count ();
 	    printf ("        %d feature(s) found in language system\n", num_features);
 	    for (int n_feature = 0; n_feature < num_features; n_feature++) {
-	      unsigned int feature_index = langsys.get_feature_index (n_feature);
 	      printf ("        Feature index %2d of %2d: %d\n", n_feature, num_features,
 	              langsys.get_feature_index (n_feature));
 	    }
@@ -130,7 +129,6 @@ main (int argc, char **argv)
 	  int num_lookups = feature.get_lookup_count ();
 	  printf ("        %d lookup(s) found in feature\n", num_lookups);
 	  for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
-	    unsigned int lookup_index = feature.get_lookup_index (n_lookup);
 	    printf ("        Lookup index %2d of %2d: %d\n", n_lookup, num_lookups,
 	            feature.get_lookup_index (n_lookup));
 	  }

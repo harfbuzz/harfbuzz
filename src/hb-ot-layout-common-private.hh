@@ -90,7 +90,7 @@ struct Feature;
 
 struct LangSys
 {
-  inline const unsigned int get_feature_index (unsigned int i) const { return featureIndex[i]; }
+  inline unsigned int get_feature_index (unsigned int i) const { return featureIndex[i]; }
   inline unsigned int get_feature_count (void) const { return featureIndex.len; }
 
   inline bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
@@ -152,7 +152,7 @@ ASSERT_SIZE (ScriptList, 2);
 
 struct Feature
 {
-  inline const unsigned int get_lookup_index (unsigned int i) const { return lookupIndex[i]; }
+  inline unsigned int get_lookup_index (unsigned int i) const { return lookupIndex[i]; }
   inline unsigned int get_lookup_count (void) const { return lookupIndex.len; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -513,7 +513,7 @@ struct Device
 
     int delta = bits & mask;
 
-    if (delta >= ((mask + 1) >> 1))
+    if ((unsigned int) delta >= ((mask + 1) >> 1))
       delta -= mask + 1;
 
     return delta;

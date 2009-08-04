@@ -161,8 +161,8 @@ hb_unicode_callbacks_copy (hb_unicode_callbacks_t *other_ucallbacks)
  * hb_face_t
  */
 
-hb_blob_t *
-_hb_face_get_table (hb_tag_t tag, void *user_data)
+static hb_blob_t *
+_hb_face_get_table_from_blob (hb_tag_t tag, void *user_data)
 {
   hb_face_t *face = (hb_face_t *) user_data;
   const char *data = hb_blob_lock (face->blob);
@@ -179,15 +179,6 @@ _hb_face_get_table (hb_tag_t tag, void *user_data)
   hb_blob_unlock (face->blob);
 
   return blob;
-}
-
-void
-_hb_face_destroy_blob (void *user_data)
-{
-  hb_face_t *face = (hb_face_t *) user_data;
-
-  hb_blob_destroy (face->blob);
-  face->blob = NULL;
 }
 
 static hb_face_t _hb_face_nil = {
@@ -237,7 +228,7 @@ hb_face_create_for_data (hb_blob_t    *blob,
 
   face->blob = hb_blob_reference (blob);
   face->index = index;
-  face->get_table = _hb_face_get_table;
+  face->get_table = _hb_face_get_table_from_blob;
   face->user_data = face;
 
   _hb_ot_layout_init (face);

@@ -2,7 +2,7 @@
 
 NULL =
 
-CXX = gcc -g -O2 -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
+CXX = $(CC) -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 
 noinst_LTLIBRARIES = libharfbuzz-1.la
 

@@ -128,7 +128,7 @@ struct CaretValueFormat3
   {
     /* XXX vertical */
     return context->font->x_scale * coordinate / 0x10000 +
-	   (this+deviceTable).get_delta (context->font->x_ppem) << 6;
+	   ((this+deviceTable).get_delta (context->font->x_ppem) << 6);
   }
 
   private:

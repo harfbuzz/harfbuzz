@@ -217,7 +217,7 @@ _hb_ot_layout_set_glyph_class (hb_face_t                  *face,
 
   hb_ot_layout_t *layout = &face->ot_layout;
   hb_ot_layout_class_t gdef_klass;
-  int len = layout->new_gdef.len;
+  unsigned int len = layout->new_gdef.len;
 
   if (HB_UNLIKELY (glyph > 65535))
     return;

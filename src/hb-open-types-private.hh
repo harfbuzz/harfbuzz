@@ -447,8 +447,8 @@ struct HeadlessArrayOf
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE_GET_SIZE()) return false;
-    unsigned int count = len ? len - 1 : 0;
     /* Note; for non-recursive types, this is not much needed
+    unsigned int count = len ? len - 1 : 0;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array[i]))
         return false;

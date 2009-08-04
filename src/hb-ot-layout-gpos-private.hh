@@ -57,14 +57,13 @@ struct ValueFormat : USHORT
   inline unsigned int get_size () const
   { return get_len () * sizeof (Value); }
 
-  const void apply_value (hb_ot_layout_context_t *context,
-			  const char          *base,
-			  const Value         *values,
-			  hb_internal_glyph_position_t *glyph_pos) const
+  void apply_value (hb_ot_layout_context_t *context,
+		    const char          *base,
+		    const Value         *values,
+		    hb_internal_glyph_position_t *glyph_pos) const
   {
     unsigned int x_ppem, y_ppem;
     hb_16dot16_t x_scale, y_scale;
-    unsigned int pixel_value;
     unsigned int format = *this;
 
     if (!format)
