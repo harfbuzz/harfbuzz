@@ -275,7 +275,7 @@ struct SinglePosFormat1
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (context, (const char *) this, values, CURPOSITION ());
+    valueFormat.apply_value (context, CONST_CHARP(this), values, CURPOSITION ());
 
     buffer->in_pos++;
     return true;
@@ -308,7 +308,7 @@ struct SinglePosFormat2
     if (HB_LIKELY (index >= valueCount))
       return false;
 
-    valueFormat.apply_value (context, (const char *) this,
+    valueFormat.apply_value (context, CONST_CHARP(this),
 			     values + index * valueFormat.get_len (),
 			     CURPOSITION ());
 
@@ -413,8 +413,8 @@ struct PairPosFormat1
     {
       if (IN_GLYPH (j) == record->secondGlyph)
       {
-	valueFormat1.apply_value (context, (const char *) this, record->values, CURPOSITION ());
-	valueFormat2.apply_value (context, (const char *) this, record->values + len1, POSITION (j));
+	valueFormat1.apply_value (context, CONST_CHARP(this), record->values, CURPOSITION ());
+	valueFormat2.apply_value (context, CONST_CHARP(this), record->values + len1, POSITION (j));
 	if (len2)
 	  j++;
 	buffer->in_pos = j;
@@ -476,8 +476,8 @@ struct PairPosFormat2
       return false;
 
     const Value *v = values + record_len * (klass1 * class2Count + klass2);
-    valueFormat1.apply_value (context, (const char *) this, v, CURPOSITION ());
-    valueFormat2.apply_value (context, (const char *) this, v + len1, POSITION (j));
+    valueFormat1.apply_value (context, CONST_CHARP(this), v, CURPOSITION ());
+    valueFormat2.apply_value (context, CONST_CHARP(this), v + len1, POSITION (j));
 
     if (len2)
       j++;

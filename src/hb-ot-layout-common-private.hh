@@ -78,7 +78,7 @@ struct RecordListOf : RecordArrayOf<Type>
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, (const char *) this);
+    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
   }
 };
 
@@ -211,7 +211,7 @@ struct Lookup
     if (HB_UNLIKELY (flag & LookupFlag::UseMarkFilteringSet))
     {
       const USHORT &markFilteringSet = *(const USHORT*)
-					((const char *) &subTable + subTable.get_size ());
+					(CONST_CHARP(&subTable) + subTable.get_size ());
       flag += (markFilteringSet << 16);
     }
     return flag;
@@ -221,7 +221,7 @@ struct Lookup
     if (!(SANITIZE_SELF () && SANITIZE_THIS (subTable))) return false;
     if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
-      USHORT &markFilteringSet = *(USHORT*) ((char *) &subTable + subTable.get_size ());
+      USHORT &markFilteringSet = *(USHORT*) (CHARP(&subTable) + subTable.get_size ());
       if (!SANITIZE (markFilteringSet)) return false;
     }
     return true;
@@ -247,7 +247,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, (const char *) this);
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
   }
 };
 

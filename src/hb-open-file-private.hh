@@ -115,7 +115,7 @@ struct OpenTypeFontFile
     switch (tag) {
     default: return 0;
     case TrueTypeTag: case CFFTag: return 1;
-    case TTCTag: return TTCHeader::get_for_data ((const char *) this).table.len;
+    case TTCTag: return TTCHeader::get_for_data (CONST_CHARP(this)).table.len;
     }
   }
   const OpenTypeFontFace& get_face (unsigned int i) const
@@ -126,7 +126,7 @@ struct OpenTypeFontFile
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
      * non-TTC, but the index is more than zero. */
     case TrueTypeTag: case CFFTag: return *(const OffsetTable*)this;
-    case TTCTag: return this+TTCHeader::get_for_data ((const char *) this).table[i];
+    case TTCTag: return this+TTCHeader::get_for_data (CONST_CHARP(this)).table[i];
     }
   }
 

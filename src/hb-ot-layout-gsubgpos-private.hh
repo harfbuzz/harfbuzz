@@ -257,7 +257,7 @@ struct Rule
   inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
     const LookupRecord *lookupRecord = (const LookupRecord *)
-				       ((const char *) input +
+				       (CONST_CHARP(input) +
 					sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
     return context_lookup (APPLY_ARG,
 			   inputCount, input,
@@ -364,7 +364,7 @@ struct ContextFormat2
      */
     struct ContextLookupContext lookup_context = {
      {match_class, apply_func},
-      (char *) &class_def
+      CHARP(&class_def)
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -400,11 +400,11 @@ struct ContextFormat3
       return false;
 
     const LookupRecord *lookupRecord = (const LookupRecord *)
-				       ((const char *) coverage +
+				       (CONST_CHARP(coverage) +
 					sizeof (coverage[0]) * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      (char *) this
+      CHARP(this)
     };
     return context_lookup (APPLY_ARG,
 			   glyphCount, (const USHORT *) (coverage + 1),
@@ -418,7 +418,7 @@ struct ContextFormat3
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (coverage[i])) return false;
     LookupRecord *lookupRecord = (LookupRecord *)
-				 ((char *) coverage +
+				 (CHARP(coverage) +
 				  sizeof (coverage[0]) * glyphCount);
     return SANITIZE_MEM (lookupRecord, sizeof (lookupRecord[0]) * lookupCount);
   }
@@ -522,11 +522,11 @@ struct ChainRule
   inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
     const HeadlessArrayOf<USHORT> &input = *(const HeadlessArrayOf<USHORT>*)
-					    ((const char *) &backtrack + backtrack.get_size ());
+					    (CONST_CHARP(&backtrack) + backtrack.get_size ());
     const ArrayOf<USHORT> &lookahead = *(const ArrayOf<USHORT>*)
-				        ((const char *) &input + input.get_size ());
+				        (CONST_CHARP(&input) + input.get_size ());
     const ArrayOf<LookupRecord> &lookup = *(const ArrayOf<LookupRecord>*)
-					   ((const char *) &lookahead + lookahead.get_size ());
+					   (CONST_CHARP(&lookahead) + lookahead.get_size ());
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, backtrack.array,
 				 input.len, input.array + 1,
@@ -540,13 +540,13 @@ struct ChainRule
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE (backtrack)) return false;
     HeadlessArrayOf<USHORT> &input = *(HeadlessArrayOf<USHORT>*)
-				      ((char *) &backtrack + backtrack.get_size ());
+				      (CHARP(&backtrack) + backtrack.get_size ());
     if (!SANITIZE (input)) return false;
     ArrayOf<USHORT> &lookahead = *(ArrayOf<USHORT>*)
-				  ((char *) &input + input.get_size ());
+				  (CHARP(&input) + input.get_size ());
     if (!SANITIZE (lookahead)) return false;
     ArrayOf<LookupRecord> &lookup = *(ArrayOf<LookupRecord>*)
-				     ((char *) &lookahead + lookahead.get_size ());
+				     (CHARP(&lookahead) + lookahead.get_size ());
     return SANITIZE (lookup);
   }
 
@@ -648,9 +648,9 @@ struct ChainContextFormat2
      */
     struct ChainContextLookupContext lookup_context = {
      {match_class, apply_func},
-     {(char *) &backtrack_class_def,
-      (char *) &input_class_def,
-      (char *) &lookahead_class_def}
+     {CHARP(&backtrack_class_def),
+      CHARP(&input_class_def),
+      CHARP(&lookahead_class_def)}
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -693,19 +693,19 @@ struct ChainContextFormat3
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
     const OffsetArrayOf<Coverage> &input = *(const OffsetArrayOf<Coverage>*)
-					    ((const char *) &backtrack + backtrack.get_size ());
+					    (CONST_CHARP(&backtrack) + backtrack.get_size ());
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
     const OffsetArrayOf<Coverage> &lookahead = *(const OffsetArrayOf<Coverage>*)
-					        ((const char *) &input + input.get_size ());
+					        (CONST_CHARP(&input) + input.get_size ());
     const ArrayOf<LookupRecord> &lookup = *(const ArrayOf<LookupRecord>*)
-					   ((const char *) &lookahead + lookahead.get_size ());
+					   (CONST_CHARP(&lookahead) + lookahead.get_size ());
     struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      {(char *) this, (char *) this, (char *) this}
+      {CHARP(this), CHARP(this), CHARP(this)}
     };
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, (USHORT *) backtrack.array,
@@ -719,13 +719,13 @@ struct ChainContextFormat3
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE_THIS (backtrack)) return false;
     OffsetArrayOf<Coverage> &input = *(OffsetArrayOf<Coverage>*)
-				      ((char *) &backtrack + backtrack.get_size ());
+				      (CHARP(&backtrack) + backtrack.get_size ());
     if (!SANITIZE_THIS (input)) return false;
     OffsetArrayOf<Coverage> &lookahead = *(OffsetArrayOf<Coverage>*)
-					  ((char *) &input + input.get_size ());
+					  (CHARP(&input) + input.get_size ());
     if (!SANITIZE_THIS (lookahead)) return false;
     ArrayOf<LookupRecord> &lookup = *(ArrayOf<LookupRecord>*)
-				     ((char *) &lookahead + lookahead.get_size ());
+				     (CHARP(&lookahead) + lookahead.get_size ());
     return SANITIZE (lookup);
   }
 
@@ -794,7 +794,7 @@ struct ExtensionFormat1
   {
     unsigned int offset = get_offset ();
     if (HB_UNLIKELY (!offset)) return Null(LookupSubTable);
-    return *(LookupSubTable*)(((char *) this) + offset);
+    return *(LookupSubTable*)(CHARP(this) + offset);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {

@@ -568,17 +568,17 @@ struct ReverseChainSingleSubstFormat1
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = (const OffsetArrayOf<Coverage>&)
-					       *((const char *) &backtrack + backtrack.get_size ());
-    const ArrayOf<GlyphID> &substitute = (const ArrayOf<GlyphID>&)
-					 *((const char *) &lookahead + lookahead.get_size ());
+    const OffsetArrayOf<Coverage> &lookahead = *(const OffsetArrayOf<Coverage>*)
+					        (CONST_CHARP(&backtrack) + backtrack.get_size ());
+    const ArrayOf<GlyphID> &substitute = *(const ArrayOf<GlyphID>*)
+					  (CONST_CHARP(&lookahead) + lookahead.get_size ());
 
     if (match_backtrack (APPLY_ARG,
 			 backtrack.len, (USHORT *) backtrack.array,
-			 match_coverage, (char *) this) &&
+			 match_coverage, CHARP(this)) &&
         match_lookahead (APPLY_ARG,
 			 lookahead.len, (USHORT *) lookahead.array,
-			 match_coverage, (char *) this,
+			 match_coverage, CHARP(this),
 			 1))
     {
       IN_CURGLYPH () = substitute[index];
@@ -592,12 +592,12 @@ struct ReverseChainSingleSubstFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE_THIS2 (coverage, backtrack))
       return false;
-    OffsetArrayOf<Coverage> &lookahead = (OffsetArrayOf<Coverage>&)
-					  *((const char *) &backtrack + backtrack.get_size ());
+    OffsetArrayOf<Coverage> &lookahead = *(OffsetArrayOf<Coverage>*)
+					  (CONST_CHARP(&backtrack) + backtrack.get_size ());
     if (!SANITIZE_THIS (lookahead))
       return false;
-    ArrayOf<GlyphID> &substitute = (ArrayOf<GlyphID>&)
-				    *((const char *) &lookahead + lookahead.get_size ());
+    ArrayOf<GlyphID> &substitute = *(ArrayOf<GlyphID>*)
+				    (CONST_CHARP(&lookahead) + lookahead.get_size ());
     if (!SANITIZE (substitute))
       return false;
   }
