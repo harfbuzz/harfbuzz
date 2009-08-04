@@ -842,7 +842,7 @@ struct GSUB : GSUBGPOS
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
-    OffsetTo<SubstLookupList> &list = (OffsetTo<SubstLookupList> &) lookupList;
+    OffsetTo<SubstLookupList> &list = CAST(OffsetTo<SubstLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);
   }
 };
