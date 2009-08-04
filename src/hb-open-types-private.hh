@@ -342,14 +342,14 @@ struct GenericOffsetTo : OffsetType
   {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return CONST_CAST(Type, base, offset);
+    return CONST_CAST(Type, *CONST_CHARP(base), offset);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (CAST(Type, base, offset)) || NEUTER (*this, 0);
+    return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (*this, 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>
@@ -388,7 +388,7 @@ struct GenericArrayOf
     if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (array[i]))
+      if (!array[i].sanitize (SANITIZE_ARG, base))
         return false;
   }
 
