@@ -1525,7 +1525,8 @@ inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
 {
   return Extension::sanitize (SANITIZE_ARG) &&
-	 DECONST_CAST (PosLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG);
+	 (&(Extension::get_subtable ()) == &Null(LookupSubTable) ||
+	  DECONST_CAST (PosLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG));
 }
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)

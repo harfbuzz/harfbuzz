@@ -769,7 +769,7 @@ struct ExtensionFormat1
 {
   friend struct Extension;
 
-  private:
+  protected:
   inline unsigned int get_type (void) const { return extensionLookupType; }
   inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
   inline const LookupSubTable& get_subtable (void) const

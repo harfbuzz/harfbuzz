@@ -862,7 +862,8 @@ inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 inline bool ExtensionSubst::sanitize (SANITIZE_ARG_DEF)
 {
   return Extension::sanitize (SANITIZE_ARG) &&
-	 DECONST_CAST (SubstLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG);
+	 (&(Extension::get_subtable ()) == &Null(LookupSubTable) ||
+	  DECONST_CAST (SubstLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG));
 }
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
