@@ -83,7 +83,7 @@ struct _hb_sanitize_context_t
 
 #define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
 
-#define NEUTER(Var, Val) (false)
+#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && hb_blob_try_writeable_inplace (context->blob) && ((Var) = (Val), true))
 
 
 /*
@@ -352,13 +352,13 @@ struct GenericOffsetTo : OffsetType
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (*this, 0);
+    return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), user_data) || NEUTER (*this, 0);
+    return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), user_data) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>
