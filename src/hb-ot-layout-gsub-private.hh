@@ -721,6 +721,8 @@ struct SubstLookup : Lookup
 {
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
   { return (const SubstLookupSubTable&) Lookup::get_subtable (i); }
+  inline SubstLookupSubTable& get_subtable (unsigned int i)
+  { return (SubstLookupSubTable&) Lookup::get_subtable (i); }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -757,7 +759,8 @@ struct SubstLookup : Lookup
     if (!_hb_ot_layout_check_glyph_property (context->face, IN_CURINFO (), lookup_flag, &property))
       return false;
 
-    for (unsigned int i = 0; i < get_subtable_count (); i++)
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++)
       if (get_subtable (i).apply (APPLY_ARG, lookup_type))
 	return true;
 
@@ -810,9 +813,17 @@ struct SubstLookup : Lookup
 
     return ret;
   }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (Lookup::sanitize (SANITIZE_ARG)) return false;
+    OffsetArrayOf<SubstLookupSubTable> &list = (OffsetArrayOf<SubstLookupSubTable> &) subTable;
+    return SANITIZE_THIS (list);
+  }
 };
 ASSERT_SIZE (SubstLookup, 6);
 
+typedef OffsetListOf<SubstLookup> SubstLookupList;
+ASSERT_SIZE (SubstLookupList, 2);
 
 /*
  * GSUB
@@ -827,6 +838,8 @@ struct GSUB : GSUBGPOS
 
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return (const SubstLookup&) GSUBGPOS::get_lookup (i); }
+  inline SubstLookup& get_lookup (unsigned int i)
+  { return (SubstLookup&) GSUBGPOS::get_lookup (i); }
 
   inline bool substitute_lookup (hb_ot_layout_context_t *context,
 				 hb_buffer_t    *buffer,
@@ -834,6 +847,12 @@ struct GSUB : GSUBGPOS
 				 hb_ot_layout_feature_mask_t  mask) const
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
+    OffsetTo<SubstLookupList> &list = (OffsetTo<SubstLookupList> &) lookupList;
+    return SANITIZE_THIS (list);
+  }
 };
 ASSERT_SIZE (GSUB, 10);
 
