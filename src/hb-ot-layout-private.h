@@ -49,6 +49,10 @@ struct _hb_ot_layout_t
 {
   hb_face_t *face; /* XXX can do without this */
 
+  hb_blob_t *gdef_blob;
+  hb_blob_t *gsub_blob;
+  hb_blob_t *gpos_blob;
+
   const struct GDEF *gdef;
   const struct GSUB *gsub;
   const struct GPOS *gpos;
@@ -79,11 +83,10 @@ struct _hb_ot_layout_context_t
 
 
 void
-_hb_ot_layout_init (hb_ot_layout_t *layout,
-		    hb_face_t      *face);
+_hb_ot_layout_init (hb_face_t *face);
 
 void
-_hb_ot_layout_fini (hb_ot_layout_t *layout);
+_hb_ot_layout_fini (hb_face_t *face);
 
 
 /*

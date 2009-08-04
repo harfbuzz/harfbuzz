@@ -27,10 +27,10 @@
 #include "hb-private.h"
 
 #include "hb-font-private.h"
+#include "hb-ot-layout-private.h"
 
 #include "hb-open-file-private.hh"
 #include "hb-blob.h"
-
 
 /*
  * hb_font_callbacks_t
@@ -167,6 +167,8 @@ _hb_face_get_table (hb_tag_t tag, void *user_data)
   hb_face_t *face = (hb_face_t *) user_data;
   const char *data = hb_blob_lock (face->blob);
 
+  /* XXX sanitize */
+
   const OpenTypeFontFile &ot_file = OpenTypeFontFile::get_for_data (data);
   const OpenTypeFontFace &ot_face = ot_file.get_face (face->index);
 
@@ -219,7 +221,7 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
   face->destroy = destroy;
   face->user_data = user_data;
 
-  _hb_ot_layout_init (&face->ot_layout, face);
+  _hb_ot_layout_init (face);
 
   return face;
 }
@@ -230,14 +232,15 @@ hb_face_create_for_data (hb_blob_t    *blob,
 {
   hb_face_t *face;
 
-  face = hb_face_create_for_tables (_hb_face_get_table, NULL, NULL);
+  if (!HB_OBJECT_DO_CREATE (face))
+    return &_hb_face_nil;
 
-  if (!HB_OBJECT_IS_INERT (face)) {
-    face->blob = hb_blob_reference (blob);
-    face->index = index;
-    face->destroy = _hb_face_destroy_blob,
-    face->user_data = face;
-  }
+  face->blob = hb_blob_reference (blob);
+  face->index = index;
+  face->get_table = _hb_face_get_table;
+  face->user_data = face;
+
+  _hb_ot_layout_init (face);
 
   return face;
 }
@@ -259,7 +262,7 @@ hb_face_destroy (hb_face_t *face)
 {
   HB_OBJECT_DO_DESTROY (face);
 
-  _hb_ot_layout_fini (&face->ot_layout);
+  _hb_ot_layout_fini (face);
 
   hb_blob_destroy (face->blob);
 

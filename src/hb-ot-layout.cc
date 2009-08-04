@@ -40,53 +40,52 @@
 
 
 void
-_hb_ot_layout_init (hb_ot_layout_t *layout)
+_hb_ot_layout_init (hb_face_t *face)
 {
-  layout->gdef = NULL;
-  layout->gsub = NULL;
-  layout->gpos = NULL;
+  hb_ot_layout_t *layout = &face->ot_layout;
+
+  /* XXX sanitize */
+
+  layout->gdef_blob = hb_face_get_table (face, HB_OT_TAG_GDEF);
+  layout->gdef = &GDEF::get_for_data (hb_blob_lock (layout->gdef_blob));
+
+  layout->gsub_blob = hb_face_get_table (face, HB_OT_TAG_GSUB);
+  layout->gsub = &GSUB::get_for_data (hb_blob_lock (layout->gsub_blob));
+
+  layout->gpos_blob = hb_face_get_table (face, HB_OT_TAG_GPOS);
+  layout->gpos = &GPOS::get_for_data (hb_blob_lock (layout->gpos_blob));
 }
 
 void
-_hb_ot_layout_fini (hb_ot_layout_t *layout)
+_hb_ot_layout_fini (hb_face_t *face)
 {
-}
+  hb_ot_layout_t *layout = &face->ot_layout;
 
-static hb_ot_layout_t *
-_hb_ot_face_get_layout (hb_face_t *face)
-{
-  return &face->ot_layout;
+  hb_blob_unlock (layout->gdef_blob);
+  hb_blob_unlock (layout->gsub_blob);
+  hb_blob_unlock (layout->gpos_blob);
+
+  hb_blob_destroy (layout->gdef_blob);
+  hb_blob_destroy (layout->gsub_blob);
+  hb_blob_destroy (layout->gpos_blob);
 }
 
 static const GDEF&
 _get_gdef (hb_face_t *face)
 {
-#if 0
-  if (HB_UNLIKELY (!layout->face))
-    return Null(GDEF);
-
-  if (HB_UNLIKELY (!layout->gdef)) {
-    hb_blob_t *blob = hb_face_get_table (face, HB_OT_TAG_GDEF);
-    unsigned int length;
-    const char *data = hb_blob_get_data (blob,
-  layout->gdef = &GDEF::get_for_data (font.get_table_data (face.get_table_by_tag (GDEF::Tag)));
-    layout->gdef = &Null(GDEF);
-  }
-
-  return *layout->gdef;
-#endif
+  return HB_LIKELY (face->ot_layout.gdef) ? *face->ot_layout.gdef : Null(GDEF);
 }
 
 static const GSUB&
 _get_gsub (hb_face_t *face)
 {
-  return Null(GSUB);
+  return HB_LIKELY (face->ot_layout.gsub) ? *face->ot_layout.gsub : Null(GSUB);
 }
 
 static const GPOS&
 _get_gpos (hb_face_t *face)
 {
-  return Null(GPOS);
+  return HB_LIKELY (face->ot_layout.gpos) ? *face->ot_layout.gpos : Null(GPOS);
 }
 
 
