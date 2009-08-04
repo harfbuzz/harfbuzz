@@ -65,9 +65,14 @@ hb_blob_get_reference_count (hb_blob_t *blob);
 void
 hb_blob_destroy (hb_blob_t *blob);
 
+unsigned int
+hb_blob_get_length (hb_blob_t *blob);
+
 const char *
-hb_blob_get_data (hb_blob_t    *blob,
-		  unsigned int *length);
+hb_blob_lock (hb_blob_t *blob);
+
+void
+hb_blob_unlock (hb_blob_t *blob);
 
 hb_bool_t
 hb_blob_is_writeable (hb_blob_t *blob);
@@ -75,9 +80,8 @@ hb_blob_is_writeable (hb_blob_t *blob);
 hb_bool_t
 hb_blob_try_writeable_inplace (hb_blob_t *blob);
 
-/* DANGER: May rebase or nullify */
-void
-hb_blob_make_writeable (hb_blob_t *blob);
+hb_bool_t
+hb_blob_try_writeable (hb_blob_t *blob);
 
 HB_END_DECLS
 
