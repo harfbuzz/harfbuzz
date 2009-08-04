@@ -46,6 +46,12 @@
 template <typename Type>
 struct Record
 {
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    /* Note: Doesn't sanitize referenced object */
+    /* Only accept ASCII-visible tags (mind DEL) */
+    return (tag & 0x80808080) == 0 && offset.sanitize (SANITIZE_ARG, base);
+  }
+
   Tag		tag;		/* 4-byte Tag identifier */
   OffsetTo<Type>
 		offset;		/* Offset from beginning of object holding
@@ -53,7 +59,19 @@ struct Record
 };
 
 template <typename Type>
-struct RecordListOf : ArrayOf<Record<Type> >
+struct RecordArrayOf : ArrayOf<Record<Type> >
+{
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (this->array[i]))
+        return false;
+  }
+};
+
+template <typename Type>
+struct RecordListOf : RecordArrayOf<Type>
 {
   inline const Type& operator [] (unsigned int i) const
   {
@@ -65,18 +83,16 @@ struct RecordListOf : ArrayOf<Record<Type> >
     if (HB_UNLIKELY (i >= this->len)) return Null(Tag);
     return this->array[i].tag;
   }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, (const char *) this);
+  }
 };
 
 
 struct Script;
-typedef Record<Script> ScriptRecord;
-ASSERT_SIZE (ScriptRecord, 6);
 struct LangSys;
-typedef Record<LangSys> LangSysRecord;
-ASSERT_SIZE (LangSysRecord, 6);
 struct Feature;
-typedef Record<Feature> FeatureRecord;
-ASSERT_SIZE (FeatureRecord, 6);
 
 
 struct LangSys
@@ -90,6 +106,10 @@ struct LangSys
     if (reqFeatureIndex == 0xffff)
       return NO_INDEX;
    return reqFeatureIndex;;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE (featureIndex);
   }
 
   Offset	lookupOrder;	/* = Null (reserved for an offset to a
@@ -119,11 +139,15 @@ struct Script
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (defaultLangSys) && SANITIZE_THIS (langSys);
+  }
+
   private:
   OffsetTo<LangSys>
 		defaultLangSys;	/* Offset to DefaultLangSys table--from
 				 * beginning of Script table--may be Null */
-  ArrayOf<LangSysRecord>
+  RecordArrayOf<LangSys>
 		langSys;	/* Array of LangSysRecords--listed
 				 * alphabetically by LangSysTag */
 };
@@ -137,6 +161,10 @@ struct Feature
 {
   inline const unsigned int get_lookup_index (unsigned int i) const { return lookupIndex[i]; }
   inline unsigned int get_lookup_count (void) const { return lookupIndex.len; }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE (lookupIndex);
+  }
 
   /* TODO: implement get_feature_parameters() */
   /* TODO: implement FeatureSize and other special features? */
@@ -169,6 +197,10 @@ ASSERT_SIZE (LookupFlag, 2);
 
 struct LookupSubTable
 {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
+  }
+
   private:
   USHORT	format;		/* Subtable format.  Different for GSUB and GPOS */
 };
@@ -192,6 +224,16 @@ struct Lookup
     return flag;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!(SANITIZE_SELF () && SANITIZE_THIS (subTable))) return false;
+    if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
+    {
+      USHORT &markFilteringSet = *(USHORT*) ((char *) &subTable + subTable.get_size ());
+      if (!SANITIZE (markFilteringSet)) return false;
+    }
+    return true;
+  }
+
   USHORT	lookupType;		/* Different enumerations for GSUB and GPOS */
   USHORT	lookupFlag;		/* Lookup qualifiers */
   OffsetArrayOf<LookupSubTable>
@@ -209,6 +251,10 @@ struct OffsetListOf : OffsetArrayOf<Type>
   {
     if (HB_UNLIKELY (i >= this->len)) return Null(Type);
     return this+this->array[i];
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, (const char *) this);
   }
 };
 
@@ -262,6 +308,7 @@ struct CoverageRangeRecord
     return NOT_COVERED;
   }
 
+  public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
     return SANITIZE_SELF ();
   }
@@ -376,6 +423,7 @@ struct ClassRangeRecord
     return 0;
   }
 
+  public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
     return SANITIZE_SELF ();
   }

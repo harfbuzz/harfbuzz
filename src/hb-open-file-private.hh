@@ -85,7 +85,7 @@ struct TTCHeader
 {
   friend struct OpenTypeFontFile;
 
-  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (TTCHeader, 2);
+  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (TTCHeader, 1, 2);
 
   private:
   Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */

@@ -60,6 +60,7 @@ struct _hb_sanitize_context_t
 
 #define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, (const char *) this))
 #define SANITIZE_THIS2(X,Y) SANITIZE_THIS (X) && SANITIZE_THIS (Y)
+#define SANITIZE_THIS3(X,Y,Z) SANITIZE_THIS (X) && SANITIZE_THIS (Y) && SANITIZE_THIS(Z)
 
 #define SANITIZE_SELF() SANITIZE_OBJ (*this)
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
@@ -205,12 +206,12 @@ struct Null <Type> \
     return *(const Type*)data; \
   }
 /* Like get_for_data(), but checks major version first. */
-#define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, Major) \
+#define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, MajorMin, MajorMax) \
   static inline const Type& get_for_data (const char *data) \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
     const Type& t = *(const Type*)data; \
-    if (HB_UNLIKELY (!t.version.major || t.version.major > Major)) return Null(Type); \
+    if (HB_UNLIKELY (t.version.major < MajorMin || t.version.major > MajorMax)) return Null(Type); \
     return t; \
   }
 
@@ -348,6 +349,10 @@ struct FixedVersion
 {
   inline operator uint32_t (void) const { return (major << 16) + minor; }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
+  }
+
   USHORT major;
   USHORT minor;
 };
@@ -371,12 +376,11 @@ struct ArrayOf
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
-    /* For non-offset types, this shouldn't be needed
+    /* XXX For non-recursive types, this is too much overhead */
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array[i]))
         return false;
-    */
   }
 
   USHORT len;

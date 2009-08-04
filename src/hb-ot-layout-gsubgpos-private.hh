@@ -161,6 +161,11 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 
 struct LookupRecord
 {
+  public:
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
+  }
+
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
@@ -365,7 +370,7 @@ struct ContextFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    return SANITIZE_THIS2 (coverage, classDef) && SANITIZE_THIS (ruleSet);
+    return SANITIZE_THIS3 (coverage, classDef, ruleSet);
   }
 
   private:
@@ -851,7 +856,7 @@ struct GSUBGPOS
   static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
   static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
 
-  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GSUBGPOS, 1);
+  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GSUBGPOS, 1, 1);
 
   DEFINE_TAG_LIST_INTERFACE (Script,  script );	/* get_script_count (), get_script (i), get_script_tag (i) */
   DEFINE_TAG_LIST_INTERFACE (Feature, feature);	/* get_feature_count(), get_feature(i), get_feature_tag(i) */
@@ -860,6 +865,12 @@ struct GSUBGPOS
   // LONGTERMTODO bsearch
   DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script_index (), get_script_by_tag (tag) */
   DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (version)) return false;
+    if (version.major != 1) return true;
+    return SANITIZE_THIS3 (scriptList, featureList, lookupList);
+  }
 
   protected:
   FixedVersion	version;	/* Version of the GSUB/GPOS table--initially set
