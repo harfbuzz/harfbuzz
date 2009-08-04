@@ -383,6 +383,13 @@ struct ArrayOf
         return false;
     */
   }
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (array[i]))
+        return false;
+  }
 
   USHORT len;
   Type array[];
@@ -410,6 +417,13 @@ struct HeadlessArrayOf
         return false;
     */
   }
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (array[i]))
+        return false;
+  }
 
   USHORT len;
   Type array[];
@@ -436,6 +450,13 @@ struct LongArrayOf
         return false;
     */
   }
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (array[i]))
+        return false;
+  }
 
   ULONG len;
   Type array[];
@@ -443,39 +464,16 @@ struct LongArrayOf
 
 /* Array of Offset's */
 template <typename Type>
-struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
-    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
-    unsigned int count = this->len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!this->array[i].sanitize (SANITIZE_ARG, base))
-        return false;
-  }
-};
+struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
 
 /* Array of LongOffset's */
 template <typename Type>
-struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
-    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
-    unsigned int count = this->len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!this->array[i].sanitize (SANITIZE_ARG, base))
-        return false;
-  }
-};
+struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {};
 
 /* LongArray of LongOffset's */
 template <typename Type>
-struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
-    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
-    unsigned int count = this->len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!this->array[i].sanitize (SANITIZE_ARG, base))
-        return false;
-  }
-};
+struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
+
 
 /* An array type is one that contains a variable number of objects
  * as its last item.  An array object is extended with get_len()

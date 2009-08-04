@@ -61,16 +61,7 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : ArrayOf<Record<Type> >
-{
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
-    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
-    unsigned int count = this->len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (this->array[i]))
-        return false;
-  }
-};
+struct RecordArrayOf : ArrayOf<Record<Type> > {};
 
 template <typename Type>
 struct RecordListOf : RecordArrayOf<Type>
