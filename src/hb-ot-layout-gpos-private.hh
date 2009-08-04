@@ -1501,7 +1501,7 @@ struct GPOS : GSUBGPOS
 			       hb_ot_layout_feature_mask_t  mask) const
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  bool sanitize (SANITIZE_ARG_DEF) {
     if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
     OffsetTo<PosLookupList> &list = CAST(OffsetTo<PosLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);

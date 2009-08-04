@@ -848,7 +848,7 @@ struct GSUBGPOS
   DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script_index (), get_script_by_tag (tag) */
   DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE (version)) return false;
     if (version.major != 1) return true;
     return SANITIZE_THIS3 (scriptList, featureList, lookupList);

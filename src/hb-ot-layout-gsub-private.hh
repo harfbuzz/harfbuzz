@@ -838,7 +838,7 @@ struct GSUB : GSUBGPOS
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  bool sanitize (SANITIZE_ARG_DEF) {
     if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
     OffsetTo<SubstLookupList> &list = CAST(OffsetTo<SubstLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);

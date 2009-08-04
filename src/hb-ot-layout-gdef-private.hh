@@ -73,6 +73,10 @@ struct AttachList
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, attachPoint);
+  }
+
   private:
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table -- from
@@ -98,6 +102,10 @@ struct CaretValueFormat1
     return context->font->x_scale * coordinate / 0x10000;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
+  }
+
   private:
   USHORT	caretValueFormat;	/* Format identifier--format = 1 */
   SHORT		coordinate;		/* X or Y value, in design units */
@@ -112,6 +120,10 @@ struct CaretValueFormat2
   inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
   {
     return /* TODO contour point */ 0;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
   }
 
   private:
@@ -129,6 +141,10 @@ struct CaretValueFormat3
     /* XXX vertical */
     return context->font->x_scale * coordinate / 0x10000 +
 	   ((this+deviceTable).get_delta (context->font->x_ppem) << 6);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE_THIS (deviceTable);
   }
 
   private:
@@ -151,6 +167,16 @@ struct CaretValue
     case 2: return u.format2->get_caret_value (context, glyph_id);
     case 3: return u.format3->get_caret_value (context, glyph_id);
     default:return 0;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -179,6 +205,10 @@ struct LigGlyph
     *caret_count = carets.len;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE (carets);
+  }
+
   private:
   OffsetArrayOf<CaretValue>
 		carets;			/* Offset rrray of CaretValue tables
@@ -205,6 +235,10 @@ struct LigCaretList
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, ligGlyph);
+  }
+
   private:
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -221,6 +255,10 @@ struct MarkGlyphSetsFormat1
   inline bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (coverage);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   LongOffsetArrayOf<Coverage>
@@ -236,6 +274,14 @@ struct MarkGlyphSets
     switch (u.format) {
     case 1: return u.format1->covers (set_index, glyph_id);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -290,6 +336,14 @@ struct GDEF
   inline bool has_mark_sets () const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return version >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
+
+  bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (version)) return false;
+    if (version.major != 1) return true;
+    return SANITIZE_THIS2 (glyphClassDef, attachList) &&
+	   SANITIZE_THIS2 (ligCaretList, markAttachClassDef) &&
+	   (version < 0x00010002 || SANITIZE_THIS (markGlyphSetsDef[0]));
+  }
 
   private:
   FixedVersion	version;		/* Version of the GDEF table--currently
