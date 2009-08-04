@@ -376,11 +376,12 @@ struct ArrayOf
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
-    /* XXX For non-recursive types, this is too much overhead */
+    /* Note; for non-recursive types, this is not much needed
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array[i]))
         return false;
+    */
   }
 
   USHORT len;
@@ -403,9 +404,11 @@ struct HeadlessArrayOf
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!(SANITIZE_SELF () && SANITIZE_GET_SIZE())) return false;
     unsigned int count = len ? len - 1 : 0;
+    /* Note; for non-recursive types, this is not much needed
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array[i]))
         return false;
+    */
   }
 
   USHORT len;
@@ -427,9 +430,11 @@ struct LongArrayOf
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!(SANITIZE_SELF () && SANITIZE_GET_SIZE())) return false;
     unsigned int count = len;
+    /* Note; for non-recursive types, this is not much needed
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array[i]))
         return false;
+    */
   }
 
   ULONG len;
