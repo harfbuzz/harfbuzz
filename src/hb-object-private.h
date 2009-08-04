@@ -73,9 +73,9 @@ typedef struct {
     HB_OBJECT_DO_INIT_EXPR (obj); \
   } HB_STMT_END
 
-#define HB_OBJECT_DO_CREATE(obj) \
+#define HB_OBJECT_DO_CREATE(Type, obj) \
   HB_LIKELY (( \
-	     (obj) = /* XXX */(typeof (obj)) calloc (1, sizeof (*(obj))), \
+	     (obj) = (Type *) calloc (1, sizeof (Type)), \
 	     HB_OBJECT_DO_INIT_EXPR (obj), \
 	     (obj) \
 	     ))

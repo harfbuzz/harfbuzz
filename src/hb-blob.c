@@ -84,7 +84,7 @@ hb_blob_create (const char        *data,
 {
   hb_blob_t *blob;
 
-  if (!length || !HB_OBJECT_DO_CREATE (blob)) {
+  if (!length || !HB_OBJECT_DO_CREATE (hb_blob_t, blob)) {
     if (destroy)
       destroy (user_data);
     return &_hb_blob_nil;
@@ -118,7 +118,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
   hb_blob_t *blob;
   const char *pdata;
 
-  if (!length || offset >= parent->length || !HB_OBJECT_DO_CREATE (blob))
+  if (!length || offset >= parent->length || !HB_OBJECT_DO_CREATE (hb_blob_t, blob))
     return &_hb_blob_nil;
 
   pdata = hb_blob_lock (parent);
