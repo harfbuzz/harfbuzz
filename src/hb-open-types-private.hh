@@ -282,48 +282,6 @@ typedef USHORT Offset;
 /* LongOffset to a table, same as uint32 (length = 32 bits), Null offset = 0x00000000 */
 typedef ULONG LongOffset;
 
-/* Template subclasses of Offset and LongOffset that do the dereferencing.  Use: (this+memberName) */
-
-template <typename Type>
-struct OffsetTo : Offset
-{
-  inline const Type& operator() (const void *base) const
-  {
-    unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return Null(Type);
-    return *(const Type*)((const char *) base + offset);
-  }
-
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    if (!SANITIZE_OBJ (*this)) return false;
-    unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (*(Type*)((char *) base + offset)) || NEUTER (*this, 0);
-  }
-};
-template <typename Base, typename Type>
-inline const Type& operator + (const Base &base, OffsetTo<Type> offset) { return offset (base); }
-
-template <typename Type>
-struct LongOffsetTo : LongOffset
-{
-  inline const Type& operator() (const void *base) const
-  {
-    unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return Null(Type);
-    return *(const Type*)((const char *) base + offset);
-  }
-
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    if (!SANITIZE (*this)) return false;
-    unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (*(Type*)((char *) base + offset)) || NEUTER (*this, 0);
-  }
-};
-template <typename Base, typename Type>
-inline const Type& operator + (const Base &base, LongOffsetTo<Type> offset) { return offset (base); }
-
 
 /* CheckSum */
 struct CheckSum : ULONG
@@ -358,13 +316,44 @@ struct FixedVersion
 };
 ASSERT_SIZE (FixedVersion, 4);
 
+
+
+/*
+ * Template subclasses of Offset and LongOffset that do the dereferencing.
+ * Use: (this+memberName)
+ */
+
+template <typename OffsetType, typename Type>
+struct GenericOffsetTo : OffsetType
+{
+  inline const Type& operator() (const void *base) const
+  {
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return Null(Type);
+    return *(const Type*)((const char *) base + offset);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    if (!SANITIZE_OBJ (*this)) return false;
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return true;
+    return SANITIZE (*(Type*)((char *) base + offset)) || NEUTER (*this, 0);
+  }
+};
+template <typename Base, typename OffsetType, typename Type>
+inline const Type& operator + (const Base &base, GenericOffsetTo<OffsetType, Type> offset) { return offset (base); }
+
+template <typename Type>
+struct OffsetTo : GenericOffsetTo<Offset, Type> {};
+
+template <typename Type>
+struct LongOffsetTo : GenericOffsetTo<LongOffset, Type> {};
 /*
  * Array Types
  */
 
-/* An array with a USHORT number of elements. */
-template <typename Type>
-struct ArrayOf
+template <typename LenType, typename Type>
+struct GenericArrayOf
 {
   inline const Type& operator [] (unsigned int i) const
   {
@@ -391,9 +380,29 @@ struct ArrayOf
         return false;
   }
 
-  USHORT len;
+  LenType len;
   Type array[];
 };
+
+/* An array with a USHORT number of elements. */
+template <typename Type>
+struct ArrayOf : GenericArrayOf<USHORT, Type> {};
+
+/* An array with a ULONG number of elements. */
+template <typename Type>
+struct LongArrayOf : GenericArrayOf<ULONG, Type> {};
+
+/* Array of Offset's */
+template <typename Type>
+struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
+
+/* Array of LongOffset's */
+template <typename Type>
+struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {};
+
+/* LongArray of LongOffset's */
+template <typename Type>
+struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
 
 /* An array with a USHORT number of elements,
  * starting at second element. */
@@ -417,76 +426,10 @@ struct HeadlessArrayOf
         return false;
     */
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
-    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (array[i]))
-        return false;
-  }
 
   USHORT len;
   Type array[];
 };
-
-/* An array with a ULONG number of elements. */
-template <typename Type>
-struct LongArrayOf
-{
-  inline const Type& operator [] (unsigned int i) const
-  {
-    if (HB_UNLIKELY (i >= len)) return Null(Type);
-    return array[i];
-  }
-  inline unsigned int get_size () const
-  { return sizeof (len) + len * sizeof (array[0]); }
-
-  inline bool sanitize (SANITIZE_ARG_DEF) {
-    if (!(SANITIZE_SELF () && SANITIZE_GET_SIZE())) return false;
-    unsigned int count = len;
-    /* Note; for non-recursive types, this is not much needed
-    for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE (array[i]))
-        return false;
-    */
-  }
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
-    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (array[i]))
-        return false;
-  }
-
-  ULONG len;
-  Type array[];
-};
-
-/* Array of Offset's */
-template <typename Type>
-struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
-
-/* Array of LongOffset's */
-template <typename Type>
-struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {};
-
-/* LongArray of LongOffset's */
-template <typename Type>
-struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
-
-
-/* An array type is one that contains a variable number of objects
- * as its last item.  An array object is extended with get_len()
- * methods, as well as overloaded [] operator. */
-#define DEFINE_ARRAY_TYPE(Type, array, num) \
-  DEFINE_INDEX_OPERATOR(Type, array, num) \
-  DEFINE_LEN(Type, array, num)
-#define DEFINE_INDEX_OPERATOR(Type, array, num) \
-  inline const Type& operator[] (unsigned int i) const \
-  { \
-    if (HB_UNLIKELY (i >= num)) return Null(Type); \
-    return array[i]; \
-  }
 
 
 #endif /* HB_OPEN_TYPES_PRIVATE_HH */
