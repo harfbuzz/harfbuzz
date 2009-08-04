@@ -59,8 +59,35 @@ typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
 struct _hb_sanitize_context_t
 {
   const char *start, *end;
+  int edit_count;
   hb_blob_t *blob;
 };
+
+static HB_GNUC_UNUSED void
+hb_sanitize_init (hb_sanitize_context_t *context,
+		  hb_blob_t *blob)
+{
+  context->blob = blob;
+  context->start = hb_blob_lock (blob);
+  context->end = context->start + hb_blob_get_length (blob);
+  context->edit_count = 0;
+}
+
+static HB_GNUC_UNUSED void
+hb_sanitize_fini (hb_sanitize_context_t *context, bool unlock)
+{
+  if (unlock)
+    hb_blob_unlock (context->blob);
+}
+
+static HB_GNUC_UNUSED bool
+hb_sanitize_edit (hb_sanitize_context_t *context)
+{
+  bool perm = hb_blob_try_writeable_inplace (context->blob);
+  if (perm)
+    context->edit_count++;
+  return perm;
+}
 
 #define SANITIZE_ARG_DEF \
 	hb_sanitize_context_t *context
@@ -83,7 +110,7 @@ struct _hb_sanitize_context_t
 
 #define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
 
-#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && hb_blob_try_writeable_inplace (context->blob) && ((Var) = (Val), true))
+#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && hb_sanitize_edit (context) && ((Var) = (Val), true))
 
 
 /*
