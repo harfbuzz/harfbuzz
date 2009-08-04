@@ -46,7 +46,7 @@
 template <typename Type>
 struct Record
 {
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     /* Note: Only accept ASCII-visible tags (mind DEL)
      * This is one of the few times (only time?) we check
      * for data integrity, as opposed o just boundary checks
@@ -210,8 +210,7 @@ struct Lookup
     unsigned int flag = lookupFlag;
     if (HB_UNLIKELY (flag & LookupFlag::UseMarkFilteringSet))
     {
-      const USHORT &markFilteringSet = *(const USHORT*)
-					(CONST_CHARP(&subTable) + subTable.get_size ());
+      const USHORT &markFilteringSet = CONST_CAST (USHORT, subTable, subTable.get_size ());
       flag += (markFilteringSet << 16);
     }
     return flag;
@@ -221,7 +220,7 @@ struct Lookup
     if (!(SANITIZE_SELF () && SANITIZE_THIS (subTable))) return false;
     if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
-      USHORT &markFilteringSet = *(USHORT*) (CHARP(&subTable) + subTable.get_size ());
+      USHORT &markFilteringSet = CAST (USHORT, subTable, subTable.get_size ());
       if (!SANITIZE (markFilteringSet)) return false;
     }
     return true;

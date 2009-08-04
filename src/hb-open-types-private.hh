@@ -42,8 +42,13 @@
  * Casts
  */
 
-#define CONST_CHARP(X) (reinterpret_cast<const char *>(X))
-#define CHARP(X) ((char *)reinterpret_cast<const char *>(X))
+#define CONST_CHARP(X)		(reinterpret_cast<const char *>(X))
+#define DECONST_CHARP(X)	((char *)reinterpret_cast<const char *>(X))
+#define CHARP(X)		(reinterpret_cast<char *>(X))
+
+#define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(CONST_CHARP(&(X)) + Ofs)))
+#define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)CONST_CHARP(&(X)) + Ofs)))
+#define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CHARP(&(X)) + Ofs)))
 
 
 /*
@@ -65,7 +70,7 @@ struct _hb_sanitize_context_t
 #define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
 #define SANITIZE2(X,Y) SANITIZE (X) && SANITIZE (Y)
 
-#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, reinterpret_cast<const char *>(this)))
+#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, CONST_CHARP(this)))
 #define SANITIZE_THIS2(X,Y) SANITIZE_THIS (X) && SANITIZE_THIS (Y)
 #define SANITIZE_THIS3(X,Y,Z) SANITIZE_THIS (X) && SANITIZE_THIS (Y) && SANITIZE_THIS(Z)
 
@@ -73,7 +78,7 @@ struct _hb_sanitize_context_t
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
 #define SANITIZE_GET_SIZE() SANITIZE_MEM (this, this->get_size ())
 
-#define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= reinterpret_cast<const char *>(B) && reinterpret_cast<const char *>(B) + (L) <= context->end) /* XXX overflow */
+#define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
 
 #define NEUTER(Var, Val) (false)
 
@@ -272,8 +277,8 @@ struct Tag : ULONG
   inline Tag (const char *c) { *(ULONG*)this = *(ULONG*)c; }
   inline bool operator== (const char *c) const { return *(ULONG*)this == *(ULONG*)c; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
-  inline operator const char* (void) const { return reinterpret_cast<const char *>(this); }
-  inline operator char* (void) { return reinterpret_cast<char *>(this); }
+  inline operator const char* (void) const { return CONST_CHARP(this); }
+  inline operator char* (void) { return CHARP(this); }
 };
 ASSERT_SIZE (Tag, 4);
 #define _NULL_TAG_INIT  {' ', ' ', ' ', ' '}
@@ -337,14 +342,14 @@ struct GenericOffsetTo : OffsetType
   {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return *reinterpret_cast<const Type*>(reinterpret_cast<const char *>(base) + offset);
+    return CONST_CAST(Type, base, offset);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (*reinterpret_cast<Type*>((char *)(reinterpret_cast<const char *>(base) + offset))) || NEUTER (*this, 0);
+    return SANITIZE (CAST(Type, base, offset)) || NEUTER (*this, 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>
@@ -379,7 +384,7 @@ struct GenericArrayOf
         return false;
     */
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)

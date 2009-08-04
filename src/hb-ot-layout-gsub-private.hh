@@ -543,9 +543,7 @@ struct ExtensionSubst : Extension
 
   private:
   inline const struct SubstLookupSubTable& get_subtable (void) const
-  { return (const struct SubstLookupSubTable&) Extension::get_subtable (); }
-  inline struct SubstLookupSubTable& get_subtable (void)
-  { return (struct SubstLookupSubTable&) Extension::get_subtable (); }
+  { return CONST_CAST (SubstLookupSubTable, Extension::get_subtable (), 0); }
 
   inline bool apply (APPLY_ARG_DEF) const;
 
@@ -568,17 +566,15 @@ struct ReverseChainSingleSubstFormat1
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = *(const OffsetArrayOf<Coverage>*)
-					        (CONST_CHARP(&backtrack) + backtrack.get_size ());
-    const ArrayOf<GlyphID> &substitute = *(const ArrayOf<GlyphID>*)
-					  (CONST_CHARP(&lookahead) + lookahead.get_size ());
+    const OffsetArrayOf<Coverage> &lookahead = CONST_CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
+    const ArrayOf<GlyphID> &substitute = CONST_CAST (ArrayOf<GlyphID>, lookahead, lookahead.get_size ());
 
     if (match_backtrack (APPLY_ARG,
 			 backtrack.len, (USHORT *) backtrack.array,
-			 match_coverage, CHARP(this)) &&
+			 match_coverage, DECONST_CHARP(this)) &&
         match_lookahead (APPLY_ARG,
 			 lookahead.len, (USHORT *) lookahead.array,
-			 match_coverage, CHARP(this),
+			 match_coverage, DECONST_CHARP(this),
 			 1))
     {
       IN_CURGLYPH () = substitute[index];
@@ -592,12 +588,10 @@ struct ReverseChainSingleSubstFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE_THIS2 (coverage, backtrack))
       return false;
-    OffsetArrayOf<Coverage> &lookahead = *(OffsetArrayOf<Coverage>*)
-					  (CONST_CHARP(&backtrack) + backtrack.get_size ());
+    OffsetArrayOf<Coverage> &lookahead = CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
     if (!SANITIZE_THIS (lookahead))
       return false;
-    ArrayOf<GlyphID> &substitute = *(ArrayOf<GlyphID>*)
-				    (CONST_CHARP(&lookahead) + lookahead.get_size ());
+    ArrayOf<GlyphID> &substitute = CAST (ArrayOf<GlyphID>, lookahead, lookahead.get_size ());
     if (!SANITIZE (substitute))
       return false;
   }
@@ -720,9 +714,7 @@ ASSERT_SIZE (SubstLookupSubTable, 2);
 struct SubstLookup : Lookup
 {
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  { return (const SubstLookupSubTable&) Lookup::get_subtable (i); }
-  inline SubstLookupSubTable& get_subtable (unsigned int i)
-  { return (SubstLookupSubTable&) Lookup::get_subtable (i); }
+  { return CONST_CAST (SubstLookupSubTable, Lookup::get_subtable (i), 0); }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -871,7 +863,8 @@ inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 
 inline bool ExtensionSubst::sanitize (SANITIZE_ARG_DEF)
 {
-  return Extension::sanitize (SANITIZE_ARG) && get_subtable ().sanitize (SANITIZE_ARG);
+  return Extension::sanitize (SANITIZE_ARG) &&
+	 DECONST_CAST (SubstLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG);
 }
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)

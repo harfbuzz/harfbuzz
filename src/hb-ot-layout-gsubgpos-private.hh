@@ -64,7 +64,7 @@ static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, ch
 
 static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, char *data)
 {
-  const ClassDef &class_def = *(const ClassDef *)data;
+  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.get_class (glyph_id) == value;
 }
 
@@ -256,9 +256,7 @@ struct Rule
   private:
   inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
-    const LookupRecord *lookupRecord = (const LookupRecord *)
-				       (CONST_CHARP(input) +
-					sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
+    const LookupRecord *lookupRecord = &CONST_CAST (LookupRecord, input, sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
     return context_lookup (APPLY_ARG,
 			   inputCount, input,
 			   lookupCount, lookupRecord,
@@ -364,7 +362,7 @@ struct ContextFormat2
      */
     struct ContextLookupContext lookup_context = {
      {match_class, apply_func},
-      CHARP(&class_def)
+      DECONST_CHARP(&class_def)
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -399,12 +397,10 @@ struct ContextFormat3
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const LookupRecord *lookupRecord = (const LookupRecord *)
-				       (CONST_CHARP(coverage) +
-					sizeof (coverage[0]) * glyphCount);
+    const LookupRecord *lookupRecord = &CONST_CAST(LookupRecord, coverage, sizeof (coverage[0]) * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      CHARP(this)
+      DECONST_CHARP(this)
     };
     return context_lookup (APPLY_ARG,
 			   glyphCount, (const USHORT *) (coverage + 1),
@@ -417,9 +413,7 @@ struct ContextFormat3
     unsigned int count = glyphCount;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (coverage[i])) return false;
-    LookupRecord *lookupRecord = (LookupRecord *)
-				 (CHARP(coverage) +
-				  sizeof (coverage[0]) * glyphCount);
+    LookupRecord *lookupRecord = &CAST(LookupRecord, coverage, sizeof (coverage[0]) * glyphCount);
     return SANITIZE_MEM (lookupRecord, sizeof (lookupRecord[0]) * lookupCount);
   }
 
@@ -521,12 +515,9 @@ struct ChainRule
   private:
   inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
-    const HeadlessArrayOf<USHORT> &input = *(const HeadlessArrayOf<USHORT>*)
-					    (CONST_CHARP(&backtrack) + backtrack.get_size ());
-    const ArrayOf<USHORT> &lookahead = *(const ArrayOf<USHORT>*)
-				        (CONST_CHARP(&input) + input.get_size ());
-    const ArrayOf<LookupRecord> &lookup = *(const ArrayOf<LookupRecord>*)
-					   (CONST_CHARP(&lookahead) + lookahead.get_size ());
+    const HeadlessArrayOf<USHORT> &input = CONST_CAST (HeadlessArrayOf<USHORT>, backtrack, backtrack.get_size ());
+    const ArrayOf<USHORT> &lookahead = CONST_CAST (ArrayOf<USHORT>, input, input.get_size ());
+    const ArrayOf<LookupRecord> &lookup = CONST_CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, backtrack.array,
 				 input.len, input.array + 1,
@@ -539,14 +530,11 @@ struct ChainRule
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE (backtrack)) return false;
-    HeadlessArrayOf<USHORT> &input = *(HeadlessArrayOf<USHORT>*)
-				      (CHARP(&backtrack) + backtrack.get_size ());
+    HeadlessArrayOf<USHORT> &input = CAST (HeadlessArrayOf<USHORT>, backtrack, backtrack.get_size ());
     if (!SANITIZE (input)) return false;
-    ArrayOf<USHORT> &lookahead = *(ArrayOf<USHORT>*)
-				  (CHARP(&input) + input.get_size ());
+    ArrayOf<USHORT> &lookahead = CAST (ArrayOf<USHORT>, input, input.get_size ());
     if (!SANITIZE (lookahead)) return false;
-    ArrayOf<LookupRecord> &lookup = *(ArrayOf<LookupRecord>*)
-				     (CHARP(&lookahead) + lookahead.get_size ());
+    ArrayOf<LookupRecord> &lookup = CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
     return SANITIZE (lookup);
   }
 
@@ -648,9 +636,9 @@ struct ChainContextFormat2
      */
     struct ChainContextLookupContext lookup_context = {
      {match_class, apply_func},
-     {CHARP(&backtrack_class_def),
-      CHARP(&input_class_def),
-      CHARP(&lookahead_class_def)}
+     {DECONST_CHARP(&backtrack_class_def),
+      DECONST_CHARP(&input_class_def),
+      DECONST_CHARP(&lookahead_class_def)}
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -692,20 +680,17 @@ struct ChainContextFormat3
 
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    const OffsetArrayOf<Coverage> &input = *(const OffsetArrayOf<Coverage>*)
-					    (CONST_CHARP(&backtrack) + backtrack.get_size ());
+    const OffsetArrayOf<Coverage> &input = CONST_CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = *(const OffsetArrayOf<Coverage>*)
-					        (CONST_CHARP(&input) + input.get_size ());
-    const ArrayOf<LookupRecord> &lookup = *(const ArrayOf<LookupRecord>*)
-					   (CONST_CHARP(&lookahead) + lookahead.get_size ());
+    const OffsetArrayOf<Coverage> &lookahead = CONST_CAST (OffsetArrayOf<Coverage>, input, input.get_size ());
+    const ArrayOf<LookupRecord> &lookup = CONST_CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
     struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      {CHARP(this), CHARP(this), CHARP(this)}
+      {DECONST_CHARP(this), DECONST_CHARP(this), DECONST_CHARP(this)}
     };
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, (USHORT *) backtrack.array,
@@ -718,14 +703,11 @@ struct ChainContextFormat3
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE_THIS (backtrack)) return false;
-    OffsetArrayOf<Coverage> &input = *(OffsetArrayOf<Coverage>*)
-				      (CHARP(&backtrack) + backtrack.get_size ());
+    OffsetArrayOf<Coverage> &input = CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
     if (!SANITIZE_THIS (input)) return false;
-    OffsetArrayOf<Coverage> &lookahead = *(OffsetArrayOf<Coverage>*)
-					  (CHARP(&input) + input.get_size ());
+    OffsetArrayOf<Coverage> &lookahead = CAST (OffsetArrayOf<Coverage>, input, input.get_size ());
     if (!SANITIZE_THIS (lookahead)) return false;
-    ArrayOf<LookupRecord> &lookup = *(ArrayOf<LookupRecord>*)
-				     (CHARP(&lookahead) + lookahead.get_size ());
+    ArrayOf<LookupRecord> &lookup = CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
     return SANITIZE (lookup);
   }
 
@@ -794,7 +776,7 @@ struct ExtensionFormat1
   {
     unsigned int offset = get_offset ();
     if (HB_UNLIKELY (!offset)) return Null(LookupSubTable);
-    return *(LookupSubTable*)(CHARP(this) + offset);
+    return CONST_CAST (LookupSubTable, *this, offset);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
