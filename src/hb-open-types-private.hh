@@ -76,7 +76,7 @@ struct _hb_sanitize_context_t
 
 #define SANITIZE_SELF() SANITIZE_OBJ (*this)
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
-#define SANITIZE_GET_SIZE() SANITIZE_MEM (this, this->get_size ())
+#define SANITIZE_GET_SIZE() SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ())
 
 #define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
 
@@ -376,7 +376,7 @@ struct GenericArrayOf
   { return sizeof (len) + len * sizeof (array[0]); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
+    if (!SANITIZE_GET_SIZE()) return false;
     /* Note; for non-recursive types, this is not much needed
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -385,7 +385,7 @@ struct GenericArrayOf
     */
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
+    if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array[i].sanitize (SANITIZE_ARG, base))
@@ -430,7 +430,7 @@ struct HeadlessArrayOf
   { return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    if (!(SANITIZE_SELF () && SANITIZE_GET_SIZE())) return false;
+    if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len ? len - 1 : 0;
     /* Note; for non-recursive types, this is not much needed
     for (unsigned int i = 0; i < count; i++)

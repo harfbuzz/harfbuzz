@@ -357,7 +357,7 @@ struct Coverage
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -469,7 +469,7 @@ struct ClassDef
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -494,6 +494,8 @@ ASSERT_SIZE (ClassDef, 2);
 
 struct Device
 {
+  inline int operator() (unsigned int ppem_size) const { return get_delta (ppem_size); }
+
   int get_delta (unsigned int ppem_size) const
   {
     unsigned int f = deltaFormat;
@@ -517,7 +519,16 @@ struct Device
     return delta;
   }
 
-  inline int operator() (unsigned int ppem_size) const { return get_delta (ppem_size); }
+  inline unsigned int get_size () const
+  {
+    unsigned int f = deltaFormat;
+    if (HB_UNLIKELY (f < 1 || f > 3 || startSize > endSize)) return sizeof (*this);
+    return sizeof (*this) + ((endSize - startSize + (1 << (4 - f)) - 1) >> (4 - f));
+  }
+
+  bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_GET_SIZE ();
+  }
 
   private:
   USHORT	startSize;	/* Smallest size to correct--in ppem */

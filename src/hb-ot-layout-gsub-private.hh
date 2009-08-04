@@ -680,7 +680,7 @@ struct SubstLookupSubTable
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  bool sanitize (SANITIZE_ARG_DEF) {
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case Single:		return u.single->sanitize (SANITIZE_ARG);
