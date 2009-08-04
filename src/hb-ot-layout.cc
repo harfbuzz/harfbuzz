@@ -126,8 +126,6 @@ _hb_ot_layout_get_glyph_property (hb_face_t      *face,
   case GDEF::LigatureGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
   case GDEF::ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT;
   case GDEF::MarkGlyph:
-	/* TODO old harfbuzz doesn't always parse mark attachments as it says it was
-	 * introduced without a version bump, so it may not be safe */
 	klass = gdef.get_mark_attachment_type (glyph);
 	return HB_OT_LAYOUT_GLYPH_CLASS_MARK + (klass << 8);
   }
