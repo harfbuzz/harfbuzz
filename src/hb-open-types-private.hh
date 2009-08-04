@@ -29,11 +29,45 @@
 
 #include "hb-private.h"
 
+#include "hb-blob.h"
+
 
 #define NO_INDEX		((unsigned int) 0xFFFF)
 #define NO_CONTEXT		((unsigned int) 0x110000)
 #define NOT_COVERED		((unsigned int) 0x110000)
 #define MAX_NESTING_LEVEL	8
+
+
+
+/*
+ * Sanitize
+ */
+
+typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
+struct _hb_sanitize_context_t
+{
+  const char *start, *end;
+  hb_blob_t *blob;
+};
+
+#define SANITIZE_ARG_DEF \
+	hb_sanitize_context_t *context
+#define SANITIZE_ARG \
+	context
+
+#define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
+#define SANITIZE2(X,Y) SANITIZE (X) && SANITIZE (Y)
+
+#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, (const char *) this))
+#define SANITIZE_THIS2(X,Y) SANITIZE_THIS (X) && SANITIZE_THIS (Y)
+
+#define SANITIZE_SELF() SANITIZE_OBJ (*this)
+#define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
+#define SANITIZE_GET_SIZE() SANITIZE_MEM (this, this->get_size ())
+
+#define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= (const char *)(B) && (const char *)(B) + (L) <= context->end) /* XXX overflow */
+
+#define NEUTER(Var, Val) (false)
 
 
 /*
@@ -208,6 +242,7 @@ struct Null <Type> \
     inline NAME& operator = (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
     inline operator TYPE(void) const { return BIG_ENDIAN ((TYPE&) v); } \
     inline bool operator== (NAME o) const { return (TYPE&) v == (TYPE&) o.v; } \
+    inline bool sanitize (SANITIZE_ARG_DEF) { return SANITIZE_SELF (); } \
     private: char v[BYTES]; \
   }; \
   ASSERT_SIZE (NAME, BYTES)
@@ -257,6 +292,13 @@ struct OffsetTo : Offset
     if (HB_UNLIKELY (!offset)) return Null(Type);
     return *(const Type*)((const char *) base + offset);
   }
+
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    if (!SANITIZE_OBJ (*this)) return false;
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return true;
+    return SANITIZE (*(Type*)((char *) base + offset)) || NEUTER (*this, 0);
+  }
 };
 template <typename Base, typename Type>
 inline const Type& operator + (const Base &base, OffsetTo<Type> offset) { return offset (base); }
@@ -269,6 +311,13 @@ struct LongOffsetTo : LongOffset
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
     return *(const Type*)((const char *) base + offset);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    if (!SANITIZE (*this)) return false;
+    unsigned int offset = *this;
+    if (HB_UNLIKELY (!offset)) return true;
+    return SANITIZE (*(Type*)((char *) base + offset)) || NEUTER (*this, 0);
   }
 };
 template <typename Base, typename Type>
@@ -320,6 +369,16 @@ struct ArrayOf
   inline unsigned int get_size () const
   { return sizeof (len) + len * sizeof (array[0]); }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!(SANITIZE (len) && SANITIZE_GET_SIZE())) return false;
+    /* For non-offset types, this shouldn't be needed
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE (array[i]))
+        return false;
+    */
+  }
+
   USHORT len;
   Type array[];
 };
@@ -337,6 +396,14 @@ struct HeadlessArrayOf
   inline unsigned int get_size () const
   { return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]); }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!(SANITIZE_SELF () && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = len ? len - 1 : 0;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE (array[i]))
+        return false;
+  }
+
   USHORT len;
   Type array[];
 };
@@ -353,21 +420,53 @@ struct LongArrayOf
   inline unsigned int get_size () const
   { return sizeof (len) + len * sizeof (array[0]); }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!(SANITIZE_SELF () && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE (array[i]))
+        return false;
+  }
+
   ULONG len;
   Type array[];
 };
 
 /* Array of Offset's */
 template <typename Type>
-struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
+struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!this->array[i].sanitize (SANITIZE_ARG, base))
+        return false;
+  }
+};
 
 /* Array of LongOffset's */
 template <typename Type>
-struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {};
+struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!this->array[i].sanitize (SANITIZE_ARG, base))
+        return false;
+  }
+};
 
 /* LongArray of LongOffset's */
 template <typename Type>
-struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
+struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {
+  inline bool sanitize (SANITIZE_ARG_DEF, const char *base) {
+    if (!(SANITIZE (this->len) && SANITIZE_GET_SIZE())) return false;
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!this->array[i].sanitize (SANITIZE_ARG, base))
+        return false;
+  }
+};
 
 /* An array type is one that contains a variable number of objects
  * as its last item.  An array object is extended with get_len()

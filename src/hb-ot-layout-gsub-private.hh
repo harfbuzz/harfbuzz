@@ -35,6 +35,7 @@ struct SingleSubstFormat1
   friend struct SingleSubst;
 
   private:
+
   inline bool apply (APPLY_ARG_DEF) const
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -52,6 +53,10 @@ struct SingleSubstFormat1
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (coverage) && SANITIZE (deltaGlyphID);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -67,6 +72,7 @@ struct SingleSubstFormat2
   friend struct SingleSubst;
 
   private:
+
   inline bool apply (APPLY_ARG_DEF) const
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -87,6 +93,10 @@ struct SingleSubstFormat2
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (coverage) && SANITIZE (substitute);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
@@ -103,12 +113,22 @@ struct SingleSubst
   friend struct SubstLookupSubTable;
 
   private:
+
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -150,6 +170,11 @@ struct Sequence
     return true;
   }
 
+  public:
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE (substitute);
+  }
+
   private:
   ArrayOf<GlyphID>
 		substitute;		/* String of GlyphIDs to substitute */
@@ -161,6 +186,7 @@ struct MultipleSubstFormat1
   friend struct MultipleSubst;
 
   private:
+
   inline bool apply (APPLY_ARG_DEF) const
   {
 
@@ -169,6 +195,10 @@ struct MultipleSubstFormat1
       return false;
 
     return (this+sequence[index]).apply (APPLY_ARG);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, sequence);
   }
 
   private:
@@ -187,11 +217,20 @@ struct MultipleSubst
   friend struct SubstLookupSubTable;
 
   private:
+
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -213,6 +252,7 @@ struct AlternateSubstFormat1
   friend struct AlternateSubst;
 
   private:
+
   inline bool apply (APPLY_ARG_DEF) const
   {
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -249,6 +289,10 @@ struct AlternateSubstFormat1
     return true;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, alternateSet);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -265,11 +309,20 @@ struct AlternateSubst
   friend struct SubstLookupSubTable;
 
   private:
+
   inline bool apply (APPLY_ARG_DEF) const
   {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -352,6 +405,11 @@ struct Ligature
     return true;
   }
 
+  public:
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE2 (ligGlyph, component);
+  }
+
   private:
   GlyphID	ligGlyph;		/* GlyphID of ligature to substitute */
   HeadlessArrayOf<GlyphID>
@@ -377,6 +435,11 @@ struct LigatureSet
     }
 
     return false;
+  }
+
+  public:
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (ligature);
   }
 
   private:
@@ -405,6 +468,10 @@ struct LigatureSubstFormat1
     return lig_set.apply (APPLY_ARG, first_is_mark);
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, ligatureSet);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -426,6 +493,14 @@ struct LigatureSubst
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -467,7 +542,14 @@ struct ExtensionSubst : Extension
   friend struct SubstLookupSubTable;
 
   private:
+  inline const struct SubstLookupSubTable& get_subtable (void) const
+  { return (const struct SubstLookupSubTable&) Extension::get_subtable (); }
+  inline struct SubstLookupSubTable& get_subtable (void)
+  { return (struct SubstLookupSubTable&) Extension::get_subtable (); }
+
   inline bool apply (APPLY_ARG_DEF) const;
+
+  inline bool sanitize (SANITIZE_ARG_DEF);
 };
 ASSERT_SIZE (ExtensionSubst, 2);
 
@@ -507,6 +589,19 @@ struct ReverseChainSingleSubstFormat1
     return false;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE_THIS2 (coverage, backtrack))
+      return false;
+    OffsetArrayOf<Coverage> &lookahead = (OffsetArrayOf<Coverage>&)
+					  *((const char *) &backtrack + backtrack.get_size ());
+    if (!SANITIZE_THIS (lookahead))
+      return false;
+    ArrayOf<GlyphID> &substitute = (ArrayOf<GlyphID>&)
+				    *((const char *) &lookahead + lookahead.get_size ());
+    if (!SANITIZE (substitute))
+      return false;
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -536,6 +631,14 @@ struct ReverseChainSingleSubst
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -580,6 +683,21 @@ struct SubstLookupSubTable
     case Extension:		return u.extension->apply (APPLY_ARG);
     case ReverseChainSingle:	return u.reverseChainContextSingle->apply (APPLY_ARG);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case Single:		return u.single->sanitize (SANITIZE_ARG);
+    case Multiple:		return u.multiple->sanitize (SANITIZE_ARG);
+    case Alternate:		return u.alternate->sanitize (SANITIZE_ARG);
+    case Ligature:		return u.ligature->sanitize (SANITIZE_ARG);
+    case Context:		return u.context->sanitize (SANITIZE_ARG);
+    case ChainContext:		return u.chainContext->sanitize (SANITIZE_ARG);
+    case Extension:		return u.extension->sanitize (SANITIZE_ARG);
+    case ReverseChainSingle:	return u.reverseChainContextSingle->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -729,7 +847,12 @@ inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
   if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
     return false;
 
-  return ((SubstLookupSubTable&) get_subtable ()).apply (APPLY_ARG, lookup_type);
+  return get_subtable ().apply (APPLY_ARG, lookup_type);
+}
+
+inline bool ExtensionSubst::sanitize (SANITIZE_ARG_DEF)
+{
+  return Extension::sanitize (SANITIZE_ARG) && get_subtable ().sanitize (SANITIZE_ARG);
 }
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)

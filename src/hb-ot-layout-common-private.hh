@@ -239,6 +239,11 @@ struct CoverageFormat1
     return NOT_COVERED;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE (glyphArray);
+  }
+
+  private:
   USHORT	coverageFormat;	/* Format identifier--format = 1 */
   ArrayOf<GlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
@@ -255,6 +260,10 @@ struct CoverageRangeRecord
     if (glyph_id >= start && glyph_id <= end)
       return (unsigned int) startCoverageIndex + (glyph_id - start);
     return NOT_COVERED;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
   }
 
   private:
@@ -283,6 +292,11 @@ struct CoverageFormat2
     return NOT_COVERED;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE (rangeRecord);
+  }
+
+  private:
   USHORT	coverageFormat;	/* Format identifier--format = 2 */
   ArrayOf<CoverageRangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
@@ -293,6 +307,8 @@ ASSERT_SIZE (CoverageFormat2, 4);
 
 struct Coverage
 {
+  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_coverage (glyph_id); }
+
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
@@ -302,7 +318,14 @@ struct Coverage
     }
   }
 
-  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_coverage (glyph_id); }
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
 
   private:
   union {
@@ -330,6 +353,10 @@ struct ClassDefFormat1
     return 0;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF () && SANITIZE (classValue);
+  }
+
   USHORT	classFormat;		/* Format identifier--format = 1 */
   GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
   ArrayOf<USHORT>
@@ -347,6 +374,10 @@ struct ClassRangeRecord
     if (glyph_id >= start && glyph_id <= end)
       return classValue;
     return 0;
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
   }
 
   private:
@@ -374,6 +405,10 @@ struct ClassDefFormat2
     return 0;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE (rangeRecord);
+  }
+
   USHORT	classFormat;	/* Format identifier--format = 2 */
   ArrayOf<ClassRangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
@@ -383,6 +418,8 @@ ASSERT_SIZE (ClassDefFormat2, 4);
 
 struct ClassDef
 {
+  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
+
   hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
@@ -392,7 +429,14 @@ struct ClassDef
     }
   }
 
-  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
 
   private:
   union {

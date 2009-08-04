@@ -260,6 +260,14 @@ struct Rule
 			   lookup_context);
   }
 
+  public:
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE_SELF ()) return false;
+    return SANITIZE_MEM (input,
+			 sizeof (input[0]) * inputCount +
+			 sizeof (lookupRecordX[0]) * lookupCount);
+  }
+
   private:
   USHORT	inputCount;		/* Total number of glyphs in input
 					 * glyph sequence--includes the  first
@@ -286,6 +294,10 @@ struct RuleSet
     return false;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (rule);
+  }
+
   private:
   OffsetArrayOf<Rule>
 		rule;			/* Array of Rule tables
@@ -310,6 +322,10 @@ struct ContextFormat1
       NULL
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, ruleSet);
   }
 
   private:
@@ -346,6 +362,10 @@ struct ContextFormat2
       (char *) &class_def
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, classDef) && SANITIZE_THIS (ruleSet);
   }
 
   private:
@@ -387,6 +407,17 @@ struct ContextFormat3
 			   lookup_context);
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE_SELF ()) return false;
+    unsigned int count = glyphCount;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (coverage[i])) return false;
+    LookupRecord *lookupRecord = (LookupRecord *)
+				 ((char *) coverage +
+				  sizeof (coverage[0]) * glyphCount);
+    return SANITIZE_MEM (lookupRecord, sizeof (lookupRecord[0]) * lookupCount);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 3 */
   USHORT	glyphCount;		/* Number of glyphs in the input glyph
@@ -410,6 +441,16 @@ struct Context
     case 2: return u.format2->apply (APPLY_ARG, apply_func);
     case 3: return u.format3->apply (APPLY_ARG, apply_func);
     default:return false;
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
@@ -490,6 +531,19 @@ struct ChainRule
     return false;
   }
 
+  public:
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (backtrack)) return false;
+    HeadlessArrayOf<USHORT> &input = *(HeadlessArrayOf<USHORT>*)
+				      ((char *) &backtrack + backtrack.get_size ());
+    if (!SANITIZE (input)) return false;
+    ArrayOf<USHORT> &lookahead = *(ArrayOf<USHORT>*)
+				  ((char *) &input + input.get_size ());
+    if (!SANITIZE (lookahead)) return false;
+    ArrayOf<LookupRecord> &lookup = *(ArrayOf<LookupRecord>*)
+				     ((char *) &lookahead + lookahead.get_size ());
+    return SANITIZE (lookup);
+  }
 
   private:
   ArrayOf<USHORT>
@@ -522,6 +576,10 @@ struct ChainRuleSet
     return false;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS (rule);
+  }
+
   private:
   OffsetArrayOf<ChainRule>
 		rule;			/* Array of ChainRule tables
@@ -547,6 +605,11 @@ struct ChainContextFormat1
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, ruleSet);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
@@ -585,6 +648,12 @@ struct ChainContextFormat2
       (char *) &lookahead_class_def}
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_THIS2 (coverage, backtrackClassDef) &&
+	   SANITIZE_THIS2 (inputClassDef, lookaheadClassDef) &&
+	   SANITIZE_THIS (ruleSet);
   }
 
   private:
@@ -642,6 +711,19 @@ struct ChainContextFormat3
     return false;
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE_THIS (backtrack)) return false;
+    OffsetArrayOf<Coverage> &input = *(OffsetArrayOf<Coverage>*)
+				      ((char *) &backtrack + backtrack.get_size ());
+    if (!SANITIZE_THIS (input)) return false;
+    OffsetArrayOf<Coverage> &lookahead = *(OffsetArrayOf<Coverage>*)
+					  ((char *) &input + input.get_size ());
+    if (!SANITIZE_THIS (lookahead)) return false;
+    ArrayOf<LookupRecord> &lookup = *(ArrayOf<LookupRecord>*)
+				     ((char *) &lookahead + lookahead.get_size ());
+    return SANITIZE (lookup);
+  }
+
   private:
   USHORT	format;			/* Format identifier--format = 3 */
   OffsetArrayOf<Coverage>
@@ -675,6 +757,16 @@ struct ChainContext
     }
   }
 
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
+
   private:
   union {
   USHORT		format;	/* Format identifier */
@@ -698,6 +790,10 @@ struct ExtensionFormat1
     unsigned int offset = get_offset ();
     if (HB_UNLIKELY (!offset)) return Null(LookupSubTable);
     return *(LookupSubTable*)(((char *) this) + offset);
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    return SANITIZE_SELF ();
   }
 
   private:
@@ -726,6 +822,14 @@ struct Extension
     switch (u.format) {
     case 1: return u.format1->get_subtable ();
     default:return Null(LookupSubTable);
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    if (!SANITIZE (u.format)) return false;
+    switch (u.format) {
+    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    default:return true;
     }
   }
 
