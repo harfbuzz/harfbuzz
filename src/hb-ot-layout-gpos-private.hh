@@ -1497,7 +1497,7 @@ struct PosLookup : Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
-    if (Lookup::sanitize (SANITIZE_ARG)) return false;
+    if (!Lookup::sanitize (SANITIZE_ARG)) return false;
     OffsetArrayOf<PosLookupSubTable> &list = (OffsetArrayOf<PosLookupSubTable> &) subTable;
     return SANITIZE_THIS (list);
   }
@@ -1529,7 +1529,7 @@ struct GPOS : GSUBGPOS
 
   bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
-    if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
+    if (!GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
     OffsetTo<PosLookupList> &list = CAST(OffsetTo<PosLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);
   }

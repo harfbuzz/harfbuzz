@@ -822,7 +822,7 @@ struct SubstLookup : Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
-    if (Lookup::sanitize (SANITIZE_ARG)) return false;
+    if (!Lookup::sanitize (SANITIZE_ARG)) return false;
     OffsetArrayOf<SubstLookupSubTable> &list = (OffsetArrayOf<SubstLookupSubTable> &) subTable;
     return SANITIZE_THIS (list);
   }
@@ -855,7 +855,7 @@ struct GSUB : GSUBGPOS
 
   bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
-    if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
+    if (!GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
     OffsetTo<SubstLookupList> &list = CAST(OffsetTo<SubstLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);
   }
