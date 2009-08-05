@@ -324,10 +324,18 @@ struct Sanitizer
     sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
       if (context.edit_count) {
+#if HB_DEBUG
+	fprintf (stderr, "Sanitizer %p passed first round with %d edits; going a second round %s\n",
+		 blob, context.edit_count, __PRETTY_FUNCTION__);
+#endif
         /* sanitize again to ensure not toe-stepping */
         context.edit_count = 0;
 	sane = t->sanitize (SANITIZE_ARG_INIT);
 	if (context.edit_count) {
+#if HB_DEBUG
+	  fprintf (stderr, "Sanitizer %p requested %d edits in second round; failing %s\n",
+		   blob, context.edit_count, __PRETTY_FUNCTION__);
+#endif
 	  sane = false;
 	}
       }
