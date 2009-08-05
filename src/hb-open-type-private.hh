@@ -203,16 +203,16 @@ struct Null <Type> \
  * Sanitize
  */
 
-#if HB_DEBUG
+#if HB_DEBUG >= 5
 #define SANITIZE_DEBUG_ARG_DEF	, unsigned int sanitize_depth
 #define SANITIZE_DEBUG_ARG	, sanitize_depth + 1
 #define SANITIZE_DEBUG_ARG_INIT	, 0
 #define SANITIZE_DEBUG() \
 	HB_STMT_START { \
-		printf ("SANITIZE(%p) %-*d-> %s\n", \
-			(CONST_CHARP (this) == NullPool) ? 0 : this, \
-			sanitize_depth+1, sanitize_depth, \
-			__PRETTY_FUNCTION__); \
+		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
+			 (CONST_CHARP (this) == NullPool) ? 0 : this, \
+			 sanitize_depth+1, sanitize_depth, \
+			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
 #else
 #define SANITIZE_DEBUG_ARG_DEF
@@ -239,9 +239,8 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
   context->edit_count = 0;
 
 #if HB_DEBUG
-  printf ("sanitize %p init [%p..%p] (%u bytes)\n",
-	  context->blob, context->start, context->end, context->start - context->end);
-
+  fprintf (stderr, "sanitize %p init [%p..%p] (%u bytes)\n",
+	   context->blob, context->start, context->end, context->start - context->end);
 #endif
 }
 
@@ -250,9 +249,8 @@ _hb_sanitize_fini (hb_sanitize_context_t *context,
 		   bool unlock)
 {
 #if HB_DEBUG
-  printf ("sanitize %p fini [%p..%p] %u edit requests\n",
-	  context->blob, context->start, context->end, context->edit_count);
-
+  fprintf (stderr, "sanitize %p fini [%p..%p] %u edit requests\n",
+	   context->blob, context->start, context->end, context->edit_count);
 #endif
 
   if (unlock)
@@ -268,8 +266,8 @@ _hb_sanitize_edit (hb_sanitize_context_t *context,
   context->edit_count++;
 
 #if HB_DEBUG
-  printf ("sanitize %p edit %u requested for [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
-	  context->blob,
+  fprintf (stderr, "sanitize %p edit %u requested for [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
+	   context->blob,
 	  context->edit_count,
 	  base, base+len, len,
 	  context->start, context->end,
@@ -316,7 +314,7 @@ struct Sanitizer
 
   retry:
 #if HB_DEBUG
-    printf ("Sanitizer %p start %s\n", blob, __PRETTY_FUNCTION__);
+    fprintf (stderr, "Sanitizer %p start %s\n", blob, __PRETTY_FUNCTION__);
 #endif
 
     _hb_sanitize_init (&context, blob);
@@ -340,14 +338,14 @@ struct Sanitizer
       if (edit_count && !hb_blob_is_writeable (blob) && hb_blob_try_writeable (blob)) {
         /* ok, we made it writeable by relocating.  try again */
 #if HB_DEBUG
-	printf ("Sanitizer %p retry %s\n", blob, __PRETTY_FUNCTION__);
+	fprintf (stderr, "Sanitizer %p retry %s\n", blob, __PRETTY_FUNCTION__);
 #endif
         goto retry;
       }
     }
 
 #if HB_DEBUG
-    printf ("Sanitizer %p %s %s\n", blob, sane ? "passed" : "failed", __PRETTY_FUNCTION__);
+    fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "failed", __PRETTY_FUNCTION__);
 #endif
     if (sane)
       return blob;

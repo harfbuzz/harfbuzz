@@ -40,7 +40,8 @@
 #include <string.h>
 #include <assert.h>
 #if HB_DEBUG
-#include <stdio.h> /* XXX */
+#include <stdio.h>
+#include <errno.h>
 #endif
 
 #include "hb-common.h"
