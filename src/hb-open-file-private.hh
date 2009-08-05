@@ -176,6 +176,7 @@ struct OpenTypeFontFile
 
   bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
+    if (!SANITIZE_SELF ()) return false;
     switch (tag) {
     default: return true;
     case TrueTypeTag: case CFFTag: return SANITIZE_THIS (CAST (OffsetTable, *this, 0));
