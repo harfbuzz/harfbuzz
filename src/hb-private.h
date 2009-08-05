@@ -31,7 +31,7 @@
 #include "config.h"
 #endif
 
-#define HB_DEBUG 1
+/* #define HB_DEBUG 1 */
 
 #include <stdlib.h>
 #include <string.h>
