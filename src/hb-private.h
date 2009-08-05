@@ -32,6 +32,9 @@
 #endif
 
 /* #define HB_DEBUG 1 */
+#ifndef HB_DEBUG
+#define HB_DEBUG 0
+#endif
 
 #include <stdlib.h>
 #include <string.h>
