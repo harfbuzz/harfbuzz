@@ -48,7 +48,7 @@ struct Record
 {
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     SANITIZE_DEBUG ();
-    return SANITIZE (tag) == 0 && SANITIZE_BASE (offset, base);
+    return SANITIZE (tag) && SANITIZE_BASE (offset, base);
   }
 
   Tag		tag;		/* 4-byte Tag identifier */
