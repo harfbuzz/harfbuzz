@@ -1526,6 +1526,7 @@ inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
 {
   return Extension::sanitize (SANITIZE_ARG) &&
 	 (&(Extension::get_subtable ()) == &Null(LookupSubTable) ||
+	  get_type () == PosLookupSubTable::Extension ||
 	  DECONST_CAST (PosLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG));
 }
 
