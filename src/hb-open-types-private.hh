@@ -232,10 +232,8 @@ _hb_sanitize_fini (hb_sanitize_context_t *context,
 static HB_GNUC_UNUSED bool
 _hb_sanitize_edit (hb_sanitize_context_t *context)
 {
-  bool perm = hb_blob_try_writeable_inplace (context->blob);
-  if (perm)
-    context->edit_count++;
-  return perm;
+  context->edit_count++;
+  return hb_blob_try_writeable_inplace (context->blob);
 }
 
 #define SANITIZE_ARG_DEF \
