@@ -835,8 +835,8 @@ ASSERT_SIZE (Extension, 2);
 
 struct GSUBGPOS
 {
-  static const hb_tag_t GSUBTag		= HB_TAG ('G','S','U','B');
-  static const hb_tag_t GPOSTag		= HB_TAG ('G','P','O','S');
+  static const hb_tag_t GSUBTag	= HB_OT_TAG_GSUB;
+  static const hb_tag_t GPOSTag	= HB_OT_TAG_GPOS;
 
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GSUBGPOS, 1, 1);
 

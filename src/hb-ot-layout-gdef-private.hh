@@ -300,7 +300,7 @@ ASSERT_SIZE (MarkGlyphSets, 2);
 
 struct GDEF
 {
-  static const hb_tag_t Tag		= HB_TAG ('G','D','E','F');
+  static const hb_tag_t Tag	= HB_OT_TAG_GDEF;
 
   enum {
     UnclassifiedGlyph	= 0,

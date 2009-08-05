@@ -1487,7 +1487,7 @@ ASSERT_SIZE (PosLookupList, 2);
 
 struct GPOS : GSUBGPOS
 {
-  static const hb_tag_t Tag		= HB_TAG ('G','P','O','S');
+  static const hb_tag_t Tag	= HB_OT_TAG_GPOS;
 
   static inline const GPOS& get_for_data (const char *data)
   { return (const GPOS&) GSUBGPOS::get_for_data (data); }

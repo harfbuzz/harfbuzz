@@ -823,7 +823,7 @@ ASSERT_SIZE (SubstLookupList, 2);
 
 struct GSUB : GSUBGPOS
 {
-  static const hb_tag_t Tag		= HB_TAG ('G','S','U','B');
+  static const hb_tag_t Tag	= HB_OT_TAG_GSUB;
 
   static inline const GSUB& get_for_data (const char *data)
   { return (const GSUB&) GSUBGPOS::get_for_data (data); }
