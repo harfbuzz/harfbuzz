@@ -304,7 +304,7 @@ struct Sanitizer
     }
   }
 
-  static const Type& instantiate (hb_blob_t *blob) {
+  static const Type& lock_instance (hb_blob_t *blob) {
     return Type::get_for_data (hb_blob_lock (blob));
   }
 };

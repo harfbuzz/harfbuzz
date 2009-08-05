@@ -165,11 +165,8 @@ static hb_blob_t *
 _hb_face_get_table_from_blob (hb_tag_t tag, void *user_data)
 {
   hb_face_t *face = (hb_face_t *) user_data;
-  const char *data = hb_blob_lock (face->blob);
 
-  /* XXX sanitize */
-
-  const OpenTypeFontFile &ot_file = OpenTypeFontFile::get_for_data (data);
+  const OpenTypeFontFile &ot_file = Sanitizer<OpenTypeFontFile>::lock_instance (face->blob);
   const OpenTypeFontFace &ot_face = ot_file.get_face (face->index);
 
   const OpenTypeTable &table = ot_face.get_table_by_tag (tag);
@@ -226,7 +223,7 @@ hb_face_create_for_data (hb_blob_t    *blob,
   if (!HB_OBJECT_DO_CREATE (hb_face_t, face))
     return &_hb_face_nil;
 
-  face->blob = hb_blob_reference (blob);
+  face->blob = Sanitizer<OpenTypeFontFile>::sanitize (hb_blob_reference (blob));
   face->index = index;
   face->get_table = _hb_face_get_table_from_blob;
   face->user_data = face;
