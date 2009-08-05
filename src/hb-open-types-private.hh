@@ -212,8 +212,8 @@ struct _hb_sanitize_context_t
 };
 
 static HB_GNUC_UNUSED void
-hb_sanitize_init (hb_sanitize_context_t *context,
-		  hb_blob_t *blob)
+_hb_sanitize_init (hb_sanitize_context_t *context,
+		   hb_blob_t *blob)
 {
   context->blob = blob;
   context->start = hb_blob_lock (blob);
@@ -222,14 +222,15 @@ hb_sanitize_init (hb_sanitize_context_t *context,
 }
 
 static HB_GNUC_UNUSED void
-hb_sanitize_fini (hb_sanitize_context_t *context, bool unlock)
+_hb_sanitize_fini (hb_sanitize_context_t *context,
+		   bool unlock)
 {
   if (unlock)
     hb_blob_unlock (context->blob);
 }
 
 static HB_GNUC_UNUSED bool
-hb_sanitize_edit (hb_sanitize_context_t *context)
+_hb_sanitize_edit (hb_sanitize_context_t *context)
 {
   bool perm = hb_blob_try_writeable_inplace (context->blob);
   if (perm)
@@ -258,8 +259,55 @@ hb_sanitize_edit (hb_sanitize_context_t *context)
 
 #define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
 
-#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && hb_sanitize_edit (context) && ((Var) = (Val), true))
+#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && _hb_sanitize_edit (context) && ((Var) = (Val), true))
 
+
+/* Template to sanitize an object. */
+template <typename Type>
+struct Sanitizer
+{
+  static hb_blob_t *sanitize (hb_blob_t *blob) {
+    hb_sanitize_context_t context;
+    bool sane;
+
+    /* XXX is_sane() stuff */
+
+  retry:
+    _hb_sanitize_init (&context, blob);
+
+    Type *t = &CAST (Type, context.start, 0);
+
+    sane = t->sanitize (&context);
+    if (sane) {
+      if (context.edit_count) {
+        /* sanitize again to ensure not toe-stepping */
+        context.edit_count = 0;
+	sane = t->sanitize (&context);
+	if (context.edit_count) {
+	  sane = false;
+	}
+      }
+      _hb_sanitize_fini (&context, true);
+    } else {
+      _hb_sanitize_fini (&context, true);
+      if (context.edit_count && !hb_blob_is_writeable (blob) && hb_blob_try_writeable (blob)) {
+        /* ok, we made it writeable by relocating.  try again */
+        goto retry;
+      }
+    }
+
+    if (sane)
+      return blob;
+    else {
+      hb_blob_destroy (blob);
+      return hb_blob_create_empty ();
+    }
+  }
+
+  static const Type& instantiate (hb_blob_t *blob) {
+    return Type::get_for_data (hb_blob_lock (blob));
+  }
+};
 
 
 /*
