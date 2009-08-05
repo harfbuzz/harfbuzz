@@ -4,7 +4,7 @@ NULL =
 
 CXX = $(CC) -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 
-noinst_LTLIBRARIES = libharfbuzz-1.la
+noinst_LTLIBRARIES = libharfbuzz.la
 
 HBSOURCES =  \
 	hb-blob.c \
@@ -35,14 +35,14 @@ HBHEADERS = \
 	hb-ot-layout.h \
 	$(NULL)
 
-libharfbuzz_1_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
-libharfbuzz_1_la_LIBADD =
+libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
+libharfbuzz_la_LIBADD =
 
 noinst_PROGRAMS = main
 
 main_SOURCES = main.cc
 main_CXXFLAGS = $(GLIB_CFLAGS)
-main_LDADD = $(GLIB_LIBS)
+main_LDADD = libharfbuzz.la $(GLIB_LIBS)
 
 EXTRA_DIST = README COPYING
 
