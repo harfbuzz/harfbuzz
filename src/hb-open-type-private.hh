@@ -203,6 +203,24 @@ struct Null <Type> \
  * Sanitize
  */
 
+#if HB_DEBUG
+#define SANITIZE_DEBUG_ARG_DEF	, unsigned int sanitize_depth
+#define SANITIZE_DEBUG_ARG	, sanitize_depth + 1
+#define SANITIZE_DEBUG_ARG_INIT	, 0
+#define SANITIZE_DEBUG() \
+	HB_STMT_START { \
+		printf ("SANITIZE(%p) %-*d-> %s\n", \
+			(CONST_CHARP (this) == NullPool) ? 0 : this, \
+			sanitize_depth+1, sanitize_depth, \
+			__PRETTY_FUNCTION__); \
+	} HB_STMT_END
+#else
+#define SANITIZE_DEBUG_ARG_DEF
+#define SANITIZE_DEBUG_ARG
+#define SANITIZE_DEBUG_ARG_INIT
+#define SANITIZE_DEBUG() HB_STMT_START {} HB_STMT_END
+#endif
+
 typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
 struct _hb_sanitize_context_t
 {
@@ -237,9 +255,11 @@ _hb_sanitize_edit (hb_sanitize_context_t *context)
 }
 
 #define SANITIZE_ARG_DEF \
-	hb_sanitize_context_t *context
+	hb_sanitize_context_t *context SANITIZE_DEBUG_ARG_DEF
 #define SANITIZE_ARG \
-	context
+	context SANITIZE_DEBUG_ARG
+#define SANITIZE_ARG_INIT \
+	&context SANITIZE_DEBUG_ARG_INIT
 
 #define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
 #define SANITIZE2(X,Y) (SANITIZE (X) && SANITIZE (Y))
@@ -275,12 +295,12 @@ struct Sanitizer
 
     Type *t = &CAST (Type, context.start, 0);
 
-    sane = t->sanitize (&context);
+    sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
       if (context.edit_count) {
         /* sanitize again to ensure not toe-stepping */
         context.edit_count = 0;
-	sane = t->sanitize (&context);
+	sane = t->sanitize (SANITIZE_ARG_INIT);
 	if (context.edit_count) {
 	  sane = false;
 	}
@@ -334,7 +354,10 @@ struct Sanitizer
     inline NAME& operator = (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
     inline operator TYPE(void) const { return BIG_ENDIAN ((TYPE&) v); } \
     inline bool operator== (NAME o) const { return (TYPE&) v == (TYPE&) o.v; } \
-    inline bool sanitize (SANITIZE_ARG_DEF) { return SANITIZE_SELF (); } \
+    inline bool sanitize (SANITIZE_ARG_DEF) { \
+      SANITIZE_DEBUG (); \
+      return SANITIZE_SELF (); \
+    } \
     private: char v[BYTES]; \
   }; \
   ASSERT_SIZE (NAME, BYTES)
@@ -360,6 +383,7 @@ struct Tag : ULONG
   inline operator char* (void) { return CHARP(this); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     /* Note: Only accept ASCII-visible tags (mind DEL)
      * This is one of the few times (only time?) we check
      * for data integrity, as opposed o just boundary checks
@@ -407,6 +431,7 @@ struct FixedVersion
   inline operator uint32_t (void) const { return (major << 16) + minor; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_SELF ();
   }
 
@@ -433,18 +458,21 @@ struct GenericOffsetTo : OffsetType
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
@@ -475,6 +503,7 @@ struct GenericArrayOf
   { return sizeof (len) + len * sizeof (array[0]); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     /* Note; for non-recursive types, this is not much needed
     unsigned int count = len;
@@ -485,6 +514,7 @@ struct GenericArrayOf
     return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -493,6 +523,7 @@ struct GenericArrayOf
     return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -501,6 +532,7 @@ struct GenericArrayOf
     return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -547,6 +579,7 @@ struct HeadlessArrayOf
   { return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     /* Note; for non-recursive types, this is not much needed
     unsigned int count = len ? len - 1 : 0;

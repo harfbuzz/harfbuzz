@@ -31,10 +31,14 @@
 #include "config.h"
 #endif
 
+#define HB_DEBUG 1
+
 #include <stdlib.h>
-#include <stdio.h> /* XXX */
 #include <string.h>
 #include <assert.h>
+#if HB_DEBUG
+#include <stdio.h> /* XXX */
+#endif
 
 #include "hb-common.h"
 

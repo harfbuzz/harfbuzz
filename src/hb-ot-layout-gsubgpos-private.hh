@@ -163,6 +163,7 @@ struct LookupRecord
 {
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_SELF ();
   }
 
@@ -265,6 +266,7 @@ struct Rule
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_SELF ()) return false;
     return SANITIZE_MEM (input,
 			 sizeof (input[0]) * inputCount +
@@ -298,6 +300,7 @@ struct RuleSet
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS (rule);
   }
 
@@ -328,6 +331,7 @@ struct ContextFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS2 (coverage, ruleSet);
   }
 
@@ -368,6 +372,7 @@ struct ContextFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS3 (coverage, classDef, ruleSet);
   }
 
@@ -409,6 +414,7 @@ struct ContextFormat3
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = glyphCount;
     for (unsigned int i = 0; i < count; i++)
@@ -444,6 +450,7 @@ struct Context
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -529,6 +536,7 @@ struct ChainRule
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (backtrack)) return false;
     HeadlessArrayOf<USHORT> &input = CAST (HeadlessArrayOf<USHORT>, backtrack, backtrack.get_size ());
     if (!SANITIZE (input)) return false;
@@ -570,6 +578,7 @@ struct ChainRuleSet
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS (rule);
   }
 
@@ -600,6 +609,7 @@ struct ChainContextFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS2 (coverage, ruleSet);
   }
 
@@ -644,6 +654,7 @@ struct ChainContextFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS2 (coverage, backtrackClassDef) &&
 	   SANITIZE_THIS2 (inputClassDef, lookaheadClassDef) &&
 	   SANITIZE_THIS (ruleSet);
@@ -702,6 +713,7 @@ struct ChainContextFormat3
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_THIS (backtrack)) return false;
     OffsetArrayOf<Coverage> &input = CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
     if (!SANITIZE_THIS (input)) return false;
@@ -745,6 +757,7 @@ struct ChainContext
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -780,6 +793,7 @@ struct ExtensionFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_SELF ();
   }
 
@@ -813,6 +827,7 @@ struct Extension
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -849,6 +864,7 @@ struct GSUBGPOS
   DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
 
   bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (version)) return false;
     if (version.major != 1) return true;
     return SANITIZE_THIS3 (scriptList, featureList, lookupList);

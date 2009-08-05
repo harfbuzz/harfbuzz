@@ -54,6 +54,7 @@ struct SingleSubstFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS (coverage) && SANITIZE (deltaGlyphID);
   }
 
@@ -94,6 +95,7 @@ struct SingleSubstFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS (coverage) && SANITIZE (substitute);
   }
 
@@ -124,6 +126,7 @@ struct SingleSubst
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -172,6 +175,7 @@ struct Sequence
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE (substitute);
   }
 
@@ -198,6 +202,7 @@ struct MultipleSubstFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS2 (coverage, sequence);
   }
 
@@ -227,6 +232,7 @@ struct MultipleSubst
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -290,6 +296,7 @@ struct AlternateSubstFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS2 (coverage, alternateSet);
   }
 
@@ -319,6 +326,7 @@ struct AlternateSubst
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -407,6 +415,7 @@ struct Ligature
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE2 (ligGlyph, component);
   }
 
@@ -439,6 +448,7 @@ struct LigatureSet
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS (ligature);
   }
 
@@ -469,6 +479,7 @@ struct LigatureSubstFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     return SANITIZE_THIS2 (coverage, ligatureSet);
   }
 
@@ -497,6 +508,7 @@ struct LigatureSubst
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -586,6 +598,7 @@ struct ReverseChainSingleSubstFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE_THIS2 (coverage, backtrack))
       return false;
     OffsetArrayOf<Coverage> &lookahead = CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
@@ -628,6 +641,7 @@ struct ReverseChainSingleSubst
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -680,6 +694,7 @@ struct SubstLookupSubTable
   }
 
   bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case Single:		return u.single->sanitize (SANITIZE_ARG);
@@ -806,6 +821,7 @@ struct SubstLookup : Lookup
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (Lookup::sanitize (SANITIZE_ARG)) return false;
     OffsetArrayOf<SubstLookupSubTable> &list = (OffsetArrayOf<SubstLookupSubTable> &) subTable;
     return SANITIZE_THIS (list);
@@ -838,6 +854,7 @@ struct GSUB : GSUBGPOS
 
 
   bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
     OffsetTo<SubstLookupList> &list = CAST(OffsetTo<SubstLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);
@@ -860,6 +877,7 @@ inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 
 inline bool ExtensionSubst::sanitize (SANITIZE_ARG_DEF)
 {
+  SANITIZE_DEBUG ();
   return Extension::sanitize (SANITIZE_ARG) &&
 	 (&(Extension::get_subtable ()) == &Null(LookupSubTable) ||
 	  get_type () == SubstLookupSubTable::Extension ||

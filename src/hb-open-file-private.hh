@@ -48,6 +48,7 @@ struct TTCHeader;
 typedef struct TableDirectory
 {
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    SANITIZE_DEBUG ();
     return SANITIZE_SELF () && SANITIZE (tag) &&
 	   SANITIZE_MEM (CONST_CHARP(base) + (unsigned long) offset, length);
   }
@@ -77,6 +78,7 @@ typedef struct OffsetTable
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+    SANITIZE_DEBUG ();
     if (!(SANITIZE_SELF () && SANITIZE_MEM (tableDir, sizeof (tableDir[0]) * numTables))) return false;
     unsigned int count = numTables;
     for (unsigned int i = 0; i < count; i++)
@@ -113,6 +115,7 @@ struct TTCHeader
   }
 
   bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     if (!SANITIZE (version)) return false;
     if (version.major < 1 || version.major > 2) return true;
     /* XXX Maybe we shouldn't NEUTER these offsets, they may cause a full copy of
@@ -172,6 +175,7 @@ struct OpenTypeFontFile
   }
 
   bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
     switch (tag) {
     default: return true;
     case TrueTypeTag: case CFFTag: return SANITIZE_THIS (CAST (OffsetTable, *this, 0));
