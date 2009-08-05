@@ -185,7 +185,7 @@ void
 hb_blob_unlock (hb_blob_t *blob)
 {
   if (!HB_OBJECT_IS_INERT (blob)) {
-    int old_lock = _hb_reference_count_inc (blob->lock);
+    int old_lock = _hb_reference_count_dec (blob->lock);
     assert (old_lock > 0);
   }
 
