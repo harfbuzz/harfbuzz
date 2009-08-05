@@ -29,7 +29,7 @@
 
 #include "hb-ot-layout-private.h"
 
-#include "hb-open-types-private.hh"
+#include "hb-open-type-private.hh"
 
 
 /*

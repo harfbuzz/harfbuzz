@@ -27,7 +27,7 @@
 #ifndef HB_OPEN_FILE_PRIVATE_HH
 #define HB_OPEN_FILE_PRIVATE_HH
 
-#include "hb-open-types-private.hh"
+#include "hb-open-type-private.hh"
 
 
 /*
