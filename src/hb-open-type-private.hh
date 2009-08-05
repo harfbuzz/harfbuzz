@@ -293,7 +293,7 @@ struct Sanitizer
   retry:
     _hb_sanitize_init (&context, blob);
 
-    Type *t = &CAST (Type, context.start, 0);
+    Type *t = &CAST (Type, *DECONST_CHARP(context.start), 0);
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
