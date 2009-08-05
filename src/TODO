@@ -1,7 +1,9 @@
-- Get rid of custom GSUB/GPOS table type enum?
 - Test OpenType 1.6 mark filtering sets
-- When sanitizing, have to do a second round to make sure no toe-stepping
 - HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH vs LookupType::... mess
+- remove hb_ot_layout_feature_mask_t in favore of hb_mask_t or something
 - Rename LookupFlag::MarkAttachmentType to LookupFlag:IgnoreSpecialMarks
-- cmap14
+- cmap14 support in get_glyph callback
 - size_t?
+- change get_XXX_count / get_XXX_tag to be more like
+  hb_ot_layout_get_lig_carets (IN/OUT)?
+- Figure out compiler selection (add test for link to libstdc++)
