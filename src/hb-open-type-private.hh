@@ -237,21 +237,45 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
   context->start = hb_blob_lock (blob);
   context->end = context->start + hb_blob_get_length (blob);
   context->edit_count = 0;
+
+#if HB_DEBUG
+  printf ("sanitize %p init [%p..%p] (%u bytes)\n",
+	  context->blob, context->start, context->end, context->start - context->end);
+
+#endif
 }
 
 static HB_GNUC_UNUSED void
 _hb_sanitize_fini (hb_sanitize_context_t *context,
 		   bool unlock)
 {
+#if HB_DEBUG
+  printf ("sanitize %p fini [%p..%p] %u edit requests\n",
+	  context->blob, context->start, context->end, context->edit_count);
+
+#endif
+
   if (unlock)
     hb_blob_unlock (context->blob);
 }
 
-static HB_GNUC_UNUSED bool
-_hb_sanitize_edit (hb_sanitize_context_t *context)
+static HB_GNUC_UNUSED inline bool
+_hb_sanitize_edit (hb_sanitize_context_t *context,
+		   const char *base HB_GNUC_UNUSED,
+		   unsigned int len HB_GNUC_UNUSED)
 {
+  bool perm = hb_blob_try_writeable_inplace (context->blob);
   context->edit_count++;
-  return hb_blob_try_writeable_inplace (context->blob);
+
+#if HB_DEBUG
+  printf ("sanitize %p edit %u requested for [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
+	  context->blob,
+	  context->edit_count,
+	  base, base+len, len,
+	  context->start, context->end,
+	  perm ? "granted" : "rejected");
+#endif
+  return perm;
 }
 
 #define SANITIZE_ARG_DEF \
@@ -277,7 +301,7 @@ _hb_sanitize_edit (hb_sanitize_context_t *context)
 
 #define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
 
-#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && _hb_sanitize_edit (context) && ((Var) = (Val), true))
+#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && _hb_sanitize_edit (context, CONST_CHARP(&(Var)), sizeof (Var)) && ((Var) = (Val), true))
 
 
 /* Template to sanitize an object. */
@@ -291,6 +315,10 @@ struct Sanitizer
     /* XXX is_sane() stuff */
 
   retry:
+#if HB_DEBUG
+    printf ("Sanitizer %p start %s\n", blob, __PRETTY_FUNCTION__);
+#endif
+
     _hb_sanitize_init (&context, blob);
 
     Type *t = &CAST (Type, *DECONST_CHARP(context.start), 0);
@@ -307,13 +335,20 @@ struct Sanitizer
       }
       _hb_sanitize_fini (&context, true);
     } else {
+      unsigned int edit_count = context.edit_count;
       _hb_sanitize_fini (&context, true);
-      if (context.edit_count && !hb_blob_is_writeable (blob) && hb_blob_try_writeable (blob)) {
+      if (edit_count && !hb_blob_is_writeable (blob) && hb_blob_try_writeable (blob)) {
         /* ok, we made it writeable by relocating.  try again */
+#if HB_DEBUG
+	printf ("Sanitizer %p retry %s\n", blob, __PRETTY_FUNCTION__);
+#endif
         goto retry;
       }
     }
 
+#if HB_DEBUG
+    printf ("Sanitizer %p %s %s\n", blob, sane ? "passed" : "failed", __PRETTY_FUNCTION__);
+#endif
     if (sane)
       return blob;
     else {
