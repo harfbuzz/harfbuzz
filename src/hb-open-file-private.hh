@@ -82,6 +82,7 @@ typedef struct OffsetTable
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_BASE (tableDir[i], base))
         return false;
+    return true;
   }
 
   private:

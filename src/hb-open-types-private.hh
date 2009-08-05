@@ -484,6 +484,7 @@ struct GenericArrayOf
       if (!SANITIZE (array[i]))
         return false;
     */
+    return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     if (!SANITIZE_GET_SIZE()) return false;
@@ -491,6 +492,7 @@ struct GenericArrayOf
     for (unsigned int i = 0; i < count; i++)
       if (!array[i].sanitize (SANITIZE_ARG, base))
         return false;
+    return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
     if (!SANITIZE_GET_SIZE()) return false;
@@ -498,6 +500,7 @@ struct GenericArrayOf
     for (unsigned int i = 0; i < count; i++)
       if (!array[i].sanitize (SANITIZE_ARG, base, base2))
         return false;
+    return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
     if (!SANITIZE_GET_SIZE()) return false;
@@ -505,6 +508,7 @@ struct GenericArrayOf
     for (unsigned int i = 0; i < count; i++)
       if (!array[i].sanitize (SANITIZE_ARG, base, user_data))
         return false;
+    return true;
   }
 
   LenType len;
@@ -552,6 +556,7 @@ struct HeadlessArrayOf
       if (!SANITIZE (array[i]))
         return false;
     */
+    return true;
   }
 
   USHORT len;

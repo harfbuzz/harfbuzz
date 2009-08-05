@@ -592,8 +592,7 @@ struct ReverseChainSingleSubstFormat1
     if (!SANITIZE_THIS (lookahead))
       return false;
     ArrayOf<GlyphID> &substitute = CAST (ArrayOf<GlyphID>, lookahead, lookahead.get_size ());
-    if (!SANITIZE (substitute))
-      return false;
+    return SANITIZE (substitute);
   }
 
   private:
