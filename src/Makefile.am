@@ -36,12 +36,13 @@ HBHEADERS = \
 	$(NULL)
 
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
-libharfbuzz_la_LIBADD =
+libharfbuzz_la_CPPFLAGS = -DHAVE_GLIB $(GLIB_CFLAGS)
+libharfbuzz_la_LIBADD = $(GLIB_LIBS)
 
 noinst_PROGRAMS = main
 
 main_SOURCES = main.cc
-main_CXXFLAGS = $(GLIB_CFLAGS)
+main_CPPFLAGS = -DHAVE_GLIB $(GLIB_CFLAGS)
 main_LDADD = libharfbuzz.la $(GLIB_LIBS)
 
 EXTRA_DIST = README COPYING

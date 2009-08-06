@@ -30,26 +30,19 @@
 #ifndef HB_REFCOUNT_PRIVATE_H
 #define HB_REFCOUNT_PRIVATE_H
 
-typedef int hb_atomic_int_t;
-
-/* XXX add real atomic ops */
-#define _hb_atomic_fetch_and_add(AI, V) ((AI) += (V), (AI)-(V))
-#define _hb_atomic_int_get(AI) ((AI)+0)
-#define _hb_atomic_int_set(AI, VALUE) HB_STMT_START { (AI) = (VALUE); } HB_STMT_END
-
 
 /* Encapsulate operations on the object's reference count */
 typedef struct {
   hb_atomic_int_t ref_count;
 } hb_reference_count_t;
 
-#define _hb_reference_count_inc(RC) _hb_atomic_fetch_and_add ((RC).ref_count, 1)
-#define _hb_reference_count_dec(RC) _hb_atomic_fetch_and_add ((RC).ref_count, -1)
+#define hb_reference_count_inc(RC) hb_atomic_fetch_and_add ((RC).ref_count, 1)
+#define hb_reference_count_dec(RC) hb_atomic_fetch_and_add ((RC).ref_count, -1)
 
 #define HB_REFERENCE_COUNT_INIT(RC, VALUE) ((RC).ref_count = (VALUE))
 
-#define HB_REFERENCE_COUNT_GET_VALUE(RC) _hb_atomic_int_get ((RC).ref_count)
-#define HB_REFERENCE_COUNT_SET_VALUE(RC, VALUE) _hb_atomic_int_set ((RC).ref_count, (VALUE))
+#define HB_REFERENCE_COUNT_GET_VALUE(RC) hb_atomic_int_get ((RC).ref_count)
+#define HB_REFERENCE_COUNT_SET_VALUE(RC, VALUE) hb_atomic_int_set ((RC).ref_count, (VALUE))
 
 #define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
 #define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
@@ -85,7 +78,7 @@ typedef struct {
     int old_count; \
     if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return obj; \
-    old_count = _hb_reference_count_inc (obj->ref_count); \
+    old_count = hb_reference_count_inc (obj->ref_count); \
     assert (old_count > 0); \
     return obj; \
   } HB_STMT_END
@@ -102,7 +95,7 @@ typedef struct {
     int old_count; \
     if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return; \
-    old_count = _hb_reference_count_dec (obj->ref_count); \
+    old_count = hb_reference_count_dec (obj->ref_count); \
     assert (old_count > 0); \
     if (old_count != 1) \
       return; \

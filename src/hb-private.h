@@ -46,6 +46,32 @@
 
 #include "hb-common.h"
 
+#define hb_be_uint8
+#define hb_be_int8
+#define hb_be_uint16(v)			((uint16_t) hb_be_int16 ((uint16_t) v))
+#define hb_be_uint32(v)			((uint32_t) hb_be_int32 ((uint32_t) v))
+
+typedef int hb_atomic_int_t;
+
+/* We need external help for these */
+
+#if HAVE_GLIB
+
+#include <glib.h>
+
+/* Macros to convert to/from BigEndian */
+#define hb_be_int16(v)	GINT16_FROM_BE (v)
+#define hb_be_int32(v)	GINT32_FROM_BE (v)
+
+#define hb_atomic_fetch_and_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
+#define hb_atomic_int_get(AI)		g_atomic_int_get (&(AI))
+#define hb_atomic_int_set(AI, V)	g_atomic_int_set (&(AI), V)
+
+#else
+#error "Could not find any system to define platform macros, see hb-private.h"
+#endif
+
+
 /* Basics */
 
 #undef MIN
@@ -145,25 +171,6 @@ _hb_popcount32 (uint32_t mask)
     return (((y + (y >> 3)) & 030707070707) % 077);
 #endif
 }
-
-static HB_GNUC_UNUSED inline uint16_t
-_hb_be_uint16 (uint16_t v)
-{
-  return (v>>8) + (v<<8);
-}
-static HB_GNUC_UNUSED inline uint32_t
-_hb_be_uint32 (uint32_t v)
-{
-  return _hb_be_uint16 (v>>16) + (_hb_be_uint16 (v) <<16);
-}
-
-/* Macros to convert to/from BigEndian */
-#define hb_be_uint8
-#define hb_be_int8
-#define hb_be_uint16(v)	_hb_be_uint16 (v)
-#define hb_be_int16(v)	((int16_t) hb_be_uint16 (v))
-#define hb_be_uint32(v)	_hb_be_uint32 (v)
-#define hb_be_int32(v)	((int32_t) hb_be_uint32 (v))
 
 
 #include "hb-object-private.h"
