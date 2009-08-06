@@ -203,15 +203,16 @@ struct Null <Type> \
  * Sanitize
  */
 
-#if HB_DEBUG >= 5
+#if HB_DEBUG
 #define SANITIZE_DEBUG_ARG_DEF	, unsigned int sanitize_depth
 #define SANITIZE_DEBUG_ARG	, sanitize_depth + 1
-#define SANITIZE_DEBUG_ARG_INIT	, 0
+#define SANITIZE_DEBUG_ARG_INIT	, 1
 #define SANITIZE_DEBUG() \
 	HB_STMT_START { \
+	    if (sanitize_depth < HB_DEBUG) \
 		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
 			 (CONST_CHARP (this) == NullPool) ? 0 : this, \
-			 sanitize_depth+1, sanitize_depth, \
+			 sanitize_depth, sanitize_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
 #else
