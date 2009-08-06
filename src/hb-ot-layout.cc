@@ -44,8 +44,6 @@ _hb_ot_layout_init (hb_face_t *face)
 {
   hb_ot_layout_t *layout = &face->ot_layout;
 
-  /* XXX sanitize */
-
   layout->gdef_blob = Sanitizer<GDEF>::sanitize (hb_face_get_table (face, HB_OT_TAG_GDEF));
   layout->gdef = &Sanitizer<GDEF>::lock_instance (layout->gdef_blob);
 
