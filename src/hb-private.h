@@ -138,7 +138,7 @@ _hb_popcount32 (uint32_t mask)
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
     return __builtin_popcount (mask);
 #else
-    register int y;
+    register uint32_t y;
 
     y = (mask >> 1) &033333333333;
     y = mask - y - ((y >>1) & 033333333333);
