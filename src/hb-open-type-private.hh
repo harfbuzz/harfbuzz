@@ -298,9 +298,16 @@ _hb_sanitize_edit (hb_sanitize_context_t *context,
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
 #define SANITIZE_GET_SIZE() SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ())
 
-#define SANITIZE_MEM(B,L) HB_LIKELY (context->start <= CONST_CHARP(B) && CONST_CHARP(B) + (L) <= context->end) /* XXX overflow */
+/* TODO Optimize this if L is fixed (gcc magic) */
+#define SANITIZE_MEM(B,L) \
+	HB_LIKELY (context->start <= CONST_CHARP(B) && \
+		   CONST_CHARP(B) < context->end && \
+		   context->end - CONST_CHARP(B) < (L))
 
-#define NEUTER(Var, Val) (SANITIZE_OBJ (Var) && _hb_sanitize_edit (context, CONST_CHARP(&(Var)), sizeof (Var)) && ((Var) = (Val), true))
+#define NEUTER(Var, Val) \
+	(SANITIZE_OBJ (Var) && \
+	 _hb_sanitize_edit (context, CONST_CHARP(&(Var)), sizeof (Var)) && \
+	 ((Var) = (Val), true))
 
 
 /* Template to sanitize an object. */
@@ -311,7 +318,7 @@ struct Sanitizer
     hb_sanitize_context_t context;
     bool sane;
 
-    /* XXX is_sane() stuff */
+    /* TODO is_sane() stuff */
 
   retry:
 #if HB_DEBUG

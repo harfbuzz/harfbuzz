@@ -99,7 +99,7 @@ struct CaretValueFormat1
   private:
   inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
   {
-    /* XXX vertical */
+    /* TODO vertical */
     return context->font->x_scale * coordinate / 0x10000;
   }
 
@@ -141,7 +141,7 @@ struct CaretValueFormat3
 
   inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
   {
-    /* XXX vertical */
+    /* TODO vertical */
     return context->font->x_scale * coordinate / 0x10000 +
 	   ((this+deviceTable).get_delta (context->font->x_ppem) << 6);
   }
@@ -163,7 +163,6 @@ ASSERT_SIZE (CaretValueFormat3, 6);
 
 struct CaretValue
 {
-  /* XXX  we need access to a load-contour-point vfunc here */
   int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
