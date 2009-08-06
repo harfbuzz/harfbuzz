@@ -31,8 +31,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-/* XXX Not thread-safe */
-
 struct _hb_blob_t {
   hb_reference_count_t ref_count;
 
