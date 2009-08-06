@@ -389,8 +389,8 @@ struct Sanitizer
  * Int types
  */
 
-/* TODO On machines that do not allow unaligned access, fix the accessors. */
-#define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN, BYTES) \
+/* TODO On machines that allow unaligned access, use this version. */
+#define _DEFINE_INT_TYPE1_UNALIGNED(NAME, TYPE, BIG_ENDIAN, BYTES) \
   struct NAME \
   { \
     inline NAME& operator = (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
@@ -400,7 +400,21 @@ struct Sanitizer
       SANITIZE_DEBUG (); \
       return SANITIZE_SELF (); \
     } \
-    private: char v[BYTES]; \
+    private: unsigned char v[BYTES]; \
+  }; \
+  ASSERT_SIZE (NAME, BYTES)
+
+#define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN, BYTES) \
+  struct NAME \
+  { \
+    inline NAME& operator = (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); return *this; } \
+    inline operator TYPE(void) const { return BIG_ENDIAN##_get_unaligned (v); } \
+    inline bool operator== (NAME o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
+    inline bool sanitize (SANITIZE_ARG_DEF) { \
+      SANITIZE_DEBUG (); \
+      return SANITIZE_SELF (); \
+    } \
+    private: unsigned char v[BYTES]; \
   }; \
   ASSERT_SIZE (NAME, BYTES)
 #define DEFINE_INT_TYPE0(NAME, type, b)	DEFINE_INT_TYPE1 (NAME, type##_t, hb_be_##type, b)
