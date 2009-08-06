@@ -118,8 +118,8 @@ struct TTCHeader
     SANITIZE_DEBUG ();
     if (!SANITIZE (version)) return false;
     if (version.major < 1 || version.major > 2) return true;
-    /* XXX Maybe we shouldn't NEUTER these offsets, they may cause a full copy of
-     * the whole font right now. */
+    /* TODO Maybe we shouldn't NEUTER these offsets, they may cause a full copy
+     * of the whole font right now. */
     return table.sanitize (SANITIZE_ARG, CONST_CHARP(this), CONST_CHARP(this));
   }
 
