@@ -120,7 +120,6 @@ struct TTCHeader
     if (version.major < 1 || version.major > 2) return true;
     /* XXX Maybe we shouldn't NEUTER these offsets, they may cause a full copy of
      * the whole font right now. */
-    //if (!table.sanitize (SANITIZE_ARG)) return false;
     return table.sanitize (SANITIZE_ARG, CONST_CHARP(this), CONST_CHARP(this));
   }
 
