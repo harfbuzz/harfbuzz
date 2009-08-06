@@ -47,8 +47,6 @@ typedef struct _hb_ot_layout_t hb_ot_layout_t;
 
 struct _hb_ot_layout_t
 {
-  hb_face_t *face; /* XXX can do without this */
-
   hb_blob_t *gdef_blob;
   hb_blob_t *gsub_blob;
   hb_blob_t *gpos_blob;
