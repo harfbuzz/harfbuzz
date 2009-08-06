@@ -36,8 +36,8 @@ typedef struct {
   hb_atomic_int_t ref_count;
 } hb_reference_count_t;
 
-#define hb_reference_count_inc(RC) hb_atomic_fetch_and_add ((RC).ref_count, 1)
-#define hb_reference_count_dec(RC) hb_atomic_fetch_and_add ((RC).ref_count, -1)
+#define hb_reference_count_inc(RC) hb_atomic_int_fetch_and_add ((RC).ref_count, 1)
+#define hb_reference_count_dec(RC) hb_atomic_int_fetch_and_add ((RC).ref_count, -1)
 
 #define HB_REFERENCE_COUNT_INIT(RC, VALUE) ((RC).ref_count = (VALUE))
 
