@@ -336,23 +336,15 @@ get_gsubgpos_table (hb_face_t *face,
 }
 
 
-unsigned int
-hb_ot_layout_table_get_script_count (hb_face_t *face,
-				     hb_tag_t   table_tag)
+hb_bool_t
+hb_ot_layout_table_get_script_tags (hb_face_t    *face,
+				    hb_tag_t      table_tag,
+				    unsigned int *script_count /* IN/OUT */,
+				    hb_tag_t     *script_tags /* OUT */)
 {
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
-  return g.get_script_count ();
-}
-
-hb_tag_t
-hb_ot_layout_table_get_script_tag (hb_face_t    *face,
-				   hb_tag_t      table_tag,
-				   unsigned int  script_index)
-{
-  const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-
-  return g.get_script_tag (script_index);
+  return g.get_script_tags (script_count, script_tags);
 }
 
 hb_bool_t
@@ -379,23 +371,15 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   return FALSE;
 }
 
-unsigned int
-hb_ot_layout_table_get_feature_count (hb_face_t *face,
-				      hb_tag_t   table_tag)
+hb_bool_t
+hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
+				     hb_tag_t      table_tag,
+				     unsigned int *feature_count /* IN/OUT */,
+				     hb_tag_t     *feature_tags /* OUT */)
 {
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
-  return g.get_feature_count ();
-}
-
-hb_tag_t
-hb_ot_layout_table_get_feature_tag (hb_face_t    *face,
-				    hb_tag_t      table_tag,
-				    unsigned int  feature_index)
-{
-  const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-
-  return g.get_feature_tag (feature_index);
+  return g.get_feature_tags (feature_count, feature_tags);
 }
 
 hb_bool_t
@@ -414,35 +398,17 @@ hb_ot_layout_table_find_feature (hb_face_t    *face,
   return FALSE;
 }
 
-unsigned int
-hb_ot_layout_table_get_lookup_count (hb_face_t *face,
-				     hb_tag_t   table_tag)
-{
-  const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
-  return g.get_lookup_count ();
-}
-
-
-unsigned int
-hb_ot_layout_script_get_language_count (hb_face_t    *face,
-					hb_tag_t      table_tag,
-					unsigned int  script_index)
+hb_bool_t
+hb_ot_layout_script_get_language_tags (hb_face_t    *face,
+				       hb_tag_t      table_tag,
+				       unsigned int  script_index,
+				       unsigned int *language_count /* IN/OUT */,
+				       hb_tag_t     *language_tags /* OUT */)
 {
   const Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
 
-  return s.get_lang_sys_count ();
-}
-
-hb_tag_t
-hb_ot_layout_script_get_language_tag (hb_face_t    *face,
-				      hb_tag_t      table_tag,
-				      unsigned int  script_index,
-				      unsigned int  language_index)
-{
-  const Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
-
-  return s.get_lang_sys_tag (language_index);
+  return s.get_lang_sys_tags (language_count, language_tags);
 }
 
 hb_bool_t
@@ -480,42 +446,40 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
   return l.has_required_feature ();
 }
 
-unsigned int
-hb_ot_layout_language_get_feature_count (hb_face_t    *face,
-					 hb_tag_t      table_tag,
-					 unsigned int  script_index,
-					 unsigned int  language_index)
-{
-  const LangSys &l = get_gsubgpos_table (face, table_tag).get_script (script_index).get_lang_sys (language_index);
-
-  return l.get_feature_count ();
-}
-
-unsigned int
-hb_ot_layout_language_get_feature_index (hb_face_t    *face,
-					 hb_tag_t      table_tag,
-					 unsigned int  script_index,
-					 unsigned int  language_index,
-					 unsigned int  num_feature)
+hb_bool_t
+hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
+					   hb_tag_t      table_tag,
+					   unsigned int  script_index,
+					   unsigned int  language_index,
+					   unsigned int *feature_count /* IN/OUT */,
+					   unsigned int *feature_indexes /* OUT */)
 {
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
-  return l.get_feature_index (num_feature);
+  return l.get_feature_indexes (feature_count, feature_indexes);
 }
 
-hb_tag_t
-hb_ot_layout_language_get_feature_tag (hb_face_t    *face,
-				       hb_tag_t      table_tag,
-				       unsigned int  script_index,
-				       unsigned int  language_index,
-				       unsigned int  num_feature)
+hb_bool_t
+hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
+					hb_tag_t      table_tag,
+					unsigned int  script_index,
+					unsigned int  language_index,
+					unsigned int *feature_count /* IN/OUT */,
+					hb_tag_t     *feature_tags /* OUT */)
 {
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
-  unsigned int feature_index = l.get_feature_index (num_feature);
 
-  return g.get_feature_tag (feature_index);
+  ASSERT_STATIC (sizeof (unsigned int) == sizeof (hb_tag_t));
+  unsigned int count = feature_count ? *feature_count : 0;
+  hb_bool_t ret = l.get_feature_indexes (feature_count, (unsigned int *) feature_tags);
+
+  count = feature_count ? MIN (count, *feature_count) : 0;
+  for (unsigned int i = 0; i < count; i++)
+    feature_tags[i] = g.get_feature_tag ((unsigned int) feature_tags[i]);
+
+  return ret;
 }
 
 
@@ -545,28 +509,19 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
   return FALSE;
 }
 
-unsigned int
-hb_ot_layout_feature_get_lookup_count (hb_face_t    *face,
-				       hb_tag_t      table_tag,
-				       unsigned int  feature_index)
+hb_bool_t
+hb_ot_layout_feature_get_lookup_indexes (hb_face_t    *face,
+					 hb_tag_t      table_tag,
+					 unsigned int  feature_index,
+					 unsigned int *lookup_count /* IN/OUT */,
+					 unsigned int *lookup_indexes /* OUT */)
 {
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const Feature &f = g.get_feature (feature_index);
 
-  return f.get_lookup_count ();
+  return f.get_lookup_indexes (lookup_count, lookup_indexes);
 }
 
-unsigned int
-hb_ot_layout_feature_get_lookup_index (hb_face_t    *face,
-				       hb_tag_t      table_tag,
-				       unsigned int  feature_index,
-				       unsigned int  num_lookup)
-{
-  const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-  const Feature &f = g.get_feature (feature_index);
-
-  return f.get_lookup_index (num_lookup);
-}
 
 /*
  * GSUB
@@ -589,6 +544,7 @@ hb_ot_layout_substitute_lookup (hb_face_t                   *face,
   context.face = face;
   return _get_gsub (face).substitute_lookup (&context, buffer, lookup_index, mask);
 }
+
 
 /*
  * GPOS

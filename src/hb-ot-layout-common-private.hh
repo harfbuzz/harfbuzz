@@ -58,25 +58,70 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : ArrayOf<Record<Type> > {};
-
-template <typename Type>
-struct RecordListOf : RecordArrayOf<Type>
-{
-  inline const Type& operator [] (unsigned int i) const
-  {
-    if (HB_UNLIKELY (i >= this->len)) return Null(Type);
-    return this+this->array[i].offset;
-  }
+struct RecordArrayOf : ArrayOf<Record<Type> > {
   inline const Tag& get_tag (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= this->len)) return Null(Tag);
     return this->array[i].tag;
   }
+  inline bool get_tags (unsigned int *record_count /* IN/OUT */,
+			hb_tag_t     *record_tags /* OUT */) const
+  {
+    unsigned int count = MIN (this->len, *record_count);
+    for (unsigned int i = 0; i < count; i++)
+      record_tags[i] = this->array[i].tag;
+
+    *record_count = this->len;
+    return !!this->len;
+  }
+  inline bool find_index (hb_tag_t tag, unsigned int *index) const
+  {
+    const Tag t = tag;
+    // TODO bsearch
+    unsigned int count = this->len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (t == this->array[i].tag)
+      {
+        if (index) *index = i;
+        return true;
+      }
+    }
+    if (index) *index = NO_INDEX;
+    return false;
+  }
+};
+
+template <typename Type>
+struct RecordListOf : RecordArrayOf<Type>
+{
+  inline const Type& operator [] (unsigned int i) const
+  { return this+RecordArrayOf<Type>::operator[](i).offset; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
+  }
+};
+
+
+struct IndexArray : ArrayOf<USHORT>
+{
+  inline unsigned int operator [] (unsigned int i) const
+  {
+    if (HB_UNLIKELY (i >= this->len))
+      return NO_INDEX;
+    return this->array[i];
+  }
+  inline bool get_indexes (unsigned int *_count /* IN/OUT */,
+			   unsigned int *_indexes /* OUT */) const
+  {
+    unsigned int count = MIN (this->len, *_count);
+    for (unsigned int i = 0; i < count; i++)
+      _indexes[i] = this->array[i];
+
+    *_count = this->len;
+    return !!this->len;
   }
 };
 
@@ -88,8 +133,13 @@ struct Feature;
 
 struct LangSys
 {
-  inline unsigned int get_feature_index (unsigned int i) const { return featureIndex[i]; }
-  inline unsigned int get_feature_count (void) const { return featureIndex.len; }
+  inline unsigned int get_feature_count (void) const
+  { return featureIndex.len; }
+  inline hb_tag_t get_feature_index (unsigned int i) const
+  { return featureIndex[i]; }
+  inline bool get_feature_indexes (unsigned int *feature_count /* IN/OUT */,
+				   hb_tag_t     *feature_tags /* OUT */) const
+  { return featureIndex.get_indexes (feature_count, feature_tags); }
 
   inline bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
   inline int get_required_feature_index (void) const
@@ -109,24 +159,27 @@ struct LangSys
   USHORT	reqFeatureIndex;/* Index of a feature required for this
 				 * language system--if no required features
 				 * = 0xFFFF */
-  ArrayOf<USHORT>
-		featureIndex;	/* Array of indices into the FeatureList */
+  IndexArray	featureIndex;	/* Array of indices into the FeatureList */
 };
 ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
 
 
 struct Script
 {
+  inline unsigned int get_lang_sys_count (void) const
+  { return langSys.len; }
+  inline const Tag& get_lang_sys_tag (unsigned int i) const
+  { return langSys.get_tag (i); }
+  inline bool get_lang_sys_tags (unsigned int *lang_sys_count /* IN/OUT */,
+				 hb_tag_t     *lang_sys_tags /* OUT */) const
+  { return langSys.get_tags (lang_sys_count, lang_sys_tags); }
   inline const LangSys& get_lang_sys (unsigned int i) const
   {
     if (i == NO_INDEX) return get_default_lang_sys ();
     return this+langSys[i].offset;
   }
-  inline unsigned int get_lang_sys_count (void) const { return langSys.len; }
-  inline const Tag& get_lang_sys_tag (unsigned int i) const { return langSys[i].tag; }
-
-  // LONGTERMTODO bsearch
-  DEFINE_TAG_FIND_INTERFACE (LangSys, lang_sys);	/* find_lang_sys_index (), get_lang_sys_by_tag (tag) */
+  inline bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const
+  { return langSys.find_index (tag, index); }
 
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
@@ -152,8 +205,13 @@ ASSERT_SIZE (ScriptList, 2);
 
 struct Feature
 {
-  inline unsigned int get_lookup_index (unsigned int i) const { return lookupIndex[i]; }
-  inline unsigned int get_lookup_count (void) const { return lookupIndex.len; }
+  inline unsigned int get_lookup_count (void) const
+  { return lookupIndex.len; }
+  inline hb_tag_t get_lookup_index (unsigned int i) const
+  { return lookupIndex[i]; }
+  inline bool get_lookup_indexes (unsigned int *lookup_count /* IN/OUT */,
+				  hb_tag_t     *lookup_tags /* OUT */) const
+  { return lookupIndex.get_indexes (lookup_count, lookup_tags); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
@@ -166,8 +224,7 @@ struct Feature
 				 * has been defined for the feature), relative
 				 * to the beginning of the Feature Table; = Null
 				 * if not required */
-  ArrayOf<USHORT>
-		lookupIndex;	/* Array of LookupList indices */
+  IndexArray	 lookupIndex;	/* Array of LookupList indices */
 };
 ASSERT_SIZE (Feature, 4);
 

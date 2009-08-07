@@ -4,6 +4,4 @@
 - Rename LookupFlag::MarkAttachmentType to LookupFlag:IgnoreSpecialMarks
 - cmap14 support in get_glyph callback
 - size_t?
-- change get_XXX_count / get_XXX_tag to be more like
-  hb_ot_layout_get_lig_carets (IN/OUT)?
 - Figure out compiler selection (add test for link to libstdc++)

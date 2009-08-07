@@ -855,13 +855,34 @@ struct GSUBGPOS
 
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GSUBGPOS, 1, 1);
 
-  DEFINE_TAG_LIST_INTERFACE (Script,  script );	/* get_script_count (), get_script (i), get_script_tag (i) */
-  DEFINE_TAG_LIST_INTERFACE (Feature, feature);	/* get_feature_count(), get_feature(i), get_feature_tag(i) */
-  DEFINE_LIST_INTERFACE     (Lookup,  lookup );	/* get_lookup_count (), get_lookup (i) */
+  inline unsigned int get_script_count (void) const
+  { return (this+scriptList).len; }
+  inline const Tag& get_script_tag (unsigned int i) const
+  { return (this+scriptList).get_tag (i); }
+  inline bool get_script_tags (unsigned int *script_count /* IN/OUT */,
+			       hb_tag_t     *script_tags /* OUT */) const
+  { return (this+scriptList).get_tags (script_count, script_tags); }
+  inline const Script& get_script (unsigned int i) const
+  { return (this+scriptList)[i]; }
+  inline bool find_script_index (hb_tag_t tag, unsigned int *index) const
+  { return (this+scriptList).find_index (tag, index); }
 
-  // LONGTERMTODO bsearch
-  DEFINE_TAG_FIND_INTERFACE (Script,  script );	/* find_script_index (), get_script_by_tag (tag) */
-  DEFINE_TAG_FIND_INTERFACE (Feature, feature);	/* find_feature_index(), get_feature_by_tag(tag) */
+  inline unsigned int get_feature_count (void) const
+  { return (this+featureList).len; }
+  inline const Tag& get_feature_tag (unsigned int i) const
+  { return (this+featureList).get_tag (i); }
+  inline bool get_feature_tags (unsigned int *feature_count /* IN/OUT */,
+				hb_tag_t     *feature_tags /* OUT */) const
+  { return (this+featureList).get_tags (feature_count, feature_tags); }
+  inline const Feature& get_feature (unsigned int i) const
+  { return (this+featureList)[i]; }
+  inline bool find_feature_index (hb_tag_t tag, unsigned int *index) const
+  { return (this+featureList).find_index (tag, index); }
+
+  inline unsigned int get_lookup_count (void) const
+  { return (this+lookupList).len; }
+  inline const Lookup& get_lookup (unsigned int i) const
+  { return (this+lookupList)[i]; }
 
   bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();

@@ -67,14 +67,43 @@ typedef struct OffsetTable
   friend struct TTCHeader;
 
   STATIC_DEFINE_GET_FOR_DATA (OffsetTable);
-  DEFINE_TAG_ARRAY_INTERFACE (OpenTypeTable, table);	/* get_table_count(), get_table(i), get_table_tag(i) */
-  DEFINE_TAG_FIND_INTERFACE  (OpenTypeTable, table);	/* find_table_index(tag), get_table_by_tag(tag) */
+
+  inline unsigned int get_table_count (void) const
+  { return numTables; }
+  inline const Tag& get_table_tag (unsigned int i) const
+  {
+    if (HB_UNLIKELY (i >= numTables)) return Null(Tag);
+    return tableDir[i].tag;
+  }
+  inline const TableDirectory& get_table (unsigned int i) const
+  {
+    if (HB_UNLIKELY (i >= numTables)) return Null(TableDirectory);
+    return tableDir[i];
+  }
+  inline bool find_table_index (hb_tag_t tag, unsigned int *table_index) const
+  {
+    const Tag t = tag;
+    // TODO bsearch
+    unsigned int count = numTables;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (t == tableDir[i].tag)
+      {
+        if (table_index) *table_index = i;
+        return true;
+      }
+    }
+    if (table_index) *table_index = NO_INDEX;
+    return false;
+  }
+  inline const TableDirectory& get_table_by_tag (hb_tag_t tag) const
+  {
+    unsigned int table_index;
+    find_table_index (tag, &table_index);
+    return get_table (table_index);
+  }
 
   unsigned int get_face_count (void) const { return 1; }
-
-  private:
-  /* OpenTypeTables, in no particular order */
-  DEFINE_ARRAY_TYPE (TableDirectory, tableDir, numTables);
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
