@@ -92,8 +92,6 @@ hb_ot_layout_get_lig_carets (hb_face_t      *face,
  * GSUB/GPOS feature query and enumeration interface
  */
 
-typedef uint32_t hb_ot_layout_feature_mask_t;
-
 #define HB_OT_LAYOUT_NO_SCRIPT_INDEX		((unsigned int) 0xFFFF)
 #define HB_OT_LAYOUT_NO_FEATURE_INDEX		((unsigned int) 0xFFFF)
 #define HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX	((unsigned int) 0xFFFF)
@@ -184,12 +182,11 @@ hb_ot_layout_feature_get_lookup_indexes (hb_face_t    *face,
 hb_bool_t
 hb_ot_layout_has_substitution (hb_face_t *face);
 
-/* XXX ?? GSUB is not font-size dependent, so we apply on face */
 hb_bool_t
-hb_ot_layout_substitute_lookup (hb_face_t                   *face,
-				hb_buffer_t                 *buffer,
-				unsigned int                 lookup_index,
-				hb_ot_layout_feature_mask_t  mask);
+hb_ot_layout_substitute_lookup (hb_face_t    *face,
+				hb_buffer_t  *buffer,
+				unsigned int  lookup_index,
+				hb_mask_t     mask);
 
 /*
  * GPOS
@@ -199,25 +196,12 @@ hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face);
 
 hb_bool_t
-hb_ot_layout_position_lookup   (hb_face_t                   *face,
-				hb_font_t                   *font,
-				hb_buffer_t                 *buffer,
-				unsigned int                 lookup_index,
-				hb_ot_layout_feature_mask_t  mask);
+hb_ot_layout_position_lookup   (hb_face_t    *face,
+				hb_font_t    *font,
+				hb_buffer_t  *buffer,
+				unsigned int  lookup_index,
+				hb_mask_t     mask);
 
-
-
-
-
-
-
-
-
-
-/*
-#define PANGO_OT_ALL_GLYPHS			((guint) 0xFFFF)
-
-*/
 
 HB_END_DECLS
 

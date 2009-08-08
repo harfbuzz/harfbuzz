@@ -1461,8 +1461,8 @@ struct PosLookup : Lookup
   }
 
   bool apply_string (hb_ot_layout_context_t *context,
-		     hb_buffer_t    *buffer,
-		     hb_ot_layout_feature_mask_t mask) const
+		     hb_buffer_t *buffer,
+		     hb_mask_t    mask) const
   {
     bool ret = false;
 
@@ -1475,7 +1475,7 @@ struct PosLookup : Lookup
     while (buffer->in_pos < buffer->in_length)
     {
       bool done;
-      if (~IN_PROPERTIES (buffer->in_pos) & mask)
+      if (~IN_MASK (buffer->in_pos) & mask)
       {
 	  done = apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL);
 	  ret |= done;
@@ -1522,9 +1522,9 @@ struct GPOS : GSUBGPOS
   { return (const PosLookup&) GSUBGPOS::get_lookup (i); }
 
   inline bool position_lookup (hb_ot_layout_context_t *context,
-			       hb_buffer_t    *buffer,
-			       unsigned int    lookup_index,
-			       hb_ot_layout_feature_mask_t  mask) const
+			       hb_buffer_t  *buffer,
+			       unsigned int  lookup_index,
+			       hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
   bool sanitize (SANITIZE_ARG_DEF) {

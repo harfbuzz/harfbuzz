@@ -534,10 +534,10 @@ hb_ot_layout_has_substitution (hb_face_t *face)
 }
 
 hb_bool_t
-hb_ot_layout_substitute_lookup (hb_face_t                   *face,
-				hb_buffer_t                 *buffer,
-				unsigned int                 lookup_index,
-				hb_ot_layout_feature_mask_t  mask)
+hb_ot_layout_substitute_lookup (hb_face_t    *face,
+				hb_buffer_t  *buffer,
+				unsigned int  lookup_index,
+				hb_mask_t     mask)
 {
   hb_ot_layout_context_t context;
   context.font = NULL;
@@ -557,11 +557,11 @@ hb_ot_layout_has_positioning (hb_face_t *face)
 }
 
 hb_bool_t
-hb_ot_layout_position_lookup   (hb_face_t                   *face,
-				hb_font_t                   *font,
-				hb_buffer_t                 *buffer,
-				unsigned int                 lookup_index,
-				hb_ot_layout_feature_mask_t  mask)
+hb_ot_layout_position_lookup   (hb_face_t    *face,
+				hb_font_t    *font,
+				hb_buffer_t  *buffer,
+				unsigned int  lookup_index,
+				hb_mask_t     mask)
 {
   hb_ot_layout_context_t context;
   context.font = font;

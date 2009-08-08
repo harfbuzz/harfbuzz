@@ -774,8 +774,8 @@ struct SubstLookup : Lookup
   }
 
   bool apply_string (hb_ot_layout_context_t *context,
-		     hb_buffer_t    *buffer,
-		     hb_ot_layout_feature_mask_t mask) const
+		     hb_buffer_t *buffer,
+		     hb_mask_t    mask) const
   {
     bool ret = false;
 
@@ -789,7 +789,7 @@ struct SubstLookup : Lookup
 	buffer->in_pos = 0;
 	while (buffer->in_pos < buffer->in_length)
 	{
-	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
+	  if ((~IN_MASK (buffer->in_pos) & mask) &&
 	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
@@ -807,7 +807,7 @@ struct SubstLookup : Lookup
 	buffer->in_pos = buffer->in_length - 1;
 	do
 	{
-	  if ((~IN_PROPERTIES (buffer->in_pos) & mask) &&
+	  if ((~IN_MASK (buffer->in_pos) & mask) &&
 	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
@@ -847,9 +847,9 @@ struct GSUB : GSUBGPOS
   { return (const SubstLookup&) GSUBGPOS::get_lookup (i); }
 
   inline bool substitute_lookup (hb_ot_layout_context_t *context,
-				 hb_buffer_t    *buffer,
-			         unsigned int    lookup_index,
-				 hb_ot_layout_feature_mask_t  mask) const
+				 hb_buffer_t  *buffer,
+			         unsigned int  lookup_index,
+				 hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
 

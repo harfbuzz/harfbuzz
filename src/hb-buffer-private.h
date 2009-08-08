@@ -38,7 +38,7 @@ HB_BEGIN_DECLS
 
 typedef struct _hb_internal_glyph_info_t {
   hb_codepoint_t codepoint;
-  uint32_t       properties;
+  hb_mask_t      mask;
   uint32_t       cluster;
   uint16_t       component;
   uint16_t       lig_id;
@@ -122,7 +122,7 @@ _hb_buffer_allocate_lig_id (hb_buffer_t *buffer);
 #define IN_INFO(pos)		(&buffer->in_string[(pos)])
 #define IN_CURGLYPH()		(buffer->in_string[buffer->in_pos].codepoint)
 #define IN_CURINFO()		(&buffer->in_string[buffer->in_pos])
-#define IN_PROPERTIES(pos)	(buffer->in_string[(pos)].properties)
+#define IN_MASK(pos)		(buffer->in_string[(pos)].mask)
 #define IN_LIGID(pos)		(buffer->in_string[(pos)].lig_id)
 #define IN_COMPONENT(pos)	(buffer->in_string[(pos)].component)
 #define POSITION(pos)		(&buffer->positions[(pos)])

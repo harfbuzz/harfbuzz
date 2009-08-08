@@ -43,7 +43,7 @@ typedef enum _hb_direction_t {
 
 typedef struct _hb_glyph_info_t {
   hb_codepoint_t codepoint;
-  uint32_t       properties;
+  hb_mask_t      mask;
   uint32_t       cluster;
   uint16_t       component;
   uint16_t       lig_id;
@@ -103,7 +103,7 @@ hb_buffer_ensure (hb_buffer_t  *buffer,
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     hb_codepoint_t  codepoint,
-		     unsigned int    properties,
+		     hb_mask_t       mask,
 		     unsigned int    cluster);
 
 

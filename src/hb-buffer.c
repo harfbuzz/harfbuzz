@@ -160,7 +160,7 @@ hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     hb_codepoint_t  codepoint,
-		     unsigned int    properties,
+		     hb_mask_t       mask,
 		     unsigned int    cluster)
 {
   hb_internal_glyph_info_t *glyph;
@@ -169,7 +169,7 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 
   glyph = &buffer->in_string[buffer->in_length];
   glyph->codepoint = codepoint;
-  glyph->properties = properties;
+  glyph->mask = mask;
   glyph->cluster = cluster;
   glyph->component = 0;
   glyph->lig_id = 0;
@@ -248,7 +248,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
    will copied `num_out' times, otherwise `lig_id' itself will
    be used to fill the `lig_id' fields.
 
-   The properties for all replacement glyphs are taken
+   The mask for all replacement glyphs are taken
    from the glyph at position `buffer->in_pos'.
 
    The cluster value for the glyph at position buffer->in_pos is used
@@ -262,7 +262,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned short lig_id)
 {
   unsigned int i;
-  unsigned int properties;
+  unsigned int mask;
   unsigned int cluster;
 
   if (buffer->out_string != buffer->in_string ||
@@ -271,7 +271,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
     hb_buffer_ensure_separate (buffer, buffer->out_pos + num_out);
   }
 
-  properties = buffer->in_string[buffer->in_pos].properties;
+  mask = buffer->in_string[buffer->in_pos].mask;
   cluster = buffer->in_string[buffer->in_pos].cluster;
   if (component == 0xFFFF)
     component = buffer->in_string[buffer->in_pos].component;
@@ -282,7 +282,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   {
     hb_internal_glyph_info_t *info = &buffer->out_string[buffer->out_pos + i];
     info->codepoint = hb_be_uint16 (glyph_data_be[i]);
-    info->properties = properties;
+    info->mask = mask;
     info->cluster = cluster;
     info->component = component;
     info->lig_id = lig_id;

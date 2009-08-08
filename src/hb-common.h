@@ -50,6 +50,7 @@ typedef uint32_t hb_tag_t;
 typedef uint32_t hb_codepoint_t;
 typedef int32_t hb_position_t;
 typedef int32_t hb_16dot16_t;
+typedef uint32_t hb_mask_t;
 
 typedef void (*hb_destroy_func_t) (void *user_data);
 
