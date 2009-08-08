@@ -382,22 +382,6 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
   return g.get_feature_tags (feature_count, feature_tags);
 }
 
-hb_bool_t
-hb_ot_layout_table_find_feature (hb_face_t    *face,
-				 hb_tag_t      table_tag,
-				 hb_tag_t      feature_tag,
-				 unsigned int *feature_index)
-{
-  ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
-  const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-
-  if (g.find_feature_index (feature_tag, feature_index))
-    return TRUE;
-
-  if (feature_index) *feature_index = HB_OT_LAYOUT_NO_FEATURE_INDEX;
-  return FALSE;
-}
-
 
 hb_bool_t
 hb_ot_layout_script_get_language_tags (hb_face_t    *face,

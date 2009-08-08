@@ -117,12 +117,6 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
 				     hb_tag_t     *feature_tags /* OUT */);
 
 hb_bool_t
-hb_ot_layout_table_find_feature (hb_face_t    *face,
-				 hb_tag_t      table_tag,
-				 hb_tag_t      feature_tag,
-				 unsigned int *feature_index);
-
-hb_bool_t
 hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 				       hb_tag_t      table_tag,
 				       unsigned int  script_index,
