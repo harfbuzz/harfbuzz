@@ -148,7 +148,7 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
 
 #if HB_DEBUG
   fprintf (stderr, "sanitize %p init [%p..%p] (%u bytes)\n",
-	   context->blob, context->start, context->end, context->start - context->end);
+	   context->blob, context->start, context->end, context->end - context->start);
 #endif
 }
 
@@ -209,7 +209,7 @@ _hb_sanitize_edit (hb_sanitize_context_t *context,
 #define SANITIZE_MEM(B,L) \
 	HB_LIKELY (context->start <= CONST_CHARP(B) && \
 		   CONST_CHARP(B) < context->end && \
-		   context->end - CONST_CHARP(B) < (L))
+		   context->end - CONST_CHARP(B) >= (L))
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
