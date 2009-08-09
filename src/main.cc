@@ -158,6 +158,8 @@ main (int argc, char **argv)
 		  gdef.has_attach_points () ? "" : "no ");
 	printf ("    Has %slig carets\n",
 		  gdef.has_lig_carets () ? "" : "no ");
+	printf ("    Has %smark sets\n",
+		  gdef.has_mark_sets () ? "" : "no ");
 	break;
 	}
       }
