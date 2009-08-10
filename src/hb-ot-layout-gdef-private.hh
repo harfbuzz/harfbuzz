@@ -153,7 +153,7 @@ ASSERT_SIZE (CaretValueFormat3, 6);
 
 struct CaretValue
 {
-  int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
+  inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
     case 1: return u.format1->get_caret_value (context, glyph_id);
@@ -335,7 +335,7 @@ struct GDEF
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return version >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (version)) return false;
     if (version.major != 1) return true;

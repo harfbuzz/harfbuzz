@@ -678,7 +678,7 @@ struct SubstLookupSubTable
     ReverseChainSingle	= 8,
   };
 
-  bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
+  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
   {
     switch (lookup_type) {
     case Single:		return u.single->apply (APPLY_ARG);
@@ -693,7 +693,7 @@ struct SubstLookupSubTable
     }
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
@@ -773,9 +773,9 @@ struct SubstLookup : Lookup
     return false;
   }
 
-  bool apply_string (hb_ot_layout_context_t *context,
-		     hb_buffer_t *buffer,
-		     hb_mask_t    mask) const
+  inline bool apply_string (hb_ot_layout_context_t *context,
+			    hb_buffer_t *buffer,
+			    hb_mask_t    mask) const
   {
     bool ret = false;
 
@@ -853,7 +853,7 @@ struct GSUB : GSUBGPOS
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
     OffsetTo<SubstLookupList> &list = CAST(OffsetTo<SubstLookupList>, lookupList, 0);

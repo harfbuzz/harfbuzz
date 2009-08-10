@@ -103,7 +103,7 @@ typedef struct OffsetTable
     return get_table (table_index);
   }
 
-  unsigned int get_face_count (void) const { return 1; }
+  inline unsigned int get_face_count (void) const { return 1; }
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
@@ -136,14 +136,14 @@ struct TTCHeader
 
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (TTCHeader, 1, 2);
 
-  unsigned int get_face_count (void) const { return table.len; }
+  inline unsigned int get_face_count (void) const { return table.len; }
 
-  const OpenTypeFontFace& get_face (unsigned int i) const
+  inline const OpenTypeFontFace& get_face (unsigned int i) const
   {
     return this+table[i];
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (version)) return false;
     if (version.major < 1 || version.major > 2) return true;
@@ -175,7 +175,7 @@ struct OpenTypeFontFile
 
   STATIC_DEFINE_GET_FOR_DATA (OpenTypeFontFile);
 
-  unsigned int get_face_count (void) const
+  inline unsigned int get_face_count (void) const
   {
     switch (tag) {
     default: return 0;
@@ -183,7 +183,7 @@ struct OpenTypeFontFile
     case TTCTag: return TTCHeader::get_for_data (CONST_CHARP(this)).get_face_count ();
     }
   }
-  const OpenTypeFontFace& get_face (unsigned int i) const
+  inline const OpenTypeFontFace& get_face (unsigned int i) const
   {
     switch (tag) {
     default: return Null(OpenTypeFontFace);
@@ -202,7 +202,7 @@ struct OpenTypeFontFile
     return ((const char*) this) + table.offset;
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_SELF ()) return false;
     switch (tag) {

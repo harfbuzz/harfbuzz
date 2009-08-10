@@ -412,7 +412,7 @@ struct Coverage
 {
   inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_coverage (glyph_id); }
 
-  unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
     case 1: return u.format1->get_coverage(glyph_id);
@@ -421,7 +421,7 @@ struct Coverage
     }
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
@@ -528,7 +528,7 @@ struct ClassDef
 {
   inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
 
-  hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
     case 1: return u.format1->get_class(glyph_id);
@@ -537,7 +537,7 @@ struct ClassDef
     }
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
@@ -565,7 +565,7 @@ struct Device
 {
   inline int operator() (unsigned int ppem_size) const { return get_delta (ppem_size); }
 
-  int get_delta (unsigned int ppem_size) const
+  inline int get_delta (unsigned int ppem_size) const
   {
     unsigned int f = deltaFormat;
     if (HB_UNLIKELY (f < 1 || f > 3))
@@ -595,7 +595,7 @@ struct Device
     return sizeof (*this) + ((endSize - startSize + (1 << (4 - f)) - 1) >> (4 - f));
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     return SANITIZE_GET_SIZE ();
   }

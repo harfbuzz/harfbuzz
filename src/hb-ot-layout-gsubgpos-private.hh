@@ -439,7 +439,7 @@ ASSERT_SIZE (ContextFormat3, 6);
 struct Context
 {
   protected:
-  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG, apply_func);
@@ -449,7 +449,7 @@ struct Context
     }
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
@@ -746,7 +746,7 @@ ASSERT_SIZE (ChainContextFormat3, 10);
 struct ChainContext
 {
   protected:
-  bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG, apply_func);
@@ -756,7 +756,7 @@ struct ChainContext
     }
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
@@ -826,7 +826,7 @@ struct Extension
     }
   }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
@@ -884,7 +884,7 @@ struct GSUBGPOS
   inline const Lookup& get_lookup (unsigned int i) const
   { return (this+lookupList)[i]; }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (version)) return false;
     if (version.major != 1) return true;

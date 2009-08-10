@@ -424,21 +424,21 @@ struct GenericOffsetTo : OffsetType
     return CONST_CAST(Type, *CONST_CHARP(base), offset);
   }
 
-  bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
-  bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
-  bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_OBJ (*this)) return false;
     unsigned int offset = *this;
@@ -471,7 +471,7 @@ struct GenericArrayOf
   inline unsigned int get_size () const
   { return sizeof (len) + len * sizeof (array[0]); }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     /* Note; for non-recursive types, this is not much needed
@@ -482,7 +482,7 @@ struct GenericArrayOf
     */
     return true;
   }
-  bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
@@ -491,7 +491,7 @@ struct GenericArrayOf
         return false;
     return true;
   }
-  bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
@@ -500,7 +500,7 @@ struct GenericArrayOf
         return false;
     return true;
   }
-  bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
@@ -547,7 +547,7 @@ struct HeadlessArrayOf
   inline unsigned int get_size () const
   { return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]); }
 
-  bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
     /* Note; for non-recursive types, this is not much needed
