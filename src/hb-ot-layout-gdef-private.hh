@@ -32,16 +32,6 @@
 #include "hb-font-private.h"
 
 
-struct GlyphClassDef : ClassDef
-{
-  enum {
-    BaseGlyph		= 0x0001u,
-    LigatureGlyph	= 0x0002u,
-    MarkGlyph		= 0x0003u,
-    ComponentGlyph	= 0x0004u,
-  };
-};
-
 /*
  * Attachment List Table
  */
