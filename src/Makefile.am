@@ -2,7 +2,8 @@
 
 NULL =
 
-CXX = $(CC) -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
+# The following warning options are useful for debugging: -Wpadded -Wcast-align
+AM_CXXFLAGS = -fno-rtti -fno-exceptions
 
 noinst_LTLIBRARIES = libharfbuzz.la
 
