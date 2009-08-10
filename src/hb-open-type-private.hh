@@ -50,6 +50,8 @@
 #define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)CONST_CHARP(&(X)) + Ofs)))
 #define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CHARP(&(X)) + Ofs)))
 
+#define CONST_NEXT(T,X)		(*(reinterpret_cast<const T *>(CONST_CHARP(&(X)) + (X).get_size ())))
+#define NEXT(T,X)		(*(reinterpret_cast<T *>(CHARP(&(X)) + (X).get_size ())))
 
 /*
  * Class features

@@ -522,9 +522,9 @@ struct ChainRule
   private:
   inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
-    const HeadlessArrayOf<USHORT> &input = CONST_CAST (HeadlessArrayOf<USHORT>, backtrack, backtrack.get_size ());
-    const ArrayOf<USHORT> &lookahead = CONST_CAST (ArrayOf<USHORT>, input, input.get_size ());
-    const ArrayOf<LookupRecord> &lookup = CONST_CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
+    const HeadlessArrayOf<USHORT> &input = CONST_NEXT (HeadlessArrayOf<USHORT>, backtrack);
+    const ArrayOf<USHORT> &lookahead = CONST_NEXT (ArrayOf<USHORT>, input);
+    const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, backtrack.array,
 				 input.len, input.array + 1,
@@ -538,11 +538,11 @@ struct ChainRule
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE (backtrack)) return false;
-    HeadlessArrayOf<USHORT> &input = CAST (HeadlessArrayOf<USHORT>, backtrack, backtrack.get_size ());
+    HeadlessArrayOf<USHORT> &input = NEXT (HeadlessArrayOf<USHORT>, backtrack);
     if (!SANITIZE (input)) return false;
-    ArrayOf<USHORT> &lookahead = CAST (ArrayOf<USHORT>, input, input.get_size ());
+    ArrayOf<USHORT> &lookahead = NEXT (ArrayOf<USHORT>, input);
     if (!SANITIZE (lookahead)) return false;
-    ArrayOf<LookupRecord> &lookup = CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
+    ArrayOf<LookupRecord> &lookup = NEXT (ArrayOf<LookupRecord>, lookahead);
     return SANITIZE (lookup);
   }
 
@@ -691,14 +691,14 @@ struct ChainContextFormat3
 
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    const OffsetArrayOf<Coverage> &input = CONST_CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
+    const OffsetArrayOf<Coverage> &input = CONST_NEXT (OffsetArrayOf<Coverage>, backtrack);
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = CONST_CAST (OffsetArrayOf<Coverage>, input, input.get_size ());
-    const ArrayOf<LookupRecord> &lookup = CONST_CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
+    const OffsetArrayOf<Coverage> &lookahead = CONST_NEXT (OffsetArrayOf<Coverage>, input);
+    const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
     struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
       {DECONST_CHARP(this), DECONST_CHARP(this), DECONST_CHARP(this)}
@@ -715,11 +715,11 @@ struct ChainContextFormat3
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_THIS (backtrack)) return false;
-    OffsetArrayOf<Coverage> &input = CAST (OffsetArrayOf<Coverage>, backtrack, backtrack.get_size ());
+    OffsetArrayOf<Coverage> &input = NEXT (OffsetArrayOf<Coverage>, backtrack);
     if (!SANITIZE_THIS (input)) return false;
-    OffsetArrayOf<Coverage> &lookahead = CAST (OffsetArrayOf<Coverage>, input, input.get_size ());
+    OffsetArrayOf<Coverage> &lookahead = NEXT (OffsetArrayOf<Coverage>, input);
     if (!SANITIZE_THIS (lookahead)) return false;
-    ArrayOf<LookupRecord> &lookup = CAST (ArrayOf<LookupRecord>, lookahead, lookahead.get_size ());
+    ArrayOf<LookupRecord> &lookup = NEXT (ArrayOf<LookupRecord>, lookahead);
     return SANITIZE (lookup);
   }
 
