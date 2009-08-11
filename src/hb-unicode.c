@@ -41,6 +41,8 @@ static unsigned int hb_unicode_get_eastasian_width_nil (hb_codepoint_t unicode) 
 hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
+  TRUE, /* immutable */
+
   hb_unicode_get_general_category_nil,
   hb_unicode_get_combining_class_nil,
   hb_unicode_get_mirroring_char_nil,
@@ -92,8 +94,18 @@ hb_unicode_funcs_copy (hb_unicode_funcs_t *other_ufuncs)
 
   *ufuncs = *other_ufuncs;
   HB_OBJECT_DO_INIT (ufuncs);
+  ufuncs->immutable = FALSE;
 
   return ufuncs;
+}
+
+void
+hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
+{
+  if (HB_OBJECT_IS_INERT (ufuncs))
+    return;
+
+  ufuncs->immutable = TRUE;
 }
 
 
@@ -101,7 +113,7 @@ void
 hb_unicode_funcs_set_mirroring_char_func (hb_unicode_funcs_t *ufuncs,
 					  hb_unicode_get_mirroring_char_func_t mirroring_char_func)
 {
-  if (HB_OBJECT_IS_INERT (ufuncs))
+  if (ufuncs->immutable)
     return;
 
   ufuncs->get_mirroring_char = mirroring_char_func ? mirroring_char_func : hb_unicode_get_mirroring_char_nil;
@@ -111,7 +123,7 @@ void
 hb_unicode_funcs_set_general_category_func (hb_unicode_funcs_t *ufuncs,
 					    hb_unicode_get_general_category_func_t general_category_func)
 {
-  if (HB_OBJECT_IS_INERT (ufuncs))
+  if (ufuncs->immutable)
     return;
 
   ufuncs->get_general_category = general_category_func ? general_category_func : hb_unicode_get_general_category_nil;
@@ -121,7 +133,7 @@ void
 hb_unicode_funcs_set_script_func (hb_unicode_funcs_t *ufuncs,
 				  hb_unicode_get_script_func_t script_func)
 {
-  if (HB_OBJECT_IS_INERT (ufuncs))
+  if (ufuncs->immutable)
     return;
 
   ufuncs->get_script = script_func ? script_func : hb_unicode_get_script_nil;
@@ -131,7 +143,7 @@ void
 hb_unicode_funcs_set_combining_class_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_get_combining_class_func_t combining_class_func)
 {
-  if (HB_OBJECT_IS_INERT (ufuncs))
+  if (ufuncs->immutable)
     return;
 
   ufuncs->get_combining_class = combining_class_func ? combining_class_func : hb_unicode_get_combining_class_nil;
@@ -141,7 +153,7 @@ void
 hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_get_eastasian_width_func_t eastasian_width_func)
 {
-  if (HB_OBJECT_IS_INERT (ufuncs))
+  if (ufuncs->immutable)
     return;
 
   ufuncs->get_eastasian_width = eastasian_width_func ? eastasian_width_func : hb_unicode_get_eastasian_width_nil;

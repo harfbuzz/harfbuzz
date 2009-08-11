@@ -180,6 +180,8 @@ hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs);
 hb_unicode_funcs_t *
 hb_unicode_funcs_copy (hb_unicode_funcs_t *ufuncs);
 
+void
+hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs);
 
 
 /* funcs */

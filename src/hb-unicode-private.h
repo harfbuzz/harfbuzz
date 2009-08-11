@@ -40,6 +40,8 @@ HB_BEGIN_DECLS
 struct _hb_unicode_funcs_t {
   hb_reference_count_t ref_count;
 
+  hb_bool_t immutable;
+
   hb_unicode_get_general_category_func_t	get_general_category;
   hb_unicode_get_combining_class_func_t		get_combining_class;
   hb_unicode_get_mirroring_char_func_t		get_mirroring_char;
