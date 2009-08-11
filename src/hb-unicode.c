@@ -32,7 +32,7 @@
  * hb_unicode_funcs_t
  */
 
-static hb_codepoint_t hb_unicode_get_mirroring_char_nil (hb_codepoint_t unicode) { return unicode; }
+static hb_codepoint_t hb_unicode_get_mirroring_nil (hb_codepoint_t unicode) { return unicode; }
 static hb_category_t hb_unicode_get_general_category_nil (hb_codepoint_t unicode) { return HB_CATEGORY_OTHER_LETTER; }
 static hb_script_t hb_unicode_get_script_nil (hb_codepoint_t unicode) { return HB_SCRIPT_UNKNOWN; }
 static unsigned int hb_unicode_get_combining_class_nil (hb_codepoint_t unicode) { return 0; }
@@ -45,7 +45,7 @@ hb_unicode_funcs_t _hb_unicode_funcs_nil = {
 
   hb_unicode_get_general_category_nil,
   hb_unicode_get_combining_class_nil,
-  hb_unicode_get_mirroring_char_nil,
+  hb_unicode_get_mirroring_nil,
   hb_unicode_get_script_nil,
   hb_unicode_get_eastasian_width_nil
 };
@@ -110,13 +110,13 @@ hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 
 
 void
-hb_unicode_funcs_set_mirroring_char_func (hb_unicode_funcs_t *ufuncs,
-					  hb_unicode_get_mirroring_char_func_t mirroring_char_func)
+hb_unicode_funcs_set_mirroring_func (hb_unicode_funcs_t *ufuncs,
+				     hb_unicode_get_mirroring_func_t mirroring_func)
 {
   if (ufuncs->immutable)
     return;
 
-  ufuncs->get_mirroring_char = mirroring_char_func ? mirroring_char_func : hb_unicode_get_mirroring_char_nil;
+  ufuncs->get_mirroring = mirroring_func ? mirroring_func : hb_unicode_get_mirroring_nil;
 }
 
 void

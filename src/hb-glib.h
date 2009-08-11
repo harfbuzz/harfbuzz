@@ -24,34 +24,18 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_UNICODE_PRIVATE_H
-#define HB_UNICODE_PRIVATE_H
+#ifndef HB_GLIB_H
+#define HB_GLIB_H
 
-#include "hb-private.h"
+#include "hb-common.h"
 
 #include "hb-unicode.h"
 
 HB_BEGIN_DECLS
 
-/*
- * hb_unicode_funcs_t
- */
-
-struct _hb_unicode_funcs_t {
-  hb_reference_count_t ref_count;
-
-  hb_bool_t immutable;
-
-  hb_unicode_get_general_category_func_t	get_general_category;
-  hb_unicode_get_combining_class_func_t		get_combining_class;
-  hb_unicode_get_mirroring_func_t		get_mirroring;
-  hb_unicode_get_script_func_t			get_script;
-  hb_unicode_get_eastasian_width_func_t		get_eastasian_width;
-};
-
-HB_INTERNAL hb_unicode_funcs_t
-_hb_unicode_funcs_nil;
+hb_unicode_funcs_t *
+hb_glib_unicode_funcs_create (void);
 
 HB_END_DECLS
 
-#endif /* HB_UNICODE_PRIVATE_H */
+#endif /* HB_GLIB_H */

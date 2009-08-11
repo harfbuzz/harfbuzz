@@ -1,4 +1,4 @@
-## Process this file with automake to produce Makefile.in
+# Process this file with automake to produce Makefile.in
 
 NULL =
 
@@ -13,6 +13,8 @@ HBSOURCES =  \
 	hb-buffer-private.h \
 	hb-font.cc \
 	hb-font-private.h \
+	hb-glib.h \
+	hb-glib.c \
 	hb-private.h \
 	hb-unicode.c \
 	hb-unicode.h \

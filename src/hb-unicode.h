@@ -186,7 +186,7 @@ hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs);
 
 /* funcs */
 
-typedef hb_codepoint_t (*hb_unicode_get_mirroring_char_func_t) (hb_codepoint_t unicode);
+typedef hb_codepoint_t (*hb_unicode_get_mirroring_func_t) (hb_codepoint_t unicode);
 typedef hb_category_t (*hb_unicode_get_general_category_func_t) (hb_codepoint_t unicode);
 typedef hb_script_t (*hb_unicode_get_script_func_t) (hb_codepoint_t unicode);
 typedef unsigned int (*hb_unicode_get_combining_class_func_t) (hb_codepoint_t unicode);
@@ -194,8 +194,8 @@ typedef unsigned int (*hb_unicode_get_eastasian_width_func_t) (hb_codepoint_t un
 
 
 void
-hb_unicode_funcs_set_mirroring_char_func (hb_unicode_funcs_t *ufuncs,
-					  hb_unicode_get_mirroring_char_func_t mirroring_char_func);
+hb_unicode_funcs_set_mirroring_func (hb_unicode_funcs_t *ufuncs,
+				     hb_unicode_get_mirroring_func_t mirroring_func);
 
 void
 hb_unicode_funcs_set_general_category_func (hb_unicode_funcs_t *ufuncs,
