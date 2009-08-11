@@ -27,14 +27,14 @@
 #ifndef HB_GLIB_H
 #define HB_GLIB_H
 
-#include "hb-common.h"
+#include "hb.h"
 
 #include "hb-unicode.h"
 
 HB_BEGIN_DECLS
 
 hb_unicode_funcs_t *
-hb_glib_unicode_funcs_create (void);
+hb_glib_get_unicode_funcs (void);
 
 HB_END_DECLS
 

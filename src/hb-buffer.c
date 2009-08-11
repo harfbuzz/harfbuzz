@@ -180,7 +180,7 @@ hb_buffer_set_direction (hb_buffer_t    *buffer,
 
 /* HarfBuzz-Internal API */
 
-HB_INTERNAL void
+void
 _hb_buffer_clear_output (hb_buffer_t *buffer)
 {
   buffer->out_length = 0;
@@ -202,7 +202,7 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
   memset (buffer->positions, 0, sizeof (buffer->positions[0]) * buffer->in_length);
 }
 
-HB_INTERNAL void
+void
 _hb_buffer_swap (hb_buffer_t *buffer)
 {
   unsigned int tmp;
@@ -244,7 +244,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
 
    The cluster value for the glyph at position buffer->in_pos is used
    for all replacement glyphs */
-HB_INTERNAL void
+void
 _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned int num_in,
 			      unsigned int num_out,
@@ -286,7 +286,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 }
 
 
-HB_INTERNAL void
+void
 _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 			     hb_codepoint_t glyph_index,
 			     unsigned short component,
@@ -315,7 +315,7 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
   buffer->out_length = buffer->out_pos;
 }
 
-HB_INTERNAL void
+void
 _hb_buffer_next_glyph (hb_buffer_t *buffer)
 {
   if (buffer->out_string != buffer->in_string)
@@ -331,14 +331,14 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
   buffer->out_length = buffer->out_pos;
 }
 
-HB_INTERNAL void
+void
 _hb_buffer_replace_glyph (hb_buffer_t *buffer,
 			  hb_codepoint_t glyph_index)
 {
   _hb_buffer_add_output_glyph (buffer, glyph_index, 0xFFFF, 0xFFFF);
 }
 
-HB_INTERNAL unsigned short
+unsigned short
 _hb_buffer_allocate_lig_id (hb_buffer_t *buffer)
 {
   return ++buffer->max_lig_id;

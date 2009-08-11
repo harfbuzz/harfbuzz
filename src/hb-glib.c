@@ -40,7 +40,7 @@ static unsigned int hb_glib_get_eastasian_width_nil (hb_codepoint_t unicode) { r
 
 
 hb_unicode_funcs_t *
-hb_glib_unicode_funcs_create (void)
+hb_glib_get_unicode_funcs (void)
 {
   if (HB_UNLIKELY (!glib_ufuncs)) {
     glib_ufuncs = hb_unicode_funcs_create ();
@@ -50,6 +50,8 @@ hb_glib_unicode_funcs_create (void)
     hb_unicode_funcs_set_script_func (glib_ufuncs, hb_glib_get_script_nil);
     hb_unicode_funcs_set_combining_class_func (glib_ufuncs, hb_glib_get_combining_class_nil);
     hb_unicode_funcs_set_eastasian_width_func (glib_ufuncs, hb_glib_get_eastasian_width_nil);
+
+    hb_unicode_funcs_make_immutable (glib_ufuncs);
   }
 
   return hb_unicode_funcs_reference (glib_ufuncs);

@@ -106,7 +106,7 @@ typedef GStaticMutex hb_mutex_t;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 #ifndef HB_INTERNAL
-# define HB_INTERNAL
+# define HB_INTERNAL extern
 #endif
 
 #ifndef NULL
