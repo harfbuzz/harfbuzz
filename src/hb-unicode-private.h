@@ -47,6 +47,9 @@ struct _hb_unicode_funcs_t {
   hb_unicode_get_eastasian_width_func_t		get_eastasian_width;
 };
 
+HB_INTERNAL hb_unicode_funcs_t
+_hb_unicode_funcs_nil;
+
 HB_END_DECLS
 
 #endif /* HB_UNICODE_PRIVATE_H */

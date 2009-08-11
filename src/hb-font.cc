@@ -27,10 +27,11 @@
 #include "hb-private.h"
 
 #include "hb-font-private.h"
-#include "hb-ot-layout-private.h"
-
+#include "hb-unicode-private.h"
 #include "hb-open-file-private.hh"
 #include "hb-blob.h"
+
+#include "hb-ot-layout-private.h"
 
 /*
  * hb_font_funcs_t
@@ -126,7 +127,7 @@ static hb_face_t _hb_face_nil = {
   NULL, /* destroy */
   NULL, /* user_data */
 
-  NULL  /* unicode */
+  &_hb_unicode_funcs_nil  /* unicode */
 };
 
 hb_face_t *

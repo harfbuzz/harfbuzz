@@ -38,7 +38,7 @@ static hb_script_t hb_unicode_get_script_nil (hb_codepoint_t unicode) { return H
 static unsigned int hb_unicode_get_combining_class_nil (hb_codepoint_t unicode) { return 0; }
 static unsigned int hb_unicode_get_eastasian_width_nil (hb_codepoint_t unicode) { return 1; }
 
-static hb_unicode_funcs_t _hb_unicode_funcs_nil = {
+hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
   hb_unicode_get_general_category_nil,
