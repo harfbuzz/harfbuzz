@@ -99,6 +99,11 @@ void
 hb_buffer_ensure (hb_buffer_t  *buffer,
 		  unsigned int  size);
 
+void
+hb_buffer_reverse (hb_buffer_t *buffer);
+
+
+/* Filling the buffer in */
 
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,
@@ -106,6 +111,8 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     hb_mask_t       mask,
 		     unsigned int    cluster);
 
+
+/* Getting glyphs out of the buffer */
 
 /* Return value valid as long as buffer not modified */
 unsigned int
