@@ -127,7 +127,9 @@ static hb_face_t _hb_face_nil = {
   NULL, /* destroy */
   NULL, /* user_data */
 
-  &_hb_unicode_funcs_nil  /* unicode */
+  &_hb_unicode_funcs_nil,  /* unicode */
+
+  {} /* ot_layout */
 };
 
 hb_face_t *
