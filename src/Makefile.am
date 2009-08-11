@@ -14,6 +14,9 @@ HBSOURCES =  \
 	hb-font.cc \
 	hb-font-private.h \
 	hb-private.h \
+	hb-unicode.c \
+	hb-unicode.h \
+	hb-unicode-private.h \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-ot-layout.cc \

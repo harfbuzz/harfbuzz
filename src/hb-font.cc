@@ -33,10 +33,10 @@
 #include "hb-blob.h"
 
 /*
- * hb_font_callbacks_t
+ * hb_font_funcs_t
  */
 
-static hb_font_callbacks_t _hb_font_callbacks_nil = {
+static hb_font_funcs_t _hb_font_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID /* ref_count */
   /*
   hb_font_get_glyph_func_t glyph_func;
@@ -46,113 +46,51 @@ static hb_font_callbacks_t _hb_font_callbacks_nil = {
   */
 };
 
-hb_font_callbacks_t *
-hb_font_callbacks_create (void)
+hb_font_funcs_t *
+hb_font_funcs_create (void)
 {
-  hb_font_callbacks_t *fcallbacks;
+  hb_font_funcs_t *ffuncs;
 
-  if (!HB_OBJECT_DO_CREATE (hb_font_callbacks_t, fcallbacks))
-    return &_hb_font_callbacks_nil;
+  if (!HB_OBJECT_DO_CREATE (hb_font_funcs_t, ffuncs))
+    return &_hb_font_funcs_nil;
 
-  return fcallbacks;
+  return ffuncs;
 }
 
-hb_font_callbacks_t *
-hb_font_callbacks_reference (hb_font_callbacks_t *fcallbacks)
+hb_font_funcs_t *
+hb_font_funcs_reference (hb_font_funcs_t *ffuncs)
 {
-  HB_OBJECT_DO_REFERENCE (fcallbacks);
+  HB_OBJECT_DO_REFERENCE (ffuncs);
 }
 
 unsigned int
-hb_font_callbacks_get_reference_count (hb_font_callbacks_t *fcallbacks)
+hb_font_funcs_get_reference_count (hb_font_funcs_t *ffuncs)
 {
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (fcallbacks);
+  HB_OBJECT_DO_GET_REFERENCE_COUNT (ffuncs);
 }
 
 void
-hb_font_callbacks_destroy (hb_font_callbacks_t *fcallbacks)
+hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
 {
-  HB_OBJECT_DO_DESTROY (fcallbacks);
+  HB_OBJECT_DO_DESTROY (ffuncs);
 
-  free (fcallbacks);
+  free (ffuncs);
 }
 
-hb_font_callbacks_t *
-hb_font_callbacks_copy (hb_font_callbacks_t *other_fcallbacks)
+hb_font_funcs_t *
+hb_font_funcs_copy (hb_font_funcs_t *other_ffuncs)
 {
-  hb_font_callbacks_t *fcallbacks;
+  hb_font_funcs_t *ffuncs;
 
-  if (!HB_OBJECT_DO_CREATE (hb_font_callbacks_t, fcallbacks))
-    return &_hb_font_callbacks_nil;
+  if (!HB_OBJECT_DO_CREATE (hb_font_funcs_t, ffuncs))
+    return &_hb_font_funcs_nil;
 
-  *fcallbacks = *other_fcallbacks;
+  *ffuncs = *other_ffuncs;
 
   /* re-init refcount */
-  HB_OBJECT_DO_INIT (fcallbacks);
+  HB_OBJECT_DO_INIT (ffuncs);
 
-  return fcallbacks;
-}
-
-
-
-/*
- * hb_unicode_callbacks_t
- */
-
-static hb_unicode_callbacks_t _hb_unicode_callbacks_nil = {
-  HB_REFERENCE_COUNT_INVALID /* ref_count */
-  /*
-  hb_unicode_get_general_category_func_t general_category_func);
-  hb_unicode_get_combining_class_func_t combining_class_func);
-  hb_unicode_get_mirroring_char_func_t mirroring_char_func);
-  hb_unicode_get_script_func_t script_func);
-  hb_unicode_get_eastasian_width_func_t eastasian_width_func);
-  */
-};
-
-hb_unicode_callbacks_t *
-hb_unicode_callbacks_create (void)
-{
-  hb_unicode_callbacks_t *ucallbacks;
-
-  if (!HB_OBJECT_DO_CREATE (hb_unicode_callbacks_t, ucallbacks))
-    return &_hb_unicode_callbacks_nil;
-
-  return ucallbacks;
-}
-
-hb_unicode_callbacks_t *
-hb_unicode_callbacks_reference (hb_unicode_callbacks_t *ucallbacks)
-{
-  HB_OBJECT_DO_REFERENCE (ucallbacks);
-}
-
-unsigned int
-hb_unicode_callbacks_get_reference_count (hb_unicode_callbacks_t *ucallbacks)
-{
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (ucallbacks);
-}
-
-void
-hb_unicode_callbacks_destroy (hb_unicode_callbacks_t *ucallbacks)
-{
-  HB_OBJECT_DO_DESTROY (ucallbacks);
-
-  free (ucallbacks);
-}
-
-hb_unicode_callbacks_t *
-hb_unicode_callbacks_copy (hb_unicode_callbacks_t *other_ucallbacks)
-{
-  hb_unicode_callbacks_t *ucallbacks;
-
-  if (!HB_OBJECT_DO_CREATE (hb_unicode_callbacks_t, ucallbacks))
-    return &_hb_unicode_callbacks_nil;
-
-  *ucallbacks = *other_ucallbacks;
-  HB_OBJECT_DO_INIT (ucallbacks);
-
-  return ucallbacks;
+  return ffuncs;
 }
 
 
@@ -188,8 +126,7 @@ static hb_face_t _hb_face_nil = {
   NULL, /* destroy */
   NULL, /* user_data */
 
-  NULL, /* fcallbacks */
-  NULL  /* ucallbacks */
+  NULL  /* unicode */
 };
 
 hb_face_t *
@@ -257,39 +194,26 @@ hb_face_destroy (hb_face_t *face)
   if (face->destroy)
     face->destroy (face->user_data);
 
-  hb_font_callbacks_destroy (face->fcallbacks);
-  hb_unicode_callbacks_destroy (face->ucallbacks);
+  hb_unicode_funcs_destroy (face->unicode);
 
   free (face);
 }
 
 void
-hb_face_set_font_callbacks (hb_face_t *face,
-			    hb_font_callbacks_t *fcallbacks)
+hb_face_set_unicode_funcs (hb_face_t *face,
+			       hb_unicode_funcs_t *unicode)
 {
   if (HB_OBJECT_IS_INERT (face))
     return;
 
-  hb_font_callbacks_reference (fcallbacks);
-  hb_font_callbacks_destroy (face->fcallbacks);
-  face->fcallbacks = fcallbacks;
-}
-
-void
-hb_face_set_unicode_callbacks (hb_face_t *face,
-			       hb_unicode_callbacks_t *ucallbacks)
-{
-  if (HB_OBJECT_IS_INERT (face))
-    return;
-
-  hb_unicode_callbacks_reference (ucallbacks);
-  hb_unicode_callbacks_destroy (face->ucallbacks);
-  face->ucallbacks = ucallbacks;
+  hb_unicode_funcs_reference (unicode);
+  hb_unicode_funcs_destroy (face->unicode);
+  face->unicode = unicode;
 }
 
 hb_blob_t *
 hb_face_get_table (hb_face_t *face,
-		   hb_tag_t tag)
+		   hb_tag_t   tag)
 {
   if (HB_UNLIKELY (!face || !face->get_table))
     return hb_blob_create_empty ();
@@ -305,24 +229,22 @@ hb_face_get_table (hb_face_t *face,
 static hb_font_t _hb_font_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
-  NULL, /* face */
-
   0, /* x_scale */
   0, /* y_scale */
 
   0, /* x_ppem */
-  0  /* y_ppem */
+  0, /* y_ppem */
+
+  NULL /* klass */
 };
 
 hb_font_t *
-hb_font_create (hb_face_t *face)
+hb_font_create (void)
 {
   hb_font_t *font;
 
   if (!HB_OBJECT_DO_CREATE (hb_font_t, font))
     return &_hb_font_nil;
-
-  font->face = hb_face_reference (face);
 
   return font;
 }
@@ -344,18 +266,21 @@ hb_font_destroy (hb_font_t *font)
 {
   HB_OBJECT_DO_DESTROY (font);
 
-  hb_face_destroy (font->face);
+  hb_font_funcs_destroy (font->klass);
 
   free (font);
 }
 
-hb_face_t *
-hb_font_get_face (hb_font_t *font)
+void
+hb_font_set_funcs (hb_font_t       *font,
+		   hb_font_funcs_t *klass)
 {
   if (HB_OBJECT_IS_INERT (font))
-    return &_hb_face_nil;
+    return;
 
-  return font->face;
+  hb_font_funcs_reference (klass);
+  hb_font_funcs_destroy (font->klass);
+  font->klass = klass;
 }
 
 void

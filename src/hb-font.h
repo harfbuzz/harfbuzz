@@ -29,109 +29,22 @@
 
 #include "hb-common.h"
 #include "hb-blob.h"
+#include "hb-unicode.h"
 
 HB_BEGIN_DECLS
-
-typedef struct _hb_font_callbacks_t hb_font_callbacks_t;
-typedef struct _hb_unicode_callbacks_t hb_unicode_callbacks_t;
-
-typedef struct _hb_face_t hb_face_t;
-typedef struct _hb_font_t hb_font_t;
-
-typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
-
-
-/*
- * hb_font_callbacks_t
- */
-
-hb_font_callbacks_t *
-hb_font_callbacks_create (void);
-
-hb_font_callbacks_t *
-hb_font_callbacks_reference (hb_font_callbacks_t *fcallbacks);
-
-unsigned int
-hb_font_callbacks_get_reference_count (hb_font_callbacks_t *fcallbacks);
-
-void
-hb_font_callbacks_destroy (hb_font_callbacks_t *fcallbacks);
-
-hb_font_callbacks_t *
-hb_font_callbacks_copy (hb_font_callbacks_t *fcallbacks);
-
-/*
-
-void
-hb_font_callbacks_set_glyph_func (hb_font_callbacks_t *fcallbacks,
-				  hb_font_get_glyph_func_t glyph_func);
-
-void
-hb_font_callbacks_set_contour_point_func (hb_font_callbacks_t *fcallbacks,
-					  hb_font_get_contour_point_func_t contour_point_func);
-
-void
-hb_font_callbacks_set_glyph_metrics_func (hb_font_callbacks_t *fcallbacks,
-					  hb_font_get_glyph_metrics_func_t glyph_metrics_func);
-
-void
-hb_font_callbacks_set_kerning_func (hb_font_callbacks_t *fcallbacks,
-				    hb_font_get_kerning_func_t kerning_func);
-
-*/
-
-
-/*
- * hb_unicode_callbacks_t
- */
-
-hb_unicode_callbacks_t *
-hb_unicode_callbacks_create (void);
-
-hb_unicode_callbacks_t *
-hb_unicode_callbacks_reference (hb_unicode_callbacks_t *ucallbacks);
-
-unsigned int
-hb_unicode_callbacks_get_reference_count (hb_unicode_callbacks_t *ucallbacks);
-
-void
-hb_unicode_callbacks_destroy (hb_unicode_callbacks_t *ucallbacks);
-
-hb_unicode_callbacks_t *
-hb_unicode_callbacks_copy (hb_unicode_callbacks_t *ucallbacks);
-
-/*
-
-void
-hb_unicode_callbacks_set_general_category_func (hb_unicode_callbacks_t *ucallbacks,
-						hb_unicode_get_general_category_func_t general_category_func);
-
-void
-hb_unicode_callbacks_set_combining_class_func (hb_unicode_callbacks_t *ucallbacks,
-					       hb_unicode_get_combining_class_func_t combining_class_func);
-
-void
-hb_unicode_callbacks_set_mirroring_char_func (hb_unicode_callbacks_t *ucallbacks,
-					      hb_unicode_get_mirroring_char_func_t mirroring_char_func);
-
-void
-hb_unicode_callbacks_set_script_func (hb_unicode_callbacks_t *ucallbacks,
-				      hb_unicode_get_script_func_t script_func);
-
-void
-hb_unicode_callbacks_set_eastasian_width_func (hb_unicode_callbacks_t *ucallbacks,
-					       hb_unicode_get_eastasian_width_func_t eastasian_width_func);
-
-*/
 
 
 /*
  * hb_face_t
  */
 
+typedef struct _hb_face_t hb_face_t;
+
 hb_face_t *
 hb_face_create_for_data (hb_blob_t    *blob,
 			 unsigned int  index);
+
+typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
 
 /* calls destory() when not needing user_data anymore */
 hb_face_t *
@@ -149,16 +62,54 @@ void
 hb_face_destroy (hb_face_t *face);
 
 void
-hb_face_set_font_callbacks (hb_face_t *face,
-			    hb_font_callbacks_t *fcallbacks);
-
-void
-hb_face_set_unicode_callbacks (hb_face_t *face,
-			       hb_unicode_callbacks_t *ucallbacks);
+hb_face_set_unicode_funcs (hb_face_t *face,
+			   hb_unicode_funcs_t *unicode_funcs);
 
 hb_blob_t *
 hb_face_get_table (hb_face_t *face,
-		   hb_tag_t tag);
+		   hb_tag_t   tag);
+
+
+/*
+ * hb_font_funcs_t
+ */
+
+typedef struct _hb_font_funcs_t hb_font_funcs_t;
+
+hb_font_funcs_t *
+hb_font_funcs_create (void);
+
+hb_font_funcs_t *
+hb_font_funcs_reference (hb_font_funcs_t *ffuncs);
+
+unsigned int
+hb_font_funcs_get_reference_count (hb_font_funcs_t *ffuncs);
+
+void
+hb_font_funcs_destroy (hb_font_funcs_t *ffuncs);
+
+hb_font_funcs_t *
+hb_font_funcs_copy (hb_font_funcs_t *ffuncs);
+
+/*
+
+void
+hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
+			      hb_font_get_glyph_func_t glyph_func);
+
+void
+hb_font_funcs_set_contour_point_func (hb_font_funcs_t *ffuncs,
+				      hb_font_get_contour_point_func_t contour_point_func);
+
+void
+hb_font_funcs_set_glyph_metrics_func (hb_font_funcs_t *ffuncs,
+				      hb_font_get_glyph_metrics_func_t glyph_metrics_func);
+
+void
+hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
+				hb_font_get_kerning_func_t kerning_func);
+
+*/
 
 
 /*
@@ -167,8 +118,10 @@ hb_face_get_table (hb_face_t *face,
 
 /* Fonts are very light-weight objects */
 
+typedef struct _hb_font_t hb_font_t;
+
 hb_font_t *
-hb_font_create (hb_face_t *face);
+hb_font_create (void);
 
 hb_font_t *
 hb_font_reference (hb_font_t *font);
@@ -179,8 +132,9 @@ hb_font_get_reference_count (hb_font_t *font);
 void
 hb_font_destroy (hb_font_t *font);
 
-hb_face_t *
-hb_font_get_face (hb_font_t *font);
+void
+hb_font_set_funcs (hb_font_t       *font,
+		   hb_font_funcs_t *klass);
 
 /*
  * XXX
