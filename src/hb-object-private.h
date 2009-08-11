@@ -56,7 +56,7 @@ typedef struct {
 /* Helper macros */
 
 #define HB_OBJECT_IS_INERT(obj) \
-    (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count))
+    (HB_UNLIKELY (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count)))
 
 #define HB_OBJECT_DO_INIT_EXPR(obj) \
     HB_REFERENCE_COUNT_INIT (obj->ref_count, 1)

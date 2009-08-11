@@ -33,14 +33,13 @@
  */
 
 static hb_unicode_funcs_t _hb_unicode_funcs_nil = {
-  HB_REFERENCE_COUNT_INVALID /* ref_count */
-  /*
-  hb_unicode_get_general_category_func_t general_category_func);
-  hb_unicode_get_combining_class_func_t combining_class_func);
-  hb_unicode_get_mirroring_char_func_t mirroring_char_func);
-  hb_unicode_get_script_func_t script_func);
-  hb_unicode_get_eastasian_width_func_t eastasian_width_func);
-  */
+  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+
+  NULL, /*get_general_category */
+  NULL, /*get_combining_class */
+  NULL, /*get_mirroring_char */
+  NULL, /*get_script */
+  NULL  /*get_eastasian_width */
 };
 
 hb_unicode_funcs_t *
@@ -87,3 +86,55 @@ hb_unicode_funcs_copy (hb_unicode_funcs_t *other_ufuncs)
 
   return ufuncs;
 }
+
+
+void
+hb_unicode_funcs_set_mirroring_char_func (hb_unicode_funcs_t *ufuncs,
+					  hb_unicode_get_mirroring_char_func_t mirroring_char_func)
+{
+  if (HB_OBJECT_IS_INERT (ufuncs))
+    return;
+
+  ufuncs->get_mirroring_char = mirroring_char_func;
+}
+
+void
+hb_unicode_funcs_set_general_category_func (hb_unicode_funcs_t *ufuncs,
+					    hb_unicode_get_general_category_func_t general_category_func)
+{
+  if (HB_OBJECT_IS_INERT (ufuncs))
+    return;
+
+  ufuncs->get_general_category = general_category_func;
+}
+
+void
+hb_unicode_funcs_set_script_func (hb_unicode_funcs_t *ufuncs,
+				  hb_unicode_get_script_func_t script_func)
+{
+  if (HB_OBJECT_IS_INERT (ufuncs))
+    return;
+
+  ufuncs->get_script = script_func;
+}
+
+void
+hb_unicode_funcs_set_combining_class_func (hb_unicode_funcs_t *ufuncs,
+					   hb_unicode_get_combining_class_func_t combining_class_func)
+{
+  if (HB_OBJECT_IS_INERT (ufuncs))
+    return;
+
+  ufuncs->get_combining_class = combining_class_func;
+}
+
+void
+hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
+					   hb_unicode_get_eastasian_width_func_t eastasian_width_func)
+{
+  if (HB_OBJECT_IS_INERT (ufuncs))
+    return;
+
+  ufuncs->get_eastasian_width = eastasian_width_func;
+}
+

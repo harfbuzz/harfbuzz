@@ -40,13 +40,11 @@ HB_BEGIN_DECLS
 struct _hb_unicode_funcs_t {
   hb_reference_count_t ref_count;
 
-  /*
-  hb_unicode_get_general_category_func_t general_category_func);
-  hb_unicode_get_combining_class_func_t combining_class_func);
-  hb_unicode_get_mirroring_char_func_t mirroring_char_func);
-  hb_unicode_get_script_func_t script_func);
-  hb_unicode_get_eastasian_width_func_t eastasian_width_func);
-  */
+  hb_unicode_get_general_category_func_t	get_general_category;
+  hb_unicode_get_combining_class_func_t		get_combining_class;
+  hb_unicode_get_mirroring_char_func_t		get_mirroring_char;
+  hb_unicode_get_script_func_t			get_script;
+  hb_unicode_get_eastasian_width_func_t		get_eastasian_width;
 };
 
 HB_END_DECLS

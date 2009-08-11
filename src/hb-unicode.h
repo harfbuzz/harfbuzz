@@ -184,7 +184,6 @@ hb_unicode_funcs_copy (hb_unicode_funcs_t *ufuncs);
 
 /* funcs */
 
-#if 0
 typedef hb_codepoint_t (*hb_unicode_get_mirroring_char_func_t) (hb_codepoint_t unicode);
 typedef hb_category_t (*hb_unicode_get_general_category_func_t) (hb_codepoint_t unicode);
 typedef hb_script_t (*hb_unicode_get_script_func_t) (hb_codepoint_t unicode);
@@ -211,8 +210,6 @@ hb_unicode_funcs_set_combining_class_func (hb_unicode_funcs_t *ufuncs,
 void
 hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_get_eastasian_width_func_t eastasian_width_func);
-
-#endif
 
 
 HB_END_DECLS
