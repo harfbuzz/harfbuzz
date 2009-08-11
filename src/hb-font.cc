@@ -37,8 +37,11 @@
  * hb_font_funcs_t
  */
 
-static hb_font_funcs_t _hb_font_funcs_nil = {
-  HB_REFERENCE_COUNT_INVALID /* ref_count */
+hb_font_funcs_t _hb_font_funcs_nil = {
+  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+
+  TRUE  /* immutable */
+
   /*
   hb_font_get_glyph_func_t glyph_func;
   hb_font_get_contour_point_func_t contour_point_func;
@@ -90,8 +93,18 @@ hb_font_funcs_copy (hb_font_funcs_t *other_ffuncs)
 
   /* re-init refcount */
   HB_OBJECT_DO_INIT (ffuncs);
+  ffuncs->immutable = FALSE;
 
   return ffuncs;
+}
+
+void
+hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
+{
+  if (HB_OBJECT_IS_INERT (ffuncs))
+    return;
+
+  ffuncs->immutable = TRUE;
 }
 
 
