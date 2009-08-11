@@ -114,23 +114,23 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 void
 hb_buffer_add_utf8 (hb_buffer_t  *buffer,
 		    const char   *text,
-		    unsigned int  text_len,
+		    unsigned int  text_length,
 		    unsigned int  item_offset,
-		    unsigned int  item_len);
+		    unsigned int  item_length);
 
 void
 hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 		     const uint16_t *text,
-		     unsigned int    text_len,
+		     unsigned int    text_length,
 		     unsigned int    item_offset,
-		     unsigned int    item_len);
+		     unsigned int    item_length);
 
 void
 hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     const uint32_t *text,
-		     unsigned int    text_len,
+		     unsigned int    text_length,
 		     unsigned int    item_offset,
-		     unsigned int    item_len);
+		     unsigned int    item_length);
 
 
 /* Getting glyphs out of the buffer */

@@ -392,3 +392,113 @@ hb_buffer_reverse (hb_buffer_t *buffer)
     }
   }
 }
+
+
+#define ADD_UTF(T) \
+	HB_STMT_START { \
+	  const T *next = (const T *) text + item_offset; \
+	  const T *end = next + item_length; \
+	  while (next < end) { \
+	    hb_codepoint_t u; \
+	    const T *old_next = next; \
+	    next = UTF_NEXT (next, end, u); \
+	    hb_buffer_add_glyph (buffer, u, 0,  old_next - (const T *) text); \
+	  } \
+	} HB_STMT_END
+
+
+#define UTF8_COMPUTE(Char, Mask, Len) \
+  if (Char < 128) { Len = 1; Mask = 0x7f; } \
+  else if ((Char & 0xe0) == 0xc0) { Len = 2; Mask = 0x1f; } \
+  else if ((Char & 0xf0) == 0xe0) { Len = 3; Mask = 0x0f; } \
+  else if ((Char & 0xf8) == 0xf0) { Len = 4; Mask = 0x07; } \
+  else Len = 0;
+
+static inline const uint8_t *
+hb_utf8_next (const uint8_t *text,
+	      const uint8_t *end,
+	      hb_codepoint_t *unicode)
+{
+  uint8_t c = *text;
+  unsigned int mask, len;
+
+  UTF8_COMPUTE (c, mask, len);
+  if (HB_UNLIKELY (!len || end - text < len)) {
+    *unicode = -1;
+    return text + 1;
+  } else {
+    hb_codepoint_t result;
+    unsigned int i;
+    result = c & mask;
+    for (i = 1; i < len; i++)
+      {
+	if (HB_UNLIKELY ((text[i] & 0xc0) != 0x80))
+	  {
+	    *unicode = -1;
+	    return text + 1;
+	  }
+	result <<= 6;
+	result |= (text[i] & 0x3f);
+      }
+    *unicode = result;
+    return text + len;
+  }
+}
+
+void
+hb_buffer_add_utf8 (hb_buffer_t  *buffer,
+		    const char   *text,
+		    unsigned int  text_length,
+		    unsigned int  item_offset,
+		    unsigned int  item_length)
+{
+#define UTF_NEXT(S, E, U)	hb_utf8_next (S, E, &(U))
+  ADD_UTF (uint8_t);
+#undef UTF_NEXT
+}
+
+static inline const uint16_t *
+hb_utf16_next (const uint16_t *text,
+	       const uint16_t *end,
+	       hb_codepoint_t *unicode)
+{
+  uint16_t c = *text++;
+
+  if (HB_UNLIKELY (c >= 0xd800 && c < 0xdc00)) {
+    /* high surrogate */
+    uint16_t l;
+    if (text < end && ((l = *text), HB_UNLIKELY (l >= 0xdc00 && l < 0xe000))) {
+      /* low surrogate */
+      *unicode = ((hb_codepoint_t) ((c) - 0xd800) * 0x400 + (l) - 0xdc00 + 0x10000);
+       text++;
+    } else
+      *unicode = -1;
+  } else
+    *unicode = c;
+
+  return text;
+}
+
+void
+hb_buffer_add_utf16 (hb_buffer_t    *buffer,
+		     const uint16_t *text,
+		     unsigned int    text_length,
+		     unsigned int    item_offset,
+		     unsigned int    item_length)
+{
+#define UTF_NEXT(S, E, U)	hb_utf16_next (S, E, &(U))
+  ADD_UTF (uint16_t);
+#undef UTF_NEXT
+}
+
+void
+hb_buffer_add_utf32 (hb_buffer_t    *buffer,
+		     const uint32_t *text,
+		     unsigned int    text_length,
+		     unsigned int    item_offset,
+		     unsigned int    item_length)
+{
+#define UTF_NEXT(S, E, U)	((U) = *(S), (S)+1)
+  ADD_UTF (uint32_t);
+#undef UTF_NEXT
+}
