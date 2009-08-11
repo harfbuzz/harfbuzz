@@ -32,14 +32,20 @@
  * hb_unicode_funcs_t
  */
 
+static hb_codepoint_t hb_unicode_get_mirroring_char_nil (hb_codepoint_t unicode) { return unicode; }
+static hb_category_t hb_unicode_get_general_category_nil (hb_codepoint_t unicode) { return HB_CATEGORY_OTHER_LETTER; }
+static hb_script_t hb_unicode_get_script_nil (hb_codepoint_t unicode) { return HB_SCRIPT_UNKNOWN; }
+static unsigned int hb_unicode_get_combining_class_nil (hb_codepoint_t unicode) { return 0; }
+static unsigned int hb_unicode_get_eastasian_width_nil (hb_codepoint_t unicode) { return 1; }
+
 static hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
-  NULL, /*get_general_category */
-  NULL, /*get_combining_class */
-  NULL, /*get_mirroring_char */
-  NULL, /*get_script */
-  NULL  /*get_eastasian_width */
+  hb_unicode_get_general_category_nil,
+  hb_unicode_get_combining_class_nil,
+  hb_unicode_get_mirroring_char_nil,
+  hb_unicode_get_script_nil,
+  hb_unicode_get_eastasian_width_nil
 };
 
 hb_unicode_funcs_t *
@@ -49,6 +55,9 @@ hb_unicode_funcs_create (void)
 
   if (!HB_OBJECT_DO_CREATE (hb_unicode_funcs_t, ufuncs))
     return &_hb_unicode_funcs_nil;
+
+  *ufuncs = _hb_unicode_funcs_nil;
+  HB_OBJECT_DO_INIT (ufuncs);
 
   return ufuncs;
 }
@@ -95,7 +104,7 @@ hb_unicode_funcs_set_mirroring_char_func (hb_unicode_funcs_t *ufuncs,
   if (HB_OBJECT_IS_INERT (ufuncs))
     return;
 
-  ufuncs->get_mirroring_char = mirroring_char_func;
+  ufuncs->get_mirroring_char = mirroring_char_func ? mirroring_char_func : hb_unicode_get_mirroring_char_nil;
 }
 
 void
@@ -105,7 +114,7 @@ hb_unicode_funcs_set_general_category_func (hb_unicode_funcs_t *ufuncs,
   if (HB_OBJECT_IS_INERT (ufuncs))
     return;
 
-  ufuncs->get_general_category = general_category_func;
+  ufuncs->get_general_category = general_category_func ? general_category_func : hb_unicode_get_general_category_nil;
 }
 
 void
@@ -115,7 +124,7 @@ hb_unicode_funcs_set_script_func (hb_unicode_funcs_t *ufuncs,
   if (HB_OBJECT_IS_INERT (ufuncs))
     return;
 
-  ufuncs->get_script = script_func;
+  ufuncs->get_script = script_func ? script_func : hb_unicode_get_script_nil;
 }
 
 void
@@ -125,7 +134,7 @@ hb_unicode_funcs_set_combining_class_func (hb_unicode_funcs_t *ufuncs,
   if (HB_OBJECT_IS_INERT (ufuncs))
     return;
 
-  ufuncs->get_combining_class = combining_class_func;
+  ufuncs->get_combining_class = combining_class_func ? combining_class_func : hb_unicode_get_combining_class_nil;
 }
 
 void
@@ -135,6 +144,6 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
   if (HB_OBJECT_IS_INERT (ufuncs))
     return;
 
-  ufuncs->get_eastasian_width = eastasian_width_func;
+  ufuncs->get_eastasian_width = eastasian_width_func ? eastasian_width_func : hb_unicode_get_eastasian_width_nil;
 }
 
