@@ -78,7 +78,6 @@ struct _hb_buffer_t {
 
   hb_internal_glyph_info_t     *in_string;
   hb_internal_glyph_info_t     *out_string;
-  hb_internal_glyph_info_t     *alt_string;
   hb_internal_glyph_position_t *positions;
 
   hb_direction_t       direction;

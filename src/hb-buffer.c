@@ -46,11 +46,10 @@ static hb_buffer_t _hb_buffer_nil = {
  * in-place.
  *
  * As soon as out_string gets longer than in_string, out_string is moved over
- * to an alternate buffer (alt_string), and its current contents (out_length
- * entries) are copied to the alt buffer.  This should all remain transparent
- * to the user.  swap() then switches in_string and alt_string.  alt_string is
- * not allocated until its needed, but after that it's grown with in_string
- * unconditionally.
+ * to an alternate buffer (which we reuse the positions buffer for!), and its
+ * current contents (out_length entries) are copied to the alt buffer.
+ * This should all remain transparent to the user.  swap() then switches
+ * in_string and out_string.
  */
 
 /* XXX err handling */
@@ -63,10 +62,10 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
   hb_buffer_ensure (buffer, size);
   if (buffer->out_string == buffer->in_string)
   {
-    if (!buffer->alt_string)
-      buffer->alt_string = calloc (buffer->allocated, sizeof (buffer->alt_string[0]));
+    if (!buffer->positions)
+      buffer->positions = calloc (buffer->allocated, sizeof (buffer->positions[0]));
 
-    buffer->out_string = buffer->alt_string;
+    buffer->out_string = buffer->positions;
     memcpy (buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]));
   }
 }
@@ -105,7 +104,6 @@ hb_buffer_destroy (hb_buffer_t *buffer)
   HB_OBJECT_DO_DESTROY (buffer);
 
   free (buffer->in_string);
-  free (buffer->alt_string);
   free (buffer->positions);
 
   free (buffer);
@@ -138,19 +136,12 @@ hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
     if (buffer->out_string != buffer->in_string)
     {
       buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
-      buffer->alt_string = realloc (buffer->alt_string, new_allocated * sizeof (buffer->alt_string[0]));
-      buffer->out_string = buffer->alt_string;
+      buffer->out_string = buffer->positions;
     }
     else
     {
       buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
       buffer->out_string = buffer->in_string;
-
-      if (buffer->alt_string)
-      {
-	free (buffer->alt_string);
-	buffer->alt_string = NULL;
-      }
     }
 
     buffer->allocated = new_allocated;
@@ -221,8 +212,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
     hb_internal_glyph_info_t *tmp_string;
     tmp_string = buffer->in_string;
     buffer->in_string = buffer->out_string;
-    buffer->out_string = tmp_string;
-    buffer->alt_string = buffer->out_string;
+    buffer->positions = buffer->out_string = tmp_string;
   }
 
   tmp = buffer->in_length;
