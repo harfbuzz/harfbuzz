@@ -210,8 +210,8 @@ _hb_sanitize_edit (hb_sanitize_context_t *context,
 /* TODO Optimize this if L is fixed (gcc magic) */
 #define SANITIZE_MEM(B,L) \
 	HB_LIKELY (context->start <= CONST_CHARP(B) && \
-		   CONST_CHARP(B) < context->end && \
-		   context->end - CONST_CHARP(B) >= (L))
+		   CONST_CHARP(B) <= context->end && \
+		   (unsigned int) (context->end - CONST_CHARP(B)) >= (unsigned int) (L))
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
