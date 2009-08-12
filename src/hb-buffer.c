@@ -374,7 +374,7 @@ hb_buffer_get_glyph_infos (hb_buffer_t *buffer)
 hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
 {
-  if (buffer->in_length && !buffer->positions)
+  if (buffer->have_output || (buffer->in_length && !buffer->positions))
     hb_buffer_clear_positions (buffer);
 
   return (hb_glyph_position_t *) buffer->positions;
@@ -435,7 +435,7 @@ hb_utf8_next (const uint8_t *text,
   unsigned int mask, len;
 
   UTF8_COMPUTE (c, mask, len);
-  if (HB_UNLIKELY (!len || end - text < len)) {
+  if (HB_UNLIKELY (!len || (unsigned int) (end - text) < len)) {
     *unicode = -1;
     return text + 1;
   } else {
