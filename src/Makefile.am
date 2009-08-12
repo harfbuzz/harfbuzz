@@ -3,7 +3,7 @@
 NULL =
 
 # The following warning options are useful for debugging: -Wpadded -Wcast-align
-AM_CXXFLAGS = -fno-rtti -fno-exceptions
+#AM_CXXFLAGS =
 
 noinst_LTLIBRARIES = libharfbuzz.la
 
