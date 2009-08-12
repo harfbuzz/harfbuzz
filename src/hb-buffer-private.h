@@ -71,6 +71,7 @@ struct _hb_buffer_t {
 
   unsigned int allocated;
 
+  hb_bool_t    have_output; /* weather we have an output buffer going on */
   unsigned int in_length;
   unsigned int out_length;
   unsigned int in_pos;

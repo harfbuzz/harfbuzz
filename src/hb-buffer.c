@@ -62,6 +62,7 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
   hb_buffer_ensure (buffer, size);
   if (buffer->out_string == buffer->in_string)
   {
+    assert (buffer->have_output);
     if (!buffer->positions)
       buffer->positions = calloc (buffer->allocated, sizeof (buffer->positions[0]));
 
@@ -112,6 +113,7 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 void
 hb_buffer_clear (hb_buffer_t *buffer)
 {
+  buffer->have_output = FALSE;
   buffer->in_length = 0;
   buffer->out_length = 0;
   buffer->in_pos = 0;
@@ -183,6 +185,7 @@ hb_buffer_set_direction (hb_buffer_t    *buffer,
 void
 _hb_buffer_clear_output (hb_buffer_t *buffer)
 {
+  buffer->have_output = TRUE;
   buffer->out_length = 0;
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
@@ -192,6 +195,7 @@ void
 hb_buffer_clear_positions (hb_buffer_t *buffer)
 {
   _hb_buffer_clear_output (buffer);
+  buffer->have_output = FALSE;
 
   if (HB_UNLIKELY (!buffer->positions))
   {
@@ -206,6 +210,8 @@ void
 _hb_buffer_swap (hb_buffer_t *buffer)
 {
   unsigned int tmp;
+
+  assert (buffer->have_output);
 
   if (buffer->out_string != buffer->in_string)
   {
@@ -318,6 +324,12 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 void
 _hb_buffer_next_glyph (hb_buffer_t *buffer)
 {
+  if (!buffer->have_output)
+  {
+    buffer->in_pos++;
+    return;
+  }
+
   if (buffer->out_string != buffer->in_string)
   {
     hb_buffer_ensure (buffer, buffer->out_pos + 1);
