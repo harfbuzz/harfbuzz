@@ -798,11 +798,9 @@ struct SubstLookup : Lookup
 	}
 	if (ret)
 	  _hb_buffer_swap (buffer);
-
     }
     else
     {
-
 	/* in-place backward substitution */
 	buffer->in_pos = buffer->in_length - 1;
 	do

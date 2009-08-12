@@ -913,13 +913,14 @@ struct MarkBasePosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int count = buffer->in_pos;
-    unsigned int i = 1, j = count - 1;
-    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
+    unsigned int i = 0, j = count;
+    do
     {
       if (HB_UNLIKELY (i == count))
 	return false;
       i++, j--;
-    }
+    } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
+
 #if 0
     /* The following assertion is too strong. */
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
@@ -1046,13 +1047,14 @@ struct MarkLigPosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int count = buffer->in_pos;
-    unsigned int i = 1, j = count - 1;
-    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
+    unsigned int i = 0, j = count;
+    do
     {
       if (HB_UNLIKELY (i == count))
 	return false;
       i++, j--;
-    }
+    } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
+
 #if 0
     /* The following assertion is too strong. */
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
@@ -1203,13 +1205,14 @@ struct MarkMarkPosFormat1
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int count = buffer->in_pos;
-    unsigned int i = 1, j = count - 1;
-    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), lookup_flag, &property))
+    unsigned int i = 0, j = count;
+    do
     {
       if (HB_UNLIKELY (i == count))
 	return false;
       i++, j--;
-    }
+    } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), lookup_flag, &property));
+
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
       return false;
 
