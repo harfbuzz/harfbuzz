@@ -919,7 +919,7 @@ struct MarkBasePosFormat1
       if (HB_UNLIKELY (i == count))
 	return false;
       i++, j--;
-    } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property))
+    } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
 #if 0
     /* The following assertion is too strong. */
