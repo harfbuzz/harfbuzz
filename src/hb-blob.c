@@ -28,12 +28,12 @@
 
 #include "hb-blob.h"
 
-#ifdef HAVE_MPROTECT
+#ifdef HAVE_SYS_MMAN_H
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 #include <sys/mman.h>
-#endif /* HAVE_MPROTECT */
+#endif /* HAVE_SYS_MMAN_H */
 
 struct _hb_blob_t {
   hb_reference_count_t ref_count;
@@ -244,7 +244,7 @@ hb_blob_try_writeable_inplace (hb_blob_t *blob)
 
   hb_mutex_lock (blob->lock);
 
-#ifdef HAVE_MPROTECT
+#ifdef HAVE_SYS_MMAN_H
   if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITEABLE) {
     unsigned int pagesize, mask, length;
     const char *addr;
@@ -286,7 +286,7 @@ hb_blob_try_writeable_inplace (hb_blob_t *blob)
 	     addr, addr+length, length);
 #endif
   }
-#else /* !HAVE_MPROTECT */
+#else /* !HAVE_SYS_MMAN_H */
 #warning "No way to make readonly memory writeable.  This is suboptimal."
 #endif
 
