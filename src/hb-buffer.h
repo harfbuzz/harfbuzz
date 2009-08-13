@@ -56,7 +56,7 @@ typedef struct _hb_glyph_position_t {
   hb_position_t  x_advance;
   hb_position_t  y_advance;
   /* XXX these should all be replaced by "uint32_t internal" */
-  hb_bool_t      new_advance :1;	/* if set, the advance width values are
+  unsigned short new_advance :1;	/* if set, the advance width values are
 					   absolute, i.e., they won't be
 					   added to the original glyph's value
 					   but rather replace them */
