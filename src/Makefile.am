@@ -16,6 +16,8 @@ HBSOURCES =  \
 	hb-glib.h \
 	hb-glib.c \
 	hb-private.h \
+	hb-shape.h \
+	hb-shape.c \
 	hb-unicode.c \
 	hb-unicode.h \
 	hb-unicode-private.h \
