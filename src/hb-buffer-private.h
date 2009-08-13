@@ -50,15 +50,15 @@ typedef struct _hb_internal_glyph_position_t {
   hb_position_t  y_pos;
   hb_position_t  x_advance;
   hb_position_t  y_advance;
-  hb_bool_t      new_advance :1;	/* if set, the advance width values are
-					   absolute, i.e., they won't be
-					   added to the original glyph's value
-					   but rather replace them */
+  unsigned short new_advance :1;	/* if set, the advance width values are
+					 * absolute, i.e., they won't be
+					 * added to the original glyph's value
+					 * but rather replace them */
   unsigned short back : 15;		/* number of glyphs to go back
-					   for drawing current glyph */
+					 * for drawing current glyph */
   short          cursive_chain : 16;	/* character to which this connects,
-					   may be positive or negative; used
-					   only internally */
+					 * may be positive or negative; used
+					 * only internally */
 } hb_internal_glyph_position_t;
 
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_internal_glyph_info_t));
