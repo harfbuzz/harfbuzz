@@ -426,21 +426,21 @@ struct GenericOffsetTo : OffsetType
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     SANITIZE_DEBUG ();
-    if (!SANITIZE_OBJ (*this)) return false;
+    if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
     SANITIZE_DEBUG ();
-    if (!SANITIZE_OBJ (*this)) return false;
+    if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
     SANITIZE_DEBUG ();
-    if (!SANITIZE_OBJ (*this)) return false;
+    if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), user_data) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
