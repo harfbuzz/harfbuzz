@@ -310,8 +310,32 @@ ASSERT_SIZE (MarkRecord, 4);
 
 struct MarkArray
 {
-  inline unsigned int get_class (unsigned int index) const { return markRecord[index].klass; }
-  inline const Anchor& get_anchor (unsigned int index) const { return this+markRecord[index].markAnchor; }
+  inline bool apply (APPLY_ARG_DEF,
+		     unsigned int mark_index, unsigned int glyph_index,
+		     const AnchorMatrix &anchors, unsigned int class_count,
+		     unsigned int glyph_pos) const
+  {
+    const MarkRecord &record = markRecord[mark_index];
+    unsigned int mark_class = record.klass;
+
+    const Anchor& mark_anchor = this + record.markAnchor;
+    const Anchor& glyph_anchor = anchors.get_anchor (glyph_index, mark_class, class_count);
+
+    hb_position_t mark_x, mark_y, base_x, base_y;
+
+    mark_anchor.get_anchor (context, IN_CURGLYPH (), &mark_x, &mark_y);
+    glyph_anchor.get_anchor (context, IN_GLYPH (glyph_pos), &base_x, &base_y);
+
+    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
+    o->x_pos     = base_x - mark_x;
+    o->y_pos     = base_y - mark_y;
+    o->x_advance = 0;
+    o->y_advance = 0;
+    o->back      = buffer->in_pos - glyph_pos;
+
+    buffer->in_pos++;
+    return true;
+  }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
@@ -939,28 +963,7 @@ struct MarkBasePosFormat1
     if (base_index == NOT_COVERED)
       return false;
 
-    const MarkArray& mark_array = this+markArray;
-    const BaseArray& base_array = this+baseArray;
-
-    unsigned int mark_class = mark_array.get_class (mark_index);
-
-    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
-    const Anchor& base_anchor = base_array.get_anchor (base_index, mark_class, classCount);
-
-    hb_position_t mark_x, mark_y, base_x, base_y;
-
-    mark_anchor.get_anchor (context, IN_CURGLYPH (), &mark_x, &mark_y);
-    base_anchor.get_anchor (context, IN_GLYPH (j), &base_x, &base_y);
-
-    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
-    o->x_pos     = base_x - mark_x;
-    o->y_pos     = base_y - mark_y;
-    o->x_advance = 0;
-    o->y_advance = 0;
-    o->back      = i;
-
-    buffer->in_pos++;
-    return true;
+    return (this+markArray).apply (APPLY_ARG, mark_index, base_index, this+baseArray, classCount, j);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -1061,7 +1064,6 @@ struct MarkLigPosFormat1
     if (lig_index == NOT_COVERED)
       return false;
 
-    const MarkArray& mark_array = this+markArray;
     const LigatureArray& lig_array = this+ligatureArray;
     const LigatureAttach& lig_attach = lig_array[lig_index];
 
@@ -1083,25 +1085,7 @@ struct MarkLigPosFormat1
     else
       comp_index = count - 1;
 
-    unsigned int mark_class = mark_array.get_class (mark_index);
-
-    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
-    const Anchor& lig_anchor = lig_attach.get_anchor (comp_index, mark_class, classCount);
-
-    hb_position_t mark_x, mark_y, lig_x, lig_y;
-
-    mark_anchor.get_anchor (context, IN_CURGLYPH (), &mark_x, &mark_y);
-    lig_anchor.get_anchor (context, IN_GLYPH (j), &lig_x, &lig_y);
-
-    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
-    o->x_pos     = lig_x - mark_x;
-    o->y_pos     = lig_y - mark_y;
-    o->x_advance = 0;
-    o->y_advance = 0;
-    o->back      = i;
-
-    buffer->in_pos++;
-    return true;
+    return (this+markArray).apply (APPLY_ARG, mark_index, comp_index, lig_attach, classCount, j);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -1201,28 +1185,7 @@ struct MarkMarkPosFormat1
     if (mark2_index == NOT_COVERED)
       return false;
 
-    const MarkArray& mark1_array = this+mark1Array;
-    const Mark2Array& mark2_array = this+mark2Array;
-
-    unsigned int mark1_class = mark1_array.get_class (mark1_index);
-
-    const Anchor& mark1_anchor = mark1_array.get_anchor (mark1_index);
-    const Anchor& mark2_anchor = mark2_array.get_anchor (mark2_index, mark1_class, classCount);
-
-    hb_position_t mark1_x, mark1_y, mark2_x, mark2_y;
-
-    mark1_anchor.get_anchor (context, IN_CURGLYPH (), &mark1_x, &mark1_y);
-    mark2_anchor.get_anchor (context, IN_GLYPH (j), &mark2_x, &mark2_y);
-
-    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
-    o->x_pos     = mark2_x - mark1_x;
-    o->y_pos     = mark2_y - mark1_y;
-    o->x_advance = 0;
-    o->y_advance = 0;
-    o->back      = i;
-
-    buffer->in_pos++;
-    return true;
+    return (this+mark1Array).apply (APPLY_ARG, mark1_index, mark2_index, this+mark2Array, classCount, j);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
