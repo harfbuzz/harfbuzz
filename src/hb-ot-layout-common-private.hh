@@ -296,25 +296,6 @@ struct Lookup
 };
 ASSERT_SIZE (Lookup, 6);
 
-template <typename Type>
-struct OffsetListOf : OffsetArrayOf<Type>
-{
-  inline const Type& operator [] (unsigned int i) const
-  {
-    if (HB_UNLIKELY (i >= this->len)) return Null(Type);
-    return this+this->array[i];
-  }
-
-  inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
-  }
-  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int user_data) {
-    SANITIZE_DEBUG ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this), user_data);
-  }
-};
-
 typedef OffsetListOf<Lookup> LookupList;
 ASSERT_SIZE (LookupList, 2);
 

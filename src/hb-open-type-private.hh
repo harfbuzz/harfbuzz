@@ -578,6 +578,27 @@ struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {};
 template <typename Type>
 struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
 
+/* Array of offsets relative to the beginning of the array itself. */
+template <typename Type>
+struct OffsetListOf : OffsetArrayOf<Type>
+{
+  inline const Type& operator [] (unsigned int i) const
+  {
+    if (HB_UNLIKELY (i >= this->len)) return Null(Type);
+    return this+this->array[i];
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    SANITIZE_DEBUG ();
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
+  }
+  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int user_data) {
+    SANITIZE_DEBUG ();
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this), user_data);
+  }
+};
+
+
 /* An array with a USHORT number of elements,
  * starting at second element. */
 template <typename Type>
