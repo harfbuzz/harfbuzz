@@ -944,13 +944,12 @@ struct MarkBasePosFormat1
       return false;
 
     /* now we search backwards for a non-mark glyph */
-    unsigned int count = buffer->in_pos;
-    unsigned int i = 0, j = count;
+    unsigned int j = buffer->in_pos;
     do
     {
-      if (HB_UNLIKELY (i == count))
+      if (HB_UNLIKELY (!j))
 	return false;
-      i++, j--;
+      j--;
     } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
 #if 0
@@ -1045,13 +1044,12 @@ struct MarkLigPosFormat1
       return false;
 
     /* now we search backwards for a non-mark glyph */
-    unsigned int count = buffer->in_pos;
-    unsigned int i = 0, j = count;
+    unsigned int j = buffer->in_pos;
     do
     {
-      if (HB_UNLIKELY (i == count))
+      if (HB_UNLIKELY (!j))
 	return false;
-      i++, j--;
+      j--;
     } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
 #if 0
@@ -1068,8 +1066,8 @@ struct MarkLigPosFormat1
     const LigatureAttach& lig_attach = lig_array[lig_index];
 
     /* Find component to attach to */
-    count = lig_attach.rows;
-    if (HB_UNLIKELY (!count))
+    unsigned int comp_count = lig_attach.rows;
+    if (HB_UNLIKELY (!comp_count))
       return false;
     unsigned int comp_index;
     /* We must now check whether the ligature ID of the current mark glyph
@@ -1079,11 +1077,11 @@ struct MarkLigPosFormat1
     if (IN_LIGID (j) == IN_LIGID (buffer->in_pos))
     {
       comp_index = IN_COMPONENT (buffer->in_pos);
-      if (comp_index >= count)
-	comp_index = count - 1;
+      if (comp_index >= comp_count)
+	comp_index = comp_count - 1;
     }
     else
-      comp_index = count - 1;
+      comp_index = comp_count - 1;
 
     return (this+markArray).apply (APPLY_ARG, mark_index, comp_index, lig_attach, classCount, j);
   }
@@ -1163,13 +1161,12 @@ struct MarkMarkPosFormat1
       return false;
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
-    unsigned int count = buffer->in_pos;
-    unsigned int i = 0, j = count;
+    unsigned int j = buffer->in_pos;
     do
     {
-      if (HB_UNLIKELY (i == count))
+      if (HB_UNLIKELY (!j))
 	return false;
-      i++, j--;
+      j--;
     } while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), lookup_flag, &property));
 
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
