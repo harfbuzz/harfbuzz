@@ -1168,14 +1168,17 @@ struct MarkLigPos
 ASSERT_SIZE (MarkLigPos, 2);
 
 
-struct Mark2Array
+struct AnchorMatrix
 {
-  friend struct MarkMarkPosFormat1;
+  inline const Anchor& get_anchor (unsigned int row, unsigned int col, unsigned int cols) const {
+    if (HB_UNLIKELY (row >= rows || col >= cols)) return Null(Anchor);
+    return this+matrix[row * cols + col];
+  }
 
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_SELF ()) return false;
-    unsigned int count = cols * len;
+    unsigned int count = rows * cols;
     if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (matrix[i])) return false;
@@ -1183,14 +1186,16 @@ struct Mark2Array
   }
 
   private:
-  USHORT	len;			/* Number of rows */
+  USHORT	rows;			/* Number of rows */
   OffsetTo<Anchor>
 		matrix[];		/* Matrix of offsets to Anchor tables--
-					 * from beginning of Mark2Array table--
-					 * mark2-major--in order of
-					 * Mark2Coverage Index--, mark1-minor--
-					 * ordered by class--zero-based. */
+					 * from beginning of AnchorMatrix table */
 };
+ASSERT_SIZE (AnchorMatrix, 2);
+
+/* mark2-major--in order of Mark2Coverage Index--,
+ * mark1-minor--ordered by class--zero-based. */
+typedef AnchorMatrix Mark2Array;
 ASSERT_SIZE (Mark2Array, 2);
 
 struct MarkMarkPosFormat1
@@ -1231,16 +1236,14 @@ struct MarkMarkPosFormat1
     const Mark2Array& mark2_array = this+mark2Array;
 
     unsigned int mark1_class = mark1_array.get_class (mark1_index);
-    const Anchor& mark1_anchor = mark1_array.get_anchor (mark1_index);
 
-    if (HB_UNLIKELY (mark1_class >= classCount || mark2_index >= mark2_array.len))
-      return false;
+    const Anchor& mark1_anchor = mark1_array.get_anchor (mark1_index);
+    const Anchor& mark2_anchor = mark2_array.get_anchor (mark2_index, mark1_class, classCount);
 
     hb_position_t mark1_x, mark1_y, mark2_x, mark2_y;
 
     mark1_anchor.get_anchor (context, IN_CURGLYPH (), &mark1_x, &mark1_y);
-    unsigned int index = mark2_index * classCount + mark1_class;
-    (&mark2_array+mark2_array.matrix[index]).get_anchor (context, IN_GLYPH (j), &mark2_x, &mark2_y);
+    mark2_anchor.get_anchor (context, IN_GLYPH (j), &mark2_x, &mark2_y);
 
     hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = mark2_x - mark1_x;
