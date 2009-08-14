@@ -201,12 +201,12 @@ struct LigGlyph
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
-    return SANITIZE (carets);
+    return SANITIZE_THIS (carets);
   }
 
   private:
   OffsetArrayOf<CaretValue>
-		carets;			/* Offset rrray of CaretValue tables
+		carets;			/* Offset array of CaretValue tables
 					 * --from beginning of LigGlyph table
 					 * --in increasing coordinate order */
 };

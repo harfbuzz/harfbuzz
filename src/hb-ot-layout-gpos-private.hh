@@ -1024,7 +1024,7 @@ typedef AnchorMatrix LigatureAttach;	/* component-major--
 					 * ordered by class--zero-based. */
 ASSERT_SIZE (LigatureAttach, 2);
 
-typedef OffsetArrayOf<LigatureAttach> LigatureArray;
+typedef OffsetListOf<LigatureAttach> LigatureArray;
 					/* Array of LigatureAttach
 					 * tables ordered by
 					 * LigatureCoverage Index */
@@ -1063,7 +1063,7 @@ struct MarkLigPosFormat1
 
     const MarkArray& mark_array = this+markArray;
     const LigatureArray& lig_array = this+ligatureArray;
-    const LigatureAttach& lig_attach = &lig_array+lig_array[lig_index];
+    const LigatureAttach& lig_attach = lig_array[lig_index];
 
     /* Find component to attach to */
     count = lig_attach.rows;
@@ -1108,7 +1108,7 @@ struct MarkLigPosFormat1
     SANITIZE_DEBUG ();
     return SANITIZE_SELF () &&
 	   SANITIZE_THIS2 (markCoverage, ligatureCoverage) &&
-	   SANITIZE_THIS2 (markArray, ligatureArray);
+	   SANITIZE_THIS (markArray) && ligatureArray.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
   }
 
   private:

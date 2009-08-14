@@ -309,6 +309,10 @@ struct OffsetListOf : OffsetArrayOf<Type>
     SANITIZE_DEBUG ();
     return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
   }
+  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int user_data) {
+    SANITIZE_DEBUG ();
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this), user_data);
+  }
 };
 
 typedef OffsetListOf<Lookup> LookupList;

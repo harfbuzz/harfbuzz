@@ -515,12 +515,15 @@ struct GenericArrayOf
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
-    /* Note; for non-recursive types, this is not much needed
+    /* Note:
+     * for non-recursive types, this is not much needed.
+     * But we keep the code to make sure the objects pointed to
+     * do have a simple sanitize(). */
+    return true;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array[i]))
         return false;
-    */
     return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
@@ -591,12 +594,15 @@ struct HeadlessArrayOf
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
     if (!SANITIZE_GET_SIZE()) return false;
-    /* Note; for non-recursive types, this is not much needed
+    /* Note:
+     * for non-recursive types, this is not much needed.
+     * But we keep the code to make sure the objects pointed to
+     * do have a simple sanitize(). */
+    return true;
     unsigned int count = len ? len - 1 : 0;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array[i]))
         return false;
-    */
     return true;
   }
 
