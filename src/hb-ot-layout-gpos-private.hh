@@ -565,7 +565,7 @@ struct PairPosFormat2
 	   SANITIZE_THIS2 (classDef1, classDef2) &&
 	   SANITIZE_MEM (values,
 			 (valueFormat1.get_size () + valueFormat2.get_size ()) *
-			 class1Count * class2Count);
+			 class1Count * class2Count); /* XXX overflow (in other places too) */
   }
 
   private:
