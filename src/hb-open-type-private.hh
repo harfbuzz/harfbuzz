@@ -179,9 +179,20 @@ _hb_sanitize_check (SANITIZE_ARG_DEF,
 		    const char *base,
 		    unsigned int len)
 {
-  return context->start <= base &&
-	 base <= context->end &&
-	 (unsigned int) (context->end - base) >= len;
+  bool ret = context->start <= base &&
+	     base <= context->end &&
+	     (unsigned int) (context->end - base) >= len;
+
+#if HB_DEBUG
+  if (sanitize_depth < HB_DEBUG) \
+    fprintf (stderr, "SANITIZE(%p) %-*d-> check [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
+	     base,
+	     sanitize_depth, sanitize_depth,
+	     base, base+len, len,
+	     context->start, context->end,
+	     ret ? "pass" : "FAIL");
+#endif
+  return ret;
 }
 
 static HB_GNUC_UNUSED inline bool
@@ -193,12 +204,13 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
   context->edit_count++;
 
 #if HB_DEBUG
-  fprintf (stderr, "sanitize %p edit %u requested for [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
-	   context->blob,
-	  context->edit_count,
-	  base, base+len, len,
-	  context->start, context->end,
-	  perm ? "granted" : "rejected");
+  fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
+	   base,
+	   sanitize_depth, sanitize_depth,
+	   context->edit_count,
+	   base, base+len, len,
+	   context->start, context->end,
+	   perm ? "granted" : "REJECTED");
 #endif
   return perm;
 }
@@ -257,7 +269,7 @@ struct Sanitizer
 	sane = t->sanitize (SANITIZE_ARG_INIT);
 	if (context.edit_count) {
 #if HB_DEBUG
-	  fprintf (stderr, "Sanitizer %p requested %d edits in second round; failing %s\n",
+	  fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
 		   blob, context.edit_count, __PRETTY_FUNCTION__);
 #endif
 	  sane = false;
@@ -277,7 +289,7 @@ struct Sanitizer
     }
 
 #if HB_DEBUG
-    fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "failed", __PRETTY_FUNCTION__);
+    fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", __PRETTY_FUNCTION__);
 #endif
     if (sane)
       return blob;
