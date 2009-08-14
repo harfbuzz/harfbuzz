@@ -196,6 +196,26 @@ _hb_sanitize_check (SANITIZE_ARG_DEF,
 }
 
 static HB_GNUC_UNUSED inline bool
+_hb_sanitize_array (SANITIZE_ARG_DEF,
+		    const char *base,
+		    unsigned int record_size,
+		    unsigned int len)
+{
+  bool overflows = len >= ((unsigned int) -1) / record_size;
+
+#if HB_DEBUG
+  if (sanitize_depth < HB_DEBUG) \
+    fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n", \
+	     base,
+	     sanitize_depth, sanitize_depth,
+	     base, base + (record_size * len), record_size, len, (unsigned long) record_size * len,
+	     context->start, context->end,
+	     !overflows ? "does not overflow" : "OVERFLOWS FAIL");
+#endif
+  return HB_LIKELY (!overflows) && _hb_sanitize_check (SANITIZE_ARG, base, record_size * len);
+}
+
+static HB_GNUC_UNUSED inline bool
 _hb_sanitize_edit (SANITIZE_ARG_DEF,
 		   const char *base HB_GNUC_UNUSED,
 		   unsigned int len HB_GNUC_UNUSED)
@@ -231,6 +251,8 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 
 /* TODO Optimize this if L is fixed (gcc magic) */
 #define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, CONST_CHARP(B), (L)))
+
+#define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, CONST_CHARP(A), S, L))
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \

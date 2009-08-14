@@ -561,11 +561,12 @@ struct PairPosFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     SANITIZE_DEBUG ();
-    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   SANITIZE_THIS2 (classDef1, classDef2) &&
-	   SANITIZE_MEM (values,
-			 (valueFormat1.get_size () + valueFormat2.get_size ()) *
-			 class1Count * class2Count); /* XXX overflow (in other places too) */
+    if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
+	  SANITIZE_THIS2 (classDef1, classDef2))) return false;
+
+    unsigned int record_size =valueFormat1.get_size () + valueFormat2.get_size ();
+    unsigned int len = class1Count * class2Count;
+    return SANITIZE_ARRAY (values, record_size, len);
   }
 
   private:
@@ -883,7 +884,7 @@ struct BaseArray
     SANITIZE_DEBUG ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = cols * len;
-    if (!SANITIZE_MEM (matrix, sizeof (matrix[0]) * count)) return false;
+    if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (matrix[i])) return false;
     return true;
@@ -1175,7 +1176,7 @@ struct Mark2Array
     SANITIZE_DEBUG ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = cols * len;
-    if (!SANITIZE_MEM (matrix, sizeof (matrix[0]) * count)) return false;
+    if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (matrix[i])) return false;
     return true;
