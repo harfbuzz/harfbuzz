@@ -131,6 +131,13 @@ struct Null <Type> \
 #define SANITIZE_DEBUG() HB_STMT_START {} HB_STMT_END
 #endif
 
+#define SANITIZE_ARG_DEF \
+	hb_sanitize_context_t *context SANITIZE_DEBUG_ARG_DEF
+#define SANITIZE_ARG \
+	context SANITIZE_DEBUG_ARG
+#define SANITIZE_ARG_INIT \
+	&context SANITIZE_DEBUG_ARG_INIT
+
 typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
 struct _hb_sanitize_context_t
 {
@@ -168,7 +175,17 @@ _hb_sanitize_fini (hb_sanitize_context_t *context,
 }
 
 static HB_GNUC_UNUSED inline bool
-_hb_sanitize_edit (hb_sanitize_context_t *context,
+_hb_sanitize_check (SANITIZE_ARG_DEF,
+		    const char *base,
+		    unsigned int len)
+{
+  return context->start <= base &&
+	 base <= context->end &&
+	 (unsigned int) (context->end - base) >= len;
+}
+
+static HB_GNUC_UNUSED inline bool
+_hb_sanitize_edit (SANITIZE_ARG_DEF,
 		   const char *base HB_GNUC_UNUSED,
 		   unsigned int len HB_GNUC_UNUSED)
 {
@@ -186,13 +203,6 @@ _hb_sanitize_edit (hb_sanitize_context_t *context,
   return perm;
 }
 
-#define SANITIZE_ARG_DEF \
-	hb_sanitize_context_t *context SANITIZE_DEBUG_ARG_DEF
-#define SANITIZE_ARG \
-	context SANITIZE_DEBUG_ARG
-#define SANITIZE_ARG_INIT \
-	&context SANITIZE_DEBUG_ARG_INIT
-
 #define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
 #define SANITIZE2(X,Y) (SANITIZE (X) && SANITIZE (Y))
 
@@ -208,14 +218,11 @@ _hb_sanitize_edit (hb_sanitize_context_t *context,
 #define SANITIZE_GET_SIZE() SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ())
 
 /* TODO Optimize this if L is fixed (gcc magic) */
-#define SANITIZE_MEM(B,L) \
-	HB_LIKELY (context->start <= CONST_CHARP(B) && \
-		   CONST_CHARP(B) <= context->end && \
-		   (unsigned int) (context->end - CONST_CHARP(B)) >= (unsigned int) (L))
+#define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, CONST_CHARP(B), (L)))
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
-	 _hb_sanitize_edit (context, CONST_CHARP(&(Var)), sizeof (Var)) && \
+	 _hb_sanitize_edit (SANITIZE_ARG, CONST_CHARP(&(Var)), sizeof (Var)) && \
 	 ((Var) = (Val), true))
 
 
