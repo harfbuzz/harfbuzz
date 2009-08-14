@@ -265,6 +265,32 @@ struct Anchor
 ASSERT_SIZE (Anchor, 2);
 
 
+struct AnchorMatrix
+{
+  inline const Anchor& get_anchor (unsigned int row, unsigned int col, unsigned int cols) const {
+    if (HB_UNLIKELY (row >= rows || col >= cols)) return Null(Anchor);
+    return this+matrix[row * cols + col];
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
+    SANITIZE_DEBUG ();
+    if (!SANITIZE_SELF ()) return false;
+    unsigned int count = rows * cols;
+    if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
+    for (unsigned int i = 0; i < count; i++)
+      if (!SANITIZE_THIS (matrix[i])) return false;
+    return true;
+  }
+
+  USHORT	rows;			/* Number of rows */
+  private:
+  OffsetTo<Anchor>
+		matrix[];		/* Matrix of offsets to Anchor tables--
+					 * from beginning of AnchorMatrix table */
+};
+ASSERT_SIZE (AnchorMatrix, 2);
+
+
 struct MarkRecord
 {
   friend struct MarkArray;
@@ -876,29 +902,10 @@ struct CursivePos
 ASSERT_SIZE (CursivePos, 2);
 
 
-struct BaseArray
-{
-  friend struct MarkBasePosFormat1;
-
-  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
-    SANITIZE_DEBUG ();
-    if (!SANITIZE_SELF ()) return false;
-    unsigned int count = cols * len;
-    if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
-    for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (matrix[i])) return false;
-    return true;
-  }
-
-  private:
-  USHORT	len;			/* Number of rows */
-  OffsetTo<Anchor>
-		matrix[];		/* Matrix of offsets to Anchor tables--
-					 * from beginning of BaseArray table--
-					 * base-major--in order of
-					 * BaseCoverage Index--, mark-minor--
+typedef AnchorMatrix BaseArray;		/* base-major--
+					 * in order of BaseCoverage Index--,
+					 * mark-minor--
 					 * ordered by class--zero-based. */
-};
 ASSERT_SIZE (BaseArray, 2);
 
 struct MarkBasePosFormat1
@@ -936,16 +943,14 @@ struct MarkBasePosFormat1
     const BaseArray& base_array = this+baseArray;
 
     unsigned int mark_class = mark_array.get_class (mark_index);
-    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
 
-    if (HB_UNLIKELY (mark_class >= classCount || base_index >= base_array.len))
-      return false;
+    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
+    const Anchor& base_anchor = base_array.get_anchor (base_index, mark_class, classCount);
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
     mark_anchor.get_anchor (context, IN_CURGLYPH (), &mark_x, &mark_y);
-    unsigned int index = base_index * classCount + mark_class;
-    (&base_array+base_array.matrix[index]).get_anchor (context, IN_GLYPH (j), &base_x, &base_y);
+    base_anchor.get_anchor (context, IN_GLYPH (j), &base_x, &base_y);
 
     hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = base_x - mark_x;
@@ -1013,20 +1018,10 @@ struct MarkBasePos
 ASSERT_SIZE (MarkBasePos, 2);
 
 
-struct LigatureAttach
-{
-  friend struct MarkLigPosFormat1;
-
-  private:
-  USHORT	len;			/* Number of ComponentRecords in this
-					 * ligature, ie. number of rows */
-  OffsetTo<Anchor>
-		matrix[];		/* Matrix of offsets to Anchor tables--
-					 * from beginning of LigatureAttach table--
-					 * component-major--in order of
-					 * writing direction--, mark-minor--
+typedef AnchorMatrix LigatureAttach;	/* component-major--
+					 * in order of writing direction--,
+					 * mark-minor--
 					 * ordered by class--zero-based. */
-};
 ASSERT_SIZE (LigatureAttach, 2);
 
 typedef OffsetArrayOf<LigatureAttach> LigatureArray;
@@ -1068,18 +1063,12 @@ struct MarkLigPosFormat1
 
     const MarkArray& mark_array = this+markArray;
     const LigatureArray& lig_array = this+ligatureArray;
-
-    unsigned int mark_class = mark_array.get_class (mark_index);
-    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
-
-    if (HB_UNLIKELY (mark_class >= classCount || lig_index >= lig_array.len))
-      return false;
-
     const LigatureAttach& lig_attach = &lig_array+lig_array[lig_index];
-    count = lig_attach.len;
+
+    /* Find component to attach to */
+    count = lig_attach.rows;
     if (HB_UNLIKELY (!count))
       return false;
-
     unsigned int comp_index;
     /* We must now check whether the ligature ID of the current mark glyph
      * is identical to the ligature ID of the found ligature.  If yes, we
@@ -1094,11 +1083,15 @@ struct MarkLigPosFormat1
     else
       comp_index = count - 1;
 
+    unsigned int mark_class = mark_array.get_class (mark_index);
+
+    const Anchor& mark_anchor = mark_array.get_anchor (mark_index);
+    const Anchor& lig_anchor = lig_attach.get_anchor (comp_index, mark_class, classCount);
+
     hb_position_t mark_x, mark_y, lig_x, lig_y;
 
     mark_anchor.get_anchor (context, IN_CURGLYPH (), &mark_x, &mark_y);
-    unsigned int index = comp_index * classCount + mark_class;
-    (&lig_attach+lig_attach.matrix[index]).get_anchor (context, IN_GLYPH (j), &lig_x, &lig_y);
+    lig_anchor.get_anchor (context, IN_GLYPH (j), &lig_x, &lig_y);
 
     hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_pos     = lig_x - mark_x;
@@ -1168,34 +1161,10 @@ struct MarkLigPos
 ASSERT_SIZE (MarkLigPos, 2);
 
 
-struct AnchorMatrix
-{
-  inline const Anchor& get_anchor (unsigned int row, unsigned int col, unsigned int cols) const {
-    if (HB_UNLIKELY (row >= rows || col >= cols)) return Null(Anchor);
-    return this+matrix[row * cols + col];
-  }
-
-  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
-    SANITIZE_DEBUG ();
-    if (!SANITIZE_SELF ()) return false;
-    unsigned int count = rows * cols;
-    if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
-    for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (matrix[i])) return false;
-    return true;
-  }
-
-  private:
-  USHORT	rows;			/* Number of rows */
-  OffsetTo<Anchor>
-		matrix[];		/* Matrix of offsets to Anchor tables--
-					 * from beginning of AnchorMatrix table */
-};
-ASSERT_SIZE (AnchorMatrix, 2);
-
-/* mark2-major--in order of Mark2Coverage Index--,
- * mark1-minor--ordered by class--zero-based. */
-typedef AnchorMatrix Mark2Array;
+typedef AnchorMatrix Mark2Array;	/* mark2-major--
+					 * in order of Mark2Coverage Index--,
+					 * mark1-minor--
+					 * ordered by class--zero-based. */
 ASSERT_SIZE (Mark2Array, 2);
 
 struct MarkMarkPosFormat1
