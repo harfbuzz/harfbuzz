@@ -102,13 +102,13 @@ struct ValueRecord {
     y_scale = context->font->y_scale;
     /* design units -> fractional pixel */
     if (format & xPlacement)
-      glyph_pos->x_pos += x_scale * *(SHORT*)values++ / 0x10000;
+      glyph_pos->x_pos += _hb_16dot16_mul_trunc (x_scale, *(SHORT*)values++);
     if (format & yPlacement)
-      glyph_pos->y_pos += y_scale * *(SHORT*)values++ / 0x10000;
+      glyph_pos->y_pos += _hb_16dot16_mul_trunc (y_scale, *(SHORT*)values++);
     if (format & xAdvance)
-      glyph_pos->x_advance += x_scale * *(SHORT*)values++ / 0x10000;
+      glyph_pos->x_advance += _hb_16dot16_mul_trunc (x_scale, *(SHORT*)values++);
     if (format & yAdvance)
-      glyph_pos->y_advance += y_scale * *(SHORT*)values++ / 0x10000;
+      glyph_pos->y_advance += _hb_16dot16_mul_trunc (y_scale, *(SHORT*)values++);
 
     x_ppem = context->font->x_ppem;
     y_ppem = context->font->y_ppem;
@@ -150,8 +150,8 @@ struct AnchorFormat1
   inline void get_anchor (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = context->font->x_scale * xCoordinate / 0x10000;
-      *y = context->font->y_scale * yCoordinate / 0x10000;
+      *x = _hb_16dot16_mul_trunc (context->font->x_scale, xCoordinate);
+      *y = _hb_16dot16_mul_trunc (context->font->y_scale, yCoordinate);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -175,8 +175,8 @@ struct AnchorFormat2
 			  hb_position_t *x, hb_position_t *y) const
   {
       /* TODO Contour */
-      *x = context->font->x_scale * xCoordinate / 0x10000;
-      *y = context->font->y_scale * yCoordinate / 0x10000;
+      *x = _hb_16dot16_mul_trunc (context->font->x_scale, xCoordinate);
+      *y = _hb_16dot16_mul_trunc (context->font->y_scale, yCoordinate);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -200,8 +200,8 @@ struct AnchorFormat3
   inline void get_anchor (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = context->font->x_scale * xCoordinate / 0x10000;
-      *y = context->font->y_scale * yCoordinate / 0x10000;
+      *x = _hb_16dot16_mul_trunc (context->font->x_scale, xCoordinate);
+      *y = _hb_16dot16_mul_trunc (context->font->y_scale, yCoordinate);
 
       if (context->font->x_ppem)
 	*x += (this+xDeviceTable).get_delta (context->font->x_ppem) << 6;
