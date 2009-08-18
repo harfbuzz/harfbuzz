@@ -143,8 +143,8 @@ struct LangSys
   inline hb_tag_t get_feature_index (unsigned int i) const
   { return featureIndex[i]; }
   inline bool get_feature_indexes (unsigned int *feature_count /* IN/OUT */,
-				   hb_tag_t     *feature_tags /* OUT */) const
-  { return featureIndex.get_indexes (feature_count, feature_tags); }
+				   unsigned int *feature_indexes /* OUT */) const
+  { return featureIndex.get_indexes (feature_count, feature_indexes); }
 
   inline bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
   inline int get_required_feature_index (void) const
