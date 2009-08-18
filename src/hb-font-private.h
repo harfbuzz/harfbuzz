@@ -45,12 +45,10 @@ struct _hb_font_funcs_t {
 
   hb_bool_t immutable;
 
-  /*
   hb_font_get_glyph_func_t glyph_func;
   hb_font_get_contour_point_func_t contour_point_func;
   hb_font_get_glyph_metrics_func_t glyph_metrics_func;
   hb_font_get_kerning_func_t kerning_func;
-  */
 };
 
 HB_INTERNAL hb_font_funcs_t

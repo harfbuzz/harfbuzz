@@ -40,14 +40,12 @@
 hb_font_funcs_t _hb_font_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
-  TRUE  /* immutable */
+  TRUE,  /* immutable */
 
-  /*
-  hb_font_get_glyph_func_t glyph_func;
-  hb_font_get_contour_point_func_t contour_point_func;
-  hb_font_get_glyph_metrics_func_t glyph_metrics_func;
-  hb_font_get_kerning_func_t kerning_func;
-  */
+  NULL, /* glyph_func */
+  NULL, /* contour_point_func */
+  NULL, /* glyph_metrics_func */
+  NULL  /* kerning_func */
 };
 
 hb_font_funcs_t *

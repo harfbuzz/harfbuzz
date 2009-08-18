@@ -33,12 +33,12 @@
 
 HB_BEGIN_DECLS
 
+typedef struct _hb_face_t hb_face_t;
+typedef struct _hb_font_t hb_font_t;
 
 /*
  * hb_face_t
  */
-
-typedef struct _hb_face_t hb_face_t;
 
 hb_face_t *
 hb_face_create_for_data (hb_blob_t    *blob,
@@ -94,7 +94,20 @@ hb_font_funcs_copy (hb_font_funcs_t *ffuncs);
 void
 hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs);
 
-/*
+
+/* funcs */
+
+typedef struct _hb_glyph_metrics_t hb_glyph_metrics_t;
+
+typedef hb_codepoint_t (*hb_font_get_glyph_func_t) (hb_font_t *font, hb_face_t *face, const void *user_data,
+						    hb_codepoint_t unicode, hb_codepoint_t variant_selector);
+typedef hb_bool_t (*hb_font_get_contour_point_func_t) (hb_font_t *font, hb_face_t *face, const void *user_data,
+						       hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y);
+typedef void (*hb_font_get_glyph_metrics_func_t) (hb_font_t *font, hb_face_t *face, const void *user_data,
+						  hb_codepoint_t glyph, hb_glyph_metrics_t *metrics);
+typedef hb_position_t (*hb_font_get_kerning_func_t) (hb_font_t *font, hb_face_t *face, const void *user_data,
+						     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph);
+
 
 void
 hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
@@ -112,16 +125,12 @@ void
 hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
 				hb_font_get_kerning_func_t kerning_func);
 
-*/
-
 
 /*
  * hb_font_t
  */
 
 /* Fonts are very light-weight objects */
-
-typedef struct _hb_font_t hb_font_t;
 
 hb_font_t *
 hb_font_create (void);
