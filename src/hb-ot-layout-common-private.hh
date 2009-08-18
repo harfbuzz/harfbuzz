@@ -215,7 +215,7 @@ struct Feature
   inline hb_tag_t get_lookup_index (unsigned int i) const
   { return lookupIndex[i]; }
   inline bool get_lookup_indexes (unsigned int *lookup_count /* IN/OUT */,
-				  hb_tag_t     *lookup_tags /* OUT */) const
+				  unsigned int *lookup_tags /* OUT */) const
   { return lookupIndex.get_indexes (lookup_count, lookup_tags); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
