@@ -246,7 +246,7 @@ struct LookupFlag : USHORT
     IgnoreMarks		= 0x0008u,
     UseMarkFilteringSet	= 0x0010u,
     Reserved		= 0x00E0u,
-    MarkAttachmentType	= 0xFF00u,
+    MarkAttachmentType	= 0xFF00u
   };
 };
 ASSERT_SIZE (LookupFlag, 2);

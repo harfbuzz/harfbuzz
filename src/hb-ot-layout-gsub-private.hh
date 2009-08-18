@@ -675,7 +675,7 @@ struct SubstLookupSubTable
     Context		= 5,
     ChainContext	= 6,
     Extension		= 7,
-    ReverseChainSingle	= 8,
+    ReverseChainSingle	= 8
   };
 
   inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const

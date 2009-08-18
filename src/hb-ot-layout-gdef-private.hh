@@ -305,7 +305,7 @@ struct GDEF
     BaseGlyph		= 1,
     LigatureGlyph	= 2,
     MarkGlyph		= 3,
-    ComponentGlyph	= 4,
+    ComponentGlyph	= 4
   };
 
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (GDEF, 1, 1);

@@ -49,7 +49,7 @@ struct ValueFormat : USHORT
     xAdvDevice	= 0x0040,	/* Includes horizontal Device table for advance */
     yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
     ignored	= 0x0F00,	/* Was used in TrueType Open for MM fonts */
-    reserved	= 0xF000,	/* For future use */
+    reserved	= 0xF000 	/* For future use */
   };
 
   inline unsigned int get_len () const
@@ -1299,7 +1299,7 @@ struct PosLookupSubTable
     MarkMark		= 6,
     Context		= 7,
     ChainContext	= 8,
-    Extension		= 9,
+    Extension		= 9
   };
 
   inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
