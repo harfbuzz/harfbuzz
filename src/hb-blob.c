@@ -234,6 +234,59 @@ hb_blob_is_writeable (hb_blob_t *blob)
   return mode == HB_MEMORY_MODE_WRITEABLE;
 }
 
+
+static hb_bool_t
+_try_make_writeable_inplace_unix_locked (hb_blob_t *blob)
+{
+#if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT)
+  unsigned int pagesize = -1, mask, length;
+  const char *addr;
+
+#if defined(HAVE_SYSCONF) && defined(_SC_PAGE_SIZE)
+  pagesize = (unsigned int) sysconf (_SC_PAGE_SIZE);
+#elif defined(HAVE_SYSCONF) && defined(_SC_PAGESIZE)
+  pagesize = (unsigned int) sysconf (_SC_PAGESIZE);
+#elif defined(HAVE_GETPAGESIZE)
+  pagesize = (unsigned int) getpagesize ();
+#endif
+
+  if ((unsigned int) -1 == pagesize) {
+#if HB_DEBUG
+    fprintf (stderr, "%p %s: failed to get pagesize: %s\n", blob, __FUNCTION__, strerror (errno));
+#endif
+    return FALSE;
+  }
+#if HB_DEBUG
+  fprintf (stderr, "%p %s: pagesize is %u\n", blob, __FUNCTION__, pagesize);
+#endif
+
+  mask = ~(pagesize-1);
+  addr = (const char *) (((size_t) blob->data) & mask);
+  length = (const char *) (((size_t) blob->data + blob->length + pagesize-1) & mask)  - addr;
+#if HB_DEBUG
+  fprintf (stderr, "%p %s: calling mprotect on [%p..%p] (%d bytes)\n",
+	   blob, __FUNCTION__,
+	   addr, addr+length, length);
+#endif
+  if (-1 == mprotect ((void *) addr, length, PROT_READ | PROT_WRITE)) {
+#if HB_DEBUG
+    fprintf (stderr, "%p %s: %s\n", blob, __FUNCTION__, strerror (errno));
+#endif
+    return FALSE;
+  }
+
+#if HB_DEBUG
+  fprintf (stderr, "%p %s: successfully made [%p..%p] (%d bytes) writeable\n",
+	   blob, __FUNCTION__,
+	   addr, addr+length, length);
+#endif
+  return TRUE;
+#else
+  return FALSE;
+#endif
+}
+
+
 hb_bool_t
 hb_blob_try_writeable_inplace (hb_blob_t *blob)
 {
@@ -244,53 +297,26 @@ hb_blob_try_writeable_inplace (hb_blob_t *blob)
 
   hb_mutex_lock (blob->lock);
 
-#ifdef HAVE_SYS_MMAN_H
   if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITEABLE) {
-    unsigned int pagesize, mask, length;
-    const char *addr;
 
 #if HB_DEBUG
     fprintf (stderr, "%p %s: making writeable\n", blob, __FUNCTION__);
 #endif
-    pagesize = (unsigned int) sysconf(_SC_PAGE_SIZE);
-    if ((unsigned int) -1 == pagesize) {
+
+    if (_try_make_writeable_inplace_unix_locked (blob)) {
 #if HB_DEBUG
-      fprintf (stderr, "%p %s: %s\n", blob, __FUNCTION__, strerror (errno));
+    fprintf (stderr, "%p %s: making writeable -> succeeded\n", blob, __FUNCTION__);
 #endif
-      goto done;
+      blob->mode = HB_MEMORY_MODE_WRITEABLE;
+    } else {
+#if HB_DEBUG
+    fprintf (stderr, "%p %s: making writeable -> FAILED\n", blob, __FUNCTION__);
+#endif
+      /* Failed to make writeable inplace, mark that */
+      blob->mode = HB_MEMORY_MODE_READONLY;
     }
-#if HB_DEBUG
-    fprintf (stderr, "%p %s: pagesize is %u\n", blob, __FUNCTION__, pagesize);
-#endif
-
-    mask = ~(pagesize-1);
-    addr = (const char *) (((size_t) blob->data) & mask);
-    length = (const char *) (((size_t) blob->data + blob->length + pagesize-1) & mask)  - addr;
-#if HB_DEBUG
-    fprintf (stderr, "%p %s: calling mprotect on [%p..%p] (%d bytes)\n",
-	     blob, __FUNCTION__,
-	     addr, addr+length, length);
-#endif
-    if (-1 == mprotect ((void *) addr, length, PROT_READ | PROT_WRITE)) {
-#if HB_DEBUG
-      fprintf (stderr, "%p %s: %s\n", blob, __FUNCTION__, strerror (errno));
-#endif
-      goto done;
-    }
-
-    blob->mode = HB_MEMORY_MODE_WRITEABLE;
-
-#if HB_DEBUG
-    fprintf (stderr, "%p %s: successfully made [%p..%p] (%d bytes) writeable\n",
-	     blob, __FUNCTION__,
-	     addr, addr+length, length);
-#endif
   }
-#else /* !HAVE_SYS_MMAN_H */
-#warning "No way to make readonly memory writeable.  This is suboptimal."
-#endif
 
-done:
   mode = blob->mode;
 
   hb_mutex_unlock (blob->lock);
