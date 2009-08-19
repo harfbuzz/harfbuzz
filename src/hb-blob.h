@@ -34,9 +34,9 @@ HB_BEGIN_DECLS
 typedef enum {
   HB_MEMORY_MODE_DUPLICATE,
   HB_MEMORY_MODE_READONLY,
-  HB_MEMORY_MODE_WRITEABLE,
+  HB_MEMORY_MODE_WRITABLE,
   HB_MEMORY_MODE_READONLY_NEVER_DUPLICATE,
-  HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITEABLE
+  HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE
 } hb_memory_mode_t;
 
 typedef struct _hb_blob_t hb_blob_t;
@@ -75,13 +75,13 @@ void
 hb_blob_unlock (hb_blob_t *blob);
 
 hb_bool_t
-hb_blob_is_writeable (hb_blob_t *blob);
+hb_blob_is_writable (hb_blob_t *blob);
 
 hb_bool_t
-hb_blob_try_writeable_inplace (hb_blob_t *blob);
+hb_blob_try_writable_inplace (hb_blob_t *blob);
 
 hb_bool_t
-hb_blob_try_writeable (hb_blob_t *blob);
+hb_blob_try_writable (hb_blob_t *blob);
 
 HB_END_DECLS
 

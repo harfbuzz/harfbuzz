@@ -217,7 +217,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 		   const char *base HB_GNUC_UNUSED,
 		   unsigned int len HB_GNUC_UNUSED)
 {
-  bool perm = hb_blob_try_writeable_inplace (context->blob);
+  bool perm = hb_blob_try_writable_inplace (context->blob);
   context->edit_count++;
 
 #if HB_DEBUG
@@ -298,8 +298,8 @@ struct Sanitizer
     } else {
       unsigned int edit_count = context.edit_count;
       _hb_sanitize_fini (&context, true);
-      if (edit_count && !hb_blob_is_writeable (blob) && hb_blob_try_writeable (blob)) {
-        /* ok, we made it writeable by relocating.  try again */
+      if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
+        /* ok, we made it writable by relocating.  try again */
 #if HB_DEBUG
 	fprintf (stderr, "Sanitizer %p retry %s\n", blob, __PRETTY_FUNCTION__);
 #endif
