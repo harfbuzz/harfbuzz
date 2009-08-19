@@ -46,7 +46,7 @@ hb_face_create_for_data (hb_blob_t    *blob,
 
 typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
 
-/* calls destory() when not needing user_data anymore */
+/* calls destroy() when not needing user_data anymore */
 hb_face_t *
 hb_face_create_for_tables (hb_get_table_func_t  get_table,
 			   hb_destroy_func_t    destroy,
