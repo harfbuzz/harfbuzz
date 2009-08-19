@@ -65,7 +65,7 @@ template <typename Type>
 struct Null
 {
   ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
-  static inline const Type &get () { return *(const Type*)NullPool; }
+  static inline const Type &get () { return CONST_CAST (Type, *NullPool, 0); }
 };
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
@@ -74,7 +74,7 @@ static const char _Null##Type[size] = data; \
 template <> \
 struct Null <Type> \
 { \
-  static inline const Type &get () { return *(const Type*)_Null##Type; } \
+  static inline const Type &get () { return CONST_CAST (Type, *_Null##Type, 0); } \
 }
 
 /* Accessor macro. */
@@ -92,14 +92,14 @@ struct Null <Type> \
   static inline const Type& get_for_data (const char *data) \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    return *(const Type*)data; \
+    return CONST_CAST (Type, *data, 0); \
   }
 /* Like get_for_data(), but checks major version first. */
 #define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, MajorMin, MajorMax) \
   static inline const Type& get_for_data (const char *data) \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    const Type& t = *(const Type*)data; \
+    const Type& t = CONST_CAST (Type, *data, 0); \
     if (HB_UNLIKELY (t.version.major < MajorMin || t.version.major > MajorMax)) return Null(Type); \
     return t; \
   }
@@ -283,7 +283,7 @@ struct Sanitizer
 	fprintf (stderr, "Sanitizer %p passed first round with %d edits; going a second round %s\n",
 		 blob, context.edit_count, __PRETTY_FUNCTION__);
 #endif
-        /* sanitize again to ensure not toe-stepping */
+        /* sanitize again to ensure no toe-stepping */
         context.edit_count = 0;
 	sane = t->sanitize (SANITIZE_ARG_INIT);
 	if (context.edit_count) {
