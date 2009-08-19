@@ -59,7 +59,7 @@ static hb_blob_t _hb_blob_nil = {
   HB_MUTEX_INIT, /* lock */
 
   0, /* lock_count */
-  HB_MEMORY_MODE_READONLY_NEVER_DUPLICATE, /* mode */
+  HB_MEMORY_MODE_READONLY, /* mode */
 
   NULL, /* data */
 
@@ -286,6 +286,26 @@ _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
 #endif
 }
 
+static void
+_try_writable_inplace_locked (hb_blob_t *blob)
+{
+#if HB_DEBUG
+  fprintf (stderr, "%p %s: making writable\n", blob, __FUNCTION__);
+#endif
+
+  if (_try_make_writable_inplace_unix_locked (blob)) {
+#if HB_DEBUG
+  fprintf (stderr, "%p %s: making writable -> succeeded\n", blob, __FUNCTION__);
+#endif
+    blob->mode = HB_MEMORY_MODE_WRITABLE;
+  } else {
+#if HB_DEBUG
+  fprintf (stderr, "%p %s: making writable -> FAILED\n", blob, __FUNCTION__);
+#endif
+    /* Failed to make writable inplace, mark that */
+    blob->mode = HB_MEMORY_MODE_READONLY;
+  }
+}
 
 hb_bool_t
 hb_blob_try_writable_inplace (hb_blob_t *blob)
@@ -297,25 +317,8 @@ hb_blob_try_writable_inplace (hb_blob_t *blob)
 
   hb_mutex_lock (blob->lock);
 
-  if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE) {
-
-#if HB_DEBUG
-    fprintf (stderr, "%p %s: making writable\n", blob, __FUNCTION__);
-#endif
-
-    if (_try_make_writable_inplace_unix_locked (blob)) {
-#if HB_DEBUG
-    fprintf (stderr, "%p %s: making writable -> succeeded\n", blob, __FUNCTION__);
-#endif
-      blob->mode = HB_MEMORY_MODE_WRITABLE;
-    } else {
-#if HB_DEBUG
-    fprintf (stderr, "%p %s: making writable -> FAILED\n", blob, __FUNCTION__);
-#endif
-      /* Failed to make writable inplace, mark that */
-      blob->mode = HB_MEMORY_MODE_READONLY;
-    }
-  }
+  if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
+    _try_writable_inplace_locked (blob);
 
   mode = blob->mode;
 
@@ -333,9 +336,6 @@ hb_blob_try_writable (hb_blob_t *blob)
     return FALSE;
 
   hb_mutex_lock (blob->lock);
-
-  if (blob->mode == HB_MEMORY_MODE_READONLY_NEVER_DUPLICATE)
-    goto done;
 
   if (blob->mode == HB_MEMORY_MODE_READONLY)
   {
@@ -360,14 +360,13 @@ hb_blob_try_writable (hb_blob_t *blob)
       _hb_blob_destroy_user_data (blob);
     }
   }
+  else if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
+    _try_writable_inplace_locked (blob);
 
 done:
   mode = blob->mode;
 
   hb_mutex_unlock (blob->lock);
-
-  if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
-    return hb_blob_try_writable_inplace (blob);
 
   return mode == HB_MEMORY_MODE_WRITABLE;
 }
