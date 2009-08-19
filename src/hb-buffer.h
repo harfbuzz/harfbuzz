@@ -45,9 +45,8 @@ typedef struct _hb_glyph_info_t {
   hb_codepoint_t codepoint;
   hb_mask_t      mask;
   uint32_t       cluster;
-  uint16_t       component;
-  uint16_t       lig_id;
-  uint32_t       internal;
+  uint32_t       internal1;
+  uint32_t       internal2;
 } hb_glyph_info_t;
 
 typedef struct _hb_glyph_position_t {
