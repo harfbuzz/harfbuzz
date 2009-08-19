@@ -132,7 +132,7 @@ typedef GStaticMutex hb_mutex_t;
 
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
-#define _CAIRO_BOOLEAN_EXPR(expr)                   \
+#define _HB_BOOLEAN_EXPR(expr)                   \
  __extension__ ({                               \
    int _cairo_boolean_var_;                         \
    if (expr)                                    \
@@ -141,8 +141,8 @@ typedef GStaticMutex hb_mutex_t;
       _cairo_boolean_var_ = 0;                      \
    _cairo_boolean_var_;                             \
 })
-#define HB_LIKELY(expr) (__builtin_expect (_CAIRO_BOOLEAN_EXPR(expr), 1))
-#define HB_UNLIKELY(expr) (__builtin_expect (_CAIRO_BOOLEAN_EXPR(expr), 0))
+#define HB_LIKELY(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 1))
+#define HB_UNLIKELY(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 0))
 #else
 #define HB_LIKELY(expr) (expr)
 #define HB_UNLIKELY(expr) (expr)
