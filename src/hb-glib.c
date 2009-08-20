@@ -30,29 +30,27 @@
 
 #include "hb-unicode-private.h"
 
-static hb_unicode_funcs_t *glib_ufuncs;
+static hb_codepoint_t hb_glib_get_mirroring (hb_codepoint_t unicode) { g_unichar_get_mirror_char (unicode, &unicode); return unicode; }
+static hb_category_t hb_glib_get_general_category (hb_codepoint_t unicode) { return g_unichar_type (unicode); }
+static hb_script_t hb_glib_get_script (hb_codepoint_t unicode) { return g_unichar_get_script (unicode); }
+static unsigned int hb_glib_get_combining_class (hb_codepoint_t unicode) { return g_unichar_combining_class (unicode); }
+static unsigned int hb_glib_get_eastasian_width (hb_codepoint_t unicode) { return g_unichar_iswide (unicode); }
 
-static hb_codepoint_t hb_glib_get_mirroring_nil (hb_codepoint_t unicode) { g_unichar_get_mirror_char (unicode, &unicode); return unicode; }
-static hb_category_t hb_glib_get_general_category_nil (hb_codepoint_t unicode) { return g_unichar_type (unicode); }
-static hb_script_t hb_glib_get_script_nil (hb_codepoint_t unicode) { return g_unichar_get_script (unicode); }
-static unsigned int hb_glib_get_combining_class_nil (hb_codepoint_t unicode) { return g_unichar_combining_class (unicode); }
-static unsigned int hb_glib_get_eastasian_width_nil (hb_codepoint_t unicode) { return g_unichar_iswide (unicode); }
 
+static hb_unicode_funcs_t glib_ufuncs = {
+  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+
+  TRUE, /* immutable */
+
+  hb_glib_get_general_category,
+  hb_glib_get_combining_class,
+  hb_glib_get_mirroring,
+  hb_glib_get_script,
+  hb_glib_get_eastasian_width
+};
 
 hb_unicode_funcs_t *
 hb_glib_get_unicode_funcs (void)
 {
-  if (HB_UNLIKELY (!glib_ufuncs)) {
-    glib_ufuncs = hb_unicode_funcs_create ();
-
-    hb_unicode_funcs_set_mirroring_func (glib_ufuncs, hb_glib_get_mirroring_nil);
-    hb_unicode_funcs_set_general_category_func (glib_ufuncs, hb_glib_get_general_category_nil);
-    hb_unicode_funcs_set_script_func (glib_ufuncs, hb_glib_get_script_nil);
-    hb_unicode_funcs_set_combining_class_func (glib_ufuncs, hb_glib_get_combining_class_nil);
-    hb_unicode_funcs_set_eastasian_width_func (glib_ufuncs, hb_glib_get_eastasian_width_nil);
-
-    hb_unicode_funcs_make_immutable (glib_ufuncs);
-  }
-
-  return hb_unicode_funcs_reference (glib_ufuncs);
+  return &glib_ufuncs;
 }
