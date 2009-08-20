@@ -226,8 +226,8 @@ _hb_ot_layout_set_glyph_class (hb_face_t                  *face,
     unsigned char *new_klasses;
 
     new_len = len == 0 ? 120 : 2 * len;
-    if (new_len > 65535)
-      new_len = 65535;
+    if (new_len > 65536)
+      new_len = 65536;
     new_klasses = (unsigned char *) realloc (layout->new_gdef.klasses, new_len * sizeof (unsigned char));
 
     if (HB_UNLIKELY (!new_klasses))
