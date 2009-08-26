@@ -34,7 +34,9 @@
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
 
 typedef SHORT Value;
-typedef Value ValueRecord[];
+
+typedef Value ValueRecord[0];
+ASSERT_SIZE (ValueRecord, 0);
 
 struct ValueFormat : USHORT
 {
