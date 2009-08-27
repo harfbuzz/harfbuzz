@@ -295,12 +295,12 @@ _try_writable_inplace_locked (hb_blob_t *blob)
 
   if (_try_make_writable_inplace_unix_locked (blob)) {
 #if HB_DEBUG
-  fprintf (stderr, "%p %s: making writable -> succeeded\n", blob, __FUNCTION__);
+    fprintf (stderr, "%p %s: making writable -> succeeded\n", blob, __FUNCTION__);
 #endif
     blob->mode = HB_MEMORY_MODE_WRITABLE;
   } else {
 #if HB_DEBUG
-  fprintf (stderr, "%p %s: making writable -> FAILED\n", blob, __FUNCTION__);
+    fprintf (stderr, "%p %s: making writable -> FAILED\n", blob, __FUNCTION__);
 #endif
     /* Failed to make writable inplace, mark that */
     blob->mode = HB_MEMORY_MODE_READONLY;
