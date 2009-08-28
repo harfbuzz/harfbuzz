@@ -35,6 +35,10 @@
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 
+#ifndef HB_DEBUG_BLOB
+#define HB_DEBUG_BLOB HB_DEBUG
+#endif
+
 struct _hb_blob_t {
   hb_reference_count_t ref_count;
 
@@ -189,7 +193,7 @@ hb_blob_lock (hb_blob_t *blob)
   hb_mutex_lock (blob->lock);
 
   blob->lock_count++;
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s (%d) -> %p\n", blob, __FUNCTION__,
 	   blob->lock_count, blob->data);
 #endif
@@ -209,7 +213,7 @@ hb_blob_unlock (hb_blob_t *blob)
 
   assert (blob->lock_count > 0);
   blob->lock_count--;
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s (%d) -> %p\n", blob, __FUNCTION__,
 	   hb_atomic_int_get (blob->lock_count), blob->data);
 #endif
@@ -251,31 +255,31 @@ _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
 #endif
 
   if ((unsigned int) -1 == pagesize) {
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
     fprintf (stderr, "%p %s: failed to get pagesize: %s\n", blob, __FUNCTION__, strerror (errno));
 #endif
     return FALSE;
   }
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s: pagesize is %u\n", blob, __FUNCTION__, pagesize);
 #endif
 
   mask = ~(pagesize-1);
   addr = (const char *) (((size_t) blob->data) & mask);
   length = (const char *) (((size_t) blob->data + blob->length + pagesize-1) & mask)  - addr;
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s: calling mprotect on [%p..%p] (%d bytes)\n",
 	   blob, __FUNCTION__,
 	   addr, addr+length, length);
 #endif
   if (-1 == mprotect ((void *) addr, length, PROT_READ | PROT_WRITE)) {
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
     fprintf (stderr, "%p %s: %s\n", blob, __FUNCTION__, strerror (errno));
 #endif
     return FALSE;
   }
 
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s: successfully made [%p..%p] (%d bytes) writable\n",
 	   blob, __FUNCTION__,
 	   addr, addr+length, length);
@@ -289,17 +293,17 @@ _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
 static void
 _try_writable_inplace_locked (hb_blob_t *blob)
 {
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s: making writable\n", blob, __FUNCTION__);
 #endif
 
   if (_try_make_writable_inplace_unix_locked (blob)) {
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
     fprintf (stderr, "%p %s: making writable -> succeeded\n", blob, __FUNCTION__);
 #endif
     blob->mode = HB_MEMORY_MODE_WRITABLE;
   } else {
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
     fprintf (stderr, "%p %s: making writable -> FAILED\n", blob, __FUNCTION__);
 #endif
     /* Failed to make writable inplace, mark that */
@@ -341,7 +345,7 @@ hb_blob_try_writable (hb_blob_t *blob)
   {
     char *new_data;
 
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
     fprintf (stderr, "%p %s (%d) -> %p\n", blob, __FUNCTION__,
 	     blob->lock_count, blob->data);
 #endif
@@ -351,7 +355,7 @@ hb_blob_try_writable (hb_blob_t *blob)
 
     new_data = malloc (blob->length);
     if (new_data) {
-#if HB_DEBUG
+#if HB_DEBUG_BLOB
       fprintf (stderr, "%p %s: dupped successfully -> %p\n", blob, __FUNCTION__, blob->data);
 #endif
       memcpy (new_data, blob->data, blob->length);
