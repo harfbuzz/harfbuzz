@@ -64,7 +64,7 @@ struct AttachList
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS2 (coverage, attachPoint);
   }
 
@@ -94,7 +94,7 @@ struct CaretValueFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -115,7 +115,7 @@ struct CaretValueFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -137,7 +137,7 @@ struct CaretValueFormat3
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (deviceTable);
   }
 
@@ -164,7 +164,7 @@ struct CaretValue
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -200,7 +200,7 @@ struct LigGlyph
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS (carets);
   }
 
@@ -231,7 +231,7 @@ struct LigCaretList
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS2 (coverage, ligGlyph);
   }
 
@@ -252,7 +252,7 @@ struct MarkGlyphSetsFormat1
   { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS (coverage);
   }
 
@@ -275,7 +275,7 @@ struct MarkGlyphSets
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -336,7 +336,7 @@ struct GDEF
   { return version >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (version)) return false;
     if (version.major != 1) return true;
     return SANITIZE_THIS2 (glyphClassDef, attachList) &&

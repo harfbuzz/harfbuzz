@@ -52,7 +52,7 @@ template <typename Type>
 struct Record
 {
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE (tag) && SANITIZE_BASE (offset, base);
   }
 
@@ -104,7 +104,7 @@ struct RecordListOf : RecordArrayOf<Type>
   { return this+RecordArrayOf<Type>::operator[](i).offset; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
   }
 };
@@ -155,7 +155,7 @@ struct LangSys
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (featureIndex);
   }
 
@@ -190,7 +190,7 @@ struct Script
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS (defaultLangSys) && SANITIZE_THIS (langSys);
   }
 
@@ -219,7 +219,7 @@ struct Feature
   { return lookupIndex.get_indexes (lookup_count, lookup_tags); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (lookupIndex);
   }
 
@@ -254,7 +254,7 @@ ASSERT_SIZE (LookupFlag, 2);
 struct LookupSubTable
 {
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -281,7 +281,7 @@ struct Lookup
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!(SANITIZE_SELF () && SANITIZE_THIS (subTable))) return false;
     if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
@@ -329,7 +329,7 @@ struct CoverageFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE (glyphArray);
   }
 
@@ -354,7 +354,7 @@ struct CoverageRangeRecord
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -385,7 +385,7 @@ struct CoverageFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE (rangeRecord);
   }
 
@@ -412,7 +412,7 @@ struct Coverage
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -448,7 +448,7 @@ struct ClassDefFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (classValue);
   }
 
@@ -473,7 +473,7 @@ struct ClassRangeRecord
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -503,7 +503,7 @@ struct ClassDefFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE (rangeRecord);
   }
 
@@ -528,7 +528,7 @@ struct ClassDef
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -586,7 +586,7 @@ struct Device
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_GET_SIZE ();
   }
 

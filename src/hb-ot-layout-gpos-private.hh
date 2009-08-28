@@ -157,7 +157,7 @@ struct AnchorFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -182,7 +182,7 @@ struct AnchorFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -212,7 +212,7 @@ struct AnchorFormat3
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS2 (xDeviceTable, yDeviceTable);
   }
 
@@ -246,7 +246,7 @@ struct Anchor
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -275,7 +275,7 @@ struct AnchorMatrix
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = rows * cols;
     if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
@@ -298,7 +298,7 @@ struct MarkRecord
   friend struct MarkArray;
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_BASE (markAnchor, base);
   }
 
@@ -317,7 +317,7 @@ struct MarkArray
 		     const AnchorMatrix &anchors, unsigned int class_count,
 		     unsigned int glyph_pos) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     const MarkRecord &record = markRecord[mark_index];
     unsigned int mark_class = record.klass;
 
@@ -341,7 +341,7 @@ struct MarkArray
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS (markRecord);
   }
 
@@ -361,7 +361,7 @@ struct SinglePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -373,7 +373,7 @@ struct SinglePosFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
 	   SANITIZE_MEM (values, valueFormat.get_size ());
   }
@@ -398,7 +398,7 @@ struct SinglePosFormat2
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -415,7 +415,7 @@ struct SinglePosFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
 	   SANITIZE_MEM (values, valueFormat.get_size () * valueCount);
   }
@@ -440,7 +440,7 @@ struct SinglePos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
@@ -449,7 +449,7 @@ struct SinglePos
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -486,7 +486,7 @@ struct PairSet
   friend struct PairPosFormat1;
 
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int format_len) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = (1 + format_len) * len;
     return SANITIZE_MEM (array, sizeof (array[0]) * count);
@@ -507,7 +507,7 @@ struct PairPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
     if (HB_UNLIKELY (buffer->in_pos + 2 > end))
       return false;
@@ -550,7 +550,7 @@ struct PairPosFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
 	   pairSet.sanitize (SANITIZE_ARG, CONST_CHARP(this),
 			     valueFormat1.get_len () + valueFormat2.get_len ());
@@ -580,7 +580,7 @@ struct PairPosFormat2
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
     if (HB_UNLIKELY (buffer->in_pos + 2 > end))
       return false;
@@ -618,7 +618,7 @@ struct PairPosFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
 	  SANITIZE_THIS2 (classDef1, classDef2))) return false;
 
@@ -663,7 +663,7 @@ struct PairPos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
@@ -672,7 +672,7 @@ struct PairPos
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -694,7 +694,7 @@ ASSERT_SIZE (PairPos, 2);
 struct EntryExitRecord
 {
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_BASE2 (entryAnchor, exitAnchor, base);
   }
 
@@ -716,7 +716,7 @@ struct CursivePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     /* Now comes the messiest part of the whole OpenType
        specification.  At first glance, cursive connections seem easy
        to understand, but there are pitfalls!  The reason is that
@@ -890,7 +890,7 @@ struct CursivePosFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS2 (coverage, entryExitRecord);
   }
 
@@ -912,7 +912,7 @@ struct CursivePos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -920,7 +920,7 @@ struct CursivePos
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -950,7 +950,7 @@ struct MarkBasePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark_index == NOT_COVERED))
       return false;
@@ -978,7 +978,7 @@ struct MarkBasePosFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS2 (markCoverage, baseCoverage) &&
 	   SANITIZE_THIS (markArray) && baseArray.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
   }
@@ -1008,7 +1008,7 @@ struct MarkBasePos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -1016,7 +1016,7 @@ struct MarkBasePos
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -1052,7 +1052,7 @@ struct MarkLigPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark_index == NOT_COVERED))
       return false;
@@ -1101,7 +1101,7 @@ struct MarkLigPosFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () &&
 	   SANITIZE_THIS2 (markCoverage, ligatureCoverage) &&
 	   SANITIZE_THIS (markArray) && ligatureArray.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
@@ -1133,7 +1133,7 @@ struct MarkLigPos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -1141,7 +1141,7 @@ struct MarkLigPos
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -1171,7 +1171,7 @@ struct MarkMarkPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark1_index == NOT_COVERED))
       return false;
@@ -1202,7 +1202,7 @@ struct MarkMarkPosFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS2 (mark1Coverage, mark2Coverage) &&
 	   SANITIZE_THIS (mark1Array) && mark2Array.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
   }
@@ -1234,7 +1234,7 @@ struct MarkMarkPos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -1242,7 +1242,7 @@ struct MarkMarkPos
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -1268,7 +1268,7 @@ struct ContextPos : Context
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     return Context::apply (APPLY_ARG, position_lookup);
   }
 };
@@ -1281,7 +1281,7 @@ struct ChainContextPos : ChainContext
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     return ChainContext::apply (APPLY_ARG, position_lookup);
   }
 };
@@ -1327,7 +1327,7 @@ struct PosLookupSubTable
 
   inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (lookup_type) {
     case Single:		return u.single->apply (APPLY_ARG);
     case Pair:			return u.pair->apply (APPLY_ARG);
@@ -1343,7 +1343,7 @@ struct PosLookupSubTable
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case Single:		return u.single->sanitize (SANITIZE_ARG);
@@ -1456,7 +1456,7 @@ struct PosLookup : Lookup
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!Lookup::sanitize (SANITIZE_ARG)) return false;
     OffsetArrayOf<PosLookupSubTable> &list = (OffsetArrayOf<PosLookupSubTable> &) subTable;
     return SANITIZE_THIS (list);
@@ -1488,7 +1488,7 @@ struct GPOS : GSUBGPOS
   { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
     OffsetTo<PosLookupList> &list = CAST(OffsetTo<PosLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);
@@ -1501,7 +1501,7 @@ ASSERT_SIZE (GPOS, 10);
 
 inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 {
-  APPLY_DEBUG ();
+  TRACE_APPLY ();
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type == PosLookupSubTable::Extension))
@@ -1512,7 +1512,7 @@ inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 
 inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
 {
-  SANITIZE_DEBUG ();
+  TRACE_SANITIZE ();
   return Extension::sanitize (SANITIZE_ARG) &&
 	 (&(Extension::get_subtable ()) == &Null(LookupSubTable) ||
 	  get_type () == PosLookupSubTable::Extension ||

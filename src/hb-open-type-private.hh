@@ -114,10 +114,10 @@ struct Null <Type> \
 #endif
 
 #if HB_DEBUG_SANITIZE
-#define SANITIZE_DEBUG_ARG_DEF	, unsigned int sanitize_depth
-#define SANITIZE_DEBUG_ARG	, sanitize_depth + 1
-#define SANITIZE_DEBUG_ARG_INIT	, 1
-#define SANITIZE_DEBUG() \
+#define TRACE_SANITIZE_ARG_DEF	, unsigned int sanitize_depth
+#define TRACE_SANITIZE_ARG	, sanitize_depth + 1
+#define TRACE_SANITIZE_ARG_INIT	, 1
+#define TRACE_SANITIZE() \
 	HB_STMT_START { \
 	    if (sanitize_depth < HB_DEBUG_SANITIZE) \
 		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
@@ -126,18 +126,18 @@ struct Null <Type> \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
 #else
-#define SANITIZE_DEBUG_ARG_DEF
-#define SANITIZE_DEBUG_ARG
-#define SANITIZE_DEBUG_ARG_INIT
-#define SANITIZE_DEBUG() HB_STMT_START {} HB_STMT_END
+#define TRACE_SANITIZE_ARG_DEF
+#define TRACE_SANITIZE_ARG
+#define TRACE_SANITIZE_ARG_INIT
+#define TRACE_SANITIZE() HB_STMT_START {} HB_STMT_END
 #endif
 
 #define SANITIZE_ARG_DEF \
-	hb_sanitize_context_t *context SANITIZE_DEBUG_ARG_DEF
+	hb_sanitize_context_t *context TRACE_SANITIZE_ARG_DEF
 #define SANITIZE_ARG \
-	context SANITIZE_DEBUG_ARG
+	context TRACE_SANITIZE_ARG
 #define SANITIZE_ARG_INIT \
-	&context SANITIZE_DEBUG_ARG_INIT
+	&context TRACE_SANITIZE_ARG_INIT
 
 typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
 struct _hb_sanitize_context_t
@@ -349,7 +349,7 @@ struct Sanitizer
     inline operator TYPE(void) const { return BIG_ENDIAN ((TYPE&) v); } \
     inline bool operator== (NAME o) const { return (TYPE&) v == (TYPE&) o.v; } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
-      SANITIZE_DEBUG (); \
+      TRACE_SANITIZE (); \
       return SANITIZE_SELF (); \
     } \
     private: unsigned char v[BYTES]; \
@@ -363,7 +363,7 @@ struct Sanitizer
     inline operator TYPE(void) const { return BIG_ENDIAN##_get_unaligned (v); } \
     inline bool operator== (NAME o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
-      SANITIZE_DEBUG (); \
+      TRACE_SANITIZE (); \
       return SANITIZE_SELF (); \
     } \
     private: unsigned char v[BYTES]; \
@@ -392,7 +392,7 @@ struct Tag : ULONG
   inline operator char* (void) { return CHARP(this); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     /* Note: Only accept ASCII-visible tags (mind DEL)
      * This is one of the few times (only time?) we check
      * for data integrity, as opposed o just boundary checks
@@ -440,7 +440,7 @@ struct FixedVersion
   inline operator uint32_t (void) const { return (major << 16) + minor; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -467,21 +467,21 @@ struct GenericOffsetTo : OffsetType
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
     return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
@@ -514,7 +514,7 @@ struct GenericArrayOf
   { return sizeof (len) + len * sizeof (array[0]); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     /* Note:
      * for non-recursive types, this is not much needed.
@@ -528,7 +528,7 @@ struct GenericArrayOf
     return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -537,7 +537,7 @@ struct GenericArrayOf
     return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -546,7 +546,7 @@ struct GenericArrayOf
     return true;
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -590,11 +590,11 @@ struct OffsetListOf : OffsetArrayOf<Type>
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
   }
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int user_data) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this), user_data);
   }
 };
@@ -614,7 +614,7 @@ struct HeadlessArrayOf
   { return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     /* Note:
      * for non-recursive types, this is not much needed.

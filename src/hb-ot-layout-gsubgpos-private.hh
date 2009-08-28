@@ -36,10 +36,10 @@
 #endif
 
 #if HB_DEBUG_APPLY
-#define APPLY_DEBUG_ARG_DEF	, unsigned int apply_depth
-#define APPLY_DEBUG_ARG		, apply_depth + 1
-#define APPLY_DEBUG_ARG_INIT	, 1
-#define APPLY_DEBUG() \
+#define TRACE_APPLY_ARG_DEF	, unsigned int apply_depth
+#define TRACE_APPLY_ARG		, apply_depth + 1
+#define TRACE_APPLY_ARG_INIT	, 1
+#define TRACE_APPLY() \
 	HB_STMT_START { \
 	    if (apply_depth < HB_DEBUG_APPLY) \
 		fprintf (stderr, "APPLY(%p) %-*d-> %s\n", \
@@ -48,10 +48,10 @@
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
 #else
-#define APPLY_DEBUG_ARG_DEF
-#define APPLY_DEBUG_ARG
-#define APPLY_DEBUG_ARG_INIT
-#define APPLY_DEBUG() HB_STMT_START {} HB_STMT_END
+#define TRACE_APPLY_ARG_DEF
+#define TRACE_APPLY_ARG
+#define TRACE_APPLY_ARG_INIT
+#define TRACE_APPLY() HB_STMT_START {} HB_STMT_END
 #endif
 
 #define APPLY_ARG_DEF \
@@ -61,7 +61,7 @@
 	unsigned int    nesting_level_left HB_GNUC_UNUSED, \
 	unsigned int    lookup_flag, \
 	unsigned int    property HB_GNUC_UNUSED /* propety of first glyph */ \
-	APPLY_DEBUG_ARG_DEF
+	TRACE_APPLY_ARG_DEF
 #define APPLY_ARG \
 	context, \
 	buffer, \
@@ -69,7 +69,7 @@
 	nesting_level_left, \
 	lookup_flag, \
 	property \
-	APPLY_DEBUG_ARG
+	TRACE_APPLY_ARG
 #define APPLY_ARG_INIT \
 	context, \
 	buffer, \
@@ -77,7 +77,7 @@
 	nesting_level_left, \
 	lookup_flag, \
 	property \
-	APPLY_DEBUG_ARG_INIT
+	TRACE_APPLY_ARG_INIT
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, char *data);
@@ -196,7 +196,7 @@ struct LookupRecord
 {
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -290,7 +290,7 @@ struct Rule
   private:
   inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     const LookupRecord *lookupRecord = &CONST_CAST (LookupRecord, input, sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
     return context_lookup (APPLY_ARG,
 			   inputCount, input,
@@ -300,7 +300,7 @@ struct Rule
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     return SANITIZE_MEM (input,
 			 sizeof (input[0]) * inputCount +
@@ -323,7 +323,7 @@ struct RuleSet
 {
   inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
@@ -335,7 +335,7 @@ struct RuleSet
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS (rule);
   }
 
@@ -353,7 +353,7 @@ struct ContextFormat1
   private:
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -367,7 +367,7 @@ struct ContextFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS2 (coverage, ruleSet);
   }
 
@@ -390,7 +390,7 @@ struct ContextFormat2
   private:
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -409,7 +409,7 @@ struct ContextFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS3 (coverage, classDef, ruleSet);
   }
 
@@ -435,7 +435,7 @@ struct ContextFormat3
   private:
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -452,7 +452,7 @@ struct ContextFormat3
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = glyphCount;
     for (unsigned int i = 0; i < count; i++)
@@ -479,7 +479,7 @@ struct Context
   protected:
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG, apply_func);
     case 2: return u.format2->apply (APPLY_ARG, apply_func);
@@ -489,7 +489,7 @@ struct Context
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -561,7 +561,7 @@ struct ChainRule
   private:
   inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     const HeadlessArrayOf<USHORT> &input = CONST_NEXT (HeadlessArrayOf<USHORT>, backtrack);
     const ArrayOf<USHORT> &lookahead = CONST_NEXT (ArrayOf<USHORT>, input);
     const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
@@ -576,7 +576,7 @@ struct ChainRule
 
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (backtrack)) return false;
     HeadlessArrayOf<USHORT> &input = NEXT (HeadlessArrayOf<USHORT>, backtrack);
     if (!SANITIZE (input)) return false;
@@ -607,7 +607,7 @@ struct ChainRuleSet
 {
   inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
@@ -619,7 +619,7 @@ struct ChainRuleSet
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS (rule);
   }
 
@@ -637,7 +637,7 @@ struct ChainContextFormat1
   private:
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -651,7 +651,7 @@ struct ChainContextFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS2 (coverage, ruleSet);
   }
 
@@ -673,7 +673,7 @@ struct ChainContextFormat2
   private:
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -697,7 +697,7 @@ struct ChainContextFormat2
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_THIS2 (coverage, backtrackClassDef) &&
 	   SANITIZE_THIS2 (inputClassDef, lookaheadClassDef) &&
 	   SANITIZE_THIS (ruleSet);
@@ -734,7 +734,7 @@ struct ChainContextFormat3
 
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     const OffsetArrayOf<Coverage> &input = CONST_NEXT (OffsetArrayOf<Coverage>, backtrack);
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
@@ -757,7 +757,7 @@ struct ChainContextFormat3
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE_THIS (backtrack)) return false;
     OffsetArrayOf<Coverage> &input = NEXT (OffsetArrayOf<Coverage>, backtrack);
     if (!SANITIZE_THIS (input)) return false;
@@ -792,7 +792,7 @@ struct ChainContext
   protected:
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
-    APPLY_DEBUG ();
+    TRACE_APPLY ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG, apply_func);
     case 2: return u.format2->apply (APPLY_ARG, apply_func);
@@ -802,7 +802,7 @@ struct ChainContext
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -838,7 +838,7 @@ struct ExtensionFormat1
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
 
@@ -872,7 +872,7 @@ struct Extension
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (SANITIZE_ARG);
@@ -930,7 +930,7 @@ struct GSUBGPOS
   { return (this+lookupList)[i]; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
-    SANITIZE_DEBUG ();
+    TRACE_SANITIZE ();
     if (!SANITIZE (version)) return false;
     if (version.major != 1) return true;
     return SANITIZE_THIS3 (scriptList, featureList, lookupList);
