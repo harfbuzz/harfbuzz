@@ -222,10 +222,13 @@ _hb_ot_layout_set_glyph_class (hb_face_t                  *face,
 
   /* XXX this is not threadsafe */
   if (glyph >= len) {
-    int new_len;
+    unsigned int new_len;
     unsigned char *new_klasses;
 
     new_len = len == 0 ? 120 : 2 * len;
+    while (new_len <= glyph)
+      new_len *= 2;
+
     if (new_len > 65536)
       new_len = 65536;
     new_klasses = (unsigned char *) realloc (layout->new_gdef.klasses, new_len * sizeof (unsigned char));
