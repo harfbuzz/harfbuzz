@@ -317,6 +317,7 @@ struct MarkArray
 		     const AnchorMatrix &anchors, unsigned int class_count,
 		     unsigned int glyph_pos) const
   {
+    APPLY_DEBUG ();
     const MarkRecord &record = markRecord[mark_index];
     unsigned int mark_class = record.klass;
 
@@ -360,6 +361,7 @@ struct SinglePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -396,6 +398,7 @@ struct SinglePosFormat2
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
@@ -437,6 +440,7 @@ struct SinglePos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
@@ -503,6 +507,7 @@ struct PairPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
     if (HB_UNLIKELY (buffer->in_pos + 2 > end))
       return false;
@@ -575,6 +580,7 @@ struct PairPosFormat2
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
     if (HB_UNLIKELY (buffer->in_pos + 2 > end))
       return false;
@@ -657,6 +663,7 @@ struct PairPos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
@@ -709,6 +716,7 @@ struct CursivePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     /* Now comes the messiest part of the whole OpenType
        specification.  At first glance, cursive connections seem easy
        to understand, but there are pitfalls!  The reason is that
@@ -904,6 +912,7 @@ struct CursivePos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -941,6 +950,7 @@ struct MarkBasePosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark_index == NOT_COVERED))
       return false;
@@ -998,6 +1008,7 @@ struct MarkBasePos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -1041,6 +1052,7 @@ struct MarkLigPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark_index == NOT_COVERED))
       return false;
@@ -1121,6 +1133,7 @@ struct MarkLigPos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -1158,6 +1171,7 @@ struct MarkMarkPosFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (mark1_index == NOT_COVERED))
       return false;
@@ -1220,6 +1234,7 @@ struct MarkMarkPos
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -1252,7 +1267,10 @@ struct ContextPos : Context
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  { return Context::apply (APPLY_ARG, position_lookup); }
+  {
+    APPLY_DEBUG ();
+    return Context::apply (APPLY_ARG, position_lookup);
+  }
 };
 ASSERT_SIZE (ContextPos, 2);
 
@@ -1262,7 +1280,10 @@ struct ChainContextPos : ChainContext
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  { return ChainContext::apply (APPLY_ARG, position_lookup); }
+  {
+    APPLY_DEBUG ();
+    return ChainContext::apply (APPLY_ARG, position_lookup);
+  }
 };
 ASSERT_SIZE (ChainContextPos, 2);
 
@@ -1306,6 +1327,7 @@ struct PosLookupSubTable
 
   inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
   {
+    APPLY_DEBUG ();
     switch (lookup_type) {
     case Single:		return u.single->apply (APPLY_ARG);
     case Pair:			return u.pair->apply (APPLY_ARG);
@@ -1392,7 +1414,7 @@ struct PosLookup : Lookup
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).apply (APPLY_ARG, lookup_type))
+      if (get_subtable (i).apply (APPLY_ARG_INIT, lookup_type))
 	return true;
 
     return false;
@@ -1479,6 +1501,7 @@ ASSERT_SIZE (GPOS, 10);
 
 inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 {
+  APPLY_DEBUG ();
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type == PosLookupSubTable::Extension))

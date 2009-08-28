@@ -38,6 +38,7 @@ struct SingleSubstFormat1
 
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))
@@ -76,6 +77,7 @@ struct SingleSubstFormat2
 
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))
@@ -118,6 +120,7 @@ struct SingleSubst
 
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     case 2: return u.format2->apply (APPLY_ARG);
@@ -152,6 +155,7 @@ struct Sequence
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     if (HB_UNLIKELY (!substitute.len))
       return false;
 
@@ -193,6 +197,7 @@ struct MultipleSubstFormat1
 
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
@@ -225,6 +230,7 @@ struct MultipleSubst
 
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -261,6 +267,7 @@ struct AlternateSubstFormat1
 
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     unsigned int index = (this+coverage) (glyph_id);
@@ -319,6 +326,7 @@ struct AlternateSubst
 
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -350,6 +358,7 @@ struct Ligature
   private:
   inline bool apply (APPLY_ARG_DEF, bool is_mark) const
   {
+    APPLY_DEBUG ();
     unsigned int i, j;
     unsigned int count = component.len;
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
@@ -435,6 +444,7 @@ struct LigatureSet
   private:
   inline bool apply (APPLY_ARG_DEF, bool is_mark) const
   {
+    APPLY_DEBUG ();
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
@@ -466,6 +476,7 @@ struct LigatureSubstFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     bool first_is_mark = !!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
@@ -501,6 +512,7 @@ struct LigatureSubst
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -534,7 +546,10 @@ struct ContextSubst : Context
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  { return Context::apply (APPLY_ARG, substitute_lookup); }
+  {
+    APPLY_DEBUG ();
+    return Context::apply (APPLY_ARG, substitute_lookup);
+  }
 };
 ASSERT_SIZE (ContextSubst, 2);
 
@@ -544,7 +559,10 @@ struct ChainContextSubst : ChainContext
 
   private:
   inline bool apply (APPLY_ARG_DEF) const
-  { return ChainContext::apply (APPLY_ARG, substitute_lookup); }
+  {
+    APPLY_DEBUG ();
+    return ChainContext::apply (APPLY_ARG, substitute_lookup);
+  }
 };
 ASSERT_SIZE (ChainContextSubst, 2);
 
@@ -571,6 +589,7 @@ struct ReverseChainSingleSubstFormat1
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     if (HB_UNLIKELY (context_length != NO_CONTEXT))
       return false; /* No chaining to this type */
 
@@ -634,6 +653,7 @@ struct ReverseChainSingleSubst
   private:
   inline bool apply (APPLY_ARG_DEF) const
   {
+    APPLY_DEBUG ();
     switch (u.format) {
     case 1: return u.format1->apply (APPLY_ARG);
     default:return false;
@@ -680,6 +700,7 @@ struct SubstLookupSubTable
 
   inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
   {
+    APPLY_DEBUG ();
     switch (lookup_type) {
     case Single:		return u.single->apply (APPLY_ARG);
     case Multiple:		return u.multiple->apply (APPLY_ARG);
@@ -767,7 +788,7 @@ struct SubstLookup : Lookup
 
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
-      if (get_subtable (i).apply (APPLY_ARG, lookup_type))
+      if (get_subtable (i).apply (APPLY_ARG_INIT, lookup_type))
 	return true;
 
     return false;
@@ -865,6 +886,7 @@ ASSERT_SIZE (GSUB, 10);
 
 inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 {
+  APPLY_DEBUG ();
   unsigned int lookup_type = get_type ();
 
   if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
