@@ -3,3 +3,4 @@
 - cmap14 support in get_glyph callback
 - size_t?
 - Figure out compiler selection (add test for link to libstdc++)
+- Rename MEMORY_MODE to ACCESS_MODE
