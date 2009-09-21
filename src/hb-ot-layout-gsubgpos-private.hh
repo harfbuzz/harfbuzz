@@ -219,6 +219,11 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 
   /* TODO We don't support lookupRecord arrays that are not increasing:
    *      Should be easy for in_place ones at least. */
+
+  /* Note: If sublookup is reverse, i will underflow after the first loop
+   * and we jump out of it.  Not entirely disastrous.  So we don't check
+   * for reverse lookup here.
+   */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
     while (_hb_ot_layout_skip_mark (context->face, IN_CURINFO (), lookup_flag, NULL))
