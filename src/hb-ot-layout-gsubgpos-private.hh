@@ -567,7 +567,7 @@ struct ChainRule
     const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, backtrack.array,
-				 input.len, input.array + 1,
+				 input.len, input.array,
 				 lookahead.len, lookahead.array,
 				 lookup.len, lookup.array,
 				 lookup_context);
@@ -749,7 +749,7 @@ struct ChainContextFormat3
     };
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, (USHORT *) backtrack.array,
-				 input.len, (USHORT *) input.array,
+				 input.len, (USHORT *) input.array + 1,
 				 lookahead.len, (USHORT *) lookahead.array,
 				 lookup.len, lookup.array,
 				 lookup_context);
