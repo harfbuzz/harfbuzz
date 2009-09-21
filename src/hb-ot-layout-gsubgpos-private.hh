@@ -219,7 +219,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 
   /* TODO We don't support lookupRecord arrays that are not increasing:
    *      Should be easy for in_place ones at least. */
-  for (unsigned int i = 0; i < count; i++)
+  for (unsigned int i = 0; i < count; /* NOP */)
   {
     while (_hb_ot_layout_skip_mark (context->face, IN_CURINFO (), lookup_flag, NULL))
     {
@@ -238,6 +238,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 
       lookupRecord++;
       lookupCount--;
+      /* Err, this is wrong if the lookup jumped over some glyphs */
       i += buffer->in_pos - old_pos;
       if (HB_UNLIKELY (buffer->in_pos == end))
 	return true;
