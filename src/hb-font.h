@@ -98,6 +98,15 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs);
 /* funcs */
 
 typedef struct _hb_glyph_metrics_t hb_glyph_metrics_t;
+struct _hb_glyph_metrics_t
+{
+    hb_position_t x_advance;
+    hb_position_t y_advance;
+    hb_position_t x_offset;
+    hb_position_t y_offset;
+    hb_position_t width;
+    hb_position_t height;
+};
 
 typedef hb_codepoint_t (*hb_font_get_glyph_func_t) (hb_font_t *font, hb_face_t *face, const void *user_data,
 						    hb_codepoint_t unicode, hb_codepoint_t variant_selector);
