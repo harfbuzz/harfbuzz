@@ -244,6 +244,7 @@ struct LookupFlag : USHORT
     IgnoreBaseGlyphs	= 0x0002u,
     IgnoreLigatures	= 0x0004u,
     IgnoreMarks		= 0x0008u,
+    IgnoreFlags		= 0x000Eu,
     UseMarkFilteringSet	= 0x0010u,
     Reserved		= 0x00E0u,
     MarkAttachmentType	= 0xFF00u

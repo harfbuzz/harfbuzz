@@ -148,7 +148,7 @@ _hb_ot_layout_check_glyph_property (hb_face_t    *face,
   /* Not covered, if, for example, glyph class is ligature and
    * lookup_flags includes LookupFlags::IgnoreLigatures
    */
-  if (property & lookup_flags)
+  if (property & lookup_flags & LookupFlag::IgnoreFlags)
     return false;
 
   if (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
