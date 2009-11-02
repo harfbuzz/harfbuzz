@@ -135,7 +135,7 @@ version_check autoconf AUTOCONF $AUTOCONF $autoconf_min_vers \
 #
 # Hunt for an appropriate version of automake and aclocal; we can't
 # assume that 'automake' is necessarily the most recent installed version
-# 
+#
 # We check automake first to allow it to be a newer version than we know about.
 #
 version_check automake AUTOMAKE "$AUTOMAKE automake automake-1.10 automake-1.9 automake-1.8 automake-1.7" $automake_min_vers \
