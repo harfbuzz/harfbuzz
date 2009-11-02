@@ -27,7 +27,20 @@
 #ifndef HB_COMMON_H
 #define HB_COMMON_H
 
+#ifdef _MSC_VER
+#warning "Not using stdint.h.  Integer types may have wrong size."
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef signed short int16_t;
+typedef unsigned short uint16_t;
+typedef signed int int32_t;
+typedef unsigned int uint32_t;
+#ifndef __cplusplus
+#define inline __inline
+#endif
+#else
 #include <stdint.h>
+#endif
 
 # ifdef __cplusplus
 #  define HB_BEGIN_DECLS	extern "C" {
