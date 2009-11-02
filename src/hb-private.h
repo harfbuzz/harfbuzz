@@ -46,20 +46,12 @@
 
 #include "hb-common.h"
 
-#define hb_be_uint8
-#define hb_be_int8
-#define hb_be_uint16(v)			((uint16_t) hb_be_int16 ((uint16_t) v))
-#define hb_be_uint32(v)			((uint32_t) hb_be_int32 ((uint32_t) v))
 
 /* We need external help for these */
 
 #if HAVE_GLIB
 
 #include <glib.h>
-
-/* Macros to convert to/from BigEndian */
-#define hb_be_int16(v)		GINT16_FROM_BE (v)
-#define hb_be_int32(v)		GINT32_FROM_BE (v)
 
 typedef int hb_atomic_int_t;
 #define hb_atomic_int_fetch_and_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
@@ -77,6 +69,8 @@ typedef GStaticMutex hb_mutex_t;
 #error "Could not find any system to define platform macros, see hb-private.h"
 #endif
 
+
+#define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] >> 8) + (((const uint8_t *)&(v))[1] << 8)))
 
 #define hb_be_uint8_put_unaligned(v,V)	(v[0] = (V), 0)
 #define hb_be_uint8_get_unaligned(v)	(uint8_t) (v[0])
