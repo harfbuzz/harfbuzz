@@ -185,5 +185,4 @@ cd "$ORIGDIR" || exit 1
 rm -f config.cache
 
 do_cmd $srcdir/configure \
-	--cache-file=config.cache \
 	${1+"$@"} && echo "Now type \`make' to compile $PROJECT." || exit 1
