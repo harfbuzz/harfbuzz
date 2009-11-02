@@ -21,7 +21,7 @@ fi
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(GLIB, glib-2.0 gthread-2.0, have_glib=true, have_glib=false)
+PKG_CHECK_MODULES(GLIB, glib-2.0, have_glib=true, have_glib=false)
 AC_DEFINE(HAVE_GLIB, 1, [Have FreeType 2 library])
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
