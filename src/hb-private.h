@@ -49,7 +49,7 @@
 
 /* We need external help for these */
 
-#if HAVE_GLIB
+#ifdef HAVE_GLIB
 
 #include <glib.h>
 
@@ -66,9 +66,24 @@ typedef GStaticMutex hb_mutex_t;
 #define hb_mutex_unlock(M)		g_static_mutex_unlock (&M)
 
 #else
-#error "Could not find any system to define platform macros, see hb-private.h"
+#warning "Could not find any system to define platform macros, library will NOT be thread-safe"
+
+typedef int hb_atomic_int_t;
+#define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
+#define hb_atomic_int_get(AI)			(AI)
+#define hb_atomic_int_set(AI, V)		do { (AI) = (V); } while (0)
+
+typedef int hb_mutex_t;
+#define HB_MUTEX_INIT			0
+#define hb_mutex_init(M)		do { (M) = 0; } while (0)
+#define hb_mutex_lock(M)		do { (M) = 1; } while (0)
+#define hb_mutex_trylock(M)		((M) = 1, 1)
+#define hb_mutex_unlock(M)		do { (M) = 0; } while (0)
+
 #endif
 
+
+/* Big-endian handling */
 
 #define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] >> 8) + (((const uint8_t *)&(v))[1] << 8)))
 
