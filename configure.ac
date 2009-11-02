@@ -22,11 +22,15 @@ fi
 dnl ==========================================================================
 
 PKG_CHECK_MODULES(GLIB, glib-2.0, have_glib=true, have_glib=false)
-AC_DEFINE(HAVE_GLIB, 1, [Have FreeType 2 library])
+if $have_glib; then
+	AC_DEFINE(HAVE_GLIB, 1, [Have FreeType 2 library])
+fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
 PKG_CHECK_MODULES(FREETYPE, freetype, have_freetype=true, have_freetype=false)
-AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
+if $have_freetype; then
+	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
+fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ==========================================================================
