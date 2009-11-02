@@ -13,8 +13,6 @@ HBSOURCES =  \
 	hb-buffer-private.h \
 	hb-font.cc \
 	hb-font-private.h \
-	hb-glib.h \
-	hb-glib.c \
 	hb-private.h \
 	hb-shape.h \
 	hb-shape.c \
@@ -32,7 +30,6 @@ HBSOURCES =  \
 	hb-ot-layout-private.h \
 	hb-object-private.h \
 	$(NULL)
-
 HBHEADERS = \
 	hb.h \
 	hb-blob.h \
@@ -42,6 +39,15 @@ HBHEADERS = \
 	hb-ot.h \
 	hb-ot-layout.h \
 	$(NULL)
+
+if HAVE_GLIB
+HBSOURCES += \
+	hb-glib.c \
+	$(NULL)
+HBHEADERS += \
+	hb-glib.h \
+	$(NULL)
+endif
 
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = -DHAVE_GLIB $(GLIB_CFLAGS)
