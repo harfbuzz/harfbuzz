@@ -34,6 +34,9 @@
 
 #include <stdlib.h>
 
+/* XXX */
+#include "hb-ot-layout-private.h"
+
 HB_BEGIN_HEADER
 
 #ifndef HB_INTERNAL
@@ -66,8 +69,12 @@ HB_BEGIN_HEADER
 # define HB_UNUSED(arg) ((arg) = (arg))
 #endif
 
-#define HB_LIKELY(cond) (cond)
-#define HB_UNLIKELY(cond) (cond)
+#ifndef HB_LIKELY
+# define HB_LIKELY(cond) (cond)
+#endif
+#ifndef HB_UNLIKELY
+# define HB_UNLIKELY(cond) (cond)
+#endif
 
 
 #define  ALLOC(_ptr,_size)   \

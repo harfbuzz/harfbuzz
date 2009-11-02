@@ -26,7 +26,7 @@
 #ifndef HARFBUZZ_GPOS_H
 #define HARFBUZZ_GPOS_H
 
-#include "harfbuzz-gdef.h"
+#include "harfbuzz-open.h"
 #include "harfbuzz-buffer.h"
 
 HB_BEGIN_HEADER
@@ -86,7 +86,7 @@ struct  HB_GPOSHeader_
   HB_FeatureList    FeatureList;
   HB_LookupList     LookupList;
 
-  HB_GDEFHeader*    gdef;
+  hb_ot_layout_t     *layout;
 
   /* the next field is used for a callback function to get the
      glyph outline.                                            */
@@ -107,7 +107,7 @@ typedef HB_GPOSHeader* HB_GPOS;
 
 HB_Error  HB_Load_GPOS_Table( HB_Font          font,
 			      HB_GPOSHeader** gpos,
-			      HB_GDEFHeader*  gdef );
+			      hb_ot_layout_t   *layout );
 
 
 HB_Error  HB_Done_GPOS_Table( HB_GPOSHeader* gpos );

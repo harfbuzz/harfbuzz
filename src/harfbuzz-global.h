@@ -28,6 +28,9 @@
 #ifndef HARFBUZZ_GLOBAL_H
 #define HARFBUZZ_GLOBAL_H
 
+/* XXX */
+#include "hb-ot-layout.h"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

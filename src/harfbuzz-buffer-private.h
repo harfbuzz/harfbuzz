@@ -83,9 +83,9 @@ _hb_buffer_allocate_ligid( HB_Buffer buffer );
 #define OUT_GLYPH( pos )       (buffer->out_string[(pos)].gindex)
 #define OUT_ITEM( pos )        (&buffer->out_string[(pos)])
 
-#define CHECK_Property( gdef, index, flags, property )					\
-          ( ( error = _HB_GDEF_Check_Property( (gdef), (index), (flags),		\
-                                      (property) ) ) != HB_Err_Ok )
+#define CHECK_Property( layout, index, flags, property )					\
+          (error = _hb_ot_layout_check_glyph_properties((layout), (index), (flags), (property)) \
+	         ? HB_Err_Ok : HB_Err_Not_Covered)
 
 #define ADD_String( buffer, num_in, num_out, glyph_data, component, ligID )             \
           ( ( error = _hb_buffer_add_output_glyphs( (buffer),                            \

@@ -124,15 +124,6 @@ static HB_Error  Load_Script( HB_ScriptTable*  s,
 
   count = s->LangSysCount = GET_UShort();
 
-  /* safety check; otherwise the official handling of TrueType Open
-     fonts won't work */
-
-  if ( s->LangSysCount == 0 && s->DefaultLangSys.FeatureCount == 0 )
-  {
-    error = HB_Err_Not_Covered;
-    goto Fail2;
-  }
-
   FORGET_Frame();
 
   s->LangSysRecord = NULL;

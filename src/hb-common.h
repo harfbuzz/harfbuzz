@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 1998-2004  David Turner and Werner Lemberg
- * Copyright (C) 2006  Behdad Esfahbod
+ * Copyright (C) 2007,2008  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, an OpenType Layout engine library.
  *
@@ -21,15 +20,35 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HARFBUZZ_H
-#define HARFBUZZ_H
+#ifndef HB_COMMON_H
+#define HB_COMMON_H
 
-#include "harfbuzz-global.h"
-#include "harfbuzz-buffer.h"
-#include "harfbuzz-gsub.h"
-#include "harfbuzz-gpos.h"
-#include "harfbuzz-open.h"
+#include <stdint.h>
 
-#endif /* HARFBUZZ_OPEN_H */
+# ifdef __cplusplus
+#  define HB_BEGIN_DECLS() extern "C" { extern int hb_dummy_prototype (int)
+#  define HB_END_DECLS() } extern "C" int hb_dummy_prototype (int)
+# else /* !__cplusplus */
+#  define HB_BEGIN_DECLS()   extern int hb_dummy_prototype (int)
+#  define HB_END_DECLS()     extern int hb_dummy_prototype (int)
+# endif /* !__cplusplus */
+
+typedef int hb_bool_t;
+
+typedef uint32_t hb_tag_t;
+#define HB_TAG(a,b,c,d) ((hb_tag_t)(((uint8_t)a<<24)|((uint8_t)b<<16)|((uint8_t)c<<8)|(uint8_t)d))
+#define HB_TAG_STR(s)   (HB_TAG(((const char *) s)[0], \
+				((const char *) s)[1], \
+				((const char *) s)[2], \
+				((const char *) s)[3]))
+
+typedef uint32_t hb_codepoint_t;
+
+/* XXX */
+typedef struct HB_BufferRec_ hb_buffer_t;
+
+#endif /* HB_COMMON_H */

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 1998-2004  David Turner and Werner Lemberg
- * Copyright (C) 2006  Behdad Esfahbod
+ * Copyright (C) 2007,2008  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, an OpenType Layout engine library.
  *
@@ -21,15 +20,43 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HARFBUZZ_H
-#define HARFBUZZ_H
+#ifndef HB_PRIVATE_H
+#define HB_PRIVATE_H
 
-#include "harfbuzz-global.h"
-#include "harfbuzz-buffer.h"
-#include "harfbuzz-gsub.h"
-#include "harfbuzz-gpos.h"
-#include "harfbuzz-open.h"
+#include <glib.h>
 
-#endif /* HARFBUZZ_OPEN_H */
+/* Macros to convert to/from BigEndian */
+#define hb_be_uint8_t
+#define hb_be_int8_t
+#define hb_be_uint16_t	GUINT16_TO_BE
+#define hb_be_int16_t	GINT16_TO_BE
+#define hb_be_uint32_t	GUINT32_TO_BE
+#define hb_be_int32_t	GINT32_TO_BE
+#define hb_be_uint64_t	GUINT64_TO_BE
+#define hb_be_int64_t	GINT64_TO_BE
+
+#define HB_LIKELY	G_LIKEYLY
+#define HB_UNLIKELY	G_UNLIKELY
+#define HB_UNUSED(arg) ((arg) = (arg))
+
+
+#include <assert.h>
+
+#define _ASSERT_STATIC1(_line, _cond) typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]
+#define _ASSERT_STATIC0(_line, _cond) _ASSERT_STATIC1 (_line, (_cond))
+#define ASSERT_STATIC(_cond) _ASSERT_STATIC0 (__LINE__, (_cond))
+
+#define ASSERT_SIZE(_type, _size) ASSERT_STATIC (sizeof (_type) == (_size))
+
+/*
+ * buffer
+ */
+
+/* XXX */
+#define HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
+
+#endif /* HB_PRIVATE_H */

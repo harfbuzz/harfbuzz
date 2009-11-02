@@ -68,7 +68,7 @@ struct  HB_GSUBHeader_
   HB_FeatureList  FeatureList;
   HB_LookupList   LookupList;
 
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t   *layout;
 
   /* the next two fields are used for an alternate substitution callback
      function to select the proper alternate glyph.                      */
@@ -83,7 +83,7 @@ typedef HB_GSUBHeader*  HB_GSUB;
 
 HB_Error  HB_Load_GSUB_Table( HB_Font          font,
 			      HB_GSUBHeader** gsub,
-			      HB_GDEFHeader*  gdef );
+			      hb_ot_layout_t   *layout );
 
 
 HB_Error  HB_Done_GSUB_Table( HB_GSUBHeader*  gsub );

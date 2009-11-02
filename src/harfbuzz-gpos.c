@@ -75,7 +75,7 @@ static HB_Error  default_mmfunc( HB_Font      font,
 
 HB_Error  HB_Load_GPOS_Table( HB_Font          font,
 			      HB_GPOSHeader** retptr,
-			      HB_GDEFHeader*  gdef )
+			      hb_ot_layout_t    *layout )
 {
   HB_UInt         cur_offset, new_offset, base_offset;
 
@@ -85,7 +85,7 @@ HB_Error  HB_Load_GPOS_Table( HB_Font          font,
   HB_Error   error;
 
 
-  if ( !retptr )
+  if ( !retptr || !layout )
     return ERR(HB_Err_Invalid_Argument);
 
   if ( GOTO_Table( TTAG_GPOS ) )
@@ -143,19 +143,11 @@ HB_Error  HB_Load_GPOS_Table( HB_Font          font,
 				  stream, HB_Type_GPOS ) ) != HB_Err_Ok )
     goto Fail2;
 
-  gpos->gdef = gdef;      /* can be NULL */
-
-  if ( ( error =  _HB_GDEF_LoadMarkAttachClassDef_From_LookupFlags( gdef, stream,
-								     gpos->LookupList.Lookup,
-								     gpos->LookupList.LookupCount ) ) )
-	  goto Fail1;
+  gpos->layout = layout;      /* can be NULL */
 
   *retptr = gpos;
 
   return HB_Err_Ok;
-
-Fail1:
-  _HB_OPEN_Free_LookupList( &gpos->LookupList, HB_Type_GPOS );
 
 Fail2:
   _HB_OPEN_Free_FeatureList( &gpos->FeatureList );
@@ -1005,7 +997,7 @@ static HB_Error  Lookup_SinglePos( GPOS_Instance*    gpi,
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
 
-  if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( gpos->layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &sp->Coverage, IN_CURGLYPH(), &index );
@@ -1568,7 +1560,7 @@ static HB_Error  Lookup_PairPos( GPOS_Instance*    gpi,
   if ( context_length != 0xFFFF && context_length < 2 )
     return HB_Err_Not_Covered;
 
-  if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( gpos->layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &pp->Coverage, IN_CURGLYPH(), &index );
@@ -1580,7 +1572,7 @@ static HB_Error  Lookup_PairPos( GPOS_Instance*    gpi,
   first_pos = buffer->in_pos;
   (buffer->in_pos)++;
 
-  while ( CHECK_Property( gpos->gdef, IN_CURITEM(),
+  while ( CHECK_Property( gpos->layout, IN_CURITEM(),
 			  flags, &property ) )
   {
     if ( error && error != HB_Err_Not_Covered )
@@ -1794,13 +1786,13 @@ static HB_Error  Lookup_CursivePos( GPOS_Instance*    gpi,
   /* Glyphs not having the right GDEF properties will be ignored, i.e.,
      gpi->last won't be reset (contrary to user defined properties). */
 
-  if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( gpos->layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   /* We don't handle mark glyphs here.  According to Andrei, this isn't
      possible, but who knows...                                         */
 
-  if ( property == HB_GDEF_MARK )
+  if ( property == HB_OT_LAYOUT_GLYPH_CLASS_MARK )
   {
     gpi->last = 0xFFFF;
     return HB_Err_Not_Covered;
@@ -2216,7 +2208,7 @@ static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
   if ( flags & HB_LOOKUP_FLAG_IGNORE_BASE_GLYPHS )
     return HB_Err_Not_Covered;
 
-  if ( CHECK_Property( gpos->gdef, IN_CURITEM(),
+  if ( CHECK_Property( gpos->layout, IN_CURITEM(),
 		       flags, &property ) )
     return error;
 
@@ -2232,12 +2224,11 @@ static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 
   while ( i <= buffer->in_pos )
   {
-    error = HB_GDEF_Get_Glyph_Property( gpos->gdef, IN_GLYPH( j ),
-					&property );
-    if ( error )
-      return error;
+    property = _hb_ot_layout_get_glyph_properties (gpos->layout, IN_GLYPH(j));
+    if ( !property )
+      return HB_Err_Not_Covered;
 
-    if ( !( property == HB_GDEF_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
+    if ( !( property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
       break;
 
     i++;
@@ -2246,7 +2237,7 @@ static HB_Error  Lookup_MarkBasePos( GPOS_Instance*    gpi,
 
   /* The following assertion is too strong -- at least for mangal.ttf. */
 #if 0
-  if ( property != HB_GDEF_BASE_GLYPH )
+  if ( property != HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH )
     return HB_Err_Not_Covered;
 #endif
 
@@ -2628,7 +2619,7 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 
   mark_glyph = IN_CURGLYPH();
 
-  if ( CHECK_Property( gpos->gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( gpos->layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &mlp->MarkCoverage, mark_glyph, &mark_index );
@@ -2642,12 +2633,11 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
 
   while ( i <= buffer->in_pos )
   {
-    error = HB_GDEF_Get_Glyph_Property( gpos->gdef, IN_GLYPH( j ),
-					&property );
-    if ( error )
-      return error;
+    property = _hb_ot_layout_get_glyph_properties (gpos->layout, IN_GLYPH(j));
+    if ( !property )
+      return HB_Err_Not_Covered;
 
-    if ( !( property == HB_GDEF_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
+    if ( !( property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
       break;
 
     i++;
@@ -2657,7 +2647,7 @@ static HB_Error  Lookup_MarkLigPos( GPOS_Instance*    gpi,
   /* Similar to Lookup_MarkBasePos(), I suspect that this assertion is
      too strong, thus it is commented out.                             */
 #if 0
-  if ( property != HB_GDEF_LIGATURE )
+  if ( property != HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE )
     return HB_Err_Not_Covered;
 #endif
 
@@ -2951,7 +2941,7 @@ static HB_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
   if ( flags & HB_LOOKUP_FLAG_IGNORE_MARKS )
     return HB_Err_Not_Covered;
 
-  if ( CHECK_Property( gpos->gdef, IN_CURITEM(),
+  if ( CHECK_Property( gpos->layout, IN_CURITEM(),
 		       flags, &property ) )
     return error;
 
@@ -2970,12 +2960,11 @@ static HB_Error  Lookup_MarkMarkPos( GPOS_Instance*    gpi,
   j = buffer->in_pos - 1;
   while ( i <= buffer->in_pos )
   {
-    error = HB_GDEF_Get_Glyph_Property( gpos->gdef, IN_GLYPH( j ),
-					&property );
-    if ( error )
-      return error;
+    property = _hb_ot_layout_get_glyph_properties (gpos->layout, IN_GLYPH(j));
+    if ( !property )
+      return HB_Err_Not_Covered;
 
-    if ( !( property == HB_GDEF_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
+    if ( !( property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
       return HB_Err_Not_Covered;
 
     if ( flags & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS )
@@ -3780,12 +3769,12 @@ static HB_Error  Lookup_ContextPos1( GPOS_Instance*          gpi,
   HB_GPOSHeader*  gpos = gpi->gpos;
 
   HB_PosRule*     pr;
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t*  layout;
 
 
-  gdef = gpos->gdef;
+  layout = gpos->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &cpf1->Coverage, IN_CURGLYPH(), &index );
@@ -3805,7 +3794,7 @@ static HB_Error  Lookup_ContextPos1( GPOS_Instance*          gpi,
 
     for ( i = 1, j = buffer->in_pos + 1; i < pr[k].GlyphCount; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -3849,12 +3838,12 @@ static HB_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
 
   HB_PosClassSet*   pcs;
   HB_PosClassRule*  pr;
-  HB_GDEFHeader*    gdef;
+  hb_ot_layout_t*    layout;
 
 
-  gdef = gpos->gdef;
+  layout = gpos->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   /* Note: The coverage table in format 2 doesn't give an index into
@@ -3900,7 +3889,7 @@ static HB_Error  Lookup_ContextPos2( GPOS_Instance*          gpi,
 
     for ( i = 1, j = buffer->in_pos + 1; i < pr->GlyphCount; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End;
@@ -3954,12 +3943,12 @@ static HB_Error  Lookup_ContextPos3( GPOS_Instance*          gpi,
   HB_GPOSHeader*  gpos = gpi->gpos;
 
   HB_Coverage*    c;
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t*  layout;
 
 
-  gdef = gpos->gdef;
+  layout = gpos->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   if ( context_length != 0xFFFF && context_length < cpf3->GlyphCount )
@@ -3972,7 +3961,7 @@ static HB_Error  Lookup_ContextPos3( GPOS_Instance*          gpi,
 
   for ( i = 1, j = 1; i < cpf3->GlyphCount; i++, j++ )
   {
-    while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+    while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;
@@ -4990,12 +4979,12 @@ static HB_Error  Lookup_ChainContextPos1(
 
   HB_ChainPosRule*  cpr;
   HB_ChainPosRule   curr_cpr;
-  HB_GDEFHeader*    gdef;
+  hb_ot_layout_t*    layout;
 
 
-  gdef = gpos->gdef;
+  layout = gpos->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &ccpf1->Coverage, IN_CURGLYPH(), &index );
@@ -5027,7 +5016,7 @@ static HB_Error  Lookup_ChainContextPos1(
 
       for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
       {
-	while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+	while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
 	{
 	  if ( error && error != HB_Err_Not_Covered )
 	    return error;
@@ -5056,7 +5045,7 @@ static HB_Error  Lookup_ChainContextPos1(
 
     for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -5075,7 +5064,7 @@ static HB_Error  Lookup_ChainContextPos1(
 
     for ( i = 0; i < lgc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -5130,12 +5119,12 @@ static HB_Error  Lookup_ChainContextPos2(
 
   HB_ChainPosClassSet*  cpcs;
   HB_ChainPosClassRule  cpcr;
-  HB_GDEFHeader*        gdef;
+  hb_ot_layout_t*        layout;
 
 
-  gdef = gpos->gdef;
+  layout = gpos->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   /* Note: The coverage table in format 2 doesn't give an index into
@@ -5198,7 +5187,7 @@ static HB_Error  Lookup_ChainContextPos2(
 
       for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
       {
-	while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+	while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
 	{
 	  if ( error && error != HB_Err_Not_Covered )
 	    goto End1;
@@ -5230,7 +5219,7 @@ static HB_Error  Lookup_ChainContextPos2(
 
     for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
@@ -5260,7 +5249,7 @@ static HB_Error  Lookup_ChainContextPos2(
 
     for ( i = 0; i < lgc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
@@ -5324,12 +5313,12 @@ static HB_Error  Lookup_ChainContextPos3(
   HB_Coverage*    bc;
   HB_Coverage*    ic;
   HB_Coverage*    lc;
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t*  layout;
 
 
-  gdef = gpos->gdef;
+  layout = gpos->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   bgc = ccpf3->BacktrackGlyphCount;
@@ -5353,7 +5342,7 @@ static HB_Error  Lookup_ChainContextPos3(
 
     for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -5374,7 +5363,7 @@ static HB_Error  Lookup_ChainContextPos3(
   for ( i = 0, j = buffer->in_pos; i < igc; i++, j++ )
   {
     /* We already called CHECK_Property for IN_GLYPH ( buffer->in_pos ) */
-    while ( j > buffer->in_pos && CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+    while ( j > buffer->in_pos && CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;
@@ -5396,7 +5385,7 @@ static HB_Error  Lookup_ChainContextPos3(
 
   for ( i = 0; i < lgc; i++, j++ )
   {
-    while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+    while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;

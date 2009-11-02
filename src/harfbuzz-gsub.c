@@ -47,7 +47,7 @@ static HB_Error  GSUB_Do_Glyph_Lookup( HB_GSUBHeader*   gsub,
 
 HB_Error  HB_Load_GSUB_Table( HB_Font          font,
 			      HB_GSUBHeader** retptr,
-			      HB_GDEFHeader*  gdef )
+			      hb_ot_layout_t    *layout )
 {
   HB_Stream        stream = font->stream;
   HB_Error         error;
@@ -55,7 +55,7 @@ HB_Error  HB_Load_GSUB_Table( HB_Font          font,
 
   HB_GSUBHeader*  gsub;
 
-  if ( !retptr )
+  if ( !retptr || !layout )
     return ERR(HB_Err_Invalid_Argument);
 
   if ( GOTO_Table( TTAG_GSUB ) )
@@ -111,19 +111,11 @@ HB_Error  HB_Load_GSUB_Table( HB_Font          font,
 				  stream, HB_Type_GSUB ) ) != HB_Err_Ok )
     goto Fail2;
 
-  gsub->gdef = gdef;      /* can be NULL */
-
-  if ( ( error =  _HB_GDEF_LoadMarkAttachClassDef_From_LookupFlags( gdef, stream,
-								     gsub->LookupList.Lookup,
-								     gsub->LookupList.LookupCount ) ) )
-	  goto Fail1;
+  gsub->layout = layout;      /* can be NULL */
 
   *retptr = gsub;
 
   return HB_Err_Ok;
-
-Fail1:
-  _HB_OPEN_Free_LookupList( &gsub->LookupList, HB_Type_GSUB );
 
 Fail2:
   _HB_OPEN_Free_FeatureList( &gsub->FeatureList );
@@ -271,14 +263,14 @@ static HB_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
   HB_UShort index, value, property;
   HB_Error  error;
   HB_SingleSubst*  ss = &st->single;
-  HB_GDEFHeader*   gdef = gsub->gdef;
+  hb_ot_layout_t*   layout = gsub->layout;
 
   HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &ss->Coverage, IN_CURGLYPH(), &index );
@@ -305,13 +297,11 @@ static HB_Error  Lookup_SingleSubst( HB_GSUBHeader*   gsub,
     return ERR(HB_Err_Invalid_SubTable);
   }
 
-  if ( gdef && gdef->NewGlyphClasses )
+  if ( _hb_ot_layout_has_new_glyph_classes (layout) )
   {
     /* we inherit the old glyph class to the substituted glyph */
 
-    error = _HB_GDEF_Add_Glyph_Property( gdef, value, property );
-    if ( error && error != HB_Err_Not_Covered )
-      return error;
+    hb_ot_layout_set_glyph_class (layout, value, property);
   }
 
   return HB_Err_Ok;
@@ -477,14 +467,14 @@ static HB_Error  Lookup_MultipleSubst( HB_GSUBHeader*    gsub,
   HB_UShort index, property, n, count;
   HB_UShort*s;
   HB_MultipleSubst*  ms = &st->multiple;
-  HB_GDEFHeader*     gdef = gsub->gdef;
+  hb_ot_layout_t*     layout = gsub->layout;
 
   HB_UNUSED(nesting_level);
 
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &ms->Coverage, IN_CURGLYPH(), &index );
@@ -500,19 +490,15 @@ static HB_Error  Lookup_MultipleSubst( HB_GSUBHeader*    gsub,
   if ( ADD_String( buffer, 1, count, s, 0xFFFF, 0xFFFF ) )
     return error;
 
-  if ( gdef && gdef->NewGlyphClasses )
+  if ( _hb_ot_layout_has_new_glyph_classes (layout) )
   {
     /* this is a guess only ... */
 
-    if ( property == HB_GDEF_LIGATURE )
-      property = HB_GDEF_BASE_GLYPH;
+    if ( property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE )
+      property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
 
     for ( n = 0; n < count; n++ )
-    {
-      error = _HB_GDEF_Add_Glyph_Property( gdef, s[n], property );
-      if ( error && error != HB_Err_Not_Covered )
-	return error;
-    }
+      hb_ot_layout_set_glyph_class (layout, s[n], property);
   }
 
   return HB_Err_Ok;
@@ -674,7 +660,7 @@ static HB_Error  Lookup_AlternateSubst( HB_GSUBHeader*    gsub,
   HB_Error          error;
   HB_UShort         index, value, alt_index, property;
   HB_AlternateSubst* as = &st->alternate;
-  HB_GDEFHeader*     gdef = gsub->gdef;
+  hb_ot_layout_t*     layout = gsub->layout;
   HB_AlternateSet  aset;
 
   HB_UNUSED(nesting_level);
@@ -682,7 +668,7 @@ static HB_Error  Lookup_AlternateSubst( HB_GSUBHeader*    gsub,
   if ( context_length != 0xFFFF && context_length < 1 )
     return HB_Err_Not_Covered;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &as->Coverage, IN_CURGLYPH(), &index );
@@ -704,14 +690,9 @@ static HB_Error  Lookup_AlternateSubst( HB_GSUBHeader*    gsub,
   if ( REPLACE_Glyph( buffer, value, nesting_level ) )
     return error;
 
-  if ( gdef && gdef->NewGlyphClasses )
-  {
+  if ( _hb_ot_layout_has_new_glyph_classes (layout) )
     /* we inherit the old glyph class to the substituted glyph */
-
-    error = _HB_GDEF_Add_Glyph_Property( gdef, value, property );
-    if ( error && error != HB_Err_Not_Covered )
-      return error;
-  }
+    hb_ot_layout_set_glyph_class (layout, value, property);
 
   return HB_Err_Ok;
 }
@@ -953,16 +934,16 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
   HB_UShort      numlig, i, j, is_mark, first_is_mark = FALSE;
   HB_UShort*     c;
   HB_LigatureSubst*  ls = &st->ligature;
-  HB_GDEFHeader*     gdef = gsub->gdef;
+  hb_ot_layout_t*     layout = gsub->layout;
 
   HB_Ligature*  lig;
 
   HB_UNUSED(nesting_level);
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
-  if ( property == HB_GDEF_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS )
+  if ( property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS )
     first_is_mark = TRUE;
 
   error = _HB_OPEN_Coverage_Index( &ls->Coverage, IN_CURGLYPH(), &index );
@@ -990,7 +971,7 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
 
     for ( i = 1, j = buffer->in_pos + 1; i < lig->ComponentCount; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -1000,22 +981,16 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
 	j++;
       }
 
-      if ( !( property == HB_GDEF_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
+      if ( !( property == HB_OT_LAYOUT_GLYPH_CLASS_MARK || property & HB_LOOKUP_FLAG_IGNORE_SPECIAL_MARKS ) )
 	is_mark = FALSE;
 
       if ( IN_GLYPH( j ) != c[i - 1] )
 	goto next_ligature;
     }
 
-    if ( gdef && gdef->NewGlyphClasses )
-    {
+    if ( _hb_ot_layout_has_new_glyph_classes (layout) )
       /* this is just a guess ... */
-
-      error = _HB_GDEF_Add_Glyph_Property( gdef, lig->LigGlyph,
-				  is_mark ? HB_GDEF_MARK : HB_GDEF_LIGATURE );
-      if ( error && error != HB_Err_Not_Covered )
-	return error;
-    }
+      hb_ot_layout_set_glyph_class (layout, lig->LigGlyph, is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
 
     if ( j == buffer->in_pos + i ) /* No input glyphs skipped */
     {
@@ -1051,7 +1026,7 @@ static HB_Error  Lookup_LigatureSubst( HB_GSUBHeader*    gsub,
 
       for ( i = 0; i < lig->ComponentCount - 1; i++ )
       {
-	while ( CHECK_Property( gdef, IN_CURITEM(),
+	while ( CHECK_Property( layout, IN_CURITEM(),
 				flags, &property ) )
 	  if ( ADD_Glyph( buffer, IN_CURGLYPH(), i, ligID ) )
 	    return error;
@@ -1813,12 +1788,12 @@ static HB_Error  Lookup_ContextSubst1( HB_GSUBHeader*          gsub,
   HB_Error         error;
 
   HB_SubRule*     sr;
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t*  layout;
 
 
-  gdef = gsub->gdef;
+  layout = gsub->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &csf1->Coverage, IN_CURGLYPH(), &index );
@@ -1838,7 +1813,7 @@ static HB_Error  Lookup_ContextSubst1( HB_GSUBHeader*          gsub,
 
     for ( i = 1, j = buffer->in_pos + 1; i < sr[k].GlyphCount; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -1880,12 +1855,12 @@ static HB_Error  Lookup_ContextSubst2( HB_GSUBHeader*          gsub,
 
   HB_SubClassSet*   scs;
   HB_SubClassRule*  sr;
-  HB_GDEFHeader*    gdef;
+  hb_ot_layout_t*    layout;
 
 
-  gdef = gsub->gdef;
+  layout = gsub->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   /* Note: The coverage table in format 2 doesn't give an index into
@@ -1931,7 +1906,7 @@ static HB_Error  Lookup_ContextSubst2( HB_GSUBHeader*          gsub,
 
     for ( i = 1, j = buffer->in_pos + 1; i < sr->GlyphCount; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End;
@@ -1984,12 +1959,12 @@ static HB_Error  Lookup_ContextSubst3( HB_GSUBHeader*          gsub,
   HB_UShort        index, i, j, property;
 
   HB_Coverage*    c;
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t*  layout;
 
 
-  gdef = gsub->gdef;
+  layout = gsub->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   if ( context_length != 0xFFFF && context_length < csf3->GlyphCount )
@@ -2002,7 +1977,7 @@ static HB_Error  Lookup_ContextSubst3( HB_GSUBHeader*          gsub,
 
   for ( i = 1, j = buffer->in_pos + 1; i < csf3->GlyphCount; i++, j++ )
   {
-    while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+    while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;
@@ -3004,12 +2979,12 @@ static HB_Error  Lookup_ChainContextSubst1( HB_GSUBHeader*               gsub,
 
   HB_ChainSubRule*  csr;
   HB_ChainSubRule   curr_csr;
-  HB_GDEFHeader*    gdef;
+  hb_ot_layout_t*    layout;
 
 
-  gdef = gsub->gdef;
+  layout = gsub->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   error = _HB_OPEN_Coverage_Index( &ccsf1->Coverage, IN_CURGLYPH(), &index );
@@ -3041,7 +3016,7 @@ static HB_Error  Lookup_ChainContextSubst1( HB_GSUBHeader*               gsub,
 
       for ( i = 0, j = buffer->out_pos - 1; i < bgc; i++, j-- )
       {
-	while ( CHECK_Property( gdef, OUT_ITEM( j ), flags, &property ) )
+	while ( CHECK_Property( layout, OUT_ITEM( j ), flags, &property ) )
 	{
 	  if ( error && error != HB_Err_Not_Covered )
 	    return error;
@@ -3070,7 +3045,7 @@ static HB_Error  Lookup_ChainContextSubst1( HB_GSUBHeader*               gsub,
 
     for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -3089,7 +3064,7 @@ static HB_Error  Lookup_ChainContextSubst1( HB_GSUBHeader*               gsub,
 
     for ( i = 0; i < lgc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -3142,12 +3117,12 @@ static HB_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
 
   HB_ChainSubClassSet*  cscs;
   HB_ChainSubClassRule  ccsr;
-  HB_GDEFHeader*        gdef;
+  hb_ot_layout_t*        layout;
 
 
-  gdef = gsub->gdef;
+  layout = gsub->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   /* Note: The coverage table in format 2 doesn't give an index into
@@ -3210,7 +3185,7 @@ static HB_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
 
       for ( i = 0, j = buffer->out_pos - 1; i < bgc; i++, j-- )
       {
-	while ( CHECK_Property( gdef, OUT_ITEM( j ), flags, &property ) )
+	while ( CHECK_Property( layout, OUT_ITEM( j ), flags, &property ) )
 	{
 	  if ( error && error != HB_Err_Not_Covered )
 	    goto End1;
@@ -3242,7 +3217,7 @@ static HB_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
 
     for ( i = 1, j = buffer->in_pos + 1; i < igc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
@@ -3272,7 +3247,7 @@ static HB_Error  Lookup_ChainContextSubst2( HB_GSUBHeader*               gsub,
 
     for ( i = 0; i < lgc; i++, j++ )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  goto End1;
@@ -3334,12 +3309,12 @@ static HB_Error  Lookup_ChainContextSubst3( HB_GSUBHeader*               gsub,
   HB_Coverage*    bc;
   HB_Coverage*    ic;
   HB_Coverage*    lc;
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t*  layout;
 
 
-  gdef = gsub->gdef;
+  layout = gsub->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   bgc = ccsf3->BacktrackGlyphCount;
@@ -3363,7 +3338,7 @@ static HB_Error  Lookup_ChainContextSubst3( HB_GSUBHeader*               gsub,
 
     for ( i = 0, j = buffer->out_pos - 1; i < bgc; i++, j-- )
     {
-      while ( CHECK_Property( gdef, OUT_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, OUT_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -3384,7 +3359,7 @@ static HB_Error  Lookup_ChainContextSubst3( HB_GSUBHeader*               gsub,
   for ( i = 0, j = buffer->in_pos; i < igc; i++, j++ )
   {
     /* We already called CHECK_Property for IN_GLYPH( buffer->in_pos ) */
-    while ( j > buffer->in_pos && CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+    while ( j > buffer->in_pos && CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;
@@ -3406,7 +3381,7 @@ static HB_Error  Lookup_ChainContextSubst3( HB_GSUBHeader*               gsub,
 
   for ( i = 0; i < lgc; i++, j++ )
   {
-    while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+    while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;
@@ -3653,14 +3628,14 @@ static HB_Error  Lookup_ReverseChainContextSubst( HB_GSUBHeader*    gsub,
   HB_ReverseChainContextSubst*  rccs = &st->reverse;
   HB_Coverage*    bc;
   HB_Coverage*    lc;
-  HB_GDEFHeader*  gdef;
+  hb_ot_layout_t*  layout;
 
   if ( nesting_level != 1 || context_length != 0xFFFF )
     return HB_Err_Not_Covered;
 
-  gdef = gsub->gdef;
+  layout = gsub->layout;
 
-  if ( CHECK_Property( gdef, IN_CURITEM(), flags, &property ) )
+  if ( CHECK_Property( layout, IN_CURITEM(), flags, &property ) )
     return error;
 
   bgc = rccs->BacktrackGlyphCount;
@@ -3680,7 +3655,7 @@ static HB_Error  Lookup_ReverseChainContextSubst( HB_GSUBHeader*    gsub,
 
     for ( i = 0, j = buffer->in_pos - 1; i < bgc; i++, j-- )
     {
-      while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+      while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
       {
 	if ( error && error != HB_Err_Not_Covered )
 	  return error;
@@ -3706,7 +3681,7 @@ static HB_Error  Lookup_ReverseChainContextSubst( HB_GSUBHeader*    gsub,
 
   for ( i = 0, j = buffer->in_pos + 1; i < lgc; i++, j++ )
   {
-    while ( CHECK_Property( gdef, IN_ITEM( j ), flags, &property ) )
+    while ( CHECK_Property( layout, IN_ITEM( j ), flags, &property ) )
     {
       if ( error && error != HB_Err_Not_Covered )
 	return error;

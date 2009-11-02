@@ -2,17 +2,20 @@
 
 INCLUDES = 					\
 	-I $(srcdir)				\
-	$(FREETYPE_CFLAGS)
+	$(FREETYPE_CFLAGS)			\
+	$(GLIB_CFLAGS)
+CXX = gcc $(GCCOPTS) -fno-rtti -fno-exceptions -Wabi -Wpadded -Wcast-align
 
 noinst_LTLIBRARIES = libharfbuzz-1.la
 
 MAINSOURCES =  \
-	harfbuzz.c
+	$(INCLUDEDSOURCES) \
+	hb-ot-layout.cc
+#	harfbuzz.c
 
 # included from harfbuzz.c
 INCLUDEDSOURCES = \
 	harfbuzz-buffer.c \
-	harfbuzz-gdef.c \
 	harfbuzz-gpos.c \
 	harfbuzz-gsub.c \
 	harfbuzz-impl.c \
@@ -23,7 +26,6 @@ PUBLICHEADERS = \
 	harfbuzz.h \
 	harfbuzz-global.h \
 	harfbuzz-buffer.h \
-	harfbuzz-gdef.h \
 	harfbuzz-gpos.h \
 	harfbuzz-gsub.h \
 	harfbuzz-open.h
@@ -31,7 +33,6 @@ PUBLICHEADERS = \
 PRIVATEHEADERS = \
 	harfbuzz-impl.h \
 	harfbuzz-buffer-private.h \
-	harfbuzz-gdef-private.h \
 	harfbuzz-gpos-private.h \
 	harfbuzz-gsub-private.h \
 	harfbuzz-open-private.h \
@@ -45,7 +46,7 @@ libharfbuzz_1_la_SOURCES = \
 libharfbuzz_1_la_LIBADD = \
 	$(FREETYPE_LIBS)
 
-noinst_PROGRAMS = harfbuzz-dump
+noinst_PROGRAMS = harfbuzz-dump main
 
 harfbuzz_dump_SOURCES =	\
 	harfbuzz-dump.c \
@@ -55,6 +56,9 @@ harfbuzz_dump_SOURCES =	\
 harfbuzz_dump_LDADD = \
 	$(libharfbuzz_1_la_LIBADD) \
 	libharfbuzz-1.la
+
+main_LDADD = \
+	$(GLIB_LIBS)
 
 EXTRA_DIST = 		\
 	README		\
