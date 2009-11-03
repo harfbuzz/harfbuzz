@@ -13,22 +13,13 @@ HBSOURCES =  \
 	hb-buffer-private.h \
 	hb-font.cc \
 	hb-font-private.h \
-	hb-private.h \
-	hb-shape.h \
-	hb-shape.c \
-	hb-unicode.c \
-	hb-unicode.h \
-	hb-unicode-private.h \
+	hb-object-private.h \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
-	hb-ot-layout.cc \
-	hb-ot-layout-common-private.hh \
-	hb-ot-layout-gdef-private.hh \
-	hb-ot-layout-gpos-private.hh \
-	hb-ot-layout-gsubgpos-private.hh \
-	hb-ot-layout-gsub-private.hh \
-	hb-ot-layout-private.h \
-	hb-object-private.h \
+	hb-private.h \
+	hb-shape.c \
+	hb-unicode.c \
+	hb-unicode-private.h \
 	$(NULL)
 HBHEADERS = \
 	hb.h \
@@ -36,6 +27,20 @@ HBHEADERS = \
 	hb-buffer.h \
 	hb-common.h \
 	hb-font.h \
+	hb-shape.h \
+	hb-unicode.h \
+	$(NULL)
+
+HBSOURCES += \
+	hb-ot-layout.cc \
+	hb-ot-layout-common-private.hh \
+	hb-ot-layout-gdef-private.hh \
+	hb-ot-layout-gpos-private.hh \
+	hb-ot-layout-gsubgpos-private.hh \
+	hb-ot-layout-gsub-private.hh \
+	hb-ot-layout-private.h \
+	$(NULL)
+HBHEADERS += \
 	hb-ot.h \
 	hb-ot-layout.h \
 	$(NULL)
