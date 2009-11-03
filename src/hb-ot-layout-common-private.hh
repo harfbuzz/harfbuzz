@@ -101,7 +101,7 @@ template <typename Type>
 struct RecordListOf : RecordArrayOf<Type>
 {
   inline const Type& operator [] (unsigned int i) const
-  { return this+RecordArrayOf<Type>::operator[](i).offset; }
+  { return this+RecordArrayOf<Type>::operator [](i).offset; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
