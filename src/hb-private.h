@@ -66,7 +66,12 @@ typedef GStaticMutex hb_mutex_t;
 #define hb_mutex_unlock(M)		g_static_mutex_unlock (&M)
 
 #else
+
+#ifdef _MSC_VER
+#pragma message(__LOC__"Could not find any system to define platform macros, library will NOT be thread-safe")
+#else
 #warning "Could not find any system to define platform macros, library will NOT be thread-safe"
+#endif
 
 typedef int hb_atomic_int_t;
 #define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))

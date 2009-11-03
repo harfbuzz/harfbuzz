@@ -28,13 +28,18 @@
 #define HB_COMMON_H
 
 #ifdef _MSC_VER
-#warning "Not using stdint.h.  Integer types may have wrong size."
+#define __STR2__(x) #x
+#define __STR1__(x) __STR2__(x)
+#define __LOC__ __FILE__ "("__STR1__(__LINE__)") : Warning Msg: "
+#pragma message(__LOC__"Not using stdint.h; integer types may have wrong size")
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
 typedef signed short int16_t;
 typedef unsigned short uint16_t;
 typedef signed int int32_t;
 typedef unsigned int uint32_t;
+typedef signed long long int64_t;
+typedef unsigned long long uint64_t;
 #ifndef __cplusplus
 #define inline __inline
 #endif
