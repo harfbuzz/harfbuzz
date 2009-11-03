@@ -29,8 +29,6 @@
 
 #include "hb.h"
 
-#include "hb-unicode.h"
-
 HB_BEGIN_DECLS
 
 hb_unicode_funcs_t *

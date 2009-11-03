@@ -232,7 +232,9 @@ static hb_font_t _hb_font_nil = {
   0, /* x_ppem */
   0, /* y_ppem */
 
-  NULL /* klass */
+  NULL, /* klass */
+  NULL, /* destroy */
+  NULL  /* user_data */
 };
 
 hb_font_t *
@@ -264,20 +266,29 @@ hb_font_destroy (hb_font_t *font)
   HB_OBJECT_DO_DESTROY (font);
 
   hb_font_funcs_destroy (font->klass);
+  if (font->destroy)
+    font->destroy (font->user_data);
 
   free (font);
 }
 
 void
-hb_font_set_funcs (hb_font_t       *font,
-		   hb_font_funcs_t *klass)
+hb_font_set_funcs (hb_font_t         *font,
+		   hb_font_funcs_t   *klass,
+		   hb_destroy_func_t  destroy,
+		   void              *user_data)
 {
   if (HB_OBJECT_IS_INERT (font))
     return;
 
+  if (font->destroy)
+    font->destroy (font->user_data);
+
   hb_font_funcs_reference (klass);
   hb_font_funcs_destroy (font->klass);
   font->klass = klass;
+  font->destroy = destroy;
+  font->user_data = user_data;
 }
 
 void

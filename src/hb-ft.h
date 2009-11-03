@@ -24,72 +24,29 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_FONT_PRIVATE_H
-#define HB_FONT_PRIVATE_H
+#ifndef HB_FT_H
+#define HB_FT_H
 
-#include "hb-private.h"
+#include "hb.h"
 
 #include "hb-font.h"
 
-#include "hb-ot-layout-private.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 HB_BEGIN_DECLS
 
-/*
- * hb_font_funcs_t
- */
+hb_font_funcs_t *
+hb_ft_get_font_funcs (void);
 
-struct _hb_font_funcs_t {
-  hb_reference_count_t ref_count;
+hb_face_t *
+hb_ft_face_create (FT_Face           ft_face,
+		   hb_destroy_func_t destroy);
 
-  hb_bool_t immutable;
-
-  hb_font_get_glyph_func_t glyph_func;
-  hb_font_get_contour_point_func_t contour_point_func;
-  hb_font_get_glyph_metrics_func_t glyph_metrics_func;
-  hb_font_get_kerning_func_t kerning_func;
-};
-
-HB_INTERNAL hb_font_funcs_t
-_hb_font_funcs_nil;
-
-/*
- * hb_face_t
- */
-
-struct _hb_face_t {
-  hb_reference_count_t ref_count;
-
-  hb_blob_t *blob;
-  unsigned int  index;
-
-  hb_get_table_func_t  get_table;
-  hb_destroy_func_t    destroy;
-  void                *user_data;
-
-  hb_ot_layout_t ot_layout;
-};
-
-
-/*
- * hb_font_t
- */
-
-struct _hb_font_t {
-  hb_reference_count_t ref_count;
-
-  hb_16dot16_t x_scale;
-  hb_16dot16_t y_scale;
-
-  unsigned int x_ppem;
-  unsigned int y_ppem;
-
-  hb_font_funcs_t   *klass;
-  hb_destroy_func_t  destroy;
-  void              *user_data;
-};
-
+hb_font_t *
+hb_ft_font_create (FT_Face           ft_face,
+		   hb_destroy_func_t destroy);
 
 HB_END_DECLS
 
-#endif /* HB_FONT_PRIVATE_H */
+#endif /* HB_FT_H */

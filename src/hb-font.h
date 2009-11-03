@@ -150,8 +150,10 @@ void
 hb_font_destroy (hb_font_t *font);
 
 void
-hb_font_set_funcs (hb_font_t       *font,
-		   hb_font_funcs_t *klass);
+hb_font_set_funcs (hb_font_t         *font,
+		   hb_font_funcs_t   *klass,
+		   hb_destroy_func_t  destroy,
+		   void              *user_data);
 
 hb_font_funcs_t *
 hb_font_get_funcs (hb_font_t       *font);

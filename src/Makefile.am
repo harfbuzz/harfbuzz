@@ -49,7 +49,7 @@ HBHEADERS += \
 
 if HAVE_GLIB
 HBCFLAGS += $(GLIB_CFLAGS)
-HBLIBS += $(GLIB_LIBS)
+HBLIBS   += $(GLIB_LIBS)
 HBSOURCES += \
 	hb-glib.c \
 	$(NULL)
@@ -60,7 +60,7 @@ endif
 
 if HAVE_ICU
 HBCFLAGS += $(ICU_CFLAGS)
-HBLIBS += $(ICU_LIBS)
+HBLIBS   += $(ICU_LIBS)
 HBSOURCES += \
 	hb-icu.c \
 	$(NULL)
@@ -69,8 +69,18 @@ HBHEADERS += \
 	$(NULL)
 endif
 
-CXXLINK = $(LINK)
+if HAVE_FREETYPE
+HBCFLAGS += $(FREETYPE_CFLAGS)
+HBLIBS   += $(FREETYPE_LIBS)
+HBSOURCES += \
+	hb-ft.c \
+	$(NULL)
+HBHEADERS += \
+	hb-ft.h \
+	$(NULL)
+endif
 
+CXXLINK = $(LINK)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_la_LIBADD = $(HBLIBS)
