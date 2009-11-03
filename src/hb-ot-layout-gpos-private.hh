@@ -35,8 +35,8 @@
 
 typedef SHORT Value;
 
-typedef Value ValueRecord[0];
-ASSERT_SIZE (ValueRecord, 0);
+typedef Value ValueRecord[VAR];
+ASSERT_SIZE_VAR (Value, 0, ValueRecord);
 
 struct ValueFormat : USHORT
 {
@@ -259,12 +259,11 @@ struct Anchor
   private:
   union {
   USHORT		format;		/* Format identifier */
-  AnchorFormat1		format1[];
-  AnchorFormat2		format2[];
-  AnchorFormat3		format3[];
+  AnchorFormat1		format1[VAR];
+  AnchorFormat2		format2[VAR];
+  AnchorFormat3		format3[VAR];
   } u;
 };
-ASSERT_SIZE (Anchor, 2);
 
 
 struct AnchorMatrix
@@ -287,10 +286,10 @@ struct AnchorMatrix
   USHORT	rows;			/* Number of rows */
   private:
   OffsetTo<Anchor>
-		matrix[];		/* Matrix of offsets to Anchor tables--
+		matrix[VAR];		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
 };
-ASSERT_SIZE (AnchorMatrix, 2);
+ASSERT_SIZE_VAR (AnchorMatrix, 2, OffsetTo<Anchor>);
 
 
 struct MarkRecord
@@ -389,7 +388,7 @@ struct SinglePosFormat1
 					 * value(s)--applied to all glyphs in
 					 * the Coverage table */
 };
-ASSERT_SIZE (SinglePosFormat1, 6);
+ASSERT_SIZE_VAR (SinglePosFormat1, 6, ValueRecord);
 
 struct SinglePosFormat2
 {
@@ -431,7 +430,7 @@ struct SinglePosFormat2
   ValueRecord	values;			/* Array of ValueRecords--positioning
 					 * values applied to glyphs */
 };
-ASSERT_SIZE (SinglePosFormat2, 8);
+ASSERT_SIZE_VAR (SinglePosFormat2, 8, ValueRecord);
 
 struct SinglePos
 {
@@ -461,11 +460,10 @@ struct SinglePos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  SinglePosFormat1	format1[];
-  SinglePosFormat2	format2[];
+  SinglePosFormat1	format1[VAR];
+  SinglePosFormat2	format2[VAR];
   } u;
 };
-ASSERT_SIZE (SinglePos, 2);
 
 
 struct PairValueRecord
@@ -479,7 +477,7 @@ struct PairValueRecord
   ValueRecord	values;			/* Positioning data for the first glyph
 					 * followed by for second glyph */
 };
-ASSERT_SIZE (PairValueRecord, 2);
+ASSERT_SIZE_VAR (PairValueRecord, 2, ValueRecord);
 
 struct PairSet
 {
@@ -495,10 +493,10 @@ struct PairSet
   private:
   USHORT	len;			/* Number of PairValueRecords */
   PairValueRecord
-		array[];		/* Array of PairValueRecords--ordered
+		array[VAR];		/* Array of PairValueRecords--ordered
 					 * by GlyphID of the second glyph */
 };
-ASSERT_SIZE (PairSet, 2);
+ASSERT_SIZE_VAR (PairSet, 2, PairValueRecord);
 
 struct PairPosFormat1
 {
@@ -654,7 +652,7 @@ struct PairPosFormat2
 					 * class1-major, class2-minor,
 					 * Each entry has value1 and value2 */
 };
-ASSERT_SIZE (PairPosFormat2, 16);
+ASSERT_SIZE_VAR (PairPosFormat2, 16, ValueRecord);
 
 struct PairPos
 {
@@ -684,11 +682,10 @@ struct PairPos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  PairPosFormat1	format1[];
-  PairPosFormat2	format2[];
+  PairPosFormat1	format1[VAR];
+  PairPosFormat2	format2[VAR];
   } u;
 };
-ASSERT_SIZE (PairPos, 2);
 
 
 struct EntryExitRecord
@@ -931,17 +928,15 @@ struct CursivePos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  CursivePosFormat1	format1[];
+  CursivePosFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (CursivePos, 2);
 
 
 typedef AnchorMatrix BaseArray;		/* base-major--
 					 * in order of BaseCoverage Index--,
 					 * mark-minor--
 					 * ordered by class--zero-based. */
-ASSERT_SIZE (BaseArray, 2);
 
 struct MarkBasePosFormat1
 {
@@ -1027,23 +1022,20 @@ struct MarkBasePos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkBasePosFormat1	format1[];
+  MarkBasePosFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (MarkBasePos, 2);
 
 
 typedef AnchorMatrix LigatureAttach;	/* component-major--
 					 * in order of writing direction--,
 					 * mark-minor--
 					 * ordered by class--zero-based. */
-ASSERT_SIZE (LigatureAttach, 2);
 
 typedef OffsetListOf<LigatureAttach> LigatureArray;
 					/* Array of LigatureAttach
 					 * tables ordered by
 					 * LigatureCoverage Index */
-ASSERT_SIZE (LigatureArray, 2);
 
 struct MarkLigPosFormat1
 {
@@ -1152,17 +1144,15 @@ struct MarkLigPos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkLigPosFormat1	format1[];
+  MarkLigPosFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (MarkLigPos, 2);
 
 
 typedef AnchorMatrix Mark2Array;	/* mark2-major--
 					 * in order of Mark2Coverage Index--,
 					 * mark1-minor--
 					 * ordered by class--zero-based. */
-ASSERT_SIZE (Mark2Array, 2);
 
 struct MarkMarkPosFormat1
 {
@@ -1253,10 +1243,9 @@ struct MarkMarkPos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkMarkPosFormat1	format1[];
+  MarkMarkPosFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (MarkMarkPos, 2);
 
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
@@ -1272,7 +1261,6 @@ struct ContextPos : Context
     return Context::apply (APPLY_ARG, position_lookup);
   }
 };
-ASSERT_SIZE (ContextPos, 2);
 
 struct ChainContextPos : ChainContext
 {
@@ -1285,7 +1273,6 @@ struct ChainContextPos : ChainContext
     return ChainContext::apply (APPLY_ARG, position_lookup);
   }
 };
-ASSERT_SIZE (ChainContextPos, 2);
 
 
 struct ExtensionPos : Extension
@@ -1300,7 +1287,6 @@ struct ExtensionPos : Extension
 
   inline bool sanitize (SANITIZE_ARG_DEF);
 };
-ASSERT_SIZE (ExtensionPos, 2);
 
 
 
@@ -1362,18 +1348,17 @@ struct PosLookupSubTable
   private:
   union {
   USHORT		format;
-  SinglePos		single[];
-  PairPos		pair[];
-  CursivePos		cursive[];
-  MarkBasePos		markBase[];
-  MarkLigPos		markLig[];
-  MarkMarkPos		markMark[];
-  ContextPos		context[];
-  ChainContextPos	chainContext[];
-  ExtensionPos		extension[];
+  SinglePos		single[VAR];
+  PairPos		pair[VAR];
+  CursivePos		cursive[VAR];
+  MarkBasePos		markBase[VAR];
+  MarkLigPos		markLig[VAR];
+  MarkMarkPos		markMark[VAR];
+  ContextPos		context[VAR];
+  ChainContextPos	chainContext[VAR];
+  ExtensionPos		extension[VAR];
   } u;
 };
-ASSERT_SIZE (PosLookupSubTable, 2);
 
 
 struct PosLookup : Lookup
@@ -1462,7 +1447,6 @@ struct PosLookup : Lookup
     return SANITIZE_THIS (list);
   }
 };
-ASSERT_SIZE (PosLookup, 6);
 
 typedef OffsetListOf<PosLookup> PosLookupList;
 ASSERT_SIZE (PosLookupList, 2);

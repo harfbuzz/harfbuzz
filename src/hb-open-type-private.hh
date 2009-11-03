@@ -50,6 +50,9 @@
 #define CONST_NEXT(T,X)		(*(reinterpret_cast<const T *>(CONST_CHARP(&(X)) + (X).get_size ())))
 #define NEXT(T,X)		(*(reinterpret_cast<T *>(CHARP(&(X)) + (X).get_size ())))
 
+#define CONST_ARRAY_AFTER(T,X)	((reinterpret_cast<const T *>(CONST_CHARP(&(X)) + sizeof (X))))
+#define ARRAY_AFTER(T,X)	((reinterpret_cast<T *>(CHARP(&(X)) + sizeof (X))))
+
 /*
  * Class features
  */
@@ -58,7 +61,7 @@
 /* Null objects */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
-static const char NullPool[16] = "";
+static const char NullPool[32] = "";
 
 /* Generic template for nul-content sizeof-sized Null objects. */
 template <typename Type>
@@ -505,13 +508,16 @@ struct LongOffsetTo : GenericOffsetTo<LongOffset, Type> {};
 template <typename LenType, typename Type>
 struct GenericArrayOf
 {
+  const Type *const_array(void) const { return CONST_ARRAY_AFTER (Type, len); }
+  Type *array(void) { return ARRAY_AFTER (Type, len); }
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= len)) return Null(Type);
-    return array[i];
+    return const_array()[i];
   }
   inline unsigned int get_size () const
-  { return sizeof (len) + len * sizeof (array[0]); }
+  { return sizeof (len) + len * sizeof (Type); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
@@ -523,7 +529,7 @@ struct GenericArrayOf
     return true;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE (array[i]))
+      if (!SANITIZE (array()[i]))
         return false;
     return true;
   }
@@ -532,7 +538,7 @@ struct GenericArrayOf
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array[i].sanitize (SANITIZE_ARG, base))
+      if (!array()[i].sanitize (SANITIZE_ARG, base))
         return false;
     return true;
   }
@@ -541,7 +547,7 @@ struct GenericArrayOf
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array[i].sanitize (SANITIZE_ARG, base, base2))
+      if (!array()[i].sanitize (SANITIZE_ARG, base, base2))
         return false;
     return true;
   }
@@ -550,13 +556,13 @@ struct GenericArrayOf
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array[i].sanitize (SANITIZE_ARG, base, user_data))
+      if (!array()[i].sanitize (SANITIZE_ARG, base, user_data))
         return false;
     return true;
   }
 
   LenType len;
-  Type array[];
+/*Type array[VAR];*/
 };
 
 /* An array with a USHORT number of elements. */
@@ -586,7 +592,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
   inline const Type& operator [] (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= this->len)) return Null(Type);
-    return this+this->array[i];
+    return this+this->const_array()[i];
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -605,13 +611,16 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type>
 struct HeadlessArrayOf
 {
+  const Type *const_array(void) const { return CONST_ARRAY_AFTER (Type, len); }
+  Type *array(void) { return ARRAY_AFTER (Type, len); }
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= len || !i)) return Null(Type);
-    return array[i-1];
+    return const_array()[i-1];
   }
   inline unsigned int get_size () const
-  { return sizeof (len) + (len ? len - 1 : 0) * sizeof (array[0]); }
+  { return sizeof (len) + (len ? len - 1 : 0) * sizeof (Type); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
@@ -622,14 +631,15 @@ struct HeadlessArrayOf
      * do have a simple sanitize(). */
     return true;
     unsigned int count = len ? len - 1 : 0;
+    Type *a = array();
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE (array[i]))
+      if (!SANITIZE (a[i]))
         return false;
     return true;
   }
 
   USHORT len;
-  Type array[];
+/*Type array[VAR];*/
 };
 
 

@@ -141,11 +141,10 @@ struct SingleSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  SingleSubstFormat1	format1[];
-  SingleSubstFormat2	format2[];
+  SingleSubstFormat1	format1[VAR];
+  SingleSubstFormat2	format2[VAR];
   } u;
 };
-ASSERT_SIZE (SingleSubst, 2);
 
 
 struct Sequence
@@ -160,7 +159,7 @@ struct Sequence
       return false;
 
     _hb_buffer_add_output_glyphs (buffer, 1,
-				  substitute.len, (const uint16_t *) substitute.array,
+				  substitute.len, (const uint16_t *) substitute.const_array(),
 				  0xFFFF, 0xFFFF);
 
     /* This is a guess only ... */
@@ -249,10 +248,9 @@ struct MultipleSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MultipleSubstFormat1	format1[];
+  MultipleSubstFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (MultipleSubst, 2);
 
 
 typedef ArrayOf<GlyphID> AlternateSet;	/* Array of alternate GlyphIDs--in
@@ -345,10 +343,9 @@ struct AlternateSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  AlternateSubstFormat1	format1[];
+  AlternateSubstFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (AlternateSubst, 2);
 
 
 struct Ligature
@@ -531,10 +528,9 @@ struct LigatureSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  LigatureSubstFormat1	format1[];
+  LigatureSubstFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (LigatureSubst, 2);
 
 
 
@@ -551,7 +547,6 @@ struct ContextSubst : Context
     return Context::apply (APPLY_ARG, substitute_lookup);
   }
 };
-ASSERT_SIZE (ContextSubst, 2);
 
 struct ChainContextSubst : ChainContext
 {
@@ -564,7 +559,6 @@ struct ChainContextSubst : ChainContext
     return ChainContext::apply (APPLY_ARG, substitute_lookup);
   }
 };
-ASSERT_SIZE (ChainContextSubst, 2);
 
 
 struct ExtensionSubst : Extension
@@ -579,7 +573,6 @@ struct ExtensionSubst : Extension
 
   inline bool sanitize (SANITIZE_ARG_DEF);
 };
-ASSERT_SIZE (ExtensionSubst, 2);
 
 
 struct ReverseChainSingleSubstFormat1
@@ -601,10 +594,10 @@ struct ReverseChainSingleSubstFormat1
     const ArrayOf<GlyphID> &substitute = CONST_NEXT (ArrayOf<GlyphID>, lookahead);
 
     if (match_backtrack (APPLY_ARG,
-			 backtrack.len, (USHORT *) backtrack.array,
+			 backtrack.len, (USHORT *) backtrack.const_array(),
 			 match_coverage, DECONST_CHARP(this)) &&
         match_lookahead (APPLY_ARG,
-			 lookahead.len, (USHORT *) lookahead.array,
+			 lookahead.len, (USHORT *) lookahead.const_array(),
 			 match_coverage, DECONST_CHARP(this),
 			 1))
     {
@@ -672,10 +665,9 @@ struct ReverseChainSingleSubst
   private:
   union {
   USHORT				format;		/* Format identifier */
-  ReverseChainSingleSubstFormat1	format1[];
+  ReverseChainSingleSubstFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (ReverseChainSingleSubst, 2);
 
 
 
@@ -733,17 +725,16 @@ struct SubstLookupSubTable
   private:
   union {
   USHORT			format;
-  SingleSubst			single[];
-  MultipleSubst			multiple[];
-  AlternateSubst		alternate[];
-  LigatureSubst			ligature[];
-  ContextSubst			context[];
-  ChainContextSubst		chainContext[];
-  ExtensionSubst		extension[];
-  ReverseChainSingleSubst	reverseChainContextSingle[];
+  SingleSubst			single[VAR];
+  MultipleSubst			multiple[VAR];
+  AlternateSubst		alternate[VAR];
+  LigatureSubst			ligature[VAR];
+  ContextSubst			context[VAR];
+  ChainContextSubst		chainContext[VAR];
+  ExtensionSubst		extension[VAR];
+  ReverseChainSingleSubst	reverseChainContextSingle[VAR];
   } u;
 };
-ASSERT_SIZE (SubstLookupSubTable, 2);
 
 
 struct SubstLookup : Lookup
@@ -846,7 +837,6 @@ struct SubstLookup : Lookup
     return SANITIZE_THIS (list);
   }
 };
-ASSERT_SIZE (SubstLookup, 6);
 
 typedef OffsetListOf<SubstLookup> SubstLookupList;
 ASSERT_SIZE (SubstLookupList, 2);

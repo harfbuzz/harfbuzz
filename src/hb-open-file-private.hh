@@ -122,9 +122,9 @@ typedef struct OffsetTable
   USHORT	searchRange;	/* (Maximum power of 2 <= numTables) x 16 */
   USHORT	entrySelector;	/* Log2(maximum power of 2 <= numTables). */
   USHORT	rangeShift;	/* NumTables x 16-searchRange. */
-  TableDirectory tableDir[];	/* TableDirectory entries. numTables items */
+  TableDirectory tableDir[VAR];	/* TableDirectory entries. numTables items */
 } OpenTypeFontFace;
-ASSERT_SIZE (OffsetTable, 12);
+ASSERT_SIZE_VAR (OffsetTable, 12, TableDirectory);
 
 /*
  * TrueType Collections

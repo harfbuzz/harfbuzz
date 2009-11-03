@@ -67,14 +67,15 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
   inline const Tag& get_tag (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= this->len)) return Null(Tag);
-    return this->array[i].tag;
+    return (*this)[i].tag;
   }
   inline bool get_tags (unsigned int *record_count /* IN/OUT */,
 			hb_tag_t     *record_tags /* OUT */) const
   {
+    const Record<Type> *a = this->const_array();
     unsigned int count = MIN (this->len, *record_count);
     for (unsigned int i = 0; i < count; i++)
-      record_tags[i] = this->array[i].tag;
+      record_tags[i] = a[i].tag;
 
     *record_count = this->len;
     return !!this->len;
@@ -83,10 +84,11 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
   {
     const Tag t = tag;
     // TODO bsearch
+    const Record<Type> *a = this->const_array();
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (t == this->array[i].tag)
+      if (t == a[i].tag)
       {
         if (index) *index = i;
         return true;
@@ -116,14 +118,15 @@ struct IndexArray : ArrayOf<USHORT>
   {
     if (HB_UNLIKELY (i >= this->len))
       return NO_INDEX;
-    return this->array[i];
+    return this->const_array()[i];
   }
   inline bool get_indexes (unsigned int *_count /* IN/OUT */,
 			   unsigned int *_indexes /* OUT */) const
   {
     unsigned int count = MIN (this->len, *_count);
+    const USHORT *a = this->const_array();
     for (unsigned int i = 0; i < count; i++)
-      _indexes[i] = this->array[i];
+      _indexes[i] = a[i];
 
     *_count = this->len;
     return !!this->len;
@@ -283,7 +286,7 @@ struct Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_SELF () && SANITIZE_THIS (subTable))) return false;
+    if (!(SANITIZE_SELF/*XXXXXXXXXXXXXX*/ () && SANITIZE_THIS (subTable))) return false;
     if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = NEXT (USHORT, subTable);
@@ -296,11 +299,11 @@ struct Lookup
   USHORT	lookupFlag;		/* Lookup qualifiers */
   OffsetArrayOf<LookupSubTable>
 		subTable;		/* Array of SubTables */
-  USHORT	markFilteringSetX[0];	/* Index (base 0) into GDEF mark glyph sets
+  USHORT	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
 };
-ASSERT_SIZE (Lookup, 6);
+ASSERT_SIZE_VAR (Lookup, 6, USHORT);
 
 typedef OffsetListOf<Lookup> LookupList;
 ASSERT_SIZE (LookupList, 2);
@@ -425,11 +428,10 @@ struct Coverage
   private:
   union {
   USHORT		format;		/* Format identifier */
-  CoverageFormat1	format1[];
-  CoverageFormat2	format2[];
+  CoverageFormat1	format1[VAR];
+  CoverageFormat2	format2[VAR];
   } u;
 };
-ASSERT_SIZE (Coverage, 2);
 
 
 /*
@@ -541,11 +543,10 @@ struct ClassDef
   private:
   union {
   USHORT		format;		/* Format identifier */
-  ClassDefFormat1	format1[];
-  ClassDefFormat2	format2[];
+  ClassDefFormat1	format1[VAR];
+  ClassDefFormat2	format2[VAR];
   } u;
 };
-ASSERT_SIZE (ClassDef, 2);
 
 
 /*
@@ -595,9 +596,9 @@ struct Device
   USHORT	startSize;	/* Smallest size to correct--in ppem */
   USHORT	endSize;	/* Largest size to correct--in ppem */
   USHORT	deltaFormat;	/* Format of DeltaValue array data: 1, 2, or 3 */
-  USHORT	deltaValue[];	/* Array of compressed data */
+  USHORT	deltaValue[VAR];	/* Array of compressed data */
 };
-ASSERT_SIZE (Device, 6);
+ASSERT_SIZE_VAR (Device, 6, USHORT);
 
 
 #endif /* HB_OT_LAYOUT_COMMON_PRIVATE_HH */

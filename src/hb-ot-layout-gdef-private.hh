@@ -177,12 +177,11 @@ struct CaretValue
   private:
   union {
   USHORT		format;		/* Format identifier */
-  CaretValueFormat1	format1[];
-  CaretValueFormat2	format2[];
-  CaretValueFormat3	format3[];
+  CaretValueFormat1	format1[VAR];
+  CaretValueFormat2	format2[VAR];
+  CaretValueFormat3	format3[VAR];
   } u;
 };
-ASSERT_SIZE (CaretValue, 2);
 
 struct LigGlyph
 {
@@ -286,10 +285,9 @@ struct MarkGlyphSets
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkGlyphSetsFormat1	format1[];
+  MarkGlyphSetsFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (MarkGlyphSets, 2);
 
 
 /*
@@ -364,12 +362,12 @@ struct GDEF
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be Null) */
   OffsetTo<MarkGlyphSets>
-		markGlyphSetsDef[0];	/* Offset to the table of mark set
+		markGlyphSetsDef[VAR];	/* Offset to the table of mark set
 					 * definitions--from beginning of GDEF
 					 * header (may be NULL).  Introduced
 					 * in version 00010002. */
 };
-ASSERT_SIZE (GDEF, 12);
+ASSERT_SIZE_VAR (GDEF, 12, OffsetTo<MarkGlyphSets>);
 
 
 #endif /* HB_OT_LAYOUT_GDEF_PRIVATE_HH */

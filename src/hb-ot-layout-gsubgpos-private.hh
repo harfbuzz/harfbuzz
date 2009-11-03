@@ -307,7 +307,7 @@ struct Rule
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
+    if (!(SANITIZE (inputCount) && SANITIZE (lookupCount))) return false;
     return SANITIZE_MEM (input,
 			 sizeof (input[0]) * inputCount +
 			 sizeof (lookupRecordX[0]) * lookupCount);
@@ -318,12 +318,12 @@ struct Rule
 					 * glyph sequence--includes the  first
 					 * glyph */
   USHORT	lookupCount;		/* Number of LookupRecords */
-  USHORT	input[];		/* Array of match inputs--start with
+  USHORT	input[VAR];		/* Array of match inputs--start with
 					 * second glyph */
-  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
+  LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
 };
-ASSERT_SIZE (Rule, 4);
+ASSERT_SIZE_VAR2 (Rule, 4, USHORT, LookupRecord);
 
 struct RuleSet
 {
@@ -473,12 +473,12 @@ struct ContextFormat3
 					 * sequence */
   USHORT	lookupCount;		/* Number of LookupRecords */
   OffsetTo<Coverage>
-		coverage[];		/* Array of offsets to Coverage
+		coverage[VAR];		/* Array of offsets to Coverage
 					 * table in glyph sequence order */
-  LookupRecord	lookupRecordX[];	/* Array of LookupRecords--in
+  LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
 };
-ASSERT_SIZE (ContextFormat3, 6);
+ASSERT_SIZE_VAR2 (ContextFormat3, 6, OffsetTo<Coverage>, LookupRecord);
 
 struct Context
 {
@@ -508,12 +508,11 @@ struct Context
   private:
   union {
   USHORT		format;		/* Format identifier */
-  ContextFormat1	format1[];
-  ContextFormat2	format2[];
-  ContextFormat3	format3[];
+  ContextFormat1	format1[VAR];
+  ContextFormat2	format2[VAR];
+  ContextFormat3	format3[VAR];
   } u;
 };
-ASSERT_SIZE (Context, 2);
 
 
 /* Chaining Contextual lookups */
@@ -572,10 +571,10 @@ struct ChainRule
     const ArrayOf<USHORT> &lookahead = CONST_NEXT (ArrayOf<USHORT>, input);
     const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
     return chain_context_lookup (APPLY_ARG,
-				 backtrack.len, backtrack.array,
-				 input.len, input.array,
-				 lookahead.len, lookahead.array,
-				 lookup.len, lookup.array,
+				 backtrack.len, backtrack.const_array(),
+				 input.len, input.const_array(),
+				 lookahead.len, lookahead.const_array(),
+				 lookup.len, lookup.const_array(),
 				 lookup_context);
     return false;
   }
@@ -754,10 +753,10 @@ struct ChainContextFormat3
       {DECONST_CHARP(this), DECONST_CHARP(this), DECONST_CHARP(this)}
     };
     return chain_context_lookup (APPLY_ARG,
-				 backtrack.len, (USHORT *) backtrack.array,
-				 input.len, (USHORT *) input.array + 1,
-				 lookahead.len, (USHORT *) lookahead.array,
-				 lookup.len, lookup.array,
+				 backtrack.len, (const USHORT *) backtrack.const_array(),
+				 input.len, (const USHORT *) input.const_array() + 1,
+				 lookahead.len, (const USHORT *) lookahead.const_array(),
+				 lookup.len, lookup.const_array(),
 				 lookup_context);
     return false;
   }
@@ -821,12 +820,11 @@ struct ChainContext
   private:
   union {
   USHORT		format;	/* Format identifier */
-  ChainContextFormat1	format1[];
-  ChainContextFormat2	format2[];
-  ChainContextFormat3	format3[];
+  ChainContextFormat1	format1[VAR];
+  ChainContextFormat2	format2[VAR];
+  ChainContextFormat3	format3[VAR];
   } u;
 };
-ASSERT_SIZE (ChainContext, 2);
 
 
 struct ExtensionFormat1
@@ -889,10 +887,9 @@ struct Extension
   private:
   union {
   USHORT		format;		/* Format identifier */
-  ExtensionFormat1	format1[];
+  ExtensionFormat1	format1[VAR];
   } u;
 };
-ASSERT_SIZE (Extension, 2);
 
 
 /*

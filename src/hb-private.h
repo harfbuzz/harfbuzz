@@ -139,6 +139,11 @@ typedef int hb_mutex_t;
 
 #define ASSERT_SIZE(_type, _size) ASSERT_STATIC (sizeof (_type) == (_size))
 
+#define VAR 1 /* Size signifying variable-sized array */
+#define ASSERT_SIZE_VAR(_type, _size, _var_type) \
+	ASSERT_STATIC (sizeof (_type) == (_size) + VAR * sizeof (_var_type))
+#define ASSERT_SIZE_VAR2(_type, _size, _var_type1, _var_type2) \
+	ASSERT_STATIC (sizeof (_type) == (_size) + VAR * sizeof (_var_type1) + VAR * sizeof (_var_type2))
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
 #define _HB_BOOLEAN_EXPR(expr)                   \
