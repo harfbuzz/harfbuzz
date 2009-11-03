@@ -62,4 +62,8 @@ main_SOURCES = main.cc
 main_CPPFLAGS = $(GLIB_CFLAGS)
 main_LDADD = libharfbuzz.la $(GLIB_LIBS)
 
+TESTS = \
+	check-libstdc++.sh \
+	$(NULL)
+
 -include $(top_srcdir)/git.mk
