@@ -29,7 +29,6 @@
 
 #include "hb-common.h"
 #include "hb-blob.h"
-#include "hb-unicode.h"
 
 HB_BEGIN_DECLS
 
@@ -60,10 +59,6 @@ hb_face_get_reference_count (hb_face_t *face);
 
 void
 hb_face_destroy (hb_face_t *face);
-
-void
-hb_face_set_unicode_funcs (hb_face_t *face,
-			   hb_unicode_funcs_t *unicode_funcs);
 
 hb_blob_t *
 hb_face_get_table (hb_face_t *face,
@@ -157,6 +152,10 @@ hb_font_destroy (hb_font_t *font);
 void
 hb_font_set_funcs (hb_font_t       *font,
 		   hb_font_funcs_t *klass);
+
+hb_font_funcs_t *
+hb_font_get_funcs (hb_font_t       *font);
+
 
 /*
  * XXX

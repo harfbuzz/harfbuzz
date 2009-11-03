@@ -29,6 +29,7 @@
 #define HB_BUFFER_H
 
 #include "hb-common.h"
+#include "hb-unicode.h"
 
 HB_BEGIN_DECLS
 
@@ -81,11 +82,20 @@ hb_buffer_destroy (hb_buffer_t *buffer);
 
 
 void
+hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
+			     hb_unicode_funcs_t *unicode_funcs);
+
+hb_unicode_funcs_t *
+hb_buffer_get_unicode_funcs (hb_buffer_t        *buffer);
+
+
+void
 hb_buffer_set_direction (hb_buffer_t    *buffer,
 			 hb_direction_t  direction);
 
 hb_direction_t
 hb_buffer_get_direction (hb_buffer_t *buffer);
+
 
 
 void

@@ -30,6 +30,7 @@
 
 #include "hb-private.h"
 #include "hb-buffer.h"
+#include "hb-unicode-private.h"
 
 HB_BEGIN_DECLS
 
@@ -69,6 +70,14 @@ ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 struct _hb_buffer_t {
   hb_reference_count_t ref_count;
 
+  /* Information about how the text in the buffer should be treated */
+
+  hb_unicode_funcs_t *unicode;
+  hb_direction_t       direction;
+
+
+  /* Buffer contents */
+
   unsigned int allocated;
 
   hb_bool_t    have_output; /* weather we have an output buffer going on */
@@ -81,7 +90,8 @@ struct _hb_buffer_t {
   hb_internal_glyph_info_t     *out_string;
   hb_internal_glyph_position_t *positions;
 
-  hb_direction_t       direction;
+  /* Other stuff */
+
   unsigned int         max_lig_id;
 };
 

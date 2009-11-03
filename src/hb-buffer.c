@@ -31,7 +31,9 @@
 
 
 static hb_buffer_t _hb_buffer_nil = {
-  HB_REFERENCE_COUNT_INVALID /* ref_count */
+  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+
+  &_hb_unicode_funcs_nil  /* unicode */
 };
 
 /* Here is how the buffer works internally:
@@ -84,6 +86,8 @@ hb_buffer_create (unsigned int pre_alloc_size)
   if (pre_alloc_size)
     hb_buffer_ensure(buffer, pre_alloc_size);
 
+  buffer->unicode = &_hb_unicode_funcs_nil;
+
   return buffer;
 }
 
@@ -104,11 +108,44 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 {
   HB_OBJECT_DO_DESTROY (buffer);
 
+  hb_unicode_funcs_destroy (buffer->unicode);
+
   free (buffer->in_string);
   free (buffer->positions);
 
   free (buffer);
 }
+
+
+void
+hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
+			     hb_unicode_funcs_t *unicode)
+{
+  hb_unicode_funcs_reference (unicode);
+  hb_unicode_funcs_destroy (buffer->unicode);
+  buffer->unicode = unicode;
+}
+
+hb_unicode_funcs_t *
+hb_buffer_get_unicode_funcs (hb_buffer_t        *buffer)
+{
+  return buffer->unicode;
+}
+
+void
+hb_buffer_set_direction (hb_buffer_t    *buffer,
+			 hb_direction_t  direction)
+
+{
+  buffer->direction = direction;
+}
+
+hb_direction_t
+hb_buffer_get_direction (hb_buffer_t    *buffer)
+{
+  return buffer->direction;
+}
+
 
 void
 hb_buffer_clear (hb_buffer_t *buffer)
@@ -169,14 +206,6 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   glyph->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->in_length++;
-}
-
-void
-hb_buffer_set_direction (hb_buffer_t    *buffer,
-			 hb_direction_t  direction)
-
-{
-  buffer->direction = direction;
 }
 
 

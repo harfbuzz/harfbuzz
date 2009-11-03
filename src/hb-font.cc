@@ -27,7 +27,6 @@
 #include "hb-private.h"
 
 #include "hb-font-private.h"
-#include "hb-unicode-private.h"
 #include "hb-open-file-private.hh"
 #include "hb-blob.h"
 
@@ -138,8 +137,6 @@ static hb_face_t _hb_face_nil = {
   NULL, /* destroy */
   NULL, /* user_data */
 
-  &_hb_unicode_funcs_nil,  /* unicode */
-
   {} /* ot_layout */
 };
 
@@ -208,21 +205,7 @@ hb_face_destroy (hb_face_t *face)
   if (face->destroy)
     face->destroy (face->user_data);
 
-  hb_unicode_funcs_destroy (face->unicode);
-
   free (face);
-}
-
-void
-hb_face_set_unicode_funcs (hb_face_t *face,
-			       hb_unicode_funcs_t *unicode)
-{
-  if (HB_OBJECT_IS_INERT (face))
-    return;
-
-  hb_unicode_funcs_reference (unicode);
-  hb_unicode_funcs_destroy (face->unicode);
-  face->unicode = unicode;
 }
 
 hb_blob_t *

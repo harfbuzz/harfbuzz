@@ -31,7 +31,6 @@
 
 #include "hb-font.h"
 
-#include "hb-unicode-private.h"
 #include "hb-ot-layout-private.h"
 
 HB_BEGIN_DECLS
@@ -67,8 +66,6 @@ struct _hb_face_t {
   hb_get_table_func_t  get_table;
   hb_destroy_func_t    destroy;
   void                *user_data;
-
-  hb_unicode_funcs_t *unicode;
 
   hb_ot_layout_t ot_layout;
 };
