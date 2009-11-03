@@ -7,6 +7,8 @@ NULL =
 
 lib_LTLIBRARIES = libharfbuzz.la
 
+HBCFLAGS =
+HBLIBS =
 HBSOURCES =  \
 	hb-blob.c \
 	hb-buffer.c \
@@ -46,6 +48,8 @@ HBHEADERS += \
 	$(NULL)
 
 if HAVE_GLIB
+HBCFLAGS += $(GLIB_CFLAGS)
+HBLIBS += $(GLIB_LIBS)
 HBSOURCES += \
 	hb-glib.c \
 	$(NULL)
@@ -54,18 +58,29 @@ HBHEADERS += \
 	$(NULL)
 endif
 
+if HAVE_ICU
+HBCFLAGS += $(ICU_CFLAGS)
+HBLIBS += $(ICU_LIBS)
+HBSOURCES += \
+	hb-icu.c \
+	$(NULL)
+HBHEADERS += \
+	hb-icu.h \
+	$(NULL)
+endif
+
 CXXLINK = $(LINK)
 
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
-libharfbuzz_la_CPPFLAGS = $(GLIB_CFLAGS)
-libharfbuzz_la_LIBADD = $(GLIB_LIBS)
+libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
+libharfbuzz_la_LIBADD = $(HBLIBS)
 pkginclude_HEADERS = $(HBHEADERS)
 
 noinst_PROGRAMS = main
 
 main_SOURCES = main.cc
-main_CPPFLAGS = $(GLIB_CFLAGS)
-main_LDADD = libharfbuzz.la $(GLIB_LIBS)
+main_CPPFLAGS = $(HBCFLAGS)
+main_LDADD = libharfbuzz.la $(HBLIBS)
 
 TESTS = \
 	check-libstdc++.sh \

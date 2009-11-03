@@ -23,9 +23,15 @@ dnl ==========================================================================
 
 PKG_CHECK_MODULES(GLIB, glib-2.0, have_glib=true, have_glib=false)
 if $have_glib; then
-	AC_DEFINE(HAVE_GLIB, 1, [Have FreeType 2 library])
+	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
+
+PKG_CHECK_MODULES(ICU, icu, have_icu=true, have_icu=false)
+if $have_icu; then
+	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
+fi
+AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
 PKG_CHECK_MODULES(FREETYPE, freetype2, have_freetype=true, have_freetype=false)
 if $have_freetype; then
