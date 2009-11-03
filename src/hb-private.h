@@ -90,7 +90,7 @@ typedef int hb_mutex_t;
 
 /* Big-endian handling */
 
-#define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] >> 8) + (((const uint8_t *)&(v))[1] << 8)))
+#define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
 
 #define hb_be_uint8_put_unaligned(v,V)	(v[0] = (V), 0)
 #define hb_be_uint8_get_unaligned(v)	(uint8_t) (v[0])
