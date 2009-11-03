@@ -49,6 +49,8 @@ HBHEADERS += \
 	$(NULL)
 endif
 
+CXXLINK = $(LINK)
+
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(GLIB_CFLAGS)
 libharfbuzz_la_LIBADD = $(GLIB_LIBS)
