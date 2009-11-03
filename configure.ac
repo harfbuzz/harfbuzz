@@ -27,7 +27,7 @@ if $have_glib; then
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
-PKG_CHECK_MODULES(FREETYPE, freetype, have_freetype=true, have_freetype=false)
+PKG_CHECK_MODULES(FREETYPE, freetype2, have_freetype=true, have_freetype=false)
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
 fi
