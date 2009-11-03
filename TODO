@@ -1,8 +1,6 @@
 - cmap14 support in get_glyph callback
 - size_t?
 - Add test for linking to libstdc++
-- Rename MEMORY_MODE to ACCESS_MODE
-
 - Move unicode_funcs to buffer
 
 hb-ot:
