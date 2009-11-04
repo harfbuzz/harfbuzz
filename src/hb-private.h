@@ -124,16 +124,17 @@ typedef int hb_mutex_t;
 #endif
 
 #ifndef NULL
-# define NULL ((void *)0)
+# define NULL ((void *) 0)
 #endif
 
-#ifndef FALSE
-# define FALSE 0
-#endif
+#undef FALSE
+#define FALSE 0
 
-#ifndef TRUE
-# define TRUE 1
-#endif
+#undef TRUE
+#define TRUE 1
+
+#undef  ARRAY_LENGTH
+#define ARRAY_LENGTH(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
 
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
