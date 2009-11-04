@@ -73,17 +73,19 @@ hb_ot_layout_build_glyph_classes (hb_face_t      *face,
 
 /* Not that useful.  Provides list of attach points for a glyph that a
  * client may want to cache */
-hb_bool_t
+unsigned int
 hb_ot_layout_get_attach_points (hb_face_t      *face,
 				hb_codepoint_t  glyph,
+				unsigned int    start_offset,
 				unsigned int   *point_count /* IN/OUT */,
 				unsigned int   *point_array /* OUT */);
 
 /* Ligature caret positions */
-hb_bool_t
+unsigned int
 hb_ot_layout_get_lig_carets (hb_face_t      *face,
 			     hb_font_t      *font,
 			     hb_codepoint_t  glyph,
+			     unsigned int    start_offset,
 			     unsigned int   *caret_count /* IN/OUT */,
 			     int            *caret_array /* OUT */);
 
@@ -98,9 +100,10 @@ hb_ot_layout_get_lig_carets (hb_face_t      *face,
 #define HB_OT_LAYOUT_TAG_DEFAULT_SCRIPT		HB_TAG ('D', 'F', 'L', 'T')
 #define HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
 
-hb_bool_t
+unsigned int
 hb_ot_layout_table_get_script_tags (hb_face_t    *face,
 				    hb_tag_t      table_tag,
+				    unsigned int  start_offset,
 				    unsigned int *script_count /* IN/OUT */,
 				    hb_tag_t     *script_tags /* OUT */);
 
@@ -110,16 +113,18 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
 				hb_tag_t      script_tag,
 				unsigned int *script_index);
 
-hb_bool_t
+unsigned int
 hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
 				     hb_tag_t      table_tag,
+				     unsigned int  start_offset,
 				     unsigned int *feature_count /* IN/OUT */,
 				     hb_tag_t     *feature_tags /* OUT */);
 
-hb_bool_t
+unsigned int
 hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 				       hb_tag_t      table_tag,
 				       unsigned int  script_index,
+				       unsigned int  start_offset,
 				       unsigned int *language_count /* IN/OUT */,
 				       hb_tag_t     *language_tags /* OUT */);
 
@@ -137,19 +142,21 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
 						  unsigned int  language_index,
 						  unsigned int *feature_index);
 
-hb_bool_t
+unsigned int
 hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
 					   hb_tag_t      table_tag,
 					   unsigned int  script_index,
 					   unsigned int  language_index,
+					   unsigned int  start_offset,
 					   unsigned int *feature_count /* IN/OUT */,
 					   unsigned int *feature_indexes /* OUT */);
 
-hb_bool_t
+unsigned int
 hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
 					hb_tag_t      table_tag,
 					unsigned int  script_index,
 					unsigned int  language_index,
+					unsigned int  start_offset,
 					unsigned int *feature_count /* IN/OUT */,
 					hb_tag_t     *feature_tags /* OUT */);
 
@@ -161,10 +168,11 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
 				    hb_tag_t      feature_tag,
 				    unsigned int *feature_index);
 
-hb_bool_t
+unsigned int
 hb_ot_layout_feature_get_lookup_indexes (hb_face_t    *face,
 					 hb_tag_t      table_tag,
 					 unsigned int  feature_index,
+					 unsigned int  start_offset,
 					 unsigned int *lookup_count /* IN/OUT */,
 					 unsigned int *lookup_indexes /* OUT */);
 

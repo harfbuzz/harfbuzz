@@ -907,9 +907,10 @@ struct GSUBGPOS
   { return (this+scriptList).len; }
   inline const Tag& get_script_tag (unsigned int i) const
   { return (this+scriptList).get_tag (i); }
-  inline bool get_script_tags (unsigned int *script_count /* IN/OUT */,
-			       hb_tag_t     *script_tags /* OUT */) const
-  { return (this+scriptList).get_tags (script_count, script_tags); }
+  inline unsigned int get_script_tags (unsigned int start_offset,
+				       unsigned int *script_count /* IN/OUT */,
+				       hb_tag_t     *script_tags /* OUT */) const
+  { return (this+scriptList).get_tags (start_offset, script_count, script_tags); }
   inline const Script& get_script (unsigned int i) const
   { return (this+scriptList)[i]; }
   inline bool find_script_index (hb_tag_t tag, unsigned int *index) const
@@ -919,9 +920,10 @@ struct GSUBGPOS
   { return (this+featureList).len; }
   inline const Tag& get_feature_tag (unsigned int i) const
   { return (this+featureList).get_tag (i); }
-  inline bool get_feature_tags (unsigned int *feature_count /* IN/OUT */,
-				hb_tag_t     *feature_tags /* OUT */) const
-  { return (this+featureList).get_tags (feature_count, feature_tags); }
+  inline unsigned int get_feature_tags (unsigned int start_offset,
+					unsigned int *feature_count /* IN/OUT */,
+					hb_tag_t     *feature_tags /* OUT */) const
+  { return (this+featureList).get_tags (start_offset, feature_count, feature_tags); }
   inline const Feature& get_feature (unsigned int i) const
   { return (this+featureList)[i]; }
   inline bool find_feature_index (hb_tag_t tag, unsigned int *index) const

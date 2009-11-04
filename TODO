@@ -5,7 +5,6 @@
 - Future-proof metrics struct
 
 hb-ot:
-- Fix ot query APIs
 - Rename hb_internal_glyph_info_t to hb_ot_glyph_info_t
 - Add query API for aalt-like features
 - HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH vs LookupType::... mess

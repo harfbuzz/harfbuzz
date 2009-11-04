@@ -69,16 +69,19 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
     if (HB_UNLIKELY (i >= this->len)) return Null(Tag);
     return (*this)[i].tag;
   }
-  inline bool get_tags (unsigned int *record_count /* IN/OUT */,
-			hb_tag_t     *record_tags /* OUT */) const
+  inline unsigned int get_tags (unsigned int start_offset,
+				unsigned int *record_count /* IN/OUT */,
+				hb_tag_t     *record_tags /* OUT */) const
   {
-    const Record<Type> *a = this->const_array();
-    unsigned int count = MIN (this->len, *record_count);
-    for (unsigned int i = 0; i < count; i++)
-      record_tags[i] = a[i].tag;
+    if (record_count) {
+      unsigned int count = MIN (MIN (0, (unsigned int) this->len - start_offset), *record_count);
+      const Record<Type> *array = this->const_array() + start_offset;
+      for (unsigned int i = 0; i < count; i++)
+	record_tags[i] = array[i].tag;
 
-    *record_count = this->len;
-    return !!this->len;
+      *record_count = this->len;
+    }
+    return this->len;
   }
   inline bool find_index (hb_tag_t tag, unsigned int *index) const
   {
@@ -120,16 +123,19 @@ struct IndexArray : ArrayOf<USHORT>
       return NO_INDEX;
     return this->const_array()[i];
   }
-  inline bool get_indexes (unsigned int *_count /* IN/OUT */,
-			   unsigned int *_indexes /* OUT */) const
+  inline unsigned int get_indexes (unsigned int start_offset,
+				   unsigned int *_count /* IN/OUT */,
+				   unsigned int *_indexes /* OUT */) const
   {
-    unsigned int count = MIN (this->len, *_count);
-    const USHORT *a = this->const_array();
-    for (unsigned int i = 0; i < count; i++)
-      _indexes[i] = a[i];
+    if (_count) {
+      unsigned int count = MIN (MIN (0, (unsigned int) this->len - start_offset), *_count);
+      const USHORT *array = this->const_array() + start_offset;
+      for (unsigned int i = 0; i < count; i++)
+	_indexes[i] = array[i];
 
-    *_count = this->len;
-    return !!this->len;
+      *_count = this->len;
+    }
+    return this->len;
   }
 };
 
@@ -145,9 +151,10 @@ struct LangSys
   { return featureIndex.len; }
   inline hb_tag_t get_feature_index (unsigned int i) const
   { return featureIndex[i]; }
-  inline bool get_feature_indexes (unsigned int *feature_count /* IN/OUT */,
-				   unsigned int *feature_indexes /* OUT */) const
-  { return featureIndex.get_indexes (feature_count, feature_indexes); }
+  inline unsigned int get_feature_indexes (unsigned int start_offset,
+					   unsigned int *feature_count /* IN/OUT */,
+					   unsigned int *feature_indexes /* OUT */) const
+  { return featureIndex.get_indexes (start_offset, feature_count, feature_indexes); }
 
   inline bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
   inline int get_required_feature_index (void) const
@@ -178,9 +185,10 @@ struct Script
   { return langSys.len; }
   inline const Tag& get_lang_sys_tag (unsigned int i) const
   { return langSys.get_tag (i); }
-  inline bool get_lang_sys_tags (unsigned int *lang_sys_count /* IN/OUT */,
-				 hb_tag_t     *lang_sys_tags /* OUT */) const
-  { return langSys.get_tags (lang_sys_count, lang_sys_tags); }
+  inline unsigned int get_lang_sys_tags (unsigned int start_offset,
+					 unsigned int *lang_sys_count /* IN/OUT */,
+					 hb_tag_t     *lang_sys_tags /* OUT */) const
+  { return langSys.get_tags (start_offset, lang_sys_count, lang_sys_tags); }
   inline const LangSys& get_lang_sys (unsigned int i) const
   {
     if (i == NO_INDEX) return get_default_lang_sys ();
@@ -217,9 +225,10 @@ struct Feature
   { return lookupIndex.len; }
   inline hb_tag_t get_lookup_index (unsigned int i) const
   { return lookupIndex[i]; }
-  inline bool get_lookup_indexes (unsigned int *lookup_count /* IN/OUT */,
-				  unsigned int *lookup_tags /* OUT */) const
-  { return lookupIndex.get_indexes (lookup_count, lookup_tags); }
+  inline unsigned int get_lookup_indexes (unsigned int start_index,
+					  unsigned int *lookup_count /* IN/OUT */,
+					  unsigned int *lookup_tags /* OUT */) const
+  { return lookupIndex.get_indexes (start_index, lookup_count, lookup_tags); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();

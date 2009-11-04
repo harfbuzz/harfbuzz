@@ -42,25 +42,31 @@ ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList
 {
-  inline bool get_attach_points (hb_codepoint_t glyph_id,
-				 unsigned int *point_count /* IN/OUT */,
-				 unsigned int *point_array /* OUT */) const
+  inline unsigned int get_attach_points (hb_codepoint_t glyph_id,
+					 unsigned int start_offset,
+					 unsigned int *point_count /* IN/OUT */,
+					 unsigned int *point_array /* OUT */) const
   {
     unsigned int index = (this+coverage) (glyph_id);
     if (index == NOT_COVERED)
     {
-      *point_count = 0;
-      return false;
+      if (point_count)
+	*point_count = 0;
+      return 0;
     }
+
     const AttachPoint &points = this+attachPoint[index];
 
-    unsigned int count = MIN (points.len, *point_count);
-    for (unsigned int i = 0; i < count; i++)
-      point_array[i] = points[i];
+    if (point_count) {
+      const USHORT *array = points.const_array () + start_offset;
+      unsigned int count = MIN (MIN (0, (unsigned int) points.len - start_offset), *point_count);
+      for (unsigned int i = 0; i < count; i++)
+	point_array[i] = array[i];
 
-    *point_count = points.len;
+      *point_count = points.len;
+    }
 
-    return true;
+    return points.len;
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -185,17 +191,22 @@ struct CaretValue
 
 struct LigGlyph
 {
-  inline void get_lig_carets (hb_ot_layout_context_t *context,
-			      hb_codepoint_t glyph_id,
-			      unsigned int *caret_count /* IN/OUT */,
-			      int *caret_array /* OUT */) const
+  inline unsigned int get_lig_carets (hb_ot_layout_context_t *context,
+				      hb_codepoint_t glyph_id,
+				      unsigned int start_offset,
+				      unsigned int *caret_count /* IN/OUT */,
+				      int *caret_array /* OUT */) const
   {
+    if (caret_count) {
+      const OffsetTo<CaretValue> *array = carets.const_array () + start_offset;
+      unsigned int count = MIN (MIN (0, (unsigned int) carets.len - start_offset), *caret_count);
+      for (unsigned int i = 0; i < count; i++)
+	caret_array[i] = (this+array[i]).get_caret_value (context, glyph_id);
 
-    unsigned int count = MIN (carets.len, *caret_count);
-    for (unsigned int i = 0; i < count; i++)
-      caret_array[i] = (this+carets[i]).get_caret_value (context, glyph_id);
+      *caret_count = carets.len;
+    }
 
-    *caret_count = carets.len;
+    return carets.len;
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -213,20 +224,21 @@ ASSERT_SIZE (LigGlyph, 2);
 
 struct LigCaretList
 {
-  inline bool get_lig_carets (hb_ot_layout_context_t *context,
-			      hb_codepoint_t glyph_id,
-			      unsigned int *caret_count /* IN/OUT */,
-			      int *caret_array /* OUT */) const
+  inline unsigned int get_lig_carets (hb_ot_layout_context_t *context,
+				      hb_codepoint_t glyph_id,
+				      unsigned int start_offset,
+				      unsigned int *caret_count /* IN/OUT */,
+				      int *caret_array /* OUT */) const
   {
     unsigned int index = (this+coverage) (glyph_id);
     if (index == NOT_COVERED)
     {
-      *caret_count = 0;
-      return false;
+      if (caret_count)
+	*caret_count = 0;
+      return 0;
     }
     const LigGlyph &lig_glyph = this+ligGlyph[index];
-    lig_glyph.get_lig_carets (context, glyph_id, caret_count, caret_array);
-    return true;
+    return lig_glyph.get_lig_carets (context, glyph_id, start_offset, caret_count, caret_array);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -317,17 +329,19 @@ struct GDEF
   { return (this+markAttachClassDef).get_class (glyph); }
 
   inline bool has_attach_points () const { return attachList != 0; }
-  inline bool get_attach_points (hb_codepoint_t glyph_id,
-				 unsigned int *point_count /* IN/OUT */,
-				 unsigned int *point_array /* OUT */) const
-  { return (this+attachList).get_attach_points (glyph_id, point_count, point_array); }
+  inline unsigned int get_attach_points (hb_codepoint_t glyph_id,
+					 unsigned int start_offset,
+					 unsigned int *point_count /* IN/OUT */,
+					 unsigned int *point_array /* OUT */) const
+  { return (this+attachList).get_attach_points (glyph_id, start_offset, point_count, point_array); }
 
   inline bool has_lig_carets () const { return ligCaretList != 0; }
-  inline bool get_lig_carets (hb_ot_layout_context_t *context,
-			      hb_codepoint_t glyph_id,
-			      unsigned int *caret_count /* IN/OUT */,
-			      int *caret_array /* OUT */) const
-  { return (this+ligCaretList).get_lig_carets (context, glyph_id, caret_count, caret_array); }
+  inline unsigned int get_lig_carets (hb_ot_layout_context_t *context,
+				      hb_codepoint_t glyph_id,
+				      unsigned int start_offset,
+				      unsigned int *caret_count /* IN/OUT */,
+				      int *caret_array /* OUT */) const
+  { return (this+ligCaretList).get_lig_carets (context, glyph_id, start_offset, caret_count, caret_array); }
 
   inline bool has_mark_sets () const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
