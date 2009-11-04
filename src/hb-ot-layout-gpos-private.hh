@@ -176,7 +176,8 @@ struct AnchorFormat2
   inline void get_anchor (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      /* TODO Contour */
+      /* TODO Contour
+       * NOTE only adjust directions with nonzero ppem */
       *x = _hb_16dot16_mul_trunc (context->font->x_scale, xCoordinate);
       *y = _hb_16dot16_mul_trunc (context->font->y_scale, yCoordinate);
   }
@@ -856,12 +857,12 @@ struct CursivePosFormat1
     if (buffer->direction == HB_DIRECTION_RTL)
     {
       POSITION (buffer->in_pos)->x_advance   = entry_x - gpi->anchor_x;
-      POSITION (buffer->in_pos)->new_advance = TRUE;
+      POSITION (buffer->in_pos)->new_advance = true;
     }
     else
     {
       POSITION (last_pos)->x_advance   = gpi->anchor_x - entry_x;
-      POSITION (last_pos)->new_advance = TRUE;
+      POSITION (last_pos)->new_advance = true;
     }
 
     if  (lookup_flag & LookupFlag::RightToLeft)

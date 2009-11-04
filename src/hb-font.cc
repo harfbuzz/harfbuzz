@@ -32,19 +32,43 @@
 
 #include "hb-ot-layout-private.h"
 
+#include <string.h>
+
+
 /*
  * hb_font_funcs_t
  */
+
+static hb_codepoint_t
+hb_font_get_glyph_nil (hb_font_t *font, hb_face_t *face, const void *user_data,
+		       hb_codepoint_t unicode, hb_codepoint_t variant_selector)
+{ return unicode; }
+
+static hb_bool_t
+hb_font_get_contour_point_nil (hb_font_t *font, hb_face_t *face, const void *user_data,
+			       unsigned int point_index,
+			       hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y)
+{ return false; }
+
+static void
+hb_font_get_glyph_metrics_nil (hb_font_t *font, hb_face_t *face, const void *user_data,
+			       hb_codepoint_t glyph, hb_glyph_metrics_t *metrics)
+{ memset (metrics, 0, sizeof (*metrics)); }
+
+static hb_position_t
+hb_font_get_kerning_nil (hb_font_t *font, hb_face_t *face, const void *user_data,
+			 hb_codepoint_t first_glyph, hb_codepoint_t second_glyph)
+{ return 0; }
 
 hb_font_funcs_t _hb_font_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
   TRUE,  /* immutable */
 
-  NULL, /* glyph_func */
-  NULL, /* contour_point_func */
-  NULL, /* glyph_metrics_func */
-  NULL  /* kerning_func */
+  hb_font_get_glyph_nil,
+  hb_font_get_contour_point_nil,
+  hb_font_get_glyph_metrics_nil,
+  hb_font_get_kerning_nil
 };
 
 hb_font_funcs_t *
@@ -104,6 +128,46 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
   ffuncs->immutable = TRUE;
 }
 
+
+void
+hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
+			      hb_font_get_glyph_func_t glyph_func)
+{
+  if (ffuncs->immutable)
+    return;
+
+  ffuncs->get_glyph = glyph_func ? glyph_func : hb_font_get_glyph_nil;
+}
+
+void
+hb_font_funcs_set_contour_point_func (hb_font_funcs_t *ffuncs,
+				      hb_font_get_contour_point_func_t contour_point_func)
+{
+  if (ffuncs->immutable)
+    return;
+
+  ffuncs->get_contour_point = contour_point_func ? contour_point_func : hb_font_get_contour_point_nil;
+}
+
+void
+hb_font_funcs_set_glyph_metrics_func (hb_font_funcs_t *ffuncs,
+				      hb_font_get_glyph_metrics_func_t glyph_metrics_func)
+{
+  if (ffuncs->immutable)
+    return;
+
+  ffuncs->get_glyph_metrics = glyph_metrics_func ? glyph_metrics_func : hb_font_get_glyph_metrics_nil;
+}
+
+void
+hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
+				hb_font_get_kerning_func_t kerning_func)
+{
+  if (ffuncs->immutable)
+    return;
+
+  ffuncs->get_kerning = kerning_func ? kerning_func : hb_font_get_kerning_nil;
+}
 
 
 /*

@@ -372,7 +372,7 @@ struct Ligature
       }
 
       if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-	is_mark = FALSE;
+	is_mark = false;
 
       if (HB_LIKELY (IN_GLYPH (j) != component[i]))
         return false;

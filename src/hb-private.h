@@ -151,15 +151,15 @@ typedef int hb_mutex_t;
 	ASSERT_STATIC (sizeof (_type) == (_size) + VAR * sizeof (_var_type1) + VAR * sizeof (_var_type2))
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
-#define _HB_BOOLEAN_EXPR(expr)                   \
- __extension__ ({                               \
-   int _cairo_boolean_var_;                         \
-   if (expr)                                    \
-      _cairo_boolean_var_ = 1;                      \
-   else                                         \
-      _cairo_boolean_var_ = 0;                      \
-   _cairo_boolean_var_;                             \
-})
+#define _HB_BOOLEAN_EXPR(expr) \
+  __extension__ ({ \
+     int _hb_boolean_var_; \
+     if (expr) \
+	_hb_boolean_var_ = 1; \
+     else \
+	_hb_boolean_var_ = 0; \
+     _hb_boolean_var_; \
+  })
 #define HB_LIKELY(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 1))
 #define HB_UNLIKELY(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 0))
 #else
