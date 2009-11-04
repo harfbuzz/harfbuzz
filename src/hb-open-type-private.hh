@@ -655,4 +655,4 @@ struct HeadlessArrayOf
 };
 
 
-#endif /* HB_OPEN_TYPES_PRIVATE_HH */
+#endif /* HB_OPEN_TYPE_PRIVATE_HH */
