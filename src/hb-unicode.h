@@ -216,4 +216,4 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 
 HB_END_DECLS
 
-#endif /* HB_FONT_H */
+#endif /* HB_UNICODE_H */
