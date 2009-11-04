@@ -2,6 +2,7 @@
 - Use size_t in sanitize?
 - Buffer error handling?
 - Better define HB_INTERNAL
+- Future-proof metrics struct
 
 hb-ot:
 - Fix ot query APIs
