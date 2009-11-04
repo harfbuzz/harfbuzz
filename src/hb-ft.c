@@ -33,86 +33,93 @@
 
 #include FT_TRUETYPE_TABLES_H
 
-#if 0
-extern hb_codepoint_t hb_GetGlyph(hb_font_t *font, hb_face_t *face, const void *user_data,
-                            hb_codepoint_t unicode, hb_codepoint_t variant_selector)
+static hb_codepoint_t
+hb_ft_get_glyph (hb_font_t *font, hb_face_t *face, const void *user_data,
+		 hb_codepoint_t unicode, hb_codepoint_t variation_selector)
 {
-    FT_Face fcFace = (FT_Face)user_data;
-    return FT_Get_Char_Index(fcFace, unicode);
+  FT_Face ft_face = (FT_Face) user_data;
+
+  if (HB_UNLIKELY (variation_selector)) {
+    hb_codepoint_t glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
+    if (glyph)
+      return glyph;
+  }
+
+  return FT_Get_Char_Index (ft_face, unicode);
 }
 
-extern hb_bool_t hb_GetContourPoint(hb_font_t *font, hb_face_t *face, const void *user_data,
-                               hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y)
+static hb_bool_t
+hb_ft_get_contour_point (hb_font_t *font, hb_face_t *face, const void *user_data,
+			 unsigned int point_index,
+			 hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y)
 {
-    unsigned int point = 0; /* TODO this should be in API */
-    int load_flags = FT_LOAD_DEFAULT;
+  FT_Face ft_face = (FT_Face) user_data;
+  int load_flags = FT_LOAD_DEFAULT;
 
-    FT_Face fcFace = (FT_Face)user_data;
-    if (FT_Load_Glyph(fcFace, glyph, load_flags))
-        return 0;
+  /* TODO: load_flags, embolden, etc */
 
-    if (fcFace->glyph->format != ft_glyph_format_outline)
-        return 0;
+  if (HB_UNLIKELY (FT_Load_Glyph (ft_face, glyph, load_flags)))
+      return FALSE;
 
-    unsigned int nPoints = fcFace->glyph->outline.n_points;
-    if (!(nPoints))
-        return 0;
+  if (HB_UNLIKELY (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE))
+      return FALSE;
 
-    if (point > nPoints)
-        return 0;
+  if (HB_UNLIKELY (point_index >= (unsigned int) ft_face->glyph->outline.n_points))
+      return FALSE;
 
-    *x = fcFace->glyph->outline.points[point].x;
-    *y = fcFace->glyph->outline.points[point].y;
+  *x = ft_face->glyph->outline.points[point_index].x;
+  *y = ft_face->glyph->outline.points[point_index].y;
 
-    return 1;
+  return TRUE;
 }
 
-extern void hb_GetGlyphMetrics(hb_font_t *font, hb_face_t *face, const void *user_data,
-                          hb_codepoint_t glyph, hb_glyph_metrics_t *metrics)
+static void
+hb_ft_get_glyph_metrics (hb_font_t *font, hb_face_t *face, const void *user_data,
+			 hb_codepoint_t glyph, hb_glyph_metrics_t *metrics)
 {
-    int load_flags = FT_LOAD_DEFAULT;
-    FT_Face fcFace = (FT_Face)user_data;
+  FT_Face ft_face = (FT_Face) user_data;
+  int load_flags = FT_LOAD_DEFAULT;
 
-    metrics->x = metrics->y = 0;
-	metrics->x_offset = metrics->y_offset = 0;
-    if (FT_Load_Glyph(fcFace, glyph, load_flags))
-    {
-        metrics->width = metrics->height = 0;
-    }
-    else
-    {
-        metrics->width = fcFace->glyph->metrics.width;
-        metrics->height = fcFace->glyph->metrics.height;
-		metrics->x_offset = fcFace->glyph->advance.x;
-		metrics->y_offset = fcFace->glyph->advance.y;
-    }
+  /* TODO: load_flags, embolden, etc */
+
+  metrics->x_pos = metrics->y_pos = 0;
+  metrics->x_advance = metrics->y_advance = 0;
+  metrics->width = metrics->height = 0;
+  if (HB_LIKELY (!FT_Load_Glyph (ft_face, glyph, load_flags)))
+  {
+    /* TODO: A few negations should be in order here, not sure. */
+    metrics->x_pos = ft_face->glyph->metrics.horiBearingX;
+    metrics->y_pos = ft_face->glyph->metrics.horiBearingY;
+    metrics->width = ft_face->glyph->metrics.width;
+    metrics->height = ft_face->glyph->metrics.height;
+    metrics->x_advance = ft_face->glyph->advance.x;
+    metrics->y_advance = ft_face->glyph->advance.y;
+  }
 }
 
-extern hb_position_t hb_GetKerning(hb_font_t *font, hb_face_t *face, const void *user_data,
-                             hb_codepoint_t first_glyph, hb_codepoint_t second_glyph)
+static hb_position_t
+hb_ft_get_kerning (hb_font_t *font, hb_face_t *face, const void *user_data,
+		   hb_codepoint_t first_glyph, hb_codepoint_t second_glyph)
 {
-    FT_Face fcFace = (FT_Face)user_data;
-    FT_Vector aKerning;
-    if (FT_Get_Kerning(fcFace, first_glyph, second_glyph, FT_KERNING_DEFAULT,
-                       &aKerning))
-    {
-        return 0;
-    }
-    return aKerning.x;
+  FT_Face ft_face = (FT_Face) user_data;
+  FT_Vector kerning;
+
+  /* TODO: Kern type? */
+  if (FT_Get_Kerning (ft_face, first_glyph, second_glyph, FT_KERNING_DEFAULT, &kerning))
+      return 0;
+
+  return kerning.x;
 }
-#endif
 
 static hb_font_funcs_t ft_ffuncs = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
   TRUE, /* immutable */
 
-#if 0
   hb_ft_get_glyph,
   hb_ft_get_contour_point,
   hb_ft_get_glyph_metrics,
   hb_ft_get_kerning
-#endif
 };
 
 hb_font_funcs_t *
@@ -134,6 +141,7 @@ _get_table  (hb_tag_t tag, void *user_data)
   if (error)
     return hb_blob_create_empty ();
 
+  /* TODO Use FT_Memory? */
   buffer = malloc (length);
   if (buffer == NULL)
     return hb_blob_create_empty ();

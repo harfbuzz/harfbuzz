@@ -103,7 +103,7 @@ typedef struct _hb_glyph_metrics_t
 } hb_glyph_metrics_t;
 
 typedef hb_codepoint_t (*hb_font_get_glyph_func_t) (hb_font_t *font, hb_face_t *face, const void *user_data,
-						    hb_codepoint_t unicode, hb_codepoint_t variant_selector);
+						    hb_codepoint_t unicode, hb_codepoint_t variation_selector);
 typedef hb_bool_t (*hb_font_get_contour_point_func_t) (hb_font_t *font, hb_face_t *face, const void *user_data,
 						       unsigned int point_index,
 						       hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y);
