@@ -511,6 +511,18 @@ struct GenericArrayOf
   const Type *const_array(void) const { return CONST_ARRAY_AFTER (Type, len); }
   Type *array(void) { return ARRAY_AFTER (Type, len); }
 
+  const Type *const_sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
+  {
+    unsigned int count = len;
+    if (HB_UNLIKELY (start_offset > count))
+      count = 0;
+    else
+      count -= start_offset;
+    count = MIN (count, *pcount);
+    *pcount = count;
+    return const_array() + start_offset;
+  }
+
   inline const Type& operator [] (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= len)) return Null(Type);

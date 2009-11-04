@@ -58,12 +58,10 @@ struct AttachList
     const AttachPoint &points = this+attachPoint[index];
 
     if (point_count) {
-      const USHORT *array = points.const_array () + start_offset;
-      unsigned int count = MIN (MIN (0, (unsigned int) points.len - start_offset), *point_count);
+      const USHORT *array = points.const_sub_array (start_offset, point_count);
+      unsigned int count = *point_count;
       for (unsigned int i = 0; i < count; i++)
 	point_array[i] = array[i];
-
-      *point_count = points.len;
     }
 
     return points.len;
@@ -198,12 +196,10 @@ struct LigGlyph
 				      int *caret_array /* OUT */) const
   {
     if (caret_count) {
-      const OffsetTo<CaretValue> *array = carets.const_array () + start_offset;
-      unsigned int count = MIN (MIN (0, (unsigned int) carets.len - start_offset), *caret_count);
+      const OffsetTo<CaretValue> *array = carets.const_sub_array (start_offset, caret_count);
+      unsigned int count = *caret_count;
       for (unsigned int i = 0; i < count; i++)
 	caret_array[i] = (this+array[i]).get_caret_value (context, glyph_id);
-
-      *caret_count = carets.len;
     }
 
     return carets.len;
