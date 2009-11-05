@@ -71,10 +71,10 @@ struct _hb_buffer_t {
   hb_reference_count_t ref_count;
 
   /* Information about how the text in the buffer should be treated */
-
   hb_unicode_funcs_t *unicode;
-  hb_direction_t       direction;
-
+  hb_direction_t      direction;
+  hb_script_t         script;
+  hb_language_t       language;
 
   /* Buffer contents */
 

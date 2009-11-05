@@ -1,4 +1,3 @@
-- cmap14 support in get_glyph callback
 - Use size_t in sanitize?
 - Buffer error handling?
 - Better define HB_INTERNAL

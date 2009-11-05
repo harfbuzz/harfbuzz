@@ -146,6 +146,32 @@ hb_buffer_get_direction (hb_buffer_t    *buffer)
   return buffer->direction;
 }
 
+void
+hb_buffer_set_script (hb_buffer_t *buffer,
+		      hb_script_t  script)
+{
+  buffer->script = script;
+}
+
+hb_script_t
+hb_buffer_get_script (hb_buffer_t *buffer)
+{
+  return buffer->script;
+}
+
+void
+hb_buffer_set_language (hb_buffer_t   *buffer,
+			hb_language_t  language)
+{
+  buffer->language = language;
+}
+
+hb_language_t
+hb_buffer_get_language (hb_buffer_t *buffer)
+{
+  return buffer->language;
+}
+
 
 void
 hb_buffer_clear (hb_buffer_t *buffer)

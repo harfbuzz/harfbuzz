@@ -30,6 +30,7 @@
 
 #include "hb-common.h"
 #include "hb-unicode.h"
+#include "hb-language.h"
 
 HB_BEGIN_DECLS
 
@@ -88,7 +89,6 @@ hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
 hb_unicode_funcs_t *
 hb_buffer_get_unicode_funcs (hb_buffer_t        *buffer);
 
-
 void
 hb_buffer_set_direction (hb_buffer_t    *buffer,
 			 hb_direction_t  direction);
@@ -96,6 +96,19 @@ hb_buffer_set_direction (hb_buffer_t    *buffer,
 hb_direction_t
 hb_buffer_get_direction (hb_buffer_t *buffer);
 
+void
+hb_buffer_set_script (hb_buffer_t *buffer,
+		      hb_script_t  script);
+
+hb_script_t
+hb_buffer_get_script (hb_buffer_t *buffer);
+
+void
+hb_buffer_set_language (hb_buffer_t   *buffer,
+			hb_language_t  language);
+
+hb_language_t
+hb_buffer_get_language (hb_buffer_t *buffer);
 
 
 void
