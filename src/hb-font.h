@@ -130,6 +130,24 @@ hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
 				hb_font_get_kerning_func_t kerning_func);
 
 
+hb_codepoint_t
+hb_font_get_glyph (hb_font_t *font, hb_face_t *face,
+		   hb_codepoint_t unicode, hb_codepoint_t variation_selector);
+
+hb_bool_t
+hb_font_get_contour_point (hb_font_t *font, hb_face_t *face,
+			   unsigned int point_index,
+			   hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y);
+
+void
+hb_font_get_glyph_metrics (hb_font_t *font, hb_face_t *face,
+			   hb_codepoint_t glyph, hb_glyph_metrics_t *metrics);
+
+hb_position_t
+hb_font_get_kerning (hb_font_t *font, hb_face_t *face,
+		     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph);
+
+
 /*
  * hb_font_t
  */

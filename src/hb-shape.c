@@ -70,7 +70,7 @@ hb_shape (hb_font_t    *font,
   /* natural direction analysis */
   /* OT preprocess */
 
-  map_glyphs (face, font, buffer);
+  map_glyphs (font, face, buffer);
 
   /* GSUB */
   /* Default positioning */
