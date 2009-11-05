@@ -119,6 +119,9 @@ typedef int hb_mutex_t;
 #undef MIN
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
+#undef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+
 #ifndef HB_INTERNAL
 # define HB_INTERNAL extern
 #endif

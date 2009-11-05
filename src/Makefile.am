@@ -18,6 +18,7 @@ HBSOURCES =  \
 	hb-object-private.h \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
+	hb-language.c \
 	hb-private.h \
 	hb-shape.c \
 	hb-unicode.c \
@@ -29,6 +30,7 @@ HBHEADERS = \
 	hb-buffer.h \
 	hb-common.h \
 	hb-font.h \
+	hb-language.h \
 	hb-shape.h \
 	hb-unicode.h \
 	$(NULL)
@@ -41,10 +43,12 @@ HBSOURCES += \
 	hb-ot-layout-gsubgpos-private.hh \
 	hb-ot-layout-gsub-private.hh \
 	hb-ot-layout-private.h \
+	hb-ot-tag.c \
 	$(NULL)
 HBHEADERS += \
 	hb-ot.h \
 	hb-ot-layout.h \
+	hb-ot-tag.h \
 	$(NULL)
 
 if HAVE_GLIB

@@ -366,11 +366,11 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
     return TRUE;
 
   /* try finding 'DFLT' */
-  if (g.find_script_index (HB_OT_LAYOUT_TAG_DEFAULT_SCRIPT, script_index))
+  if (g.find_script_index (HB_OT_TAG_DEFAULT_SCRIPT, script_index))
     return FALSE;
 
   /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
-  if (g.find_script_index (HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE, script_index))
+  if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index))
     return FALSE;
 
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
@@ -417,7 +417,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
     return TRUE;
 
   /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
-  if (s.find_lang_sys_index (HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE, language_index))
+  if (s.find_lang_sys_index (HB_OT_TAG_DEFAULT_LANGUAGE, language_index))
     return FALSE;
 
   if (language_index) *language_index = HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX;

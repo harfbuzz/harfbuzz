@@ -24,12 +24,26 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
+#ifndef HB_OT_TAG_H
+#define HB_OT_TAG_H
 
-#include "hb.h"
+#include "hb-common.h"
+#include "hb-language.h"
 
-#include "hb-ot-layout.h"
-#include "hb-ot-tag.h"
+HB_BEGIN_DECLS
 
-#endif /* HB_OT_H */
+#define HB_OT_TAG_DEFAULT_SCRIPT	HB_TAG ('D', 'F', 'L', 'T')
+#define HB_OT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
+
+const hb_tag_t *
+hb_ot_tags_from_script (hb_script_t script);
+
+hb_tag_t
+hb_ot_tag_from_language (hb_language_t language);
+
+hb_language_t
+hb_ot_tag_to_language (hb_tag_t tag);
+
+HB_END_DECLS
+
+#endif /* HB_OT_TAG_H */

@@ -31,6 +31,8 @@
 #include "hb-buffer.h"
 #include "hb-font.h"
 
+#include "hb-ot-tag.h"
+
 HB_BEGIN_DECLS
 
 #define HB_OT_TAG_GDEF HB_TAG('G','D','E','F')
@@ -97,8 +99,6 @@ hb_ot_layout_get_lig_carets (hb_face_t      *face,
 #define HB_OT_LAYOUT_NO_SCRIPT_INDEX		((unsigned int) 0xFFFF)
 #define HB_OT_LAYOUT_NO_FEATURE_INDEX		((unsigned int) 0xFFFF)
 #define HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX	((unsigned int) 0xFFFF)
-#define HB_OT_LAYOUT_TAG_DEFAULT_SCRIPT		HB_TAG ('D', 'F', 'L', 'T')
-#define HB_OT_LAYOUT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
 
 unsigned int
 hb_ot_layout_table_get_script_tags (hb_face_t    *face,
