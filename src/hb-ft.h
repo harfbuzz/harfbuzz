@@ -43,6 +43,9 @@ hb_face_t *
 hb_ft_face_create (FT_Face           ft_face,
 		   hb_destroy_func_t destroy);
 
+hb_face_t *
+hb_ft_face_create_cached (FT_Face ft_face);
+
 hb_font_t *
 hb_ft_font_create (FT_Face           ft_face,
 		   hb_destroy_func_t destroy);

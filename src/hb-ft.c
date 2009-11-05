@@ -178,6 +178,22 @@ hb_ft_face_create (FT_Face           ft_face,
   return face;
 }
 
+hb_face_t *
+hb_ft_face_create_cached (FT_Face ft_face)
+{
+  /* TODO: Not thread-safe */
+  if (HB_LIKELY (ft_face->generic.data && ft_face->generic.finalizer == (FT_Generic_Finalizer) hb_face_destroy))
+      return ft_face->generic.data;
+
+  if (ft_face->generic.finalizer)
+    ft_face->generic.finalizer (ft_face->generic.data);
+
+  ft_face->generic.data = hb_ft_face_create (ft_face, NULL);
+  ft_face->generic.finalizer = (FT_Generic_Finalizer) hb_face_destroy;
+
+  return ft_face->generic.data;
+}
+
 
 hb_font_t *
 hb_ft_font_create (FT_Face           ft_face,
