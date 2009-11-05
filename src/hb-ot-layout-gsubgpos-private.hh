@@ -36,6 +36,7 @@
 #endif
 
 #if HB_DEBUG_APPLY
+#include <stdio.h>
 #define TRACE_APPLY_ARG_DEF	, unsigned int apply_depth
 #define TRACE_APPLY_ARG		, apply_depth + 1
 #define TRACE_APPLY_ARG_INIT	, 1

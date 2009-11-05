@@ -117,6 +117,7 @@ struct Null <Type> \
 #endif
 
 #if HB_DEBUG_SANITIZE
+#include <stdio.h>
 #define TRACE_SANITIZE_ARG_DEF	, unsigned int sanitize_depth
 #define TRACE_SANITIZE_ARG	, sanitize_depth + 1
 #define TRACE_SANITIZE_ARG_INIT	, 1

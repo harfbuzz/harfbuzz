@@ -39,6 +39,10 @@
 #define HB_DEBUG_BLOB HB_DEBUG
 #endif
 
+#if HB_DEBUG_BLOB
+#include <stdio.h>
+#endif
+
 struct _hb_blob_t {
   hb_reference_count_t ref_count;
 
