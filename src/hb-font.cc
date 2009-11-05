@@ -344,6 +344,8 @@ hb_font_create (void)
   if (!HB_OBJECT_DO_CREATE (hb_font_t, font))
     return &_hb_font_nil;
 
+  font->klass = &_hb_font_funcs_nil;
+
   return font;
 }
 
