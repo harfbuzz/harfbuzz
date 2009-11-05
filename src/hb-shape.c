@@ -38,9 +38,9 @@ is_variation_selector (hb_codepoint_t unicode)
 }
 
 static void
-map_glyphs (hb_font_t    *font,
-	    hb_face_t    *face,
-	    hb_buffer_t  *buffer)
+hb_map_glyphs (hb_font_t    *font,
+	       hb_face_t    *face,
+	       hb_buffer_t  *buffer)
 {
   unsigned int count;
 
@@ -57,6 +57,25 @@ map_glyphs (hb_font_t    *font,
   IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), 0);
 }
 
+static void
+hb_position_default (hb_font_t    *font,
+		     hb_face_t    *face,
+		     hb_buffer_t  *buffer)
+{
+  unsigned int count;
+
+  hb_buffer_clear_positions (buffer);
+
+  count = buffer->in_length;
+
+  for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
+    hb_glyph_metrics_t metrics;
+    hb_font_get_glyph_metrics (font, face, IN_CURGLYPH(), &metrics);
+    CURPOSITION()->x_advance = metrics.x_advance;
+    CURPOSITION()->y_advance = metrics.y_advance;
+  }
+}
+
 
 void
 hb_shape (hb_font_t    *font,
@@ -70,9 +89,10 @@ hb_shape (hb_font_t    *font,
   /* natural direction analysis */
   /* OT preprocess */
 
-  map_glyphs (font, face, buffer);
+  hb_map_glyphs (font, face, buffer);
 
   /* GSUB */
+  hb_position_default (font, face, buffer);
   /* Default positioning */
   /* GPOS / kern */
 }
