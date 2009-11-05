@@ -1065,9 +1065,9 @@ struct MarkLigPosFormat1
      * is identical to the ligature ID of the found ligature.  If yes, we
      * can directly use the component index.  If not, we attach the mark
      * glyph to the last component of the ligature. */
-    if (IN_LIGID (j) == IN_LIGID (buffer->in_pos))
+    if (IN_LIGID (j) && IN_LIGID (j) == IN_LIGID (buffer->in_pos) && IN_COMPONENT (buffer->in_pos))
     {
-      comp_index = IN_COMPONENT (buffer->in_pos);
+      comp_index = IN_COMPONENT (buffer->in_pos) - 1;
       if (comp_index >= comp_count)
 	comp_index = comp_count - 1;
     }
@@ -1164,9 +1164,10 @@ struct MarkMarkPosFormat1
       return false;
 
     /* Two marks match only if they belong to the same base, or same component
-     * of the same ligature. */
-    if (IN_LIGID (j) != IN_LIGID (buffer->in_pos) ||
-        IN_COMPONENT (j) != IN_COMPONENT (buffer->in_pos))
+     * of the same ligature.  That is, the component numbers must match, and
+     * if those are non-zero, the ligid number should also match. */
+    if ((IN_COMPONENT (j) != IN_COMPONENT (buffer->in_pos)) ||
+	(IN_COMPONENT (j) && IN_LIGID (j) != IN_LIGID (buffer->in_pos)))
       return false;
 
     unsigned int mark2_index = (this+mark2Coverage) (IN_GLYPH (j));

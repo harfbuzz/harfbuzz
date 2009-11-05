@@ -406,14 +406,10 @@ struct Ligature
       for ( i = 1; i < count; i++ )
       {
 	while (_hb_ot_layout_skip_mark (context->face, IN_CURINFO (), lookup_flag, NULL))
-	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH (), i - 1, lig_id);
+	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH (), i, lig_id);
 
 	(buffer->in_pos)++;
       }
-
-      /* TODO We should possibly reassign lig_id and component for any
-       * components of a previous ligature that s now being removed as part of
-       * this ligature. */
     }
 
     return true;
