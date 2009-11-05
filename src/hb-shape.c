@@ -33,7 +33,7 @@
 static inline hb_bool_t
 is_variation_selector (hb_codepoint_t unicode)
 {
-  return (unicode >=  0xFE00 && unicode <= 0xFE0F) ||
+  return (unicode >=  0xFE00 && unicode <=  0xFE0F) ||
 	 (unicode >= 0xE0100 && unicode <= 0xE01EF);
 }
 
