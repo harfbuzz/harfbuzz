@@ -82,18 +82,18 @@ hb_ft_get_glyph_metrics (hb_font_t *font, hb_face_t *face, const void *user_data
 
   /* TODO: load_flags, embolden, etc */
 
-  metrics->x_pos = metrics->y_pos = 0;
   metrics->x_advance = metrics->y_advance = 0;
+  metrics->x_offset = metrics->y_offset = 0;
   metrics->width = metrics->height = 0;
   if (HB_LIKELY (!FT_Load_Glyph (ft_face, glyph, load_flags)))
   {
     /* TODO: A few negations should be in order here, not sure. */
-    metrics->x_pos = ft_face->glyph->metrics.horiBearingX;
-    metrics->y_pos = ft_face->glyph->metrics.horiBearingY;
-    metrics->width = ft_face->glyph->metrics.width;
-    metrics->height = ft_face->glyph->metrics.height;
     metrics->x_advance = ft_face->glyph->advance.x;
     metrics->y_advance = ft_face->glyph->advance.y;
+    metrics->x_offset = ft_face->glyph->metrics.horiBearingX;
+    metrics->y_offset = ft_face->glyph->metrics.horiBearingY;
+    metrics->width = ft_face->glyph->metrics.width;
+    metrics->height = ft_face->glyph->metrics.height;
   }
 }
 

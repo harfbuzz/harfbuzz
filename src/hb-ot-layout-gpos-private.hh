@@ -103,41 +103,25 @@ struct ValueRecord {
     x_scale = context->font->x_scale;
     y_scale = context->font->y_scale;
     /* design units -> fractional pixel */
-    if (format & xPlacement)
-      glyph_pos->x_pos += _hb_16dot16_mul_trunc (x_scale, *(SHORT*)values++);
-    if (format & yPlacement)
-      glyph_pos->y_pos += _hb_16dot16_mul_trunc (y_scale, *(SHORT*)values++);
-    if (format & xAdvance)
-      glyph_pos->x_advance += _hb_16dot16_mul_trunc (x_scale, *(SHORT*)values++);
-    if (format & yAdvance)
-      glyph_pos->y_advance += _hb_16dot16_mul_trunc (y_scale, *(SHORT*)values++);
+    if (format & xPlacement) glyph_pos->x_offset  += _hb_16dot16_mul_trunc (x_scale, *(SHORT*)values++);
+    if (format & yPlacement) glyph_pos->y_offset  += _hb_16dot16_mul_trunc (y_scale, *(SHORT*)values++);
+    if (format & xAdvance)   glyph_pos->x_advance += _hb_16dot16_mul_trunc (x_scale, *(SHORT*)values++);
+    if (format & yAdvance)   glyph_pos->y_advance += _hb_16dot16_mul_trunc (y_scale, *(SHORT*)values++);
 
     x_ppem = context->font->x_ppem;
     y_ppem = context->font->y_ppem;
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem)
-	glyph_pos->x_pos += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6;
-      else
-        values++;
+      if (x_ppem) glyph_pos->x_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6; else values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem)
-	glyph_pos->y_pos += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6;
-      else
-        values++;
+      if (y_ppem) glyph_pos->y_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6; else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem)
-	glyph_pos->x_advance += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6;
-      else
-        values++;
+      if (x_ppem) glyph_pos->x_advance += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6; else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem)
-	glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6;
-      else
-        values++;
+      if (y_ppem) glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6; else values++;
     }
   }
 };
@@ -330,10 +314,10 @@ struct MarkArray
     glyph_anchor.get_anchor (context, IN_GLYPH (glyph_pos), &base_x, &base_y);
 
     hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
-    o->x_pos     = base_x - mark_x;
-    o->y_pos     = base_y - mark_y;
     o->x_advance = 0;
     o->y_advance = 0;
+    o->x_offset  = base_x - mark_x;
+    o->y_offset  = base_y - mark_y;
     o->back      = buffer->in_pos - glyph_pos;
 
     buffer->in_pos++;
@@ -868,12 +852,12 @@ struct CursivePosFormat1
     if  (lookup_flag & LookupFlag::RightToLeft)
     {
       POSITION (last_pos)->cursive_chain = last_pos - buffer->in_pos;
-      POSITION (last_pos)->y_pos = entry_y - gpi->anchor_y;
+      POSITION (last_pos)->y_offset = entry_y - gpi->anchor_y;
     }
     else
     {
       POSITION (buffer->in_pos)->cursive_chain = buffer->in_pos - last_pos;
-      POSITION (buffer->in_pos)->y_pos = gpi->anchor_y - entry_y;
+      POSITION (buffer->in_pos)->y_offset = gpi->anchor_y - entry_y;
     }
 
   end:

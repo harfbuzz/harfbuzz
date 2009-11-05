@@ -52,10 +52,10 @@ typedef struct _hb_glyph_info_t {
 } hb_glyph_info_t;
 
 typedef struct _hb_glyph_position_t {
-  hb_position_t  x_pos;
-  hb_position_t  y_pos;
   hb_position_t  x_advance;
   hb_position_t  y_advance;
+  hb_position_t  x_offset;
+  hb_position_t  y_offset;
   /* XXX these should all be replaced by "uint32_t internal" */
   uint32_t       new_advance :1;	/* if set, the advance width values are
 					   absolute, i.e., they won't be

@@ -38,8 +38,8 @@ is_variation_selector (hb_codepoint_t unicode)
 }
 
 static void
-map_glyphs (hb_face_t    *face,
-	    hb_font_t    *font,
+map_glyphs (hb_font_t    *font,
+	    hb_face_t    *face,
 	    hb_buffer_t  *buffer)
 {
   unsigned int count;
@@ -48,19 +48,19 @@ map_glyphs (hb_face_t    *face,
 
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
     if (HB_UNLIKELY (is_variation_selector (IN_NEXTGLYPH()))) {
-      IN_CURGLYPH() = hb_font_get_glyph (face, font, IN_CURGLYPH(), IN_NEXTGLYPH());
+      IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), IN_NEXTGLYPH());
       buffer->in_pos++;
     } else {
-      IN_CURGLYPH() = hb_font_get_glyph (face, font, IN_CURGLYPH(), 0);
+      IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), 0);
     }
   }
-  IN_CURGLYPH() = hb_font_get_glyph (face, font, IN_CURGLYPH(), 0);
+  IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), 0);
 }
 
 
 void
-hb_shape (hb_face_t    *face,
-	  hb_font_t    *font,
+hb_shape (hb_font_t    *font,
+	  hb_face_t    *face,
 	  hb_buffer_t  *buffer,
 	  hb_feature_t *features,
 	  unsigned int  num_features)

@@ -41,8 +41,8 @@ typedef struct _hb_feature_t {
 } hb_feature_t;
 
 void
-hb_shape (hb_face_t    *face,
-	  hb_font_t    *font,
+hb_shape (hb_font_t    *font,
+	  hb_face_t    *face,
 	  hb_buffer_t  *buffer,
 	  hb_feature_t *features,
 	  unsigned int  num_features);

@@ -94,10 +94,10 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs);
 
 typedef struct _hb_glyph_metrics_t
 {
-    hb_position_t x_pos;
-    hb_position_t y_pos;
     hb_position_t x_advance;
     hb_position_t y_advance;
+    hb_position_t x_offset;
+    hb_position_t y_offset;
     hb_position_t width;
     hb_position_t height;
 } hb_glyph_metrics_t;
