@@ -31,6 +31,21 @@
 #define HB_REFCOUNT_PRIVATE_H
 
 
+#ifndef HB_DEBUG_OBJECT
+#define HB_DEBUG_OBJECT HB_DEBUG
+#endif
+
+#if HB_DEBUG_OBJECT
+#include <stdio.h>
+#define HB_OBJECT_DEBUG_OUT(obj) fprintf (stderr, "%p refcount=%d %s\n", \
+					  obj, \
+					  HB_REFERENCE_COUNT_GET_VALUE (obj->ref_count), \
+					  __FUNCTION__)
+#else
+#define HB_OBJECT_DEBUG_OUT(obj) 0
+#endif
+
+
 /* Encapsulate operations on the object's reference count */
 typedef struct {
   hb_atomic_int_t ref_count;
@@ -70,6 +85,7 @@ typedef struct {
   HB_LIKELY (( \
 	     (obj) = (Type *) calloc (1, sizeof (Type)), \
 	     HB_OBJECT_DO_INIT_EXPR (obj), \
+	     HB_OBJECT_DEBUG_OUT (obj), \
 	     (obj) \
 	     ))
 
@@ -78,6 +94,7 @@ typedef struct {
     int old_count; \
     if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return obj; \
+    HB_OBJECT_DEBUG_OUT (obj); \
     old_count = hb_reference_count_inc (obj->ref_count); \
     assert (old_count > 0); \
     return obj; \
@@ -95,6 +112,7 @@ typedef struct {
     int old_count; \
     if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return; \
+    HB_OBJECT_DEBUG_OUT (obj); \
     old_count = hb_reference_count_dec (obj->ref_count); \
     assert (old_count > 0); \
     if (old_count != 1) \
