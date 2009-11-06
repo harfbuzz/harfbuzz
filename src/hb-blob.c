@@ -41,6 +41,7 @@
 
 #if HB_DEBUG_BLOB
 #include <stdio.h>
+#include <errno.h>
 #endif
 
 struct _hb_blob_t {
