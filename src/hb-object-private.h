@@ -42,7 +42,7 @@
 					  HB_REFERENCE_COUNT_GET_VALUE (obj->ref_count), \
 					  __FUNCTION__)
 #else
-#define HB_OBJECT_DEBUG_OUT(obj) 0
+#define HB_OBJECT_DEBUG_OUT(obj) (void) 0
 #endif
 
 
