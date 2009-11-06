@@ -55,7 +55,7 @@ typedef enum {
  * classes in harfbuzz. */
 
 hb_bool_t
-hb_ot_layout_has_font_glyph_classes (hb_face_t *face);
+hb_ot_layout_glyph_classes (hb_face_t *face);
 
 hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_face_t      *face,
@@ -84,8 +84,8 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 
 /* Ligature caret positions */
 unsigned int
-hb_ot_layout_get_lig_carets (hb_face_t      *face,
-			     hb_font_t      *font,
+hb_ot_layout_get_lig_carets (hb_font_t      *font,
+			     hb_face_t      *face,
 			     hb_codepoint_t  glyph,
 			     unsigned int    start_offset,
 			     unsigned int   *caret_count /* IN/OUT */,
@@ -198,16 +198,16 @@ hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face);
 
 hb_bool_t
-hb_ot_layout_position_lookup (hb_face_t    *face,
-			      hb_font_t    *font,
+hb_ot_layout_position_lookup (hb_font_t    *font,
+			      hb_face_t    *face,
 			      hb_buffer_t  *buffer,
 			      unsigned int  lookup_index,
 			      hb_mask_t     mask);
 
 /* Should be called after all the position_lookup's are done */
 void
-hb_ot_layout_position_finish (hb_face_t    *face,
-			      hb_font_t    *font,
+hb_ot_layout_position_finish (hb_font_t    *font,
+			      hb_face_t    *face,
 			      hb_buffer_t  *buffer);
 
 

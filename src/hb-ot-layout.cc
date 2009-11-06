@@ -96,7 +96,7 @@ _get_gpos (hb_face_t *face)
 /* TODO the public class_t is a mess */
 
 hb_bool_t
-hb_ot_layout_has_font_glyph_classes (hb_face_t *face)
+hb_ot_layout_has_glyph_classes (hb_face_t *face)
 {
   return _get_gdef (face).has_glyph_classes ();
 }
@@ -312,8 +312,8 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 }
 
 unsigned int
-hb_ot_layout_get_lig_carets (hb_face_t      *face,
-			     hb_font_t      *font,
+hb_ot_layout_get_lig_carets (hb_font_t      *font,
+			     hb_face_t      *face,
 			     hb_codepoint_t  glyph,
 			     unsigned int    start_offset,
 			     unsigned int   *caret_count /* IN/OUT */,
@@ -553,8 +553,8 @@ hb_ot_layout_has_positioning (hb_face_t *face)
 }
 
 hb_bool_t
-hb_ot_layout_position_lookup   (hb_face_t    *face,
-				hb_font_t    *font,
+hb_ot_layout_position_lookup   (hb_font_t    *font,
+				hb_face_t    *face,
 				hb_buffer_t  *buffer,
 				unsigned int  lookup_index,
 				hb_mask_t     mask)
@@ -566,8 +566,8 @@ hb_ot_layout_position_lookup   (hb_face_t    *face,
 }
 
 void
-hb_ot_layout_position_finish (hb_face_t    *face,
-			      hb_font_t    *font,
+hb_ot_layout_position_finish (hb_font_t    *font,
+			      hb_face_t    *face,
 			      hb_buffer_t  *buffer)
 {
   unsigned int i, j;
