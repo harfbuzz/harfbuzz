@@ -388,8 +388,8 @@ struct Ligature
 	 glyphs and the ligature already has an ID. */
       _hb_buffer_add_output_glyphs_be16 (buffer, i,
 					 1, (const uint16_t *) &ligGlyph,
-					 0xFFFF,
-					 IN_LIGID (buffer->in_pos) ?
+					 0,
+					 IN_LIGID (buffer->in_pos) && !IN_COMPONENT (buffer->in_pos) ?
 					 0xFFFF : _hb_buffer_allocate_lig_id (buffer));
     else
     {
