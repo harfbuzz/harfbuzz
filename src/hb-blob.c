@@ -197,11 +197,12 @@ hb_blob_lock (hb_blob_t *blob)
 
   hb_mutex_lock (blob->lock);
 
-  blob->lock_count++;
 #if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s (%d) -> %p\n", blob, __FUNCTION__,
 	   blob->lock_count, blob->data);
 #endif
+
+  blob->lock_count++;
 
   hb_mutex_unlock (blob->lock);
 
@@ -216,12 +217,13 @@ hb_blob_unlock (hb_blob_t *blob)
 
   hb_mutex_lock (blob->lock);
 
-  assert (blob->lock_count > 0);
-  blob->lock_count--;
 #if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s (%d) -> %p\n", blob, __FUNCTION__,
-	   hb_atomic_int_get (blob->lock_count), blob->data);
+	   blob->lock_count, blob->data);
 #endif
+
+  assert (blob->lock_count > 0);
+  blob->lock_count--;
 
   hb_mutex_unlock (blob->lock);
 }
