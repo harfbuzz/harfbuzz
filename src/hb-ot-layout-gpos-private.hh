@@ -840,13 +840,13 @@ struct CursivePosFormat1
 
     if (buffer->direction == HB_DIRECTION_RTL)
     {
-      POSITION (buffer->in_pos)->x_advance   = entry_x - gpi->anchor_x;
-      POSITION (buffer->in_pos)->new_advance = true;
+      /* advance is absolute, not relative */
+      POSITION (buffer->in_pos)->x_advance = entry_x - gpi->anchor_x;
     }
     else
     {
-      POSITION (last_pos)->x_advance   = gpi->anchor_x - entry_x;
-      POSITION (last_pos)->new_advance = true;
+      /* advance is absolute, not relative */
+      POSITION (last_pos)->x_advance = gpi->anchor_x - entry_x;
     }
 
     if  (lookup_flag & LookupFlag::RightToLeft)

@@ -198,11 +198,17 @@ hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face);
 
 hb_bool_t
-hb_ot_layout_position_lookup   (hb_face_t    *face,
-				hb_font_t    *font,
-				hb_buffer_t  *buffer,
-				unsigned int  lookup_index,
-				hb_mask_t     mask);
+hb_ot_layout_position_lookup (hb_face_t    *face,
+			      hb_font_t    *font,
+			      hb_buffer_t  *buffer,
+			      unsigned int  lookup_index,
+			      hb_mask_t     mask);
+
+/* Should be called after all the position_lookup's are done */
+void
+hb_ot_layout_position_finish (hb_face_t    *face,
+			      hb_font_t    *font,
+			      hb_buffer_t  *buffer);
 
 
 HB_END_DECLS

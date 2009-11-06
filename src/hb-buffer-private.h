@@ -51,11 +51,7 @@ typedef struct _hb_internal_glyph_position_t {
   hb_position_t  y_advance;
   hb_position_t  x_offset;
   hb_position_t  y_offset;
-  uint32_t       new_advance :1;	/* if set, the advance width values are
-					   absolute, i.e., they won't be
-					   added to the original glyph's value
-					   but rather replace them */
-  uint32_t       back : 15;		/* number of glyphs to go back
+  uint32_t       back : 16;		/* number of glyphs to go back
 					   for drawing current glyph */
   int32_t        cursive_chain : 16;	/* character to which this connects,
 					   may be positive or negative; used
