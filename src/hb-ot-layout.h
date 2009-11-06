@@ -55,7 +55,7 @@ typedef enum {
  * classes in harfbuzz. */
 
 hb_bool_t
-hb_ot_layout_glyph_classes (hb_face_t *face);
+hb_ot_layout_has_glyph_classes (hb_face_t *face);
 
 hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_face_t      *face,
