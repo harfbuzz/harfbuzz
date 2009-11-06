@@ -90,9 +90,13 @@ hb_shape (hb_font_t    *font,
   /* OT preprocess */
 
   hb_map_glyphs (font, face, buffer);
+  /* ccmp+... */
+
+  /* script-specific */
 
   /* GSUB */
+
   hb_position_default (font, face, buffer);
-  /* Default positioning */
+
   /* GPOS / kern */
 }
