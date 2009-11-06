@@ -192,7 +192,7 @@ hb_ft_face_create_cached (FT_Face ft_face)
   if (HB_UNLIKELY (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_ft_face_finalize))
   {
     if (ft_face->generic.finalizer)
-      ft_face->generic.finalizer (ft_face->generic.data);
+      ft_face->generic.finalizer (ft_face);
 
     ft_face->generic.data = hb_ft_face_create (ft_face, NULL);
     ft_face->generic.finalizer = (FT_Generic_Finalizer) hb_ft_face_finalize;
