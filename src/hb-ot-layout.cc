@@ -565,7 +565,6 @@ hb_ot_layout_position_lookup   (hb_face_t    *face,
   return _get_gpos (face).position_lookup (&context, buffer, lookup_index, mask);
 }
 
-#include <stdio.h>
 void
 hb_ot_layout_position_finish (hb_face_t    *face,
 			      hb_font_t    *font,
@@ -581,7 +580,6 @@ hb_ot_layout_position_finish (hb_face_t    *face,
   /* First handle all left-to-right connections */
   for (j = 0; j < len; j++) {
     if (positions[j].cursive_chain > 0) {
-  printf ("0000000000000\n");
       positions[j].y_offset += positions[j - positions[j].cursive_chain].y_offset;
       positions[j].cursive_chain = 0;
     }
