@@ -183,7 +183,7 @@ hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face)
 {
   /* TODO: Not thread-safe */
-  if (!HB_LIKELY (ft_face->generic.data && ft_face->generic.finalizer == (FT_Generic_Finalizer) hb_face_destroy))
+  if (HB_UNLIKELY (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_face_destroy))
   {
     if (ft_face->generic.finalizer)
       ft_face->generic.finalizer (ft_face->generic.data);
