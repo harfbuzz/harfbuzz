@@ -179,17 +179,23 @@ hb_ft_face_create (FT_Face           ft_face,
   return face;
 }
 
+static void
+hb_ft_face_finalize (FT_Face ft_face)
+{
+  hb_face_destroy (ft_face->generic.data);
+}
+
 hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face)
 {
   /* TODO: Not thread-safe */
-  if (HB_UNLIKELY (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_face_destroy))
+  if (HB_UNLIKELY (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_ft_face_finalize))
   {
     if (ft_face->generic.finalizer)
       ft_face->generic.finalizer (ft_face->generic.data);
 
     ft_face->generic.data = hb_ft_face_create (ft_face, NULL);
-    ft_face->generic.finalizer = (FT_Generic_Finalizer) hb_face_destroy;
+    ft_face->generic.finalizer = (FT_Generic_Finalizer) hb_ft_face_finalize;
   }
 
   return hb_face_reference (ft_face->generic.data);
