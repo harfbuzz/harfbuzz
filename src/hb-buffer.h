@@ -159,7 +159,7 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 
 /* Return value valid as long as buffer not modified */
 unsigned int
-hb_buffer_get_len (hb_buffer_t *buffer);
+hb_buffer_get_length (hb_buffer_t *buffer);
 
 /* Return value valid as long as buffer not modified */
 hb_glyph_info_t *

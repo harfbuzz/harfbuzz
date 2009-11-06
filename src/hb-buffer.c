@@ -413,7 +413,7 @@ _hb_buffer_allocate_lig_id (hb_buffer_t *buffer)
 
 
 unsigned int
-hb_buffer_get_len (hb_buffer_t *buffer)
+hb_buffer_get_length (hb_buffer_t *buffer)
 {
   return buffer->in_length;
 }
