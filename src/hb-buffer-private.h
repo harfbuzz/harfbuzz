@@ -102,9 +102,17 @@ HB_INTERNAL void
 _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned int num_in,
 			      unsigned int num_out,
-			      const uint16_t *glyph_data_be,
+			      const hb_codepoint_t *glyph_data,
 			      unsigned short component,
 			      unsigned short ligID);
+
+HB_INTERNAL void
+_hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
+				   unsigned int num_in,
+				   unsigned int num_out,
+				   const uint16_t *glyph_data_be,
+				   unsigned short component,
+				   unsigned short ligID);
 
 HB_INTERNAL void
 _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
