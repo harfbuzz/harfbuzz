@@ -38,6 +38,17 @@ is_variation_selector (hb_codepoint_t unicode)
 }
 
 static void
+hb_form_clusters (hb_buffer_t *buffer)
+{
+  unsigned int count;
+
+  count = buffer->in_length;
+  for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++)
+    if (buffer->unicode->get_general_category (IN_CURGLYPH()) == HB_CATEGORY_NON_SPACING_MARK)
+      IN_CLUSTER (buffer->in_pos) = IN_CLUSTER (buffer->in_pos - 1);
+}
+
+static void
 hb_map_glyphs (hb_font_t    *font,
 	       hb_face_t    *face,
 	       hb_buffer_t  *buffer)
@@ -45,7 +56,6 @@ hb_map_glyphs (hb_font_t    *font,
   unsigned int count;
 
   count = buffer->in_length - 1;
-
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
     if (HB_UNLIKELY (is_variation_selector (IN_NEXTGLYPH()))) {
       IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), IN_NEXTGLYPH());
@@ -67,13 +77,29 @@ hb_position_default (hb_font_t    *font,
   hb_buffer_clear_positions (buffer);
 
   count = buffer->in_length;
-
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
     hb_glyph_metrics_t metrics;
     hb_font_get_glyph_metrics (font, face, IN_CURGLYPH(), &metrics);
     CURPOSITION()->x_advance = metrics.x_advance;
     CURPOSITION()->y_advance = metrics.y_advance;
   }
+}
+
+
+static hb_direction_t
+hb_ensure_native_direction (hb_buffer_t *buffer)
+{
+  hb_direction_t original_direction = hb_buffer_get_direction (buffer);
+
+  /* TODO vertical */
+  if (HB_DIRECTION_IS_HORIZONTAL (original_direction) &&
+      original_direction != _hb_script_get_horizontal_direction (hb_buffer_get_script (buffer)))
+  {
+    hb_buffer_reverse_clusters (buffer);
+    hb_buffer_set_direction (buffer, original_direction == HB_DIRECTION_LTR ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+  }
+
+  return original_direction;
 }
 
 
@@ -84,7 +110,11 @@ hb_shape (hb_font_t    *font,
 	  hb_feature_t *features,
 	  unsigned int  num_features)
 {
-  /* form_clusters (buffer); */
+  hb_direction_t original_direction;
+
+  hb_form_clusters (buffer);
+  original_direction = hb_ensure_native_direction (buffer);
+
   /* do_mirroring (buffer); */
   /* natural direction analysis */
   /* OT preprocess */
@@ -99,4 +129,6 @@ hb_shape (hb_font_t    *font,
   hb_position_default (font, face, buffer);
 
   /* GPOS / kern */
+
+  hb_buffer_set_direction (buffer, original_direction);
 }

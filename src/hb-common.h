@@ -72,4 +72,15 @@ typedef uint32_t hb_mask_t;
 
 typedef void (*hb_destroy_func_t) (void *user_data);
 
+typedef enum _hb_direction_t {
+  HB_DIRECTION_LTR,
+  HB_DIRECTION_RTL,
+  HB_DIRECTION_TTB,
+  HB_DIRECTION_BTT
+} hb_direction_t;
+
+#define HB_DIRECTION_IS_HORIZONTAL(dir)	((dir) == HB_DIRECTION_LTR || (dir) == HB_DIRECTION_RTL)
+#define HB_DIRECTION_IS_VERTICAL(dir)	((dir) == HB_DIRECTION_TTB || (dir) == HB_DIRECTION_BTT)
+
+
 #endif /* HB_COMMON_H */

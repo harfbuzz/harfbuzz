@@ -36,13 +36,6 @@ HB_BEGIN_DECLS
 
 typedef struct _hb_buffer_t hb_buffer_t;
 
-typedef enum _hb_direction_t {
-  HB_DIRECTION_LTR,
-  HB_DIRECTION_RTL,
-  HB_DIRECTION_TTB,
-  HB_DIRECTION_BTT
-} hb_direction_t;
-
 typedef struct _hb_glyph_info_t {
   hb_codepoint_t codepoint;
   hb_mask_t      mask;
@@ -114,6 +107,9 @@ hb_buffer_ensure (hb_buffer_t  *buffer,
 
 void
 hb_buffer_reverse (hb_buffer_t *buffer);
+
+void
+hb_buffer_reverse_clusters (hb_buffer_t *buffer);
 
 
 /* Filling the buffer in */

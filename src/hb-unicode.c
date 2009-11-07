@@ -159,3 +159,106 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
   ufuncs->get_eastasian_width = eastasian_width_func ? eastasian_width_func : hb_unicode_get_eastasian_width_nil;
 }
 
+
+#define LTR HB_DIRECTION_LTR
+#define RTL HB_DIRECTION_RTL
+const hb_direction_t horiz_dir[] =
+{
+  LTR,	/* Zyyy */
+  LTR,	/* Qaai */
+  RTL,	/* Arab */
+  LTR,	/* Armn */
+  LTR,	/* Beng */
+  LTR,	/* Bopo */
+  LTR,	/* Cher */
+  LTR,	/* Qaac */
+  LTR,	/* Cyrl (Cyrs) */
+  LTR,	/* Dsrt */
+  LTR,	/* Deva */
+  LTR,	/* Ethi */
+  LTR,	/* Geor (Geon, Geoa) */
+  LTR,	/* Goth */
+  LTR,	/* Grek */
+  LTR,	/* Gujr */
+  LTR,	/* Guru */
+  LTR,	/* Hani */
+  LTR,	/* Hang */
+  RTL,	/* Hebr */
+  LTR,	/* Hira */
+  LTR,	/* Knda */
+  LTR,	/* Kana */
+  LTR,	/* Khmr */
+  LTR,	/* Laoo */
+  LTR,	/* Latn (Latf, Latg) */
+  LTR,	/* Mlym */
+  LTR,	/* Mong */
+  LTR,	/* Mymr */
+  LTR,	/* Ogam */
+  LTR,	/* Ital */
+  LTR,	/* Orya */
+  LTR,	/* Runr */
+  LTR,	/* Sinh */
+  RTL,	/* Syrc (Syrj, Syrn, Syre) */
+  LTR,	/* Taml */
+  LTR,	/* Telu */
+  RTL,	/* Thaa */
+  LTR,	/* Thai */
+  LTR,	/* Tibt */
+  LTR,	/* Cans */
+  LTR,	/* Yiii */
+  LTR,	/* Tglg */
+  LTR,	/* Hano */
+  LTR,	/* Buhd */
+  LTR,	/* Tagb */
+
+  /* Unicode-4.0 additions */
+  LTR,	/* Brai */
+  LTR,	/* Cprt */
+  LTR,	/* Limb */
+  LTR,	/* Osma */
+  LTR,	/* Shaw */
+  LTR,	/* Linb */
+  LTR,	/* Tale */
+  LTR,	/* Ugar */
+
+  /* Unicode-4.1 additions */
+  LTR,	/* Talu */
+  LTR,	/* Bugi */
+  LTR,	/* Glag */
+  LTR,	/* Tfng */
+  LTR,	/* Sylo */
+  LTR,	/* Xpeo */
+  LTR,	/* Khar */
+
+  /* Unicode-5.0 additions */
+  LTR,	/* Zzzz */
+  LTR,	/* Bali */
+  LTR,	/* Xsux */
+  RTL,	/* Phnx */
+  LTR,	/* Phag */
+  RTL,	/* Nkoo */
+
+  /* Unicode-5.1 additions */
+  LTR,	/* Kali */
+  LTR,	/* Lepc */
+  LTR,	/* Rjng */
+  LTR,	/* Sund */
+  LTR,	/* Saur */
+  LTR,	/* Cham */
+  LTR,	/* Olck */
+  LTR,	/* Vaii */
+  LTR,	/* Cari */
+  LTR,	/* Lyci */
+  LTR	/* Lydi */
+};
+#undef LTR
+#undef RTL
+
+HB_INTERNAL hb_direction_t
+_hb_script_get_horizontal_direction (hb_script_t script)
+{
+  if (HB_UNLIKELY ((unsigned int) script >= ARRAY_LENGTH (horiz_dir)))
+    return HB_DIRECTION_LTR;
+
+  return horiz_dir[script];
+}

@@ -52,6 +52,11 @@ struct _hb_unicode_funcs_t {
 HB_INTERNAL hb_unicode_funcs_t
 _hb_unicode_funcs_nil;
 
+
+HB_INTERNAL hb_direction_t
+_hb_script_get_horizontal_direction (hb_script_t script);
+
+
 HB_END_DECLS
 
 #endif /* HB_UNICODE_PRIVATE_H */

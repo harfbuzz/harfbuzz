@@ -138,6 +138,7 @@ _hb_buffer_allocate_lig_id (hb_buffer_t *buffer);
 #define IN_NEXTGLYPH()		(buffer->in_string[buffer->in_pos + 1].codepoint)
 #define IN_CURINFO()		(&buffer->in_string[buffer->in_pos])
 #define IN_MASK(pos)		(buffer->in_string[(pos)].mask)
+#define IN_CLUSTER(pos)		(buffer->in_string[(pos)].cluster)
 #define IN_LIGID(pos)		(buffer->in_string[(pos)].lig_id)
 #define IN_COMPONENT(pos)	(buffer->in_string[(pos)].component)
 #define POSITION(pos)		(&buffer->positions[(pos)])

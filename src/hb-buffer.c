@@ -477,12 +477,14 @@ hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
 }
 
 
-void
-hb_buffer_reverse (hb_buffer_t *buffer)
+static void
+reverse_range (hb_buffer_t *buffer,
+	       unsigned int start,
+	       unsigned int end)
 {
   unsigned int i, j;
 
-  for (i = 0, j = buffer->in_length - 1; i < buffer->in_length / 2; i++, j--) {
+  for (i = start, j = end - 1; i < j; i++, j--) {
     hb_internal_glyph_info_t t;
 
     t = buffer->in_string[i];
@@ -491,7 +493,7 @@ hb_buffer_reverse (hb_buffer_t *buffer)
   }
 
   if (buffer->positions) {
-    for (i = 0, j = buffer->in_length - 1; i < buffer->in_length / 2; i++, j--) {
+    for (i = 0, j = end - 1; i < j; i++, j--) {
       hb_internal_glyph_position_t t;
 
       t = buffer->positions[i];
@@ -499,6 +501,38 @@ hb_buffer_reverse (hb_buffer_t *buffer)
       buffer->positions[j] = t;
     }
   }
+}
+
+void
+hb_buffer_reverse (hb_buffer_t *buffer)
+{
+  if (HB_UNLIKELY (!buffer->in_length))
+    return;
+
+  reverse_range (buffer, 0, buffer->in_length);
+}
+
+void
+hb_buffer_reverse_clusters (hb_buffer_t *buffer)
+{
+  unsigned int i, start, count, last_cluster;
+
+  if (HB_UNLIKELY (!buffer->in_length))
+    return;
+
+  hb_buffer_reverse (buffer);
+
+  count = buffer->in_length;
+  start = 0;
+  last_cluster = buffer->in_string[0].cluster;
+  for (i = 1; i < count; i++) {
+    if (last_cluster != buffer->in_string[i].cluster) {
+      reverse_range (buffer, start, i);
+      start = i;
+      last_cluster = buffer->in_string[i].cluster;
+    }
+  }
+  reverse_range (buffer, start, i);
 }
 
 
