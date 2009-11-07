@@ -116,7 +116,6 @@ hb_shape (hb_font_t    *font,
   original_direction = hb_ensure_native_direction (buffer);
 
   /* do_mirroring (buffer); */
-  /* natural direction analysis */
   /* OT preprocess */
 
   hb_map_glyphs (font, face, buffer);
