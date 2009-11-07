@@ -89,14 +89,14 @@ hb_position_default (hb_font_t    *font,
 static hb_direction_t
 hb_ensure_native_direction (hb_buffer_t *buffer)
 {
-  hb_direction_t original_direction = hb_buffer_get_direction (buffer);
+  hb_direction_t original_direction = buffer->direction;
 
   /* TODO vertical */
   if (HB_DIRECTION_IS_HORIZONTAL (original_direction) &&
-      original_direction != _hb_script_get_horizontal_direction (hb_buffer_get_script (buffer)))
+      original_direction != _hb_script_get_horizontal_direction (buffer->script))
   {
     hb_buffer_reverse_clusters (buffer);
-    hb_buffer_set_direction (buffer, original_direction == HB_DIRECTION_LTR ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+    buffer->direction ^=  1;
   }
 
   return original_direction;
@@ -130,5 +130,9 @@ hb_shape (hb_font_t    *font,
 
   /* GPOS / kern */
 
-  hb_buffer_set_direction (buffer, original_direction);
+  /* TODO: Vertical */
+  if (buffer->direction == HB_DIRECTION_RTL)
+    hb_buffer_reverse (buffer);
+
+  buffer->direction = original_direction;
 }
