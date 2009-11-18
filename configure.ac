@@ -11,6 +11,8 @@ AC_PROG_LIBTOOL dnl ([1.4]) Don't remove!
 AC_PROG_CC
 AC_PROG_CXX
 
+AC_C_FLEXIBLE_ARRAY_MEMBER
+
 AC_CHECK_FUNCS(mprotect sysconf getpagesize)
 AC_CHECK_HEADERS(unistd.h sys/mman.h)
 

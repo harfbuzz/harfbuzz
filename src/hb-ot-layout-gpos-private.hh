@@ -35,8 +35,8 @@
 
 typedef SHORT Value;
 
-typedef Value ValueRecord[VAR];
-ASSERT_SIZE_VAR (Value, 0, ValueRecord);
+typedef Value ValueRecord[VAR0];
+ASSERT_SIZE_VAR (ValueRecord, 0, Value);
 
 struct ValueFormat : USHORT
 {
