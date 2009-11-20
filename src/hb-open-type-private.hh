@@ -262,7 +262,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
 	 _hb_sanitize_edit (SANITIZE_ARG, CONST_CHARP(&(Var)), sizeof (Var)) && \
-	 ((Var) = (Val), true))
+	 ((Var).set (Val), true))
 
 
 /* Template to sanitize an object. */
@@ -349,7 +349,7 @@ struct Sanitizer
 #define _DEFINE_INT_TYPE1_UNALIGNED(NAME, TYPE, BIG_ENDIAN, BYTES) \
   struct NAME \
   { \
-    inline NAME& operator = (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
+    inline NAME& set (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
     inline operator TYPE(void) const { return BIG_ENDIAN ((TYPE&) v); } \
     inline bool operator== (NAME o) const { return (TYPE&) v == (TYPE&) o.v; } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
@@ -363,7 +363,7 @@ struct Sanitizer
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN, BYTES) \
   struct NAME \
   { \
-    inline NAME& operator = (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); return *this; } \
+    inline NAME& set (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); return *this; } \
     inline operator TYPE(void) const { return BIG_ENDIAN##_get_unaligned (v); } \
     inline bool operator== (NAME o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
@@ -388,7 +388,7 @@ DEFINE_INT_TYPE (LONG,	  , 32);	/* 32-bit signed integer. */
 struct Tag : ULONG
 {
   inline Tag (const Tag &o) { *(ULONG*)this = (ULONG&) o; }
-  inline Tag (uint32_t i) { *(ULONG*)this = i; }
+  inline Tag (uint32_t i) { (*(ULONG*)this).set (i); }
   inline Tag (const char *c) { *(ULONG*)this = *(ULONG*)c; }
   inline bool operator== (const char *c) const { return *(ULONG*)this == *(ULONG*)c; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */

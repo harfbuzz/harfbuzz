@@ -328,7 +328,7 @@ struct CoverageFormat1
     if (HB_UNLIKELY (glyph_id > 0xFFFF))
       return NOT_COVERED;
     GlyphID gid;
-    gid = glyph_id;
+    gid.set (glyph_id);
     // TODO: bsearch
     unsigned int num_glyphs = glyphArray.len;
     for (unsigned int i = 0; i < num_glyphs; i++)
