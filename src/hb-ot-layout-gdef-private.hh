@@ -91,7 +91,7 @@ struct CaretValueFormat1
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
+  inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id HB_GNUC_UNUSED) const
   {
     /* TODO vertical */
     return context->font->x_scale * coordinate / 0x10000;
