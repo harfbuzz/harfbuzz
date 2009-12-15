@@ -29,7 +29,9 @@
 #include "hb-ot-layout-gdef-private.hh"
 #include "hb-ot-layout-gsubgpos-private.hh"
 
+#ifdef HAVE_GLIB
 #include <glib.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -41,9 +43,21 @@ main (int argc, char **argv)
     exit (1);
   }
 
+  const char *font_data = NULL;
+  int len = 0;
+
+#ifdef HAVE_GLIB
   GMappedFile *mf = g_mapped_file_new (argv[1], FALSE, NULL);
-  const char *font_data = g_mapped_file_get_contents (mf);
-  int len = g_mapped_file_get_length (mf);
+  font_data = g_mapped_file_get_contents (mf);
+  len = g_mapped_file_get_length (mf);
+#else
+  FILE *f = fopen (argv[1], "rb");
+  fseek (f, 0, SEEK_END);
+  len = ftell (f);
+  fseek (f, 0, SEEK_SET);
+  font_data = (const char *) malloc (len);
+  len = fread ((char *) font_data, 1, len, f);
+#endif
 
   printf ("Opened font file %s: %d bytes long\n", argv[1], len);
 
