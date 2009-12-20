@@ -30,6 +30,8 @@
 
 #include "hb-buffer-private.h"
 
+#include "hb-ot-shape-private.h"
+
 
 /* Prepare */
 
@@ -125,8 +127,7 @@ hb_substitute_complex (hb_font_t    *font,
 		       hb_feature_t *features,
 		       unsigned int  num_features)
 {
-  /* TODO GSUB */
- return FALSE;
+  return _hb_ot_substitute_complex (font, face, buffer, features, num_features);
 }
 
 static void
@@ -169,8 +170,7 @@ hb_position_complex (hb_font_t    *font,
 		     hb_feature_t *features,
 		     unsigned int  num_features)
 {
-  /* TODO GPOS */
-  return FALSE;
+  return _hb_ot_position_complex (font, face, buffer, features, num_features);
 }
 
 static void

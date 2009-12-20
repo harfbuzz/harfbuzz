@@ -113,6 +113,13 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
 				hb_tag_t      script_tag,
 				unsigned int *script_index);
 
+/* Like find_script, but takes zero-terminated array of scripts to test */
+hb_bool_t
+hb_ot_layout_table_choose_script (hb_face_t      *face,
+				  hb_tag_t        table_tag,
+				  const hb_tag_t *script_tags,
+				  unsigned int   *script_index);
+
 unsigned int
 hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
 				     hb_tag_t      table_tag,
