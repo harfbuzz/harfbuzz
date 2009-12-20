@@ -49,6 +49,37 @@ hb_form_clusters (hb_buffer_t *buffer)
       IN_CLUSTER (buffer->in_pos) = IN_CLUSTER (buffer->in_pos - 1);
 }
 
+static hb_direction_t
+hb_ensure_native_direction (hb_buffer_t *buffer)
+{
+  hb_direction_t original_direction = buffer->direction;
+
+  /* TODO vertical */
+  if (HB_DIRECTION_IS_HORIZONTAL (original_direction) &&
+      original_direction != _hb_script_get_horizontal_direction (buffer->script))
+  {
+    hb_buffer_reverse_clusters (buffer);
+    buffer->direction ^=  1;
+  }
+
+  return original_direction;
+}
+
+static void
+hb_mirror_chars (hb_buffer_t *buffer)
+{
+  unsigned int count;
+  hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->get_mirroring;
+
+  if (HB_DIRECTION_IS_FORWARD (buffer->direction))
+    return;
+
+  count = buffer->in_length;
+  for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
+      IN_CURGLYPH() = get_mirroring (IN_CURGLYPH());
+  }
+}
+
 static void
 hb_map_glyphs (hb_font_t    *font,
 	       hb_face_t    *face,
@@ -86,38 +117,24 @@ hb_position_default (hb_font_t    *font,
   }
 }
 
-
-static hb_direction_t
-hb_ensure_native_direction (hb_buffer_t *buffer)
-{
-  hb_direction_t original_direction = buffer->direction;
-
-  /* TODO vertical */
-  if (HB_DIRECTION_IS_HORIZONTAL (original_direction) &&
-      original_direction != _hb_script_get_horizontal_direction (buffer->script))
-  {
-    hb_buffer_reverse_clusters (buffer);
-    buffer->direction ^=  1;
-  }
-
-  return original_direction;
-}
-
 static void
-hb_mirror_chars (hb_buffer_t *buffer)
+hb_truetype_kern (hb_font_t    *font,
+		  hb_face_t    *face,
+		  hb_buffer_t  *buffer)
 {
   unsigned int count;
-  hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->get_mirroring;
-
-  if (HB_DIRECTION_IS_FORWARD (buffer->direction))
-    return;
 
   count = buffer->in_length;
-  for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
-      IN_CURGLYPH() = get_mirroring (IN_CURGLYPH());
+  for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++) {
+    hb_position_t kern, kern1, kern2;
+    kern = hb_font_get_kerning (font, face, IN_GLYPH(buffer->in_pos - 1), IN_CURGLYPH());
+    kern1 = kern >> 1;
+    kern2 = kern - kern1;
+    POSITION(buffer->in_pos - 1)->x_advance += kern1;
+    CURPOSITION()->x_advance += kern2;
+    CURPOSITION()->x_offset += kern2;
   }
 }
-
 
 void
 hb_shape (hb_font_t    *font,
@@ -127,6 +144,7 @@ hb_shape (hb_font_t    *font,
 	  unsigned int  num_features)
 {
   hb_direction_t original_direction;
+  hb_bool_t complex_positioning_applied;
 
   hb_form_clusters (buffer);
   original_direction = hb_ensure_native_direction (buffer);
@@ -144,10 +162,14 @@ hb_shape (hb_font_t    *font,
 
   hb_position_default (font, face, buffer);
 
-  /* GPOS / kern */
+  /* GPOS */
+  complex_positioning_applied = FALSE;
 
   if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
     hb_buffer_reverse (buffer);
+
+  if (!complex_positioning_applied)
+    hb_truetype_kern (font, face, buffer);
 
   buffer->direction = original_direction;
 }
