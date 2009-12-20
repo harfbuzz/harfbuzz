@@ -30,6 +30,9 @@
 
 #include "hb-buffer-private.h"
 
+
+/* Prepare */
+
 static inline hb_bool_t
 is_variation_selector (hb_codepoint_t unicode)
 {
@@ -64,6 +67,9 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
 
   return original_direction;
 }
+
+
+/* Substitute */
 
 static void
 hb_mirror_chars (hb_buffer_t *buffer)
@@ -100,6 +106,35 @@ hb_map_glyphs (hb_font_t    *font,
 }
 
 static void
+hb_substitute_default (hb_font_t    *font,
+		       hb_face_t    *face,
+		       hb_buffer_t  *buffer)
+{
+  hb_mirror_chars (buffer);
+  hb_map_glyphs (font, face, buffer);
+}
+
+static gboolean
+hb_substitute_complex (hb_font_t    *font,
+		       hb_face_t    *face,
+		       hb_buffer_t  *buffer)
+{
+  /* TODO GSUB */
+ return FALSE;
+}
+
+static void
+hb_substitute_fallback (hb_font_t    *font,
+			hb_face_t    *face,
+			hb_buffer_t  *buffer)
+{
+  /* TODO Arabic */
+}
+
+
+/* Position */
+
+static void
 hb_position_default (hb_font_t    *font,
 		     hb_face_t    *face,
 		     hb_buffer_t  *buffer)
@@ -115,6 +150,23 @@ hb_position_default (hb_font_t    *font,
     CURPOSITION()->x_advance = metrics.x_advance;
     CURPOSITION()->y_advance = metrics.y_advance;
   }
+}
+
+static gboolean
+hb_position_complex (hb_font_t    *font,
+		     hb_face_t    *face,
+		     hb_buffer_t  *buffer)
+{
+  /* TODO GPOS */
+  return FALSE;
+}
+
+static void
+hb_position_fallback (hb_font_t    *font,
+		      hb_face_t    *face,
+		      hb_buffer_t  *buffer)
+{
+  /* TODO Mark pos */
 }
 
 static void
@@ -136,6 +188,17 @@ hb_truetype_kern (hb_font_t    *font,
   }
 }
 
+static void
+hb_position_fallback_visual (hb_font_t    *font,
+			     hb_face_t    *face,
+			     hb_buffer_t  *buffer)
+{
+  hb_truetype_kern (font, face, buffer);
+}
+
+
+/* Shape */
+
 void
 hb_shape (hb_font_t    *font,
 	  hb_face_t    *face,
@@ -144,32 +207,30 @@ hb_shape (hb_font_t    *font,
 	  unsigned int  num_features)
 {
   hb_direction_t original_direction;
-  hb_bool_t complex_positioning_applied;
+  hb_bool_t substitute_fallback, position_fallback;
 
   hb_form_clusters (buffer);
   original_direction = hb_ensure_native_direction (buffer);
 
-  hb_mirror_chars (buffer);
+  hb_substitute_default (font, face, buffer);
 
-  /* OT preprocess */
+  substitute_fallback = !hb_substitute_complex (font, face, buffer);
 
-  hb_map_glyphs (font, face, buffer);
-  /* ccmp+... */
-
-  /* script-specific */
-
-  /* GSUB */
+  if (substitute_fallback)
+    hb_substitute_fallback (font, face, buffer);
 
   hb_position_default (font, face, buffer);
 
-  /* GPOS */
-  complex_positioning_applied = FALSE;
+  position_fallback = !hb_position_complex (font, face, buffer);
+
+  if (position_fallback)
+    hb_position_fallback (font, face, buffer);
 
   if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
     hb_buffer_reverse (buffer);
 
-  if (!complex_positioning_applied)
-    hb_truetype_kern (font, face, buffer);
+  if (position_fallback)
+    hb_position_fallback_visual (font, face, buffer);
 
   buffer->direction = original_direction;
 }
