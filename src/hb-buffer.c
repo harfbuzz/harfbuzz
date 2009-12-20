@@ -177,6 +177,7 @@ void
 hb_buffer_clear (hb_buffer_t *buffer)
 {
   buffer->have_output = FALSE;
+  buffer->have_positions = FALSE;
   buffer->in_length = 0;
   buffer->out_length = 0;
   buffer->in_pos = 0;
@@ -241,6 +242,7 @@ void
 _hb_buffer_clear_output (hb_buffer_t *buffer)
 {
   buffer->have_output = TRUE;
+  buffer->have_positions = FALSE;
   buffer->out_length = 0;
   buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
@@ -251,6 +253,7 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
 {
   _hb_buffer_clear_output (buffer);
   buffer->have_output = FALSE;
+  buffer->have_positions = TRUE;
 
   if (HB_UNLIKELY (!buffer->positions))
   {
@@ -420,23 +423,21 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 void
 _hb_buffer_next_glyph (hb_buffer_t *buffer)
 {
-  if (!buffer->have_output)
+  if (buffer->have_output)
   {
-    buffer->in_pos++;
-    return;
-  }
+    if (buffer->out_string != buffer->in_string)
+    {
+      hb_buffer_ensure (buffer, buffer->out_pos + 1);
+      buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+    }
+    else if (buffer->out_pos != buffer->in_pos)
+      buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
 
-  if (buffer->out_string != buffer->in_string)
-  {
-    hb_buffer_ensure (buffer, buffer->out_pos + 1);
-    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+    buffer->out_pos++;
+    buffer->out_length = buffer->out_pos;
   }
-  else if (buffer->out_pos != buffer->in_pos)
-    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
 
   buffer->in_pos++;
-  buffer->out_pos++;
-  buffer->out_length = buffer->out_pos;
 }
 
 void
@@ -470,7 +471,7 @@ hb_buffer_get_glyph_infos (hb_buffer_t *buffer)
 hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
 {
-  if (buffer->have_output || (buffer->in_length && !buffer->positions))
+  if (!buffer->have_positions)
     hb_buffer_clear_positions (buffer);
 
   return (hb_glyph_position_t *) buffer->positions;
