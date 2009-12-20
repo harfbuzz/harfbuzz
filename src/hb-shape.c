@@ -107,14 +107,14 @@ static void
 hb_mirror_chars (hb_buffer_t *buffer)
 {
   unsigned int count;
-  hb_unicode_funcs_t *unicode = buffer->unicode;
+  hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->get_mirroring;
 
   if (HB_DIRECTION_IS_FORWARD (buffer->direction))
     return;
 
   count = buffer->in_length;
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
-      IN_CURGLYPH() = hb_unicode_get_mirroring (unicode, IN_CURGLYPH());
+      IN_CURGLYPH() = get_mirroring (IN_CURGLYPH());
   }
 }
 
