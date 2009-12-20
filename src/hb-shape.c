@@ -120,7 +120,7 @@ hb_substitute_default (hb_font_t    *font,
   hb_map_glyphs (font, face, buffer);
 }
 
-static gboolean
+static hb_bool_t
 hb_substitute_complex (hb_font_t    *font,
 		       hb_face_t    *face,
 		       hb_buffer_t  *buffer,
@@ -163,7 +163,7 @@ hb_position_default (hb_font_t    *font,
   }
 }
 
-static gboolean
+static hb_bool_t
 hb_position_complex (hb_font_t    *font,
 		     hb_face_t    *face,
 		     hb_buffer_t  *buffer,

@@ -34,14 +34,14 @@
 
 HB_BEGIN_DECLS
 
-HB_INTERNAL gboolean
+HB_INTERNAL hb_bool_t
 _hb_ot_substitute_complex (hb_font_t    *font,
 			   hb_face_t    *face,
 			   hb_buffer_t  *buffer,
 			   hb_feature_t *features,
 			   unsigned int  num_features);
 
-HB_INTERNAL gboolean
+HB_INTERNAL hb_bool_t
 _hb_ot_position_complex (hb_font_t    *font,
 			 hb_face_t    *face,
 			 hb_buffer_t  *buffer,
