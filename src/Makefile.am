@@ -96,8 +96,11 @@ main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
 
-TESTS = \
-	check-libstdc++.sh \
-	$(NULL)
+TESTS =
+
+if HAVE_ICU
+else
+TESTS += check-libstdc++.sh
+endif
 
 -include $(top_srcdir)/git.mk
