@@ -135,7 +135,7 @@ _hb_ot_substitute_complex (hb_font_t    *font,
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_substitute_lookup (face, buffer, lookups[i], 0xFFFF);
 
-  return num_lookups != 0;
+  return TRUE;
 }
 
 hb_bool_t
@@ -161,5 +161,5 @@ _hb_ot_position_complex (hb_font_t    *font,
 
   hb_ot_layout_position_finish (font, face, buffer);
 
-  return num_lookups != 0;
+  return TRUE;
 }
