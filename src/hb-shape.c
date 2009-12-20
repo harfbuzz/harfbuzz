@@ -110,7 +110,9 @@ hb_map_glyphs (hb_font_t    *font,
 static void
 hb_substitute_default (hb_font_t    *font,
 		       hb_face_t    *face,
-		       hb_buffer_t  *buffer)
+		       hb_buffer_t  *buffer,
+		       hb_feature_t *features,
+		       unsigned int  num_features)
 {
   hb_mirror_chars (buffer);
   hb_map_glyphs (font, face, buffer);
@@ -119,7 +121,9 @@ hb_substitute_default (hb_font_t    *font,
 static gboolean
 hb_substitute_complex (hb_font_t    *font,
 		       hb_face_t    *face,
-		       hb_buffer_t  *buffer)
+		       hb_buffer_t  *buffer,
+		       hb_feature_t *features,
+		       unsigned int  num_features)
 {
   /* TODO GSUB */
  return FALSE;
@@ -128,7 +132,9 @@ hb_substitute_complex (hb_font_t    *font,
 static void
 hb_substitute_fallback (hb_font_t    *font,
 			hb_face_t    *face,
-			hb_buffer_t  *buffer)
+			hb_buffer_t  *buffer,
+			hb_feature_t *features,
+			unsigned int  num_features)
 {
   /* TODO Arabic */
 }
@@ -139,7 +145,9 @@ hb_substitute_fallback (hb_font_t    *font,
 static void
 hb_position_default (hb_font_t    *font,
 		     hb_face_t    *face,
-		     hb_buffer_t  *buffer)
+		     hb_buffer_t  *buffer,
+		     hb_feature_t *features,
+		     unsigned int  num_features)
 {
   unsigned int count;
 
@@ -157,7 +165,9 @@ hb_position_default (hb_font_t    *font,
 static gboolean
 hb_position_complex (hb_font_t    *font,
 		     hb_face_t    *face,
-		     hb_buffer_t  *buffer)
+		     hb_buffer_t  *buffer,
+		     hb_feature_t *features,
+		     unsigned int  num_features)
 {
   /* TODO GPOS */
   return FALSE;
@@ -166,7 +176,9 @@ hb_position_complex (hb_font_t    *font,
 static void
 hb_position_fallback (hb_font_t    *font,
 		      hb_face_t    *face,
-		      hb_buffer_t  *buffer)
+		      hb_buffer_t  *buffer,
+		      hb_feature_t *features,
+		      unsigned int  num_features)
 {
   /* TODO Mark pos */
 }
@@ -174,10 +186,13 @@ hb_position_fallback (hb_font_t    *font,
 static void
 hb_truetype_kern (hb_font_t    *font,
 		  hb_face_t    *face,
-		  hb_buffer_t  *buffer)
+		  hb_buffer_t  *buffer,
+		  hb_feature_t *features,
+		  unsigned int  num_features)
 {
   unsigned int count;
 
+  /* TODO Check for kern=0 */
   count = buffer->in_length;
   for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++) {
     hb_position_t kern, kern1, kern2;
@@ -193,9 +208,11 @@ hb_truetype_kern (hb_font_t    *font,
 static void
 hb_position_fallback_visual (hb_font_t    *font,
 			     hb_face_t    *face,
-			     hb_buffer_t  *buffer)
+			     hb_buffer_t  *buffer,
+			     hb_feature_t *features,
+			     unsigned int  num_features)
 {
-  hb_truetype_kern (font, face, buffer);
+  hb_truetype_kern (font, face, buffer, features, num_features);
 }
 
 
@@ -214,25 +231,25 @@ hb_shape (hb_font_t    *font,
   hb_form_clusters (buffer);
   original_direction = hb_ensure_native_direction (buffer);
 
-  hb_substitute_default (font, face, buffer);
+  hb_substitute_default (font, face, buffer, features, num_features);
 
-  substitute_fallback = !hb_substitute_complex (font, face, buffer);
+  substitute_fallback = !hb_substitute_complex (font, face, buffer, features, num_features);
 
   if (substitute_fallback)
-    hb_substitute_fallback (font, face, buffer);
+    hb_substitute_fallback (font, face, buffer, features, num_features);
 
-  hb_position_default (font, face, buffer);
+  hb_position_default (font, face, buffer, features, num_features);
 
-  position_fallback = !hb_position_complex (font, face, buffer);
+  position_fallback = !hb_position_complex (font, face, buffer, features, num_features);
 
   if (position_fallback)
-    hb_position_fallback (font, face, buffer);
+    hb_position_fallback (font, face, buffer, features, num_features);
 
   if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
     hb_buffer_reverse (buffer);
 
   if (position_fallback)
-    hb_position_fallback_visual (font, face, buffer);
+    hb_position_fallback_visual (font, face, buffer, features, num_features);
 
   buffer->direction = original_direction;
 }
