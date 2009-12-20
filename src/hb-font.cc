@@ -385,6 +385,9 @@ hb_font_set_funcs (hb_font_t         *font,
   if (font->destroy)
     font->destroy (font->user_data);
 
+  if (!klass)
+    klass = &_hb_font_funcs_nil;
+
   hb_font_funcs_reference (klass);
   hb_font_funcs_destroy (font->klass);
   font->klass = klass;
