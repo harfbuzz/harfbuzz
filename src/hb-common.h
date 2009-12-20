@@ -81,6 +81,8 @@ typedef enum _hb_direction_t {
 
 #define HB_DIRECTION_IS_HORIZONTAL(dir)	((dir) == HB_DIRECTION_LTR || (dir) == HB_DIRECTION_RTL)
 #define HB_DIRECTION_IS_VERTICAL(dir)	((dir) == HB_DIRECTION_TTB || (dir) == HB_DIRECTION_BTT)
+#define HB_DIRECTION_IS_FORWARD(dir)	((dir) == HB_DIRECTION_LTR || (dir) == HB_DIRECTION_TTB)
+#define HB_DIRECTION_IS_BACKWARD(dir)	((dir) == HB_DIRECTION_RTL || (dir) == HB_DIRECTION_BTT)
 
 
 #endif /* HB_COMMON_H */

@@ -130,8 +130,7 @@ hb_shape (hb_font_t    *font,
 
   /* GPOS / kern */
 
-  /* TODO: Vertical */
-  if (buffer->direction == HB_DIRECTION_RTL)
+  if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
     hb_buffer_reverse (buffer);
 
   buffer->direction = original_direction;
