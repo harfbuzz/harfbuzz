@@ -93,6 +93,8 @@ hb_map_glyphs (hb_font_t    *font,
 {
   unsigned int count;
 
+  if (HB_UNLIKELY (!buffer->in_length))
+    return;
   count = buffer->in_length - 1;
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
     if (HB_UNLIKELY (is_variation_selector (IN_NEXTGLYPH()))) {
