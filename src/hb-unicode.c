@@ -160,6 +160,43 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 }
 
 
+hb_codepoint_t
+hb_unicode_get_mirroring (hb_unicode_funcs_t *ufuncs,
+			  hb_codepoint_t unicode)
+{
+  return ufuncs->get_mirroring (unicode);
+}
+
+hb_category_t
+hb_unicode_get_general_category (hb_unicode_funcs_t *ufuncs,
+				 hb_codepoint_t unicode)
+{
+  return ufuncs->get_general_category (unicode);
+}
+
+hb_script_t
+hb_unicode_get_script (hb_unicode_funcs_t *ufuncs,
+		       hb_codepoint_t unicode)
+{
+  return ufuncs->get_script (unicode);
+}
+
+unsigned int
+hb_unicode_get_combining_class (hb_unicode_funcs_t *ufuncs,
+				hb_codepoint_t unicode)
+{
+  return ufuncs->get_combining_class (unicode);
+}
+
+unsigned int
+hb_unicode_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
+				hb_codepoint_t unicode)
+{
+  return ufuncs->get_eastasian_width (unicode);
+}
+
+
+
 #define LTR HB_DIRECTION_LTR
 #define RTL HB_DIRECTION_RTL
 const hb_direction_t horiz_dir[] =

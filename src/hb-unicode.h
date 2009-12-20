@@ -214,6 +214,27 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_get_eastasian_width_func_t eastasian_width_func);
 
 
+hb_codepoint_t
+hb_unicode_get_mirroring (hb_unicode_funcs_t *ufuncs,
+			  hb_codepoint_t unicode);
+
+hb_category_t
+hb_unicode_get_general_category (hb_unicode_funcs_t *ufuncs,
+				 hb_codepoint_t unicode);
+
+hb_script_t
+hb_unicode_get_script (hb_unicode_funcs_t *ufuncs,
+		       hb_codepoint_t unicode);
+
+unsigned int
+hb_unicode_get_combining_class (hb_unicode_funcs_t *ufuncs,
+				hb_codepoint_t unicode);
+
+unsigned int
+hb_unicode_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
+				hb_codepoint_t unicode);
+
+
 HB_END_DECLS
 
 #endif /* HB_UNICODE_H */
