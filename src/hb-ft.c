@@ -39,11 +39,13 @@ hb_ft_get_glyph (hb_font_t *font, hb_face_t *face, const void *user_data,
 {
   FT_Face ft_face = (FT_Face) user_data;
 
+#ifdef HAVE_FT_FACE_GETCHARVARIANTINDEX
   if (HB_UNLIKELY (variation_selector)) {
     hb_codepoint_t glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
     if (glyph)
       return glyph;
   }
+#endif
 
   return FT_Get_Char_Index (ft_face, unicode);
 }

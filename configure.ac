@@ -38,6 +38,13 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 PKG_CHECK_MODULES(FREETYPE, freetype2, have_freetype=true, have_freetype=false)
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
+	_save_libs="$LIBS"
+	_save_cflags="$CFLAGS"
+	LIBS="$LIBS $FREETYPE_LIBS"
+	CFLAGS="$CFLAGS $FREETYPE_CFLAGS"
+	AC_CHECK_FUNCS(FT_Face_GetCharVariantIndex)
+	LIBS="$_save_libs"
+	CFLAGS="$_save_cflags"
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
