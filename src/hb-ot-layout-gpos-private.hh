@@ -60,8 +60,8 @@ struct ValueFormat : USHORT
   { return get_len () * sizeof (Value); }
 
   void apply_value (hb_ot_layout_context_t *context,
-		    const char          *base,
-		    const Value         *values,
+		    const char             *base,
+		    const Value            *values,
 		    hb_internal_glyph_position_t *glyph_pos) const
   {
     unsigned int x_ppem, y_ppem;
