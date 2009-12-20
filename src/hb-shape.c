@@ -103,6 +103,21 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
   return original_direction;
 }
 
+static void
+hb_mirror_chars (hb_buffer_t *buffer)
+{
+  unsigned int count;
+  hb_unicode_funcs_t *unicode = buffer->unicode;
+
+  if (HB_DIRECTION_IS_FORWARD (buffer->direction))
+    return;
+
+  count = buffer->in_length;
+  for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
+      IN_CURGLYPH() = hb_unicode_get_mirroring (unicode, IN_CURGLYPH());
+  }
+}
+
 
 void
 hb_shape (hb_font_t    *font,
@@ -116,7 +131,8 @@ hb_shape (hb_font_t    *font,
   hb_form_clusters (buffer);
   original_direction = hb_ensure_native_direction (buffer);
 
-  /* do_mirroring (buffer); */
+  hb_mirror_chars (buffer);
+
   /* OT preprocess */
 
   hb_map_glyphs (font, face, buffer);
