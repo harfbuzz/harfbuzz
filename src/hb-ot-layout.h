@@ -68,7 +68,6 @@ hb_ot_layout_set_glyph_class (hb_face_t                 *face,
 
 void
 hb_ot_layout_build_glyph_classes (hb_face_t      *face,
-				  uint16_t        num_total_glyphs,
 				  hb_codepoint_t *glyphs,
 				  unsigned char  *klasses,
 				  uint16_t        count);

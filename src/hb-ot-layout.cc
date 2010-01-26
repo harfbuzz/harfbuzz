@@ -44,6 +44,8 @@ _hb_ot_layout_init (hb_face_t *face)
 {
   hb_ot_layout_t *layout = &face->ot_layout;
 
+  memset (layout, 0, sizeof (*layout));
+
   layout->gdef_blob = Sanitizer<GDEF>::sanitize (hb_face_get_table (face, HB_OT_TAG_GDEF));
   layout->gdef = &Sanitizer<GDEF>::lock_instance (layout->gdef_blob);
 
@@ -279,7 +281,6 @@ hb_ot_layout_set_glyph_class (hb_face_t                 *face,
 
 void
 hb_ot_layout_build_glyph_classes (hb_face_t      *face,
-				  uint16_t        num_total_glyphs,
 				  hb_codepoint_t *glyphs,
 				  unsigned char  *klasses,
 				  uint16_t        count)
@@ -293,7 +294,7 @@ hb_ot_layout_build_glyph_classes (hb_face_t      *face,
     return;
 
   if (layout->new_gdef.len == 0) {
-    layout->new_gdef.klasses = (unsigned char *) calloc (num_total_glyphs, sizeof (unsigned char));
+    layout->new_gdef.klasses = (unsigned char *) calloc (count, sizeof (unsigned char));
     layout->new_gdef.len = count;
   }
 
