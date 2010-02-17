@@ -184,13 +184,16 @@ typedef int hb_mutex_t;
 #endif
 
 #if __GNUC__ >= 3
-#define HB_GNUC_UNUSED	__attribute__((unused))
 #define HB_GNUC_PURE	__attribute__((pure))
 #define HB_GNUC_CONST	__attribute__((const))
 #else
-#define HB_GNUC_UNUSED
 #define HB_GNUC_PURE
 #define HB_GNUC_CONST
+#endif
+#if __GNUC__ >= 4
+#define HB_GNUC_UNUSED	__attribute__((unused))
+#else
+#define HB_GNUC_UNUSED
 #endif
 
 
