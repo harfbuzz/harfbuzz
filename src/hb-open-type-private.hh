@@ -61,7 +61,7 @@
 /* Null objects */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
-static const char NullPool[32] = "";
+static const void *NullPool[32 / sizeof (void *)];
 
 /* Generic template for nul-content sizeof-sized Null objects. */
 template <typename Type>
