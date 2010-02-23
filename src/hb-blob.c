@@ -250,18 +250,18 @@ static hb_bool_t
 _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
 {
 #if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT)
-  unsigned int pagesize = -1, mask, length;
+  uintptr_t pagesize = -1, mask, length;
   const char *addr;
 
 #if defined(HAVE_SYSCONF) && defined(_SC_PAGE_SIZE)
-  pagesize = (unsigned int) sysconf (_SC_PAGE_SIZE);
+  pagesize = (uintptr_t) sysconf (_SC_PAGE_SIZE);
 #elif defined(HAVE_SYSCONF) && defined(_SC_PAGESIZE)
-  pagesize = (unsigned int) sysconf (_SC_PAGESIZE);
+  pagesize = (uintptr_t) sysconf (_SC_PAGESIZE);
 #elif defined(HAVE_GETPAGESIZE)
-  pagesize = (unsigned int) getpagesize ();
+  pagesize = (uintptr_t) getpagesize ();
 #endif
 
-  if ((unsigned int) -1 == pagesize) {
+  if ((uintptr_t) -1L == pagesize) {
 #if HB_DEBUG_BLOB
     fprintf (stderr, "%p %s: failed to get pagesize: %s\n", blob, __FUNCTION__, strerror (errno));
 #endif
@@ -272,8 +272,8 @@ _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
 #endif
 
   mask = ~(pagesize-1);
-  addr = (const char *) (((size_t) blob->data) & mask);
-  length = (const char *) (((size_t) blob->data + blob->length + pagesize-1) & mask)  - addr;
+  addr = (const char *) (((uintptr_t) blob->data) & mask);
+  length = (const char *) (((uintptr_t) blob->data + blob->length + pagesize-1) & mask)  - addr;
 #if HB_DEBUG_BLOB
   fprintf (stderr, "%p %s: calling mprotect on [%p..%p] (%d bytes)\n",
 	   blob, __FUNCTION__,
