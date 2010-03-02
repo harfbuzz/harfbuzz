@@ -164,12 +164,13 @@ hb_ft_face_create (FT_Face           ft_face,
 {
   hb_face_t *face;
 
-  /* TODO: Handle NULL ft_face (in other places too */
-  if (ft_face->stream->base != NULL) {
+  /* TODO: Handle NULL ft_face (in other places too) */
+  if (ft_face->stream->read == NULL) {
     hb_blob_t *blob;
 
     blob = hb_blob_create ((const char *) ft_face->stream->base,
 			   (unsigned int) ft_face->stream->size,
+			   /* TODO: Check FT_FACE_FLAG_EXTERNAL_STREAM? */
 			   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE,
 			   destroy, ft_face);
     face = hb_face_create_for_data (blob, ft_face->face_index);
