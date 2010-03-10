@@ -377,7 +377,7 @@ struct Sanitizer
 #define DEFINE_INT_TYPE(NAME, u, w)	DEFINE_INT_TYPE0 (NAME, u##int##w, (w / 8))
 
 
-DEFINE_INT_TYPE (USHORT,  u, 16);	/* 16-bit unsigned integer. */
+DEFINE_INT_TYPE (USHORT, u, 16);	/* 16-bit unsigned integer. */
 DEFINE_INT_TYPE (SHORT,	  , 16);	/* 16-bit signed integer. */
 DEFINE_INT_TYPE (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
 DEFINE_INT_TYPE (LONG,	  , 32);	/* 32-bit signed integer. */
