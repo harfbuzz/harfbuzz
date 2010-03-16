@@ -47,6 +47,8 @@ struct TTCHeader;
 
 typedef struct TableDirectory
 {
+  static inline unsigned int get_size () { return sizeof (TableDirectory); }
+
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (tag) &&
@@ -108,7 +110,7 @@ typedef struct OffsetTable
   public:
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_SELF () && SANITIZE_MEM (tableDir, sizeof (tableDir[0]) * numTables))) return false;
+    if (!(SANITIZE_SELF () && SANITIZE_MEM (tableDir, tableDir[0].get_size () * numTables))) return false;
     unsigned int count = numTables;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_BASE (tableDir[i], base))

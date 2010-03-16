@@ -195,7 +195,8 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 
 struct LookupRecord
 {
-  public:
+  static inline unsigned int get_size () { return sizeof (LookupRecord); }
+
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
@@ -298,7 +299,7 @@ struct Rule
   inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
-    const LookupRecord *lookupRecord = &CONST_CAST (LookupRecord, input, sizeof (input[0]) * (inputCount ? inputCount - 1 : 0));
+    const LookupRecord *lookupRecord = &CONST_CAST (LookupRecord, input, input[0].get_size () * (inputCount ? inputCount - 1 : 0));
     return context_lookup (APPLY_ARG,
 			   inputCount, input,
 			   lookupCount, lookupRecord,
@@ -310,8 +311,8 @@ struct Rule
     TRACE_SANITIZE ();
     if (!(SANITIZE (inputCount) && SANITIZE (lookupCount))) return false;
     return SANITIZE_MEM (input,
-			 sizeof (input[0]) * inputCount +
-			 sizeof (lookupRecordX[0]) * lookupCount);
+			 input[0].get_size () * inputCount +
+			 lookupRecordX[0].get_size () * lookupCount);
   }
 
   private:
@@ -447,7 +448,7 @@ struct ContextFormat3
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const LookupRecord *lookupRecord = &CONST_CAST(LookupRecord, coverage, sizeof (coverage[0]) * glyphCount);
+    const LookupRecord *lookupRecord = &CONST_CAST(LookupRecord, coverage, coverage[0].get_size () * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
       DECONST_CHARP(this)
@@ -464,8 +465,8 @@ struct ContextFormat3
     unsigned int count = glyphCount;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (coverage[i])) return false;
-    LookupRecord *lookupRecord = &CAST(LookupRecord, coverage, sizeof (coverage[0]) * glyphCount);
-    return SANITIZE_MEM (lookupRecord, sizeof (lookupRecord[0]) * lookupCount);
+    LookupRecord *lookupRecord = &CAST(LookupRecord, coverage, coverage[0].get_size () * glyphCount);
+    return SANITIZE_MEM (lookupRecord, lookupRecord[0].get_size () * lookupCount);
   }
 
   private:

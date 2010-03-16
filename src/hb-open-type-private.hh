@@ -50,8 +50,8 @@
 #define CONST_NEXT(T,X)		(*(reinterpret_cast<const T *>(CONST_CHARP(&(X)) + (X).get_size ())))
 #define NEXT(T,X)		(*(reinterpret_cast<T *>(CHARP(&(X)) + (X).get_size ())))
 
-#define CONST_ARRAY_AFTER(T,X)	((reinterpret_cast<const T *>(CONST_CHARP(&(X)) + sizeof (X))))
-#define ARRAY_AFTER(T,X)	((reinterpret_cast<T *>(CHARP(&(X)) + sizeof (X))))
+#define CONST_ARRAY_AFTER(T,X)	((reinterpret_cast<const T *>(CONST_CHARP(&(X)) + X.get_size ())))
+#define ARRAY_AFTER(T,X)	((reinterpret_cast<T *>(CHARP(&(X)) + X.get_size ())))
 
 /*
  * Class features
@@ -363,6 +363,7 @@ struct Sanitizer
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN, BYTES) \
   struct NAME \
   { \
+    static inline unsigned int get_size () { return BYTES; } \
     inline NAME& set (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); return *this; } \
     inline operator TYPE(void) const { return BIG_ENDIAN##_get_unaligned (v); } \
     inline bool operator== (NAME o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
@@ -425,7 +426,7 @@ struct CheckSum : ULONG
   static uint32_t CalcTableChecksum (ULONG *Table, uint32_t Length)
   {
     uint32_t Sum = 0L;
-    ULONG *EndPtr = Table+((Length+3) & ~3) / sizeof(ULONG);
+    ULONG *EndPtr = Table+((Length+3) & ~3) / ULONG::get_size ();
 
     while (Table < EndPtr)
       Sum += *Table++;
@@ -530,7 +531,7 @@ struct GenericArrayOf
     return const_array()[i];
   }
   inline unsigned int get_size () const
-  { return sizeof (len) + len * sizeof (Type); }
+  { return len.get_size () + len * Type::get_size (); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
@@ -633,7 +634,7 @@ struct HeadlessArrayOf
     return const_array()[i-1];
   }
   inline unsigned int get_size () const
-  { return sizeof (len) + (len ? len - 1 : 0) * sizeof (Type); }
+  { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();

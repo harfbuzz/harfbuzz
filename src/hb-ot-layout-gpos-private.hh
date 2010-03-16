@@ -57,7 +57,7 @@ struct ValueFormat : USHORT
   inline unsigned int get_len () const
   { return _hb_popcount32 ((unsigned int) *this); }
   inline unsigned int get_size () const
-  { return get_len () * sizeof (Value); }
+  { return get_len () * Value::get_size (); }
 
   void apply_value (hb_ot_layout_context_t *context,
 		    const char             *base,
@@ -112,16 +112,16 @@ struct ValueRecord {
     y_ppem = context->font->y_ppem;
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem) glyph_pos->x_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6; else values++;
+      if (x_ppem) glyph_pos->x_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem) glyph_pos->y_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6; else values++;
+      if (y_ppem) glyph_pos->y_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 16; else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem) glyph_pos->x_advance += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 6; else values++;
+      if (x_ppem) glyph_pos->x_advance += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem) glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 6; else values++;
+      if (y_ppem) glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 16; else values++;
     }
   }
 };
@@ -190,10 +190,11 @@ struct AnchorFormat3
       *x = _hb_16dot16_mul_trunc (context->font->x_scale, xCoordinate);
       *y = _hb_16dot16_mul_trunc (context->font->y_scale, yCoordinate);
 
+      /* pixel -> fractional pixel */
       if (context->font->x_ppem)
-	*x += (this+xDeviceTable).get_delta (context->font->x_ppem) << 6;
+	*x += (this+xDeviceTable).get_delta (context->font->x_ppem) << 16;
       if (context->font->y_ppem)
-	*y += (this+yDeviceTable).get_delta (context->font->y_ppem) << 6;
+	*y += (this+yDeviceTable).get_delta (context->font->y_ppem) << 16;
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -262,7 +263,7 @@ struct AnchorMatrix
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = rows * cols;
-    if (!SANITIZE_ARRAY (matrix, sizeof (matrix[0]), count)) return false;
+    if (!SANITIZE_ARRAY (matrix, matrix[0].get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (matrix[i])) return false;
     return true;
@@ -280,6 +281,8 @@ ASSERT_SIZE_VAR (AnchorMatrix, 2, OffsetTo<Anchor>);
 struct MarkRecord
 {
   friend struct MarkArray;
+
+  static inline unsigned int get_size () { return sizeof (MarkRecord); }
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     TRACE_SANITIZE ();
@@ -391,7 +394,7 @@ struct SinglePosFormat2
       return false;
 
     valueFormat.apply_value (context, CONST_CHARP(this),
-			     values + index * valueFormat.get_len (),
+			     &values[index * valueFormat.get_len ()],
 			     CURPOSITION ());
 
     buffer->in_pos++;
@@ -472,7 +475,7 @@ struct PairSet
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = (1 + format_len) * len;
-    return SANITIZE_MEM (array, sizeof (array[0]) * count);
+    return SANITIZE_MEM (array, USHORT::get_size () * count);
   }
 
   private:
@@ -511,7 +514,7 @@ struct PairPosFormat1
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
-    unsigned int record_len = 1 + len1 + len2;
+    unsigned int record_size = USHORT::get_size () * (1 + len1 + len2);
 
     unsigned int count = pair_set.len;
     const PairValueRecord *record = pair_set.array;
@@ -519,14 +522,14 @@ struct PairPosFormat1
     {
       if (IN_GLYPH (j) == record->secondGlyph)
       {
-	valueFormat1.apply_value (context, CONST_CHARP(this), record->values, CURPOSITION ());
-	valueFormat2.apply_value (context, CONST_CHARP(this), record->values + len1, POSITION (j));
+	valueFormat1.apply_value (context, CONST_CHARP(this), &record->values[0], CURPOSITION ());
+	valueFormat2.apply_value (context, CONST_CHARP(this), &record->values[len1], POSITION (j));
 	if (len2)
 	  j++;
 	buffer->in_pos = j;
 	return true;
       }
-      record += record_len;
+      record = &CONST_CAST (PairValueRecord, *record, record_size);
     }
 
     return false;
@@ -589,7 +592,7 @@ struct PairPosFormat2
     if (HB_UNLIKELY (klass1 >= class1Count || klass2 >= class2Count))
       return false;
 
-    const Value *v = values + record_len * (klass1 * class2Count + klass2);
+    const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
     valueFormat1.apply_value (context, CONST_CHARP(this), v, CURPOSITION ());
     valueFormat2.apply_value (context, CONST_CHARP(this), v + len1, POSITION (j));
 
@@ -605,7 +608,7 @@ struct PairPosFormat2
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
 	  SANITIZE_THIS2 (classDef1, classDef2))) return false;
 
-    unsigned int record_size =valueFormat1.get_size () + valueFormat2.get_size ();
+    unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int len = class1Count * class2Count;
     return SANITIZE_ARRAY (values, record_size, len);
   }
@@ -675,6 +678,8 @@ struct PairPos
 
 struct EntryExitRecord
 {
+  static inline unsigned int get_size () { return sizeof (EntryExitRecord); }
+
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_BASE2 (entryAnchor, exitAnchor, base);
