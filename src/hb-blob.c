@@ -366,9 +366,11 @@ hb_blob_try_writable (hb_blob_t *blob)
       fprintf (stderr, "%p %s: dupped successfully -> %p\n", blob, __FUNCTION__, blob->data);
 #endif
       memcpy (new_data, blob->data, blob->length);
-      blob->data = new_data;
-      blob->mode = HB_MEMORY_MODE_WRITABLE;
       _hb_blob_destroy_user_data (blob);
+      blob->mode = HB_MEMORY_MODE_WRITABLE;
+      blob->data = new_data;
+      blob->destroy = free;
+      blob->user_data = new_data;
     }
   }
   else if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
