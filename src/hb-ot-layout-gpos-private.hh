@@ -51,9 +51,9 @@ struct ValueFormat : USHORT
     xAdvDevice	= 0x0040,	/* Includes horizontal Device table for advance */
     yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
     ignored	= 0x0F00,	/* Was used in TrueType Open for MM fonts */
-    reserved	= 0xF000 	/* For future use */
+    reserved	= 0xF000,	/* For future use */
 
-    devices	= 0x00F0,	/* Mask for having any Device table */
+    devices	= 0x00F0	/* Mask for having any Device table */
   };
 
 /* All fields are options.  Only those available advance the value pointer. */
@@ -422,7 +422,7 @@ struct SinglePosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   SANITIZE_MEM (values, valueFormat.get_size ());
+	   valueFormat.sanitize_value (SANITIZE_ARG, CHARP(this), values);
   }
 
   private:
@@ -464,7 +464,7 @@ struct SinglePosFormat2
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   SANITIZE_MEM (values, valueFormat.get_size () * valueCount);
+	   valueFormat.sanitize_values (SANITIZE_ARG, CHARP(this), values, valueCount);
   }
 
   private:
@@ -531,6 +531,7 @@ struct PairSet
 {
   friend struct PairPosFormat1;
 
+  /* Note: Doesn't sanitize the Device entries in the ValueRecord */
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int format_len) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
@@ -570,12 +571,11 @@ struct PairPosFormat1
       j++;
     }
 
-    const PairSet &pair_set = this+pairSet[index];
-
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
     unsigned int record_size = USHORT::get_size () * (1 + len1 + len2);
 
+    const PairSet &pair_set = this+pairSet[index];
     unsigned int count = pair_set.len;
     const PairValueRecord *record = pair_set.array;
     for (unsigned int i = 0; i < count; i++)
@@ -597,9 +597,29 @@ struct PairPosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   pairSet.sanitize (SANITIZE_ARG, CONST_CHARP(this),
-			     valueFormat1.get_len () + valueFormat2.get_len ());
+
+    unsigned int len1 = valueFormat1.get_len ();
+    unsigned int len2 = valueFormat2.get_len ();
+
+    if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
+	  pairSet.sanitize (SANITIZE_ARG, CONST_CHARP(this), len1 + len2))) return false;
+
+    if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
+
+    unsigned int stride = 1 + len1 + len2;
+    unsigned int count1 = pairSet.len;
+    for (unsigned int i = 0; i < count1; i++)
+    {
+      const PairSet &pair_set = this+pairSet[i];
+
+      unsigned int count2 = pair_set.len;
+      const PairValueRecord *record = pair_set.array;
+      if (!(valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &record->values[0], count2, stride) &&
+	    valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &record->values[len1], count2, stride)))
+        return false;
+    }
+
+    return true;
   }
 
   private:
@@ -668,9 +688,14 @@ struct PairPosFormat2
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
 	  SANITIZE_THIS2 (classDef1, classDef2))) return false;
 
+    unsigned int len1 = valueFormat1.get_len ();
+    unsigned int len2 = valueFormat2.get_len ();
+    unsigned int stride = len1 + len2;
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
-    unsigned int len = class1Count * class2Count;
-    return SANITIZE_ARRAY (values, record_size, len);
+    unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
+    return SANITIZE_ARRAY (values, record_size, count) &&
+	   valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &values[0], count, stride) &&
+	   valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &values[len1], count, stride);
   }
 
   private:
