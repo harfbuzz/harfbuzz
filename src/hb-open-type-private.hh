@@ -398,8 +398,8 @@ struct Tag : ULONG
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     /* Note: Only accept ASCII-visible tags (mind DEL)
-     * This is one of the few times (only time?) we check
-     * for data integrity, as opposed o just boundary checks
+     * This is one of the few places (only place?) that we check
+     * for data integrity, as opposed to just boundary checks.
      */
     return SANITIZE_SELF () && (((uint32_t) *this) & 0x80808080) == 0;
   }
