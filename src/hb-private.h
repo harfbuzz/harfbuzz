@@ -235,7 +235,7 @@ _hb_popcount32 (uint32_t mask)
 
 
 /* Multiplies a 16dot16 value by another value, then truncates the result */
-#define _hb_16dot16_mul_trunc(A,B) ((int64_t) (A) * (B) / 0x10000)
+#define _hb_16dot16_mul_round(A,B) (((int64_t) (A) * (B) + 0x8000) / 0x10000)
 
 #include "hb-object-private.h"
 
