@@ -125,7 +125,7 @@ struct Null <Type> \
 	HB_STMT_START { \
 	    if (sanitize_depth < HB_DEBUG_SANITIZE) \
 		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
-			 (CONST_CHARP (this) == NullPool) ? 0 : this, \
+			 (CONST_CHARP (this) == CONST_CHARP (&NullPool)) ? 0 : this, \
 			 sanitize_depth, sanitize_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END

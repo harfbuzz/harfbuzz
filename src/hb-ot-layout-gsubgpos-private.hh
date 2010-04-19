@@ -44,7 +44,7 @@
 	HB_STMT_START { \
 	    if (apply_depth < HB_DEBUG_APPLY) \
 		fprintf (stderr, "APPLY(%p) %-*d-> %s\n", \
-			 (CONST_CHARP (this) == NullPool) ? 0 : this, \
+			 (CONST_CHARP (this) == CONST_CHARP (&NullPool)) ? 0 : this, \
 			 apply_depth, apply_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
