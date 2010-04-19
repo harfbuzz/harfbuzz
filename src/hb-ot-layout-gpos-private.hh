@@ -133,7 +133,7 @@ struct AnchorFormat1
   friend struct Anchor;
 
   private:
-  inline void get_anchor (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id,
+  inline void get_anchor (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id HB_GNUC_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
       *x = _hb_16dot16_mul_trunc (context->font->x_scale, xCoordinate);
@@ -184,7 +184,7 @@ struct AnchorFormat3
   friend struct Anchor;
 
   private:
-  inline void get_anchor (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id,
+  inline void get_anchor (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id HB_GNUC_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
       *x = _hb_16dot16_mul_trunc (context->font->x_scale, xCoordinate);
