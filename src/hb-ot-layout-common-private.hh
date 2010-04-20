@@ -174,7 +174,8 @@ struct LangSys
 				 * = 0xFFFF */
   IndexArray	featureIndex;	/* Array of indices into the FeatureList */
 };
-ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
+ASSERT_SIZE (LangSys, 6);
+DEFINE_NULL_DATA (LangSys, 6, "\0\0\xFF\xFF");
 
 
 struct Script
@@ -377,7 +378,8 @@ struct CoverageRangeRecord
   USHORT	startCoverageIndex;	/* Coverage Index of first GlyphID in
 					 * range */
 };
-ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\000\001");
+ASSERT_SIZE (CoverageRangeRecord, 6);
+DEFINE_NULL_DATA (CoverageRangeRecord, 6, "\000\001");
 
 struct CoverageFormat2
 {
@@ -496,7 +498,8 @@ struct ClassRangeRecord
   GlyphID	end;		/* Last GlyphID in the range */
   USHORT	classValue;	/* Applied to all glyphs in the range */
 };
-ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\000\001");
+ASSERT_SIZE (ClassRangeRecord, 6);
+DEFINE_NULL_DATA (ClassRangeRecord, 6, "\000\001");
 
 struct ClassDefFormat2
 {

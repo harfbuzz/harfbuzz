@@ -84,10 +84,6 @@ struct Null <Type> \
 #define Null(Type) (Null<Type>::get())
 
 
-#define ASSERT_SIZE_DATA(Type, size, data) \
-  ASSERT_SIZE (Type, size); \
-  DEFINE_NULL_DATA (Type, size, data)
-
 /* get_for_data() is a static class method returning a reference to an
  * instance of Type located at the input data location.  It's just a
  * fancy, NULL-safe, cast! */
