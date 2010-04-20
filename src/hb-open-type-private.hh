@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007,2008,2009  Red Hat, Inc.
+ * Copyright (C) 2007,2008,2009,2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, an OpenType Layout engine library.
  *
@@ -347,7 +347,7 @@ struct Sanitizer
   { \
     inline NAME& set (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
     inline operator TYPE(void) const { return BIG_ENDIAN ((TYPE&) v); } \
-    inline bool operator== (NAME o) const { return (TYPE&) v == (TYPE&) o.v; } \
+    inline bool operator== (const NAME &o) const { return (TYPE&) v == (TYPE&) o.v; } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
       TRACE_SANITIZE (); \
       return SANITIZE_SELF (); \
@@ -362,7 +362,7 @@ struct Sanitizer
     static inline unsigned int get_size () { return BYTES; } \
     inline NAME& set (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); return *this; } \
     inline operator TYPE(void) const { return BIG_ENDIAN##_get_unaligned (v); } \
-    inline bool operator== (NAME o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
+    inline bool operator== (const NAME &o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
       TRACE_SANITIZE (); \
       return SANITIZE_SELF (); \
