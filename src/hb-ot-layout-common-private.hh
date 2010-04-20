@@ -533,7 +533,7 @@ ASSERT_SIZE (ClassDefFormat2, 4);
 
 struct ClassDef
 {
-  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
+  inline hb_ot_layout_class_t operator() (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
 
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
