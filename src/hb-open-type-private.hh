@@ -338,29 +338,51 @@ struct Sanitizer
  * Int types
  */
 
-#define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN, BYTES) \
-  struct NAME \
-  { \
-    static inline unsigned int get_size () { return BYTES; } \
-    inline void set (TYPE i) { BIG_ENDIAN##_put (v, i); } \
-    inline operator TYPE(void) const { return BIG_ENDIAN##_get (v); } \
-    inline bool operator == (const NAME &o) const { return BIG_ENDIAN##_cmp (v, o.v); } \
-    inline bool sanitize (SANITIZE_ARG_DEF) { \
-      TRACE_SANITIZE (); \
-      return SANITIZE_SELF (); \
-    } \
-    private: unsigned char v[BYTES]; \
-  }; \
-  ASSERT_SIZE (NAME, BYTES)
-#define DEFINE_INT_TYPE0(NAME, type, b)	DEFINE_INT_TYPE1 (NAME, type##_t, hb_be_##type, b)
-#define DEFINE_INT_TYPE(NAME, u, w)	DEFINE_INT_TYPE0 (NAME, u##int##w, (w / 8))
 
+template <typename Type, int Bytes> class BEInt;
 
-DEFINE_INT_TYPE (USHORT, u, 16);	/* 16-bit unsigned integer. */
-DEFINE_INT_TYPE (SHORT,	  , 16);	/* 16-bit signed integer. */
-DEFINE_INT_TYPE (ULONG,	 u, 32);	/* 32-bit unsigned integer. */
-DEFINE_INT_TYPE (LONG,	  , 32);	/* 32-bit signed integer. */
+template <typename Type>
+class BEInt<Type, 2>
+{
+  public:
+  inline void put (Type i) { hb_be_uint16_put (v,i); }
+  inline Type get () const { return hb_be_uint16_get (v); }
+  inline bool cmp (const BEInt<Type, 2> o) const { return hb_be_uint16_cmp (v, o.v); }
+  private: uint8_t v[2];
+};
+template <typename Type>
+class BEInt<Type, 4>
+{
+  public:
+  inline void put (Type i) { hb_be_uint32_put (v,i); }
+  inline Type get () const { return hb_be_uint32_get (v); }
+  inline bool cmp (const BEInt<Type, 4> o) const { return hb_be_uint32_cmp (v, o.v); }
+  private: uint8_t v[4];
+};
 
+template <typename Type>
+struct IntType
+{
+  static inline unsigned int get_size () { return sizeof (Type); }
+  inline void set (Type i) { v.put (i); }
+  inline operator Type(void) const { return v.get (); }
+  inline bool operator == (const IntType<Type> &o) const { return v.cmp (o.v); }
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    TRACE_SANITIZE ();
+    return SANITIZE_SELF ();
+  }
+  private: BEInt<Type, sizeof (Type)> v;
+};
+
+typedef IntType<uint16_t> USHORT;	/* 16-bit unsigned integer. */
+typedef IntType<int16_t>  SHORT;	/* 16-bit signed integer. */
+typedef IntType<uint32_t> ULONG;	/* 32-bit unsigned integer. */
+typedef IntType<int32_t>  LONG;		/* 32-bit signed integer. */
+
+ASSERT_SIZE (USHORT, 2);
+ASSERT_SIZE (SHORT, 2);
+ASSERT_SIZE (ULONG, 4);
+ASSERT_SIZE (LONG, 4);
 
 /* Array of four uint8s (length = 32 bits) used to identify a script, language
  * system, feature, or baseline */
