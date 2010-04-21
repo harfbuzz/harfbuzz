@@ -338,21 +338,6 @@ struct Sanitizer
  * Int types
  */
 
-/* TODO On machines that allow unaligned access, use this version. */
-#define _DEFINE_INT_TYPE1_UNALIGNED(NAME, TYPE, BIG_ENDIAN, BYTES) \
-  struct NAME \
-  { \
-    inline NAME& set (TYPE i) { (TYPE&) v = BIG_ENDIAN (i); return *this; } \
-    inline operator TYPE(void) const { return BIG_ENDIAN ((TYPE&) v); } \
-    inline bool operator == (const NAME &o) const { return (TYPE&) v == (TYPE&) o.v; } \
-    inline bool sanitize (SANITIZE_ARG_DEF) { \
-      TRACE_SANITIZE (); \
-      return SANITIZE_SELF (); \
-    } \
-    private: unsigned char v[BYTES]; \
-  }; \
-  ASSERT_SIZE (NAME, BYTES)
-
 #define DEFINE_INT_TYPE1(NAME, TYPE, BIG_ENDIAN, BYTES) \
   struct NAME \
   { \
