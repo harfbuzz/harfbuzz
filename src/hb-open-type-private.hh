@@ -523,11 +523,14 @@ struct GenericArrayOf
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
-    /* Note:
-     * for non-recursive types, this is not much needed.
-     * But we keep the code to make sure the objects pointed to
-     * do have a simple sanitize(). */
+    /* Note: for structs that do not reference other structs,
+     * we do not need to call their sanitize() as we already did
+     * a bound check on the aggregate array size, hence the return.
+     */
     return true;
+    /* We do keep this code though to make sure the structs pointed
+     * to do have a simple sanitize(), ie. they do not reference
+     * other structs. */
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE (array()[i]))
@@ -626,11 +629,14 @@ struct HeadlessArrayOf
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
-    /* Note:
-     * for non-recursive types, this is not much needed.
-     * But we keep the code to make sure the objects pointed to
-     * do have a simple sanitize(). */
+    /* Note: for structs that do not reference other structs,
+     * we do not need to call their sanitize() as we already did
+     * a bound check on the aggregate array size, hence the return.
+     */
     return true;
+    /* We do keep this code though to make sure the structs pointed
+     * to do have a simple sanitize(), ie. they do not reference
+     * other structs. */
     unsigned int count = len ? len - 1 : 0;
     Type *a = array();
     for (unsigned int i = 0; i < count; i++)
