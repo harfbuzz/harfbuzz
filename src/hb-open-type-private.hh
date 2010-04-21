@@ -357,9 +357,9 @@ struct Sanitizer
   struct NAME \
   { \
     static inline unsigned int get_size () { return BYTES; } \
-    inline void set (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); } \
-    inline operator TYPE(void) const { return BIG_ENDIAN##_get_unaligned (v); } \
-    inline bool operator == (const NAME &o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
+    inline void set (TYPE i) { BIG_ENDIAN##_put (v, i); } \
+    inline operator TYPE(void) const { return BIG_ENDIAN##_get (v); } \
+    inline bool operator == (const NAME &o) const { return BIG_ENDIAN##_cmp (v, o.v); } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
       TRACE_SANITIZE (); \
       return SANITIZE_SELF (); \

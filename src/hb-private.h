@@ -214,21 +214,21 @@ typedef int hb_mutex_t;
 
 /* Big-endian handling */
 
-#define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
+#define hb_be_uint16(v)		((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
 
-#define hb_be_uint16_put_unaligned(v,V)	(v[0] = (V>>8), v[1] = (V), 0)
-#define hb_be_uint16_get_unaligned(v)	(uint16_t) ((v[0] << 8) + v[1])
-#define hb_be_uint16_cmp_unaligned(a,b)	(a[0] == b[0] && a[1] == b[1])
-#define hb_be_int16_put_unaligned	hb_be_uint16_put_unaligned
-#define hb_be_int16_get_unaligned	(int16_t) hb_be_uint16_get_unaligned
-#define hb_be_int16_cmp_unaligned	hb_be_uint16_cmp_unaligned
+#define hb_be_uint16_put(v,V)	(v[0] = (V>>8), v[1] = (V), 0)
+#define hb_be_uint16_get(v)	(uint16_t) ((v[0] << 8) + v[1])
+#define hb_be_uint16_cmp(a,b)	(a[0] == b[0] && a[1] == b[1])
+#define hb_be_int16_put		hb_be_uint16_put
+#define hb_be_int16_get		(int16_t) hb_be_uint16_get
+#define hb_be_int16_cmp		hb_be_uint16_cmp
 
-#define hb_be_uint32_put_unaligned(v,V)	(v[0] = (V>>24), v[1] = (V>>16), v[2] = (V>>8), v[3] = (V), 0)
-#define hb_be_uint32_get_unaligned(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
-#define hb_be_uint32_cmp_unaligned(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
-#define hb_be_int32_put_unaligned	hb_be_uint32_put_unaligned
-#define hb_be_int32_get_unaligned	(int32_t) hb_be_uint32_get_unaligned
-#define hb_be_int32_cmp_unaligned	hb_be_uint32_cmp_unaligned
+#define hb_be_uint32_put(v,V)	(v[0] = (V>>24), v[1] = (V>>16), v[2] = (V>>8), v[3] = (V), 0)
+#define hb_be_uint32_get(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
+#define hb_be_uint32_cmp(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
+#define hb_be_int32_put		hb_be_uint32_put
+#define hb_be_int32_get		(int32_t) hb_be_uint32_get
+#define hb_be_int32_cmp		hb_be_uint32_cmp
 
 
 
