@@ -61,27 +61,25 @@
 /* Null objects */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
-static const void *NullPool[32 / sizeof (void *)];
+static const void *_NullPool[32 / sizeof (void *)];
 
 /* Generic template for nul-content sizeof-sized Null objects. */
 template <typename Type>
-struct Null
-{
-  ASSERT_STATIC (sizeof (Type) <= sizeof (NullPool));
-  static inline const Type &get () { return CONST_CAST (Type, *NullPool, 0); }
-};
+static inline const Type& Null () {
+  ASSERT_STATIC (sizeof (Type) <= sizeof (_NullPool));
+  return CONST_CAST (Type, *_NullPool, 0);
+}
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
 #define DEFINE_NULL_DATA(Type, size, data) \
-static const char _Null##Type[size] = data; \
+static const char _Null##Type[size + 1] = data; \
 template <> \
-struct Null <Type> \
-{ \
-  static inline const Type &get () { return CONST_CAST (Type, *_Null##Type, 0); } \
+inline const Type& Null<Type> () { \
+  return CONST_CAST (Type, *_Null##Type, 0); \
 }
 
 /* Accessor macro. */
-#define Null(Type) (Null<Type>::get())
+#define Null(Type) Null<Type>()
 
 
 /* get_for_data() is a static class method returning a reference to an
@@ -398,9 +396,7 @@ struct Tag : ULONG
   }
 };
 ASSERT_SIZE (Tag, 4);
-#define _NULL_TAG_INIT  {' ', ' ', ' ', ' '}
-DEFINE_NULL_DATA (Tag, 4, _NULL_TAG_INIT);
-#undef _NULL_TAG_INIT
+DEFINE_NULL_DATA (Tag, 4, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef USHORT GlyphID;
