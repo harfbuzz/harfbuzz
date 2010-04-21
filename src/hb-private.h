@@ -47,66 +47,6 @@
 #include "hb-common.h"
 
 
-/* We need external help for these */
-
-#ifdef HAVE_GLIB
-
-#include <glib.h>
-
-typedef int hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
-#define hb_atomic_int_get(AI)			g_atomic_int_get (&(AI))
-#define hb_atomic_int_set(AI, V)		g_atomic_int_set (&(AI), V)
-
-typedef GStaticMutex hb_mutex_t;
-#define HB_MUTEX_INIT			G_STATIC_MUTEX_INIT
-#define hb_mutex_init(M)		g_static_mutex_init (&M)
-#define hb_mutex_lock(M)		g_static_mutex_lock (&M)
-#define hb_mutex_trylock(M)		g_static_mutex_trylock (&M)
-#define hb_mutex_unlock(M)		g_static_mutex_unlock (&M)
-
-#else
-
-#ifdef _MSC_VER
-#pragma message(__LOC__"Could not find any system to define platform macros, library will NOT be thread-safe")
-#else
-#warning "Could not find any system to define platform macros, library will NOT be thread-safe"
-#endif
-
-typedef int hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
-#define hb_atomic_int_get(AI)			(AI)
-#define hb_atomic_int_set(AI, V)		do { (AI) = (V); } while (0)
-
-typedef int hb_mutex_t;
-#define HB_MUTEX_INIT			0
-#define hb_mutex_init(M)		do { (M) = 0; } while (0)
-#define hb_mutex_lock(M)		do { (M) = 1; } while (0)
-#define hb_mutex_trylock(M)		((M) = 1, 1)
-#define hb_mutex_unlock(M)		do { (M) = 0; } while (0)
-
-#endif
-
-
-/* Big-endian handling */
-
-#define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
-
-#define hb_be_uint16_put_unaligned(v,V)	(v[0] = (V>>8), v[1] = (V), 0)
-#define hb_be_uint16_get_unaligned(v)	(uint16_t) ((v[0] << 8) + v[1])
-#define hb_be_uint16_cmp_unaligned(a,b)	(a[0] == b[0] && a[1] == b[1])
-#define hb_be_int16_put_unaligned	hb_be_uint16_put_unaligned
-#define hb_be_int16_get_unaligned	(int16_t) hb_be_uint16_get_unaligned
-#define hb_be_int16_cmp_unaligned	hb_be_uint16_cmp_unaligned
-
-#define hb_be_uint32_put_unaligned(v,V)	(v[0] = (V>>24), v[1] = (V>>16), v[2] = (V>>8), v[3] = (V), 0)
-#define hb_be_uint32_get_unaligned(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
-#define hb_be_uint32_cmp_unaligned(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
-#define hb_be_int32_put_unaligned	hb_be_uint32_put_unaligned
-#define hb_be_int32_get_unaligned	(int32_t) hb_be_uint32_get_unaligned
-#define hb_be_int32_cmp_unaligned	hb_be_uint32_cmp_unaligned
-
-
 /* Basics */
 
 #undef MIN
@@ -229,6 +169,68 @@ _hb_popcount32 (uint32_t mask)
 
 /* Multiplies a 16dot16 value by another value, then truncates the result */
 #define _hb_16dot16_mul_round(A,B) (((int64_t) (A) * (B) + 0x8000) / 0x10000)
+
+
+/* We need external help for these */
+
+#ifdef HAVE_GLIB
+
+#include <glib.h>
+
+typedef int hb_atomic_int_t;
+#define hb_atomic_int_fetch_and_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
+#define hb_atomic_int_get(AI)			g_atomic_int_get (&(AI))
+#define hb_atomic_int_set(AI, V)		g_atomic_int_set (&(AI), V)
+
+typedef GStaticMutex hb_mutex_t;
+#define HB_MUTEX_INIT			G_STATIC_MUTEX_INIT
+#define hb_mutex_init(M)		g_static_mutex_init (&M)
+#define hb_mutex_lock(M)		g_static_mutex_lock (&M)
+#define hb_mutex_trylock(M)		g_static_mutex_trylock (&M)
+#define hb_mutex_unlock(M)		g_static_mutex_unlock (&M)
+
+#else
+
+#ifdef _MSC_VER
+#pragma message(__LOC__"Could not find any system to define platform macros, library will NOT be thread-safe")
+#else
+#warning "Could not find any system to define platform macros, library will NOT be thread-safe"
+#endif
+
+typedef int hb_atomic_int_t;
+#define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
+#define hb_atomic_int_get(AI)			(AI)
+#define hb_atomic_int_set(AI, V)		do { (AI) = (V); } while (0)
+
+typedef int hb_mutex_t;
+#define HB_MUTEX_INIT			0
+#define hb_mutex_init(M)		do { (M) = 0; } while (0)
+#define hb_mutex_lock(M)		do { (M) = 1; } while (0)
+#define hb_mutex_trylock(M)		((M) = 1, 1)
+#define hb_mutex_unlock(M)		do { (M) = 0; } while (0)
+
+#endif
+
+
+/* Big-endian handling */
+
+#define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
+
+#define hb_be_uint16_put_unaligned(v,V)	(v[0] = (V>>8), v[1] = (V), 0)
+#define hb_be_uint16_get_unaligned(v)	(uint16_t) ((v[0] << 8) + v[1])
+#define hb_be_uint16_cmp_unaligned(a,b)	(a[0] == b[0] && a[1] == b[1])
+#define hb_be_int16_put_unaligned	hb_be_uint16_put_unaligned
+#define hb_be_int16_get_unaligned	(int16_t) hb_be_uint16_get_unaligned
+#define hb_be_int16_cmp_unaligned	hb_be_uint16_cmp_unaligned
+
+#define hb_be_uint32_put_unaligned(v,V)	(v[0] = (V>>24), v[1] = (V>>16), v[2] = (V>>8), v[3] = (V), 0)
+#define hb_be_uint32_get_unaligned(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
+#define hb_be_uint32_cmp_unaligned(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
+#define hb_be_int32_put_unaligned	hb_be_uint32_put_unaligned
+#define hb_be_int32_get_unaligned	(int32_t) hb_be_uint32_get_unaligned
+#define hb_be_int32_cmp_unaligned	hb_be_uint32_cmp_unaligned
+
+
 
 #include "hb-object-private.h"
 
