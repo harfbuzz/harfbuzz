@@ -586,8 +586,8 @@ struct ReverseChainSingleSubstFormat1
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = CONST_NEXT (OffsetArrayOf<Coverage>, backtrack);
-    const ArrayOf<GlyphID> &substitute = CONST_NEXT (ArrayOf<GlyphID>, lookahead);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
 
     if (match_backtrack (APPLY_ARG,
 			 backtrack.len, (USHORT *) backtrack.const_array(),
@@ -609,10 +609,10 @@ struct ReverseChainSingleSubstFormat1
     TRACE_SANITIZE ();
     if (!SANITIZE_THIS2 (coverage, backtrack))
       return false;
-    OffsetArrayOf<Coverage> &lookahead = NEXT (OffsetArrayOf<Coverage>, backtrack);
+    OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     if (!SANITIZE_THIS (lookahead))
       return false;
-    ArrayOf<GlyphID> &substitute = NEXT (ArrayOf<GlyphID>, lookahead);
+    ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     return SANITIZE (substitute);
   }
 

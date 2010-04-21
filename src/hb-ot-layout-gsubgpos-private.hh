@@ -569,9 +569,9 @@ struct ChainRule
   inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
-    const HeadlessArrayOf<USHORT> &input = CONST_NEXT (HeadlessArrayOf<USHORT>, backtrack);
-    const ArrayOf<USHORT> &lookahead = CONST_NEXT (ArrayOf<USHORT>, input);
-    const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
+    const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
+    const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, backtrack.const_array(),
 				 input.len, input.const_array(),
@@ -585,11 +585,11 @@ struct ChainRule
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!SANITIZE (backtrack)) return false;
-    HeadlessArrayOf<USHORT> &input = NEXT (HeadlessArrayOf<USHORT>, backtrack);
+    HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     if (!SANITIZE (input)) return false;
-    ArrayOf<USHORT> &lookahead = NEXT (ArrayOf<USHORT>, input);
+    ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     if (!SANITIZE (lookahead)) return false;
-    ArrayOf<LookupRecord> &lookup = NEXT (ArrayOf<LookupRecord>, lookahead);
+    ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return SANITIZE (lookup);
   }
 
@@ -742,14 +742,14 @@ struct ChainContextFormat3
   inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
-    const OffsetArrayOf<Coverage> &input = CONST_NEXT (OffsetArrayOf<Coverage>, backtrack);
+    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = CONST_NEXT (OffsetArrayOf<Coverage>, input);
-    const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
       {ConstCharP(this), ConstCharP(this), ConstCharP(this)}
@@ -766,11 +766,11 @@ struct ChainContextFormat3
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!SANITIZE_THIS (backtrack)) return false;
-    OffsetArrayOf<Coverage> &input = NEXT (OffsetArrayOf<Coverage>, backtrack);
+    OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     if (!SANITIZE_THIS (input)) return false;
-    OffsetArrayOf<Coverage> &lookahead = NEXT (OffsetArrayOf<Coverage>, input);
+    OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     if (!SANITIZE_THIS (lookahead)) return false;
-    ArrayOf<LookupRecord> &lookup = NEXT (ArrayOf<LookupRecord>, lookahead);
+    ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return SANITIZE (lookup);
   }
 

@@ -39,19 +39,37 @@
  * Casts
  */
 
-template <typename Type> const char * ConstCharP (const Type X) { return reinterpret_cast<const char *>(X); }
-template <typename Type> char * CharP (Type X) { return reinterpret_cast<char *>(X); }
-template <typename Type> char * DeConstCharP (const Type X) { return (char *) reinterpret_cast<const char *>(X); }
+template <typename Type> inline const char * ConstCharP (const Type X) { return reinterpret_cast<const char *>(X); }
+template <typename Type> inline char * CharP (Type X) { return reinterpret_cast<char *>(X); }
+template <typename Type> inline char * DeConstCharP (const Type X) { return (char *) reinterpret_cast<const char *>(X); }
 
 #define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(ConstCharP(&(X)) + Ofs)))
 #define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)ConstCharP(&(X)) + Ofs)))
 #define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CharP(&(X)) + Ofs)))
 
-#define CONST_NEXT(T,X)		(*(reinterpret_cast<const T *>(ConstCharP(&(X)) + (X).get_size ())))
-#define NEXT(T,X)		(*(reinterpret_cast<T *>(CharP(&(X)) + (X).get_size ())))
 
-#define CONST_ARRAY_AFTER(T,X)	((reinterpret_cast<const T *>(ConstCharP(&(X)) + X.get_size ())))
-#define ARRAY_AFTER(T,X)	((reinterpret_cast<T *>(CharP(&(X)) + X.get_size ())))
+template<typename Type, typename TObject>
+inline const Type& StructAfter(const TObject &X)
+{
+  return * reinterpret_cast<const Type*> (ConstCharP (&X) + X.get_size());
+}
+template<typename Type, typename TObject>
+inline Type& StructAfter(TObject &X)
+{
+  return * reinterpret_cast<Type*> (CharP (&X) + X.get_size());
+}
+
+template<typename Type, typename TObject>
+inline const Type* ArrayAfter(const TObject &X)
+{
+  return reinterpret_cast<const Type*> (ConstCharP (&X) + X.get_size());
+}
+template<typename Type, typename TObject>
+inline Type* ArrayAfter(TObject &X)
+{
+  return reinterpret_cast<Type*> (CharP (&X) + X.get_size());
+}
+
 
 /*
  * Class features
@@ -504,8 +522,8 @@ struct LongOffsetTo : GenericOffsetTo<LongOffset, Type> {};
 template <typename LenType, typename Type>
 struct GenericArrayOf
 {
-  const Type *const_array(void) const { return CONST_ARRAY_AFTER (Type, len); }
-  Type *array(void) { return ARRAY_AFTER (Type, len); }
+  const Type *const_array(void) const { return ArrayAfter<Type> (len); }
+  Type *array(void) { return ArrayAfter<Type> (len); }
 
   const Type *const_sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
@@ -622,8 +640,8 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type>
 struct HeadlessArrayOf
 {
-  const Type *const_array(void) const { return CONST_ARRAY_AFTER (Type, len); }
-  Type *array(void) { return ARRAY_AFTER (Type, len); }
+  const Type *const_array(void) const { return ArrayAfter<Type> (len); }
+  Type *array(void) { return ArrayAfter<Type> (len); }
 
   inline const Type& operator [] (unsigned int i) const
   {

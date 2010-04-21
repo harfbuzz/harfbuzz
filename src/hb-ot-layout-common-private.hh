@@ -287,7 +287,7 @@ struct Lookup
     unsigned int flag = lookupFlag;
     if (HB_UNLIKELY (flag & LookupFlag::UseMarkFilteringSet))
     {
-      const USHORT &markFilteringSet = CONST_NEXT (USHORT, subTable);
+      const USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
       flag += (markFilteringSet << 16);
     }
     return flag;
@@ -298,7 +298,7 @@ struct Lookup
     if (!(SANITIZE (lookupType) && SANITIZE (lookupFlag) && SANITIZE_THIS (subTable))) return false;
     if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
-      USHORT &markFilteringSet = NEXT (USHORT, subTable);
+      USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
       if (!SANITIZE (markFilteringSet)) return false;
     }
     return true;
