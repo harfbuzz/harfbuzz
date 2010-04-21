@@ -591,10 +591,10 @@ struct ReverseChainSingleSubstFormat1
 
     if (match_backtrack (APPLY_ARG,
 			 backtrack.len, (USHORT *) backtrack.const_array(),
-			 match_coverage, DECONST_CHARP(this)) &&
+			 match_coverage, CONST_CHARP(this)) &&
         match_lookahead (APPLY_ARG,
 			 lookahead.len, (USHORT *) lookahead.const_array(),
-			 match_coverage, DECONST_CHARP(this),
+			 match_coverage, CONST_CHARP(this),
 			 1))
     {
       IN_CURGLYPH () = substitute[index];

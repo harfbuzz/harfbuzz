@@ -81,7 +81,7 @@
 	TRACE_APPLY_ARG_INIT
 
 
-typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, char *data);
+typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const char *data);
 typedef bool (*apply_lookup_func_t) (APPLY_ARG_DEF, unsigned int lookup_index);
 
 struct ContextFuncs
@@ -91,18 +91,18 @@ struct ContextFuncs
 };
 
 
-static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, char *data HB_GNUC_UNUSED)
+static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, const char *data HB_GNUC_UNUSED)
 {
   return glyph_id == value;
 }
 
-static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, char *data)
+static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, const char *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.get_class (glyph_id) == value;
 }
 
-static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value, char *data)
+static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value, const char *data)
 {
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   return (data+coverage) (glyph_id) != NOT_COVERED;
@@ -113,7 +113,7 @@ static inline bool match_input (APPLY_ARG_DEF,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
-				char *match_data,
+				const char *match_data,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
@@ -143,7 +143,7 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
 				    unsigned int count,
 				    const USHORT backtrack[],
 				    match_func_t match_func,
-				    char *match_data)
+				    const char *match_data)
 {
   if (HB_UNLIKELY (buffer->out_pos < count))
     return false;
@@ -168,7 +168,7 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 				    unsigned int count,
 				    const USHORT lookahead[],
 				    match_func_t match_func,
-				    char *match_data,
+				    const char *match_data,
 				    unsigned int offset)
 {
   unsigned int i, j;
@@ -271,7 +271,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 struct ContextLookupContext
 {
   ContextFuncs funcs;
-  char *match_data;
+  const char *match_data;
 };
 
 static inline bool context_lookup (APPLY_ARG_DEF,
@@ -411,7 +411,7 @@ struct ContextFormat2
      */
     struct ContextLookupContext lookup_context = {
      {match_class, apply_func},
-      DECONST_CHARP(&class_def)
+      CONST_CHARP(&class_def)
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -451,7 +451,7 @@ struct ContextFormat3
     const LookupRecord *lookupRecord = &CONST_CAST(LookupRecord, coverage, coverage[0].get_size () * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      DECONST_CHARP(this)
+       CONST_CHARP(this)
     };
     return context_lookup (APPLY_ARG,
 			   glyphCount, (const USHORT *) (coverage + 1),
@@ -522,7 +522,7 @@ struct Context
 struct ChainContextLookupContext
 {
   ContextFuncs funcs;
-  char *match_data[3];
+  const char *match_data[3];
 };
 
 static inline bool chain_context_lookup (APPLY_ARG_DEF,
@@ -696,9 +696,9 @@ struct ChainContextFormat2
      */
     struct ChainContextLookupContext lookup_context = {
      {match_class, apply_func},
-     {DECONST_CHARP(&backtrack_class_def),
-      DECONST_CHARP(&input_class_def),
-      DECONST_CHARP(&lookahead_class_def)}
+     {CONST_CHARP(&backtrack_class_def),
+      CONST_CHARP(&input_class_def),
+      CONST_CHARP(&lookahead_class_def)}
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -752,7 +752,7 @@ struct ChainContextFormat3
     const ArrayOf<LookupRecord> &lookup = CONST_NEXT (ArrayOf<LookupRecord>, lookahead);
     struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      {DECONST_CHARP(this), DECONST_CHARP(this), DECONST_CHARP(this)}
+      {CONST_CHARP(this), CONST_CHARP(this), CONST_CHARP(this)}
     };
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, (const USHORT *) backtrack.const_array(),
