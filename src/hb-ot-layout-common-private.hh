@@ -85,7 +85,8 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
   }
   inline bool find_index (hb_tag_t tag, unsigned int *index) const
   {
-    const Tag t = tag;
+    Tag t;
+    t.set (tag);
     // TODO bsearch
     const Record<Type> *a = this->const_array();
     unsigned int count = this->len;

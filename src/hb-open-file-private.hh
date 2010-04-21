@@ -84,7 +84,8 @@ typedef struct OffsetTable
   }
   inline bool find_table_index (hb_tag_t tag, unsigned int *table_index) const
   {
-    const Tag t = tag;
+    Tag t;
+    t.set (tag);
     // TODO bsearch
     unsigned int count = numTables;
     for (unsigned int i = 0; i < count; i++)

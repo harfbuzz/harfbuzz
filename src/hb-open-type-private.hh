@@ -360,7 +360,7 @@ struct Sanitizer
   struct NAME \
   { \
     static inline unsigned int get_size () { return BYTES; } \
-    inline NAME& set (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); return *this; } \
+    inline void set (TYPE i) { BIG_ENDIAN##_put_unaligned(v, i); } \
     inline operator TYPE(void) const { return BIG_ENDIAN##_get_unaligned (v); } \
     inline bool operator == (const NAME &o) const { return BIG_ENDIAN##_cmp_unaligned (v, o.v); } \
     inline bool sanitize (SANITIZE_ARG_DEF) { \
@@ -384,10 +384,6 @@ DEFINE_INT_TYPE (LONG,	  , 32);	/* 32-bit signed integer. */
  * system, feature, or baseline */
 struct Tag : ULONG
 {
-  inline Tag (const Tag &o) { *(ULONG*)this = (ULONG&) o; }
-  inline Tag (uint32_t i) { (*(ULONG*)this).set (i); }
-  inline Tag (const char *c) { *(ULONG*)this = *(ULONG*)c; }
-  inline bool operator == (const char *c) const { return *(ULONG*)this == *(ULONG*)c; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return CONST_CHARP(this); }
   inline operator char* (void) { return CHARP(this); }
