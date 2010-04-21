@@ -52,29 +52,12 @@ struct ValueFormat : USHORT
     yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
     ignored	= 0x0F00,	/* Was used in TrueType Open for MM fonts */
     reserved	= 0xF000 	/* For future use */
+
+    devices	= 0x00F0,	/* Mask for having any Device table */
   };
 
-  inline unsigned int get_len () const
-  { return _hb_popcount32 ((unsigned int) *this); }
-  inline unsigned int get_size () const
-  { return get_len () * Value::get_size (); }
-
-  void apply_value (hb_ot_layout_context_t *context,
-		    const char             *base,
-		    const Value            *values,
-		    hb_internal_glyph_position_t *glyph_pos) const
-  {
-    unsigned int x_ppem, y_ppem;
-    hb_16dot16_t x_scale, y_scale;
-    unsigned int format = *this;
-
-    if (!format)
-      return;
-
-    /* All fields are options.  Only those available advance the value
-     * pointer. */
+/* All fields are options.  Only those available advance the value pointer. */
 #if 0
-struct ValueRecord {
   SHORT		xPlacement;		/* Horizontal adjustment for
 					 * placement--in design units */
   SHORT		yPlacement;		/* Vertical adjustment for
@@ -97,8 +80,23 @@ struct ValueRecord {
   Offset	yAdvDevice;		/* Offset to Device table for vertical
 					 * advance--measured from beginning of
 					 * PosTable (may be NULL) */
-};
 #endif
+
+  inline unsigned int get_len () const
+  { return _hb_popcount32 ((unsigned int) *this); }
+  inline unsigned int get_size () const
+  { return get_len () * Value::get_size (); }
+
+  void apply_value (hb_ot_layout_context_t       *context,
+		    const char                   *base,
+		    const Value                  *values,
+		    hb_internal_glyph_position_t *glyph_pos) const
+  {
+    unsigned int x_ppem, y_ppem;
+    hb_16dot16_t x_scale, y_scale;
+    unsigned int format = *this;
+
+    if (!format) return;
 
     x_scale = context->font->x_scale;
     y_scale = context->font->y_scale;
@@ -123,6 +121,68 @@ struct ValueRecord {
     if (format & yAdvDevice) {
       if (y_ppem) glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 16; else values++;
     }
+  }
+
+  private:
+  inline bool sanitize_value_devices (SANITIZE_ARG_DEF, void *base, const Value *values) {
+    unsigned int format = *this;
+
+    if (format & xPlacement) values++;
+    if (format & yPlacement) values++;
+    if (format & xAdvance)   values++;
+    if (format & yAdvance)   values++;
+
+    if ((format & xPlaDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
+    if ((format & yPlaDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
+    if ((format & xAdvDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
+    if ((format & yAdvDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
+
+    return true;
+  }
+
+  public:
+
+  inline bool has_device () {
+    unsigned int format = *this;
+    return (format & devices) != 0;
+  }
+
+  inline bool sanitize_value (SANITIZE_ARG_DEF, void *base, const Value *values) {
+    TRACE_SANITIZE ();
+
+    return SANITIZE_MEM (values, get_size ()) &&
+	   (!has_device () || sanitize_value_devices (SANITIZE_ARG, base, values));
+  }
+
+  inline bool sanitize_values (SANITIZE_ARG_DEF, void *base, const Value *values, unsigned int count) {
+    TRACE_SANITIZE ();
+    unsigned int len = get_len ();
+
+    if (!SANITIZE_ARRAY (values, get_size (), count)) return false;
+
+    if (!has_device ()) return true;
+
+    for (unsigned int i = 0; i < count; i++) {
+      if (!sanitize_value_devices (SANITIZE_ARG, base, values))
+        return false;
+      values += len;
+    }
+
+    return true;
+  }
+
+  inline bool sanitize_values_stride_unsafe (SANITIZE_ARG_DEF, void *base, const Value *values, unsigned int count, unsigned int stride) {
+    TRACE_SANITIZE ();
+
+    if (!has_device ()) return true;
+
+    for (unsigned int i = 0; i < count; i++) {
+      if (!sanitize_value_devices (SANITIZE_ARG, base, values))
+        return false;
+      values += stride;
+    }
+
+    return true;
   }
 };
 ASSERT_SIZE (ValueFormat, 2);
