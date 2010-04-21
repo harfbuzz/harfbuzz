@@ -248,7 +248,6 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
 #define SANITIZE_GET_SIZE() SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ())
 
-/* TODO Optimize this if L is fixed (gcc magic) */
 #define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, CONST_CHARP(B), (L)))
 
 #define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, CONST_CHARP(A), S, L))
