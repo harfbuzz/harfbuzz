@@ -413,7 +413,7 @@ struct SinglePosFormat1
     if (HB_LIKELY (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (context, CONST_CHARP(this), values, CURPOSITION ());
+    valueFormat.apply_value (context, ConstCharP(this), values, CURPOSITION ());
 
     buffer->in_pos++;
     return true;
@@ -422,7 +422,7 @@ struct SinglePosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   valueFormat.sanitize_value (SANITIZE_ARG, CHARP(this), values);
+	   valueFormat.sanitize_value (SANITIZE_ARG, CharP(this), values);
   }
 
   private:
@@ -453,7 +453,7 @@ struct SinglePosFormat2
     if (HB_LIKELY (index >= valueCount))
       return false;
 
-    valueFormat.apply_value (context, CONST_CHARP(this),
+    valueFormat.apply_value (context, ConstCharP(this),
 			     &values[index * valueFormat.get_len ()],
 			     CURPOSITION ());
 
@@ -464,7 +464,7 @@ struct SinglePosFormat2
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   valueFormat.sanitize_values (SANITIZE_ARG, CHARP(this), values, valueCount);
+	   valueFormat.sanitize_values (SANITIZE_ARG, CharP(this), values, valueCount);
   }
 
   private:
@@ -582,8 +582,8 @@ struct PairPosFormat1
     {
       if (IN_GLYPH (j) == record->secondGlyph)
       {
-	valueFormat1.apply_value (context, CONST_CHARP(this), &record->values[0], CURPOSITION ());
-	valueFormat2.apply_value (context, CONST_CHARP(this), &record->values[len1], POSITION (j));
+	valueFormat1.apply_value (context, ConstCharP(this), &record->values[0], CURPOSITION ());
+	valueFormat2.apply_value (context, ConstCharP(this), &record->values[len1], POSITION (j));
 	if (len2)
 	  j++;
 	buffer->in_pos = j;
@@ -602,7 +602,7 @@ struct PairPosFormat1
     unsigned int len2 = valueFormat2.get_len ();
 
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	  pairSet.sanitize (SANITIZE_ARG, CONST_CHARP(this), len1 + len2))) return false;
+	  pairSet.sanitize (SANITIZE_ARG, ConstCharP(this), len1 + len2))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -614,8 +614,8 @@ struct PairPosFormat1
 
       unsigned int count2 = pair_set.len;
       const PairValueRecord *record = pair_set.array;
-      if (!(valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &record->values[0], count2, stride) &&
-	    valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &record->values[len1], count2, stride)))
+      if (!(valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &record->values[0], count2, stride) &&
+	    valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &record->values[len1], count2, stride)))
         return false;
     }
 
@@ -673,8 +673,8 @@ struct PairPosFormat2
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (context, CONST_CHARP(this), v, CURPOSITION ());
-    valueFormat2.apply_value (context, CONST_CHARP(this), v + len1, POSITION (j));
+    valueFormat1.apply_value (context, ConstCharP(this), v, CURPOSITION ());
+    valueFormat2.apply_value (context, ConstCharP(this), v + len1, POSITION (j));
 
     if (len2)
       j++;
@@ -694,8 +694,8 @@ struct PairPosFormat2
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
     return SANITIZE_ARRAY (values, record_size, count) &&
-	   valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &values[0], count, stride) &&
-	   valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CHARP(this), &values[len1], count, stride);
+	   valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &values[0], count, stride) &&
+	   valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &values[len1], count, stride);
   }
 
   private:
@@ -1050,7 +1050,7 @@ struct MarkBasePosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS2 (markCoverage, baseCoverage) &&
-	   SANITIZE_THIS (markArray) && baseArray.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
+	   SANITIZE_THIS (markArray) && baseArray.sanitize (SANITIZE_ARG, ConstCharP(this), classCount);
   }
 
   private:
@@ -1171,7 +1171,7 @@ struct MarkLigPosFormat1
     TRACE_SANITIZE ();
     return SANITIZE_SELF () &&
 	   SANITIZE_THIS2 (markCoverage, ligatureCoverage) &&
-	   SANITIZE_THIS (markArray) && ligatureArray.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
+	   SANITIZE_THIS (markArray) && ligatureArray.sanitize (SANITIZE_ARG, ConstCharP(this), classCount);
   }
 
   private:
@@ -1270,7 +1270,7 @@ struct MarkMarkPosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS2 (mark1Coverage, mark2Coverage) &&
-	   SANITIZE_THIS (mark1Array) && mark2Array.sanitize (SANITIZE_ARG, CONST_CHARP(this), classCount);
+	   SANITIZE_THIS (mark1Array) && mark2Array.sanitize (SANITIZE_ARG, ConstCharP(this), classCount);
   }
 
   private:

@@ -111,7 +111,7 @@ struct RecordListOf : RecordArrayOf<Type>
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
+    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, ConstCharP(this));
   }
 };
 

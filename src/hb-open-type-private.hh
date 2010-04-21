@@ -39,19 +39,19 @@
  * Casts
  */
 
-#define CONST_CHARP(X)		(reinterpret_cast<const char *>(X))
-#define DECONST_CHARP(X)	((char *)reinterpret_cast<const char *>(X))
-#define CHARP(X)		(reinterpret_cast<char *>(X))
+template <typename Type> const char * ConstCharP (const Type X) { return reinterpret_cast<const char *>(X); }
+template <typename Type> char * CharP (Type X) { return reinterpret_cast<char *>(X); }
+template <typename Type> char * DeConstCharP (const Type X) { return (char *) reinterpret_cast<const char *>(X); }
 
-#define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(CONST_CHARP(&(X)) + Ofs)))
-#define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)CONST_CHARP(&(X)) + Ofs)))
-#define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CHARP(&(X)) + Ofs)))
+#define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(ConstCharP(&(X)) + Ofs)))
+#define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)ConstCharP(&(X)) + Ofs)))
+#define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CharP(&(X)) + Ofs)))
 
-#define CONST_NEXT(T,X)		(*(reinterpret_cast<const T *>(CONST_CHARP(&(X)) + (X).get_size ())))
-#define NEXT(T,X)		(*(reinterpret_cast<T *>(CHARP(&(X)) + (X).get_size ())))
+#define CONST_NEXT(T,X)		(*(reinterpret_cast<const T *>(ConstCharP(&(X)) + (X).get_size ())))
+#define NEXT(T,X)		(*(reinterpret_cast<T *>(CharP(&(X)) + (X).get_size ())))
 
-#define CONST_ARRAY_AFTER(T,X)	((reinterpret_cast<const T *>(CONST_CHARP(&(X)) + X.get_size ())))
-#define ARRAY_AFTER(T,X)	((reinterpret_cast<T *>(CHARP(&(X)) + X.get_size ())))
+#define CONST_ARRAY_AFTER(T,X)	((reinterpret_cast<const T *>(ConstCharP(&(X)) + X.get_size ())))
+#define ARRAY_AFTER(T,X)	((reinterpret_cast<T *>(CharP(&(X)) + X.get_size ())))
 
 /*
  * Class features
@@ -119,7 +119,7 @@ inline const Type& Null<Type> () { \
 	HB_STMT_START { \
 	    if (sanitize_depth < HB_DEBUG_SANITIZE) \
 		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
-			 (CONST_CHARP (this) == CONST_CHARP (&NullPool)) ? 0 : this, \
+			 (ConstCharP (this) == ConstCharP (&NullPool)) ? 0 : this, \
 			 sanitize_depth, sanitize_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
@@ -237,7 +237,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
 #define SANITIZE2(X,Y) (SANITIZE (X) && SANITIZE (Y))
 
-#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, CONST_CHARP(this)))
+#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, ConstCharP(this)))
 #define SANITIZE_THIS2(X,Y) (SANITIZE_THIS (X) && SANITIZE_THIS (Y))
 #define SANITIZE_THIS3(X,Y,Z) (SANITIZE_THIS (X) && SANITIZE_THIS (Y) && SANITIZE_THIS(Z))
 
@@ -248,13 +248,13 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
 #define SANITIZE_GET_SIZE() SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ())
 
-#define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, CONST_CHARP(B), (L)))
+#define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, ConstCharP(B), (L)))
 
-#define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, CONST_CHARP(A), S, L))
+#define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, ConstCharP(A), S, L))
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
-	 _hb_sanitize_edit (SANITIZE_ARG, CONST_CHARP(&(Var)), sizeof (Var)) && \
+	 _hb_sanitize_edit (SANITIZE_ARG, ConstCharP(&(Var)), sizeof (Var)) && \
 	 ((Var).set (Val), true))
 
 
@@ -275,7 +275,7 @@ struct Sanitizer
 
     _hb_sanitize_init (&context, blob);
 
-    Type *t = &CAST (Type, *DECONST_CHARP(context.start), 0);
+    Type *t = &CAST (Type, *DeConstCharP(context.start), 0);
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
@@ -389,8 +389,8 @@ ASSERT_SIZE (LONG, 4);
 struct Tag : ULONG
 {
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
-  inline operator const char* (void) const { return CONST_CHARP(this); }
-  inline operator char* (void) { return CHARP(this); }
+  inline operator const char* (void) const { return ConstCharP(this); }
+  inline operator char* (void) { return CharP(this); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
@@ -462,7 +462,7 @@ struct GenericOffsetTo : OffsetType
   {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return CONST_CAST(Type, *CONST_CHARP(base), offset);
+    return CONST_CAST(Type, *ConstCharP(base), offset);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
@@ -470,21 +470,21 @@ struct GenericOffsetTo : OffsetType
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (CAST(Type, *DECONST_CHARP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE (CAST(Type, *DeConstCharP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *DeConstCharP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *DECONST_CHARP(base), offset), user_data) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *DeConstCharP(base), offset), user_data) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>
@@ -608,11 +608,11 @@ struct OffsetListOf : OffsetArrayOf<Type>
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this));
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, ConstCharP(this));
   }
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int user_data) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CONST_CHARP(this), user_data);
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, ConstCharP(this), user_data);
   }
 };
 
