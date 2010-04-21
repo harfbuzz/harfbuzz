@@ -92,13 +92,6 @@ typedef int hb_mutex_t;
 
 #define hb_be_uint16(v)			((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
 
-#define hb_be_uint8_put_unaligned(v,V)	(v[0] = (V), 0)
-#define hb_be_uint8_get_unaligned(v)	(uint8_t) (v[0])
-#define hb_be_uint8_cmp_unaligned(a,b)	(a[0] == b[0])
-#define hb_be_int8_put_unaligned	hb_be_uint8_put_unaligned
-#define hb_be_int8_get_unaligned	(int8_t) hb_be_uint8_get_unaligned
-#define hb_be_int8_cmp_unaligned	hb_be_uint8_cmp_unaligned
-
 #define hb_be_uint16_put_unaligned(v,V)	(v[0] = (V>>8), v[1] = (V), 0)
 #define hb_be_uint16_get_unaligned(v)	(uint16_t) ((v[0] << 8) + v[1])
 #define hb_be_uint16_cmp_unaligned(a,b)	(a[0] == b[0] && a[1] == b[1])
