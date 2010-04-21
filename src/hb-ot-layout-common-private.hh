@@ -415,7 +415,7 @@ ASSERT_SIZE (CoverageFormat2, 4);
 
 struct Coverage
 {
-  inline unsigned int operator() (hb_codepoint_t glyph_id) const { return get_coverage (glyph_id); }
+  inline unsigned int operator () (hb_codepoint_t glyph_id) const { return get_coverage (glyph_id); }
 
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
@@ -533,7 +533,7 @@ ASSERT_SIZE (ClassDefFormat2, 4);
 
 struct ClassDef
 {
-  inline hb_ot_layout_class_t operator() (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
+  inline hb_ot_layout_class_t operator () (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
 
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
@@ -569,7 +569,7 @@ struct ClassDef
 
 struct Device
 {
-  inline int operator() (unsigned int ppem_size) const { return get_delta (ppem_size); }
+  inline int operator () (unsigned int ppem_size) const { return get_delta (ppem_size); }
 
   inline int get_delta (unsigned int ppem_size) const
   {
