@@ -200,14 +200,14 @@ typedef GStaticMutex hb_mutex_t;
 typedef int hb_atomic_int_t;
 #define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
 #define hb_atomic_int_get(AI)			(AI)
-#define hb_atomic_int_set(AI, V)		do { (AI) = (V); } while (0)
+#define hb_atomic_int_set(AI, V)		HB_STMT_START { (AI) = (V); } HB_STMT_END
 
 typedef int hb_mutex_t;
-#define HB_MUTEX_INIT			0
-#define hb_mutex_init(M)		do { (M) = 0; } while (0)
-#define hb_mutex_lock(M)		do { (M) = 1; } while (0)
-#define hb_mutex_trylock(M)		((M) = 1, 1)
-#define hb_mutex_unlock(M)		do { (M) = 0; } while (0)
+#define HB_MUTEX_INIT				0
+#define hb_mutex_init(M)			HB_STMT_START { (M) = 0; } HB_STMT_END
+#define hb_mutex_lock(M)			HB_STMT_START { (M) = 1; } HB_STMT_END
+#define hb_mutex_trylock(M)			((M) = 1, 1)
+#define hb_mutex_unlock(M)			HB_STMT_START { (M) = 0; } HB_STMT_END
 
 #endif
 
