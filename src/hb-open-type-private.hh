@@ -406,15 +406,6 @@ struct Tag : ULONG
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return CharP(this); }
   inline operator char* (void) { return CharP(this); }
-
-  inline bool sanitize (SANITIZE_ARG_DEF) {
-    TRACE_SANITIZE ();
-    /* Note: Only accept ASCII-visible tags (mind DEL)
-     * This is one of the few places (only place?) that we check
-     * for data integrity, as opposed to just boundary checks.
-     */
-    return SANITIZE_SELF () && (((uint32_t) *this) & 0x80808080) == 0;
-  }
 };
 ASSERT_SIZE (Tag, 4);
 DEFINE_NULL_DATA (Tag, 4, "    ");

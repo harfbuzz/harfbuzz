@@ -55,7 +55,7 @@ struct Record
 
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
-    return SANITIZE (tag) && SANITIZE_BASE (offset, base);
+    return SANITIZE_SELF () && SANITIZE_BASE (offset, base);
   }
 
   Tag		tag;		/* 4-byte Tag identifier */
