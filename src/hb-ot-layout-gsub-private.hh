@@ -566,7 +566,7 @@ struct ExtensionSubst : Extension
   {
     unsigned int offset = get_offset ();
     if (HB_UNLIKELY (!offset)) return Null(SubstLookupSubTable);
-    return CONST_CAST (SubstLookupSubTable, *this, offset);
+    return StructAtOffset<SubstLookupSubTable> (*this, offset);
   }
 
   inline bool apply (APPLY_ARG_DEF) const;
@@ -740,7 +740,7 @@ struct SubstLookupSubTable
 struct SubstLookup : Lookup
 {
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  { return this+CONST_CAST (OffsetArrayOf<SubstLookupSubTable>, subTable, 0)[i]; }
+  { return this+Cast<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i]; }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -833,7 +833,7 @@ struct SubstLookup : Lookup
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!Lookup::sanitize (SANITIZE_ARG))) return false;
-    OffsetArrayOf<SubstLookupSubTable> &list = CAST (OffsetArrayOf<SubstLookupSubTable>, subTable, 0);
+    OffsetArrayOf<SubstLookupSubTable> &list = Cast<OffsetArrayOf<SubstLookupSubTable> > (subTable);
     return SANITIZE_THIS (list);
   }
 };
@@ -850,10 +850,10 @@ struct GSUB : GSUBGPOS
   static const hb_tag_t Tag	= HB_OT_TAG_GSUB;
 
   static inline const GSUB& get_for_data (const char *data)
-  { return CONST_CAST(GSUB, GSUBGPOS::get_for_data (data), 0); }
+  { return Cast<GSUB> (GSUBGPOS::get_for_data (data)); }
 
   inline const SubstLookup& get_lookup (unsigned int i) const
-  { return CONST_CAST(SubstLookup, GSUBGPOS::get_lookup (i), 0); }
+  { return Cast<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
   inline bool substitute_lookup (hb_ot_layout_context_t *context,
 				 hb_buffer_t  *buffer,
@@ -865,7 +865,7 @@ struct GSUB : GSUBGPOS
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
-    OffsetTo<SubstLookupList> &list = CAST(OffsetTo<SubstLookupList>, lookupList, 0);
+    OffsetTo<SubstLookupList> &list = Cast<OffsetTo<SubstLookupList> > (lookupList);
     return SANITIZE_THIS (list);
   }
 };
@@ -893,7 +893,7 @@ inline bool ExtensionSubst::sanitize (SANITIZE_ARG_DEF)
 
   unsigned int offset = get_offset ();
   if (HB_UNLIKELY (!offset)) return true;
-  return SANITIZE (CAST (SubstLookupSubTable, *this, offset));
+  return SANITIZE (StructAtOffset<SubstLookupSubTable> (*this, offset));
 }
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)

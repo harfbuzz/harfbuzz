@@ -591,7 +591,7 @@ struct PairPosFormat1
 	buffer->in_pos = j;
 	return true;
       }
-      record = &CONST_CAST (PairValueRecord, *record, record_size);
+      record = &StructAtOffset<PairValueRecord> (*record, record_size);
     }
 
     return false;
@@ -1361,7 +1361,7 @@ struct ExtensionPos : Extension
   {
     unsigned int offset = get_offset ();
     if (HB_UNLIKELY (!offset)) return Null(PosLookupSubTable);
-    return CONST_CAST (PosLookupSubTable, *this, offset);
+    return StructAtOffset<PosLookupSubTable> (*this, offset);
   }
 
   inline bool apply (APPLY_ARG_DEF) const;
@@ -1445,7 +1445,7 @@ struct PosLookupSubTable
 struct PosLookup : Lookup
 {
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
-  { return this+CONST_CAST (OffsetArrayOf<PosLookupSubTable>, subTable, 0)[i]; }
+  { return this+Cast<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -1524,7 +1524,7 @@ struct PosLookup : Lookup
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!Lookup::sanitize (SANITIZE_ARG))) return false;
-    OffsetArrayOf<PosLookupSubTable> &list = CAST (OffsetArrayOf<PosLookupSubTable>, subTable, 0);
+    OffsetArrayOf<PosLookupSubTable> &list = Cast<OffsetArrayOf<PosLookupSubTable> > (subTable);
     return SANITIZE_THIS (list);
   }
 };
@@ -1541,10 +1541,10 @@ struct GPOS : GSUBGPOS
   static const hb_tag_t Tag	= HB_OT_TAG_GPOS;
 
   static inline const GPOS& get_for_data (const char *data)
-  { return CONST_CAST(GPOS, GSUBGPOS::get_for_data (data), 0); }
+  { return Cast<GPOS> (GSUBGPOS::get_for_data (data)); }
 
   inline const PosLookup& get_lookup (unsigned int i) const
-  { return CONST_CAST(PosLookup, GSUBGPOS::get_lookup (i), 0); }
+  { return Cast<PosLookup> (GSUBGPOS::get_lookup (i)); }
 
   inline bool position_lookup (hb_ot_layout_context_t *context,
 			       hb_buffer_t  *buffer,
@@ -1555,7 +1555,7 @@ struct GPOS : GSUBGPOS
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
-    OffsetTo<PosLookupList> &list = CAST(OffsetTo<PosLookupList>, lookupList, 0);
+    OffsetTo<PosLookupList> &list = Cast<OffsetTo<PosLookupList> > (lookupList);
     return SANITIZE_THIS (list);
   }
 };
@@ -1583,7 +1583,7 @@ inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
 
   unsigned int offset = get_offset ();
   if (HB_UNLIKELY (!offset)) return true;
-  return SANITIZE (CAST (PosLookupSubTable, *this, offset));
+  return SANITIZE (StructAtOffset<PosLookupSubTable> (*this, offset));
 }
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)

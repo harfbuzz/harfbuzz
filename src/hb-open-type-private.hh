@@ -36,30 +36,45 @@
 #define NO_INDEX		((unsigned int) 0xFFFF)
 
 
+
 /*
  * Casts
  */
 
 /* Cast to "const char *" and "char *" */
-template <typename Type> inline const char * CharP (const Type* X) { return reinterpret_cast<const char *>(X); }
-template <typename Type> inline char * CharP (Type* X) { return reinterpret_cast<char *>(X); }
+template <typename Type>
+inline const char * CharP (const Type* X)
+{ return reinterpret_cast<const char *>(X); }
+template <typename Type>
+inline char * CharP (Type* X)
+{ return reinterpret_cast<char *>(X); }
 
-#define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(CharP(&(X)) + Ofs)))
-#define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CharP(&(X)) + Ofs)))
+/* Cast to struct T& */
+template<typename Type, typename TObject>
+inline const Type& Cast(const TObject &X)
+{ return reinterpret_cast<const Type&> (X); }
+template<typename Type, typename TObject>
+inline Type& Cast(TObject &X)
+{ return reinterpret_cast<Type&> (X); }
 
+/* StructAtOffset<T>(X,Ofs) returns the struct T& that is placed at memory
+ * location of X plus Ofs bytes. */
+template<typename Type, typename TObject>
+inline const Type& StructAtOffset(const TObject &X, unsigned int offset)
+{ return * reinterpret_cast<const Type*> (CharP (&X) + offset); }
+template<typename Type, typename TObject>
+inline Type& StructAtOffset(TObject &X, unsigned int offset)
+{ return * reinterpret_cast<Type*> (CharP (&X) + offset); }
 
 /* StructAfter<T>(X) returns the struct T& that is placed after X.
  * Works with X of variable size also.  X must implement get_size() */
 template<typename Type, typename TObject>
 inline const Type& StructAfter(const TObject &X)
-{
-  return * reinterpret_cast<const Type*> (CharP (&X) + X.get_size());
-}
+{ return StructAtOffset<Type>(X, X.get_size()); }
 template<typename Type, typename TObject>
 inline Type& StructAfter(TObject &X)
-{
-  return * reinterpret_cast<Type*> (CharP (&X) + X.get_size());
-}
+{ return StructAtOffset<Type>(X, X.get_size()); }
+
 
 
 /*
@@ -76,7 +91,7 @@ static const void *_NullPool[32 / sizeof (void *)];
 template <typename Type>
 static inline const Type& Null () {
   ASSERT_STATIC (sizeof (Type) <= sizeof (_NullPool));
-  return CONST_CAST (Type, *_NullPool, 0);
+  return Cast<Type> (*_NullPool);
 }
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
@@ -84,7 +99,7 @@ static inline const Type& Null () {
 static const char _Null##Type[size + 1] = data; /* +1 is for nul-termination in data */ \
 template <> \
 inline const Type& Null<Type> () { \
-  return CONST_CAST (Type, *_Null##Type, 0); \
+  return Cast<Type> (*_Null##Type); \
 } /* The following line really exists such that we end in a place needing semicolon */ \
 ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 
@@ -99,14 +114,14 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
   static inline const Type& get_for_data (const char *data) \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    return CONST_CAST (Type, *data, 0); \
+    return Cast<Type> (*data); \
   }
 /* Like get_for_data(), but checks major version first. */
 #define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, MajorMin, MajorMax) \
   static inline const Type& get_for_data (const char *data) \
   { \
     if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    const Type& t = CONST_CAST (Type, *data, 0); \
+    const Type& t = Cast<Type> (*data); \
     if (HB_UNLIKELY (t.version.major < MajorMin || t.version.major > MajorMax)) return Null(Type); \
     return t; \
   }
@@ -285,7 +300,7 @@ struct Sanitizer
     _hb_sanitize_init (&context, blob);
 
     /* We drop const here */
-    Type *t = &CAST (Type, * (char *) CharP(context.start), 0);
+    Type *t = &Cast<Type> (* (char *) CharP(context.start));
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
@@ -467,7 +482,7 @@ struct GenericOffsetTo : OffsetType
   {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return CONST_CAST(Type, *CharP(base), offset);
+    return StructAtOffset<Type> (*CharP(base), offset);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
@@ -475,21 +490,21 @@ struct GenericOffsetTo : OffsetType
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (CAST(Type, *CharP(base), offset)) || NEUTER (*this, 0);
+    return SANITIZE (StructAtOffset<Type> (*CharP(base), offset)) || NEUTER (*this, 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), base2) || NEUTER (*this, 0);
+    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), base2) || NEUTER (*this, 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), user_data) || NEUTER (*this, 0);
+    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), user_data) || NEUTER (*this, 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>

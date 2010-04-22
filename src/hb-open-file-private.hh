@@ -191,8 +191,8 @@ struct OpenTypeFontFile
     if (!SANITIZE_SELF ()) return false;
     switch (tag) {
     default: return true;
-    case TrueTypeTag: case CFFTag: return SANITIZE_THIS (CAST (OffsetTable, *this, 0));
-    case TTCTag: return SANITIZE (CAST (TTCHeader, *this, 0));
+    case TrueTypeTag: case CFFTag: return SANITIZE_THIS (Cast<OffsetTable> (*this));
+    case TTCTag: return SANITIZE (Cast<TTCHeader> (*this));
     }
   }
 
