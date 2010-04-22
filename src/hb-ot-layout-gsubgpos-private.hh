@@ -836,12 +836,7 @@ struct ExtensionFormat1
 
   protected:
   inline unsigned int get_type (void) const { return extensionLookupType; }
-  inline const LookupSubTable& get_subtable (void) const
-  {
-    unsigned int offset = extensionOffset;
-    if (HB_UNLIKELY (!offset)) return Null(LookupSubTable);
-    return CONST_CAST (LookupSubTable, *this, offset);
-  }
+  inline unsigned int get_offset (void) const { return extensionOffset; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
@@ -867,11 +862,11 @@ struct Extension
     default:return 0;
     }
   }
-  inline const LookupSubTable& get_subtable (void) const
+  inline unsigned int get_offset (void) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_subtable ();
-    default:return Null(LookupSubTable);
+    case 1: return u.format1->get_offset ();
+    default:return 0;
     }
   }
 

@@ -1358,7 +1358,11 @@ struct ExtensionPos : Extension
 
   private:
   inline const struct PosLookupSubTable& get_subtable (void) const
-  { return CONST_CAST (PosLookupSubTable, Extension::get_subtable (), 0); }
+  {
+    unsigned int offset = get_offset ();
+    if (HB_UNLIKELY (!offset)) return Null(PosLookupSubTable);
+    return CONST_CAST (PosLookupSubTable, *this, offset);
+  }
 
   inline bool apply (APPLY_ARG_DEF) const;
 
@@ -1519,7 +1523,7 @@ struct PosLookup : Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!Lookup::sanitize (SANITIZE_ARG)) return false;
+    if (HB_UNLIKELY (!Lookup::sanitize (SANITIZE_ARG))) return false;
     OffsetArrayOf<PosLookupSubTable> &list = CAST (OffsetArrayOf<PosLookupSubTable>, subTable, 0);
     return SANITIZE_THIS (list);
   }
@@ -1550,7 +1554,7 @@ struct GPOS : GSUBGPOS
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!GSUBGPOS::sanitize (SANITIZE_ARG)) return false;
+    if (HB_UNLIKELY (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
     OffsetTo<PosLookupList> &list = CAST(OffsetTo<PosLookupList>, lookupList, 0);
     return SANITIZE_THIS (list);
   }
@@ -1574,10 +1578,12 @@ inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
 {
   TRACE_SANITIZE ();
-  return Extension::sanitize (SANITIZE_ARG) &&
-	 (&(Extension::get_subtable ()) == &Null(LookupSubTable) ||
-	  get_type () == PosLookupSubTable::Extension ||
-	  DECONST_CAST (PosLookupSubTable, get_subtable (), 0).sanitize (SANITIZE_ARG));
+  if (HB_UNLIKELY (!Extension::sanitize (SANITIZE_ARG))) return false;
+  if (HB_UNLIKELY (get_type () == PosLookupSubTable::Extension)) return false;
+
+  unsigned int offset = get_offset ();
+  if (HB_UNLIKELY (!offset)) return true;
+  return SANITIZE (CAST (PosLookupSubTable, *this, offset));
 }
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)

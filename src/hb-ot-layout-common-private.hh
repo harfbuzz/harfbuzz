@@ -264,21 +264,8 @@ struct LookupFlag : USHORT
 };
 ASSERT_SIZE (LookupFlag, 2);
 
-struct LookupSubTable
-{
-  inline bool sanitize (SANITIZE_ARG_DEF) {
-    TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
-  }
-
-  private:
-  USHORT	format;		/* Subtable format.  Different for GSUB and GPOS */
-};
-ASSERT_SIZE (LookupSubTable, 2);
-
 struct Lookup
 {
-  inline const LookupSubTable& get_subtable (unsigned int i) const { return this+subTable[i]; }
   inline unsigned int get_subtable_count (void) const { return subTable.len; }
 
   inline unsigned int get_type (void) const { return lookupType; }
@@ -295,9 +282,8 @@ struct Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    /* We sanitize subtables shallow here since we don't have their actual
-     * type.  Real sanitize of the referenced data is done by GSUB/GPOS/... */
-    if (!(SANITIZE_SELF () && HB_LIKELY (subTable.sanitize_shallow (SANITIZE_ARG)))) return false;
+    /* Real sanitize of the subtables is done by GSUB/GPOS/... */
+    if (!(SANITIZE_SELF () && HB_LIKELY (subTable.sanitize (SANITIZE_ARG)))) return false;
     if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
@@ -308,7 +294,7 @@ struct Lookup
 
   USHORT	lookupType;		/* Different enumerations for GSUB and GPOS */
   USHORT	lookupFlag;		/* Lookup qualifiers */
-  OffsetArrayOf<LookupSubTable>
+  ArrayOf<Offset>
 		subTable;		/* Array of SubTables */
   USHORT	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
