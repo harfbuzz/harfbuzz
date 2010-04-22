@@ -139,8 +139,8 @@ struct TTCHeader
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!SANITIZE (version)) return false;
-    if (version.major < 1 || version.major > 2) return true;
-    return table.sanitize (SANITIZE_ARG, CharP(this), CharP(this));
+    if (HB_UNLIKELY (version.major < 1 || version.major > 2)) return false;
+    return HB_LIKELY (table.sanitize (SANITIZE_ARG, CharP(this), CharP(this)));
   }
 
   private:
