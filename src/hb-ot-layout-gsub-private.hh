@@ -846,10 +846,10 @@ struct GSUB : GSUBGPOS
   static const hb_tag_t Tag	= HB_OT_TAG_GSUB;
 
   static inline const GSUB& get_for_data (const char *data)
-  { return (const GSUB&) GSUBGPOS::get_for_data (data); }
+  { return CONST_CAST(GSUB, GSUBGPOS::get_for_data (data), 0); }
 
   inline const SubstLookup& get_lookup (unsigned int i) const
-  { return (const SubstLookup&) GSUBGPOS::get_lookup (i); }
+  { return CONST_CAST(SubstLookup, GSUBGPOS::get_lookup (i), 0); }
 
   inline bool substitute_lookup (hb_ot_layout_context_t *context,
 				 hb_buffer_t  *buffer,

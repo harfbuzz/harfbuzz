@@ -1536,10 +1536,10 @@ struct GPOS : GSUBGPOS
   static const hb_tag_t Tag	= HB_OT_TAG_GPOS;
 
   static inline const GPOS& get_for_data (const char *data)
-  { return (const GPOS&) GSUBGPOS::get_for_data (data); }
+  { return CONST_CAST(GPOS, GSUBGPOS::get_for_data (data), 0); }
 
   inline const PosLookup& get_lookup (unsigned int i) const
-  { return (const PosLookup&) GSUBGPOS::get_lookup (i); }
+  { return CONST_CAST(PosLookup, GSUBGPOS::get_lookup (i), 0); }
 
   inline bool position_lookup (hb_ot_layout_context_t *context,
 			       hb_buffer_t  *buffer,
