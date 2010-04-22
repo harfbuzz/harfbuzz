@@ -371,6 +371,7 @@ class BEInt<Type, 4>
   private: uint8_t v[4];
 };
 
+/* Integer types in big-endian order and no alignment requirement */
 template <typename Type>
 struct IntType
 {
