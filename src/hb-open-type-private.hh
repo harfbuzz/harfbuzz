@@ -354,18 +354,20 @@ template <typename Type>
 class BEInt<Type, 2>
 {
   public:
-  inline void put (Type i) { hb_be_uint16_put (v,i); }
-  inline Type get () const { return hb_be_uint16_get (v); }
-  inline bool cmp (const BEInt<Type, 2> o) const { return hb_be_uint16_cmp (v, o.v); }
+  inline class BEInt<Type,2>& operator = (Type i) { hb_be_uint16_put (v,i); return *this; }
+  inline operator Type () const { return hb_be_uint16_get (v); }
+  inline bool operator == (const BEInt<Type, 2>& o) const { return hb_be_uint16_cmp (v, o.v); }
+  inline bool operator != (const BEInt<Type, 2>& o) const { return !(*this == o); }
   private: uint8_t v[2];
 };
 template <typename Type>
 class BEInt<Type, 4>
 {
   public:
-  inline void put (Type i) { hb_be_uint32_put (v,i); }
-  inline Type get () const { return hb_be_uint32_get (v); }
-  inline bool cmp (const BEInt<Type, 4> o) const { return hb_be_uint32_cmp (v, o.v); }
+  inline class BEInt<Type,4>& operator = (Type i) { hb_be_uint32_put (v,i); return *this; }
+  inline operator Type () const { return hb_be_uint32_get (v); }
+  inline bool operator == (const BEInt<Type, 4>& o) const { return hb_be_uint32_cmp (v, o.v); }
+  inline bool operator != (const BEInt<Type, 4>& o) const { return !(*this == o); }
   private: uint8_t v[4];
 };
 
@@ -373,9 +375,10 @@ template <typename Type>
 struct IntType
 {
   static inline unsigned int get_size () { return sizeof (Type); }
-  inline void set (Type i) { v.put (i); }
-  inline operator Type(void) const { return v.get (); }
-  inline bool operator == (const IntType<Type> &o) const { return v.cmp (o.v); }
+  inline void set (Type i) { v = i; }
+  inline operator Type(void) const { return v; }
+  inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
+  inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
