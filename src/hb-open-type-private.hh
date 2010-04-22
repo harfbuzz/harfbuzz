@@ -49,7 +49,7 @@ template <typename Type> inline char * DeConstCharP (const Type X) { return (cha
 
 
 /* StructAfter<T>(X) returns the struct T& that is placed after X.
- * Works with X of variable size also. */
+ * Works with X of variable size also.  X must implement get_size() */
 template<typename Type, typename TObject>
 inline const Type& StructAfter(const TObject &X)
 {
