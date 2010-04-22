@@ -2,7 +2,7 @@
  * Copyright (C) 2007 Chris Wilson
  * Copyright (C) 2009  Red Hat, Inc.
  *
- *  This is part of HarfBuzz, an OpenType Layout engine library.
+ *  This is part of HarfBuzz, a text shaping library.
  *
  * Permission is hereby granted, without written agreement and without
  * license or royalty fees, to use, copy, modify, and distribute this
