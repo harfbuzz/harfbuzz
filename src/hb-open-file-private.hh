@@ -110,16 +110,7 @@ typedef struct OffsetTable
   public:
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_SELF () && SANITIZE_ARRAY (tableDir, TableDirectory::get_size (), numTables))) return false;
-    return true;
-    /* No need to check tables individually since we don't sanitize the
-     * referenced table, just the table directory.  Code retaind to make
-     * sure TableDirectory has a baseless sanitize(). */
-    unsigned int count = numTables;
-    for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE (tableDir[i]))
-        return false;
-    return true;
+    return SANITIZE_SELF () && SANITIZE_ARRAY (tableDir, TableDirectory::get_size (), numTables);
   }
 
   private:
@@ -143,11 +134,7 @@ struct TTCHeader
   STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (TTCHeader, 1, 2);
 
   inline unsigned int get_face_count (void) const { return table.len; }
-
-  inline const OpenTypeFontFace& get_face (unsigned int i) const
-  {
-    return this+table[i];
-  }
+  inline const OpenTypeFontFace& get_face (unsigned int i) const { return this+table[i]; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
@@ -197,13 +184,6 @@ struct OpenTypeFontFile
     case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (CharP(this));
     case TTCTag: return TTCHeader::get_for_data (CharP(this)).get_face (i);
     }
-  }
-
-  /* This is how you get a table */
-  inline const char* get_table_data (const OpenTypeTable& table) const
-  {
-    if (HB_UNLIKELY (table.offset == 0)) return NULL;
-    return CharP(this) + table.offset;
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {

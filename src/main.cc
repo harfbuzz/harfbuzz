@@ -99,7 +99,7 @@ main (int argc, char **argv)
       case GSUBGPOS::GPOSTag:
 	{
 
-	const GSUBGPOS &g = GSUBGPOS::get_for_data (ot.get_table_data (table));
+	const GSUBGPOS &g = GSUBGPOS::get_for_data ((const char *) &ot + table.offset);
 
 	int num_scripts = g.get_script_count ();
 	printf ("    %d script(s) found in table\n", num_scripts);
@@ -162,7 +162,7 @@ main (int argc, char **argv)
       case GDEF::Tag:
 	{
 
-	const GDEF &gdef = GDEF::get_for_data (ot.get_table_data (table));
+	const GDEF &gdef = GDEF::get_for_data ((const char *) &ot + table.offset);
 
 	printf ("    Has %sglyph classes\n",
 		  gdef.has_glyph_classes () ? "" : "no ");
