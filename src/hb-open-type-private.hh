@@ -285,6 +285,7 @@ struct Sanitizer
 
     _hb_sanitize_init (&context, blob);
 
+    /* We drop const here */
     Type *t = &CAST (Type, * (char *) CharP(context.start), 0);
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
