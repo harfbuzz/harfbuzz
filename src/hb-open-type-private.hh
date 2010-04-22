@@ -45,7 +45,6 @@ template <typename Type> inline const char * CharP (const Type* X) { return rein
 template <typename Type> inline char * CharP (Type* X) { return reinterpret_cast<char *>(X); }
 
 #define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(CharP(&(X)) + Ofs)))
-#define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)CharP(&(X)) + Ofs)))
 #define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CharP(&(X)) + Ofs)))
 
 
