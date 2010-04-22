@@ -111,7 +111,7 @@ typedef struct OffsetTable
   public:
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_SELF () && SANITIZE_MEM (tableDir, tableDir[0].get_size () * numTables))) return false;
+    if (!(SANITIZE_SELF () && SANITIZE_ARRAY (tableDir, TableDirectory::get_size (), numTables))) return false;
     unsigned int count = numTables;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_BASE (tableDir[i], base))
