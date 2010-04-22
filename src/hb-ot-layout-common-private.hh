@@ -604,7 +604,7 @@ struct Device
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_GET_SIZE ();
+    return SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ());
   }
 
   private:

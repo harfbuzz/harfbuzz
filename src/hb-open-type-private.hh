@@ -256,7 +256,6 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 
 #define SANITIZE_SELF() SANITIZE_OBJ (*this)
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
-#define SANITIZE_GET_SIZE() SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ())
 
 #define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, CharP(B), (L)))
 
@@ -541,9 +540,14 @@ struct GenericArrayOf
   inline unsigned int get_size () const
   { return len.get_size () + len * Type::get_size (); }
 
+  inline bool sanitize_shallow (SANITIZE_ARG_DEF) {
+    TRACE_SANITIZE ();
+    return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
+  }
+
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_GET_SIZE()) return false;
+    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
@@ -560,7 +564,7 @@ struct GenericArrayOf
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_GET_SIZE()) return false;
+    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array()[i].sanitize (SANITIZE_ARG, base))
@@ -569,7 +573,7 @@ struct GenericArrayOf
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_GET_SIZE()) return false;
+    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array()[i].sanitize (SANITIZE_ARG, base, base2))
@@ -578,7 +582,7 @@ struct GenericArrayOf
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_GET_SIZE()) return false;
+    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array()[i].sanitize (SANITIZE_ARG, base, user_data))
@@ -647,9 +651,14 @@ struct HeadlessArrayOf
   inline unsigned int get_size () const
   { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }
 
+  inline bool sanitize_shallow (SANITIZE_ARG_DEF) {
+    TRACE_SANITIZE ();
+    return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
+  }
+
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_GET_SIZE()) return false;
+    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
