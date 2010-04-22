@@ -484,21 +484,21 @@ struct GenericOffsetTo : OffsetType
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (CAST(Type, *CharP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE (CAST(Type, *CharP(base), offset)) || NEUTER (CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), base2) || NEUTER (CAST(OffsetType,*this,0), 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), user_data) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), user_data) || NEUTER (CAST(OffsetType,*this,0), 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>
