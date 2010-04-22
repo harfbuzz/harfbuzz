@@ -40,6 +40,7 @@
  * Casts
  */
 
+/* Cast to const char *, to char *, or to char * dropping const-ness */
 template <typename Type> inline const char * ConstCharP (const Type X) { return reinterpret_cast<const char *>(X); }
 template <typename Type> inline char * CharP (Type X) { return reinterpret_cast<char *>(X); }
 template <typename Type> inline char * DeConstCharP (const Type X) { return (char *) reinterpret_cast<const char *>(X); }
