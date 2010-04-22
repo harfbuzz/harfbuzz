@@ -463,10 +463,11 @@ struct ContextFormat3
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = glyphCount;
+    if (!SANITIZE_ARRAY (coverage, OffsetTo<Coverage>::get_size (), glyphCount)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_THIS (coverage[i])) return false;
-    LookupRecord *lookupRecord = &CAST(LookupRecord, coverage, coverage[0].get_size () * glyphCount);
-    return SANITIZE_MEM (lookupRecord, lookupRecord[0].get_size () * lookupCount);
+    LookupRecord *lookupRecord = &CAST(LookupRecord, coverage, OffsetTo<Coverage>::get_size () * glyphCount);
+    return SANITIZE_ARRAY (lookupRecord, LookupRecord::get_size (), lookupCount);
   }
 
   private:
