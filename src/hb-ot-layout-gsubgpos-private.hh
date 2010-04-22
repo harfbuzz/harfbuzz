@@ -44,7 +44,7 @@
 	HB_STMT_START { \
 	    if (apply_depth < HB_DEBUG_APPLY) \
 		fprintf (stderr, "APPLY(%p) %-*d-> %s\n", \
-			 (ConstCharP (this) == ConstCharP (&NullPool)) ? 0 : this, \
+			 (CharP (this) == CharP (&NullPool)) ? 0 : this, \
 			 apply_depth, apply_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
@@ -411,7 +411,7 @@ struct ContextFormat2
      */
     struct ContextLookupContext lookup_context = {
      {match_class, apply_func},
-      ConstCharP(&class_def)
+      CharP(&class_def)
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -451,7 +451,7 @@ struct ContextFormat3
     const LookupRecord *lookupRecord = &CONST_CAST(LookupRecord, coverage, coverage[0].get_size () * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-       ConstCharP(this)
+       CharP(this)
     };
     return context_lookup (APPLY_ARG,
 			   glyphCount, (const USHORT *) (coverage + 1),
@@ -696,9 +696,9 @@ struct ChainContextFormat2
      */
     struct ChainContextLookupContext lookup_context = {
      {match_class, apply_func},
-     {ConstCharP(&backtrack_class_def),
-      ConstCharP(&input_class_def),
-      ConstCharP(&lookahead_class_def)}
+     {CharP(&backtrack_class_def),
+      CharP(&input_class_def),
+      CharP(&lookahead_class_def)}
     };
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
@@ -752,7 +752,7 @@ struct ChainContextFormat3
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      {ConstCharP(this), ConstCharP(this), ConstCharP(this)}
+      {CharP(this), CharP(this), CharP(this)}
     };
     return chain_context_lookup (APPLY_ARG,
 				 backtrack.len, (const USHORT *) backtrack.array(),

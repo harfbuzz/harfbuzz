@@ -40,12 +40,12 @@
  * Casts
  */
 
-/* Cast to const char *, to char *, or to char * dropping const-ness */
-template <typename Type> inline const char * ConstCharP (const Type X) { return reinterpret_cast<const char *>(X); }
-template <typename Type> inline char * CharP (Type X) { return reinterpret_cast<char *>(X); }
+/* Cast to "const char *" and "char *" */
+template <typename Type> inline const char * CharP (const Type* X) { return reinterpret_cast<const char *>(X); }
+template <typename Type> inline char * CharP (Type* X) { return reinterpret_cast<char *>(X); }
 
-#define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(ConstCharP(&(X)) + Ofs)))
-#define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)ConstCharP(&(X)) + Ofs)))
+#define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(CharP(&(X)) + Ofs)))
+#define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)CharP(&(X)) + Ofs)))
 #define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CharP(&(X)) + Ofs)))
 
 
@@ -54,7 +54,7 @@ template <typename Type> inline char * CharP (Type X) { return reinterpret_cast<
 template<typename Type, typename TObject>
 inline const Type& StructAfter(const TObject &X)
 {
-  return * reinterpret_cast<const Type*> (ConstCharP (&X) + X.get_size());
+  return * reinterpret_cast<const Type*> (CharP (&X) + X.get_size());
 }
 template<typename Type, typename TObject>
 inline Type& StructAfter(TObject &X)
@@ -129,7 +129,7 @@ inline const Type& Null<Type> () { \
 	HB_STMT_START { \
 	    if (sanitize_depth < HB_DEBUG_SANITIZE) \
 		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
-			 (ConstCharP (this) == ConstCharP (&NullPool)) ? 0 : this, \
+			 (CharP (this) == CharP (&NullPool)) ? 0 : this, \
 			 sanitize_depth, sanitize_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
@@ -258,9 +258,9 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
 #define SANITIZE_GET_SIZE() SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ())
 
-#define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, ConstCharP(B), (L)))
+#define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, CharP(B), (L)))
 
-#define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, ConstCharP(A), S, L))
+#define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, CharP(A), S, L))
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
@@ -285,7 +285,7 @@ struct Sanitizer
 
     _hb_sanitize_init (&context, blob);
 
-    Type *t = &CAST (Type, * (char *) ConstCharP(context.start), 0);
+    Type *t = &CAST (Type, * (char *) CharP(context.start), 0);
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
@@ -403,7 +403,7 @@ ASSERT_SIZE (LONG, 4);
 struct Tag : ULONG
 {
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
-  inline operator const char* (void) const { return ConstCharP(this); }
+  inline operator const char* (void) const { return CharP(this); }
   inline operator char* (void) { return CharP(this); }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -476,7 +476,7 @@ struct GenericOffsetTo : OffsetType
   {
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return Null(Type);
-    return CONST_CAST(Type, *ConstCharP(base), offset);
+    return CONST_CAST(Type, *CharP(base), offset);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {

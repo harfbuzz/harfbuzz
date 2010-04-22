@@ -52,7 +52,7 @@ typedef struct TableDirectory
   inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (tag) &&
-	   SANITIZE_MEM (ConstCharP(base) + (unsigned long) offset, length);
+	   SANITIZE_MEM (CharP(base) + (unsigned long) offset, length);
   }
 
   Tag		tag;		/* 4-byte identifier. */
@@ -180,8 +180,8 @@ struct OpenTypeFontFile
   {
     switch (tag) {
     default: return 0;
-    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (ConstCharP(this)).get_face_count ();
-    case TTCTag: return TTCHeader::get_for_data (ConstCharP(this)).get_face_count ();
+    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (CharP(this)).get_face_count ();
+    case TTCTag: return TTCHeader::get_for_data (CharP(this)).get_face_count ();
     }
   }
   inline const OpenTypeFontFace& get_face (unsigned int i) const
@@ -191,8 +191,8 @@ struct OpenTypeFontFile
     /* Note: for non-collection SFNT data we ignore index.  This is because
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
      * non-TTC, but the index is more than zero. */
-    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (ConstCharP(this));
-    case TTCTag: return TTCHeader::get_for_data (ConstCharP(this)).get_face (i);
+    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (CharP(this));
+    case TTCTag: return TTCHeader::get_for_data (CharP(this)).get_face (i);
     }
   }
 
