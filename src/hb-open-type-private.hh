@@ -82,11 +82,12 @@ static inline const Type& Null () {
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
 #define DEFINE_NULL_DATA(Type, size, data) \
-static const char _Null##Type[size + 1] = data; \
+static const char _Null##Type[size + 1] = data; /* +1 is for nul-termination in data */ \
 template <> \
 inline const Type& Null<Type> () { \
   return CONST_CAST (Type, *_Null##Type, 0); \
-}
+} /* The following line really exists such that we end in a place needing semicolon */ \
+ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 
 /* Accessor macro. */
 #define Null(Type) Null<Type>()
