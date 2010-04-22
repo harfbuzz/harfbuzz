@@ -48,6 +48,8 @@ template <typename Type> inline char * DeConstCharP (const Type X) { return (cha
 #define CAST(T,X,Ofs) 		(*(reinterpret_cast<T *>(CharP(&(X)) + Ofs)))
 
 
+/* StructAfter<T>(X) returns the struct T& that is placed after X.
+ * Works with X of variable size also. */
 template<typename Type, typename TObject>
 inline const Type& StructAfter(const TObject &X)
 {
@@ -57,17 +59,6 @@ template<typename Type, typename TObject>
 inline Type& StructAfter(TObject &X)
 {
   return * reinterpret_cast<Type*> (CharP (&X) + X.get_size());
-}
-
-template<typename Type, typename TObject>
-inline const Type* ArrayAfter(const TObject &X)
-{
-  return reinterpret_cast<const Type*> (ConstCharP (&X) + X.get_size());
-}
-template<typename Type, typename TObject>
-inline Type* ArrayAfter(TObject &X)
-{
-  return reinterpret_cast<Type*> (CharP (&X) + X.get_size());
 }
 
 
@@ -522,8 +513,8 @@ struct LongOffsetTo : GenericOffsetTo<LongOffset, Type> {};
 template <typename LenType, typename Type>
 struct GenericArrayOf
 {
-  const Type *const_array(void) const { return ArrayAfter<Type> (len); }
-  Type *array(void) { return ArrayAfter<Type> (len); }
+  const Type *const_array(void) const { return &StructAfter<Type> (len); }
+  Type *array(void) { return &StructAfter<Type> (len); }
 
   const Type *const_sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
@@ -640,8 +631,8 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type>
 struct HeadlessArrayOf
 {
-  const Type *const_array(void) const { return ArrayAfter<Type> (len); }
-  Type *array(void) { return ArrayAfter<Type> (len); }
+  const Type *const_array(void) const { return &StructAfter<Type> (len); }
+  Type *array(void) { return &StructAfter<Type> (len); }
 
   inline const Type& operator [] (unsigned int i) const
   {
