@@ -264,7 +264,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
-	 _hb_sanitize_edit (SANITIZE_ARG, CharP(&(Var)), sizeof (Var)) && \
+	 _hb_sanitize_edit (SANITIZE_ARG, CharP(&(Var)), (Var).get_size ()) && \
 	 ((Var).set (Val), true))
 
 
@@ -484,21 +484,21 @@ struct GenericOffsetTo : OffsetType
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (CAST(Type, *CharP(base), offset)) || NEUTER (CAST(OffsetType,*this,0), 0);
+    return SANITIZE (CAST(Type, *CharP(base), offset)) || NEUTER (*this, 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), base2) || NEUTER (CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), base2) || NEUTER (*this, 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), user_data) || NEUTER (CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), user_data) || NEUTER (*this, 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>
