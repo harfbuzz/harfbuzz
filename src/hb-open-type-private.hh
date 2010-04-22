@@ -32,6 +32,7 @@
 #include "hb-blob.h"
 
 
+/* Table/script/language-system/feature/... not found */
 #define NO_INDEX		((unsigned int) 0xFFFF)
 
 
