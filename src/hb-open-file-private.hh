@@ -49,10 +49,9 @@ typedef struct TableDirectory
 {
   static inline unsigned int get_size () { return sizeof (TableDirectory); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE (tag) &&
-	   SANITIZE_MEM (CharP(base) + (unsigned long) offset, length);
+    return SANITIZE_SELF ();
   }
 
   Tag		tag;		/* 4-byte identifier. */
@@ -109,12 +108,16 @@ typedef struct OffsetTable
   inline unsigned int get_face_count (void) const { return 1; }
 
   public:
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
     if (!(SANITIZE_SELF () && SANITIZE_ARRAY (tableDir, TableDirectory::get_size (), numTables))) return false;
+    return true;
+    /* No need to check tables individually since we don't sanitize the
+     * referenced table, just the table directory.  Code retaind to make
+     * sure TableDirectory has a baseless sanitize(). */
     unsigned int count = numTables;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_BASE (tableDir[i], base))
+      if (!SANITIZE (tableDir[i]))
         return false;
     return true;
   }
@@ -200,7 +203,7 @@ struct OpenTypeFontFile
   inline const char* get_table_data (const OpenTypeTable& table) const
   {
     if (HB_UNLIKELY (table.offset == 0)) return NULL;
-    return ((const char*) this) + table.offset;
+    return CharP(this) + table.offset;
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
