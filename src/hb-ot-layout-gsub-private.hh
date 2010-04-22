@@ -736,7 +736,7 @@ struct SubstLookupSubTable
 struct SubstLookup : Lookup
 {
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  { return CONST_CAST (SubstLookupSubTable, Lookup::get_subtable (i), 0); }
+  { return this+CONST_CAST (OffsetArrayOf<SubstLookupSubTable>, subTable, 0)[i]; }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -829,7 +829,7 @@ struct SubstLookup : Lookup
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!Lookup::sanitize (SANITIZE_ARG)) return false;
-    OffsetArrayOf<SubstLookupSubTable> &list = (OffsetArrayOf<SubstLookupSubTable> &) subTable;
+    OffsetArrayOf<SubstLookupSubTable> &list = CAST (OffsetArrayOf<SubstLookupSubTable>, subTable, 0);
     return SANITIZE_THIS (list);
   }
 };

@@ -1440,7 +1440,7 @@ struct PosLookupSubTable
 struct PosLookup : Lookup
 {
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
-  { return (const PosLookupSubTable&) Lookup::get_subtable (i); }
+  { return this+CONST_CAST (OffsetArrayOf<PosLookupSubTable>, subTable, 0)[i]; }
 
   /* Like get_type(), but looks through extension lookups.
    * Never returns Extension */
@@ -1519,7 +1519,7 @@ struct PosLookup : Lookup
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!Lookup::sanitize (SANITIZE_ARG)) return false;
-    OffsetArrayOf<PosLookupSubTable> &list = (OffsetArrayOf<PosLookupSubTable> &) subTable;
+    OffsetArrayOf<PosLookupSubTable> &list = CAST (OffsetArrayOf<PosLookupSubTable>, subTable, 0);
     return SANITIZE_THIS (list);
   }
 };
