@@ -608,9 +608,9 @@ struct Device
   }
 
   private:
-  USHORT	startSize;	/* Smallest size to correct--in ppem */
-  USHORT	endSize;	/* Largest size to correct--in ppem */
-  USHORT	deltaFormat;	/* Format of DeltaValue array data: 1, 2, or 3 */
+  USHORT	startSize;		/* Smallest size to correct--in ppem */
+  USHORT	endSize;		/* Largest size to correct--in ppem */
+  USHORT	deltaFormat;		/* Format of DeltaValue array data: 1, 2, or 3 */
   USHORT	deltaValue[VAR];	/* Array of compressed data */
 };
 ASSERT_SIZE_VAR (Device, 6, USHORT);
