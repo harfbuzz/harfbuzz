@@ -88,7 +88,7 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
     Tag t;
     t.set (tag);
     // TODO bsearch
-    const Record<Type> *a = this->const_array();
+    const Record<Type> *a = this->array();
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -122,7 +122,7 @@ struct IndexArray : ArrayOf<USHORT>
   {
     if (HB_UNLIKELY (i >= this->len))
       return NO_INDEX;
-    return this->const_array()[i];
+    return this->array()[i];
   }
   inline unsigned int get_indexes (unsigned int start_offset,
 				   unsigned int *_count /* IN/OUT */,

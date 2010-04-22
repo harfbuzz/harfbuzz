@@ -513,7 +513,7 @@ struct LongOffsetTo : GenericOffsetTo<LongOffset, Type> {};
 template <typename LenType, typename Type>
 struct GenericArrayOf
 {
-  const Type *const_array(void) const { return &StructAfter<Type> (len); }
+  const Type *array(void) const { return &StructAfter<Type> (len); }
   Type *array(void) { return &StructAfter<Type> (len); }
 
   const Type *const_sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
@@ -525,13 +525,13 @@ struct GenericArrayOf
       count -= start_offset;
     count = MIN (count, *pcount);
     *pcount = count;
-    return const_array() + start_offset;
+    return array() + start_offset;
   }
 
   inline const Type& operator [] (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= len)) return Null(Type);
-    return const_array()[i];
+    return array()[i];
   }
   inline unsigned int get_size () const
   { return len.get_size () + len * Type::get_size (); }
@@ -612,7 +612,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
   inline const Type& operator [] (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= this->len)) return Null(Type);
-    return this+this->const_array()[i];
+    return this+this->array()[i];
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -631,13 +631,13 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type>
 struct HeadlessArrayOf
 {
-  const Type *const_array(void) const { return &StructAfter<Type> (len); }
+  const Type *array(void) const { return &StructAfter<Type> (len); }
   Type *array(void) { return &StructAfter<Type> (len); }
 
   inline const Type& operator [] (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= len || !i)) return Null(Type);
-    return const_array()[i-1];
+    return array()[i-1];
   }
   inline unsigned int get_size () const
   { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }

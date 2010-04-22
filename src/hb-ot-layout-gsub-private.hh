@@ -159,7 +159,7 @@ struct Sequence
       return false;
 
     _hb_buffer_add_output_glyphs_be16 (buffer, 1,
-				       substitute.len, (const uint16_t *) substitute.const_array(),
+				       substitute.len, (const uint16_t *) substitute.array(),
 				       0xFFFF, 0xFFFF);
 
     /* This is a guess only ... */
@@ -590,10 +590,10 @@ struct ReverseChainSingleSubstFormat1
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
 
     if (match_backtrack (APPLY_ARG,
-			 backtrack.len, (USHORT *) backtrack.const_array(),
+			 backtrack.len, (USHORT *) backtrack.array(),
 			 match_coverage, ConstCharP(this)) &&
         match_lookahead (APPLY_ARG,
-			 lookahead.len, (USHORT *) lookahead.const_array(),
+			 lookahead.len, (USHORT *) lookahead.array(),
 			 match_coverage, ConstCharP(this),
 			 1))
     {
