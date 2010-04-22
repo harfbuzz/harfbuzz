@@ -171,6 +171,7 @@ struct ValueFormat : USHORT
     return true;
   }
 
+  /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
   inline bool sanitize_values_stride_unsafe (SANITIZE_ARG_DEF, void *base, const Value *values, unsigned int count, unsigned int stride) {
     TRACE_SANITIZE ();
 
@@ -537,7 +538,7 @@ struct PairSet
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = (1 + format_len) * len;
-    return SANITIZE_MEM (array, USHORT::get_size () * count);
+    return SANITIZE_ARRAY (array, USHORT::get_size (), count);
   }
 
   private:
@@ -603,7 +604,7 @@ struct PairPosFormat1
     unsigned int len2 = valueFormat2.get_len ();
 
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	  pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2))) return false;
+	  HB_LIKELY (pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2)))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -1050,8 +1051,8 @@ struct MarkBasePosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS2 (markCoverage, baseCoverage) &&
-	   SANITIZE_THIS (markArray) && baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount);
+    return SANITIZE_SELF () && SANITIZE_THIS3 (markCoverage, baseCoverage, markArray) &&
+	   HB_LIKELY (baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
@@ -1170,9 +1171,8 @@ struct MarkLigPosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () &&
-	   SANITIZE_THIS2 (markCoverage, ligatureCoverage) &&
-	   SANITIZE_THIS (markArray) && ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount);
+    return SANITIZE_SELF () && SANITIZE_THIS3 (markCoverage, ligatureCoverage, markArray) &&
+	   HB_LIKELY (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
@@ -1270,8 +1270,8 @@ struct MarkMarkPosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS2 (mark1Coverage, mark2Coverage) &&
-	   SANITIZE_THIS (mark1Array) && mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount);
+    return SANITIZE_SELF () && SANITIZE_THIS3 (mark1Coverage, mark2Coverage, mark1Array) &&
+	   HB_LIKELY (mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
