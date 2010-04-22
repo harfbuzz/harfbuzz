@@ -61,10 +61,10 @@ inline Type& Cast(TObject &X)
  * location of X plus Ofs bytes. */
 template<typename Type, typename TObject>
 inline const Type& StructAtOffset(const TObject &X, unsigned int offset)
-{ return * reinterpret_cast<const Type*> (CharP (&X) + offset); }
+{ return * reinterpret_cast<const Type*> (CharP(&X) + offset); }
 template<typename Type, typename TObject>
 inline Type& StructAtOffset(TObject &X, unsigned int offset)
-{ return * reinterpret_cast<Type*> (CharP (&X) + offset); }
+{ return * reinterpret_cast<Type*> (CharP(&X) + offset); }
 
 /* StructAfter<T>(X) returns the struct T& that is placed after X.
  * Works with X of variable size also.  X must implement get_size() */
@@ -144,7 +144,7 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 	HB_STMT_START { \
 	    if (sanitize_depth < HB_DEBUG_SANITIZE) \
 		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
-			 (CharP (this) == CharP (&NullPool)) ? 0 : this, \
+			 (CharP(this) == CharP(&NullPool)) ? 0 : this, \
 			 sanitize_depth, sanitize_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
