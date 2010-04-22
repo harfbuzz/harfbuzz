@@ -835,10 +835,9 @@ struct ExtensionFormat1
 
   protected:
   inline unsigned int get_type (void) const { return extensionLookupType; }
-  inline unsigned int get_offset (void) const { return (extensionOffset[0] << 16) + extensionOffset[1]; }
   inline const LookupSubTable& get_subtable (void) const
   {
-    unsigned int offset = get_offset ();
+    unsigned int offset = extensionOffset;
     if (HB_UNLIKELY (!offset)) return Null(LookupSubTable);
     return CONST_CAST (LookupSubTable, *this, offset);
   }
@@ -853,10 +852,8 @@ struct ExtensionFormat1
   USHORT	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
 					 * extension subtable). */
-  USHORT	extensionOffset[2];	/* Offset to the extension subtable,
-					 * of lookup type subtable.
-					 * Defined as two shorts to avoid
-					 * alignment requirements. */
+  ULONG		extensionOffset;	/* Offset to the extension subtable,
+					 * of lookup type subtable. */
 };
 ASSERT_SIZE (ExtensionFormat1, 8);
 
