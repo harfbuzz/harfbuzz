@@ -295,7 +295,7 @@ struct Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE (lookupType) && SANITIZE (lookupFlag) && SANITIZE_THIS (subTable))) return false;
+    if (!(SANITIZE_SELF () && SANITIZE_THIS (subTable))) return false;
     if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
