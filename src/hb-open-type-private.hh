@@ -43,7 +43,6 @@
 /* Cast to const char *, to char *, or to char * dropping const-ness */
 template <typename Type> inline const char * ConstCharP (const Type X) { return reinterpret_cast<const char *>(X); }
 template <typename Type> inline char * CharP (Type X) { return reinterpret_cast<char *>(X); }
-template <typename Type> inline char * DeConstCharP (const Type X) { return (char *) reinterpret_cast<const char *>(X); }
 
 #define CONST_CAST(T,X,Ofs)	(*(reinterpret_cast<const T *>(ConstCharP(&(X)) + Ofs)))
 #define DECONST_CAST(T,X,Ofs)	(*(reinterpret_cast<T *>((char *)ConstCharP(&(X)) + Ofs)))
@@ -248,7 +247,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
 #define SANITIZE2(X,Y) (SANITIZE (X) && SANITIZE (Y))
 
-#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, ConstCharP(this)))
+#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, CharP(this)))
 #define SANITIZE_THIS2(X,Y) (SANITIZE_THIS (X) && SANITIZE_THIS (Y))
 #define SANITIZE_THIS3(X,Y,Z) (SANITIZE_THIS (X) && SANITIZE_THIS (Y) && SANITIZE_THIS(Z))
 
@@ -265,7 +264,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 
 #define NEUTER(Var, Val) \
 	(SANITIZE_OBJ (Var) && \
-	 _hb_sanitize_edit (SANITIZE_ARG, ConstCharP(&(Var)), sizeof (Var)) && \
+	 _hb_sanitize_edit (SANITIZE_ARG, CharP(&(Var)), sizeof (Var)) && \
 	 ((Var).set (Val), true))
 
 
@@ -286,7 +285,7 @@ struct Sanitizer
 
     _hb_sanitize_init (&context, blob);
 
-    Type *t = &CAST (Type, *DeConstCharP(context.start), 0);
+    Type *t = &CAST (Type, * (char *) ConstCharP(context.start), 0);
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
@@ -480,26 +479,26 @@ struct GenericOffsetTo : OffsetType
     return CONST_CAST(Type, *ConstCharP(base), offset);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE (CAST(Type, *DeConstCharP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE (CAST(Type, *CharP(base), offset)) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *DeConstCharP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), base2) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (HB_UNLIKELY (!offset)) return true;
-    return SANITIZE_BASE (CAST(Type, *DeConstCharP(base), offset), user_data) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
+    return SANITIZE_BASE (CAST(Type, *CharP(base), offset), user_data) || NEUTER (DECONST_CAST(OffsetType,*this,0), 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>
@@ -559,7 +558,7 @@ struct GenericArrayOf
         return false;
     return true;
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
@@ -568,7 +567,7 @@ struct GenericArrayOf
         return false;
     return true;
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, const void *base2) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
@@ -577,7 +576,7 @@ struct GenericArrayOf
         return false;
     return true;
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base, unsigned int user_data) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_GET_SIZE()) return false;
     unsigned int count = len;
@@ -623,11 +622,11 @@ struct OffsetListOf : OffsetArrayOf<Type>
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, ConstCharP(this));
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this));
   }
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int user_data) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, ConstCharP(this), user_data);
+    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this), user_data);
   }
 };
 

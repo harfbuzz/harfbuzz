@@ -150,7 +150,7 @@ struct TTCHeader
     TRACE_SANITIZE ();
     if (!SANITIZE (version)) return false;
     if (version.major < 1 || version.major > 2) return true;
-    return table.sanitize (SANITIZE_ARG, ConstCharP(this), ConstCharP(this));
+    return table.sanitize (SANITIZE_ARG, CharP(this), CharP(this));
   }
 
   private:

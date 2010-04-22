@@ -344,7 +344,7 @@ struct MarkRecord
 
   static inline unsigned int get_size () { return sizeof (MarkRecord); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_BASE (markAnchor, base);
   }
@@ -602,7 +602,7 @@ struct PairPosFormat1
     unsigned int len2 = valueFormat2.get_len ();
 
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	  pairSet.sanitize (SANITIZE_ARG, ConstCharP(this), len1 + len2))) return false;
+	  pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -765,7 +765,7 @@ struct EntryExitRecord
 {
   static inline unsigned int get_size () { return sizeof (EntryExitRecord); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_BASE2 (entryAnchor, exitAnchor, base);
   }
@@ -1050,7 +1050,7 @@ struct MarkBasePosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS2 (markCoverage, baseCoverage) &&
-	   SANITIZE_THIS (markArray) && baseArray.sanitize (SANITIZE_ARG, ConstCharP(this), classCount);
+	   SANITIZE_THIS (markArray) && baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount);
   }
 
   private:
@@ -1171,7 +1171,7 @@ struct MarkLigPosFormat1
     TRACE_SANITIZE ();
     return SANITIZE_SELF () &&
 	   SANITIZE_THIS2 (markCoverage, ligatureCoverage) &&
-	   SANITIZE_THIS (markArray) && ligatureArray.sanitize (SANITIZE_ARG, ConstCharP(this), classCount);
+	   SANITIZE_THIS (markArray) && ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount);
   }
 
   private:
@@ -1270,7 +1270,7 @@ struct MarkMarkPosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS2 (mark1Coverage, mark2Coverage) &&
-	   SANITIZE_THIS (mark1Array) && mark2Array.sanitize (SANITIZE_ARG, ConstCharP(this), classCount);
+	   SANITIZE_THIS (mark1Array) && mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount);
   }
 
   private:

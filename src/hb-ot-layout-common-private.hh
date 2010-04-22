@@ -53,7 +53,7 @@ struct Record
 {
   static inline unsigned int get_size () { return sizeof (Record<Type>); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, const void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE (tag) && SANITIZE_BASE (offset, base);
   }
@@ -111,7 +111,7 @@ struct RecordListOf : RecordArrayOf<Type>
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, ConstCharP(this));
+    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this));
   }
 };
 
