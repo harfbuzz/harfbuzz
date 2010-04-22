@@ -521,7 +521,7 @@ struct GenericArrayOf
   const Type *array(void) const { return &StructAfter<Type> (len); }
   Type *array(void) { return &StructAfter<Type> (len); }
 
-  const Type *const_sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
+  const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
     unsigned int count = len;
     if (HB_UNLIKELY (start_offset > count))

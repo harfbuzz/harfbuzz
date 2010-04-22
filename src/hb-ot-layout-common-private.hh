@@ -76,7 +76,7 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
 				hb_tag_t     *record_tags /* OUT */) const
   {
     if (record_count) {
-      const Record<Type> *array = this->const_sub_array (start_offset, record_count);
+      const Record<Type> *array = this->sub_array (start_offset, record_count);
       unsigned int count = *record_count;
       for (unsigned int i = 0; i < count; i++)
 	record_tags[i] = array[i].tag;
@@ -129,7 +129,7 @@ struct IndexArray : ArrayOf<USHORT>
 				   unsigned int *_indexes /* OUT */) const
   {
     if (_count) {
-      const USHORT *array = this->const_sub_array (start_offset, _count);
+      const USHORT *array = this->sub_array (start_offset, _count);
       unsigned int count = *_count;
       for (unsigned int i = 0; i < count; i++)
 	_indexes[i] = array[i];
