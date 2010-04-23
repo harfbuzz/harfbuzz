@@ -65,7 +65,6 @@ ASSERT_SIZE (TableDirectory, 16);
 typedef struct OffsetTable
 {
   friend struct OpenTypeFontFile;
-  friend struct TTCHeader;
 
   STATIC_DEFINE_GET_FOR_DATA (OffsetTable);
 
@@ -127,31 +126,71 @@ ASSERT_SIZE_VAR (OffsetTable, 12, TableDirectory);
  * TrueType Collections
  */
 
-struct TTCHeader
+struct TTCHeaderVersion1
 {
-  friend struct OpenTypeFontFile;
-
-  STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION (TTCHeader, 1, 2);
+  friend struct TTCHeader;
 
   inline unsigned int get_face_count (void) const { return table.len; }
   inline const OpenTypeFontFace& get_face (unsigned int i) const { return this+table[i]; }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (version)) return false;
-    if (HB_UNLIKELY (version.major < 1 || version.major > 2)) return false;
     return HB_LIKELY (table.sanitize (SANITIZE_ARG, CharP(this), CharP(this)));
   }
 
   private:
   Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */
-  FixedVersion	version;	/* Version of the TTC Header (1.0 or 2.0),
-				 * 0x00010000 or 0x00020000 */
+  FixedVersion	version;	/* Version of the TTC Header (1.0),
+				 * 0x00010000 */
   LongOffsetLongArrayOf<OffsetTable>
 		table;		/* Array of offsets to the OffsetTable for each font
 				 * from the beginning of the file */
 };
-ASSERT_SIZE (TTCHeader, 12);
+ASSERT_SIZE (TTCHeaderVersion1, 12);
+
+struct TTCHeader
+{
+  friend struct OpenTypeFontFile;
+
+  private:
+
+  inline unsigned int get_face_count (void) const
+  {
+    switch (u.header.version) {
+    case 2: /* version 2 is compatible with version 1 */
+    case 1: return u.version1->get_face_count ();
+    default:return 0;
+    }
+  }
+  inline const OpenTypeFontFace& get_face (unsigned int i) const
+  {
+    switch (u.header.version) {
+    case 2: /* version 2 is compatible with version 1 */
+    case 1: return u.version1->get_face (i);
+    default: return Null(OpenTypeFontFace);
+    }
+  }
+
+  inline bool sanitize (SANITIZE_ARG_DEF) {
+    TRACE_SANITIZE ();
+    if (!SANITIZE (u.header.version)) return false;
+    switch (u.header.version) {
+    case 2: /* version 2 is compatible with version 1 */
+    case 1: return u.version1->sanitize (SANITIZE_ARG);
+    default:return true;
+    }
+  }
+
+  private:
+  union {
+  struct {
+  Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */
+  FixedVersion	version;	/* Version of the TTC Header (1.0 or 2.0),
+				 * 0x00010000 or 0x00020000 */
+  }			header;
+  TTCHeaderVersion1	version1[VAR];
+  } u;
+};
 
 
 /*
@@ -169,20 +208,20 @@ struct OpenTypeFontFile
   inline unsigned int get_face_count (void) const
   {
     switch (tag) {
+    case TrueTypeTag: case CFFTag: return Cast<OpenTypeFontFace> (*this).get_face_count ();
+    case TTCTag: return Cast<TTCHeader> (*this).get_face_count ();
     default: return 0;
-    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (CharP(this)).get_face_count ();
-    case TTCTag: return TTCHeader::get_for_data (CharP(this)).get_face_count ();
     }
   }
   inline const OpenTypeFontFace& get_face (unsigned int i) const
   {
     switch (tag) {
-    default: return Null(OpenTypeFontFace);
     /* Note: for non-collection SFNT data we ignore index.  This is because
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
      * non-TTC, but the index is more than zero. */
-    case TrueTypeTag: case CFFTag: return OffsetTable::get_for_data (CharP(this));
-    case TTCTag: return TTCHeader::get_for_data (CharP(this)).get_face (i);
+    case TrueTypeTag: case CFFTag: return Cast<OpenTypeFontFace> (*this);
+    case TTCTag: return Cast<TTCHeader> (*this).get_face (i);
+    default: return Null(OpenTypeFontFace);
     }
   }
 
@@ -191,7 +230,7 @@ struct OpenTypeFontFile
     if (!SANITIZE_SELF ()) return false;
     switch (tag) {
     default: return true;
-    case TrueTypeTag: case CFFTag: return SANITIZE_THIS (Cast<OffsetTable> (*this));
+    case TrueTypeTag: case CFFTag: return SANITIZE_THIS (Cast<OpenTypeFontFace> (*this));
     case TTCTag: return SANITIZE (Cast<TTCHeader> (*this));
     }
   }
