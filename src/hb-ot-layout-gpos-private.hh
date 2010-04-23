@@ -1445,7 +1445,7 @@ struct PosLookupSubTable
 struct PosLookup : Lookup
 {
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
-  { return this+Cast<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
+  { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
   inline bool apply_once (hb_ot_layout_context_t *context,
 			  hb_buffer_t    *buffer,
@@ -1504,7 +1504,7 @@ struct PosLookup : Lookup
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!Lookup::sanitize (SANITIZE_ARG))) return false;
-    OffsetArrayOf<PosLookupSubTable> &list = Cast<OffsetArrayOf<PosLookupSubTable> > (subTable);
+    OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
     return SANITIZE_THIS (list);
   }
 };
@@ -1521,7 +1521,7 @@ struct GPOS : GSUBGPOS
   static const hb_tag_t Tag	= HB_OT_TAG_GPOS;
 
   inline const PosLookup& get_lookup (unsigned int i) const
-  { return Cast<PosLookup> (GSUBGPOS::get_lookup (i)); }
+  { return CastR<PosLookup> (GSUBGPOS::get_lookup (i)); }
 
   inline bool position_lookup (hb_ot_layout_context_t *context,
 			       hb_buffer_t  *buffer,
@@ -1532,7 +1532,7 @@ struct GPOS : GSUBGPOS
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
-    OffsetTo<PosLookupList> &list = Cast<OffsetTo<PosLookupList> > (lookupList);
+    OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return SANITIZE_THIS (list);
   }
 };

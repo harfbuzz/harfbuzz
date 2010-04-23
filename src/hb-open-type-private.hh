@@ -49,13 +49,21 @@ template <typename Type>
 inline char * CharP (Type* X)
 { return reinterpret_cast<char *>(X); }
 
-/* Cast to struct T& */
+/* Cast to struct T, reference to reference */
 template<typename Type, typename TObject>
-inline const Type& Cast(const TObject &X)
+inline const Type& CastR(const TObject &X)
 { return reinterpret_cast<const Type&> (X); }
 template<typename Type, typename TObject>
-inline Type& Cast(TObject &X)
+inline Type& CastR(TObject &X)
 { return reinterpret_cast<Type&> (X); }
+
+/* Cast to struct T, pointer to pointer */
+template<typename Type, typename TObject>
+inline const Type* CastP(const TObject *X)
+{ return reinterpret_cast<const Type*> (X); }
+template<typename Type, typename TObject>
+inline Type* CastP(TObject *X)
+{ return reinterpret_cast<Type*> (X); }
 
 /* StructAtOffset<T>(X,Ofs) returns the struct T& that is placed at memory
  * location of X plus Ofs bytes. */
@@ -91,7 +99,7 @@ static const void *_NullPool[32 / sizeof (void *)];
 template <typename Type>
 static inline const Type& Null () {
   ASSERT_STATIC (sizeof (Type) <= sizeof (_NullPool));
-  return Cast<Type> (*_NullPool);
+  return *CastP<Type> (_NullPool);
 }
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
@@ -99,7 +107,7 @@ static inline const Type& Null () {
 static const char _Null##Type[size + 1] = data; /* +1 is for nul-termination in data */ \
 template <> \
 inline const Type& Null<Type> () { \
-  return Cast<Type> (*_Null##Type); \
+  return *CastP<Type> (_Null##Type); \
 } /* The following line really exists such that we end in a place needing semicolon */ \
 ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 
@@ -281,7 +289,7 @@ struct Sanitizer
     _hb_sanitize_init (&context, blob);
 
     /* Note: We drop const here */
-    Type *t = &Cast<Type> (* (char *) CharP(context.start));
+    Type *t = CastP<Type> ((void *) context.start);
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
     if (sane) {
@@ -326,7 +334,7 @@ struct Sanitizer
   }
 
   static const Type& lock_instance (hb_blob_t *blob) {
-    return Cast<Type> (* (const char *) hb_blob_lock (blob));
+    return *CastP<Type> (hb_blob_lock (blob));
   }
 };
 

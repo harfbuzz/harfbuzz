@@ -743,7 +743,7 @@ struct SubstLookupSubTable
 struct SubstLookup : Lookup
 {
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  { return this+Cast<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i]; }
+  { return this+CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i]; }
 
   inline static bool lookup_type_is_reverse (unsigned int lookup_type)
   { return lookup_type == SubstLookupSubTable::ReverseChainSingle; }
@@ -752,7 +752,7 @@ struct SubstLookup : Lookup
   {
     unsigned int type = get_type ();
     if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
-      return Cast<ExtensionSubst> (get_subtable(0)).is_reverse ();
+      return CastR<ExtensionSubst> (get_subtable(0)).is_reverse ();
     return lookup_type_is_reverse (type);
   }
 
@@ -839,7 +839,7 @@ struct SubstLookup : Lookup
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!Lookup::sanitize (SANITIZE_ARG))) return false;
-    OffsetArrayOf<SubstLookupSubTable> &list = Cast<OffsetArrayOf<SubstLookupSubTable> > (subTable);
+    OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
     return SANITIZE_THIS (list);
   }
 };
@@ -856,7 +856,7 @@ struct GSUB : GSUBGPOS
   static const hb_tag_t Tag	= HB_OT_TAG_GSUB;
 
   inline const SubstLookup& get_lookup (unsigned int i) const
-  { return Cast<SubstLookup> (GSUBGPOS::get_lookup (i)); }
+  { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
   inline bool substitute_lookup (hb_ot_layout_context_t *context,
 				 hb_buffer_t  *buffer,
@@ -868,7 +868,7 @@ struct GSUB : GSUBGPOS
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (HB_UNLIKELY (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
-    OffsetTo<SubstLookupList> &list = Cast<OffsetTo<SubstLookupList> > (lookupList);
+    OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
     return SANITIZE_THIS (list);
   }
 };
@@ -896,7 +896,7 @@ inline bool ExtensionSubst::is_reverse (void) const
 {
   unsigned int type = get_type ();
   if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
-    return Cast<ExtensionSubst> (get_subtable()).is_reverse ();
+    return CastR<ExtensionSubst> (get_subtable()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
 }
 

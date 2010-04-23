@@ -61,7 +61,7 @@ main (int argc, char **argv)
 
   printf ("Opened font file %s: %d bytes long\n", argv[1], len);
 
-  const OpenTypeFontFile &ot = Cast<OpenTypeFontFile> (font_data);
+  const OpenTypeFontFile &ot = *CastP<OpenTypeFontFile> (font_data);
 
   switch (ot.get_tag ()) {
   case OpenTypeFontFile::TrueTypeTag:
@@ -99,7 +99,7 @@ main (int argc, char **argv)
       case GSUBGPOS::GPOSTag:
 	{
 
-	const GSUBGPOS &g = Cast<GSUBGPOS> (font_data + table.offset);
+	const GSUBGPOS &g = *CastP<GSUBGPOS> (font_data + table.offset);
 
 	int num_scripts = g.get_script_count ();
 	printf ("    %d script(s) found in table\n", num_scripts);
@@ -162,7 +162,7 @@ main (int argc, char **argv)
       case GDEF::Tag:
 	{
 
-	const GDEF &gdef = Cast<GDEF> (font_data + table.offset);
+	const GDEF &gdef = *CastP<GDEF> (font_data + table.offset);
 
 	printf ("    Has %sglyph classes\n",
 		  gdef.has_glyph_classes () ? "" : "no ");
