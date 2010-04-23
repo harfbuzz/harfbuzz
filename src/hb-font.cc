@@ -62,8 +62,8 @@ hb_font_get_glyph_metrics_nil (hb_font_t *font HB_GNUC_UNUSED,
 			       hb_face_t *face HB_GNUC_UNUSED,
 			       const void *user_data HB_GNUC_UNUSED,
 			       hb_codepoint_t glyph HB_GNUC_UNUSED,
-			       hb_glyph_metrics_t *metrics)
-{ memset (metrics, 0, sizeof (*metrics)); }
+			       hb_glyph_metrics_t *metrics HB_GNUC_UNUSED)
+{ }
 
 static hb_position_t
 hb_font_get_kerning_nil (hb_font_t *font HB_GNUC_UNUSED,
@@ -205,7 +205,7 @@ void
 hb_font_get_glyph_metrics (hb_font_t *font, hb_face_t *face,
 			   hb_codepoint_t glyph, hb_glyph_metrics_t *metrics)
 {
-  /* TODO Zero metrics here? */
+  memset (metrics, 0, sizeof (*metrics));
   return font->klass->get_glyph_metrics (font, face, font->user_data,
 					 glyph, metrics);
 }
