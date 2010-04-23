@@ -295,7 +295,7 @@ struct Sanitizer
     if (sane) {
       if (context.edit_count) {
 #if HB_DEBUG_SANITIZE
-	fprintf (stderr, "Sanitizer %p passed first round with %d edits; going a second round %s\n",
+	fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
 		 blob, context.edit_count, __PRETTY_FUNCTION__);
 #endif
         /* sanitize again to ensure no toe-stepping */
