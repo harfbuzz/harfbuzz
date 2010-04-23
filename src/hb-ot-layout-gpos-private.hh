@@ -1447,26 +1447,6 @@ struct PosLookup : Lookup
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
   { return this+Cast<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
-  /* Like get_type(), but looks through extension lookups.
-   * Never returns Extension */
-  inline unsigned int get_effective_type (void) const
-  {
-    unsigned int type = get_type ();
-
-    if (HB_UNLIKELY (type == PosLookupSubTable::Extension))
-    {
-      unsigned int count = get_subtable_count ();
-      type = get_subtable(0).u.extension->get_type ();
-      /* The spec says all subtables should have the same type.
-       * This is specially important if one has a reverse type! */
-      for (unsigned int i = 1; i < count; i++)
-        if (get_subtable(i).u.extension->get_type () != type)
-	  return 0;
-    }
-
-    return type;
-  }
-
   inline bool apply_once (hb_ot_layout_context_t *context,
 			  hb_buffer_t    *buffer,
 			  unsigned int    context_length,
@@ -1567,20 +1547,13 @@ ASSERT_SIZE (GPOS, 10);
 inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 {
   TRACE_APPLY ();
-  unsigned int lookup_type = get_type ();
-
-  if (HB_UNLIKELY (lookup_type == PosLookupSubTable::Extension))
-    return false;
-
-  return get_subtable ().apply (APPLY_ARG, lookup_type);
+  return get_subtable ().apply (APPLY_ARG, get_type ());
 }
 
 inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
 {
   TRACE_SANITIZE ();
   if (HB_UNLIKELY (!Extension::sanitize (SANITIZE_ARG))) return false;
-  if (HB_UNLIKELY (get_type () == PosLookupSubTable::Extension)) return false;
-
   unsigned int offset = get_offset ();
   if (HB_UNLIKELY (!offset)) return true;
   return SANITIZE (StructAtOffset<PosLookupSubTable> (*this, offset));

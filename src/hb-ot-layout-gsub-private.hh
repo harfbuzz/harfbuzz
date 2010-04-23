@@ -560,6 +560,7 @@ struct ChainContextSubst : ChainContext
 struct ExtensionSubst : Extension
 {
   friend struct SubstLookupSubTable;
+  friend struct SubstLookup;
 
   private:
   inline const struct SubstLookupSubTable& get_subtable (void) const
@@ -572,6 +573,8 @@ struct ExtensionSubst : Extension
   inline bool apply (APPLY_ARG_DEF) const;
 
   inline bool sanitize (SANITIZE_ARG_DEF);
+
+  inline bool is_reverse (void) const;
 };
 
 
@@ -742,28 +745,17 @@ struct SubstLookup : Lookup
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
   { return this+Cast<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i]; }
 
-  /* Like get_type(), but looks through extension lookups.
-   * Never returns Extension */
-  inline unsigned int get_effective_type (void) const
-  {
-    unsigned int type = get_type ();
-
-    if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
-    {
-      unsigned int count = get_subtable_count ();
-      type = get_subtable(0).u.extension->get_type ();
-      /* The spec says all subtables should have the same type.
-       * This is specially important if one has a reverse type! */
-      for (unsigned int i = 1; i < count; i++)
-        if (get_subtable(i).u.extension->get_type () != type)
-	  return 0;
-    }
-
-    return type;
-  }
+  inline static bool lookup_type_is_reverse (unsigned int lookup_type)
+  { return lookup_type == SubstLookupSubTable::ReverseChainSingle; }
 
   inline bool is_reverse (void) const
-  { return HB_UNLIKELY (get_effective_type () == SubstLookupSubTable::ReverseChainSingle); }
+  {
+    unsigned int type = get_type ();
+    if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
+      return Cast<ExtensionSubst> (get_subtable(0)).is_reverse ();
+    return lookup_type_is_reverse (type);
+  }
+
 
   inline bool apply_once (hb_ot_layout_context_t *context,
 			  hb_buffer_t    *buffer,
@@ -776,6 +768,20 @@ struct SubstLookup : Lookup
 
     if (!_hb_ot_layout_check_glyph_property (context->face, IN_CURINFO (), lookup_flag, &property))
       return false;
+
+    if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
+    {
+      /* The spec says all subtables should have the same type.
+       * This is specially important if one has a reverse type!
+       *
+       * This is rather slow to do this here for every glyph,
+       * but it's easiest, and who uses extension lookups anyway?!*/
+      unsigned int count = get_subtable_count ();
+      unsigned int type = get_subtable(0).u.extension->get_type ();
+      for (unsigned int i = 1; i < count; i++)
+        if (get_subtable(i).u.extension->get_type () != type)
+	  return false;
+    }
 
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
@@ -877,23 +883,24 @@ ASSERT_SIZE (GSUB, 10);
 inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 {
   TRACE_APPLY ();
-  unsigned int lookup_type = get_type ();
-
-  if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
-    return false;
-
-  return get_subtable ().apply (APPLY_ARG, lookup_type);
+  return get_subtable ().apply (APPLY_ARG, get_type ());
 }
 
 inline bool ExtensionSubst::sanitize (SANITIZE_ARG_DEF)
 {
   TRACE_SANITIZE ();
   if (HB_UNLIKELY (!Extension::sanitize (SANITIZE_ARG))) return false;
-  if (HB_UNLIKELY (get_type () == SubstLookupSubTable::Extension)) return false;
-
   unsigned int offset = get_offset ();
   if (HB_UNLIKELY (!offset)) return true;
   return SANITIZE (StructAtOffset<SubstLookupSubTable> (*this, offset));
+}
+
+inline bool ExtensionSubst::is_reverse (void) const
+{
+  unsigned int type = get_type ();
+  if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
+    return Cast<ExtensionSubst> (get_subtable()).is_reverse ();
+  return SubstLookup::lookup_type_is_reverse (type);
 }
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
