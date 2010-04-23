@@ -227,7 +227,7 @@ _hb_face_get_table_from_blob (hb_tag_t tag, void *user_data)
 {
   hb_face_t *face = (hb_face_t *) user_data;
 
-  const OpenTypeFontFile &ot_file = Sanitizer<OpenTypeFontFile>::lock_instance (face->blob);
+  const OpenTypeFontFile &ot_file = *CastP<OpenTypeFontFile> (hb_blob_lock (face->blob));
   const OpenTypeFontFace &ot_face = ot_file.get_face (face->index);
 
   const OpenTypeTable &table = ot_face.get_table_by_tag (tag);
