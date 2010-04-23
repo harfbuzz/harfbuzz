@@ -348,6 +348,9 @@ hb_blob_try_writable (hb_blob_t *blob)
 
   hb_mutex_lock (blob->lock);
 
+  if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
+    _try_writable_inplace_locked (blob);
+
   if (blob->mode == HB_MEMORY_MODE_READONLY)
   {
     char *new_data;
@@ -373,8 +376,6 @@ hb_blob_try_writable (hb_blob_t *blob)
       blob->user_data = new_data;
     }
   }
-  else if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
-    _try_writable_inplace_locked (blob);
 
 done:
   mode = blob->mode;
