@@ -166,7 +166,8 @@ typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
 struct _hb_sanitize_context_t
 {
   const char *start, *end;
-  int edit_count;
+  hb_bool_t writable;
+  unsigned int edit_count;
   hb_blob_t *blob;
 };
 
@@ -177,6 +178,7 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
   context->blob = blob;
   context->start = hb_blob_lock (blob);
   context->end = context->start + hb_blob_get_length (blob);
+  context->writable = hb_blob_is_writable (blob);
   context->edit_count = 0;
 
 #if HB_DEBUG_SANITIZE
@@ -236,6 +238,7 @@ _hb_sanitize_array (SANITIZE_ARG_DEF,
 	     context->start, context->end,
 	     !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 #endif
+
   return HB_LIKELY (!overflows) && _hb_sanitize_check (SANITIZE_ARG, base, record_size * len);
 }
 
@@ -244,7 +247,6 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 		   const char *base HB_GNUC_UNUSED,
 		   unsigned int len HB_GNUC_UNUSED)
 {
-  bool perm = hb_blob_try_writable_inplace (context->blob);
   context->edit_count++;
 
 #if HB_DEBUG_SANITIZE
@@ -254,9 +256,10 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 	   context->edit_count,
 	   base, base+len, len,
 	   context->start, context->end,
-	   perm ? "granted" : "REJECTED");
+	   context->writable ? "granted" : "REJECTED");
 #endif
-  return perm;
+
+  return context->writable;
 }
 
 #define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
