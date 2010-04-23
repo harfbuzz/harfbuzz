@@ -104,8 +104,6 @@ typedef struct OffsetTable
     return get_table (table_index);
   }
 
-  inline unsigned int get_face_count (void) const { return 1; }
-
   public:
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
@@ -167,7 +165,7 @@ struct TTCHeader
     switch (u.header.version) {
     case 2: /* version 2 is compatible with version 1 */
     case 1: return u.version1->get_face (i);
-    default: return Null(OpenTypeFontFace);
+    default:return Null(OpenTypeFontFace);
     }
   }
 
@@ -199,43 +197,53 @@ struct TTCHeader
 
 struct OpenTypeFontFile
 {
-  static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
+  static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
 
   STATIC_DEFINE_GET_FOR_DATA (OpenTypeFontFile);
 
+  inline hb_tag_t get_tag (void) const { return u.tag; }
+
   inline unsigned int get_face_count (void) const
   {
-    switch (tag) {
-    case TrueTypeTag: case CFFTag: return Cast<OpenTypeFontFace> (*this).get_face_count ();
-    case TTCTag: return Cast<TTCHeader> (*this).get_face_count ();
-    default: return 0;
+    switch (u.tag) {
+    case CFFTag:	/* All the non-collection tags */
+    case TrueTypeTag:	return 1;
+    case TTCTag:	return u.ttcHeader->get_face_count ();
+    default:		return 0;
     }
   }
   inline const OpenTypeFontFace& get_face (unsigned int i) const
   {
-    switch (tag) {
+    switch (u.tag) {
     /* Note: for non-collection SFNT data we ignore index.  This is because
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
      * non-TTC, but the index is more than zero. */
-    case TrueTypeTag: case CFFTag: return Cast<OpenTypeFontFace> (*this);
-    case TTCTag: return Cast<TTCHeader> (*this).get_face (i);
-    default: return Null(OpenTypeFontFace);
+    case CFFTag:	/* All the non-collection tags */
+    case TrueTypeTag:	return u.fontFace[0];
+    case TTCTag:	return u.ttcHeader->get_face (i);
+    default:		return Null(OpenTypeFontFace);
     }
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
-    switch (tag) {
-    default: return true;
-    case TrueTypeTag: case CFFTag: return SANITIZE_THIS (Cast<OpenTypeFontFace> (*this));
-    case TTCTag: return SANITIZE (Cast<TTCHeader> (*this));
+    if (!SANITIZE (u.tag)) return false;
+    switch (u.tag) {
+    case CFFTag:	/* All the non-collection tags */
+    case TrueTypeTag:	return u.fontFace->sanitize (SANITIZE_ARG, CharP(this));
+    case TTCTag:	return u.ttcHeader->sanitize (SANITIZE_ARG);
+    default:		return true;
     }
   }
 
-  Tag		tag;		/* 4-byte identifier. */
+  private:
+  union {
+  Tag			tag;		/* 4-byte identifier. */
+  OpenTypeFontFace	fontFace[VAR];
+  TTCHeader		ttcHeader[VAR];
+  } u;
 };
 ASSERT_SIZE (OpenTypeFontFile, 4);
 

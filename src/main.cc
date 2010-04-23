@@ -63,7 +63,7 @@ main (int argc, char **argv)
 
   const OpenTypeFontFile &ot = OpenTypeFontFile::get_for_data (font_data);
 
-  switch (ot.tag) {
+  switch (ot.get_tag ()) {
   case OpenTypeFontFile::TrueTypeTag:
     printf ("OpenType font with TrueType outlines\n");
     break;
