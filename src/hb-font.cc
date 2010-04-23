@@ -324,10 +324,14 @@ hb_blob_t *
 hb_face_get_table (hb_face_t *face,
 		   hb_tag_t   tag)
 {
+  hb_blob_t *blob;
+
   if (HB_UNLIKELY (!face || !face->get_table))
     return hb_blob_create_empty ();
 
-  return face->get_table (tag, face->user_data);
+  blob = face->get_table (tag, face->user_data);
+
+  return blob? blob : hb_blob_create_empty ();
 }
 
 

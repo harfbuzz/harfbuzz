@@ -159,7 +159,7 @@ _get_table  (hb_tag_t tag, void *user_data)
   /* TODO Use FT_Memory? */
   buffer = malloc (length);
   if (buffer == NULL)
-    return hb_blob_create_empty ();
+    return NULL;
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, buffer, &length);
   if (error)
