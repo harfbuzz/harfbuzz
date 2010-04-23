@@ -855,9 +855,6 @@ struct GSUB : GSUBGPOS
 {
   static const hb_tag_t Tag	= HB_OT_TAG_GSUB;
 
-  static inline const GSUB& get_for_data (const char *data)
-  { return Cast<GSUB> (GSUBGPOS::get_for_data (data)); }
-
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return Cast<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 

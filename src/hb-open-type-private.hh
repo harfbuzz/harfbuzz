@@ -107,25 +107,6 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 #define Null(Type) Null<Type>()
 
 
-/* get_for_data() is a static class method returning a reference to an
- * instance of Type located at the input data location.  It's just a
- * fancy, NULL-safe, cast! */
-#define STATIC_DEFINE_GET_FOR_DATA(Type) \
-  static inline const Type& get_for_data (const char *data) \
-  { \
-    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    return Cast<Type> (*data); \
-  }
-/* Like get_for_data(), but checks major version first. */
-#define STATIC_DEFINE_GET_FOR_DATA_CHECK_MAJOR_VERSION(Type, MajorMin, MajorMax) \
-  static inline const Type& get_for_data (const char *data) \
-  { \
-    if (HB_UNLIKELY (data == NULL)) return Null(Type); \
-    const Type& t = Cast<Type> (*data); \
-    if (HB_UNLIKELY (t.version.major < MajorMin || t.version.major > MajorMax)) return Null(Type); \
-    return t; \
-  }
-
 
 /*
  * Sanitize
@@ -299,7 +280,7 @@ struct Sanitizer
 
     _hb_sanitize_init (&context, blob);
 
-    /* We drop const here */
+    /* Note: We drop const here */
     Type *t = &Cast<Type> (* (char *) CharP(context.start));
 
     sane = t->sanitize (SANITIZE_ARG_INIT);
@@ -345,7 +326,7 @@ struct Sanitizer
   }
 
   static const Type& lock_instance (hb_blob_t *blob) {
-    return Type::get_for_data (hb_blob_lock (blob));
+    return Cast<Type> (* (const char *) hb_blob_lock (blob));
   }
 };
 

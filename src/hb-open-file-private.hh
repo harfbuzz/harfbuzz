@@ -66,8 +66,6 @@ typedef struct OffsetTable
 {
   friend struct OpenTypeFontFile;
 
-  STATIC_DEFINE_GET_FOR_DATA (OffsetTable);
-
   inline unsigned int get_table_count (void) const
   { return numTables; }
   inline const Tag& get_table_tag (unsigned int i) const
@@ -200,8 +198,6 @@ struct OpenTypeFontFile
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
-
-  STATIC_DEFINE_GET_FOR_DATA (OpenTypeFontFile);
 
   inline hb_tag_t get_tag (void) const { return u.tag; }
 
