@@ -177,7 +177,6 @@ hb_ft_face_create (FT_Face           ft_face,
 {
   hb_face_t *face;
 
-  /* TODO: Handle NULL ft_face (in other places too) */
   if (ft_face->stream->read == NULL) {
     hb_blob_t *blob;
 
@@ -204,7 +203,6 @@ hb_ft_face_finalize (FT_Face ft_face)
 hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face)
 {
-  /* TODO: Not thread-safe */
   if (HB_UNLIKELY (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_ft_face_finalize))
   {
     if (ft_face->generic.finalizer)

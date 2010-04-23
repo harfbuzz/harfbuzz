@@ -84,7 +84,7 @@ typedef struct OffsetTable
   {
     Tag t;
     t.set (tag);
-    // TODO: bsearch (need to sort in sanitize)
+    /* TODO: bsearch (need to sort in sanitize) */
     unsigned int count = numTables;
     for (unsigned int i = 0; i < count; i++)
     {

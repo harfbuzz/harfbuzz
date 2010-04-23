@@ -87,7 +87,7 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
   {
     Tag t;
     t.set (tag);
-    // TODO: bsearch (need to sort in sanitize)
+    /* TODO: bsearch (need to sort in sanitize) */
     const Record<Type> *a = this->array();
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
@@ -235,8 +235,8 @@ struct Feature
     return SANITIZE_SELF () && SANITIZE (lookupIndex);
   }
 
-  /* TODO: implement get_feature_parameters() */
-  /* TODO: implement FeatureSize and other special features? */
+  /* LONGTERMTODO: implement get_feature_parameters() */
+  /* LONGTERMTODO: implement FeatureSize and other special features? */
   Offset	featureParams;	/* Offset to Feature Parameters table (if one
 				 * has been defined for the feature), relative
 				 * to the beginning of the Feature Table; = Null
@@ -321,7 +321,7 @@ struct CoverageFormat1
       return NOT_COVERED;
     GlyphID gid;
     gid.set (glyph_id);
-    // TODO: bsearch (need to sort in sanitize)
+    /* TODO: bsearch (need to sort in sanitize) */
     unsigned int num_glyphs = glyphArray.len;
     for (unsigned int i = 0; i < num_glyphs; i++)
       if (gid == glyphArray[i])
@@ -377,7 +377,7 @@ struct CoverageFormat2
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    // TODO: bsearch (need to sort in sanitize)
+    /* TODO: bsearch (need to sort in sanitize) */
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -497,7 +497,7 @@ struct ClassDefFormat2
   private:
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
-    // TODO: bsearch (need to sort in sanitize)
+    /* TODO: bsearch (need to sort in sanitize) */
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
     {

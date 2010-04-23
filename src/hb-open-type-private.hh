@@ -366,6 +366,8 @@ struct Sanitizer
 
 template <typename Type, int Bytes> class BEInt;
 
+/* LONGTERMTODO: On machines allowing unaligned access, we can make the
+ * following tighter by using byteswap instructions on ints directly. */
 template <typename Type>
 class BEInt<Type, 2>
 {

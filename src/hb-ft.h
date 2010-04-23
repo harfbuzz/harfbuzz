@@ -43,6 +43,7 @@ hb_face_t *
 hb_ft_face_create (FT_Face           ft_face,
 		   hb_destroy_func_t destroy);
 
+/* Note: This function is not thread-safe */
 hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face);
 
