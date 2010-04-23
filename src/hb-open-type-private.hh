@@ -168,14 +168,12 @@ struct _hb_sanitize_context_t
   const char *start, *end;
   hb_bool_t writable;
   unsigned int edit_count;
-  hb_blob_t *blob;
 };
 
 static HB_GNUC_UNUSED void
 _hb_sanitize_init (hb_sanitize_context_t *context,
 		   hb_blob_t *blob)
 {
-  context->blob = blob;
   context->start = hb_blob_lock (blob);
   context->end = context->start + hb_blob_get_length (blob);
   context->writable = hb_blob_is_writable (blob);
@@ -189,15 +187,14 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
 
 static HB_GNUC_UNUSED void
 _hb_sanitize_fini (hb_sanitize_context_t *context,
-		   bool unlock)
+		   hb_blob_t *blob)
 {
 #if HB_DEBUG_SANITIZE
   fprintf (stderr, "sanitize %p fini [%p..%p] %u edit requests\n",
-	   context->blob, context->start, context->end, context->edit_count);
+	   blob, context->start, context->end, context->edit_count);
 #endif
 
-  if (unlock)
-    hb_blob_unlock (context->blob);
+  hb_blob_unlock (blob);
 }
 
 static HB_GNUC_UNUSED inline bool
@@ -323,10 +320,10 @@ struct Sanitizer
 	  sane = false;
 	}
       }
-      _hb_sanitize_fini (&context, true);
+      _hb_sanitize_fini (&context, blob);
     } else {
       unsigned int edit_count = context.edit_count;
-      _hb_sanitize_fini (&context, true);
+      _hb_sanitize_fini (&context, blob);
       if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
         /* ok, we made it writable by relocating.  try again */
 #if HB_DEBUG_SANITIZE
