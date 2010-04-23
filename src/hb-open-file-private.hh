@@ -105,7 +105,7 @@ typedef struct OffsetTable
   }
 
   public:
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
+  inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_ARRAY (tableDir, TableDirectory::get_size (), numTables);
   }
@@ -133,7 +133,7 @@ struct TTCHeaderVersion1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return HB_LIKELY (table.sanitize (SANITIZE_ARG, CharP(this), CharP(this)));
+    return SANITIZE_THIS (table);
   }
 
   private:
@@ -232,7 +232,7 @@ struct OpenTypeFontFile
     if (!SANITIZE (u.tag)) return false;
     switch (u.tag) {
     case CFFTag:	/* All the non-collection tags */
-    case TrueTypeTag:	return u.fontFace->sanitize (SANITIZE_ARG, CharP(this));
+    case TrueTypeTag:	return u.fontFace->sanitize (SANITIZE_ARG);
     case TTCTag:	return u.ttcHeader->sanitize (SANITIZE_ARG);
     default:		return true;
     }
