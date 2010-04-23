@@ -34,8 +34,11 @@
 #include FT_TRUETYPE_TABLES_H
 
 static hb_codepoint_t
-hb_ft_get_glyph (hb_font_t *font, hb_face_t *face, const void *user_data,
-		 hb_codepoint_t unicode, hb_codepoint_t variation_selector)
+hb_ft_get_glyph (hb_font_t *font HB_GNUC_UNUSED,
+		 hb_face_t *face HB_GNUC_UNUSED,
+		 const void *user_data,
+		 hb_codepoint_t unicode,
+		 hb_codepoint_t variation_selector)
 {
   FT_Face ft_face = (FT_Face) user_data;
 
@@ -51,9 +54,13 @@ hb_ft_get_glyph (hb_font_t *font, hb_face_t *face, const void *user_data,
 }
 
 static hb_bool_t
-hb_ft_get_contour_point (hb_font_t *font, hb_face_t *face, const void *user_data,
+hb_ft_get_contour_point (hb_font_t *font HB_GNUC_UNUSED,
+			 hb_face_t *face HB_GNUC_UNUSED,
+			 const void *user_data,
 			 unsigned int point_index,
-			 hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y)
+			 hb_codepoint_t glyph,
+			 hb_position_t *x,
+			 hb_position_t *y)
 {
   FT_Face ft_face = (FT_Face) user_data;
   int load_flags = FT_LOAD_DEFAULT;
@@ -76,8 +83,11 @@ hb_ft_get_contour_point (hb_font_t *font, hb_face_t *face, const void *user_data
 }
 
 static void
-hb_ft_get_glyph_metrics (hb_font_t *font, hb_face_t *face, const void *user_data,
-			 hb_codepoint_t glyph, hb_glyph_metrics_t *metrics)
+hb_ft_get_glyph_metrics (hb_font_t *font HB_GNUC_UNUSED,
+			 hb_face_t *face HB_GNUC_UNUSED,
+			 const void *user_data,
+			 hb_codepoint_t glyph,
+			 hb_glyph_metrics_t *metrics)
 {
   FT_Face ft_face = (FT_Face) user_data;
   int load_flags = FT_LOAD_DEFAULT;
@@ -100,8 +110,11 @@ hb_ft_get_glyph_metrics (hb_font_t *font, hb_face_t *face, const void *user_data
 }
 
 static hb_position_t
-hb_ft_get_kerning (hb_font_t *font, hb_face_t *face, const void *user_data,
-		   hb_codepoint_t first_glyph, hb_codepoint_t second_glyph)
+hb_ft_get_kerning (hb_font_t *font HB_GNUC_UNUSED,
+		   hb_face_t *face HB_GNUC_UNUSED,
+		   const void *user_data,
+		   hb_codepoint_t first_glyph,
+		   hb_codepoint_t second_glyph)
 {
   FT_Face ft_face = (FT_Face) user_data;
   FT_Vector kerning;

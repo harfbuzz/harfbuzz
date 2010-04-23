@@ -186,7 +186,7 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
 }
 
 static HB_GNUC_UNUSED void
-_hb_sanitize_fini (hb_sanitize_context_t *context,
+_hb_sanitize_fini (hb_sanitize_context_t *context HB_GNUC_UNUSED,
 		   hb_blob_t *blob)
 {
 #if HB_DEBUG_SANITIZE
