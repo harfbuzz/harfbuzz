@@ -68,8 +68,7 @@ cmp_lookups (const void *p1, const void *p2)
 }
 
 static void
-setup_lookups (hb_font_t    *font,
-	       hb_face_t    *face,
+setup_lookups (hb_face_t    *face,
 	       hb_buffer_t  *buffer,
 	       hb_feature_t *features,
 	       unsigned int  num_features,
@@ -115,7 +114,7 @@ setup_lookups (hb_font_t    *font,
 
 
 hb_bool_t
-_hb_ot_substitute_complex (hb_font_t    *font,
+_hb_ot_substitute_complex (hb_font_t    *font HB_GNUC_UNUSED,
 			   hb_face_t    *face,
 			   hb_buffer_t  *buffer,
 			   hb_feature_t *features,
@@ -128,7 +127,7 @@ _hb_ot_substitute_complex (hb_font_t    *font,
   if (!hb_ot_layout_has_substitution (face))
     return FALSE;
 
-  setup_lookups (font, face, buffer, features, num_features,
+  setup_lookups (face, buffer, features, num_features,
 		 HB_OT_TAG_GSUB,
 		 lookups, &num_lookups);
 
@@ -152,7 +151,7 @@ _hb_ot_position_complex (hb_font_t    *font,
   if (!hb_ot_layout_has_positioning (face))
     return FALSE;
 
-  setup_lookups (font, face, buffer, features, num_features,
+  setup_lookups (face, buffer, features, num_features,
 		 HB_OT_TAG_GPOS,
 		 lookups, &num_lookups);
 

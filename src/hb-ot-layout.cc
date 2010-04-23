@@ -595,8 +595,8 @@ hb_ot_layout_position_lookup   (hb_font_t    *font,
 }
 
 void
-hb_ot_layout_position_finish (hb_font_t    *font,
-			      hb_face_t    *face,
+hb_ot_layout_position_finish (hb_font_t    *font HB_GNUC_UNUSED,
+			      hb_face_t    *face HB_GNUC_UNUSED,
 			      hb_buffer_t  *buffer)
 {
   unsigned int i, j;
