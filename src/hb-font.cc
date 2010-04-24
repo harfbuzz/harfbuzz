@@ -27,8 +27,8 @@
 #include "hb-private.h"
 
 #include "hb-font-private.h"
+#include "hb-blob-private.h"
 #include "hb-open-file-private.hh"
-#include "hb-blob.h"
 
 #include "hb-ot-layout-private.h"
 
@@ -218,32 +218,13 @@ hb_font_get_kerning (hb_font_t *font, hb_face_t *face,
 				   first_glyph, second_glyph);
 }
 
+
 /*
  * hb_face_t
  */
 
-static hb_blob_t *
-_hb_face_get_table_from_blob (hb_tag_t tag, void *user_data)
-{
-  hb_face_t *face = (hb_face_t *) user_data;
-
-  const OpenTypeFontFile &ot_file = *CastP<OpenTypeFontFile> (hb_blob_lock (face->blob));
-  const OpenTypeFontFace &ot_face = ot_file.get_face (face->index);
-
-  const OpenTypeTable &table = ot_face.get_table_by_tag (tag);
-
-  hb_blob_t *blob = hb_blob_create_sub_blob (face->blob, table.offset, table.length);
-
-  hb_blob_unlock (face->blob);
-
-  return blob;
-}
-
 static hb_face_t _hb_face_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
-
-  NULL, /* blob */
-  0, /* index */
 
   NULL, /* get_table */
   NULL, /* destroy */
@@ -251,6 +232,7 @@ static hb_face_t _hb_face_nil = {
 
   {} /* ot_layout */
 };
+
 
 hb_face_t *
 hb_face_create_for_tables (hb_get_table_func_t  get_table,
@@ -274,6 +256,58 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
   return face;
 }
 
+
+typedef struct _hb_face_for_data_closure_t {
+  hb_blob_t *blob;
+  unsigned int  index;
+} hb_face_for_data_closure_t;
+
+static hb_face_for_data_closure_t _hb_face_for_data_closure_nil = {
+  &_hb_blob_nil,
+  0
+};
+
+static hb_face_for_data_closure_t *
+_hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
+{
+  hb_face_for_data_closure_t *closure;
+
+  closure = (hb_face_for_data_closure_t *) malloc (sizeof (hb_face_for_data_closure_t));
+  if (HB_UNLIKELY (!closure))
+    return &_hb_face_for_data_closure_nil;
+
+  closure->blob = hb_blob_reference (blob);
+  closure->index = index;
+
+  return closure;
+}
+
+static void
+_hb_face_for_data_closure_destroy (hb_face_for_data_closure_t *closure)
+{
+  if (HB_LIKELY (closure != &_hb_face_for_data_closure_nil)) {
+    hb_blob_destroy (closure->blob);
+    free (closure);
+  }
+}
+
+static hb_blob_t *
+_hb_face_for_data_get_table (hb_tag_t tag, void *user_data)
+{
+  hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) user_data;
+
+  const OpenTypeFontFile &ot_file = *CastP<OpenTypeFontFile> (hb_blob_lock (data->blob));
+  const OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
+
+  const OpenTypeTable &table = ot_face.get_table_by_tag (tag);
+
+  hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, table.offset, table.length);
+
+  hb_blob_unlock (data->blob);
+
+  return blob;
+}
+
 hb_face_t *
 hb_face_create_for_data (hb_blob_t    *blob,
 			 unsigned int  index)
@@ -283,15 +317,17 @@ hb_face_create_for_data (hb_blob_t    *blob,
   if (!HB_OBJECT_DO_CREATE (hb_face_t, face))
     return &_hb_face_nil;
 
-  face->blob = Sanitizer<OpenTypeFontFile>::sanitize (hb_blob_reference (blob));
-  face->index = index;
-  face->get_table = _hb_face_get_table_from_blob;
-  face->user_data = face;
+  face->get_table = _hb_face_for_data_get_table;
+  face->destroy = (hb_destroy_func_t) _hb_face_for_data_closure_destroy;
+  hb_blob_reference (blob);
+  face->user_data = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (blob), index);
+  hb_blob_destroy (blob);
 
   _hb_ot_layout_init (face);
 
   return face;
 }
+
 
 hb_face_t *
 hb_face_reference (hb_face_t *face)
@@ -312,8 +348,6 @@ hb_face_destroy (hb_face_t *face)
 
   _hb_ot_layout_fini (face);
 
-  hb_blob_destroy (face->blob);
-
   if (face->destroy)
     face->destroy (face->user_data);
 
@@ -327,11 +361,11 @@ hb_face_get_table (hb_face_t *face,
   hb_blob_t *blob;
 
   if (HB_UNLIKELY (!face || !face->get_table))
-    return hb_blob_create_empty ();
+    return &_hb_blob_nil;
 
   blob = face->get_table (tag, face->user_data);
 
-  return blob? blob : hb_blob_create_empty ();
+  return blob? blob : &_hb_blob_nil;
 }
 
 

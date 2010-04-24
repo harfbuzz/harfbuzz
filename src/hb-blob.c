@@ -26,7 +26,7 @@
 
 #include "hb-private.h"
 
-#include "hb-blob.h"
+#include "hb-blob-private.h"
 
 #ifdef HAVE_SYS_MMAN_H
 #ifdef HAVE_UNISTD_H
@@ -44,23 +44,7 @@
 #include <errno.h>
 #endif
 
-struct _hb_blob_t {
-  hb_reference_count_t ref_count;
-
-  unsigned int length;
-
-  hb_mutex_t lock;
-  /* the rest are protected by lock */
-
-  unsigned int lock_count;
-  hb_memory_mode_t mode;
-
-  const char *data;
-
-  hb_destroy_func_t destroy;
-  void *user_data;
-};
-static hb_blob_t _hb_blob_nil = {
+hb_blob_t _hb_blob_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
   0, /* length */

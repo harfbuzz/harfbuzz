@@ -11,6 +11,7 @@ HBCFLAGS =
 HBLIBS =
 HBSOURCES =  \
 	hb-blob.c \
+	hb-blob-private.h \
 	hb-buffer.c \
 	hb-buffer-private.h \
 	hb-font.cc \

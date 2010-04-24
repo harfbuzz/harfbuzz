@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Red Hat, Inc.
+ * Copyright (C) 2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,69 +24,34 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_FONT_PRIVATE_H
-#define HB_FONT_PRIVATE_H
+#ifndef HB_BLOB_PRIVATE_H
+#define HB_BLOB_PRIVATE_H
 
 #include "hb-private.h"
 
-#include "hb-font.h"
-
-#include "hb-ot-layout-private.h"
+#include "hb-blob.h"
 
 HB_BEGIN_DECLS
 
-/*
- * hb_font_funcs_t
- */
-
-struct _hb_font_funcs_t {
+struct _hb_blob_t {
   hb_reference_count_t ref_count;
 
-  hb_bool_t immutable;
+  unsigned int length;
 
-  hb_font_get_glyph_func_t		get_glyph;
-  hb_font_get_contour_point_func_t	get_contour_point;
-  hb_font_get_glyph_metrics_func_t	get_glyph_metrics;
-  hb_font_get_kerning_func_t		get_kerning;
+  hb_mutex_t lock;
+  /* the rest are protected by lock */
+
+  unsigned int lock_count;
+  hb_memory_mode_t mode;
+
+  const char *data;
+
+  hb_destroy_func_t destroy;
+  void *user_data;
 };
 
-HB_INTERNAL hb_font_funcs_t
-_hb_font_funcs_nil;
-
-/*
- * hb_face_t
- */
-
-struct _hb_face_t {
-  hb_reference_count_t ref_count;
-
-  hb_get_table_func_t  get_table;
-  hb_destroy_func_t    destroy;
-  void                *user_data;
-
-  hb_ot_layout_t ot_layout;
-};
-
-
-/*
- * hb_font_t
- */
-
-struct _hb_font_t {
-  hb_reference_count_t ref_count;
-
-  hb_16dot16_t x_scale;
-  hb_16dot16_t y_scale;
-
-  unsigned int x_ppem;
-  unsigned int y_ppem;
-
-  hb_font_funcs_t   *klass;
-  hb_destroy_func_t  destroy;
-  void              *user_data;
-};
-
+HB_INTERNAL hb_blob_t _hb_blob_nil;
 
 HB_END_DECLS
 
-#endif /* HB_FONT_PRIVATE_H */
+#endif /* HB_BLOB_PRIVATE_H */
