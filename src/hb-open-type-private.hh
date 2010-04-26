@@ -265,10 +265,10 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 
 #define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, CharP(A), S, L))
 
-#define NEUTER(Var, Val) \
-	(SANITIZE_OBJ (Var) && \
-	 _hb_sanitize_edit (SANITIZE_ARG, CharP(&(Var)), (Var).get_size ()) && \
-	 ((Var).set (Val), true))
+#define NEUTER(Obj, Val) \
+	(SANITIZE_OBJ (Obj) && \
+	 _hb_sanitize_edit (SANITIZE_ARG, CharP(&(Obj)), (Obj).get_size ()) && \
+	 ((Obj).set (Val), true))
 
 
 /* Template to sanitize an object. */
