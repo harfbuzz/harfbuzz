@@ -82,11 +82,7 @@
 #define ASSERT_SIZE(_type, _size) ASSERT_STATIC (sizeof (_type) == (_size))
 
 /* Size signifying variable-sized array */
-#ifdef FLEXIBLE_ARRAY_MEMBER
-#define VAR FLEXIBLE_ARRAY_MEMBER
-#else
 #define VAR 1
-#endif
 
 #define VAR0 (VAR+0)
 #define ASSERT_SIZE_VAR(_type, _size, _var_type) \

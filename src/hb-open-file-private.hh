@@ -241,7 +241,6 @@ struct OpenTypeFontFile
   TTCHeader		ttcHeader[VAR];
   } u;
 };
-ASSERT_SIZE (OpenTypeFontFile, 4);
 
 
 #endif /* HB_OPEN_FILE_PRIVATE_HH */
