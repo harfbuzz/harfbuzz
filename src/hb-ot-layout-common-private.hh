@@ -587,7 +587,7 @@ struct Device
   {
     unsigned int f = deltaFormat;
     if (HB_UNLIKELY (f < 1 || f > 3 || startSize > endSize)) return 3 * USHORT::get_size ();
-    return 3 * USHORT::get_size () + ((endSize - startSize + (1 << (4 - f)) - 1) >> (4 - f));
+    return USHORT::get_size () * (4 + ((endSize - startSize) >> (4 - f)));
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -598,7 +598,11 @@ struct Device
   private:
   USHORT	startSize;		/* Smallest size to correct--in ppem */
   USHORT	endSize;		/* Largest size to correct--in ppem */
-  USHORT	deltaFormat;		/* Format of DeltaValue array data: 1, 2, or 3 */
+  USHORT	deltaFormat;		/* Format of DeltaValue array data: 1, 2, or 3
+					 * 1	Signed 2-bit value, 8 values per uint16
+					 * 2	Signed 4-bit value, 4 values per uint16
+					 * 3	Signed 8-bit value, 2 values per uint16
+					 */
   USHORT	deltaValue[VAR];	/* Array of compressed data */
 };
 ASSERT_SIZE_VAR (Device, 6, USHORT);
