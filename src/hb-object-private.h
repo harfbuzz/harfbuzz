@@ -94,7 +94,7 @@ _hb_object_debug_out (void *obj,
 
 #define HB_OBJECT_DO_CREATE(Type, obj) \
   HB_LIKELY (( \
-	       ( \
+	       (void) ( \
 		 ((obj) = (Type *) calloc (1, sizeof (Type))) && \
 		 HB_OBJECT_DO_INIT_EXPR (obj) && \
 		 HB_OBJECT_DEBUG_OUT (obj) \
