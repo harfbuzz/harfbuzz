@@ -32,28 +32,28 @@
 
 
 #ifndef HB_DEBUG_APPLY
-#define HB_DEBUG_APPLY HB_DEBUG
+#define HB_DEBUG_APPLY HB_DEBUG+0
 #endif
 
-#if HB_DEBUG_APPLY
-#include <stdio.h>
-#define TRACE_APPLY_ARG_DEF	, unsigned int apply_depth HB_GNUC_UNUSED
-#define TRACE_APPLY_ARG		, apply_depth + 1
-#define TRACE_APPLY_ARG_INIT	, 1
-#define TRACE_APPLY() \
-	HB_STMT_START { \
-	    if (apply_depth < HB_DEBUG_APPLY) \
-		fprintf (stderr, "APPLY(%p) %-*d-> %s\n", \
-			 (CharP(this) == CharP(&_NullPool)) ? 0 : this, \
-			 apply_depth, apply_depth, \
-			 __PRETTY_FUNCTION__); \
-	} HB_STMT_END
-#else
-#define TRACE_APPLY_ARG_DEF
-#define TRACE_APPLY_ARG
-#define TRACE_APPLY_ARG_INIT
-#define TRACE_APPLY() HB_STMT_START {} HB_STMT_END
-#endif
+static HB_GNUC_UNUSED inline hb_bool_t /* always returns TRUE */
+_hb_trace_apply (const char *obj,
+		 unsigned int apply_depth,
+		 const char *function)
+{
+  /* The following check is written in such a skewer way just
+   * to quiet compiler warning.  The simple version would have been:
+   *   if (apply_depth < HB_DEBUG_APPLY)
+   */
+  if (HB_DEBUG_APPLY && (int) apply_depth < HB_DEBUG_APPLY)
+    fprintf (stderr, "APPLY(%p) %-*d-> %s\n",
+	     (obj == CharP(&_NullPool)) ? 0 : obj,
+	     apply_depth, apply_depth,
+	     function);
+  return TRUE;
+}
+
+#define TRACE_APPLY()	_hb_trace_apply (CharP(this), apply_depth, __PRETTY_FUNCTION__)
+
 
 #define APPLY_ARG_DEF \
 	hb_ot_layout_context_t *context, \
@@ -61,24 +61,24 @@
 	unsigned int    context_length HB_GNUC_UNUSED, \
 	unsigned int    nesting_level_left HB_GNUC_UNUSED, \
 	unsigned int    lookup_flag HB_GNUC_UNUSED, \
-	unsigned int    property HB_GNUC_UNUSED /* propety of first glyph */ \
-	TRACE_APPLY_ARG_DEF
+	unsigned int    property HB_GNUC_UNUSED, /* propety of first glyph */ \
+	unsigned int    apply_depth HB_GNUC_UNUSED
 #define APPLY_ARG \
 	context, \
 	buffer, \
 	context_length, \
 	nesting_level_left, \
 	lookup_flag, \
-	property \
-	TRACE_APPLY_ARG
+	property, \
+	(HB_DEBUG_APPLY ? apply_depth+1 : 0)
 #define APPLY_ARG_INIT \
 	context, \
 	buffer, \
 	context_length, \
 	nesting_level_left, \
 	lookup_flag, \
-	property \
-	TRACE_APPLY_ARG_INIT
+	property, \
+	1
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const char *data);
