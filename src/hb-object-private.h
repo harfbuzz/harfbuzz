@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2007 Chris Wilson
- * Copyright (C) 2009  Red Hat, Inc.
+ * Copyright (C) 2009,2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -30,20 +30,8 @@
 #ifndef HB_REFCOUNT_PRIVATE_H
 #define HB_REFCOUNT_PRIVATE_H
 
+#include "hb-private.h"
 
-#ifndef HB_DEBUG_OBJECT
-#define HB_DEBUG_OBJECT HB_DEBUG
-#endif
-
-#if HB_DEBUG_OBJECT
-#include <stdio.h>
-#define HB_OBJECT_DEBUG_OUT(obj) fprintf (stderr, "%p refcount=%d %s\n", \
-					  obj, \
-					  HB_REFERENCE_COUNT_GET_VALUE (obj->ref_count), \
-					  __FUNCTION__)
-#else
-#define HB_OBJECT_DEBUG_OUT(obj) 1
-#endif
 
 
 /* Encapsulate operations on the object's reference count */
@@ -68,7 +56,30 @@ typedef struct {
 
 
 
-/* Helper macros */
+/* Debug */
+
+#ifndef HB_DEBUG_OBJECT
+#define HB_DEBUG_OBJECT HB_DEBUG+0
+#endif
+
+static HB_GNUC_UNUSED inline hb_bool_t /* always returns TRUE */
+_hb_object_debug_out (void *obj,
+		      hb_reference_count_t *ref_count,
+		      const char *function)
+{
+  if (HB_DEBUG_OBJECT)
+    fprintf (stderr, "%p refcount=%d %s\n",
+	     obj,
+	     HB_REFERENCE_COUNT_GET_VALUE (*ref_count),
+	     function);
+  return TRUE;
+}
+
+#define HB_OBJECT_DEBUG_OUT(obj) _hb_object_debug_out ((void *) obj, &obj->ref_count, __FUNCTION__)
+
+
+
+/* Object allocation and lifecycle manamgement macros */
 
 #define HB_OBJECT_IS_INERT(obj) \
     (HB_UNLIKELY (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count)))
@@ -120,6 +131,7 @@ typedef struct {
     if (old_count != 1) \
       return; \
   } HB_STMT_END
+
 
 
 #endif /* HB_REFCOUNT_PRIVATE_H */
