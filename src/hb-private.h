@@ -31,7 +31,6 @@
 #include "config.h"
 #endif
 
-/* #define HB_DEBUG 1 */
 #ifndef HB_DEBUG
 #define HB_DEBUG 0
 #endif
@@ -39,10 +38,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#if HB_DEBUG
+
+/* We only use these two for debug output.  However, the debug code is
+ * always seen by the compiler (and optimized out in non-debug builds.
+ * If including these becomes a problem, we can start thinking about
+ * someway around that. */
 #include <stdio.h>
 #include <errno.h>
-#endif
 
 #include "hb-common.h"
 
