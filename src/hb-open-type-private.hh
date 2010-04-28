@@ -133,7 +133,7 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 	HB_STMT_START { \
 	    if (sanitize_depth < HB_DEBUG_SANITIZE) \
 		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
-			 (CharP(this) == CharP(&NullPool)) ? 0 : this, \
+			 (CharP(this) == CharP(&_NullPool)) ? 0 : this, \
 			 sanitize_depth, sanitize_depth, \
 			 __PRETTY_FUNCTION__); \
 	} HB_STMT_END
@@ -170,7 +170,7 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
 
 #if HB_DEBUG_SANITIZE
   fprintf (stderr, "sanitize %p init [%p..%p] (%u bytes)\n",
-	   context->blob, context->start, context->end, context->end - context->start);
+	   blob, context->start, context->end, context->end - context->start);
 #endif
 }
 
