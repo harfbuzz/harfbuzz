@@ -83,10 +83,12 @@ typedef struct {
 
 #define HB_OBJECT_DO_CREATE(Type, obj) \
   HB_LIKELY (( \
-	     (obj) = (Type *) calloc (1, sizeof (Type)), \
-	     HB_OBJECT_DO_INIT_EXPR (obj), \
-	     HB_OBJECT_DEBUG_OUT (obj), \
-	     (obj) \
+	       ( \
+		 ((obj) = (Type *) calloc (1, sizeof (Type))) && \
+		 HB_OBJECT_DO_INIT_EXPR (obj) && \
+		 HB_OBJECT_DEBUG_OUT (obj) \
+	       ), \
+	       (obj) \
 	     ))
 
 #define HB_OBJECT_DO_REFERENCE(obj) \
