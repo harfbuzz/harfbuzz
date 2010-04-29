@@ -48,8 +48,8 @@ struct SingleSubstFormat1
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (context->face))
-      _hb_ot_layout_set_glyph_property (context->face, glyph_id, apply_context->property);
+    if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
+      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, apply_context->property);
 
     return true;
   }
@@ -90,8 +90,8 @@ struct SingleSubstFormat2
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (context->face))
-      _hb_ot_layout_set_glyph_property (context->face, glyph_id, apply_context->property);
+    if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
+      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, apply_context->property);
 
     return true;
   }
@@ -163,7 +163,7 @@ struct Sequence
 				       0xFFFF, 0xFFFF);
 
     /* This is a guess only ... */
-    if (_hb_ot_layout_has_new_glyph_classes (context->face))
+    if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
     {
       unsigned int property = apply_context->property;
       if (property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
@@ -171,7 +171,7 @@ struct Sequence
 
       unsigned int count = substitute.len;
       for (unsigned int n = 0; n < count; n++)
-	_hb_ot_layout_set_glyph_property (context->face, substitute[n], property);
+	_hb_ot_layout_set_glyph_property (layout_context->face, substitute[n], property);
     }
 
     return true;
@@ -281,8 +281,8 @@ struct AlternateSubstFormat1
     unsigned int alt_index = 0;
 
     /* XXX callback to user to choose alternate
-    if (context->face->altfunc)
-      alt_index = (context->face->altfunc)(context->layout, buffer,
+    if (layout_context->face->altfunc)
+      alt_index = (layout_context->face->altfunc)(layout_context->layout, buffer,
 				    buffer->out_pos, glyph_id,
 				    alt_set.len, alt_set.array);
 				   */
@@ -295,8 +295,8 @@ struct AlternateSubstFormat1
     _hb_buffer_replace_glyph (buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (context->face))
-      _hb_ot_layout_set_glyph_property (context->face, glyph_id, apply_context->property);
+    if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
+      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, apply_context->property);
 
     return true;
   }
@@ -366,7 +366,7 @@ struct Ligature
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
     {
       unsigned int property;
-      while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), apply_context->lookup_flag, &property))
+      while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), apply_context->lookup_flag, &property))
       {
 	if (HB_UNLIKELY (j + count - i == end))
 	  return false;
@@ -380,8 +380,8 @@ struct Ligature
         return false;
     }
     /* This is just a guess ... */
-    if (_hb_ot_layout_has_new_glyph_classes (context->face))
-      _hb_ot_layout_set_glyph_class (context->face, ligGlyph,
+    if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
+      _hb_ot_layout_set_glyph_class (layout_context->face, ligGlyph,
 				     is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK
 					     : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
 
@@ -407,7 +407,7 @@ struct Ligature
 
       for ( i = 1; i < count; i++ )
       {
-	while (_hb_ot_layout_skip_mark (context->face, IN_CURINFO (), apply_context->lookup_flag, NULL))
+	while (_hb_ot_layout_skip_mark (layout_context->face, IN_CURINFO (), apply_context->lookup_flag, NULL))
 	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH (), i, lig_id);
 
 	(buffer->in_pos)++;
@@ -759,7 +759,7 @@ struct SubstLookup : Lookup
   }
 
 
-  inline bool apply_once ( hb_ot_layout_context_t *context,
+  inline bool apply_once ( hb_ot_layout_context_t *layout_context,
 			  hb_buffer_t *buffer,
 			  unsigned int context_length,
 			  unsigned int nesting_level_left,
@@ -771,7 +771,7 @@ struct SubstLookup : Lookup
     apply_context->nesting_level_left = nesting_level_left;
     apply_context->lookup_flag = get_flag ();
 
-    if (!_hb_ot_layout_check_glyph_property (context->face, IN_CURINFO (), apply_context->lookup_flag, &apply_context->property))
+    if (!_hb_ot_layout_check_glyph_property (layout_context->face, IN_CURINFO (), apply_context->lookup_flag, &apply_context->property))
       return false;
 
     if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
@@ -796,7 +796,7 @@ struct SubstLookup : Lookup
     return false;
   }
 
-  inline bool apply_string (hb_ot_layout_context_t *context,
+  inline bool apply_string (hb_ot_layout_context_t *layout_context,
 			    hb_buffer_t *buffer,
 			    hb_mask_t    mask) const
   {
@@ -813,7 +813,7 @@ struct SubstLookup : Lookup
 	while (buffer->in_pos < buffer->in_length)
 	{
 	  if ((~IN_MASK (buffer->in_pos) & mask) &&
-	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
+	      apply_once (layout_context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
 	    ret = true;
 	  else
 	    _hb_buffer_next_glyph (buffer);
@@ -829,7 +829,7 @@ struct SubstLookup : Lookup
 	do
 	{
 	  if ((~IN_MASK (buffer->in_pos) & mask) &&
-	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
+	      apply_once (layout_context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
 	    ret = true;
 	  else
 	    buffer->in_pos--;
@@ -863,11 +863,11 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
-  inline bool substitute_lookup (hb_ot_layout_context_t *context,
+  inline bool substitute_lookup (hb_ot_layout_context_t *layout_context,
 				 hb_buffer_t  *buffer,
 			         unsigned int  lookup_index,
 				 hb_mask_t     mask) const
-  { return get_lookup (lookup_index).apply_string (context, buffer, mask); }
+  { return get_lookup (lookup_index).apply_string (layout_context, buffer, mask); }
 
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -907,7 +907,7 @@ inline bool ExtensionSubst::is_reverse (void) const
 
 static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
 {
-  const GSUB &gsub = *(context->face->ot_layout.gsub);
+  const GSUB &gsub = *(layout_context->face->ot_layout.gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   if (HB_UNLIKELY (apply_context->nesting_level_left == 0))
@@ -916,7 +916,7 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  return l.apply_once (context, buffer, context_length, apply_context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (layout_context, buffer, context_length, apply_context->nesting_level_left - 1, apply_depth + 1);
 }
 
 
