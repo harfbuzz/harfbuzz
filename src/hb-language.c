@@ -102,6 +102,8 @@ hb_language_from_string (const char *str)
   for (p = (unsigned char *) langs[i]; *p; p++)
     *p = canon_map[*p];
 
+  num_langs++;
+
   return (hb_language_t) langs[i];
 }
 
