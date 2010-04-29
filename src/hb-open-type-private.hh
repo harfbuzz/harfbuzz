@@ -137,9 +137,7 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 #define SANITIZE_ARG \
 	context, \
 	(HB_DEBUG_SANITIZE ? sanitize_depth + 1 : 0)
-#define SANITIZE_ARG_INIT \
-	&context, \
-	1
+
 
 typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
 struct _hb_sanitize_context_t
@@ -266,7 +264,8 @@ template <typename Type>
 struct Sanitizer
 {
   static hb_blob_t *sanitize (hb_blob_t *blob) {
-    hb_sanitize_context_t context;
+    hb_sanitize_context_t context[1];
+    unsigned int sanitize_depth = 0;
     bool sane;
 
     /* TODO is_sane() stuff */
@@ -276,33 +275,33 @@ struct Sanitizer
     fprintf (stderr, "Sanitizer %p start %s\n", blob, __PRETTY_FUNCTION__);
 #endif
 
-    _hb_sanitize_init (&context, blob);
+    _hb_sanitize_init (context, blob);
 
     /* Note: We drop const here */
-    Type *t = CastP<Type> ((void *) context.start);
+    Type *t = CastP<Type> ((void *) context->start);
 
-    sane = t->sanitize (SANITIZE_ARG_INIT);
+    sane = t->sanitize (SANITIZE_ARG);
     if (sane) {
-      if (context.edit_count) {
+      if (context->edit_count) {
 #if HB_DEBUG_SANITIZE
 	fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
-		 blob, context.edit_count, __PRETTY_FUNCTION__);
+		 blob, context->edit_count, __PRETTY_FUNCTION__);
 #endif
         /* sanitize again to ensure no toe-stepping */
-        context.edit_count = 0;
-	sane = t->sanitize (SANITIZE_ARG_INIT);
-	if (context.edit_count) {
+        context->edit_count = 0;
+	sane = t->sanitize (SANITIZE_ARG);
+	if (context->edit_count) {
 #if HB_DEBUG_SANITIZE
 	  fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
-		   blob, context.edit_count, __PRETTY_FUNCTION__);
+		   blob, context->edit_count, __PRETTY_FUNCTION__);
 #endif
 	  sane = false;
 	}
       }
-      _hb_sanitize_fini (&context, blob);
+      _hb_sanitize_fini (context, blob);
     } else {
-      unsigned int edit_count = context.edit_count;
-      _hb_sanitize_fini (&context, blob);
+      unsigned int edit_count = context->edit_count;
+      _hb_sanitize_fini (context, blob);
       if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
         /* ok, we made it writable by relocating.  try again */
 #if HB_DEBUG_SANITIZE

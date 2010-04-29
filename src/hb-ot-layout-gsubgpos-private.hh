@@ -58,14 +58,6 @@
 	lookup_flag, \
 	property, \
 	(HB_DEBUG_APPLY ? apply_depth + 1 : 0)
-#define APPLY_ARG_INIT \
-	context, \
-	buffer, \
-	context_length, \
-	nesting_level_left, \
-	lookup_flag, \
-	property, \
-	1
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const char *data);

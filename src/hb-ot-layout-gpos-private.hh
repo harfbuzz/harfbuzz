@@ -1450,7 +1450,8 @@ struct PosLookup : Lookup
   inline bool apply_once (hb_ot_layout_context_t *context,
 			  hb_buffer_t    *buffer,
 			  unsigned int    context_length,
-			  unsigned int    nesting_level_left) const
+			  unsigned int    nesting_level_left,
+			  unsigned int    apply_depth) const
   {
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
@@ -1460,7 +1461,7 @@ struct PosLookup : Lookup
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).apply (APPLY_ARG_INIT, lookup_type))
+      if (get_subtable (i).apply (APPLY_ARG, lookup_type))
 	return true;
 
     return false;
@@ -1483,7 +1484,7 @@ struct PosLookup : Lookup
       bool done;
       if (~IN_MASK (buffer->in_pos) & mask)
       {
-	  done = apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL);
+	  done = apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0);
 	  ret |= done;
       }
       else
@@ -1568,7 +1569,7 @@ static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  return l.apply_once (context, buffer, context_length, nesting_level_left);
+  return l.apply_once (context, buffer, context_length, nesting_level_left, apply_depth);
 }
 
 

@@ -760,7 +760,8 @@ struct SubstLookup : Lookup
   inline bool apply_once (hb_ot_layout_context_t *context,
 			  hb_buffer_t    *buffer,
 			  unsigned int    context_length,
-			  unsigned int    nesting_level_left) const
+			  unsigned int    nesting_level_left,
+			  unsigned int    apply_depth) const
   {
     unsigned int lookup_type = get_type ();
     unsigned int lookup_flag = get_flag ();
@@ -785,7 +786,7 @@ struct SubstLookup : Lookup
 
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
-      if (get_subtable (i).apply (APPLY_ARG_INIT, lookup_type))
+      if (get_subtable (i).apply (APPLY_ARG, lookup_type))
 	return true;
 
     return false;
@@ -808,7 +809,7 @@ struct SubstLookup : Lookup
 	while (buffer->in_pos < buffer->in_length)
 	{
 	  if ((~IN_MASK (buffer->in_pos) & mask) &&
-	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
 	    ret = true;
 	  else
 	    _hb_buffer_next_glyph (buffer);
@@ -824,7 +825,7 @@ struct SubstLookup : Lookup
 	do
 	{
 	  if ((~IN_MASK (buffer->in_pos) & mask) &&
-	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	      apply_once (context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
 	    ret = true;
 	  else
 	    buffer->in_pos--;
@@ -912,7 +913,7 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  return l.apply_once (context, buffer, context_length, nesting_level_left);
+  return l.apply_once (context, buffer, context_length, nesting_level_left, apply_depth);
 }
 
 
