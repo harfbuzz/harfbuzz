@@ -40,7 +40,7 @@ _hb_trace_apply (const char *obj,
 		 unsigned int apply_depth,
 		 const char *function)
 {
-  /* The following check is written in such a skewer way just
+  /* The following check is written in such a skewed way just
    * to quiet compiler warning.  The simple version would have been:
    *   if (apply_depth < HB_DEBUG_APPLY)
    */

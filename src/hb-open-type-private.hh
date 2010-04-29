@@ -121,27 +121,36 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
  */
 
 #ifndef HB_DEBUG_SANITIZE
-#define HB_DEBUG_SANITIZE HB_DEBUG
+#define HB_DEBUG_SANITIZE HB_DEBUG+0
 #endif
 
+static HB_GNUC_UNUSED inline hb_bool_t /* always returns TRUE */
+_hb_trace (const char *what,
+	   const char *function,
+	   void *obj,
+	   unsigned int depth,
+	   unsigned int max_depth)
+{
+  if (depth < max_depth)
+    fprintf (stderr, "%s(%p) %-*d-> %s\n",
+	     what,
+	     (obj == CharP(&_NullPool)) ? 0 : obj,
+	     depth, depth,
+	     function);
+  return TRUE;
+}
+
+
 #if HB_DEBUG_SANITIZE
-#include <stdio.h>
+#define TRACE_SANITIZE()	_hb_trace ("SANITIZE", __PRETTY_FUNCTION__, this, sanitize_depth, HB_DEBUG_SANITIZE)
 #define TRACE_SANITIZE_ARG_DEF	, unsigned int sanitize_depth HB_GNUC_UNUSED
 #define TRACE_SANITIZE_ARG	, sanitize_depth + 1
 #define TRACE_SANITIZE_ARG_INIT	, 1
-#define TRACE_SANITIZE() \
-	HB_STMT_START { \
-	    if (sanitize_depth < HB_DEBUG_SANITIZE) \
-		fprintf (stderr, "SANITIZE(%p) %-*d-> %s\n", \
-			 (CharP(this) == CharP(&_NullPool)) ? 0 : this, \
-			 sanitize_depth, sanitize_depth, \
-			 __PRETTY_FUNCTION__); \
-	} HB_STMT_END
 #else
+#define TRACE_SANITIZE()	_hb_trace ("SANITIZE", __PRETTY_FUNCTION__, this, 0, HB_DEBUG_SANITIZE)
 #define TRACE_SANITIZE_ARG_DEF
 #define TRACE_SANITIZE_ARG
 #define TRACE_SANITIZE_ARG_INIT
-#define TRACE_SANITIZE() HB_STMT_START {} HB_STMT_END
 #endif
 
 #define SANITIZE_ARG_DEF \
