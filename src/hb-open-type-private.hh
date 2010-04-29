@@ -124,41 +124,22 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 #define HB_DEBUG_SANITIZE HB_DEBUG+0
 #endif
 
-static HB_GNUC_UNUSED inline hb_bool_t /* always returns TRUE */
-_hb_trace (const char *what,
-	   const char *function,
-	   void *obj,
-	   unsigned int depth,
-	   unsigned int max_depth)
-{
-  if (depth < max_depth)
-    fprintf (stderr, "%s(%p) %-*d-> %s\n",
-	     what,
-	     (obj == CharP(&_NullPool)) ? 0 : obj,
-	     depth, depth,
-	     function);
-  return TRUE;
-}
+#define TRACE_SANITIZE() \
+	HB_STMT_START { \
+	  if (HB_DEBUG_SANITIZE) \
+		  _hb_trace ("SANITIZE", __PRETTY_FUNCTION__, this, sanitize_depth, HB_DEBUG_SANITIZE); \
+	} HB_STMT_END
 
-
-#if HB_DEBUG_SANITIZE
-#define TRACE_SANITIZE()	_hb_trace ("SANITIZE", __PRETTY_FUNCTION__, this, sanitize_depth, HB_DEBUG_SANITIZE)
-#define TRACE_SANITIZE_ARG_DEF	, unsigned int sanitize_depth HB_GNUC_UNUSED
-#define TRACE_SANITIZE_ARG	, sanitize_depth + 1
-#define TRACE_SANITIZE_ARG_INIT	, 1
-#else
-#define TRACE_SANITIZE()	_hb_trace ("SANITIZE", __PRETTY_FUNCTION__, this, 0, HB_DEBUG_SANITIZE)
-#define TRACE_SANITIZE_ARG_DEF
-#define TRACE_SANITIZE_ARG
-#define TRACE_SANITIZE_ARG_INIT
-#endif
 
 #define SANITIZE_ARG_DEF \
-	hb_sanitize_context_t *context TRACE_SANITIZE_ARG_DEF
+	hb_sanitize_context_t *context, \
+	unsigned int sanitize_depth HB_GNUC_UNUSED
 #define SANITIZE_ARG \
-	context TRACE_SANITIZE_ARG
+	context, \
+	(HB_DEBUG_SANITIZE ? sanitize_depth + 1 : 0)
 #define SANITIZE_ARG_INIT \
-	&context TRACE_SANITIZE_ARG_INIT
+	&context, \
+	1
 
 typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
 struct _hb_sanitize_context_t

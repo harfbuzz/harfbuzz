@@ -35,24 +35,11 @@
 #define HB_DEBUG_APPLY HB_DEBUG+0
 #endif
 
-static HB_GNUC_UNUSED inline hb_bool_t /* always returns TRUE */
-_hb_trace_apply (const char *obj,
-		 unsigned int apply_depth,
-		 const char *function)
-{
-  /* The following check is written in such a skewed way just
-   * to quiet compiler warning.  The simple version would have been:
-   *   if (apply_depth < HB_DEBUG_APPLY)
-   */
-  if (HB_DEBUG_APPLY && (int) apply_depth < HB_DEBUG_APPLY)
-    fprintf (stderr, "APPLY(%p) %-*d-> %s\n",
-	     (obj == CharP(&_NullPool)) ? 0 : obj,
-	     apply_depth, apply_depth,
-	     function);
-  return TRUE;
-}
-
-#define TRACE_APPLY()	_hb_trace_apply (CharP(this), apply_depth, __PRETTY_FUNCTION__)
+#define TRACE_APPLY() \
+	HB_STMT_START { \
+	  if (HB_DEBUG_APPLY) \
+		  _hb_trace ("APPLY", __PRETTY_FUNCTION__, this, apply_depth, HB_DEBUG_APPLY); \
+	} HB_STMT_END
 
 
 #define APPLY_ARG_DEF \
@@ -70,7 +57,7 @@ _hb_trace_apply (const char *obj,
 	nesting_level_left, \
 	lookup_flag, \
 	property, \
-	(HB_DEBUG_APPLY ? apply_depth+1 : 0)
+	(HB_DEBUG_APPLY ? apply_depth + 1 : 0)
 #define APPLY_ARG_INIT \
 	context, \
 	buffer, \

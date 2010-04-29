@@ -31,9 +31,7 @@
 #include "config.h"
 #endif
 
-#ifndef HB_DEBUG
-#define HB_DEBUG 0
-#endif
+#include "hb-common.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -46,7 +44,18 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "hb-common.h"
+
+/* Essentials */
+
+#ifndef NULL
+# define NULL ((void *) 0)
+#endif
+
+#undef FALSE
+#define FALSE 0
+
+#undef TRUE
+#define TRUE 1
 
 
 /* Basics */
@@ -61,16 +70,6 @@
 # define HB_INTERNAL extern
 #endif
 
-#ifndef NULL
-# define NULL ((void *) 0)
-#endif
-
-#undef FALSE
-#define FALSE 0
-
-#undef TRUE
-#define TRUE 1
-
 #undef  ARRAY_LENGTH
 #define ARRAY_LENGTH(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
 
@@ -80,6 +79,9 @@
 #define _ASSERT_STATIC1(_line, _cond) typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]
 #define _ASSERT_STATIC0(_line, _cond) _ASSERT_STATIC1 (_line, (_cond))
 #define ASSERT_STATIC(_cond) _ASSERT_STATIC0 (__LINE__, (_cond))
+
+
+/* Misc */
 
 #define ASSERT_SIZE(_type, _size) ASSERT_STATIC (sizeof (_type) == (_size))
 
@@ -222,6 +224,24 @@ typedef int hb_mutex_t;
 #define hb_be_uint32_get(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
 #define hb_be_uint32_cmp(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
 
+
+/* Debug */
+
+#ifndef HB_DEBUG
+#define HB_DEBUG 0
+#endif
+
+static HB_GNUC_UNUSED inline hb_bool_t /* always returns TRUE */
+_hb_trace (const char *what,
+	   const char *function,
+	   const void *obj,
+	   unsigned int depth,
+	   unsigned int max_depth)
+{
+  if (depth < max_depth)
+    fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, depth, depth, function);
+  return TRUE;
+}
 
 
 #include "hb-object-private.h"
