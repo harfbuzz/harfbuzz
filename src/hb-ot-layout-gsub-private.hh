@@ -49,7 +49,7 @@ struct SingleSubstFormat1
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
-      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, apply_context->property);
+      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, context->property);
 
     return true;
   }
@@ -91,7 +91,7 @@ struct SingleSubstFormat2
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
-      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, apply_context->property);
+      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, context->property);
 
     return true;
   }
@@ -165,7 +165,7 @@ struct Sequence
     /* This is a guess only ... */
     if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
     {
-      unsigned int property = apply_context->property;
+      unsigned int property = context->property;
       if (property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
         property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
 
@@ -296,7 +296,7 @@ struct AlternateSubstFormat1
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (layout_context->face))
-      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, apply_context->property);
+      _hb_ot_layout_set_glyph_property (layout_context->face, glyph_id, context->property);
 
     return true;
   }
@@ -366,7 +366,7 @@ struct Ligature
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
     {
       unsigned int property;
-      while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), apply_context->lookup_flag, &property))
+      while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, &property))
       {
 	if (HB_UNLIKELY (j + count - i == end))
 	  return false;
@@ -407,7 +407,7 @@ struct Ligature
 
       for ( i = 1; i < count; i++ )
       {
-	while (_hb_ot_layout_skip_mark (layout_context->face, IN_CURINFO (), apply_context->lookup_flag, NULL))
+	while (_hb_ot_layout_skip_mark (layout_context->face, IN_CURINFO (), context->lookup_flag, NULL))
 	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH (), i, lig_id);
 
 	(buffer->in_pos)++;
@@ -474,7 +474,7 @@ struct LigatureSubstFormat1
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
-    bool first_is_mark = !!(apply_context->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+    bool first_is_mark = !!(context->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
     unsigned int index = (this+coverage) (glyph_id);
     if (HB_LIKELY (index == NOT_COVERED))
@@ -766,12 +766,12 @@ struct SubstLookup : Lookup
 			  unsigned int apply_depth) const
   {
     unsigned int lookup_type = get_type ();
-    hb_apply_context_t apply_context[1];
+    hb_apply_context_t context[1];
 
-    apply_context->nesting_level_left = nesting_level_left;
-    apply_context->lookup_flag = get_flag ();
+    context->nesting_level_left = nesting_level_left;
+    context->lookup_flag = get_flag ();
 
-    if (!_hb_ot_layout_check_glyph_property (layout_context->face, IN_CURINFO (), apply_context->lookup_flag, &apply_context->property))
+    if (!_hb_ot_layout_check_glyph_property (layout_context->face, IN_CURINFO (), context->lookup_flag, &context->property))
       return false;
 
     if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
@@ -910,13 +910,13 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   const GSUB &gsub = *(layout_context->face->ot_layout.gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
-  if (HB_UNLIKELY (apply_context->nesting_level_left == 0))
+  if (HB_UNLIKELY (context->nesting_level_left == 0))
     return false;
 
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  return l.apply_once (layout_context, buffer, context_length, apply_context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (layout_context, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
 }
 
 

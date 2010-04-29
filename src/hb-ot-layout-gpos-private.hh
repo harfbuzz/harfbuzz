@@ -566,7 +566,7 @@ struct PairPosFormat1
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), apply_context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -658,7 +658,7 @@ struct PairPosFormat2
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), apply_context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j == end))
 	return false;
@@ -913,7 +913,7 @@ struct CursivePosFormat1
     gpi->last = HB_OT_LAYOUT_GPOS_NO_LAST;
 
     /* We don't handle mark glyphs here. */
-    if (apply_context->property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+    if (context->property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -941,7 +941,7 @@ struct CursivePosFormat1
       POSITION (last_pos)->x_advance = gpi->anchor_x - entry_x;
     }
 
-    if  (apply_context->lookup_flag & LookupFlag::RightToLeft)
+    if  (context->lookup_flag & LookupFlag::RightToLeft)
     {
       POSITION (last_pos)->cursive_chain = last_pos - buffer->in_pos;
       POSITION (last_pos)->y_offset = entry_y - gpi->anchor_y;
@@ -1252,7 +1252,7 @@ struct MarkMarkPosFormat1
       if (HB_UNLIKELY (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), apply_context->lookup_flag, &property));
+    } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, &property));
 
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
       return false;
@@ -1457,12 +1457,12 @@ struct PosLookup : Lookup
 			  unsigned int    apply_depth) const
   {
     unsigned int lookup_type = get_type ();
-    hb_apply_context_t apply_context[1];
+    hb_apply_context_t context[1];
 
-    apply_context->nesting_level_left = nesting_level_left;
-    apply_context->lookup_flag = get_flag ();
+    context->nesting_level_left = nesting_level_left;
+    context->lookup_flag = get_flag ();
 
-    if (!_hb_ot_layout_check_glyph_property (layout_context->face, IN_CURINFO (), apply_context->lookup_flag, &apply_context->property))
+    if (!_hb_ot_layout_check_glyph_property (layout_context->face, IN_CURINFO (), context->lookup_flag, &context->property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
@@ -1567,13 +1567,13 @@ static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   const GPOS &gpos = *(layout_context->face->ot_layout.gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 
-  if (HB_UNLIKELY (apply_context->nesting_level_left == 0))
+  if (HB_UNLIKELY (context->nesting_level_left == 0))
     return false;
 
   if (HB_UNLIKELY (context_length < 1))
     return false;
 
-  return l.apply_once (layout_context, buffer, context_length, apply_context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (layout_context, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
 }
 
 

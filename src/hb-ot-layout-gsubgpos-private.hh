@@ -43,13 +43,13 @@
 
 
 #define APPLY_ARG_DEF \
-	hb_apply_context_t *apply_context, \
+	hb_apply_context_t *context, \
 	hb_ot_layout_context_t *layout_context, \
 	hb_buffer_t *buffer, \
 	unsigned int context_length HB_GNUC_UNUSED, \
 	unsigned int apply_depth HB_GNUC_UNUSED
 #define APPLY_ARG \
-	apply_context, \
+	context, \
 	layout_context, \
 	buffer, \
 	context_length, \
@@ -105,7 +105,7 @@ static inline bool match_input (APPLY_ARG_DEF,
 
   for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), apply_context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
@@ -132,7 +132,7 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
 
   for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), apply_context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j + 1 == count - i))
 	return false;
@@ -160,7 +160,7 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 
   for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), apply_context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
@@ -210,7 +210,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_CURINFO (), apply_context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (layout_context->face, IN_CURINFO (), context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (buffer->in_pos == end))
 	return true;
