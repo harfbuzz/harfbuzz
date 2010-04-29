@@ -658,5 +658,6 @@ hb_ot_tag_to_language (hb_tag_t tag)
   buf[4] = (tag >> 16) & 0xFF;
   buf[5] = (tag >> 8) & 0xFF;
   buf[6] = tag & 0xFF;
+  buf[7] = '\0';
   return hb_language_from_string ((char *) buf);
 }
