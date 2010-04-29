@@ -106,8 +106,13 @@ struct ValueFormat : USHORT
     if (format & xAdvance)   glyph_pos->x_advance += _hb_16dot16_mul_round (x_scale, *(SHORT*)values++);
     if (format & yAdvance)   glyph_pos->y_advance += _hb_16dot16_mul_round (y_scale, *(SHORT*)values++);
 
+    if (!has_device ()) return;
+
     x_ppem = layout_context->font->x_ppem;
     y_ppem = layout_context->font->y_ppem;
+
+    if (!x_ppem && !y_ppem) return;
+
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
       if (x_ppem) glyph_pos->x_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 16; else values++;
@@ -142,7 +147,7 @@ struct ValueFormat : USHORT
 
   public:
 
-  inline bool has_device () {
+  inline bool has_device () const {
     unsigned int format = *this;
     return (format & devices) != 0;
   }
