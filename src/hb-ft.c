@@ -152,6 +152,9 @@ _get_table  (hb_tag_t tag, void *user_data)
   FT_ULong  length = 0;
   FT_Error error;
 
+  if (HB_UNLIKELY (tag == HB_TAG_NONE))
+    return hb_blob_create_empty ();
+
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, NULL, &length);
   if (error)
     return hb_blob_create_empty ();
