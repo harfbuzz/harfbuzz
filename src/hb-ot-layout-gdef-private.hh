@@ -140,7 +140,7 @@ struct CaretValueFormat3
   {
     /* TODO vertical */
     return _hb_16dot16_mul_round (context->font->x_scale, coordinate) +
-	   ((this+deviceTable).get_delta (context->font->x_ppem) << 6);
+	   ((this+deviceTable).get_delta (context->font->x_ppem) << 16);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
