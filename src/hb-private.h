@@ -145,6 +145,15 @@
 #endif
 
 
+#if __GNUC__ >= 3
+#define HB_FUNC __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#define HB_FUNC __FUNCSIG__
+#else
+#define HB_FUNC __func__
+#endif
+
+
 /* Return the number of 1 bits in mask.
  *
  * GCC 3.4 supports a "population count" builtin, which on many targets is

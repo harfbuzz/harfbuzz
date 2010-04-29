@@ -127,7 +127,7 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 #define TRACE_SANITIZE() \
 	HB_STMT_START { \
 	  if (HB_DEBUG_SANITIZE) \
-		  _hb_trace ("SANITIZE", __PRETTY_FUNCTION__, this, sanitize_depth, HB_DEBUG_SANITIZE); \
+		  _hb_trace ("SANITIZE", HB_FUNC, this, sanitize_depth, HB_DEBUG_SANITIZE); \
 	} HB_STMT_END
 
 
@@ -266,7 +266,7 @@ struct Sanitizer
 
   retry:
     if (HB_DEBUG_SANITIZE)
-      fprintf (stderr, "Sanitizer %p start %s\n", blob, __PRETTY_FUNCTION__);
+      fprintf (stderr, "Sanitizer %p start %s\n", blob, HB_FUNC);
 
     _hb_sanitize_init (context, blob);
 
@@ -277,7 +277,7 @@ struct Sanitizer
       if (context->edit_count) {
 	if (HB_DEBUG_SANITIZE)
 	  fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
-		   blob, context->edit_count, __PRETTY_FUNCTION__);
+		   blob, context->edit_count, HB_FUNC);
 
         /* sanitize again to ensure no toe-stepping */
         context->edit_count = 0;
@@ -285,7 +285,7 @@ struct Sanitizer
 	if (context->edit_count) {
 	  if (HB_DEBUG_SANITIZE)
 	    fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
-		     blob, context->edit_count, __PRETTY_FUNCTION__);
+		     blob, context->edit_count, HB_FUNC);
 	  sane = false;
 	}
       }
@@ -296,13 +296,13 @@ struct Sanitizer
       if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
         /* ok, we made it writable by relocating.  try again */
 	if (HB_DEBUG_SANITIZE)
-	  fprintf (stderr, "Sanitizer %p retry %s\n", blob, __PRETTY_FUNCTION__);
+	  fprintf (stderr, "Sanitizer %p retry %s\n", blob, HB_FUNC);
         goto retry;
       }
     }
 
     if (HB_DEBUG_SANITIZE)
-      fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", __PRETTY_FUNCTION__);
+      fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", HB_FUNC);
     if (sane)
       return blob;
     else {

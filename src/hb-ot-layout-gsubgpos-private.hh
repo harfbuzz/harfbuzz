@@ -38,7 +38,7 @@
 #define TRACE_APPLY() \
 	HB_STMT_START { \
 	  if (HB_DEBUG_APPLY) \
-		  _hb_trace ("APPLY", __PRETTY_FUNCTION__, this, apply_depth, HB_DEBUG_APPLY); \
+		  _hb_trace ("APPLY", HB_FUNC, this, apply_depth, HB_DEBUG_APPLY); \
 	} HB_STMT_END
 
 
