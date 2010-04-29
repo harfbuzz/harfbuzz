@@ -276,8 +276,7 @@ struct Sanitizer
 
     _hb_sanitize_init (context, blob);
 
-    /* Note: We drop const here */
-    Type *t = CastP<Type> ((void *) context->start);
+    Type *t = CastP<Type> (const_cast<char *> (context->start));
 
     sane = t->sanitize (SANITIZE_ARG);
     if (sane) {
