@@ -599,8 +599,10 @@ hb_ot_tag_from_language (hb_language_t language)
     int i;
     lang_str += 6;
     i = 0;
-    while (i < 4 && lang_str[i]) {
-      tag[i] = lang_str[i];
+#define IS_LETTER(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+#define TO_UPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) + 'A' - 'a' : (c))
+    while (i < 4 && IS_LETTER (lang_str[i])) {
+      tag[i] = TO_UPPER (lang_str[i]);
     }
     while (i < 4)
       tag[i] = ' ';
