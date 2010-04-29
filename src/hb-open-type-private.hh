@@ -155,20 +155,18 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
   context->writable = hb_blob_is_writable (blob);
   context->edit_count = 0;
 
-#if HB_DEBUG_SANITIZE
-  fprintf (stderr, "sanitize %p init [%p..%p] (%u bytes)\n",
-	   blob, context->start, context->end, context->end - context->start);
-#endif
+  if (HB_DEBUG_SANITIZE)
+    fprintf (stderr, "sanitize %p init [%p..%p] (%u bytes)\n",
+	     blob, context->start, context->end, context->end - context->start);
 }
 
 static HB_GNUC_UNUSED void
 _hb_sanitize_fini (hb_sanitize_context_t *context HB_GNUC_UNUSED,
 		   hb_blob_t *blob)
 {
-#if HB_DEBUG_SANITIZE
-  fprintf (stderr, "sanitize %p fini [%p..%p] %u edit requests\n",
-	   blob, context->start, context->end, context->edit_count);
-#endif
+  if (HB_DEBUG_SANITIZE)
+    fprintf (stderr, "sanitize %p fini [%p..%p] %u edit requests\n",
+	     blob, context->start, context->end, context->edit_count);
 
   hb_blob_unlock (blob);
 }
@@ -182,15 +180,14 @@ _hb_sanitize_check (SANITIZE_ARG_DEF,
 	     base <= context->end &&
 	     (unsigned int) (context->end - base) >= len;
 
-#if HB_DEBUG_SANITIZE
-  if (sanitize_depth < HB_DEBUG_SANITIZE) \
+  if (HB_DEBUG_SANITIZE && (int) sanitize_depth < (int) HB_DEBUG_SANITIZE) \
     fprintf (stderr, "SANITIZE(%p) %-*d-> check [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
 	     base,
 	     sanitize_depth, sanitize_depth,
 	     base, base+len, len,
 	     context->start, context->end,
 	     ret ? "pass" : "FAIL");
-#endif
+
   return ret;
 }
 
@@ -202,15 +199,14 @@ _hb_sanitize_array (SANITIZE_ARG_DEF,
 {
   bool overflows = len >= ((unsigned int) -1) / record_size;
 
-#if HB_DEBUG_SANITIZE
-  if (sanitize_depth < HB_DEBUG_SANITIZE) \
+
+  if (HB_DEBUG_SANITIZE && (int) sanitize_depth < (int) HB_DEBUG_SANITIZE)
     fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n", \
 	     base,
 	     sanitize_depth, sanitize_depth,
 	     base, base + (record_size * len), record_size, len, (unsigned long) record_size * len,
 	     context->start, context->end,
 	     !overflows ? "does not overflow" : "OVERFLOWS FAIL");
-#endif
 
   return HB_LIKELY (!overflows) && _hb_sanitize_check (SANITIZE_ARG, base, record_size * len);
 }
@@ -222,15 +218,14 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 {
   context->edit_count++;
 
-#if HB_DEBUG_SANITIZE
-  fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
-	   base,
-	   sanitize_depth, sanitize_depth,
-	   context->edit_count,
-	   base, base+len, len,
-	   context->start, context->end,
-	   context->writable ? "granted" : "REJECTED");
-#endif
+  if (HB_DEBUG_SANITIZE && (int) sanitize_depth < (int) HB_DEBUG_SANITIZE)
+    fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
+	     base,
+	     sanitize_depth, sanitize_depth,
+	     context->edit_count,
+	     base, base+len, len,
+	     context->start, context->end,
+	     context->writable ? "granted" : "REJECTED");
 
   return context->writable;
 }
@@ -270,9 +265,8 @@ struct Sanitizer
     /* TODO is_sane() stuff */
 
   retry:
-#if HB_DEBUG_SANITIZE
-    fprintf (stderr, "Sanitizer %p start %s\n", blob, __PRETTY_FUNCTION__);
-#endif
+    if (HB_DEBUG_SANITIZE)
+      fprintf (stderr, "Sanitizer %p start %s\n", blob, __PRETTY_FUNCTION__);
 
     _hb_sanitize_init (context, blob);
 
@@ -281,18 +275,17 @@ struct Sanitizer
     sane = t->sanitize (SANITIZE_ARG);
     if (sane) {
       if (context->edit_count) {
-#if HB_DEBUG_SANITIZE
-	fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
-		 blob, context->edit_count, __PRETTY_FUNCTION__);
-#endif
+	if (HB_DEBUG_SANITIZE)
+	  fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
+		   blob, context->edit_count, __PRETTY_FUNCTION__);
+
         /* sanitize again to ensure no toe-stepping */
         context->edit_count = 0;
 	sane = t->sanitize (SANITIZE_ARG);
 	if (context->edit_count) {
-#if HB_DEBUG_SANITIZE
-	  fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
-		   blob, context->edit_count, __PRETTY_FUNCTION__);
-#endif
+	  if (HB_DEBUG_SANITIZE)
+	    fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
+		     blob, context->edit_count, __PRETTY_FUNCTION__);
 	  sane = false;
 	}
       }
@@ -302,16 +295,14 @@ struct Sanitizer
       _hb_sanitize_fini (context, blob);
       if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
         /* ok, we made it writable by relocating.  try again */
-#if HB_DEBUG_SANITIZE
-	fprintf (stderr, "Sanitizer %p retry %s\n", blob, __PRETTY_FUNCTION__);
-#endif
+	if (HB_DEBUG_SANITIZE)
+	  fprintf (stderr, "Sanitizer %p retry %s\n", blob, __PRETTY_FUNCTION__);
         goto retry;
       }
     }
 
-#if HB_DEBUG_SANITIZE
-    fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", __PRETTY_FUNCTION__);
-#endif
+    if (HB_DEBUG_SANITIZE)
+      fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", __PRETTY_FUNCTION__);
     if (sane)
       return blob;
     else {
