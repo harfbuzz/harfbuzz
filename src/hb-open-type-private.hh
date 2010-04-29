@@ -138,14 +138,13 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 	context, \
 	(HB_DEBUG_SANITIZE ? sanitize_depth + 1 : 0)
 
-
-typedef struct _hb_sanitize_context_t hb_sanitize_context_t;
-struct _hb_sanitize_context_t
+struct hb_sanitize_context_t
 {
   const char *start, *end;
   hb_bool_t writable;
   unsigned int edit_count;
 };
+
 
 static HB_GNUC_UNUSED void
 _hb_sanitize_init (hb_sanitize_context_t *context,

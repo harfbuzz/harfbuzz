@@ -43,21 +43,24 @@
 
 
 #define APPLY_ARG_DEF \
+	hb_apply_context_t *apply_context, \
 	hb_ot_layout_context_t *context, \
-	hb_buffer_t    *buffer, \
-	unsigned int    context_length HB_GNUC_UNUSED, \
-	unsigned int    nesting_level_left HB_GNUC_UNUSED, \
-	unsigned int    lookup_flag HB_GNUC_UNUSED, \
-	unsigned int    property HB_GNUC_UNUSED, /* propety of first glyph */ \
-	unsigned int    apply_depth HB_GNUC_UNUSED
+	hb_buffer_t *buffer, \
+	unsigned int context_length HB_GNUC_UNUSED, \
+	unsigned int apply_depth HB_GNUC_UNUSED
 #define APPLY_ARG \
+	apply_context, \
 	context, \
 	buffer, \
 	context_length, \
-	nesting_level_left, \
-	lookup_flag, \
-	property, \
 	(HB_DEBUG_APPLY ? apply_depth + 1 : 0)
+
+struct hb_apply_context_t
+{
+  unsigned int nesting_level_left;
+  unsigned int lookup_flag;
+  unsigned int property; /* propety of first glyph (TODO remove) */
+};
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const char *data);
@@ -102,7 +105,7 @@ static inline bool match_input (APPLY_ARG_DEF,
 
   for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->face, IN_INFO (j), apply_context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
@@ -129,7 +132,7 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
 
   for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--)
   {
-    while (_hb_ot_layout_skip_mark (context->face, OUT_INFO (j), lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->face, OUT_INFO (j), apply_context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j + 1 == count - i))
 	return false;
@@ -157,7 +160,7 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 
   for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (context->face, OUT_INFO (j), lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->face, OUT_INFO (j), apply_context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (j + count - i == end))
 	return false;
@@ -207,7 +210,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (context->face, IN_CURINFO (), lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->face, IN_CURINFO (), apply_context->lookup_flag, NULL))
     {
       if (HB_UNLIKELY (buffer->in_pos == end))
 	return true;
