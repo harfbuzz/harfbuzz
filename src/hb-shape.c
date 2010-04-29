@@ -229,9 +229,12 @@ hb_shape (hb_font_t    *font,
   hb_bool_t substitute_fallback, position_fallback;
 
   hb_form_clusters (buffer);
-  original_direction = hb_ensure_native_direction (buffer);
 
   hb_substitute_default (font, face, buffer, features, num_features);
+
+  /* We do this after substitute_default because mirroring needs to
+   * see the original direction. */
+  original_direction = hb_ensure_native_direction (buffer);
 
   substitute_fallback = !hb_substitute_complex (font, face, buffer, features, num_features);
 
