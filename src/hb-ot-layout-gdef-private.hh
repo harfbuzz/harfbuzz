@@ -94,7 +94,7 @@ struct CaretValueFormat1
   inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id HB_GNUC_UNUSED) const
   {
     /* TODO vertical */
-    return context->font->x_scale * coordinate / 0x10000;
+    return _hb_16dot16_mul_round (context->font->x_scale, coordinate);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
@@ -139,7 +139,7 @@ struct CaretValueFormat3
   inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id HB_GNUC_UNUSED) const
   {
     /* TODO vertical */
-    return context->font->x_scale * coordinate / 0x10000 +
+    return _hb_16dot16_mul_round (context->font->x_scale, coordinate) +
 	   ((this+deviceTable).get_delta (context->font->x_ppem) << 6);
   }
 
