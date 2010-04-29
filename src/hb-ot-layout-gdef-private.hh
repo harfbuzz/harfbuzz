@@ -115,7 +115,10 @@ struct CaretValueFormat2
   private:
   inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
   {
-    return /* TODO contour point */ 0;
+    /* TODO vertical */
+    hb_position_t x = 0, y = 0;
+    hb_font_get_contour_point (context->font, context->face, caretValuePoint, glyph_id, &x, &y);
+    return x;
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
