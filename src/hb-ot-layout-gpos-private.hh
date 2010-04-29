@@ -221,10 +221,15 @@ struct AnchorFormat2
   inline void get_anchor (hb_ot_layout_context_t *layout_context, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      /* TODO Contour
-       * NOTE only adjust directions with nonzero ppem */
-      *x = _hb_16dot16_mul_round (layout_context->font->x_scale, xCoordinate);
-      *y = _hb_16dot16_mul_round (layout_context->font->y_scale, yCoordinate);
+      unsigned int x_ppem = layout_context->font->x_ppem;
+      unsigned int y_ppem = layout_context->font->y_ppem;
+      hb_position_t cx, cy;
+      hb_bool_t ret;
+
+      if (x_ppem || y_ppem)
+	ret = hb_font_get_contour_point (layout_context->font, layout_context->face, anchorPoint, glyph_id, &cx, &cy);
+      *x = x_ppem && ret ? cx : _hb_16dot16_mul_round (layout_context->font->x_scale, xCoordinate);
+      *y = y_ppem && ret ? cy : _hb_16dot16_mul_round (layout_context->font->y_scale, yCoordinate);
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF) {

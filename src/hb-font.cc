@@ -196,6 +196,7 @@ hb_font_get_contour_point (hb_font_t *font, hb_face_t *face,
 			   unsigned int point_index,
 			   hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y)
 {
+  *x = 0; *y = 0;
   return font->klass->get_contour_point (font, face, font->user_data,
 					 point_index,
 					 glyph, x, y);
