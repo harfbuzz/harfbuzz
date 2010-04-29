@@ -594,10 +594,10 @@ hb_ot_tag_from_language (hb_language_t language)
 
   lang_str = hb_language_to_string (language);
 
-  if (0 == strcmp (lang_str, "ot:")) {
+  if (0 == strcmp (lang_str, "x-hbot")) {
     char tag[4];
     int i;
-    lang_str += 3;
+    lang_str += 6;
     i = 0;
     while (i < 4 && lang_str[i]) {
       tag[i] = lang_str[i];
@@ -648,16 +648,16 @@ hb_language_t
 hb_ot_tag_to_language (hb_tag_t tag)
 {
   unsigned int i;
-  unsigned char buf[8] = "ot:";
+  unsigned char buf[11] = "x-hbot";
 
   for (i = 0; i < ARRAY_LENGTH (ot_languages); i++)
     if (ot_languages[i].tag == tag)
       return hb_language_from_string (ot_languages[i].language);
 
-  buf[3] = tag >> 24;
-  buf[4] = (tag >> 16) & 0xFF;
-  buf[5] = (tag >> 8) & 0xFF;
-  buf[6] = tag & 0xFF;
-  buf[7] = '\0';
+  buf[6] = tag >> 24;
+  buf[7] = (tag >> 16) & 0xFF;
+  buf[8] = (tag >> 8) & 0xFF;
+  buf[9] = tag & 0xFF;
+  buf[10] = '\0';
   return hb_language_from_string ((char *) buf);
 }
