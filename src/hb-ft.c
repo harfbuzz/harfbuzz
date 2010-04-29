@@ -34,8 +34,8 @@
 #include FT_TRUETYPE_TABLES_H
 
 static hb_codepoint_t
-hb_ft_get_glyph (hb_font_t *font HB_GNUC_UNUSED,
-		 hb_face_t *face HB_GNUC_UNUSED,
+hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
+		 hb_face_t *face HB_UNUSED,
 		 const void *user_data,
 		 hb_codepoint_t unicode,
 		 hb_codepoint_t variation_selector)
@@ -54,8 +54,8 @@ hb_ft_get_glyph (hb_font_t *font HB_GNUC_UNUSED,
 }
 
 static hb_bool_t
-hb_ft_get_contour_point (hb_font_t *font HB_GNUC_UNUSED,
-			 hb_face_t *face HB_GNUC_UNUSED,
+hb_ft_get_contour_point (hb_font_t *font HB_UNUSED,
+			 hb_face_t *face HB_UNUSED,
 			 const void *user_data,
 			 unsigned int point_index,
 			 hb_codepoint_t glyph,
@@ -83,8 +83,8 @@ hb_ft_get_contour_point (hb_font_t *font HB_GNUC_UNUSED,
 }
 
 static void
-hb_ft_get_glyph_metrics (hb_font_t *font HB_GNUC_UNUSED,
-			 hb_face_t *face HB_GNUC_UNUSED,
+hb_ft_get_glyph_metrics (hb_font_t *font HB_UNUSED,
+			 hb_face_t *face HB_UNUSED,
 			 const void *user_data,
 			 hb_codepoint_t glyph,
 			 hb_glyph_metrics_t *metrics)
@@ -110,8 +110,8 @@ hb_ft_get_glyph_metrics (hb_font_t *font HB_GNUC_UNUSED,
 }
 
 static hb_position_t
-hb_ft_get_kerning (hb_font_t *font HB_GNUC_UNUSED,
-		   hb_face_t *face HB_GNUC_UNUSED,
+hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
+		   hb_face_t *face HB_UNUSED,
 		   const void *user_data,
 		   hb_codepoint_t first_glyph,
 		   hb_codepoint_t second_glyph)

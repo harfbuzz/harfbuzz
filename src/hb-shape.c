@@ -113,8 +113,8 @@ static void
 hb_substitute_default (hb_font_t    *font,
 		       hb_face_t    *face,
 		       hb_buffer_t  *buffer,
-		       hb_feature_t *features HB_GNUC_UNUSED,
-		       unsigned int  num_features HB_GNUC_UNUSED)
+		       hb_feature_t *features HB_UNUSED,
+		       unsigned int  num_features HB_UNUSED)
 {
   hb_mirror_chars (buffer);
   hb_map_glyphs (font, face, buffer);
@@ -131,11 +131,11 @@ hb_substitute_complex (hb_font_t    *font,
 }
 
 static void
-hb_substitute_fallback (hb_font_t    *font HB_GNUC_UNUSED,
-			hb_face_t    *face HB_GNUC_UNUSED,
-			hb_buffer_t  *buffer HB_GNUC_UNUSED,
-			hb_feature_t *features HB_GNUC_UNUSED,
-			unsigned int  num_features HB_GNUC_UNUSED)
+hb_substitute_fallback (hb_font_t    *font HB_UNUSED,
+			hb_face_t    *face HB_UNUSED,
+			hb_buffer_t  *buffer HB_UNUSED,
+			hb_feature_t *features HB_UNUSED,
+			unsigned int  num_features HB_UNUSED)
 {
   /* TODO Arabic */
 }
@@ -147,8 +147,8 @@ static void
 hb_position_default (hb_font_t    *font,
 		     hb_face_t    *face,
 		     hb_buffer_t  *buffer,
-		     hb_feature_t *features HB_GNUC_UNUSED,
-		     unsigned int  num_features HB_GNUC_UNUSED)
+		     hb_feature_t *features HB_UNUSED,
+		     unsigned int  num_features HB_UNUSED)
 {
   unsigned int count;
 
@@ -174,11 +174,11 @@ hb_position_complex (hb_font_t    *font,
 }
 
 static void
-hb_position_fallback (hb_font_t    *font HB_GNUC_UNUSED,
-		      hb_face_t    *face HB_GNUC_UNUSED,
-		      hb_buffer_t  *buffer HB_GNUC_UNUSED,
-		      hb_feature_t *features HB_GNUC_UNUSED,
-		      unsigned int  num_features HB_GNUC_UNUSED)
+hb_position_fallback (hb_font_t    *font HB_UNUSED,
+		      hb_face_t    *face HB_UNUSED,
+		      hb_buffer_t  *buffer HB_UNUSED,
+		      hb_feature_t *features HB_UNUSED,
+		      unsigned int  num_features HB_UNUSED)
 {
   /* TODO Mark pos */
 }
@@ -187,8 +187,8 @@ static void
 hb_truetype_kern (hb_font_t    *font,
 		  hb_face_t    *face,
 		  hb_buffer_t  *buffer,
-		  hb_feature_t *features HB_GNUC_UNUSED,
-		  unsigned int  num_features HB_GNUC_UNUSED)
+		  hb_feature_t *features HB_UNUSED,
+		  unsigned int  num_features HB_UNUSED)
 {
   unsigned int count;
 

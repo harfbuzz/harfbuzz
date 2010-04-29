@@ -62,7 +62,7 @@ typedef struct {
 #define HB_DEBUG_OBJECT HB_DEBUG+0
 #endif
 
-static HB_GNUC_UNUSED inline hb_bool_t /* always returns TRUE */
+static HB_UNUSED inline hb_bool_t /* always returns TRUE */
 _hb_object_debug_out (const void *obj,
 		      hb_reference_count_t *ref_count,
 		      const char *function)

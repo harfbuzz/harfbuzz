@@ -33,10 +33,10 @@
  */
 
 static hb_codepoint_t hb_unicode_get_mirroring_nil (hb_codepoint_t unicode) { return unicode; }
-static hb_category_t hb_unicode_get_general_category_nil (hb_codepoint_t unicode HB_GNUC_UNUSED) { return HB_CATEGORY_OTHER_LETTER; }
-static hb_script_t hb_unicode_get_script_nil (hb_codepoint_t unicode HB_GNUC_UNUSED) { return HB_SCRIPT_UNKNOWN; }
-static unsigned int hb_unicode_get_combining_class_nil (hb_codepoint_t unicode HB_GNUC_UNUSED) { return 0; }
-static unsigned int hb_unicode_get_eastasian_width_nil (hb_codepoint_t unicode HB_GNUC_UNUSED) { return 1; }
+static hb_category_t hb_unicode_get_general_category_nil (hb_codepoint_t unicode HB_UNUSED) { return HB_CATEGORY_OTHER_LETTER; }
+static hb_script_t hb_unicode_get_script_nil (hb_codepoint_t unicode HB_UNUSED) { return HB_SCRIPT_UNKNOWN; }
+static unsigned int hb_unicode_get_combining_class_nil (hb_codepoint_t unicode HB_UNUSED) { return 0; }
+static unsigned int hb_unicode_get_eastasian_width_nil (hb_codepoint_t unicode HB_UNUSED) { return 1; }
 
 hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */

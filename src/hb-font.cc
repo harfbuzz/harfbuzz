@@ -40,37 +40,37 @@
  */
 
 static hb_codepoint_t
-hb_font_get_glyph_nil (hb_font_t *font HB_GNUC_UNUSED,
-		       hb_face_t *face HB_GNUC_UNUSED,
-		       const void *user_data HB_GNUC_UNUSED,
-		       hb_codepoint_t unicode HB_GNUC_UNUSED,
-		       hb_codepoint_t variation_selector HB_GNUC_UNUSED)
+hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
+		       hb_face_t *face HB_UNUSED,
+		       const void *user_data HB_UNUSED,
+		       hb_codepoint_t unicode HB_UNUSED,
+		       hb_codepoint_t variation_selector HB_UNUSED)
 { return 0; }
 
 static hb_bool_t
-hb_font_get_contour_point_nil (hb_font_t *font HB_GNUC_UNUSED,
-			       hb_face_t *face HB_GNUC_UNUSED,
-			       const void *user_data HB_GNUC_UNUSED,
-			       unsigned int point_index HB_GNUC_UNUSED,
-			       hb_codepoint_t glyph HB_GNUC_UNUSED,
-			       hb_position_t *x HB_GNUC_UNUSED,
-			       hb_position_t *y HB_GNUC_UNUSED)
+hb_font_get_contour_point_nil (hb_font_t *font HB_UNUSED,
+			       hb_face_t *face HB_UNUSED,
+			       const void *user_data HB_UNUSED,
+			       unsigned int point_index HB_UNUSED,
+			       hb_codepoint_t glyph HB_UNUSED,
+			       hb_position_t *x HB_UNUSED,
+			       hb_position_t *y HB_UNUSED)
 { return false; }
 
 static void
-hb_font_get_glyph_metrics_nil (hb_font_t *font HB_GNUC_UNUSED,
-			       hb_face_t *face HB_GNUC_UNUSED,
-			       const void *user_data HB_GNUC_UNUSED,
-			       hb_codepoint_t glyph HB_GNUC_UNUSED,
-			       hb_glyph_metrics_t *metrics HB_GNUC_UNUSED)
+hb_font_get_glyph_metrics_nil (hb_font_t *font HB_UNUSED,
+			       hb_face_t *face HB_UNUSED,
+			       const void *user_data HB_UNUSED,
+			       hb_codepoint_t glyph HB_UNUSED,
+			       hb_glyph_metrics_t *metrics HB_UNUSED)
 { }
 
 static hb_position_t
-hb_font_get_kerning_nil (hb_font_t *font HB_GNUC_UNUSED,
-			 hb_face_t *face HB_GNUC_UNUSED,
-			 const void *user_data HB_GNUC_UNUSED,
-			 hb_codepoint_t first_glyph HB_GNUC_UNUSED,
-			 hb_codepoint_t second_glyph HB_GNUC_UNUSED)
+hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
+			 hb_face_t *face HB_UNUSED,
+			 const void *user_data HB_UNUSED,
+			 hb_codepoint_t first_glyph HB_UNUSED,
+			 hb_codepoint_t second_glyph HB_UNUSED)
 { return 0; }
 
 hb_font_funcs_t _hb_font_funcs_nil = {

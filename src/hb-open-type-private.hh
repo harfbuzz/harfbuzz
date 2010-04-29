@@ -133,7 +133,7 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 
 #define SANITIZE_ARG_DEF \
 	hb_sanitize_context_t *context, \
-	unsigned int sanitize_depth HB_GNUC_UNUSED
+	unsigned int sanitize_depth HB_UNUSED
 #define SANITIZE_ARG \
 	context, \
 	(HB_DEBUG_SANITIZE ? sanitize_depth + 1 : 0)
@@ -146,7 +146,7 @@ struct hb_sanitize_context_t
 };
 
 
-static HB_GNUC_UNUSED void
+static HB_UNUSED void
 _hb_sanitize_init (hb_sanitize_context_t *context,
 		   hb_blob_t *blob)
 {
@@ -160,8 +160,8 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
 	     blob, context->start, context->end, context->end - context->start);
 }
 
-static HB_GNUC_UNUSED void
-_hb_sanitize_fini (hb_sanitize_context_t *context HB_GNUC_UNUSED,
+static HB_UNUSED void
+_hb_sanitize_fini (hb_sanitize_context_t *context HB_UNUSED,
 		   hb_blob_t *blob)
 {
   if (HB_DEBUG_SANITIZE)
@@ -171,7 +171,7 @@ _hb_sanitize_fini (hb_sanitize_context_t *context HB_GNUC_UNUSED,
   hb_blob_unlock (blob);
 }
 
-static HB_GNUC_UNUSED inline bool
+static HB_UNUSED inline bool
 _hb_sanitize_check (SANITIZE_ARG_DEF,
 		    const char *base,
 		    unsigned int len)
@@ -191,7 +191,7 @@ _hb_sanitize_check (SANITIZE_ARG_DEF,
   return ret;
 }
 
-static HB_GNUC_UNUSED inline bool
+static HB_UNUSED inline bool
 _hb_sanitize_array (SANITIZE_ARG_DEF,
 		    const char *base,
 		    unsigned int record_size,
@@ -211,10 +211,10 @@ _hb_sanitize_array (SANITIZE_ARG_DEF,
   return HB_LIKELY (!overflows) && _hb_sanitize_check (SANITIZE_ARG, base, record_size * len);
 }
 
-static HB_GNUC_UNUSED inline bool
+static HB_UNUSED inline bool
 _hb_sanitize_edit (SANITIZE_ARG_DEF,
-		   const char *base HB_GNUC_UNUSED,
-		   unsigned int len HB_GNUC_UNUSED)
+		   const char *base HB_UNUSED,
+		   unsigned int len HB_UNUSED)
 {
   context->edit_count++;
 

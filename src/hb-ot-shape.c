@@ -114,7 +114,7 @@ setup_lookups (hb_face_t    *face,
 
 
 hb_bool_t
-_hb_ot_substitute_complex (hb_font_t    *font HB_GNUC_UNUSED,
+_hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 			   hb_face_t    *face,
 			   hb_buffer_t  *buffer,
 			   hb_feature_t *features,

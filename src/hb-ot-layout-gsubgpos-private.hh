@@ -46,8 +46,8 @@
 	hb_apply_context_t *context, \
 	hb_ot_layout_context_t *layout_context, \
 	hb_buffer_t *buffer, \
-	unsigned int context_length HB_GNUC_UNUSED, \
-	unsigned int apply_depth HB_GNUC_UNUSED
+	unsigned int context_length HB_UNUSED, \
+	unsigned int apply_depth HB_UNUSED
 #define APPLY_ARG \
 	context, \
 	layout_context, \
@@ -73,7 +73,7 @@ struct ContextFuncs
 };
 
 
-static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, const char *data HB_GNUC_UNUSED)
+static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, const char *data HB_UNUSED)
 {
   return glyph_id == value;
 }
