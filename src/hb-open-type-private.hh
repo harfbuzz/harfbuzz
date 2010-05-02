@@ -86,11 +86,8 @@ inline Type& StructAfter(TObject &X)
 
 
 /*
- * Class features
+ * Null objects
  */
-
-
-/* Null objects */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
 static const void *_NullPool[32 / sizeof (void *)];
@@ -313,6 +310,8 @@ struct Sanitizer
 };
 
 
+
+
 /*
  *
  * The OpenType Font File: Data Types
@@ -437,7 +436,7 @@ ASSERT_SIZE (FixedVersion, 4);
 
 /*
  * Template subclasses of Offset and LongOffset that do the dereferencing.
- * Use: (this+memberName)
+ * Use: (base+offset)
  */
 
 template <typename OffsetType, typename Type>
