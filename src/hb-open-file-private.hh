@@ -68,11 +68,6 @@ typedef struct OffsetTable
 
   inline unsigned int get_table_count (void) const
   { return numTables; }
-  inline const Tag& get_table_tag (unsigned int i) const
-  {
-    if (HB_UNLIKELY (i >= numTables)) return Null(Tag);
-    return tableDir[i].tag;
-  }
   inline const TableDirectory& get_table (unsigned int i) const
   {
     if (HB_UNLIKELY (i >= numTables)) return Null(TableDirectory);
