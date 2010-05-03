@@ -198,6 +198,8 @@ struct OpenTypeFontFile
   static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
   static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
   static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
+  static const hb_tag_t TrueTag		= HB_TAG ('t','r','u','e');
+  static const hb_tag_t Typ1Tag		= HB_TAG ('t','y','p','1');
 
   inline hb_tag_t get_tag (void) const { return u.tag; }
 
@@ -205,6 +207,8 @@ struct OpenTypeFontFile
   {
     switch (u.tag) {
     case CFFTag:	/* All the non-collection tags */
+    case TrueTag:
+    case Typ1Tag:
     case TrueTypeTag:	return 1;
     case TTCTag:	return u.ttcHeader->get_face_count ();
     default:		return 0;
@@ -217,6 +221,8 @@ struct OpenTypeFontFile
      * Apple dfont container is a container of SFNT's.  So each SFNT is a
      * non-TTC, but the index is more than zero. */
     case CFFTag:	/* All the non-collection tags */
+    case TrueTag:
+    case Typ1Tag:
     case TrueTypeTag:	return u.fontFace[0];
     case TTCTag:	return u.ttcHeader->get_face (i);
     default:		return Null(OpenTypeFontFace);
@@ -228,6 +234,8 @@ struct OpenTypeFontFile
     if (!SANITIZE (u.tag)) return false;
     switch (u.tag) {
     case CFFTag:	/* All the non-collection tags */
+    case TrueTag:
+    case Typ1Tag:
     case TrueTypeTag:	return u.fontFace->sanitize (SANITIZE_ARG);
     case TTCTag:	return u.ttcHeader->sanitize (SANITIZE_ARG);
     default:		return true;
