@@ -232,8 +232,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define SANITIZE_THIS(X) likely ((X).sanitize (SANITIZE_ARG, CharP(this)))
 #define SANITIZE_BASE(X,B) likely ((X).sanitize (SANITIZE_ARG, B))
 
-#define SANITIZE_SELF() SANITIZE_OBJ (*this)
-#define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
+#define SANITIZE_SELF() SANITIZE_MEM(this, sizeof (*this))
 
 #define SANITIZE_MEM(B,L) likely (_hb_sanitize_check (SANITIZE_ARG, CharP(B), (L)))
 
