@@ -244,11 +244,6 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 
 #define SANITIZE_ARRAY(A,S,L) likely (_hb_sanitize_array (SANITIZE_ARG, CharP(A), S, L))
 
-#define NEUTER(Obj, Val) \
-	(SANITIZE_OBJ (Obj) && \
-	 _hb_sanitize_edit (SANITIZE_ARG, CharP(&(Obj)), (Obj).get_size ()) && \
-	 ((Obj).set (Val), true))
-
 
 /* Template to sanitize an object. */
 template <typename Type>
@@ -454,21 +449,31 @@ struct GenericOffsetTo : OffsetType
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    return SANITIZE (StructAtOffset<Type> (*CharP(base), offset)) || NEUTER (*this, 0);
+    return SANITIZE (StructAtOffset<Type> (*CharP(base), offset)) || neuter (SANITIZE_ARG);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), base2) || NEUTER (*this, 0);
+    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), base2) || neuter (SANITIZE_ARG);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), user_data) || NEUTER (*this, 0);
+    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), user_data) || neuter (SANITIZE_ARG);
+  }
+
+  private:
+  /* Set the offset to Null */
+  inline bool neuter (SANITIZE_ARG_DEF) {
+    if (_hb_sanitize_edit (SANITIZE_ARG, CharP(this), this->get_size ())) {
+      this->set (0); /* 0 is Null offset */
+      return true;
+    }
+    return false;
   }
 };
 template <typename Base, typename OffsetType, typename Type>
