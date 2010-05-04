@@ -230,7 +230,7 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 #define SANITIZE(X) likely ((X).sanitize (SANITIZE_ARG))
 
 #define SANITIZE_THIS(X) likely ((X).sanitize (SANITIZE_ARG, CharP(this)))
-#define SANITIZE_BASE(X,B) likely ((X).sanitize (SANITIZE_ARG, B))
+#define SANITIZE_WITH_BASE(B,X) likely ((X).sanitize (SANITIZE_ARG, (B)))
 
 #define SANITIZE_SELF() SANITIZE_MEM(this, sizeof (*this))
 
@@ -443,21 +443,24 @@ struct GenericOffsetTo : OffsetType
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    return SANITIZE (StructAtOffset<Type> (*CharP(base), offset)) || neuter (SANITIZE_ARG);
+    Type &obj = StructAtOffset<Type> (*CharP(base), offset);
+    return likely (obj.sanitize (SANITIZE_ARG)) || neuter (SANITIZE_ARG);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), base2) || neuter (SANITIZE_ARG);
+    Type &obj = StructAtOffset<Type> (*CharP(base), offset);
+    return likely (obj.sanitize (SANITIZE_ARG, base2)) || neuter (SANITIZE_ARG);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), user_data) || neuter (SANITIZE_ARG);
+    Type &obj = StructAtOffset<Type> (*CharP(base), offset);
+    return likely (obj.sanitize (SANITIZE_ARG, user_data)) || neuter (SANITIZE_ARG);
   }
 
   private:

@@ -137,10 +137,10 @@ struct ValueFormat : USHORT
     if (format & xAdvance)   values++;
     if (format & yAdvance)   values++;
 
-    if ((format & xPlaDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
-    if ((format & yPlaDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
-    if ((format & xAdvDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
-    if ((format & yAdvDevice) && !SANITIZE_BASE (*(OffsetTo<Device>*)values++, base)) return false;
+    if ((format & xPlaDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
+    if ((format & yPlaDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
+    if ((format & xAdvDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
+    if ((format & yAdvDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
 
     return true;
   }
@@ -360,7 +360,8 @@ struct MarkRecord
 
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_BASE (markAnchor, base);
+    return SANITIZE_SELF ()
+	&& SANITIZE_WITH_BASE (base, markAnchor);
   }
 
   private:
@@ -781,8 +782,8 @@ struct EntryExitRecord
 
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
-    return SANITIZE_BASE (entryAnchor, base)
-	&& SANITIZE_BASE (exitAnchor, base);
+    return SANITIZE_WITH_BASE (base, entryAnchor)
+	&& SANITIZE_WITH_BASE (base, exitAnchor);
   }
 
   OffsetTo<Anchor>
