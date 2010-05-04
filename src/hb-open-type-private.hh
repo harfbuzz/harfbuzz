@@ -511,11 +511,6 @@ struct GenericArrayOf
   inline unsigned int get_size () const
   { return len.get_size () + len * Type::get_size (); }
 
-  inline bool sanitize_shallow (SANITIZE_ARG_DEF) {
-    TRACE_SANITIZE ();
-    return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
-  }
-
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
@@ -561,6 +556,13 @@ struct GenericArrayOf
     return true;
   }
 
+  private:
+  inline bool sanitize_shallow (SANITIZE_ARG_DEF) {
+    TRACE_SANITIZE ();
+    return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
+  }
+
+  public:
   LenType len;
 /*Type array[VAR];*/
 };
