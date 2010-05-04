@@ -143,7 +143,7 @@ struct hb_sanitize_context_t
 };
 
 
-static HB_UNUSED void
+static inline void
 _hb_sanitize_init (hb_sanitize_context_t *context,
 		   hb_blob_t *blob)
 {
@@ -157,7 +157,7 @@ _hb_sanitize_init (hb_sanitize_context_t *context,
 	     blob, context->start, context->end, context->end - context->start);
 }
 
-static HB_UNUSED void
+static inline void
 _hb_sanitize_fini (hb_sanitize_context_t *context HB_UNUSED,
 		   hb_blob_t *blob)
 {
