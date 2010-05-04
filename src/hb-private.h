@@ -161,7 +161,7 @@
  * in libgcc in case a target does not have one, which should be just as
  * good as the open-coded solution below, (which is "HACKMEM 169").
  */
-static HB_UNUSED inline unsigned int
+static inline unsigned int
 _hb_popcount32 (uint32_t mask)
 {
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
@@ -240,7 +240,7 @@ typedef int hb_mutex_t;
 #define HB_DEBUG 0
 #endif
 
-static HB_UNUSED inline hb_bool_t /* always returns TRUE */
+static inline hb_bool_t /* always returns TRUE */
 _hb_trace (const char *what,
 	   const char *function,
 	   const void *obj,

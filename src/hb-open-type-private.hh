@@ -168,7 +168,7 @@ _hb_sanitize_fini (hb_sanitize_context_t *context HB_UNUSED,
   hb_blob_unlock (blob);
 }
 
-static HB_UNUSED inline bool
+static inline bool
 _hb_sanitize_check (SANITIZE_ARG_DEF,
 		    const char *base,
 		    unsigned int len)
@@ -188,7 +188,7 @@ _hb_sanitize_check (SANITIZE_ARG_DEF,
   return ret;
 }
 
-static HB_UNUSED inline bool
+static inline bool
 _hb_sanitize_array (SANITIZE_ARG_DEF,
 		    const char *base,
 		    unsigned int record_size,
@@ -208,7 +208,7 @@ _hb_sanitize_array (SANITIZE_ARG_DEF,
   return HB_LIKELY (!overflows) && _hb_sanitize_check (SANITIZE_ARG, base, record_size * len);
 }
 
-static HB_UNUSED inline bool
+static inline bool
 _hb_sanitize_edit (SANITIZE_ARG_DEF,
 		   const char *base HB_UNUSED,
 		   unsigned int len HB_UNUSED)
