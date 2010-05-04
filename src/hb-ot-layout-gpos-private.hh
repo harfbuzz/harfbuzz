@@ -1063,8 +1063,11 @@ struct MarkBasePosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS3 (markCoverage, baseCoverage, markArray) &&
-	   likely (baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
+    return SANITIZE_SELF ()
+        && SANITIZE_THIS (markCoverage)
+	&& SANITIZE_THIS (baseCoverage)
+	&& SANITIZE_THIS (markArray)
+	&& likely (baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
@@ -1184,8 +1187,11 @@ struct MarkLigPosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS3 (markCoverage, ligatureCoverage, markArray) &&
-	   likely (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
+    return SANITIZE_SELF ()
+        && SANITIZE_THIS (markCoverage)
+	&& SANITIZE_THIS (ligatureCoverage)
+	&& SANITIZE_THIS (markArray)
+	&& likely (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
@@ -1284,8 +1290,11 @@ struct MarkMarkPosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS3 (mark1Coverage, mark2Coverage, mark1Array) &&
-	   likely (mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount));
+    return SANITIZE_SELF ()
+	&& SANITIZE_THIS (mark1Coverage)
+	&& SANITIZE_THIS (mark2Coverage)
+	&& SANITIZE_THIS (mark1Array)
+	&& likely (mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:

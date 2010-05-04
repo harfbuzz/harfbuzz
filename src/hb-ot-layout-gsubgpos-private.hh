@@ -400,7 +400,9 @@ struct ContextFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS3 (coverage, classDef, ruleSet);
+    return SANITIZE_THIS (coverage)
+        && SANITIZE_THIS (classDef)
+	&& SANITIZE_THIS (ruleSet);
   }
 
   private:
@@ -913,7 +915,9 @@ struct GSUBGPOS
     TRACE_SANITIZE ();
     if (!SANITIZE (version)) return false;
     if (unlikely (version.major != 1)) return false;
-    return SANITIZE_THIS3 (scriptList, featureList, lookupList);
+    return SANITIZE_THIS (scriptList)
+        && SANITIZE_THIS (featureList)
+	&& SANITIZE_THIS (lookupList);
   }
 
   protected:
