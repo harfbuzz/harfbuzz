@@ -420,7 +420,7 @@ struct Ligature
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE2 (ligGlyph, component);
+    return SANITIZE (ligGlyph) && SANITIZE (component);
   }
 
   private:

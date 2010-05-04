@@ -228,7 +228,6 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
 }
 
 #define SANITIZE(X) likely ((X).sanitize (SANITIZE_ARG))
-#define SANITIZE2(X,Y) (SANITIZE (X) && SANITIZE (Y))
 
 #define SANITIZE_THIS(X) likely ((X).sanitize (SANITIZE_ARG, CharP(this)))
 #define SANITIZE_THIS2(X,Y) (SANITIZE_THIS (X) && SANITIZE_THIS (Y))
