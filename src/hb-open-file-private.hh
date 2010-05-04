@@ -190,11 +190,11 @@ struct TTCHeader
 
 struct OpenTypeFontFile
 {
-  static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O');
-  static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 );
-  static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f');
-  static const hb_tag_t TrueTag		= HB_TAG ('t','r','u','e');
-  static const hb_tag_t Typ1Tag		= HB_TAG ('t','y','p','1');
+  static const hb_tag_t CFFTag		= HB_TAG ('O','T','T','O'); /* OpenType with Postscript outlines */
+  static const hb_tag_t TrueTypeTag	= HB_TAG ( 0 , 1 , 0 , 0 ); /* OpenType with TrueType outlines */
+  static const hb_tag_t TTCTag		= HB_TAG ('t','t','c','f'); /* TrueType Collection */
+  static const hb_tag_t TrueTag		= HB_TAG ('t','r','u','e'); /* Apple obsolete tag */
+  static const hb_tag_t Typ1Tag		= HB_TAG ('t','y','p','1'); /* Apple obsolete tag */
 
   inline hb_tag_t get_tag (void) const { return u.tag; }
 
