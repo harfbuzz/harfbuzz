@@ -274,7 +274,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
   hb_face_for_data_closure_t *closure;
 
   closure = (hb_face_for_data_closure_t *) malloc (sizeof (hb_face_for_data_closure_t));
-  if (HB_UNLIKELY (!closure))
+  if (unlikely (!closure))
     return &_hb_face_for_data_closure_nil;
 
   closure->blob = hb_blob_reference (blob);
@@ -286,7 +286,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 static void
 _hb_face_for_data_closure_destroy (hb_face_for_data_closure_t *closure)
 {
-  if (HB_LIKELY (closure != &_hb_face_for_data_closure_nil)) {
+  if (likely (closure != &_hb_face_for_data_closure_nil)) {
     hb_blob_destroy (closure->blob);
     free (closure);
   }
@@ -361,7 +361,7 @@ hb_face_get_table (hb_face_t *face,
 {
   hb_blob_t *blob;
 
-  if (HB_UNLIKELY (!face || !face->get_table))
+  if (unlikely (!face || !face->get_table))
     return &_hb_blob_nil;
 
   blob = face->get_table (tag, face->user_data);

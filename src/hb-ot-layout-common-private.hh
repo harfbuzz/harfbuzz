@@ -68,7 +68,7 @@ template <typename Type>
 struct RecordArrayOf : ArrayOf<Record<Type> > {
   inline const Tag& get_tag (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= this->len)) return Null(Tag);
+    if (unlikely (i >= this->len)) return Null(Tag);
     return (*this)[i].tag;
   }
   inline unsigned int get_tags (unsigned int start_offset,
@@ -120,7 +120,7 @@ struct IndexArray : ArrayOf<USHORT>
 {
   inline unsigned int operator [] (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= this->len))
+    if (unlikely (i >= this->len))
       return NO_INDEX;
     return this->array()[i];
   }
@@ -272,7 +272,7 @@ struct Lookup
   inline unsigned int get_flag (void) const
   {
     unsigned int flag = lookupFlag;
-    if (HB_UNLIKELY (flag & LookupFlag::UseMarkFilteringSet))
+    if (unlikely (flag & LookupFlag::UseMarkFilteringSet))
     {
       const USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
       flag += (markFilteringSet << 16);
@@ -283,8 +283,8 @@ struct Lookup
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
-    if (!(SANITIZE_SELF () && HB_LIKELY (subTable.sanitize (SANITIZE_ARG)))) return false;
-    if (HB_UNLIKELY (lookupFlag & LookupFlag::UseMarkFilteringSet))
+    if (!(SANITIZE_SELF () && likely (subTable.sanitize (SANITIZE_ARG)))) return false;
+    if (unlikely (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
       if (!SANITIZE (markFilteringSet)) return false;
@@ -317,7 +317,7 @@ struct CoverageFormat1
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    if (HB_UNLIKELY (glyph_id > 0xFFFF))
+    if (unlikely (glyph_id > 0xFFFF))
       return NOT_COVERED;
     GlyphID gid;
     gid.set (glyph_id);
@@ -563,7 +563,7 @@ struct Device
   inline int get_delta (unsigned int ppem_size) const
   {
     unsigned int f = deltaFormat;
-    if (HB_UNLIKELY (f < 1 || f > 3))
+    if (unlikely (f < 1 || f > 3))
       return 0;
 
     if (ppem_size < startSize || ppem_size > endSize)
@@ -586,7 +586,7 @@ struct Device
   inline unsigned int get_size () const
   {
     unsigned int f = deltaFormat;
-    if (HB_UNLIKELY (f < 1 || f > 3 || startSize > endSize)) return 3 * USHORT::get_size ();
+    if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * USHORT::get_size ();
     return USHORT::get_size () * (4 + ((endSize - startSize) >> (4 - f)));
   }
 

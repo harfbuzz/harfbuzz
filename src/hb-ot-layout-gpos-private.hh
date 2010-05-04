@@ -326,14 +326,14 @@ struct Anchor
 struct AnchorMatrix
 {
   inline const Anchor& get_anchor (unsigned int row, unsigned int col, unsigned int cols) const {
-    if (HB_UNLIKELY (row >= rows || col >= cols)) return Null(Anchor);
+    if (unlikely (row >= rows || col >= cols)) return Null(Anchor);
     return this+matrix[row * cols + col];
   }
 
   inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
-    if (HB_UNLIKELY (cols >= ((unsigned int) -1) / rows)) return false;
+    if (unlikely (cols >= ((unsigned int) -1) / rows)) return false;
     unsigned int count = rows * cols;
     if (!SANITIZE_ARRAY (matrix, matrix[0].get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
@@ -422,7 +422,7 @@ struct SinglePosFormat1
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     valueFormat.apply_value (layout_context, CharP(this), values, CURPOSITION ());
@@ -459,10 +459,10 @@ struct SinglePosFormat2
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
-    if (HB_LIKELY (index >= valueCount))
+    if (likely (index >= valueCount))
       return false;
 
     valueFormat.apply_value (layout_context, CharP(this),
@@ -568,17 +568,17 @@ struct PairPosFormat1
   {
     TRACE_APPLY ();
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-    if (HB_UNLIKELY (buffer->in_pos + 2 > end))
+    if (unlikely (buffer->in_pos + 2 > end))
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     unsigned int j = buffer->in_pos + 1;
     while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
     {
-      if (HB_UNLIKELY (j == end))
+      if (unlikely (j == end))
 	return false;
       j++;
     }
@@ -614,7 +614,7 @@ struct PairPosFormat1
     unsigned int len2 = valueFormat2.get_len ();
 
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	  HB_LIKELY (pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2)))) return false;
+	  likely (pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2)))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -660,17 +660,17 @@ struct PairPosFormat2
   {
     TRACE_APPLY ();
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-    if (HB_UNLIKELY (buffer->in_pos + 2 > end))
+    if (unlikely (buffer->in_pos + 2 > end))
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     unsigned int j = buffer->in_pos + 1;
     while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
     {
-      if (HB_UNLIKELY (j == end))
+      if (unlikely (j == end))
 	return false;
       j++;
     }
@@ -681,7 +681,7 @@ struct PairPosFormat2
 
     unsigned int klass1 = (this+classDef1) (IN_CURGLYPH ());
     unsigned int klass2 = (this+classDef2) (IN_GLYPH (j));
-    if (HB_UNLIKELY (klass1 >= class1Count || klass2 >= class2Count))
+    if (unlikely (klass1 >= class1Count || klass2 >= class2Count))
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
@@ -927,7 +927,7 @@ struct CursivePosFormat1
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const EntryExitRecord &record = entryExitRecord[index];
@@ -1034,7 +1034,7 @@ struct MarkBasePosFormat1
   {
     TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (mark_index == NOT_COVERED))
+    if (likely (mark_index == NOT_COVERED))
       return false;
 
     /* now we search backwards for a non-mark glyph */
@@ -1042,7 +1042,7 @@ struct MarkBasePosFormat1
     unsigned int j = buffer->in_pos;
     do
     {
-      if (HB_UNLIKELY (!j))
+      if (unlikely (!j))
 	return false;
       j--;
     } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
@@ -1063,7 +1063,7 @@ struct MarkBasePosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS3 (markCoverage, baseCoverage, markArray) &&
-	   HB_LIKELY (baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
+	   likely (baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
@@ -1134,7 +1134,7 @@ struct MarkLigPosFormat1
   {
     TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (mark_index == NOT_COVERED))
+    if (likely (mark_index == NOT_COVERED))
       return false;
 
     /* now we search backwards for a non-mark glyph */
@@ -1142,7 +1142,7 @@ struct MarkLigPosFormat1
     unsigned int j = buffer->in_pos;
     do
     {
-      if (HB_UNLIKELY (!j))
+      if (unlikely (!j))
 	return false;
       j--;
     } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
@@ -1162,7 +1162,7 @@ struct MarkLigPosFormat1
 
     /* Find component to attach to */
     unsigned int comp_count = lig_attach.rows;
-    if (HB_UNLIKELY (!comp_count))
+    if (unlikely (!comp_count))
       return false;
     unsigned int comp_index;
     /* We must now check whether the ligature ID of the current mark glyph
@@ -1184,7 +1184,7 @@ struct MarkLigPosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS3 (markCoverage, ligatureCoverage, markArray) &&
-	   HB_LIKELY (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
+	   likely (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
@@ -1251,7 +1251,7 @@ struct MarkMarkPosFormat1
   {
     TRACE_APPLY ();
     unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (mark1_index == NOT_COVERED))
+    if (likely (mark1_index == NOT_COVERED))
       return false;
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
@@ -1259,7 +1259,7 @@ struct MarkMarkPosFormat1
     unsigned int j = buffer->in_pos;
     do
     {
-      if (HB_UNLIKELY (!j))
+      if (unlikely (!j))
 	return false;
       j--;
     } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, &property));
@@ -1284,7 +1284,7 @@ struct MarkMarkPosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_THIS3 (mark1Coverage, mark2Coverage, mark1Array) &&
-	   HB_LIKELY (mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount));
+	   likely (mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
   private:
@@ -1373,7 +1373,7 @@ struct ExtensionPos : Extension
   inline const struct PosLookupSubTable& get_subtable (void) const
   {
     unsigned int offset = get_offset ();
-    if (HB_UNLIKELY (!offset)) return Null(PosLookupSubTable);
+    if (unlikely (!offset)) return Null(PosLookupSubTable);
     return StructAtOffset<PosLookupSubTable> (*this, offset);
   }
 
@@ -1488,7 +1488,7 @@ struct PosLookup : Lookup
   {
     bool ret = false;
 
-    if (HB_UNLIKELY (!buffer->in_length))
+    if (unlikely (!buffer->in_length))
       return false;
 
     layout_context->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
@@ -1519,7 +1519,7 @@ struct PosLookup : Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (HB_UNLIKELY (!Lookup::sanitize (SANITIZE_ARG))) return false;
+    if (unlikely (!Lookup::sanitize (SANITIZE_ARG))) return false;
     OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
     return SANITIZE_THIS (list);
   }
@@ -1547,7 +1547,7 @@ struct GPOS : GSUBGPOS
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (HB_UNLIKELY (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
+    if (unlikely (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
     OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return SANITIZE_THIS (list);
   }
@@ -1566,9 +1566,9 @@ inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
 inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
 {
   TRACE_SANITIZE ();
-  if (HB_UNLIKELY (!Extension::sanitize (SANITIZE_ARG))) return false;
+  if (unlikely (!Extension::sanitize (SANITIZE_ARG))) return false;
   unsigned int offset = get_offset ();
-  if (HB_UNLIKELY (!offset)) return true;
+  if (unlikely (!offset)) return true;
   return SANITIZE (StructAtOffset<PosLookupSubTable> (*this, offset));
 }
 
@@ -1577,10 +1577,10 @@ static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   const GPOS &gpos = *(layout_context->face->ot_layout.gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 
-  if (HB_UNLIKELY (context->nesting_level_left == 0))
+  if (unlikely (context->nesting_level_left == 0))
     return false;
 
-  if (HB_UNLIKELY (context_length < 1))
+  if (unlikely (context_length < 1))
     return false;
 
   return l.apply_once (layout_context, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);

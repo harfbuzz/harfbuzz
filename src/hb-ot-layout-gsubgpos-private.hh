@@ -100,19 +100,19 @@ static inline bool match_input (APPLY_ARG_DEF,
 {
   unsigned int i, j;
   unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-  if (HB_UNLIKELY (buffer->in_pos + count > end))
+  if (unlikely (buffer->in_pos + count > end))
     return false;
 
   for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
   {
     while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
     {
-      if (HB_UNLIKELY (j + count - i == end))
+      if (unlikely (j + count - i == end))
 	return false;
       j++;
     }
 
-    if (HB_LIKELY (!match_func (IN_GLYPH (j), input[i - 1], match_data)))
+    if (likely (!match_func (IN_GLYPH (j), input[i - 1], match_data)))
       return false;
   }
 
@@ -127,19 +127,19 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
 				    match_func_t match_func,
 				    const char *match_data)
 {
-  if (HB_UNLIKELY (buffer->out_pos < count))
+  if (unlikely (buffer->out_pos < count))
     return false;
 
   for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--)
   {
     while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
-      if (HB_UNLIKELY (j + 1 == count - i))
+      if (unlikely (j + 1 == count - i))
 	return false;
       j--;
     }
 
-    if (HB_LIKELY (!match_func (OUT_GLYPH (j), backtrack[i], match_data)))
+    if (likely (!match_func (OUT_GLYPH (j), backtrack[i], match_data)))
       return false;
   }
 
@@ -155,19 +155,19 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 {
   unsigned int i, j;
   unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-  if (HB_UNLIKELY (buffer->in_pos + offset + count > end))
+  if (unlikely (buffer->in_pos + offset + count > end))
     return false;
 
   for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++)
   {
     while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
-      if (HB_UNLIKELY (j + count - i == end))
+      if (unlikely (j + count - i == end))
 	return false;
       j++;
     }
 
-    if (HB_LIKELY (!match_func (IN_GLYPH (j), lookahead[i], match_data)))
+    if (likely (!match_func (IN_GLYPH (j), lookahead[i], match_data)))
       return false;
   }
 
@@ -198,7 +198,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 				 apply_lookup_func_t apply_func)
 {
   unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-  if (HB_UNLIKELY (buffer->in_pos + count > end))
+  if (unlikely (buffer->in_pos + count > end))
     return false;
 
   /* TODO We don't support lookupRecord arrays that are not increasing:
@@ -212,7 +212,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
   {
     while (_hb_ot_layout_skip_mark (layout_context->face, IN_CURINFO (), context->lookup_flag, NULL))
     {
-      if (HB_UNLIKELY (buffer->in_pos == end))
+      if (unlikely (buffer->in_pos == end))
 	return true;
       /* No lookup applied for this index */
       _hb_buffer_next_glyph (buffer);
@@ -229,7 +229,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
       lookupCount--;
       /* Err, this is wrong if the lookup jumped over some glyphs */
       i += buffer->in_pos - old_pos;
-      if (HB_UNLIKELY (buffer->in_pos == end))
+      if (unlikely (buffer->in_pos == end))
 	return true;
 
       if (!done)
@@ -345,7 +345,7 @@ struct ContextFormat1
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const RuleSet &rule_set = this+ruleSet[index];
@@ -382,7 +382,7 @@ struct ContextFormat2
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const ClassDef &class_def = this+classDef;
@@ -427,7 +427,7 @@ struct ContextFormat3
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const LookupRecord &lookupRecord = StructAtOffset<LookupRecord> (coverage, coverage[0].get_size () * glyphCount);
@@ -520,7 +520,7 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
 					 ChainContextLookupContext &lookup_context)
 {
   /* First guess */
-  if (HB_UNLIKELY (buffer->out_pos < backtrackCount ||
+  if (unlikely (buffer->out_pos < backtrackCount ||
 		   buffer->in_pos + inputCount + lookaheadCount > buffer->in_length ||
 		   inputCount + lookaheadCount > context_length))
     return false;
@@ -629,7 +629,7 @@ struct ChainContextFormat1
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const ChainRuleSet &rule_set = this+ruleSet[index];
@@ -665,7 +665,7 @@ struct ChainContextFormat2
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
@@ -728,7 +728,7 @@ struct ChainContextFormat3
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
     unsigned int index = (this+input[0]) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
@@ -912,7 +912,7 @@ struct GSUBGPOS
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!SANITIZE (version)) return false;
-    if (HB_UNLIKELY (version.major != 1)) return false;
+    if (unlikely (version.major != 1)) return false;
     return SANITIZE_THIS3 (scriptList, featureList, lookupList);
   }
 

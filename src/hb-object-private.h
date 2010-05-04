@@ -82,7 +82,7 @@ _hb_object_debug_out (const void *obj,
 /* Object allocation and lifecycle manamgement macros */
 
 #define HB_OBJECT_IS_INERT(obj) \
-    (HB_UNLIKELY (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count)))
+    (unlikely (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count)))
 
 #define HB_OBJECT_DO_INIT_EXPR(obj) \
     HB_REFERENCE_COUNT_INIT (obj->ref_count, 1)
@@ -93,7 +93,7 @@ _hb_object_debug_out (const void *obj,
   } HB_STMT_END
 
 #define HB_OBJECT_DO_CREATE(Type, obj) \
-  HB_LIKELY (( \
+  likely (( \
 	       (void) ( \
 		 ((obj) = (Type *) calloc (1, sizeof (Type))) && \
 		 HB_OBJECT_DO_INIT_EXPR (obj) && \
@@ -105,7 +105,7 @@ _hb_object_debug_out (const void *obj,
 #define HB_OBJECT_DO_REFERENCE(obj) \
   HB_STMT_START { \
     int old_count; \
-    if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
+    if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return obj; \
     HB_OBJECT_DEBUG_OUT (obj); \
     old_count = hb_reference_count_inc (obj->ref_count); \
@@ -115,7 +115,7 @@ _hb_object_debug_out (const void *obj,
 
 #define HB_OBJECT_DO_GET_REFERENCE_COUNT(obj) \
   HB_STMT_START { \
-    if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
+    if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return 0; \
     return HB_REFERENCE_COUNT_GET_VALUE (obj->ref_count); \
   } HB_STMT_END
@@ -123,7 +123,7 @@ _hb_object_debug_out (const void *obj,
 #define HB_OBJECT_DO_DESTROY(obj) \
   HB_STMT_START { \
     int old_count; \
-    if (HB_UNLIKELY (!(obj) || HB_OBJECT_IS_INERT (obj))) \
+    if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return; \
     HB_OBJECT_DEBUG_OUT (obj); \
     old_count = hb_reference_count_dec (obj->ref_count); \

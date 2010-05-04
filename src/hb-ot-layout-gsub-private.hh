@@ -41,7 +41,7 @@ struct SingleSubstFormat1
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
     unsigned int index = (this+coverage) (glyph_id);
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     glyph_id += deltaGlyphID;
@@ -80,10 +80,10 @@ struct SingleSubstFormat2
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
     unsigned int index = (this+coverage) (glyph_id);
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
-    if (HB_UNLIKELY (index >= substitute.len))
+    if (unlikely (index >= substitute.len))
       return false;
 
     glyph_id = substitute[index];
@@ -155,7 +155,7 @@ struct Sequence
   inline bool apply (APPLY_ARG_DEF) const
   {
     TRACE_APPLY ();
-    if (HB_UNLIKELY (!substitute.len))
+    if (unlikely (!substitute.len))
       return false;
 
     _hb_buffer_add_output_glyphs_be16 (buffer, 1,
@@ -200,7 +200,7 @@ struct MultipleSubstFormat1
     TRACE_APPLY ();
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     return (this+sequence[index]).apply (APPLY_ARG);
@@ -270,12 +270,12 @@ struct AlternateSubstFormat1
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
 
     unsigned int index = (this+coverage) (glyph_id);
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const AlternateSet &alt_set = this+alternateSet[index];
 
-    if (HB_UNLIKELY (!alt_set.len))
+    if (unlikely (!alt_set.len))
       return false;
 
     unsigned int alt_index = 0;
@@ -287,7 +287,7 @@ struct AlternateSubstFormat1
 				    alt_set.len, alt_set.array);
 				   */
 
-    if (HB_UNLIKELY (alt_index >= alt_set.len))
+    if (unlikely (alt_index >= alt_set.len))
       return false;
 
     glyph_id = alt_set[alt_index];
@@ -360,7 +360,7 @@ struct Ligature
     unsigned int i, j;
     unsigned int count = component.len;
     unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-    if (HB_UNLIKELY (buffer->in_pos + count > end))
+    if (unlikely (buffer->in_pos + count > end))
       return false;
 
     for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
@@ -368,7 +368,7 @@ struct Ligature
       unsigned int property;
       while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, &property))
       {
-	if (HB_UNLIKELY (j + count - i == end))
+	if (unlikely (j + count - i == end))
 	  return false;
 	j++;
       }
@@ -376,7 +376,7 @@ struct Ligature
       if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
 	is_mark = false;
 
-      if (HB_LIKELY (IN_GLYPH (j) != component[i]))
+      if (likely (IN_GLYPH (j) != component[i]))
         return false;
     }
     /* This is just a guess ... */
@@ -477,7 +477,7 @@ struct LigatureSubstFormat1
     bool first_is_mark = !!(context->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
     unsigned int index = (this+coverage) (glyph_id);
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const LigatureSet &lig_set = this+ligatureSet[index];
@@ -568,7 +568,7 @@ struct ExtensionSubst : Extension
   inline const struct SubstLookupSubTable& get_subtable (void) const
   {
     unsigned int offset = get_offset ();
-    if (HB_UNLIKELY (!offset)) return Null(SubstLookupSubTable);
+    if (unlikely (!offset)) return Null(SubstLookupSubTable);
     return StructAtOffset<SubstLookupSubTable> (*this, offset);
   }
 
@@ -588,11 +588,11 @@ struct ReverseChainSingleSubstFormat1
   inline bool apply (APPLY_ARG_DEF) const
   {
     TRACE_APPLY ();
-    if (HB_UNLIKELY (context_length != NO_CONTEXT))
+    if (unlikely (context_length != NO_CONTEXT))
       return false; /* No chaining to this type */
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
-    if (HB_LIKELY (index == NOT_COVERED))
+    if (likely (index == NOT_COVERED))
       return false;
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
@@ -753,7 +753,7 @@ struct SubstLookup : Lookup
   inline bool is_reverse (void) const
   {
     unsigned int type = get_type ();
-    if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
+    if (unlikely (type == SubstLookupSubTable::Extension))
       return CastR<ExtensionSubst> (get_subtable(0)).is_reverse ();
     return lookup_type_is_reverse (type);
   }
@@ -774,7 +774,7 @@ struct SubstLookup : Lookup
     if (!_hb_ot_layout_check_glyph_property (layout_context->face, IN_CURINFO (), context->lookup_flag, &context->property))
       return false;
 
-    if (HB_UNLIKELY (lookup_type == SubstLookupSubTable::Extension))
+    if (unlikely (lookup_type == SubstLookupSubTable::Extension))
     {
       /* The spec says all subtables should have the same type.
        * This is specially important if one has a reverse type!
@@ -802,10 +802,10 @@ struct SubstLookup : Lookup
   {
     bool ret = false;
 
-    if (HB_UNLIKELY (!buffer->in_length))
+    if (unlikely (!buffer->in_length))
       return false;
 
-    if (HB_LIKELY (!is_reverse ()))
+    if (likely (!is_reverse ()))
     {
 	/* in/out forward substitution */
 	_hb_buffer_clear_output (buffer);
@@ -843,7 +843,7 @@ struct SubstLookup : Lookup
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (HB_UNLIKELY (!Lookup::sanitize (SANITIZE_ARG))) return false;
+    if (unlikely (!Lookup::sanitize (SANITIZE_ARG))) return false;
     OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
     return SANITIZE_THIS (list);
   }
@@ -872,7 +872,7 @@ struct GSUB : GSUBGPOS
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (HB_UNLIKELY (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
+    if (unlikely (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
     OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
     return SANITIZE_THIS (list);
   }
@@ -891,16 +891,16 @@ inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
 inline bool ExtensionSubst::sanitize (SANITIZE_ARG_DEF)
 {
   TRACE_SANITIZE ();
-  if (HB_UNLIKELY (!Extension::sanitize (SANITIZE_ARG))) return false;
+  if (unlikely (!Extension::sanitize (SANITIZE_ARG))) return false;
   unsigned int offset = get_offset ();
-  if (HB_UNLIKELY (!offset)) return true;
+  if (unlikely (!offset)) return true;
   return SANITIZE (StructAtOffset<SubstLookupSubTable> (*this, offset));
 }
 
 inline bool ExtensionSubst::is_reverse (void) const
 {
   unsigned int type = get_type ();
-  if (HB_UNLIKELY (type == SubstLookupSubTable::Extension))
+  if (unlikely (type == SubstLookupSubTable::Extension))
     return CastR<ExtensionSubst> (get_subtable()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
 }
@@ -910,10 +910,10 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   const GSUB &gsub = *(layout_context->face->ot_layout.gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
-  if (HB_UNLIKELY (context->nesting_level_left == 0))
+  if (unlikely (context->nesting_level_left == 0))
     return false;
 
-  if (HB_UNLIKELY (context_length < 1))
+  if (unlikely (context_length < 1))
     return false;
 
   return l.apply_once (layout_context, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);

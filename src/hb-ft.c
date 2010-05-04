@@ -43,7 +43,7 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
   FT_Face ft_face = (FT_Face) user_data;
 
 #ifdef HAVE_FT_FACE_GETCHARVARIANTINDEX
-  if (HB_UNLIKELY (variation_selector)) {
+  if (unlikely (variation_selector)) {
     hb_codepoint_t glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
     if (glyph)
       return glyph;
@@ -67,13 +67,13 @@ hb_ft_get_contour_point (hb_font_t *font HB_UNUSED,
 
   /* TODO: load_flags, embolden, etc */
 
-  if (HB_UNLIKELY (FT_Load_Glyph (ft_face, glyph, load_flags)))
+  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
       return FALSE;
 
-  if (HB_UNLIKELY (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE))
+  if (unlikely (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE))
       return FALSE;
 
-  if (HB_UNLIKELY (point_index >= (unsigned int) ft_face->glyph->outline.n_points))
+  if (unlikely (point_index >= (unsigned int) ft_face->glyph->outline.n_points))
       return FALSE;
 
   *x = ft_face->glyph->outline.points[point_index].x;
@@ -97,7 +97,7 @@ hb_ft_get_glyph_metrics (hb_font_t *font HB_UNUSED,
   metrics->x_advance = metrics->y_advance = 0;
   metrics->x_offset = metrics->y_offset = 0;
   metrics->width = metrics->height = 0;
-  if (HB_LIKELY (!FT_Load_Glyph (ft_face, glyph, load_flags)))
+  if (likely (!FT_Load_Glyph (ft_face, glyph, load_flags)))
   {
     /* TODO: A few negations should be in order here, not sure. */
     metrics->x_advance = ft_face->glyph->advance.x;
@@ -152,7 +152,7 @@ _get_table  (hb_tag_t tag, void *user_data)
   FT_ULong  length = 0;
   FT_Error error;
 
-  if (HB_UNLIKELY (tag == HB_TAG_NONE))
+  if (unlikely (tag == HB_TAG_NONE))
     return hb_blob_create_empty ();
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, NULL, &length);
@@ -206,7 +206,7 @@ hb_ft_face_finalize (FT_Face ft_face)
 hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face)
 {
-  if (HB_UNLIKELY (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_ft_face_finalize))
+  if (unlikely (!ft_face->generic.data || ft_face->generic.finalizer != (FT_Generic_Finalizer) hb_ft_face_finalize))
   {
     if (ft_face->generic.finalizer)
       ft_face->generic.finalizer (ft_face);

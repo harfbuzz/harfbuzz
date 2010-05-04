@@ -38,9 +38,9 @@
 static inline hb_bool_t
 is_variation_selector (hb_codepoint_t unicode)
 {
-  return HB_UNLIKELY ((unicode >=  0x180B && unicode <=  0x180D) || /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
-		      (unicode >=  0xFE00 && unicode <=  0xFE0F) || /* VARIATION SELECTOR-1..16 */
-		      (unicode >= 0xE0100 && unicode <= 0xE01EF));  /* VARIATION SELECTOR-17..256 */
+  return unlikely ((unicode >=  0x180B && unicode <=  0x180D) || /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
+		   (unicode >=  0xFE00 && unicode <=  0xFE0F) || /* VARIATION SELECTOR-1..16 */
+		   (unicode >= 0xE0100 && unicode <= 0xE01EF));  /* VARIATION SELECTOR-17..256 */
 }
 
 static void
@@ -95,11 +95,11 @@ hb_map_glyphs (hb_font_t    *font,
 {
   unsigned int count;
 
-  if (HB_UNLIKELY (!buffer->in_length))
+  if (unlikely (!buffer->in_length))
     return;
   count = buffer->in_length - 1;
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
-    if (HB_UNLIKELY (is_variation_selector (IN_NEXTGLYPH()))) {
+    if (unlikely (is_variation_selector (IN_NEXTGLYPH()))) {
       IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), IN_NEXTGLYPH());
       buffer->in_pos++;
     } else {

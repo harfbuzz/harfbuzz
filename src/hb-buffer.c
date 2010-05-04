@@ -258,7 +258,7 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
   buffer->have_output = FALSE;
   buffer->have_positions = TRUE;
 
-  if (HB_UNLIKELY (!buffer->positions))
+  if (unlikely (!buffer->positions))
   {
     buffer->positions = calloc (buffer->allocated, sizeof (buffer->positions[0]));
     return;
@@ -510,7 +510,7 @@ reverse_range (hb_buffer_t *buffer,
 void
 hb_buffer_reverse (hb_buffer_t *buffer)
 {
-  if (HB_UNLIKELY (!buffer->in_length))
+  if (unlikely (!buffer->in_length))
     return;
 
   reverse_range (buffer, 0, buffer->in_length);
@@ -521,7 +521,7 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 {
   unsigned int i, start, count, last_cluster;
 
-  if (HB_UNLIKELY (!buffer->in_length))
+  if (unlikely (!buffer->in_length))
     return;
 
   hb_buffer_reverse (buffer);
@@ -569,7 +569,7 @@ hb_utf8_next (const uint8_t *text,
   unsigned int mask, len;
 
   UTF8_COMPUTE (c, mask, len);
-  if (HB_UNLIKELY (!len || (unsigned int) (end - text) < len)) {
+  if (unlikely (!len || (unsigned int) (end - text) < len)) {
     *unicode = -1;
     return text + 1;
   } else {
@@ -578,7 +578,7 @@ hb_utf8_next (const uint8_t *text,
     result = c & mask;
     for (i = 1; i < len; i++)
       {
-	if (HB_UNLIKELY ((text[i] & 0xc0) != 0x80))
+	if (unlikely ((text[i] & 0xc0) != 0x80))
 	  {
 	    *unicode = -1;
 	    return text + 1;
@@ -610,10 +610,10 @@ hb_utf16_next (const uint16_t *text,
 {
   uint16_t c = *text++;
 
-  if (HB_UNLIKELY (c >= 0xd800 && c < 0xdc00)) {
+  if (unlikely (c >= 0xd800 && c < 0xdc00)) {
     /* high surrogate */
     uint16_t l;
-    if (text < end && ((l = *text), HB_UNLIKELY (l >= 0xdc00 && l < 0xe000))) {
+    if (text < end && ((l = *text), unlikely (l >= 0xdc00 && l < 0xe000))) {
       /* low surrogate */
       *unicode = ((hb_codepoint_t) ((c) - 0xd800) * 0x400 + (l) - 0xdc00 + 0x10000);
        text++;

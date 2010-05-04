@@ -205,7 +205,7 @@ _hb_sanitize_array (SANITIZE_ARG_DEF,
 	     context->start, context->end,
 	     !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 
-  return HB_LIKELY (!overflows) && _hb_sanitize_check (SANITIZE_ARG, base, record_size * len);
+  return likely (!overflows) && _hb_sanitize_check (SANITIZE_ARG, base, record_size * len);
 }
 
 static inline bool
@@ -227,22 +227,22 @@ _hb_sanitize_edit (SANITIZE_ARG_DEF,
   return context->writable;
 }
 
-#define SANITIZE(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG))
+#define SANITIZE(X) likely ((X).sanitize (SANITIZE_ARG))
 #define SANITIZE2(X,Y) (SANITIZE (X) && SANITIZE (Y))
 
-#define SANITIZE_THIS(X) HB_LIKELY ((X).sanitize (SANITIZE_ARG, CharP(this)))
+#define SANITIZE_THIS(X) likely ((X).sanitize (SANITIZE_ARG, CharP(this)))
 #define SANITIZE_THIS2(X,Y) (SANITIZE_THIS (X) && SANITIZE_THIS (Y))
 #define SANITIZE_THIS3(X,Y,Z) (SANITIZE_THIS (X) && SANITIZE_THIS (Y) && SANITIZE_THIS(Z))
 
-#define SANITIZE_BASE(X,B) HB_LIKELY ((X).sanitize (SANITIZE_ARG, B))
+#define SANITIZE_BASE(X,B) likely ((X).sanitize (SANITIZE_ARG, B))
 #define SANITIZE_BASE2(X,Y,B) (SANITIZE_BASE (X,B) && SANITIZE_BASE (Y,B))
 
 #define SANITIZE_SELF() SANITIZE_OBJ (*this)
 #define SANITIZE_OBJ(X) SANITIZE_MEM(&(X), sizeof (X))
 
-#define SANITIZE_MEM(B,L) HB_LIKELY (_hb_sanitize_check (SANITIZE_ARG, CharP(B), (L)))
+#define SANITIZE_MEM(B,L) likely (_hb_sanitize_check (SANITIZE_ARG, CharP(B), (L)))
 
-#define SANITIZE_ARRAY(A,S,L) HB_LIKELY (_hb_sanitize_array (SANITIZE_ARG, CharP(A), S, L))
+#define SANITIZE_ARRAY(A,S,L) likely (_hb_sanitize_array (SANITIZE_ARG, CharP(A), S, L))
 
 #define NEUTER(Obj, Val) \
 	(SANITIZE_OBJ (Obj) && \
@@ -445,7 +445,7 @@ struct GenericOffsetTo : OffsetType
   inline const Type& operator () (const void *base) const
   {
     unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return Null(Type);
+    if (unlikely (!offset)) return Null(Type);
     return StructAtOffset<Type> (*CharP(base), offset);
   }
 
@@ -453,21 +453,21 @@ struct GenericOffsetTo : OffsetType
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return true;
+    if (unlikely (!offset)) return true;
     return SANITIZE (StructAtOffset<Type> (*CharP(base), offset)) || NEUTER (*this, 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return true;
+    if (unlikely (!offset)) return true;
     return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), base2) || NEUTER (*this, 0);
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
-    if (HB_UNLIKELY (!offset)) return true;
+    if (unlikely (!offset)) return true;
     return SANITIZE_BASE (StructAtOffset<Type> (*CharP(base), offset), user_data) || NEUTER (*this, 0);
   }
 };
@@ -494,7 +494,7 @@ struct GenericArrayOf
   const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
     unsigned int count = len;
-    if (HB_UNLIKELY (start_offset > count))
+    if (unlikely (start_offset > count))
       count = 0;
     else
       count -= start_offset;
@@ -505,7 +505,7 @@ struct GenericArrayOf
 
   inline const Type& operator [] (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= len)) return Null(Type);
+    if (unlikely (i >= len)) return Null(Type);
     return array()[i];
   }
   inline unsigned int get_size () const
@@ -518,7 +518,7 @@ struct GenericArrayOf
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
@@ -535,7 +535,7 @@ struct GenericArrayOf
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
-    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array()[i].sanitize (SANITIZE_ARG, base))
@@ -544,7 +544,7 @@ struct GenericArrayOf
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
     TRACE_SANITIZE ();
-    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array()[i].sanitize (SANITIZE_ARG, base, base2))
@@ -553,7 +553,7 @@ struct GenericArrayOf
   }
   inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
     TRACE_SANITIZE ();
-    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!array()[i].sanitize (SANITIZE_ARG, base, user_data))
@@ -591,7 +591,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
 {
   inline const Type& operator [] (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= this->len)) return Null(Type);
+    if (unlikely (i >= this->len)) return Null(Type);
     return this+this->array()[i];
   }
 
@@ -616,7 +616,7 @@ struct HeadlessArrayOf
 
   inline const Type& operator [] (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= len || !i)) return Null(Type);
+    if (unlikely (i >= len || !i)) return Null(Type);
     return array()[i-1];
   }
   inline unsigned int get_size () const
@@ -629,7 +629,7 @@ struct HeadlessArrayOf
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!HB_LIKELY (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.

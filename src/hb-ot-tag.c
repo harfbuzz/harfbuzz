@@ -128,7 +128,7 @@ hb_ot_tags_from_script (hb_script_t script)
 {
   static const hb_tag_t def_tag[] = {HB_OT_TAG_DEFAULT_SCRIPT, HB_TAG_NONE};
 
-  if (HB_UNLIKELY ((unsigned int) script >= ARRAY_LENGTH (ot_scripts)))
+  if (unlikely ((unsigned int) script >= ARRAY_LENGTH (ot_scripts)))
     return def_tag;
 
   return ot_scripts[script];

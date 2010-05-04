@@ -70,7 +70,7 @@ typedef struct OffsetTable
   { return numTables; }
   inline const TableDirectory& get_table (unsigned int i) const
   {
-    if (HB_UNLIKELY (i >= numTables)) return Null(TableDirectory);
+    if (unlikely (i >= numTables)) return Null(TableDirectory);
     return tableDir[i];
   }
   inline bool find_table_index (hb_tag_t tag, unsigned int *table_index) const

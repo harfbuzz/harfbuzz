@@ -104,11 +104,11 @@
 	_hb_boolean_var_ = 0; \
      _hb_boolean_var_; \
   })
-#define HB_LIKELY(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 1))
-#define HB_UNLIKELY(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 0))
+#define likely(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 1))
+#define unlikely(expr) (__builtin_expect (_HB_BOOLEAN_EXPR(expr), 0))
 #else
-#define HB_LIKELY(expr) (expr)
-#define HB_UNLIKELY(expr) (expr)
+#define likely(expr) (expr)
+#define unlikely(expr) (expr)
 #endif
 
 #ifndef __GNUC__

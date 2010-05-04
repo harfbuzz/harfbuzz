@@ -75,19 +75,19 @@ _hb_ot_layout_fini (hb_face_t *face)
 static const GDEF&
 _get_gdef (hb_face_t *face)
 {
-  return HB_LIKELY (face->ot_layout.gdef) ? *face->ot_layout.gdef : Null(GDEF);
+  return likely (face->ot_layout.gdef) ? *face->ot_layout.gdef : Null(GDEF);
 }
 
 static const GSUB&
 _get_gsub (hb_face_t *face)
 {
-  return HB_LIKELY (face->ot_layout.gsub) ? *face->ot_layout.gsub : Null(GSUB);
+  return likely (face->ot_layout.gsub) ? *face->ot_layout.gsub : Null(GSUB);
 }
 
 static const GPOS&
 _get_gpos (hb_face_t *face)
 {
-  return HB_LIKELY (face->ot_layout.gpos) ? *face->ot_layout.gpos : Null(GPOS);
+  return likely (face->ot_layout.gpos) ? *face->ot_layout.gpos : Null(GPOS);
 }
 
 
@@ -219,7 +219,7 @@ _hb_ot_layout_set_glyph_class (hb_face_t                  *face,
   hb_ot_layout_class_t gdef_klass;
   unsigned int len = layout->new_gdef.len;
 
-  if (HB_UNLIKELY (glyph > 65535))
+  if (unlikely (glyph > 65535))
     return;
 
   /* XXX this is not threadsafe */
@@ -235,7 +235,7 @@ _hb_ot_layout_set_glyph_class (hb_face_t                  *face,
       new_len = 65536;
     new_klasses = (unsigned char *) realloc (layout->new_gdef.klasses, new_len * sizeof (unsigned char));
 
-    if (HB_UNLIKELY (!new_klasses))
+    if (unlikely (!new_klasses))
       return;
 
     memset (new_klasses + len, 0, new_len - len);
@@ -290,7 +290,7 @@ hb_ot_layout_build_glyph_classes (hb_face_t      *face,
 
   hb_ot_layout_t *layout = &face->ot_layout;
 
-  if (HB_UNLIKELY (!count || !glyphs || !klasses))
+  if (unlikely (!count || !glyphs || !klasses))
     return;
 
   if (layout->new_gdef.len == 0) {

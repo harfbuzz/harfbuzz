@@ -349,7 +349,7 @@ struct GDEF
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!SANITIZE (version)) return false;
-    if (HB_UNLIKELY (version.major != 1)) return false;
+    if (unlikely (version.major != 1)) return false;
     return SANITIZE_THIS2 (glyphClassDef, attachList) &&
 	   SANITIZE_THIS2 (ligCaretList, markAttachClassDef) &&
 	   (version < 0x00010002 || SANITIZE_THIS (markGlyphSetsDef[0]));

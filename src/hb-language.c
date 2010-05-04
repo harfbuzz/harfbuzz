@@ -89,7 +89,7 @@ hb_language_from_string (const char *str)
     if (lang_equal (str, langs[i]))
       return langs[i];
 
-  if (HB_UNLIKELY (num_langs == num_alloced)) {
+  if (unlikely (num_langs == num_alloced)) {
     unsigned int new_alloced = 2 * (8 + num_alloced);
     const char **new_langs = realloc (langs, new_alloced * sizeof (langs[0]));
     if (!new_langs)

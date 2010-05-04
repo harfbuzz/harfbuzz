@@ -294,7 +294,7 @@ const hb_direction_t horiz_dir[] =
 HB_INTERNAL hb_direction_t
 _hb_script_get_horizontal_direction (hb_script_t script)
 {
-  if (HB_UNLIKELY ((unsigned int) script >= ARRAY_LENGTH (horiz_dir)))
+  if (unlikely ((unsigned int) script >= ARRAY_LENGTH (horiz_dir)))
     return HB_DIRECTION_LTR;
 
   return horiz_dir[script];
