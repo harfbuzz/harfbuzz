@@ -73,6 +73,12 @@ main (int argc, char **argv)
   case OpenTypeFontFile::TTCTag:
     printf ("TrueType Collection of OpenType fonts\n");
     break;
+  case OpenTypeFontFile::TrueTag:
+    printf ("Obsolete Apple TrueType font\n");
+    break;
+  case OpenTypeFontFile::Typ1Tag:
+    printf ("Obsolete Apple Type1 font in SFNT container\n");
+    break;
   default:
     printf ("Unknown font format\n");
     break;
