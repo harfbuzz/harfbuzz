@@ -913,10 +913,9 @@ struct GSUBGPOS
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (version)) return false;
-    if (unlikely (version.major != 1)) return false;
-    return SANITIZE_THIS (scriptList)
-        && SANITIZE_THIS (featureList)
+    return SANITIZE (version) && likely (version.major == 1)
+	&& SANITIZE_THIS (scriptList)
+	&& SANITIZE_THIS (featureList)
 	&& SANITIZE_THIS (lookupList);
   }
 
