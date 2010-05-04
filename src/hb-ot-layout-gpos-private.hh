@@ -271,8 +271,8 @@ struct AnchorFormat3
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_THIS (xDeviceTable)
-	&& SANITIZE_THIS (yDeviceTable);
+	&& SANITIZE_WITH_BASE (this, xDeviceTable)
+	&& SANITIZE_WITH_BASE (this, yDeviceTable);
   }
 
   private:
@@ -339,7 +339,7 @@ struct AnchorMatrix
     unsigned int count = rows * cols;
     if (!SANITIZE_ARRAY (matrix, matrix[0].get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (matrix[i])) return false;
+      if (!SANITIZE_WITH_BASE (this, matrix[i])) return false;
     return true;
   }
 
@@ -404,7 +404,7 @@ struct MarkArray
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (markRecord);
+    return SANITIZE_WITH_BASE (this, markRecord);
   }
 
   private:
@@ -436,8 +436,9 @@ struct SinglePosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   valueFormat.sanitize_value (SANITIZE_ARG, CharP(this), values);
+    return SANITIZE_SELF ()
+	&& SANITIZE_WITH_BASE (this, coverage)
+	&& valueFormat.sanitize_value (SANITIZE_ARG, CharP(this), values);
   }
 
   private:
@@ -478,8 +479,9 @@ struct SinglePosFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	   valueFormat.sanitize_values (SANITIZE_ARG, CharP(this), values, valueCount);
+    return SANITIZE_SELF ()
+	&& SANITIZE_WITH_BASE (this, coverage)
+	&& valueFormat.sanitize_values (SANITIZE_ARG, CharP(this), values, valueCount);
   }
 
   private:
@@ -616,8 +618,9 @@ struct PairPosFormat1
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
 
-    if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	  likely (pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2)))) return false;
+    if (!(SANITIZE_SELF ()
+       && SANITIZE_WITH_BASE (this, coverage)
+       && likely (pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2)))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -700,8 +703,10 @@ struct PairPosFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	  SANITIZE_THIS (classDef1) && SANITIZE_THIS (classDef2))) return false;
+    if (!(SANITIZE_SELF ()
+       && SANITIZE_WITH_BASE (this, coverage)
+       && SANITIZE_WITH_BASE (this, classDef1)
+       && SANITIZE_WITH_BASE (this, classDef2))) return false;
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
@@ -979,8 +984,8 @@ struct CursivePosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (entryExitRecord);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, entryExitRecord);
   }
 
   private:
@@ -1068,9 +1073,9 @@ struct MarkBasePosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-        && SANITIZE_THIS (markCoverage)
-	&& SANITIZE_THIS (baseCoverage)
-	&& SANITIZE_THIS (markArray)
+        && SANITIZE_WITH_BASE (this, markCoverage)
+	&& SANITIZE_WITH_BASE (this, baseCoverage)
+	&& SANITIZE_WITH_BASE (this, markArray)
 	&& likely (baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
@@ -1192,9 +1197,9 @@ struct MarkLigPosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-        && SANITIZE_THIS (markCoverage)
-	&& SANITIZE_THIS (ligatureCoverage)
-	&& SANITIZE_THIS (markArray)
+        && SANITIZE_WITH_BASE (this, markCoverage)
+	&& SANITIZE_WITH_BASE (this, ligatureCoverage)
+	&& SANITIZE_WITH_BASE (this, markArray)
 	&& likely (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
@@ -1295,9 +1300,9 @@ struct MarkMarkPosFormat1
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_THIS (mark1Coverage)
-	&& SANITIZE_THIS (mark2Coverage)
-	&& SANITIZE_THIS (mark1Array)
+	&& SANITIZE_WITH_BASE (this, mark1Coverage)
+	&& SANITIZE_WITH_BASE (this, mark2Coverage)
+	&& SANITIZE_WITH_BASE (this, mark1Array)
 	&& likely (mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount));
   }
 
@@ -1535,7 +1540,7 @@ struct PosLookup : Lookup
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (SANITIZE_ARG))) return false;
     OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
-    return SANITIZE_THIS (list);
+    return SANITIZE_WITH_BASE (this, list);
   }
 };
 
@@ -1563,7 +1568,7 @@ struct GPOS : GSUBGPOS
     TRACE_SANITIZE ();
     if (unlikely (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
     OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
-    return SANITIZE_THIS (list);
+    return SANITIZE_WITH_BASE (this, list);
   }
 };
 ASSERT_SIZE (GPOS, 10);

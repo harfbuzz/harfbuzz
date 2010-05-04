@@ -56,7 +56,8 @@ struct SingleSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage) && SANITIZE (deltaGlyphID);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE (deltaGlyphID);
   }
 
   private:
@@ -98,7 +99,8 @@ struct SingleSubstFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage) && SANITIZE (substitute);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE (substitute);
   }
 
   private:
@@ -208,8 +210,8 @@ struct MultipleSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (sequence);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, sequence);
   }
 
   private:
@@ -304,8 +306,8 @@ struct AlternateSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (alternateSet);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, alternateSet);
   }
 
   private:
@@ -456,7 +458,7 @@ struct LigatureSet
   public:
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (ligature);
+    return SANITIZE_WITH_BASE (this, ligature);
   }
 
   private:
@@ -488,8 +490,8 @@ struct LigatureSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (ligatureSet);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, ligatureSet);
   }
 
   private:
@@ -619,10 +621,11 @@ struct ReverseChainSingleSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_THIS (coverage) && SANITIZE_THIS (backtrack)))
+    if (!(SANITIZE_WITH_BASE (this, coverage)
+       && SANITIZE_WITH_BASE (this, backtrack)))
       return false;
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    if (!SANITIZE_THIS (lookahead))
+    if (!SANITIZE_WITH_BASE (this, lookahead))
       return false;
     ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     return SANITIZE (substitute);
@@ -848,7 +851,7 @@ struct SubstLookup : Lookup
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (SANITIZE_ARG))) return false;
     OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
-    return SANITIZE_THIS (list);
+    return SANITIZE_WITH_BASE (this, list);
   }
 };
 
@@ -877,7 +880,7 @@ struct GSUB : GSUBGPOS
     TRACE_SANITIZE ();
     if (unlikely (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
     OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
-    return SANITIZE_THIS (list);
+    return SANITIZE_WITH_BASE (this, list);
   }
 };
 ASSERT_SIZE (GSUB, 10);

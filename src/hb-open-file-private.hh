@@ -126,7 +126,7 @@ struct TTCHeaderVersion1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (table);
+    return SANITIZE_WITH_BASE (this, table);
   }
 
   private:

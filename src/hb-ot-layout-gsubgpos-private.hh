@@ -326,7 +326,7 @@ struct RuleSet
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (rule);
+    return SANITIZE_WITH_BASE (this, rule);
   }
 
   private:
@@ -358,8 +358,8 @@ struct ContextFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (ruleSet);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, ruleSet);
   }
 
   private:
@@ -401,9 +401,9 @@ struct ContextFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-        && SANITIZE_THIS (classDef)
-	&& SANITIZE_THIS (ruleSet);
+    return SANITIZE_WITH_BASE (this, coverage)
+        && SANITIZE_WITH_BASE (this, classDef)
+	&& SANITIZE_WITH_BASE (this, ruleSet);
   }
 
   private:
@@ -450,7 +450,7 @@ struct ContextFormat3
     unsigned int count = glyphCount;
     if (!SANITIZE_ARRAY (coverage, OffsetTo<Coverage>::get_size (), glyphCount)) return false;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_THIS (coverage[i])) return false;
+      if (!SANITIZE_WITH_BASE (this, coverage[i])) return false;
     LookupRecord &lookupRecord = StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * glyphCount);
     return SANITIZE_ARRAY (&lookupRecord, LookupRecord::get_size (), lookupCount);
   }
@@ -613,7 +613,7 @@ struct ChainRuleSet
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (rule);
+    return SANITIZE_WITH_BASE (this, rule);
   }
 
   private:
@@ -645,8 +645,8 @@ struct ChainContextFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (ruleSet);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, ruleSet);
   }
 
   private:
@@ -692,11 +692,11 @@ struct ChainContextFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (backtrackClassDef)
-	&& SANITIZE_THIS (inputClassDef)
-	&& SANITIZE_THIS (lookaheadClassDef)
-	&& SANITIZE_THIS (ruleSet);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, backtrackClassDef)
+	&& SANITIZE_WITH_BASE (this, inputClassDef)
+	&& SANITIZE_WITH_BASE (this, lookaheadClassDef)
+	&& SANITIZE_WITH_BASE (this, ruleSet);
   }
 
   private:
@@ -754,11 +754,11 @@ struct ChainContextFormat3
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_THIS (backtrack)) return false;
+    if (!SANITIZE_WITH_BASE (this, backtrack)) return false;
     OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    if (!SANITIZE_THIS (input)) return false;
+    if (!SANITIZE_WITH_BASE (this, input)) return false;
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
-    if (!SANITIZE_THIS (lookahead)) return false;
+    if (!SANITIZE_WITH_BASE (this, lookahead)) return false;
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return SANITIZE (lookup);
   }
@@ -918,9 +918,9 @@ struct GSUBGPOS
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE (version) && likely (version.major == 1)
-	&& SANITIZE_THIS (scriptList)
-	&& SANITIZE_THIS (featureList)
-	&& SANITIZE_THIS (lookupList);
+	&& SANITIZE_WITH_BASE (this, scriptList)
+	&& SANITIZE_WITH_BASE (this, featureList)
+	&& SANITIZE_WITH_BASE (this, lookupList);
   }
 
   protected:

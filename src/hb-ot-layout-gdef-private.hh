@@ -69,8 +69,8 @@ struct AttachList
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (attachPoint);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, attachPoint);
   }
 
   private:
@@ -148,7 +148,8 @@ struct CaretValueFormat3
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS (deviceTable);
+    return SANITIZE_SELF ()
+	&& SANITIZE_WITH_BASE (this, deviceTable);
   }
 
   private:
@@ -213,7 +214,7 @@ struct LigGlyph
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (carets);
+    return SANITIZE_WITH_BASE (this, carets);
   }
 
   private:
@@ -245,8 +246,8 @@ struct LigCaretList
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage)
-	&& SANITIZE_THIS (ligGlyph);
+    return SANITIZE_WITH_BASE (this, coverage)
+	&& SANITIZE_WITH_BASE (this, ligGlyph);
   }
 
   private:
@@ -267,7 +268,7 @@ struct MarkGlyphSetsFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS (coverage);
+    return SANITIZE_WITH_BASE (this, coverage);
   }
 
   private:
@@ -350,10 +351,12 @@ struct GDEF
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE (version) && likely (version.major == 1) &&
-           SANITIZE_THIS (glyphClassDef) && SANITIZE_THIS (attachList) &&
-	   SANITIZE_THIS (ligCaretList) && SANITIZE_THIS (markAttachClassDef) &&
-	   (version < 0x00010002 || SANITIZE_THIS (markGlyphSetsDef[0]));
+    return SANITIZE (version) && likely (version.major == 1)
+	&& SANITIZE_WITH_BASE (this, glyphClassDef)
+	&& SANITIZE_WITH_BASE (this, attachList)
+	&& SANITIZE_WITH_BASE (this, ligCaretList)
+	&& SANITIZE_WITH_BASE (this, markAttachClassDef)
+	&& (version < 0x00010002 || SANITIZE_WITH_BASE (this, markGlyphSetsDef[0]));
   }
 
   private:
