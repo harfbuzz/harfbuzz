@@ -779,7 +779,8 @@ struct EntryExitRecord
 
   inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
     TRACE_SANITIZE ();
-    return SANITIZE_BASE2 (entryAnchor, exitAnchor, base);
+    return SANITIZE_BASE (entryAnchor, base)
+	&& SANITIZE_BASE (exitAnchor, base);
   }
 
   OffsetTo<Anchor>
