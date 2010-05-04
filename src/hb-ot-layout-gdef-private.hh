@@ -69,7 +69,8 @@ struct AttachList
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, attachPoint);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (attachPoint);
   }
 
   private:
@@ -244,7 +245,8 @@ struct LigCaretList
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, ligGlyph);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (ligGlyph);
   }
 
   private:
@@ -349,8 +351,8 @@ struct GDEF
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     return SANITIZE (version) && likely (version.major == 1) &&
-           SANITIZE_THIS2 (glyphClassDef, attachList) &&
-	   SANITIZE_THIS2 (ligCaretList, markAttachClassDef) &&
+           SANITIZE_THIS (glyphClassDef) && SANITIZE_THIS (attachList) &&
+	   SANITIZE_THIS (ligCaretList) && SANITIZE_THIS (markAttachClassDef) &&
 	   (version < 0x00010002 || SANITIZE_THIS (markGlyphSetsDef[0]));
   }
 

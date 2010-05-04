@@ -208,7 +208,8 @@ struct MultipleSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, sequence);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (sequence);
   }
 
   private:
@@ -303,7 +304,8 @@ struct AlternateSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, alternateSet);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (alternateSet);
   }
 
   private:
@@ -486,7 +488,8 @@ struct LigatureSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, ligatureSet);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (ligatureSet);
   }
 
   private:
@@ -616,7 +619,7 @@ struct ReverseChainSingleSubstFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_THIS2 (coverage, backtrack))
+    if (!(SANITIZE_THIS (coverage) && SANITIZE_THIS (backtrack)))
       return false;
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     if (!SANITIZE_THIS (lookahead))

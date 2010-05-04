@@ -270,7 +270,9 @@ struct AnchorFormat3
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE_THIS2 (xDeviceTable, yDeviceTable);
+    return SANITIZE_SELF ()
+	&& SANITIZE_THIS (xDeviceTable)
+	&& SANITIZE_THIS (yDeviceTable);
   }
 
   private:
@@ -698,7 +700,7 @@ struct PairPosFormat2
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
     if (!(SANITIZE_SELF () && SANITIZE_THIS (coverage) &&
-	  SANITIZE_THIS2 (classDef1, classDef2))) return false;
+	  SANITIZE_THIS (classDef1) && SANITIZE_THIS (classDef2))) return false;
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
@@ -976,7 +978,8 @@ struct CursivePosFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, entryExitRecord);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (entryExitRecord);
   }
 
   private:

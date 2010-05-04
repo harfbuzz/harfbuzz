@@ -202,7 +202,8 @@ struct Script
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (defaultLangSys, langSys);
+    return SANITIZE_THIS (defaultLangSys)
+	&& SANITIZE_THIS (langSys);
   }
 
   private:

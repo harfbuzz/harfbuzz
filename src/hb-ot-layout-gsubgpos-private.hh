@@ -358,7 +358,8 @@ struct ContextFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, ruleSet);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (ruleSet);
   }
 
   private:
@@ -644,7 +645,8 @@ struct ChainContextFormat1
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, ruleSet);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (ruleSet);
   }
 
   private:
@@ -690,9 +692,11 @@ struct ChainContextFormat2
 
   inline bool sanitize (SANITIZE_ARG_DEF) {
     TRACE_SANITIZE ();
-    return SANITIZE_THIS2 (coverage, backtrackClassDef) &&
-	   SANITIZE_THIS2 (inputClassDef, lookaheadClassDef) &&
-	   SANITIZE_THIS (ruleSet);
+    return SANITIZE_THIS (coverage)
+	&& SANITIZE_THIS (backtrackClassDef)
+	&& SANITIZE_THIS (inputClassDef)
+	&& SANITIZE_THIS (lookaheadClassDef)
+	&& SANITIZE_THIS (ruleSet);
   }
 
   private:
