@@ -258,20 +258,15 @@ static inline bool context_lookup (hb_apply_context_t *context,
 				   const LookupRecord lookupRecord[],
 				   ContextLookupContext &lookup_context)
 {
-  unsigned int new_context_length;
-  if (!match_input (context,
-		    inputCount, input,
-		    lookup_context.funcs.match, lookup_context.match_data,
-		    &new_context_length)) return false;
-  unsigned int old_context_length;
-  old_context_length = context->context_length;
-  context->context_length = new_context_length;
-  bool ret = apply_lookup (context,
-			   inputCount,
-			   lookupCount, lookupRecord,
-			   lookup_context.funcs.apply);
-  context->context_length = old_context_length;
-  return ret;
+  hb_apply_context_t new_context = *context;
+  return match_input (context,
+		      inputCount, input,
+		      lookup_context.funcs.match, lookup_context.match_data,
+		      &new_context.context_length)
+      && apply_lookup (&new_context,
+		       inputCount,
+		       lookupCount, lookupRecord,
+		       lookup_context.funcs.apply);
 }
 
 struct Rule
@@ -529,28 +524,22 @@ static inline bool chain_context_lookup (hb_apply_context_t *context,
 		inputCount + lookaheadCount > context->context_length))
     return false;
 
-  unsigned int offset;
-  if (!(match_backtrack (context,
-			 backtrackCount, backtrack,
-			 lookup_context.funcs.match, lookup_context.match_data[0]) &&
-	match_input (context,
-		     inputCount, input,
-		     lookup_context.funcs.match, lookup_context.match_data[1],
-		     &offset) &&
-	match_lookahead (context,
-			 lookaheadCount, lookahead,
-			 lookup_context.funcs.match, lookup_context.match_data[2],
-			 offset))) return false;
-
-  unsigned int old_context_length;
-  old_context_length = context->context_length;
-  context->context_length = offset;
-  bool ret = apply_lookup (context,
-			   inputCount,
-			   lookupCount, lookupRecord,
-			   lookup_context.funcs.apply);
-  context->context_length = old_context_length;
-  return ret;
+  hb_apply_context_t new_context = *context;
+  return match_backtrack (context,
+			  backtrackCount, backtrack,
+			  lookup_context.funcs.match, lookup_context.match_data[0])
+      && match_input (context,
+		      inputCount, input,
+		      lookup_context.funcs.match, lookup_context.match_data[1],
+		      &new_context.context_length)
+      && match_lookahead (context,
+			  lookaheadCount, lookahead,
+			  lookup_context.funcs.match, lookup_context.match_data[2],
+			  new_context.context_length)
+      && apply_lookup (&new_context,
+		       inputCount,
+		       lookupCount, lookupRecord,
+		       lookup_context.funcs.apply);
 }
 
 struct ChainRule
