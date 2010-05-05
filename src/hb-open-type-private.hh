@@ -195,7 +195,7 @@ struct hb_sanitize_context_t
 	       this->start, this->end,
 	       ret ? "pass" : "FAIL");
 
-    return ret;
+    return likely (ret);
   }
 
   inline bool check_array (const char *base, unsigned int record_size, unsigned int len) const
@@ -211,7 +211,7 @@ struct hb_sanitize_context_t
 	       this->start, this->end,
 	       !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 
-    return likely (!overflows) && this->check (base, record_size * len);
+    return likely (!overflows && this->check (base, record_size * len));
   }
 
   inline bool can_edit (const char *base HB_UNUSED, unsigned int len HB_UNUSED)
@@ -230,21 +230,11 @@ struct hb_sanitize_context_t
     return this->writable;
   }
 
-  inline const char *get_start (void) const { return start; }
-  inline const char *get_end (void) const { return end; }
-  inline bool is_writable (void) const { return writable; }
-  inline unsigned int get_edit_count (void) const { return this->edit_count; }
-
-  inline void reset_edit_count (void) { this->edit_count = 0; }
-
-  public:
-  unsigned int debug_depth;
-
-  private:
   const char *start, *end;
   bool writable;
   unsigned int edit_count;
   hb_blob_t *blob;
+  unsigned int debug_depth;
 };
 
 
@@ -275,28 +265,28 @@ struct Sanitizer
 
     context->init (blob);
 
-    Type *t = CastP<Type> (const_cast<char *> (context->get_start ()));
+    Type *t = CastP<Type> (const_cast<char *> (context->start));
 
     sane = t->sanitize (context);
     if (sane) {
-      if (context->get_edit_count ()) {
+      if (context->edit_count) {
 	if (HB_DEBUG_SANITIZE)
 	  fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
-		   blob, context->get_edit_count (), HB_FUNC);
+		   blob, context->edit_count, HB_FUNC);
 
         /* sanitize again to ensure no toe-stepping */
-        context->reset_edit_count ();
+        context->edit_count = 0;
 	sane = t->sanitize (context);
-	if (context->get_edit_count ()) {
+	if (context->edit_count) {
 	  if (HB_DEBUG_SANITIZE)
 	    fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
-		     blob, context->get_edit_count (), HB_FUNC);
+		     blob, context->edit_count, HB_FUNC);
 	  sane = false;
 	}
       }
       context->finish ();
     } else {
-      unsigned int edit_count = context->get_edit_count ();
+      unsigned int edit_count = context->edit_count;
       context->finish ();
       if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
         /* ok, we made it writable by relocating.  try again */
