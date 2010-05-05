@@ -367,7 +367,7 @@ struct Ligature
     TRACE_APPLY ();
     unsigned int i, j;
     unsigned int count = component.len;
-    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
     if (unlikely (context->buffer->in_pos + count > end))
       return false;
 
@@ -597,7 +597,7 @@ struct ReverseChainSingleSubstFormat1
   inline bool apply (APPLY_ARG_DEF) const
   {
     TRACE_APPLY ();
-    if (unlikely (context_length != NO_CONTEXT))
+    if (unlikely (context->context_length != NO_CONTEXT))
       return false; /* No chaining to this type */
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -780,6 +780,7 @@ struct SubstLookup : Lookup
 
     context->layout = layout;
     context->buffer = buffer;
+    context->context_length = context_length;
     context->nesting_level_left = nesting_level_left;
     context->lookup_flag = get_flag ();
 
@@ -927,10 +928,10 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (unlikely (context->nesting_level_left == 0))
     return false;
 
-  if (unlikely (context_length < 1))
+  if (unlikely (context->context_length < 1))
     return false;
 
-  return l.apply_once (context->layout, context->buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (context->layout, context->buffer, context->context_length, context->nesting_level_left - 1, apply_depth + 1);
 }
 
 

@@ -577,7 +577,7 @@ struct PairPosFormat1
   inline bool apply (APPLY_ARG_DEF) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
     if (unlikely (context->buffer->in_pos + 2 > end))
       return false;
 
@@ -670,7 +670,7 @@ struct PairPosFormat2
   inline bool apply (APPLY_ARG_DEF) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
     if (unlikely (context->buffer->in_pos + 2 > end))
       return false;
 
@@ -1495,6 +1495,7 @@ struct PosLookup : Lookup
 
     context->layout = layout;
     context->buffer = buffer;
+    context->context_length = context_length;
     context->nesting_level_left = nesting_level_left;
     context->lookup_flag = get_flag ();
 
@@ -1608,10 +1609,10 @@ static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (unlikely (context->nesting_level_left == 0))
     return false;
 
-  if (unlikely (context_length < 1))
+  if (unlikely (context->context_length < 1))
     return false;
 
-  return l.apply_once (context->layout, context->buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (context->layout, context->buffer, context->context_length, context->nesting_level_left - 1, apply_depth + 1);
 }
 
 

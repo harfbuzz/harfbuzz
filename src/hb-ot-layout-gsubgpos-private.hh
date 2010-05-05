@@ -44,17 +44,16 @@
 
 #define APPLY_ARG_DEF \
 	hb_apply_context_t *context, \
-	unsigned int context_length HB_UNUSED, \
 	unsigned int apply_depth HB_UNUSED
 #define APPLY_ARG \
 	context, \
-	context_length, \
 	(HB_DEBUG_APPLY ? apply_depth + 1 : 0)
 
 struct hb_apply_context_t
 {
   hb_ot_layout_context_t *layout;
   hb_buffer_t *buffer;
+  unsigned int context_length;
   unsigned int nesting_level_left;
   unsigned int lookup_flag;
   unsigned int property; /* propety of first glyph (TODO remove) */
@@ -103,7 +102,7 @@ static inline bool match_input (APPLY_ARG_DEF,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
-  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
   if (unlikely (context->buffer->in_pos + count > end))
     return false;
 
@@ -158,7 +157,7 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 				    unsigned int offset)
 {
   unsigned int i, j;
-  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
   if (unlikely (context->buffer->in_pos + offset + count > end))
     return false;
 
@@ -201,7 +200,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 apply_lookup_func_t apply_func)
 {
-  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
   if (unlikely (context->buffer->in_pos + count > end))
     return false;
 
@@ -267,14 +266,20 @@ static inline bool context_lookup (APPLY_ARG_DEF,
 				   const LookupRecord lookupRecord[],
 				   ContextLookupContext &lookup_context)
 {
-  return match_input (APPLY_ARG,
-		      inputCount, input,
-		      lookup_context.funcs.match, lookup_context.match_data,
-		      &context_length) &&
-	 apply_lookup (APPLY_ARG,
-		       inputCount,
-		       lookupCount, lookupRecord,
-		       lookup_context.funcs.apply);
+  unsigned int new_context_length;
+  if (!match_input (APPLY_ARG,
+		    inputCount, input,
+		    lookup_context.funcs.match, lookup_context.match_data,
+		    &new_context_length)) return false;
+  unsigned int old_context_length;
+  old_context_length = context->context_length;
+  context->context_length = new_context_length;
+  bool ret = apply_lookup (APPLY_ARG,
+			   inputCount,
+			   lookupCount, lookupRecord,
+			   lookup_context.funcs.apply);
+  context->context_length = old_context_length;
+  return ret;
 }
 
 struct Rule
@@ -529,26 +534,31 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
   /* First guess */
   if (unlikely (context->buffer->out_pos < backtrackCount ||
 		context->buffer->in_pos + inputCount + lookaheadCount > context->buffer->in_length ||
-		inputCount + lookaheadCount > context_length))
+		inputCount + lookaheadCount > context->context_length))
     return false;
 
   unsigned int offset;
-  return match_backtrack (APPLY_ARG,
-			  backtrackCount, backtrack,
-			  lookup_context.funcs.match, lookup_context.match_data[0]) &&
-	 match_input (APPLY_ARG,
-		      inputCount, input,
-		      lookup_context.funcs.match, lookup_context.match_data[1],
-		      &offset) &&
-	 match_lookahead (APPLY_ARG,
-			  lookaheadCount, lookahead,
-			  lookup_context.funcs.match, lookup_context.match_data[2],
-			  offset) &&
-	 (context_length = offset, true) &&
-	 apply_lookup (APPLY_ARG,
-		       inputCount,
-		       lookupCount, lookupRecord,
-		       lookup_context.funcs.apply);
+  if (!(match_backtrack (APPLY_ARG,
+			 backtrackCount, backtrack,
+			 lookup_context.funcs.match, lookup_context.match_data[0]) &&
+	match_input (APPLY_ARG,
+		     inputCount, input,
+		     lookup_context.funcs.match, lookup_context.match_data[1],
+		     &offset) &&
+	match_lookahead (APPLY_ARG,
+			 lookaheadCount, lookahead,
+			 lookup_context.funcs.match, lookup_context.match_data[2],
+			 offset))) return false;
+
+  unsigned int old_context_length;
+  old_context_length = context->context_length;
+  context->context_length = offset;
+  bool ret = apply_lookup (APPLY_ARG,
+			   inputCount,
+			   lookupCount, lookupRecord,
+			   lookup_context.funcs.apply);
+  context->context_length = old_context_length;
+  return ret;
 }
 
 struct ChainRule
