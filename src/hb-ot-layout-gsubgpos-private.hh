@@ -44,22 +44,27 @@
 
 #define APPLY_ARG_DEF \
 	hb_apply_context_t *context, \
-	hb_buffer_t *buffer, \
 	unsigned int context_length HB_UNUSED, \
 	unsigned int apply_depth HB_UNUSED
 #define APPLY_ARG \
 	context, \
-	buffer, \
 	context_length, \
 	(HB_DEBUG_APPLY ? apply_depth + 1 : 0)
 
 struct hb_apply_context_t
 {
   hb_ot_layout_context_t *layout;
+  hb_buffer_t *buffer;
   unsigned int nesting_level_left;
   unsigned int lookup_flag;
   unsigned int property; /* propety of first glyph (TODO remove) */
 };
+
+
+
+
+#undef BUFFER
+#define BUFFER context->buffer
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const char *data);
@@ -98,11 +103,11 @@ static inline bool match_input (APPLY_ARG_DEF,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
-  unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-  if (unlikely (buffer->in_pos + count > end))
+  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+  if (unlikely (context->buffer->in_pos + count > end))
     return false;
 
-  for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
+  for (i = 1, j = context->buffer->in_pos + 1; i < count; i++, j++)
   {
     while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
     {
@@ -115,7 +120,7 @@ static inline bool match_input (APPLY_ARG_DEF,
       return false;
   }
 
-  *context_length_out = j - buffer->in_pos;
+  *context_length_out = j - context->buffer->in_pos;
 
   return true;
 }
@@ -126,10 +131,10 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
 				    match_func_t match_func,
 				    const char *match_data)
 {
-  if (unlikely (buffer->out_pos < count))
+  if (unlikely (context->buffer->out_pos < count))
     return false;
 
-  for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--)
+  for (unsigned int i = 0, j = context->buffer->out_pos - 1; i < count; i++, j--)
   {
     while (_hb_ot_layout_skip_mark (context->layout->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
@@ -153,11 +158,11 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 				    unsigned int offset)
 {
   unsigned int i, j;
-  unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-  if (unlikely (buffer->in_pos + offset + count > end))
+  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+  if (unlikely (context->buffer->in_pos + offset + count > end))
     return false;
 
-  for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++)
+  for (i = 0, j = context->buffer->in_pos + offset; i < count; i++, j++)
   {
     while (_hb_ot_layout_skip_mark (context->layout->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
@@ -196,8 +201,8 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 apply_lookup_func_t apply_func)
 {
-  unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-  if (unlikely (buffer->in_pos + count > end))
+  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+  if (unlikely (context->buffer->in_pos + count > end))
     return false;
 
   /* TODO We don't support lookupRecord arrays that are not increasing:
@@ -211,15 +216,15 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
   {
     while (_hb_ot_layout_skip_mark (context->layout->face, IN_CURINFO (), context->lookup_flag, NULL))
     {
-      if (unlikely (buffer->in_pos == end))
+      if (unlikely (context->buffer->in_pos == end))
 	return true;
       /* No lookup applied for this index */
-      _hb_buffer_next_glyph (buffer);
+      _hb_buffer_next_glyph (context->buffer);
     }
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
     {
-      unsigned int old_pos = buffer->in_pos;
+      unsigned int old_pos = context->buffer->in_pos;
 
       /* Apply a lookup */
       bool done = apply_func (APPLY_ARG, lookupRecord->lookupListIndex);
@@ -227,8 +232,8 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
       lookupRecord++;
       lookupCount--;
       /* Err, this is wrong if the lookup jumped over some glyphs */
-      i += buffer->in_pos - old_pos;
-      if (unlikely (buffer->in_pos == end))
+      i += context->buffer->in_pos - old_pos;
+      if (unlikely (context->buffer->in_pos == end))
 	return true;
 
       if (!done)
@@ -238,7 +243,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
     {
     not_applied:
       /* No lookup applied for this index */
-      _hb_buffer_next_glyph (buffer);
+      _hb_buffer_next_glyph (context->buffer);
       i++;
     }
   }
@@ -522,9 +527,9 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
 					 ChainContextLookupContext &lookup_context)
 {
   /* First guess */
-  if (unlikely (buffer->out_pos < backtrackCount ||
-		   buffer->in_pos + inputCount + lookaheadCount > buffer->in_length ||
-		   inputCount + lookaheadCount > context_length))
+  if (unlikely (context->buffer->out_pos < backtrackCount ||
+		context->buffer->in_pos + inputCount + lookaheadCount > context->buffer->in_length ||
+		inputCount + lookaheadCount > context_length))
     return false;
 
   unsigned int offset;

@@ -132,20 +132,24 @@ HB_INTERNAL unsigned short
 _hb_buffer_allocate_lig_id (hb_buffer_t *buffer);
 
 
+#ifndef BUFFER
+#define BUFFER buffer
+#endif
+
 /* convenience macros */
-#define IN_GLYPH(pos)		(buffer->in_string[(pos)].codepoint)
-#define IN_INFO(pos)		(&buffer->in_string[(pos)])
-#define IN_CURGLYPH()		(buffer->in_string[buffer->in_pos].codepoint)
-#define IN_NEXTGLYPH()		(buffer->in_string[buffer->in_pos + 1].codepoint)
-#define IN_CURINFO()		(&buffer->in_string[buffer->in_pos])
-#define IN_MASK(pos)		(buffer->in_string[(pos)].mask)
-#define IN_CLUSTER(pos)		(buffer->in_string[(pos)].cluster)
-#define IN_LIGID(pos)		(buffer->in_string[(pos)].lig_id)
-#define IN_COMPONENT(pos)	(buffer->in_string[(pos)].component)
-#define POSITION(pos)		(&buffer->positions[(pos)])
-#define CURPOSITION()		(&buffer->positions[buffer->in_pos])
-#define OUT_GLYPH(pos)		(buffer->out_string[(pos)].codepoint)
-#define OUT_INFO(pos)		(&buffer->out_string[(pos)])
+#define IN_GLYPH(pos)		(BUFFER->in_string[(pos)].codepoint)
+#define IN_INFO(pos)		(&BUFFER->in_string[(pos)])
+#define IN_CURGLYPH()		(BUFFER->in_string[BUFFER->in_pos].codepoint)
+#define IN_NEXTGLYPH()		(BUFFER->in_string[BUFFER->in_pos + 1].codepoint)
+#define IN_CURINFO()		(&BUFFER->in_string[BUFFER->in_pos])
+#define IN_MASK(pos)		(BUFFER->in_string[(pos)].mask)
+#define IN_CLUSTER(pos)		(BUFFER->in_string[(pos)].cluster)
+#define IN_LIGID(pos)		(BUFFER->in_string[(pos)].lig_id)
+#define IN_COMPONENT(pos)	(BUFFER->in_string[(pos)].component)
+#define POSITION(pos)		(&BUFFER->positions[(pos)])
+#define CURPOSITION()		(&BUFFER->positions[BUFFER->in_pos])
+#define OUT_GLYPH(pos)		(BUFFER->out_string[(pos)].codepoint)
+#define OUT_INFO(pos)		(&BUFFER->out_string[(pos)])
 
 HB_END_DECLS
 

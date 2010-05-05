@@ -29,6 +29,11 @@
 
 #include "hb-ot-layout-gsubgpos-private.hh"
 
+
+#undef BUFFER
+#define BUFFER context->buffer
+
+
 #define HB_OT_LAYOUT_GPOS_NO_LAST ((unsigned int) -1)
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
@@ -391,14 +396,14 @@ struct MarkArray
     mark_anchor.get_anchor (context->layout, IN_CURGLYPH (), &mark_x, &mark_y);
     glyph_anchor.get_anchor (context->layout, IN_GLYPH (glyph_pos), &base_x, &base_y);
 
-    hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
+    hb_internal_glyph_position_t *o = POSITION (context->buffer->in_pos);
     o->x_advance = 0;
     o->y_advance = 0;
     o->x_offset  = base_x - mark_x;
     o->y_offset  = base_y - mark_y;
-    o->back      = buffer->in_pos - glyph_pos;
+    o->back      = context->buffer->in_pos - glyph_pos;
 
-    buffer->in_pos++;
+    context->buffer->in_pos++;
     return true;
   }
 
@@ -430,7 +435,7 @@ struct SinglePosFormat1
 
     valueFormat.apply_value (context->layout, CharP(this), values, CURPOSITION ());
 
-    buffer->in_pos++;
+    context->buffer->in_pos++;
     return true;
   }
 
@@ -473,7 +478,7 @@ struct SinglePosFormat2
 			     &values[index * valueFormat.get_len ()],
 			     CURPOSITION ());
 
-    buffer->in_pos++;
+    context->buffer->in_pos++;
     return true;
   }
 
@@ -572,15 +577,15 @@ struct PairPosFormat1
   inline bool apply (APPLY_ARG_DEF) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-    if (unlikely (buffer->in_pos + 2 > end))
+    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+    if (unlikely (context->buffer->in_pos + 2 > end))
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (likely (index == NOT_COVERED))
       return false;
 
-    unsigned int j = buffer->in_pos + 1;
+    unsigned int j = context->buffer->in_pos + 1;
     while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (unlikely (j == end))
@@ -603,7 +608,7 @@ struct PairPosFormat1
 	valueFormat2.apply_value (context->layout, CharP(this), &record->values[len1], POSITION (j));
 	if (len2)
 	  j++;
-	buffer->in_pos = j;
+	context->buffer->in_pos = j;
 	return true;
       }
       record = &StructAtOffset<PairValueRecord> (*record, record_size);
@@ -665,15 +670,15 @@ struct PairPosFormat2
   inline bool apply (APPLY_ARG_DEF) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-    if (unlikely (buffer->in_pos + 2 > end))
+    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+    if (unlikely (context->buffer->in_pos + 2 > end))
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (likely (index == NOT_COVERED))
       return false;
 
-    unsigned int j = buffer->in_pos + 1;
+    unsigned int j = context->buffer->in_pos + 1;
     while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (unlikely (j == end))
@@ -696,7 +701,7 @@ struct PairPosFormat2
 
     if (len2)
       j++;
-    buffer->in_pos = j;
+    context->buffer->in_pos = j;
 
     return true;
   }
@@ -949,10 +954,10 @@ struct CursivePosFormat1
 
     /* TODO vertical */
 
-    if (buffer->direction == HB_DIRECTION_RTL)
+    if (context->buffer->direction == HB_DIRECTION_RTL)
     {
       /* advance is absolute, not relative */
-      POSITION (buffer->in_pos)->x_advance = entry_x - gpi->anchor_x;
+      POSITION (context->buffer->in_pos)->x_advance = entry_x - gpi->anchor_x;
     }
     else
     {
@@ -962,23 +967,23 @@ struct CursivePosFormat1
 
     if  (context->lookup_flag & LookupFlag::RightToLeft)
     {
-      POSITION (last_pos)->cursive_chain = last_pos - buffer->in_pos;
+      POSITION (last_pos)->cursive_chain = last_pos - context->buffer->in_pos;
       POSITION (last_pos)->y_offset = entry_y - gpi->anchor_y;
     }
     else
     {
-      POSITION (buffer->in_pos)->cursive_chain = buffer->in_pos - last_pos;
-      POSITION (buffer->in_pos)->y_offset = gpi->anchor_y - entry_y;
+      POSITION (context->buffer->in_pos)->cursive_chain = context->buffer->in_pos - last_pos;
+      POSITION (context->buffer->in_pos)->y_offset = gpi->anchor_y - entry_y;
     }
 
   end:
     if (record.exitAnchor)
     {
-      gpi->last = buffer->in_pos;
+      gpi->last = context->buffer->in_pos;
       (this+record.exitAnchor).get_anchor (context->layout, IN_CURGLYPH (), &gpi->anchor_x, &gpi->anchor_y);
     }
 
-    buffer->in_pos++;
+    context->buffer->in_pos++;
     return true;
   }
 
@@ -1049,7 +1054,7 @@ struct MarkBasePosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = buffer->in_pos;
+    unsigned int j = context->buffer->in_pos;
     do
     {
       if (unlikely (!j))
@@ -1152,7 +1157,7 @@ struct MarkLigPosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = buffer->in_pos;
+    unsigned int j = context->buffer->in_pos;
     do
     {
       if (unlikely (!j))
@@ -1182,9 +1187,9 @@ struct MarkLigPosFormat1
      * is identical to the ligature ID of the found ligature.  If yes, we
      * can directly use the component index.  If not, we attach the mark
      * glyph to the last component of the ligature. */
-    if (IN_LIGID (j) && IN_LIGID (j) == IN_LIGID (buffer->in_pos) && IN_COMPONENT (buffer->in_pos))
+    if (IN_LIGID (j) && IN_LIGID (j) == IN_LIGID (context->buffer->in_pos) && IN_COMPONENT (context->buffer->in_pos))
     {
-      comp_index = IN_COMPONENT (buffer->in_pos) - 1;
+      comp_index = IN_COMPONENT (context->buffer->in_pos) - 1;
       if (comp_index >= comp_count)
 	comp_index = comp_count - 1;
     }
@@ -1272,7 +1277,7 @@ struct MarkMarkPosFormat1
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int property;
-    unsigned int j = buffer->in_pos;
+    unsigned int j = context->buffer->in_pos;
     do
     {
       if (unlikely (!j))
@@ -1286,8 +1291,8 @@ struct MarkMarkPosFormat1
     /* Two marks match only if they belong to the same base, or same component
      * of the same ligature.  That is, the component numbers must match, and
      * if those are non-zero, the ligid number should also match. */
-    if ((IN_COMPONENT (j) != IN_COMPONENT (buffer->in_pos)) ||
-	(IN_COMPONENT (j) && IN_LIGID (j) != IN_LIGID (buffer->in_pos)))
+    if ((IN_COMPONENT (j) != IN_COMPONENT (context->buffer->in_pos)) ||
+	(IN_COMPONENT (j) && IN_LIGID (j) != IN_LIGID (context->buffer->in_pos)))
       return false;
 
     unsigned int mark2_index = (this+mark2Coverage) (IN_GLYPH (j));
@@ -1489,6 +1494,7 @@ struct PosLookup : Lookup
     hb_apply_context_t context[1];
 
     context->layout = layout;
+    context->buffer = buffer;
     context->nesting_level_left = nesting_level_left;
     context->lookup_flag = get_flag ();
 
@@ -1506,6 +1512,8 @@ struct PosLookup : Lookup
 			     hb_buffer_t *buffer,
 			     hb_mask_t    mask) const
   {
+#undef BUFFER
+#define BUFFER buffer
     bool ret = false;
 
     if (unlikely (!buffer->in_length))
@@ -1603,7 +1611,7 @@ static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (unlikely (context_length < 1))
     return false;
 
-  return l.apply_once (context->layout, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (context->layout, context->buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
 }
 
 

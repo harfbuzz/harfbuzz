@@ -30,6 +30,10 @@
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 
+#undef BUFFER
+#define BUFFER context->buffer
+
+
 struct SingleSubstFormat1
 {
   friend struct SingleSubst;
@@ -45,7 +49,7 @@ struct SingleSubstFormat1
       return false;
 
     glyph_id += deltaGlyphID;
-    _hb_buffer_replace_glyph (buffer, glyph_id);
+    _hb_buffer_replace_glyph (context->buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (context->layout->face))
@@ -88,7 +92,7 @@ struct SingleSubstFormat2
       return false;
 
     glyph_id = substitute[index];
-    _hb_buffer_replace_glyph (buffer, glyph_id);
+    _hb_buffer_replace_glyph (context->buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (context->layout->face))
@@ -160,7 +164,7 @@ struct Sequence
     if (unlikely (!substitute.len))
       return false;
 
-    _hb_buffer_add_output_glyphs_be16 (buffer, 1,
+    _hb_buffer_add_output_glyphs_be16 (context->buffer, 1,
 				       substitute.len, (const uint16_t *) substitute.array(),
 				       0xFFFF, 0xFFFF);
 
@@ -285,8 +289,8 @@ struct AlternateSubstFormat1
 
     /* XXX callback to user to choose alternate
     if (context->layout->face->altfunc)
-      alt_index = (context->layout->face->altfunc)(context->layout->layout, buffer,
-				    buffer->out_pos, glyph_id,
+      alt_index = (context->layout->face->altfunc)(context->layout->layout, context->buffer,
+				    context->buffer->out_pos, glyph_id,
 				    alt_set.len, alt_set.array);
 				   */
 
@@ -295,7 +299,7 @@ struct AlternateSubstFormat1
 
     glyph_id = alt_set[alt_index];
 
-    _hb_buffer_replace_glyph (buffer, glyph_id);
+    _hb_buffer_replace_glyph (context->buffer, glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (context->layout->face))
@@ -363,11 +367,11 @@ struct Ligature
     TRACE_APPLY ();
     unsigned int i, j;
     unsigned int count = component.len;
-    unsigned int end = MIN (buffer->in_length, buffer->in_pos + context_length);
-    if (unlikely (buffer->in_pos + count > end))
+    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context_length);
+    if (unlikely (context->buffer->in_pos + count > end))
       return false;
 
-    for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
+    for (i = 1, j = context->buffer->in_pos + 1; i < count; i++, j++)
     {
       unsigned int property;
       while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, &property))
@@ -389,18 +393,18 @@ struct Ligature
 				     is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK
 					     : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
 
-    if (j == buffer->in_pos + i) /* No input glyphs skipped */
+    if (j == context->buffer->in_pos + i) /* No input glyphs skipped */
       /* We don't use a new ligature ID if there are no skipped
 	 glyphs and the ligature already has an ID. */
-      _hb_buffer_add_output_glyphs_be16 (buffer, i,
+      _hb_buffer_add_output_glyphs_be16 (context->buffer, i,
 					 1, (const uint16_t *) &ligGlyph,
 					 0,
-					 IN_LIGID (buffer->in_pos) && !IN_COMPONENT (buffer->in_pos) ?
-					 0xFFFF : _hb_buffer_allocate_lig_id (buffer));
+					 IN_LIGID (context->buffer->in_pos) && !IN_COMPONENT (context->buffer->in_pos) ?
+					 0xFFFF : _hb_buffer_allocate_lig_id (context->buffer));
     else
     {
-      unsigned int lig_id = _hb_buffer_allocate_lig_id (buffer);
-      _hb_buffer_add_output_glyph (buffer, ligGlyph, 0xFFFF, lig_id);
+      unsigned int lig_id = _hb_buffer_allocate_lig_id (context->buffer);
+      _hb_buffer_add_output_glyph (context->buffer, ligGlyph, 0xFFFF, lig_id);
 
       /* Now we must do a second loop to copy the skipped glyphs to
 	 `out' and assign component values to it.  We start with the
@@ -412,9 +416,9 @@ struct Ligature
       for ( i = 1; i < count; i++ )
       {
 	while (_hb_ot_layout_skip_mark (context->layout->face, IN_CURINFO (), context->lookup_flag, NULL))
-	  _hb_buffer_add_output_glyph (buffer, IN_CURGLYPH (), i, lig_id);
+	  _hb_buffer_add_output_glyph (context->buffer, IN_CURGLYPH (), i, lig_id);
 
-	(buffer->in_pos)++;
+	(context->buffer->in_pos)++;
       }
     }
 
@@ -612,7 +616,7 @@ struct ReverseChainSingleSubstFormat1
 			 1))
     {
       IN_CURGLYPH () = substitute[index];
-      buffer->in_pos--; /* Reverse! */
+      context->buffer->in_pos--; /* Reverse! */
       return true;
     }
 
@@ -775,6 +779,7 @@ struct SubstLookup : Lookup
     hb_apply_context_t context[1];
 
     context->layout = layout;
+    context->buffer = buffer;
     context->nesting_level_left = nesting_level_left;
     context->lookup_flag = get_flag ();
 
@@ -807,6 +812,8 @@ struct SubstLookup : Lookup
 			    hb_buffer_t *buffer,
 			    hb_mask_t    mask) const
   {
+#undef BUFFER
+#define BUFFER buffer
     bool ret = false;
 
     if (unlikely (!buffer->in_length))
@@ -923,7 +930,7 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (unlikely (context_length < 1))
     return false;
 
-  return l.apply_once (context->layout, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (context->layout, context->buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
 }
 
 
