@@ -112,6 +112,26 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 #define Null(Type) Null<Type>()
 
 
+/*
+ * Debug
+ */
+
+/* Helper object to increment debug_depth and decrement
+ * when returning from the object. */
+template <int debug_level>
+struct hb_auto_debug_depth_t {
+  explicit hb_auto_debug_depth_t (unsigned int *p) : p(p) { ++*p; }
+  ~hb_auto_debug_depth_t (void) { --*p; }
+
+  private:
+  unsigned int *p;
+};
+template <> /* Optimize when debugging is disabled */
+struct hb_auto_debug_depth_t<0> {
+  explicit hb_auto_debug_depth_t (unsigned int *p) {}
+};
+
+
 
 /*
  * Sanitize
@@ -121,19 +141,17 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 #define HB_DEBUG_SANITIZE HB_DEBUG+0
 #endif
 
+
 #define TRACE_SANITIZE() \
-	HB_STMT_START { \
-	  if (HB_DEBUG_SANITIZE) \
-		  _hb_trace ("SANITIZE", HB_FUNC, this, sanitize_depth, HB_DEBUG_SANITIZE); \
-	} HB_STMT_END
+	hb_auto_debug_depth_t<HB_DEBUG_SANITIZE> auto_debug_depth (&context->debug_depth); \
+	if (HB_DEBUG_SANITIZE) \
+	  _hb_trace ("SANITIZE", HB_FUNC, this, context->debug_depth, HB_DEBUG_SANITIZE); \
 
 
 #define SANITIZE_ARG_DEF \
-	hb_sanitize_context_t *context, \
-	unsigned int sanitize_depth HB_UNUSED
+	hb_sanitize_context_t *context
 #define SANITIZE_ARG \
-	context, \
-	(HB_DEBUG_SANITIZE ? sanitize_depth + 1 : 0)
+	context
 
 struct hb_sanitize_context_t
 {
@@ -144,6 +162,7 @@ struct hb_sanitize_context_t
     this->end = this->start + hb_blob_get_length (blob);
     this->writable = hb_blob_is_writable (blob);
     this->edit_count = 0;
+    this->debug_depth = 0;
 
     if (HB_DEBUG_SANITIZE)
       fprintf (stderr, "sanitize %p init [%p..%p] (%u bytes)\n",
@@ -162,18 +181,16 @@ struct hb_sanitize_context_t
     this->start = this->end = NULL;
   }
 
-  inline bool check (unsigned int sanitize_depth,
-		     const char *base,
-		     unsigned int len) const
+  inline bool check (const char *base, unsigned int len) const
   {
     bool ret = this->start <= base &&
 	       base <= this->end &&
 	       (unsigned int) (this->end - base) >= len;
 
-    if (HB_DEBUG_SANITIZE && (int) sanitize_depth < (int) HB_DEBUG_SANITIZE) \
+    if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE) \
       fprintf (stderr, "SANITIZE(%p) %-*d-> check [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
 	       base,
-	       sanitize_depth, sanitize_depth,
+	       this->debug_depth, this->debug_depth,
 	       base, base+len, len,
 	       this->start, this->end,
 	       ret ? "pass" : "FAIL");
@@ -181,35 +198,30 @@ struct hb_sanitize_context_t
     return ret;
   }
 
-  inline bool check_array (unsigned int sanitize_depth,
-			   const char *base,
-			   unsigned int record_size,
-			   unsigned int len) const
+  inline bool check_array (const char *base, unsigned int record_size, unsigned int len) const
   {
     bool overflows = len >= ((unsigned int) -1) / record_size;
 
 
-    if (HB_DEBUG_SANITIZE && (int) sanitize_depth < (int) HB_DEBUG_SANITIZE)
+    if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE)
       fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n", \
 	       base,
-	       sanitize_depth, sanitize_depth,
+	       this->debug_depth, this->debug_depth,
 	       base, base + (record_size * len), record_size, len, (unsigned long) record_size * len,
 	       this->start, this->end,
 	       !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 
-    return likely (!overflows) && this->check (sanitize_depth, base, record_size * len);
+    return likely (!overflows) && this->check (base, record_size * len);
   }
 
-  inline bool can_edit (unsigned int sanitize_depth,
-			const char *base HB_UNUSED,
-			unsigned int len HB_UNUSED)
+  inline bool can_edit (const char *base HB_UNUSED, unsigned int len HB_UNUSED)
   {
     this->edit_count++;
 
-    if (HB_DEBUG_SANITIZE && (int) sanitize_depth < (int) HB_DEBUG_SANITIZE)
+    if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE)
       fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
 	       base,
-	       sanitize_depth, sanitize_depth,
+	       this->debug_depth, this->debug_depth,
 	       this->edit_count,
 	       base, base+len, len,
 	       this->start, this->end,
@@ -225,6 +237,9 @@ struct hb_sanitize_context_t
 
   inline void reset_edit_count (void) { this->edit_count = 0; }
 
+  public:
+  unsigned int debug_depth;
+
   private:
   const char *start, *end;
   bool writable;
@@ -239,9 +254,9 @@ struct hb_sanitize_context_t
 
 #define SANITIZE_SELF() SANITIZE_MEM(this, sizeof (*this))
 
-#define SANITIZE_MEM(B,L) likely (context->check (sanitize_depth, CharP(B), (L)))
+#define SANITIZE_MEM(B,L) likely (context->check (CharP(B), (L)))
 
-#define SANITIZE_ARRAY(A,S,L) likely (context->check_array (sanitize_depth, CharP(A), S, L))
+#define SANITIZE_ARRAY(A,S,L) likely (context->check_array (CharP(A), S, L))
 
 
 /* Template to sanitize an object. */
@@ -250,7 +265,6 @@ struct Sanitizer
 {
   static hb_blob_t *sanitize (hb_blob_t *blob) {
     hb_sanitize_context_t context[1];
-    unsigned int sanitize_depth = 0;
     bool sane;
 
     /* TODO is_sane() stuff */
@@ -464,7 +478,7 @@ struct GenericOffsetTo : OffsetType
   private:
   /* Set the offset to Null */
   inline bool neuter (SANITIZE_ARG_DEF) {
-    if (context->can_edit (sanitize_depth, CharP(this), this->get_size ())) {
+    if (context->can_edit (CharP(this), this->get_size ())) {
       this->set (0); /* 0 is Null offset */
       return true;
     }
