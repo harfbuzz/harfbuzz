@@ -281,10 +281,10 @@ struct Rule
   inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
-    const LookupRecord &lookupRecord = StructAtOffset<LookupRecord> (input, input[0].get_size () * (inputCount ? inputCount - 1 : 0));
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].get_size () * (inputCount ? inputCount - 1 : 0));
     return context_lookup (APPLY_ARG,
 			   inputCount, input,
-			   lookupCount, &lookupRecord,
+			   lookupCount, lookupRecord,
 			   lookup_context);
   }
 
@@ -433,14 +433,14 @@ struct ContextFormat3
     if (likely (index == NOT_COVERED))
       return false;
 
-    const LookupRecord &lookupRecord = StructAtOffset<LookupRecord> (coverage, coverage[0].get_size () * glyphCount);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].get_size () * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
        CharP(this)
     };
     return context_lookup (APPLY_ARG,
 			   glyphCount, (const USHORT *) (coverage + 1),
-			   lookupCount, &lookupRecord,
+			   lookupCount, lookupRecord,
 			   lookup_context);
   }
 
@@ -451,8 +451,8 @@ struct ContextFormat3
     if (!SANITIZE_ARRAY (coverage, OffsetTo<Coverage>::get_size (), glyphCount)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_WITH_BASE (this, coverage[i])) return false;
-    LookupRecord &lookupRecord = StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * glyphCount);
-    return SANITIZE_ARRAY (&lookupRecord, LookupRecord::get_size (), lookupCount);
+    LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * glyphCount);
+    return SANITIZE_ARRAY (lookupRecord, LookupRecord::get_size (), lookupCount);
   }
 
   private:
