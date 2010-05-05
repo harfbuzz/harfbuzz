@@ -775,7 +775,7 @@ struct SubstLookup : Lookup
 			  unsigned int nesting_level_left) const
   {
     unsigned int lookup_type = get_type ();
-    hb_apply_context_t context[1] = {{}};
+    hb_apply_context_t context[1] = {{0}};
 
     context->layout = layout;
     context->buffer = buffer;
