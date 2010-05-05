@@ -637,7 +637,6 @@ struct HeadlessArrayOf
   { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }
 
   inline bool sanitize_shallow (SANITIZE_ARG_DEF) {
-    TRACE_SANITIZE ();
     return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
   }
 
