@@ -153,11 +153,6 @@ struct hb_trace_t<0> {
 	trace.log ("SANITIZE", HB_FUNC, this);
 
 
-#define SANITIZE_ARG_DEF \
-	hb_sanitize_context_t *context
-#define SANITIZE_ARG \
-	context
-
 struct hb_sanitize_context_t
 {
   inline void init (hb_blob_t *blob)
@@ -253,9 +248,9 @@ struct hb_sanitize_context_t
 };
 
 
-#define SANITIZE(X) likely ((X).sanitize (SANITIZE_ARG))
+#define SANITIZE(X) likely ((X).sanitize (context))
 
-#define SANITIZE_WITH_BASE(B,X) likely ((X).sanitize (SANITIZE_ARG, CharP(B)))
+#define SANITIZE_WITH_BASE(B,X) likely ((X).sanitize (context, CharP(B)))
 
 #define SANITIZE_SELF() SANITIZE_MEM(this, sizeof (*this))
 
@@ -282,7 +277,7 @@ struct Sanitizer
 
     Type *t = CastP<Type> (const_cast<char *> (context->get_start ()));
 
-    sane = t->sanitize (SANITIZE_ARG);
+    sane = t->sanitize (context);
     if (sane) {
       if (context->get_edit_count ()) {
 	if (HB_DEBUG_SANITIZE)
@@ -291,7 +286,7 @@ struct Sanitizer
 
         /* sanitize again to ensure no toe-stepping */
         context->reset_edit_count ();
-	sane = t->sanitize (SANITIZE_ARG);
+	sane = t->sanitize (context);
 	if (context->get_edit_count ()) {
 	  if (HB_DEBUG_SANITIZE)
 	    fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
@@ -373,7 +368,7 @@ struct IntType
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
   inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -435,7 +430,7 @@ struct FixedVersion
 {
   inline operator uint32_t (void) const { return (major << 16) + minor; }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -462,27 +457,27 @@ struct GenericOffsetTo : OffsetType
     return StructAtOffset<Type> (*CharP(base), offset);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (*CharP(base), offset);
-    return likely (obj.sanitize (SANITIZE_ARG)) || neuter (SANITIZE_ARG);
+    return likely (obj.sanitize (context)) || neuter (context);
   }
   template <typename T>
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base, T user_data) {
+  inline bool sanitize (hb_sanitize_context_t *context, void *base, T user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (*CharP(base), offset);
-    return likely (obj.sanitize (SANITIZE_ARG, user_data)) || neuter (SANITIZE_ARG);
+    return likely (obj.sanitize (context, user_data)) || neuter (context);
   }
 
   private:
   /* Set the offset to Null */
-  inline bool neuter (SANITIZE_ARG_DEF) {
+  inline bool neuter (hb_sanitize_context_t *context) {
     if (context->can_edit (CharP(this), this->get_size ())) {
       this->set (0); /* 0 is Null offset */
       return true;
@@ -530,9 +525,9 @@ struct GenericArrayOf
   inline unsigned int get_size () const
   { return len.get_size () + len * Type::get_size (); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (context))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
@@ -547,28 +542,28 @@ struct GenericArrayOf
         return false;
     return true;
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (context))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array()[i].sanitize (SANITIZE_ARG, base))
+      if (!array()[i].sanitize (context, base))
         return false;
     return true;
   }
   template <typename T>
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base, T user_data) {
+  inline bool sanitize (hb_sanitize_context_t *context, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (context))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array()[i].sanitize (SANITIZE_ARG, base, user_data))
+      if (!array()[i].sanitize (context, base, user_data))
         return false;
     return true;
   }
 
   private:
-  inline bool sanitize_shallow (SANITIZE_ARG_DEF) {
+  inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
   }
@@ -608,14 +603,14 @@ struct OffsetListOf : OffsetArrayOf<Type>
     return this+this->array()[i];
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this));
+    return OffsetArrayOf<Type>::sanitize (context, CharP(this));
   }
   template <typename T>
-  inline bool sanitize (SANITIZE_ARG_DEF, T user_data) {
+  inline bool sanitize (hb_sanitize_context_t *context, T user_data) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this), user_data);
+    return OffsetArrayOf<Type>::sanitize (context, CharP(this), user_data);
   }
 };
 
@@ -636,13 +631,13 @@ struct HeadlessArrayOf
   inline unsigned int get_size () const
   { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }
 
-  inline bool sanitize_shallow (SANITIZE_ARG_DEF) {
+  inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
+    if (!likely (sanitize_shallow (context))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.

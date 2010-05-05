@@ -129,7 +129,7 @@ struct ValueFormat : USHORT
   }
 
   private:
-  inline bool sanitize_value_devices (SANITIZE_ARG_DEF, void *base, const Value *values) {
+  inline bool sanitize_value_devices (hb_sanitize_context_t *context, void *base, const Value *values) {
     unsigned int format = *this;
 
     if (format & xPlacement) values++;
@@ -152,14 +152,14 @@ struct ValueFormat : USHORT
     return (format & devices) != 0;
   }
 
-  inline bool sanitize_value (SANITIZE_ARG_DEF, void *base, const Value *values) {
+  inline bool sanitize_value (hb_sanitize_context_t *context, void *base, const Value *values) {
     TRACE_SANITIZE ();
 
     return SANITIZE_MEM (values, get_size ()) &&
-	   (!has_device () || sanitize_value_devices (SANITIZE_ARG, base, values));
+	   (!has_device () || sanitize_value_devices (context, base, values));
   }
 
-  inline bool sanitize_values (SANITIZE_ARG_DEF, void *base, const Value *values, unsigned int count) {
+  inline bool sanitize_values (hb_sanitize_context_t *context, void *base, const Value *values, unsigned int count) {
     TRACE_SANITIZE ();
     unsigned int len = get_len ();
 
@@ -168,7 +168,7 @@ struct ValueFormat : USHORT
     if (!has_device ()) return true;
 
     for (unsigned int i = 0; i < count; i++) {
-      if (!sanitize_value_devices (SANITIZE_ARG, base, values))
+      if (!sanitize_value_devices (context, base, values))
         return false;
       values += len;
     }
@@ -177,13 +177,13 @@ struct ValueFormat : USHORT
   }
 
   /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
-  inline bool sanitize_values_stride_unsafe (SANITIZE_ARG_DEF, void *base, const Value *values, unsigned int count, unsigned int stride) {
+  inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *context, void *base, const Value *values, unsigned int count, unsigned int stride) {
     TRACE_SANITIZE ();
 
     if (!has_device ()) return true;
 
     for (unsigned int i = 0; i < count; i++) {
-      if (!sanitize_value_devices (SANITIZE_ARG, base, values))
+      if (!sanitize_value_devices (context, base, values))
         return false;
       values += stride;
     }
@@ -206,7 +206,7 @@ struct AnchorFormat1
       *y = _hb_16dot16_mul_round (layout_context->font->y_scale, yCoordinate);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -237,7 +237,7 @@ struct AnchorFormat2
       *y = y_ppem && ret ? cy : _hb_16dot16_mul_round (layout_context->font->y_scale, yCoordinate);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -268,7 +268,7 @@ struct AnchorFormat3
 	*y += (this+yDeviceTable).get_delta (layout_context->font->y_ppem) << 16;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
 	&& SANITIZE_WITH_BASE (this, xDeviceTable)
@@ -304,13 +304,13 @@ struct Anchor
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
-    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
+    case 3: return u.format3->sanitize (context);
     default:return true;
     }
   }
@@ -332,7 +332,7 @@ struct AnchorMatrix
     return this+matrix[row * cols + col];
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int cols) {
+  inline bool sanitize (hb_sanitize_context_t *context, unsigned int cols) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     if (unlikely (cols >= ((unsigned int) -1) / rows)) return false;
@@ -358,7 +358,7 @@ struct MarkRecord
 
   static inline unsigned int get_size () { return sizeof (MarkRecord); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
 	&& SANITIZE_WITH_BASE (base, markAnchor);
@@ -402,7 +402,7 @@ struct MarkArray
     return true;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, markRecord);
   }
@@ -434,11 +434,11 @@ struct SinglePosFormat1
     return true;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
 	&& SANITIZE_WITH_BASE (this, coverage)
-	&& valueFormat.sanitize_value (SANITIZE_ARG, CharP(this), values);
+	&& valueFormat.sanitize_value (context, CharP(this), values);
   }
 
   private:
@@ -477,11 +477,11 @@ struct SinglePosFormat2
     return true;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
 	&& SANITIZE_WITH_BASE (this, coverage)
-	&& valueFormat.sanitize_values (SANITIZE_ARG, CharP(this), values, valueCount);
+	&& valueFormat.sanitize_values (context, CharP(this), values, valueCount);
   }
 
   private:
@@ -512,12 +512,12 @@ struct SinglePos
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
     default:return true;
     }
   }
@@ -549,7 +549,7 @@ struct PairSet
   friend struct PairPosFormat1;
 
   /* Note: Doesn't sanitize the Device entries in the ValueRecord */
-  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int format_len) {
+  inline bool sanitize (hb_sanitize_context_t *context, unsigned int format_len) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = (1 + format_len) * len;
@@ -612,7 +612,7 @@ struct PairPosFormat1
     return false;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
 
     unsigned int len1 = valueFormat1.get_len ();
@@ -620,7 +620,7 @@ struct PairPosFormat1
 
     if (!(SANITIZE_SELF ()
        && SANITIZE_WITH_BASE (this, coverage)
-       && likely (pairSet.sanitize (SANITIZE_ARG, CharP(this), len1 + len2)))) return false;
+       && likely (pairSet.sanitize (context, CharP(this), len1 + len2)))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -632,8 +632,8 @@ struct PairPosFormat1
 
       unsigned int count2 = pair_set.len;
       const PairValueRecord *record = pair_set.array;
-      if (!(valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &record->values[0], count2, stride) &&
-	    valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &record->values[len1], count2, stride)))
+      if (!(valueFormat1.sanitize_values_stride_unsafe (context, CharP(this), &record->values[0], count2, stride) &&
+	    valueFormat2.sanitize_values_stride_unsafe (context, CharP(this), &record->values[len1], count2, stride)))
         return false;
     }
 
@@ -701,7 +701,7 @@ struct PairPosFormat2
     return true;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!(SANITIZE_SELF ()
        && SANITIZE_WITH_BASE (this, coverage)
@@ -714,8 +714,8 @@ struct PairPosFormat2
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
     return SANITIZE_ARRAY (values, record_size, count) &&
-	   valueFormat1.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &values[0], count, stride) &&
-	   valueFormat2.sanitize_values_stride_unsafe (SANITIZE_ARG, CharP(this), &values[len1], count, stride);
+	   valueFormat1.sanitize_values_stride_unsafe (context, CharP(this), &values[0], count, stride) &&
+	   valueFormat2.sanitize_values_stride_unsafe (context, CharP(this), &values[len1], count, stride);
   }
 
   private:
@@ -762,12 +762,12 @@ struct PairPos
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
     default:return true;
     }
   }
@@ -785,7 +785,7 @@ struct EntryExitRecord
 {
   static inline unsigned int get_size () { return sizeof (EntryExitRecord); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (base, entryAnchor)
 	&& SANITIZE_WITH_BASE (base, exitAnchor);
@@ -982,7 +982,7 @@ struct CursivePosFormat1
     return true;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage)
 	&& SANITIZE_WITH_BASE (this, entryExitRecord);
@@ -1013,11 +1013,11 @@ struct CursivePos
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
     default:return true;
     }
   }
@@ -1070,13 +1070,13 @@ struct MarkBasePosFormat1
     return (this+markArray).apply (APPLY_ARG, mark_index, base_index, this+baseArray, classCount, j);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
         && SANITIZE_WITH_BASE (this, markCoverage)
 	&& SANITIZE_WITH_BASE (this, baseCoverage)
 	&& SANITIZE_WITH_BASE (this, markArray)
-	&& likely (baseArray.sanitize (SANITIZE_ARG, CharP(this), (unsigned int) classCount));
+	&& likely (baseArray.sanitize (context, CharP(this), (unsigned int) classCount));
   }
 
   private:
@@ -1111,11 +1111,11 @@ struct MarkBasePos
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
     default:return true;
     }
   }
@@ -1194,13 +1194,13 @@ struct MarkLigPosFormat1
     return (this+markArray).apply (APPLY_ARG, mark_index, comp_index, lig_attach, classCount, j);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
         && SANITIZE_WITH_BASE (this, markCoverage)
 	&& SANITIZE_WITH_BASE (this, ligatureCoverage)
 	&& SANITIZE_WITH_BASE (this, markArray)
-	&& likely (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), (unsigned int) classCount));
+	&& likely (ligatureArray.sanitize (context, CharP(this), (unsigned int) classCount));
   }
 
   private:
@@ -1236,11 +1236,11 @@ struct MarkLigPos
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
     default:return true;
     }
   }
@@ -1297,13 +1297,13 @@ struct MarkMarkPosFormat1
     return (this+mark1Array).apply (APPLY_ARG, mark1_index, mark2_index, this+mark2Array, classCount, j);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
 	&& SANITIZE_WITH_BASE (this, mark1Coverage)
 	&& SANITIZE_WITH_BASE (this, mark2Coverage)
 	&& SANITIZE_WITH_BASE (this, mark1Array)
-	&& likely (mark2Array.sanitize (SANITIZE_ARG, CharP(this), (unsigned int) classCount));
+	&& likely (mark2Array.sanitize (context, CharP(this), (unsigned int) classCount));
   }
 
   private:
@@ -1340,11 +1340,11 @@ struct MarkMarkPos
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
     default:return true;
     }
   }
@@ -1398,7 +1398,7 @@ struct ExtensionPos : Extension
 
   inline bool apply (APPLY_ARG_DEF) const;
 
-  inline bool sanitize (SANITIZE_ARG_DEF);
+  inline bool sanitize (hb_sanitize_context_t *context);
 };
 
 
@@ -1441,19 +1441,19 @@ struct PosLookupSubTable
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case Single:		return u.single->sanitize (SANITIZE_ARG);
-    case Pair:			return u.pair->sanitize (SANITIZE_ARG);
-    case Cursive:		return u.cursive->sanitize (SANITIZE_ARG);
-    case MarkBase:		return u.markBase->sanitize (SANITIZE_ARG);
-    case MarkLig:		return u.markLig->sanitize (SANITIZE_ARG);
-    case MarkMark:		return u.markMark->sanitize (SANITIZE_ARG);
-    case Context:		return u.context->sanitize (SANITIZE_ARG);
-    case ChainContext:		return u.chainContext->sanitize (SANITIZE_ARG);
-    case Extension:		return u.extension->sanitize (SANITIZE_ARG);
+    case Single:		return u.single->sanitize (context);
+    case Pair:			return u.pair->sanitize (context);
+    case Cursive:		return u.cursive->sanitize (context);
+    case MarkBase:		return u.markBase->sanitize (context);
+    case MarkLig:		return u.markLig->sanitize (context);
+    case MarkMark:		return u.markMark->sanitize (context);
+    case Context:		return u.context->sanitize (context);
+    case ChainContext:		return u.chainContext->sanitize (context);
+    case Extension:		return u.extension->sanitize (context);
     default:return true;
     }
   }
@@ -1536,9 +1536,9 @@ struct PosLookup : Lookup
     return ret;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (unlikely (!Lookup::sanitize (SANITIZE_ARG))) return false;
+    if (unlikely (!Lookup::sanitize (context))) return false;
     OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
     return SANITIZE_WITH_BASE (this, list);
   }
@@ -1564,9 +1564,9 @@ struct GPOS : GSUBGPOS
 			       hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (layout_context, buffer, mask); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (unlikely (!GSUBGPOS::sanitize (SANITIZE_ARG))) return false;
+    if (unlikely (!GSUBGPOS::sanitize (context))) return false;
     OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return SANITIZE_WITH_BASE (this, list);
   }
@@ -1582,10 +1582,10 @@ inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
   return get_subtable ().apply (APPLY_ARG, get_type ());
 }
 
-inline bool ExtensionPos::sanitize (SANITIZE_ARG_DEF)
+inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
 {
   TRACE_SANITIZE ();
-  if (unlikely (!Extension::sanitize (SANITIZE_ARG))) return false;
+  if (unlikely (!Extension::sanitize (context))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
   return SANITIZE (StructAtOffset<PosLookupSubTable> (*this, offset));

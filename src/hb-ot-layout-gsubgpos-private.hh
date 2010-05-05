@@ -179,7 +179,7 @@ struct LookupRecord
 {
   static inline unsigned int get_size () { return sizeof (LookupRecord); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -289,7 +289,7 @@ struct Rule
   }
 
   public:
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!(SANITIZE (inputCount) && SANITIZE (lookupCount))) return false;
     return SANITIZE_MEM (input,
@@ -324,7 +324,7 @@ struct RuleSet
     return false;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, rule);
   }
@@ -356,7 +356,7 @@ struct ContextFormat1
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage)
 	&& SANITIZE_WITH_BASE (this, ruleSet);
@@ -399,7 +399,7 @@ struct ContextFormat2
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage)
         && SANITIZE_WITH_BASE (this, classDef)
@@ -444,7 +444,7 @@ struct ContextFormat3
 			   lookup_context);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = glyphCount;
@@ -482,13 +482,13 @@ struct Context
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
-    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
+    case 3: return u.format3->sanitize (context);
     default:return true;
     }
   }
@@ -568,7 +568,7 @@ struct ChainRule
   }
 
   public:
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (backtrack)) return false;
     HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
@@ -611,7 +611,7 @@ struct ChainRuleSet
     return false;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, rule);
   }
@@ -643,7 +643,7 @@ struct ChainContextFormat1
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage)
 	&& SANITIZE_WITH_BASE (this, ruleSet);
@@ -690,7 +690,7 @@ struct ChainContextFormat2
     return rule_set.apply (APPLY_ARG, lookup_context);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage)
 	&& SANITIZE_WITH_BASE (this, backtrackClassDef)
@@ -752,7 +752,7 @@ struct ChainContextFormat3
     return false;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE_WITH_BASE (this, backtrack)) return false;
     OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
@@ -797,13 +797,13 @@ struct ChainContext
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
-    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
+    case 3: return u.format3->sanitize (context);
     default:return true;
     }
   }
@@ -826,7 +826,7 @@ struct ExtensionFormat1
   inline unsigned int get_type (void) const { return extensionLookupType; }
   inline unsigned int get_offset (void) const { return extensionOffset; }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -858,11 +858,11 @@ struct Extension
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
     default:return true;
     }
   }
@@ -915,7 +915,7 @@ struct GSUBGPOS
   inline const Lookup& get_lookup (unsigned int i) const
   { return (this+lookupList)[i]; }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE (version) && likely (version.major == 1)
 	&& SANITIZE_WITH_BASE (this, scriptList)

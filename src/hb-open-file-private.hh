@@ -49,7 +49,7 @@ typedef struct TableDirectory
 {
   static inline unsigned int get_size () { return sizeof (TableDirectory); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -98,7 +98,7 @@ typedef struct OffsetTable
   }
 
   public:
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE_ARRAY (tableDir, TableDirectory::get_size (), numTables);
   }
@@ -124,7 +124,7 @@ struct TTCHeaderVersion1
   inline unsigned int get_face_count (void) const { return table.len; }
   inline const OpenTypeFontFace& get_face (unsigned int i) const { return this+table[i]; }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, table);
   }
@@ -162,12 +162,12 @@ struct TTCHeader
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.header.version)) return false;
     switch (u.header.version) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return u.version1->sanitize (SANITIZE_ARG);
+    case 1: return u.version1->sanitize (context);
     default:return true;
     }
   }
@@ -224,15 +224,15 @@ struct OpenTypeFontFile
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.tag)) return false;
     switch (u.tag) {
     case CFFTag:	/* All the non-collection tags */
     case TrueTag:
     case Typ1Tag:
-    case TrueTypeTag:	return u.fontFace->sanitize (SANITIZE_ARG);
-    case TTCTag:	return u.ttcHeader->sanitize (SANITIZE_ARG);
+    case TrueTypeTag:	return u.fontFace->sanitize (context);
+    case TTCTag:	return u.ttcHeader->sanitize (context);
     default:		return true;
     }
   }

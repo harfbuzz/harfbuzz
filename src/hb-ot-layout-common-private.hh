@@ -53,7 +53,7 @@ struct Record
 {
   static inline unsigned int get_size () { return sizeof (Record<Type>); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
 	&& SANITIZE_WITH_BASE (base, offset);
@@ -110,9 +110,9 @@ struct RecordListOf : RecordArrayOf<Type>
   inline const Type& operator [] (unsigned int i) const
   { return this+RecordArrayOf<Type>::operator [](i).offset; }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return RecordArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this));
+    return RecordArrayOf<Type>::sanitize (context, CharP(this));
   }
 };
 
@@ -164,7 +164,7 @@ struct LangSys
    return reqFeatureIndex;;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (featureIndex);
   }
@@ -201,7 +201,7 @@ struct Script
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, defaultLangSys)
 	&& SANITIZE_WITH_BASE (this, langSys);
@@ -232,7 +232,7 @@ struct Feature
 					  unsigned int *lookup_tags /* OUT */) const
   { return lookupIndex.get_indexes (start_index, lookup_count, lookup_tags); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (lookupIndex);
   }
@@ -282,10 +282,10 @@ struct Lookup
     return flag;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
-    if (!(SANITIZE_SELF () && likely (subTable.sanitize (SANITIZE_ARG)))) return false;
+    if (!(SANITIZE_SELF () && likely (subTable.sanitize (context)))) return false;
     if (unlikely (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
@@ -331,7 +331,7 @@ struct CoverageFormat1
     return NOT_COVERED;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE (glyphArray);
   }
@@ -358,7 +358,7 @@ struct CoverageRangeRecord
   }
 
   public:
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -390,7 +390,7 @@ struct CoverageFormat2
     return NOT_COVERED;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE (rangeRecord);
   }
@@ -417,12 +417,12 @@ struct Coverage
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
     default:return true;
     }
   }
@@ -452,7 +452,7 @@ struct ClassDefFormat1
     return 0;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF () && SANITIZE (classValue);
   }
@@ -479,7 +479,7 @@ struct ClassRangeRecord
   }
 
   public:
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -510,7 +510,7 @@ struct ClassDefFormat2
     return 0;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE (rangeRecord);
   }
@@ -535,12 +535,12 @@ struct ClassDef
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
     default:return true;
     }
   }
@@ -592,7 +592,7 @@ struct Device
     return USHORT::get_size () * (4 + ((endSize - startSize) >> (4 - f)));
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ());
   }

@@ -67,7 +67,7 @@ struct AttachList
     return points.len;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage)
 	&& SANITIZE_WITH_BASE (this, attachPoint);
@@ -98,7 +98,7 @@ struct CaretValueFormat1
     return _hb_16dot16_mul_round (context->font->x_scale, coordinate);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -124,7 +124,7 @@ struct CaretValueFormat2
       return 0;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ();
   }
@@ -146,7 +146,7 @@ struct CaretValueFormat3
 	   ((this+deviceTable).get_delta (context->font->x_ppem) << 16);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
 	&& SANITIZE_WITH_BASE (this, deviceTable);
@@ -174,13 +174,13 @@ struct CaretValue
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
-    case 2: return u.format2->sanitize (SANITIZE_ARG);
-    case 3: return u.format3->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
+    case 2: return u.format2->sanitize (context);
+    case 3: return u.format3->sanitize (context);
     default:return true;
     }
   }
@@ -212,7 +212,7 @@ struct LigGlyph
     return carets.len;
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, carets);
   }
@@ -244,7 +244,7 @@ struct LigCaretList
     return lig_glyph.get_lig_carets (context, glyph_id, start_offset, caret_count, caret_array);
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage)
 	&& SANITIZE_WITH_BASE (this, ligGlyph);
@@ -266,7 +266,7 @@ struct MarkGlyphSetsFormat1
   inline bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_WITH_BASE (this, coverage);
   }
@@ -289,11 +289,11 @@ struct MarkGlyphSets
     }
   }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!SANITIZE (u.format)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (SANITIZE_ARG);
+    case 1: return u.format1->sanitize (context);
     default:return true;
     }
   }
@@ -349,7 +349,7 @@ struct GDEF
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return version >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
 
-  inline bool sanitize (SANITIZE_ARG_DEF) {
+  inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE (version) && likely (version.major == 1)
 	&& SANITIZE_WITH_BASE (this, glyphClassDef)
