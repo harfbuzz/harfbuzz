@@ -772,11 +772,10 @@ struct SubstLookup : Lookup
   inline bool apply_once (hb_ot_layout_context_t *layout,
 			  hb_buffer_t *buffer,
 			  unsigned int context_length,
-			  unsigned int nesting_level_left,
-			  unsigned int apply_depth) const
+			  unsigned int nesting_level_left) const
   {
     unsigned int lookup_type = get_type ();
-    hb_apply_context_t context[1];
+    hb_apply_context_t context[1] = {{}};
 
     context->layout = layout;
     context->buffer = buffer;
@@ -828,7 +827,7 @@ struct SubstLookup : Lookup
 	while (buffer->in_pos < buffer->in_length)
 	{
 	  if ((~IN_MASK (buffer->in_pos) & mask) &&
-	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
+	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    _hb_buffer_next_glyph (buffer);
@@ -844,7 +843,7 @@ struct SubstLookup : Lookup
 	do
 	{
 	  if ((~IN_MASK (buffer->in_pos) & mask) &&
-	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0))
+	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    buffer->in_pos--;
@@ -931,7 +930,7 @@ static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (unlikely (context->context_length < 1))
     return false;
 
-  return l.apply_once (context->layout, context->buffer, context->context_length, context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (context->layout, context->buffer, context->context_length, context->nesting_level_left - 1);
 }
 
 

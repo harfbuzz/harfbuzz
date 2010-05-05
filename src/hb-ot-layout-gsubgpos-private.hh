@@ -36,18 +36,14 @@
 #endif
 
 #define TRACE_APPLY() \
-	HB_STMT_START { \
-	  if (HB_DEBUG_APPLY) \
-		  _hb_trace ("APPLY", HB_FUNC, this, apply_depth, HB_DEBUG_APPLY); \
-	} HB_STMT_END
+	hb_trace_t<HB_DEBUG_APPLY> trace (&context->debug_depth); \
+	trace.log ("APPLY", HB_FUNC, this);
 
 
 #define APPLY_ARG_DEF \
-	hb_apply_context_t *context, \
-	unsigned int apply_depth HB_UNUSED
+	hb_apply_context_t *context
 #define APPLY_ARG \
-	context, \
-	(HB_DEBUG_APPLY ? apply_depth + 1 : 0)
+	context
 
 struct hb_apply_context_t
 {
@@ -57,6 +53,7 @@ struct hb_apply_context_t
   unsigned int nesting_level_left;
   unsigned int lookup_flag;
   unsigned int property; /* propety of first glyph (TODO remove) */
+  unsigned int debug_depth;
 };
 
 
