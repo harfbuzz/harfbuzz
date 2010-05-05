@@ -428,7 +428,8 @@ struct Ligature
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (ligGlyph) && SANITIZE (component);
+    return SANITIZE (ligGlyph)
+        && SANITIZE (component);
   }
 
   private:

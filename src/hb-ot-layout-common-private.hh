@@ -166,7 +166,8 @@ struct LangSys
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE (featureIndex);
+    return SANITIZE_SELF ()
+	&& SANITIZE (featureIndex);
   }
 
   Offset	lookupOrder;	/* = Null (reserved for an offset to a
@@ -234,7 +235,8 @@ struct Feature
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE (lookupIndex);
+    return SANITIZE_SELF ()
+	&& SANITIZE (lookupIndex);
   }
 
   /* LONGTERMTODO: implement get_feature_parameters() */
@@ -285,7 +287,8 @@ struct Lookup
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
-    if (!(SANITIZE_SELF () && likely (subTable.sanitize (context)))) return false;
+    if (!(SANITIZE_SELF ()
+       && likely (subTable.sanitize (context)))) return false;
     if (unlikely (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
@@ -454,7 +457,8 @@ struct ClassDefFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF () && SANITIZE (classValue);
+    return SANITIZE_SELF ()
+	&& SANITIZE (classValue);
   }
 
   USHORT	classFormat;		/* Format identifier--format = 1 */
@@ -594,7 +598,8 @@ struct Device
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF() && SANITIZE_MEM (this, this->get_size ());
+    return SANITIZE_SELF()
+	&& SANITIZE_MEM (this, this->get_size ());
   }
 
   private:

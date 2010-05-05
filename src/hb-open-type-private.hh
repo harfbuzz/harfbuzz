@@ -555,7 +555,8 @@ struct GenericArrayOf
   private:
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
+    return SANITIZE_SELF()
+	&& SANITIZE_ARRAY (this, Type::get_size (), len);
   }
 
   public:
@@ -622,7 +623,8 @@ struct HeadlessArrayOf
   { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
-    return SANITIZE_SELF() && SANITIZE_ARRAY (this, Type::get_size (), len);
+    return SANITIZE_SELF()
+	&& SANITIZE_ARRAY (this, Type::get_size (), len);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {

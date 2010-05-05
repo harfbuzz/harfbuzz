@@ -287,8 +287,9 @@ struct Rule
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE (inputCount) && SANITIZE (lookupCount))) return false;
-    return SANITIZE_MEM (input,
+    return SANITIZE (inputCount)
+	&& SANITIZE (lookupCount)
+	&& SANITIZE_MEM (input,
 			 input[0].get_size () * inputCount +
 			 lookupRecordX[0].get_size () * lookupCount);
   }
@@ -444,10 +445,10 @@ struct ContextFormat3
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = glyphCount;
-    if (!SANITIZE_ARRAY (coverage, OffsetTo<Coverage>::get_size (), glyphCount)) return false;
+    if (!SANITIZE_ARRAY (coverage, OffsetTo<Coverage>::get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_WITH_BASE (this, coverage[i])) return false;
-    LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * glyphCount);
+    LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * count);
     return SANITIZE_ARRAY (lookupRecord, LookupRecord::get_size (), lookupCount);
   }
 
