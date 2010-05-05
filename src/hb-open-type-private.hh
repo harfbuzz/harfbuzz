@@ -451,15 +451,8 @@ struct GenericOffsetTo : OffsetType
     Type &obj = StructAtOffset<Type> (*CharP(base), offset);
     return likely (obj.sanitize (SANITIZE_ARG)) || neuter (SANITIZE_ARG);
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
-    TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
-    unsigned int offset = *this;
-    if (unlikely (!offset)) return true;
-    Type &obj = StructAtOffset<Type> (*CharP(base), offset);
-    return likely (obj.sanitize (SANITIZE_ARG, base2)) || neuter (SANITIZE_ARG);
-  }
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
+  template <typename T>
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base, T user_data) {
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int offset = *this;
@@ -544,16 +537,8 @@ struct GenericArrayOf
         return false;
     return true;
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base, void *base2) {
-    TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      if (!array()[i].sanitize (SANITIZE_ARG, base, base2))
-        return false;
-    return true;
-  }
-  inline bool sanitize (SANITIZE_ARG_DEF, void *base, unsigned int user_data) {
+  template <typename T>
+  inline bool sanitize (SANITIZE_ARG_DEF, void *base, T user_data) {
     TRACE_SANITIZE ();
     if (!likely (sanitize_shallow (SANITIZE_ARG))) return false;
     unsigned int count = len;
@@ -608,7 +593,8 @@ struct OffsetListOf : OffsetArrayOf<Type>
     TRACE_SANITIZE ();
     return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this));
   }
-  inline bool sanitize (SANITIZE_ARG_DEF, unsigned int user_data) {
+  template <typename T>
+  inline bool sanitize (SANITIZE_ARG_DEF, T user_data) {
     TRACE_SANITIZE ();
     return OffsetArrayOf<Type>::sanitize (SANITIZE_ARG, CharP(this), user_data);
   }

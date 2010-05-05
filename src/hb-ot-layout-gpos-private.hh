@@ -1076,7 +1076,7 @@ struct MarkBasePosFormat1
         && SANITIZE_WITH_BASE (this, markCoverage)
 	&& SANITIZE_WITH_BASE (this, baseCoverage)
 	&& SANITIZE_WITH_BASE (this, markArray)
-	&& likely (baseArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
+	&& likely (baseArray.sanitize (SANITIZE_ARG, CharP(this), (unsigned int) classCount));
   }
 
   private:
@@ -1200,7 +1200,7 @@ struct MarkLigPosFormat1
         && SANITIZE_WITH_BASE (this, markCoverage)
 	&& SANITIZE_WITH_BASE (this, ligatureCoverage)
 	&& SANITIZE_WITH_BASE (this, markArray)
-	&& likely (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), classCount));
+	&& likely (ligatureArray.sanitize (SANITIZE_ARG, CharP(this), (unsigned int) classCount));
   }
 
   private:
@@ -1303,7 +1303,7 @@ struct MarkMarkPosFormat1
 	&& SANITIZE_WITH_BASE (this, mark1Coverage)
 	&& SANITIZE_WITH_BASE (this, mark2Coverage)
 	&& SANITIZE_WITH_BASE (this, mark1Array)
-	&& likely (mark2Array.sanitize (SANITIZE_ARG, CharP(this), classCount));
+	&& likely (mark2Array.sanitize (SANITIZE_ARG, CharP(this), (unsigned int) classCount));
   }
 
   private:
