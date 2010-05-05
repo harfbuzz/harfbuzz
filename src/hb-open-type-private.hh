@@ -113,22 +113,28 @@ ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
 
 
 /*
- * Debug
+ * Trace
  */
 
-/* Helper object to increment debug_depth and decrement
- * when returning from the object. */
-template <int debug_level>
-struct hb_auto_debug_depth_t {
-  explicit hb_auto_debug_depth_t (unsigned int *p) : p(p) { ++*p; }
-  ~hb_auto_debug_depth_t (void) { --*p; }
+
+template <int max_depth>
+struct hb_trace_t {
+  explicit hb_trace_t (unsigned int *pdepth) : pdepth(pdepth) { if (max_depth) ++*pdepth; }
+  ~hb_trace_t (void) { if (max_depth) --*pdepth; }
+
+  inline void log (const char *what, const char *function, const void *obj)
+  {
+    if (*pdepth < max_depth)
+      fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, *pdepth, *pdepth, function);
+  }
 
   private:
-  unsigned int *p;
+  unsigned int *pdepth;
 };
-template <> /* Optimize when debugging is disabled */
-struct hb_auto_debug_depth_t<0> {
-  explicit hb_auto_debug_depth_t (unsigned int *p) {}
+template <> /* Optimize when tracing is disabled */
+struct hb_trace_t<0> {
+  explicit hb_trace_t (unsigned int *p) {}
+  inline void log (const char *what, const char *function, const void *obj) {};
 };
 
 
@@ -143,9 +149,8 @@ struct hb_auto_debug_depth_t<0> {
 
 
 #define TRACE_SANITIZE() \
-	hb_auto_debug_depth_t<HB_DEBUG_SANITIZE> auto_debug_depth (&context->debug_depth); \
-	if (HB_DEBUG_SANITIZE) \
-	  _hb_trace ("SANITIZE", HB_FUNC, this, context->debug_depth, HB_DEBUG_SANITIZE); \
+	hb_trace_t<HB_DEBUG_SANITIZE> trace (&context->debug_depth); \
+	trace.log ("SANITIZE", HB_FUNC, this);
 
 
 #define SANITIZE_ARG_DEF \
