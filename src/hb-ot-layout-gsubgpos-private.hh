@@ -44,19 +44,18 @@
 
 #define APPLY_ARG_DEF \
 	hb_apply_context_t *context, \
-	hb_ot_layout_context_t *layout_context, \
 	hb_buffer_t *buffer, \
 	unsigned int context_length HB_UNUSED, \
 	unsigned int apply_depth HB_UNUSED
 #define APPLY_ARG \
 	context, \
-	layout_context, \
 	buffer, \
 	context_length, \
 	(HB_DEBUG_APPLY ? apply_depth + 1 : 0)
 
 struct hb_apply_context_t
 {
+  hb_ot_layout_context_t *layout;
   unsigned int nesting_level_left;
   unsigned int lookup_flag;
   unsigned int property; /* propety of first glyph (TODO remove) */
@@ -105,7 +104,7 @@ static inline bool match_input (APPLY_ARG_DEF,
 
   for (i = 1, j = buffer->in_pos + 1; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
@@ -132,7 +131,7 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
 
   for (unsigned int i = 0, j = buffer->out_pos - 1; i < count; i++, j--)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->layout->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
       if (unlikely (j + 1 == count - i))
 	return false;
@@ -160,7 +159,7 @@ static inline bool match_lookahead (APPLY_ARG_DEF,
 
   for (i = 0, j = buffer->in_pos + offset; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, OUT_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->layout->face, OUT_INFO (j), context->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
@@ -210,7 +209,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_CURINFO (), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->layout->face, IN_CURINFO (), context->lookup_flag, NULL))
     {
       if (unlikely (buffer->in_pos == end))
 	return true;

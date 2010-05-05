@@ -87,7 +87,7 @@ struct ValueFormat : USHORT
   inline unsigned int get_size () const
   { return get_len () * Value::get_size (); }
 
-  void apply_value (hb_ot_layout_context_t       *layout_context,
+  void apply_value (hb_ot_layout_context_t       *layout,
 		    const char                   *base,
 		    const Value                  *values,
 		    hb_internal_glyph_position_t *glyph_pos) const
@@ -98,8 +98,8 @@ struct ValueFormat : USHORT
 
     if (!format) return;
 
-    x_scale = layout_context->font->x_scale;
-    y_scale = layout_context->font->y_scale;
+    x_scale = layout->font->x_scale;
+    y_scale = layout->font->y_scale;
     /* design units -> fractional pixel */
     if (format & xPlacement) glyph_pos->x_offset  += _hb_16dot16_mul_round (x_scale, *(SHORT*)values++);
     if (format & yPlacement) glyph_pos->y_offset  += _hb_16dot16_mul_round (y_scale, *(SHORT*)values++);
@@ -108,8 +108,8 @@ struct ValueFormat : USHORT
 
     if (!has_device ()) return;
 
-    x_ppem = layout_context->font->x_ppem;
-    y_ppem = layout_context->font->y_ppem;
+    x_ppem = layout->font->x_ppem;
+    y_ppem = layout->font->y_ppem;
 
     if (!x_ppem && !y_ppem) return;
 
@@ -199,11 +199,11 @@ struct AnchorFormat1
   friend struct Anchor;
 
   private:
-  inline void get_anchor (hb_ot_layout_context_t *layout_context, hb_codepoint_t glyph_id HB_UNUSED,
+  inline void get_anchor (hb_ot_layout_context_t *layout, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = _hb_16dot16_mul_round (layout_context->font->x_scale, xCoordinate);
-      *y = _hb_16dot16_mul_round (layout_context->font->y_scale, yCoordinate);
+      *x = _hb_16dot16_mul_round (layout->font->x_scale, xCoordinate);
+      *y = _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -223,18 +223,18 @@ struct AnchorFormat2
   friend struct Anchor;
 
   private:
-  inline void get_anchor (hb_ot_layout_context_t *layout_context, hb_codepoint_t glyph_id,
+  inline void get_anchor (hb_ot_layout_context_t *layout, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      unsigned int x_ppem = layout_context->font->x_ppem;
-      unsigned int y_ppem = layout_context->font->y_ppem;
+      unsigned int x_ppem = layout->font->x_ppem;
+      unsigned int y_ppem = layout->font->y_ppem;
       hb_position_t cx, cy;
       hb_bool_t ret;
 
       if (x_ppem || y_ppem)
-	ret = hb_font_get_contour_point (layout_context->font, layout_context->face, anchorPoint, glyph_id, &cx, &cy);
-      *x = x_ppem && ret ? cx : _hb_16dot16_mul_round (layout_context->font->x_scale, xCoordinate);
-      *y = y_ppem && ret ? cy : _hb_16dot16_mul_round (layout_context->font->y_scale, yCoordinate);
+	ret = hb_font_get_contour_point (layout->font, layout->face, anchorPoint, glyph_id, &cx, &cy);
+      *x = x_ppem && ret ? cx : _hb_16dot16_mul_round (layout->font->x_scale, xCoordinate);
+      *y = y_ppem && ret ? cy : _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -255,17 +255,17 @@ struct AnchorFormat3
   friend struct Anchor;
 
   private:
-  inline void get_anchor (hb_ot_layout_context_t *layout_context, hb_codepoint_t glyph_id HB_UNUSED,
+  inline void get_anchor (hb_ot_layout_context_t *layout, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = _hb_16dot16_mul_round (layout_context->font->x_scale, xCoordinate);
-      *y = _hb_16dot16_mul_round (layout_context->font->y_scale, yCoordinate);
+      *x = _hb_16dot16_mul_round (layout->font->x_scale, xCoordinate);
+      *y = _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
 
       /* pixel -> fractional pixel */
-      if (layout_context->font->x_ppem)
-	*x += (this+xDeviceTable).get_delta (layout_context->font->x_ppem) << 16;
-      if (layout_context->font->y_ppem)
-	*y += (this+yDeviceTable).get_delta (layout_context->font->y_ppem) << 16;
+      if (layout->font->x_ppem)
+	*x += (this+xDeviceTable).get_delta (layout->font->x_ppem) << 16;
+      if (layout->font->y_ppem)
+	*y += (this+yDeviceTable).get_delta (layout->font->y_ppem) << 16;
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -292,15 +292,15 @@ ASSERT_SIZE (AnchorFormat3, 10);
 
 struct Anchor
 {
-  inline void get_anchor (hb_ot_layout_context_t *layout_context, hb_codepoint_t glyph_id,
+  inline void get_anchor (hb_ot_layout_context_t *layout, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
     *x = *y = 0;
     switch (u.format) {
-    case 1: u.format1->get_anchor (layout_context, glyph_id, x, y); return;
-    case 2: u.format2->get_anchor (layout_context, glyph_id, x, y); return;
-    case 3: u.format3->get_anchor (layout_context, glyph_id, x, y); return;
-    default:							    return;
+    case 1: u.format1->get_anchor (layout, glyph_id, x, y); return;
+    case 2: u.format2->get_anchor (layout, glyph_id, x, y); return;
+    case 3: u.format3->get_anchor (layout, glyph_id, x, y); return;
+    default:						    return;
     }
   }
 
@@ -388,8 +388,8 @@ struct MarkArray
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
-    mark_anchor.get_anchor (layout_context, IN_CURGLYPH (), &mark_x, &mark_y);
-    glyph_anchor.get_anchor (layout_context, IN_GLYPH (glyph_pos), &base_x, &base_y);
+    mark_anchor.get_anchor (context->layout, IN_CURGLYPH (), &mark_x, &mark_y);
+    glyph_anchor.get_anchor (context->layout, IN_GLYPH (glyph_pos), &base_x, &base_y);
 
     hb_internal_glyph_position_t *o = POSITION (buffer->in_pos);
     o->x_advance = 0;
@@ -428,7 +428,7 @@ struct SinglePosFormat1
     if (likely (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (layout_context, CharP(this), values, CURPOSITION ());
+    valueFormat.apply_value (context->layout, CharP(this), values, CURPOSITION ());
 
     buffer->in_pos++;
     return true;
@@ -469,7 +469,7 @@ struct SinglePosFormat2
     if (likely (index >= valueCount))
       return false;
 
-    valueFormat.apply_value (layout_context, CharP(this),
+    valueFormat.apply_value (context->layout, CharP(this),
 			     &values[index * valueFormat.get_len ()],
 			     CURPOSITION ());
 
@@ -581,7 +581,7 @@ struct PairPosFormat1
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -599,8 +599,8 @@ struct PairPosFormat1
     {
       if (IN_GLYPH (j) == record->secondGlyph)
       {
-	valueFormat1.apply_value (layout_context, CharP(this), &record->values[0], CURPOSITION ());
-	valueFormat2.apply_value (layout_context, CharP(this), &record->values[len1], POSITION (j));
+	valueFormat1.apply_value (context->layout, CharP(this), &record->values[0], CURPOSITION ());
+	valueFormat2.apply_value (context->layout, CharP(this), &record->values[len1], POSITION (j));
 	if (len2)
 	  j++;
 	buffer->in_pos = j;
@@ -674,7 +674,7 @@ struct PairPosFormat2
       return false;
 
     unsigned int j = buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -691,8 +691,8 @@ struct PairPosFormat2
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (layout_context, CharP(this), v, CURPOSITION ());
-    valueFormat2.apply_value (layout_context, CharP(this), v + len1, POSITION (j));
+    valueFormat1.apply_value (context->layout, CharP(this), v, CURPOSITION ());
+    valueFormat2.apply_value (context->layout, CharP(this), v + len1, POSITION (j));
 
     if (len2)
       j++;
@@ -927,7 +927,7 @@ struct CursivePosFormat1
        Since horizontal advance widths or vertical advance heights
        can be used alone but not together, no ambiguity occurs.        */
 
-    struct hb_ot_layout_context_t::info_t::gpos_t *gpi = &layout_context->info.gpos;
+    struct hb_ot_layout_context_t::info_t::gpos_t *gpi = &context->layout->info.gpos;
     hb_codepoint_t last_pos = gpi->last;
     gpi->last = HB_OT_LAYOUT_GPOS_NO_LAST;
 
@@ -945,7 +945,7 @@ struct CursivePosFormat1
       goto end;
 
     hb_position_t entry_x, entry_y;
-    (this+record.entryAnchor).get_anchor (layout_context, IN_CURGLYPH (), &entry_x, &entry_y);
+    (this+record.entryAnchor).get_anchor (context->layout, IN_CURGLYPH (), &entry_x, &entry_y);
 
     /* TODO vertical */
 
@@ -975,7 +975,7 @@ struct CursivePosFormat1
     if (record.exitAnchor)
     {
       gpi->last = buffer->in_pos;
-      (this+record.exitAnchor).get_anchor (layout_context, IN_CURGLYPH (), &gpi->anchor_x, &gpi->anchor_y);
+      (this+record.exitAnchor).get_anchor (context->layout, IN_CURGLYPH (), &gpi->anchor_x, &gpi->anchor_y);
     }
 
     buffer->in_pos++;
@@ -1055,7 +1055,7 @@ struct MarkBasePosFormat1
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
+    } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
 #if 0
     /* The following assertion is too strong. */
@@ -1158,7 +1158,7 @@ struct MarkLigPosFormat1
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
+    } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
 #if 0
     /* The following assertion is too strong. */
@@ -1278,7 +1278,7 @@ struct MarkMarkPosFormat1
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (layout_context->face, IN_INFO (j), context->lookup_flag, &property));
+    } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, &property));
 
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
       return false;
@@ -1479,7 +1479,7 @@ struct PosLookup : Lookup
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
   { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
-  inline bool apply_once (hb_ot_layout_context_t *layout_context,
+  inline bool apply_once (hb_ot_layout_context_t *layout,
 			  hb_buffer_t    *buffer,
 			  unsigned int    context_length,
 			  unsigned int    nesting_level_left,
@@ -1488,10 +1488,11 @@ struct PosLookup : Lookup
     unsigned int lookup_type = get_type ();
     hb_apply_context_t context[1];
 
+    context->layout = layout;
     context->nesting_level_left = nesting_level_left;
     context->lookup_flag = get_flag ();
 
-    if (!_hb_ot_layout_check_glyph_property (layout_context->face, IN_CURINFO (), context->lookup_flag, &context->property))
+    if (!_hb_ot_layout_check_glyph_property (context->layout->face, IN_CURINFO (), context->lookup_flag, &context->property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
@@ -1501,7 +1502,7 @@ struct PosLookup : Lookup
     return false;
   }
 
-   inline bool apply_string (hb_ot_layout_context_t *layout_context,
+   inline bool apply_string (hb_ot_layout_context_t *layout,
 			     hb_buffer_t *buffer,
 			     hb_mask_t    mask) const
   {
@@ -1510,7 +1511,7 @@ struct PosLookup : Lookup
     if (unlikely (!buffer->in_length))
       return false;
 
-    layout_context->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
+    layout->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
 
     buffer->in_pos = 0;
     while (buffer->in_pos < buffer->in_length)
@@ -1518,7 +1519,7 @@ struct PosLookup : Lookup
       bool done;
       if (~IN_MASK (buffer->in_pos) & mask)
       {
-	  done = apply_once (layout_context, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0);
+	  done = apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL, 0);
 	  ret |= done;
       }
       else
@@ -1526,7 +1527,7 @@ struct PosLookup : Lookup
           done = false;
 	  /* Contrary to properties defined in GDEF, user-defined properties
 	     will always stop a possible cursive positioning.                */
-	  layout_context->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST;
+	  layout->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST;
       }
 
       if (!done)
@@ -1558,11 +1559,11 @@ struct GPOS : GSUBGPOS
   inline const PosLookup& get_lookup (unsigned int i) const
   { return CastR<PosLookup> (GSUBGPOS::get_lookup (i)); }
 
-  inline bool position_lookup (hb_ot_layout_context_t *layout_context,
+  inline bool position_lookup (hb_ot_layout_context_t *layout,
 			       hb_buffer_t  *buffer,
 			       unsigned int  lookup_index,
 			       hb_mask_t     mask) const
-  { return get_lookup (lookup_index).apply_string (layout_context, buffer, mask); }
+  { return get_lookup (lookup_index).apply_string (layout, buffer, mask); }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
@@ -1593,7 +1594,7 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
 
 static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
 {
-  const GPOS &gpos = *(layout_context->face->ot_layout.gpos);
+  const GPOS &gpos = *(context->layout->face->ot_layout.gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 
   if (unlikely (context->nesting_level_left == 0))
@@ -1602,7 +1603,7 @@ static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
   if (unlikely (context_length < 1))
     return false;
 
-  return l.apply_once (layout_context, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
+  return l.apply_once (context->layout, buffer, context_length, context->nesting_level_left - 1, apply_depth + 1);
 }
 
 
