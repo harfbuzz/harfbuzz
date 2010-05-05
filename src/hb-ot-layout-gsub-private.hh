@@ -40,7 +40,7 @@ struct SingleSubstFormat1
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -80,7 +80,7 @@ struct SingleSubstFormat2
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -124,12 +124,12 @@ struct SingleSubst
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
-    case 2: return u.format2->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
+    case 2: return u.format2->apply (context);
     default:return false;
     }
   }
@@ -158,7 +158,7 @@ struct Sequence
   friend struct MultipleSubstFormat1;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     if (unlikely (!substitute.len))
@@ -201,7 +201,7 @@ struct MultipleSubstFormat1
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
 
@@ -209,7 +209,7 @@ struct MultipleSubstFormat1
     if (likely (index == NOT_COVERED))
       return false;
 
-    return (this+sequence[index]).apply (APPLY_ARG);
+    return (this+sequence[index]).apply (context);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -235,11 +235,11 @@ struct MultipleSubst
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -271,7 +271,7 @@ struct AlternateSubstFormat1
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -331,11 +331,11 @@ struct AlternateSubst
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -362,7 +362,7 @@ struct Ligature
   friend struct LigatureSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, bool is_mark) const
+  inline bool apply (hb_apply_context_t *context, bool is_mark) const
   {
     TRACE_APPLY ();
     unsigned int i, j;
@@ -445,14 +445,14 @@ struct LigatureSet
   friend struct LigatureSubstFormat1;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, bool is_mark) const
+  inline bool apply (hb_apply_context_t *context, bool is_mark) const
   {
     TRACE_APPLY ();
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
       const Ligature &lig = this+ligature[i];
-      if (lig.apply (APPLY_ARG, is_mark))
+      if (lig.apply (context, is_mark))
         return true;
     }
 
@@ -477,7 +477,7 @@ struct LigatureSubstFormat1
   friend struct LigatureSubst;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = IN_CURGLYPH ();
@@ -489,7 +489,7 @@ struct LigatureSubstFormat1
       return false;
 
     const LigatureSet &lig_set = this+ligatureSet[index];
-    return lig_set.apply (APPLY_ARG, first_is_mark);
+    return lig_set.apply (context, first_is_mark);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -514,11 +514,11 @@ struct LigatureSubst
   friend struct SubstLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -541,17 +541,17 @@ struct LigatureSubst
 
 
 
-static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
+static inline bool substitute_lookup (hb_apply_context_t *context, unsigned int lookup_index);
 
 struct ContextSubst : Context
 {
   friend struct SubstLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
-    return Context::apply (APPLY_ARG, substitute_lookup);
+    return Context::apply (context, substitute_lookup);
   }
 };
 
@@ -560,10 +560,10 @@ struct ChainContextSubst : ChainContext
   friend struct SubstLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
-    return ChainContext::apply (APPLY_ARG, substitute_lookup);
+    return ChainContext::apply (context, substitute_lookup);
   }
 };
 
@@ -581,7 +581,7 @@ struct ExtensionSubst : Extension
     return StructAtOffset<SubstLookupSubTable> (*this, offset);
   }
 
-  inline bool apply (APPLY_ARG_DEF) const;
+  inline bool apply (hb_apply_context_t *context) const;
 
   inline bool sanitize (hb_sanitize_context_t *context);
 
@@ -594,7 +594,7 @@ struct ReverseChainSingleSubstFormat1
   friend struct ReverseChainSingleSubst;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     if (unlikely (context->context_length != NO_CONTEXT))
@@ -607,10 +607,10 @@ struct ReverseChainSingleSubstFormat1
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
 
-    if (match_backtrack (APPLY_ARG,
+    if (match_backtrack (context,
 			 backtrack.len, (USHORT *) backtrack.array(),
 			 match_coverage, CharP(this)) &&
-        match_lookahead (APPLY_ARG,
+        match_lookahead (context,
 			 lookahead.len, (USHORT *) lookahead.array(),
 			 match_coverage, CharP(this),
 			 1))
@@ -659,11 +659,11 @@ struct ReverseChainSingleSubst
   friend struct SubstLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -705,18 +705,18 @@ struct SubstLookupSubTable
     ReverseChainSingle	= 8
   };
 
-  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
+  inline bool apply (hb_apply_context_t *context, unsigned int lookup_type) const
   {
     TRACE_APPLY ();
     switch (lookup_type) {
-    case Single:		return u.single->apply (APPLY_ARG);
-    case Multiple:		return u.multiple->apply (APPLY_ARG);
-    case Alternate:		return u.alternate->apply (APPLY_ARG);
-    case Ligature:		return u.ligature->apply (APPLY_ARG);
-    case Context:		return u.context->apply (APPLY_ARG);
-    case ChainContext:		return u.chainContext->apply (APPLY_ARG);
-    case Extension:		return u.extension->apply (APPLY_ARG);
-    case ReverseChainSingle:	return u.reverseChainContextSingle->apply (APPLY_ARG);
+    case Single:		return u.single->apply (context);
+    case Multiple:		return u.multiple->apply (context);
+    case Alternate:		return u.alternate->apply (context);
+    case Ligature:		return u.ligature->apply (context);
+    case Context:		return u.context->apply (context);
+    case ChainContext:		return u.chainContext->apply (context);
+    case Extension:		return u.extension->apply (context);
+    case ReverseChainSingle:	return u.reverseChainContextSingle->apply (context);
     default:return false;
     }
   }
@@ -802,7 +802,7 @@ struct SubstLookup : Lookup
 
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
-      if (get_subtable (i).apply (APPLY_ARG, lookup_type))
+      if (get_subtable (i).apply (context, lookup_type))
 	return true;
 
     return false;
@@ -896,10 +896,10 @@ ASSERT_SIZE (GSUB, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionSubst::apply (APPLY_ARG_DEF) const
+inline bool ExtensionSubst::apply (hb_apply_context_t *context) const
 {
   TRACE_APPLY ();
-  return get_subtable ().apply (APPLY_ARG, get_type ());
+  return get_subtable ().apply (context, get_type ());
 }
 
 inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *context)
@@ -919,7 +919,7 @@ inline bool ExtensionSubst::is_reverse (void) const
   return SubstLookup::lookup_type_is_reverse (type);
 }
 
-static inline bool substitute_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
+static inline bool substitute_lookup (hb_apply_context_t *context, unsigned int lookup_index)
 {
   const GSUB &gsub = *(context->layout->face->ot_layout.gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);

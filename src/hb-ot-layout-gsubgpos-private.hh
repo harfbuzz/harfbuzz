@@ -40,11 +40,6 @@
 	trace.log ("APPLY", HB_FUNC, this);
 
 
-#define APPLY_ARG_DEF \
-	hb_apply_context_t *context
-#define APPLY_ARG \
-	context
-
 struct hb_apply_context_t
 {
   hb_ot_layout_context_t *layout;
@@ -64,7 +59,7 @@ struct hb_apply_context_t
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const char *data);
-typedef bool (*apply_lookup_func_t) (APPLY_ARG_DEF, unsigned int lookup_index);
+typedef bool (*apply_lookup_func_t) (hb_apply_context_t *context, unsigned int lookup_index);
 
 struct ContextFuncs
 {
@@ -91,7 +86,7 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
 }
 
 
-static inline bool match_input (APPLY_ARG_DEF,
+static inline bool match_input (hb_apply_context_t *context,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
@@ -121,7 +116,7 @@ static inline bool match_input (APPLY_ARG_DEF,
   return true;
 }
 
-static inline bool match_backtrack (APPLY_ARG_DEF,
+static inline bool match_backtrack (hb_apply_context_t *context,
 				    unsigned int count,
 				    const USHORT backtrack[],
 				    match_func_t match_func,
@@ -146,7 +141,7 @@ static inline bool match_backtrack (APPLY_ARG_DEF,
   return true;
 }
 
-static inline bool match_lookahead (APPLY_ARG_DEF,
+static inline bool match_lookahead (hb_apply_context_t *context,
 				    unsigned int count,
 				    const USHORT lookahead[],
 				    match_func_t match_func,
@@ -191,7 +186,7 @@ struct LookupRecord
 };
 ASSERT_SIZE (LookupRecord, 4);
 
-static inline bool apply_lookup (APPLY_ARG_DEF,
+static inline bool apply_lookup (hb_apply_context_t *context,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int lookupCount,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
@@ -223,7 +218,7 @@ static inline bool apply_lookup (APPLY_ARG_DEF,
       unsigned int old_pos = context->buffer->in_pos;
 
       /* Apply a lookup */
-      bool done = apply_func (APPLY_ARG, lookupRecord->lookupListIndex);
+      bool done = apply_func (context, lookupRecord->lookupListIndex);
 
       lookupRecord++;
       lookupCount--;
@@ -256,7 +251,7 @@ struct ContextLookupContext
   const char *match_data;
 };
 
-static inline bool context_lookup (APPLY_ARG_DEF,
+static inline bool context_lookup (hb_apply_context_t *context,
 				   unsigned int inputCount, /* Including the first glyph (not matched) */
 				   const USHORT input[], /* Array of input values--start with second glyph */
 				   unsigned int lookupCount,
@@ -264,14 +259,14 @@ static inline bool context_lookup (APPLY_ARG_DEF,
 				   ContextLookupContext &lookup_context)
 {
   unsigned int new_context_length;
-  if (!match_input (APPLY_ARG,
+  if (!match_input (context,
 		    inputCount, input,
 		    lookup_context.funcs.match, lookup_context.match_data,
 		    &new_context_length)) return false;
   unsigned int old_context_length;
   old_context_length = context->context_length;
   context->context_length = new_context_length;
-  bool ret = apply_lookup (APPLY_ARG,
+  bool ret = apply_lookup (context,
 			   inputCount,
 			   lookupCount, lookupRecord,
 			   lookup_context.funcs.apply);
@@ -284,11 +279,11 @@ struct Rule
   friend struct RuleSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *context, ContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].get_size () * (inputCount ? inputCount - 1 : 0));
-    return context_lookup (APPLY_ARG,
+    return context_lookup (context,
 			   inputCount, input,
 			   lookupCount, lookupRecord,
 			   lookup_context);
@@ -317,13 +312,13 @@ ASSERT_SIZE_VAR2 (Rule, 4, USHORT, LookupRecord);
 
 struct RuleSet
 {
-  inline bool apply (APPLY_ARG_DEF, ContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *context, ContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
-      if ((this+rule[i]).apply (APPLY_ARG, lookup_context))
+      if ((this+rule[i]).apply (context, lookup_context))
         return true;
     }
 
@@ -347,7 +342,7 @@ struct ContextFormat1
   friend struct Context;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -359,7 +354,7 @@ struct ContextFormat1
       {match_glyph, apply_func},
       NULL
     };
-    return rule_set.apply (APPLY_ARG, lookup_context);
+    return rule_set.apply (context, lookup_context);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -385,7 +380,7 @@ struct ContextFormat2
   friend struct Context;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -402,7 +397,7 @@ struct ContextFormat2
      {match_class, apply_func},
       CharP(&class_def)
     };
-    return rule_set.apply (APPLY_ARG, lookup_context);
+    return rule_set.apply (context, lookup_context);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -432,7 +427,7 @@ struct ContextFormat3
   friend struct Context;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
@@ -444,7 +439,7 @@ struct ContextFormat3
       {match_coverage, apply_func},
        CharP(this)
     };
-    return context_lookup (APPLY_ARG,
+    return context_lookup (context,
 			   glyphCount, (const USHORT *) (coverage + 1),
 			   lookupCount, lookupRecord,
 			   lookup_context);
@@ -477,13 +472,13 @@ ASSERT_SIZE_VAR2 (ContextFormat3, 6, OffsetTo<Coverage>, LookupRecord);
 struct Context
 {
   protected:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG, apply_func);
-    case 2: return u.format2->apply (APPLY_ARG, apply_func);
-    case 3: return u.format3->apply (APPLY_ARG, apply_func);
+    case 1: return u.format1->apply (context, apply_func);
+    case 2: return u.format2->apply (context, apply_func);
+    case 3: return u.format3->apply (context, apply_func);
     default:return false;
     }
   }
@@ -517,7 +512,7 @@ struct ChainContextLookupContext
   const char *match_data[3];
 };
 
-static inline bool chain_context_lookup (APPLY_ARG_DEF,
+static inline bool chain_context_lookup (hb_apply_context_t *context,
 					 unsigned int backtrackCount,
 					 const USHORT backtrack[],
 					 unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -535,14 +530,14 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
     return false;
 
   unsigned int offset;
-  if (!(match_backtrack (APPLY_ARG,
+  if (!(match_backtrack (context,
 			 backtrackCount, backtrack,
 			 lookup_context.funcs.match, lookup_context.match_data[0]) &&
-	match_input (APPLY_ARG,
+	match_input (context,
 		     inputCount, input,
 		     lookup_context.funcs.match, lookup_context.match_data[1],
 		     &offset) &&
-	match_lookahead (APPLY_ARG,
+	match_lookahead (context,
 			 lookaheadCount, lookahead,
 			 lookup_context.funcs.match, lookup_context.match_data[2],
 			 offset))) return false;
@@ -550,7 +545,7 @@ static inline bool chain_context_lookup (APPLY_ARG_DEF,
   unsigned int old_context_length;
   old_context_length = context->context_length;
   context->context_length = offset;
-  bool ret = apply_lookup (APPLY_ARG,
+  bool ret = apply_lookup (context,
 			   inputCount,
 			   lookupCount, lookupRecord,
 			   lookup_context.funcs.apply);
@@ -563,13 +558,13 @@ struct ChainRule
   friend struct ChainRuleSet;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *context, ChainContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return chain_context_lookup (APPLY_ARG,
+    return chain_context_lookup (context,
 				 backtrack.len, backtrack.array(),
 				 input.len, input.array(),
 				 lookahead.len, lookahead.array(),
@@ -609,13 +604,13 @@ ASSERT_SIZE (ChainRule, 8);
 
 struct ChainRuleSet
 {
-  inline bool apply (APPLY_ARG_DEF, ChainContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *context, ChainContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
-      if ((this+rule[i]).apply (APPLY_ARG, lookup_context))
+      if ((this+rule[i]).apply (context, lookup_context))
         return true;
     }
 
@@ -639,7 +634,7 @@ struct ChainContextFormat1
   friend struct ChainContext;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -651,7 +646,7 @@ struct ChainContextFormat1
       {match_glyph, apply_func},
       {NULL, NULL, NULL}
     };
-    return rule_set.apply (APPLY_ARG, lookup_context);
+    return rule_set.apply (context, lookup_context);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -676,7 +671,7 @@ struct ChainContextFormat2
   friend struct ChainContext;
 
   private:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -698,7 +693,7 @@ struct ChainContextFormat2
       CharP(&input_class_def),
       CharP(&lookahead_class_def)}
     };
-    return rule_set.apply (APPLY_ARG, lookup_context);
+    return rule_set.apply (context, lookup_context);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -739,7 +734,7 @@ struct ChainContextFormat3
 
   private:
 
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
@@ -754,7 +749,7 @@ struct ChainContextFormat3
       {match_coverage, apply_func},
       {CharP(this), CharP(this), CharP(this)}
     };
-    return chain_context_lookup (APPLY_ARG,
+    return chain_context_lookup (context,
 				 backtrack.len, (const USHORT *) backtrack.array(),
 				 input.len, (const USHORT *) input.array() + 1,
 				 lookahead.len, (const USHORT *) lookahead.array(),
@@ -797,13 +792,13 @@ ASSERT_SIZE (ChainContextFormat3, 10);
 struct ChainContext
 {
   protected:
-  inline bool apply (APPLY_ARG_DEF, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG, apply_func);
-    case 2: return u.format2->apply (APPLY_ARG, apply_func);
-    case 3: return u.format3->apply (APPLY_ARG, apply_func);
+    case 1: return u.format1->apply (context, apply_func);
+    case 2: return u.format2->apply (context, apply_func);
+    case 3: return u.format3->apply (context, apply_func);
     default:return false;
     }
   }

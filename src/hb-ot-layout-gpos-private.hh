@@ -379,7 +379,7 @@ ASSERT_SIZE (MarkRecord, 4);
 
 struct MarkArray
 {
-  inline bool apply (APPLY_ARG_DEF,
+  inline bool apply (hb_apply_context_t *context,
 		     unsigned int mark_index, unsigned int glyph_index,
 		     const AnchorMatrix &anchors, unsigned int class_count,
 		     unsigned int glyph_pos) const
@@ -426,7 +426,7 @@ struct SinglePosFormat1
   friend struct SinglePos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -464,7 +464,7 @@ struct SinglePosFormat2
   friend struct SinglePos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -507,12 +507,12 @@ struct SinglePos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
-    case 2: return u.format2->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
+    case 2: return u.format2->apply (context);
     default:return false;
     }
   }
@@ -574,7 +574,7 @@ struct PairPosFormat1
   friend struct PairPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
@@ -667,7 +667,7 @@ struct PairPosFormat2
   friend struct PairPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
@@ -757,12 +757,12 @@ struct PairPos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
-    case 2: return u.format2->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
+    case 2: return u.format2->apply (context);
     default:return false;
     }
   }
@@ -812,7 +812,7 @@ struct CursivePosFormat1
   friend struct CursivePos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     /* Now comes the messiest part of the whole OpenType
@@ -1009,11 +1009,11 @@ struct CursivePos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -1045,7 +1045,7 @@ struct MarkBasePosFormat1
   friend struct MarkBasePos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
@@ -1072,7 +1072,7 @@ struct MarkBasePosFormat1
     if (base_index == NOT_COVERED)
       return false;
 
-    return (this+markArray).apply (APPLY_ARG, mark_index, base_index, this+baseArray, classCount, j);
+    return (this+markArray).apply (context, mark_index, base_index, this+baseArray, classCount, j);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -1107,11 +1107,11 @@ struct MarkBasePos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -1148,7 +1148,7 @@ struct MarkLigPosFormat1
   friend struct MarkLigPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
@@ -1196,7 +1196,7 @@ struct MarkLigPosFormat1
     else
       comp_index = comp_count - 1;
 
-    return (this+markArray).apply (APPLY_ARG, mark_index, comp_index, lig_attach, classCount, j);
+    return (this+markArray).apply (context, mark_index, comp_index, lig_attach, classCount, j);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -1232,11 +1232,11 @@ struct MarkLigPos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -1268,7 +1268,7 @@ struct MarkMarkPosFormat1
   friend struct MarkMarkPos;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
@@ -1299,7 +1299,7 @@ struct MarkMarkPosFormat1
     if (mark2_index == NOT_COVERED)
       return false;
 
-    return (this+mark1Array).apply (APPLY_ARG, mark1_index, mark2_index, this+mark2Array, classCount, j);
+    return (this+mark1Array).apply (context, mark1_index, mark2_index, this+mark2Array, classCount, j);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -1336,11 +1336,11 @@ struct MarkMarkPos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (APPLY_ARG);
+    case 1: return u.format1->apply (context);
     default:return false;
     }
   }
@@ -1362,17 +1362,17 @@ struct MarkMarkPos
 };
 
 
-static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index);
+static inline bool position_lookup (hb_apply_context_t *context, unsigned int lookup_index);
 
 struct ContextPos : Context
 {
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
-    return Context::apply (APPLY_ARG, position_lookup);
+    return Context::apply (context, position_lookup);
   }
 };
 
@@ -1381,10 +1381,10 @@ struct ChainContextPos : ChainContext
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (APPLY_ARG_DEF) const
+  inline bool apply (hb_apply_context_t *context) const
   {
     TRACE_APPLY ();
-    return ChainContext::apply (APPLY_ARG, position_lookup);
+    return ChainContext::apply (context, position_lookup);
   }
 };
 
@@ -1401,7 +1401,7 @@ struct ExtensionPos : Extension
     return StructAtOffset<PosLookupSubTable> (*this, offset);
   }
 
-  inline bool apply (APPLY_ARG_DEF) const;
+  inline bool apply (hb_apply_context_t *context) const;
 
   inline bool sanitize (hb_sanitize_context_t *context);
 };
@@ -1429,19 +1429,19 @@ struct PosLookupSubTable
     Extension		= 9
   };
 
-  inline bool apply (APPLY_ARG_DEF, unsigned int lookup_type) const
+  inline bool apply (hb_apply_context_t *context, unsigned int lookup_type) const
   {
     TRACE_APPLY ();
     switch (lookup_type) {
-    case Single:		return u.single->apply (APPLY_ARG);
-    case Pair:			return u.pair->apply (APPLY_ARG);
-    case Cursive:		return u.cursive->apply (APPLY_ARG);
-    case MarkBase:		return u.markBase->apply (APPLY_ARG);
-    case MarkLig:		return u.markLig->apply (APPLY_ARG);
-    case MarkMark:		return u.markMark->apply (APPLY_ARG);
-    case Context:		return u.context->apply (APPLY_ARG);
-    case ChainContext:		return u.chainContext->apply (APPLY_ARG);
-    case Extension:		return u.extension->apply (APPLY_ARG);
+    case Single:		return u.single->apply (context);
+    case Pair:			return u.pair->apply (context);
+    case Cursive:		return u.cursive->apply (context);
+    case MarkBase:		return u.markBase->apply (context);
+    case MarkLig:		return u.markLig->apply (context);
+    case MarkMark:		return u.markMark->apply (context);
+    case Context:		return u.context->apply (context);
+    case ChainContext:		return u.chainContext->apply (context);
+    case Extension:		return u.extension->apply (context);
     default:return false;
     }
   }
@@ -1502,7 +1502,7 @@ struct PosLookup : Lookup
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).apply (APPLY_ARG, lookup_type))
+      if (get_subtable (i).apply (context, lookup_type))
 	return true;
 
     return false;
@@ -1585,10 +1585,10 @@ ASSERT_SIZE (GPOS, 10);
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionPos::apply (APPLY_ARG_DEF) const
+inline bool ExtensionPos::apply (hb_apply_context_t *context) const
 {
   TRACE_APPLY ();
-  return get_subtable ().apply (APPLY_ARG, get_type ());
+  return get_subtable ().apply (context, get_type ());
 }
 
 inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
@@ -1600,7 +1600,7 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
   return SANITIZE (StructAtOffset<PosLookupSubTable> (*this, offset));
 }
 
-static inline bool position_lookup (APPLY_ARG_DEF, unsigned int lookup_index)
+static inline bool position_lookup (hb_apply_context_t *context, unsigned int lookup_index)
 {
   const GPOS &gpos = *(context->layout->face->ot_layout.gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
