@@ -176,7 +176,7 @@ struct CaretValue
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -291,7 +291,7 @@ struct MarkGlyphSets
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -351,7 +351,7 @@ struct GDEF
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (version) && likely (version.major == 1)
+    return version.sanitize (context) && likely (version.major == 1)
 	&& glyphClassDef.sanitize (context, this)
 	&& attachList.sanitize (context, this)
 	&& ligCaretList.sanitize (context, this)

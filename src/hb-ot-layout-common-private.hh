@@ -167,7 +167,7 @@ struct LangSys
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE (featureIndex);
+	&& featureIndex.sanitize (context);
   }
 
   Offset	lookupOrder;	/* = Null (reserved for an offset to a
@@ -236,7 +236,7 @@ struct Feature
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE (lookupIndex);
+	&& lookupIndex.sanitize (context);
   }
 
   /* LONGTERMTODO: implement get_feature_parameters() */
@@ -292,7 +292,7 @@ struct Lookup
     if (unlikely (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
-      if (!SANITIZE (markFilteringSet)) return false;
+      if (!markFilteringSet.sanitize (context)) return false;
     }
     return true;
   }
@@ -336,7 +336,7 @@ struct CoverageFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (glyphArray);
+    return glyphArray.sanitize (context);
   }
 
   private:
@@ -395,7 +395,7 @@ struct CoverageFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (rangeRecord);
+    return rangeRecord.sanitize (context);
   }
 
   private:
@@ -422,7 +422,7 @@ struct Coverage
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -458,7 +458,7 @@ struct ClassDefFormat1
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE (classValue);
+	&& classValue.sanitize (context);
   }
 
   USHORT	classFormat;		/* Format identifier--format = 1 */
@@ -516,7 +516,7 @@ struct ClassDefFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (rangeRecord);
+    return rangeRecord.sanitize (context);
   }
 
   USHORT	classFormat;	/* Format identifier--format = 2 */
@@ -541,7 +541,7 @@ struct ClassDef
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);

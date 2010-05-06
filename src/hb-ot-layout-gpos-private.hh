@@ -318,7 +318,7 @@ struct Anchor
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -526,7 +526,7 @@ struct SinglePos
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -776,7 +776,7 @@ struct PairPos
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -1027,7 +1027,7 @@ struct CursivePos
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -1125,7 +1125,7 @@ struct MarkBasePos
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -1250,7 +1250,7 @@ struct MarkLigPos
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -1354,7 +1354,7 @@ struct MarkMarkPos
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -1455,7 +1455,7 @@ struct PosLookupSubTable
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case Single:		return u.single->sanitize (context);
     case Pair:			return u.pair->sanitize (context);
@@ -1604,7 +1604,7 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
   if (unlikely (!Extension::sanitize (context))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
-  return SANITIZE (StructAtOffset<PosLookupSubTable> (*this, offset));
+  return StructAtOffset<PosLookupSubTable> (*this, offset).sanitize (context);
 }
 
 static inline bool position_lookup (hb_apply_context_t *context, unsigned int lookup_index)

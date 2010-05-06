@@ -238,8 +238,6 @@ struct hb_sanitize_context_t
 };
 
 
-#define SANITIZE(X) likely ((X).sanitize (context))
-
 #define SANITIZE_SELF() likely(context->check_range (this, sizeof (*this)))
 
 
@@ -522,7 +520,7 @@ struct GenericArrayOf
      * other structs. */
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE (array()[i]))
+      if (array()[i].sanitize (context))
         return false;
     return true;
   }
@@ -635,7 +633,7 @@ struct HeadlessArrayOf
     unsigned int count = len ? len - 1 : 0;
     Type *a = array();
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE (a[i]))
+      if (!a[i].sanitize (context))
         return false;
     return true;
   }

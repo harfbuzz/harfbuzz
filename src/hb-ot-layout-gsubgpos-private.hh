@@ -287,8 +287,8 @@ struct Rule
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (inputCount)
-	&& SANITIZE (lookupCount)
+    return inputCount.sanitize (context)
+	&& lookupCount.sanitize (context)
 	&& context->check_range (input,
 				 input[0].get_size () * inputCount
 				 + lookupRecordX[0].get_size () * lookupCount);
@@ -481,7 +481,7 @@ struct Context
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -566,13 +566,13 @@ struct ChainRule
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (backtrack)) return false;
+    if (!backtrack.sanitize (context)) return false;
     HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
-    if (!SANITIZE (input)) return false;
+    if (!input.sanitize (context)) return false;
     ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
-    if (!SANITIZE (lookahead)) return false;
+    if (!lookahead.sanitize (context)) return false;
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return SANITIZE (lookup);
+    return lookup.sanitize (context);
   }
 
   private:
@@ -756,7 +756,7 @@ struct ChainContextFormat3
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     if (!lookahead.sanitize (context, this)) return false;
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return SANITIZE (lookup);
+    return lookup.sanitize (context);
   }
 
   private:
@@ -795,7 +795,7 @@ struct ChainContext
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -856,7 +856,7 @@ struct Extension
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -913,7 +913,7 @@ struct GSUBGPOS
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (version) && likely (version.major == 1)
+    return version.sanitize (context) && likely (version.major == 1)
 	&& scriptList.sanitize (context, this)
 	&& featureList.sanitize (context, this)
 	&& lookupList.sanitize (context, this);

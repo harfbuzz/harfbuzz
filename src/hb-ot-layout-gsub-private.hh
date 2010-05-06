@@ -61,7 +61,7 @@ struct SingleSubstFormat1
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return coverage.sanitize (context, this)
-	&& SANITIZE (deltaGlyphID);
+	&& deltaGlyphID.sanitize (context);
   }
 
   private:
@@ -104,7 +104,7 @@ struct SingleSubstFormat2
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return coverage.sanitize (context, this)
-	&& SANITIZE (substitute);
+	&& substitute.sanitize (context);
   }
 
   private:
@@ -136,7 +136,7 @@ struct SingleSubst
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     case 2: return u.format2->sanitize (context);
@@ -186,7 +186,7 @@ struct Sequence
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (substitute);
+    return substitute.sanitize (context);
   }
 
   private:
@@ -246,7 +246,7 @@ struct MultipleSubst
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -342,7 +342,7 @@ struct AlternateSubst
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -428,8 +428,8 @@ struct Ligature
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE (ligGlyph)
-        && SANITIZE (component);
+    return ligGlyph.sanitize (context)
+        && component.sanitize (context);
   }
 
   private:
@@ -526,7 +526,7 @@ struct LigatureSubst
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -633,7 +633,7 @@ struct ReverseChainSingleSubstFormat1
     if (!lookahead.sanitize (context, this))
       return false;
     ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
-    return SANITIZE (substitute);
+    return substitute.sanitize (context);
   }
 
   private:
@@ -671,7 +671,7 @@ struct ReverseChainSingleSubst
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case 1: return u.format1->sanitize (context);
     default:return true;
@@ -724,7 +724,7 @@ struct SubstLookupSubTable
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE (u.format)) return false;
+    if (!u.format.sanitize (context)) return false;
     switch (u.format) {
     case Single:		return u.single->sanitize (context);
     case Multiple:		return u.multiple->sanitize (context);
@@ -908,7 +908,7 @@ inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *context)
   if (unlikely (!Extension::sanitize (context))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
-  return SANITIZE (StructAtOffset<SubstLookupSubTable> (*this, offset));
+  return StructAtOffset<SubstLookupSubTable> (*this, offset).sanitize (context);
 }
 
 inline bool ExtensionSubst::is_reverse (void) const
