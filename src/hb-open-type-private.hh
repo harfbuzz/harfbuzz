@@ -123,8 +123,8 @@ static inline const Type& Null () {
 }
 
 /* Specializaiton for arbitrary-content arbitrary-sized Null objects. */
-#define DEFINE_NULL_DATA(Type, size, data) \
-static const char _Null##Type[size + 1] = data; /* +1 is for nul-termination in data */ \
+#define DEFINE_NULL_DATA(Type, data) \
+static const char _Null##Type[Type::min_size + 1] = data; /* +1 is for nul-termination in data */ \
 template <> \
 inline const Type& Null<Type> () { \
   return *CastP<Type> (_Null##Type); \
@@ -397,7 +397,7 @@ struct Tag : ULONG
   inline operator char* (void) { return CharP(this); }
 };
 ASSERT_SIZE (Tag, 4);
-DEFINE_NULL_DATA (Tag, 4, "    ");
+DEFINE_NULL_DATA (Tag, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef USHORT GlyphID;
