@@ -181,14 +181,14 @@ struct hb_sanitize_context_t
     this->start = this->end = NULL;
   }
 
-  inline bool check (const void *base, unsigned int len) const
+  inline bool check_range (const void *base, unsigned int len) const
   {
     bool ret = this->start <= base &&
 	       base <= this->end &&
 	       (unsigned int) (this->end - CharP(base)) >= len;
 
     if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE) \
-      fprintf (stderr, "SANITIZE(%p) %-*d-> check [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
+      fprintf (stderr, "SANITIZE(%p) %-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
 	       base,
 	       this->debug_depth, this->debug_depth,
 	       base, CharP(base)+len, len,
@@ -211,7 +211,7 @@ struct hb_sanitize_context_t
 	       this->start, this->end,
 	       !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 
-    return likely (!overflows && this->check (base, record_size * len));
+    return likely (!overflows && this->check_range (base, record_size * len));
   }
 
   inline bool can_edit (const char *base HB_UNUSED, unsigned int len HB_UNUSED)
@@ -244,7 +244,7 @@ struct hb_sanitize_context_t
 
 #define SANITIZE_SELF() SANITIZE_MEM(this, sizeof (*this))
 
-#define SANITIZE_MEM(B,L) likely (context->check (CharP(B), (L)))
+#define SANITIZE_MEM(B,L) likely (context->check_range (CharP(B), (L)))
 
 
 /* Template to sanitize an object. */
