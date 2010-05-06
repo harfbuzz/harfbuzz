@@ -242,9 +242,7 @@ struct hb_sanitize_context_t
 
 #define SANITIZE_WITH_BASE(B,X) likely ((X).sanitize (context, CharP(B)))
 
-#define SANITIZE_SELF() SANITIZE_MEM(this, sizeof (*this))
-
-#define SANITIZE_MEM(B,L) likely (context->check_range (CharP(B), (L)))
+#define SANITIZE_SELF() likely(context->check_range (this, sizeof (*this)))
 
 
 /* Template to sanitize an object. */

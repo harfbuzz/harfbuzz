@@ -599,7 +599,7 @@ struct Device
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF()
-	&& SANITIZE_MEM (this, this->get_size ());
+	&& context->check_range (this, this->get_size ());
   }
 
   private:

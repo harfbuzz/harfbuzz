@@ -289,9 +289,9 @@ struct Rule
     TRACE_SANITIZE ();
     return SANITIZE (inputCount)
 	&& SANITIZE (lookupCount)
-	&& SANITIZE_MEM (input,
-			 input[0].get_size () * inputCount +
-			 lookupRecordX[0].get_size () * lookupCount);
+	&& context->check_range (input,
+				 input[0].get_size () * inputCount
+				 + lookupRecordX[0].get_size () * lookupCount);
   }
 
   private:

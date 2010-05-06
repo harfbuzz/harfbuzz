@@ -159,7 +159,7 @@ struct ValueFormat : USHORT
 
   inline bool sanitize_value (hb_sanitize_context_t *context, void *base, const Value *values) {
     TRACE_SANITIZE ();
-    return SANITIZE_MEM (values, get_size ())
+    return context->check_range (values, get_size ())
 	&& (!has_device () || sanitize_value_devices (context, base, values));
   }
 
