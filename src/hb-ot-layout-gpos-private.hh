@@ -38,7 +38,7 @@
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
 
-typedef SHORT Value;
+typedef USHORT Value;
 
 typedef Value ValueRecord[VAR0];
 ASSERT_SIZE_VAR (ValueRecord, 0, Value);
@@ -106,10 +106,10 @@ struct ValueFormat : USHORT
     x_scale = layout->font->x_scale;
     y_scale = layout->font->y_scale;
     /* design units -> fractional pixel */
-    if (format & xPlacement) glyph_pos->x_offset  += _hb_16dot16_mul_round (x_scale, *CastP<SHORT> (values++));
-    if (format & yPlacement) glyph_pos->y_offset  += _hb_16dot16_mul_round (y_scale, *CastP<SHORT> (values++));
-    if (format & xAdvance)   glyph_pos->x_advance += _hb_16dot16_mul_round (x_scale, *CastP<SHORT> (values++));
-    if (format & yAdvance)   glyph_pos->y_advance += _hb_16dot16_mul_round (y_scale, *CastP<SHORT> (values++));
+    if (format & xPlacement) glyph_pos->x_offset  += _hb_16dot16_mul_round (x_scale, get_short (values++));
+    if (format & yPlacement) glyph_pos->y_offset  += _hb_16dot16_mul_round (y_scale, get_short (values++));
+    if (format & xAdvance)   glyph_pos->x_advance += _hb_16dot16_mul_round (x_scale, get_short (values++));
+    if (format & yAdvance)   glyph_pos->y_advance += _hb_16dot16_mul_round (y_scale, get_short (values++));
 
     if (!has_device ()) return;
 
@@ -120,16 +120,16 @@ struct ValueFormat : USHORT
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem) glyph_pos->x_offset  += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos->x_offset  += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem) glyph_pos->y_offset  += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos->y_offset  += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem) glyph_pos->x_advance += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos->x_advance += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem) glyph_pos->y_advance += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos->y_advance += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
     }
   }
 
@@ -142,13 +142,21 @@ struct ValueFormat : USHORT
     if (format & xAdvance)   values++;
     if (format & yAdvance)   values++;
 
-    if ((format & xPlaDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
-    if ((format & yPlaDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
-    if ((format & xAdvDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
-    if ((format & yAdvDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
+    if ((format & xPlaDevice) && !get_device (values++).sanitize (context, base)) return false;
+    if ((format & yPlaDevice) && !get_device (values++).sanitize (context, base)) return false;
+    if ((format & xAdvDevice) && !get_device (values++).sanitize (context, base)) return false;
+    if ((format & yAdvDevice) && !get_device (values++).sanitize (context, base)) return false;
 
     return true;
   }
+
+  static inline OffsetTo<Device>& get_device (Value* value)
+  { return *CastP<OffsetTo<Device> > (value); }
+  static inline const OffsetTo<Device>& get_device (const Value* value)
+  { return *CastP<OffsetTo<Device> > (value); }
+
+  static inline const SHORT& get_short (const Value* value)
+  { return *CastP<SHORT> (value); }
 
   public:
 
