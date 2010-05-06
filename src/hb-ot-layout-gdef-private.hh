@@ -100,7 +100,7 @@ struct CaretValueFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   private:
@@ -126,7 +126,7 @@ struct CaretValueFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   private:
@@ -148,7 +148,7 @@ struct CaretValueFormat3
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& deviceTable.sanitize (context, this);
   }
 

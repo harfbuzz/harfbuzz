@@ -55,7 +55,7 @@ struct Record
 
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& offset.sanitize (context, base);
   }
 
@@ -166,7 +166,7 @@ struct LangSys
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& featureIndex.sanitize (context);
   }
 
@@ -235,7 +235,7 @@ struct Feature
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& lookupIndex.sanitize (context);
   }
 
@@ -287,7 +287,7 @@ struct Lookup
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
-    if (!(SANITIZE_SELF ()
+    if (!(context->check_struct (this)
        && likely (subTable.sanitize (context)))) return false;
     if (unlikely (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
@@ -363,7 +363,7 @@ struct CoverageRangeRecord
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   private:
@@ -457,7 +457,7 @@ struct ClassDefFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& classValue.sanitize (context);
   }
 
@@ -485,7 +485,7 @@ struct ClassRangeRecord
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   private:
@@ -598,7 +598,7 @@ struct Device
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF()
+    return context->check_struct (this)
 	&& context->check_range (this, this->get_size ());
   }
 

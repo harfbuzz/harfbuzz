@@ -51,7 +51,7 @@ typedef struct TableDirectory
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   Tag		tag;		/* 4-byte identifier. */
@@ -100,7 +100,7 @@ typedef struct OffsetTable
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& context->check_array (tableDir, TableDirectory::get_size (), numTables);
   }
 

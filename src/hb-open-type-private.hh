@@ -202,7 +202,6 @@ struct hb_sanitize_context_t
   {
     bool overflows = len >= ((unsigned int) -1) / record_size;
 
-
     if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE)
       fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n", \
 	       base,
@@ -212,6 +211,12 @@ struct hb_sanitize_context_t
 	       !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 
     return likely (!overflows && this->check_range (base, record_size * len));
+  }
+
+  template <typename Type>
+  inline bool check_struct (const Type *obj) const
+  {
+    return likely (this->check_range (obj, sizeof (*obj)));
   }
 
   inline bool can_edit (const char *base HB_UNUSED, unsigned int len HB_UNUSED)
@@ -237,8 +242,6 @@ struct hb_sanitize_context_t
   hb_blob_t *blob;
 };
 
-
-#define SANITIZE_SELF() likely(context->check_range (this, sizeof (*this)))
 
 
 /* Template to sanitize an object. */
@@ -352,7 +355,7 @@ struct IntType
   inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
   private: BEInt<Type, sizeof (Type)> v;
 };
@@ -414,7 +417,7 @@ struct FixedVersion
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   USHORT major;
@@ -441,7 +444,7 @@ struct GenericOffsetTo : OffsetType
 
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
+    if (!context->check_struct (this)) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (*CharP(base), offset);
@@ -450,7 +453,7 @@ struct GenericOffsetTo : OffsetType
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *context, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
+    if (!context->check_struct (this)) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (*CharP(base), offset);
@@ -547,7 +550,7 @@ struct GenericArrayOf
   private:
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF()
+    return context->check_struct (this)
 	&& context->check_array (this, Type::get_size (), len);
   }
 
@@ -615,7 +618,7 @@ struct HeadlessArrayOf
   { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
-    return SANITIZE_SELF()
+    return context->check_struct (this)
 	&& context->check_array (this, Type::get_size (), len);
   }
 

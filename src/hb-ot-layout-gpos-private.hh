@@ -220,7 +220,7 @@ struct AnchorFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   private:
@@ -251,7 +251,7 @@ struct AnchorFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   private:
@@ -282,7 +282,7 @@ struct AnchorFormat3
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& xDeviceTable.sanitize (context, this)
 	&& yDeviceTable.sanitize (context, this);
   }
@@ -346,7 +346,7 @@ struct AnchorMatrix
 
   inline bool sanitize (hb_sanitize_context_t *context, unsigned int cols) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
+    if (!context->check_struct (this)) return false;
     if (unlikely (cols >= ((unsigned int) -1) / rows)) return false;
     unsigned int count = rows * cols;
     if (!context->check_array (matrix, matrix[0].get_size (), count)) return false;
@@ -372,7 +372,7 @@ struct MarkRecord
 
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& markAnchor.sanitize (context, base);
   }
 
@@ -448,7 +448,7 @@ struct SinglePosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& coverage.sanitize (context, this)
 	&& valueFormat.sanitize_value (context, CharP(this), values);
   }
@@ -491,7 +491,7 @@ struct SinglePosFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& coverage.sanitize (context, this)
 	&& valueFormat.sanitize_values (context, CharP(this), values, valueCount);
   }
@@ -563,7 +563,7 @@ struct PairSet
   /* Note: Doesn't sanitize the Device entries in the ValueRecord */
   inline bool sanitize (hb_sanitize_context_t *context, unsigned int format_len) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
+    if (!context->check_struct (this)) return false;
     unsigned int count = (1 + format_len) * len;
     return context->check_array (array, USHORT::get_size (), count);
   }
@@ -630,7 +630,7 @@ struct PairPosFormat1
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
 
-    if (!(SANITIZE_SELF ()
+    if (!(context->check_struct (this)
        && coverage.sanitize (context, this)
        && likely (pairSet.sanitize (context, CharP(this), len1 + len2)))) return false;
 
@@ -715,7 +715,7 @@ struct PairPosFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_SELF ()
+    if (!(context->check_struct (this)
        && coverage.sanitize (context, this)
        && classDef1.sanitize (context, this)
        && classDef2.sanitize (context, this))) return false;
@@ -1084,7 +1084,7 @@ struct MarkBasePosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
         && markCoverage.sanitize (context, this)
 	&& baseCoverage.sanitize (context, this)
 	&& markArray.sanitize (context, this)
@@ -1208,7 +1208,7 @@ struct MarkLigPosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
         && markCoverage.sanitize (context, this)
 	&& ligatureCoverage.sanitize (context, this)
 	&& markArray.sanitize (context, this)
@@ -1311,7 +1311,7 @@ struct MarkMarkPosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ()
+    return context->check_struct (this)
 	&& mark1Coverage.sanitize (context, this)
 	&& mark2Coverage.sanitize (context, this)
 	&& mark1Array.sanitize (context, this)

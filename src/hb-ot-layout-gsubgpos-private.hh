@@ -176,7 +176,7 @@ struct LookupRecord
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   USHORT	sequenceIndex;		/* Index into current glyph
@@ -443,7 +443,7 @@ struct ContextFormat3
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_SELF ()) return false;
+    if (!context->check_struct (this)) return false;
     unsigned int count = glyphCount;
     if (!context->check_array (coverage, OffsetTo<Coverage>::get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
@@ -824,7 +824,7 @@ struct ExtensionFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_SELF ();
+    return context->check_struct (this);
   }
 
   private:
