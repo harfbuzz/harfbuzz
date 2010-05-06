@@ -181,24 +181,24 @@ struct hb_sanitize_context_t
     this->start = this->end = NULL;
   }
 
-  inline bool check (const char *base, unsigned int len) const
+  inline bool check (const void *base, unsigned int len) const
   {
     bool ret = this->start <= base &&
 	       base <= this->end &&
-	       (unsigned int) (this->end - base) >= len;
+	       (unsigned int) (this->end - CharP(base)) >= len;
 
     if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE) \
       fprintf (stderr, "SANITIZE(%p) %-*d-> check [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
 	       base,
 	       this->debug_depth, this->debug_depth,
-	       base, base+len, len,
+	       base, CharP(base)+len, len,
 	       this->start, this->end,
 	       ret ? "pass" : "FAIL");
 
     return likely (ret);
   }
 
-  inline bool check_array (const char *base, unsigned int record_size, unsigned int len) const
+  inline bool check_array (const void *base, unsigned int record_size, unsigned int len) const
   {
     bool overflows = len >= ((unsigned int) -1) / record_size;
 
@@ -207,7 +207,7 @@ struct hb_sanitize_context_t
       fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n", \
 	       base,
 	       this->debug_depth, this->debug_depth,
-	       base, base + (record_size * len), record_size, len, (unsigned long) record_size * len,
+	       base, CharP(base) + (record_size * len), record_size, len, (unsigned long) record_size * len,
 	       this->start, this->end,
 	       !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 
@@ -245,8 +245,6 @@ struct hb_sanitize_context_t
 #define SANITIZE_SELF() SANITIZE_MEM(this, sizeof (*this))
 
 #define SANITIZE_MEM(B,L) likely (context->check (CharP(B), (L)))
-
-#define SANITIZE_ARRAY(A,S,L) likely (context->check_array (CharP(A), S, L))
 
 
 /* Template to sanitize an object. */
@@ -556,7 +554,7 @@ struct GenericArrayOf
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF()
-	&& SANITIZE_ARRAY (this, Type::get_size (), len);
+	&& context->check_array (this, Type::get_size (), len);
   }
 
   public:
@@ -624,7 +622,7 @@ struct HeadlessArrayOf
 
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     return SANITIZE_SELF()
-	&& SANITIZE_ARRAY (this, Type::get_size (), len);
+	&& context->check_array (this, Type::get_size (), len);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {

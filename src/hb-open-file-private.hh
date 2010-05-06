@@ -101,7 +101,7 @@ typedef struct OffsetTable
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_ARRAY (tableDir, TableDirectory::get_size (), numTables);
+	&& context->check_array (tableDir, TableDirectory::get_size (), numTables);
   }
 
   private:

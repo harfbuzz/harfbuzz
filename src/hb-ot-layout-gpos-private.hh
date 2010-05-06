@@ -167,7 +167,7 @@ struct ValueFormat : USHORT
     TRACE_SANITIZE ();
     unsigned int len = get_len ();
 
-    if (!SANITIZE_ARRAY (values, get_size (), count)) return false;
+    if (!context->check_array (values, get_size (), count)) return false;
 
     if (!has_device ()) return true;
 
@@ -341,7 +341,7 @@ struct AnchorMatrix
     if (!SANITIZE_SELF ()) return false;
     if (unlikely (cols >= ((unsigned int) -1) / rows)) return false;
     unsigned int count = rows * cols;
-    if (!SANITIZE_ARRAY (matrix, matrix[0].get_size (), count)) return false;
+    if (!context->check_array (matrix, matrix[0].get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_WITH_BASE (this, matrix[i])) return false;
     return true;
@@ -557,7 +557,7 @@ struct PairSet
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = (1 + format_len) * len;
-    return SANITIZE_ARRAY (array, USHORT::get_size (), count);
+    return context->check_array (array, USHORT::get_size (), count);
   }
 
   private:
@@ -717,7 +717,7 @@ struct PairPosFormat2
     unsigned int stride = len1 + len2;
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
-    return SANITIZE_ARRAY (values, record_size, count) &&
+    return context->check_array (values, record_size, count) &&
 	   valueFormat1.sanitize_values_stride_unsafe (context, CharP(this), &values[0], count, stride) &&
 	   valueFormat2.sanitize_values_stride_unsafe (context, CharP(this), &values[len1], count, stride);
   }

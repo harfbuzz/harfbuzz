@@ -445,11 +445,11 @@ struct ContextFormat3
     TRACE_SANITIZE ();
     if (!SANITIZE_SELF ()) return false;
     unsigned int count = glyphCount;
-    if (!SANITIZE_ARRAY (coverage, OffsetTo<Coverage>::get_size (), count)) return false;
+    if (!context->check_array (coverage, OffsetTo<Coverage>::get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!SANITIZE_WITH_BASE (this, coverage[i])) return false;
     LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * count);
-    return SANITIZE_ARRAY (lookupRecord, LookupRecord::get_size (), lookupCount);
+    return context->check_array (lookupRecord, LookupRecord::get_size (), lookupCount);
   }
 
   private:
