@@ -56,7 +56,7 @@ struct Record
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_WITH_BASE (base, offset);
+	&& offset.sanitize (context, base);
   }
 
   Tag		tag;		/* 4-byte Tag identifier */
@@ -204,8 +204,8 @@ struct Script
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, defaultLangSys)
-	&& SANITIZE_WITH_BASE (this, langSys);
+    return defaultLangSys.sanitize (context, this)
+	&& langSys.sanitize (context, this);
   }
 
   private:

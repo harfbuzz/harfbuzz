@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007,2008,2009  Red Hat, Inc.
+ * Copyright (C) 2007,2008,2009,2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -106,10 +106,10 @@ struct ValueFormat : USHORT
     x_scale = layout->font->x_scale;
     y_scale = layout->font->y_scale;
     /* design units -> fractional pixel */
-    if (format & xPlacement) glyph_pos->x_offset  += _hb_16dot16_mul_round (x_scale, *(SHORT*)values++);
-    if (format & yPlacement) glyph_pos->y_offset  += _hb_16dot16_mul_round (y_scale, *(SHORT*)values++);
-    if (format & xAdvance)   glyph_pos->x_advance += _hb_16dot16_mul_round (x_scale, *(SHORT*)values++);
-    if (format & yAdvance)   glyph_pos->y_advance += _hb_16dot16_mul_round (y_scale, *(SHORT*)values++);
+    if (format & xPlacement) glyph_pos->x_offset  += _hb_16dot16_mul_round (x_scale, *CastP<SHORT> (values++));
+    if (format & yPlacement) glyph_pos->y_offset  += _hb_16dot16_mul_round (y_scale, *CastP<SHORT> (values++));
+    if (format & xAdvance)   glyph_pos->x_advance += _hb_16dot16_mul_round (x_scale, *CastP<SHORT> (values++));
+    if (format & yAdvance)   glyph_pos->y_advance += _hb_16dot16_mul_round (y_scale, *CastP<SHORT> (values++));
 
     if (!has_device ()) return;
 
@@ -120,21 +120,21 @@ struct ValueFormat : USHORT
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem) glyph_pos->x_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos->x_offset  += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem) glyph_pos->y_offset  += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos->y_offset  += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (y_ppem) << 16; else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem) glyph_pos->x_advance += (base+*(OffsetTo<Device>*)values++).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos->x_advance += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem) glyph_pos->y_advance += (base+*(OffsetTo<Device>*)values++).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos->y_advance += (base+*CastP<OffsetTo<Device> >(values++)).get_delta (y_ppem) << 16; else values++;
     }
   }
 
   private:
-  inline bool sanitize_value_devices (hb_sanitize_context_t *context, void *base, const Value *values) {
+  inline bool sanitize_value_devices (hb_sanitize_context_t *context, void *base, Value *values) {
     unsigned int format = *this;
 
     if (format & xPlacement) values++;
@@ -142,10 +142,10 @@ struct ValueFormat : USHORT
     if (format & xAdvance)   values++;
     if (format & yAdvance)   values++;
 
-    if ((format & xPlaDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
-    if ((format & yPlaDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
-    if ((format & xAdvDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
-    if ((format & yAdvDevice) && !SANITIZE_WITH_BASE (base, *(OffsetTo<Device>*)values++)) return false;
+    if ((format & xPlaDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
+    if ((format & yPlaDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
+    if ((format & xAdvDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
+    if ((format & yAdvDevice) && !CastP<OffsetTo<Device> > (values++)->sanitize (context, base)) return false;
 
     return true;
   }
@@ -157,13 +157,13 @@ struct ValueFormat : USHORT
     return (format & devices) != 0;
   }
 
-  inline bool sanitize_value (hb_sanitize_context_t *context, void *base, const Value *values) {
+  inline bool sanitize_value (hb_sanitize_context_t *context, void *base, Value *values) {
     TRACE_SANITIZE ();
     return context->check_range (values, get_size ())
 	&& (!has_device () || sanitize_value_devices (context, base, values));
   }
 
-  inline bool sanitize_values (hb_sanitize_context_t *context, void *base, const Value *values, unsigned int count) {
+  inline bool sanitize_values (hb_sanitize_context_t *context, void *base, Value *values, unsigned int count) {
     TRACE_SANITIZE ();
     unsigned int len = get_len ();
 
@@ -181,7 +181,7 @@ struct ValueFormat : USHORT
   }
 
   /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
-  inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *context, void *base, const Value *values, unsigned int count, unsigned int stride) {
+  inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *context, void *base, Value *values, unsigned int count, unsigned int stride) {
     TRACE_SANITIZE ();
 
     if (!has_device ()) return true;
@@ -275,8 +275,8 @@ struct AnchorFormat3
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_WITH_BASE (this, xDeviceTable)
-	&& SANITIZE_WITH_BASE (this, yDeviceTable);
+	&& xDeviceTable.sanitize (context, this)
+	&& yDeviceTable.sanitize (context, this);
   }
 
   private:
@@ -343,7 +343,7 @@ struct AnchorMatrix
     unsigned int count = rows * cols;
     if (!context->check_array (matrix, matrix[0].get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_WITH_BASE (this, matrix[i])) return false;
+      if (!matrix[i].sanitize (context, this)) return false;
     return true;
   }
 
@@ -365,7 +365,7 @@ struct MarkRecord
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_WITH_BASE (base, markAnchor);
+	&& markAnchor.sanitize (context, base);
   }
 
   private:
@@ -408,7 +408,7 @@ struct MarkArray
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, markRecord);
+    return markRecord.sanitize (context, this);
   }
 
   private:
@@ -441,7 +441,7 @@ struct SinglePosFormat1
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_WITH_BASE (this, coverage)
+	&& coverage.sanitize (context, this)
 	&& valueFormat.sanitize_value (context, CharP(this), values);
   }
 
@@ -484,7 +484,7 @@ struct SinglePosFormat2
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_WITH_BASE (this, coverage)
+	&& coverage.sanitize (context, this)
 	&& valueFormat.sanitize_values (context, CharP(this), values, valueCount);
   }
 
@@ -623,7 +623,7 @@ struct PairPosFormat1
     unsigned int len2 = valueFormat2.get_len ();
 
     if (!(SANITIZE_SELF ()
-       && SANITIZE_WITH_BASE (this, coverage)
+       && coverage.sanitize (context, this)
        && likely (pairSet.sanitize (context, CharP(this), len1 + len2)))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
@@ -632,10 +632,10 @@ struct PairPosFormat1
     unsigned int count1 = pairSet.len;
     for (unsigned int i = 0; i < count1; i++)
     {
-      const PairSet &pair_set = this+pairSet[i];
+      PairSet &pair_set = const_cast<PairSet &> (this+pairSet[i]); /* XXX clean this up */
 
       unsigned int count2 = pair_set.len;
-      const PairValueRecord *record = pair_set.array;
+      PairValueRecord *record = pair_set.array;
       if (!(valueFormat1.sanitize_values_stride_unsafe (context, CharP(this), &record->values[0], count2, stride) &&
 	    valueFormat2.sanitize_values_stride_unsafe (context, CharP(this), &record->values[len1], count2, stride)))
         return false;
@@ -708,9 +708,9 @@ struct PairPosFormat2
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (!(SANITIZE_SELF ()
-       && SANITIZE_WITH_BASE (this, coverage)
-       && SANITIZE_WITH_BASE (this, classDef1)
-       && SANITIZE_WITH_BASE (this, classDef2))) return false;
+       && coverage.sanitize (context, this)
+       && classDef1.sanitize (context, this)
+       && classDef2.sanitize (context, this))) return false;
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
@@ -791,8 +791,8 @@ struct EntryExitRecord
 
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (base, entryAnchor)
-	&& SANITIZE_WITH_BASE (base, exitAnchor);
+    return entryAnchor.sanitize (context, base)
+	&& exitAnchor.sanitize (context, base);
   }
 
   OffsetTo<Anchor>
@@ -988,8 +988,8 @@ struct CursivePosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, entryExitRecord);
+    return coverage.sanitize (context, this)
+	&& entryExitRecord.sanitize (context, this);
   }
 
   private:
@@ -1077,9 +1077,9 @@ struct MarkBasePosFormat1
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-        && SANITIZE_WITH_BASE (this, markCoverage)
-	&& SANITIZE_WITH_BASE (this, baseCoverage)
-	&& SANITIZE_WITH_BASE (this, markArray)
+        && markCoverage.sanitize (context, this)
+	&& baseCoverage.sanitize (context, this)
+	&& markArray.sanitize (context, this)
 	&& likely (baseArray.sanitize (context, CharP(this), (unsigned int) classCount));
   }
 
@@ -1201,9 +1201,9 @@ struct MarkLigPosFormat1
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-        && SANITIZE_WITH_BASE (this, markCoverage)
-	&& SANITIZE_WITH_BASE (this, ligatureCoverage)
-	&& SANITIZE_WITH_BASE (this, markArray)
+        && markCoverage.sanitize (context, this)
+	&& ligatureCoverage.sanitize (context, this)
+	&& markArray.sanitize (context, this)
 	&& likely (ligatureArray.sanitize (context, CharP(this), (unsigned int) classCount));
   }
 
@@ -1304,9 +1304,9 @@ struct MarkMarkPosFormat1
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_WITH_BASE (this, mark1Coverage)
-	&& SANITIZE_WITH_BASE (this, mark2Coverage)
-	&& SANITIZE_WITH_BASE (this, mark1Array)
+	&& mark1Coverage.sanitize (context, this)
+	&& mark2Coverage.sanitize (context, this)
+	&& mark1Array.sanitize (context, this)
 	&& likely (mark2Array.sanitize (context, CharP(this), (unsigned int) classCount));
   }
 
@@ -1548,7 +1548,7 @@ struct PosLookup : Lookup
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (context))) return false;
     OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
-    return SANITIZE_WITH_BASE (this, list);
+    return list.sanitize (context, this);
   }
 };
 
@@ -1576,7 +1576,7 @@ struct GPOS : GSUBGPOS
     TRACE_SANITIZE ();
     if (unlikely (!GSUBGPOS::sanitize (context))) return false;
     OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
-    return SANITIZE_WITH_BASE (this, list);
+    return list.sanitize (context, this);
   }
 };
 ASSERT_SIZE (GPOS, 10);

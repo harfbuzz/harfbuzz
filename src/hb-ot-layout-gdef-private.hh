@@ -69,8 +69,8 @@ struct AttachList
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, attachPoint);
+    return coverage.sanitize (context, this)
+	&& attachPoint.sanitize (context, this);
   }
 
   private:
@@ -149,7 +149,7 @@ struct CaretValueFormat3
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE_SELF ()
-	&& SANITIZE_WITH_BASE (this, deviceTable);
+	&& deviceTable.sanitize (context, this);
   }
 
   private:
@@ -214,7 +214,7 @@ struct LigGlyph
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, carets);
+    return carets.sanitize (context, this);
   }
 
   private:
@@ -246,8 +246,8 @@ struct LigCaretList
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, ligGlyph);
+    return coverage.sanitize (context, this)
+	&& ligGlyph.sanitize (context, this);
   }
 
   private:
@@ -268,7 +268,7 @@ struct MarkGlyphSetsFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage);
+    return coverage.sanitize (context, this);
   }
 
   private:
@@ -352,11 +352,11 @@ struct GDEF
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE (version) && likely (version.major == 1)
-	&& SANITIZE_WITH_BASE (this, glyphClassDef)
-	&& SANITIZE_WITH_BASE (this, attachList)
-	&& SANITIZE_WITH_BASE (this, ligCaretList)
-	&& SANITIZE_WITH_BASE (this, markAttachClassDef)
-	&& (version < 0x00010002 || SANITIZE_WITH_BASE (this, markGlyphSetsDef[0]));
+	&& glyphClassDef.sanitize (context, this)
+	&& attachList.sanitize (context, this)
+	&& ligCaretList.sanitize (context, this)
+	&& markAttachClassDef.sanitize (context, this)
+	&& (version < 0x00010002 || markGlyphSetsDef[0].sanitize (context, this));
   }
 
   private:

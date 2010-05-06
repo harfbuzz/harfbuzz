@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007,2008,2009  Red Hat, Inc.
+ * Copyright (C) 2007,2008,2009,2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -323,7 +323,7 @@ struct RuleSet
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, rule);
+    return rule.sanitize (context, this);
   }
 
   private:
@@ -355,8 +355,8 @@ struct ContextFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, ruleSet);
+    return coverage.sanitize (context, this)
+	&& ruleSet.sanitize (context, this);
   }
 
   private:
@@ -398,9 +398,9 @@ struct ContextFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-        && SANITIZE_WITH_BASE (this, classDef)
-	&& SANITIZE_WITH_BASE (this, ruleSet);
+    return coverage.sanitize (context, this)
+        && classDef.sanitize (context, this)
+	&& ruleSet.sanitize (context, this);
   }
 
   private:
@@ -447,7 +447,7 @@ struct ContextFormat3
     unsigned int count = glyphCount;
     if (!context->check_array (coverage, OffsetTo<Coverage>::get_size (), count)) return false;
     for (unsigned int i = 0; i < count; i++)
-      if (!SANITIZE_WITH_BASE (this, coverage[i])) return false;
+      if (!coverage[i].sanitize (context, this)) return false;
     LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * count);
     return context->check_array (lookupRecord, LookupRecord::get_size (), lookupCount);
   }
@@ -609,7 +609,7 @@ struct ChainRuleSet
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, rule);
+    return rule.sanitize (context, this);
   }
 
   private:
@@ -641,8 +641,8 @@ struct ChainContextFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, ruleSet);
+    return coverage.sanitize (context, this)
+	&& ruleSet.sanitize (context, this);
   }
 
   private:
@@ -688,11 +688,11 @@ struct ChainContextFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, backtrackClassDef)
-	&& SANITIZE_WITH_BASE (this, inputClassDef)
-	&& SANITIZE_WITH_BASE (this, lookaheadClassDef)
-	&& SANITIZE_WITH_BASE (this, ruleSet);
+    return coverage.sanitize (context, this)
+	&& backtrackClassDef.sanitize (context, this)
+	&& inputClassDef.sanitize (context, this)
+	&& lookaheadClassDef.sanitize (context, this)
+	&& ruleSet.sanitize (context, this);
   }
 
   private:
@@ -750,11 +750,11 @@ struct ChainContextFormat3
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!SANITIZE_WITH_BASE (this, backtrack)) return false;
+    if (!backtrack.sanitize (context, this)) return false;
     OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    if (!SANITIZE_WITH_BASE (this, input)) return false;
+    if (!input.sanitize (context, this)) return false;
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
-    if (!SANITIZE_WITH_BASE (this, lookahead)) return false;
+    if (!lookahead.sanitize (context, this)) return false;
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return SANITIZE (lookup);
   }
@@ -914,9 +914,9 @@ struct GSUBGPOS
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return SANITIZE (version) && likely (version.major == 1)
-	&& SANITIZE_WITH_BASE (this, scriptList)
-	&& SANITIZE_WITH_BASE (this, featureList)
-	&& SANITIZE_WITH_BASE (this, lookupList);
+	&& scriptList.sanitize (context, this)
+	&& featureList.sanitize (context, this)
+	&& lookupList.sanitize (context, this);
   }
 
   protected:

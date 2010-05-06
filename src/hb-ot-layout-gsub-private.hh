@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007,2008,2009  Red Hat, Inc.
+ * Copyright (C) 2007,2008,2009,2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -60,7 +60,7 @@ struct SingleSubstFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
+    return coverage.sanitize (context, this)
 	&& SANITIZE (deltaGlyphID);
   }
 
@@ -103,7 +103,7 @@ struct SingleSubstFormat2
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
+    return coverage.sanitize (context, this)
 	&& SANITIZE (substitute);
   }
 
@@ -214,8 +214,8 @@ struct MultipleSubstFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, sequence);
+    return coverage.sanitize (context, this)
+	&& sequence.sanitize (context, this);
   }
 
   private:
@@ -310,8 +310,8 @@ struct AlternateSubstFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, alternateSet);
+    return coverage.sanitize (context, this)
+	&& alternateSet.sanitize (context, this);
   }
 
   private:
@@ -463,7 +463,7 @@ struct LigatureSet
   public:
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, ligature);
+    return ligature.sanitize (context, this);
   }
 
   private:
@@ -495,8 +495,8 @@ struct LigatureSubstFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, coverage)
-	&& SANITIZE_WITH_BASE (this, ligatureSet);
+    return coverage.sanitize (context, this)
+	&& ligatureSet.sanitize (context, this);
   }
 
   private:
@@ -626,11 +626,11 @@ struct ReverseChainSingleSubstFormat1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!(SANITIZE_WITH_BASE (this, coverage)
-       && SANITIZE_WITH_BASE (this, backtrack)))
+    if (!(coverage.sanitize (context, this)
+       && backtrack.sanitize (context, this)))
       return false;
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    if (!SANITIZE_WITH_BASE (this, lookahead))
+    if (!lookahead.sanitize (context, this))
       return false;
     ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     return SANITIZE (substitute);
@@ -860,7 +860,7 @@ struct SubstLookup : Lookup
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (context))) return false;
     OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
-    return SANITIZE_WITH_BASE (this, list);
+    return list.sanitize (context, this);
   }
 };
 
@@ -884,12 +884,11 @@ struct GSUB : GSUBGPOS
 				 hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (layout, buffer, mask); }
 
-
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     if (unlikely (!GSUBGPOS::sanitize (context))) return false;
     OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
-    return SANITIZE_WITH_BASE (this, list);
+    return list.sanitize (context, this);
   }
 };
 ASSERT_SIZE (GSUB, 10);

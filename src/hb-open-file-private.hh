@@ -127,7 +127,7 @@ struct TTCHeaderVersion1
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return SANITIZE_WITH_BASE (this, table);
+    return table.sanitize (context, this);
   }
 
   private:

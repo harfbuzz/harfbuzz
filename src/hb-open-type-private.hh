@@ -240,8 +240,6 @@ struct hb_sanitize_context_t
 
 #define SANITIZE(X) likely ((X).sanitize (context))
 
-#define SANITIZE_WITH_BASE(B,X) likely ((X).sanitize (context, CharP(B)))
-
 #define SANITIZE_SELF() likely(context->check_range (this, sizeof (*this)))
 
 
