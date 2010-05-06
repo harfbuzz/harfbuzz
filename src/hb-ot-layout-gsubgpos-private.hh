@@ -172,19 +172,18 @@ static inline bool match_lookahead (hb_apply_context_t *context,
 
 struct LookupRecord
 {
-  static inline unsigned int get_size () { return sizeof (LookupRecord); }
-
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return context->check_struct (this);
   }
+
+  DEFINE_SIZE_STATIC (4);
 
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
 					 * position--zero--based */
 };
-ASSERT_SIZE (LookupRecord, 4);
 
 static inline bool apply_lookup (hb_apply_context_t *context,
 				 unsigned int count, /* Including the first glyph */
@@ -277,7 +276,7 @@ struct Rule
   inline bool apply (hb_apply_context_t *context, ContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].get_size () * (inputCount ? inputCount - 1 : 0));
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
     return context_lookup (context,
 			   inputCount, input,
 			   lookupCount, lookupRecord,
@@ -290,8 +289,8 @@ struct Rule
     return inputCount.sanitize (context)
 	&& lookupCount.sanitize (context)
 	&& context->check_range (input,
-				 input[0].get_size () * inputCount
-				 + lookupRecordX[0].get_size () * lookupCount);
+				 input[0].static_size * inputCount
+				 + lookupRecordX[0].static_size * lookupCount);
   }
 
   private:
@@ -430,7 +429,7 @@ struct ContextFormat3
     if (likely (index == NOT_COVERED))
       return false;
 
-    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].get_size () * glyphCount);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
        CharP(this)
@@ -445,11 +444,11 @@ struct ContextFormat3
     TRACE_SANITIZE ();
     if (!context->check_struct (this)) return false;
     unsigned int count = glyphCount;
-    if (!context->check_array (coverage, OffsetTo<Coverage>::get_size (), count)) return false;
+    if (!context->check_array (coverage, coverage[0].static_size, count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!coverage[i].sanitize (context, this)) return false;
-    LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, OffsetTo<Coverage>::get_size () * count);
-    return context->check_array (lookupRecord, LookupRecord::get_size (), lookupCount);
+    LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * count);
+    return context->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount);
   }
 
   private:

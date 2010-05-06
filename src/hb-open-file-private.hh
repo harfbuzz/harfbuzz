@@ -47,12 +47,12 @@ struct TTCHeader;
 
 typedef struct TableDirectory
 {
-  static inline unsigned int get_size () { return sizeof (TableDirectory); }
-
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return context->check_struct (this);
   }
+
+  DEFINE_SIZE_STATIC (16);
 
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
@@ -60,7 +60,6 @@ typedef struct TableDirectory
 				 * file. */
   ULONG		length;		/* Length of this table. */
 } OpenTypeTable;
-ASSERT_SIZE (TableDirectory, 16);
 
 typedef struct OffsetTable
 {
@@ -101,7 +100,7 @@ typedef struct OffsetTable
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return context->check_struct (this)
-	&& context->check_array (tableDir, TableDirectory::get_size (), numTables);
+	&& context->check_array (tableDir, TableDirectory::static_size, numTables);
   }
 
   private:

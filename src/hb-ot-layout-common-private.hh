@@ -51,13 +51,13 @@
 template <typename Type>
 struct Record
 {
-  static inline unsigned int get_size () { return sizeof (Record<Type>); }
-
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return context->check_struct (this)
 	&& offset.sanitize (context, base);
   }
+
+  DEFINE_SIZE_STATIC (6);
 
   Tag		tag;		/* 4-byte Tag identifier */
   OffsetTo<Type>
@@ -350,8 +350,6 @@ struct CoverageRangeRecord
 {
   friend struct CoverageFormat2;
 
-  static inline unsigned int get_size () { return sizeof (CoverageRangeRecord); }
-
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
@@ -366,13 +364,14 @@ struct CoverageRangeRecord
     return context->check_struct (this);
   }
 
+  DEFINE_SIZE_STATIC (6);
+
   private:
   GlyphID	start;			/* First GlyphID in the range */
   GlyphID	end;			/* Last GlyphID in the range */
   USHORT	startCoverageIndex;	/* Coverage Index of first GlyphID in
 					 * range */
 };
-ASSERT_SIZE (CoverageRangeRecord, 6);
 DEFINE_NULL_DATA (CoverageRangeRecord, 6, "\000\001");
 
 struct CoverageFormat2
@@ -472,8 +471,6 @@ struct ClassRangeRecord
 {
   friend struct ClassDefFormat2;
 
-  static inline unsigned int get_size () { return sizeof (ClassRangeRecord); }
-
   private:
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
@@ -488,12 +485,13 @@ struct ClassRangeRecord
     return context->check_struct (this);
   }
 
+  DEFINE_SIZE_STATIC (6);
+
   private:
   GlyphID	start;		/* First GlyphID in the range */
   GlyphID	end;		/* Last GlyphID in the range */
   USHORT	classValue;	/* Applied to all glyphs in the range */
 };
-ASSERT_SIZE (ClassRangeRecord, 6);
 DEFINE_NULL_DATA (ClassRangeRecord, 6, "\000\001");
 
 struct ClassDefFormat2

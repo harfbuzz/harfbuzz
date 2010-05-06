@@ -86,6 +86,29 @@ inline Type& StructAfter(TObject &X)
 
 
 /*
+ * Size checking
+ */
+
+#define DEFINE_SIZE_STATIC(size) \
+  inline void _size_assertion (void) const \
+  { ASSERT_STATIC (sizeof (*this) == (size)); } \
+  static inline unsigned int get_size (void) { return (size); } \
+  static const unsigned int static_size = (size); \
+  static const unsigned int min_size = (size)
+
+#define DEFINE_SIZE_VAR(size, _var_type) \
+  inline void _size_assertion (void) const \
+  { ASSERT_STATIC (sizeof (*this) == (size) + VAR0 * sizeof (_var_type)); } \
+  static const unsigned int min_size = (size)
+
+#define DEFINE_SIZE_VAR2(_type, size, _var_type1, _var_type2) \
+  inline void _size_assertion (void) const \
+  { ASSERT_STATIC (sizeof (*this) == (size) + VAR0 * sizeof (_var_type1) + VAR0 * sizeof (_var_type2)); } \
+  static const unsigned int min_size = (size)
+
+
+
+/*
  * Null objects
  */
 
@@ -348,7 +371,6 @@ class BEInt<Type, 4>
 template <typename Type>
 struct IntType
 {
-  static inline unsigned int get_size () { return sizeof (Type); }
   inline void set (Type i) { v = i; }
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
@@ -357,6 +379,7 @@ struct IntType
     TRACE_SANITIZE ();
     return context->check_struct (this);
   }
+  DEFINE_SIZE_STATIC (sizeof (Type));
   private: BEInt<Type, sizeof (Type)> v;
 };
 
@@ -364,11 +387,6 @@ typedef IntType<uint16_t> USHORT;	/* 16-bit unsigned integer. */
 typedef IntType<int16_t>  SHORT;	/* 16-bit signed integer. */
 typedef IntType<uint32_t> ULONG;	/* 32-bit unsigned integer. */
 typedef IntType<int32_t>  LONG;		/* 32-bit signed integer. */
-
-ASSERT_SIZE (USHORT, 2);
-ASSERT_SIZE (SHORT, 2);
-ASSERT_SIZE (ULONG, 4);
-ASSERT_SIZE (LONG, 4);
 
 /* Array of four uint8s (length = 32 bits) used to identify a script, language
  * system, feature, or baseline */
@@ -397,7 +415,7 @@ struct CheckSum : ULONG
   static uint32_t CalcTableChecksum (ULONG *Table, uint32_t Length)
   {
     uint32_t Sum = 0L;
-    ULONG *EndPtr = Table+((Length+3) & ~3) / ULONG::get_size ();
+    ULONG *EndPtr = Table+((Length+3) & ~3) / ULONG::static_size;
 
     while (Table < EndPtr)
       Sum += *Table++;
@@ -463,7 +481,7 @@ struct GenericOffsetTo : OffsetType
   private:
   /* Set the offset to Null */
   inline bool neuter (hb_sanitize_context_t *context) {
-    if (context->can_edit (CharP(this), this->get_size ())) {
+    if (context->can_edit (CharP(this), this->static_size)) {
       this->set (0); /* 0 is Null offset */
       return true;
     }
@@ -508,7 +526,7 @@ struct GenericArrayOf
     return array()[i];
   }
   inline unsigned int get_size () const
-  { return len.get_size () + len * Type::get_size (); }
+  { return len.static_size + len * Type::static_size; }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
@@ -551,7 +569,7 @@ struct GenericArrayOf
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
     return context->check_struct (this)
-	&& context->check_array (this, Type::get_size (), len);
+	&& context->check_array (this, Type::static_size, len);
   }
 
   public:
@@ -615,11 +633,11 @@ struct HeadlessArrayOf
     return array()[i-1];
   }
   inline unsigned int get_size () const
-  { return len.get_size () + (len ? len - 1 : 0) * Type::get_size (); }
+  { return len.static_size + (len ? len - 1 : 0) * Type::static_size; }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *context) {
     return context->check_struct (this)
-	&& context->check_array (this, Type::get_size (), len);
+	&& context->check_array (this, Type::static_size, len);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {

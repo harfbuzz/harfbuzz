@@ -90,7 +90,7 @@ struct ValueFormat : USHORT
   inline unsigned int get_len () const
   { return _hb_popcount32 ((unsigned int) *this); }
   inline unsigned int get_size () const
-  { return get_len () * Value::get_size (); }
+  { return get_len () * Value::static_size; }
 
   void apply_value (hb_ot_layout_context_t       *layout,
 		    const char                   *base,
@@ -349,7 +349,7 @@ struct AnchorMatrix
     if (!context->check_struct (this)) return false;
     if (unlikely (cols >= ((unsigned int) -1) / rows)) return false;
     unsigned int count = rows * cols;
-    if (!context->check_array (matrix, matrix[0].get_size (), count)) return false;
+    if (!context->check_array (matrix, matrix[0].static_size, count)) return false;
     for (unsigned int i = 0; i < count; i++)
       if (!matrix[i].sanitize (context, this)) return false;
     return true;
@@ -368,21 +368,19 @@ struct MarkRecord
 {
   friend struct MarkArray;
 
-  static inline unsigned int get_size () { return sizeof (MarkRecord); }
-
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return context->check_struct (this)
 	&& markAnchor.sanitize (context, base);
   }
 
+  DEFINE_SIZE_STATIC (4);
   private:
   USHORT	klass;			/* Class defined for this mark */
   OffsetTo<Anchor>
 		markAnchor;		/* Offset to Anchor table--from
 					 * beginning of MarkArray table */
 };
-ASSERT_SIZE (MarkRecord, 4);
 
 struct MarkArray
 {
@@ -565,7 +563,7 @@ struct PairSet
     TRACE_SANITIZE ();
     if (!context->check_struct (this)) return false;
     unsigned int count = (1 + format_len) * len;
-    return context->check_array (array, USHORT::get_size (), count);
+    return context->check_array (array, USHORT::static_size, count);
   }
 
   private:
@@ -602,7 +600,7 @@ struct PairPosFormat1
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
-    unsigned int record_size = USHORT::get_size () * (1 + len1 + len2);
+    unsigned int record_size = USHORT::static_size * (1 + len1 + len2);
 
     const PairSet &pair_set = this+pairSet[index];
     unsigned int count = pair_set.len;
@@ -795,13 +793,13 @@ struct PairPos
 
 struct EntryExitRecord
 {
-  static inline unsigned int get_size () { return sizeof (EntryExitRecord); }
-
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return entryAnchor.sanitize (context, base)
 	&& exitAnchor.sanitize (context, base);
   }
+
+  DEFINE_SIZE_STATIC (4);
 
   OffsetTo<Anchor>
 		entryAnchor;		/* Offset to EntryAnchor table--from
@@ -812,7 +810,6 @@ struct EntryExitRecord
 					 * beginning of CursivePos
 					 * subtable--may be NULL */
 };
-ASSERT_SIZE (EntryExitRecord, 4);
 
 struct CursivePosFormat1
 {
