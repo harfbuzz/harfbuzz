@@ -375,6 +375,7 @@ struct MarkRecord
   }
 
   DEFINE_SIZE_STATIC (4);
+
   private:
   USHORT	klass;			/* Class defined for this mark */
   OffsetTo<Anchor>
