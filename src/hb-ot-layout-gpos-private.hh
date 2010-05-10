@@ -618,7 +618,7 @@ struct PairPosFormat1
 	context->buffer->in_pos = j;
 	return true;
       }
-      record = &StructAtOffset<PairValueRecord> (*record, record_size);
+      record = &StructAtOffset<PairValueRecord> (record, record_size);
     }
 
     return false;
@@ -1409,7 +1409,7 @@ struct ExtensionPos : Extension
   {
     unsigned int offset = get_offset ();
     if (unlikely (!offset)) return Null(PosLookupSubTable);
-    return StructAtOffset<PosLookupSubTable> (*this, offset);
+    return StructAtOffset<PosLookupSubTable> (this, offset);
   }
 
   inline bool apply (hb_apply_context_t *context) const;
@@ -1608,7 +1608,7 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
   if (unlikely (!Extension::sanitize (context))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
-  return StructAtOffset<PosLookupSubTable> (*this, offset).sanitize (context);
+  return StructAtOffset<PosLookupSubTable> (this, offset).sanitize (context);
 }
 
 static inline bool position_lookup (hb_apply_context_t *context, unsigned int lookup_index)

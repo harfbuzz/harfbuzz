@@ -65,23 +65,23 @@ template<typename Type, typename TObject>
 inline Type* CastP(TObject *X)
 { return reinterpret_cast<Type*> (X); }
 
-/* StructAtOffset<T>(X,Ofs) returns the struct T& that is placed at memory
- * location of X plus Ofs bytes. */
-template<typename Type, typename TObject>
-inline const Type& StructAtOffset(const TObject &X, unsigned int offset)
-{ return * reinterpret_cast<const Type*> (CharP(&X) + offset); }
-template<typename Type, typename TObject>
-inline Type& StructAtOffset(TObject &X, unsigned int offset)
-{ return * reinterpret_cast<Type*> (CharP(&X) + offset); }
+/* StructAtOffset<T>(P,Ofs) returns the struct T& that is placed at memory
+ * location pointed to by P plus Ofs bytes. */
+template<typename Type>
+inline const Type& StructAtOffset(const void *P, unsigned int offset)
+{ return * reinterpret_cast<const Type*> (CharP(P) + offset); }
+template<typename Type>
+inline Type& StructAtOffset(void *P, unsigned int offset)
+{ return * reinterpret_cast<Type*> (CharP(P) + offset); }
 
 /* StructAfter<T>(X) returns the struct T& that is placed after X.
  * Works with X of variable size also.  X must implement get_size() */
 template<typename Type, typename TObject>
 inline const Type& StructAfter(const TObject &X)
-{ return StructAtOffset<Type>(X, X.get_size()); }
+{ return StructAtOffset<Type>(&X, X.get_size()); }
 template<typename Type, typename TObject>
 inline Type& StructAfter(TObject &X)
-{ return StructAtOffset<Type>(X, X.get_size()); }
+{ return StructAtOffset<Type>(&X, X.get_size()); }
 
 
 
@@ -472,7 +472,7 @@ struct GenericOffsetTo : OffsetType
   {
     unsigned int offset = *this;
     if (unlikely (!offset)) return Null(Type);
-    return StructAtOffset<Type> (*CharP(base), offset);
+    return StructAtOffset<Type> (base, offset);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
@@ -480,7 +480,7 @@ struct GenericOffsetTo : OffsetType
     if (!context->check_struct (this)) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    Type &obj = StructAtOffset<Type> (*CharP(base), offset);
+    Type &obj = StructAtOffset<Type> (base, offset);
     return likely (obj.sanitize (context)) || neuter (context);
   }
   template <typename T>
@@ -489,7 +489,7 @@ struct GenericOffsetTo : OffsetType
     if (!context->check_struct (this)) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
-    Type &obj = StructAtOffset<Type> (*CharP(base), offset);
+    Type &obj = StructAtOffset<Type> (base, offset);
     return likely (obj.sanitize (context, user_data)) || neuter (context);
   }
 

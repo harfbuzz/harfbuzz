@@ -586,7 +586,7 @@ struct ExtensionSubst : Extension
   {
     unsigned int offset = get_offset ();
     if (unlikely (!offset)) return Null(SubstLookupSubTable);
-    return StructAtOffset<SubstLookupSubTable> (*this, offset);
+    return StructAtOffset<SubstLookupSubTable> (this, offset);
   }
 
   inline bool apply (hb_apply_context_t *context) const;
@@ -916,7 +916,7 @@ inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *context)
   if (unlikely (!Extension::sanitize (context))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
-  return StructAtOffset<SubstLookupSubTable> (*this, offset).sanitize (context);
+  return StructAtOffset<SubstLookupSubTable> (this, offset).sanitize (context);
 }
 
 inline bool ExtensionSubst::is_reverse (void) const
