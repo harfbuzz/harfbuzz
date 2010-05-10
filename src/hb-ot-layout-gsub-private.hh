@@ -117,7 +117,7 @@ struct SingleSubstFormat2
 		substitute;		/* Array of substitute
 					 * GlyphIDs--ordered by Coverage Index */
   public:
-  DEFINE_SIZE_VAR (6, GlyphID);
+  DEFINE_SIZE_ARRAY (6, substitute);
 };
 
 struct SingleSubst
@@ -195,7 +195,7 @@ struct Sequence
   ArrayOf<GlyphID>
 		substitute;		/* String of GlyphIDs to substitute */
   public:
-  DEFINE_SIZE_VAR (2, GlyphID);
+  DEFINE_SIZE_ARRAY (2, substitute);
 };
 
 struct MultipleSubstFormat1
@@ -230,7 +230,7 @@ struct MultipleSubstFormat1
 		sequence;		/* Array of Sequence tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_VAR (6, OffsetTo<Sequence>);
+  DEFINE_SIZE_ARRAY (6, sequence);
 };
 
 struct MultipleSubst
@@ -326,7 +326,7 @@ struct AlternateSubstFormat1
 		alternateSet;		/* Array of AlternateSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_VAR (6, OffsetTo<AlternateSet>);
+  DEFINE_SIZE_ARRAY (6, alternateSet);
 };
 
 struct AlternateSubst
@@ -443,7 +443,7 @@ struct Ligature
 					 * with the second  component--ordered
 					 * in writing direction */
   public:
-  DEFINE_SIZE_VAR (4, GlyphID);
+  DEFINE_SIZE_ARRAY (4, component);
 };
 
 struct LigatureSet
@@ -476,7 +476,7 @@ struct LigatureSet
 		ligature;		/* Array LigatureSet tables
 					 * ordered by preference */
   public:
-  DEFINE_SIZE_VAR (2, OffsetTo<Ligature>);
+  DEFINE_SIZE_ARRAY (2, ligature);
 };
 
 struct LigatureSubstFormat1
@@ -514,7 +514,7 @@ struct LigatureSubstFormat1
 		ligatureSet;		/* Array LigatureSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_VAR (6, OffsetTo<LigatureSet>);
+  DEFINE_SIZE_ARRAY (6, ligatureSet);
 };
 
 struct LigatureSubst

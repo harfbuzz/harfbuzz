@@ -80,7 +80,7 @@ struct AttachList
 		attachPoint;		/* Array of AttachPoint tables
 					 * in Coverage Index order */
   public:
-  DEFINE_SIZE_VAR (4, OffsetTo<AttachPoint>);
+  DEFINE_SIZE_ARRAY (4, attachPoint);
 };
 
 /*
@@ -228,7 +228,7 @@ struct LigGlyph
 					 * --from beginning of LigGlyph table
 					 * --in increasing coordinate order */
   public:
-  DEFINE_SIZE_VAR (2, OffsetTo<CaretValue>);
+  DEFINE_SIZE_ARRAY (2, carets);
 };
 
 struct LigCaretList
@@ -264,7 +264,7 @@ struct LigCaretList
 		ligGlyph;		/* Array of LigGlyph tables
 					 * in Coverage Index order */
   public:
-  DEFINE_SIZE_VAR (4, OffsetTo<LigGlyph>);
+  DEFINE_SIZE_ARRAY (4, ligGlyph);
 };
 
 
@@ -284,7 +284,7 @@ struct MarkGlyphSetsFormat1
 		coverage;		/* Array of long offsets to mark set
 					 * coverage tables */
   public:
-  DEFINE_SIZE_VAR (4, LongOffsetTo<Coverage>);
+  DEFINE_SIZE_ARRAY (4, coverage);
 };
 
 struct MarkGlyphSets
@@ -394,7 +394,7 @@ struct GDEF
 					 * header (may be NULL).  Introduced
 					 * in version 00010002. */
   public:
-  DEFINE_SIZE_VAR (12, OffsetTo<MarkGlyphSets>);
+  DEFINE_SIZE_ARRAY (12, markGlyphSetsDef);
 };
 
 

@@ -119,10 +119,13 @@ struct RecordListOf : RecordArrayOf<Type>
 
 struct IndexArray : ArrayOf<USHORT>
 {
-  inline unsigned int operator [] (unsigned int i) const
+  inline USHORT operator [] (unsigned int i) const
   {
-    if (unlikely (i >= this->len))
-      return NO_INDEX;
+    if (unlikely (i >= this->len)) {
+      USHORT u;
+      u.set (NO_INDEX);
+      return u;
+    }
     return this->array[i];
   }
   inline unsigned int get_indexes (unsigned int start_offset,
@@ -177,7 +180,7 @@ struct LangSys
 				 * = 0xFFFF */
   IndexArray	featureIndex;	/* Array of indices into the FeatureList */
   public:
-  DEFINE_SIZE_VAR (6, USHORT);
+  DEFINE_SIZE_ARRAY (6, featureIndex);
 };
 DEFINE_NULL_DATA (LangSys, "\0\0\xFF\xFF");
 
@@ -217,7 +220,7 @@ struct Script
 		langSys;	/* Array of LangSysRecords--listed
 				 * alphabetically by LangSysTag */
   public:
-  DEFINE_SIZE_VAR (4, Record<LangSys>);
+  DEFINE_SIZE_ARRAY (4, langSys);
 };
 
 typedef RecordListOf<Script> ScriptList;
@@ -248,7 +251,7 @@ struct Feature
 				 * if not required */
   IndexArray	 lookupIndex;	/* Array of LookupList indices */
   public:
-  DEFINE_SIZE_VAR (4, USHORT);
+  DEFINE_SIZE_ARRAY (4, lookupIndex);
 };
 
 typedef RecordListOf<Feature> FeatureList;
@@ -307,7 +310,7 @@ struct Lookup
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
   public:
-  DEFINE_SIZE_VAR2 (6, subTable, markFilteringSetX);
+  DEFINE_SIZE_ARRAY2 (6, subTable, markFilteringSetX);
 };
 
 typedef OffsetListOf<Lookup> LookupList;
@@ -346,7 +349,7 @@ struct CoverageFormat1
   ArrayOf<GlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
   public:
-  DEFINE_SIZE_VAR (4, GlyphID);
+  DEFINE_SIZE_ARRAY (4, glyphArray);
 };
 
 struct CoverageRangeRecord
@@ -407,7 +410,7 @@ struct CoverageFormat2
 				 * Start GlyphID. rangeCount entries
 				 * long */
   public:
-  DEFINE_SIZE_VAR (4, CoverageRangeRecord);
+  DEFINE_SIZE_ARRAY (4, rangeRecord);
 };
 
 struct Coverage
@@ -471,7 +474,7 @@ struct ClassDefFormat1
   ArrayOf<USHORT>
 		classValue;		/* Array of Class Values--one per GlyphID */
   public:
-  DEFINE_SIZE_VAR (6, USHORT);
+  DEFINE_SIZE_ARRAY (6, classValue);
 };
 
 struct ClassRangeRecord
@@ -529,7 +532,7 @@ struct ClassDefFormat2
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID */
   public:
-  DEFINE_SIZE_VAR (4, ClassRangeRecord);
+  DEFINE_SIZE_ARRAY (4, rangeRecord);
 };
 
 struct ClassDef
@@ -620,7 +623,7 @@ struct Device
 					 */
   USHORT	deltaValue[VAR];	/* Array of compressed data */
   public:
-  DEFINE_SIZE_VAR (6, USHORT);
+  DEFINE_SIZE_ARRAY (6, deltaValue);
 };
 
 

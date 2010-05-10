@@ -303,7 +303,7 @@ struct Rule
   LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
   public:
-  DEFINE_SIZE_VAR2 (4, input, lookupRecordX);
+  DEFINE_SIZE_ARRAY2 (4, input, lookupRecordX);
 };
 
 struct RuleSet
@@ -331,7 +331,7 @@ struct RuleSet
 		rule;			/* Array of Rule tables
 					 * ordered by preference */
   public:
-  DEFINE_SIZE_VAR (2, OffsetTo<Rule>);
+  DEFINE_SIZE_ARRAY (2, rule);
 };
 
 
@@ -370,7 +370,7 @@ struct ContextFormat1
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_VAR (6, OffsetTo<RuleSet>);
+  DEFINE_SIZE_ARRAY (6, ruleSet);
 };
 
 
@@ -418,7 +418,7 @@ struct ContextFormat2
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_VAR (8, OffsetTo<RuleSet>);
+  DEFINE_SIZE_ARRAY (8, ruleSet);
 };
 
 
@@ -467,7 +467,7 @@ struct ContextFormat3
   LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
   public:
-  DEFINE_SIZE_VAR2 (6, coverage, lookupRecordX);
+  DEFINE_SIZE_ARRAY2 (6, coverage, lookupRecordX);
 };
 
 struct Context
@@ -623,7 +623,7 @@ struct ChainRuleSet
 		rule;			/* Array of ChainRule tables
 					 * ordered by preference */
   public:
-  DEFINE_SIZE_VAR (2, OffsetTo<ChainRule>);
+  DEFINE_SIZE_ARRAY (2, rule);
 };
 
 struct ChainContextFormat1
@@ -661,7 +661,7 @@ struct ChainContextFormat1
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_VAR (6, OffsetTo<ChainRuleSet>);
+  DEFINE_SIZE_ARRAY (6, ruleSet);
 };
 
 struct ChainContextFormat2
@@ -724,7 +724,7 @@ struct ChainContextFormat2
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_VAR (12, OffsetTo<ChainRuleSet>);
+  DEFINE_SIZE_ARRAY (12, ruleSet);
 };
 
 struct ChainContextFormat3

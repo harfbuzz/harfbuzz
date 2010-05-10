@@ -40,7 +40,7 @@
 
 typedef USHORT Value;
 
-typedef Value ValueRecord[VAR0];
+typedef Value ValueRecord[VAR];
 
 struct ValueFormat : USHORT
 {
@@ -364,7 +364,7 @@ struct AnchorMatrix
 		matrix[VAR];		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
   public:
-  DEFINE_SIZE_VAR (2, OffsetTo<Anchor>);
+  DEFINE_SIZE_ARRAY (2, matrix);
 };
 
 
@@ -462,7 +462,7 @@ struct SinglePosFormat1
 					 * value(s)--applied to all glyphs in
 					 * the Coverage table */
   public:
-  DEFINE_SIZE_VAR (6, Value);
+  DEFINE_SIZE_ARRAY (6, values);
 };
 
 struct SinglePosFormat2
@@ -506,7 +506,7 @@ struct SinglePosFormat2
   ValueRecord	values;			/* Array of ValueRecords--positioning
 					 * values applied to glyphs */
   public:
-  DEFINE_SIZE_VAR (8, Value);
+  DEFINE_SIZE_ARRAY (8, values);
 };
 
 struct SinglePos
@@ -554,7 +554,7 @@ struct PairValueRecord
   ValueRecord	values;			/* Positioning data for the first glyph
 					 * followed by for second glyph */
   public:
-  DEFINE_SIZE_VAR (2, Value);
+  DEFINE_SIZE_ARRAY (2, values);
 };
 
 struct PairSet
@@ -571,11 +571,10 @@ struct PairSet
 
   private:
   USHORT	len;			/* Number of PairValueRecords */
-  PairValueRecord
-		array[VAR];		/* Array of PairValueRecords--ordered
+  USHORT	array[VAR];		/* Array of PairValueRecords--ordered
 					 * by GlyphID of the second glyph */
   public:
-  DEFINE_SIZE_VAR (2, PairValueRecord);
+  DEFINE_SIZE_ARRAY (2, array);
 };
 
 struct PairPosFormat1
@@ -608,7 +607,7 @@ struct PairPosFormat1
 
     const PairSet &pair_set = this+pairSet[index];
     unsigned int count = pair_set.len;
-    const PairValueRecord *record = pair_set.array;
+    const PairValueRecord *record = CastP<PairValueRecord> (pair_set.array);
     for (unsigned int i = 0; i < count; i++)
     {
       if (IN_GLYPH (j) == record->secondGlyph)
@@ -645,7 +644,7 @@ struct PairPosFormat1
       PairSet &pair_set = const_cast<PairSet &> (this+pairSet[i]); /* XXX clean this up */
 
       unsigned int count2 = pair_set.len;
-      PairValueRecord *record = pair_set.array;
+      PairValueRecord *record = CastP<PairValueRecord> (pair_set.array);
       if (!(valueFormat1.sanitize_values_stride_unsafe (context, this, &record->values[0], count2, stride) &&
 	    valueFormat2.sanitize_values_stride_unsafe (context, this, &record->values[len1], count2, stride)))
         return false;
@@ -669,7 +668,7 @@ struct PairPosFormat1
 		pairSet;		/* Array of PairSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_VAR (10, OffsetTo<PairSet>);
+  DEFINE_SIZE_ARRAY (10, pairSet);
 };
 
 struct PairPosFormat2
@@ -760,7 +759,7 @@ struct PairPosFormat2
 					 * class1-major, class2-minor,
 					 * Each entry has value1 and value2 */
   public:
-  DEFINE_SIZE_VAR (16, ValueRecord);
+  DEFINE_SIZE_ARRAY (16, values);
 };
 
 struct PairPos
@@ -1015,7 +1014,7 @@ struct CursivePosFormat1
 		entryExitRecord;	/* Array of EntryExit records--in
 					 * Coverage Index order */
   public:
-  DEFINE_SIZE_VAR (6, EntryExitRecord);
+  DEFINE_SIZE_ARRAY (6, entryExitRecord);
 };
 
 struct CursivePos

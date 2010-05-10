@@ -103,11 +103,11 @@ inline Type& StructAfter(TObject &X)
   _DEFINE_SIZE_ASSERTION (sizeof (*this) >= (size)); \
   static const unsigned int min_size = (size)
 
-#define DEFINE_SIZE_VAR(size, _var_type) \
-  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + VAR0 * sizeof (_var_type)); \
+#define DEFINE_SIZE_ARRAY(size, array) \
+  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + array[0].static_size); \
   static const unsigned int min_size = (size)
 
-#define DEFINE_SIZE_VAR2(size, array1, array2) \
+#define DEFINE_SIZE_ARRAY2(size, array1, array2) \
   _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + this->array1[0].static_size + this->array2[0].static_size); \
   static const unsigned int min_size = (size)
 
@@ -586,7 +586,7 @@ struct GenericArrayOf
   LenType len;
   Type array[VAR];
   public:
-  DEFINE_SIZE_VAR (sizeof (LenType), Type);
+  DEFINE_SIZE_ARRAY (sizeof (LenType), array);
 };
 
 /* An array with a USHORT number of elements. */
@@ -671,7 +671,7 @@ struct HeadlessArrayOf
   USHORT len;
   Type array[VAR];
   public:
-  DEFINE_SIZE_VAR (sizeof (USHORT), Type);
+  DEFINE_SIZE_ARRAY (sizeof (USHORT), array);
 };
 
 

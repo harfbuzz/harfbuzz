@@ -112,7 +112,7 @@ typedef struct OffsetTable
   USHORT	rangeShift;	/* NumTables x 16-searchRange. */
   TableDirectory tableDir[VAR];	/* TableDirectory entries. numTables items */
   public:
-  DEFINE_SIZE_VAR (12, TableDirectory);
+  DEFINE_SIZE_ARRAY (12, tableDir);
 } OpenTypeFontFace;
 
 
@@ -140,7 +140,7 @@ struct TTCHeaderVersion1
 		table;		/* Array of offsets to the OffsetTable for each font
 				 * from the beginning of the file */
   public:
-  DEFINE_SIZE_VAR (12, LongOffset);
+  DEFINE_SIZE_ARRAY (12, table);
 };
 
 struct TTCHeader
