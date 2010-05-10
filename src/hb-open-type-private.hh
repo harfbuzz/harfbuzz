@@ -330,6 +330,11 @@ struct Sanitizer
       return hb_blob_create_empty ();
     }
   }
+
+  static const Type* lock_instance (hb_blob_t *blob) {
+    const char *base = hb_blob_lock (blob);
+    return unlikely (!base) ? &Null(Type) : CastP<Type> (base);
+  }
 };
 
 

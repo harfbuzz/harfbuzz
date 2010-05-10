@@ -297,7 +297,7 @@ _hb_face_for_data_get_table (hb_tag_t tag, void *user_data)
 {
   hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) user_data;
 
-  const OpenTypeFontFile &ot_file = *CastP<OpenTypeFontFile> (hb_blob_lock (data->blob));
+  const OpenTypeFontFile &ot_file = *Sanitizer<OpenTypeFontFile>::lock_instance (data->blob);
   const OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
 
   const OpenTypeTable &table = ot_face.get_table_by_tag (tag);
