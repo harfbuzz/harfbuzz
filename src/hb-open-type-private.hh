@@ -89,9 +89,14 @@ inline Type& StructAfter(TObject &X)
  * Size checking
  */
 
+#define ASSERT_SIZE(_thing, _size) ASSERT_STATIC (sizeof (_thing) == (_size))
+
+#define _DEFINE_SIZE_ASSERTION(_size) \
+  inline void _size_assertion (void) const { ASSERT_SIZE (*this, _size); }
+
+
 #define DEFINE_SIZE_STATIC(size) \
-  inline void _size_assertion (void) const \
-  { ASSERT_STATIC (sizeof (*this) == (size)); } \
+  _DEFINE_SIZE_ASSERTION (size); \
   static inline unsigned int get_size (void) { return (size); } \
   static const unsigned int static_size = (size); \
   static const unsigned int min_size = (size)
@@ -101,18 +106,15 @@ inline Type& StructAfter(TObject &X)
 #define VAR0 (VAR+0)
 
 #define DEFINE_SIZE_VAR0(size) \
-  inline void _size_assertion (void) const \
-  { ASSERT_STATIC (sizeof (*this) == (size)); } \
+  _DEFINE_SIZE_ASSERTION (size); \
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_VAR(size, _var_type) \
-  inline void _size_assertion (void) const \
-  { ASSERT_STATIC (sizeof (*this) == (size) + VAR0 * sizeof (_var_type)); } \
+  _DEFINE_SIZE_ASSERTION ((size) + VAR0 * sizeof (_var_type)); \
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_VAR2(size, _var_type1, _var_type2) \
-  inline void _size_assertion (void) const \
-  { ASSERT_STATIC (sizeof (*this) == (size) + VAR0 * sizeof (_var_type1) + VAR0 * sizeof (_var_type2)); } \
+  _DEFINE_SIZE_ASSERTION ((size) + VAR0 * sizeof (_var_type1) + VAR0 * sizeof (_var_type2)); \
   static const unsigned int min_size = (size)
 
 
