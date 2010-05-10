@@ -45,6 +45,7 @@ struct OpenTypeFontFile;
 struct OffsetTable;
 struct TTCHeader;
 
+
 typedef struct TableDirectory
 {
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -52,13 +53,13 @@ typedef struct TableDirectory
     return context->check_struct (this);
   }
 
-  DEFINE_SIZE_STATIC (16);
-
   Tag		tag;		/* 4-byte identifier. */
   CheckSum	checkSum;	/* CheckSum for this table. */
   ULONG		offset;		/* Offset from beginning of TrueType font
 				 * file. */
   ULONG		length;		/* Length of this table. */
+  public:
+  DEFINE_SIZE_STATIC (16);
 } OpenTypeTable;
 
 typedef struct OffsetTable
@@ -110,8 +111,10 @@ typedef struct OffsetTable
   USHORT	entrySelector;	/* Log2(maximum power of 2 <= numTables). */
   USHORT	rangeShift;	/* NumTables x 16-searchRange. */
   TableDirectory tableDir[VAR];	/* TableDirectory entries. numTables items */
+  public:
+  DEFINE_SIZE_VAR (12, TableDirectory);
 } OpenTypeFontFace;
-ASSERT_SIZE_VAR (OffsetTable, 12, TableDirectory);
+
 
 /*
  * TrueType Collections

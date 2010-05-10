@@ -101,7 +101,7 @@ inline Type& StructAfter(TObject &X)
   { ASSERT_STATIC (sizeof (*this) == (size) + VAR0 * sizeof (_var_type)); } \
   static const unsigned int min_size = (size)
 
-#define DEFINE_SIZE_VAR2(_type, size, _var_type1, _var_type2) \
+#define DEFINE_SIZE_VAR2(size, _var_type1, _var_type2) \
   inline void _size_assertion (void) const \
   { ASSERT_STATIC (sizeof (*this) == (size) + VAR0 * sizeof (_var_type1) + VAR0 * sizeof (_var_type2)); } \
   static const unsigned int min_size = (size)
@@ -379,8 +379,10 @@ struct IntType
     TRACE_SANITIZE ();
     return context->check_struct (this);
   }
+  private:
+  BEInt<Type, sizeof (Type)> v;
+  public:
   DEFINE_SIZE_STATIC (sizeof (Type));
-  private: BEInt<Type, sizeof (Type)> v;
 };
 
 typedef IntType<uint16_t> USHORT;	/* 16-bit unsigned integer. */

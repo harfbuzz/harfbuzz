@@ -41,7 +41,6 @@
 typedef USHORT Value;
 
 typedef Value ValueRecord[VAR0];
-ASSERT_SIZE_VAR (ValueRecord, 0, Value);
 
 struct ValueFormat : USHORT
 {
@@ -360,8 +359,9 @@ struct AnchorMatrix
   OffsetTo<Anchor>
 		matrix[VAR];		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
+  public:
+  DEFINE_SIZE_VAR (2, OffsetTo<Anchor>);
 };
-ASSERT_SIZE_VAR (AnchorMatrix, 2, OffsetTo<Anchor>);
 
 
 struct MarkRecord
@@ -374,13 +374,13 @@ struct MarkRecord
 	&& markAnchor.sanitize (context, base);
   }
 
-  DEFINE_SIZE_STATIC (4);
-
   private:
   USHORT	klass;			/* Class defined for this mark */
   OffsetTo<Anchor>
 		markAnchor;		/* Offset to Anchor table--from
 					 * beginning of MarkArray table */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
 
 struct MarkArray
@@ -462,8 +462,9 @@ struct SinglePosFormat1
   ValueRecord	values;			/* Defines positioning
 					 * value(s)--applied to all glyphs in
 					 * the Coverage table */
+  public:
+  DEFINE_SIZE_VAR (6, ValueRecord);
 };
-ASSERT_SIZE_VAR (SinglePosFormat1, 6, ValueRecord);
 
 struct SinglePosFormat2
 {
@@ -505,8 +506,9 @@ struct SinglePosFormat2
   USHORT	valueCount;		/* Number of ValueRecords */
   ValueRecord	values;			/* Array of ValueRecords--positioning
 					 * values applied to glyphs */
+  public:
+  DEFINE_SIZE_VAR (8, ValueRecord);
 };
-ASSERT_SIZE_VAR (SinglePosFormat2, 8, ValueRecord);
 
 struct SinglePos
 {
@@ -552,8 +554,9 @@ struct PairValueRecord
 					 * Coverage table */
   ValueRecord	values;			/* Positioning data for the first glyph
 					 * followed by for second glyph */
+  public:
+  DEFINE_SIZE_VAR (2, ValueRecord);
 };
-ASSERT_SIZE_VAR (PairValueRecord, 2, ValueRecord);
 
 struct PairSet
 {
@@ -572,8 +575,9 @@ struct PairSet
   PairValueRecord
 		array[VAR];		/* Array of PairValueRecords--ordered
 					 * by GlyphID of the second glyph */
+  public:
+  DEFINE_SIZE_VAR (2, PairValueRecord);
 };
-ASSERT_SIZE_VAR (PairSet, 2, PairValueRecord);
 
 struct PairPosFormat1
 {
@@ -755,8 +759,9 @@ struct PairPosFormat2
   ValueRecord	values;			/* Matrix of value pairs:
 					 * class1-major, class2-minor,
 					 * Each entry has value1 and value2 */
+  public:
+  DEFINE_SIZE_VAR (16, ValueRecord);
 };
-ASSERT_SIZE_VAR (PairPosFormat2, 16, ValueRecord);
 
 struct PairPos
 {
@@ -794,14 +799,15 @@ struct PairPos
 
 struct EntryExitRecord
 {
+  friend struct CursivePosFormat1;
+
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
     return entryAnchor.sanitize (context, base)
 	&& exitAnchor.sanitize (context, base);
   }
 
-  DEFINE_SIZE_STATIC (4);
-
+  private:
   OffsetTo<Anchor>
 		entryAnchor;		/* Offset to EntryAnchor table--from
 					 * beginning of CursivePos
@@ -810,6 +816,8 @@ struct EntryExitRecord
 		exitAnchor;		/* Offset to ExitAnchor table--from
 					 * beginning of CursivePos
 					 * subtable--may be NULL */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
 
 struct CursivePosFormat1

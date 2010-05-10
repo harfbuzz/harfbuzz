@@ -383,8 +383,9 @@ struct GDEF
 					 * definitions--from beginning of GDEF
 					 * header (may be NULL).  Introduced
 					 * in version 00010002. */
+  public:
+  DEFINE_SIZE_VAR (12, OffsetTo<MarkGlyphSets>);
 };
-ASSERT_SIZE_VAR (GDEF, 12, OffsetTo<MarkGlyphSets>);
 
 
 #endif /* HB_OT_LAYOUT_GDEF_PRIVATE_HH */

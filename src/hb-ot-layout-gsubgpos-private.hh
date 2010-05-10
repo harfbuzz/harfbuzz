@@ -177,12 +177,12 @@ struct LookupRecord
     return context->check_struct (this);
   }
 
-  DEFINE_SIZE_STATIC (4);
-
   USHORT	sequenceIndex;		/* Index into current glyph
 					 * sequence--first glyph = 0 */
   USHORT	lookupListIndex;	/* Lookup to apply to that
 					 * position--zero--based */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
 
 static inline bool apply_lookup (hb_apply_context_t *context,
@@ -302,8 +302,9 @@ struct Rule
 					 * second glyph */
   LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
+  public:
+  DEFINE_SIZE_VAR2 (4, USHORT, LookupRecord);
 };
-ASSERT_SIZE_VAR2 (Rule, 4, USHORT, LookupRecord);
 
 struct RuleSet
 {
@@ -461,8 +462,9 @@ struct ContextFormat3
 					 * table in glyph sequence order */
   LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
+  public:
+  DEFINE_SIZE_VAR2 (6, OffsetTo<Coverage>, LookupRecord);
 };
-ASSERT_SIZE_VAR2 (ContextFormat3, 6, OffsetTo<Coverage>, LookupRecord);
 
 struct Context
 {

@@ -57,12 +57,12 @@ struct Record
 	&& offset.sanitize (context, base);
   }
 
-  DEFINE_SIZE_STATIC (6);
-
   Tag		tag;		/* 4-byte Tag identifier */
   OffsetTo<Type>
 		offset;		/* Offset from beginning of object holding
 				 * the Record */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
 
 template <typename Type>
@@ -170,14 +170,14 @@ struct LangSys
 	&& featureIndex.sanitize (context);
   }
 
-  DEFINE_SIZE_STATIC (6);
-
   Offset	lookupOrder;	/* = Null (reserved for an offset to a
 				 * reordering table) */
   USHORT	reqFeatureIndex;/* Index of a feature required for this
 				 * language system--if no required features
 				 * = 0xFFFF */
   IndexArray	featureIndex;	/* Array of indices into the FeatureList */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
 DEFINE_NULL_DATA (LangSys, "\0\0\xFF\xFF");
 
@@ -305,8 +305,9 @@ struct Lookup
   USHORT	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
+  public:
+  DEFINE_SIZE_VAR (6, USHORT);
 };
-ASSERT_SIZE_VAR (Lookup, 6, USHORT);
 
 typedef OffsetListOf<Lookup> LookupList;
 ASSERT_SIZE (LookupList, 2);
@@ -365,13 +366,13 @@ struct CoverageRangeRecord
     return context->check_struct (this);
   }
 
-  DEFINE_SIZE_STATIC (6);
-
   private:
   GlyphID	start;			/* First GlyphID in the range */
   GlyphID	end;			/* Last GlyphID in the range */
   USHORT	startCoverageIndex;	/* Coverage Index of first GlyphID in
 					 * range */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
 DEFINE_NULL_DATA (CoverageRangeRecord, "\000\001");
 
@@ -486,12 +487,12 @@ struct ClassRangeRecord
     return context->check_struct (this);
   }
 
-  DEFINE_SIZE_STATIC (6);
-
   private:
   GlyphID	start;		/* First GlyphID in the range */
   GlyphID	end;		/* Last GlyphID in the range */
   USHORT	classValue;	/* Applied to all glyphs in the range */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
 DEFINE_NULL_DATA (ClassRangeRecord, "\000\001");
 
@@ -610,8 +611,9 @@ struct Device
 					 * 3	Signed 8-bit value, 2 values per uint16
 					 */
   USHORT	deltaValue[VAR];	/* Array of compressed data */
+  public:
+  DEFINE_SIZE_VAR (6, USHORT);
 };
-ASSERT_SIZE_VAR (Device, 6, USHORT);
 
 
 #endif /* HB_OT_LAYOUT_COMMON_PRIVATE_HH */
