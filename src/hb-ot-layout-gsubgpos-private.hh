@@ -303,7 +303,7 @@ struct Rule
   LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
   public:
-  DEFINE_SIZE_VAR2 (4, USHORT, LookupRecord);
+  DEFINE_SIZE_VAR2 (4, input, lookupRecordX);
 };
 
 struct RuleSet
@@ -467,7 +467,7 @@ struct ContextFormat3
   LookupRecord	lookupRecordX[VAR];	/* Array of LookupRecords--in
 					 * design order */
   public:
-  DEFINE_SIZE_VAR2 (6, OffsetTo<Coverage>, LookupRecord);
+  DEFINE_SIZE_VAR2 (6, coverage, lookupRecordX);
 };
 
 struct Context

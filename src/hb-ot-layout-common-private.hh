@@ -307,7 +307,7 @@ struct Lookup
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
   public:
-  DEFINE_SIZE_VAR2 (6, Offset, USHORT);
+  DEFINE_SIZE_VAR2 (6, subTable, markFilteringSetX);
 };
 
 typedef OffsetListOf<Lookup> LookupList;
@@ -440,7 +440,7 @@ struct Coverage
   CoverageFormat2	format2[VAR];
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_UNION (2, format);
 };
 
 
@@ -562,7 +562,7 @@ struct ClassDef
   ClassDefFormat2	format2[VAR];
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_UNION (2, format);
 };
 
 

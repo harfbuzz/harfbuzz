@@ -759,7 +759,7 @@ struct SubstLookupSubTable
   ReverseChainSingleSubst	reverseChainContextSingle[VAR];
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_UNION (2, format);
 };
 
 

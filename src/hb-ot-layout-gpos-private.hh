@@ -336,7 +336,7 @@ struct Anchor
   AnchorFormat3		format3[VAR];
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_UNION (2, format);
 };
 
 
@@ -1490,7 +1490,7 @@ struct PosLookupSubTable
   ExtensionPos		extension[VAR];
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_UNION (2, format);
 };
 
 

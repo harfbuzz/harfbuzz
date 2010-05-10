@@ -196,7 +196,7 @@ struct CaretValue
   CaretValueFormat3	format3[VAR];
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_UNION (2, format);
 };
 
 struct LigGlyph
@@ -312,7 +312,7 @@ struct MarkGlyphSets
   MarkGlyphSetsFormat1	format1[VAR];
   } u;
   public:
-  DEFINE_SIZE_MIN (2);
+  DEFINE_SIZE_UNION (2, format);
 };
 
 
