@@ -443,7 +443,7 @@ struct Ligature
 					 * with the second  component--ordered
 					 * in writing direction */
   public:
-  DEFINE_SIZE_STATIC (4);
+  DEFINE_SIZE_VAR (4, GlyphID);
 };
 
 struct LigatureSet
@@ -758,6 +758,8 @@ struct SubstLookupSubTable
   ExtensionSubst		extension[VAR];
   ReverseChainSingleSubst	reverseChainContextSingle[VAR];
   } u;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
 

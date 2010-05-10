@@ -439,6 +439,8 @@ struct Coverage
   CoverageFormat1	format1[VAR];
   CoverageFormat2	format2[VAR];
   } u;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
 
@@ -559,6 +561,8 @@ struct ClassDef
   ClassDefFormat1	format1[VAR];
   ClassDefFormat2	format2[VAR];
   } u;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
 

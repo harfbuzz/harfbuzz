@@ -335,6 +335,8 @@ struct Anchor
   AnchorFormat2		format2[VAR];
   AnchorFormat3		format3[VAR];
   } u;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
 
@@ -460,7 +462,7 @@ struct SinglePosFormat1
 					 * value(s)--applied to all glyphs in
 					 * the Coverage table */
   public:
-  DEFINE_SIZE_VAR (6, ValueRecord);
+  DEFINE_SIZE_VAR (6, Value);
 };
 
 struct SinglePosFormat2
@@ -504,7 +506,7 @@ struct SinglePosFormat2
   ValueRecord	values;			/* Array of ValueRecords--positioning
 					 * values applied to glyphs */
   public:
-  DEFINE_SIZE_VAR (8, ValueRecord);
+  DEFINE_SIZE_VAR (8, Value);
 };
 
 struct SinglePos
@@ -552,7 +554,7 @@ struct PairValueRecord
   ValueRecord	values;			/* Positioning data for the first glyph
 					 * followed by for second glyph */
   public:
-  DEFINE_SIZE_VAR (2, ValueRecord);
+  DEFINE_SIZE_VAR (2, Value);
 };
 
 struct PairSet
@@ -1487,6 +1489,8 @@ struct PosLookupSubTable
   ChainContextPos	chainContext[VAR];
   ExtensionPos		extension[VAR];
   } u;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
 

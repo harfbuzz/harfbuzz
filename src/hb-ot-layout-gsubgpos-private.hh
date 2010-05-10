@@ -330,6 +330,8 @@ struct RuleSet
   OffsetArrayOf<Rule>
 		rule;			/* Array of Rule tables
 					 * ordered by preference */
+  public:
+  DEFINE_SIZE_VAR (2, OffsetTo<Rule>);
 };
 
 

@@ -120,7 +120,7 @@ static const void *_NullPool[32 / sizeof (void *)];
 /* Generic template for nul-content sizeof-sized Null objects. */
 template <typename Type>
 static inline const Type& Null () {
-  ASSERT_STATIC (sizeof (Type) <= sizeof (_NullPool));
+  ASSERT_STATIC (Type::min_size <= sizeof (_NullPool));
   return *CastP<Type> (_NullPool);
 }
 
@@ -673,7 +673,10 @@ struct HeadlessArrayOf
   }
 
   USHORT len;
-/*Type array[VAR];*/
+  private:
+  Type arrayX[VAR];
+  public:
+  DEFINE_SIZE_VAR (sizeof (USHORT), Type);
 };
 
 
