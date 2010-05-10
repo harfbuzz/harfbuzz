@@ -93,7 +93,6 @@ inline Type& StructAfter(TObject &X)
 
 /* Size signifying variable-sized array */
 #define VAR 1
-#define VAR0 (VAR+0)
 
 #define DEFINE_SIZE_UNION(size, _member) \
   _DEFINE_SIZE_ASSERTION (this->u._member.static_size == (size)); \
