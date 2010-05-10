@@ -71,8 +71,9 @@ struct SingleSubstFormat1
 					 * beginning of Substitution table */
   SHORT		deltaGlyphID;		/* Add to original GlyphID to get
 					 * substitute GlyphID */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (SingleSubstFormat1, 6);
 
 struct SingleSubstFormat2
 {
@@ -115,8 +116,9 @@ struct SingleSubstFormat2
   ArrayOf<GlyphID>
 		substitute;		/* Array of substitute
 					 * GlyphIDs--ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (SingleSubstFormat2, 6);
 
 struct SingleSubst
 {
@@ -192,8 +194,9 @@ struct Sequence
   private:
   ArrayOf<GlyphID>
 		substitute;		/* String of GlyphIDs to substitute */
+  public:
+  DEFINE_SIZE_STATIC (2);
 };
-ASSERT_SIZE (Sequence, 2);
 
 struct MultipleSubstFormat1
 {
@@ -226,8 +229,9 @@ struct MultipleSubstFormat1
   OffsetArrayOf<Sequence>
 		sequence;		/* Array of Sequence tables
 					 * ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (MultipleSubstFormat1, 6);
 
 struct MultipleSubst
 {
@@ -263,7 +267,6 @@ struct MultipleSubst
 
 typedef ArrayOf<GlyphID> AlternateSet;	/* Array of alternate GlyphIDs--in
 					 * arbitrary order */
-ASSERT_SIZE (AlternateSet, 2);
 
 struct AlternateSubstFormat1
 {
@@ -322,8 +325,9 @@ struct AlternateSubstFormat1
   OffsetArrayOf<AlternateSet>
 		alternateSet;		/* Array of AlternateSet tables
 					 * ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (AlternateSubstFormat1, 6);
 
 struct AlternateSubst
 {
@@ -438,8 +442,9 @@ struct Ligature
 		component;		/* Array of component GlyphIDs--start
 					 * with the second  component--ordered
 					 * in writing direction */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (Ligature, 4);
 
 struct LigatureSet
 {
@@ -470,8 +475,9 @@ struct LigatureSet
   OffsetArrayOf<Ligature>
 		ligature;		/* Array LigatureSet tables
 					 * ordered by preference */
+  public:
+  DEFINE_SIZE_STATIC (2);
 };
-ASSERT_SIZE (LigatureSet, 2);
 
 struct LigatureSubstFormat1
 {
@@ -507,8 +513,9 @@ struct LigatureSubstFormat1
   OffsetArrayOf<LigatureSet>
 		ligatureSet;		/* Array LigatureSet tables
 					 * ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (LigatureSubstFormat1, 6);
 
 struct LigatureSubst
 {
@@ -652,8 +659,9 @@ struct ReverseChainSingleSubstFormat1
   ArrayOf<GlyphID>
 		substituteX;		/* Array of substitute
 					 * GlyphIDs--ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (10);
 };
-ASSERT_SIZE (ReverseChainSingleSubstFormat1, 10);
 
 struct ReverseChainSingleSubst
 {
@@ -865,7 +873,6 @@ struct SubstLookup : Lookup
 };
 
 typedef OffsetListOf<SubstLookup> SubstLookupList;
-ASSERT_SIZE (SubstLookupList, 2);
 
 /*
  * GSUB
@@ -890,8 +897,9 @@ struct GSUB : GSUBGPOS
     OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
     return list.sanitize (context, this);
   }
+  public:
+  DEFINE_SIZE_STATIC (10);
 };
-ASSERT_SIZE (GSUB, 10);
 
 
 /* Out-of-class implementation for methods recursing */

@@ -216,11 +216,11 @@ struct Script
   RecordArrayOf<LangSys>
 		langSys;	/* Array of LangSysRecords--listed
 				 * alphabetically by LangSysTag */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (Script, 4);
 
 typedef RecordListOf<Script> ScriptList;
-ASSERT_SIZE (ScriptList, 2);
 
 
 struct Feature
@@ -247,11 +247,11 @@ struct Feature
 				 * to the beginning of the Feature Table; = Null
 				 * if not required */
   IndexArray	 lookupIndex;	/* Array of LookupList indices */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (Feature, 4);
 
 typedef RecordListOf<Feature> FeatureList;
-ASSERT_SIZE (FeatureList, 2);
 
 
 struct LookupFlag : USHORT
@@ -266,8 +266,9 @@ struct LookupFlag : USHORT
     Reserved		= 0x00E0u,
     MarkAttachmentType	= 0xFF00u
   };
+  public:
+  DEFINE_SIZE_STATIC (2);
 };
-ASSERT_SIZE (LookupFlag, 2);
 
 struct Lookup
 {
@@ -310,7 +311,6 @@ struct Lookup
 };
 
 typedef OffsetListOf<Lookup> LookupList;
-ASSERT_SIZE (LookupList, 2);
 
 
 /*
@@ -345,8 +345,9 @@ struct CoverageFormat1
   USHORT	coverageFormat;	/* Format identifier--format = 1 */
   ArrayOf<GlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (CoverageFormat1, 4);
 
 struct CoverageRangeRecord
 {
@@ -405,8 +406,9 @@ struct CoverageFormat2
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID. rangeCount entries
 				 * long */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (CoverageFormat2, 4);
 
 struct Coverage
 {
@@ -466,8 +468,9 @@ struct ClassDefFormat1
   GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
   ArrayOf<USHORT>
 		classValue;		/* Array of Class Values--one per GlyphID */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (ClassDefFormat1, 6);
 
 struct ClassRangeRecord
 {
@@ -523,8 +526,9 @@ struct ClassDefFormat2
   ArrayOf<ClassRangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (ClassDefFormat2, 4);
 
 struct ClassDef
 {

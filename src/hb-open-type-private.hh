@@ -96,6 +96,15 @@ inline Type& StructAfter(TObject &X)
   static const unsigned int static_size = (size); \
   static const unsigned int min_size = (size)
 
+/* Size signifying variable-sized array */
+#define VAR 1
+#define VAR0 (VAR+0)
+
+#define DEFINE_SIZE_VAR0(size) \
+  inline void _size_assertion (void) const \
+  { ASSERT_STATIC (sizeof (*this) == (size)); } \
+  static const unsigned int min_size = (size)
+
 #define DEFINE_SIZE_VAR(size, _var_type) \
   inline void _size_assertion (void) const \
   { ASSERT_STATIC (sizeof (*this) == (size) + VAR0 * sizeof (_var_type)); } \
@@ -397,8 +406,9 @@ struct Tag : ULONG
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
   inline operator const char* (void) const { return CharP(this); }
   inline operator char* (void) { return CharP(this); }
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (Tag, 4);
 DEFINE_NULL_DATA (Tag, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
@@ -423,8 +433,9 @@ struct CheckSum : ULONG
       Sum += *Table++;
     return Sum;
   }
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (CheckSum, 4);
 
 
 /*
@@ -442,8 +453,9 @@ struct FixedVersion
 
   USHORT major;
   USHORT minor;
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (FixedVersion, 4);
 
 
 
@@ -577,6 +589,8 @@ struct GenericArrayOf
   public:
   LenType len;
 /*Type array[VAR];*/
+  public:
+  DEFINE_SIZE_VAR0 (sizeof (LenType));
 };
 
 /* An array with a USHORT number of elements. */

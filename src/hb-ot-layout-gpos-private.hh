@@ -202,7 +202,6 @@ struct ValueFormat : USHORT
     return true;
   }
 };
-ASSERT_SIZE (ValueFormat, 2);
 
 
 struct AnchorFormat1
@@ -226,8 +225,9 @@ struct AnchorFormat1
   USHORT	format;			/* Format identifier--format = 1 */
   SHORT		xCoordinate;		/* Horizontal value--in design units */
   SHORT		yCoordinate;		/* Vertical value--in design units */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (AnchorFormat1, 6);
 
 struct AnchorFormat2
 {
@@ -258,8 +258,9 @@ struct AnchorFormat2
   SHORT		xCoordinate;		/* Horizontal value--in design units */
   SHORT		yCoordinate;		/* Vertical value--in design units */
   USHORT	anchorPoint;		/* Index to glyph contour point */
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
-ASSERT_SIZE (AnchorFormat2, 8);
 
 struct AnchorFormat3
 {
@@ -298,8 +299,9 @@ struct AnchorFormat3
 		yDeviceTable;		/* Offset to Device table for Y
 					 * coordinate-- from beginning of
 					 * Anchor table (may be NULL) */
+  public:
+  DEFINE_SIZE_STATIC (10);
 };
-ASSERT_SIZE (AnchorFormat3, 10);
 
 struct Anchor
 {
@@ -421,8 +423,9 @@ struct MarkArray
   private:
   ArrayOf<MarkRecord>
 		markRecord;	/* Array of MarkRecords--in Coverage order */
+  public:
+  DEFINE_SIZE_STATIC (2);
 };
-ASSERT_SIZE (MarkArray, 2);
 
 
 /* Lookups */
@@ -669,8 +672,9 @@ struct PairPosFormat1
   OffsetArrayOf<PairSet>
 		pairSet;		/* Array of PairSet tables
 					 * ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (10);
 };
-ASSERT_SIZE (PairPosFormat1, 10);
 
 struct PairPosFormat2
 {
@@ -1014,8 +1018,9 @@ struct CursivePosFormat1
   ArrayOf<EntryExitRecord>
 		entryExitRecord;	/* Array of EntryExit records--in
 					 * Coverage Index order */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (CursivePosFormat1, 6);
 
 struct CursivePos
 {
@@ -1075,11 +1080,9 @@ struct MarkBasePosFormat1
       j--;
     } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
-#if 0
-    /* The following assertion is too strong. */
-    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
+    /* The following assertion is too strong, so we've disabled it. */
+    if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
       return false;
-#endif
 
     unsigned int base_index = (this+baseCoverage) (IN_GLYPH (j));
     if (base_index == NOT_COVERED)
@@ -1112,8 +1115,9 @@ struct MarkBasePosFormat1
   OffsetTo<BaseArray>
 		baseArray;		/* Offset to BaseArray table--from
 					 * beginning of MarkBasePos subtable */
+  public:
+  DEFINE_SIZE_STATIC (12);
 };
-ASSERT_SIZE (MarkBasePosFormat1, 12);
 
 struct MarkBasePos
 {
@@ -1178,11 +1182,9 @@ struct MarkLigPosFormat1
       j--;
     } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
-#if 0
-    /* The following assertion is too strong. */
-    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
+    /* The following assertion is too strong, so we've disabled it. */
+    if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
       return false;
-#endif
 
     unsigned int lig_index = (this+ligatureCoverage) (IN_GLYPH (j));
     if (lig_index == NOT_COVERED)
@@ -1237,8 +1239,9 @@ struct MarkLigPosFormat1
   OffsetTo<LigatureArray>
 		ligatureArray;		/* Offset to LigatureArray table--from
 					 * beginning of MarkLigPos subtable */
+  public:
+  DEFINE_SIZE_STATIC (12);
 };
-ASSERT_SIZE (MarkLigPosFormat1, 12);
 
 struct MarkLigPos
 {
@@ -1341,8 +1344,9 @@ struct MarkMarkPosFormat1
   OffsetTo<Mark2Array>
 		mark2Array;		/* Offset to Mark2Array table--from
 					 * beginning of MarkMarkPos subtable */
+  public:
+  DEFINE_SIZE_STATIC (12);
 };
-ASSERT_SIZE (MarkMarkPosFormat1, 12);
 
 struct MarkMarkPos
 {
@@ -1567,7 +1571,6 @@ struct PosLookup : Lookup
 };
 
 typedef OffsetListOf<PosLookup> PosLookupList;
-ASSERT_SIZE (PosLookupList, 2);
 
 /*
  * GPOS
@@ -1592,8 +1595,9 @@ struct GPOS : GSUBGPOS
     OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return list.sanitize (context, this);
   }
+  public:
+  DEFINE_SIZE_STATIC (10);
 };
-ASSERT_SIZE (GPOS, 10);
 
 
 /* Out-of-class implementation for methods recursing */

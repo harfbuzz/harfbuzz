@@ -83,8 +83,6 @@
 
 /* Misc */
 
-#define ASSERT_SIZE(_type, _size) ASSERT_STATIC (sizeof (_type) == (_size))
-
 
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
 #define _HB_BOOLEAN_EXPR(expr) \

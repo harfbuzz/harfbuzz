@@ -367,8 +367,9 @@ struct ContextFormat1
   OffsetArrayOf<RuleSet>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (ContextFormat1, 6);
 
 
 struct ContextFormat2
@@ -414,8 +415,9 @@ struct ContextFormat2
   OffsetArrayOf<RuleSet>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by class */
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
-ASSERT_SIZE (ContextFormat2, 8);
 
 
 struct ContextFormat3
@@ -590,8 +592,9 @@ struct ChainRule
   ArrayOf<LookupRecord>
 		lookupX;		/* Array of LookupRecords--in
 					 * design order) */
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
-ASSERT_SIZE (ChainRule, 8);
 
 struct ChainRuleSet
 {
@@ -617,8 +620,9 @@ struct ChainRuleSet
   OffsetArrayOf<ChainRule>
 		rule;			/* Array of ChainRule tables
 					 * ordered by preference */
+  public:
+  DEFINE_SIZE_STATIC (2);
 };
-ASSERT_SIZE (ChainRuleSet, 2);
 
 struct ChainContextFormat1
 {
@@ -654,8 +658,9 @@ struct ChainContextFormat1
   OffsetArrayOf<ChainRuleSet>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by Coverage Index */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (ChainContextFormat1, 6);
 
 struct ChainContextFormat2
 {
@@ -716,8 +721,9 @@ struct ChainContextFormat2
   OffsetArrayOf<ChainRuleSet>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by class */
+  public:
+  DEFINE_SIZE_STATIC (12);
 };
-ASSERT_SIZE (ChainContextFormat2, 12);
 
 struct ChainContextFormat3
 {
@@ -777,8 +783,9 @@ struct ChainContextFormat3
   ArrayOf<LookupRecord>
 		lookupX;		/* Array of LookupRecords--in
 					 * design order) */
+  public:
+  DEFINE_SIZE_STATIC (10);
 };
-ASSERT_SIZE (ChainContextFormat3, 10);
 
 struct ChainContext
 {
@@ -835,8 +842,9 @@ struct ExtensionFormat1
 					 * extension subtable). */
   ULONG		extensionOffset;	/* Offset to the extension subtable,
 					 * of lookup type subtable. */
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
-ASSERT_SIZE (ExtensionFormat1, 8);
 
 struct Extension
 {
@@ -929,8 +937,9 @@ struct GSUBGPOS
 		featureList; 	/* FeatureList table */
   OffsetTo<LookupList>
 		lookupList; 	/* LookupList table */
+  public:
+  DEFINE_SIZE_STATIC (10);
 };
-ASSERT_SIZE (GSUBGPOS, 10);
 
 
 #endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH */

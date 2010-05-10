@@ -38,7 +38,6 @@
 
 typedef ArrayOf<USHORT> AttachPoint;	/* Array of contour point indices--in
 					 * increasing numerical order */
-ASSERT_SIZE (AttachPoint, 2);
 
 struct AttachList
 {
@@ -80,8 +79,9 @@ struct AttachList
   OffsetArrayOf<AttachPoint>
 		attachPoint;		/* Array of AttachPoint tables
 					 * in Coverage Index order */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (AttachList, 4);
 
 /*
  * Ligature Caret Table
@@ -106,8 +106,9 @@ struct CaretValueFormat1
   private:
   USHORT	caretValueFormat;	/* Format identifier--format = 1 */
   SHORT		coordinate;		/* X or Y value, in design units */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (CaretValueFormat1, 4);
 
 struct CaretValueFormat2
 {
@@ -132,8 +133,9 @@ struct CaretValueFormat2
   private:
   USHORT	caretValueFormat;	/* Format identifier--format = 2 */
   USHORT	caretValuePoint;	/* Contour point index on glyph */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (CaretValueFormat2, 4);
 
 struct CaretValueFormat3
 {
@@ -159,8 +161,9 @@ struct CaretValueFormat3
 		deviceTable;		/* Offset to Device table for X or Y
 					 * value--from beginning of CaretValue
 					 * table */
+  public:
+  DEFINE_SIZE_STATIC (6);
 };
-ASSERT_SIZE (CaretValueFormat3, 6);
 
 struct CaretValue
 {
@@ -222,8 +225,9 @@ struct LigGlyph
 		carets;			/* Offset array of CaretValue tables
 					 * --from beginning of LigGlyph table
 					 * --in increasing coordinate order */
+  public:
+  DEFINE_SIZE_STATIC (2);
 };
-ASSERT_SIZE (LigGlyph, 2);
 
 struct LigCaretList
 {
@@ -257,8 +261,9 @@ struct LigCaretList
   OffsetArrayOf<LigGlyph>
 		ligGlyph;		/* Array of LigGlyph tables
 					 * in Coverage Index order */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (LigCaretList, 4);
 
 
 struct MarkGlyphSetsFormat1
@@ -276,8 +281,9 @@ struct MarkGlyphSetsFormat1
   LongOffsetArrayOf<Coverage>
 		coverage;		/* Array of long offsets to mark set
 					 * coverage tables */
+  public:
+  DEFINE_SIZE_STATIC (4);
 };
-ASSERT_SIZE (MarkGlyphSetsFormat1, 4);
 
 struct MarkGlyphSets
 {
