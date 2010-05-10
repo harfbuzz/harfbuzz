@@ -112,7 +112,7 @@ struct RecordListOf : RecordArrayOf<Type>
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return RecordArrayOf<Type>::sanitize (context, CharP(this));
+    return RecordArrayOf<Type>::sanitize (context, this);
   }
 };
 

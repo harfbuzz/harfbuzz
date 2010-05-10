@@ -58,7 +58,7 @@ struct hb_apply_context_t
 #define BUFFER context->buffer
 
 
-typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const char *data);
+typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
 typedef bool (*apply_lookup_func_t) (hb_apply_context_t *context, unsigned int lookup_index);
 
 struct ContextFuncs
@@ -68,18 +68,18 @@ struct ContextFuncs
 };
 
 
-static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, const char *data HB_UNUSED)
+static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, const void *data HB_UNUSED)
 {
   return glyph_id == value;
 }
 
-static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, const char *data)
+static inline bool match_class (hb_codepoint_t glyph_id, const USHORT &value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.get_class (glyph_id) == value;
 }
 
-static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value, const char *data)
+static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value, const void *data)
 {
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   return (data+coverage) (glyph_id) != NOT_COVERED;
@@ -90,7 +90,7 @@ static inline bool match_input (hb_apply_context_t *context,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
-				const char *match_data,
+				const void *match_data,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
@@ -120,7 +120,7 @@ static inline bool match_backtrack (hb_apply_context_t *context,
 				    unsigned int count,
 				    const USHORT backtrack[],
 				    match_func_t match_func,
-				    const char *match_data)
+				    const void *match_data)
 {
   if (unlikely (context->buffer->out_pos < count))
     return false;
@@ -145,7 +145,7 @@ static inline bool match_lookahead (hb_apply_context_t *context,
 				    unsigned int count,
 				    const USHORT lookahead[],
 				    match_func_t match_func,
-				    const char *match_data,
+				    const void *match_data,
 				    unsigned int offset)
 {
   unsigned int i, j;
@@ -247,7 +247,7 @@ static inline bool apply_lookup (hb_apply_context_t *context,
 struct ContextLookupContext
 {
   ContextFuncs funcs;
-  const char *match_data;
+  const void *match_data;
 };
 
 static inline bool context_lookup (hb_apply_context_t *context,
@@ -391,8 +391,8 @@ struct ContextFormat2
      * them across subrule lookups.  Not sure it's worth it.
      */
     struct ContextLookupContext lookup_context = {
-     {match_class, apply_func},
-      CharP(&class_def)
+      {match_class, apply_func},
+      &class_def
     };
     return rule_set.apply (context, lookup_context);
   }
@@ -435,7 +435,7 @@ struct ContextFormat3
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-       CharP(this)
+      this
     };
     return context_lookup (context,
 			   glyphCount, (const USHORT *) (coverage + 1),
@@ -508,7 +508,7 @@ struct Context
 struct ChainContextLookupContext
 {
   ContextFuncs funcs;
-  const char *match_data[3];
+  const void *match_data[3];
 };
 
 static inline bool chain_context_lookup (hb_apply_context_t *context,
@@ -684,10 +684,10 @@ struct ChainContextFormat2
      * them across subrule lookups.  Not sure it's worth it.
      */
     struct ChainContextLookupContext lookup_context = {
-     {match_class, apply_func},
-     {CharP(&backtrack_class_def),
-      CharP(&input_class_def),
-      CharP(&lookahead_class_def)}
+      {match_class, apply_func},
+      {&backtrack_class_def,
+       &input_class_def,
+       &lookahead_class_def}
     };
     return rule_set.apply (context, lookup_context);
   }
@@ -744,7 +744,7 @@ struct ChainContextFormat3
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     struct ChainContextLookupContext lookup_context = {
       {match_coverage, apply_func},
-      {CharP(this), CharP(this), CharP(this)}
+      {this, this, this}
     };
     return chain_context_lookup (context,
 				 backtrack.len, (const USHORT *) backtrack.array(),

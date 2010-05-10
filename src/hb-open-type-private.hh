@@ -224,7 +224,7 @@ struct hb_sanitize_context_t
       fprintf (stderr, "SANITIZE(%p) %-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
 	       base,
 	       this->debug_depth, this->debug_depth,
-	       base, CharP(base)+len, len,
+	       base, CharP(base) + len, len,
 	       this->start, this->end,
 	       ret ? "pass" : "FAIL");
 
@@ -252,7 +252,7 @@ struct hb_sanitize_context_t
     return likely (this->check_range (obj, sizeof (*obj)));
   }
 
-  inline bool can_edit (const char *base HB_UNUSED, unsigned int len HB_UNUSED)
+  inline bool can_edit (const void *base HB_UNUSED, unsigned int len HB_UNUSED)
   {
     this->edit_count++;
 
@@ -261,7 +261,7 @@ struct hb_sanitize_context_t
 	       base,
 	       this->debug_depth, this->debug_depth,
 	       this->edit_count,
-	       base, base+len, len,
+	       base, CharP(base)+len, len,
 	       this->start, this->end,
 	       this->writable ? "granted" : "REJECTED");
 
@@ -496,7 +496,7 @@ struct GenericOffsetTo : OffsetType
   private:
   /* Set the offset to Null */
   inline bool neuter (hb_sanitize_context_t *context) {
-    if (context->can_edit (CharP(this), this->static_size)) {
+    if (context->can_edit (this, this->static_size)) {
       this->set (0); /* 0 is Null offset */
       return true;
     }
@@ -627,12 +627,12 @@ struct OffsetListOf : OffsetArrayOf<Type>
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (context, CharP(this));
+    return OffsetArrayOf<Type>::sanitize (context, this);
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *context, T user_data) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (context, CharP(this), user_data);
+    return OffsetArrayOf<Type>::sanitize (context, this, user_data);
   }
 };
 

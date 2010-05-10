@@ -92,7 +92,7 @@ struct ValueFormat : USHORT
   { return get_len () * Value::static_size; }
 
   void apply_value (hb_ot_layout_context_t       *layout,
-		    const char                   *base,
+		    const void                   *base,
 		    const Value                  *values,
 		    hb_internal_glyph_position_t *glyph_pos) const
   {
@@ -436,7 +436,7 @@ struct SinglePosFormat1
     if (likely (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (context->layout, CharP(this), values, CURPOSITION ());
+    valueFormat.apply_value (context->layout, this, values, CURPOSITION ());
 
     context->buffer->in_pos++;
     return true;
@@ -446,7 +446,7 @@ struct SinglePosFormat1
     TRACE_SANITIZE ();
     return context->check_struct (this)
 	&& coverage.sanitize (context, this)
-	&& valueFormat.sanitize_value (context, CharP(this), values);
+	&& valueFormat.sanitize_value (context, this, values);
   }
 
   private:
@@ -478,7 +478,7 @@ struct SinglePosFormat2
     if (likely (index >= valueCount))
       return false;
 
-    valueFormat.apply_value (context->layout, CharP(this),
+    valueFormat.apply_value (context->layout, this,
 			     &values[index * valueFormat.get_len ()],
 			     CURPOSITION ());
 
@@ -490,7 +490,7 @@ struct SinglePosFormat2
     TRACE_SANITIZE ();
     return context->check_struct (this)
 	&& coverage.sanitize (context, this)
-	&& valueFormat.sanitize_values (context, CharP(this), values, valueCount);
+	&& valueFormat.sanitize_values (context, this, values, valueCount);
   }
 
   private:
@@ -611,8 +611,8 @@ struct PairPosFormat1
     {
       if (IN_GLYPH (j) == record->secondGlyph)
       {
-	valueFormat1.apply_value (context->layout, CharP(this), &record->values[0], CURPOSITION ());
-	valueFormat2.apply_value (context->layout, CharP(this), &record->values[len1], POSITION (j));
+	valueFormat1.apply_value (context->layout, this, &record->values[0], CURPOSITION ());
+	valueFormat2.apply_value (context->layout, this, &record->values[len1], POSITION (j));
 	if (len2)
 	  j++;
 	context->buffer->in_pos = j;
@@ -632,7 +632,7 @@ struct PairPosFormat1
 
     if (!(context->check_struct (this)
        && coverage.sanitize (context, this)
-       && likely (pairSet.sanitize (context, CharP(this), len1 + len2)))) return false;
+       && likely (pairSet.sanitize (context, this, len1 + len2)))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -644,8 +644,8 @@ struct PairPosFormat1
 
       unsigned int count2 = pair_set.len;
       PairValueRecord *record = pair_set.array;
-      if (!(valueFormat1.sanitize_values_stride_unsafe (context, CharP(this), &record->values[0], count2, stride) &&
-	    valueFormat2.sanitize_values_stride_unsafe (context, CharP(this), &record->values[len1], count2, stride)))
+      if (!(valueFormat1.sanitize_values_stride_unsafe (context, this, &record->values[0], count2, stride) &&
+	    valueFormat2.sanitize_values_stride_unsafe (context, this, &record->values[len1], count2, stride)))
         return false;
     }
 
@@ -704,8 +704,8 @@ struct PairPosFormat2
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (context->layout, CharP(this), v, CURPOSITION ());
-    valueFormat2.apply_value (context->layout, CharP(this), v + len1, POSITION (j));
+    valueFormat1.apply_value (context->layout, this, v, CURPOSITION ());
+    valueFormat2.apply_value (context->layout, this, v + len1, POSITION (j));
 
     if (len2)
       j++;
@@ -727,8 +727,8 @@ struct PairPosFormat2
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
     return context->check_array (values, record_size, count) &&
-	   valueFormat1.sanitize_values_stride_unsafe (context, CharP(this), &values[0], count, stride) &&
-	   valueFormat2.sanitize_values_stride_unsafe (context, CharP(this), &values[len1], count, stride);
+	   valueFormat1.sanitize_values_stride_unsafe (context, this, &values[0], count, stride) &&
+	   valueFormat2.sanitize_values_stride_unsafe (context, this, &values[len1], count, stride);
   }
 
   private:
@@ -1091,7 +1091,7 @@ struct MarkBasePosFormat1
         && markCoverage.sanitize (context, this)
 	&& baseCoverage.sanitize (context, this)
 	&& markArray.sanitize (context, this)
-	&& likely (baseArray.sanitize (context, CharP(this), (unsigned int) classCount));
+	&& likely (baseArray.sanitize (context, this, (unsigned int) classCount));
   }
 
   private:
@@ -1214,7 +1214,7 @@ struct MarkLigPosFormat1
         && markCoverage.sanitize (context, this)
 	&& ligatureCoverage.sanitize (context, this)
 	&& markArray.sanitize (context, this)
-	&& likely (ligatureArray.sanitize (context, CharP(this), (unsigned int) classCount));
+	&& likely (ligatureArray.sanitize (context, this, (unsigned int) classCount));
   }
 
   private:
@@ -1318,7 +1318,7 @@ struct MarkMarkPosFormat1
 	&& mark1Coverage.sanitize (context, this)
 	&& mark2Coverage.sanitize (context, this)
 	&& mark1Array.sanitize (context, this)
-	&& likely (mark2Array.sanitize (context, CharP(this), (unsigned int) classCount));
+	&& likely (mark2Array.sanitize (context, this, (unsigned int) classCount));
   }
 
   private:
