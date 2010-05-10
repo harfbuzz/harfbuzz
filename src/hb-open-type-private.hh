@@ -89,7 +89,6 @@ inline Type& StructAfter(TObject &X)
 
 #define DEFINE_SIZE_STATIC(size) \
   _DEFINE_SIZE_ASSERTION (size); \
-  static inline unsigned int get_size (void) { return (size); } \
   static const unsigned int static_size = (size); \
   static const unsigned int min_size = (size)
 
@@ -515,9 +514,6 @@ struct LongOffsetTo : GenericOffsetTo<LongOffset, Type> {};
 template <typename LenType, typename Type>
 struct GenericArrayOf
 {
-  const Type *array(void) const { return &StructAfter<Type> (len); }
-  Type *array(void) { return &StructAfter<Type> (len); }
-
   const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
     unsigned int count = len;
@@ -527,13 +523,13 @@ struct GenericArrayOf
       count -= start_offset;
     count = MIN (count, *pcount);
     *pcount = count;
-    return array() + start_offset;
+    return array + start_offset;
   }
 
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Null(Type);
-    return array()[i];
+    return array[i];
   }
   inline unsigned int get_size () const
   { return len.static_size + len * Type::static_size; }
@@ -551,7 +547,7 @@ struct GenericArrayOf
      * other structs. */
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (array()[i].sanitize (context))
+      if (array[i].sanitize (context))
         return false;
     return true;
   }
@@ -560,7 +556,7 @@ struct GenericArrayOf
     if (!likely (sanitize_shallow (context))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array()[i].sanitize (context, base))
+      if (!array[i].sanitize (context, base))
         return false;
     return true;
   }
@@ -570,7 +566,7 @@ struct GenericArrayOf
     if (!likely (sanitize_shallow (context))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array()[i].sanitize (context, base, user_data))
+      if (!array[i].sanitize (context, base, user_data))
         return false;
     return true;
   }
@@ -584,8 +580,7 @@ struct GenericArrayOf
 
   public:
   LenType len;
-  private:
-  Type arrayX[VAR];
+  Type array[VAR];
   public:
   DEFINE_SIZE_VAR (sizeof (LenType), Type);
 };
@@ -617,7 +612,7 @@ struct OffsetListOf : OffsetArrayOf<Type>
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= this->len)) return Null(Type);
-    return this+this->array()[i];
+    return this+this->array[i];
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -637,13 +632,10 @@ struct OffsetListOf : OffsetArrayOf<Type>
 template <typename Type>
 struct HeadlessArrayOf
 {
-  const Type *array(void) const { return &StructAfter<Type> (len); }
-  Type *array(void) { return &StructAfter<Type> (len); }
-
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len || !i)) return Null(Type);
-    return array()[i-1];
+    return array[i-1];
   }
   inline unsigned int get_size () const
   { return len.static_size + (len ? len - 1 : 0) * Type::static_size; }
@@ -665,7 +657,7 @@ struct HeadlessArrayOf
      * to do have a simple sanitize(), ie. they do not reference
      * other structs. */
     unsigned int count = len ? len - 1 : 0;
-    Type *a = array();
+    Type *a = array;
     for (unsigned int i = 0; i < count; i++)
       if (!a[i].sanitize (context))
         return false;
@@ -673,8 +665,7 @@ struct HeadlessArrayOf
   }
 
   USHORT len;
-  private:
-  Type arrayX[VAR];
+  Type array[VAR];
   public:
   DEFINE_SIZE_VAR (sizeof (USHORT), Type);
 };

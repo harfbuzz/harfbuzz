@@ -89,7 +89,7 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
     Tag t;
     t.set (tag);
     /* TODO: bsearch (need to sort in sanitize) */
-    const Record<Type> *a = this->array();
+    const Record<Type> *a = this->array;
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
     {
@@ -123,7 +123,7 @@ struct IndexArray : ArrayOf<USHORT>
   {
     if (unlikely (i >= this->len))
       return NO_INDEX;
-    return this->array()[i];
+    return this->array[i];
   }
   inline unsigned int get_indexes (unsigned int start_offset,
 				   unsigned int *_count /* IN/OUT */,
@@ -600,8 +600,8 @@ struct Device
   inline unsigned int get_size () const
   {
     unsigned int f = deltaFormat;
-    if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * USHORT::get_size ();
-    return USHORT::get_size () * (4 + ((endSize - startSize) >> (4 - f)));
+    if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * USHORT::static_size;
+    return USHORT::static_size * (4 + ((endSize - startSize) >> (4 - f)));
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {

@@ -560,10 +560,10 @@ struct ChainRule
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return chain_context_lookup (context,
-				 backtrack.len, backtrack.array(),
-				 input.len, input.array(),
-				 lookahead.len, lookahead.array(),
-				 lookup.len, lookup.array(),
+				 backtrack.len, backtrack.array,
+				 input.len, input.array,
+				 lookahead.len, lookahead.array,
+				 lookup.len, lookup.array,
 				 lookup_context);
     return false;
   }
@@ -749,10 +749,10 @@ struct ChainContextFormat3
       {this, this, this}
     };
     return chain_context_lookup (context,
-				 backtrack.len, (const USHORT *) backtrack.array(),
-				 input.len, (const USHORT *) input.array() + 1,
-				 lookahead.len, (const USHORT *) lookahead.array(),
-				 lookup.len, lookup.array(),
+				 backtrack.len, (const USHORT *) backtrack.array,
+				 input.len, (const USHORT *) input.array + 1,
+				 lookahead.len, (const USHORT *) lookahead.array,
+				 lookup.len, lookup.array,
 				 lookup_context);
     return false;
   }
