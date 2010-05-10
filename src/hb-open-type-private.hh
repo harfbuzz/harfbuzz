@@ -41,14 +41,6 @@
  * Casts
  */
 
-/* Cast to "const char *" and "char *" */
-template <typename Type>
-inline const char * CharP (const Type* X)
-{ return reinterpret_cast<const char *>(X); }
-template <typename Type>
-inline char * CharP (Type* X)
-{ return reinterpret_cast<char *>(X); }
-
 /* Cast to struct T, reference to reference */
 template<typename Type, typename TObject>
 inline const Type& CastR(const TObject &X)
@@ -69,10 +61,10 @@ inline Type* CastP(TObject *X)
  * location pointed to by P plus Ofs bytes. */
 template<typename Type>
 inline const Type& StructAtOffset(const void *P, unsigned int offset)
-{ return * reinterpret_cast<const Type*> (CharP(P) + offset); }
+{ return * reinterpret_cast<const Type*> ((const char *) P + offset); }
 template<typename Type>
 inline Type& StructAtOffset(void *P, unsigned int offset)
-{ return * reinterpret_cast<Type*> (CharP(P) + offset); }
+{ return * reinterpret_cast<Type*> ((char *) P + offset); }
 
 /* StructAfter<T>(X) returns the struct T& that is placed after X.
  * Works with X of variable size also.  X must implement get_size() */
@@ -216,15 +208,16 @@ struct hb_sanitize_context_t
 
   inline bool check_range (const void *base, unsigned int len) const
   {
-    bool ret = this->start <= base &&
-	       base <= this->end &&
-	       (unsigned int) (this->end - CharP(base)) >= len;
+    const char *p = (const char *) base;
+    bool ret = this->start <= p &&
+	       p <= this->end &&
+	       (unsigned int) (this->end - p) >= len;
 
     if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE) \
       fprintf (stderr, "SANITIZE(%p) %-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
-	       base,
+	       p,
 	       this->debug_depth, this->debug_depth,
-	       base, CharP(base) + len, len,
+	       p, p + len, len,
 	       this->start, this->end,
 	       ret ? "pass" : "FAIL");
 
@@ -233,13 +226,14 @@ struct hb_sanitize_context_t
 
   inline bool check_array (const void *base, unsigned int record_size, unsigned int len) const
   {
+    const char *p = (const char *) base;
     bool overflows = len >= ((unsigned int) -1) / record_size;
 
     if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE)
       fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n", \
-	       base,
+	       p,
 	       this->debug_depth, this->debug_depth,
-	       base, CharP(base) + (record_size * len), record_size, len, (unsigned long) record_size * len,
+	       p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
 	       this->start, this->end,
 	       !overflows ? "does not overflow" : "OVERFLOWS FAIL");
 
@@ -254,14 +248,15 @@ struct hb_sanitize_context_t
 
   inline bool can_edit (const void *base HB_UNUSED, unsigned int len HB_UNUSED)
   {
+    const char *p = (const char *) base;
     this->edit_count++;
 
     if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE)
       fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
-	       base,
+	       p,
 	       this->debug_depth, this->debug_depth,
 	       this->edit_count,
-	       base, CharP(base)+len, len,
+	       p, p + len, len,
 	       this->start, this->end,
 	       this->writable ? "granted" : "REJECTED");
 
@@ -389,7 +384,7 @@ struct IntType
     TRACE_SANITIZE ();
     return context->check_struct (this);
   }
-  private:
+  protected:
   BEInt<Type, sizeof (Type)> v;
   public:
   DEFINE_SIZE_STATIC (sizeof (Type));
@@ -405,8 +400,8 @@ typedef IntType<int32_t>  LONG;		/* 32-bit signed integer. */
 struct Tag : ULONG
 {
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
-  inline operator const char* (void) const { return CharP(this); }
-  inline operator char* (void) { return CharP(this); }
+  inline operator const char* (void) const { return reinterpret_cast<const char *> (&this->v); }
+  inline operator char* (void) { return reinterpret_cast<char *> (&this->v); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
