@@ -119,7 +119,7 @@ inline Type& StructAfter(TObject &X)
 /* Global nul-content Null pool.  Enlarge as necessary. */
 static const void *_NullPool[32 / sizeof (void *)];
 
-/* Generic template for nul-content sizeof-sized Null objects. */
+/* Generic nul-content Null objects. */
 template <typename Type>
 static inline const Type& Null () {
   ASSERT_STATIC (Type::min_size <= sizeof (_NullPool));
