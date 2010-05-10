@@ -310,9 +310,9 @@ struct Anchor
   {
     *x = *y = 0;
     switch (u.format) {
-    case 1: u.format1->get_anchor (layout, glyph_id, x, y); return;
-    case 2: u.format2->get_anchor (layout, glyph_id, x, y); return;
-    case 3: u.format3->get_anchor (layout, glyph_id, x, y); return;
+    case 1: u.format1.get_anchor (layout, glyph_id, x, y); return;
+    case 2: u.format2.get_anchor (layout, glyph_id, x, y); return;
+    case 3: u.format3.get_anchor (layout, glyph_id, x, y); return;
     default:						    return;
     }
   }
@@ -321,9 +321,9 @@ struct Anchor
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
-    case 3: return u.format3->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
+    case 3: return u.format3.sanitize (context);
     default:return true;
     }
   }
@@ -331,9 +331,9 @@ struct Anchor
   private:
   union {
   USHORT		format;		/* Format identifier */
-  AnchorFormat1		format1[VAR];
-  AnchorFormat2		format2[VAR];
-  AnchorFormat3		format3[VAR];
+  AnchorFormat1		format1;
+  AnchorFormat2		format2;
+  AnchorFormat3		format3;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -518,8 +518,8 @@ struct SinglePos
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
-    case 2: return u.format2->apply (context);
+    case 1: return u.format1.apply (context);
+    case 2: return u.format2.apply (context);
     default:return false;
     }
   }
@@ -528,8 +528,8 @@ struct SinglePos
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
     default:return true;
     }
   }
@@ -537,8 +537,8 @@ struct SinglePos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  SinglePosFormat1	format1[VAR];
-  SinglePosFormat2	format2[VAR];
+  SinglePosFormat1	format1;
+  SinglePosFormat2	format2;
   } u;
 };
 
@@ -771,8 +771,8 @@ struct PairPos
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
-    case 2: return u.format2->apply (context);
+    case 1: return u.format1.apply (context);
+    case 2: return u.format2.apply (context);
     default:return false;
     }
   }
@@ -781,8 +781,8 @@ struct PairPos
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
     default:return true;
     }
   }
@@ -790,8 +790,8 @@ struct PairPos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  PairPosFormat1	format1[VAR];
-  PairPosFormat2	format2[VAR];
+  PairPosFormat1	format1;
+  PairPosFormat2	format2;
   } u;
 };
 
@@ -1026,7 +1026,7 @@ struct CursivePos
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -1035,7 +1035,7 @@ struct CursivePos
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -1043,7 +1043,7 @@ struct CursivePos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  CursivePosFormat1	format1[VAR];
+  CursivePosFormat1	format1;
   } u;
 };
 
@@ -1123,7 +1123,7 @@ struct MarkBasePos
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -1132,7 +1132,7 @@ struct MarkBasePos
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -1140,7 +1140,7 @@ struct MarkBasePos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkBasePosFormat1	format1[VAR];
+  MarkBasePosFormat1	format1;
   } u;
 };
 
@@ -1247,7 +1247,7 @@ struct MarkLigPos
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -1256,7 +1256,7 @@ struct MarkLigPos
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -1264,7 +1264,7 @@ struct MarkLigPos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkLigPosFormat1	format1[VAR];
+  MarkLigPosFormat1	format1;
   } u;
 };
 
@@ -1352,7 +1352,7 @@ struct MarkMarkPos
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -1361,7 +1361,7 @@ struct MarkMarkPos
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -1369,7 +1369,7 @@ struct MarkMarkPos
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkMarkPosFormat1	format1[VAR];
+  MarkMarkPosFormat1	format1;
   } u;
 };
 
@@ -1445,15 +1445,15 @@ struct PosLookupSubTable
   {
     TRACE_APPLY ();
     switch (lookup_type) {
-    case Single:		return u.single->apply (context);
-    case Pair:			return u.pair->apply (context);
-    case Cursive:		return u.cursive->apply (context);
-    case MarkBase:		return u.markBase->apply (context);
-    case MarkLig:		return u.markLig->apply (context);
-    case MarkMark:		return u.markMark->apply (context);
-    case Context:		return u.context->apply (context);
-    case ChainContext:		return u.chainContext->apply (context);
-    case Extension:		return u.extension->apply (context);
+    case Single:		return u.single.apply (context);
+    case Pair:			return u.pair.apply (context);
+    case Cursive:		return u.cursive.apply (context);
+    case MarkBase:		return u.markBase.apply (context);
+    case MarkLig:		return u.markLig.apply (context);
+    case MarkMark:		return u.markMark.apply (context);
+    case Context:		return u.context.apply (context);
+    case ChainContext:		return u.chainContext.apply (context);
+    case Extension:		return u.extension.apply (context);
     default:return false;
     }
   }
@@ -1462,15 +1462,15 @@ struct PosLookupSubTable
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case Single:		return u.single->sanitize (context);
-    case Pair:			return u.pair->sanitize (context);
-    case Cursive:		return u.cursive->sanitize (context);
-    case MarkBase:		return u.markBase->sanitize (context);
-    case MarkLig:		return u.markLig->sanitize (context);
-    case MarkMark:		return u.markMark->sanitize (context);
-    case Context:		return u.context->sanitize (context);
-    case ChainContext:		return u.chainContext->sanitize (context);
-    case Extension:		return u.extension->sanitize (context);
+    case Single:		return u.single.sanitize (context);
+    case Pair:			return u.pair.sanitize (context);
+    case Cursive:		return u.cursive.sanitize (context);
+    case MarkBase:		return u.markBase.sanitize (context);
+    case MarkLig:		return u.markLig.sanitize (context);
+    case MarkMark:		return u.markMark.sanitize (context);
+    case Context:		return u.context.sanitize (context);
+    case ChainContext:		return u.chainContext.sanitize (context);
+    case Extension:		return u.extension.sanitize (context);
     default:return true;
     }
   }
@@ -1478,15 +1478,15 @@ struct PosLookupSubTable
   private:
   union {
   USHORT		format;
-  SinglePos		single[VAR];
-  PairPos		pair[VAR];
-  CursivePos		cursive[VAR];
-  MarkBasePos		markBase[VAR];
-  MarkLigPos		markLig[VAR];
-  MarkMarkPos		markMark[VAR];
-  ContextPos		context[VAR];
-  ChainContextPos	chainContext[VAR];
-  ExtensionPos		extension[VAR];
+  SinglePos		single;
+  PairPos		pair;
+  CursivePos		cursive;
+  MarkBasePos		markBase;
+  MarkLigPos		markLig;
+  MarkMarkPos		markMark;
+  ContextPos		context;
+  ChainContextPos	chainContext;
+  ExtensionPos		extension;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);

@@ -130,8 +130,8 @@ struct SingleSubst
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
-    case 2: return u.format2->apply (context);
+    case 1: return u.format1.apply (context);
+    case 2: return u.format2.apply (context);
     default:return false;
     }
   }
@@ -140,8 +140,8 @@ struct SingleSubst
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
     default:return true;
     }
   }
@@ -149,8 +149,8 @@ struct SingleSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  SingleSubstFormat1	format1[VAR];
-  SingleSubstFormat2	format2[VAR];
+  SingleSubstFormat1	format1;
+  SingleSubstFormat2	format2;
   } u;
 };
 
@@ -243,7 +243,7 @@ struct MultipleSubst
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -252,7 +252,7 @@ struct MultipleSubst
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -260,7 +260,7 @@ struct MultipleSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MultipleSubstFormat1	format1[VAR];
+  MultipleSubstFormat1	format1;
   } u;
 };
 
@@ -339,7 +339,7 @@ struct AlternateSubst
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -348,7 +348,7 @@ struct AlternateSubst
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -356,7 +356,7 @@ struct AlternateSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  AlternateSubstFormat1	format1[VAR];
+  AlternateSubstFormat1	format1;
   } u;
 };
 
@@ -526,7 +526,7 @@ struct LigatureSubst
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -535,7 +535,7 @@ struct LigatureSubst
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -543,7 +543,7 @@ struct LigatureSubst
   private:
   union {
   USHORT		format;		/* Format identifier */
-  LigatureSubstFormat1	format1[VAR];
+  LigatureSubstFormat1	format1;
   } u;
 };
 
@@ -672,7 +672,7 @@ struct ReverseChainSingleSubst
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context);
+    case 1: return u.format1.apply (context);
     default:return false;
     }
   }
@@ -681,7 +681,7 @@ struct ReverseChainSingleSubst
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -689,7 +689,7 @@ struct ReverseChainSingleSubst
   private:
   union {
   USHORT				format;		/* Format identifier */
-  ReverseChainSingleSubstFormat1	format1[VAR];
+  ReverseChainSingleSubstFormat1	format1;
   } u;
 };
 
@@ -718,14 +718,14 @@ struct SubstLookupSubTable
   {
     TRACE_APPLY ();
     switch (lookup_type) {
-    case Single:		return u.single->apply (context);
-    case Multiple:		return u.multiple->apply (context);
-    case Alternate:		return u.alternate->apply (context);
-    case Ligature:		return u.ligature->apply (context);
-    case Context:		return u.context->apply (context);
-    case ChainContext:		return u.chainContext->apply (context);
-    case Extension:		return u.extension->apply (context);
-    case ReverseChainSingle:	return u.reverseChainContextSingle->apply (context);
+    case Single:		return u.single.apply (context);
+    case Multiple:		return u.multiple.apply (context);
+    case Alternate:		return u.alternate.apply (context);
+    case Ligature:		return u.ligature.apply (context);
+    case Context:		return u.context.apply (context);
+    case ChainContext:		return u.chainContext.apply (context);
+    case Extension:		return u.extension.apply (context);
+    case ReverseChainSingle:	return u.reverseChainContextSingle.apply (context);
     default:return false;
     }
   }
@@ -734,14 +734,14 @@ struct SubstLookupSubTable
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case Single:		return u.single->sanitize (context);
-    case Multiple:		return u.multiple->sanitize (context);
-    case Alternate:		return u.alternate->sanitize (context);
-    case Ligature:		return u.ligature->sanitize (context);
-    case Context:		return u.context->sanitize (context);
-    case ChainContext:		return u.chainContext->sanitize (context);
-    case Extension:		return u.extension->sanitize (context);
-    case ReverseChainSingle:	return u.reverseChainContextSingle->sanitize (context);
+    case Single:		return u.single.sanitize (context);
+    case Multiple:		return u.multiple.sanitize (context);
+    case Alternate:		return u.alternate.sanitize (context);
+    case Ligature:		return u.ligature.sanitize (context);
+    case Context:		return u.context.sanitize (context);
+    case ChainContext:		return u.chainContext.sanitize (context);
+    case Extension:		return u.extension.sanitize (context);
+    case ReverseChainSingle:	return u.reverseChainContextSingle.sanitize (context);
     default:return true;
     }
   }
@@ -749,14 +749,14 @@ struct SubstLookupSubTable
   private:
   union {
   USHORT			format;
-  SingleSubst			single[VAR];
-  MultipleSubst			multiple[VAR];
-  AlternateSubst		alternate[VAR];
-  LigatureSubst			ligature[VAR];
-  ContextSubst			context[VAR];
-  ChainContextSubst		chainContext[VAR];
-  ExtensionSubst		extension[VAR];
-  ReverseChainSingleSubst	reverseChainContextSingle[VAR];
+  SingleSubst			single;
+  MultipleSubst			multiple;
+  AlternateSubst		alternate;
+  LigatureSubst			ligature;
+  ContextSubst			context;
+  ChainContextSubst		chainContext;
+  ExtensionSubst		extension;
+  ReverseChainSingleSubst	reverseChainContextSingle;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -805,9 +805,9 @@ struct SubstLookup : Lookup
        * This is rather slow to do this here for every glyph,
        * but it's easiest, and who uses extension lookups anyway?!*/
       unsigned int count = get_subtable_count ();
-      unsigned int type = get_subtable(0).u.extension->get_type ();
+      unsigned int type = get_subtable(0).u.extension.get_type ();
       for (unsigned int i = 1; i < count; i++)
-        if (get_subtable(i).u.extension->get_type () != type)
+        if (get_subtable(i).u.extension.get_type () != type)
 	  return false;
     }
 

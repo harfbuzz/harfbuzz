@@ -153,7 +153,7 @@ struct TTCHeader
   {
     switch (u.header.version) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return u.version1->get_face_count ();
+    case 1: return u.version1.get_face_count ();
     default:return 0;
     }
   }
@@ -161,7 +161,7 @@ struct TTCHeader
   {
     switch (u.header.version) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return u.version1->get_face (i);
+    case 1: return u.version1.get_face (i);
     default:return Null(OpenTypeFontFace);
     }
   }
@@ -171,7 +171,7 @@ struct TTCHeader
     if (!u.header.version.sanitize (context)) return false;
     switch (u.header.version) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return u.version1->sanitize (context);
+    case 1: return u.version1.sanitize (context);
     default:return true;
     }
   }
@@ -183,7 +183,7 @@ struct TTCHeader
   FixedVersion	version;	/* Version of the TTC Header (1.0 or 2.0),
 				 * 0x00010000 or 0x00020000 */
   }			header;
-  TTCHeaderVersion1	version1[VAR];
+  TTCHeaderVersion1	version1;
   } u;
 };
 
@@ -209,7 +209,7 @@ struct OpenTypeFontFile
     case TrueTag:
     case Typ1Tag:
     case TrueTypeTag:	return 1;
-    case TTCTag:	return u.ttcHeader->get_face_count ();
+    case TTCTag:	return u.ttcHeader.get_face_count ();
     default:		return 0;
     }
   }
@@ -222,8 +222,8 @@ struct OpenTypeFontFile
     case CFFTag:	/* All the non-collection tags */
     case TrueTag:
     case Typ1Tag:
-    case TrueTypeTag:	return u.fontFace[0];
-    case TTCTag:	return u.ttcHeader->get_face (i);
+    case TrueTypeTag:	return u.fontFace;
+    case TTCTag:	return u.ttcHeader.get_face (i);
     default:		return Null(OpenTypeFontFace);
     }
   }
@@ -235,8 +235,8 @@ struct OpenTypeFontFile
     case CFFTag:	/* All the non-collection tags */
     case TrueTag:
     case Typ1Tag:
-    case TrueTypeTag:	return u.fontFace->sanitize (context);
-    case TTCTag:	return u.ttcHeader->sanitize (context);
+    case TrueTypeTag:	return u.fontFace.sanitize (context);
+    case TTCTag:	return u.ttcHeader.sanitize (context);
     default:		return true;
     }
   }
@@ -244,9 +244,11 @@ struct OpenTypeFontFile
   private:
   union {
   Tag			tag;		/* 4-byte identifier. */
-  OpenTypeFontFace	fontFace[VAR];
-  TTCHeader		ttcHeader[VAR];
+  OpenTypeFontFace	fontFace;
+  TTCHeader		ttcHeader;
   } u;
+  public:
+  DEFINE_SIZE_UNION (4, tag);
 };
 
 

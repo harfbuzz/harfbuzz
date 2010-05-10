@@ -477,9 +477,9 @@ struct Context
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context, apply_func);
-    case 2: return u.format2->apply (context, apply_func);
-    case 3: return u.format3->apply (context, apply_func);
+    case 1: return u.format1.apply (context, apply_func);
+    case 2: return u.format2.apply (context, apply_func);
+    case 3: return u.format3.apply (context, apply_func);
     default:return false;
     }
   }
@@ -488,9 +488,9 @@ struct Context
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
-    case 3: return u.format3->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
+    case 3: return u.format3.sanitize (context);
     default:return true;
     }
   }
@@ -498,9 +498,9 @@ struct Context
   private:
   union {
   USHORT		format;		/* Format identifier */
-  ContextFormat1	format1[VAR];
-  ContextFormat2	format2[VAR];
-  ContextFormat3	format3[VAR];
+  ContextFormat1	format1;
+  ContextFormat2	format2;
+  ContextFormat3	format3;
   } u;
 };
 
@@ -796,9 +796,9 @@ struct ChainContext
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1->apply (context, apply_func);
-    case 2: return u.format2->apply (context, apply_func);
-    case 3: return u.format3->apply (context, apply_func);
+    case 1: return u.format1.apply (context, apply_func);
+    case 2: return u.format2.apply (context, apply_func);
+    case 3: return u.format3.apply (context, apply_func);
     default:return false;
     }
   }
@@ -807,9 +807,9 @@ struct ChainContext
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
-    case 3: return u.format3->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
+    case 3: return u.format3.sanitize (context);
     default:return true;
     }
   }
@@ -817,9 +817,9 @@ struct ChainContext
   private:
   union {
   USHORT		format;	/* Format identifier */
-  ChainContextFormat1	format1[VAR];
-  ChainContextFormat2	format2[VAR];
-  ChainContextFormat3	format3[VAR];
+  ChainContextFormat1	format1;
+  ChainContextFormat2	format2;
+  ChainContextFormat3	format3;
   } u;
 };
 
@@ -853,14 +853,14 @@ struct Extension
   inline unsigned int get_type (void) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_type ();
+    case 1: return u.format1.get_type ();
     default:return 0;
     }
   }
   inline unsigned int get_offset (void) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_offset ();
+    case 1: return u.format1.get_offset ();
     default:return 0;
     }
   }
@@ -869,7 +869,7 @@ struct Extension
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -877,7 +877,7 @@ struct Extension
   private:
   union {
   USHORT		format;		/* Format identifier */
-  ExtensionFormat1	format1[VAR];
+  ExtensionFormat1	format1;
   } u;
 };
 

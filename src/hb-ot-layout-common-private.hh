@@ -420,8 +420,8 @@ struct Coverage
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_coverage(glyph_id);
-    case 2: return u.format2->get_coverage(glyph_id);
+    case 1: return u.format1.get_coverage(glyph_id);
+    case 2: return u.format2.get_coverage(glyph_id);
     default:return NOT_COVERED;
     }
   }
@@ -430,8 +430,8 @@ struct Coverage
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
     default:return true;
     }
   }
@@ -439,8 +439,8 @@ struct Coverage
   private:
   union {
   USHORT		format;		/* Format identifier */
-  CoverageFormat1	format1[VAR];
-  CoverageFormat2	format2[VAR];
+  CoverageFormat1	format1;
+  CoverageFormat2	format2;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -542,8 +542,8 @@ struct ClassDef
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_class(glyph_id);
-    case 2: return u.format2->get_class(glyph_id);
+    case 1: return u.format1.get_class(glyph_id);
+    case 2: return u.format2.get_class(glyph_id);
     default:return 0;
     }
   }
@@ -552,8 +552,8 @@ struct ClassDef
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
     default:return true;
     }
   }
@@ -561,8 +561,8 @@ struct ClassDef
   private:
   union {
   USHORT		format;		/* Format identifier */
-  ClassDefFormat1	format1[VAR];
-  ClassDefFormat2	format2[VAR];
+  ClassDefFormat1	format1;
+  ClassDefFormat2	format2;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);

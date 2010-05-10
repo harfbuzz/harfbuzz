@@ -170,9 +170,9 @@ struct CaretValue
   inline int get_caret_value (hb_ot_layout_context_t *context, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1->get_caret_value (context, glyph_id);
-    case 2: return u.format2->get_caret_value (context, glyph_id);
-    case 3: return u.format3->get_caret_value (context, glyph_id);
+    case 1: return u.format1.get_caret_value (context, glyph_id);
+    case 2: return u.format2.get_caret_value (context, glyph_id);
+    case 3: return u.format3.get_caret_value (context, glyph_id);
     default:return 0;
     }
   }
@@ -181,9 +181,9 @@ struct CaretValue
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
-    case 2: return u.format2->sanitize (context);
-    case 3: return u.format3->sanitize (context);
+    case 1: return u.format1.sanitize (context);
+    case 2: return u.format2.sanitize (context);
+    case 3: return u.format3.sanitize (context);
     default:return true;
     }
   }
@@ -191,9 +191,9 @@ struct CaretValue
   private:
   union {
   USHORT		format;		/* Format identifier */
-  CaretValueFormat1	format1[VAR];
-  CaretValueFormat2	format2[VAR];
-  CaretValueFormat3	format3[VAR];
+  CaretValueFormat1	format1;
+  CaretValueFormat2	format2;
+  CaretValueFormat3	format3;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -292,7 +292,7 @@ struct MarkGlyphSets
   inline bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1->covers (set_index, glyph_id);
+    case 1: return u.format1.covers (set_index, glyph_id);
     default:return false;
     }
   }
@@ -301,7 +301,7 @@ struct MarkGlyphSets
     TRACE_SANITIZE ();
     if (!u.format.sanitize (context)) return false;
     switch (u.format) {
-    case 1: return u.format1->sanitize (context);
+    case 1: return u.format1.sanitize (context);
     default:return true;
     }
   }
@@ -309,7 +309,7 @@ struct MarkGlyphSets
   private:
   union {
   USHORT		format;		/* Format identifier */
-  MarkGlyphSetsFormat1	format1[VAR];
+  MarkGlyphSetsFormat1	format1;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
