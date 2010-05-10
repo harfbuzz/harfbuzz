@@ -117,7 +117,7 @@ struct SingleSubstFormat2
 		substitute;		/* Array of substitute
 					 * GlyphIDs--ordered by Coverage Index */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_VAR (6, GlyphID);
 };
 
 struct SingleSubst
@@ -195,7 +195,7 @@ struct Sequence
   ArrayOf<GlyphID>
 		substitute;		/* String of GlyphIDs to substitute */
   public:
-  DEFINE_SIZE_STATIC (2);
+  DEFINE_SIZE_VAR (2, GlyphID);
 };
 
 struct MultipleSubstFormat1
@@ -230,7 +230,7 @@ struct MultipleSubstFormat1
 		sequence;		/* Array of Sequence tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_VAR (6, OffsetTo<Sequence>);
 };
 
 struct MultipleSubst
@@ -326,7 +326,7 @@ struct AlternateSubstFormat1
 		alternateSet;		/* Array of AlternateSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_VAR (6, OffsetTo<AlternateSet>);
 };
 
 struct AlternateSubst
@@ -476,7 +476,7 @@ struct LigatureSet
 		ligature;		/* Array LigatureSet tables
 					 * ordered by preference */
   public:
-  DEFINE_SIZE_STATIC (2);
+  DEFINE_SIZE_VAR (2, OffsetTo<Ligature>);
 };
 
 struct LigatureSubstFormat1
@@ -514,7 +514,7 @@ struct LigatureSubstFormat1
 		ligatureSet;		/* Array LigatureSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_VAR (6, OffsetTo<LigatureSet>);
 };
 
 struct LigatureSubst
@@ -660,7 +660,7 @@ struct ReverseChainSingleSubstFormat1
 		substituteX;		/* Array of substitute
 					 * GlyphIDs--ordered by Coverage Index */
   public:
-  DEFINE_SIZE_STATIC (10);
+  DEFINE_SIZE_MIN (10);
 };
 
 struct ReverseChainSingleSubst

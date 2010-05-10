@@ -385,7 +385,7 @@ struct MarkRecord
   DEFINE_SIZE_STATIC (4);
 };
 
-struct MarkArray
+struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage order */
 {
   inline bool apply (hb_apply_context_t *context,
 		     unsigned int mark_index, unsigned int glyph_index,
@@ -393,7 +393,7 @@ struct MarkArray
 		     unsigned int glyph_pos) const
   {
     TRACE_APPLY ();
-    const MarkRecord &record = markRecord[mark_index];
+    const MarkRecord &record = ArrayOf<MarkRecord>::operator[](mark_index);
     unsigned int mark_class = record.klass;
 
     const Anchor& mark_anchor = this + record.markAnchor;
@@ -417,14 +417,8 @@ struct MarkArray
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return markRecord.sanitize (context, this);
+    return ArrayOf<MarkRecord>::sanitize (context, this);
   }
-
-  private:
-  ArrayOf<MarkRecord>
-		markRecord;	/* Array of MarkRecords--in Coverage order */
-  public:
-  DEFINE_SIZE_STATIC (2);
 };
 
 
@@ -673,7 +667,7 @@ struct PairPosFormat1
 		pairSet;		/* Array of PairSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_STATIC (10);
+  DEFINE_SIZE_VAR (10, OffsetTo<PairSet>);
 };
 
 struct PairPosFormat2
@@ -1019,7 +1013,7 @@ struct CursivePosFormat1
 		entryExitRecord;	/* Array of EntryExit records--in
 					 * Coverage Index order */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_VAR (6, EntryExitRecord);
 };
 
 struct CursivePos

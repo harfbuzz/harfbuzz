@@ -105,8 +105,7 @@ inline Type& StructAfter(TObject &X)
 #define VAR 1
 #define VAR0 (VAR+0)
 
-#define DEFINE_SIZE_VAR0(size) \
-  _DEFINE_SIZE_ASSERTION (size); \
+#define DEFINE_SIZE_MIN(size) \
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_VAR(size, _var_type) \
@@ -140,7 +139,7 @@ template <> \
 inline const Type& Null<Type> () { \
   return *CastP<Type> (_Null##Type); \
 } /* The following line really exists such that we end in a place needing semicolon */ \
-ASSERT_STATIC (sizeof (Type) + 1 <= sizeof (_Null##Type))
+ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 /* Accessor macro. */
 #define Null(Type) Null<Type>()
@@ -590,9 +589,10 @@ struct GenericArrayOf
 
   public:
   LenType len;
-/*Type array[VAR];*/
+  private:
+  Type arrayX[VAR];
   public:
-  DEFINE_SIZE_VAR0 (sizeof (LenType));
+  DEFINE_SIZE_VAR (sizeof (LenType), Type);
 };
 
 /* An array with a USHORT number of elements. */

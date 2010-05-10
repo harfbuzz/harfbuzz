@@ -140,7 +140,7 @@ struct TTCHeaderVersion1
 		table;		/* Array of offsets to the OffsetTable for each font
 				 * from the beginning of the file */
   public:
-  DEFINE_SIZE_STATIC (12);
+  DEFINE_SIZE_VAR (12, LongOffset);
 };
 
 struct TTCHeader
