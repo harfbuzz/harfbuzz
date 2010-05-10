@@ -243,7 +243,7 @@ struct hb_sanitize_context_t
   template <typename Type>
   inline bool check_struct (const Type *obj) const
   {
-    return likely (this->check_range (obj, sizeof (*obj)));
+    return likely (this->check_range (obj, obj->min_size));
   }
 
   inline bool can_edit (const void *base HB_UNUSED, unsigned int len HB_UNUSED)
