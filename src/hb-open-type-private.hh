@@ -146,22 +146,19 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 template <int max_depth>
 struct hb_trace_t {
-  explicit hb_trace_t (unsigned int *pdepth) : pdepth(pdepth) { if (max_depth) ++*pdepth; }
-  ~hb_trace_t (void) { if (max_depth) --*pdepth; }
-
-  inline void log (const char *what, const char *function, const void *obj)
-  {
+  explicit hb_trace_t (unsigned int *pdepth, const char *what, const char *function, const void *obj) : pdepth(pdepth) {
     if (*pdepth < max_depth)
       fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, *pdepth, *pdepth, function);
+    if (max_depth) ++*pdepth;
   }
+  ~hb_trace_t (void) { if (max_depth) --*pdepth; }
 
   private:
   unsigned int *pdepth;
 };
 template <> /* Optimize when tracing is disabled */
 struct hb_trace_t<0> {
-  explicit hb_trace_t (unsigned int *p) {}
-  inline void log (const char *what, const char *function, const void *obj) {};
+  explicit hb_trace_t (unsigned int *pdepth, const char *what, const char *function, const void *obj) {}
 };
 
 
@@ -176,8 +173,7 @@ struct hb_trace_t<0> {
 
 
 #define TRACE_SANITIZE() \
-	hb_trace_t<HB_DEBUG_SANITIZE> trace (&context->debug_depth); \
-	trace.log ("SANITIZE", HB_FUNC, this);
+	hb_trace_t<HB_DEBUG_SANITIZE> trace (&context->debug_depth, "SANITIZE", HB_FUNC, this); \
 
 
 struct hb_sanitize_context_t

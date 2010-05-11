@@ -36,8 +36,7 @@
 #endif
 
 #define TRACE_APPLY() \
-	hb_trace_t<HB_DEBUG_APPLY> trace (&context->debug_depth); \
-	trace.log ("APPLY", HB_FUNC, this);
+	hb_trace_t<HB_DEBUG_APPLY> trace (&context->debug_depth, "APPLY", HB_FUNC, this); \
 
 
 struct hb_apply_context_t
