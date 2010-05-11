@@ -54,8 +54,7 @@ typedef struct _hb_internal_glyph_position_t {
   uint32_t       back : 16;		/* number of glyphs to go back
 					   for drawing current glyph */
   int32_t        cursive_chain : 16;	/* character to which this connects,
-					   may be positive or negative; used
-					   only internally */
+					   may be positive or negative */
 } hb_internal_glyph_position_t;
 
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_internal_glyph_info_t));
