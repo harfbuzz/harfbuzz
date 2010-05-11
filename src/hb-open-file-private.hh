@@ -168,7 +168,7 @@ struct TTCHeader
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!u.header.version.sanitize (context)) return false;
+    if (unlikely (!u.header.version.sanitize (context))) return false;
     switch (u.header.version) {
     case 2: /* version 2 is compatible with version 1 */
     case 1: return u.version1.sanitize (context);
@@ -230,7 +230,7 @@ struct OpenTypeFontFile
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!u.tag.sanitize (context)) return false;
+    if (unlikely (!u.tag.sanitize (context))) return false;
     switch (u.tag) {
     case CFFTag:	/* All the non-collection tags */
     case TrueTag:

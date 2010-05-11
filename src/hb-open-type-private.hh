@@ -386,7 +386,7 @@ struct IntType
   inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    return context->check_struct (this);
+    return likely (context->check_struct (this));
   }
   protected:
   BEInt<Type, sizeof (Type)> v;
@@ -482,7 +482,7 @@ struct GenericOffsetTo : OffsetType
 
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
-    if (!context->check_struct (this)) return false;
+    if (unlikely (!context->check_struct (this))) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (base, offset);
@@ -491,7 +491,7 @@ struct GenericOffsetTo : OffsetType
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *context, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (!context->check_struct (this)) return false;
+    if (unlikely (!context->check_struct (this))) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (base, offset);
@@ -547,7 +547,7 @@ struct GenericArrayOf
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (context))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
@@ -564,20 +564,20 @@ struct GenericArrayOf
   }
   inline bool sanitize (hb_sanitize_context_t *context, void *base) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (context))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array[i].sanitize (context, base))
+      if (unlikely (!array[i].sanitize (context, base)))
         return false;
     return true;
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *context, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (context))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (!array[i].sanitize (context, base, user_data))
+      if (unlikely (!array[i].sanitize (context, base, user_data)))
         return false;
     return true;
   }
@@ -658,7 +658,7 @@ struct HeadlessArrayOf
 
   inline bool sanitize (hb_sanitize_context_t *context) {
     TRACE_SANITIZE ();
-    if (!likely (sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (context))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
@@ -670,7 +670,7 @@ struct HeadlessArrayOf
     unsigned int count = len ? len - 1 : 0;
     Type *a = array;
     for (unsigned int i = 0; i < count; i++)
-      if (!a[i].sanitize (context))
+      if (unlikely (!a[i].sanitize (context)))
         return false;
     return true;
   }
