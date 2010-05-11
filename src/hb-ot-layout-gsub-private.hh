@@ -732,7 +732,6 @@ struct SubstLookupSubTable
 
   inline bool sanitize (hb_sanitize_context_t *context, unsigned int lookup_type) {
     TRACE_SANITIZE ();
-    if (!u.sub_format.sanitize (context)) return false;
     switch (lookup_type) {
     case Single:		return u.single.sanitize (context);
     case Multiple:		return u.multiple.sanitize (context);
