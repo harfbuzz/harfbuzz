@@ -290,6 +290,11 @@ struct Sanitizer
 
     context->init (blob);
 
+    if (unlikely (!context->start)) {
+      context->finish ();
+      return blob;
+    }
+
     Type *t = CastP<Type> (const_cast<char *> (context->start));
 
     sane = t->sanitize (context);
