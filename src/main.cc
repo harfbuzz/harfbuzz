@@ -126,7 +126,7 @@ main (int argc, char **argv)
 		   ? "      Default Language System\n"
 		   : "      Language System %2d of %2d: %.4s\n", n_langsys, num_langsys,
 	            (const char *)script.get_lang_sys_tag (n_langsys));
-	    if (langsys.get_required_feature_index () == NO_INDEX)
+	    if (langsys.get_required_feature_index () == Index::NOT_FOUND_INDEX)
 	      printf ("        No required feature\n");
 
 	    int num_features = langsys.get_feature_count ();

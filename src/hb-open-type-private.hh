@@ -32,10 +32,6 @@
 #include "hb-blob.h"
 
 
-/* Table/script/language-system/feature/... not found */
-#define NO_INDEX		((unsigned int) 0xFFFF)
-
-
 
 /*
  * Casts
@@ -417,6 +413,12 @@ DEFINE_NULL_DATA (Tag, "    ");
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
 typedef USHORT GlyphID;
+
+/* Script/language-system/feature index */
+struct Index : USHORT {
+  static const unsigned int NOT_FOUND_INDEX = 0xFFFF;
+};
+DEFINE_NULL_DATA (Index, "\xff\xff");
 
 /* Offset to a table, same as uint16 (length = 16 bits), Null offset = 0x0000 */
 typedef USHORT Offset;

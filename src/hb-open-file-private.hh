@@ -87,7 +87,7 @@ typedef struct OffsetTable
         return true;
       }
     }
-    if (table_index) *table_index = NO_INDEX;
+    if (table_index) *table_index = Index::NOT_FOUND_INDEX;
     return false;
   }
   inline const TableDirectory& get_table_by_tag (hb_tag_t tag) const

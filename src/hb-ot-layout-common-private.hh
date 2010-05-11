@@ -99,7 +99,7 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
         return true;
       }
     }
-    if (index) *index = NO_INDEX;
+    if (index) *index = Index::NOT_FOUND_INDEX;
     return false;
   }
 };
@@ -117,17 +117,8 @@ struct RecordListOf : RecordArrayOf<Type>
 };
 
 
-struct IndexArray : ArrayOf<USHORT>
+struct IndexArray : ArrayOf<Index>
 {
-  inline USHORT operator [] (unsigned int i) const
-  {
-    if (unlikely (i >= this->len)) {
-      USHORT u;
-      u.set (NO_INDEX);
-      return u;
-    }
-    return this->array[i];
-  }
   inline unsigned int get_indexes (unsigned int start_offset,
 				   unsigned int *_count /* IN/OUT */,
 				   unsigned int *_indexes /* OUT */) const
@@ -163,7 +154,7 @@ struct LangSys
   inline int get_required_feature_index (void) const
   {
     if (reqFeatureIndex == 0xffff)
-      return NO_INDEX;
+      return Index::NOT_FOUND_INDEX;
    return reqFeatureIndex;;
   }
 
@@ -197,7 +188,7 @@ struct Script
   { return langSys.get_tags (start_offset, lang_sys_count, lang_sys_tags); }
   inline const LangSys& get_lang_sys (unsigned int i) const
   {
-    if (i == NO_INDEX) return get_default_lang_sys ();
+    if (i == Index::NOT_FOUND_INDEX) return get_default_lang_sys ();
     return this+langSys[i].offset;
   }
   inline bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const

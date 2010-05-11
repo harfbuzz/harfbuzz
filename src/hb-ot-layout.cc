@@ -360,7 +360,7 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
 				hb_tag_t      script_tag,
 				unsigned int *script_index)
 {
-  ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX);
+  ASSERT_STATIC (Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX);
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
   if (g.find_script_index (script_tag, script_index))
@@ -384,7 +384,7 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  const hb_tag_t *script_tags,
 				  unsigned int   *script_index)
 {
-  ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX);
+  ASSERT_STATIC (Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX);
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
   while (*script_tags)
@@ -439,7 +439,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 				   hb_tag_t      language_tag,
 				   unsigned int *language_index)
 {
-  ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX);
+  ASSERT_STATIC (Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX);
   const Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
 
   if (s.find_lang_sys_index (language_tag, language_index))
@@ -515,7 +515,7 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
 				    hb_tag_t      feature_tag,
 				    unsigned int *feature_index)
 {
-  ASSERT_STATIC (NO_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
+  ASSERT_STATIC (Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
 
