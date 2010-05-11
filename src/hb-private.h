@@ -143,7 +143,7 @@
  * in libgcc in case a target does not have one, which should be just as
  * good as the open-coded solution below, (which is "HACKMEM 169").
  */
-static inline unsigned int
+static inline HB_CONST_FUNC unsigned int
 _hb_popcount32 (uint32_t mask)
 {
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
