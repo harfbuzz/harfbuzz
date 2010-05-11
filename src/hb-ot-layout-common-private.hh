@@ -151,7 +151,7 @@ struct LangSys
   { return featureIndex.get_indexes (start_offset, feature_count, feature_indexes); }
 
   inline bool has_required_feature (void) const { return reqFeatureIndex != 0xffff; }
-  inline int get_required_feature_index (void) const
+  inline unsigned int get_required_feature_index (void) const
   {
     if (reqFeatureIndex == 0xffff)
       return Index::NOT_FOUND_INDEX;
