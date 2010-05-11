@@ -154,7 +154,7 @@ struct hb_trace_t {
 };
 template <> /* Optimize when tracing is disabled */
 struct hb_trace_t<0> {
-  explicit hb_trace_t (unsigned int *pdepth, const char *what, const char *function, const void *obj) {}
+  explicit hb_trace_t (unsigned int *pdepth HB_UNUSED, const char *what HB_UNUSED, const char *function HB_UNUSED, const void *obj HB_UNUSED) {}
 };
 
 
