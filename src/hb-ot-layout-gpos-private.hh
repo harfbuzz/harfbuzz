@@ -546,6 +546,7 @@ struct SinglePos
 struct PairValueRecord
 {
   friend struct PairPosFormat1;
+  friend struct PairSet;
 
   private:
   GlyphID	secondGlyph;		/* GlyphID of second glyph in the
@@ -561,12 +562,50 @@ struct PairSet
 {
   friend struct PairPosFormat1;
 
-  /* Note: Doesn't sanitize the Device entries in the ValueRecord */
-  inline bool sanitize (hb_sanitize_context_t *context, unsigned int format_len) {
+  inline bool apply (hb_apply_context_t *context,
+		     const ValueFormat *valueFormats,
+		     unsigned int pos) const
+  {
+    TRACE_APPLY ();
+    unsigned int len1 = valueFormats[0].get_len ();
+    unsigned int len2 = valueFormats[1].get_len ();
+    unsigned int record_size = USHORT::static_size * (1 + len1 + len2);
+
+    unsigned int count = len;
+    const PairValueRecord *record = CastP<PairValueRecord> (array);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (IN_GLYPH (pos) == record->secondGlyph)
+      {
+	valueFormats[0].apply_value (context->layout, this, &record->values[0], CURPOSITION ());
+	valueFormats[1].apply_value (context->layout, this, &record->values[len1], POSITION (pos));
+	if (len2)
+	  pos++;
+	context->buffer->in_pos = pos;
+	return true;
+      }
+      record = &StructAtOffset<PairValueRecord> (record, record_size);
+    }
+
+    return false;
+  }
+
+  struct sanitize_closure_t {
+    void *base;
+    ValueFormat *valueFormats;
+    unsigned int len1; /* valueFormats[0].get_len() */
+    unsigned int stride; /* 1 + len1 + len2 */
+  };
+
+  inline bool sanitize (hb_sanitize_context_t *context, const sanitize_closure_t *closure) {
     TRACE_SANITIZE ();
-    if (!context->check_struct (this)) return false;
-    unsigned int count = (1 + format_len) * len;
-    return context->check_array (array, USHORT::static_size, count);
+    if (!(context->check_struct (this)
+       && context->check_array (array, USHORT::static_size * closure->stride, len))) return false;
+
+    unsigned int count = len;
+    PairValueRecord *record = CastP<PairValueRecord> (array);
+    return closure->valueFormats[0].sanitize_values_stride_unsafe (context, closure->base, &record->values[0], count, closure->stride)
+	&& closure->valueFormats[1].sanitize_values_stride_unsafe (context, closure->base, &record->values[closure->len1], count, closure->stride);
   }
 
   private:
@@ -601,28 +640,7 @@ struct PairPosFormat1
       j++;
     }
 
-    unsigned int len1 = valueFormat1.get_len ();
-    unsigned int len2 = valueFormat2.get_len ();
-    unsigned int record_size = USHORT::static_size * (1 + len1 + len2);
-
-    const PairSet &pair_set = this+pairSet[index];
-    unsigned int count = pair_set.len;
-    const PairValueRecord *record = CastP<PairValueRecord> (pair_set.array);
-    for (unsigned int i = 0; i < count; i++)
-    {
-      if (IN_GLYPH (j) == record->secondGlyph)
-      {
-	valueFormat1.apply_value (context->layout, this, &record->values[0], CURPOSITION ());
-	valueFormat2.apply_value (context->layout, this, &record->values[len1], POSITION (j));
-	if (len2)
-	  j++;
-	context->buffer->in_pos = j;
-	return true;
-      }
-      record = &StructAtOffset<PairValueRecord> (record, record_size);
-    }
-
-    return false;
+    return (this+pairSet[index]).apply (context, &valueFormat1, j);
   }
 
   inline bool sanitize (hb_sanitize_context_t *context) {
@@ -630,27 +648,16 @@ struct PairPosFormat1
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
+    PairSet::sanitize_closure_t closure = {
+      this,
+      &valueFormat1,
+      len1,
+      1 + len1 + len2
+    };
 
-    if (!(context->check_struct (this)
-       && coverage.sanitize (context, this)
-       && pairSet.sanitize (context, this, len1 + len2))) return false;
-
-    if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
-
-    unsigned int stride = 1 + len1 + len2;
-    unsigned int count1 = pairSet.len;
-    for (unsigned int i = 0; i < count1; i++)
-    {
-      PairSet &pair_set = const_cast<PairSet &> (this+pairSet[i]); /* XXX clean this up */
-
-      unsigned int count2 = pair_set.len;
-      PairValueRecord *record = CastP<PairValueRecord> (pair_set.array);
-      if (!(valueFormat1.sanitize_values_stride_unsafe (context, this, &record->values[0], count2, stride) &&
-	    valueFormat2.sanitize_values_stride_unsafe (context, this, &record->values[len1], count2, stride)))
-        return false;
-    }
-
-    return true;
+    return context->check_struct (this)
+	&& coverage.sanitize (context, this)
+	&& pairSet.sanitize (context, this, &closure);
   }
 
   private:
