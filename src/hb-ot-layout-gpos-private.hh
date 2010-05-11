@@ -545,7 +545,6 @@ struct SinglePos
 
 struct PairValueRecord
 {
-  friend struct PairPosFormat1;
   friend struct PairSet;
 
   private:
