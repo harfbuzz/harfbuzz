@@ -730,10 +730,10 @@ struct SubstLookupSubTable
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *context, unsigned int lookup_type) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
-    switch (u.format) {
+    if (!u.sub_format.sanitize (context)) return false;
+    switch (lookup_type) {
     case Single:		return u.single.sanitize (context);
     case Multiple:		return u.multiple.sanitize (context);
     case Alternate:		return u.alternate.sanitize (context);
@@ -748,7 +748,7 @@ struct SubstLookupSubTable
 
   private:
   union {
-  USHORT			format;
+  USHORT			sub_format;
   SingleSubst			single;
   MultipleSubst			multiple;
   AlternateSubst		alternate;
@@ -759,7 +759,7 @@ struct SubstLookupSubTable
   ReverseChainSingleSubst	reverseChainContextSingle;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, format);
+  DEFINE_SIZE_UNION (2, sub_format);
 };
 
 
@@ -870,7 +870,7 @@ struct SubstLookup : Lookup
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (context))) return false;
     OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
-    return list.sanitize (context, this);
+    return list.sanitize (context, this, get_type ());
   }
 };
 
@@ -918,7 +918,7 @@ inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *context)
   if (unlikely (!Extension::sanitize (context))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
-  return StructAtOffset<SubstLookupSubTable> (this, offset).sanitize (context);
+  return StructAtOffset<SubstLookupSubTable> (this, offset).sanitize (context, get_type ());
 }
 
 inline bool ExtensionSubst::is_reverse (void) const

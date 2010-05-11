@@ -1458,10 +1458,10 @@ struct PosLookupSubTable
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *context, unsigned int lookup_type) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
-    switch (u.format) {
+    if (!u.sub_format.sanitize (context)) return false;
+    switch (lookup_type) {
     case Single:		return u.single.sanitize (context);
     case Pair:			return u.pair.sanitize (context);
     case Cursive:		return u.cursive.sanitize (context);
@@ -1477,7 +1477,7 @@ struct PosLookupSubTable
 
   private:
   union {
-  USHORT		format;
+  USHORT		sub_format;
   SinglePos		single;
   PairPos		pair;
   CursivePos		cursive;
@@ -1489,7 +1489,7 @@ struct PosLookupSubTable
   ExtensionPos		extension;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, format);
+  DEFINE_SIZE_UNION (2, sub_format);
 };
 
 
@@ -1563,7 +1563,7 @@ struct PosLookup : Lookup
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (context))) return false;
     OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
-    return list.sanitize (context, this);
+    return list.sanitize (context, this, get_type ());
   }
 };
 
@@ -1611,7 +1611,7 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
   if (unlikely (!Extension::sanitize (context))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
-  return StructAtOffset<PosLookupSubTable> (this, offset).sanitize (context);
+  return StructAtOffset<PosLookupSubTable> (this, offset).sanitize (context, get_type ());
 }
 
 static inline bool position_lookup (hb_apply_context_t *context, unsigned int lookup_index)
