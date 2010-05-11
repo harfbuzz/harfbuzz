@@ -633,7 +633,7 @@ struct PairPosFormat1
 
     if (!(context->check_struct (this)
        && coverage.sanitize (context, this)
-       && likely (pairSet.sanitize (context, this, len1 + len2)))) return false;
+       && pairSet.sanitize (context, this, len1 + len2))) return false;
 
     if (!(valueFormat1.has_device () || valueFormat2.has_device ())) return true;
 
@@ -1092,7 +1092,7 @@ struct MarkBasePosFormat1
         && markCoverage.sanitize (context, this)
 	&& baseCoverage.sanitize (context, this)
 	&& markArray.sanitize (context, this)
-	&& likely (baseArray.sanitize (context, this, (unsigned int) classCount));
+	&& baseArray.sanitize (context, this, (unsigned int) classCount);
   }
 
   private:
@@ -1215,7 +1215,7 @@ struct MarkLigPosFormat1
         && markCoverage.sanitize (context, this)
 	&& ligatureCoverage.sanitize (context, this)
 	&& markArray.sanitize (context, this)
-	&& likely (ligatureArray.sanitize (context, this, (unsigned int) classCount));
+	&& ligatureArray.sanitize (context, this, (unsigned int) classCount);
   }
 
   private:
@@ -1319,7 +1319,7 @@ struct MarkMarkPosFormat1
 	&& mark1Coverage.sanitize (context, this)
 	&& mark2Coverage.sanitize (context, this)
 	&& mark1Array.sanitize (context, this)
-	&& likely (mark2Array.sanitize (context, this, (unsigned int) classCount));
+	&& mark2Array.sanitize (context, this, (unsigned int) classCount);
   }
 
   private:
