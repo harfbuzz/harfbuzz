@@ -79,10 +79,10 @@ typedef enum _hb_direction_t {
   HB_DIRECTION_BTT
 } hb_direction_t;
 
-#define HB_DIRECTION_IS_HORIZONTAL(dir)	((dir) == HB_DIRECTION_LTR || (dir) == HB_DIRECTION_RTL)
-#define HB_DIRECTION_IS_VERTICAL(dir)	((dir) == HB_DIRECTION_TTB || (dir) == HB_DIRECTION_BTT)
-#define HB_DIRECTION_IS_FORWARD(dir)	((dir) == HB_DIRECTION_LTR || (dir) == HB_DIRECTION_TTB)
-#define HB_DIRECTION_IS_BACKWARD(dir)	((dir) == HB_DIRECTION_RTL || (dir) == HB_DIRECTION_BTT)
+#define HB_DIRECTION_IS_HORIZONTAL(dir)	((((unsigned int) (dir)) & ~1U) == 0)
+#define HB_DIRECTION_IS_VERTICAL(dir)	((((unsigned int) (dir)) & ~1U) == 2)
+#define HB_DIRECTION_IS_FORWARD(dir)	((((unsigned int) (dir)) & ~2U) == 0)
+#define HB_DIRECTION_IS_BACKWARD(dir)	((((unsigned int) (dir)) & ~2U) == 1)
 #define HB_DIRECTION_REVERSE(dir)	((hb_direction_t) (((unsigned int) (dir)) ^ 1))
 
 
