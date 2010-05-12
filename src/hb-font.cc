@@ -26,11 +26,11 @@
 
 #include "hb-private.h"
 
-#include "hb-font-private.h"
+#include "hb-font-private.hh"
 #include "hb-blob-private.h"
 #include "hb-open-file-private.hh"
 
-#include "hb-ot-layout-private.h"
+#include "hb-ot-layout-private.hh"
 
 #include <string.h>
 

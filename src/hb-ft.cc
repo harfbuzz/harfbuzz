@@ -29,7 +29,7 @@
 
 #include "hb-ft.h"
 
-#include "hb-font-private.h"
+#include "hb-font-private.hh"
 
 #include FT_TRUETYPE_TABLES_H
 
@@ -160,7 +160,7 @@ _get_table  (hb_tag_t tag, void *user_data)
     return hb_blob_create_empty ();
 
   /* TODO Use FT_Memory? */
-  buffer = malloc (length);
+  buffer = (FT_Byte *) malloc (length);
   if (buffer == NULL)
     return NULL;
 
@@ -200,7 +200,7 @@ hb_ft_face_create (FT_Face           ft_face,
 static void
 hb_ft_face_finalize (FT_Face ft_face)
 {
-  hb_face_destroy (ft_face->generic.data);
+  hb_face_destroy ((hb_face_t *) ft_face->generic.data);
 }
 
 hb_face_t *
@@ -215,7 +215,7 @@ hb_ft_face_create_cached (FT_Face ft_face)
     ft_face->generic.finalizer = (FT_Generic_Finalizer) hb_ft_face_finalize;
   }
 
-  return hb_face_reference (ft_face->generic.data);
+  return hb_face_reference ((hb_face_t *) ft_face->generic.data);
 }
 
 

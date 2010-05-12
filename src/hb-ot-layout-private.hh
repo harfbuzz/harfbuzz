@@ -32,7 +32,7 @@
 #include "hb-ot-layout.h"
 
 #include "hb-font.h"
-#include "hb-buffer-private.h"
+#include "hb-buffer-private.hh"
 
 
 HB_BEGIN_DECLS

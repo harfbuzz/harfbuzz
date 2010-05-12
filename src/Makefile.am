@@ -12,16 +12,16 @@ HBLIBS =
 HBSOURCES =  \
 	hb-blob.c \
 	hb-blob-private.h \
-	hb-buffer.c \
-	hb-buffer-private.h \
+	hb-buffer.cc \
+	hb-buffer-private.hh \
 	hb-font.cc \
-	hb-font-private.h \
+	hb-font-private.hh \
 	hb-object-private.h \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-language.c \
 	hb-private.h \
-	hb-shape.c \
+	hb-shape.cc \
 	hb-unicode.c \
 	hb-unicode-private.h \
 	$(NULL)
@@ -43,9 +43,9 @@ HBSOURCES += \
 	hb-ot-layout-gpos-private.hh \
 	hb-ot-layout-gsubgpos-private.hh \
 	hb-ot-layout-gsub-private.hh \
-	hb-ot-layout-private.h \
-	hb-ot-shape.c \
-	hb-ot-shape-private.h \
+	hb-ot-layout-private.hh \
+	hb-ot-shape.cc \
+	hb-ot-shape-private.hh \
 	hb-ot-tag.c \
 	$(NULL)
 HBHEADERS += \
@@ -80,7 +80,7 @@ if HAVE_FREETYPE
 HBCFLAGS += $(FREETYPE_CFLAGS)
 HBLIBS   += $(FREETYPE_LIBS)
 HBSOURCES += \
-	hb-ft.c \
+	hb-ft.cc \
 	$(NULL)
 HBHEADERS += \
 	hb-ft.h \

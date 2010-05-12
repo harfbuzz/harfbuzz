@@ -28,7 +28,7 @@
 
 #define HB_OT_LAYOUT_CC
 
-#include "hb-ot-layout-private.h"
+#include "hb-ot-layout-private.hh"
 
 #include "hb-ot-layout-gdef-private.hh"
 #include "hb-ot-layout-gsub-private.hh"

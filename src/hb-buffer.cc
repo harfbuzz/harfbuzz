@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1998-2004  David Turner and Werner Lemberg
- * Copyright (C) 2004,2007  Red Hat, Inc.
+ * Copyright (C) 2004,2007,2009,2010  Red Hat, Inc.
  *
  * This is part of HarfBuzz, a text shaping library.
  *
@@ -25,7 +25,7 @@
  * Red Hat Author(s): Owen Taylor, Behdad Esfahbod
  */
 
-#include "hb-buffer-private.h"
+#include "hb-buffer-private.hh"
 
 #include <string.h>
 
@@ -66,7 +66,7 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
   {
     assert (buffer->have_output);
     if (!buffer->positions)
-      buffer->positions = calloc (buffer->allocated, sizeof (buffer->positions[0]));
+      buffer->positions = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->positions[0]));
 
     buffer->out_string = (hb_internal_glyph_info_t *) buffer->positions;
     memcpy (buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]));
@@ -200,16 +200,16 @@ hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
       new_allocated += (new_allocated >> 1) + 8;
 
     if (buffer->positions)
-      buffer->positions = realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
+      buffer->positions = (hb_internal_glyph_position_t *) realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
 
     if (buffer->out_string != buffer->in_string)
     {
-      buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
+      buffer->in_string = (hb_internal_glyph_info_t *) realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
       buffer->out_string = (hb_internal_glyph_info_t *) buffer->positions;
     }
     else
     {
-      buffer->in_string = realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
+      buffer->in_string = (hb_internal_glyph_info_t *) realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
       buffer->out_string = buffer->in_string;
     }
 
@@ -260,7 +260,7 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
 
   if (unlikely (!buffer->positions))
   {
-    buffer->positions = calloc (buffer->allocated, sizeof (buffer->positions[0]));
+    buffer->positions = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->positions[0]));
     return;
   }
 

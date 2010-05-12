@@ -28,9 +28,9 @@
 
 #include "hb-shape.h"
 
-#include "hb-buffer-private.h"
+#include "hb-buffer-private.hh"
 
-#include "hb-ot-shape-private.h"
+#include "hb-ot-shape-private.hh"
 
 
 /* Prepare */
@@ -64,7 +64,7 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
       original_direction != _hb_script_get_horizontal_direction (buffer->script))
   {
     hb_buffer_reverse_clusters (buffer);
-    buffer->direction ^=  1;
+    buffer->direction = HB_DIRECTION_REVERSE (buffer->direction);
   }
 
   return original_direction;
