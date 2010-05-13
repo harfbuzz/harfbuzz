@@ -50,8 +50,8 @@ struct _hb_font_funcs_t {
   hb_font_get_kerning_func_t		get_kerning;
 };
 
-HB_INTERNAL hb_font_funcs_t
-_hb_font_funcs_nil;
+extern HB_INTERNAL hb_font_funcs_t _hb_font_funcs_nil;
+
 
 /*
  * hb_face_t

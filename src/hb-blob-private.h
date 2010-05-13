@@ -50,7 +50,7 @@ struct _hb_blob_t {
   void *user_data;
 };
 
-HB_INTERNAL hb_blob_t _hb_blob_nil;
+extern HB_INTERNAL hb_blob_t _hb_blob_nil;
 
 HB_END_DECLS
 

@@ -108,7 +108,7 @@
 #endif
 
 #ifndef HB_INTERNAL
-# define HB_INTERNAL extern __attribute__((__visibility__("hidden")))
+# define HB_INTERNAL __attribute__((__visibility__("hidden")))
 #endif
 
 
