@@ -17,7 +17,7 @@ stat=0
 so=.libs/libharfbuzz.so
 if test -f "$so"; then
 	echo "Checking that we are exposing internal symbols"
-	if nm $so | grep ' T _hb'; then
+	if nm $so | grep ' T ' | grep -v ' T _fini\>\| T _init\>\| T hb_'; then
 		echo "Ouch, internal symbols exposed"
 		stat=1
 	fi
