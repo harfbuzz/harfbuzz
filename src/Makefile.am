@@ -99,7 +99,8 @@ main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
 
-TESTS =
+TESTS = \
+	check-internal-symbols.sh
 
 if HAVE_ICU
 else
