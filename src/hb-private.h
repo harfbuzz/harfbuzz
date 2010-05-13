@@ -66,10 +66,6 @@
 #undef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#ifndef HB_INTERNAL
-# define HB_INTERNAL extern
-#endif
-
 #undef  ARRAY_LENGTH
 #define ARRAY_LENGTH(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
 
@@ -109,6 +105,10 @@
 #define HB_UNUSED	__attribute__((unused))
 #else
 #define HB_UNUSED
+#endif
+
+#ifndef HB_INTERNAL
+# define HB_INTERNAL extern __attribute__((__visibility__("hidden")))
 #endif
 
 

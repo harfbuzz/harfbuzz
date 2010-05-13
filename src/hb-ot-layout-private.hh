@@ -80,10 +80,10 @@ struct _hb_ot_layout_context_t
 };
 
 
-void
+HB_INTERNAL void
 _hb_ot_layout_init (hb_face_t *face);
 
-void
+HB_INTERNAL void
 _hb_ot_layout_fini (hb_face_t *face);
 
 
