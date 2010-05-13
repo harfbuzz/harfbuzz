@@ -320,10 +320,10 @@ hb_ot_layout_get_lig_carets (hb_font_t      *font,
 			     unsigned int   *caret_count /* IN/OUT */,
 			     int            *caret_array /* OUT */)
 {
-  hb_ot_layout_context_t context;
-  context.font = font;
-  context.face = face;
-  return _get_gdef (face).get_lig_carets (&context, glyph, start_offset, caret_count, caret_array);
+  hb_ot_layout_context_t c;
+  c.font = font;
+  c.face = face;
+  return _get_gdef (face).get_lig_carets (&c, glyph, start_offset, caret_count, caret_array);
 }
 
 /*
@@ -564,10 +564,10 @@ hb_ot_layout_substitute_lookup (hb_face_t    *face,
 				unsigned int  lookup_index,
 				hb_mask_t     mask)
 {
-  hb_ot_layout_context_t context;
-  context.font = NULL;
-  context.face = face;
-  return _get_gsub (face).substitute_lookup (&context, buffer, lookup_index, mask);
+  hb_ot_layout_context_t c;
+  c.font = NULL;
+  c.face = face;
+  return _get_gsub (face).substitute_lookup (&c, buffer, lookup_index, mask);
 }
 
 
@@ -588,10 +588,10 @@ hb_ot_layout_position_lookup   (hb_font_t    *font,
 				unsigned int  lookup_index,
 				hb_mask_t     mask)
 {
-  hb_ot_layout_context_t context;
-  context.font = font;
-  context.face = face;
-  return _get_gpos (face).position_lookup (&context, buffer, lookup_index, mask);
+  hb_ot_layout_context_t c;
+  c.font = font;
+  c.face = face;
+  return _get_gpos (face).position_lookup (&c, buffer, lookup_index, mask);
 }
 
 void

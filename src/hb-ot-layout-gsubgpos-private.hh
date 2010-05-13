@@ -36,7 +36,7 @@
 #endif
 
 #define TRACE_APPLY() \
-	hb_trace_t<HB_DEBUG_APPLY> trace (&context->debug_depth, "APPLY", HB_FUNC, this); \
+	hb_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", HB_FUNC, this); \
 
 
 struct hb_apply_context_t
@@ -54,11 +54,11 @@ struct hb_apply_context_t
 
 
 #undef BUFFER
-#define BUFFER context->buffer
+#define BUFFER c->buffer
 
 
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
-typedef bool (*apply_lookup_func_t) (hb_apply_context_t *context, unsigned int lookup_index);
+typedef bool (*apply_lookup_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
 
 struct ContextFuncs
 {
@@ -85,7 +85,7 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
 }
 
 
-static inline bool match_input (hb_apply_context_t *context,
+static inline bool match_input (hb_apply_context_t *c,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
@@ -93,13 +93,13 @@ static inline bool match_input (hb_apply_context_t *context,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
-  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
-  if (unlikely (context->buffer->in_pos + count > end))
+  unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+  if (unlikely (c->buffer->in_pos + count > end))
     return false;
 
-  for (i = 1, j = context->buffer->in_pos + 1; i < count; i++, j++)
+  for (i = 1, j = c->buffer->in_pos + 1; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
@@ -110,23 +110,23 @@ static inline bool match_input (hb_apply_context_t *context,
       return false;
   }
 
-  *context_length_out = j - context->buffer->in_pos;
+  *context_length_out = j - c->buffer->in_pos;
 
   return true;
 }
 
-static inline bool match_backtrack (hb_apply_context_t *context,
+static inline bool match_backtrack (hb_apply_context_t *c,
 				    unsigned int count,
 				    const USHORT backtrack[],
 				    match_func_t match_func,
 				    const void *match_data)
 {
-  if (unlikely (context->buffer->out_pos < count))
+  if (unlikely (c->buffer->out_pos < count))
     return false;
 
-  for (unsigned int i = 0, j = context->buffer->out_pos - 1; i < count; i++, j--)
+  for (unsigned int i = 0, j = c->buffer->out_pos - 1; i < count; i++, j--)
   {
-    while (_hb_ot_layout_skip_mark (context->layout->face, OUT_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, OUT_INFO (j), c->lookup_flag, NULL))
     {
       if (unlikely (j + 1 == count - i))
 	return false;
@@ -140,7 +140,7 @@ static inline bool match_backtrack (hb_apply_context_t *context,
   return true;
 }
 
-static inline bool match_lookahead (hb_apply_context_t *context,
+static inline bool match_lookahead (hb_apply_context_t *c,
 				    unsigned int count,
 				    const USHORT lookahead[],
 				    match_func_t match_func,
@@ -148,13 +148,13 @@ static inline bool match_lookahead (hb_apply_context_t *context,
 				    unsigned int offset)
 {
   unsigned int i, j;
-  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
-  if (unlikely (context->buffer->in_pos + offset + count > end))
+  unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+  if (unlikely (c->buffer->in_pos + offset + count > end))
     return false;
 
-  for (i = 0, j = context->buffer->in_pos + offset; i < count; i++, j++)
+  for (i = 0, j = c->buffer->in_pos + offset; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (context->layout->face, OUT_INFO (j), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, OUT_INFO (j), c->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
@@ -171,9 +171,9 @@ static inline bool match_lookahead (hb_apply_context_t *context,
 
 struct LookupRecord
 {
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this);
+    return c->check_struct (this);
   }
 
   USHORT	sequenceIndex;		/* Index into current glyph
@@ -184,14 +184,14 @@ struct LookupRecord
   DEFINE_SIZE_STATIC (4);
 };
 
-static inline bool apply_lookup (hb_apply_context_t *context,
+static inline bool apply_lookup (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int lookupCount,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 apply_lookup_func_t apply_func)
 {
-  unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
-  if (unlikely (context->buffer->in_pos + count > end))
+  unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+  if (unlikely (c->buffer->in_pos + count > end))
     return false;
 
   /* TODO We don't support lookupRecord arrays that are not increasing:
@@ -203,26 +203,26 @@ static inline bool apply_lookup (hb_apply_context_t *context,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (context->layout->face, IN_CURINFO (), context->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, IN_CURINFO (), c->lookup_flag, NULL))
     {
-      if (unlikely (context->buffer->in_pos == end))
+      if (unlikely (c->buffer->in_pos == end))
 	return true;
       /* No lookup applied for this index */
-      context->buffer->next_glyph ();
+      c->buffer->next_glyph ();
     }
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
     {
-      unsigned int old_pos = context->buffer->in_pos;
+      unsigned int old_pos = c->buffer->in_pos;
 
       /* Apply a lookup */
-      bool done = apply_func (context, lookupRecord->lookupListIndex);
+      bool done = apply_func (c, lookupRecord->lookupListIndex);
 
       lookupRecord++;
       lookupCount--;
       /* Err, this is wrong if the lookup jumped over some glyphs */
-      i += context->buffer->in_pos - old_pos;
-      if (unlikely (context->buffer->in_pos == end))
+      i += c->buffer->in_pos - old_pos;
+      if (unlikely (c->buffer->in_pos == end))
 	return true;
 
       if (!done)
@@ -232,7 +232,7 @@ static inline bool apply_lookup (hb_apply_context_t *context,
     {
     not_applied:
       /* No lookup applied for this index */
-      context->buffer->next_glyph ();
+      c->buffer->next_glyph ();
       i++;
     }
   }
@@ -249,15 +249,15 @@ struct ContextLookupContext
   const void *match_data;
 };
 
-static inline bool context_lookup (hb_apply_context_t *context,
+static inline bool context_lookup (hb_apply_context_t *c,
 				   unsigned int inputCount, /* Including the first glyph (not matched) */
 				   const USHORT input[], /* Array of input values--start with second glyph */
 				   unsigned int lookupCount,
 				   const LookupRecord lookupRecord[],
 				   ContextLookupContext &lookup_context)
 {
-  hb_apply_context_t new_context = *context;
-  return match_input (context,
+  hb_apply_context_t new_context = *c;
+  return match_input (c,
 		      inputCount, input,
 		      lookup_context.funcs.match, lookup_context.match_data,
 		      &new_context.context_length)
@@ -272,22 +272,22 @@ struct Rule
   friend struct RuleSet;
 
   private:
-  inline bool apply (hb_apply_context_t *context, ContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *c, ContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
-    return context_lookup (context,
+    return context_lookup (c,
 			   inputCount, input,
 			   lookupCount, lookupRecord,
 			   lookup_context);
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return inputCount.sanitize (context)
-	&& lookupCount.sanitize (context)
-	&& context->check_range (input,
+    return inputCount.sanitize (c)
+	&& lookupCount.sanitize (c)
+	&& c->check_range (input,
 				 input[0].static_size * inputCount
 				 + lookupRecordX[0].static_size * lookupCount);
   }
@@ -307,22 +307,22 @@ struct Rule
 
 struct RuleSet
 {
-  inline bool apply (hb_apply_context_t *context, ContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *c, ContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
-      if ((this+rule[i]).apply (context, lookup_context))
+      if ((this+rule[i]).apply (c, lookup_context))
         return true;
     }
 
     return false;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return rule.sanitize (context, this);
+    return rule.sanitize (c, this);
   }
 
   private:
@@ -339,7 +339,7 @@ struct ContextFormat1
   friend struct Context;
 
   private:
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -351,13 +351,13 @@ struct ContextFormat1
       {match_glyph, apply_func},
       NULL
     };
-    return rule_set.apply (context, lookup_context);
+    return rule_set.apply (c, lookup_context);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (context, this)
-	&& ruleSet.sanitize (context, this);
+    return coverage.sanitize (c, this)
+	&& ruleSet.sanitize (c, this);
   }
 
   private:
@@ -378,7 +378,7 @@ struct ContextFormat2
   friend struct Context;
 
   private:
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -395,14 +395,14 @@ struct ContextFormat2
       {match_class, apply_func},
       &class_def
     };
-    return rule_set.apply (context, lookup_context);
+    return rule_set.apply (c, lookup_context);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (context, this)
-        && classDef.sanitize (context, this)
-	&& ruleSet.sanitize (context, this);
+    return coverage.sanitize (c, this)
+        && classDef.sanitize (c, this)
+	&& ruleSet.sanitize (c, this);
   }
 
   private:
@@ -426,7 +426,7 @@ struct ContextFormat3
   friend struct Context;
 
   private:
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage[0]) (IN_CURGLYPH ());
@@ -438,21 +438,21 @@ struct ContextFormat3
       {match_coverage, apply_func},
       this
     };
-    return context_lookup (context,
+    return context_lookup (c,
 			   glyphCount, (const USHORT *) (coverage + 1),
 			   lookupCount, lookupRecord,
 			   lookup_context);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!context->check_struct (this)) return false;
+    if (!c->check_struct (this)) return false;
     unsigned int count = glyphCount;
-    if (!context->check_array (coverage, coverage[0].static_size, count)) return false;
+    if (!c->check_array (coverage, coverage[0].static_size, count)) return false;
     for (unsigned int i = 0; i < count; i++)
-      if (!coverage[i].sanitize (context, this)) return false;
+      if (!coverage[i].sanitize (c, this)) return false;
     LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * count);
-    return context->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount);
+    return c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount);
   }
 
   private:
@@ -472,24 +472,24 @@ struct ContextFormat3
 struct Context
 {
   protected:
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context, apply_func);
-    case 2: return u.format2.apply (context, apply_func);
-    case 3: return u.format3.apply (context, apply_func);
+    case 1: return u.format1.apply (c, apply_func);
+    case 2: return u.format2.apply (c, apply_func);
+    case 3: return u.format3.apply (c, apply_func);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
-    case 2: return u.format2.sanitize (context);
-    case 3: return u.format3.sanitize (context);
+    case 1: return u.format1.sanitize (c);
+    case 2: return u.format2.sanitize (c);
+    case 3: return u.format3.sanitize (c);
     default:return true;
     }
   }
@@ -512,7 +512,7 @@ struct ChainContextLookupContext
   const void *match_data[3];
 };
 
-static inline bool chain_context_lookup (hb_apply_context_t *context,
+static inline bool chain_context_lookup (hb_apply_context_t *c,
 					 unsigned int backtrackCount,
 					 const USHORT backtrack[],
 					 unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -524,20 +524,20 @@ static inline bool chain_context_lookup (hb_apply_context_t *context,
 					 ChainContextLookupContext &lookup_context)
 {
   /* First guess */
-  if (unlikely (context->buffer->out_pos < backtrackCount ||
-		context->buffer->in_pos + inputCount + lookaheadCount > context->buffer->in_length ||
-		inputCount + lookaheadCount > context->context_length))
+  if (unlikely (c->buffer->out_pos < backtrackCount ||
+		c->buffer->in_pos + inputCount + lookaheadCount > c->buffer->in_length ||
+		inputCount + lookaheadCount > c->context_length))
     return false;
 
-  hb_apply_context_t new_context = *context;
-  return match_backtrack (context,
+  hb_apply_context_t new_context = *c;
+  return match_backtrack (c,
 			  backtrackCount, backtrack,
 			  lookup_context.funcs.match, lookup_context.match_data[0])
-      && match_input (context,
+      && match_input (c,
 		      inputCount, input,
 		      lookup_context.funcs.match, lookup_context.match_data[1],
 		      &new_context.context_length)
-      && match_lookahead (context,
+      && match_lookahead (c,
 			  lookaheadCount, lookahead,
 			  lookup_context.funcs.match, lookup_context.match_data[2],
 			  new_context.context_length)
@@ -552,13 +552,13 @@ struct ChainRule
   friend struct ChainRuleSet;
 
   private:
-  inline bool apply (hb_apply_context_t *context, ChainContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *c, ChainContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return chain_context_lookup (context,
+    return chain_context_lookup (c,
 				 backtrack.len, backtrack.array,
 				 input.len, input.array,
 				 lookahead.len, lookahead.array,
@@ -568,15 +568,15 @@ struct ChainRule
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!backtrack.sanitize (context)) return false;
+    if (!backtrack.sanitize (c)) return false;
     HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
-    if (!input.sanitize (context)) return false;
+    if (!input.sanitize (c)) return false;
     ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
-    if (!lookahead.sanitize (context)) return false;
+    if (!lookahead.sanitize (c)) return false;
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return lookup.sanitize (context);
+    return lookup.sanitize (c);
   }
 
   private:
@@ -599,22 +599,22 @@ struct ChainRule
 
 struct ChainRuleSet
 {
-  inline bool apply (hb_apply_context_t *context, ChainContextLookupContext &lookup_context) const
+  inline bool apply (hb_apply_context_t *c, ChainContextLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
-      if ((this+rule[i]).apply (context, lookup_context))
+      if ((this+rule[i]).apply (c, lookup_context))
         return true;
     }
 
     return false;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return rule.sanitize (context, this);
+    return rule.sanitize (c, this);
   }
 
   private:
@@ -630,7 +630,7 @@ struct ChainContextFormat1
   friend struct ChainContext;
 
   private:
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -642,13 +642,13 @@ struct ChainContextFormat1
       {match_glyph, apply_func},
       {NULL, NULL, NULL}
     };
-    return rule_set.apply (context, lookup_context);
+    return rule_set.apply (c, lookup_context);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (context, this)
-	&& ruleSet.sanitize (context, this);
+    return coverage.sanitize (c, this)
+	&& ruleSet.sanitize (c, this);
   }
 
   private:
@@ -668,7 +668,7 @@ struct ChainContextFormat2
   friend struct ChainContext;
 
   private:
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -690,16 +690,16 @@ struct ChainContextFormat2
        &input_class_def,
        &lookahead_class_def}
     };
-    return rule_set.apply (context, lookup_context);
+    return rule_set.apply (c, lookup_context);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (context, this)
-	&& backtrackClassDef.sanitize (context, this)
-	&& inputClassDef.sanitize (context, this)
-	&& lookaheadClassDef.sanitize (context, this)
-	&& ruleSet.sanitize (context, this);
+    return coverage.sanitize (c, this)
+	&& backtrackClassDef.sanitize (c, this)
+	&& inputClassDef.sanitize (c, this)
+	&& lookaheadClassDef.sanitize (c, this)
+	&& ruleSet.sanitize (c, this);
   }
 
   private:
@@ -732,7 +732,7 @@ struct ChainContextFormat3
 
   private:
 
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
@@ -747,7 +747,7 @@ struct ChainContextFormat3
       {match_coverage, apply_func},
       {this, this, this}
     };
-    return chain_context_lookup (context,
+    return chain_context_lookup (c,
 				 backtrack.len, (const USHORT *) backtrack.array,
 				 input.len, (const USHORT *) input.array + 1,
 				 lookahead.len, (const USHORT *) lookahead.array,
@@ -756,15 +756,15 @@ struct ChainContextFormat3
     return false;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!backtrack.sanitize (context, this)) return false;
+    if (!backtrack.sanitize (c, this)) return false;
     OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    if (!input.sanitize (context, this)) return false;
+    if (!input.sanitize (c, this)) return false;
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
-    if (!lookahead.sanitize (context, this)) return false;
+    if (!lookahead.sanitize (c, this)) return false;
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return lookup.sanitize (context);
+    return lookup.sanitize (c);
   }
 
   private:
@@ -791,24 +791,24 @@ struct ChainContextFormat3
 struct ChainContext
 {
   protected:
-  inline bool apply (hb_apply_context_t *context, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context, apply_func);
-    case 2: return u.format2.apply (context, apply_func);
-    case 3: return u.format3.apply (context, apply_func);
+    case 1: return u.format1.apply (c, apply_func);
+    case 2: return u.format2.apply (c, apply_func);
+    case 3: return u.format3.apply (c, apply_func);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
-    case 2: return u.format2.sanitize (context);
-    case 3: return u.format3.sanitize (context);
+    case 1: return u.format1.sanitize (c);
+    case 2: return u.format2.sanitize (c);
+    case 3: return u.format3.sanitize (c);
     default:return true;
     }
   }
@@ -831,9 +831,9 @@ struct ExtensionFormat1
   inline unsigned int get_type (void) const { return extensionLookupType; }
   inline unsigned int get_offset (void) const { return extensionOffset; }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this);
+    return c->check_struct (this);
   }
 
   private:
@@ -864,11 +864,11 @@ struct Extension
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
+    case 1: return u.format1.sanitize (c);
     default:return true;
     }
   }
@@ -921,12 +921,12 @@ struct GSUBGPOS
   inline const Lookup& get_lookup (unsigned int i) const
   { return (this+lookupList)[i]; }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return version.sanitize (context) && likely (version.major == 1)
-	&& scriptList.sanitize (context, this)
-	&& featureList.sanitize (context, this)
-	&& lookupList.sanitize (context, this);
+    return version.sanitize (c) && likely (version.major == 1)
+	&& scriptList.sanitize (c, this)
+	&& featureList.sanitize (c, this)
+	&& lookupList.sanitize (c, this);
   }
 
   protected:

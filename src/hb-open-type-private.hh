@@ -176,7 +176,7 @@ struct hb_trace_t<0> {
 
 
 #define TRACE_SANITIZE() \
-	hb_trace_t<HB_DEBUG_SANITIZE> trace (&context->debug_depth, "SANITIZE", HB_FUNC, this); \
+	hb_trace_t<HB_DEBUG_SANITIZE> trace (&c->debug_depth, "SANITIZE", HB_FUNC, this); \
 
 
 struct hb_sanitize_context_t
@@ -278,7 +278,7 @@ template <typename Type>
 struct Sanitizer
 {
   static hb_blob_t *sanitize (hb_blob_t *blob) {
-    hb_sanitize_context_t context[1] = {{0}};
+    hb_sanitize_context_t c[1] = {{0}};
     bool sane;
 
     /* TODO is_sane() stuff */
@@ -287,36 +287,36 @@ struct Sanitizer
     if (HB_DEBUG_SANITIZE)
       fprintf (stderr, "Sanitizer %p start %s\n", blob, HB_FUNC);
 
-    context->init (blob);
+    c->init (blob);
 
-    if (unlikely (!context->start)) {
-      context->finish ();
+    if (unlikely (!c->start)) {
+      c->finish ();
       return blob;
     }
 
-    Type *t = CastP<Type> (const_cast<char *> (context->start));
+    Type *t = CastP<Type> (const_cast<char *> (c->start));
 
-    sane = t->sanitize (context);
+    sane = t->sanitize (c);
     if (sane) {
-      if (context->edit_count) {
+      if (c->edit_count) {
 	if (HB_DEBUG_SANITIZE)
 	  fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
-		   blob, context->edit_count, HB_FUNC);
+		   blob, c->edit_count, HB_FUNC);
 
         /* sanitize again to ensure no toe-stepping */
-        context->edit_count = 0;
-	sane = t->sanitize (context);
-	if (context->edit_count) {
+        c->edit_count = 0;
+	sane = t->sanitize (c);
+	if (c->edit_count) {
 	  if (HB_DEBUG_SANITIZE)
 	    fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
-		     blob, context->edit_count, HB_FUNC);
+		     blob, c->edit_count, HB_FUNC);
 	  sane = false;
 	}
       }
-      context->finish ();
+      c->finish ();
     } else {
-      unsigned int edit_count = context->edit_count;
-      context->finish ();
+      unsigned int edit_count = c->edit_count;
+      c->finish ();
       if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
         /* ok, we made it writable by relocating.  try again */
 	if (HB_DEBUG_SANITIZE)
@@ -391,9 +391,9 @@ struct IntType
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
   inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return likely (context->check_struct (this));
+    return likely (c->check_struct (this));
   }
   protected:
   BEInt<Type, sizeof (Type)> v;
@@ -459,9 +459,9 @@ struct FixedVersion
 {
   inline operator uint32_t (void) const { return (major << 16) + minor; }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this);
+    return c->check_struct (this);
   }
 
   USHORT major;
@@ -487,28 +487,28 @@ struct GenericOffsetTo : OffsetType
     return StructAtOffset<Type> (base, offset);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    if (unlikely (!context->check_struct (this))) return false;
+    if (unlikely (!c->check_struct (this))) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (base, offset);
-    return likely (obj.sanitize (context)) || neuter (context);
+    return likely (obj.sanitize (c)) || neuter (c);
   }
   template <typename T>
-  inline bool sanitize (hb_sanitize_context_t *context, void *base, T user_data) {
+  inline bool sanitize (hb_sanitize_context_t *c, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (unlikely (!context->check_struct (this))) return false;
+    if (unlikely (!c->check_struct (this))) return false;
     unsigned int offset = *this;
     if (unlikely (!offset)) return true;
     Type &obj = StructAtOffset<Type> (base, offset);
-    return likely (obj.sanitize (context, user_data)) || neuter (context);
+    return likely (obj.sanitize (c, user_data)) || neuter (c);
   }
 
   private:
   /* Set the offset to Null */
-  inline bool neuter (hb_sanitize_context_t *context) {
-    if (context->can_edit (this, this->static_size)) {
+  inline bool neuter (hb_sanitize_context_t *c) {
+    if (c->can_edit (this, this->static_size)) {
       this->set (0); /* 0 is Null offset */
       return true;
     }
@@ -552,9 +552,9 @@ struct GenericArrayOf
   inline unsigned int get_size () const
   { return len.static_size + len * Type::static_size; }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (c))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
@@ -565,35 +565,35 @@ struct GenericArrayOf
      * other structs. */
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (array[i].sanitize (context))
+      if (array[i].sanitize (c))
         return false;
     return true;
   }
-  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (c))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!array[i].sanitize (context, base)))
+      if (unlikely (!array[i].sanitize (c, base)))
         return false;
     return true;
   }
   template <typename T>
-  inline bool sanitize (hb_sanitize_context_t *context, void *base, T user_data) {
+  inline bool sanitize (hb_sanitize_context_t *c, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (c))) return false;
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!array[i].sanitize (context, base, user_data)))
+      if (unlikely (!array[i].sanitize (c, base, user_data)))
         return false;
     return true;
   }
 
   private:
-  inline bool sanitize_shallow (hb_sanitize_context_t *context) {
+  inline bool sanitize_shallow (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-	&& context->check_array (this, Type::static_size, len);
+    return c->check_struct (this)
+	&& c->check_array (this, Type::static_size, len);
   }
 
   public:
@@ -633,14 +633,14 @@ struct OffsetListOf : OffsetArrayOf<Type>
     return this+this->array[i];
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (context, this);
+    return OffsetArrayOf<Type>::sanitize (c, this);
   }
   template <typename T>
-  inline bool sanitize (hb_sanitize_context_t *context, T user_data) {
+  inline bool sanitize (hb_sanitize_context_t *c, T user_data) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (context, this, user_data);
+    return OffsetArrayOf<Type>::sanitize (c, this, user_data);
   }
 };
 
@@ -658,14 +658,14 @@ struct HeadlessArrayOf
   inline unsigned int get_size () const
   { return len.static_size + (len ? len - 1 : 0) * Type::static_size; }
 
-  inline bool sanitize_shallow (hb_sanitize_context_t *context) {
-    return context->check_struct (this)
-	&& context->check_array (this, Type::static_size, len);
+  inline bool sanitize_shallow (hb_sanitize_context_t *c) {
+    return c->check_struct (this)
+	&& c->check_array (this, Type::static_size, len);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (context))) return false;
+    if (unlikely (!sanitize_shallow (c))) return false;
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
      * a bound check on the aggregate array size, hence the return.
@@ -677,7 +677,7 @@ struct HeadlessArrayOf
     unsigned int count = len ? len - 1 : 0;
     Type *a = array;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!a[i].sanitize (context)))
+      if (unlikely (!a[i].sanitize (c)))
         return false;
     return true;
   }

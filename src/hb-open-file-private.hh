@@ -48,9 +48,9 @@ struct TTCHeader;
 
 typedef struct TableDirectory
 {
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this);
+    return c->check_struct (this);
   }
 
   Tag		tag;		/* 4-byte identifier. */
@@ -98,10 +98,10 @@ typedef struct OffsetTable
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-	&& context->check_array (tableDir, TableDirectory::static_size, numTables);
+    return c->check_struct (this)
+	&& c->check_array (tableDir, TableDirectory::static_size, numTables);
   }
 
   private:
@@ -127,9 +127,9 @@ struct TTCHeaderVersion1
   inline unsigned int get_face_count (void) const { return table.len; }
   inline const OpenTypeFontFace& get_face (unsigned int i) const { return this+table[i]; }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return table.sanitize (context, this);
+    return table.sanitize (c, this);
   }
 
   private:
@@ -166,12 +166,12 @@ struct TTCHeader
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!u.header.version.sanitize (context))) return false;
+    if (unlikely (!u.header.version.sanitize (c))) return false;
     switch (u.header.version) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return u.version1.sanitize (context);
+    case 1: return u.version1.sanitize (c);
     default:return true;
     }
   }
@@ -228,15 +228,15 @@ struct OpenTypeFontFile
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!u.tag.sanitize (context))) return false;
+    if (unlikely (!u.tag.sanitize (c))) return false;
     switch (u.tag) {
     case CFFTag:	/* All the non-collection tags */
     case TrueTag:
     case Typ1Tag:
-    case TrueTypeTag:	return u.fontFace.sanitize (context);
-    case TTCTag:	return u.ttcHeader.sanitize (context);
+    case TrueTypeTag:	return u.fontFace.sanitize (c);
+    case TTCTag:	return u.ttcHeader.sanitize (c);
     default:		return true;
     }
   }

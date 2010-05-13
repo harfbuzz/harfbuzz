@@ -31,7 +31,7 @@
 
 
 #undef BUFFER
-#define BUFFER context->buffer
+#define BUFFER c->buffer
 
 
 #define HB_OT_LAYOUT_GPOS_NO_LAST ((unsigned int) -1)
@@ -133,7 +133,7 @@ struct ValueFormat : USHORT
   }
 
   private:
-  inline bool sanitize_value_devices (hb_sanitize_context_t *context, void *base, Value *values) {
+  inline bool sanitize_value_devices (hb_sanitize_context_t *c, void *base, Value *values) {
     unsigned int format = *this;
 
     if (format & xPlacement) values++;
@@ -141,10 +141,10 @@ struct ValueFormat : USHORT
     if (format & xAdvance)   values++;
     if (format & yAdvance)   values++;
 
-    if ((format & xPlaDevice) && !get_device (values++).sanitize (context, base)) return false;
-    if ((format & yPlaDevice) && !get_device (values++).sanitize (context, base)) return false;
-    if ((format & xAdvDevice) && !get_device (values++).sanitize (context, base)) return false;
-    if ((format & yAdvDevice) && !get_device (values++).sanitize (context, base)) return false;
+    if ((format & xPlaDevice) && !get_device (values++).sanitize (c, base)) return false;
+    if ((format & yPlaDevice) && !get_device (values++).sanitize (c, base)) return false;
+    if ((format & xAdvDevice) && !get_device (values++).sanitize (c, base)) return false;
+    if ((format & yAdvDevice) && !get_device (values++).sanitize (c, base)) return false;
 
     return true;
   }
@@ -164,22 +164,22 @@ struct ValueFormat : USHORT
     return (format & devices) != 0;
   }
 
-  inline bool sanitize_value (hb_sanitize_context_t *context, void *base, Value *values) {
+  inline bool sanitize_value (hb_sanitize_context_t *c, void *base, Value *values) {
     TRACE_SANITIZE ();
-    return context->check_range (values, get_size ())
-	&& (!has_device () || sanitize_value_devices (context, base, values));
+    return c->check_range (values, get_size ())
+	&& (!has_device () || sanitize_value_devices (c, base, values));
   }
 
-  inline bool sanitize_values (hb_sanitize_context_t *context, void *base, Value *values, unsigned int count) {
+  inline bool sanitize_values (hb_sanitize_context_t *c, void *base, Value *values, unsigned int count) {
     TRACE_SANITIZE ();
     unsigned int len = get_len ();
 
-    if (!context->check_array (values, get_size (), count)) return false;
+    if (!c->check_array (values, get_size (), count)) return false;
 
     if (!has_device ()) return true;
 
     for (unsigned int i = 0; i < count; i++) {
-      if (!sanitize_value_devices (context, base, values))
+      if (!sanitize_value_devices (c, base, values))
         return false;
       values += len;
     }
@@ -188,13 +188,13 @@ struct ValueFormat : USHORT
   }
 
   /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
-  inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *context, void *base, Value *values, unsigned int count, unsigned int stride) {
+  inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *c, void *base, Value *values, unsigned int count, unsigned int stride) {
     TRACE_SANITIZE ();
 
     if (!has_device ()) return true;
 
     for (unsigned int i = 0; i < count; i++) {
-      if (!sanitize_value_devices (context, base, values))
+      if (!sanitize_value_devices (c, base, values))
         return false;
       values += stride;
     }
@@ -216,9 +216,9 @@ struct AnchorFormat1
       *y = _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this);
+    return c->check_struct (this);
   }
 
   private:
@@ -248,9 +248,9 @@ struct AnchorFormat2
       *y = y_ppem && ret ? cy : _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this);
+    return c->check_struct (this);
   }
 
   private:
@@ -280,11 +280,11 @@ struct AnchorFormat3
 	*y += (this+yDeviceTable).get_delta (layout->font->y_ppem) << 16;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-	&& xDeviceTable.sanitize (context, this)
-	&& yDeviceTable.sanitize (context, this);
+    return c->check_struct (this)
+	&& xDeviceTable.sanitize (c, this)
+	&& yDeviceTable.sanitize (c, this);
   }
 
   private:
@@ -317,13 +317,13 @@ struct Anchor
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
-    case 2: return u.format2.sanitize (context);
-    case 3: return u.format3.sanitize (context);
+    case 1: return u.format1.sanitize (c);
+    case 2: return u.format2.sanitize (c);
+    case 3: return u.format3.sanitize (c);
     default:return true;
     }
   }
@@ -347,14 +347,14 @@ struct AnchorMatrix
     return this+matrix[row * cols + col];
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context, unsigned int cols) {
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int cols) {
     TRACE_SANITIZE ();
-    if (!context->check_struct (this)) return false;
+    if (!c->check_struct (this)) return false;
     if (unlikely (cols >= ((unsigned int) -1) / rows)) return false;
     unsigned int count = rows * cols;
-    if (!context->check_array (matrix, matrix[0].static_size, count)) return false;
+    if (!c->check_array (matrix, matrix[0].static_size, count)) return false;
     for (unsigned int i = 0; i < count; i++)
-      if (!matrix[i].sanitize (context, this)) return false;
+      if (!matrix[i].sanitize (c, this)) return false;
     return true;
   }
 
@@ -372,10 +372,10 @@ struct MarkRecord
 {
   friend struct MarkArray;
 
-  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-	&& markAnchor.sanitize (context, base);
+    return c->check_struct (this)
+	&& markAnchor.sanitize (c, base);
   }
 
   private:
@@ -389,7 +389,7 @@ struct MarkRecord
 
 struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage order */
 {
-  inline bool apply (hb_apply_context_t *context,
+  inline bool apply (hb_apply_context_t *c,
 		     unsigned int mark_index, unsigned int glyph_index,
 		     const AnchorMatrix &anchors, unsigned int class_count,
 		     unsigned int glyph_pos) const
@@ -403,23 +403,23 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
-    mark_anchor.get_anchor (context->layout, IN_CURGLYPH (), &mark_x, &mark_y);
-    glyph_anchor.get_anchor (context->layout, IN_GLYPH (glyph_pos), &base_x, &base_y);
+    mark_anchor.get_anchor (c->layout, IN_CURGLYPH (), &mark_x, &mark_y);
+    glyph_anchor.get_anchor (c->layout, IN_GLYPH (glyph_pos), &base_x, &base_y);
 
-    hb_internal_glyph_position_t *o = POSITION (context->buffer->in_pos);
+    hb_internal_glyph_position_t *o = POSITION (c->buffer->in_pos);
     o->x_advance = 0;
     o->y_advance = 0;
     o->x_offset  = base_x - mark_x;
     o->y_offset  = base_y - mark_y;
-    o->back      = context->buffer->in_pos - glyph_pos;
+    o->back      = c->buffer->in_pos - glyph_pos;
 
-    context->buffer->in_pos++;
+    c->buffer->in_pos++;
     return true;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return ArrayOf<MarkRecord>::sanitize (context, this);
+    return ArrayOf<MarkRecord>::sanitize (c, this);
   }
 };
 
@@ -431,24 +431,24 @@ struct SinglePosFormat1
   friend struct SinglePos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (likely (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (context->layout, this, values, CURPOSITION ());
+    valueFormat.apply_value (c->layout, this, values, CURPOSITION ());
 
-    context->buffer->in_pos++;
+    c->buffer->in_pos++;
     return true;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-	&& coverage.sanitize (context, this)
-	&& valueFormat.sanitize_value (context, this, values);
+    return c->check_struct (this)
+	&& coverage.sanitize (c, this)
+	&& valueFormat.sanitize_value (c, this, values);
   }
 
   private:
@@ -470,7 +470,7 @@ struct SinglePosFormat2
   friend struct SinglePos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -480,19 +480,19 @@ struct SinglePosFormat2
     if (likely (index >= valueCount))
       return false;
 
-    valueFormat.apply_value (context->layout, this,
+    valueFormat.apply_value (c->layout, this,
 			     &values[index * valueFormat.get_len ()],
 			     CURPOSITION ());
 
-    context->buffer->in_pos++;
+    c->buffer->in_pos++;
     return true;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-	&& coverage.sanitize (context, this)
-	&& valueFormat.sanitize_values (context, this, values, valueCount);
+    return c->check_struct (this)
+	&& coverage.sanitize (c, this)
+	&& valueFormat.sanitize_values (c, this, values, valueCount);
   }
 
   private:
@@ -514,22 +514,22 @@ struct SinglePos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context);
-    case 2: return u.format2.apply (context);
+    case 1: return u.format1.apply (c);
+    case 2: return u.format2.apply (c);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
-    case 2: return u.format2.sanitize (context);
+    case 1: return u.format1.sanitize (c);
+    case 2: return u.format2.sanitize (c);
     default:return true;
     }
   }
@@ -561,7 +561,7 @@ struct PairSet
 {
   friend struct PairPosFormat1;
 
-  inline bool apply (hb_apply_context_t *context,
+  inline bool apply (hb_apply_context_t *c,
 		     const ValueFormat *valueFormats,
 		     unsigned int pos) const
   {
@@ -576,11 +576,11 @@ struct PairSet
     {
       if (IN_GLYPH (pos) == record->secondGlyph)
       {
-	valueFormats[0].apply_value (context->layout, this, &record->values[0], CURPOSITION ());
-	valueFormats[1].apply_value (context->layout, this, &record->values[len1], POSITION (pos));
+	valueFormats[0].apply_value (c->layout, this, &record->values[0], CURPOSITION ());
+	valueFormats[1].apply_value (c->layout, this, &record->values[len1], POSITION (pos));
 	if (len2)
 	  pos++;
-	context->buffer->in_pos = pos;
+	c->buffer->in_pos = pos;
 	return true;
       }
       record = &StructAtOffset<PairValueRecord> (record, record_size);
@@ -596,15 +596,15 @@ struct PairSet
     unsigned int stride; /* 1 + len1 + len2 */
   };
 
-  inline bool sanitize (hb_sanitize_context_t *context, const sanitize_closure_t *closure) {
+  inline bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) {
     TRACE_SANITIZE ();
-    if (!(context->check_struct (this)
-       && context->check_array (array, USHORT::static_size * closure->stride, len))) return false;
+    if (!(c->check_struct (this)
+       && c->check_array (array, USHORT::static_size * closure->stride, len))) return false;
 
     unsigned int count = len;
     PairValueRecord *record = CastP<PairValueRecord> (array);
-    return closure->valueFormats[0].sanitize_values_stride_unsafe (context, closure->base, &record->values[0], count, closure->stride)
-	&& closure->valueFormats[1].sanitize_values_stride_unsafe (context, closure->base, &record->values[closure->len1], count, closure->stride);
+    return closure->valueFormats[0].sanitize_values_stride_unsafe (c, closure->base, &record->values[0], count, closure->stride)
+	&& closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride);
   }
 
   private:
@@ -620,29 +620,29 @@ struct PairPosFormat1
   friend struct PairPos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
-    if (unlikely (context->buffer->in_pos + 2 > end))
+    unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+    if (unlikely (c->buffer->in_pos + 2 > end))
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (likely (index == NOT_COVERED))
       return false;
 
-    unsigned int j = context->buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
+    unsigned int j = c->buffer->in_pos + 1;
+    while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, NULL))
     {
       if (unlikely (j == end))
 	return false;
       j++;
     }
 
-    return (this+pairSet[index]).apply (context, &valueFormat1, j);
+    return (this+pairSet[index]).apply (c, &valueFormat1, j);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
 
     unsigned int len1 = valueFormat1.get_len ();
@@ -654,9 +654,9 @@ struct PairPosFormat1
       1 + len1 + len2
     };
 
-    return context->check_struct (this)
-	&& coverage.sanitize (context, this)
-	&& pairSet.sanitize (context, this, &closure);
+    return c->check_struct (this)
+	&& coverage.sanitize (c, this)
+	&& pairSet.sanitize (c, this, &closure);
   }
 
   private:
@@ -682,19 +682,19 @@ struct PairPosFormat2
   friend struct PairPos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (context->buffer->in_length, context->buffer->in_pos + context->context_length);
-    if (unlikely (context->buffer->in_pos + 2 > end))
+    unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+    if (unlikely (c->buffer->in_pos + 2 > end))
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
     if (likely (index == NOT_COVERED))
       return false;
 
-    unsigned int j = context->buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, NULL))
+    unsigned int j = c->buffer->in_pos + 1;
+    while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -711,31 +711,31 @@ struct PairPosFormat2
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (context->layout, this, v, CURPOSITION ());
-    valueFormat2.apply_value (context->layout, this, v + len1, POSITION (j));
+    valueFormat1.apply_value (c->layout, this, v, CURPOSITION ());
+    valueFormat2.apply_value (c->layout, this, v + len1, POSITION (j));
 
     if (len2)
       j++;
-    context->buffer->in_pos = j;
+    c->buffer->in_pos = j;
 
     return true;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!(context->check_struct (this)
-       && coverage.sanitize (context, this)
-       && classDef1.sanitize (context, this)
-       && classDef2.sanitize (context, this))) return false;
+    if (!(c->check_struct (this)
+       && coverage.sanitize (c, this)
+       && classDef1.sanitize (c, this)
+       && classDef2.sanitize (c, this))) return false;
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
     unsigned int stride = len1 + len2;
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
-    return context->check_array (values, record_size, count) &&
-	   valueFormat1.sanitize_values_stride_unsafe (context, this, &values[0], count, stride) &&
-	   valueFormat2.sanitize_values_stride_unsafe (context, this, &values[len1], count, stride);
+    return c->check_array (values, record_size, count) &&
+	   valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
+	   valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride);
   }
 
   private:
@@ -773,22 +773,22 @@ struct PairPos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context);
-    case 2: return u.format2.apply (context);
+    case 1: return u.format1.apply (c);
+    case 2: return u.format2.apply (c);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
-    case 2: return u.format2.sanitize (context);
+    case 1: return u.format1.sanitize (c);
+    case 2: return u.format2.sanitize (c);
     default:return true;
     }
   }
@@ -806,10 +806,10 @@ struct EntryExitRecord
 {
   friend struct CursivePosFormat1;
 
-  inline bool sanitize (hb_sanitize_context_t *context, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    return entryAnchor.sanitize (context, base)
-	&& exitAnchor.sanitize (context, base);
+    return entryAnchor.sanitize (c, base)
+	&& exitAnchor.sanitize (c, base);
   }
 
   private:
@@ -830,7 +830,7 @@ struct CursivePosFormat1
   friend struct CursivePos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     /* Now comes the messiest part of the whole OpenType
@@ -950,12 +950,12 @@ struct CursivePosFormat1
        Since horizontal advance widths or vertical advance heights
        can be used alone but not together, no ambiguity occurs.        */
 
-    struct hb_ot_layout_context_t::info_t::gpos_t *gpi = &context->layout->info.gpos;
+    struct hb_ot_layout_context_t::info_t::gpos_t *gpi = &c->layout->info.gpos;
     hb_codepoint_t last_pos = gpi->last;
     gpi->last = HB_OT_LAYOUT_GPOS_NO_LAST;
 
     /* We don't handle mark glyphs here. */
-    if (context->property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+    if (c->property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
       return false;
 
     unsigned int index = (this+coverage) (IN_CURGLYPH ());
@@ -968,14 +968,14 @@ struct CursivePosFormat1
       goto end;
 
     hb_position_t entry_x, entry_y;
-    (this+record.entryAnchor).get_anchor (context->layout, IN_CURGLYPH (), &entry_x, &entry_y);
+    (this+record.entryAnchor).get_anchor (c->layout, IN_CURGLYPH (), &entry_x, &entry_y);
 
     /* TODO vertical */
 
-    if (context->buffer->direction == HB_DIRECTION_RTL)
+    if (c->buffer->direction == HB_DIRECTION_RTL)
     {
       /* advance is absolute, not relative */
-      POSITION (context->buffer->in_pos)->x_advance = entry_x - gpi->anchor_x;
+      POSITION (c->buffer->in_pos)->x_advance = entry_x - gpi->anchor_x;
     }
     else
     {
@@ -983,32 +983,32 @@ struct CursivePosFormat1
       POSITION (last_pos)->x_advance = gpi->anchor_x - entry_x;
     }
 
-    if  (context->lookup_flag & LookupFlag::RightToLeft)
+    if  (c->lookup_flag & LookupFlag::RightToLeft)
     {
-      POSITION (last_pos)->cursive_chain = last_pos - context->buffer->in_pos;
+      POSITION (last_pos)->cursive_chain = last_pos - c->buffer->in_pos;
       POSITION (last_pos)->y_offset = entry_y - gpi->anchor_y;
     }
     else
     {
-      POSITION (context->buffer->in_pos)->cursive_chain = context->buffer->in_pos - last_pos;
-      POSITION (context->buffer->in_pos)->y_offset = gpi->anchor_y - entry_y;
+      POSITION (c->buffer->in_pos)->cursive_chain = c->buffer->in_pos - last_pos;
+      POSITION (c->buffer->in_pos)->y_offset = gpi->anchor_y - entry_y;
     }
 
   end:
     if (record.exitAnchor)
     {
-      gpi->last = context->buffer->in_pos;
-      (this+record.exitAnchor).get_anchor (context->layout, IN_CURGLYPH (), &gpi->anchor_x, &gpi->anchor_y);
+      gpi->last = c->buffer->in_pos;
+      (this+record.exitAnchor).get_anchor (c->layout, IN_CURGLYPH (), &gpi->anchor_x, &gpi->anchor_y);
     }
 
-    context->buffer->in_pos++;
+    c->buffer->in_pos++;
     return true;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (context, this)
-	&& entryExitRecord.sanitize (context, this);
+    return coverage.sanitize (c, this)
+	&& entryExitRecord.sanitize (c, this);
   }
 
   private:
@@ -1028,20 +1028,20 @@ struct CursivePos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context);
+    case 1: return u.format1.apply (c);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
+    case 1: return u.format1.sanitize (c);
     default:return true;
     }
   }
@@ -1064,7 +1064,7 @@ struct MarkBasePosFormat1
   friend struct MarkBasePos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
@@ -1073,13 +1073,13 @@ struct MarkBasePosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = context->buffer->in_pos;
+    unsigned int j = c->buffer->in_pos;
     do
     {
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
+    } while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
     /* The following assertion is too strong, so we've disabled it. */
     if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
@@ -1089,16 +1089,16 @@ struct MarkBasePosFormat1
     if (base_index == NOT_COVERED)
       return false;
 
-    return (this+markArray).apply (context, mark_index, base_index, this+baseArray, classCount, j);
+    return (this+markArray).apply (c, mark_index, base_index, this+baseArray, classCount, j);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-        && markCoverage.sanitize (context, this)
-	&& baseCoverage.sanitize (context, this)
-	&& markArray.sanitize (context, this)
-	&& baseArray.sanitize (context, this, (unsigned int) classCount);
+    return c->check_struct (this)
+        && markCoverage.sanitize (c, this)
+	&& baseCoverage.sanitize (c, this)
+	&& markArray.sanitize (c, this)
+	&& baseArray.sanitize (c, this, (unsigned int) classCount);
   }
 
   private:
@@ -1125,20 +1125,20 @@ struct MarkBasePos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context);
+    case 1: return u.format1.apply (c);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
+    case 1: return u.format1.sanitize (c);
     default:return true;
     }
   }
@@ -1166,7 +1166,7 @@ struct MarkLigPosFormat1
   friend struct MarkLigPos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
@@ -1175,13 +1175,13 @@ struct MarkLigPosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = context->buffer->in_pos;
+    unsigned int j = c->buffer->in_pos;
     do
     {
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
+    } while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
 
     /* The following assertion is too strong, so we've disabled it. */
     if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
@@ -1203,25 +1203,25 @@ struct MarkLigPosFormat1
      * is identical to the ligature ID of the found ligature.  If yes, we
      * can directly use the component index.  If not, we attach the mark
      * glyph to the last component of the ligature. */
-    if (IN_LIGID (j) && IN_LIGID (j) == IN_LIGID (context->buffer->in_pos) && IN_COMPONENT (context->buffer->in_pos))
+    if (IN_LIGID (j) && IN_LIGID (j) == IN_LIGID (c->buffer->in_pos) && IN_COMPONENT (c->buffer->in_pos))
     {
-      comp_index = IN_COMPONENT (context->buffer->in_pos) - 1;
+      comp_index = IN_COMPONENT (c->buffer->in_pos) - 1;
       if (comp_index >= comp_count)
 	comp_index = comp_count - 1;
     }
     else
       comp_index = comp_count - 1;
 
-    return (this+markArray).apply (context, mark_index, comp_index, lig_attach, classCount, j);
+    return (this+markArray).apply (c, mark_index, comp_index, lig_attach, classCount, j);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-        && markCoverage.sanitize (context, this)
-	&& ligatureCoverage.sanitize (context, this)
-	&& markArray.sanitize (context, this)
-	&& ligatureArray.sanitize (context, this, (unsigned int) classCount);
+    return c->check_struct (this)
+        && markCoverage.sanitize (c, this)
+	&& ligatureCoverage.sanitize (c, this)
+	&& markArray.sanitize (c, this)
+	&& ligatureArray.sanitize (c, this, (unsigned int) classCount);
   }
 
   private:
@@ -1249,20 +1249,20 @@ struct MarkLigPos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context);
+    case 1: return u.format1.apply (c);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
+    case 1: return u.format1.sanitize (c);
     default:return true;
     }
   }
@@ -1285,7 +1285,7 @@ struct MarkMarkPosFormat1
   friend struct MarkMarkPos;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
@@ -1294,13 +1294,13 @@ struct MarkMarkPosFormat1
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int property;
-    unsigned int j = context->buffer->in_pos;
+    unsigned int j = c->buffer->in_pos;
     do
     {
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (context->layout->face, IN_INFO (j), context->lookup_flag, &property));
+    } while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, &property));
 
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
       return false;
@@ -1308,24 +1308,24 @@ struct MarkMarkPosFormat1
     /* Two marks match only if they belong to the same base, or same component
      * of the same ligature.  That is, the component numbers must match, and
      * if those are non-zero, the ligid number should also match. */
-    if ((IN_COMPONENT (j) != IN_COMPONENT (context->buffer->in_pos)) ||
-	(IN_COMPONENT (j) && IN_LIGID (j) != IN_LIGID (context->buffer->in_pos)))
+    if ((IN_COMPONENT (j) != IN_COMPONENT (c->buffer->in_pos)) ||
+	(IN_COMPONENT (j) && IN_LIGID (j) != IN_LIGID (c->buffer->in_pos)))
       return false;
 
     unsigned int mark2_index = (this+mark2Coverage) (IN_GLYPH (j));
     if (mark2_index == NOT_COVERED)
       return false;
 
-    return (this+mark1Array).apply (context, mark1_index, mark2_index, this+mark2Array, classCount, j);
+    return (this+mark1Array).apply (c, mark1_index, mark2_index, this+mark2Array, classCount, j);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return context->check_struct (this)
-	&& mark1Coverage.sanitize (context, this)
-	&& mark2Coverage.sanitize (context, this)
-	&& mark1Array.sanitize (context, this)
-	&& mark2Array.sanitize (context, this, (unsigned int) classCount);
+    return c->check_struct (this)
+	&& mark1Coverage.sanitize (c, this)
+	&& mark2Coverage.sanitize (c, this)
+	&& mark1Array.sanitize (c, this)
+	&& mark2Array.sanitize (c, this, (unsigned int) classCount);
   }
 
   private:
@@ -1354,20 +1354,20 @@ struct MarkMarkPos
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     switch (u.format) {
-    case 1: return u.format1.apply (context);
+    case 1: return u.format1.apply (c);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (context)) return false;
+    if (!u.format.sanitize (c)) return false;
     switch (u.format) {
-    case 1: return u.format1.sanitize (context);
+    case 1: return u.format1.sanitize (c);
     default:return true;
     }
   }
@@ -1380,17 +1380,17 @@ struct MarkMarkPos
 };
 
 
-static inline bool position_lookup (hb_apply_context_t *context, unsigned int lookup_index);
+static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index);
 
 struct ContextPos : Context
 {
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    return Context::apply (context, position_lookup);
+    return Context::apply (c, position_lookup);
   }
 };
 
@@ -1399,10 +1399,10 @@ struct ChainContextPos : ChainContext
   friend struct PosLookupSubTable;
 
   private:
-  inline bool apply (hb_apply_context_t *context) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    return ChainContext::apply (context, position_lookup);
+    return ChainContext::apply (c, position_lookup);
   }
 };
 
@@ -1419,9 +1419,9 @@ struct ExtensionPos : Extension
     return StructAtOffset<PosLookupSubTable> (this, offset);
   }
 
-  inline bool apply (hb_apply_context_t *context) const;
+  inline bool apply (hb_apply_context_t *c) const;
 
-  inline bool sanitize (hb_sanitize_context_t *context);
+  inline bool sanitize (hb_sanitize_context_t *c);
 };
 
 
@@ -1447,35 +1447,35 @@ struct PosLookupSubTable
     Extension		= 9
   };
 
-  inline bool apply (hb_apply_context_t *context, unsigned int lookup_type) const
+  inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
   {
     TRACE_APPLY ();
     switch (lookup_type) {
-    case Single:		return u.single.apply (context);
-    case Pair:			return u.pair.apply (context);
-    case Cursive:		return u.cursive.apply (context);
-    case MarkBase:		return u.markBase.apply (context);
-    case MarkLig:		return u.markLig.apply (context);
-    case MarkMark:		return u.markMark.apply (context);
-    case Context:		return u.context.apply (context);
-    case ChainContext:		return u.chainContext.apply (context);
-    case Extension:		return u.extension.apply (context);
+    case Single:		return u.single.apply (c);
+    case Pair:			return u.pair.apply (c);
+    case Cursive:		return u.cursive.apply (c);
+    case MarkBase:		return u.markBase.apply (c);
+    case MarkLig:		return u.markLig.apply (c);
+    case MarkMark:		return u.markMark.apply (c);
+    case Context:		return u.c.apply (c);
+    case ChainContext:		return u.chainContext.apply (c);
+    case Extension:		return u.extension.apply (c);
     default:return false;
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context, unsigned int lookup_type) {
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
     TRACE_SANITIZE ();
     switch (lookup_type) {
-    case Single:		return u.single.sanitize (context);
-    case Pair:			return u.pair.sanitize (context);
-    case Cursive:		return u.cursive.sanitize (context);
-    case MarkBase:		return u.markBase.sanitize (context);
-    case MarkLig:		return u.markLig.sanitize (context);
-    case MarkMark:		return u.markMark.sanitize (context);
-    case Context:		return u.context.sanitize (context);
-    case ChainContext:		return u.chainContext.sanitize (context);
-    case Extension:		return u.extension.sanitize (context);
+    case Single:		return u.single.sanitize (c);
+    case Pair:			return u.pair.sanitize (c);
+    case Cursive:		return u.cursive.sanitize (c);
+    case MarkBase:		return u.markBase.sanitize (c);
+    case MarkLig:		return u.markLig.sanitize (c);
+    case MarkMark:		return u.markMark.sanitize (c);
+    case Context:		return u.c.sanitize (c);
+    case ChainContext:		return u.chainContext.sanitize (c);
+    case Extension:		return u.extension.sanitize (c);
     default:return true;
     }
   }
@@ -1489,7 +1489,7 @@ struct PosLookupSubTable
   MarkBasePos		markBase;
   MarkLigPos		markLig;
   MarkMarkPos		markMark;
-  ContextPos		context;
+  ContextPos		c;
   ChainContextPos	chainContext;
   ExtensionPos		extension;
   } u;
@@ -1509,19 +1509,19 @@ struct PosLookup : Lookup
 			  unsigned int    nesting_level_left) const
   {
     unsigned int lookup_type = get_type ();
-    hb_apply_context_t context[1] = {{0}};
+    hb_apply_context_t c[1] = {{0}};
 
-    context->layout = layout;
-    context->buffer = buffer;
-    context->context_length = context_length;
-    context->nesting_level_left = nesting_level_left;
-    context->lookup_flag = get_flag ();
+    c->layout = layout;
+    c->buffer = buffer;
+    c->context_length = context_length;
+    c->nesting_level_left = nesting_level_left;
+    c->lookup_flag = get_flag ();
 
-    if (!_hb_ot_layout_check_glyph_property (context->layout->face, IN_CURINFO (), context->lookup_flag, &context->property))
+    if (!_hb_ot_layout_check_glyph_property (c->layout->face, IN_CURINFO (), c->lookup_flag, &c->property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
-      if (get_subtable (i).apply (context, lookup_type))
+      if (get_subtable (i).apply (c, lookup_type))
 	return true;
 
     return false;
@@ -1564,11 +1564,11 @@ struct PosLookup : Lookup
     return ret;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!Lookup::sanitize (context))) return false;
+    if (unlikely (!Lookup::sanitize (c))) return false;
     OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
-    return list.sanitize (context, this, get_type ());
+    return list.sanitize (c, this, get_type ());
   }
 };
 
@@ -1591,11 +1591,11 @@ struct GPOS : GSUBGPOS
 			       hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (layout, buffer, mask); }
 
-  inline bool sanitize (hb_sanitize_context_t *context) {
+  inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!GSUBGPOS::sanitize (context))) return false;
+    if (unlikely (!GSUBGPOS::sanitize (c))) return false;
     OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
-    return list.sanitize (context, this);
+    return list.sanitize (c, this);
   }
   public:
   DEFINE_SIZE_STATIC (10);
@@ -1604,33 +1604,33 @@ struct GPOS : GSUBGPOS
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionPos::apply (hb_apply_context_t *context) const
+inline bool ExtensionPos::apply (hb_apply_context_t *c) const
 {
   TRACE_APPLY ();
-  return get_subtable ().apply (context, get_type ());
+  return get_subtable ().apply (c, get_type ());
 }
 
-inline bool ExtensionPos::sanitize (hb_sanitize_context_t *context)
+inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
 {
   TRACE_SANITIZE ();
-  if (unlikely (!Extension::sanitize (context))) return false;
+  if (unlikely (!Extension::sanitize (c))) return false;
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return true;
-  return StructAtOffset<PosLookupSubTable> (this, offset).sanitize (context, get_type ());
+  return StructAtOffset<PosLookupSubTable> (this, offset).sanitize (c, get_type ());
 }
 
-static inline bool position_lookup (hb_apply_context_t *context, unsigned int lookup_index)
+static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index)
 {
-  const GPOS &gpos = *(context->layout->face->ot_layout.gpos);
+  const GPOS &gpos = *(c->layout->face->ot_layout.gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 
-  if (unlikely (context->nesting_level_left == 0))
+  if (unlikely (c->nesting_level_left == 0))
     return false;
 
-  if (unlikely (context->context_length < 1))
+  if (unlikely (c->context_length < 1))
     return false;
 
-  return l.apply_once (context->layout, context->buffer, context->context_length, context->nesting_level_left - 1);
+  return l.apply_once (c->layout, c->buffer, c->context_length, c->nesting_level_left - 1);
 }
 
 
