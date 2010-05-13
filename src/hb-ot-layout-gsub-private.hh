@@ -844,7 +844,7 @@ struct SubstLookup : Lookup
 
 	}
 	if (ret)
-	  _hb_buffer_swap (buffer);
+	  buffer->swap ();
     }
     else
     {

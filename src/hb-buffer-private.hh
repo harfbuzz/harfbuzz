@@ -62,37 +62,6 @@ ASSERT_STATIC (sizeof (hb_glyph_position_t) == sizeof (hb_internal_glyph_positio
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
 
-struct _hb_buffer_t {
-  hb_reference_count_t ref_count;
-
-  /* Information about how the text in the buffer should be treated */
-  hb_unicode_funcs_t *unicode;
-  hb_direction_t      direction;
-  hb_script_t         script;
-  hb_language_t       language;
-
-  /* Buffer contents */
-
-  unsigned int allocated;
-
-  hb_bool_t    have_output; /* whether we have an output buffer going on */
-  hb_bool_t    have_positions; /* whether we have positions */
-  unsigned int in_length;
-  unsigned int out_length;
-  unsigned int in_pos;
-  unsigned int out_pos; /* out_length and out_pos are actually always the same */
-
-  hb_internal_glyph_info_t     *in_string;
-  hb_internal_glyph_info_t     *out_string;
-  hb_internal_glyph_position_t *positions;
-
-  /* Other stuff */
-
-  unsigned int         max_lig_id;
-
-  inline unsigned int allocate_lig_id (void) { return max_lig_id++; }
-};
-
 
 HB_INTERNAL void
 _hb_buffer_swap (hb_buffer_t *buffer);
@@ -128,6 +97,43 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer);
 HB_INTERNAL void
 _hb_buffer_replace_glyph (hb_buffer_t *buffer,
 			  hb_codepoint_t glyph_index);
+
+
+
+struct _hb_buffer_t {
+  hb_reference_count_t ref_count;
+
+  /* Information about how the text in the buffer should be treated */
+  hb_unicode_funcs_t *unicode;
+  hb_direction_t      direction;
+  hb_script_t         script;
+  hb_language_t       language;
+
+  /* Buffer contents */
+
+  unsigned int allocated;
+
+  hb_bool_t    have_output; /* whether we have an output buffer going on */
+  hb_bool_t    have_positions; /* whether we have positions */
+  unsigned int in_length;
+  unsigned int out_length;
+  unsigned int in_pos;
+  unsigned int out_pos; /* out_length and out_pos are actually always the same */
+
+  hb_internal_glyph_info_t     *in_string;
+  hb_internal_glyph_info_t     *out_string;
+  hb_internal_glyph_position_t *positions;
+
+  /* Other stuff */
+
+  unsigned int         max_lig_id;
+
+
+  /* Methods */
+  inline unsigned int allocate_lig_id (void) { return max_lig_id++; }
+  inline void swap (void) { _hb_buffer_swap (this); }
+};
+
 
 
 #ifndef BUFFER
