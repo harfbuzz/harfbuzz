@@ -77,9 +77,14 @@ inline Type& StructAfter(TObject &X)
  * Size checking
  */
 
+/* Check _assertion in a method environment */
 #define _DEFINE_SIZE_ASSERTION(_assertion) \
   inline void _size_assertion (void) const \
   { ASSERT_STATIC (_assertion); }
+/* Check that _code compiles in a method environment */
+#define _DEFINE_COMPILES_ASSERTION(_code) \
+  inline void _compiles_assertion (void) const \
+  { _code; }
 
 
 #define DEFINE_SIZE_STATIC(size) \
@@ -99,11 +104,13 @@ inline Type& StructAfter(TObject &X)
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
-  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + array[0].static_size); \
+  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + sizeof (array[0])); \
+  _DEFINE_COMPILES_ASSERTION ((void) array[0].static_size) \
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY2(size, array1, array2) \
-  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + this->array1[0].static_size + this->array2[0].static_size); \
+  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
+  _DEFINE_COMPILES_ASSERTION ((void) array1[0].static_size; (void) array2[0].static_size) \
   static const unsigned int min_size = (size)
 
 
