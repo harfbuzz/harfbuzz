@@ -49,7 +49,7 @@ struct SingleSubstFormat1
       return false;
 
     glyph_id += deltaGlyphID;
-    _hb_buffer_replace_glyph (context->buffer, glyph_id);
+    context->buffer->replace_glyph (glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (context->layout->face))
@@ -93,7 +93,7 @@ struct SingleSubstFormat2
       return false;
 
     glyph_id = substitute[index];
-    _hb_buffer_replace_glyph (context->buffer, glyph_id);
+    context->buffer->replace_glyph (glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (context->layout->face))
@@ -302,7 +302,7 @@ struct AlternateSubstFormat1
 
     glyph_id = alt_set[alt_index];
 
-    _hb_buffer_replace_glyph (context->buffer, glyph_id);
+    context->buffer->replace_glyph (glyph_id);
 
     /* We inherit the old glyph class to the substituted glyph */
     if (_hb_ot_layout_has_new_glyph_classes (context->layout->face))
@@ -832,7 +832,7 @@ struct SubstLookup : Lookup
     if (likely (!is_reverse ()))
     {
 	/* in/out forward substitution */
-	_hb_buffer_clear_output (buffer);
+	buffer->clear_output ();
 	buffer->in_pos = 0;
 	while (buffer->in_pos < buffer->in_length)
 	{
@@ -840,7 +840,7 @@ struct SubstLookup : Lookup
 	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
-	    _hb_buffer_next_glyph (buffer);
+	    buffer->next_glyph ();
 
 	}
 	if (ret)

@@ -443,13 +443,6 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
   buffer->in_pos++;
 }
 
-void
-_hb_buffer_replace_glyph (hb_buffer_t *buffer,
-			  hb_codepoint_t glyph_index)
-{
-  _hb_buffer_add_output_glyph (buffer, glyph_index, 0xFFFF, 0xFFFF);
-}
-
 
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer)

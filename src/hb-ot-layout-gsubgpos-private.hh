@@ -208,7 +208,7 @@ static inline bool apply_lookup (hb_apply_context_t *context,
       if (unlikely (context->buffer->in_pos == end))
 	return true;
       /* No lookup applied for this index */
-      _hb_buffer_next_glyph (context->buffer);
+      context->buffer->next_glyph ();
     }
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
@@ -232,7 +232,7 @@ static inline bool apply_lookup (hb_apply_context_t *context,
     {
     not_applied:
       /* No lookup applied for this index */
-      _hb_buffer_next_glyph (context->buffer);
+      context->buffer->next_glyph ();
       i++;
     }
   }

@@ -94,10 +94,6 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 HB_INTERNAL void
 _hb_buffer_next_glyph (hb_buffer_t *buffer);
 
-HB_INTERNAL void
-_hb_buffer_replace_glyph (hb_buffer_t *buffer,
-			  hb_codepoint_t glyph_index);
-
 
 
 struct _hb_buffer_t {
@@ -132,6 +128,13 @@ struct _hb_buffer_t {
   /* Methods */
   inline unsigned int allocate_lig_id (void) { return max_lig_id++; }
   inline void swap (void) { _hb_buffer_swap (this); }
+  inline void clear_output (void) { _hb_buffer_clear_output (this); }
+  inline void next_glyph (void) { _hb_buffer_next_glyph (this); }
+  inline void add_output_glyph (hb_codepoint_t glyph_index,
+				unsigned short component = 0xFFFF,
+				unsigned short ligID = 0xFFFF)
+  { _hb_buffer_add_output_glyph (this, glyph_index, component, ligID); }
+  inline void replace_glyph (hb_codepoint_t glyph_index) { add_output_glyph (glyph_index); }
 };
 
 
