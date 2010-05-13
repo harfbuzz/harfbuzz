@@ -404,10 +404,10 @@ struct Ligature
 					 1, (const uint16_t *) &ligGlyph,
 					 0,
 					 IN_LIGID (context->buffer->in_pos) && !IN_COMPONENT (context->buffer->in_pos) ?
-					 0xFFFF : _hb_buffer_allocate_lig_id (context->buffer));
+					 0xFFFF : context->buffer->allocate_lig_id ());
     else
     {
-      unsigned int lig_id = _hb_buffer_allocate_lig_id (context->buffer);
+      unsigned int lig_id = context->buffer->allocate_lig_id ();
       _hb_buffer_add_output_glyph (context->buffer, ligGlyph, 0xFFFF, lig_id);
 
       /* Now we must do a second loop to copy the skipped glyphs to

@@ -89,6 +89,8 @@ struct _hb_buffer_t {
   /* Other stuff */
 
   unsigned int         max_lig_id;
+
+  inline unsigned int allocate_lig_id (void) { return max_lig_id++; }
 };
 
 
@@ -126,9 +128,6 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer);
 HB_INTERNAL void
 _hb_buffer_replace_glyph (hb_buffer_t *buffer,
 			  hb_codepoint_t glyph_index);
-
-HB_INTERNAL unsigned short
-_hb_buffer_allocate_lig_id (hb_buffer_t *buffer);
 
 
 #ifndef BUFFER

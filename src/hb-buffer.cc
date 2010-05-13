@@ -450,12 +450,6 @@ _hb_buffer_replace_glyph (hb_buffer_t *buffer,
   _hb_buffer_add_output_glyph (buffer, glyph_index, 0xFFFF, 0xFFFF);
 }
 
-unsigned short
-_hb_buffer_allocate_lig_id (hb_buffer_t *buffer)
-{
-  return ++buffer->max_lig_id;
-}
-
 
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer)
