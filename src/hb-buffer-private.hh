@@ -130,6 +130,18 @@ struct _hb_buffer_t {
   inline void swap (void) { _hb_buffer_swap (this); }
   inline void clear_output (void) { _hb_buffer_clear_output (this); }
   inline void next_glyph (void) { _hb_buffer_next_glyph (this); }
+  inline void add_output_glyphs (unsigned int num_in,
+				 unsigned int num_out,
+				 const hb_codepoint_t *glyph_data,
+				 unsigned short component,
+				 unsigned short ligID)
+  { _hb_buffer_add_output_glyphs (this, num_in, num_out, glyph_data, component, ligID); }
+  inline void add_output_glyphs_be16 (unsigned int num_in,
+				      unsigned int num_out,
+				      const uint16_t *glyph_data_be,
+				      unsigned short component,
+				      unsigned short ligID)
+  { _hb_buffer_add_output_glyphs_be16 (this, num_in, num_out, glyph_data_be, component, ligID); }
   inline void add_output_glyph (hb_codepoint_t glyph_index,
 				unsigned short component = 0xFFFF,
 				unsigned short ligID = 0xFFFF)

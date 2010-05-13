@@ -166,9 +166,9 @@ struct Sequence
     if (unlikely (!substitute.len))
       return false;
 
-    _hb_buffer_add_output_glyphs_be16 (context->buffer, 1,
-				       substitute.len, (const uint16_t *) substitute.array,
-				       0xFFFF, 0xFFFF);
+    context->buffer->add_output_glyphs_be16 (1,
+					     substitute.len, (const uint16_t *) substitute.array,
+					     0xFFFF, 0xFFFF);
 
     /* This is a guess only ... */
     if (_hb_ot_layout_has_new_glyph_classes (context->layout->face))
@@ -400,15 +400,15 @@ struct Ligature
     if (j == context->buffer->in_pos + i) /* No input glyphs skipped */
       /* We don't use a new ligature ID if there are no skipped
 	 glyphs and the ligature already has an ID. */
-      _hb_buffer_add_output_glyphs_be16 (context->buffer, i,
-					 1, (const uint16_t *) &ligGlyph,
-					 0,
-					 IN_LIGID (context->buffer->in_pos) && !IN_COMPONENT (context->buffer->in_pos) ?
-					 0xFFFF : context->buffer->allocate_lig_id ());
+      context->buffer->add_output_glyphs_be16 (i,
+					       1, (const uint16_t *) &ligGlyph,
+					       0,
+					       IN_LIGID (context->buffer->in_pos) && !IN_COMPONENT (context->buffer->in_pos) ?
+					       0xFFFF : context->buffer->allocate_lig_id ());
     else
     {
       unsigned int lig_id = context->buffer->allocate_lig_id ();
-      _hb_buffer_add_output_glyph (context->buffer, ligGlyph, 0xFFFF, lig_id);
+      context->buffer->add_output_glyph (ligGlyph, 0xFFFF, lig_id);
 
       /* Now we must do a second loop to copy the skipped glyphs to
 	 `out' and assign component values to it.  We start with the
@@ -420,7 +420,7 @@ struct Ligature
       for ( i = 1; i < count; i++ )
       {
 	while (_hb_ot_layout_skip_mark (context->layout->face, IN_CURINFO (), context->lookup_flag, NULL))
-	  _hb_buffer_add_output_glyph (context->buffer, IN_CURGLYPH (), i, lig_id);
+	  context->buffer->add_output_glyph (IN_CURGLYPH (), i, lig_id);
 
 	(context->buffer->in_pos)++;
       }
