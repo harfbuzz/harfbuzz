@@ -94,7 +94,7 @@ struct ValueFormat : USHORT
   void apply_value (hb_ot_layout_context_t       *layout,
 		    const void                   *base,
 		    const Value                  *values,
-		    hb_internal_glyph_position_t *glyph_pos) const
+		    hb_internal_glyph_position_t &glyph_pos) const
   {
     unsigned int x_ppem, y_ppem;
     hb_16dot16_t x_scale, y_scale;
@@ -105,10 +105,10 @@ struct ValueFormat : USHORT
     x_scale = layout->font->x_scale;
     y_scale = layout->font->y_scale;
     /* design units -> fractional pixel */
-    if (format & xPlacement) glyph_pos->x_offset  += _hb_16dot16_mul_round (x_scale, get_short (values++));
-    if (format & yPlacement) glyph_pos->y_offset  += _hb_16dot16_mul_round (y_scale, get_short (values++));
-    if (format & xAdvance)   glyph_pos->x_advance += _hb_16dot16_mul_round (x_scale, get_short (values++));
-    if (format & yAdvance)   glyph_pos->y_advance += _hb_16dot16_mul_round (y_scale, get_short (values++));
+    if (format & xPlacement) glyph_pos.x_offset  += _hb_16dot16_mul_round (x_scale, get_short (values++));
+    if (format & yPlacement) glyph_pos.y_offset  += _hb_16dot16_mul_round (y_scale, get_short (values++));
+    if (format & xAdvance)   glyph_pos.x_advance += _hb_16dot16_mul_round (x_scale, get_short (values++));
+    if (format & yAdvance)   glyph_pos.y_advance += _hb_16dot16_mul_round (y_scale, get_short (values++));
 
     if (!has_device ()) return;
 
@@ -119,16 +119,16 @@ struct ValueFormat : USHORT
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem) glyph_pos->x_offset  += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos.x_offset  += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem) glyph_pos->y_offset  += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos.y_offset  += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem) glyph_pos->x_advance += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem) glyph_pos->y_advance += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos.y_advance += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
     }
   }
 
@@ -406,12 +406,12 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     mark_anchor.get_anchor (c->layout, IN_CURGLYPH (), &mark_x, &mark_y);
     glyph_anchor.get_anchor (c->layout, IN_GLYPH (glyph_pos), &base_x, &base_y);
 
-    hb_internal_glyph_position_t *o = POSITION (c->buffer->in_pos);
-    o->x_advance = 0;
-    o->y_advance = 0;
-    o->x_offset  = base_x - mark_x;
-    o->y_offset  = base_y - mark_y;
-    o->back      = c->buffer->in_pos - glyph_pos;
+    hb_internal_glyph_position_t &o = c->buffer->positions[c->buffer->in_pos];
+    o.x_advance = 0;
+    o.y_advance = 0;
+    o.x_offset  = base_x - mark_x;
+    o.y_offset  = base_y - mark_y;
+    o.back      = c->buffer->in_pos - glyph_pos;
 
     c->buffer->in_pos++;
     return true;
@@ -438,7 +438,7 @@ struct SinglePosFormat1
     if (likely (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (c->layout, this, values, CURPOSITION ());
+    valueFormat.apply_value (c->layout, this, values, c->buffer->positions[c->buffer->in_pos]);
 
     c->buffer->in_pos++;
     return true;
@@ -482,7 +482,7 @@ struct SinglePosFormat2
 
     valueFormat.apply_value (c->layout, this,
 			     &values[index * valueFormat.get_len ()],
-			     CURPOSITION ());
+			     c->buffer->positions[c->buffer->in_pos]);
 
     c->buffer->in_pos++;
     return true;
@@ -576,8 +576,8 @@ struct PairSet
     {
       if (IN_GLYPH (pos) == record->secondGlyph)
       {
-	valueFormats[0].apply_value (c->layout, this, &record->values[0], CURPOSITION ());
-	valueFormats[1].apply_value (c->layout, this, &record->values[len1], POSITION (pos));
+	valueFormats[0].apply_value (c->layout, this, &record->values[0], c->buffer->positions[c->buffer->in_pos]);
+	valueFormats[1].apply_value (c->layout, this, &record->values[len1], c->buffer->positions[pos]);
 	if (len2)
 	  pos++;
 	c->buffer->in_pos = pos;
@@ -711,8 +711,8 @@ struct PairPosFormat2
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (c->layout, this, v, CURPOSITION ());
-    valueFormat2.apply_value (c->layout, this, v + len1, POSITION (j));
+    valueFormat1.apply_value (c->layout, this, v, c->buffer->positions[c->buffer->in_pos]);
+    valueFormat2.apply_value (c->layout, this, v + len1, c->buffer->positions[j]);
 
     if (len2)
       j++;
@@ -975,23 +975,23 @@ struct CursivePosFormat1
     if (c->buffer->direction == HB_DIRECTION_RTL)
     {
       /* advance is absolute, not relative */
-      POSITION (c->buffer->in_pos)->x_advance = entry_x - gpi->anchor_x;
+      c->buffer->positions[c->buffer->in_pos].x_advance = entry_x - gpi->anchor_x;
     }
     else
     {
       /* advance is absolute, not relative */
-      POSITION (last_pos)->x_advance = gpi->anchor_x - entry_x;
+      c->buffer->positions[last_pos].x_advance = gpi->anchor_x - entry_x;
     }
 
     if  (c->lookup_flag & LookupFlag::RightToLeft)
     {
-      POSITION (last_pos)->cursive_chain = last_pos - c->buffer->in_pos;
-      POSITION (last_pos)->y_offset = entry_y - gpi->anchor_y;
+      c->buffer->positions[last_pos].cursive_chain = last_pos - c->buffer->in_pos;
+      c->buffer->positions[last_pos].y_offset = entry_y - gpi->anchor_y;
     }
     else
     {
-      POSITION (c->buffer->in_pos)->cursive_chain = c->buffer->in_pos - last_pos;
-      POSITION (c->buffer->in_pos)->y_offset = gpi->anchor_y - entry_y;
+      c->buffer->positions[c->buffer->in_pos].cursive_chain = c->buffer->in_pos - last_pos;
+      c->buffer->positions[c->buffer->in_pos].y_offset = gpi->anchor_y - entry_y;
     }
 
   end:
