@@ -65,10 +65,10 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
   if (buffer->out_info == buffer->info)
   {
     assert (buffer->have_output);
-    if (!buffer->positions)
-      buffer->positions = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->positions[0]));
+    if (!buffer->pos)
+      buffer->pos = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->pos[0]));
 
-    buffer->out_info = (hb_internal_glyph_info_t *) buffer->positions;
+    buffer->out_info = (hb_internal_glyph_info_t *) buffer->pos;
     memcpy (buffer->out_info, buffer->info, buffer->out_length * sizeof (buffer->out_info[0]));
   }
 }
@@ -111,7 +111,7 @@ hb_buffer_destroy (hb_buffer_t *buffer)
   hb_unicode_funcs_destroy (buffer->unicode);
 
   free (buffer->info);
-  free (buffer->positions);
+  free (buffer->pos);
 
   free (buffer);
 }
@@ -198,13 +198,13 @@ hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
     while (size > new_allocated)
       new_allocated += (new_allocated >> 1) + 8;
 
-    if (buffer->positions)
-      buffer->positions = (hb_internal_glyph_position_t *) realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
+    if (buffer->pos)
+      buffer->pos = (hb_internal_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
 
     if (buffer->out_info != buffer->info)
     {
       buffer->info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
-      buffer->out_info = (hb_internal_glyph_info_t *) buffer->positions;
+      buffer->out_info = (hb_internal_glyph_info_t *) buffer->pos;
     }
     else
     {
@@ -256,13 +256,13 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
   buffer->have_output = FALSE;
   buffer->have_positions = TRUE;
 
-  if (unlikely (!buffer->positions))
+  if (unlikely (!buffer->pos))
   {
-    buffer->positions = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->positions[0]));
+    buffer->pos = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->pos[0]));
     return;
   }
 
-  memset (buffer->positions, 0, sizeof (buffer->positions[0]) * buffer->in_length);
+  memset (buffer->pos, 0, sizeof (buffer->pos[0]) * buffer->in_length);
 }
 
 void
@@ -278,7 +278,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
     tmp_string = buffer->info;
     buffer->info = buffer->out_info;
     buffer->out_info = tmp_string;
-    buffer->positions = (hb_internal_glyph_position_t *) buffer->out_info;
+    buffer->pos = (hb_internal_glyph_position_t *) buffer->out_info;
   }
 
   tmp = buffer->in_length;
@@ -456,7 +456,7 @@ hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
   if (!buffer->have_positions)
     hb_buffer_clear_positions (buffer);
 
-  return (hb_glyph_position_t *) buffer->positions;
+  return (hb_glyph_position_t *) buffer->pos;
 }
 
 
@@ -475,13 +475,13 @@ reverse_range (hb_buffer_t *buffer,
     buffer->info[j] = t;
   }
 
-  if (buffer->positions) {
+  if (buffer->pos) {
     for (i = 0, j = end - 1; i < j; i++, j--) {
       hb_internal_glyph_position_t t;
 
-      t = buffer->positions[i];
-      buffer->positions[i] = buffer->positions[j];
-      buffer->positions[j] = t;
+      t = buffer->pos[i];
+      buffer->pos[i] = buffer->pos[j];
+      buffer->pos[j] = t;
     }
   }
 }

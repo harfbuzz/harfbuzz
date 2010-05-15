@@ -402,7 +402,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     mark_anchor.get_anchor (c->layout, c->buffer->info[c->buffer->in_pos].codepoint, &mark_x, &mark_y);
     glyph_anchor.get_anchor (c->layout, c->buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
-    hb_internal_glyph_position_t &o = c->buffer->positions[c->buffer->in_pos];
+    hb_internal_glyph_position_t &o = c->buffer->pos[c->buffer->in_pos];
     o.x_advance = 0;
     o.y_advance = 0;
     o.x_offset  = base_x - mark_x;
@@ -434,7 +434,7 @@ struct SinglePosFormat1
     if (likely (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (c->layout, this, values, c->buffer->positions[c->buffer->in_pos]);
+    valueFormat.apply_value (c->layout, this, values, c->buffer->pos[c->buffer->in_pos]);
 
     c->buffer->in_pos++;
     return true;
@@ -478,7 +478,7 @@ struct SinglePosFormat2
 
     valueFormat.apply_value (c->layout, this,
 			     &values[index * valueFormat.get_len ()],
-			     c->buffer->positions[c->buffer->in_pos]);
+			     c->buffer->pos[c->buffer->in_pos]);
 
     c->buffer->in_pos++;
     return true;
@@ -572,8 +572,8 @@ struct PairSet
     {
       if (c->buffer->info[pos].codepoint == record->secondGlyph)
       {
-	valueFormats[0].apply_value (c->layout, this, &record->values[0], c->buffer->positions[c->buffer->in_pos]);
-	valueFormats[1].apply_value (c->layout, this, &record->values[len1], c->buffer->positions[pos]);
+	valueFormats[0].apply_value (c->layout, this, &record->values[0], c->buffer->pos[c->buffer->in_pos]);
+	valueFormats[1].apply_value (c->layout, this, &record->values[len1], c->buffer->pos[pos]);
 	if (len2)
 	  pos++;
 	c->buffer->in_pos = pos;
@@ -707,8 +707,8 @@ struct PairPosFormat2
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (c->layout, this, v, c->buffer->positions[c->buffer->in_pos]);
-    valueFormat2.apply_value (c->layout, this, v + len1, c->buffer->positions[j]);
+    valueFormat1.apply_value (c->layout, this, v, c->buffer->pos[c->buffer->in_pos]);
+    valueFormat2.apply_value (c->layout, this, v + len1, c->buffer->pos[j]);
 
     if (len2)
       j++;
@@ -971,23 +971,23 @@ struct CursivePosFormat1
     if (c->buffer->direction == HB_DIRECTION_RTL)
     {
       /* advance is absolute, not relative */
-      c->buffer->positions[c->buffer->in_pos].x_advance = entry_x - gpi->anchor_x;
+      c->buffer->pos[c->buffer->in_pos].x_advance = entry_x - gpi->anchor_x;
     }
     else
     {
       /* advance is absolute, not relative */
-      c->buffer->positions[last_pos].x_advance = gpi->anchor_x - entry_x;
+      c->buffer->pos[last_pos].x_advance = gpi->anchor_x - entry_x;
     }
 
     if  (c->lookup_flag & LookupFlag::RightToLeft)
     {
-      c->buffer->positions[last_pos].cursive_chain = last_pos - c->buffer->in_pos;
-      c->buffer->positions[last_pos].y_offset = entry_y - gpi->anchor_y;
+      c->buffer->pos[last_pos].cursive_chain = last_pos - c->buffer->in_pos;
+      c->buffer->pos[last_pos].y_offset = entry_y - gpi->anchor_y;
     }
     else
     {
-      c->buffer->positions[c->buffer->in_pos].cursive_chain = c->buffer->in_pos - last_pos;
-      c->buffer->positions[c->buffer->in_pos].y_offset = gpi->anchor_y - entry_y;
+      c->buffer->pos[c->buffer->in_pos].cursive_chain = c->buffer->in_pos - last_pos;
+      c->buffer->pos[c->buffer->in_pos].y_offset = gpi->anchor_y - entry_y;
     }
 
   end:

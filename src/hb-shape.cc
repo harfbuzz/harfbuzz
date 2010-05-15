@@ -158,8 +158,8 @@ hb_position_default (hb_font_t    *font,
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
     hb_glyph_metrics_t metrics;
     hb_font_get_glyph_metrics (font, face, buffer->info[buffer->in_pos].codepoint, &metrics);
-    buffer->positions[buffer->in_pos].x_advance = metrics.x_advance;
-    buffer->positions[buffer->in_pos].y_advance = metrics.y_advance;
+    buffer->pos[buffer->in_pos].x_advance = metrics.x_advance;
+    buffer->pos[buffer->in_pos].y_advance = metrics.y_advance;
   }
 }
 
@@ -199,9 +199,9 @@ hb_truetype_kern (hb_font_t    *font,
     kern = hb_font_get_kerning (font, face, buffer->info[buffer->in_pos - 1].codepoint, buffer->info[buffer->in_pos].codepoint);
     kern1 = kern >> 1;
     kern2 = kern - kern1;
-    buffer->positions[buffer->in_pos - 1].x_advance += kern1;
-    buffer->positions[buffer->in_pos].x_advance += kern2;
-    buffer->positions[buffer->in_pos].x_offset += kern2;
+    buffer->pos[buffer->in_pos - 1].x_advance += kern1;
+    buffer->pos[buffer->in_pos].x_advance += kern2;
+    buffer->pos[buffer->in_pos].x_offset += kern2;
   }
 }
 

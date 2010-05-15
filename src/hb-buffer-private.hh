@@ -116,11 +116,11 @@ struct _hb_buffer_t {
 
   hb_internal_glyph_info_t     *info;
   hb_internal_glyph_info_t     *out_info;
-  hb_internal_glyph_position_t *positions;
+  hb_internal_glyph_position_t *pos;
 
   /* Other stuff */
 
-  unsigned int         max_lig_id;
+  unsigned int max_lig_id;
 
 
   /* Methods */
