@@ -106,7 +106,7 @@ static inline bool match_input (hb_apply_context_t *c,
       j++;
     }
 
-    if (likely (!match_func (IN_GLYPH (j), input[i - 1], match_data)))
+    if (likely (!match_func (c->buffer->in_string[j].codepoint, input[i - 1], match_data)))
       return false;
   }
 
@@ -161,7 +161,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
       j++;
     }
 
-    if (likely (!match_func (IN_GLYPH (j), lookahead[i], match_data)))
+    if (likely (!match_func (c->buffer->in_string[j].codepoint, lookahead[i], match_data)))
       return false;
   }
 

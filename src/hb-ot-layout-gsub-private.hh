@@ -388,7 +388,7 @@ struct Ligature
       if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
 	is_mark = false;
 
-      if (likely (IN_GLYPH (j) != component[i]))
+      if (likely (c->buffer->in_string[j].codepoint != component[i]))
         return false;
     }
     /* This is just a guess ... */

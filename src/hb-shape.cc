@@ -196,7 +196,7 @@ hb_truetype_kern (hb_font_t    *font,
   count = buffer->in_length;
   for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++) {
     hb_position_t kern, kern1, kern2;
-    kern = hb_font_get_kerning (font, face, IN_GLYPH(buffer->in_pos - 1), IN_CURGLYPH());
+    kern = hb_font_get_kerning (font, face, buffer->in_string[buffer->in_pos - 1].codepoint, IN_CURGLYPH());
     kern1 = kern >> 1;
     kern2 = kern - kern1;
     buffer->positions[buffer->in_pos - 1].x_advance += kern1;
