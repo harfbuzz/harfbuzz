@@ -836,7 +836,7 @@ struct SubstLookup : Lookup
 	buffer->in_pos = 0;
 	while (buffer->in_pos < buffer->in_length)
 	{
-	  if ((~IN_MASK (buffer->in_pos) & mask) &&
+	  if ((~buffer->in_string[buffer->in_pos].mask & mask) &&
 	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
@@ -852,7 +852,7 @@ struct SubstLookup : Lookup
 	buffer->in_pos = buffer->in_length - 1;
 	do
 	{
-	  if ((~IN_MASK (buffer->in_pos) & mask) &&
+	  if ((~buffer->in_string[buffer->in_pos].mask & mask) &&
 	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else

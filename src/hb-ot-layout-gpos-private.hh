@@ -1544,7 +1544,7 @@ struct PosLookup : Lookup
     while (buffer->in_pos < buffer->in_length)
     {
       bool done;
-      if (~IN_MASK (buffer->in_pos) & mask)
+      if (~buffer->in_string[buffer->in_pos].mask & mask)
       {
 	  done = apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL);
 	  ret |= done;
