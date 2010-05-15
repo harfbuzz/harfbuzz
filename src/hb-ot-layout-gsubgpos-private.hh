@@ -121,14 +121,14 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 
   for (unsigned int i = 0, j = c->buffer->out_length - 1; i < count; i++, j--)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->out_string[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->out_info[j], c->lookup_flag, NULL))
     {
       if (unlikely (j + 1 == count - i))
 	return false;
       j--;
     }
 
-    if (likely (!match_func (c->buffer->out_string[j].codepoint, backtrack[i], match_data)))
+    if (likely (!match_func (c->buffer->out_info[j].codepoint, backtrack[i], match_data)))
       return false;
   }
 

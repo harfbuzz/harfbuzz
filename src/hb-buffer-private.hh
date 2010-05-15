@@ -115,7 +115,7 @@ struct _hb_buffer_t {
   unsigned int in_pos;
 
   hb_internal_glyph_info_t     *info;
-  hb_internal_glyph_info_t     *out_string;
+  hb_internal_glyph_info_t     *out_info;
   hb_internal_glyph_position_t *positions;
 
   /* Other stuff */
