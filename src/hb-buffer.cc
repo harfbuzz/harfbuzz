@@ -43,7 +43,7 @@ static hb_buffer_t _hb_buffer_nil = {
  *
  * As an optimization, both info and out_info may point to the
  * same piece of memory, which is owned by info.  This remains the
- * case as long as out_length doesn't exceed in_length at any time.
+ * case as long as out_length doesn't exceed len at any time.
  * In that case, swap() is no-op and the glyph operations operate mostly
  * in-place.
  *
@@ -181,7 +181,7 @@ hb_buffer_clear (hb_buffer_t *buffer)
 {
   buffer->have_output = FALSE;
   buffer->have_positions = FALSE;
-  buffer->in_length = 0;
+  buffer->len = 0;
   buffer->out_length = 0;
   buffer->in_pos = 0;
   buffer->out_info = buffer->info;
@@ -224,9 +224,9 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 {
   hb_internal_glyph_info_t *glyph;
 
-  hb_buffer_ensure (buffer, buffer->in_length + 1);
+  hb_buffer_ensure (buffer, buffer->len + 1);
 
-  glyph = &buffer->info[buffer->in_length];
+  glyph = &buffer->info[buffer->len];
   glyph->codepoint = codepoint;
   glyph->mask = mask;
   glyph->cluster = cluster;
@@ -234,7 +234,7 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   glyph->lig_id = 0;
   glyph->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
-  buffer->in_length++;
+  buffer->len++;
 }
 
 
@@ -262,7 +262,7 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
     return;
   }
 
-  memset (buffer->pos, 0, sizeof (buffer->pos[0]) * buffer->in_length);
+  memset (buffer->pos, 0, sizeof (buffer->pos[0]) * buffer->len);
 }
 
 void
@@ -281,8 +281,8 @@ _hb_buffer_swap (hb_buffer_t *buffer)
     buffer->pos = (hb_internal_glyph_position_t *) buffer->out_info;
   }
 
-  tmp = buffer->in_length;
-  buffer->in_length = buffer->out_length;
+  tmp = buffer->len;
+  buffer->len = buffer->out_length;
   buffer->out_length = tmp;
 
   buffer->in_pos = 0;
@@ -439,7 +439,7 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer)
 {
-  return buffer->in_length;
+  return buffer->len;
 }
 
 /* Return value valid as long as buffer not modified */
@@ -489,10 +489,10 @@ reverse_range (hb_buffer_t *buffer,
 void
 hb_buffer_reverse (hb_buffer_t *buffer)
 {
-  if (unlikely (!buffer->in_length))
+  if (unlikely (!buffer->len))
     return;
 
-  reverse_range (buffer, 0, buffer->in_length);
+  reverse_range (buffer, 0, buffer->len);
 }
 
 void
@@ -500,12 +500,12 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 {
   unsigned int i, start, count, last_cluster;
 
-  if (unlikely (!buffer->in_length))
+  if (unlikely (!buffer->len))
     return;
 
   hb_buffer_reverse (buffer);
 
-  count = buffer->in_length;
+  count = buffer->len;
   start = 0;
   last_cluster = buffer->info[0].cluster;
   for (i = 1; i < count; i++) {

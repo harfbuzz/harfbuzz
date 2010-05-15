@@ -619,7 +619,7 @@ struct PairPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+    unsigned int end = MIN (c->buffer->len, c->buffer->in_pos + c->context_length);
     if (unlikely (c->buffer->in_pos + 2 > end))
       return false;
 
@@ -681,7 +681,7 @@ struct PairPosFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+    unsigned int end = MIN (c->buffer->len, c->buffer->in_pos + c->context_length);
     if (unlikely (c->buffer->in_pos + 2 > end))
       return false;
 
@@ -1529,13 +1529,13 @@ struct PosLookup : Lookup
   {
     bool ret = false;
 
-    if (unlikely (!buffer->in_length))
+    if (unlikely (!buffer->len))
       return false;
 
     layout->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
 
     buffer->in_pos = 0;
-    while (buffer->in_pos < buffer->in_length)
+    while (buffer->in_pos < buffer->len)
     {
       bool done;
       if (~buffer->info[buffer->in_pos].mask & mask)

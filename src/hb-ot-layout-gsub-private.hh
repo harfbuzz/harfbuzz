@@ -367,7 +367,7 @@ struct Ligature
     TRACE_APPLY ();
     unsigned int i, j;
     unsigned int count = component.len;
-    unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+    unsigned int end = MIN (c->buffer->len, c->buffer->in_pos + c->context_length);
     if (unlikely (c->buffer->in_pos + count > end))
       return false;
 
@@ -820,7 +820,7 @@ struct SubstLookup : Lookup
   {
     bool ret = false;
 
-    if (unlikely (!buffer->in_length))
+    if (unlikely (!buffer->len))
       return false;
 
     if (likely (!is_reverse ()))
@@ -828,7 +828,7 @@ struct SubstLookup : Lookup
 	/* in/out forward substitution */
 	buffer->clear_output ();
 	buffer->in_pos = 0;
-	while (buffer->in_pos < buffer->in_length)
+	while (buffer->in_pos < buffer->len)
 	{
 	  if ((~buffer->info[buffer->in_pos].mask & mask) &&
 	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
@@ -843,7 +843,7 @@ struct SubstLookup : Lookup
     else
     {
 	/* in-place backward substitution */
-	buffer->in_pos = buffer->in_length - 1;
+	buffer->in_pos = buffer->len - 1;
 	do
 	{
 	  if ((~buffer->info[buffer->in_pos].mask & mask) &&

@@ -88,7 +88,7 @@ static inline bool match_input (hb_apply_context_t *c,
 				unsigned int *context_length_out)
 {
   unsigned int i, j;
-  unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+  unsigned int end = MIN (c->buffer->len, c->buffer->in_pos + c->context_length);
   if (unlikely (c->buffer->in_pos + count > end))
     return false;
 
@@ -143,7 +143,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    unsigned int offset)
 {
   unsigned int i, j;
-  unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+  unsigned int end = MIN (c->buffer->len, c->buffer->in_pos + c->context_length);
   if (unlikely (c->buffer->in_pos + offset + count > end))
     return false;
 
@@ -185,7 +185,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 apply_lookup_func_t apply_func)
 {
-  unsigned int end = MIN (c->buffer->in_length, c->buffer->in_pos + c->context_length);
+  unsigned int end = MIN (c->buffer->len, c->buffer->in_pos + c->context_length);
   if (unlikely (c->buffer->in_pos + count > end))
     return false;
 
@@ -520,7 +520,7 @@ static inline bool chain_context_lookup (hb_apply_context_t *c,
 {
   /* First guess */
   if (unlikely (c->buffer->out_length < backtrackCount ||
-		c->buffer->in_pos + inputCount + lookaheadCount > c->buffer->in_length ||
+		c->buffer->in_pos + inputCount + lookaheadCount > c->buffer->len ||
 		inputCount + lookaheadCount > c->context_length))
     return false;
 
