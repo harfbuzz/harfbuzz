@@ -101,7 +101,7 @@ hb_buffer_clear (hb_buffer_t *buffer);
 void
 hb_buffer_clear_positions (hb_buffer_t *buffer);
 
-void
+hb_bool_t
 hb_buffer_ensure (hb_buffer_t  *buffer,
 		  unsigned int  size);
 

@@ -54,23 +54,23 @@ static hb_buffer_t _hb_buffer_nil = {
  * switches info and out_info.
  */
 
-/* XXX err handling */
 
 /* Internal API */
 
-static void
+static hb_bool_t
 hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 {
-  hb_buffer_ensure (buffer, size);
+  if (unlikely (!hb_buffer_ensure (buffer, size))) return FALSE;
+
   if (buffer->out_info == buffer->info)
   {
     assert (buffer->have_output);
-    if (!buffer->pos)
-      buffer->pos = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->pos[0]));
 
     buffer->out_info = (hb_internal_glyph_info_t *) buffer->pos;
     memcpy (buffer->out_info, buffer->info, buffer->out_len * sizeof (buffer->out_info[0]));
   }
+
+  return TRUE;
 }
 
 /* Public API */
@@ -84,7 +84,7 @@ hb_buffer_create (unsigned int pre_alloc_size)
     return &_hb_buffer_nil;
 
   if (pre_alloc_size)
-    hb_buffer_ensure(buffer, pre_alloc_size);
+    hb_buffer_ensure (buffer, pre_alloc_size);
 
   buffer->unicode = &_hb_unicode_funcs_nil;
 
@@ -181,6 +181,7 @@ hb_buffer_clear (hb_buffer_t *buffer)
 {
   buffer->have_output = FALSE;
   buffer->have_positions = FALSE;
+  buffer->in_error = FALSE;
   buffer->len = 0;
   buffer->out_len = 0;
   buffer->i = 0;
@@ -188,32 +189,42 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->max_lig_id = 0;
 }
 
-void
+hb_bool_t
 hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
 {
-  unsigned int new_allocated = buffer->allocated;
-
-  if (size > new_allocated)
+  if (unlikely (size > buffer->allocated))
   {
+    if (unlikely (buffer->in_error))
+      return FALSE;
+
+    unsigned int new_allocated = buffer->allocated;
+    hb_internal_glyph_position_t *new_pos;
+    hb_internal_glyph_info_t *new_info;
+    bool separate_out;
+
+    separate_out = buffer->out_info != buffer->info;
+
     while (size > new_allocated)
       new_allocated += (new_allocated >> 1) + 8;
 
-    if (buffer->pos)
-      buffer->pos = (hb_internal_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
+    new_pos = (hb_internal_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
+    new_info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
 
-    if (buffer->out_info != buffer->info)
-    {
-      buffer->info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
-      buffer->out_info = (hb_internal_glyph_info_t *) buffer->pos;
-    }
-    else
-    {
-      buffer->info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
-      buffer->out_info = buffer->info;
-    }
+    if (unlikely (!new_pos || !new_info))
+      buffer->in_error = TRUE;
 
-    buffer->allocated = new_allocated;
+    if (likely (new_pos))
+      buffer->pos = new_pos;
+
+    if (likely (new_info))
+      buffer->info = new_info;
+
+    buffer->out_info = separate_out ? (hb_internal_glyph_info_t *) buffer->pos : buffer->info;
+    if (likely (!buffer->in_error))
+      buffer->allocated = new_allocated;
   }
+
+  return likely (!buffer->in_error);
 }
 
 void
@@ -224,7 +235,7 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 {
   hb_internal_glyph_info_t *glyph;
 
-  hb_buffer_ensure (buffer, buffer->len + 1);
+  if (unlikely (!hb_buffer_ensure (buffer, buffer->len + 1))) return;
 
   glyph = &buffer->info[buffer->len];
   glyph->codepoint = codepoint;
@@ -271,6 +282,8 @@ _hb_buffer_swap (hb_buffer_t *buffer)
   unsigned int tmp;
 
   assert (buffer->have_output);
+
+  if (unlikely (buffer->in_error)) return;
 
   if (buffer->out_info != buffer->info)
   {
@@ -323,7 +336,8 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
   {
-    hb_buffer_ensure_separate (buffer, buffer->out_len + num_out);
+    if (unlikely (!hb_buffer_ensure_separate (buffer, buffer->out_len + num_out)))
+      return;
   }
 
   mask = buffer->info[buffer->i].mask;
@@ -363,7 +377,8 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
   {
-    hb_buffer_ensure_separate (buffer, buffer->out_len + num_out);
+    if (unlikely (!hb_buffer_ensure_separate (buffer, buffer->out_len + num_out)))
+      return;
   }
 
   mask = buffer->info[buffer->i].mask;
@@ -398,7 +413,7 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 
   if (buffer->out_info != buffer->info)
   {
-    hb_buffer_ensure (buffer, buffer->out_len + 1);
+    if (unlikely (!hb_buffer_ensure (buffer, buffer->out_len + 1))) return;
     buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
   }
   else if (buffer->out_len != buffer->i)
@@ -423,7 +438,7 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
   {
     if (buffer->out_info != buffer->info)
     {
-      hb_buffer_ensure (buffer, buffer->out_len + 1);
+      if (unlikely (!hb_buffer_ensure (buffer, buffer->out_len + 1))) return;
       buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
     }
     else if (buffer->out_len != buffer->i)
