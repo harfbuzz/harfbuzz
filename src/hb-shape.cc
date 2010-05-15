@@ -51,7 +51,7 @@ hb_form_clusters (hb_buffer_t *buffer)
   count = buffer->in_length;
   for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++)
     if (buffer->unicode->get_general_category (IN_CURGLYPH()) == HB_CATEGORY_NON_SPACING_MARK)
-      IN_CLUSTER (buffer->in_pos) = IN_CLUSTER (buffer->in_pos - 1);
+      buffer->in_string[buffer->in_pos].cluster = buffer->in_string[buffer->in_pos - 1].cluster;
 }
 
 static hb_direction_t
