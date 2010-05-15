@@ -184,7 +184,6 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->in_length = 0;
   buffer->out_length = 0;
   buffer->in_pos = 0;
-  buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
   buffer->max_lig_id = 0;
 }
@@ -247,7 +246,6 @@ _hb_buffer_clear_output (hb_buffer_t *buffer)
   buffer->have_output = TRUE;
   buffer->have_positions = FALSE;
   buffer->out_length = 0;
-  buffer->out_pos = 0;
   buffer->out_string = buffer->in_string;
 }
 
@@ -287,9 +285,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
   buffer->in_length = buffer->out_length;
   buffer->out_length = tmp;
 
-  tmp = buffer->in_pos;
-  buffer->in_pos = buffer->out_pos;
-  buffer->out_pos = tmp;
+  buffer->in_pos = 0;
 }
 
 /* The following function copies `num_out' elements from `glyph_data'
@@ -325,9 +321,9 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   unsigned int cluster;
 
   if (buffer->out_string != buffer->in_string ||
-      buffer->out_pos + num_out > buffer->in_pos + num_in)
+      buffer->out_length + num_out > buffer->in_pos + num_in)
   {
-    hb_buffer_ensure_separate (buffer, buffer->out_pos + num_out);
+    hb_buffer_ensure_separate (buffer, buffer->out_length + num_out);
   }
 
   mask = buffer->in_string[buffer->in_pos].mask;
@@ -339,7 +335,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 
   for (i = 0; i < num_out; i++)
   {
-    hb_internal_glyph_info_t *info = &buffer->out_string[buffer->out_pos + i];
+    hb_internal_glyph_info_t *info = &buffer->out_string[buffer->out_length + i];
     info->codepoint = glyph_data[i];
     info->mask = mask;
     info->cluster = cluster;
@@ -349,8 +345,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   }
 
   buffer->in_pos  += num_in;
-  buffer->out_pos += num_out;
-  buffer->out_length = buffer->out_pos;
+  buffer->out_length += num_out;
 }
 
 void
@@ -366,9 +361,9 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
   unsigned int cluster;
 
   if (buffer->out_string != buffer->in_string ||
-      buffer->out_pos + num_out > buffer->in_pos + num_in)
+      buffer->out_length + num_out > buffer->in_pos + num_in)
   {
-    hb_buffer_ensure_separate (buffer, buffer->out_pos + num_out);
+    hb_buffer_ensure_separate (buffer, buffer->out_length + num_out);
   }
 
   mask = buffer->in_string[buffer->in_pos].mask;
@@ -380,7 +375,7 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
 
   for (i = 0; i < num_out; i++)
   {
-    hb_internal_glyph_info_t *info = &buffer->out_string[buffer->out_pos + i];
+    hb_internal_glyph_info_t *info = &buffer->out_string[buffer->out_length + i];
     info->codepoint = hb_be_uint16 (glyph_data_be[i]);
     info->mask = mask;
     info->cluster = cluster;
@@ -390,8 +385,7 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
   }
 
   buffer->in_pos  += num_in;
-  buffer->out_pos += num_out;
-  buffer->out_length = buffer->out_pos;
+  buffer->out_length += num_out;
 }
 
 void
@@ -404,13 +398,13 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 
   if (buffer->out_string != buffer->in_string)
   {
-    hb_buffer_ensure (buffer, buffer->out_pos + 1);
-    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+    hb_buffer_ensure (buffer, buffer->out_length + 1);
+    buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
   }
-  else if (buffer->out_pos != buffer->in_pos)
-    buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+  else if (buffer->out_length != buffer->in_pos)
+    buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
 
-  info = &buffer->out_string[buffer->out_pos];
+  info = &buffer->out_string[buffer->out_length];
   info->codepoint = glyph_index;
   if (component != 0xFFFF)
     info->component = component;
@@ -419,8 +413,7 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
   info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->in_pos++;
-  buffer->out_pos++;
-  buffer->out_length = buffer->out_pos;
+  buffer->out_length++;
 }
 
 void
@@ -430,14 +423,13 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
   {
     if (buffer->out_string != buffer->in_string)
     {
-      hb_buffer_ensure (buffer, buffer->out_pos + 1);
-      buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+      hb_buffer_ensure (buffer, buffer->out_length + 1);
+      buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
     }
-    else if (buffer->out_pos != buffer->in_pos)
-      buffer->out_string[buffer->out_pos] = buffer->in_string[buffer->in_pos];
+    else if (buffer->out_length != buffer->in_pos)
+      buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
 
-    buffer->out_pos++;
-    buffer->out_length = buffer->out_pos;
+    buffer->out_length++;
   }
 
   buffer->in_pos++;

@@ -289,7 +289,7 @@ struct AlternateSubstFormat1
     /* XXX callback to user to choose alternate
     if (c->layout->face->altfunc)
       alt_index = (c->layout->face->altfunc)(c->layout->layout, c->buffer,
-				    c->buffer->out_pos, glyph_id,
+				    c->buffer->out_length, glyph_id,
 				    alt_set.len, alt_set.array);
 				   */
 

@@ -113,7 +113,6 @@ struct _hb_buffer_t {
   unsigned int in_length;
   unsigned int out_length;
   unsigned int in_pos;
-  unsigned int out_pos; /* out_length and out_pos are actually always the same */
 
   hb_internal_glyph_info_t     *in_string;
   hb_internal_glyph_info_t     *out_string;
