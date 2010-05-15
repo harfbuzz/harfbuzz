@@ -163,7 +163,6 @@ struct _hb_buffer_t {
 #define IN_CURINFO()		(&BUFFER->in_string[BUFFER->in_pos])
 #define IN_MASK(pos)		(BUFFER->in_string[(pos)].mask)
 #define IN_CLUSTER(pos)		(BUFFER->in_string[(pos)].cluster)
-#define IN_LIGID(pos)		(BUFFER->in_string[(pos)].lig_id)
 
 HB_END_DECLS
 
