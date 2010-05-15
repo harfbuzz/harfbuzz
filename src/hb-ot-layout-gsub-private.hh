@@ -43,7 +43,7 @@ struct SingleSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
+    hb_codepoint_t glyph_id = c->buffer->in_string[c->buffer->in_pos].codepoint;
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
       return false;
@@ -84,7 +84,7 @@ struct SingleSubstFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
+    hb_codepoint_t glyph_id = c->buffer->in_string[c->buffer->in_pos].codepoint;
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
       return false;
@@ -208,7 +208,7 @@ struct MultipleSubstFormat1
   {
     TRACE_APPLY ();
 
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -277,7 +277,7 @@ struct AlternateSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
+    hb_codepoint_t glyph_id = c->buffer->in_string[c->buffer->in_pos].codepoint;
 
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
@@ -420,7 +420,7 @@ struct Ligature
       for ( i = 1; i < count; i++ )
       {
 	while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[c->buffer->in_pos], c->lookup_flag, NULL))
-	  c->buffer->add_output_glyph (IN_CURGLYPH (), i, lig_id);
+	  c->buffer->add_output_glyph (c->buffer->in_string[c->buffer->in_pos].codepoint, i, lig_id);
 
 	(c->buffer->in_pos)++;
       }
@@ -487,7 +487,7 @@ struct LigatureSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = IN_CURGLYPH ();
+    hb_codepoint_t glyph_id = c->buffer->in_string[c->buffer->in_pos].codepoint;
 
     bool first_is_mark = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
@@ -608,7 +608,7 @@ struct ReverseChainSingleSubstFormat1
     if (unlikely (c->context_length != NO_CONTEXT))
       return false; /* No chaining to this type */
 
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -623,7 +623,7 @@ struct ReverseChainSingleSubstFormat1
 			 match_coverage, this,
 			 1))
     {
-      IN_CURGLYPH () = substitute[index];
+      c->buffer->in_string[c->buffer->in_pos].codepoint = substitute[index];
       c->buffer->in_pos--; /* Reverse! */
       return true;
     }

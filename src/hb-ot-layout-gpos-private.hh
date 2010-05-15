@@ -403,7 +403,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
-    mark_anchor.get_anchor (c->layout, IN_CURGLYPH (), &mark_x, &mark_y);
+    mark_anchor.get_anchor (c->layout, c->buffer->in_string[c->buffer->in_pos].codepoint, &mark_x, &mark_y);
     glyph_anchor.get_anchor (c->layout, c->buffer->in_string[glyph_pos].codepoint, &base_x, &base_y);
 
     hb_internal_glyph_position_t &o = c->buffer->positions[c->buffer->in_pos];
@@ -434,7 +434,7 @@ struct SinglePosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -473,7 +473,7 @@ struct SinglePosFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -627,7 +627,7 @@ struct PairPosFormat1
     if (unlikely (c->buffer->in_pos + 2 > end))
       return false;
 
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -689,7 +689,7 @@ struct PairPosFormat2
     if (unlikely (c->buffer->in_pos + 2 > end))
       return false;
 
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -705,7 +705,7 @@ struct PairPosFormat2
     unsigned int len2 = valueFormat2.get_len ();
     unsigned int record_len = len1 + len2;
 
-    unsigned int klass1 = (this+classDef1) (IN_CURGLYPH ());
+    unsigned int klass1 = (this+classDef1) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     unsigned int klass2 = (this+classDef2) (c->buffer->in_string[j].codepoint);
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count))
       return false;
@@ -958,7 +958,7 @@ struct CursivePosFormat1
     if (c->property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
       return false;
 
-    unsigned int index = (this+coverage) (IN_CURGLYPH ());
+    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -968,7 +968,7 @@ struct CursivePosFormat1
       goto end;
 
     hb_position_t entry_x, entry_y;
-    (this+record.entryAnchor).get_anchor (c->layout, IN_CURGLYPH (), &entry_x, &entry_y);
+    (this+record.entryAnchor).get_anchor (c->layout, c->buffer->in_string[c->buffer->in_pos].codepoint, &entry_x, &entry_y);
 
     /* TODO vertical */
 
@@ -998,7 +998,7 @@ struct CursivePosFormat1
     if (record.exitAnchor)
     {
       gpi->last = c->buffer->in_pos;
-      (this+record.exitAnchor).get_anchor (c->layout, IN_CURGLYPH (), &gpi->anchor_x, &gpi->anchor_y);
+      (this+record.exitAnchor).get_anchor (c->layout, c->buffer->in_string[c->buffer->in_pos].codepoint, &gpi->anchor_x, &gpi->anchor_y);
     }
 
     c->buffer->in_pos++;
@@ -1067,7 +1067,7 @@ struct MarkBasePosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
+    unsigned int mark_index = (this+markCoverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (mark_index == NOT_COVERED))
       return false;
 
@@ -1169,7 +1169,7 @@ struct MarkLigPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int mark_index = (this+markCoverage) (IN_CURGLYPH ());
+    unsigned int mark_index = (this+markCoverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (mark_index == NOT_COVERED))
       return false;
 
@@ -1288,7 +1288,7 @@ struct MarkMarkPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int mark1_index = (this+mark1Coverage) (IN_CURGLYPH ());
+    unsigned int mark1_index = (this+mark1Coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
     if (likely (mark1_index == NOT_COVERED))
       return false;
 

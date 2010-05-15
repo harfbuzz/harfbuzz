@@ -50,7 +50,7 @@ hb_form_clusters (hb_buffer_t *buffer)
 
   count = buffer->in_length;
   for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++)
-    if (buffer->unicode->get_general_category (IN_CURGLYPH()) == HB_CATEGORY_NON_SPACING_MARK)
+    if (buffer->unicode->get_general_category (buffer->in_string[buffer->in_pos].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
       buffer->in_string[buffer->in_pos].cluster = buffer->in_string[buffer->in_pos - 1].cluster;
 }
 
@@ -84,7 +84,7 @@ hb_mirror_chars (hb_buffer_t *buffer)
 
   count = buffer->in_length;
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
-      IN_CURGLYPH() = get_mirroring (IN_CURGLYPH());
+      buffer->in_string[buffer->in_pos].codepoint = get_mirroring (buffer->in_string[buffer->in_pos].codepoint);
   }
 }
 
@@ -100,13 +100,13 @@ hb_map_glyphs (hb_font_t    *font,
   count = buffer->in_length - 1;
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
     if (unlikely (is_variation_selector (buffer->in_string[buffer->in_pos + 1].codepoint))) {
-      IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), buffer->in_string[buffer->in_pos + 1].codepoint);
+      buffer->in_string[buffer->in_pos].codepoint = hb_font_get_glyph (font, face, buffer->in_string[buffer->in_pos].codepoint, buffer->in_string[buffer->in_pos + 1].codepoint);
       buffer->in_pos++;
     } else {
-      IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), 0);
+      buffer->in_string[buffer->in_pos].codepoint = hb_font_get_glyph (font, face, buffer->in_string[buffer->in_pos].codepoint, 0);
     }
   }
-  IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), 0);
+  buffer->in_string[buffer->in_pos].codepoint = hb_font_get_glyph (font, face, buffer->in_string[buffer->in_pos].codepoint, 0);
 }
 
 static void
@@ -157,7 +157,7 @@ hb_position_default (hb_font_t    *font,
   count = buffer->in_length;
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
     hb_glyph_metrics_t metrics;
-    hb_font_get_glyph_metrics (font, face, IN_CURGLYPH(), &metrics);
+    hb_font_get_glyph_metrics (font, face, buffer->in_string[buffer->in_pos].codepoint, &metrics);
     buffer->positions[buffer->in_pos].x_advance = metrics.x_advance;
     buffer->positions[buffer->in_pos].y_advance = metrics.y_advance;
   }
@@ -196,7 +196,7 @@ hb_truetype_kern (hb_font_t    *font,
   count = buffer->in_length;
   for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++) {
     hb_position_t kern, kern1, kern2;
-    kern = hb_font_get_kerning (font, face, buffer->in_string[buffer->in_pos - 1].codepoint, IN_CURGLYPH());
+    kern = hb_font_get_kerning (font, face, buffer->in_string[buffer->in_pos - 1].codepoint, buffer->in_string[buffer->in_pos].codepoint);
     kern1 = kern >> 1;
     kern2 = kern - kern1;
     buffer->positions[buffer->in_pos - 1].x_advance += kern1;
