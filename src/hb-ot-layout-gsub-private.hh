@@ -163,8 +163,8 @@ struct Sequence
       return false;
 
     c->buffer->add_output_glyphs_be16 (1,
-					     substitute.len, (const uint16_t *) substitute.array,
-					     0xFFFF, 0xFFFF);
+				       substitute.len, (const uint16_t *) substitute.array,
+				       0xFFFF, 0xFFFF);
 
     /* This is a guess only ... */
     if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
@@ -397,10 +397,10 @@ struct Ligature
       /* We don't use a new ligature ID if there are no skipped
 	 glyphs and the ligature already has an ID. */
       c->buffer->add_output_glyphs_be16 (i,
-					       1, (const uint16_t *) &ligGlyph,
-					       0,
-					       c->buffer->info[c->buffer->i].lig_id && !c->buffer->info[c->buffer->i].component ?
-					       0xFFFF : c->buffer->allocate_lig_id ());
+					 1, (const uint16_t *) &ligGlyph,
+					 0,
+					 c->buffer->info[c->buffer->i].lig_id && !c->buffer->info[c->buffer->i].component ?
+					 0xFFFF : c->buffer->allocate_lig_id ());
     else
     {
       unsigned int lig_id = c->buffer->allocate_lig_id ();
