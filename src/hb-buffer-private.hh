@@ -112,7 +112,7 @@ struct _hb_buffer_t {
   hb_bool_t    have_positions; /* whether we have positions */
   unsigned int len;
   unsigned int out_len;
-  unsigned int in_pos;
+  unsigned int i;
 
   hb_internal_glyph_info_t     *info;
   hb_internal_glyph_info_t     *out_info;

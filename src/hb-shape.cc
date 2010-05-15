@@ -49,9 +49,9 @@ hb_form_clusters (hb_buffer_t *buffer)
   unsigned int count;
 
   count = buffer->len;
-  for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++)
-    if (buffer->unicode->get_general_category (buffer->info[buffer->in_pos].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
-      buffer->info[buffer->in_pos].cluster = buffer->info[buffer->in_pos - 1].cluster;
+  for (buffer->i = 1; buffer->i < count; buffer->i++)
+    if (buffer->unicode->get_general_category (buffer->info[buffer->i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
+      buffer->info[buffer->i].cluster = buffer->info[buffer->i - 1].cluster;
 }
 
 static hb_direction_t
@@ -83,8 +83,8 @@ hb_mirror_chars (hb_buffer_t *buffer)
     return;
 
   count = buffer->len;
-  for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
-      buffer->info[buffer->in_pos].codepoint = get_mirroring (buffer->info[buffer->in_pos].codepoint);
+  for (buffer->i = 0; buffer->i < count; buffer->i++) {
+      buffer->info[buffer->i].codepoint = get_mirroring (buffer->info[buffer->i].codepoint);
   }
 }
 
@@ -98,15 +98,15 @@ hb_map_glyphs (hb_font_t    *font,
   if (unlikely (!buffer->len))
     return;
   count = buffer->len - 1;
-  for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
-    if (unlikely (is_variation_selector (buffer->info[buffer->in_pos + 1].codepoint))) {
-      buffer->info[buffer->in_pos].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->in_pos].codepoint, buffer->info[buffer->in_pos + 1].codepoint);
-      buffer->in_pos++;
+  for (buffer->i = 0; buffer->i < count; buffer->i++) {
+    if (unlikely (is_variation_selector (buffer->info[buffer->i + 1].codepoint))) {
+      buffer->info[buffer->i].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint);
+      buffer->i++;
     } else {
-      buffer->info[buffer->in_pos].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->in_pos].codepoint, 0);
+      buffer->info[buffer->i].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0);
     }
   }
-  buffer->info[buffer->in_pos].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->in_pos].codepoint, 0);
+  buffer->info[buffer->i].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0);
 }
 
 static void
@@ -155,11 +155,11 @@ hb_position_default (hb_font_t    *font,
   hb_buffer_clear_positions (buffer);
 
   count = buffer->len;
-  for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
+  for (buffer->i = 0; buffer->i < count; buffer->i++) {
     hb_glyph_metrics_t metrics;
-    hb_font_get_glyph_metrics (font, face, buffer->info[buffer->in_pos].codepoint, &metrics);
-    buffer->pos[buffer->in_pos].x_advance = metrics.x_advance;
-    buffer->pos[buffer->in_pos].y_advance = metrics.y_advance;
+    hb_font_get_glyph_metrics (font, face, buffer->info[buffer->i].codepoint, &metrics);
+    buffer->pos[buffer->i].x_advance = metrics.x_advance;
+    buffer->pos[buffer->i].y_advance = metrics.y_advance;
   }
 }
 
@@ -194,14 +194,14 @@ hb_truetype_kern (hb_font_t    *font,
 
   /* TODO Check for kern=0 */
   count = buffer->len;
-  for (buffer->in_pos = 1; buffer->in_pos < count; buffer->in_pos++) {
+  for (buffer->i = 1; buffer->i < count; buffer->i++) {
     hb_position_t kern, kern1, kern2;
-    kern = hb_font_get_kerning (font, face, buffer->info[buffer->in_pos - 1].codepoint, buffer->info[buffer->in_pos].codepoint);
+    kern = hb_font_get_kerning (font, face, buffer->info[buffer->i - 1].codepoint, buffer->info[buffer->i].codepoint);
     kern1 = kern >> 1;
     kern2 = kern - kern1;
-    buffer->pos[buffer->in_pos - 1].x_advance += kern1;
-    buffer->pos[buffer->in_pos].x_advance += kern2;
-    buffer->pos[buffer->in_pos].x_offset += kern2;
+    buffer->pos[buffer->i - 1].x_advance += kern1;
+    buffer->pos[buffer->i].x_advance += kern2;
+    buffer->pos[buffer->i].x_offset += kern2;
   }
 }
 

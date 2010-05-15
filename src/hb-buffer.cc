@@ -183,7 +183,7 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->have_positions = FALSE;
   buffer->len = 0;
   buffer->out_len = 0;
-  buffer->in_pos = 0;
+  buffer->i = 0;
   buffer->out_info = buffer->info;
   buffer->max_lig_id = 0;
 }
@@ -285,7 +285,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
   buffer->len = buffer->out_len;
   buffer->out_len = tmp;
 
-  buffer->in_pos = 0;
+  buffer->i = 0;
 }
 
 /* The following function copies `num_out' elements from `glyph_data'
@@ -294,18 +294,18 @@ _hb_buffer_swap (hb_buffer_t *buffer)
    Finally, it sets the `length' field of `out' equal to
    `pos' of the `out' structure.
 
-   If `component' is 0xFFFF, the component value from buffer->in_pos
+   If `component' is 0xFFFF, the component value from buffer->i
    will copied `num_out' times, otherwise `component' itself will
    be used to fill the `component' fields.
 
-   If `lig_id' is 0xFFFF, the lig_id value from buffer->in_pos
+   If `lig_id' is 0xFFFF, the lig_id value from buffer->i
    will copied `num_out' times, otherwise `lig_id' itself will
    be used to fill the `lig_id' fields.
 
    The mask for all replacement glyphs are taken
-   from the glyph at position `buffer->in_pos'.
+   from the glyph at position `buffer->i'.
 
-   The cluster value for the glyph at position buffer->in_pos is used
+   The cluster value for the glyph at position buffer->i is used
    for all replacement glyphs */
 
 void
@@ -321,17 +321,17 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   unsigned int cluster;
 
   if (buffer->out_info != buffer->info ||
-      buffer->out_len + num_out > buffer->in_pos + num_in)
+      buffer->out_len + num_out > buffer->i + num_in)
   {
     hb_buffer_ensure_separate (buffer, buffer->out_len + num_out);
   }
 
-  mask = buffer->info[buffer->in_pos].mask;
-  cluster = buffer->info[buffer->in_pos].cluster;
+  mask = buffer->info[buffer->i].mask;
+  cluster = buffer->info[buffer->i].cluster;
   if (component == 0xFFFF)
-    component = buffer->info[buffer->in_pos].component;
+    component = buffer->info[buffer->i].component;
   if (lig_id == 0xFFFF)
-    lig_id = buffer->info[buffer->in_pos].lig_id;
+    lig_id = buffer->info[buffer->i].lig_id;
 
   for (i = 0; i < num_out; i++)
   {
@@ -344,7 +344,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
     info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
-  buffer->in_pos  += num_in;
+  buffer->i  += num_in;
   buffer->out_len += num_out;
 }
 
@@ -361,17 +361,17 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
   unsigned int cluster;
 
   if (buffer->out_info != buffer->info ||
-      buffer->out_len + num_out > buffer->in_pos + num_in)
+      buffer->out_len + num_out > buffer->i + num_in)
   {
     hb_buffer_ensure_separate (buffer, buffer->out_len + num_out);
   }
 
-  mask = buffer->info[buffer->in_pos].mask;
-  cluster = buffer->info[buffer->in_pos].cluster;
+  mask = buffer->info[buffer->i].mask;
+  cluster = buffer->info[buffer->i].cluster;
   if (component == 0xFFFF)
-    component = buffer->info[buffer->in_pos].component;
+    component = buffer->info[buffer->i].component;
   if (lig_id == 0xFFFF)
-    lig_id = buffer->info[buffer->in_pos].lig_id;
+    lig_id = buffer->info[buffer->i].lig_id;
 
   for (i = 0; i < num_out; i++)
   {
@@ -384,7 +384,7 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
     info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
-  buffer->in_pos  += num_in;
+  buffer->i  += num_in;
   buffer->out_len += num_out;
 }
 
@@ -399,10 +399,10 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
   if (buffer->out_info != buffer->info)
   {
     hb_buffer_ensure (buffer, buffer->out_len + 1);
-    buffer->out_info[buffer->out_len] = buffer->info[buffer->in_pos];
+    buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
   }
-  else if (buffer->out_len != buffer->in_pos)
-    buffer->out_info[buffer->out_len] = buffer->info[buffer->in_pos];
+  else if (buffer->out_len != buffer->i)
+    buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
 
   info = &buffer->out_info[buffer->out_len];
   info->codepoint = glyph_index;
@@ -412,7 +412,7 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
     info->lig_id = lig_id;
   info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
-  buffer->in_pos++;
+  buffer->i++;
   buffer->out_len++;
 }
 
@@ -424,15 +424,15 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
     if (buffer->out_info != buffer->info)
     {
       hb_buffer_ensure (buffer, buffer->out_len + 1);
-      buffer->out_info[buffer->out_len] = buffer->info[buffer->in_pos];
+      buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
     }
-    else if (buffer->out_len != buffer->in_pos)
-      buffer->out_info[buffer->out_len] = buffer->info[buffer->in_pos];
+    else if (buffer->out_len != buffer->i)
+      buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
 
     buffer->out_len++;
   }
 
-  buffer->in_pos++;
+  buffer->i++;
 }
 
 
