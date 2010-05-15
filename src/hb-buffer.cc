@@ -55,12 +55,51 @@ static hb_buffer_t _hb_buffer_nil = {
  */
 
 
-/* Internal API */
+static hb_bool_t
+_hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
+{
+  if (unlikely (buffer->in_error))
+    return FALSE;
+
+  unsigned int new_allocated = buffer->allocated;
+  hb_internal_glyph_position_t *new_pos;
+  hb_internal_glyph_info_t *new_info;
+  bool separate_out;
+
+  separate_out = buffer->out_info != buffer->info;
+
+  while (size > new_allocated)
+    new_allocated += (new_allocated >> 1) + 8;
+
+  new_pos = (hb_internal_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
+  new_info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
+
+  if (unlikely (!new_pos || !new_info))
+    buffer->in_error = TRUE;
+
+  if (likely (new_pos))
+    buffer->pos = new_pos;
+
+  if (likely (new_info))
+    buffer->info = new_info;
+
+  buffer->out_info = separate_out ? (hb_internal_glyph_info_t *) buffer->pos : buffer->info;
+  if (likely (!buffer->in_error))
+    buffer->allocated = new_allocated;
+
+  return likely (!buffer->in_error);
+}
+
+static inline hb_bool_t
+_hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
+{
+  return likely (size <= buffer->allocated) ? TRUE : _hb_buffer_enlarge (buffer, size);
+}
 
 static hb_bool_t
-hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
+_hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 {
-  if (unlikely (!hb_buffer_ensure (buffer, size))) return FALSE;
+  if (unlikely (!_hb_buffer_ensure (buffer, size))) return FALSE;
 
   if (buffer->out_info == buffer->info)
   {
@@ -73,6 +112,7 @@ hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
   return TRUE;
 }
 
+
 /* Public API */
 
 hb_buffer_t *
@@ -84,7 +124,7 @@ hb_buffer_create (unsigned int pre_alloc_size)
     return &_hb_buffer_nil;
 
   if (pre_alloc_size)
-    hb_buffer_ensure (buffer, pre_alloc_size);
+    _hb_buffer_ensure (buffer, pre_alloc_size);
 
   buffer->unicode = &_hb_unicode_funcs_nil;
 
@@ -192,39 +232,7 @@ hb_buffer_clear (hb_buffer_t *buffer)
 hb_bool_t
 hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
 {
-  if (unlikely (size > buffer->allocated))
-  {
-    if (unlikely (buffer->in_error))
-      return FALSE;
-
-    unsigned int new_allocated = buffer->allocated;
-    hb_internal_glyph_position_t *new_pos;
-    hb_internal_glyph_info_t *new_info;
-    bool separate_out;
-
-    separate_out = buffer->out_info != buffer->info;
-
-    while (size > new_allocated)
-      new_allocated += (new_allocated >> 1) + 8;
-
-    new_pos = (hb_internal_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
-    new_info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
-
-    if (unlikely (!new_pos || !new_info))
-      buffer->in_error = TRUE;
-
-    if (likely (new_pos))
-      buffer->pos = new_pos;
-
-    if (likely (new_info))
-      buffer->info = new_info;
-
-    buffer->out_info = separate_out ? (hb_internal_glyph_info_t *) buffer->pos : buffer->info;
-    if (likely (!buffer->in_error))
-      buffer->allocated = new_allocated;
-  }
-
-  return likely (!buffer->in_error);
+  return _hb_buffer_ensure (buffer, size);
 }
 
 void
@@ -235,7 +243,7 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 {
   hb_internal_glyph_info_t *glyph;
 
-  if (unlikely (!hb_buffer_ensure (buffer, buffer->len + 1))) return;
+  if (unlikely (!_hb_buffer_ensure (buffer, buffer->len + 1))) return;
 
   glyph = &buffer->info[buffer->len];
   glyph->codepoint = codepoint;
@@ -246,18 +254,6 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   glyph->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->len++;
-}
-
-
-/* HarfBuzz-Internal API */
-
-void
-_hb_buffer_clear_output (hb_buffer_t *buffer)
-{
-  buffer->have_output = TRUE;
-  buffer->have_positions = FALSE;
-  buffer->out_len = 0;
-  buffer->out_info = buffer->info;
 }
 
 void
@@ -274,6 +270,17 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
   }
 
   memset (buffer->pos, 0, sizeof (buffer->pos[0]) * buffer->len);
+}
+
+/* HarfBuzz-Internal API */
+
+void
+_hb_buffer_clear_output (hb_buffer_t *buffer)
+{
+  buffer->have_output = TRUE;
+  buffer->have_positions = FALSE;
+  buffer->out_len = 0;
+  buffer->out_info = buffer->info;
 }
 
 void
@@ -336,7 +343,7 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
   {
-    if (unlikely (!hb_buffer_ensure_separate (buffer, buffer->out_len + num_out)))
+    if (unlikely (!_hb_buffer_ensure_separate (buffer, buffer->out_len + num_out)))
       return;
   }
 
@@ -377,7 +384,7 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
   {
-    if (unlikely (!hb_buffer_ensure_separate (buffer, buffer->out_len + num_out)))
+    if (unlikely (!_hb_buffer_ensure_separate (buffer, buffer->out_len + num_out)))
       return;
   }
 
@@ -413,7 +420,7 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 
   if (buffer->out_info != buffer->info)
   {
-    if (unlikely (!hb_buffer_ensure (buffer, buffer->out_len + 1))) return;
+    if (unlikely (!_hb_buffer_ensure (buffer, buffer->out_len + 1))) return;
     buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
   }
   else if (buffer->out_len != buffer->i)
@@ -438,7 +445,7 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
   {
     if (buffer->out_info != buffer->info)
     {
-      if (unlikely (!hb_buffer_ensure (buffer, buffer->out_len + 1))) return;
+      if (unlikely (!_hb_buffer_ensure (buffer, buffer->out_len + 1))) return;
       buffer->out_info[buffer->out_len] = buffer->info[buffer->i];
     }
     else if (buffer->out_len != buffer->i)
@@ -450,6 +457,8 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
   buffer->i++;
 }
 
+
+/* Public API again */
 
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer)
