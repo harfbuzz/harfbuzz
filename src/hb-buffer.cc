@@ -38,20 +38,20 @@ static hb_buffer_t _hb_buffer_nil = {
 
 /* Here is how the buffer works internally:
  *
- * There are two string pointers: in_string and out_string.  They
+ * There are two string pointers: info and out_string.  They
  * always have same allocated size, but different length and positions.
  *
- * As an optimization, both in_string and out_string may point to the
- * same piece of memory, which is owned by in_string.  This remains the
+ * As an optimization, both info and out_string may point to the
+ * same piece of memory, which is owned by info.  This remains the
  * case as long as out_length doesn't exceed in_length at any time.
  * In that case, swap() is no-op and the glyph operations operate mostly
  * in-place.
  *
- * As soon as out_string gets longer than in_string, out_string is moved over
+ * As soon as out_string gets longer than info, out_string is moved over
  * to an alternate buffer (which we reuse the positions buffer for!), and its
  * current contents (out_length entries) are copied to the alt buffer.
  * This should all remain transparent to the user.  swap() then switches
- * in_string and out_string.
+ * info and out_string.
  */
 
 /* XXX err handling */
@@ -62,14 +62,14 @@ static void
 hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 {
   hb_buffer_ensure (buffer, size);
-  if (buffer->out_string == buffer->in_string)
+  if (buffer->out_string == buffer->info)
   {
     assert (buffer->have_output);
     if (!buffer->positions)
       buffer->positions = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->positions[0]));
 
     buffer->out_string = (hb_internal_glyph_info_t *) buffer->positions;
-    memcpy (buffer->out_string, buffer->in_string, buffer->out_length * sizeof (buffer->out_string[0]));
+    memcpy (buffer->out_string, buffer->info, buffer->out_length * sizeof (buffer->out_string[0]));
   }
 }
 
@@ -110,7 +110,7 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 
   hb_unicode_funcs_destroy (buffer->unicode);
 
-  free (buffer->in_string);
+  free (buffer->info);
   free (buffer->positions);
 
   free (buffer);
@@ -184,7 +184,7 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->in_length = 0;
   buffer->out_length = 0;
   buffer->in_pos = 0;
-  buffer->out_string = buffer->in_string;
+  buffer->out_string = buffer->info;
   buffer->max_lig_id = 0;
 }
 
@@ -201,15 +201,15 @@ hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
     if (buffer->positions)
       buffer->positions = (hb_internal_glyph_position_t *) realloc (buffer->positions, new_allocated * sizeof (buffer->positions[0]));
 
-    if (buffer->out_string != buffer->in_string)
+    if (buffer->out_string != buffer->info)
     {
-      buffer->in_string = (hb_internal_glyph_info_t *) realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
+      buffer->info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
       buffer->out_string = (hb_internal_glyph_info_t *) buffer->positions;
     }
     else
     {
-      buffer->in_string = (hb_internal_glyph_info_t *) realloc (buffer->in_string, new_allocated * sizeof (buffer->in_string[0]));
-      buffer->out_string = buffer->in_string;
+      buffer->info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
+      buffer->out_string = buffer->info;
     }
 
     buffer->allocated = new_allocated;
@@ -226,7 +226,7 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 
   hb_buffer_ensure (buffer, buffer->in_length + 1);
 
-  glyph = &buffer->in_string[buffer->in_length];
+  glyph = &buffer->info[buffer->in_length];
   glyph->codepoint = codepoint;
   glyph->mask = mask;
   glyph->cluster = cluster;
@@ -246,7 +246,7 @@ _hb_buffer_clear_output (hb_buffer_t *buffer)
   buffer->have_output = TRUE;
   buffer->have_positions = FALSE;
   buffer->out_length = 0;
-  buffer->out_string = buffer->in_string;
+  buffer->out_string = buffer->info;
 }
 
 void
@@ -272,11 +272,11 @@ _hb_buffer_swap (hb_buffer_t *buffer)
 
   assert (buffer->have_output);
 
-  if (buffer->out_string != buffer->in_string)
+  if (buffer->out_string != buffer->info)
   {
     hb_internal_glyph_info_t *tmp_string;
-    tmp_string = buffer->in_string;
-    buffer->in_string = buffer->out_string;
+    tmp_string = buffer->info;
+    buffer->info = buffer->out_string;
     buffer->out_string = tmp_string;
     buffer->positions = (hb_internal_glyph_position_t *) buffer->out_string;
   }
@@ -320,18 +320,18 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   unsigned int mask;
   unsigned int cluster;
 
-  if (buffer->out_string != buffer->in_string ||
+  if (buffer->out_string != buffer->info ||
       buffer->out_length + num_out > buffer->in_pos + num_in)
   {
     hb_buffer_ensure_separate (buffer, buffer->out_length + num_out);
   }
 
-  mask = buffer->in_string[buffer->in_pos].mask;
-  cluster = buffer->in_string[buffer->in_pos].cluster;
+  mask = buffer->info[buffer->in_pos].mask;
+  cluster = buffer->info[buffer->in_pos].cluster;
   if (component == 0xFFFF)
-    component = buffer->in_string[buffer->in_pos].component;
+    component = buffer->info[buffer->in_pos].component;
   if (lig_id == 0xFFFF)
-    lig_id = buffer->in_string[buffer->in_pos].lig_id;
+    lig_id = buffer->info[buffer->in_pos].lig_id;
 
   for (i = 0; i < num_out; i++)
   {
@@ -360,18 +360,18 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
   unsigned int mask;
   unsigned int cluster;
 
-  if (buffer->out_string != buffer->in_string ||
+  if (buffer->out_string != buffer->info ||
       buffer->out_length + num_out > buffer->in_pos + num_in)
   {
     hb_buffer_ensure_separate (buffer, buffer->out_length + num_out);
   }
 
-  mask = buffer->in_string[buffer->in_pos].mask;
-  cluster = buffer->in_string[buffer->in_pos].cluster;
+  mask = buffer->info[buffer->in_pos].mask;
+  cluster = buffer->info[buffer->in_pos].cluster;
   if (component == 0xFFFF)
-    component = buffer->in_string[buffer->in_pos].component;
+    component = buffer->info[buffer->in_pos].component;
   if (lig_id == 0xFFFF)
-    lig_id = buffer->in_string[buffer->in_pos].lig_id;
+    lig_id = buffer->info[buffer->in_pos].lig_id;
 
   for (i = 0; i < num_out; i++)
   {
@@ -396,13 +396,13 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 {
   hb_internal_glyph_info_t *info;
 
-  if (buffer->out_string != buffer->in_string)
+  if (buffer->out_string != buffer->info)
   {
     hb_buffer_ensure (buffer, buffer->out_length + 1);
-    buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
+    buffer->out_string[buffer->out_length] = buffer->info[buffer->in_pos];
   }
   else if (buffer->out_length != buffer->in_pos)
-    buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
+    buffer->out_string[buffer->out_length] = buffer->info[buffer->in_pos];
 
   info = &buffer->out_string[buffer->out_length];
   info->codepoint = glyph_index;
@@ -421,13 +421,13 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer)
 {
   if (buffer->have_output)
   {
-    if (buffer->out_string != buffer->in_string)
+    if (buffer->out_string != buffer->info)
     {
       hb_buffer_ensure (buffer, buffer->out_length + 1);
-      buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
+      buffer->out_string[buffer->out_length] = buffer->info[buffer->in_pos];
     }
     else if (buffer->out_length != buffer->in_pos)
-      buffer->out_string[buffer->out_length] = buffer->in_string[buffer->in_pos];
+      buffer->out_string[buffer->out_length] = buffer->info[buffer->in_pos];
 
     buffer->out_length++;
   }
@@ -446,7 +446,7 @@ hb_buffer_get_length (hb_buffer_t *buffer)
 hb_glyph_info_t *
 hb_buffer_get_glyph_infos (hb_buffer_t *buffer)
 {
-  return (hb_glyph_info_t *) buffer->in_string;
+  return (hb_glyph_info_t *) buffer->info;
 }
 
 /* Return value valid as long as buffer not modified */
@@ -470,9 +470,9 @@ reverse_range (hb_buffer_t *buffer,
   for (i = start, j = end - 1; i < j; i++, j--) {
     hb_internal_glyph_info_t t;
 
-    t = buffer->in_string[i];
-    buffer->in_string[i] = buffer->in_string[j];
-    buffer->in_string[j] = t;
+    t = buffer->info[i];
+    buffer->info[i] = buffer->info[j];
+    buffer->info[j] = t;
   }
 
   if (buffer->positions) {
@@ -507,12 +507,12 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 
   count = buffer->in_length;
   start = 0;
-  last_cluster = buffer->in_string[0].cluster;
+  last_cluster = buffer->info[0].cluster;
   for (i = 1; i < count; i++) {
-    if (last_cluster != buffer->in_string[i].cluster) {
+    if (last_cluster != buffer->info[i].cluster) {
       reverse_range (buffer, start, i);
       start = i;
-      last_cluster = buffer->in_string[i].cluster;
+      last_cluster = buffer->info[i].cluster;
     }
   }
   reverse_range (buffer, start, i);

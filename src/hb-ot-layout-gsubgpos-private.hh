@@ -94,14 +94,14 @@ static inline bool match_input (hb_apply_context_t *c,
 
   for (i = 1, j = c->buffer->in_pos + 1; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
       j++;
     }
 
-    if (likely (!match_func (c->buffer->in_string[j].codepoint, input[i - 1], match_data)))
+    if (likely (!match_func (c->buffer->info[j].codepoint, input[i - 1], match_data)))
       return false;
   }
 
@@ -149,14 +149,14 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 
   for (i = 0, j = c->buffer->in_pos + offset; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
       j++;
     }
 
-    if (likely (!match_func (c->buffer->in_string[j].codepoint, lookahead[i], match_data)))
+    if (likely (!match_func (c->buffer->info[j].codepoint, lookahead[i], match_data)))
       return false;
   }
 
@@ -198,7 +198,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[c->buffer->in_pos], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->in_pos], c->lookup_flag, NULL))
     {
       if (unlikely (c->buffer->in_pos == end))
 	return true;
@@ -337,7 +337,7 @@ struct ContextFormat1
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -376,12 +376,12 @@ struct ContextFormat2
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
     const ClassDef &class_def = this+classDef;
-    index = class_def (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    index = class_def (c->buffer->info[c->buffer->in_pos].codepoint);
     const RuleSet &rule_set = this+ruleSet[index];
     /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
      * them across subrule lookups.  Not sure it's worth it.
@@ -424,7 +424,7 @@ struct ContextFormat3
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage[0]) (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    unsigned int index = (this+coverage[0]) (c->buffer->info[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -628,7 +628,7 @@ struct ChainContextFormat1
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -666,7 +666,7 @@ struct ChainContextFormat2
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -674,7 +674,7 @@ struct ChainContextFormat2
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    index = input_class_def (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    index = input_class_def (c->buffer->info[c->buffer->in_pos].codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
      * them across subrule lookups.  Not sure it's worth it.
@@ -732,7 +732,7 @@ struct ChainContextFormat3
     TRACE_APPLY ();
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
-    unsigned int index = (this+input[0]) (c->buffer->in_string[c->buffer->in_pos].codepoint);
+    unsigned int index = (this+input[0]) (c->buffer->info[c->buffer->in_pos].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
