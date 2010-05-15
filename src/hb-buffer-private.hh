@@ -165,8 +165,6 @@ struct _hb_buffer_t {
 #define IN_CLUSTER(pos)		(BUFFER->in_string[(pos)].cluster)
 #define IN_LIGID(pos)		(BUFFER->in_string[(pos)].lig_id)
 #define IN_COMPONENT(pos)	(BUFFER->in_string[(pos)].component)
-#define OUT_GLYPH(pos)		(BUFFER->out_string[(pos)].codepoint)
-#define OUT_INFO(pos)		(&BUFFER->out_string[(pos)])
 
 HB_END_DECLS
 
