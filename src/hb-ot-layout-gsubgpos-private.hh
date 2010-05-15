@@ -203,7 +203,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, IN_CURINFO (), c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[c->buffer->in_pos], c->lookup_flag, NULL))
     {
       if (unlikely (c->buffer->in_pos == end))
 	return true;

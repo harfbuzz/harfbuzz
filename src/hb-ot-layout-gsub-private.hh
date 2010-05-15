@@ -419,7 +419,7 @@ struct Ligature
 
       for ( i = 1; i < count; i++ )
       {
-	while (_hb_ot_layout_skip_mark (c->layout->face, IN_CURINFO (), c->lookup_flag, NULL))
+	while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[c->buffer->in_pos], c->lookup_flag, NULL))
 	  c->buffer->add_output_glyph (IN_CURGLYPH (), i, lig_id);
 
 	(c->buffer->in_pos)++;
@@ -793,7 +793,7 @@ struct SubstLookup : Lookup
     c->nesting_level_left = nesting_level_left;
     c->lookup_flag = get_flag ();
 
-    if (!_hb_ot_layout_check_glyph_property (c->layout->face, IN_CURINFO (), c->lookup_flag, &c->property))
+    if (!_hb_ot_layout_check_glyph_property (c->layout->face, &c->buffer->in_string[c->buffer->in_pos], c->lookup_flag, &c->property))
       return false;
 
     if (unlikely (lookup_type == SubstLookupSubTable::Extension))
