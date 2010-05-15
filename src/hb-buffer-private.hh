@@ -106,13 +106,14 @@ struct _hb_buffer_t {
 
   /* Buffer contents */
 
-  unsigned int allocated;
+  unsigned int allocated; /* Length of allocated arrays */
 
-  hb_bool_t    have_output; /* whether we have an output buffer going on */
-  hb_bool_t    have_positions; /* whether we have positions */
-  unsigned int len;
-  unsigned int out_len;
-  unsigned int i;
+  hb_bool_t    have_output; /* Whether we have an output buffer going on */
+  hb_bool_t    have_positions; /* Whether we have positions */
+
+  unsigned int i; /* Cursor into ->info and ->pos arrays */
+  unsigned int len; /* Length of ->info and ->pos arrays */
+  unsigned int out_len; /* Length of ->out array */
 
   hb_internal_glyph_info_t     *info;
   hb_internal_glyph_info_t     *out_info;

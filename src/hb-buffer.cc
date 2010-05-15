@@ -38,20 +38,20 @@ static hb_buffer_t _hb_buffer_nil = {
 
 /* Here is how the buffer works internally:
  *
- * There are two string pointers: info and out_info.  They
- * always have same allocated size, but different length and positions.
+ * There are two info pointers: info and out_info.  They always have
+ * the same allocated size, but different lengths.
  *
  * As an optimization, both info and out_info may point to the
  * same piece of memory, which is owned by info.  This remains the
  * case as long as out_len doesn't exceed len at any time.
- * In that case, swap() is no-op and the glyph operations operate mostly
- * in-place.
+ * In that case, swap() is no-op and the glyph operations operate
+ * mostly in-place.
  *
  * As soon as out_info gets longer than info, out_info is moved over
- * to an alternate buffer (which we reuse the positions buffer for!), and its
- * current contents (out_len entries) are copied to the alt buffer.
- * This should all remain transparent to the user.  swap() then switches
- * info and out_info.
+ * to an alternate buffer (which we reuse the pos buffer for!), and its
+ * current contents (out_len entries) are copied to the new place.
+ * This should all remain transparent to the user.  swap() then
+ * switches info and out_info.
  */
 
 /* XXX err handling */
