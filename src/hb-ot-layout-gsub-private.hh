@@ -403,7 +403,7 @@ struct Ligature
       c->buffer->add_output_glyphs_be16 (i,
 					       1, (const uint16_t *) &ligGlyph,
 					       0,
-					       IN_LIGID (c->buffer->in_pos) && !IN_COMPONENT (c->buffer->in_pos) ?
+					       IN_LIGID (c->buffer->in_pos) && !c->buffer->in_string[c->buffer->in_pos].component ?
 					       0xFFFF : c->buffer->allocate_lig_id ());
     else
     {
