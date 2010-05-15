@@ -99,7 +99,7 @@ static inline bool match_input (hb_apply_context_t *c,
 
   for (i = 1, j = c->buffer->in_pos + 1; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
@@ -154,7 +154,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 
   for (i = 0, j = c->buffer->in_pos + offset; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;

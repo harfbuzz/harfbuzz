@@ -156,9 +156,7 @@ struct _hb_buffer_t {
 #endif
 
 /* convenience macros */
-#define IN_INFO(pos)		(&BUFFER->in_string[(pos)])
 #define IN_CURGLYPH()		(BUFFER->in_string[BUFFER->in_pos].codepoint)
-#define IN_NEXTGLYPH()		(BUFFER->in_string[BUFFER->in_pos + 1].codepoint)
 #define IN_CURINFO()		(&BUFFER->in_string[BUFFER->in_pos])
 
 HB_END_DECLS

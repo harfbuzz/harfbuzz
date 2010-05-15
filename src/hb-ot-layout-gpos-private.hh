@@ -632,7 +632,7 @@ struct PairPosFormat1
       return false;
 
     unsigned int j = c->buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -694,7 +694,7 @@ struct PairPosFormat2
       return false;
 
     unsigned int j = c->buffer->in_pos + 1;
-    while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -1079,7 +1079,7 @@ struct MarkBasePosFormat1
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
+    } while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], LookupFlag::IgnoreMarks, &property));
 
     /* The following assertion is too strong, so we've disabled it. */
     if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
@@ -1181,7 +1181,7 @@ struct MarkLigPosFormat1
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), LookupFlag::IgnoreMarks, &property));
+    } while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], LookupFlag::IgnoreMarks, &property));
 
     /* The following assertion is too strong, so we've disabled it. */
     if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
@@ -1300,7 +1300,7 @@ struct MarkMarkPosFormat1
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, &property));
+    } while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, &property));
 
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
       return false;

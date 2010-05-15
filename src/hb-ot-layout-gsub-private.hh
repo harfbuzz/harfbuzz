@@ -378,7 +378,7 @@ struct Ligature
     for (i = 1, j = c->buffer->in_pos + 1; i < count; i++, j++)
     {
       unsigned int property;
-      while (_hb_ot_layout_skip_mark (c->layout->face, IN_INFO (j), c->lookup_flag, &property))
+      while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->in_string[j], c->lookup_flag, &property))
       {
 	if (unlikely (j + count - i == end))
 	  return false;

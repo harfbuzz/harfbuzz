@@ -99,8 +99,8 @@ hb_map_glyphs (hb_font_t    *font,
     return;
   count = buffer->in_length - 1;
   for (buffer->in_pos = 0; buffer->in_pos < count; buffer->in_pos++) {
-    if (unlikely (is_variation_selector (IN_NEXTGLYPH()))) {
-      IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), IN_NEXTGLYPH());
+    if (unlikely (is_variation_selector (buffer->in_string[buffer->in_pos + 1].codepoint))) {
+      IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), buffer->in_string[buffer->in_pos + 1].codepoint);
       buffer->in_pos++;
     } else {
       IN_CURGLYPH() = hb_font_get_glyph (font, face, IN_CURGLYPH(), 0);
