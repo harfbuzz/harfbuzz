@@ -62,7 +62,6 @@ ASSERT_STATIC (sizeof (hb_glyph_position_t) == sizeof (hb_internal_glyph_positio
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
 
-
 HB_INTERNAL void
 _hb_buffer_swap (hb_buffer_t *buffer);
 
@@ -149,11 +148,6 @@ struct _hb_buffer_t {
   inline void replace_glyph (hb_codepoint_t glyph_index) { add_output_glyph (glyph_index); }
 };
 
-
-
-#ifndef BUFFER
-#define BUFFER buffer
-#endif
 
 HB_END_DECLS
 

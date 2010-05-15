@@ -30,10 +30,6 @@
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 
-#undef BUFFER
-#define BUFFER c->buffer
-
-
 #define HB_OT_LAYOUT_GPOS_NO_LAST ((unsigned int) -1)
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
@@ -1531,8 +1527,6 @@ struct PosLookup : Lookup
 			     hb_buffer_t *buffer,
 			     hb_mask_t    mask) const
   {
-#undef BUFFER
-#define BUFFER buffer
     bool ret = false;
 
     if (unlikely (!buffer->in_length))

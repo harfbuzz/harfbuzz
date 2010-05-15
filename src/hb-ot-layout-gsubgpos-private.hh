@@ -52,11 +52,6 @@ struct hb_apply_context_t
 
 
 
-
-#undef BUFFER
-#define BUFFER c->buffer
-
-
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
 typedef bool (*apply_lookup_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
 

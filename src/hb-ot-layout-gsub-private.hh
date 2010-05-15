@@ -30,10 +30,6 @@
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 
-#undef BUFFER
-#define BUFFER c->buffer
-
-
 struct SingleSubstFormat1
 {
   friend struct SingleSubst;
@@ -822,8 +818,6 @@ struct SubstLookup : Lookup
 			    hb_buffer_t *buffer,
 			    hb_mask_t    mask) const
   {
-#undef BUFFER
-#define BUFFER buffer
     bool ret = false;
 
     if (unlikely (!buffer->in_length))
