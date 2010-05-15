@@ -46,12 +46,10 @@ is_variation_selector (hb_codepoint_t unicode)
 static void
 hb_form_clusters (hb_buffer_t *buffer)
 {
-  unsigned int count;
-
-  count = buffer->len;
-  for (buffer->i = 1; buffer->i < count; buffer->i++)
-    if (buffer->unicode->get_general_category (buffer->info[buffer->i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
-      buffer->info[buffer->i].cluster = buffer->info[buffer->i - 1].cluster;
+  unsigned int count = buffer->len;
+  for (unsigned int i = 1; i < count; i++)
+    if (buffer->unicode->get_general_category (buffer->info[i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
+      buffer->info[i].cluster = buffer->info[i - 1].cluster;
 }
 
 static hb_direction_t
@@ -76,15 +74,14 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
 static void
 hb_mirror_chars (hb_buffer_t *buffer)
 {
-  unsigned int count;
   hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->get_mirroring;
 
   if (HB_DIRECTION_IS_FORWARD (buffer->direction))
     return;
 
-  count = buffer->len;
-  for (buffer->i = 0; buffer->i < count; buffer->i++) {
-      buffer->info[buffer->i].codepoint = get_mirroring (buffer->info[buffer->i].codepoint);
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++) {
+      buffer->info[i].codepoint = get_mirroring (buffer->info[i].codepoint);
   }
 }
 
@@ -93,20 +90,19 @@ hb_map_glyphs (hb_font_t    *font,
 	       hb_face_t    *face,
 	       hb_buffer_t  *buffer)
 {
-  unsigned int count;
-
   if (unlikely (!buffer->len))
     return;
-  count = buffer->len - 1;
-  for (buffer->i = 0; buffer->i < count; buffer->i++) {
-    if (unlikely (is_variation_selector (buffer->info[buffer->i + 1].codepoint))) {
-      buffer->info[buffer->i].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint);
-      buffer->i++;
+
+  unsigned int count = buffer->len - 1;
+  for (unsigned int i = 0; i < count; i++) {
+    if (unlikely (is_variation_selector (buffer->info[i + 1].codepoint))) {
+      buffer->info[i].codepoint = hb_font_get_glyph (font, face, buffer->info[i].codepoint, buffer->info[i + 1].codepoint);
+      i++;
     } else {
-      buffer->info[buffer->i].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0);
+      buffer->info[i].codepoint = hb_font_get_glyph (font, face, buffer->info[i].codepoint, 0);
     }
   }
-  buffer->info[buffer->i].codepoint = hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0);
+  buffer->info[count].codepoint = hb_font_get_glyph (font, face, buffer->info[count].codepoint, 0);
 }
 
 static void
@@ -150,16 +146,14 @@ hb_position_default (hb_font_t    *font,
 		     hb_feature_t *features HB_UNUSED,
 		     unsigned int  num_features HB_UNUSED)
 {
-  unsigned int count;
-
   hb_buffer_clear_positions (buffer);
 
-  count = buffer->len;
-  for (buffer->i = 0; buffer->i < count; buffer->i++) {
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++) {
     hb_glyph_metrics_t metrics;
-    hb_font_get_glyph_metrics (font, face, buffer->info[buffer->i].codepoint, &metrics);
-    buffer->pos[buffer->i].x_advance = metrics.x_advance;
-    buffer->pos[buffer->i].y_advance = metrics.y_advance;
+    hb_font_get_glyph_metrics (font, face, buffer->info[i].codepoint, &metrics);
+    buffer->pos[i].x_advance = metrics.x_advance;
+    buffer->pos[i].y_advance = metrics.y_advance;
   }
 }
 
@@ -190,18 +184,16 @@ hb_truetype_kern (hb_font_t    *font,
 		  hb_feature_t *features HB_UNUSED,
 		  unsigned int  num_features HB_UNUSED)
 {
-  unsigned int count;
-
   /* TODO Check for kern=0 */
-  count = buffer->len;
-  for (buffer->i = 1; buffer->i < count; buffer->i++) {
+  unsigned int count = buffer->len;
+  for (unsigned int i = 1; i < count; i++) {
     hb_position_t kern, kern1, kern2;
-    kern = hb_font_get_kerning (font, face, buffer->info[buffer->i - 1].codepoint, buffer->info[buffer->i].codepoint);
+    kern = hb_font_get_kerning (font, face, buffer->info[i - 1].codepoint, buffer->info[i].codepoint);
     kern1 = kern >> 1;
     kern2 = kern - kern1;
-    buffer->pos[buffer->i - 1].x_advance += kern1;
-    buffer->pos[buffer->i].x_advance += kern2;
-    buffer->pos[buffer->i].x_offset += kern2;
+    buffer->pos[i - 1].x_advance += kern1;
+    buffer->pos[i].x_advance += kern2;
+    buffer->pos[i].x_offset += kern2;
   }
 }
 
