@@ -601,45 +601,47 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
 {
   unsigned int i, j;
   unsigned int len = hb_buffer_get_length (buffer);
-  hb_internal_glyph_position_t *positions = (hb_internal_glyph_position_t *) hb_buffer_get_glyph_positions (buffer);
+  hb_internal_glyph_position_t *pos = (hb_internal_glyph_position_t *) hb_buffer_get_glyph_positions (buffer);
 
   /* TODO: Vertical */
 
   /* Handle cursive connections */
   /* First handle all left-to-right connections */
   for (j = 0; j < len; j++) {
-    if (positions[j].cursive_chain > 0) {
-      positions[j].y_offset += positions[j - positions[j].cursive_chain].y_offset;
-      positions[j].cursive_chain = 0;
+    if (pos[j].cursive_chain > 0)
+    {
+      pos[j].y_offset += pos[j - pos[j].cursive_chain].y_offset;
+      pos[j].cursive_chain = 0;
     }
   }
   /* Then handle all right-to-left connections */
   for (i = len; i > 0; i--) {
     j = i - 1;
-    if (positions[j].cursive_chain < 0) {
-      positions[j].y_offset += positions[j - positions[j].cursive_chain].y_offset;
-      positions[j].cursive_chain = 0;
+    if (pos[j].cursive_chain < 0)
+    {
+      pos[j].y_offset += pos[j - pos[j].cursive_chain].y_offset;
+      pos[j].cursive_chain = 0;
     }
   }
 
   /* Handle attachments */
   for (i = 0; i < len; i++)
-    if (positions[i].back)
-      {
-	unsigned int back = i - positions[i].back;
-	positions[i].back = 0;
-	positions[i].x_offset += positions[back].x_offset;
-	positions[i].y_offset += positions[back].y_offset;
+    if (pos[i].back)
+    {
+      unsigned int back = i - pos[i].back;
+      pos[i].back = 0;
+      pos[i].x_offset += pos[back].x_offset;
+      pos[i].y_offset += pos[back].y_offset;
 
-	if (buffer->direction == HB_DIRECTION_RTL)
-	  for (j = back + 1; j < i + 1; j++) {
-	    positions[i].x_offset += positions[j].x_advance;
-	    positions[i].y_offset += positions[j].y_advance;
-	  }
-	else
-	  for (j = back; j < i; j++) {
-	    positions[i].x_offset -= positions[j].x_advance;
-	    positions[i].y_offset -= positions[j].y_advance;
-	  }
-      }
+      if (buffer->direction == HB_DIRECTION_RTL)
+	for (j = back + 1; j < i + 1; j++) {
+	  pos[i].x_offset += pos[j].x_advance;
+	  pos[i].y_offset += pos[j].y_advance;
+	}
+      else
+	for (j = back; j < i; j++) {
+	  pos[i].x_offset -= pos[j].x_advance;
+	  pos[i].y_offset -= pos[j].y_advance;
+	}
+    }
 }
