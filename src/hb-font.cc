@@ -234,7 +234,7 @@ static hb_face_t _hb_face_nil = {
   NULL, /* head_blob */
   NULL, /* head_table */
 
-  {} /* ot_layout */
+  NULL  /* ot_layout */
 };
 
 
@@ -255,7 +255,7 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
   face->destroy = destroy;
   face->user_data = user_data;
 
-  _hb_ot_layout_init (face);
+  face->ot_layout = _hb_ot_layout_new (face);
 
   return face;
 }
@@ -330,7 +330,7 @@ hb_face_create_for_data (hb_blob_t    *blob,
   face->head_blob = Sanitizer<head>::sanitize (hb_face_get_table (face, HB_OT_TAG_head));
   face->head_table = Sanitizer<head>::lock_instance (face->head_blob);
 
-  _hb_ot_layout_init (face);
+  face->ot_layout = _hb_ot_layout_new (face);
 
   return face;
 }
@@ -353,7 +353,7 @@ hb_face_destroy (hb_face_t *face)
 {
   HB_OBJECT_DO_DESTROY (face);
 
-  _hb_ot_layout_fini (face);
+  _hb_ot_layout_free (face->ot_layout);
 
   hb_blob_unlock (face->head_blob);
   hb_blob_destroy (face->head_blob);
@@ -458,8 +458,8 @@ hb_font_set_funcs (hb_font_t         *font,
 
 void
 hb_font_set_scale (hb_font_t *font,
-		   hb_16dot16_t x_scale,
-		   hb_16dot16_t y_scale)
+		   unsigned int x_scale,
+		   unsigned int y_scale)
 {
   if (HB_OBJECT_IS_INERT (font))
     return;

@@ -177,18 +177,12 @@ hb_font_get_funcs (hb_font_t       *font);
 
 
 /*
- * XXX
- * should we decompose this to units_per_EM and font-size?
- * units_per_EM setting then can go into the face, or better,
- * read from the 'head' table.
- *
- * Then we either need size+shape like freetype does, or a full
- * matrix.
+ * We should add support for full matrices.
  */
 void
 hb_font_set_scale (hb_font_t *font,
-		   hb_16dot16_t x_scale,
-		   hb_16dot16_t y_scale);
+		   unsigned int x_scale,
+		   unsigned int y_scale);
 
 /*
  * A zero value means "no hinting in that direction"

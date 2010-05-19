@@ -924,7 +924,7 @@ inline bool ExtensionSubst::is_reverse (void) const
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index)
 {
-  const GSUB &gsub = *(c->layout->face->ot_layout.gsub);
+  const GSUB &gsub = *(c->layout->face->ot_layout->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   if (unlikely (c->nesting_level_left == 0))

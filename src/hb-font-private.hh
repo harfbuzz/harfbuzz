@@ -33,8 +33,6 @@
 
 #include "hb-ot-head-private.hh"
 
-#include "hb-ot-layout-private.hh"
-
 HB_BEGIN_DECLS
 
 /*
@@ -69,7 +67,7 @@ struct _hb_face_t {
   hb_blob_t *head_blob;
   const struct head *head_table;
 
-  hb_ot_layout_t ot_layout;
+  struct hb_ot_layout_t *ot_layout;
 };
 
 
@@ -80,8 +78,8 @@ struct _hb_face_t {
 struct _hb_font_t {
   hb_reference_count_t ref_count;
 
-  hb_16dot16_t x_scale;
-  hb_16dot16_t y_scale;
+  unsigned int x_scale;
+  unsigned int y_scale;
 
   unsigned int x_ppem;
   unsigned int y_ppem;

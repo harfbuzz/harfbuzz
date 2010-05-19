@@ -39,12 +39,11 @@
 #include <string.h>
 
 
-void
-_hb_ot_layout_init (hb_face_t *face)
+hb_ot_layout_t *
+_hb_ot_layout_new (hb_face_t *face)
 {
-  hb_ot_layout_t *layout = &face->ot_layout;
-
-  memset (layout, 0, sizeof (*layout));
+  /* Remove this object altogether */
+  hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
 
   layout->gdef_blob = Sanitizer<GDEF>::sanitize (hb_face_get_table (face, HB_OT_TAG_GDEF));
   layout->gdef = Sanitizer<GDEF>::lock_instance (layout->gdef_blob);
@@ -54,13 +53,13 @@ _hb_ot_layout_init (hb_face_t *face)
 
   layout->gpos_blob = Sanitizer<GPOS>::sanitize (hb_face_get_table (face, HB_OT_TAG_GPOS));
   layout->gpos = Sanitizer<GPOS>::lock_instance (layout->gpos_blob);
+
+  return layout;
 }
 
 void
-_hb_ot_layout_fini (hb_face_t *face)
+_hb_ot_layout_free (hb_ot_layout_t *layout)
 {
-  hb_ot_layout_t *layout = &face->ot_layout;
-
   hb_blob_unlock (layout->gdef_blob);
   hb_blob_unlock (layout->gsub_blob);
   hb_blob_unlock (layout->gpos_blob);
@@ -75,19 +74,19 @@ _hb_ot_layout_fini (hb_face_t *face)
 static const GDEF&
 _get_gdef (hb_face_t *face)
 {
-  return likely (face->ot_layout.gdef) ? *face->ot_layout.gdef : Null(GDEF);
+  return likely (face->ot_layout->gdef) ? *face->ot_layout->gdef : Null(GDEF);
 }
 
 static const GSUB&
 _get_gsub (hb_face_t *face)
 {
-  return likely (face->ot_layout.gsub) ? *face->ot_layout.gsub : Null(GSUB);
+  return likely (face->ot_layout->gsub) ? *face->ot_layout->gsub : Null(GSUB);
 }
 
 static const GPOS&
 _get_gpos (hb_face_t *face)
 {
-  return likely (face->ot_layout.gpos) ? *face->ot_layout.gpos : Null(GPOS);
+  return likely (face->ot_layout->gpos) ? *face->ot_layout->gpos : Null(GPOS);
 }
 
 
@@ -106,7 +105,7 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face)
 hb_bool_t
 _hb_ot_layout_has_new_glyph_classes (hb_face_t *face)
 {
-  return face->ot_layout.new_gdef.len > 0;
+  return face->ot_layout->new_gdef.len > 0;
 }
 
 static unsigned int
@@ -118,8 +117,8 @@ _hb_ot_layout_get_glyph_property (hb_face_t      *face,
 
   klass = gdef.get_glyph_class (glyph);
 
-  if (!klass && glyph < face->ot_layout.new_gdef.len)
-    klass = face->ot_layout.new_gdef.klasses[glyph];
+  if (!klass && glyph < face->ot_layout->new_gdef.len)
+    klass = face->ot_layout->new_gdef.klasses[glyph];
 
   switch (klass) {
   default:
@@ -215,7 +214,7 @@ _hb_ot_layout_set_glyph_class (hb_face_t                  *face,
 
   /* TODO optimize this? similar to old harfbuzz code for example */
 
-  hb_ot_layout_t *layout = &face->ot_layout;
+  hb_ot_layout_t *layout = face->ot_layout;
   hb_ot_layout_class_t gdef_klass;
   unsigned int len = layout->new_gdef.len;
 
@@ -288,7 +287,7 @@ hb_ot_layout_build_glyph_classes (hb_face_t      *face,
   if (HB_OBJECT_IS_INERT (face))
     return;
 
-  hb_ot_layout_t *layout = &face->ot_layout;
+  hb_ot_layout_t *layout = face->ot_layout;
 
   if (unlikely (!count || !glyphs || !klasses))
     return;

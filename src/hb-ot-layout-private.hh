@@ -31,7 +31,7 @@
 
 #include "hb-ot-layout.h"
 
-#include "hb-font.h"
+#include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
 
 
@@ -43,9 +43,7 @@ typedef unsigned int hb_ot_layout_class_t;
  * hb_ot_layout_t
  */
 
-typedef struct _hb_ot_layout_t hb_ot_layout_t;
-
-struct _hb_ot_layout_t
+struct hb_ot_layout_t
 {
   hb_blob_t *gdef_blob;
   hb_blob_t *gsub_blob;
@@ -62,8 +60,7 @@ struct _hb_ot_layout_t
   } new_gdef;
 };
 
-typedef struct _hb_ot_layout_context_t hb_ot_layout_context_t;
-struct _hb_ot_layout_context_t
+struct hb_ot_layout_context_t
 {
   hb_face_t *face;
   hb_font_t *font;
@@ -77,14 +74,19 @@ struct _hb_ot_layout_context_t
       hb_position_t anchor_y;   /* of the last valid glyph */
     } gpos;
   } info;
+
+  /* Convert from font-space to user-space */
+  /* XXX div-by-zero */
+  inline hb_position_t scale_x (int16_t v) { return (int64_t) this->font->x_scale * v / this->face->head_table->unitsPerEm; }
+  inline hb_position_t scale_y (int16_t v) { return (int64_t) this->font->y_scale * v / this->face->head_table->unitsPerEm; }
 };
 
 
-HB_INTERNAL void
-_hb_ot_layout_init (hb_face_t *face);
+HB_INTERNAL hb_ot_layout_t *
+_hb_ot_layout_new (hb_face_t *face);
 
 HB_INTERNAL void
-_hb_ot_layout_fini (hb_face_t *face);
+_hb_ot_layout_free (hb_ot_layout_t *layout);
 
 
 /*

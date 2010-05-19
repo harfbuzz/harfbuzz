@@ -93,18 +93,15 @@ struct ValueFormat : USHORT
 		    hb_internal_glyph_position_t &glyph_pos) const
   {
     unsigned int x_ppem, y_ppem;
-    hb_16dot16_t x_scale, y_scale;
     unsigned int format = *this;
 
     if (!format) return;
 
-    x_scale = layout->font->x_scale;
-    y_scale = layout->font->y_scale;
     /* design units -> fractional pixel */
-    if (format & xPlacement) glyph_pos.x_offset  += _hb_16dot16_mul_round (x_scale, get_short (values++));
-    if (format & yPlacement) glyph_pos.y_offset  += _hb_16dot16_mul_round (y_scale, get_short (values++));
-    if (format & xAdvance)   glyph_pos.x_advance += _hb_16dot16_mul_round (x_scale, get_short (values++));
-    if (format & yAdvance)   glyph_pos.y_advance += _hb_16dot16_mul_round (y_scale, get_short (values++));
+    if (format & xPlacement) glyph_pos.x_offset  += layout->scale_x (get_short (values++));
+    if (format & yPlacement) glyph_pos.y_offset  += layout->scale_y (get_short (values++));
+    if (format & xAdvance)   glyph_pos.x_advance += layout->scale_x (get_short (values++));
+    if (format & yAdvance)   glyph_pos.y_advance += layout->scale_y (get_short (values++));
 
     if (!has_device ()) return;
 
@@ -115,16 +112,16 @@ struct ValueFormat : USHORT
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem) glyph_pos.x_offset  += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos.x_offset  += (base + get_device (values++)).get_delta (x_ppem) * layout->font->x_scale; else values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem) glyph_pos.y_offset  += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos.y_offset  += (base + get_device (values++)).get_delta (y_ppem) * layout->font->y_scale; else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_delta (x_ppem) << 16; else values++;
+      if (x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_delta (x_ppem) * layout->font->x_scale; else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem) glyph_pos.y_advance += (base + get_device (values++)).get_delta (y_ppem) << 16; else values++;
+      if (y_ppem) glyph_pos.y_advance += (base + get_device (values++)).get_delta (y_ppem) * layout->font->y_scale; else values++;
     }
   }
 
@@ -208,8 +205,8 @@ struct AnchorFormat1
   inline void get_anchor (hb_ot_layout_context_t *layout, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = _hb_16dot16_mul_round (layout->font->x_scale, xCoordinate);
-      *y = _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
+      *x = layout->scale_x (xCoordinate);
+      *y = layout->scale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -240,8 +237,8 @@ struct AnchorFormat2
 
       if (x_ppem || y_ppem)
 	ret = hb_font_get_contour_point (layout->font, layout->face, anchorPoint, glyph_id, &cx, &cy);
-      *x = x_ppem && ret ? cx : _hb_16dot16_mul_round (layout->font->x_scale, xCoordinate);
-      *y = y_ppem && ret ? cy : _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
+      *x = x_ppem && ret ? cx : layout->scale_x (xCoordinate);
+      *y = y_ppem && ret ? cy : layout->scale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -266,14 +263,14 @@ struct AnchorFormat3
   inline void get_anchor (hb_ot_layout_context_t *layout, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = _hb_16dot16_mul_round (layout->font->x_scale, xCoordinate);
-      *y = _hb_16dot16_mul_round (layout->font->y_scale, yCoordinate);
+      *x = layout->scale_x (xCoordinate);
+      *y = layout->scale_y (yCoordinate);
 
       /* pixel -> fractional pixel */
       if (layout->font->x_ppem)
-	*x += (this+xDeviceTable).get_delta (layout->font->x_ppem) << 16;
+	*x += (this+xDeviceTable).get_delta (layout->font->x_ppem) * layout->font->x_scale;
       if (layout->font->y_ppem)
-	*y += (this+yDeviceTable).get_delta (layout->font->y_ppem) << 16;
+	*y += (this+yDeviceTable).get_delta (layout->font->y_ppem) * layout->font->y_scale;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -1615,7 +1612,7 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
 
 static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index)
 {
-  const GPOS &gpos = *(c->layout->face->ot_layout.gpos);
+  const GPOS &gpos = *(c->layout->face->ot_layout->gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 
   if (unlikely (c->nesting_level_left == 0))
