@@ -20,6 +20,7 @@ HBSOURCES =  \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-language.c \
+	hb-ot-head-private.hh \
 	hb-private.h \
 	hb-shape.cc \
 	hb-unicode.c \

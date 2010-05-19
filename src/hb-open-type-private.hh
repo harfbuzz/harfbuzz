@@ -120,7 +120,7 @@ inline Type& StructAfter(TObject &X)
  */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
-static const void *_NullPool[16 / sizeof (void *)];
+static const void *_NullPool[64 / sizeof (void *)];
 
 /* Generic nul-content Null objects. */
 template <typename Type>

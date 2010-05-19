@@ -231,6 +231,9 @@ static hb_face_t _hb_face_nil = {
   NULL, /* destroy */
   NULL, /* user_data */
 
+  NULL, /* head_blob */
+  NULL, /* head_table */
+
   {} /* ot_layout */
 };
 
@@ -324,6 +327,9 @@ hb_face_create_for_data (hb_blob_t    *blob,
   face->user_data = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (blob), index);
   hb_blob_destroy (blob);
 
+  face->head_blob = Sanitizer<head>::sanitize (hb_face_get_table (face, HB_OT_TAG_head));
+  face->head_table = Sanitizer<head>::lock_instance (face->head_blob);
+
   _hb_ot_layout_init (face);
 
   return face;
@@ -348,6 +354,9 @@ hb_face_destroy (hb_face_t *face)
   HB_OBJECT_DO_DESTROY (face);
 
   _hb_ot_layout_fini (face);
+
+  hb_blob_unlock (face->head_blob);
+  hb_blob_destroy (face->head_blob);
 
   if (face->destroy)
     face->destroy (face->user_data);
