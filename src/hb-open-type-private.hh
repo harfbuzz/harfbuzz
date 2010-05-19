@@ -406,6 +406,21 @@ typedef IntType<int16_t>  SHORT;	/* 16-bit signed integer. */
 typedef IntType<uint32_t> ULONG;	/* 32-bit unsigned integer. */
 typedef IntType<int32_t>  LONG;		/* 32-bit signed integer. */
 
+/* Date represented in number of seconds since 12:00 midnight, January 1,
+ * 1904. The value is represented as a signed 64-bit integer. */
+struct LONGDATETIME
+{
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE ();
+    return likely (c->check_struct (this));
+  }
+  private:
+  LONG major;
+  ULONG minor;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
 /* Array of four uint8s (length = 32 bits) used to identify a script, language
  * system, feature, or baseline */
 struct Tag : ULONG
