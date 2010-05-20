@@ -287,12 +287,12 @@ struct AlternateSubstFormat1
       return false;
 
     unsigned int shift = _hb_ctz (lookup_mask);
-    unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift) - 1;
+    unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
 
-    if (unlikely (alt_index >= alt_set.len))
+    if (unlikely (alt_index > alt_set.len || alt_index == 0))
       return false;
 
-    glyph_id = alt_set[alt_index];
+    glyph_id = alt_set[alt_index - 1];
 
     c->buffer->replace_glyph (glyph_id);
 
