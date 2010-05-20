@@ -566,8 +566,6 @@ struct ClassDef
 
 struct Device
 {
-  inline int operator () (unsigned int ppem_size) const { return get_delta (ppem_size); }
-
   inline int get_delta (unsigned int ppem_size) const
   {
     unsigned int f = deltaFormat;
