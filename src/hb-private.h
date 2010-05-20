@@ -136,27 +136,36 @@
 #endif
 
 
-/* Return the number of 1 bits in mask.
- *
- * GCC 3.4 supports a "population count" builtin, which on many targets is
- * implemented with a single instruction. There is a fallback definition
- * in libgcc in case a target does not have one, which should be just as
- * good as the open-coded solution below, (which is "HACKMEM 169").
- */
+/* Return the number of 1 bits in mask. */
 static inline HB_CONST_FUNC unsigned int
 _hb_popcount32 (uint32_t mask)
 {
 #if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-    return __builtin_popcount (mask);
+  return __builtin_popcount (mask);
 #else
-    register uint32_t y;
-
-    y = (mask >> 1) &033333333333;
-    y = mask - y - ((y >>1) & 033333333333);
-    return (((y + (y >> 3)) & 030707070707) % 077);
+  /* "HACKMEM 169" */
+  register uint32_t y;
+  y = (mask >> 1) &033333333333;
+  y = mask - y - ((y >>1) & 033333333333);
+  return (((y + (y >> 3)) & 030707070707) % 077);
 #endif
 }
 
+/* Returns the number of bits needed to store number */
+static inline HB_CONST_FUNC unsigned int
+_hb_bit_storage (unsigned int number)
+{
+#if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
+  return likely (number) ? (sizeof (unsigned int) * 8 - __builtin_clzl(number)) : 0;
+#else
+  register unsigned int n_bits = 0;
+  while (number) {
+    n_bits++;
+    number >>= 1;
+  }
+  return n_bits;
+#endif
+}
 
 /* We need external help for these */
 
