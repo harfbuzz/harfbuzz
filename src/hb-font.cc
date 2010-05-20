@@ -364,7 +364,7 @@ hb_face_get_table (hb_face_t *face,
 
   blob = face->get_table (tag, face->user_data);
 
-  return blob? blob : &_hb_blob_nil;
+  return likely (blob) ? blob : &_hb_blob_nil;
 }
 
 

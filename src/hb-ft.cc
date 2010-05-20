@@ -153,11 +153,11 @@ _get_table  (hb_tag_t tag, void *user_data)
   FT_Error error;
 
   if (unlikely (tag == HB_TAG_NONE))
-    return hb_blob_create_empty ();
+    return NULL;
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, NULL, &length);
   if (error)
-    return hb_blob_create_empty ();
+    return NULL;
 
   /* TODO Use FT_Memory? */
   buffer = (FT_Byte *) malloc (length);
@@ -166,7 +166,7 @@ _get_table  (hb_tag_t tag, void *user_data)
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, buffer, &length);
   if (error)
-    return hb_blob_create_empty ();
+    return NULL;
 
   return hb_blob_create ((const char *) buffer, length,
 			 HB_MEMORY_MODE_WRITABLE,
