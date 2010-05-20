@@ -42,29 +42,45 @@ hb_tag_t default_features[] = {
   HB_TAG('m','k','m','k'),
 };
 
+struct lookup_map {
+  unsigned int index;
+  hb_mask_t mask;
+};
+
 
 static void
 add_feature (hb_face_t    *face,
 	     hb_tag_t      table_tag,
 	     unsigned int  feature_index,
-	     unsigned int *lookups,
+	     hb_mask_t     mask,
+	     lookup_map   *lookups,
 	     unsigned int *num_lookups,
 	     unsigned int  room_lookups)
 {
   unsigned int i = room_lookups - *num_lookups;
+  lookups += *num_lookups;
+
+  unsigned int *lookup_indices = (unsigned int *) lookups;
+
   hb_ot_layout_feature_get_lookup_indexes (face, table_tag, feature_index, 0,
 					   &i,
-					   lookups + *num_lookups);
+					   lookup_indices);
+
   *num_lookups += i;
+
+  while (i--) {
+    lookups[i].mask = mask;
+    lookups[i].index = lookup_indices[i];
+  }
 }
 
 static int
 cmp_lookups (const void *p1, const void *p2)
 {
-  unsigned int a = * (const unsigned int *) p1;
-  unsigned int b = * (const unsigned int *) p2;
+  const lookup_map *a = (const lookup_map *) p1;
+  const lookup_map *b = (const lookup_map *) p2;
 
-  return a - b;
+  return a->index - b->index;
 }
 
 static void
@@ -73,7 +89,7 @@ setup_lookups (hb_face_t    *face,
 	       hb_feature_t *features,
 	       unsigned int  num_features,
 	       hb_tag_t      table_tag,
-	       unsigned int *lookups,
+	       lookup_map   *lookups,
 	       unsigned int *num_lookups)
 {
   unsigned int i, j, script_index, language_index, feature_index, room_lookups;
@@ -90,14 +106,14 @@ setup_lookups (hb_face_t    *face,
 
   if (hb_ot_layout_language_get_required_feature_index (face, table_tag, script_index, language_index,
 							&feature_index))
-    add_feature (face, table_tag, feature_index, lookups, num_lookups, room_lookups);
+    add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
   for (i = 0; i < ARRAY_LENGTH (default_features); i++)
   {
     if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
 					    default_features[i],
 					    &feature_index))
-      add_feature (face, table_tag, feature_index, lookups, num_lookups, room_lookups);
+      add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
   }
 
   for (i = 0; i < num_features; i++)
@@ -105,7 +121,7 @@ setup_lookups (hb_face_t    *face,
     if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
 					    features[i].tag,
 					    &feature_index))
-      add_feature (face, table_tag, feature_index, lookups, num_lookups, room_lookups);
+      add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
   }
 
   qsort (lookups, *num_lookups, sizeof (lookups[0]), cmp_lookups);
@@ -113,9 +129,11 @@ setup_lookups (hb_face_t    *face,
   if (*num_lookups)
   {
     for (i = 1, j = 0; i < *num_lookups; i++)
-      if (lookups[i] != lookups[j])
+      if (lookups[i].index != lookups[j].index)
 	lookups[++j] = lookups[i];
-    lookups[j++] = lookups[i - 1];
+      else
+        lookups[j].mask |= lookups[i].mask;
+    j++;
     *num_lookups = j;
   }
 }
@@ -128,7 +146,7 @@ _hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 			   hb_feature_t *features,
 			   unsigned int  num_features)
 {
-  unsigned int lookups[1000];
+  lookup_map lookups[1000];
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
   unsigned int i;
 
@@ -140,7 +158,7 @@ _hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 		 lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
-    hb_ot_layout_substitute_lookup (face, buffer, lookups[i], 1);
+    hb_ot_layout_substitute_lookup (face, buffer, lookups[i].index, lookups[i].mask);
 
   return TRUE;
 }
@@ -152,7 +170,7 @@ _hb_ot_position_complex (hb_font_t    *font,
 			 hb_feature_t *features,
 			 unsigned int  num_features)
 {
-  unsigned int lookups[1000];
+  lookup_map lookups[1000];
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
   unsigned int i;
 
@@ -164,7 +182,7 @@ _hb_ot_position_complex (hb_font_t    *font,
 		 lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
-    hb_ot_layout_position_lookup (font, face, buffer, lookups[i], 1);
+    hb_ot_layout_position_lookup (font, face, buffer, lookups[i].index, lookups[i].mask);
 
   hb_ot_layout_position_finish (font, face, buffer);
 
