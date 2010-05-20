@@ -287,7 +287,7 @@ struct AlternateSubstFormat1
       return false;
 
     unsigned int shift = _hb_ctz (lookup_mask);
-    unsigned int alt_index = (lookup_mask & glyph_mask) >> shift;
+    unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift) - 1;
 
     if (unlikely (alt_index >= alt_set.len))
       return false;
