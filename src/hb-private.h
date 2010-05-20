@@ -156,10 +156,27 @@ static inline HB_CONST_FUNC unsigned int
 _hb_bit_storage (unsigned int number)
 {
 #if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
-  return likely (number) ? (sizeof (unsigned int) * 8 - __builtin_clzl(number)) : 0;
+  return likely (number) ? (sizeof (unsigned int) * 8 - __builtin_clz (number)) : 0;
 #else
   register unsigned int n_bits = 0;
   while (number) {
+    n_bits++;
+    number >>= 1;
+  }
+  return n_bits;
+#endif
+}
+
+/* Returns the number of zero bits in the least significant side of number */
+static inline HB_CONST_FUNC unsigned int
+_hb_ctz (unsigned int number)
+{
+#if defined(__GNUC__) && (__GNUC__ >= 4) && defined(__OPTIMIZE__)
+  return likely (number) ? __builtin_ctz (number) : 0;
+#else
+  register unsigned int n_bits = 0;
+  if (unlikely (!number)) return 0;
+  while (!(number & 1)) {
     n_bits++;
     number >>= 1;
   }

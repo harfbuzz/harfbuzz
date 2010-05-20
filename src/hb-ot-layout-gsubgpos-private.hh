@@ -44,6 +44,7 @@ struct hb_apply_context_t
   unsigned int debug_depth;
   hb_ot_layout_context_t *layout;
   hb_buffer_t *buffer;
+  hb_mask_t lookup_mask;
   unsigned int context_length;
   unsigned int nesting_level_left;
   unsigned int lookup_flag;

@@ -1497,15 +1497,17 @@ struct PosLookup : Lookup
   { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
   inline bool apply_once (hb_ot_layout_context_t *layout,
-			  hb_buffer_t    *buffer,
-			  unsigned int    context_length,
-			  unsigned int    nesting_level_left) const
+			  hb_buffer_t *buffer,
+			  hb_mask_t lookup_mask,
+			  unsigned int context_length,
+			  unsigned int nesting_level_left) const
   {
     unsigned int lookup_type = get_type ();
     hb_apply_context_t c[1] = {{0}};
 
     c->layout = layout;
     c->buffer = buffer;
+    c->lookup_mask = lookup_mask;
     c->context_length = context_length;
     c->nesting_level_left = nesting_level_left;
     c->lookup_flag = get_flag ();
@@ -1537,7 +1539,7 @@ struct PosLookup : Lookup
       bool done;
       if (buffer->info[buffer->i].mask & mask)
       {
-	  done = apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL);
+	  done = apply_once (layout, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL);
 	  ret |= done;
       }
       else
@@ -1621,7 +1623,7 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
   if (unlikely (c->context_length < 1))
     return false;
 
-  return l.apply_once (c->layout, c->buffer, c->context_length, c->nesting_level_left - 1);
+  return l.apply_once (c->layout, c->buffer, c->lookup_mask, c->context_length, c->nesting_level_left - 1);
 }
 
 

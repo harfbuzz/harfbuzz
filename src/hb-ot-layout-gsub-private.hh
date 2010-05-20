@@ -274,6 +274,8 @@ struct AlternateSubstFormat1
   {
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = c->buffer->info[c->buffer->i].codepoint;
+    hb_mask_t glyph_mask = c->buffer->info[c->buffer->i].mask;
+    hb_mask_t lookup_mask = c->lookup_mask;
 
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
@@ -284,14 +286,8 @@ struct AlternateSubstFormat1
     if (unlikely (!alt_set.len))
       return false;
 
-    unsigned int alt_index = 0;
-
-    /* XXX callback to user to choose alternate
-    if (c->layout->face->altfunc)
-      alt_index = (c->layout->face->altfunc)(c->layout->layout, c->buffer,
-				    c->buffer->out_len, glyph_id,
-				    alt_set.len, alt_set.array);
-				   */
+    unsigned int shift = _hb_ctz (lookup_mask);
+    unsigned int alt_index = (lookup_mask & glyph_mask) >> shift;
 
     if (unlikely (alt_index >= alt_set.len))
       return false;
@@ -777,6 +773,7 @@ struct SubstLookup : Lookup
 
   inline bool apply_once (hb_ot_layout_context_t *layout,
 			  hb_buffer_t *buffer,
+			  hb_mask_t lookup_mask,
 			  unsigned int context_length,
 			  unsigned int nesting_level_left) const
   {
@@ -785,6 +782,7 @@ struct SubstLookup : Lookup
 
     c->layout = layout;
     c->buffer = buffer;
+    c->lookup_mask = lookup_mask;
     c->context_length = context_length;
     c->nesting_level_left = nesting_level_left;
     c->lookup_flag = get_flag ();
@@ -831,7 +829,7 @@ struct SubstLookup : Lookup
 	while (buffer->i < buffer->len)
 	{
 	  if ((buffer->info[buffer->i].mask & mask) &&
-	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	      apply_once (layout, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    buffer->next_glyph ();
@@ -847,7 +845,7 @@ struct SubstLookup : Lookup
 	do
 	{
 	  if ((buffer->info[buffer->i].mask & mask) &&
-	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
+	      apply_once (layout, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
 	    buffer->i--;
@@ -933,7 +931,7 @@ static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup
   if (unlikely (c->context_length < 1))
     return false;
 
-  return l.apply_once (c->layout, c->buffer, c->context_length, c->nesting_level_left - 1);
+  return l.apply_once (c->layout, c->buffer, c->lookup_mask, c->context_length, c->nesting_level_left - 1);
 }
 
 
