@@ -140,7 +140,7 @@ _hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 		 lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
-    hb_ot_layout_substitute_lookup (face, buffer, lookups[i], 0xFFFF);
+    hb_ot_layout_substitute_lookup (face, buffer, lookups[i], 1);
 
   return TRUE;
 }
@@ -164,7 +164,7 @@ _hb_ot_position_complex (hb_font_t    *font,
 		 lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
-    hb_ot_layout_position_lookup (font, face, buffer, lookups[i], 0xFFFF);
+    hb_ot_layout_position_lookup (font, face, buffer, lookups[i], 1);
 
   hb_ot_layout_position_finish (font, face, buffer);
 
