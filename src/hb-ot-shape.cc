@@ -100,6 +100,14 @@ setup_lookups (hb_face_t    *face,
       add_feature (face, table_tag, feature_index, lookups, num_lookups, room_lookups);
   }
 
+  for (i = 0; i < num_features; i++)
+  {
+    if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
+					    features[i].tag,
+					    &feature_index))
+      add_feature (face, table_tag, feature_index, lookups, num_lookups, room_lookups);
+  }
+
   qsort (lookups, *num_lookups, sizeof (lookups[0]), cmp_lookups);
 
   if (*num_lookups)
