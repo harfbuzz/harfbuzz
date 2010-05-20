@@ -34,8 +34,8 @@
 HB_BEGIN_DECLS
 
 typedef struct _hb_feature_t {
-  const char   *name;
-  const char   *value;
+  hb_tag_t      tag;
+  uint32_t      value;
   unsigned int  start;
   unsigned int  end;
 } hb_feature_t;
