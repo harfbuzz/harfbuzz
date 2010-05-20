@@ -830,7 +830,7 @@ struct SubstLookup : Lookup
 	buffer->i = 0;
 	while (buffer->i < buffer->len)
 	{
-	  if ((~buffer->info[buffer->i].mask & mask) &&
+	  if ((buffer->info[buffer->i].mask & mask) &&
 	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
@@ -846,7 +846,7 @@ struct SubstLookup : Lookup
 	buffer->i = buffer->len - 1;
 	do
 	{
-	  if ((~buffer->info[buffer->i].mask & mask) &&
+	  if ((buffer->info[buffer->i].mask & mask) &&
 	      apply_once (layout, buffer, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else

@@ -551,7 +551,7 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 	    hb_codepoint_t u; \
 	    const T *old_next = next; \
 	    next = UTF_NEXT (next, end, u); \
-	    hb_buffer_add_glyph (buffer, u, 0,  old_next - (const T *) text); \
+	    hb_buffer_add_glyph (buffer, u, 1,  old_next - (const T *) text); \
 	  } \
 	} HB_STMT_END
 
