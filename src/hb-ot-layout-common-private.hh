@@ -566,6 +566,14 @@ struct ClassDef
 
 struct Device
 {
+  /* XXX speed up */
+
+  inline hb_position_t get_x_delta (hb_ot_layout_context_t *c) const
+  { return c->font->x_ppem ? get_delta (c->font->x_ppem) * (uint64_t) c->font->x_scale / c->font->x_ppem : 0; }
+
+  inline hb_position_t get_y_delta (hb_ot_layout_context_t *c) const
+  { return c->font->y_ppem ? get_delta (c->font->y_ppem) * (uint64_t) c->font->y_scale / c->font->y_ppem : 0; }
+
   inline int get_delta (unsigned int ppem_size) const
   {
     unsigned int f = deltaFormat;

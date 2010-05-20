@@ -112,16 +112,16 @@ struct ValueFormat : USHORT
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem) glyph_pos.x_offset  += (base + get_device (values++)).get_delta (x_ppem) * layout->font->x_scale; else values++;
+      if (x_ppem) glyph_pos.x_offset  += (base + get_device (values++)).get_x_delta (layout); else values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem) glyph_pos.y_offset  += (base + get_device (values++)).get_delta (y_ppem) * layout->font->y_scale; else values++;
+      if (y_ppem) glyph_pos.y_offset  += (base + get_device (values++)).get_y_delta (layout); else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_delta (x_ppem) * layout->font->x_scale; else values++;
+      if (x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_x_delta (layout); else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem) glyph_pos.y_advance += (base + get_device (values++)).get_delta (y_ppem) * layout->font->y_scale; else values++;
+      if (y_ppem) glyph_pos.y_advance += (base + get_device (values++)).get_y_delta (layout); else values++;
     }
   }
 
@@ -268,9 +268,9 @@ struct AnchorFormat3
 
       /* pixel -> fractional pixel */
       if (layout->font->x_ppem)
-	*x += (this+xDeviceTable).get_delta (layout->font->x_ppem) * layout->font->x_scale;
+	*x += (this+xDeviceTable).get_x_delta (layout);
       if (layout->font->y_ppem)
-	*y += (this+yDeviceTable).get_delta (layout->font->y_ppem) * layout->font->y_scale;
+	*y += (this+yDeviceTable).get_x_delta (layout);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
