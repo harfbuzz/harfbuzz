@@ -257,6 +257,9 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 
   face->ot_layout = _hb_ot_layout_new (face);
 
+  face->head_blob = Sanitizer<head>::sanitize (hb_face_get_table (face, HB_OT_TAG_head));
+  face->head_table = Sanitizer<head>::lock_instance (face->head_blob);
+
   return face;
 }
 
@@ -266,11 +269,6 @@ typedef struct _hb_face_for_data_closure_t {
   unsigned int  index;
 } hb_face_for_data_closure_t;
 
-static hb_face_for_data_closure_t _hb_face_for_data_closure_nil = {
-  &_hb_blob_nil,
-  0
-};
-
 static hb_face_for_data_closure_t *
 _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 {
@@ -278,7 +276,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 
   closure = (hb_face_for_data_closure_t *) malloc (sizeof (hb_face_for_data_closure_t));
   if (unlikely (!closure))
-    return &_hb_face_for_data_closure_nil;
+    return NULL;
 
   closure->blob = hb_blob_reference (blob);
   closure->index = index;
@@ -289,10 +287,8 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 static void
 _hb_face_for_data_closure_destroy (hb_face_for_data_closure_t *closure)
 {
-  if (likely (closure != &_hb_face_for_data_closure_nil)) {
-    hb_blob_destroy (closure->blob);
-    free (closure);
-  }
+  hb_blob_destroy (closure->blob);
+  free (closure);
 }
 
 static hb_blob_t *
@@ -316,23 +312,16 @@ hb_face_t *
 hb_face_create_for_data (hb_blob_t    *blob,
 			 unsigned int  index)
 {
-  hb_face_t *face;
-
-  if (!HB_OBJECT_DO_CREATE (hb_face_t, face))
-    return &_hb_face_nil;
-
-  face->get_table = _hb_face_for_data_get_table;
-  face->destroy = (hb_destroy_func_t) _hb_face_for_data_closure_destroy;
   hb_blob_reference (blob);
-  face->user_data = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (blob), index);
+  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (blob), index);
   hb_blob_destroy (blob);
 
-  face->head_blob = Sanitizer<head>::sanitize (hb_face_get_table (face, HB_OT_TAG_head));
-  face->head_table = Sanitizer<head>::lock_instance (face->head_blob);
+  if (unlikely (!closure))
+    return &_hb_face_nil;
 
-  face->ot_layout = _hb_ot_layout_new (face);
-
-  return face;
+  return hb_face_create_for_tables (_hb_face_for_data_get_table,
+				    (hb_destroy_func_t) _hb_face_for_data_closure_destroy,
+				    closure);
 }
 
 
