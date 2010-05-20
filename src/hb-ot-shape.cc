@@ -116,12 +116,33 @@ setup_lookups (hb_face_t    *face,
       add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
   }
 
+  /* Clear buffer masks. */
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    buffer->info[i].mask = 1;
+
+  unsigned int last_bit_used = 1;
   for (i = 0; i < num_features; i++)
   {
+    unsigned int bits_needed = _hb_bit_storage (features[i].value);
+    if (!bits_needed)
+      continue;
+    unsigned int mask = (1 << (last_bit_used + bits_needed)) - (1 << last_bit_used);
+    unsigned int value = features[i].value << last_bit_used;
+    last_bit_used += bits_needed;
+
     if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
 					    features[i].tag,
 					    &feature_index))
-      add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
+      add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
+
+    /* Turn mask on in the buffer, the über-slow way! */
+    unsigned int count = buffer->len;
+    for (unsigned int i = 0; i < count; i++) {
+        unsigned int cluster = buffer->info[i].cluster;
+	if (features[i].start <= cluster && cluster < features[i].end)
+	  buffer->info[i].mask |= value;
+    }
   }
 
   qsort (lookups, *num_lookups, sizeof (lookups[0]), cmp_lookups);
