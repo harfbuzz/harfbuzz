@@ -125,6 +125,11 @@ setup_lookups (hb_face_t    *face,
   unsigned int global_values = 0;
   for (i = 0; i < num_features; i++)
   {
+    if (!hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
+					     features[i].tag,
+					     &feature_index))
+      continue;
+
     unsigned int bits_needed = _hb_bit_storage (features[i].value);
     if (!bits_needed)
       continue;
@@ -132,10 +137,7 @@ setup_lookups (hb_face_t    *face,
     unsigned int value = features[i].value << last_bit_used;
     last_bit_used += bits_needed;
 
-    if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
-					    features[i].tag,
-					    &feature_index))
-      add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
+    add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
 
     if (features[i].start == 0 && features[i].end == (unsigned int)-1)
       global_values |= value;
