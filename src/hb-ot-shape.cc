@@ -42,6 +42,12 @@ hb_tag_t default_features[] = {
   HB_TAG('m','k','m','k'),
 };
 
+enum {
+  MASK_ALWAYS_ON = 1 << 0,
+  MASK_RTLM      = 1 << 1
+};
+#define MASK_BITS_USED 2
+
 struct lookup_map {
   unsigned int index;
   hb_mask_t mask;
@@ -148,10 +154,7 @@ setup_lookups (hb_face_t    *face,
       break;
   }
 
-  /* Clear buffer masks. */
-  buffer->clear_masks ();
-
-  unsigned int next_bit = 1;
+  unsigned int next_bit = MASK_BITS_USED;
   hb_mask_t global_mask = 0;
   for (i = 0; i < num_features; i++)
   {
@@ -310,7 +313,11 @@ hb_mirror_chars (hb_buffer_t *buffer)
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-      buffer->info[i].codepoint = get_mirroring (buffer->info[i].codepoint);
+    hb_codepoint_t codepoint = get_mirroring (buffer->info[i].codepoint);
+    if (likely (codepoint == buffer->info[i].codepoint))
+      buffer->info[i].mask |= MASK_RTLM;
+    else
+      buffer->info[i].codepoint = codepoint;
   }
 }
 
@@ -431,6 +438,10 @@ hb_ot_shape (hb_font_t    *font,
 
   hb_form_clusters (buffer);
 
+  /* SUBSTITUTE */
+
+  buffer->clear_masks ();
+
   hb_substitute_default (font, face, buffer, features, num_features);
 
   /* We do this after substitute_default because mirroring needs to
@@ -441,6 +452,11 @@ hb_ot_shape (hb_font_t    *font,
 
   if (substitute_fallback)
     hb_substitute_complex_fallback (font, face, buffer, features, num_features);
+
+
+  /* POSITION */
+
+  buffer->clear_masks ();
 
   hb_position_default (font, face, buffer, features, num_features);
 
