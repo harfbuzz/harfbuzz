@@ -30,6 +30,7 @@
 
 #include "hb-ot-layout.h"
 
+/* XXX vertical */
 hb_tag_t default_features[] = {
   /* GSUB */
   HB_TAG('c','c','m','p'),
