@@ -65,6 +65,9 @@ typedef uint32_t hb_tag_t;
 				((const char *) s)[3]))
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 
+hb_tag_t hb_tag_from_string (const char *s);
+
+
 typedef uint32_t hb_codepoint_t;
 typedef int32_t hb_position_t;
 typedef uint32_t hb_mask_t;

@@ -14,6 +14,7 @@ HBSOURCES =  \
 	hb-blob-private.h \
 	hb-buffer.cc \
 	hb-buffer-private.hh \
+	hb-common.c \
 	hb-font.cc \
 	hb-font-private.hh \
 	hb-object-private.h \
