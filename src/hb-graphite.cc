@@ -46,10 +46,10 @@ typedef struct _featureSetting {
     int value;
 } featureSetting;
 
-class GrBufferTextSrc : public gr::ITextSource
+class HbGrBufferTextSrc : public gr::ITextSource
 {
 public:
-  GrBufferTextSrc(hb_buffer_t *buff, hb_feature_t *feats, unsigned int num_features)
+  HbGrBufferTextSrc(hb_buffer_t *buff, hb_feature_t *feats, unsigned int num_features)
   {
     hb_feature_t *aFeat = feats;
     featureSetting *aNewFeat;
@@ -64,7 +64,7 @@ public:
         aNewFeat->value = aFeat->value;
     }
   };
-  ~GrBufferTextSrc() { hb_buffer_destroy(buffer); delete[] features; };
+  ~HbGrBufferTextSrc() { hb_buffer_destroy(buffer); delete[] features; };
   virtual gr::UtfType utfEncodingForm() { return gr::kutf32; };
   virtual size_t getLength() { return buffer->len; };
   virtual size_t fetch(gr::toffset ichMin, size_t cch, gr::utf32 * prgchBuffer)
@@ -120,12 +120,12 @@ private:
   unsigned int nFeatures;
 };
 
-class GrHbFont : public gr::Font
+class HbGrFont : public gr::Font
 {
 public:
-  GrHbFont(hb_font_t *font, hb_face_t *face) : gr::Font()
+  HbGrFont(hb_font_t *font, hb_face_t *face) : gr::Font()
   { m_font = hb_font_reference(font); m_face = hb_face_reference(face); initfont(); };
-  ~GrHbFont()
+  ~HbGrFont()
   {
     std::map<hb_tag_t,hb_blob_t *>::iterator p = m_blobs.begin();
     while (p != m_blobs.end())
@@ -133,7 +133,7 @@ public:
     hb_font_destroy(m_font);
     hb_face_destroy(m_face);
   };
-  GrHbFont (const GrHbFont &font) : gr::Font(font)
+  HbGrFont (const HbGrFont &font) : gr::Font(font)
   {
     *this = font;
     m_blobs = std::map<hb_tag_t, hb_blob_t *>(font.m_blobs);
@@ -142,7 +142,7 @@ public:
     hb_font_reference(m_font);
     hb_face_reference(m_face);
   };
-  virtual GrHbFont *copyThis() { return new GrHbFont(*this); };
+  virtual HbGrFont *copyThis() { return new HbGrFont(*this); };
   virtual bool bold() { return m_bold; };
   virtual bool italic() { return m_italic; };
   virtual float ascent() { float asc; getFontMetrics(&asc, NULL, NULL); return asc; };
@@ -210,7 +210,7 @@ private:
   std::map<hb_tag_t, hb_blob_t *> m_blobs;
 };
 
-void GrHbFont::initfont()
+void HbGrFont::initfont()
 {
   const void *pOS2 = getTable(gr::kttiOs2, NULL);
   const void *pHead = getTable(gr::kttiHead, NULL);
@@ -228,10 +228,10 @@ hb_graphite_shape (hb_font_t    *font,
 		   unsigned int  num_features)
 {
   /* create text source */
-  GrBufferTextSrc   textSrc(buffer, features, num_features);
+  HbGrBufferTextSrc   textSrc(buffer, features, num_features);
 
   /* create grfont */
-  GrHbFont          grfont(font, face);
+  HbGrFont          grfont(font, face);
 
   /* create segment */
   int *firsts;
@@ -264,7 +264,7 @@ hb_graphite_shape (hb_font_t    *font,
   hb_buffer_ensure(buffer, numGlyphs);
   pSegment.getUniscribeClusters(firsts, numChars, NULL, flags, numGlyphs, NULL);
   glyph_range = pSegment.glyphs();
-  for (pGlyph = glyph_infos, iGlyph = glyph_range.first; iGlyph < glyph_range.second;
+  for (pGlyph = glyph_infos, iGlyph = glyph_range.first; iGlyph != glyph_range.second;
         iGlyph++, pGlyph++)
   { *pGlyph = iGlyph->glyphID(); }
 
@@ -285,7 +285,7 @@ hb_graphite_shape (hb_font_t    *font,
 
   float curradvx = 0., curradvy = 0.;
   for (pPosition = hb_buffer_get_glyph_positions(buffer), iGlyph = glyph_range.first;
-        iGlyph < glyph_range.second; pPosition++, iGlyph++)
+        iGlyph != glyph_range.second; pPosition++, iGlyph++)
   {
     pPosition->x_offset = iGlyph->origin() - curradvx;
     pPosition->y_offset = iGlyph->yOffset() - curradvy;
