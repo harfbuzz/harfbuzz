@@ -33,6 +33,12 @@ if $have_icu; then
 fi
 AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
+PKG_CHECK_MODULES(GRAPHITE, silgraphite, have_graphite=true, have_graphite=false)
+if $have_graphite; then
+    AC_DEFINE(HAVE_GRAPHITE, 1, [Have Graphite library])
+fi
+AM_CONDITIONAL(HAVE_GRAPHITE, $have_graphite)
+
 PKG_CHECK_MODULES(FREETYPE, freetype2, have_freetype=true, have_freetype=false)
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])

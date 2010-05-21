@@ -32,6 +32,9 @@
 
 #include "hb-ot-shape-private.hh"
 
+#ifdef HAVE_GRAPHITE
+#include "hb-graphite.h"
+#endif
 
 /* Prepare */
 
@@ -219,6 +222,18 @@ hb_shape (hb_font_t    *font,
 {
   hb_direction_t original_direction;
   hb_bool_t substitute_fallback, position_fallback;
+
+#ifdef HAVE_GRAPHITE
+  hb_blob_t *silf_blob;
+  silf_blob = hb_face_get_table (face, HB_GRAPHITE_TAG_Silf);
+  if (hb_blob_get_length(silf_blob))
+  {
+    hb_graphite_shape(font, face, buffer, features, num_features);
+    hb_blob_destroy(silf_blob);
+    return;
+  }
+  hb_blob_destroy(silf_blob);
+#endif
 
   hb_form_clusters (buffer);
 

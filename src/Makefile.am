@@ -89,6 +89,17 @@ HBHEADERS += \
 	$(NULL)
 endif
 
+if HAVE_GRAPHITE
+HBCFLAGS += $(GRAPHITE_CFLAGS)
+HBLIBS   += $(GRAPHITE_LIBS)
+HBSOURCES += \
+	hb-graphite.cc \
+	$(NULL)
+HBHEADERS += \
+	hb-graphite.h \
+	$(NULL)
+endif
+
 CXXLINK = $(LINK)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
