@@ -198,7 +198,7 @@ public:
   }
 
 private:
-  void initfont();
+  HB_INTERNAL void initfont();
 
   hb_font_t *m_font;
   hb_face_t *m_face;
