@@ -24,7 +24,7 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape.h"
+#include "hb-ot-shape-private.hh"
 
 #include "hb-buffer-private.hh"
 

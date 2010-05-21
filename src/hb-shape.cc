@@ -30,7 +30,7 @@
 
 #include "hb-buffer-private.hh"
 
-#include "hb-ot-shape.h"
+#include "hb-ot-shape-private.hh"
 
 #ifdef HAVE_GRAPHITE
 #include "hb-graphite.h"
