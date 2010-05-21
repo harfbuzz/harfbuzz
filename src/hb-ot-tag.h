@@ -38,6 +38,9 @@ HB_BEGIN_DECLS
 const hb_tag_t *
 hb_ot_tags_from_script (hb_script_t script);
 
+hb_script_t
+hb_ot_tag_to_script (hb_tag_t tag);
+
 hb_tag_t
 hb_ot_tag_from_language (hb_language_t language);
 

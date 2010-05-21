@@ -134,6 +134,20 @@ hb_ot_tags_from_script (hb_script_t script)
   return ot_scripts[script];
 }
 
+hb_script_t
+hb_ot_tag_to_script (hb_tag_t tag)
+{
+  int i;
+
+  for (i = 0; i < ARRAY_LENGTH (ot_scripts); i++) {
+    hb_tag_t *p = ot_scripts[i];
+    while (*p)
+      if (tag == *p)
+        return i;
+  }
+
+  return HB_SCRIPT_UNKNOWN;
+}
 
 typedef struct {
   char language[6];
