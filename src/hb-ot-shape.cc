@@ -318,11 +318,11 @@ hb_substitute_default (hb_font_t    *font,
 }
 
 static void
-hb_substitute_fallback (hb_font_t    *font HB_UNUSED,
-			hb_face_t    *face HB_UNUSED,
-			hb_buffer_t  *buffer HB_UNUSED,
-			hb_feature_t *features HB_UNUSED,
-			unsigned int  num_features HB_UNUSED)
+hb_substitute_complex_fallback (hb_font_t    *font HB_UNUSED,
+				hb_face_t    *face HB_UNUSED,
+				hb_buffer_t  *buffer HB_UNUSED,
+				hb_feature_t *features HB_UNUSED,
+				unsigned int  num_features HB_UNUSED)
 {
   /* TODO Arabic */
 }
@@ -349,11 +349,11 @@ hb_position_default (hb_font_t    *font,
 }
 
 static void
-hb_position_fallback (hb_font_t    *font HB_UNUSED,
-		      hb_face_t    *face HB_UNUSED,
-		      hb_buffer_t  *buffer HB_UNUSED,
-		      hb_feature_t *features HB_UNUSED,
-		      unsigned int  num_features HB_UNUSED)
+hb_position_complex_fallback (hb_font_t    *font HB_UNUSED,
+			      hb_face_t    *face HB_UNUSED,
+			      hb_buffer_t  *buffer HB_UNUSED,
+			      hb_feature_t *features HB_UNUSED,
+			      unsigned int  num_features HB_UNUSED)
 {
   /* TODO Mark pos */
 }
@@ -379,11 +379,11 @@ hb_truetype_kern (hb_font_t    *font,
 }
 
 static void
-hb_position_fallback_visual (hb_font_t    *font,
-			     hb_face_t    *face,
-			     hb_buffer_t  *buffer,
-			     hb_feature_t *features,
-			     unsigned int  num_features)
+hb_position_complex_fallback_visual (hb_font_t    *font,
+				     hb_face_t    *face,
+				     hb_buffer_t  *buffer,
+				     hb_feature_t *features,
+				     unsigned int  num_features)
 {
   hb_truetype_kern (font, face, buffer, features, num_features);
 }
@@ -412,20 +412,20 @@ hb_ot_shape (hb_font_t    *font,
   substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features);
 
   if (substitute_fallback)
-    hb_substitute_fallback (font, face, buffer, features, num_features);
+    hb_substitute_complex_fallback (font, face, buffer, features, num_features);
 
   hb_position_default (font, face, buffer, features, num_features);
 
   position_fallback = !hb_ot_position_complex (font, face, buffer, features, num_features);
 
   if (position_fallback)
-    hb_position_fallback (font, face, buffer, features, num_features);
+    hb_position_complex_fallback (font, face, buffer, features, num_features);
 
   if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
     hb_buffer_reverse (buffer);
 
   if (position_fallback)
-    hb_position_fallback_visual (font, face, buffer, features, num_features);
+    hb_position_complex_fallback_visual (font, face, buffer, features, num_features);
 
   buffer->direction = original_direction;
 }
