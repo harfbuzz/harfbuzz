@@ -74,6 +74,28 @@ add_feature (hb_face_t    *face,
   }
 }
 
+static hb_bool_t
+maybe_add_feature (hb_face_t    *face,
+		   hb_tag_t      table_tag,
+		   unsigned int  script_index,
+		   unsigned int  language_index,
+		   hb_tag_t      feature_tag,
+		   hb_mask_t     mask,
+		   lookup_map   *lookups,
+		   unsigned int *num_lookups,
+		   unsigned int  room_lookups)
+{
+  unsigned int feature_index;
+  if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
+					  feature_tag,
+					  &feature_index))
+  {
+    add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
+    return TRUE;
+  }
+  return FALSE;
+}
+
 static int
 cmp_lookups (const void *p1, const void *p2)
 {
@@ -90,7 +112,8 @@ setup_lookups (hb_face_t    *face,
 	       unsigned int  num_features,
 	       hb_tag_t      table_tag,
 	       lookup_map   *lookups,
-	       unsigned int *num_lookups)
+	       unsigned int *num_lookups,
+	       hb_direction_t original_direction)
 {
   unsigned int i, j, script_index, language_index, feature_index, room_lookups;
 
@@ -109,11 +132,20 @@ setup_lookups (hb_face_t    *face,
     add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
   for (i = 0; i < ARRAY_LENGTH (default_features); i++)
-  {
-    if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
-					    default_features[i],
-					    &feature_index))
-      add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
+    maybe_add_feature (face, table_tag, script_index, language_index, default_features[i], 1, lookups, num_lookups, room_lookups);
+
+  switch (original_direction) {
+    case HB_DIRECTION_LTR:
+      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('l','t','r','a'), 1, lookups, num_lookups, room_lookups);
+      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('l','t','r','m'), 1, lookups, num_lookups, room_lookups);
+      break;
+    case HB_DIRECTION_RTL:
+      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('r','t','l','a'), 1, lookups, num_lookups, room_lookups);
+      break;
+    case HB_DIRECTION_TTB:
+    case HB_DIRECTION_BTT:
+    default:
+      break;
   }
 
   /* Clear buffer masks. */
@@ -178,7 +210,8 @@ hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 			  hb_face_t    *face,
 			  hb_buffer_t  *buffer,
 			  hb_feature_t *features,
-			  unsigned int  num_features)
+			  unsigned int  num_features,
+			  hb_direction_t original_direction)
 {
   lookup_map lookups[1000];
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
@@ -189,7 +222,8 @@ hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 
   setup_lookups (face, buffer, features, num_features,
 		 HB_OT_TAG_GSUB,
-		 lookups, &num_lookups);
+		 lookups, &num_lookups,
+		 original_direction);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_substitute_lookup (face, buffer, lookups[i].index, lookups[i].mask);
@@ -202,7 +236,8 @@ hb_ot_position_complex (hb_font_t    *font,
 			hb_face_t    *face,
 			hb_buffer_t  *buffer,
 			hb_feature_t *features,
-			unsigned int  num_features)
+			unsigned int  num_features,
+			hb_direction_t original_direction)
 {
   lookup_map lookups[1000];
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
@@ -213,7 +248,8 @@ hb_ot_position_complex (hb_font_t    *font,
 
   setup_lookups (face, buffer, features, num_features,
 		 HB_OT_TAG_GPOS,
-		 lookups, &num_lookups);
+		 lookups, &num_lookups,
+		 original_direction);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_position_lookup (font, face, buffer, lookups[i].index, lookups[i].mask);
@@ -401,14 +437,14 @@ hb_ot_shape (hb_font_t    *font,
    * see the original direction. */
   original_direction = hb_ensure_native_direction (buffer);
 
-  substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features);
+  substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features, original_direction);
 
   if (substitute_fallback)
     hb_substitute_complex_fallback (font, face, buffer, features, num_features);
 
   hb_position_default (font, face, buffer, features, num_features);
 
-  position_fallback = !hb_ot_position_complex (font, face, buffer, features, num_features);
+  position_fallback = !hb_ot_position_complex (font, face, buffer, features, num_features, original_direction);
 
   if (position_fallback)
     hb_position_complex_fallback (font, face, buffer, features, num_features);
