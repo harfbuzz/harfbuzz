@@ -51,7 +51,6 @@ class GrBufferTextSrc : public gr::ITextSource
 public:
   GrBufferTextSrc(hb_buffer_t *buff, hb_feature_t *feats, unsigned int num_features)
   {
-    int i;
     hb_feature_t *aFeat = feats;
     featureSetting *aNewFeat;
 
@@ -59,7 +58,7 @@ public:
     features = new featureSetting[num_features];
     nFeatures = num_features;
     aNewFeat = features;
-    for (i = 0; i < num_features; i++, aFeat++, aNewFeat++)
+    for (unsigned int i = 0; i < num_features; i++, aFeat++, aNewFeat++)
     {
         aNewFeat->id = aFeat->tag;
         aNewFeat->value = aFeat->value;
@@ -70,12 +69,10 @@ public:
   virtual size_t getLength() { return buffer->len; };
   virtual size_t fetch(gr::toffset ichMin, size_t cch, gr::utf32 * prgchBuffer)
   {
-    int i;
-
     assert(cch <= buffer->len);
     if (cch > buffer->len)
       return 0;
-    for (i = ichMin; i < ichMin + cch; i++)
+    for (unsigned int i = ichMin; i < ichMin + cch; i++)
       prgchBuffer[i - ichMin] = buffer->info[i].codepoint;
     return (cch - ichMin);
   };
@@ -107,9 +104,8 @@ public:
   { return std::pair<gr::toffset, gr::toffset>(0, buffer->len); };
   virtual size_t getFontFeatures(gr::toffset ich, gr::FeatureSetting * prgfset)
   {
-    int i;
     featureSetting *aFeat = features;
-    for (i = 0; i < nFeatures; i++, aFeat++, prgfset++)
+    for (unsigned int i = 0; i < nFeatures; i++, aFeat++, prgfset++)
     {
       prgfset->id = aFeat->id;
       prgfset->value = aFeat->value;
@@ -268,7 +264,7 @@ hb_graphite_shape (hb_font_t    *font,
   hb_buffer_ensure(buffer, numGlyphs);
   pSegment.getUniscribeClusters(firsts, numChars, NULL, flags, numGlyphs, NULL);
   glyph_range = pSegment.glyphs();
-  for (pGlyph = glyph_infos, iGlyph = glyph_range.first; iGlyph != glyph_range.second;
+  for (pGlyph = glyph_infos, iGlyph = glyph_range.first; iGlyph < glyph_range.second;
         iGlyph++, pGlyph++)
   { *pGlyph = iGlyph->glyphID(); }
 
@@ -289,7 +285,7 @@ hb_graphite_shape (hb_font_t    *font,
 
   float curradvx = 0., curradvy = 0.;
   for (pPosition = hb_buffer_get_glyph_positions(buffer), iGlyph = glyph_range.first;
-        iGlyph != glyph_range.second; pPosition++, iGlyph++)
+        iGlyph < glyph_range.second; pPosition++, iGlyph++)
   {
     pPosition->x_offset = iGlyph->origin() - curradvx;
     pPosition->y_offset = iGlyph->yOffset() - curradvy;
