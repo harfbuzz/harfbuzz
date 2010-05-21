@@ -351,7 +351,6 @@ hb_substitute_default (hb_font_t    *font,
 		       hb_feature_t *features HB_UNUSED,
 		       unsigned int  num_features HB_UNUSED)
 {
-  hb_mirror_chars (buffer);
   hb_map_glyphs (font, face, buffer);
 }
 
@@ -445,11 +444,12 @@ hb_ot_shape (hb_font_t    *font,
 
   buffer->clear_masks ();
 
-  hb_substitute_default (font, face, buffer, features, num_features);
+  /* Mirroring needs to see the original direction */
+  hb_mirror_chars (buffer);
 
-  /* We do this after substitute_default because mirroring needs to
-   * see the original direction. */
   original_direction = hb_ensure_native_direction (buffer);
+
+  hb_substitute_default (font, face, buffer, features, num_features);
 
   substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features, original_direction);
 
