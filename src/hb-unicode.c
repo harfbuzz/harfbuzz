@@ -286,7 +286,24 @@ const hb_direction_t horiz_dir[] =
   LTR,	/* Vaii */
   LTR,	/* Cari */
   LTR,	/* Lyci */
-  LTR	/* Lydi */
+  LTR,	/* Lydi */
+
+  /* Unicode-5.2 additions */
+  RTL,	/* Avst */
+  LTR,	/* Bamu */
+  LTR,	/* Egyp */
+  RTL,	/* Armi */
+  RTL,	/* Phli */
+  RTL,	/* Prti */
+  LTR,	/* Java */
+  LTR,	/* Kthi */
+  LTR,	/* Lisu */
+  LTR,	/* Mtei */
+  RTL,	/* Sarb */
+  RTL,	/* Orkh */
+  RTL,	/* Samr */
+  LTR,	/* Lana */
+  LTR 	/* Tavt */
 };
 #undef LTR
 #undef RTL

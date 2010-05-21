@@ -31,6 +31,7 @@
 
 #include "hb-unicode-private.h"
 
+#include <unicode/uversion.h>
 #include <unicode/uchar.h>
 #include <unicode/uscript.h>
 
@@ -110,9 +111,12 @@ hb_icu_get_script (hb_codepoint_t unicode)
   UScriptCode scriptCode = uscript_getScript(unicode, &status);
   switch ((int) scriptCode)
   {
+#define CHECK_ICU_VERSION(major, minor) \
+	U_ICU_VERSION_MAJOR_NUM > (major) || (U_ICU_VERSION_MAJOR_NUM == (major) && U_ICU_VERSION_MINOR_NUM >= (minor))
 #define MATCH_SCRIPT(C) case USCRIPT_##C: return HB_SCRIPT_##C
+#define MATCH_SCRIPT2(C1, C2) case USCRIPT_##C1: return HB_SCRIPT_##C2
   MATCH_SCRIPT (INVALID_CODE);
-  MATCH_SCRIPT (COMMON);   /* Zyyy */
+  MATCH_SCRIPT (COMMON);             /* Zyyy */
   MATCH_SCRIPT (INHERITED);          /* Qaai */
   MATCH_SCRIPT (ARABIC);             /* Arab */
   MATCH_SCRIPT (ARMENIAN);           /* Armn */
@@ -198,6 +202,29 @@ hb_icu_get_script (hb_codepoint_t unicode)
   MATCH_SCRIPT (CARIAN);             /* Cari */
   MATCH_SCRIPT (LYCIAN);             /* Lyci */
   MATCH_SCRIPT (LYDIAN);             /* Lydi */
+
+  /* Unicode-5.2 additions */
+  MATCH_SCRIPT (AVESTAN);                /* Avst */
+#if CHECK_ICU_VERSION (4, 4)
+  MATCH_SCRIPT (BAMUM);                  /* Bamu */
+#endif
+  MATCH_SCRIPT (EGYPTIAN_HIEROGLYPHS);   /* Egyp */
+  MATCH_SCRIPT (IMPERIAL_ARAMAIC);       /* Armi */
+  MATCH_SCRIPT (INSCRIPTIONAL_PAHLAVI);  /* Phli */
+  MATCH_SCRIPT (INSCRIPTIONAL_PARTHIAN); /* Prti */
+  MATCH_SCRIPT (JAVANESE);               /* Java */
+  MATCH_SCRIPT (KAITHI);                 /* Kthi */
+  MATCH_SCRIPT2(LANNA, TAI_THAM);        /* Lana */
+#if CHECK_ICU_VERSION (4, 4)
+  MATCH_SCRIPT (LISU);                   /* Lisu */
+#endif
+  MATCH_SCRIPT (MEITEI_MAYEK);           /* Mtei */
+#if CHECK_ICU_VERSION (4, 4)
+  MATCH_SCRIPT (OLD_SOUTH_ARABIAN);      /* Sarb */
+#endif
+  MATCH_SCRIPT2(ORKHON, OLD_TURKIC);     /* Orkh */
+  MATCH_SCRIPT (SAMARITAN);              /* Samr */
+  MATCH_SCRIPT (TAI_VIET);               /* Tavt */
   }
   return HB_SCRIPT_UNKNOWN;
 }

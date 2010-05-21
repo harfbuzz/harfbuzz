@@ -155,7 +155,24 @@ typedef enum
   HB_SCRIPT_VAI,                /* Vaii */
   HB_SCRIPT_CARIAN,             /* Cari */
   HB_SCRIPT_LYCIAN,             /* Lyci */
-  HB_SCRIPT_LYDIAN              /* Lydi */
+  HB_SCRIPT_LYDIAN,             /* Lydi */
+
+  /* Unicode-5.2 additions */
+  HB_SCRIPT_AVESTAN,                /* Avst */
+  HB_SCRIPT_BAMUM,                  /* Bamu */
+  HB_SCRIPT_EGYPTIAN_HIEROGLYPHS,   /* Egyp */
+  HB_SCRIPT_IMPERIAL_ARAMAIC,       /* Armi */
+  HB_SCRIPT_INSCRIPTIONAL_PAHLAVI,  /* Phli */
+  HB_SCRIPT_INSCRIPTIONAL_PARTHIAN, /* Prti */
+  HB_SCRIPT_JAVANESE,               /* Java */
+  HB_SCRIPT_KAITHI,                 /* Kthi */
+  HB_SCRIPT_LISU,                   /* Lisu */
+  HB_SCRIPT_MEITEI_MAYEK,           /* Mtei */
+  HB_SCRIPT_OLD_SOUTH_ARABIAN,      /* Sarb */
+  HB_SCRIPT_OLD_TURKIC,             /* Orkh */
+  HB_SCRIPT_SAMARITAN,              /* Samr */
+  HB_SCRIPT_TAI_THAM,               /* Lana */
+  HB_SCRIPT_TAI_VIET                /* Tavt */
 } hb_script_t;
 
 
