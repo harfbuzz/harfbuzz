@@ -1,0 +1,2 @@
+#!/bin/sh
+LD_LIBRARY_PATH=../../src/.libs PYTHONPATH=build/lib.`python -c 'import distutils.util, sys; print distutils.util.get_platform()+"-"+str(sys.version_info[0])+"."+str(sys.version_info[1])'` "$@"

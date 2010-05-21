@@ -1,0 +1,35 @@
+#!/usr/bin/python
+
+import harfbuzz, optparse
+
+buffer = None
+
+def tracefn(ft, aType, index) :
+    print aType + "(" + str(index) + "): " + str(buffer.get_info())
+
+usage = '''usage: %prog [options] fontfile "codepoints"
+    Generates output of glyphs and positions. Each entry is of the form:
+        glyphid>cluster@(offsetx,offsety)+(advancex,advancey)
+
+    codepoints is a space separated list of hex values of Unicode codepoints'''
+p = optparse.OptionParser(usage=usage)
+p.add_option('-s', '--size', default=12, type="int", help="point size")
+p.add_option('-l', '--lang', help="language code")
+p.add_option('-c', '--script', help="script code")
+p.add_option('-f', '--feature', action='append', help="define a feature key=val")
+p.add_option('-d', '--debug', action='store_true', help="Output trace info")
+(opts, args) = p.parse_args()
+
+ft = harfbuzz.ft(args[0], opts.size, trace = tracefn if opts.debug else None)
+text = "".join(unichr(int(c, 16)) for c in args[1].split(" "))
+bytes = text.encode('utf_8')
+buffer = harfbuzz.buffer(bytes, len(text))
+if (opts.lang or opts.script) : buffer.set_scriptlang(opts.script if opts.script else "", opts.lang if opts.lang else "")
+features = {}
+if opts.feature :
+    for f in opts.feature :
+        k, v = f.split("=")
+        features[k] = v
+ft.shape(buffer, features = features)
+res = buffer.get_info(64)       # scale for 26.6
+print res
