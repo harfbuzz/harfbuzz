@@ -122,6 +122,7 @@ setup_lookups (hb_face_t    *face,
     buffer->info[i].mask = 1;
 
   unsigned int last_bit_used = 1;
+  unsigned int global_values = 0;
   for (i = 0; i < num_features; i++)
   {
     unsigned int bits_needed = _hb_bit_storage (features[i].value);
@@ -136,13 +137,31 @@ setup_lookups (hb_face_t    *face,
 					    &feature_index))
       add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
 
-    /* Turn mask on in the buffer, the über-slow way! */
-    unsigned int count = buffer->len;
-    for (unsigned int j = 0; j < count; j++) {
-        unsigned int cluster = buffer->info[j].cluster;
-	if (features[i].start <= cluster && cluster < features[i].end)
-	  buffer->info[j].mask |= value;
+    if (features[i].start == 0 && features[i].end == (unsigned int)-1)
+      global_values |= value;
+    else
+    {
+      unsigned int start = features[i].start, end = features[i].end;
+      unsigned int a = 0, b = buffer->len;
+      while (a < b)
+      {
+        unsigned int h = a + ((b - a) / 2);
+        if (buffer->info[h].cluster < start)
+          a = h + 1;
+        else
+          b = h;
+      }
+      unsigned int count = buffer->len;
+      for (unsigned int j = a; j < count && buffer->info[j].cluster < end; j++)
+        buffer->info[j].mask |= value;
     }
+  }
+
+  if (global_values)
+  {
+    unsigned int count = buffer->len;
+    for (unsigned int j = 0; j < count; j++)
+      buffer->info[j].mask |= global_values;
   }
 
   qsort (lookups, *num_lookups, sizeof (lookups[0]), cmp_lookups);
