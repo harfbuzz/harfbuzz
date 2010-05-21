@@ -117,7 +117,10 @@ TESTS = \
 
 if HAVE_ICU
 else
+if HAVE_GRAPHITE
+else
 TESTS += check-libstdc++.sh
+endif
 endif
 
 -include $(top_srcdir)/git.mk
