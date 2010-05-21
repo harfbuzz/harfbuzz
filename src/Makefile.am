@@ -47,12 +47,12 @@ HBSOURCES += \
 	hb-ot-layout-gsub-private.hh \
 	hb-ot-layout-private.hh \
 	hb-ot-shape.cc \
-	hb-ot-shape-private.hh \
 	hb-ot-tag.c \
 	$(NULL)
 HBHEADERS += \
 	hb-ot.h \
 	hb-ot-layout.h \
+	hb-ot-shape.h \
 	hb-ot-tag.h \
 	$(NULL)
 
