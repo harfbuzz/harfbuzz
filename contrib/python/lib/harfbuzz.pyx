@@ -7,7 +7,7 @@ cdef extern from "ft2build.h" :
     pass
 
 cdef extern from "freetype/freetype.h" :
-    ctypedef void *FT_Library 
+    ctypedef void *FT_Library
     ctypedef void *FT_Face
     ctypedef int FT_Error
 
@@ -27,6 +27,7 @@ cdef extern from "hb-common.h" :
     ctypedef long hb_position_t
     ctypedef unsigned long hb_mask_t
     ctypedef unsigned long hb_tag_t
+    hb_tag_t hb_tag_from_string (char *s)
     ctypedef void (*hb_destroy_func_t) (void *user_data)
 
 cdef extern from "hb-unicode.h" :
@@ -113,6 +114,22 @@ cdef extern from "hb-unicode.h" :
         HB_SCRIPT_CARIAN,
         HB_SCRIPT_LYCIAN,
         HB_SCRIPT_LYDIAN
+# Unicode-5.2
+        HB_SCRIPT_AVESTAN
+        HB_SCRIPT_BAMUM
+        HB_SCRIPT_EGYPTIAN_HIEROGLYPHS
+        HB_SCRIPT_IMPERIAL_ARAMAIC
+        HB_SCRIPT_INSCRIPTIONAL_PAHLAVI
+        HB_SCRIPT_INSCRIPTIONAL_PARTHIAN
+        HB_SCRIPT_JAVANESE
+        HB_SCRIPT_KAITHI
+        HB_SCRIPT_LISU
+        HB_SCRIPT_MEITEI_MAYEK
+        HB_SCRIPT_OLD_SOUTH_ARABIAN
+        HB_SCRIPT_OLD_TURKIC
+        HB_SCRIPT_SAMARITAN
+        HB_SCRIPT_TAI_THAM
+        HB_SCRIPT_TAI_VIET
 
 cdef extern from "hb-language.h" :
     ctypedef void *hb_language_t
@@ -120,7 +137,7 @@ cdef extern from "hb-language.h" :
     char * hb_language_to_string(hb_language_t language)
 
 cdef extern from "hb-ot-tag.h" :
-    hb_script_t hb_ot_string_to_script (char *sname)
+    hb_script_t hb_ot_tag_to_script (char *sname)
 
 cdef extern from "hb-buffer.h" :
     ctypedef struct hb_buffer_t :
@@ -178,7 +195,6 @@ cdef extern from "hb-font.h" :
     void hb_face_destroy(hb_face_t *face)
     void hb_font_destroy(hb_font_t *font)
     hb_blob_t * hb_face_get_table(hb_face_t *face, hb_tag_t tag)
-    void hb_font_set_tracecallback(hb_font_t *font, void (*cb)(char *type, int index, hb_buffer_t *))
 
 
 cdef extern from "hb-shape.h" :
@@ -207,10 +223,6 @@ class glyphinfo :
         res = "{0:d}>{1:d}@({2:.2f},{3:.2f})+({4:.2f},{5:.2f})".format(self.gid, self.cluster, self.offset[0], self.offset[1], self.advance[0], self.advance[1])
         if self.internal : res += "/i=" + str(self.internal)
         return res
-
-gcb = None
-cdef void hb_python_trace(char *aType, int i, hb_buffer_t *aBuffer) :
-    gcb(aType, i)
 
 cdef class buffer :
     cdef hb_buffer_t *buffer
@@ -260,10 +272,8 @@ cdef class ft :
     cdef FT_Face face
     cdef hb_face_t *hbface
     cdef hb_font_t *hbfont
-    cdef object tracefn
 
-    def __init__(self, char *fname, size, trace = None) :
-        global gcb
+    def __init__(self, char *fname, size) :
         cdef FT_Library engine
         FT_Init_FreeType(&engine)
         self.engine = engine
@@ -273,13 +283,6 @@ cdef class ft :
         self.face = face
         self.hbface = hb_ft_face_create(face, <void (*)(void *)>hb_face_destroy)
         self.hbfont = hb_ft_font_create(face, <void (*)(void *)>hb_font_destroy)
-        if trace :
-            self.tracefn = trace
-            gcb = self.trace
-            hb_font_set_tracecallback(self.hbfont, hb_python_trace)
-
-    def trace(self, aType, index) :
-        self.tracefn(self, aType, index)
 
     def __del__(self) :
         cdef FT_Library engine
@@ -295,8 +298,7 @@ cdef class ft :
         feats = <hb_feature_t *>malloc(sizeof(hb_feature_t) * len(features))
         aFeat = feats
         for k,v in features.items() :
-            k = k + "    "
-            aFeat.tag = (ord(k[0]) << 24) + (ord(k[1]) << 16) + (ord(k[2]) << 8) + ord(k[3])
+            aFeat.tag = hb_tag_from_string (k)
             aFeat.value = int(v)
             aFeat.start = 0
             aFeat.end = -1
