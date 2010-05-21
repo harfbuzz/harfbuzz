@@ -138,10 +138,10 @@ setup_lookups (hb_face_t    *face,
 
     /* Turn mask on in the buffer, the über-slow way! */
     unsigned int count = buffer->len;
-    for (unsigned int i = 0; i < count; i++) {
-        unsigned int cluster = buffer->info[i].cluster;
+    for (unsigned int j = 0; j < count; j++) {
+        unsigned int cluster = buffer->info[j].cluster;
 	if (features[i].start <= cluster && cluster < features[i].end)
-	  buffer->info[i].mask |= value;
+	  buffer->info[j].mask |= value;
     }
   }
 
