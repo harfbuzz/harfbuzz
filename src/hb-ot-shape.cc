@@ -32,15 +32,17 @@
 
 /* XXX vertical */
 hb_tag_t default_features[] = {
-  /* GSUB */
+  HB_TAG('c','a','l','t'),
   HB_TAG('c','c','m','p'),
-  HB_TAG('l','o','c','l'),
-  HB_TAG('l','i','g','a'),
   HB_TAG('c','l','i','g'),
-  /* GPOS */
+  HB_TAG('c','s','w','h'),
+  HB_TAG('c','u','r','s'),
   HB_TAG('k','e','r','n'),
+  HB_TAG('l','i','g','a'),
+  HB_TAG('l','o','c','l'),
   HB_TAG('m','a','r','k'),
   HB_TAG('m','k','m','k'),
+  HB_TAG('r','l','i','g')
 };
 
 enum {
