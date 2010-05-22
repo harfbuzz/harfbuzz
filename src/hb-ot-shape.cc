@@ -42,6 +42,12 @@ hb_tag_t default_features[] = {
   HB_TAG('m','k','m','k'),
 };
 
+enum {
+  MASK_ALWAYS_ON = 1 << 0,
+  MASK_RTLM      = 1 << 1
+};
+#define MASK_BITS_USED 2
+
 struct lookup_map {
   unsigned int index;
   hb_mask_t mask;
@@ -74,6 +80,28 @@ add_feature (hb_face_t    *face,
   }
 }
 
+static hb_bool_t
+maybe_add_feature (hb_face_t    *face,
+		   hb_tag_t      table_tag,
+		   unsigned int  script_index,
+		   unsigned int  language_index,
+		   hb_tag_t      feature_tag,
+		   hb_mask_t     mask,
+		   lookup_map   *lookups,
+		   unsigned int *num_lookups,
+		   unsigned int  room_lookups)
+{
+  unsigned int feature_index;
+  if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
+					  feature_tag,
+					  &feature_index))
+  {
+    add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
+    return TRUE;
+  }
+  return FALSE;
+}
+
 static int
 cmp_lookups (const void *p1, const void *p2)
 {
@@ -90,7 +118,8 @@ setup_lookups (hb_face_t    *face,
 	       unsigned int  num_features,
 	       hb_tag_t      table_tag,
 	       lookup_map   *lookups,
-	       unsigned int *num_lookups)
+	       unsigned int *num_lookups,
+	       hb_direction_t original_direction)
 {
   unsigned int i, j, script_index, language_index, feature_index, room_lookups;
 
@@ -109,62 +138,60 @@ setup_lookups (hb_face_t    *face,
     add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
   for (i = 0; i < ARRAY_LENGTH (default_features); i++)
-  {
-    if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
-					    default_features[i],
-					    &feature_index))
-      add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
+    maybe_add_feature (face, table_tag, script_index, language_index, default_features[i], 1, lookups, num_lookups, room_lookups);
+
+  switch (original_direction) {
+    case HB_DIRECTION_LTR:
+      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('l','t','r','a'), 1, lookups, num_lookups, room_lookups);
+      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('l','t','r','m'), 1, lookups, num_lookups, room_lookups);
+      break;
+    case HB_DIRECTION_RTL:
+      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('r','t','l','a'), 1, lookups, num_lookups, room_lookups);
+      break;
+    case HB_DIRECTION_TTB:
+    case HB_DIRECTION_BTT:
+    default:
+      break;
   }
 
-  /* Clear buffer masks. */
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].mask = 1;
-
-  unsigned int last_bit_used = 1;
-  unsigned int global_values = 0;
+  unsigned int next_bit = MASK_BITS_USED;
+  hb_mask_t global_mask = 0;
   for (i = 0; i < num_features; i++)
   {
+    hb_feature_t *feature = &features[i];
     if (!hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
-					     features[i].tag,
+					     feature->tag,
 					     &feature_index))
       continue;
 
-    unsigned int bits_needed = _hb_bit_storage (features[i].value);
-    if (!bits_needed)
+    if (feature->value == 1 && feature->start == 0 && feature->end == (unsigned int) -1) {
+      add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
       continue;
-    unsigned int mask = (1 << (last_bit_used + bits_needed)) - (1 << last_bit_used);
-    unsigned int value = features[i].value << last_bit_used;
-    last_bit_used += bits_needed;
+    }
+
+    /* Allocate bits for the features */
+
+    unsigned int bits_needed = _hb_bit_storage (feature->value);
+    if (!bits_needed)
+      continue; /* Feature disabled */
+
+    if (next_bit + bits_needed > 8 * sizeof (hb_mask_t))
+      continue; /* Oh well... */
+
+    unsigned int mask = (1 << (next_bit + bits_needed)) - (1 << next_bit);
+    unsigned int value = feature->value << next_bit;
+    next_bit += bits_needed;
 
     add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
 
-    if (features[i].start == 0 && features[i].end == (unsigned int)-1)
-      global_values |= value;
+    if (feature->start == 0 && feature->end == (unsigned int) -1)
+      global_mask |= value;
     else
-    {
-      unsigned int start = features[i].start, end = features[i].end;
-      unsigned int a = 0, b = buffer->len;
-      while (a < b)
-      {
-        unsigned int h = a + ((b - a) / 2);
-        if (buffer->info[h].cluster < start)
-          a = h + 1;
-        else
-          b = h;
-      }
-      unsigned int count = buffer->len;
-      for (unsigned int j = a; j < count && buffer->info[j].cluster < end; j++)
-        buffer->info[j].mask |= value;
-    }
+      buffer->or_masks (mask, feature->start, feature->end);
   }
 
-  if (global_values)
-  {
-    unsigned int count = buffer->len;
-    for (unsigned int j = 0; j < count; j++)
-      buffer->info[j].mask |= global_values;
-  }
+  if (global_mask)
+    buffer->or_masks (global_mask, 0, (unsigned int) -1);
 
   qsort (lookups, *num_lookups, sizeof (lookups[0]), cmp_lookups);
 
@@ -186,7 +213,8 @@ hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 			  hb_face_t    *face,
 			  hb_buffer_t  *buffer,
 			  hb_feature_t *features,
-			  unsigned int  num_features)
+			  unsigned int  num_features,
+			  hb_direction_t original_direction)
 {
   lookup_map lookups[1000];
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
@@ -197,7 +225,8 @@ hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 
   setup_lookups (face, buffer, features, num_features,
 		 HB_OT_TAG_GSUB,
-		 lookups, &num_lookups);
+		 lookups, &num_lookups,
+		 original_direction);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_substitute_lookup (face, buffer, lookups[i].index, lookups[i].mask);
@@ -210,7 +239,8 @@ hb_ot_position_complex (hb_font_t    *font,
 			hb_face_t    *face,
 			hb_buffer_t  *buffer,
 			hb_feature_t *features,
-			unsigned int  num_features)
+			unsigned int  num_features,
+			hb_direction_t original_direction)
 {
   lookup_map lookups[1000];
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
@@ -221,7 +251,8 @@ hb_ot_position_complex (hb_font_t    *font,
 
   setup_lookups (face, buffer, features, num_features,
 		 HB_OT_TAG_GPOS,
-		 lookups, &num_lookups);
+		 lookups, &num_lookups,
+		 original_direction);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_position_lookup (font, face, buffer, lookups[i].index, lookups[i].mask);
@@ -282,7 +313,11 @@ hb_mirror_chars (hb_buffer_t *buffer)
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-      buffer->info[i].codepoint = get_mirroring (buffer->info[i].codepoint);
+    hb_codepoint_t codepoint = get_mirroring (buffer->info[i].codepoint);
+    if (likely (codepoint == buffer->info[i].codepoint))
+      buffer->info[i].mask |= MASK_RTLM;
+    else
+      buffer->info[i].codepoint = codepoint;
   }
 }
 
@@ -403,20 +438,29 @@ hb_ot_shape (hb_font_t    *font,
 
   hb_form_clusters (buffer);
 
+  /* SUBSTITUTE */
+
+  buffer->clear_masks ();
+
   hb_substitute_default (font, face, buffer, features, num_features);
 
   /* We do this after substitute_default because mirroring needs to
    * see the original direction. */
   original_direction = hb_ensure_native_direction (buffer);
 
-  substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features);
+  substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features, original_direction);
 
   if (substitute_fallback)
     hb_substitute_complex_fallback (font, face, buffer, features, num_features);
 
+
+  /* POSITION */
+
+  buffer->clear_masks ();
+
   hb_position_default (font, face, buffer, features, num_features);
 
-  position_fallback = !hb_ot_position_complex (font, face, buffer, features, num_features);
+  position_fallback = !hb_ot_position_complex (font, face, buffer, features, num_features, original_direction);
 
   if (position_fallback)
     hb_position_complex_fallback (font, face, buffer, features, num_features);

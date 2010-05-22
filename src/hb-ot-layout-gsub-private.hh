@@ -286,6 +286,7 @@ struct AlternateSubstFormat1
     if (unlikely (!alt_set.len))
       return false;
 
+    /* Note: This breaks badly if two features enabled this lookup together. */
     unsigned int shift = _hb_ctz (lookup_mask);
     unsigned int alt_index = ((lookup_mask & glyph_mask) >> shift);
 
