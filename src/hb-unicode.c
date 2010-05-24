@@ -40,9 +40,7 @@ static unsigned int hb_unicode_get_eastasian_width_nil (hb_codepoint_t unicode H
 
 hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
-
   TRUE, /* immutable */
-
   {
     hb_unicode_get_general_category_nil,
     hb_unicode_get_combining_class_nil,
@@ -60,8 +58,7 @@ hb_unicode_funcs_create (void)
   if (!HB_OBJECT_DO_CREATE (hb_unicode_funcs_t, ufuncs))
     return &_hb_unicode_funcs_nil;
 
-  *ufuncs = _hb_unicode_funcs_nil;
-  HB_OBJECT_DO_INIT (ufuncs);
+  ufuncs->v = _hb_unicode_funcs_nil.v;
 
   return ufuncs;
 }
@@ -94,9 +91,7 @@ hb_unicode_funcs_copy (hb_unicode_funcs_t *other_ufuncs)
   if (!HB_OBJECT_DO_CREATE (hb_unicode_funcs_t, ufuncs))
     return &_hb_unicode_funcs_nil;
 
-  *ufuncs = *other_ufuncs;
-  HB_OBJECT_DO_INIT (ufuncs);
-  ufuncs->immutable = FALSE;
+  ufuncs->v = other_ufuncs->v;
 
   return ufuncs;
 }

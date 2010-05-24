@@ -75,14 +75,12 @@ hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
 
 hb_font_funcs_t _hb_font_funcs_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
-
   TRUE,  /* immutable */
-
   {
-  hb_font_get_glyph_nil,
-  hb_font_get_contour_point_nil,
-  hb_font_get_glyph_metrics_nil,
-  hb_font_get_kerning_nil
+    hb_font_get_glyph_nil,
+    hb_font_get_contour_point_nil,
+    hb_font_get_glyph_metrics_nil,
+    hb_font_get_kerning_nil
   }
 };
 
@@ -93,6 +91,8 @@ hb_font_funcs_create (void)
 
   if (!HB_OBJECT_DO_CREATE (hb_font_funcs_t, ffuncs))
     return &_hb_font_funcs_nil;
+
+  ffuncs->v = _hb_font_funcs_nil.v;
 
   return ffuncs;
 }
@@ -125,11 +125,7 @@ hb_font_funcs_copy (hb_font_funcs_t *other_ffuncs)
   if (!HB_OBJECT_DO_CREATE (hb_font_funcs_t, ffuncs))
     return &_hb_font_funcs_nil;
 
-  *ffuncs = *other_ffuncs;
-
-  /* re-init refcount */
-  HB_OBJECT_DO_INIT (ffuncs);
-  ffuncs->immutable = FALSE;
+  ffuncs->v = other_ffuncs->v;
 
   return ffuncs;
 }
