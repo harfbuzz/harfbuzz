@@ -1,0 +1,10 @@
+This contains a wrapping of harfbuzz into python. The module is dependent on pyrex. To build, type:
+
+python setup.py build
+
+In addition there is a test application, hbtestfont. It has GTK based gui output and for this, python modules for gtk, gobject and cairo are needed. The application may be run without gui output using the --nogui option.
+
+Applications may be executed in the build context, without needing to install any modules or libraries, using the runpy script from the contrib/python directory. Thus one might type:
+
+./runpy script/hbtestfont -f "Charis SIL" 0048 0069 0303
+
