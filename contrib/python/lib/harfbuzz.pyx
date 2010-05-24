@@ -41,7 +41,7 @@ cdef extern from "hb-language.h" :
     char * hb_language_to_string(hb_language_t language)
 
 cdef extern from "hb-ot-tag.h" :
-    hb_script_t hb_ot_tag_to_script (char *sname)
+    hb_script_t hb_ot_tag_to_script (hb_tag_t tag)
 
 cdef extern from "hb-buffer.h" :
     ctypedef struct hb_buffer_t :
@@ -141,7 +141,7 @@ cdef class buffer :
         cdef hb_script_t scriptnum
 
         language = hb_language_from_string(lang)
-        scriptnum = hb_ot_string_to_script(script)
+        scriptnum = hb_ot_tag_to_script(hb_tag_from_string(script))
         hb_buffer_set_script(self.buffer, scriptnum)
         hb_buffer_set_language(self.buffer, language)
 

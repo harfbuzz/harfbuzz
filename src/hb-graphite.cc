@@ -291,8 +291,8 @@ hb_graphite_shape (hb_font_t    *font,
     pPosition->y_offset = iGlyph->yOffset() - curradvy;
     pPosition->x_advance = pPosition->x_offset + iGlyph->advanceWidth();
     pPosition->y_advance = pPosition->y_offset + iGlyph->advanceHeight();
-//    if (pPosition->x_advance < 0)
-//        pPosition->x_advance = 0;
+    if (pPosition->x_advance < 0 && iGlyph->logicalIndex() != iGlyph->attachedClusterBase()->logicalIndex())
+        pPosition->x_advance = 0;
     curradvx += pPosition->x_advance;
     curradvy += pPosition->y_advance;
 //    fprintf(stderr, "%d@(%f, %f)+(%f, %f)\n", iGlyph->glyphID(), iGlyph->origin(), iGlyph->yOffset(), iGlyph->advanceWidth(), iGlyph->advanceHeight());

@@ -20,7 +20,11 @@ p.add_option('-d', '--debug', action='store_true', help="Output trace info")
 p.add_option('--nogui', action='store_true', help="Don't display a gui")
 (opts, args) = p.parse_args()
 
-fpat = opts.font + ":weight="
+if opts.font.lower().endswith(".ttf") :
+    fpat = ":file="
+else :
+    fpat = ""
+fpat += opts.font + ":weight="
 fpat += "bold" if opts.bold else "medium"
 fpat += ":slant="
 fpat += "italic" if opts.italic else "roman"
