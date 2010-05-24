@@ -78,10 +78,12 @@ hb_font_funcs_t _hb_font_funcs_nil = {
 
   TRUE,  /* immutable */
 
+  {
   hb_font_get_glyph_nil,
   hb_font_get_contour_point_nil,
   hb_font_get_glyph_metrics_nil,
   hb_font_get_kerning_nil
+  }
 };
 
 hb_font_funcs_t *
@@ -149,7 +151,7 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
   if (ffuncs->immutable)
     return;
 
-  ffuncs->get_glyph = glyph_func ? glyph_func : hb_font_get_glyph_nil;
+  ffuncs->v.get_glyph = glyph_func ? glyph_func : hb_font_get_glyph_nil;
 }
 
 void
@@ -159,7 +161,7 @@ hb_font_funcs_set_contour_point_func (hb_font_funcs_t *ffuncs,
   if (ffuncs->immutable)
     return;
 
-  ffuncs->get_contour_point = contour_point_func ? contour_point_func : hb_font_get_contour_point_nil;
+  ffuncs->v.get_contour_point = contour_point_func ? contour_point_func : hb_font_get_contour_point_nil;
 }
 
 void
@@ -169,7 +171,7 @@ hb_font_funcs_set_glyph_metrics_func (hb_font_funcs_t *ffuncs,
   if (ffuncs->immutable)
     return;
 
-  ffuncs->get_glyph_metrics = glyph_metrics_func ? glyph_metrics_func : hb_font_get_glyph_metrics_nil;
+  ffuncs->v.get_glyph_metrics = glyph_metrics_func ? glyph_metrics_func : hb_font_get_glyph_metrics_nil;
 }
 
 void
@@ -179,7 +181,7 @@ hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
   if (ffuncs->immutable)
     return;
 
-  ffuncs->get_kerning = kerning_func ? kerning_func : hb_font_get_kerning_nil;
+  ffuncs->v.get_kerning = kerning_func ? kerning_func : hb_font_get_kerning_nil;
 }
 
 
@@ -187,8 +189,8 @@ hb_codepoint_t
 hb_font_get_glyph (hb_font_t *font, hb_face_t *face,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector)
 {
-  return font->klass->get_glyph (font, face, font->user_data,
-				 unicode, variation_selector);
+  return font->klass->v.get_glyph (font, face, font->user_data,
+				   unicode, variation_selector);
 }
 
 hb_bool_t
@@ -197,9 +199,9 @@ hb_font_get_contour_point (hb_font_t *font, hb_face_t *face,
 			   hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y)
 {
   *x = 0; *y = 0;
-  return font->klass->get_contour_point (font, face, font->user_data,
-					 point_index,
-					 glyph, x, y);
+  return font->klass->v.get_contour_point (font, face, font->user_data,
+					   point_index,
+					   glyph, x, y);
 }
 
 void
@@ -207,16 +209,16 @@ hb_font_get_glyph_metrics (hb_font_t *font, hb_face_t *face,
 			   hb_codepoint_t glyph, hb_glyph_metrics_t *metrics)
 {
   memset (metrics, 0, sizeof (*metrics));
-  return font->klass->get_glyph_metrics (font, face, font->user_data,
-					 glyph, metrics);
+  return font->klass->v.get_glyph_metrics (font, face, font->user_data,
+					   glyph, metrics);
 }
 
 hb_position_t
 hb_font_get_kerning (hb_font_t *font, hb_face_t *face,
 		     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph)
 {
-  return font->klass->get_kerning (font, face, font->user_data,
-				   first_glyph, second_glyph);
+  return font->klass->v.get_kerning (font, face, font->user_data,
+				     first_glyph, second_glyph);
 }
 
 

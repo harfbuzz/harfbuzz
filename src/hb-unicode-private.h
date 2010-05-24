@@ -42,11 +42,13 @@ struct _hb_unicode_funcs_t {
 
   hb_bool_t immutable;
 
-  hb_unicode_get_general_category_func_t	get_general_category;
-  hb_unicode_get_combining_class_func_t		get_combining_class;
-  hb_unicode_get_mirroring_func_t		get_mirroring;
-  hb_unicode_get_script_func_t			get_script;
-  hb_unicode_get_eastasian_width_func_t		get_eastasian_width;
+  struct {
+    hb_unicode_get_general_category_func_t	get_general_category;
+    hb_unicode_get_combining_class_func_t	get_combining_class;
+    hb_unicode_get_mirroring_func_t		get_mirroring;
+    hb_unicode_get_script_func_t		get_script;
+    hb_unicode_get_eastasian_width_func_t	get_eastasian_width;
+  } v;
 };
 
 extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;

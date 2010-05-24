@@ -283,7 +283,7 @@ hb_form_clusters (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 1; i < count; i++)
-    if (buffer->unicode->get_general_category (buffer->info[i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
+    if (buffer->unicode->v.get_general_category (buffer->info[i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
       buffer->info[i].cluster = buffer->info[i - 1].cluster;
 }
 
@@ -309,7 +309,7 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
 static void
 hb_mirror_chars (hb_buffer_t *buffer)
 {
-  hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->get_mirroring;
+  hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->v.get_mirroring;
 
   if (HB_DIRECTION_IS_FORWARD (buffer->direction))
     return;
