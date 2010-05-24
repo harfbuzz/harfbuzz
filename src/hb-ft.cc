@@ -128,13 +128,13 @@ hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
 
 static hb_font_funcs_t ft_ffuncs = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
-
   TRUE, /* immutable */
-
-  hb_ft_get_glyph,
-  hb_ft_get_contour_point,
-  hb_ft_get_glyph_metrics,
-  hb_ft_get_kerning
+  {
+    hb_ft_get_glyph,
+    hb_ft_get_contour_point,
+    hb_ft_get_glyph_metrics,
+    hb_ft_get_kerning
+  }
 };
 
 hb_font_funcs_t *

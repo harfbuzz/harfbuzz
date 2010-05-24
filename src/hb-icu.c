@@ -231,14 +231,14 @@ hb_icu_get_script (hb_codepoint_t unicode)
 
 static hb_unicode_funcs_t icu_ufuncs = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
-
   TRUE, /* immutable */
-
-  hb_icu_get_general_category,
-  hb_icu_get_combining_class,
-  hb_icu_get_mirroring,
-  hb_icu_get_script,
-  hb_icu_get_eastasian_width
+  {
+    hb_icu_get_general_category,
+    hb_icu_get_combining_class,
+    hb_icu_get_mirroring,
+    hb_icu_get_script,
+    hb_icu_get_eastasian_width
+  }
 };
 
 hb_unicode_funcs_t *

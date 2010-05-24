@@ -41,14 +41,14 @@ static unsigned int hb_glib_get_eastasian_width (hb_codepoint_t unicode) { retur
 
 static hb_unicode_funcs_t glib_ufuncs = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
-
   TRUE, /* immutable */
-
-  hb_glib_get_general_category,
-  hb_glib_get_combining_class,
-  hb_glib_get_mirroring,
-  hb_glib_get_script,
-  hb_glib_get_eastasian_width
+  {
+    hb_glib_get_general_category,
+    hb_glib_get_combining_class,
+    hb_glib_get_mirroring,
+    hb_glib_get_script,
+    hb_glib_get_eastasian_width
+  }
 };
 
 hb_unicode_funcs_t *
