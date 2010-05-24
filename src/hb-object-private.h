@@ -62,20 +62,19 @@ typedef struct {
 #define HB_DEBUG_OBJECT HB_DEBUG+0
 #endif
 
-static inline hb_bool_t /* always returns TRUE */
-_hb_object_debug_out (const void *obj,
-		      hb_reference_count_t *ref_count,
-		      const char *function)
+static inline void
+_hb_trace_object (const void *obj,
+		  hb_reference_count_t *ref_count,
+		  const char *function)
 {
   if (HB_DEBUG_OBJECT)
-    fprintf (stderr, "%p refcount=%d %s\n",
+    fprintf (stderr, "OBJECT(%p) refcount=%d %s\n",
 	     obj,
 	     HB_REFERENCE_COUNT_GET_VALUE (*ref_count),
 	     function);
-  return TRUE;
 }
 
-#define HB_OBJECT_DEBUG_OUT(obj) _hb_object_debug_out ((void *) obj, &obj->ref_count, __FUNCTION__)
+#define TRACE_OBJECT(obj) _hb_trace_object (obj, &obj->ref_count, __FUNCTION__)
 
 
 
@@ -96,8 +95,11 @@ _hb_object_debug_out (const void *obj,
   likely (( \
 	       (void) ( \
 		 ((obj) = (Type *) calloc (1, sizeof (Type))) && \
-		 HB_OBJECT_DO_INIT_EXPR (obj) && \
-		 HB_OBJECT_DEBUG_OUT (obj) \
+		 ( \
+		  HB_OBJECT_DO_INIT_EXPR (obj), \
+		  TRACE_OBJECT (obj), \
+		  TRUE \
+		 ) \
 	       ), \
 	       (obj) \
 	     ))
@@ -107,7 +109,7 @@ _hb_object_debug_out (const void *obj,
     int old_count; \
     if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return obj; \
-    HB_OBJECT_DEBUG_OUT (obj); \
+    TRACE_OBJECT (obj); \
     old_count = hb_reference_count_inc (obj->ref_count); \
     assert (old_count > 0); \
     return obj; \
@@ -125,7 +127,7 @@ _hb_object_debug_out (const void *obj,
     int old_count; \
     if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return; \
-    HB_OBJECT_DEBUG_OUT (obj); \
+    TRACE_OBJECT (obj); \
     old_count = hb_reference_count_dec (obj->ref_count); \
     assert (old_count > 0); \
     if (old_count != 1) \
