@@ -247,7 +247,7 @@ const hb_direction_t horiz_dir[] =
 
   /* Unicode-4.0 additions */
   LTR,	/* Brai */
-  LTR,	/* Cprt */
+  RTL,	/* Cprt */
   LTR,	/* Limb */
   LTR,	/* Osma */
   LTR,	/* Shaw */
