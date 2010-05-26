@@ -52,7 +52,7 @@ HBSOURCES += \
 HBHEADERS += \
 	hb-ot.h \
 	hb-ot-layout.h \
-	hb-ot-shape-private.hh \
+	hb-ot-shape.h \
 	hb-ot-tag.h \
 	$(NULL)
 

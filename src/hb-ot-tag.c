@@ -161,7 +161,6 @@ hb_ot_tag_to_script (hb_tag_t tag)
     while (*p)
       if (tag == *p)
         return i;
-    p++;
   }
 
   return HB_SCRIPT_UNKNOWN;

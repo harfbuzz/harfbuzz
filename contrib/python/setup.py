@@ -13,8 +13,7 @@ setup(name='harfbuzz',
     maintainer_email='martin_hosken@sil.org',
     packages=['harfbuzz'],
     ext_modules = [
-        Extension("harfbuzz", ["lib/harfbuzz.pyx"], libraries=["harfbuzz"], library_dirs=["../../src/.libs"], include_dirs=["/usr/include/freetype2", "../../src"]),
-        Extension("fontconfig", ["lib/fontconfig.pyx"], libraries=["fontconfig"])
+        Extension("harfbuzz", ["lib/harfbuzz.pyx"], libraries=["harfbuzz"], library_dirs=["../../src/.libs"], include_dirs=["/usr/include/freetype2", "../../src"])
         ],
     cmdclass = {'build_ext' : build_ext},
     scripts = glob('scripts/*'),
