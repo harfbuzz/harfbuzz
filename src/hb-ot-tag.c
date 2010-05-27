@@ -157,8 +157,8 @@ hb_ot_tag_to_script (hb_tag_t tag)
   int i;
 
   for (i = 0; i < ARRAY_LENGTH (ot_scripts); i++) {
-    const hb_tag_t *p = ot_scripts[i];
-    while (*p)
+    const hb_tag_t *p;
+    for (p = ot_scripts[i]; *p; p++)
       if (tag == *p)
         return i;
   }
