@@ -83,28 +83,6 @@ add_feature (hb_face_t    *face,
   }
 }
 
-static hb_bool_t
-maybe_add_feature (hb_face_t    *face,
-		   hb_tag_t      table_tag,
-		   unsigned int  script_index,
-		   unsigned int  language_index,
-		   hb_tag_t      feature_tag,
-		   hb_mask_t     mask,
-		   lookup_map   *lookups,
-		   unsigned int *num_lookups,
-		   unsigned int  room_lookups)
-{
-  unsigned int feature_index;
-  if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
-					  feature_tag,
-					  &feature_index))
-  {
-    add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
-    return TRUE;
-  }
-  return FALSE;
-}
-
 static int
 cmp_lookups (const void *p1, const void *p2)
 {
@@ -112,6 +90,106 @@ cmp_lookups (const void *p1, const void *p2)
   const lookup_map *b = (const lookup_map *) p2;
 
   return a->index - b->index;
+}
+
+
+#define MAX_FEATURES 100
+
+struct feature_info {
+  hb_tag_t tag;
+  unsigned int index;
+  unsigned int value;
+  hb_mask_t mask;
+};
+
+struct feature_setup_state {
+  hb_mask_t global_mask;
+  unsigned int next_bit;
+  unsigned int count;
+  feature_info info[MAX_FEATURES];
+};
+
+static void
+collect_feature_info(hb_buffer_t *buffer,
+                     hb_face_t *face,
+                     hb_tag_t table_tag,
+                     unsigned int script_index,
+                     unsigned int language_index,
+                     const hb_feature_t &feature,
+                     feature_setup_state &fss,
+                     const hb_feature_t *features,
+                     unsigned int num_features)
+{
+  if (fss.count == MAX_FEATURES)
+    return; // FIXME - make the feature_info array growable?
+
+  unsigned int i, feature_index;
+  if (!hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
+					   feature.tag, &feature_index))
+      return;
+
+  fss.info[fss.count].tag = feature.tag;
+  fss.info[fss.count].index = feature_index;
+
+  // check if we have already allocated mask bits for this feature tag
+  for (i = 0; i < fss.count; ++i)
+  {
+    if (fss.info[i].tag == feature.tag)
+    {
+      fss.info[fss.count].mask = fss.info[i].mask;
+      fss.info[fss.count].value = feature.value << _hb_ctz(fss.info[fss.count].mask);
+      if (feature.start == 0 && feature.end == (unsigned int) -1)
+        fss.global_mask |= fss.info[fss.count].value;
+      else
+        buffer->set_masks(fss.info[fss.count].value, fss.info[fss.count].mask, feature.start, feature.end);
+      ++fss.count;
+      return;
+    }
+  }
+
+  // check if the feature occurs in remaining user features, as it might have a larger value there
+  hb_bool_t always_on = (feature.value == 1 && feature.start == 0 && feature.end == (unsigned int)-1);
+  unsigned int max_value = feature.value;
+  for (i = 0; i < num_features; ++i)
+  {
+    if (features[i].tag != feature.tag)
+      continue;
+    if (features[i].value > max_value)
+      max_value = features[i].value;
+    else if (features[i].value == 0 && features[i].start == 0 && features[i].end == (unsigned int)-1)
+      max_value = 0;
+  }
+
+  if (always_on && max_value == 1)
+  {
+    fss.info[fss.count].value = 1;
+    fss.info[fss.count].mask = 1;
+    fss.global_mask |= 1;
+    ++fss.count;
+    return;
+  }
+
+  // need to allocate specific mask bit(s) for this feature
+  unsigned int bits_needed = _hb_bit_storage(max_value);
+  if (!bits_needed || fss.next_bit + bits_needed > 8 * sizeof (hb_mask_t))
+  {
+    fss.info[fss.count].value = 0;
+    fss.info[fss.count].mask = 0;
+    ++fss.count;
+    return; // feature is disabled, just omit it; or
+            // not enough bits available in the mask, ignore this feature :(
+  }
+
+  // store the newly-allocated mask (in case further feature requests use the same tag)
+  // and shift the value into the right position
+  fss.info[fss.count].value = feature.value << fss.next_bit;
+  fss.info[fss.count].mask = (1 << (fss.next_bit + bits_needed)) - (1 << fss.next_bit);
+  if (feature.start == 0 && feature.end == (unsigned int) -1)
+    fss.global_mask |= fss.info[fss.count].value;
+  else
+    buffer->set_masks(fss.info[fss.count].value, fss.info[fss.count].mask, feature.start, feature.end);
+  fss.next_bit += bits_needed;
+  ++fss.count;
 }
 
 static void
@@ -140,16 +218,29 @@ setup_lookups (hb_face_t    *face,
 							&feature_index))
     add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
-  for (i = 0; i < ARRAY_LENGTH (default_features); i++)
-    maybe_add_feature (face, table_tag, script_index, language_index, default_features[i], 1, lookups, num_lookups, room_lookups);
+  // for features that may be turned on/off or have value > 1,
+  // we need to allocate bits in the mask
+
+  feature_setup_state fss;
+  fss.global_mask = 0;
+  fss.next_bit = MASK_BITS_USED;
+  fss.count = 0;
+
+  hb_feature_t feature = { 0, 1, 0, (unsigned int)-1 };
 
   switch (original_direction) {
     case HB_DIRECTION_LTR:
-      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('l','t','r','a'), 1, lookups, num_lookups, room_lookups);
-      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('l','t','r','m'), 1, lookups, num_lookups, room_lookups);
+      feature.tag = HB_TAG ('l','t','r','a');
+      collect_feature_info(buffer, face, table_tag, script_index, language_index,
+                           feature, fss, features, num_features);
+      feature.tag = HB_TAG ('l','t','r','m');
+      collect_feature_info(buffer, face, table_tag, script_index, language_index,
+                           feature, fss, features, num_features);
       break;
     case HB_DIRECTION_RTL:
-      maybe_add_feature (face, table_tag, script_index, language_index, HB_TAG ('r','t','l','a'), 1, lookups, num_lookups, room_lookups);
+      feature.tag = HB_TAG ('r','t','l','a');
+      collect_feature_info(buffer, face, table_tag, script_index, language_index,
+                           feature, fss, features, num_features);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -157,44 +248,25 @@ setup_lookups (hb_face_t    *face,
       break;
   }
 
-  unsigned int next_bit = MASK_BITS_USED;
-  hb_mask_t global_mask = 0;
-  for (i = 0; i < num_features; i++)
+  for (i = 0; i < ARRAY_LENGTH (default_features); i++)
   {
-    hb_feature_t *feature = &features[i];
-    if (!hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
-					     feature->tag,
-					     &feature_index))
-      continue;
-
-    if (feature->value == 1 && feature->start == 0 && feature->end == (unsigned int) -1) {
-      add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
-      continue;
-    }
-
-    /* Allocate bits for the features */
-
-    unsigned int bits_needed = _hb_bit_storage (feature->value);
-    if (!bits_needed)
-      continue; /* Feature disabled */
-
-    if (next_bit + bits_needed > 8 * sizeof (hb_mask_t))
-      continue; /* Oh well... */
-
-    unsigned int mask = (1 << (next_bit + bits_needed)) - (1 << next_bit);
-    unsigned int value = feature->value << next_bit;
-    next_bit += bits_needed;
-
-    add_feature (face, table_tag, feature_index, mask, lookups, num_lookups, room_lookups);
-
-    if (feature->start == 0 && feature->end == (unsigned int) -1)
-      global_mask |= value;
-    else
-      buffer->or_masks (mask, feature->start, feature->end);
+    feature.tag = default_features[i];
+    collect_feature_info(buffer, face, table_tag, script_index, language_index,
+                         feature, fss, features, num_features);
   }
 
-  if (global_mask)
-    buffer->or_masks (global_mask, 0, (unsigned int) -1);
+  for (i = 0; i < num_features; i++)
+  {
+    collect_feature_info(buffer, face, table_tag, script_index, language_index,
+                         features[i], fss, features + i + 1, num_features - i - 1);
+  }
+
+  for (i = 0; i < fss.count; ++i)
+    if (fss.info[i].mask)
+      add_feature (face, table_tag, fss.info[i].index, fss.info[i].mask, lookups, num_lookups, room_lookups);
+
+  if (fss.global_mask > 1) // the 0x01 bit was set by clear_masks()
+    buffer->set_masks (fss.global_mask, fss.global_mask, 0, (unsigned int) -1);
 
   qsort (lookups, *num_lookups, sizeof (lookups[0]), cmp_lookups);
 
@@ -219,7 +291,7 @@ hb_ot_substitute_complex (hb_font_t    *font HB_UNUSED,
 			  unsigned int  num_features,
 			  hb_direction_t original_direction)
 {
-  lookup_map lookups[1000];
+  lookup_map lookups[1000]; /* FIXME */
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
   unsigned int i;
 

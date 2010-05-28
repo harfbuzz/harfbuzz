@@ -466,15 +466,18 @@ _hb_buffer_clear_masks (hb_buffer_t *buffer)
 }
 
 void
-_hb_buffer_or_masks (hb_buffer_t *buffer,
-		     hb_mask_t    mask,
-		     unsigned int cluster_start,
-		     unsigned int cluster_end)
+_hb_buffer_set_masks (hb_buffer_t *buffer,
+		      hb_mask_t    value,
+		      hb_mask_t    mask,
+		      unsigned int cluster_start,
+		      unsigned int cluster_end)
 {
+  hb_mask_t not_mask = ~mask;
+
   if (cluster_start == 0 && cluster_end == (unsigned int)-1) {
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++)
-      buffer->info[i].mask |= mask;
+      buffer->info[i].mask = (buffer->info[i].mask & not_mask) | value;
     return;
   }
 
@@ -490,7 +493,7 @@ _hb_buffer_or_masks (hb_buffer_t *buffer,
   }
   unsigned int count = buffer->len;
   for (unsigned int i = min; i < count && buffer->info[i].cluster < cluster_end; i++)
-    buffer->info[i].mask |= mask;
+    buffer->info[i].mask = (buffer->info[i].mask & not_mask) | value;
 }
 
 
