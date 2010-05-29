@@ -581,38 +581,42 @@ hb_ot_shape (hb_font_t    *font,
   hb_form_clusters (buffer);
 
   /* SUBSTITUTE */
+  {
 
-  buffer->clear_masks ();
+    buffer->clear_masks ();
 
-  /* Mirroring needs to see the original direction */
-  hb_mirror_chars (buffer);
+    /* Mirroring needs to see the original direction */
+    hb_mirror_chars (buffer);
 
-  original_direction = hb_ensure_native_direction (buffer);
+    original_direction = hb_ensure_native_direction (buffer);
 
-  hb_substitute_default (font, face, buffer, features, num_features);
+    hb_substitute_default (font, face, buffer, features, num_features);
 
-  substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features, original_direction);
+    substitute_fallback = !hb_ot_substitute_complex (font, face, buffer, features, num_features, original_direction);
 
-  if (substitute_fallback)
-    hb_substitute_complex_fallback (font, face, buffer, features, num_features);
+    if (substitute_fallback)
+      hb_substitute_complex_fallback (font, face, buffer, features, num_features);
 
+  }
 
   /* POSITION */
+  {
 
-  buffer->clear_masks ();
+    buffer->clear_masks ();
 
-  hb_position_default (font, face, buffer, features, num_features);
+    hb_position_default (font, face, buffer, features, num_features);
 
-  position_fallback = !hb_ot_position_complex (font, face, buffer, features, num_features, original_direction);
+    position_fallback = !hb_ot_position_complex (font, face, buffer, features, num_features, original_direction);
 
-  if (position_fallback)
-    hb_position_complex_fallback (font, face, buffer, features, num_features);
+    if (position_fallback)
+      hb_position_complex_fallback (font, face, buffer, features, num_features);
 
-  if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
-    hb_buffer_reverse (buffer);
+    if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
+      hb_buffer_reverse (buffer);
 
-  if (position_fallback)
-    hb_position_complex_fallback_visual (font, face, buffer, features, num_features);
+    if (position_fallback)
+      hb_position_complex_fallback_visual (font, face, buffer, features, num_features);
+  }
 
   buffer->direction = original_direction;
 }
