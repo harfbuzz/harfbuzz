@@ -133,15 +133,7 @@ struct hb_mask_allocator_t {
     }
   };
 
-  hb_mask_allocator_t (hb_face_t *face,
-		       hb_tag_t table_tag,
-		       unsigned int script_index,
-		       unsigned int language_index) :
-    face (face),
-    table_tag (table_tag),
-    script_index (script_index),
-    language_index (language_index),
-    count (0) {}
+  hb_mask_allocator_t (void) : count (0) {}
 
   void add_feature (hb_tag_t tag,
 		    unsigned int value,
@@ -153,7 +145,10 @@ struct hb_mask_allocator_t {
     info->global = global;
   }
 
-  void compile (void)
+  void compile (hb_face_t *face,
+		hb_tag_t table_tag,
+		unsigned int script_index,
+		unsigned int language_index)
   {
     global_mask = 0;
     next_bit = MASK_BITS_USED;
@@ -227,10 +222,6 @@ struct hb_mask_allocator_t {
 
 
   private:
-  hb_face_t *face;
-  hb_tag_t table_tag;
-  unsigned int script_index;
-  unsigned int language_index;
 
   unsigned int count;
   feature_info_t infos[MAX_FEATURES];
@@ -267,7 +258,7 @@ setup_lookups (hb_face_t    *face,
     add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
 
-  hb_mask_allocator_t allocator (face, table_tag, script_index, language_index);
+  hb_mask_allocator_t allocator;
 
   switch (original_direction) {
     case HB_DIRECTION_LTR:
@@ -297,7 +288,7 @@ setup_lookups (hb_face_t    *face,
 
 
   /* Compile features */
-  allocator.compile ();
+  allocator.compile (face, table_tag, script_index, language_index);
 
 
   /* Gather lookup indices for features and set buffer masks at the same time */
