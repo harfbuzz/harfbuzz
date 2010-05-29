@@ -136,35 +136,20 @@ struct hb_mask_allocator_t {
   hb_mask_allocator_t (hb_face_t *face,
 		       hb_tag_t table_tag,
 		       unsigned int script_index,
-		       unsigned int language_index,
-		       const hb_feature_t *features,
-		       unsigned int num_features) :
+		       unsigned int language_index) :
     face (face),
     table_tag (table_tag),
     script_index (script_index),
     language_index (language_index),
-    count (0)
-  {
-    if (!num_features)
-      return;
+    count (0) {}
 
-    /* Add features in reverse order */
-    for (unsigned int i = num_features - 1, count = 0; count < num_features; i--, count++) {
-      const hb_feature_t *feature = &features[i];
-      feature_info_t *info = &infos[count];
-
-      info->tag = feature->tag;
-      info->value = feature->value;
-      info->global = (feature->start == 0 && feature->end == (unsigned int) -1);
-    }
-  }
-
-  void add_binary_feature (hb_tag_t tag,
-			   bool global)
+  void add_feature (hb_tag_t tag,
+		    unsigned int value,
+		    bool global)
   {
     feature_info_t *info = &infos[count++];
     info->tag = tag;
-    info->value = 1;
+    info->value = value;
     info->global = global;
   }
 
@@ -278,17 +263,17 @@ setup_lookups (hb_face_t    *face,
     add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
 
-  hb_mask_allocator_t allocator (face, table_tag, script_index, language_index, features, num_features);
+  hb_mask_allocator_t allocator (face, table_tag, script_index, language_index);
 
   switch (original_direction) {
     case HB_DIRECTION_LTR:
-      allocator.add_binary_feature (HB_TAG ('l','t','r','a'), true);
-      allocator.add_binary_feature (HB_TAG ('l','t','r','m'), true);
+      allocator.add_feature (HB_TAG ('l','t','r','a'), 1, true);
+      allocator.add_feature (HB_TAG ('l','t','r','m'), 1, true);
       break;
     case HB_DIRECTION_RTL:
-      allocator.add_binary_feature (HB_TAG ('r','t','l','a'), true);
-      //allocator.add_binary_feature (HB_TAG ('r','t','l','m'), false);
-      allocator.add_binary_feature (HB_TAG ('r','t','l','m'), true);
+      allocator.add_feature (HB_TAG ('r','t','l','a'), 1, true);
+      //allocator.add_feature (HB_TAG ('r','t','l','m'), false);
+      allocator.add_feature (HB_TAG ('r','t','l','m'), 1, true);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -297,7 +282,14 @@ setup_lookups (hb_face_t    *face,
   }
 
   for (i = 0; i < ARRAY_LENGTH (default_features); i++)
-    allocator.add_binary_feature (default_features[i], true);
+    allocator.add_feature (default_features[i], 1, true);
+
+  /* XXX complex-shaper features go here */
+
+  for (unsigned int i = 0; i < num_features; i++) {
+    const hb_feature_t *feature = &features[i];
+    allocator.add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+  }
 
 
   /* Compile features */
