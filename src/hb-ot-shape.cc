@@ -168,8 +168,12 @@ struct hb_mask_allocator_t {
       if (infos[i].tag != infos[j].tag)
 	infos[++j] = infos[i];
       else {
-	if (!infos[j].global)
+	if (infos[i].global)
+	  infos[j] = infos[i];
+	else {
+	  infos[j].global = infos[j].global && (infos[j].value == infos[i].value);
 	  infos[j].value = MAX (infos[j].value, infos[i].value);
+	}
       }
     count = j + 1;
 
