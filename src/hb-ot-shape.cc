@@ -102,6 +102,7 @@ struct hb_mask_allocator_t {
   struct feature_info_t {
     hb_tag_t tag;
     unsigned int value;
+    unsigned int seq;
     bool global;
 
     static int
@@ -113,7 +114,7 @@ struct hb_mask_allocator_t {
       if (a->tag != b->tag)
         return a->tag < b->tag ? -1 : 1;
 
-      return p1 < p2 ? -1 : 1;
+      return a->seq < b->seq ? -1 : 1;
     }
   };
 
@@ -142,6 +143,7 @@ struct hb_mask_allocator_t {
     feature_info_t *info = &infos[count++];
     info->tag = tag;
     info->value = value;
+    info->seq = count;
     info->global = global;
   }
 
