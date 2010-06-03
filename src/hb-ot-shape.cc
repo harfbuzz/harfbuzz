@@ -474,16 +474,18 @@ hb_map_glyphs (hb_font_t    *font,
   if (unlikely (!buffer->len))
     return;
 
+  buffer->clear_output ();
   unsigned int count = buffer->len - 1;
-  for (unsigned int i = 0; i < count; i++) {
-    if (unlikely (is_variation_selector (buffer->info[i + 1].codepoint))) {
-      buffer->info[i].codepoint = hb_font_get_glyph (font, face, buffer->info[i].codepoint, buffer->info[i + 1].codepoint);
-      i++;
+  for (buffer->i = 0; buffer->i < count;) {
+    if (unlikely (is_variation_selector (buffer->info[buffer->i + 1].codepoint))) {
+      buffer->add_output_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint));
+      buffer->i++;
     } else {
-      buffer->info[i].codepoint = hb_font_get_glyph (font, face, buffer->info[i].codepoint, 0);
+      buffer->add_output_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0));
     }
   }
-  buffer->info[count].codepoint = hb_font_get_glyph (font, face, buffer->info[count].codepoint, 0);
+  buffer->add_output_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0));
+  buffer->swap ();
 }
 
 static void
