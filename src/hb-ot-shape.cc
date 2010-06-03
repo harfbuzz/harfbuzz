@@ -484,7 +484,8 @@ hb_map_glyphs (hb_font_t    *font,
       buffer->add_output_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0));
     }
   }
-  buffer->add_output_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0));
+  if (likely (buffer->i < buffer->len))
+    buffer->add_output_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0));
   buffer->swap ();
 }
 
