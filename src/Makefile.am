@@ -113,7 +113,9 @@ main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
 
 TESTS = \
-	check-internal-symbols.sh
+	check-header-guards.sh \
+	check-internal-symbols.sh \
+	$(NULL)
 
 if HAVE_ICU
 else
