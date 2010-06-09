@@ -25,8 +25,8 @@
  * Red Hat Author(s): Owen Taylor, Behdad Esfahbod
  */
 
-#ifndef HB_BUFFER_PRIVATE_H
-#define HB_BUFFER_PRIVATE_H
+#ifndef HB_BUFFER_PRIVATE_HH
+#define HB_BUFFER_PRIVATE_HH
 
 #include "hb-private.h"
 #include "hb-buffer.h"
@@ -170,4 +170,4 @@ struct _hb_buffer_t {
 
 HB_END_DECLS
 
-#endif /* HB_BUFFER_PRIVATE_H */
+#endif /* HB_BUFFER_PRIVATE_HH */
