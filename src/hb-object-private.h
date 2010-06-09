@@ -27,8 +27,8 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_REFCOUNT_PRIVATE_H
-#define HB_REFCOUNT_PRIVATE_H
+#ifndef HB_OBJECT_PRIVATE_H
+#define HB_OBJECT_PRIVATE_H
 
 #include "hb-private.h"
 
@@ -136,4 +136,4 @@ _hb_trace_object (const void *obj,
 
 
 
-#endif /* HB_REFCOUNT_PRIVATE_H */
+#endif /* HB_OBJECT_PRIVATE_H */

@@ -24,8 +24,8 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_LAYOUT_PRIVATE_H
-#define HB_OT_LAYOUT_PRIVATE_H
+#ifndef HB_OT_LAYOUT_PRIVATE_HH
+#define HB_OT_LAYOUT_PRIVATE_HH
 
 #include "hb-private.h"
 
@@ -120,4 +120,4 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
 
 HB_END_DECLS
 
-#endif /* HB_OT_LAYOUT_PRIVATE_H */
+#endif /* HB_OT_LAYOUT_PRIVATE_HH */

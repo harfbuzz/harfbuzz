@@ -41,4 +41,4 @@ hb_ot_shape (hb_font_t    *font,
 
 HB_END_DECLS
 
-#endif /* HB_OT_SHAPE_PRIVATE_H */
+#endif /* HB_OT_SHAPE_H */
