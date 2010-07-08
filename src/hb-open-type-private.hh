@@ -394,6 +394,7 @@ struct IntType
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
   inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
+  inline int cmp (Type b) const { Type a = v; return b < a ? -1 : b == a ? 0 : +1; }
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     return likely (c->check_struct (this));
@@ -704,6 +705,54 @@ struct HeadlessArrayOf
   Type array[VAR];
   public:
   DEFINE_SIZE_ARRAY (sizeof (USHORT), array);
+};
+
+
+/* An array with sorted elements.  Supports binary searching. */
+template <typename Type>
+struct SortedArrayOf : ArrayOf<Type> {
+
+  template <typename SearchType>
+  inline int search (const SearchType &x) const {
+    class Cmp {
+      public: static int cmp (const void *p1, const void *p2) {
+	const SearchType *a = (const SearchType *) p1;
+	const Type *b = (const Type *) p2;
+	return b->cmp (*a);
+      }
+    };
+    const Type *p = (const Type *) bsearch (&x, this->array, this->len, sizeof (this->array[0]), Cmp::cmp);
+    return p ? p - this->array : -1;
+  }
+
+  inline bool sanitize_order (hb_sanitize_context_t *c) {
+    /* Make sure the list is sorted, since we bsearch in it. */
+    unsigned int count = this->len;
+    for (unsigned int i = 1; i < count; i++)
+      if (unlikely (this->array[i].cmp (this->array[i-1]) > 0)) {
+	/* We need to sort the entries. */
+	if (!c->can_edit (this, this->get_size ())) return false;
+	class Cmp {
+	  public: static int cmp (const void *p1, const void *p2) {
+	    const Type *a = (const Type *) p1;
+	    const Type *b = (const Type *) p2;
+	    return b->cmp (*a);
+	  }
+	};
+	qsort (this->array, this->len, sizeof (this->array[0]), Cmp::cmp);
+      }
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE ();
+    return ArrayOf<Type>::sanitize (c) && sanitize_order (c);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
+    TRACE_SANITIZE ();
+    return ArrayOf<Type>::sanitize (c, base) && sanitize_order (c);
+  }
 };
 
 

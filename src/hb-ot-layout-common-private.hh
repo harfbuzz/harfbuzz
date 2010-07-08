@@ -51,6 +51,14 @@
 template <typename Type>
 struct Record
 {
+  inline int cmp (const Record &other) const {
+    return cmp (other.tag);
+  }
+  inline int cmp (hb_tag_t b) const {
+    hb_tag_t a = tag;
+    return b < a ? -1 : b == a ? 0 : -1;
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
     return c->check_struct (this)
@@ -66,7 +74,7 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : ArrayOf<Record<Type> > {
+struct RecordArrayOf : SortedArrayOf<Record<Type> > {
   inline const Tag& get_tag (unsigned int i) const
   {
     if (unlikely (i >= this->len)) return Null(Tag);
@@ -86,21 +94,14 @@ struct RecordArrayOf : ArrayOf<Record<Type> > {
   }
   inline bool find_index (hb_tag_t tag, unsigned int *index) const
   {
-    Tag t;
-    t.set (tag);
-    /* TODO: bsearch (need to sort in sanitize) */
-    const Record<Type> *a = this->array;
-    unsigned int count = this->len;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      if (t == a[i].tag)
-      {
+    int i = this->search (tag);
+    if (i != -1) {
         if (index) *index = i;
         return true;
-      }
+    } else {
+      if (index) *index = Index::NOT_FOUND_INDEX;
+      return false;
     }
-    if (index) *index = Index::NOT_FOUND_INDEX;
-    return false;
   }
 };
 
@@ -115,6 +116,31 @@ struct RecordListOf : RecordArrayOf<Type>
     return RecordArrayOf<Type>::sanitize (c, this);
   }
 };
+
+
+struct RangeRecord
+{
+  inline int cmp (const RangeRecord &other) const {
+    hb_codepoint_t a = start, b = other.start;
+    return b < a ? -1 : b == a ? 0 : +1;
+  }
+  inline int cmp (hb_codepoint_t g) const {
+    hb_codepoint_t a = start, b = end;
+    return g < a ? -1 : g <= b ? 0 : +1 ;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE ();
+    return c->check_struct (this);
+  }
+
+  GlyphID	start;		/* First GlyphID in the range */
+  GlyphID	end;		/* Last GlyphID in the range */
+  USHORT	value;		/* Value */
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+DEFINE_NULL_DATA (RangeRecord, "\000\001");
 
 
 struct IndexArray : ArrayOf<Index>
@@ -318,14 +344,8 @@ struct CoverageFormat1
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    if (unlikely (glyph_id > 0xFFFF))
-      return NOT_COVERED;
-    GlyphID gid;
-    gid.set (glyph_id);
-    /* TODO: bsearch (need to sort in sanitize) */
-    unsigned int num_glyphs = glyphArray.len;
-    for (unsigned int i = 0; i < num_glyphs; i++)
-      if (gid == glyphArray[i])
+    int i = glyphArray.search (glyph_id);
+    if (i != -1)
         return i;
     return NOT_COVERED;
   }
@@ -337,39 +357,11 @@ struct CoverageFormat1
 
   private:
   USHORT	coverageFormat;	/* Format identifier--format = 1 */
-  ArrayOf<GlyphID>
+  SortedArrayOf<GlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
   public:
   DEFINE_SIZE_ARRAY (4, glyphArray);
 };
-
-struct CoverageRangeRecord
-{
-  friend struct CoverageFormat2;
-
-  private:
-  inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
-  {
-    if (glyph_id >= start && glyph_id <= end)
-      return (unsigned int) startCoverageIndex + (glyph_id - start);
-    return NOT_COVERED;
-  }
-
-  public:
-  inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
-    return c->check_struct (this);
-  }
-
-  private:
-  GlyphID	start;			/* First GlyphID in the range */
-  GlyphID	end;			/* Last GlyphID in the range */
-  USHORT	startCoverageIndex;	/* Coverage Index of first GlyphID in
-					 * range */
-  public:
-  DEFINE_SIZE_STATIC (6);
-};
-DEFINE_NULL_DATA (CoverageRangeRecord, "\000\001");
 
 struct CoverageFormat2
 {
@@ -378,13 +370,10 @@ struct CoverageFormat2
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    /* TODO: bsearch (need to sort in sanitize) */
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      unsigned int coverage = rangeRecord[i].get_coverage (glyph_id);
-      if (coverage != NOT_COVERED)
-        return coverage;
+    int i = rangeRecord.search (glyph_id);
+    if (i != -1) {
+      const RangeRecord &range = rangeRecord[i];
+      return (unsigned int) range.value + (glyph_id - range.start);
     }
     return NOT_COVERED;
   }
@@ -396,7 +385,7 @@ struct CoverageFormat2
 
   private:
   USHORT	coverageFormat;	/* Format identifier--format = 2 */
-  ArrayOf<CoverageRangeRecord>
+  SortedArrayOf<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID. rangeCount entries
 				 * long */
@@ -468,33 +457,6 @@ struct ClassDefFormat1
   DEFINE_SIZE_ARRAY (6, classValue);
 };
 
-struct ClassRangeRecord
-{
-  friend struct ClassDefFormat2;
-
-  private:
-  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
-  {
-    if (glyph_id >= start && glyph_id <= end)
-      return classValue;
-    return 0;
-  }
-
-  public:
-  inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
-    return c->check_struct (this);
-  }
-
-  private:
-  GlyphID	start;		/* First GlyphID in the range */
-  GlyphID	end;		/* Last GlyphID in the range */
-  USHORT	classValue;	/* Applied to all glyphs in the range */
-  public:
-  DEFINE_SIZE_STATIC (6);
-};
-DEFINE_NULL_DATA (ClassRangeRecord, "\000\001");
-
 struct ClassDefFormat2
 {
   friend struct ClassDef;
@@ -502,14 +464,9 @@ struct ClassDefFormat2
   private:
   inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
   {
-    /* TODO: bsearch (need to sort in sanitize) */
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      int classValue = rangeRecord[i].get_class (glyph_id);
-      if (classValue > 0)
-        return classValue;
-    }
+    int i = rangeRecord.search (glyph_id);
+    if (i != -1)
+      return rangeRecord[i].value;
     return 0;
   }
 
@@ -519,7 +476,7 @@ struct ClassDefFormat2
   }
 
   USHORT	classFormat;	/* Format identifier--format = 2 */
-  ArrayOf<ClassRangeRecord>
+  SortedArrayOf<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID */
   public:
