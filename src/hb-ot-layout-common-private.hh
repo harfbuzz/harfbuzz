@@ -51,9 +51,6 @@
 template <typename Type>
 struct Record
 {
-  inline int cmp (const Record &other) const {
-    return cmp (other.tag);
-  }
   inline int cmp (hb_tag_t b) const {
     hb_tag_t a = tag;
     return b < a ? -1 : b == a ? 0 : -1;
@@ -120,10 +117,6 @@ struct RecordListOf : RecordArrayOf<Type>
 
 struct RangeRecord
 {
-  inline int cmp (const RangeRecord &other) const {
-    hb_codepoint_t a = start, b = other.start;
-    return b < a ? -1 : b == a ? 0 : +1;
-  }
   inline int cmp (hb_codepoint_t g) const {
     hb_codepoint_t a = start, b = end;
     return g < a ? -1 : g <= b ? 0 : +1 ;
