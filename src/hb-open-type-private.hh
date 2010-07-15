@@ -191,8 +191,9 @@ struct hb_sanitize_context_t
     this->debug_depth = 0;
 
     if (HB_DEBUG_SANITIZE)
-      fprintf (stderr, "sanitize %p init [%p..%p] (%u bytes)\n",
-	       this->blob, this->start, this->end, this->end - this->start);
+      fprintf (stderr, "sanitize %p init [%p..%p] (%lu bytes)\n",
+	       this->blob, this->start, this->end,
+	       (unsigned long) (this->end - this->start));
   }
 
   inline void finish (void)

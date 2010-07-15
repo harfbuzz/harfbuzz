@@ -247,15 +247,15 @@ _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
     return FALSE;
   }
   if (HB_DEBUG_BLOB)
-    fprintf (stderr, "%p %s: pagesize is %u\n", blob, __FUNCTION__, pagesize);
+    fprintf (stderr, "%p %s: pagesize is %lu\n", blob, __FUNCTION__, (unsigned long) pagesize);
 
   mask = ~(pagesize-1);
   addr = (const char *) (((uintptr_t) blob->data) & mask);
   length = (const char *) (((uintptr_t) blob->data + blob->length + pagesize-1) & mask)  - addr;
   if (HB_DEBUG_BLOB)
-    fprintf (stderr, "%p %s: calling mprotect on [%p..%p] (%d bytes)\n",
+    fprintf (stderr, "%p %s: calling mprotect on [%p..%p] (%lu bytes)\n",
 	     blob, __FUNCTION__,
-	     addr, addr+length, length);
+	     addr, addr+length, (unsigned long) length);
   if (-1 == mprotect ((void *) addr, length, PROT_READ | PROT_WRITE)) {
     if (HB_DEBUG_BLOB)
       fprintf (stderr, "%p %s: %s\n", blob, __FUNCTION__, strerror (errno));
@@ -263,9 +263,9 @@ _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
   }
 
   if (HB_DEBUG_BLOB)
-    fprintf (stderr, "%p %s: successfully made [%p..%p] (%d bytes) writable\n",
+    fprintf (stderr, "%p %s: successfully made [%p..%p] (%lu bytes) writable\n",
 	     blob, __FUNCTION__,
-	     addr, addr+length, length);
+	     addr, addr+length, (unsigned long) length);
   return TRUE;
 #else
   return FALSE;
