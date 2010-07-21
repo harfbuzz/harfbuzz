@@ -1,3 +1,4 @@
+- GNOME Bug 612402 - (hb-arm) HarfBuzz compilation fix for arm
 
 - kern/GPOS interaction
 
