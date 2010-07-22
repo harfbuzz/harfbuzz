@@ -1,5 +1,7 @@
 - GNOME Bug 612402 - (hb-arm) HarfBuzz compilation fix for arm
 
+- Make sure LangSys default feature is only applied once...
+
 - kern/GPOS interaction
 
 - Use size_t in sanitize?
