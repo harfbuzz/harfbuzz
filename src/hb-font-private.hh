@@ -31,8 +31,6 @@
 
 #include "hb-font.h"
 
-#include "hb-ot-head-private.hh"
-
 HB_BEGIN_DECLS
 
 /*
