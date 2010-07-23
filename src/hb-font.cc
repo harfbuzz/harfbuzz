@@ -26,7 +26,7 @@
 
 #include "hb-private.h"
 
-#include "hb-font-private.hh"
+#include "hb-font-private.h"
 #include "hb-blob-private.h"
 #include "hb-open-file-private.hh"
 

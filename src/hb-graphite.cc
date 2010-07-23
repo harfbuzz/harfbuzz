@@ -29,7 +29,7 @@
 #include <graphite/GrConstants.h>
 #include <graphite/Segment.h>
 #include "hb-buffer-private.hh"
-#include "hb-font-private.hh"
+#include "hb-font-private.h"
 #include "hb-graphite.h"
 #include <map>
 

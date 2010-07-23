@@ -32,7 +32,7 @@
 #include "hb-ot-layout.h"
 #include "hb-ot-head-private.hh"
 
-#include "hb-font-private.hh"
+#include "hb-font-private.h"
 #include "hb-buffer-private.hh"
 
 

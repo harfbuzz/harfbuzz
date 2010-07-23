@@ -24,8 +24,8 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_FONT_PRIVATE_HH
-#define HB_FONT_PRIVATE_HH
+#ifndef HB_FONT_PRIVATE_H
+#define HB_FONT_PRIVATE_H
 
 #include "hb-private.h"
 
@@ -92,4 +92,4 @@ struct _hb_font_t {
 
 HB_END_DECLS
 
-#endif /* HB_FONT_PRIVATE_HH */
+#endif /* HB_FONT_PRIVATE_H */

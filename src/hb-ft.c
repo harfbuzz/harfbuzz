@@ -29,7 +29,7 @@
 
 #include "hb-ft.h"
 
-#include "hb-font-private.hh"
+#include "hb-font-private.h"
 
 #include FT_TRUETYPE_TABLES_H
 

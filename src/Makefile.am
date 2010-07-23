@@ -16,7 +16,7 @@ HBSOURCES =  \
 	hb-buffer-private.hh \
 	hb-common.c \
 	hb-font.cc \
-	hb-font-private.hh \
+	hb-font-private.h \
 	hb-object-private.h \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
@@ -82,7 +82,7 @@ if HAVE_FREETYPE
 HBCFLAGS += $(FREETYPE_CFLAGS)
 HBLIBS   += $(FREETYPE_LIBS)
 HBSOURCES += \
-	hb-ft.cc \
+	hb-ft.c \
 	$(NULL)
 HBHEADERS += \
 	hb-ft.h \
