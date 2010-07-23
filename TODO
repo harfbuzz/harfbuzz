@@ -1,3 +1,6 @@
+- head table access cleanup (div by zero now!)
+- cache various expensive scale computation
+
 - GNOME Bug 612402 - (hb-arm) HarfBuzz compilation fix for arm
 
 - Make sure LangSys default feature is only applied once...
