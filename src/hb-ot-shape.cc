@@ -197,7 +197,7 @@ struct hb_mask_allocator_t {
       map->tag = info->tag;
       map->index = feature_index;
       if (info->global && info->value == 1) {
-        /* Uses the global bit */
+        /* Use the global bit */
         map->shift = 0;
 	map->mask = 1;
       } else {
