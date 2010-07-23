@@ -29,6 +29,8 @@
 
 #include "hb-ot-layout-gsubgpos-private.hh"
 
+HB_BEGIN_DECLS
+
 
 struct SingleSubstFormat1
 {
@@ -541,8 +543,9 @@ struct LigatureSubst
 };
 
 
-
+HB_BEGIN_DECLS
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index);
+HB_END_DECLS
 
 struct ContextSubst : Context
 {
@@ -935,5 +938,7 @@ static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup
   return l.apply_once (c->layout, c->buffer, c->lookup_mask, c->context_length, c->nesting_level_left - 1);
 }
 
+
+HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_GSUB_PRIVATE_HH */

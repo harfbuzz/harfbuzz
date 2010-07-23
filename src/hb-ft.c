@@ -33,6 +33,9 @@
 
 #include FT_TRUETYPE_TABLES_H
 
+HB_BEGIN_DECLS
+
+
 static hb_codepoint_t
 hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
 		 hb_face_t *face HB_UNUSED,
@@ -145,7 +148,7 @@ hb_ft_get_font_funcs (void)
 
 
 static hb_blob_t *
-_get_table  (hb_tag_t tag, void *user_data)
+get_table  (hb_tag_t tag, void *user_data)
 {
   FT_Face ft_face = (FT_Face) user_data;
   FT_Byte *buffer;
@@ -191,7 +194,7 @@ hb_ft_face_create (FT_Face           ft_face,
     face = hb_face_create_for_data (blob, ft_face->face_index);
     hb_blob_destroy (blob);
   } else {
-    face = hb_face_create_for_tables (_get_table, destroy, ft_face);
+    face = hb_face_create_for_tables (get_table, destroy, ft_face);
   }
 
   return face;
@@ -238,3 +241,6 @@ hb_ft_font_create (FT_Face           ft_face,
 
   return font;
 }
+
+
+HB_END_DECLS

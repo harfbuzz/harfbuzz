@@ -31,6 +31,8 @@
 
 #include "hb-blob.h"
 
+HB_BEGIN_DECLS
+HB_END_DECLS
 
 
 /*
@@ -727,5 +729,8 @@ struct SortedArrayOf : ArrayOf<Type> {
   }
 };
 
+
+HB_BEGIN_DECLS
+HB_END_DECLS
 
 #endif /* HB_OPEN_TYPE_PRIVATE_HH */

@@ -113,6 +113,7 @@ main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
 
 TESTS = \
+	check-c-linkage-decls.sh \
 	check-header-guards.sh \
 	check-internal-symbols.sh \
 	$(NULL)

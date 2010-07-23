@@ -32,6 +32,9 @@
 
 #include "hb-ot-layout.h"
 
+HB_BEGIN_DECLS
+
+
 /* XXX vertical */
 hb_tag_t default_features[] = {
   HB_TAG('c','a','l','t'),
@@ -625,3 +628,6 @@ hb_ot_shape (hb_font_t    *font,
 
   buffer->direction = original_direction;
 }
+
+
+HB_END_DECLS

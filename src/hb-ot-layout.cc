@@ -38,6 +38,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+HB_BEGIN_DECLS
+
 
 hb_ot_layout_t *
 _hb_ot_layout_new (hb_face_t *face)
@@ -644,3 +646,6 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
 	}
     }
 }
+
+
+HB_END_DECLS

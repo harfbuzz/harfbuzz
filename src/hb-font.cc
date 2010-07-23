@@ -34,6 +34,8 @@
 
 #include <string.h>
 
+HB_BEGIN_DECLS
+
 
 /*
  * hb_font_funcs_t
@@ -467,3 +469,5 @@ hb_font_set_ppem (hb_font_t *font,
   font->y_ppem = y_ppem;
 }
 
+
+HB_END_DECLS

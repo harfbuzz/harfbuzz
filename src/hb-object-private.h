@@ -32,6 +32,7 @@
 
 #include "hb-private.h"
 
+HB_BEGIN_DECLS
 
 
 /* Encapsulate operations on the object's reference count */
@@ -135,5 +136,6 @@ _hb_trace_object (const void *obj,
   } HB_STMT_END
 
 
+HB_END_DECLS
 
 #endif /* HB_OBJECT_PRIVATE_H */

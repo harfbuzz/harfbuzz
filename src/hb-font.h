@@ -32,6 +32,7 @@
 
 HB_BEGIN_DECLS
 
+
 typedef struct _hb_face_t hb_face_t;
 typedef struct _hb_font_t hb_font_t;
 

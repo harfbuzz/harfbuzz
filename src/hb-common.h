@@ -27,6 +27,17 @@
 #ifndef HB_COMMON_H
 #define HB_COMMON_H
 
+# ifdef __cplusplus
+#  define HB_BEGIN_DECLS	extern "C" {
+#  define HB_END_DECLS		}
+# else /* !__cplusplus */
+#  define HB_BEGIN_DECLS
+#  define HB_END_DECLS
+# endif /* !__cplusplus */
+
+HB_BEGIN_DECLS
+
+
 #ifdef _MSC_VER
 #define _HB__STR2__(x) #x
 #define _HB__STR1__(x) _HB__STR2__(x)
@@ -46,14 +57,6 @@ typedef unsigned long long uint64_t;
 #else
 #include <stdint.h>
 #endif
-
-# ifdef __cplusplus
-#  define HB_BEGIN_DECLS	extern "C" {
-#  define HB_END_DECLS		}
-# else /* !__cplusplus */
-#  define HB_BEGIN_DECLS
-#  define HB_END_DECLS
-# endif /* !__cplusplus */
 
 typedef int hb_bool_t;
 
@@ -87,5 +90,7 @@ typedef enum _hb_direction_t {
 #define HB_DIRECTION_IS_BACKWARD(dir)	((((unsigned int) (dir)) & ~2U) == 1)
 #define HB_DIRECTION_REVERSE(dir)	((hb_direction_t) (((unsigned int) (dir)) ^ 1))
 
+
+HB_END_DECLS
 
 #endif /* HB_COMMON_H */

@@ -34,6 +34,7 @@
 
 HB_BEGIN_DECLS
 
+
 typedef struct _hb_buffer_t hb_buffer_t;
 
 typedef struct _hb_glyph_info_t {

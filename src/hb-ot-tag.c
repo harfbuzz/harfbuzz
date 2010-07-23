@@ -29,6 +29,8 @@
 
 #include <string.h>
 
+HB_BEGIN_DECLS
+
 
 /*
  * Complete list at:
@@ -694,3 +696,6 @@ hb_ot_tag_to_language (hb_tag_t tag)
   buf[10] = '\0';
   return hb_language_from_string ((char *) buf);
 }
+
+
+HB_END_DECLS

@@ -35,6 +35,9 @@
 #include <unicode/uchar.h>
 #include <unicode/uscript.h>
 
+HB_BEGIN_DECLS
+
+
 static hb_codepoint_t hb_icu_get_mirroring (hb_codepoint_t unicode) { return u_charMirror(unicode); }
 static unsigned int hb_icu_get_combining_class (hb_codepoint_t unicode) { return u_getCombiningClass (unicode); }
 
@@ -246,3 +249,6 @@ hb_icu_get_unicode_funcs (void)
 {
   return &icu_ufuncs;
 }
+
+
+HB_END_DECLS

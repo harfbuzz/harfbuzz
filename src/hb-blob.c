@@ -35,12 +35,15 @@
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 
+#include <stdio.h>
+#include <errno.h>
+
+HB_BEGIN_DECLS
+
+
 #ifndef HB_DEBUG_BLOB
 #define HB_DEBUG_BLOB HB_DEBUG+0
 #endif
-
-#include <stdio.h>
-#include <errno.h>
 
 hb_blob_t _hb_blob_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
@@ -273,7 +276,7 @@ _try_make_writable_inplace_unix_locked (hb_blob_t *blob)
 }
 
 static void
-_try_writable_inplace_locked (hb_blob_t *blob)
+try_writable_inplace_locked (hb_blob_t *blob)
 {
   if (HB_DEBUG_BLOB)
     fprintf (stderr, "%p %s: making writable\n", blob, __FUNCTION__);
@@ -301,7 +304,7 @@ hb_blob_try_writable_inplace (hb_blob_t *blob)
   hb_mutex_lock (blob->lock);
 
   if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
-    _try_writable_inplace_locked (blob);
+    try_writable_inplace_locked (blob);
 
   mode = blob->mode;
 
@@ -321,7 +324,7 @@ hb_blob_try_writable (hb_blob_t *blob)
   hb_mutex_lock (blob->lock);
 
   if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
-    _try_writable_inplace_locked (blob);
+    try_writable_inplace_locked (blob);
 
   if (blob->mode == HB_MEMORY_MODE_READONLY)
   {
@@ -354,3 +357,6 @@ done:
 
   return mode == HB_MEMORY_MODE_WRITABLE;
 }
+
+
+HB_END_DECLS

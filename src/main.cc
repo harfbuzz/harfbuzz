@@ -35,6 +35,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+HB_BEGIN_DECLS
+
+
 int
 main (int argc, char **argv)
 {
@@ -188,3 +191,6 @@ main (int argc, char **argv)
 
   return 0;
 }
+
+
+HB_END_DECLS

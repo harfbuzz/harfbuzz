@@ -28,6 +28,9 @@
 
 #include "hb-unicode-private.h"
 
+HB_BEGIN_DECLS
+
+
 /*
  * hb_unicode_funcs_t
  */
@@ -313,3 +316,6 @@ _hb_script_get_horizontal_direction (hb_script_t script)
 
   return horiz_dir[script];
 }
+
+
+HB_END_DECLS

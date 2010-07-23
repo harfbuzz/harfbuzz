@@ -29,6 +29,9 @@
 
 #include "hb-open-type-private.hh"
 
+HB_BEGIN_DECLS
+
+
 /*
  * head
  */
@@ -124,5 +127,7 @@ struct head
   DEFINE_SIZE_STATIC (54);
 };
 
+
+HB_END_DECLS
 
 #endif /* HB_OT_HEAD_PRIVATE_HH */

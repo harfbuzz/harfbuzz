@@ -35,8 +35,8 @@
 #include "hb-font-private.h"
 #include "hb-buffer-private.hh"
 
-
 HB_BEGIN_DECLS
+
 
 typedef unsigned int hb_ot_layout_class_t;
 
@@ -118,6 +118,7 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
 			 hb_internal_glyph_info_t *ginfo,
 			 unsigned int  lookup_flags,
 			 unsigned int *property);
+
 
 HB_END_DECLS
 

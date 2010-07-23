@@ -29,6 +29,8 @@
 
 #include <string.h>
 
+HB_BEGIN_DECLS
+
 
 static hb_buffer_t _hb_buffer_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
@@ -96,7 +98,7 @@ _hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
   return likely (size <= buffer->allocated) ? TRUE : _hb_buffer_enlarge (buffer, size);
 }
 
-static hb_bool_t
+static inline hb_bool_t
 _hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 {
   if (unlikely (!_hb_buffer_ensure (buffer, size))) return FALSE;
@@ -692,3 +694,6 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
   ADD_UTF (uint32_t);
 #undef UTF_NEXT
 }
+
+
+HB_END_DECLS

@@ -31,6 +31,8 @@
 
 #include "hb-font-private.h"
 
+HB_BEGIN_DECLS
+
 
 /*
  * Attachment List Table
@@ -396,5 +398,7 @@ struct GDEF
   DEFINE_SIZE_ARRAY (12, markGlyphSetsDef);
 };
 
+
+HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_GDEF_PRIVATE_HH */

@@ -31,6 +31,7 @@
 
 HB_BEGIN_DECLS
 
+
 /* Unicode General Category property */
 typedef enum
 {

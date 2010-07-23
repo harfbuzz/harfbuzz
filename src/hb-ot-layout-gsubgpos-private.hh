@@ -30,6 +30,8 @@
 #include "hb-buffer-private.hh"
 #include "hb-ot-layout-gdef-private.hh"
 
+HB_BEGIN_DECLS
+
 
 #ifndef HB_DEBUG_APPLY
 #define HB_DEBUG_APPLY HB_DEBUG+0
@@ -38,6 +40,8 @@
 #define TRACE_APPLY() \
 	hb_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", HB_FUNC, this); \
 
+
+HB_BEGIN_DECLS
 
 struct hb_apply_context_t
 {
@@ -164,6 +168,8 @@ static inline bool match_lookahead (hb_apply_context_t *c,
   return true;
 }
 
+HB_END_DECLS
+
 
 struct LookupRecord
 {
@@ -179,6 +185,9 @@ struct LookupRecord
   public:
   DEFINE_SIZE_STATIC (4);
 };
+
+
+HB_BEGIN_DECLS
 
 static inline bool apply_lookup (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
@@ -235,6 +244,8 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 
   return true;
 }
+
+HB_END_DECLS
 
 
 /* Contextual lookups */
@@ -938,5 +949,7 @@ struct GSUBGPOS
   DEFINE_SIZE_STATIC (10);
 };
 
+
+HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH */

@@ -44,6 +44,8 @@
 #include <stdio.h>
 #include <errno.h>
 
+HB_BEGIN_DECLS
+
 
 /* Essentials */
 
@@ -258,5 +260,8 @@ _hb_trace (const char *what,
 
 
 #include "hb-object-private.h"
+
+
+HB_END_DECLS
 
 #endif /* HB_PRIVATE_H */

@@ -33,6 +33,9 @@
 #include "hb-graphite.h"
 #include <map>
 
+HB_BEGIN_DECLS
+
+
 namespace TtfUtil
 {
 extern int FontAscent(const void *pOS2);
@@ -302,3 +305,6 @@ hb_graphite_shape (hb_font_t    *font,
   delete[] firsts;
   delete[] flags;
 }
+
+
+HB_END_DECLS
