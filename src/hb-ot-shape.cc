@@ -50,12 +50,6 @@ hb_tag_t default_features[] = {
   HB_TAG('r','l','i','g')
 };
 
-enum {
-  MASK_ALWAYS_ON = 1 << 0,
-  MASK_RTLM      = 1 << 1
-};
-#define MASK_BITS_USED 2
-
 struct lookup_map {
   unsigned int index;
   hb_mask_t mask;
@@ -156,7 +150,7 @@ struct hb_mask_allocator_t {
 		unsigned int language_index)
   {
     global_mask = 0;
-    next_bit = MASK_BITS_USED;
+    unsigned int next_bit = 1;
 
     if (!count)
       return;
@@ -230,10 +224,9 @@ struct hb_mask_allocator_t {
 
   unsigned int count;
   feature_info_t infos[MAX_FEATURES];
-  feature_map_t maps[MAX_FEATURES];
 
+  feature_map_t maps[MAX_FEATURES];
   hb_mask_t global_mask;
-  unsigned int next_bit;
 };
 
 static void
@@ -252,10 +245,10 @@ setup_lookups (hb_face_t    *face,
   *num_lookups = 0;
 
   hb_ot_layout_table_choose_script (face, table_tag,
-				    hb_ot_tags_from_script (buffer->script),
+				    hb_ot_tags_from_script (buffer->props.script),
 				    &script_index);
   hb_ot_layout_script_find_language (face, table_tag, script_index,
-				     hb_ot_tag_from_language (buffer->language),
+				     hb_ot_tag_from_language (buffer->props.language),
 				     &language_index);
 
   if (hb_ot_layout_language_get_required_feature_index (face, table_tag, script_index, language_index,
@@ -272,8 +265,7 @@ setup_lookups (hb_face_t    *face,
       break;
     case HB_DIRECTION_RTL:
       allocator.add_feature (HB_TAG ('r','t','l','a'), 1, true);
-      //allocator.add_feature (HB_TAG ('r','t','l','m'), false);
-      allocator.add_feature (HB_TAG ('r','t','l','m'), 1, true);
+      allocator.add_feature (HB_TAG ('r','t','l','m'), 1, false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -314,8 +306,8 @@ setup_lookups (hb_face_t    *face,
     case HB_DIRECTION_RTL:
       map = allocator.find_feature (HB_TAG ('r','t','l','a'));
       add_feature (face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
-      //map = allocator.find_feature (HB_TAG ('r','t','l','m'));
-      add_feature (face, table_tag, map->index, MASK_RTLM, lookups, num_lookups, room_lookups);
+      map = allocator.find_feature (HB_TAG ('r','t','l','m'));
+      add_feature (face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -435,14 +427,14 @@ hb_form_clusters (hb_buffer_t *buffer)
 static hb_direction_t
 hb_ensure_native_direction (hb_buffer_t *buffer)
 {
-  hb_direction_t original_direction = buffer->direction;
+  hb_direction_t original_direction = buffer->props.direction;
 
   /* TODO vertical */
   if (HB_DIRECTION_IS_HORIZONTAL (original_direction) &&
-      original_direction != _hb_script_get_horizontal_direction (buffer->script))
+      original_direction != _hb_script_get_horizontal_direction (buffer->props.script))
   {
     hb_buffer_reverse_clusters (buffer);
-    buffer->direction = HB_DIRECTION_REVERSE (buffer->direction);
+    buffer->props.direction = HB_DIRECTION_REVERSE (buffer->props.direction);
   }
 
   return original_direction;
@@ -456,14 +448,16 @@ hb_mirror_chars (hb_buffer_t *buffer)
 {
   hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->v.get_mirroring;
 
-  if (HB_DIRECTION_IS_FORWARD (buffer->direction))
+  if (HB_DIRECTION_IS_FORWARD (buffer->props.direction))
     return;
+
+//  map = allocator.find_feature (HB_TAG ('r','t','l','m'));
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++) {
     hb_codepoint_t codepoint = get_mirroring (buffer->info[i].codepoint);
     if (likely (codepoint == buffer->info[i].codepoint))
-      buffer->info[i].mask |= MASK_RTLM;
+;//      buffer->info[i].mask |= map->mask;
     else
       buffer->info[i].codepoint = codepoint;
   }
@@ -590,7 +584,6 @@ hb_ot_shape (hb_font_t    *font,
 
   /* SUBSTITUTE */
   {
-
     buffer->clear_masks ();
 
     /* Mirroring needs to see the original direction */
@@ -604,12 +597,10 @@ hb_ot_shape (hb_font_t    *font,
 
     if (substitute_fallback)
       hb_substitute_complex_fallback (font, face, buffer, features, num_features);
-
   }
 
   /* POSITION */
   {
-
     buffer->clear_masks ();
 
     hb_position_default (font, face, buffer, features, num_features);
@@ -619,14 +610,14 @@ hb_ot_shape (hb_font_t    *font,
     if (position_fallback)
       hb_position_complex_fallback (font, face, buffer, features, num_features);
 
-    if (HB_DIRECTION_IS_BACKWARD (buffer->direction))
+    if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
       hb_buffer_reverse (buffer);
 
     if (position_fallback)
       hb_position_complex_fallback_visual (font, face, buffer, features, num_features);
   }
 
-  buffer->direction = original_direction;
+  buffer->props.direction = original_direction;
 }
 
 

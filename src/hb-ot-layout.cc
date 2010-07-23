@@ -634,7 +634,7 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
       pos[i].x_offset += pos[back].x_offset;
       pos[i].y_offset += pos[back].y_offset;
 
-      if (buffer->direction == HB_DIRECTION_RTL)
+      if (buffer->props.direction == HB_DIRECTION_RTL)
 	for (j = back + 1; j < i + 1; j++) {
 	  pos[i].x_offset += pos[j].x_advance;
 	  pos[i].y_offset += pos[j].y_advance;

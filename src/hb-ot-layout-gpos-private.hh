@@ -967,7 +967,7 @@ struct CursivePosFormat1
 
     /* TODO vertical */
 
-    if (c->buffer->direction == HB_DIRECTION_RTL)
+    if (c->buffer->props.direction == HB_DIRECTION_RTL)
     {
       /* advance is absolute, not relative */
       c->buffer->pos[c->buffer->i].x_advance = entry_x - gpi->anchor_x;

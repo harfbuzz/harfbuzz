@@ -111,9 +111,12 @@ struct _hb_buffer_t {
 
   /* Information about how the text in the buffer should be treated */
   hb_unicode_funcs_t *unicode;
-  hb_direction_t      direction;
-  hb_script_t         script;
-  hb_language_t       language;
+
+  struct properties_t {
+    hb_direction_t      direction;
+    hb_script_t         script;
+    hb_language_t       language;
+  } props;
 
   /* Buffer contents */
 

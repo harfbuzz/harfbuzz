@@ -182,39 +182,39 @@ hb_buffer_set_direction (hb_buffer_t    *buffer,
 			 hb_direction_t  direction)
 
 {
-  buffer->direction = direction;
+  buffer->props.direction = direction;
 }
 
 hb_direction_t
 hb_buffer_get_direction (hb_buffer_t    *buffer)
 {
-  return buffer->direction;
+  return buffer->props.direction;
 }
 
 void
 hb_buffer_set_script (hb_buffer_t *buffer,
 		      hb_script_t  script)
 {
-  buffer->script = script;
+  buffer->props.script = script;
 }
 
 hb_script_t
 hb_buffer_get_script (hb_buffer_t *buffer)
 {
-  return buffer->script;
+  return buffer->props.script;
 }
 
 void
 hb_buffer_set_language (hb_buffer_t   *buffer,
 			hb_language_t  language)
 {
-  buffer->language = language;
+  buffer->props.language = language;
 }
 
 hb_language_t
 hb_buffer_get_language (hb_buffer_t *buffer)
 {
-  return buffer->language;
+  return buffer->props.language;
 }
 
 
