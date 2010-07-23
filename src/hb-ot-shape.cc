@@ -251,10 +251,6 @@ setup_lookups (hb_face_t    *face,
 				     hb_ot_tag_from_language (buffer->props.language),
 				     &language_index);
 
-  if (hb_ot_layout_language_get_required_feature_index (face, table_tag, script_index, language_index,
-							&feature_index))
-    add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
-
 
   hb_mask_allocator_t allocator;
 
@@ -289,6 +285,10 @@ setup_lookups (hb_face_t    *face,
 
 
   /* Gather lookup indices for features and set buffer masks at the same time */
+
+  if (hb_ot_layout_language_get_required_feature_index (face, table_tag, script_index, language_index,
+							&feature_index))
+    add_feature (face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
   const hb_mask_allocator_t::feature_map_t *map;
 
