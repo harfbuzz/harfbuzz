@@ -92,7 +92,7 @@ cmp_lookups (const void *p1, const void *p2)
 }
 
 
-#define MAX_FEATURES 100
+#define MAX_FEATURES 100 /* FIXME */
 
 struct hb_mask_allocator_t {
 
