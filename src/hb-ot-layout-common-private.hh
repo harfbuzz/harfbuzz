@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007,2008,2009  Red Hat, Inc.
+ * Copyright (C) 2010  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OT_LAYOUT_COMMON_PRIVATE_HH
@@ -519,15 +521,30 @@ struct ClassDef
 
 struct Device
 {
-  /* XXX speed up */
 
   inline hb_position_t get_x_delta (hb_ot_layout_context_t *c) const
-  { return c->font->x_ppem ? get_delta (c->font->x_ppem) * (uint64_t) c->font->x_scale / c->font->x_ppem : 0; }
+  { return get_delta (c->font->x_ppem, c->font->x_scale); }
 
   inline hb_position_t get_y_delta (hb_ot_layout_context_t *c) const
-  { return c->font->y_ppem ? get_delta (c->font->y_ppem) * (uint64_t) c->font->y_scale / c->font->y_ppem : 0; }
+  { return get_delta (c->font->y_ppem, c->font->y_scale); }
 
-  inline int get_delta (unsigned int ppem_size) const
+  inline int get_delta (unsigned int ppem, unsigned int scale) const
+  {
+    if (!ppem) return 0;
+
+    int pixels = get_delta_pixels (ppem);
+
+    if (!pixels) return 0;
+
+    /* pixels is at most in the -8..7 range.  So 64-bit arithmetic is
+     * not really necessary here.  A simple cast to int may just work
+     * as well.  But since this code is not reached that often and
+     * for the sake of correctness, we do a 64bit operation. */
+    return pixels * (int64_t) scale / ppem;
+  }
+
+
+  inline int get_delta_pixels (unsigned int ppem_size) const
   {
     unsigned int f = deltaFormat;
     if (unlikely (f < 1 || f > 3))
