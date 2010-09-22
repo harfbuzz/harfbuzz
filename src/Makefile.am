@@ -106,11 +106,15 @@ libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 pkginclude_HEADERS = $(HBHEADERS)
 
-noinst_PROGRAMS = main
+noinst_PROGRAMS = main test
 
 main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
+
+test_SOURCES = test.c
+test_CPPFLAGS = $(HBCFLAGS)
+test_LDADD = libharfbuzz.la $(HBLIBS)
 
 TESTS = \
 	check-c-linkage-decls.sh \
