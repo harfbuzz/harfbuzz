@@ -71,6 +71,8 @@ _hb_ot_layout_free (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gpos_blob);
 
   free (layout->new_gdef.klasses);
+
+  free (layout);
 }
 
 static const GDEF&
