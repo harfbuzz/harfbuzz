@@ -312,9 +312,7 @@ hb_face_t *
 hb_face_create_for_data (hb_blob_t    *blob,
 			 unsigned int  index)
 {
-  hb_blob_reference (blob);
-  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (blob), index);
-  hb_blob_destroy (blob);
+  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (hb_blob_reference (blob)), index);
 
   if (unlikely (!closure))
     return &_hb_face_nil;
