@@ -1,3 +1,5 @@
+- Rename get_table to reference_table
+
 - head table access cleanup (div by zero now!)
 - cache various expensive scale computation
 
