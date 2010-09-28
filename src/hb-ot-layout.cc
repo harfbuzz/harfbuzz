@@ -373,7 +373,8 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   if (g.find_script_index (HB_OT_TAG_DEFAULT_SCRIPT, script_index))
     return FALSE;
 
-  /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
+  /* try with 'dflt'; MS site has had typos and many fonts use it now :(.
+   * including many versions of DejaVu Sans Mono! */
   if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index))
     return FALSE;
 
