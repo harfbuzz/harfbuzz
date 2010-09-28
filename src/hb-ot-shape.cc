@@ -105,8 +105,8 @@ struct hb_mask_allocator_t {
     static int
     cmp (const void *p1, const void *p2)
     {
-      const feature_info_t *a = (const feature_info_t *) p1;
-      const feature_info_t *b = (const feature_info_t *) p2;
+      const feature_info_t *a = reinterpret_cast<const feature_info_t *>(p1);
+      const feature_info_t *b = reinterpret_cast<const feature_info_t *>(p2);
 
       if (a->tag != b->tag)
         return a->tag < b->tag ? -1 : 1;
@@ -124,8 +124,8 @@ struct hb_mask_allocator_t {
     static int
     cmp (const void *p1, const void *p2)
     {
-      const feature_map_t *a = (const feature_map_t *) p1;
-      const feature_map_t *b = (const feature_map_t *) p2;
+      const feature_map_t *a = reinterpret_cast<const feature_map_t *>(p1);
+      const feature_map_t *b = reinterpret_cast<const feature_map_t *>(p2);
 
       return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0;
     }

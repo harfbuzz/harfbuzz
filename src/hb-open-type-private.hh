@@ -397,7 +397,7 @@ struct IntType
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
   inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
-  inline int cmp (Type b) const { Type a = v; return b < a ? -1 : b == a ? 0 : +1; }
+  inline int cmp (Type a) const { Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     return likely (c->check_struct (this));
@@ -719,8 +719,8 @@ struct SortedArrayOf : ArrayOf<Type> {
   inline int search (const SearchType &x) const {
     class Cmp {
       public: static int cmp (const void *p1, const void *p2) {
-	const SearchType *a = (const SearchType *) p1;
-	const Type *b = (const Type *) p2;
+	const SearchType *a = reinterpret_cast<const SearchType *>(p1);
+	const Type *b = reinterpret_cast<const Type *>(p2);
 	return b->cmp (*a);
       }
     };

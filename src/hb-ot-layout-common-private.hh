@@ -56,9 +56,9 @@ HB_END_DECLS
 template <typename Type>
 struct Record
 {
-  inline int cmp (hb_tag_t b) const {
-    hb_tag_t a = tag;
-    return b < a ? -1 : b == a ? 0 : +1;
+  inline int cmp (hb_tag_t a) const {
+    hb_tag_t b = tag;
+    return a < b ? -1 : a == b ? 0 : +1;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
