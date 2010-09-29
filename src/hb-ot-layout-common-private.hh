@@ -57,8 +57,7 @@ template <typename Type>
 struct Record
 {
   inline int cmp (hb_tag_t a) const {
-    hb_tag_t b = tag;
-    return a < b ? -1 : a == b ? 0 : +1;
+    return tag.cmp (a);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
