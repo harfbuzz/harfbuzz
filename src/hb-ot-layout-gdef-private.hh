@@ -333,22 +333,22 @@ struct GDEF
     ComponentGlyph	= 4
   };
 
-  inline bool has_glyph_classes () const { return glyphClassDef != 0; }
+  inline bool has_glyph_classes (void) const { return glyphClassDef != 0; }
   inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const
   { return (this+glyphClassDef).get_class (glyph); }
 
-  inline bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
+  inline bool has_mark_attachment_types (void) const { return markAttachClassDef != 0; }
   inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const
   { return (this+markAttachClassDef).get_class (glyph); }
 
-  inline bool has_attach_points () const { return attachList != 0; }
+  inline bool has_attach_points (void) const { return attachList != 0; }
   inline unsigned int get_attach_points (hb_codepoint_t glyph_id,
 					 unsigned int start_offset,
 					 unsigned int *point_count /* IN/OUT */,
 					 unsigned int *point_array /* OUT */) const
   { return (this+attachList).get_attach_points (glyph_id, start_offset, point_count, point_array); }
 
-  inline bool has_lig_carets () const { return ligCaretList != 0; }
+  inline bool has_lig_carets (void) const { return ligCaretList != 0; }
   inline unsigned int get_lig_carets (hb_ot_layout_context_t *c,
 				      hb_codepoint_t glyph_id,
 				      unsigned int start_offset,
@@ -356,7 +356,7 @@ struct GDEF
 				      int *caret_array /* OUT */) const
   { return (this+ligCaretList).get_lig_carets (c, glyph_id, start_offset, caret_count, caret_array); }
 
-  inline bool has_mark_sets () const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
+  inline bool has_mark_sets (void) const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return version >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
 

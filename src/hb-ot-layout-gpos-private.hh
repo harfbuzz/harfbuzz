@@ -84,9 +84,9 @@ struct ValueFormat : USHORT
 					 * PosTable (may be NULL) */
 #endif
 
-  inline unsigned int get_len () const
+  inline unsigned int get_len (void) const
   { return _hb_popcount32 ((unsigned int) *this); }
-  inline unsigned int get_size () const
+  inline unsigned int get_size (void) const
   { return get_len () * Value::static_size; }
 
   void apply_value (hb_ot_layout_context_t       *layout,
@@ -154,7 +154,7 @@ struct ValueFormat : USHORT
 
   public:
 
-  inline bool has_device () const {
+  inline bool has_device (void) const {
     unsigned int format = *this;
     return (format & devices) != 0;
   }

@@ -126,7 +126,7 @@ static const void *_NullPool[64 / sizeof (void *)];
 
 /* Generic nul-content Null objects. */
 template <typename Type>
-static inline const Type& Null () {
+static inline const Type& Null (void) {
   ASSERT_STATIC (Type::min_size <= sizeof (_NullPool));
   return *CastP<Type> (_NullPool);
 }
@@ -135,7 +135,7 @@ static inline const Type& Null () {
 #define DEFINE_NULL_DATA(Type, data) \
 static const char _Null##Type[Type::min_size + 1] = data; /* +1 is for nul-termination in data */ \
 template <> \
-inline const Type& Null<Type> () { \
+inline const Type& Null<Type> (void) { \
   return *CastP<Type> (_Null##Type); \
 } /* The following line really exists such that we end in a place needing semicolon */ \
 ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
@@ -373,7 +373,7 @@ class BEInt<Type, 2>
 {
   public:
   inline void set (Type i) { hb_be_uint16_put (v,i); }
-  inline operator Type () const { return hb_be_uint16_get (v); }
+  inline operator Type (void) const { return hb_be_uint16_get (v); }
   inline bool operator == (const BEInt<Type, 2>& o) const { return hb_be_uint16_cmp (v, o.v); }
   inline bool operator != (const BEInt<Type, 2>& o) const { return !(*this == o); }
   private: uint8_t v[2];
@@ -383,7 +383,7 @@ class BEInt<Type, 4>
 {
   public:
   inline void set (Type i) { hb_be_uint32_put (v,i); }
-  inline operator Type () const { return hb_be_uint32_get (v); }
+  inline operator Type (void) const { return hb_be_uint32_get (v); }
   inline bool operator == (const BEInt<Type, 4>& o) const { return hb_be_uint32_cmp (v, o.v); }
   inline bool operator != (const BEInt<Type, 4>& o) const { return !(*this == o); }
   private: uint8_t v[4];
@@ -571,7 +571,7 @@ struct GenericArrayOf
     if (unlikely (i >= len)) return Null(Type);
     return array[i];
   }
-  inline unsigned int get_size () const
+  inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -677,7 +677,7 @@ struct HeadlessArrayOf
     if (unlikely (i >= len || !i)) return Null(Type);
     return array[i-1];
   }
-  inline unsigned int get_size () const
+  inline unsigned int get_size (void) const
   { return len.static_size + (len ? len - 1 : 0) * Type::static_size; }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *c) {

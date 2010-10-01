@@ -566,7 +566,7 @@ struct Device
     return delta;
   }
 
-  inline unsigned int get_size () const
+  inline unsigned int get_size (void) const
   {
     unsigned int f = deltaFormat;
     if (unlikely (f < 1 || f > 3 || startSize > endSize)) return 3 * USHORT::static_size;
