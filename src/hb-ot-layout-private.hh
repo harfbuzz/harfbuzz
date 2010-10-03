@@ -70,16 +70,18 @@ struct hb_ot_layout_context_t
   {
     struct gpos_t
     {
-      unsigned int last;        /* the last valid glyph--used with cursive positioning */
+      unsigned int last;        /* the last matched glyph--used with cursive positioning */
       hb_position_t anchor_x;   /* the coordinates of the anchor point */
-      hb_position_t anchor_y;   /* of the last valid glyph */
+      hb_position_t anchor_y;   /* of the last matched glyph */
     } gpos;
   } info;
 
   /* Convert from font-space to user-space */
-  /* XXX speed up */
-  inline hb_position_t scale_x (int16_t v) { return (int64_t) this->font->x_scale * v / this->face->head_table->get_upem (); }
-  inline hb_position_t scale_y (int16_t v) { return (int64_t) this->font->y_scale * v / this->face->head_table->get_upem (); }
+  inline hb_position_t scale_x (int16_t v) { return scale (v, this->font->x_scale); }
+  inline hb_position_t scale_y (int16_t v) { return scale (v, this->font->y_scale); }
+
+  private:
+  inline hb_position_t scale (int16_t v, unsigned int scale) { return v * (int64_t) scale / this->face->head_table->get_upem (); }
 };
 
 
