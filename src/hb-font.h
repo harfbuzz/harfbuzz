@@ -78,6 +78,9 @@ hb_blob_t *
 hb_face_get_table (hb_face_t *face,
 		   hb_tag_t   tag);
 
+unsigned int
+hb_face_get_upem (hb_face_t *face);
+
 
 /*
  * hb_font_funcs_t

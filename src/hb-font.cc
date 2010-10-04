@@ -397,6 +397,12 @@ hb_face_get_table (hb_face_t *face,
   return blob;
 }
 
+unsigned int
+hb_face_get_upem (hb_face_t *face)
+{
+  return (face->head_table ? face->head_table : &Null(head))->get_upem ();
+}
+
 
 /*
  * hb_font_t
