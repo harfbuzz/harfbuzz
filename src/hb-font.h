@@ -61,7 +61,19 @@ hb_face_get_reference_count (hb_face_t *face);
 void
 hb_face_destroy (hb_face_t *face);
 
-/* Returns NULL if not found */
+/* XXX
+ *
+ * I have two major concerns about this API as it is right now:
+ *
+ *   - Jonathan Kew convinced me to make it return NULL if table not found (280af1bd),
+ *     however, that is WRONG IMO.  The API should not differentiate between a non-existing
+ *     table vs a zero-length table vs a very short table.  It only leads to implementations
+ *     that check for non-NULL and assume that they've got a usable table going on...  This
+ *     actually happened with Firefox.
+ *
+ *   - It has to be renamed to reference_table() since unlike any other _get_ API, a reference
+ *     ownership transfer happens and the user is responsible to destroy the result.
+ */
 hb_blob_t *
 hb_face_get_table (hb_face_t *face,
 		   hb_tag_t   tag);
@@ -196,7 +208,8 @@ hb_font_set_funcs (hb_font_t         *font,
  *
  * The client is responsible for:
  *
- *   - Take ownership of the reference on the returned klass
+ *   - Take ownership of the reference on the returned klass,
+ *
  *   - Calling "destroy(user_data)" exactly once if returned destroy func
  *     is not NULL and the returned info is not needed anymore.
  */
