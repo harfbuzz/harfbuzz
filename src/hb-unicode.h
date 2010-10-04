@@ -202,7 +202,12 @@ void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs);
 
 
-/* funcs */
+/*
+ * funcs
+ */
+
+
+/* typedefs */
 
 typedef hb_codepoint_t (*hb_unicode_get_mirroring_func_t) (hb_codepoint_t unicode);
 typedef hb_category_t (*hb_unicode_get_general_category_func_t) (hb_codepoint_t unicode);
@@ -210,6 +215,8 @@ typedef hb_script_t (*hb_unicode_get_script_func_t) (hb_codepoint_t unicode);
 typedef unsigned int (*hb_unicode_get_combining_class_func_t) (hb_codepoint_t unicode);
 typedef unsigned int (*hb_unicode_get_eastasian_width_func_t) (hb_codepoint_t unicode);
 
+
+/* setters */
 
 void
 hb_unicode_funcs_set_mirroring_func (hb_unicode_funcs_t *ufuncs,
@@ -231,6 +238,28 @@ void
 hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_get_eastasian_width_func_t eastasian_width_func);
 
+
+/* getters */
+
+/* These never return NULL.  Return fallback defaults instead. */
+
+hb_unicode_get_mirroring_func_t
+hb_unicode_funcs_get_mirroring_func (hb_unicode_funcs_t *ufuncs);
+
+hb_unicode_get_general_category_func_t
+hb_unicode_funcs_get_general_category_func (hb_unicode_funcs_t *ufuncs);
+
+hb_unicode_get_script_func_t
+hb_unicode_funcs_get_script_func (hb_unicode_funcs_t *ufuncs);
+
+hb_unicode_get_combining_class_func_t
+hb_unicode_funcs_get_combining_class_func (hb_unicode_funcs_t *ufuncs);
+
+hb_unicode_get_eastasian_width_func_t
+hb_unicode_funcs_get_eastasian_width_func (hb_unicode_funcs_t *ufuncs);
+
+
+/* accessors */
 
 hb_codepoint_t
 hb_unicode_get_mirroring (hb_unicode_funcs_t *ufuncs,

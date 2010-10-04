@@ -160,6 +160,38 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 }
 
 
+hb_unicode_get_mirroring_func_t
+hb_unicode_funcs_get_mirroring_func (hb_unicode_funcs_t *ufuncs)
+{
+  return ufuncs->v.get_mirroring;
+}
+
+hb_unicode_get_general_category_func_t
+hb_unicode_funcs_get_general_category_func (hb_unicode_funcs_t *ufuncs)
+{
+  return ufuncs->v.get_general_category;
+}
+
+hb_unicode_get_script_func_t
+hb_unicode_funcs_get_script_func (hb_unicode_funcs_t *ufuncs)
+{
+  return ufuncs->v.get_script;
+}
+
+hb_unicode_get_combining_class_func_t
+hb_unicode_funcs_get_combining_class_func (hb_unicode_funcs_t *ufuncs)
+{
+  return ufuncs->v.get_combining_class;
+}
+
+hb_unicode_get_eastasian_width_func_t
+hb_unicode_funcs_get_eastasian_width_func (hb_unicode_funcs_t *ufuncs)
+{
+  return ufuncs->v.get_eastasian_width;
+}
+
+
+
 hb_codepoint_t
 hb_unicode_get_mirroring (hb_unicode_funcs_t *ufuncs,
 			  hb_codepoint_t unicode)

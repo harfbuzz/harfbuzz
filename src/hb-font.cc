@@ -183,6 +183,32 @@ hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
 }
 
 
+hb_font_get_glyph_func_t
+hb_font_funcs_get_glyph_func (hb_font_funcs_t *ffuncs)
+{
+  return ffuncs->v.get_glyph;
+}
+
+hb_font_get_contour_point_func_t
+hb_font_funcs_get_contour_point_func (hb_font_funcs_t *ffuncs)
+{
+  return ffuncs->v.get_contour_point;
+}
+
+hb_font_get_glyph_metrics_func_t
+hb_font_funcs_get_glyph_metrics_func (hb_font_funcs_t *ffuncs)
+{
+  return ffuncs->v.get_glyph_metrics;
+}
+
+hb_font_get_kerning_func_t
+hb_font_funcs_get_kerning_func (hb_font_funcs_t *ffuncs)
+{
+  return ffuncs->v.get_kerning;
+}
+
+
+
 hb_codepoint_t
 hb_font_get_glyph (hb_font_t *font, hb_face_t *face,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector)
@@ -444,6 +470,26 @@ hb_font_set_funcs (hb_font_t         *font,
 }
 
 void
+hb_font_unset_funcs (hb_font_t          *font,
+		     hb_font_funcs_t   **klass,
+		     hb_destroy_func_t  *destroy,
+		     void              **user_data)
+{
+  /* None of the input arguments can be NULL. */
+
+  *klass = font->klass;
+  *destroy = font->destroy;
+  *user_data = font->user_data;
+
+  if (HB_OBJECT_IS_INERT (font))
+    return;
+
+  font->klass = NULL;
+  font->destroy = NULL;
+  font->user_data = NULL;
+}
+
+void
 hb_font_set_scale (hb_font_t *font,
 		   unsigned int x_scale,
 		   unsigned int y_scale)
@@ -456,6 +502,15 @@ hb_font_set_scale (hb_font_t *font,
 }
 
 void
+hb_font_get_scale (hb_font_t *font,
+		   unsigned int *x_scale,
+		   unsigned int *y_scale)
+{
+  if (x_scale) *x_scale = font->x_scale;
+  if (y_scale) *y_scale = font->y_scale;
+}
+
+void
 hb_font_set_ppem (hb_font_t *font,
 		  unsigned int x_ppem,
 		  unsigned int y_ppem)
@@ -465,6 +520,15 @@ hb_font_set_ppem (hb_font_t *font,
 
   font->x_ppem = x_ppem;
   font->y_ppem = y_ppem;
+}
+
+void
+hb_font_get_ppem (hb_font_t *font,
+		  unsigned int *x_ppem,
+		  unsigned int *y_ppem)
+{
+  if (x_ppem) *x_ppem = font->x_ppem;
+  if (y_ppem) *y_ppem = font->y_ppem;
 }
 
 

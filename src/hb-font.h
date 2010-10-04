@@ -132,6 +132,21 @@ hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
 				hb_font_get_kerning_func_t kerning_func);
 
 
+/* These never return NULL.  Return fallback defaults instead. */
+
+hb_font_get_glyph_func_t
+hb_font_funcs_get_glyph_func (hb_font_funcs_t *ffuncs);
+
+hb_font_get_contour_point_func_t
+hb_font_funcs_get_contour_point_func (hb_font_funcs_t *ffuncs);
+
+hb_font_get_glyph_metrics_func_t
+hb_font_funcs_get_glyph_metrics_func (hb_font_funcs_t *ffuncs);
+
+hb_font_get_kerning_func_t
+hb_font_funcs_get_kerning_func (hb_font_funcs_t *ffuncs);
+
+
 hb_codepoint_t
 hb_font_get_glyph (hb_font_t *font, hb_face_t *face,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector);
@@ -174,6 +189,21 @@ hb_font_set_funcs (hb_font_t         *font,
 		   hb_destroy_func_t  destroy,
 		   void              *user_data);
 
+/* Returns what was set and unsets it, but doesn't destroy(user_data).
+ * This is useful for wrapping / chaining font_funcs_t's.
+ *
+ * The client is responsible for:
+ *
+ *   - Take ownership of the reference on the returned klass
+ *   - Calling "destroy(user_data)" exactly once if returned destroy func
+ *     is not NULL and the returned info is not needed anymore.
+ */
+void
+hb_font_unset_funcs (hb_font_t          *font,
+		     hb_font_funcs_t   **klass,
+		     hb_destroy_func_t  *destroy,
+		     void              **user_data);
+
 
 /*
  * We should add support for full matrices.
@@ -183,6 +213,11 @@ hb_font_set_scale (hb_font_t *font,
 		   unsigned int x_scale,
 		   unsigned int y_scale);
 
+void
+hb_font_get_scale (hb_font_t *font,
+		   unsigned int *x_scale,
+		   unsigned int *y_scale);
+
 /*
  * A zero value means "no hinting in that direction"
  */
@@ -190,6 +225,11 @@ void
 hb_font_set_ppem (hb_font_t *font,
 		  unsigned int x_ppem,
 		  unsigned int y_ppem);
+
+void
+hb_font_get_ppem (hb_font_t *font,
+		  unsigned int *x_ppem,
+		  unsigned int *y_ppem);
 
 
 HB_END_DECLS
