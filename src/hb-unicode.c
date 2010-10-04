@@ -108,6 +108,12 @@ hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
   ufuncs->immutable = TRUE;
 }
 
+hb_bool_t
+hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs)
+{
+  return ufuncs->immutable;
+}
+
 
 void
 hb_unicode_funcs_set_mirroring_func (hb_unicode_funcs_t *ufuncs,

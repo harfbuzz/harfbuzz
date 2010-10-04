@@ -91,6 +91,8 @@ hb_font_funcs_copy (hb_font_funcs_t *ffuncs);
 void
 hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs);
 
+hb_bool_t
+hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs);
 
 /* funcs */
 

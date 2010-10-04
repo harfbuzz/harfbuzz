@@ -201,6 +201,8 @@ hb_unicode_funcs_copy (hb_unicode_funcs_t *ufuncs);
 void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs);
 
+hb_bool_t
+hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs);
 
 /*
  * funcs

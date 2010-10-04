@@ -141,6 +141,12 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
   ffuncs->immutable = TRUE;
 }
 
+hb_bool_t
+hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs)
+{
+  return ffuncs->immutable = TRUE;
+}
+
 
 void
 hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
