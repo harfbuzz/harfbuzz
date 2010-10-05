@@ -1,6 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
 NULL =
+EXTRA_DIST = 
 
 # The following warning options are useful for debugging: -Wpadded -Wcast-align
 #AM_CXXFLAGS =
@@ -47,6 +48,7 @@ HBSOURCES += \
 	hb-ot-layout-gsub-private.hh \
 	hb-ot-layout-private.hh \
 	hb-ot-shape.cc \
+	hb-ot-shape-arabic.cc \
 	hb-ot-tag.c \
 	$(NULL)
 HBHEADERS += \
@@ -105,6 +107,13 @@ libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 pkginclude_HEADERS = $(HBHEADERS)
+
+
+GENERATORS = \
+	gen-arabic-joining-table.py \
+	$(NULL)
+
+EXTRA_DIST += $(GENERATORS)
 
 noinst_PROGRAMS = main test
 
