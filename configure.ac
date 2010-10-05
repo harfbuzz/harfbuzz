@@ -9,6 +9,7 @@ AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL dnl ([1.4]) Don't remove!
 
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_CXX
 
 AC_CHECK_FUNCS(mprotect sysconf getpagesize)
