@@ -228,6 +228,14 @@ struct hb_mask_allocator_t {
 };
 
 static void
+hb_ot_shape_setup_lookups_complex (hb_ot_shape_context_t *c,
+				   lookup_map            *lookups,
+				   unsigned int          *num_lookups)
+{
+  /* XXX */
+}
+
+static void
 hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 			   lookup_map            *lookups,
 			   unsigned int          *num_lookups)
@@ -265,7 +273,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
   for (i = 0; i < ARRAY_LENGTH (default_features); i++)
     allocator.add_feature (default_features[i], 1, true);
 
-  /* XXX complex-shaper features go here */
+  hb_ot_shape_setup_lookups_complex (c, lookups, num_lookups);
 
   for (unsigned int i = 0; i < c->num_features; i++) {
     const hb_feature_t *feature = &c->features[i];
