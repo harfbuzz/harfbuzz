@@ -229,7 +229,6 @@ struct hb_mask_allocator_t {
 
 static void
 setup_lookups (hb_ot_shape_context_t *c,
-	       hb_tag_t               table_tag,
 	       lookup_map            *lookups,
 	       unsigned int          *num_lookups)
 {
@@ -238,10 +237,10 @@ setup_lookups (hb_ot_shape_context_t *c,
   room_lookups = *num_lookups;
   *num_lookups = 0;
 
-  hb_ot_layout_table_choose_script (c->face, table_tag,
+  hb_ot_layout_table_choose_script (c->face, c->table_tag,
 				    hb_ot_tags_from_script (c->buffer->props.script),
 				    &script_index);
-  hb_ot_layout_script_find_language (c->face, table_tag, script_index,
+  hb_ot_layout_script_find_language (c->face, c->table_tag, script_index,
 				     hb_ot_tag_from_language (c->buffer->props.language),
 				     &language_index);
 
@@ -275,14 +274,14 @@ setup_lookups (hb_ot_shape_context_t *c,
 
 
   /* Compile features */
-  allocator.compile (c->face, table_tag, script_index, language_index);
+  allocator.compile (c->face, c->table_tag, script_index, language_index);
 
 
   /* Gather lookup indices for features and set buffer masks at the same time */
 
-  if (hb_ot_layout_language_get_required_feature_index (c->face, table_tag, script_index, language_index,
+  if (hb_ot_layout_language_get_required_feature_index (c->face, c->table_tag, script_index, language_index,
 							&feature_index))
-    add_feature (c->face, table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
+    add_feature (c->face, c->table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
   const hb_mask_allocator_t::feature_map_t *map;
 
@@ -293,15 +292,15 @@ setup_lookups (hb_ot_shape_context_t *c,
   switch (c->original_direction) {
     case HB_DIRECTION_LTR:
       map = allocator.find_feature (HB_TAG ('l','t','r','a'));
-      add_feature (c->face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       map = allocator.find_feature (HB_TAG ('l','t','r','m'));
-      add_feature (c->face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       break;
     case HB_DIRECTION_RTL:
       map = allocator.find_feature (HB_TAG ('r','t','l','a'));
-      add_feature (c->face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       map = allocator.find_feature (HB_TAG ('r','t','l','m'));
-      add_feature (c->face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -312,14 +311,14 @@ setup_lookups (hb_ot_shape_context_t *c,
   for (i = 0; i < ARRAY_LENGTH (default_features); i++)
   {
     map = allocator.find_feature (default_features[i]);
-    add_feature (c->face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+    add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
   }
 
   for (i = 0; i < c->num_features; i++)
   {
     hb_feature_t *feature = &c->features[i];
     map = allocator.find_feature (feature->tag);
-    add_feature (c->face, table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+    add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
     if (!(feature->start == 0 && feature->end == (unsigned int)-1))
       c->buffer->set_masks (feature->value << map->shift, map->mask, feature->start, feature->end);
   }
@@ -352,7 +351,9 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
   if (!hb_ot_layout_has_substitution (c->face))
     return;
 
-  setup_lookups (c, HB_OT_TAG_GSUB, lookups, &num_lookups);
+  c->table_tag = HB_OT_TAG_GSUB;
+
+  setup_lookups (c, lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_substitute_lookup (c->face, c->buffer, lookups[i].index, lookups[i].mask);
@@ -371,7 +372,9 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
   if (!hb_ot_layout_has_positioning (c->face))
     return;
 
-  setup_lookups (c, HB_OT_TAG_GPOS, lookups, &num_lookups);
+  c->table_tag = HB_OT_TAG_GPOS;
+
+  setup_lookups (c, lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_position_lookup (c->font, c->face, c->buffer, lookups[i].index, lookups[i].mask);
