@@ -228,9 +228,9 @@ struct hb_mask_allocator_t {
 };
 
 static void
-setup_lookups (hb_ot_shape_context_t *c,
-	       lookup_map            *lookups,
-	       unsigned int          *num_lookups)
+hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
+			   lookup_map            *lookups,
+			   unsigned int          *num_lookups)
 {
   unsigned int i, j, script_index, language_index, feature_index, room_lookups;
 
@@ -353,7 +353,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 
   c->table_tag = HB_OT_TAG_GSUB;
 
-  setup_lookups (c, lookups, &num_lookups);
+  hb_ot_shape_setup_lookups (c, lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_substitute_lookup (c->face, c->buffer, lookups[i].index, lookups[i].mask);
@@ -374,7 +374,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 
   c->table_tag = HB_OT_TAG_GPOS;
 
-  setup_lookups (c, lookups, &num_lookups);
+  hb_ot_shape_setup_lookups (c, lookups, &num_lookups);
 
   for (i = 0; i < num_lookups; i++)
     hb_ot_layout_position_lookup (c->font, c->face, c->buffer, lookups[i].index, lookups[i].mask);
