@@ -483,6 +483,7 @@ _hb_buffer_set_masks (hb_buffer_t *buffer,
     return;
   }
 
+  /* XXX can't bsearch since .cluster may not be sorted. */
   /* Binary search to find the start position and go from there. */
   unsigned int min = 0, max = buffer->len;
   while (min < max)
