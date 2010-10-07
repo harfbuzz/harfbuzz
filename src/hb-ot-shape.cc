@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2009,2010  Red Hat, Inc.
+ * Copyright (C) 2010  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #include "hb-ot-shape-private.h"
@@ -55,7 +57,7 @@ struct lookup_map {
 
 
 static void
-add_feature (hb_face_t    *face,
+add_lookups (hb_face_t    *face,
 	     hb_tag_t      table_tag,
 	     unsigned int  feature_index,
 	     hb_mask_t     mask,
@@ -289,7 +291,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 
   if (hb_ot_layout_language_get_required_feature_index (c->face, c->table_tag, script_index, language_index,
 							&feature_index))
-    add_feature (c->face, c->table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
+    add_lookups (c->face, c->table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
   const hb_mask_allocator_t::feature_map_t *map;
 
@@ -300,15 +302,15 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
   switch (c->original_direction) {
     case HB_DIRECTION_LTR:
       map = allocator.find_feature (HB_TAG ('l','t','r','a'));
-      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       map = allocator.find_feature (HB_TAG ('l','t','r','m'));
-      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       break;
     case HB_DIRECTION_RTL:
       map = allocator.find_feature (HB_TAG ('r','t','l','a'));
-      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       map = allocator.find_feature (HB_TAG ('r','t','l','m'));
-      add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -319,14 +321,14 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
   for (i = 0; i < ARRAY_LENGTH (default_features); i++)
   {
     map = allocator.find_feature (default_features[i]);
-    add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+    add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
   }
 
   for (i = 0; i < c->num_features; i++)
   {
     hb_feature_t *feature = &c->features[i];
     map = allocator.find_feature (feature->tag);
-    add_feature (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
+    add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
     if (!(feature->start == 0 && feature->end == (unsigned int)-1))
       c->buffer->set_masks (feature->value << map->shift, map->mask, feature->start, feature->end);
   }
