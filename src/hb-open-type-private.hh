@@ -718,13 +718,9 @@ struct SortedArrayOf : ArrayOf<Type> {
   template <typename SearchType>
   inline int search (const SearchType &x) const {
     class Cmp {
-      public: static int cmp (const void *p1, const void *p2) {
-	const SearchType *a = reinterpret_cast<const SearchType *>(p1);
-	const Type *b = reinterpret_cast<const Type *>(p2);
-	return b->cmp (*a);
-      }
+      public: static int cmp (const SearchType *a, const Type *b) { return b->cmp (*a); }
     };
-    const Type *p = (const Type *) bsearch (&x, this->array, this->len, sizeof (this->array[0]), Cmp::cmp);
+    const Type *p = (const Type *) bsearch (&x, this->array, this->len, sizeof (this->array[0]), (hb_compare_func_t) Cmp::cmp);
     return p ? p - this->array : -1;
   }
 };

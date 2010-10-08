@@ -591,10 +591,9 @@ static const LangTag ot_languages[] = {
 };
 
 static int
-lang_compare_first_component (const void *pa,
-			      const void *pb)
+lang_compare_first_component (const char *a,
+			      const char *b)
 {
-  const char *a = pa, *b = pb;
   unsigned int da, db;
   const char *p;
 
@@ -645,7 +644,7 @@ hb_ot_tag_from_language (hb_language_t language)
   /* find a language matching in the first component */
   lang_tag = bsearch (lang_str, ot_languages,
 		      ARRAY_LENGTH (ot_languages), sizeof (LangTag),
-		      lang_compare_first_component);
+		      (hb_compare_func_t) lang_compare_first_component);
 
   /* we now need to find the best language matching */
   if (lang_tag)
@@ -654,12 +653,12 @@ hb_ot_tag_from_language (hb_language_t language)
 
     /* go to the final one matching in the first component */
     while (lang_tag + 1 < ot_languages + ARRAY_LENGTH (ot_languages) &&
-	   lang_compare_first_component (lang_str, lang_tag + 1) == 0)
+	   lang_compare_first_component (lang_str, (lang_tag + 1)->language) == 0)
       lang_tag++;
 
     /* go back, find which one matches completely */
     while (lang_tag >= ot_languages &&
-	   lang_compare_first_component (lang_str, lang_tag) == 0)
+	   lang_compare_first_component (lang_str, lang_tag->language) == 0)
     {
       if (lang_matches (lang_str, lang_tag->language)) {
 	found = TRUE;

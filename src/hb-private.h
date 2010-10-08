@@ -186,6 +186,10 @@ _hb_ctz (unsigned int number)
 #endif
 }
 
+/* Type of bsearch() / qsort() compare function */
+typedef int (*hb_compare_func_t) (const void *, const void *);
+
+
 /* We need external help for these */
 
 #ifdef HAVE_GLIB

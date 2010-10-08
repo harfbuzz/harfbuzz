@@ -43,23 +43,16 @@ static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
 
 struct hb_mask_allocator_t {
 
+  private:
+
   struct feature_info_t {
     hb_tag_t tag;
     unsigned int value;
     unsigned int seq;
     bool global;
 
-    static int
-    cmp (const void *p1, const void *p2)
-    {
-      const feature_info_t *a = reinterpret_cast<const feature_info_t *>(p1);
-      const feature_info_t *b = reinterpret_cast<const feature_info_t *>(p2);
-
-      if (a->tag != b->tag)
-        return a->tag < b->tag ? -1 : 1;
-
-      return a->seq < b->seq ? -1 : 1;
-    }
+    static int cmp (const feature_info_t *a, const feature_info_t *b)
+    { return (a->tag != b->tag) ?  (a->tag < b->tag ? -1 : 1) : (a->seq < b->seq ? -1 : 1); }
   };
 
   struct feature_map_t {
@@ -68,28 +61,16 @@ struct hb_mask_allocator_t {
     unsigned int shift;
     hb_mask_t mask;
 
-    static int
-    cmp (const void *p1, const void *p2)
-    {
-      const feature_map_t *a = reinterpret_cast<const feature_map_t *>(p1);
-      const feature_map_t *b = reinterpret_cast<const feature_map_t *>(p2);
-
-      return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0;
-    }
+    static int cmp (const feature_map_t *a, const feature_map_t *b)
+    { return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0; }
   };
 
   struct lookup_map_t {
     unsigned int index;
     hb_mask_t mask;
 
-    static int
-    cmp (const void *p1, const void *p2)
-    {
-      const lookup_map_t *a = reinterpret_cast<const lookup_map_t *>(p1);
-      const lookup_map_t *b = reinterpret_cast<const lookup_map_t *>(p2);
-
-      return a->index < b->index ? -1 : a->index > b->index ? 1 : 0;
-    }
+    static int cmp (const lookup_map_t *a, const lookup_map_t *b)
+    { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
   };
 
 
@@ -120,6 +101,7 @@ struct hb_mask_allocator_t {
 
 
 
+  public:
 
   hb_mask_allocator_t (void) : feature_count (0) {}
 
@@ -160,10 +142,8 @@ struct hb_mask_allocator_t {
     }
 
 
-    /* Sort the features so we can bsearch later */
-    qsort (feature_infos, feature_count, sizeof (feature_infos[0]), feature_info_t::cmp);
-
-    /* Remove dups, let later-occurring features override earlier ones. */
+    /* Sort features and merge duplicates */
+    qsort (feature_infos, feature_count, sizeof (feature_infos[0]), (hb_compare_func_t) feature_info_t::cmp);
     unsigned int j = 0;
     for (unsigned int i = 1; i < feature_count; i++)
       if (feature_infos[i].tag != feature_infos[j].tag)
@@ -248,9 +228,7 @@ struct hb_mask_allocator_t {
 	add_lookups (c, table_index, feature_maps[i].index[table_index], feature_maps[i].mask);
 
       /* Sort lookups and merge duplicates */
-
-      qsort (lookup_maps[table_index], lookup_count[table_index], sizeof (lookup_maps[table_index][0]), lookup_map_t::cmp);
-
+      qsort (lookup_maps[table_index], lookup_count[table_index], sizeof (lookup_maps[table_index][0]), (hb_compare_func_t) lookup_map_t::cmp);
       if (lookup_count[table_index])
       {
 	unsigned int j = 0;
@@ -268,22 +246,17 @@ struct hb_mask_allocator_t {
   hb_mask_t get_global_mask (void) { return global_mask; }
 
   hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift) const {
-    const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), feature_map_t::cmp);
-    if (likely (map)) {
-      if (shift) *shift = map->shift;
-      return map->mask;
-    } else {
-      if (shift) *shift = 0;
-      return 0;
-    }
+    const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), (hb_compare_func_t) feature_map_t::cmp);
+    if (shift) *shift = map ? map->shift : 0;
+    return map ? map->mask : 0;
   }
 
-  void substitute (hb_ot_shape_context_t *c) const {
+  inline void substitute (hb_ot_shape_context_t *c) const {
     for (unsigned int i = 0; i < lookup_count[0]; i++)
       hb_ot_layout_substitute_lookup (c->face, c->buffer, lookup_maps[0][i].index, lookup_maps[0][i].mask);
   }
 
-  void position (hb_ot_shape_context_t *c) const {
+  inline void position (hb_ot_shape_context_t *c) const {
     for (unsigned int i = 0; i < lookup_count[1]; i++)
       hb_ot_layout_position_lookup (c->font, c->face, c->buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
   }
