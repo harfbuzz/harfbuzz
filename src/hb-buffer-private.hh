@@ -62,6 +62,12 @@ ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_internal_glyph_info_t));
 ASSERT_STATIC (sizeof (hb_glyph_position_t) == sizeof (hb_internal_glyph_position_t));
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
+typedef struct _hb_segment_properties_t {
+    hb_direction_t      direction;
+    hb_script_t         script;
+    hb_language_t       language;
+} hb_segment_properties_t;
+
 
 HB_INTERNAL void
 _hb_buffer_swap (hb_buffer_t *buffer);
@@ -110,13 +116,9 @@ struct _hb_buffer_t {
   hb_reference_count_t ref_count;
 
   /* Information about how the text in the buffer should be treated */
-  hb_unicode_funcs_t *unicode;
 
-  struct properties_t {
-    hb_direction_t      direction;
-    hb_script_t         script;
-    hb_language_t       language;
-  } props;
+  hb_unicode_funcs_t *unicode; /* Unicode functions */
+  hb_segment_properties_t props; /* Script, language, direction */
 
   /* Buffer contents */
 
