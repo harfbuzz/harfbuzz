@@ -249,20 +249,6 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 			   lookup_map            *lookups,
 			   unsigned int          *num_lookups)
 {
-  unsigned int script_index, language_index, feature_index;
-  unsigned int room_lookups;
-
-  room_lookups = *num_lookups;
-  *num_lookups = 0;
-
-  hb_ot_layout_table_choose_script (c->face, c->table_tag,
-				    hb_ot_tags_from_script (c->buffer->props.script),
-				    &script_index);
-  hb_ot_layout_script_find_language (c->face, c->table_tag, script_index,
-				     hb_ot_tag_from_language (c->buffer->props.language),
-				     &language_index);
-
-
   hb_mask_allocator_t allocator;
 
   switch (c->original_direction) {
@@ -292,10 +278,23 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 
 
   /* Compile features */
+  unsigned int script_index, language_index, feature_index;
+  unsigned int room_lookups;
+
+  hb_ot_layout_table_choose_script (c->face, c->table_tag,
+				    hb_ot_tags_from_script (c->buffer->props.script),
+				    &script_index);
+  hb_ot_layout_script_find_language (c->face, c->table_tag, script_index,
+				     hb_ot_tag_from_language (c->buffer->props.language),
+				     &language_index);
+
   allocator.compile (c->face, c->table_tag, script_index, language_index);
 
 
   /* Gather lookup indices for features */
+
+  room_lookups = *num_lookups;
+  *num_lookups = 0;
 
   if (hb_ot_layout_language_get_required_feature_index (c->face, c->table_tag, script_index, language_index,
 							&feature_index))
