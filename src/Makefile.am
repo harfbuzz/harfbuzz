@@ -49,6 +49,7 @@ HBSOURCES += \
 	hb-ot-layout-private.hh \
 	hb-ot-map-private.hh \
 	hb-ot-shape.cc \
+	hb-ot-shape-private.hh \
 	hb-ot-shape-arabic.cc \
 	hb-ot-tag.c \
 	$(NULL)

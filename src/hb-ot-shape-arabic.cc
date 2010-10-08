@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape-private.h"
+#include "hb-ot-shape-private.hh"
 
 HB_BEGIN_DECLS
 
