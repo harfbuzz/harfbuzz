@@ -249,7 +249,8 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 			   lookup_map            *lookups,
 			   unsigned int          *num_lookups)
 {
-  unsigned int i, j, script_index, language_index, feature_index, room_lookups;
+  unsigned int script_index, language_index, feature_index;
+  unsigned int room_lookups;
 
   room_lookups = *num_lookups;
   *num_lookups = 0;
@@ -279,7 +280,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
       break;
   }
 
-  for (i = 0; i < ARRAY_LENGTH (default_features); i++)
+  for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
     allocator.add_feature (default_features[i], 1, true);
 
   hb_ot_shape_setup_lookups_complex (c, lookups, num_lookups);
@@ -304,7 +305,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
   unsigned int num_features;
 
   map = allocator.get_features (&num_features);
-  for (i = 0; i < num_features; i++)
+  for (unsigned i = 0; i < num_features; i++)
     add_lookups (c->face, c->table_tag, map[i].index, map[i].mask, lookups, num_lookups, room_lookups);
 
   /* Sort lookups and merge duplicates */
@@ -313,7 +314,8 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 
   if (*num_lookups)
   {
-    for (i = 1, j = 0; i < *num_lookups; i++)
+    unsigned int j = 0;
+    for (unsigned int i = 1; i < *num_lookups; i++)
       if (lookups[i].index != lookups[j].index)
 	lookups[++j] = lookups[i];
       else
@@ -325,7 +327,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 
   /* Set masks in buffer */
 
-  for (i = 0; i < c->num_features; i++)
+  for (unsigned int i = 0; i < c->num_features; i++)
   {
     hb_feature_t *feature = &c->features[i];
     map = allocator.find_feature (feature->tag);
@@ -344,7 +346,6 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
   lookup_map lookups[1000]; /* FIXME */
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
-  unsigned int i;
 
   if (!hb_ot_layout_has_substitution (c->face))
     return;
@@ -353,7 +354,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 
   hb_ot_shape_setup_lookups (c, lookups, &num_lookups);
 
-  for (i = 0; i < num_lookups; i++)
+  for (unsigned int i = 0; i < num_lookups; i++)
     hb_ot_layout_substitute_lookup (c->face, c->buffer, lookups[i].index, lookups[i].mask);
 
   c->applied_substitute_complex = TRUE;
@@ -365,7 +366,6 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
   lookup_map lookups[1000]; /* FIXME */
   unsigned int num_lookups = ARRAY_LENGTH (lookups);
-  unsigned int i;
 
   if (!hb_ot_layout_has_positioning (c->face))
     return;
@@ -374,7 +374,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 
   hb_ot_shape_setup_lookups (c, lookups, &num_lookups);
 
-  for (i = 0; i < num_lookups; i++)
+  for (unsigned int i = 0; i < num_lookups; i++)
     hb_ot_layout_position_lookup (c->font, c->face, c->buffer, lookups[i].index, lookups[i].mask);
 
   hb_ot_layout_position_finish (c->font, c->face, c->buffer);
