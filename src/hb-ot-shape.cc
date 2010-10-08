@@ -213,6 +213,13 @@ struct hb_mask_allocator_t {
   }
 
   hb_mask_t get_global_mask (void) { return global_mask; }
+
+  const feature_map_t *get_features (unsigned int *num_features) const {
+    *num_features = count;
+    return maps;
+  }
+
+
   const feature_map_t *find_feature (hb_tag_t tag) const {
     static const feature_map_t off_map = { HB_TAG_NONE, Index::NOT_FOUND_INDEX, 0, 0 };
     const feature_map_t *map = (const feature_map_t *) bsearch (&tag, maps, count, sizeof (maps[0]), feature_map_t::cmp);
@@ -287,52 +294,18 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
   allocator.compile (c->face, c->table_tag, script_index, language_index);
 
 
-  /* Gather lookup indices for features and set buffer masks at the same time */
+  /* Gather lookup indices for features */
 
   if (hb_ot_layout_language_get_required_feature_index (c->face, c->table_tag, script_index, language_index,
 							&feature_index))
     add_lookups (c->face, c->table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
 
   const hb_mask_allocator_t::feature_map_t *map;
+  unsigned int num_features;
 
-  hb_mask_t global_mask = allocator.get_global_mask ();
-  if (global_mask)
-    c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
-
-  switch (c->original_direction) {
-    case HB_DIRECTION_LTR:
-      map = allocator.find_feature (HB_TAG ('l','t','r','a'));
-      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
-      map = allocator.find_feature (HB_TAG ('l','t','r','m'));
-      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
-      break;
-    case HB_DIRECTION_RTL:
-      map = allocator.find_feature (HB_TAG ('r','t','l','a'));
-      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
-      map = allocator.find_feature (HB_TAG ('r','t','l','m'));
-      add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
-      break;
-    case HB_DIRECTION_TTB:
-    case HB_DIRECTION_BTT:
-    default:
-      break;
-  }
-
-  for (i = 0; i < ARRAY_LENGTH (default_features); i++)
-  {
-    map = allocator.find_feature (default_features[i]);
-    add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
-  }
-
-  for (i = 0; i < c->num_features; i++)
-  {
-    hb_feature_t *feature = &c->features[i];
-    map = allocator.find_feature (feature->tag);
-    add_lookups (c->face, c->table_tag, map->index, map->mask, lookups, num_lookups, room_lookups);
-    if (!(feature->start == 0 && feature->end == (unsigned int)-1))
-      c->buffer->set_masks (feature->value << map->shift, map->mask, feature->start, feature->end);
-  }
-
+  map = allocator.get_features (&num_features);
+  for (i = 0; i < num_features; i++)
+    add_lookups (c->face, c->table_tag, map[i].index, map[i].mask, lookups, num_lookups, room_lookups);
 
   /* Sort lookups and merge duplicates */
 
@@ -348,6 +321,21 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
     j++;
     *num_lookups = j;
   }
+
+
+  /* Set masks in buffer */
+
+  for (i = 0; i < c->num_features; i++)
+  {
+    hb_feature_t *feature = &c->features[i];
+    map = allocator.find_feature (feature->tag);
+    if (!(feature->start == 0 && feature->end == (unsigned int)-1))
+      c->buffer->set_masks (feature->value << map->shift, map->mask, feature->start, feature->end);
+  }
+
+  hb_mask_t global_mask = allocator.get_global_mask ();
+  if (global_mask)
+    c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
 }
 
 
