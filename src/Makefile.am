@@ -47,6 +47,7 @@ HBSOURCES += \
 	hb-ot-layout-gsubgpos-private.hh \
 	hb-ot-layout-gsub-private.hh \
 	hb-ot-layout-private.hh \
+	hb-ot-map-private.hh \
 	hb-ot-shape.cc \
 	hb-ot-shape-arabic.cc \
 	hb-ot-tag.c \
