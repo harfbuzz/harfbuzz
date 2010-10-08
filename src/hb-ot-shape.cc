@@ -237,14 +237,6 @@ struct hb_mask_allocator_t {
 };
 
 static void
-hb_ot_shape_setup_lookups_complex (hb_ot_shape_context_t *c,
-				   lookup_map            *lookups,
-				   unsigned int          *num_lookups)
-{
-  /* XXX */
-}
-
-static void
 hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 			   lookup_map            *lookups,
 			   unsigned int          *num_lookups)
@@ -269,7 +261,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
   for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
     allocator.add_feature (default_features[i], 1, true);
 
-  hb_ot_shape_setup_lookups_complex (c, lookups, num_lookups);
+  /* complex */
 
   for (unsigned int i = 0; i < c->num_features; i++) {
     const hb_feature_t *feature = &c->features[i];
@@ -326,6 +318,10 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 
   /* Set masks in buffer */
 
+  hb_mask_t global_mask = allocator.get_global_mask ();
+  if (global_mask)
+    c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
+
   for (unsigned int i = 0; i < c->num_features; i++)
   {
     hb_feature_t *feature = &c->features[i];
@@ -334,9 +330,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
       c->buffer->set_masks (feature->value << map->shift, map->mask, feature->start, feature->end);
   }
 
-  hb_mask_t global_mask = allocator.get_global_mask ();
-  if (global_mask)
-    c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
+  /* complex */
 }
 
 
