@@ -237,20 +237,17 @@ struct hb_mask_allocator_t {
 };
 
 static void
-hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
-			   lookup_map            *lookups,
-			   unsigned int          *num_lookups)
+hb_ot_shape_collect_features (hb_ot_shape_context_t *c,
+			      hb_mask_allocator_t   *allocator)
 {
-  hb_mask_allocator_t allocator;
-
   switch (c->original_direction) {
     case HB_DIRECTION_LTR:
-      allocator.add_feature (HB_TAG ('l','t','r','a'), 1, true);
-      allocator.add_feature (HB_TAG ('l','t','r','m'), 1, true);
+      allocator->add_feature (HB_TAG ('l','t','r','a'), 1, true);
+      allocator->add_feature (HB_TAG ('l','t','r','m'), 1, true);
       break;
     case HB_DIRECTION_RTL:
-      allocator.add_feature (HB_TAG ('r','t','l','a'), 1, true);
-      allocator.add_feature (HB_TAG ('r','t','l','m'), 1, false);
+      allocator->add_feature (HB_TAG ('r','t','l','a'), 1, true);
+      allocator->add_feature (HB_TAG ('r','t','l','m'), 1, false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -259,15 +256,25 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
   }
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
-    allocator.add_feature (default_features[i], 1, true);
+    allocator->add_feature (default_features[i], 1, true);
 
   /* complex */
 
   for (unsigned int i = 0; i < c->num_features; i++) {
     const hb_feature_t *feature = &c->features[i];
-    allocator.add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+    allocator->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
   }
+}
 
+
+static void
+hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
+			   lookup_map            *lookups,
+			   unsigned int          *num_lookups)
+{
+  hb_mask_allocator_t allocator;
+
+  hb_ot_shape_collect_features (c, &allocator);
 
   /* Compile features */
   unsigned int script_index, language_index, feature_index;
