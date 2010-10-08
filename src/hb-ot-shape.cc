@@ -50,49 +50,11 @@ hb_tag_t default_features[] = {
   HB_TAG('r','l','i','g')
 };
 
-struct lookup_map {
-  unsigned int index;
-  hb_mask_t mask;
-};
-
-
-static void
-add_lookups (hb_face_t    *face,
-	     hb_tag_t      table_tag,
-	     unsigned int  feature_index,
-	     hb_mask_t     mask,
-	     lookup_map   *lookups,
-	     unsigned int *num_lookups,
-	     unsigned int  room_lookups)
-{
-  unsigned int i = room_lookups - *num_lookups;
-  lookups += *num_lookups;
-
-  unsigned int *lookup_indices = (unsigned int *) lookups;
-
-  hb_ot_layout_feature_get_lookup_indexes (face, table_tag, feature_index, 0,
-					   &i,
-					   lookup_indices);
-
-  *num_lookups += i;
-
-  while (i--) {
-    lookups[i].mask = mask;
-    lookups[i].index = lookup_indices[i];
-  }
-}
-
-static int
-cmp_lookups (const void *p1, const void *p2)
-{
-  const lookup_map *a = (const lookup_map *) p1;
-  const lookup_map *b = (const lookup_map *) p2;
-
-  return a->index - b->index;
-}
-
-
 #define MAX_FEATURES 100 /* FIXME */
+#define MAX_LOOKUPS 1000 /* FIXME */
+
+static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
+
 
 struct hb_mask_allocator_t {
 
@@ -116,8 +78,8 @@ struct hb_mask_allocator_t {
   };
 
   struct feature_map_t {
-    hb_tag_t tag; /* should be first */
-    unsigned int index;
+    hb_tag_t tag; /* should be first for our bsearch to work */
+    unsigned int index[2]; /* GSUB, GPOS */
     unsigned int shift;
     hb_mask_t mask;
 
@@ -131,50 +93,112 @@ struct hb_mask_allocator_t {
     }
   };
 
-  hb_mask_allocator_t (void) : count (0) {}
+  struct lookup_map_t {
+    unsigned int index;
+    hb_mask_t mask;
+
+    static int
+    cmp (const void *p1, const void *p2)
+    {
+      const lookup_map_t *a = reinterpret_cast<const lookup_map_t *>(p1);
+      const lookup_map_t *b = reinterpret_cast<const lookup_map_t *>(p2);
+
+      return a->index < b->index ? -1 : a->index > b->index ? 1 : 0;
+    }
+  };
+
+
+  void
+  add_lookups (hb_ot_shape_context_t *c,
+	       unsigned int  table_index,
+	       unsigned int  feature_index,
+	       hb_mask_t     mask)
+  {
+    unsigned int i = MAX_LOOKUPS - lookup_count[table_index];
+    lookup_map_t *lookups = lookup_maps[table_index] + lookup_count[table_index];
+
+    unsigned int *lookup_indices = (unsigned int *) lookups;
+
+    hb_ot_layout_feature_get_lookup_indexes (c->face,
+					     table_tags[table_index],
+					     feature_index,
+					     0, &i,
+					     lookup_indices);
+
+    lookup_count[table_index] += i;
+
+    while (i--) {
+      lookups[i].mask = mask;
+      lookups[i].index = lookup_indices[i];
+    }
+  }
+
+
+
+
+  hb_mask_allocator_t (void) : feature_count (0) {}
 
   void add_feature (hb_tag_t tag,
 		    unsigned int value,
 		    bool global)
   {
-    feature_info_t *info = &infos[count++];
+    feature_info_t *info = &feature_infos[feature_count++];
     info->tag = tag;
     info->value = value;
-    info->seq = count;
+    info->seq = feature_count;
     info->global = global;
   }
 
-  void compile (hb_face_t *face,
-		hb_tag_t table_tag,
-		unsigned int script_index,
-		unsigned int language_index)
+  void compile (hb_ot_shape_context_t *c)
   {
-    global_mask = 0;
-    unsigned int next_bit = 1;
+   global_mask = 0;
+   lookup_count[0] = lookup_count[1] = 0;
 
-    if (!count)
+    if (!feature_count)
       return;
 
-    qsort (infos, count, sizeof (infos[0]), feature_info_t::cmp);
 
+    /* Fetch script/language indices for GSUB/GPOS.  We need these later to skip
+     * features not available in either table and not waste precious bits for them. */
+
+    const hb_tag_t *script_tags;
+    hb_tag_t language_tag;
+
+    script_tags = hb_ot_tags_from_script (c->buffer->props.script);
+    language_tag = hb_ot_tag_from_language (c->buffer->props.language);
+
+    unsigned int script_index[2], language_index[2];
+    for (unsigned int table_index = 0; table_index < 2; table_index++) {
+      hb_tag_t table_tag = table_tags[table_index];
+      hb_ot_layout_table_choose_script (c->face, table_tag, script_tags, &script_index[table_index]);
+      hb_ot_layout_script_find_language (c->face, table_tag, script_index[table_index], language_tag, &language_index[table_index]);
+    }
+
+
+    /* Sort the features so we can bsearch later */
+    qsort (feature_infos, feature_count, sizeof (feature_infos[0]), feature_info_t::cmp);
+
+    /* Remove dups, let later-occurring features override earlier ones. */
     unsigned int j = 0;
-    for (unsigned int i = 1; i < count; i++)
-      if (infos[i].tag != infos[j].tag)
-	infos[++j] = infos[i];
+    for (unsigned int i = 1; i < feature_count; i++)
+      if (feature_infos[i].tag != feature_infos[j].tag)
+	feature_infos[++j] = feature_infos[i];
       else {
-	if (infos[i].global)
-	  infos[j] = infos[i];
+	if (feature_infos[i].global)
+	  feature_infos[j] = feature_infos[i];
 	else {
-	  infos[j].global = infos[j].global && (infos[j].value == infos[i].value);
-	  infos[j].value = MAX (infos[j].value, infos[i].value);
+	  feature_infos[j].global = feature_infos[j].global && (feature_infos[j].value == feature_infos[i].value);
+	  feature_infos[j].value = MAX (feature_infos[j].value, feature_infos[i].value);
 	}
       }
-    count = j + 1;
+    feature_count = j + 1;
+
 
     /* Allocate bits now */
+    unsigned int next_bit = 1;
     j = 0;
-    for (unsigned int i = 0; i < count; i++) {
-      const feature_info_t *info = &infos[i];
+    for (unsigned int i = 0; i < feature_count; i++) {
+      const feature_info_t *info = &feature_infos[i];
 
       unsigned int bits_needed;
 
@@ -187,53 +211,103 @@ struct hb_mask_allocator_t {
       if (!info->value || next_bit + bits_needed > 8 * sizeof (hb_mask_t))
         continue; /* Feature disabled, or not enough bits. */
 
-      unsigned int feature_index;
-      if (!hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index,
-					       info->tag, &feature_index))
+
+      bool found = false;
+      unsigned int feature_index[2];
+      for (unsigned int table_index = 0; table_index < 2; table_index++)
+        found |= hb_ot_layout_language_find_feature (c->face,
+						     table_tags[table_index],
+						     script_index[table_index],
+						     language_index[table_index],
+						     info->tag,
+						     &feature_index[table_index]);
+      if (!found)
         continue;
 
-      feature_map_t *map = &maps[j++];
+
+      feature_map_t *map = &feature_maps[j++];
 
       map->tag = info->tag;
-      map->index = feature_index;
+      map->index[0] = feature_index[0];
+      map->index[1] = feature_index[1];
       if (info->global && info->value == 1) {
-        /* Use the global bit */
+        /* Uses the global bit */
         map->shift = 0;
 	map->mask = 1;
       } else {
 	map->shift = next_bit;
 	map->mask = (1 << (next_bit + bits_needed)) - (1 << next_bit);
 	next_bit += bits_needed;
+	if (info->global)
+	  global_mask |= map->mask;
       }
 
-      if (info->global && map->mask != 1)
-        global_mask |= map->mask;
     }
-    count = j;
+    feature_count = j;
+
+
+    for (unsigned int table_index = 0; table_index < 2; table_index++) {
+      hb_tag_t table_tag = table_tags[table_index];
+
+      /* Collect lookup indices for features */
+
+      unsigned int required_feature_index;
+      if (hb_ot_layout_language_get_required_feature_index (c->face,
+							    table_tag,
+							    script_index[table_index],
+							    language_index[table_index],
+							    &required_feature_index))
+	add_lookups (c, table_index, required_feature_index, 1);
+
+      for (unsigned i = 0; i < feature_count; i++)
+	add_lookups (c, table_index, feature_maps[i].index[table_index], feature_maps[i].mask);
+
+      /* Sort lookups and merge duplicates */
+
+      qsort (lookup_maps[table_index], lookup_count[table_index], sizeof (lookup_maps[table_index][0]), lookup_map_t::cmp);
+
+      if (lookup_count[table_index])
+      {
+	unsigned int j = 0;
+	for (unsigned int i = 1; i < lookup_count[table_index]; i++)
+	  if (lookup_maps[table_index][i].index != lookup_maps[table_index][j].index)
+	    lookup_maps[table_index][++j] = lookup_maps[table_index][i];
+	  else
+	    lookup_maps[table_index][j].mask |= lookup_maps[table_index][i].mask;
+	j++;
+	lookup_count[table_index] = j;
+      }
+    }
   }
 
   hb_mask_t get_global_mask (void) { return global_mask; }
 
-  const feature_map_t *get_features (unsigned int *num_features) const {
-    *num_features = count;
-    return maps;
-  }
-
-
   const feature_map_t *find_feature (hb_tag_t tag) const {
-    static const feature_map_t off_map = { HB_TAG_NONE, Index::NOT_FOUND_INDEX, 0, 0 };
-    const feature_map_t *map = (const feature_map_t *) bsearch (&tag, maps, count, sizeof (maps[0]), feature_map_t::cmp);
+    static const feature_map_t off_map = { HB_TAG_NONE, {Index::NOT_FOUND_INDEX,Index::NOT_FOUND_INDEX}, 0, 0 };
+    const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), feature_map_t::cmp);
     return map ? map : &off_map;
   }
 
+  void substitute (hb_ot_shape_context_t *c) const {
+    for (unsigned int i = 0; i < lookup_count[0]; i++)
+      hb_ot_layout_substitute_lookup (c->face, c->buffer, lookup_maps[0][i].index, lookup_maps[0][i].mask);
+  }
+
+  void position (hb_ot_shape_context_t *c) const {
+    for (unsigned int i = 0; i < lookup_count[1]; i++)
+      hb_ot_layout_position_lookup (c->font, c->face, c->buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
+  }
 
   private:
 
-  unsigned int count;
-  feature_info_t infos[MAX_FEATURES];
-
-  feature_map_t maps[MAX_FEATURES];
   hb_mask_t global_mask;
+
+  unsigned int feature_count;
+  feature_info_t feature_infos[MAX_FEATURES]; /* used before compile() only */
+  feature_map_t feature_maps[MAX_FEATURES];
+
+  lookup_map_t lookup_maps[2][MAX_LOOKUPS]; /* GSUB/GPOS */
+  unsigned int lookup_count[2];
 };
 
 static void
@@ -269,70 +343,23 @@ hb_ot_shape_collect_features (hb_ot_shape_context_t *c,
 
 static void
 hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
-			   lookup_map            *lookups,
-			   unsigned int          *num_lookups)
+			   hb_mask_allocator_t   *allocator)
 {
-  hb_mask_allocator_t allocator;
-
-  hb_ot_shape_collect_features (c, &allocator);
+  hb_ot_shape_collect_features (c, allocator);
 
   /* Compile features */
-  unsigned int script_index, language_index, feature_index;
-  unsigned int room_lookups;
-
-  hb_ot_layout_table_choose_script (c->face, c->table_tag,
-				    hb_ot_tags_from_script (c->buffer->props.script),
-				    &script_index);
-  hb_ot_layout_script_find_language (c->face, c->table_tag, script_index,
-				     hb_ot_tag_from_language (c->buffer->props.language),
-				     &language_index);
-
-  allocator.compile (c->face, c->table_tag, script_index, language_index);
-
-
-  /* Gather lookup indices for features */
-
-  room_lookups = *num_lookups;
-  *num_lookups = 0;
-
-  if (hb_ot_layout_language_get_required_feature_index (c->face, c->table_tag, script_index, language_index,
-							&feature_index))
-    add_lookups (c->face, c->table_tag, feature_index, 1, lookups, num_lookups, room_lookups);
-
-  const hb_mask_allocator_t::feature_map_t *map;
-  unsigned int num_features;
-
-  map = allocator.get_features (&num_features);
-  for (unsigned i = 0; i < num_features; i++)
-    add_lookups (c->face, c->table_tag, map[i].index, map[i].mask, lookups, num_lookups, room_lookups);
-
-  /* Sort lookups and merge duplicates */
-
-  qsort (lookups, *num_lookups, sizeof (lookups[0]), cmp_lookups);
-
-  if (*num_lookups)
-  {
-    unsigned int j = 0;
-    for (unsigned int i = 1; i < *num_lookups; i++)
-      if (lookups[i].index != lookups[j].index)
-	lookups[++j] = lookups[i];
-      else
-        lookups[j].mask |= lookups[i].mask;
-    j++;
-    *num_lookups = j;
-  }
-
+  allocator->compile (c);
 
   /* Set masks in buffer */
 
-  hb_mask_t global_mask = allocator.get_global_mask ();
+  hb_mask_t global_mask = allocator->get_global_mask ();
   if (global_mask)
     c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
 
   for (unsigned int i = 0; i < c->num_features; i++)
   {
     hb_feature_t *feature = &c->features[i];
-    map = allocator.find_feature (feature->tag);
+    const hb_mask_allocator_t::feature_map_t *map = allocator->find_feature (feature->tag);
     if (!(feature->start == 0 && feature->end == (unsigned int)-1))
       c->buffer->set_masks (feature->value << map->shift, map->mask, feature->start, feature->end);
   }
@@ -342,40 +369,27 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 
 
 static void
-hb_ot_substitute_complex (hb_ot_shape_context_t *c)
+hb_ot_substitute_complex (hb_ot_shape_context_t *c,
+			  const hb_mask_allocator_t *allocator)
 {
-  lookup_map lookups[1000]; /* FIXME */
-  unsigned int num_lookups = ARRAY_LENGTH (lookups);
-
   if (!hb_ot_layout_has_substitution (c->face))
     return;
 
-  c->table_tag = HB_OT_TAG_GSUB;
-
-  hb_ot_shape_setup_lookups (c, lookups, &num_lookups);
-
-  for (unsigned int i = 0; i < num_lookups; i++)
-    hb_ot_layout_substitute_lookup (c->face, c->buffer, lookups[i].index, lookups[i].mask);
+  allocator->substitute (c);
 
   c->applied_substitute_complex = TRUE;
   return;
 }
 
 static void
-hb_ot_position_complex (hb_ot_shape_context_t *c)
+hb_ot_position_complex (hb_ot_shape_context_t *c,
+			const hb_mask_allocator_t *allocator)
 {
-  lookup_map lookups[1000]; /* FIXME */
-  unsigned int num_lookups = ARRAY_LENGTH (lookups);
 
   if (!hb_ot_layout_has_positioning (c->face))
     return;
 
-  c->table_tag = HB_OT_TAG_GPOS;
-
-  hb_ot_shape_setup_lookups (c, lookups, &num_lookups);
-
-  for (unsigned int i = 0; i < num_lookups; i++)
-    hb_ot_layout_position_lookup (c->font, c->face, c->buffer, lookups[i].index, lookups[i].mask);
+  allocator->position (c);
 
   hb_ot_layout_position_finish (c->font, c->face, c->buffer);
 
@@ -528,6 +542,11 @@ hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
 static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
+  hb_mask_allocator_t allocator;
+
+  hb_ot_shape_setup_lookups (c, &allocator);
+
+
   hb_form_clusters (c->buffer);
 
   /* SUBSTITUTE */
@@ -541,7 +560,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
     hb_substitute_default (c);
 
-    hb_ot_substitute_complex (c);
+    hb_ot_substitute_complex (c, &allocator);
 
     if (!c->applied_substitute_complex)
       hb_substitute_complex_fallback (c);
@@ -553,7 +572,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
     hb_position_default (c);
 
-    hb_ot_position_complex (c);
+    hb_ot_position_complex (c, &allocator);
 
     hb_bool_t position_fallback = !c->applied_position_complex;
     if (position_fallback)
