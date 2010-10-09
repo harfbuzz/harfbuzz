@@ -35,7 +35,7 @@
 
 HB_BEGIN_DECLS
 
-struct hb_mask_allocator_t;
+struct hb_ot_map_t;
 
 struct hb_ot_shape_context_t
 {
@@ -51,7 +51,7 @@ struct hb_ot_shape_context_t
   hb_bool_t applied_substitute_complex;
   hb_bool_t applied_position_complex;
 
-  struct hb_mask_allocator_t *allocator;
+  struct hb_ot_map_t *map;
 };
 
 

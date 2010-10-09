@@ -34,7 +34,7 @@ HB_BEGIN_DECLS
 
 
 void
-hb_mask_allocator_t::compile (hb_ot_shape_context_t *c)
+hb_ot_map_t::compile (hb_ot_shape_context_t *c)
 {
  global_mask = 0;
  lookup_count[0] = lookup_count[1] = 0;

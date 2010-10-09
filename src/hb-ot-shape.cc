@@ -49,17 +49,16 @@ hb_tag_t default_features[] = {
 };
 
 static void
-hb_ot_shape_collect_features (hb_ot_shape_context_t *c,
-			      hb_mask_allocator_t   *allocator)
+hb_ot_shape_collect_features (hb_ot_shape_context_t *c)
 {
   switch (c->original_direction) {
     case HB_DIRECTION_LTR:
-      allocator->add_feature (HB_TAG ('l','t','r','a'), 1, true);
-      allocator->add_feature (HB_TAG ('l','t','r','m'), 1, true);
+      c->map->add_feature (HB_TAG ('l','t','r','a'), 1, true);
+      c->map->add_feature (HB_TAG ('l','t','r','m'), 1, true);
       break;
     case HB_DIRECTION_RTL:
-      allocator->add_feature (HB_TAG ('r','t','l','a'), 1, true);
-      allocator->add_feature (HB_TAG ('r','t','l','m'), 1, false);
+      c->map->add_feature (HB_TAG ('r','t','l','a'), 1, true);
+      c->map->add_feature (HB_TAG ('r','t','l','m'), 1, false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -68,29 +67,28 @@ hb_ot_shape_collect_features (hb_ot_shape_context_t *c,
   }
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
-    allocator->add_feature (default_features[i], 1, true);
+    c->map->add_feature (default_features[i], 1, true);
 
   /* complex */
 
   for (unsigned int i = 0; i < c->num_features; i++) {
     const hb_feature_t *feature = &c->features[i];
-    allocator->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+    c->map->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
   }
 }
 
 
 static void
-hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
-			   hb_mask_allocator_t   *allocator)
+hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c)
 {
-  hb_ot_shape_collect_features (c, allocator);
+  hb_ot_shape_collect_features (c);
 
   /* Compile features */
-  allocator->compile (c);
+  c->map->compile (c);
 
   /* Set masks in buffer */
 
-  hb_mask_t global_mask = allocator->get_global_mask ();
+  hb_mask_t global_mask = c->map->get_global_mask ();
   if (global_mask)
     c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
 
@@ -99,7 +97,7 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
     hb_feature_t *feature = &c->features[i];
     if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
       unsigned int shift;
-      hb_mask_t mask = allocator->get_mask (feature->tag, &shift);
+      hb_mask_t mask = c->map->get_mask (feature->tag, &shift);
       c->buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
     }
   }
@@ -109,27 +107,25 @@ hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c,
 
 
 static void
-hb_ot_substitute_complex (hb_ot_shape_context_t *c,
-			  const hb_mask_allocator_t *allocator)
+hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
   if (!hb_ot_layout_has_substitution (c->face))
     return;
 
-  allocator->substitute (c);
+  c->map->substitute (c);
 
   c->applied_substitute_complex = TRUE;
   return;
 }
 
 static void
-hb_ot_position_complex (hb_ot_shape_context_t *c,
-			const hb_mask_allocator_t *allocator)
+hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
 
   if (!hb_ot_layout_has_positioning (c->face))
     return;
 
-  allocator->position (c);
+  c->map->position (c);
 
   hb_ot_layout_position_finish (c->font, c->face, c->buffer);
 
@@ -184,7 +180,7 @@ hb_mirror_chars (hb_buffer_t *buffer)
   if (HB_DIRECTION_IS_FORWARD (buffer->props.direction))
     return;
 
-//  map = allocator.find_feature (HB_TAG ('r','t','l','m'));
+//  map = c->map.find_feature (HB_TAG ('r','t','l','m'));
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++) {
@@ -282,10 +278,7 @@ hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
 static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
-  hb_mask_allocator_t allocator;
-
-  hb_ot_shape_setup_lookups (c, &allocator);
-
+  hb_ot_shape_setup_lookups (c);
 
   hb_form_clusters (c->buffer);
 
@@ -300,7 +293,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
     hb_substitute_default (c);
 
-    hb_ot_substitute_complex (c, &allocator);
+    hb_ot_substitute_complex (c);
 
     if (!c->applied_substitute_complex)
       hb_substitute_complex_fallback (c);
@@ -312,7 +305,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
     hb_position_default (c);
 
-    hb_ot_position_complex (c, &allocator);
+    hb_ot_position_complex (c);
 
     hb_bool_t position_fallback = !c->applied_position_complex;
     if (position_fallback)
@@ -336,9 +329,11 @@ hb_ot_shape (hb_font_t    *font,
 	     unsigned int  num_features)
 {
   hb_ot_shape_context_t c = {font, face, buffer, features, num_features};
+  hb_ot_map_t map;
 
   /* Setup transient context members */
   c.original_direction = buffer->props.direction;
+  c.map = &map;
 
   hb_ot_shape_internal (&c);
 }

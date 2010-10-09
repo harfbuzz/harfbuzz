@@ -41,7 +41,7 @@ HB_BEGIN_DECLS
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
 
-struct hb_mask_allocator_t {
+struct hb_ot_map_t {
 
   private:
 
@@ -103,7 +103,7 @@ struct hb_mask_allocator_t {
 
   public:
 
-  hb_mask_allocator_t (void) : feature_count (0) {}
+  hb_ot_map_t (void) : feature_count (0) {}
 
   void add_feature (hb_tag_t tag,
 		    unsigned int value,
