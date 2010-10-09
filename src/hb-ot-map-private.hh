@@ -152,7 +152,7 @@ struct hb_mask_allocator_t {
 	if (feature_infos[i].global)
 	  feature_infos[j] = feature_infos[i];
 	else {
-	  feature_infos[j].global = feature_infos[j].global && (feature_infos[j].value == feature_infos[i].value);
+	  feature_infos[j].global = false;
 	  feature_infos[j].value = MAX (feature_infos[j].value, feature_infos[i].value);
 	}
       }
