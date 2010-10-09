@@ -79,15 +79,8 @@ hb_ot_shape_collect_features (hb_ot_shape_context_t *c)
 
 
 static void
-hb_ot_shape_setup_lookups (hb_ot_shape_context_t *c)
+hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 {
-  hb_ot_shape_collect_features (c);
-
-  /* Compile features */
-  c->map->compile (c);
-
-  /* Set masks in buffer */
-
   hb_mask_t global_mask = c->map->get_global_mask ();
   if (global_mask)
     c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
@@ -278,7 +271,7 @@ hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
 static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
-  hb_ot_shape_setup_lookups (c);
+  hb_ot_shape_setup_masks (c);
 
   hb_form_clusters (c);
 
@@ -334,6 +327,9 @@ hb_ot_shape (hb_font_t    *font,
   /* Setup transient context members */
   c.original_direction = buffer->props.direction;
   c.map = &map;
+
+  hb_ot_shape_collect_features (&c);
+  c.map->compile (&c);
 
   hb_ot_shape_internal (&c);
 }
