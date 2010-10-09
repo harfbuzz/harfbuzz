@@ -8,7 +8,7 @@ stat=0
 
 cd "$srcdir"
 
-for x in *.h *.hh ; do
+for x in hb-*.h hb-*.hh ; do
 	tag=`echo "$x" | tr 'a-z.-' 'A-Z_'`
 	lines=`grep "\<$tag\>" "$x" | wc -l`
 	if test "x$lines" != x3; then
