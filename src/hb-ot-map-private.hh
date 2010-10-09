@@ -105,9 +105,7 @@ struct hb_ot_map_t {
 
   hb_ot_map_t (void) : feature_count (0) {}
 
-  void add_feature (hb_tag_t tag,
-		    unsigned int value,
-		    bool global)
+  void add_feature (hb_tag_t tag, unsigned int value, bool global)
   {
     feature_info_t *info = &feature_infos[feature_count++];
     info->tag = tag;
@@ -116,11 +114,14 @@ struct hb_ot_map_t {
     info->global = global;
   }
 
+  inline void add_bool_feature (hb_tag_t tag, bool global = true)
+  { add_feature (tag, 1, global); }
+
   HB_INTERNAL void compile (hb_ot_shape_context_t *c);
 
   hb_mask_t get_global_mask (void) const { return global_mask; }
 
-  hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift) const {
+  hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift = NULL) const {
     const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), (hb_compare_func_t) feature_map_t::cmp);
     if (shift) *shift = map ? map->shift : 0;
     return map ? map->mask : 0;

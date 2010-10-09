@@ -53,12 +53,12 @@ hb_ot_shape_collect_features (hb_ot_shape_context_t *c)
 {
   switch (c->original_direction) {
     case HB_DIRECTION_LTR:
-      c->map->add_feature (HB_TAG ('l','t','r','a'), 1, true);
-      c->map->add_feature (HB_TAG ('l','t','r','m'), 1, true);
+      c->map->add_bool_feature (HB_TAG ('l','t','r','a'));
+      c->map->add_bool_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      c->map->add_feature (HB_TAG ('r','t','l','a'), 1, true);
-      c->map->add_feature (HB_TAG ('r','t','l','m'), 1, false);
+      c->map->add_bool_feature (HB_TAG ('r','t','l','a'));
+      c->map->add_bool_feature (HB_TAG ('r','t','l','m'), false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -67,7 +67,7 @@ hb_ot_shape_collect_features (hb_ot_shape_context_t *c)
   }
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
-    c->map->add_feature (default_features[i], 1, true);
+    c->map->add_bool_feature (default_features[i]);
 
   /* complex */
 
@@ -173,22 +173,22 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
 /* Substitute */
 
 static void
-hb_mirror_chars (hb_buffer_t *buffer)
+hb_mirror_chars (hb_ot_shape_context_t *c)
 {
-  hb_unicode_get_mirroring_func_t get_mirroring = buffer->unicode->v.get_mirroring;
+  hb_unicode_get_mirroring_func_t get_mirroring = c->buffer->unicode->v.get_mirroring;
 
-  if (HB_DIRECTION_IS_FORWARD (buffer->props.direction))
+  if (HB_DIRECTION_IS_FORWARD (c->buffer->props.direction))
     return;
 
-//  map = c->map.find_feature (HB_TAG ('r','t','l','m'));
+  hb_mask_t rtlm_mask = c->map->get_mask (HB_TAG ('r','t','l','m'));
 
-  unsigned int count = buffer->len;
+  unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_codepoint_t codepoint = get_mirroring (buffer->info[i].codepoint);
-    if (likely (codepoint == buffer->info[i].codepoint))
-;//      buffer->info[i].mask |= map->mask;
+    hb_codepoint_t codepoint = get_mirroring (c->buffer->info[i].codepoint);
+    if (likely (codepoint == c->buffer->info[i].codepoint))
+      c->buffer->info[i].mask |= rtlm_mask;
     else
-      buffer->info[i].codepoint = codepoint;
+      c->buffer->info[i].codepoint = codepoint;
   }
 }
 
@@ -287,7 +287,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
     c->buffer->clear_masks ();
 
     /* Mirroring needs to see the original direction */
-    hb_mirror_chars (c->buffer);
+    hb_mirror_chars (c);
 
     hb_ensure_native_direction (c->buffer);
 
