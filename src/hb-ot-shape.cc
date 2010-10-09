@@ -147,25 +147,25 @@ is_variation_selector (hb_codepoint_t unicode)
 }
 
 static void
-hb_form_clusters (hb_buffer_t *buffer)
+hb_form_clusters (hb_ot_shape_context_t *c)
 {
-  unsigned int count = buffer->len;
+  unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++)
-    if (buffer->unicode->v.get_general_category (buffer->info[i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
-      buffer->info[i].cluster = buffer->info[i - 1].cluster;
+    if (c->buffer->unicode->v.get_general_category (c->buffer->info[i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
+      c->buffer->info[i].cluster = c->buffer->info[i - 1].cluster;
 }
 
 static void
-hb_ensure_native_direction (hb_buffer_t *buffer)
+hb_ensure_native_direction (hb_ot_shape_context_t *c)
 {
-  hb_direction_t direction = buffer->props.direction;
+  hb_direction_t direction = c->buffer->props.direction;
 
   /* TODO vertical */
   if (HB_DIRECTION_IS_HORIZONTAL (direction) &&
-      direction != _hb_script_get_horizontal_direction (buffer->props.script))
+      direction != _hb_script_get_horizontal_direction (c->buffer->props.script))
   {
-    hb_buffer_reverse_clusters (buffer);
-    buffer->props.direction = HB_DIRECTION_REVERSE (buffer->props.direction);
+    hb_buffer_reverse_clusters (c->buffer);
+    c->buffer->props.direction = HB_DIRECTION_REVERSE (c->buffer->props.direction);
   }
 }
 
@@ -280,7 +280,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
   hb_ot_shape_setup_lookups (c);
 
-  hb_form_clusters (c->buffer);
+  hb_form_clusters (c);
 
   /* SUBSTITUTE */
   {
@@ -289,7 +289,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
     /* Mirroring needs to see the original direction */
     hb_mirror_chars (c);
 
-    hb_ensure_native_direction (c->buffer);
+    hb_ensure_native_direction (c);
 
     hb_substitute_default (c);
 
