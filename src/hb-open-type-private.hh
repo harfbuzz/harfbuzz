@@ -587,7 +587,7 @@ struct GenericArrayOf
      * other structs. */
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (array[i].sanitize (c))
+      if (unlikely (!array[i].sanitize (c)))
         return false;
     return true;
   }
@@ -697,9 +697,8 @@ struct HeadlessArrayOf
      * to do have a simple sanitize(), ie. they do not reference
      * other structs. */
     unsigned int count = len ? len - 1 : 0;
-    Type *a = array;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!a[i].sanitize (c)))
+      if (unlikely (!array[i].sanitize (c)))
         return false;
     return true;
   }
