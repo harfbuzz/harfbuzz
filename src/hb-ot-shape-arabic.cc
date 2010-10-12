@@ -64,8 +64,8 @@ static const uint8_t arabic_syriac_nko_joining_types[0x0800 - 0x0600 + 1] =
    *
    * on the ArabicShaping.txt file with the header:
    *
-   * # ArabicShaping-5.2.0.txt
-   * # Date: 2009-08-17, 11:11:00 PDT [KW]
+   * # ArabicShaping-6.0.0.txt
+   * # Date: 2010-04-30, 13:47:00 PDT [KW]
    */
   /* == Start of generated table == */
   JOINING_TYPE_U, /* 0600; ARABIC NUMBER SIGN; U; No_Joining_Group */
@@ -100,7 +100,7 @@ static const uint8_t arabic_syriac_nko_joining_types[0x0800 - 0x0600 + 1] =
   JOINING_TYPE_X, /* 061D */
   JOINING_TYPE_X, /* 061E */
   JOINING_TYPE_X, /* 061F */
-  JOINING_TYPE_X, /* 0620 */
+  JOINING_TYPE_D, /* 0620; YEH WITH RING; D; YEH */
   JOINING_TYPE_U, /* 0621; HAMZA; U; No_Joining_Group */
   JOINING_TYPE_R, /* 0622; MADDA ON ALEF; R; ALEF */
   JOINING_TYPE_R, /* 0623; HAMZA ON ALEF; R; ALEF */
@@ -263,7 +263,7 @@ static const uint8_t arabic_syriac_nko_joining_types[0x0800 - 0x0600 + 1] =
   JOINING_TYPE_R, /* 06C0; HAMZA ON HEH; R; TEH MARBUTA */
   JOINING_TYPE_D, /* 06C1; HEH GOAL; D; HEH GOAL */
   JOINING_TYPE_D, /* 06C2; HAMZA ON HEH GOAL; D; HEH GOAL */
-  JOINING_TYPE_R, /* 06C3; TEH MARBUTA GOAL; R; HAMZA ON HEH GOAL */
+  JOINING_TYPE_R, /* 06C3; TEH MARBUTA GOAL; R; TEH MARBUTA GOAL */
   JOINING_TYPE_R, /* 06C4; WAW WITH RING; R; WAW */
   JOINING_TYPE_R, /* 06C5; WAW WITH BAR; R; WAW */
   JOINING_TYPE_R, /* 06C6; WAW WITH SMALL V; R; WAW */
