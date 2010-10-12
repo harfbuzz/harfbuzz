@@ -630,13 +630,11 @@ hb_ot_tag_from_language (hb_language_t language)
     char tag[4];
     int i;
     lang_str += 6;
-    i = 0;
 #define IS_LETTER(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
 #define TO_UPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) + 'A' - 'a' : (c))
-    while (i < 4 && IS_LETTER (lang_str[i])) {
+    for (i = 0; i < 4 && IS_LETTER (lang_str[i]); i++)
       tag[i] = TO_UPPER (lang_str[i]);
-    }
-    while (i < 4)
+    for (; i < 4; i++)
       tag[i] = ' ';
     return HB_TAG_STR (tag);
   }
