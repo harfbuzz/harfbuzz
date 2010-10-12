@@ -684,14 +684,15 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   unsigned int prev = 0, state = 0;
 
-  for (unsigned int i = 0; i < count; i++) {
+  for (unsigned int i = 0; i < count; i++)
+  {
 
     unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, c->buffer->unicode->v.get_general_category (c->buffer->info[i].codepoint));
 
     if (unlikely (this_type == JOINING_TYPE_T))
       continue;
 
-    const arabic_state_table_entry *entry = arabic_state_table[state];
+    const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
     if (entry->prev_action != NONE)
       c->buffer->info[prev].gproperty = entry->prev_action;
@@ -702,7 +703,7 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
     state = entry->next_state;
   }
 
-  hb_mask_t mask_array[TOTAL_NUM_FEATURES] = {0};
+  hb_mask_t mask_array[TOTAL_NUM_FEATURES + 1] = {0};
   unsigned int num_masks = c->buffer->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_masks; i++)
     mask_array[i] = c->plan->map.get_mask (arabic_syriac_features[i]);
