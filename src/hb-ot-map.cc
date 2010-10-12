@@ -61,7 +61,7 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
 
 void
 hb_ot_map_t::compile (hb_face_t *face,
-		      hb_segment_properties_t *props)
+		      const hb_segment_properties_t *props)
 {
  global_mask = 0;
  lookup_count[0] = lookup_count[1] = 0;

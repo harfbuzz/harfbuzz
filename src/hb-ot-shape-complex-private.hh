@@ -24,36 +24,65 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_PRIVATE_HH
-#define HB_OT_SHAPE_PRIVATE_HH
+#ifndef HB_OT_SHAPE_COMPLEX_PRIVATE_HH
+#define HB_OT_SHAPE_COMPLEX_PRIVATE_HH
 
 #include "hb-private.h"
 
-#include "hb-ot-shape.h"
-
-#include "hb-ot-shape-complex-private.hh"
 #include "hb-ot-map-private.hh"
 
 HB_BEGIN_DECLS
 
-struct hb_ot_shape_context_t
-{
-  /* Input to hb_ot_shape() */
-  hb_font_t *font;
-  hb_face_t *face;
-  hb_buffer_t  *buffer;
-  const hb_feature_t *user_features;
-  unsigned int        num_user_features;
 
-  /* Transient stuff */
-  hb_direction_t original_direction;
-  hb_bool_t applied_substitute_complex;
-  hb_bool_t applied_position_complex;
-
-  hb_ot_shape_plan_t *plan;
+enum hb_ot_complex_shaper_t {
+  hb_ot_complex_shaper_none,
+  hb_ot_complex_shaper_arabic
 };
+
+
+struct hb_ot_shape_plan_t
+{
+  hb_ot_map_t map;
+  hb_ot_complex_shaper_t shaper;
+};
+
+
+static inline hb_ot_complex_shaper_t
+hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
+{
+  switch ((int) props->script) {
+    case HB_SCRIPT_ARABIC:
+    case HB_SCRIPT_NKO:
+    case HB_SCRIPT_SYRIAC:
+      return hb_ot_complex_shaper_arabic;
+
+    default:
+      return hb_ot_complex_shaper_none;
+  }
+}
+
+
+
+/*
+ * collect_features()
+ *
+ * Called during planning.  Shapers should call plan->map.add_feature().
+ */
+
+HB_INTERNAL void _hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_plan_t *plan, const hb_segment_properties_t  *props);
+
+static inline void
+hb_ot_shape_complex_collect_features (hb_ot_shape_plan_t *plan,
+				      const hb_segment_properties_t  *props)
+{
+  switch (plan->shaper) {
+    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_collect_features_arabic (plan, props);	return;
+    case hb_ot_complex_shaper_none:	default:							return;
+  }
+}
+
 
 
 HB_END_DECLS
 
-#endif /* HB_OT_SHAPE_PRIVATE_HH */
+#endif /* HB_OT_SHAPE_COMPLEX_PRIVATE_HH */

@@ -96,7 +96,7 @@ struct hb_ot_map_t {
   { add_feature (tag, 1, global); }
 
   HB_INTERNAL void compile (hb_face_t *face,
-			    hb_segment_properties_t *props);
+			    const hb_segment_properties_t *props);
 
   hb_mask_t get_global_mask (void) const { return global_mask; }
 

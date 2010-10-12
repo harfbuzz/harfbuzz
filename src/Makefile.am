@@ -50,8 +50,9 @@ HBSOURCES += \
 	hb-ot-map.cc \
 	hb-ot-map-private.hh \
 	hb-ot-shape.cc \
+	hb-ot-shape-complex-arabic.cc \
+	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-private.hh \
-	hb-ot-shape-arabic.cc \
 	hb-ot-tag.c \
 	$(NULL)
 HBHEADERS += \

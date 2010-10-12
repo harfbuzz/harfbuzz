@@ -48,7 +48,7 @@ hb_tag_t default_features[] = {
 
 static void
 hb_ot_shape_collect_features (hb_ot_shape_plan_t       *plan,
-			      hb_segment_properties_t  *props,
+			      const hb_segment_properties_t  *props,
 			      const hb_feature_t       *user_features,
 			      unsigned int              num_user_features)
 {
@@ -70,7 +70,7 @@ hb_ot_shape_collect_features (hb_ot_shape_plan_t       *plan,
   for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
     plan->map.add_bool_feature (default_features[i]);
 
-  /* complex */
+  hb_ot_shape_complex_collect_features (plan, props);
 
   for (unsigned int i = 0; i < num_user_features; i++) {
     const hb_feature_t *feature = &user_features[i];
@@ -321,10 +321,12 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 void
 hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
 			   hb_face_t                *face,
-			   hb_segment_properties_t  *props,
+			   const hb_segment_properties_t  *props,
 			   const hb_feature_t       *user_features,
 			   unsigned int              num_user_features)
 {
+  plan->shaper = hb_ot_shape_complex_categorize (props);
+
   hb_ot_shape_collect_features (plan, props, user_features, num_user_features);
 
   plan->map.compile (face, props);
