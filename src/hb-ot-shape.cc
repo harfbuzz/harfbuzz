@@ -27,6 +27,7 @@
  */
 
 #include "hb-ot-shape-private.hh"
+#include "hb-ot-shape-complex-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -95,7 +96,7 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
     }
   }
 
-  /* complex */
+  hb_ot_shape_complex_setup_masks (c);
 }
 
 

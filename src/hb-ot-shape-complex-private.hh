@@ -29,22 +29,9 @@
 
 #include "hb-private.h"
 
-#include "hb-ot-map-private.hh"
+#include "hb-ot-shape-private.hh"
 
 HB_BEGIN_DECLS
-
-
-enum hb_ot_complex_shaper_t {
-  hb_ot_complex_shaper_none,
-  hb_ot_complex_shaper_arabic
-};
-
-
-struct hb_ot_shape_plan_t
-{
-  hb_ot_map_t map;
-  hb_ot_complex_shaper_t shaper;
-};
 
 
 static inline hb_ot_complex_shaper_t
@@ -66,7 +53,9 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
 /*
  * collect_features()
  *
- * Called during planning.  Shapers should call plan->map.add_feature().
+ * Called during shape_plan().
+ *
+ * Shapers should use plan->map to add their features.
  */
 
 HB_INTERNAL void _hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_plan_t *plan, const hb_segment_properties_t  *props);
@@ -81,6 +70,24 @@ hb_ot_shape_complex_collect_features (hb_ot_shape_plan_t *plan,
   }
 }
 
+
+/* setup_masks()
+ *
+ * Called during shape_execute().
+ *
+ * Shapers should use c->plan.map to get feature masks and set on buffer.
+ */
+
+HB_INTERNAL void _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c);
+
+static inline void
+hb_ot_shape_complex_setup_masks (hb_ot_shape_context_t *c)
+{
+  switch (c->plan->shaper) {
+    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_setup_masks_arabic (c);	return;
+    case hb_ot_complex_shaper_none:	default:					return;
+  }
+}
 
 
 HB_END_DECLS

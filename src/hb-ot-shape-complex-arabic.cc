@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape-private.hh"
+#include "hb-ot-shape-complex-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -679,7 +679,7 @@ _hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_plan_t *plan, const hb
 }
 
 void
-_hb_ot_analyze_complex_arabic (hb_ot_shape_context_t *c)
+_hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   unsigned int prev = 0, state = 0;
@@ -705,7 +705,7 @@ _hb_ot_analyze_complex_arabic (hb_ot_shape_context_t *c)
   hb_mask_t mask_array[TOTAL_NUM_FEATURES] = {0};
   unsigned int num_masks = c->buffer->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_masks; i++)
-    mask_array[i] = 0 /* XXX find_mask */;
+    mask_array[i] = c->plan->map.get_mask (arabic_syriac_features[i]);
 
   for (unsigned int i = 0; i < count; i++)
     c->buffer->info[i].mask |= mask_array[c->buffer->info[i].gproperty];

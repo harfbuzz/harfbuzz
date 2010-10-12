@@ -31,10 +31,22 @@
 
 #include "hb-ot-shape.h"
 
-#include "hb-ot-shape-complex-private.hh"
 #include "hb-ot-map-private.hh"
 
 HB_BEGIN_DECLS
+
+enum hb_ot_complex_shaper_t {
+  hb_ot_complex_shaper_none,
+  hb_ot_complex_shaper_arabic
+};
+
+
+struct hb_ot_shape_plan_t
+{
+  hb_ot_map_t map;
+  hb_ot_complex_shaper_t shaper;
+};
+
 
 struct hb_ot_shape_context_t
 {
