@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_INIT(harfbuzz, 0.1, [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz])
+AC_INIT(harfbuzz, 0.2, [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz])
 AC_CONFIG_SRCDIR([harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.9.6 gnu dist-bzip2 no-dist-gzip -Wall no-define])
