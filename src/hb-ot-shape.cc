@@ -277,9 +277,9 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   /* Save the original direction, we use it later. */
   c->original_direction = c->buffer->props.direction;
 
-  hb_ot_shape_setup_masks (c);
-
   hb_form_clusters (c);
+
+  hb_ot_shape_setup_masks (c);
 
   /* SUBSTITUTE */
   {
