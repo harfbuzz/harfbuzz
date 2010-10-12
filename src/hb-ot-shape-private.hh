@@ -35,8 +35,16 @@
 
 HB_BEGIN_DECLS
 
-struct hb_ot_map_t;
+enum hb_ot_complex_shaper_t {
+  hb_ot_complex_shaper_none,
+  hb_ot_complex_shaper_arabic
+};
 
+struct hb_ot_shape_plan_t
+{
+  hb_ot_map_t map;
+  hb_ot_complex_shaper_t shaper;
+};
 
 struct hb_ot_shape_context_t
 {
@@ -52,7 +60,7 @@ struct hb_ot_shape_context_t
   hb_bool_t applied_substitute_complex;
   hb_bool_t applied_position_complex;
 
-  struct hb_ot_map_t *map;
+  hb_ot_shape_plan_t *plan;
 };
 
 
