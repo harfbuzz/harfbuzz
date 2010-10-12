@@ -63,7 +63,7 @@ void
 hb_ot_map_t::compile (hb_face_t *face,
 		      const hb_segment_properties_t *props)
 {
- global_mask = 0;
+ global_mask = 1;
  lookup_count[0] = lookup_count[1] = 0;
 
   if (!feature_count)

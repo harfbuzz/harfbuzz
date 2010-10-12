@@ -102,10 +102,11 @@ _hb_buffer_next_glyph (hb_buffer_t *buffer);
 
 
 HB_INTERNAL void
-_hb_buffer_clear_masks (hb_buffer_t *buffer);
+_hb_buffer_reset_masks (hb_buffer_t *buffer,
+			hb_mask_t    mask);
 
 HB_INTERNAL void
-_hb_buffer_set_masks (hb_buffer_t *buffer,
+_hb_buffer_add_masks (hb_buffer_t *buffer,
 		      hb_mask_t    value,
 		      hb_mask_t    mask,
 		      unsigned int cluster_start,
@@ -164,12 +165,12 @@ struct _hb_buffer_t {
   { _hb_buffer_add_output_glyph (this, glyph_index, component, ligID); }
   inline void replace_glyph (hb_codepoint_t glyph_index) { add_output_glyph (glyph_index); }
 
-  inline void clear_masks (void) { _hb_buffer_clear_masks (this); }
-  inline void set_masks (hb_mask_t    value,
+  inline void reset_masks (hb_mask_t mask) { _hb_buffer_reset_masks (this, mask); }
+  inline void add_masks (hb_mask_t value,
 			 hb_mask_t mask,
 			 unsigned int cluster_start,
 			 unsigned int cluster_end)
-  { _hb_buffer_set_masks (this, value, mask, cluster_start, cluster_end); }
+  { _hb_buffer_add_masks (this, value, mask, cluster_start, cluster_end); }
 
 };
 

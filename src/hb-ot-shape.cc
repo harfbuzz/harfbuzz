@@ -82,11 +82,8 @@ hb_ot_shape_collect_features (hb_ot_shape_plan_t       *plan,
 static void
 hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 {
-  c->buffer->clear_masks ();
-
   hb_mask_t global_mask = c->plan->map.get_global_mask ();
-  if (global_mask)
-    c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
+  c->buffer->reset_masks (global_mask);
 
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {
@@ -94,7 +91,7 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
     if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
       unsigned int shift;
       hb_mask_t mask = c->plan->map.get_mask (feature->tag, &shift);
-      c->buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
+      c->buffer->add_masks (feature->value << shift, mask, feature->start, feature->end);
     }
   }
 
