@@ -38,7 +38,8 @@ HB_BEGIN_DECLS
 
 struct hb_ot_shape_context_t
 {
-  /* Input to hb_ot_shape() */
+  /* Input to hb_ot_shape_execute() */
+  hb_ot_shape_plan_t *plan;
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t  *buffer;
@@ -49,8 +50,6 @@ struct hb_ot_shape_context_t
   hb_direction_t original_direction;
   hb_bool_t applied_substitute_complex;
   hb_bool_t applied_position_complex;
-
-  hb_ot_shape_plan_t *plan;
 };
 
 

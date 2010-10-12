@@ -270,7 +270,7 @@ hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
 /* Do it! */
 
 static void
-hb_ot_shape_internal (hb_ot_shape_context_t *c)
+hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 {
   /* Save the original direction, we use it later. */
   c->original_direction = c->buffer->props.direction;
@@ -333,6 +333,18 @@ hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
 }
 
 void
+hb_ot_shape_execute (hb_ot_shape_plan_t *plan,
+		     hb_font_t          *font,
+		     hb_face_t          *face,
+		     hb_buffer_t        *buffer,
+		     const hb_feature_t *user_features,
+		     unsigned int        num_user_features)
+{
+  hb_ot_shape_context_t c = {plan, font, face, buffer, user_features, num_user_features};
+  hb_ot_shape_execute_internal (&c);
+}
+
+void
 hb_ot_shape (hb_font_t    *font,
 	     hb_face_t    *face,
 	     hb_buffer_t  *buffer,
@@ -342,10 +354,7 @@ hb_ot_shape (hb_font_t    *font,
   hb_ot_shape_plan_t plan;
 
   hb_ot_shape_plan_internal (&plan, face, &buffer->props, user_features, num_user_features);
-
-  hb_ot_shape_context_t c = {font, face, buffer, user_features, num_user_features};
-  c.plan = &plan;
-  hb_ot_shape_internal (&c);
+  hb_ot_shape_execute (&plan, font, face, buffer, user_features, num_user_features);
 }
 
 
