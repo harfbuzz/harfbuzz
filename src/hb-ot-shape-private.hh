@@ -31,22 +31,11 @@
 
 #include "hb-ot-shape.h"
 
-#include "hb-buffer-private.hh"
+#include "hb-ot-map-private.hh"
 
 HB_BEGIN_DECLS
 
 struct hb_ot_map_t;
-
-struct hb_ot_shape_plan_context_t
-{
-  struct hb_ot_map_t *map;
-
-  hb_face_t *face;
-  hb_segment_properties_t *props;
-
-  const hb_feature_t *user_features;
-  unsigned int  num_user_features;
-};
 
 
 struct hb_ot_shape_context_t

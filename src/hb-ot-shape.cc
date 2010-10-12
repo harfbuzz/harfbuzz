@@ -49,16 +49,19 @@ hb_tag_t default_features[] = {
 };
 
 static void
-hb_ot_shape_collect_features (hb_ot_shape_plan_context_t *c)
+hb_ot_shape_collect_features (hb_ot_map_t              *map,
+			      hb_segment_properties_t  *props,
+			      const hb_feature_t       *user_features,
+			      unsigned int              num_user_features)
 {
-  switch (c->props->direction) {
+  switch (props->direction) {
     case HB_DIRECTION_LTR:
-      c->map->add_bool_feature (HB_TAG ('l','t','r','a'));
-      c->map->add_bool_feature (HB_TAG ('l','t','r','m'));
+      map->add_bool_feature (HB_TAG ('l','t','r','a'));
+      map->add_bool_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      c->map->add_bool_feature (HB_TAG ('r','t','l','a'));
-      c->map->add_bool_feature (HB_TAG ('r','t','l','m'), false);
+      map->add_bool_feature (HB_TAG ('r','t','l','a'));
+      map->add_bool_feature (HB_TAG ('r','t','l','m'), false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -67,13 +70,13 @@ hb_ot_shape_collect_features (hb_ot_shape_plan_context_t *c)
   }
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
-    c->map->add_bool_feature (default_features[i]);
+    map->add_bool_feature (default_features[i]);
 
   /* complex */
 
-  for (unsigned int i = 0; i < c->num_user_features; i++) {
-    const hb_feature_t *feature = &c->user_features[i];
-    c->map->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+  for (unsigned int i = 0; i < num_user_features; i++) {
+    const hb_feature_t *feature = &user_features[i];
+    map->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
   }
 }
 
@@ -105,7 +108,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
   if (!hb_ot_layout_has_substitution (c->face))
     return;
 
-  c->map->substitute (c);
+  c->map->substitute (c->face, c->buffer);
 
   c->applied_substitute_complex = TRUE;
   return;
@@ -118,7 +121,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
   if (!hb_ot_layout_has_positioning (c->face))
     return;
 
-  c->map->position (c);
+  c->map->position (c->font, c->face, c->buffer);
 
   hb_ot_layout_position_finish (c->font, c->face, c->buffer);
 
@@ -324,11 +327,9 @@ hb_ot_shape_plan_internal (hb_ot_map_t              *map,
 			   const hb_feature_t       *user_features,
 			   unsigned int              num_user_features)
 {
-  hb_ot_shape_plan_context_t c = {map, face, props, user_features, num_user_features};
+  hb_ot_shape_collect_features (map, props, user_features, num_user_features);
 
-  hb_ot_shape_collect_features (&c);
-
-  map->compile (&c);
+  map->compile (face, props);
 }
 
 void

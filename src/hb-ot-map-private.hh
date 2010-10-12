@@ -29,7 +29,7 @@
 #ifndef HB_OT_MAP_PRIVATE_HH
 #define HB_OT_MAP_PRIVATE_HH
 
-#include "hb-ot-shape-private.hh"
+#include "hb-buffer-private.hh"
 
 #include "hb-ot-layout.h"
 
@@ -73,7 +73,7 @@ struct hb_ot_map_t {
     { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
   };
 
-  HB_INTERNAL void add_lookups (hb_ot_shape_plan_context_t *c,
+  HB_INTERNAL void add_lookups (hb_face_t    *face,
 				unsigned int  table_index,
 				unsigned int  feature_index,
 				hb_mask_t     mask);
@@ -95,7 +95,8 @@ struct hb_ot_map_t {
   inline void add_bool_feature (hb_tag_t tag, bool global = true)
   { add_feature (tag, 1, global); }
 
-  HB_INTERNAL void compile (hb_ot_shape_plan_context_t *c);
+  HB_INTERNAL void compile (hb_face_t *face,
+			    hb_segment_properties_t *props);
 
   hb_mask_t get_global_mask (void) const { return global_mask; }
 
@@ -105,14 +106,14 @@ struct hb_ot_map_t {
     return map ? map->mask : 0;
   }
 
-  inline void substitute (hb_ot_shape_context_t *c) const {
+  inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const {
     for (unsigned int i = 0; i < lookup_count[0]; i++)
-      hb_ot_layout_substitute_lookup (c->face, c->buffer, lookup_maps[0][i].index, lookup_maps[0][i].mask);
+      hb_ot_layout_substitute_lookup (face, buffer, lookup_maps[0][i].index, lookup_maps[0][i].mask);
   }
 
-  inline void position (hb_ot_shape_context_t *c) const {
+  inline void position (hb_font_t *font, hb_face_t *face, hb_buffer_t *buffer) const {
     for (unsigned int i = 0; i < lookup_count[1]; i++)
-      hb_ot_layout_position_lookup (c->font, c->face, c->buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
+      hb_ot_layout_position_lookup (font, face, buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
   }
 
   private:
