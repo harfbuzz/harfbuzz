@@ -73,32 +73,10 @@ struct hb_ot_map_t {
     { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
   };
 
-
-  void
-  add_lookups (hb_ot_shape_context_t *c,
-	       unsigned int  table_index,
-	       unsigned int  feature_index,
-	       hb_mask_t     mask)
-  {
-    unsigned int i = MAX_LOOKUPS - lookup_count[table_index];
-    lookup_map_t *lookups = lookup_maps[table_index] + lookup_count[table_index];
-
-    unsigned int *lookup_indices = (unsigned int *) lookups;
-
-    hb_ot_layout_feature_get_lookup_indexes (c->face,
-					     table_tags[table_index],
-					     feature_index,
-					     0, &i,
-					     lookup_indices);
-
-    lookup_count[table_index] += i;
-
-    while (i--) {
-      lookups[i].mask = mask;
-      lookups[i].index = lookup_indices[i];
-    }
-  }
-
+  HB_INTERNAL void add_lookups (hb_ot_shape_plan_context_t *c,
+				unsigned int  table_index,
+				unsigned int  feature_index,
+				hb_mask_t     mask);
 
 
   public:
@@ -117,7 +95,7 @@ struct hb_ot_map_t {
   inline void add_bool_feature (hb_tag_t tag, bool global = true)
   { add_feature (tag, 1, global); }
 
-  HB_INTERNAL void compile (hb_ot_shape_context_t *c);
+  HB_INTERNAL void compile (hb_ot_shape_plan_context_t *c);
 
   hb_mask_t get_global_mask (void) const { return global_mask; }
 

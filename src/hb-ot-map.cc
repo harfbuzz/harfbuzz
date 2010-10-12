@@ -34,7 +34,33 @@ HB_BEGIN_DECLS
 
 
 void
-hb_ot_map_t::compile (hb_ot_shape_context_t *c)
+hb_ot_map_t::add_lookups (hb_ot_shape_plan_context_t *c,
+			  unsigned int  table_index,
+			  unsigned int  feature_index,
+			  hb_mask_t     mask)
+{
+  unsigned int i = MAX_LOOKUPS - lookup_count[table_index];
+  lookup_map_t *lookups = lookup_maps[table_index] + lookup_count[table_index];
+
+  unsigned int *lookup_indices = (unsigned int *) lookups;
+
+  hb_ot_layout_feature_get_lookup_indexes (c->face,
+					   table_tags[table_index],
+					   feature_index,
+					   0, &i,
+					   lookup_indices);
+
+  lookup_count[table_index] += i;
+
+  while (i--) {
+    lookups[i].mask = mask;
+    lookups[i].index = lookup_indices[i];
+  }
+}
+
+
+void
+hb_ot_map_t::compile (hb_ot_shape_plan_context_t *c)
 {
  global_mask = 0;
  lookup_count[0] = lookup_count[1] = 0;
@@ -49,8 +75,8 @@ hb_ot_map_t::compile (hb_ot_shape_context_t *c)
   const hb_tag_t *script_tags;
   hb_tag_t language_tag;
 
-  script_tags = hb_ot_tags_from_script (c->buffer->props.script);
-  language_tag = hb_ot_tag_from_language (c->buffer->props.language);
+  script_tags = hb_ot_tags_from_script (c->props->script);
+  language_tag = hb_ot_tag_from_language (c->props->language);
 
   unsigned int script_index[2], language_index[2];
   for (unsigned int table_index = 0; table_index < 2; table_index++) {

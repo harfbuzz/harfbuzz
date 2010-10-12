@@ -37,14 +37,26 @@ HB_BEGIN_DECLS
 
 struct hb_ot_map_t;
 
+struct hb_ot_shape_plan_context_t
+{
+  struct hb_ot_map_t *map;
+
+  hb_face_t *face;
+  hb_segment_properties_t *props;
+
+  const hb_feature_t *user_features;
+  unsigned int  num_user_features;
+};
+
+
 struct hb_ot_shape_context_t
 {
   /* Input to hb_ot_shape() */
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t  *buffer;
-  hb_feature_t *features;
-  unsigned int  num_features;
+  const hb_feature_t *user_features;
+  unsigned int        num_user_features;
 
   /* Transient stuff */
   hb_direction_t original_direction;

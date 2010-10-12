@@ -49,9 +49,9 @@ hb_tag_t default_features[] = {
 };
 
 static void
-hb_ot_shape_collect_features (hb_ot_shape_context_t *c)
+hb_ot_shape_collect_features (hb_ot_shape_plan_context_t *c)
 {
-  switch (c->original_direction) {
+  switch (c->props->direction) {
     case HB_DIRECTION_LTR:
       c->map->add_bool_feature (HB_TAG ('l','t','r','a'));
       c->map->add_bool_feature (HB_TAG ('l','t','r','m'));
@@ -71,8 +71,8 @@ hb_ot_shape_collect_features (hb_ot_shape_context_t *c)
 
   /* complex */
 
-  for (unsigned int i = 0; i < c->num_features; i++) {
-    const hb_feature_t *feature = &c->features[i];
+  for (unsigned int i = 0; i < c->num_user_features; i++) {
+    const hb_feature_t *feature = &c->user_features[i];
     c->map->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
   }
 }
@@ -85,9 +85,9 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   if (global_mask)
     c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
 
-  for (unsigned int i = 0; i < c->num_features; i++)
+  for (unsigned int i = 0; i < c->num_user_features; i++)
   {
-    hb_feature_t *feature = &c->features[i];
+    const hb_feature_t *feature = &c->user_features[i];
     if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
       unsigned int shift;
       hb_mask_t mask = c->map->get_mask (feature->tag, &shift);
@@ -271,6 +271,9 @@ hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
 static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
+  /* Save the original direction, we use it later. */
+  c->original_direction = c->buffer->props.direction;
+
   hb_ot_shape_setup_masks (c);
 
   hb_form_clusters (c);
@@ -315,22 +318,32 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 }
 
 void
+hb_ot_shape_plan_internal (hb_ot_map_t              *map,
+			   hb_face_t                *face,
+			   hb_segment_properties_t  *props,
+			   const hb_feature_t       *user_features,
+			   unsigned int              num_user_features)
+{
+  hb_ot_shape_plan_context_t c = {map, face, props, user_features, num_user_features};
+
+  hb_ot_shape_collect_features (&c);
+
+  map->compile (&c);
+}
+
+void
 hb_ot_shape (hb_font_t    *font,
 	     hb_face_t    *face,
 	     hb_buffer_t  *buffer,
-	     hb_feature_t *features,
-	     unsigned int  num_features)
+	     const hb_feature_t *user_features,
+	     unsigned int        num_user_features)
 {
-  hb_ot_shape_context_t c = {font, face, buffer, features, num_features};
   hb_ot_map_t map;
 
-  /* Setup transient context members */
-  c.original_direction = buffer->props.direction;
+  hb_ot_shape_plan_internal (&map, face, &buffer->props, user_features, num_user_features);
+
+  hb_ot_shape_context_t c = {font, face, buffer, user_features, num_user_features};
   c.map = &map;
-
-  hb_ot_shape_collect_features (&c);
-  c.map->compile (&c);
-
   hb_ot_shape_internal (&c);
 }
 
