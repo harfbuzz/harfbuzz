@@ -82,6 +82,8 @@ hb_ot_shape_collect_features (hb_ot_shape_plan_t       *plan,
 static void
 hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 {
+  c->buffer->clear_masks ();
+
   hb_mask_t global_mask = c->plan->map.get_global_mask ();
   if (global_mask)
     c->buffer->set_masks (global_mask, global_mask, 0, (unsigned int) -1);
@@ -281,8 +283,6 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   /* SUBSTITUTE */
   {
-    c->buffer->clear_masks ();
-
     /* Mirroring needs to see the original direction */
     hb_mirror_chars (c);
 
@@ -298,8 +298,6 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   /* POSITION */
   {
-    c->buffer->clear_masks ();
-
     hb_position_default (c);
 
     hb_ot_position_complex (c);
