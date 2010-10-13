@@ -9,6 +9,8 @@ General fixes:
 
 - Remove synthesized GDEF
 
+- Remove fixed-size feature/lookup arrays in hb-ot-map
+
 - Use size_t in sanitize
 
 
