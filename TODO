@@ -1,23 +1,69 @@
+General fixes:
+=============
+
+- Fix feature mask bugs
+
+- Fix tt kern on/off
+
+- Remove hb_internal_glyph_info_t, etc
+
+- Remove synthesized GDEF
+
+- Use size_t in sanitize
+
+
+API issues to fix before 1.0:
+============================
+
+- Sprinkle const all over public and private API
+
 - Rename get_table to reference_table
 
-- Avoid allocating blob objects internally for for_data() faces
+- get_table shouldn't return NULL
 
-- head table access cleanup (div by zero now!)
-- cache various expensive scale computation
+- Use tags for hb_script_t?
 
-- SFNT api?  get_num_faces?
+- Future-proof metrics struct
+
+- Figure out how many .so objects, how to link, etc
+
+
+API to add (maybe after 1.0):
+============================
+
+- Add hb_font_create_linear()?
+
+- Add hb_shape_plan()/hb_shape_execute()
+
+- Add sanitize API
+
+- Add query API for aalt-like features?
+
+- SFNT api? get_num_faces?
+
+- Full matrix instead of scale?
+
+- Add hb-glib / hb-icu script conversion API
+
+- Add segmentation API
+
+- Add hb-cairo
+
+- Add hb-fribidi
+
+
+Build fixes:
+===========
 
 - GNOME Bug 612402 - (hb-arm) HarfBuzz compilation fix for arm
 
-- Make sure LangSys default feature is only applied once...
-
-- kern/GPOS interaction
-
-- Use size_t in sanitize?
 - Better define HB_INTERNAL
-- Future-proof metrics struct
 
-hb-ot:
-- Rename hb_internal_glyph_info_t to hb_ot_glyph_info_t
-- Add query API for aalt-like features
-- HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH vs LookupType::... mess
+
+Optimizations:
+=============
+
+- Avoid allocating blob objects internally for for_data() faces
+
+- Add caching layer to hb-ft
+
