@@ -47,9 +47,10 @@ struct hb_ot_map_t {
 
   struct feature_info_t {
     hb_tag_t tag;
-    unsigned int value;
-    unsigned int seq;
-    bool global;
+    unsigned int seq; /* sequence#, used for stable sorting only */
+    unsigned int max_value;
+    bool global; /* whether the feature applies value to every glyph in the buffer */
+    unsigned int default_value; /* for non-global features, what should the unset glyphs take */
 
     static int cmp (const feature_info_t *a, const feature_info_t *b)
     { return (a->tag != b->tag) ?  (a->tag < b->tag ? -1 : 1) : (a->seq < b->seq ? -1 : 1); }
@@ -87,9 +88,10 @@ struct hb_ot_map_t {
   {
     feature_info_t *info = &feature_infos[feature_count++];
     info->tag = tag;
-    info->value = value;
     info->seq = feature_count;
+    info->max_value = value;
     info->global = global;
+    info->default_value = global ? value : 0;
   }
 
   inline void add_bool_feature (hb_tag_t tag, bool global = true)

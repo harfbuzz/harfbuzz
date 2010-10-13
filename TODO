@@ -1,8 +1,6 @@
 General fixes:
 =============
 
-- Fix feature mask bugs
-
 - Fix tt kern on/off
 
 - Remove hb_internal_glyph_info_t, etc

@@ -98,7 +98,8 @@ hb_ot_map_t::compile (hb_face_t *face,
 	feature_infos[j] = feature_infos[i];
       else {
 	feature_infos[j].global = false;
-	feature_infos[j].value = MAX (feature_infos[j].value, feature_infos[i].value);
+	feature_infos[j].max_value = MAX (feature_infos[j].max_value, feature_infos[i].max_value);
+	/* Inherit default_value from j */
       }
     }
   feature_count = j + 1;
@@ -112,13 +113,13 @@ hb_ot_map_t::compile (hb_face_t *face,
 
     unsigned int bits_needed;
 
-    if (info->global && info->value == 1)
+    if (info->global && info->max_value == 1)
       /* Uses the global bit */
       bits_needed = 0;
     else
-      bits_needed = _hb_bit_storage (info->value);
+      bits_needed = _hb_bit_storage (info->max_value);
 
-    if (!info->value || next_bit + bits_needed > 8 * sizeof (hb_mask_t))
+    if (!info->max_value || next_bit + bits_needed > 8 * sizeof (hb_mask_t))
       continue; /* Feature disabled, or not enough bits. */
 
 
@@ -140,7 +141,7 @@ hb_ot_map_t::compile (hb_face_t *face,
     map->tag = info->tag;
     map->index[0] = feature_index[0];
     map->index[1] = feature_index[1];
-    if (info->global && info->value == 1) {
+    if (info->global && info->max_value == 1) {
       /* Uses the global bit */
       map->shift = 0;
       map->mask = 1;
@@ -149,7 +150,7 @@ hb_ot_map_t::compile (hb_face_t *face,
       map->mask = (1 << (next_bit + bits_needed)) - (1 << next_bit);
       next_bit += bits_needed;
       if (info->global)
-	global_mask |= map->mask;
+	global_mask |= ((info->default_value << map->shift) & map->mask);
     }
 
   }
