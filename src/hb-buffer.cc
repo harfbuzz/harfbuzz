@@ -478,6 +478,9 @@ _hb_buffer_add_masks (hb_buffer_t *buffer,
   hb_mask_t not_mask = ~mask;
   value &= mask;
 
+  if (!mask)
+    return;
+
   if (cluster_start == 0 && cluster_end == (unsigned int)-1) {
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++)
