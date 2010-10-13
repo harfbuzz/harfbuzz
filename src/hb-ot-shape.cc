@@ -88,13 +88,15 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 
   hb_ot_shape_complex_setup_masks (c);
 
+  c->buffer->reset_masks (global_mask);
+
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {
     const hb_feature_t *feature = &c->user_features[i];
     if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
       unsigned int shift;
       hb_mask_t mask = c->plan->map.get_mask (feature->tag, &shift);
-      c->buffer->add_masks (feature->value << shift, mask, feature->start, feature->end);
+      c->buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
     }
   }
 }
@@ -180,7 +182,7 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
   for (unsigned int i = 0; i < count; i++) {
     hb_codepoint_t codepoint = get_mirroring (c->buffer->info[i].codepoint);
     if (likely (codepoint == c->buffer->info[i].codepoint))
-      c->buffer->info[i].mask |= rtlm_mask;
+      c->buffer->info[i].mask |= rtlm_mask; /* XXX this should be moved to before setting user-feature masks */
     else
       c->buffer->info[i].codepoint = codepoint;
   }

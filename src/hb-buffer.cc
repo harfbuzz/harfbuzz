@@ -470,6 +470,15 @@ _hb_buffer_reset_masks (hb_buffer_t *buffer,
 
 void
 _hb_buffer_add_masks (hb_buffer_t *buffer,
+		      hb_mask_t    mask)
+{
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    buffer->info[i].mask |= mask;
+}
+
+void
+_hb_buffer_set_masks (hb_buffer_t *buffer,
 		      hb_mask_t    value,
 		      hb_mask_t    mask,
 		      unsigned int cluster_start,
