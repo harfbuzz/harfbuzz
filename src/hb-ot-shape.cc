@@ -86,6 +86,8 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   hb_mask_t global_mask = c->plan->map.get_global_mask ();
   c->buffer->reset_masks (global_mask);
 
+  hb_ot_shape_complex_setup_masks (c);
+
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {
     const hb_feature_t *feature = &c->user_features[i];
@@ -95,8 +97,6 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
       c->buffer->add_masks (feature->value << shift, mask, feature->start, feature->end);
     }
   }
-
-  hb_ot_shape_complex_setup_masks (c);
 }
 
 
