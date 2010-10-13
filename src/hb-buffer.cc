@@ -465,7 +465,7 @@ _hb_buffer_reset_masks (hb_buffer_t *buffer,
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].mask = 1;
+    buffer->info[i].mask = mask;
 }
 
 void
