@@ -476,6 +476,7 @@ _hb_buffer_add_masks (hb_buffer_t *buffer,
 		      unsigned int cluster_end)
 {
   hb_mask_t not_mask = ~mask;
+  value &= mask;
 
   if (cluster_start == 0 && cluster_end == (unsigned int)-1) {
     unsigned int count = buffer->len;
