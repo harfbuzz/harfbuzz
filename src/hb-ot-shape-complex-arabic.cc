@@ -706,7 +706,7 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
   hb_mask_t mask_array[TOTAL_NUM_FEATURES + 1] = {0};
   unsigned int num_masks = c->buffer->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_masks; i++)
-    mask_array[i] = c->plan->map.get_mask (arabic_syriac_features[i]);
+    mask_array[i] = c->plan->map.get_1_mask (arabic_syriac_features[i]);
 
   for (unsigned int i = 0; i < count; i++)
     c->buffer->info[i].mask |= mask_array[c->buffer->info[i].gproperty];

@@ -61,6 +61,7 @@ struct hb_ot_map_t {
     unsigned int index[2]; /* GSUB, GPOS */
     unsigned int shift;
     hb_mask_t mask;
+    hb_mask_t _1_mask; /* mask for value=1, for quick access */
 
     static int cmp (const feature_map_t *a, const feature_map_t *b)
     { return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0; }
@@ -100,12 +101,17 @@ struct hb_ot_map_t {
   HB_INTERNAL void compile (hb_face_t *face,
 			    const hb_segment_properties_t *props);
 
-  hb_mask_t get_global_mask (void) const { return global_mask; }
+  inline hb_mask_t get_global_mask (void) const { return global_mask; }
 
-  hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift = NULL) const {
+  inline hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift = NULL) const {
     const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), (hb_compare_func_t) feature_map_t::cmp);
     if (shift) *shift = map ? map->shift : 0;
     return map ? map->mask : 0;
+  }
+
+  inline hb_mask_t get_1_mask (hb_tag_t tag) const {
+    const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), (hb_compare_func_t) feature_map_t::cmp);
+    return map ? map->_1_mask : 0;
   }
 
   inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const {

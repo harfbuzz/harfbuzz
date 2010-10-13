@@ -150,8 +150,9 @@ hb_ot_map_t::compile (hb_face_t *face,
       map->mask = (1 << (next_bit + bits_needed)) - (1 << next_bit);
       next_bit += bits_needed;
       if (info->global)
-	global_mask |= ((info->default_value << map->shift) & map->mask);
+	global_mask |= (info->default_value << map->shift) & map->mask;
     }
+    map->_1_mask = (1 << map->shift) & map->mask;
 
   }
   feature_count = j;

@@ -174,7 +174,7 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
   if (HB_DIRECTION_IS_FORWARD (c->buffer->props.direction))
     return;
 
-  hb_mask_t rtlm_mask = c->plan->map.get_mask (HB_TAG ('r','t','l','m'));
+  hb_mask_t rtlm_mask = c->plan->map.get_1_mask (HB_TAG ('r','t','l','m'));
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
