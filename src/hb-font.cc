@@ -310,7 +310,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
   if (unlikely (!closure))
     return NULL;
 
-  closure->blob = hb_blob_reference (blob);
+  closure->blob = blob;
   closure->index = index;
 
   return closure;
