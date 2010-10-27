@@ -23,8 +23,6 @@ API issues to fix before 1.0:
 
 - Use tags for hb_script_t?
 
-- Future-proof metrics struct
-
 - Figure out how many .so objects, how to link, etc
 
 
