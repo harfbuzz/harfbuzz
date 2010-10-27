@@ -38,6 +38,12 @@
 HB_BEGIN_DECLS
 
 
+/* XXX */
+#define component() var1.u16[0]
+#define lig_id() var1.u16[1]
+#define back() var.u16[0] /* number of glyphs to go back for drawing current glyph */
+#define cursive_chain() var.i16[1] /* character to which this connects, may be positive or negative */
+
 typedef unsigned int hb_ot_layout_class_t;
 
 /*
