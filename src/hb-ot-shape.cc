@@ -233,10 +233,9 @@ hb_position_default (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_glyph_metrics_t metrics;
-    hb_font_get_glyph_metrics (c->font, c->face, c->buffer->info[i].codepoint, &metrics);
-    c->buffer->pos[i].x_advance = metrics.x_advance;
-    c->buffer->pos[i].y_advance = metrics.y_advance;
+    hb_font_get_glyph_advance (c->font, c->face, c->buffer->info[i].codepoint,
+			       &c->buffer->pos[i].x_advance,
+			       &c->buffer->pos[i].y_advance);
   }
 }
 
