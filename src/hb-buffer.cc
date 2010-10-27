@@ -310,26 +310,6 @@ _hb_buffer_swap (hb_buffer_t *buffer)
   buffer->i = 0;
 }
 
-/* The following function copies `num_out' elements from `glyph_data'
-   to `buffer->out_info', advancing the in array pointer in the structure
-   by `num_in' elements, and the out array pointer by `num_out' elements.
-   Finally, it sets the `length' field of `out' equal to
-   `pos' of the `out' structure.
-
-   If `component' is 0xFFFF, the component value from buffer->i
-   will copied `num_out' times, otherwise `component' itself will
-   be used to fill the `component' fields.
-
-   If `lig_id' is 0xFFFF, the lig_id value from buffer->i
-   will copied `num_out' times, otherwise `lig_id' itself will
-   be used to fill the `lig_id' fields.
-
-   The mask for all replacement glyphs are taken
-   from the glyph at position `buffer->i'.
-
-   The cluster value for the glyph at position buffer->i is used
-   for all replacement glyphs */
-
 void
 _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned int num_in,
