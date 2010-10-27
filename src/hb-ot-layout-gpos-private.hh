@@ -869,12 +869,12 @@ struct CursivePosFormat1
 
     if  (c->lookup_flag & LookupFlag::RightToLeft)
     {
-      c->buffer->pos[i].cursive_chain = i - j;
+      c->buffer->pos[i].cursive_chain = j - i;
       c->buffer->pos[i].y_offset = entry_y - exit_y;
     }
     else
     {
-      c->buffer->pos[j].cursive_chain = j - i;
+      c->buffer->pos[j].cursive_chain = i - j;
       c->buffer->pos[j].y_offset = exit_y - entry_y;
     }
 

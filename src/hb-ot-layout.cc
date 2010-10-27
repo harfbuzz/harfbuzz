@@ -611,23 +611,24 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
   /* TODO: Vertical */
 
   /* Handle cursive connections */
-  /* First handle all left-to-right connections */
+  /* First handle all chain-back connections */
   for (j = 0; j < len; j++) {
-    if (pos[j].cursive_chain > 0)
-    {
-      pos[j].y_offset += pos[j - pos[j].cursive_chain].y_offset;
-      pos[j].cursive_chain = 0;
-    }
-  }
-  /* Then handle all right-to-left connections */
-  for (i = len; i > 0; i--) {
-    j = i - 1;
     if (pos[j].cursive_chain < 0)
     {
-      pos[j].y_offset += pos[j - pos[j].cursive_chain].y_offset;
+      pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
       pos[j].cursive_chain = 0;
     }
   }
+  /* Then handle all chain-forward connections */
+  for (i = len; i > 0; i--) {
+    j = i - 1;
+    if (pos[j].cursive_chain > 0)
+    {
+      pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
+      pos[j].cursive_chain = 0;
+    }
+  }
+
 
   /* Handle attachments */
   for (i = 0; i < len; i++)
