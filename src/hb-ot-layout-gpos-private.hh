@@ -855,27 +855,40 @@ struct CursivePosFormat1
     (this+this_record.exitAnchor).get_anchor (c->layout, c->buffer->info[i].codepoint, &exit_x, &exit_y);
     (this+next_record.entryAnchor).get_anchor (c->layout, c->buffer->info[j].codepoint, &entry_x, &entry_y);
 
-    /* TODO vertical */
+    hb_direction_t direction = c->buffer->props.direction;
 
-    /* Align the exit anchor of the left glyph with the entry anchor of the right glyph. */
-    if (c->buffer->props.direction == HB_DIRECTION_RTL)
+    /* Align the exit anchor of the left/top glyph with the entry anchor of the right/bottom glyph
+     * by adjusting advance of the left/top glyph. */
+    if (HB_DIRECTION_IS_BACKWARD (direction))
     {
-      c->buffer->pos[j].x_advance = c->buffer->pos[j].x_offset + entry_x - exit_x;
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+	c->buffer->pos[j].x_advance = c->buffer->pos[j].x_offset + entry_x - exit_x;
+      else
+	c->buffer->pos[j].y_advance = c->buffer->pos[j].y_offset + entry_y - exit_y;
     }
     else
     {
-      c->buffer->pos[i].x_advance = c->buffer->pos[i].x_offset + exit_x - entry_x;
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+	c->buffer->pos[i].x_advance = c->buffer->pos[i].x_offset + exit_x - entry_x;
+      else
+	c->buffer->pos[i].y_advance = c->buffer->pos[i].y_offset + exit_y - entry_y;
     }
 
     if  (c->lookup_flag & LookupFlag::RightToLeft)
     {
       c->buffer->pos[i].cursive_chain = j - i;
-      c->buffer->pos[i].y_offset = entry_y - exit_y;
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+	c->buffer->pos[i].y_offset = entry_y - exit_y;
+      else
+	c->buffer->pos[i].x_offset = entry_x - exit_x;
     }
     else
     {
       c->buffer->pos[j].cursive_chain = i - j;
-      c->buffer->pos[j].y_offset = exit_y - entry_y;
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+	c->buffer->pos[j].y_offset = exit_y - entry_y;
+      else
+	c->buffer->pos[j].x_offset = exit_x - entry_x;
     }
 
     c->buffer->i = j;

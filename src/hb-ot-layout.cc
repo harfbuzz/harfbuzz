@@ -607,25 +607,34 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
   unsigned int i, j;
   unsigned int len = hb_buffer_get_length (buffer);
   hb_internal_glyph_position_t *pos = (hb_internal_glyph_position_t *) hb_buffer_get_glyph_positions (buffer);
+  hb_direction_t direction = buffer->props.direction;
 
   /* TODO: Vertical */
 
-  /* Handle cursive connections */
-  /* First handle all chain-back connections */
-  for (j = 0; j < len; j++) {
-    if (pos[j].cursive_chain < 0)
-    {
-      pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
-      pos[j].cursive_chain = 0;
+  /* Handle cursive connections:
+   * First handle all chain-back connections, then handle all chain-forward connections. */
+  if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+  {
+    for (j = 0; j < len; j++) {
+      if (pos[j].cursive_chain < 0)
+	pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
+    }
+    for (i = len; i > 0; i--) {
+      j = i - 1;
+      if (pos[j].cursive_chain > 0)
+	pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
     }
   }
-  /* Then handle all chain-forward connections */
-  for (i = len; i > 0; i--) {
-    j = i - 1;
-    if (pos[j].cursive_chain > 0)
-    {
-      pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
-      pos[j].cursive_chain = 0;
+  else
+  {
+    for (j = 0; j < len; j++) {
+      if (pos[j].cursive_chain < 0)
+	pos[j].x_offset += pos[j + pos[j].cursive_chain].x_offset;
+    }
+    for (i = len; i > 0; i--) {
+      j = i - 1;
+      if (pos[j].cursive_chain > 0)
+	pos[j].x_offset += pos[j + pos[j].cursive_chain].x_offset;
     }
   }
 
@@ -639,7 +648,7 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
       pos[i].x_offset += pos[back].x_offset;
       pos[i].y_offset += pos[back].y_offset;
 
-      if (buffer->props.direction == HB_DIRECTION_RTL)
+      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
 	for (j = back + 1; j < i + 1; j++) {
 	  pos[i].x_offset += pos[j].x_advance;
 	  pos[i].y_offset += pos[j].y_advance;
