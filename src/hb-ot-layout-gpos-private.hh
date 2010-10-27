@@ -826,57 +826,61 @@ struct CursivePosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    struct hb_ot_layout_context_t::info_t::gpos_t *gpi = &c->layout->info.gpos;
-    hb_codepoint_t last_pos = gpi->last;
-    gpi->last = HB_OT_LAYOUT_GPOS_NO_LAST;
 
     /* We don't handle mark glyphs here. */
     if (c->property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
       return false;
 
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->i].codepoint);
-    if (likely (index == NOT_COVERED))
+    unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);
+    if (unlikely (c->buffer->i + 2 > end))
       return false;
 
-    const EntryExitRecord &record = entryExitRecord[index];
+    const EntryExitRecord &this_record = entryExitRecord[(this+coverage) (c->buffer->info[c->buffer->i].codepoint)];
+    if (!this_record.exitAnchor)
+      return false;
 
-    if (last_pos == HB_OT_LAYOUT_GPOS_NO_LAST || !record.entryAnchor)
-      goto end;
+    unsigned int j = c->buffer->i + 1;
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
+    {
+      if (unlikely (j == end))
+	return false;
+      j++;
+    }
 
-    hb_position_t entry_x, entry_y;
-    (this+record.entryAnchor).get_anchor (c->layout, c->buffer->info[c->buffer->i].codepoint, &entry_x, &entry_y);
+    const EntryExitRecord &next_record = entryExitRecord[(this+coverage) (c->buffer->info[j].codepoint)];
+    if (!next_record.entryAnchor)
+      return false;
+
+    unsigned int i = c->buffer->i;
+
+    hb_position_t entry_x, entry_y, exit_x, exit_y;
+    (this+this_record.exitAnchor).get_anchor (c->layout, c->buffer->info[i].codepoint, &exit_x, &exit_y);
+    (this+next_record.entryAnchor).get_anchor (c->layout, c->buffer->info[j].codepoint, &entry_x, &entry_y);
 
     /* TODO vertical */
 
     /* Align the exit anchor of the left glyph with the entry anchor of the right glyph. */
     if (c->buffer->props.direction == HB_DIRECTION_RTL)
     {
-      c->buffer->pos[c->buffer->i].x_advance = c->buffer->pos[c->buffer->i].x_offset + entry_x - gpi->anchor_x;
+      c->buffer->pos[j].x_advance = c->buffer->pos[j].x_offset + entry_x - exit_x;
     }
     else
     {
-      c->buffer->pos[last_pos].x_advance = c->buffer->pos[last_pos].x_advance + gpi->anchor_x - entry_x;
+      c->buffer->pos[i].x_advance = c->buffer->pos[i].x_offset + exit_x - entry_x;
     }
 
     if  (c->lookup_flag & LookupFlag::RightToLeft)
     {
-      c->buffer->pos[last_pos].cursive_chain = last_pos - c->buffer->i;
-      c->buffer->pos[last_pos].y_offset = entry_y - gpi->anchor_y;
+      c->buffer->pos[i].cursive_chain = i - j;
+      c->buffer->pos[i].y_offset = entry_y - exit_y;
     }
     else
     {
-      c->buffer->pos[c->buffer->i].cursive_chain = c->buffer->i - last_pos;
-      c->buffer->pos[c->buffer->i].y_offset = gpi->anchor_y - entry_y;
+      c->buffer->pos[j].cursive_chain = j - i;
+      c->buffer->pos[j].y_offset = exit_y - entry_y;
     }
 
-  end:
-    if (record.exitAnchor)
-    {
-      gpi->last = c->buffer->i;
-      (this+record.exitAnchor).get_anchor (c->layout, c->buffer->info[c->buffer->i].codepoint, &gpi->anchor_x, &gpi->anchor_y);
-    }
-
-    c->buffer->i++;
+    c->buffer->i = j;
     return true;
   }
 
@@ -1415,26 +1419,13 @@ struct PosLookup : Lookup
     if (unlikely (!buffer->len))
       return false;
 
-    layout->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST; /* no last valid glyph for cursive pos. */
-
     buffer->i = 0;
     while (buffer->i < buffer->len)
     {
-      bool done;
-      if (buffer->info[buffer->i].mask & mask)
-      {
-	  done = apply_once (layout, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL);
-	  ret |= done;
-      }
+      if ((buffer->info[buffer->i].mask & mask) &&
+	  apply_once (layout, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL))
+	ret = true;
       else
-      {
-          done = false;
-	  /* Contrary to properties defined in GDEF, user-defined properties
-	     will always stop a possible cursive positioning.                */
-	  layout->info.gpos.last = HB_OT_LAYOUT_GPOS_NO_LAST;
-      }
-
-      if (!done)
 	buffer->i++;
     }
 

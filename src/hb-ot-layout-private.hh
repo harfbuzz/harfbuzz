@@ -66,16 +66,6 @@ struct hb_ot_layout_context_t
   hb_face_t *face;
   hb_font_t *font;
 
-  union info_t
-  {
-    struct gpos_t
-    {
-      unsigned int last;        /* the last matched glyph--used with cursive positioning */
-      hb_position_t anchor_x;   /* the coordinates of the anchor point */
-      hb_position_t anchor_y;   /* of the last matched glyph */
-    } gpos;
-  } info;
-
   /* Convert from font-space to user-space */
   inline hb_position_t scale_x (int16_t v) { return scale (v, this->font->x_scale); }
   inline hb_position_t scale_y (int16_t v) { return scale (v, this->font->y_scale); }
