@@ -248,11 +248,11 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   if (unlikely (!_hb_buffer_ensure (buffer, buffer->len + 1))) return;
 
   glyph = &buffer->info[buffer->len];
+
+  memset (glyph, 0, sizeof (*glyph));
   glyph->codepoint = codepoint;
   glyph->mask = mask;
   glyph->cluster = cluster;
-  glyph->component() = 0;
-  glyph->lig_id() = 0;
   glyph->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->len++;
