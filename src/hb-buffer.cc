@@ -228,7 +228,7 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->out_len = 0;
   buffer->i = 0;
   buffer->out_info = buffer->info;
-  buffer->max_lig_id = 0;
+  buffer->serial = 0;
 }
 
 hb_bool_t

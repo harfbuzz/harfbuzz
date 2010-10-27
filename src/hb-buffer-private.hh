@@ -120,11 +120,11 @@ struct _hb_buffer_t {
 
   /* Other stuff */
 
-  unsigned int max_lig_id;
+  unsigned int serial;
 
 
   /* Methods */
-  inline unsigned int allocate_lig_id (void) { return max_lig_id++; }
+  inline unsigned int next_serial (void) { return serial++; }
   inline void swap (void) { _hb_buffer_swap (this); }
   inline void clear_output (void) { _hb_buffer_clear_output (this); }
   inline void next_glyph (void) { _hb_buffer_next_glyph (this); }

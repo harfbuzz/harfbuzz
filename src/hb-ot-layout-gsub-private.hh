@@ -391,7 +391,7 @@ struct Ligature
 					     : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
 
     /* Allocate new ligature id */
-    unsigned int lig_id = c->buffer->allocate_lig_id ();
+    unsigned int lig_id = allocate_lig_id (c->buffer);
     c->buffer->info[c->buffer->i].component() = 0;
     c->buffer->info[c->buffer->i].lig_id() = lig_id;
 
@@ -425,6 +425,12 @@ struct Ligature
     }
 
     return true;
+  }
+
+  inline uint16_t allocate_lig_id (hb_buffer_t *buffer) const {
+    uint16_t lig_id = buffer->next_serial ();
+    if (unlikely (!lig_id)) lig_id = buffer->next_serial (); /* in case of overflows */
+    return lig_id;
   }
 
   public:
