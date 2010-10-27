@@ -689,8 +689,10 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
 
     unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, c->buffer->unicode->v.get_general_category (c->buffer->info[i].codepoint));
 
-    if (unlikely (this_type == JOINING_TYPE_T))
+    if (unlikely (this_type == JOINING_TYPE_T)) {
+      c->buffer->info[i].gproperty = NONE;
       continue;
+    }
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
