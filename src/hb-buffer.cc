@@ -311,33 +311,6 @@ _hb_buffer_swap (hb_buffer_t *buffer)
 }
 
 void
-_hb_buffer_replace_glyphs (hb_buffer_t *buffer,
-			   unsigned int num_in,
-			   unsigned int num_out,
-			   const hb_codepoint_t *glyph_data)
-{
-  if (buffer->out_info != buffer->info ||
-      buffer->out_len + num_out > buffer->i + num_in)
-  {
-    if (unlikely (!_hb_buffer_ensure_separate (buffer, buffer->out_len + num_out)))
-      return;
-  }
-
-  hb_glyph_info_t orig_info = buffer->info[buffer->i];
-
-  for (unsigned int i = 0; i < num_out; i++)
-  {
-    hb_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
-    *info = orig_info;
-    info->codepoint = glyph_data[i];
-    info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
-  }
-
-  buffer->i  += num_in;
-  buffer->out_len += num_out;
-}
-
-void
 _hb_buffer_replace_glyphs_be16 (hb_buffer_t *buffer,
 				unsigned int num_in,
 				unsigned int num_out,

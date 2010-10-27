@@ -56,12 +56,6 @@ HB_INTERNAL void
 _hb_buffer_clear_output (hb_buffer_t *buffer);
 
 HB_INTERNAL void
-_hb_buffer_replace_glyphs (hb_buffer_t *buffer,
-			   unsigned int num_in,
-			   unsigned int num_out,
-			   const hb_codepoint_t *glyph_data);
-
-HB_INTERNAL void
 _hb_buffer_replace_glyphs_be16 (hb_buffer_t *buffer,
 				unsigned int num_in,
 				unsigned int num_out,
@@ -125,10 +119,6 @@ struct _hb_buffer_t {
   inline void swap (void) { _hb_buffer_swap (this); }
   inline void clear_output (void) { _hb_buffer_clear_output (this); }
   inline void next_glyph (void) { _hb_buffer_next_glyph (this); }
-  inline void replace_glyphs (unsigned int num_in,
-			      unsigned int num_out,
-			      const hb_codepoint_t *glyph_data)
-  { _hb_buffer_replace_glyphs (this, num_in, num_out, glyph_data); }
   inline void replace_glyphs_be16 (unsigned int num_in,
 				   unsigned int num_out,
 				   const uint16_t *glyph_data_be)
