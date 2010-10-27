@@ -395,9 +395,6 @@ struct ContextFormat2
     const ClassDef &class_def = this+classDef;
     index = class_def (c->buffer->info[c->buffer->i].codepoint);
     const RuleSet &rule_set = this+ruleSet[index];
-    /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
-     * them across subrule lookups.  Not sure it's worth it.
-     */
     struct ContextLookupContext lookup_context = {
       {match_class, apply_func},
       &class_def
@@ -688,9 +685,6 @@ struct ChainContextFormat2
 
     index = input_class_def (c->buffer->info[c->buffer->i].codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
-    /* LONGTERMTODO: Old code fetches glyph classes at most once and caches
-     * them across subrule lookups.  Not sure it's worth it.
-     */
     struct ChainContextLookupContext lookup_context = {
       {match_class, apply_func},
       {&backtrack_class_def,
