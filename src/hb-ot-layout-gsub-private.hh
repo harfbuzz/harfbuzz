@@ -164,9 +164,7 @@ struct Sequence
     if (unlikely (!substitute.len))
       return false;
 
-    c->buffer->add_output_glyphs_be16 (1,
-				       substitute.len, (const uint16_t *) substitute.array,
-				       0xFFFF, 0xFFFF);
+    c->buffer->add_output_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array);
 
     /* This is a guess only ... */
     if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
@@ -392,15 +390,18 @@ struct Ligature
 				     is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK
 					     : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
 
+    /* Allocate new ligature id */
+    unsigned int lig_id = c->buffer->allocate_lig_id ();
+    c->buffer->info[c->buffer->i].component() = 0;
+    c->buffer->info[c->buffer->i].lig_id() = lig_id;
+
     if (j == c->buffer->i + i) /* No input glyphs skipped */
-      c->buffer->add_output_glyphs_be16 (i,
-					 1, (const uint16_t *) &ligGlyph,
-					 0,
-					 c->buffer->allocate_lig_id ());
+    {
+      c->buffer->add_output_glyphs_be16 (i, 1, (const uint16_t *) &ligGlyph);
+    }
     else
     {
-      unsigned int lig_id = c->buffer->allocate_lig_id ();
-      c->buffer->add_output_glyph (ligGlyph, 0, lig_id);
+      c->buffer->add_output_glyph (ligGlyph);
 
       /* Now we must do a second loop to copy the skipped glyphs to
 	 `out' and assign component values to it.  We start with the
@@ -409,10 +410,14 @@ struct Ligature
 	 value it is later possible to check whether a specific
 	 component value really belongs to a given ligature. */
 
-      for ( i = 1; i < count; i++ )
+      for (i = 1; i < count; i++)
       {
 	while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_flag, NULL))
-	  c->buffer->add_output_glyph (c->buffer->info[c->buffer->i].codepoint, i, lig_id);
+	{
+	  c->buffer->info[c->buffer->i].component() = i;
+	  c->buffer->info[c->buffer->i].lig_id() = lig_id;
+	  c->buffer->add_output_glyph (c->buffer->info[c->buffer->i].codepoint);
+	}
 
 	/* Skip the base glyph */
 	c->buffer->i++;

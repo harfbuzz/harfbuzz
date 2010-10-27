@@ -314,14 +314,8 @@ void
 _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 			      unsigned int num_in,
 			      unsigned int num_out,
-			      const hb_codepoint_t *glyph_data,
-			      unsigned short component,
-			      unsigned short lig_id)
+			      const hb_codepoint_t *glyph_data)
 {
-  unsigned int i;
-  unsigned int mask;
-  unsigned int cluster;
-
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
   {
@@ -329,21 +323,13 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
       return;
   }
 
-  mask = buffer->info[buffer->i].mask;
-  cluster = buffer->info[buffer->i].cluster;
-  if (component == 0xFFFF)
-    component = buffer->info[buffer->i].component();
-  if (lig_id == 0xFFFF)
-    lig_id = buffer->info[buffer->i].lig_id();
+  hb_glyph_info_t orig_info = buffer->info[buffer->i];
 
-  for (i = 0; i < num_out; i++)
+  for (unsigned int i = 0; i < num_out; i++)
   {
     hb_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
+    *info = orig_info;
     info->codepoint = glyph_data[i];
-    info->mask = mask;
-    info->cluster = cluster;
-    info->component() = component;
-    info->lig_id() = lig_id;
     info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
@@ -355,14 +341,8 @@ void
 _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
 				   unsigned int num_in,
 				   unsigned int num_out,
-				   const uint16_t *glyph_data_be,
-				   unsigned short component,
-				   unsigned short lig_id)
+				   const uint16_t *glyph_data_be)
 {
-  unsigned int i;
-  unsigned int mask;
-  unsigned int cluster;
-
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
   {
@@ -370,21 +350,13 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
       return;
   }
 
-  mask = buffer->info[buffer->i].mask;
-  cluster = buffer->info[buffer->i].cluster;
-  if (component == 0xFFFF)
-    component = buffer->info[buffer->i].component();
-  if (lig_id == 0xFFFF)
-    lig_id = buffer->info[buffer->i].lig_id();
+  hb_glyph_info_t orig_info = buffer->info[buffer->i];
 
-  for (i = 0; i < num_out; i++)
+  for (unsigned int i = 0; i < num_out; i++)
   {
     hb_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
+    *info = orig_info;
     info->codepoint = hb_be_uint16 (glyph_data_be[i]);
-    info->mask = mask;
-    info->cluster = cluster;
-    info->component() = component;
-    info->lig_id() = lig_id;
     info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
@@ -394,9 +366,7 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
 
 void
 _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
-			     hb_codepoint_t glyph_index,
-			     unsigned short component,
-			     unsigned short lig_id)
+			     hb_codepoint_t glyph_index)
 {
   hb_glyph_info_t *info;
 
@@ -410,10 +380,6 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 
   info = &buffer->out_info[buffer->out_len];
   info->codepoint = glyph_index;
-  if (component != 0xFFFF)
-    info->component() = component;
-  if (lig_id != 0xFFFF)
-    info->lig_id() = lig_id;
   info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->i++;
