@@ -164,7 +164,7 @@ struct Sequence
     if (unlikely (!substitute.len))
       return false;
 
-    c->buffer->add_output_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array);
+    c->buffer->replace_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array);
 
     /* This is a guess only ... */
     if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
@@ -397,11 +397,11 @@ struct Ligature
 
     if (j == c->buffer->i + i) /* No input glyphs skipped */
     {
-      c->buffer->add_output_glyphs_be16 (i, 1, (const uint16_t *) &ligGlyph);
+      c->buffer->replace_glyphs_be16 (i, 1, (const uint16_t *) &ligGlyph);
     }
     else
     {
-      c->buffer->add_output_glyph (ligGlyph);
+      c->buffer->replace_glyph (ligGlyph);
 
       /* Now we must do a second loop to copy the skipped glyphs to
 	 `out' and assign component values to it.  We start with the
@@ -416,7 +416,7 @@ struct Ligature
 	{
 	  c->buffer->info[c->buffer->i].component() = i;
 	  c->buffer->info[c->buffer->i].lig_id() = lig_id;
-	  c->buffer->add_output_glyph (c->buffer->info[c->buffer->i].codepoint);
+	  c->buffer->replace_glyph (c->buffer->info[c->buffer->i].codepoint);
 	}
 
 	/* Skip the base glyph */

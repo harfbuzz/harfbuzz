@@ -311,10 +311,10 @@ _hb_buffer_swap (hb_buffer_t *buffer)
 }
 
 void
-_hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
-			      unsigned int num_in,
-			      unsigned int num_out,
-			      const hb_codepoint_t *glyph_data)
+_hb_buffer_replace_glyphs (hb_buffer_t *buffer,
+			   unsigned int num_in,
+			   unsigned int num_out,
+			   const hb_codepoint_t *glyph_data)
 {
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
@@ -338,10 +338,10 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
 }
 
 void
-_hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
-				   unsigned int num_in,
-				   unsigned int num_out,
-				   const uint16_t *glyph_data_be)
+_hb_buffer_replace_glyphs_be16 (hb_buffer_t *buffer,
+				unsigned int num_in,
+				unsigned int num_out,
+				const uint16_t *glyph_data_be)
 {
   if (buffer->out_info != buffer->info ||
       buffer->out_len + num_out > buffer->i + num_in)
@@ -365,8 +365,8 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
 }
 
 void
-_hb_buffer_add_output_glyph (hb_buffer_t *buffer,
-			     hb_codepoint_t glyph_index)
+_hb_buffer_replace_glyph (hb_buffer_t *buffer,
+			  hb_codepoint_t glyph_index)
 {
   hb_glyph_info_t *info;
 

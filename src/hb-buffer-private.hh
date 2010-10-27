@@ -59,20 +59,20 @@ HB_INTERNAL void
 _hb_buffer_clear_output (hb_buffer_t *buffer);
 
 HB_INTERNAL void
-_hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
-			      unsigned int num_in,
-			      unsigned int num_out,
-			      const hb_codepoint_t *glyph_data);
+_hb_buffer_replace_glyphs (hb_buffer_t *buffer,
+			   unsigned int num_in,
+			   unsigned int num_out,
+			   const hb_codepoint_t *glyph_data);
 
 HB_INTERNAL void
-_hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
-				   unsigned int num_in,
-				   unsigned int num_out,
-				   const uint16_t *glyph_data_be);
+_hb_buffer_replace_glyphs_be16 (hb_buffer_t *buffer,
+				unsigned int num_in,
+				unsigned int num_out,
+				const uint16_t *glyph_data_be);
 
 HB_INTERNAL void
-_hb_buffer_add_output_glyph (hb_buffer_t *buffer,
-			     hb_codepoint_t glyph_index);
+_hb_buffer_replace_glyph (hb_buffer_t *buffer,
+			  hb_codepoint_t glyph_index);
 
 HB_INTERNAL void
 _hb_buffer_next_glyph (hb_buffer_t *buffer);
@@ -128,17 +128,16 @@ struct _hb_buffer_t {
   inline void swap (void) { _hb_buffer_swap (this); }
   inline void clear_output (void) { _hb_buffer_clear_output (this); }
   inline void next_glyph (void) { _hb_buffer_next_glyph (this); }
-  inline void add_output_glyphs (unsigned int num_in,
-				 unsigned int num_out,
-				 const hb_codepoint_t *glyph_data)
-  { _hb_buffer_add_output_glyphs (this, num_in, num_out, glyph_data); }
-  inline void add_output_glyphs_be16 (unsigned int num_in,
-				      unsigned int num_out,
-				      const uint16_t *glyph_data_be)
-  { _hb_buffer_add_output_glyphs_be16 (this, num_in, num_out, glyph_data_be); }
-  inline void add_output_glyph (hb_codepoint_t glyph_index)
-  { _hb_buffer_add_output_glyph (this, glyph_index); }
-  inline void replace_glyph (hb_codepoint_t glyph_index) { add_output_glyph (glyph_index); }
+  inline void replace_glyphs (unsigned int num_in,
+			      unsigned int num_out,
+			      const hb_codepoint_t *glyph_data)
+  { _hb_buffer_replace_glyphs (this, num_in, num_out, glyph_data); }
+  inline void replace_glyphs_be16 (unsigned int num_in,
+				   unsigned int num_out,
+				   const uint16_t *glyph_data_be)
+  { _hb_buffer_replace_glyphs_be16 (this, num_in, num_out, glyph_data_be); }
+  inline void replace_glyph (hb_codepoint_t glyph_index)
+  { _hb_buffer_replace_glyph (this, glyph_index); }
 
   inline void reset_masks (hb_mask_t mask)
   {
