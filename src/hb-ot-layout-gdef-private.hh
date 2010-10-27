@@ -94,10 +94,9 @@ struct CaretValueFormat1
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (hb_ot_layout_context_t *c, hb_codepoint_t glyph_id HB_UNUSED) const
+  inline int get_caret_value (hb_ot_layout_context_t *c, hb_direction_t direction, hb_codepoint_t glyph_id HB_UNUSED) const
   {
-    /* TODO vertical */
-    return c->scale_x (coordinate);
+    return HB_DIRECTION_IS_HORIZONTAL (direction) ? c->scale_x (coordinate) : c->scale_y (coordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -117,12 +116,11 @@ struct CaretValueFormat2
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (hb_ot_layout_context_t *c, hb_codepoint_t glyph_id) const
+  inline int get_caret_value (hb_ot_layout_context_t *c, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
-    /* TODO vertical */
     hb_position_t x, y;
     if (hb_font_get_contour_point (c->font, c->face, caretValuePoint, glyph_id, &x, &y))
-      return x;
+      return HB_DIRECTION_IS_HORIZONTAL (direction) ? x : y;
     else
       return 0;
   }
@@ -143,10 +141,11 @@ struct CaretValueFormat3
 {
   friend struct CaretValue;
 
-  inline int get_caret_value (hb_ot_layout_context_t *c, hb_codepoint_t glyph_id HB_UNUSED) const
+  inline int get_caret_value (hb_ot_layout_context_t *c, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
-    /* TODO vertical */
-    return c->scale_x (coordinate) + ((this+deviceTable).get_x_delta (c));
+    return HB_DIRECTION_IS_HORIZONTAL (direction) ?
+           c->scale_x (coordinate) + (this+deviceTable).get_x_delta (c) :
+           c->scale_y (coordinate) + (this+deviceTable).get_y_delta (c);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -168,12 +167,12 @@ struct CaretValueFormat3
 
 struct CaretValue
 {
-  inline int get_caret_value (hb_ot_layout_context_t *c, hb_codepoint_t glyph_id) const
+  inline int get_caret_value (hb_ot_layout_context_t *c, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_caret_value (c, glyph_id);
-    case 2: return u.format2.get_caret_value (c, glyph_id);
-    case 3: return u.format3.get_caret_value (c, glyph_id);
+    case 1: return u.format1.get_caret_value (c, direction, glyph_id);
+    case 2: return u.format2.get_caret_value (c, direction, glyph_id);
+    case 3: return u.format3.get_caret_value (c, direction, glyph_id);
     default:return 0;
     }
   }
@@ -203,6 +202,7 @@ struct CaretValue
 struct LigGlyph
 {
   inline unsigned int get_lig_carets (hb_ot_layout_context_t *c,
+				      hb_direction_t direction,
 				      hb_codepoint_t glyph_id,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
@@ -212,7 +212,7 @@ struct LigGlyph
       const OffsetTo<CaretValue> *array = carets.sub_array (start_offset, caret_count);
       unsigned int count = *caret_count;
       for (unsigned int i = 0; i < count; i++)
-	caret_array[i] = (this+array[i]).get_caret_value (c, glyph_id);
+	caret_array[i] = (this+array[i]).get_caret_value (c, direction, glyph_id);
     }
 
     return carets.len;
@@ -235,6 +235,7 @@ struct LigGlyph
 struct LigCaretList
 {
   inline unsigned int get_lig_carets (hb_ot_layout_context_t *c,
+				      hb_direction_t direction,
 				      hb_codepoint_t glyph_id,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
@@ -248,7 +249,7 @@ struct LigCaretList
       return 0;
     }
     const LigGlyph &lig_glyph = this+ligGlyph[index];
-    return lig_glyph.get_lig_carets (c, glyph_id, start_offset, caret_count, caret_array);
+    return lig_glyph.get_lig_carets (c, direction, glyph_id, start_offset, caret_count, caret_array);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -350,11 +351,12 @@ struct GDEF
 
   inline bool has_lig_carets (void) const { return ligCaretList != 0; }
   inline unsigned int get_lig_carets (hb_ot_layout_context_t *c,
+				      hb_direction_t direction,
 				      hb_codepoint_t glyph_id,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
 				      int *caret_array /* OUT */) const
-  { return (this+ligCaretList).get_lig_carets (c, glyph_id, start_offset, caret_count, caret_array); }
+  { return (this+ligCaretList).get_lig_carets (c, direction, glyph_id, start_offset, caret_count, caret_array); }
 
   inline bool has_mark_sets (void) const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const

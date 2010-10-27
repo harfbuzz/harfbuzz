@@ -318,6 +318,7 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 unsigned int
 hb_ot_layout_get_lig_carets (hb_font_t      *font,
 			     hb_face_t      *face,
+			     hb_direction_t  direction,
 			     hb_codepoint_t  glyph,
 			     unsigned int    start_offset,
 			     unsigned int   *caret_count /* IN/OUT */,
@@ -326,7 +327,7 @@ hb_ot_layout_get_lig_carets (hb_font_t      *font,
   hb_ot_layout_context_t c;
   c.font = font;
   c.face = face;
-  return _get_gdef (face).get_lig_carets (&c, glyph, start_offset, caret_count, caret_array);
+  return _get_gdef (face).get_lig_carets (&c, direction, glyph, start_offset, caret_count, caret_array);
 }
 
 /*

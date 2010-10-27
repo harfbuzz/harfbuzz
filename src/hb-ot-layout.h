@@ -86,6 +86,7 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 unsigned int
 hb_ot_layout_get_lig_carets (hb_font_t      *font,
 			     hb_face_t      *face,
+			     hb_direction_t  direction,
 			     hb_codepoint_t  glyph,
 			     unsigned int    start_offset,
 			     unsigned int   *caret_count /* IN/OUT */,
