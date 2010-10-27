@@ -36,30 +36,13 @@ HB_BEGIN_DECLS
 
 
 #define HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
+#define component() var1.u16[0]
+#define lig_id() var1.u16[1]
+#define gproperty() var2.u32
+#define back() var.u16[0] /* number of glyphs to go back for drawing current glyph */
+#define cursive_chain() var.i16[1] /* character to which this connects, may be positive or negative */
 
-
-typedef struct _hb_internal_glyph_info_t {
-  hb_codepoint_t codepoint;
-  hb_mask_t      mask;
-  uint32_t       cluster;
-  uint16_t       component;
-  uint16_t       lig_id;
-  uint32_t       gproperty;
-} hb_internal_glyph_info_t;
-
-typedef struct _hb_internal_glyph_position_t {
-  hb_position_t  x_advance;
-  hb_position_t  y_advance;
-  hb_position_t  x_offset;
-  hb_position_t  y_offset;
-  uint32_t       back : 16;		/* number of glyphs to go back
-					   for drawing current glyph */
-  int32_t        cursive_chain : 16;	/* character to which this connects,
-					   may be positive or negative */
-} hb_internal_glyph_position_t;
-
-ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_internal_glyph_info_t));
-ASSERT_STATIC (sizeof (hb_glyph_position_t) == sizeof (hb_internal_glyph_position_t));
+ASSERT_STATIC (sizeof (hb_glyph_info_t) == 20);
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
 typedef struct _hb_segment_properties_t {
@@ -137,9 +120,9 @@ struct _hb_buffer_t {
   unsigned int len; /* Length of ->info and ->pos arrays */
   unsigned int out_len; /* Length of ->out array */
 
-  hb_internal_glyph_info_t     *info;
-  hb_internal_glyph_info_t     *out_info;
-  hb_internal_glyph_position_t *pos;
+  hb_glyph_info_t     *info;
+  hb_glyph_info_t     *out_info;
+  hb_glyph_position_t *pos;
 
   /* Other stuff */
 

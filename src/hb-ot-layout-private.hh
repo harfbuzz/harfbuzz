@@ -101,13 +101,13 @@ _hb_ot_layout_set_glyph_class (hb_face_t                  *face,
 
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,
-				    hb_internal_glyph_info_t *ginfo,
+				    hb_glyph_info_t *ginfo,
 				    unsigned int  lookup_flags,
 				    unsigned int *property);
 
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_skip_mark (hb_face_t    *face,
-			 hb_internal_glyph_info_t *ginfo,
+			 hb_glyph_info_t *ginfo,
 			 unsigned int  lookup_flags,
 			 unsigned int *property);
 

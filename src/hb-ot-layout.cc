@@ -138,15 +138,15 @@ _hb_ot_layout_get_glyph_property (hb_face_t      *face,
 
 hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,
-				    hb_internal_glyph_info_t *ginfo,
+				    hb_glyph_info_t *ginfo,
 				    unsigned int  lookup_flags,
 				    unsigned int *property_out)
 {
   unsigned int property;
 
-  if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->gproperty = _hb_ot_layout_get_glyph_property (face, ginfo->codepoint);
-  property = ginfo->gproperty;
+  if (ginfo->gproperty() == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+    ginfo->gproperty() = _hb_ot_layout_get_glyph_property (face, ginfo->codepoint);
+  property = ginfo->gproperty();
   if (property_out)
     *property_out = property;
 
@@ -177,15 +177,15 @@ _hb_ot_layout_check_glyph_property (hb_face_t    *face,
 
 hb_bool_t
 _hb_ot_layout_skip_mark (hb_face_t    *face,
-			 hb_internal_glyph_info_t *ginfo,
+			 hb_glyph_info_t *ginfo,
 			 unsigned int  lookup_flags,
 			 unsigned int *property_out)
 {
   unsigned int property;
 
-  if (ginfo->gproperty == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->gproperty = _hb_ot_layout_get_glyph_property (face, ginfo->codepoint);
-  property = ginfo->gproperty;
+  if (ginfo->gproperty() == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
+    ginfo->gproperty() = _hb_ot_layout_get_glyph_property (face, ginfo->codepoint);
+  property = ginfo->gproperty();
   if (property_out)
     *property_out = property;
 
@@ -606,7 +606,7 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
 {
   unsigned int i, j;
   unsigned int len = hb_buffer_get_length (buffer);
-  hb_internal_glyph_position_t *pos = (hb_internal_glyph_position_t *) hb_buffer_get_glyph_positions (buffer);
+  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer);
   hb_direction_t direction = buffer->props.direction;
 
   /* TODO: Vertical */
@@ -616,35 +616,34 @@ hb_ot_layout_position_finish (hb_font_t    *font HB_UNUSED,
   if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
   {
     for (j = 0; j < len; j++) {
-      if (pos[j].cursive_chain < 0)
-	pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
+      if (pos[j].cursive_chain() < 0)
+	pos[j].y_offset += pos[j + pos[j].cursive_chain()].y_offset;
     }
     for (i = len; i > 0; i--) {
       j = i - 1;
-      if (pos[j].cursive_chain > 0)
-	pos[j].y_offset += pos[j + pos[j].cursive_chain].y_offset;
+      if (pos[j].cursive_chain() > 0)
+	pos[j].y_offset += pos[j + pos[j].cursive_chain()].y_offset;
     }
   }
   else
   {
     for (j = 0; j < len; j++) {
-      if (pos[j].cursive_chain < 0)
-	pos[j].x_offset += pos[j + pos[j].cursive_chain].x_offset;
+      if (pos[j].cursive_chain() < 0)
+	pos[j].x_offset += pos[j + pos[j].cursive_chain()].x_offset;
     }
     for (i = len; i > 0; i--) {
       j = i - 1;
-      if (pos[j].cursive_chain > 0)
-	pos[j].x_offset += pos[j + pos[j].cursive_chain].x_offset;
+      if (pos[j].cursive_chain() > 0)
+	pos[j].x_offset += pos[j + pos[j].cursive_chain()].x_offset;
     }
   }
 
 
   /* Handle attachments */
   for (i = 0; i < len; i++)
-    if (pos[i].back)
+    if (pos[i].back())
     {
-      unsigned int back = i - pos[i].back;
-      pos[i].back = 0;
+      unsigned int back = i - pos[i].back();
       pos[i].x_offset += pos[back].x_offset;
       pos[i].y_offset += pos[back].y_offset;
 

@@ -64,8 +64,8 @@ _hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
     return FALSE;
 
   unsigned int new_allocated = buffer->allocated;
-  hb_internal_glyph_position_t *new_pos;
-  hb_internal_glyph_info_t *new_info;
+  hb_glyph_position_t *new_pos;
+  hb_glyph_info_t *new_info;
   bool separate_out;
 
   separate_out = buffer->out_info != buffer->info;
@@ -73,8 +73,8 @@ _hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
   while (size > new_allocated)
     new_allocated += (new_allocated >> 1) + 8;
 
-  new_pos = (hb_internal_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
-  new_info = (hb_internal_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
+  new_pos = (hb_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
+  new_info = (hb_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
 
   if (unlikely (!new_pos || !new_info))
     buffer->in_error = TRUE;
@@ -85,7 +85,7 @@ _hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
   if (likely (new_info))
     buffer->info = new_info;
 
-  buffer->out_info = separate_out ? (hb_internal_glyph_info_t *) buffer->pos : buffer->info;
+  buffer->out_info = separate_out ? (hb_glyph_info_t *) buffer->pos : buffer->info;
   if (likely (!buffer->in_error))
     buffer->allocated = new_allocated;
 
@@ -107,7 +107,7 @@ _hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
   {
     assert (buffer->have_output);
 
-    buffer->out_info = (hb_internal_glyph_info_t *) buffer->pos;
+    buffer->out_info = (hb_glyph_info_t *) buffer->pos;
     memcpy (buffer->out_info, buffer->info, buffer->out_len * sizeof (buffer->out_info[0]));
   }
 
@@ -243,7 +243,7 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     hb_mask_t       mask,
 		     unsigned int    cluster)
 {
-  hb_internal_glyph_info_t *glyph;
+  hb_glyph_info_t *glyph;
 
   if (unlikely (!_hb_buffer_ensure (buffer, buffer->len + 1))) return;
 
@@ -251,9 +251,9 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   glyph->codepoint = codepoint;
   glyph->mask = mask;
   glyph->cluster = cluster;
-  glyph->component = 0;
-  glyph->lig_id = 0;
-  glyph->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
+  glyph->component() = 0;
+  glyph->lig_id() = 0;
+  glyph->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->len++;
 }
@@ -267,7 +267,7 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
 
   if (unlikely (!buffer->pos))
   {
-    buffer->pos = (hb_internal_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->pos[0]));
+    buffer->pos = (hb_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->pos[0]));
     return;
   }
 
@@ -296,11 +296,11 @@ _hb_buffer_swap (hb_buffer_t *buffer)
 
   if (buffer->out_info != buffer->info)
   {
-    hb_internal_glyph_info_t *tmp_string;
+    hb_glyph_info_t *tmp_string;
     tmp_string = buffer->info;
     buffer->info = buffer->out_info;
     buffer->out_info = tmp_string;
-    buffer->pos = (hb_internal_glyph_position_t *) buffer->out_info;
+    buffer->pos = (hb_glyph_position_t *) buffer->out_info;
   }
 
   tmp = buffer->len;
@@ -352,19 +352,19 @@ _hb_buffer_add_output_glyphs (hb_buffer_t *buffer,
   mask = buffer->info[buffer->i].mask;
   cluster = buffer->info[buffer->i].cluster;
   if (component == 0xFFFF)
-    component = buffer->info[buffer->i].component;
+    component = buffer->info[buffer->i].component();
   if (lig_id == 0xFFFF)
-    lig_id = buffer->info[buffer->i].lig_id;
+    lig_id = buffer->info[buffer->i].lig_id();
 
   for (i = 0; i < num_out; i++)
   {
-    hb_internal_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
+    hb_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
     info->codepoint = glyph_data[i];
     info->mask = mask;
     info->cluster = cluster;
-    info->component = component;
-    info->lig_id = lig_id;
-    info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
+    info->component() = component;
+    info->lig_id() = lig_id;
+    info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
   buffer->i  += num_in;
@@ -393,19 +393,19 @@ _hb_buffer_add_output_glyphs_be16 (hb_buffer_t *buffer,
   mask = buffer->info[buffer->i].mask;
   cluster = buffer->info[buffer->i].cluster;
   if (component == 0xFFFF)
-    component = buffer->info[buffer->i].component;
+    component = buffer->info[buffer->i].component();
   if (lig_id == 0xFFFF)
-    lig_id = buffer->info[buffer->i].lig_id;
+    lig_id = buffer->info[buffer->i].lig_id();
 
   for (i = 0; i < num_out; i++)
   {
-    hb_internal_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
+    hb_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
     info->codepoint = hb_be_uint16 (glyph_data_be[i]);
     info->mask = mask;
     info->cluster = cluster;
-    info->component = component;
-    info->lig_id = lig_id;
-    info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
+    info->component() = component;
+    info->lig_id() = lig_id;
+    info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
   buffer->i  += num_in;
@@ -418,7 +418,7 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
 			     unsigned short component,
 			     unsigned short lig_id)
 {
-  hb_internal_glyph_info_t *info;
+  hb_glyph_info_t *info;
 
   if (buffer->out_info != buffer->info)
   {
@@ -431,10 +431,10 @@ _hb_buffer_add_output_glyph (hb_buffer_t *buffer,
   info = &buffer->out_info[buffer->out_len];
   info->codepoint = glyph_index;
   if (component != 0xFFFF)
-    info->component = component;
+    info->component() = component;
   if (lig_id != 0xFFFF)
-    info->lig_id = lig_id;
-  info->gproperty = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
+    info->lig_id() = lig_id;
+  info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->i++;
   buffer->out_len++;
@@ -548,7 +548,7 @@ reverse_range (hb_buffer_t *buffer,
   unsigned int i, j;
 
   for (i = start, j = end - 1; i < j; i++, j--) {
-    hb_internal_glyph_info_t t;
+    hb_glyph_info_t t;
 
     t = buffer->info[i];
     buffer->info[i] = buffer->info[j];
@@ -557,7 +557,7 @@ reverse_range (hb_buffer_t *buffer,
 
   if (buffer->pos) {
     for (i = 0, j = end - 1; i < j; i++, j--) {
-      hb_internal_glyph_position_t t;
+      hb_glyph_position_t t;
 
       t = buffer->pos[i];
       buffer->pos[i] = buffer->pos[j];

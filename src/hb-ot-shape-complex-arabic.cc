@@ -690,16 +690,16 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
     unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, c->buffer->unicode->v.get_general_category (c->buffer->info[i].codepoint));
 
     if (unlikely (this_type == JOINING_TYPE_T)) {
-      c->buffer->info[i].gproperty = NONE;
+      c->buffer->info[i].var2.u32 = NONE;
       continue;
     }
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
     if (entry->prev_action != NONE)
-      c->buffer->info[prev].gproperty = entry->prev_action;
+      c->buffer->info[prev].var2.u32 = entry->prev_action;
 
-    c->buffer->info[i].gproperty = entry->curr_action;
+    c->buffer->info[i].var2.u32 = entry->curr_action;
 
     prev = i;
     state = entry->next_state;
@@ -711,7 +711,7 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
     mask_array[i] = c->plan->map.get_1_mask (arabic_syriac_features[i]);
 
   for (unsigned int i = 0; i < count; i++)
-    c->buffer->info[i].mask |= mask_array[c->buffer->info[i].gproperty];
+    c->buffer->info[i].mask |= mask_array[c->buffer->info[i].var2.u32];
 }
 
 

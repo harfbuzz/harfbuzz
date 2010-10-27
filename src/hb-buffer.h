@@ -50,7 +50,7 @@ typedef struct _hb_glyph_position_t {
   hb_position_t  y_advance;
   hb_position_t  x_offset;
   hb_position_t  y_offset;
-  hb_var_int_t   var1;
+  hb_var_int_t   var;
 } hb_glyph_position_t;
 
 

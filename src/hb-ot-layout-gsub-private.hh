@@ -398,7 +398,7 @@ struct Ligature
       c->buffer->add_output_glyphs_be16 (i,
 					 1, (const uint16_t *) &ligGlyph,
 					 0,
-					 c->buffer->info[c->buffer->i].lig_id && !c->buffer->info[c->buffer->i].component ?
+					 c->buffer->info[c->buffer->i].lig_id() && !c->buffer->info[c->buffer->i].component() ?
 					 0xFFFF : c->buffer->allocate_lig_id ());
     else
     {
