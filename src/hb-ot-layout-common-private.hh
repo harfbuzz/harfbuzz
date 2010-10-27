@@ -257,8 +257,6 @@ struct Feature
 	&& lookupIndex.sanitize (c);
   }
 
-  /* LONGTERMTODO: implement get_feature_parameters() */
-  /* LONGTERMTODO: implement FeatureSize and other special features? */
   Offset	featureParams;	/* Offset to Feature Parameters table (if one
 				 * has been defined for the feature), relative
 				 * to the beginning of the Feature Table; = Null
