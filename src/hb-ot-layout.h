@@ -44,34 +44,8 @@ HB_BEGIN_DECLS
  * GDEF
  */
 
-typedef enum {
-  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0000,
-  HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
-  HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 0x0004,
-  HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 0x0008,
-  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010
-} hb_ot_layout_glyph_class_t;
-
-/* XXX These should eventually be removed as we move synthesized glyph
- * classes in harfbuzz. */
-
 hb_bool_t
 hb_ot_layout_has_glyph_classes (hb_face_t *face);
-
-hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (hb_face_t      *face,
-			      hb_codepoint_t  glyph);
-
-void
-hb_ot_layout_set_glyph_class (hb_face_t                 *face,
-			      hb_codepoint_t             glyph,
-			      hb_ot_layout_glyph_class_t klass);
-
-void
-hb_ot_layout_build_glyph_classes (hb_face_t      *face,
-				  hb_codepoint_t *glyphs,
-				  unsigned char  *klasses,
-				  uint16_t        count);
 
 /* Not that useful.  Provides list of attach points for a glyph that a
  * client may want to cache */

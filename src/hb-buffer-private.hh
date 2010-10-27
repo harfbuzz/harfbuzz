@@ -35,10 +35,6 @@
 HB_BEGIN_DECLS
 
 
-/* XXX */
-#define HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN 0xFFFF
-#define gproperty() var2.u32
-
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == 20);
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 

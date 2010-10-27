@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007,2008,2009,2010  Red Hat, Inc.
+ * Copyright (C) 2010  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OT_LAYOUT_GPOS_PRIVATE_HH
@@ -826,7 +828,7 @@ struct CursivePosFormat1
     TRACE_APPLY ();
 
     /* We don't handle mark glyphs here. */
-    if (c->property == HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+    if (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
       return false;
 
     unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);

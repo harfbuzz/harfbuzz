@@ -253,7 +253,6 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   glyph->codepoint = codepoint;
   glyph->mask = mask;
   glyph->cluster = cluster;
-  glyph->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->len++;
 }
@@ -330,7 +329,6 @@ _hb_buffer_replace_glyphs_be16 (hb_buffer_t *buffer,
     hb_glyph_info_t *info = &buffer->out_info[buffer->out_len + i];
     *info = orig_info;
     info->codepoint = hb_be_uint16 (glyph_data_be[i]);
-    info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
   }
 
   buffer->i  += num_in;
@@ -353,7 +351,6 @@ _hb_buffer_replace_glyph (hb_buffer_t *buffer,
 
   info = &buffer->out_info[buffer->out_len];
   info->codepoint = glyph_index;
-  info->gproperty() = HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN;
 
   buffer->i++;
   buffer->out_len++;

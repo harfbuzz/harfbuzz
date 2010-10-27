@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007,2008,2009,2010  Red Hat, Inc.
+ * Copyright (C) 2010  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH
@@ -52,7 +54,32 @@ struct hb_apply_context_t
   unsigned int context_length;
   unsigned int nesting_level_left;
   unsigned int lookup_flag;
-  unsigned int property; /* propety of first glyph (TODO remove) */
+  unsigned int property; /* propety of first glyph */
+
+
+  inline void replace_glyph (hb_codepoint_t glyph_index) const
+  {
+    clear_property ();
+    buffer->replace_glyph (glyph_index);
+  }
+  inline void replace_glyphs_be16 (unsigned int num_in,
+				   unsigned int num_out,
+				   const uint16_t *glyph_data_be) const
+  {
+    clear_property ();
+    buffer->replace_glyphs_be16 (num_in, num_out, glyph_data_be);
+  }
+
+  inline void guess_glyph_class (unsigned int klass)
+  {
+//    buffer->info[buffer->i].gproperty() = klass;
+  }
+
+  private:
+  inline void clear_property (void) const
+  {
+    buffer->info[buffer->i].gproperty() = 0;
+  }
 };
 
 

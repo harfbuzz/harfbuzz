@@ -41,10 +41,18 @@ HB_BEGIN_DECLS
 /* XXX */
 #define component() var1.u16[0]
 #define lig_id() var1.u16[1]
+#define gproperty() var2.u32
 #define back() var.u16[0] /* number of glyphs to go back for drawing current glyph */
 #define cursive_chain() var.i16[1] /* character to which this connects, may be positive or negative */
 
-typedef unsigned int hb_ot_layout_class_t;
+typedef enum {
+  HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
+  HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 0x0004,
+  HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 0x0008,
+  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010,
+  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0020
+} hb_ot_layout_glyph_class_t;
+
 
 /*
  * hb_ot_layout_t
@@ -59,12 +67,6 @@ struct hb_ot_layout_t
   const struct GDEF *gdef;
   const struct GSUB *gsub;
   const struct GPOS *gpos;
-
-  struct
-  {
-    unsigned char *klasses;
-    unsigned int len;
-  } new_gdef;
 };
 
 struct hb_ot_layout_context_t
@@ -91,19 +93,6 @@ _hb_ot_layout_free (hb_ot_layout_t *layout);
 /*
  * GDEF
  */
-
-HB_INTERNAL hb_bool_t
-_hb_ot_layout_has_new_glyph_classes (hb_face_t *face);
-
-HB_INTERNAL void
-_hb_ot_layout_set_glyph_property (hb_face_t      *face,
-				  hb_codepoint_t  glyph,
-				  unsigned int    property);
-
-HB_INTERNAL void
-_hb_ot_layout_set_glyph_class (hb_face_t                  *face,
-			       hb_codepoint_t              glyph,
-			       hb_ot_layout_glyph_class_t  klass);
 
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,

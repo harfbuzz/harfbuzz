@@ -3,8 +3,6 @@ General fixes:
 
 - Fix tt kern on/off
 
-- Remove synthesized GDEF
-
 - Remove fixed-size feature/lookup arrays in hb-ot-map
 
 - Use size_t in sanitize

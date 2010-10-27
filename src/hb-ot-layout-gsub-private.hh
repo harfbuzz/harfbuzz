@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007,2008,2009,2010  Red Hat, Inc.
+ * Copyright (C) 2010  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OT_LAYOUT_GSUB_PRIVATE_HH
@@ -47,11 +49,7 @@ struct SingleSubstFormat1
       return false;
 
     glyph_id += deltaGlyphID;
-    c->buffer->replace_glyph (glyph_id);
-
-    /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
-      _hb_ot_layout_set_glyph_property (c->layout->face, glyph_id, c->property);
+    c->replace_glyph (glyph_id);
 
     return true;
   }
@@ -91,11 +89,7 @@ struct SingleSubstFormat2
       return false;
 
     glyph_id = substitute[index];
-    c->buffer->replace_glyph (glyph_id);
-
-    /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
-      _hb_ot_layout_set_glyph_property (c->layout->face, glyph_id, c->property);
+    c->replace_glyph (glyph_id);
 
     return true;
   }
@@ -164,19 +158,9 @@ struct Sequence
     if (unlikely (!substitute.len))
       return false;
 
-    c->buffer->replace_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array);
-
-    /* This is a guess only ... */
-    if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
-    {
-      unsigned int property = c->property;
-      if (property == HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
-        property = HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
-
-      unsigned int count = substitute.len;
-      for (unsigned int n = 0; n < count; n++)
-	_hb_ot_layout_set_glyph_property (c->layout->face, substitute[n], property);
-    }
+    if (c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
+      c->guess_glyph_class (HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH);
+    c->replace_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array);
 
     return true;
   }
@@ -295,11 +279,7 @@ struct AlternateSubstFormat1
 
     glyph_id = alt_set[alt_index - 1];
 
-    c->buffer->replace_glyph (glyph_id);
-
-    /* We inherit the old glyph class to the substituted glyph */
-    if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
-      _hb_ot_layout_set_glyph_property (c->layout->face, glyph_id, c->property);
+    c->replace_glyph (glyph_id);
 
     return true;
   }
@@ -359,7 +339,7 @@ struct Ligature
   friend struct LigatureSet;
 
   private:
-  inline bool apply (hb_apply_context_t *c, bool is_mark) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int i, j;
@@ -367,6 +347,9 @@ struct Ligature
     unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);
     if (unlikely (c->buffer->i + count > end))
       return false;
+
+    bool first_was_mark = (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+    bool found_non_mark = false;
 
     for (i = 1, j = c->buffer->i + 1; i < count; i++, j++)
     {
@@ -378,17 +361,14 @@ struct Ligature
 	j++;
       }
 
-      if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-	is_mark = false;
+      found_non_mark |= !(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
       if (likely (c->buffer->info[j].codepoint != component[i]))
         return false;
     }
-    /* This is just a guess ... */
-    if (_hb_ot_layout_has_new_glyph_classes (c->layout->face))
-      _hb_ot_layout_set_glyph_class (c->layout->face, ligGlyph,
-				     is_mark ? HB_OT_LAYOUT_GLYPH_CLASS_MARK
-					     : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
+
+    if (first_was_mark && found_non_mark)
+      c->guess_glyph_class (HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
 
     /* Allocate new ligature id */
     unsigned int lig_id = allocate_lig_id (c->buffer);
@@ -397,11 +377,11 @@ struct Ligature
 
     if (j == c->buffer->i + i) /* No input glyphs skipped */
     {
-      c->buffer->replace_glyphs_be16 (i, 1, (const uint16_t *) &ligGlyph);
+      c->replace_glyphs_be16 (i, 1, (const uint16_t *) &ligGlyph);
     }
     else
     {
-      c->buffer->replace_glyph (ligGlyph);
+      c->replace_glyph (ligGlyph);
 
       /* Now we must do a second loop to copy the skipped glyphs to
 	 `out' and assign component values to it.  We start with the
@@ -416,7 +396,7 @@ struct Ligature
 	{
 	  c->buffer->info[c->buffer->i].component() = i;
 	  c->buffer->info[c->buffer->i].lig_id() = lig_id;
-	  c->buffer->replace_glyph (c->buffer->info[c->buffer->i].codepoint);
+	  c->replace_glyph (c->buffer->info[c->buffer->i].codepoint);
 	}
 
 	/* Skip the base glyph */
@@ -455,14 +435,14 @@ struct LigatureSet
   friend struct LigatureSubstFormat1;
 
   private:
-  inline bool apply (hb_apply_context_t *c, bool is_mark) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
       const Ligature &lig = this+ligature[i];
-      if (lig.apply (c, is_mark))
+      if (lig.apply (c))
         return true;
     }
 
@@ -493,14 +473,12 @@ struct LigatureSubstFormat1
     TRACE_APPLY ();
     hb_codepoint_t glyph_id = c->buffer->info[c->buffer->i].codepoint;
 
-    bool first_is_mark = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
-
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
       return false;
 
     const LigatureSet &lig_set = this+ligatureSet[index];
-    return lig_set.apply (c, first_is_mark);
+    return lig_set.apply (c);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {

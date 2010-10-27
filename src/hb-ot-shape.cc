@@ -163,6 +163,14 @@ hb_ensure_native_direction (hb_ot_shape_context_t *c)
   }
 }
 
+static void
+hb_reset_glyph_infos (hb_ot_shape_context_t *c)
+{
+  unsigned int count = c->buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    c->buffer->info[i].var1.u32 = c->buffer->info[i].var2.u32 = 0;
+}
+
 
 /* Substitute */
 
@@ -277,6 +285,8 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   hb_form_clusters (c);
 
   hb_ot_shape_setup_masks (c);
+
+  hb_reset_glyph_infos (c);
 
   /* SUBSTITUTE */
   {

@@ -431,7 +431,7 @@ struct ClassDefFormat1
   friend struct ClassDef;
 
   private:
-  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     if ((unsigned int) (glyph_id - startGlyph) < classValue.len)
       return classValue[glyph_id - startGlyph];
@@ -457,7 +457,7 @@ struct ClassDefFormat2
   friend struct ClassDef;
 
   private:
-  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     int i = rangeRecord.search (glyph_id);
     if (i != -1)
@@ -480,9 +480,9 @@ struct ClassDefFormat2
 
 struct ClassDef
 {
-  inline hb_ot_layout_class_t operator () (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
+  inline unsigned int operator () (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
 
-  inline hb_ot_layout_class_t get_class (hb_codepoint_t glyph_id) const
+  inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
     case 1: return u.format1.get_class(glyph_id);

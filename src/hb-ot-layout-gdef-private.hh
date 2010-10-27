@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007,2008,2009  Red Hat, Inc.
+ * Copyright (C) 2010  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OT_LAYOUT_GDEF_PRIVATE_HH
@@ -335,11 +337,11 @@ struct GDEF
   };
 
   inline bool has_glyph_classes (void) const { return glyphClassDef != 0; }
-  inline hb_ot_layout_class_t get_glyph_class (hb_codepoint_t glyph) const
+  inline unsigned int get_glyph_class (hb_codepoint_t glyph) const
   { return (this+glyphClassDef).get_class (glyph); }
 
   inline bool has_mark_attachment_types (void) const { return markAttachClassDef != 0; }
-  inline hb_ot_layout_class_t get_mark_attachment_type (hb_codepoint_t glyph) const
+  inline unsigned int get_mark_attachment_type (hb_codepoint_t glyph) const
   { return (this+markAttachClassDef).get_class (glyph); }
 
   inline bool has_attach_points (void) const { return attachList != 0; }

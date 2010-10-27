@@ -70,8 +70,6 @@ _hb_ot_layout_free (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
 
-  free (layout->new_gdef.klasses);
-
   free (layout);
 }
 
@@ -98,31 +96,22 @@ _get_gpos (hb_face_t *face)
  * GDEF
  */
 
-/* TODO the public class_t is a mess */
-
 hb_bool_t
 hb_ot_layout_has_glyph_classes (hb_face_t *face)
 {
   return _get_gdef (face).has_glyph_classes ();
 }
 
-hb_bool_t
-_hb_ot_layout_has_new_glyph_classes (hb_face_t *face)
-{
-  return face->ot_layout->new_gdef.len > 0;
-}
-
 static unsigned int
-_hb_ot_layout_get_glyph_property (hb_face_t      *face,
-				  hb_codepoint_t  glyph)
+_hb_ot_layout_get_glyph_property_from_gdef (hb_face_t       *face,
+					    hb_glyph_info_t *info)
 {
-  hb_ot_layout_class_t klass;
+  hb_codepoint_t glyph = info->codepoint;
+
+  unsigned int klass;
   const GDEF &gdef = _get_gdef (face);
 
   klass = gdef.get_glyph_class (glyph);
-
-  if (!klass && glyph < face->ot_layout->new_gdef.len)
-    klass = face->ot_layout->new_gdef.klasses[glyph];
 
   switch (klass) {
   default:
@@ -132,8 +121,18 @@ _hb_ot_layout_get_glyph_property (hb_face_t      *face,
   case GDEF::ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT;
   case GDEF::MarkGlyph:
 	klass = gdef.get_mark_attachment_type (glyph);
-	return HB_OT_LAYOUT_GLYPH_CLASS_MARK + (klass << 8);
+	return HB_OT_LAYOUT_GLYPH_CLASS_MARK | (klass << 8);
   }
+}
+
+static inline unsigned int
+_hb_ot_layout_get_glyph_property (hb_face_t       *face,
+				  hb_glyph_info_t *info)
+{
+  if (!info->gproperty())
+    info->gproperty() = _hb_ot_layout_get_glyph_property_from_gdef (face, info);
+
+  return info->gproperty();
 }
 
 hb_bool_t
@@ -144,9 +143,7 @@ _hb_ot_layout_check_glyph_property (hb_face_t    *face,
 {
   unsigned int property;
 
-  if (ginfo->gproperty() == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->gproperty() = _hb_ot_layout_get_glyph_property (face, ginfo->codepoint);
-  property = ginfo->gproperty();
+  property = _hb_ot_layout_get_glyph_property (face, ginfo);
   if (property_out)
     *property_out = property;
 
@@ -183,9 +180,7 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
 {
   unsigned int property;
 
-  if (ginfo->gproperty() == HB_BUFFER_GLYPH_PROPERTIES_UNKNOWN)
-    ginfo->gproperty() = _hb_ot_layout_get_glyph_property (face, ginfo->codepoint);
-  property = ginfo->gproperty();
+  property = _hb_ot_layout_get_glyph_property (face, ginfo);
   if (property_out)
     *property_out = property;
 
@@ -206,103 +201,6 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
   }
 
   return false;
-}
-
-void
-_hb_ot_layout_set_glyph_class (hb_face_t                  *face,
-			       hb_codepoint_t              glyph,
-			       hb_ot_layout_glyph_class_t  klass)
-{
-  if (HB_OBJECT_IS_INERT (face))
-    return;
-
-  /* TODO optimize this? similar to old harfbuzz code for example */
-
-  hb_ot_layout_t *layout = face->ot_layout;
-  hb_ot_layout_class_t gdef_klass;
-  unsigned int len = layout->new_gdef.len;
-
-  if (unlikely (glyph > 65535))
-    return;
-
-  /* XXX this is not threadsafe */
-  if (glyph >= len) {
-    unsigned int new_len;
-    unsigned char *new_klasses;
-
-    new_len = len == 0 ? 120 : 2 * len;
-    while (new_len <= glyph)
-      new_len *= 2;
-
-    if (new_len > 65536)
-      new_len = 65536;
-    new_klasses = (unsigned char *) realloc (layout->new_gdef.klasses, new_len * sizeof (unsigned char));
-
-    if (unlikely (!new_klasses))
-      return;
-
-    memset (new_klasses + len, 0, new_len - len);
-
-    layout->new_gdef.klasses = new_klasses;
-    layout->new_gdef.len = new_len;
-  }
-
-  switch (klass) {
-  default:
-  case HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED:	gdef_klass = GDEF::UnclassifiedGlyph;	break;
-  case HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH:	gdef_klass = GDEF::BaseGlyph;		break;
-  case HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE:	gdef_klass = GDEF::LigatureGlyph;	break;
-  case HB_OT_LAYOUT_GLYPH_CLASS_MARK:		gdef_klass = GDEF::MarkGlyph;		break;
-  case HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT:	gdef_klass = GDEF::ComponentGlyph;	break;
-  }
-
-  layout->new_gdef.klasses[glyph] = gdef_klass;
-  return;
-}
-
-void
-_hb_ot_layout_set_glyph_property (hb_face_t      *face,
-				  hb_codepoint_t  glyph,
-				  unsigned int    property)
-{ _hb_ot_layout_set_glyph_class (face, glyph, (hb_ot_layout_glyph_class_t) (property & 0xff)); }
-
-
-hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (hb_face_t      *face,
-			      hb_codepoint_t  glyph)
-{
-  return (hb_ot_layout_glyph_class_t) (_hb_ot_layout_get_glyph_property (face, glyph) & 0xff);
-}
-
-void
-hb_ot_layout_set_glyph_class (hb_face_t                 *face,
-			      hb_codepoint_t             glyph,
-			      hb_ot_layout_glyph_class_t klass)
-{
-  _hb_ot_layout_set_glyph_class (face, glyph, klass);
-}
-
-void
-hb_ot_layout_build_glyph_classes (hb_face_t      *face,
-				  hb_codepoint_t *glyphs,
-				  unsigned char  *klasses,
-				  uint16_t        count)
-{
-  if (HB_OBJECT_IS_INERT (face))
-    return;
-
-  hb_ot_layout_t *layout = face->ot_layout;
-
-  if (unlikely (!count || !glyphs || !klasses))
-    return;
-
-  if (layout->new_gdef.len == 0) {
-    layout->new_gdef.klasses = (unsigned char *) calloc (count, sizeof (unsigned char));
-    layout->new_gdef.len = count;
-  }
-
-  for (unsigned int i = 0; i < count; i++)
-    _hb_ot_layout_set_glyph_class (face, glyphs[i], (hb_ot_layout_glyph_class_t) klasses[i]);
 }
 
 unsigned int
