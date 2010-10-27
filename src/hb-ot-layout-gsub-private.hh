@@ -403,7 +403,7 @@ struct Ligature
     else
     {
       unsigned int lig_id = c->buffer->allocate_lig_id ();
-      c->buffer->add_output_glyph (ligGlyph, 0xFFFF, lig_id);
+      c->buffer->add_output_glyph (ligGlyph, 0, lig_id);
 
       /* Now we must do a second loop to copy the skipped glyphs to
 	 `out' and assign component values to it.  We start with the
@@ -417,7 +417,8 @@ struct Ligature
 	while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_flag, NULL))
 	  c->buffer->add_output_glyph (c->buffer->info[c->buffer->i].codepoint, i, lig_id);
 
-	(c->buffer->i)++;
+	/* Skip the base glyph */
+	c->buffer->i++;
       }
     }
 
