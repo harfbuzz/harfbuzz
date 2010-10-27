@@ -41,8 +41,8 @@ typedef struct _hb_glyph_info_t {
   hb_codepoint_t codepoint;
   hb_mask_t      mask;
   uint32_t       cluster;
-  uint32_t       internal1;
-  uint32_t       internal2;
+  hb_var_int_t   var1;
+  hb_var_int_t   var2;
 } hb_glyph_info_t;
 
 typedef struct _hb_glyph_position_t {
@@ -50,7 +50,7 @@ typedef struct _hb_glyph_position_t {
   hb_position_t  y_advance;
   hb_position_t  x_offset;
   hb_position_t  y_offset;
-  uint32_t       internal;
+  hb_var_int_t   var1;
 } hb_glyph_position_t;
 
 
