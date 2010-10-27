@@ -32,8 +32,6 @@
 HB_BEGIN_DECLS
 
 
-#define HB_OT_LAYOUT_GPOS_NO_LAST ((unsigned int) -1)
-
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
 
 typedef USHORT Value;
