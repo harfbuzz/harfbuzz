@@ -374,6 +374,27 @@ struct GDEF
 	&& (version < 0x00010002 || markGlyphSetsDef[0].sanitize (c, this));
   }
 
+
+  /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
+   * glyph class and other bits, and high 8-bit gthe mark attachment type (if any).
+   * Not to be confused with lookup_props which is very similar. */
+  inline unsigned int get_glyph_props (hb_codepoint_t glyph) const
+  {
+    unsigned int klass = get_glyph_class (glyph);
+
+    switch (klass) {
+    default:
+    case UnclassifiedGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED;
+    case BaseGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
+    case LigatureGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
+    case ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT;
+    case MarkGlyph:
+	  klass = get_mark_attachment_type (glyph);
+	  return HB_OT_LAYOUT_GLYPH_CLASS_MARK | (klass << 8);
+    }
+  }
+
+
   private:
   FixedVersion	version;		/* Version of the GDEF table--currently
 					 * 0x00010002 */

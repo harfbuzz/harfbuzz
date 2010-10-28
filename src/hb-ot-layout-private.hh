@@ -46,11 +46,11 @@ HB_BEGIN_DECLS
 #define cursive_chain() var.i16[1] /* character to which this connects, may be positive or negative */
 
 typedef enum {
+  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0001,
   HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
   HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 0x0004,
   HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 0x0008,
-  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010,
-  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0020
+  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010
 } hb_ot_layout_glyph_class_t;
 
 
@@ -94,17 +94,36 @@ _hb_ot_layout_free (hb_ot_layout_t *layout);
  * GDEF
  */
 
+HB_INTERNAL unsigned int
+_hb_ot_layout_get_glyph_property (hb_face_t       *face,
+				  hb_glyph_info_t *info);
+
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,
 				    hb_glyph_info_t *ginfo,
 				    unsigned int  lookup_props,
 				    unsigned int *property);
 
-HB_INTERNAL hb_bool_t
+static inline hb_bool_t
 _hb_ot_layout_skip_mark (hb_face_t    *face,
 			 hb_glyph_info_t *ginfo,
 			 unsigned int  lookup_props,
-			 unsigned int *property);
+			 unsigned int *property_out)
+{
+  unsigned int property;
+
+  property = _hb_ot_layout_get_glyph_property (face, ginfo);
+  if (property_out)
+    *property_out = property;
+
+  /* If it's a mark, skip it we don't accept it. */
+  if (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+    return !_hb_ot_layout_check_glyph_property (face, ginfo, lookup_props, NULL);
+
+  /* If not a mark, don't skip. */
+  return false;
+}
+
 
 
 HB_END_DECLS

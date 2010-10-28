@@ -73,19 +73,19 @@ _hb_ot_layout_free (hb_ot_layout_t *layout)
   free (layout);
 }
 
-static const GDEF&
+static inline const GDEF&
 _get_gdef (hb_face_t *face)
 {
   return likely (face->ot_layout && face->ot_layout->gdef) ? *face->ot_layout->gdef : Null(GDEF);
 }
 
-static const GSUB&
+static inline const GSUB&
 _get_gsub (hb_face_t *face)
 {
   return likely (face->ot_layout && face->ot_layout->gsub) ? *face->ot_layout->gsub : Null(GSUB);
 }
 
-static const GPOS&
+static inline const GPOS&
 _get_gpos (hb_face_t *face)
 {
   return likely (face->ot_layout && face->ot_layout->gpos) ? *face->ot_layout->gpos : Null(GPOS);
@@ -102,35 +102,15 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face)
   return _get_gdef (face).has_glyph_classes ();
 }
 
-static unsigned int
-_hb_ot_layout_get_glyph_property_from_gdef (hb_face_t       *face,
-					    hb_glyph_info_t *info)
-{
-  hb_codepoint_t glyph = info->codepoint;
-
-  unsigned int klass;
-  const GDEF &gdef = _get_gdef (face);
-
-  klass = gdef.get_glyph_class (glyph);
-
-  switch (klass) {
-  default:
-  case GDEF::UnclassifiedGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED;
-  case GDEF::BaseGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
-  case GDEF::LigatureGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
-  case GDEF::ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT;
-  case GDEF::MarkGlyph:
-	klass = gdef.get_mark_attachment_type (glyph);
-	return HB_OT_LAYOUT_GLYPH_CLASS_MARK | (klass << 8);
-  }
-}
-
-static inline unsigned int
+unsigned int
 _hb_ot_layout_get_glyph_property (hb_face_t       *face,
 				  hb_glyph_info_t *info)
 {
   if (!info->gproperty())
-    info->gproperty() = _hb_ot_layout_get_glyph_property_from_gdef (face, info);
+  {
+    const GDEF &gdef = _get_gdef (face);
+    info->gproperty() = gdef.get_glyph_props (info->codepoint);
+  }
 
   return info->gproperty();
 }
@@ -170,26 +150,6 @@ _hb_ot_layout_check_glyph_property (hb_face_t    *face,
   }
 
   return true;
-}
-
-hb_bool_t
-_hb_ot_layout_skip_mark (hb_face_t    *face,
-			 hb_glyph_info_t *ginfo,
-			 unsigned int  lookup_props,
-			 unsigned int *property_out)
-{
-  unsigned int property;
-
-  property = _hb_ot_layout_get_glyph_property (face, ginfo);
-  if (property_out)
-    *property_out = property;
-
-  /* If it's a mark, skip it we don't accept it. */
-  if (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
-    return !_hb_ot_layout_check_glyph_property (face, ginfo, lookup_props, NULL);
-
-  /* If not a mark, don't skip. */
-  return false;
 }
 
 unsigned int
