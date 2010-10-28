@@ -121,7 +121,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 
   c->plan->map.position (c->font, c->face, c->buffer);
 
-  hb_ot_layout_position_finish (c->font, c->face, c->buffer);
+  hb_ot_layout_position_finish (c->buffer);
 
   c->applied_position_complex = TRUE;
   return;

@@ -1472,6 +1472,8 @@ struct GPOS : GSUBGPOS
 			       hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (layout, buffer, mask); }
 
+  static inline void position_finish (hb_buffer_t *buffer);
+
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!GSUBGPOS::sanitize (c))) return false;
@@ -1481,6 +1483,63 @@ struct GPOS : GSUBGPOS
   public:
   DEFINE_SIZE_STATIC (10);
 };
+
+void
+GPOS::position_finish (hb_buffer_t *buffer)
+{
+  unsigned int i, j;
+  unsigned int len = hb_buffer_get_length (buffer);
+  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer);
+  hb_direction_t direction = buffer->props.direction;
+
+  /* Handle cursive connections:
+   * First handle all chain-back connections, then handle all chain-forward connections. */
+  if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+  {
+    for (j = 0; j < len; j++) {
+      if (pos[j].cursive_chain() < 0)
+	pos[j].y_offset += pos[j + pos[j].cursive_chain()].y_offset;
+    }
+    for (i = len; i > 0; i--) {
+      j = i - 1;
+      if (pos[j].cursive_chain() > 0)
+	pos[j].y_offset += pos[j + pos[j].cursive_chain()].y_offset;
+    }
+  }
+  else
+  {
+    for (j = 0; j < len; j++) {
+      if (pos[j].cursive_chain() < 0)
+	pos[j].x_offset += pos[j + pos[j].cursive_chain()].x_offset;
+    }
+    for (i = len; i > 0; i--) {
+      j = i - 1;
+      if (pos[j].cursive_chain() > 0)
+	pos[j].x_offset += pos[j + pos[j].cursive_chain()].x_offset;
+    }
+  }
+
+
+  /* Handle attachments */
+  for (i = 0; i < len; i++)
+    if (pos[i].back())
+    {
+      unsigned int back = i - pos[i].back();
+      pos[i].x_offset += pos[back].x_offset;
+      pos[i].y_offset += pos[back].y_offset;
+
+      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+	for (j = back + 1; j < i + 1; j++) {
+	  pos[i].x_offset += pos[j].x_advance;
+	  pos[i].y_offset += pos[j].y_advance;
+	}
+      else
+	for (j = back; j < i; j++) {
+	  pos[i].x_offset -= pos[j].x_advance;
+	  pos[i].y_offset -= pos[j].y_advance;
+	}
+    }
+}
 
 
 /* Out-of-class implementation for methods recursing */
