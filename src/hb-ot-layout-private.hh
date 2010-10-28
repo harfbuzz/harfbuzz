@@ -97,13 +97,13 @@ _hb_ot_layout_free (hb_ot_layout_t *layout);
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,
 				    hb_glyph_info_t *ginfo,
-				    unsigned int  lookup_flags,
+				    unsigned int  lookup_props,
 				    unsigned int *property);
 
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_skip_mark (hb_face_t    *face,
 			 hb_glyph_info_t *ginfo,
-			 unsigned int  lookup_flags,
+			 unsigned int  lookup_props,
 			 unsigned int *property);
 
 

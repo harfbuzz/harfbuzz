@@ -290,7 +290,11 @@ struct Lookup
   inline unsigned int get_subtable_count (void) const { return subTable.len; }
 
   inline unsigned int get_type (void) const { return lookupType; }
-  inline unsigned int get_flag (void) const
+
+  /* lookup_props is a 32-bit integer where the lower 16-bit is LookupFlag and
+   * higher 16-bit is mark-filtering-set if the lookup uses one.
+   * Not to be confused with glyph_props which is very similar. */
+  inline uint32_t get_props (void) const
   {
     unsigned int flag = lookupFlag;
     if (unlikely (flag & LookupFlag::UseMarkFilteringSet))

@@ -53,7 +53,7 @@ struct hb_apply_context_t
   hb_mask_t lookup_mask;
   unsigned int context_length;
   unsigned int nesting_level_left;
-  unsigned int lookup_flag;
+  unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
 
 
@@ -126,7 +126,7 @@ static inline bool match_input (hb_apply_context_t *c,
 
   for (i = 1, j = c->buffer->i + 1; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
@@ -153,7 +153,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 
   for (unsigned int i = 0, j = c->buffer->out_len - 1; i < count; i++, j--)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->out_info[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->out_info[j], c->lookup_props, NULL))
     {
       if (unlikely (j + 1 == count - i))
 	return false;
@@ -181,7 +181,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 
   for (i = 0, j = c->buffer->i + offset; i < count; i++, j++)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j + count - i == end))
 	return false;
@@ -235,7 +235,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_props, NULL))
     {
       if (unlikely (c->buffer->i == end))
 	return true;

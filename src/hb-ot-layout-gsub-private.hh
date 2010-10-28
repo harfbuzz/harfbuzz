@@ -354,7 +354,7 @@ struct Ligature
     for (i = 1, j = c->buffer->i + 1; i < count; i++, j++)
     {
       unsigned int property;
-      while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, &property))
+      while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_props, &property))
       {
 	if (unlikely (j + count - i == end))
 	  return false;
@@ -392,7 +392,7 @@ struct Ligature
 
       for (i = 1; i < count; i++)
       {
-	while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_flag, NULL))
+	while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_props, NULL))
 	{
 	  c->buffer->info[c->buffer->i].component() = i;
 	  c->buffer->info[c->buffer->i].lig_id() = lig_id;
@@ -776,9 +776,9 @@ struct SubstLookup : Lookup
     c->lookup_mask = lookup_mask;
     c->context_length = context_length;
     c->nesting_level_left = nesting_level_left;
-    c->lookup_flag = get_flag ();
+    c->lookup_props = get_props ();
 
-    if (!_hb_ot_layout_check_glyph_property (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_flag, &c->property))
+    if (!_hb_ot_layout_check_glyph_property (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_props, &c->property))
       return false;
 
     if (unlikely (lookup_type == SubstLookupSubTable::Extension))

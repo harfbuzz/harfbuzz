@@ -161,8 +161,8 @@ main (int argc, char **argv)
 	printf ("    %d lookup(s) found in table\n", num_lookups);
 	for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
 	  const Lookup &lookup = g.get_lookup (n_lookup);
-	  printf ("    Lookup %2d of %2d: type %d, flags 0x%04X\n", n_lookup, num_lookups,
-	          lookup.get_type(), lookup.get_flag());
+	  printf ("    Lookup %2d of %2d: type %d, props 0x%04X\n", n_lookup, num_lookups,
+	          lookup.get_type(), lookup.get_props());
 	}
 
 	}

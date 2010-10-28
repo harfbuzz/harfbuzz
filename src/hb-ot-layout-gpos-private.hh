@@ -625,7 +625,7 @@ struct PairPosFormat1
       return false;
 
     unsigned int j = c->buffer->i + 1;
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -687,7 +687,7 @@ struct PairPosFormat2
       return false;
 
     unsigned int j = c->buffer->i + 1;
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -840,7 +840,7 @@ struct CursivePosFormat1
       return false;
 
     unsigned int j = c->buffer->i + 1;
-    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, NULL))
+    while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j == end))
 	return false;
@@ -876,7 +876,7 @@ struct CursivePosFormat1
 	c->buffer->pos[i].y_advance = c->buffer->pos[i].y_offset + exit_y - entry_y;
     }
 
-    if  (c->lookup_flag & LookupFlag::RightToLeft)
+    if  (c->lookup_props & LookupFlag::RightToLeft)
     {
       c->buffer->pos[i].cursive_chain() = j - i;
       if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
@@ -1192,7 +1192,7 @@ struct MarkMarkPosFormat1
       if (unlikely (!j))
 	return false;
       j--;
-    } while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_flag, &property));
+    } while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], c->lookup_props, &property));
 
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
       return false;
@@ -1411,9 +1411,9 @@ struct PosLookup : Lookup
     c->lookup_mask = lookup_mask;
     c->context_length = context_length;
     c->nesting_level_left = nesting_level_left;
-    c->lookup_flag = get_flag ();
+    c->lookup_props = get_props ();
 
-    if (!_hb_ot_layout_check_glyph_property (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_flag, &c->property))
+    if (!_hb_ot_layout_check_glyph_property (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_props, &c->property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
