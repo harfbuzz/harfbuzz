@@ -184,22 +184,11 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
   if (property_out)
     *property_out = property;
 
+  /* If it's a mark, skip it we don't accept it. */
   if (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
-  {
-    /* Skip mark if lookup_props includes LookupFlags::IgnoreMarks */
-    if (lookup_props & LookupFlag::IgnoreMarks)
-      return true;
+    return !_hb_ot_layout_check_glyph_property (face, ginfo, lookup_props, NULL);
 
-    /* If using mark filtering sets, the high short of lookup_props has the set index. */
-    if (lookup_props & LookupFlag::UseMarkFilteringSet)
-      return !_get_gdef (face).mark_set_covers (lookup_props >> 16, ginfo->codepoint);
-
-    /* The second byte of lookup_props has the meaning "ignore marks of attachment type
-     * different than the attachment type specified." */
-    if (lookup_props & LookupFlag::MarkAttachmentType && property & LookupFlag::MarkAttachmentType)
-      return (lookup_props & LookupFlag::MarkAttachmentType) != (property & LookupFlag::MarkAttachmentType);
-  }
-
+  /* If not a mark, don't skip. */
   return false;
 }
 
