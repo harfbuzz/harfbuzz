@@ -372,7 +372,7 @@ struct Ligature
 
     /* Allocate new ligature id */
     unsigned int lig_id = allocate_lig_id (c->buffer);
-    c->buffer->info[c->buffer->i].component() = 0;
+    c->buffer->info[c->buffer->i].lig_comp() = 0;
     c->buffer->info[c->buffer->i].lig_id() = lig_id;
 
     if (j == c->buffer->i + i) /* No input glyphs skipped */
@@ -394,7 +394,7 @@ struct Ligature
       {
 	while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[c->buffer->i], c->lookup_props, NULL))
 	{
-	  c->buffer->info[c->buffer->i].component() = i;
+	  c->buffer->info[c->buffer->i].lig_comp() = i;
 	  c->buffer->info[c->buffer->i].lig_id() = lig_id;
 	  c->replace_glyph (c->buffer->info[c->buffer->i].codepoint);
 	}

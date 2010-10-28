@@ -1100,9 +1100,9 @@ struct MarkLigPosFormat1
      * is identical to the ligature ID of the found ligature.  If yes, we
      * can directly use the component index.  If not, we attach the mark
      * glyph to the last component of the ligature. */
-    if (c->buffer->info[j].lig_id() && c->buffer->info[j].lig_id() == c->buffer->info[c->buffer->i].lig_id() && c->buffer->info[c->buffer->i].component())
+    if (c->buffer->info[j].lig_id() && c->buffer->info[j].lig_id() == c->buffer->info[c->buffer->i].lig_id() && c->buffer->info[c->buffer->i].lig_comp())
     {
-      comp_index = c->buffer->info[c->buffer->i].component() - 1;
+      comp_index = c->buffer->info[c->buffer->i].lig_comp() - 1;
       if (comp_index >= comp_count)
 	comp_index = comp_count - 1;
     }
@@ -1205,8 +1205,8 @@ struct MarkMarkPosFormat1
     /* Two marks match only if they belong to the same base, or same component
      * of the same ligature.  That is, the component numbers must match, and
      * if those are non-zero, the ligid number should also match. */
-    if ((c->buffer->info[j].component() != c->buffer->info[c->buffer->i].component()) ||
-	(c->buffer->info[j].component() && c->buffer->info[j].lig_id() != c->buffer->info[c->buffer->i].lig_id()))
+    if ((c->buffer->info[j].lig_comp() != c->buffer->info[c->buffer->i].lig_comp()) ||
+	(c->buffer->info[j].lig_comp() && c->buffer->info[j].lig_id() != c->buffer->info[c->buffer->i].lig_id()))
       return false;
 
     unsigned int mark2_index = (this+mark2Coverage) (c->buffer->info[j].codepoint);

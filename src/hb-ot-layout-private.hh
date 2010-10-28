@@ -38,10 +38,9 @@
 HB_BEGIN_DECLS
 
 
-/* XXX */
-#define component() var1.u16[0]
-#define lig_id() var1.u16[1]
-#define gproperty() var2.u32
+/* buffer var allocations */
+#define props_cache() var1.u16[0] /* glyph_props cache */
+
 
 typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0001,

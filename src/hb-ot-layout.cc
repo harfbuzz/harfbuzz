@@ -106,13 +106,13 @@ unsigned int
 _hb_ot_layout_get_glyph_property (hb_face_t       *face,
 				  hb_glyph_info_t *info)
 {
-  if (!info->gproperty())
+  if (!info->props_cache())
   {
     const GDEF &gdef = _get_gdef (face);
-    info->gproperty() = gdef.get_glyph_props (info->codepoint);
+    info->props_cache() = gdef.get_glyph_props (info->codepoint);
   }
 
-  return info->gproperty();
+  return info->props_cache();
 }
 
 hb_bool_t

@@ -35,6 +35,11 @@
 HB_BEGIN_DECLS
 
 
+/* buffer var allocations */
+#define lig_id() var2.u16[0] /* unique ligature id */
+#define lig_comp() var2.u16[1] /* component number in the ligature (0 = base) */
+
+
 #ifndef HB_DEBUG_APPLY
 #define HB_DEBUG_APPLY HB_DEBUG+0
 #endif
@@ -72,13 +77,13 @@ struct hb_apply_context_t
 
   inline void guess_glyph_class (unsigned int klass)
   {
-//    buffer->info[buffer->i].gproperty() = klass;
+//    buffer->info[buffer->i].props_cache() = klass;
   }
 
   private:
   inline void clear_property (void) const
   {
-    buffer->info[buffer->i].gproperty() = 0;
+    buffer->info[buffer->i].props_cache() = 0;
   }
 };
 
