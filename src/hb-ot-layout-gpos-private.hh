@@ -34,6 +34,11 @@
 HB_BEGIN_DECLS
 
 
+/* buffer var allocations */
+#define attach_lookback() var.u16[0] /* number of glyphs to go back to attach this glyph to its base */
+#define cursive_chain() var.i16[1] /* character to which this connects, may be positive or negative */
+
+
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
 
 typedef USHORT Value;
@@ -402,9 +407,9 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     glyph_anchor.get_anchor (c->layout, c->buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
     hb_glyph_position_t &o = c->buffer->pos[c->buffer->i];
-    o.x_offset  = base_x - mark_x;
-    o.y_offset  = base_y - mark_y;
-    o.back()    = c->buffer->i - glyph_pos;
+    o.x_offset = base_x - mark_x;
+    o.y_offset = base_y - mark_y;
+    o.attach_lookback() = c->buffer->i - glyph_pos;
 
     c->buffer->i++;
     return true;
@@ -1522,9 +1527,9 @@ GPOS::position_finish (hb_buffer_t *buffer)
 
   /* Handle attachments */
   for (i = 0; i < len; i++)
-    if (pos[i].back())
+    if (pos[i].attach_lookback())
     {
-      unsigned int back = i - pos[i].back();
+      unsigned int back = i - pos[i].attach_lookback();
       pos[i].x_offset += pos[back].x_offset;
       pos[i].y_offset += pos[back].y_offset;
 
@@ -1572,6 +1577,10 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
 
   return l.apply_once (c->layout, c->buffer, c->lookup_mask, c->context_length, c->nesting_level_left - 1);
 }
+
+
+#undef attach_lookback
+#undef cursive_chain
 
 
 HB_END_DECLS

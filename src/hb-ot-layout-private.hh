@@ -42,8 +42,6 @@ HB_BEGIN_DECLS
 #define component() var1.u16[0]
 #define lig_id() var1.u16[1]
 #define gproperty() var2.u32
-#define back() var.u16[0] /* number of glyphs to go back for drawing current glyph */
-#define cursive_chain() var.i16[1] /* character to which this connects, may be positive or negative */
 
 typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0001,
