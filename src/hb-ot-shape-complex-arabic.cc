@@ -43,7 +43,7 @@ enum {
   /* We deliberately don't have a JOINING_TYPE_L since that's unused in Unicode. */
 
   JOINING_TYPE_T = 6,
-  JOINING_TYPE_X = 7, /* means: use general-category to choose between U or T. */
+  JOINING_TYPE_X = 7  /* means: use general-category to choose between U or T. */
 };
 
 /*
