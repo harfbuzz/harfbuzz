@@ -600,7 +600,6 @@ struct ChainRule
 				 lookahead.len, lookahead.array,
 				 lookup.len, lookup.array,
 				 lookup_context);
-    return false;
   }
 
   public:
@@ -786,7 +785,6 @@ struct ChainContextFormat3
 				 lookahead.len, (const USHORT *) lookahead.array,
 				 lookup.len, lookup.array,
 				 lookup_context);
-    return false;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
