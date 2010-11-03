@@ -39,9 +39,10 @@ HB_BEGIN_DECLS
 
 
 /* buffer var allocations */
-#define props_cache() var1.u16[0] /* glyph_props cache */
+#define props_cache() var1.u16[1] /* glyph_props cache */
 
 
+/* XXX cleanup */
 typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0001,
   HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,

@@ -28,6 +28,11 @@
 
 HB_BEGIN_DECLS
 
+
+/* buffer var allocations */
+#define arabic_shaping_action() var2.u32 /* arabic shaping action */
+
+
 /*
  * Bits used in the joining tables
  */
@@ -686,20 +691,19 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
 
   for (unsigned int i = 0; i < count; i++)
   {
-
-    unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, c->buffer->unicode->v.get_general_category (c->buffer->info[i].codepoint));
+    unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, (hb_category_t) c->buffer->info[i].general_category());
 
     if (unlikely (this_type == JOINING_TYPE_T)) {
-      c->buffer->info[i].var2.u32 = NONE;
+      c->buffer->info[i].arabic_shaping_action() = NONE;
       continue;
     }
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
     if (entry->prev_action != NONE)
-      c->buffer->info[prev].var2.u32 = entry->prev_action;
+      c->buffer->info[prev].arabic_shaping_action() = entry->prev_action;
 
-    c->buffer->info[i].var2.u32 = entry->curr_action;
+    c->buffer->info[i].arabic_shaping_action() = entry->curr_action;
 
     prev = i;
     state = entry->next_state;
@@ -711,7 +715,7 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
     mask_array[i] = c->plan->map.get_1_mask (arabic_syriac_features[i]);
 
   for (unsigned int i = 0; i < count; i++)
-    c->buffer->info[i].mask |= mask_array[c->buffer->info[i].var2.u32];
+    c->buffer->info[i].mask |= mask_array[c->buffer->info[i].arabic_shaping_action()];
 }
 
 

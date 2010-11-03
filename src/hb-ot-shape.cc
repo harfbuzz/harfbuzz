@@ -86,7 +86,7 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   hb_mask_t global_mask = c->plan->map.get_global_mask ();
   c->buffer->reset_masks (global_mask);
 
-  hb_ot_shape_complex_setup_masks (c);
+  hb_ot_shape_complex_setup_masks (c); /* BUFFER: Clobbers var2 */
 
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {
@@ -141,11 +141,25 @@ is_variation_selector (hb_codepoint_t unicode)
 }
 
 static void
+hb_set_unicode_props (hb_ot_shape_context_t *c)
+{
+  hb_unicode_get_general_category_func_t get_general_category = c->buffer->unicode->v.get_general_category;
+  hb_unicode_get_combining_class_func_t get_combining_class = c->buffer->unicode->v.get_combining_class;
+  hb_glyph_info_t *info = c->buffer->info;
+
+  unsigned int count = c->buffer->len;
+  for (unsigned int i = 1; i < count; i++) {
+    info[i].general_category() = get_general_category (info[i].codepoint);
+    info[i].combining_class() = get_combining_class (info[i].codepoint);
+  }
+}
+
+static void
 hb_form_clusters (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++)
-    if (c->buffer->unicode->v.get_general_category (c->buffer->info[i].codepoint) == HB_CATEGORY_NON_SPACING_MARK)
+    if (c->buffer->info[i].general_category() == HB_CATEGORY_NON_SPACING_MARK)
       c->buffer->info[i].cluster = c->buffer->info[i - 1].cluster;
 }
 
@@ -282,11 +296,13 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   /* Save the original direction, we use it later. */
   c->original_direction = c->buffer->props.direction;
 
+  hb_reset_glyph_infos (c); /* BUFFER: Clear buffer var1 and var2 */
+
+  hb_set_unicode_props (c); /* BUFFER: Set general_category and combining_class in var1 */
+
   hb_form_clusters (c);
 
-  hb_ot_shape_setup_masks (c);
-
-  hb_reset_glyph_infos (c);
+  hb_ot_shape_setup_masks (c); /* BUFFER: Clobbers var2 */
 
   /* SUBSTITUTE */
   {
