@@ -99,28 +99,13 @@ HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,
 				    hb_glyph_info_t *ginfo,
 				    unsigned int  lookup_props,
-				    unsigned int *property);
+				    unsigned int *property_out);
 
-static inline hb_bool_t
+HB_INTERNAL hb_bool_t
 _hb_ot_layout_skip_mark (hb_face_t    *face,
 			 hb_glyph_info_t *ginfo,
 			 unsigned int  lookup_props,
-			 unsigned int *property_out)
-{
-  unsigned int property;
-
-  property = _hb_ot_layout_get_glyph_property (face, ginfo);
-  if (property_out)
-    *property_out = property;
-
-  /* If it's a mark, skip it we don't accept it. */
-  if (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
-    return !_hb_ot_layout_check_glyph_property (face, ginfo, lookup_props, NULL);
-
-  /* If not a mark, don't skip. */
-  return false;
-}
-
+			 unsigned int *property_out);
 
 
 HB_END_DECLS

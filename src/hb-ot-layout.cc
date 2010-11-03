@@ -115,6 +115,37 @@ _hb_ot_layout_get_glyph_property (hb_face_t       *face,
   return info->props_cache();
 }
 
+static hb_bool_t
+_hb_ot_layout_match_properties (hb_face_t      *face,
+				hb_codepoint_t  codepoint,
+				unsigned int    glyph_props,
+				unsigned int    lookup_props)
+{
+  /* Not covered, if, for example, glyph class is ligature and
+   * lookup_props includes LookupFlags::IgnoreLigatures
+   */
+  if (glyph_props & lookup_props & LookupFlag::IgnoreFlags)
+    return false;
+
+  if (glyph_props & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+  {
+    /* If using mark filtering sets, the high short of
+     * lookup_props has the set index.
+     */
+    if (lookup_props & LookupFlag::UseMarkFilteringSet)
+      return _get_gdef (face).mark_set_covers (lookup_props >> 16, codepoint);
+
+    /* The second byte of lookup_props has the meaning
+     * "ignore marks of attachment type different than
+     * the attachment type specified."
+     */
+    if (lookup_props & LookupFlag::MarkAttachmentType && glyph_props & LookupFlag::MarkAttachmentType)
+      return (lookup_props & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
+  }
+
+  return true;
+}
+
 hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,
 				    hb_glyph_info_t *ginfo,
@@ -124,33 +155,31 @@ _hb_ot_layout_check_glyph_property (hb_face_t    *face,
   unsigned int property;
 
   property = _hb_ot_layout_get_glyph_property (face, ginfo);
-  if (property_out)
-    *property_out = property;
+  (void) (property_out && (*property_out = property));
 
-  /* Not covered, if, for example, glyph class is ligature and
-   * lookup_props includes LookupFlags::IgnoreLigatures
-   */
-  if (property & lookup_props & LookupFlag::IgnoreFlags)
-    return false;
-
-  if (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
-  {
-    /* If using mark filtering sets, the high short of
-     * lookup_props has the set index.
-     */
-    if (lookup_props & LookupFlag::UseMarkFilteringSet)
-      return _get_gdef (face).mark_set_covers (lookup_props >> 16, ginfo->codepoint);
-
-    /* The second byte of lookup_props has the meaning
-     * "ignore marks of attachment type different than
-     * the attachment type specified."
-     */
-    if (lookup_props & LookupFlag::MarkAttachmentType && property & LookupFlag::MarkAttachmentType)
-      return (lookup_props & LookupFlag::MarkAttachmentType) == (property & LookupFlag::MarkAttachmentType);
-  }
-
-  return true;
+  return _hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
 }
+
+hb_bool_t
+_hb_ot_layout_skip_mark (hb_face_t    *face,
+			 hb_glyph_info_t *ginfo,
+			 unsigned int  lookup_props,
+			 unsigned int *property_out)
+{
+  unsigned int property;
+
+  property = _hb_ot_layout_get_glyph_property (face, ginfo);
+  (void) (property_out && (*property_out = property));
+
+  /* If it's a mark, skip it we don't accept it. */
+  if (unlikely (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+    return !_hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
+
+  /* If not a mark, don't skip. */
+  return false;
+}
+
+
 
 unsigned int
 hb_ot_layout_get_attach_points (hb_face_t      *face,
