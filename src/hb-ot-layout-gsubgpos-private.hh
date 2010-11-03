@@ -41,7 +41,7 @@ HB_BEGIN_DECLS
 
 
 #ifndef HB_DEBUG_APPLY
-#define HB_DEBUG_APPLY HB_DEBUG+0
+#define HB_DEBUG_APPLY (HB_DEBUG+0)
 #endif
 
 #define TRACE_APPLY() \

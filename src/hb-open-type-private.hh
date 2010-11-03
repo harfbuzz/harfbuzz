@@ -152,8 +152,8 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 template <int max_depth>
 struct hb_trace_t {
   explicit hb_trace_t (unsigned int *pdepth, const char *what, const char *function, const void *obj) : pdepth(pdepth) {
-    if (*pdepth < max_depth)
-      fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, *pdepth, *pdepth, function);
+    (void) (*pdepth < max_depth &&
+	    fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, *pdepth, *pdepth, function));
     if (max_depth) ++*pdepth;
   }
   ~hb_trace_t (void) { if (max_depth) --*pdepth; }
@@ -173,7 +173,7 @@ struct hb_trace_t<0> {
  */
 
 #ifndef HB_DEBUG_SANITIZE
-#define HB_DEBUG_SANITIZE HB_DEBUG+0
+#define HB_DEBUG_SANITIZE (HB_DEBUG+0)
 #endif
 
 
@@ -192,17 +192,17 @@ struct hb_sanitize_context_t
     this->edit_count = 0;
     this->debug_depth = 0;
 
-    if (HB_DEBUG_SANITIZE)
+    (void) (HB_DEBUG_SANITIZE &&
       fprintf (stderr, "sanitize %p init [%p..%p] (%lu bytes)\n",
 	       this->blob, this->start, this->end,
-	       (unsigned long) (this->end - this->start));
+	       (unsigned long) (this->end - this->start)));
   }
 
   inline void finish (void)
   {
-    if (HB_DEBUG_SANITIZE)
+    (void) (HB_DEBUG_SANITIZE &&
       fprintf (stderr, "sanitize %p fini [%p..%p] %u edit requests\n",
-	       this->blob, this->start, this->end, this->edit_count);
+	       this->blob, this->start, this->end, this->edit_count));
 
     hb_blob_unlock (this->blob);
     hb_blob_destroy (this->blob);
@@ -217,13 +217,13 @@ struct hb_sanitize_context_t
 	       p <= this->end &&
 	       (unsigned int) (this->end - p) >= len;
 
-    if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE) \
-      fprintf (stderr, "SANITIZE(%p) %-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
+    (void) (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE &&
+      fprintf (stderr, "SANITIZE(%p) %-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
 	       p,
 	       this->debug_depth, this->debug_depth,
 	       p, p + len, len,
 	       this->start, this->end,
-	       ret ? "pass" : "FAIL");
+	       ret ? "pass" : "FAIL"));
 
     return likely (ret);
   }
@@ -233,13 +233,13 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     bool overflows = record_size > 0 && len >= ((unsigned int) -1) / record_size;
 
-    if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE)
-      fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n", \
+    (void) (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE &&
+      fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n",
 	       p,
 	       this->debug_depth, this->debug_depth,
 	       p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
 	       this->start, this->end,
-	       !overflows ? "does not overflow" : "OVERFLOWS FAIL");
+	       !overflows ? "does not overflow" : "OVERFLOWS FAIL"));
 
     return likely (!overflows && this->check_range (base, record_size * len));
   }
@@ -255,14 +255,14 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     this->edit_count++;
 
-    if (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE)
-      fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n", \
+    (void) (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE &&
+      fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
 	       p,
 	       this->debug_depth, this->debug_depth,
 	       this->edit_count,
 	       p, p + len, len,
 	       this->start, this->end,
-	       this->writable ? "granted" : "REJECTED");
+	       this->writable ? "granted" : "REJECTED"));
 
     return this->writable;
   }
@@ -290,8 +290,8 @@ struct Sanitizer
       return hb_blob_create_empty ();
 
   retry:
-    if (HB_DEBUG_SANITIZE)
-      fprintf (stderr, "Sanitizer %p start %s\n", blob, HB_FUNC);
+    (void) (HB_DEBUG_SANITIZE &&
+      fprintf (stderr, "Sanitizer %p start %s\n", blob, HB_FUNC));
 
     c->init (blob);
 
@@ -305,17 +305,17 @@ struct Sanitizer
     sane = t->sanitize (c);
     if (sane) {
       if (c->edit_count) {
-	if (HB_DEBUG_SANITIZE)
+	(void) (HB_DEBUG_SANITIZE &&
 	  fprintf (stderr, "Sanitizer %p passed first round with %d edits; doing a second round %s\n",
-		   blob, c->edit_count, HB_FUNC);
+		   blob, c->edit_count, HB_FUNC));
 
         /* sanitize again to ensure no toe-stepping */
         c->edit_count = 0;
 	sane = t->sanitize (c);
 	if (c->edit_count) {
-	  if (HB_DEBUG_SANITIZE)
+	  (void) (HB_DEBUG_SANITIZE &&
 	    fprintf (stderr, "Sanitizer %p requested %d edits in second round; FAILLING %s\n",
-		     blob, c->edit_count, HB_FUNC);
+		     blob, c->edit_count, HB_FUNC));
 	  sane = false;
 	}
       }
@@ -325,14 +325,14 @@ struct Sanitizer
       c->finish ();
       if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
         /* ok, we made it writable by relocating.  try again */
-	if (HB_DEBUG_SANITIZE)
-	  fprintf (stderr, "Sanitizer %p retry %s\n", blob, HB_FUNC);
+	(void) (HB_DEBUG_SANITIZE &&
+	  fprintf (stderr, "Sanitizer %p retry %s\n", blob, HB_FUNC));
         goto retry;
       }
     }
 
-    if (HB_DEBUG_SANITIZE)
-      fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", HB_FUNC);
+    (void) (HB_DEBUG_SANITIZE &&
+      fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", HB_FUNC));
     if (sane)
       return blob;
     else {
@@ -577,18 +577,16 @@ struct GenericArrayOf
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!sanitize_shallow (c))) return false;
+
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size, hence the return.
+     * a bound check on the aggregate array size.  We just include
+     * a small unreachable expression to make sure the structs
+     * pointed to do have a simple sanitize(), ie. they do not
+     * reference other structs via offsets.
      */
-    return true;
-    /* We do keep this code though to make sure the structs pointed
-     * to do have a simple sanitize(), ie. they do not reference
-     * other structs. */
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!array[i].sanitize (c)))
-        return false;
+    (void) (false && array[0].sanitize (c));
+
     return true;
   }
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
@@ -688,18 +686,16 @@ struct HeadlessArrayOf
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!sanitize_shallow (c))) return false;
+
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
-     * a bound check on the aggregate array size, hence the return.
+     * a bound check on the aggregate array size.  We just include
+     * a small unreachable expression to make sure the structs
+     * pointed to do have a simple sanitize(), ie. they do not
+     * reference other structs via offsets.
      */
-    return true;
-    /* We do keep this code though to make sure the structs pointed
-     * to do have a simple sanitize(), ie. they do not reference
-     * other structs. */
-    unsigned int count = len ? len - 1 : 0;
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!array[i].sanitize (c)))
-        return false;
+    (void) (false && array[0].sanitize (c));
+
     return true;
   }
 

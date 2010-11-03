@@ -257,8 +257,7 @@ _hb_trace (const char *what,
 	   unsigned int depth,
 	   unsigned int max_depth)
 {
-  if (depth < max_depth)
-    fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, depth, depth, function);
+  (void) ((depth < max_depth) && fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, depth, depth, function));
   return TRUE;
 }
 

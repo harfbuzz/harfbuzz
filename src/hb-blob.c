@@ -42,7 +42,7 @@ HB_BEGIN_DECLS
 
 
 #ifndef HB_DEBUG_BLOB
-#define HB_DEBUG_BLOB HB_DEBUG+0
+#define HB_DEBUG_BLOB (HB_DEBUG+0)
 #endif
 
 hb_blob_t _hb_blob_nil = {
