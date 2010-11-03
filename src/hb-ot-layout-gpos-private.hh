@@ -979,8 +979,8 @@ struct MarkBasePosFormat1
     } while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], LookupFlag::IgnoreMarks, &property));
 
     /* The following assertion is too strong, so we've disabled it. */
-    if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
-      return false;
+    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
+    {/*return false;*/}
 
     unsigned int base_index = (this+baseCoverage) (c->buffer->info[j].codepoint);
     if (base_index == NOT_COVERED)
@@ -1081,8 +1081,8 @@ struct MarkLigPosFormat1
     } while (_hb_ot_layout_skip_mark (c->layout->face, &c->buffer->info[j], LookupFlag::IgnoreMarks, &property));
 
     /* The following assertion is too strong, so we've disabled it. */
-    if (false && !(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
-      return false;
+    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
+    {/*return false;*/}
 
     unsigned int lig_index = (this+ligatureCoverage) (c->buffer->info[j].codepoint);
     if (lig_index == NOT_COVERED)
