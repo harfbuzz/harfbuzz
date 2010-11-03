@@ -78,6 +78,9 @@ template <typename Type>
 struct RecordArrayOf : SortedArrayOf<Record<Type> > {
   inline const Tag& get_tag (unsigned int i) const
   {
+    /* We cheat slightly and don't define separate Null objects
+     * for Record types.  Instead, we return the correct Null(Tag)
+     * here. */
     if (unlikely (i >= this->len)) return Null(Tag);
     return (*this)[i].tag;
   }
