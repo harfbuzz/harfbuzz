@@ -240,7 +240,7 @@ struct AnchorFormat2
       unsigned int x_ppem = layout->font->x_ppem;
       unsigned int y_ppem = layout->font->y_ppem;
       hb_position_t cx, cy;
-      hb_bool_t ret;
+      hb_bool_t ret = false;
 
       if (x_ppem || y_ppem)
 	ret = hb_font_get_contour_point (layout->font, layout->face, anchorPoint, glyph_id, &cx, &cy);
