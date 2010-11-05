@@ -21,6 +21,8 @@ API issues to fix before 1.0:
 
 - Figure out how many .so objects, how to link, etc
 
+- Shall y axis progress downward instead of upward?
+
 
 API to add (maybe after 1.0):
 ============================
