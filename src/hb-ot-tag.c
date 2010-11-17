@@ -139,7 +139,12 @@ static const hb_tag_t ot_scripts[][3] = {
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_OLD_TURKIC */
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_SAMARITAN */
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_TAI_THAM */
-  {HB_TAG('D','F','L','T')} 	/* HB_SCRIPT_TAI_VIET */
+  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_TAI_VIET */
+
+  /* Unicode-6.0 additions */
+  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_BATAK */
+  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_BRAHMI */
+  {HB_TAG('D','F','L','T')} 	/* HB_SCRIPT_MANDAIC */
 };
 
 const hb_tag_t *

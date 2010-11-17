@@ -228,6 +228,12 @@ hb_icu_get_script (hb_codepoint_t unicode)
   MATCH_SCRIPT2(ORKHON, OLD_TURKIC);     /* Orkh */
   MATCH_SCRIPT (SAMARITAN);              /* Samr */
   MATCH_SCRIPT (TAI_VIET);               /* Tavt */
+
+  /* Unicode-6.0 additions */
+  MATCH_SCRIPT (BATAK);                  /* Batk */
+  MATCH_SCRIPT (BRAHMI);                 /* Brah */
+  MATCH_SCRIPT2(MANDAEAN, MANDAIC);      /* Mand */
+
   }
   return HB_SCRIPT_UNKNOWN;
 }

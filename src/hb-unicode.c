@@ -341,7 +341,12 @@ const hb_direction_t horiz_dir[] =
   RTL,	/* Orkh */
   RTL,	/* Samr */
   LTR,	/* Lana */
-  LTR 	/* Tavt */
+  LTR,	/* Tavt */
+
+  /* Unicode-6.0 additions */
+  LTR,	/* Batk */
+  LTR,	/* Brah */
+  RTL 	/* Mand */
 };
 #undef LTR
 #undef RTL
