@@ -77,12 +77,14 @@ struct hb_apply_context_t
 
   inline void guess_glyph_class (unsigned int klass)
   {
-//    buffer->info[buffer->i].props_cache() = klass;
+    /* XXX if ! has gdef */
+    buffer->info[buffer->i].props_cache() = klass;
   }
 
   private:
   inline void clear_property (void) const
   {
+    /* XXX if has gdef */
     buffer->info[buffer->i].props_cache() = 0;
   }
 };
