@@ -1,6 +1,9 @@
 General fixes:
 =============
 
+- Instead of forming clusters immediately, only do it if we are reversing
+  the text.  We'd need a separate bit to indicate cluster start then
+
 - Fix tt kern on/off
 
 - Remove fixed-size feature/lookup arrays in hb-ot-map
