@@ -51,6 +51,7 @@ HBSOURCES += \
 	hb-ot-map-private.hh \
 	hb-ot-shape.cc \
 	hb-ot-shape-complex-arabic.cc \
+	hb-ot-shape-complex-arabic-table.h \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-private.hh \
 	hb-ot-tag.c \
