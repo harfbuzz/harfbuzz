@@ -221,7 +221,7 @@ hb_icu_get_script (hb_codepoint_t unicode)
 #if CHECK_ICU_VERSION (4, 4)
   MATCH_SCRIPT (LISU);                   /* Lisu */
 #endif
-  MATCH_SCRIPT (MEITEI_MAYEK);           /* Mtei */
+  MATCH_SCRIPT2(MEITEI_MAYEK, MEETEI_MAYEK);/* Mtei */
 #if CHECK_ICU_VERSION (4, 4)
   MATCH_SCRIPT (OLD_SOUTH_ARABIAN);      /* Sarb */
 #endif

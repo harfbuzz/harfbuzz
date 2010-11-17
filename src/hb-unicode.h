@@ -168,7 +168,7 @@ typedef enum
   HB_SCRIPT_JAVANESE,               /* Java */
   HB_SCRIPT_KAITHI,                 /* Kthi */
   HB_SCRIPT_LISU,                   /* Lisu */
-  HB_SCRIPT_MEITEI_MAYEK,           /* Mtei */
+  HB_SCRIPT_MEETEI_MAYEK,           /* Mtei */
   HB_SCRIPT_OLD_SOUTH_ARABIAN,      /* Sarb */
   HB_SCRIPT_OLD_TURKIC,             /* Orkh */
   HB_SCRIPT_SAMARITAN,              /* Samr */

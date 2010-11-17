@@ -134,7 +134,7 @@ static const hb_tag_t ot_scripts[][3] = {
   {HB_TAG('j','a','v','a')},	/* HB_SCRIPT_JAVANESE */
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_KAITHI */
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_LISU */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_MEITEI_MAYEK */
+  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_MEETEI_MAYEK */
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_OLD_SOUTH_ARABIAN */
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_OLD_TURKIC */
   {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_SAMARITAN */
