@@ -125,26 +125,26 @@ static const hb_tag_t ot_scripts[][3] = {
   {HB_TAG('l','y','d','i')},	/* HB_SCRIPT_LYDIAN */
 
   /* Unicode-5.2 additions */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_AVESTAN */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_BAMUM */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_EGYPTIAN_HIEROGLYPHS */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_IMPERIAL_ARAMAIC */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_INSCRIPTIONAL_PAHLAVI */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_INSCRIPTIONAL_PARTHIAN */
+  {HB_TAG('a','v','s','t')},	/* HB_SCRIPT_AVESTAN */
+  {HB_TAG('b','a','m','u')},	/* HB_SCRIPT_BAMUM */
+  {HB_TAG('e','g','y','p')},	/* HB_SCRIPT_EGYPTIAN_HIEROGLYPHS */
+  {HB_TAG('a','r','m','i')},	/* HB_SCRIPT_IMPERIAL_ARAMAIC */
+  {HB_TAG('p','h','l','i')},	/* HB_SCRIPT_INSCRIPTIONAL_PAHLAVI */
+  {HB_TAG('p','r','t','i')},	/* HB_SCRIPT_INSCRIPTIONAL_PARTHIAN */
   {HB_TAG('j','a','v','a')},	/* HB_SCRIPT_JAVANESE */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_KAITHI */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_LISU */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_MEETEI_MAYEK */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_OLD_SOUTH_ARABIAN */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_OLD_TURKIC */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_SAMARITAN */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_TAI_THAM */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_TAI_VIET */
+  {HB_TAG('k','t','h','i')},	/* HB_SCRIPT_KAITHI */
+  {HB_TAG('l','i','s','u')},	/* HB_SCRIPT_LISU */
+  {HB_TAG('m','y','e','i')},	/* HB_SCRIPT_MEETEI_MAYEK */
+  {HB_TAG('s','a','r','b')},	/* HB_SCRIPT_OLD_SOUTH_ARABIAN */
+  {HB_TAG('o','r','k','h')},	/* HB_SCRIPT_OLD_TURKIC */
+  {HB_TAG('s','a','m','r')},	/* HB_SCRIPT_SAMARITAN */
+  {HB_TAG('l','a','n','a')},	/* HB_SCRIPT_TAI_THAM */
+  {HB_TAG('t','a','v','t')},	/* HB_SCRIPT_TAI_VIET */
 
   /* Unicode-6.0 additions */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_BATAK */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_BRAHMI */
-  {HB_TAG('D','F','L','T')} 	/* HB_SCRIPT_MANDAIC */
+  {HB_TAG('b','a','t','k')},	/* HB_SCRIPT_BATAK */
+  {HB_TAG('b','r','a','h')},	/* HB_SCRIPT_BRAHMI */
+  {HB_TAG('m','a','n','d')} 	/* HB_SCRIPT_MANDAIC */
 };
 
 const hb_tag_t *
