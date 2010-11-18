@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Chris Wilson
+ * Copyright (C) 2007  Chris Wilson
  * Copyright (C) 2009,2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
