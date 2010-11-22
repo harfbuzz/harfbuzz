@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009  Red Hat, Inc.
- * Copyright (C) 2009  Keith Stribley <devel@thanlwinsoft.org>
+ * Copyright (C) 2009  Keith Stribley
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
