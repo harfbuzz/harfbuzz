@@ -52,12 +52,15 @@ cdef extern from "hb-buffer.h" :
         hb_mask_t mask
         unsigned long cluster
 
+    ctypedef union hb_var_int_t:
+        unsigned long u32
+
     ctypedef struct hb_glyph_position_t :
         hb_position_t x_advance
         hb_position_t y_advance
         hb_position_t x_offset
         hb_position_t y_offset
-        unsigned long internal
+        hb_var_int_t  var
 
     hb_buffer_t *hb_buffer_create(unsigned int size)
     hb_buffer_t *hb_buffer_reference(hb_buffer_t *buffer)
@@ -156,7 +159,7 @@ cdef class buffer :
         infos = hb_buffer_get_glyph_infos(self.buffer)
         positions = hb_buffer_get_glyph_positions(self.buffer)
         for 0 <= i < num :
-            temp = glyphinfo(infos[i].codepoint, infos[i].cluster, (positions[i].x_advance / scale, positions[i].y_advance / scale), (positions[i].x_offset / scale, positions[i].y_offset / scale), positions[i].internal)
+            temp = glyphinfo(infos[i].codepoint, infos[i].cluster, (positions[i].x_advance / scale, positions[i].y_advance / scale), (positions[i].x_offset / scale, positions[i].y_offset / scale), positions[i].var.u32)
             res.append(temp)
         return res
 
