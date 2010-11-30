@@ -28,7 +28,15 @@ if $have_glib; then
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
-PKG_CHECK_MODULES(ICU, icu, have_icu=true, have_icu=false)
+PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
+	AC_CHECK_PROG([have_icu], [icu-config], [have_icu], [true], [false], [$PATH])
+	if $have_icu; then
+		icu_cflags=`icu-config --cppflags`
+		icu_libs=`icu-config --ldflags-libsonly`
+		AC_SUBST(ICU_CFLAGS, [$icu_cflags])
+		AC_SUBST(ICU_LIBS, [$icu_libs])
+	fi
+])
 if $have_icu; then
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
 fi
