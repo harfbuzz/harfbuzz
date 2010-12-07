@@ -65,7 +65,7 @@ struct hb_ot_shape_context_t
   unsigned int        num_user_features;
 
   /* Transient stuff */
-  hb_direction_t original_direction;
+  hb_direction_t target_direction;
   hb_bool_t applied_substitute_complex;
   hb_bool_t applied_position_complex;
 };

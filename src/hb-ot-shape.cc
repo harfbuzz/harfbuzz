@@ -193,7 +193,7 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
 {
   hb_unicode_get_mirroring_func_t get_mirroring = c->buffer->unicode->v.get_mirroring;
 
-  if (HB_DIRECTION_IS_FORWARD (c->original_direction))
+  if (HB_DIRECTION_IS_FORWARD (c->target_direction))
     return;
 
   hb_mask_t rtlm_mask = c->plan->map.get_1_mask (HB_TAG ('r','t','l','m'));
@@ -294,7 +294,7 @@ static void
 hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 {
   /* Save the original direction, we use it later. */
-  c->original_direction = c->buffer->props.direction;
+  c->target_direction = c->buffer->props.direction;
 
   hb_reset_glyph_infos (c); /* BUFFER: Clear buffer var1 and var2 */
 
@@ -336,7 +336,7 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
       hb_position_complex_fallback_visual (c);
   }
 
-  c->buffer->props.direction = c->original_direction;
+  c->buffer->props.direction = c->target_direction;
 }
 
 void
