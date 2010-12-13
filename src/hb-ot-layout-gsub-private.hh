@@ -345,7 +345,7 @@ struct Ligature
     unsigned int i, j;
     unsigned int count = component.len;
     unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);
-    if (unlikely (c->buffer->i + count > end))
+    if (unlikely (count < 2 || c->buffer->i + count > end))
       return false;
 
     bool first_was_mark = (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
