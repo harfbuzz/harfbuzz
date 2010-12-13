@@ -100,7 +100,13 @@ struct head
 					 *   for rendering should not be considered optimized
 					 *   for ClearType, and therefore should keep this bit
 					 *   cleared.
-					 * Bit 14: Reserved, set to 0
+					 * Bit 14: Last Resort font. If set, indicates that
+					 * the glyphs encoded in the cmap subtables are simply
+					 * generic symbolic representations of code point
+					 * ranges and don’t truly represent support for those
+					 * code points. If unset, indicates that the glyphs
+					 * encoded in the cmap subtables represent proper
+					 * support for those code points.
 					 * Bit 15: Reserved, set to 0. */
   USHORT	unitsPerEm;		/* Valid range is from 16 to 16384. This value
 					 * should be a power of 2 for fonts that have
