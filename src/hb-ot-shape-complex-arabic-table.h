@@ -42,10 +42,11 @@ HB_BEGIN_DECLS
  * # ArabicShaping-6.1.0.txt
  * # Date: 2010-11-09, 12:10:00 PST [KW]
  */
-#define JOINING_TABLE_FIRST	0x0600
-#define JOINING_TABLE_LAST	0x0858
-static const uint8_t joining_table[JOINING_TABLE_LAST-JOINING_TABLE_FIRST+2] =
+static const uint8_t joining_table[] =
 {
+
+  /* Arabic characters */
+
   JOINING_TYPE_U, /* 0600; ARABIC NUMBER SIGN; U; No_Joining_Group */
   JOINING_TYPE_U, /* 0601; ARABIC SIGN SANAH; U; No_Joining_Group */
   JOINING_TYPE_U, /* 0602; ARABIC FOOTNOTE MARKER; U; No_Joining_Group */
@@ -302,6 +303,9 @@ static const uint8_t joining_table[JOINING_TABLE_LAST-JOINING_TABLE_FIRST+2] =
   JOINING_TYPE_X, /* 06FD */
   JOINING_TYPE_X, /* 06FE */
   JOINING_TYPE_D, /* 06FF; HEH WITH INVERTED V; D; KNOTTED HEH */
+
+  /* Syriac characters */
+
   JOINING_TYPE_X, /* 0700 */
   JOINING_TYPE_X, /* 0701 */
   JOINING_TYPE_X, /* 0702 */
@@ -382,6 +386,9 @@ static const uint8_t joining_table[JOINING_TABLE_LAST-JOINING_TABLE_FIRST+2] =
   JOINING_TYPE_R, /* 074D; SOGDIAN ZHAIN; R; ZHAIN */
   JOINING_TYPE_D, /* 074E; SOGDIAN KHAPH; D; KHAPH */
   JOINING_TYPE_D, /* 074F; SOGDIAN FE; D; FE */
+
+  /* Arabic supplement characters */
+
   JOINING_TYPE_D, /* 0750; BEH WITH 3 DOTS HORIZONTALLY BELOW; D; BEH */
   JOINING_TYPE_D, /* 0751; BEH WITH DOT BELOW AND 3 DOTS ABOVE; D; BEH */
   JOINING_TYPE_D, /* 0752; BEH WITH 3 DOTS POINTING UPWARDS BELOW; D; BEH */
@@ -430,6 +437,9 @@ static const uint8_t joining_table[JOINING_TABLE_LAST-JOINING_TABLE_FIRST+2] =
   JOINING_TYPE_D, /* 077D; SEEN WITH DIGIT FOUR ABOVE; D; SEEN */
   JOINING_TYPE_D, /* 077E; SEEN WITH INVERTED V; D; SEEN */
   JOINING_TYPE_D, /* 077F; KAF WITH 2 DOTS ABOVE; D; KAF */
+
+  /* N'Ko Characters */
+
   JOINING_TYPE_X, /* 0780 */
   JOINING_TYPE_X, /* 0781 */
   JOINING_TYPE_X, /* 0782 */
@@ -553,6 +563,9 @@ static const uint8_t joining_table[JOINING_TABLE_LAST-JOINING_TABLE_FIRST+2] =
   JOINING_TYPE_X, /* 07F8 */
   JOINING_TYPE_X, /* 07F9 */
   JOINING_TYPE_C, /* 07FA; NKO LAJANYALAN; C; No_Joining_Group */
+
+  /* Mandaic Characters */
+
   JOINING_TYPE_X, /* 07FB */
   JOINING_TYPE_X, /* 07FC */
   JOINING_TYPE_X, /* 07FD */
@@ -647,8 +660,13 @@ static const uint8_t joining_table[JOINING_TABLE_LAST-JOINING_TABLE_FIRST+2] =
   JOINING_TYPE_U, /* 0856; MANDAIC DUSHENNA; U; No_Joining_Group */
   JOINING_TYPE_U, /* 0857; MANDAIC KAD; U; No_Joining_Group */
   JOINING_TYPE_U, /* 0858; MANDAIC AIN; U; No_Joining_Group */
+
   JOINING_TYPE_X  /* dummy */
 };
+
+#define JOINING_TABLE_FIRST	0x0600
+#define JOINING_TABLE_LAST	0x0858
+
 /* == End of generated table == */
 
 HB_END_DECLS

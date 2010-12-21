@@ -2,29 +2,10 @@
 
 import sys
 
-header = sys.stdin.readline(), sys.stdin.readline()
-dic = dict()
-for line in sys.stdin:
-	if line[:1] != '0':
-		continue
+header = sys.stdin.readline (), sys.stdin.readline ()
+while sys.stdin.readline ().find ('##################') < 0:
+	pass
 
-	fields = [x.strip() for x in line.split(';')]
-	u = int(fields[0], 16)
-
-	if u == 0x200C or u == 0x200D:
-		continue
-	if u < 0x0600:
-		raise Exception ("Ooops, unexpected unicode character: ", fields)
-	dic[u] = fields
-
-v = dic.keys()
-v.sort()
-min_u, max_u = v[0], v[-1]
-occupancy = len(v) * 100 / (max_u - min_u + 1)
-
-# Maintain at least 40% occupancy in the table */
-if occupancy < 40:
-	raise Exception ("Table too sparse, please investigate: ", occupancy)
 
 print "/* == Start of generated table == */"
 print "/*"
@@ -38,21 +19,65 @@ for line in header:
 	print " * %s" % (line.strip())
 print " */"
 
-print "#define JOINING_TABLE_FIRST	0x%04x" % min_u
-print "#define JOINING_TABLE_LAST	0x%04x" % max_u
-print "static const uint8_t joining_table[JOINING_TABLE_LAST-JOINING_TABLE_FIRST+2] ="
+print "static const uint8_t joining_table[] ="
 print "{"
 
-for i in range(min_u, max_u + 1):
-	if i not in dic:
-		print "  JOINING_TYPE_X, /* %04X */" % i
+
+min_u = 0x110000
+max_u = 0
+num = 0
+last = -1
+block = ''
+for line in sys.stdin:
+	
+	if line[0] == '#':
+		if line.find (" characters"):
+			block = line[2:].strip ()
+		continue
+
+	fields = [x.strip () for x in line.split (';')]
+	if len (fields) == 1:
+		continue
+
+	u = int (fields[0], 16)
+	if u == 0x200C or u == 0x200D:
+		continue
+	if u < last:
+		raise Exception ("Input data character not sorted", u)
+	min_u = min (min_u, u)
+	max_u = max (max_u, u)
+	num += 1
+
+	if block:
+		print "\n  /* %s */\n" % block
+		block = ''
+
+	if last != -1:
+		last += 1
+		while last < u:
+			print "  JOINING_TYPE_X, /* %04X */" % last
+			last += 1
 	else:
-		entry = dic[i]
-		if entry[3] in ["ALAPH", "DALATH RISH"]:
-			value = "JOINING_GROUP_" + entry[3].replace(' ', '_')
-		else:
-			value = "JOINING_TYPE_" + entry[2]
-		print "  %s, /* %s */" % (value, '; '.join(entry))
+		last = u
+
+	if fields[3] in ["ALAPH", "DALATH RISH"]:
+		value = "JOINING_GROUP_" + fields[3].replace(' ', '_')
+	else:
+		value = "JOINING_TYPE_" + fields[2]
+	print "  %s, /* %s */" % (value, '; '.join(fields))
+
+print
 print "  JOINING_TYPE_X  /* dummy */"
 print "};"
+print
+
+print "#define JOINING_TABLE_FIRST	0x%04x" % min_u
+print "#define JOINING_TABLE_LAST	0x%04x" % max_u
+print
+
 print "/* == End of generated table == */"
+
+occupancy = num * 100 / (max_u - min_u + 1)
+# Maintain at least 40% occupancy in the table */
+if occupancy < 40:
+	raise Exception ("Table too sparse, please investigate: ", occupancy)
