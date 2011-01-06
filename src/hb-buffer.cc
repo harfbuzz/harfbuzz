@@ -264,12 +264,6 @@ hb_buffer_clear_positions (hb_buffer_t *buffer)
   buffer->have_output = FALSE;
   buffer->have_positions = TRUE;
 
-  if (unlikely (!buffer->pos))
-  {
-    buffer->pos = (hb_glyph_position_t *) calloc (buffer->allocated, sizeof (buffer->pos[0]));
-    return;
-  }
-
   memset (buffer->pos, 0, sizeof (buffer->pos[0]) * buffer->len);
 }
 
