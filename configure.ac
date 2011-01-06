@@ -29,7 +29,7 @@ fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
 PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
-	AC_CHECK_PROG([have_icu], [icu-config], [have_icu], [true], [false], [$PATH])
+	AC_CHECK_PROG([have_icu], [icu-config], [true], [false])
 	if $have_icu; then
 		icu_cflags=`icu-config --cppflags`
 		icu_libs=`icu-config --ldflags-libsonly`
