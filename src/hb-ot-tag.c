@@ -631,7 +631,7 @@ hb_ot_tag_from_language (hb_language_t language)
 
   lang_str = hb_language_to_string (language);
 
-  if (0 == strcmp (lang_str, "x-hbot")) {
+  if (0 == strncmp (lang_str, "x-hbot", 6)) {
     char tag[4];
     int i;
     lang_str += 6;
