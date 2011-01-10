@@ -1,16 +1,26 @@
-AC_PREREQ(2.59)
-AC_INIT(harfbuzz, 0.3, [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz])
+AC_PREREQ([2.64])
+AC_INIT([harfbuzz],
+        [0.3],
+        [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz],
+        [harfbuzz],
+        [http://freedesktop.org/wiki/Software/harfbuzz])
+
 AC_CONFIG_SRCDIR([harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE([1.9.6 gnu dist-bzip2 no-dist-gzip -Wall no-define])
-m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+AC_CONFIG_MACRO_DIR([m4])
 
-AC_LIBTOOL_WIN32_DLL
-AC_PROG_LIBTOOL dnl ([1.4]) Don't remove!
+AM_INIT_AUTOMAKE([1.11.1 gnu dist-bzip2 no-dist-gzip -Wall no-define])
 
+AM_SILENT_RULES([yes])
+
+# Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
+
+# Initialize libtool
+LT_PREREQ([2.2])
+LT_INIT([win32-dll])
 
 AC_CHECK_FUNCS(mprotect sysconf getpagesize)
 AC_CHECK_HEADERS(unistd.h sys/mman.h)
