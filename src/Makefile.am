@@ -1,7 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
 NULL =
-EXTRA_DIST = 
+EXTRA_DIST =
 
 # The following warning options are useful for debugging: -Wpadded -Wcast-align
 #AM_CXXFLAGS =
@@ -119,7 +119,7 @@ test_SOURCES = test.c
 test_CPPFLAGS = $(HBCFLAGS)
 test_LDADD = libharfbuzz.la $(HBLIBS)
 
-TESTS = \
+dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-header-guards.sh \
 	check-internal-symbols.sh \
@@ -127,7 +127,8 @@ TESTS = \
 
 if HAVE_ICU
 else
-TESTS += check-libstdc++.sh
+dist_check_SCRIPTS += check-libstdc++.sh
 endif
+
 
 -include $(top_srcdir)/git.mk
