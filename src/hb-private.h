@@ -211,7 +211,7 @@ typedef GStaticMutex hb_mutex_t;
 #else
 
 #ifdef _MSC_VER
-#pragma message(__LOC__"Could not find any system to define platform macros, library will NOT be thread-safe")
+#pragma message(_HB__LOC__"Could not find any system to define platform macros, library will NOT be thread-safe")
 #else
 #warning "Could not find any system to define platform macros, library will NOT be thread-safe"
 #endif
