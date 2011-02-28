@@ -73,8 +73,16 @@ _hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
   while (size > new_allocated)
     new_allocated += (new_allocated >> 1) + 8;
 
-  new_pos = (hb_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
-  new_info = (hb_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
+  ASSERT_STATIC (sizeof (buffer->info[0]) == sizeof (buffer->pos[0]));
+  bool overflows = new_allocated >= ((unsigned int) -1) / sizeof (buffer->info[0]);
+
+  if (unlikely (overflows)) {
+    new_pos = NULL;
+    new_info = NULL;
+  } else {
+    new_pos = (hb_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
+    new_info = (hb_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
+  }
 
   if (unlikely (!new_pos || !new_info))
     buffer->in_error = TRUE;
