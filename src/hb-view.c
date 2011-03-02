@@ -324,6 +324,8 @@ draw (void)
 int
 main (int argc, char **argv)
 {
+  cairo_status_t status;
+
   parse_opts (argc, argv);
 
   FT_Init_FreeType (&ft_library);
@@ -336,7 +338,12 @@ main (int argc, char **argv)
   draw ();
   draw ();
 
-  cairo_surface_write_to_png (surface, out_file);
+  status = cairo_surface_write_to_png (surface, out_file);
+  if (status != CAIRO_STATUS_SUCCESS) {
+    fprintf (stderr, "Failed to write output file `%s': %s\n",
+	     out_file, cairo_status_to_string (status));
+    exit (1);
+  }
 
   return 0;
 }
