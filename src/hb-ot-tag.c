@@ -152,6 +152,8 @@ hb_ot_tags_from_script (hb_script_t script)
 {
   static const hb_tag_t def_tag[] = {HB_OT_TAG_DEFAULT_SCRIPT, HB_TAG_NONE};
 
+  /* XXX Handle non-enum scripts */
+
   if (unlikely ((unsigned int) script >= ARRAY_LENGTH (ot_scripts)))
     return def_tag;
 
@@ -169,6 +171,8 @@ hb_ot_tag_to_script (hb_tag_t tag)
       if (tag == *p)
         return i;
   }
+
+  /* XXX Convert to non-enum scripts */
 
   return HB_SCRIPT_UNKNOWN;
 }

@@ -55,6 +55,7 @@ static const char *text = NULL;
 static const char *font_file = NULL;
 static const char *out_file = "/dev/stdout";
 static const char *language = NULL;
+static const char *script = NULL;
 
 /* Ugh, global vars.  Ugly, but does the job */
 static int width = 0;
@@ -97,6 +98,7 @@ parse_opts (int argc, char **argv)
 	{"foreground", 1, 0, 'F'},
 	{"background", 1, 0, 'B'},
 	{"language", 1, 0, 'L'},
+	{"script", 1, 0, 'S'},
 	{"output", 1, 0, 'o'},
 	{0, 0, 0, 0}
       };
@@ -143,6 +145,9 @@ parse_opts (int argc, char **argv)
 	case 'L':
 	  language = optarg;
 	  break;
+	case 'S':
+	  script = optarg;
+	  break;
 	case 'o':
 	  out_file = optarg;
 	  break;
@@ -184,7 +189,10 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_buffer_set_unicode_funcs (hb_buffer, hb_glib_get_unicode_funcs ());
 
   hb_buffer_add_utf8 (hb_buffer, text, len, 0, len);
-  hb_buffer_set_script (hb_buffer, HB_SCRIPT_INVALID);
+  if (script)
+    hb_buffer_set_script (hb_buffer, hb_script_from_iso15924_tag (hb_tag_from_string (script)));
+  else
+    hb_buffer_set_script (hb_buffer, HB_SCRIPT_INVALID);
   hb_buffer_set_direction (hb_buffer, HB_DIRECTION_INVALID);
   hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
 
