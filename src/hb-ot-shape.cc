@@ -64,6 +64,7 @@ hb_ot_shape_collect_features (hb_ot_shape_plan_t       *plan,
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
+    case HB_DIRECTION_INVALID:
     default:
       break;
   }
@@ -170,7 +171,7 @@ hb_ensure_native_direction (hb_ot_shape_context_t *c)
 
   /* TODO vertical */
   if (HB_DIRECTION_IS_HORIZONTAL (direction) &&
-      direction != _hb_script_get_horizontal_direction (c->buffer->props.script))
+      direction != hb_script_get_horizontal_direction (c->buffer->props.script))
   {
     hb_buffer_reverse_clusters (c->buffer);
     c->buffer->props.direction = HB_DIRECTION_REVERSE (c->buffer->props.direction);

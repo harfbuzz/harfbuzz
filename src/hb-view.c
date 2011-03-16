@@ -184,8 +184,8 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_buffer_set_unicode_funcs (hb_buffer, hb_glib_get_unicode_funcs ());
 
   hb_buffer_add_utf8 (hb_buffer, text, len, 0, len);
-  /* hb_buffer_set_script (hb_buffer, HB_SCRIPT_LATIN); */
-  /* hb_buffer_set_direction (hb_buffer, HB_DIRECTION_LTR); */
+  hb_buffer_set_script (hb_buffer, HB_SCRIPT_INVALID);
+  hb_buffer_set_direction (hb_buffer, HB_DIRECTION_INVALID);
   hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
 
   hb_shape (hb_font, hb_face, hb_buffer, NULL, 0);

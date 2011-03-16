@@ -39,12 +39,12 @@
 HB_BEGIN_DECLS
 
 
-void
-hb_shape (hb_font_t    *font,
-	  hb_face_t    *face,
-	  hb_buffer_t  *buffer,
-	  hb_feature_t *features,
-	  unsigned int  num_features)
+static void
+hb_shape_internal (hb_font_t    *font,
+		   hb_face_t    *face,
+		   hb_buffer_t  *buffer,
+		   hb_feature_t *features,
+		   unsigned int  num_features)
 {
 #if 0 && defined(HAVE_GRAPHITE)
   hb_blob_t *silf_blob;
@@ -59,6 +59,46 @@ hb_shape (hb_font_t    *font,
 #endif
 
   hb_ot_shape (font, face, buffer, features, num_features);
+}
+
+void
+hb_shape (hb_font_t    *font,
+	  hb_face_t    *face,
+	  hb_buffer_t  *buffer,
+	  hb_feature_t *features,
+	  unsigned int  num_features)
+{
+  hb_segment_properties_t orig_props;
+
+  orig_props = buffer->props;
+
+  /* If script is set to INVALID, guess from buffer contents */
+  if (buffer->props.script == HB_SCRIPT_INVALID) {
+    hb_unicode_get_script_func_t get_script = buffer->unicode->v.get_script;
+    unsigned int count = buffer->len;
+    for (unsigned int i = 0; i < count; i++) {
+      hb_script_t script = get_script (buffer->info[i].codepoint);
+      if (likely (script > HB_SCRIPT_INHERITED)) {
+        buffer->props.script = script;
+        break;
+      }
+    }
+  }
+
+  /* If direction is set to INVALID, guess from script */
+  if (buffer->props.direction == HB_DIRECTION_INVALID) {
+    buffer->props.direction = hb_script_get_horizontal_direction (buffer->props.script);
+  }
+
+  /* If language is not set, use default language from locale */
+  if (buffer->props.language == NULL) {
+    /* TODO get_default_for_script? using $LANGUAGE */
+    //buffer->props.language = hb_language_get_default ();
+  }
+
+  hb_shape_internal (font, face, buffer, features, num_features);
+
+  buffer->props = orig_props;
 }
 
 

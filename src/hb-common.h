@@ -78,7 +78,8 @@ typedef uint32_t hb_mask_t;
 typedef void (*hb_destroy_func_t) (void *user_data);
 
 typedef enum _hb_direction_t {
-  HB_DIRECTION_LTR,
+  HB_DIRECTION_INVALID = -1,
+  HB_DIRECTION_LTR = 0,
   HB_DIRECTION_RTL,
   HB_DIRECTION_TTB,
   HB_DIRECTION_BTT

@@ -352,7 +352,7 @@ const hb_direction_t horiz_dir[] =
 #undef RTL
 
 hb_direction_t
-_hb_script_get_horizontal_direction (hb_script_t script)
+hb_script_get_horizontal_direction (hb_script_t script)
 {
   if (unlikely ((unsigned int) script >= ARRAY_LENGTH (horiz_dir)))
     return HB_DIRECTION_LTR;

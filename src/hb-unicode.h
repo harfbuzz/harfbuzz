@@ -70,7 +70,8 @@ typedef enum
 /* Unicode Script property */
 typedef enum
 {                               /* ISO 15924 code */
-  HB_SCRIPT_INVALID_CODE = -1,
+  HB_SCRIPT_INVALID = -1,
+
   HB_SCRIPT_COMMON       = 0,   /* Zyyy */
   HB_SCRIPT_INHERITED,          /* Qaai */
   HB_SCRIPT_ARABIC,             /* Arab */
@@ -288,6 +289,11 @@ unsigned int
 hb_unicode_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
 				hb_codepoint_t unicode);
 
+
+/* Misc functions */
+
+hb_direction_t
+hb_script_get_horizontal_direction (hb_script_t script);
 
 HB_END_DECLS
 

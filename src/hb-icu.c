@@ -118,7 +118,7 @@ hb_icu_get_script (hb_codepoint_t unicode)
 	U_ICU_VERSION_MAJOR_NUM > (major) || (U_ICU_VERSION_MAJOR_NUM == (major) && U_ICU_VERSION_MINOR_NUM >= (minor))
 #define MATCH_SCRIPT(C) case USCRIPT_##C: return HB_SCRIPT_##C
 #define MATCH_SCRIPT2(C1, C2) case USCRIPT_##C1: return HB_SCRIPT_##C2
-  MATCH_SCRIPT (INVALID_CODE);
+
   MATCH_SCRIPT (COMMON);             /* Zyyy */
   MATCH_SCRIPT (INHERITED);          /* Qaai */
   MATCH_SCRIPT (ARABIC);             /* Arab */
