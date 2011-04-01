@@ -90,16 +90,16 @@ parse_opts (int argc, char **argv)
     {
       int option_index = 0, c;
       static struct option long_options[] = {
-	{"help", 0, 0, 'h'},
-	{"version", 0, 0, 'v'},
-	{"margin", 1, 0, 'm'},
-	{"line-space", 1, 0, 'l'},
+	{"background", 1, 0, 'B'},
 	{"font-size", 1, 0, 's'},
 	{"foreground", 1, 0, 'F'},
-	{"background", 1, 0, 'B'},
+	{"help", 0, 0, 'h'},
 	{"language", 1, 0, 'L'},
-	{"script", 1, 0, 'S'},
+	{"line-space", 1, 0, 'l'},
+	{"margin", 1, 0, 'm'},
 	{"output", 1, 0, 'o'},
+	{"script", 1, 0, 'S'},
+	{"version", 0, 0, 'v'},
 	{0, 0, 0, 0}
       };
 
