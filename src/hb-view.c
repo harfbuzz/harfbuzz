@@ -56,6 +56,8 @@ static const char *font_file = NULL;
 static const char *out_file = "/dev/stdout";
 static const char *language = NULL;
 static const char *script = NULL;
+static hb_feature_t *features = NULL;
+static unsigned int num_features;
 
 /* Ugh, global vars.  Ugly, but does the job */
 static int width = 0;
@@ -82,6 +84,8 @@ version (void)
   exit (0);
 }
 
+static void parse_features (char *s);
+
 static void
 parse_opts (int argc, char **argv)
 {
@@ -91,6 +95,7 @@ parse_opts (int argc, char **argv)
       int option_index = 0, c;
       static struct option long_options[] = {
 	{"background", 1, 0, 'B'},
+	{"features", 1, 0, 'f'},
 	{"font-size", 1, 0, 's'},
 	{"foreground", 1, 0, 'F'},
 	{"help", 0, 0, 'h'},
@@ -131,7 +136,7 @@ parse_opts (int argc, char **argv)
 	  font_size = strtod (optarg, NULL);
 	  break;
 	case 'f':
-	  font_file = optarg;
+	  parse_features (optarg);
 	  break;
 	case 'F':
 	  fore = optarg;
@@ -164,6 +169,67 @@ parse_opts (int argc, char **argv)
   text = argv[optind++];
 }
 
+static void parse_features (char *s)
+{
+  char *p;
+  unsigned int i;
+
+  num_features = 0;
+  features = NULL;
+
+  if (!*s)
+    return;
+
+  /* count the features first, so we can allocate memory */
+  p = s;
+  do {
+    num_features++;
+    p = strchr (p, ',');
+    if (p)
+      p++; /* skip the comma */
+  } while (p);
+
+  features = calloc (num_features, sizeof (*features));
+
+  /* now do the actual parsing */
+  p = s;
+  for (i = 0; i < num_features; i++) {
+    hb_feature_t *feature = &features[i];
+    char *end, *eq, sign;
+    unsigned int value;
+
+    end = strchr (p, ',');
+    if (!end)
+      end = p + strlen (p);
+
+    *end = '\0'; /* isolate it */
+
+    while (*p == ' ')
+      p++;
+
+    sign = *p;
+    if (sign == '-' || sign == '+')
+      p++;
+
+    value = 1;
+    eq = strchr (p, '=');
+    if (eq) {
+      *eq = '\0';
+      value = atoi (eq + 1);
+    }
+
+    /* let a '-' sign override '=' */
+    if (sign == '-')
+      value = 0;
+
+    feature->tag = hb_tag_from_string (p);
+    feature->value = value;
+    feature->start = 0;
+    feature->end = (unsigned int) -1;
+
+    p = end + 1;
+  }
+}
 
 
 static cairo_glyph_t *
@@ -196,7 +262,7 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_buffer_set_direction (hb_buffer, HB_DIRECTION_INVALID);
   hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
 
-  hb_shape (hb_font, hb_face, hb_buffer, NULL, 0);
+  hb_shape (hb_font, hb_face, hb_buffer, features, num_features);
 
   num_glyphs = hb_buffer_get_length (hb_buffer);
   hb_glyph = hb_buffer_get_glyph_infos (hb_buffer);
