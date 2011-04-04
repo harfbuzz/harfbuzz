@@ -171,10 +171,134 @@ parse_opts (int argc, char **argv)
   text = argv[optind++];
 }
 
+
+static void
+parse_space (char **pp)
+{
+  char c;
+#define ISSPACE(c) ((c)==' '||(c)=='\f'||(c)=='\n'||(c)=='\r'||(c)=='\t'||(c)=='\v')
+  while (c = **pp, ISSPACE (c))
+    (*pp)++;
+#undef ISSPACE
+}
+
+static hb_bool_t
+parse_char (char **pp, char c)
+{
+  parse_space (pp);
+
+  if (**pp != c)
+    return FALSE;
+
+  (*pp)++;
+  return TRUE;
+}
+
+static hb_bool_t
+parse_uint (char **pp, unsigned int *pv)
+{
+  char *p = *pp;
+  unsigned int v;
+
+  v = strtol (p, pp, 0);
+
+  if (p == *pp)
+    return FALSE;
+
+  *pv = v;
+  return TRUE;
+}
+
+
+static hb_bool_t
+parse_feature_value_prefix (char **pp, hb_feature_t *feature)
+{
+  if (parse_char (pp, '-'))
+    feature->value = 0;
+  else {
+    parse_char (pp, '+');
+    feature->value = 1;
+  }
+
+  return TRUE;
+}
+
+static hb_bool_t
+parse_feature_tag (char **pp, hb_feature_t *feature)
+{
+  char *p = *pp, c;
+
+  parse_space (pp);
+
+#define ISALPHA(c) (('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z'))
+  while (c = **pp, ISALPHA(c))
+    (*pp)++;
+#undef ISALPHA
+
+  if (p == *pp)
+    return FALSE;
+
+  **pp = '\0';
+  feature->tag = hb_tag_from_string (p);
+  **pp = c;
+
+  return TRUE;
+}
+
+static hb_bool_t
+parse_feature_indices (char **pp, hb_feature_t *feature)
+{
+  hb_bool_t has_start;
+
+  feature->start = 0;
+  feature->end = (unsigned int) -1;
+
+  if (!parse_char (pp, '['))
+    return TRUE;
+
+  has_start = parse_uint (pp, &feature->start);
+
+  if (parse_char (pp, ':')) {
+    parse_uint (pp, &feature->end);
+  } else {
+    if (has_start)
+      feature->end = feature->start + 1;
+  }
+
+  return parse_char (pp, ']');
+}
+
+static hb_bool_t
+parse_feature_value_postfix (char **pp, hb_feature_t *feature)
+{
+  return !parse_char (pp, '=') || parse_uint (pp, &feature->value);
+}
+
+
+static hb_bool_t
+parse_one_feature (char **pp, hb_feature_t *feature)
+{
+  return parse_feature_value_prefix (pp, feature) &&
+	 parse_feature_tag (pp, feature) &&
+	 parse_feature_indices (pp, feature) &&
+	 parse_feature_value_postfix (pp, feature) &&
+	 (parse_char (pp, ',') || **pp == '\0');
+}
+
+static void
+skip_one_feature (char **pp)
+{
+  char *e;
+  e = strchr (*pp, ',');
+  if (e)
+    *pp = e + 1;
+  else
+    *pp = *pp + strlen (*pp);
+}
+
 static void parse_features (char *s)
 {
   char *p;
-  unsigned int i;
 
   num_features = 0;
   features = NULL;
@@ -188,48 +312,19 @@ static void parse_features (char *s)
     num_features++;
     p = strchr (p, ',');
     if (p)
-      p++; /* skip the comma */
+      p++;
   } while (p);
 
   features = calloc (num_features, sizeof (*features));
 
   /* now do the actual parsing */
   p = s;
-  for (i = 0; i < num_features; i++) {
-    hb_feature_t *feature = &features[i];
-    char *end, *eq, sign;
-    unsigned int value;
-
-    end = strchr (p, ',');
-    if (!end)
-      end = p + strlen (p);
-
-    *end = '\0'; /* isolate it */
-
-    while (*p == ' ')
-      p++;
-
-    sign = *p;
-    if (sign == '-' || sign == '+')
-      p++;
-
-    value = 1;
-    eq = strchr (p, '=');
-    if (eq) {
-      *eq = '\0';
-      value = atoi (eq + 1);
-    }
-
-    /* let a '-' sign override '=' */
-    if (sign == '-')
-      value = 0;
-
-    feature->tag = hb_tag_from_string (p);
-    feature->value = value;
-    feature->start = 0;
-    feature->end = (unsigned int) -1;
-
-    p = end + 1;
+  num_features = 0;
+  while (*p) {
+    if (parse_one_feature (&p, &features[num_features]))
+      num_features++;
+    else
+      skip_one_feature (&p);
   }
 }
 
