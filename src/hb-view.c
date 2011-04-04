@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <locale.h>
 
 #include <glib.h>
 #include <hb-glib.h>
@@ -498,6 +499,8 @@ int
 main (int argc, char **argv)
 {
   cairo_status_t status;
+
+  setlocale (LC_ALL, "");
 
   parse_opts (argc, argv);
 
