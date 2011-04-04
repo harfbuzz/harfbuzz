@@ -58,6 +58,7 @@ static const char *language = NULL;
 static const char *script = NULL;
 static hb_feature_t *features = NULL;
 static unsigned int num_features;
+static hb_bool_t debug = FALSE;
 
 /* Ugh, global vars.  Ugly, but does the job */
 static int width = 0;
@@ -95,6 +96,7 @@ parse_opts (int argc, char **argv)
       int option_index = 0, c;
       static struct option long_options[] = {
 	{"background", 1, 0, 'B'},
+	{"debug", 0, &debug, TRUE},
 	{"features", 1, 0, 'f'},
 	{"font-size", 1, 0, 's'},
 	{"foreground", 1, 0, 'F'},
@@ -372,6 +374,7 @@ draw (void)
 
     if (p != end) {
       glyphs = _hb_cr_text_glyphs (cr, p, end - p, &num_glyphs);
+
       cairo_glyph_extents (cr, glyphs, num_glyphs, &extents);
 
       y += ceil (font_extents.ascent);
@@ -381,6 +384,7 @@ draw (void)
       cairo_show_glyphs (cr, glyphs, num_glyphs);
       cairo_restore (cr);
       y += ceil (font_extents.height - ceil (font_extents.ascent));
+
       cairo_glyph_free (glyphs);
     }
 
@@ -417,6 +421,19 @@ main (int argc, char **argv)
     fprintf (stderr, "Failed to write output file `%s': %s\n",
 	     out_file, cairo_status_to_string (status));
     exit (1);
+  }
+
+  if (debug) {
+    free (features);
+
+    cairo_pattern_destroy (fore_pattern);
+    cairo_pattern_destroy (back_pattern);
+    cairo_surface_destroy (surface);
+    cairo_font_face_destroy (cairo_face);
+    cairo_debug_reset_static_data ();
+
+    FT_Done_Face (ft_face);
+    FT_Done_FreeType (ft_library);
   }
 
   return 0;
