@@ -37,7 +37,6 @@ hb_tag_t default_features[] = {
   HB_TAG('c','a','l','t'),
   HB_TAG('c','c','m','p'),
   HB_TAG('c','l','i','g'),
-  HB_TAG('c','s','w','h'),
   HB_TAG('c','u','r','s'),
   HB_TAG('k','e','r','n'),
   HB_TAG('l','i','g','a'),
