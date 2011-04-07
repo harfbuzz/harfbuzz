@@ -88,6 +88,7 @@ AC_CONFIG_FILES([
 harfbuzz.pc
 Makefile
 src/Makefile
+test/Makefile
 ])
 
 AC_OUTPUT
