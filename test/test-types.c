@@ -86,8 +86,6 @@ test_types_tag (void)
 
   g_assert_cmphex (HB_TAG ('a','B','c','D'), ==, 0x61426344);
 
-  g_assert_cmphex (HB_TAG_CHAR4 ("aBcD"), ==, 0x61426344);
-
   g_assert_cmphex (hb_tag_from_string ("aBcDe"), ==, 0x61426344);
   g_assert_cmphex (hb_tag_from_string ("aBcD"),  ==, 0x61426344);
   g_assert_cmphex (hb_tag_from_string ("aBc"),   ==, 0x61426320);
