@@ -90,6 +90,7 @@ ASSERT_STATIC (sizeof (uint32_t) == 4);
 ASSERT_STATIC (sizeof (int64_t) == 8);
 ASSERT_STATIC (sizeof (uint64_t) == 8);
 
+ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 
 /* Misc */
 
@@ -223,6 +224,9 @@ typedef GStaticMutex hb_mutex_t;
 #else
 
 #ifdef _MSC_VER
+#define _HB__STR2__(x) #x
+#define _HB__STR1__(x) _HB__STR2__(x)
+#define _HB__LOC__ __FILE__ "("_HB__STR1__(__LINE__)") : Warning Msg: "
 #pragma message(_HB__LOC__"Could not find any system to define platform macros, library will NOT be thread-safe")
 #else
 #warning "Could not find any system to define platform macros, library will NOT be thread-safe"

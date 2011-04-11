@@ -39,10 +39,6 @@ HB_BEGIN_DECLS
 
 
 #ifdef _MSC_VER
-#define _HB__STR2__(x) #x
-#define _HB__STR1__(x) _HB__STR2__(x)
-#define _HB__LOC__ __FILE__ "("_HB__STR1__(__LINE__)") : Warning Msg: "
-#pragma message(_HB__LOC__"Not using stdint.h; integer types may have wrong size")
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
 typedef signed short int16_t;
@@ -51,9 +47,6 @@ typedef signed int int32_t;
 typedef unsigned int uint32_t;
 typedef signed long long int64_t;
 typedef unsigned long long uint64_t;
-#ifndef __cplusplus
-#define inline __inline
-#endif
 #else
 #include <stdint.h>
 #endif
