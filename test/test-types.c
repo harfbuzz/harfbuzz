@@ -50,7 +50,7 @@ test_types_int (void)
 static void
 test_types_direction (void)
 {
-  g_assert_cmpint ((signed) HB_DIRECTION_INVALID, <, 0);
+  g_assert_cmpint ((signed) HB_DIRECTION_INVALID, ==, -1);
   g_assert_cmpint (HB_DIRECTION_LTR, ==, 0);
 
   g_assert (HB_DIRECTION_IS_HORIZONTAL (HB_DIRECTION_LTR));
@@ -96,6 +96,38 @@ test_types_tag (void)
   g_assert_cmphex (hb_tag_from_string (NULL),    ==, HB_TAG_NONE);
 }
 
+static void
+test_types_script (void)
+{
+  hb_tag_t arab = HB_TAG_CHAR4 ("arab");
+  hb_tag_t Arab = HB_TAG_CHAR4 ("Arab");
+  hb_tag_t ARAB = HB_TAG_CHAR4 ("ARAB");
+
+  hb_tag_t wWyZ = HB_TAG_CHAR4 ("wWyZ");
+  hb_tag_t Wwyz = HB_TAG_CHAR4 ("Wwyz");
+
+  hb_tag_t x123 = HB_TAG_CHAR4 ("x123");
+
+  g_assert_cmpint ((signed) HB_SCRIPT_INVALID, ==, -1);
+  g_assert_cmphex (HB_SCRIPT_ARABIC, !=, HB_SCRIPT_LATIN);
+
+  g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (arab));
+  g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (Arab));
+  g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (ARAB));
+
+  /* Arbitrary tags that look like may be valid ISO 15924 should be preserved. */
+  g_assert_cmphex (HB_SCRIPT_UNKNOWN, !=, hb_script_from_iso15924_tag (wWyZ));
+  /* Otherwise, UNKNOWN should be returned. */
+  g_assert_cmphex (HB_SCRIPT_UNKNOWN, ==, hb_script_from_iso15924_tag (x123));
+
+  g_assert_cmphex (hb_script_to_iso15924_tag (HB_SCRIPT_ARABIC), ==, Arab);
+  g_assert_cmphex (hb_script_to_iso15924_tag (hb_script_from_iso15924_tag (wWyZ)), ==, Wwyz);
+
+  g_assert_cmpint (hb_script_get_horizontal_direction (HB_SCRIPT_LATIN), ==, HB_DIRECTION_LTR);
+  g_assert_cmpint (hb_script_get_horizontal_direction (HB_SCRIPT_ARABIC), ==, HB_DIRECTION_RTL);
+  g_assert_cmpint (hb_script_get_horizontal_direction (hb_script_from_iso15924_tag (wWyZ)), ==, HB_DIRECTION_LTR);
+}
+
 int
 main (int   argc, char **argv)
 {
@@ -104,6 +136,7 @@ main (int   argc, char **argv)
   g_test_add_func ("/types/direction", test_types_direction);
   g_test_add_func ("/types/int", test_types_int);
   g_test_add_func ("/types/tag", test_types_tag);
+  g_test_add_func ("/types/script", test_types_tag);
 
   return g_test_run();
 }

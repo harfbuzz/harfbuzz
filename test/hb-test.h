@@ -62,6 +62,14 @@ hb_test_bug_redhat (unsigned int number)
   hb_test_bug ("http://bugzilla.redhat.com/", number);
 }
 
+
+/* Misc */
+
+/* This is too ugly to be public API, but quite handy. */
+#define HB_TAG_CHAR4(s)   (HB_TAG(((const char *) s)[0], \
+				  ((const char *) s)[1], \
+				  ((const char *) s)[2], \
+				  ((const char *) s)[3]))
 HB_END_DECLS
 
 #endif /* HB_TEST_H */
