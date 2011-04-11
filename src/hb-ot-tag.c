@@ -645,7 +645,7 @@ hb_ot_tag_from_language (hb_language_t language)
       tag[i] = TO_UPPER (lang_str[i]);
     for (; i < 4; i++)
       tag[i] = ' ';
-    return HB_TAG_STR (tag);
+    return HB_TAG_CHAR4 (tag);
   }
 
   /* find a language matching in the first component */

@@ -40,7 +40,7 @@ hb_tag_from_string (const char *s)
   for (; i < 4; i++)
     tag[i] = ' ';
 
-  return HB_TAG_STR (tag);
+  return HB_TAG_CHAR4 (tag);
 }
 
 
