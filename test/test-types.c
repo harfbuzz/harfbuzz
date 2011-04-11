@@ -152,14 +152,14 @@ test_types_language (void)
 }
 
 int
-main (int   argc, char **argv)
+main (int argc, char **argv)
 {
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/types/int", test_types_int);
   g_test_add_func ("/types/direction", test_types_direction);
   g_test_add_func ("/types/tag", test_types_tag);
-  g_test_add_func ("/types/script", test_types_tag);
+  g_test_add_func ("/types/script", test_types_script);
   g_test_add_func ("/types/language", test_types_language);
 
   return g_test_run();
