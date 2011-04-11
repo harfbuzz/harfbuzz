@@ -35,6 +35,9 @@ hb_tag_from_string (const char *s)
   char tag[4];
   unsigned int i;
 
+  if (!s)
+    return HB_TAG_NONE;
+
   for (i = 0; i < 4 && s[i]; i++)
     tag[i] = s[i];
   for (; i < 4; i++)

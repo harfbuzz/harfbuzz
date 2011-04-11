@@ -83,6 +83,7 @@ static void
 test_types_tag (void)
 {
   g_assert_cmphex (HB_TAG_NONE, ==, 0);
+
   g_assert_cmphex (HB_TAG ('a','B','c','D'), ==, 0x61426344);
 
   g_assert_cmphex (HB_TAG_CHAR4 ("aBcD"), ==, 0x61426344);
@@ -93,6 +94,8 @@ test_types_tag (void)
   g_assert_cmphex (hb_tag_from_string ("aB"),    ==, 0x61422020);
   g_assert_cmphex (hb_tag_from_string ("a"),     ==, 0x61202020);
   g_assert_cmphex (hb_tag_from_string (""),      ==, 0x20202020);
+
+  g_assert_cmphex (hb_tag_from_string (NULL),    ==, HB_TAG_NONE);
 }
 
 int
