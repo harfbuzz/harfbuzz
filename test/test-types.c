@@ -128,15 +128,39 @@ test_types_script (void)
   g_assert_cmpint (hb_script_get_horizontal_direction (hb_script_from_iso15924_tag (wWyZ)), ==, HB_DIRECTION_LTR);
 }
 
+static void
+test_types_language (void)
+{
+  hb_language_t fa = hb_language_from_string ("fa");
+  hb_language_t fa_IR = hb_language_from_string ("fa_IR");
+  hb_language_t fa_ir = hb_language_from_string ("fa-ir");
+  hb_language_t en = hb_language_from_string ("en");
+
+  g_assert (fa != NULL);
+  g_assert (fa_IR != NULL);
+  g_assert (fa_IR == fa_ir);
+
+  g_assert (en != NULL);
+  g_assert (en != fa);
+
+  /* Test recall */
+  g_assert (en == hb_language_from_string ("en"));
+  g_assert (en == hb_language_from_string ("eN"));
+
+  g_assert (NULL == hb_language_from_string (NULL));
+  g_assert (NULL == hb_language_from_string (""));
+}
+
 int
 main (int   argc, char **argv)
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/types/direction", test_types_direction);
   g_test_add_func ("/types/int", test_types_int);
+  g_test_add_func ("/types/direction", test_types_direction);
   g_test_add_func ("/types/tag", test_types_tag);
   g_test_add_func ("/types/script", test_types_tag);
+  g_test_add_func ("/types/language", test_types_language);
 
   return g_test_run();
 }
