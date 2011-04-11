@@ -79,6 +79,18 @@ HB_BEGIN_DECLS
 #define ASSERT_STATIC(_cond) _ASSERT_STATIC0 (__LINE__, (_cond))
 
 
+/* Lets assert int types.  Saves trouble down the road. */
+
+ASSERT_STATIC (sizeof (int8_t) == 1);
+ASSERT_STATIC (sizeof (uint8_t) == 1);
+ASSERT_STATIC (sizeof (int16_t) == 2);
+ASSERT_STATIC (sizeof (uint16_t) == 2);
+ASSERT_STATIC (sizeof (int32_t) == 4);
+ASSERT_STATIC (sizeof (uint32_t) == 4);
+ASSERT_STATIC (sizeof (int64_t) == 8);
+ASSERT_STATIC (sizeof (uint64_t) == 8);
+
+
 /* Misc */
 
 
