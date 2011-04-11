@@ -53,7 +53,26 @@ typedef unsigned long long uint64_t;
 
 typedef int hb_bool_t;
 
+typedef uint32_t hb_codepoint_t;
+typedef int32_t hb_position_t;
+typedef uint32_t hb_mask_t;
+
+typedef union _hb_var_int_t {
+  uint32_t u32;
+  int32_t i32;
+  uint16_t u16[2];
+  int16_t i16[2];
+  uint8_t u8[4];
+  int8_t i8[4];
+} hb_var_int_t;
+
+typedef void (*hb_destroy_func_t) (void *user_data);
+
+
+/* hb_tag_t */
+
 typedef uint32_t hb_tag_t;
+
 #define HB_TAG(a,b,c,d) ((hb_tag_t)((((uint8_t)(a))<<24)|(((uint8_t)(b))<<16)|(((uint8_t)(c))<<8)|((uint8_t)(d))))
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
@@ -61,11 +80,7 @@ typedef uint32_t hb_tag_t;
 hb_tag_t hb_tag_from_string (const char *s);
 
 
-typedef uint32_t hb_codepoint_t;
-typedef int32_t hb_position_t;
-typedef uint32_t hb_mask_t;
-
-typedef void (*hb_destroy_func_t) (void *user_data);
+/* hb_direction_t */
 
 typedef enum _hb_direction_t {
   HB_DIRECTION_INVALID = -1,
@@ -82,14 +97,15 @@ typedef enum _hb_direction_t {
 #define HB_DIRECTION_REVERSE(dir)	((hb_direction_t) (((unsigned int) (dir)) ^ 1))
 
 
-typedef union _hb_var_int_t {
-  uint32_t u32;
-  int32_t i32;
-  uint16_t u16[2];
-  int16_t i16[2];
-  uint8_t u8[4];
-  int8_t i8[4];
-} hb_var_int_t;
+/* hb_language_t */
+
+typedef const void *hb_language_t;
+
+hb_language_t
+hb_language_from_string (const char *str);
+
+const char *
+hb_language_to_string (hb_language_t language);
 
 
 HB_END_DECLS

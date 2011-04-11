@@ -28,7 +28,6 @@
 #define HB_OT_TAG_H
 
 #include "hb-common.h"
-#include "hb-language.h"
 
 HB_BEGIN_DECLS
 

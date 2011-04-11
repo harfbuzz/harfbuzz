@@ -30,7 +30,6 @@
 
 #include "hb-common.h"
 #include "hb-unicode.h"
-#include "hb-language.h"
 
 HB_BEGIN_DECLS
 

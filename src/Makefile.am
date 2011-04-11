@@ -21,7 +21,6 @@ HBSOURCES =  \
 	hb-object-private.h \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
-	hb-language.c \
 	hb-ot-head-private.hh \
 	hb-private.h \
 	hb-shape.cc \
@@ -34,7 +33,6 @@ HBHEADERS = \
 	hb-buffer.h \
 	hb-common.h \
 	hb-font.h \
-	hb-language.h \
 	hb-shape.h \
 	hb-unicode.h \
 	$(NULL)
