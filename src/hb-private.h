@@ -263,6 +263,13 @@ typedef int hb_mutex_t;
 #define hb_be_uint32_cmp(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
 
 
+/* ASCII character handling */
+
+#define ISALPHA(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+#define TOUPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) - 'a' + 'A' : (c))
+#define TOLOWER(c) (((c) >= 'A' && (c) <= 'Z') ? (c) - 'A' + 'a' : (c))
+
+
 /* Debug */
 
 #ifndef HB_DEBUG

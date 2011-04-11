@@ -639,10 +639,8 @@ hb_ot_tag_from_language (hb_language_t language)
     char tag[4];
     int i;
     lang_str += 6;
-#define IS_LETTER(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
-#define TO_UPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) + 'A' - 'a' : (c))
-    for (i = 0; i < 4 && IS_LETTER (lang_str[i]); i++)
-      tag[i] = TO_UPPER (lang_str[i]);
+    for (i = 0; i < 4 && ISALPHA (lang_str[i]); i++)
+      tag[i] = TOUPPER (lang_str[i]);
     for (; i < 4; i++)
       tag[i] = ' ';
     return HB_TAG_CHAR4 (tag);
