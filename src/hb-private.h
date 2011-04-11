@@ -90,6 +90,9 @@ ASSERT_STATIC (sizeof (uint32_t) == 4);
 ASSERT_STATIC (sizeof (int64_t) == 8);
 ASSERT_STATIC (sizeof (uint64_t) == 8);
 
+ASSERT_STATIC (sizeof (hb_codepoint_t) == 4);
+ASSERT_STATIC (sizeof (hb_position_t) == 4);
+ASSERT_STATIC (sizeof (hb_mask_t) == 4);
 ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 
 /* Misc */
