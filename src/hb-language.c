@@ -85,7 +85,7 @@ hb_language_from_string (const char *str)
 
   /* TODO Use a hash table or something */
 
-  if (!str)
+  if (!str || !*str)
     return NULL;
 
   for (i = 0; i < num_langs; i++)
