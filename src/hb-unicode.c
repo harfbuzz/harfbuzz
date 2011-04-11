@@ -36,7 +36,7 @@ HB_BEGIN_DECLS
  */
 
 static hb_codepoint_t hb_unicode_get_mirroring_nil (hb_codepoint_t unicode) { return unicode; }
-static hb_category_t hb_unicode_get_general_category_nil (hb_codepoint_t unicode HB_UNUSED) { return HB_CATEGORY_OTHER_LETTER; }
+static hb_unicode_general_category_t hb_unicode_get_general_category_nil (hb_codepoint_t unicode HB_UNUSED) { return HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER; }
 static hb_script_t hb_unicode_get_script_nil (hb_codepoint_t unicode HB_UNUSED) { return HB_SCRIPT_UNKNOWN; }
 static unsigned int hb_unicode_get_combining_class_nil (hb_codepoint_t unicode HB_UNUSED) { return 0; }
 static unsigned int hb_unicode_get_eastasian_width_nil (hb_codepoint_t unicode HB_UNUSED) { return 1; }
@@ -205,7 +205,7 @@ hb_unicode_get_mirroring (hb_unicode_funcs_t *ufuncs,
   return ufuncs->v.get_mirroring (unicode);
 }
 
-hb_category_t
+hb_unicode_general_category_t
 hb_unicode_get_general_category (hb_unicode_funcs_t *ufuncs,
 				 hb_codepoint_t unicode)
 {

@@ -35,37 +35,37 @@ HB_BEGIN_DECLS
 /* Unicode General Category property */
 typedef enum
 {
-  HB_CATEGORY_CONTROL,			/* Cc */
-  HB_CATEGORY_FORMAT,			/* Cf */
-  HB_CATEGORY_UNASSIGNED,		/* Cn */
-  HB_CATEGORY_PRIVATE_USE,		/* Co */
-  HB_CATEGORY_SURROGATE,		/* Cs */
-  HB_CATEGORY_LOWERCASE_LETTER,		/* Ll */
-  HB_CATEGORY_MODIFIER_LETTER,		/* Lm */
-  HB_CATEGORY_OTHER_LETTER,		/* Lo */
-  HB_CATEGORY_TITLECASE_LETTER,		/* Lt */
-  HB_CATEGORY_UPPERCASE_LETTER,		/* Lu */
-  HB_CATEGORY_COMBINING_MARK,		/* Mc */
-  HB_CATEGORY_ENCLOSING_MARK,		/* Me */
-  HB_CATEGORY_NON_SPACING_MARK,		/* Mn */
-  HB_CATEGORY_DECIMAL_NUMBER,		/* Nd */
-  HB_CATEGORY_LETTER_NUMBER,		/* Nl */
-  HB_CATEGORY_OTHER_NUMBER,		/* No */
-  HB_CATEGORY_CONNECT_PUNCTUATION,	/* Pc */
-  HB_CATEGORY_DASH_PUNCTUATION,		/* Pd */
-  HB_CATEGORY_CLOSE_PUNCTUATION,	/* Pe */
-  HB_CATEGORY_FINAL_PUNCTUATION,	/* Pf */
-  HB_CATEGORY_INITIAL_PUNCTUATION,	/* Pi */
-  HB_CATEGORY_OTHER_PUNCTUATION,	/* Po */
-  HB_CATEGORY_OPEN_PUNCTUATION,		/* Ps */
-  HB_CATEGORY_CURRENCY_SYMBOL,		/* Sc */
-  HB_CATEGORY_MODIFIER_SYMBOL,		/* Sk */
-  HB_CATEGORY_MATH_SYMBOL,		/* Sm */
-  HB_CATEGORY_OTHER_SYMBOL,		/* So */
-  HB_CATEGORY_LINE_SEPARATOR,		/* Zl */
-  HB_CATEGORY_PARAGRAPH_SEPARATOR,	/* Zp */
-  HB_CATEGORY_SPACE_SEPARATOR		/* Zs */
-} hb_category_t;
+  HB_UNICODE_GENERAL_CATEGORY_CONTROL,			/* Cc */
+  HB_UNICODE_GENERAL_CATEGORY_FORMAT,			/* Cf */
+  HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED,		/* Cn */
+  HB_UNICODE_GENERAL_CATEGORY_PRIVATE_USE,		/* Co */
+  HB_UNICODE_GENERAL_CATEGORY_SURROGATE,		/* Cs */
+  HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER,		/* Ll */
+  HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER,		/* Lm */
+  HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER,		/* Lo */
+  HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER,		/* Lt */
+  HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER,		/* Lu */
+  HB_UNICODE_GENERAL_CATEGORY_COMBINING_MARK,		/* Mc */
+  HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK,		/* Me */
+  HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK,		/* Mn */
+  HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER,		/* Nd */
+  HB_UNICODE_GENERAL_CATEGORY_LETTER_NUMBER,		/* Nl */
+  HB_UNICODE_GENERAL_CATEGORY_OTHER_NUMBER,		/* No */
+  HB_UNICODE_GENERAL_CATEGORY_CONNECT_PUNCTUATION,	/* Pc */
+  HB_UNICODE_GENERAL_CATEGORY_DASH_PUNCTUATION,		/* Pd */
+  HB_UNICODE_GENERAL_CATEGORY_CLOSE_PUNCTUATION,	/* Pe */
+  HB_UNICODE_GENERAL_CATEGORY_FINAL_PUNCTUATION,	/* Pf */
+  HB_UNICODE_GENERAL_CATEGORY_INITIAL_PUNCTUATION,	/* Pi */
+  HB_UNICODE_GENERAL_CATEGORY_OTHER_PUNCTUATION,	/* Po */
+  HB_UNICODE_GENERAL_CATEGORY_OPEN_PUNCTUATION,		/* Ps */
+  HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL,		/* Sc */
+  HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL,		/* Sk */
+  HB_UNICODE_GENERAL_CATEGORY_MATH_SYMBOL,		/* Sm */
+  HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL,		/* So */
+  HB_UNICODE_GENERAL_CATEGORY_LINE_SEPARATOR,		/* Zl */
+  HB_UNICODE_GENERAL_CATEGORY_PARAGRAPH_SEPARATOR,	/* Zp */
+  HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR		/* Zs */
+} hb_unicode_general_category_t;
 
 /* Unicode Script property */
 typedef enum
@@ -218,7 +218,7 @@ hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs);
 /* typedefs */
 
 typedef hb_codepoint_t (*hb_unicode_get_mirroring_func_t) (hb_codepoint_t unicode);
-typedef hb_category_t (*hb_unicode_get_general_category_func_t) (hb_codepoint_t unicode);
+typedef hb_unicode_general_category_t (*hb_unicode_get_general_category_func_t) (hb_codepoint_t unicode);
 typedef hb_script_t (*hb_unicode_get_script_func_t) (hb_codepoint_t unicode);
 typedef unsigned int (*hb_unicode_get_combining_class_func_t) (hb_codepoint_t unicode);
 typedef unsigned int (*hb_unicode_get_eastasian_width_func_t) (hb_codepoint_t unicode);
@@ -273,7 +273,7 @@ hb_codepoint_t
 hb_unicode_get_mirroring (hb_unicode_funcs_t *ufuncs,
 			  hb_codepoint_t unicode);
 
-hb_category_t
+hb_unicode_general_category_t
 hb_unicode_get_general_category (hb_unicode_funcs_t *ufuncs,
 				 hb_codepoint_t unicode);
 

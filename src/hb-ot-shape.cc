@@ -159,7 +159,7 @@ hb_form_clusters (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++)
-    if (c->buffer->info[i].general_category() == HB_CATEGORY_NON_SPACING_MARK)
+    if (c->buffer->info[i].general_category() == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
       c->buffer->info[i].cluster = c->buffer->info[i - 1].cluster;
 }
 

@@ -57,7 +57,7 @@ enum {
 
 #include "hb-ot-shape-complex-arabic-table.h"
 
-static unsigned int get_joining_type (hb_codepoint_t u, hb_category_t gen_cat)
+static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_category_t gen_cat)
 {
   /* TODO Macroize the magic bit operations */
 
@@ -71,7 +71,7 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_category_t gen_cat)
   if (unlikely (0x1800 <= u && u <= 0x18AF))
   {
     /* All letters, SIBE SYLLABLE BOUNDARY MARKER, and NIRUGU are D */
-    if (gen_cat == HB_CATEGORY_OTHER_LETTER || u == 0x1807 || u == 0x180A)
+    if (gen_cat == HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER || u == 0x1807 || u == 0x180A)
       return JOINING_TYPE_D;
   }
 
@@ -79,7 +79,7 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_category_t gen_cat)
     return u == 0x200C ? JOINING_TYPE_U : JOINING_TYPE_C;
   }
 
-  return ((1<<gen_cat) & ((1<<HB_CATEGORY_NON_SPACING_MARK)|(1<<HB_CATEGORY_ENCLOSING_MARK)|(1<<HB_CATEGORY_FORMAT))) ?
+  return ((1<<gen_cat) & ((1<<HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)|(1<<HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK)|(1<<HB_UNICODE_GENERAL_CATEGORY_FORMAT))) ?
 	 JOINING_TYPE_T : JOINING_TYPE_U;
 }
 
@@ -170,7 +170,7 @@ _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
 
   for (unsigned int i = 0; i < count; i++)
   {
-    unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, (hb_category_t) c->buffer->info[i].general_category());
+    unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, (hb_unicode_general_category_t) c->buffer->info[i].general_category());
 
     if (unlikely (this_type == JOINING_TYPE_T)) {
       c->buffer->info[i].arabic_shaping_action() = NONE;
