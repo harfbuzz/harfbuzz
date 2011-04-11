@@ -1,8 +1,8 @@
 include Makefile.decl
 
 if HAVE_GLIB
-AM_CPPFLAGS = $(GLIB_CFLAGS) -I$(top_srcdir)/src/
-LDADD = $(GLIB_LIBS) $(top_builddir)/src/libharfbuzz.la
+AM_CPPFLAGS = -I$(top_srcdir)/src/ $(GLIB_CFLAGS)
+LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
 
 check_PROGRAMS = $(TEST_PROGS)
 
