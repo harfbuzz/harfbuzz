@@ -15,6 +15,8 @@ General fixes:
 API issues to fix before 1.0:
 ============================
 
+- Add hb_buffer_resize()?
+
 - Rename / remove hb_buffer_add_glyph()?
 
 - Sprinkle const all over public and private API
