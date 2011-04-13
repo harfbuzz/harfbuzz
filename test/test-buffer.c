@@ -148,6 +148,7 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
   }
 
   hb_buffer_clear (fixture->b);
+  /* XXX Make sure clear() doesn't unset other properties? */
   g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
 }
 
@@ -189,7 +190,9 @@ main (int argc, char **argv)
 #undef TEST_ADD
   }
 
-  /* XXX test invalid UTF-8 / UTF-16 text input */
+  /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
+  /* XXX test reverse() and reverse_clusters() */
+  /* XXX test ensure() and memory management */
 
   return g_test_run();
 }
