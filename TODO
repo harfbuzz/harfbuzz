@@ -29,6 +29,8 @@ API issues to fix before 1.0:
 
 - Use tags for hb_script_t
 
+- Better name for iso15924 script functions
+
 - Figure out how many .so objects, how to link, etc
 
 - Shall y axis progress downward instead of upward?
