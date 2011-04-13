@@ -592,7 +592,7 @@ hb_utf16_next (const uint16_t *text,
   if (unlikely (c >= 0xd800 && c < 0xdc00)) {
     /* high surrogate */
     uint16_t l;
-    if (text < end && ((l = *text), unlikely (l >= 0xdc00 && l < 0xe000))) {
+    if (text < end && ((l = *text), likely (l >= 0xdc00 && l < 0xe000))) {
       /* low surrogate */
       *unicode = ((hb_codepoint_t) ((c) - 0xd800) * 0x400 + (l) - 0xdc00 + 0x10000);
        text++;
