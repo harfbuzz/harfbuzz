@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 1998-2004  David Turner and Werner Lemberg
  * Copyright (C) 2004,2007,2009,2010  Red Hat, Inc.
+ * Copyright (C) 2011  Google, Inc.
  *
  * This is part of HarfBuzz, a text shaping library.
  *
@@ -23,6 +24,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Owen Taylor, Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #include "hb-buffer-private.hh"
@@ -225,6 +227,17 @@ hb_buffer_get_language (hb_buffer_t *buffer)
   return buffer->props.language;
 }
 
+
+void
+hb_buffer_reset (hb_buffer_t *buffer)
+{
+  hb_buffer_clear (buffer);
+
+  buffer->props = _hb_buffer_nil.props;
+
+  hb_unicode_funcs_destroy (buffer->unicode);
+  buffer->unicode = _hb_buffer_nil.unicode;
+}
 
 void
 hb_buffer_clear (hb_buffer_t *buffer)
@@ -433,6 +446,24 @@ _hb_buffer_set_masks (hb_buffer_t *buffer,
 
 
 /* Public API again */
+
+hb_bool_t
+hb_buffer_set_length (hb_buffer_t  *buffer,
+		      unsigned int  length)
+{
+  if (!hb_buffer_ensure (buffer, length))
+    return FALSE;
+
+  /* Wipe the new space */
+  if (length > buffer->len) {
+    memset (buffer->info + buffer->len, 0, sizeof (buffer->info[0]) * (length - buffer->len));
+    if (buffer->have_positions)
+      memset (buffer->pos + buffer->len, 0, sizeof (buffer->pos[0]) * (length - buffer->len));
+  }
+
+  buffer->len = length;
+  return TRUE;
+}
 
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer)

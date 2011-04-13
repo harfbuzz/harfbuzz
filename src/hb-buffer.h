@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 1998-2004  David Turner and Werner Lemberg
  * Copyright (C) 2004,2007,2009  Red Hat, Inc.
+ * Copyright (C) 2011  Google, Inc.
  *
  * This is part of HarfBuzz, a text shaping library.
  *
@@ -23,6 +24,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Owen Taylor, Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_BUFFER_H
@@ -95,6 +97,12 @@ hb_language_t
 hb_buffer_get_language (hb_buffer_t *buffer);
 
 
+/* Resets the buffer.  Afterwards it's as if it was just created,
+ * except that it has a larger buffer allocated perhaps... */
+void
+hb_buffer_reset (hb_buffer_t *buffer);
+
+/* Clears buffer glyphs, but doesn't touch other buffer attributes. */
 void
 hb_buffer_clear (hb_buffer_t *buffer);
 
@@ -142,11 +150,16 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     unsigned int    item_length);
 
 
-/* Getting glyphs out of the buffer */
+/* Clears any new items added at the end */
+hb_bool_t
+hb_buffer_set_length (hb_buffer_t  *buffer,
+		      unsigned int  length);
 
 /* Return value valid as long as buffer not modified */
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer);
+
+/* Getting glyphs out of the buffer */
 
 /* Return value valid as long as buffer not modified */
 hb_glyph_info_t *
