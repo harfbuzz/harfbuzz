@@ -3,7 +3,7 @@
  * Copyright (C) 2004,2007,2009,2010  Red Hat, Inc.
  * Copyright (C) 2011  Google, Inc.
  *
- * This is part of HarfBuzz, a text shaping library.
+ *  This is part of HarfBuzz, a text shaping library.
  *
  * Permission is hereby granted, without written agreement and without
  * license or royalty fees, to use, copy, modify, and distribute this
@@ -272,16 +272,6 @@ hb_buffer_add_glyph (hb_buffer_t    *buffer,
   buffer->len++;
 }
 
-void
-hb_buffer_clear_positions (hb_buffer_t *buffer)
-{
-  _hb_buffer_clear_output (buffer);
-  buffer->have_output = FALSE;
-  buffer->have_positions = TRUE;
-
-  memset (buffer->pos, 0, sizeof (buffer->pos[0]) * buffer->len);
-}
-
 /* HarfBuzz-Internal API */
 
 void
@@ -289,8 +279,18 @@ _hb_buffer_clear_output (hb_buffer_t *buffer)
 {
   buffer->have_output = TRUE;
   buffer->have_positions = FALSE;
+
   buffer->out_len = 0;
   buffer->out_info = buffer->info;
+}
+
+void
+_hb_buffer_clear_positions (hb_buffer_t *buffer)
+{
+  buffer->have_output = FALSE;
+  buffer->have_positions = TRUE;
+
+  memset (buffer->pos, 0, sizeof (buffer->pos[0]) * buffer->len);
 }
 
 void
@@ -477,7 +477,7 @@ hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
 {
   if (!buffer->have_positions)
-    hb_buffer_clear_positions (buffer);
+    _hb_buffer_clear_positions (buffer);
 
   return (hb_glyph_position_t *) buffer->pos;
 }

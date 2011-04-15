@@ -2,7 +2,7 @@
  * Copyright (C) 1998-2004  David Turner and Werner Lemberg
  * Copyright (C) 2004,2007,2009,2010  Red Hat, Inc.
  *
- * This is part of HarfBuzz, a text shaping library.
+ *  This is part of HarfBuzz, a text shaping library.
  *
  * Permission is hereby granted, without written agreement and without
  * license or royalty fees, to use, copy, modify, and distribute this
@@ -50,6 +50,9 @@ _hb_buffer_swap (hb_buffer_t *buffer);
 
 HB_INTERNAL void
 _hb_buffer_clear_output (hb_buffer_t *buffer);
+
+HB_INTERNAL void
+_hb_buffer_clear_positions (hb_buffer_t *buffer);
 
 HB_INTERNAL void
 _hb_buffer_replace_glyphs_be16 (hb_buffer_t *buffer,
@@ -116,6 +119,7 @@ struct _hb_buffer_t {
   inline unsigned int next_serial (void) { return serial++; }
   inline void swap (void) { _hb_buffer_swap (this); }
   inline void clear_output (void) { _hb_buffer_clear_output (this); }
+  inline void clear_positions (void) { _hb_buffer_clear_positions (this); }
   inline void next_glyph (void) { _hb_buffer_next_glyph (this); }
   inline void replace_glyphs_be16 (unsigned int num_in,
 				   unsigned int num_out,

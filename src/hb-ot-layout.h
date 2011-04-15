@@ -179,6 +179,10 @@ hb_ot_layout_substitute_lookup (hb_face_t    *face,
 hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face);
 
+/* Should be called before all the position_lookup's are done.  Resets positions to zero. */
+void
+hb_ot_layout_position_start (hb_buffer_t  *buffer);
+
 hb_bool_t
 hb_ot_layout_position_lookup (hb_font_t    *font,
 			      hb_face_t    *face,

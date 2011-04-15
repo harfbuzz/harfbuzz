@@ -249,7 +249,7 @@ hb_substitute_complex_fallback (hb_ot_shape_context_t *c HB_UNUSED)
 static void
 hb_position_default (hb_ot_shape_context_t *c)
 {
-  hb_buffer_clear_positions (c->buffer);
+  hb_ot_layout_position_start (c->buffer);
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {

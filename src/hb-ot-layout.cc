@@ -462,6 +462,12 @@ hb_ot_layout_has_positioning (hb_face_t *face)
   return &_get_gpos (face) != &Null(GPOS);
 }
 
+void
+hb_ot_layout_position_start (hb_buffer_t  *buffer)
+{
+  buffer->clear_positions ();
+}
+
 hb_bool_t
 hb_ot_layout_position_lookup   (hb_font_t    *font,
 				hb_face_t    *face,

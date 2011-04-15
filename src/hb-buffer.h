@@ -3,7 +3,7 @@
  * Copyright (C) 2004,2007,2009  Red Hat, Inc.
  * Copyright (C) 2011  Google, Inc.
  *
- * This is part of HarfBuzz, a text shaping library.
+ *  This is part of HarfBuzz, a text shaping library.
  *
  * Permission is hereby granted, without written agreement and without
  * license or royalty fees, to use, copy, modify, and distribute this
@@ -101,9 +101,6 @@ hb_buffer_get_language (hb_buffer_t *buffer);
  * except that it has a larger buffer allocated perhaps... */
 void
 hb_buffer_reset (hb_buffer_t *buffer);
-
-void
-hb_buffer_clear_positions (hb_buffer_t *buffer);
 
 hb_bool_t
 hb_buffer_ensure (hb_buffer_t  *buffer,
