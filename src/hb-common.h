@@ -99,7 +99,7 @@ typedef enum _hb_direction_t {
 
 /* hb_language_t */
 
-typedef const void *hb_language_t;
+typedef struct _hb_language_t *hb_language_t;
 
 hb_language_t
 hb_language_from_string (const char *str);

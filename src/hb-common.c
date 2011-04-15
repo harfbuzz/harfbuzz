@@ -51,6 +51,10 @@ hb_tag_from_string (const char *s)
 
 /* hb_language_t */
 
+struct _hb_language_t {
+  const char s[1];
+};
+
 static const char canon_map[256] = {
    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
    0,   0,   0,   0,   0,   0,   0,   0,    0,   0,   0,   0,   0,   0,   0,   0,
@@ -99,7 +103,7 @@ hb_language_from_string (const char *str)
 {
   static unsigned int num_langs;
   static unsigned int num_alloced;
-  static const char **langs;
+  static hb_language_t *langs;
   unsigned int i;
   unsigned char *p;
 
@@ -109,31 +113,31 @@ hb_language_from_string (const char *str)
     return NULL;
 
   for (i = 0; i < num_langs; i++)
-    if (lang_equal (str, langs[i]))
+    if (lang_equal (str, langs[i]->s))
       return langs[i];
 
   if (unlikely (num_langs == num_alloced)) {
     unsigned int new_alloced = 2 * (8 + num_alloced);
-    const char **new_langs = realloc (langs, new_alloced * sizeof (langs[0]));
+    hb_language_t *new_langs = realloc (langs, new_alloced * sizeof (langs[0]));
     if (!new_langs)
       return NULL;
     num_alloced = new_alloced;
     langs = new_langs;
   }
 
-  langs[i] = strdup (str);
-  for (p = (unsigned char *) langs[i]; *p; p++)
+  langs[i] = (hb_language_t) strdup (str);
+  for (p = (unsigned char *) langs[i]->s; *p; p++)
     *p = canon_map[*p];
 
   num_langs++;
 
-  return (hb_language_t) langs[i];
+  return langs[i];
 }
 
 const char *
 hb_language_to_string (hb_language_t language)
 {
-  return (const char *) language;
+  return language->s;
 }
 
 
