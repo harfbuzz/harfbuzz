@@ -295,6 +295,10 @@ hb_unicode_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
 hb_script_t
 hb_script_from_iso15924_tag (hb_tag_t tag);
 
+/* suger for tag_from_string() then script_from_iso15924_tag */
+hb_script_t
+hb_script_from_string (const char *s);
+
 hb_tag_t
 hb_script_to_iso15924_tag (hb_script_t script);
 

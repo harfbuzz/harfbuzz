@@ -492,6 +492,12 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
   return HB_SCRIPT_UNKNOWN;
 }
 
+hb_script_t
+hb_script_from_string (const char *s)
+{
+  return hb_script_from_iso15924_tag (hb_tag_from_string (s));
+}
+
 hb_tag_t
 hb_script_to_iso15924_tag (hb_script_t script)
 {
