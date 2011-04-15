@@ -193,6 +193,8 @@ main (int argc, char **argv)
   /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
   /* XXX test reverse() and reverse_clusters() */
   /* XXX test ensure() and memory management */
+  /* XXX test buffer reset */
+  /* XXX test buffer set length */
 
   return g_test_run();
 }
