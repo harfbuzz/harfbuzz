@@ -11,6 +11,7 @@ General fixes:
 
 - Use size_t in sanitize
 
+- Use templates instead of macros for objects?
 
 API issues to fix before 1.0:
 ============================
