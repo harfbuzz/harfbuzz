@@ -475,17 +475,25 @@ hb_buffer_get_length (hb_buffer_t *buffer)
 
 /* Return value valid as long as buffer not modified */
 hb_glyph_info_t *
-hb_buffer_get_glyph_infos (hb_buffer_t *buffer)
+hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
+                           unsigned int *length)
 {
+  if (length)
+    *length = buffer->len;
+
   return (hb_glyph_info_t *) buffer->info;
 }
 
 /* Return value valid as long as buffer not modified */
 hb_glyph_position_t *
-hb_buffer_get_glyph_positions (hb_buffer_t *buffer)
+hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
+                               unsigned int *length)
 {
   if (!buffer->have_positions)
     _hb_buffer_clear_positions (buffer);
+
+  if (length)
+    *length = buffer->len;
 
   return (hb_glyph_position_t *) buffer->pos;
 }

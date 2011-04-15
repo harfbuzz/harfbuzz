@@ -361,8 +361,8 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_shape (hb_font, hb_face, hb_buffer, features, num_features);
 
   num_glyphs = hb_buffer_get_length (hb_buffer);
-  hb_glyph = hb_buffer_get_glyph_infos (hb_buffer);
-  hb_position = hb_buffer_get_glyph_positions (hb_buffer);
+  hb_glyph = hb_buffer_get_glyph_infos (hb_buffer, NULL);
+  hb_position = hb_buffer_get_glyph_positions (hb_buffer, NULL);
   cairo_glyphs = cairo_glyph_allocate (num_glyphs + 1);
   x = 0;
   for (i = 0; i < num_glyphs; i++)

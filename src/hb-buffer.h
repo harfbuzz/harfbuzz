@@ -160,11 +160,13 @@ hb_buffer_get_length (hb_buffer_t *buffer);
 
 /* Return value valid as long as buffer not modified */
 hb_glyph_info_t *
-hb_buffer_get_glyph_infos (hb_buffer_t *buffer);
+hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
+                           unsigned int *length);
 
 /* Return value valid as long as buffer not modified */
 hb_glyph_position_t *
-hb_buffer_get_glyph_positions (hb_buffer_t *buffer);
+hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
+                               unsigned int *length);
 
 
 HB_END_DECLS

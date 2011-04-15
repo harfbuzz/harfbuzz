@@ -1493,8 +1493,8 @@ void
 GPOS::position_finish (hb_buffer_t *buffer)
 {
   unsigned int i, j;
-  unsigned int len = hb_buffer_get_length (buffer);
-  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer);
+  unsigned int len;
+  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &len);
   hb_direction_t direction = buffer->props.direction;
 
   /* Handle cursive connections:
