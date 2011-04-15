@@ -100,8 +100,8 @@ test_buffer_properties (Fixture *fixture, gconstpointer user_data)
 {
   /* TODO check unicode_funcs */
 
-  g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_LTR);
-  g_assert (hb_buffer_get_script (fixture->b) == HB_SCRIPT_COMMON);
+  g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_INVALID);
+  g_assert (hb_buffer_get_script (fixture->b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (fixture->b) == NULL);
 
   hb_buffer_set_direction (fixture->b, HB_DIRECTION_RTL);

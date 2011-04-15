@@ -94,8 +94,6 @@ struct _hb_buffer_t {
 
   /* Buffer contents */
 
-  unsigned int allocated; /* Length of allocated arrays */
-
   hb_bool_t have_output; /* Whether we have an output buffer going on */
   hb_bool_t have_positions; /* Whether we have positions */
   hb_bool_t in_error; /* Allocation failed */
@@ -104,13 +102,12 @@ struct _hb_buffer_t {
   unsigned int len; /* Length of ->info and ->pos arrays */
   unsigned int out_len; /* Length of ->out array if have_output */
 
+  unsigned int serial;
+
+  unsigned int allocated; /* Length of allocated arrays */
   hb_glyph_info_t     *info;
   hb_glyph_info_t     *out_info;
   hb_glyph_position_t *pos;
-
-  /* Other stuff */
-
-  unsigned int serial;
 
 
   /* Methods */

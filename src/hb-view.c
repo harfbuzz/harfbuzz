@@ -355,10 +355,8 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_buffer_add_utf8 (hb_buffer, text, len, 0, len);
   if (script)
     hb_buffer_set_script (hb_buffer, hb_script_from_string (script));
-  else
-    hb_buffer_set_script (hb_buffer, HB_SCRIPT_INVALID);
-  hb_buffer_set_direction (hb_buffer, HB_DIRECTION_INVALID);
-  hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
+  if (language)
+    hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
 
   hb_shape (hb_font, hb_face, hb_buffer, features, num_features);
 

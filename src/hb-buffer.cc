@@ -37,7 +37,12 @@ HB_BEGIN_DECLS
 static hb_buffer_t _hb_buffer_nil = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
 
-  &_hb_unicode_funcs_nil  /* unicode */
+  &_hb_unicode_funcs_nil,  /* unicode */
+  {
+    HB_DIRECTION_INVALID,
+    HB_SCRIPT_INVALID,
+    NULL,
+  },
 };
 
 /* Here is how the buffer works internally:
@@ -138,7 +143,7 @@ hb_buffer_create (unsigned int pre_alloc_size)
   if (pre_alloc_size)
     _hb_buffer_ensure (buffer, pre_alloc_size);
 
-  buffer->unicode = &_hb_unicode_funcs_nil;
+  hb_buffer_reset (buffer);
 
   return buffer;
 }
@@ -231,19 +236,22 @@ hb_buffer_get_language (hb_buffer_t *buffer)
 void
 hb_buffer_reset (hb_buffer_t *buffer)
 {
-  buffer->have_output = FALSE;
-  buffer->have_positions = FALSE;
-  buffer->in_error = FALSE;
-  buffer->len = 0;
-  buffer->out_len = 0;
-  buffer->i = 0;
-  buffer->out_info = buffer->info;
-  buffer->serial = 0;
+  hb_unicode_funcs_destroy (buffer->unicode);
+  buffer->unicode = _hb_buffer_nil.unicode;
 
   buffer->props = _hb_buffer_nil.props;
 
-  hb_unicode_funcs_destroy (buffer->unicode);
-  buffer->unicode = _hb_buffer_nil.unicode;
+  buffer->have_output = FALSE;
+  buffer->have_positions = FALSE;
+  buffer->in_error = FALSE;
+
+  buffer->i = 0;
+  buffer->len = 0;
+  buffer->out_len = 0;
+
+  buffer->serial = 0;
+
+  buffer->out_info = buffer->info;
 }
 
 hb_bool_t
