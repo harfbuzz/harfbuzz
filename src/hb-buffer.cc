@@ -255,7 +255,7 @@ hb_buffer_reset (hb_buffer_t *buffer)
 }
 
 hb_bool_t
-hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
+hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
 {
   return _hb_buffer_ensure (buffer, size);
 }
@@ -453,7 +453,7 @@ hb_bool_t
 hb_buffer_set_length (hb_buffer_t  *buffer,
 		      unsigned int  length)
 {
-  if (!hb_buffer_ensure (buffer, length))
+  if (!_hb_buffer_ensure (buffer, length))
     return FALSE;
 
   /* Wipe the new space */

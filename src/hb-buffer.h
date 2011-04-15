@@ -107,8 +107,8 @@ void
 hb_buffer_reset (hb_buffer_t *buffer);
 
 hb_bool_t
-hb_buffer_ensure (hb_buffer_t  *buffer,
-		  unsigned int  size);
+hb_buffer_pre_allocate (hb_buffer_t  *buffer,
+		        unsigned int  size);
 
 void
 hb_buffer_reverse (hb_buffer_t *buffer);
