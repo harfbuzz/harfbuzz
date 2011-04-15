@@ -366,16 +366,16 @@ hb_ot_shape_execute (hb_ot_shape_plan_t *plan,
 }
 
 void
-hb_ot_shape (hb_font_t    *font,
-	     hb_face_t    *face,
-	     hb_buffer_t  *buffer,
-	     const hb_feature_t *user_features,
-	     unsigned int        num_user_features)
+hb_ot_shape (hb_font_t          *font,
+	     hb_face_t          *face,
+	     hb_buffer_t        *buffer,
+	     const hb_feature_t *features,
+	     unsigned int        num_features)
 {
   hb_ot_shape_plan_t plan;
 
-  hb_ot_shape_plan_internal (&plan, face, &buffer->props, user_features, num_user_features);
-  hb_ot_shape_execute (&plan, font, face, buffer, user_features, num_user_features);
+  hb_ot_shape_plan_internal (&plan, face, &buffer->props, features, num_features);
+  hb_ot_shape_execute (&plan, font, face, buffer, features, num_features);
 }
 
 

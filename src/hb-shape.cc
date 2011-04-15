@@ -40,11 +40,11 @@ HB_BEGIN_DECLS
 
 
 static void
-hb_shape_internal (hb_font_t    *font,
-		   hb_face_t    *face,
-		   hb_buffer_t  *buffer,
-		   hb_feature_t *features,
-		   unsigned int  num_features)
+hb_shape_internal (hb_font_t          *font,
+		   hb_face_t          *face,
+		   hb_buffer_t        *buffer,
+		   const hb_feature_t *features,
+		   unsigned int        num_features)
 {
 #if 0 && defined(HAVE_GRAPHITE)
   hb_blob_t *silf_blob;
@@ -62,11 +62,11 @@ hb_shape_internal (hb_font_t    *font,
 }
 
 void
-hb_shape (hb_font_t    *font,
-	  hb_face_t    *face,
-	  hb_buffer_t  *buffer,
-	  hb_feature_t *features,
-	  unsigned int  num_features)
+hb_shape (hb_font_t          *font,
+	  hb_face_t          *face,
+	  hb_buffer_t        *buffer,
+	  const hb_feature_t *features,
+	  unsigned int        num_features)
 {
   hb_segment_properties_t orig_props;
 
