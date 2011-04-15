@@ -102,10 +102,6 @@ hb_buffer_get_language (hb_buffer_t *buffer);
 void
 hb_buffer_reset (hb_buffer_t *buffer);
 
-/* Clears buffer glyphs, but doesn't touch other buffer attributes. */
-void
-hb_buffer_clear (hb_buffer_t *buffer);
-
 void
 hb_buffer_clear_positions (hb_buffer_t *buffer);
 

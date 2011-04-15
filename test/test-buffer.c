@@ -146,10 +146,6 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
     g_assert_cmphex (glyphs[i].var1.u32,  ==, 0);
     g_assert_cmphex (glyphs[i].var2.u32,  ==, 0);
   }
-
-  hb_buffer_clear (fixture->b);
-  /* XXX Make sure clear() doesn't unset other properties? */
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
 }
 
 static void

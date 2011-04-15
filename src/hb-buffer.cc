@@ -231,17 +231,6 @@ hb_buffer_get_language (hb_buffer_t *buffer)
 void
 hb_buffer_reset (hb_buffer_t *buffer)
 {
-  hb_buffer_clear (buffer);
-
-  buffer->props = _hb_buffer_nil.props;
-
-  hb_unicode_funcs_destroy (buffer->unicode);
-  buffer->unicode = _hb_buffer_nil.unicode;
-}
-
-void
-hb_buffer_clear (hb_buffer_t *buffer)
-{
   buffer->have_output = FALSE;
   buffer->have_positions = FALSE;
   buffer->in_error = FALSE;
@@ -250,6 +239,11 @@ hb_buffer_clear (hb_buffer_t *buffer)
   buffer->i = 0;
   buffer->out_info = buffer->info;
   buffer->serial = 0;
+
+  buffer->props = _hb_buffer_nil.props;
+
+  hb_unicode_funcs_destroy (buffer->unicode);
+  buffer->unicode = _hb_buffer_nil.unicode;
 }
 
 hb_bool_t
