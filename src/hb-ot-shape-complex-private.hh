@@ -37,7 +37,8 @@ HB_BEGIN_DECLS
 static inline hb_ot_complex_shaper_t
 hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
 {
-  switch ((int) props->script) {
+  switch ((int) props->script)
+  {
     case HB_SCRIPT_ARABIC:
     case HB_SCRIPT_NKO:
     case HB_SCRIPT_SYRIAC:

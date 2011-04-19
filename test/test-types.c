@@ -108,7 +108,7 @@ test_types_script (void)
 
   hb_tag_t x123 = HB_TAG_CHAR4 ("x123");
 
-  g_assert_cmpint ((signed) HB_SCRIPT_INVALID, ==, -1);
+  g_assert_cmpint ((hb_tag_t) HB_SCRIPT_INVALID, ==, HB_TAG_NONE);
   g_assert_cmphex (HB_SCRIPT_ARABIC, !=, HB_SCRIPT_LATIN);
 
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (arab));

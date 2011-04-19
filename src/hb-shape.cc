@@ -78,7 +78,9 @@ hb_shape (hb_font_t          *font,
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++) {
       hb_script_t script = get_script (buffer->info[i].codepoint);
-      if (likely (script > HB_SCRIPT_INHERITED)) {
+      if (likely (script != HB_SCRIPT_COMMON &&
+		  script != HB_SCRIPT_INHERITED &&
+		  script != HB_SCRIPT_UNKNOWN)) {
         buffer->props.script = script;
         break;
       }

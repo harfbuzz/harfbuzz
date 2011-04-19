@@ -73,10 +73,10 @@ hb_ot_map_t::compile (hb_face_t *face,
   /* Fetch script/language indices for GSUB/GPOS.  We need these later to skip
    * features not available in either table and not waste precious bits for them. */
 
-  const hb_tag_t *script_tags;
+  hb_tag_t script_tags[3] = {HB_TAG_NONE};
   hb_tag_t language_tag;
 
-  script_tags = hb_ot_tags_from_script (props->script);
+  hb_ot_tags_from_script (props->script, &script_tags[0], &script_tags[1]);
   language_tag = hb_ot_tag_from_language (props->language);
 
   unsigned int script_index[2], language_index[2];

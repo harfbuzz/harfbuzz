@@ -32,150 +32,122 @@
 HB_BEGIN_DECLS
 
 
+/* hb_script_t */
+
+static hb_tag_t
+hb_ot_old_tag_from_script (hb_script_t script)
+{
+  switch ((hb_tag_t) script) {
+    case HB_SCRIPT_COPTIC:		return HB_TAG('c','o','p','t');
+    case HB_SCRIPT_HIRAGANA:		return HB_TAG('k','a','n','a');
+    case HB_SCRIPT_LAO:			return HB_TAG('l','a','o',' ');
+    case HB_SCRIPT_YI:			return HB_TAG('y','i',' ',' ');
+    /* Unicode-5.0 additions */
+    case HB_SCRIPT_NKO:			return HB_TAG('n','k','o',' ');
+    /* Unicode-5.1 additions */
+    case HB_SCRIPT_VAI:			return HB_TAG('v','a','i',' ');
+    /* Unicode-5.2 additions */
+    case HB_SCRIPT_MEETEI_MAYEK:	return HB_TAG('m','y','e','i');
+    /* Unicode-6.0 additions */
+  }
+
+  /* Else, just change first char to lowercase and return */
+  return ((hb_tag_t) script) | 0x02000000;
+}
+
+static hb_script_t
+hb_ot_old_tag_to_script (hb_tag_t tag)
+{
+  switch (tag) {
+    case HB_TAG('c','o','p','t'):	return HB_SCRIPT_COPTIC;
+    case HB_TAG('k','a','n','a'):	return HB_SCRIPT_HIRAGANA;
+    case HB_TAG('l','a','o',' '):	return HB_SCRIPT_LAO;
+    case HB_TAG('y','i',' ',' '):	return HB_SCRIPT_YI;
+    /* Unicode-5.0 additions */
+    case HB_TAG('n','k','o',' '):	return HB_SCRIPT_NKO;
+    /* Unicode-5.1 additions */
+    case HB_TAG('v','a','i',' '):	return HB_SCRIPT_VAI;
+    /* Unicode-5.2 additions */
+    case HB_TAG('m','y','e','i'):	return HB_SCRIPT_MEETEI_MAYEK;
+    /* Unicode-6.0 additions */
+  }
+
+  /* Else, just change first char to uppercase and return */
+  return (hb_script_t) (tag & ~0x02000000);
+}
+
+static hb_tag_t
+hb_ot_new_tag_from_script (hb_script_t script)
+{
+  switch ((hb_tag_t) script) {
+    case HB_SCRIPT_BENGALI:		return HB_TAG('b','n','g','2');
+    case HB_SCRIPT_DEVANAGARI:		return HB_TAG('d','e','v','2');
+    case HB_SCRIPT_GUJARATI:		return HB_TAG('g','j','r','2');
+    case HB_SCRIPT_GURMUKHI:		return HB_TAG('g','u','r','2');
+    case HB_SCRIPT_KANNADA:		return HB_TAG('k','n','d','2');
+    case HB_SCRIPT_MALAYALAM:		return HB_TAG('m','l','m','2');
+    case HB_SCRIPT_ORIYA:		return HB_TAG('o','r','y','2');
+    case HB_SCRIPT_TAMIL:		return HB_TAG('t','m','l','2');
+    case HB_SCRIPT_TELUGU:		return HB_TAG('t','e','l','2');
+  }
+
+  return HB_TAG_NONE;
+}
+
+static hb_script_t
+hb_ot_new_tag_to_script (hb_tag_t tag)
+{
+  switch (tag) {
+    case HB_TAG('b','n','g','2'):	return HB_SCRIPT_BENGALI;
+    case HB_TAG('d','e','v','2'):	return HB_SCRIPT_DEVANAGARI;
+    case HB_TAG('g','j','r','2'):	return HB_SCRIPT_GUJARATI;
+    case HB_TAG('g','u','r','2'):	return HB_SCRIPT_GURMUKHI;
+    case HB_TAG('k','n','d','2'):	return HB_SCRIPT_KANNADA;
+    case HB_TAG('m','l','m','2'):	return HB_SCRIPT_MALAYALAM;
+    case HB_TAG('o','r','y','2'):	return HB_SCRIPT_ORIYA;
+    case HB_TAG('t','m','l','2'):	return HB_SCRIPT_TAMIL;
+    case HB_TAG('t','e','l','2'):	return HB_SCRIPT_TELUGU;
+  }
+
+  return HB_SCRIPT_UNKNOWN;
+}
+
 /*
  * Complete list at:
  * http://www.microsoft.com/typography/otspec/scripttags.htm
+ *
+ * Most of the script tags are the same as the ISO 15924 tag but lowercased.
+ * So we just do that, and handle the exceptional cases in a switch.
  */
-static const hb_tag_t ot_scripts[][3] = {
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_COMMON */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_INHERITED */
-  {HB_TAG('a','r','a','b')},	/* HB_SCRIPT_ARABIC */
-  {HB_TAG('a','r','m','n')},	/* HB_SCRIPT_ARMENIAN */
-  {HB_TAG('b','n','g','2'), HB_TAG('b','e','n','g')},	/* HB_SCRIPT_BENGALI */
-  {HB_TAG('b','o','p','o')},	/* HB_SCRIPT_BOPOMOFO */
-  {HB_TAG('c','h','e','r')},	/* HB_SCRIPT_CHEROKEE */
-  {HB_TAG('c','o','p','t')},	/* HB_SCRIPT_COPTIC */
-  {HB_TAG('c','y','r','l')},	/* HB_SCRIPT_CYRILLIC */
-  {HB_TAG('d','s','r','t')},	/* HB_SCRIPT_DESERET */
-  {HB_TAG('d','e','v','2'), HB_TAG('d','e','v','a')},	/* HB_SCRIPT_DEVANAGARI */
-  {HB_TAG('e','t','h','i')},	/* HB_SCRIPT_ETHIOPIC */
-  {HB_TAG('g','e','o','r')},	/* HB_SCRIPT_GEORGIAN */
-  {HB_TAG('g','o','t','h')},	/* HB_SCRIPT_GOTHIC */
-  {HB_TAG('g','r','e','k')},	/* HB_SCRIPT_GREEK */
-  {HB_TAG('g','j','r','2'), HB_TAG('g','u','j','r')},	/* HB_SCRIPT_GUJARATI */
-  {HB_TAG('g','u','r','2'), HB_TAG('g','u','r','u')},	/* HB_SCRIPT_GURMUKHI */
-  {HB_TAG('h','a','n','i')},	/* HB_SCRIPT_HAN */
-  {HB_TAG('h','a','n','g')},	/* HB_SCRIPT_HANGUL */
-  {HB_TAG('h','e','b','r')},	/* HB_SCRIPT_HEBREW */
-  {HB_TAG('k','a','n','a')},	/* HB_SCRIPT_HIRAGANA */
-  {HB_TAG('k','n','d','2'), HB_TAG('k','n','d','a')},	/* HB_SCRIPT_KANNADA */
-  {HB_TAG('k','a','n','a')},	/* HB_SCRIPT_KATAKANA */
-  {HB_TAG('k','h','m','r')},	/* HB_SCRIPT_KHMER */
-  {HB_TAG('l','a','o',' ')},	/* HB_SCRIPT_LAO */
-  {HB_TAG('l','a','t','n')},	/* HB_SCRIPT_LATIN */
-  {HB_TAG('m','l','m','2'), HB_TAG('m','l','y','m')},	/* HB_SCRIPT_MALAYALAM */
-  {HB_TAG('m','o','n','g')},	/* HB_SCRIPT_MONGOLIAN */
-  {HB_TAG('m','y','m','r')},	/* HB_SCRIPT_MYANMAR */
-  {HB_TAG('o','g','a','m')},	/* HB_SCRIPT_OGHAM */
-  {HB_TAG('i','t','a','l')},	/* HB_SCRIPT_OLD_ITALIC */
-  {HB_TAG('o','r','y','2'), HB_TAG('o','r','y','a')},	/* HB_SCRIPT_ORIYA */
-  {HB_TAG('r','u','n','r')},	/* HB_SCRIPT_RUNIC */
-  {HB_TAG('s','i','n','h')},	/* HB_SCRIPT_SINHALA */
-  {HB_TAG('s','y','r','c')},	/* HB_SCRIPT_SYRIAC */
-  {HB_TAG('t','m','l','2'), HB_TAG('t','a','m','l')},	/* HB_SCRIPT_TAMIL */
-  {HB_TAG('t','e','l','2'), HB_TAG('t','e','l','u')},	/* HB_SCRIPT_TELUGU */
-  {HB_TAG('t','h','a','a')},	/* HB_SCRIPT_THAANA */
-  {HB_TAG('t','h','a','i')},	/* HB_SCRIPT_THAI */
-  {HB_TAG('t','i','b','t')},	/* HB_SCRIPT_TIBETAN */
-  {HB_TAG('c','a','n','s')},	/* HB_SCRIPT_CANADIAN_ABORIGINAL */
-  {HB_TAG('y','i',' ',' ')},	/* HB_SCRIPT_YI */
-  {HB_TAG('t','g','l','g')},	/* HB_SCRIPT_TAGALOG */
-  {HB_TAG('h','a','n','o')},	/* HB_SCRIPT_HANUNOO */
-  {HB_TAG('b','u','h','d')},	/* HB_SCRIPT_BUHID */
-  {HB_TAG('t','a','g','b')},	/* HB_SCRIPT_TAGBANWA */
 
-  /* Unicode-4.0 additions */
-  {HB_TAG('b','r','a','i')},	/* HB_SCRIPT_BRAILLE */
-  {HB_TAG('c','p','r','t')},	/* HB_SCRIPT_CYPRIOT */
-  {HB_TAG('l','i','m','b')},	/* HB_SCRIPT_LIMBU */
-  {HB_TAG('o','s','m','a')},	/* HB_SCRIPT_OSMANYA */
-  {HB_TAG('s','h','a','w')},	/* HB_SCRIPT_SHAVIAN */
-  {HB_TAG('l','i','n','b')},	/* HB_SCRIPT_LINEAR_B */
-  {HB_TAG('t','a','l','e')},	/* HB_SCRIPT_TAI_LE */
-  {HB_TAG('u','g','a','r')},	/* HB_SCRIPT_UGARITIC */
-
-  /* Unicode-4.1 additions */
-  {HB_TAG('t','a','l','u')},	/* HB_SCRIPT_NEW_TAI_LUE */
-  {HB_TAG('b','u','g','i')},	/* HB_SCRIPT_BUGINESE */
-  {HB_TAG('g','l','a','g')},	/* HB_SCRIPT_GLAGOLITIC */
-  {HB_TAG('t','f','n','g')},	/* HB_SCRIPT_TIFINAGH */
-  {HB_TAG('s','y','l','o')},	/* HB_SCRIPT_SYLOTI_NAGRI */
-  {HB_TAG('x','p','e','o')},	/* HB_SCRIPT_OLD_PERSIAN */
-  {HB_TAG('k','h','a','r')},	/* HB_SCRIPT_KHAROSHTHI */
-
-  /* Unicode-5.0 additions */
-  {HB_TAG('D','F','L','T')},	/* HB_SCRIPT_UNKNOWN */
-  {HB_TAG('b','a','l','i')},	/* HB_SCRIPT_BALINESE */
-  {HB_TAG('x','s','u','x')},	/* HB_SCRIPT_CUNEIFORM */
-  {HB_TAG('p','h','n','x')},	/* HB_SCRIPT_PHOENICIAN */
-  {HB_TAG('p','h','a','g')},	/* HB_SCRIPT_PHAGS_PA */
-  {HB_TAG('n','k','o',' ')},	/* HB_SCRIPT_NKO */
-
-  /* Unicode-5.1 additions */
-  {HB_TAG('k','a','l','i')},	/* HB_SCRIPT_KAYAH_LI */
-  {HB_TAG('l','e','p','c')},	/* HB_SCRIPT_LEPCHA */
-  {HB_TAG('r','j','n','g')},	/* HB_SCRIPT_REJANG */
-  {HB_TAG('s','u','n','d')},	/* HB_SCRIPT_SUNDANESE */
-  {HB_TAG('s','a','u','r')},	/* HB_SCRIPT_SAURASHTRA */
-  {HB_TAG('c','h','a','m')},	/* HB_SCRIPT_CHAM */
-  {HB_TAG('o','l','c','k')},	/* HB_SCRIPT_OL_CHIKI */
-  {HB_TAG('v','a','i',' ')},	/* HB_SCRIPT_VAI */
-  {HB_TAG('c','a','r','i')},	/* HB_SCRIPT_CARIAN */
-  {HB_TAG('l','y','c','i')},	/* HB_SCRIPT_LYCIAN */
-  {HB_TAG('l','y','d','i')},	/* HB_SCRIPT_LYDIAN */
-
-  /* Unicode-5.2 additions */
-  {HB_TAG('a','v','s','t')},	/* HB_SCRIPT_AVESTAN */
-  {HB_TAG('b','a','m','u')},	/* HB_SCRIPT_BAMUM */
-  {HB_TAG('e','g','y','p')},	/* HB_SCRIPT_EGYPTIAN_HIEROGLYPHS */
-  {HB_TAG('a','r','m','i')},	/* HB_SCRIPT_IMPERIAL_ARAMAIC */
-  {HB_TAG('p','h','l','i')},	/* HB_SCRIPT_INSCRIPTIONAL_PAHLAVI */
-  {HB_TAG('p','r','t','i')},	/* HB_SCRIPT_INSCRIPTIONAL_PARTHIAN */
-  {HB_TAG('j','a','v','a')},	/* HB_SCRIPT_JAVANESE */
-  {HB_TAG('k','t','h','i')},	/* HB_SCRIPT_KAITHI */
-  {HB_TAG('l','i','s','u')},	/* HB_SCRIPT_LISU */
-  {HB_TAG('m','y','e','i')},	/* HB_SCRIPT_MEETEI_MAYEK */
-  {HB_TAG('s','a','r','b')},	/* HB_SCRIPT_OLD_SOUTH_ARABIAN */
-  {HB_TAG('o','r','k','h')},	/* HB_SCRIPT_OLD_TURKIC */
-  {HB_TAG('s','a','m','r')},	/* HB_SCRIPT_SAMARITAN */
-  {HB_TAG('l','a','n','a')},	/* HB_SCRIPT_TAI_THAM */
-  {HB_TAG('t','a','v','t')},	/* HB_SCRIPT_TAI_VIET */
-
-  /* Unicode-6.0 additions */
-  {HB_TAG('b','a','t','k')},	/* HB_SCRIPT_BATAK */
-  {HB_TAG('b','r','a','h')},	/* HB_SCRIPT_BRAHMI */
-  {HB_TAG('m','a','n','d')} 	/* HB_SCRIPT_MANDAIC */
-};
-
-const hb_tag_t *
-hb_ot_tags_from_script (hb_script_t script)
+void
+hb_ot_tags_from_script (hb_script_t  script,
+			hb_tag_t    *script_tag_1,
+			hb_tag_t    *script_tag_2)
 {
-  static const hb_tag_t def_tag[] = {HB_OT_TAG_DEFAULT_SCRIPT, HB_TAG_NONE};
+  hb_tag_t new_tag;
 
-  /* XXX Handle non-enum scripts */
+  *script_tag_2 = HB_TAG_NONE;
+  *script_tag_1 = hb_ot_old_tag_from_script (script);
 
-  if (unlikely ((unsigned int) script >= ARRAY_LENGTH (ot_scripts)))
-    return def_tag;
-
-  return ot_scripts[script];
+  new_tag = hb_ot_new_tag_from_script (script);
+  if (unlikely (new_tag != HB_TAG_NONE)) {
+    *script_tag_2 = *script_tag_1;
+    *script_tag_1 = new_tag;
+  }
 }
 
 hb_script_t
 hb_ot_tag_to_script (hb_tag_t tag)
 {
-  int i;
+  if (unlikely ((tag & 0x000000FF) == '2'))
+    return hb_ot_new_tag_to_script (tag);
 
-  for (i = 0; i < ARRAY_LENGTH (ot_scripts); i++) {
-    const hb_tag_t *p;
-    for (p = ot_scripts[i]; *p; p++)
-      if (tag == *p)
-        return i;
-  }
-
-  /* XXX Convert to non-enum scripts */
-
-  return HB_SCRIPT_UNKNOWN;
+  return hb_ot_old_tag_to_script (tag);
 }
+
+
+/* hb_language_t */
 
 typedef struct {
   char language[6];
