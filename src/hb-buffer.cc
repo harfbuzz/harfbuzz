@@ -260,6 +260,12 @@ hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
   return _hb_buffer_ensure (buffer, size);
 }
 
+hb_bool_t
+hb_buffer_allocation_successful (hb_buffer_t  *buffer)
+{
+  return !buffer->in_error;
+}
+
 void
 hb_buffer_add_glyph (hb_buffer_t    *buffer,
 		     hb_codepoint_t  codepoint,
