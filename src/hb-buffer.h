@@ -126,10 +126,10 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer);
 /* Filling the buffer in */
 
 void
-hb_buffer_add_glyph (hb_buffer_t    *buffer,
-		     hb_codepoint_t  codepoint,
-		     hb_mask_t       mask,
-		     unsigned int    cluster);
+hb_buffer_add (hb_buffer_t    *buffer,
+	       hb_codepoint_t  codepoint,
+	       hb_mask_t       mask,
+	       unsigned int    cluster);
 
 void
 hb_buffer_add_utf8 (hb_buffer_t  *buffer,

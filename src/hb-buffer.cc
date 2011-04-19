@@ -267,10 +267,10 @@ hb_buffer_allocation_successful (hb_buffer_t  *buffer)
 }
 
 void
-hb_buffer_add_glyph (hb_buffer_t    *buffer,
-		     hb_codepoint_t  codepoint,
-		     hb_mask_t       mask,
-		     unsigned int    cluster)
+hb_buffer_add (hb_buffer_t    *buffer,
+	       hb_codepoint_t  codepoint,
+	       hb_mask_t       mask,
+	       unsigned int    cluster)
 {
   hb_glyph_info_t *glyph;
 
@@ -572,7 +572,7 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 	    hb_codepoint_t u; \
 	    const T *old_next = next; \
 	    next = UTF_NEXT (next, end, u); \
-	    hb_buffer_add_glyph (buffer, u, 1,  old_next - (const T *) text); \
+	    hb_buffer_add (buffer, u, 1,  old_next - (const T *) text); \
 	  } \
 	} HB_STMT_END
 
