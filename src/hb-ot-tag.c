@@ -52,7 +52,7 @@ hb_ot_old_tag_from_script (hb_script_t script)
   }
 
   /* Else, just change first char to lowercase and return */
-  return ((hb_tag_t) script) | 0x02000000;
+  return ((hb_tag_t) script) | 0x20000000;
 }
 
 static hb_script_t
@@ -73,7 +73,7 @@ hb_ot_old_tag_to_script (hb_tag_t tag)
   }
 
   /* Else, just change first char to uppercase and return */
-  return (hb_script_t) (tag & ~0x02000000);
+  return (hb_script_t) (tag & ~0x20000000);
 }
 
 static hb_tag_t
