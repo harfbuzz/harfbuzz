@@ -77,7 +77,7 @@ hb_shape (hb_font_t          *font,
     hb_unicode_get_script_func_t get_script = buffer->unicode->v.get_script;
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++) {
-      hb_script_t script = get_script (buffer->info[i].codepoint);
+      hb_script_t script = get_script (buffer->unicode, buffer->info[i].codepoint, buffer->unicode->v.get_script_data);
       if (likely (script != HB_SCRIPT_COMMON &&
 		  script != HB_SCRIPT_INHERITED &&
 		  script != HB_SCRIPT_UNKNOWN)) {

@@ -38,11 +38,27 @@
 HB_BEGIN_DECLS
 
 
-static hb_codepoint_t hb_icu_get_mirroring (hb_codepoint_t unicode) { return u_charMirror(unicode); }
-static unsigned int hb_icu_get_combining_class (hb_codepoint_t unicode) { return u_getCombiningClass (unicode); }
+static hb_codepoint_t
+hb_icu_get_mirroring (hb_unicode_funcs_t *ufuncs,
+		      hb_codepoint_t      unicode,
+		      void               *user_data)
+{
+  return u_charMirror(unicode);
+}
 
 static unsigned int
-hb_icu_get_eastasian_width (hb_codepoint_t unicode)
+hb_icu_get_combining_class (hb_unicode_funcs_t *ufuncs,
+			    hb_codepoint_t      unicode,
+			    void               *user_data)
+
+{
+  return u_getCombiningClass (unicode);
+}
+
+static unsigned int
+hb_icu_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
+			    hb_codepoint_t      unicode,
+			    void               *user_data)
 {
   switch (u_getIntPropertyValue(unicode, UCHAR_EAST_ASIAN_WIDTH))
   {
@@ -59,7 +75,9 @@ hb_icu_get_eastasian_width (hb_codepoint_t unicode)
 }
 
 static hb_unicode_general_category_t
-hb_icu_get_general_category (hb_codepoint_t unicode)
+hb_icu_get_general_category (hb_unicode_funcs_t *ufuncs,
+			     hb_codepoint_t      unicode,
+			     void               *user_data)
 {
   switch (u_getIntPropertyValue(unicode, UCHAR_GENERAL_CATEGORY))
   {
@@ -108,7 +126,9 @@ hb_icu_get_general_category (hb_codepoint_t unicode)
 }
 
 static hb_script_t
-hb_icu_get_script (hb_codepoint_t unicode)
+hb_icu_get_script (hb_unicode_funcs_t *ufuncs,
+		   hb_codepoint_t      unicode,
+		   void               *user_data)
 {
   UErrorCode status = U_ZERO_ERROR;
   UScriptCode scriptCode = uscript_getScript(unicode, &status);
@@ -234,19 +254,24 @@ hb_icu_get_script (hb_codepoint_t unicode)
   MATCH_SCRIPT (BRAHMI);                 /* Brah */
   MATCH_SCRIPT2(MANDAEAN, MANDAIC);      /* Mand */
 
+#undef CHECK_ICU_VERSION
+#undef MATCH_SCRIPT
+#undef MATCH_SCRIPT2
   }
+
   return HB_SCRIPT_UNKNOWN;
 }
 
 static hb_unicode_funcs_t icu_ufuncs = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  NULL,
   TRUE, /* immutable */
   {
-    hb_icu_get_general_category,
-    hb_icu_get_combining_class,
-    hb_icu_get_mirroring,
-    hb_icu_get_script,
-    hb_icu_get_eastasian_width
+    hb_icu_get_general_category, NULL, NULL,
+    hb_icu_get_combining_class, NULL, NULL,
+    hb_icu_get_mirroring, NULL, NULL,
+    hb_icu_get_script, NULL, NULL,
+    hb_icu_get_eastasian_width, NULL, NULL
   }
 };
 

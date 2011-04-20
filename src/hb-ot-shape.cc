@@ -149,8 +149,10 @@ hb_set_unicode_props (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++) {
-    info[i].general_category() = get_general_category (info[i].codepoint);
-    info[i].combining_class() = get_combining_class (info[i].codepoint);
+    info[i].general_category() = get_general_category (c->buffer->unicode, info[i].codepoint,
+                                                       c->buffer->unicode->v.get_general_category_data);
+    info[i].combining_class() = get_combining_class (c->buffer->unicode, info[i].codepoint,
+                                                     c->buffer->unicode->v.get_combining_class_data);
   }
 }
 
@@ -200,7 +202,8 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_codepoint_t codepoint = get_mirroring (c->buffer->info[i].codepoint);
+    hb_codepoint_t codepoint = get_mirroring (c->buffer->unicode, c->buffer->info[i].codepoint,
+                                              c->buffer->unicode->v.get_mirroring_data);
     if (likely (codepoint == c->buffer->info[i].codepoint))
       c->buffer->info[i].mask |= rtlm_mask; /* XXX this should be moved to before setting user-feature masks */
     else

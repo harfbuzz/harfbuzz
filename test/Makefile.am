@@ -11,6 +11,7 @@ check_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS += \
 	test-buffer \
 	test-types \
+	test-unicode \
 	$(NULL)
 
 
