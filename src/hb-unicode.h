@@ -52,14 +52,15 @@ hb_unicode_funcs_get_reference_count (hb_unicode_funcs_t *ufuncs);
 void
 hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs);
 
-hb_unicode_funcs_t *
-hb_unicode_funcs_get_parent (hb_unicode_funcs_t *ufuncs);
-
 void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs);
 
 hb_bool_t
 hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs);
+
+hb_unicode_funcs_t *
+hb_unicode_funcs_get_parent (hb_unicode_funcs_t *ufuncs);
+
 
 /*
  * funcs
@@ -88,32 +89,27 @@ typedef unsigned int                  (*hb_unicode_get_eastasian_width_func_t)  
 void
 hb_unicode_funcs_set_mirroring_func (hb_unicode_funcs_t *ufuncs,
 				     hb_unicode_get_mirroring_func_t mirroring_func,
-                                     void *user_data,
-                                     hb_destroy_func_t destroy);
+                                     void *user_data, hb_destroy_func_t destroy);
 
 void
 hb_unicode_funcs_set_general_category_func (hb_unicode_funcs_t *ufuncs,
 					    hb_unicode_get_general_category_func_t general_category_func,
-                                            void *user_data,
-                                            hb_destroy_func_t destroy);
+                                            void *user_data, hb_destroy_func_t destroy);
 
 void
 hb_unicode_funcs_set_script_func (hb_unicode_funcs_t *ufuncs,
 				  hb_unicode_get_script_func_t script_func,
-                                  void *user_data,
-                                  hb_destroy_func_t destroy);
+                                  void *user_data, hb_destroy_func_t destroy);
 
 void
 hb_unicode_funcs_set_combining_class_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_get_combining_class_func_t combining_class_func,
-                                           void *user_data,
-                                           hb_destroy_func_t destroy);
+                                           void *user_data, hb_destroy_func_t destroy);
 
 void
 hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 					   hb_unicode_get_eastasian_width_func_t eastasian_width_func,
-                                           void *user_data,
-                                           hb_destroy_func_t destroy);
+                                           void *user_data, hb_destroy_func_t destroy);
 
 
 /* accessors */
