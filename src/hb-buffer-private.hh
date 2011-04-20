@@ -30,7 +30,7 @@
 
 #include "hb-private.h"
 #include "hb-buffer.h"
-#include "hb-unicode-private.h"
+#include "hb-unicode-private.hh"
 
 HB_BEGIN_DECLS
 

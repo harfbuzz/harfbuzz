@@ -143,16 +143,13 @@ is_variation_selector (hb_codepoint_t unicode)
 static void
 hb_set_unicode_props (hb_ot_shape_context_t *c)
 {
-  hb_unicode_get_general_category_func_t get_general_category = c->buffer->unicode->v.get_general_category;
-  hb_unicode_get_combining_class_func_t get_combining_class = c->buffer->unicode->v.get_combining_class;
+  hb_unicode_funcs_t *unicode = c->buffer->unicode;
   hb_glyph_info_t *info = c->buffer->info;
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++) {
-    info[i].general_category() = get_general_category (c->buffer->unicode, info[i].codepoint,
-                                                       c->buffer->unicode->v.get_general_category_data);
-    info[i].combining_class() = get_combining_class (c->buffer->unicode, info[i].codepoint,
-                                                     c->buffer->unicode->v.get_combining_class_data);
+    info[i].general_category() = unicode->get_general_category (info[i].codepoint);
+    info[i].combining_class() = unicode->get_combining_class (info[i].codepoint);
   }
 }
 
@@ -193,7 +190,7 @@ hb_reset_glyph_infos (hb_ot_shape_context_t *c)
 static void
 hb_mirror_chars (hb_ot_shape_context_t *c)
 {
-  hb_unicode_get_mirroring_func_t get_mirroring = c->buffer->unicode->v.get_mirroring;
+  hb_unicode_funcs_t *unicode = c->buffer->unicode;
 
   if (HB_DIRECTION_IS_FORWARD (c->target_direction))
     return;
@@ -202,8 +199,7 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_codepoint_t codepoint = get_mirroring (c->buffer->unicode, c->buffer->info[i].codepoint,
-                                              c->buffer->unicode->v.get_mirroring_data);
+    hb_codepoint_t codepoint = unicode->get_mirroring (c->buffer->info[i].codepoint);
     if (likely (codepoint == c->buffer->info[i].codepoint))
       c->buffer->info[i].mask |= rtlm_mask; /* XXX this should be moved to before setting user-feature masks */
     else

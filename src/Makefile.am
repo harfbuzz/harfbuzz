@@ -24,8 +24,8 @@ HBSOURCES =  \
 	hb-ot-head-private.hh \
 	hb-private.h \
 	hb-shape.cc \
-	hb-unicode.c \
-	hb-unicode-private.h \
+	hb-unicode.cc \
+	hb-unicode-private.hh \
 	$(NULL)
 HBHEADERS = \
 	hb.h \
@@ -65,7 +65,7 @@ if HAVE_GLIB
 HBCFLAGS += $(GLIB_CFLAGS)
 HBLIBS   += $(GLIB_LIBS)
 HBSOURCES += \
-	hb-glib.c \
+	hb-glib.cc \
 	$(NULL)
 HBHEADERS += \
 	hb-glib.h \
@@ -76,7 +76,7 @@ if HAVE_ICU
 HBCFLAGS += $(ICU_CFLAGS)
 HBLIBS   += $(ICU_LIBS)
 HBSOURCES += \
-	hb-icu.c \
+	hb-icu.cc \
 	$(NULL)
 HBHEADERS += \
 	hb-icu.h \

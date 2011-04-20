@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009  Red Hat, Inc.
  * Copyright © 2011 Codethink Limited
+ * Copyright (C) 2010  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,10 +25,11 @@
  *
  * Red Hat Author(s): Behdad Esfahbod
  * Codethink Author(s): Ryan Lortie
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_UNICODE_PRIVATE_H
-#define HB_UNICODE_PRIVATE_H
+#ifndef HB_UNICODE_PRIVATE_HH
+#define HB_UNICODE_PRIVATE_HH
 
 #include "hb-private.h"
 
@@ -46,27 +48,44 @@ struct _hb_unicode_funcs_t {
 
   hb_bool_t immutable;
 
+#define IMPLEMENT(return_type, name) \
+  inline return_type \
+  get_##name (hb_codepoint_t unicode) \
+  { return this->get.name (this, unicode, this->user_data.name); }
+
+  IMPLEMENT (unsigned int, combining_class)
+  IMPLEMENT (unsigned int, eastasian_width)
+  IMPLEMENT (hb_unicode_general_category_t, general_category)
+  IMPLEMENT (hb_codepoint_t, mirroring)
+  IMPLEMENT (hb_script_t, script)
+
+#undef IMPLEMENT
+
+  /* Don't access these directly.  Call get_*() instead. */
+
   struct {
-    hb_unicode_get_general_category_func_t	get_general_category;
-    void                                       *get_general_category_data;
-    hb_destroy_func_t                           get_general_category_destroy;
+    hb_unicode_get_combining_class_func_t	combining_class;
+    hb_unicode_get_eastasian_width_func_t	eastasian_width;
+    hb_unicode_get_general_category_func_t	general_category;
+    hb_unicode_get_mirroring_func_t		mirroring;
+    hb_unicode_get_script_func_t		script;
+  } get;
 
-    hb_unicode_get_combining_class_func_t	get_combining_class;
-    void                                       *get_combining_class_data;
-    hb_destroy_func_t                           get_combining_class_destroy;
+  struct {
+    void 					*combining_class;
+    void 					*eastasian_width;
+    void 					*general_category;
+    void 					*mirroring;
+    void 					*script;
+  } user_data;
 
-    hb_unicode_get_mirroring_func_t		get_mirroring;
-    void                                       *get_mirroring_data;
-    hb_destroy_func_t                           get_mirroring_destroy;
-
-    hb_unicode_get_script_func_t		get_script;
-    void                                       *get_script_data;
-    hb_destroy_func_t                           get_script_destroy;
-
-    hb_unicode_get_eastasian_width_func_t	get_eastasian_width;
-    void                                       *get_eastasian_width_data;
-    hb_destroy_func_t                           get_eastasian_width_destroy;
-  } v;
+  struct {
+    hb_destroy_func_t				combining_class;
+    hb_destroy_func_t				eastasian_width;
+    hb_destroy_func_t				general_category;
+    hb_destroy_func_t				mirroring;
+    hb_destroy_func_t				script;
+  } destroy;
 };
 
 extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;
@@ -74,4 +93,4 @@ extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;
 
 HB_END_DECLS
 
-#endif /* HB_UNICODE_PRIVATE_H */
+#endif /* HB_UNICODE_PRIVATE_HH */

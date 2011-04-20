@@ -120,10 +120,14 @@ a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
 static void
 test_subclassing_nil (void)
 {
-  hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
+  hb_unicode_funcs_t *uf, *aa;
+
+  uf = hb_unicode_funcs_create (NULL);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
-  hb_unicode_funcs_t *aa = hb_unicode_funcs_create (uf);
+
+  aa = hb_unicode_funcs_create (uf);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 2);
+
   hb_unicode_funcs_destroy (uf);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
 
@@ -132,7 +136,6 @@ test_subclassing_nil (void)
 
   g_assert_cmpint (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmpint (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_UNKNOWN);
-
 
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (aa), ==, 1);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
@@ -145,10 +148,14 @@ test_subclassing_nil (void)
 static void
 test_subclassing_glib (void)
 {
-  hb_unicode_funcs_t *uf = hb_glib_get_unicode_funcs ();
+  hb_unicode_funcs_t *uf, *aa;
+
+  uf = hb_glib_get_unicode_funcs ();
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
-  hb_unicode_funcs_t *aa = hb_unicode_funcs_create (uf);
+
+  aa = hb_unicode_funcs_create (uf);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
+
   hb_unicode_funcs_destroy (uf);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
 
@@ -168,13 +175,15 @@ test_subclassing_glib (void)
 static void
 test_subclassing_deep (void)
 {
-  hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
+  hb_unicode_funcs_t *uf, *aa;
+
+  uf = hb_unicode_funcs_create (NULL);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
 
   hb_unicode_funcs_set_script_func (uf, simple_get_script,
                                     unique_pointer0, free_up);
 
-  hb_unicode_funcs_t *aa = hb_unicode_funcs_create (uf);
+  aa = hb_unicode_funcs_create (uf);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (aa), ==, 1);
   g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 2);
 

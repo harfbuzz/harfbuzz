@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2009  Red Hat, Inc.
+ * Copyright (C) 2009  Keith Stribley
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -26,45 +27,117 @@
 
 #include "hb-private.h"
 
-#include "hb-glib.h"
+#include "hb-icu.h"
 
-#include "hb-unicode-private.h"
+#include "hb-unicode-private.hh"
 
-#include <glib.h>
+#include <unicode/uversion.h>
+#include <unicode/uchar.h>
+#include <unicode/uscript.h>
 
 HB_BEGIN_DECLS
 
 
-static hb_codepoint_t
-hb_glib_get_mirroring (hb_unicode_funcs_t *ufuncs,
-                       hb_codepoint_t      unicode,
-                       void               *user_data)
+static unsigned int
+hb_icu_get_combining_class (hb_unicode_funcs_t *ufuncs,
+			    hb_codepoint_t      unicode,
+			    void               *user_data)
+
 {
-  g_unichar_get_mirror_char (unicode, &unicode);
-  return unicode;
+  return u_getCombiningClass (unicode);
+}
+
+static unsigned int
+hb_icu_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
+			    hb_codepoint_t      unicode,
+			    void               *user_data)
+{
+  switch (u_getIntPropertyValue(unicode, UCHAR_EAST_ASIAN_WIDTH))
+  {
+  case U_EA_WIDE:
+  case U_EA_FULLWIDTH:
+    return 2;
+  case U_EA_NEUTRAL:
+  case U_EA_AMBIGUOUS:
+  case U_EA_HALFWIDTH:
+  case U_EA_NARROW:
+    return 1;
+  }
+  return 1;
 }
 
 static hb_unicode_general_category_t
-hb_glib_get_general_category (hb_unicode_funcs_t *ufuncs,
-                              hb_codepoint_t      unicode,
-                              void               *user_data)
-
+hb_icu_get_general_category (hb_unicode_funcs_t *ufuncs,
+			     hb_codepoint_t      unicode,
+			     void               *user_data)
 {
-  return g_unichar_type (unicode);
+  switch (u_getIntPropertyValue(unicode, UCHAR_GENERAL_CATEGORY))
+  {
+  case U_UNASSIGNED:			return HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED;
+
+  case U_UPPERCASE_LETTER:		return HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER;	/* Lu */
+  case U_LOWERCASE_LETTER:		return HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER;	/* Ll */
+  case U_TITLECASE_LETTER:		return HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER;	/* Lt */
+  case U_MODIFIER_LETTER:		return HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER;	/* Lm */
+  case U_OTHER_LETTER:			return HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER;	/* Lo */
+
+  case U_NON_SPACING_MARK:		return HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK;	/* Mn */
+  case U_ENCLOSING_MARK:		return HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;	/* Me */
+  case U_COMBINING_SPACING_MARK:	return HB_UNICODE_GENERAL_CATEGORY_COMBINING_MARK;	/* Mc */
+
+  case U_DECIMAL_DIGIT_NUMBER:		return HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER;	/* Nd */
+  case U_LETTER_NUMBER:			return HB_UNICODE_GENERAL_CATEGORY_LETTER_NUMBER;	/* Nl */
+  case U_OTHER_NUMBER:			return HB_UNICODE_GENERAL_CATEGORY_OTHER_NUMBER;	/* No */
+
+  case U_SPACE_SEPARATOR:		return HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR;	/* Zs */
+  case U_LINE_SEPARATOR:		return HB_UNICODE_GENERAL_CATEGORY_LINE_SEPARATOR;	/* Zl */
+  case U_PARAGRAPH_SEPARATOR:		return HB_UNICODE_GENERAL_CATEGORY_PARAGRAPH_SEPARATOR;	/* Zp */
+
+  case U_CONTROL_CHAR:			return HB_UNICODE_GENERAL_CATEGORY_CONTROL;		/* Cc */
+  case U_FORMAT_CHAR:			return HB_UNICODE_GENERAL_CATEGORY_FORMAT;		/* Cf */
+  case U_PRIVATE_USE_CHAR:		return HB_UNICODE_GENERAL_CATEGORY_PRIVATE_USE;		/* Co */
+  case U_SURROGATE:			return HB_UNICODE_GENERAL_CATEGORY_SURROGATE;		/* Cs */
+
+
+  case U_DASH_PUNCTUATION:		return HB_UNICODE_GENERAL_CATEGORY_DASH_PUNCTUATION;	/* Pd */
+  case U_START_PUNCTUATION:		return HB_UNICODE_GENERAL_CATEGORY_OPEN_PUNCTUATION;	/* Ps */
+  case U_END_PUNCTUATION:		return HB_UNICODE_GENERAL_CATEGORY_CLOSE_PUNCTUATION;	/* Pe */
+  case U_CONNECTOR_PUNCTUATION:		return HB_UNICODE_GENERAL_CATEGORY_CONNECT_PUNCTUATION;	/* Pc */
+  case U_OTHER_PUNCTUATION:		return HB_UNICODE_GENERAL_CATEGORY_OTHER_PUNCTUATION;	/* Po */
+
+  case U_MATH_SYMBOL:			return HB_UNICODE_GENERAL_CATEGORY_MATH_SYMBOL;		/* Sm */
+  case U_CURRENCY_SYMBOL:		return HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL;	/* Sc */
+  case U_MODIFIER_SYMBOL:		return HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL;	/* Sk */
+  case U_OTHER_SYMBOL:			return HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL;	/* So */
+
+  case U_INITIAL_PUNCTUATION:		return HB_UNICODE_GENERAL_CATEGORY_INITIAL_PUNCTUATION;	/* Pi */
+  case U_FINAL_PUNCTUATION:		return HB_UNICODE_GENERAL_CATEGORY_FINAL_PUNCTUATION;	/* Pf */
+  }
+
+  return HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED;
+}
+
+static hb_codepoint_t
+hb_icu_get_mirroring (hb_unicode_funcs_t *ufuncs,
+		      hb_codepoint_t      unicode,
+		      void               *user_data)
+{
+  return u_charMirror(unicode);
 }
 
 static hb_script_t
-hb_glib_get_script (hb_unicode_funcs_t *ufuncs,
-                    hb_codepoint_t      unicode,
-                    void               *user_data)
+hb_icu_get_script (hb_unicode_funcs_t *ufuncs,
+		   hb_codepoint_t      unicode,
+		   void               *user_data)
 {
-  GUnicodeScript script = g_unichar_get_script (unicode);
-  switch (script)
+  UErrorCode status = U_ZERO_ERROR;
+  UScriptCode scriptCode = uscript_getScript(unicode, &status);
+  switch ((int) scriptCode)
   {
-#define MATCH_SCRIPT(C) case G_UNICODE_SCRIPT_##C: return HB_SCRIPT_##C
-#define MATCH_SCRIPT2(C1, C2) case G_UNICODE_SCRIPT_##C1: return HB_SCRIPT_##C2
-
-  MATCH_SCRIPT2(INVALID_CODE, INVALID);
+#define CHECK_ICU_VERSION(major, minor) \
+	U_ICU_VERSION_MAJOR_NUM > (major) || (U_ICU_VERSION_MAJOR_NUM == (major) && U_ICU_VERSION_MINOR_NUM >= (minor))
+#define MATCH_SCRIPT(C) case USCRIPT_##C: return HB_SCRIPT_##C
+#define MATCH_SCRIPT2(C1, C2) case USCRIPT_##C1: return HB_SCRIPT_##C2
 
   MATCH_SCRIPT (COMMON);             /* Zyyy */
   MATCH_SCRIPT (INHERITED);          /* Qaai */
@@ -154,35 +227,34 @@ hb_glib_get_script (hb_unicode_funcs_t *ufuncs,
   MATCH_SCRIPT (LYDIAN);             /* Lydi */
 
   /* Unicode-5.2 additions */
-#if GLIB_CHECK_VERSION(2,26,0)
   MATCH_SCRIPT (AVESTAN);                /* Avst */
+#if CHECK_ICU_VERSION (4, 4)
   MATCH_SCRIPT (BAMUM);                  /* Bamu */
+#endif
   MATCH_SCRIPT (EGYPTIAN_HIEROGLYPHS);   /* Egyp */
   MATCH_SCRIPT (IMPERIAL_ARAMAIC);       /* Armi */
   MATCH_SCRIPT (INSCRIPTIONAL_PAHLAVI);  /* Phli */
   MATCH_SCRIPT (INSCRIPTIONAL_PARTHIAN); /* Prti */
   MATCH_SCRIPT (JAVANESE);               /* Java */
   MATCH_SCRIPT (KAITHI);                 /* Kthi */
-  MATCH_SCRIPT (TAI_THAM);               /* Lana */
+  MATCH_SCRIPT2(LANNA, TAI_THAM);        /* Lana */
+#if CHECK_ICU_VERSION (4, 4)
   MATCH_SCRIPT (LISU);                   /* Lisu */
-  MATCH_SCRIPT (MEETEI_MAYEK);           /* Mtei */
-  MATCH_SCRIPT (OLD_SOUTH_ARABIAN);      /* Sarb */
-#if GLIB_CHECK_VERSION(2,28,0)
-  MATCH_SCRIPT (OLD_TURKIC);             /* Orkh */
-#else
-  MATCH_SCRIPT2(OLD_TURKISH, OLD_TURKIC);/* Orkh */
 #endif
+  MATCH_SCRIPT2(MEITEI_MAYEK, MEETEI_MAYEK);/* Mtei */
+#if CHECK_ICU_VERSION (4, 4)
+  MATCH_SCRIPT (OLD_SOUTH_ARABIAN);      /* Sarb */
+#endif
+  MATCH_SCRIPT2(ORKHON, OLD_TURKIC);     /* Orkh */
   MATCH_SCRIPT (SAMARITAN);              /* Samr */
   MATCH_SCRIPT (TAI_VIET);               /* Tavt */
-#endif
 
   /* Unicode-6.0 additions */
-#if GLIB_CHECK_VERSION(2,28,0)
   MATCH_SCRIPT (BATAK);                  /* Batk */
   MATCH_SCRIPT (BRAHMI);                 /* Brah */
-  MATCH_SCRIPT (MANDAIC);                /* Mand */
-#endif
+  MATCH_SCRIPT2(MANDAEAN, MANDAIC);      /* Mand */
 
+#undef CHECK_ICU_VERSION
 #undef MATCH_SCRIPT
 #undef MATCH_SCRIPT2
   }
@@ -190,40 +262,23 @@ hb_glib_get_script (hb_unicode_funcs_t *ufuncs,
   return HB_SCRIPT_UNKNOWN;
 }
 
-static unsigned int
-hb_glib_get_combining_class (hb_unicode_funcs_t *ufuncs,
-                             hb_codepoint_t      unicode,
-                             void               *user_data)
-
-{
-  return g_unichar_combining_class (unicode);
-}
-
-static unsigned int
-hb_glib_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
-                             hb_codepoint_t      unicode,
-                             void               *user_data)
-{
-  return g_unichar_iswide (unicode) ? 2 : 1;
-}
-
-static hb_unicode_funcs_t glib_ufuncs = {
+static hb_unicode_funcs_t icu_ufuncs = {
   HB_REFERENCE_COUNT_INVALID, /* ref_count */
-  NULL,
+  NULL, /* parent */
   TRUE, /* immutable */
   {
-    hb_glib_get_general_category, NULL, NULL,
-    hb_glib_get_combining_class, NULL, NULL,
-    hb_glib_get_mirroring, NULL, NULL,
-    hb_glib_get_script, NULL, NULL,
-    hb_glib_get_eastasian_width, NULL, NULL
+    hb_icu_get_combining_class,
+    hb_icu_get_eastasian_width,
+    hb_icu_get_general_category,
+    hb_icu_get_mirroring,
+    hb_icu_get_script
   }
 };
 
 hb_unicode_funcs_t *
-hb_glib_get_unicode_funcs (void)
+hb_icu_get_unicode_funcs (void)
 {
-  return &glib_ufuncs;
+  return &icu_ufuncs;
 }
 
 
