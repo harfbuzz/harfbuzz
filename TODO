@@ -16,15 +16,9 @@ General fixes:
 API issues to fix before 1.0:
 ============================
 
-- Rename / remove hb_buffer_add_glyph()?
-
-- Sprinkle const all over public and private API
-
 - Rename get_table to reference_table
 
 - get_table shouldn't return NULL
-
-- Use tags for hb_script_t
 
 - Figure out how many .so objects, how to link, etc
 
@@ -36,13 +30,13 @@ API issues to fix before 1.0:
 
 - Investigate Mozilla's user-data issue, make sure it's addressed
 
-- Add hb-glib / hb-icu two-way script conversion API
-
 - Add hb-cairo glue
 
 - Fix blob, remove mutex, etc.
 
 - Add sanitize API (since may affect blob API)
+
+- Add glib GBoxedType stuff
 
 
 API to add (maybe after 1.0):

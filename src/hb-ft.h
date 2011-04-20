@@ -36,6 +36,7 @@
 
 HB_BEGIN_DECLS
 
+/* Note: FreeType is not thread-safe.  Hence, these functions are not either. */
 
 hb_font_funcs_t *
 hb_ft_get_font_funcs (void);
@@ -44,7 +45,6 @@ hb_face_t *
 hb_ft_face_create (FT_Face           ft_face,
 		   hb_destroy_func_t destroy);
 
-/* Note: This function is not thread-safe */
 hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face);
 
