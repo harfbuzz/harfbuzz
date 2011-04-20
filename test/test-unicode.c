@@ -220,5 +220,8 @@ main (int argc, char **argv)
   g_test_add_func ("/unicode/subclassing/glib", test_subclassing_glib);
   g_test_add_func ("/unicode/subclassing/deep", test_subclassing_deep);
 
+  /* XXX test all methods for their defaults and various (glib, icu) implementations. */
+  /* XXX test glib & icu two-way script conversion */
+
   return g_test_run ();
 }
