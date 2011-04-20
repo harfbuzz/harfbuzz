@@ -28,7 +28,7 @@
 #ifndef HB_BUFFER_PRIVATE_HH
 #define HB_BUFFER_PRIVATE_HH
 
-#include "hb-private.h"
+#include "hb-private.hh"
 #include "hb-buffer.h"
 #include "hb-unicode-private.hh"
 

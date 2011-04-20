@@ -42,6 +42,9 @@
 #include <cairo-ft.h>
 #include <hb-ft.h>
 
+HB_BEGIN_DECLS
+
+
 /* Controlled by cmd-line options */
 static int margin_t = 10;
 static int margin_b = 10;
@@ -533,3 +536,6 @@ main (int argc, char **argv)
 
   return 0;
 }
+
+
+HB_END_DECLS

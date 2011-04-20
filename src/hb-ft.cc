@@ -25,11 +25,11 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 #include "hb-ft.h"
 
-#include "hb-font-private.h"
+#include "hb-font-private.hh"
 
 #include FT_TRUETYPE_TABLES_H
 

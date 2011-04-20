@@ -31,7 +31,7 @@
 
 #include "hb-ot-layout-common-private.hh"
 
-#include "hb-font-private.h"
+#include "hb-font-private.hh"
 
 HB_BEGIN_DECLS
 

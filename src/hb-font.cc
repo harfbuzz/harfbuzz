@@ -24,10 +24,10 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
-#include "hb-font-private.h"
-#include "hb-blob-private.h"
+#include "hb-font-private.hh"
+#include "hb-blob-private.hh"
 #include "hb-open-file-private.hh"
 
 #include "hb-ot-layout-private.hh"

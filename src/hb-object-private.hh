@@ -27,10 +27,10 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OBJECT_PRIVATE_H
-#define HB_OBJECT_PRIVATE_H
+#ifndef HB_OBJECT_PRIVATE_HH
+#define HB_OBJECT_PRIVATE_HH
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -52,8 +52,6 @@ typedef struct {
 #define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
 
 #define HB_REFERENCE_COUNT_IS_INVALID(RC) (HB_REFERENCE_COUNT_GET_VALUE (RC) == HB_REFERENCE_COUNT_INVALID_VALUE)
-
-#define HB_REFERENCE_COUNT_HAS_REFERENCE(RC) (HB_REFERENCE_COUNT_GET_VALUE (RC) > 0)
 
 
 
@@ -131,4 +129,4 @@ _hb_trace_object (const void *obj,
 
 HB_END_DECLS
 
-#endif /* HB_OBJECT_PRIVATE_H */
+#endif /* HB_OBJECT_PRIVATE_HH */

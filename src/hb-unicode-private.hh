@@ -31,7 +31,7 @@
 #ifndef HB_UNICODE_PRIVATE_HH
 #define HB_UNICODE_PRIVATE_HH
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 #include "hb-unicode.h"
 

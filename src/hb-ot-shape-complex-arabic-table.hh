@@ -24,10 +24,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_H
-#define HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_H
+#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH
+#define HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -671,4 +671,4 @@ static const uint8_t joining_table[] =
 
 HB_END_DECLS
 
-#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_H */
+#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH */

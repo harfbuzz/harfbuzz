@@ -27,7 +27,7 @@
 #ifndef HB_OPEN_TYPE_PRIVATE_HH
 #define HB_OPEN_TYPE_PRIVATE_HH
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 #include "hb-blob.h"
 

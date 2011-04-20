@@ -28,7 +28,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 #include "hb-unicode-private.hh"
 

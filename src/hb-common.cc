@@ -24,7 +24,7 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -70,8 +70,8 @@ static hb_bool_t
 lang_equal (const void *v1,
 	    const void *v2)
 {
-  const unsigned char *p1 = v1;
-  const unsigned char *p2 = v2;
+  const unsigned char *p1 = (const unsigned char *) v1;
+  const unsigned char *p2 = (const unsigned char *) v2;
 
   while (canon_map[*p1] && canon_map[*p1] == canon_map[*p2])
     {
@@ -118,7 +118,7 @@ hb_language_from_string (const char *str)
 
   if (unlikely (num_langs == num_alloced)) {
     unsigned int new_alloced = 2 * (8 + num_alloced);
-    hb_language_t *new_langs = realloc (langs, new_alloced * sizeof (langs[0]));
+    hb_language_t *new_langs = (hb_language_t *) realloc (langs, new_alloced * sizeof (langs[0]));
     if (!new_langs)
       return NULL;
     num_alloced = new_alloced;

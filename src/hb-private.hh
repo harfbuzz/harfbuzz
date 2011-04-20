@@ -24,8 +24,8 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_PRIVATE_H
-#define HB_PRIVATE_H
+#ifndef HB_PRIVATE_HH
+#define HB_PRIVATE_HH
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -293,9 +293,9 @@ _hb_trace (const char *what,
 }
 
 
-#include "hb-object-private.h"
+#include "hb-object-private.hh"
 
 
 HB_END_DECLS
 
-#endif /* HB_PRIVATE_H */
+#endif /* HB_PRIVATE_HH */

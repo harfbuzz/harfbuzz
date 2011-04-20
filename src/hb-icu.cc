@@ -25,7 +25,7 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 #include "hb-icu.h"
 

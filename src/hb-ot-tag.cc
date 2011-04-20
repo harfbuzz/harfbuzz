@@ -24,7 +24,7 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.h"
+#include "hb-private.hh"
 #include "hb-ot.h"
 
 #include <string.h>
@@ -619,9 +619,9 @@ hb_ot_tag_from_language (hb_language_t language)
   }
 
   /* find a language matching in the first component */
-  lang_tag = bsearch (lang_str, ot_languages,
-		      ARRAY_LENGTH (ot_languages), sizeof (LangTag),
-		      (hb_compare_func_t) lang_compare_first_component);
+  lang_tag = (LangTag *) bsearch (lang_str, ot_languages,
+				  ARRAY_LENGTH (ot_languages), sizeof (LangTag),
+				  (hb_compare_func_t) lang_compare_first_component);
 
   /* we now need to find the best language matching */
   if (lang_tag)

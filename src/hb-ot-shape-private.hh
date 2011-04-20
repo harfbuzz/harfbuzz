@@ -27,7 +27,7 @@
 #ifndef HB_OT_SHAPE_PRIVATE_HH
 #define HB_OT_SHAPE_PRIVATE_HH
 
-#include "hb-private.h"
+#include "hb-private.hh"
 
 #include "hb-ot-shape.h"
 

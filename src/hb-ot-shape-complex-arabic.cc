@@ -55,7 +55,7 @@ enum {
  * Joining types:
  */
 
-#include "hb-ot-shape-complex-arabic-table.h"
+#include "hb-ot-shape-complex-arabic-table.hh"
 
 static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_category_t gen_cat)
 {

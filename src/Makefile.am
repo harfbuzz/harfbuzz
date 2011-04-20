@@ -12,17 +12,17 @@ HBCFLAGS =
 HBLIBS =
 HBSOURCES =  \
 	hb-blob.cc \
-	hb-blob-private.h \
+	hb-blob-private.hh \
 	hb-buffer.cc \
 	hb-buffer-private.hh \
-	hb-common.c \
+	hb-common.cc \
 	hb-font.cc \
-	hb-font-private.h \
-	hb-object-private.h \
+	hb-font-private.hh \
+	hb-object-private.hh \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-ot-head-private.hh \
-	hb-private.h \
+	hb-private.hh \
 	hb-shape.cc \
 	hb-unicode.cc \
 	hb-unicode-private.hh \
@@ -49,10 +49,10 @@ HBSOURCES += \
 	hb-ot-map-private.hh \
 	hb-ot-shape.cc \
 	hb-ot-shape-complex-arabic.cc \
-	hb-ot-shape-complex-arabic-table.h \
+	hb-ot-shape-complex-arabic-table.hh \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-private.hh \
-	hb-ot-tag.c \
+	hb-ot-tag.cc \
 	$(NULL)
 HBHEADERS += \
 	hb-ot.h \
@@ -87,7 +87,7 @@ if HAVE_FREETYPE
 HBCFLAGS += $(FREETYPE_CFLAGS)
 HBLIBS   += $(FREETYPE_LIBS)
 HBSOURCES += \
-	hb-ft.c \
+	hb-ft.cc \
 	$(NULL)
 HBHEADERS += \
 	hb-ft.h \
@@ -142,5 +142,6 @@ else
 dist_check_SCRIPTS += check-libstdc++.sh
 endif
 
+TESTS = $(dist_check_SCRIPTS)
 
 -include $(top_srcdir)/git.mk
