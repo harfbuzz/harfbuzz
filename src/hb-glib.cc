@@ -84,121 +84,121 @@ hb_glib_get_script (hb_unicode_funcs_t *ufuncs,
 
   MATCH_SCRIPT2(INVALID_CODE, INVALID);
 
-  MATCH_SCRIPT (COMMON);             /* Zyyy */
-  MATCH_SCRIPT (INHERITED);          /* Qaai */
-  MATCH_SCRIPT (ARABIC);             /* Arab */
-  MATCH_SCRIPT (ARMENIAN);           /* Armn */
-  MATCH_SCRIPT (BENGALI);            /* Beng */
-  MATCH_SCRIPT (BOPOMOFO);           /* Bopo */
-  MATCH_SCRIPT (CHEROKEE);           /* Cher */
-  MATCH_SCRIPT (COPTIC);             /* Qaac */
-  MATCH_SCRIPT (CYRILLIC);           /* Cyrl (Cyrs) */
-  MATCH_SCRIPT (DESERET);            /* Dsrt */
-  MATCH_SCRIPT (DEVANAGARI);         /* Deva */
-  MATCH_SCRIPT (ETHIOPIC);           /* Ethi */
-  MATCH_SCRIPT (GEORGIAN);           /* Geor (Geon); Geoa) */
-  MATCH_SCRIPT (GOTHIC);             /* Goth */
-  MATCH_SCRIPT (GREEK);              /* Grek */
-  MATCH_SCRIPT (GUJARATI);           /* Gujr */
-  MATCH_SCRIPT (GURMUKHI);           /* Guru */
-  MATCH_SCRIPT (HAN);                /* Hani */
-  MATCH_SCRIPT (HANGUL);             /* Hang */
-  MATCH_SCRIPT (HEBREW);             /* Hebr */
-  MATCH_SCRIPT (HIRAGANA);           /* Hira */
-  MATCH_SCRIPT (KANNADA);            /* Knda */
-  MATCH_SCRIPT (KATAKANA);           /* Kana */
-  MATCH_SCRIPT (KHMER);              /* Khmr */
-  MATCH_SCRIPT (LAO);                /* Laoo */
-  MATCH_SCRIPT (LATIN);              /* Latn (Latf); Latg) */
-  MATCH_SCRIPT (MALAYALAM);          /* Mlym */
-  MATCH_SCRIPT (MONGOLIAN);          /* Mong */
-  MATCH_SCRIPT (MYANMAR);            /* Mymr */
-  MATCH_SCRIPT (OGHAM);              /* Ogam */
-  MATCH_SCRIPT (OLD_ITALIC);         /* Ital */
-  MATCH_SCRIPT (ORIYA);              /* Orya */
-  MATCH_SCRIPT (RUNIC);              /* Runr */
-  MATCH_SCRIPT (SINHALA);            /* Sinh */
-  MATCH_SCRIPT (SYRIAC);             /* Syrc (Syrj, Syrn); Syre) */
-  MATCH_SCRIPT (TAMIL);              /* Taml */
-  MATCH_SCRIPT (TELUGU);             /* Telu */
-  MATCH_SCRIPT (THAANA);             /* Thaa */
-  MATCH_SCRIPT (THAI);               /* Thai */
-  MATCH_SCRIPT (TIBETAN);            /* Tibt */
-  MATCH_SCRIPT (CANADIAN_ABORIGINAL);/* Cans */
-  MATCH_SCRIPT (YI);                 /* Yiii */
-  MATCH_SCRIPT (TAGALOG);            /* Tglg */
-  MATCH_SCRIPT (HANUNOO);            /* Hano */
-  MATCH_SCRIPT (BUHID);              /* Buhd */
-  MATCH_SCRIPT (TAGBANWA);           /* Tagb */
+  MATCH_SCRIPT (COMMON);
+  MATCH_SCRIPT (INHERITED);
+  MATCH_SCRIPT (ARABIC);
+  MATCH_SCRIPT (ARMENIAN);
+  MATCH_SCRIPT (BENGALI);
+  MATCH_SCRIPT (BOPOMOFO);
+  MATCH_SCRIPT (CHEROKEE);
+  MATCH_SCRIPT (COPTIC);
+  MATCH_SCRIPT (CYRILLIC);
+  MATCH_SCRIPT (DESERET);
+  MATCH_SCRIPT (DEVANAGARI);
+  MATCH_SCRIPT (ETHIOPIC);
+  MATCH_SCRIPT (GEORGIAN);
+  MATCH_SCRIPT (GOTHIC);
+  MATCH_SCRIPT (GREEK);
+  MATCH_SCRIPT (GUJARATI);
+  MATCH_SCRIPT (GURMUKHI);
+  MATCH_SCRIPT (HAN);
+  MATCH_SCRIPT (HANGUL);
+  MATCH_SCRIPT (HEBREW);
+  MATCH_SCRIPT (HIRAGANA);
+  MATCH_SCRIPT (KANNADA);
+  MATCH_SCRIPT (KATAKANA);
+  MATCH_SCRIPT (KHMER);
+  MATCH_SCRIPT (LAO);
+  MATCH_SCRIPT (LATIN);
+  MATCH_SCRIPT (MALAYALAM);
+  MATCH_SCRIPT (MONGOLIAN);
+  MATCH_SCRIPT (MYANMAR);
+  MATCH_SCRIPT (OGHAM);
+  MATCH_SCRIPT (OLD_ITALIC);
+  MATCH_SCRIPT (ORIYA);
+  MATCH_SCRIPT (RUNIC);
+  MATCH_SCRIPT (SINHALA);
+  MATCH_SCRIPT (SYRIAC);
+  MATCH_SCRIPT (TAMIL);
+  MATCH_SCRIPT (TELUGU);
+  MATCH_SCRIPT (THAANA);
+  MATCH_SCRIPT (THAI);
+  MATCH_SCRIPT (TIBETAN);
+  MATCH_SCRIPT (CANADIAN_ABORIGINAL);
+  MATCH_SCRIPT (YI);
+  MATCH_SCRIPT (TAGALOG);
+  MATCH_SCRIPT (HANUNOO);
+  MATCH_SCRIPT (BUHID);
+  MATCH_SCRIPT (TAGBANWA);
 
   /* Unicode-4.0 additions */
-  MATCH_SCRIPT (BRAILLE);            /* Brai */
-  MATCH_SCRIPT (CYPRIOT);            /* Cprt */
-  MATCH_SCRIPT (LIMBU);              /* Limb */
-  MATCH_SCRIPT (OSMANYA);            /* Osma */
-  MATCH_SCRIPT (SHAVIAN);            /* Shaw */
-  MATCH_SCRIPT (LINEAR_B);           /* Linb */
-  MATCH_SCRIPT (TAI_LE);             /* Tale */
-  MATCH_SCRIPT (UGARITIC);           /* Ugar */
+  MATCH_SCRIPT (BRAILLE);
+  MATCH_SCRIPT (CYPRIOT);
+  MATCH_SCRIPT (LIMBU);
+  MATCH_SCRIPT (OSMANYA);
+  MATCH_SCRIPT (SHAVIAN);
+  MATCH_SCRIPT (LINEAR_B);
+  MATCH_SCRIPT (TAI_LE);
+  MATCH_SCRIPT (UGARITIC);
 
   /* Unicode-4.1 additions */
-  MATCH_SCRIPT (NEW_TAI_LUE);        /* Talu */
-  MATCH_SCRIPT (BUGINESE);           /* Bugi */
-  MATCH_SCRIPT (GLAGOLITIC);         /* Glag */
-  MATCH_SCRIPT (TIFINAGH);           /* Tfng */
-  MATCH_SCRIPT (SYLOTI_NAGRI);       /* Sylo */
-  MATCH_SCRIPT (OLD_PERSIAN);        /* Xpeo */
-  MATCH_SCRIPT (KHAROSHTHI);         /* Khar */
+  MATCH_SCRIPT (NEW_TAI_LUE);
+  MATCH_SCRIPT (BUGINESE);
+  MATCH_SCRIPT (GLAGOLITIC);
+  MATCH_SCRIPT (TIFINAGH);
+  MATCH_SCRIPT (SYLOTI_NAGRI);
+  MATCH_SCRIPT (OLD_PERSIAN);
+  MATCH_SCRIPT (KHAROSHTHI);
 
   /* Unicode-5.0 additions */
-  MATCH_SCRIPT (UNKNOWN);            /* Zzzz */
-  MATCH_SCRIPT (BALINESE);           /* Bali */
-  MATCH_SCRIPT (CUNEIFORM);          /* Xsux */
-  MATCH_SCRIPT (PHOENICIAN);         /* Phnx */
-  MATCH_SCRIPT (PHAGS_PA);           /* Phag */
-  MATCH_SCRIPT (NKO);                /* Nkoo */
+  MATCH_SCRIPT (UNKNOWN);
+  MATCH_SCRIPT (BALINESE);
+  MATCH_SCRIPT (CUNEIFORM);
+  MATCH_SCRIPT (PHOENICIAN);
+  MATCH_SCRIPT (PHAGS_PA);
+  MATCH_SCRIPT (NKO);
 
   /* Unicode-5.1 additions */
-  MATCH_SCRIPT (KAYAH_LI);           /* Kali */
-  MATCH_SCRIPT (LEPCHA);             /* Lepc */
-  MATCH_SCRIPT (REJANG);             /* Rjng */
-  MATCH_SCRIPT (SUNDANESE);          /* Sund */
-  MATCH_SCRIPT (SAURASHTRA);         /* Saur */
-  MATCH_SCRIPT (CHAM);               /* Cham */
-  MATCH_SCRIPT (OL_CHIKI);           /* Olck */
-  MATCH_SCRIPT (VAI);                /* Vaii */
-  MATCH_SCRIPT (CARIAN);             /* Cari */
-  MATCH_SCRIPT (LYCIAN);             /* Lyci */
-  MATCH_SCRIPT (LYDIAN);             /* Lydi */
+  MATCH_SCRIPT (KAYAH_LI);
+  MATCH_SCRIPT (LEPCHA);
+  MATCH_SCRIPT (REJANG);
+  MATCH_SCRIPT (SUNDANESE);
+  MATCH_SCRIPT (SAURASHTRA);
+  MATCH_SCRIPT (CHAM);
+  MATCH_SCRIPT (OL_CHIKI);
+  MATCH_SCRIPT (VAI);
+  MATCH_SCRIPT (CARIAN);
+  MATCH_SCRIPT (LYCIAN);
+  MATCH_SCRIPT (LYDIAN);
 
   /* Unicode-5.2 additions */
 #if GLIB_CHECK_VERSION(2,26,0)
-  MATCH_SCRIPT (AVESTAN);                /* Avst */
-  MATCH_SCRIPT (BAMUM);                  /* Bamu */
-  MATCH_SCRIPT (EGYPTIAN_HIEROGLYPHS);   /* Egyp */
-  MATCH_SCRIPT (IMPERIAL_ARAMAIC);       /* Armi */
-  MATCH_SCRIPT (INSCRIPTIONAL_PAHLAVI);  /* Phli */
-  MATCH_SCRIPT (INSCRIPTIONAL_PARTHIAN); /* Prti */
-  MATCH_SCRIPT (JAVANESE);               /* Java */
-  MATCH_SCRIPT (KAITHI);                 /* Kthi */
-  MATCH_SCRIPT (TAI_THAM);               /* Lana */
-  MATCH_SCRIPT (LISU);                   /* Lisu */
-  MATCH_SCRIPT (MEETEI_MAYEK);           /* Mtei */
-  MATCH_SCRIPT (OLD_SOUTH_ARABIAN);      /* Sarb */
+  MATCH_SCRIPT (AVESTAN);
+  MATCH_SCRIPT (BAMUM);
+  MATCH_SCRIPT (EGYPTIAN_HIEROGLYPHS);
+  MATCH_SCRIPT (IMPERIAL_ARAMAIC);
+  MATCH_SCRIPT (INSCRIPTIONAL_PAHLAVI);
+  MATCH_SCRIPT (INSCRIPTIONAL_PARTHIAN);
+  MATCH_SCRIPT (JAVANESE);
+  MATCH_SCRIPT (KAITHI);
+  MATCH_SCRIPT (TAI_THAM);
+  MATCH_SCRIPT (LISU);
+  MATCH_SCRIPT (MEETEI_MAYEK);
+  MATCH_SCRIPT (OLD_SOUTH_ARABIAN);
 #if GLIB_CHECK_VERSION(2,27,92)
-  MATCH_SCRIPT (OLD_TURKIC);             /* Orkh */
+  MATCH_SCRIPT (OLD_TURKIC);
 #else
-  MATCH_SCRIPT2(OLD_TURKISH, OLD_TURKIC);/* Orkh */
+  MATCH_SCRIPT2(OLD_TURKISH, OLD_TURKIC);
 #endif
-  MATCH_SCRIPT (SAMARITAN);              /* Samr */
-  MATCH_SCRIPT (TAI_VIET);               /* Tavt */
+  MATCH_SCRIPT (SAMARITAN);
+  MATCH_SCRIPT (TAI_VIET);
 #endif
 
   /* Unicode-6.0 additions */
 #if GLIB_CHECK_VERSION(2,28,0)
-  MATCH_SCRIPT (BATAK);                  /* Batk */
-  MATCH_SCRIPT (BRAHMI);                 /* Brah */
-  MATCH_SCRIPT (MANDAIC);                /* Mand */
+  MATCH_SCRIPT (BATAK);
+  MATCH_SCRIPT (BRAHMI);
+  MATCH_SCRIPT (MANDAIC);
 #endif
 
 #undef MATCH_SCRIPT
