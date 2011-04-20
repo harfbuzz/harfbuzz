@@ -16,10 +16,6 @@ General fixes:
 API issues to fix before 1.0:
 ============================
 
-- Rename get_table to reference_table
-
-- get_table shouldn't return NULL
-
 - Figure out how many .so objects, how to link, etc
 
 - Shall y axis progress downward instead of upward?
@@ -27,8 +23,6 @@ API issues to fix before 1.0:
 - User-data support ala cairo
 
 - Real subclassing support for vfunc vectors
-
-- Investigate Mozilla's user-data issue, make sure it's addressed
 
 - Add hb-cairo glue
 
