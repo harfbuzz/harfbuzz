@@ -37,7 +37,6 @@
 #include <math.h>
 #include <locale.h>
 
-#include <glib.h>
 #include <hb-glib.h>
 
 #include <cairo-ft.h>
