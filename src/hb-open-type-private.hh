@@ -286,9 +286,6 @@ struct Sanitizer
 
     /* TODO is_sane() stuff */
 
-    if (!blob)
-      return hb_blob_create_empty ();
-
   retry:
     (void) (HB_DEBUG_SANITIZE &&
       fprintf (stderr, "Sanitizer %p start %s\n", blob, HB_FUNC));

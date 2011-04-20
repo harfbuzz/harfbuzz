@@ -417,6 +417,8 @@ hb_face_reference_table (hb_face_t *face,
     return &_hb_blob_nil;
 
   blob = face->get_table (tag, face->user_data);
+  if (unlikely (!blob))
+    blob = hb_blob_create_empty();
 
   return blob;
 }
