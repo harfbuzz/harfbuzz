@@ -91,8 +91,8 @@ test_types_tag (void)
   g_assert_cmphex (hb_tag_from_string ("aBc"),   ==, 0x61426320);
   g_assert_cmphex (hb_tag_from_string ("aB"),    ==, 0x61422020);
   g_assert_cmphex (hb_tag_from_string ("a"),     ==, 0x61202020);
-  g_assert_cmphex (hb_tag_from_string (""),      ==, 0x20202020);
 
+  g_assert_cmphex (hb_tag_from_string (""),      ==, HB_TAG_NONE);
   g_assert_cmphex (hb_tag_from_string (NULL),    ==, HB_TAG_NONE);
 }
 

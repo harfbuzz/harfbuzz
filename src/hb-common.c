@@ -37,7 +37,7 @@ hb_tag_from_string (const char *s)
   char tag[4];
   unsigned int i;
 
-  if (!s)
+  if (!s || !*s)
     return HB_TAG_NONE;
 
   for (i = 0; i < 4 && s[i]; i++)
@@ -146,6 +146,9 @@ hb_language_to_string (hb_language_t language)
 hb_script_t
 hb_script_from_iso15924_tag (hb_tag_t tag)
 {
+  if (unlikely (tag == HB_TAG_NONE))
+    return HB_SCRIPT_INVALID;
+
   /* Be lenient, adjust case (one capital letter followed by three small letters) */
   tag = (tag & 0xDFDFDFDF) | 0x00202020;
 
