@@ -59,9 +59,6 @@ hb_blob_create_empty (void);
 hb_blob_t *
 hb_blob_reference (hb_blob_t *blob);
 
-unsigned int
-hb_blob_get_reference_count (hb_blob_t *blob);
-
 void
 hb_blob_destroy (hb_blob_t *blob);
 

@@ -35,7 +35,6 @@ test_nil (void)
 
   g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_UNKNOWN);
 
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
   hb_unicode_funcs_destroy (uf);
 }
 
@@ -45,10 +44,6 @@ test_glib (void)
   hb_unicode_funcs_t *uf = hb_glib_get_unicode_funcs ();
 
   g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_LATIN);
-
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
-  hb_unicode_funcs_destroy (uf);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
 }
 
 static gboolean freed0, freed1;
@@ -92,7 +87,6 @@ test_custom (void)
   g_assert_cmpint (hb_unicode_get_script (uf, 'a'), ==, HB_SCRIPT_LATIN);
   g_assert_cmpint (hb_unicode_get_script (uf, '0'), ==, HB_SCRIPT_UNKNOWN);
 
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
   g_assert (!freed0 && !freed1);
   hb_unicode_funcs_destroy (uf);
   g_assert (freed0 && !freed1);
@@ -123,13 +117,10 @@ test_subclassing_nil (void)
   hb_unicode_funcs_t *uf, *aa;
 
   uf = hb_unicode_funcs_create (NULL);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
 
   aa = hb_unicode_funcs_create (uf);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 2);
 
   hb_unicode_funcs_destroy (uf);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
                                     unique_pointer1, free_up);
@@ -137,8 +128,6 @@ test_subclassing_nil (void)
   g_assert_cmpint (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmpint (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_UNKNOWN);
 
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (aa), ==, 1);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
   g_assert (!freed0 && !freed1);
   hb_unicode_funcs_destroy (aa);
   g_assert (!freed0 && freed1);
@@ -151,13 +140,7 @@ test_subclassing_glib (void)
   hb_unicode_funcs_t *uf, *aa;
 
   uf = hb_glib_get_unicode_funcs ();
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
-
   aa = hb_unicode_funcs_create (uf);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
-
-  hb_unicode_funcs_destroy (uf);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 0);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
                                     unique_pointer1, free_up);
@@ -165,7 +148,6 @@ test_subclassing_glib (void)
   g_assert_cmpint (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmpint (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
 
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (aa), ==, 1);
   g_assert (!freed0 && !freed1);
   hb_unicode_funcs_destroy (aa);
   g_assert (!freed0 && freed1);
@@ -178,17 +160,13 @@ test_subclassing_deep (void)
   hb_unicode_funcs_t *uf, *aa;
 
   uf = hb_unicode_funcs_create (NULL);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
 
   hb_unicode_funcs_set_script_func (uf, simple_get_script,
                                     unique_pointer0, free_up);
 
   aa = hb_unicode_funcs_create (uf);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (aa), ==, 1);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 2);
 
   hb_unicode_funcs_destroy (uf);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
 
   /* make sure the 'uf' didn't get freed, since 'aa' holds a ref */
   g_assert (!freed0);
@@ -200,8 +178,6 @@ test_subclassing_deep (void)
   g_assert_cmpint (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
   g_assert_cmpint (hb_unicode_get_script (aa, '0'), ==, HB_SCRIPT_UNKNOWN);
 
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (aa), ==, 1);
-  g_assert_cmpint (hb_unicode_funcs_get_reference_count (uf), ==, 1);
   g_assert (!freed0 && !freed1);
   hb_unicode_funcs_destroy (aa);
   g_assert (freed0 && freed1);

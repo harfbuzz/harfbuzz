@@ -154,12 +154,6 @@ hb_buffer_reference (hb_buffer_t *buffer)
   HB_OBJECT_DO_REFERENCE (buffer);
 }
 
-unsigned int
-hb_buffer_get_reference_count (hb_buffer_t *buffer)
-{
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (buffer);
-}
-
 void
 hb_buffer_destroy (hb_buffer_t *buffer)
 {

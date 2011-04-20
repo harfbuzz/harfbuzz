@@ -55,9 +55,6 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 hb_face_t *
 hb_face_reference (hb_face_t *face);
 
-unsigned int
-hb_face_get_reference_count (hb_face_t *face);
-
 void
 hb_face_destroy (hb_face_t *face);
 
@@ -93,9 +90,6 @@ hb_font_funcs_create (void);
 
 hb_font_funcs_t *
 hb_font_funcs_reference (hb_font_funcs_t *ffuncs);
-
-unsigned int
-hb_font_funcs_get_reference_count (hb_font_funcs_t *ffuncs);
 
 void
 hb_font_funcs_destroy (hb_font_funcs_t *ffuncs);
@@ -208,9 +202,6 @@ hb_font_create (void);
 
 hb_font_t *
 hb_font_reference (hb_font_t *font);
-
-unsigned int
-hb_font_get_reference_count (hb_font_t *font);
 
 void
 hb_font_destroy (hb_font_t *font);

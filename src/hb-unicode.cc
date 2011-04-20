@@ -128,12 +128,6 @@ hb_unicode_funcs_reference (hb_unicode_funcs_t *ufuncs)
   HB_OBJECT_DO_REFERENCE (ufuncs);
 }
 
-unsigned int
-hb_unicode_funcs_get_reference_count (hb_unicode_funcs_t *ufuncs)
-{
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (ufuncs);
-}
-
 void
 hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
 {

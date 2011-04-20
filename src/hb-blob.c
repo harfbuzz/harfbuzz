@@ -152,12 +152,6 @@ hb_blob_reference (hb_blob_t *blob)
   HB_OBJECT_DO_REFERENCE (blob);
 }
 
-unsigned int
-hb_blob_get_reference_count (hb_blob_t *blob)
-{
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (blob);
-}
-
 void
 hb_blob_destroy (hb_blob_t *blob)
 {

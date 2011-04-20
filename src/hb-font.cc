@@ -115,12 +115,6 @@ hb_font_funcs_reference (hb_font_funcs_t *ffuncs)
   HB_OBJECT_DO_REFERENCE (ffuncs);
 }
 
-unsigned int
-hb_font_funcs_get_reference_count (hb_font_funcs_t *ffuncs)
-{
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (ffuncs);
-}
-
 void
 hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
 {
@@ -397,12 +391,6 @@ hb_face_reference (hb_face_t *face)
   HB_OBJECT_DO_REFERENCE (face);
 }
 
-unsigned int
-hb_face_get_reference_count (hb_face_t *face)
-{
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (face);
-}
-
 void
 hb_face_destroy (hb_face_t *face)
 {
@@ -475,12 +463,6 @@ hb_font_t *
 hb_font_reference (hb_font_t *font)
 {
   HB_OBJECT_DO_REFERENCE (font);
-}
-
-unsigned int
-hb_font_get_reference_count (hb_font_t *font)
-{
-  HB_OBJECT_DO_GET_REFERENCE_COUNT (font);
 }
 
 void

@@ -46,9 +46,6 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent_funcs);
 hb_unicode_funcs_t *
 hb_unicode_funcs_reference (hb_unicode_funcs_t *ufuncs);
 
-unsigned int
-hb_unicode_funcs_get_reference_count (hb_unicode_funcs_t *ufuncs);
-
 void
 hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs);
 
