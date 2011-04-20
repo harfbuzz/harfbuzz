@@ -331,7 +331,7 @@ hb_blob_try_writable (hb_blob_t *blob)
     if (blob->lock_count)
       goto done;
 
-    new_data = malloc (blob->length);
+    new_data = (char *) malloc (blob->length);
     if (new_data) {
       (void) (HB_DEBUG_BLOB &&
 	fprintf (stderr, "%p %s: dupped successfully -> %p\n", blob, __FUNCTION__, blob->data));

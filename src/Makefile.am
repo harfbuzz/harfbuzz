@@ -11,7 +11,7 @@ lib_LTLIBRARIES = libharfbuzz.la
 HBCFLAGS =
 HBLIBS =
 HBSOURCES =  \
-	hb-blob.c \
+	hb-blob.cc \
 	hb-blob-private.h \
 	hb-buffer.cc \
 	hb-buffer-private.hh \
