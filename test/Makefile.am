@@ -15,6 +15,23 @@ TEST_PROGS += \
 	$(NULL)
 
 
+# Tests for header compilation
+TEST_PROGS += \
+	test-c \
+	test-cplusplus \
+	$(NULL)
+test_cplusplus_SOURCES = test-cplusplus.cc
+test_c_CPPFLAGS = $(AM_CPPFLAGS)
+test_cplusplus_CPPFLAGS = $(AM_CPPFLAGS)
+if HAVE_ICU
+test_c_CPPFLAGS += $(ICU_CFLAGS)
+test_cplusplus_CPPFLAGS += $(ICU_CFLAGS)
+endif
+if HAVE_FREETYPE
+test_c_CPPFLAGS += $(FREETYPE_CFLAGS)
+test_cplusplus_CPPFLAGS += $(FREETYPE_CFLAGS)
+endif
+
 
 else
 check-am:
