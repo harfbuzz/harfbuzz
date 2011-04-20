@@ -57,8 +57,8 @@ hb_blob_t _hb_blob_nil = {
 
   NULL, /* data */
 
-  NULL, /* destroy */
-  NULL /* user_data */
+  NULL, /* user_data */
+  NULL  /* destroy */
 };
 
 static void
@@ -66,8 +66,8 @@ _hb_blob_destroy_user_data (hb_blob_t *blob)
 {
   if (blob->destroy) {
     blob->destroy (blob->user_data);
-    blob->destroy = NULL;
     blob->user_data = NULL;
+    blob->destroy = NULL;
   }
 }
 
@@ -82,8 +82,8 @@ hb_blob_t *
 hb_blob_create (const char        *data,
 		unsigned int       length,
 		hb_memory_mode_t   mode,
-		hb_destroy_func_t  destroy,
-		void              *user_data)
+		void              *user_data,
+		hb_destroy_func_t  destroy)
 {
   hb_blob_t *blob;
 
@@ -100,8 +100,8 @@ hb_blob_create (const char        *data,
   blob->length = length;
   blob->mode = mode;
 
-  blob->destroy = destroy;
   blob->user_data = user_data;
+  blob->destroy = destroy;
 
   if (blob->mode == HB_MEMORY_MODE_DUPLICATE) {
     blob->mode = HB_MEMORY_MODE_READONLY;
@@ -134,8 +134,8 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
   blob->mode = parent->mode;
   hb_mutex_unlock (parent->lock);
 
-  blob->destroy = (hb_destroy_func_t) _hb_blob_unlock_and_destroy;
   blob->user_data = hb_blob_reference (parent);
+  blob->destroy = (hb_destroy_func_t) _hb_blob_unlock_and_destroy;
 
   return blob;
 }
@@ -345,8 +345,8 @@ hb_blob_try_writable (hb_blob_t *blob)
       _hb_blob_destroy_user_data (blob);
       blob->mode = HB_MEMORY_MODE_WRITABLE;
       blob->data = new_data;
-      blob->destroy = free;
       blob->user_data = new_data;
+      blob->destroy = free;
     }
   }
 

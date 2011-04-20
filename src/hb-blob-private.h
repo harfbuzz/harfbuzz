@@ -47,8 +47,8 @@ struct _hb_blob_t {
 
   const char *data;
 
-  hb_destroy_func_t destroy;
   void *user_data;
+  hb_destroy_func_t destroy;
 };
 
 extern HB_INTERNAL hb_blob_t _hb_blob_nil;
