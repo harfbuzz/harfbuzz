@@ -319,7 +319,7 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 
   face->ot_layout = _hb_ot_layout_new (face);
 
-  face->head_blob = Sanitizer<head>::sanitize (hb_face_get_table (face, HB_OT_TAG_head));
+  face->head_blob = Sanitizer<head>::sanitize (hb_face_reference_table (face, HB_OT_TAG_head));
   face->head_table = Sanitizer<head>::lock_instance (face->head_blob);
 
   return face;
@@ -408,7 +408,7 @@ hb_face_destroy (hb_face_t *face)
 }
 
 hb_blob_t *
-hb_face_get_table (hb_face_t *face,
+hb_face_reference_table (hb_face_t *face,
 		   hb_tag_t   tag)
 {
   hb_blob_t *blob;

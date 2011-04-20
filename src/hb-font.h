@@ -67,13 +67,10 @@ hb_face_destroy (hb_face_t *face);
  *     table vs a zero-length table vs a very short table.  It only leads to implementations
  *     that check for non-NULL and assume that they've got a usable table going on...  This
  *     actually happened with Firefox.
- *
- *   - It has to be renamed to reference_table() since unlike any other _get_ API, a reference
- *     ownership transfer happens and the user is responsible to destroy the result.
  */
 hb_blob_t *
-hb_face_get_table (hb_face_t *face,
-		   hb_tag_t   tag);
+hb_face_reference_table (hb_face_t *face,
+			 hb_tag_t   tag);
 
 unsigned int
 hb_face_get_upem (hb_face_t *face);

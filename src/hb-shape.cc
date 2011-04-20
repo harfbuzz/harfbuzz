@@ -48,7 +48,7 @@ hb_shape_internal (hb_font_t          *font,
 {
 #if 0 && defined(HAVE_GRAPHITE)
   hb_blob_t *silf_blob;
-  silf_blob = hb_face_get_table (face, HB_GRAPHITE_TAG_Silf);
+  silf_blob = hb_face_reference_table (face, HB_GRAPHITE_TAG_Silf);
   if (hb_blob_get_length(silf_blob))
   {
     hb_graphite_shape(font, face, buffer, features, num_features);
