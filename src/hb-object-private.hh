@@ -35,24 +35,21 @@
 HB_BEGIN_DECLS
 
 
-/* Encapsulate operations on the object's reference count */
 typedef struct {
   hb_atomic_int_t ref_count;
+
+  inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
+  inline int inc (void) { return hb_atomic_int_fetch_and_add (ref_count,  1); }
+  inline int dec (void) { return hb_atomic_int_fetch_and_add (ref_count, -1); }
+  inline void set (int v) { return hb_atomic_int_set (ref_count, v); }
+  inline int get (void) { return hb_atomic_int_get (ref_count); }
+
 } hb_reference_count_t;
-
-#define hb_reference_count_inc(RC) hb_atomic_int_fetch_and_add ((RC).ref_count, 1)
-#define hb_reference_count_dec(RC) hb_atomic_int_fetch_and_add ((RC).ref_count, -1)
-
-#define HB_REFERENCE_COUNT_INIT(RC, VALUE) ((RC).ref_count = (VALUE))
-
-#define HB_REFERENCE_COUNT_GET_VALUE(RC) hb_atomic_int_get ((RC).ref_count)
-#define HB_REFERENCE_COUNT_SET_VALUE(RC, VALUE) hb_atomic_int_set ((RC).ref_count, (VALUE))
 
 #define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
 #define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
 
-#define HB_REFERENCE_COUNT_IS_INVALID(RC) (HB_REFERENCE_COUNT_GET_VALUE (RC) == HB_REFERENCE_COUNT_INVALID_VALUE)
-
+#define HB_REFERENCE_COUNT_IS_INVALID(RC) ((RC).get () == HB_REFERENCE_COUNT_INVALID_VALUE)
 
 
 /* Debug */
@@ -69,7 +66,7 @@ _hb_trace_object (const void *obj,
   (void) (HB_DEBUG_OBJECT &&
 	  fprintf (stderr, "OBJECT(%p) refcount=%d %s\n",
 		   obj,
-		   HB_REFERENCE_COUNT_GET_VALUE (*ref_count),
+		   ref_count->get (),
 		   function));
 }
 
@@ -83,7 +80,7 @@ _hb_trace_object (const void *obj,
     (unlikely (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count)))
 
 #define HB_OBJECT_DO_INIT_EXPR(obj) \
-    HB_REFERENCE_COUNT_INIT (obj->ref_count, 1)
+    obj->ref_count.init (1)
 
 #define HB_OBJECT_DO_INIT(obj) \
   HB_STMT_START { \
@@ -109,7 +106,7 @@ _hb_trace_object (const void *obj,
     if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return obj; \
     TRACE_OBJECT (obj); \
-    old_count = hb_reference_count_inc (obj->ref_count); \
+    old_count = obj->ref_count.inc (); \
     assert (old_count > 0); \
     return obj; \
   } HB_STMT_END
@@ -120,7 +117,7 @@ _hb_trace_object (const void *obj,
     if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
       return; \
     TRACE_OBJECT (obj); \
-    old_count = hb_reference_count_dec (obj->ref_count); \
+    old_count = obj->ref_count.dec (); \
     assert (old_count > 0); \
     if (old_count != 1) \
       return; \
