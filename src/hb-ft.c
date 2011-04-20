@@ -189,7 +189,7 @@ get_table  (hb_tag_t tag, void *user_data)
 
   return hb_blob_create ((const char *) buffer, length,
 			 HB_MEMORY_MODE_WRITABLE,
-			 free, buffer);
+			 buffer, free);
 }
 
 
@@ -206,11 +206,11 @@ hb_ft_face_create (FT_Face           ft_face,
 			   (unsigned int) ft_face->stream->size,
 			   /* TODO: Check FT_FACE_FLAG_EXTERNAL_STREAM? */
 			   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE,
-			   destroy, ft_face);
+			   ft_face, destroy);
     face = hb_face_create_for_data (blob, ft_face->face_index);
     hb_blob_destroy (blob);
   } else {
-    face = hb_face_create_for_tables (get_table, destroy, ft_face);
+    face = hb_face_create_for_tables (get_table, ft_face, destroy);
   }
 
   return face;
@@ -247,7 +247,7 @@ hb_ft_font_create (FT_Face           ft_face,
   font = hb_font_create ();
   hb_font_set_funcs (font,
 		     hb_ft_get_font_funcs (),
-		     destroy, ft_face);
+		     ft_face, destroy);
   hb_font_set_scale (font,
 		     ((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM) >> 16,
 		     ((uint64_t) ft_face->size->metrics.y_scale * (uint64_t) ft_face->units_per_EM) >> 16);

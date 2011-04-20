@@ -49,8 +49,8 @@ typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
 /* calls destroy() when not needing user_data anymore */
 hb_face_t *
 hb_face_create_for_tables (hb_get_table_func_t  get_table,
-			   hb_destroy_func_t    destroy,
-			   void                *user_data);
+			   void                *user_data,
+			   hb_destroy_func_t    destroy);
 
 hb_face_t *
 hb_face_reference (hb_face_t *face);
@@ -218,8 +218,8 @@ hb_font_destroy (hb_font_t *font);
 void
 hb_font_set_funcs (hb_font_t         *font,
 		   hb_font_funcs_t   *klass,
-		   hb_destroy_func_t  destroy,
-		   void              *user_data);
+		   void              *user_data,
+		   hb_destroy_func_t  destroy);
 
 /* Returns what was set and unsets it, but doesn't destroy(user_data).
  * This is useful for wrapping / chaining font_funcs_t's.
@@ -234,8 +234,8 @@ hb_font_set_funcs (hb_font_t         *font,
 void
 hb_font_unset_funcs (hb_font_t          *font,
 		     hb_font_funcs_t   **klass,
-		     hb_destroy_func_t  *destroy,
-		     void              **user_data);
+		     void              **user_data,
+		     hb_destroy_func_t  *destroy);
 
 
 /*

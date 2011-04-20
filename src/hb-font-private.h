@@ -63,8 +63,8 @@ struct _hb_face_t {
   hb_reference_count_t ref_count;
 
   hb_get_table_func_t  get_table;
-  hb_destroy_func_t    destroy;
   void                *user_data;
+  hb_destroy_func_t    destroy;
 
   hb_blob_t *head_blob;
   const struct head *head_table;
@@ -87,8 +87,8 @@ struct _hb_font_t {
   unsigned int y_ppem;
 
   hb_font_funcs_t   *klass;
-  hb_destroy_func_t  destroy;
   void              *user_data;
+  hb_destroy_func_t  destroy;
 };
 
 
