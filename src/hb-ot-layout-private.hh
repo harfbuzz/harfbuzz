@@ -77,7 +77,7 @@ struct hb_ot_layout_context_t
   inline hb_position_t scale_y (int16_t v) { return scale (v, this->font->y_scale); }
 
   private:
-  inline hb_position_t scale (int16_t v, unsigned int scale) { return v * (int64_t) scale / this->face->head_table->get_upem (); }
+  inline hb_position_t scale (int16_t v, int scale) { return v * (int64_t) scale / this->face->head_table->get_upem (); }
 };
 
 

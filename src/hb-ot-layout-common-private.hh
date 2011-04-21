@@ -532,7 +532,7 @@ struct Device
   inline hb_position_t get_y_delta (hb_ot_layout_context_t *c) const
   { return get_delta (c->font->y_ppem, c->font->y_scale); }
 
-  inline int get_delta (unsigned int ppem, unsigned int scale) const
+  inline int get_delta (unsigned int ppem, int scale) const
   {
     if (!ppem) return 0;
 
@@ -540,10 +540,6 @@ struct Device
 
     if (!pixels) return 0;
 
-    /* pixels is at most in the -8..7 range.  So 64-bit arithmetic is
-     * not really necessary here.  A simple cast to int may just work
-     * as well.  But since this code is not reached that often and
-     * for the sake of correctness, we do a 64bit operation. */
     return pixels * (int64_t) scale / ppem;
   }
 

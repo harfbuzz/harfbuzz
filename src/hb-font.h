@@ -231,13 +231,13 @@ hb_font_unset_funcs (hb_font_t          *font,
  */
 void
 hb_font_set_scale (hb_font_t *font,
-		   unsigned int x_scale,
-		   unsigned int y_scale);
+		   int x_scale,
+		   int y_scale);
 
 void
 hb_font_get_scale (hb_font_t *font,
-		   unsigned int *x_scale,
-		   unsigned int *y_scale);
+		   int *x_scale,
+		   int *y_scale);
 
 /*
  * A zero value means "no hinting in that direction"
