@@ -178,7 +178,6 @@ get_table  (hb_tag_t tag, void *user_data)
   if (error)
     return NULL;
 
-  /* TODO Use FT_Memory? */
   buffer = (FT_Byte *) malloc (length);
   if (buffer == NULL)
     return NULL;
