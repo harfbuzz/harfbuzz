@@ -89,34 +89,35 @@ struct _hb_object_header_t {
 };
 
 
+HB_END_DECLS
+
+
+template <typename Type>
+static inline Type *hb_object_create () { return (Type *) hb_object_header_t::create (sizeof (Type)); }
+
+template <typename Type>
+static inline bool hb_object_is_inert (const Type *obj) { return unlikely (obj->header.is_inert()); }
+
+template <typename Type>
+static inline Type *hb_object_reference (Type *obj) { obj->header.reference (); return obj; }
+
+template <typename Type>
+static inline bool hb_object_destroy (Type *obj) { return obj->header.destroy (); }
+
+template <typename Type>
+static inline void hb_object_trace (const Type *obj) { obj->header.trace (__FUNCTION__); }
+
+
+HB_BEGIN_DECLS
+
+
 /* Object allocation and lifecycle manamgement macros */
 
-#define TRACE_OBJECT(obj) \
-	obj->header.trace (__FUNCTION__)
-
-#define HB_OBJECT_IS_INERT(obj) \
-    (unlikely ((obj)->header.is_inert ()))
-
-#define HB_OBJECT_DO_CREATE(Type, obj) \
-  likely (( \
-	  ((obj) = (Type *) hb_object_header_t::create (sizeof (Type))), \
-	  TRACE_OBJECT (obj), \
-	  (obj) \
-	  ))
-
-#define HB_OBJECT_DO_REFERENCE(obj) \
-  HB_STMT_START { \
-    TRACE_OBJECT (obj); \
-    obj->header.reference (); \
-    return obj; \
-  } HB_STMT_END
-
-#define HB_OBJECT_DO_DESTROY(obj) \
-  HB_STMT_START { \
-    TRACE_OBJECT (obj); \
-    if (!obj->header.destroy ()) \
-      return; \
-  } HB_STMT_END
+#define HB_TRACE_OBJECT(obj) hb_object_trace (obj)
+#define HB_OBJECT_DO_CREATE(Type, obj) likely (obj = hb_object_create<Type> ())
+#define HB_OBJECT_IS_INERT(obj) hb_object_is_inert (obj)
+#define HB_OBJECT_DO_REFERENCE(obj) return hb_object_reference (obj)
+#define HB_OBJECT_DO_DESTROY(obj) if (!hb_object_destroy (obj)) return
 
 
 HB_END_DECLS
