@@ -233,10 +233,10 @@ parse_feature_tag (char **pp, hb_feature_t *feature)
 
   parse_space (pp);
 
-#define ISALPHA(c) (('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z'))
-  while (c = **pp, ISALPHA(c))
+#define ISALNUM(c) (('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z') || ('0' <= (c) && (c) <= '9'))
+  while (c = **pp, ISALNUM(c))
     (*pp)++;
-#undef ISALPHA
+#undef ISALNUM
 
   if (p == *pp)
     return FALSE;
