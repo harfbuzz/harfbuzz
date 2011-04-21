@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2007  Chris Wilson
- * Copyright (C) 2009,2010  Red Hat, Inc.
+ * Copyright © 2007  Chris Wilson
+ * Copyright © 2009,2010  Red Hat, Inc.
+ * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -25,6 +26,7 @@
  * Contributor(s):
  *	Chris Wilson <chris@chris-wilson.co.uk>
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OBJECT_PRIVATE_HH

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009  Red Hat, Inc.
+ * Copyright © 2009  Red Hat, Inc.
  * Copyright © 2011 Codethink Limited
+ * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,6 +25,7 @@
  *
  * Red Hat Author(s): Behdad Esfahbod
  * Codethink Author(s): Ryan Lortie
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_UNICODE_H

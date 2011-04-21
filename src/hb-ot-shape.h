@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010  Red Hat, Inc.
+ * Copyright © 2010  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *

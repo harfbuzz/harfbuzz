@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Codethink Limited
+ * Copyright © 2011 Codethink Limited
  *
  *  This is part of HarfBuzz, a text shaping library.
  *

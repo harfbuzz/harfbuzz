@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2009  Red Hat, Inc.
- * Copyright (C) 2009  Keith Stribley
+ * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2009  Keith Stribley
+ * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -23,6 +24,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #include "hb-private.hh"
