@@ -254,6 +254,25 @@ typedef volatile int hb_mutex_t;
 #endif
 
 
+/* A reference count */
+
+typedef struct {
+  hb_atomic_int_t ref_count;
+
+#define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
+#define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
+
+  inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
+  inline int inc (void) { return hb_atomic_int_fetch_and_add (ref_count,  1); }
+  inline int dec (void) { return hb_atomic_int_fetch_and_add (ref_count, -1); }
+  inline void set (int v) { return hb_atomic_int_set (ref_count, v); }
+
+  inline int get (void) const { return hb_atomic_int_get (ref_count); }
+  inline bool is_invalid (void) const { return get () == HB_REFERENCE_COUNT_INVALID_VALUE; }
+
+} hb_reference_count_t;
+
+
 /* Big-endian handling */
 
 #define hb_be_uint16(v)		((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
@@ -270,6 +289,7 @@ typedef volatile int hb_mutex_t;
 /* ASCII tag/character handling */
 
 #define ISALPHA(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
+#define ISALNUM(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= '0' && (c) <= '9'))
 #define TOUPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) - 'a' + 'A' : (c))
 #define TOLOWER(c) (((c) >= 'A' && (c) <= 'Z') ? (c) - 'A' + 'a' : (c))
 
