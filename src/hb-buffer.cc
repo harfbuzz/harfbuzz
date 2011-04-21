@@ -35,7 +35,7 @@ HB_BEGIN_DECLS
 
 
 static hb_buffer_t _hb_buffer_nil = {
-  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  HB_OBJECT_HEADER_STATIC,
 
   &_hb_unicode_funcs_nil,  /* unicode */
   {

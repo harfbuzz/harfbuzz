@@ -34,6 +34,7 @@
 #include "hb-private.hh"
 
 #include "hb-unicode.h"
+#include "hb-object-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -43,10 +44,11 @@ HB_BEGIN_DECLS
  */
 
 struct _hb_unicode_funcs_t {
-  hb_reference_count_t ref_count;
+  hb_object_header_t header;
+
   hb_unicode_funcs_t *parent;
 
-  hb_bool_t immutable;
+  bool immutable;
 
 #define IMPLEMENT(return_type, name) \
   inline return_type \

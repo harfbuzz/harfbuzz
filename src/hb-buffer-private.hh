@@ -30,6 +30,7 @@
 
 #include "hb-private.hh"
 #include "hb-buffer.h"
+#include "hb-object-private.hh"
 #include "hb-unicode-private.hh"
 
 HB_BEGIN_DECLS
@@ -85,7 +86,7 @@ _hb_buffer_set_masks (hb_buffer_t *buffer,
 
 
 struct _hb_buffer_t {
-  hb_reference_count_t ref_count;
+  hb_object_header_t header;
 
   /* Information about how the text in the buffer should be treated */
 
@@ -94,9 +95,9 @@ struct _hb_buffer_t {
 
   /* Buffer contents */
 
-  hb_bool_t have_output; /* Whether we have an output buffer going on */
-  hb_bool_t have_positions; /* Whether we have positions */
-  hb_bool_t in_error; /* Allocation failed */
+  bool have_output; /* Whether we have an output buffer going on */
+  bool have_positions; /* Whether we have positions */
+  bool in_error; /* Allocation failed */
 
   unsigned int i; /* Cursor into ->info and ->pos arrays */
   unsigned int len; /* Length of ->info and ->pos arrays */

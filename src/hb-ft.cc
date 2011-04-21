@@ -145,7 +145,8 @@ hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
 }
 
 static hb_font_funcs_t ft_ffuncs = {
-  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  HB_OBJECT_HEADER_STATIC,
+
   TRUE, /* immutable */
   {
     hb_ft_get_glyph,

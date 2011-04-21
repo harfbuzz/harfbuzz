@@ -37,75 +37,84 @@
 HB_BEGIN_DECLS
 
 
-
 /* Debug */
 
 #ifndef HB_DEBUG_OBJECT
 #define HB_DEBUG_OBJECT (HB_DEBUG+0)
 #endif
 
-static inline void
-_hb_trace_object (const void *obj,
-		  hb_reference_count_t *ref_count,
-		  const char *function)
-{
-  (void) (HB_DEBUG_OBJECT &&
-	  fprintf (stderr, "OBJECT(%p) refcount=%d %s\n",
-		   obj,
-		   ref_count->get (),
-		   function));
-}
 
-#define TRACE_OBJECT(obj) _hb_trace_object (obj, &obj->ref_count, __FUNCTION__)
+typedef struct _hb_object_header_t hb_object_header_t;
 
+struct _hb_object_header_t {
+  hb_reference_count_t ref_count;
+
+#define HB_OBJECT_HEADER_STATIC {HB_REFERENCE_COUNT_INVALID}
+
+  static inline void *create (unsigned int size) {
+    hb_object_header_t *obj = (hb_object_header_t *) calloc (1, size);
+
+    if (likely (obj))
+      obj->init ();
+
+    return obj;
+  }
+
+  inline void init (void) {
+    ref_count.init (1);
+  }
+
+  inline bool is_inert (void) const { return unlikely (ref_count.is_invalid ()); }
+
+  inline void reference (void) {
+    if (unlikely (!this || this->is_inert ()))
+      return;
+    ref_count.inc ();
+  }
+
+  inline bool destroy (void) {
+    if (unlikely (!this || this->is_inert ()))
+      return false;
+    return ref_count.dec () == 1;
+  }
+
+  inline void trace (const char *function) const {
+    (void) (HB_DEBUG_OBJECT &&
+	    fprintf (stderr, "OBJECT(%p) refcount=%d %s\n",
+		     this,
+		     this ? ref_count.get () : 0,
+		     function));
+  }
+
+};
 
 
 /* Object allocation and lifecycle manamgement macros */
 
+#define TRACE_OBJECT(obj) \
+	obj->header.trace (__FUNCTION__)
+
 #define HB_OBJECT_IS_INERT(obj) \
-    (unlikely ((obj)->ref_count.is_invalid ()))
-
-#define HB_OBJECT_DO_INIT_EXPR(obj) \
-    obj->ref_count.init (1)
-
-#define HB_OBJECT_DO_INIT(obj) \
-  HB_STMT_START { \
-    HB_OBJECT_DO_INIT_EXPR (obj); \
-  } HB_STMT_END
+    (unlikely ((obj)->header.is_inert ()))
 
 #define HB_OBJECT_DO_CREATE(Type, obj) \
   likely (( \
-	       (void) ( \
-		 ((obj) = (Type *) calloc (1, sizeof (Type))) && \
-		 ( \
-		  HB_OBJECT_DO_INIT_EXPR (obj), \
-		  TRACE_OBJECT (obj), \
-		  TRUE \
-		 ) \
-	       ), \
-	       (obj) \
-	     ))
+	  ((obj) = (Type *) hb_object_header_t::create (sizeof (Type))), \
+	  TRACE_OBJECT (obj), \
+	  (obj) \
+	  ))
 
 #define HB_OBJECT_DO_REFERENCE(obj) \
   HB_STMT_START { \
-    int old_count; \
-    if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
-      return obj; \
     TRACE_OBJECT (obj); \
-    old_count = obj->ref_count.inc (); \
-    assert (old_count > 0); \
+    obj->header.reference (); \
     return obj; \
   } HB_STMT_END
 
 #define HB_OBJECT_DO_DESTROY(obj) \
   HB_STMT_START { \
-    int old_count; \
-    if (unlikely (!(obj) || HB_OBJECT_IS_INERT (obj))) \
-      return; \
     TRACE_OBJECT (obj); \
-    old_count = obj->ref_count.dec (); \
-    assert (old_count > 0); \
-    if (old_count != 1) \
+    if (!obj->header.destroy ()) \
       return; \
   } HB_STMT_END
 

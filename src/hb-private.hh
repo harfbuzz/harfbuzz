@@ -305,7 +305,7 @@ typedef struct {
 #define HB_DEBUG 0
 #endif
 
-static inline hb_bool_t /* always returns TRUE */
+static inline bool /* always returns TRUE */
 _hb_trace (const char *what,
 	   const char *function,
 	   const void *obj,
@@ -315,9 +315,6 @@ _hb_trace (const char *what,
   (void) ((depth < max_depth) && fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, depth, depth, function));
   return TRUE;
 }
-
-
-#include "hb-object-private.hh"
 
 
 HB_END_DECLS

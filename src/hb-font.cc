@@ -85,7 +85,8 @@ hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
 { return 0; }
 
 hb_font_funcs_t _hb_font_funcs_nil = {
-  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  HB_OBJECT_HEADER_STATIC,
+
   TRUE,  /* immutable */
   {
     hb_font_get_glyph_nil,
@@ -287,7 +288,7 @@ hb_font_get_kerning (hb_font_t *font, hb_face_t *face,
  */
 
 static hb_face_t _hb_face_nil = {
-  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  HB_OBJECT_HEADER_STATIC,
 
   NULL, /* get_table */
   NULL, /* user_data */
@@ -435,7 +436,7 @@ hb_face_get_upem (hb_face_t *face)
  */
 
 static hb_font_t _hb_font_nil = {
-  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  HB_OBJECT_HEADER_STATIC,
 
   0, /* x_scale */
   0, /* y_scale */

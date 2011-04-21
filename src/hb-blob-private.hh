@@ -30,12 +30,13 @@
 #include "hb-private.hh"
 
 #include "hb-blob.h"
+#include "hb-object-private.hh"
 
 HB_BEGIN_DECLS
 
 
 struct _hb_blob_t {
-  hb_reference_count_t ref_count;
+  hb_object_header_t header;
 
   unsigned int length;
 

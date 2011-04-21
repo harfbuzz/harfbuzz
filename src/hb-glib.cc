@@ -221,7 +221,8 @@ hb_glib_get_script (hb_unicode_funcs_t *ufuncs,
 }
 
 static hb_unicode_funcs_t glib_ufuncs = {
-  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  HB_OBJECT_HEADER_STATIC,
+
   NULL, /* parent */
   TRUE, /* immutable */
   {

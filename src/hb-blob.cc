@@ -46,7 +46,7 @@ HB_BEGIN_DECLS
 #endif
 
 hb_blob_t _hb_blob_nil = {
-  HB_REFERENCE_COUNT_INVALID, /* ref_count */
+  HB_OBJECT_HEADER_STATIC,
 
   0, /* length */
 

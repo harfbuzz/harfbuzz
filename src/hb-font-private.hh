@@ -32,6 +32,7 @@
 #include "hb-private.hh"
 
 #include "hb-font.h"
+#include "hb-object-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -41,7 +42,7 @@ HB_BEGIN_DECLS
  */
 
 struct _hb_font_funcs_t {
-  hb_reference_count_t ref_count;
+  hb_object_header_t header;
 
   hb_bool_t immutable;
 
@@ -62,7 +63,7 @@ extern HB_INTERNAL hb_font_funcs_t _hb_font_funcs_nil;
  */
 
 struct _hb_face_t {
-  hb_reference_count_t ref_count;
+  hb_object_header_t header;
 
   hb_get_table_func_t  get_table;
   void                *user_data;
@@ -80,7 +81,7 @@ struct _hb_face_t {
  */
 
 struct _hb_font_t {
-  hb_reference_count_t ref_count;
+  hb_object_header_t header;
 
   unsigned int x_scale;
   unsigned int y_scale;
