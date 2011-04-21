@@ -78,6 +78,8 @@ HB_BEGIN_DECLS
 #define _ASSERT_STATIC0(_line, _cond) _ASSERT_STATIC1 (_line, (_cond))
 #define ASSERT_STATIC(_cond) _ASSERT_STATIC0 (__LINE__, (_cond))
 
+#define ASSERT_STATIC_EXPR(_cond) ((void) sizeof (char[(_cond) ? 1 : -1]))
+
 
 /* Lets assert int types.  Saves trouble down the road. */
 
