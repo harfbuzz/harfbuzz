@@ -38,18 +38,31 @@ HB_BEGIN_DECLS
 typedef struct {
   hb_atomic_int_t ref_count;
 
+#define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
+#define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
+
   inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
   inline int inc (void) { return hb_atomic_int_fetch_and_add (ref_count,  1); }
   inline int dec (void) { return hb_atomic_int_fetch_and_add (ref_count, -1); }
   inline void set (int v) { return hb_atomic_int_set (ref_count, v); }
+
+  /* XXX
+   *
+   * One thing I'm not sure.  The following two methods should be declared
+   * const.  However, that assumes that hb_atomic_int_get() is const.  I have
+   * a vague memory hearing from Chris Wilson or Jeff Muizelaar that atomic get
+   * is implemented as a fetch_and_add(0).  In which case it does write to the
+   * memory, and hence cannot be called on .rodata section.  But that's how we
+   * use it.
+   *
+   * If that is indeed the case, then perhaps is_invalid() should do a
+   * non-protected read of the location.
+   */
   inline int get (void) { return hb_atomic_int_get (ref_count); }
+  inline bool is_invalid (void) { return get () == HB_REFERENCE_COUNT_INVALID_VALUE; }
 
 } hb_reference_count_t;
 
-#define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
-#define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
-
-#define HB_REFERENCE_COUNT_IS_INVALID(RC) ((RC).get () == HB_REFERENCE_COUNT_INVALID_VALUE)
 
 
 /* Debug */
@@ -77,7 +90,7 @@ _hb_trace_object (const void *obj,
 /* Object allocation and lifecycle manamgement macros */
 
 #define HB_OBJECT_IS_INERT(obj) \
-    (unlikely (HB_REFERENCE_COUNT_IS_INVALID ((obj)->ref_count)))
+    (unlikely ((obj)->ref_count.is_invalid ()))
 
 #define HB_OBJECT_DO_INIT_EXPR(obj) \
     obj->ref_count.init (1)
