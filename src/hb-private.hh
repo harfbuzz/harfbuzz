@@ -64,11 +64,15 @@ HB_BEGIN_DECLS
 
 /* Basics */
 
+HB_END_DECLS
+
 #undef MIN
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
+template <typename Type> static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
 
 #undef MAX
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+template <typename Type> static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
+
+HB_BEGIN_DECLS
 
 #undef  ARRAY_LENGTH
 #define ARRAY_LENGTH(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
@@ -275,23 +279,31 @@ typedef struct {
 
 /* Big-endian handling */
 
-#define hb_be_uint16(v)		((uint16_t) ((((const uint8_t *)&(v))[0] << 8) + (((const uint8_t *)&(v))[1])))
+static inline uint16_t hb_be_uint16 (const uint16_t v)
+{
+  const uint8_t *V = (const uint8_t *) &v;
+  return (uint16_t) (V[0] << 8) + V[1];
+}
 
 #define hb_be_uint16_put(v,V)	HB_STMT_START { v[0] = (V>>8); v[1] = (V); } HB_STMT_END
 #define hb_be_uint16_get(v)	(uint16_t) ((v[0] << 8) + v[1])
-#define hb_be_uint16_cmp(a,b)	(a[0] == b[0] && a[1] == b[1])
+#define hb_be_uint16_eq(a,b)	(a[0] == b[0] && a[1] == b[1])
 
 #define hb_be_uint32_put(v,V)	HB_STMT_START { v[0] = (V>>24); v[1] = (V>>16); v[2] = (V>>8); v[3] = (V); } HB_STMT_END
 #define hb_be_uint32_get(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
-#define hb_be_uint32_cmp(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
+#define hb_be_uint32_eq(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
 
 
 /* ASCII tag/character handling */
 
-#define ISALPHA(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z'))
-#define ISALNUM(c) (((c) >= 'a' && (c) <= 'z') || ((c) >= 'A' && (c) <= 'Z') || ((c) >= '0' && (c) <= '9'))
-#define TOUPPER(c) (((c) >= 'a' && (c) <= 'z') ? (c) - 'a' + 'A' : (c))
-#define TOLOWER(c) (((c) >= 'A' && (c) <= 'Z') ? (c) - 'A' + 'a' : (c))
+static inline unsigned char ISALPHA (unsigned char c)
+{ return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
+static inline unsigned char ISALNUM (unsigned char c)
+{ return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'); }
+static inline unsigned char TOUPPER (unsigned char c)
+{ return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c; }
+static inline unsigned char TOLOWER (unsigned char c)
+{ return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c; }
 
 #define HB_TAG_CHAR4(s)   (HB_TAG(((const char *) s)[0], \
 				  ((const char *) s)[1], \

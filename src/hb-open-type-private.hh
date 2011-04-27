@@ -371,7 +371,7 @@ class BEInt<Type, 2>
   public:
   inline void set (Type i) { hb_be_uint16_put (v,i); }
   inline operator Type (void) const { return hb_be_uint16_get (v); }
-  inline bool operator == (const BEInt<Type, 2>& o) const { return hb_be_uint16_cmp (v, o.v); }
+  inline bool operator == (const BEInt<Type, 2>& o) const { return hb_be_uint16_eq (v, o.v); }
   inline bool operator != (const BEInt<Type, 2>& o) const { return !(*this == o); }
   private: uint8_t v[2];
 };
@@ -381,7 +381,7 @@ class BEInt<Type, 4>
   public:
   inline void set (Type i) { hb_be_uint32_put (v,i); }
   inline operator Type (void) const { return hb_be_uint32_get (v); }
-  inline bool operator == (const BEInt<Type, 4>& o) const { return hb_be_uint32_cmp (v, o.v); }
+  inline bool operator == (const BEInt<Type, 4>& o) const { return hb_be_uint32_eq (v, o.v); }
   inline bool operator != (const BEInt<Type, 4>& o) const { return !(*this == o); }
   private: uint8_t v[4];
 };
