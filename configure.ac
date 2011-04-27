@@ -24,9 +24,17 @@ LT_INIT([win32-dll])
 AC_CHECK_FUNCS(mprotect sysconf getpagesize)
 AC_CHECK_HEADERS(unistd.h sys/mman.h)
 
-# Make sure we don't link to libstdc++
 if test "x$GCC" = "xyes"; then
+
+	# Make sure we don't link to libstdc++
 	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
+
+	case "$host" in
+		arm-*-*)
+			# Request byte alignment on arm
+			CXXFLAGS="$CXXFLAGS -mstructure-size-boundary=8"
+		;;
+	esac
 fi
 
 dnl ==========================================================================
