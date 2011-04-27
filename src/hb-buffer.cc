@@ -78,7 +78,7 @@ _hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
   separate_out = buffer->out_info != buffer->info;
 
   while (size > new_allocated)
-    new_allocated += (new_allocated >> 1) + 8;
+    new_allocated += (new_allocated >> 1) + 32;
 
   ASSERT_STATIC (sizeof (buffer->info[0]) == sizeof (buffer->pos[0]));
   bool overflows = new_allocated >= ((unsigned int) -1) / sizeof (buffer->info[0]);
