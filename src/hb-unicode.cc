@@ -107,7 +107,7 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
 {
   hb_unicode_funcs_t *ufuncs;
 
-  if (!HB_OBJECT_DO_CREATE (hb_unicode_funcs_t, ufuncs))
+  if (!(ufuncs = hb_object_create<hb_unicode_funcs_t> ()))
     return &_hb_unicode_funcs_nil;
 
   if (parent != NULL)
@@ -133,13 +133,13 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
 hb_unicode_funcs_t *
 hb_unicode_funcs_reference (hb_unicode_funcs_t *ufuncs)
 {
-  HB_OBJECT_DO_REFERENCE (ufuncs);
+  return hb_object_reference (ufuncs);
 }
 
 void
 hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
 {
-  HB_OBJECT_DO_DESTROY (ufuncs);
+  if (!hb_object_destroy (ufuncs)) return;
 
 #define DESTROY(name) if (ufuncs->destroy.name) ufuncs->destroy.name (ufuncs->user_data.name)
   DESTROY (combining_class);
@@ -158,7 +158,7 @@ hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
 void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 {
-  if (HB_OBJECT_IS_INERT (ufuncs))
+  if (hb_object_is_inert (ufuncs))
     return;
 
   ufuncs->immutable = TRUE;

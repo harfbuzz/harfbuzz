@@ -87,7 +87,7 @@ hb_blob_create (const char        *data,
 {
   hb_blob_t *blob;
 
-  if (!length || !HB_OBJECT_DO_CREATE (hb_blob_t, blob)) {
+  if (!length || !(blob = hb_object_create<hb_blob_t> ())) {
     if (destroy)
       destroy (user_data);
     return &_hb_blob_nil;
@@ -122,7 +122,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
   hb_blob_t *blob;
   const char *pdata;
 
-  if (!length || offset >= parent->length || !HB_OBJECT_DO_CREATE (hb_blob_t, blob))
+  if (!length || offset >= parent->length || !(blob = hb_object_create<hb_blob_t> ()))
     return &_hb_blob_nil;
 
   pdata = hb_blob_lock (parent);
@@ -149,13 +149,13 @@ hb_blob_create_empty (void)
 hb_blob_t *
 hb_blob_reference (hb_blob_t *blob)
 {
-  HB_OBJECT_DO_REFERENCE (blob);
+  return hb_object_reference (blob);
 }
 
 void
 hb_blob_destroy (hb_blob_t *blob)
 {
-  HB_OBJECT_DO_DESTROY (blob);
+  if (!hb_object_destroy (blob)) return;
 
   _hb_blob_destroy_user_data (blob);
 
@@ -171,7 +171,7 @@ hb_blob_get_length (hb_blob_t *blob)
 const char *
 hb_blob_lock (hb_blob_t *blob)
 {
-  if (HB_OBJECT_IS_INERT (blob))
+  if (hb_object_is_inert (blob))
     return NULL;
 
   hb_mutex_lock (blob->lock);
@@ -190,7 +190,7 @@ hb_blob_lock (hb_blob_t *blob)
 void
 hb_blob_unlock (hb_blob_t *blob)
 {
-  if (HB_OBJECT_IS_INERT (blob))
+  if (hb_object_is_inert (blob))
     return;
 
   hb_mutex_lock (blob->lock);
@@ -210,7 +210,7 @@ hb_blob_is_writable (hb_blob_t *blob)
 {
   hb_memory_mode_t mode;
 
-  if (HB_OBJECT_IS_INERT (blob))
+  if (hb_object_is_inert (blob))
     return FALSE;
 
   hb_mutex_lock (blob->lock);
@@ -292,7 +292,7 @@ hb_blob_try_writable_inplace (hb_blob_t *blob)
 {
   hb_memory_mode_t mode;
 
-  if (HB_OBJECT_IS_INERT (blob))
+  if (hb_object_is_inert (blob))
     return FALSE;
 
   hb_mutex_lock (blob->lock);
@@ -312,7 +312,7 @@ hb_blob_try_writable (hb_blob_t *blob)
 {
   hb_memory_mode_t mode;
 
-  if (HB_OBJECT_IS_INERT (blob))
+  if (hb_object_is_inert (blob))
     return FALSE;
 
   hb_mutex_lock (blob->lock);

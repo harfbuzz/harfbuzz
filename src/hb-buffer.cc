@@ -137,7 +137,7 @@ hb_buffer_create (unsigned int pre_alloc_size)
 {
   hb_buffer_t *buffer;
 
-  if (!HB_OBJECT_DO_CREATE (hb_buffer_t, buffer))
+  if (!(buffer = hb_object_create<hb_buffer_t> ()))
     return &_hb_buffer_nil;
 
   if (pre_alloc_size)
@@ -151,13 +151,13 @@ hb_buffer_create (unsigned int pre_alloc_size)
 hb_buffer_t *
 hb_buffer_reference (hb_buffer_t *buffer)
 {
-  HB_OBJECT_DO_REFERENCE (buffer);
+  return hb_object_reference (buffer);
 }
 
 void
 hb_buffer_destroy (hb_buffer_t *buffer)
 {
-  HB_OBJECT_DO_DESTROY (buffer);
+  if (!hb_object_destroy (buffer)) return;
 
   hb_unicode_funcs_destroy (buffer->unicode);
 

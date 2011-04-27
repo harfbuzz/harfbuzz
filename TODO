@@ -9,8 +9,6 @@ General fixes:
 
 - Remove fixed-size feature/lookup arrays in hb-ot-map
 
-- Use templates instead of macros for objects?
-
 API issues to fix before 1.0:
 ============================
 

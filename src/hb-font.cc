@@ -102,7 +102,7 @@ hb_font_funcs_create (void)
 {
   hb_font_funcs_t *ffuncs;
 
-  if (!HB_OBJECT_DO_CREATE (hb_font_funcs_t, ffuncs))
+  if (!(ffuncs = hb_object_create<hb_font_funcs_t> ()))
     return &_hb_font_funcs_nil;
 
   ffuncs->v = _hb_font_funcs_nil.v;
@@ -113,13 +113,13 @@ hb_font_funcs_create (void)
 hb_font_funcs_t *
 hb_font_funcs_reference (hb_font_funcs_t *ffuncs)
 {
-  HB_OBJECT_DO_REFERENCE (ffuncs);
+  return hb_object_reference (ffuncs);
 }
 
 void
 hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
 {
-  HB_OBJECT_DO_DESTROY (ffuncs);
+  if (!hb_object_destroy (ffuncs)) return;
 
   free (ffuncs);
 }
@@ -129,7 +129,7 @@ hb_font_funcs_copy (hb_font_funcs_t *other_ffuncs)
 {
   hb_font_funcs_t *ffuncs;
 
-  if (!HB_OBJECT_DO_CREATE (hb_font_funcs_t, ffuncs))
+  if (!(ffuncs = hb_object_create<hb_font_funcs_t> ()))
     return &_hb_font_funcs_nil;
 
   ffuncs->v = other_ffuncs->v;
@@ -140,7 +140,7 @@ hb_font_funcs_copy (hb_font_funcs_t *other_ffuncs)
 void
 hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
 {
-  if (HB_OBJECT_IS_INERT (ffuncs))
+  if (hb_object_is_inert (ffuncs))
     return;
 
   ffuncs->immutable = TRUE;
@@ -308,7 +308,7 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 {
   hb_face_t *face;
 
-  if (!HB_OBJECT_DO_CREATE (hb_face_t, face)) {
+  if (!(face = hb_object_create<hb_face_t> ())) {
     if (destroy)
       destroy (user_data);
     return &_hb_face_nil;
@@ -389,13 +389,13 @@ hb_face_create_for_data (hb_blob_t    *blob,
 hb_face_t *
 hb_face_reference (hb_face_t *face)
 {
-  HB_OBJECT_DO_REFERENCE (face);
+  return hb_object_reference (face);
 }
 
 void
 hb_face_destroy (hb_face_t *face)
 {
-  HB_OBJECT_DO_DESTROY (face);
+  if (!hb_object_destroy (face)) return;
 
   _hb_ot_layout_free (face->ot_layout);
 
@@ -454,7 +454,7 @@ hb_font_create (void)
 {
   hb_font_t *font;
 
-  if (!HB_OBJECT_DO_CREATE (hb_font_t, font))
+  if (!(font = hb_object_create<hb_font_t> ()))
     return &_hb_font_nil;
 
   font->klass = &_hb_font_funcs_nil;
@@ -465,13 +465,13 @@ hb_font_create (void)
 hb_font_t *
 hb_font_reference (hb_font_t *font)
 {
-  HB_OBJECT_DO_REFERENCE (font);
+  return hb_object_reference (font);
 }
 
 void
 hb_font_destroy (hb_font_t *font)
 {
-  HB_OBJECT_DO_DESTROY (font);
+  if (!hb_object_destroy (font)) return;
 
   hb_font_funcs_destroy (font->klass);
   if (font->destroy)
@@ -486,7 +486,7 @@ hb_font_set_funcs (hb_font_t         *font,
 		   void              *user_data,
 		   hb_destroy_func_t  destroy)
 {
-  if (HB_OBJECT_IS_INERT (font))
+  if (hb_object_is_inert (font))
     return;
 
   if (font->destroy)
@@ -514,7 +514,7 @@ hb_font_unset_funcs (hb_font_t          *font,
   *user_data = font->user_data;
   *destroy = font->destroy;
 
-  if (HB_OBJECT_IS_INERT (font))
+  if (hb_object_is_inert (font))
     return;
 
   font->klass = NULL;
@@ -527,7 +527,7 @@ hb_font_set_scale (hb_font_t *font,
 		   int x_scale,
 		   int y_scale)
 {
-  if (HB_OBJECT_IS_INERT (font))
+  if (hb_object_is_inert (font))
     return;
 
   font->x_scale = x_scale;
@@ -548,7 +548,7 @@ hb_font_set_ppem (hb_font_t *font,
 		  unsigned int x_ppem,
 		  unsigned int y_ppem)
 {
-  if (HB_OBJECT_IS_INERT (font))
+  if (hb_object_is_inert (font))
     return;
 
   font->x_ppem = x_ppem;

@@ -123,16 +123,7 @@ static inline bool hb_object_destroy (Type *obj)
 }
 
 
-
 HB_BEGIN_DECLS
-
-
-/* Object allocation and lifecycle manamgement macros */
-
-#define HB_OBJECT_DO_CREATE(Type, obj) likely (obj = hb_object_create<Type> ())
-#define HB_OBJECT_IS_INERT(obj) hb_object_is_inert (obj)
-#define HB_OBJECT_DO_REFERENCE(obj) return hb_object_reference (obj)
-#define HB_OBJECT_DO_DESTROY(obj) if (!hb_object_destroy (obj)) return
 
 
 HB_END_DECLS
