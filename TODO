@@ -47,6 +47,16 @@ API to add (maybe after 1.0):
 - Add hb-fribidi?
 
 
+hb-view enhancements:
+====================
+
+- Add --output
+- Add --format
+- Add --width, --height, --auto-size, --align, etc?
+- Port to GOption, --help
+- Add XML and JSON formats
+
+
 Build fixes:
 ===========
 
