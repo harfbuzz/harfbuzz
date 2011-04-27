@@ -113,6 +113,7 @@ HB_BEGIN_DECLS
 
 /* Object allocation and lifecycle manamgement macros */
 
+/* XXX Trace objects.  Got removed in refactoring */
 #define HB_TRACE_OBJECT(obj) hb_object_trace (obj)
 #define HB_OBJECT_DO_CREATE(Type, obj) likely (obj = hb_object_create<Type> ())
 #define HB_OBJECT_IS_INERT(obj) hb_object_is_inert (obj)
