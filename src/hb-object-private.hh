@@ -91,21 +91,37 @@ struct _hb_object_header_t {
 
 HB_END_DECLS
 
-
 template <typename Type>
-static inline Type *hb_object_create () { return (Type *) hb_object_header_t::create (sizeof (Type)); }
-
+static inline void hb_object_trace (const Type *obj, const char *function)
+{
+  obj->header.trace (function);
+}
 template <typename Type>
-static inline bool hb_object_is_inert (const Type *obj) { return unlikely (obj->header.is_inert()); }
-
+static inline Type *hb_object_create ()
+{
+  Type *obj = (Type *) hb_object_header_t::create (sizeof (Type));
+  hb_object_trace (obj, HB_FUNC);
+  return obj;
+}
 template <typename Type>
-static inline Type *hb_object_reference (Type *obj) { obj->header.reference (); return obj; }
-
+static inline bool hb_object_is_inert (const Type *obj)
+{
+  return unlikely (obj->header.is_inert());
+}
 template <typename Type>
-static inline bool hb_object_destroy (Type *obj) { return obj->header.destroy (); }
-
+static inline Type *hb_object_reference (Type *obj)
+{
+  hb_object_trace (obj, HB_FUNC);
+  obj->header.reference ();
+  return obj;
+}
 template <typename Type>
-static inline void hb_object_trace (const Type *obj) { obj->header.trace (__FUNCTION__); }
+static inline bool hb_object_destroy (Type *obj)
+{
+  hb_object_trace (obj, HB_FUNC);
+  return obj->header.destroy ();
+}
+
 
 
 HB_BEGIN_DECLS
@@ -113,8 +129,6 @@ HB_BEGIN_DECLS
 
 /* Object allocation and lifecycle manamgement macros */
 
-/* XXX Trace objects.  Got removed in refactoring */
-#define HB_TRACE_OBJECT(obj) hb_object_trace (obj)
 #define HB_OBJECT_DO_CREATE(Type, obj) likely (obj = hb_object_create<Type> ())
 #define HB_OBJECT_IS_INERT(obj) hb_object_is_inert (obj)
 #define HB_OBJECT_DO_REFERENCE(obj) return hb_object_reference (obj)
