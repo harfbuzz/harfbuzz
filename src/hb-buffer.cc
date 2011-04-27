@@ -37,7 +37,7 @@ HB_BEGIN_DECLS
 static hb_buffer_t _hb_buffer_nil = {
   HB_OBJECT_HEADER_STATIC,
 
-  &_hb_unicode_funcs_nil,  /* unicode */
+  &_hb_unicode_funcs_default,
   {
     HB_DIRECTION_INVALID,
     HB_SCRIPT_INVALID,
@@ -173,7 +173,7 @@ hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
 			     hb_unicode_funcs_t *unicode)
 {
   if (!unicode)
-    unicode = &_hb_unicode_funcs_nil;
+    unicode = &_hb_unicode_funcs_default;
 
   hb_unicode_funcs_reference (unicode);
   hb_unicode_funcs_destroy (buffer->unicode);

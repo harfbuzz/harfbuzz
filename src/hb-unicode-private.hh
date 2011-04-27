@@ -90,7 +90,18 @@ struct _hb_unicode_funcs_t {
   } destroy;
 };
 
+
+#if HAVE_GLIB
+extern HB_INTERNAL hb_unicode_funcs_t _hb_glib_unicode_funcs;
+#define _hb_unicode_funcs_default _hb_glib_unicode_funcs
+#elif HAVE_ICU
+extern HB_INTERNAL hb_unicode_funcs_t _hb_icu_unicode_funcs;
+#define _hb_unicode_funcs_default _hb_icu_unicode_funcs
+#else
 extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;
+#define _hb_unicode_funcs_default _hb_unicode_funcs_nil
+#endif
+
 
 
 HB_END_DECLS

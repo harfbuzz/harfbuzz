@@ -160,7 +160,8 @@ hb_icu_get_script (hb_unicode_funcs_t *ufuncs,
   return hb_icu_script_to_script (scriptCode);
 }
 
-static hb_unicode_funcs_t icu_ufuncs = {
+extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_icu;
+hb_unicode_funcs_t _hb_icu_unicode_funcs = {
   HB_OBJECT_HEADER_STATIC,
 
   NULL, /* parent */
@@ -177,7 +178,7 @@ static hb_unicode_funcs_t icu_ufuncs = {
 hb_unicode_funcs_t *
 hb_icu_get_unicode_funcs (void)
 {
-  return &icu_ufuncs;
+  return &_hb_icu_unicode_funcs;
 }
 
 

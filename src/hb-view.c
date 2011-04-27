@@ -37,7 +37,7 @@
 #include <math.h>
 #include <locale.h>
 
-#include <hb-glib.h>
+#include <glib.h>
 
 #include <cairo-ft.h>
 #include <hb-ft.h>
@@ -348,17 +348,16 @@ _hb_cr_text_glyphs (cairo_t *cr,
   unsigned int num_glyphs, i;
   hb_position_t x;
 
-  if (len < 0)
-    len = strlen (text);
-  hb_buffer = hb_buffer_create (len);
+  hb_buffer = hb_buffer_create (0);
 
-  hb_buffer_set_unicode_funcs (hb_buffer, hb_glib_get_unicode_funcs ());
-
-  hb_buffer_add_utf8 (hb_buffer, text, len, 0, len);
   if (script)
     hb_buffer_set_script (hb_buffer, hb_script_from_string (script));
   if (language)
     hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
+
+  if (len < 0)
+    len = strlen (text);
+  hb_buffer_add_utf8 (hb_buffer, text, len, 0, len);
 
   hb_shape (hb_font, hb_face, hb_buffer, features, num_features);
 

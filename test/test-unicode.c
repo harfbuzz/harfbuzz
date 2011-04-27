@@ -46,6 +46,14 @@ test_glib (void)
   g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_LATIN);
 }
 
+static void
+test_default (void)
+{
+  hb_unicode_funcs_t *uf = hb_unicode_funcs_get_default ();
+
+  g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_LATIN);
+}
+
 static gboolean freed0, freed1;
 static int unique_pointer0[1];
 static int unique_pointer1[1];
@@ -191,12 +199,13 @@ main (int argc, char **argv)
 
   g_test_add_func ("/unicode/nil", test_nil);
   g_test_add_func ("/unicode/glib", test_glib);
+  g_test_add_func ("/unicode/default", test_default);
   g_test_add_func ("/unicode/custom", test_custom);
   g_test_add_func ("/unicode/subclassing/nil", test_subclassing_nil);
   g_test_add_func ("/unicode/subclassing/glib", test_subclassing_glib);
   g_test_add_func ("/unicode/subclassing/deep", test_subclassing_deep);
 
-  /* XXX test all methods for their defaults and various (glib, icu) implementations. */
+  /* XXX test all methods for their defaults and various (glib, icu, default) implementations. */
   /* XXX test glib & icu two-way script conversion */
 
   return g_test_run ();

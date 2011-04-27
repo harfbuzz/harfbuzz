@@ -220,7 +220,8 @@ hb_glib_get_script (hb_unicode_funcs_t *ufuncs,
   return hb_glib_script_to_script (g_unichar_get_script (unicode));
 }
 
-static hb_unicode_funcs_t glib_ufuncs = {
+extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_glib;
+hb_unicode_funcs_t _hb_glib_unicode_funcs = {
   HB_OBJECT_HEADER_STATIC,
 
   NULL, /* parent */
@@ -237,7 +238,7 @@ static hb_unicode_funcs_t glib_ufuncs = {
 hb_unicode_funcs_t *
 hb_glib_get_unicode_funcs (void)
 {
-  return &glib_ufuncs;
+  return &_hb_glib_unicode_funcs;
 }
 
 

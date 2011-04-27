@@ -42,6 +42,14 @@ HB_BEGIN_DECLS
 
 typedef struct _hb_unicode_funcs_t hb_unicode_funcs_t;
 
+
+/*
+ * just give me the best implementation you've got there.
+ */
+hb_unicode_funcs_t *
+hb_unicode_funcs_get_default (void);
+
+
 hb_unicode_funcs_t *
 hb_unicode_funcs_create (hb_unicode_funcs_t *parent_funcs);
 
