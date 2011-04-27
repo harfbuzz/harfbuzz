@@ -50,7 +50,6 @@ API to add (maybe after 1.0):
 hb-view enhancements:
 ====================
 
-- Add --output
 - Add --format
 - Add --width, --height, --auto-size, --align, etc?
 - Port to GOption, --help

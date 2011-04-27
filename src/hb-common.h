@@ -92,6 +92,12 @@ typedef enum _hb_direction_t {
   HB_DIRECTION_BTT
 } hb_direction_t;
 
+hb_direction_t
+hb_direction_from_string (const char *str);
+
+const char *
+hb_direction_to_string (hb_direction_t direction);
+
 #define HB_DIRECTION_IS_HORIZONTAL(dir)	((((unsigned int) (dir)) & ~1U) == 0)
 #define HB_DIRECTION_IS_VERTICAL(dir)	((((unsigned int) (dir)) & ~1U) == 2)
 #define HB_DIRECTION_IS_FORWARD(dir)	((((unsigned int) (dir)) & ~2U) == 0)

@@ -51,6 +51,42 @@ hb_tag_from_string (const char *s)
 }
 
 
+/* hb_direction_t */
+
+const char direction_strings[][4] = {
+  "ltr",
+  "rtl",
+  "ttb",
+  "btt"
+};
+
+hb_direction_t
+hb_direction_from_string (const char *str)
+{
+  if (unlikely (!str || !*str))
+    return HB_DIRECTION_INVALID;
+
+  /* Lets match loosely: just match the first letter, such that
+   * all of "ltr", "left-to-right", etc work!
+   */
+  char c = TOLOWER (str[0]);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (direction_strings); i++)
+    if (c == direction_strings[i][0])
+      return (hb_direction_t) i;
+
+  return HB_DIRECTION_INVALID;
+}
+
+const char *
+hb_direction_to_string (hb_direction_t direction)
+{
+  if (likely ((unsigned int) direction < ARRAY_LENGTH (direction_strings)))
+    return direction_strings[direction];
+
+  return "invalid";
+}
+
+
 /* hb_language_t */
 
 struct _hb_language_t {

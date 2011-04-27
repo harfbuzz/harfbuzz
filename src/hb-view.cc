@@ -57,8 +57,9 @@ static const char *back = "#ffffff";
 static const char *text = NULL;
 static const char *font_file = NULL;
 static const char *out_file = "/dev/stdout";
-static const char *language = NULL;
+static const char *direction = NULL;
 static const char *script = NULL;
+static const char *language = NULL;
 static hb_feature_t *features = NULL;
 static unsigned int num_features;
 static hb_bool_t debug = FALSE;
@@ -100,6 +101,7 @@ parse_opts (int argc, char **argv)
       static struct option long_options[] = {
 	{"background", 1, 0, 'B'},
 	{"debug", 0, &debug, TRUE},
+	{"direction", 1, 0, 'd'},
 	{"features", 1, 0, 'f'},
 	{"font-size", 1, 0, 's'},
 	{"foreground", 1, 0, 'F'},
@@ -152,11 +154,14 @@ parse_opts (int argc, char **argv)
 	case 't':
 	  text = optarg;
 	  break;
-	case 'L':
-	  language = optarg;
+	case 'd':
+	  direction = optarg;
 	  break;
 	case 'S':
 	  script = optarg;
+	  break;
+	case 'L':
+	  language = optarg;
 	  break;
 	case 'o':
 	  out_file = optarg;
@@ -350,6 +355,8 @@ _hb_cr_text_glyphs (cairo_t *cr,
 
   hb_buffer = hb_buffer_create (0);
 
+  if (direction)
+    hb_buffer_set_direction (hb_buffer, hb_direction_from_string (direction));
   if (script)
     hb_buffer_set_script (hb_buffer, hb_script_from_string (script));
   if (language)

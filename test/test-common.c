@@ -77,6 +77,15 @@ test_types_direction (void)
   g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_RTL), ==, HB_DIRECTION_LTR);
   g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_TTB), ==, HB_DIRECTION_BTT);
   g_assert_cmpint (HB_DIRECTION_REVERSE (HB_DIRECTION_BTT), ==, HB_DIRECTION_TTB);
+
+  g_assert_cmpint (HB_DIRECTION_INVALID, ==, hb_direction_from_string (NULL));
+  g_assert_cmpint (HB_DIRECTION_INVALID, ==, hb_direction_from_string (""));
+  g_assert_cmpint (HB_DIRECTION_INVALID, ==, hb_direction_from_string ("x"));
+  g_assert_cmpint (HB_DIRECTION_RTL, ==, hb_direction_from_string ("r"));
+  g_assert_cmpint (HB_DIRECTION_RTL, ==, hb_direction_from_string ("rtl"));
+  g_assert_cmpint (HB_DIRECTION_RTL, ==, hb_direction_from_string ("RtL"));
+  g_assert_cmpint (HB_DIRECTION_RTL, ==, hb_direction_from_string ("right-to-left"));
+  g_assert_cmpint (HB_DIRECTION_TTB, ==, hb_direction_from_string ("ttb"));
 }
 
 static void
@@ -108,16 +117,26 @@ test_types_script (void)
 
   hb_tag_t x123 = HB_TAG_CHAR4 ("x123");
 
-  g_assert_cmpint ((hb_tag_t) HB_SCRIPT_INVALID, ==, HB_TAG_NONE);
+  g_assert_cmpint (HB_SCRIPT_INVALID, ==, (hb_script_t) HB_TAG_NONE);
   g_assert_cmphex (HB_SCRIPT_ARABIC, !=, HB_SCRIPT_LATIN);
+
+  g_assert_cmphex (HB_SCRIPT_INVALID, ==, hb_script_from_string (NULL));
+  g_assert_cmphex (HB_SCRIPT_INVALID, ==, hb_script_from_string (""));
+  g_assert_cmphex (HB_SCRIPT_UNKNOWN, ==, hb_script_from_string ("x"));
+
+  g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_string ("arab"));
+  g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_string ("Arab"));
+  g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_string ("ARAB"));
 
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (arab));
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (Arab));
   g_assert_cmphex (HB_SCRIPT_ARABIC, ==, hb_script_from_iso15924_tag (ARAB));
 
   /* Arbitrary tags that look like may be valid ISO 15924 should be preserved. */
+  g_assert_cmphex (HB_SCRIPT_UNKNOWN, !=, hb_script_from_string ("wWyZ"));
   g_assert_cmphex (HB_SCRIPT_UNKNOWN, !=, hb_script_from_iso15924_tag (wWyZ));
   /* Otherwise, UNKNOWN should be returned. */
+  g_assert_cmphex (HB_SCRIPT_UNKNOWN, ==, hb_script_from_string ("x123"));
   g_assert_cmphex (HB_SCRIPT_UNKNOWN, ==, hb_script_from_iso15924_tag (x123));
 
   g_assert_cmphex (hb_script_to_iso15924_tag (HB_SCRIPT_ARABIC), ==, Arab);
