@@ -265,7 +265,7 @@ typedef struct {
   inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
   inline int inc (void) { return hb_atomic_int_fetch_and_add (ref_count,  1); }
   inline int dec (void) { return hb_atomic_int_fetch_and_add (ref_count, -1); }
-  inline void set (int v) { return hb_atomic_int_set (ref_count, v); }
+  inline void set (int v) { hb_atomic_int_set (ref_count, v); }
 
   inline int get (void) const { return hb_atomic_int_get (ref_count); }
   inline bool is_invalid (void) const { return get () == HB_REFERENCE_COUNT_INVALID_VALUE; }
