@@ -318,7 +318,7 @@ static void parse_features (char *s)
       p++;
   } while (p);
 
-  features = calloc (num_features, sizeof (*features));
+  features = (hb_feature_t *) calloc (num_features, sizeof (*features));
 
   /* now do the actual parsing */
   p = s;

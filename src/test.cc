@@ -79,7 +79,7 @@ main (int argc, char **argv)
 
     blob = hb_blob_create (font_data, len,
 			   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE,
-			   destroy, user_data);
+			   user_data, destroy);
   }
 
   /* Create the face */
@@ -92,3 +92,6 @@ main (int argc, char **argv)
 
   return 0;
 }
+
+
+HB_END_DECLS

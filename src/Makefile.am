@@ -114,7 +114,7 @@ if HAVE_GLIB
 if HAVE_FREETYPE
 if HAVE_CAIRO_FT
 if HAVE_CAIRO_PNG
-hb_view_SOURCES = hb-view.c
+hb_view_SOURCES = hb-view.cc
 hb_view_CPPFLAGS = $(HBCFLAGS) $(CAIRO_FT_CFLAGS) $(CAIRO_PNG_CFLAGS)
 hb_view_LDADD = libharfbuzz.la -lm $(HBLIBS) $(CAIRO_FT_LIBS) $(CAIRO_PNG_LIBS)
 bin_PROGRAMS += hb-view
@@ -127,7 +127,7 @@ main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_SOURCES = test.c
+test_SOURCES = test.cc
 test_CPPFLAGS = $(HBCFLAGS)
 test_LDADD = libharfbuzz.la $(HBLIBS)
 
