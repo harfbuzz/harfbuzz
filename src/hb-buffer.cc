@@ -43,6 +43,10 @@ static hb_buffer_t _hb_buffer_nil = {
     HB_SCRIPT_INVALID,
     NULL,
   },
+
+  TRUE, /* in_error */
+  TRUE, /* have_output */
+  TRUE  /* have_positions */
 };
 
 /* Here is how the buffer works internally:
@@ -71,26 +75,26 @@ _hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
     return FALSE;
 
   unsigned int new_allocated = buffer->allocated;
-  hb_glyph_position_t *new_pos;
-  hb_glyph_info_t *new_info;
-  bool separate_out;
+  hb_glyph_position_t *new_pos = NULL;
+  hb_glyph_info_t *new_info = NULL;
+  bool overflows = FALSE;
+  bool separate_out = buffer->out_info != buffer->info;
 
-  separate_out = buffer->out_info != buffer->info;
+  if (unlikely (size > ((unsigned int)-1) / 2))
+    goto done;
 
   while (size > new_allocated)
     new_allocated += (new_allocated >> 1) + 32;
 
   ASSERT_STATIC (sizeof (buffer->info[0]) == sizeof (buffer->pos[0]));
-  bool overflows = new_allocated >= ((unsigned int) -1) / sizeof (buffer->info[0]);
+  overflows = new_allocated >= ((unsigned int) -1) / sizeof (buffer->info[0]);
+  if (unlikely (overflows))
+    goto done;
 
-  if (unlikely (overflows)) {
-    new_pos = NULL;
-    new_info = NULL;
-  } else {
-    new_pos = (hb_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
-    new_info = (hb_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
-  }
+  new_pos = (hb_glyph_position_t *) realloc (buffer->pos, new_allocated * sizeof (buffer->pos[0]));
+  new_info = (hb_glyph_info_t *) realloc (buffer->info, new_allocated * sizeof (buffer->info[0]));
 
+done:
   if (unlikely (!new_pos || !new_info))
     buffer->in_error = TRUE;
 
@@ -116,7 +120,7 @@ _hb_buffer_ensure (hb_buffer_t *buffer, unsigned int size)
 static inline hb_bool_t
 _hb_buffer_ensure_separate (hb_buffer_t *buffer, unsigned int size)
 {
-  if (unlikely (!_hb_buffer_ensure (buffer, size))) return FALSE;
+  if (unlikely (!size || !_hb_buffer_ensure (buffer, size))) return FALSE;
 
   if (buffer->out_info == buffer->info)
   {
@@ -188,8 +192,11 @@ void
 hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
 			     hb_unicode_funcs_t *unicode)
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
   if (!unicode)
-    unicode = &_hb_unicode_funcs_default;
+    unicode = _hb_buffer_nil.unicode;
 
   hb_unicode_funcs_reference (unicode);
   hb_unicode_funcs_destroy (buffer->unicode);
@@ -207,6 +214,9 @@ hb_buffer_set_direction (hb_buffer_t    *buffer,
 			 hb_direction_t  direction)
 
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
   buffer->props.direction = direction;
 }
 
@@ -220,6 +230,9 @@ void
 hb_buffer_set_script (hb_buffer_t *buffer,
 		      hb_script_t  script)
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
   buffer->props.script = script;
 }
 
@@ -233,6 +246,9 @@ void
 hb_buffer_set_language (hb_buffer_t   *buffer,
 			hb_language_t  language)
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
   buffer->props.language = language;
 }
 
@@ -246,14 +262,17 @@ hb_buffer_get_language (hb_buffer_t *buffer)
 void
 hb_buffer_reset (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
   hb_unicode_funcs_destroy (buffer->unicode);
   buffer->unicode = _hb_buffer_nil.unicode;
 
   buffer->props = _hb_buffer_nil.props;
 
+  buffer->in_error = FALSE;
   buffer->have_output = FALSE;
   buffer->have_positions = FALSE;
-  buffer->in_error = FALSE;
 
   buffer->i = 0;
   buffer->len = 0;
@@ -301,6 +320,9 @@ hb_buffer_add (hb_buffer_t    *buffer,
 void
 _hb_buffer_clear_output (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
   buffer->have_output = TRUE;
   buffer->have_positions = FALSE;
 
@@ -311,6 +333,9 @@ _hb_buffer_clear_output (hb_buffer_t *buffer)
 void
 _hb_buffer_clear_positions (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
   buffer->have_output = FALSE;
   buffer->have_positions = TRUE;
 
@@ -320,11 +345,9 @@ _hb_buffer_clear_positions (hb_buffer_t *buffer)
 void
 _hb_buffer_swap (hb_buffer_t *buffer)
 {
-  unsigned int tmp;
+  if (unlikely (buffer->in_error)) return;
 
   assert (buffer->have_output);
-
-  if (unlikely (buffer->in_error)) return;
 
   if (buffer->out_info != buffer->info)
   {
@@ -335,6 +358,7 @@ _hb_buffer_swap (hb_buffer_t *buffer)
     buffer->pos = (hb_glyph_position_t *) buffer->out_info;
   }
 
+  unsigned int tmp;
   tmp = buffer->len;
   buffer->len = buffer->out_len;
   buffer->out_len = tmp;

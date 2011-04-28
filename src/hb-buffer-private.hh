@@ -95,9 +95,9 @@ struct _hb_buffer_t {
 
   /* Buffer contents */
 
+  bool in_error; /* Allocation failed */
   bool have_output; /* Whether we have an output buffer going on */
   bool have_positions; /* Whether we have positions */
-  bool in_error; /* Allocation failed */
 
   unsigned int i; /* Cursor into ->info and ->pos arrays */
   unsigned int len; /* Length of ->info and ->pos arrays */
