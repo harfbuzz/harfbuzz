@@ -80,7 +80,8 @@ _hb_buffer_enlarge (hb_buffer_t *buffer, unsigned int size)
   bool overflows = FALSE;
   bool separate_out = buffer->out_info != buffer->info;
 
-  if (unlikely (size > ((unsigned int)-1) / 2))
+  overflows = size >= ((unsigned int) -1) / sizeof (buffer->info[0]);
+  if (unlikely (overflows))
     goto done;
 
   while (size > new_allocated)

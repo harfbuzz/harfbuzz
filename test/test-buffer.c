@@ -281,10 +281,35 @@ test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
 
   g_assert (hb_buffer_pre_allocate (fixture->b, 100));
   g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+  g_assert (hb_buffer_allocation_successful (fixture->b));
 
   /* lets try a huge allocation, make sure it fails */
   g_assert (!hb_buffer_pre_allocate (fixture->b, (unsigned int) -1));
   g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+  g_assert (!hb_buffer_allocation_successful (fixture->b));
+
+  /* small one again */
+  g_assert (hb_buffer_pre_allocate (fixture->b, 50));
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+  g_assert (!hb_buffer_allocation_successful (fixture->b));
+
+  hb_buffer_reset (fixture->b);
+  g_assert (hb_buffer_allocation_successful (fixture->b));
+
+  /* all allocation and size  */
+  g_assert (!hb_buffer_pre_allocate (fixture->b, ((unsigned int) -1) / 20 + 1));
+  g_assert (!hb_buffer_allocation_successful (fixture->b));
+
+  hb_buffer_reset (fixture->b);
+  g_assert (hb_buffer_allocation_successful (fixture->b));
+
+  /* technically, this one can actually pass on 64bit machines, but
+   * I'm doubtful that any malloc allows 4GB allocations at a time. */
+  g_assert (!hb_buffer_pre_allocate (fixture->b, ((unsigned int) -1) / 20 - 1));
+  g_assert (!hb_buffer_allocation_successful (fixture->b));
+
+  hb_buffer_reset (fixture->b);
+  g_assert (hb_buffer_allocation_successful (fixture->b));
 }
 
 
@@ -311,7 +336,6 @@ main (int argc, char **argv)
   g_test_add ("/buffer/allocation", fixture_t, GINT_TO_POINTER (BUFFER_EMPTY), fixture_init, test_buffer_allocation, fixture_fini);
 
   /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
-  /* XXX test pre_allocate(), allocation_successful(), and memory management */
 
   return g_test_run();
 }
