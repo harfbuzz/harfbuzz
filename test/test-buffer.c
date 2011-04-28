@@ -98,11 +98,21 @@ fixture_fini (Fixture *fixture, gconstpointer user_data)
 static void
 test_buffer_properties (Fixture *fixture, gconstpointer user_data)
 {
-  /* TODO check unicode_funcs */
+  hb_unicode_funcs_t *ufuncs;
 
+  /* test default properties */
+
+  g_assert (hb_buffer_get_unicode_funcs (fixture->b) == hb_unicode_funcs_get_default ());
   g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_INVALID);
   g_assert (hb_buffer_get_script (fixture->b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (fixture->b) == NULL);
+
+
+  /* test property changes are retained */
+  ufuncs = hb_unicode_funcs_create (NULL);
+  hb_buffer_set_unicode_funcs (fixture->b, ufuncs);
+  hb_unicode_funcs_destroy (ufuncs);
+  g_assert (hb_buffer_get_unicode_funcs (fixture->b) == ufuncs);
 
   hb_buffer_set_direction (fixture->b, HB_DIRECTION_RTL);
   g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_RTL);
@@ -112,12 +122,22 @@ test_buffer_properties (Fixture *fixture, gconstpointer user_data)
 
   hb_buffer_set_language (fixture->b, hb_language_from_string ("fa"));
   g_assert (hb_buffer_get_language (fixture->b) == hb_language_from_string ("Fa"));
+
+
+  /* test reset clears properties */
+
+  hb_buffer_reset (fixture->b);
+
+  g_assert (hb_buffer_get_unicode_funcs (fixture->b) == hb_unicode_funcs_get_default ());
+  g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_INVALID);
+  g_assert (hb_buffer_get_script (fixture->b) == HB_SCRIPT_INVALID);
+  g_assert (hb_buffer_get_language (fixture->b) == NULL);
 }
 
 static void
 test_buffer_contents (Fixture *fixture, gconstpointer user_data)
 {
-  unsigned int i, len;
+  unsigned int i, len, len2;
   buffer_type_t buffer_type = GPOINTER_TO_INT (user_data);
   hb_glyph_info_t *glyphs;
 
@@ -126,7 +146,10 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
     return;
   }
 
-  glyphs = hb_buffer_get_glyph_infos (fixture->b, &len);
+  len = hb_buffer_get_length (fixture->b);
+  glyphs = hb_buffer_get_glyph_infos (fixture->b, NULL); /* test NULL */
+  glyphs = hb_buffer_get_glyph_infos (fixture->b, &len2);
+  g_assert_cmpint (len, ==, len2);
   g_assert_cmpint (len, ==, 5);
 
   for (i = 0; i < len; i++) {
@@ -198,16 +221,43 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
   hb_buffer_reverse_clusters (fixture->b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
+
+
+  /* test setting length */
+
+  /* enlarge */
+  g_assert (hb_buffer_set_length (fixture->b, 10));
+  glyphs = hb_buffer_get_glyph_infos (fixture->b, NULL);
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 10);
+  for (i = 0; i < 5; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
+  for (i = 5; i < 10; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, 0);
+  /* shrink */
+  g_assert (hb_buffer_set_length (fixture->b, 3));
+  glyphs = hb_buffer_get_glyph_infos (fixture->b, NULL);
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 3);
+  for (i = 0; i < 3; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
+
+
+  /* test reset clears content */
+
+  hb_buffer_reset (fixture->b);
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
 }
 
 static void
 test_buffer_positions (Fixture *fixture, gconstpointer user_data)
 {
-  unsigned int i, len;
+  unsigned int i, len, len2;
   hb_glyph_position_t *positions;
 
   /* Without shaping, positions should all be zero */
-  positions = hb_buffer_get_glyph_positions (fixture->b, &len);
+  len = hb_buffer_get_length (fixture->b);
+  positions = hb_buffer_get_glyph_positions (fixture->b, NULL); /* test NULL */
+  positions = hb_buffer_get_glyph_positions (fixture->b, &len2);
+  g_assert_cmpint (len, ==, len2);
   for (i = 0; i < len; i++) {
     g_assert_cmpint (0, ==, positions[i].x_advance);
     g_assert_cmpint (0, ==, positions[i].y_advance);
@@ -215,6 +265,10 @@ test_buffer_positions (Fixture *fixture, gconstpointer user_data)
     g_assert_cmpint (0, ==, positions[i].y_offset);
     g_assert_cmpint (0, ==, positions[i].var.i32);
   }
+
+  /* test reset clears content */
+  hb_buffer_reset (fixture->b);
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
 }
 
 int
@@ -239,8 +293,6 @@ main (int argc, char **argv)
 
   /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
   /* XXX test pre_allocate(), allocation_successful(), and memory management */
-  /* XXX test buffer reset */
-  /* XXX test buffer set length */
 
   return g_test_run();
 }
