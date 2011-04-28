@@ -210,6 +210,13 @@ _hb_ctz (unsigned int number)
 #endif
 }
 
+static inline bool
+_hb_unsigned_int_mul_overflows (unsigned int count, unsigned int size)
+{
+  return (size > 0) && (count >= ((unsigned int) -1) / size);
+}
+
+
 /* Type of bsearch() / qsort() compare function */
 typedef int (*hb_compare_func_t) (const void *, const void *);
 
@@ -297,7 +304,7 @@ struct hb_static_array_t {
 	array = new_array;
       }
     } else {
-      bool overflows = (new_allocated < allocated) || (new_allocated >= ((unsigned int) -1) / sizeof (Type));
+      bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
       if (unlikely (overflows))
         new_array = NULL;
       else

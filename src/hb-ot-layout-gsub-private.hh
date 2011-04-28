@@ -409,7 +409,7 @@ struct Ligature
 
   inline uint16_t allocate_lig_id (hb_buffer_t *buffer) const {
     uint16_t lig_id = buffer->next_serial ();
-    if (unlikely (!lig_id)) lig_id = buffer->next_serial (); /* in case of overflows */
+    if (unlikely (!lig_id)) lig_id = buffer->next_serial (); /* in case of overflow */
     return lig_id;
   }
 
