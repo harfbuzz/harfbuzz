@@ -58,6 +58,18 @@ hb_face_reference (hb_face_t *face);
 void
 hb_face_destroy (hb_face_t *face);
 
+hb_bool_t
+hb_face_set_user_data (hb_face_t          *face,
+		       hb_user_data_key_t *key,
+		       void *              data,
+		       hb_destroy_func_t   destroy);
+
+
+void *
+hb_face_get_user_data (hb_face_t          *face,
+		       hb_user_data_key_t *key);
+
+
 /* XXX
  *
  * I have two major concerns about this API as it is right now:
@@ -90,6 +102,18 @@ hb_font_funcs_reference (hb_font_funcs_t *ffuncs);
 
 void
 hb_font_funcs_destroy (hb_font_funcs_t *ffuncs);
+
+hb_bool_t
+hb_font_funcs_set_user_data (hb_font_funcs_t    *ffuncs,
+			     hb_user_data_key_t *key,
+			     void *              data,
+			     hb_destroy_func_t   destroy);
+
+
+void *
+hb_font_funcs_get_user_data (hb_font_funcs_t    *ffuncs,
+			     hb_user_data_key_t *key);
+
 
 hb_font_funcs_t *
 hb_font_funcs_copy (hb_font_funcs_t *ffuncs);
@@ -202,6 +226,18 @@ hb_font_reference (hb_font_t *font);
 
 void
 hb_font_destroy (hb_font_t *font);
+
+hb_bool_t
+hb_font_set_user_data (hb_font_t          *font,
+		       hb_user_data_key_t *key,
+		       void *              data,
+		       hb_destroy_func_t   destroy);
+
+
+void *
+hb_font_get_user_data (hb_font_t          *font,
+		       hb_user_data_key_t *key);
+
 
 void
 hb_font_set_funcs (hb_font_t         *font,

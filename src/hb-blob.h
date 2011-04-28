@@ -62,6 +62,18 @@ hb_blob_reference (hb_blob_t *blob);
 void
 hb_blob_destroy (hb_blob_t *blob);
 
+hb_bool_t
+hb_blob_set_user_data (hb_blob_t          *blob,
+		       hb_user_data_key_t *key,
+		       void *              data,
+		       hb_destroy_func_t   destroy);
+
+
+void *
+hb_blob_get_user_data (hb_blob_t          *blob,
+		       hb_user_data_key_t *key);
+
+
 unsigned int
 hb_blob_get_length (hb_blob_t *blob);
 

@@ -124,6 +124,23 @@ hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
   free (ffuncs);
 }
 
+hb_bool_t
+hb_font_funcs_set_user_data (hb_font_funcs_t    *ffuncs,
+			     hb_user_data_key_t *key,
+			     void *              data,
+			     hb_destroy_func_t   destroy)
+{
+  return hb_object_set_user_data (ffuncs, key, data, destroy);
+}
+
+void *
+hb_font_funcs_get_user_data (hb_font_funcs_t    *ffuncs,
+			     hb_user_data_key_t *key)
+{
+  return hb_object_get_user_data (ffuncs, key);
+}
+
+
 hb_font_funcs_t *
 hb_font_funcs_copy (hb_font_funcs_t *other_ffuncs)
 {
@@ -408,6 +425,23 @@ hb_face_destroy (hb_face_t *face)
   free (face);
 }
 
+hb_bool_t
+hb_face_set_user_data (hb_face_t          *face,
+		       hb_user_data_key_t *key,
+		       void *              data,
+		       hb_destroy_func_t   destroy)
+{
+  return hb_object_set_user_data (face, key, data, destroy);
+}
+
+void *
+hb_face_get_user_data (hb_face_t          *face,
+		       hb_user_data_key_t *key)
+{
+  return hb_object_get_user_data (face, key);
+}
+
+
 hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
 		   hb_tag_t   tag)
@@ -479,6 +513,23 @@ hb_font_destroy (hb_font_t *font)
 
   free (font);
 }
+
+hb_bool_t
+hb_font_set_user_data (hb_font_t          *font,
+		       hb_user_data_key_t *key,
+		       void *              data,
+		       hb_destroy_func_t   destroy)
+{
+  return hb_object_set_user_data (font, key, data, destroy);
+}
+
+void *
+hb_font_get_user_data (hb_font_t          *font,
+		       hb_user_data_key_t *key)
+{
+  return hb_object_get_user_data (font, key);
+}
+
 
 void
 hb_font_set_funcs (hb_font_t         *font,

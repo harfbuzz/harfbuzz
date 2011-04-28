@@ -162,6 +162,23 @@ hb_blob_destroy (hb_blob_t *blob)
   free (blob);
 }
 
+hb_bool_t
+hb_blob_set_user_data (hb_blob_t          *blob,
+		       hb_user_data_key_t *key,
+		       void *              data,
+		       hb_destroy_func_t   destroy)
+{
+  return hb_object_set_user_data (blob, key, data, destroy);
+}
+
+void *
+hb_blob_get_user_data (hb_blob_t          *blob,
+		       hb_user_data_key_t *key)
+{
+  return hb_object_get_user_data (blob, key);
+}
+
+
 unsigned int
 hb_blob_get_length (hb_blob_t *blob)
 {

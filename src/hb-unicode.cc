@@ -155,6 +155,23 @@ hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
   free (ufuncs);
 }
 
+hb_bool_t
+hb_unicode_funcs_set_user_data (hb_unicode_funcs_t *ufuncs,
+			        hb_user_data_key_t *key,
+			        void *              data,
+			        hb_destroy_func_t   destroy)
+{
+  return hb_object_set_user_data (ufuncs, key, data, destroy);
+}
+
+void *
+hb_unicode_funcs_get_user_data (hb_unicode_funcs_t *ufuncs,
+			        hb_user_data_key_t *key)
+{
+  return hb_object_get_user_data (ufuncs, key);
+}
+
+
 void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 {

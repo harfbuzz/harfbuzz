@@ -68,6 +68,16 @@ hb_buffer_reference (hb_buffer_t *buffer);
 void
 hb_buffer_destroy (hb_buffer_t *buffer);
 
+hb_bool_t
+hb_buffer_set_user_data (hb_buffer_t        *buffer,
+			 hb_user_data_key_t *key,
+			 void *              data,
+			 hb_destroy_func_t   destroy);
+
+void *
+hb_buffer_get_user_data (hb_buffer_t        *buffer,
+			 hb_user_data_key_t *key);
+
 
 void
 hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
