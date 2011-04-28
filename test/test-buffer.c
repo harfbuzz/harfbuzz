@@ -304,9 +304,12 @@ test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_allocation_successful (fixture->b));
 
   /* technically, this one can actually pass on 64bit machines, but
-   * I'm doubtful that any malloc allows 4GB allocations at a time. */
-  g_assert (!hb_buffer_pre_allocate (fixture->b, ((unsigned int) -1) / 20 - 1));
-  g_assert (!hb_buffer_allocation_successful (fixture->b));
+   * I'm doubtful that any malloc allows 4GB allocations at a time.
+   * But let's only enable it on a 32-bit machine. */
+  if (sizeof (long) == 4) {
+    g_assert (!hb_buffer_pre_allocate (fixture->b, ((unsigned int) -1) / 20 - 1));
+    g_assert (!hb_buffer_allocation_successful (fixture->b));
+  }
 
   hb_buffer_reset (fixture->b);
   g_assert (hb_buffer_allocation_successful (fixture->b));
