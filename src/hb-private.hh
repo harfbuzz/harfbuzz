@@ -258,23 +258,135 @@ typedef volatile int hb_mutex_t;
 #endif
 
 
-/* A reference count */
+HB_END_DECLS
 
-typedef struct {
-  hb_atomic_int_t ref_count;
 
-#define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
-#define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
+/* arrays and maps */
 
-  inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
-  inline int inc (void) { return hb_atomic_int_fetch_and_add (ref_count,  1); }
-  inline int dec (void) { return hb_atomic_int_fetch_and_add (ref_count, -1); }
-  inline void set (int v) { hb_atomic_int_set (ref_count, v); }
 
-  inline int get (void) const { return hb_atomic_int_get (ref_count); }
-  inline bool is_invalid (void) const { return get () == HB_REFERENCE_COUNT_INVALID_VALUE; }
+template <typename Type, unsigned int StaticSize>
+struct hb_static_array_t {
 
-} hb_reference_count_t;
+  unsigned int len;
+  unsigned int allocated;
+  Type *array;
+  Type static_array[StaticSize];
+
+  void finish (void) { for (unsigned i = 0; i < len; i++) array[i].finish (); }
+
+  inline Type& operator [] (unsigned int i)
+  {
+    return array[i];
+  }
+
+  inline Type *push (void)
+  {
+    if (!array) {
+      array = static_array;
+      allocated = ARRAY_LENGTH (static_array);
+    }
+    if (likely (len < allocated))
+      return &array[len++];
+    /* Need to reallocate */
+    unsigned int new_allocated = allocated + (allocated >> 1) + 8;
+    Type *new_array;
+    if (array == static_array) {
+      new_array = (Type *) calloc (new_allocated, sizeof (Type));
+      if (new_array) {
+        memcpy (new_array, array, len * sizeof (Type));
+	array = new_array;
+      }
+    } else {
+      bool overflows = new_allocated >= ((unsigned int) -1) / sizeof (Type);
+      if (unlikely (overflows))
+        new_array = NULL;
+      else
+	new_array = (Type *) realloc (array, new_allocated * sizeof (Type));
+      if (new_array) {
+        free (array);
+	array = new_array;
+      }
+    }
+    if ((len < allocated))
+      return &array[len++];
+    else
+      return NULL;
+  }
+
+  inline void pop (void)
+  {
+    len--;
+    /* TODO: shrink array if needed */
+  }
+};
+
+template <typename Type>
+struct hb_array_t : hb_static_array_t<Type, 2> {};
+
+
+template <typename Key, typename Value>
+struct hb_map_t
+{
+  struct item_t {
+    Key key;
+    /* unsigned int hash; */
+    Value value;
+
+    void finish (void) { value.finish (); }
+  };
+
+  hb_array_t <item_t> items;
+
+  private:
+
+  inline item_t *find (Key key) {
+    if (unlikely (!key)) return NULL;
+    for (unsigned int i = 0; i < items.len; i++)
+      if (key == items[i].key)
+	return &items[i];
+    return NULL;
+  }
+
+  public:
+
+  inline bool set (Key   key,
+		   Value &value)
+  {
+    if (unlikely (!key)) return NULL;
+    item_t *item;
+    item = find (key);
+    if (item)
+      item->finish ();
+    else
+      item = items.push ();
+    if (unlikely (!item)) return false;
+    item->key = key;
+    item->value = value;
+    return true;
+  }
+
+  inline void unset (Key &key)
+  {
+    item_t *item;
+    item = find (key);
+    if (!item) return;
+
+    item->finish ();
+    items[items.len - 1] = *item;
+    items.pop ();
+  }
+
+  inline Value *get (Key key)
+  {
+    item_t *item = find (key);
+    return item ? &item->value : NULL;
+  }
+
+  void finish (void) { items.finish (); }
+};
+
+
+HB_BEGIN_DECLS
 
 
 /* Big-endian handling */
