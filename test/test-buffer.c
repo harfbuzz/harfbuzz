@@ -33,6 +33,21 @@ static const char utf8[10] = "ab\360\240\200\200defg";
 static const uint16_t utf16[8] = {'a', 'b', 0xD840, 0xDC00, 'd', 'e', 'f', 'g'};
 static const uint32_t utf32[7] = {'a', 'b', 0x20000, 'd', 'e', 'f', 'g'};
 
+typedef struct {
+  const char utf8[8];
+  const uint32_t codepoints[8];
+} utf8_test_t;
+
+
+/* note: we skip the first and last byte when adding to buffer */
+static const utf8_test_t utf8_tests[] = {
+  {"a\303\207", {-1}},
+  {"a\303\207b", {0xC7}},
+  {"ab\303cd", {'b', -1, 'c'}}
+};
+
+
+
 typedef enum {
   BUFFER_EMPTY,
   BUFFER_ONE_BY_ONE,
@@ -315,11 +330,34 @@ test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_allocation_successful (fixture->b));
 }
 
+static void
+test_buffer_utf8 (gconstpointer user_data)
+{
+  const utf8_test_t *test = user_data;
+  hb_buffer_t *b;
+  hb_glyph_info_t *glyphs;
+  unsigned int bytes, chars, i, len;
+
+  bytes = strlen (test->utf8);
+  for (chars = 0; test->codepoints[chars]; chars++)
+    ;
+
+  b = hb_buffer_create (0);
+  hb_buffer_add_utf8 (b, test->utf8, bytes,  1, bytes - 2);
+
+  glyphs = hb_buffer_get_glyph_infos (b, &len);
+  g_assert_cmpint (len, ==, chars);
+  for (i = 0; i < chars; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, test->codepoints[i]);
+
+  hb_buffer_destroy (b);
+}
+
 
 int
 main (int argc, char **argv)
 {
-  int i;
+  unsigned int i;
 
   hb_test_init (&argc, &argv);
 
@@ -335,6 +373,12 @@ main (int argc, char **argv)
 
   hb_test_add_fixture (fixture, GINT_TO_POINTER (BUFFER_EMPTY), test_buffer_allocation);
 
+  for (i = 0; i < G_N_ELEMENTS (utf8_tests); i++)
+  {
+    char *flavor = g_strdup_printf ("%d", i);
+    hb_test_add_data_flavor (&utf8_tests[i], flavor, test_buffer_utf8);
+    g_free (flavor);
+  }
   /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
 
   return hb_test_run();

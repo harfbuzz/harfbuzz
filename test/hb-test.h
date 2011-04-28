@@ -140,7 +140,30 @@ hb_test_add_func_flavor (const char *test_path,
   hb_test_add_func (path, test_func);
   g_free (path);
 }
-#define hb_test_add_flavor(Func, Flavor) hb_test_add_func (#Func, Flavor, Func)
+#define hb_test_add_flavor(Flavor, Func) hb_test_add_func (#Func, Flavor, Func)
+
+static inline void
+hb_test_add_data_func (const char    *test_path,
+		       gconstpointer  test_data,
+		       GTestDataFunc  test_func)
+{
+  char *normal_path = hb_test_normalize_path (test_path);
+  g_test_add_data_func (normal_path, test_data, test_func);
+  g_free (normal_path);
+}
+#define hb_test_add_data(Func, UserData) hb_test_add_data_func (#Func, UserData, Func)
+
+static inline void
+hb_test_add_data_func_flavor (const char    *test_path,
+			      const char    *flavor,
+			      gconstpointer  test_data,
+			      GTestDataFunc  test_func)
+{
+  char *path = g_strdup_printf ("%s/%s", test_path, flavor);
+  hb_test_add_data_func (path, test_data, test_func);
+  g_free (path);
+}
+#define hb_test_add_data_flavor(UserData, Flavor, Func) hb_test_add_data_func_flavor (#Func, Flavor, UserData, Func)
 
 
 static inline void
