@@ -53,10 +53,10 @@ static const char *buffer_names[] = {
 typedef struct
 {
   hb_buffer_t *b;
-} Fixture;
+} fixture_t;
 
 static void
-fixture_init (Fixture *fixture, gconstpointer user_data)
+fixture_init (fixture_t *fixture, gconstpointer user_data)
 {
   unsigned int i;
 
@@ -89,14 +89,14 @@ fixture_init (Fixture *fixture, gconstpointer user_data)
 }
 
 static void
-fixture_fini (Fixture *fixture, gconstpointer user_data)
+fixture_fini (fixture_t *fixture, gconstpointer user_data)
 {
   hb_buffer_destroy (fixture->b);
 }
 
 
 static void
-test_buffer_properties (Fixture *fixture, gconstpointer user_data)
+test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
 {
   hb_unicode_funcs_t *ufuncs;
 
@@ -135,7 +135,7 @@ test_buffer_properties (Fixture *fixture, gconstpointer user_data)
 }
 
 static void
-test_buffer_contents (Fixture *fixture, gconstpointer user_data)
+test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
 {
   unsigned int i, len, len2;
   buffer_type_t buffer_type = GPOINTER_TO_INT (user_data);
@@ -241,6 +241,9 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
 
 
+  g_assert (hb_buffer_allocation_successful (fixture->b));
+
+
   /* test reset clears content */
 
   hb_buffer_reset (fixture->b);
@@ -248,7 +251,7 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
 }
 
 static void
-test_buffer_positions (Fixture *fixture, gconstpointer user_data)
+test_buffer_positions (fixture_t *fixture, gconstpointer user_data)
 {
   unsigned int i, len, len2;
   hb_glyph_position_t *positions;
@@ -271,6 +274,20 @@ test_buffer_positions (Fixture *fixture, gconstpointer user_data)
   g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
 }
 
+static void
+test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
+{
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+
+  g_assert (hb_buffer_pre_allocate (fixture->b, 100));
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+
+  /* lets try a huge allocation, make sure it fails */
+  g_assert (!hb_buffer_pre_allocate (fixture->b, (unsigned int) -1));
+  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -282,7 +299,7 @@ main (int argc, char **argv)
 #define TEST_ADD(path, func) \
     G_STMT_START { \
       char *s = g_strdup_printf ("%s/%s", path, buffer_names[i]); \
-      g_test_add (s, Fixture, GINT_TO_POINTER (i), fixture_init, func, fixture_fini); \
+      g_test_add (s, fixture_t, GINT_TO_POINTER (i), fixture_init, func, fixture_fini); \
       g_free (s); \
     } G_STMT_END
     TEST_ADD ("/buffer/properties", test_buffer_properties);
@@ -290,6 +307,8 @@ main (int argc, char **argv)
     TEST_ADD ("/buffer/positions", test_buffer_positions);
 #undef TEST_ADD
   }
+
+  g_test_add ("/buffer/allocation", fixture_t, GINT_TO_POINTER (BUFFER_EMPTY), fixture_init, test_buffer_allocation, fixture_fini);
 
   /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
   /* XXX test pre_allocate(), allocation_successful(), and memory management */
