@@ -70,16 +70,6 @@ hb_face_get_user_data (hb_face_t          *face,
 		       hb_user_data_key_t *key);
 
 
-/* XXX
- *
- * I have two major concerns about this API as it is right now:
- *
- *   - Jonathan Kew convinced me to make it return NULL if table not found (280af1bd),
- *     however, that is WRONG IMO.  The API should not differentiate between a non-existing
- *     table vs a zero-length table vs a very short table.  It only leads to implementations
- *     that check for non-NULL and assume that they've got a usable table going on...  This
- *     actually happened with Firefox.
- */
 hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
 			 hb_tag_t   tag);
