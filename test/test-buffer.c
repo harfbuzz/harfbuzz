@@ -633,6 +633,46 @@ test_buffer_utf8_validity (gconstpointer user_data)
 }
 
 
+typedef struct {
+  const uint16_t utf16[8];
+  const uint32_t codepoints[8];
+} utf16_test_t;
+
+/* note: we skip the first and last item from utf16 when adding to buffer */
+static const utf16_test_t utf16_tests[] = {
+  {{0x41, 0x004D, 0x0430, 0x4E8C, 0xD800, 0xDF02, 0x61} , {0x004D, 0x0430, 0x4E8C, 0x10302}},
+  {{0x41, 0xD800, 0xDF02, 0x61}, {0x10302}},
+  {{0x41, 0xD800, 0xDF02}, {-1}},
+  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, -1}},
+  {{0x41, 0xD800, 0x61, 0xDF02}, {-1, 0x61}},
+  {{0x41, 0x61}, {}}
+};
+
+static void
+test_buffer_utf16 (gconstpointer user_data)
+{
+  const utf16_test_t *test = user_data;
+  hb_buffer_t *b;
+  hb_glyph_info_t *glyphs;
+  unsigned int u_len, chars, i, len;
+
+  for (u_len = 0; test->utf16[u_len]; u_len++)
+    ;
+  for (chars = 0; test->codepoints[chars]; chars++)
+    ;
+
+  b = hb_buffer_create (0);
+  hb_buffer_add_utf16 (b, test->utf16, u_len,  1, u_len - 2);
+
+  glyphs = hb_buffer_get_glyph_infos (b, &len);
+  g_assert_cmpint (len, ==, chars);
+  for (i = 0; i < chars; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, test->codepoints[i]);
+
+  hb_buffer_destroy (b);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -658,7 +698,6 @@ main (int argc, char **argv)
     hb_test_add_data_flavor (&utf8_tests[i], flavor, test_buffer_utf8);
     g_free (flavor);
   }
-
   for (i = 0; i < G_N_ELEMENTS (utf8_validity_tests); i++)
   {
     char *flavor = g_strdup_printf ("%d", i);
@@ -666,7 +705,12 @@ main (int argc, char **argv)
     g_free (flavor);
   }
 
-  /* XXX test invalid UTF-16 text input */
+  for (i = 0; i < G_N_ELEMENTS (utf16_tests); i++)
+  {
+    char *flavor = g_strdup_printf ("%d", i);
+    hb_test_add_data_flavor (&utf16_tests[i], flavor, test_buffer_utf16);
+    g_free (flavor);
+  }
 
   return hb_test_run();
 }
