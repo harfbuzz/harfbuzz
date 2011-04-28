@@ -105,9 +105,6 @@ hb_font_funcs_get_user_data (hb_font_funcs_t    *ffuncs,
 			     hb_user_data_key_t *key);
 
 
-hb_font_funcs_t *
-hb_font_funcs_copy (hb_font_funcs_t *ffuncs);
-
 void
 hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs);
 
