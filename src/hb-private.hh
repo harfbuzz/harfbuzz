@@ -297,7 +297,7 @@ struct hb_static_array_t {
 	array = new_array;
       }
     } else {
-      bool overflows = new_allocated >= ((unsigned int) -1) / sizeof (Type);
+      bool overflows = (new_allocated < allocated) || (new_allocated >= ((unsigned int) -1) / sizeof (Type));
       if (unlikely (overflows))
         new_array = NULL;
       else
