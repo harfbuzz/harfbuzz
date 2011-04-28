@@ -33,20 +33,6 @@ static const char utf8[10] = "ab\360\240\200\200defg";
 static const uint16_t utf16[8] = {'a', 'b', 0xD840, 0xDC00, 'd', 'e', 'f', 'g'};
 static const uint32_t utf32[7] = {'a', 'b', 0x20000, 'd', 'e', 'f', 'g'};
 
-typedef struct {
-  const char utf8[8];
-  const uint32_t codepoints[8];
-} utf8_test_t;
-
-
-/* note: we skip the first and last byte when adding to buffer */
-static const utf8_test_t utf8_tests[] = {
-  {"a\303\207", {-1}},
-  {"a\303\207b", {0xC7}},
-  {"ab\303cd", {'b', -1, 'c'}}
-};
-
-
 
 typedef enum {
   BUFFER_EMPTY,
@@ -330,6 +316,20 @@ test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_allocation_successful (fixture->b));
 }
 
+
+typedef struct {
+  const char utf8[8];
+  const uint32_t codepoints[8];
+} utf8_test_t;
+
+/* note: we skip the first and last byte when adding to buffer */
+static const utf8_test_t utf8_tests[] = {
+  {"a\303\207", {-1}},
+  {"a\303\207b", {0xC7}},
+  {"ab\303cd", {'b', -1, 'c'}},
+  {"ab\303\302\301cd", {'b', -1, -1, -1, 'c'}}
+};
+
 static void
 test_buffer_utf8 (gconstpointer user_data)
 {
@@ -349,6 +349,285 @@ test_buffer_utf8 (gconstpointer user_data)
   g_assert_cmpint (len, ==, chars);
   for (i = 0; i < chars; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, test->codepoints[i]);
+
+  hb_buffer_destroy (b);
+}
+
+
+
+/* Following test table is adapted from glib/glib/tests/utf8-validate.c
+ * with relicensing permission from Matthias Clasen. */
+
+typedef struct {
+  const char *text;
+  int max_len;
+  unsigned int offset;
+  gboolean valid;
+} utf8_validity_test_t;
+
+static const utf8_validity_test_t utf8_validity_tests[] = {
+  /* some tests to check max_len handling */
+  /* length 1 */
+  { "abcde", -1, 5, TRUE },
+  { "abcde", 3, 3, TRUE },
+  { "abcde", 5, 5, TRUE },
+  /* length 2 */
+  { "\xc2\xa9\xc2\xa9\xc2\xa9", -1, 6, TRUE },
+  { "\xc2\xa9\xc2\xa9\xc2\xa9",  1, 0, FALSE },
+  { "\xc2\xa9\xc2\xa9\xc2\xa9",  2, 2, TRUE },
+  { "\xc2\xa9\xc2\xa9\xc2\xa9",  3, 2, FALSE },
+  { "\xc2\xa9\xc2\xa9\xc2\xa9",  4, 4, TRUE },
+  { "\xc2\xa9\xc2\xa9\xc2\xa9",  5, 4, FALSE },
+  { "\xc2\xa9\xc2\xa9\xc2\xa9",  6, 6, TRUE },
+  /* length 3 */
+  { "\xe2\x89\xa0\xe2\x89\xa0", -1, 6, TRUE },
+  { "\xe2\x89\xa0\xe2\x89\xa0",  1, 0, FALSE },
+  { "\xe2\x89\xa0\xe2\x89\xa0",  2, 0, FALSE },
+  { "\xe2\x89\xa0\xe2\x89\xa0",  3, 3, TRUE },
+  { "\xe2\x89\xa0\xe2\x89\xa0",  4, 3, FALSE },
+  { "\xe2\x89\xa0\xe2\x89\xa0",  5, 3, FALSE },
+  { "\xe2\x89\xa0\xe2\x89\xa0",  6, 6, TRUE },
+
+  /* examples from http://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt */
+  /* greek 'kosme' */
+  { "\xce\xba\xe1\xbd\xb9\xcf\x83\xce\xbc\xce\xb5", -1, 11, TRUE },
+  /* first sequence of each length */
+  { "\x00", -1, 0, TRUE },
+  { "\xc2\x80", -1, 2, TRUE },
+  { "\xe0\xa0\x80", -1, 3, TRUE },
+  { "\xf0\x90\x80\x80", -1, 4, TRUE },
+  { "\xf8\x88\x80\x80\x80", -1, 0, FALSE },
+  { "\xfc\x84\x80\x80\x80\x80", -1, 0, FALSE },
+  /* last sequence of each length */
+  { "\x7f", -1, 1, TRUE },
+  { "\xdf\xbf", -1, 2, TRUE },
+  { "\xef\xbf\xbf", -1, 0, TRUE },
+  { "\xf7\xbf\xbf\xbf", -1, 0, TRUE },
+  { "\xfb\xbf\xbf\xbf\xbf", -1, 0, FALSE },
+  { "\xfd\xbf\xbf\xbf\xbf\xbf", -1, 0, FALSE },
+  /* other boundary conditions */
+  { "\xed\x9f\xbf", -1, 3, TRUE },
+  { "\xee\x80\x80", -1, 3, TRUE },
+  { "\xef\xbf\xbd", -1, 3, TRUE },
+  { "\xf4\x8f\xbf\xbf", -1, 0, TRUE },
+  /* malformed sequences */
+  /* continuation bytes */
+  { "\x80", -1, 0, FALSE },
+  { "\xbf", -1, 0, FALSE },
+  { "\x80\xbf", -1, 0, FALSE },
+  { "\x80\xbf\x80", -1, 0, FALSE },
+  { "\x80\xbf\x80\xbf", -1, 0, FALSE },
+  { "\x80\xbf\x80\xbf\x80", -1, 0, FALSE },
+  { "\x80\xbf\x80\xbf\x80\xbf", -1, 0, FALSE },
+  { "\x80\xbf\x80\xbf\x80\xbf\x80", -1, 0, FALSE },
+
+  /* all possible continuation byte */
+  { "\x80", -1, 0, FALSE },
+  { "\x81", -1, 0, FALSE },
+  { "\x82", -1, 0, FALSE },
+  { "\x83", -1, 0, FALSE },
+  { "\x84", -1, 0, FALSE },
+  { "\x85", -1, 0, FALSE },
+  { "\x86", -1, 0, FALSE },
+  { "\x87", -1, 0, FALSE },
+  { "\x88", -1, 0, FALSE },
+  { "\x89", -1, 0, FALSE },
+  { "\x8a", -1, 0, FALSE },
+  { "\x8b", -1, 0, FALSE },
+  { "\x8c", -1, 0, FALSE },
+  { "\x8d", -1, 0, FALSE },
+  { "\x8e", -1, 0, FALSE },
+  { "\x8f", -1, 0, FALSE },
+  { "\x90", -1, 0, FALSE },
+  { "\x91", -1, 0, FALSE },
+  { "\x92", -1, 0, FALSE },
+  { "\x93", -1, 0, FALSE },
+  { "\x94", -1, 0, FALSE },
+  { "\x95", -1, 0, FALSE },
+  { "\x96", -1, 0, FALSE },
+  { "\x97", -1, 0, FALSE },
+  { "\x98", -1, 0, FALSE },
+  { "\x99", -1, 0, FALSE },
+  { "\x9a", -1, 0, FALSE },
+  { "\x9b", -1, 0, FALSE },
+  { "\x9c", -1, 0, FALSE },
+  { "\x9d", -1, 0, FALSE },
+  { "\x9e", -1, 0, FALSE },
+  { "\x9f", -1, 0, FALSE },
+  { "\xa0", -1, 0, FALSE },
+  { "\xa1", -1, 0, FALSE },
+  { "\xa2", -1, 0, FALSE },
+  { "\xa3", -1, 0, FALSE },
+  { "\xa4", -1, 0, FALSE },
+  { "\xa5", -1, 0, FALSE },
+  { "\xa6", -1, 0, FALSE },
+  { "\xa7", -1, 0, FALSE },
+  { "\xa8", -1, 0, FALSE },
+  { "\xa9", -1, 0, FALSE },
+  { "\xaa", -1, 0, FALSE },
+  { "\xab", -1, 0, FALSE },
+  { "\xac", -1, 0, FALSE },
+  { "\xad", -1, 0, FALSE },
+  { "\xae", -1, 0, FALSE },
+  { "\xaf", -1, 0, FALSE },
+  { "\xb0", -1, 0, FALSE },
+  { "\xb1", -1, 0, FALSE },
+  { "\xb2", -1, 0, FALSE },
+  { "\xb3", -1, 0, FALSE },
+  { "\xb4", -1, 0, FALSE },
+  { "\xb5", -1, 0, FALSE },
+  { "\xb6", -1, 0, FALSE },
+  { "\xb7", -1, 0, FALSE },
+  { "\xb8", -1, 0, FALSE },
+  { "\xb9", -1, 0, FALSE },
+  { "\xba", -1, 0, FALSE },
+  { "\xbb", -1, 0, FALSE },
+  { "\xbc", -1, 0, FALSE },
+  { "\xbd", -1, 0, FALSE },
+  { "\xbe", -1, 0, FALSE },
+  { "\xbf", -1, 0, FALSE },
+  /* lone start characters */
+  { "\xc0\x20", -1, 0, FALSE },
+  { "\xc1\x20", -1, 0, FALSE },
+  { "\xc2\x20", -1, 0, FALSE },
+  { "\xc3\x20", -1, 0, FALSE },
+  { "\xc4\x20", -1, 0, FALSE },
+  { "\xc5\x20", -1, 0, FALSE },
+  { "\xc6\x20", -1, 0, FALSE },
+  { "\xc7\x20", -1, 0, FALSE },
+  { "\xc8\x20", -1, 0, FALSE },
+  { "\xc9\x20", -1, 0, FALSE },
+  { "\xca\x20", -1, 0, FALSE },
+  { "\xcb\x20", -1, 0, FALSE },
+  { "\xcc\x20", -1, 0, FALSE },
+  { "\xcd\x20", -1, 0, FALSE },
+  { "\xce\x20", -1, 0, FALSE },
+  { "\xcf\x20", -1, 0, FALSE },
+  { "\xd0\x20", -1, 0, FALSE },
+  { "\xd1\x20", -1, 0, FALSE },
+  { "\xd2\x20", -1, 0, FALSE },
+  { "\xd3\x20", -1, 0, FALSE },
+  { "\xd4\x20", -1, 0, FALSE },
+  { "\xd5\x20", -1, 0, FALSE },
+  { "\xd6\x20", -1, 0, FALSE },
+  { "\xd7\x20", -1, 0, FALSE },
+  { "\xd8\x20", -1, 0, FALSE },
+  { "\xd9\x20", -1, 0, FALSE },
+  { "\xda\x20", -1, 0, FALSE },
+  { "\xdb\x20", -1, 0, FALSE },
+  { "\xdc\x20", -1, 0, FALSE },
+  { "\xdd\x20", -1, 0, FALSE },
+  { "\xde\x20", -1, 0, FALSE },
+  { "\xdf\x20", -1, 0, FALSE },
+  { "\xe0\x20", -1, 0, FALSE },
+  { "\xe1\x20", -1, 0, FALSE },
+  { "\xe2\x20", -1, 0, FALSE },
+  { "\xe3\x20", -1, 0, FALSE },
+  { "\xe4\x20", -1, 0, FALSE },
+  { "\xe5\x20", -1, 0, FALSE },
+  { "\xe6\x20", -1, 0, FALSE },
+  { "\xe7\x20", -1, 0, FALSE },
+  { "\xe8\x20", -1, 0, FALSE },
+  { "\xe9\x20", -1, 0, FALSE },
+  { "\xea\x20", -1, 0, FALSE },
+  { "\xeb\x20", -1, 0, FALSE },
+  { "\xec\x20", -1, 0, FALSE },
+  { "\xed\x20", -1, 0, FALSE },
+  { "\xee\x20", -1, 0, FALSE },
+  { "\xef\x20", -1, 0, FALSE },
+  { "\xf0\x20", -1, 0, FALSE },
+  { "\xf1\x20", -1, 0, FALSE },
+  { "\xf2\x20", -1, 0, FALSE },
+  { "\xf3\x20", -1, 0, FALSE },
+  { "\xf4\x20", -1, 0, FALSE },
+  { "\xf5\x20", -1, 0, FALSE },
+  { "\xf6\x20", -1, 0, FALSE },
+  { "\xf7\x20", -1, 0, FALSE },
+  { "\xf8\x20", -1, 0, FALSE },
+  { "\xf9\x20", -1, 0, FALSE },
+  { "\xfa\x20", -1, 0, FALSE },
+  { "\xfb\x20", -1, 0, FALSE },
+  { "\xfc\x20", -1, 0, FALSE },
+  { "\xfd\x20", -1, 0, FALSE },
+  /* missing continuation bytes */
+  { "\x20\xc0", -1, 1, FALSE },
+  { "\x20\xe0\x80", -1, 1, FALSE },
+  { "\x20\xf0\x80\x80", -1, 1, FALSE },
+  { "\x20\xf8\x80\x80\x80", -1, 1, FALSE },
+  { "\x20\xfc\x80\x80\x80\x80", -1, 1, FALSE },
+  { "\x20\xdf", -1, 1, FALSE },
+  { "\x20\xef\xbf", -1, 1, FALSE },
+  { "\x20\xf7\xbf\xbf", -1, 1, FALSE },
+  { "\x20\xfb\xbf\xbf\xbf", -1, 1, FALSE },
+  { "\x20\xfd\xbf\xbf\xbf\xbf", -1, 1, FALSE },
+  /* impossible bytes */
+  { "\x20\xfe\x20", -1, 1, FALSE },
+  { "\x20\xff\x20", -1, 1, FALSE },
+#if 0
+  /* XXX fix these, or document that we don't detect them? */
+  /* overlong sequences */
+  { "\x20\xc0\xaf\x20", -1, 1, FALSE },
+  { "\x20\xe0\x80\xaf\x20", -1, 1, FALSE },
+  { "\x20\xf0\x80\x80\xaf\x20", -1, 1, FALSE },
+  { "\x20\xf8\x80\x80\x80\xaf\x20", -1, 1, FALSE },
+  { "\x20\xfc\x80\x80\x80\x80\xaf\x20", -1, 1, FALSE },
+  { "\x20\xc1\xbf\x20", -1, 1, FALSE },
+  { "\x20\xe0\x9f\xbf\x20", -1, 1, FALSE },
+  { "\x20\xf0\x8f\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xf8\x87\xbf\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xfc\x83\xbf\xbf\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xc0\x80\x20", -1, 1, FALSE },
+  { "\x20\xe0\x80\x80\x20", -1, 1, FALSE },
+  { "\x20\xf0\x80\x80\x80\x20", -1, 1, FALSE },
+  { "\x20\xf8\x80\x80\x80\x80\x20", -1, 1, FALSE },
+  { "\x20\xfc\x80\x80\x80\x80\x80\x20", -1, 1, FALSE },
+  /* illegal code positions */
+  { "\x20\xed\xa0\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xad\xbf\x20", -1, 1, FALSE },
+  { "\x20\xed\xae\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xaf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xed\xb0\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xbe\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xed\xa0\x80\xed\xb0\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xa0\x80\xed\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xed\xad\xbf\xed\xb0\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xad\xbf\xed\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xed\xae\x80\xed\xb0\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xae\x80\xed\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xed\xaf\xbf\xed\xb0\x80\x20", -1, 1, FALSE },
+  { "\x20\xed\xaf\xbf\xed\xbf\xbf\x20", -1, 1, FALSE },
+  { "\x20\xef\xbf\xbe\x20", -1, 1, FALSE },
+  { "\x20\xef\xbf\xbf\x20", -1, 1, FALSE },
+#endif
+  { "", -1, 0, TRUE }
+};
+
+static void
+test_buffer_utf8_validity (gconstpointer user_data)
+{
+  const utf8_validity_test_t *test = user_data;
+  hb_buffer_t *b;
+  hb_glyph_info_t *glyphs;
+  unsigned int text_bytes, segment_bytes, i, len;
+
+  text_bytes = strlen (test->text);
+  if (test->max_len == -1)
+    segment_bytes = text_bytes;
+  else
+    segment_bytes = test->max_len;
+
+  b = hb_buffer_create (0);
+  hb_buffer_add_utf8 (b, test->text, text_bytes,  0, segment_bytes);
+
+  glyphs = hb_buffer_get_glyph_infos (b, &len);
+  for (i = 0; i < len; i++)
+    if (glyphs[i].codepoint == (hb_codepoint_t) -1)
+      break;
+
+  g_assert (test->valid ? i == len : i < len);
+  if (!test->valid)
+    g_assert (glyphs[i].cluster == test->offset);
 
   hb_buffer_destroy (b);
 }
@@ -379,7 +658,15 @@ main (int argc, char **argv)
     hb_test_add_data_flavor (&utf8_tests[i], flavor, test_buffer_utf8);
     g_free (flavor);
   }
-  /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
+
+  for (i = 0; i < G_N_ELEMENTS (utf8_validity_tests); i++)
+  {
+    char *flavor = g_strdup_printf ("%d", i);
+    hb_test_add_data_flavor (&utf8_validity_tests[i], flavor, test_buffer_utf8_validity);
+    g_free (flavor);
+  }
+
+  /* XXX test invalid UTF-16 text input */
 
   return hb_test_run();
 }

@@ -624,7 +624,7 @@ hb_utf8_next (const uint8_t *text,
   uint8_t c = *text;
   unsigned int mask, len;
 
-  /* TODO check for overlong sequences?  also: optimize? */
+  /* TODO check for overlong sequences? */
 
   UTF8_COMPUTE (c, mask, len);
   if (unlikely (!len || (unsigned int) (end - text) < len)) {
