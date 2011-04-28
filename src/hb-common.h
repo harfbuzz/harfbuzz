@@ -68,8 +68,6 @@ typedef union _hb_var_int_t {
   int8_t i8[4];
 } hb_var_int_t;
 
-typedef void (*hb_destroy_func_t) (void *user_data);
-
 
 /* hb_tag_t */
 
@@ -285,6 +283,15 @@ hb_script_to_iso15924_tag (hb_script_t script);
 
 hb_direction_t
 hb_script_get_horizontal_direction (hb_script_t script);
+
+
+/* User data */
+
+typedef struct _hb_user_data_key_t {
+  char unused;
+} hb_user_data_key_t;
+
+typedef void (*hb_destroy_func_t) (void *user_data);
 
 
 HB_END_DECLS
