@@ -130,6 +130,12 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
   g_assert_cmpint (len, ==, 5);
 
   for (i = 0; i < len; i++) {
+    g_assert_cmphex (glyphs[i].mask,      ==, 1);
+    g_assert_cmphex (glyphs[i].var1.u32,  ==, 0);
+    g_assert_cmphex (glyphs[i].var2.u32,  ==, 0);
+  }
+
+  for (i = 0; i < len; i++) {
     unsigned int cluster;
     cluster = 1+i;
     if (i >= 2) {
@@ -140,10 +146,58 @@ test_buffer_contents (Fixture *fixture, gconstpointer user_data)
     }
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
     g_assert_cmphex (glyphs[i].cluster,   ==, cluster);
-    g_assert_cmphex (glyphs[i].mask,      ==, 1);
-    g_assert_cmphex (glyphs[i].var1.u32,  ==, 0);
-    g_assert_cmphex (glyphs[i].var2.u32,  ==, 0);
   }
+
+  /* reverse, test, and reverse back */
+
+  hb_buffer_reverse (fixture->b);
+  for (i = 0; i < len; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[len-i]);
+
+  hb_buffer_reverse (fixture->b);
+  for (i = 0; i < len; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
+
+  /* reverse_clusters works same as reverse for now since each codepoint is
+   * in its own cluster */
+
+  hb_buffer_reverse_clusters (fixture->b);
+  for (i = 0; i < len; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[len-i]);
+
+  hb_buffer_reverse_clusters (fixture->b);
+  for (i = 0; i < len; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
+
+  /* now form a cluster and test again */
+  glyphs[2].cluster = glyphs[1].cluster;
+
+  /* reverse, test, and reverse back */
+
+  hb_buffer_reverse (fixture->b);
+  for (i = 0; i < len; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[len-i]);
+
+  hb_buffer_reverse (fixture->b);
+  for (i = 0; i < len; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
+
+  /* reverse_clusters twice still should return the original string,
+   * but when applied once, the 1-2 cluster should be retained. */
+
+  hb_buffer_reverse_clusters (fixture->b);
+  for (i = 0; i < len; i++) {
+    unsigned int j = len-1-i;
+    if (j == 1)
+      j = 2;
+    else if (j == 2)
+      j = 1;
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+j]);
+  }
+
+  hb_buffer_reverse_clusters (fixture->b);
+  for (i = 0; i < len; i++)
+    g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
 }
 
 static void
@@ -184,7 +238,6 @@ main (int argc, char **argv)
   }
 
   /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
-  /* XXX test reverse() and reverse_clusters() */
   /* XXX test pre_allocate(), allocation_successful(), and memory management */
   /* XXX test buffer reset */
   /* XXX test buffer set length */
