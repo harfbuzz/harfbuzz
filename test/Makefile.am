@@ -7,6 +7,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/ $(GLIB_CFLAGS)
 LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
 
 check_PROGRAMS = $(TEST_PROGS)
+noinst_PROGRAMS = $(TEST_PROGS)
 
 TEST_PROGS += \
 	test-buffer \

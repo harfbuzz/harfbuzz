@@ -89,7 +89,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 }
 
 static void
-fixture_fini (fixture_t *fixture, gconstpointer user_data)
+fixture_finish (fixture_t *fixture, gconstpointer user_data)
 {
   hb_buffer_destroy (fixture->b);
 }
@@ -321,24 +321,21 @@ main (int argc, char **argv)
 {
   int i;
 
-  g_test_init (&argc, &argv, NULL);
+  hb_test_init (&argc, &argv);
 
-  for (i = 0; i < BUFFER_NUM_TYPES; i++) {
-#define TEST_ADD(path, func) \
-    G_STMT_START { \
-      char *s = g_strdup_printf ("%s/%s", path, buffer_names[i]); \
-      g_test_add (s, fixture_t, GINT_TO_POINTER (i), fixture_init, func, fixture_fini); \
-      g_free (s); \
-    } G_STMT_END
-    TEST_ADD ("/buffer/properties", test_buffer_properties);
-    TEST_ADD ("/buffer/contents", test_buffer_contents);
-    TEST_ADD ("/buffer/positions", test_buffer_positions);
-#undef TEST_ADD
+  for (i = 0; i < BUFFER_NUM_TYPES; i++)
+  {
+    const void *buffer_type = GINT_TO_POINTER (i);
+    const char *buffer_name = buffer_names[i];
+
+    hb_test_add_fixture_flavor (fixture, buffer_type, buffer_name, test_buffer_properties);
+    hb_test_add_fixture_flavor (fixture, buffer_type, buffer_name, test_buffer_contents);
+    hb_test_add_fixture_flavor (fixture, buffer_type, buffer_name, test_buffer_positions);
   }
 
-  g_test_add ("/buffer/allocation", fixture_t, GINT_TO_POINTER (BUFFER_EMPTY), fixture_init, test_buffer_allocation, fixture_fini);
+  hb_test_add_fixture (fixture, GINT_TO_POINTER (BUFFER_EMPTY), test_buffer_allocation);
 
   /* XXX test invalid UTF-8 / UTF-16 text input (also overlong sequences) */
 
-  return g_test_run();
+  return hb_test_run();
 }

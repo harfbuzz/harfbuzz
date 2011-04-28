@@ -27,17 +27,39 @@
 #ifndef HB_TEST_H
 #define HB_TEST_H
 
-#include <hb.h>
 #include <hb-glib.h>
 
-#include <glib.h>
-
 #include <stdlib.h>
+#include <string.h>
 
 HB_BEGIN_DECLS
 
 /* Just in case */
 #undef G_DISABLE_ASSERT
+
+
+/* Misc */
+
+/* This is too ugly to be public API, but quite handy. */
+#define HB_TAG_CHAR4(s)   (HB_TAG(((const char *) s)[0], \
+				  ((const char *) s)[1], \
+				  ((const char *) s)[2], \
+				  ((const char *) s)[3]))
+
+
+/* Helpers */
+
+static inline void
+hb_test_init (int *argc, char ***argv)
+{
+  g_test_init (argc, argv, NULL);
+}
+
+static inline int
+hb_test_run (void)
+{
+  return g_test_run ();
+}
 
 
 /* Bugzilla helpers */
@@ -78,13 +100,105 @@ hb_test_bug_redhat (unsigned int number)
 }
 
 
-/* Misc */
+/* Wrap glib test functions to simplify.  Should have been in glib already. */
 
-/* This is too ugly to be public API, but quite handy. */
-#define HB_TAG_CHAR4(s)   (HB_TAG(((const char *) s)[0], \
-				  ((const char *) s)[1], \
-				  ((const char *) s)[2], \
-				  ((const char *) s)[3]))
+/* Drops the "test_" prefix and converts '_' to '/'.
+ * Essentially builds test path from function name. */
+static inline char *
+hb_test_normalize_path (const char *path)
+{
+  char *s, *p;
+
+  g_assert (0 == strncmp (path, "test_", 5));
+  path += 4;
+
+  s = g_strdup (path);
+  for (p = s; *p; p++)
+    if (*p == '_')
+      *p = '/';
+
+  return s;
+}
+
+
+static inline void
+hb_test_add_func (const char *test_path,
+		  GTestFunc   test_func)
+{
+  char *normal_path = hb_test_normalize_path (test_path);
+  g_test_add_func (normal_path, test_func);
+  g_free (normal_path);
+}
+#define hb_test_add(Func) hb_test_add_func (#Func, Func)
+
+static inline void
+hb_test_add_func_flavor (const char *test_path,
+			 const char *flavor,
+			 GTestFunc   test_func)
+{
+  char *path = g_strdup_printf ("%s/%s", test_path, flavor);
+  hb_test_add_func (path, test_func);
+  g_free (path);
+}
+#define hb_test_add_flavor(Func, Flavor) hb_test_add_func (#Func, Flavor, Func)
+
+
+static inline void
+hb_test_add_vtable (const char       *test_path,
+		    gsize             data_size,
+		    gconstpointer     test_data,
+		    GTestFixtureFunc  data_setup,
+		    GTestFixtureFunc  data_test,
+		    GTestFixtureFunc  data_teardown)
+{
+  char *normal_path = hb_test_normalize_path (test_path);
+  g_test_add_vtable (normal_path, data_size, test_data, data_setup, data_test, data_teardown);
+  g_free (normal_path);
+}
+#define hb_test_add_fixture(FixturePrefix, UserData, Func) \
+G_STMT_START { \
+  typedef G_PASTE (FixturePrefix, _t) Fixture; \
+  void (*add_vtable) (const char*, gsize, gconstpointer, \
+		      void (*) (Fixture*, gconstpointer), \
+		      void (*) (Fixture*, gconstpointer), \
+		      void (*) (Fixture*, gconstpointer)) \
+	= (void (*) (const gchar *, gsize, gconstpointer, \
+		     void (*) (Fixture*, gconstpointer), \
+		     void (*) (Fixture*, gconstpointer), \
+		     void (*) (Fixture*, gconstpointer))) hb_test_add_vtable; \
+  add_vtable (#Func, sizeof (G_PASTE (FixturePrefix, _t)), UserData, \
+	      G_PASTE (FixturePrefix, _init), Func, G_PASTE (FixturePrefix, _finish)); \
+} G_STMT_END
+
+static inline void
+hb_test_add_vtable_flavor (const char       *test_path,
+			   const char       *flavor,
+			   gsize             data_size,
+			   gconstpointer     test_data,
+			   GTestFixtureFunc  data_setup,
+			   GTestFixtureFunc  data_test,
+			   GTestFixtureFunc  data_teardown)
+{
+  char *path = g_strdup_printf ("%s/%s", test_path, flavor);
+  hb_test_add_vtable (path, data_size, test_data, data_setup, data_test, data_teardown);
+  g_free (path);
+}
+#define hb_test_add_fixture_flavor(FixturePrefix, UserData, Flavor, Func) \
+G_STMT_START { \
+  typedef G_PASTE (FixturePrefix, _t) Fixture; \
+  void (*add_vtable) (const char*, const char *, gsize, gconstpointer, \
+		      void (*) (Fixture*, gconstpointer), \
+		      void (*) (Fixture*, gconstpointer), \
+		      void (*) (Fixture*, gconstpointer)) \
+	= (void (*) (const gchar *, const char *, gsize, gconstpointer, \
+		     void (*) (Fixture*, gconstpointer), \
+		     void (*) (Fixture*, gconstpointer), \
+		     void (*) (Fixture*, gconstpointer))) hb_test_add_vtable_flavor; \
+  add_vtable (#Func, Flavor, sizeof (G_PASTE (FixturePrefix, _t)), UserData, \
+	      G_PASTE (FixturePrefix, _init), Func, G_PASTE (FixturePrefix, _finish)); \
+} G_STMT_END
+
+
 HB_END_DECLS
 
 #endif /* HB_TEST_H */

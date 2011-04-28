@@ -29,7 +29,7 @@
 /* This file tests the unicode virtual functions interface */
 
 static void
-test_nil (void)
+test_unicode_nil (void)
 {
   hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
 
@@ -39,7 +39,7 @@ test_nil (void)
 }
 
 static void
-test_glib (void)
+test_unicode_glib (void)
 {
   hb_unicode_funcs_t *uf = hb_glib_get_unicode_funcs ();
 
@@ -47,7 +47,7 @@ test_glib (void)
 }
 
 static void
-test_default (void)
+test_unicode_default (void)
 {
   hb_unicode_funcs_t *uf = hb_unicode_funcs_get_default ();
 
@@ -85,7 +85,7 @@ simple_get_script (hb_unicode_funcs_t *ufuncs,
 }
 
 static void
-test_custom (void)
+test_unicode_custom (void)
 {
   hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
 
@@ -120,7 +120,7 @@ a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
 }
 
 static void
-test_subclassing_nil (void)
+test_unicode_subclassing_nil (void)
 {
   hb_unicode_funcs_t *uf, *aa;
 
@@ -143,7 +143,7 @@ test_subclassing_nil (void)
 }
 
 static void
-test_subclassing_glib (void)
+test_unicode_subclassing_glib (void)
 {
   hb_unicode_funcs_t *uf, *aa;
 
@@ -163,7 +163,7 @@ test_subclassing_glib (void)
 }
 
 static void
-test_subclassing_deep (void)
+test_unicode_subclassing_deep (void)
 {
   hb_unicode_funcs_t *uf, *aa;
 
@@ -195,18 +195,18 @@ test_subclassing_deep (void)
 int
 main (int argc, char **argv)
 {
-  g_test_init (&argc, &argv, NULL);
+  hb_test_init (&argc, &argv);
 
-  g_test_add_func ("/unicode/nil", test_nil);
-  g_test_add_func ("/unicode/glib", test_glib);
-  g_test_add_func ("/unicode/default", test_default);
-  g_test_add_func ("/unicode/custom", test_custom);
-  g_test_add_func ("/unicode/subclassing/nil", test_subclassing_nil);
-  g_test_add_func ("/unicode/subclassing/glib", test_subclassing_glib);
-  g_test_add_func ("/unicode/subclassing/deep", test_subclassing_deep);
+  hb_test_add (test_unicode_nil);
+  hb_test_add (test_unicode_glib);
+  hb_test_add (test_unicode_default);
+  hb_test_add (test_unicode_custom);
+  hb_test_add (test_unicode_subclassing_nil);
+  hb_test_add (test_unicode_subclassing_glib);
+  hb_test_add (test_unicode_subclassing_deep);
 
   /* XXX test all methods for their defaults and various (glib, icu, default) implementations. */
   /* XXX test glib & icu two-way script conversion */
 
-  return g_test_run ();
+  return hb_test_run ();
 }
