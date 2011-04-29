@@ -36,6 +36,8 @@ test_unicode_nil (void)
 {
   hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
 
+  g_assert (!hb_unicode_funcs_is_immutable (uf));
+
   g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_UNKNOWN);
 
   hb_unicode_funcs_destroy (uf);
@@ -46,6 +48,8 @@ test_unicode_glib (void)
 {
   hb_unicode_funcs_t *uf = hb_glib_get_unicode_funcs ();
 
+  g_assert (hb_unicode_funcs_is_immutable (uf));
+
   g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_LATIN);
 }
 
@@ -53,6 +57,8 @@ static void
 test_unicode_default (void)
 {
   hb_unicode_funcs_t *uf = hb_unicode_funcs_get_default ();
+
+  g_assert (hb_unicode_funcs_is_immutable (uf));
 
   g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_LATIN);
 }
@@ -106,22 +112,6 @@ simple_get_script (hb_unicode_funcs_t *ufuncs,
     return HB_SCRIPT_UNKNOWN;
 }
 
-static void
-test_unicode_custom (data_fixture_t *f, gconstpointer user_data)
-{
-  hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
-
-  hb_unicode_funcs_set_script_func (uf, simple_get_script,
-                                    &f->data[0], free_up);
-
-  g_assert_cmpint (hb_unicode_get_script (uf, 'a'), ==, HB_SCRIPT_LATIN);
-  g_assert_cmpint (hb_unicode_get_script (uf, '0'), ==, HB_SCRIPT_UNKNOWN);
-
-  g_assert (!f->data[0].freed && !f->data[1].freed);
-  hb_unicode_funcs_destroy (uf);
-  g_assert (f->data[0].freed && !f->data[1].freed);
-}
-
 static hb_script_t
 a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
                             hb_codepoint_t      codepoint,
@@ -140,6 +130,30 @@ a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
 
     return hb_unicode_get_script (parent, codepoint);
   }
+}
+
+static void
+test_unicode_custom (data_fixture_t *f, gconstpointer user_data)
+{
+  hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
+
+  hb_unicode_funcs_set_script_func (uf, simple_get_script,
+                                    &f->data[0], free_up);
+
+  g_assert_cmpint (hb_unicode_get_script (uf, 'a'), ==, HB_SCRIPT_LATIN);
+  g_assert_cmpint (hb_unicode_get_script (uf, '0'), ==, HB_SCRIPT_UNKNOWN);
+
+  g_assert (!hb_unicode_funcs_is_immutable (uf));
+  hb_unicode_funcs_make_immutable (uf);
+  g_assert (hb_unicode_funcs_is_immutable (uf));
+
+  /* Since uf is immutable now, the following setter should do nothing. */
+  hb_unicode_funcs_set_script_func (uf, a_is_for_arabic_get_script,
+                                    &f->data[1], free_up);
+
+  g_assert (!f->data[0].freed && !f->data[1].freed);
+  hb_unicode_funcs_destroy (uf);
+  g_assert (f->data[0].freed && !f->data[1].freed);
 }
 
 static void
