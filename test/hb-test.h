@@ -27,6 +27,8 @@
 #ifndef HB_TEST_H
 #define HB_TEST_H
 
+#include <config.h>
+
 #include <hb-glib.h>
 
 #include <stdlib.h>
@@ -151,7 +153,7 @@ hb_test_add_data_func (const char    *test_path,
   g_test_add_data_func (normal_path, test_data, test_func);
   g_free (normal_path);
 }
-#define hb_test_add_data(Func, UserData) hb_test_add_data_func (#Func, UserData, Func)
+#define hb_test_add_data(UserData, Func) hb_test_add_data_func (#Func, UserData, Func)
 
 static inline void
 hb_test_add_data_func_flavor (const char    *test_path,
