@@ -1,5 +1,6 @@
 /*
- * Copyright © 2011 Codethink Limited
+ * Copyright © 2011  Codethink Limited
+ * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,11 +23,13 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Codethink Author(s): Ryan Lortie
+ * Google Author(s): Behdad Esfahbod
  */
 
 #include "hb-test.h"
 
-/* This file tests the unicode virtual functions interface */
+/* Unit tests for hb-unicode.h */
+
 
 static void
 test_unicode_nil (void)
@@ -54,20 +57,36 @@ test_unicode_default (void)
   g_assert_cmpint (hb_unicode_get_script (uf, 'd'), ==, HB_SCRIPT_LATIN);
 }
 
-static gboolean freed0, freed1;
-static int unique_pointer0[1];
-static int unique_pointer1[1];
-static void free_up (void *up)
+
+#define MAGIC0 0x12345678
+#define MAGIC1 0x76543210
+
+typedef struct {
+  int value;
+  gboolean freed;
+} data_t;
+
+typedef struct {
+  data_t data[2];
+} data_fixture_t;
+static void
+data_fixture_init (data_fixture_t *f, gconstpointer user_data)
 {
-  if (up == unique_pointer0) {
-    g_assert (!freed0);
-    freed0 = TRUE;
-  } else if (up == unique_pointer1) {
-    g_assert (!freed1);
-    freed1 = TRUE;
-  } else {
-    g_assert_not_reached ();
-  }
+  f->data[0].value = MAGIC0;
+  f->data[1].value = MAGIC1;
+}
+static void
+data_fixture_finish (data_fixture_t *f, gconstpointer user_data)
+{
+}
+
+static void free_up (void *p)
+{
+  data_t *data = (data_t *) p;
+
+  g_assert (data->value == MAGIC0 || data->value == MAGIC1);
+  g_assert (data->freed == FALSE);
+  data->freed = TRUE;
 }
 
 static hb_script_t
@@ -75,8 +94,11 @@ simple_get_script (hb_unicode_funcs_t *ufuncs,
                    hb_codepoint_t      codepoint,
                    void               *user_data)
 {
+  data_t *data = (data_t *) user_data;
+
   g_assert (hb_unicode_funcs_get_parent (ufuncs) == NULL);
-  g_assert (unique_pointer0 == user_data);
+  g_assert (data->value == MAGIC0);
+  g_assert (data->freed == FALSE);
 
   if ('a' <= codepoint && codepoint <= 'z')
     return HB_SCRIPT_LATIN;
@@ -85,30 +107,31 @@ simple_get_script (hb_unicode_funcs_t *ufuncs,
 }
 
 static void
-test_unicode_custom (void)
+test_unicode_custom (data_fixture_t *f, gconstpointer user_data)
 {
   hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
 
   hb_unicode_funcs_set_script_func (uf, simple_get_script,
-                                    unique_pointer0, free_up);
+                                    &f->data[0], free_up);
 
   g_assert_cmpint (hb_unicode_get_script (uf, 'a'), ==, HB_SCRIPT_LATIN);
   g_assert_cmpint (hb_unicode_get_script (uf, '0'), ==, HB_SCRIPT_UNKNOWN);
 
-  g_assert (!freed0 && !freed1);
+  g_assert (!f->data[0].freed && !f->data[1].freed);
   hb_unicode_funcs_destroy (uf);
-  g_assert (freed0 && !freed1);
-  freed0 = FALSE;
+  g_assert (f->data[0].freed && !f->data[1].freed);
 }
-
 
 static hb_script_t
 a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
                             hb_codepoint_t      codepoint,
                             void               *user_data)
 {
+  data_t *data = (data_t *) user_data;
+
   g_assert (hb_unicode_funcs_get_parent (ufuncs) != NULL);
-  g_assert (user_data == unique_pointer1);
+  g_assert (data->value == MAGIC1);
+  g_assert (data->freed == FALSE);
 
   if (codepoint == 'a') {
     return HB_SCRIPT_ARABIC;
@@ -120,7 +143,7 @@ a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
 }
 
 static void
-test_unicode_subclassing_nil (void)
+test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data)
 {
   hb_unicode_funcs_t *uf, *aa;
 
@@ -131,66 +154,64 @@ test_unicode_subclassing_nil (void)
   hb_unicode_funcs_destroy (uf);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
-                                    unique_pointer1, free_up);
+                                    &f->data[1], free_up);
 
   g_assert_cmpint (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmpint (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_UNKNOWN);
 
-  g_assert (!freed0 && !freed1);
+  g_assert (!f->data[0].freed && !f->data[1].freed);
   hb_unicode_funcs_destroy (aa);
-  g_assert (!freed0 && freed1);
-  freed1 = FALSE;
+  g_assert (!f->data[0].freed && f->data[1].freed);
 }
 
 static void
-test_unicode_subclassing_glib (void)
+test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data)
 {
   hb_unicode_funcs_t *uf, *aa;
 
-  uf = hb_glib_get_unicode_funcs ();
+  uf = hb_unicode_funcs_get_default ();
   aa = hb_unicode_funcs_create (uf);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
-                                    unique_pointer1, free_up);
+                                    &f->data[1], free_up);
 
   g_assert_cmpint (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmpint (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
 
-  g_assert (!freed0 && !freed1);
+  g_assert (!f->data[0].freed && !f->data[1].freed);
   hb_unicode_funcs_destroy (aa);
-  g_assert (!freed0 && freed1);
-  freed1 = FALSE;
+  g_assert (!f->data[0].freed && f->data[1].freed);
 }
 
 static void
-test_unicode_subclassing_deep (void)
+test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data)
 {
   hb_unicode_funcs_t *uf, *aa;
 
   uf = hb_unicode_funcs_create (NULL);
 
   hb_unicode_funcs_set_script_func (uf, simple_get_script,
-                                    unique_pointer0, free_up);
+                                    &f->data[0], free_up);
 
   aa = hb_unicode_funcs_create (uf);
 
   hb_unicode_funcs_destroy (uf);
 
   /* make sure the 'uf' didn't get freed, since 'aa' holds a ref */
-  g_assert (!freed0);
+  g_assert (!f->data[0].freed);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
-                                    unique_pointer1, free_up);
+                                    &f->data[1], free_up);
 
   g_assert_cmpint (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmpint (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
   g_assert_cmpint (hb_unicode_get_script (aa, '0'), ==, HB_SCRIPT_UNKNOWN);
 
-  g_assert (!freed0 && !freed1);
+  g_assert (!f->data[0].freed && !f->data[1].freed);
   hb_unicode_funcs_destroy (aa);
-  g_assert (freed0 && freed1);
-  freed0 = freed1 = FALSE;
+  g_assert (f->data[0].freed && f->data[1].freed);
 }
+
 
 int
 main (int argc, char **argv)
@@ -200,10 +221,11 @@ main (int argc, char **argv)
   hb_test_add (test_unicode_nil);
   hb_test_add (test_unicode_glib);
   hb_test_add (test_unicode_default);
-  hb_test_add (test_unicode_custom);
-  hb_test_add (test_unicode_subclassing_nil);
-  hb_test_add (test_unicode_subclassing_glib);
-  hb_test_add (test_unicode_subclassing_deep);
+
+  hb_test_add_fixture (data_fixture, NULL, test_unicode_custom);
+  hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_nil);
+  hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_default);
+  hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_deep);
 
   /* XXX test all methods for their defaults and various (glib, icu, default) implementations. */
   /* XXX test glib & icu two-way script conversion */

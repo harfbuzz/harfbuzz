@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009  Red Hat, Inc.
- * Copyright © 2011 Codethink Limited
+ * Copyright © 2011  Codethink Limited
  * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.

@@ -26,6 +26,7 @@
 
 /* This file tests that all headers can be included from .c files */
 
+
 #include <config.h>
 
 #include <hb.h>

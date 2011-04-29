@@ -26,7 +26,8 @@
 
 #include "hb-test.h"
 
-/* This file tests types defined in hb-common.h */
+/* Unit tests for hb-common.h */
+
 
 static void
 test_types_int (void)

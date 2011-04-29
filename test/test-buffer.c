@@ -26,7 +26,7 @@
 
 #include "hb-test.h"
 
-/* This file tests types defined in hb-buffer.h */
+/* Unit tests for hb-buffer.h */
 
 
 static const char utf8[10] = "ab\360\240\200\200defg";

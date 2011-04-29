@@ -26,4 +26,5 @@
 
 /* This file tests that all headers can be included from .cc files */
 
+
 #include "test-c.c"
