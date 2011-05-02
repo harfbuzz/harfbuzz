@@ -12,6 +12,7 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS += \
 	test-buffer \
 	test-common \
+	test-object \
 	test-unicode \
 	$(NULL)
 
@@ -31,6 +32,9 @@ endif
 if HAVE_FREETYPE
 test_c_CPPFLAGS += $(FREETYPE_CFLAGS)
 test_cplusplus_CPPFLAGS += $(FREETYPE_CFLAGS)
+# TODO replace freetype with other stuff in the following test
+test_object_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
+test_object_LIBS = $(LDADD) $(FREETYPE_LIBS)
 endif
 
 
