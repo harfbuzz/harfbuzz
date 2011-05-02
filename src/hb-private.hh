@@ -294,30 +294,28 @@ struct hb_static_array_t {
     }
     if (likely (len < allocated))
       return &array[len++];
+
     /* Need to reallocate */
     unsigned int new_allocated = allocated + (allocated >> 1) + 8;
-    Type *new_array;
+    Type *new_array = NULL;
+
     if (array == static_array) {
       new_array = (Type *) calloc (new_allocated, sizeof (Type));
-      if (new_array) {
+      if (new_array)
         memcpy (new_array, array, len * sizeof (Type));
-	array = new_array;
-      }
     } else {
       bool overflows = (new_allocated < allocated) || _hb_unsigned_int_mul_overflows (new_allocated, sizeof (Type));
-      if (unlikely (overflows))
-        new_array = NULL;
-      else
+      if (likely (!overflows)) {
 	new_array = (Type *) realloc (array, new_allocated * sizeof (Type));
-      if (new_array) {
-        free (array);
-	array = new_array;
       }
     }
-    if ((len < allocated))
-      return &array[len++];
-    else
+
+    if (unlikely (!new_array))
       return NULL;
+
+    array = new_array;
+    allocated = new_allocated;
+    return &array[len++];
   }
 
   inline void pop (void)
