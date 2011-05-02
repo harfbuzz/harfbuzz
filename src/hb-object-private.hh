@@ -91,7 +91,8 @@ struct hb_user_data_array_t {
   }
 
   inline void *get (hb_user_data_key_t *key) {
-    return map.get (key);
+    hb_user_data_t *user_data = map.get (key);
+    return user_data ? user_data->data : NULL;
   }
 
   void finish (void) { map.finish (); }
@@ -177,7 +178,7 @@ static inline void hb_object_trace (const Type *obj, const char *function)
   obj->header.trace (function);
 }
 template <typename Type>
-static inline Type *hb_object_create ()
+static inline Type *hb_object_create (void)
 {
   Type *obj = (Type *) hb_object_header_t::create (sizeof (Type));
   hb_object_trace (obj, HB_FUNC);
@@ -186,7 +187,7 @@ static inline Type *hb_object_create ()
 template <typename Type>
 static inline bool hb_object_is_inert (const Type *obj)
 {
-  return unlikely (obj->header.is_inert());
+  return unlikely (obj->header.is_inert ());
 }
 template <typename Type>
 static inline Type *hb_object_reference (Type *obj)
