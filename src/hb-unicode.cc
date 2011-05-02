@@ -110,22 +110,18 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
   if (!(ufuncs = hb_object_create<hb_unicode_funcs_t> ()))
     return &_hb_unicode_funcs_nil;
 
-  if (parent != NULL)
-  {
-    hb_unicode_funcs_make_immutable (parent);
-    ufuncs->parent = hb_unicode_funcs_reference (parent);
+  if (!parent)
+    parent = &_hb_unicode_funcs_nil;
 
-    ufuncs->get = parent->get;
+  hb_unicode_funcs_make_immutable (parent);
+  ufuncs->parent = hb_unicode_funcs_reference (parent);
 
-    /* We can safely copy user_data from parent since we hold a reference
-     * onto it and it's immutable.  We should not copy the destroy notifiers
-     * though. */
-    ufuncs->user_data = parent->user_data;
-  }
-  else
-  {
-    ufuncs->get = _hb_unicode_funcs_nil.get;
-  }
+  ufuncs->get = parent->get;
+
+  /* We can safely copy user_data from parent since we hold a reference
+   * onto it and it's immutable.  We should not copy the destroy notifiers
+   * though. */
+  ufuncs->user_data = parent->user_data;
 
   return ufuncs;
 }
@@ -149,8 +145,7 @@ hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
   DESTROY (script);
 #undef DESTROY
 
-  if (ufuncs->parent != NULL)
-    hb_unicode_funcs_destroy (ufuncs->parent);
+  hb_unicode_funcs_destroy (ufuncs->parent);
 
   free (ufuncs);
 }
@@ -190,7 +185,7 @@ hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs)
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_parent (hb_unicode_funcs_t *ufuncs)
 {
-  return ufuncs->parent;
+  return ufuncs->parent ? ufuncs->parent : &_hb_unicode_funcs_nil;
 }
 
 
