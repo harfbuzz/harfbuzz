@@ -54,7 +54,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 			 unsigned int  length);
 
 hb_blob_t *
-hb_blob_create_empty (void);
+hb_blob_get_empty (void);
 
 hb_blob_t *
 hb_blob_reference (hb_blob_t *blob);

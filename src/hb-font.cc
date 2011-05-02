@@ -443,7 +443,7 @@ hb_face_reference_table (hb_face_t *face,
 
   blob = face->get_table (tag, face->user_data);
   if (unlikely (!blob))
-    blob = hb_blob_create_empty();
+    blob = hb_blob_get_empty();
 
   return blob;
 }

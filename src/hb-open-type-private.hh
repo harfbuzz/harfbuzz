@@ -334,7 +334,7 @@ struct Sanitizer
       return blob;
     else {
       hb_blob_destroy (blob);
-      return hb_blob_create_empty ();
+      return hb_blob_get_empty ();
     }
   }
 

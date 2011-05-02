@@ -141,7 +141,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 }
 
 hb_blob_t *
-hb_blob_create_empty (void)
+hb_blob_get_empty (void)
 {
   return &_hb_blob_nil;
 }
