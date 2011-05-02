@@ -470,7 +470,7 @@ static const property_t properties[] =
   PROPERTY (eastasian_width, 1),
   PROPERTY (general_category, (unsigned int) HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER),
   PROPERTY (mirroring, RETURNS_UNICODE_ITSELF),
-  PROPERTY (script, (unsigned int) HB_SCRIPT_UNKNOWN),
+  PROPERTY (script, (unsigned int) HB_SCRIPT_UNKNOWN)
 };
 #undef PROPERTY
 
