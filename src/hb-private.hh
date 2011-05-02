@@ -379,7 +379,7 @@ struct hb_map_t
     if (!item) return;
 
     item->finish ();
-    items[items.len - 1] = *item;
+    *item = items[items.len - 1];
     items.pop ();
   }
 
