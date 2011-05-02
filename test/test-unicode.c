@@ -29,6 +29,8 @@
 #include "hb-test.h"
 
 /* Unit tests for hb-unicode.h */
+/* Unit tests for hb-glib.h */
+/* Unit tests for hb-icu.h */
 
 
 #ifdef HAVE_GLIB
@@ -504,7 +506,7 @@ test_unicode_properties (gconstpointer user_data)
   }
 
   if (failed)
-    g_message ("Some property tests failed.  You probably have an old version of one of the libraries used.  Rerun with --verbose for details");
+    g_test_message ("Some property tests failed.  You probably have an old version of one of the libraries used.");
 }
 
 static hb_codepoint_t
@@ -710,6 +712,61 @@ test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data)
 }
 
 
+static hb_script_t
+script_roundtrip_default (hb_script_t script)
+{
+  return hb_script_from_iso15924_tag (hb_script_to_iso15924_tag (script));
+}
+
+#ifdef HAVE_GLIB
+static hb_script_t
+script_roundtrip_glib (hb_script_t script)
+{
+  return hb_glib_script_to_script (hb_glib_script_from_script (script));
+}
+#endif
+
+#ifdef HAVE_ICU
+static hb_script_t
+script_roundtrip_icu (hb_script_t script)
+{
+  return hb_icu_script_to_script (hb_icu_script_from_script (script));
+}
+#endif
+
+static void
+test_unicode_script_roundtrip (gconstpointer user_data)
+{
+  typedef hb_script_t (*roundtrip_func_t) (hb_script_t);
+  roundtrip_func_t roundtrip_func = (roundtrip_func_t) user_data;
+  unsigned int i;
+  gboolean failed = FALSE;
+
+  for (i = 0; i < G_N_ELEMENTS (script_tests); i++) {
+    const test_pair_t *test = &script_tests[i];
+    hb_script_t script = test->value;
+
+    g_test_message ("Test script roundtrip #%d: %x", i, script);
+    g_assert_cmphex (script, ==, roundtrip_func (script));
+  }
+  for (i = 0; i < G_N_ELEMENTS (script_tests_more); i++) {
+    const test_pair_t *test = &script_tests_more[i];
+    hb_script_t script = test->value;
+
+    g_test_message ("Test script roundtrip more #%d: %x", i, script);
+    if (script != roundtrip_func (script)) {
+      g_test_message ("Soft fail: Received %x, expected %x", roundtrip_func (script), script);
+      failed = TRUE;
+    }
+  }
+
+  g_assert_cmphex (HB_SCRIPT_INVALID, ==, roundtrip_func (HB_SCRIPT_INVALID));
+
+  if (failed)
+    g_test_message ("Some script roundtrip tests failed.  You probably have an old version of one of the libraries used.");
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -717,12 +774,15 @@ main (int argc, char **argv)
 
   hb_test_add (test_unicode_properties_nil);
 
-  hb_test_add_data_flavor (hb_unicode_funcs_get_default (), "default", test_unicode_properties);
+  hb_test_add_data_flavor (hb_unicode_funcs_get_default (),          "default", test_unicode_properties);
+  hb_test_add_data_flavor ((gconstpointer) script_roundtrip_default, "default", test_unicode_script_roundtrip);
 #ifdef HAVE_GLIB
-  hb_test_add_data_flavor (hb_glib_get_unicode_funcs (),    "glib",    test_unicode_properties);
+  hb_test_add_data_flavor (hb_glib_get_unicode_funcs (),             "glib",    test_unicode_properties);
+  hb_test_add_data_flavor ((gconstpointer) script_roundtrip_glib,    "glib",    test_unicode_script_roundtrip);
 #endif
 #ifdef HAVE_ICU
-  hb_test_add_data_flavor (hb_icu_get_unicode_funcs (),     "icu",    test_unicode_properties);
+  hb_test_add_data_flavor (hb_icu_get_unicode_funcs (),              "icu",     test_unicode_properties);
+  hb_test_add_data_flavor ((gconstpointer) script_roundtrip_icu,     "icu",     test_unicode_script_roundtrip);
 #endif
 
   hb_test_add (test_unicode_chainup);
@@ -732,8 +792,6 @@ main (int argc, char **argv)
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_nil);
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_default);
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_deep);
-
-  /* XXX test glib & icu two-way script conversion */
 
   return hb_test_run ();
 }
