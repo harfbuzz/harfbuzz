@@ -320,10 +320,10 @@ test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
 typedef struct {
   const char utf8[8];
   const uint32_t codepoints[8];
-} utf8_test_t;
+} utf8_conversion_test_t;
 
 /* note: we skip the first and last byte when adding to buffer */
-static const utf8_test_t utf8_tests[] = {
+static const utf8_conversion_test_t utf8_conversion_tests[] = {
   {"a\303\207", {-1}},
   {"a\303\207b", {0xC7}},
   {"ab\303cd", {'b', -1, 'c'}},
@@ -331,24 +331,35 @@ static const utf8_test_t utf8_tests[] = {
 };
 
 static void
-test_buffer_utf8 (gconstpointer user_data)
+test_buffer_utf8_conversion (void)
 {
-  const utf8_test_t *test = user_data;
   hb_buffer_t *b;
   hb_glyph_info_t *glyphs;
-  unsigned int bytes, chars, i, len;
-
-  bytes = strlen (test->utf8);
-  for (chars = 0; test->codepoints[chars]; chars++)
-    ;
+  unsigned int bytes, chars, i, j, len;
 
   b = hb_buffer_create (0);
-  hb_buffer_add_utf8 (b, test->utf8, bytes,  1, bytes - 2);
 
-  glyphs = hb_buffer_get_glyph_infos (b, &len);
-  g_assert_cmpint (len, ==, chars);
-  for (i = 0; i < chars; i++)
-    g_assert_cmphex (glyphs[i].codepoint, ==, test->codepoints[i]);
+  for (i = 0; i < G_N_ELEMENTS (utf8_conversion_tests); i++)
+  {
+    const utf8_conversion_test_t *test = &utf8_conversion_tests[i];
+    char *escaped;
+
+    escaped = g_strescape (test->utf8, NULL);
+    g_test_message ("UTF-8 test #%d: %s", i, escaped);
+    g_free (escaped);
+
+    bytes = strlen (test->utf8);
+    for (chars = 0; test->codepoints[chars]; chars++)
+      ;
+
+    hb_buffer_reset (b);
+    hb_buffer_add_utf8 (b, test->utf8, bytes,  1, bytes - 2);
+
+    glyphs = hb_buffer_get_glyph_infos (b, &len);
+    g_assert_cmpint (len, ==, chars);
+    for (j = 0; j < chars; j++)
+      g_assert_cmphex (glyphs[j].codepoint, ==, test->codepoints[j]);
+  }
 
   hb_buffer_destroy (b);
 }
@@ -359,7 +370,7 @@ test_buffer_utf8 (gconstpointer user_data)
  * with relicensing permission from Matthias Clasen. */
 
 typedef struct {
-  const char *text;
+  const char *utf8;
   int max_len;
   unsigned int offset;
   gboolean valid;
@@ -604,30 +615,42 @@ static const utf8_validity_test_t utf8_validity_tests[] = {
 };
 
 static void
-test_buffer_utf8_validity (gconstpointer user_data)
+test_buffer_utf8_validity (void)
 {
-  const utf8_validity_test_t *test = user_data;
   hb_buffer_t *b;
-  hb_glyph_info_t *glyphs;
-  unsigned int text_bytes, segment_bytes, i, len;
-
-  text_bytes = strlen (test->text);
-  if (test->max_len == -1)
-    segment_bytes = text_bytes;
-  else
-    segment_bytes = test->max_len;
+  unsigned int i;
 
   b = hb_buffer_create (0);
-  hb_buffer_add_utf8 (b, test->text, text_bytes,  0, segment_bytes);
 
-  glyphs = hb_buffer_get_glyph_infos (b, &len);
-  for (i = 0; i < len; i++)
-    if (glyphs[i].codepoint == (hb_codepoint_t) -1)
-      break;
+  for (i = 0; i < G_N_ELEMENTS (utf8_validity_tests); i++)
+  {
+    const utf8_validity_test_t *test = &utf8_validity_tests[i];
+    unsigned int text_bytes, segment_bytes, j, len;
+    hb_glyph_info_t *glyphs;
+    char *escaped;
 
-  g_assert (test->valid ? i == len : i < len);
-  if (!test->valid)
-    g_assert (glyphs[i].cluster == test->offset);
+    escaped = g_strescape (test->utf8, NULL);
+    g_test_message ("UTF-8 test #%d: %s", i, escaped);
+    g_free (escaped);
+
+    text_bytes = strlen (test->utf8);
+    if (test->max_len == -1)
+      segment_bytes = text_bytes;
+    else
+      segment_bytes = test->max_len;
+
+    hb_buffer_reset (b);
+    hb_buffer_add_utf8 (b, test->utf8, text_bytes,  0, segment_bytes);
+
+    glyphs = hb_buffer_get_glyph_infos (b, &len);
+    for (j = 0; j < len; j++)
+      if (glyphs[j].codepoint == (hb_codepoint_t) -1)
+	break;
+
+    g_assert (test->valid ? j == len : j < len);
+    if (!test->valid)
+      g_assert (glyphs[j].cluster == test->offset);
+  }
 
   hb_buffer_destroy (b);
 }
@@ -636,10 +659,10 @@ test_buffer_utf8_validity (gconstpointer user_data)
 typedef struct {
   const uint16_t utf16[8];
   const uint32_t codepoints[8];
-} utf16_test_t;
+} utf16_conversion_test_t;
 
 /* note: we skip the first and last item from utf16 when adding to buffer */
-static const utf16_test_t utf16_tests[] = {
+static const utf16_conversion_test_t utf16_conversion_tests[] = {
   {{0x41, 0x004D, 0x0430, 0x4E8C, 0xD800, 0xDF02, 0x61} , {0x004D, 0x0430, 0x4E8C, 0x10302}},
   {{0x41, 0xD800, 0xDF02, 0x61}, {0x10302}},
   {{0x41, 0xD800, 0xDF02}, {-1}},
@@ -649,25 +672,34 @@ static const utf16_test_t utf16_tests[] = {
 };
 
 static void
-test_buffer_utf16 (gconstpointer user_data)
+test_buffer_utf16_conversion (void)
 {
-  const utf16_test_t *test = user_data;
   hb_buffer_t *b;
-  hb_glyph_info_t *glyphs;
-  unsigned int u_len, chars, i, len;
-
-  for (u_len = 0; test->utf16[u_len]; u_len++)
-    ;
-  for (chars = 0; test->codepoints[chars]; chars++)
-    ;
+  unsigned int i;
 
   b = hb_buffer_create (0);
-  hb_buffer_add_utf16 (b, test->utf16, u_len,  1, u_len - 2);
 
-  glyphs = hb_buffer_get_glyph_infos (b, &len);
-  g_assert_cmpint (len, ==, chars);
-  for (i = 0; i < chars; i++)
-    g_assert_cmphex (glyphs[i].codepoint, ==, test->codepoints[i]);
+  for (i = 0; i < G_N_ELEMENTS (utf16_conversion_tests); i++)
+  {
+    const utf16_conversion_test_t *test = &utf16_conversion_tests[i];
+    unsigned int u_len, chars, j, len;
+    hb_glyph_info_t *glyphs;
+
+    g_test_message ("UTF-16 test #%d", i);
+
+    for (u_len = 0; test->utf16[u_len]; u_len++)
+      ;
+    for (chars = 0; test->codepoints[chars]; chars++)
+      ;
+
+    hb_buffer_reset (b);
+    hb_buffer_add_utf16 (b, test->utf16, u_len,  1, u_len - 2);
+
+    glyphs = hb_buffer_get_glyph_infos (b, &len);
+    g_assert_cmpint (len, ==, chars);
+    for (j = 0; j < chars; j++)
+      g_assert_cmphex (glyphs[j].codepoint, ==, test->codepoints[j]);
+  }
 
   hb_buffer_destroy (b);
 }
@@ -692,25 +724,9 @@ main (int argc, char **argv)
 
   hb_test_add_fixture (fixture, GINT_TO_POINTER (BUFFER_EMPTY), test_buffer_allocation);
 
-  for (i = 0; i < G_N_ELEMENTS (utf8_tests); i++)
-  {
-    char *flavor = g_strdup_printf ("%d", i);
-    hb_test_add_data_flavor (&utf8_tests[i], flavor, test_buffer_utf8);
-    g_free (flavor);
-  }
-  for (i = 0; i < G_N_ELEMENTS (utf8_validity_tests); i++)
-  {
-    char *flavor = g_strdup_printf ("%d", i);
-    hb_test_add_data_flavor (&utf8_validity_tests[i], flavor, test_buffer_utf8_validity);
-    g_free (flavor);
-  }
-
-  for (i = 0; i < G_N_ELEMENTS (utf16_tests); i++)
-  {
-    char *flavor = g_strdup_printf ("%d", i);
-    hb_test_add_data_flavor (&utf16_tests[i], flavor, test_buffer_utf16);
-    g_free (flavor);
-  }
+  hb_test_add (test_buffer_utf8_conversion);
+  hb_test_add (test_buffer_utf8_validity);
+  hb_test_add (test_buffer_utf16_conversion);
 
   return hb_test_run();
 }
