@@ -426,9 +426,12 @@ test_unicode_properties (gconstpointer user_data)
     const property_t *p = &properties[i];
     const test_pair_t *tests;
 
+    g_test_message ("Testing property %s", p->name);
     tests = p->tests;
-    for (j = 0; j < p->num_tests; j++)
-      g_assert_cmpint (p->getter (uf, tests[j].unicode), ==, tests[j].value);
+    for (j = 0; j < p->num_tests; j++) {
+      g_test_message ("Test %s #%d: U+%04X", p->name, j, tests[j].unicode);
+      g_assert_cmphex (p->getter (uf, tests[j].unicode), ==, tests[j].value);
+    }
   }
 }
 
@@ -452,7 +455,7 @@ test_unicode_properties_nil (void)
 
     tests = p->tests;
     for (j = 0; j < p->num_tests; j++)
-      g_assert_cmpint (p->getter (uf, tests[j].unicode), ==, default_value (p->default_value, tests[j].unicode));
+      g_assert_cmphex (p->getter (uf, tests[j].unicode), ==, default_value (p->default_value, tests[j].unicode));
   }
 
   hb_unicode_funcs_destroy (uf);
