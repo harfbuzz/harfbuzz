@@ -153,16 +153,17 @@ typedef enum
 
 /* hb_script_t */
 
+/* http://unicode.org/iso15924/ */
 typedef enum
 {
   HB_SCRIPT_COMMON                  = HB_TAG ('Z','y','y','y'),
-  HB_SCRIPT_INHERITED               = HB_TAG ('Q','a','a','i'),
+  HB_SCRIPT_INHERITED               = HB_TAG ('Z','i','n','h'),
   HB_SCRIPT_ARABIC                  = HB_TAG ('A','r','a','b'),
   HB_SCRIPT_ARMENIAN                = HB_TAG ('A','r','m','n'),
   HB_SCRIPT_BENGALI                 = HB_TAG ('B','e','n','g'),
   HB_SCRIPT_BOPOMOFO                = HB_TAG ('B','o','p','o'),
   HB_SCRIPT_CHEROKEE                = HB_TAG ('C','h','e','r'),
-  HB_SCRIPT_COPTIC                  = HB_TAG ('Q','a','a','c'),
+  HB_SCRIPT_COPTIC                  = HB_TAG ('C','o','p','t'),
   HB_SCRIPT_CYRILLIC                = HB_TAG ('C','y','r','l'),
   HB_SCRIPT_DESERET                 = HB_TAG ('D','s','r','t'),
   HB_SCRIPT_DEVANAGARI              = HB_TAG ('D','e','v','a'),

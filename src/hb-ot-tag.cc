@@ -40,7 +40,6 @@ static hb_tag_t
 hb_ot_old_tag_from_script (hb_script_t script)
 {
   switch ((hb_tag_t) script) {
-    case HB_SCRIPT_COPTIC:		return HB_TAG('c','o','p','t');
     case HB_SCRIPT_HIRAGANA:		return HB_TAG('k','a','n','a');
     case HB_SCRIPT_LAO:			return HB_TAG('l','a','o',' ');
     case HB_SCRIPT_YI:			return HB_TAG('y','i',' ',' ');
@@ -61,7 +60,6 @@ static hb_script_t
 hb_ot_old_tag_to_script (hb_tag_t tag)
 {
   switch (tag) {
-    case HB_TAG('c','o','p','t'):	return HB_SCRIPT_COPTIC;
     case HB_TAG('k','a','n','a'):	return HB_SCRIPT_HIRAGANA;
     case HB_TAG('l','a','o',' '):	return HB_SCRIPT_LAO;
     case HB_TAG('y','i',' ',' '):	return HB_SCRIPT_YI;

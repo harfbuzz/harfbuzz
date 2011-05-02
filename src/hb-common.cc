@@ -191,9 +191,15 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
   tag = (tag & 0xDFDFDFDF) | 0x00202020;
 
   switch (tag) {
+
+    /* These graduated from the 'Q' private-area codes, but
+     * the old code is still aliased by Unicode, and the Qaai
+     * one in use by ICU. */
+    case HB_TAG('Q','a','a','i'): return HB_SCRIPT_INHERITED;
+    case HB_TAG('Q','a','a','c'): return HB_SCRIPT_COPTIC;
+
+    /* Script variants from http://unicode.org/iso15924/ */
     case HB_TAG('C','y','r','s'): return HB_SCRIPT_CYRILLIC;
-    case HB_TAG('G','e','o','a'): return HB_SCRIPT_GEORGIAN;
-    case HB_TAG('G','e','o','n'): return HB_SCRIPT_GEORGIAN;
     case HB_TAG('L','a','t','f'): return HB_SCRIPT_LATIN;
     case HB_TAG('L','a','t','g'): return HB_SCRIPT_LATIN;
     case HB_TAG('S','y','r','e'): return HB_SCRIPT_SYRIAC;
