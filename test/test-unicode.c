@@ -56,7 +56,7 @@ static void free_up (void *p)
   data_t *data = (data_t *) p;
 
   g_assert (data->value == MAGIC0 || data->value == MAGIC1);
-  g_assert (data->freed == FALSE);
+  g_assert (!data->freed);
   data->freed = TRUE;
 }
 
@@ -68,8 +68,8 @@ simple_get_script (hb_unicode_funcs_t *ufuncs,
   data_t *data = (data_t *) user_data;
 
   g_assert (hb_unicode_funcs_get_parent (ufuncs) != NULL);
-  g_assert (data->value == MAGIC0);
-  g_assert (data->freed == FALSE);
+  g_assert_cmphex (data->value, ==, MAGIC0);
+  g_assert (!data->freed);
 
   if ('a' <= codepoint && codepoint <= 'z')
     return HB_SCRIPT_LATIN;
@@ -85,8 +85,8 @@ a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
   data_t *data = (data_t *) user_data;
 
   g_assert (hb_unicode_funcs_get_parent (ufuncs) != NULL);
-  g_assert (data->value == MAGIC1);
-  g_assert (data->freed == FALSE);
+  g_assert_cmphex (data->value, ==, MAGIC1);
+  g_assert (!data->freed);
 
   if (codepoint == 'a') {
     return HB_SCRIPT_ARABIC;
