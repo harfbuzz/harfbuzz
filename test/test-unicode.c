@@ -419,6 +419,7 @@ test_unicode_properties (gconstpointer user_data)
 {
   hb_unicode_funcs_t *uf = (hb_unicode_funcs_t *) user_data;
   unsigned int i, j;
+  gboolean failed = TRUE;
 
   g_assert (hb_unicode_funcs_is_immutable (uf));
 
@@ -432,7 +433,20 @@ test_unicode_properties (gconstpointer user_data)
       g_test_message ("Test %s #%d: U+%04X", p->name, j, tests[j].unicode);
       g_assert_cmphex (p->getter (uf, tests[j].unicode), ==, tests[j].value);
     }
+    /* These tests are from Unicode 5.2 onward and older glib/ICU
+     * don't get them right.  Just warn instead of assert. */
+    tests = p->tests_more;
+    for (j = 0; j < p->num_tests_more; j++) {
+      g_test_message ("Test %s more #%d: U+%04X", p->name, j, tests[j].unicode);
+      if (p->getter (uf, tests[j].unicode) != tests[j].value) {
+	g_test_message ("Soft fail: Received %x, expected %x", p->getter (uf, tests[j].unicode), tests[j].value);
+        failed = TRUE;
+      }
+    }
   }
+
+  if (failed)
+    g_message ("Some property tests failed.  You probably have an old version of one of the libraries used.  Rerun with --verbose for details");
 }
 
 static hb_codepoint_t
@@ -457,6 +471,11 @@ test_unicode_properties_nil (void)
     tests = p->tests;
     for (j = 0; j < p->num_tests; j++) {
       g_test_message ("Test %s #%d: U+%04X", p->name, j, tests[j].unicode);
+      g_assert_cmphex (p->getter (uf, tests[j].unicode), ==, default_value (p->default_value, tests[j].unicode));
+    }
+    tests = p->tests_more;
+    for (j = 0; j < p->num_tests_more; j++) {
+      g_test_message ("Test %s more #%d: U+%04X", p->name, j, tests[j].unicode);
       g_assert_cmphex (p->getter (uf, tests[j].unicode), ==, default_value (p->default_value, tests[j].unicode));
     }
   }
@@ -647,8 +666,6 @@ main (int argc, char **argv)
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_default);
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_deep);
 
-  /* XXX test icu ufuncs */
-  /* XXX test _more tests (warn?) */
   /* XXX test chainup */
   /* XXX test glib & icu two-way script conversion */
 
