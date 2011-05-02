@@ -142,10 +142,12 @@ hb_buffer_create (unsigned int pre_alloc_size)
   if (!(buffer = hb_object_create<hb_buffer_t> ()))
     return &_hb_buffer_nil;
 
-  if (pre_alloc_size)
-    _hb_buffer_ensure (buffer, pre_alloc_size);
-
   hb_buffer_reset (buffer);
+
+  if (pre_alloc_size && !_hb_buffer_ensure (buffer, pre_alloc_size)) {
+    hb_buffer_destroy (buffer);
+    return &_hb_buffer_nil;
+  }
 
   return buffer;
 }
