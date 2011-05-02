@@ -157,6 +157,9 @@ hb_icu_get_script (hb_unicode_funcs_t *ufuncs,
   UErrorCode status = U_ZERO_ERROR;
   UScriptCode scriptCode = uscript_getScript(unicode, &status);
 
+  if (unlikely (status != U_ZERO_ERROR))
+    return HB_SCRIPT_UNKNOWN;
+
   return hb_icu_script_to_script (scriptCode);
 }
 
