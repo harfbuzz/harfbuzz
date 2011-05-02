@@ -514,12 +514,9 @@ default_value (hb_codepoint_t default_value, hb_codepoint_t unicode)
 }
 
 static void
-test_unicode_properties_nil (void)
+_test_unicode_properties_nil (hb_unicode_funcs_t *uf)
 {
-  hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
   unsigned int i, j;
-
-  g_assert (!hb_unicode_funcs_is_immutable (uf));
 
   for (i = 0; i < G_N_ELEMENTS (properties); i++) {
     const property_t *p = &properties[i];
@@ -537,8 +534,54 @@ test_unicode_properties_nil (void)
       g_assert_cmphex (p->getter (uf, tests[j].unicode), ==, default_value (p->default_value, tests[j].unicode));
     }
   }
+}
+
+static void
+test_unicode_properties_nil (void)
+{
+  hb_unicode_funcs_t *uf = hb_unicode_funcs_create (NULL);
+
+  g_assert (!hb_unicode_funcs_is_immutable (uf));
+  _test_unicode_properties_nil (uf);
 
   hb_unicode_funcs_destroy (uf);
+}
+
+
+static void
+test_unicode_chainup (void)
+{
+  hb_unicode_funcs_t *uf, *uf2;
+
+  /* Chain-up to nil */
+
+  uf = hb_unicode_funcs_create (NULL);
+  g_assert (!hb_unicode_funcs_is_immutable (uf));
+
+  uf2 = hb_unicode_funcs_create (uf);
+  g_assert (hb_unicode_funcs_is_immutable (uf));
+  hb_unicode_funcs_destroy (uf);
+
+  g_assert (!hb_unicode_funcs_is_immutable (uf2));
+  _test_unicode_properties_nil (uf2);
+
+  hb_unicode_funcs_destroy (uf2);
+
+  /* Chain-up to default */
+
+  uf = hb_unicode_funcs_create (hb_unicode_funcs_get_default ());
+  g_assert (!hb_unicode_funcs_is_immutable (uf));
+
+  uf2 = hb_unicode_funcs_create (uf);
+  g_assert (hb_unicode_funcs_is_immutable (uf));
+  hb_unicode_funcs_destroy (uf);
+
+  g_assert (!hb_unicode_funcs_is_immutable (uf2));
+  hb_unicode_funcs_make_immutable (uf2);
+  test_unicode_properties (uf2);
+
+  hb_unicode_funcs_destroy (uf2);
+
 }
 
 static void
@@ -682,13 +725,14 @@ main (int argc, char **argv)
   hb_test_add_data_flavor (hb_icu_get_unicode_funcs (),     "icu",    test_unicode_properties);
 #endif
 
+  hb_test_add (test_unicode_chainup);
+
   hb_test_add (test_unicode_setters);
 
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_nil);
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_default);
   hb_test_add_fixture (data_fixture, NULL, test_unicode_subclassing_deep);
 
-  /* XXX test chainup */
   /* XXX test glib & icu two-way script conversion */
 
   return hb_test_run ();
