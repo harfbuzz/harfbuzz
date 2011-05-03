@@ -35,7 +35,6 @@ HB_BEGIN_DECLS
 
 void
 hb_ot_shape (hb_font_t          *font,
-	     hb_face_t          *face,
 	     hb_buffer_t        *buffer,
 	     const hb_feature_t *features,
 	     unsigned int        num_features);

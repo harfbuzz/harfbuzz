@@ -43,7 +43,6 @@ HB_BEGIN_DECLS
 
 static hb_codepoint_t
 hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
-		       hb_face_t *face HB_UNUSED,
 		       const void *user_data HB_UNUSED,
 		       hb_codepoint_t unicode HB_UNUSED,
 		       hb_codepoint_t variation_selector HB_UNUSED)
@@ -51,7 +50,6 @@ hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
 
 static void
 hb_font_get_glyph_advance_nil (hb_font_t *font HB_UNUSED,
-			       hb_face_t *face HB_UNUSED,
 			       const void *user_data HB_UNUSED,
 			       hb_codepoint_t glyph HB_UNUSED,
 			       hb_position_t *x_advance HB_UNUSED,
@@ -60,7 +58,6 @@ hb_font_get_glyph_advance_nil (hb_font_t *font HB_UNUSED,
 
 static void
 hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
-			       hb_face_t *face HB_UNUSED,
 			       const void *user_data HB_UNUSED,
 			       hb_codepoint_t glyph HB_UNUSED,
 			       hb_glyph_extents_t *extents HB_UNUSED)
@@ -68,7 +65,6 @@ hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
 
 static hb_bool_t
 hb_font_get_contour_point_nil (hb_font_t *font HB_UNUSED,
-			       hb_face_t *face HB_UNUSED,
 			       const void *user_data HB_UNUSED,
 			       unsigned int point_index HB_UNUSED,
 			       hb_codepoint_t glyph HB_UNUSED,
@@ -78,7 +74,6 @@ hb_font_get_contour_point_nil (hb_font_t *font HB_UNUSED,
 
 static hb_position_t
 hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
-			 hb_face_t *face HB_UNUSED,
 			 const void *user_data HB_UNUSED,
 			 hb_codepoint_t first_glyph HB_UNUSED,
 			 hb_codepoint_t second_glyph HB_UNUSED)
@@ -241,48 +236,48 @@ hb_font_funcs_get_kerning_func (hb_font_funcs_t *ffuncs)
 
 
 hb_codepoint_t
-hb_font_get_glyph (hb_font_t *font, hb_face_t *face,
+hb_font_get_glyph (hb_font_t *font,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector)
 {
-  return font->klass->v.get_glyph (font, face, font->user_data,
+  return font->klass->v.get_glyph (font, font->user_data,
 				   unicode, variation_selector);
 }
 
 void
-hb_font_get_glyph_advance (hb_font_t *font, hb_face_t *face,
+hb_font_get_glyph_advance (hb_font_t *font,
 			   hb_codepoint_t glyph,
 			   hb_position_t *x_advance, hb_position_t *y_advance)
 {
   *x_advance = *y_advance = 0;
-  return font->klass->v.get_glyph_advance (font, face, font->user_data,
+  return font->klass->v.get_glyph_advance (font, font->user_data,
 					   glyph, x_advance, y_advance);
 }
 
 void
-hb_font_get_glyph_extents (hb_font_t *font, hb_face_t *face,
+hb_font_get_glyph_extents (hb_font_t *font,
 			   hb_codepoint_t glyph, hb_glyph_extents_t *extents)
 {
   memset (extents, 0, sizeof (*extents));
-  return font->klass->v.get_glyph_extents (font, face, font->user_data,
+  return font->klass->v.get_glyph_extents (font, font->user_data,
 					   glyph, extents);
 }
 
 hb_bool_t
-hb_font_get_contour_point (hb_font_t *font, hb_face_t *face,
+hb_font_get_contour_point (hb_font_t *font,
 			   unsigned int point_index,
 			   hb_codepoint_t glyph, hb_position_t *x, hb_position_t *y)
 {
   *x = 0; *y = 0;
-  return font->klass->v.get_contour_point (font, face, font->user_data,
+  return font->klass->v.get_contour_point (font, font->user_data,
 					   point_index,
 					   glyph, x, y);
 }
 
 hb_position_t
-hb_font_get_kerning (hb_font_t *font, hb_face_t *face,
+hb_font_get_kerning (hb_font_t *font,
 		     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph)
 {
-  return font->klass->v.get_kerning (font, face, font->user_data,
+  return font->klass->v.get_kerning (font, font->user_data,
 				     first_glyph, second_glyph);
 }
 
@@ -462,6 +457,8 @@ hb_face_get_upem (hb_face_t *face)
 static hb_font_t _hb_font_nil = {
   HB_OBJECT_HEADER_STATIC,
 
+  &_hb_face_nil,
+
   0, /* x_scale */
   0, /* y_scale */
 
@@ -474,13 +471,18 @@ static hb_font_t _hb_font_nil = {
 };
 
 hb_font_t *
-hb_font_create (void)
+hb_font_create (hb_face_t *face)
 {
   hb_font_t *font;
 
+  if (unlikely (!face))
+    face = &_hb_face_nil;
+  if (unlikely (hb_object_is_inert (face)))
+    return &_hb_font_nil;
   if (!(font = hb_object_create<hb_font_t> ()))
     return &_hb_font_nil;
 
+  font->face = hb_face_reference (face);
   font->klass = &_hb_font_funcs_nil;
 
   return font;
@@ -497,6 +499,7 @@ hb_font_destroy (hb_font_t *font)
 {
   if (!hb_object_destroy (font)) return;
 
+  hb_face_destroy (font->face);
   hb_font_funcs_destroy (font->klass);
   if (font->destroy)
     font->destroy (font->user_data);
@@ -518,6 +521,13 @@ hb_font_get_user_data (hb_font_t          *font,
 		       hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (font, key);
+}
+
+
+hb_face_t *
+hb_font_get_face (hb_font_t *font)
+{
+  return font->face;
 }
 
 

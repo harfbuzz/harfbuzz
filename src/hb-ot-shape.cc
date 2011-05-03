@@ -29,6 +29,8 @@
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-shape-complex-private.hh"
 
+#include "hb-font-private.hh"
+
 HB_BEGIN_DECLS
 
 
@@ -209,7 +211,6 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
 
 static void
 hb_map_glyphs (hb_font_t    *font,
-	       hb_face_t    *face,
 	       hb_buffer_t  *buffer)
 {
   if (unlikely (!buffer->len))
@@ -219,21 +220,21 @@ hb_map_glyphs (hb_font_t    *font,
   unsigned int count = buffer->len - 1;
   for (buffer->i = 0; buffer->i < count;) {
     if (unlikely (is_variation_selector (buffer->info[buffer->i + 1].codepoint))) {
-      buffer->replace_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint));
+      buffer->replace_glyph (hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint));
       buffer->i++;
     } else {
-      buffer->replace_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0));
+      buffer->replace_glyph (hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, 0));
     }
   }
   if (likely (buffer->i < buffer->len))
-    buffer->replace_glyph (hb_font_get_glyph (font, face, buffer->info[buffer->i].codepoint, 0));
+    buffer->replace_glyph (hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, 0));
   buffer->swap ();
 }
 
 static void
 hb_substitute_default (hb_ot_shape_context_t *c)
 {
-  hb_map_glyphs (c->font, c->face, c->buffer);
+  hb_map_glyphs (c->font, c->buffer);
 }
 
 static void
@@ -252,7 +253,7 @@ hb_position_default (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_font_get_glyph_advance (c->font, c->face, c->buffer->info[i].codepoint,
+    hb_font_get_glyph_advance (c->font, c->buffer->info[i].codepoint,
 			       &c->buffer->pos[i].x_advance,
 			       &c->buffer->pos[i].y_advance);
   }
@@ -271,7 +272,7 @@ hb_truetype_kern (hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++) {
     hb_position_t kern, kern1, kern2;
-    kern = hb_font_get_kerning (c->font, c->face, c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint);
+    kern = hb_font_get_kerning (c->font, c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint);
     kern1 = kern >> 1;
     kern2 = kern - kern1;
     c->buffer->pos[i - 1].x_advance += kern1;
@@ -355,26 +356,24 @@ hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
 void
 hb_ot_shape_execute (hb_ot_shape_plan_t *plan,
 		     hb_font_t          *font,
-		     hb_face_t          *face,
 		     hb_buffer_t        *buffer,
 		     const hb_feature_t *user_features,
 		     unsigned int        num_user_features)
 {
-  hb_ot_shape_context_t c = {plan, font, face, buffer, user_features, num_user_features};
+  hb_ot_shape_context_t c = {plan, font, font->face, buffer, user_features, num_user_features};
   hb_ot_shape_execute_internal (&c);
 }
 
 void
 hb_ot_shape (hb_font_t          *font,
-	     hb_face_t          *face,
 	     hb_buffer_t        *buffer,
 	     const hb_feature_t *features,
 	     unsigned int        num_features)
 {
   hb_ot_shape_plan_t plan;
 
-  hb_ot_shape_plan_internal (&plan, face, &buffer->props, features, num_features);
-  hb_ot_shape_execute (&plan, font, face, buffer, features, num_features);
+  hb_ot_shape_plan_internal (&plan, font->face, &buffer->props, features, num_features);
+  hb_ot_shape_execute (&plan, font, buffer, features, num_features);
 }
 
 

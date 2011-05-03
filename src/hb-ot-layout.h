@@ -59,7 +59,6 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
 /* Ligature caret positions */
 unsigned int
 hb_ot_layout_get_ligature_carets (hb_font_t      *font,
-				  hb_face_t      *face,
 				  hb_direction_t  direction,
 				  hb_codepoint_t  glyph,
 				  unsigned int    start_offset,
@@ -185,7 +184,6 @@ hb_ot_layout_position_start (hb_buffer_t  *buffer);
 
 hb_bool_t
 hb_ot_layout_position_lookup (hb_font_t    *font,
-			      hb_face_t    *face,
 			      hb_buffer_t  *buffer,
 			      unsigned int  lookup_index,
 			      hb_mask_t     mask);

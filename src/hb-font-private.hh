@@ -83,6 +83,8 @@ struct _hb_face_t {
 struct _hb_font_t {
   hb_object_header_t header;
 
+  hb_face_t *face;
+
   unsigned int x_scale;
   unsigned int y_scale;
 

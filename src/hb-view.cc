@@ -344,7 +344,6 @@ _hb_cr_text_glyphs (cairo_t *cr,
 {
   cairo_scaled_font_t *scaled_font = cairo_get_scaled_font (cr);
   FT_Face ft_face = cairo_ft_scaled_font_lock_face (scaled_font);
-  hb_face_t *hb_face = hb_ft_face_create_cached (ft_face);
   hb_font_t *hb_font = hb_ft_font_create (ft_face, NULL);
   hb_buffer_t *hb_buffer;
   cairo_glyph_t *cairo_glyphs;
@@ -366,7 +365,7 @@ _hb_cr_text_glyphs (cairo_t *cr,
     len = strlen (text);
   hb_buffer_add_utf8 (hb_buffer, text, len, 0, len);
 
-  hb_shape (hb_font, hb_face, hb_buffer, features, num_features);
+  hb_shape (hb_font, hb_buffer, features, num_features);
 
   num_glyphs = hb_buffer_get_length (hb_buffer);
   hb_glyph = hb_buffer_get_glyph_infos (hb_buffer, NULL);
@@ -386,7 +385,6 @@ _hb_cr_text_glyphs (cairo_t *cr,
   cairo_glyphs[i].x = x * (1./64);
   hb_buffer_destroy (hb_buffer);
   hb_font_destroy (hb_font);
-  hb_face_destroy (hb_face);
   cairo_ft_scaled_font_unlock_face (scaled_font);
 
   if (pnum_glyphs)

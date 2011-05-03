@@ -121,7 +121,7 @@ struct hb_ot_map_t {
 
   inline void position (hb_font_t *font, hb_face_t *face, hb_buffer_t *buffer) const {
     for (unsigned int i = 0; i < lookup_count[1]; i++)
-      hb_ot_layout_position_lookup (font, face, buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
+      hb_ot_layout_position_lookup (font, buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
   }
 
   private:

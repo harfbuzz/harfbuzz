@@ -121,7 +121,7 @@ struct CaretValueFormat2
   inline int get_caret_value (hb_ot_layout_context_t *c, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
     hb_position_t x, y;
-    if (hb_font_get_contour_point (c->font, c->face, caretValuePoint, glyph_id, &x, &y))
+    if (hb_font_get_contour_point (c->font, caretValuePoint, glyph_id, &x, &y))
       return HB_DIRECTION_IS_HORIZONTAL (direction) ? x : y;
     else
       return 0;

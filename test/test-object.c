@@ -74,12 +74,15 @@ create_face_inert (void)
 static void *
 create_font (void)
 {
-  return hb_font_create ();
+  hb_face_t *face = (hb_face_t *) create_face ();
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  return font;
 }
 static void *
 create_font_inert (void)
 {
-  return NULL;
+  return hb_font_create (create_face_inert ());
 }
 
 static void *
