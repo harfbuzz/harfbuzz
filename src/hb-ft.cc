@@ -238,11 +238,14 @@ hb_ft_font_create (FT_Face           ft_face,
 		   hb_destroy_func_t destroy)
 {
   hb_font_t *font;
+  hb_face_t *face;
 
-  font = hb_font_create (hb_ft_face_create_cached (ft_face));
+  face = hb_ft_face_create (ft_face, destroy);
+  font = hb_font_create (face);
+  hb_face_destroy (face);
   hb_font_set_funcs (font,
 		     hb_ft_get_font_funcs (),
-		     ft_face, destroy);
+		     ft_face, NULL);
   hb_font_set_scale (font,
 		     ((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM) >> 16,
 		     ((uint64_t) ft_face->size->metrics.y_scale * (uint64_t) ft_face->units_per_EM) >> 16);
