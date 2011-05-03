@@ -243,13 +243,31 @@ typedef GStaticMutex hb_mutex_t;
 #else
 
 #ifdef _MSC_VER
-#define _HB__STR2__(x) #x
-#define _HB__STR1__(x) _HB__STR2__(x)
-#define _HB__LOC__ __FILE__ "("_HB__STR1__(__LINE__)") : Warning Msg: "
-#pragma message(_HB__LOC__"Could not find any system to define platform macros, library will NOT be thread-safe")
+
+#include <intrin.h>
+
+typedef long hb_atomic_int_t;
+#define hb_atomic_int_fetch_and_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
+#define hb_atomic_int_get(AI)			(_ReadBarrier (), (AI))
+#define hb_atomic_int_set(AI, V)		((void) _InterlockedExchange (&(AI), (V)))
+
+typedef void * hb_mutex_t;
+extern HB_INTERNAL hb_mutex_t _hb_win32_mutex_create (void);
+extern HB_INTERNAL void _hb_win32_mutex_init (hb_mutex_t *m);
+extern HB_INTERNAL void _hb_win32_mutex_lock (hb_mutex_t m);
+extern HB_INTERNAL int _hb_win32_mutex_trylock (hb_mutex_t m);
+extern HB_INTERNAL void _hb_win32_mutex_unlock (hb_mutex_t m);
+extern HB_INTERNAL void _hb_win32_mutex_free (hb_mutex_t *m);
+#define HB_MUTEX_INIT				_hb_win32_mutex_create ()
+#define hb_mutex_init(M)			_hb_win32_mutex_init (&(M))
+#define hb_mutex_lock(M)			_hb_win32_mutex_lock ((M))
+#define hb_mutex_trylock(M)			_hb_win32_mutex_trylock ((M))
+#define hb_mutex_unlock(M)			_hb_win32_mutex_unlock ((M))
+#define hb_mutex_free(M)			_hb_win32_mutex_free (&(M))
+
 #else
+
 #warning "Could not find any system to define platform macros, library will NOT be thread-safe"
-#endif
 
 typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
@@ -263,6 +281,8 @@ typedef volatile int hb_mutex_t;
 #define hb_mutex_trylock(M)			((M) = 1, 1)
 #define hb_mutex_unlock(M)			((void) ((M) = 0))
 #define hb_mutex_free(M)			((void) ((M) = 2))
+
+#endif
 
 #endif
 

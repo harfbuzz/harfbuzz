@@ -263,4 +263,58 @@ hb_script_get_horizontal_direction (hb_script_t script)
 }
 
 
+
+/* System stuff */
+
+
+#ifdef _MSC_VER
+
+#include <Windows.h>
+
+hb_mutex_t
+_hb_win32_mutex_create ()
+{
+  hb_mutex_t m;
+  _hb_win32_mutex_init (&m);
+  return m;
+}
+
+void
+_hb_win32_mutex_init (hb_mutex_t *m)
+{
+  LPCRITICAL_SECTION lpcs = (LPCRITICAL_SECTION) calloc(1, sizeof(CRITICAL_SECTION));
+  InitializeCriticalSection (lpcs);
+  *m = (void*) lpcs;
+}
+
+void
+_hb_win32_mutex_lock (hb_mutex_t m)
+{
+  EnterCriticalSection ((LPCRITICAL_SECTION) m);
+}
+
+int
+_hb_win32_mutex_trylock (hb_mutex_t m)
+{
+  return TryEnterCriticalSection ((LPCRITICAL_SECTION) m);
+}
+
+void
+_hb_win32_mutex_unlock (hb_mutex_t m)
+{
+  LeaveCriticalSection ((LPCRITICAL_SECTION) m);
+}
+
+void
+_hb_win32_mutex_free (hb_mutex_t *m)
+{
+  LPCRITICAL_SECTION lpcs = (LPCRITICAL_SECTION) *m;
+  DeleteCriticalSection (lpcs);
+  free(lpcs);
+  *m = 0;
+}
+
+#endif
+
+
 HB_END_DECLS
