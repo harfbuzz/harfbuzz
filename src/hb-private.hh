@@ -234,10 +234,11 @@ typedef volatile int hb_atomic_int_t;
 
 typedef GStaticMutex hb_mutex_t;
 #define HB_MUTEX_INIT			G_STATIC_MUTEX_INIT
-#define hb_mutex_init(M)		g_static_mutex_init (&M)
-#define hb_mutex_lock(M)		g_static_mutex_lock (&M)
-#define hb_mutex_trylock(M)		g_static_mutex_trylock (&M)
-#define hb_mutex_unlock(M)		g_static_mutex_unlock (&M)
+#define hb_mutex_init(M)		g_static_mutex_init (&(M))
+#define hb_mutex_lock(M)		g_static_mutex_lock (&(M))
+#define hb_mutex_trylock(M)		g_static_mutex_trylock (&(M))
+#define hb_mutex_unlock(M)		g_static_mutex_unlock (&(M))
+#define hb_mutex_free(M)		g_static_mutex_free (&(M))
 
 #else
 
@@ -257,10 +258,11 @@ typedef volatile int hb_atomic_int_t;
 
 typedef volatile int hb_mutex_t;
 #define HB_MUTEX_INIT				0
-#define hb_mutex_init(M)			HB_STMT_START { (M) = 0; } HB_STMT_END
-#define hb_mutex_lock(M)			HB_STMT_START { (M) = 1; } HB_STMT_END
+#define hb_mutex_init(M)			((void) ((M) = 0))
+#define hb_mutex_lock(M)			((void) ((M) = 1))
 #define hb_mutex_trylock(M)			((M) = 1, 1)
-#define hb_mutex_unlock(M)			HB_STMT_START { (M) = 0; } HB_STMT_END
+#define hb_mutex_unlock(M)			((void) ((M) = 0))
+#define hb_mutex_free(M)			((void) ((M) = 2))
 
 #endif
 
