@@ -253,7 +253,7 @@ typedef GStaticMutex hb_mutex_t;
 typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
 #define hb_atomic_int_get(AI)			(AI)
-#define hb_atomic_int_set(AI, V)		HB_STMT_START { (AI) = (V); } HB_STMT_END
+#define hb_atomic_int_set(AI, V)		((void) ((AI) = (V)))
 
 typedef volatile int hb_mutex_t;
 #define HB_MUTEX_INIT				0
