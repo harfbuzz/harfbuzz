@@ -26,11 +26,11 @@
 
 #include "hb-private.hh"
 
+#include "hb-ot-layout-private.hh"
+
 #include "hb-font-private.hh"
 #include "hb-blob-private.hh"
 #include "hb-open-file-private.hh"
-
-#include "hb-ot-layout-private.hh"
 
 #include <string.h>
 
@@ -293,9 +293,6 @@ static hb_face_t _hb_face_nil = {
   NULL, /* user_data */
   NULL, /* destroy */
 
-  NULL, /* head_blob */
-  NULL, /* head_table */
-
   NULL  /* ot_layout */
 };
 
@@ -317,10 +314,7 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
   face->user_data = user_data;
   face->destroy = destroy;
 
-  face->ot_layout = _hb_ot_layout_new (face);
-
-  face->head_blob = Sanitizer<head>::sanitize (hb_face_reference_table (face, HB_OT_TAG_head));
-  face->head_table = Sanitizer<head>::lock_instance (face->head_blob);
+  face->ot_layout = _hb_ot_layout_create (face);
 
   return face;
 }
@@ -399,10 +393,7 @@ hb_face_destroy (hb_face_t *face)
 {
   if (!hb_object_destroy (face)) return;
 
-  _hb_ot_layout_free (face->ot_layout);
-
-  hb_blob_unlock (face->head_blob);
-  hb_blob_destroy (face->head_blob);
+  _hb_ot_layout_destroy (face->ot_layout);
 
   if (face->destroy)
     face->destroy (face->user_data);
@@ -446,7 +437,7 @@ hb_face_reference_table (hb_face_t *face,
 unsigned int
 hb_face_get_upem (hb_face_t *face)
 {
-  return (face->head_table ? face->head_table : &Null(head))->get_upem ();
+  return _hb_ot_layout_get_upem (face);
 }
 
 
