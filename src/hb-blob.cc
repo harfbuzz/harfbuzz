@@ -127,15 +127,13 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 
   pdata = hb_blob_lock (parent);
 
-  blob->data = pdata + offset;
-  blob->length = MIN (length, parent->length - offset);
-
   hb_mutex_lock (parent->lock);
-  blob->mode = parent->mode;
+  blob = hb_blob_create (pdata + offset,
+			 MIN (length, parent->length - offset),
+			 parent->mode,
+			 hb_blob_reference (parent),
+			 (hb_destroy_func_t) _hb_blob_unlock_and_destroy);
   hb_mutex_unlock (parent->lock);
-
-  blob->user_data = hb_blob_reference (parent);
-  blob->destroy = (hb_destroy_func_t) _hb_blob_unlock_and_destroy;
 
   return blob;
 }
