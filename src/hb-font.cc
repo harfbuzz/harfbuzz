@@ -312,7 +312,7 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 {
   hb_face_t *face;
 
-  if (!(face = hb_object_create<hb_face_t> ())) {
+  if (!get_table || !(face = hb_object_create<hb_face_t> ())) {
     if (destroy)
       destroy (user_data);
     return &_hb_face_nil;
@@ -379,7 +379,7 @@ hb_face_t *
 hb_face_create_for_data (hb_blob_t    *blob,
 			 unsigned int  index)
 {
-  if (unlikely (hb_object_is_inert (blob)))
+  if (unlikely (!blob || hb_object_is_inert (blob)))
     return &_hb_face_nil;
 
   hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (hb_blob_reference (blob)), index);
@@ -434,7 +434,7 @@ hb_face_get_user_data (hb_face_t          *face,
 
 hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
-		   hb_tag_t   tag)
+			 hb_tag_t   tag)
 {
   hb_blob_t *blob;
 
