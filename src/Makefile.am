@@ -12,20 +12,20 @@ HBCFLAGS =
 HBLIBS =
 HBSOURCES =  \
 	hb-blob.cc \
-	hb-blob-private.hh \
-	hb-buffer.cc \
 	hb-buffer-private.hh \
+	hb-buffer.cc \
 	hb-common.cc \
-	hb-font.cc \
 	hb-font-private.hh \
+	hb-font.cc \
+	hb-mutex-private.hh \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-ot-head-private.hh \
 	hb-private.hh \
 	hb-shape.cc \
-	hb-unicode.cc \
 	hb-unicode-private.hh \
+	hb-unicode.cc \
 	$(NULL)
 HBHEADERS = \
 	hb.h \

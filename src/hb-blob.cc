@@ -26,7 +26,9 @@
 
 #include "hb-private.hh"
 
-#include "hb-blob-private.hh"
+#include "hb-blob.h"
+#include "hb-object-private.hh"
+#include "hb-mutex-private.hh"
 
 #ifdef HAVE_SYS_MMAN_H
 #ifdef HAVE_UNISTD_H
@@ -45,7 +47,25 @@ HB_BEGIN_DECLS
 #define HB_DEBUG_BLOB (HB_DEBUG+0)
 #endif
 
-hb_blob_t _hb_blob_nil = {
+
+struct _hb_blob_t {
+  hb_object_header_t header;
+
+  unsigned int length;
+
+  hb_mutex_t lock;
+  /* the rest are protected by lock */
+
+  unsigned int lock_count;
+  hb_memory_mode_t mode;
+
+  const char *data;
+
+  void *user_data;
+  hb_destroy_func_t destroy;
+};
+
+static hb_blob_t _hb_blob_nil = {
   HB_OBJECT_HEADER_STATIC,
 
   0, /* length */

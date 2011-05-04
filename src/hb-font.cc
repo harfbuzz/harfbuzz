@@ -29,7 +29,7 @@
 #include "hb-ot-layout-private.hh"
 
 #include "hb-font-private.hh"
-#include "hb-blob-private.hh"
+#include "hb-blob.h"
 #include "hb-open-file-private.hh"
 
 #include <string.h>
@@ -79,7 +79,8 @@ hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
 			 hb_codepoint_t second_glyph HB_UNUSED)
 { return 0; }
 
-hb_font_funcs_t _hb_font_funcs_nil = {
+
+static hb_font_funcs_t _hb_font_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 
   TRUE,  /* immutable */
@@ -91,6 +92,7 @@ hb_font_funcs_t _hb_font_funcs_nil = {
     hb_font_get_kerning_nil
   }
 };
+
 
 hb_font_funcs_t *
 hb_font_funcs_create (void)
@@ -368,7 +370,7 @@ hb_face_t *
 hb_face_create_for_data (hb_blob_t    *blob,
 			 unsigned int  index)
 {
-  if (unlikely (!blob || hb_object_is_inert (blob)))
+  if (unlikely (!blob || !hb_blob_get_length (blob)))
     return &_hb_face_nil;
 
   hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (hb_blob_reference (blob)), index);
@@ -425,11 +427,11 @@ hb_face_reference_table (hb_face_t *face,
   hb_blob_t *blob;
 
   if (unlikely (!face || !face->get_table))
-    return &_hb_blob_nil;
+    return hb_blob_get_empty ();
 
   blob = face->get_table (tag, face->user_data);
   if (unlikely (!blob))
-    blob = hb_blob_get_empty();
+    return hb_blob_get_empty ();
 
   return blob;
 }

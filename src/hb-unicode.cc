@@ -80,7 +80,6 @@ hb_unicode_get_script_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 }
 
 
-extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;
 hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 
