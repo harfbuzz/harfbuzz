@@ -66,7 +66,7 @@ hb_ot_map_t::compile (hb_face_t *face,
  global_mask = 1;
  lookup_count[0] = lookup_count[1] = 0;
 
-  if (!feature_count)
+  if (!feature_infos.len)
     return;
 
 
@@ -88,9 +88,9 @@ hb_ot_map_t::compile (hb_face_t *face,
 
 
   /* Sort features and merge duplicates */
-  qsort (feature_infos, feature_count, sizeof (feature_infos[0]), (hb_compare_func_t) feature_info_t::cmp);
+  feature_infos.sort ();
   unsigned int j = 0;
-  for (unsigned int i = 1; i < feature_count; i++)
+  for (unsigned int i = 1; i < feature_infos.len; i++)
     if (feature_infos[i].tag != feature_infos[j].tag)
       feature_infos[++j] = feature_infos[i];
     else {
@@ -102,10 +102,11 @@ hb_ot_map_t::compile (hb_face_t *face,
 	/* Inherit default_value from j */
       }
     }
-  feature_count = j + 1;
+  feature_infos.shrink (j + 1);
 
 
   /* Allocate bits now */
+  feature_count = feature_infos.len;
   unsigned int next_bit = 1;
   j = 0;
   for (unsigned int i = 0; i < feature_count; i++) {

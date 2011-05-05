@@ -277,6 +277,18 @@ struct hb_prealloced_array_t {
     len--;
     /* TODO: shrink array if needed */
   }
+
+  inline void shrink (unsigned int l)
+  {
+     if (l < len)
+       len = l;
+    /* TODO: shrink array if needed */
+  }
+
+  inline void sort (void)
+  {
+    qsort (array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
+  }
 };
 
 template <typename Type>

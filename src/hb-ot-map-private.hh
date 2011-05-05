@@ -36,7 +36,6 @@
 HB_BEGIN_DECLS
 
 
-#define MAX_FEATURES 100 /* FIXME */
 #define MAX_LOOKUPS 1000 /* FIXME */
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
@@ -87,9 +86,10 @@ struct hb_ot_map_t {
 
   void add_feature (hb_tag_t tag, unsigned int value, bool global)
   {
-    feature_info_t *info = &feature_infos[feature_count++];
+    feature_info_t *info = feature_infos.push();
+    if (unlikely (!info)) return;
     info->tag = tag;
-    info->seq = feature_count;
+    info->seq = feature_infos.len;
     info->max_value = value;
     info->global = global;
     info->default_value = global ? value : 0;
@@ -129,7 +129,8 @@ struct hb_ot_map_t {
   hb_mask_t global_mask;
 
   unsigned int feature_count;
-  feature_info_t feature_infos[MAX_FEATURES]; /* used before compile() only */
+  hb_prealloced_array_t<feature_info_t,16> feature_infos; /* used before compile() only */
+#define MAX_FEATURES 100
   feature_map_t feature_maps[MAX_FEATURES];
 
   lookup_map_t lookup_maps[2][MAX_LOOKUPS]; /* GSUB/GPOS */
