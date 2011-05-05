@@ -106,10 +106,8 @@ hb_ot_map_t::compile (hb_face_t *face,
 
 
   /* Allocate bits now */
-  feature_count = feature_infos.len;
   unsigned int next_bit = 1;
-  j = 0;
-  for (unsigned int i = 0; i < feature_count; i++) {
+  for (unsigned int i = 0; i < feature_infos.len; i++) {
     const feature_info_t *info = &feature_infos[i];
 
     unsigned int bits_needed;
@@ -137,7 +135,9 @@ hb_ot_map_t::compile (hb_face_t *face,
       continue;
 
 
-    feature_map_t *map = &feature_maps[j++];
+    feature_map_t *map = feature_maps.push ();
+    if (unlikely (!map))
+      break;
 
     map->tag = info->tag;
     map->index[0] = feature_index[0];
@@ -156,7 +156,7 @@ hb_ot_map_t::compile (hb_face_t *face,
     map->_1_mask = (1 << map->shift) & map->mask;
 
   }
-  feature_count = j;
+  feature_infos.shrink (0); /* Done with these */
 
 
   for (unsigned int table_index = 0; table_index < 2; table_index++) {
@@ -172,7 +172,7 @@ hb_ot_map_t::compile (hb_face_t *face,
 							  &required_feature_index))
       add_lookups (face, table_index, required_feature_index, 1);
 
-    for (unsigned i = 0; i < feature_count; i++)
+    for (unsigned i = 0; i < feature_maps.len; i++)
       add_lookups (face, table_index, feature_maps[i].index[table_index], feature_maps[i].mask);
 
     /* Sort lookups and merge duplicates */

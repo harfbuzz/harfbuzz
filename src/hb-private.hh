@@ -285,9 +285,35 @@ struct hb_prealloced_array_t {
     /* TODO: shrink array if needed */
   }
 
+  template <typename T>
+  inline Type *find (T v) {
+    for (unsigned int i = 0; i < len; i++)
+      if (array[i] == v)
+	return &array[i];
+    return NULL;
+  }
+  template <typename T>
+  inline const Type *find (T v) const {
+    for (unsigned int i = 0; i < len; i++)
+      if (array[i] == v)
+	return &array[i];
+    return NULL;
+  }
+
   inline void sort (void)
   {
     qsort (array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
+  }
+
+  template <typename T>
+  inline Type *bsearch (T *key)
+  {
+    return (Type *) ::bsearch (key, array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
+  }
+  template <typename T>
+  inline const Type *bsearch (T *key) const
+  {
+    return (const Type *) ::bsearch (key, array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
   }
 };
 
@@ -300,22 +326,12 @@ struct hb_set_t
 {
   hb_array_t <item_t> items;
 
-  private:
-
-  template <typename T>
-  inline item_t *find (T v) {
-    for (unsigned int i = 0; i < items.len; i++)
-      if (items[i] == v)
-	return &items[i];
-    return NULL;
-  }
-
   public:
 
   template <typename T>
   inline bool insert (T v)
   {
-    item_t *item = find (v);
+    item_t *item = items.find (v);
     if (item)
       item->finish ();
     else
@@ -328,7 +344,7 @@ struct hb_set_t
   template <typename T>
   inline void remove (T v)
   {
-    item_t *item = find (v);
+    item_t *item = items.find (v);
     if (!item) return;
 
     item->finish ();
@@ -339,7 +355,7 @@ struct hb_set_t
   template <typename T>
   inline item_t *get (T v)
   {
-    return find (v);
+    return items.find (v);
   }
 
   void finish (void) {

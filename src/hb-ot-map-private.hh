@@ -82,8 +82,6 @@ struct hb_ot_map_t {
 
   public:
 
-  hb_ot_map_t (void) : feature_count (0) {}
-
   void add_feature (hb_tag_t tag, unsigned int value, bool global)
   {
     feature_info_t *info = feature_infos.push();
@@ -104,13 +102,13 @@ struct hb_ot_map_t {
   inline hb_mask_t get_global_mask (void) const { return global_mask; }
 
   inline hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift = NULL) const {
-    const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), (hb_compare_func_t) feature_map_t::cmp);
+    const feature_map_t *map = feature_maps.bsearch (&tag);
     if (shift) *shift = map ? map->shift : 0;
     return map ? map->mask : 0;
   }
 
   inline hb_mask_t get_1_mask (hb_tag_t tag) const {
-    const feature_map_t *map = (const feature_map_t *) bsearch (&tag, feature_maps, feature_count, sizeof (feature_maps[0]), (hb_compare_func_t) feature_map_t::cmp);
+    const feature_map_t *map = feature_maps.bsearch (&tag);
     return map ? map->_1_mask : 0;
   }
 
@@ -128,10 +126,8 @@ struct hb_ot_map_t {
 
   hb_mask_t global_mask;
 
-  unsigned int feature_count;
   hb_prealloced_array_t<feature_info_t,16> feature_infos; /* used before compile() only */
-#define MAX_FEATURES 100
-  feature_map_t feature_maps[MAX_FEATURES];
+  hb_prealloced_array_t<feature_map_t, 16> feature_maps;
 
   lookup_map_t lookup_maps[2][MAX_LOOKUPS]; /* GSUB/GPOS */
   unsigned int lookup_count[2];
