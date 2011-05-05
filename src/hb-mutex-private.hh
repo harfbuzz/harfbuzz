@@ -100,6 +100,14 @@ typedef volatile int hb_mutex_t;
 #endif
 
 
+struct hb_static_mutex_t : hb_mutex_t
+{
+  hb_static_mutex_t (void) {
+    hb_mutex_init (*this);
+  }
+};
+
+
 HB_END_DECLS
 
 #endif /* HB_MUTEX_PRIVATE_HH */
