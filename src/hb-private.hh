@@ -228,7 +228,7 @@ HB_END_DECLS
 
 
 template <typename Type, unsigned int StaticSize>
-struct hb_static_array_t {
+struct hb_prealloced_array_t {
 
   unsigned int len;
   unsigned int allocated;
@@ -280,7 +280,7 @@ struct hb_static_array_t {
 };
 
 template <typename Type>
-struct hb_array_t : hb_static_array_t<Type, 2> {};
+struct hb_array_t : hb_prealloced_array_t<Type, 2> {};
 
 
 template <typename item_t>
