@@ -29,6 +29,7 @@
 #include "hb-private.hh"
 
 #include "hb-mutex-private.hh"
+#include "hb-object-private.hh"
 
 HB_BEGIN_DECLS
 
@@ -258,6 +259,31 @@ hb_script_get_horizontal_direction (hb_script_t script)
   }
 
   return HB_DIRECTION_LTR;
+}
+
+
+/* hb_user_data_array_t */
+
+bool
+hb_user_data_array_t::set (hb_user_data_key_t *key,
+			   void *              data,
+			   hb_destroy_func_t   destroy)
+{
+  if (!key)
+    return false;
+  if (!data && !destroy) {
+    items.remove (key);
+    return true;
+  }
+  hb_user_data_item_t item = {key, data, destroy};
+  return !!items.insert (item);
+}
+
+void *
+hb_user_data_array_t::get (hb_user_data_key_t *key)
+{
+  hb_user_data_item_t *item = items.find (key);
+  return item ? item->data : NULL;
 }
 
 

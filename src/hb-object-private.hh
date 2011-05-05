@@ -121,24 +121,11 @@ struct hb_user_data_array_t {
 
   hb_set_t<hb_user_data_item_t> items;
 
-  inline bool set (hb_user_data_key_t *key,
-		   void *              data,
-		   hb_destroy_func_t   destroy)
-  {
-    if (!key)
-      return false;
-    if (!data && !destroy) {
-      items.remove (key);
-      return true;
-    }
-    hb_user_data_item_t item = {key, data, destroy};
-    return !!items.insert (item);
-  }
+  HB_INTERNAL bool set (hb_user_data_key_t *key,
+			void *              data,
+			hb_destroy_func_t   destroy);
 
-  inline void *get (hb_user_data_key_t *key) {
-    hb_user_data_item_t *item = items.find (key);
-    return item ? item->data : NULL;
-  }
+  HB_INTERNAL void *get (hb_user_data_key_t *key);
 
   void finish (void) { items.finish (); }
 };
