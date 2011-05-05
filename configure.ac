@@ -21,7 +21,7 @@ AC_PROG_CXX
 
 # Initialize libtool
 LT_PREREQ([2.2])
-LT_INIT([])
+LT_INIT([disable-static])
 
 # Functions and headers
 AC_CHECK_FUNCS(mprotect sysconf getpagesize)
