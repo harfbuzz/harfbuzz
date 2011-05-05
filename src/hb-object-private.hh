@@ -106,20 +106,20 @@ typedef struct {
 
 /* XXX make this thread-safe, somehow! */
 
-struct hb_user_data_t {
-  hb_user_data_key_t *key;
-  void *data;
-  hb_destroy_func_t destroy;
-
-  inline bool operator == (hb_user_data_key_t *other_key) const { return key == other_key; }
-  inline bool operator == (hb_user_data_t &other) const { return key == other.key; }
-
-  void finish (void) { if (destroy) destroy (data); }
-};
-
 struct hb_user_data_array_t {
 
-  hb_set_t<hb_user_data_t> items;
+  struct hb_user_data_item_t {
+    hb_user_data_key_t *key;
+    void *data;
+    hb_destroy_func_t destroy;
+
+    inline bool operator == (hb_user_data_key_t *other_key) const { return key == other_key; }
+    inline bool operator == (hb_user_data_item_t &other) const { return key == other.key; }
+
+    void finish (void) { if (destroy) destroy (data); }
+  };
+
+  hb_set_t<hb_user_data_item_t> items;
 
   inline bool set (hb_user_data_key_t *key,
 		   void *              data,
@@ -131,13 +131,13 @@ struct hb_user_data_array_t {
       items.remove (key);
       return true;
     }
-    hb_user_data_t user_data = {key, data, destroy};
-    return items.insert (user_data);
+    hb_user_data_item_t item = {key, data, destroy};
+    return items.insert (item);
   }
 
   inline void *get (hb_user_data_key_t *key) {
-    hb_user_data_t *user_data = items.get (key);
-    return user_data ? user_data->data : NULL;
+    hb_user_data_item_t *item = items.get (key);
+    return item ? item->data : NULL;
   }
 
   void finish (void) { items.finish (); }
