@@ -106,37 +106,41 @@ typedef struct {
 
 /* XXX make this thread-safe, somehow! */
 
-typedef struct {
+struct hb_user_data_t {
+  hb_user_data_key_t *key;
   void *data;
   hb_destroy_func_t destroy;
 
+  inline bool operator == (hb_user_data_key_t *other_key) const { return key == other_key; }
+  inline bool operator == (hb_user_data_t &other) const { return key == other.key; }
+
   void finish (void) { if (destroy) destroy (data); }
-} hb_user_data_t;
+};
 
 struct hb_user_data_array_t {
 
-  hb_map_t<hb_user_data_key_t *, hb_user_data_t> map;
+  hb_set_t<hb_user_data_t> items;
 
   inline bool set (hb_user_data_key_t *key,
 		   void *              data,
 		   hb_destroy_func_t   destroy)
   {
-    if (!data && !destroy) {
-      map.unset (key);
-      return true;
-    }
     if (!key)
       return false;
-    hb_user_data_t user_data = {data, destroy};
-    return map.set (key, user_data);
+    if (!data && !destroy) {
+      items.remove (key);
+      return true;
+    }
+    hb_user_data_t user_data = {key, data, destroy};
+    return items.insert (user_data);
   }
 
   inline void *get (hb_user_data_key_t *key) {
-    hb_user_data_t *user_data = map.get (key);
+    hb_user_data_t *user_data = items.get (key);
     return user_data ? user_data->data : NULL;
   }
 
-  void finish (void) { map.finish (); }
+  void finish (void) { items.finish (); }
 };
 
 

@@ -235,8 +235,6 @@ struct hb_static_array_t {
   Type *array;
   Type static_array[StaticSize];
 
-  void finish (void) { for (unsigned i = 0; i < len; i++) array[i].finish (); }
-
   inline Type& operator [] (unsigned int i)
   {
     return array[i];
@@ -285,25 +283,17 @@ template <typename Type>
 struct hb_array_t : hb_static_array_t<Type, 2> {};
 
 
-template <typename Key, typename Value>
-struct hb_map_t
+template <typename item_t>
+struct hb_set_t
 {
-  struct item_t {
-    Key key;
-    /* unsigned int hash; */
-    Value value;
-
-    void finish (void) { value.finish (); }
-  };
-
   hb_array_t <item_t> items;
 
   private:
 
   template <typename T>
-  inline item_t *find (T key) {
+  inline item_t *find (T v) {
     for (unsigned int i = 0; i < items.len; i++)
-      if (items[i].key == key)
+      if (items[i] == v)
 	return &items[i];
     return NULL;
   }
@@ -311,25 +301,22 @@ struct hb_map_t
   public:
 
   template <typename T>
-  inline bool set (T     key,
-		   Value &value)
+  inline bool insert (T v)
   {
-    item_t *item;
-    item = find (key);
+    item_t *item = find (v);
     if (item)
       item->finish ();
     else
       item = items.push ();
     if (unlikely (!item)) return false;
-    item->key = key;
-    item->value = value;
+    *item = v;
     return true;
   }
 
-  inline void unset (Key &key)
+  template <typename T>
+  inline void remove (T v)
   {
-    item_t *item;
-    item = find (key);
+    item_t *item = find (v);
     if (!item) return;
 
     item->finish ();
@@ -338,13 +325,16 @@ struct hb_map_t
   }
 
   template <typename T>
-  inline Value *get (T key)
+  inline item_t *get (T v)
   {
-    item_t *item = find (key);
-    return item ? &item->value : NULL;
+    return find (v);
   }
 
-  void finish (void) { items.finish (); }
+  void finish (void) {
+    for (unsigned i = 0; i < items.len; i++)
+      items[i].finish ();
+  }
+
 };
 
 

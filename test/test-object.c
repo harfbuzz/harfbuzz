@@ -269,6 +269,10 @@ test_object (void)
 	g_assert (o->get_user_data (obj, &key[i]) == &data[i]);
       for (i = 100; i < 1000; i++)
 	g_assert (o->set_user_data (obj, &key[i], NULL, NULL));
+      for (i = 2; i < 100; i++)
+	g_assert (o->get_user_data (obj, &key[i]) == &data[i]);
+      for (i = 100; i < 1000; i++)
+	g_assert (!o->get_user_data (obj, &key[i]));
       g_assert_cmpuint (global_data, ==, 900);
 
 
