@@ -235,10 +235,8 @@ struct hb_prealloced_array_t {
   Type *array;
   Type static_array[StaticSize];
 
-  inline Type& operator [] (unsigned int i)
-  {
-    return array[i];
-  }
+  inline Type& operator [] (unsigned int i) { return array[i]; }
+  inline const Type& operator [] (unsigned int i) const { return array[i]; }
 
   inline Type *push (void)
   {

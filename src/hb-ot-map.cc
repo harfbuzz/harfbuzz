@@ -39,23 +39,28 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
 			  unsigned int  feature_index,
 			  hb_mask_t     mask)
 {
-  unsigned int i = MAX_LOOKUPS - lookup_count[table_index];
-  lookup_map_t *lookups = lookup_maps[table_index] + lookup_count[table_index];
+  unsigned int lookup_indices[32];
+  unsigned int offset, len;
 
-  unsigned int *lookup_indices = (unsigned int *) lookups;
+  offset = 0;
+  do {
+    len = ARRAY_LENGTH (lookup_indices);
+    hb_ot_layout_feature_get_lookup_indexes (face,
+					     table_tags[table_index],
+					     feature_index,
+					     offset, &len,
+					     lookup_indices);
 
-  hb_ot_layout_feature_get_lookup_indexes (face,
-					   table_tags[table_index],
-					   feature_index,
-					   0, &i,
-					   lookup_indices);
+    for (unsigned int i = 0; i < len; i++) {
+      lookup_map_t *lookup = lookup_maps[table_index].push ();
+      if (unlikely (!lookup))
+        return;
+      lookup->mask = mask;
+      lookup->index = lookup_indices[i];
+    }
 
-  lookup_count[table_index] += i;
-
-  while (i--) {
-    lookups[i].mask = mask;
-    lookups[i].index = lookup_indices[i];
-  }
+    offset += len;
+  } while (len == ARRAY_LENGTH (lookup_indices));
 }
 
 
@@ -64,7 +69,6 @@ hb_ot_map_t::compile (hb_face_t *face,
 		      const hb_segment_properties_t *props)
 {
  global_mask = 1;
- lookup_count[0] = lookup_count[1] = 0;
 
   if (!feature_infos.len)
     return;
@@ -176,17 +180,16 @@ hb_ot_map_t::compile (hb_face_t *face,
       add_lookups (face, table_index, feature_maps[i].index[table_index], feature_maps[i].mask);
 
     /* Sort lookups and merge duplicates */
-    qsort (lookup_maps[table_index], lookup_count[table_index], sizeof (lookup_maps[table_index][0]), (hb_compare_func_t) lookup_map_t::cmp);
-    if (lookup_count[table_index])
+    lookup_maps[table_index].sort ();
+    if (lookup_maps[table_index].len)
     {
       unsigned int j = 0;
-      for (unsigned int i = 1; i < lookup_count[table_index]; i++)
+      for (unsigned int i = 1; i < lookup_maps[table_index].len; i++)
 	if (lookup_maps[table_index][i].index != lookup_maps[table_index][j].index)
 	  lookup_maps[table_index][++j] = lookup_maps[table_index][i];
 	else
 	  lookup_maps[table_index][j].mask |= lookup_maps[table_index][i].mask;
-      j++;
-      lookup_count[table_index] = j;
+      lookup_maps[table_index].shrink (j + 1);
     }
   }
 }

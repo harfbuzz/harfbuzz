@@ -36,8 +36,6 @@
 HB_BEGIN_DECLS
 
 
-#define MAX_LOOKUPS 1000 /* FIXME */
-
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
 
 struct hb_ot_map_t {
@@ -113,12 +111,12 @@ struct hb_ot_map_t {
   }
 
   inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const {
-    for (unsigned int i = 0; i < lookup_count[0]; i++)
+    for (unsigned int i = 0; i < lookup_maps[0].len; i++)
       hb_ot_layout_substitute_lookup (face, buffer, lookup_maps[0][i].index, lookup_maps[0][i].mask);
   }
 
   inline void position (hb_font_t *font, hb_face_t *face, hb_buffer_t *buffer) const {
-    for (unsigned int i = 0; i < lookup_count[1]; i++)
+    for (unsigned int i = 0; i < lookup_maps[1].len; i++)
       hb_ot_layout_position_lookup (font, buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
   }
 
@@ -126,11 +124,10 @@ struct hb_ot_map_t {
 
   hb_mask_t global_mask;
 
-  hb_prealloced_array_t<feature_info_t,16> feature_infos; /* used before compile() only */
-  hb_prealloced_array_t<feature_map_t, 16> feature_maps;
+  hb_prealloced_array_t<feature_info_t,8> feature_infos; /* used before compile() only */
+  hb_prealloced_array_t<feature_map_t, 8> feature_maps;
 
-  lookup_map_t lookup_maps[2][MAX_LOOKUPS]; /* GSUB/GPOS */
-  unsigned int lookup_count[2];
+  hb_prealloced_array_t<lookup_map_t, 32> lookup_maps[2]; /* GSUB/GPOS */
 };
 
 
