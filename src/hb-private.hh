@@ -324,8 +324,6 @@ struct hb_set_t
 {
   hb_array_t <item_t> items;
 
-  public:
-
   template <typename T>
   inline item_t *insert (T v)
   {
@@ -370,6 +368,7 @@ struct hb_set_t
   void finish (void) {
     for (unsigned i = 0; i < items.len; i++)
       items[i].finish ();
+    items.shrink (0);
   }
 
 };

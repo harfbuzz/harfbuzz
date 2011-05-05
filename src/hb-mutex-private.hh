@@ -110,4 +110,58 @@ struct hb_static_mutex_t : hb_mutex_t
 
 HB_END_DECLS
 
+
+template <typename item_t>
+struct hb_threadsafe_set_t
+{
+  hb_set_t <item_t> set;
+  hb_static_mutex_t mutex;
+
+  template <typename T>
+  inline item_t *insert (T v)
+  {
+    hb_mutex_lock (&mutex);
+    item_t *item = set.insert (v);
+    hb_mutex_unlock (&mutex);
+    return item;
+  }
+
+  template <typename T>
+  inline void remove (T v)
+  {
+    hb_mutex_lock (&mutex);
+    set.remove (v);
+    hb_mutex_unlock (&mutex);
+  }
+
+  template <typename T>
+  inline item_t *find (T v)
+  {
+    hb_mutex_lock (&mutex);
+    item_t *item = set.find (v);
+    hb_mutex_unlock (&mutex);
+    return item;
+  }
+
+  template <typename T>
+  inline item_t *find_or_insert (T v) {
+    hb_mutex_lock (&mutex);
+    item_t *item = set.find_or_insert (v);
+    hb_mutex_unlock (&mutex);
+    return item;
+  }
+
+  void finish (void) {
+    hb_mutex_lock (&mutex);
+    set.finish ();
+    hb_mutex_unlock (&mutex);
+  }
+
+};
+
+
+HB_BEGIN_DECLS
+
+HB_END_DECLS
+
 #endif /* HB_MUTEX_PRIVATE_HH */
