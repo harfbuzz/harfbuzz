@@ -39,7 +39,7 @@ fi
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(GLIB, glib-2.0, have_glib=true, have_glib=false)
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
 fi

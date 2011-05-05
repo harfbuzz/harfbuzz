@@ -123,9 +123,20 @@ hb_test_normalize_path (const char *path)
 }
 
 
+#if GLIB_CHECK_VERSION(2,25,12)
+typedef GTestFunc        hb_test_func_t;
+typedef GTestDataFunc    hb_test_data_func_t;
+typedef GTestFixtureFunc hb_test_fixture_func_t;
+#else
+typedef void (*hb_test_func_t)         (void);
+typedef void (*hb_test_data_func_t)    (gconstpointer user_data);
+typedef void (*hb_test_fixture_func_t) (gpointer      fixture,
+                                        gconstpointer user_data);
+#endif
+
 static inline void
 hb_test_add_func (const char *test_path,
-		  GTestFunc   test_func)
+		  hb_test_func_t   test_func)
 {
   char *normal_path = hb_test_normalize_path (test_path);
   g_test_add_func (normal_path, test_func);
@@ -136,7 +147,7 @@ hb_test_add_func (const char *test_path,
 static inline void
 hb_test_add_func_flavor (const char *test_path,
 			 const char *flavor,
-			 GTestFunc   test_func)
+			 hb_test_func_t   test_func)
 {
   char *path = g_strdup_printf ("%s/%s", test_path, flavor);
   hb_test_add_func (path, test_func);
@@ -145,9 +156,9 @@ hb_test_add_func_flavor (const char *test_path,
 #define hb_test_add_flavor(Flavor, Func) hb_test_add_func (#Func, Flavor, Func)
 
 static inline void
-hb_test_add_data_func (const char    *test_path,
-		       gconstpointer  test_data,
-		       GTestDataFunc  test_func)
+hb_test_add_data_func (const char          *test_path,
+		       gconstpointer        test_data,
+		       hb_test_data_func_t  test_func)
 {
   char *normal_path = hb_test_normalize_path (test_path);
   g_test_add_data_func (normal_path, test_data, test_func);
@@ -156,10 +167,10 @@ hb_test_add_data_func (const char    *test_path,
 #define hb_test_add_data(UserData, Func) hb_test_add_data_func (#Func, UserData, Func)
 
 static inline void
-hb_test_add_data_func_flavor (const char    *test_path,
-			      const char    *flavor,
-			      gconstpointer  test_data,
-			      GTestDataFunc  test_func)
+hb_test_add_data_func_flavor (const char          *test_path,
+			      const char          *flavor,
+			      gconstpointer        test_data,
+			      hb_test_data_func_t  test_func)
 {
   char *path = g_strdup_printf ("%s/%s", test_path, flavor);
   hb_test_add_data_func (path, test_data, test_func);
@@ -169,12 +180,12 @@ hb_test_add_data_func_flavor (const char    *test_path,
 
 
 static inline void
-hb_test_add_vtable (const char       *test_path,
-		    gsize             data_size,
-		    gconstpointer     test_data,
-		    GTestFixtureFunc  data_setup,
-		    GTestFixtureFunc  data_test,
-		    GTestFixtureFunc  data_teardown)
+hb_test_add_vtable (const char             *test_path,
+		    gsize                   data_size,
+		    gconstpointer           test_data,
+		    hb_test_fixture_func_t  data_setup,
+		    hb_test_fixture_func_t  data_test,
+		    hb_test_fixture_func_t  data_teardown)
 {
   char *normal_path = hb_test_normalize_path (test_path);
   g_test_add_vtable (normal_path, data_size, test_data, data_setup, data_test, data_teardown);
@@ -196,13 +207,13 @@ G_STMT_START { \
 } G_STMT_END
 
 static inline void
-hb_test_add_vtable_flavor (const char       *test_path,
-			   const char       *flavor,
-			   gsize             data_size,
-			   gconstpointer     test_data,
-			   GTestFixtureFunc  data_setup,
-			   GTestFixtureFunc  data_test,
-			   GTestFixtureFunc  data_teardown)
+hb_test_add_vtable_flavor (const char             *test_path,
+			   const char             *flavor,
+			   gsize                   data_size,
+			   gconstpointer           test_data,
+			   hb_test_fixture_func_t  data_setup,
+			   hb_test_fixture_func_t  data_test,
+			   hb_test_fixture_func_t  data_teardown)
 {
   char *path = g_strdup_printf ("%s/%s", test_path, flavor);
   hb_test_add_vtable (path, data_size, test_data, data_setup, data_test, data_teardown);
