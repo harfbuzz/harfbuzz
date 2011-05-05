@@ -104,8 +104,6 @@ typedef struct {
 
 /* user_data */
 
-/* XXX make this thread-safe, somehow! */
-
 struct hb_user_data_array_t {
 
   struct hb_user_data_item_t {

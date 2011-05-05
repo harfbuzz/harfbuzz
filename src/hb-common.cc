@@ -264,6 +264,14 @@ hb_script_get_horizontal_direction (hb_script_t script)
 
 /* hb_user_data_array_t */
 
+
+/* NOTE: Currently we use a global lock for user_data access
+ * threadsafety.  If one day we add a mutex to any object, we
+ * should switch to using that insted for these too.
+ */
+
+static hb_static_mutex_t user_data_mutex;
+
 bool
 hb_user_data_array_t::set (hb_user_data_key_t *key,
 			   void *              data,
@@ -271,19 +279,32 @@ hb_user_data_array_t::set (hb_user_data_key_t *key,
 {
   if (!key)
     return false;
+
+  hb_mutex_lock (&user_data_mutex);
+
   if (!data && !destroy) {
     items.remove (key);
     return true;
   }
   hb_user_data_item_t item = {key, data, destroy};
-  return !!items.insert (item);
+  bool ret = !!items.insert (item);
+
+  hb_mutex_unlock (&user_data_mutex);
+
+  return ret;
 }
 
 void *
 hb_user_data_array_t::get (hb_user_data_key_t *key)
 {
+  hb_mutex_lock (&user_data_mutex);
+
   hb_user_data_item_t *item = items.find (key);
-  return item ? item->data : NULL;
+  void *ret = item ? item->data : NULL;
+
+  hb_mutex_unlock (&user_data_mutex);
+
+  return ret;
 }
 
 
