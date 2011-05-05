@@ -7,8 +7,6 @@ General fixes:
 
 - Fix tt kern on/off and GPOS interaction
 
-- Remove fixed-size feature/lookup arrays in hb-ot-map
-
 API issues to fix before 1.0:
 ============================
 
@@ -52,16 +50,9 @@ hb-view enhancements:
 - Add XML and JSON formats
 
 
-Build fixes:
-===========
-
-- GNOME Bug 612402 - (hb-arm) HarfBuzz compilation fix for arm
-
-
 Optimizations:
 =============
 
 - Avoid allocating blob objects internally for for_data() faces?
 
 - Add caching layer to hb-ft
-
