@@ -132,11 +132,11 @@ struct hb_user_data_array_t {
       return true;
     }
     hb_user_data_item_t item = {key, data, destroy};
-    return items.insert (item);
+    return !!items.insert (item);
   }
 
   inline void *get (hb_user_data_key_t *key) {
-    hb_user_data_item_t *item = items.get (key);
+    hb_user_data_item_t *item = items.find (key);
     return item ? item->data : NULL;
   }
 

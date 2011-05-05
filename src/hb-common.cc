@@ -136,40 +136,36 @@ lang_hash (const void *key)
 #endif
 
 
+struct hb_language_item_t {
+
+  hb_language_t lang;
+
+  inline bool operator == (const char *s) const {
+    return lang_equal (lang, s);
+  }
+
+  inline hb_language_item_t & operator = (const char *s) {
+    lang = (hb_language_t) strdup (s);
+    for (unsigned char *p = (unsigned char *) lang; *p; p++)
+      *p = canon_map[*p];
+
+    return *this;
+  }
+
+  void finish (void) { free (lang); }
+};
+
 hb_language_t
 hb_language_from_string (const char *str)
 {
-  static unsigned int num_langs;
-  static unsigned int num_alloced;
-  static hb_language_t *langs;
-  unsigned int i;
-  unsigned char *p;
-
-  /* TODO Use a hash table or something */
+  static hb_set_t<hb_language_item_t> langs;
 
   if (!str || !*str)
     return NULL;
 
-  for (i = 0; i < num_langs; i++)
-    if (lang_equal (str, langs[i]->s))
-      return langs[i];
+  hb_language_item_t *item = langs.find_or_insert (str);
 
-  if (unlikely (num_langs == num_alloced)) {
-    unsigned int new_alloced = 2 * (8 + num_alloced);
-    hb_language_t *new_langs = (hb_language_t *) realloc (langs, new_alloced * sizeof (langs[0]));
-    if (!new_langs)
-      return NULL;
-    num_alloced = new_alloced;
-    langs = new_langs;
-  }
-
-  langs[i] = (hb_language_t) strdup (str);
-  for (p = (unsigned char *) langs[i]->s; *p; p++)
-    *p = canon_map[*p];
-
-  num_langs++;
-
-  return langs[i];
+  return likely (item) ? item->lang : NULL;
 }
 
 const char *

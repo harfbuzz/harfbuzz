@@ -327,16 +327,16 @@ struct hb_set_t
   public:
 
   template <typename T>
-  inline bool insert (T v)
+  inline item_t *insert (T v)
   {
     item_t *item = items.find (v);
     if (item)
       item->finish ();
     else
       item = items.push ();
-    if (unlikely (!item)) return false;
+    if (unlikely (!item)) return NULL;
     *item = v;
-    return true;
+    return item;
   }
 
   template <typename T>
@@ -351,9 +351,20 @@ struct hb_set_t
   }
 
   template <typename T>
-  inline item_t *get (T v)
+  inline item_t *find (T v)
   {
     return items.find (v);
+  }
+
+  template <typename T>
+  inline item_t *find_or_insert (T v) {
+    item_t *item = find (v);
+    if (!item) {
+      item = items.push ();
+      if (likely (item))
+        *item = v;
+    }
+    return item;
   }
 
   void finish (void) {
