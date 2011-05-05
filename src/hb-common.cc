@@ -28,6 +28,8 @@
 
 #include "hb-private.hh"
 
+#include "hb-mutex-private.hh"
+
 HB_BEGIN_DECLS
 
 
@@ -155,11 +157,11 @@ struct hb_language_item_t {
   void finish (void) { free (lang); }
 };
 
+static hb_threadsafe_set_t<hb_language_item_t> langs;
+
 hb_language_t
 hb_language_from_string (const char *str)
 {
-  static hb_set_t<hb_language_item_t> langs;
-
   if (!str || !*str)
     return NULL;
 
