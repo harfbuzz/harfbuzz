@@ -470,20 +470,10 @@ _hb_buffer_set_masks (hb_buffer_t *buffer,
     return;
   }
 
-  /* XXX can't bsearch since .cluster may not be sorted. */
-  /* Binary search to find the start position and go from there. */
-  unsigned int min = 0, max = buffer->len;
-  while (min < max)
-  {
-    unsigned int mid = min + ((max - min) / 2);
-    if (buffer->info[mid].cluster < cluster_start)
-      min = mid + 1;
-    else
-      max = mid;
-  }
   unsigned int count = buffer->len;
-  for (unsigned int i = min; i < count && buffer->info[i].cluster < cluster_end; i++)
-    buffer->info[i].mask = (buffer->info[i].mask & not_mask) | value;
+  for (unsigned int i = 0; i < count; i++)
+    if (cluster_start <= buffer->info[i].cluster && buffer->info[i].cluster < cluster_end)
+      buffer->info[i].mask = (buffer->info[i].mask & not_mask) | value;
 }
 
 
