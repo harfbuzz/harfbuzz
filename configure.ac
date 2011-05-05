@@ -12,6 +12,8 @@ AM_INIT_AUTOMAKE([1.11.1 gnu dist-bzip2 no-dist-gzip -Wall no-define])
 
 AM_SILENT_RULES([yes])
 
+AC_CANONICAL_HOST
+
 # Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -21,9 +23,11 @@ AC_PROG_CXX
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
 
+# Functions and headers
 AC_CHECK_FUNCS(mprotect sysconf getpagesize)
 AC_CHECK_HEADERS(unistd.h sys/mman.h)
 
+# Compiler flags
 if test "x$GCC" = "xyes"; then
 
 	# Make sure we don't link to libstdc++
@@ -45,6 +49,8 @@ if $have_glib; then
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
+dnl ==========================================================================
+
 PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true, have_cairo=false)
 if $have_cairo; then
 	AC_DEFINE(HAVE_CAIRO, 1, [Have cairo graphics library])
@@ -63,6 +69,8 @@ if $have_cairo_ft; then
 fi
 AM_CONDITIONAL(HAVE_CAIRO_FT, $have_cairo_ft)
 
+dnl ==========================================================================
+
 PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
 	AC_CHECK_PROG([have_icu], [icu-config], [true], [false])
 	if $have_icu; then
@@ -76,6 +84,8 @@ if $have_icu; then
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
 fi
 AM_CONDITIONAL(HAVE_ICU, $have_icu)
+
+dnl ==========================================================================
 
 PKG_CHECK_MODULES(FREETYPE, freetype2, have_freetype=true, have_freetype=false)
 if $have_freetype; then
