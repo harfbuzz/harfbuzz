@@ -125,6 +125,8 @@ struct hb_user_data_array_t {
       map.unset (key);
       return true;
     }
+    if (!key)
+      return false;
     hb_user_data_t user_data = {data, destroy};
     return map.set (key, user_data);
   }

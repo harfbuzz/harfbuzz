@@ -300,20 +300,20 @@ struct hb_map_t
 
   private:
 
-  inline item_t *find (Key key) {
-    if (unlikely (!key)) return NULL;
+  template <typename T>
+  inline item_t *find (T key) {
     for (unsigned int i = 0; i < items.len; i++)
-      if (key == items[i].key)
+      if (items[i].key == key)
 	return &items[i];
     return NULL;
   }
 
   public:
 
-  inline bool set (Key   key,
+  template <typename T>
+  inline bool set (T     key,
 		   Value &value)
   {
-    if (unlikely (!key)) return NULL;
     item_t *item;
     item = find (key);
     if (item)
@@ -337,7 +337,8 @@ struct hb_map_t
     items.pop ();
   }
 
-  inline Value *get (Key key)
+  template <typename T>
+  inline Value *get (T key)
   {
     item_t *item = find (key);
     return item ? &item->value : NULL;
