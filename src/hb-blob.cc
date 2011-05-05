@@ -113,7 +113,7 @@ hb_blob_create (const char        *data,
     return &_hb_blob_nil;
   }
 
-  hb_mutex_init (blob->lock);
+  hb_mutex_init (&blob->lock);
   blob->lock_count = 0;
 
   blob->data = data;
@@ -147,13 +147,13 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 
   pdata = hb_blob_lock (parent);
 
-  hb_mutex_lock (parent->lock);
+  hb_mutex_lock (&parent->lock);
   blob = hb_blob_create (pdata + offset,
 			 MIN (length, parent->length - offset),
 			 parent->mode,
 			 hb_blob_reference (parent),
 			 (hb_destroy_func_t) _hb_blob_unlock_and_destroy);
-  hb_mutex_unlock (parent->lock);
+  hb_mutex_unlock (&parent->lock);
 
   return blob;
 }
@@ -176,7 +176,7 @@ hb_blob_destroy (hb_blob_t *blob)
   if (!hb_object_destroy (blob)) return;
 
   _hb_blob_destroy_user_data (blob);
-  hb_mutex_free (blob->lock);
+  hb_mutex_free (&blob->lock);
 
   free (blob);
 }
@@ -210,7 +210,7 @@ hb_blob_lock (hb_blob_t *blob)
   if (hb_object_is_inert (blob))
     return NULL;
 
-  hb_mutex_lock (blob->lock);
+  hb_mutex_lock (&blob->lock);
 
   (void) (HB_DEBUG_BLOB &&
     fprintf (stderr, "%p %s (%d) -> %p\n", blob, HB_FUNC,
@@ -218,7 +218,7 @@ hb_blob_lock (hb_blob_t *blob)
 
   blob->lock_count++;
 
-  hb_mutex_unlock (blob->lock);
+  hb_mutex_unlock (&blob->lock);
 
   return blob->data;
 }
@@ -229,7 +229,7 @@ hb_blob_unlock (hb_blob_t *blob)
   if (hb_object_is_inert (blob))
     return;
 
-  hb_mutex_lock (blob->lock);
+  hb_mutex_lock (&blob->lock);
 
   (void) (HB_DEBUG_BLOB &&
     fprintf (stderr, "%p %s (%d) -> %p\n", blob, HB_FUNC,
@@ -238,7 +238,7 @@ hb_blob_unlock (hb_blob_t *blob)
   assert (blob->lock_count > 0);
   blob->lock_count--;
 
-  hb_mutex_unlock (blob->lock);
+  hb_mutex_unlock (&blob->lock);
 }
 
 hb_bool_t
@@ -249,11 +249,11 @@ hb_blob_is_writable (hb_blob_t *blob)
   if (hb_object_is_inert (blob))
     return FALSE;
 
-  hb_mutex_lock (blob->lock);
+  hb_mutex_lock (&blob->lock);
 
   mode = blob->mode;
 
-  hb_mutex_unlock (blob->lock);
+  hb_mutex_unlock (&blob->lock);
 
   return mode == HB_MEMORY_MODE_WRITABLE;
 }
@@ -331,14 +331,14 @@ hb_blob_try_writable_inplace (hb_blob_t *blob)
   if (hb_object_is_inert (blob))
     return FALSE;
 
-  hb_mutex_lock (blob->lock);
+  hb_mutex_lock (&blob->lock);
 
   if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
     try_writable_inplace_locked (blob);
 
   mode = blob->mode;
 
-  hb_mutex_unlock (blob->lock);
+  hb_mutex_unlock (&blob->lock);
 
   return mode == HB_MEMORY_MODE_WRITABLE;
 }
@@ -351,7 +351,7 @@ hb_blob_try_writable (hb_blob_t *blob)
   if (hb_object_is_inert (blob))
     return FALSE;
 
-  hb_mutex_lock (blob->lock);
+  hb_mutex_lock (&blob->lock);
 
   if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
     try_writable_inplace_locked (blob);
@@ -383,7 +383,7 @@ hb_blob_try_writable (hb_blob_t *blob)
 done:
   mode = blob->mode;
 
-  hb_mutex_unlock (blob->lock);
+  hb_mutex_unlock (&blob->lock);
 
   return mode == HB_MEMORY_MODE_WRITABLE;
 }
