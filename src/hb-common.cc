@@ -28,6 +28,8 @@
 
 #include "hb-private.hh"
 
+#include "hb-version.h"
+
 #include "hb-mutex-private.hh"
 #include "hb-object-private.hh"
 
@@ -305,6 +307,33 @@ hb_user_data_array_t::get (hb_user_data_key_t *key)
   hb_mutex_unlock (&user_data_mutex);
 
   return ret;
+}
+
+
+/* hb_version */
+
+void
+hb_version (unsigned int *major,
+	    unsigned int *minor,
+	    unsigned int *micro)
+{
+  *major = HB_VERSION_MAJOR;
+  *minor = HB_VERSION_MINOR;
+  *micro = HB_VERSION_MICRO;
+}
+
+const char *
+hb_version_string (void)
+{
+  return HB_VERSION_STRING;
+}
+
+hb_bool_t
+hb_version_check (unsigned int major,
+		  unsigned int minor,
+		  unsigned int micro)
+{
+  return HB_VERSION_CHECK (major, minor, micro);
 }
 
 

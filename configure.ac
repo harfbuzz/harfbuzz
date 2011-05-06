@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([harfbuzz],
-        [0.3],
+        [0.5.0],
         [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz],
         [harfbuzz],
         [http://freedesktop.org/wiki/Software/harfbuzz])
@@ -9,10 +9,7 @@ AC_CONFIG_SRCDIR([harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([1.11.1 gnu dist-bzip2 no-dist-gzip -Wall no-define])
-
 AM_SILENT_RULES([yes])
-
-AC_CANONICAL_HOST
 
 # Check for programs
 AC_PROG_CC
@@ -23,11 +20,25 @@ AC_PROG_CXX
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
+# Version
+m4_define(version_triplet,m4_split(AC_PACKAGE_VERSION,[[.]]))
+HB_VERSION_MAJOR=m4_argn(1,version_triplet)
+HB_VERSION_MINOR=m4_argn(2,version_triplet)
+HB_VERSION_MICRO=m4_argn(3,version_triplet)
+HB_VERSION=AC_PACKAGE_VERSION
+
+AC_SUBST(HB_VERSION_MAJOR)
+AC_SUBST(HB_VERSION_MINOR)
+AC_SUBST(HB_VERSION_MICRO)
+AC_SUBST(HB_VERSION)
+
+
 # Functions and headers
 AC_CHECK_FUNCS(mprotect sysconf getpagesize)
 AC_CHECK_HEADERS(unistd.h sys/mman.h)
 
 # Compiler flags
+AC_CANONICAL_HOST
 if test "x$GCC" = "xyes"; then
 
 	# Make sure we don't link to libstdc++
@@ -100,12 +111,13 @@ if $have_freetype; then
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
-dnl ==========================================================================
+dnl ===========================================================================
 
 AC_CONFIG_FILES([
-harfbuzz.pc
 Makefile
+harfbuzz.pc
 src/Makefile
+src/hb-version.h
 test/Makefile
 ])
 

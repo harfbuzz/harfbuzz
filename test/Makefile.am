@@ -6,6 +6,8 @@ if HAVE_GLIB
 AM_CPPFLAGS = -I$(top_srcdir)/src/ $(GLIB_CFLAGS)
 LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
 
+EXTRA_DIST += hb-test.h
+
 check_PROGRAMS = $(TEST_PROGS)
 noinst_PROGRAMS = $(TEST_PROGS)
 

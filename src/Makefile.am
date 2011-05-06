@@ -2,6 +2,9 @@
 
 NULL =
 EXTRA_DIST =
+CLEANFILES =
+DISTCLEANFILES =
+MAINTAINERCLEANFILES =
 
 # The following warning options are useful for debugging: -Wpadded -Wcast-align
 #AM_CXXFLAGS =
@@ -35,6 +38,7 @@ HBHEADERS = \
 	hb-font.h \
 	hb-shape.h \
 	hb-unicode.h \
+	hb-version.h \
 	$(NULL)
 
 HBSOURCES += \
@@ -59,6 +63,10 @@ HBHEADERS += \
 	hb-ot-layout.h \
 	hb-ot-shape.h \
 	hb-ot-tag.h \
+	$(NULL)
+
+MAINTAINERCLEANFILES = \
+	$(srcdir)/hb-version.h \
 	$(NULL)
 
 if HAVE_GLIB
@@ -99,6 +107,7 @@ libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_la_LIBADD = $(HBLIBS)
 pkginclude_HEADERS = $(HBHEADERS)
+nodist_pkginclude_HEADERS = hb-version.h
 
 
 GENERATORS = \
