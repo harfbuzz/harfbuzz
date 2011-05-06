@@ -81,7 +81,7 @@ hb_shape (hb_font_t          *font,
   /* If language is not set, use default language from locale */
   if (buffer->props.language == NULL) {
     /* TODO get_default_for_script? using $LANGUAGE */
-    //buffer->props.language = hb_language_get_default ();
+    buffer->props.language = hb_language_get_default ();
   }
 
   hb_shape_internal (font, buffer, features, num_features);

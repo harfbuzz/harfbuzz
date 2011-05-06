@@ -169,6 +169,11 @@ test_types_language (void)
 
   g_assert (NULL == hb_language_from_string (NULL));
   g_assert (NULL == hb_language_from_string (""));
+
+  /* Not sure how to test this better.  Setting env vars
+   * here doesn't sound like the right approach, and I'm
+   * not sure that it even works. */
+  g_assert (NULL != hb_language_get_default ());
 }
 
 int

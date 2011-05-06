@@ -33,6 +33,8 @@
 #include "hb-mutex-private.hh"
 #include "hb-object-private.hh"
 
+#include <locale.h>
+
 HB_BEGIN_DECLS
 
 
@@ -177,6 +179,25 @@ const char *
 hb_language_to_string (hb_language_t language)
 {
   return language->s;
+}
+
+hb_language_t
+hb_language_get_default (void)
+{
+  static hb_language_t default_language;
+
+  if (!default_language) {
+    /* This block is not quite threadsafe, but is not as bad as
+     * it looks since it's idempotent.  As long as pointer ops
+     * are atomic, we are safe. */
+
+    /* I hear that setlocale() doesn't honor env vars on Windows,
+     * but for now we ignore that. */
+
+    default_language = hb_language_from_string (setlocale (LC_CTYPE, NULL));
+  }
+
+  return default_language;
 }
 
 
