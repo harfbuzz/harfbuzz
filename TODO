@@ -32,7 +32,7 @@ API to add (maybe after 1.0):
 
 - Add query API for aalt-like features?
 
-- SFNT api? get_num_faces?
+- SFNT api? get_num_faces? get_table_tags? (there's something in stash)
 
 - Full matrix instead of scale?
 
