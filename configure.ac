@@ -41,6 +41,9 @@ AC_CHECK_HEADERS(unistd.h sys/mman.h)
 AC_CANONICAL_HOST
 if test "x$GCC" = "xyes"; then
 
+	# Make symbols link locally
+	LDFLAGS="$LDFLAGS -Bsymbolic-functions"
+
 	# Make sure we don't link to libstdc++
 	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
 
