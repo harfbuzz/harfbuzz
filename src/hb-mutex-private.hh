@@ -111,6 +111,10 @@ struct hb_static_mutex_t : hb_mutex_t
 HB_END_DECLS
 
 
+/* XXX If the finish() callbacks of items in the set recursively try to
+ * modify the set, deadlock occurs.  This needs fixing in set proper in
+ * fact. */
+
 template <typename item_t>
 struct hb_threadsafe_set_t
 {

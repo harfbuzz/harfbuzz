@@ -293,6 +293,7 @@ hb_script_get_horizontal_direction (hb_script_t script)
  * should switch to using that insted for these too.
  */
 
+/* XXX  this can result in deadlocks because we call user callbacks */
 static hb_static_mutex_t user_data_mutex;
 
 bool
