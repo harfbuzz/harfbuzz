@@ -324,26 +324,6 @@ try_writable_inplace_locked (hb_blob_t *blob)
 }
 
 hb_bool_t
-hb_blob_try_writable_inplace (hb_blob_t *blob)
-{
-  hb_memory_mode_t mode;
-
-  if (hb_object_is_inert (blob))
-    return FALSE;
-
-  hb_mutex_lock (&blob->lock);
-
-  if (blob->mode == HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE)
-    try_writable_inplace_locked (blob);
-
-  mode = blob->mode;
-
-  hb_mutex_unlock (&blob->lock);
-
-  return mode == HB_MEMORY_MODE_WRITABLE;
-}
-
-hb_bool_t
 hb_blob_try_writable (hb_blob_t *blob)
 {
   hb_memory_mode_t mode;
