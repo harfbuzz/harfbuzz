@@ -74,20 +74,21 @@ hb_blob_get_user_data (hb_blob_t          *blob,
 		       hb_user_data_key_t *key);
 
 
+void
+hb_blob_make_immutable (hb_blob_t *blob);
+
+hb_bool_t
+hb_blob_is_immutable (hb_blob_t *blob);
+
+
 unsigned int
 hb_blob_get_length (hb_blob_t *blob);
 
 const char *
-hb_blob_lock (hb_blob_t *blob);
+hb_blob_get_data (hb_blob_t *blob, unsigned int *length);
 
-void
-hb_blob_unlock (hb_blob_t *blob);
-
-hb_bool_t
-hb_blob_is_writable (hb_blob_t *blob);
-
-hb_bool_t
-hb_blob_try_writable (hb_blob_t *blob);
+char *
+hb_blob_get_data_writable (hb_blob_t *blob, unsigned int *length);
 
 
 HB_END_DECLS

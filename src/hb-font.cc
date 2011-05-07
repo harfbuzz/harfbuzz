@@ -361,8 +361,6 @@ _hb_face_for_data_get_table (hb_tag_t tag, void *user_data)
 
   hb_blob_t *blob = hb_blob_create_sub_blob (data->blob, table.offset, table.length);
 
-  hb_blob_unlock (data->blob);
-
   return blob;
 }
 

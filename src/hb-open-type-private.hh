@@ -186,9 +186,13 @@ struct hb_sanitize_context_t
   inline void init (hb_blob_t *blob)
   {
     this->blob = hb_blob_reference (blob);
-    this->start = hb_blob_lock (blob);
+    this->writable = false;
+  }
+
+  inline void setup (void)
+  {
+    this->start = hb_blob_get_data (blob, NULL);
     this->end = this->start + hb_blob_get_length (blob);
-    this->writable = hb_blob_is_writable (blob);
     this->edit_count = 0;
     this->debug_depth = 0;
 
@@ -204,7 +208,6 @@ struct hb_sanitize_context_t
       fprintf (stderr, "sanitize %p fini [%p..%p] %u edit requests\n",
 	       this->blob, this->start, this->end, this->edit_count));
 
-    hb_blob_unlock (this->blob);
     hb_blob_destroy (this->blob);
     this->blob = NULL;
     this->start = this->end = NULL;
@@ -286,11 +289,13 @@ struct Sanitizer
 
     /* TODO is_sane() stuff */
 
+    c->init (blob);
+
   retry:
     (void) (HB_DEBUG_SANITIZE &&
       fprintf (stderr, "Sanitizer %p start %s\n", blob, HB_FUNC));
 
-    c->init (blob);
+    c->setup ();
 
     if (unlikely (!c->start)) {
       c->finish ();
@@ -320,11 +325,17 @@ struct Sanitizer
     } else {
       unsigned int edit_count = c->edit_count;
       c->finish ();
-      if (edit_count && !hb_blob_is_writable (blob) && hb_blob_try_writable (blob)) {
-        /* ok, we made it writable by relocating.  try again */
-	(void) (HB_DEBUG_SANITIZE &&
-	  fprintf (stderr, "Sanitizer %p retry %s\n", blob, HB_FUNC));
-        goto retry;
+      if (edit_count && !c->writable) {
+        c->start = hb_blob_get_data_writable (blob, NULL);
+	c->end = c->start + hb_blob_get_length (blob);
+
+	if (c->start) {
+	  c->writable = true;
+	  /* ok, we made it writable by relocating.  try again */
+	  (void) (HB_DEBUG_SANITIZE &&
+	    fprintf (stderr, "Sanitizer %p retry %s\n", blob, HB_FUNC));
+	  goto retry;
+	}
       }
     }
 
@@ -339,7 +350,8 @@ struct Sanitizer
   }
 
   static const Type* lock_instance (hb_blob_t *blob) {
-    const char *base = hb_blob_lock (blob);
+    hb_blob_make_immutable (blob);
+    const char *base = hb_blob_get_data (blob, NULL);
     return unlikely (!base) ? &Null(Type) : CastP<Type> (base);
   }
 };

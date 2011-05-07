@@ -16,8 +16,6 @@ API issues to fix before 1.0:
 
 - Add hb-cairo glue
 
-- Fix blob, remove mutex, etc.
-
 - Add sanitize API
 
 - Add glib GBoxedType stuff

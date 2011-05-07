@@ -45,7 +45,7 @@ HB_BEGIN_DECLS
 hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face)
 {
-  /* Remove this object altogether */
+  /* TODO Remove this object altogether */
   hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
 
   layout->gdef_blob = Sanitizer<GDEF>::sanitize (hb_face_reference_table (face, HB_OT_TAG_GDEF));
@@ -66,11 +66,6 @@ _hb_ot_layout_create (hb_face_t *face)
 void
 _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 {
-  hb_blob_unlock (layout->gdef_blob);
-  hb_blob_unlock (layout->gsub_blob);
-  hb_blob_unlock (layout->gpos_blob);
-  hb_blob_unlock (layout->head_blob);
-
   hb_blob_destroy (layout->gdef_blob);
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
