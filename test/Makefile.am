@@ -12,6 +12,7 @@ check_PROGRAMS = $(TEST_PROGS)
 noinst_PROGRAMS = $(TEST_PROGS)
 
 TEST_PROGS += \
+	test-blob \
 	test-buffer \
 	test-common \
 	test-object \

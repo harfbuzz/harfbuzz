@@ -53,35 +53,37 @@ static const char *buffer_names[] = {
 
 typedef struct
 {
-  hb_buffer_t *b;
+  hb_buffer_t *buffer;
 } fixture_t;
 
 static void
 fixture_init (fixture_t *fixture, gconstpointer user_data)
 {
+  hb_buffer_t *b;
   unsigned int i;
 
-  fixture->b = hb_buffer_create (0);
+  b = fixture->buffer = hb_buffer_create (0);
 
-  switch (GPOINTER_TO_INT (user_data)) {
+  switch (GPOINTER_TO_INT (user_data))
+  {
     case BUFFER_EMPTY:
       break;
 
     case BUFFER_ONE_BY_ONE:
       for (i = 1; i < G_N_ELEMENTS (utf32) - 1; i++)
-	hb_buffer_add (fixture->b, utf32[i], 1, i);
+	hb_buffer_add (b, utf32[i], 1, i);
       break;
 
     case BUFFER_UTF32:
-      hb_buffer_add_utf32 (fixture->b, utf32, G_N_ELEMENTS (utf32), 1, G_N_ELEMENTS (utf32) - 2);
+      hb_buffer_add_utf32 (b, utf32, G_N_ELEMENTS (utf32), 1, G_N_ELEMENTS (utf32) - 2);
       break;
 
     case BUFFER_UTF16:
-      hb_buffer_add_utf16 (fixture->b, utf16, G_N_ELEMENTS (utf16), 1, G_N_ELEMENTS (utf16) - 2);
+      hb_buffer_add_utf16 (b, utf16, G_N_ELEMENTS (utf16), 1, G_N_ELEMENTS (utf16) - 2);
       break;
 
     case BUFFER_UTF8:
-      hb_buffer_add_utf8  (fixture->b, utf8,  G_N_ELEMENTS (utf8),  1, G_N_ELEMENTS (utf8)  - 2);
+      hb_buffer_add_utf8  (b, utf8,  G_N_ELEMENTS (utf8),  1, G_N_ELEMENTS (utf8)  - 2);
       break;
 
     default:
@@ -92,64 +94,66 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 static void
 fixture_finish (fixture_t *fixture, gconstpointer user_data)
 {
-  hb_buffer_destroy (fixture->b);
+  hb_buffer_destroy (fixture->buffer);
 }
 
 
 static void
 test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
 {
+  hb_buffer_t *b = fixture->buffer;
   hb_unicode_funcs_t *ufuncs;
 
   /* test default properties */
 
-  g_assert (hb_buffer_get_unicode_funcs (fixture->b) == hb_unicode_funcs_get_default ());
-  g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_INVALID);
-  g_assert (hb_buffer_get_script (fixture->b) == HB_SCRIPT_INVALID);
-  g_assert (hb_buffer_get_language (fixture->b) == NULL);
+  g_assert (hb_buffer_get_unicode_funcs (b) == hb_unicode_funcs_get_default ());
+  g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
+  g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
+  g_assert (hb_buffer_get_language (b) == NULL);
 
 
   /* test property changes are retained */
   ufuncs = hb_unicode_funcs_create (NULL);
-  hb_buffer_set_unicode_funcs (fixture->b, ufuncs);
+  hb_buffer_set_unicode_funcs (b, ufuncs);
   hb_unicode_funcs_destroy (ufuncs);
-  g_assert (hb_buffer_get_unicode_funcs (fixture->b) == ufuncs);
+  g_assert (hb_buffer_get_unicode_funcs (b) == ufuncs);
 
-  hb_buffer_set_direction (fixture->b, HB_DIRECTION_RTL);
-  g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_RTL);
+  hb_buffer_set_direction (b, HB_DIRECTION_RTL);
+  g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_RTL);
 
-  hb_buffer_set_script (fixture->b, HB_SCRIPT_ARABIC);
-  g_assert (hb_buffer_get_script (fixture->b) == HB_SCRIPT_ARABIC);
+  hb_buffer_set_script (b, HB_SCRIPT_ARABIC);
+  g_assert (hb_buffer_get_script (b) == HB_SCRIPT_ARABIC);
 
-  hb_buffer_set_language (fixture->b, hb_language_from_string ("fa"));
-  g_assert (hb_buffer_get_language (fixture->b) == hb_language_from_string ("Fa"));
+  hb_buffer_set_language (b, hb_language_from_string ("fa"));
+  g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa"));
 
 
   /* test reset clears properties */
 
-  hb_buffer_reset (fixture->b);
+  hb_buffer_reset (b);
 
-  g_assert (hb_buffer_get_unicode_funcs (fixture->b) == hb_unicode_funcs_get_default ());
-  g_assert (hb_buffer_get_direction (fixture->b) == HB_DIRECTION_INVALID);
-  g_assert (hb_buffer_get_script (fixture->b) == HB_SCRIPT_INVALID);
-  g_assert (hb_buffer_get_language (fixture->b) == NULL);
+  g_assert (hb_buffer_get_unicode_funcs (b) == hb_unicode_funcs_get_default ());
+  g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
+  g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
+  g_assert (hb_buffer_get_language (b) == NULL);
 }
 
 static void
 test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
 {
+  hb_buffer_t *b = fixture->buffer;
   unsigned int i, len, len2;
   buffer_type_t buffer_type = GPOINTER_TO_INT (user_data);
   hb_glyph_info_t *glyphs;
 
   if (buffer_type == BUFFER_EMPTY) {
-    g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+    g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
     return;
   }
 
-  len = hb_buffer_get_length (fixture->b);
-  glyphs = hb_buffer_get_glyph_infos (fixture->b, NULL); /* test NULL */
-  glyphs = hb_buffer_get_glyph_infos (fixture->b, &len2);
+  len = hb_buffer_get_length (b);
+  glyphs = hb_buffer_get_glyph_infos (b, NULL); /* test NULL */
+  glyphs = hb_buffer_get_glyph_infos (b, &len2);
   g_assert_cmpint (len, ==, len2);
   g_assert_cmpint (len, ==, 5);
 
@@ -174,22 +178,22 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
 
   /* reverse, test, and reverse back */
 
-  hb_buffer_reverse (fixture->b);
+  hb_buffer_reverse (b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[len-i]);
 
-  hb_buffer_reverse (fixture->b);
+  hb_buffer_reverse (b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
 
   /* reverse_clusters works same as reverse for now since each codepoint is
    * in its own cluster */
 
-  hb_buffer_reverse_clusters (fixture->b);
+  hb_buffer_reverse_clusters (b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[len-i]);
 
-  hb_buffer_reverse_clusters (fixture->b);
+  hb_buffer_reverse_clusters (b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
 
@@ -198,18 +202,18 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
 
   /* reverse, test, and reverse back */
 
-  hb_buffer_reverse (fixture->b);
+  hb_buffer_reverse (b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[len-i]);
 
-  hb_buffer_reverse (fixture->b);
+  hb_buffer_reverse (b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
 
   /* reverse_clusters twice still should return the original string,
    * but when applied once, the 1-2 cluster should be retained. */
 
-  hb_buffer_reverse_clusters (fixture->b);
+  hb_buffer_reverse_clusters (b);
   for (i = 0; i < len; i++) {
     unsigned int j = len-1-i;
     if (j == 1)
@@ -219,7 +223,7 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+j]);
   }
 
-  hb_buffer_reverse_clusters (fixture->b);
+  hb_buffer_reverse_clusters (b);
   for (i = 0; i < len; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
 
@@ -227,40 +231,41 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
   /* test setting length */
 
   /* enlarge */
-  g_assert (hb_buffer_set_length (fixture->b, 10));
-  glyphs = hb_buffer_get_glyph_infos (fixture->b, NULL);
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 10);
+  g_assert (hb_buffer_set_length (b, 10));
+  glyphs = hb_buffer_get_glyph_infos (b, NULL);
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 10);
   for (i = 0; i < 5; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
   for (i = 5; i < 10; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, 0);
   /* shrink */
-  g_assert (hb_buffer_set_length (fixture->b, 3));
-  glyphs = hb_buffer_get_glyph_infos (fixture->b, NULL);
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 3);
+  g_assert (hb_buffer_set_length (b, 3));
+  glyphs = hb_buffer_get_glyph_infos (b, NULL);
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 3);
   for (i = 0; i < 3; i++)
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
 
 
-  g_assert (hb_buffer_allocation_successful (fixture->b));
+  g_assert (hb_buffer_allocation_successful (b));
 
 
   /* test reset clears content */
 
-  hb_buffer_reset (fixture->b);
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+  hb_buffer_reset (b);
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
 }
 
 static void
 test_buffer_positions (fixture_t *fixture, gconstpointer user_data)
 {
+  hb_buffer_t *b = fixture->buffer;
   unsigned int i, len, len2;
   hb_glyph_position_t *positions;
 
   /* Without shaping, positions should all be zero */
-  len = hb_buffer_get_length (fixture->b);
-  positions = hb_buffer_get_glyph_positions (fixture->b, NULL); /* test NULL */
-  positions = hb_buffer_get_glyph_positions (fixture->b, &len2);
+  len = hb_buffer_get_length (b);
+  positions = hb_buffer_get_glyph_positions (b, NULL); /* test NULL */
+  positions = hb_buffer_get_glyph_positions (b, &len2);
   g_assert_cmpint (len, ==, len2);
   for (i = 0; i < len; i++) {
     g_assert_cmpint (0, ==, positions[i].x_advance);
@@ -271,49 +276,51 @@ test_buffer_positions (fixture_t *fixture, gconstpointer user_data)
   }
 
   /* test reset clears content */
-  hb_buffer_reset (fixture->b);
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+  hb_buffer_reset (b);
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
 }
 
 static void
 test_buffer_allocation (fixture_t *fixture, gconstpointer user_data)
 {
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
+  hb_buffer_t *b = fixture->buffer;
 
-  g_assert (hb_buffer_pre_allocate (fixture->b, 100));
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
-  g_assert (hb_buffer_allocation_successful (fixture->b));
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
+
+  g_assert (hb_buffer_pre_allocate (b, 100));
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
+  g_assert (hb_buffer_allocation_successful (b));
 
   /* lets try a huge allocation, make sure it fails */
-  g_assert (!hb_buffer_pre_allocate (fixture->b, (unsigned int) -1));
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
-  g_assert (!hb_buffer_allocation_successful (fixture->b));
+  g_assert (!hb_buffer_pre_allocate (b, (unsigned int) -1));
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
+  g_assert (!hb_buffer_allocation_successful (b));
 
   /* small one again */
-  g_assert (hb_buffer_pre_allocate (fixture->b, 50));
-  g_assert_cmpint (hb_buffer_get_length (fixture->b), ==, 0);
-  g_assert (!hb_buffer_allocation_successful (fixture->b));
+  g_assert (hb_buffer_pre_allocate (b, 50));
+  g_assert_cmpint (hb_buffer_get_length (b), ==, 0);
+  g_assert (!hb_buffer_allocation_successful (b));
 
-  hb_buffer_reset (fixture->b);
-  g_assert (hb_buffer_allocation_successful (fixture->b));
+  hb_buffer_reset (b);
+  g_assert (hb_buffer_allocation_successful (b));
 
   /* all allocation and size  */
-  g_assert (!hb_buffer_pre_allocate (fixture->b, ((unsigned int) -1) / 20 + 1));
-  g_assert (!hb_buffer_allocation_successful (fixture->b));
+  g_assert (!hb_buffer_pre_allocate (b, ((unsigned int) -1) / 20 + 1));
+  g_assert (!hb_buffer_allocation_successful (b));
 
-  hb_buffer_reset (fixture->b);
-  g_assert (hb_buffer_allocation_successful (fixture->b));
+  hb_buffer_reset (b);
+  g_assert (hb_buffer_allocation_successful (b));
 
   /* technically, this one can actually pass on 64bit machines, but
    * I'm doubtful that any malloc allows 4GB allocations at a time.
    * But let's only enable it on a 32-bit machine. */
   if (sizeof (long) == 4) {
-    g_assert (!hb_buffer_pre_allocate (fixture->b, ((unsigned int) -1) / 20 - 1));
-    g_assert (!hb_buffer_allocation_successful (fixture->b));
+    g_assert (!hb_buffer_pre_allocate (b, ((unsigned int) -1) / 20 - 1));
+    g_assert (!hb_buffer_allocation_successful (b));
   }
 
-  hb_buffer_reset (fixture->b);
-  g_assert (hb_buffer_allocation_successful (fixture->b));
+  hb_buffer_reset (b);
+  g_assert (hb_buffer_allocation_successful (b));
 }
 
 
