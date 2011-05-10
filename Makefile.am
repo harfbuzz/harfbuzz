@@ -1,10 +1,14 @@
+NULL =
+
 SUBDIRS = src test
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
 
 EXTRA_DIST = \
-	autogen.sh
+	autogen.sh \
+	harfbuzz.doap \
+	$(NULL)
 
 MAINTAINERCLEANFILES = \
 	$(srcdir)/INSTALL \
