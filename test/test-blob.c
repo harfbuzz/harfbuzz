@@ -254,6 +254,22 @@ test_blob (fixture_t *fixture, gconstpointer user_data)
     g_assert ('\0' == data[i]);
 }
 
+static void
+test_blob_subblob (fixture_t *fixture, gconstpointer user_data)
+{
+  hb_blob_t *b = fixture->blob;
+
+  fixture->len -= 2;
+  fixture->data++;
+  fixture->blob = hb_blob_create_sub_blob (b, 1, fixture->len);
+  hb_blob_destroy (b);
+
+  test_blob (fixture, user_data);
+
+  fixture->data--;
+  fixture->len += 2;
+}
+
 
 int
 main (int argc, char **argv)
@@ -270,6 +286,7 @@ main (int argc, char **argv)
     const char *blob_name = blob_names[i];
 
     hb_test_add_fixture_flavor (fixture, blob_type, blob_name, test_blob);
+    hb_test_add_fixture_flavor (fixture, blob_type, blob_name, test_blob_subblob);
   }
 
   /*
