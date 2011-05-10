@@ -561,28 +561,6 @@ hb_font_set_funcs (hb_font_t         *font,
   font->destroy = destroy;
 }
 
-void
-hb_font_unset_funcs (hb_font_t          *font,
-		     hb_font_funcs_t   **klass,
-		     void              **user_data,
-		     hb_destroy_func_t  *destroy)
-{
-  if (font->immutable)
-    return;
-
-  /* None of the input arguments can be NULL. */
-
-  *klass = font->klass;
-  *user_data = font->user_data;
-  *destroy = font->destroy;
-
-  if (hb_object_is_inert (font))
-    return;
-
-  font->klass = NULL;
-  font->user_data = NULL;
-  font->destroy = NULL;
-}
 
 void
 hb_font_set_scale (hb_font_t *font,

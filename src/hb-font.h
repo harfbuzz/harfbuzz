@@ -242,22 +242,6 @@ hb_font_set_funcs (hb_font_t         *font,
 		   void              *user_data,
 		   hb_destroy_func_t  destroy);
 
-/* Returns what was set and unsets it, but doesn't destroy(user_data).
- * This is useful for wrapping / chaining font_funcs_t's.
- *
- * The client is responsible for:
- *
- *   - Take ownership of the reference on the returned klass,
- *
- *   - Calling "destroy(user_data)" exactly once if returned destroy func
- *     is not NULL and the returned info is not needed anymore.
- */
-void
-hb_font_unset_funcs (hb_font_t          *font,
-		     hb_font_funcs_t   **klass,
-		     void              **user_data,
-		     hb_destroy_func_t  *destroy);
-
 
 /*
  * We should add support for full matrices.
