@@ -202,6 +202,21 @@ static void free_up1 (void *p)
   data->freed = TRUE;
 }
 
+
+typedef struct {
+  const object_t *klass;
+  void *object;
+  hb_user_data_key_t key;
+} deadlock_test_t;
+
+static void free_deadlock_test (void *p)
+{
+  deadlock_test_t *t = (deadlock_test_t *) p;
+
+  g_assert (NULL == t->klass->get_user_data (t->object, &t->key));
+}
+
+
 static void
 test_object (void)
 {
@@ -215,6 +230,7 @@ test_object (void)
     {
       unsigned int i;
       data_t data[2] = {{MAGIC0, FALSE}, {MAGIC1, FALSE}};
+      deadlock_test_t deadlock_test;
 
       g_test_message ("Testing object %s", o->name);
 
@@ -275,6 +291,12 @@ test_object (void)
 	g_assert (!o->get_user_data (obj, &key[i]));
       g_assert_cmpuint (global_data, ==, 900);
 
+      /* Test set_user_data where the destroy() func calls user_data functions.
+       * Make sure it doesn't deadlock or corrupt memory. */
+      deadlock_test.klass = o;
+      deadlock_test.object = obj;
+      g_assert (o->set_user_data (obj, &deadlock_test.key, &deadlock_test, free_deadlock_test));
+      g_assert (o->set_user_data (obj, &deadlock_test.key, NULL, NULL));
 
       g_assert (!data[1].freed);
       o->destroy (obj);
