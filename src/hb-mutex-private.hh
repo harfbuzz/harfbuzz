@@ -45,11 +45,6 @@ HB_BEGIN_DECLS
 
 #include <glib.h>
 
-typedef volatile int hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
-#define hb_atomic_int_get(AI)			g_atomic_int_get (&(AI))
-#define hb_atomic_int_set(AI, V)		g_atomic_int_set (&(AI), V)
-
 typedef GStaticMutex hb_mutex_t;
 #define HB_MUTEX_INIT			G_STATIC_MUTEX_INIT
 #define hb_mutex_init(M)		g_static_mutex_init (M)
@@ -60,13 +55,6 @@ typedef GStaticMutex hb_mutex_t;
 
 
 #elif defined(_MSC_VER)
-
-#include <intrin.h>
-
-typedef long hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
-#define hb_atomic_int_get(AI)			(_ReadBarrier (), (AI))
-#define hb_atomic_int_set(AI, V)		((void) _InterlockedExchange (&(AI), (V)))
 
 #include <Windows.h>
 
@@ -82,11 +70,6 @@ typedef CRITICAL_SECTION hb_mutex_t;
 #else
 
 #warning "Could not find any system to define platform macros, library will NOT be thread-safe"
-
-typedef volatile int hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
-#define hb_atomic_int_get(AI)			(AI)
-#define hb_atomic_int_set(AI, V)		((void) ((AI) = (V)))
 
 typedef volatile int hb_mutex_t;
 #define HB_MUTEX_INIT				0
