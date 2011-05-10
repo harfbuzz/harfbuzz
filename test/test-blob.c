@@ -157,7 +157,8 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
       break;
 
     case HB_MEMORY_MODE_WRITABLE:
-      data = strndup (test_data, sizeof (test_data));
+      data = malloc (sizeof (test_data));
+      memcpy ((char *) data, test_data, sizeof (test_data));
       len = sizeof (test_data);
       free_func = (hb_destroy_func_t) free_up_free;
       break;
