@@ -84,8 +84,8 @@ struct _hb_font_t {
 
   hb_face_t *face;
 
-  unsigned int x_scale;
-  unsigned int y_scale;
+  int x_scale;
+  int y_scale;
 
   unsigned int x_ppem;
   unsigned int y_ppem;
