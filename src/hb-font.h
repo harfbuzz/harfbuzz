@@ -225,6 +225,12 @@ void *
 hb_font_get_user_data (hb_font_t          *font,
 		       hb_user_data_key_t *key);
 
+void
+hb_font_make_immutable (hb_font_t *font);
+
+hb_bool_t
+hb_font_is_immutable (hb_font_t *font);
+
 
 hb_face_t *
 hb_font_get_face (hb_font_t *font);

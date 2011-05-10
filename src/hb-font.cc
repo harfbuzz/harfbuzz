@@ -448,6 +448,8 @@ hb_face_get_upem (hb_face_t *face)
 static hb_font_t _hb_font_nil = {
   HB_OBJECT_HEADER_STATIC,
 
+  TRUE,  /* immutable */
+
   &_hb_face_nil,
 
   0, /* x_scale */
@@ -514,6 +516,21 @@ hb_font_get_user_data (hb_font_t          *font,
   return hb_object_get_user_data (font, key);
 }
 
+void
+hb_font_make_immutable (hb_font_t *font)
+{
+  if (hb_object_is_inert (font))
+    return;
+
+  font->immutable = true;
+}
+
+hb_bool_t
+hb_font_is_immutable (hb_font_t *font)
+{
+  return font->immutable;
+}
+
 
 hb_face_t *
 hb_font_get_face (hb_font_t *font)
@@ -528,7 +545,7 @@ hb_font_set_funcs (hb_font_t         *font,
 		   void              *user_data,
 		   hb_destroy_func_t  destroy)
 {
-  if (hb_object_is_inert (font))
+  if (font->immutable)
     return;
 
   if (font->destroy)
@@ -550,6 +567,9 @@ hb_font_unset_funcs (hb_font_t          *font,
 		     void              **user_data,
 		     hb_destroy_func_t  *destroy)
 {
+  if (font->immutable)
+    return;
+
   /* None of the input arguments can be NULL. */
 
   *klass = font->klass;
@@ -569,7 +589,7 @@ hb_font_set_scale (hb_font_t *font,
 		   int x_scale,
 		   int y_scale)
 {
-  if (hb_object_is_inert (font))
+  if (font->immutable)
     return;
 
   font->x_scale = x_scale;
@@ -590,7 +610,7 @@ hb_font_set_ppem (hb_font_t *font,
 		  unsigned int x_ppem,
 		  unsigned int y_ppem)
 {
-  if (hb_object_is_inert (font))
+  if (font->immutable)
     return;
 
   font->x_ppem = x_ppem;

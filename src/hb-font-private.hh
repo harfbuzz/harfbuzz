@@ -80,6 +80,8 @@ struct _hb_face_t {
 struct _hb_font_t {
   hb_object_header_t header;
 
+  hb_bool_t immutable;
+
   hb_face_t *face;
 
   unsigned int x_scale;
