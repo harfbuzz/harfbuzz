@@ -3,8 +3,8 @@ include Makefile.decl
 NULL =
 
 if HAVE_GLIB
-AM_CPPFLAGS = -I$(top_srcdir)/src/ $(GLIB_CFLAGS)
-LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS)
+AM_CPPFLAGS = -I$(top_srcdir)/src/ $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
+LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS) $(GTHREAD_LIBS)
 
 EXTRA_DIST += hb-test.h
 

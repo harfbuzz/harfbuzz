@@ -54,6 +54,7 @@ HB_BEGIN_DECLS
 static inline void
 hb_test_init (int *argc, char ***argv)
 {
+  g_thread_init (NULL);
   g_test_init (argc, argv, NULL);
 }
 
