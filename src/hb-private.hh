@@ -319,56 +319,131 @@ template <typename Type>
 struct hb_array_t : hb_prealloced_array_t<Type, 2> {};
 
 
-template <typename item_t>
-struct hb_set_t
+template <typename item_t, typename lock_t>
+struct hb_lockable_set_t
 {
   hb_array_t <item_t> items;
 
   template <typename T>
-  inline item_t *insert (T v)
+  inline item_t *replace_or_insert (T v, lock_t &l)
   {
+    l.lock ();
     item_t *item = items.find (v);
-    if (item)
-      item->finish ();
-    else
+    if (item) {
+      item_t old = *item;
+      *item = v;
+      l.unlock ();
+      old.finish ();
+    } else {
       item = items.push ();
-    if (unlikely (!item)) return NULL;
-    *item = v;
+      if (likely (item))
+	*item = v;
+      l.unlock ();
+    }
     return item;
   }
 
   template <typename T>
-  inline void remove (T v)
+  inline void remove (T v, lock_t &l)
   {
+    l.lock ();
     item_t *item = items.find (v);
-    if (!item) return;
-
-    item->finish ();
-    *item = items[items.len - 1];
-    items.pop ();
+    if (item) {
+      item_t old = *item;
+      *item = items[items.len - 1];
+      items.pop ();
+      l.unlock ();
+      old.finish ();
+    } else {
+      l.unlock ();
+    }
   }
 
   template <typename T>
-  inline item_t *find (T v)
+  inline bool find (T v, item_t *i, lock_t &l)
   {
-    return items.find (v);
+    l.lock ();
+    item_t *item = items.find (v);
+    if (item)
+      *i = *item;
+    l.unlock ();
+    return !!item;
   }
 
   template <typename T>
-  inline item_t *find_or_insert (T v) {
-    item_t *item = find (v);
+  inline item_t *find_or_insert (T v, lock_t &l)
+  {
+    l.lock ();
+    item_t *item = items.find (v);
     if (!item) {
       item = items.push ();
       if (likely (item))
         *item = v;
     }
+    l.unlock ();
     return item;
   }
 
-  void finish (void) {
-    for (unsigned i = 0; i < items.len; i++)
-      items[i].finish ();
+  inline void finish (lock_t &l)
+  {
+    l.lock ();
+    while (items.len) {
+      item_t old = items[items.len - 1];
+	items.pop ();
+	l.unlock ();
+	old.finish ();
+	l.lock ();
+    }
     items.shrink (0);
+    l.unlock ();
+  }
+
+};
+
+template <typename item_t>
+struct hb_set_t
+{
+  struct lock_t {
+    int unused;
+
+    inline void lock (void) {}
+    inline void unlock (void) {}
+  };
+
+  hb_lockable_set_t <item_t, lock_t> set;
+
+  template <typename T>
+  inline item_t *replace_or_insert (T v)
+  {
+    lock_t lock;
+    return set.replace_or_insert (v, lock);
+  }
+
+  template <typename T>
+  inline void remove (T v)
+  {
+    lock_t lock;
+    set.remove (v, lock);
+  }
+
+  template <typename T>
+  inline bool find (T v, item_t *i)
+  {
+    lock_t lock;
+    return set.find (v, i, lock);
+  }
+
+  template <typename T>
+  inline item_t *find_or_insert (T v)
+  {
+    lock_t lock;
+    return set.find_or_insert (v, lock);
+  }
+
+  void finish (void)
+  {
+    lock_t lock;
+    set.finish (lock);
   }
 
 };

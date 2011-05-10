@@ -162,7 +162,7 @@ struct hb_language_item_t {
   void finish (void) { free (lang); }
 };
 
-static hb_threadsafe_set_t<hb_language_item_t> langs;
+static hb_static_threadsafe_set_t<hb_language_item_t> langs;
 
 hb_language_t
 hb_language_from_string (const char *str)
@@ -293,8 +293,7 @@ hb_script_get_horizontal_direction (hb_script_t script)
  * should switch to using that insted for these too.
  */
 
-/* XXX  this can result in deadlocks because we call user callbacks */
-static hb_static_mutex_t user_data_mutex;
+static hb_static_mutex_t user_data_lock;
 
 bool
 hb_user_data_array_t::set (hb_user_data_key_t *key,
@@ -304,16 +303,12 @@ hb_user_data_array_t::set (hb_user_data_key_t *key,
   if (!key)
     return false;
 
-  hb_mutex_lock (&user_data_mutex);
-
   if (!data && !destroy) {
-    items.remove (key);
+    items.remove (key, user_data_lock);
     return true;
   }
   hb_user_data_item_t item = {key, data, destroy};
-  bool ret = !!items.insert (item);
-
-  hb_mutex_unlock (&user_data_mutex);
+  bool ret = !!items.replace_or_insert (item, user_data_lock);
 
   return ret;
 }
@@ -321,14 +316,15 @@ hb_user_data_array_t::set (hb_user_data_key_t *key,
 void *
 hb_user_data_array_t::get (hb_user_data_key_t *key)
 {
-  hb_mutex_lock (&user_data_mutex);
+  hb_user_data_item_t item = {NULL };
 
-  hb_user_data_item_t *item = items.find (key);
-  void *ret = item ? item->data : NULL;
+  return items.find (key, &item, user_data_lock) ? item.data : NULL;
+}
 
-  hb_mutex_unlock (&user_data_mutex);
-
-  return ret;
+void
+hb_user_data_array_t::finish (void)
+{
+  items.finish (user_data_lock);
 }
 
 

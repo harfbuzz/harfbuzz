@@ -34,6 +34,8 @@
 
 #include "hb-private.hh"
 
+#include "hb-mutex-private.hh"
+
 HB_BEGIN_DECLS
 
 
@@ -117,7 +119,7 @@ struct hb_user_data_array_t {
     void finish (void) { if (destroy) destroy (data); }
   };
 
-  hb_set_t<hb_user_data_item_t> items;
+  hb_lockable_set_t<hb_user_data_item_t, hb_static_mutex_t> items;
 
   HB_INTERNAL bool set (hb_user_data_key_t *key,
 			void *              data,
@@ -125,7 +127,7 @@ struct hb_user_data_array_t {
 
   HB_INTERNAL void *get (hb_user_data_key_t *key);
 
-  void finish (void) { items.finish (); }
+  HB_INTERNAL void finish (void);
 };
 
 

@@ -105,62 +105,49 @@ struct hb_static_mutex_t : hb_mutex_t
   hb_static_mutex_t (void) {
     hb_mutex_init (this);
   }
+
+  inline void lock (void) { hb_mutex_lock (this); }
+  inline void unlock (void) { hb_mutex_unlock (this); }
 };
 
 
 HB_END_DECLS
 
 
-/* XXX If the finish() callbacks of items in the set recursively try to
- * modify the set, deadlock occurs.  This needs fixing in set proper in
- * fact. */
-
 template <typename item_t>
-struct hb_threadsafe_set_t
+struct hb_static_threadsafe_set_t
 {
-  hb_set_t <item_t> set;
-  hb_static_mutex_t mutex;
+  hb_lockable_set_t <item_t, hb_static_mutex_t> set;
+  hb_static_mutex_t lock;
 
   template <typename T>
-  inline item_t *insert (T v)
+  inline item_t *replace_or_insert (T v)
   {
-    hb_mutex_lock (&mutex);
-    item_t *item = set.insert (v);
-    hb_mutex_unlock (&mutex);
-    return item;
+    return set.replace_or_insert (v, lock);
   }
 
   template <typename T>
   inline void remove (T v)
   {
-    hb_mutex_lock (&mutex);
-    set.remove (v);
-    hb_mutex_unlock (&mutex);
+    set.remove (v, lock);
   }
 
   template <typename T>
-  inline item_t *find (T v)
+  inline bool find (T v, item_t *i)
   {
-    hb_mutex_lock (&mutex);
-    item_t *item = set.find (v);
-    hb_mutex_unlock (&mutex);
-    return item;
+    return set.find (v, i, lock);
   }
 
   template <typename T>
-  inline item_t *find_or_insert (T v) {
-    hb_mutex_lock (&mutex);
-    item_t *item = set.find_or_insert (v);
-    hb_mutex_unlock (&mutex);
-    return item;
+  inline item_t *find_or_insert (T v)
+  {
+    return set.find_or_insert (v, lock);
   }
 
-  void finish (void) {
-    hb_mutex_lock (&mutex);
-    set.finish ();
-    hb_mutex_unlock (&mutex);
+  void finish (void)
+  {
+    set.finish (lock);
   }
-
 };
 
 
