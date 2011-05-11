@@ -57,6 +57,7 @@ main (int argc, char **argv)
     unsigned int len;
     hb_destroy_func_t destroy;
     void *user_data;
+    hb_memory_mode_t mm;
 
 #ifdef HAVE_GLIB
     GMappedFile *mf = g_mapped_file_new (argv[1], FALSE, NULL);
@@ -64,6 +65,7 @@ main (int argc, char **argv)
     len = g_mapped_file_get_length (mf);
     destroy = (hb_destroy_func_t) g_mapped_file_unref;
     user_data = (void *) mf;
+    mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
 #else
     FILE *f = fopen (argv[1], "rb");
     fseek (f, 0, SEEK_END);
@@ -75,12 +77,13 @@ main (int argc, char **argv)
     destroy = free;
     user_data = (void *) font_data;
     fclose (f);
+    mm = HB_MEMORY_MODE_WRITABLE;
 #endif
 
-    blob = hb_blob_create (font_data, len,
-			   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE,
-			   user_data, destroy);
+    blob = hb_blob_create (font_data, len, mm, user_data, destroy);
   }
+
+  printf ("Opened font file %s: %u bytes long\n", argv[1], hb_blob_get_length (blob));
 
   /* Create the face */
   face = hb_face_create_for_data (blob, 0 /* first face */);
