@@ -66,7 +66,7 @@ HBHEADERS += \
 	hb-ot-tag.h \
 	$(NULL)
 
-MAINTAINERCLEANFILES = \
+MAINTAINERCLEANFILES += \
 	$(srcdir)/hb-version.h \
 	$(NULL)
 
