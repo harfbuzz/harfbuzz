@@ -34,6 +34,7 @@
 #include "hb-ot-layout-gsub-private.hh"
 #include "hb-ot-layout-gpos-private.hh"
 #include "hb-ot-head-private.hh"
+#include "hb-ot-maxp-private.hh"
 
 
 #include <stdlib.h>

@@ -25,6 +25,7 @@ HBSOURCES =  \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-ot-head-private.hh \
+	hb-ot-maxp-private.hh \
 	hb-private.hh \
 	hb-shape.cc \
 	hb-unicode-private.hh \
