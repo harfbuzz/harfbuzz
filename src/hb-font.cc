@@ -83,7 +83,7 @@ hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
 static hb_font_funcs_t _hb_font_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 
-  TRUE,  /* immutable */
+  TRUE, /* immutable */
   {
     hb_font_get_glyph_nil,
     hb_font_get_glyph_advance_nil,
@@ -448,8 +448,9 @@ hb_face_get_upem (hb_face_t *face)
 static hb_font_t _hb_font_nil = {
   HB_OBJECT_HEADER_STATIC,
 
-  TRUE,  /* immutable */
+  TRUE, /* immutable */
 
+  NULL, /* parent */
   &_hb_face_nil,
 
   0, /* x_scale */
@@ -458,7 +459,7 @@ static hb_font_t _hb_font_nil = {
   0, /* x_ppem */
   0, /* y_ppem */
 
-  NULL, /* klass */
+  &_hb_font_funcs_nil, /* klass */
   NULL, /* user_data */
   NULL  /* destroy */
 };
@@ -482,6 +483,34 @@ hb_font_create (hb_face_t *face)
 }
 
 hb_font_t *
+hb_font_create_sub_font (hb_font_t *parent)
+{
+  if (unlikely (!parent))
+    return &_hb_font_nil;
+
+  hb_font_t *font = hb_font_create (parent->face);
+
+  if (unlikely (hb_object_is_inert (font)))
+    return font;
+
+  hb_font_make_immutable (parent);
+  font->parent = hb_font_reference (parent);
+
+  font->x_scale = parent->x_scale;
+  font->y_scale = parent->y_scale;
+  font->x_ppem = parent->x_ppem;
+  font->y_ppem = parent->y_ppem;
+
+  /* We can safely copy user_data from parent since we hold a reference
+   * onto it and it's immutable.  We should not copy the destroy notifiers
+   * though. */
+  font->klass = hb_font_funcs_reference (parent->klass);
+  font->user_data = parent->user_data;
+
+  return font;
+}
+
+hb_font_t *
 hb_font_reference (hb_font_t *font)
 {
   return hb_object_reference (font);
@@ -492,6 +521,7 @@ hb_font_destroy (hb_font_t *font)
 {
   if (!hb_object_destroy (font)) return;
 
+  hb_font_destroy (font->parent);
   hb_face_destroy (font->face);
   hb_font_funcs_destroy (font->klass);
   if (font->destroy)
@@ -531,6 +561,11 @@ hb_font_is_immutable (hb_font_t *font)
   return font->immutable;
 }
 
+hb_font_t *
+hb_font_get_parent (hb_font_t *font)
+{
+  return font->parent;
+}
 
 hb_face_t *
 hb_font_get_face (hb_font_t *font)

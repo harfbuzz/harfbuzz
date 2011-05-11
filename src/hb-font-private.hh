@@ -82,6 +82,7 @@ struct _hb_font_t {
 
   hb_bool_t immutable;
 
+  hb_font_t *parent;
   hb_face_t *face;
 
   int x_scale;

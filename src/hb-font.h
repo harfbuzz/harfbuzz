@@ -209,6 +209,9 @@ hb_font_t *
 hb_font_create (hb_face_t *face);
 
 hb_font_t *
+hb_font_create_sub_font (hb_font_t *parent);
+
+hb_font_t *
 hb_font_reference (hb_font_t *font);
 
 void
@@ -231,6 +234,8 @@ hb_font_make_immutable (hb_font_t *font);
 hb_bool_t
 hb_font_is_immutable (hb_font_t *font);
 
+hb_font_t *
+hb_font_get_parent (hb_font_t *font);
 
 hb_face_t *
 hb_font_get_face (hb_font_t *font);
