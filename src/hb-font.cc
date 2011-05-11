@@ -299,7 +299,9 @@ static hb_face_t _hb_face_nil = {
   NULL, /* user_data */
   NULL, /* destroy */
 
-  NULL  /* ot_layout */
+  NULL, /* ot_layout */
+
+  1000
 };
 
 
@@ -321,6 +323,8 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
   face->destroy = destroy;
 
   face->ot_layout = _hb_ot_layout_create (face);
+
+  face->upem = _hb_ot_layout_get_upem (face);
 
   return face;
 }

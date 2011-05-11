@@ -85,9 +85,9 @@ struct _hb_face_t {
   void                *user_data;
   hb_destroy_func_t    destroy;
 
-  hb_blob_t *head_blob;
-
   struct hb_ot_layout_t *ot_layout;
+
+  unsigned int upem;
 };
 
 
@@ -112,6 +112,14 @@ struct _hb_font_t {
   hb_font_funcs_t   *klass;
   void              *user_data;
   hb_destroy_func_t  destroy;
+
+
+  /* Convert from font-space to user-space */
+  inline hb_position_t scale_x (int16_t v) { return scale (v, this->x_scale); }
+  inline hb_position_t scale_y (int16_t v) { return scale (v, this->y_scale); }
+
+  private:
+  inline hb_position_t scale (int16_t v, int scale) { return v * (int64_t) scale / this->face->upem; }
 };
 
 

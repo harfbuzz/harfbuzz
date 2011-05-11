@@ -203,10 +203,7 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 				  unsigned int   *caret_count /* IN/OUT */,
 				  int            *caret_array /* OUT */)
 {
-  hb_ot_layout_context_t c;
-  c.font = font;
-  c.face = font->face;
-  return _get_gdef (c.face).get_lig_carets (&c, direction, glyph, start_offset, caret_count, caret_array);
+  return _get_gdef (font->face).get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
 }
 
 /*
@@ -448,10 +445,7 @@ hb_ot_layout_substitute_lookup (hb_face_t    *face,
 				unsigned int  lookup_index,
 				hb_mask_t     mask)
 {
-  hb_ot_layout_context_t c;
-  c.font = NULL;
-  c.face = face;
-  return _get_gsub (face).substitute_lookup (&c, buffer, lookup_index, mask);
+  return _get_gsub (face).substitute_lookup (face, buffer, lookup_index, mask);
 }
 
 
@@ -477,10 +471,7 @@ hb_ot_layout_position_lookup   (hb_font_t    *font,
 				unsigned int  lookup_index,
 				hb_mask_t     mask)
 {
-  hb_ot_layout_context_t c;
-  c.font = font;
-  c.face = font->face;
-  return _get_gpos (c.face).position_lookup (&c, buffer, lookup_index, mask);
+  return _get_gpos (font->face).position_lookup (font, buffer, lookup_index, mask);
 }
 
 void

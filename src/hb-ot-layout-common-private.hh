@@ -526,11 +526,11 @@ struct ClassDef
 struct Device
 {
 
-  inline hb_position_t get_x_delta (hb_ot_layout_context_t *c) const
-  { return get_delta (c->font->x_ppem, c->font->x_scale); }
+  inline hb_position_t get_x_delta (hb_font_t *font) const
+  { return get_delta (font->x_ppem, font->x_scale); }
 
-  inline hb_position_t get_y_delta (hb_ot_layout_context_t *c) const
-  { return get_delta (c->font->y_ppem, c->font->y_scale); }
+  inline hb_position_t get_y_delta (hb_font_t *font) const
+  { return get_delta (font->y_ppem, font->y_scale); }
 
   inline int get_delta (unsigned int ppem, int scale) const
   {

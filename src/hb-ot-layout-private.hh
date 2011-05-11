@@ -96,19 +96,6 @@ struct hb_ot_layout_t
   const struct head *head;
 };
 
-struct hb_ot_layout_context_t
-{
-  hb_face_t *face;
-  hb_font_t *font;
-
-  /* Convert from font-space to user-space */
-  inline hb_position_t scale_x (int16_t v) { return scale (v, this->font->x_scale); }
-  inline hb_position_t scale_y (int16_t v) { return scale (v, this->font->y_scale); }
-
-  private:
-  inline hb_position_t scale (int16_t v, int scale) { return v * (int64_t) scale / _hb_ot_layout_get_upem (this->face); }
-};
-
 
 HB_INTERNAL hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face);
