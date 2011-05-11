@@ -105,10 +105,10 @@ struct ValueFormat : USHORT
     if (!format) return;
 
     /* design units -> fractional pixel */
-    if (format & xPlacement) glyph_pos.x_offset  += font->scale_x (get_short (values++));
-    if (format & yPlacement) glyph_pos.y_offset  += font->scale_y (get_short (values++));
-    if (format & xAdvance)   glyph_pos.x_advance += font->scale_x (get_short (values++));
-    if (format & yAdvance)   glyph_pos.y_advance += font->scale_y (get_short (values++));
+    if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++));
+    if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++));
+    if (format & xAdvance)   glyph_pos.x_advance += font->em_scale_x (get_short (values++));
+    if (format & yAdvance)   glyph_pos.y_advance += font->em_scale_y (get_short (values++));
 
     if (!has_device ()) return;
 
@@ -212,8 +212,8 @@ struct AnchorFormat1
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = font->scale_x (xCoordinate);
-      *y = font->scale_y (yCoordinate);
+      *x = font->em_scale_x (xCoordinate);
+      *y = font->em_scale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -244,8 +244,8 @@ struct AnchorFormat2
 
       if (x_ppem || y_ppem)
 	ret = hb_font_get_contour_point (font, anchorPoint, glyph_id, &cx, &cy);
-      *x = x_ppem && ret ? cx : font->scale_x (xCoordinate);
-      *y = y_ppem && ret ? cy : font->scale_y (yCoordinate);
+      *x = x_ppem && ret ? cx : font->em_scale_x (xCoordinate);
+      *y = y_ppem && ret ? cy : font->em_scale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -270,8 +270,8 @@ struct AnchorFormat3
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = font->scale_x (xCoordinate);
-      *y = font->scale_y (yCoordinate);
+      *x = font->em_scale_x (xCoordinate);
+      *y = font->em_scale_y (yCoordinate);
 
       /* pixel -> fractional pixel */
       if (font->x_ppem)

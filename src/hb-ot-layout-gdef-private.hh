@@ -98,7 +98,7 @@ struct CaretValueFormat1
   private:
   inline int get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id HB_UNUSED) const
   {
-    return HB_DIRECTION_IS_HORIZONTAL (direction) ? font->scale_x (coordinate) : font->scale_y (coordinate);
+    return HB_DIRECTION_IS_HORIZONTAL (direction) ? font->em_scale_x (coordinate) : font->em_scale_y (coordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -146,8 +146,8 @@ struct CaretValueFormat3
   inline int get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
     return HB_DIRECTION_IS_HORIZONTAL (direction) ?
-           font->scale_x (coordinate) + (this+deviceTable).get_x_delta (font) :
-           font->scale_y (coordinate) + (this+deviceTable).get_y_delta (font);
+           font->em_scale_x (coordinate) + (this+deviceTable).get_x_delta (font) :
+           font->em_scale_y (coordinate) + (this+deviceTable).get_y_delta (font);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
