@@ -3,7 +3,9 @@ General fixes:
 
 - Instead of forming clusters immediately, only do it if we are reversing
   the text.  We'd need a separate bit to indicate cluster start then.
-  Right now, BTW, for non-native direction runs, we get the cluster wrong...
+
+- Right now, BTW, for non-native direction runs, we get the cluster wrong...
+  Should do min(input-glyphs.cluster)
 
 - Fix tt kern on/off and GPOS interaction
 
