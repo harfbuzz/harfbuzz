@@ -271,13 +271,20 @@ hb_truetype_kern (hb_ot_shape_context_t *c)
   /* TODO Check for kern=0 */
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++) {
-    hb_position_t kern, kern1, kern2;
-    kern = hb_font_get_kerning (c->font, c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint);
-    kern1 = kern >> 1;
-    kern2 = kern - kern1;
+    hb_position_t x_kern, y_kern, kern1, kern2;
+    hb_font_get_kerning (c->font, c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint, &x_kern, &y_kern);
+
+    kern1 = x_kern >> 1;
+    kern2 = x_kern - kern1;
     c->buffer->pos[i - 1].x_advance += kern1;
     c->buffer->pos[i].x_advance += kern2;
     c->buffer->pos[i].x_offset += kern2;
+
+    kern1 = y_kern >> 1;
+    kern2 = y_kern - kern1;
+    c->buffer->pos[i - 1].y_advance += kern1;
+    c->buffer->pos[i].y_advance += kern2;
+    c->buffer->pos[i].y_offset += kern2;
   }
 }
 

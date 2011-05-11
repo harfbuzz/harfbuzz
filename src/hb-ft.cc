@@ -39,8 +39,8 @@ HB_BEGIN_DECLS
 static hb_bool_t
 hb_ft_get_contour_point (hb_font_t *font HB_UNUSED,
 			 const void *font_data,
-			 unsigned int point_index,
 			 hb_codepoint_t glyph,
+			 unsigned int point_index,
 			 hb_position_t *x,
 			 hb_position_t *y,
 			 const void *user_data HB_UNUSED)
@@ -128,11 +128,13 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
   return FT_Get_Char_Index (ft_face, unicode);
 }
 
-static hb_position_t
+static void
 hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
 		   const void *font_data,
 		   hb_codepoint_t first_glyph,
 		   hb_codepoint_t second_glyph,
+		   hb_position_t *x_kern,
+		   hb_position_t *y_kern,
 		   const void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
@@ -140,9 +142,10 @@ hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
 
   /* TODO: Kern type? */
   if (FT_Get_Kerning (ft_face, first_glyph, second_glyph, FT_KERNING_DEFAULT, &kerning))
-      return 0;
+    return;
 
-  return kerning.x;
+  *x_kern = kerning.x;
+  *y_kern = kerning.y;
 }
 
 static hb_font_funcs_t ft_ffuncs = {

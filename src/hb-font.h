@@ -123,7 +123,7 @@ typedef struct _hb_glyph_extents_t
 
 
 typedef hb_bool_t (*hb_font_get_contour_point_func_t) (hb_font_t *font, const void *font_data,
-						       unsigned int point_index, hb_codepoint_t glyph,
+						       hb_codepoint_t glyph, unsigned int point_index,
 						       hb_position_t *x, hb_position_t *y,
 						       const void *user_data);
 typedef void (*hb_font_get_glyph_advance_func_t) (hb_font_t *font, const void *font_data,
@@ -137,9 +137,10 @@ typedef void (*hb_font_get_glyph_extents_func_t) (hb_font_t *font, const void *f
 typedef hb_codepoint_t (*hb_font_get_glyph_func_t) (hb_font_t *font, const void *font_data,
 						    hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 						    const void *user_data);
-typedef hb_position_t (*hb_font_get_kerning_func_t) (hb_font_t *font, const void *font_data,
-						     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
-						     const void *user_data);
+typedef void (*hb_font_get_kerning_func_t) (hb_font_t *font, const void *font_data,
+					    hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
+					    hb_position_t *x_kern, hb_position_t *y_kern,
+					    const void *user_data);
 
 
 void
@@ -170,7 +171,7 @@ hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
 
 hb_bool_t
 hb_font_get_contour_point (hb_font_t *font,
-			   unsigned int point_index, hb_codepoint_t glyph,
+			   hb_codepoint_t glyph, unsigned int point_index,
 			   hb_position_t *x, hb_position_t *y);
 
 void
@@ -187,9 +188,10 @@ hb_codepoint_t
 hb_font_get_glyph (hb_font_t *font,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector);
 
-hb_position_t
+void
 hb_font_get_kerning (hb_font_t *font,
-		     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph);
+		     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
+		     hb_position_t *x_kern, hb_position_t *y_kern);
 
 
 /*
