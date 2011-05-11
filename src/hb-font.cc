@@ -50,10 +50,14 @@ hb_font_get_contour_point_nil (hb_font_t *font HB_UNUSED,
 			       hb_position_t *y HB_UNUSED,
 			       const void *user_data HB_UNUSED)
 {
-  if (font->parent)
-    return hb_font_get_contour_point (font->parent,
-				      point_index, glyph,
-				      x, y);
+  if (font->parent) {
+    hb_bool_t ret;
+    ret = hb_font_get_contour_point (font->parent,
+				     point_index, glyph,
+				     x, y);
+    font->parent_scale_position (x, y);
+    return ret;
+  }
 
   *x = *y = 0;
 
@@ -70,6 +74,7 @@ hb_font_get_glyph_advance_nil (hb_font_t *font HB_UNUSED,
 {
   if (font->parent) {
     hb_font_get_glyph_advance (font->parent, glyph, x_advance, y_advance);
+    font->parent_scale_distance (x_advance, y_advance);
     return;
   }
 
@@ -85,6 +90,8 @@ hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
 {
   if (font->parent) {
     hb_font_get_glyph_extents (font->parent, glyph, extents);
+    font->parent_scale_position (&extents->x_bearing, &extents->y_bearing);
+    font->parent_scale_distance (&extents->width, &extents->height);
     return;
   }
 
@@ -112,8 +119,12 @@ hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
 			 hb_codepoint_t second_glyph HB_UNUSED,
 			 const void *user_data HB_UNUSED)
 {
-  if (font->parent)
-    return hb_font_get_kerning (font->parent, first_glyph, second_glyph);
+  if (font->parent) {
+    hb_position_t ret;
+    ret = hb_font_get_kerning (font->parent, first_glyph, second_glyph);
+    ret = font->parent_scale_x_distance (ret);
+    return ret;
+  }
 
   return 0;
 }

@@ -118,6 +118,34 @@ struct _hb_font_t {
   inline hb_position_t em_scale_x (int16_t v) { return em_scale (v, this->x_scale); }
   inline hb_position_t em_scale_y (int16_t v) { return em_scale (v, this->y_scale); }
 
+  /* Convert from parent-font user-space to our user-space */
+  inline hb_position_t parent_scale_x_distance (hb_position_t v) {
+    if (unlikely (parent && parent->x_scale != x_scale))
+      return v * (int64_t) this->x_scale / this->parent->x_scale;
+    return v;
+  }
+  inline hb_position_t parent_scale_y_distance (hb_position_t v) {
+    if (unlikely (parent && parent->y_scale != y_scale))
+      return v * (int64_t) this->y_scale / this->parent->y_scale;
+    return v;
+  }
+  inline hb_position_t parent_scale_x_position (hb_position_t v) {
+    return parent_scale_x_distance (v); /* We don't have translation right now */
+  }
+  inline hb_position_t parent_scale_y_position (hb_position_t v) {
+    return parent_scale_y_distance (v); /* We don't have translation right now */
+  }
+
+  inline void parent_scale_distance (hb_position_t *x, hb_position_t *y) {
+    *x = parent_scale_x_distance (*x);
+    *y = parent_scale_y_distance (*y);
+  }
+  inline void parent_scale_position (hb_position_t *x, hb_position_t *y) {
+    *x = parent_scale_x_position (*x);
+    *y = parent_scale_y_position (*y);
+  }
+
+
   private:
   inline hb_position_t em_scale (int16_t v, int scale) { return v * (int64_t) scale / this->face->upem; }
 };
