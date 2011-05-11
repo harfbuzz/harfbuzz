@@ -43,7 +43,7 @@ create_blob (void)
 static void *
 create_blob_inert (void)
 {
-  return hb_blob_get_empty ();
+  return hb_blob_create (NULL, 0, HB_MEMORY_MODE_DUPLICATE, NULL, NULL);
 }
 
 static void *
@@ -68,7 +68,7 @@ create_face (void)
 static void *
 create_face_inert (void)
 {
-  return hb_face_create_for_data ((hb_blob_t *) create_blob_inert (), 0);
+  return hb_face_create_for_data (hb_blob_get_empty (), 0);
 }
 
 static void *
@@ -82,7 +82,7 @@ create_font (void)
 static void *
 create_font_inert (void)
 {
-  return hb_font_create (create_face_inert ());
+  return hb_font_create (hb_face_get_empty ());
 }
 
 static void *
@@ -124,6 +124,7 @@ typedef hb_bool_t (*is_immutable_func_t)   (void *obj);
 typedef struct {
   create_func_t          create;
   create_func_t          create_inert;
+  create_func_t          get_empty;
   reference_func_t       reference;
   destroy_func_t         destroy;
   set_user_data_func_t   set_user_data;
@@ -137,6 +138,7 @@ typedef struct {
   { \
     (create_func_t)         create_##name, \
     (create_func_t)         create_##name##_inert, \
+    (create_func_t)         hb_##name##_get_empty, \
     (reference_func_t)      hb_##name##_reference, \
     (destroy_func_t)        hb_##name##_destroy, \
     (set_user_data_func_t)  hb_##name##_set_user_data, \
@@ -149,6 +151,7 @@ typedef struct {
   { \
     (create_func_t)         create_##name, \
     (create_func_t)         create_##name##_inert, \
+    (create_func_t)         hb_##name##_get_empty, \
     (reference_func_t)      hb_##name##_reference, \
     (destroy_func_t)        hb_##name##_destroy, \
     (set_user_data_func_t)  hb_##name##_set_user_data, \
@@ -308,10 +311,37 @@ test_object (void)
     {
       data_t data[2] = {{MAGIC0, FALSE}, {MAGIC1, FALSE}};
 
+      g_test_message ("->get_empty()");
+      obj = o->get_empty ();
+      g_assert (obj);
+
+      g_assert (obj == o->reference (obj));
+      o->destroy (obj);
+
+      if (o->is_immutable)
+	g_assert (o->is_immutable (obj));
+
+      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0));
+      g_assert (!o->get_user_data (obj, &key[0]));
+
+      o->destroy (obj);
+      o->destroy (obj);
+      o->destroy (obj);
+      o->destroy (obj);
+      o->destroy (obj);
+
+      g_assert (!data[0].freed);
+    }
+
+    {
+      data_t data[2] = {{MAGIC0, FALSE}, {MAGIC1, FALSE}};
+
       g_test_message ("->create_inert()");
       obj = o->create_inert ();
       if (!obj)
 	continue;
+      if (obj == o->get_empty ())
+        continue; /* Tested already */
 
       g_assert (obj == o->reference (obj));
       o->destroy (obj);

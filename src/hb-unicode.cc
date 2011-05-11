@@ -126,6 +126,12 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
 }
 
 hb_unicode_funcs_t *
+hb_unicode_funcs_get_empty (void)
+{
+  return &_hb_unicode_funcs_nil;
+}
+
+hb_unicode_funcs_t *
 hb_unicode_funcs_reference (hb_unicode_funcs_t *ufuncs)
 {
   return hb_object_reference (ufuncs);

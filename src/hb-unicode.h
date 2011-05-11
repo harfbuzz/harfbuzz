@@ -54,6 +54,9 @@ hb_unicode_funcs_t *
 hb_unicode_funcs_create (hb_unicode_funcs_t *parent);
 
 hb_unicode_funcs_t *
+hb_unicode_funcs_get_empty (void);
+
+hb_unicode_funcs_t *
 hb_unicode_funcs_reference (hb_unicode_funcs_t *ufuncs);
 
 void

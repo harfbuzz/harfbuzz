@@ -53,6 +53,9 @@ hb_face_create_for_tables (hb_get_table_func_t  get_table,
 			   hb_destroy_func_t    destroy);
 
 hb_face_t *
+hb_face_get_empty (void);
+
+hb_face_t *
 hb_face_reference (hb_face_t *face);
 
 void
@@ -86,6 +89,9 @@ typedef struct _hb_font_funcs_t hb_font_funcs_t;
 
 hb_font_funcs_t *
 hb_font_funcs_create (void);
+
+hb_font_funcs_t *
+hb_font_funcs_get_empty (void);
 
 hb_font_funcs_t *
 hb_font_funcs_reference (hb_font_funcs_t *ffuncs);
@@ -205,6 +211,9 @@ hb_font_create (hb_face_t *face);
 
 hb_font_t *
 hb_font_create_sub_font (hb_font_t *parent);
+
+hb_font_t *
+hb_font_get_empty (void);
 
 hb_font_t *
 hb_font_reference (hb_font_t *font);

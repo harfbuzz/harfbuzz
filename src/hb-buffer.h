@@ -63,6 +63,9 @@ hb_buffer_t *
 hb_buffer_create (unsigned int pre_alloc_size);
 
 hb_buffer_t *
+hb_buffer_get_empty (void);
+
+hb_buffer_t *
 hb_buffer_reference (hb_buffer_t *buffer);
 
 void

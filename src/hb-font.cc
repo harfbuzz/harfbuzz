@@ -160,6 +160,12 @@ hb_font_funcs_create (void)
 }
 
 hb_font_funcs_t *
+hb_font_funcs_get_empty (void)
+{
+  return &_hb_font_funcs_nil;
+}
+
+hb_font_funcs_t *
 hb_font_funcs_reference (hb_font_funcs_t *ffuncs)
 {
   return hb_object_reference (ffuncs);
@@ -404,6 +410,12 @@ hb_face_create_for_data (hb_blob_t    *blob,
 				    (hb_destroy_func_t) _hb_face_for_data_closure_destroy);
 }
 
+hb_face_t *
+hb_face_get_empty (void)
+{
+  return &_hb_face_nil;
+}
+
 
 hb_face_t *
 hb_face_reference (hb_face_t *face)
@@ -531,6 +543,12 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->user_data = parent->user_data;
 
   return font;
+}
+
+hb_font_t *
+hb_font_get_empty (void)
+{
+  return &_hb_font_nil;
 }
 
 hb_font_t *

@@ -153,6 +153,12 @@ hb_buffer_create (unsigned int pre_alloc_size)
 }
 
 hb_buffer_t *
+hb_buffer_get_empty (void)
+{
+  return &_hb_buffer_nil;
+}
+
+hb_buffer_t *
 hb_buffer_reference (hb_buffer_t *buffer)
 {
   return hb_object_reference (buffer);
