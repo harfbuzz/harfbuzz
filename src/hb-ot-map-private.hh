@@ -120,6 +120,13 @@ struct hb_ot_map_t {
       hb_ot_layout_position_lookup (font, buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
   }
 
+  inline void finish (void) {
+    feature_infos.finish ();
+    feature_maps.finish ();
+    lookup_maps[0].finish ();
+    lookup_maps[1].finish ();
+  }
+
   private:
 
   hb_mask_t global_mask;

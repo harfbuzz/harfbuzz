@@ -313,6 +313,14 @@ struct hb_prealloced_array_t {
   {
     return (const Type *) ::bsearch (key, array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
   }
+
+  inline void finish (void)
+  {
+    if (array != static_array)
+      free (array);
+    array = NULL;
+    allocated = len = 0;
+  }
 };
 
 template <typename Type>
@@ -394,7 +402,7 @@ struct hb_lockable_set_t
 	old.finish ();
 	l.lock ();
     }
-    items.shrink (0);
+    items.finish ();
     l.unlock ();
   }
 

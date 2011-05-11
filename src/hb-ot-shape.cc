@@ -381,6 +381,8 @@ hb_ot_shape (hb_font_t          *font,
 
   hb_ot_shape_plan_internal (&plan, font->face, &buffer->props, features, num_features);
   hb_ot_shape_execute (&plan, font, buffer, features, num_features);
+
+  plan.finish ();
 }
 
 
