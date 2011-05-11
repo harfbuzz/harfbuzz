@@ -46,13 +46,31 @@ struct _hb_font_funcs_t {
 
   hb_bool_t immutable;
 
+  /* Don't access these directly.  Call hb_font_get_*() instead. */
+
   struct {
-    hb_font_get_glyph_func_t		get_glyph;
-    hb_font_get_glyph_advance_func_t	get_glyph_advance;
-    hb_font_get_glyph_extents_func_t	get_glyph_extents;
-    hb_font_get_contour_point_func_t	get_contour_point;
-    hb_font_get_kerning_func_t		get_kerning;
-  } v;
+    hb_font_get_contour_point_func_t	contour_point;
+    hb_font_get_glyph_advance_func_t	glyph_advance;
+    hb_font_get_glyph_extents_func_t	glyph_extents;
+    hb_font_get_glyph_func_t		glyph;
+    hb_font_get_kerning_func_t		kerning;
+  } get;
+
+  struct {
+    void				*contour_point;
+    void				*glyph_advance;
+    void				*glyph_extents;
+    void				*glyph;
+    void				*kerning;
+  } user_data;
+
+  struct {
+    hb_destroy_func_t			contour_point;
+    hb_destroy_func_t			glyph_advance;
+    hb_destroy_func_t			glyph_extents;
+    hb_destroy_func_t			glyph;
+    hb_destroy_func_t			kerning;
+  } destroy;
 };
 
 
