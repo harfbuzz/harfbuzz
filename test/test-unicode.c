@@ -482,6 +482,7 @@ test_unicode_properties (gconstpointer user_data)
   gboolean failed = TRUE;
 
   g_assert (hb_unicode_funcs_is_immutable (uf));
+  g_assert (hb_unicode_funcs_get_parent (uf));
 
   for (i = 0; i < G_N_ELEMENTS (properties); i++) {
     const property_t *p = &properties[i];
@@ -609,6 +610,9 @@ test_unicode_setters (void)
     g_assert_cmphex (p->getter (uf, 'a'), ==, HB_SCRIPT_LATIN);
     g_assert_cmphex (p->getter (uf, '0'), ==, HB_SCRIPT_UNKNOWN);
 
+    p->func_setter (uf, (get_func_t) NULL, NULL, NULL);
+    g_assert (data[0].freed && !data[1].freed);
+
     g_assert (!hb_unicode_funcs_is_immutable (uf));
     hb_unicode_funcs_make_immutable (uf);
     g_assert (hb_unicode_funcs_is_immutable (uf));
@@ -616,7 +620,7 @@ test_unicode_setters (void)
     /* Since uf is immutable now, the following setter should do nothing. */
     p->func_setter (uf, (get_func_t) a_is_for_arabic_get_script, &data[1], free_up);
 
-    g_assert (!data[0].freed && !data[1].freed);
+    g_assert (data[0].freed && !data[1].freed);
     hb_unicode_funcs_destroy (uf);
     g_assert (data[0].freed && !data[1].freed);
 

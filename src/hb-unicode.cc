@@ -206,13 +206,9 @@ hb_unicode_funcs_set_##name##_func (hb_unicode_funcs_t             *ufuncs,    \
     ufuncs->get.name = func;                                                   \
     ufuncs->user_data.name = user_data;                                        \
     ufuncs->destroy.name = destroy;                                            \
-  } else if (ufuncs->parent != NULL) {                                         \
+  } else {                                                                     \
     ufuncs->get.name = ufuncs->parent->get.name;                               \
     ufuncs->user_data.name = ufuncs->parent->user_data.name;                   \
-    ufuncs->destroy.name = NULL;                                               \
-  } else {                                                                     \
-    ufuncs->get.name = hb_unicode_get_##name##_nil;                            \
-    ufuncs->user_data.name = NULL;                                             \
     ufuncs->destroy.name = NULL;                                               \
   }                                                                            \
 }                                                                              \
