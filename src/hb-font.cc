@@ -205,38 +205,6 @@ hb_font_funcs_set_kerning_func (hb_font_funcs_t *ffuncs,
 }
 
 
-hb_font_get_glyph_func_t
-hb_font_funcs_get_glyph_func (hb_font_funcs_t *ffuncs)
-{
-  return ffuncs->v.get_glyph;
-}
-
-hb_font_get_glyph_advance_func_t
-hb_font_funcs_get_glyph_advance_func (hb_font_funcs_t *ffuncs)
-{
-  return ffuncs->v.get_glyph_advance;
-}
-
-hb_font_get_glyph_extents_func_t
-hb_font_funcs_get_glyph_extents_func (hb_font_funcs_t *ffuncs)
-{
-  return ffuncs->v.get_glyph_extents;
-}
-
-hb_font_get_contour_point_func_t
-hb_font_funcs_get_contour_point_func (hb_font_funcs_t *ffuncs)
-{
-  return ffuncs->v.get_contour_point;
-}
-
-hb_font_get_kerning_func_t
-hb_font_funcs_get_kerning_func (hb_font_funcs_t *ffuncs)
-{
-  return ffuncs->v.get_kerning;
-}
-
-
-
 hb_codepoint_t
 hb_font_get_glyph (hb_font_t *font,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector)
