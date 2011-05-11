@@ -191,8 +191,8 @@ struct hb_sanitize_context_t
 
   inline void setup (void)
   {
-    this->start = hb_blob_get_data (blob, NULL);
-    this->end = this->start + hb_blob_get_length (blob);
+    this->start = hb_blob_get_data (this->blob, NULL);
+    this->end = this->start + hb_blob_get_length (this->blob);
     this->edit_count = 0;
     this->debug_depth = 0;
 
@@ -321,10 +321,8 @@ struct Sanitizer
 	  sane = false;
 	}
       }
-      c->finish ();
     } else {
       unsigned int edit_count = c->edit_count;
-      c->finish ();
       if (edit_count && !c->writable) {
         c->start = hb_blob_get_data_writable (blob, NULL);
 	c->end = c->start + hb_blob_get_length (blob);
@@ -338,6 +336,8 @@ struct Sanitizer
 	}
       }
     }
+
+    c->finish ();
 
     (void) (HB_DEBUG_SANITIZE &&
       fprintf (stderr, "Sanitizer %p %s %s\n", blob, sane ? "passed" : "FAILED", HB_FUNC));
