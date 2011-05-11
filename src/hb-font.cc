@@ -49,7 +49,16 @@ hb_font_get_contour_point_nil (hb_font_t *font HB_UNUSED,
 			       hb_position_t *x HB_UNUSED,
 			       hb_position_t *y HB_UNUSED,
 			       const void *user_data HB_UNUSED)
-{ return false; }
+{
+  if (font->parent)
+    return hb_font_get_contour_point (font->parent,
+				      point_index, glyph,
+				      x, y);
+
+  *x = *y = 0;
+
+  return false;
+}
 
 static void
 hb_font_get_glyph_advance_nil (hb_font_t *font HB_UNUSED,
@@ -58,7 +67,14 @@ hb_font_get_glyph_advance_nil (hb_font_t *font HB_UNUSED,
 			       hb_position_t *x_advance HB_UNUSED,
 			       hb_position_t *y_advance HB_UNUSED,
 			       const void *user_data HB_UNUSED)
-{ }
+{
+  if (font->parent) {
+    hb_font_get_glyph_advance (font->parent, glyph, x_advance, y_advance);
+    return;
+  }
+
+  *x_advance = *y_advance = 0;
+}
 
 static void
 hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
@@ -66,7 +82,15 @@ hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
 			       hb_codepoint_t glyph HB_UNUSED,
 			       hb_glyph_extents_t *extents HB_UNUSED,
 			       const void *user_data HB_UNUSED)
-{ }
+{
+  if (font->parent) {
+    hb_font_get_glyph_extents (font->parent, glyph, extents);
+    return;
+  }
+
+  extents->x_bearing = extents->y_bearing = 0;
+  extents->width = extents->height = 0;
+}
 
 static hb_codepoint_t
 hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
@@ -74,7 +98,12 @@ hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
 		       hb_codepoint_t unicode HB_UNUSED,
 		       hb_codepoint_t variation_selector HB_UNUSED,
 		       const void *user_data HB_UNUSED)
-{ return 0; }
+{
+  if (font->parent)
+    return hb_font_get_glyph (font->parent, unicode, variation_selector);
+
+  return 0;
+}
 
 static hb_position_t
 hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
@@ -82,7 +111,12 @@ hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
 			 hb_codepoint_t first_glyph HB_UNUSED,
 			 hb_codepoint_t second_glyph HB_UNUSED,
 			 const void *user_data HB_UNUSED)
-{ return 0; }
+{
+  if (font->parent)
+    return hb_font_get_kerning (font->parent, first_glyph, second_glyph);
+
+  return 0;
+}
 
 
 static hb_font_funcs_t _hb_font_funcs_nil = {
