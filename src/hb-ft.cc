@@ -131,8 +131,8 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
 static void
 hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
 		   void *font_data,
-		   hb_codepoint_t first_glyph,
-		   hb_codepoint_t second_glyph,
+		   hb_codepoint_t left_glyph,
+		   hb_codepoint_t right_glyph,
 		   hb_position_t *x_kern,
 		   hb_position_t *y_kern,
 		   void *user_data HB_UNUSED)
@@ -141,7 +141,7 @@ hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
   FT_Vector kerning;
 
   /* TODO: Kern type? */
-  if (FT_Get_Kerning (ft_face, first_glyph, second_glyph, FT_KERNING_DEFAULT, &kerning))
+  if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, FT_KERNING_DEFAULT, &kerning))
     return;
 
   *x_kern = kerning.x;

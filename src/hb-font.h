@@ -144,7 +144,7 @@ typedef hb_codepoint_t (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_
 						    hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 						    void *user_data);
 typedef void (*hb_font_get_kerning_func_t) (hb_font_t *font, void *font_data,
-					    hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
+					    hb_codepoint_t left_glyph, hb_codepoint_t right_glyph,
 					    hb_position_t *x_kern, hb_position_t *y_kern,
 					    void *user_data);
 
@@ -196,7 +196,7 @@ hb_font_get_glyph (hb_font_t *font,
 
 void
 hb_font_get_kerning (hb_font_t *font,
-		     hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
+		     hb_codepoint_t left_glyph, hb_codepoint_t right_glyph,
 		     hb_position_t *x_kern, hb_position_t *y_kern);
 
 
