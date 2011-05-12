@@ -86,7 +86,7 @@ main (int argc, char **argv)
   printf ("Opened font file %s: %u bytes long\n", argv[1], hb_blob_get_length (blob));
 
   /* Create the face */
-  face = hb_face_create_for_data (blob, 0 /* first face */);
+  face = hb_face_create (blob, 0 /* first face */);
 
   /* So, what now? */
 

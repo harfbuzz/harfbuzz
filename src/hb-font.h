@@ -41,8 +41,8 @@ typedef struct _hb_font_t hb_font_t;
  */
 
 hb_face_t *
-hb_face_create_for_data (hb_blob_t    *blob,
-			 unsigned int  index);
+hb_face_create (hb_blob_t    *blob,
+		unsigned int  index);
 
 typedef hb_blob_t * (*hb_get_table_func_t)  (hb_tag_t tag, void *user_data);
 

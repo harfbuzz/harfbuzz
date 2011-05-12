@@ -212,7 +212,7 @@ hb_ft_face_create (FT_Face           ft_face,
 			   /* TODO: Check FT_FACE_FLAG_EXTERNAL_STREAM? */
 			   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE,
 			   ft_face, destroy);
-    face = hb_face_create_for_data (blob, ft_face->face_index);
+    face = hb_face_create (blob, ft_face->face_index);
     hb_blob_destroy (blob);
   } else {
     face = hb_face_create_for_tables (get_table, ft_face, destroy);

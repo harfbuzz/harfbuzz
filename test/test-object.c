@@ -61,14 +61,14 @@ static void *
 create_face (void)
 {
   hb_blob_t *blob = (hb_blob_t *) create_blob ();
-  hb_face_t *face = hb_face_create_for_data (blob, 0);
+  hb_face_t *face = hb_face_create (blob, 0);
   hb_blob_destroy (blob);
   return face;
 }
 static void *
 create_face_inert (void)
 {
-  return hb_face_create_for_data (hb_blob_get_empty (), 0);
+  return hb_face_create (hb_blob_get_empty (), 0);
 }
 
 static void *

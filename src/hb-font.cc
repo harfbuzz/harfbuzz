@@ -394,8 +394,8 @@ _hb_face_for_data_get_table (hb_tag_t tag, void *user_data)
 }
 
 hb_face_t *
-hb_face_create_for_data (hb_blob_t    *blob,
-			 unsigned int  index)
+hb_face_create (hb_blob_t    *blob,
+		unsigned int  index)
 {
   if (unlikely (!blob || !hb_blob_get_length (blob)))
     return &_hb_face_nil;
