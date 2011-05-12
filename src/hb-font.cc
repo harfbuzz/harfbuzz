@@ -294,6 +294,7 @@ hb_font_get_glyph (hb_font_t *font,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 		   hb_codepoint_t *glyph)
 {
+  *glyph = 0;
   return font->klass->get.glyph (font, font->user_data,
 				 unicode, variation_selector, glyph,
 				 font->klass->user_data.glyph);
