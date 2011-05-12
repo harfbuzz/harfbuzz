@@ -408,54 +408,6 @@ struct hb_lockable_set_t
 
 };
 
-template <typename item_t>
-struct hb_set_t
-{
-  struct lock_t {
-    int unused;
-
-    inline void lock (void) {}
-    inline void unlock (void) {}
-  };
-
-  hb_lockable_set_t <item_t, lock_t> set;
-
-  template <typename T>
-  inline item_t *replace_or_insert (T v)
-  {
-    lock_t lock;
-    return set.replace_or_insert (v, lock);
-  }
-
-  template <typename T>
-  inline void remove (T v)
-  {
-    lock_t lock;
-    set.remove (v, lock);
-  }
-
-  template <typename T>
-  inline bool find (T v, item_t *i)
-  {
-    lock_t lock;
-    return set.find (v, i, lock);
-  }
-
-  template <typename T>
-  inline item_t *find_or_insert (T v)
-  {
-    lock_t lock;
-    return set.find_or_insert (v, lock);
-  }
-
-  void finish (void)
-  {
-    lock_t lock;
-    set.finish (lock);
-  }
-
-};
-
 
 HB_BEGIN_DECLS
 
