@@ -54,6 +54,90 @@ test_font_empty (void)
   g_assert (hb_font_is_immutable (hb_font_get_empty ()));
 }
 
+static const char test_data[] = "test\0data";
+
+static void
+test_font_properties (void)
+{
+  hb_blob_t *blob;
+  hb_face_t *face;
+  hb_font_t *font;
+  int x_scale, y_scale;
+  unsigned int x_ppem, y_ppem;
+
+  blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  font = hb_font_create (face);
+  hb_face_destroy (face);
+
+
+  /* Check scale */
+
+  hb_font_get_scale (font, NULL, NULL);
+  x_scale = y_scale = 13;
+  hb_font_get_scale (font, &x_scale, NULL);
+  g_assert_cmpint (x_scale, ==, 0);
+  x_scale = y_scale = 13;
+  hb_font_get_scale (font, NULL, &y_scale);
+  g_assert_cmpint (y_scale, ==, 0);
+  x_scale = y_scale = 13;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  g_assert_cmpint (x_scale, ==, 0);
+  g_assert_cmpint (y_scale, ==, 0);
+
+  hb_font_set_scale (font, 17, 19);
+
+  x_scale = y_scale = 13;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  g_assert_cmpint (x_scale, ==, 17);
+  g_assert_cmpint (y_scale, ==, 19);
+
+
+  /* Check ppem */
+
+  hb_font_get_ppem (font, NULL, NULL);
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (font, &x_ppem, NULL);
+  g_assert_cmpint (x_ppem, ==, 0);
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (font, NULL, &y_ppem);
+  g_assert_cmpint (y_ppem, ==, 0);
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (font, &x_ppem, &y_ppem);
+  g_assert_cmpint (x_ppem, ==, 0);
+  g_assert_cmpint (y_ppem, ==, 0);
+
+  hb_font_set_ppem (font, 17, 19);
+
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (font, &x_ppem, &y_ppem);
+  g_assert_cmpint (x_ppem, ==, 17);
+  g_assert_cmpint (y_ppem, ==, 19);
+
+
+  /* Check immutable */
+
+  g_assert (!hb_font_is_immutable (font));
+  hb_font_make_immutable (font);
+  g_assert (hb_font_is_immutable (font));
+
+  hb_font_set_scale (font, 10, 12);
+  x_scale = y_scale = 13;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  g_assert_cmpint (x_scale, ==, 17);
+  g_assert_cmpint (y_scale, ==, 19);
+
+  hb_font_set_ppem (font, 10, 12);
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (font, &x_ppem, &y_ppem);
+  g_assert_cmpint (x_ppem, ==, 17);
+  g_assert_cmpint (y_ppem, ==, 19);
+
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -64,6 +148,7 @@ main (int argc, char **argv)
   hb_test_add (test_font_funcs_empty);
 
   hb_test_add (test_font_empty);
+  hb_test_add (test_font_properties);
 
   return hb_test_run();
 }
