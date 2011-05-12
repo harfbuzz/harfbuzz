@@ -43,12 +43,12 @@ HB_BEGIN_DECLS
 
 static hb_bool_t
 hb_font_get_contour_point_nil (hb_font_t *font HB_UNUSED,
-			       const void *font_data HB_UNUSED,
+			       void *font_data HB_UNUSED,
 			       hb_codepoint_t glyph,
 			       unsigned int point_index,
 			       hb_position_t *x,
 			       hb_position_t *y,
-			       const void *user_data HB_UNUSED)
+			       void *user_data HB_UNUSED)
 {
   if (font->parent) {
     hb_bool_t ret;
@@ -66,11 +66,11 @@ hb_font_get_contour_point_nil (hb_font_t *font HB_UNUSED,
 
 static void
 hb_font_get_glyph_advance_nil (hb_font_t *font HB_UNUSED,
-			       const void *font_data HB_UNUSED,
+			       void *font_data HB_UNUSED,
 			       hb_codepoint_t glyph,
 			       hb_position_t *x_advance,
 			       hb_position_t *y_advance,
-			       const void *user_data HB_UNUSED)
+			       void *user_data HB_UNUSED)
 {
   if (font->parent) {
     hb_font_get_glyph_advance (font->parent, glyph, x_advance, y_advance);
@@ -83,10 +83,10 @@ hb_font_get_glyph_advance_nil (hb_font_t *font HB_UNUSED,
 
 static void
 hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
-			       const void *font_data HB_UNUSED,
+			       void *font_data HB_UNUSED,
 			       hb_codepoint_t glyph,
 			       hb_glyph_extents_t *extents,
-			       const void *user_data HB_UNUSED)
+			       void *user_data HB_UNUSED)
 {
   if (font->parent) {
     hb_font_get_glyph_extents (font->parent, glyph, extents);
@@ -101,10 +101,10 @@ hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
 
 static hb_codepoint_t
 hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
-		       const void *font_data HB_UNUSED,
+		       void *font_data HB_UNUSED,
 		       hb_codepoint_t unicode,
 		       hb_codepoint_t variation_selector,
-		       const void *user_data HB_UNUSED)
+		       void *user_data HB_UNUSED)
 {
   if (font->parent)
     return hb_font_get_glyph (font->parent, unicode, variation_selector);
@@ -114,12 +114,12 @@ hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
 
 static void
 hb_font_get_kerning_nil (hb_font_t *font HB_UNUSED,
-			 const void *font_data HB_UNUSED,
+			 void *font_data HB_UNUSED,
 			 hb_codepoint_t first_glyph,
 			 hb_codepoint_t second_glyph,
 			 hb_position_t *x_kern,
 			 hb_position_t *y_kern,
-			 const void *user_data HB_UNUSED)
+			 void *user_data HB_UNUSED)
 {
   if (font->parent) {
     hb_font_get_kerning (font->parent, first_glyph, second_glyph, x_kern, y_kern);
