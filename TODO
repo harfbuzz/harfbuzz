@@ -50,6 +50,12 @@ hb-view enhancements:
 - Add XML and JSON formats
 
 
+Tests to write:
+==============
+
+- ot-layout enumeration API (needs font)
+
+
 Optimizations:
 =============
 
