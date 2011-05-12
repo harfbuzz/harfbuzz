@@ -711,6 +711,12 @@ test_buffer_utf16_conversion (void)
   hb_buffer_destroy (b);
 }
 
+static void
+test_buffer_empty (void)
+{
+  g_assert (hb_buffer_get_empty ());
+  g_assert (hb_buffer_create (-1) == hb_buffer_get_empty ());
+}
 
 int
 main (int argc, char **argv)
@@ -734,6 +740,7 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_utf8_conversion);
   hb_test_add (test_buffer_utf8_validity);
   hb_test_add (test_buffer_utf16_conversion);
+  hb_test_add (test_buffer_empty);
 
   return hb_test_run();
 }

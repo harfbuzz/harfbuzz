@@ -550,6 +550,15 @@ test_unicode_properties_nil (void)
   hb_unicode_funcs_destroy (uf);
 }
 
+static void
+test_unicode_properties_empty (void)
+{
+  hb_unicode_funcs_t *uf = hb_unicode_funcs_get_empty ();
+
+  g_assert (hb_unicode_funcs_is_immutable (uf));
+  _test_unicode_properties_nil (uf);
+}
+
 
 static void
 test_unicode_chainup (void)
@@ -777,6 +786,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_unicode_properties_nil);
+  hb_test_add (test_unicode_properties_empty);
 
   hb_test_add_data_flavor (hb_unicode_funcs_get_default (),          "default", test_unicode_properties);
   hb_test_add_data_flavor ((gconstpointer) script_roundtrip_default, "default", test_unicode_script_roundtrip);
