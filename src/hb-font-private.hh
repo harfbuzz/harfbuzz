@@ -81,6 +81,8 @@ struct _hb_font_funcs_t {
 struct _hb_face_t {
   hb_object_header_t header;
 
+  hb_bool_t immutable;
+
   hb_get_table_func_t  get_table;
   void                *user_data;
   hb_destroy_func_t    destroy;

@@ -320,6 +320,8 @@ hb_font_get_kerning (hb_font_t *font,
 static hb_face_t _hb_face_nil = {
   HB_OBJECT_HEADER_STATIC,
 
+  TRUE, /* immutable */
+
   NULL, /* get_table */
   NULL, /* user_data */
   NULL, /* destroy */
@@ -456,6 +458,21 @@ hb_face_get_user_data (hb_face_t          *face,
   return hb_object_get_user_data (face, key);
 }
 
+void
+hb_face_make_immutable (hb_face_t *face)
+{
+  if (hb_object_is_inert (face))
+    return;
+
+  face->immutable = true;
+}
+
+hb_bool_t
+hb_face_is_immutable (hb_face_t *face)
+{
+  return face->immutable;
+}
+
 
 hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
@@ -515,6 +532,7 @@ hb_font_create (hb_face_t *face)
   if (!(font = hb_object_create<hb_font_t> ()))
     return &_hb_font_nil;
 
+  hb_face_make_immutable (face);
   font->face = hb_face_reference (face);
   font->klass = &_hb_font_funcs_nil;
 

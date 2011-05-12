@@ -156,7 +156,9 @@ _test_fontfuncs_nil (hb_font_funcs_t *ffuncs)
   blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
   face = hb_face_create (blob, 0);
   hb_blob_destroy (blob);
+  g_assert (!hb_face_is_immutable (face));
   font = hb_font_create (face);
+  g_assert (hb_face_is_immutable (face));
   hb_face_destroy (face);
 
 

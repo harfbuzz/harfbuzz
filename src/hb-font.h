@@ -72,6 +72,12 @@ void *
 hb_face_get_user_data (hb_face_t          *face,
 		       hb_user_data_key_t *key);
 
+void
+hb_face_make_immutable (hb_face_t *face);
+
+hb_bool_t
+hb_face_is_immutable (hb_face_t *face);
+
 
 hb_blob_t *
 hb_face_reference_table (hb_face_t *face,

@@ -163,8 +163,8 @@ typedef struct {
 static const object_t objects[] =
 {
   OBJECT_WITHOUT_IMMUTABILITY (buffer),
-  OBJECT_WITHOUT_IMMUTABILITY (face),
   OBJECT_WITH_IMMUTABILITY (blob),
+  OBJECT_WITH_IMMUTABILITY (face),
   OBJECT_WITH_IMMUTABILITY (font),
   OBJECT_WITH_IMMUTABILITY (font_funcs),
   OBJECT_WITH_IMMUTABILITY (unicode_funcs)
