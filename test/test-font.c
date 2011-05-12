@@ -72,6 +72,10 @@ test_font_properties (void)
   hb_face_destroy (face);
 
 
+  g_assert (hb_font_get_face (font) == face);
+  g_assert (hb_font_get_parent (font) == NULL);
+
+
   /* Check scale */
 
   hb_font_get_scale (font, NULL, NULL);
