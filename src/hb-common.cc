@@ -162,7 +162,8 @@ struct hb_language_item_t {
   void finish (void) { free (lang); }
 };
 
-static hb_static_threadsafe_set_t<hb_language_item_t> langs;
+static hb_static_mutex_t langs_lock;
+static hb_lockable_set_t<hb_language_item_t, hb_static_mutex_t> langs;
 
 hb_language_t
 hb_language_from_string (const char *str)
@@ -170,7 +171,7 @@ hb_language_from_string (const char *str)
   if (!str || !*str)
     return NULL;
 
-  hb_language_item_t *item = langs.find_or_insert (str);
+  hb_language_item_t *item = langs.find_or_insert (str, langs_lock);
 
   return likely (item) ? item->lang : NULL;
 }

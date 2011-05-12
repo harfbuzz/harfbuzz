@@ -109,46 +109,4 @@ struct hb_static_mutex_t : hb_mutex_t
 
 HB_END_DECLS
 
-
-template <typename item_t>
-struct hb_static_threadsafe_set_t
-{
-  hb_lockable_set_t <item_t, hb_static_mutex_t> set;
-  hb_static_mutex_t lock;
-
-  template <typename T>
-  inline item_t *replace_or_insert (T v)
-  {
-    return set.replace_or_insert (v, lock);
-  }
-
-  template <typename T>
-  inline void remove (T v)
-  {
-    set.remove (v, lock);
-  }
-
-  template <typename T>
-  inline bool find (T v, item_t *i)
-  {
-    return set.find (v, i, lock);
-  }
-
-  template <typename T>
-  inline item_t *find_or_insert (T v)
-  {
-    return set.find_or_insert (v, lock);
-  }
-
-  void finish (void)
-  {
-    set.finish (lock);
-  }
-};
-
-
-HB_BEGIN_DECLS
-
-HB_END_DECLS
-
 #endif /* HB_MUTEX_PRIVATE_HH */
