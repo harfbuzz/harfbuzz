@@ -169,7 +169,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
     {
       uintptr_t pagesize = get_pagesize ();
 
-      data = mmap (NULL, pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+      data = mmap (NULL, pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
       g_assert (data != (char *) -1);
       memcpy ((char *) data, test_data, sizeof (test_data));
       mprotect ((char *) data, pagesize, PROT_READ);
