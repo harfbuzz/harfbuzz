@@ -18,7 +18,7 @@ API issues to fix before 1.0:
 
 - Add sanitize API
 
-- Add glib GBoxedType stuff
+- Add glib GBoxedType stuff and introspection
 
 
 API to add (maybe after 1.0):
