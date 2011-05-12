@@ -536,11 +536,7 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
 
-  /* We can safely copy user_data from parent since we hold a reference
-   * onto it and it's immutable.  We should not copy the destroy notifiers
-   * though. */
-  font->klass = hb_font_funcs_reference (parent->klass);
-  font->user_data = parent->user_data;
+  font->klass = &_hb_font_funcs_nil;
 
   return font;
 }
