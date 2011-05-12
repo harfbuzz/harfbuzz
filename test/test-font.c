@@ -67,6 +67,7 @@ test_font_properties (void)
   hb_blob_t *blob;
   hb_face_t *face;
   hb_font_t *font;
+  hb_font_t *subfont;
   int x_scale, y_scale;
   unsigned int x_ppem, y_ppem;
 
@@ -144,7 +145,44 @@ test_font_properties (void)
   g_assert_cmpint (y_ppem, ==, 19);
 
 
+  /* sub_font now */
+  subfont = hb_font_create_sub_font (font);
   hb_font_destroy (font);
+
+  g_assert (hb_font_get_parent (subfont) == font);
+  g_assert (hb_font_get_face (subfont) == face);
+
+  /* scale */
+  x_scale = y_scale = 13;
+  hb_font_get_scale (subfont, &x_scale, &y_scale);
+  g_assert_cmpint (x_scale, ==, 17);
+  g_assert_cmpint (y_scale, ==, 19);
+  hb_font_set_scale (subfont, 10, 12);
+  x_scale = y_scale = 13;
+  hb_font_get_scale (subfont, &x_scale, &y_scale);
+  g_assert_cmpint (x_scale, ==, 10);
+  g_assert_cmpint (y_scale, ==, 12);
+  x_scale = y_scale = 13;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  g_assert_cmpint (x_scale, ==, 17);
+  g_assert_cmpint (y_scale, ==, 19);
+
+  /* ppem */
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (subfont, &x_ppem, &y_ppem);
+  g_assert_cmpint (x_ppem, ==, 17);
+  g_assert_cmpint (y_ppem, ==, 19);
+  hb_font_set_ppem (subfont, 10, 12);
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (subfont, &x_ppem, &y_ppem);
+  g_assert_cmpint (x_ppem, ==, 10);
+  g_assert_cmpint (y_ppem, ==, 12);
+  x_ppem = y_ppem = 13;
+  hb_font_get_ppem (font, &x_ppem, &y_ppem);
+  g_assert_cmpint (x_ppem, ==, 17);
+  g_assert_cmpint (y_ppem, ==, 19);
+
+  hb_font_destroy (subfont);
 }
 
 int
@@ -158,6 +196,12 @@ main (int argc, char **argv)
 
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
+
+  /*
+   * hb_font_set_funcs
+   * hb_font_funcs
+   * hb_face_create_for_tables
+   */
 
   return hb_test_run();
 }
