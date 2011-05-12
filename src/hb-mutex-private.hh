@@ -49,7 +49,6 @@ typedef GStaticMutex hb_mutex_t;
 #define HB_MUTEX_INIT			G_STATIC_MUTEX_INIT
 #define hb_mutex_init(M)		g_static_mutex_init (M)
 #define hb_mutex_lock(M)		g_static_mutex_lock (M)
-#define hb_mutex_trylock(M)		g_static_mutex_trylock (M)
 #define hb_mutex_unlock(M)		g_static_mutex_unlock (M)
 #define hb_mutex_free(M)		g_static_mutex_free (M)
 
@@ -62,7 +61,6 @@ typedef CRITICAL_SECTION hb_mutex_t;
 #define HB_MUTEX_INIT				{ NULL, 0, 0, NULL, NULL, 0 }
 #define hb_mutex_init(M)			InitializeCriticalSection (M)
 #define hb_mutex_lock(M)			EnterCriticalSection (M)
-#define hb_mutex_trylock(M)			TryEnterCriticalSection (M)
 #define hb_mutex_unlock(M)			LeaveCriticalSection (M)
 #define hb_mutex_free(M)			DeleteCriticalSection (M)
 
@@ -75,7 +73,6 @@ typedef struct { volatile int m; } hb_mutex_t;
 #define HB_MUTEX_INIT				0
 #define hb_mutex_init(M)			((void) ((M)->m = 0))
 #define hb_mutex_lock(M)			((void) ((M)->m = 1))
-#define hb_mutex_trylock(M)			((M)->m = 1, 1)
 #define hb_mutex_unlock(M)			((void) ((M)->m = 0))
 #define hb_mutex_free(M)			((void) ((M)-M = 2))
 
