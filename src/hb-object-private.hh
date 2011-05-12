@@ -170,6 +170,8 @@ struct _hb_object_header_t {
     if (ref_count.dec () != 1)
       return false;
 
+    ref_count.init (HB_REFERENCE_COUNT_INVALID_VALUE);
+
     user_data.finish ();
 
     return true;
