@@ -109,19 +109,90 @@ test_face_createfortables (void)
   g_assert (freed);
 }
 
+static void
+_test_font_nil_funcs (hb_font_t *font)
+{
+  hb_position_t x, y;
+  hb_glyph_extents_t extents;
+
+  x = y = 13;
+  g_assert (!hb_font_get_contour_point (font, 17, 2, &x, &y));
+  g_assert_cmpint (x, ==, 0);
+  g_assert_cmpint (y, ==, 0);
+
+  x = y = 13;
+  hb_font_get_glyph_advance (font, 17, &x, &y);
+  g_assert_cmpint (x, ==, 0);
+  g_assert_cmpint (y, ==, 0);
+
+  extents.x_bearing = extents.y_bearing = 13;
+  extents.width = extents.height = 15;
+  hb_font_get_glyph_extents (font, 17, &extents);
+  g_assert_cmpint (extents.x_bearing, ==, 0);
+  g_assert_cmpint (extents.y_bearing, ==, 0);
+  g_assert_cmpint (extents.width, ==, 0);
+  g_assert_cmpint (extents.height, ==, 0);
+
+  g_assert (0 == hb_font_get_glyph (font, 17, 2));
+
+  x = y = 13;
+  hb_font_get_kerning (font, 17, 19, &x, &y);
+  g_assert_cmpint (x, ==, 0);
+  g_assert_cmpint (y, ==, 0);
+}
+
+static void
+_test_fontfuncs_nil (hb_font_funcs_t *ffuncs)
+{
+  hb_blob_t *blob;
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_font_t *subfont;
+  int freed = 0;
+
+  blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  font = hb_font_create (face);
+  hb_face_destroy (face);
+
+
+  hb_font_set_funcs (font, ffuncs, &freed, free_up);
+  g_assert_cmpint (freed, ==, 0);
+
+  _test_font_nil_funcs (font);
+
+  subfont = hb_font_create_sub_font (font);
+
+  g_assert_cmpint (freed, ==, 0);
+  hb_font_destroy (font);
+  g_assert_cmpint (freed, ==, 0);
+
+  _test_font_nil_funcs (subfont);
+
+  hb_font_destroy (subfont);
+  g_assert_cmpint (freed, ==, 1);
+}
 
 static void
 test_fontfuncs_empty (void)
 {
   g_assert (hb_font_funcs_get_empty ());
   g_assert (hb_font_funcs_is_immutable (hb_font_funcs_get_empty ()));
+  _test_fontfuncs_nil (hb_font_funcs_get_empty ());
 }
 
 static void
 test_fontfuncs_custom (void)
 {
-  g_assert (hb_font_funcs_get_empty ());
-  g_assert (hb_font_funcs_is_immutable (hb_font_funcs_get_empty ()));
+  hb_font_funcs_t *ffuncs;
+
+  ffuncs = hb_font_funcs_create ();
+
+  g_assert (!hb_font_funcs_is_immutable (ffuncs));
+  _test_fontfuncs_nil (hb_font_funcs_get_empty ());
+
+  hb_font_funcs_destroy (ffuncs);
 }
 
 
