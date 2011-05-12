@@ -71,7 +71,7 @@ kerning_func (hb_font_t *font, void *font_data,
 static const char TesT[] = "TesT";
 
 static void
-test_shape_ltr (void)
+test_shape (void)
 {
   hb_blob_t *blob;
   hb_face_t *face;
@@ -106,7 +106,23 @@ test_shape_ltr (void)
   glyphs = hb_buffer_get_glyph_infos (buffer, NULL);
   positions = hb_buffer_get_glyph_positions (buffer, NULL);
 
-  /* XXX check glyph output and positions */
+  {
+    const hb_codepoint_t output_glyphs[] = {1, 2, 3, 1};
+    const hb_position_t output_x_advances[] = {9, 5, 5, 10};
+    const hb_position_t output_x_offsets[] = {0, -1, 0, 0};
+    unsigned int i;
+    g_assert_cmpint (len, ==, 4);
+    for (i = 0; i < len; i++) {
+      g_assert_cmphex (glyphs[i].codepoint, ==, output_glyphs[i]);
+      g_assert_cmphex (glyphs[i].cluster,   ==, i);
+    }
+    for (i = 0; i < len; i++) {
+      g_assert_cmpint (output_x_advances[i], ==, positions[i].x_advance);
+      g_assert_cmpint (output_x_offsets [i], ==, positions[i].x_offset);
+      g_assert_cmpint (0, ==, positions[i].y_advance);
+      g_assert_cmpint (0, ==, positions[i].y_offset);
+    }
+  }
 
   hb_buffer_destroy (buffer);
   hb_font_destroy (font);
@@ -118,8 +134,7 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-  //hb_test_add (test_shape_empty);
-  hb_test_add (test_shape_ltr);
+  hb_test_add (test_shape);
 
   return hb_test_run();
 }
