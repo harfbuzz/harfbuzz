@@ -555,6 +555,7 @@ test_unicode_properties_empty (void)
 {
   hb_unicode_funcs_t *uf = hb_unicode_funcs_get_empty ();
 
+  g_assert (uf);
   g_assert (hb_unicode_funcs_is_immutable (uf));
   _test_unicode_properties_nil (uf);
 }

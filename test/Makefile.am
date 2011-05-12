@@ -15,6 +15,7 @@ TEST_PROGS += \
 	test-blob \
 	test-buffer \
 	test-common \
+	test-font \
 	test-object \
 	test-unicode \
 	$(NULL)

@@ -715,7 +715,7 @@ static void
 test_buffer_empty (void)
 {
   g_assert (hb_buffer_get_empty ());
-  g_assert (hb_buffer_create (-1) == hb_buffer_get_empty ());
+  g_assert (hb_buffer_get_empty () == hb_buffer_create (-1));
 }
 
 int
