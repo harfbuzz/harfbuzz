@@ -29,6 +29,9 @@
 /* Unit tests for hb-font.h */
 
 
+static const char test_data[] = "test\0data";
+
+
 static void
 test_face_empty (void)
 {
@@ -36,8 +39,28 @@ test_face_empty (void)
   g_assert (hb_face_get_empty () == hb_face_create (hb_blob_get_empty (), 0));
   g_assert (hb_face_get_empty () == hb_face_create (NULL, 0));
 
-  g_assert (hb_face_reference_table (hb_face_get_empty (), HB_TAG('h','e','a','d')) == hb_blob_get_empty ());
+  g_assert (hb_face_reference_table (hb_face_get_empty (), HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
+
+  g_assert_cmpint (hb_face_get_upem (hb_face_get_empty ()), ==, 1000);
 }
+
+static void
+test_face_create (void)
+{
+  hb_face_t *face;
+  hb_blob_t *blob;
+
+  blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+
+  g_assert (hb_face_reference_table (face, HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
+
+  g_assert_cmpint (hb_face_get_upem (face), ==, 1000);
+
+  hb_face_destroy (face);
+}
+
 
 static void
 free_up (void *user_data)
@@ -52,17 +75,35 @@ free_up (void *user_data)
 static hb_blob_t *
 get_table (hb_face_t *face, hb_tag_t tag, void *user_data)
 {
+  if (tag == HB_TAG ('a','b','c','d'))
+    return hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+
   return hb_blob_get_empty ();
 }
 
 static void
-test_face_fortables (void)
+test_face_createfortables (void)
 {
   hb_face_t *face;
+  hb_blob_t *blob;
+  const char *data;
+  unsigned int len;
   int freed = 0;
 
   face = hb_face_create_for_tables (get_table, &freed, free_up);
   g_assert (!freed);
+
+  g_assert (hb_face_reference_table (face, HB_TAG ('h','e','a','d')) == hb_blob_get_empty ());
+
+  blob = hb_face_reference_table (face, HB_TAG ('a','b','c','d'));
+  g_assert (blob != hb_blob_get_empty ());
+
+  data = hb_blob_get_data (blob, &len);
+  g_assert_cmpint (len, ==, sizeof (test_data));
+  g_assert (0 == memcmp (data, test_data, sizeof (test_data)));
+  hb_blob_destroy (blob);
+
+  g_assert_cmpint (hb_face_get_upem (face), ==, 1000);
 
   hb_face_destroy (face);
   g_assert (freed);
@@ -77,6 +118,14 @@ test_fontfuncs_empty (void)
 }
 
 static void
+test_fontfuncs_custom (void)
+{
+  g_assert (hb_font_funcs_get_empty ());
+  g_assert (hb_font_funcs_is_immutable (hb_font_funcs_get_empty ()));
+}
+
+
+static void
 test_font_empty (void)
 {
   g_assert (hb_font_get_empty ());
@@ -88,8 +137,6 @@ test_font_empty (void)
   g_assert (hb_font_get_face (hb_font_get_empty ()) == hb_face_get_empty ());
   g_assert (hb_font_get_parent (hb_font_get_empty ()) == NULL);
 }
-
-static const char test_data[] = "test\0data";
 
 static void
 test_font_properties (void)
@@ -221,17 +268,15 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_face_empty);
-  hb_test_add (test_face_fortables);
+  hb_test_add (test_face_create);
+  hb_test_add (test_face_createfortables);
 
   hb_test_add (test_fontfuncs_empty);
+  hb_test_add (test_fontfuncs_custom);
 
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
 
-  /*
-   * hb_font_set_funcs
-   * hb_font_funcs
-   */
 
   return hb_test_run();
 }
