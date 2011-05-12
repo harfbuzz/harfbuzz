@@ -14,8 +14,6 @@ API issues to fix before 1.0:
 
 - Figure out how many .so objects, how to link, etc
 
-- Real subclassing support for vfunc vectors
-
 - Add hb-cairo glue
 
 - Add sanitize API
@@ -25,6 +23,8 @@ API issues to fix before 1.0:
 
 API to add (maybe after 1.0):
 ============================
+
+- Add hb_face_get_glyph_count()?
 
 - Add hb_font_create_linear()?
 
