@@ -35,6 +35,8 @@ test_face_empty (void)
   g_assert (hb_face_get_empty ());
   g_assert (hb_face_get_empty () == hb_face_create (hb_blob_get_empty (), 0));
   g_assert (hb_face_get_empty () == hb_face_create (NULL, 0));
+
+  g_assert (hb_face_reference_table (hb_face_get_empty (), HB_TAG('h','e','a','d')) == hb_blob_get_empty ());
 }
 
 static void
@@ -52,6 +54,9 @@ test_font_empty (void)
   g_assert (hb_font_get_empty () == hb_font_create (NULL));
   g_assert (hb_font_get_empty () == hb_font_create_sub_font (NULL));
   g_assert (hb_font_is_immutable (hb_font_get_empty ()));
+
+  g_assert (hb_font_get_face (hb_font_get_empty ()) == hb_face_get_empty ());
+  g_assert (hb_font_get_parent (hb_font_get_empty ()) == NULL);
 }
 
 static const char test_data[] = "test\0data";
