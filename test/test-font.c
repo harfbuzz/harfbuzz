@@ -40,7 +40,37 @@ test_face_empty (void)
 }
 
 static void
-test_font_funcs_empty (void)
+free_up (void *user_data)
+{
+  int *freed = (int *) user_data;
+
+  g_assert (!*freed);
+
+  (*freed)++;
+}
+
+static hb_blob_t *
+get_table (hb_tag_t tag, void *user_data)
+{
+  return hb_blob_get_empty ();
+}
+
+static void
+test_face_fortables (void)
+{
+  hb_face_t *face;
+  int freed = 0;
+
+  face = hb_face_create_for_tables (get_table, &freed, free_up);
+  g_assert (!freed);
+
+  hb_face_destroy (face);
+  g_assert (freed);
+}
+
+
+static void
+test_fontfuncs_empty (void)
 {
   g_assert (hb_font_funcs_get_empty ());
   g_assert (hb_font_funcs_is_immutable (hb_font_funcs_get_empty ()));
@@ -191,8 +221,9 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_face_empty);
+  hb_test_add (test_face_fortables);
 
-  hb_test_add (test_font_funcs_empty);
+  hb_test_add (test_fontfuncs_empty);
 
   hb_test_add (test_font_empty);
   hb_test_add (test_font_properties);
@@ -200,7 +231,6 @@ main (int argc, char **argv)
   /*
    * hb_font_set_funcs
    * hb_font_funcs
-   * hb_face_create_for_tables
    */
 
   return hb_test_run();
