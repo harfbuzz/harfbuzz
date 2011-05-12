@@ -17,6 +17,7 @@ TEST_PROGS += \
 	test-common \
 	test-font \
 	test-object \
+	test-shape \
 	test-unicode \
 	$(NULL)
 
