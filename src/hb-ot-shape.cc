@@ -216,18 +216,23 @@ hb_map_glyphs (hb_font_t    *font,
   if (unlikely (!buffer->len))
     return;
 
+  hb_codepoint_t glyph;
   buffer->clear_output ();
   unsigned int count = buffer->len - 1;
   for (buffer->i = 0; buffer->i < count;) {
     if (unlikely (is_variation_selector (buffer->info[buffer->i + 1].codepoint))) {
-      buffer->replace_glyph (hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint));
+      hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint, &glyph);
+      buffer->replace_glyph (glyph);
       buffer->i++;
     } else {
-      buffer->replace_glyph (hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, 0));
+      hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, 0, &glyph);
+      buffer->replace_glyph (glyph);
     }
   }
-  if (likely (buffer->i < buffer->len))
-    buffer->replace_glyph (hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, 0));
+  if (likely (buffer->i < buffer->len)) {
+    hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, 0, &glyph);
+    buffer->replace_glyph (glyph);
+  }
   buffer->swap ();
 }
 

@@ -112,6 +112,7 @@ test_face_createfortables (void)
 static void
 _test_font_nil_funcs (hb_font_t *font)
 {
+  hb_codepoint_t glyph;
   hb_position_t x, y;
   hb_glyph_extents_t extents;
 
@@ -133,7 +134,9 @@ _test_font_nil_funcs (hb_font_t *font)
   g_assert_cmpint (extents.width, ==, 0);
   g_assert_cmpint (extents.height, ==, 0);
 
-  g_assert (0 == hb_font_get_glyph (font, 17, 2));
+  glyph = 3;
+  g_assert (!hb_font_get_glyph (font, 17, 2, &glyph));
+  g_assert_cmpint (glyph, ==, 0);
 
   x = y = 13;
   hb_font_get_kerning (font, 17, 19, &x, &y);

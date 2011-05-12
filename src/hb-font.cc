@@ -99,17 +99,19 @@ hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
   extents->width = extents->height = 0;
 }
 
-static hb_codepoint_t
+static hb_bool_t
 hb_font_get_glyph_nil (hb_font_t *font HB_UNUSED,
 		       void *font_data HB_UNUSED,
 		       hb_codepoint_t unicode,
 		       hb_codepoint_t variation_selector,
+		       hb_codepoint_t *glyph,
 		       void *user_data HB_UNUSED)
 {
   if (font->parent)
-    return hb_font_get_glyph (font->parent, unicode, variation_selector);
+    return hb_font_get_glyph (font->parent, unicode, variation_selector, glyph);
 
-  return 0;
+  *glyph = 0;
+  return FALSE;
 }
 
 static void
@@ -287,12 +289,13 @@ hb_font_get_glyph_extents (hb_font_t *font,
 					 font->klass->user_data.glyph_extents);
 }
 
-hb_codepoint_t
+hb_bool_t
 hb_font_get_glyph (hb_font_t *font,
-		   hb_codepoint_t unicode, hb_codepoint_t variation_selector)
+		   hb_codepoint_t unicode, hb_codepoint_t variation_selector,
+		   hb_codepoint_t *glyph)
 {
   return font->klass->get.glyph (font, font->user_data,
-				 unicode, variation_selector,
+				 unicode, variation_selector, glyph,
 				 font->klass->user_data.glyph);
 }
 

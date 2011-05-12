@@ -107,11 +107,12 @@ hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
   }
 }
 
-static hb_codepoint_t
+static hb_bool_t
 hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
 		 void *font_data,
 		 hb_codepoint_t unicode,
 		 hb_codepoint_t variation_selector,
+		 hb_codepoint_t *glyph,
 		 void *user_data HB_UNUSED)
 
 {
@@ -119,13 +120,14 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
 
 #ifdef HAVE_FT_FACE_GETCHARVARIANTINDEX
   if (unlikely (variation_selector)) {
-    hb_codepoint_t glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
-    if (glyph)
-      return glyph;
+    *glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
+    if (*glyph)
+      return TRUE;
   }
 #endif
 
-  return FT_Get_Char_Index (ft_face, unicode);
+  *glyph = FT_Get_Char_Index (ft_face, unicode);
+  return *glyph != 0;
 }
 
 static void

@@ -44,17 +44,19 @@ glyph_advance_func (hb_font_t *font, void *font_data,
   }
 }
 
-static hb_codepoint_t
+static hb_bool_t
 glyph_func (hb_font_t *font, void *font_data,
 	    hb_codepoint_t unicode, hb_codepoint_t variant_selector,
+	    hb_codepoint_t *glyph,
 	    void *user_data)
 {
   switch (unicode) {
-  case 'T': return 1;
-  case 'e': return 2;
-  case 's': return 3;
-  default:  return 0;
+  case 'T': *glyph = 1; return TRUE;
+  case 'e': *glyph = 2; return TRUE;
+  case 's': *glyph = 3; return TRUE;
   }
+
+  return FALSE;
 }
 
 static void
