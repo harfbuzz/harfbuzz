@@ -440,6 +440,14 @@ hb_ot_layout_has_substitution (hb_face_t *face)
   return &_get_gsub (face) != &Null(GSUB);
 }
 
+void
+hb_ot_layout_substitute_start (hb_buffer_t  *buffer)
+{
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    buffer->info[i].var1.u32 = buffer->info[i].var2.u32 = 0;
+}
+
 hb_bool_t
 hb_ot_layout_substitute_lookup (hb_face_t    *face,
 				hb_buffer_t  *buffer,
@@ -447,6 +455,11 @@ hb_ot_layout_substitute_lookup (hb_face_t    *face,
 				hb_mask_t     mask)
 {
   return _get_gsub (face).substitute_lookup (face, buffer, lookup_index, mask);
+}
+
+void
+hb_ot_layout_substitute_finish (hb_buffer_t  *buffer)
+{
 }
 
 
