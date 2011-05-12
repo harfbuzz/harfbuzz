@@ -50,7 +50,7 @@ free_up (void *user_data)
 }
 
 static hb_blob_t *
-get_table (hb_tag_t tag, void *user_data)
+get_table (hb_face_t *face, hb_tag_t tag, void *user_data)
 {
   return hb_blob_get_empty ();
 }

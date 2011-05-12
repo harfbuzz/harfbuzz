@@ -379,7 +379,7 @@ _hb_face_for_data_closure_destroy (hb_face_for_data_closure_t *closure)
 }
 
 static hb_blob_t *
-_hb_face_for_data_get_table (hb_tag_t tag, void *user_data)
+_hb_face_for_data_get_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) user_data;
 
@@ -462,7 +462,7 @@ hb_face_reference_table (hb_face_t *face,
   if (unlikely (!face || !face->get_table))
     return hb_blob_get_empty ();
 
-  blob = face->get_table (tag, face->user_data);
+  blob = face->get_table (face, tag, face->user_data);
   if (unlikely (!blob))
     return hb_blob_get_empty ();
 

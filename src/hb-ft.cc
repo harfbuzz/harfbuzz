@@ -170,7 +170,7 @@ hb_ft_get_font_funcs (void)
 
 
 static hb_blob_t *
-get_table  (hb_tag_t tag, void *user_data)
+get_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   FT_Face ft_face = (FT_Face) user_data;
   FT_Byte *buffer;
