@@ -69,12 +69,12 @@ typedef CRITICAL_SECTION hb_mutex_impl_t;
 
 #warning "Could not find any system to define platform macros, library will NOT be thread-safe"
 
-typedef struct { volatile int m; } hb_mutex_impl_t;
+typedef volatile int hb_mutex_impl_t;
 #define HB_MUTEX_IMPL_INIT	0
-#define hb_mutex_impl_init(M)	((void) ((M)->m = 0))
-#define hb_mutex_impl_lock(M)	((void) ((M)->m = 1))
-#define hb_mutex_impl_unlock(M)	((void) ((M)->m = 0))
-#define hb_mutex_impl_free(M)	((void) ((M)-M = 2))
+#define hb_mutex_impl_init(M)	((void) (*(M) = 0))
+#define hb_mutex_impl_lock(M)	((void) (*(M) = 1))
+#define hb_mutex_impl_unlock(M)	((void) (*(M) = 0))
+#define hb_mutex_impl_free(M)	((void) (*(M) = 2))
 
 
 #endif
