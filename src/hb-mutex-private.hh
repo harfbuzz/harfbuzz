@@ -45,49 +45,64 @@ HB_BEGIN_DECLS
 
 #include <glib.h>
 
-typedef GStaticMutex hb_mutex_t;
-#define HB_MUTEX_INIT			G_STATIC_MUTEX_INIT
-#define hb_mutex_init(M)		g_static_mutex_init (M)
-#define hb_mutex_lock(M)		g_static_mutex_lock (M)
-#define hb_mutex_unlock(M)		g_static_mutex_unlock (M)
-#define hb_mutex_free(M)		g_static_mutex_free (M)
+typedef GStaticMutex hb_mutex_impl_t;
+#define HB_MUTEX_IMPL_INIT	G_STATIC_MUTEX_INIT
+#define hb_mutex_impl_init(M)	g_static_mutex_init (M)
+#define hb_mutex_impl_lock(M)	g_static_mutex_lock (M)
+#define hb_mutex_impl_unlock(M)	g_static_mutex_unlock (M)
+#define hb_mutex_impl_free(M)	g_static_mutex_free (M)
 
 
 #elif defined(_MSC_VER)
 
 #include <Windows.h>
 
-typedef CRITICAL_SECTION hb_mutex_t;
-#define HB_MUTEX_INIT				{ NULL, 0, 0, NULL, NULL, 0 }
-#define hb_mutex_init(M)			InitializeCriticalSection (M)
-#define hb_mutex_lock(M)			EnterCriticalSection (M)
-#define hb_mutex_unlock(M)			LeaveCriticalSection (M)
-#define hb_mutex_free(M)			DeleteCriticalSection (M)
+typedef CRITICAL_SECTION hb_mutex_impl_t;
+#define HB_MUTEX_IMPL_INIT	{ NULL, 0, 0, NULL, NULL, 0 }
+#define hb_mutex_impl_init(M)	InitializeCriticalSection (M)
+#define hb_mutex_impl_lock(M)	EnterCriticalSection (M)
+#define hb_mutex_impl_unlock(M)	LeaveCriticalSection (M)
+#define hb_mutex_impl_free(M)	DeleteCriticalSection (M)
 
 
 #else
 
 #warning "Could not find any system to define platform macros, library will NOT be thread-safe"
 
-typedef struct { volatile int m; } hb_mutex_t;
-#define HB_MUTEX_INIT				0
-#define hb_mutex_init(M)			((void) ((M)->m = 0))
-#define hb_mutex_lock(M)			((void) ((M)->m = 1))
-#define hb_mutex_unlock(M)			((void) ((M)->m = 0))
-#define hb_mutex_free(M)			((void) ((M)-M = 2))
+typedef struct { volatile int m; } hb_mutex_impl_t;
+#define HB_MUTEX_IMPL_INIT	0
+#define hb_mutex_impl_init(M)	((void) ((M)->m = 0))
+#define hb_mutex_impl_lock(M)	((void) ((M)->m = 1))
+#define hb_mutex_impl_unlock(M)	((void) ((M)->m = 0))
+#define hb_mutex_impl_free(M)	((void) ((M)-M = 2))
 
 
 #endif
 
 
+struct hb_mutex_t
+{
+  hb_mutex_impl_t m;
+
+  inline void init   (void) { hb_mutex_impl_init   (&m); }
+  inline void lock   (void) { hb_mutex_impl_lock   (&m); }
+  inline void unlock (void) { hb_mutex_impl_unlock (&m); }
+  inline void free   (void) { hb_mutex_impl_free   (&m); }
+};
+
+#define HB_MUTEX_INIT		{HB_MUTEX_IMPL_INIT}
+#define hb_mutex_init(M)	(M)->init ()
+#define hb_mutex_lock(M)	(M)->lock ()
+#define hb_mutex_unlock(M)	(M)->unlock ()
+#define hb_mutex_free(M)	(M)->free ()
+
+
 struct hb_static_mutex_t : hb_mutex_t
 {
-  hb_static_mutex_t (void) {
-    hb_mutex_init (this);
-  }
+  hb_static_mutex_t (void)  { this->init (); }
 
-  inline void lock (void) { hb_mutex_lock (this); }
-  inline void unlock (void) { hb_mutex_unlock (this); }
+  private:
+  NO_COPY (hb_static_mutex_t);
 };
 
 
