@@ -21,6 +21,9 @@ TEST_PROGS += \
 	test-unicode \
 	$(NULL)
 
+TEST_PROGS += \
+	test-ot-tag \
+	$(NULL)
 
 # Tests for header compilation
 TEST_PROGS += \

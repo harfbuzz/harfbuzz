@@ -40,7 +40,12 @@ static hb_tag_t
 hb_ot_old_tag_from_script (hb_script_t script)
 {
   switch ((hb_tag_t) script) {
+    case HB_SCRIPT_INVALID:		return HB_OT_TAG_DEFAULT_SCRIPT;
+
+    /* KATAKANA and HIRAGANA both map to 'kana' */
     case HB_SCRIPT_HIRAGANA:		return HB_TAG('k','a','n','a');
+
+    /* Spaces at the end are preserved, unlike ISO 15924 */
     case HB_SCRIPT_LAO:			return HB_TAG('l','a','o',' ');
     case HB_SCRIPT_YI:			return HB_TAG('y','i',' ',' ');
     /* Unicode-5.0 additions */
@@ -48,7 +53,6 @@ hb_ot_old_tag_from_script (hb_script_t script)
     /* Unicode-5.1 additions */
     case HB_SCRIPT_VAI:			return HB_TAG('v','a','i',' ');
     /* Unicode-5.2 additions */
-    case HB_SCRIPT_MEETEI_MAYEK:	return HB_TAG('m','y','e','i');
     /* Unicode-6.0 additions */
   }
 
@@ -59,20 +63,19 @@ hb_ot_old_tag_from_script (hb_script_t script)
 static hb_script_t
 hb_ot_old_tag_to_script (hb_tag_t tag)
 {
-  switch (tag) {
-    case HB_TAG('k','a','n','a'):	return HB_SCRIPT_HIRAGANA;
-    case HB_TAG('l','a','o',' '):	return HB_SCRIPT_LAO;
-    case HB_TAG('y','i',' ',' '):	return HB_SCRIPT_YI;
-    /* Unicode-5.0 additions */
-    case HB_TAG('n','k','o',' '):	return HB_SCRIPT_NKO;
-    /* Unicode-5.1 additions */
-    case HB_TAG('v','a','i',' '):	return HB_SCRIPT_VAI;
-    /* Unicode-5.2 additions */
-    case HB_TAG('m','y','e','i'):	return HB_SCRIPT_MEETEI_MAYEK;
-    /* Unicode-6.0 additions */
-  }
+  if (unlikely (tag == HB_OT_TAG_DEFAULT_SCRIPT))
+    return HB_SCRIPT_INVALID;
 
-  /* Else, just change first char to uppercase and return */
+  /* This side of the conversion is fully algorithmic. */
+
+  /* Any spaces at the end of the tag are replaced by repeating the last
+   * letter.  Eg 'nko ' -> 'Nkoo' */
+  if (unlikely ((tag & 0x0000FF00) == 0x00002000))
+    tag |= (tag >> 8) & 0x0000FF00; /* Copy second letter to third */
+  if (unlikely ((tag & 0x000000FF) == 0x00000020))
+    tag |= (tag >> 8) & 0x000000FF; /* Copy third letter to fourth */
+
+  /* Change first char to uppercase and return */
   return (hb_script_t) (tag & ~0x20000000);
 }
 
@@ -91,7 +94,7 @@ hb_ot_new_tag_from_script (hb_script_t script)
     case HB_SCRIPT_TELUGU:		return HB_TAG('t','e','l','2');
   }
 
-  return HB_TAG_NONE;
+  return HB_OT_TAG_DEFAULT_SCRIPT;
 }
 
 static hb_script_t
@@ -114,7 +117,8 @@ hb_ot_new_tag_to_script (hb_tag_t tag)
 
 /*
  * Complete list at:
- * http://www.microsoft.com/typography/otspec/scripttags.htm
+ * https://www.microsoft.com/typography/otspec/scripttags.htm
+ * https://www.microsoft.com/typography/otspec160/scripttagsProposed.htm
  *
  * Most of the script tags are the same as the ISO 15924 tag but lowercased.
  * So we just do that, and handle the exceptional cases in a switch.
@@ -127,11 +131,11 @@ hb_ot_tags_from_script (hb_script_t  script,
 {
   hb_tag_t new_tag;
 
-  *script_tag_2 = HB_TAG_NONE;
+  *script_tag_2 = HB_OT_TAG_DEFAULT_SCRIPT;
   *script_tag_1 = hb_ot_old_tag_from_script (script);
 
   new_tag = hb_ot_new_tag_from_script (script);
-  if (unlikely (new_tag != HB_TAG_NONE)) {
+  if (unlikely (new_tag != HB_OT_TAG_DEFAULT_SCRIPT)) {
     *script_tag_2 = *script_tag_1;
     *script_tag_1 = new_tag;
   }
@@ -165,6 +169,7 @@ typedef struct {
  * Many items still missing.  Those are commented out at the end.
  * Keep sorted for bsearch.
  */
+
 static const LangTag ot_languages[] = {
   {"aa",	HB_TAG('A','F','R',' ')},	/* Afar */
   {"ab",	HB_TAG('A','B','K',' ')},	/* Abkhazian */
@@ -451,11 +456,6 @@ static const LangTag ot_languages[] = {
   {"yi",	HB_TAG('J','I','I',' ')},	/* Yiddish */
   {"yo",	HB_TAG('Y','B','A',' ')},	/* Yoruba */
   {"yso",	HB_TAG('N','I','S',' ')},	/* Nisi (China) */
-  {"zh-cn",	HB_TAG('Z','H','S',' ')},	/* Chinese (China) */
-  {"zh-hk",	HB_TAG('Z','H','H',' ')},	/* Chinese (Hong Kong) */
-  {"zh-mo",	HB_TAG('Z','H','T',' ')},	/* Chinese (Macao) */
-  {"zh-sg",	HB_TAG('Z','H','S',' ')},	/* Chinese (Singapore) */
-  {"zh-tw",	HB_TAG('Z','H','T',' ')},	/* Chinese (Taiwan) */
   {"zne",	HB_TAG('Z','N','D',' ')},	/* Zande */
   {"zu",	HB_TAG('Z','U','L',' ')} 	/* Zulu */
 
@@ -571,6 +571,14 @@ static const LangTag ot_languages[] = {
 /*{"??",	HB_TAG('Z','H','P',' ')},*/	/* Chinese Phonetic */
 };
 
+static const LangTag ot_languages_zh[] = {
+  {"zh-cn",	HB_TAG('Z','H','S',' ')},	/* Chinese (China) */
+  {"zh-hk",	HB_TAG('Z','H','H',' ')},	/* Chinese (Hong Kong) */
+  {"zh-mo",	HB_TAG('Z','H','T',' ')},	/* Chinese (Macao) */
+  {"zh-sg",	HB_TAG('Z','H','S',' ')},	/* Chinese (Singapore) */
+  {"zh-tw",	HB_TAG('Z','H','T',' ')} 	/* Chinese (Taiwan) */
+};
+
 static int
 lang_compare_first_component (const char *a,
 			      const char *b)
@@ -592,65 +600,57 @@ lang_matches (const char *lang_str, const char *spec)
 {
   unsigned int len = strlen (spec);
 
-  return lang_str && strncmp (lang_str, spec, len) == 0 &&
+  return strncmp (lang_str, spec, len) == 0 &&
 	 (lang_str[len] == '\0' || lang_str[len] == '-');
 }
 
 hb_tag_t
 hb_ot_tag_from_language (hb_language_t language)
 {
-  const char *lang_str;
-  LangTag *lang_tag;
+  const char *lang_str, *s;
+  const LangTag *lang_tag;
 
   if (language == NULL)
     return HB_OT_TAG_DEFAULT_LANGUAGE;
 
   lang_str = hb_language_to_string (language);
 
-  if (0 == strncmp (lang_str, "x-hbot", 6)) {
+  s = strstr (lang_str, "x-hbot");
+  if (s) {
     char tag[4];
     int i;
-    lang_str += 6;
-    for (i = 0; i < 4 && ISALPHA (lang_str[i]); i++)
-      tag[i] = TOUPPER (lang_str[i]);
-    for (; i < 4; i++)
-      tag[i] = ' ';
-    return HB_TAG_CHAR4 (tag);
+    s += 6;
+    for (i = 0; i < 4 && ISALPHA (s[i]); i++)
+      tag[i] = TOUPPER (s[i]);
+    if (i) {
+      for (; i < 4; i++)
+	tag[i] = ' ';
+      return HB_TAG_CHAR4 (tag);
+    }
   }
 
-  /* find a language matching in the first component */
+  /* Find a language matching in the first component */
   lang_tag = (LangTag *) bsearch (lang_str, ot_languages,
 				  ARRAY_LENGTH (ot_languages), sizeof (LangTag),
 				  (hb_compare_func_t) lang_compare_first_component);
-
-  /* we now need to find the best language matching */
-  if (lang_tag)
-  {
-    hb_bool_t found = FALSE;
-
-    /* go to the final one matching in the first component */
-    while (lang_tag + 1 < ot_languages + ARRAY_LENGTH (ot_languages) &&
-	   lang_compare_first_component (lang_str, (lang_tag + 1)->language) == 0)
-      lang_tag++;
-
-    /* go back, find which one matches completely */
-    while (lang_tag >= ot_languages &&
-	   lang_compare_first_component (lang_str, lang_tag->language) == 0)
-    {
-      if (lang_matches (lang_str, lang_tag->language)) {
-	found = TRUE;
-	break;
-      }
-
-      lang_tag--;
-    }
-
-    if (!found)
-      lang_tag = NULL;
-  }
-
   if (lang_tag)
     return lang_tag->tag;
+
+  /* Otherwise, check the Chinese ones */
+  if (0 == lang_compare_first_component (lang_str, "zh"))
+  {
+    unsigned int i;
+
+    for (i = 0; i < ARRAY_LENGTH (ot_languages_zh); i++)
+    {
+      lang_tag = &ot_languages_zh[i];
+      if (lang_matches (lang_tag->language, lang_str))
+	return lang_tag->tag;
+    }
+
+    /* Otherwise just return 'ZHS ' */
+    return HB_TAG('Z','H','S',' ');
+  }
 
   return HB_OT_TAG_DEFAULT_LANGUAGE;
 }
@@ -659,18 +659,45 @@ hb_language_t
 hb_ot_tag_to_language (hb_tag_t tag)
 {
   unsigned int i;
-  unsigned char buf[11] = "x-hbot";
+
+  if (tag == HB_OT_TAG_DEFAULT_LANGUAGE)
+    return NULL;
 
   for (i = 0; i < ARRAY_LENGTH (ot_languages); i++)
     if (ot_languages[i].tag == tag)
       return hb_language_from_string (ot_languages[i].language);
 
-  buf[6] = tag >> 24;
-  buf[7] = (tag >> 16) & 0xFF;
-  buf[8] = (tag >> 8) & 0xFF;
-  buf[9] = tag & 0xFF;
-  buf[10] = '\0';
-  return hb_language_from_string ((char *) buf);
+  /* If tag starts with ZH, it's Chinese */
+  if ((tag & 0xFFFF0000)  == 0x5A480000) {
+    switch (tag) {
+      case HB_TAG('Z','H','H',' '): return hb_language_from_string ("zh-hk"); /* Hong Kong */
+      default: {
+        /* Encode the tag... */
+	unsigned char buf[14] = "zh-x-hbot";
+	buf[9] = tag >> 24;
+	buf[10] = (tag >> 16) & 0xFF;
+	buf[11] = (tag >> 8) & 0xFF;
+	buf[12] = tag & 0xFF;
+	if (buf[12] == 0x20)
+	  buf[12] = '\0';
+	buf[13] = '\0';
+	return hb_language_from_string ((char *) buf);
+      }
+    }
+  }
+
+  /* Else return a custom language in the form of "x-hbotXXXX" */
+  {
+    unsigned char buf[11] = "x-hbot";
+    buf[6] = tag >> 24;
+    buf[7] = (tag >> 16) & 0xFF;
+    buf[8] = (tag >> 8) & 0xFF;
+    buf[9] = tag & 0xFF;
+    if (buf[9] == 0x20)
+      buf[9] = '\0';
+    buf[10] = '\0';
+    return hb_language_from_string ((char *) buf);
+  }
 }
 
 
