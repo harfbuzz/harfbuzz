@@ -208,8 +208,17 @@ test_ot_tag_language (void)
 
   test_language_two_way ("ABC", "x-hbotabc");
   test_tag_from_language ("ABC", "asdf-asdf-wer-x-hbotabc-zxc");
+  test_tag_from_language ("ABC", "asdf-asdf-wer-x-hbotabc");
+  test_tag_from_language ("ABCD", "asdf-asdf-wer-x-hbotabcd");
 
   test_tag_from_language ("dflt", "asdf-asdf-wer-x-hbot-zxc");
+
+  /* Test that x-hbot overrides the base language */
+  test_tag_from_language ("ABC", "fa-x-hbotabc-zxc");
+  test_tag_from_language ("ABC", "fa-ir-x-hbotabc-zxc");
+  test_tag_from_language ("ABC", "zh-x-hbotabc-zxc");
+  test_tag_from_language ("ABC", "zh-cn-x-hbotabc-zxc");
+  test_tag_from_language ("ABC", "zh-xy-x-hbotabc-zxc");
 }
 
 int
