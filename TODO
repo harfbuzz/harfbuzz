@@ -24,6 +24,8 @@ API issues to fix before 1.0:
 API to add (maybe after 1.0):
 ============================
 
+- BCP 47 language handling / API (language_matches?)
+
 - Add hb_face_get_glyph_count()?
 
 - Add hb_font_create_linear()?
