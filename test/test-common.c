@@ -156,6 +156,8 @@ test_types_language (void)
   hb_language_t fa_ir = hb_language_from_string ("fa-ir");
   hb_language_t en = hb_language_from_string ("en");
 
+  g_assert (HB_LANGUAGE_INVALID == NULL);
+
   g_assert (fa != NULL);
   g_assert (fa_IR != NULL);
   g_assert (fa_IR == fa_ir);
@@ -167,13 +169,14 @@ test_types_language (void)
   g_assert (en == hb_language_from_string ("en"));
   g_assert (en == hb_language_from_string ("eN"));
 
-  g_assert (NULL == hb_language_from_string (NULL));
-  g_assert (NULL == hb_language_from_string (""));
+  g_assert (HB_LANGUAGE_INVALID == hb_language_from_string (NULL));
+  g_assert (HB_LANGUAGE_INVALID == hb_language_from_string (""));
+  g_assert (NULL == hb_language_to_string (HB_LANGUAGE_INVALID));
 
   /* Not sure how to test this better.  Setting env vars
    * here doesn't sound like the right approach, and I'm
    * not sure that it even works. */
-  g_assert (NULL != hb_language_get_default ());
+  g_assert (HB_LANGUAGE_INVALID != hb_language_get_default ());
 }
 
 int

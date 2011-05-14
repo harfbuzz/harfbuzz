@@ -169,16 +169,17 @@ hb_language_t
 hb_language_from_string (const char *str)
 {
   if (!str || !*str)
-    return NULL;
+    return HB_LANGUAGE_INVALID;
 
   hb_language_item_t *item = langs.find_or_insert (str, langs_lock);
 
-  return likely (item) ? item->lang : NULL;
+  return likely (item) ? item->lang : HB_LANGUAGE_INVALID;
 }
 
 const char *
 hb_language_to_string (hb_language_t language)
 {
+  /* This is actually NULL-safe! */
   return language->s;
 }
 

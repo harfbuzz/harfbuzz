@@ -79,7 +79,7 @@ hb_shape (hb_font_t          *font,
   }
 
   /* If language is not set, use default language from locale */
-  if (buffer->props.language == NULL) {
+  if (buffer->props.language == HB_LANGUAGE_INVALID) {
     /* TODO get_default_for_script? using $LANGUAGE */
     buffer->props.language = hb_language_get_default ();
   }

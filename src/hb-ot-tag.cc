@@ -610,7 +610,7 @@ hb_ot_tag_from_language (hb_language_t language)
   const char *lang_str, *s;
   const LangTag *lang_tag;
 
-  if (language == NULL)
+  if (language == HB_LANGUAGE_INVALID)
     return HB_OT_TAG_DEFAULT_LANGUAGE;
 
   lang_str = hb_language_to_string (language);
