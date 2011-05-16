@@ -28,6 +28,12 @@
 
 /* Unit tests for hb-shape.h */
 
+/*
+ * This test provides a framework to test aspects of hb_shape() that are
+ * font-independent.  Please add tests for any feature that fits that
+ * description.
+ */
+
 
 static const char test_data[] = "test\0data";
 
