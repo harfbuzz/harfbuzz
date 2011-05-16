@@ -67,9 +67,9 @@ glyph_func (hb_font_t *font, void *font_data,
 
 static void
 kerning_func (hb_font_t *font, void *font_data,
-		    hb_codepoint_t left, hb_codepoint_t right,
-		    hb_position_t *x_kern, hb_position_t *y_kern,
-		    void *user_data)
+	      hb_codepoint_t left, hb_codepoint_t right,
+	      hb_position_t *x_kern, hb_position_t *y_kern,
+	      void *user_data)
 {
   if (left == 1 && right == 2) {
     *x_kern = -2;

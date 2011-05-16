@@ -127,10 +127,10 @@ hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs);
 
 typedef struct _hb_glyph_extents_t
 {
-    hb_position_t x_bearing;
-    hb_position_t y_bearing;
-    hb_position_t width;
-    hb_position_t height;
+  hb_position_t x_bearing;
+  hb_position_t y_bearing;
+  hb_position_t width;
+  hb_position_t height;
 } hb_glyph_extents_t;
 
 
