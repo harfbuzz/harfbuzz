@@ -142,7 +142,6 @@ hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
   FT_Face ft_face = (FT_Face) font_data;
   FT_Vector kerning;
 
-  /* TODO: Kern type? */
   if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, FT_KERNING_DEFAULT, &kerning))
     return;
 
