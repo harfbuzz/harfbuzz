@@ -350,7 +350,7 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_glyph_info_t *hb_glyph;
   hb_glyph_position_t *hb_position;
   unsigned int num_glyphs, i;
-  hb_position_t x;
+  hb_position_t x, y;
 
   hb_buffer = hb_buffer_create (0);
 
@@ -372,12 +372,14 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_position = hb_buffer_get_glyph_positions (hb_buffer, NULL);
   cairo_glyphs = cairo_glyph_allocate (num_glyphs);
   x = 0;
+  y = 0;
   for (i = 0; i < num_glyphs; i++)
     {
       cairo_glyphs[i].index = hb_glyph->codepoint;
-      cairo_glyphs[i].x = (hb_position->x_offset + x) * (1./64);
-      cairo_glyphs[i].y = -(hb_position->y_offset)    * (1./64);
-      x += hb_position->x_advance;
+      cairo_glyphs[i].x = ( hb_position->x_offset + x) * (1./64);
+      cairo_glyphs[i].y = (-hb_position->y_offset + y) * (1./64);
+      x +=  hb_position->x_advance;
+      y += -hb_position->y_advance;
 
       hb_glyph++;
       hb_position++;
