@@ -370,7 +370,7 @@ _hb_cr_text_glyphs (cairo_t *cr,
   num_glyphs = hb_buffer_get_length (hb_buffer);
   hb_glyph = hb_buffer_get_glyph_infos (hb_buffer, NULL);
   hb_position = hb_buffer_get_glyph_positions (hb_buffer, NULL);
-  cairo_glyphs = cairo_glyph_allocate (num_glyphs + 1);
+  cairo_glyphs = cairo_glyph_allocate (num_glyphs);
   x = 0;
   for (i = 0; i < num_glyphs; i++)
     {
@@ -382,7 +382,6 @@ _hb_cr_text_glyphs (cairo_t *cr,
       hb_glyph++;
       hb_position++;
     }
-  cairo_glyphs[i].x = x * (1./64);
   hb_buffer_destroy (hb_buffer);
   hb_font_destroy (hb_font);
   cairo_ft_scaled_font_unlock_face (scaled_font);
