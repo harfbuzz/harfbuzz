@@ -773,6 +773,7 @@ struct SubstLookup : Lookup
 
     c->face = face;
     c->buffer = buffer;
+    c->direction = buffer->props.direction;
     c->lookup_mask = lookup_mask;
     c->context_length = context_length;
     c->nesting_level_left = nesting_level_left;

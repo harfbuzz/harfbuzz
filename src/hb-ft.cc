@@ -36,76 +36,24 @@
 HB_BEGIN_DECLS
 
 
-static hb_bool_t
-hb_ft_get_contour_point (hb_font_t *font HB_UNUSED,
-			 void *font_data,
-			 hb_codepoint_t glyph,
-			 unsigned int point_index,
-			 hb_position_t *x,
-			 hb_position_t *y,
-			 void *user_data HB_UNUSED)
-{
-  FT_Face ft_face = (FT_Face) font_data;
-  int load_flags = FT_LOAD_DEFAULT;
+/* TODO:
+ *
+ * In general, this file does a fine job of what it's supposed to do.
+ * There are, however, things that need more work:
+ *
+ *   - We don't handle any load_flags.  That definitely has API implications. :(
+ *     I believe hb_ft_font_create() should take load_flags input.
+ *
+ *   - We don't handle / allow for emboldening / obliqueing.
+ *
+ *   - In the future, we should add constructors to create fonts in font space.
+ *
+ *   - I believe transforms are not correctly implemented.  FreeType does not
+ *     provide any API to get to the transform/delta set on the face. :(
+ *
+ *   - Always use FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH?
+ */
 
-  /* TODO: load_flags, embolden, etc */
-
-  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
-      return FALSE;
-
-  if (unlikely (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE))
-      return FALSE;
-
-  if (unlikely (point_index >= (unsigned int) ft_face->glyph->outline.n_points))
-      return FALSE;
-
-  *x = ft_face->glyph->outline.points[point_index].x;
-  *y = ft_face->glyph->outline.points[point_index].y;
-
-  return TRUE;
-}
-
-static void
-hb_ft_get_glyph_advance (hb_font_t *font HB_UNUSED,
-			 void *font_data,
-			 hb_codepoint_t glyph,
-			 hb_position_t *x_advance,
-			 hb_position_t *y_advance,
-			 void *user_data HB_UNUSED)
-{
-  FT_Face ft_face = (FT_Face) font_data;
-  int load_flags = FT_LOAD_DEFAULT;
-
-  /* TODO: load_flags, embolden, etc */
-
-  if (likely (!FT_Load_Glyph (ft_face, glyph, load_flags)))
-  {
-    *x_advance = ft_face->glyph->advance.x;
-    *y_advance = ft_face->glyph->advance.y;
-  }
-}
-
-static void
-hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
-			 void *font_data,
-			 hb_codepoint_t glyph,
-			 hb_glyph_extents_t *extents,
-			 void *user_data HB_UNUSED)
-{
-  FT_Face ft_face = (FT_Face) font_data;
-  int load_flags = FT_LOAD_DEFAULT;
-
-  /* TODO: load_flags, embolden, etc */
-
-  if (likely (!FT_Load_Glyph (ft_face, glyph, load_flags)))
-  {
-    /* XXX: A few negations should be in order here, not sure. */
-    extents->x_bearing = ft_face->glyph->metrics.horiBearingX;
-    extents->y_bearing = ft_face->glyph->metrics.horiBearingY;
-    extents->width = ft_face->glyph->metrics.width;
-    extents->height = ft_face->glyph->metrics.height;
-  }
-}
 
 static hb_bool_t
 hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
@@ -130,23 +78,144 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
   return *glyph != 0;
 }
 
-static void
-hb_ft_get_kerning (hb_font_t *font HB_UNUSED,
-		   void *font_data,
-		   hb_codepoint_t left_glyph,
-		   hb_codepoint_t right_glyph,
-		   hb_position_t *x_kern,
-		   hb_position_t *y_kern,
-		   void *user_data HB_UNUSED)
+static hb_bool_t
+hb_ft_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
+			   void *font_data,
+			   hb_codepoint_t glyph,
+			   hb_position_t *x_advance,
+			   hb_position_t *y_advance,
+			   void *user_data HB_UNUSED)
+{
+  FT_Face ft_face = (FT_Face) font_data;
+  int load_flags = FT_LOAD_DEFAULT;
+
+  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
+    return FALSE;
+
+  *x_advance = ft_face->glyph->metrics.horiAdvance;
+  return TRUE;
+}
+
+static hb_bool_t
+hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
+			   void *font_data,
+			   hb_codepoint_t glyph,
+			   hb_position_t *x_advance,
+			   hb_position_t *y_advance,
+			   void *user_data HB_UNUSED)
+{
+  FT_Face ft_face = (FT_Face) font_data;
+  int load_flags = FT_LOAD_DEFAULT;
+
+  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
+    return FALSE;
+
+  *y_advance = -ft_face->glyph->metrics.vertAdvance;
+  return TRUE;
+}
+
+static hb_bool_t
+hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
+			  void *font_data,
+			  hb_codepoint_t glyph,
+			  hb_position_t *x_origin,
+			  hb_position_t *y_origin,
+			  void *user_data HB_UNUSED)
+{
+  FT_Face ft_face = (FT_Face) font_data;
+  int load_flags = FT_LOAD_DEFAULT;
+
+  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
+    return FALSE;
+
+  *y_origin = ft_face->glyph->metrics.vertAdvance;
+  return TRUE;
+}
+
+static hb_bool_t
+hb_ft_get_h_kerning (hb_font_t *font HB_UNUSED,
+		     void *font_data,
+		     hb_codepoint_t left_glyph,
+		     hb_codepoint_t right_glyph,
+		     hb_position_t *x_kern,
+		     hb_position_t *y_kern,
+		     void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
   FT_Vector kerning;
 
   if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, FT_KERNING_DEFAULT, &kerning))
-    return;
+    return FALSE;
 
   *x_kern = kerning.x;
   *y_kern = kerning.y;
+  return TRUE;
+}
+
+static hb_bool_t
+hb_ft_get_v_kerning (hb_font_t *font HB_UNUSED,
+		     void *font_data,
+		     hb_codepoint_t top_glyph,
+		     hb_codepoint_t bottom_glyph,
+		     hb_position_t *x_kern,
+		     hb_position_t *y_kern,
+		     void *user_data HB_UNUSED)
+{
+  /* FreeType API doesn't support vertical kerning */
+  return FALSE;
+}
+
+static hb_bool_t
+hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
+			 void *font_data,
+			 hb_codepoint_t glyph,
+			 hb_bool_t *vertical,
+			 hb_glyph_extents_t *extents,
+			 void *user_data HB_UNUSED)
+{
+  FT_Face ft_face = (FT_Face) font_data;
+  int load_flags = FT_LOAD_DEFAULT;
+
+  /* TODO: load_flags, embolden, etc, shape/transform */
+
+  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
+    return FALSE;
+
+  /* XXX: A few negations should be in order here, not sure. */
+  extents->x_bearing = ft_face->glyph->metrics.horiBearingX;
+  extents->y_bearing = ft_face->glyph->metrics.horiBearingY;
+  extents->width = ft_face->glyph->metrics.width;
+  extents->height = ft_face->glyph->metrics.height;
+  return TRUE;
+}
+
+static hb_bool_t
+hb_ft_get_contour_point (hb_font_t *font HB_UNUSED,
+			 void *font_data,
+			 hb_codepoint_t glyph,
+			 unsigned int point_index,
+			 hb_bool_t *vertical,
+			 hb_position_t *x,
+			 hb_position_t *y,
+			 void *user_data HB_UNUSED)
+{
+  FT_Face ft_face = (FT_Face) font_data;
+  int load_flags = FT_LOAD_DEFAULT;
+
+  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
+      return FALSE;
+
+  if (unlikely (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE))
+      return FALSE;
+
+  if (unlikely (point_index >= (unsigned int) ft_face->glyph->outline.n_points))
+      return FALSE;
+
+  *x = ft_face->glyph->outline.points[point_index].x;
+  *y = ft_face->glyph->outline.points[point_index].y;
+  *vertical = FALSE; /* We always return position in horizontal coordinates */
+
+  return TRUE;
 }
 
 static hb_font_funcs_t ft_ffuncs = {
@@ -155,11 +224,14 @@ static hb_font_funcs_t ft_ffuncs = {
   TRUE, /* immutable */
 
   {
-    hb_ft_get_contour_point,
-    hb_ft_get_glyph_advance,
-    hb_ft_get_glyph_extents,
     hb_ft_get_glyph,
-    hb_ft_get_kerning
+    hb_ft_get_glyph_h_advance,
+    hb_ft_get_glyph_v_advance,
+    hb_ft_get_glyph_v_origin,
+    hb_ft_get_h_kerning,
+    hb_ft_get_v_kerning,
+    hb_ft_get_glyph_extents,
+    hb_ft_get_contour_point,
   }
 };
 
@@ -210,7 +282,10 @@ hb_ft_face_create (FT_Face           ft_face,
 
     blob = hb_blob_create ((const char *) ft_face->stream->base,
 			   (unsigned int) ft_face->stream->size,
-			   /* TODO: Check FT_FACE_FLAG_EXTERNAL_STREAM? */
+			   /* TODO: We assume that it's mmap()'ed, but FreeType code
+			    * suggests that there are cases we reach here but font is
+			    * not mmapped.  For example, when mmap() fails.  No idea
+			    * how to deal with it better here. */
 			   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE,
 			   ft_face, destroy);
     face = hb_face_create (blob, ft_face->face_index);

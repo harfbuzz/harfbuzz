@@ -210,6 +210,7 @@ struct AnchorFormat1
 
   private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
+			  hb_direction_t direction HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
       *x = font->em_scale_x (xCoordinate);
@@ -235,6 +236,7 @@ struct AnchorFormat2
 
   private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id,
+			  hb_direction_t direction,
 			  hb_position_t *x, hb_position_t *y) const
   {
       unsigned int x_ppem = font->x_ppem;
@@ -243,7 +245,7 @@ struct AnchorFormat2
       hb_bool_t ret = false;
 
       if (x_ppem || y_ppem)
-	ret = hb_font_get_contour_point (font, glyph_id, anchorPoint, &cx, &cy);
+	ret = hb_font_get_contour_point_for_direction (font, glyph_id, anchorPoint, direction, &cx, &cy);
       *x = x_ppem && ret ? cx : font->em_scale_x (xCoordinate);
       *y = y_ppem && ret ? cy : font->em_scale_y (yCoordinate);
   }
@@ -268,6 +270,7 @@ struct AnchorFormat3
 
   private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
+			  hb_direction_t direction HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
       *x = font->em_scale_x (xCoordinate);
@@ -306,14 +309,15 @@ struct AnchorFormat3
 struct Anchor
 {
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id,
+			  hb_direction_t direction,
 			  hb_position_t *x, hb_position_t *y) const
   {
     *x = *y = 0;
     switch (u.format) {
-    case 1: u.format1.get_anchor (font, glyph_id, x, y); return;
-    case 2: u.format2.get_anchor (font, glyph_id, x, y); return;
-    case 3: u.format3.get_anchor (font, glyph_id, x, y); return;
-    default:						 return;
+    case 1: u.format1.get_anchor (font, glyph_id, direction, x, y); return;
+    case 2: u.format2.get_anchor (font, glyph_id, direction, x, y); return;
+    case 3: u.format3.get_anchor (font, glyph_id, direction, x, y); return;
+    default:							    return;
     }
   }
 
@@ -403,8 +407,8 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
-    mark_anchor.get_anchor (c->font, c->buffer->info[c->buffer->i].codepoint, &mark_x, &mark_y);
-    glyph_anchor.get_anchor (c->font, c->buffer->info[glyph_pos].codepoint, &base_x, &base_y);
+    mark_anchor.get_anchor (c->font, c->buffer->info[c->buffer->i].codepoint, c->direction, &mark_x, &mark_y);
+    glyph_anchor.get_anchor (c->font, c->buffer->info[glyph_pos].codepoint, c->direction, &base_x, &base_y);
 
     hb_glyph_position_t &o = c->buffer->pos[c->buffer->i];
     o.x_offset = base_x - mark_x;
@@ -859,23 +863,21 @@ struct CursivePosFormat1
     unsigned int i = c->buffer->i;
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
-    (this+this_record.exitAnchor).get_anchor (c->font, c->buffer->info[i].codepoint, &exit_x, &exit_y);
-    (this+next_record.entryAnchor).get_anchor (c->font, c->buffer->info[j].codepoint, &entry_x, &entry_y);
-
-    hb_direction_t direction = c->buffer->props.direction;
+    (this+this_record.exitAnchor).get_anchor (c->font, c->buffer->info[i].codepoint, c->direction, &exit_x, &exit_y);
+    (this+next_record.entryAnchor).get_anchor (c->font, c->buffer->info[j].codepoint, c->direction, &entry_x, &entry_y);
 
     /* Align the exit anchor of the left/top glyph with the entry anchor of the right/bottom glyph
      * by adjusting advance of the left/top glyph. */
-    if (HB_DIRECTION_IS_BACKWARD (direction))
+    if (HB_DIRECTION_IS_BACKWARD (c->direction))
     {
-      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
 	c->buffer->pos[j].x_advance = c->buffer->pos[j].x_offset + entry_x - exit_x;
       else
 	c->buffer->pos[j].y_advance = c->buffer->pos[j].y_offset + entry_y - exit_y;
     }
     else
     {
-      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
 	c->buffer->pos[i].x_advance = c->buffer->pos[i].x_offset + exit_x - entry_x;
       else
 	c->buffer->pos[i].y_advance = c->buffer->pos[i].y_offset + exit_y - entry_y;
@@ -884,7 +886,7 @@ struct CursivePosFormat1
     if  (c->lookup_props & LookupFlag::RightToLeft)
     {
       c->buffer->pos[i].cursive_chain() = j - i;
-      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
 	c->buffer->pos[i].y_offset = entry_y - exit_y;
       else
 	c->buffer->pos[i].x_offset = entry_x - exit_x;
@@ -892,7 +894,7 @@ struct CursivePosFormat1
     else
     {
       c->buffer->pos[j].cursive_chain() = i - j;
-      if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
 	c->buffer->pos[j].y_offset = exit_y - entry_y;
       else
 	c->buffer->pos[j].x_offset = exit_x - entry_x;
@@ -1414,6 +1416,7 @@ struct PosLookup : Lookup
     c->font = font;
     c->face = font->face;
     c->buffer = buffer;
+    c->direction = buffer->props.direction;
     c->lookup_mask = lookup_mask;
     c->context_length = context_length;
     c->nesting_level_left = nesting_level_left;

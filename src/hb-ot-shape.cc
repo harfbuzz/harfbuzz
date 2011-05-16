@@ -169,7 +169,7 @@ hb_ensure_native_direction (hb_ot_shape_context_t *c)
 {
   hb_direction_t direction = c->buffer->props.direction;
 
-  /* TODO vertical */
+  /* XXX vertical */
   if (HB_DIRECTION_IS_HORIZONTAL (direction) &&
       direction != hb_script_get_horizontal_direction (c->buffer->props.script))
   {
@@ -258,9 +258,10 @@ hb_position_default (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_font_get_glyph_advance (c->font, c->buffer->info[i].codepoint,
-			       &c->buffer->pos[i].x_advance,
-			       &c->buffer->pos[i].y_advance);
+    hb_font_get_glyph_advance_for_direction (c->font, c->buffer->info[i].codepoint,
+					     c->buffer->props.direction,
+					     &c->buffer->pos[i].x_advance,
+					     &c->buffer->pos[i].y_advance);
   }
 }
 
@@ -277,7 +278,10 @@ hb_truetype_kern (hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++) {
     hb_position_t x_kern, y_kern, kern1, kern2;
-    hb_font_get_kerning (c->font, c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint, &x_kern, &y_kern);
+    hb_font_get_kerning_for_direction (c->font,
+				       c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
+				       c->buffer->props.direction,
+				       &x_kern, &y_kern);
 
     kern1 = x_kern >> 1;
     kern2 = x_kern - kern1;

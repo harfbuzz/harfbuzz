@@ -56,6 +56,7 @@ struct hb_apply_context_t
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
+  hb_direction_t direction;
   hb_mask_t lookup_mask;
   unsigned int context_length;
   unsigned int nesting_level_left;

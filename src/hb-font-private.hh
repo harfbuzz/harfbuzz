@@ -48,28 +48,33 @@ struct _hb_font_funcs_t {
 
   /* Don't access these directly.  Call hb_font_get_*() instead. */
 
+#define HB_FONT_FUNCS_IMPLEMENT_CALLBACKS \
+  HB_FONT_FUNC_IMPLEMENT (glyph) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_h_advance) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_v_advance) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_v_origin) \
+  HB_FONT_FUNC_IMPLEMENT (h_kerning) \
+  HB_FONT_FUNC_IMPLEMENT (v_kerning) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_extents) \
+  HB_FONT_FUNC_IMPLEMENT (contour_point)
+
+
   struct {
-    hb_font_get_contour_point_func_t	contour_point;
-    hb_font_get_glyph_advance_func_t	glyph_advance;
-    hb_font_get_glyph_extents_func_t	glyph_extents;
-    hb_font_get_glyph_func_t		glyph;
-    hb_font_get_kerning_func_t		kerning;
+#define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_func_t name;
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
   } get;
 
   struct {
-    void				*contour_point;
-    void				*glyph_advance;
-    void				*glyph_extents;
-    void				*glyph;
-    void				*kerning;
+#define HB_FONT_FUNC_IMPLEMENT(name) void *name;
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
   } user_data;
 
   struct {
-    hb_destroy_func_t			contour_point;
-    hb_destroy_func_t			glyph_advance;
-    hb_destroy_func_t			glyph_extents;
-    hb_destroy_func_t			glyph;
-    hb_destroy_func_t			kerning;
+#define HB_FONT_FUNC_IMPLEMENT(name) hb_destroy_func_t name;
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
   } destroy;
 };
 

@@ -686,7 +686,7 @@ hb_ot_tag_to_language (hb_tag_t tag)
     }
   }
 
-  /* Else return a custom language in the form of "x-hbotXXXX" */
+  /* Else return a custom language in the form of "x-hbotABCD" */
   {
     unsigned char buf[11] = "x-hbot";
     buf[6] = tag >> 24;
