@@ -115,6 +115,18 @@ hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
+hb_ft_get_glyph_h_origin (hb_font_t *font HB_UNUSED,
+			  void *font_data HB_UNUSED,
+			  hb_codepoint_t glyph HB_UNUSED,
+			  hb_position_t *x_origin HB_UNUSED,
+			  hb_position_t *y_origin HB_UNUSED,
+			  void *user_data HB_UNUSED)
+{
+  /* We always work in the horizontal coordinates. */
+  return TRUE;
+}
+
+static hb_bool_t
 hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
 			  void *font_data,
 			  hb_codepoint_t glyph,
@@ -128,18 +140,18 @@ hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
 
-  *y_origin = ft_face->glyph->metrics.vertAdvance;
+  /* XXX */*y_origin = ft_face->glyph->metrics.vertAdvance;
   return TRUE;
 }
 
 static hb_bool_t
-hb_ft_get_h_kerning (hb_font_t *font HB_UNUSED,
-		     void *font_data,
-		     hb_codepoint_t left_glyph,
-		     hb_codepoint_t right_glyph,
-		     hb_position_t *x_kern,
-		     hb_position_t *y_kern,
-		     void *user_data HB_UNUSED)
+hb_ft_get_glyph_h_kerning (hb_font_t *font HB_UNUSED,
+			   void *font_data,
+			   hb_codepoint_t left_glyph,
+			   hb_codepoint_t right_glyph,
+			   hb_position_t *x_kern,
+			   hb_position_t *y_kern,
+			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
   FT_Vector kerning;
@@ -153,13 +165,13 @@ hb_ft_get_h_kerning (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_ft_get_v_kerning (hb_font_t *font HB_UNUSED,
-		     void *font_data,
-		     hb_codepoint_t top_glyph,
-		     hb_codepoint_t bottom_glyph,
-		     hb_position_t *x_kern,
-		     hb_position_t *y_kern,
-		     void *user_data HB_UNUSED)
+hb_ft_get_glyph_v_kerning (hb_font_t *font HB_UNUSED,
+			   void *font_data HB_UNUSED,
+			   hb_codepoint_t top_glyph HB_UNUSED,
+			   hb_codepoint_t bottom_glyph HB_UNUSED,
+			   hb_position_t *x_kern HB_UNUSED,
+			   hb_position_t *y_kern HB_UNUSED,
+			   void *user_data HB_UNUSED)
 {
   /* FreeType API doesn't support vertical kerning */
   return FALSE;
@@ -169,7 +181,6 @@ static hb_bool_t
 hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
 			 void *font_data,
 			 hb_codepoint_t glyph,
-			 hb_bool_t *vertical,
 			 hb_glyph_extents_t *extents,
 			 void *user_data HB_UNUSED)
 {
@@ -190,14 +201,13 @@ hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_ft_get_contour_point (hb_font_t *font HB_UNUSED,
-			 void *font_data,
-			 hb_codepoint_t glyph,
-			 unsigned int point_index,
-			 hb_bool_t *vertical,
-			 hb_position_t *x,
-			 hb_position_t *y,
-			 void *user_data HB_UNUSED)
+hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
+			       void *font_data,
+			       hb_codepoint_t glyph,
+			       unsigned int point_index,
+			       hb_position_t *x,
+			       hb_position_t *y,
+			       void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
   int load_flags = FT_LOAD_DEFAULT;
@@ -213,7 +223,6 @@ hb_ft_get_contour_point (hb_font_t *font HB_UNUSED,
 
   *x = ft_face->glyph->outline.points[point_index].x;
   *y = ft_face->glyph->outline.points[point_index].y;
-  *vertical = FALSE; /* We always return position in horizontal coordinates */
 
   return TRUE;
 }
@@ -227,11 +236,12 @@ static hb_font_funcs_t ft_ffuncs = {
     hb_ft_get_glyph,
     hb_ft_get_glyph_h_advance,
     hb_ft_get_glyph_v_advance,
+    hb_ft_get_glyph_h_origin,
     hb_ft_get_glyph_v_origin,
-    hb_ft_get_h_kerning,
-    hb_ft_get_v_kerning,
+    hb_ft_get_glyph_h_kerning,
+    hb_ft_get_glyph_v_kerning,
     hb_ft_get_glyph_extents,
-    hb_ft_get_contour_point,
+    hb_ft_get_glyph_contour_point,
   }
 };
 

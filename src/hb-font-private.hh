@@ -52,11 +52,12 @@ struct _hb_font_funcs_t {
   HB_FONT_FUNC_IMPLEMENT (glyph) \
   HB_FONT_FUNC_IMPLEMENT (glyph_h_advance) \
   HB_FONT_FUNC_IMPLEMENT (glyph_v_advance) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_h_origin) \
   HB_FONT_FUNC_IMPLEMENT (glyph_v_origin) \
-  HB_FONT_FUNC_IMPLEMENT (h_kerning) \
-  HB_FONT_FUNC_IMPLEMENT (v_kerning) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_h_kerning) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_v_kerning) \
   HB_FONT_FUNC_IMPLEMENT (glyph_extents) \
-  HB_FONT_FUNC_IMPLEMENT (contour_point)
+  HB_FONT_FUNC_IMPLEMENT (glyph_contour_point)
 
 
   struct {

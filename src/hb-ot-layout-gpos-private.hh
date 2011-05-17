@@ -245,7 +245,7 @@ struct AnchorFormat2
       hb_bool_t ret = false;
 
       if (x_ppem || y_ppem)
-	ret = hb_font_get_contour_point_for_direction (font, glyph_id, anchorPoint, direction, &cx, &cy);
+	ret = hb_font_get_glyph_contour_point_for_direction (font, glyph_id, anchorPoint, direction, &cx, &cy);
       *x = x_ppem && ret ? cx : font->em_scale_x (xCoordinate);
       *y = y_ppem && ret ? cy : font->em_scale_y (yCoordinate);
   }

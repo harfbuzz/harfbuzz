@@ -278,10 +278,10 @@ hb_truetype_kern (hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++) {
     hb_position_t x_kern, y_kern, kern1, kern2;
-    hb_font_get_kerning_for_direction (c->font,
-				       c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
-				       c->buffer->props.direction,
-				       &x_kern, &y_kern);
+    hb_font_get_glyph_kerning_for_direction (c->font,
+					     c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
+					     c->buffer->props.direction,
+					     &x_kern, &y_kern);
 
     kern1 = x_kern >> 1;
     kern2 = x_kern - kern1;
