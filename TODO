@@ -9,6 +9,8 @@ General fixes:
 
 - Fix tt kern on/off and GPOS interaction
 
+- Do proper rounding when scaling from font space?
+
 API issues to fix before 1.0:
 ============================
 
