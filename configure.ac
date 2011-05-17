@@ -34,7 +34,7 @@ AC_SUBST(HB_VERSION)
 
 
 # Functions and headers
-AC_CHECK_FUNCS(mprotect sysconf getpagesize)
+AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap)
 AC_CHECK_HEADERS(unistd.h sys/mman.h)
 
 # Compiler flags

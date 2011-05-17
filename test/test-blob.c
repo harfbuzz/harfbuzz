@@ -28,7 +28,7 @@
 
 /* Unit tests for hb-blob.h */
 
-#if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT)
+#if defined(HAVE_SYS_MMAN_H) && defined(HAVE_MPROTECT) && defined(HAVE_MMAP)
 
 # define TEST_MMAP 1
 
@@ -109,6 +109,7 @@ free_up_free (fixture_t *fixture)
 }
 
 
+#ifdef TEST_MMAP
 static uintptr_t
 get_pagesize (void)
 {
@@ -133,6 +134,7 @@ free_up_munmap (fixture_t *fixture)
   free_up (fixture);
   munmap (fixture->data, get_pagesize ());
 }
+#endif
 
 #include <errno.h>
 static void
@@ -164,7 +166,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
       free_func = (hb_destroy_func_t) free_up_free;
       break;
 
-#if TEST_MMAP
+#ifdef TEST_MMAP
     case HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE:
     {
       uintptr_t pagesize = get_pagesize ();
