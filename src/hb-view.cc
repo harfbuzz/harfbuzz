@@ -62,6 +62,7 @@ static const char *script = NULL;
 static const char *language = NULL;
 static hb_feature_t *features = NULL;
 static unsigned int num_features;
+static hb_bool_t annotate = FALSE;
 static hb_bool_t debug = FALSE;
 
 /* Ugh, global vars.  Ugly, but does the job */
@@ -99,6 +100,7 @@ parse_opts (int argc, char **argv)
     {
       int option_index = 0, c;
       static struct option long_options[] = {
+	{"annotate", 0, &annotate, TRUE},
 	{"background", 1, 0, 'B'},
 	{"debug", 0, &debug, TRUE},
 	{"direction", 1, 0, 'd'},
@@ -411,7 +413,7 @@ create_context (void)
   fr = fg = fb = 0; fa = 255;
   sscanf (fore + (*fore=='#'), "%2x%2x%2x%2x", &fr, &fg, &fb, &fa);
 
-  if (ba == 255 && fa == 255 && br == bg && bg == bb && fr == fg && fg == fb) {
+  if (!annotate && ba == 255 && fa == 255 && br == bg && bg == bb && fr == fg && fg == fb) {
     /* grayscale.  use A8 surface */
     surface = cairo_image_surface_create (CAIRO_FORMAT_A8, width, height);
     cr = cairo_create (surface);
@@ -482,6 +484,22 @@ draw (void)
       width = MAX (width, extents.x_advance);
       cairo_save (cr);
       cairo_translate (cr, x, y);
+      if (annotate) {
+        unsigned int i;
+        cairo_save (cr);
+
+	/* Draw actual glyph origins */
+	cairo_set_source_rgba (cr, 1., 0., 0., .5);
+	cairo_set_line_width (cr, 5);
+	cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
+	for (i = 0; i < num_glyphs; i++) {
+	  cairo_move_to (cr, glyphs[i].x, glyphs[i].y);
+	  cairo_rel_line_to (cr, 0, 0);
+	}
+	cairo_stroke (cr);
+
+        cairo_restore (cr);
+      }
       cairo_show_glyphs (cr, glyphs, num_glyphs);
       cairo_restore (cr);
       y += ceil (font_extents.height - ceil (font_extents.ascent));
