@@ -82,8 +82,8 @@ static hb_bool_t
 hb_ft_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t glyph,
-			   hb_position_t *x_advance,
-			   hb_position_t *y_advance,
+			   hb_position_t *x,
+			   hb_position_t *y,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
@@ -92,7 +92,7 @@ hb_ft_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
 
-  *x_advance = ft_face->glyph->metrics.horiAdvance;
+  *x = ft_face->glyph->metrics.horiAdvance;
   return TRUE;
 }
 
@@ -100,8 +100,8 @@ static hb_bool_t
 hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t glyph,
-			   hb_position_t *x_advance,
-			   hb_position_t *y_advance,
+			   hb_position_t *x,
+			   hb_position_t *y,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
@@ -110,7 +110,7 @@ hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
 
-  *y_advance = -ft_face->glyph->metrics.vertAdvance;
+  *y = -ft_face->glyph->metrics.vertAdvance;
   return TRUE;
 }
 
@@ -118,8 +118,8 @@ static hb_bool_t
 hb_ft_get_glyph_h_origin (hb_font_t *font HB_UNUSED,
 			  void *font_data HB_UNUSED,
 			  hb_codepoint_t glyph HB_UNUSED,
-			  hb_position_t *x_origin HB_UNUSED,
-			  hb_position_t *y_origin HB_UNUSED,
+			  hb_position_t *x HB_UNUSED,
+			  hb_position_t *y HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   /* We always work in the horizontal coordinates. */
@@ -130,8 +130,8 @@ static hb_bool_t
 hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
 			  void *font_data,
 			  hb_codepoint_t glyph,
-			  hb_position_t *x_origin,
-			  hb_position_t *y_origin,
+			  hb_position_t *x,
+			  hb_position_t *y,
 			  void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
@@ -140,7 +140,7 @@ hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
 
-  /* XXX */*y_origin = ft_face->glyph->metrics.vertAdvance;
+  /* XXX */*y = ft_face->glyph->metrics.vertAdvance;
   return TRUE;
 }
 
@@ -149,8 +149,8 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t left_glyph,
 			   hb_codepoint_t right_glyph,
-			   hb_position_t *x_kern,
-			   hb_position_t *y_kern,
+			   hb_position_t *x,
+			   hb_position_t *y,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
@@ -159,8 +159,8 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font HB_UNUSED,
   if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, FT_KERNING_DEFAULT, &kerning))
     return FALSE;
 
-  *x_kern = kerning.x;
-  *y_kern = kerning.y;
+  *x = kerning.x;
+  *y = kerning.y;
   return TRUE;
 }
 
@@ -169,8 +169,8 @@ hb_ft_get_glyph_v_kerning (hb_font_t *font HB_UNUSED,
 			   void *font_data HB_UNUSED,
 			   hb_codepoint_t top_glyph HB_UNUSED,
 			   hb_codepoint_t bottom_glyph HB_UNUSED,
-			   hb_position_t *x_kern HB_UNUSED,
-			   hb_position_t *y_kern HB_UNUSED,
+			   hb_position_t *x HB_UNUSED,
+			   hb_position_t *y HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   /* FreeType API doesn't support vertical kerning */
@@ -186,8 +186,6 @@ hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
 {
   FT_Face ft_face = (FT_Face) font_data;
   int load_flags = FT_LOAD_DEFAULT;
-
-  /* TODO: load_flags, embolden, etc, shape/transform */
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
