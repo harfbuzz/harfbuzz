@@ -503,9 +503,10 @@ hb_font_get_glyph_extents_for_direction (hb_font_t *font,
   hb_bool_t ret = hb_font_get_glyph_extents (font, glyph, extents);
 
   if (ret) {
-    /* XXX Adjust origin */
-  } else {
-    /* TODO Simulate using get_h_advance and font_extents? */
+    hb_position_t origin_x, origin_y;
+    hb_font_get_glyph_origin_for_direction (font, glyph, direction, &origin_x, &origin_y);
+    extents->x_bearing += origin_x;
+    extents->y_bearing += origin_y;
   }
 }
 
@@ -518,7 +519,10 @@ hb_font_get_glyph_contour_point_for_direction (hb_font_t *font,
   hb_bool_t ret = hb_font_get_glyph_contour_point (font, glyph, point_index, x, y);
 
   if (ret) {
-    /* XXX Adjust origin */
+    hb_position_t origin_x, origin_y;
+    hb_font_get_glyph_origin_for_direction (font, glyph, direction, &origin_x, &origin_y);
+    *x += origin_x;
+    *y += origin_y;
   }
 
   return ret;
