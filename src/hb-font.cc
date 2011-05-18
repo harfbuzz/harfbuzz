@@ -448,7 +448,7 @@ hb_font_get_glyph_advance_for_direction (hb_font_t *font,
   if (HB_DIRECTION_IS_VERTICAL (direction)) {
     hb_bool_t ret = hb_font_get_glyph_v_advance (font, glyph, x_advance, y_advance);
     if (!ret) {
-      /* TODO Simulate using h_advance and font_extents */
+      /* TODO return font_extents.ascent + font_extents.descent? */
     }
   } else {
     hb_font_get_glyph_h_advance (font, glyph, x_advance, y_advance);
@@ -464,7 +464,7 @@ hb_font_get_glyph_origin_for_direction (hb_font_t *font,
   if (HB_DIRECTION_IS_VERTICAL (direction)) {
     hb_bool_t ret = hb_font_get_glyph_v_origin (font, glyph, x_origin, y_origin);
     if (!ret) {
-      /* TODO Simulate using XXX h_origin and font_extents */
+      /* TODO return h_origin/2. and font_extents.ascent */
     }
   } else {
     hb_font_get_glyph_h_origin (font, glyph, x_origin, y_origin);
