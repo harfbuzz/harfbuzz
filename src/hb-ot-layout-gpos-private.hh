@@ -104,11 +104,11 @@ struct ValueFormat : USHORT
 
     if (!format) return;
 
-    /* design units -> fractional pixel */
     if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++));
     if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++));
     if (format & xAdvance)   glyph_pos.x_advance += font->em_scale_x (get_short (values++));
-    if (format & yAdvance)   glyph_pos.y_advance += font->em_scale_y (get_short (values++));
+    /* y_advance values grow downward but font-space grows upward, hence negation */
+    if (format & yAdvance)   glyph_pos.y_advance -= font->em_scale_y (get_short (values++));
 
     if (!has_device ()) return;
 
@@ -128,7 +128,8 @@ struct ValueFormat : USHORT
       if (x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_x_delta (font); else values++;
     }
     if (format & yAdvDevice) {
-      if (y_ppem) glyph_pos.y_advance += (base + get_device (values++)).get_y_delta (font); else values++;
+      /* y_advance values grow downward but font-space grows upward, hence negation */
+      if (y_ppem) glyph_pos.y_advance -= (base + get_device (values++)).get_y_delta (font); else values++;
     }
   }
 
