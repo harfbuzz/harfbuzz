@@ -71,7 +71,7 @@ hb_font_get_glyph_h_advance_nil (hb_font_t *font HB_UNUSED,
     return;
   }
 
-  *advance = 0;
+  *advance = font->x_scale;
 }
 
 static void
@@ -89,7 +89,7 @@ hb_font_get_glyph_v_advance_nil (hb_font_t *font HB_UNUSED,
     return;
   }
 
-  *advance = 0;
+  *advance = font->y_scale;
 }
 
 static hb_bool_t
@@ -450,6 +450,21 @@ hb_font_get_glyph_advance_for_direction (hb_font_t *font,
   }
 }
 
+static void
+guess_v_origin_minus_h_origin (hb_font_t *font,
+			       hb_codepoint_t glyph,
+			       hb_position_t *x, hb_position_t *y)
+{
+  *x = *y = 0;
+
+  hb_font_get_glyph_h_advance (font, glyph, x);
+  *x /= 2;
+
+  /* TODO use font_metics.ascent */
+  *y = font->y_scale;
+}
+
+
 void
 hb_font_get_glyph_origin_for_direction (hb_font_t *font,
 					hb_codepoint_t glyph,
@@ -457,11 +472,18 @@ hb_font_get_glyph_origin_for_direction (hb_font_t *font,
 					hb_position_t *x, hb_position_t *y)
 {
   if (likely (HB_DIRECTION_IS_HORIZONTAL (direction))) {
-    hb_font_get_glyph_h_origin (font, glyph, x, y);
+    hb_bool_t ret = hb_font_get_glyph_h_origin (font, glyph, x, y);
+    if (!ret && (ret = hb_font_get_glyph_v_origin (font, glyph, x, y))) {
+      hb_position_t dx, dy;
+      guess_v_origin_minus_h_origin (font, glyph, &dx, &dy);
+      *x -= dx; *y -= dy;
+    }
   } else {
     hb_bool_t ret = hb_font_get_glyph_v_origin (font, glyph, x, y);
-    if (!ret) {
-      /* TODO return h_origin/2. and font_extents.ascent */
+    if (!ret && (ret = hb_font_get_glyph_h_origin (font, glyph, x, y))) {
+      hb_position_t dx, dy;
+      guess_v_origin_minus_h_origin (font, glyph, &dx, &dy);
+      *x += dx; *y += dy;
     }
   }
 }
