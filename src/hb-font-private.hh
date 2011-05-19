@@ -138,10 +138,10 @@ struct _hb_font_t {
     return v;
   }
   inline hb_position_t parent_scale_x_position (hb_position_t v) {
-    return parent_scale_x_distance (v); /* We don't have translation right now */
+    return parent_scale_x_distance (v);
   }
   inline hb_position_t parent_scale_y_position (hb_position_t v) {
-    return parent_scale_y_distance (v); /* We don't have translation right now */
+    return parent_scale_y_distance (v);
   }
 
   inline void parent_scale_distance (hb_position_t *x, hb_position_t *y) {

@@ -210,7 +210,6 @@ struct AnchorFormat1
 
   private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
-			  hb_direction_t direction HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
       *x = font->em_scale_x (xCoordinate);
@@ -236,7 +235,6 @@ struct AnchorFormat2
 
   private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id,
-			  hb_direction_t direction,
 			  hb_position_t *x, hb_position_t *y) const
   {
       unsigned int x_ppem = font->x_ppem;
@@ -245,7 +243,7 @@ struct AnchorFormat2
       hb_bool_t ret = false;
 
       if (x_ppem || y_ppem)
-	ret = hb_font_get_glyph_contour_point_for_direction (font, glyph_id, anchorPoint, direction, &cx, &cy);
+	ret = hb_font_get_glyph_contour_point_for_origin (font, glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
       *x = x_ppem && ret ? cx : font->em_scale_x (xCoordinate);
       *y = y_ppem && ret ? cy : font->em_scale_y (yCoordinate);
   }
@@ -270,13 +268,11 @@ struct AnchorFormat3
 
   private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
-			  hb_direction_t direction HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
       *x = font->em_scale_x (xCoordinate);
       *y = font->em_scale_y (yCoordinate);
 
-      /* pixel -> fractional pixel */
       if (font->x_ppem)
 	*x += (this+xDeviceTable).get_x_delta (font);
       if (font->y_ppem)
@@ -309,15 +305,14 @@ struct AnchorFormat3
 struct Anchor
 {
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id,
-			  hb_direction_t direction,
 			  hb_position_t *x, hb_position_t *y) const
   {
     *x = *y = 0;
     switch (u.format) {
-    case 1: u.format1.get_anchor (font, glyph_id, direction, x, y); return;
-    case 2: u.format2.get_anchor (font, glyph_id, direction, x, y); return;
-    case 3: u.format3.get_anchor (font, glyph_id, direction, x, y); return;
-    default:							    return;
+    case 1: u.format1.get_anchor (font, glyph_id, x, y); return;
+    case 2: u.format2.get_anchor (font, glyph_id, x, y); return;
+    case 3: u.format3.get_anchor (font, glyph_id, x, y); return;
+    default:						 return;
     }
   }
 
@@ -407,8 +402,8 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
-    mark_anchor.get_anchor (c->font, c->buffer->info[c->buffer->i].codepoint, c->direction, &mark_x, &mark_y);
-    glyph_anchor.get_anchor (c->font, c->buffer->info[glyph_pos].codepoint, c->direction, &base_x, &base_y);
+    mark_anchor.get_anchor (c->font, c->buffer->info[c->buffer->i].codepoint, &mark_x, &mark_y);
+    glyph_anchor.get_anchor (c->font, c->buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
     hb_glyph_position_t &o = c->buffer->pos[c->buffer->i];
     o.x_offset = base_x - mark_x;
@@ -863,8 +858,8 @@ struct CursivePosFormat1
     unsigned int i = c->buffer->i;
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
-    (this+this_record.exitAnchor).get_anchor (c->font, c->buffer->info[i].codepoint, c->direction, &exit_x, &exit_y);
-    (this+next_record.entryAnchor).get_anchor (c->font, c->buffer->info[j].codepoint, c->direction, &entry_x, &entry_y);
+    (this+this_record.exitAnchor).get_anchor (c->font, c->buffer->info[i].codepoint, &exit_x, &exit_y);
+    (this+next_record.entryAnchor).get_anchor (c->font, c->buffer->info[j].codepoint, &entry_x, &entry_y);
 
     /* Align the exit anchor of the left/top glyph with the entry anchor of the right/bottom glyph
      * by adjusting advance of the left/top glyph. */

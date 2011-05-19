@@ -1,6 +1,6 @@
 /*
  * Copyright © 2007,2008,2009  Red Hat, Inc.
- * Copyright © 2010  Google, Inc.
+ * Copyright © 2010,2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -96,7 +96,7 @@ struct CaretValueFormat1
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id HB_UNUSED) const
+  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id HB_UNUSED) const
   {
     return HB_DIRECTION_IS_HORIZONTAL (direction) ? font->em_scale_x (coordinate) : font->em_scale_y (coordinate);
   }
@@ -118,10 +118,10 @@ struct CaretValueFormat2
   friend struct CaretValue;
 
   private:
-  inline int get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
+  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
     hb_position_t x, y;
-    if (hb_font_get_glyph_contour_point_for_direction (font, glyph_id, caretValuePoint, direction, &x, &y))
+    if (hb_font_get_glyph_contour_point_for_origin (font, glyph_id, caretValuePoint, direction, &x, &y))
       return HB_DIRECTION_IS_HORIZONTAL (direction) ? x : y;
     else
       return 0;
@@ -143,7 +143,7 @@ struct CaretValueFormat3
 {
   friend struct CaretValue;
 
-  inline int get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
+  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
     return HB_DIRECTION_IS_HORIZONTAL (direction) ?
            font->em_scale_x (coordinate) + (this+deviceTable).get_x_delta (font) :
@@ -169,7 +169,7 @@ struct CaretValueFormat3
 
 struct CaretValue
 {
-  inline int get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
+  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
     case 1: return u.format1.get_caret_value (font, direction, glyph_id);
@@ -208,7 +208,7 @@ struct LigGlyph
 				      hb_codepoint_t glyph_id,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
-				      int *caret_array /* OUT */) const
+				      hb_position_t *caret_array /* OUT */) const
   {
     if (caret_count) {
       const OffsetTo<CaretValue> *array = carets.sub_array (start_offset, caret_count);
@@ -241,7 +241,7 @@ struct LigCaretList
 				      hb_codepoint_t glyph_id,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
-				      int *caret_array /* OUT */) const
+				      hb_position_t *caret_array /* OUT */) const
   {
     unsigned int index = (this+coverage) (glyph_id);
     if (index == NOT_COVERED)
@@ -357,7 +357,7 @@ struct GDEF
 				      hb_codepoint_t glyph_id,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
-				      int *caret_array /* OUT */) const
+				      hb_position_t *caret_array /* OUT */) const
   { return (this+ligCaretList).get_lig_carets (font, direction, glyph_id, start_offset, caret_count, caret_array); }
 
   inline bool has_mark_sets (void) const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }

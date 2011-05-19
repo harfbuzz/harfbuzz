@@ -121,7 +121,22 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
   if (!hb_ot_layout_has_positioning (c->face))
     return;
 
+  unsigned int count = c->buffer->len;
+  for (unsigned int i = 0; i < count; i++) {
+    hb_font_add_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
+					    HB_DIRECTION_LTR,
+					    &c->buffer->pos[i].x_offset,
+					    &c->buffer->pos[i].y_offset);
+  }
+
   c->plan->map.position (c->font, c->face, c->buffer);
+
+  for (unsigned int i = 0; i < count; i++) {
+    hb_font_subtract_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
+						 HB_DIRECTION_LTR,
+						 &c->buffer->pos[i].x_offset,
+						 &c->buffer->pos[i].y_offset);
+  }
 
   hb_ot_layout_position_finish (c->buffer);
 

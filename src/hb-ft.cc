@@ -78,42 +78,38 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
   return *glyph != 0;
 }
 
-static hb_bool_t
+static void
 hb_ft_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t glyph,
-			   hb_position_t *x,
-			   hb_position_t *y,
+			   hb_position_t *advance,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
   int load_flags = FT_LOAD_DEFAULT;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
-    return FALSE;
+    return;
 
-  *x = ft_face->glyph->metrics.horiAdvance;
-  return TRUE;
+  *advance = ft_face->glyph->metrics.horiAdvance;
 }
 
-static hb_bool_t
+static void
 hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t glyph,
-			   hb_position_t *x,
-			   hb_position_t *y,
+			   hb_position_t *advance,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
   int load_flags = FT_LOAD_DEFAULT;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
-    return FALSE;
+    return;
 
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
-  *y = -ft_face->glyph->metrics.vertAdvance;
-  return TRUE;
+  *advance = -ft_face->glyph->metrics.vertAdvance;
 }
 
 static hb_bool_t
@@ -147,45 +143,36 @@ hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
   *x = ft_face->glyph->metrics.horiBearingX -   ft_face->glyph->metrics.vertBearingX;
   *y = ft_face->glyph->metrics.horiBearingY - (-ft_face->glyph->metrics.vertBearingY);
 
-  /* TODO ??
-  if (glyph->format == FT_GLYPH_FORMAT_OUTLINE)
-    FT_Vector_Transform (&vector, &scaled_font->unscaled->Current_Shape);
-   */
-
   return TRUE;
 }
 
-static hb_bool_t
+static void
 hb_ft_get_glyph_h_kerning (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t left_glyph,
 			   hb_codepoint_t right_glyph,
-			   hb_position_t *x,
-			   hb_position_t *y,
+			   hb_position_t *kerning,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
-  FT_Vector kerning;
+  FT_Vector kerningv;
 
-  if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, FT_KERNING_DEFAULT, &kerning))
-    return FALSE;
+  if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, FT_KERNING_DEFAULT, &kerningv))
+    return;
 
-  *x = kerning.x;
-  *y = kerning.y;
-  return TRUE;
+  *kerning = kerningv.x;
 }
 
-static hb_bool_t
+static void
 hb_ft_get_glyph_v_kerning (hb_font_t *font HB_UNUSED,
 			   void *font_data HB_UNUSED,
 			   hb_codepoint_t top_glyph HB_UNUSED,
 			   hb_codepoint_t bottom_glyph HB_UNUSED,
-			   hb_position_t *x HB_UNUSED,
-			   hb_position_t *y HB_UNUSED,
+			   hb_position_t *kerning HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   /* FreeType API doesn't support vertical kerning */
-  return FALSE;
+  return;
 }
 
 static hb_bool_t
