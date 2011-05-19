@@ -275,6 +275,16 @@ hb_font_get_glyph_origin_for_direction (hb_font_t *font,
 					hb_codepoint_t glyph,
 					hb_direction_t direction,
 					hb_position_t *x, hb_position_t *y);
+void
+hb_font_add_glyph_origin_for_direction (hb_font_t *font,
+					hb_codepoint_t glyph,
+					hb_direction_t direction,
+					hb_position_t *x, hb_position_t *y);
+void
+hb_font_subtract_glyph_origin_for_direction (hb_font_t *font,
+					     hb_codepoint_t glyph,
+					     hb_direction_t direction,
+					     hb_position_t *x, hb_position_t *y);
 
 void
 hb_font_get_glyph_kerning_for_direction (hb_font_t *font,

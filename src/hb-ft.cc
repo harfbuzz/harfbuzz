@@ -110,6 +110,8 @@ hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
 
+  /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
+   * have a Y growing upward.  Hence the extra negation. */
   *y = -ft_face->glyph->metrics.vertAdvance;
   return TRUE;
 }
@@ -140,7 +142,16 @@ hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
 
-  /* XXX */*y = ft_face->glyph->metrics.vertAdvance;
+  /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
+   * have a Y growing upward.  Hence the extra negation. */
+  *x = ft_face->glyph->metrics.horiBearingX -   ft_face->glyph->metrics.vertBearingX;
+  *y = ft_face->glyph->metrics.horiBearingY - (-ft_face->glyph->metrics.vertBearingY);
+
+  /* TODO ??
+  if (glyph->format == FT_GLYPH_FORMAT_OUTLINE)
+    FT_Vector_Transform (&vector, &scaled_font->unscaled->Current_Shape);
+   */
+
   return TRUE;
 }
 
@@ -190,7 +201,6 @@ hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
     return FALSE;
 
-  /* XXX: A few negations should be in order here, not sure. */
   extents->x_bearing = ft_face->glyph->metrics.horiBearingX;
   extents->y_bearing = ft_face->glyph->metrics.horiBearingY;
   extents->width = ft_face->glyph->metrics.width;

@@ -262,6 +262,10 @@ hb_position_default (hb_ot_shape_context_t *c)
 					     c->buffer->props.direction,
 					     &c->buffer->pos[i].x_advance,
 					     &c->buffer->pos[i].y_advance);
+    hb_font_subtract_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
+						 c->buffer->props.direction,
+						 &c->buffer->pos[i].x_offset,
+						 &c->buffer->pos[i].y_offset);
   }
 }
 
