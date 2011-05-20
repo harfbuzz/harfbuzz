@@ -95,20 +95,26 @@ struct ValueFormat : USHORT
   { return get_len () * Value::static_size; }
 
   void apply_value (hb_font_t            *font,
+		    hb_direction_t        direction,
 		    const void           *base,
 		    const Value          *values,
 		    hb_glyph_position_t  &glyph_pos) const
   {
     unsigned int x_ppem, y_ppem;
     unsigned int format = *this;
+    hb_bool_t horizontal = HB_DIRECTION_IS_HORIZONTAL (direction);
 
     if (!format) return;
 
     if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++));
     if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++));
-    if (format & xAdvance)   glyph_pos.x_advance += font->em_scale_x (get_short (values++));
+    if (format & xAdvance) {
+      if (likely (horizontal)) glyph_pos.x_advance += font->em_scale_x (get_short (values++)); else values++;
+    }
     /* y_advance values grow downward but font-space grows upward, hence negation */
-    if (format & yAdvance)   glyph_pos.y_advance -= font->em_scale_y (get_short (values++));
+    if (format & yAdvance) {
+      if (unlikely (!horizontal)) glyph_pos.y_advance -= font->em_scale_y (get_short (values++)); else values++;
+    }
 
     if (!has_device ()) return;
 
@@ -125,11 +131,11 @@ struct ValueFormat : USHORT
       if (y_ppem) glyph_pos.y_offset  += (base + get_device (values++)).get_y_delta (font); else values++;
     }
     if (format & xAdvDevice) {
-      if (x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_x_delta (font); else values++;
+      if (horizontal && x_ppem) glyph_pos.x_advance += (base + get_device (values++)).get_x_delta (font); else values++;
     }
     if (format & yAdvDevice) {
       /* y_advance values grow downward but font-space grows upward, hence negation */
-      if (y_ppem) glyph_pos.y_advance -= (base + get_device (values++)).get_y_delta (font); else values++;
+      if (!horizontal && y_ppem) glyph_pos.y_advance -= (base + get_device (values++)).get_y_delta (font); else values++;
     }
   }
 
@@ -436,7 +442,8 @@ struct SinglePosFormat1
     if (likely (index == NOT_COVERED))
       return false;
 
-    valueFormat.apply_value (c->font, this, values, c->buffer->pos[c->buffer->i]);
+    valueFormat.apply_value (c->font, c->direction, this,
+			     values, c->buffer->pos[c->buffer->i]);
 
     c->buffer->i++;
     return true;
@@ -478,7 +485,7 @@ struct SinglePosFormat2
     if (likely (index >= valueCount))
       return false;
 
-    valueFormat.apply_value (c->font, this,
+    valueFormat.apply_value (c->font, c->direction, this,
 			     &values[index * valueFormat.get_len ()],
 			     c->buffer->pos[c->buffer->i]);
 
@@ -574,8 +581,10 @@ struct PairSet
     {
       if (c->buffer->info[pos].codepoint == record->secondGlyph)
       {
-	valueFormats[0].apply_value (c->font, this, &record->values[0], c->buffer->pos[c->buffer->i]);
-	valueFormats[1].apply_value (c->font, this, &record->values[len1], c->buffer->pos[pos]);
+	valueFormats[0].apply_value (c->font, c->direction, this,
+				     &record->values[0], c->buffer->pos[c->buffer->i]);
+	valueFormats[1].apply_value (c->font, c->direction, this,
+				     &record->values[len1], c->buffer->pos[pos]);
 	if (len2)
 	  pos++;
 	c->buffer->i = pos;
@@ -709,8 +718,10 @@ struct PairPosFormat2
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (c->font, this, v, c->buffer->pos[c->buffer->i]);
-    valueFormat2.apply_value (c->font, this, v + len1, c->buffer->pos[j]);
+    valueFormat1.apply_value (c->font, c->direction, this,
+			      v, c->buffer->pos[c->buffer->i]);
+    valueFormat2.apply_value (c->font, c->direction, this,
+			      v + len1, c->buffer->pos[j]);
 
     if (len2)
       j++;
