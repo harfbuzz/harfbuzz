@@ -21,17 +21,33 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
 # Version
-m4_define(version_triplet,m4_split(AC_PACKAGE_VERSION,[[.]]))
-HB_VERSION_MAJOR=m4_argn(1,version_triplet)
-HB_VERSION_MINOR=m4_argn(2,version_triplet)
-HB_VERSION_MICRO=m4_argn(3,version_triplet)
+m4_define(hb_version_triplet,m4_split(AC_PACKAGE_VERSION,[[.]]))
+m4_define(hb_version_major,m4_argn(1,hb_version_triplet))
+m4_define(hb_version_minor,m4_argn(2,hb_version_triplet))
+m4_define(hb_version_micro,m4_argn(3,hb_version_triplet))
+HB_VERSION_MAJOR=hb_version_major
+HB_VERSION_MINOR=hb_version_minor
+HB_VERSION_MICRO=hb_version_micro
 HB_VERSION=AC_PACKAGE_VERSION
-
 AC_SUBST(HB_VERSION_MAJOR)
 AC_SUBST(HB_VERSION_MINOR)
 AC_SUBST(HB_VERSION_MICRO)
 AC_SUBST(HB_VERSION)
 
+# Libtool version
+m4_define([hb_version_int],
+	  m4_eval(hb_version_major*10000 + hb_version_minor*100 + hb_version_micro))
+m4_if(m4_eval(hb_version_minor % 2), [1],
+      dnl for unstable releases
+      [m4_define([hb_libtool_revision], 0)],
+      dnl for stable releases
+      [m4_define([hb_libtool_revision], hb_version_micro)])
+m4_define([hb_libtool_age],
+	  m4_eval(hb_version_int - hb_libtool_revision))
+m4_define([hb_libtool_current],
+	  m4_eval(hb_version_major + hb_libtool_age))
+HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
+AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
 # Functions and headers
 AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap)
