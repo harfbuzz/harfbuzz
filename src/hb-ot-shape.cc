@@ -184,9 +184,12 @@ hb_ensure_native_direction (hb_ot_shape_context_t *c)
 {
   hb_direction_t direction = c->buffer->props.direction;
 
-  /* XXX vertical */
-  if (HB_DIRECTION_IS_HORIZONTAL (direction) &&
-      direction != hb_script_get_horizontal_direction (c->buffer->props.script))
+  /* TODO vertical:
+   * The only BTT vertical script is Ogham, but it's not clear to me whether OpenType
+   * Ogham fonts are supposed to be implemented BTT or not.  Need to research that
+   * first. */
+  if ((HB_DIRECTION_IS_HORIZONTAL (direction) && direction != hb_script_get_horizontal_direction (c->buffer->props.script)) ||
+      (HB_DIRECTION_IS_VERTICAL   (direction) && direction != HB_DIRECTION_TTB))
   {
     hb_buffer_reverse_clusters (c->buffer);
     c->buffer->props.direction = HB_DIRECTION_REVERSE (c->buffer->props.direction);

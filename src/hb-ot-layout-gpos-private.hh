@@ -873,38 +873,57 @@ struct CursivePosFormat1
     (this+this_record.exitAnchor).get_anchor (c->font, c->buffer->info[i].codepoint, &exit_x, &exit_y);
     (this+next_record.entryAnchor).get_anchor (c->font, c->buffer->info[j].codepoint, &entry_x, &entry_y);
 
-    /* Align the exit anchor of the left/top glyph with the entry anchor of the right/bottom glyph
-     * by adjusting advance of the left/top glyph. */
-    if (HB_DIRECTION_IS_BACKWARD (c->direction))
-    {
-      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
-	c->buffer->pos[j].x_advance = c->buffer->pos[j].x_offset + entry_x - exit_x;
-      else
-	c->buffer->pos[j].y_advance = c->buffer->pos[j].y_offset + entry_y - exit_y;
-    }
-    else
-    {
-      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
-	c->buffer->pos[i].x_advance = c->buffer->pos[i].x_offset + exit_x - entry_x;
-      else
-	c->buffer->pos[i].y_advance = c->buffer->pos[i].y_offset + exit_y - entry_y;
+    hb_glyph_position_t *pos = c->buffer->pos;
+
+    hb_position_t d;
+    /* Main-direction adjustment */
+    switch (c->direction) {
+      case HB_DIRECTION_LTR:
+	pos[i].x_advance  =  exit_x + pos[i].x_offset;
+
+	d = entry_x + pos[j].x_offset;
+	pos[j].x_advance -= d;
+	pos[j].x_offset  -= d;
+	break;
+      case HB_DIRECTION_RTL:
+	d = exit_x + pos[i].x_offset;
+	pos[i].x_advance -= d;
+	pos[i].x_offset  -= d;
+
+	pos[j].x_advance  =  entry_x + pos[j].x_offset;
+	break;
+      case HB_DIRECTION_TTB:
+	pos[i].y_advance  =  exit_y + pos[i].y_offset;
+
+	d = entry_y + pos[j].y_offset;
+	pos[j].y_advance -= d;
+	pos[j].y_offset  -= d;
+	break;
+      case HB_DIRECTION_BTT:
+	d = exit_y + pos[i].y_offset;
+	pos[i].y_advance -= d;
+	pos[i].y_offset  -= d;
+
+	pos[j].y_advance  =  entry_y;
+	break;
+      case HB_DIRECTION_INVALID:
+      default:
+	break;
     }
 
-    if  (c->lookup_props & LookupFlag::RightToLeft)
-    {
-      c->buffer->pos[i].cursive_chain() = j - i;
+    /* Cross-direction adjustment */
+    if  (c->lookup_props & LookupFlag::RightToLeft) {
+      pos[i].cursive_chain() = j - i;
       if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
-	c->buffer->pos[i].y_offset = entry_y - exit_y;
+	pos[i].y_offset = entry_y - exit_y;
       else
-	c->buffer->pos[i].x_offset = entry_x - exit_x;
-    }
-    else
-    {
-      c->buffer->pos[j].cursive_chain() = i - j;
+	pos[i].x_offset = entry_x - exit_x;
+    } else {
+      pos[j].cursive_chain() = i - j;
       if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
-	c->buffer->pos[j].y_offset = exit_y - entry_y;
+	pos[j].y_offset = exit_y - entry_y;
       else
-	c->buffer->pos[j].x_offset = exit_x - entry_x;
+	pos[j].x_offset = exit_x - entry_x;
     }
 
     c->buffer->i = j;
@@ -1500,61 +1519,69 @@ struct GPOS : GSUBGPOS
   DEFINE_SIZE_STATIC (10);
 };
 
+
+static void
+fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
+{
+    unsigned int j = pos[i].cursive_chain();
+    if (likely (!j))
+      return;
+
+    j += i;
+
+    pos[i].cursive_chain() = 0;
+
+    fix_cursive_minor_offset (pos, j, direction);
+
+    if (HB_DIRECTION_IS_HORIZONTAL (direction))
+      pos[i].y_offset += pos[j].y_offset;
+    else
+      pos[i].x_offset += pos[j].x_offset;
+}
+
+static void
+fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
+{
+  if (likely (!(pos[i].attach_lookback())))
+    return;
+
+  unsigned int j = i - pos[i].attach_lookback();
+
+  pos[i].x_advance = 0;
+  pos[i].y_advance = 0;
+  pos[i].x_offset += pos[j].x_offset;
+  pos[i].y_offset += pos[j].y_offset;
+
+  if (HB_DIRECTION_IS_FORWARD (direction))
+    for (unsigned int k = j; k < i; j++) {
+      pos[i].x_offset -= pos[k].x_advance;
+      pos[i].y_offset -= pos[k].y_advance;
+    }
+  else
+    for (unsigned int k = j + 1; k < i + 1; j++) {
+      pos[i].x_offset += pos[k].x_advance;
+      pos[i].y_offset += pos[k].y_advance;
+    }
+}
+
 void
 GPOS::position_finish (hb_buffer_t *buffer)
 {
-  unsigned int i, j;
   unsigned int len;
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &len);
   hb_direction_t direction = buffer->props.direction;
 
-  /* Handle cursive connections:
-   * First handle all chain-back connections, then handle all chain-forward connections. */
-  if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+  /* Handle cursive connections */
+  for (unsigned int i = 0; i < len; i++)
   {
-    for (j = 0; j < len; j++) {
-      if (pos[j].cursive_chain() < 0)
-	pos[j].y_offset += pos[j + pos[j].cursive_chain()].y_offset;
-    }
-    for (i = len; i > 0; i--) {
-      j = i - 1;
-      if (pos[j].cursive_chain() > 0)
-	pos[j].y_offset += pos[j + pos[j].cursive_chain()].y_offset;
-    }
+    fix_cursive_minor_offset (pos, i, direction);
   }
-  else
-  {
-    for (j = 0; j < len; j++) {
-      if (pos[j].cursive_chain() < 0)
-	pos[j].x_offset += pos[j + pos[j].cursive_chain()].x_offset;
-    }
-    for (i = len; i > 0; i--) {
-      j = i - 1;
-      if (pos[j].cursive_chain() > 0)
-	pos[j].x_offset += pos[j + pos[j].cursive_chain()].x_offset;
-    }
-  }
-
 
   /* Handle attachments */
-  for (i = 0; i < len; i++)
-    if (pos[i].attach_lookback())
-    {
-      unsigned int back = i - pos[i].attach_lookback();
-      pos[i].x_offset += pos[back].x_offset;
-      pos[i].y_offset += pos[back].y_offset;
-
-      if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
-	for (j = back + 1; j < i + 1; j++) {
-	  pos[i].x_offset += pos[j].x_advance;
-	  pos[i].y_offset += pos[j].y_advance;
-	}
-      else
-	for (j = back; j < i; j++) {
-	  pos[i].x_offset -= pos[j].x_advance;
-	  pos[i].y_offset -= pos[j].y_advance;
-	}
-    }
+  for (unsigned int i = 0; i < len; i++)
+  {
+    fix_mark_attachment (pos, i, direction);
+  }
 }
 
 
