@@ -121,8 +121,7 @@ _test_font_nil_funcs (hb_font_t *font)
   g_assert_cmpint (x, ==, 0);
   g_assert_cmpint (y, ==, 0);
 
-  x = 13;
-  hb_font_get_glyph_h_advance (font, 17, &x);
+  x = hb_font_get_glyph_h_advance (font, 17);
   g_assert_cmpint (x, ==, 0);
 
   extents.x_bearing = extents.y_bearing = 13;
@@ -138,7 +137,7 @@ _test_font_nil_funcs (hb_font_t *font)
   g_assert_cmpint (glyph, ==, 0);
 
   x = 13;
-  hb_font_get_glyph_h_kerning (font, 17, 19, &x);
+  x = hb_font_get_glyph_h_kerning (font, 17, 19);
   g_assert_cmpint (x, ==, 0);
 }
 
@@ -236,15 +235,15 @@ contour_point_func2 (hb_font_t *font, void *font_data,
 					  glyph, point_index, x, y);
 }
 
-static void
+static hb_position_t
 glyph_h_advance_func1 (hb_font_t *font, void *font_data,
 		       hb_codepoint_t glyph,
-		       hb_position_t *advance,
 		       void *user_data)
 {
-  if (glyph == 1) {
-    *advance = 8;
-  }
+  if (glyph == 1)
+    return 8;
+
+  return 0;
 }
 
 static void
@@ -287,9 +286,9 @@ test_fontfuncs_subclassing (void)
   g_assert (!hb_font_get_glyph_contour_point_for_origin (font1, 3, 7, HB_DIRECTION_RTL, &x, &y));
   g_assert_cmpint (x, ==, 0);
   g_assert_cmpint (y, ==, 0);
-  hb_font_get_glyph_h_advance (font1, 1, &x);
+  x = hb_font_get_glyph_h_advance (font1, 1);
   g_assert_cmpint (x, ==, 8);
-  hb_font_get_glyph_h_advance (font1, 2, &x);
+  x = hb_font_get_glyph_h_advance (font1, 2);
   g_assert_cmpint (x, ==, 0);
 
 
@@ -313,9 +312,9 @@ test_fontfuncs_subclassing (void)
   g_assert (!hb_font_get_glyph_contour_point_for_origin (font2, 3, 7, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 0);
   g_assert_cmpint (y, ==, 0);
-  hb_font_get_glyph_h_advance (font2, 1, &x);
+  x = hb_font_get_glyph_h_advance (font2, 1);
   g_assert_cmpint (x, ==, 8);
-  hb_font_get_glyph_h_advance (font2, 2, &x);
+  x = hb_font_get_glyph_h_advance (font2, 2);
   g_assert_cmpint (x, ==, 0);
 
 
@@ -336,9 +335,9 @@ test_fontfuncs_subclassing (void)
   g_assert (!hb_font_get_glyph_contour_point_for_origin (font3, 3, 7, HB_DIRECTION_LTR, &x, &y));
   g_assert_cmpint (x, ==, 0*2);
   g_assert_cmpint (y, ==, 0*3);
-  hb_font_get_glyph_h_advance (font3, 1, &x);
+  x = hb_font_get_glyph_h_advance (font3, 1);
   g_assert_cmpint (x, ==, 8*2);
-  hb_font_get_glyph_h_advance (font3, 2, &x);
+  x = hb_font_get_glyph_h_advance (font3, 2);
   g_assert_cmpint (x, ==, 0*2);
 
 

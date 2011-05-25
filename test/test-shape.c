@@ -37,17 +37,17 @@
 
 static const char test_data[] = "test\0data";
 
-static void
+static hb_position_t
 glyph_h_advance_func (hb_font_t *font, void *font_data,
 		      hb_codepoint_t glyph,
-		      hb_position_t *advance,
 		      void *user_data)
 {
   switch (glyph) {
-  case 1: *advance = 10; return;
-  case 2: *advance =  6; return;
-  case 3: *advance =  5; return;
+  case 1: return 10;
+  case 2: return 6;
+  case 3: return 5;
   }
+  return 0;
 }
 
 static hb_bool_t
@@ -61,19 +61,18 @@ glyph_func (hb_font_t *font, void *font_data,
   case 'e': *glyph = 2; return TRUE;
   case 's': *glyph = 3; return TRUE;
   }
-
   return FALSE;
 }
 
-static void
+static hb_position_t
 glyph_h_kerning_func (hb_font_t *font, void *font_data,
 		      hb_codepoint_t left, hb_codepoint_t right,
-		      hb_position_t *kerning,
 		      void *user_data)
 {
-  if (left == 1 && right == 2) {
-    *kerning = -2;
-  }
+  if (left == 1 && right == 2)
+    return -2;
+
+  return 0;
 }
 
 static const char TesT[] = "TesT";

@@ -142,10 +142,9 @@ typedef hb_bool_t (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_data,
 					       void *user_data);
 
 
-typedef void (*hb_font_get_glyph_advance_func_t) (hb_font_t *font, void *font_data,
-						  hb_codepoint_t glyph,
-						  hb_position_t *advance,
-						  void *user_data);
+typedef hb_position_t (*hb_font_get_glyph_advance_func_t) (hb_font_t *font, void *font_data,
+							   hb_codepoint_t glyph,
+							   void *user_data);
 typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_h_advance_func_t;
 typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_v_advance_func_t;
 
@@ -156,10 +155,9 @@ typedef hb_bool_t (*hb_font_get_glyph_origin_func_t) (hb_font_t *font, void *fon
 typedef hb_font_get_glyph_origin_func_t hb_font_get_glyph_h_origin_func_t;
 typedef hb_font_get_glyph_origin_func_t hb_font_get_glyph_v_origin_func_t;
 
-typedef void (*hb_font_get_glyph_kerning_func_t) (hb_font_t *font, void *font_data,
-						  hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
-						  hb_position_t *kerning,
-						  void *user_data);
+typedef hb_position_t (*hb_font_get_glyph_kerning_func_t) (hb_font_t *font, void *font_data,
+							   hb_codepoint_t first_glyph, hb_codepoint_t second_glyph,
+							   void *user_data);
 typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_h_kerning_func_t;
 typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_v_kerning_func_t;
 
@@ -183,38 +181,38 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 
 void
 hb_font_funcs_set_glyph_h_advance_func (hb_font_funcs_t *ffuncs,
-					hb_font_get_glyph_h_advance_func_t glyph_advance_func,
+					hb_font_get_glyph_h_advance_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 void
 hb_font_funcs_set_glyph_v_advance_func (hb_font_funcs_t *ffuncs,
-					hb_font_get_glyph_v_advance_func_t glyph_advance_func,
+					hb_font_get_glyph_v_advance_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 
 void
 hb_font_funcs_set_glyph_h_origin_func (hb_font_funcs_t *ffuncs,
-				       hb_font_get_glyph_h_origin_func_t glyph_advance_func,
+				       hb_font_get_glyph_h_origin_func_t func,
 				       void *user_data, hb_destroy_func_t destroy);
 void
 hb_font_funcs_set_glyph_v_origin_func (hb_font_funcs_t *ffuncs,
-				       hb_font_get_glyph_v_origin_func_t glyph_advance_func,
+				       hb_font_get_glyph_v_origin_func_t func,
 				       void *user_data, hb_destroy_func_t destroy);
 
 void
 hb_font_funcs_set_glyph_h_kerning_func (hb_font_funcs_t *ffuncs,
-					hb_font_get_glyph_h_kerning_func_t kerning_func,
+					hb_font_get_glyph_h_kerning_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 void
 hb_font_funcs_set_glyph_v_kerning_func (hb_font_funcs_t *ffuncs,
-					hb_font_get_glyph_v_kerning_func_t kerning_func,
+					hb_font_get_glyph_v_kerning_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 
 void
 hb_font_funcs_set_glyph_extents_func (hb_font_funcs_t *ffuncs,
-				      hb_font_get_glyph_extents_func_t glyph_extents_func,
+				      hb_font_get_glyph_extents_func_t func,
 				      void *user_data, hb_destroy_func_t destroy);
 void
 hb_font_funcs_set_glyph_contour_point_func (hb_font_funcs_t *ffuncs,
-					    hb_font_get_glyph_contour_point_func_t glyph_contour_point_func,
+					    hb_font_get_glyph_contour_point_func_t func,
 					    void *user_data, hb_destroy_func_t destroy);
 
 
@@ -225,14 +223,12 @@ hb_font_get_glyph (hb_font_t *font,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 		   hb_codepoint_t *glyph);
 
-void
+hb_position_t
 hb_font_get_glyph_h_advance (hb_font_t *font,
-			     hb_codepoint_t glyph,
-			     hb_position_t *advance);
-void
+			     hb_codepoint_t glyph);
+hb_position_t
 hb_font_get_glyph_v_advance (hb_font_t *font,
-			     hb_codepoint_t glyph,
-			     hb_position_t *advance);
+			     hb_codepoint_t glyph);
 
 hb_bool_t
 hb_font_get_glyph_h_origin (hb_font_t *font,
@@ -243,14 +239,12 @@ hb_font_get_glyph_v_origin (hb_font_t *font,
 			    hb_codepoint_t glyph,
 			    hb_position_t *x, hb_position_t *y);
 
-void
+hb_position_t
 hb_font_get_glyph_h_kerning (hb_font_t *font,
-			     hb_codepoint_t left_glyph, hb_codepoint_t right_glyph,
-			     hb_position_t *kerning);
-void
+			     hb_codepoint_t left_glyph, hb_codepoint_t right_glyph);
+hb_position_t
 hb_font_get_glyph_v_kerning (hb_font_t *font,
-			     hb_codepoint_t top_glyph, hb_codepoint_t bottom_glyph,
-			     hb_position_t *kerning);
+			     hb_codepoint_t top_glyph, hb_codepoint_t bottom_glyph);
 
 hb_bool_t
 hb_font_get_glyph_extents (hb_font_t *font,
