@@ -69,6 +69,8 @@ Tests to write:
 
 - ot-layout enumeration API (needs font)
 
+- Finish test-shape.c
+
 
 Optimizations:
 =============
