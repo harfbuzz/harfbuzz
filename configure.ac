@@ -3,7 +3,7 @@ AC_INIT([harfbuzz],
         [0.5.0],
         [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz],
         [harfbuzz],
-        [http://freedesktop.org/wiki/Software/harfbuzz])
+        [http://harfbuzz.org/])
 
 AC_CONFIG_SRCDIR([harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
