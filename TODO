@@ -7,9 +7,17 @@ General fixes:
 - Right now, BTW, for non-native direction runs, we get the cluster wrong...
   Should do min(input-glyphs.cluster)
 
-- Fix tt kern on/off and GPOS interaction
+- Fix TT 'kern' on/off and GPOS interaction (move kerning before GPOS)
 
 - Do proper rounding when scaling from font space?
+
+- Adjust default features for vertical text:
+
+  * vrt2 preferred over vert; but if user selects vert, turn vrt2 off?
+  * vkrn (enables vpal?  vpal anyone???);
+  * valt: "This feature is mutually exclusive with all other glyph-height features (e.g. vhal and vpal),
+          which should be turned off when it's applied. It deactivates the kern."
+
 
 API issues to fix before 1.0:
 ============================
@@ -18,7 +26,9 @@ API issues to fix before 1.0:
 
 - Add hb-cairo glue
 
-- Add sanitize API
+- Add sanitize API (and a cached version, that saves result on blob user-data)
+
+- hb_shape() currently does a bit more than hb_ot_shape().  Shouldn't.
 
 - Add glib GBoxedType stuff and introspection
 
