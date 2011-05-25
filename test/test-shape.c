@@ -37,18 +37,17 @@
 
 static const char test_data[] = "test\0data";
 
-static hb_bool_t
-glyph_advance_func (hb_font_t *font, void *font_data,
-		    hb_codepoint_t glyph,
-		    hb_position_t *x_advance, hb_position_t *y_advance,
-		    void *user_data)
+static void
+glyph_h_advance_func (hb_font_t *font, void *font_data,
+		      hb_codepoint_t glyph,
+		      hb_position_t *advance,
+		      void *user_data)
 {
   switch (glyph) {
-  case 1: *x_advance = 10; return TRUE;
-  case 2: *x_advance =  6; return TRUE;
-  case 3: *x_advance =  5; return TRUE;
+  case 1: *advance = 10; return;
+  case 2: *advance =  6; return;
+  case 3: *advance =  5; return;
   }
-  return FALSE;
 }
 
 static hb_bool_t
@@ -66,17 +65,15 @@ glyph_func (hb_font_t *font, void *font_data,
   return FALSE;
 }
 
-static hb_bool_t
-kerning_func (hb_font_t *font, void *font_data,
-	      hb_codepoint_t left, hb_codepoint_t right,
-	      hb_position_t *x_kern, hb_position_t *y_kern,
-	      void *user_data)
+static void
+glyph_h_kerning_func (hb_font_t *font, void *font_data,
+		      hb_codepoint_t left, hb_codepoint_t right,
+		      hb_position_t *kerning,
+		      void *user_data)
 {
   if (left == 1 && right == 2) {
-    *x_kern = -2;
-    return TRUE;
+    *kerning = -2;
   }
-  return FALSE;
 }
 
 static const char TesT[] = "TesT";
@@ -101,9 +98,9 @@ test_shape (void)
   hb_font_set_scale (font, 10, 10);
 
   ffuncs = hb_font_funcs_create ();
-  hb_font_funcs_set_glyph_h_advance_func (ffuncs, glyph_advance_func, NULL, NULL);
+  hb_font_funcs_set_glyph_h_advance_func (ffuncs, glyph_h_advance_func, NULL, NULL);
   hb_font_funcs_set_glyph_func (ffuncs, glyph_func, NULL, NULL);
-  hb_font_funcs_set_h_kerning_func (ffuncs, kerning_func, NULL, NULL);
+  hb_font_funcs_set_glyph_h_kerning_func (ffuncs, glyph_h_kerning_func, NULL, NULL);
   hb_font_set_funcs (font, ffuncs, NULL, NULL);
   hb_font_funcs_destroy (ffuncs);
 
