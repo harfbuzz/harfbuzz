@@ -87,6 +87,12 @@ test_types_direction (void)
   g_assert_cmpint (HB_DIRECTION_RTL, ==, hb_direction_from_string ("RtL"));
   g_assert_cmpint (HB_DIRECTION_RTL, ==, hb_direction_from_string ("right-to-left"));
   g_assert_cmpint (HB_DIRECTION_TTB, ==, hb_direction_from_string ("ttb"));
+
+  g_assert (0 == strcmp ("ltr", hb_direction_to_string (HB_DIRECTION_LTR)));
+  g_assert (0 == strcmp ("rtl", hb_direction_to_string (HB_DIRECTION_RTL)));
+  g_assert (0 == strcmp ("ttb", hb_direction_to_string (HB_DIRECTION_TTB)));
+  g_assert (0 == strcmp ("btt", hb_direction_to_string (HB_DIRECTION_BTT)));
+  g_assert (0 == strcmp ("invalid", hb_direction_to_string (HB_DIRECTION_INVALID)));
 }
 
 static void
