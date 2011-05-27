@@ -1,6 +1,7 @@
-include Makefile.decl
+# Process this file with automake to produce Makefile.in
 
 NULL =
+EXTRA_DIST =
 CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
@@ -14,7 +15,7 @@ EXTRA_DIST += hb-test.h
 check_PROGRAMS = $(TEST_PROGS)
 noinst_PROGRAMS = $(TEST_PROGS)
 
-TEST_PROGS += \
+TEST_PROGS = \
 	test-blob \
 	test-buffer \
 	test-common \
@@ -65,6 +66,47 @@ CLEANFILES += symbols-tested.txt symbols-exported.txt symbols-untested.txt
 test-symbols: symbols-untested.txt
 	@! cat $^ | grep .
 
+TESTS = $(TEST_PROGS)
+TESTS_ENVIRONMENT = \
+	MALLOC_CHECK_=2 \
+	MALLOC_PERTURB_=$$(($${RANDOM:-256} % 256)) \
+	G_DEBUG=gc-friendly \
+	G_SLICE=always-malloc \
+	$(ENV)
+
+# check-tool: Run tests under $(TOOL)
+check-tool:
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) check \
+	TESTS_ENVIRONMENT='$(TESTS_ENVIRONMENT) $(top_builddir)/libtool --mode=execute \
+	env $(TOOL)'
+# check-tool-raw: Run tests under $(TOOL), but don't run under libtool
+check-tool-raw:
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) check \
+	TESTS_ENVIRONMENT='$(TESTS_ENVIRONMENT) \
+	env $(TOOL)'
+
+# check-gtester: Run tests under gtester
+GTESTER = gtester
+check-gtester:
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool-raw TOOL="$(GTESTER) --verbose"
+
+# Check tests under valgrind.  Saves log to valgrind-log
+VALGRIND_FLAGS = \
+	--tool=memcheck --suppressions=$(srcdir)/.valgrind-suppressions \
+	--track-origins=yes \
+	--leak-check=yes
+	$(EXTRA_VALGRIND_FLAGS)
+#	Can't do for now: --show-reachable=yes
+CLEANFILES +=  valgrind-log
+valgrind_verbose = $(valgrind_verbose_$(V))
+valgrind_verbose_ = $(valgrind_verbose_$(AM_DEFAULT_VERBOSITY))
+valgrind_verbose_0 = | \
+	grep '\(^[^=]\|ERROR SUMMARY\|definitely lost\|indirectly lost\)' | grep -v ': 0'
+
+check-valgrind:
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool TOOL="valgrind $(VALGRIND_FLAGS)" \
+	2>&1 | tee valgrind-log $(valgrind_verbose)
+
 
 else
 check-am:
@@ -72,6 +114,6 @@ check-am:
 	@exit 77
 endif
 
-.PHONY: test-symbols
+.PHONY: test-symbols check-tool check-valgrind
 
 -include $(top_srcdir)/git.mk

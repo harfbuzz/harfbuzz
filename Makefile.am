@@ -1,3 +1,5 @@
+# Process this file with automake to produce Makefile.in
+
 NULL =
 
 SUBDIRS = src test
