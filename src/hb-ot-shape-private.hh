@@ -49,6 +49,8 @@ enum hb_ot_complex_shaper_t {
 
 struct hb_ot_shape_plan_t
 {
+  friend struct hb_ot_shape_planner_t;
+
   hb_ot_map_t map;
   hb_ot_complex_shaper_t shaper;
 
@@ -57,6 +59,26 @@ struct hb_ot_shape_plan_t
 
   private:
   NO_COPY (hb_ot_shape_plan_t);
+};
+
+struct hb_ot_shape_planner_t
+{
+  hb_ot_map_builder_t map;
+  hb_ot_complex_shaper_t shaper;
+
+  hb_ot_shape_planner_t (void) : map () {}
+  ~hb_ot_shape_planner_t (void) { map.finish (); }
+
+  inline void compile (hb_face_t *face,
+		       const hb_segment_properties_t *props,
+		       struct hb_ot_shape_plan_t &plan)
+  {
+    plan.shaper = shaper;
+    map.compile (face, props, plan.map);
+  }
+
+  private:
+  NO_COPY (hb_ot_shape_planner_t);
 };
 
 

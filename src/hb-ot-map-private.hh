@@ -38,7 +38,31 @@ HB_BEGIN_DECLS
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
 
-struct hb_ot_map_t {
+struct hb_ot_map_builder_t
+{
+  public:
+
+  inline void add_feature (hb_tag_t tag, unsigned int value, bool global)
+  {
+    feature_info_t *info = feature_infos.push();
+    if (unlikely (!info)) return;
+    info->tag = tag;
+    info->seq = feature_infos.len;
+    info->max_value = value;
+    info->global = global;
+    info->default_value = global ? value : 0;
+  }
+
+  inline void add_bool_feature (hb_tag_t tag, bool global = true)
+  { add_feature (tag, 1, global); }
+
+  HB_INTERNAL void compile (hb_face_t *face,
+			    const hb_segment_properties_t *props,
+			    struct hb_ot_map_t &m);
+
+  inline void finish (void) {
+    feature_infos.finish ();
+  }
 
   private:
 
@@ -52,6 +76,47 @@ struct hb_ot_map_t {
     static int cmp (const feature_info_t *a, const feature_info_t *b)
     { return (a->tag != b->tag) ?  (a->tag < b->tag ? -1 : 1) : (a->seq < b->seq ? -1 : 1); }
   };
+
+  hb_prealloced_array_t<feature_info_t,16> feature_infos; /* used before compile() only */
+};
+
+
+struct hb_ot_map_t
+{
+  friend struct hb_ot_map_builder_t;
+
+  public:
+
+  inline hb_mask_t get_global_mask (void) const { return global_mask; }
+
+  inline hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift = NULL) const {
+    const feature_map_t *map = features.bsearch (&tag);
+    if (shift) *shift = map ? map->shift : 0;
+    return map ? map->mask : 0;
+  }
+
+  inline hb_mask_t get_1_mask (hb_tag_t tag) const {
+    const feature_map_t *map = features.bsearch (&tag);
+    return map ? map->_1_mask : 0;
+  }
+
+  inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const {
+    for (unsigned int i = 0; i < lookups[0].len; i++)
+      hb_ot_layout_substitute_lookup (face, buffer, lookups[0][i].index, lookups[0][i].mask);
+  }
+
+  inline void position (hb_font_t *font, hb_face_t *face, hb_buffer_t *buffer) const {
+    for (unsigned int i = 0; i < lookups[1].len; i++)
+      hb_ot_layout_position_lookup (font, buffer, lookups[1][i].index, lookups[1][i].mask);
+  }
+
+  inline void finish (void) {
+    features.finish ();
+    lookups[0].finish ();
+    lookups[1].finish ();
+  }
+
+  private:
 
   struct feature_map_t {
     hb_tag_t tag; /* should be first for our bsearch to work */
@@ -78,65 +143,11 @@ struct hb_ot_map_t {
 				hb_mask_t     mask);
 
 
-  public:
-
-  void add_feature (hb_tag_t tag, unsigned int value, bool global)
-  {
-    feature_info_t *info = feature_infos.push();
-    if (unlikely (!info)) return;
-    info->tag = tag;
-    info->seq = feature_infos.len;
-    info->max_value = value;
-    info->global = global;
-    info->default_value = global ? value : 0;
-  }
-
-  inline void add_bool_feature (hb_tag_t tag, bool global = true)
-  { add_feature (tag, 1, global); }
-
-  HB_INTERNAL void compile (hb_face_t *face,
-			    const hb_segment_properties_t *props);
-
-  inline hb_mask_t get_global_mask (void) const { return global_mask; }
-
-  inline hb_mask_t get_mask (hb_tag_t tag, unsigned int *shift = NULL) const {
-    const feature_map_t *map = feature_maps.bsearch (&tag);
-    if (shift) *shift = map ? map->shift : 0;
-    return map ? map->mask : 0;
-  }
-
-  inline hb_mask_t get_1_mask (hb_tag_t tag) const {
-    const feature_map_t *map = feature_maps.bsearch (&tag);
-    return map ? map->_1_mask : 0;
-  }
-
-  inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const {
-    for (unsigned int i = 0; i < lookup_maps[0].len; i++)
-      hb_ot_layout_substitute_lookup (face, buffer, lookup_maps[0][i].index, lookup_maps[0][i].mask);
-  }
-
-  inline void position (hb_font_t *font, hb_face_t *face, hb_buffer_t *buffer) const {
-    for (unsigned int i = 0; i < lookup_maps[1].len; i++)
-      hb_ot_layout_position_lookup (font, buffer, lookup_maps[1][i].index, lookup_maps[1][i].mask);
-  }
-
-  inline void finish (void) {
-    feature_infos.finish ();
-    feature_maps.finish ();
-    lookup_maps[0].finish ();
-    lookup_maps[1].finish ();
-  }
-
-  private:
-
   hb_mask_t global_mask;
 
-  hb_prealloced_array_t<feature_info_t,8> feature_infos; /* used before compile() only */
-  hb_prealloced_array_t<feature_map_t, 8> feature_maps;
-
-  hb_prealloced_array_t<lookup_map_t, 32> lookup_maps[2]; /* GSUB/GPOS */
+  hb_prealloced_array_t<feature_map_t, 8> features;
+  hb_prealloced_array_t<lookup_map_t, 32> lookups[2]; /* GSUB/GPOS */
 };
-
 
 
 HB_END_DECLS

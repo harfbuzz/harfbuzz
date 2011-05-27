@@ -152,14 +152,14 @@ static const struct arabic_state_table_entry {
 
 
 void
-_hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_plan_t *plan, const hb_segment_properties_t  *props)
+_hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_planner_t *planner, const hb_segment_properties_t  *props)
 {
   /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
-  plan->map.add_bool_feature (HB_TAG('c','s','w','h'));
+  planner->map.add_bool_feature (HB_TAG('c','s','w','h'));
 
   unsigned int num_features = props->script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_features; i++)
-    plan->map.add_bool_feature (arabic_syriac_features[i], false);
+    planner->map.add_bool_feature (arabic_syriac_features[i], false);
 }
 
 void

@@ -61,14 +61,14 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
  * Shapers should use plan->map to add their features.
  */
 
-HB_INTERNAL void _hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_plan_t *plan, const hb_segment_properties_t  *props);
+HB_INTERNAL void _hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_planner_t *plan, const hb_segment_properties_t  *props);
 
 static inline void
-hb_ot_shape_complex_collect_features (hb_ot_shape_plan_t *plan,
+hb_ot_shape_complex_collect_features (hb_ot_shape_planner_t *planner,
 				      const hb_segment_properties_t  *props)
 {
-  switch (plan->shaper) {
-    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_collect_features_arabic (plan, props);	return;
+  switch (planner->shaper) {
+    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_collect_features_arabic (planner, props);	return;
     case hb_ot_complex_shaper_none:	default:							return;
   }
 }

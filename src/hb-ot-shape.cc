@@ -49,19 +49,19 @@ hb_tag_t default_features[] = {
 };
 
 static void
-hb_ot_shape_collect_features (hb_ot_shape_plan_t       *plan,
+hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      const hb_segment_properties_t  *props,
-			      const hb_feature_t       *user_features,
-			      unsigned int              num_user_features)
+			      const hb_feature_t             *user_features,
+			      unsigned int                    num_user_features)
 {
   switch (props->direction) {
     case HB_DIRECTION_LTR:
-      plan->map.add_bool_feature (HB_TAG ('l','t','r','a'));
-      plan->map.add_bool_feature (HB_TAG ('l','t','r','m'));
+      planner->map.add_bool_feature (HB_TAG ('l','t','r','a'));
+      planner->map.add_bool_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      plan->map.add_bool_feature (HB_TAG ('r','t','l','a'));
-      plan->map.add_bool_feature (HB_TAG ('r','t','l','m'), false);
+      planner->map.add_bool_feature (HB_TAG ('r','t','l','a'));
+      planner->map.add_bool_feature (HB_TAG ('r','t','l','m'), false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -71,13 +71,13 @@ hb_ot_shape_collect_features (hb_ot_shape_plan_t       *plan,
   }
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
-    plan->map.add_bool_feature (default_features[i]);
+    planner->map.add_bool_feature (default_features[i]);
 
-  hb_ot_shape_complex_collect_features (plan, props);
+  hb_ot_shape_complex_collect_features (planner, props);
 
   for (unsigned int i = 0; i < num_user_features; i++) {
     const hb_feature_t *feature = &user_features[i];
-    plan->map.add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+    planner->map.add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
   }
 }
 
@@ -384,11 +384,13 @@ hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
 			   const hb_feature_t       *user_features,
 			   unsigned int              num_user_features)
 {
-  plan->shaper = hb_ot_shape_complex_categorize (props);
+  hb_ot_shape_planner_t planner;
 
-  hb_ot_shape_collect_features (plan, props, user_features, num_user_features);
+  planner.shaper = hb_ot_shape_complex_categorize (props);
 
-  plan->map.compile (face, props);
+  hb_ot_shape_collect_features (&planner, props, user_features, num_user_features);
+
+  planner.compile (face, props, *plan);
 }
 
 static void
