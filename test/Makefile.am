@@ -78,14 +78,14 @@ check-gtester:
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool-raw TOOL="$(GTESTER) --verbose"
 
 
-# Check tests under valgrind.  Saves log to valgrind-log
+# Check tests under valgrind.  Saves log to log-valgrind.txt
 VALGRIND_FLAGS = \
 	--tool=memcheck --suppressions=$(srcdir)/.valgrind-suppressions \
 	--track-origins=yes \
 	--leak-check=yes
 	$(EXTRA_VALGRIND_FLAGS)
 #	Can't do for now: --show-reachable=yes
-CLEANFILES +=  valgrind-log
+CLEANFILES +=  log-valgrind.txt
 valgrind_verbose = $(valgrind_verbose_$(V))
 valgrind_verbose_ = $(valgrind_verbose_$(AM_DEFAULT_VERBOSITY))
 valgrind_verbose_0 = | \
@@ -93,7 +93,7 @@ valgrind_verbose_0 = | \
 # TODO: The following check does not fail if valgrind finds error.  It should.
 check-valgrind:
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool TOOL="valgrind $(VALGRIND_FLAGS)" \
-	2>&1 | tee valgrind-log $(valgrind_verbose)
+	2>&1 | tee log-valgrind.txt $(valgrind_verbose)
 
 
 # check-symbols: Finds untested API symbols
