@@ -51,21 +51,7 @@ test_object_LIBS = $(LDADD) $(FREETYPE_LIBS)
 endif
 
 
-# test-symbols: Finds untested API symbols
-symbols-tested.txt: $(TEST_PROGS)
-	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
-	| grep ' U hb_' | sed 's/.* U hb_/hb_/' \
-	| sort | uniq > $@.tmp && mv $@.tmp $@
-symbols-exported.txt: $(top_builddir)/src/.libs/libharfbuzz.so
-	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
-	| grep ' T ' | sed 's/.* T //' | grep -v '^\(_init\|_fini\)$$' \
-	| sort | uniq > $@.tmp && mv $@.tmp $@
-symbols-untested.txt: symbols-tested.txt symbols-exported.txt
-	$(AM_V_GEN)diff $^ > $@.tmp; mv $@.tmp $@
-CLEANFILES += symbols-tested.txt symbols-exported.txt symbols-untested.txt
-test-symbols: symbols-untested.txt
-	@! cat $^ | grep .
-
+# Default test running environment
 TESTS = $(TEST_PROGS)
 TESTS_ENVIRONMENT = \
 	MALLOC_CHECK_=2 \
@@ -73,6 +59,7 @@ TESTS_ENVIRONMENT = \
 	G_DEBUG=gc-friendly \
 	G_SLICE=always-malloc \
 	$(ENV)
+
 
 # check-tool: Run tests under $(TOOL)
 check-tool:
@@ -89,6 +76,7 @@ check-tool-raw:
 GTESTER = gtester
 check-gtester:
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool-raw TOOL="$(GTESTER) --verbose"
+
 
 # Check tests under valgrind.  Saves log to valgrind-log
 VALGRIND_FLAGS = \
@@ -108,12 +96,29 @@ check-valgrind:
 	2>&1 | tee valgrind-log $(valgrind_verbose)
 
 
+# check-symbols: Finds untested API symbols
+symbols-tested.txt: $(TEST_PROGS)
+	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
+	| grep ' U hb_' | sed 's/.* U hb_/hb_/' \
+	| sort | uniq > $@.tmp && mv $@.tmp $@
+symbols-exported.txt: $(top_builddir)/src/.libs/libharfbuzz.so
+	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
+	| grep ' T ' | sed 's/.* T //' | grep -v '^\(_init\|_fini\)$$' \
+	| sort | uniq > $@.tmp && mv $@.tmp $@
+symbols-untested.txt: symbols-tested.txt symbols-exported.txt
+	$(AM_V_GEN)diff $^ > $@.tmp; mv $@.tmp $@
+CLEANFILES += symbols-tested.txt symbols-exported.txt symbols-untested.txt
+check-symbols: symbols-untested.txt
+	@! cat $^ | grep .
+
+
+
 else
 check-am:
 	@echo "You need to have glib support enabled to run the tests"
 	@exit 77
 endif
 
-.PHONY: test-symbols check-tool check-valgrind
+.PHONY: check-symbols check-tool check-valgrind
 
 -include $(top_srcdir)/git.mk
