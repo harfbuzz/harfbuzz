@@ -1,6 +1,9 @@
 include Makefile.decl
 
 NULL =
+CLEANFILES =
+DISTCLEANFILES =
+MAINTAINERCLEANFILES =
 
 if HAVE_GLIB
 AM_CPPFLAGS = -I$(top_srcdir)/src/ $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
@@ -47,10 +50,28 @@ test_object_LIBS = $(LDADD) $(FREETYPE_LIBS)
 endif
 
 
+# test-symbols: Finds untested API symbols
+symbols-tested.txt: $(TEST_PROGS)
+	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
+	| grep ' U hb_' | sed 's/.* U hb_/hb_/' \
+	| sort | uniq > $@.tmp && mv $@.tmp $@
+symbols-exported.txt: $(top_builddir)/src/.libs/libharfbuzz.so
+	$(AM_V_GEN)$(top_builddir)/libtool --mode=execute nm $^ \
+	| grep ' T ' | sed 's/.* T //' | grep -v '^\(_init\|_fini\)$$' \
+	| sort | uniq > $@.tmp && mv $@.tmp $@
+symbols-untested.txt: symbols-tested.txt symbols-exported.txt
+	$(AM_V_GEN)diff $^ > $@.tmp; mv $@.tmp $@
+CLEANFILES += symbols-tested.txt symbols-exported.txt symbols-untested.txt
+test-symbols: symbols-untested.txt
+	@! cat $^ | grep .
+
+
 else
 check-am:
 	@echo "You need to have glib support enabled to run the tests"
 	@exit 77
 endif
+
+.PHONY: test-symbols
 
 -include $(top_srcdir)/git.mk
