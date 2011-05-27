@@ -3,15 +3,16 @@
 LC_ALL=C
 export LC_ALL
 
+test -z "$srcdir" && srcdir=.
+stat=0
+
+
 if which ldd 2>/dev/null >/dev/null; then
 	:
 else
 	echo "check-libstdc++.sh: 'ldd' not found; skipping test"
 	exit 0
 fi
-
-test -z "$srcdir" && srcdir=.
-stat=0
 
 so=.libs/libharfbuzz.so
 if test -f "$so"; then

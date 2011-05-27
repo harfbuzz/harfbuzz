@@ -146,6 +146,7 @@ dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-header-guards.sh \
 	check-internal-symbols.sh \
+	check-includes.sh \
 	$(NULL)
 
 if HAVE_ICU
@@ -154,5 +155,11 @@ dist_check_SCRIPTS += check-libstdc++.sh
 endif
 
 TESTS = $(dist_check_SCRIPTS)
+TESTS_ENVIRONMENT = \
+	srcdir="$(srcdir)" \
+	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
+	HBSOURCES="$(HBSOURCES)" \
+	HBHEADERS="$(HBHEADERS)" \
+	$(NULL)
 
 -include $(top_srcdir)/git.mk

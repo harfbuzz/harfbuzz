@@ -3,16 +3,16 @@
 LC_ALL=C
 export LC_ALL
 
+test -z "$srcdir" && srcdir=.
+stat=0
+
+
 if which nm 2>/dev/null >/dev/null; then
 	:
 else
 	echo "check-internal-symbols.sh: 'nm' not found; skipping test"
 	exit 0
 fi
-
-test -z "$srcdir" && srcdir=.
-test -z "$MAKE" && MAKE=make
-stat=0
 
 so=.libs/libharfbuzz.so
 if test -f "$so"; then
