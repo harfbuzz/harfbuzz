@@ -19,6 +19,7 @@ TEST_PROGS += \
 	test-object \
 	test-shape \
 	test-unicode \
+	test-version \
 	$(NULL)
 
 TEST_PROGS += \
