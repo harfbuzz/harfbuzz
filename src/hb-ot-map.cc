@@ -64,6 +64,17 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
 }
 
 
+void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool global)
+{
+  feature_info_t *info = feature_infos.push();
+  if (unlikely (!info)) return;
+  info->tag = tag;
+  info->seq = feature_infos.len;
+  info->max_value = value;
+  info->global = global;
+  info->default_value = global ? value : 0;
+}
+
 void
 hb_ot_map_builder_t::compile (hb_face_t *face,
 			      const hb_segment_properties_t *props,

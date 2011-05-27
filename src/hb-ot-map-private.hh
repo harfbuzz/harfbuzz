@@ -42,16 +42,7 @@ struct hb_ot_map_builder_t
 {
   public:
 
-  inline void add_feature (hb_tag_t tag, unsigned int value, bool global)
-  {
-    feature_info_t *info = feature_infos.push();
-    if (unlikely (!info)) return;
-    info->tag = tag;
-    info->seq = feature_infos.len;
-    info->max_value = value;
-    info->global = global;
-    info->default_value = global ? value : 0;
-  }
+  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global);
 
   inline void add_bool_feature (hb_tag_t tag, bool global = true)
   { add_feature (tag, 1, global); }
