@@ -86,7 +86,7 @@ usage (FILE *f, int status)
 G_GNUC_NORETURN static void
 version (void)
 {
-  printf ("hb-view (harfbuzz) %s\n", PACKAGE_VERSION);
+  printf ("hb-view (harfbuzz) %s\n", HB_VERSION_STRING);
   exit (0);
 }
 
