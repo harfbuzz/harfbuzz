@@ -4,10 +4,10 @@
          xmlns="http://usefulinc.com/ns/doap#">
 
   <name xml:lang="en">harfbuzz</name>
-  <shortdesc xml:lang="en">Internationalized text layout and rendering library</shortdesc>
+  <shortdesc xml:lang="en">Text shaping library</shortdesc>
 
   <homepage
-  rdf:resource="http://freedesktop.org/wiki/Software/harfbuzz" />
+  rdf:resource="http://harfbuzz.org/" />
   <mailing-list
   rdf:resource="http://lists.freedesktop.org/mailman/listinfo/harfbuzz" />
   <!--download-page
