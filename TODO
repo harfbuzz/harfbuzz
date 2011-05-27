@@ -22,6 +22,8 @@ General fixes:
 API issues to fix before 1.0:
 ============================
 
+- Add pkg-config files for glue codes (harfbuzz-glib, etc)
+
 - Figure out how many .so objects, how to link, etc
 
 - Add hb-cairo glue
