@@ -633,8 +633,6 @@ test_unicode_setters (void)
     g_assert (data[0].freed && !data[1].freed);
     hb_unicode_funcs_destroy (uf);
     g_assert (data[0].freed && !data[1].freed);
-
-    hb_unicode_funcs_destroy (uf);
   }
 }
 

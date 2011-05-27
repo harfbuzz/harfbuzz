@@ -102,7 +102,7 @@ valgrind_verbose = $(valgrind_verbose_$(V))
 valgrind_verbose_ = $(valgrind_verbose_$(AM_DEFAULT_VERBOSITY))
 valgrind_verbose_0 = | \
 	grep '\(^[^=]\|ERROR SUMMARY\|definitely lost\|indirectly lost\)' | grep -v ': 0'
-
+# TODO: The following check does not fail if valgrind finds error.  It should.
 check-valgrind:
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool TOOL="valgrind $(VALGRIND_FLAGS)" \
 	2>&1 | tee valgrind-log $(valgrind_verbose)
