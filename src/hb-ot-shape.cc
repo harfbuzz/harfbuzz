@@ -377,7 +377,7 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   c->buffer->props.direction = c->target_direction;
 }
 
-void
+static void
 hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
 			   hb_face_t                *face,
 			   const hb_segment_properties_t  *props,
@@ -391,7 +391,7 @@ hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
   plan->map.compile (face, props);
 }
 
-void
+static void
 hb_ot_shape_execute (hb_ot_shape_plan_t *plan,
 		     hb_font_t          *font,
 		     hb_buffer_t        *buffer,
