@@ -1553,12 +1553,12 @@ fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t di
   pos[i].y_offset += pos[j].y_offset;
 
   if (HB_DIRECTION_IS_FORWARD (direction))
-    for (unsigned int k = j; k < i; j++) {
+    for (unsigned int k = j; k < i; k++) {
       pos[i].x_offset -= pos[k].x_advance;
       pos[i].y_offset -= pos[k].y_advance;
     }
   else
-    for (unsigned int k = j + 1; k < i + 1; j++) {
+    for (unsigned int k = j + 1; k < i + 1; k++) {
       pos[i].x_offset += pos[k].x_advance;
       pos[i].y_offset += pos[k].y_advance;
     }
