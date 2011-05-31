@@ -11,13 +11,6 @@ General fixes:
 
 - Do proper rounding when scaling from font space?
 
-- Adjust default features for vertical text:
-
-  * vrt2 preferred over vert; but if user selects vert, turn vrt2 off?
-  * vkrn (enables vpal?  vpal anyone???);
-  * valt: "This feature is mutually exclusive with all other glyph-height features (e.g. vhal and vpal),
-          which should be turned off when it's applied. It deactivates the kern."
-
 
 API issues to fix before 1.0:
 ============================

@@ -34,18 +34,36 @@
 HB_BEGIN_DECLS
 
 
-/* XXX vertical */
-hb_tag_t default_features[] = {
-  HB_TAG('c','a','l','t'),
+hb_tag_t early_features[] = {
   HB_TAG('c','c','m','p'),
+  HB_TAG('l','o','c','l'),
+};
+
+hb_tag_t common_features[] = {
+  HB_TAG('m','a','r','k'),
+  HB_TAG('m','k','m','k'),
+  HB_TAG('r','l','i','g'),
+};
+
+hb_tag_t horizontal_features[] = {
+  HB_TAG('c','a','l','t'),
   HB_TAG('c','l','i','g'),
   HB_TAG('c','u','r','s'),
   HB_TAG('k','e','r','n'),
   HB_TAG('l','i','g','a'),
-  HB_TAG('l','o','c','l'),
-  HB_TAG('m','a','r','k'),
-  HB_TAG('m','k','m','k'),
-  HB_TAG('r','l','i','g')
+};
+
+/* Note:
+ * Technically speaking, vrt2 and vert are mutually exclusive.
+ * According to the spec, valt and vpal are also mutually exclusive.
+ * But we apply them all for now.
+ */
+hb_tag_t vertical_features[] = {
+  HB_TAG('v','a','l','t'),
+  HB_TAG('v','e','r','t'),
+  HB_TAG('v','k','r','n'),
+  HB_TAG('v','p','a','l'),
+  HB_TAG('v','r','t','2'),
 };
 
 static void
@@ -70,10 +88,24 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (default_features); i++)
-    planner->map.add_bool_feature (default_features[i]);
+#define ADD_FEATURES(array) \
+  HB_STMT_START { \
+    for (unsigned int i = 0; i < ARRAY_LENGTH (array); i++) \
+      planner->map.add_bool_feature (array[i]); \
+  } HB_STMT_END
+
+  ADD_FEATURES (early_features);
 
   hb_ot_shape_complex_collect_features (planner, props);
+
+  ADD_FEATURES (common_features);
+
+  if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
+    ADD_FEATURES (horizontal_features);
+  else
+    ADD_FEATURES (vertical_features);
+
+#undef ADD_FEATURES
 
   for (unsigned int i = 0; i < num_user_features; i++) {
     const hb_feature_t *feature = &user_features[i];
