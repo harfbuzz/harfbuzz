@@ -360,9 +360,9 @@ struct GDEF
 				      hb_position_t *caret_array /* OUT */) const
   { return (this+ligCaretList).get_lig_carets (font, direction, glyph_id, start_offset, caret_count, caret_array); }
 
-  inline bool has_mark_sets (void) const { return version >= 0x00010002 && markGlyphSetsDef[0] != 0; }
+  inline bool has_mark_sets (void) const { return version.to_int () >= 0x00010002 && markGlyphSetsDef[0] != 0; }
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
-  { return version >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
+  { return version.to_int () >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
@@ -371,7 +371,7 @@ struct GDEF
 	&& attachList.sanitize (c, this)
 	&& ligCaretList.sanitize (c, this)
 	&& markAttachClassDef.sanitize (c, this)
-	&& (version < 0x00010002 || markGlyphSetsDef[0].sanitize (c, this));
+	&& (version.to_int () < 0x00010002 || markGlyphSetsDef[0].sanitize (c, this));
   }
 
 

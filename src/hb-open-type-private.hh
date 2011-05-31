@@ -488,7 +488,7 @@ struct CheckSum : ULONG
 
 struct FixedVersion
 {
-  inline operator uint32_t (void) const { return (major << 16) + minor; }
+  inline uint32_t to_int (void) const { return (major << 16) + minor; }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
