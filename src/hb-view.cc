@@ -51,6 +51,7 @@ static int margin_b = 10;
 static int margin_l = 10;
 static int margin_r = 10;
 static int line_space = 0;
+static int face_index = 0;
 static double font_size = 18;
 static const char *fore = "#000000";
 static const char *back = "#ffffff";
@@ -106,6 +107,7 @@ parse_opts (int argc, char **argv)
 	{"direction", 1, 0, 'd'},
 	{"features", 1, 0, 'f'},
 	{"font-size", 1, 0, 's'},
+	{"face-index", 1, 0, 'i'},
 	{"foreground", 1, 0, 'F'},
 	{"help", 0, 0, 'h'},
 	{"language", 1, 0, 'L'},
@@ -130,6 +132,9 @@ parse_opts (int argc, char **argv)
 	  break;
 	case 'v':
 	  version ();
+	  break;
+	case 'i':
+	  face_index = atoi (optarg);
 	  break;
 	case 'l':
 	  line_space = atoi (optarg);
@@ -528,7 +533,7 @@ main (int argc, char **argv)
   parse_opts (argc, argv);
 
   FT_Init_FreeType (&ft_library);
-  if (FT_New_Face (ft_library, font_file, 0, &ft_face)) {
+  if (FT_New_Face (ft_library, font_file, face_index, &ft_face)) {
     fprintf (stderr, "Failed to open font file `%s'\n", font_file);
     exit (1);
   }
