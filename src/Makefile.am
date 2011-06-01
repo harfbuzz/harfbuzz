@@ -113,7 +113,7 @@ nodist_pkginclude_HEADERS = hb-version.h
 
 
 GENERATORS = \
-	gen-arabic-joining-table.py \
+	gen-arabic-table.py \
 	$(NULL)
 
 EXTRA_DIST += $(GENERATORS)
