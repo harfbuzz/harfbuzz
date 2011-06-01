@@ -11,6 +11,10 @@ General fixes:
 
 - Do proper rounding when scaling from font space?
 
+- Misc features:
+  * init/medi/fina/isol for non-cursive scripts
+  * vkna,hkna etc for kana, *jmo for hangul, etc
+
 
 API issues to fix before 1.0:
 ============================
