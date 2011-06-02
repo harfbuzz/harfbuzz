@@ -152,7 +152,7 @@ static const struct arabic_state_table_entry {
 
 
 void
-_hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_planner_t *planner, const hb_segment_properties_t  *props)
+_hb_ot_shape_complex_collect_features_arabic (hb_ot_shape_planner_t *planner, const hb_segment_properties_t  *props)
 {
   /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
   planner->map.add_bool_feature (HB_TAG('c','s','w','h'));
@@ -163,7 +163,7 @@ _hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_planner_t *planner, co
 }
 
 void
-_hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c)
+_hb_ot_shape_complex_setup_masks_arabic (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   unsigned int prev = 0, state = 0;

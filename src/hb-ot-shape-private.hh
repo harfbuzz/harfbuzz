@@ -43,7 +43,8 @@ HB_BEGIN_DECLS
 
 enum hb_ot_complex_shaper_t {
   hb_ot_complex_shaper_none,
-  hb_ot_complex_shaper_arabic
+  hb_ot_complex_shaper_arabic,
+  hb_ot_complex_shaper_indic,
 };
 
 

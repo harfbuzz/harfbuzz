@@ -55,6 +55,8 @@ HBSOURCES += \
 	hb-ot-shape.cc \
 	hb-ot-shape-complex-arabic.cc \
 	hb-ot-shape-complex-arabic-table.hh \
+	hb-ot-shape-complex-indic.cc \
+	hb-ot-shape-complex-indic-table.hh \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-private.hh \
 	hb-ot-tag.cc \
@@ -114,6 +116,7 @@ nodist_pkginclude_HEADERS = hb-version.h
 
 GENERATORS = \
 	gen-arabic-table.py \
+	gen-indic-table.py \
 	$(NULL)
 
 EXTRA_DIST += $(GENERATORS)
