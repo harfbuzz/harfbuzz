@@ -207,6 +207,7 @@ hb_form_clusters (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++)
+    /* TODO: Match other mark types too? */
     if (c->buffer->info[i].general_category() == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
       c->buffer->info[i].cluster = c->buffer->info[i - 1].cluster;
 }
