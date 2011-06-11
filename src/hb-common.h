@@ -39,19 +39,30 @@
 
 HB_BEGIN_DECLS
 
+#if !defined (HB_DONT_DEFINE_STDINT)
 
-#ifdef _MSC_VER
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef signed int int32_t;
-typedef unsigned int uint32_t;
-typedef signed long long int64_t;
-typedef unsigned long long uint64_t;
+#if defined (_SVR4) || defined (SVR4) || defined (__OpenBSD__) || \
+    defined (_sgi) || defined (__sun) || defined (sun) || \
+    defined (__digital__) || defined (__HP_cc)
+#  include <inttypes.h>
+#elif defined (_AIX)
+#  include <sys/inttypes.h>
+/* VS 2010 (_MSC_VER 1600) has stdint.h */
+#elif defined (_MSC_VER) && _MSC_VER < 1600
+typedef __int8 int8_t;
+typedef unsigned __int8 uint8_t;
+typedef __int16 int16_t;
+typedef unsigned __int16 uint16_t;
+typedef __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
 #else
-#include <stdint.h>
+#  include <stdint.h>
 #endif
+
+#endif
+
 
 typedef int hb_bool_t;
 
