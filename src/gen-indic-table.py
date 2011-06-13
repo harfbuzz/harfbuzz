@@ -81,9 +81,10 @@ short = [{
 	"Bindu":		'Bi',
 	"Visarga":		'Vs',
 	"Vowel":		'Vo',
-	"Other":		'X',
+	"Vowel_Dependent":	'M',
+	"Other":		'x',
 },{
-	"Not_Applicable":	'X',
+	"Not_Applicable":	'x',
 }]
 all_shorts = [[],[]]
 
@@ -131,7 +132,7 @@ def print_block (block, start, end, data):
 		if u in data:
 			num += 1
 		d = data.get (u, defaults)
-		print "%10s" % ("_(%s,%s)," % (short[0][d[0]], short[1][d[1]])),
+		sys.stdout.write ("%9s" % ("_(%s,%s)," % (short[0][d[0]], short[1][d[1]])))
 
 	if num == 0:
 		# Filler block, don't check occupancy
@@ -183,7 +184,7 @@ for u in tables:
 	print "  if (0x%04X <= u && u <= 0x%04X + ARRAY_LENGTH (%s)) return %s[u - 0x%04X];" % (u, u, t, t, u)
 for u,d in singles.items ():
 	print "  if (unlikely (u == 0x%04X)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
-print "  return _(X,X);"
+print "  return _(x,x);"
 print "}"
 
 print
