@@ -451,7 +451,7 @@ static inline unsigned char TOLOWER (unsigned char c)
 /* Makes class uncopyable.  Use in private: section. */
 #define NO_COPY(T) \
   T (const T &o); \
-  T &operator = (const T &o);
+  T &operator = (const T &o)
 
 
 /* Debug */
