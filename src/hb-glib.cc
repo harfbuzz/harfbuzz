@@ -177,26 +177,26 @@ hb_glib_script_from_script (hb_script_t script)
 
 
 static unsigned int
-hb_glib_get_combining_class (hb_unicode_funcs_t *ufuncs,
+hb_glib_get_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
                              hb_codepoint_t      unicode,
-                             void               *user_data)
+                             void               *user_data HB_UNUSED)
 
 {
   return g_unichar_combining_class (unicode);
 }
 
 static unsigned int
-hb_glib_get_eastasian_width (hb_unicode_funcs_t *ufuncs,
+hb_glib_get_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
                              hb_codepoint_t      unicode,
-                             void               *user_data)
+                             void               *user_data HB_UNUSED)
 {
   return g_unichar_iswide (unicode) ? 2 : 1;
 }
 
 static hb_unicode_general_category_t
-hb_glib_get_general_category (hb_unicode_funcs_t *ufuncs,
+hb_glib_get_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
                               hb_codepoint_t      unicode,
-                              void               *user_data)
+                              void               *user_data HB_UNUSED)
 
 {
   /* hb_unicode_general_category_t and GUnicodeType are identical */
@@ -204,18 +204,18 @@ hb_glib_get_general_category (hb_unicode_funcs_t *ufuncs,
 }
 
 static hb_codepoint_t
-hb_glib_get_mirroring (hb_unicode_funcs_t *ufuncs,
+hb_glib_get_mirroring (hb_unicode_funcs_t *ufuncs HB_UNUSED,
                        hb_codepoint_t      unicode,
-                       void               *user_data)
+                       void               *user_data HB_UNUSED)
 {
   g_unichar_get_mirror_char (unicode, &unicode);
   return unicode;
 }
 
 static hb_script_t
-hb_glib_get_script (hb_unicode_funcs_t *ufuncs,
+hb_glib_get_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
                     hb_codepoint_t      unicode,
-                    void               *user_data)
+                    void               *user_data HB_UNUSED)
 {
   return hb_glib_script_to_script (g_unichar_get_script (unicode));
 }

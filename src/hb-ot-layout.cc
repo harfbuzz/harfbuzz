@@ -458,7 +458,7 @@ hb_ot_layout_substitute_lookup (hb_face_t    *face,
 }
 
 void
-hb_ot_layout_substitute_finish (hb_buffer_t  *buffer)
+hb_ot_layout_substitute_finish (hb_buffer_t  *buffer HB_UNUSED)
 {
 }
 

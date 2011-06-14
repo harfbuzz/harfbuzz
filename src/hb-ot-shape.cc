@@ -161,7 +161,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 					    &c->buffer->pos[i].y_offset);
   }
 
-  c->plan->map.position (c->font, c->face, c->buffer);
+  c->plan->map.position (c->font, c->buffer);
 
   for (unsigned int i = 0; i < count; i++) {
     hb_font_subtract_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,

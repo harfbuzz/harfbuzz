@@ -96,7 +96,7 @@ struct hb_ot_map_t
       hb_ot_layout_substitute_lookup (face, buffer, lookups[0][i].index, lookups[0][i].mask);
   }
 
-  inline void position (hb_font_t *font, hb_face_t *face, hb_buffer_t *buffer) const {
+  inline void position (hb_font_t *font, hb_buffer_t *buffer) const {
     for (unsigned int i = 0; i < lookups[1].len; i++)
       hb_ot_layout_position_lookup (font, buffer, lookups[1][i].index, lookups[1][i].mask);
   }

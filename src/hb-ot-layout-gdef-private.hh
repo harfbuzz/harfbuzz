@@ -143,7 +143,7 @@ struct CaretValueFormat3
 {
   friend struct CaretValue;
 
-  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
+  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id HB_UNUSED) const
   {
     return HB_DIRECTION_IS_HORIZONTAL (direction) ?
            font->em_scale_x (coordinate) + (this+deviceTable).get_x_delta (font) :

@@ -49,7 +49,7 @@ enum {
   OT_SM,
   OT_VD,
   OT_A,
-  OT_NBSP,
+  OT_NBSP
 };
 
 /* Categories used in IndicSyllabicCategory.txt from UCD */
@@ -76,7 +76,7 @@ enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_VISARGA		= OT_SM,
   INDIC_SYLLABIC_CATEGORY_VOWEL			= OT_V,
   INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT	= OT_M,
-  INDIC_SYLLABIC_CATEGORY_VOWEL_INDEPENDENT	= OT_V,
+  INDIC_SYLLABIC_CATEGORY_VOWEL_INDEPENDENT	= OT_V
 };
 
 /* Categories used in IndicSMatraCategory.txt from UCD */
@@ -96,7 +96,7 @@ enum indic_matra_category_t {
   INDIC_MATRA_CATEGORY_TOP_AND_LEFT,
   INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT,
   INDIC_MATRA_CATEGORY_TOP_AND_RIGHT,
-  INDIC_MATRA_CATEGORY_VISUAL_ORDER_LEFT,
+  INDIC_MATRA_CATEGORY_VISUAL_ORDER_LEFT
 };
 
 #define INDIC_COMBINE_CATEGORIES(S,M) \
@@ -136,7 +136,7 @@ static const hb_tag_t indic_other_features[] =
 
 
 void
-_hb_ot_shape_complex_collect_features_indic	(hb_ot_shape_planner_t *planner, const hb_segment_properties_t  *props)
+_hb_ot_shape_complex_collect_features_indic	(hb_ot_shape_planner_t *planner, const hb_segment_properties_t  *props HB_UNUSED)
 {
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++)
     planner->map.add_bool_feature (indic_basic_features[i], false);
