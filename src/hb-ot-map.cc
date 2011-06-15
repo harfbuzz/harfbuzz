@@ -104,21 +104,23 @@ hb_ot_map_builder_t::compile (hb_face_t *face,
 
 
   /* Sort features and merge duplicates */
-  feature_infos.sort ();
-  unsigned int j = 0;
-  for (unsigned int i = 1; i < feature_infos.len; i++)
-    if (feature_infos[i].tag != feature_infos[j].tag)
-      feature_infos[++j] = feature_infos[i];
-    else {
-      if (feature_infos[i].global)
-	feature_infos[j] = feature_infos[i];
+  {
+    feature_infos.sort ();
+    unsigned int j = 0;
+    for (unsigned int i = 1; i < feature_infos.len; i++)
+      if (feature_infos[i].tag != feature_infos[j].tag)
+	feature_infos[++j] = feature_infos[i];
       else {
-	feature_infos[j].global = false;
-	feature_infos[j].max_value = MAX (feature_infos[j].max_value, feature_infos[i].max_value);
-	/* Inherit default_value from j */
+	if (feature_infos[i].global)
+	  feature_infos[j] = feature_infos[i];
+	else {
+	  feature_infos[j].global = false;
+	  feature_infos[j].max_value = MAX (feature_infos[j].max_value, feature_infos[i].max_value);
+	  /* Inherit default_value from j */
+	}
       }
-    }
-  feature_infos.shrink (j + 1);
+    feature_infos.shrink (j + 1);
+  }
 
 
   /* Allocate bits now */

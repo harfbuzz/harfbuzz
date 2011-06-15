@@ -121,8 +121,7 @@ enum {
 static const struct arabic_state_table_entry {
 	uint8_t prev_action;
 	uint8_t curr_action;
-	uint8_t next_state;
-	uint8_t padding;
+	uint16_t next_state;
 } arabic_state_table[][NUM_STATE_MACHINE_COLS] =
 {
   /*   jt_U,          jt_R,          jt_D,          jg_ALAPH,      jg_DALATH_RISH */

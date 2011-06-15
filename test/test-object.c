@@ -231,7 +231,7 @@ test_object (void)
     hb_user_data_key_t key[2];
 
     {
-      unsigned int i;
+      unsigned int j;
       data_t data[2] = {{MAGIC0, FALSE}, {MAGIC1, FALSE}};
       deadlock_test_t deadlock_test;
 
@@ -282,16 +282,16 @@ test_object (void)
       g_assert_cmpuint (global_data, ==, 1);
 
       global_data = 0;
-      for (i = 2; i < 1000; i++)
-	g_assert (o->set_user_data (obj, &key[i], &data[i], global_free_up));
-      for (i = 2; i < 1000; i++)
-	g_assert (o->get_user_data (obj, &key[i]) == &data[i]);
-      for (i = 100; i < 1000; i++)
-	g_assert (o->set_user_data (obj, &key[i], NULL, NULL));
-      for (i = 2; i < 100; i++)
-	g_assert (o->get_user_data (obj, &key[i]) == &data[i]);
-      for (i = 100; i < 1000; i++)
-	g_assert (!o->get_user_data (obj, &key[i]));
+      for (j = 2; j < 1000; j++)
+	g_assert (o->set_user_data (obj, &key[j], &data[j], global_free_up));
+      for (j = 2; j < 1000; j++)
+	g_assert (o->get_user_data (obj, &key[j]) == &data[j]);
+      for (j = 100; j < 1000; j++)
+	g_assert (o->set_user_data (obj, &key[j], NULL, NULL));
+      for (j = 2; j < 100; j++)
+	g_assert (o->get_user_data (obj, &key[j]) == &data[j]);
+      for (j = 100; j < 1000; j++)
+	g_assert (!o->get_user_data (obj, &key[j]));
       g_assert_cmpuint (global_data, ==, 900);
 
       /* Test set_user_data where the destroy() func calls user_data functions.

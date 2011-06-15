@@ -511,9 +511,9 @@ test_unicode_properties (gconstpointer user_data)
 }
 
 static hb_codepoint_t
-default_value (hb_codepoint_t default_value, hb_codepoint_t unicode)
+default_value (hb_codepoint_t _default_value, hb_codepoint_t unicode)
 {
-  return default_value == RETURNS_UNICODE_ITSELF ?  unicode : default_value;
+  return _default_value == RETURNS_UNICODE_ITSELF ?  unicode : _default_value;
 }
 
 static void

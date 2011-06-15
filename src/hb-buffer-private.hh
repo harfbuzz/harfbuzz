@@ -128,13 +128,13 @@ struct _hb_buffer_t {
 
   inline void reset_masks (hb_mask_t mask)
   {
-    for (unsigned int i = 0; i < len; i++)
-      info[i].mask = mask;
+    for (unsigned int j = 0; j < len; j++)
+      info[j].mask = mask;
   }
   inline void add_masks (hb_mask_t mask)
   {
-    for (unsigned int i = 0; i < len; i++)
-      info[i].mask |= mask;
+    for (unsigned int j = 0; j < len; j++)
+      info[j].mask |= mask;
   }
   inline void set_masks (hb_mask_t value,
 			 hb_mask_t mask,

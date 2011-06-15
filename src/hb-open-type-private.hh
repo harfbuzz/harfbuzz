@@ -151,7 +151,7 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 template <int max_depth>
 struct hb_trace_t {
-  explicit hb_trace_t (unsigned int *pdepth, const char *what, const char *function, const void *obj) : pdepth(pdepth) {
+  explicit hb_trace_t (unsigned int *pdepth_, const char *what, const char *function, const void *obj) : pdepth(pdepth_) {
     (void) (*pdepth < max_depth &&
 	    fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, *pdepth, *pdepth, function));
     if (max_depth) ++*pdepth;
@@ -183,9 +183,9 @@ struct hb_trace_t<0> {
 
 struct hb_sanitize_context_t
 {
-  inline void init (hb_blob_t *blob)
+  inline void init (hb_blob_t *b)
   {
-    this->blob = hb_blob_reference (blob);
+    this->blob = hb_blob_reference (b);
     this->writable = false;
   }
 

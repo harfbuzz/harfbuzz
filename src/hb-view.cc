@@ -72,8 +72,6 @@ static int height = 0;
 static cairo_surface_t *surface = NULL;
 static cairo_pattern_t *fore_pattern = NULL;
 static cairo_pattern_t *back_pattern = NULL;
-static FT_Library ft_library;
-static FT_Face ft_face;
 static cairo_font_face_t *cairo_face;
 
 
@@ -141,6 +139,7 @@ parse_opts (int argc, char **argv)
 	  break;
 	case 'm':
 	  switch (sscanf (optarg, "%d %d %d %d", &margin_t, &margin_r, &margin_b, &margin_l)) {
+	    default: break;
 	    case 1: margin_r = margin_t;
 	    case 2: margin_b = margin_t;
 	    case 3: margin_l = margin_r;
@@ -346,7 +345,7 @@ static void parse_features (char *s)
 
 static cairo_glyph_t *
 _hb_cr_text_glyphs (cairo_t *cr,
-		    const char *text, int len,
+		    const char *utf8, int len,
 		    unsigned int *pnum_glyphs)
 {
   cairo_scaled_font_t *scaled_font = cairo_get_scaled_font (cr);
@@ -369,8 +368,8 @@ _hb_cr_text_glyphs (cairo_t *cr,
     hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
 
   if (len < 0)
-    len = strlen (text);
-  hb_buffer_add_utf8 (hb_buffer, text, len, 0, len);
+    len = strlen (utf8);
+  hb_buffer_add_utf8 (hb_buffer, utf8, len, 0, len);
 
   hb_shape (hb_font, hb_buffer, features, num_features);
 
@@ -526,6 +525,8 @@ draw (void)
 int
 main (int argc, char **argv)
 {
+  static FT_Library ft_library;
+  static FT_Face ft_face;
   cairo_status_t status;
 
   setlocale (LC_ALL, "");
