@@ -56,6 +56,7 @@ HBSOURCES += \
 	hb-ot-shape-complex-arabic.cc \
 	hb-ot-shape-complex-arabic-table.hh \
 	hb-ot-shape-complex-indic.cc \
+	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-indic-table.hh \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-private.hh \
@@ -120,6 +121,10 @@ GENERATORS = \
 	$(NULL)
 
 EXTRA_DIST += $(GENERATORS)
+
+BUILT_SOURCES = hb-ot-shape-complex-indic-machine.hh
+hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
+	$(AM_V_GEN)ragel -e -F1 -o $@ $^
 
 noinst_PROGRAMS = main test
 bin_PROGRAMS =
