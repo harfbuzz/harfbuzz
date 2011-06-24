@@ -38,10 +38,12 @@ HB_BEGIN_DECLS
 /* Cateories used in the OpenType spec:
  * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx
  */
+/* Note: This enum is duplicated in the -machine.rl source file.
+ * Not sure how to avoid duplication. */
 enum indic_category_t {
   OT_X = 0,
   OT_C,
-  OT_Ra,
+  OT_Ra, /* Not explicitly listed in the OT spec, but used in the grammar. */
   OT_V,
   OT_N,
   OT_H,
@@ -121,18 +123,36 @@ enum indic_matra_category_t {
 
 #include "hb-ot-shape-complex-indic-table.hh"
 
-static const hb_tag_t indic_basic_features[] =
+
+static const struct {
+  hb_tag_t tag;
+  hb_bool_t is_global;
+} indic_basic_features[] =
 {
-  HB_TAG('n','u','k','t'),
-  HB_TAG('a','k','h','n'),
-  HB_TAG('r','p','h','f'),
-  HB_TAG('r','k','r','f'),
-  HB_TAG('p','r','e','f'),
-  HB_TAG('b','l','w','f'),
-  HB_TAG('h','a','l','f'),
-  HB_TAG('v','a','t','u'),
-  HB_TAG('p','s','t','f'),
-  HB_TAG('c','j','c','t'),
+  {HB_TAG('n','u','k','t'), true},
+  {HB_TAG('a','k','h','n'), false},
+  {HB_TAG('r','p','h','f'), false},
+  {HB_TAG('r','k','r','f'), false},
+  {HB_TAG('p','r','e','f'), false},
+  {HB_TAG('b','l','w','f'), false},
+  {HB_TAG('h','a','l','f'), false},
+  {HB_TAG('v','a','t','u'), true},
+  {HB_TAG('p','s','t','f'), false},
+  {HB_TAG('c','j','c','t'), true},
+};
+
+/* Same order as the indic_basic_features array */
+enum {
+  _NUKT,
+  AKHN,
+  RPHF,
+  RKRF,
+  PREF,
+  BLWF,
+  HALF,
+  _VATU,
+  PSTF,
+  _CJCT,
 };
 
 static const hb_tag_t indic_other_features[] =
@@ -153,7 +173,7 @@ void
 _hb_ot_shape_complex_collect_features_indic (hb_ot_shape_planner_t *planner, const hb_segment_properties_t *props HB_UNUSED)
 {
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++)
-    planner->map.add_bool_feature (indic_basic_features[i], false);
+    planner->map.add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++)
     planner->map.add_bool_feature (indic_other_features[i], true);
@@ -182,7 +202,7 @@ _hb_ot_shape_complex_setup_masks_indic	(hb_ot_shape_context_t *c)
   hb_mask_t mask_array[ARRAY_LENGTH (indic_basic_features)] = {0};
   unsigned int num_masks = ARRAY_LENGTH (indic_basic_features);
   for (unsigned int i = 0; i < num_masks; i++)
-    mask_array[i] = c->plan->map.get_1_mask (indic_basic_features[i]);
+    mask_array[i] = c->plan->map.get_1_mask (indic_basic_features[i].tag);
 }
 
 

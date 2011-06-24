@@ -39,6 +39,7 @@ HB_BEGIN_DECLS
 
 %%{
 
+# Same order as enum indic_category_t.  Not sure how to avoid duplication.
 X    = 0;
 C    = 1;
 Ra   = 2;
