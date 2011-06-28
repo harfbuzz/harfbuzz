@@ -71,21 +71,6 @@ typedef struct
 } test_t;
 
 
-static const test_set_t tests_greek = {
-  {"DejaVuSans.ttf", 0},
-  {
-    { "",
-      { 0x3b1, 0x300, 0x313, 0 },
-      { 0xb8, 0x3d3, 0x3c7, 0 }
-    },
-    { "",
-      { 0x3b1, 0x313, 0x300, 0 },
-      { 0xd4, 0 }
-    },
-    {{0}}
-  }
-};
-
 static const test_set_t tests_devanagari1 = {
   {"raghu.ttf", 0},
   {
@@ -1144,8 +1129,6 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
 #define TEST_SET(name) add_test_set (&tests_##name, #name)
-
-  TEST_SET (greek);
 
   TEST_SET (devanagari1);
   TEST_SET (devanagari2);
