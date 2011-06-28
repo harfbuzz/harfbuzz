@@ -44,6 +44,13 @@ typedef struct
   /* TODO add min/max face version */
 } font_data_t;
 
+static char *
+get_font_file (const font_data_t *font_data)
+{
+  return g_strdup_printf ("%s/fonts/%s", srcdir (), font_data->font_file);
+}
+
+
 typedef struct
 {
   char           comments[64];
@@ -54,13 +61,13 @@ typedef struct
 typedef struct
 {
   const font_data_t font_data;
-  const test_data_t tests[];
+  const test_data_t test_datas[];
 } test_set_t;
 
 typedef struct
 {
-  const font_data_t font_data;
-  const test_data_t tests[];
+  const font_data_t *font_data;
+  const test_data_t *test_data;
 } test_t;
 
 
@@ -79,7 +86,7 @@ static const test_set_t tests_greek = {
   }
 };
 
-static const test_set_t tests_devanagari_1 = {
+static const test_set_t tests_devanagari1 = {
   {"raghu.ttf", 0},
   {
     { "Ka",
@@ -134,7 +141,7 @@ static const test_set_t tests_devanagari_1 = {
   }
 };
 
-static const test_set_t tests_devanagari_2 = {
+static const test_set_t tests_devanagari2 = {
   {"mangal.ttf", 0},
   {
     { "Ka",
@@ -189,7 +196,7 @@ static const test_set_t tests_devanagari_2 = {
   }
 };
 
-static const test_set_t tests_bengali_1 = {
+static const test_set_t tests_bengali1 = {
   {"AkaashNormal.ttf", 0},
   {
     { "Ka",
@@ -337,7 +344,7 @@ static const test_set_t tests_bengali_1 = {
   }
 };
 
-static const test_set_t tests_bengali_2 = {
+static const test_set_t tests_bengali2 = {
   {"MuktiNarrow.ttf", 0},
   {
     { "Ka",
@@ -460,7 +467,7 @@ static const test_set_t tests_bengali_2 = {
   }
 };
 
-static const test_set_t tests_bengali_3 = {
+static const test_set_t tests_bengali3 = {
   {"LikhanNormal.ttf", 0},
   {
     { "",
@@ -691,7 +698,7 @@ static const test_set_t tests_telugu = {
   }
 };
 
-static const test_set_t tests_kannada_1 = {
+static const test_set_t tests_kannada1 = {
   {"Sampige.ttf", 0},
   {
     { "",
@@ -738,7 +745,7 @@ static const test_set_t tests_kannada_1 = {
   }
 };
 
-static const test_set_t tests_kannada_2 = {
+static const test_set_t tests_kannada2 = {
   {"tunga.ttf", 0},
   {
     { "",
@@ -773,7 +780,7 @@ static const test_set_t tests_kannada_2 = {
   }
 };
 
-static const test_set_t tests_malayalam_1 = {
+static const test_set_t tests_malayalam1 = {
   {"AkrutiMal2Normal.ttf", 0},
   {
     { "",
@@ -853,7 +860,7 @@ static const test_set_t tests_malayalam_1 = {
   }
 };
 
-static const test_set_t tests_malayalam_2 = {
+static const test_set_t tests_malayalam2 = {
   {"Rachana.ttf", 0},
   {
     { "",
@@ -995,6 +1002,8 @@ static const test_set_t tests_linearb = {
 
 
 
+
+
 typedef struct {
   FT_Library ft_library;
   FT_Face ft_face;
@@ -1004,15 +1013,16 @@ typedef struct {
 static void
 ft_fixture_init (ft_fixture_t *f, gconstpointer user_data)
 {
-  const test_set_t *test = user_data;
-  char *font_file = g_strdup_printf ("%s/fonts/%s", srcdir (), test->font_data.font_file);
+  const test_t *test = user_data;
+  char *font_file = get_font_file (test->font_data);
+  FT_Error err;
 
   FT_Init_FreeType (&f->ft_library);
 
-  if (FT_New_Face (f->ft_library, font_file, test->font_data.face_index, &f->ft_face))
-    g_test_message ("Font file %s not found.  Skipping test.", font_file);
-  else
-    f->font = hb_ft_font_create (f->ft_face, NULL);
+  err = FT_New_Face (f->ft_library, font_file, test->font_data->face_index, &f->ft_face);
+  g_assert_cmpint (err, ==, 0);
+
+  f->font = hb_ft_font_create (f->ft_face, NULL);
 
   g_free (font_file);
 }
@@ -1029,45 +1039,83 @@ ft_fixture_finish (ft_fixture_t *f, gconstpointer user_data)
 static void
 test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
 {
-  const test_set_t *test_set = user_data;
-  const test_data_t *data;
+  const test_t *test = user_data;
+  const test_data_t *data = test->test_data;
+  hb_buffer_t *buffer;
+  unsigned int i, len, expected_len;
+  hb_glyph_info_t *glyphs;
 
-  if (!f->font)
-    return; /* Skip test */
+  g_assert (f->font);
 
-  for (data = test_set->tests; data->characters[0]; data++) {
-    hb_buffer_t *buffer;
-    unsigned int i, len, expected_len;
-    hb_glyph_info_t *glyphs;
+  if (data->comments[0])
+    g_test_message ("Test comments: %s", data->comments);
 
-    if (data->comments[0])
-      g_test_message ("Test comments: %s", data->comments);
+  buffer =  hb_buffer_create (0);
+  for (len = 0; data->characters[len]; len++) ;
+  hb_buffer_add_utf32 (buffer, data->characters, len, 0, len);
 
-    buffer =  hb_buffer_create (0);
-    for (len = 0; data->characters[len]; len++) ;
-    hb_buffer_add_utf32 (buffer, data->characters, len, 0, len);
+  hb_shape (f->font, buffer, NULL, 0);
 
-    hb_shape (f->font, buffer, NULL, 0);
+  for (len = 0; data->glyphs[len]; len++) ;
+  expected_len = len;
 
-    for (len = 0; data->glyphs[len]; len++) ;
-    expected_len = len;
+  glyphs = hb_buffer_get_glyph_infos (buffer, &len);
+  g_assert_cmpint (len, ==, expected_len);
+  for (i = 0; i < len; i++)
+    g_assert_cmpint (glyphs[i].codepoint, ==, data->glyphs[i]);
 
-    glyphs = hb_buffer_get_glyph_infos (buffer, &len);
-    g_assert_cmpint (len, ==, expected_len);
-    for (i = 0; i < len; i++)
-      g_assert_cmphex (glyphs[i].codepoint, ==, data->glyphs[i]);
-
-    hb_buffer_destroy (buffer);
-  }
+  hb_buffer_destroy (buffer);
 }
 
+static void
+test_shape_complex_skipped (gconstpointer user_data)
+{
+  const test_t *test = user_data;
+  const test_data_t *data = test->test_data;
+
+  if (data->comments[0])
+    g_test_message ("Test comments: %s", data->comments);
+
+  g_test_message ("Skipping test");
+}
 
 
 static void
 add_test_set (const test_set_t *test_set, const char *set_name)
 {
+  const test_data_t *data;
+  char *font_file;
+  hb_bool_t skip;
 
-  hb_test_add_fixture_flavor (ft_fixture, (const void *) test_set, set_name, test_shape_complex);
+  font_file = get_font_file (&test_set->font_data);
+  skip = !g_file_test (font_file, G_FILE_TEST_EXISTS);
+  g_free (font_file);
+
+  for (data = test_set->test_datas; data->characters[0]; data++) {
+    char *flavor;
+    GString *str;
+    const hb_codepoint_t *p;
+
+    test_t *test = g_slice_new0 (test_t);
+    test->font_data = &test_set->font_data;
+    test->test_data = data;
+
+    str = g_string_new ("<");
+    for (p = data->characters; *p; p++)
+      g_string_append_printf (str, "%04X,", *p);
+    str->str[str->len - 1] = '>';
+
+    flavor = g_strdup_printf ("%s/%s/%s", set_name, test_set->font_data.font_file, str->str);
+
+    g_string_free (str, TRUE);
+
+    if (skip)
+      hb_test_add_data_flavor ((const void *) test, flavor, test_shape_complex_skipped);
+    else
+      hb_test_add_fixture_flavor (ft_fixture, (const void *) test, flavor, test_shape_complex);
+
+    g_free (flavor);
+  }
 }
 
 
@@ -1080,19 +1128,19 @@ main (int argc, char **argv)
 
   TEST_SET (greek);
 
-  TEST_SET (devanagari_1);
-  TEST_SET (devanagari_2);
-  TEST_SET (bengali_1);
-  TEST_SET (bengali_2);
-  TEST_SET (bengali_3);
+  TEST_SET (devanagari1);
+  TEST_SET (devanagari2);
+  TEST_SET (bengali1);
+  TEST_SET (bengali2);
+  TEST_SET (bengali3);
   TEST_SET (gurmukhi);
   TEST_SET (oriya);
   TEST_SET (tamil);
   TEST_SET (telugu);
-  TEST_SET (kannada_1);
-  TEST_SET (kannada_2);
-  TEST_SET (malayalam_1);
-  TEST_SET (malayalam_2);
+  TEST_SET (kannada1);
+  TEST_SET (kannada2);
+  TEST_SET (malayalam1);
+  TEST_SET (malayalam2);
   TEST_SET (sinhala);
 
   TEST_SET (khmer);

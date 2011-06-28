@@ -82,7 +82,7 @@ check-tool-raw:
 # check-gtester: Run tests under gtester
 GTESTER = gtester
 check-gtester:
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool-raw TOOL="$(GTESTER) --verbose"
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLGS) check-tool-raw TOOL="$(GTESTER) --verbose --keep-going"
 
 
 # Check tests under valgrind.  Saves log to log-valgrind.txt
