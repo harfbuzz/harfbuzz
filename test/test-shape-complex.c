@@ -35,9 +35,7 @@
  * description.
  */
 
-#ifdef HAVE_FREETYPE
 #include <hb-ft.h>
-#endif
 
 typedef struct
 {
