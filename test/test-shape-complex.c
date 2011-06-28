@@ -41,18 +41,29 @@
 
 typedef struct
 {
-  char           comments[64];
-  hb_codepoint_t characters[16];
-  hb_codepoint_t glyphs[16];
-} test_t;
+  const char *font_file;
+  unsigned int face_index;
+  /* TODO add min/max face version */
+} font_data_t;
 
 typedef struct
 {
-  const char *font_file;
-  unsigned int face_index;
-  const test_t tests[];
+  char           comments[64];
+  hb_codepoint_t characters[16];
+  hb_codepoint_t glyphs[16];
+} test_data_t;
+
+typedef struct
+{
+  const font_data_t font_data;
+  const test_data_t tests[];
 } test_set_t;
 
+typedef struct
+{
+  const font_data_t font_data;
+  const test_data_t tests[];
+} test_t;
 
 #if 0
 static bool decomposedShaping(FT_Face face, HB_Script script, const QChar &ch)
@@ -147,7 +158,7 @@ void tst_QScriptEngine::greek()
 #endif
 
 static const test_set_t tests_greek = {
-  "DejaVuSans.ttf", 0,
+  {"DejaVuSans.ttf", 0},
   {
     { "",
       { 0x3b1, 0x300, 0x313, 0 },
@@ -162,7 +173,7 @@ static const test_set_t tests_greek = {
 };
 
 static const test_set_t tests_devanagari_1 = {
-  "raghu.ttf", 0,
+  {"raghu.ttf", 0},
   {
     { "Ka",
       { 0x0915, 0 },
@@ -217,7 +228,7 @@ static const test_set_t tests_devanagari_1 = {
 };
 
 static const test_set_t tests_devanagari_2 = {
-  "mangal.ttf", 0,
+  {"mangal.ttf", 0},
   {
     { "Ka",
       { 0x0915, 0 },
@@ -272,7 +283,7 @@ static const test_set_t tests_devanagari_2 = {
 };
 
 static const test_set_t tests_bengali_1 = {
-  "AkaashNormal.ttf", 0,
+  {"AkaashNormal.ttf", 0},
   {
     { "Ka",
       { 0x0995, 0 },
@@ -420,7 +431,7 @@ static const test_set_t tests_bengali_1 = {
 };
 
 static const test_set_t tests_bengali_2 = {
-  "MuktiNarrow.ttf", 0,
+  {"MuktiNarrow.ttf", 0},
   {
     { "Ka",
       { 0x0995, 0 },
@@ -543,7 +554,7 @@ static const test_set_t tests_bengali_2 = {
 };
 
 static const test_set_t tests_bengali_3 = {
-  "LikhanNormal.ttf", 0,
+  {"LikhanNormal.ttf", 0},
   {
     { "",
       { 0x09a8, 0x09cd, 0x09af, 0 },
@@ -582,7 +593,7 @@ static const test_set_t tests_bengali_3 = {
 };
 
 static const test_set_t tests_gurmukhi = {
-  "lohit_pa.ttf", 0,
+  {"lohit_pa.ttf", 0},
   {
     { "",
       { 0xA15, 0xA4D, 0xa39, 0 },
@@ -593,7 +604,7 @@ static const test_set_t tests_gurmukhi = {
 };
 
 static const test_set_t tests_oriya = {
-  "utkalm.ttf", 0,
+  {"utkalm.ttf", 0},
   {
     { "",
       { 0xb15, 0xb4d, 0xb24, 0xb4d, 0xb30, 0 },
@@ -628,7 +639,7 @@ static const test_set_t tests_oriya = {
 };
 
 static const test_set_t tests_tamil = {
-  "akruti1.ttf", 0,
+  {"akruti1.ttf", 0},
   {
     { "",
       { 0x0b95, 0x0bc2, 0 },
@@ -723,7 +734,7 @@ static const test_set_t tests_tamil = {
 };
 
 static const test_set_t tests_telugu = {
-  "Pothana2000.ttf", 0,
+  {"Pothana2000.ttf", 0},
   {
     { "",
       { 0xc15, 0xc4d, 0 },
@@ -774,7 +785,7 @@ static const test_set_t tests_telugu = {
 };
 
 static const test_set_t tests_kannada_1 = {
-  "Sampige.ttf", 0,
+  {"Sampige.ttf", 0},
   {
     { "",
       { 0x0ca8, 0x0ccd, 0x0ca8, 0 },
@@ -821,7 +832,7 @@ static const test_set_t tests_kannada_1 = {
 };
 
 static const test_set_t tests_kannada_2 = {
-  "tunga.ttf", 0,
+  {"tunga.ttf", 0},
   {
     { "",
       { 0x0cb7, 0x0cc6, 0 },
@@ -856,7 +867,7 @@ static const test_set_t tests_kannada_2 = {
 };
 
 static const test_set_t tests_malayalam_1 = {
-  "AkrutiMal2Normal.ttf", 0,
+  {"AkrutiMal2Normal.ttf", 0},
   {
     { "",
       { 0x0d15, 0x0d46, 0 },
@@ -936,7 +947,7 @@ static const test_set_t tests_malayalam_1 = {
 };
 
 static const test_set_t tests_malayalam_2 = {
-  "Rachana.ttf", 0,
+  {"Rachana.ttf", 0},
   {
     { "",
       { 0xd37, 0xd4d, 0xd1f, 0xd4d, 0xd30, 0xd40, 0 },
@@ -964,7 +975,7 @@ static const test_set_t tests_malayalam_2 = {
 };
 
 static const test_set_t tests_sinhala = {
-  "FM-MalithiUW46.ttf", 0,
+  {"FM-MalithiUW46.ttf", 0},
   {
     { "",
       { 0xd9a, 0xdd9, 0xdcf, 0 },
@@ -995,7 +1006,7 @@ static const test_set_t tests_sinhala = {
 };
 
 static const test_set_t tests_khmer = {
-  "KhmerOS.ttf", 0,
+  {"KhmerOS.ttf", 0},
   {
     { "",
       { 0x179a, 0x17cd, 0 },
@@ -1038,7 +1049,7 @@ static const test_set_t tests_khmer = {
 };
 
 static const test_set_t tests_nko = {
-  "DejaVuSans.ttf", 0,
+  {"DejaVuSans.ttf", 0},
   {
     { "",
       { 0x7ca, 0 },
@@ -1065,7 +1076,7 @@ static const test_set_t tests_nko = {
 };
 
 static const test_set_t tests_linearb = {
-  "penuture.ttf", 0,
+  {"penuture.ttf", 0},
   {
     { "",
       { 0xd800, 0xdc01, 0xd800, 0xdc02, 0xd800, 0xdc03,  0 },
@@ -1087,11 +1098,11 @@ static void
 ft_fixture_init (ft_fixture_t *f, gconstpointer user_data)
 {
   const test_set_t *test = user_data;
-  char *font_file = g_strdup_printf ("%s/fonts/%s", srcdir (), test->font_file);
+  char *font_file = g_strdup_printf ("%s/fonts/%s", srcdir (), test->font_data.font_file);
 
   FT_Init_FreeType (&f->ft_library);
 
-  if (FT_New_Face (f->ft_library, font_file, test->face_index, &f->ft_face))
+  if (FT_New_Face (f->ft_library, font_file, test->font_data.face_index, &f->ft_face))
     g_test_message ("Font file %s not found.  Skipping test.", font_file);
   else
     f->font = hb_ft_font_create (f->ft_face, NULL);
@@ -1112,32 +1123,32 @@ static void
 test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
 {
   const test_set_t *test_set = user_data;
-  const test_t *test;
+  const test_data_t *data;
 
   if (!f->font)
     return; /* Skip test */
 
-  for (test = test_set->tests; test->characters[0]; test++) {
+  for (data = test_set->tests; data->characters[0]; data++) {
     hb_buffer_t *buffer;
     unsigned int i, len, expected_len;
     hb_glyph_info_t *glyphs;
 
-    if (test->comments[0])
-      g_test_message ("Test comments: %s", test->comments);
+    if (data->comments[0])
+      g_test_message ("Test comments: %s", data->comments);
 
     buffer =  hb_buffer_create (0);
-    for (len = 0; test->characters[len]; len++) ;
-    hb_buffer_add_utf32 (buffer, test->characters, len, 0, len);
+    for (len = 0; data->characters[len]; len++) ;
+    hb_buffer_add_utf32 (buffer, data->characters, len, 0, len);
 
     hb_shape (f->font, buffer, NULL, 0);
 
-    for (len = 0; test->glyphs[len]; len++) ;
+    for (len = 0; data->glyphs[len]; len++) ;
     expected_len = len;
 
     glyphs = hb_buffer_get_glyph_infos (buffer, &len);
     g_assert_cmpint (len, ==, expected_len);
     for (i = 0; i < len; i++)
-      g_assert_cmphex (glyphs[i].codepoint, ==, test->glyphs[i]);
+      g_assert_cmphex (glyphs[i].codepoint, ==, data->glyphs[i]);
 
     hb_buffer_destroy (buffer);
   }
