@@ -121,10 +121,12 @@ enum indic_matra_category_t {
   INDIC_MATRA_CATEGORY_VISUAL_ORDER_LEFT	= INDIC_MATRA_CATEGORY_NOT_APPLICABLE
 };
 
+/* Note: We use ASSERT_STATIC_EXPR_ZERO() instead of ASSERT_STATIC_EXPR() and the comma operation
+ * because gcc fails to optimize the latter and fills the table in at runtime. */
 #define INDIC_COMBINE_CATEGORIES(S,M) \
-  (ASSERT_STATIC_EXPR (M == INDIC_MATRA_CATEGORY_NOT_APPLICABLE || (S == INDIC_SYLLABIC_CATEGORY_VIRAMA || S == INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT)), \
-   ASSERT_STATIC_EXPR (S < 16 && M < 16), \
-   (M << 4) | S)
+  (ASSERT_STATIC_EXPR_ZERO (M == INDIC_MATRA_CATEGORY_NOT_APPLICABLE || (S == INDIC_SYLLABIC_CATEGORY_VIRAMA || S == INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT)) + \
+   ASSERT_STATIC_EXPR_ZERO (S < 16 && M < 16) + \
+   ((M << 4) | S))
 
 #include "hb-ot-shape-complex-indic-table.hh"
 
