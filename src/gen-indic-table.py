@@ -148,8 +148,10 @@ uu.sort ()
 
 last = -1
 num = 0
-total = 0
-tables = []
+offset = 0
+starts = []
+ends = []
+print "static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {"
 for u in uu:
 	if u <= last:
 		continue
@@ -162,26 +164,30 @@ for u in uu:
 			last = start-1
 		else:
 			if last >= 0:
-				print
-				print "};"
-				print
-			print "static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x%04x[] =" % start
-			print "{",
-			tables.append (start)
+				ends.append (last + 1)
+				offset += ends[-1] - starts[-1]
+			print
+			print
+			print "#define indic_offset_0x%04x %d" % (start, offset)
+			starts.append (start)
 
 	print_block (block, start, end, data)
 	last = end
+ends.append (last + 1)
+offset += ends[-1] - starts[-1]
+print
+print
+print "#define indic_offset_total %d" % offset
 print
 print "};"
-print
 
 print
 print "static INDIC_TABLE_ELEMENT_TYPE"
 print "get_indic_categories (hb_codepoint_t u)"
 print "{"
-for u in tables:
-	t = "indic_table_0x%04x" % u
-	print "  if (0x%04X <= u && u <= 0x%04X + ARRAY_LENGTH (%s)) return %s[u - 0x%04X];" % (u, u, t, t, u)
+for (start,end) in zip (starts, ends):
+	offset = "indic_offset_0x%04x" % start
+	print "  if (0x%04X <= u && u <= 0x%04X) return indic_table[u - 0x%04X + %s];" % (start, end, start, offset)
 for u,d in singles.items ():
 	print "  if (unlikely (u == 0x%04X)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
 print "  return _(x,x);"

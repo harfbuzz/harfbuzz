@@ -89,8 +89,11 @@ HB_BEGIN_DECLS
 #define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)
 
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x0900[] =
-{
+static const INDIC_TABLE_ELEMENT_TYPE indic_table[4080] = {
+
+
+#define indic_offset_0x0900 0
+
 
   /* Devanagari  (0900..097F) */
 
@@ -377,10 +380,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x0900[] =
   /* 1088 */ _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x),  _(C,x), _(TM,x),
   /* 1090 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1098 */  _(x,x),  _(x,x), _(TM,x), _(TM,x),  _(M,R),  _(M,T),  _(x,x),  _(x,x),
-};
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x1700[] =
-{
+#define indic_offset_0x1700 1952
+
 
   /* Tagalog  (1700..171F) */
 
@@ -428,10 +430,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x1700[] =
   /* 17E8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 17F0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 17F8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-};
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x1900[] =
-{
+#define indic_offset_0x1900 2208
+
 
   /* Limbu  (1900..194F) */
 
@@ -504,10 +505,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x1900[] =
   /* 1A98 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1AA0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1AA8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-};
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x1b00[] =
-{
+#define indic_offset_0x1b00 2640
+
 
   /* Balinese  (1B00..1B7F) */
 
@@ -562,10 +562,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x1b00[] =
   /* 1C38 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1C40 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1C48 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),
-};
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0xa800[] =
-{
+#define indic_offset_0xa800 2976
+
 
   /* Syloti Nagri  (A800..A82F) */
 
@@ -697,10 +696,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0xa800[] =
   /* AAC8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* AAD0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* AAD8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-};
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0xabc0[] =
-{
+#define indic_offset_0xabc0 3712
+
 
   /* Meetei Mayek  (ABC0..ABFF) */
 
@@ -712,10 +710,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0xabc0[] =
   /* ABE8 */  _(M,B),  _(M,R),  _(M,R),  _(x,x), _(TM,x),  _(V,B),  _(x,x),  _(x,x),
   /* ABF0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* ABF8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-};
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x10a00[] =
-{
+#define indic_offset_0x10a00 3776
+
 
   /* Kharoshthi  (10A00..10A5F) */
 
@@ -731,10 +728,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x10a00[] =
   /* 10A48 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 10A50 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 10A58 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-};
 
-static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x11000[] =
-{
+#define indic_offset_0x11000 3872
+
 
   /* Brahmi  (11000..1107F) */
 
@@ -767,20 +763,22 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table_0x11000[] =
   /* 110B8 */  _(M,R),  _(V,B),  _(N,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 110C0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 110C8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-};
 
+#define indic_offset_total 4080
+
+};
 
 static INDIC_TABLE_ELEMENT_TYPE
 get_indic_categories (hb_codepoint_t u)
 {
-  if (0x0900 <= u && u <= 0x0900 + ARRAY_LENGTH (indic_table_0x0900)) return indic_table_0x0900[u - 0x0900];
-  if (0x1700 <= u && u <= 0x1700 + ARRAY_LENGTH (indic_table_0x1700)) return indic_table_0x1700[u - 0x1700];
-  if (0x1900 <= u && u <= 0x1900 + ARRAY_LENGTH (indic_table_0x1900)) return indic_table_0x1900[u - 0x1900];
-  if (0x1B00 <= u && u <= 0x1B00 + ARRAY_LENGTH (indic_table_0x1b00)) return indic_table_0x1b00[u - 0x1B00];
-  if (0xA800 <= u && u <= 0xA800 + ARRAY_LENGTH (indic_table_0xa800)) return indic_table_0xa800[u - 0xA800];
-  if (0xABC0 <= u && u <= 0xABC0 + ARRAY_LENGTH (indic_table_0xabc0)) return indic_table_0xabc0[u - 0xABC0];
-  if (0x10A00 <= u && u <= 0x10A00 + ARRAY_LENGTH (indic_table_0x10a00)) return indic_table_0x10a00[u - 0x10A00];
-  if (0x11000 <= u && u <= 0x11000 + ARRAY_LENGTH (indic_table_0x11000)) return indic_table_0x11000[u - 0x11000];
+  if (0x0900 <= u && u <= 0x10A0) return indic_table[u - 0x0900 + indic_offset_0x0900];
+  if (0x1700 <= u && u <= 0x1800) return indic_table[u - 0x1700 + indic_offset_0x1700];
+  if (0x1900 <= u && u <= 0x1AB0) return indic_table[u - 0x1900 + indic_offset_0x1900];
+  if (0x1B00 <= u && u <= 0x1C50) return indic_table[u - 0x1B00 + indic_offset_0x1b00];
+  if (0xA800 <= u && u <= 0xAAE0) return indic_table[u - 0xA800 + indic_offset_0xa800];
+  if (0xABC0 <= u && u <= 0xAC00) return indic_table[u - 0xABC0 + indic_offset_0xabc0];
+  if (0x10A00 <= u && u <= 0x10A60) return indic_table[u - 0x10A00 + indic_offset_0x10a00];
+  if (0x11000 <= u && u <= 0x110D0) return indic_table[u - 0x11000 + indic_offset_0x11000];
   if (unlikely (u == 0x00A0)) return _(CP,x);
   if (unlikely (u == 0x25CC)) return _(CP,x);
   return _(x,x);
