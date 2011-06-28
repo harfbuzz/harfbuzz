@@ -1044,6 +1044,7 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
   hb_buffer_t *buffer;
   unsigned int i, len, expected_len;
   hb_glyph_info_t *glyphs;
+  hb_bool_t fail;
 
   g_assert (f->font);
 
@@ -1060,9 +1061,27 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
   expected_len = len;
 
   glyphs = hb_buffer_get_glyph_infos (buffer, &len);
-  g_assert_cmpint (len, ==, expected_len);
-  for (i = 0; i < len; i++)
-    g_assert_cmpint (glyphs[i].codepoint, ==, data->glyphs[i]);
+  fail = len != expected_len;
+  if (!fail)
+    for (i = 0; i < len; i++)
+      if (glyphs[i].codepoint != data->glyphs[i]) {
+        fail = TRUE;
+	break;
+      }
+
+  if (fail) {
+    GString *str = g_string_new ("");
+    for (i = 0; i < expected_len; i++)
+      g_string_append_printf (str, " %4d", data->glyphs[i]);
+    g_test_message ("Expected glyphs: %s", str->str);
+    g_string_truncate (str, 0);
+    for (i = 0; i < len; i++)
+      g_string_append_printf (str, " %4d", glyphs[i].codepoint);
+    g_test_message ("Received glyphs: %s", str->str);
+    g_string_free (str, TRUE);
+
+    g_test_fail ();
+  }
 
   hb_buffer_destroy (buffer);
 }
