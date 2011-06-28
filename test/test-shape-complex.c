@@ -63,6 +63,7 @@ typedef struct
   const test_data_t tests[];
 } test_t;
 
+
 static const test_set_t tests_greek = {
   {"DejaVuSans.ttf", 0},
   {
@@ -1062,13 +1063,20 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
 
 
 
+static void
+add_test_set (const test_set_t *test_set, const char *set_name)
+{
+
+  hb_test_add_fixture_flavor (ft_fixture, (const void *) test_set, set_name, test_shape_complex);
+}
+
 
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
-#define TEST_SET(name) hb_test_add_fixture_flavor (ft_fixture, (const void *) &tests_##name, #name, test_shape_complex)
+#define TEST_SET(name) add_test_set (&tests_##name, #name)
 
   TEST_SET (greek);
 
