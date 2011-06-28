@@ -49,6 +49,27 @@ HB_BEGIN_DECLS
 				  ((const char *) s)[3]))
 
 
+static inline const char *
+srcdir (void)
+{
+  static const char *s;
+
+  if (!s) {
+    s = getenv ("srcdir");
+
+#ifdef SRCDIR
+    if (!s || !s[0])
+      s = SRCDIR;
+#endif
+
+    if (!s || !s[0])
+      s = ".";
+  }
+
+  return s;
+}
+
+
 /* Helpers */
 
 static inline void

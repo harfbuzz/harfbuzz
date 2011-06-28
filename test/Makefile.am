@@ -7,7 +7,7 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
 if HAVE_GLIB
-AM_CPPFLAGS = -I$(top_srcdir)/src/ $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
+AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
 LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS) $(GTHREAD_LIBS)
 
 EXTRA_DIST += hb-test.h
@@ -47,7 +47,13 @@ test_c_CPPFLAGS += $(FREETYPE_CFLAGS)
 test_cplusplus_CPPFLAGS += $(FREETYPE_CFLAGS)
 # TODO replace freetype with other stuff in the following test
 test_object_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
-test_object_LIBS = $(LDADD) $(FREETYPE_LIBS)
+test_object_LDADD = $(LDADD) $(FREETYPE_LIBS)
+
+TEST_PROGS += \
+	test-shape-complex \
+	$(NULL)
+test_shape_complex_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
+test_shape_complex_LDADD = $(LDADD) $(FREETYPE_LIBS)
 endif
 
 
@@ -58,6 +64,7 @@ TESTS_ENVIRONMENT = \
 	MALLOC_PERTURB_=$$(($${RANDOM:-256} % 256)) \
 	G_DEBUG=gc-friendly \
 	G_SLICE=always-malloc \
+	srcdir=$(srcdir) \
 	$(ENV)
 
 
