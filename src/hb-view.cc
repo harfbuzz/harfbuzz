@@ -98,7 +98,7 @@ parse_opts (int argc, char **argv)
   while (1)
     {
       int option_index = 0, c;
-      static struct option long_options[] = {
+      static const struct option long_options[] = {
 	{"annotate", 0, &annotate, TRUE},
 	{"background", 1, 0, 'B'},
 	{"debug", 0, &debug, TRUE},
