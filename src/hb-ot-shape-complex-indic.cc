@@ -293,12 +293,19 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_shape_planner_t *planner, con
 }
 
 
+static void
+matched_syllable (hb_ot_shape_context_t *c,
+		  unsigned int start,
+		  unsigned int end)
+{
+  //fprintf (stderr, "%d %d\n", start, end);
+}
 
 #include "hb-ot-shape-complex-indic-machine.hh"
 
 
 void
-_hb_ot_shape_complex_setup_masks_indic	(hb_ot_shape_context_t *c)
+_hb_ot_shape_complex_setup_masks_indic (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
 

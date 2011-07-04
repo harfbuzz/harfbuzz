@@ -60,7 +60,8 @@ matra_group = M N? H?;
 syllable_tail = SM? (VD VD?)?;
 
 action matched_syllable {
-  //fprintf (stderr, "Syll %d\n", p);
+  matched_syllable (c, last, p);
+  last = p;
 }
 
 consonant_syllable =	(c.N? (z.H|H.z?))* c.N? A? (H.z? | matra_group*)? syllable_tail %(matched_syllable);
@@ -96,6 +97,7 @@ find_syllables (hb_ot_shape_context_t *c)
   p = 0;
   pe = eof = c->buffer->len;
 
+  unsigned int last = 0;
   %%{
     write exec;
   }%%
