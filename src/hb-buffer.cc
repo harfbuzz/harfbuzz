@@ -535,12 +535,15 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 }
 
 
-static void
+static inline void
 reverse_range (hb_buffer_t *buffer,
 	       unsigned int start,
 	       unsigned int end)
 {
   unsigned int i, j;
+
+  if (start == end - 1)
+    return;
 
   for (i = start, j = end - 1; i < j; i++, j--) {
     hb_glyph_info_t t;
@@ -551,7 +554,7 @@ reverse_range (hb_buffer_t *buffer,
   }
 
   if (buffer->pos) {
-    for (i = 0, j = end - 1; i < j; i++, j--) {
+    for (i = start, j = end - 1; i < j; i++, j--) {
       hb_glyph_position_t t;
 
       t = buffer->pos[i];
