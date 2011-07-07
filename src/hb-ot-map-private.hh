@@ -38,40 +38,6 @@ HB_BEGIN_DECLS
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
 
-struct hb_ot_map_builder_t
-{
-  public:
-
-  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global);
-
-  inline void add_bool_feature (hb_tag_t tag, bool global = true)
-  { add_feature (tag, 1, global); }
-
-  HB_INTERNAL void compile (hb_face_t *face,
-			    const hb_segment_properties_t *props,
-			    struct hb_ot_map_t &m);
-
-  inline void finish (void) {
-    feature_infos.finish ();
-  }
-
-  private:
-
-  struct feature_info_t {
-    hb_tag_t tag;
-    unsigned int seq; /* sequence#, used for stable sorting only */
-    unsigned int max_value;
-    bool global; /* whether the feature applies value to every glyph in the buffer */
-    unsigned int default_value; /* for non-global features, what should the unset glyphs take */
-
-    static int cmp (const feature_info_t *a, const feature_info_t *b)
-    { return (a->tag != b->tag) ?  (a->tag < b->tag ? -1 : 1) : (a->seq < b->seq ? -1 : 1); }
-  };
-
-  hb_prealloced_array_t<feature_info_t,16> feature_infos; /* used before compile() only */
-};
-
-
 struct hb_ot_map_t
 {
   friend struct hb_ot_map_builder_t;
@@ -138,6 +104,40 @@ struct hb_ot_map_t
 
   hb_prealloced_array_t<feature_map_t, 8> features;
   hb_prealloced_array_t<lookup_map_t, 32> lookups[2]; /* GSUB/GPOS */
+};
+
+
+struct hb_ot_map_builder_t
+{
+  public:
+
+  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global);
+
+  inline void add_bool_feature (hb_tag_t tag, bool global = true)
+  { add_feature (tag, 1, global); }
+
+  HB_INTERNAL void compile (hb_face_t *face,
+			    const hb_segment_properties_t *props,
+			    struct hb_ot_map_t &m);
+
+  inline void finish (void) {
+    feature_infos.finish ();
+  }
+
+  private:
+
+  struct feature_info_t {
+    hb_tag_t tag;
+    unsigned int seq; /* sequence#, used for stable sorting only */
+    unsigned int max_value;
+    bool global; /* whether the feature applies value to every glyph in the buffer */
+    unsigned int default_value; /* for non-global features, what should the unset glyphs take */
+
+    static int cmp (const feature_info_t *a, const feature_info_t *b)
+    { return (a->tag != b->tag) ?  (a->tag < b->tag ? -1 : 1) : (a->seq < b->seq ? -1 : 1); }
+  };
+
+  hb_prealloced_array_t<feature_info_t,16> feature_infos; /* used before compile() only */
 };
 
 
