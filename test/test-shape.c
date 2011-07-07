@@ -35,6 +35,7 @@
  */
 
 /* TODO Make this test data-driven and add some real test data */
+/* TODO Test positions too. And test non-native direction.  Test commit 2e18c6dbdfb */
 
 
 static const char test_data[] = "test\0data";
