@@ -153,12 +153,32 @@ static const struct arabic_state_table_entry {
 void
 _hb_ot_shape_complex_collect_features_arabic (hb_ot_shape_planner_t *planner, const hb_segment_properties_t  *props)
 {
-  /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
-  planner->map.add_bool_feature (HB_TAG('c','s','w','h'));
+  /* For Language forms (in ArabicOT speak), we do the iso/fina/medi/init together,
+   * then rlig and calt each in their own stage.  This makes IranNastaliq's ALLAH
+   * ligature work correctly. It's unfortunate though...
+   *
+   * This also makes Arial Bold in Windows7 work.  See:
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=644184
+   *
+   * TODO: Add test cases for these two.
+   */
+
+  planner->map.add_gsub_pause (NULL, NULL);
 
   unsigned int num_features = props->script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_features; i++)
     planner->map.add_bool_feature (arabic_syriac_features[i], false);
+
+  planner->map.add_gsub_pause (NULL, NULL);
+
+  planner->map.add_bool_feature (HB_TAG('r','l','i','g'));
+  planner->map.add_gsub_pause (NULL, NULL);
+
+  planner->map.add_bool_feature (HB_TAG('c','a','l','t'));
+  planner->map.add_gsub_pause (NULL, NULL);
+
+  /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
+  planner->map.add_bool_feature (HB_TAG('c','s','w','h'));
 }
 
 void
