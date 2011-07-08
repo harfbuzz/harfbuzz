@@ -39,10 +39,16 @@ HB_BEGIN_DECLS
 #define combining_class() var1.u8[1] /* unicode combining_class (uint8_t) */
 
 
+#define HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS \
+  HB_COMPLEX_SHAPER_IMPLEMENT (default) /* should be first */ \
+  HB_COMPLEX_SHAPER_IMPLEMENT (arabic) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
+  /* ^--- Add new shapers here */
+
 enum hb_ot_complex_shaper_t {
-  hb_ot_complex_shaper_default,
-  hb_ot_complex_shaper_arabic,
-  hb_ot_complex_shaper_indic
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) hb_ot_complex_shaper_##name,
+  HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
 };
 
 static inline hb_ot_complex_shaper_t
@@ -50,6 +56,9 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
 {
   switch ((int) props->script)
   {
+    default:
+      return hb_ot_complex_shaper_default;
+
     case HB_SCRIPT_ARABIC:
     case HB_SCRIPT_MANDAIC:
     case HB_SCRIPT_MONGOLIAN:
@@ -103,8 +112,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_TIBETAN:
       return hb_ot_complex_shaper_indic;
 
-    default:
-      return hb_ot_complex_shaper_default;
+    /* ^--- Add new shapers here */
   }
 }
 
@@ -119,9 +127,10 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
  */
 
 typedef void hb_ot_shape_complex_collect_features_func_t (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props);
-HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_default;
-HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_arabic;
-HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_indic;
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+  HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_##name;
+  HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
 
 static inline void
 hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
@@ -130,9 +139,10 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
 {
   switch (shaper) {
     default:
-    case hb_ot_complex_shaper_default:	_hb_ot_shape_complex_collect_features_default	(map, props);	return;
-    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_collect_features_arabic	(map, props);	return;
-    case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_collect_features_indic	(map, props);	return;
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_collect_features_##name	(map, props);	return;
+    HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
   }
 }
 
@@ -145,9 +155,10 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
  */
 
 typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_map_t *map, hb_buffer_t *buffer);
-HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_default;
-HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_arabic;
-HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_indic;
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+  HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_##name;
+  HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
 
 static inline void
 hb_ot_shape_complex_setup_masks (hb_ot_complex_shaper_t shaper,
@@ -156,9 +167,10 @@ hb_ot_shape_complex_setup_masks (hb_ot_complex_shaper_t shaper,
 {
   switch (shaper) {
     default:
-    case hb_ot_complex_shaper_default:	_hb_ot_shape_complex_setup_masks_default(map, buffer);	return;
-    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_setup_masks_arabic	(map, buffer);	return;
-    case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_setup_masks_indic	(map, buffer);	return;
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_setup_masks_##name	(map, buffer);	return;
+    HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
   }
 }
 
