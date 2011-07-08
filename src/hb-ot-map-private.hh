@@ -60,8 +60,10 @@ struct hb_ot_map_t
     return map ? map->_1_mask : 0;
   }
 
-  HB_INTERNAL void substitute (hb_face_t *face, hb_buffer_t *buffer) const;
-  HB_INTERNAL void position (hb_font_t *font, hb_buffer_t *buffer) const;
+  inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const
+  { apply (0, (hb_ot_map_t::apply_lookup_func_t) hb_ot_layout_substitute_lookup, face, buffer); }
+  inline void position (hb_font_t *font, hb_buffer_t *buffer) const
+  { apply (1, (hb_ot_map_t::apply_lookup_func_t) hb_ot_layout_position_lookup, font, buffer); }
 
   inline void finish (void) {
     features.finish ();
@@ -93,11 +95,7 @@ struct hb_ot_map_t
     { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
   };
 
-  typedef union {
-    void *p;
-    gsub_pause_func_t gsub;
-    gpos_pause_func_t gpos;
-  } pause_func_t;
+  typedef void (*pause_func_t) (const hb_ot_map_t *map, void *face_or_font, hb_buffer_t *buffer, void *user_data);
   typedef struct {
     pause_func_t func;
     void *user_data;
@@ -108,11 +106,20 @@ struct hb_ot_map_t
     pause_callback_t callback;
   };
 
+  typedef hb_bool_t (*apply_lookup_func_t) (void *face_or_font,
+					    hb_buffer_t  *buffer,
+					    unsigned int  lookup_index,
+					    hb_mask_t     mask);
+
   HB_INTERNAL void add_lookups (hb_face_t    *face,
 				unsigned int  table_index,
 				unsigned int  feature_index,
 				hb_mask_t     mask);
 
+  HB_INTERNAL void apply (unsigned int table_index,
+			  hb_ot_map_t::apply_lookup_func_t apply_lookup_func,
+			  void *face_or_font,
+			  hb_buffer_t *buffer) const;
 
   hb_mask_t global_mask;
 
@@ -131,8 +138,10 @@ struct hb_ot_map_builder_t
   inline void add_bool_feature (hb_tag_t tag, bool global = true)
   { add_feature (tag, 1, global); }
 
-  HB_INTERNAL void add_gsub_pause (hb_ot_map_t::gsub_pause_func_t pause_func, void *user_data);
-  HB_INTERNAL void add_gpos_pause (hb_ot_map_t::gpos_pause_func_t pause_func, void *user_data);
+  inline void add_gsub_pause (hb_ot_map_t::gsub_pause_func_t pause_func, void *user_data)
+  { add_pause (0, (hb_ot_map_t::pause_func_t) pause_func, user_data); }
+  inline void add_gpos_pause (hb_ot_map_t::gpos_pause_func_t pause_func, void *user_data)
+  { add_pause (1, (hb_ot_map_t::pause_func_t) pause_func, user_data); }
 
   HB_INTERNAL void compile (hb_face_t *face,
 			    const hb_segment_properties_t *props,
@@ -162,6 +171,8 @@ struct hb_ot_map_builder_t
     unsigned int stage;
     hb_ot_map_t::pause_callback_t callback;
   };
+
+  HB_INTERNAL void add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func, void *user_data);
 
   unsigned int current_stage[2]; /* GSUB/GPOS */
   hb_prealloced_array_t<feature_info_t,16> feature_infos;
