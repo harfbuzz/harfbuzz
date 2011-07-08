@@ -93,7 +93,7 @@ a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
   } else {
     hb_unicode_funcs_t *parent = hb_unicode_funcs_get_parent (ufuncs);
 
-    return hb_unicode_get_script (parent, codepoint);
+    return hb_unicode_script (parent, codepoint);
   }
 }
 
@@ -457,7 +457,7 @@ typedef struct {
   { \
     #name, \
     (func_setter_func_t) hb_unicode_funcs_set_##name##_func, \
-    (getter_func_t) hb_unicode_get_##name, \
+    (getter_func_t) hb_unicode_##name, \
     name##_tests, \
     G_N_ELEMENTS (name##_tests), \
     name##_tests_more, \
@@ -667,8 +667,8 @@ test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data)
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
                                     &f->data[1], free_up);
 
-  g_assert_cmphex (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
-  g_assert_cmphex (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_UNKNOWN);
+  g_assert_cmphex (hb_unicode_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
+  g_assert_cmphex (hb_unicode_script (aa, 'b'), ==, HB_SCRIPT_UNKNOWN);
 
   g_assert (!f->data[0].freed && !f->data[1].freed);
   hb_unicode_funcs_destroy (aa);
@@ -686,8 +686,8 @@ test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data)
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
                                     &f->data[1], free_up);
 
-  g_assert_cmphex (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
-  g_assert_cmphex (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
+  g_assert_cmphex (hb_unicode_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
+  g_assert_cmphex (hb_unicode_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
 
   g_assert (!f->data[0].freed && !f->data[1].freed);
   hb_unicode_funcs_destroy (aa);
@@ -714,9 +714,9 @@ test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data)
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
                                     &f->data[1], free_up);
 
-  g_assert_cmphex (hb_unicode_get_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
-  g_assert_cmphex (hb_unicode_get_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
-  g_assert_cmphex (hb_unicode_get_script (aa, '0'), ==, HB_SCRIPT_UNKNOWN);
+  g_assert_cmphex (hb_unicode_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
+  g_assert_cmphex (hb_unicode_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
+  g_assert_cmphex (hb_unicode_script (aa, '0'), ==, HB_SCRIPT_UNKNOWN);
 
   g_assert (!f->data[0].freed && !f->data[1].freed);
   hb_unicode_funcs_destroy (aa);
@@ -777,6 +777,9 @@ test_unicode_script_roundtrip (gconstpointer user_data)
   if (failed)
     g_test_message ("Some script roundtrip tests failed.  You probably have an old version of one of the libraries used.");
 }
+
+
+/* TODO test compose() and decompose() */
 
 
 int

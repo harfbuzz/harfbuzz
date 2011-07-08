@@ -231,7 +231,11 @@ hb_unicode_funcs_t _hb_glib_unicode_funcs = {
     hb_glib_get_eastasian_width,
     hb_glib_get_general_category,
     hb_glib_get_mirroring,
-    hb_glib_get_script
+    hb_glib_get_script,
+    /* TODO
+    hb_glib_compose,
+    hb_glib_decompose,
+    */
   }
 };
 

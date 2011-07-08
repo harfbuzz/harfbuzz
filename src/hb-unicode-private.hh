@@ -49,6 +49,8 @@ HB_BEGIN_DECLS
   HB_UNICODE_FUNC_IMPLEMENT (general_category) \
   HB_UNICODE_FUNC_IMPLEMENT (mirroring) \
   HB_UNICODE_FUNC_IMPLEMENT (script) \
+  HB_UNICODE_FUNC_IMPLEMENT (compose) \
+  HB_UNICODE_FUNC_IMPLEMENT (decompose) \
   /* ^--- Add new callbacks here */
 
 /* Simple callbacks are those taking a hb_codepoint_t and returning a hb_codepoint_t */
@@ -67,13 +69,13 @@ struct _hb_unicode_funcs_t {
 
   bool immutable;
 
-  /* Don't access these directly.  Call hb_unicode_get_*() instead. */
+  /* Don't access these directly.  Call hb_unicode_*() instead. */
 
   struct {
-#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_get_##name##_func_t name;
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_func_t name;
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_UNICODE_FUNC_IMPLEMENT
-  } get;
+  } func;
 
   struct {
 #define HB_UNICODE_FUNC_IMPLEMENT(name) void *name;

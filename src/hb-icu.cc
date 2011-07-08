@@ -174,7 +174,11 @@ hb_unicode_funcs_t _hb_icu_unicode_funcs = {
     hb_icu_get_eastasian_width,
     hb_icu_get_general_category,
     hb_icu_get_mirroring,
-    hb_icu_get_script
+    hb_icu_get_script,
+    /* TODO
+    hb_icu_compose,
+    hb_icu_decompose,
+    */
   }
 };
 

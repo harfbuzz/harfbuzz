@@ -68,7 +68,9 @@ Tests to write:
 
 - ot-layout enumeration API (needs font)
 
-- Finish test-shape.c
+- Finish test-shape.c, grep for TODO
+
+- Finish test-unicode.c, grep for TODO
 
 
 Optimizations:
