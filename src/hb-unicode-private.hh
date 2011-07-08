@@ -44,12 +44,21 @@ HB_BEGIN_DECLS
  */
 
 #define HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS \
-  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, combining_class, 0) \
-  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, eastasian_width, 1) \
-  HB_UNICODE_FUNC_IMPLEMENT (hb_unicode_general_category_t, general_category, HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) \
-  HB_UNICODE_FUNC_IMPLEMENT (hb_codepoint_t, mirroring, unicode) \
-  HB_UNICODE_FUNC_IMPLEMENT (hb_script_t, script, HB_SCRIPT_UNKNOWN) \
+  HB_UNICODE_FUNC_IMPLEMENT (combining_class) \
+  HB_UNICODE_FUNC_IMPLEMENT (eastasian_width) \
+  HB_UNICODE_FUNC_IMPLEMENT (general_category) \
+  HB_UNICODE_FUNC_IMPLEMENT (mirroring) \
+  HB_UNICODE_FUNC_IMPLEMENT (script) \
   /* ^--- Add new callbacks here */
+
+/* Simple callbacks are those taking a hb_codepoint_t and returning a hb_codepoint_t */
+#define HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE \
+  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, combining_class) \
+  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, eastasian_width) \
+  HB_UNICODE_FUNC_IMPLEMENT (hb_unicode_general_category_t, general_category) \
+  HB_UNICODE_FUNC_IMPLEMENT (hb_codepoint_t, mirroring) \
+  HB_UNICODE_FUNC_IMPLEMENT (hb_script_t, script) \
+  /* ^--- Add new simple callbacks here */
 
 struct _hb_unicode_funcs_t {
   hb_object_header_t header;
@@ -58,31 +67,22 @@ struct _hb_unicode_funcs_t {
 
   bool immutable;
 
-#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) \
-  inline return_type \
-  get_##name (hb_codepoint_t unicode) \
-  { return this->get.name (this, unicode, this->user_data.name); }
-
-  HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-
-#undef HB_UNICODE_FUNC_IMPLEMENT
-
-  /* Don't access these directly.  Call get_*() instead. */
+  /* Don't access these directly.  Call hb_unicode_get_*() instead. */
 
   struct {
-#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) hb_unicode_get_##name##_func_t name;
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_get_##name##_func_t name;
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_UNICODE_FUNC_IMPLEMENT
   } get;
 
   struct {
-#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) void *name;
+#define HB_UNICODE_FUNC_IMPLEMENT(name) void *name;
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_UNICODE_FUNC_IMPLEMENT
   } user_data;
 
   struct {
-#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) hb_destroy_func_t name;
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_destroy_func_t name;
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_UNICODE_FUNC_IMPLEMENT
   } destroy;

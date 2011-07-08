@@ -63,7 +63,7 @@ hb_shape (hb_font_t          *font,
     hb_unicode_funcs_t *unicode = buffer->unicode;
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++) {
-      hb_script_t script = unicode->get_script (buffer->info[i].codepoint);
+      hb_script_t script = hb_unicode_get_script (unicode, buffer->info[i].codepoint);
       if (likely (script != HB_SCRIPT_COMMON &&
 		  script != HB_SCRIPT_INHERITED &&
 		  script != HB_SCRIPT_UNKNOWN)) {
