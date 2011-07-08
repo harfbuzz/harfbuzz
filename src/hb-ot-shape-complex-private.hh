@@ -107,8 +107,9 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
  * Shapers should use plan->map to add their features.
  */
 
-HB_INTERNAL void _hb_ot_shape_complex_collect_features_arabic	(hb_ot_shape_planner_t *plan, const hb_segment_properties_t  *props);
-HB_INTERNAL void _hb_ot_shape_complex_collect_features_indic	(hb_ot_shape_planner_t *plan, const hb_segment_properties_t  *props);
+typedef void hb_ot_shape_complex_collect_features_func_t (hb_ot_shape_planner_t *plan, const hb_segment_properties_t  *props);
+HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_arabic;
+HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_indic;
 
 static inline void
 hb_ot_shape_complex_collect_features (hb_ot_shape_planner_t *planner,
@@ -129,8 +130,9 @@ hb_ot_shape_complex_collect_features (hb_ot_shape_planner_t *planner,
  * Shapers should use c->plan.map to get feature masks and set on buffer.
  */
 
-HB_INTERNAL void _hb_ot_shape_complex_setup_masks_arabic	(hb_ot_shape_context_t *c);
-HB_INTERNAL void _hb_ot_shape_complex_setup_masks_indic		(hb_ot_shape_context_t *c);
+typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_shape_context_t *c);
+HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_arabic;
+HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_indic;
 
 static inline void
 hb_ot_shape_complex_setup_masks (hb_ot_shape_context_t *c)
