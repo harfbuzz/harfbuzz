@@ -41,13 +41,6 @@ HB_BEGIN_DECLS
  * hb_font_funcs_t
  */
 
-struct _hb_font_funcs_t {
-  hb_object_header_t header;
-
-  hb_bool_t immutable;
-
-  /* Don't access these directly.  Call hb_font_get_*() instead. */
-
 #define HB_FONT_FUNCS_IMPLEMENT_CALLBACKS \
   HB_FONT_FUNC_IMPLEMENT (glyph) \
   HB_FONT_FUNC_IMPLEMENT (glyph_h_advance) \
@@ -57,8 +50,15 @@ struct _hb_font_funcs_t {
   HB_FONT_FUNC_IMPLEMENT (glyph_h_kerning) \
   HB_FONT_FUNC_IMPLEMENT (glyph_v_kerning) \
   HB_FONT_FUNC_IMPLEMENT (glyph_extents) \
-  HB_FONT_FUNC_IMPLEMENT (glyph_contour_point)
+  HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
+  /* ^--- Add new callbacks here */
 
+struct _hb_font_funcs_t {
+  hb_object_header_t header;
+
+  hb_bool_t immutable;
+
+  /* Don't access these directly.  Call hb_font_get_*() instead. */
 
   struct {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_func_t name;

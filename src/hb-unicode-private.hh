@@ -43,6 +43,14 @@ HB_BEGIN_DECLS
  * hb_unicode_funcs_t
  */
 
+#define HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS \
+  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, combining_class, 0) \
+  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, eastasian_width, 1) \
+  HB_UNICODE_FUNC_IMPLEMENT (hb_unicode_general_category_t, general_category, HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) \
+  HB_UNICODE_FUNC_IMPLEMENT (hb_codepoint_t, mirroring, unicode) \
+  HB_UNICODE_FUNC_IMPLEMENT (hb_script_t, script, HB_SCRIPT_UNKNOWN) \
+  /* ^--- Add new callbacks here */
+
 struct _hb_unicode_funcs_t {
   hb_object_header_t header;
 
@@ -50,43 +58,33 @@ struct _hb_unicode_funcs_t {
 
   bool immutable;
 
-#define IMPLEMENT(return_type, name) \
+#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) \
   inline return_type \
   get_##name (hb_codepoint_t unicode) \
   { return this->get.name (this, unicode, this->user_data.name); }
 
-  IMPLEMENT (unsigned int, combining_class)
-  IMPLEMENT (unsigned int, eastasian_width)
-  IMPLEMENT (hb_unicode_general_category_t, general_category)
-  IMPLEMENT (hb_codepoint_t, mirroring)
-  IMPLEMENT (hb_script_t, script)
+  HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
 
-#undef IMPLEMENT
+#undef HB_UNICODE_FUNC_IMPLEMENT
 
   /* Don't access these directly.  Call get_*() instead. */
 
   struct {
-    hb_unicode_get_combining_class_func_t	combining_class;
-    hb_unicode_get_eastasian_width_func_t	eastasian_width;
-    hb_unicode_get_general_category_func_t	general_category;
-    hb_unicode_get_mirroring_func_t		mirroring;
-    hb_unicode_get_script_func_t		script;
+#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) hb_unicode_get_##name##_func_t name;
+    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
   } get;
 
   struct {
-    void 					*combining_class;
-    void 					*eastasian_width;
-    void 					*general_category;
-    void 					*mirroring;
-    void 					*script;
+#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) void *name;
+    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
   } user_data;
 
   struct {
-    hb_destroy_func_t				combining_class;
-    hb_destroy_func_t				eastasian_width;
-    hb_destroy_func_t				general_category;
-    hb_destroy_func_t				mirroring;
-    hb_destroy_func_t				script;
+#define HB_UNICODE_FUNC_IMPLEMENT(return_type, name, default_value) hb_destroy_func_t name;
+    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
   } destroy;
 };
 
