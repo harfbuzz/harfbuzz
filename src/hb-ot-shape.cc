@@ -34,12 +34,9 @@
 HB_BEGIN_DECLS
 
 
-hb_tag_t early_features[] = {
+hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),
   HB_TAG('l','o','c','l'),
-};
-
-hb_tag_t common_features[] = {
   HB_TAG('m','a','r','k'),
   HB_TAG('m','k','m','k'),
   HB_TAG('r','l','i','g'),
@@ -93,8 +90,6 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
     for (unsigned int i = 0; i < ARRAY_LENGTH (array); i++) \
       planner->map.add_bool_feature (array[i]); \
   } HB_STMT_END
-
-  ADD_FEATURES (early_features);
 
   hb_ot_shape_complex_collect_features (planner->shaper, &planner->map, props);
 

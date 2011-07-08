@@ -163,6 +163,8 @@ _hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map, const hb
    * TODO: Add test cases for these two.
    */
 
+  map->add_bool_feature (HB_TAG('c','c','m','p'));
+
   map->add_gsub_pause (NULL, NULL);
 
   unsigned int num_features = props->script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;

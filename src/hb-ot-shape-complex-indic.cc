@@ -281,12 +281,28 @@ static const hb_tag_t indic_other_features[] =
   HB_TAG('b','l','w','m'),
 };
 
+static void
+final_reordering (const hb_ot_map_t *map,
+		  hb_face_t *face,
+		  hb_buffer_t *buffer,
+		  void *user_data HB_UNUSED)
+{
+}
 
 void
 _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
 {
+  map->add_bool_feature (HB_TAG('l','o','c','l'));
+  /* The Indic specs do not require ccmp, but we apply since if there is a
+   * use of it, it's typically at the beginning. */
+  map->add_bool_feature (HB_TAG('c','c','m','p'));
+
+  map->add_gsub_pause (NULL, NULL);
+
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++)
     map->add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
+
+  map->add_gsub_pause (final_reordering, NULL);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++)
     map->add_bool_feature (indic_other_features[i], true);
