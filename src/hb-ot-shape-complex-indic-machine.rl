@@ -59,12 +59,12 @@ z = ZWJ|ZWNJ;
 matra_group = M N? H?;
 syllable_tail = SM? (VD VD?)?;
 
-action matched_syllable {
-  matched_syllable (c, last, p);
+action found_syllable {
+  found_syllable (map, buffer, last, p);
   last = p;
 }
 
-consonant_syllable =	(c.N? (z.H|H.z?))* c.N? A? (H.z? | matra_group*)? syllable_tail %(matched_syllable);
+consonant_syllable =	(c.N? (z.H|H.z?))* c.N? A? (H.z? | matra_group*)? syllable_tail %(found_syllable);
 vowel_syllable =	(Ra H)? V N? (z.H.c | ZWJ.c)? matra_group* syllable_tail;
 standalone_cluster =	(Ra H)? NBSP N? (z? H c)? matra_group* syllable_tail;
 non_indic = X;
@@ -85,17 +85,17 @@ main := syllable**;
 #include <string.h>
 
 static void
-find_syllables (hb_ot_shape_context_t *c)
+find_syllables (hb_ot_map_t *map, hb_buffer_t *buffer)
 {
   unsigned int p, pe, eof;
   int cs;
   %%{
     write init;
-    getkey c->buffer->info[p].indic_category();
+    getkey buffer->info[p].indic_category();
   }%%
 
   p = 0;
-  pe = eof = c->buffer->len;
+  pe = eof = buffer->len;
 
   unsigned int last = 0;
   %%{

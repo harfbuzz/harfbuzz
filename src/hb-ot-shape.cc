@@ -96,7 +96,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
   ADD_FEATURES (early_features);
 
-  hb_ot_shape_complex_collect_features (planner, props);
+  hb_ot_shape_complex_collect_features (planner->shaper, &planner->map, props);
 
   ADD_FEATURES (common_features);
 
@@ -120,7 +120,7 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   hb_mask_t global_mask = c->plan->map.get_global_mask ();
   c->buffer->reset_masks (global_mask);
 
-  hb_ot_shape_complex_setup_masks (c); /* BUFFER: Clobbers var2 */
+  hb_ot_shape_complex_setup_masks (c->plan->shaper, &c->plan->map, c->buffer); /* BUFFER: Clobbers var2 */
 
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {

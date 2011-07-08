@@ -283,20 +283,19 @@ static const hb_tag_t indic_other_features[] =
 
 
 void
-_hb_ot_shape_complex_collect_features_indic (hb_ot_shape_planner_t *planner, const hb_segment_properties_t *props HB_UNUSED)
+_hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
 {
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++)
-    planner->map.add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
+    map->add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++)
-    planner->map.add_bool_feature (indic_other_features[i], true);
+    map->add_bool_feature (indic_other_features[i], true);
 }
 
 
 static void
-matched_syllable (hb_ot_shape_context_t *c,
-		  unsigned int start,
-		  unsigned int end)
+found_syllable (hb_ot_map_t *map, hb_buffer_t *buffer,
+		unsigned int start, unsigned int end)
 {
   //fprintf (stderr, "%d %d\n", start, end);
 }
@@ -305,24 +304,24 @@ matched_syllable (hb_ot_shape_context_t *c,
 
 
 void
-_hb_ot_shape_complex_setup_masks_indic (hb_ot_shape_context_t *c)
+_hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer)
 {
-  unsigned int count = c->buffer->len;
+  unsigned int count = buffer->len;
 
   for (unsigned int i = 0; i < count; i++)
   {
-    unsigned int type = get_indic_categories (c->buffer->info[i].codepoint);
+    unsigned int type = get_indic_categories (buffer->info[i].codepoint);
 
-    c->buffer->info[i].indic_category() = type & 0x0F;
-    c->buffer->info[i].indic_position() = type >> 4;
+    buffer->info[i].indic_category() = type & 0x0F;
+    buffer->info[i].indic_position() = type >> 4;
   }
 
-  find_syllables (c);
+  find_syllables (map, buffer);
 
   hb_mask_t mask_array[ARRAY_LENGTH (indic_basic_features)] = {0};
   unsigned int num_masks = ARRAY_LENGTH (indic_basic_features);
   for (unsigned int i = 0; i < num_masks; i++)
-    mask_array[i] = c->plan->map.get_1_mask (indic_basic_features[i].tag);
+    mask_array[i] = map->get_1_mask (indic_basic_features[i].tag);
 }
 
 

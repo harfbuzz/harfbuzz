@@ -151,7 +151,7 @@ static const struct arabic_state_table_entry {
 
 
 void
-_hb_ot_shape_complex_collect_features_arabic (hb_ot_shape_planner_t *planner, const hb_segment_properties_t  *props)
+_hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
 {
   /* For Language forms (in ArabicOT speak), we do the iso/fina/medi/init together,
    * then rlig and calt each in their own stage.  This makes IranNastaliq's ALLAH
@@ -163,57 +163,57 @@ _hb_ot_shape_complex_collect_features_arabic (hb_ot_shape_planner_t *planner, co
    * TODO: Add test cases for these two.
    */
 
-  planner->map.add_gsub_pause (NULL, NULL);
+  map->add_gsub_pause (NULL, NULL);
 
   unsigned int num_features = props->script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_features; i++)
-    planner->map.add_bool_feature (arabic_syriac_features[i], false);
+    map->add_bool_feature (arabic_syriac_features[i], false);
 
-  planner->map.add_gsub_pause (NULL, NULL);
+  map->add_gsub_pause (NULL, NULL);
 
-  planner->map.add_bool_feature (HB_TAG('r','l','i','g'));
-  planner->map.add_gsub_pause (NULL, NULL);
+  map->add_bool_feature (HB_TAG('r','l','i','g'));
+  map->add_gsub_pause (NULL, NULL);
 
-  planner->map.add_bool_feature (HB_TAG('c','a','l','t'));
-  planner->map.add_gsub_pause (NULL, NULL);
+  map->add_bool_feature (HB_TAG('c','a','l','t'));
+  map->add_gsub_pause (NULL, NULL);
 
   /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
-  planner->map.add_bool_feature (HB_TAG('c','s','w','h'));
+  map->add_bool_feature (HB_TAG('c','s','w','h'));
 }
 
 void
-_hb_ot_shape_complex_setup_masks_arabic (hb_ot_shape_context_t *c)
+_hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer)
 {
-  unsigned int count = c->buffer->len;
+  unsigned int count = buffer->len;
   unsigned int prev = 0, state = 0;
 
   for (unsigned int i = 0; i < count; i++)
   {
-    unsigned int this_type = get_joining_type (c->buffer->info[i].codepoint, (hb_unicode_general_category_t) c->buffer->info[i].general_category());
+    unsigned int this_type = get_joining_type (buffer->info[i].codepoint, (hb_unicode_general_category_t) buffer->info[i].general_category());
 
     if (unlikely (this_type == JOINING_TYPE_T)) {
-      c->buffer->info[i].arabic_shaping_action() = NONE;
+      buffer->info[i].arabic_shaping_action() = NONE;
       continue;
     }
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
     if (entry->prev_action != NONE)
-      c->buffer->info[prev].arabic_shaping_action() = entry->prev_action;
+      buffer->info[prev].arabic_shaping_action() = entry->prev_action;
 
-    c->buffer->info[i].arabic_shaping_action() = entry->curr_action;
+    buffer->info[i].arabic_shaping_action() = entry->curr_action;
 
     prev = i;
     state = entry->next_state;
   }
 
   hb_mask_t mask_array[TOTAL_NUM_FEATURES + 1] = {0};
-  unsigned int num_masks = c->buffer->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
+  unsigned int num_masks = buffer->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_masks; i++)
-    mask_array[i] = c->plan->map.get_1_mask (arabic_syriac_features[i]);
+    mask_array[i] = map->get_1_mask (arabic_syriac_features[i]);
 
   for (unsigned int i = 0; i < count; i++)
-    c->buffer->info[i].mask |= mask_array[c->buffer->info[i].arabic_shaping_action()];
+    buffer->info[i].mask |= mask_array[buffer->info[i].arabic_shaping_action()];
 }
 
 

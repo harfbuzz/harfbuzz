@@ -29,10 +29,21 @@
 
 #include "hb-private.hh"
 
-#include "hb-ot-shape-private.hh"
+#include "hb-ot-map-private.hh"
 
 HB_BEGIN_DECLS
 
+
+/* buffer var allocations, used by all shapers */
+#define general_category() var1.u8[0] /* unicode general_category (hb_unicode_general_category_t) */
+#define combining_class() var1.u8[1] /* unicode combining_class (uint8_t) */
+
+
+enum hb_ot_complex_shaper_t {
+  hb_ot_complex_shaper_none,
+  hb_ot_complex_shaper_arabic,
+  hb_ot_complex_shaper_indic
+};
 
 static inline hb_ot_complex_shaper_t
 hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
@@ -104,21 +115,22 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
  *
  * Called during shape_plan().
  *
- * Shapers should use plan->map to add their features.
+ * Shapers should use map to add their features and callbacks.
  */
 
-typedef void hb_ot_shape_complex_collect_features_func_t (hb_ot_shape_planner_t *plan, const hb_segment_properties_t  *props);
+typedef void hb_ot_shape_complex_collect_features_func_t (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props);
 HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_arabic;
 HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_indic;
 
 static inline void
-hb_ot_shape_complex_collect_features (hb_ot_shape_planner_t *planner,
+hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
+				      hb_ot_map_builder_t *map,
 				      const hb_segment_properties_t  *props)
 {
-  switch (planner->shaper) {
-    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_collect_features_arabic	(planner, props);	return;
-    case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_collect_features_indic	(planner, props);	return;
-    case hb_ot_complex_shaper_none:	default:								return;
+  switch (shaper) {
+    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_collect_features_arabic	(map, props);	return;
+    case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_collect_features_indic	(map, props);	return;
+    case hb_ot_complex_shaper_none:	default:							return;
   }
 }
 
@@ -127,20 +139,22 @@ hb_ot_shape_complex_collect_features (hb_ot_shape_planner_t *planner,
  *
  * Called during shape_execute().
  *
- * Shapers should use c->plan.map to get feature masks and set on buffer.
+ * Shapers should use map to get feature masks and set on buffer.
  */
 
-typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_shape_context_t *c);
+typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_map_t *map, hb_buffer_t *buffer);
 HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_arabic;
 HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_indic;
 
 static inline void
-hb_ot_shape_complex_setup_masks (hb_ot_shape_context_t *c)
+hb_ot_shape_complex_setup_masks (hb_ot_complex_shaper_t shaper,
+				 hb_ot_map_t *map,
+				 hb_buffer_t *buffer)
 {
-  switch (c->plan->shaper) {
-    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_setup_masks_arabic (c);	return;
-    case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_setup_masks_indic (c);	return;
-    case hb_ot_complex_shaper_none:	default:					return;
+  switch (shaper) {
+    case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_setup_masks_arabic	(map, buffer);	return;
+    case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_setup_masks_indic	(map, buffer);	return;
+    case hb_ot_complex_shaper_none:	default:						return;
   }
 }
 

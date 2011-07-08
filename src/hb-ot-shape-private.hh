@@ -32,21 +32,12 @@
 #include "hb-ot-shape.h"
 
 #include "hb-ot-map-private.hh"
+#include "hb-ot-shape-complex-private.hh"
 
 HB_BEGIN_DECLS
 
 
-/* buffer var allocations */
-#define general_category() var1.u8[0] /* unicode general_category (hb_unicode_general_category_t) */
-#define combining_class() var1.u8[1] /* unicode combining_class (uint8_t) */
-
-
-enum hb_ot_complex_shaper_t {
-  hb_ot_complex_shaper_none,
-  hb_ot_complex_shaper_arabic,
-  hb_ot_complex_shaper_indic
-};
-
+enum hb_ot_complex_shaper_t;
 
 struct hb_ot_shape_plan_t
 {
