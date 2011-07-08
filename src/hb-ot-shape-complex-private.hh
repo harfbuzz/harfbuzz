@@ -40,7 +40,7 @@ HB_BEGIN_DECLS
 
 
 enum hb_ot_complex_shaper_t {
-  hb_ot_complex_shaper_none,
+  hb_ot_complex_shaper_default,
   hb_ot_complex_shaper_arabic,
   hb_ot_complex_shaper_indic
 };
@@ -104,7 +104,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
       return hb_ot_complex_shaper_indic;
 
     default:
-      return hb_ot_complex_shaper_none;
+      return hb_ot_complex_shaper_default;
   }
 }
 
@@ -119,6 +119,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
  */
 
 typedef void hb_ot_shape_complex_collect_features_func_t (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props);
+HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_default;
 HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_arabic;
 HB_INTERNAL hb_ot_shape_complex_collect_features_func_t _hb_ot_shape_complex_collect_features_indic;
 
@@ -128,9 +129,10 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
 				      const hb_segment_properties_t  *props)
 {
   switch (shaper) {
+    default:
+    case hb_ot_complex_shaper_default:	_hb_ot_shape_complex_collect_features_default	(map, props);	return;
     case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_collect_features_arabic	(map, props);	return;
     case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_collect_features_indic	(map, props);	return;
-    case hb_ot_complex_shaper_none:	default:							return;
   }
 }
 
@@ -143,6 +145,7 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
  */
 
 typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_map_t *map, hb_buffer_t *buffer);
+HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_default;
 HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_arabic;
 HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_indic;
 
@@ -152,9 +155,10 @@ hb_ot_shape_complex_setup_masks (hb_ot_complex_shaper_t shaper,
 				 hb_buffer_t *buffer)
 {
   switch (shaper) {
+    default:
+    case hb_ot_complex_shaper_default:	_hb_ot_shape_complex_setup_masks_default(map, buffer);	return;
     case hb_ot_complex_shaper_arabic:	_hb_ot_shape_complex_setup_masks_arabic	(map, buffer);	return;
     case hb_ot_complex_shaper_indic:	_hb_ot_shape_complex_setup_masks_indic	(map, buffer);	return;
-    case hb_ot_complex_shaper_none:	default:						return;
   }
 }
 
