@@ -156,6 +156,10 @@ typedef void (*hb_test_fixture_func_t) (gpointer      fixture,
                                         gconstpointer user_data);
 #endif
 
+#if !GLIB_CHECK_VERSION(2,30,0)
+#define g_test_fail() g_error("Test failed")
+#endif
+
 static inline void
 hb_test_add_func (const char *test_path,
 		  hb_test_func_t   test_func)
