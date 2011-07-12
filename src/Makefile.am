@@ -124,6 +124,7 @@ GENERATORS = \
 EXTRA_DIST += $(GENERATORS)
 
 BUILT_SOURCES = hb-ot-shape-complex-indic-machine.hh
+EXTRA_DIST += hb-ot-shape-complex-indic-machine.rl
 hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
 	$(AM_V_GEN)ragel -e -F1 -o $@ $^
 
