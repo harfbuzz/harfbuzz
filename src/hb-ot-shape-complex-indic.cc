@@ -293,8 +293,8 @@ void
 _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
 {
   map->add_bool_feature (HB_TAG('l','o','c','l'));
-  /* The Indic specs do not require ccmp, but we apply since if there is a
-   * use of it, it's typically at the beginning. */
+  /* The Indic specs do not require ccmp, but we apply it here since if
+   * there is a use of it, it's typically at the beginning. */
   map->add_bool_feature (HB_TAG('c','c','m','p'));
 
   map->add_gsub_pause (NULL, NULL);
