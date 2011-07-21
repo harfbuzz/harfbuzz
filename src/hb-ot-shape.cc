@@ -197,8 +197,7 @@ hb_form_clusters (hb_buffer_t *buffer)
     if (FLAG (buffer->info[i].general_category()) &
 	(FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
-	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)) ||
-        is_variation_selector (buffer->info[buffer->i].codepoint))
+	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
       buffer->info[i].cluster = buffer->info[i - 1].cluster;
 }
 
