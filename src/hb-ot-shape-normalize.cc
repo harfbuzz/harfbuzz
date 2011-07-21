@@ -32,8 +32,9 @@ static bool
 get_glyph (hb_ot_shape_context_t *c, unsigned int i)
 {
   hb_buffer_t *b = c->buffer;
+  hb_codepoint_t glyph;
 
-  return hb_font_get_glyph (c->font, b->info[i].codepoint, 0, &b->info[i].intermittent_glyph());
+  return hb_font_get_glyph (c->font, b->info[i].codepoint, 0, &glyph);
 }
 
 static bool
