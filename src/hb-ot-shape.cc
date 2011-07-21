@@ -361,9 +361,9 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   hb_set_unicode_props (c); /* BUFFER: Set general_category and combining_class in var1 */
 
-  hb_ensure_native_direction (c);
-
   hb_form_clusters (c);
+
+  hb_ensure_native_direction (c);
 
   _hb_normalize (c);
 
