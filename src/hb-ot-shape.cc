@@ -371,7 +371,6 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   /* SUBSTITUTE */
   {
-    /* Mirroring needs to see the original direction */
     hb_mirror_chars (c);
 
     hb_substitute_default (c);
