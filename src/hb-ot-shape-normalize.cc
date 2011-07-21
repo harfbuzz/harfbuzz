@@ -38,23 +38,34 @@ get_glyph (hb_ot_shape_context_t *c, unsigned int i)
 }
 
 static bool
-handle_single_char_cluster (hb_ot_shape_context_t *c,
-			    unsigned int i)
+decompose_single_char_cluster (hb_ot_shape_context_t *c,
+			       unsigned int i)
 {
-  if (get_glyph (c, i))
-    return FALSE;
-
-  /* Decompose */
-
   return FALSE;
 }
 
 static bool
+handle_single_char_cluster (hb_ot_shape_context_t *c,
+			    unsigned int i)
+{
+  /* If the single char is supported by the font, we're good. */
+  if (get_glyph (c, i))
+    return FALSE;
+
+  /* Decompose */
+  return decompose_single_char_cluster (c, i);
+}
+
+static bool
 handle_multi_char_cluster (hb_ot_shape_context_t *c,
-			   unsigned int i,
+			   unsigned int start,
 			   unsigned int end)
 {
   /* If there's a variation-selector, give-up, it's just too hard. */
+  for (unsigned int i = start; i < end; i++)
+    if (unlikely (is_variation_selector (c->buffer->info[i].codepoint)))
+      return FALSE;
+
   return FALSE;
 }
 
