@@ -80,7 +80,7 @@ hb_unicode_script_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 }
 
 static hb_bool_t
-hb_unicode_compose_nil (hb_unicode_funcs_t *ufuncs,
+hb_unicode_compose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 			hb_codepoint_t      a         HB_UNUSED,
 			hb_codepoint_t      b         HB_UNUSED,
 			hb_codepoint_t     *ab        HB_UNUSED,
@@ -91,7 +91,7 @@ hb_unicode_compose_nil (hb_unicode_funcs_t *ufuncs,
 }
 
 static hb_bool_t
-hb_unicode_decompose_nil (hb_unicode_funcs_t *ufuncs,
+hb_unicode_decompose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 			  hb_codepoint_t      ab        HB_UNUSED,
 			  hb_codepoint_t     *a         HB_UNUSED,
 			  hb_codepoint_t     *b         HB_UNUSED,
@@ -257,6 +257,7 @@ hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
 		    hb_codepoint_t      b,
 		    hb_codepoint_t     *ab)
 {
+  *ab = 0;
   return ufuncs->func.compose (ufuncs, a, b, ab, ufuncs->user_data.compose);
 }
 
@@ -266,6 +267,7 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
 		      hb_codepoint_t     *a,
 		      hb_codepoint_t     *b)
 {
+  *a = *b = 0;
   return ufuncs->func.decompose (ufuncs, ab, a, b, ufuncs->user_data.decompose);
 }
 

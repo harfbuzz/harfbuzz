@@ -177,26 +177,26 @@ hb_glib_script_from_script (hb_script_t script)
 
 
 static unsigned int
-hb_glib_get_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-                             hb_codepoint_t      unicode,
-                             void               *user_data HB_UNUSED)
+hb_glib_unicode_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+				 hb_codepoint_t      unicode,
+				 void               *user_data HB_UNUSED)
 
 {
   return g_unichar_combining_class (unicode);
 }
 
 static unsigned int
-hb_glib_get_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-                             hb_codepoint_t      unicode,
-                             void               *user_data HB_UNUSED)
+hb_glib_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+				 hb_codepoint_t      unicode,
+				 void               *user_data HB_UNUSED)
 {
   return g_unichar_iswide (unicode) ? 2 : 1;
 }
 
 static hb_unicode_general_category_t
-hb_glib_get_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-                              hb_codepoint_t      unicode,
-                              void               *user_data HB_UNUSED)
+hb_glib_unicode_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+				  hb_codepoint_t      unicode,
+				  void               *user_data HB_UNUSED)
 
 {
   /* hb_unicode_general_category_t and GUnicodeType are identical */
@@ -204,21 +204,105 @@ hb_glib_get_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 }
 
 static hb_codepoint_t
-hb_glib_get_mirroring (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-                       hb_codepoint_t      unicode,
-                       void               *user_data HB_UNUSED)
+hb_glib_unicode_mirroring (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			   hb_codepoint_t      unicode,
+			   void               *user_data HB_UNUSED)
 {
   g_unichar_get_mirror_char (unicode, &unicode);
   return unicode;
 }
 
 static hb_script_t
-hb_glib_get_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-                    hb_codepoint_t      unicode,
-                    void               *user_data HB_UNUSED)
+hb_glib_unicode_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			hb_codepoint_t      unicode,
+			void               *user_data HB_UNUSED)
 {
   return hb_glib_script_to_script (g_unichar_get_script (unicode));
 }
+
+static hb_bool_t
+hb_glib_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			 hb_codepoint_t      a,
+			 hb_codepoint_t      b,
+			 hb_codepoint_t     *ab,
+			 void               *user_data HB_UNUSED)
+{
+#if GLIB_CHECK_VERSION(2,29,12)
+  return g_unichar_compose (a, b, ab);
+#endif
+
+  /* We don't ifdef-out the fallback code such that compiler always
+   * sees it and makes sure it's compilable. */
+
+  gchar utf8[12];
+  gchar *normalized;
+  gint len;
+  hb_bool_t ret;
+
+  len = g_unichar_to_utf8 (a, utf8);
+  len += g_unichar_to_utf8 (b, utf8 + len);
+  normalized = g_utf8_normalize (utf8, len, G_NORMALIZE_NFC);
+
+  len = g_utf8_strlen (normalized, -1);
+  if (len == 1) {
+    *ab = g_utf8_get_char (normalized);
+    ret = TRUE;
+  } else {
+    ret = FALSE;
+  }
+
+  g_free (normalized);
+  return ret;
+}
+
+static hb_bool_t
+hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			   hb_codepoint_t      ab,
+			   hb_codepoint_t     *a,
+			   hb_codepoint_t     *b,
+			   void               *user_data HB_UNUSED)
+{
+#if GLIB_CHECK_VERSION(2,29,12)
+  return g_unichar_decompose (ab, a, b);
+#endif
+
+  /* We don't ifdef-out the fallback code such that compiler always
+   * sees it and makes sure it's compilable. */
+
+  gchar utf8[6];
+  gchar *normalized;
+  gint len;
+  hb_bool_t ret;
+
+  len = g_unichar_to_utf8 (ab, utf8);
+  normalized = g_utf8_normalize (utf8, len, G_NORMALIZE_NFD);
+
+  len = g_utf8_strlen (normalized, -1);
+  if (len == 1) {
+    *a = g_utf8_get_char (normalized);
+    *b = 0;
+    ret = *a != ab;
+  } else if (len == 2) {
+    *a = g_utf8_get_char (normalized);
+    *b = g_utf8_get_char (g_utf8_next_char (normalized));
+    ret = TRUE;
+  } else {
+    /* If decomposed to more than two characters, take the last one,
+     * and recompose the rest to get the first component. */
+    gchar *end = g_utf8_offset_to_pointer (normalized, len - 1);
+    gchar *recomposed;
+    *b = g_utf8_get_char (end);
+    recomposed = g_utf8_normalize (normalized, end - normalized, G_NORMALIZE_NFC);
+    /* We expect that recomposed has exactly one character now. */
+    *a = g_utf8_get_char (recomposed);
+    g_free (recomposed);
+    ret = TRUE;
+  }
+
+  g_free (normalized);
+  return ret;
+}
+
 
 extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_glib;
 hb_unicode_funcs_t _hb_glib_unicode_funcs = {
@@ -227,15 +311,9 @@ hb_unicode_funcs_t _hb_glib_unicode_funcs = {
   NULL, /* parent */
   TRUE, /* immutable */
   {
-    hb_glib_get_combining_class,
-    hb_glib_get_eastasian_width,
-    hb_glib_get_general_category,
-    hb_glib_get_mirroring,
-    hb_glib_get_script,
-    /* TODO
-    hb_glib_compose,
-    hb_glib_decompose,
-    */
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_glib_unicode_##name,
+    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
   }
 };
 
