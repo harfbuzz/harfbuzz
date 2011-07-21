@@ -63,18 +63,18 @@ hb_icu_script_from_script (hb_script_t script)
 
 
 static unsigned int
-hb_icu_get_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-			    hb_codepoint_t      unicode,
-			    void               *user_data HB_UNUSED)
+hb_icu_unicode_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+				hb_codepoint_t      unicode,
+				void               *user_data HB_UNUSED)
 
 {
   return u_getCombiningClass (unicode);
 }
 
 static unsigned int
-hb_icu_get_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-			    hb_codepoint_t      unicode,
-			    void               *user_data HB_UNUSED)
+hb_icu_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+				hb_codepoint_t      unicode,
+				void               *user_data HB_UNUSED)
 {
   switch (u_getIntPropertyValue(unicode, UCHAR_EAST_ASIAN_WIDTH))
   {
@@ -91,9 +91,9 @@ hb_icu_get_eastasian_width (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 }
 
 static hb_unicode_general_category_t
-hb_icu_get_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-			     hb_codepoint_t      unicode,
-			     void               *user_data HB_UNUSED)
+hb_icu_unicode_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+				 hb_codepoint_t      unicode,
+				 void               *user_data HB_UNUSED)
 {
   switch (u_getIntPropertyValue(unicode, UCHAR_GENERAL_CATEGORY))
   {
@@ -142,17 +142,17 @@ hb_icu_get_general_category (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 }
 
 static hb_codepoint_t
-hb_icu_get_mirroring (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-		      hb_codepoint_t      unicode,
-		      void               *user_data HB_UNUSED)
+hb_icu_unicode_mirroring (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			  hb_codepoint_t      unicode,
+			  void               *user_data HB_UNUSED)
 {
   return u_charMirror(unicode);
 }
 
 static hb_script_t
-hb_icu_get_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
-		   hb_codepoint_t      unicode,
-		   void               *user_data HB_UNUSED)
+hb_icu_unicode_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+		       hb_codepoint_t      unicode,
+		       void               *user_data HB_UNUSED)
 {
   UErrorCode status = U_ZERO_ERROR;
   UScriptCode scriptCode = uscript_getScript(unicode, &status);
@@ -163,6 +163,26 @@ hb_icu_get_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return hb_icu_script_to_script (scriptCode);
 }
 
+static hb_bool_t
+hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			hb_codepoint_t      a,
+			hb_codepoint_t      b,
+			hb_codepoint_t     *ab,
+			void               *user_data HB_UNUSED)
+{
+  return FALSE;
+}
+
+static hb_bool_t
+hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+			  hb_codepoint_t      ab,
+			  hb_codepoint_t     *a,
+			  hb_codepoint_t     *b,
+			  void               *user_data HB_UNUSED)
+{
+  return FALSE;
+}
+
 extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_icu;
 hb_unicode_funcs_t _hb_icu_unicode_funcs = {
   HB_OBJECT_HEADER_STATIC,
@@ -170,15 +190,9 @@ hb_unicode_funcs_t _hb_icu_unicode_funcs = {
   NULL, /* parent */
   TRUE, /* immutable */
   {
-    hb_icu_get_combining_class,
-    hb_icu_get_eastasian_width,
-    hb_icu_get_general_category,
-    hb_icu_get_mirroring,
-    hb_icu_get_script,
-    /* TODO
-    hb_icu_compose,
-    hb_icu_decompose,
-    */
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_icu_unicode_##name,
+    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
   }
 };
 
