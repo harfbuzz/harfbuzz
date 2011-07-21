@@ -264,7 +264,7 @@ hb_map_glyphs (hb_font_t    *font,
     if (unlikely (is_variation_selector (buffer->info[buffer->i + 1].codepoint))) {
       hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, buffer->info[buffer->i + 1].codepoint, &glyph);
       buffer->replace_glyph (glyph);
-      buffer->i++;
+      buffer->skip_glyph ();
     } else {
       hb_font_get_glyph (font, buffer->info[buffer->i].codepoint, 0, &glyph);
       buffer->replace_glyph (glyph);

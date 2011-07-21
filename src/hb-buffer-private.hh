@@ -66,6 +66,13 @@ _hb_buffer_replace_glyph (hb_buffer_t *buffer,
 			  hb_codepoint_t glyph_index);
 
 HB_INTERNAL void
+_hb_buffer_output_glyph (hb_buffer_t *buffer,
+			 hb_codepoint_t glyph_index);
+
+HB_INTERNAL void
+_hb_buffer_skip_glyph (hb_buffer_t *buffer);
+
+HB_INTERNAL void
 _hb_buffer_next_glyph (hb_buffer_t *buffer);
 
 
@@ -125,6 +132,9 @@ struct _hb_buffer_t {
   { _hb_buffer_replace_glyphs_be16 (this, num_in, num_out, glyph_data_be); }
   inline void replace_glyph (hb_codepoint_t glyph_index)
   { _hb_buffer_replace_glyph (this, glyph_index); }
+  inline void output_glyph (hb_codepoint_t glyph_index)
+  { _hb_buffer_output_glyph (this, glyph_index); }
+  inline void skip_glyph (void) { _hb_buffer_skip_glyph (this); }
 
   inline void reset_masks (hb_mask_t mask)
   {
