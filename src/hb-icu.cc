@@ -35,6 +35,8 @@
 
 #include <unicode/uversion.h>
 #include <unicode/uchar.h>
+#include <unicode/unorm.h>
+#include <unicode/unistr.h>
 
 HB_BEGIN_DECLS
 
@@ -170,7 +172,34 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			hb_codepoint_t     *ab,
 			void               *user_data HB_UNUSED)
 {
-  return FALSE;
+  if (!a || !b)
+    return FALSE;
+
+  UChar utf16[4], normalized[5];
+  gint len;
+  hb_bool_t ret, err;
+  UErrorCode icu_err;
+
+  len = 0;
+  err = FALSE;
+  U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), a, err);
+  if (err) return FALSE;
+  U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), b, err);
+  if (err) return FALSE;
+
+  icu_err = U_ZERO_ERROR;
+  len = unorm_normalize (utf16, len, UNORM_NFC, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
+  if (icu_err)
+    return FALSE;
+  normalized[len] = 0;
+  if (u_strlen (normalized) == 1) {
+    U16_GET_UNSAFE (normalized, 0, *ab);
+    ret = TRUE;
+  } else {
+    ret = FALSE;
+  }
+
+  return ret;
 }
 
 static hb_bool_t
@@ -180,7 +209,61 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			  hb_codepoint_t     *b,
 			  void               *user_data HB_UNUSED)
 {
-  return FALSE;
+  UChar utf16[2], normalized[20];
+  gint len;
+  hb_bool_t ret, err;
+  UErrorCode icu_err;
+
+  len = 0;
+  err = FALSE;
+  U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), ab, err);
+  if (err) return FALSE;
+
+  icu_err = U_ZERO_ERROR;
+  len = unorm_normalize (utf16, len, UNORM_NFD, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
+  if (icu_err)
+    return FALSE;
+
+  normalized[len] = 0;
+  len = u_strlen (normalized);
+
+  if (len == 1) {
+    U16_GET_UNSAFE (normalized, 0, *a);
+    *b = 0;
+    ret = *a != ab;
+  } else if (len == 2) {
+    /* Here's the ugly part: if ab decomposes to a single character and
+     * that character decomposes again, we have to detect that and undo
+     * the second part :-(. */
+    UChar recomposed[20];
+    icu_err = U_ZERO_ERROR;
+    len = unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
+    if (icu_err)
+      return FALSE;
+    U16_GET_UNSAFE (recomposed, 0, *a);
+    if (*a != ab) {
+      *b = 0;
+    } else {
+      len =0;
+      U16_NEXT_UNSAFE (normalized, len, *a);
+      U16_GET_UNSAFE (normalized, len, *b);
+    }
+    ret = TRUE;
+  } else {
+    /* If decomposed to more than two characters, take the last one,
+     * and recompose the rest to get the first component. */
+    U16_PREV_UNSAFE (normalized, len, *b);
+    UChar recomposed[20];
+    icu_err = U_ZERO_ERROR;
+    len = unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
+    if (icu_err)
+      return FALSE;
+    /* We expect that recomposed has exactly one character now. */
+    U16_GET_UNSAFE (recomposed, 0, *a);
+    ret = TRUE;
+  }
+
+  return ret;
 }
 
 extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_icu;
