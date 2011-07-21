@@ -91,6 +91,18 @@ struct hb_ot_shape_context_t
 };
 
 
+static inline hb_bool_t
+is_variation_selector (hb_codepoint_t unicode)
+{
+  return unlikely ((unicode >=  0x180B && unicode <=  0x180D) || /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
+		   (unicode >=  0xFE00 && unicode <=  0xFE0F) || /* VARIATION SELECTOR-1..16 */
+		   (unicode >= 0xE0100 && unicode <= 0xE01EF));  /* VARIATION SELECTOR-17..256 */
+}
+
+
+HB_INTERNAL void _hb_normalize (hb_ot_shape_context_t *c);
+
+
 HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_PRIVATE_HH */

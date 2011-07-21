@@ -60,6 +60,7 @@ HBSOURCES += \
 	hb-ot-shape-complex-indic-table.hh \
 	hb-ot-shape-complex-misc.cc \
 	hb-ot-shape-complex-private.hh \
+	hb-ot-shape-normalize.cc \
 	hb-ot-shape-private.hh \
 	hb-ot-tag.cc \
 	$(NULL)
