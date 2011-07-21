@@ -36,6 +36,7 @@
 
 HB_BEGIN_DECLS
 
+#if !GLIB_CHECK_VERSION(2,29,14)
 static const hb_script_t
 glib_script_to_script[] =
 {
@@ -148,10 +149,14 @@ glib_script_to_script[] =
   HB_SCRIPT_BRAHMI,
   HB_SCRIPT_MANDAIC
 };
+#endif
 
 hb_script_t
 hb_glib_script_to_script (GUnicodeScript script)
 {
+#if GLIB_CHECK_VERSION(2,29,14)
+  return (hb_script_t) g_unicode_script_to_iso15924 (script);
+#else
   if (likely ((unsigned int) script < ARRAY_LENGTH (glib_script_to_script)))
     return glib_script_to_script[script];
 
@@ -159,11 +164,15 @@ hb_glib_script_to_script (GUnicodeScript script)
     return HB_SCRIPT_INVALID;
 
   return HB_SCRIPT_UNKNOWN;
+#endif
 }
 
 GUnicodeScript
 hb_glib_script_from_script (hb_script_t script)
 {
+#if GLIB_CHECK_VERSION(2,29,14)
+  return g_unicode_script_from_iso15924 (script);
+#else
   unsigned int count = ARRAY_LENGTH (glib_script_to_script);
   for (unsigned int i = 0; i < count; i++)
     if (glib_script_to_script[i] == script)
@@ -173,6 +182,7 @@ hb_glib_script_from_script (hb_script_t script)
     return G_UNICODE_SCRIPT_INVALID_CODE;
 
   return G_UNICODE_SCRIPT_UNKNOWN;
+#endif
 }
 
 
