@@ -28,32 +28,41 @@
 
 HB_BEGIN_DECLS
 
-static void
+static bool
+get_glyph (hb_ot_shape_context_t *c, unsigned int i)
+{
+  hb_buffer_t *b = c->buffer;
+
+  return hb_font_get_glyph (c->font, b->info[i].codepoint, 0, &b->info[i].intermittent_glyph());
+}
+
+static bool
 handle_single_char_cluster (hb_ot_shape_context_t *c,
 			    unsigned int i)
 {
-  hb_buffer_t *b = c->buffer;
-  hb_codepoint_t glyph;
-
-  if (hb_font_get_glyph (c->font, b->info[i].codepoint, 0, &glyph))
-    return;
+  if (get_glyph (c, i))
+    return FALSE;
 
   /* Decompose */
+
+  return FALSE;
 }
 
-static void
+static bool
 handle_multi_char_cluster (hb_ot_shape_context_t *c,
 			   unsigned int i,
 			   unsigned int end)
 {
   /* If there's a variation-selector, give-up, it's just too hard. */
+  return FALSE;
 }
 
-void
+bool
 _hb_normalize (hb_ot_shape_context_t *c)
 {
   hb_buffer_t *b = c->buffer;
-  
+  bool changed = FALSE;
+
   unsigned int count = b->len;
   for (unsigned int i = 0; i < count;) {
     unsigned int end;
@@ -61,11 +70,13 @@ _hb_normalize (hb_ot_shape_context_t *c)
       if (b->info[i].cluster != b->info[end].cluster)
         break;
     if (i + 1 == end)
-      handle_single_char_cluster (c, i);
+      changed |= handle_single_char_cluster (c, i);
     else
-      handle_multi_char_cluster (c, i, end);
+      changed |= handle_multi_char_cluster (c, i, end);
     i = end;
   }
+
+  return changed;
 }
 
 HB_END_DECLS

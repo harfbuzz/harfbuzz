@@ -365,7 +365,9 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   hb_ensure_native_direction (c);
 
-  _hb_normalize (c);
+  if (_hb_normalize (c))
+    /* Buffer contents changed, reset unicode_props */
+    hb_set_unicode_props (c); /* BUFFER: Set general_category and combining_class in var1 */
 
   hb_ot_shape_setup_masks (c); /* BUFFER: Clobbers var2 */
 

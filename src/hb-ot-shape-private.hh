@@ -100,8 +100,9 @@ is_variation_selector (hb_codepoint_t unicode)
 }
 
 
-HB_INTERNAL void _hb_normalize (hb_ot_shape_context_t *c);
+HB_INTERNAL bool _hb_normalize (hb_ot_shape_context_t *c);
 
+#define intermittent_glyph() var2.u32
 
 HB_END_DECLS
 
