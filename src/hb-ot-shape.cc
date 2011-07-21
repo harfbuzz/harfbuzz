@@ -254,11 +254,13 @@ static void
 hb_map_glyphs (hb_font_t    *font,
 	       hb_buffer_t  *buffer)
 {
+  hb_codepoint_t glyph;
+
   if (unlikely (!buffer->len))
     return;
 
-  hb_codepoint_t glyph;
   buffer->clear_output ();
+
   unsigned int count = buffer->len - 1;
   for (buffer->i = 0; buffer->i < count;) {
     if (unlikely (is_variation_selector (buffer->info[buffer->i + 1].codepoint))) {
@@ -363,7 +365,7 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   hb_ensure_native_direction (c->buffer);
 
-  if (_hb_normalize (c))
+  if (_hb_ot_shape_normalize (c))
     /* Buffer contents changed, reset unicode_props */
     hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class in var1 */
 

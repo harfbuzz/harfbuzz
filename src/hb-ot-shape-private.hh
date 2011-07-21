@@ -100,7 +100,7 @@ is_variation_selector (hb_codepoint_t unicode)
 }
 
 
-HB_INTERNAL bool _hb_normalize (hb_ot_shape_context_t *c);
+HB_INTERNAL bool _hb_ot_shape_normalize (hb_ot_shape_context_t *c);
 
 HB_END_DECLS
 
