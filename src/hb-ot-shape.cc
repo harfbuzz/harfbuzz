@@ -205,7 +205,8 @@ hb_form_clusters (hb_ot_shape_context_t *c)
     if (FLAG (c->buffer->info[i].general_category()) &
 	(FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
-	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
+	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)) ||
+        is_variation_selector (c->buffer->info[c->buffer->i].codepoint))
       c->buffer->info[i].cluster = c->buffer->info[i - 1].cluster;
 }
 
