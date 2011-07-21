@@ -267,7 +267,7 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
 		      hb_codepoint_t     *a,
 		      hb_codepoint_t     *b)
 {
-  *a = *b = 0;
+  *a = ab; *b = 0;
   return ufuncs->func.decompose (ufuncs, ab, a, b, ufuncs->user_data.decompose);
 }
 

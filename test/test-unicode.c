@@ -780,6 +780,70 @@ test_unicode_script_roundtrip (gconstpointer user_data)
 
 
 /* TODO test compose() and decompose() */
+static void
+test_unicode_normalization (gconstpointer user_data)
+{
+  hb_unicode_funcs_t *uf = (hb_unicode_funcs_t *) user_data;
+  gunichar a, b, ab;
+
+
+  /* Test compose() */
+
+  /* Not composable */
+  g_assert (!hb_unicode_compose (uf, 0x0041, 0x0042, &ab) && ab == 0);
+  g_assert (!hb_unicode_compose (uf, 0x0041, 0, &ab) && ab == 0);
+  g_assert (!hb_unicode_compose (uf, 0x0066, 0x0069, &ab) && ab == 0);
+
+  /* Singletons should not compose */
+  g_assert (!hb_unicode_compose (uf, 0x212B, 0, &ab) && ab == 0);
+  g_assert (!hb_unicode_compose (uf, 0x00C5, 0, &ab) && ab == 0);
+  g_assert (!hb_unicode_compose (uf, 0x2126, 0, &ab) && ab == 0);
+  g_assert (!hb_unicode_compose (uf, 0x03A9, 0, &ab) && ab == 0);
+
+  /* Pairs */
+  g_assert (hb_unicode_compose (uf, 0x0041, 0x030A, &ab) && ab == 0x00C5);
+  g_assert (hb_unicode_compose (uf, 0x006F, 0x0302, &ab) && ab == 0x00F4);
+  g_assert (hb_unicode_compose (uf, 0x1E63, 0x0307, &ab) && ab == 0x1E69);
+  g_assert (hb_unicode_compose (uf, 0x0073, 0x0323, &ab) && ab == 0x1E63);
+  g_assert (hb_unicode_compose (uf, 0x0064, 0x0307, &ab) && ab == 0x1E0B);
+  g_assert (hb_unicode_compose (uf, 0x0064, 0x0323, &ab) && ab == 0x1E0D);
+
+  /* Hangul */
+  g_assert (hb_unicode_compose (uf, 0xD4CC, 0x11B6, &ab) && ab == 0xD4DB);
+  g_assert (hb_unicode_compose (uf, 0x1111, 0x1171, &ab) && ab == 0xD4CC);
+  g_assert (hb_unicode_compose (uf, 0xCE20, 0x11B8, &ab) && ab == 0xCE31);
+  g_assert (hb_unicode_compose (uf, 0x110E, 0x1173, &ab) && ab == 0xCE20);
+
+
+  /* Test decompose() */
+
+  /* Not decomposable */
+  g_assert (!hb_unicode_decompose (uf, 0x0041, &a, &b) && a == 0x0041 && b == 0);
+  g_assert (!hb_unicode_decompose (uf, 0xFB01, &a, &b) && a == 0xFB01 && b == 0);
+
+  /* Singletons */
+  g_assert (hb_unicode_decompose (uf, 0x212B, &a, &b));
+  g_assert_cmphex (a, ==, 0x00C5);
+  g_assert_cmphex (b, ==, 0);
+  g_assert (hb_unicode_decompose (uf, 0x212B, &a, &b) && a == 0x00C5 && b == 0);
+  g_assert (hb_unicode_decompose (uf, 0x2126, &a, &b) && a == 0x03A9 && b == 0);
+
+  /* Pairs */
+  g_assert (hb_unicode_decompose (uf, 0x00C5, &a, &b) && a == 0x0041 && b == 0x030A);
+  g_assert (hb_unicode_decompose (uf, 0x00F4, &a, &b) && a == 0x006F && b == 0x0302);
+  g_assert (hb_unicode_decompose (uf, 0x1E69, &a, &b) && a == 0x1E63 && b == 0x0307);
+  g_assert (hb_unicode_decompose (uf, 0x1E63, &a, &b) && a == 0x0073 && b == 0x0323);
+  g_assert (hb_unicode_decompose (uf, 0x1E0B, &a, &b) && a == 0x0064 && b == 0x0307);
+  g_assert (hb_unicode_decompose (uf, 0x1E0D, &a, &b) && a == 0x0064 && b == 0x0323);
+
+  /* Hangul */
+  g_assert (hb_unicode_decompose (uf, 0xD4DB, &a, &b) && a == 0xD4CC && b == 0x11B6);
+  g_assert (hb_unicode_decompose (uf, 0xD4CC, &a, &b) && a == 0x1111 && b == 0x1171);
+  g_assert (hb_unicode_decompose (uf, 0xCE31, &a, &b) && a == 0xCE20 && b == 0x11B8);
+  g_assert (hb_unicode_decompose (uf, 0xCE20, &a, &b) && a == 0x110E && b == 0x1173);
+
+}
+
 
 
 int
@@ -791,9 +855,11 @@ main (int argc, char **argv)
   hb_test_add (test_unicode_properties_empty);
 
   hb_test_add_data_flavor (hb_unicode_funcs_get_default (),          "default", test_unicode_properties);
+  hb_test_add_data_flavor (hb_unicode_funcs_get_default (),          "default", test_unicode_normalization);
   hb_test_add_data_flavor ((gconstpointer) script_roundtrip_default, "default", test_unicode_script_roundtrip);
 #ifdef HAVE_GLIB
   hb_test_add_data_flavor (hb_glib_get_unicode_funcs (),             "glib",    test_unicode_properties);
+  hb_test_add_data_flavor (hb_glib_get_unicode_funcs (),             "glib",    test_unicode_normalization);
   hb_test_add_data_flavor ((gconstpointer) script_roundtrip_glib,    "glib",    test_unicode_script_roundtrip);
 #endif
 #ifdef HAVE_ICU

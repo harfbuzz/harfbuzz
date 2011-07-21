@@ -244,6 +244,9 @@ hb_glib_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   /* We don't ifdef-out the fallback code such that compiler always
    * sees it and makes sure it's compilable. */
 
+  if (!a || !b)
+    return FALSE;
+
   gchar utf8[12];
   gchar *normalized;
   gint len;
@@ -293,8 +296,18 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     *b = 0;
     ret = *a != ab;
   } else if (len == 2) {
-    *a = g_utf8_get_char (normalized);
-    *b = g_utf8_get_char (g_utf8_next_char (normalized));
+    /* Here's the ugly part: if ab decomposes to a single character and
+     * that character decomposes again, we have to detect that and undo
+     * the second part :-(. */
+    gchar *recomposed = g_utf8_normalize (normalized, -1, G_NORMALIZE_NFC);
+    if (g_utf8_get_char (recomposed) != ab) {
+      *a = g_utf8_get_char (recomposed);
+      *b = 0;
+    } else {
+      *a = g_utf8_get_char (normalized);
+      *b = g_utf8_get_char (g_utf8_next_char (normalized));
+    }
+    g_free (recomposed);
     ret = TRUE;
   } else {
     /* If decomposed to more than two characters, take the last one,
