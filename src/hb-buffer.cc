@@ -386,6 +386,11 @@ _hb_buffer_replace_glyphs_be16 (hb_buffer_t *buffer,
   }
 
   hb_glyph_info_t orig_info = buffer->info[buffer->i];
+  for (unsigned int i = 1; i < num_in; i++)
+  {
+    hb_glyph_info_t *info = &buffer->info[buffer->i + i];
+    orig_info.cluster = MIN (orig_info.cluster, info->cluster);
+  }
 
   for (unsigned int i = 0; i < num_out; i++)
   {
