@@ -309,6 +309,13 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_
 }
 
 
+bool
+_hb_ot_shape_complex_prefer_decomposed_indic (void)
+{
+  /* We want split matras decomposed by the common shaping logic. */
+  return TRUE;
+}
+
 static void
 found_syllable (hb_ot_map_t *map, hb_buffer_t *buffer,
 		unsigned int start, unsigned int end)

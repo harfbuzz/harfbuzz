@@ -140,7 +140,34 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
   switch (shaper) {
     default:
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
-    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_collect_features_##name	(map, props);	return;
+    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_collect_features_##name (map, props); return;
+    HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
+  }
+}
+
+
+/*
+ * prefer_decomposed()
+ *
+ * Called during shape_execute().
+ *
+ * Shapers should return TRUE if it prefers decomposed (NFD) input rather than precomposed (NFC).
+ */
+
+typedef bool hb_ot_shape_complex_prefer_decomposed_func_t (void);
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+  HB_INTERNAL hb_ot_shape_complex_prefer_decomposed_func_t _hb_ot_shape_complex_prefer_decomposed_##name;
+  HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
+
+static inline bool
+hb_ot_shape_complex_prefer_decomposed (hb_ot_complex_shaper_t shaper)
+{
+  switch (shaper) {
+    default:
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+    case hb_ot_complex_shaper_##name:	return _hb_ot_shape_complex_prefer_decomposed_##name ();
     HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
   }
@@ -168,7 +195,7 @@ hb_ot_shape_complex_setup_masks (hb_ot_complex_shaper_t shaper,
   switch (shaper) {
     default:
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
-    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_setup_masks_##name	(map, buffer);	return;
+    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_setup_masks_##name (map, buffer); return;
     HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
   }
