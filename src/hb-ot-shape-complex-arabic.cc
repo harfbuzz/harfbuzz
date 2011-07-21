@@ -61,25 +61,25 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
 {
   /* TODO Macroize the magic bit operations */
 
-  if (likely (JOINING_TABLE_FIRST <= u && u <= JOINING_TABLE_LAST)) {
+  if (likely (hb_codepoint_in_range (u, JOINING_TABLE_FIRST, JOINING_TABLE_LAST))) {
     unsigned int j_type = joining_table[u - JOINING_TABLE_FIRST];
     if (likely (j_type != JOINING_TYPE_X))
       return j_type;
   }
 
   /* Mongolian joining data is not in ArabicJoining.txt yet */
-  if (unlikely (0x1800 <= u && u <= 0x18AF))
+  if (unlikely (hb_codepoint_in_range (u, 0x1800, 0x18AF)))
   {
     /* All letters, SIBE SYLLABLE BOUNDARY MARKER, and NIRUGU are D */
     if (gen_cat == HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER || u == 0x1807 || u == 0x180A)
       return JOINING_TYPE_D;
   }
 
-  if (unlikely ((u & ~(0x200C^0x200D)) == 0x200C)) {
+  if (unlikely (hb_codepoint_in_range (u, 0x200C, 0x200D))) {
     return u == 0x200C ? JOINING_TYPE_U : JOINING_TYPE_C;
   }
 
-  return ((1<<gen_cat) & ((1<<HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)|(1<<HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK)|(1<<HB_UNICODE_GENERAL_CATEGORY_FORMAT))) ?
+  return (FLAG(gen_cat) & (FLAG(HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) | FLAG(HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | FLAG(HB_UNICODE_GENERAL_CATEGORY_FORMAT))) ?
 	 JOINING_TYPE_T : JOINING_TYPE_U;
 }
 

@@ -478,6 +478,25 @@ _hb_trace (const char *what,
 }
 
 
+/* Pre-mature optimization:
+ * Checks for lo <= u <= hi but with an optimization if lo and hi
+ * are only different in a contiguous set of lower-most bits.
+ */
+static inline bool
+hb_codepoint_in_range (hb_codepoint_t u, hb_codepoint_t lo, hb_codepoint_t hi)
+{
+  if ( ((lo^hi) & lo) == 0 &&
+       ((lo^hi) & hi) == (lo^hi) &&
+       ((lo^hi) & ((lo^hi) + 1)) == 0 )
+    return (u & ~(lo^hi)) == lo;
+  else
+    return lo <= u && u <= hi;
+}
+
+
+/* Useful for set-operations on small enums */
+#define FLAG(x) (1<<(x))
+
 HB_END_DECLS
 
 #endif /* HB_PRIVATE_HH */
