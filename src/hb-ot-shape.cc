@@ -179,14 +179,9 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 static void
 hb_set_unicode_props (hb_buffer_t *buffer)
 {
-  hb_unicode_funcs_t *unicode = buffer->unicode;
-  hb_glyph_info_t *info = buffer->info;
-
   unsigned int count = buffer->len;
-  for (unsigned int i = 1; i < count; i++) {
-    info[i].general_category() = hb_unicode_general_category (unicode, info[i].codepoint);
-    info[i].combining_class() = hb_unicode_combining_class (unicode, info[i].codepoint);
-  }
+  for (unsigned int i = 1; i < count; i++)
+    hb_glyph_info_set_unicode_props (&buffer->info[i], buffer->unicode);
 }
 
 static void
@@ -365,9 +360,7 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   hb_ensure_native_direction (c->buffer);
 
-  if (_hb_ot_shape_normalize (c))
-    /* Buffer contents changed, reset unicode_props */
-    hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class in var1 */
+  _hb_ot_shape_normalize (c);
 
   hb_ot_shape_setup_masks (c); /* BUFFER: Clobbers var2 */
 

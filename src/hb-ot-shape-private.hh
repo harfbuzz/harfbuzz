@@ -99,8 +99,14 @@ is_variation_selector (hb_codepoint_t unicode)
 		   (unicode >= 0xE0100 && unicode <= 0xE01EF));  /* VARIATION SELECTOR-17..256 */
 }
 
+static inline void
+hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
+{
+  info->general_category() = hb_unicode_general_category (unicode, info->codepoint);
+  info->combining_class() = hb_unicode_combining_class (unicode, info->codepoint);
+}
 
-HB_INTERNAL bool _hb_ot_shape_normalize (hb_ot_shape_context_t *c);
+HB_INTERNAL void _hb_ot_shape_normalize (hb_ot_shape_context_t *c);
 
 HB_END_DECLS
 
