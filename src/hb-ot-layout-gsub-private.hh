@@ -43,7 +43,7 @@ struct SingleSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->i].codepoint;
+    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
       return false;
@@ -80,7 +80,7 @@ struct SingleSubstFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->i].codepoint;
+    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
       return false;
@@ -188,7 +188,7 @@ struct MultipleSubstFormat1
   {
     TRACE_APPLY ();
 
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -257,8 +257,8 @@ struct AlternateSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->i].codepoint;
-    hb_mask_t glyph_mask = c->buffer->info[c->buffer->i].mask;
+    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
+    hb_mask_t glyph_mask = c->buffer->info[c->buffer->idx].mask;
     hb_mask_t lookup_mask = c->lookup_mask;
 
     unsigned int index = (this+coverage) (glyph_id);
@@ -344,14 +344,14 @@ struct Ligature
     TRACE_APPLY ();
     unsigned int i, j;
     unsigned int count = component.len;
-    unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);
-    if (unlikely (count < 2 || c->buffer->i + count > end))
+    unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+    if (unlikely (count < 2 || c->buffer->idx + count > end))
       return false;
 
     bool first_was_mark = (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
     bool found_non_mark = false;
 
-    for (i = 1, j = c->buffer->i + 1; i < count; i++, j++)
+    for (i = 1, j = c->buffer->idx + 1; i < count; i++, j++)
     {
       unsigned int property;
       while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, &property))
@@ -372,10 +372,10 @@ struct Ligature
 
     /* Allocate new ligature id */
     unsigned int lig_id = allocate_lig_id (c->buffer);
-    c->buffer->info[c->buffer->i].lig_comp() = 0;
-    c->buffer->info[c->buffer->i].lig_id() = lig_id;
+    c->buffer->info[c->buffer->idx].lig_comp() = 0;
+    c->buffer->info[c->buffer->idx].lig_id() = lig_id;
 
-    if (j == c->buffer->i + i) /* No input glyphs skipped */
+    if (j == c->buffer->idx + i) /* No input glyphs skipped */
     {
       c->replace_glyphs_be16 (i, 1, (const uint16_t *) &ligGlyph);
     }
@@ -392,15 +392,15 @@ struct Ligature
 
       for (i = 1; i < count; i++)
       {
-	while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[c->buffer->i], c->lookup_props, NULL))
+	while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[c->buffer->idx], c->lookup_props, NULL))
 	{
-	  c->buffer->info[c->buffer->i].lig_comp() = i;
-	  c->buffer->info[c->buffer->i].lig_id() = lig_id;
-	  c->replace_glyph (c->buffer->info[c->buffer->i].codepoint);
+	  c->buffer->info[c->buffer->idx].lig_comp() = i;
+	  c->buffer->info[c->buffer->idx].lig_id() = lig_id;
+	  c->replace_glyph (c->buffer->info[c->buffer->idx].codepoint);
 	}
 
 	/* Skip the base glyph */
-	c->buffer->i++;
+	c->buffer->idx++;
       }
     }
 
@@ -471,7 +471,7 @@ struct LigatureSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->i].codepoint;
+    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
 
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED))
@@ -591,7 +591,7 @@ struct ReverseChainSingleSubstFormat1
     if (unlikely (c->context_length != NO_CONTEXT))
       return false; /* No chaining to this type */
 
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -606,8 +606,8 @@ struct ReverseChainSingleSubstFormat1
 			 match_coverage, this,
 			 1))
     {
-      c->buffer->info[c->buffer->i].codepoint = substitute[index];
-      c->buffer->i--; /* Reverse! */
+      c->buffer->info[c->buffer->idx].codepoint = substitute[index];
+      c->buffer->idx--; /* Reverse! */
       return true;
     }
 
@@ -779,7 +779,7 @@ struct SubstLookup : Lookup
     c->nesting_level_left = nesting_level_left;
     c->lookup_props = get_props ();
 
-    if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->info[c->buffer->i], c->lookup_props, &c->property))
+    if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->info[c->buffer->idx], c->lookup_props, &c->property))
       return false;
 
     if (unlikely (lookup_type == SubstLookupSubTable::Extension))
@@ -817,10 +817,10 @@ struct SubstLookup : Lookup
     {
 	/* in/out forward substitution */
 	buffer->clear_output ();
-	buffer->i = 0;
-	while (buffer->i < buffer->len)
+	buffer->idx = 0;
+	while (buffer->idx < buffer->len)
 	{
-	  if ((buffer->info[buffer->i].mask & mask) &&
+	  if ((buffer->info[buffer->idx].mask & mask) &&
 	      apply_once (face, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
@@ -828,22 +828,22 @@ struct SubstLookup : Lookup
 
 	}
 	if (ret)
-	  buffer->swap ();
+	  buffer->swap_buffers ();
     }
     else
     {
 	/* in-place backward substitution */
-	buffer->i = buffer->len - 1;
+	buffer->idx = buffer->len - 1;
 	do
 	{
-	  if ((buffer->info[buffer->i].mask & mask) &&
+	  if ((buffer->info[buffer->idx].mask & mask) &&
 	      apply_once (face, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL))
 	    ret = true;
 	  else
-	    buffer->i--;
+	    buffer->idx--;
 
 	}
-	while ((int) buffer->i >= 0);
+	while ((int) buffer->idx >= 0);
     }
 
     return ret;

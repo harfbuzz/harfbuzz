@@ -409,15 +409,15 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
-    mark_anchor.get_anchor (c->font, c->buffer->info[c->buffer->i].codepoint, &mark_x, &mark_y);
+    mark_anchor.get_anchor (c->font, c->buffer->info[c->buffer->idx].codepoint, &mark_x, &mark_y);
     glyph_anchor.get_anchor (c->font, c->buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
-    hb_glyph_position_t &o = c->buffer->pos[c->buffer->i];
+    hb_glyph_position_t &o = c->buffer->pos[c->buffer->idx];
     o.x_offset = base_x - mark_x;
     o.y_offset = base_y - mark_y;
-    o.attach_lookback() = c->buffer->i - glyph_pos;
+    o.attach_lookback() = c->buffer->idx - glyph_pos;
 
-    c->buffer->i++;
+    c->buffer->idx++;
     return true;
   }
 
@@ -438,14 +438,14 @@ struct SinglePosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
     valueFormat.apply_value (c->font, c->direction, this,
-			     values, c->buffer->pos[c->buffer->i]);
+			     values, c->buffer->pos[c->buffer->idx]);
 
-    c->buffer->i++;
+    c->buffer->idx++;
     return true;
   }
 
@@ -478,7 +478,7 @@ struct SinglePosFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
@@ -487,9 +487,9 @@ struct SinglePosFormat2
 
     valueFormat.apply_value (c->font, c->direction, this,
 			     &values[index * valueFormat.get_len ()],
-			     c->buffer->pos[c->buffer->i]);
+			     c->buffer->pos[c->buffer->idx]);
 
-    c->buffer->i++;
+    c->buffer->idx++;
     return true;
   }
 
@@ -582,12 +582,12 @@ struct PairSet
       if (c->buffer->info[pos].codepoint == record->secondGlyph)
       {
 	valueFormats[0].apply_value (c->font, c->direction, this,
-				     &record->values[0], c->buffer->pos[c->buffer->i]);
+				     &record->values[0], c->buffer->pos[c->buffer->idx]);
 	valueFormats[1].apply_value (c->font, c->direction, this,
 				     &record->values[len1], c->buffer->pos[pos]);
 	if (len2)
 	  pos++;
-	c->buffer->i = pos;
+	c->buffer->idx = pos;
 	return true;
       }
       record = &StructAtOffset<PairValueRecord> (record, record_size);
@@ -630,15 +630,15 @@ struct PairPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);
-    if (unlikely (c->buffer->i + 2 > end))
+    unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+    if (unlikely (c->buffer->idx + 2 > end))
       return false;
 
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
-    unsigned int j = c->buffer->i + 1;
+    unsigned int j = c->buffer->idx + 1;
     while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j == end))
@@ -692,15 +692,15 @@ struct PairPosFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);
-    if (unlikely (c->buffer->i + 2 > end))
+    unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+    if (unlikely (c->buffer->idx + 2 > end))
       return false;
 
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
-    unsigned int j = c->buffer->i + 1;
+    unsigned int j = c->buffer->idx + 1;
     while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j == end))
@@ -712,20 +712,20 @@ struct PairPosFormat2
     unsigned int len2 = valueFormat2.get_len ();
     unsigned int record_len = len1 + len2;
 
-    unsigned int klass1 = (this+classDef1) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int klass1 = (this+classDef1) (c->buffer->info[c->buffer->idx].codepoint);
     unsigned int klass2 = (this+classDef2) (c->buffer->info[j].codepoint);
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count))
       return false;
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
     valueFormat1.apply_value (c->font, c->direction, this,
-			      v, c->buffer->pos[c->buffer->i]);
+			      v, c->buffer->pos[c->buffer->idx]);
     valueFormat2.apply_value (c->font, c->direction, this,
 			      v + len1, c->buffer->pos[j]);
 
     if (len2)
       j++;
-    c->buffer->i = j;
+    c->buffer->idx = j;
 
     return true;
   }
@@ -847,15 +847,15 @@ struct CursivePosFormat1
     if (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
       return false;
 
-    unsigned int end = MIN (c->buffer->len, c->buffer->i + c->context_length);
-    if (unlikely (c->buffer->i + 2 > end))
+    unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+    if (unlikely (c->buffer->idx + 2 > end))
       return false;
 
-    const EntryExitRecord &this_record = entryExitRecord[(this+coverage) (c->buffer->info[c->buffer->i].codepoint)];
+    const EntryExitRecord &this_record = entryExitRecord[(this+coverage) (c->buffer->info[c->buffer->idx].codepoint)];
     if (!this_record.exitAnchor)
       return false;
 
-    unsigned int j = c->buffer->i + 1;
+    unsigned int j = c->buffer->idx + 1;
     while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL))
     {
       if (unlikely (j == end))
@@ -867,7 +867,7 @@ struct CursivePosFormat1
     if (!next_record.entryAnchor)
       return false;
 
-    unsigned int i = c->buffer->i;
+    unsigned int i = c->buffer->idx;
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
     (this+this_record.exitAnchor).get_anchor (c->font, c->buffer->info[i].codepoint, &exit_x, &exit_y);
@@ -926,7 +926,7 @@ struct CursivePosFormat1
 	pos[j].x_offset = exit_x - entry_x;
     }
 
-    c->buffer->i = j;
+    c->buffer->idx = j;
     return true;
   }
 
@@ -992,13 +992,13 @@ struct MarkBasePosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int mark_index = (this+markCoverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int mark_index = (this+markCoverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (mark_index == NOT_COVERED))
       return false;
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = c->buffer->i;
+    unsigned int j = c->buffer->idx;
     do
     {
       if (unlikely (!j))
@@ -1094,13 +1094,13 @@ struct MarkLigPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int mark_index = (this+markCoverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int mark_index = (this+markCoverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (mark_index == NOT_COVERED))
       return false;
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = c->buffer->i;
+    unsigned int j = c->buffer->idx;
     do
     {
       if (unlikely (!j))
@@ -1128,9 +1128,9 @@ struct MarkLigPosFormat1
      * is identical to the ligature ID of the found ligature.  If yes, we
      * can directly use the component index.  If not, we attach the mark
      * glyph to the last component of the ligature. */
-    if (c->buffer->info[j].lig_id() && c->buffer->info[j].lig_id() == c->buffer->info[c->buffer->i].lig_id() && c->buffer->info[c->buffer->i].lig_comp())
+    if (c->buffer->info[j].lig_id() && c->buffer->info[j].lig_id() == c->buffer->info[c->buffer->idx].lig_id() && c->buffer->info[c->buffer->idx].lig_comp())
     {
-      comp_index = c->buffer->info[c->buffer->i].lig_comp() - 1;
+      comp_index = c->buffer->info[c->buffer->idx].lig_comp() - 1;
       if (comp_index >= comp_count)
 	comp_index = comp_count - 1;
     }
@@ -1213,13 +1213,13 @@ struct MarkMarkPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int mark1_index = (this+mark1Coverage) (c->buffer->info[c->buffer->i].codepoint);
+    unsigned int mark1_index = (this+mark1Coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (mark1_index == NOT_COVERED))
       return false;
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int property;
-    unsigned int j = c->buffer->i;
+    unsigned int j = c->buffer->idx;
     do
     {
       if (unlikely (!j))
@@ -1233,8 +1233,8 @@ struct MarkMarkPosFormat1
     /* Two marks match only if they belong to the same base, or same component
      * of the same ligature.  That is, the component numbers must match, and
      * if those are non-zero, the ligid number should also match. */
-    if ((c->buffer->info[j].lig_comp() != c->buffer->info[c->buffer->i].lig_comp()) ||
-	(c->buffer->info[j].lig_comp() && c->buffer->info[j].lig_id() != c->buffer->info[c->buffer->i].lig_id()))
+    if ((c->buffer->info[j].lig_comp() != c->buffer->info[c->buffer->idx].lig_comp()) ||
+	(c->buffer->info[j].lig_comp() && c->buffer->info[j].lig_id() != c->buffer->info[c->buffer->idx].lig_id()))
       return false;
 
     unsigned int mark2_index = (this+mark2Coverage) (c->buffer->info[j].codepoint);
@@ -1448,7 +1448,7 @@ struct PosLookup : Lookup
     c->nesting_level_left = nesting_level_left;
     c->lookup_props = get_props ();
 
-    if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->info[c->buffer->i], c->lookup_props, &c->property))
+    if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->info[c->buffer->idx], c->lookup_props, &c->property))
       return false;
 
     for (unsigned int i = 0; i < get_subtable_count (); i++)
@@ -1467,14 +1467,14 @@ struct PosLookup : Lookup
     if (unlikely (!buffer->len))
       return false;
 
-    buffer->i = 0;
-    while (buffer->i < buffer->len)
+    buffer->idx = 0;
+    while (buffer->idx < buffer->len)
     {
-      if ((buffer->info[buffer->i].mask & mask) &&
+      if ((buffer->info[buffer->idx].mask & mask) &&
 	  apply_once (font, buffer, mask, NO_CONTEXT, MAX_NESTING_LEVEL))
 	ret = true;
       else
-	buffer->i++;
+	buffer->idx++;
     }
 
     return ret;

@@ -136,23 +136,23 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
   buffer->clear_output ();
 
   unsigned int count = buffer->len;
-  for (buffer->i = 0; buffer->i < count;)
+  for (buffer->idx = 0; buffer->idx < count;)
   {
 
     unsigned int end;
-    for (end = buffer->i + 1; end < count; end++)
-      if (buffer->info[buffer->i].cluster != buffer->info[end].cluster)
+    for (end = buffer->idx + 1; end < count; end++)
+      if (buffer->info[buffer->idx].cluster != buffer->info[end].cluster)
         break;
 
-    if (buffer->i + 1 == end)
-      handle_single_char_cluster (c, recompose, buffer->i);
+    if (buffer->idx + 1 == end)
+      handle_single_char_cluster (c, recompose, buffer->idx);
     else
-      handle_multi_char_cluster (c, recompose, buffer->i, end);
-    while (buffer->i < end)
+      handle_multi_char_cluster (c, recompose, buffer->idx, end);
+    while (buffer->idx < end)
       c->buffer->next_glyph ();
   }
 
-  buffer->swap ();
+  buffer->swap_buffers ();
 }
 
 HB_END_DECLS
