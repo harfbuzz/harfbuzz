@@ -72,26 +72,28 @@ decompose (hb_ot_shape_context_t *c,
   hb_codepoint_t a, b, glyph;
 
   if (!hb_unicode_decompose (c->buffer->unicode, ab, &a, &b) ||
-      !hb_font_get_glyph (c->font, b, 0, &glyph))
+      (b && !hb_font_get_glyph (c->font, b, 0, &glyph)))
     return FALSE;
 
-  /* XXX handle singleton decompositions */
   bool has_a = hb_font_get_glyph (c->font, a, 0, &glyph);
   if (shortest && has_a) {
     /* Output a and b */
     c->buffer->output_glyph (a);
-    c->buffer->output_glyph (b);
+    if (b)
+      c->buffer->output_glyph (b);
     return TRUE;
   }
 
   if (decompose (c, shortest, a)) {
-    c->buffer->output_glyph (b);
+    if (b)
+      c->buffer->output_glyph (b);
     return TRUE;
   }
 
   if (has_a) {
     c->buffer->output_glyph (a);
-    c->buffer->output_glyph (b);
+    if (b)
+      c->buffer->output_glyph (b);
     return TRUE;
   }
 
