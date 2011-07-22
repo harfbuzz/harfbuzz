@@ -208,7 +208,6 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
   if ((HB_DIRECTION_IS_HORIZONTAL (direction) && direction != hb_script_get_horizontal_direction (buffer->props.script)) ||
       (HB_DIRECTION_IS_VERTICAL   (direction) && direction != HB_DIRECTION_TTB))
   {
-    hb_form_clusters (buffer);
     hb_buffer_reverse_clusters (buffer);
     buffer->props.direction = HB_DIRECTION_REVERSE (buffer->props.direction);
   }
@@ -357,6 +356,8 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   hb_reset_glyph_infos (c->buffer); /* BUFFER: Clear buffer var1 and var2 */
 
   hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class in var1 */
+
+  hb_form_clusters (c->buffer);
 
   hb_ensure_native_direction (c->buffer);
 

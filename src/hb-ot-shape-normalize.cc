@@ -66,65 +66,74 @@ HB_BEGIN_DECLS
 
 static bool
 decompose (hb_ot_shape_context_t *c,
-	   bool recompose,
+	   bool shortest,
 	   hb_codepoint_t ab)
 {
   hb_codepoint_t a, b, glyph;
-  bool has_this = hb_font_get_glyph (c->font, ab, 0, &glyph);
 
-  /* If recomposing and the single char is supported by the font, we're good. */
-  if (recompose && has_this)
-    return TRUE;
+  if (!hb_unicode_decompose (c->buffer->unicode, ab, &a, &b) ||
+      !hb_font_get_glyph (c->font, b, 0, &glyph))
+    return FALSE;
 
-  if (hb_unicode_decompose (c->buffer->unicode, ab, &a, &b) &&
-      hb_font_get_glyph (c->font, b, 0, &glyph) &&
-      decompose (c, recompose, a))
-  {
-    /* Successfully decomposed. */
-
-    if (recompose) {
-      /* Try composing b with base if not blocked */
-
-    }
-
+  /* XXX handle singleton decompositions */
+  bool has_a = hb_font_get_glyph (c->font, a, 0, &glyph);
+  if (shortest && has_a) {
+    /* Output a and b */
+    c->buffer->output_glyph (a);
+    c->buffer->output_glyph (b);
     return TRUE;
   }
 
-  return has_this;
-}
+  if (decompose (c, shortest, a)) {
+    c->buffer->output_glyph (b);
+    return TRUE;
+  }
 
-static bool
-decompose_single_char_cluster (hb_ot_shape_context_t *c,
-			       bool recompose,
-			       unsigned int i)
-{
-//  c->buffer->copy ();
-//  bool ret = decompose (c, recompose, c->buffer->info[i].codepoint);
-//  c->buffer->skip ();
-//  return ret;
+  if (has_a) {
+    c->buffer->output_glyph (a);
+    c->buffer->output_glyph (b);
+    return TRUE;
+  }
+
   return FALSE;
 }
 
 static void
-handle_single_char_cluster (hb_ot_shape_context_t *c,
-			    bool recompose,
-			    unsigned int i)
+decompose_current_glyph (hb_ot_shape_context_t *c,
+			 bool shortest)
 {
-  /* Decompose */
-  decompose_single_char_cluster (c, recompose, i);
+  if (decompose (c, shortest, c->buffer->info[c->buffer->idx].codepoint))
+    c->buffer->skip_glyph ();
+  else
+    c->buffer->next_glyph ();
 }
 
 static void
-handle_multi_char_cluster (hb_ot_shape_context_t *c,
-			   bool recompose,
-			   unsigned int start,
-			   unsigned int end)
+decompose_single_char_cluster (hb_ot_shape_context_t *c,
+			       bool will_recompose)
+{
+  hb_codepoint_t glyph;
+
+  /* If recomposing and font supports this, we're good to go */
+  if (will_recompose && hb_font_get_glyph (c->font, c->buffer->info[c->buffer->idx].codepoint, 0, &glyph)) {
+    c->buffer->next_glyph ();
+    return;
+  }
+
+  decompose_current_glyph (c, will_recompose);
+}
+
+static void
+decompose_multi_char_cluster (hb_ot_shape_context_t *c,
+			      unsigned int end)
 {
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
-  for (unsigned int i = start; i < end; i++)
+  for (unsigned int i = c->buffer->idx; i < end; i++)
     if (unlikely (is_variation_selector (c->buffer->info[i].codepoint)))
       return;
 
+  while (c->buffer->idx < end)
+    decompose_current_glyph (c, FALSE);
 }
 
 void
@@ -132,27 +141,45 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
   bool recompose = !hb_ot_shape_complex_prefer_decomposed (c->plan->shaper);
+  bool has_multichar_clusters = FALSE;
 
   buffer->clear_output ();
+
+  /* First round, decompose */
 
   unsigned int count = buffer->len;
   for (buffer->idx = 0; buffer->idx < count;)
   {
-
     unsigned int end;
     for (end = buffer->idx + 1; end < count; end++)
       if (buffer->info[buffer->idx].cluster != buffer->info[end].cluster)
         break;
 
     if (buffer->idx + 1 == end)
-      handle_single_char_cluster (c, recompose, buffer->idx);
-    else
-      handle_multi_char_cluster (c, recompose, buffer->idx, end);
-    while (buffer->idx < end)
-      c->buffer->next_glyph ();
+      decompose_single_char_cluster (c, recompose);
+    else {
+      decompose_multi_char_cluster (c, end);
+      has_multichar_clusters = TRUE;
+    }
   }
-
   buffer->swap_buffers ();
+
+  /* Technically speaking, two characters with ccc=0 may combine.  But all
+   * those cases are in languages that the indic module handles (which expects
+   * decomposed), or in Hangul jamo, which again, we want decomposed anyway.
+   * So we don't bother combining across cluster boundaries. */
+
+  if (!has_multichar_clusters)
+    return; /* Done! */
+
+  /* Second round, reorder (inplace) */
+
+
+  /* Third round, recompose */
+  if (recompose) {
+
+
+  }
 }
 
 HB_END_DECLS
