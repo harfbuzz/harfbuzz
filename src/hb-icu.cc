@@ -214,6 +214,10 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   hb_bool_t ret, err;
   UErrorCode icu_err;
 
+  /* This function is a monster! Maybe it wasn't a good idea adding a
+   * pairwise decompose API... */
+  /* Watchout for the dragons.  Err, watchout for macros changing len. */
+
   len = 0;
   err = FALSE;
   U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), ab, err);
@@ -232,21 +236,23 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     *b = 0;
     ret = *a != ab;
   } else if (len == 2) {
+    len =0;
+    U16_NEXT_UNSAFE (normalized, len, *a);
+    U16_NEXT_UNSAFE (normalized, len, *b);
+
     /* Here's the ugly part: if ab decomposes to a single character and
      * that character decomposes again, we have to detect that and undo
      * the second part :-(. */
     UChar recomposed[20];
     icu_err = U_ZERO_ERROR;
-    len = unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
+    unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
     if (icu_err)
       return FALSE;
-    U16_GET_UNSAFE (recomposed, 0, *a);
-    if (*a != ab) {
+    hb_codepoint_t c;
+    U16_GET_UNSAFE (recomposed, 0, c);
+    if (c != *a && c != ab) {
+      *a = c;
       *b = 0;
-    } else {
-      len =0;
-      U16_NEXT_UNSAFE (normalized, len, *a);
-      U16_GET_UNSAFE (normalized, len, *b);
     }
     ret = TRUE;
   } else {

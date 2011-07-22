@@ -296,16 +296,16 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     *b = 0;
     ret = *a != ab;
   } else if (len == 2) {
+    *a = g_utf8_get_char (normalized);
+    *b = g_utf8_get_char (g_utf8_next_char (normalized));
     /* Here's the ugly part: if ab decomposes to a single character and
      * that character decomposes again, we have to detect that and undo
      * the second part :-(. */
     gchar *recomposed = g_utf8_normalize (normalized, -1, G_NORMALIZE_NFC);
-    if (g_utf8_get_char (recomposed) != ab) {
-      *a = g_utf8_get_char (recomposed);
+    hb_codepoint_t c = g_utf8_get_char (recomposed);
+    if (c != ab && c != *a) {
+      *a = c;
       *b = 0;
-    } else {
-      *a = g_utf8_get_char (normalized);
-      *b = g_utf8_get_char (g_utf8_next_char (normalized));
     }
     g_free (recomposed);
     ret = TRUE;

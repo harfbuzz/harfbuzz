@@ -800,6 +800,10 @@ test_unicode_normalization (gconstpointer user_data)
   g_assert (!hb_unicode_compose (uf, 0x2126, 0, &ab) && ab == 0);
   g_assert (!hb_unicode_compose (uf, 0x03A9, 0, &ab) && ab == 0);
 
+  /* Non-starter pairs should not compose */
+  g_assert (!hb_unicode_compose (uf, 0x0308, 0x0301, &ab) && ab == 0); /* !0x0344 */
+  g_assert (!hb_unicode_compose (uf, 0x0F71, 0x0F72, &ab) && ab == 0); /* !0x0F73 */
+
   /* Pairs */
   g_assert (hb_unicode_compose (uf, 0x0041, 0x030A, &ab) && ab == 0x00C5);
   g_assert (hb_unicode_compose (uf, 0x006F, 0x0302, &ab) && ab == 0x00F4);
@@ -822,11 +826,12 @@ test_unicode_normalization (gconstpointer user_data)
   g_assert (!hb_unicode_decompose (uf, 0xFB01, &a, &b) && a == 0xFB01 && b == 0);
 
   /* Singletons */
-  g_assert (hb_unicode_decompose (uf, 0x212B, &a, &b));
-  g_assert_cmphex (a, ==, 0x00C5);
-  g_assert_cmphex (b, ==, 0);
   g_assert (hb_unicode_decompose (uf, 0x212B, &a, &b) && a == 0x00C5 && b == 0);
   g_assert (hb_unicode_decompose (uf, 0x2126, &a, &b) && a == 0x03A9 && b == 0);
+
+  /* Non-starter pairs decompose, but not compose */
+  g_assert (hb_unicode_decompose (uf, 0x0344, &a, &b) && a == 0x0308 && b == 0x0301);
+  g_assert (hb_unicode_decompose (uf, 0x0F73, &a, &b) && a == 0x0F71 && b == 0x0F72);
 
   /* Pairs */
   g_assert (hb_unicode_decompose (uf, 0x00C5, &a, &b) && a == 0x0041 && b == 0x030A);
