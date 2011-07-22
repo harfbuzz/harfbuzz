@@ -176,8 +176,8 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 
 /* Prepare */
 
-static void
-hb_set_unicode_props (hb_buffer_t *buffer)
+void
+_hb_set_unicode_props (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 1; i < count; i++)
@@ -355,7 +355,7 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   hb_reset_glyph_infos (c->buffer); /* BUFFER: Clear buffer var1 and var2 */
 
-  hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class in var1 */
+  _hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class in var1 */
 
   hb_form_clusters (c->buffer);
 

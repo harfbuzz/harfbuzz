@@ -106,6 +106,8 @@ hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unic
   info->combining_class() = hb_unicode_combining_class (unicode, info->codepoint);
 }
 
+HB_INTERNAL void _hb_set_unicode_props (hb_buffer_t *buffer);
+
 HB_INTERNAL void _hb_ot_shape_normalize (hb_ot_shape_context_t *c);
 
 HB_END_DECLS
