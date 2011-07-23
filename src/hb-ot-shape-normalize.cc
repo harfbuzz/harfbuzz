@@ -154,11 +154,16 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
   bool has_multichar_clusters = FALSE;
   unsigned int count;
 
-  buffer->clear_output ();
+  /* We do a farily straightforward yet custom normalization process in three
+   * separate rounds: decompose, reorder, recompose (if desired).  Currently
+   * this makes two buffer swaps.  We can make it faster by moving the last
+   * two rounds into the inner loop for the first round, but it's more readable
+   * this way. */
 
 
   /* First round, decompose */
 
+  buffer->clear_output ();
   count = buffer->len;
   for (buffer->idx = 0; buffer->idx < count;)
   {
@@ -180,7 +185,10 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
   /* Technically speaking, two characters with ccc=0 may combine.  But all
    * those cases are in languages that the indic module handles (which expects
    * decomposed), or in Hangul jamo, which again, we want decomposed anyway.
-   * So we don't bother combining across cluster boundaries. */
+   * So we don't bother combining across cluster boundaries.
+   *
+   * TODO: Am I right about Hangul?  If I am, we should add a Hangul module
+   * that requests decomposed. */
 
   if (!has_multichar_clusters)
     return; /* Done! */
@@ -231,12 +239,47 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
   }
 
 
+  if (!recompose)
+    return;
+
   /* Third round, recompose */
 
-  if (recompose) {
+  /* As noted in the comment earlier, we don't try to combine
+   * ccc=0 chars with their previous Starter. */
 
+  buffer->clear_output ();
+  count = buffer->len;
+  unsigned int starter = 0;
+  buffer->next_glyph ();
+  while (buffer->idx < count)
+  {
+    if (buffer->info[buffer->idx].combining_class() == 0) {
+      starter = buffer->out_len;
+      buffer->next_glyph ();
+      continue;
+    }
 
+    hb_codepoint_t composed, glyph;
+    if ((buffer->out_info[buffer->out_len - 1].combining_class() >=
+	 buffer->info[buffer->idx].combining_class()) ||
+	!hb_unicode_compose (c->buffer->unicode,
+			     buffer->out_info[starter].codepoint,
+			     buffer->info[buffer->idx].codepoint,
+			     &composed) ||
+	!hb_font_get_glyph (c->font, composed, 0, &glyph))
+    {
+      /* Blocked, or doesn't compose. */
+      buffer->next_glyph ();
+      continue;
+    }
+
+    /* Composes. Modify starter and carry on. */
+    buffer->out_info[starter].codepoint = composed;
+    hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
+
+    buffer->skip_glyph ();
   }
+  buffer->swap_buffers ();
 
 }
 
