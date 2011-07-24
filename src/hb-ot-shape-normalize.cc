@@ -63,6 +63,15 @@ HB_BEGIN_DECLS
  *     matra for the Indic shaper.
  */
 
+static void
+output_glyph (hb_ot_shape_context_t *c,
+	      hb_codepoint_t glyph)
+{
+  hb_buffer_t *buffer = c->buffer;
+
+  buffer->output_glyph (glyph);
+  hb_glyph_info_set_unicode_props (&buffer->out_info[buffer->out_len - 1], buffer->unicode);
+}
 
 static bool
 decompose (hb_ot_shape_context_t *c,
@@ -78,42 +87,39 @@ decompose (hb_ot_shape_context_t *c,
   bool has_a = hb_font_get_glyph (c->font, a, 0, &glyph);
   if (shortest && has_a) {
     /* Output a and b */
-    c->buffer->output_glyph (a);
+    output_glyph (c, a);
     if (b)
-      c->buffer->output_glyph (b);
+      output_glyph (c, b);
     return TRUE;
   }
 
   if (decompose (c, shortest, a)) {
     if (b)
-      c->buffer->output_glyph (b);
+      output_glyph (c, b);
     return TRUE;
   }
 
   if (has_a) {
-    c->buffer->output_glyph (a);
+    output_glyph (c, a);
     if (b)
-      c->buffer->output_glyph (b);
+      output_glyph (c, b);
     return TRUE;
   }
 
   return FALSE;
 }
 
-static bool
+static void
 decompose_current_glyph (hb_ot_shape_context_t *c,
 			 bool shortest)
 {
-  if (decompose (c, shortest, c->buffer->info[c->buffer->idx].codepoint)) {
+  if (decompose (c, shortest, c->buffer->info[c->buffer->idx].codepoint))
     c->buffer->skip_glyph ();
-    return TRUE;
-  } else {
+  else
     c->buffer->next_glyph ();
-    return FALSE;
-  }
 }
 
-static bool
+static void
 decompose_single_char_cluster (hb_ot_shape_context_t *c,
 			       bool will_recompose)
 {
@@ -122,27 +128,23 @@ decompose_single_char_cluster (hb_ot_shape_context_t *c,
   /* If recomposing and font supports this, we're good to go */
   if (will_recompose && hb_font_get_glyph (c->font, c->buffer->info[c->buffer->idx].codepoint, 0, &glyph)) {
     c->buffer->next_glyph ();
-    return FALSE;
+    return;
   }
 
-  return decompose_current_glyph (c, will_recompose);
+  decompose_current_glyph (c, will_recompose);
 }
 
-static bool
+static void
 decompose_multi_char_cluster (hb_ot_shape_context_t *c,
 			      unsigned int end)
 {
-  bool changed = FALSE;
-
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   for (unsigned int i = c->buffer->idx; i < end; i++)
     if (unlikely (is_variation_selector (c->buffer->info[i].codepoint)))
-      return changed;
+      return;
 
   while (c->buffer->idx < end)
-    changed |= decompose_current_glyph (c, FALSE);
-
-  return changed;
+    decompose_current_glyph (c, FALSE);
 }
 
 void
@@ -150,11 +152,10 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
   bool recompose = !hb_ot_shape_complex_prefer_decomposed (c->plan->shaper);
-  bool changed = FALSE;
   bool has_multichar_clusters = FALSE;
   unsigned int count;
 
-  /* We do a farily straightforward yet custom normalization process in three
+  /* We do a fairly straightforward yet custom normalization process in three
    * separate rounds: decompose, reorder, recompose (if desired).  Currently
    * this makes two buffer swaps.  We can make it faster by moving the last
    * two rounds into the inner loop for the first round, but it's more readable
@@ -173,9 +174,9 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
         break;
 
     if (buffer->idx + 1 == end)
-      changed |= decompose_single_char_cluster (c, recompose);
+      decompose_single_char_cluster (c, recompose);
     else {
-      changed |= decompose_multi_char_cluster (c, end);
+      decompose_multi_char_cluster (c, end);
       has_multichar_clusters = TRUE;
     }
   }
@@ -192,9 +193,6 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
 
   if (!has_multichar_clusters)
     return; /* Done! */
-
-  if (changed)
-    _hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class in var1 */
 
 
   /* Second round, reorder (inplace) */
