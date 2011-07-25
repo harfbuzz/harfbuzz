@@ -220,13 +220,13 @@ struct hb_sanitize_context_t
 	       p <= this->end &&
 	       (unsigned int) (this->end - p) >= len;
 
-    (void) (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE &&
-      fprintf (stderr, "SANITIZE(%p) %-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
-	       p,
-	       this->debug_depth, this->debug_depth,
-	       p, p + len, len,
-	       this->start, this->end,
-	       ret ? "pass" : "FAIL"));
+    DEBUG_DEPTH (SANITIZE, this->debug_depth,
+		 fprintf (stderr, "SANITIZE(%p) %-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
+			  p,
+			  this->debug_depth, this->debug_depth,
+			  p, p + len, len,
+			  this->start, this->end,
+			  ret ? "pass" : "FAIL"));
 
     return likely (ret);
   }
@@ -236,13 +236,13 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     bool overflows = _hb_unsigned_int_mul_overflows (len, record_size);
 
-    (void) (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE &&
-      fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n",
-	       p,
-	       this->debug_depth, this->debug_depth,
-	       p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
-	       this->start, this->end,
-	       !overflows ? "does not overflow" : "OVERFLOWS FAIL"));
+    DEBUG_DEPTH (SANITIZE, this->debug_depth,
+		 fprintf (stderr, "SANITIZE(%p) %-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s\n",
+			  p,
+			  this->debug_depth, this->debug_depth,
+			  p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
+			  this->start, this->end,
+			  !overflows ? "does not overflow" : "OVERFLOWS FAIL"));
 
     return likely (!overflows && this->check_range (base, record_size * len));
   }
@@ -258,14 +258,14 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     this->edit_count++;
 
-    (void) (HB_DEBUG_SANITIZE && (int) this->debug_depth < (int) HB_DEBUG_SANITIZE &&
-      fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
-	       p,
-	       this->debug_depth, this->debug_depth,
-	       this->edit_count,
-	       p, p + len, len,
-	       this->start, this->end,
-	       this->writable ? "granted" : "REJECTED"));
+    DEBUG_DEPTH (SANITIZE, this->debug_depth,
+		 fprintf (stderr, "SANITIZE(%p) %-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s\n",
+			  p,
+			  this->debug_depth, this->debug_depth,
+			  this->edit_count,
+			  p, p + len, len,
+			  this->start, this->end,
+			  this->writable ? "granted" : "REJECTED"));
 
     return this->writable;
   }

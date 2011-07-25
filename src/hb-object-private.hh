@@ -191,11 +191,10 @@ struct _hb_object_header_t {
   }
 
   inline void trace (const char *function) const {
-    (void) (HB_DEBUG_OBJECT &&
-	    fprintf (stderr, "OBJECT(%p) refcount=%d %s\n",
-		     (void *) this,
-		     this ? ref_count.get () : 0,
-		     function));
+    DEBUG (OBJECT, fprintf (stderr, "OBJECT(%p) refcount=%d %s\n",
+		   (void *) this,
+		   this ? ref_count.get () : 0,
+		   function));
   }
 
 };

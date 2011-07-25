@@ -466,14 +466,17 @@ static inline unsigned char TOLOWER (unsigned char c)
 #define HB_DEBUG 0
 #endif
 
+#define DEBUG(WHAT, CODE) (void) (HB_DEBUG_##WHAT && (CODE))
+#define DEBUG_DEPTH(WHAT, DEPTH, CODE) (void) (HB_DEBUG_##WHAT && (int) (DEPTH) < (int) (HB_DEBUG_##WHAT) && (CODE))
+
 static inline bool /* always returns TRUE */
 _hb_trace (const char *what,
-	   const char *function,
+	   const char *message,
 	   const void *obj,
 	   unsigned int depth,
 	   unsigned int max_depth)
 {
-  (void) ((depth < max_depth) && fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, depth, depth, function));
+  (void) ((depth < max_depth) && fprintf (stderr, "%s(%p) %-*d-> %s\n", what, obj, depth, depth, message));
   return TRUE;
 }
 
