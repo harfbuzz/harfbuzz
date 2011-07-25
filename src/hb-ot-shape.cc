@@ -129,49 +129,6 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 }
 
 
-static void
-hb_ot_substitute_complex (hb_ot_shape_context_t *c)
-{
-  if (!hb_ot_layout_has_substitution (c->face))
-    return;
-
-  c->plan->map.substitute (c->face, c->buffer);
-
-  c->applied_substitute_complex = TRUE;
-  return;
-}
-
-static void
-hb_ot_position_complex (hb_ot_shape_context_t *c)
-{
-
-  if (!hb_ot_layout_has_positioning (c->face))
-    return;
-
-  unsigned int count = c->buffer->len;
-  for (unsigned int i = 0; i < count; i++) {
-    hb_font_add_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
-					    HB_DIRECTION_LTR,
-					    &c->buffer->pos[i].x_offset,
-					    &c->buffer->pos[i].y_offset);
-  }
-
-  c->plan->map.position (c->font, c->buffer);
-
-  for (unsigned int i = 0; i < count; i++) {
-    hb_font_subtract_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
-						 HB_DIRECTION_LTR,
-						 &c->buffer->pos[i].x_offset,
-						 &c->buffer->pos[i].y_offset);
-  }
-
-  hb_ot_layout_position_finish (c->buffer);
-
-  c->applied_position_complex = TRUE;
-  return;
-}
-
-
 /* Main shaper */
 
 /* Prepare */
@@ -280,6 +237,18 @@ hb_substitute_default (hb_ot_shape_context_t *c)
 }
 
 static void
+hb_ot_substitute_complex (hb_ot_shape_context_t *c)
+{
+  if (!hb_ot_layout_has_substitution (c->face))
+    return;
+
+  c->plan->map.substitute (c->face, c->buffer);
+
+  c->applied_substitute_complex = TRUE;
+  return;
+}
+
+static void
 hb_substitute_complex_fallback (hb_ot_shape_context_t *c HB_UNUSED)
 {
   /* TODO Arabic */
@@ -304,6 +273,36 @@ hb_position_default (hb_ot_shape_context_t *c)
 						 &c->buffer->pos[i].x_offset,
 						 &c->buffer->pos[i].y_offset);
   }
+}
+
+static void
+hb_ot_position_complex (hb_ot_shape_context_t *c)
+{
+
+  if (!hb_ot_layout_has_positioning (c->face))
+    return;
+
+  unsigned int count = c->buffer->len;
+  for (unsigned int i = 0; i < count; i++) {
+    hb_font_add_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
+					    HB_DIRECTION_LTR,
+					    &c->buffer->pos[i].x_offset,
+					    &c->buffer->pos[i].y_offset);
+  }
+
+  c->plan->map.position (c->font, c->buffer);
+
+  for (unsigned int i = 0; i < count; i++) {
+    hb_font_subtract_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
+						 HB_DIRECTION_LTR,
+						 &c->buffer->pos[i].x_offset,
+						 &c->buffer->pos[i].y_offset);
+  }
+
+  hb_ot_layout_position_finish (c->buffer);
+
+  c->applied_position_complex = TRUE;
+  return;
 }
 
 static void
