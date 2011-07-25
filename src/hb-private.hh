@@ -466,8 +466,11 @@ static inline unsigned char TOLOWER (unsigned char c)
 #define HB_DEBUG 0
 #endif
 
-#define DEBUG(WHAT, CODE) (void) (HB_DEBUG_##WHAT && (CODE))
-#define DEBUG_DEPTH(WHAT, DEPTH, CODE) (void) (HB_DEBUG_##WHAT && (int) (DEPTH) < (int) (HB_DEBUG_##WHAT) && (CODE))
+#define DEBUG_LEVEL(WHAT, LEVEL) (HB_DEBUG_##WHAT && (int) (LEVEL) < (int) (HB_DEBUG_##WHAT))
+#define DEBUG(WHAT) (DEBUG_LEVEL (WHAT, 0))
+
+#define DEBUG_MSG_LEVEL(WHAT, LEVEL, ...) (void) (DEBUG_LEVEL (WHAT, LEVEL)  && fprintf (stderr, __VA_ARGS__))
+#define DEBUG_MSG(WHAT, ...) DEBUG_MSG_LEVEL (WHAT, 0, __VA_ARGS__)
 
 static inline bool /* always returns TRUE */
 _hb_trace (const char *what,
