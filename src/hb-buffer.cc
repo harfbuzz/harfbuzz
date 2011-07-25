@@ -34,7 +34,7 @@
 HB_BEGIN_DECLS
 
 
-static hb_buffer_t Xhb_buffer_nil = {
+static hb_buffer_t _hb_buffer_nil = {
   HB_OBJECT_HEADER_STATIC,
 
   &_hb_unicode_funcs_default,
@@ -140,9 +140,9 @@ hb_buffer_t::reset (void)
     return;
 
   hb_unicode_funcs_destroy (unicode);
-  unicode = Xhb_buffer_nil.unicode;
+  unicode = _hb_buffer_nil.unicode;
 
-  props = Xhb_buffer_nil.props;
+  props = _hb_buffer_nil.props;
 
   in_error = FALSE;
   have_output = FALSE;
@@ -417,13 +417,13 @@ hb_buffer_create (unsigned int pre_alloc_size)
   hb_buffer_t *buffer;
 
   if (!(buffer = hb_object_create<hb_buffer_t> ()))
-    return &Xhb_buffer_nil;
+    return &_hb_buffer_nil;
 
   buffer->reset ();
 
   if (pre_alloc_size && !buffer->ensure (pre_alloc_size)) {
     hb_buffer_destroy (buffer);
-    return &Xhb_buffer_nil;
+    return &_hb_buffer_nil;
   }
 
   return buffer;
@@ -432,7 +432,7 @@ hb_buffer_create (unsigned int pre_alloc_size)
 hb_buffer_t *
 hb_buffer_get_empty (void)
 {
-  return &Xhb_buffer_nil;
+  return &_hb_buffer_nil;
 }
 
 hb_buffer_t *
@@ -479,7 +479,7 @@ hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
     return;
 
   if (!unicode)
-    unicode = Xhb_buffer_nil.unicode;
+    unicode = _hb_buffer_nil.unicode;
 
   hb_unicode_funcs_reference (unicode);
   hb_unicode_funcs_destroy (buffer->unicode);
