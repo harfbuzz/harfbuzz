@@ -407,12 +407,6 @@ struct Ligature
     return true;
   }
 
-  inline uint16_t allocate_lig_id (hb_buffer_t *buffer) const {
-    uint16_t lig_id = buffer->next_serial ();
-    if (unlikely (!lig_id)) lig_id = buffer->next_serial (); /* in case of overflow */
-    return lig_id;
-  }
-
   public:
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();

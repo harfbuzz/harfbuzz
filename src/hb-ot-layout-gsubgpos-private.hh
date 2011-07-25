@@ -39,6 +39,13 @@ HB_BEGIN_DECLS
 #define lig_id() var2.u16[0] /* unique ligature id */
 #define lig_comp() var2.u16[1] /* component number in the ligature (0 = base) */
 
+static inline uint16_t allocate_lig_id (hb_buffer_t *buffer) {
+  uint16_t lig_id = buffer->next_serial ();
+  if (unlikely (!lig_id)) lig_id = buffer->next_serial (); /* in case of overflow */
+  return lig_id;
+}
+
+
 
 #ifndef HB_DEBUG_APPLY
 #define HB_DEBUG_APPLY (HB_DEBUG+0)
