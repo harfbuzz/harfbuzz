@@ -170,14 +170,6 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
   }
 }
 
-static void
-hb_reset_glyph_infos (hb_buffer_t *buffer)
-{
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].var1.u32 = buffer->info[i].var2.u32 = 0;
-}
-
 
 /* Substitute */
 
@@ -351,8 +343,6 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 {
   /* Save the original direction, we use it later. */
   c->target_direction = c->buffer->props.direction;
-
-  hb_reset_glyph_infos (c->buffer); /* BUFFER: Clear buffer var1 and var2 */
 
   _hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class in var1 */
 

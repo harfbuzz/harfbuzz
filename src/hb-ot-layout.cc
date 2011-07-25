@@ -444,6 +444,7 @@ void
 hb_ot_layout_substitute_start (hb_buffer_t  *buffer)
 {
   unsigned int count = buffer->len;
+  /* XXX */
   for (unsigned int i = 0; i < count; i++)
     buffer->info[i].var1.u32 = buffer->info[i].var2.u32 = 0;
 }

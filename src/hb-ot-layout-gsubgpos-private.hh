@@ -34,7 +34,6 @@
 
 HB_BEGIN_DECLS
 
-
 /* buffer var allocations */
 #define lig_id() var2.u8[2] /* unique ligature id */
 #define lig_comp() var2.u8[3] /* component number in the ligature (0 = base) */
