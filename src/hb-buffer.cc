@@ -153,6 +153,8 @@ hb_buffer_t::reset (void)
   out_len = 0;
 
   serial = 0;
+  memset (allocated_var_bytes, 0, sizeof allocated_var_bytes);
+  memset (allocated_var_owner, 0, sizeof allocated_var_owner);
 
   out_info = info;
 }
@@ -384,6 +386,26 @@ hb_buffer_t::reverse_clusters (void)
     }
   }
   reverse_range (start, i);
+}
+
+
+void hb_buffer_t::allocate_var (unsigned int byte_i, unsigned int count, const char *owner)
+{
+  assert (byte_i < 8 && byte_i + count < 8);
+  for (unsigned int i = byte_i; i < byte_i + count; i++) {
+    assert (!allocated_var_bytes[i]);
+    allocated_var_bytes[i]++;
+    allocated_var_owner[i] = owner;
+  }
+}
+
+void hb_buffer_t::deallocate_var (unsigned int byte_i, unsigned int count, const char *owner)
+{
+  assert (byte_i < 8 && byte_i + count < 8);
+  for (unsigned int i = byte_i; i < byte_i + count; i++) {
+    assert (allocated_var_bytes[i] && allocated_var_owner[i] == owner);
+    allocated_var_bytes[i]--;
+  }
 }
 
 
