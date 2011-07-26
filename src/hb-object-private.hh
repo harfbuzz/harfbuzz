@@ -191,10 +191,10 @@ struct _hb_object_header_t {
   }
 
   inline void trace (const char *function) const {
-    DEBUG_MSG (OBJECT, "OBJECT(%p) refcount=%d %s\n",
-		       (void *) this,
-		       this ? ref_count.get () : 0,
-		       function);
+    DEBUG_MSG (OBJECT, (void *) this,
+	       "refcount=%d %s",
+	       this ? ref_count.get () : 0,
+	       function);
   }
 
 };
