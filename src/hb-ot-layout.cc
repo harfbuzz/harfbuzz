@@ -443,10 +443,7 @@ hb_ot_layout_has_substitution (hb_face_t *face)
 void
 hb_ot_layout_substitute_start (hb_buffer_t  *buffer)
 {
-  unsigned int count = buffer->len;
-  /* XXX */
-  for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].var1.u32 = buffer->info[i].var2.u32 = 0;
+  GSUB::substitute_start (buffer);
 }
 
 hb_bool_t
@@ -461,6 +458,7 @@ hb_ot_layout_substitute_lookup (hb_face_t    *face,
 void
 hb_ot_layout_substitute_finish (hb_buffer_t  *buffer HB_UNUSED)
 {
+  GSUB::substitute_finish (buffer);
 }
 
 
@@ -477,7 +475,7 @@ hb_ot_layout_has_positioning (hb_face_t *face)
 void
 hb_ot_layout_position_start (hb_buffer_t  *buffer)
 {
-  buffer->clear_positions ();
+  GPOS::position_start (buffer);
 }
 
 hb_bool_t

@@ -870,6 +870,9 @@ struct GSUB : GSUBGPOS
 				 hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (face, buffer, mask); }
 
+  static inline void substitute_start (hb_buffer_t *buffer);
+  static inline void substitute_finish (hb_buffer_t *buffer);
+
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!GSUBGPOS::sanitize (c))) return false;
@@ -879,6 +882,21 @@ struct GSUB : GSUBGPOS
   public:
   DEFINE_SIZE_STATIC (10);
 };
+
+
+void
+GSUB::substitute_start (hb_buffer_t *buffer)
+{
+  unsigned int count = buffer->len;
+  /* XXX */
+  for (unsigned int i = 0; i < count; i++)
+    buffer->info[i].var1.u32 = buffer->info[i].var2.u32 = 0;
+}
+
+void
+GSUB::substitute_finish (hb_buffer_t *buffer)
+{
+}
 
 
 /* Out-of-class implementation for methods recursing */

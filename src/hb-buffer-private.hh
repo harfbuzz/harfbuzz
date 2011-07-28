@@ -87,6 +87,7 @@ struct _hb_buffer_t {
 
   HB_INTERNAL void allocate_var (unsigned int byte_i, unsigned int count, const char *owner);
   HB_INTERNAL void deallocate_var (unsigned int byte_i, unsigned int count, const char *owner);
+  HB_INTERNAL void deallocate_var_all (void);
 
   inline void allocate_var_8 (unsigned int var_num, unsigned int i, const char *owner)
   { assert (var_num < 2 && i < 4); allocate_var (var_num * 4 + i, 1, owner); }

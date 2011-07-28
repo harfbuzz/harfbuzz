@@ -1507,6 +1507,7 @@ struct GPOS : GSUBGPOS
 			       hb_mask_t     mask) const
   { return get_lookup (lookup_index).apply_string (font, buffer, mask); }
 
+  static inline void position_start (hb_buffer_t *buffer);
   static inline void position_finish (hb_buffer_t *buffer);
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -1562,6 +1563,12 @@ fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t di
       pos[i].x_offset += pos[k].x_advance;
       pos[i].y_offset += pos[k].y_advance;
     }
+}
+
+void
+GPOS::position_start (hb_buffer_t *buffer)
+{
+  buffer->clear_positions ();
 }
 
 void
