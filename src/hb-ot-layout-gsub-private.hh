@@ -893,7 +893,7 @@ GSUB::substitute_start (hb_buffer_t *buffer)
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].var1.u32 = buffer->info[i].var2.u32 = 0;
+    buffer->info[i].props_cache() = buffer->info[i].lig_id() = buffer->info[i].lig_comp() = 0;
 }
 
 void
