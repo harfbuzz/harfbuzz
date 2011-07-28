@@ -36,6 +36,7 @@
 #include "hb-common.h"
 
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <assert.h>
 

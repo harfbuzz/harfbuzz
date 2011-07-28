@@ -398,7 +398,7 @@ dump_var_allocation (const hb_buffer_t *buffer)
 {
   char buf[80];
   for (unsigned int i = 0; i < 8; i++)
-    buf[i] = '0' + buffer->allocated_var_bytes[i];
+    buf[i] = '0' + buffer->allocated_var_bytes[7 - i];
   buf[8] = '\0';
   DEBUG_MSG (BUFFER, buffer,
 	     "Current var allocation: %s",
@@ -407,7 +407,7 @@ dump_var_allocation (const hb_buffer_t *buffer)
 
 void hb_buffer_t::allocate_var (unsigned int byte_i, unsigned int count, const char *owner)
 {
-  assert (byte_i < 8 && byte_i + count < 8);
+  assert (byte_i < 8 && byte_i + count <= 8);
 
   if (DEBUG (BUFFER))
     dump_var_allocation (this);
@@ -424,18 +424,19 @@ void hb_buffer_t::allocate_var (unsigned int byte_i, unsigned int count, const c
 
 void hb_buffer_t::deallocate_var (unsigned int byte_i, unsigned int count, const char *owner)
 {
+  if (DEBUG (BUFFER))
+    dump_var_allocation (this);
+
   DEBUG_MSG (BUFFER, this,
 	     "Deallocating var bytes %d..%d for %s",
 	     byte_i, byte_i + count - 1, owner);
 
-  assert (byte_i < 8 && byte_i + count < 8);
+  assert (byte_i < 8 && byte_i + count <= 8);
   for (unsigned int i = byte_i; i < byte_i + count; i++) {
-    assert (allocated_var_bytes[i] && allocated_var_owner[i] == owner);
+    assert (allocated_var_bytes[i]);
+    assert (0 == strcmp (allocated_var_owner[i], owner));
     allocated_var_bytes[i]--;
   }
-
-  if (DEBUG (BUFFER))
-    dump_var_allocation (this);
 }
 
 void hb_buffer_t::deallocate_var_all (void)

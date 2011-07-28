@@ -30,7 +30,7 @@ HB_BEGIN_DECLS
 
 
 /* buffer var allocations */
-#define arabic_shaping_action() var2.u32 /* arabic shaping action */
+#define arabic_shaping_action() complex_var_temporary_u16() /* arabic shaping action */
 
 
 /*
@@ -195,6 +195,8 @@ _hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer)
   unsigned int count = buffer->len;
   unsigned int prev = 0, state = 0;
 
+  HB_BUFFER_ALLOCATE_VAR (buffer, arabic_shaping_action);
+
   for (unsigned int i = 0; i < count; i++)
   {
     unsigned int this_type = get_joining_type (buffer->info[i].codepoint, (hb_unicode_general_category_t) buffer->info[i].general_category());
@@ -222,6 +224,8 @@ _hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer)
 
   for (unsigned int i = 0; i < count; i++)
     buffer->info[i].mask |= mask_array[buffer->info[i].arabic_shaping_action()];
+
+  HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
 }
 
 

@@ -30,8 +30,8 @@ HB_BEGIN_DECLS
 
 
 /* buffer var allocations */
-#define indic_category() var2.u8[0] /* indic_category_t */
-#define indic_position() var2.u8[1] /* indic_matra_category_t */
+#define indic_category() complex_var_persistent_u8_0() /* indic_category_t */
+#define indic_position() complex_var_persistent_u8_1() /* indic_matra_category_t */
 
 #define INDIC_TABLE_ELEMENT_TYPE uint8_t
 

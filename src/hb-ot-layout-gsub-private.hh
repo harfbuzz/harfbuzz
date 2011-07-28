@@ -887,8 +887,11 @@ struct GSUB : GSUBGPOS
 void
 GSUB::substitute_start (hb_buffer_t *buffer)
 {
+  HB_BUFFER_ALLOCATE_VAR (buffer, props_cache);
+  HB_BUFFER_ALLOCATE_VAR (buffer, lig_id);
+  HB_BUFFER_ALLOCATE_VAR (buffer, lig_comp);
+
   unsigned int count = buffer->len;
-  /* XXX */
   for (unsigned int i = 0; i < count; i++)
     buffer->info[i].var1.u32 = buffer->info[i].var2.u32 = 0;
 }

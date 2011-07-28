@@ -84,25 +84,9 @@ struct _hb_buffer_t {
   { return have_output? out_len : idx; }
   inline unsigned int next_serial (void) { return serial++; }
 
-
   HB_INTERNAL void allocate_var (unsigned int byte_i, unsigned int count, const char *owner);
   HB_INTERNAL void deallocate_var (unsigned int byte_i, unsigned int count, const char *owner);
   HB_INTERNAL void deallocate_var_all (void);
-
-  inline void allocate_var_8 (unsigned int var_num, unsigned int i, const char *owner)
-  { assert (var_num < 2 && i < 4); allocate_var (var_num * 4 + i, 1, owner); }
-  inline void allocate_var_16 (unsigned int var_num, unsigned int i, const char *owner)
-  { assert (var_num < 2 && i < 2); allocate_var (var_num * 4 + i * 2, 2, owner); }
-  inline void allocate_var_32 (unsigned int var_num, const char *owner)
-  { assert (var_num < 2); allocate_var (var_num * 4, 4, owner); }
-
-  inline void deallocate_var_8 (unsigned int var_num, unsigned int i, const char *owner)
-  { assert (var_num < 2 && i < 4); deallocate_var (var_num * 4 + i, 1, owner); }
-  inline void deallocate_var_16 (unsigned int var_num, unsigned int i, const char *owner)
-  { assert (var_num < 2 && i < 2); deallocate_var (var_num * 4 + i * 2, 2, owner); }
-  inline void deallocate_var_32 (unsigned int var_num, const char *owner)
-  { assert (var_num < 2); deallocate_var (var_num * 4, 4, owner); }
-
 
   HB_INTERNAL void add (hb_codepoint_t  codepoint,
 			hb_mask_t       mask,
@@ -152,6 +136,15 @@ struct _hb_buffer_t {
 
   HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
 };
+
+
+#define HB_BUFFER_XALLOCATE_VAR(b, func, var, owner) \
+  b->func (offsetof (hb_glyph_info_t, var) - offsetof(hb_glyph_info_t, var1), \
+	   sizeof (b->info[0].var), owner)
+#define HB_BUFFER_ALLOCATE_VAR(b, var) \
+	HB_BUFFER_XALLOCATE_VAR (b, allocate_var, var (), #var)
+#define HB_BUFFER_DEALLOCATE_VAR(b, var) \
+	HB_BUFFER_XALLOCATE_VAR (b, deallocate_var, var (), #var)
 
 
 HB_END_DECLS

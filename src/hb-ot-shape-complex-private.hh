@@ -34,9 +34,17 @@
 HB_BEGIN_DECLS
 
 
-/* buffer var allocations, used by all shapers */
+/* buffer var allocations, used during the entire shaping process */
 #define general_category() var1.u8[0] /* unicode general_category (hb_unicode_general_category_t) */
 #define combining_class() var1.u8[1] /* unicode combining_class (uint8_t) */
+
+/* buffer var allocations, used by complex shapers */
+#define complex_var_persistent_u8_0()	var2.u8[0]
+#define complex_var_persistent_u8_1()	var2.u8[1]
+#define complex_var_persistent_u16()	var2.u16[0]
+#define complex_var_temporary_u8_0()	var2.u8[2]
+#define complex_var_temporary_u8_1()	var2.u8[3]
+#define complex_var_temporary_u16()	var2.u16[1]
 
 
 #define HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS \
