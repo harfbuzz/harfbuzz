@@ -396,6 +396,8 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   HB_BUFFER_DEALLOCATE_VAR (c->buffer, general_category);
 
   c->buffer->props.direction = c->target_direction;
+
+  c->buffer->deallocate_var_all ();
 }
 
 static void

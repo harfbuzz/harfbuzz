@@ -287,6 +287,9 @@ final_reordering (const hb_ot_map_t *map,
 		  hb_buffer_t *buffer,
 		  void *user_data HB_UNUSED)
 {
+
+  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
+  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
 }
 
 void
@@ -330,6 +333,9 @@ void
 _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
+
+  HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
+  HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
 
   for (unsigned int i = 0; i < count; i++)
   {
