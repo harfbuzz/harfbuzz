@@ -136,7 +136,7 @@ enum indic_matra_category_t {
  * and/or
  * 2. Probe font lookups to determine consonant positions.
  */
-static const struct {
+static const struct consonant_position_t {
   hb_codepoint_t u;
   indic_position_t position;
 } consonant_positions[] = {
@@ -236,6 +236,28 @@ static const struct {
   {0x0D35, POS_POST},
 };
 
+static int
+compare_codepoint (const void *pa, const void *pb)
+{
+  hb_codepoint_t a = * (hb_codepoint_t *) pa;
+  hb_codepoint_t b = * (hb_codepoint_t *) pb;
+
+  return a < b ? -1 : a == b ? 0 : +1;
+}
+
+static indic_position_t
+consonant_position (hb_codepoint_t u)
+{
+  consonant_position_t *record;
+
+  record = (consonant_position_t *) bsearch (&u, consonant_positions,
+					     ARRAY_LENGTH (consonant_positions),
+					     sizeof (consonant_positions[0]),
+					     compare_codepoint);
+
+  return record ? record->position : POS_BASE;
+}
+
 
 static const struct {
   hb_tag_t tag;
@@ -281,16 +303,17 @@ static const hb_tag_t indic_other_features[] =
   HB_TAG('b','l','w','m'),
 };
 
+
+static void
+initial_reordering (const hb_ot_map_t *map,
+		    hb_face_t *face,
+		    hb_buffer_t *buffer,
+		    void *user_data HB_UNUSED);
 static void
 final_reordering (const hb_ot_map_t *map,
 		  hb_face_t *face,
 		  hb_buffer_t *buffer,
-		  void *user_data HB_UNUSED)
-{
-
-  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
-  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
-}
+		  void *user_data HB_UNUSED);
 
 void
 _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
@@ -300,7 +323,7 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_
    * there is a use of it, it's typically at the beginning. */
   map->add_bool_feature (HB_TAG('c','c','m','p'));
 
-  map->add_gsub_pause (NULL, NULL);
+  map->add_gsub_pause (initial_reordering, NULL);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++)
     map->add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
@@ -319,39 +342,185 @@ _hb_ot_shape_complex_prefer_decomposed_indic (void)
   return TRUE;
 }
 
-static void
-found_syllable (hb_ot_map_t *map, hb_buffer_t *buffer,
-		unsigned int start, unsigned int end)
-{
-  //fprintf (stderr, "%d %d\n", start, end);
-}
-
-#include "hb-ot-shape-complex-indic-machine.hh"
-
 
 void
 _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer)
 {
-  unsigned int count = buffer->len;
-
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
 
+  /* We cannot setup masks here.  We save information about characters
+   * and setup masks later on in a pause-callback. */
+
+  unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
   {
     unsigned int type = get_indic_categories (buffer->info[i].codepoint);
 
     buffer->info[i].indic_category() = type & 0x0F;
     buffer->info[i].indic_position() = type >> 4;
+
+    if (buffer->info[i].indic_category() == OT_C)
+      buffer->info[i].indic_position() = consonant_position (buffer->info[i].codepoint);
   }
+}
 
-  find_syllables (map, buffer);
 
+static void
+found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+			  unsigned int start, unsigned int end)
+{
+  unsigned int i;
+
+  /* Comments from:
+   * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
+
+  /* 1. Find base consonant:
+   *
+   * The shaping engine finds the base consonant of the syllable, using the
+   * following algorithm: starting from the end of the syllable, move backwards
+   * until a consonant is found that does not have a below-base or post-base
+   * form (post-base forms have to follow below-base forms), or that is not a
+   * pre-base reordering Ra, or arrive at the first consonant. The consonant
+   * stopped at will be the base.
+   *
+   *   o If the syllable starts with Ra + Halant (in a script that has Reph)
+   *     and has more than one consonant, Ra is excluded from candidates for
+   *     base consonants.
+   */
+
+  unsigned int base = 0;
+
+  /* -> starting from the end of the syllable, move backwards */
+  i = end;
+  do {
+    i--;
+    /* -> until a consonant is found */
+    if (buffer->info[i].indic_category() == OT_C)
+    {
+      /* -> that does not have a below-base or post-base form
+       * (post-base forms have to follow below-base forms), */
+      if (buffer->info[i].indic_position() != POS_BELOW &&
+	  buffer->info[i].indic_position() != POS_POST)
+      {
+        base = i;
+	break;
+      }
+
+      /* TODO: or that is not a pre-base reordering Ra, */
+
+      /* -> or arrive at the first consonant. The consonant stopped at will be the base. */
+      base = i;
+    }
+  } while (i > start);
+  if (base < start)
+    base = start; /* Just in case... */
+
+  /* TODO
+   * If the syllable starts with Ra + Halant (in a script that has Reph)
+   * and has more than one consonant, Ra is excluded from candidates for
+   * base consonants. */
+
+
+  /* 2. Decompose and reorder Matras:
+   *
+   * Each matra and any syllable modifier sign in the cluster are moved to the
+   * appropriate position relative to the consonant(s) in the cluster. The
+   * shaping engine decomposes two- or three-part matras into their constituent
+   * parts before any repositioning. Matra characters are classified by which
+   * consonant in a conjunct they have affinity for and are reordered to the
+   * following positions:
+   *
+   *   o Before first half form in the syllable
+   *   o After subjoined consonants
+   *   o After post-form consonant
+   *   o After main consonant (for above marks)
+   *
+   * IMPLEMENTATION NOTES:
+   *
+   * The normalize() routine has already decomposed matras for us, so we don't
+   * need to worry about that.
+   */
+
+
+  /* 3.  Reorder marks to canonical order:
+   *
+   * Adjacent nukta and halant or nukta and vedic sign are always repositioned
+   * if necessary, so that the nukta is first.
+   *
+   * IMPLEMENTATION NOTES:
+   *
+   * We don't need to do this: the normalize() routine already did this for us.
+   */
+
+
+  /* Setup masks now */
+
+  /* Pre-base */
+  for (i = start; i < base; i++)
+    buffer->info[i].mask  |= mask_array[HALF] | mask_array[AKHN];
+  /* Base */
+  buffer->info[base].mask |= mask_array[AKHN];
+  /* Post-base */
+  for (i = base + 1; i < end; i++)
+    buffer->info[i].mask  |= mask_array[BLWF] | mask_array[PSTF];
+}
+
+
+static void
+found_vowel_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+		      unsigned int start, unsigned int end)
+{
+  /* TODO
+   * Not clear to me how this should work.  Do the matras move to before the
+   * independent vowel?  No idea.
+   */
+}
+
+static void
+found_standalone_cluster (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+			  unsigned int start, unsigned int end)
+{
+  /* TODO
+   * Easiest thing to do here is to convert the NBSP to consonant and
+   * call found_consonant_syllable.
+   */
+}
+
+static void
+found_non_indic (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+		 unsigned int start, unsigned int end)
+{
+  /* Nothing to do right now.  If we ever switch to using the output
+   * buffer in the reordering process, we'd need to next_glyph() here. */
+}
+
+#include "hb-ot-shape-complex-indic-machine.hh"
+
+static void
+initial_reordering (const hb_ot_map_t *map,
+		    hb_face_t *face,
+		    hb_buffer_t *buffer,
+		    void *user_data HB_UNUSED)
+{
   hb_mask_t mask_array[ARRAY_LENGTH (indic_basic_features)] = {0};
   unsigned int num_masks = ARRAY_LENGTH (indic_basic_features);
   for (unsigned int i = 0; i < num_masks; i++)
     mask_array[i] = map->get_1_mask (indic_basic_features[i].tag);
+
+  find_syllables (map, buffer, mask_array);
 }
+
+static void
+final_reordering (const hb_ot_map_t *map,
+		  hb_face_t *face,
+		  hb_buffer_t *buffer,
+		  void *user_data HB_UNUSED)
+{
+  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
+  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
+}
+
 
 
 HB_END_DECLS

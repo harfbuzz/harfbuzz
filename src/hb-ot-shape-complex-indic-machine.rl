@@ -59,15 +59,17 @@ z = ZWJ|ZWNJ;
 matra_group = M N? H?;
 syllable_tail = SM? (VD VD?)?;
 
-action found_syllable {
-  found_syllable (map, buffer, last, p);
-  last = p;
-}
+action found_consonant_syllable { found_consonant_syllable (map, buffer, mask_array, last, p); }
+action found_vowel_syllable { found_vowel_syllable (map, buffer, mask_array, last, p); }
+action found_standalone_cluster { found_standalone_cluster (map, buffer, mask_array, last, p); }
+action found_non_indic { found_non_indic (map, buffer, mask_array, last, p); }
 
-consonant_syllable =	(c.N? (z.H|H.z?))* c.N? A? (H.z? | matra_group*)? syllable_tail %(found_syllable);
-vowel_syllable =	(Ra H)? V N? (z.H.c | ZWJ.c)? matra_group* syllable_tail;
-standalone_cluster =	(Ra H)? NBSP N? (z? H c)? matra_group* syllable_tail;
-non_indic = X;
+action next_syllable { set_cluster (buffer, p, last); last = p; }
+
+consonant_syllable =	(c.N? (z.H|H.z?))* c.N? A? (H.z? | matra_group*)? syllable_tail %(found_consonant_syllable);
+vowel_syllable =	(Ra H)? V N? (z.H.c | ZWJ.c)? matra_group* syllable_tail %(found_vowel_syllable);
+standalone_cluster =	(Ra H)? NBSP N? (z? H c)? matra_group* syllable_tail %(found_standalone_cluster);
+non_indic = X %(found_non_indic);
 
 syllable =
 	  consonant_syllable
@@ -76,16 +78,25 @@ syllable =
 	| non_indic
 	;
 
-main := syllable**;
+main := (syllable %(next_syllable))**;
 
 }%%
 
 
-#include <stdio.h>
-#include <string.h>
+static void
+set_cluster (hb_buffer_t *buffer,
+	     unsigned int start, unsigned int end)
+{
+  unsigned int cluster = buffer->info[start].cluster;
+
+  for (unsigned int i = start + 1; i < end; i++)
+    cluster = MIN (cluster, buffer->info[i].cluster);
+  for (unsigned int i = start; i < end; i++)
+    buffer->info[i].cluster = cluster;
+}
 
 static void
-find_syllables (hb_ot_map_t *map, hb_buffer_t *buffer)
+find_syllables (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array)
 {
   unsigned int p, pe, eof;
   int cs;
