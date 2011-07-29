@@ -1109,7 +1109,7 @@ add_test_set (const test_set_t *test_set, const char *set_name)
       g_string_append_printf (str, "%04X,", *p);
     str->str[str->len - 1] = '>';
 
-    flavor = g_strdup_printf ("%s/%s/%s", set_name, test_set->font_data.font_file, str->str);
+    flavor = g_strdup_printf ("%s/%s/%ld:%s", set_name, test_set->font_data.font_file, data - test_set->test_datas, str->str);
 
     g_string_free (str, TRUE);
 
