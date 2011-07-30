@@ -406,6 +406,7 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 			  unsigned int start, unsigned int end)
 {
   unsigned int i;
+  hb_glyph_info_t *info = buffer->info;
 
   /* Comments from:
    * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
@@ -431,12 +432,12 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
   do {
     i--;
     /* -> until a consonant is found */
-    if (buffer->info[i].indic_category() == OT_C)
+    if (info[i].indic_category() == OT_C)
     {
       /* -> that does not have a below-base or post-base form
        * (post-base forms have to follow below-base forms), */
-      if (buffer->info[i].indic_position() != POS_BELOW &&
-	  buffer->info[i].indic_position() != POS_POST)
+      if (info[i].indic_position() != POS_BELOW &&
+	  info[i].indic_position() != POS_POST)
       {
         base = i;
 	break;
@@ -492,32 +493,32 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
   /* Reorder characters */
 
   for (i = start; i < base; i++)
-    buffer->info[i].indic_position() = POS_PRE;
-  buffer->info[base].indic_position() = POS_BASE;
+    info[i].indic_position() = POS_PRE;
+  info[base].indic_position() = POS_BASE;
 
   /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
   for (i = start + 1; i < end; i++)
-    if ((FLAG (buffer->info[i].indic_category()) &
+    if ((FLAG (info[i].indic_category()) &
 	 (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H))))
-      buffer->info[i].indic_position() = buffer->info[i - 1].indic_position();
+      info[i].indic_position() = info[i - 1].indic_position();
 
   /* We do bubble-sort, skip malicious clusters attempts */
   if (end - start > 20)
     return;
 
   /* Sit tight, rock 'n roll! */
-  hb_bubble_sort (buffer->info + start, end - start, compare_indic_order);
+  hb_bubble_sort (info + start, end - start, compare_indic_order);
 
   /* Setup masks now */
 
   /* Pre-base */
   for (i = start; i < base; i++)
-    buffer->info[i].mask  |= mask_array[HALF] | mask_array[AKHN];
+    info[i].mask  |= mask_array[HALF] | mask_array[AKHN];
   /* Base */
-  buffer->info[base].mask |= mask_array[AKHN];
+  info[base].mask |= mask_array[AKHN];
   /* Post-base */
   for (i = base + 1; i < end; i++)
-    buffer->info[i].mask  |= mask_array[BLWF] | mask_array[PSTF];
+    info[i].mask  |= mask_array[BLWF] | mask_array[PSTF];
 }
 
 
