@@ -63,8 +63,6 @@ enum indic_position_t {
   POS_ABOVE,
   POS_BELOW,
   POS_POST,
-
-  POS_INHERIT /* For Halant, Nukta, ZWJ, ZWNJ */
 };
 
 /* Categories used in IndicSyllabicCategory.txt from UCD */
@@ -365,6 +363,14 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer)
   }
 }
 
+static int
+compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
+{
+  int a = pa->indic_position();
+  int b = pb->indic_position();
+
+  return a < b ? -1 : a == b ? 0 : +1;
+}
 
 static void
 found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
@@ -453,6 +459,25 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
    * We don't need to do this: the normalize() routine already did this for us.
    */
 
+
+  /* Reorder characters */
+
+  for (i = start; i < base; i++)
+    buffer->info[i].indic_position() = POS_PRE;
+  buffer->info[base].indic_position() = POS_BASE;
+
+  /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
+  for (i = start + 1; i < end; i++)
+    if ((FLAG (buffer->info[i].indic_category()) &
+	 (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H))))
+      buffer->info[i].indic_position() = buffer->info[i - 1].indic_position();
+
+  /* We do bubble-sort, skip malicious clusters attempts */
+  if (end - start > 20)
+    return;
+
+  /* Sit tight, rock 'n roll! */
+  hb_bubble_sort (buffer->info + start, end - start, compare_indic_order);
 
   /* Setup masks now */
 

@@ -147,6 +147,15 @@ decompose_multi_char_cluster (hb_ot_shape_context_t *c,
     decompose_current_glyph (c, FALSE);
 }
 
+static int
+compare_combining_class (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
+{
+  unsigned int a = pa->combining_class();
+  unsigned int b = pb->combining_class();
+
+  return a < b ? -1 : a == b ? 0 : +1;
+}
+
 void
 _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
 {
@@ -216,22 +225,7 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
       continue;
     }
 
-    unsigned int k = end - i - 1;
-    do {
-      hb_glyph_info_t *pinfo = buffer->info + i;
-      unsigned int new_k = 0;
-
-      for (unsigned int j = 0; j < k; j++)
-	if (pinfo[j].combining_class() > pinfo[j+1].combining_class()) {
-	  hb_glyph_info_t t;
-	  t = pinfo[j];
-	  pinfo[j] = pinfo[j + 1];
-	  pinfo[j + 1] = t;
-
-	  new_k = j;
-	}
-      k = new_k;
-    } while (k);
+    hb_bubble_sort (buffer->info + i, end - i, compare_combining_class);
 
     i = end;
   }

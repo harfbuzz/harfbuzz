@@ -568,12 +568,9 @@ struct hb_auto_trace_t<0> {
 				   const char *message) {}
 };
 
-HB_BEGIN_DECLS
-
 
 /* Misc */
 
-HB_END_DECLS
 
 /* Pre-mature optimization:
  * Checks for lo <= u <= hi but with an optimization if lo and hi
@@ -590,12 +587,39 @@ hb_in_range (T u, T lo, T hi)
     return lo <= u && u <= hi;
 }
 
-HB_BEGIN_DECLS
 
-
-/* Useful for set-operations on small enums */
+/* Useful for set-operations on small enums.
+ * For example, for testing "x ∈ {x1, x2, x3}" use:
+ * (FLAG(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
+ */
 #define FLAG(x) (1<<(x))
 
+
+template <typename T> inline void
+hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
+{
+  if (unlikely (!len))
+    return;
+
+  unsigned int k = len - 1;
+  do {
+    unsigned int new_k = 0;
+
+    for (unsigned int j = 0; j < k; j++)
+      if (compar (&array[j], &array[j+1]) > 0) {
+        T t;
+	t = array[j];
+	array[j] = array[j + 1];
+	array[j + 1] = t;
+
+	new_k = j;
+      }
+    k = new_k;
+  } while (k);
+}
+
+
+HB_BEGIN_DECLS
 
 HB_END_DECLS
 
