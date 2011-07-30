@@ -234,6 +234,23 @@ static const struct consonant_position_t {
   {0x0D35, POS_POST},
 };
 
+/* XXX
+ * This is a hack for now.  We should move this data into the main Indic table.
+ */
+static const hb_codepoint_t ra_chars[] = {
+  0x0930, /* Devanagari */
+  0x09B0, /* Bengali */
+  0x09F0, /* Bengali */
+  0x09F1, /* Bengali */
+//0x0A30, /* Gurmukhi */
+  0x0AB0, /* Gujarati */
+  0x0B30, /* Oriya */
+//0x0BB0, /* Tamil */
+//0x0C30, /* Telugu */
+  0x0CB0, /* Kannada */
+//0x0D30, /* Malayalam */
+};
+
 static int
 compare_codepoint (const void *pa, const void *pb)
 {
@@ -254,6 +271,15 @@ consonant_position (hb_codepoint_t u)
 					     compare_codepoint);
 
   return record ? record->position : POS_BASE;
+}
+
+static bool
+is_ra (hb_codepoint_t u)
+{
+  return !!bsearch (&u, ra_chars,
+		    ARRAY_LENGTH (ra_chars),
+		    sizeof (ra_chars[0]),
+		    compare_codepoint);
 }
 
 
@@ -358,8 +384,11 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer)
     buffer->info[i].indic_category() = type & 0x0F;
     buffer->info[i].indic_position() = type >> 4;
 
-    if (buffer->info[i].indic_category() == OT_C)
+    if (buffer->info[i].indic_category() == OT_C) {
       buffer->info[i].indic_position() = consonant_position (buffer->info[i].codepoint);
+      if (is_ra (buffer->info[i].codepoint))
+	buffer->info[i].indic_category() = OT_Ra;
+    }
   }
 }
 
