@@ -111,7 +111,7 @@ endif
 CXXLINK = $(LINK)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
-libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO)
+libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_la_LIBADD = $(HBLIBS)
 pkginclude_HEADERS = $(HBHEADERS)
 nodist_pkginclude_HEADERS = hb-version.h
