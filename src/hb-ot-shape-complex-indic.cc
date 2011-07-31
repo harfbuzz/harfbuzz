@@ -443,6 +443,7 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 
   /* -> starting from the end of the syllable, move backwards */
   i = end;
+  unsigned int limit = start + (info[start].indic_category() == OT_Ra ? 2 : 0);
   do {
     i--;
     /* -> until a consonant is found */
@@ -457,19 +458,24 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 	break;
       }
 
-      /* TODO: or that is not a pre-base reordering Ra, */
+      /* -> or that is not a pre-base reordering Ra,
+       *
+       *   o If the syllable starts with Ra + Halant (in a script that has Reph)
+       *     and has more than one consonant, Ra is excluded from candidates for
+       *     base consonants.
+       *
+       * IMPLEMENTATION NOTES:
+       *
+       * We do this by adjusting limit accordingly before entering the loop.
+       */
 
-      /* -> or arrive at the first consonant. The consonant stopped at will be the base. */
+      /* -> or arrive at the first consonant. The consonant stopped at will
+       * be the base. */
       base = i;
     }
-  } while (i > start);
+  } while (i > limit);
   if (base < start)
     base = start; /* Just in case... */
-
-  /* TODO
-   * If the syllable starts with Ra + Halant (in a script that has Reph)
-   * and has more than one consonant, Ra is excluded from candidates for
-   * base consonants. */
 
 
   /* 2. Decompose and reorder Matras:
