@@ -282,6 +282,11 @@ is_ra (hb_codepoint_t u)
 		    compare_codepoint);
 }
 
+static bool
+is_joiner (hb_glyph_info_t *info)
+{
+  return info->indic_category() == OT_ZWJ || info->indic_category() == OT_ZWNJ;
+}
 
 static const struct {
   hb_tag_t tag;
@@ -501,7 +506,8 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
   /* Handle beginning Ra */
   if (start + 2 <= end &&
       info[start].indic_category() == OT_Ra &&
-      info[start + 1].indic_category() == OT_H)
+      info[start + 1].indic_category() == OT_H &&
+      (start + 2 == end || !is_joiner (&info[start])))
    {
     info[start].indic_position() = POS_POST;
     info[start].mask = mask_array[RPHF];
