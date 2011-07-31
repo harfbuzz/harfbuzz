@@ -446,8 +446,7 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
   do {
     i--;
     /* -> until a consonant is found */
-    if (info[i].indic_category() == OT_C)
-    //if ((FLAG (info[i].indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra))))
+    if (is_consonant (info[i]))
     {
       /* -> that does not have a below-base or post-base form
        * (post-base forms have to follow below-base forms), */
