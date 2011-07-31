@@ -1030,6 +1030,7 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
   unsigned int i, len, expected_len;
   hb_glyph_info_t *glyphs;
   hb_bool_t fail;
+  GString *str;
 
   g_assert (f->font);
 
@@ -1054,17 +1055,17 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
 	break;
       }
 
-  if (fail) {
-    GString *str = g_string_new ("");
-    for (i = 0; i < len; i++)
-      g_string_append_printf (str, " %4d", glyphs[i].codepoint);
-    g_test_message ("Received glyphs: %s", str->str);
-    g_string_truncate (str, 0);
-    for (i = 0; i < expected_len; i++)
-      g_string_append_printf (str, " %4d", data->glyphs[i]);
-    g_test_message ("Expected glyphs: %s", str->str);
-    g_string_free (str, TRUE);
+  str = g_string_new ("");
+  for (i = 0; i < len; i++)
+    g_string_append_printf (str, " %4d", glyphs[i].codepoint);
+  g_test_message ("Received glyphs: %s", str->str);
+  g_string_truncate (str, 0);
+  for (i = 0; i < expected_len; i++)
+    g_string_append_printf (str, " %4d", data->glyphs[i]);
+  g_test_message ("Expected glyphs: %s", str->str);
+  g_string_free (str, TRUE);
 
+  if (fail) {
     g_test_message ("FAIL");
     /* The glib test framework is useless, lets not fail for now,
      * we can grep for FAIL/PASS and count manually.  Sigh... */
