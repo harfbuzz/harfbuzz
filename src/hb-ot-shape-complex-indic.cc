@@ -496,6 +496,16 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
     info[i].indic_position() = POS_PRE;
   info[base].indic_position() = POS_BASE;
 
+
+  /* Handle beginning Ra */
+  if (start + 2 <= end &&
+      info[start].indic_category() == OT_Ra &&
+      info[start + 1].indic_category() == OT_H)
+   {
+    info[start].indic_position() = POS_POST;
+    info[start].mask = mask_array[RPHF];
+   }
+
   /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
   for (i = start + 1; i < end; i++)
     if ((FLAG (info[i].indic_category()) &
