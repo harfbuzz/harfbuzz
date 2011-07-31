@@ -565,14 +565,21 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 
   /* Setup masks now */
 
-  /* Pre-base */
-  for (i = start; i < base; i++)
-    info[i].mask  |= mask_array[HALF] | mask_array[AKHN] | mask_array[CJCT];
-  /* Base */
-  info[base].mask |= mask_array[AKHN] | mask_array[CJCT];
-  /* Post-base */
-  for (i = base + 1; i < end; i++)
-    info[i].mask  |= mask_array[BLWF] | mask_array[PSTF] | mask_array[CJCT];
+  {
+    hb_mask_t mask;
+
+    /* Pre-base */
+    mask = mask_array[HALF] | mask_array[AKHN] | mask_array[CJCT];
+    for (i = start; i < base; i++)
+      info[i].mask  |= mask;
+    /* Base */
+    mask = mask_array[AKHN] | mask_array[CJCT];
+    info[base].mask |= mask;
+    /* Post-base */
+    mask = mask_array[BLWF] | mask_array[PSTF] | mask_array[CJCT];
+    for (i = base + 1; i < end; i++)
+      info[i].mask  |= mask;
+  }
 
   /* Apply ZWJ/ZWNJ effects */
   for (i = start + 1; i < end; i++)
