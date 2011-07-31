@@ -506,6 +506,26 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
     info[start].mask = mask_array[RPHF];
    }
 
+  /* For old-style Indic script tags, move the first post-base Halant after
+   * last consonant. */
+  if ((map->get_chosen_script (0) & 0x000000FF) != '2') {
+    /* We should only do this for Indic scripts which have a version two I guess. */
+    for (i = base + 1; i < end; i++)
+      if (info[i].indic_category() == OT_H) {
+        unsigned int j;
+        for (j = end - 1; j > i; j--)
+	  if ((FLAG (info[j].indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra))))
+	    break;
+	if (j > i) {
+	  /* Move Halant to after last consonant. */
+	  hb_glyph_info_t t = info[i];
+	  memmove (&info[i], &info[i + 1], (j - i) * sizeof (info[0]));
+	  info[j] = t;
+	}
+        break;
+      }
+  }
+
   /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
   for (i = start + 1; i < end; i++)
     if ((FLAG (info[i].indic_category()) &

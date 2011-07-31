@@ -60,6 +60,9 @@ struct hb_ot_map_t
     return map ? map->_1_mask : 0;
   }
 
+  inline hb_tag_t get_chosen_script (unsigned int table_index) const
+  { return chosen_script[table_index]; }
+
   inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const
   { apply (0, (hb_ot_map_t::apply_lookup_func_t) hb_ot_layout_substitute_lookup, face, buffer); }
   inline void position (hb_font_t *font, hb_buffer_t *buffer) const
