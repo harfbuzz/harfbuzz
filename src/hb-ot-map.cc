@@ -134,7 +134,7 @@ hb_ot_map_builder_t::compile (hb_face_t *face,
   unsigned int script_index[2], language_index[2];
   for (unsigned int table_index = 0; table_index < 2; table_index++) {
     hb_tag_t table_tag = table_tags[table_index];
-    hb_ot_layout_table_choose_script (face, table_tag, script_tags, &script_index[table_index]);
+    hb_ot_layout_table_choose_script (face, table_tag, script_tags, &script_index[table_index], &m.chosen_script[table_index]);
     hb_ot_layout_script_find_language (face, table_tag, script_index[table_index], language_tag, &language_index[table_index]);
   }
 

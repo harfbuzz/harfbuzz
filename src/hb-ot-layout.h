@@ -92,7 +92,8 @@ hb_bool_t
 hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  const hb_tag_t *script_tags,
-				  unsigned int   *script_index);
+				  unsigned int   *script_index,
+				  hb_tag_t       *chosen_script);
 
 unsigned int
 hb_ot_layout_table_get_feature_tags (hb_face_t    *face,

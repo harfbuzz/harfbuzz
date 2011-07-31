@@ -264,27 +264,39 @@ hb_bool_t
 hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  const hb_tag_t *script_tags,
-				  unsigned int   *script_index)
+				  unsigned int   *script_index,
+				  hb_tag_t       *chosen_script)
 {
   ASSERT_STATIC (Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_SCRIPT_INDEX);
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
   while (*script_tags)
   {
-    if (g.find_script_index (*script_tags, script_index))
+    if (g.find_script_index (*script_tags, script_index)) {
+      if (chosen_script)
+        *chosen_script = *script_tags;
       return TRUE;
+    }
     script_tags++;
   }
 
   /* try finding 'DFLT' */
-  if (g.find_script_index (HB_OT_TAG_DEFAULT_SCRIPT, script_index))
+  if (g.find_script_index (HB_OT_TAG_DEFAULT_SCRIPT, script_index)) {
+    if (chosen_script)
+      *chosen_script = HB_OT_TAG_DEFAULT_SCRIPT;
     return FALSE;
+  }
 
   /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
-  if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index))
+  if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index)) {
+    if (chosen_script)
+      *chosen_script = HB_OT_TAG_DEFAULT_LANGUAGE;
     return FALSE;
+  }
 
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
+  if (chosen_script)
+    *chosen_script = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
   return FALSE;
 }
 

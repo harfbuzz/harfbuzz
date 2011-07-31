@@ -123,6 +123,7 @@ struct hb_ot_map_t
 
   hb_mask_t global_mask;
 
+  hb_tag_t chosen_script[2];
   hb_prealloced_array_t<feature_map_t, 8> features;
   hb_prealloced_array_t<lookup_map_t, 32> lookups[2]; /* GSUB/GPOS */
   hb_prealloced_array_t<pause_map_t, 1> pauses[2]; /* GSUB/GPOS */
