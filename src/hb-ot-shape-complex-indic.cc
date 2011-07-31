@@ -513,10 +513,10 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 
 
   /* Handle beginning Ra */
-  if (start + 2 <= end &&
+  if (start + 3 <= end &&
       info[start].indic_category() == OT_Ra &&
       info[start + 1].indic_category() == OT_H &&
-      (start + 2 == end || !is_joiner (info[start])))
+      !is_joiner (info[start + 2]))
    {
     info[start].indic_position() = POS_POST;
     info[start].mask = mask_array[RPHF];
