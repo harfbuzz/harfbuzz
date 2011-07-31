@@ -283,9 +283,15 @@ is_ra (hb_codepoint_t u)
 }
 
 static bool
-is_joiner (hb_glyph_info_t *info)
+is_joiner (const hb_glyph_info_t &info)
 {
-  return info->indic_category() == OT_ZWJ || info->indic_category() == OT_ZWNJ;
+  return !!(FLAG (info.indic_category()) & (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ)));
+}
+
+static bool
+is_consonant (const hb_glyph_info_t &info)
+{
+  return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra)));
 }
 
 static const struct {
@@ -302,7 +308,7 @@ static const struct {
   {HB_TAG('h','a','l','f'), false},
   {HB_TAG('v','a','t','u'), true},
   {HB_TAG('p','s','t','f'), false},
-  {HB_TAG('c','j','c','t'), true},
+  {HB_TAG('c','j','c','t'), false},
 };
 
 /* Same order as the indic_basic_features array */
@@ -316,7 +322,7 @@ enum {
   HALF,
   _VATU,
   PSTF,
-  _CJCT,
+  CJCT,
 };
 
 static const hb_tag_t indic_other_features[] =
@@ -393,7 +399,10 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer)
       buffer->info[i].indic_position() = consonant_position (buffer->info[i].codepoint);
       if (is_ra (buffer->info[i].codepoint))
 	buffer->info[i].indic_category() = OT_Ra;
-    }
+    } else if (buffer->info[i].codepoint == 0x200C)
+      buffer->info[i].indic_category() = OT_ZWNJ;
+    else if (buffer->info[i].codepoint == 0x200D)
+      buffer->info[i].indic_category() = OT_ZWJ;
   }
 }
 
@@ -507,7 +516,7 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
   if (start + 2 <= end &&
       info[start].indic_category() == OT_Ra &&
       info[start + 1].indic_category() == OT_H &&
-      (start + 2 == end || !is_joiner (&info[start])))
+      (start + 2 == end || !is_joiner (info[start])))
    {
     info[start].indic_position() = POS_POST;
     info[start].mask = mask_array[RPHF];
@@ -550,12 +559,26 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 
   /* Pre-base */
   for (i = start; i < base; i++)
-    info[i].mask  |= mask_array[HALF] | mask_array[AKHN];
+    info[i].mask  |= mask_array[HALF] | mask_array[AKHN] | mask_array[CJCT];
   /* Base */
-  info[base].mask |= mask_array[AKHN];
+  info[base].mask |= mask_array[AKHN] | mask_array[CJCT];
   /* Post-base */
   for (i = base + 1; i < end; i++)
-    info[i].mask  |= mask_array[BLWF] | mask_array[PSTF];
+    info[i].mask  |= mask_array[BLWF] | mask_array[PSTF] | mask_array[CJCT];
+
+  /* Apply ZWJ/ZWNJ effects */
+  for (i = start + 1; i < end; i++)
+    if (is_joiner (info[i])) {
+      bool non_joiner = info[i].indic_category() == OT_ZWNJ;
+      unsigned int j = i - 1;
+
+      do {
+	info[j].mask &= !mask_array[HALF];
+	if (non_joiner)
+	  info[j].mask &= !mask_array[CJCT];
+	j--;
+      } while (j > start && !is_consonant (info[j]));
+    }
 }
 
 
@@ -590,6 +613,20 @@ found_non_indic (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_ar
 #include "hb-ot-shape-complex-indic-machine.hh"
 
 static void
+remove_joiners (hb_buffer_t *buffer)
+{
+  buffer->clear_output ();
+  unsigned int count = buffer->len;
+  for (buffer->idx = 0; buffer->idx < count;)
+    if (unlikely (is_joiner (buffer->info[buffer->idx])))
+      buffer->skip_glyph ();
+    else
+      buffer->next_glyph ();
+
+  buffer->swap_buffers ();
+}
+
+static void
 initial_reordering (const hb_ot_map_t *map,
 		    hb_face_t *face,
 		    hb_buffer_t *buffer,
@@ -601,6 +638,8 @@ initial_reordering (const hb_ot_map_t *map,
     mask_array[i] = map->get_1_mask (indic_basic_features[i].tag);
 
   find_syllables (map, buffer, mask_array);
+
+  remove_joiners (buffer);
 }
 
 static void
