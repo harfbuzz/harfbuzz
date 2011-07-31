@@ -1056,13 +1056,13 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
 
   if (fail) {
     GString *str = g_string_new ("");
-    for (i = 0; i < expected_len; i++)
-      g_string_append_printf (str, " %4d", data->glyphs[i]);
-    g_test_message ("Expected glyphs: %s", str->str);
-    g_string_truncate (str, 0);
     for (i = 0; i < len; i++)
       g_string_append_printf (str, " %4d", glyphs[i].codepoint);
     g_test_message ("Received glyphs: %s", str->str);
+    g_string_truncate (str, 0);
+    for (i = 0; i < expected_len; i++)
+      g_string_append_printf (str, " %4d", data->glyphs[i]);
+    g_test_message ("Expected glyphs: %s", str->str);
     g_string_free (str, TRUE);
 
     g_test_message ("FAIL");
