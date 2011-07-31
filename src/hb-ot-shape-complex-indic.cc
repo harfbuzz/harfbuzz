@@ -439,11 +439,15 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
    *     base consonants.
    */
 
-  unsigned int base = 0;
+  unsigned int base = end;
 
   /* -> starting from the end of the syllable, move backwards */
   i = end;
-  unsigned int limit = start + (info[start].indic_category() == OT_Ra ? 2 : 0);
+  unsigned int limit = start;
+  if (info[start].indic_category() == OT_Ra && start + 2 <= end) {
+    limit += 2;
+    base = start;
+  };
   do {
     i--;
     /* -> until a consonant is found */
@@ -476,6 +480,9 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
        * be the base. */
       base = i;
     }
+    else
+      if (is_joiner (info[i]))
+        break;
   } while (i > limit);
   if (base < start)
     base = start; /* Just in case... */
