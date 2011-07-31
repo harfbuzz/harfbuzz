@@ -578,13 +578,15 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
   for (i = start + 1; i < end; i++)
     if (is_joiner (info[i])) {
       bool non_joiner = info[i].indic_category() == OT_ZWNJ;
-      unsigned int j = i - 1;
+      unsigned int j = i;
 
       do {
-	info[j].mask &= !mask_array[HALF];
-	if (non_joiner)
-	  info[j].mask &= !mask_array[CJCT];
 	j--;
+
+	info[j].mask &= !mask_array[CJCT];
+	if (non_joiner)
+	  info[j].mask &= !mask_array[HALF];
+
       } while (j > start && !is_consonant (info[j]));
     }
 }
