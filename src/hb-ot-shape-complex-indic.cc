@@ -241,7 +241,7 @@ static const hb_codepoint_t ra_chars[] = {
   0x0930, /* Devanagari */
   0x09B0, /* Bengali */
   0x09F0, /* Bengali */
-  0x09F1, /* Bengali */
+//0x09F1, /* Bengali */
 //0x0A30, /* Gurmukhi */
   0x0AB0, /* Gujarati */
   0x0B30, /* Oriya */
