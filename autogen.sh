@@ -7,13 +7,21 @@ test -n "$srcdir" || srcdir=.
 olddir=`pwd`
 cd $srcdir
 
-AUTORECONF=`which autoreconf`
-if test -z $AUTORECONF; then
+echo -n "checking for ragel... "
+which ragel || {
+	echo "You need to install ragel... See http://www.complang.org/ragel/"
+	exit 1
+}
+
+echo -n "checking for autoreconf... "
+which autoreconf || {
 	echo "*** No autoreconf found, please install it ***"
 	exit 1
-else
-	autoreconf --force --install || exit $?
-fi
+}
+
+echo "running autoreconf"
+autoreconf --force --install || exit $?
 
 cd $olddir
+echo "running configure $@"
 test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
