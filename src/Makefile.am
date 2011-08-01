@@ -127,7 +127,8 @@ EXTRA_DIST += $(GENERATORS)
 BUILT_SOURCES = hb-ot-shape-complex-indic-machine.hh
 EXTRA_DIST += hb-ot-shape-complex-indic-machine.rl
 hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
-	$(AM_V_GEN)ragel -e -F1 -o $@ $^
+	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
+	mv "$@.tmp" "$@"
 
 noinst_PROGRAMS = main test
 bin_PROGRAMS =
