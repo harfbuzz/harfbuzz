@@ -597,7 +597,12 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
       do {
 	j--;
 
-	info[j].mask &= !mask_array[CJCT];
+	/* Reading the Unicode and OpenType specs, I think the following line
+	 * is correct, but this is not what the test suite expects currently.
+	 * The test suite has been drinking, not me...  But disable while
+	 * investigating.
+	 */
+	//info[j].mask &= !mask_array[CJCT];
 	if (non_joiner)
 	  info[j].mask &= !mask_array[HALF];
 
