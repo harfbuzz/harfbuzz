@@ -121,7 +121,8 @@ check-symbols: symbols-untested.txt
 
 
 else
-check-am:
+check-am: err-glib
+err-glib:
 	@echo "You need to have glib support enabled to run the tests"
 	@exit 77
 endif
