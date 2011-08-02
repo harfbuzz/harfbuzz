@@ -104,6 +104,7 @@ dnl ==========================================================================
 
 PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
 	AC_CHECK_PROG([have_icu], [icu-config], [true], [false])
+	have_icu=false
 	if $have_icu; then
 		icu_cflags=`icu-config --cppflags`
 		icu_libs=`icu-config --ldflags-libsonly`

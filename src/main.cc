@@ -25,6 +25,7 @@
  */
 
 #define HB_OT_LAYOUT_CC
+#include "hb-mutex-private.hh"
 #include "hb-open-file-private.hh"
 #include "hb-ot-layout-gdef-private.hh"
 #include "hb-ot-layout-gsubgpos-private.hh"

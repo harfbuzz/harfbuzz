@@ -384,6 +384,11 @@ struct IntType
   DEFINE_SIZE_STATIC (sizeof (Type));
 };
 
+/* Typedef these to avoid clash with windows.h */
+#define USHORT	HB_USHORT
+#define SHORT	HB_SHORT
+#define ULONG	HB_ULONG
+#define LONG	HB_LONG
 typedef IntType<uint16_t> USHORT;	/* 16-bit unsigned integer. */
 typedef IntType<int16_t>  SHORT;	/* 16-bit signed integer. */
 typedef IntType<uint32_t> ULONG;	/* 32-bit unsigned integer. */
