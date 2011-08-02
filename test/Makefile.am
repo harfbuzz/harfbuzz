@@ -20,7 +20,6 @@ TEST_PROGS = \
 	test-buffer \
 	test-common \
 	test-font \
-	test-object \
 	test-shape \
 	test-unicode \
 	test-version \
@@ -45,13 +44,13 @@ endif
 if HAVE_FREETYPE
 test_c_CPPFLAGS += $(FREETYPE_CFLAGS)
 test_cplusplus_CPPFLAGS += $(FREETYPE_CFLAGS)
+
 # TODO replace freetype with other stuff in the following test
+TEST_PROGS += test-object
 test_object_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 test_object_LDADD = $(LDADD) $(FREETYPE_LIBS)
 
-TEST_PROGS += \
-	test-shape-complex \
-	$(NULL)
+TEST_PROGS += test-shape-complex
 test_shape_complex_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 test_shape_complex_LDADD = $(LDADD) $(FREETYPE_LIBS)
 endif
