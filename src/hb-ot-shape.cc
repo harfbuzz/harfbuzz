@@ -235,12 +235,13 @@ hb_substitute_default (hb_ot_shape_context_t *c)
 static void
 hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
-  if (hb_ot_layout_has_substitution (c->face))
+  if (hb_ot_layout_has_substitution (c->face)) {
     c->plan->map.substitute (c->face, c->buffer);
+    c->applied_substitute_complex = TRUE;
+  }
 
   hb_ot_layout_substitute_finish (c->buffer);
 
-  c->applied_substitute_complex = TRUE;
   return;
 }
 
@@ -295,11 +296,12 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 						   &c->buffer->pos[i].x_offset,
 						   &c->buffer->pos[i].y_offset);
     }
+
+    c->applied_position_complex = TRUE;
   }
 
   hb_ot_layout_position_finish (c->buffer);
 
-  c->applied_position_complex = TRUE;
   return;
 }
 
