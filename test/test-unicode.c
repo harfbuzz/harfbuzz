@@ -142,13 +142,15 @@ static const test_pair_t combining_class_tests[] =
   {   0x302C, 232 },
   {   0x0362, 233 },
   {   0x0360, 234 },
-  {   0x1DCD, 234 },
   {   0x0345, 240 },
 
   { 0x111111, 0 }
 };
 static const test_pair_t combining_class_tests_more[] =
 {
+  /* Unicode-5.1 character additions */
+  {   0x1DCD, 234 },
+
   /* Unicode-5.2 character additions */
   {   0xA8E0, 230 },
 
