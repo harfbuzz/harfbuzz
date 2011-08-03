@@ -107,11 +107,11 @@ PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
 	if test $cross_compiling == no; then
 		AC_CHECK_PROG([have_icu], [icu-config], [true], [false])
 		if $have_icu; then
-			icu_cflags=`icu-config --cppflags`
-			icu_libs=`icu-config --ldflags-libsonly`
-			icu_cflags=`echo "$icu_cflags" | sed "s@ -I/usr/include @ @"`
-			AC_SUBST(ICU_CFLAGS, [$icu_cflags])
-			AC_SUBST(ICU_LIBS, [$icu_libs])
+			ICU_CFLAGS=`icu-config --cppflags`
+			ICU_LIBS=`icu-config --ldflags-libsonly`
+			ICU_CFLAGS=`echo "$ICU_CFLAGS" | sed "s@ -I/usr/include @ @"`
+			AC_SUBST(ICU_CFLAGS)
+			AC_SUBST(ICU_LIBS)
 		fi
 	fi
 ])
