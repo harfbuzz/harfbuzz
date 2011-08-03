@@ -80,6 +80,9 @@ hb_face_is_immutable (hb_face_t *face);
 
 
 hb_blob_t *
+hb_face_get_blob (hb_face_t *face);
+
+hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
 			 hb_tag_t   tag);
 

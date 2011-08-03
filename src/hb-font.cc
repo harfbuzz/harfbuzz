@@ -686,6 +686,16 @@ hb_face_is_immutable (hb_face_t *face)
 
 
 hb_blob_t *
+hb_face_get_blob (hb_face_t *face)
+{
+  if (face->destroy != (hb_destroy_func_t) _hb_face_for_data_closure_destroy)
+    return hb_blob_get_empty ();
+
+  hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) face->user_data;
+  return data->blob;
+}
+
+hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
 			 hb_tag_t   tag)
 {
