@@ -135,6 +135,8 @@ struct _hb_buffer_t {
   { return likely (size <= allocated) ? TRUE : enlarge (size); }
 
   HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
+
+  HB_INTERNAL void *get_scratch_buffer (unsigned int *size);
 };
 
 

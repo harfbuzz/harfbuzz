@@ -135,6 +135,16 @@ hb_buffer_t::make_room_for (unsigned int num_in,
   return TRUE;
 }
 
+void *
+hb_buffer_t::get_scratch_buffer (unsigned int *size)
+{
+  have_output = FALSE;
+  have_positions = FALSE;
+  out_len = 0;
+  *size = allocated * sizeof (pos[0]);
+  return pos;
+}
+
 
 /* HarfBuzz-Internal API */
 
