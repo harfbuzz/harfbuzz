@@ -108,6 +108,17 @@ HBHEADERS += \
 	$(NULL)
 endif
 
+if HAVE_UNISCRIBE
+HBCFLAGS += $(UNISCRIBE_CFLAGS)
+HBLIBS   += $(UNISCRIBE_LIBS)
+HBSOURCES += \
+	hb-uniscribe-shape.cc \
+	$(NULL)
+HBHEADERS += \
+	hb-uniscribe.h \
+	$(NULL)
+endif
+
 CXXLINK = $(LINK)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)

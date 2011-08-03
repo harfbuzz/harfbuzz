@@ -137,6 +137,15 @@ AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ===========================================================================
 
+AC_CHECK_HEADERS(usp10.h windows.h, have_uniscribe=true, have_uniscribe=false)
+if $have_uniscribe; then
+	UNISCRIBE_CFLAGS=
+	UNISCRIBE_LIBS="-lusp10 -lgdi32"
+	AC_SUBST(UNISCRIBE_CFLAGS)
+	AC_SUBST(UNISCRIBE_LIBS)
+fi
+AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
+
 AC_CONFIG_FILES([
 Makefile
 harfbuzz.pc

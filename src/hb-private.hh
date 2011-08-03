@@ -507,7 +507,9 @@ _hb_debug_msg (const char *what,
   va_start (ap, message);
 
   (void) (_hb_debug (level, max_level) &&
-	  fprintf (stderr, "%s(%p): ", what, obj) &&
+	  fprintf (stderr, "%s", what) &&
+	  (obj && fprintf (stderr, "(%p)", obj), TRUE) &&
+	  fprintf (stderr, ": ") &&
 	  (func && fprintf (stderr, "%s: ", func), TRUE) &&
 	  (indented && fprintf (stderr, "%-*d-> ", level + 1, level), TRUE) &&
 	  vfprintf (stderr, message, ap) &&
