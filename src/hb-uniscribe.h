@@ -24,8 +24,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_USP_SHAPE_H
-#define HB_USP_SHAPE_H
+#ifndef HB_UNISCRIBE_H
+#define HB_UNISCRIBE_H
 
 #include "hb-common.h"
 #include "hb-shape.h"
@@ -43,4 +43,4 @@ hb_uniscribe_shape (hb_font_t          *font,
 
 HB_END_DECLS
 
-#endif /* HB_USP_SHAPE_H */
+#endif /* HB_UNISCRIBE_H */
