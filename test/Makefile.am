@@ -7,7 +7,7 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
 if HAVE_GLIB
-AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
+AM_CPPFLAGS = -DSRCDIR="\"$(srcdir)\"" -I$(top_srcdir)/src/ -I$(top_builddir)/src/ $(GLIB_CFLAGS) $(GTHREAD_CFLAGS)
 LDADD = $(top_builddir)/src/libharfbuzz.la $(GLIB_LIBS) $(GTHREAD_LIBS)
 
 EXTRA_DIST += hb-test.h
