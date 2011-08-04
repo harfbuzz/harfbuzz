@@ -44,6 +44,8 @@ struct hb_ot_map_t
 
   public:
 
+  hb_ot_map_t (void) { memset (this, 0, sizeof (*this)); }
+
   typedef void (*gsub_pause_func_t) (const hb_ot_map_t *map, hb_face_t *face, hb_buffer_t *buffer, void *user_data);
   typedef void (*gpos_pause_func_t) (const hb_ot_map_t *map, hb_font_t *font, hb_buffer_t *buffer, void *user_data);
 
@@ -136,6 +138,8 @@ struct hb_ot_map_t
 struct hb_ot_map_builder_t
 {
   public:
+
+  hb_ot_map_builder_t (void) { memset (this, 0, sizeof (*this)); }
 
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global);
 
