@@ -112,6 +112,8 @@ PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
 			AC_SUBST(ICU_CFLAGS)
 			AC_SUBST(ICU_LIBS)
 		fi
+	else
+		have_icu=false
 	fi
 ])
 if $have_icu; then
