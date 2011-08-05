@@ -30,6 +30,7 @@
 #endif
 
 #include "hb.h"
+#include "hb-uniscribe.h"
 
 #ifdef HAVE_GLIB
 #include <glib.h>
@@ -43,7 +44,6 @@ int
 main (int argc, char **argv)
 {
   hb_blob_t *blob = NULL;
-  hb_face_t *face = NULL;
 
   if (argc != 2) {
     fprintf (stderr, "usage: %s font-file.ttf\n", argv[0]);
@@ -85,12 +85,42 @@ main (int argc, char **argv)
   printf ("Opened font file %s: %u bytes long\n", argv[1], hb_blob_get_length (blob));
 
   /* Create the face */
-  face = hb_face_create (blob, 0 /* first face */);
-
-  /* So, what now? */
-
-  hb_face_destroy (face);
+  hb_face_t *face = hb_face_create (blob, 0 /* first face */);
   hb_blob_destroy (blob);
+  blob = NULL;
+  unsigned int upem = hb_face_get_upem (face);
+
+  hb_font_t *font = hb_font_create (face);
+  hb_font_set_scale (font, upem, upem);
+
+  hb_buffer_t *buffer = hb_buffer_create (0);
+
+  hb_buffer_add_utf8 (buffer, "test", 4, 0, 4);
+
+  hb_uniscribe_shape (font, buffer, NULL, 0);
+
+  unsigned int count = hb_buffer_get_length (buffer);
+  hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, NULL);
+  hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, NULL);
+
+  for (unsigned int i = 0; i < count; i++)
+  {
+    hb_glyph_info_t *info = &infos[i];
+    hb_glyph_position_t *pos = &positions[i];
+
+    printf ("cluster %d	glyph %d at	(%d,%d)+(%d,%d)\n",
+	    info->cluster,
+	    info->codepoint,
+	    pos->x_offset,
+	    pos->x_offset,
+	    pos->x_advance,
+	    pos->y_advance);
+
+  }
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
 
   return 0;
 }
