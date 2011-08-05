@@ -60,8 +60,8 @@ static const struct hb_shaper_pair_t {
 };
 #undef HB_SHAPER_IMPLEMENT
 
-static class static_shaper_list_t {
-  public:
+static struct static_shaper_list_t
+{
   static_shaper_list_t (void)
   {
     char *env = getenv ("HB_SHAPER_LIST");
