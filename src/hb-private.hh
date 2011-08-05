@@ -48,7 +48,6 @@
 #include <errno.h>
 #include <stdarg.h>
 
-HB_BEGIN_DECLS
 
 
 /* Essentials */
@@ -66,7 +65,6 @@ HB_BEGIN_DECLS
 
 /* Basics */
 
-HB_END_DECLS
 
 #undef MIN
 template <typename Type> static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
@@ -74,7 +72,6 @@ template <typename Type> static inline Type MIN (const Type &a, const Type &b) {
 #undef MAX
 template <typename Type> static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
 
-HB_BEGIN_DECLS
 
 #undef  ARRAY_LENGTH
 #define ARRAY_LENGTH(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
@@ -230,7 +227,6 @@ _hb_unsigned_int_mul_overflows (unsigned int count, unsigned int size)
 typedef int (*hb_compare_func_t) (const void *, const void *);
 
 
-HB_END_DECLS
 
 
 /* arrays and maps */
@@ -423,7 +419,6 @@ struct hb_lockable_set_t
 };
 
 
-HB_BEGIN_DECLS
 
 
 /* Big-endian handling */
@@ -470,7 +465,6 @@ static inline unsigned char TOLOWER (unsigned char c)
 
 /* Debug */
 
-HB_END_DECLS
 
 #ifndef HB_DEBUG
 #define HB_DEBUG 0
@@ -625,8 +619,6 @@ hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
 }
 
 
-HB_BEGIN_DECLS
 
-HB_END_DECLS
 
 #endif /* HB_PRIVATE_HH */

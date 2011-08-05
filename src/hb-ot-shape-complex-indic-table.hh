@@ -29,7 +29,6 @@
 
 #include "hb-private.hh"
 
-HB_BEGIN_DECLS
 
 /* == Start of generated table == */
 /*
@@ -827,6 +826,5 @@ get_indic_categories (hb_codepoint_t u)
 
 /* == End of generated table == */
 
-HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_COMPLEX_INDIC_TABLE_HH */

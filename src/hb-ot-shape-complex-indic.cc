@@ -26,7 +26,6 @@
 
 #include "hb-ot-shape-complex-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /* buffer var allocations */
@@ -760,4 +759,3 @@ final_reordering (const hb_ot_map_t *map,
 
 
 
-HB_END_DECLS

@@ -33,7 +33,6 @@
 
 #include "hb-ot-layout.h"
 
-HB_BEGIN_DECLS
 
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
@@ -188,6 +187,5 @@ struct hb_ot_map_builder_t
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_MAP_PRIVATE_HH */

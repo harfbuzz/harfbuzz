@@ -32,7 +32,6 @@
 
 #include "hb-unicode-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -271,4 +270,3 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
   return ufuncs->func.decompose (ufuncs, ab, a, b, ufuncs->user_data.decompose);
 }
 
-HB_END_DECLS

@@ -27,7 +27,6 @@
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-shape-complex-private.hh"
 
-HB_BEGIN_DECLS
 
 /*
  * HIGHLEVEL DESIGN:
@@ -275,4 +274,3 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
 
 }
 
-HB_END_DECLS

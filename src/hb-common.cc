@@ -35,7 +35,6 @@
 
 #include <locale.h>
 
-HB_BEGIN_DECLS
 
 
 /* hb_tag_t */
@@ -357,4 +356,3 @@ hb_version_check (unsigned int major,
 }
 
 
-HB_END_DECLS

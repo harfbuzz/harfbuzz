@@ -33,7 +33,6 @@
 
 #include "hb-font-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -424,6 +423,5 @@ struct GDEF
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_GDEF_PRIVATE_HH */

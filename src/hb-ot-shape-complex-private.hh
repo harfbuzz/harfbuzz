@@ -31,7 +31,6 @@
 
 #include "hb-ot-map-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /* buffer var allocations, used during the entire shaping process */
@@ -210,6 +209,5 @@ hb_ot_shape_complex_setup_masks (hb_ot_complex_shaper_t shaper,
 }
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_COMPLEX_PRIVATE_HH */

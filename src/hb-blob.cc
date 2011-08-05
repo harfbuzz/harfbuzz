@@ -39,7 +39,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-HB_BEGIN_DECLS
 
 
 #ifndef HB_DEBUG_BLOB
@@ -322,4 +321,3 @@ _try_writable (hb_blob_t *blob)
 }
 
 
-HB_END_DECLS

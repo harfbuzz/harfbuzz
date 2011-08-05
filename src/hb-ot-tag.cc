@@ -31,7 +31,6 @@
 
 #include <string.h>
 
-HB_BEGIN_DECLS
 
 
 /* hb_script_t */
@@ -701,4 +700,3 @@ hb_ot_tag_to_language (hb_tag_t tag)
 }
 
 
-HB_END_DECLS

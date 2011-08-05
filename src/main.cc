@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-HB_BEGIN_DECLS
 
 
 int
@@ -194,4 +193,3 @@ main (int argc, char **argv)
 }
 
 
-HB_END_DECLS

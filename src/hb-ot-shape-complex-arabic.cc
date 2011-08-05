@@ -26,7 +26,6 @@
 
 #include "hb-ot-shape-complex-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /* buffer var allocations */
@@ -229,4 +228,3 @@ _hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer)
 }
 
 
-HB_END_DECLS

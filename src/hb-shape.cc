@@ -36,7 +36,6 @@
 #include "hb-graphite.h"
 #endif
 
-HB_BEGIN_DECLS
 
 
 static void
@@ -90,4 +89,3 @@ hb_shape (hb_font_t          *font,
 }
 
 
-HB_END_DECLS

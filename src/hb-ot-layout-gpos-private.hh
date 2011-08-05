@@ -31,7 +31,6 @@
 
 #include "hb-ot-layout-gsubgpos-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /* buffer **position** var allocations */
@@ -1305,9 +1304,7 @@ struct MarkMarkPos
 };
 
 
-HB_BEGIN_DECLS
 static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index);
-HB_END_DECLS
 
 struct ContextPos : Context
 {
@@ -1632,6 +1629,5 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
 #undef cursive_chain
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_GPOS_PRIVATE_HH */

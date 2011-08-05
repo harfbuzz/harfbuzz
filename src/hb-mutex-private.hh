@@ -34,7 +34,6 @@
 
 #include "hb-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /* mutex */
@@ -107,6 +106,5 @@ struct hb_static_mutex_t : hb_mutex_t
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_MUTEX_PRIVATE_HH */

@@ -26,7 +26,6 @@
 
 #include "hb-ot-shape-complex-private.hh"
 
-HB_BEGIN_DECLS
 
 /* TODO Add kana, hangul, and other small sahpers here */
 
@@ -54,4 +53,3 @@ _hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map, hb_buffer_t *buffer)
 }
 
 
-HB_END_DECLS

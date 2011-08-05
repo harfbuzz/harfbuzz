@@ -29,7 +29,6 @@
 
 #include "hb-open-type-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -140,6 +139,5 @@ struct head
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_HEAD_PRIVATE_HH */

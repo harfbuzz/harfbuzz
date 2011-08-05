@@ -39,7 +39,6 @@
 #include <windows.h>
 #include <usp10.h>
 
-HB_BEGIN_DECLS
 
 
 #ifndef HB_DEBUG_UNISCRIBE
@@ -322,4 +321,3 @@ retry:
 }
 
 
-HB_END_DECLS

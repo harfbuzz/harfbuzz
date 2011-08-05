@@ -42,7 +42,6 @@
 #include <cairo-ft.h>
 #include <hb-ft.h>
 
-HB_BEGIN_DECLS
 
 
 /* Controlled by cmd-line options */
@@ -567,4 +566,3 @@ main (int argc, char **argv)
 }
 
 
-HB_END_DECLS

@@ -29,7 +29,6 @@
 
 #include "hb-private.hh"
 
-HB_BEGIN_DECLS
 
 /* == Start of generated table == */
 /*
@@ -755,6 +754,5 @@ static const uint8_t joining_table[] =
 
 /* == End of generated table == */
 
-HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH */

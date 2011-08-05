@@ -34,7 +34,6 @@
 
 #include <glib.h>
 
-HB_BEGIN_DECLS
 
 #if !GLIB_CHECK_VERSION(2,29,14)
 static const hb_script_t
@@ -347,4 +346,3 @@ hb_glib_get_unicode_funcs (void)
 }
 
 
-HB_END_DECLS

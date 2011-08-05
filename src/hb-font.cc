@@ -34,7 +34,6 @@
 
 #include <string.h>
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -920,4 +919,3 @@ hb_font_get_ppem (hb_font_t *font,
 }
 
 
-HB_END_DECLS

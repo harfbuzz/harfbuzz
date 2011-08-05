@@ -33,7 +33,6 @@
 
 #include FT_TRUETYPE_TABLES_H
 
-HB_BEGIN_DECLS
 
 
 /* TODO:
@@ -344,4 +343,3 @@ hb_ft_font_create (FT_Face           ft_face,
 }
 
 
-HB_END_DECLS

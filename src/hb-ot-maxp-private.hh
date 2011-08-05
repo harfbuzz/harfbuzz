@@ -29,7 +29,6 @@
 
 #include "hb-open-type-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -63,6 +62,5 @@ struct maxp
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_MAXP_PRIVATE_HH */

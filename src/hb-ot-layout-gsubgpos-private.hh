@@ -32,7 +32,6 @@
 #include "hb-buffer-private.hh"
 #include "hb-ot-layout-gdef-private.hh"
 
-HB_BEGIN_DECLS
 
 /* buffer var allocations */
 #define lig_id() var2.u8[2] /* unique ligature id */
@@ -54,7 +53,6 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 	hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", this, NULL, HB_FUNC);
 
 
-HB_BEGIN_DECLS
 
 struct hb_apply_context_t
 {
@@ -210,7 +208,6 @@ static inline bool match_lookahead (hb_apply_context_t *c,
   return true;
 }
 
-HB_END_DECLS
 
 
 struct LookupRecord
@@ -229,7 +226,6 @@ struct LookupRecord
 };
 
 
-HB_BEGIN_DECLS
 
 static inline bool apply_lookup (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
@@ -287,7 +283,6 @@ static inline bool apply_lookup (hb_apply_context_t *c,
   return true;
 }
 
-HB_END_DECLS
 
 
 /* Contextual lookups */
@@ -984,6 +979,5 @@ struct GSUBGPOS
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH */

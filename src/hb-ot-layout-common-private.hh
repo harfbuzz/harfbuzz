@@ -38,8 +38,6 @@
 #define NOT_COVERED		((unsigned int) 0x110000)
 #define MAX_NESTING_LEVEL	8
 
-HB_BEGIN_DECLS
-HB_END_DECLS
 
 
 /*
@@ -594,7 +592,5 @@ struct Device
 };
 
 
-HB_BEGIN_DECLS
-HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_COMMON_PRIVATE_HH */

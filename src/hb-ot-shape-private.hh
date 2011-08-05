@@ -34,7 +34,6 @@
 #include "hb-ot-map-private.hh"
 #include "hb-ot-shape-complex-private.hh"
 
-HB_BEGIN_DECLS
 
 
 enum hb_ot_complex_shaper_t;
@@ -110,6 +109,5 @@ HB_INTERNAL void _hb_set_unicode_props (hb_buffer_t *buffer);
 
 HB_INTERNAL void _hb_ot_shape_normalize (hb_ot_shape_context_t *c);
 
-HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_PRIVATE_HH */

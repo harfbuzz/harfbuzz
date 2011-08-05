@@ -34,7 +34,6 @@
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -104,6 +103,5 @@ HB_INTERNAL void
 _hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
 
-HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_PRIVATE_HH */

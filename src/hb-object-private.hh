@@ -36,7 +36,6 @@
 
 #include "hb-mutex-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /* Debug */
@@ -200,7 +199,6 @@ struct _hb_object_header_t {
 };
 
 
-HB_END_DECLS
 
 
 /* object */
@@ -252,9 +250,7 @@ static inline void *hb_object_get_user_data (Type               *obj,
 }
 
 
-HB_BEGIN_DECLS
 
 
-HB_END_DECLS
 
 #endif /* HB_OBJECT_PRIVATE_HH */

@@ -38,7 +38,6 @@
 #include <unicode/unorm.h>
 #include <unicode/unistr.h>
 
-HB_BEGIN_DECLS
 
 
 hb_script_t
@@ -292,4 +291,3 @@ hb_icu_get_unicode_funcs (void)
 }
 
 
-HB_END_DECLS

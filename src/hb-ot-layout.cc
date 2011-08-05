@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-HB_BEGIN_DECLS
 
 
 hb_ot_layout_t *
@@ -517,4 +516,3 @@ _hb_ot_layout_get_upem (hb_face_t *face)
 }
 
 
-HB_END_DECLS

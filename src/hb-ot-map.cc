@@ -30,7 +30,6 @@
 
 #include "hb-ot-shape-private.hh"
 
-HB_BEGIN_DECLS
 
 
 void
@@ -273,4 +272,3 @@ hb_ot_map_builder_t::compile (hb_face_t *face,
 }
 
 
-HB_END_DECLS

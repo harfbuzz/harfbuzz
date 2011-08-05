@@ -31,7 +31,6 @@
 
 #include <string.h>
 
-HB_BEGIN_DECLS
 
 
 #ifndef HB_DEBUG_BUFFER
@@ -788,4 +787,3 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 }
 
 
-HB_END_DECLS

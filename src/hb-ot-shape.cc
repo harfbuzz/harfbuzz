@@ -31,7 +31,6 @@
 
 #include "hb-font-private.hh"
 
-HB_BEGIN_DECLS
 
 
 hb_tag_t common_features[] = {
@@ -442,4 +441,3 @@ hb_ot_shape (hb_font_t          *font,
 }
 
 
-HB_END_DECLS

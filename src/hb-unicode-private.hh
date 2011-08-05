@@ -36,7 +36,6 @@
 #include "hb-unicode.h"
 #include "hb-object-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -104,6 +103,5 @@ extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;
 
 
 
-HB_END_DECLS
 
 #endif /* HB_UNICODE_PRIVATE_HH */

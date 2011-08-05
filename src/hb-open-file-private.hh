@@ -29,7 +29,6 @@
 
 #include "hb-open-type-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -253,6 +252,5 @@ struct OpenTypeFontFile
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_OPEN_FILE_PRIVATE_HH */

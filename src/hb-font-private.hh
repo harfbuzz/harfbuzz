@@ -34,7 +34,6 @@
 #include "hb-font.h"
 #include "hb-object-private.hh"
 
-HB_BEGIN_DECLS
 
 
 /*
@@ -159,6 +158,5 @@ struct _hb_font_t {
 };
 
 
-HB_END_DECLS
 
 #endif /* HB_FONT_PRIVATE_HH */
