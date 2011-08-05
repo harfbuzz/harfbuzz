@@ -66,8 +66,16 @@ static struct static_shaper_list_t
   {
     char *env = getenv ("HB_SHAPER_LIST");
     shaper_list = NULL;
-    if (!env || !*env)
+    if (!env || !*env) {
+    fallback:
+      ASSERT_STATIC ((ARRAY_LENGTH (shapers) + 1) * sizeof (*shaper_list) <= sizeof (static_buffer));
+      shaper_list = (const char **) static_buffer;
+      unsigned int i;
+      for (i = 0; i < ARRAY_LENGTH (shapers); i++)
+        shaper_list[i] = shapers[i].name;
+      shaper_list[i] = NULL;
       return;
+    }
 
     unsigned int count = 3; /* initial, fallback, null */
     for (const char *p = env; (p == strchr (p, ',')) && p++; )
@@ -76,7 +84,7 @@ static struct static_shaper_list_t
     unsigned int len = strlen (env);
 
     if (count > 100 || len > 1000)
-      return;
+      goto fallback;
 
     len += count * sizeof (*shaper_list) + 1;
     char *buffer = len < sizeof (static_buffer) ? static_buffer : (char *) malloc (len);
@@ -100,7 +108,13 @@ static struct static_shaper_list_t
 
   const char **shaper_list;
   char static_buffer[32];
-} env_shaper_list;
+} static_shaper_list;
+
+const char **
+hb_shape_list_shapers (void)
+{
+  return static_shaper_list.shaper_list;
+}
 
 hb_bool_t
 hb_shape_full (hb_font_t           *font,
@@ -111,7 +125,7 @@ hb_shape_full (hb_font_t           *font,
 	       const char         **shaper_list)
 {
   if (likely (!shaper_list))
-    shaper_list = env_shaper_list.shaper_list;
+    shaper_list = static_shaper_list.shaper_list;
 
   if (likely (!shaper_list)) {
     for (unsigned int i = 0; i < ARRAY_LENGTH (shapers); i++)

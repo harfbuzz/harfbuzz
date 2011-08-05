@@ -56,6 +56,9 @@ hb_shape_full (hb_font_t           *font,
 	       const char          *shaper_options,
 	       const char         **shaper_list);
 
+const char **
+hb_shape_list_shapers (void);
+
 
 HB_END_DECLS
 

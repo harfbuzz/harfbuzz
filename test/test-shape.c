@@ -138,6 +138,18 @@ test_shape (void)
   hb_font_destroy (font);
 }
 
+static void
+test_shape_list (void)
+{
+  const char **shapers = hb_shape_list_shapers ();
+
+  unsigned int i;
+  for (i = 0; shapers[i]; i++)
+    ;
+
+  g_assert_cmpint (i, >, 1);
+  g_assert (!strcmp (shapers[i - 1], "fallback"));
+}
 
 int
 main (int argc, char **argv)
@@ -145,6 +157,9 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_shape);
+  /* TODO test fallback shaper */
+  /* TODO test shaper_full */
+  hb_test_add (test_shape_list);
 
   return hb_test_run();
 }

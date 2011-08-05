@@ -43,6 +43,14 @@
 #include <hb-ft.h>
 #endif
 
+#if HAVE_OT
+#include <hb-ot.h>
+#endif
+
+#if HAVE_UNISCRIBE
+#include <hb-uniscribe.h>
+#endif
+
 int
 main (int argc, char **argv)
 {

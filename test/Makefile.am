@@ -25,9 +25,11 @@ TEST_PROGS = \
 	test-version \
 	$(NULL)
 
+if HAVE_OT
 TEST_PROGS += \
 	test-ot-tag \
 	$(NULL)
+endif
 
 # Tests for header compilation
 TEST_PROGS += \
