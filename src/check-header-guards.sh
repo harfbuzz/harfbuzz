@@ -10,7 +10,6 @@ test "x$HBHEADERS" = x && HBHEADERS=`find . -maxdepth 1 -name 'hb*.h'`
 test "x$HBSOURCES" = x && HBSOURCES=`find . -maxdepth 1 -name 'hb-*.cc' -or -name 'hb-*.hh'`
 
 
-echo  $srcdir
 for x in $HBHEADERS $HBSOURCES; do
 	test -f "$srcdir/$x" && x="$srcdir/$x"
 	echo "$x" | grep '[^h]$' -q && continue;

@@ -338,12 +338,12 @@ struct Sanitizer
  */
 
 
-template <typename Type, int Bytes> class BEInt;
+template <typename Type, int Bytes> struct BEInt;
 
 /* LONGTERMTODO: On machines allowing unaligned access, we can make the
  * following tighter by using byteswap instructions on ints directly. */
 template <typename Type>
-class BEInt<Type, 2>
+struct BEInt<Type, 2>
 {
   public:
   inline void set (Type i) { hb_be_uint16_put (v,i); }
@@ -353,7 +353,7 @@ class BEInt<Type, 2>
   private: uint8_t v[2];
 };
 template <typename Type>
-class BEInt<Type, 4>
+struct BEInt<Type, 4>
 {
   public:
   inline void set (Type i) { hb_be_uint32_put (v,i); }
@@ -691,8 +691,8 @@ struct SortedArrayOf : ArrayOf<Type> {
 
   template <typename SearchType>
   inline int search (const SearchType &x) const {
-    class Cmp {
-      public: static int cmp (const SearchType *a, const Type *b) { return b->cmp (*a); }
+    struct Cmp {
+      static int cmp (const SearchType *a, const Type *b) { return b->cmp (*a); }
     };
     const Type *p = (const Type *) bsearch (&x, this->array, this->len, sizeof (this->array[0]), (hb_compare_func_t) Cmp::cmp);
     return p ? p - this->array : -1;
