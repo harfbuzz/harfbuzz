@@ -23,8 +23,6 @@ API issues to fix before 1.0:
 
 - Add sanitize API (and a cached version, that saves result on blob user-data)
 
-- hb_shape() currently does a bit more than hb_ot_shape().  Shouldn't.
-
 - Add glib GBoxedType stuff and introspection
 
 

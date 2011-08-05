@@ -30,62 +30,89 @@
 
 #include "hb-buffer-private.hh"
 
-#include "hb-ot-shape.h"
-
-#ifdef HAVE_GRAPHITE
-#include "hb-graphite.h"
+#ifdef HAVE_UNISCRIBE
+# include "hb-uniscribe.h"
 #endif
+#ifdef HAVE_OT
+# include "hb-ot-shape.h"
+#endif
+#include "hb-fallback-shape-private.hh"
 
+typedef hb_bool_t (*hb_shape_func_t) (hb_font_t          *font,
+				      hb_buffer_t        *buffer,
+				      const hb_feature_t *features,
+				      unsigned int        num_features,
+				      const char         *shaper_options);
 
+#define HB_SHAPER_IMPLEMENT(name) {#name, hb_##name##_shape}
+static const struct hb_shaper_pair_t {
+  const char name[16];
+  hb_shape_func_t func;
+} shapers[] = {
+  /* v--- Add new shapers in the right place here */
+#ifdef HAVE_UNISCRIBE
+  HB_SHAPER_IMPLEMENT (uniscribe),
+#endif
+#ifdef HAVE_OT
+  HB_SHAPER_IMPLEMENT (ot),
+#endif
+  HB_SHAPER_IMPLEMENT (fallback) /* should be last */
+};
+#undef HB_SHAPER_IMPLEMENT
 
-static void
-hb_shape_internal (hb_font_t          *font,
-		   hb_buffer_t        *buffer,
-		   const hb_feature_t *features,
-		   unsigned int        num_features)
+static class static_shaper_list_t {
+  public:
+  static_shaper_list_t (void) {
+    char *env = getenv ("HB_SHAPER_LIST");
+    shaper_list = NULL;
+    if (!env || !*env)
+      return;
+    unsigned int count = 3; /* initial, fallback, null */
+    for (const char *p = env; (p == strchr (p, ':')) && p++; )
+      count++;
+    if (count <= ARRAY_LENGTH (static_shaper_list))
+      shaper_list = static_shaper_list;
+    else
+      shaper_list = (const char **) malloc (count * sizeof (shaper_list[0]));
+
+    count = 0;
+    shaper_list[count++] = env;
+    for (char *p = env; (p == strchr (p, ':')) && (*p = '\0', TRUE) && p++; )
+      shaper_list[count++] = p;
+    shaper_list[count++] = "fallback";
+    shaper_list[count] = NULL;
+  }
+  const char **shaper_list;
+  const char *static_shaper_list[10];
+} env_shaper_list;
+
+hb_bool_t
+hb_shape (hb_font_t           *font,
+	  hb_buffer_t         *buffer,
+	  const hb_feature_t  *features,
+	  unsigned int         num_features,
+	  const char          *shaper_options,
+	  const char         **shaper_list)
 {
-  hb_ot_shape (font, buffer, features, num_features);
-}
+  if (likely (!shaper_list))
+    shaper_list = env_shaper_list.shaper_list;
 
-void
-hb_shape (hb_font_t          *font,
-	  hb_buffer_t        *buffer,
-	  const hb_feature_t *features,
-	  unsigned int        num_features)
-{
-  hb_segment_properties_t orig_props;
-
-  orig_props = buffer->props;
-
-  /* If script is set to INVALID, guess from buffer contents */
-  if (buffer->props.script == HB_SCRIPT_INVALID) {
-    hb_unicode_funcs_t *unicode = buffer->unicode;
-    unsigned int count = buffer->len;
-    for (unsigned int i = 0; i < count; i++) {
-      hb_script_t script = hb_unicode_script (unicode, buffer->info[i].codepoint);
-      if (likely (script != HB_SCRIPT_COMMON &&
-		  script != HB_SCRIPT_INHERITED &&
-		  script != HB_SCRIPT_UNKNOWN)) {
-        buffer->props.script = script;
-        break;
-      }
+  if (likely (!shaper_list)) {
+    for (unsigned int i = 0; i < ARRAY_LENGTH (shapers); i++)
+      if (likely (shapers[i].func (font, buffer,
+				   features, num_features,
+				   shaper_options)))
+        return TRUE;
+  } else {
+    while (*shaper_list) {
+      for (unsigned int i = 0; i < ARRAY_LENGTH (shapers); i++)
+	if (0 == strcmp (*shaper_list, shapers[i].name) &&
+	    likely (shapers[i].func (font, buffer,
+				     features, num_features,
+				     shaper_options)))
+	  return TRUE;
+      shaper_list++;
     }
   }
-
-  /* If direction is set to INVALID, guess from script */
-  if (buffer->props.direction == HB_DIRECTION_INVALID) {
-    buffer->props.direction = hb_script_get_horizontal_direction (buffer->props.script);
-  }
-
-  /* If language is not set, use default language from locale */
-  if (buffer->props.language == HB_LANGUAGE_INVALID) {
-    /* TODO get_default_for_script? using $LANGUAGE */
-    buffer->props.language = hb_language_get_default ();
-  }
-
-  hb_shape_internal (font, buffer, features, num_features);
-
-  buffer->props = orig_props;
+  return FALSE;
 }
-
-

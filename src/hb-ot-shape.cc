@@ -428,16 +428,21 @@ hb_ot_shape_execute (hb_ot_shape_plan_t *plan,
   hb_ot_shape_execute_internal (&c);
 }
 
-void
+hb_bool_t
 hb_ot_shape (hb_font_t          *font,
 	     hb_buffer_t        *buffer,
 	     const hb_feature_t *features,
-	     unsigned int        num_features)
+	     unsigned int        num_features,
+	     const char         *shaper_options)
 {
   hb_ot_shape_plan_t plan;
 
+  buffer->guess_properties ();
+
   hb_ot_shape_plan_internal (&plan, font->face, &buffer->props, features, num_features);
   hb_ot_shape_execute (&plan, font, buffer, features, num_features);
+
+  return TRUE;
 }
 
 

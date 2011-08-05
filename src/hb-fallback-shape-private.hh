@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010  Red Hat, Inc.
+ * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,27 +21,28 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_H
-#define HB_OT_SHAPE_H
+#ifndef HB_FALLBACK_SHAPE_PRIVATE_HH
+#define HB_FALLBACK_SHAPE_PRIVATE_HH
 
-#include "hb-common.h"
+#include "hb-private.hh"
+
 #include "hb-shape.h"
 
 
 HB_BEGIN_DECLS
 
 
-hb_bool_t
-hb_ot_shape (hb_font_t          *font,
-	     hb_buffer_t        *buffer,
-	     const hb_feature_t *features,
-	     unsigned int        num_features,
-	     const char         *shaper_options);
+HB_INTERNAL hb_bool_t
+hb_fallback_shape (hb_font_t          *font,
+		   hb_buffer_t        *buffer,
+		   const hb_feature_t *features,
+		   unsigned int        num_features,
+		   const char         *shaper_options);
 
 
 HB_END_DECLS
 
-#endif /* HB_OT_SHAPE_H */
+#endif /* HB_FALLBACK_SHAPE_PRIVATE_HH */

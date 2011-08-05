@@ -18,6 +18,8 @@ HBSOURCES =  \
 	hb-buffer-private.hh \
 	hb-buffer.cc \
 	hb-common.cc \
+	hb-fallback-shape-private.hh \
+	hb-fallback-shape.cc \
 	hb-font-private.hh \
 	hb-font.cc \
 	hb-mutex-private.hh \
@@ -30,6 +32,7 @@ HBSOURCES =  \
 	hb-shape.cc \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
+	hb-ot-tag.cc \
 	$(NULL)
 HBHEADERS = \
 	hb.h \
@@ -42,6 +45,11 @@ HBHEADERS = \
 	hb-version.h \
 	$(NULL)
 
+MAINTAINERCLEANFILES += \
+	$(srcdir)/hb-version.h \
+	$(NULL)
+
+if HAVE_OT
 HBSOURCES += \
 	hb-ot-layout.cc \
 	hb-ot-layout-common-private.hh \
@@ -62,7 +70,6 @@ HBSOURCES += \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-normalize.cc \
 	hb-ot-shape-private.hh \
-	hb-ot-tag.cc \
 	$(NULL)
 HBHEADERS += \
 	hb-ot.h \
@@ -70,10 +77,7 @@ HBHEADERS += \
 	hb-ot-shape.h \
 	hb-ot-tag.h \
 	$(NULL)
-
-MAINTAINERCLEANFILES += \
-	$(srcdir)/hb-version.h \
-	$(NULL)
+endif
 
 if HAVE_GLIB
 HBCFLAGS += $(GLIB_CFLAGS)

@@ -57,13 +57,6 @@ DWORD GetFontData(
 */
 
 static void
-fallback_shape (hb_font_t   *font,
-		hb_buffer_t *buffer)
-{
-  DEBUG_MSG (UNISCRIBE, NULL, "Fallback shaper invoked");
-}
-
-static void
 populate_log_font (LOGFONTW  *lf,
 		   HDC        hdc,
 		   hb_font_t *font,
@@ -78,18 +71,19 @@ populate_log_font (LOGFONTW  *lf,
     lf->lfFaceName[i] = family_name[i];
 }
 
-void
+hb_bool_t
 hb_uniscribe_shape (hb_font_t          *font,
 		    hb_buffer_t        *buffer,
 		    const hb_feature_t *features,
-		    unsigned int        num_features)
+		    unsigned int        num_features,
+		    const char         *shaper_options)
 {
+  buffer->guess_properties ();
+
   HRESULT hr;
 
-  if (unlikely (!buffer->len)) {
-  fallback:
-    fallback_shape (font, buffer);
-  }
+  if (unlikely (!buffer->len))
+    return TRUE;
 
 retry:
 
@@ -138,10 +132,10 @@ retry:
   ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
 
 
-#define FALLBACK(...) \
+#define FAIL(...) \
   HB_STMT_START { \
     DEBUG_MSG (UNISCRIBE, NULL, __VA_ARGS__); \
-    goto fallback; \
+    return FALSE; \
   } HB_STMT_END;
 
 
@@ -164,7 +158,7 @@ retry:
 			      script_tags,
 			      &item_count);
   if (unlikely (FAILED (hr)))
-    FALLBACK ("ScriptItemizeOpenType() failed: %d", hr);
+    FAIL ("ScriptItemizeOpenType() failed: %d", hr);
 
 #undef MAX_ITEMS
 
@@ -178,17 +172,13 @@ retry:
   hb_blob_t *blob = hb_face_get_blob (font->face);
   unsigned int blob_length;
   const char *blob_data = hb_blob_get_data (blob, &blob_length);
-  if (unlikely (!blob_length)) {
-    hb_blob_destroy (blob);
-    FALLBACK ("Empty font blob");
-  }
+  if (unlikely (!blob_length))
+    FAIL ("Empty font blob");
 
   DWORD num_fonts_installed;
   HANDLE fh = AddFontMemResourceEx ((void *) blob_data, blob_length, 0, &num_fonts_installed);
-  if (unlikely (!fh)) {
-    hb_blob_destroy (blob);
-    FALLBACK ("AddFontMemResourceEx() failed");
-  }
+  if (unlikely (!fh))
+    FAIL ("AddFontMemResourceEx() failed");
 
   /* FREE stuff, specially when taking fallback... */
 
@@ -230,16 +220,16 @@ retry:
 				(int *) &glyphs_len);
 
       if (unlikely (items[i].a.fNoGlyphIndex))
-	FALLBACK ("ScriptShapeOpenType() set fNoGlyphIndex");
+	FAIL ("ScriptShapeOpenType() set fNoGlyphIndex");
       if (unlikely (hr == E_OUTOFMEMORY))
       {
         buffer->ensure (buffer->allocated * 2);
 	if (buffer->in_error)
-	  FALLBACK ("Buffer resize failed");
+	  FAIL ("Buffer resize failed");
 	goto retry;
       }
       if (unlikely (FAILED (hr)))
-	FALLBACK ("ScriptShapeOpenType() failed: %d", hr);
+	FAIL ("ScriptShapeOpenType() failed: %d", hr);
 
       hr = ScriptPlaceOpenType (hdc,
 				&script_cache,
@@ -261,7 +251,7 @@ retry:
 				offsets + glyphs_offset,
 				NULL);
       if (unlikely (FAILED (hr)))
-	FALLBACK ("ScriptPlaceOpenType() failed: %d", hr);
+	FAIL ("ScriptPlaceOpenType() failed: %d", hr);
 
       glyphs_offset += glyphs_len;
   }
@@ -285,9 +275,9 @@ retry:
 
   buffer->ensure (glyphs_len);
   if (buffer->in_error)
-    FALLBACK ("Buffer in error");
+    FAIL ("Buffer in error");
 
-#undef FALLBACK
+#undef FAIL
 
   /* Set glyph infos */
   for (unsigned int i = 0; i < glyphs_len; i++)
@@ -317,7 +307,7 @@ retry:
   }
 
   /* Wow, done! */
-  return;
+  return TRUE;
 }
 
 

@@ -110,7 +110,7 @@ test_shape (void)
   hb_buffer_set_direction (buffer, HB_DIRECTION_LTR);
   hb_buffer_add_utf8 (buffer, TesT, 4, 0, 4);
 
-  hb_shape (font, buffer, NULL, 0);
+  hb_shape (font, buffer, NULL, 0, NULL, NULL);
 
   len = hb_buffer_get_length (buffer);
   glyphs = hb_buffer_get_glyph_infos (buffer, NULL);

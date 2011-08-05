@@ -132,6 +132,9 @@ hb_buffer_reverse (hb_buffer_t *buffer);
 void
 hb_buffer_reverse_clusters (hb_buffer_t *buffer);
 
+void
+hb_buffer_guess_properties (hb_buffer_t *buffer);
+
 
 /* Filling the buffer in */
 

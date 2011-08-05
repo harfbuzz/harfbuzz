@@ -370,7 +370,7 @@ _hb_cr_text_glyphs (cairo_t *cr,
     len = strlen (utf8);
   hb_buffer_add_utf8 (hb_buffer, utf8, len, 0, len);
 
-  hb_shape (hb_font, hb_buffer, features, num_features);
+  hb_shape (hb_font, hb_buffer, features, num_features, NULL, NULL);
 
   num_glyphs = hb_buffer_get_length (hb_buffer);
   hb_glyph = hb_buffer_get_glyph_infos (hb_buffer, NULL);

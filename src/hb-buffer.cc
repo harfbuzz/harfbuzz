@@ -402,6 +402,35 @@ hb_buffer_t::reverse_clusters (void)
   reverse_range (start, i);
 }
 
+void
+hb_buffer_t::guess_properties (void)
+{
+  /* If script is set to INVALID, guess from buffer contents */
+  if (props.script == HB_SCRIPT_INVALID) {
+    for (unsigned int i = 0; i < len; i++) {
+      hb_script_t script = hb_unicode_script (unicode, info[i].codepoint);
+      if (likely (script != HB_SCRIPT_COMMON &&
+		  script != HB_SCRIPT_INHERITED &&
+		  script != HB_SCRIPT_UNKNOWN)) {
+        props.script = script;
+        break;
+      }
+    }
+  }
+
+  /* If direction is set to INVALID, guess from script */
+  if (props.direction == HB_DIRECTION_INVALID) {
+    props.direction = hb_script_get_horizontal_direction (props.script);
+  }
+
+  /* If language is not set, use default language from locale */
+  if (props.language == HB_LANGUAGE_INVALID) {
+    /* TODO get_default_for_script? using $LANGUAGE */
+    props.language = hb_language_get_default ();
+  }
+}
+
+
 static inline void
 dump_var_allocation (const hb_buffer_t *buffer)
 {
@@ -673,6 +702,12 @@ void
 hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 {
   buffer->reverse_clusters ();
+}
+
+void
+hb_buffer_guess_properties (hb_buffer_t *buffer)
+{
+  buffer->guess_properties ();
 }
 
 #define ADD_UTF(T) \

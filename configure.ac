@@ -138,12 +138,21 @@ AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ===========================================================================
 
+have_ot=true;
+if $have_ot; then
+	AC_DEFINE(HAVE_OT, 1, [Have native OpenType Layout backend])
+fi
+AM_CONDITIONAL(HAVE_OT, $have_ot)
+
+dnl ===========================================================================
+
 AC_CHECK_HEADERS(usp10.h windows.h, have_uniscribe=true, have_uniscribe=false)
 if $have_uniscribe; then
 	UNISCRIBE_CFLAGS=
 	UNISCRIBE_LIBS="-lusp10 -lgdi32"
 	AC_SUBST(UNISCRIBE_CFLAGS)
 	AC_SUBST(UNISCRIBE_LIBS)
+	AC_DEFINE(HAVE_UNISCRIBE, 1, [Have Uniscribe backend])
 fi
 AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 
