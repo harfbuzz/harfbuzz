@@ -87,12 +87,12 @@ static class static_shaper_list_t {
 } env_shaper_list;
 
 hb_bool_t
-hb_shape (hb_font_t           *font,
-	  hb_buffer_t         *buffer,
-	  const hb_feature_t  *features,
-	  unsigned int         num_features,
-	  const char          *shaper_options,
-	  const char         **shaper_list)
+hb_shape_full (hb_font_t           *font,
+	       hb_buffer_t         *buffer,
+	       const hb_feature_t  *features,
+	       unsigned int         num_features,
+	       const char          *shaper_options,
+	       const char         **shaper_list)
 {
   if (likely (!shaper_list))
     shaper_list = env_shaper_list.shaper_list;
@@ -115,4 +115,13 @@ hb_shape (hb_font_t           *font,
     }
   }
   return FALSE;
+}
+
+void
+hb_shape (hb_font_t           *font,
+	  hb_buffer_t         *buffer,
+	  const hb_feature_t  *features,
+	  unsigned int         num_features)
+{
+  hb_shape_full (font, buffer, features, num_features, NULL, NULL);
 }

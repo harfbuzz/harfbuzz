@@ -96,7 +96,7 @@ main (int argc, char **argv)
 
   hb_buffer_add_utf8 (buffer, "test", 4, 0, 4);
 
-  hb_shape (font, buffer, NULL, 0, NULL, NULL);
+  hb_shape (font, buffer, NULL, 0);
 
   unsigned int count = hb_buffer_get_length (buffer);
   hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, NULL);
