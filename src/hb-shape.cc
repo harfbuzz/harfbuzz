@@ -62,28 +62,44 @@ static const struct hb_shaper_pair_t {
 
 static class static_shaper_list_t {
   public:
-  static_shaper_list_t (void) {
+  static_shaper_list_t (void)
+  {
     char *env = getenv ("HB_SHAPER_LIST");
     shaper_list = NULL;
     if (!env || !*env)
       return;
+
     unsigned int count = 3; /* initial, fallback, null */
-    for (const char *p = env; (p == strchr (p, ':')) && p++; )
+    for (const char *p = env; (p == strchr (p, ',')) && p++; )
       count++;
-    if (count <= ARRAY_LENGTH (static_shaper_list))
-      shaper_list = static_shaper_list;
-    else
-      shaper_list = (const char **) malloc (count * sizeof (shaper_list[0]));
+
+    unsigned int len = strlen (env);
+
+    if (count > 100 || len > 1000)
+      return;
+
+    len += count * sizeof (*shaper_list) + 1;
+    char *buffer = len < sizeof (static_buffer) ? static_buffer : (char *) malloc (len);
+    shaper_list = (const char **) buffer;
+    buffer += count * sizeof (*shaper_list);
+    len -= count * sizeof (*shaper_list);
+    strncpy (buffer, env, len);
 
     count = 0;
-    shaper_list[count++] = env;
-    for (char *p = env; (p == strchr (p, ':')) && (*p = '\0', TRUE) && p++; )
+    shaper_list[count++] = buffer;
+    for (char *p = buffer; (p == strchr (p, ',')) && (*p = '\0', TRUE) && p++; )
       shaper_list[count++] = p;
     shaper_list[count++] = "fallback";
     shaper_list[count] = NULL;
   }
+  ~static_shaper_list_t (void)
+  {
+    if ((char *) shaper_list != static_buffer)
+      free (shaper_list);
+  }
+
   const char **shaper_list;
-  const char *static_shaper_list[10];
+  char static_buffer[32];
 } env_shaper_list;
 
 hb_bool_t
