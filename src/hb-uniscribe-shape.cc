@@ -28,16 +28,18 @@
 
 #include "hb-private.hh"
 
+#include <windows.h>
+#include <usp10.h>
+
+typedef ULONG WIN_ULONG;
+
 #include "hb-uniscribe.h"
 
+#include "hb-ot-name-private.hh"
 #include "hb-ot-tag.h"
 
 #include "hb-font-private.hh"
-
 #include "hb-buffer-private.hh"
-
-#include <windows.h>
-#include <usp10.h>
 
 
 
@@ -143,7 +145,7 @@ retry:
 
   SCRIPT_ITEM items[MAX_ITEMS + 1];
   SCRIPT_STATE bidi_state = {0};
-  ULONG script_tags[MAX_ITEMS];
+  WIN_ULONG script_tags[MAX_ITEMS];
   int item_count;
 
   bidi_state.uBidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;

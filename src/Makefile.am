@@ -28,11 +28,12 @@ HBSOURCES =  \
 	hb-open-type-private.hh \
 	hb-ot-head-private.hh \
 	hb-ot-maxp-private.hh \
+	hb-ot-name-private.hh \
+	hb-ot-tag.cc \
 	hb-private.hh \
 	hb-shape.cc \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
-	hb-ot-tag.cc \
 	$(NULL)
 HBHEADERS = \
 	hb.h \
