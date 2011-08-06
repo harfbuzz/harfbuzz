@@ -11,7 +11,7 @@ if which nm 2>/dev/null >/dev/null; then
 	:
 else
 	echo "check-internal-symbols.sh: 'nm' not found; skipping test"
-	exit 0
+	exit 77
 fi
 
 so=.libs/libharfbuzz.so
@@ -23,6 +23,7 @@ if test -f "$so"; then
 	fi
 else
 	echo "check-internal-symbols.sh: libharfbuzz.so not found; skipping test"
+	exit 77
 fi
 
 exit $stat
