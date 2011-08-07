@@ -712,6 +712,16 @@ hb_buffer_guess_properties (hb_buffer_t *buffer)
 
 #define ADD_UTF(T) \
 	HB_STMT_START { \
+	  if (text_length == -1) { \
+	    text_length = 0; \
+	    const T *p = (const T *) text; \
+	    while (*p) { \
+	      text_length++; \
+	      p++; \
+	    } \
+	  } \
+	  if (item_length == -1) \
+	    item_length = text_length - item_offset; \
 	  const T *next = (const T *) text + item_offset; \
 	  const T *end = next + item_length; \
 	  while (next < end) { \
