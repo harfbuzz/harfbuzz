@@ -73,6 +73,8 @@ populate_log_font (LOGFONTW  *lf,
 					   lf->lfFaceName,
 					   sizeof (lf->lfFaceName[0]) * LF_FACESIZE)
 					  / sizeof (lf->lfFaceName[0]);
+  hb_blob_destroy (blob);
+
   if (unlikely (!len)) {
     DEBUG_MSG (UNISCRIBE, NULL, "Didn't find English name table entry");
     return FALSE;
@@ -195,7 +197,6 @@ retry:
 
   DWORD num_fonts_installed;
   HANDLE fh = AddFontMemResourceEx ((void *) blob_data, blob_length, 0, &num_fonts_installed);
-  hb_blob_destroy (blob);
   if (unlikely (!fh))
     FAIL ("AddFontMemResourceEx() failed");
 
