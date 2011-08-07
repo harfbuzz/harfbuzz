@@ -81,9 +81,11 @@ populate_log_font (LOGFONTW  *lf,
     DEBUG_MSG (UNISCRIBE, NULL, "Font name too long");
     return FALSE;
   }
+
   for (unsigned int i = 0; i < len; i++)
     lf->lfFaceName[i] = hb_be_uint16 (lf->lfFaceName[i]);
   lf->lfFaceName[len] = 0;
+
   return TRUE;
 }
 

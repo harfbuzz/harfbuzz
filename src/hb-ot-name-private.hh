@@ -92,7 +92,7 @@ struct name
       return 0;
 
     unsigned int length = MIN (buffer_length, (unsigned int) match->length);
-    memcmp (buffer, (this + stringOffset) + match->offset, length);
+    memcpy (buffer, (char *) this + stringOffset + match->offset, length);
     return length;
   }
 
