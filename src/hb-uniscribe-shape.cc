@@ -288,7 +288,11 @@ retry:
 
   /* Calculate visual-clusters.  That's what we ship. */
   for (unsigned int i = 0; i < buffer->len; i++)
-    vis_clusters[log_clusters[buffer->info[i].utf16_index()]] = buffer->info[i].cluster;
+    vis_clusters[i] = 0;
+  for (unsigned int i = 0; i < buffer->len; i++) {
+    uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
+    *p = MIN (*p, buffer->info[i].cluster);
+  }
   for (unsigned int i = 1; i < glyphs_len; i++)
     if (!glyph_props[i].sva.fClusterStart)
     vis_clusters[i] = vis_clusters[i - 1];
