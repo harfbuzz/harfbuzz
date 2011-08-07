@@ -176,7 +176,7 @@ retry:
 			      script_tags,
 			      &item_count);
   if (unlikely (FAILED (hr)))
-    FAIL ("ScriptItemizeOpenType() failed: %d", hr);
+    FAIL ("ScriptItemizeOpenType() failed: 0x%08xL", hr);
 
 #undef MAX_ITEMS
 
@@ -248,8 +248,10 @@ retry:
 	  FAIL ("Buffer resize failed");
 	goto retry;
       }
+      if (unlikely (hr == USP_E_SCRIPT_NOT_IN_FONT))
+	FAIL ("ScriptShapeOpenType() failed: Font doesn't support script");
       if (unlikely (FAILED (hr)))
-	FAIL ("ScriptShapeOpenType() failed: %d", hr);
+	FAIL ("ScriptShapeOpenType() failed: 0x%08xL", hr);
 
       hr = ScriptPlaceOpenType (hdc,
 				&script_cache,
@@ -271,7 +273,7 @@ retry:
 				offsets + glyphs_offset,
 				NULL);
       if (unlikely (FAILED (hr)))
-	FAIL ("ScriptPlaceOpenType() failed: %d", hr);
+	FAIL ("ScriptPlaceOpenType() failed: 0x%08xL", hr);
 
       glyphs_offset += glyphs_len;
   }
@@ -312,6 +314,7 @@ retry:
     info->var1.u32 = offsets[i].du;
     info->var2.u32 = offsets[i].dv;
   }
+  buffer->len = glyphs_len;
 
   /* Set glyph positions */
   buffer->clear_positions ();
