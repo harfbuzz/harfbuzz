@@ -78,7 +78,7 @@ static struct static_shaper_list_t
     }
 
     unsigned int count = 3; /* initial, fallback, null */
-    for (const char *p = env; (p == strchr (p, ',')) && p++; )
+    for (const char *p = env; (p = strchr (p, ',')) && p++; )
       count++;
 
     unsigned int len = strlen (env);
@@ -95,7 +95,7 @@ static struct static_shaper_list_t
 
     count = 0;
     shaper_list[count++] = buffer;
-    for (char *p = buffer; (p == strchr (p, ',')) && (*p = '\0', TRUE) && p++; )
+    for (char *p = buffer; (p = strchr (p, ',')) && (*p = '\0', TRUE) && p++; )
       shaper_list[count++] = p;
     shaper_list[count++] = "fallback";
     shaper_list[count] = NULL;
@@ -136,11 +136,13 @@ hb_shape_full (hb_font_t           *font,
   } else {
     while (*shaper_list) {
       for (unsigned int i = 0; i < ARRAY_LENGTH (shapers); i++)
-	if (0 == strcmp (*shaper_list, shapers[i].name) &&
-	    likely (shapers[i].func (font, buffer,
-				     features, num_features,
-				     shaper_options)))
-	  return TRUE;
+	if (0 == strcmp (*shaper_list, shapers[i].name)) {
+	  if (likely (shapers[i].func (font, buffer,
+				       features, num_features,
+				       shaper_options)))
+	    return TRUE;
+	  break;
+	}
       shaper_list++;
     }
   }
