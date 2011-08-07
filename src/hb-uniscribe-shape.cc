@@ -58,19 +58,33 @@ DWORD GetFontData(
 );
 */
 
-static void
+static bool
 populate_log_font (LOGFONTW  *lf,
 		   HDC        hdc,
-		   hb_font_t *font,
-		   hb_blob_t *blob)
+		   hb_font_t *font)
 {
   memset (lf, 0, sizeof (*lf));
   int dpi = GetDeviceCaps (hdc, LOGPIXELSY);
   lf->lfHeight = MulDiv (font->x_scale, dpi, 72);
 
-  WCHAR family_name[] = {'n','a','z','l','i'};
-  for (unsigned int i = 0; family_name[i] && i < LF_FACESIZE - 1; i++)
-    lf->lfFaceName[i] = family_name[i];
+  hb_blob_t *blob = Sanitizer<name>::sanitize (hb_face_reference_table (font->face, HB_TAG ('n','a','m','e')));
+  const name *name_table = Sanitizer<name>::lock_instance (blob);
+  unsigned int len = name_table->get_name (3, 1, 0x409, 4,
+					   lf->lfFaceName,
+					   sizeof (lf->lfFaceName[0]) * LF_FACESIZE)
+					  / sizeof (lf->lfFaceName[0]);
+  if (unlikely (!len)) {
+    DEBUG_MSG (UNISCRIBE, NULL, "Didn't find English name table entry");
+    return FALSE;
+  }
+  if (unlikely (len >= LF_FACESIZE)) {
+    DEBUG_MSG (UNISCRIBE, NULL, "Font name too long");
+    return FALSE;
+  }
+  for (unsigned int i = 0; i < len; i++)
+    lf->lfFaceName[i] = hb_be_uint16 (lf->lfFaceName[i]);
+  lf->lfFaceName[len] = 0;
+  return TRUE;
 }
 
 hb_bool_t
@@ -179,6 +193,7 @@ retry:
 
   DWORD num_fonts_installed;
   HANDLE fh = AddFontMemResourceEx ((void *) blob_data, blob_length, 0, &num_fonts_installed);
+  hb_blob_destroy (blob);
   if (unlikely (!fh))
     FAIL ("AddFontMemResourceEx() failed");
 
@@ -187,7 +202,8 @@ retry:
   HDC hdc = GetDC (NULL); /* XXX The DC should be cached on the face I guess? */
 
   LOGFONTW log_font;
-  populate_log_font (&log_font, hdc, font, blob);
+  if (unlikely (!populate_log_font (&log_font, hdc, font)))
+    FAIL ("populate_log_font() failed");
 
   HFONT hfont = CreateFontIndirectW (&log_font);
   SelectObject (hdc, hfont);
