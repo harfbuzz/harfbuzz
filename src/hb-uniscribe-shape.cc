@@ -65,7 +65,7 @@ populate_log_font (LOGFONTW  *lf,
 {
   memset (lf, 0, sizeof (*lf));
   int dpi = GetDeviceCaps (hdc, LOGPIXELSY);
-  lf->lfHeight = MulDiv (font->x_scale, dpi, 72);
+  lf->lfHeight = -font->y_scale;
 
   hb_blob_t *blob = Sanitizer<name>::sanitize (hb_face_reference_table (font->face, HB_TAG ('n','a','m','e')));
   const name *name_table = Sanitizer<name>::lock_instance (blob);
