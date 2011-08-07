@@ -93,7 +93,7 @@ main (int argc, char **argv)
 
   hb_buffer_t *buffer = hb_buffer_create (0);
 
-  hb_buffer_add_utf8 (buffer, "test", 4, 0, 4);
+  hb_buffer_add_utf8 (buffer, "\xe0\xa4\x95\xe0\xa5\x8d\xe0\xa4\xb0\xe0\xa5\x8d\xe0\xa4\x95", -1, 0, -1);
 
   hb_shape (font, buffer, NULL, 0);
 
@@ -106,7 +106,7 @@ main (int argc, char **argv)
     hb_glyph_info_t *info = &infos[i];
     hb_glyph_position_t *pos = &positions[i];
 
-    printf ("cluster %d	glyph %d at	(%d,%d)+(%d,%d)\n",
+    printf ("cluster %d	glyph 0x%x at	(%d,%d)+(%d,%d)\n",
 	    info->cluster,
 	    info->codepoint,
 	    pos->x_offset,
