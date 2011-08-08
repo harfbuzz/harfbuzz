@@ -219,11 +219,11 @@ hb_uniscribe_shape (hb_font_t          *font,
   } HB_STMT_END;
 
   hb_uniscribe_face_data_t *face_data = _hb_uniscribe_face_get_data (font->face);
-  if (unlikely (!face_data))
+  if (unlikely (!face_data->fh))
     FAIL ("Couldn't get face data");
 
   hb_uniscribe_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
-  if (unlikely (!font_data))
+  if (unlikely (!font_data->hfont))
     FAIL ("Couldn't get font font");
 
   if (unlikely (!buffer->len))
