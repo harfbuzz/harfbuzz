@@ -66,7 +66,8 @@ hb_bool_t
 hb_unicode_funcs_set_user_data (hb_unicode_funcs_t *ufuncs,
 			        hb_user_data_key_t *key,
 			        void *              data,
-			        hb_destroy_func_t   destroy);
+			        hb_destroy_func_t   destroy,
+				hb_bool_t           replace);
 
 
 void *

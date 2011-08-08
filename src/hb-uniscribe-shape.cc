@@ -129,10 +129,15 @@ _hb_uniscribe_face_get_data (hb_face_t *face)
     DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
 
   if (unlikely (!hb_face_set_user_data (face, &uniscribe_face_data_key, data,
-					(hb_destroy_func_t) _hb_uniscribe_face_data_destroy)))
+					(hb_destroy_func_t) _hb_uniscribe_face_data_destroy,
+					FALSE)))
   {
     _hb_uniscribe_face_data_destroy (data);
-    return &_hb_uniscribe_face_data_nil;
+    data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &uniscribe_face_data_key);
+    if (data)
+      return data;
+    else
+      return &_hb_uniscribe_face_data_nil;
   }
 
   return data;
@@ -183,10 +188,15 @@ _hb_uniscribe_font_get_data (hb_font_t *font)
   }
 
   if (unlikely (!hb_font_set_user_data (font, &uniscribe_font_data_key, data,
-					(hb_destroy_func_t) _hb_uniscribe_font_data_destroy)))
+					(hb_destroy_func_t) _hb_uniscribe_font_data_destroy,
+					FALSE)))
   {
     _hb_uniscribe_font_data_destroy (data);
-    return &_hb_uniscribe_font_data_nil;
+    data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &uniscribe_font_data_key);
+    if (data)
+      return data;
+    else
+      return &_hb_uniscribe_font_data_nil;
   }
 
   return data;

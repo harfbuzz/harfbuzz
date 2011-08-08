@@ -301,17 +301,20 @@ static hb_static_mutex_t user_data_lock;
 bool
 hb_user_data_array_t::set (hb_user_data_key_t *key,
 			   void *              data,
-			   hb_destroy_func_t   destroy)
+			   hb_destroy_func_t   destroy,
+			   hb_bool_t           replace)
 {
   if (!key)
     return false;
 
-  if (!data && !destroy) {
-    items.remove (key, user_data_lock);
-    return true;
+  if (replace) {
+    if (!data && !destroy) {
+      items.remove (key, user_data_lock);
+      return true;
+    }
   }
   hb_user_data_item_t item = {key, data, destroy};
-  bool ret = !!items.replace_or_insert (item, user_data_lock);
+  bool ret = !!items.replace_or_insert (item, user_data_lock, replace);
 
   return ret;
 }

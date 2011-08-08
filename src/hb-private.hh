@@ -343,15 +343,21 @@ struct hb_lockable_set_t
   hb_array_t <item_t> items;
 
   template <typename T>
-  inline item_t *replace_or_insert (T v, lock_t &l)
+  inline item_t *replace_or_insert (T v, lock_t &l, bool replace)
   {
     l.lock ();
     item_t *item = items.find (v);
     if (item) {
-      item_t old = *item;
-      *item = v;
-      l.unlock ();
-      old.finish ();
+      if (replace) {
+	item_t old = *item;
+	*item = v;
+	l.unlock ();
+	old.finish ();
+      }
+      else {
+        item = NULL;
+	l.unlock ();
+      }
     } else {
       item = items.push ();
       if (likely (item))

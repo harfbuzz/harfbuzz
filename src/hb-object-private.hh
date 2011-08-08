@@ -122,7 +122,8 @@ struct hb_user_data_array_t {
 
   HB_INTERNAL bool set (hb_user_data_key_t *key,
 			void *              data,
-			hb_destroy_func_t   destroy);
+			hb_destroy_func_t   destroy,
+			hb_bool_t           replace);
 
   HB_INTERNAL void *get (hb_user_data_key_t *key);
 
@@ -178,11 +179,12 @@ struct _hb_object_header_t {
 
   inline bool set_user_data (hb_user_data_key_t *key,
 			     void *              data,
-			     hb_destroy_func_t   destroy_func) {
+			     hb_destroy_func_t   destroy_func,
+			     hb_bool_t           replace) {
     if (unlikely (!this || this->is_inert ()))
       return false;
 
-    return user_data.set (key, data, destroy_func);
+    return user_data.set (key, data, destroy_func, replace);
   }
 
   inline void *get_user_data (hb_user_data_key_t *key) {
@@ -237,9 +239,10 @@ template <typename Type>
 static inline bool hb_object_set_user_data (Type               *obj,
 					    hb_user_data_key_t *key,
 					    void *              data,
-					    hb_destroy_func_t   destroy)
+					    hb_destroy_func_t   destroy,
+					    hb_bool_t           replace)
 {
-  return obj->header.set_user_data (key, data, destroy);
+  return obj->header.set_user_data (key, data, destroy, replace);
 }
 
 template <typename Type>

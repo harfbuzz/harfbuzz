@@ -116,7 +116,7 @@ create_unicode_funcs_inert (void)
 typedef void     *(*create_func_t)         (void);
 typedef void     *(*reference_func_t)      (void *obj);
 typedef void      (*destroy_func_t)        (void *obj);
-typedef hb_bool_t (*set_user_data_func_t)  (void *obj, hb_user_data_key_t *key, void *data, hb_destroy_func_t destroy);
+typedef hb_bool_t (*set_user_data_func_t)  (void *obj, hb_user_data_key_t *key, void *data, hb_destroy_func_t destroy, hb_bool_t replace);
 typedef void *    (*get_user_data_func_t)  (void *obj, hb_user_data_key_t *key);
 typedef void      (*make_immutable_func_t) (void *obj);
 typedef hb_bool_t (*is_immutable_func_t)   (void *obj);
@@ -247,7 +247,7 @@ test_object (void)
       if (o->is_immutable)
 	g_assert (!o->is_immutable (obj));
 
-      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0));
+      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
       g_assert (o->get_user_data (obj, &key[0]) == &data[0]);
 
       if (o->is_immutable) {
@@ -256,38 +256,39 @@ test_object (void)
       }
 
       /* Should still work even if object is made immutable */
-      g_assert (o->set_user_data (obj, &key[1], &data[1], free_up1));
+      g_assert (o->set_user_data (obj, &key[1], &data[1], free_up1, TRUE));
       g_assert (o->get_user_data (obj, &key[1]) == &data[1]);
 
-      g_assert (!o->set_user_data (obj, NULL, &data[0], free_up0));
+      g_assert (!o->set_user_data (obj, NULL, &data[0], free_up0, TRUE));
       g_assert (o->get_user_data (obj, &key[0]) == &data[0]);
-      g_assert (o->set_user_data (obj, &key[0], &data[1], NULL));
+      g_assert (o->set_user_data (obj, &key[0], &data[1], NULL, TRUE));
       g_assert (data[0].freed);
       g_assert (o->get_user_data (obj, &key[0]) == &data[1]);
       g_assert (!data[1].freed);
 
       data[0].freed = FALSE;
-      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0));
+      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
       g_assert (!data[0].freed);
-      g_assert (o->set_user_data (obj, &key[0], NULL, NULL));
+      g_assert (o->set_user_data (obj, &key[0], NULL, NULL, TRUE));
       g_assert (data[0].freed);
 
       data[0].freed = FALSE;
       global_data = 0;
-      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0));
+      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
+      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0, FALSE));
       g_assert_cmpuint (global_data, ==, 0);
-      g_assert (o->set_user_data (obj, &key[0], NULL, global_free_up));
+      g_assert (o->set_user_data (obj, &key[0], NULL, global_free_up, TRUE));
       g_assert_cmpuint (global_data, ==, 0);
-      g_assert (o->set_user_data (obj, &key[0], NULL, NULL));
+      g_assert (o->set_user_data (obj, &key[0], NULL, NULL, TRUE));
       g_assert_cmpuint (global_data, ==, 1);
 
       global_data = 0;
       for (j = 2; j < 1000; j++)
-	g_assert (o->set_user_data (obj, &key[j], &data[j], global_free_up));
+	g_assert (o->set_user_data (obj, &key[j], &data[j], global_free_up, TRUE));
       for (j = 2; j < 1000; j++)
 	g_assert (o->get_user_data (obj, &key[j]) == &data[j]);
       for (j = 100; j < 1000; j++)
-	g_assert (o->set_user_data (obj, &key[j], NULL, NULL));
+	g_assert (o->set_user_data (obj, &key[j], NULL, NULL, TRUE));
       for (j = 2; j < 100; j++)
 	g_assert (o->get_user_data (obj, &key[j]) == &data[j]);
       for (j = 100; j < 1000; j++)
@@ -298,8 +299,8 @@ test_object (void)
        * Make sure it doesn't deadlock or corrupt memory. */
       deadlock_test.klass = o;
       deadlock_test.object = obj;
-      g_assert (o->set_user_data (obj, &deadlock_test.key, &deadlock_test, free_deadlock_test));
-      g_assert (o->set_user_data (obj, &deadlock_test.key, NULL, NULL));
+      g_assert (o->set_user_data (obj, &deadlock_test.key, &deadlock_test, free_deadlock_test, TRUE));
+      g_assert (o->set_user_data (obj, &deadlock_test.key, NULL, NULL, TRUE));
 
       g_assert (!data[1].freed);
       o->destroy (obj);
@@ -321,7 +322,7 @@ test_object (void)
       if (o->is_immutable)
 	g_assert (o->is_immutable (obj));
 
-      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0));
+      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
       g_assert (!o->get_user_data (obj, &key[0]));
 
       o->destroy (obj);
@@ -349,7 +350,7 @@ test_object (void)
       if (o->is_immutable)
 	g_assert (o->is_immutable (obj));
 
-      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0));
+      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
       g_assert (!o->get_user_data (obj, &key[0]));
 
       o->destroy (obj);

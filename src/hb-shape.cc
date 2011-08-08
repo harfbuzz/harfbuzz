@@ -76,7 +76,7 @@ static struct static_shaper_list_t
           end = p + strlen (p);
 
 	for (unsigned int j = i; j < ARRAY_LENGTH (shapers); j++)
-	  if (end - p == strlen (shapers[j].name) &&
+	  if (end - p == (int) strlen (shapers[j].name) &&
 	      0 == strncmp (shapers[j].name, p, end - p))
 	  {
 	    /* Reorder this shaper to position i */
