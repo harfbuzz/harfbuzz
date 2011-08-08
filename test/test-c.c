@@ -31,23 +31,23 @@
 
 #include <hb.h>
 
-#if HAVE_GLIB
+#ifdef HAVE_GLIB
 #include <hb-glib.h>
 #endif
 
-#if HAVE_ICU
+#ifdef HAVE_ICU
 #include <hb-icu.h>
 #endif
 
-#if HAVE_FREETYPE
+#ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
 
-#if HAVE_OT
+#ifdef HAVE_OT
 #include <hb-ot.h>
 #endif
 
-#if HAVE_UNISCRIBE
+#ifdef HAVE_UNISCRIBE
 #include <hb-uniscribe.h>
 #endif
 
