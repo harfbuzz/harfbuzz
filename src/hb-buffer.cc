@@ -776,9 +776,9 @@ hb_utf8_next (const uint8_t *text,
 void
 hb_buffer_add_utf8 (hb_buffer_t  *buffer,
 		    const char   *text,
-		    unsigned int  text_length HB_UNUSED,
+		    int           text_length,
 		    unsigned int  item_offset,
-		    unsigned int  item_length)
+		    int           item_length)
 {
 #define UTF_NEXT(S, E, U)	hb_utf8_next (S, E, &(U))
   ADD_UTF (uint8_t);
@@ -810,9 +810,9 @@ hb_utf16_next (const uint16_t *text,
 void
 hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 		     const uint16_t *text,
-		     unsigned int    text_length HB_UNUSED,
+		     int             text_length,
 		     unsigned int    item_offset,
-		     unsigned int    item_length)
+		     int            item_length)
 {
 #define UTF_NEXT(S, E, U)	hb_utf16_next (S, E, &(U))
   ADD_UTF (uint16_t);
@@ -822,9 +822,9 @@ hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 void
 hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     const uint32_t *text,
-		     unsigned int    text_length HB_UNUSED,
+		     int             text_length,
 		     unsigned int    item_offset,
-		     unsigned int    item_length)
+		     int             item_length)
 {
 #define UTF_NEXT(S, E, U)	((U) = *(S), (S)+1)
   ADD_UTF (uint32_t);

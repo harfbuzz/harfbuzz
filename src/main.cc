@@ -24,7 +24,6 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#define HB_OT_LAYOUT_CC
 #include "hb-mutex-private.hh"
 #include "hb-open-file-private.hh"
 #include "hb-ot-layout-gdef-private.hh"
