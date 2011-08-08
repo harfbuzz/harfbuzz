@@ -29,6 +29,8 @@ API issues to fix before 1.0:
 API to add (maybe after 1.0):
 ============================
 
+- Add Uniscribe face / font get API
+
 - BCP 47 language handling / API (language_matches?)
 
 - Add hb_face_get_glyph_count()?

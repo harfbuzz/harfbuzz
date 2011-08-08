@@ -91,6 +91,108 @@ populate_log_font (LOGFONTW  *lf,
   return TRUE;
 }
 
+
+static struct hb_uniscribe_face_data_t{
+  HANDLE fh;
+} _hb_uniscribe_face_data_nil = {0};
+
+static hb_user_data_key_t uniscribe_face_data_key;
+
+static void
+_hb_uniscribe_face_data_destroy (hb_uniscribe_face_data_t *data)
+{
+  if (data->fh)
+    RemoveFontMemResourceEx (data->fh);
+  free (data);
+}
+
+static hb_uniscribe_face_data_t *
+_hb_uniscribe_face_get_data (hb_face_t *face)
+{
+  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &uniscribe_face_data_key);
+  if (likely (data)) return data;
+
+  data = (hb_uniscribe_face_data_t *) calloc (1, sizeof (hb_uniscribe_face_data_t));
+  if (unlikely (!data))
+    return &_hb_uniscribe_face_data_nil;
+
+  hb_blob_t *blob = hb_face_reference_blob (face);
+  unsigned int blob_length;
+  const char *blob_data = hb_blob_get_data (blob, &blob_length);
+  if (unlikely (!blob_length))
+    DEBUG_MSG (UNISCRIBE, face, "Face has empty blob");
+
+  DWORD num_fonts_installed;
+  data->fh = AddFontMemResourceEx ((void *) blob_data, blob_length, 0, &num_fonts_installed);
+  hb_blob_destroy (blob);
+  if (unlikely (!data->fh))
+    DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
+
+  if (unlikely (!hb_face_set_user_data (face, &uniscribe_face_data_key, data,
+					(hb_destroy_func_t) _hb_uniscribe_face_data_destroy)))
+  {
+    _hb_uniscribe_face_data_destroy (data);
+    return &_hb_uniscribe_face_data_nil;
+  }
+
+  return data;
+}
+
+
+static struct hb_uniscribe_font_data_t {
+  HDC hdc;
+  HFONT hfont;
+  SCRIPT_CACHE script_cache;
+} _hb_uniscribe_font_data_nil = {NULL, NULL, NULL};
+
+static hb_user_data_key_t uniscribe_font_data_key;
+
+static void
+_hb_uniscribe_font_data_destroy (hb_uniscribe_font_data_t *data)
+{
+  if (data->hdc)
+    ReleaseDC (NULL, data->hdc);
+  if (data->hfont)
+    DeleteObject (data->hfont);
+  if (data->script_cache)
+    ScriptFreeCache (&data->script_cache);
+  free (data);
+}
+
+static hb_uniscribe_font_data_t *
+_hb_uniscribe_font_get_data (hb_font_t *font)
+{
+  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &uniscribe_font_data_key);
+  if (likely (data)) return data;
+
+  data = (hb_uniscribe_font_data_t *) calloc (1, sizeof (hb_uniscribe_font_data_t));
+  if (unlikely (!data))
+    return &_hb_uniscribe_font_data_nil;
+
+  data->hdc = GetDC (NULL);
+
+  LOGFONTW log_font;
+  if (unlikely (!populate_log_font (&log_font, data->hdc, font)))
+    DEBUG_MSG (UNISCRIBE, font, "Font populate_log_font() failed");
+  else {
+    data->hfont = CreateFontIndirectW (&log_font);
+    if (unlikely (!data->hfont))
+      DEBUG_MSG (UNISCRIBE, font, "Font CreateFontIndirectW() failed");
+    if (!SelectObject (data->hdc, data->hfont))
+      DEBUG_MSG (UNISCRIBE, font, "Font SelectObject() failed");
+  }
+
+  if (unlikely (!hb_font_set_user_data (font, &uniscribe_font_data_key, data,
+					(hb_destroy_func_t) _hb_uniscribe_font_data_destroy)))
+  {
+    _hb_uniscribe_font_data_destroy (data);
+    return &_hb_uniscribe_font_data_nil;
+  }
+
+  return data;
+}
+
+
 hb_bool_t
 hb_uniscribe_shape (hb_font_t          *font,
 		    hb_buffer_t        *buffer,
@@ -100,10 +202,24 @@ hb_uniscribe_shape (hb_font_t          *font,
 {
   buffer->guess_properties ();
 
-  HRESULT hr;
+#define FAIL(...) \
+  HB_STMT_START { \
+    DEBUG_MSG (UNISCRIBE, NULL, __VA_ARGS__); \
+    return FALSE; \
+  } HB_STMT_END;
+
+  hb_uniscribe_face_data_t *face_data = _hb_uniscribe_face_get_data (font->face);
+  if (unlikely (!face_data))
+    FAIL ("Couldn't get face data");
+
+  hb_uniscribe_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
+  if (unlikely (!font_data))
+    FAIL ("Couldn't get font font");
 
   if (unlikely (!buffer->len))
     return TRUE;
+
+  HRESULT hr;
 
 retry:
 
@@ -152,13 +268,6 @@ retry:
   ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
 
 
-#define FAIL(...) \
-  HB_STMT_START { \
-    DEBUG_MSG (UNISCRIBE, NULL, __VA_ARGS__); \
-    return FALSE; \
-  } HB_STMT_END;
-
-
 #define MAX_ITEMS 10
 
   SCRIPT_ITEM items[MAX_ITEMS + 1];
@@ -189,30 +298,6 @@ retry:
     /* XXX setup ranges */
   }
 
-  hb_blob_t *blob = hb_face_reference_blob (font->face);
-  unsigned int blob_length;
-  const char *blob_data = hb_blob_get_data (blob, &blob_length);
-  if (unlikely (!blob_length))
-    FAIL ("Empty font blob");
-
-  DWORD num_fonts_installed;
-  HANDLE fh = AddFontMemResourceEx ((void *) blob_data, blob_length, 0, &num_fonts_installed);
-  hb_blob_destroy (blob);
-  if (unlikely (!fh))
-    FAIL ("AddFontMemResourceEx() failed");
-
-  /* FREE stuff, specially when taking fallback... */
-
-  HDC hdc = GetDC (NULL); /* XXX The DC should be cached on the face I guess? */
-
-  LOGFONTW log_font;
-  if (unlikely (!populate_log_font (&log_font, hdc, font)))
-    FAIL ("populate_log_font() failed");
-
-  HFONT hfont = CreateFontIndirectW (&log_font);
-  SelectObject (hdc, hfont);
-
-  SCRIPT_CACHE script_cache = NULL;
   OPENTYPE_TAG language_tag = hb_ot_tag_from_language (buffer->props.language);
 
   unsigned int glyphs_offset = 0;
@@ -223,8 +308,8 @@ retry:
       unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
       OPENTYPE_TAG script_tag = script_tags[i]; /* XXX buffer->props.script */
 
-      hr = ScriptShapeOpenType (hdc,
-				&script_cache,
+      hr = ScriptShapeOpenType (font_data->hdc,
+				&font_data->script_cache,
 				&items[i].a,
 				script_tag,
 				language_tag,
@@ -255,8 +340,8 @@ retry:
       if (unlikely (FAILED (hr)))
 	FAIL ("ScriptShapeOpenType() failed: 0x%08xL", hr);
 
-      hr = ScriptPlaceOpenType (hdc,
-				&script_cache,
+      hr = ScriptPlaceOpenType (font_data->hdc,
+				&font_data->script_cache,
 				&items[i].a,
 				script_tag,
 				language_tag,
@@ -280,10 +365,6 @@ retry:
       glyphs_offset += glyphs_len;
   }
   glyphs_len = glyphs_offset;
-
-  ReleaseDC (NULL, hdc);
-  DeleteObject (hfont);
-  RemoveFontMemResourceEx (fh);
 
   /* Ok, we've got everything we need, now compose output buffer,
    * very, *very*, carefully! */
