@@ -94,6 +94,7 @@ struct _hb_face_t {
 
   struct hb_ot_layout_t *ot_layout;
 
+  unsigned int index;
   unsigned int upem;
 };
 
@@ -154,7 +155,7 @@ struct _hb_font_t {
 
 
   private:
-  inline hb_position_t em_scale (int16_t v, int scale) { return v * (int64_t) scale / this->face->upem; }
+  inline hb_position_t em_scale (int16_t v, int scale) { return v * (int64_t) scale / hb_face_get_upem (this->face); }
 };
 
 

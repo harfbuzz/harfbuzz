@@ -250,8 +250,7 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
   FT_ULong  length = 0;
   FT_Error error;
 
-  if (unlikely (tag == HB_TAG_NONE))
-    return NULL;
+  /* Note: FreeType like HarfBuzz uses the NONE tag for fetching the entire blob */
 
   error = FT_Load_Sfnt_Table (ft_face, tag, 0, NULL, &length);
   if (error)

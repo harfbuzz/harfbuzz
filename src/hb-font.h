@@ -80,11 +80,22 @@ hb_face_is_immutable (hb_face_t *face);
 
 
 hb_blob_t *
-hb_face_get_blob (hb_face_t *face);
-
-hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
 			 hb_tag_t   tag);
+
+hb_blob_t *
+hb_face_reference_blob (hb_face_t *face);
+
+void
+hb_face_set_index (hb_face_t    *face,
+		   unsigned int  index);
+
+unsigned int
+hb_face_get_index (hb_face_t    *face);
+
+void
+hb_face_set_upem (hb_face_t    *face,
+		  unsigned int  upem);
 
 unsigned int
 hb_face_get_upem (hb_face_t *face);

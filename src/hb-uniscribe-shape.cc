@@ -189,7 +189,7 @@ retry:
     /* XXX setup ranges */
   }
 
-  hb_blob_t *blob = hb_face_get_blob (font->face);
+  hb_blob_t *blob = hb_face_reference_blob (font->face);
   unsigned int blob_length;
   const char *blob_data = hb_blob_get_data (blob, &blob_length);
   if (unlikely (!blob_length))
@@ -197,6 +197,7 @@ retry:
 
   DWORD num_fonts_installed;
   HANDLE fh = AddFontMemResourceEx ((void *) blob_data, blob_length, 0, &num_fonts_installed);
+  hb_blob_destroy (blob);
   if (unlikely (!fh))
     FAIL ("AddFontMemResourceEx() failed");
 

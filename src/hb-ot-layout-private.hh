@@ -70,13 +70,6 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
 			 unsigned int *property_out);
 
 
-/*
- * head
- */
-
-HB_INTERNAL unsigned int
-_hb_ot_layout_get_upem (hb_face_t    *face);
-
 
 /*
  * hb_ot_layout_t
@@ -87,12 +80,10 @@ struct hb_ot_layout_t
   hb_blob_t *gdef_blob;
   hb_blob_t *gsub_blob;
   hb_blob_t *gpos_blob;
-  hb_blob_t *head_blob;
 
   const struct GDEF *gdef;
   const struct GSUB *gsub;
   const struct GPOS *gpos;
-  const struct head *head;
 };
 
 
