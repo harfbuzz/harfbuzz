@@ -45,8 +45,8 @@ typedef hb_bool_t (*hb_shape_func_t) (hb_font_t          *font,
 				      const char         *shaper_options);
 
 #define HB_SHAPER_IMPLEMENT(name) {#name, hb_##name##_shape}
-static const struct hb_shaper_pair_t {
-  const char name[16];
+static struct hb_shaper_pair_t {
+  char name[16];
   hb_shape_func_t func;
 } shapers[] = {
   /* v--- Add new shapers in the right place here */
@@ -65,49 +65,42 @@ static struct static_shaper_list_t
   static_shaper_list_t (void)
   {
     char *env = getenv ("HB_SHAPER_LIST");
-    shaper_list = NULL;
-    if (!env || !*env) {
-    fallback:
-      ASSERT_STATIC ((ARRAY_LENGTH (shapers) + 1) * sizeof (*shaper_list) <= sizeof (static_buffer));
-      shaper_list = (const char **) static_buffer;
-      unsigned int i;
-      for (i = 0; i < ARRAY_LENGTH (shapers); i++)
-        shaper_list[i] = shapers[i].name;
-      shaper_list[i] = NULL;
-      return;
+    if (env && *env)
+    {
+       /* Reorder shaper list to prefer requested shaper list. */
+      unsigned int i = 0;
+      char *end, *p = env;
+      for (;;) {
+        end = strchr (p, ',');
+        if (!end)
+          end = p + strlen (p);
+
+	for (unsigned int j = i; j < ARRAY_LENGTH (shapers); j++)
+	  if (end - p == strlen (shapers[j].name) &&
+	      0 == strncmp (shapers[j].name, p, end - p))
+	  {
+	    /* Reorder this shaper to position i */
+	   struct hb_shaper_pair_t t = shapers[j];
+	   memmove (&shapers[i + 1], &shapers[i], sizeof (shapers[i]) * (j - i));
+	   shapers[i] = t;
+	   i++;
+	  }
+
+        if (!*end)
+          break;
+        else
+          p = end + 1;
+      }
     }
 
-    unsigned int count = 3; /* initial, fallback, null */
-    for (const char *p = env; (p = strchr (p, ',')) && p++; )
-      count++;
-
-    unsigned int len = strlen (env);
-
-    if (count > 100 || len > 1000)
-      goto fallback;
-
-    len += count * sizeof (*shaper_list) + 1;
-    char *buffer = len < sizeof (static_buffer) ? static_buffer : (char *) malloc (len);
-    shaper_list = (const char **) buffer;
-    buffer += count * sizeof (*shaper_list);
-    len -= count * sizeof (*shaper_list);
-    strncpy (buffer, env, len);
-
-    count = 0;
-    shaper_list[count++] = buffer;
-    for (char *p = buffer; (p = strchr (p, ',')) && (*p = '\0', TRUE) && p++; )
-      shaper_list[count++] = p;
-    shaper_list[count++] = "fallback";
-    shaper_list[count] = NULL;
-  }
-  ~static_shaper_list_t (void)
-  {
-    if ((char *) shaper_list != static_buffer)
-      free (shaper_list);
+    ASSERT_STATIC ((ARRAY_LENGTH (shapers) + 1) * sizeof (*shaper_list) <= sizeof (shaper_list));
+    unsigned int i;
+    for (i = 0; i < ARRAY_LENGTH (shapers); i++)
+      shaper_list[i] = shapers[i].name;
+    shaper_list[i] = NULL;
   }
 
-  const char **shaper_list;
-  char static_buffer[32];
+  const char *shaper_list[ARRAY_LENGTH (shapers) + 1];
 } static_shaper_list;
 
 const char **
@@ -124,11 +117,6 @@ hb_shape_full (hb_font_t           *font,
 	       const char          *shaper_options,
 	       const char         **shaper_list)
 {
-  /* TODO
-   * This function, and shaper_list handling need to be redone. */
-  if (likely (!shaper_list))
-    shaper_list = static_shaper_list.shaper_list;
-
   if (likely (!shaper_list)) {
     for (unsigned int i = 0; i < ARRAY_LENGTH (shapers); i++)
       if (likely (shapers[i].func (font, buffer,
