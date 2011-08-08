@@ -124,6 +124,8 @@ hb_shape_full (hb_font_t           *font,
 	       const char          *shaper_options,
 	       const char         **shaper_list)
 {
+  /* TODO
+   * This function, and shaper_list handling need to be redone. */
   if (likely (!shaper_list))
     shaper_list = static_shaper_list.shaper_list;
 

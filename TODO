@@ -41,8 +41,6 @@ API to add (maybe after 1.0):
 
 - SFNT api? get_num_faces? get_table_tags? (there's something in stash)
 
-- Full matrix instead of scale?
-
 - Add segmentation API
 
 - Add hb-fribidi?
