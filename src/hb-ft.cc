@@ -293,6 +293,9 @@ hb_ft_face_create (FT_Face           ft_face,
     face = hb_face_create_for_tables (reference_table, ft_face, destroy);
   }
 
+  hb_face_set_index (face, ft_face->face_index);
+  hb_face_set_upem (face, ft_face->units_per_EM);
+
   return face;
 }
 
