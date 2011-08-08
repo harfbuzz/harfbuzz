@@ -88,9 +88,9 @@ struct _hb_face_t {
 
   hb_bool_t immutable;
 
-  hb_get_table_func_t  get_table;
-  void                *user_data;
-  hb_destroy_func_t    destroy;
+  hb_reference_table_func_t  reference_table;
+  void                      *user_data;
+  hb_destroy_func_t          destroy;
 
   struct hb_ot_layout_t *ot_layout;
 

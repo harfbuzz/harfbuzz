@@ -532,7 +532,7 @@ static hb_face_t _hb_face_nil = {
 
   TRUE, /* immutable */
 
-  NULL, /* get_table */
+  NULL, /* reference_table */
   NULL, /* user_data */
   NULL, /* destroy */
 
@@ -543,19 +543,19 @@ static hb_face_t _hb_face_nil = {
 
 
 hb_face_t *
-hb_face_create_for_tables (hb_get_table_func_t  get_table,
-			   void                *user_data,
-			   hb_destroy_func_t    destroy)
+hb_face_create_for_tables (hb_reference_table_func_t  reference_table,
+			   void                      *user_data,
+			   hb_destroy_func_t          destroy)
 {
   hb_face_t *face;
 
-  if (!get_table || !(face = hb_object_create<hb_face_t> ())) {
+  if (!reference_table || !(face = hb_object_create<hb_face_t> ())) {
     if (destroy)
       destroy (user_data);
     return &_hb_face_nil;
   }
 
-  face->get_table = get_table;
+  face->reference_table = reference_table;
   face->user_data = user_data;
   face->destroy = destroy;
 
@@ -595,7 +595,7 @@ _hb_face_for_data_closure_destroy (hb_face_for_data_closure_t *closure)
 }
 
 static hb_blob_t *
-_hb_face_for_data_get_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+_hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) user_data;
 
@@ -621,7 +621,7 @@ hb_face_create (hb_blob_t    *blob,
   if (unlikely (!closure))
     return &_hb_face_nil;
 
-  return hb_face_create_for_tables (_hb_face_for_data_get_table,
+  return hb_face_create_for_tables (_hb_face_for_data_reference_table,
 				    closure,
 				    (hb_destroy_func_t) _hb_face_for_data_closure_destroy);
 }
@@ -700,10 +700,10 @@ hb_face_reference_table (hb_face_t *face,
 {
   hb_blob_t *blob;
 
-  if (unlikely (!face || !face->get_table))
+  if (unlikely (!face || !face->reference_table))
     return hb_blob_get_empty ();
 
-  blob = face->get_table (face, tag, face->user_data);
+  blob = face->reference_table (face, tag, face->user_data);
   if (unlikely (!blob))
     return hb_blob_get_empty ();
 

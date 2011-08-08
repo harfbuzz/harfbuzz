@@ -44,13 +44,13 @@ hb_face_t *
 hb_face_create (hb_blob_t    *blob,
 		unsigned int  index);
 
-typedef hb_blob_t * (*hb_get_table_func_t)  (hb_face_t *face, hb_tag_t tag, void *user_data);
+typedef hb_blob_t * (*hb_reference_table_func_t)  (hb_face_t *face, hb_tag_t tag, void *user_data);
 
 /* calls destroy() when not needing user_data anymore */
 hb_face_t *
-hb_face_create_for_tables (hb_get_table_func_t  get_table,
-			   void                *user_data,
-			   hb_destroy_func_t    destroy);
+hb_face_create_for_tables (hb_reference_table_func_t  reference_table,
+			   void                      *user_data,
+			   hb_destroy_func_t          destroy);
 
 hb_face_t *
 hb_face_get_empty (void);
