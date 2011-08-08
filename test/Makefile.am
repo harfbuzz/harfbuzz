@@ -58,6 +58,9 @@ endif
 if HAVE_FREETYPE
 test_object_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 test_object_LDADD = $(LDADD) $(FREETYPE_LIBS)
+else
+test_object_CPPFLAGS = $(AM_CPPFLAGS)
+test_object_LDADD = $(LDADD)
 endif
 
 
