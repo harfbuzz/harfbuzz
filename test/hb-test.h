@@ -152,8 +152,7 @@ typedef GTestFixtureFunc hb_test_fixture_func_t;
 #else
 typedef void (*hb_test_func_t)         (void);
 typedef void (*hb_test_data_func_t)    (gconstpointer user_data);
-typedef void (*hb_test_fixture_func_t) (gpointer      fixture,
-                                        gconstpointer user_data);
+typedef void (*hb_test_fixture_func_t) (void);
 #endif
 
 #if !GLIB_CHECK_VERSION(2,30,0)
