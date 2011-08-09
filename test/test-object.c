@@ -29,11 +29,6 @@
 /* Unit tests for hb-object-private.h */
 
 
-#ifdef HAVE_FREETYPE
-#include <hb-ft.h>
-#endif
-
-
 static void *
 create_blob (void)
 {
@@ -93,11 +88,7 @@ create_font_funcs (void)
 static void *
 create_font_funcs_inert (void)
 {
-#ifdef HAVE_FREETYPE
-  return hb_ft_get_font_funcs ();
-#else
   return NULL;
-#endif
 }
 
 static void *

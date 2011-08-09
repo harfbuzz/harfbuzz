@@ -37,6 +37,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef HAVE_FREETYPE
+#include "hb-ft.h"
+#endif
 
 int
 main (int argc, char **argv)
@@ -90,6 +93,10 @@ main (int argc, char **argv)
 
   hb_font_t *font = hb_font_create (face);
   hb_font_set_scale (font, upem, upem);
+
+#if HAVE_FREETYPE
+  hb_ft_font_set_funcs (font);
+#endif
 
   hb_buffer_t *buffer = hb_buffer_create (0);
 

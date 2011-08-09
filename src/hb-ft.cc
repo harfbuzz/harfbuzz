@@ -35,6 +35,11 @@
 
 
 
+#ifndef HB_DEBUG_FT
+#define HB_DEBUG_FT (HB_DEBUG+0)
+#endif
+
+
 /* TODO:
  *
  * In general, this file does a fine job of what it's supposed to do.
@@ -235,8 +240,8 @@ static hb_font_funcs_t ft_ffuncs = {
   }
 };
 
-hb_font_funcs_t *
-hb_ft_get_font_funcs (void)
+static hb_font_funcs_t *
+_hb_ft_get_font_funcs (void)
 {
   return &ft_ffuncs;
 }
@@ -332,7 +337,7 @@ hb_ft_font_create (FT_Face           ft_face,
   font = hb_font_create (face);
   hb_face_destroy (face);
   hb_font_set_funcs (font,
-		     hb_ft_get_font_funcs (),
+		     _hb_ft_get_font_funcs (),
 		     ft_face, NULL);
   hb_font_set_scale (font,
 		     ((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM) >> 16,
@@ -345,3 +350,68 @@ hb_ft_font_create (FT_Face           ft_face,
 }
 
 
+
+
+static FT_Library ft_library;
+static hb_bool_t ft_library_initialized;
+static struct ft_library_destructor {
+  ~ft_library_destructor (void) {
+    if (ft_library)
+      FT_Done_FreeType (ft_library);
+  }
+} static_ft_library_destructor;
+
+static FT_Library
+_get_ft_library (void)
+{
+  if (unlikely (!ft_library_initialized)) {
+    FT_Init_FreeType (&ft_library);
+    ft_library_initialized = TRUE;
+  }
+
+  return ft_library;
+}
+
+static void
+_release_blob (FT_Face ft_face)
+{
+  hb_blob_destroy ((hb_blob_t *) ft_face->generic.data);
+}
+
+void
+hb_ft_font_set_funcs (hb_font_t *font)
+{
+  hb_blob_t *blob = hb_face_reference_blob (font->face);
+  unsigned int blob_length;
+  const char *blob_data = hb_blob_get_data (blob, &blob_length);
+  if (unlikely (!blob_length))
+    DEBUG_MSG (FT, font, "Font face has empty blob");
+
+  FT_Face ft_face = NULL;
+  FT_Error err = FT_New_Memory_Face (_get_ft_library (),
+				     (const FT_Byte *) blob_data,
+				     blob_length,
+				     hb_face_get_index (font->face),
+				     &ft_face);
+
+  if (unlikely (err)) {
+    hb_blob_destroy (blob);
+    DEBUG_MSG (FT, font, "Font face FT_New_Memory_Face() failed");
+    return;
+  }
+
+  hb_font_make_immutable (font);
+
+  FT_Set_Char_Size (ft_face,
+		    font->x_scale, font->y_scale,
+		    font->x_ppem * 72 * 64 / font->x_scale,
+		    font->y_ppem * 72 * 64 / font->y_scale);
+
+  ft_face->generic.data = blob;
+  ft_face->generic.finalizer = (FT_Generic_Finalizer) _release_blob;
+
+  hb_font_set_funcs (font,
+		     _hb_ft_get_font_funcs (),
+		     ft_face,
+		     (hb_destroy_func_t) FT_Done_Face);
+}

@@ -167,8 +167,8 @@ main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_SOURCES = test.cc
-test_CPPFLAGS = $(HBCFLAGS)
-test_LDADD = libharfbuzz.la $(HBLIBS)
+test_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
+test_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
