@@ -399,9 +399,13 @@ retry:
 #undef FAIL
 
   /* Set glyph infos */
+  buffer->len = 0;
   for (unsigned int i = 0; i < glyphs_len; i++)
   {
-    hb_glyph_info_t *info = &buffer->info[i];
+    if (glyph_props[i].sva.fZeroWidth)
+      continue;
+
+    hb_glyph_info_t *info = &buffer->info[buffer->len++];
 
     info->codepoint = glyphs[i];
     info->cluster = vis_clusters[i];
@@ -411,7 +415,6 @@ retry:
     info->var1.u32 = offsets[i].du;
     info->var2.u32 = offsets[i].dv;
   }
-  buffer->len = glyphs_len;
 
   /* Set glyph positions */
   buffer->clear_positions ();
