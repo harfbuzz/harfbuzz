@@ -2,7 +2,7 @@
 
 NULL =
 
-SUBDIRS = src test
+SUBDIRS = src util test
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
@@ -74,7 +74,6 @@ $(gpg_file): $(sha256_file)
 	gpg --armor --sign $^
 
 release-files: $(tar_file) $(sha256_file) $(gpg_file)
-
 
 
 -include $(top_srcdir)/git.mk

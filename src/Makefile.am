@@ -149,19 +149,6 @@ hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
 noinst_PROGRAMS = main test
 bin_PROGRAMS =
 
-if HAVE_GLIB
-if HAVE_FREETYPE
-if HAVE_CAIRO_FT
-if HAVE_CAIRO_PNG
-hb_view_SOURCES = hb-view.cc
-hb_view_CPPFLAGS = $(HBCFLAGS) $(CAIRO_FT_CFLAGS) $(CAIRO_PNG_CFLAGS)
-hb_view_LDADD = libharfbuzz.la -lm $(HBLIBS) $(CAIRO_FT_LIBS) $(CAIRO_PNG_LIBS)
-bin_PROGRAMS += hb-view
-endif
-endif
-endif
-endif
-
 main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)

@@ -161,6 +161,7 @@ Makefile
 harfbuzz.pc
 src/Makefile
 src/hb-version.h
+util/Makefile
 test/Makefile
 ])
 
