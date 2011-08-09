@@ -92,7 +92,7 @@ populate_log_font (LOGFONTW  *lf,
 }
 
 
-static struct hb_uniscribe_face_data_t{
+static struct hb_uniscribe_face_data_t {
   HANDLE fh;
 } _hb_uniscribe_face_data_nil = {0};
 
