@@ -1029,6 +1029,7 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
   hb_buffer_t *buffer;
   unsigned int i, len, expected_len;
   hb_glyph_info_t *glyphs;
+  hb_glyph_position_t *pos;
   hb_bool_t fail;
   GString *str;
 
@@ -1047,6 +1048,7 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
   expected_len = len;
 
   glyphs = hb_buffer_get_glyph_infos (buffer, &len);
+  pos = hb_buffer_get_glyph_positions (buffer, NULL);
   fail = len != expected_len;
   if (!fail)
     for (i = 0; i < len; i++)
@@ -1056,13 +1058,25 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
       }
 
   str = g_string_new ("");
+  for (i = 0; i < expected_len; i++)
+    g_string_append_printf (str, " %4d", data->glyphs[i]);
+  g_test_message ("Expected glyphs: %s", str->str);
+  g_string_truncate (str, 0);
   for (i = 0; i < len; i++)
     g_string_append_printf (str, " %4d", glyphs[i].codepoint);
   g_test_message ("Received glyphs: %s", str->str);
   g_string_truncate (str, 0);
-  for (i = 0; i < expected_len; i++)
-    g_string_append_printf (str, " %4d", data->glyphs[i]);
-  g_test_message ("Expected glyphs: %s", str->str);
+  for (i = 0; i < len; i++)
+    g_string_append_printf (str, " %d", glyphs[i].cluster);
+  g_test_message ("Received clusters: %s", str->str);
+  g_string_truncate (str, 0);
+  for (i = 0; i < len; i++)
+    g_string_append_printf (str, " (%d,%d)+(%d,%d)",
+			    pos[i].x_offset,
+			    pos[i].y_offset,
+			    pos[i].x_advance,
+			    pos[i].y_advance);
+  g_test_message ("Received positions: %s", str->str);
   g_string_free (str, TRUE);
 
   if (fail) {
