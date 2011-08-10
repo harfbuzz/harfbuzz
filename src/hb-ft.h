@@ -55,6 +55,8 @@ hb_ft_font_create (FT_Face           ft_face,
 void
 hb_ft_font_set_funcs (hb_font_t *font);
 
+FT_Face
+hb_ft_font_get_face (hb_font_t *font);
 
 
 HB_END_DECLS

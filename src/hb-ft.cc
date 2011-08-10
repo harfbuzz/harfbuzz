@@ -325,6 +325,11 @@ hb_ft_face_create_cached (FT_Face ft_face)
   return hb_face_reference ((hb_face_t *) ft_face->generic.data);
 }
 
+void
+_do_nothing (void)
+{
+}
+
 
 hb_font_t *
 hb_ft_font_create (FT_Face           ft_face,
@@ -338,7 +343,7 @@ hb_ft_font_create (FT_Face           ft_face,
   hb_face_destroy (face);
   hb_font_set_funcs (font,
 		     _hb_ft_get_font_funcs (),
-		     ft_face, NULL);
+		     ft_face, (hb_destroy_func_t) _do_nothing);
   hb_font_set_scale (font,
 		     ((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM) >> 16,
 		     ((uint64_t) ft_face->size->metrics.y_scale * (uint64_t) ft_face->units_per_EM) >> 16);
@@ -412,4 +417,12 @@ hb_ft_font_set_funcs (hb_font_t *font)
 		     _hb_ft_get_font_funcs (),
 		     ft_face,
 		     (hb_destroy_func_t) FT_Done_Face);
+}
+
+FT_Face
+hb_ft_font_get_face (hb_font_t *font)
+{
+  if (font->destroy == (hb_destroy_func_t) FT_Done_Face ||
+      font->destroy == (hb_destroy_func_t) _do_nothing)
+    return (FT_Face) font->user_data;
 }
