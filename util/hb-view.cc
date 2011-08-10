@@ -38,6 +38,7 @@
 #include <locale.h>
 
 #include <glib.h>
+#include <glib/gprintf.h>
 
 #include <cairo-ft.h>
 #include <hb-ft.h>
@@ -45,13 +46,13 @@
 
 
 /* Controlled by cmd-line options */
-static int margin_t = 10;
-static int margin_b = 10;
-static int margin_l = 10;
-static int margin_r = 10;
-static int line_space = 0;
+struct margin_t {
+  double t, r, b, l;
+};
+static margin_t opt_margin = {18, 18, 18, 18};
+static double line_space = 0;
 static int face_index = 0;
-static double font_size = 18;
+static double font_size = 36;
 static const char *fore = "#000000";
 static const char *back = "#ffffff";
 static const char *text = NULL;
@@ -60,10 +61,11 @@ static const char *out_file = "/dev/stdout";
 static const char *direction = NULL;
 static const char *script = NULL;
 static const char *language = NULL;
-static hb_feature_t *features = NULL;
-static unsigned int num_features;
 static hb_bool_t annotate = FALSE;
 static hb_bool_t debug = FALSE;
+
+static hb_feature_t *features = NULL;
+static unsigned int num_features;
 
 /* Ugh, global vars.  Ugly, but does the job */
 static int width = 0;
@@ -81,108 +83,144 @@ usage (FILE *f, int status)
   exit (status);
 }
 
-G_GNUC_NORETURN static void
-version (void)
+static G_GNUC_NORETURN gboolean
+show_version (const char *name G_GNUC_UNUSED,
+	      const char *arg G_GNUC_UNUSED,
+	      gpointer    data G_GNUC_UNUSED,
+	      GError    **error G_GNUC_UNUSED)
 {
-  printf ("hb-view (harfbuzz) %s\n", HB_VERSION_STRING);
-  exit (0);
+  g_printf("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
+
+  if (strcmp (HB_VERSION_STRING, hb_version_string ()))
+    g_printf("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
+
+  exit(0);
 }
 
-static void parse_features (char *s);
 
-static void
-parse_opts (int argc, char **argv)
+static gboolean
+parse_features (const char *name G_GNUC_UNUSED,
+	        const char *arg,
+	        gpointer    data G_GNUC_UNUSED,
+	        GError    **error G_GNUC_UNUSED);
+
+static gboolean
+parse_margin (const char *name G_GNUC_UNUSED,
+	      const char *arg,
+	      gpointer    data G_GNUC_UNUSED,
+	      GError    **error G_GNUC_UNUSED)
 {
-  argv[0] = (char *) "hb-view";
-  while (1)
-    {
-      int option_index = 0, c;
-      static const struct option long_options[] = {
-	{"annotate", 0, &annotate, TRUE},
-	{"background", 1, 0, 'B'},
-	{"debug", 0, &debug, TRUE},
-	{"direction", 1, 0, 'd'},
-	{"features", 1, 0, 'f'},
-	{"font-size", 1, 0, 's'},
-	{"face-index", 1, 0, 'i'},
-	{"foreground", 1, 0, 'F'},
-	{"help", 0, 0, 'h'},
-	{"language", 1, 0, 'L'},
-	{"line-space", 1, 0, 'l'},
-	{"margin", 1, 0, 'm'},
-	{"output", 1, 0, 'o'},
-	{"script", 1, 0, 'S'},
-	{"version", 0, 0, 'v'},
-	{0, 0, 0, 0}
-      };
-
-      c = getopt_long (argc, argv, "", long_options, &option_index);
-      if (c == -1)
-	break;
-
-      switch (c)
-	{
-	case 0:
-	  break;
-	case 'h':
-	  usage (stdout, 0);
-	  break;
-	case 'v':
-	  version ();
-	  break;
-	case 'i':
-	  face_index = atoi (optarg);
-	  break;
-	case 'l':
-	  line_space = atoi (optarg);
-	  break;
-	case 'm':
-	  switch (sscanf (optarg, "%d %d %d %d", &margin_t, &margin_r, &margin_b, &margin_l)) {
-	    default: break;
-	    case 1: margin_r = margin_t;
-	    case 2: margin_b = margin_t;
-	    case 3: margin_l = margin_r;
-	  }
-	  break;
-	case 's':
-	  font_size = strtod (optarg, NULL);
-	  break;
-	case 'f':
-	  parse_features (optarg);
-	  break;
-	case 'F':
-	  fore = optarg;
-	  break;
-	case 'B':
-	  back = optarg;
-	  break;
-	case 't':
-	  text = optarg;
-	  break;
-	case 'd':
-	  direction = optarg;
-	  break;
-	case 'S':
-	  script = optarg;
-	  break;
-	case 'L':
-	  language = optarg;
-	  break;
-	case 'o':
-	  out_file = optarg;
-	  break;
-	case '?':
-	  usage (stdout, 1);
-	  break;
-	default:
-	  break;
-	}
-    }
-  if (optind + 2 != argc)
-    usage (stderr, 1);
-  font_file = argv[optind++];
-  text = argv[optind++];
+  switch (sscanf (arg, "%f %f %f %f", &opt_margin.t, &opt_margin.r, &opt_margin.b, &opt_margin.l)) {
+    case 1: opt_margin.r = opt_margin.t;
+    case 2: opt_margin.b = opt_margin.t;
+    case 3: opt_margin.l = opt_margin.r;
+    case 4: return TRUE;
+    default:
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "%s argument should be one to four space-separated numbers",
+		   name);
+      return FALSE;
+  }
 }
+
+
+void
+fail (const char *format, ...)
+{
+  const char *msg;
+
+  va_list vap;
+  va_start (vap, format);
+  msg = g_strdup_vprintf (format, vap);
+  g_printerr ("%s: %s\n", g_get_prgname (), msg);
+
+  exit (1);
+}
+
+static gchar *
+shapers_to_string (void)
+{
+  GString *shapers = g_string_new (NULL);
+  const char **shaper_list = hb_shape_list_shapers ();
+
+  for (; *shaper_list; shaper_list++) {
+    g_string_append (shapers, *shaper_list);
+    g_string_append_c (shapers, ',');
+  }
+  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
+
+  return g_string_free(shapers, FALSE);
+}
+
+void
+parse_options (int argc, char *argv[])
+{
+  gchar *shapers_options = shapers_to_string ();
+  GOptionEntry entries[] =
+  {
+    {"version",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &show_version,
+     "Show version numbers",						NULL},
+    {"debug",		0, 0, G_OPTION_ARG_NONE,			&debug,
+     "Free all resources before exit",					NULL},
+    {"output",		0, 0, G_OPTION_ARG_STRING,			&out_file,
+     "Set output file name",				      "filename"},
+
+    {"annotate",	0, 0, G_OPTION_ARG_NONE,			&annotate,
+     "Annotate output rendering",				    NULL},
+    {"background",	0, 0, G_OPTION_ARG_STRING,			&back,
+     "Set background color",			 "red/#rrggbb/#rrggbbaa"},
+    {"foreground",	0, 0, G_OPTION_ARG_STRING,			&fore,
+     "Set foreground color",			 "red/#rrggbb/#rrggbbaa"},
+    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,			&font_size,
+     "Set space between lines (default: 0)",			 "units"},
+    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,			(gpointer) &parse_margin,
+     "Margin around output",			   "one to four numbers"},
+
+    {"direction",	0, 0, G_OPTION_ARG_STRING,			&direction,
+     "Set text direction (default: auto)",	       "ltr/rtl/ttb/btt"},
+    {"language",	0, 0, G_OPTION_ARG_STRING,			&language,
+     "Set text language (default: $LANG)",		       "langstr"},
+    {"script",		0, 0, G_OPTION_ARG_STRING,			&script,
+     "Set text script (default: auto)",			 "ISO-15924 tag"},
+    {"features",	0, 0, G_OPTION_ARG_CALLBACK,			(gpointer) &parse_features,
+     "Font features to apply to text",				  "TODO"},
+
+    {"face-index",	0, 0, G_OPTION_ARG_INT,				&face_index,
+     "Face index (default: 0)",					 "index"},
+    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,			&font_size,
+     "Font size",						  "size"},
+
+    {NULL}
+  };
+  GError *error = NULL;
+  GError *parse_error = NULL;
+  GOptionContext *context;
+  size_t len;
+
+  context = g_option_context_new ("- FONT-FILE TEXT");
+
+  g_option_context_add_main_entries (context, entries, NULL);
+
+  if (!g_option_context_parse (context, &argc, &argv, &parse_error))
+  {
+    if (parse_error != NULL)
+      fail ("%s", parse_error->message);
+    else
+      fail ("Option parse error");
+    exit(1);
+  }
+  g_option_context_free(context);
+  g_free(shapers_options);
+
+  if (argc != 3) {
+    g_printerr ("Usage: %s [OPTION...] FONT-FILE TEXT\n", g_get_prgname ());
+    exit (1);
+  }
+
+  font_file = argv[1];
+  text = g_locale_to_utf8 (argv[2], -1, NULL, NULL, &error);
+}
+
 
 
 static void
@@ -309,15 +347,20 @@ skip_one_feature (char **pp)
     *pp = *pp + strlen (*pp);
 }
 
-static void parse_features (char *s)
+static gboolean
+parse_features (const char *name G_GNUC_UNUSED,
+	        const char *arg,
+	        gpointer    data G_GNUC_UNUSED,
+	        GError    **error G_GNUC_UNUSED)
 {
+  char *s = (char *) arg;
   char *p;
 
   num_features = 0;
   features = NULL;
 
   if (!*s)
-    return;
+    return TRUE;
 
   /* count the features first, so we can allocate memory */
   p = s;
@@ -339,6 +382,8 @@ static void parse_features (char *s)
     else
       skip_one_feature (&p);
   }
+
+  return TRUE;
 }
 
 
@@ -465,8 +510,8 @@ draw (void)
   height = 0;
   width = 0;
 
-  x = margin_l;
-  y = margin_t;
+  x = opt_margin.l;
+  y = opt_margin.t;
 
   do {
     cairo_text_extents_t extents;
@@ -513,8 +558,8 @@ draw (void)
     p = end + 1;
   } while (*end);
 
-  height = y + margin_b;
-  width += margin_l + margin_r;
+  height = y + opt_margin.b;
+  width += opt_margin.l + opt_margin.r;
 
   cairo_destroy (cr);
 }
@@ -530,7 +575,7 @@ main (int argc, char **argv)
 
   setlocale (LC_ALL, "");
 
-  parse_opts (argc, argv);
+  parse_options (argc, argv);
 
   FT_Init_FreeType (&ft_library);
   if (FT_New_Face (ft_library, font_file, face_index, &ft_face)) {
