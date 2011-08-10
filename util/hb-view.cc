@@ -212,7 +212,7 @@ parse_options (int argc, char *argv[])
   }
 
   font_file = argv[1];
-  text = g_locale_to_utf8 (argv[2], -1, NULL, NULL, &error);
+  text = argv[2];
 }
 
 
