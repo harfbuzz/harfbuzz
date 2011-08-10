@@ -158,37 +158,24 @@ parse_options (int argc, char *argv[])
   gchar *shapers_options = shapers_to_string ();
   GOptionEntry entries[] =
   {
-    {"version",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &show_version,
-     "Show version numbers",						NULL},
-    {"debug",		0, 0, G_OPTION_ARG_NONE,			&debug,
-     "Free all resources before exit",					NULL},
-    {"output",		0, 0, G_OPTION_ARG_STRING,			&out_file,
-     "Set output file name",				      "filename"},
+    {"version",		0, G_OPTION_FLAG_NO_ARG,
+			   G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			NULL},
+    {"debug",		0, 0, G_OPTION_ARG_NONE,	&debug,				"Free all resources before exit",	NULL},
+    {"output",		0, 0, G_OPTION_ARG_STRING,	&out_file,			"Set output file name",			"filename"},
 
-    {"annotate",	0, 0, G_OPTION_ARG_NONE,			&annotate,
-     "Annotate output rendering",				    NULL},
-    {"background",	0, 0, G_OPTION_ARG_STRING,			&back,
-     "Set background color",			 "red/#rrggbb/#rrggbbaa"},
-    {"foreground",	0, 0, G_OPTION_ARG_STRING,			&fore,
-     "Set foreground color",			 "red/#rrggbb/#rrggbbaa"},
-    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,			&font_size,
-     "Set space between lines (default: 0)",			 "units"},
-    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,			(gpointer) &parse_margin,
-     "Margin around output",			   "one to four numbers"},
+    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&annotate,			"Annotate output rendering",		NULL},
+    {"background",	0, 0, G_OPTION_ARG_STRING,	&back,				"Set background color",			"red/#rrggbb/#rrggbbaa"},
+    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&fore,				"Set foreground color",			"red/#rrggbb/#rrggbbaa"},
+    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&font_size,			"Set space between lines (default: 0)",	"units"},
+    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output",			"one to four numbers"},
 
-    {"direction",	0, 0, G_OPTION_ARG_STRING,			&direction,
-     "Set text direction (default: auto)",	       "ltr/rtl/ttb/btt"},
-    {"language",	0, 0, G_OPTION_ARG_STRING,			&language,
-     "Set text language (default: $LANG)",		       "langstr"},
-    {"script",		0, 0, G_OPTION_ARG_STRING,			&script,
-     "Set text script (default: auto)",			 "ISO-15924 tag"},
-    {"features",	0, 0, G_OPTION_ARG_CALLBACK,			(gpointer) &parse_features,
-     "Font features to apply to text",				  "TODO"},
+    {"direction",	0, 0, G_OPTION_ARG_STRING,	&direction,			"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
+    {"language",	0, 0, G_OPTION_ARG_STRING,	&language,			"Set text language (default: $LANG)",	"langstr"},
+    {"script",		0, 0, G_OPTION_ARG_STRING,	&script,			"Set text script (default: auto)",	"ISO-15924 tag"},
+    {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	"Font features to apply to text",	"TODO"},
 
-    {"face-index",	0, 0, G_OPTION_ARG_INT,				&face_index,
-     "Face index (default: 0)",					 "index"},
-    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,			&font_size,
-     "Font size",						  "size"},
+    {"face-index",	0, 0, G_OPTION_ARG_INT,		&face_index,			"Face index (default: 0)",		"index"},
+    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&font_size,			"Font size",				"size"},
 
     {NULL}
   };
