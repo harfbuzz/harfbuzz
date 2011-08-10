@@ -146,6 +146,7 @@ _hb_uniscribe_face_get_data (hb_face_t *face)
 
 static struct hb_uniscribe_font_data_t {
   HDC hdc;
+  LOGFONTW log_font;
   HFONT hfont;
   SCRIPT_CACHE script_cache;
 } _hb_uniscribe_font_data_nil = {NULL, NULL, NULL};
@@ -176,11 +177,10 @@ _hb_uniscribe_font_get_data (hb_font_t *font)
 
   data->hdc = GetDC (NULL);
 
-  LOGFONTW log_font;
-  if (unlikely (!populate_log_font (&log_font, data->hdc, font)))
+  if (unlikely (!populate_log_font (&data->log_font, data->hdc, font)))
     DEBUG_MSG (UNISCRIBE, font, "Font populate_log_font() failed");
   else {
-    data->hfont = CreateFontIndirectW (&log_font);
+    data->hfont = CreateFontIndirectW (&data->log_font);
     if (unlikely (!data->hfont))
       DEBUG_MSG (UNISCRIBE, font, "Font CreateFontIndirectW() failed");
     if (!SelectObject (data->hdc, data->hfont))
@@ -200,6 +200,24 @@ _hb_uniscribe_font_get_data (hb_font_t *font)
   }
 
   return data;
+}
+
+LOGFONTW *
+hb_uniscribe_font_get_logfontw (hb_font_t *font)
+{
+  hb_uniscribe_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
+  if (unlikely (!font_data))
+    return NULL;
+  return &font_data->log_font;
+}
+
+HFONT
+hb_uniscribe_font_get_hfont (hb_font_t *font)
+{
+  hb_uniscribe_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
+  if (unlikely (!font_data))
+    return 0;
+  return font_data->hfont;
 }
 
 
