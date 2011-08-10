@@ -50,6 +50,7 @@ struct margin_t {
   double t, r, b, l;
 };
 static margin_t opt_margin = {18, 18, 18, 18};
+static char **opt_shapers;
 static double line_space = 0;
 static int face_index = 0;
 static double font_size = 36;
@@ -76,12 +77,21 @@ static cairo_pattern_t *back_pattern = NULL;
 static cairo_font_face_t *cairo_face;
 
 
-G_GNUC_NORETURN static void
-usage (FILE *f, int status)
+static gchar *
+shapers_to_string (void)
 {
-  fprintf (f, "usage: hb-view [OPTS...] font-file text\n");
-  exit (status);
+  GString *shapers = g_string_new (NULL);
+  const char **shaper_list = hb_shape_list_shapers ();
+
+  for (; *shaper_list; shaper_list++) {
+    g_string_append (shapers, *shaper_list);
+    g_string_append_c (shapers, ',');
+  }
+  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
+
+  return g_string_free (shapers, FALSE);
 }
+
 
 static G_GNUC_NORETURN gboolean
 show_version (const char *name G_GNUC_UNUSED,
@@ -89,10 +99,13 @@ show_version (const char *name G_GNUC_UNUSED,
 	      gpointer    data G_GNUC_UNUSED,
 	      GError    **error G_GNUC_UNUSED)
 {
-  g_printf("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
+  g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
 
+  char *shapers = shapers_to_string ();
+  g_printf ("Available shapers: %s\n", shapers);
+  g_free (shapers);
   if (strcmp (HB_VERSION_STRING, hb_version_string ()))
-    g_printf("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
+    g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
 
   exit(0);
 }
@@ -123,6 +136,16 @@ parse_margin (const char *name G_GNUC_UNUSED,
   }
 }
 
+static gboolean
+parse_shapers (const char *name G_GNUC_UNUSED,
+	       const char *arg,
+	       gpointer    data G_GNUC_UNUSED,
+	       GError    **error G_GNUC_UNUSED)
+{
+  opt_shapers = g_strsplit (arg, ",", 0);
+  return TRUE;
+}
+
 
 void
 fail (const char *format, ...)
@@ -137,25 +160,9 @@ fail (const char *format, ...)
   exit (1);
 }
 
-static gchar *
-shapers_to_string (void)
-{
-  GString *shapers = g_string_new (NULL);
-  const char **shaper_list = hb_shape_list_shapers ();
-
-  for (; *shaper_list; shaper_list++) {
-    g_string_append (shapers, *shaper_list);
-    g_string_append_c (shapers, ',');
-  }
-  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
-
-  return g_string_free(shapers, FALSE);
-}
-
 void
 parse_options (int argc, char *argv[])
 {
-  gchar *shapers_options = shapers_to_string ();
   GOptionEntry entries[] =
   {
     {"version",		0, G_OPTION_FLAG_NO_ARG,
@@ -169,6 +176,7 @@ parse_options (int argc, char *argv[])
     {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&font_size,			"Set space between lines (default: 0)",	"units"},
     {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output",			"one to four numbers"},
 
+    {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers",	"list"},
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&direction,			"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
     {"language",	0, 0, G_OPTION_ARG_STRING,	&language,			"Set text language (default: $LANG)",	"langstr"},
     {"script",		0, 0, G_OPTION_ARG_STRING,	&script,			"Set text script (default: auto)",	"ISO-15924 tag"},
@@ -197,7 +205,6 @@ parse_options (int argc, char *argv[])
     exit(1);
   }
   g_option_context_free(context);
-  g_free(shapers_options);
 
   if (argc != 3) {
     g_printerr ("Usage: %s [OPTION...] FONT-FILE TEXT\n", g_get_prgname ());
@@ -402,7 +409,8 @@ _hb_cr_text_glyphs (cairo_t *cr,
     len = strlen (utf8);
   hb_buffer_add_utf8 (hb_buffer, utf8, len, 0, len);
 
-  hb_shape (hb_font, hb_buffer, features, num_features);
+  if (!hb_shape_full (hb_font, hb_buffer, features, num_features, NULL, opt_shapers))
+    fail ("All shapers failed");
 
   num_glyphs = hb_buffer_get_length (hb_buffer);
   hb_glyph = hb_buffer_get_glyph_infos (hb_buffer, NULL);
@@ -583,6 +591,7 @@ main (int argc, char **argv)
 
   if (debug) {
     free (features);
+    g_free (opt_shapers);
 
     cairo_pattern_destroy (fore_pattern);
     cairo_pattern_destroy (back_pattern);
