@@ -433,7 +433,7 @@ hb_ot_shape (hb_font_t          *font,
 	     hb_buffer_t        *buffer,
 	     const hb_feature_t *features,
 	     unsigned int        num_features,
-	     const char         *shaper_options)
+	     const char * const *shaper_options)
 {
   hb_ot_shape_plan_t plan;
 

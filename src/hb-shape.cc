@@ -42,7 +42,7 @@ typedef hb_bool_t (*hb_shape_func_t) (hb_font_t          *font,
 				      hb_buffer_t        *buffer,
 				      const hb_feature_t *features,
 				      unsigned int        num_features,
-				      const char         *shaper_options);
+				      const char * const *shaper_options);
 
 #define HB_SHAPER_IMPLEMENT(name) {#name, hb_##name##_shape}
 static struct hb_shaper_pair_t {
@@ -110,12 +110,12 @@ hb_shape_list_shapers (void)
 }
 
 hb_bool_t
-hb_shape_full (hb_font_t           *font,
-	       hb_buffer_t         *buffer,
-	       const hb_feature_t  *features,
-	       unsigned int         num_features,
-	       const char          *shaper_options,
-	       const char         **shaper_list)
+hb_shape_full (hb_font_t          *font,
+	       hb_buffer_t        *buffer,
+	       const hb_feature_t *features,
+	       unsigned int        num_features,
+	       const char * const *shaper_options,
+	       const char * const *shaper_list)
 {
   if (likely (!shaper_list)) {
     for (unsigned int i = 0; i < ARRAY_LENGTH (shapers); i++)
