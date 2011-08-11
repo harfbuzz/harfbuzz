@@ -25,48 +25,14 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "common.hh"
 
-#include <unistd.h>
-#include <getopt.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <locale.h>
-
-#include <glib.h>
-#include <glib/gprintf.h>
 
 #include <cairo-ft.h>
 #include <hb-ft.h>
 
+#include "options.hh"
 
-
-/* Controlled by cmd-line options */
-struct margin_t {
-  double t, r, b, l;
-};
-static margin_t opt_margin = {18, 18, 18, 18};
-static char **opt_shapers;
-static double line_space = 0;
-static int face_index = 0;
-static double font_size = 36;
-static const char *fore = "#000000";
-static const char *back = "#ffffff";
-static const char *text = NULL;
-static const char *font_file = NULL;
-static const char *out_file = "/dev/stdout";
-static const char *direction = NULL;
-static const char *script = NULL;
-static const char *language = NULL;
-static hb_bool_t annotate = FALSE;
-static hb_bool_t debug = FALSE;
-
-static hb_feature_t *features = NULL;
-static unsigned int num_features;
 
 /* Ugh, global vars.  Ugly, but does the job */
 static int width = 0;
@@ -76,309 +42,6 @@ static cairo_pattern_t *fore_pattern = NULL;
 static cairo_pattern_t *back_pattern = NULL;
 static cairo_font_face_t *cairo_face;
 
-
-static gchar *
-shapers_to_string (void)
-{
-  GString *shapers = g_string_new (NULL);
-  const char **shaper_list = hb_shape_list_shapers ();
-
-  for (; *shaper_list; shaper_list++) {
-    g_string_append (shapers, *shaper_list);
-    g_string_append_c (shapers, ',');
-  }
-  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
-
-  return g_string_free (shapers, FALSE);
-}
-
-
-static G_GNUC_NORETURN gboolean
-show_version (const char *name G_GNUC_UNUSED,
-	      const char *arg G_GNUC_UNUSED,
-	      gpointer    data G_GNUC_UNUSED,
-	      GError    **error G_GNUC_UNUSED)
-{
-  g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
-
-  char *shapers = shapers_to_string ();
-  g_printf ("Available shapers: %s\n", shapers);
-  g_free (shapers);
-  if (strcmp (HB_VERSION_STRING, hb_version_string ()))
-    g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
-
-  exit(0);
-}
-
-
-static gboolean
-parse_features (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data G_GNUC_UNUSED,
-	        GError    **error G_GNUC_UNUSED);
-
-static gboolean
-parse_margin (const char *name G_GNUC_UNUSED,
-	      const char *arg,
-	      gpointer    data G_GNUC_UNUSED,
-	      GError    **error G_GNUC_UNUSED)
-{
-  switch (sscanf (arg, "%f %f %f %f", &opt_margin.t, &opt_margin.r, &opt_margin.b, &opt_margin.l)) {
-    case 1: opt_margin.r = opt_margin.t;
-    case 2: opt_margin.b = opt_margin.t;
-    case 3: opt_margin.l = opt_margin.r;
-    case 4: return TRUE;
-    default:
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one to four space-separated numbers",
-		   name);
-      return FALSE;
-  }
-}
-
-static gboolean
-parse_shapers (const char *name G_GNUC_UNUSED,
-	       const char *arg,
-	       gpointer    data G_GNUC_UNUSED,
-	       GError    **error G_GNUC_UNUSED)
-{
-  opt_shapers = g_strsplit (arg, ",", 0);
-  return TRUE;
-}
-
-
-void
-fail (const char *format, ...)
-{
-  const char *msg;
-
-  va_list vap;
-  va_start (vap, format);
-  msg = g_strdup_vprintf (format, vap);
-  g_printerr ("%s: %s\n", g_get_prgname (), msg);
-
-  exit (1);
-}
-
-void
-parse_options (int argc, char *argv[])
-{
-  GOptionEntry entries[] =
-  {
-    {"version",		0, G_OPTION_FLAG_NO_ARG,
-			   G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			NULL},
-    {"debug",		0, 0, G_OPTION_ARG_NONE,	&debug,				"Free all resources before exit",	NULL},
-    {"output",		0, 0, G_OPTION_ARG_STRING,	&out_file,			"Set output file name",			"filename"},
-
-    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&annotate,			"Annotate output rendering",		NULL},
-    {"background",	0, 0, G_OPTION_ARG_STRING,	&back,				"Set background color",			"red/#rrggbb/#rrggbbaa"},
-    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&fore,				"Set foreground color",			"red/#rrggbb/#rrggbbaa"},
-    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&font_size,			"Set space between lines (default: 0)",	"units"},
-    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output",			"one to four numbers"},
-
-    {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers",	"list"},
-    {"direction",	0, 0, G_OPTION_ARG_STRING,	&direction,			"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
-    {"language",	0, 0, G_OPTION_ARG_STRING,	&language,			"Set text language (default: $LANG)",	"langstr"},
-    {"script",		0, 0, G_OPTION_ARG_STRING,	&script,			"Set text script (default: auto)",	"ISO-15924 tag"},
-    {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	"Font features to apply to text",	"TODO"},
-
-    {"face-index",	0, 0, G_OPTION_ARG_INT,		&face_index,			"Face index (default: 0)",		"index"},
-    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&font_size,			"Font size",				"size"},
-
-    {NULL}
-  };
-  GError *error = NULL;
-  GError *parse_error = NULL;
-  GOptionContext *context;
-  size_t len;
-
-  context = g_option_context_new ("- FONT-FILE TEXT");
-
-  g_option_context_add_main_entries (context, entries, NULL);
-
-  if (!g_option_context_parse (context, &argc, &argv, &parse_error))
-  {
-    if (parse_error != NULL)
-      fail ("%s", parse_error->message);
-    else
-      fail ("Option parse error");
-    exit(1);
-  }
-  g_option_context_free(context);
-
-  if (argc != 3) {
-    g_printerr ("Usage: %s [OPTION...] FONT-FILE TEXT\n", g_get_prgname ());
-    exit (1);
-  }
-
-  font_file = argv[1];
-  text = argv[2];
-}
-
-
-
-static void
-parse_space (char **pp)
-{
-  char c;
-#define ISSPACE(c) ((c)==' '||(c)=='\f'||(c)=='\n'||(c)=='\r'||(c)=='\t'||(c)=='\v')
-  while (c = **pp, ISSPACE (c))
-    (*pp)++;
-#undef ISSPACE
-}
-
-static hb_bool_t
-parse_char (char **pp, char c)
-{
-  parse_space (pp);
-
-  if (**pp != c)
-    return FALSE;
-
-  (*pp)++;
-  return TRUE;
-}
-
-static hb_bool_t
-parse_uint (char **pp, unsigned int *pv)
-{
-  char *p = *pp;
-  unsigned int v;
-
-  v = strtol (p, pp, 0);
-
-  if (p == *pp)
-    return FALSE;
-
-  *pv = v;
-  return TRUE;
-}
-
-
-static hb_bool_t
-parse_feature_value_prefix (char **pp, hb_feature_t *feature)
-{
-  if (parse_char (pp, '-'))
-    feature->value = 0;
-  else {
-    parse_char (pp, '+');
-    feature->value = 1;
-  }
-
-  return TRUE;
-}
-
-static hb_bool_t
-parse_feature_tag (char **pp, hb_feature_t *feature)
-{
-  char *p = *pp, c;
-
-  parse_space (pp);
-
-#define ISALNUM(c) (('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z') || ('0' <= (c) && (c) <= '9'))
-  while (c = **pp, ISALNUM(c))
-    (*pp)++;
-#undef ISALNUM
-
-  if (p == *pp)
-    return FALSE;
-
-  **pp = '\0';
-  feature->tag = hb_tag_from_string (p);
-  **pp = c;
-
-  return TRUE;
-}
-
-static hb_bool_t
-parse_feature_indices (char **pp, hb_feature_t *feature)
-{
-  hb_bool_t has_start;
-
-  feature->start = 0;
-  feature->end = (unsigned int) -1;
-
-  if (!parse_char (pp, '['))
-    return TRUE;
-
-  has_start = parse_uint (pp, &feature->start);
-
-  if (parse_char (pp, ':')) {
-    parse_uint (pp, &feature->end);
-  } else {
-    if (has_start)
-      feature->end = feature->start + 1;
-  }
-
-  return parse_char (pp, ']');
-}
-
-static hb_bool_t
-parse_feature_value_postfix (char **pp, hb_feature_t *feature)
-{
-  return !parse_char (pp, '=') || parse_uint (pp, &feature->value);
-}
-
-
-static hb_bool_t
-parse_one_feature (char **pp, hb_feature_t *feature)
-{
-  return parse_feature_value_prefix (pp, feature) &&
-	 parse_feature_tag (pp, feature) &&
-	 parse_feature_indices (pp, feature) &&
-	 parse_feature_value_postfix (pp, feature) &&
-	 (parse_char (pp, ',') || **pp == '\0');
-}
-
-static void
-skip_one_feature (char **pp)
-{
-  char *e;
-  e = strchr (*pp, ',');
-  if (e)
-    *pp = e + 1;
-  else
-    *pp = *pp + strlen (*pp);
-}
-
-static gboolean
-parse_features (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data G_GNUC_UNUSED,
-	        GError    **error G_GNUC_UNUSED)
-{
-  char *s = (char *) arg;
-  char *p;
-
-  num_features = 0;
-  features = NULL;
-
-  if (!*s)
-    return TRUE;
-
-  /* count the features first, so we can allocate memory */
-  p = s;
-  do {
-    num_features++;
-    p = strchr (p, ',');
-    if (p)
-      p++;
-  } while (p);
-
-  features = (hb_feature_t *) calloc (num_features, sizeof (*features));
-
-  /* now do the actual parsing */
-  p = s;
-  num_features = 0;
-  while (*p) {
-    if (parse_one_feature (&p, &features[num_features]))
-      num_features++;
-    else
-      skip_one_feature (&p);
-  }
-
-  return TRUE;
-}
 
 
 static cairo_glyph_t *
@@ -398,18 +61,18 @@ _hb_cr_text_glyphs (cairo_t *cr,
 
   hb_buffer = hb_buffer_create (0);
 
-  if (direction)
-    hb_buffer_set_direction (hb_buffer, hb_direction_from_string (direction));
-  if (script)
-    hb_buffer_set_script (hb_buffer, hb_script_from_string (script));
-  if (language)
-    hb_buffer_set_language (hb_buffer, hb_language_from_string (language));
+  if (shape_opts->direction)
+    hb_buffer_set_direction (hb_buffer, hb_direction_from_string (shape_opts->direction));
+  if (shape_opts->script)
+    hb_buffer_set_script (hb_buffer, hb_script_from_string (shape_opts->script));
+  if (shape_opts->language)
+    hb_buffer_set_language (hb_buffer, hb_language_from_string (shape_opts->language));
 
   if (len < 0)
     len = strlen (utf8);
   hb_buffer_add_utf8 (hb_buffer, utf8, len, 0, len);
 
-  if (!hb_shape_full (hb_font, hb_buffer, features, num_features, NULL, opt_shapers))
+  if (!hb_shape_full (hb_font, hb_buffer, shape_opts->features, shape_opts->num_features, NULL, shape_opts->shapers))
     fail ("All shapers failed");
 
   num_glyphs = hb_buffer_get_length (hb_buffer);
@@ -452,11 +115,11 @@ create_context (void)
     cairo_pattern_destroy (fore_pattern);
 
   br = bg = bb = ba = 255;
-  sscanf (back + (*back=='#'), "%2x%2x%2x%2x", &br, &bg, &bb, &ba);
+  sscanf (view_opts->back + (*view_opts->back=='#'), "%2x%2x%2x%2x", &br, &bg, &bb, &ba);
   fr = fg = fb = 0; fa = 255;
-  sscanf (fore + (*fore=='#'), "%2x%2x%2x%2x", &fr, &fg, &fb, &fa);
+  sscanf (view_opts->fore + (*view_opts->fore=='#'), "%2x%2x%2x%2x", &fr, &fg, &fb, &fa);
 
-  if (!annotate && ba == 255 && fa == 255 && br == bg && bg == bb && fr == fg && fg == fb) {
+  if (!view_opts->annotate && ba == 255 && fa == 255 && br == bg && bg == bb && fr == fg && fg == fb) {
     /* grayscale.  use A8 surface */
     surface = cairo_image_surface_create (CAIRO_FORMAT_A8, width, height);
     cr = cairo_create (surface);
@@ -494,19 +157,19 @@ draw (void)
   cairo_glyph_t *glyphs = NULL;
   unsigned int num_glyphs = 0;
 
-  const char *end, *p = text;
+  const char *end, *p = shape_opts->text;
   double x, y;
 
   cr= create_context ();
 
-  cairo_set_font_size (cr, font_size);
+  cairo_set_font_size (cr, font_opts->font_size);
   cairo_font_extents (cr, &font_extents);
 
   height = 0;
   width = 0;
 
-  x = opt_margin.l;
-  y = opt_margin.t;
+  x = view_opts->margin.l;
+  y = view_opts->margin.t;
 
   do {
     cairo_text_extents_t extents;
@@ -515,8 +178,8 @@ draw (void)
     if (!end)
       end = p + strlen (p);
 
-    if (p != text)
-	y += line_space;
+    if (p != shape_opts->text)
+	y += view_opts->line_space;
 
     if (p != end) {
       glyphs = _hb_cr_text_glyphs (cr, p, end - p, &num_glyphs);
@@ -527,7 +190,7 @@ draw (void)
       width = MAX (width, extents.x_advance);
       cairo_save (cr);
       cairo_translate (cr, x, y);
-      if (annotate) {
+      if (view_opts->annotate) {
         unsigned int i;
         cairo_save (cr);
 
@@ -553,8 +216,8 @@ draw (void)
     p = end + 1;
   } while (*end);
 
-  height = y + opt_margin.b;
-  width += opt_margin.l + opt_margin.r;
+  height = y + view_opts->margin.b;
+  width += view_opts->margin.l + view_opts->margin.r;
 
   cairo_destroy (cr);
 }
@@ -573,8 +236,8 @@ main (int argc, char **argv)
   parse_options (argc, argv);
 
   FT_Init_FreeType (&ft_library);
-  if (FT_New_Face (ft_library, font_file, face_index, &ft_face)) {
-    fprintf (stderr, "Failed to open font file `%s'\n", font_file);
+  if (FT_New_Face (ft_library, font_opts->font_file, font_opts->face_index, &ft_face)) {
+    fprintf (stderr, "Failed to open font file `%s'\n", font_opts->font_file);
     exit (1);
   }
   cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
@@ -590,8 +253,8 @@ main (int argc, char **argv)
   }
 
   if (debug) {
-    free (features);
-    g_free (opt_shapers);
+    free (shape_opts->features);
+    g_free (shape_opts->shapers);
 
     cairo_pattern_destroy (fore_pattern);
     cairo_pattern_destroy (back_pattern);
