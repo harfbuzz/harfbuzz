@@ -94,7 +94,7 @@ hb_tag_t hb_tag_from_string (const char *s);
 
 /* hb_direction_t */
 
-typedef enum _hb_direction_t {
+typedef enum {
   HB_DIRECTION_INVALID = -1,
   HB_DIRECTION_LTR = 0,
   HB_DIRECTION_RTL,
