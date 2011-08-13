@@ -425,4 +425,6 @@ hb_ft_font_get_face (hb_font_t *font)
   if (font->destroy == (hb_destroy_func_t) FT_Done_Face ||
       font->destroy == (hb_destroy_func_t) _do_nothing)
     return (FT_Face) font->user_data;
+
+  return NULL;
 }
