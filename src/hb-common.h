@@ -306,6 +306,7 @@ hb_script_get_horizontal_direction (hb_script_t script);
 /* User data */
 
 typedef struct _hb_user_data_key_t {
+  /*< private >*/
   char unused;
 } hb_user_data_key_t;
 

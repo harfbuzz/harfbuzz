@@ -83,45 +83,36 @@ endif
 if HAVE_GLIB
 HBCFLAGS += $(GLIB_CFLAGS)
 HBLIBS   += $(GLIB_LIBS)
-HBSOURCES += \
-	hb-glib.cc \
-	$(NULL)
-HBHEADERS += \
-	hb-glib.h \
-	$(NULL)
+HBSOURCES += hb-glib.cc
+HBHEADERS += hb-glib.h
+endif
+
+if HAVE_GOBJECT
+HBCFLAGS += $(GOBJECT_CFLAGS)
+HBLIBS   += $(GOBJECT_LIBS)
+HBSOURCES += hb-gobject.cc
+HBHEADERS += hb-gobject.h
 endif
 
 if HAVE_ICU
 HBCFLAGS += $(ICU_CFLAGS)
 HBLIBS   += $(ICU_LIBS)
-HBSOURCES += \
-	hb-icu.cc \
-	$(NULL)
-HBHEADERS += \
-	hb-icu.h \
-	$(NULL)
+HBSOURCES += hb-icu.cc
+HBHEADERS += hb-icu.h
 endif
 
 if HAVE_FREETYPE
 HBCFLAGS += $(FREETYPE_CFLAGS)
 HBLIBS   += $(FREETYPE_LIBS)
-HBSOURCES += \
-	hb-ft.cc \
-	$(NULL)
-HBHEADERS += \
-	hb-ft.h \
-	$(NULL)
+HBSOURCES += hb-ft.cc
+HBHEADERS += hb-ft.h
 endif
 
 if HAVE_UNISCRIBE
 HBCFLAGS += $(UNISCRIBE_CFLAGS)
 HBLIBS   += $(UNISCRIBE_LIBS)
-HBSOURCES += \
-	hb-uniscribe-shape.cc \
-	$(NULL)
-HBHEADERS += \
-	hb-uniscribe.h \
-	$(NULL)
+HBSOURCES += hb-uniscribe-shape.cc
+HBHEADERS += hb-uniscribe.h
 endif
 
 CXXLINK = $(LINK)
@@ -176,5 +167,9 @@ TESTS_ENVIRONMENT = \
 	HBSOURCES="$(HBSOURCES)" \
 	HBHEADERS="$(HBHEADERS)" \
 	$(NULL)
+
+scan:
+	g-ir-scanner $(HBCFLAGS) $(HBHEADERS) -n hb --strip-prefix=hb --library libharfbuzz.la
+
 
 -include $(top_srcdir)/git.mk

@@ -32,8 +32,6 @@
 
 #include "hb-unicode-private.hh"
 
-#include <glib.h>
-
 
 #if !GLIB_CHECK_VERSION(2,29,14)
 static const hb_script_t
@@ -348,5 +346,4 @@ hb_glib_get_unicode_funcs (void)
 {
   return &_hb_glib_unicode_funcs;
 }
-
 

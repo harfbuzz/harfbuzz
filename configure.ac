@@ -74,11 +74,22 @@ fi
 dnl ==========================================================================
 
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
-PKG_CHECK_MODULES(GTHREAD, gthread-2.0, , have_glib=false)
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
+
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0, have_gthread=true, have_gthread=false)
+if $have_gthread; then
+	AC_DEFINE(HAVE_GTHREAD, 1, [Have gthread2 library])
+fi
+AM_CONDITIONAL(HAVE_GTHREAD, $have_gthread)
+
+PKG_CHECK_MODULES(GOBJECT, gobject-2.0, have_gobject=true, have_gobject=false)
+if $have_gobject; then
+	AC_DEFINE(HAVE_GOBJECT, 1, [Have gobject2 library])
+fi
+AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
 
 dnl ==========================================================================
 
