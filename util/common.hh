@@ -44,6 +44,8 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-void fail (const char *format, ...);
+
+void fail (const char *format, ...) G_GNUC_NORETURN;
+
 
 #endif

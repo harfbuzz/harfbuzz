@@ -31,6 +31,7 @@
 
 #include "hb-font-private.hh"
 
+#include FT_ADVANCES_H
 #include FT_TRUETYPE_TABLES_H
 
 
@@ -47,8 +48,12 @@
  *
  *   - We don't handle any load_flags.  That definitely has API implications. :(
  *     I believe hb_ft_font_create() should take load_flags input.
+ *     In particular, FT_Get_Advance() without the NO_HINTING flag seems to be
+ *     buggy.
  *
  *   - We don't handle / allow for emboldening / obliqueing.
+ *
+ *   - Rounding, etc?
  *
  *   - In the future, we should add constructors to create fonts in font space.
  *
@@ -89,12 +94,13 @@ hb_ft_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
-  int load_flags = FT_LOAD_DEFAULT;
+  int load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
+  FT_Fixed v;
 
-  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
+  if (unlikely (FT_Get_Advance (ft_face, glyph, load_flags, &v)))
     return 0;
 
-  return ft_face->glyph->metrics.horiAdvance;
+  return v >> 10;
 }
 
 static hb_position_t
@@ -104,14 +110,15 @@ hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   FT_Face ft_face = (FT_Face) font_data;
-  int load_flags = FT_LOAD_DEFAULT;
+  int load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING | FT_LOAD_VERTICAL_LAYOUT;
+  FT_Fixed v;
 
-  if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
+  if (unlikely (FT_Get_Advance (ft_face, glyph, load_flags, &v)))
     return 0;
 
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
-  return -ft_face->glyph->metrics.vertAdvance;
+  return -v >> 10;
 }
 
 static hb_bool_t
