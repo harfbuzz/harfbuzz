@@ -76,8 +76,8 @@ extern struct font_options_t
 } font_opts[1];
 
 
-static const char *out_file = "/dev/stdout";
-static hb_bool_t debug = FALSE;
+extern const char *out_file;
+extern hb_bool_t debug;
 
 
 void parse_options (int argc, char *argv[]);

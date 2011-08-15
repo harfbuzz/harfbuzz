@@ -31,6 +31,8 @@ view_options_t view_opts[1];
 shape_options_t shape_opts[1];
 font_options_t font_opts[1];
 
+const char *out_file = "/dev/stdout";
+hb_bool_t debug = FALSE;
 
 
 static gboolean
@@ -40,7 +42,7 @@ parse_margin (const char *name G_GNUC_UNUSED,
 	      GError    **error G_GNUC_UNUSED)
 {
   view_options_t::margin_t &m = view_opts->margin;
-  switch (sscanf (arg, "%f %f %f %f", &m.t, &m.r, &m.b, &m.l)) {
+  switch (sscanf (arg, "%lf %lf %lf %lf", &m.t, &m.r, &m.b, &m.l)) {
     case 1: m.r = m.t;
     case 2: m.b = m.t;
     case 3: m.l = m.r;
@@ -268,7 +270,7 @@ parse_options (int argc, char *argv[])
   GOptionEntry entries[] =
   {
     {"version",		0, G_OPTION_FLAG_NO_ARG,
-			   G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			NULL},
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			NULL},
     {"debug",		0, 0, G_OPTION_ARG_NONE,	&debug,				"Free all resources before exit",	NULL},
     {"output",		0, 0, G_OPTION_ARG_STRING,	&out_file,			"Set output file name",			"filename"},
 
@@ -289,10 +291,8 @@ parse_options (int argc, char *argv[])
 
     {NULL}
   };
-  GError *error = NULL;
   GError *parse_error = NULL;
   GOptionContext *context;
-  size_t len;
 
   context = g_option_context_new ("- FONT-FILE TEXT");
 
