@@ -405,6 +405,8 @@ hb_ft_font_set_funcs (hb_font_t *font)
     return;
   }
 
+  FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
+
   FT_Set_Char_Size (ft_face,
 		    font->x_scale, font->y_scale,
 		    font->x_ppem * 72 * 64 / font->x_scale,
