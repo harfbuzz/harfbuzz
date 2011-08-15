@@ -163,6 +163,7 @@ _hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map, const hb
    */
 
   map->add_bool_feature (HB_TAG('c','c','m','p'));
+  map->add_bool_feature (HB_TAG('l','o','c','l'));
 
   map->add_gsub_pause (NULL, NULL);
 
