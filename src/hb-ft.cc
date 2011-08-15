@@ -325,7 +325,7 @@ hb_ft_face_create_cached (FT_Face ft_face)
   return hb_face_reference ((hb_face_t *) ft_face->generic.data);
 }
 
-void
+static void
 _do_nothing (void)
 {
 }
