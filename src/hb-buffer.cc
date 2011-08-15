@@ -723,6 +723,7 @@ hb_buffer_guess_properties (hb_buffer_t *buffer)
 	  } \
 	  if (item_length == -1) \
 	    item_length = text_length - item_offset; \
+	  buffer->ensure (buffer->len + item_length * sizeof (T) / 4); \
 	  const T *next = (const T *) text + item_offset; \
 	  const T *end = next + item_length; \
 	  while (next < end) { \
