@@ -27,6 +27,7 @@
 #include "hb-open-type-private.hh"
 
 #include "hb-ot-hhea-table.hh"
+#include "hb-ot-hmtx-table.hh"
 
 #include "hb-font-private.hh"
 #include "hb-blob.h"

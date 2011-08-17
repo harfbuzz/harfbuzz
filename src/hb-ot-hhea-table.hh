@@ -41,7 +41,6 @@
 struct hhea
 {
   static const hb_tag_t Tag	= HB_OT_TAG_hhea;
-  /* TODO */
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
