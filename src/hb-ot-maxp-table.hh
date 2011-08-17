@@ -32,7 +32,7 @@
 
 
 /*
- * maxp
+ * maxp -- The Maximum Profile Table
  */
 
 #define HB_OT_TAG_maxp HB_TAG('m','a','x','p')

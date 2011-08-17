@@ -32,6 +32,7 @@ HBSOURCES =  \
 	hb-ot-tag.cc \
 	hb-private.hh \
 	hb-shape.cc \
+	hb-tt-font.cc \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
 	$(NULL)

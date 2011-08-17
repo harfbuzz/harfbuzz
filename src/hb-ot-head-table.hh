@@ -32,7 +32,7 @@
 
 
 /*
- * head
+ * head -- Font Header
  */
 
 #define HB_OT_TAG_head HB_TAG('h','e','a','d')

@@ -392,6 +392,12 @@ typedef IntType<int16_t>  SHORT;	/* 16-bit signed integer. */
 typedef IntType<uint32_t> ULONG;	/* 32-bit unsigned integer. */
 typedef IntType<int32_t>  LONG;		/* 32-bit signed integer. */
 
+/* 16-bit signed integer (SHORT) that describes a quantity in FUnits. */
+typedef SHORT FWORD;
+
+/* 16-bit unsigned integer (USHORT) that describes a quantity in FUnits. */
+typedef USHORT UFWORD;
+
 /* Date represented in number of seconds since 12:00 midnight, January 1,
  * 1904. The value is represented as a signed 64-bit integer. */
 struct LONGDATETIME

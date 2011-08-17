@@ -320,7 +320,7 @@ struct MarkGlyphSets
 
 
 /*
- * GDEF
+ * GDEF -- The Glyph Definition Table
  */
 
 struct GDEF

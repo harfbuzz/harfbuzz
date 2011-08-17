@@ -32,10 +32,11 @@
 
 
 /*
- * name
+ * name -- The Naming Table
  */
 
 #define HB_OT_TAG_name HB_TAG('n','a','m','e')
+
 
 struct NameRecord
 {
