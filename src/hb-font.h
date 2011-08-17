@@ -367,6 +367,12 @@ hb_font_set_funcs (hb_font_t         *font,
 		   void              *font_data,
 		   hb_destroy_func_t  destroy);
 
+/* Be *very* careful with this function! */
+void
+hb_font_set_funcs_data (hb_font_t         *font,
+		        void              *font_data,
+		        hb_destroy_func_t  destroy);
+
 
 void
 hb_font_set_scale (hb_font_t *font,

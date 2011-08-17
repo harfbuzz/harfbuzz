@@ -917,6 +917,21 @@ hb_font_set_funcs (hb_font_t         *font,
   font->destroy = destroy;
 }
 
+void
+hb_font_set_funcs_data (hb_font_t         *font,
+		        void              *user_data,
+		        hb_destroy_func_t  destroy)
+{
+  if (font->immutable)
+    return;
+
+  if (font->destroy)
+    font->destroy (font->user_data);
+
+  font->user_data = user_data;
+  font->destroy = destroy;
+}
+
 
 void
 hb_font_set_scale (hb_font_t *font,
