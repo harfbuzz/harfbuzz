@@ -99,15 +99,15 @@ struct name
 
   inline bool sanitize_records (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
+    char *string_pool = (char *) this + stringOffset;
     unsigned int _count = count;
     for (unsigned int i = 0; i < _count; i++)
-      if (!nameRecord[i].sanitize (c, this + stringOffset)) return false;
+      if (!nameRecord[i].sanitize (c, string_pool)) return false;
     return true;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return true;
     return c->check_struct (this) &&
 	   likely (format == 0 || format == 1) &&
 	   c->check_array (nameRecord, nameRecord[0].static_size, count) &&
