@@ -97,7 +97,7 @@ main (int argc, char **argv)
   hb_ft_font_set_funcs (font);
 #endif
 
-  hb_buffer_t *buffer = hb_buffer_create (0);
+  hb_buffer_t *buffer = hb_buffer_create ();
 
   hb_buffer_add_utf8 (buffer, "\xe0\xa4\x95\xe0\xa5\x8d\xe0\xa4\xb0\xe0\xa5\x8d\xe0\xa4\x95", -1, 0, -1);
 

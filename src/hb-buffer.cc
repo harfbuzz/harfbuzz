@@ -486,7 +486,7 @@ void hb_buffer_t::deallocate_var_all (void)
 /* Public API */
 
 hb_buffer_t *
-hb_buffer_create (unsigned int pre_alloc_size)
+hb_buffer_create ()
 {
   hb_buffer_t *buffer;
 
@@ -494,11 +494,6 @@ hb_buffer_create (unsigned int pre_alloc_size)
     return &_hb_buffer_nil;
 
   buffer->reset ();
-
-  if (pre_alloc_size && !buffer->ensure (pre_alloc_size)) {
-    hb_buffer_destroy (buffer);
-    return &_hb_buffer_nil;
-  }
 
   return buffer;
 }

@@ -62,7 +62,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
   hb_buffer_t *b;
   unsigned int i;
 
-  b = fixture->buffer = hb_buffer_create (0);
+  b = fixture->buffer = hb_buffer_create ();
 
   switch (GPOINTER_TO_INT (user_data))
   {
@@ -344,7 +344,7 @@ test_buffer_utf8_conversion (void)
   hb_glyph_info_t *glyphs;
   unsigned int bytes, chars, i, j, len;
 
-  b = hb_buffer_create (0);
+  b = hb_buffer_create ();
 
   for (i = 0; i < G_N_ELEMENTS (utf8_conversion_tests); i++)
   {
@@ -627,7 +627,7 @@ test_buffer_utf8_validity (void)
   hb_buffer_t *b;
   unsigned int i;
 
-  b = hb_buffer_create (0);
+  b = hb_buffer_create ();
 
   for (i = 0; i < G_N_ELEMENTS (utf8_validity_tests); i++)
   {
@@ -684,7 +684,7 @@ test_buffer_utf16_conversion (void)
   hb_buffer_t *b;
   unsigned int i;
 
-  b = hb_buffer_create (0);
+  b = hb_buffer_create ();
 
   for (i = 0; i < G_N_ELEMENTS (utf16_conversion_tests); i++)
   {
@@ -726,7 +726,6 @@ test_buffer_empty (void)
 
   g_assert (hb_buffer_get_empty ());
   g_assert (hb_buffer_get_empty () == b);
-  g_assert (hb_buffer_get_empty () == hb_buffer_create (-1));
 
   g_assert (!hb_buffer_allocation_successful (b));
 

@@ -60,7 +60,7 @@ typedef struct _hb_glyph_position_t {
 
 
 hb_buffer_t *
-hb_buffer_create (unsigned int pre_alloc_size);
+hb_buffer_create (void);
 
 hb_buffer_t *
 hb_buffer_get_empty (void);

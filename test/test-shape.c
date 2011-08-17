@@ -106,7 +106,7 @@ test_shape (void)
   hb_font_set_funcs (font, ffuncs, NULL, NULL);
   hb_font_funcs_destroy (ffuncs);
 
-  buffer =  hb_buffer_create (0);
+  buffer =  hb_buffer_create ();
   hb_buffer_set_direction (buffer, HB_DIRECTION_LTR);
   hb_buffer_add_utf8 (buffer, TesT, 4, 0, 4);
 

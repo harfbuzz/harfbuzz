@@ -1038,7 +1038,7 @@ test_shape_complex (ft_fixture_t *f, gconstpointer user_data)
   if (data->comments[0])
     g_test_message ("Test comments: %s", data->comments);
 
-  buffer =  hb_buffer_create (0);
+  buffer =  hb_buffer_create ();
   for (len = 0; data->characters[len]; len++) ;
   hb_buffer_add_utf32 (buffer, data->characters, len, 0, len);
 

@@ -59,7 +59,7 @@ _hb_cr_text_glyphs (cairo_t *cr,
   unsigned int num_glyphs, i;
   hb_position_t x, y;
 
-  hb_buffer = hb_buffer_create (0);
+  hb_buffer = hb_buffer_create ();
 
   if (shape_opts->direction)
     hb_buffer_set_direction (hb_buffer, hb_direction_from_string (shape_opts->direction));

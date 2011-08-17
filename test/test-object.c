@@ -44,12 +44,12 @@ create_blob_inert (void)
 static void *
 create_buffer (void)
 {
-  return hb_buffer_create (0);
+  return hb_buffer_create ();
 }
 static void *
 create_buffer_inert (void)
 {
-  return hb_buffer_create (-1);
+  return NULL;
 }
 
 static void *
