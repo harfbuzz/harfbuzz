@@ -28,10 +28,10 @@
 
 #include "hb-ot-layout-private.hh"
 
-#include "hb-ot-layout-gdef-private.hh"
-#include "hb-ot-layout-gsub-private.hh"
-#include "hb-ot-layout-gpos-private.hh"
-#include "hb-ot-maxp-private.hh"
+#include "hb-ot-layout-gdef-table.hh"
+#include "hb-ot-layout-gsub-table.hh"
+#include "hb-ot-layout-gpos-table.hh"
+#include "hb-ot-maxp-table.hh"
 
 
 #include <stdlib.h>

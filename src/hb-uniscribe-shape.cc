@@ -35,7 +35,7 @@ typedef ULONG WIN_ULONG;
 
 #include "hb-uniscribe.h"
 
-#include "hb-ot-name-private.hh"
+#include "hb-ot-name-table.hh"
 #include "hb-ot-tag.h"
 
 #include "hb-font-private.hh"

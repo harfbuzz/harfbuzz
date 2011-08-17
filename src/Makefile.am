@@ -26,9 +26,9 @@ HBSOURCES =  \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
-	hb-ot-head-private.hh \
-	hb-ot-maxp-private.hh \
-	hb-ot-name-private.hh \
+	hb-ot-head-table.hh \
+	hb-ot-maxp-table.hh \
+	hb-ot-name-table.hh \
 	hb-ot-tag.cc \
 	hb-private.hh \
 	hb-shape.cc \
@@ -54,10 +54,10 @@ if HAVE_OT
 HBSOURCES += \
 	hb-ot-layout.cc \
 	hb-ot-layout-common-private.hh \
-	hb-ot-layout-gdef-private.hh \
-	hb-ot-layout-gpos-private.hh \
+	hb-ot-layout-gdef-table.hh \
+	hb-ot-layout-gpos-table.hh \
 	hb-ot-layout-gsubgpos-private.hh \
-	hb-ot-layout-gsub-private.hh \
+	hb-ot-layout-gsub-table.hh \
 	hb-ot-layout-private.hh \
 	hb-ot-map.cc \
 	hb-ot-map-private.hh \

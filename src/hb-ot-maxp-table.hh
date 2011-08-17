@@ -24,8 +24,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_MAXP_PRIVATE_HH
-#define HB_OT_MAXP_PRIVATE_HH
+#ifndef HB_OT_MAXP_TABLE_HH
+#define HB_OT_MAXP_TABLE_HH
 
 #include "hb-open-type-private.hh"
 
@@ -63,4 +63,4 @@ struct maxp
 
 
 
-#endif /* HB_OT_MAXP_PRIVATE_HH */
+#endif /* HB_OT_MAXP_TABLE_HH */

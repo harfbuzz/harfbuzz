@@ -24,8 +24,8 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_HEAD_PRIVATE_HH
-#define HB_OT_HEAD_PRIVATE_HH
+#ifndef HB_OT_HEAD_TABLE_HH
+#define HB_OT_HEAD_TABLE_HH
 
 #include "hb-open-type-private.hh"
 
@@ -140,4 +140,4 @@ struct head
 
 
 
-#endif /* HB_OT_HEAD_PRIVATE_HH */
+#endif /* HB_OT_HEAD_TABLE_HH */

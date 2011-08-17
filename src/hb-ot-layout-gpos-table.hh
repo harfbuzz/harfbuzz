@@ -26,8 +26,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_LAYOUT_GPOS_PRIVATE_HH
-#define HB_OT_LAYOUT_GPOS_PRIVATE_HH
+#ifndef HB_OT_LAYOUT_GPOS_TABLE_HH
+#define HB_OT_LAYOUT_GPOS_TABLE_HH
 
 #include "hb-ot-layout-gsubgpos-private.hh"
 
@@ -1630,4 +1630,4 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
 
 
 
-#endif /* HB_OT_LAYOUT_GPOS_PRIVATE_HH */
+#endif /* HB_OT_LAYOUT_GPOS_TABLE_HH */

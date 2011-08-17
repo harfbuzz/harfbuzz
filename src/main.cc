@@ -26,7 +26,7 @@
 
 #include "hb-mutex-private.hh"
 #include "hb-open-file-private.hh"
-#include "hb-ot-layout-gdef-private.hh"
+#include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 #ifdef HAVE_GLIB

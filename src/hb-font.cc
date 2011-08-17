@@ -31,7 +31,7 @@
 #include "hb-font-private.hh"
 #include "hb-blob.h"
 #include "hb-open-file-private.hh"
-#include "hb-ot-head-private.hh"
+#include "hb-ot-head-table.hh"
 
 #include <string.h>
 

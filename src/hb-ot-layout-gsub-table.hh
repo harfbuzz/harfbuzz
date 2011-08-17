@@ -26,8 +26,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_LAYOUT_GSUB_PRIVATE_HH
-#define HB_OT_LAYOUT_GSUB_PRIVATE_HH
+#ifndef HB_OT_LAYOUT_GSUB_TABLE_HH
+#define HB_OT_LAYOUT_GSUB_TABLE_HH
 
 #include "hb-ot-layout-gsubgpos-private.hh"
 
@@ -940,4 +940,4 @@ static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup
 
 
 
-#endif /* HB_OT_LAYOUT_GSUB_PRIVATE_HH */
+#endif /* HB_OT_LAYOUT_GSUB_TABLE_HH */

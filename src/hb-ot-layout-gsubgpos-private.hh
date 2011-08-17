@@ -30,7 +30,7 @@
 #define HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH
 
 #include "hb-buffer-private.hh"
-#include "hb-ot-layout-gdef-private.hh"
+#include "hb-ot-layout-gdef-table.hh"
 
 
 /* buffer var allocations */
