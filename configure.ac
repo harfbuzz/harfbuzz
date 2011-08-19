@@ -88,6 +88,8 @@ AM_CONDITIONAL(HAVE_GTHREAD, $have_gthread)
 PKG_CHECK_MODULES(GOBJECT, gobject-2.0, have_gobject=true, have_gobject=false)
 if $have_gobject; then
 	AC_DEFINE(HAVE_GOBJECT, 1, [Have gobject2 library])
+	GLIB_MKENUMS=`$PKG_CONFIG --variable=glib_mkenums glib-2.0`
+	AC_SUBST(GLIB_MKENUMS)
 fi
 AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
 

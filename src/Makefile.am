@@ -1,6 +1,7 @@
 # Process this file with automake to produce Makefile.in
 
 NULL =
+BUILT_SOURCES =
 EXTRA_DIST =
 CLEANFILES =
 DISTCLEANFILES =
@@ -91,8 +92,14 @@ endif
 if HAVE_GOBJECT
 HBCFLAGS += $(GOBJECT_CFLAGS)
 HBLIBS   += $(GOBJECT_LIBS)
-HBSOURCES += hb-gobject.cc
+HBSOURCES += hb-gobject-structs.cc hb-gobject-enums.cc
 HBHEADERS += hb-gobject.h
+BUILT_SOURCES += hb-gobject-enums.cc
+EXTRA_DIST += hb-gobject-enums.cc.tmpl
+
+hb-gobject-enums.cc: hb-gobject-enums.cc.tmpl $(HBHEADERS)
+	$(AM_V_GEN) ( cd $(srcdir) && $(GLIB_MKENUMS) --template $^ ) > \
+	    "$@.tmp" && mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
 endif
 
 if HAVE_ICU
@@ -132,11 +139,11 @@ GENERATORS = \
 
 EXTRA_DIST += $(GENERATORS)
 
-BUILT_SOURCES = hb-ot-shape-complex-indic-machine.hh
+BUILT_SOURCES += hb-ot-shape-complex-indic-machine.hh
 EXTRA_DIST += hb-ot-shape-complex-indic-machine.rl
 hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
-	mv "$@.tmp" "$@"
+	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
 
 noinst_PROGRAMS = main test
 bin_PROGRAMS =
