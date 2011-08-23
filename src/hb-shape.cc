@@ -30,6 +30,10 @@
 
 #include "hb-buffer-private.hh"
 
+#ifdef HAVE_GRAPHITE
+#include "hb-font-private.hh"
+#include "hb-graphite2.h"
+#endif
 #ifdef HAVE_UNISCRIBE
 # include "hb-uniscribe.h"
 #endif
@@ -50,6 +54,9 @@ static struct hb_shaper_pair_t {
   hb_shape_func_t func;
 } shapers[] = {
   /* v--- Add new shapers in the right place here */
+#ifdef HAVE_GRAPHITE
+  HB_SHAPER_IMPLEMENT (graphite),
+#endif
 #ifdef HAVE_UNISCRIBE
   HB_SHAPER_IMPLEMENT (uniscribe),
 #endif

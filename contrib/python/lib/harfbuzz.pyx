@@ -29,16 +29,14 @@ cdef extern from "hb-common.h" :
     ctypedef unsigned long hb_tag_t
     hb_tag_t hb_tag_from_string (char *s)
     ctypedef void (*hb_destroy_func_t) (void *user_data)
+    ctypedef void *hb_language_t
+    hb_language_t hb_language_from_string(char *str)
+    char * hb_language_to_string(hb_language_t language)
 
 cdef extern from "hb-unicode.h" :
 # there must be a better way of syncing this list with the true source
     ctypedef enum hb_script_t :
         HB_SCRIPT_COMMON = 0
-
-cdef extern from "hb-language.h" :
-    ctypedef void *hb_language_t
-    hb_language_t hb_language_from_string(char *str)
-    char * hb_language_to_string(hb_language_t language)
 
 cdef extern from "hb-ot-tag.h" :
     hb_script_t hb_ot_tag_to_script (hb_tag_t tag)
@@ -80,8 +78,8 @@ cdef extern from "hb-buffer.h" :
     void hb_buffer_add_glyph(hb_buffer_t *buffer, hb_codepoint_t codepoint, hb_mask_t mask, unsigned int cluster)
     void hb_buffer_add_utf8(hb_buffer_t *buffer, char *text, unsigned int text_length, unsigned int item_offset, unsigned int item_length)
     unsigned int hb_buffer_get_length(hb_buffer_t *buffer)
-    hb_glyph_info_t *hb_buffer_get_glyph_infos(hb_buffer_t *buffer)
-    hb_glyph_position_t *hb_buffer_get_glyph_positions(hb_buffer_t *buffer)
+    hb_glyph_info_t *hb_buffer_get_glyph_infos(hb_buffer_t *buffer, unsigned int *len)
+    hb_glyph_position_t *hb_buffer_get_glyph_positions(hb_buffer_t *buffer, unsigned int *len)
 
 cdef extern from "hb-blob.h" :
     cdef struct hb_blob_t :
@@ -111,7 +109,7 @@ cdef extern from "hb-shape.h" :
         unsigned int start
         unsigned int end
 
-    void hb_shape (hb_font_t *font, hb_face_t *face, hb_buffer_t *buffer, hb_feature_t *features, unsigned int num_features)
+    void hb_shape (hb_font_t *font, hb_buffer_t *buffer, hb_feature_t *features, unsigned int num_features)
 
 cdef extern from "hb-ft.h" :
     hb_face_t *hb_ft_face_create (FT_Face ft_face, hb_destroy_func_t destroy)
@@ -156,8 +154,8 @@ cdef class buffer :
         res = []
 
         num = hb_buffer_get_length(self.buffer)
-        infos = hb_buffer_get_glyph_infos(self.buffer)
-        positions = hb_buffer_get_glyph_positions(self.buffer)
+        infos = hb_buffer_get_glyph_infos(self.buffer, &num)
+        positions = hb_buffer_get_glyph_positions(self.buffer, &num)
         for 0 <= i < num :
             temp = glyphinfo(infos[i].codepoint, infos[i].cluster, (positions[i].x_advance / scale, positions[i].y_advance / scale), (positions[i].x_offset / scale, positions[i].y_offset / scale), positions[i].var.u32)
             res.append(temp)
@@ -210,6 +208,6 @@ cdef class ft :
             aFeat.start = 0
             aFeat.end = -1
             aFeat += 1
-        hb_shape(self.hbfont, self.hbface, aBuffer.buffer, feats, len(features))
+        hb_shape(self.hbfont, aBuffer.buffer, feats, len(features))
 
 

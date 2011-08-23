@@ -100,9 +100,9 @@ if not opts.nogui :
     glyphs = []
     org = [0, 0]
     for g in res :
-        glyphs.append((g.gid, org[0] + g.offset[0], org[1] + g.offset[1]))
+        glyphs.append((g.gid, org[0] + g.offset[0], org[1] - g.offset[1]))
         org[0] += g.advance[0]
-        org[1] += g.advance[1]
+        org[1] -= g.advance[1]
 
     gobject.type_register(GlyphsWindow)
     win = gtk.Window()
