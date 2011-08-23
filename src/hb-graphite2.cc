@@ -433,14 +433,4 @@ dieout:
     return success;
 }
 
-int hb_graphite2_feature_check(const hb_feature_t *feats, unsigned int num_feats)
-{
-    while (num_feats--)
-    {
-        if (feats[num_feats].tag == HB_TAG(' ', 'R', 'N', 'D'))
-            return (feats[num_feats].value == 1);
-    }
-    return 1;
-}
-
 HB_END_DECLS

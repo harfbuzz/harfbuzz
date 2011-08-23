@@ -40,8 +40,6 @@ hb_bool_t hb_graphite_shape (hb_font_t    *font,
 			unsigned int  num_features,
             const char * const *shaper_options);
 
-int hb_graphite2_feature_check(const hb_feature_t *feats, unsigned int num_feats);
-
 HB_END_DECLS
 
 #endif /* HB_GRAPHITE2_H */
