@@ -31,7 +31,6 @@
 #include "hb-buffer-private.hh"
 
 #ifdef HAVE_GRAPHITE
-#include "hb-font-private.hh"
 #include "hb-graphite2.h"
 #endif
 #ifdef HAVE_UNISCRIBE

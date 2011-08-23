@@ -24,16 +24,16 @@
  */
 
 #include "hb-private.hh"
+
+#include "hb-graphite2.h"
+
 #include "hb-buffer-private.hh"
 #include "hb-font-private.hh"
 #include "hb-ot-tag.h"
+
 #include <graphite2/Font.h>
 #include <graphite2/Segment.h>
-#include "hb-graphite2.h"
-#include <stdlib.h>
-#include <string.h>
 
-HB_BEGIN_DECLS
 
 typedef struct hbgr_tablelist_t {
     hb_blob_t   *blob;
@@ -432,5 +432,3 @@ dieout:
     if (text) free(text);
     return success;
 }
-
-HB_END_DECLS
