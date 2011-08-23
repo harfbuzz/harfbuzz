@@ -119,7 +119,7 @@ endif
 if HAVE_UNISCRIBE
 HBCFLAGS += $(UNISCRIBE_CFLAGS)
 HBLIBS   += $(UNISCRIBE_LIBS)
-HBSOURCES += hb-uniscribe-shape.cc
+HBSOURCES += hb-uniscribe.cc
 HBHEADERS += hb-uniscribe.h
 endif
 
