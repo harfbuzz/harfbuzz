@@ -117,6 +117,7 @@ _hb_uniscribe_face_get_data (hb_face_t *face)
   if (unlikely (!data))
     return &_hb_uniscribe_face_data_nil;
 
+
   hb_blob_t *blob = hb_face_reference_blob (face);
   unsigned int blob_length;
   const char *blob_data = hb_blob_get_data (blob, &blob_length);
@@ -128,6 +129,7 @@ _hb_uniscribe_face_get_data (hb_face_t *face)
   hb_blob_destroy (blob);
   if (unlikely (!data->fh))
     DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
+
 
   if (unlikely (!hb_face_set_user_data (face, &hb_uniscribe_data_key, data,
 					(hb_destroy_func_t) _hb_uniscribe_face_data_destroy,
