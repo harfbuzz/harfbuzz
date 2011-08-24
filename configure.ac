@@ -134,14 +134,15 @@ if $have_icu; then
 fi
 AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
-AC_ARG_ENABLE(graphite,
-    AC_HELP_STRING([--disable-graphite], [build without graphite support]))
+dnl ==========================================================================
 
 PKG_CHECK_MODULES(GRAPHITE, graphite2, have_graphite=true, have_graphite=false)
-if test "x$enable_graphite" != xno -a $have_graphite; then
+if $have_graphite; then
     AC_DEFINE(HAVE_GRAPHITE, 1, [Have Graphite library])
 fi
-AM_CONDITIONAL(HAVE_GRAPHITE, [test "x$enable_graphite" != xno -a $have_graphite])
+AM_CONDITIONAL(HAVE_GRAPHITE, $have_graphite)
+
+dnl ==========================================================================
 
 PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true, have_freetype=false)
 if $have_freetype; then
