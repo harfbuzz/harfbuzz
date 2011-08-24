@@ -92,7 +92,7 @@ populate_log_font (LOGFONTW  *lf,
 }
 
 
-static hb_user_data_key_t uniscribe_data_key;
+static hb_user_data_key_t hb_uniscribe_data_key;
 
 
 static struct hb_uniscribe_face_data_t {
@@ -110,7 +110,7 @@ _hb_uniscribe_face_data_destroy (hb_uniscribe_face_data_t *data)
 static hb_uniscribe_face_data_t *
 _hb_uniscribe_face_get_data (hb_face_t *face)
 {
-  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &uniscribe_data_key);
+  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
   if (likely (data)) return data;
 
   data = (hb_uniscribe_face_data_t *) calloc (1, sizeof (hb_uniscribe_face_data_t));
@@ -129,12 +129,12 @@ _hb_uniscribe_face_get_data (hb_face_t *face)
   if (unlikely (!data->fh))
     DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
 
-  if (unlikely (!hb_face_set_user_data (face, &uniscribe_data_key, data,
+  if (unlikely (!hb_face_set_user_data (face, &hb_uniscribe_data_key, data,
 					(hb_destroy_func_t) _hb_uniscribe_face_data_destroy,
 					FALSE)))
   {
     _hb_uniscribe_face_data_destroy (data);
-    data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &uniscribe_data_key);
+    data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
     if (data)
       return data;
     else
@@ -167,7 +167,7 @@ _hb_uniscribe_font_data_destroy (hb_uniscribe_font_data_t *data)
 static hb_uniscribe_font_data_t *
 _hb_uniscribe_font_get_data (hb_font_t *font)
 {
-  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &uniscribe_data_key);
+  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
   if (likely (data)) return data;
 
   data = (hb_uniscribe_font_data_t *) calloc (1, sizeof (hb_uniscribe_font_data_t));
@@ -186,12 +186,12 @@ _hb_uniscribe_font_get_data (hb_font_t *font)
       DEBUG_MSG (UNISCRIBE, font, "Font SelectObject() failed");
   }
 
-  if (unlikely (!hb_font_set_user_data (font, &uniscribe_data_key, data,
+  if (unlikely (!hb_font_set_user_data (font, &hb_uniscribe_data_key, data,
 					(hb_destroy_func_t) _hb_uniscribe_font_data_destroy,
 					FALSE)))
   {
     _hb_uniscribe_font_data_destroy (data);
-    data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &uniscribe_data_key);
+    data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
     if (data)
       return data;
     else
