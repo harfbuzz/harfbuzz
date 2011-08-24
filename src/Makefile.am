@@ -28,6 +28,8 @@ HBSOURCES =  \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-ot-head-table.hh \
+	hb-ot-hhea-table.hh \
+	hb-ot-hmtx-table.hh \
 	hb-ot-maxp-table.hh \
 	hb-ot-name-table.hh \
 	hb-ot-tag.cc \
@@ -46,10 +48,6 @@ HBHEADERS = \
 	hb-shape.h \
 	hb-unicode.h \
 	hb-version.h \
-	$(NULL)
-
-MAINTAINERCLEANFILES += \
-	$(srcdir)/hb-version.h \
 	$(NULL)
 
 if HAVE_OT
@@ -92,14 +90,16 @@ endif
 if HAVE_GOBJECT
 HBCFLAGS += $(GOBJECT_CFLAGS)
 HBLIBS   += $(GOBJECT_LIBS)
-HBSOURCES += hb-gobject-structs.cc hb-gobject-enums.cc
+HBSOURCES += hb-gobject-structs.cc
+nodist_HBSOURCES = hb-gobject-enums.cc
 HBHEADERS += hb-gobject.h
 BUILT_SOURCES += hb-gobject-enums.cc
 EXTRA_DIST += hb-gobject-enums.cc.tmpl
+DISTCLEANFILES += hb-gobject-enums.cc
 
 hb-gobject-enums.cc: hb-gobject-enums.cc.tmpl $(HBHEADERS)
-	$(AM_V_GEN) ( cd $(srcdir) && $(GLIB_MKENUMS) --template $^ ) > \
-	    "$@.tmp" && mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
+	$(AM_V_GEN) $(GLIB_MKENUMS) --template $^ > "$@.tmp" && \
+	mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
 endif
 
 if HAVE_ICU
@@ -132,6 +132,7 @@ endif
 
 CXXLINK = $(LINK)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
+nodist_libharfbuzz_la_SOURCES = $(nodist_HBSOURCES)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_la_LIBADD = $(HBLIBS)
