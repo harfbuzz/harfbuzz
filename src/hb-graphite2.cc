@@ -227,6 +227,7 @@ hb_graphite_shape (hb_font_t          *font,
   buffer->guess_properties ();
 
   hb_gr_font_data_t *data = _hb_gr_font_get_data (font);
+  if (!data->grface) return FALSE;
 
   unsigned int charlen;
   hb_glyph_info_t *bufferi = hb_buffer_get_glyph_infos (buffer, &charlen);
