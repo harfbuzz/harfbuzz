@@ -98,11 +98,27 @@ is_variation_selector (hb_codepoint_t unicode)
 		   (unicode >= 0xE0100 && unicode <= 0xE01EF));  /* VARIATION SELECTOR-17..256 */
 }
 
+static inline unsigned int
+_hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
+				      hb_codepoint_t      unicode)
+{
+  int c = hb_unicode_combining_class (ufuncs, unicode);
+
+  /* Modify the combining-class to suit Arabic better.  See:
+   * http://unicode.org/faq/normalization.html#8
+   * http://unicode.org/faq/normalization.html#9
+   */
+  if (unlikely (hb_in_range<int> (c, 27, 33)))
+    c = c == 33 ? 27 : c + 1;
+
+  return c;
+}
+
 static inline void
 hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
   info->general_category() = hb_unicode_general_category (unicode, info->codepoint);
-  info->combining_class() = hb_unicode_combining_class (unicode, info->codepoint);
+  info->combining_class() = _hb_unicode_modified_combining_class (unicode, info->codepoint);
 }
 
 HB_INTERNAL void _hb_set_unicode_props (hb_buffer_t *buffer);
