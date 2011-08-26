@@ -88,7 +88,7 @@ static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *
   {
     p = (hb_gr_tablelist_t *) malloc (sizeof (hb_gr_tablelist_t));
     if (!p) {
-      hb_blob_destroy(blob);
+      hb_blob_destroy (blob);
       return NULL;
     }
     p->next = NULL;
@@ -124,7 +124,7 @@ static void _hb_gr_face_data_destroy (void *data)
     hb_gr_tablelist_t *old = tlist;
     hb_blob_destroy (tlist->blob);
     tlist = tlist->next;
-    free(old);
+    free (old);
   }
   gr_face_destroy (f->grface);
 }
@@ -150,9 +150,9 @@ _hb_gr_face_get_data (hb_face_t *face)
 
 
   hb_blob_t *silf_blob = hb_face_reference_table (face, HB_GRAPHITE_TAG_Silf);
-  if (!hb_blob_get_length(silf_blob))
+  if (!hb_blob_get_length (silf_blob))
   {
-    hb_blob_destroy(silf_blob);
+    hb_blob_destroy (silf_blob);
     return &_hb_gr_face_data_nil;
   }
 
@@ -189,7 +189,7 @@ _hb_gr_font_get_data (hb_font_t *font)
   hb_blob_t *silf_blob = hb_face_reference_table (font->face, HB_GRAPHITE_TAG_Silf);
   if (!hb_blob_get_length (silf_blob))
   {
-    hb_blob_destroy(silf_blob);
+    hb_blob_destroy (silf_blob);
     return &_hb_gr_font_data_nil;
   }
 
@@ -269,20 +269,20 @@ hb_graphite_shape (hb_font_t          *font,
   *p = 0;
 
   hb_tag_t script_tag[2];
-  hb_ot_tags_from_script (hb_buffer_get_script(buffer), &script_tag[0], &script_tag[1]);
+  hb_ot_tags_from_script (hb_buffer_get_script (buffer), &script_tag[0], &script_tag[1]);
 
   seg = gr_make_seg (data->grfont, data->grface,
 		     script_tag[1] == HB_TAG_NONE ? script_tag[0] : script_tag[1],
 		     feats,
 		     gr_utf32, text, charlen,
-		     2 | (hb_buffer_get_direction(buffer) == HB_DIRECTION_RTL ? 1 : 0));
+		     2 | (hb_buffer_get_direction (buffer) == HB_DIRECTION_RTL ? 1 : 0));
   if (!seg) goto dieout;
 
   glyphlen = gr_seg_n_slots (seg);
   clusters = (hb_gr_cluster_t *) calloc (charlen, sizeof (hb_gr_cluster_t));
   if (!glyphlen || !clusters) goto dieout;
 
-  gids = (unsigned short *) malloc (glyphlen * sizeof (unsigned short));
+  gids = (uint16_t *) malloc (glyphlen * sizeof (uint16_t));
   if (!gids) goto dieout;
 
   pg = gids;
@@ -315,14 +315,14 @@ hb_graphite_shape (hb_font_t          *font,
   }
   ci++;
 
-  buffer->clear_output();
+  buffer->clear_output ();
   for (unsigned int i = 0; i < ci; ++i)
     buffer->replace_glyphs (clusters[i].num_chars, clusters[i].num_glyphs, gids + clusters[i].base_glyph);
-  buffer->swap_buffers();
+  buffer->swap_buffers ();
 
   hb_glyph_position_t *pPos;
-  for (pPos = hb_buffer_get_glyph_positions(buffer, NULL), is = gr_seg_first_slot(seg);
-       is; pPos++, is = gr_slot_next_in_segment(is))
+  for (pPos = hb_buffer_get_glyph_positions (buffer, NULL), is = gr_seg_first_slot (seg);
+       is; pPos++, is = gr_slot_next_in_segment (is))
   {
     pPos->x_offset = gr_slot_origin_X(is) - curradvx;
     pPos->y_offset = gr_slot_origin_Y(is) - curradvy;
