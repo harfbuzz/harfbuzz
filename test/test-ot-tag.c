@@ -40,7 +40,7 @@ test_simple_tags (const char *s, hb_script_t script)
   hb_script_t t1, t2;
 
   g_test_message ("Testing script %c%c%c%c: tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s);
-  tag = hb_tag_from_string (s);
+  tag = hb_tag_from_string (s, -1);
 
   hb_ot_tags_from_script (script, &t1, &t2);
 
@@ -57,8 +57,8 @@ test_indic_tags (const char *s1, const char *s2, hb_script_t script)
   hb_script_t t1, t2;
 
   g_test_message ("Testing script %c%c%c%c: new tag %s, old tag %s", HB_UNTAG (hb_script_to_iso15924_tag (script)), s1, s2);
-  tag1 = hb_tag_from_string (s1);
-  tag2 = hb_tag_from_string (s2);
+  tag1 = hb_tag_from_string (s1, -1);
+  tag2 = hb_tag_from_string (s2, -1);
 
   hb_ot_tags_from_script (script, &t1, &t2);
 
@@ -85,14 +85,14 @@ test_ot_tag_script_degenerate (void)
   test_simple_tags ("DFLT", HB_SCRIPT_INVALID);
 
   /* Spaces are replaced */
-  g_assert_cmphex (hb_ot_tag_to_script (HB_TAG_CHAR4 ("be  ")), ==, hb_script_from_string ("Beee"));
+  g_assert_cmphex (hb_ot_tag_to_script (HB_TAG_CHAR4 ("be  ")), ==, hb_script_from_string ("Beee", -1));
 }
 
 static void
 test_ot_tag_script_simple (void)
 {
   /* Arbitrary non-existent script */
-  test_simple_tags ("wwyz", hb_script_from_string ("wWyZ"));
+  test_simple_tags ("wwyz", hb_script_from_string ("wWyZ", -1));
 
   /* These we don't really care about */
   test_simple_tags ("zyyy", HB_SCRIPT_COMMON);
@@ -141,8 +141,8 @@ test_ot_tag_script_indic (void)
 static void
 test_language_two_way (const char *tag_s, const char *lang_s)
 {
-  hb_language_t lang = hb_language_from_string (lang_s);
-  hb_tag_t tag = hb_tag_from_string (tag_s);
+  hb_language_t lang = hb_language_from_string (lang_s, -1);
+  hb_tag_t tag = hb_tag_from_string (tag_s, -1);
 
   g_test_message ("Testing language %s <-> tag %s", lang_s, tag_s);
 
@@ -153,8 +153,8 @@ test_language_two_way (const char *tag_s, const char *lang_s)
 static void
 test_tag_from_language (const char *tag_s, const char *lang_s)
 {
-  hb_language_t lang = hb_language_from_string (lang_s);
-  hb_tag_t tag = hb_tag_from_string (tag_s);
+  hb_language_t lang = hb_language_from_string (lang_s, -1);
+  hb_tag_t tag = hb_tag_from_string (tag_s, -1);
 
   g_test_message ("Testing language %s -> tag %s", lang_s, tag_s);
 
@@ -164,8 +164,8 @@ test_tag_from_language (const char *tag_s, const char *lang_s)
 static void
 test_tag_to_language (const char *tag_s, const char *lang_s)
 {
-  hb_language_t lang = hb_language_from_string (lang_s);
-  hb_tag_t tag = hb_tag_from_string (tag_s);
+  hb_language_t lang = hb_language_from_string (lang_s, -1);
+  hb_tag_t tag = hb_tag_from_string (tag_s, -1);
 
   g_test_message ("Testing tag %s -> language %s", tag_s, lang_s);
 

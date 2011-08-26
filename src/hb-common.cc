@@ -40,15 +40,17 @@
 /* hb_tag_t */
 
 hb_tag_t
-hb_tag_from_string (const char *s)
+hb_tag_from_string (const char *s, int len)
 {
   char tag[4];
   unsigned int i;
 
-  if (!s || !*s)
+  if (!s || !len || !*s)
     return HB_TAG_NONE;
 
-  for (i = 0; i < 4 && s[i]; i++)
+  if (len < 0 || len > 4)
+    len = 4;
+  for (i = 0; i < (unsigned) len && s[i]; i++)
     tag[i] = s[i];
   for (; i < 4; i++)
     tag[i] = ' ';
@@ -67,9 +69,9 @@ const char direction_strings[][4] = {
 };
 
 hb_direction_t
-hb_direction_from_string (const char *str)
+hb_direction_from_string (const char *str, int len)
 {
-  if (unlikely (!str || !*str))
+  if (unlikely (!str || !len || !*str))
     return HB_DIRECTION_INVALID;
 
   /* Lets match loosely: just match the first letter, such that
@@ -167,10 +169,17 @@ static struct hb_static_lang_set_t : hb_lockable_set_t<hb_language_item_t, hb_st
 } langs;
 
 hb_language_t
-hb_language_from_string (const char *str)
+hb_language_from_string (const char *str, int len)
 {
-  if (!str || !*str)
+  if (!str || !len || !*str)
     return HB_LANGUAGE_INVALID;
+
+  char strbuf[32];
+  if (len >= 0) {
+    len = MIN (len, (int) sizeof (strbuf) - 1);
+    str = (char *) memcpy (strbuf, str, len);
+    strbuf[len] = '\0';
+  }
 
   hb_language_item_t *item = langs.find_or_insert (str, langs.lock);
 
@@ -197,7 +206,7 @@ hb_language_get_default (void)
     /* I hear that setlocale() doesn't honor env vars on Windows,
      * but for now we ignore that. */
 
-    default_language = hb_language_from_string (setlocale (LC_CTYPE, NULL));
+    default_language = hb_language_from_string (setlocale (LC_CTYPE, NULL), -1);
   }
 
   return default_language;
@@ -241,9 +250,9 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
 }
 
 hb_script_t
-hb_script_from_string (const char *s)
+hb_script_from_string (const char *s, int len)
 {
-  return hb_script_from_iso15924_tag (hb_tag_from_string (s));
+  return hb_script_from_iso15924_tag (hb_tag_from_string (s, len));
 }
 
 hb_tag_t

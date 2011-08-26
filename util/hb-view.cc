@@ -62,11 +62,11 @@ _hb_cr_text_glyphs (cairo_t *cr,
   hb_buffer = hb_buffer_create ();
 
   if (shape_opts->direction)
-    hb_buffer_set_direction (hb_buffer, hb_direction_from_string (shape_opts->direction));
+    hb_buffer_set_direction (hb_buffer, hb_direction_from_string (shape_opts->direction, -1));
   if (shape_opts->script)
-    hb_buffer_set_script (hb_buffer, hb_script_from_string (shape_opts->script));
+    hb_buffer_set_script (hb_buffer, hb_script_from_string (shape_opts->script, -1));
   if (shape_opts->language)
-    hb_buffer_set_language (hb_buffer, hb_language_from_string (shape_opts->language));
+    hb_buffer_set_language (hb_buffer, hb_language_from_string (shape_opts->language, -1));
 
   if (len < 0)
     len = strlen (utf8);

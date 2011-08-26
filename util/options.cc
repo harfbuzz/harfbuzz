@@ -133,10 +133,7 @@ parse_feature_tag (char **pp, hb_feature_t *feature)
   if (p == *pp)
     return FALSE;
 
-  **pp = '\0';
-  feature->tag = hb_tag_from_string (p);
-  **pp = c;
-
+  feature->tag = hb_tag_from_string (p, *pp - p);
   return TRUE;
 }
 

@@ -124,8 +124,8 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   hb_buffer_set_script (b, HB_SCRIPT_ARABIC);
   g_assert (hb_buffer_get_script (b) == HB_SCRIPT_ARABIC);
 
-  hb_buffer_set_language (b, hb_language_from_string ("fa"));
-  g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa"));
+  hb_buffer_set_language (b, hb_language_from_string ("fa", -1));
+  g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa", -1));
 
 
   /* test reset clears properties */

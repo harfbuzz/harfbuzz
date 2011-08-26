@@ -89,7 +89,8 @@ typedef uint32_t hb_tag_t;
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 
-hb_tag_t hb_tag_from_string (const char *s);
+/* len=-1 means s is NUL-terminated */
+hb_tag_t hb_tag_from_string (const char *s, int len);
 
 
 /* hb_direction_t */
@@ -102,8 +103,9 @@ typedef enum {
   HB_DIRECTION_BTT
 } hb_direction_t;
 
+/* len=-1 means s is NUL-terminated */
 hb_direction_t
-hb_direction_from_string (const char *str);
+hb_direction_from_string (const char *str, int len);
 
 const char *
 hb_direction_to_string (hb_direction_t direction);
@@ -119,8 +121,9 @@ hb_direction_to_string (hb_direction_t direction);
 
 typedef struct _hb_language_t *hb_language_t;
 
+/* len=-1 means s is NUL-terminated */
 hb_language_t
-hb_language_from_string (const char *str);
+hb_language_from_string (const char *str, int len);
 
 const char *
 hb_language_to_string (hb_language_t language);
@@ -293,8 +296,9 @@ hb_script_t
 hb_script_from_iso15924_tag (hb_tag_t tag);
 
 /* suger for tag_from_string() then script_from_iso15924_tag */
+/* len=-1 means s is NUL-terminated */
 hb_script_t
-hb_script_from_string (const char *s);
+hb_script_from_string (const char *s, int len);
 
 hb_tag_t
 hb_script_to_iso15924_tag (hb_script_t script);
