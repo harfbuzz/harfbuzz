@@ -59,10 +59,9 @@ static struct hb_gr_face_data_t {
 } _hb_gr_face_data_nil = {NULL, NULL};
 
 static struct hb_gr_font_data_t {
-  hb_font_t *font;
   gr_font   *grfont;
   gr_face   *grface;
-} _hb_gr_font_data_nil = {NULL, NULL, NULL};
+} _hb_gr_font_data_nil = {NULL, NULL};
 
 
 static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *len)
@@ -107,12 +106,9 @@ static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *
   return d;
 }
 
-static float hb_gr_get_advance (const void *data, unsigned short gid)
+static float hb_gr_get_advance (const void *hb_font, unsigned short gid)
 {
-  hb_gr_font_data_t *font = (hb_gr_font_data_t *) data;
-  if (!font->font)
-    return 0;
-  return (float) hb_font_get_glyph_h_advance (font->font, gid);
+  return hb_font_get_glyph_h_advance ((hb_font_t *) hb_font, gid);
 }
 
 static void _hb_gr_face_data_destroy (void *data)
@@ -193,11 +189,10 @@ _hb_gr_font_get_data (hb_font_t *font)
     return &_hb_gr_font_data_nil;
   }
 
-  data->font = font;
   data->grface = _hb_gr_face_get_data (font->face)->grface;
   int scale;
   hb_font_get_scale (font, &scale, NULL);
-  data->grfont = gr_make_font_with_advance_fn (scale, data, &hb_gr_get_advance, data->grface);
+  data->grfont = gr_make_font_with_advance_fn (scale, font, &hb_gr_get_advance, data->grface);
 
 
   if (unlikely (!hb_font_set_user_data (font, &hb_gr_data_key, data,
