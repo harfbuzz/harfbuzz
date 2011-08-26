@@ -291,7 +291,6 @@ hb_graphite_shape (hb_font_t          *font,
     unsigned int before = gr_slot_before (is);
     unsigned int after = gr_slot_after (is);
     *pg = gr_slot_gid (is);
-    *pg = hb_be_uint16 (*pg); // XXX insane: swap bytes so be16 can swap them back
     pg++;
     while (clusters[ci].base_char > before && ci)
     {
@@ -318,7 +317,7 @@ hb_graphite_shape (hb_font_t          *font,
 
   buffer->clear_output();
   for (unsigned int i = 0; i < ci; ++i)
-    buffer->replace_glyphs_be16(clusters[i].num_chars, clusters[i].num_glyphs, gids + clusters[i].base_glyph);
+    buffer->replace_glyphs (clusters[i].num_chars, clusters[i].num_glyphs, gids + clusters[i].base_glyph);
   buffer->swap_buffers();
 
   hb_glyph_position_t *pPos;
