@@ -297,7 +297,7 @@ hb_graphite_shape (hb_font_t          *font,
     {
       clusters[ci-1].num_chars += clusters[ci].num_chars;
       clusters[ci-1].num_glyphs += clusters[ci].num_glyphs;
-      --ci;
+      ci--;
     }
 
     if (gr_slot_can_insert_before (is) && clusters[ci].num_chars && before >= clusters[ci].base_char + clusters[ci].num_chars)
@@ -307,16 +307,17 @@ hb_graphite_shape (hb_font_t          *font,
       c->num_chars = before - c->base_char;
       c->base_glyph = ic;
       c->num_glyphs = 0;
-      ++ci;
+      ci++;
     }
-    ++clusters[ci].num_glyphs;
+    clusters[ci].num_glyphs++;
 
     if (clusters[ci].base_char + clusters[ci].num_chars < after + 1)
 	clusters[ci].num_chars = after + 1 - clusters[ci].base_char;
   }
+  ci++;
 
   buffer->clear_output();
-  for (unsigned int i = 0; i <= ci; ++i)
+  for (unsigned int i = 0; i < ci; ++i)
     buffer->replace_glyphs_be16(clusters[i].num_chars, clusters[i].num_glyphs, gids + clusters[i].base_glyph);
   buffer->swap_buffers();
 
