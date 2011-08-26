@@ -236,9 +236,10 @@ hb_graphite_shape (hb_font_t          *font,
 
   if (!charlen) return TRUE;
 
-  /* XXX(behdad): Do we need OT lang tag here? */
   const char *lang = hb_language_to_string (hb_buffer_get_language (buffer));
-  gr_feature_val *feats = gr_face_featureval_for_lang (data->grface, lang ? hb_tag_from_string (lang, -1) : 0);
+  const char *lang_end = strchr (lang, '-');
+  int lang_len = lang_end ? lang_end - lang : -1;
+  gr_feature_val *feats = gr_face_featureval_for_lang (data->grface, lang ? hb_tag_from_string (lang, lang_len) : 0);
 
   while (num_features--)
   {
