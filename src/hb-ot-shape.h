@@ -27,7 +27,6 @@
 #ifndef HB_OT_SHAPE_H
 #define HB_OT_SHAPE_H
 
-#include "hb-common.h"
 #include "hb-shape.h"
 
 
