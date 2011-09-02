@@ -153,7 +153,7 @@ _hb_gr_face_get_data (hb_face_t *face)
   }
 
   data->face = face;
-  data->grface = gr_make_face (data, &hb_gr_get_table, gr_face_preloadGlyphs);
+  data->grface = gr_make_face (data, &hb_gr_get_table, gr_face_default);
 
 
   if (unlikely (!hb_face_set_user_data (face, &hb_gr_data_key, data,
