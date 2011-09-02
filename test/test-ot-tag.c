@@ -213,12 +213,17 @@ test_ot_tag_language (void)
 
   test_tag_from_language ("dflt", "asdf-asdf-wer-x-hbot-zxc");
 
+  test_tag_from_language ("dflt", "xy");
+  test_tag_from_language ("XYZ", "xyz"); /* Unknown ISO 639-3 */
+  test_tag_from_language ("XYZ", "xyz-qw"); /* Unknown ISO 639-3 */
+
   /* Test that x-hbot overrides the base language */
   test_tag_from_language ("ABC", "fa-x-hbotabc-zxc");
   test_tag_from_language ("ABC", "fa-ir-x-hbotabc-zxc");
   test_tag_from_language ("ABC", "zh-x-hbotabc-zxc");
   test_tag_from_language ("ABC", "zh-cn-x-hbotabc-zxc");
   test_tag_from_language ("ABC", "zh-xy-x-hbotabc-zxc");
+  test_tag_from_language ("ABC", "xyz-xy-x-hbotabc-zxc");
 }
 
 int

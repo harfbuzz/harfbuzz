@@ -651,6 +651,14 @@ hb_ot_tag_from_language (hb_language_t language)
     return HB_TAG('Z','H','S',' ');
   }
 
+  s = strchr (lang_str, '-');
+  if (!s)
+    s = lang_str + strlen (lang_str);
+  if (s - lang_str == 3) {
+    /* Assume it's ISO-639-3 and upper-case and use it. */
+    return hb_tag_from_string (lang_str, s - lang_str) & ~0x20202000;
+  }
+
   return HB_OT_TAG_DEFAULT_LANGUAGE;
 }
 
