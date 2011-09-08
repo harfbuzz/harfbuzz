@@ -63,6 +63,20 @@ extern struct shape_options_t
     g_free (shapers);
   }
 
+  void setup_buffer (hb_buffer_t *buffer) {
+    if (direction)
+      hb_buffer_set_direction (buffer, hb_direction_from_string (direction, -1));
+    if (script)
+      hb_buffer_set_script (buffer, hb_script_from_string (script, -1));
+    if (language)
+      hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
+  }
+
+  bool shape (hb_font_t *font, hb_buffer_t *buffer) {
+    setup_buffer (buffer);
+    return hb_shape_full (font, buffer, features, num_features, NULL, shapers);
+  }
+
   const char *text;
   const char *direction;
   const char *language;

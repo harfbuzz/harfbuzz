@@ -61,16 +61,10 @@ _hb_cr_text_glyphs (cairo_t *cr,
 
   hb_buffer = hb_buffer_create ();
 
-  if (shape_opts->direction)
-    hb_buffer_set_direction (hb_buffer, hb_direction_from_string (shape_opts->direction, -1));
-  if (shape_opts->script)
-    hb_buffer_set_script (hb_buffer, hb_script_from_string (shape_opts->script, -1));
-  if (shape_opts->language)
-    hb_buffer_set_language (hb_buffer, hb_language_from_string (shape_opts->language, -1));
 
   hb_buffer_add_utf8 (hb_buffer, utf8, len, 0, len);
 
-  if (!hb_shape_full (hb_font, hb_buffer, shape_opts->features, shape_opts->num_features, NULL, shape_opts->shapers))
+  if (!shape_opts->shape (hb_font, hb_buffer))
     fail ("All shapers failed");
 
   num_glyphs = hb_buffer_get_length (hb_buffer);
