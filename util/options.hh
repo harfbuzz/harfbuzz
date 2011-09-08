@@ -58,6 +58,10 @@ extern struct shape_options_t
   shape_options_t (void) {
     memset (this, 0, sizeof (*this));
   }
+  ~shape_options_t (void) {
+    free (features);
+    g_free (shapers);
+  }
 
   const char *text;
   const char *direction;

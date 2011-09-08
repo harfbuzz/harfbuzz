@@ -253,9 +253,6 @@ main (int argc, char **argv)
   }
 
   if (debug) {
-    free (shape_opts->features);
-    g_free (shape_opts->shapers);
-
     cairo_pattern_destroy (fore_pattern);
     cairo_pattern_destroy (back_pattern);
     cairo_surface_destroy (surface);
@@ -268,5 +265,3 @@ main (int argc, char **argv)
 
   return 0;
 }
-
-
