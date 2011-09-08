@@ -68,8 +68,6 @@ _hb_cr_text_glyphs (cairo_t *cr,
   if (shape_opts->language)
     hb_buffer_set_language (hb_buffer, hb_language_from_string (shape_opts->language, -1));
 
-  if (len < 0)
-    len = strlen (utf8);
   hb_buffer_add_utf8 (hb_buffer, utf8, len, 0, len);
 
   if (!hb_shape_full (hb_font, hb_buffer, shape_opts->features, shape_opts->num_features, NULL, shape_opts->shapers))
