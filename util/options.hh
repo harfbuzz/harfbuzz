@@ -43,6 +43,8 @@ extern struct view_options_t
     margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
   }
 
+  void add_options (GOptionContext *context);
+
   hb_bool_t annotate;
   const char *fore;
   const char *back;
@@ -63,6 +65,8 @@ extern struct shape_options_t
     g_free (shapers);
   }
 
+  void add_options (GOptionContext *context);
+
   void setup_buffer (hb_buffer_t *buffer) {
     hb_buffer_set_direction (buffer, hb_direction_from_string (direction, -1));
     hb_buffer_set_script (buffer, hb_script_from_string (script, -1));
@@ -74,7 +78,6 @@ extern struct shape_options_t
     return hb_shape_full (font, buffer, features, num_features, NULL, shapers);
   }
 
-  const char *text;
   const char *direction;
   const char *language;
   const char *script;
@@ -93,19 +96,17 @@ extern struct font_options_t
     font_size = DEFAULT_FONT_SIZE;
   }
 
+  void add_options (GOptionContext *context);
+
   const char *font_file;
   int face_index;
   double font_size;
 } font_opts[1];
 
 
+extern const char *text;
 extern const char *out_file;
 extern hb_bool_t debug;
-
-
-void option_context_add_view_opts	(GOptionContext *context);
-void option_context_add_shape_opts	(GOptionContext *context);
-void option_context_add_font_opts	(GOptionContext *context);
 
 void parse_options (int argc, char *argv[]);
 

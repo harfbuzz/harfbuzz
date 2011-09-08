@@ -149,7 +149,7 @@ draw (void)
   cairo_glyph_t *glyphs = NULL;
   unsigned int num_glyphs = 0;
 
-  const char *end, *p = shape_opts->text;
+  const char *end, *p = text;
   double x, y;
 
   cr= create_context ();
@@ -170,7 +170,7 @@ draw (void)
     if (!end)
       end = p + strlen (p);
 
-    if (p != shape_opts->text)
+    if (p != text)
 	y += view_opts->line_space;
 
     if (p != end) {

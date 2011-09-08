@@ -31,6 +31,7 @@ view_options_t view_opts[1];
 shape_options_t shape_opts[1];
 font_options_t font_opts[1];
 
+const char *text;
 const char *out_file = "/dev/stdout";
 hb_bool_t debug = FALSE;
 
@@ -38,9 +39,10 @@ hb_bool_t debug = FALSE;
 static gboolean
 parse_margin (const char *name G_GNUC_UNUSED,
 	      const char *arg,
-	      gpointer    data G_GNUC_UNUSED,
+	      gpointer    data,
 	      GError    **error G_GNUC_UNUSED)
 {
+  view_options_t *view_opts = (view_options_t *) data;
   view_options_t::margin_t &m = view_opts->margin;
   switch (sscanf (arg, "%lf %lf %lf %lf", &m.t, &m.r, &m.b, &m.l)) {
     case 1: m.r = m.t;
@@ -59,9 +61,10 @@ parse_margin (const char *name G_GNUC_UNUSED,
 static gboolean
 parse_shapers (const char *name G_GNUC_UNUSED,
 	       const char *arg,
-	       gpointer    data G_GNUC_UNUSED,
+	       gpointer    data,
 	       GError    **error G_GNUC_UNUSED)
 {
+  shape_options_t *shape_opts = (shape_options_t *) data;
   shape_opts->shapers = g_strsplit (arg, ",", 0);
   return TRUE;
 }
@@ -191,9 +194,10 @@ skip_one_feature (char **pp)
 static gboolean
 parse_features (const char *name G_GNUC_UNUSED,
 	        const char *arg,
-	        gpointer    data G_GNUC_UNUSED,
+	        gpointer    data,
 	        GError    **error G_GNUC_UNUSED)
 {
+  shape_options_t *shape_opts = (shape_options_t *) data;
   char *s = (char *) arg;
   char *p;
 
@@ -266,66 +270,66 @@ option_context_add_entries (GOptionContext *context,
 			    GOptionEntry   *entries,
 			    const gchar    *name,
 			    const gchar    *description,
-			    const gchar    *help_description)
+			    const gchar    *help_description,
+			    gpointer        user_data)
 {
-  if (0) {
-    GOptionGroup *group = g_option_group_new (name, description, help_description, NULL, NULL);
-    g_option_group_add_entries (group, entries);
-    g_option_context_add_group (context, group);
-  } else {
-    g_option_context_add_main_entries (context, entries, NULL);
-  }
+  GOptionGroup *group = g_option_group_new (name, description, help_description, user_data, NULL);
+  g_option_group_add_entries (group, entries);
+  g_option_context_add_group (context, group);
 }
 
 void
-option_context_add_view_opts (GOptionContext *context)
+view_options_t::add_options (GOptionContext *context)
 {
   GOptionEntry entries[] =
   {
-    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&view_opts->annotate,		"Annotate output rendering",				NULL},
-    {"background",	0, 0, G_OPTION_ARG_STRING,	&view_opts->back,		"Set background color (default: "DEFAULT_BACK")",	"red/#rrggbb/#rrggbbaa"},
-    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&view_opts->fore,		"Set foreground color (default: "DEFAULT_FORE")",	"red/#rrggbb/#rrggbbaa"},
-    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&view_opts->line_space,		"Set space between lines (default: 0)",			"units"},
+    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&this->annotate,		"Annotate output rendering",				NULL},
+    {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,			"Set background color (default: "DEFAULT_BACK")",	"red/#rrggbb/#rrggbbaa"},
+    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: "DEFAULT_FORE")",	"red/#rrggbb/#rrggbbaa"},
+    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&this->line_space,		"Set space between lines (default: 0)",			"units"},
     {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: "G_STRINGIFY(DEFAULT_MARGIN)")","one to four numbers"},
     {NULL}
   };
   option_context_add_entries (context, entries,
 			      "view",
 			      "View options:",
-			      "Options controlling the output rendering");
+			      "Options controlling the output rendering",
+			      this);
 }
 
 void
-option_context_add_shape_opts (GOptionContext *context)
+shape_options_t::add_options (GOptionContext *context)
 {
   GOptionEntry entries[] =
   {
     {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers",	"list"},
-    {"direction",	0, 0, G_OPTION_ARG_STRING,	&shape_opts->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
-    {"language",	0, 0, G_OPTION_ARG_STRING,	&shape_opts->language,		"Set text language (default: $LANG)",	"langstr"},
-    {"script",		0, 0, G_OPTION_ARG_STRING,	&shape_opts->script,		"Set text script (default: auto)",	"ISO-15924 tag"},
+    {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
+    {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
+    {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
     {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	"Font features to apply to text",	"TODO"},
     {NULL}
   };
   option_context_add_entries (context, entries,
 			      "shape",
 			      "Shape options:",
-			      "Options controlling the shaping process");
+			      "Options controlling the shaping process",
+			      this);
 }
 
 void
-option_context_add_font_opts (GOptionContext *context)
+font_options_t::add_options (GOptionContext *context)
 {
   GOptionEntry entries[] =
   {
-    {"face-index",	0, 0, G_OPTION_ARG_INT,		&font_opts->face_index,		"Face index (default: 0)",				"index"},
-    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&font_opts->font_size,		"Font size (default: "G_STRINGIFY(DEFAULT_FONT_SIZE)")","size"},
+    {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Face index (default: 0)",				"index"},
+    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&this->font_size,		"Font size (default: "G_STRINGIFY(DEFAULT_FONT_SIZE)")","size"},
     {NULL}
   };
   option_context_add_entries (context, entries,
 			      "font",
 			      "Font options:",
-			      "Options controlling the font");
+			      "Options controlling the font",
+			      NULL);
 }
 
 void
@@ -345,9 +349,9 @@ parse_options (int argc, char *argv[])
   context = g_option_context_new ("- FONT-FILE TEXT");
 
   g_option_context_add_main_entries (context, entries, NULL);
-  option_context_add_view_opts (context);
-  option_context_add_shape_opts (context);
-  option_context_add_font_opts (context);
+  view_opts->add_options (context);
+  shape_opts->add_options (context);
+  font_opts->add_options (context);
 
   if (!g_option_context_parse (context, &argc, &argv, &parse_error))
   {
@@ -365,5 +369,5 @@ parse_options (int argc, char *argv[])
   }
 
   font_opts->font_file = argv[1];
-  shape_opts->text = argv[2];
+  text = argv[2];
 }
