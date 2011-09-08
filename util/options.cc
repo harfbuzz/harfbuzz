@@ -261,6 +261,73 @@ show_version (const char *name G_GNUC_UNUSED,
 }
 
 
+static void
+option_context_add_entries (GOptionContext *context,
+			    GOptionEntry   *entries,
+			    const gchar    *name,
+			    const gchar    *description,
+			    const gchar    *help_description)
+{
+  if (0) {
+    GOptionGroup *group = g_option_group_new (name, description, help_description, NULL, NULL);
+    g_option_group_add_entries (group, entries);
+    g_option_context_add_group (context, group);
+  } else {
+    g_option_context_add_main_entries (context, entries, NULL);
+  }
+}
+
+void
+option_context_add_view_opts (GOptionContext *context)
+{
+  GOptionEntry entries[] =
+  {
+    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&view_opts->annotate,		"Annotate output rendering",				NULL},
+    {"background",	0, 0, G_OPTION_ARG_STRING,	&view_opts->back,		"Set background color (default: "DEFAULT_BACK")",	"red/#rrggbb/#rrggbbaa"},
+    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&view_opts->fore,		"Set foreground color (default: "DEFAULT_FORE")",	"red/#rrggbb/#rrggbbaa"},
+    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&view_opts->line_space,		"Set space between lines (default: 0)",			"units"},
+    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: "G_STRINGIFY(DEFAULT_MARGIN)")","one to four numbers"},
+    {NULL}
+  };
+  option_context_add_entries (context, entries,
+			      "view",
+			      "View options:",
+			      "Options controlling the output rendering");
+}
+
+void
+option_context_add_shape_opts (GOptionContext *context)
+{
+  GOptionEntry entries[] =
+  {
+    {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers",	"list"},
+    {"direction",	0, 0, G_OPTION_ARG_STRING,	&shape_opts->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
+    {"language",	0, 0, G_OPTION_ARG_STRING,	&shape_opts->language,		"Set text language (default: $LANG)",	"langstr"},
+    {"script",		0, 0, G_OPTION_ARG_STRING,	&shape_opts->script,		"Set text script (default: auto)",	"ISO-15924 tag"},
+    {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	"Font features to apply to text",	"TODO"},
+    {NULL}
+  };
+  option_context_add_entries (context, entries,
+			      "shape",
+			      "Shape options:",
+			      "Options controlling the shaping process");
+}
+
+void
+option_context_add_font_opts (GOptionContext *context)
+{
+  GOptionEntry entries[] =
+  {
+    {"face-index",	0, 0, G_OPTION_ARG_INT,		&font_opts->face_index,		"Face index (default: 0)",				"index"},
+    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&font_opts->font_size,		"Font size (default: "G_STRINGIFY(DEFAULT_FONT_SIZE)")","size"},
+    {NULL}
+  };
+  option_context_add_entries (context, entries,
+			      "font",
+			      "Font options:",
+			      "Options controlling the font");
+}
+
 void
 parse_options (int argc, char *argv[])
 {
@@ -270,22 +337,6 @@ parse_options (int argc, char *argv[])
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			NULL},
     {"debug",		0, 0, G_OPTION_ARG_NONE,	&debug,				"Free all resources before exit",	NULL},
     {"output",		0, 0, G_OPTION_ARG_STRING,	&out_file,			"Set output file name",			"filename"},
-
-    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&view_opts->annotate,		"Annotate output rendering",		NULL},
-    {"background",	0, 0, G_OPTION_ARG_STRING,	&view_opts->back,		"Set background color",			"red/#rrggbb/#rrggbbaa"},
-    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&view_opts->fore,		"Set foreground color",			"red/#rrggbb/#rrggbbaa"},
-    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&view_opts->line_space,		"Set space between lines (default: 0)",	"units"},
-    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output",			"one to four numbers"},
-
-    {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers",	"list"},
-    {"direction",	0, 0, G_OPTION_ARG_STRING,	&shape_opts->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
-    {"language",	0, 0, G_OPTION_ARG_STRING,	&shape_opts->language,		"Set text language (default: $LANG)",	"langstr"},
-    {"script",		0, 0, G_OPTION_ARG_STRING,	&shape_opts->script,		"Set text script (default: auto)",	"ISO-15924 tag"},
-    {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	"Font features to apply to text",	"TODO"},
-
-    {"face-index",	0, 0, G_OPTION_ARG_INT,		&font_opts->face_index,		"Face index (default: 0)",		"index"},
-    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&font_opts->font_size,		"Font size",				"size"},
-
     {NULL}
   };
   GError *parse_error = NULL;
@@ -294,6 +345,9 @@ parse_options (int argc, char *argv[])
   context = g_option_context_new ("- FONT-FILE TEXT");
 
   g_option_context_add_main_entries (context, entries, NULL);
+  option_context_add_view_opts (context);
+  option_context_add_shape_opts (context);
+  option_context_add_font_opts (context);
 
   if (!g_option_context_parse (context, &argc, &argv, &parse_error))
   {

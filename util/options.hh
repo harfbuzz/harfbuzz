@@ -30,13 +30,17 @@
 #define OPTIONS_HH
 
 
+#define DEFAULT_MARGIN 18
+#define DEFAULT_FORE "#000000"
+#define DEFAULT_BACK "#FFFFFF"
+
 extern struct view_options_t
 {
   view_options_t (void) {
     memset (this, 0, sizeof (*this));
-    fore = "#000000";
-    back = "#ffffff";
-    margin.t = margin.r = margin.b = margin.l = 18.;
+    fore = DEFAULT_FORE;
+    back = DEFAULT_BACK;
+    margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
   }
 
   hb_bool_t annotate;
@@ -47,6 +51,7 @@ extern struct view_options_t
     double t, r, b, l;
   } margin;
 } view_opts[1];
+
 
 extern struct shape_options_t
 {
@@ -63,11 +68,14 @@ extern struct shape_options_t
   char **shapers;
 } shape_opts[1];
 
+
+#define DEFAULT_FONT_SIZE 36
+
 extern struct font_options_t
 {
   font_options_t (void) {
     memset (this, 0, sizeof (*this));
-    font_size = 36.;
+    font_size = DEFAULT_FONT_SIZE;
   }
 
   const char *font_file;
@@ -79,6 +87,10 @@ extern struct font_options_t
 extern const char *out_file;
 extern hb_bool_t debug;
 
+
+void option_context_add_view_opts	(GOptionContext *context);
+void option_context_add_shape_opts	(GOptionContext *context);
+void option_context_add_font_opts	(GOptionContext *context);
 
 void parse_options (int argc, char *argv[]);
 
