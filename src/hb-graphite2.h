@@ -26,6 +26,7 @@
 #ifndef HB_GRAPHITE2_H
 #define HB_GRAPHITE2_H
 
+#include "hb-common.h"
 #include "hb-shape.h"
 
 HB_BEGIN_DECLS

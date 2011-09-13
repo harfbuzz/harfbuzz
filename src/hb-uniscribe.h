@@ -27,6 +27,7 @@
 #ifndef HB_UNISCRIBE_H
 #define HB_UNISCRIBE_H
 
+#include "hb-common.h"
 #include "hb-shape.h"
 
 #define _WIN32_WINNT 0x0500
