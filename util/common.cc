@@ -27,14 +27,17 @@
 #include "common.hh"
 
 void
-fail (const char *format, ...)
+fail (hb_bool_t suggest_help, const char *format, ...)
 {
   const char *msg;
 
   va_list vap;
   va_start (vap, format);
   msg = g_strdup_vprintf (format, vap);
-  g_printerr ("%s: %s\n", g_get_prgname (), msg);
+  const char *prgname = g_get_prgname ();
+  g_printerr ("%s: %s\n", prgname, msg);
+  if (suggest_help)
+    g_printerr ("Try `%s --help' for more information.\n", prgname);
 
   exit (1);
 }

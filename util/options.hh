@@ -30,42 +30,94 @@
 #define OPTIONS_HH
 
 
+extern bool debug;
+
+struct option_group_t
+{
+  virtual void add_options (struct option_parser_t *parser) = 0;
+
+  virtual void pre_parse (GError **error G_GNUC_UNUSED) {};
+  virtual void post_parse (GError **error G_GNUC_UNUSED) {};
+};
+
+
+struct option_parser_t
+{
+  option_parser_t (const char *usage) {
+    memset (this, 0, sizeof (*this));
+    usage_str = usage;
+    context = g_option_context_new (usage);
+
+    add_main_options ();
+  }
+  ~option_parser_t (void) {
+    g_option_context_free (context);
+  }
+
+  void add_main_options (void);
+
+  void add_group (GOptionEntry   *entries,
+		  const gchar    *name,
+		  const gchar    *description,
+		  const gchar    *help_description,
+		  option_group_t *option_group);
+
+  void parse (int *argc, char ***argv);
+
+  G_GNUC_NORETURN void usage (void) {
+    g_printerr ("Usage: %s [OPTION...] %s\n", g_get_prgname (), usage_str);
+    exit (1);
+  }
+
+  const char *usage_str;
+  GOptionContext *context;
+};
+
+
 #define DEFAULT_MARGIN 18
 #define DEFAULT_FORE "#000000"
 #define DEFAULT_BACK "#FFFFFF"
 
-extern struct view_options_t
+struct view_options_t : option_group_t
 {
-  view_options_t (void) {
-    memset (this, 0, sizeof (*this));
+  view_options_t (option_parser_t *parser) {
+    annotate = false;
     fore = DEFAULT_FORE;
     back = DEFAULT_BACK;
+    line_space = 0;
     margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
+
+    add_options (parser);
   }
 
-  void add_options (GOptionContext *context);
+  void add_options (option_parser_t *parser);
 
-  hb_bool_t annotate;
+  bool annotate;
   const char *fore;
   const char *back;
   double line_space;
   struct margin_t {
     double t, r, b, l;
   } margin;
-} view_opts[1];
+};
 
 
-extern struct shape_options_t
+struct shape_options_t : option_group_t
 {
-  shape_options_t (void) {
-    memset (this, 0, sizeof (*this));
+  shape_options_t (option_parser_t *parser) {
+    direction = language = script = NULL;
+    features = NULL;
+    num_features = 0;
+    shapers = NULL;
+
+    add_options (parser);
   }
   ~shape_options_t (void) {
     free (features);
     g_free (shapers);
   }
 
-  void add_options (GOptionContext *context);
+  void add_options (option_parser_t *parser);
 
   void setup_buffer (hb_buffer_t *buffer) {
     hb_buffer_set_direction (buffer, hb_direction_from_string (direction, -1));
@@ -73,7 +125,10 @@ extern struct shape_options_t
     hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
   }
 
-  bool shape (hb_font_t *font, hb_buffer_t *buffer) {
+  bool shape (const char *text, int text_len,
+	      hb_font_t *font, hb_buffer_t *buffer) {
+    hb_buffer_reset (buffer);
+    hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
     setup_buffer (buffer);
     return hb_shape_full (font, buffer, features, num_features, NULL, shapers);
   }
@@ -84,31 +139,113 @@ extern struct shape_options_t
   hb_feature_t *features;
   unsigned int num_features;
   char **shapers;
-} shape_opts[1];
+};
 
 
 #define DEFAULT_FONT_SIZE 36
 
-extern struct font_options_t
+struct font_options_t : option_group_t
 {
-  font_options_t (void) {
-    memset (this, 0, sizeof (*this));
+  font_options_t (option_parser_t *parser) {
+    font_file = NULL;
+    face_index = 0;
     font_size = DEFAULT_FONT_SIZE;
+
+    font = NULL;
+
+    add_options (parser);
+  }
+  ~font_options_t (void) {
+    hb_font_destroy (font);
   }
 
-  void add_options (GOptionContext *context);
+  void add_options (option_parser_t *parser);
+
+  hb_font_t *get_font (void) const;
 
   const char *font_file;
   int face_index;
   double font_size;
-} font_opts[1];
+
+  private:
+  mutable hb_font_t *font;
+};
 
 
-extern const char *text;
-extern const char *out_file;
-extern hb_bool_t debug;
+struct text_options_t : option_group_t
+{
+  text_options_t (option_parser_t *parser) {
+    text = NULL;
+    text_file = NULL;
 
-void parse_options (int argc, char *argv[]);
+    file = NULL;
+    text_len = (unsigned int) -1;
+
+    add_options (parser);
+  }
+  ~text_options_t (void) {
+    if (file)
+      g_mapped_file_unref (file);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  void post_parse (GError **error G_GNUC_UNUSED) {
+    if (text && text_file)
+      g_set_error (error,
+		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Only one of text and text-file must be set");
+
+  };
+
+  const char *get_line (unsigned int *len);
+
+  const char *text;
+  const char *text_file;
+
+  private:
+  mutable GMappedFile *file;
+  mutable unsigned int text_len;
+};
+
+
+struct output_options_t : option_group_t
+{
+  output_options_t (option_parser_t *parser) {
+    output_file = NULL;
+    output_format = NULL;
+
+    add_options (parser);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  void post_parse (GError **error G_GNUC_UNUSED)
+  {
+    if (output_file && !output_format) {
+      output_format = strrchr (output_file, '.');
+      if (output_format)
+	  output_format++; /* skip the dot */
+    }
+
+      if (!output_file) {
+#if defined(_MSC_VER) || defined(__MINGW32__)
+        output_file = "CON"; /* XXX right? */
+#else
+        output_file = "/dev/stdout";
+#endif
+      }
+  }
+
+  virtual void init (const font_options_t *font_opts) = 0;
+  virtual void consume_line (hb_buffer_t  *buffer,
+			     const char   *text,
+			     unsigned int  text_len) = 0;
+  virtual void finish (const font_options_t *font_opts) = 0;
+
+  const char *output_file;
+  const char *output_format;
+};
 
 
 #endif

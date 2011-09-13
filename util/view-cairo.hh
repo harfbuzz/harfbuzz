@@ -24,28 +24,40 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "options.hh"
 
-#ifndef COMMON_HH
-#define COMMON_HH
+#include <cairo-ft.h>
+#include <hb-ft.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#ifndef VIEW_CAIRO_HH
+#define VIEW_CAIRO_HH
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <assert.h>
-#include <stdio.h>
-#include <math.h>
-#include <locale.h>
+struct view_cairo_t : output_options_t, view_options_t {
+  view_cairo_t (option_parser_t *parser)
+	       : output_options_t (parser),
+	         view_options_t (parser) {}
+  ~view_cairo_t (void) {
+    if (debug)
+      cairo_debug_reset_static_data ();
+  }
 
-#include <hb.h>
-#include <glib.h>
-#include <glib/gprintf.h>
+  void init (const font_options_t *font_opts);
+  void consume_line (hb_buffer_t  *buffer,
+		     const char   *text,
+		     unsigned int  text_len);
+  void finish (const font_options_t *font_opts);
 
+  protected:
 
-void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN;
+  void render (const font_options_t *font_opts);
+  cairo_scaled_font_t *create_scaled_font (const font_options_t *font_opts);
+  void get_surface_size (cairo_scaled_font_t *scaled_font, double *w, double *h);
+  cairo_t *create_context (double w, double h);
+  void draw (cairo_t *cr);
+  double line_width (unsigned int i);
 
+  GArray *lines;
+  unsigned int upem;
+};
 
 #endif

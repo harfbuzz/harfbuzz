@@ -49,6 +49,8 @@ m4_define([hb_libtool_current],
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
+GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
+
 # Functions and headers
 AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap)
 AC_CHECK_HEADERS(unistd.h sys/mman.h)

@@ -18,6 +18,8 @@ hb_view_SOURCES = \
 	common.hh \
 	options.cc \
 	options.hh \
+	view-cairo.cc \
+	view-cairo.hh \
 	$(NULL)
 hb_view_CPPFLAGS = \
 	-I$(top_srcdir)/src/ \

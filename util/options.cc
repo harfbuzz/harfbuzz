@@ -26,14 +26,107 @@
 
 #include "options.hh"
 
+#if HAVE_FREETYPE
+#include <hb-ft.h>
+#endif
 
-view_options_t view_opts[1];
-shape_options_t shape_opts[1];
-font_options_t font_opts[1];
 
-const char *text;
-const char *out_file = "/dev/stdout";
-hb_bool_t debug = FALSE;
+bool debug = FALSE;
+
+static gchar *
+shapers_to_string (void)
+{
+  GString *shapers = g_string_new (NULL);
+  const char **shaper_list = hb_shape_list_shapers ();
+
+  for (; *shaper_list; shaper_list++) {
+    g_string_append (shapers, *shaper_list);
+    g_string_append_c (shapers, ',');
+  }
+  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
+
+  return g_string_free (shapers, FALSE);
+}
+
+static G_GNUC_NORETURN gboolean
+show_version (const char *name G_GNUC_UNUSED,
+	      const char *arg G_GNUC_UNUSED,
+	      gpointer    data G_GNUC_UNUSED,
+	      GError    **error G_GNUC_UNUSED)
+{
+  g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
+
+  char *shapers = shapers_to_string ();
+  g_printf ("Available shapers: %s\n", shapers);
+  g_free (shapers);
+  if (strcmp (HB_VERSION_STRING, hb_version_string ()))
+    g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
+
+  exit(0);
+}
+
+
+void
+option_parser_t::add_main_options (void)
+{
+  GOptionEntry entries[] =
+  {
+    {"version",		0, G_OPTION_FLAG_NO_ARG,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			NULL},
+    {"debug",		0, 0, G_OPTION_ARG_NONE,	&debug,				"Free all resources before exit",	NULL},
+    {NULL}
+  };
+  g_option_context_add_main_entries (context, entries, NULL);
+}
+
+static gboolean
+pre_parse (GOptionContext *context G_GNUC_UNUSED,
+	   GOptionGroup *group G_GNUC_UNUSED,
+	   gpointer data,
+	   GError **error)
+{
+  option_group_t *option_group = (option_group_t *) data;
+  option_group->pre_parse (error);
+  return *error == NULL;
+}
+
+static gboolean
+post_parse (GOptionContext *context G_GNUC_UNUSED,
+	    GOptionGroup *group G_GNUC_UNUSED,
+	    gpointer data,
+	    GError **error)
+{
+  option_group_t *option_group = static_cast<option_group_t *>(data);
+  option_group->post_parse (error);
+  return *error == NULL;
+}
+
+void
+option_parser_t::add_group (GOptionEntry   *entries,
+			    const gchar    *name,
+			    const gchar    *description,
+			    const gchar    *help_description,
+			    option_group_t *option_group)
+{
+  GOptionGroup *group = g_option_group_new (name, description, help_description,
+					    static_cast<gpointer>(option_group), NULL);
+  g_option_group_add_entries (group, entries);
+  g_option_group_set_parse_hooks (group, pre_parse, post_parse);
+  g_option_context_add_group (context, group);
+}
+
+void
+option_parser_t::parse (int *argc, char ***argv)
+{
+  GError *parse_error = NULL;
+  if (!g_option_context_parse (context, argc, argv, &parse_error))
+  {
+    if (parse_error != NULL)
+      fail (TRUE, "%s", parse_error->message);
+    else
+      fail (TRUE, "Option parse error");
+  }
+}
 
 
 static gboolean
@@ -232,54 +325,8 @@ parse_features (const char *name G_GNUC_UNUSED,
 }
 
 
-static gchar *
-shapers_to_string (void)
-{
-  GString *shapers = g_string_new (NULL);
-  const char **shaper_list = hb_shape_list_shapers ();
-
-  for (; *shaper_list; shaper_list++) {
-    g_string_append (shapers, *shaper_list);
-    g_string_append_c (shapers, ',');
-  }
-  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
-
-  return g_string_free (shapers, FALSE);
-}
-
-static G_GNUC_NORETURN gboolean
-show_version (const char *name G_GNUC_UNUSED,
-	      const char *arg G_GNUC_UNUSED,
-	      gpointer    data G_GNUC_UNUSED,
-	      GError    **error G_GNUC_UNUSED)
-{
-  g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
-
-  char *shapers = shapers_to_string ();
-  g_printf ("Available shapers: %s\n", shapers);
-  g_free (shapers);
-  if (strcmp (HB_VERSION_STRING, hb_version_string ()))
-    g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
-
-  exit(0);
-}
-
-
-static void
-option_context_add_entries (GOptionContext *context,
-			    GOptionEntry   *entries,
-			    const gchar    *name,
-			    const gchar    *description,
-			    const gchar    *help_description,
-			    gpointer        user_data)
-{
-  GOptionGroup *group = g_option_group_new (name, description, help_description, user_data, NULL);
-  g_option_group_add_entries (group, entries);
-  g_option_context_add_group (context, group);
-}
-
 void
-view_options_t::add_options (GOptionContext *context)
+view_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
@@ -290,15 +337,15 @@ view_options_t::add_options (GOptionContext *context)
     {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: "G_STRINGIFY(DEFAULT_MARGIN)")","one to four numbers"},
     {NULL}
   };
-  option_context_add_entries (context, entries,
-			      "view",
-			      "View options:",
-			      "Options controlling the output rendering",
-			      this);
+  parser->add_group (entries,
+		     "view",
+		     "View options:",
+		     "Options controlling the output rendering",
+		     this);
 }
 
 void
-shape_options_t::add_options (GOptionContext *context)
+shape_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
@@ -309,65 +356,149 @@ shape_options_t::add_options (GOptionContext *context)
     {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	"Font features to apply to text",	"TODO"},
     {NULL}
   };
-  option_context_add_entries (context, entries,
-			      "shape",
-			      "Shape options:",
-			      "Options controlling the shaping process",
-			      this);
+  parser->add_group (entries,
+		     "shape",
+		     "Shape options:",
+		     "Options controlling the shaping process",
+		     this);
 }
 
 void
-font_options_t::add_options (GOptionContext *context)
+font_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Face index (default: 0)",				"index"},
+    {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Font file-name",					"filename"},
+    {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Face index (default: 0)",                              "index"},
     {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&this->font_size,		"Font size (default: "G_STRINGIFY(DEFAULT_FONT_SIZE)")","size"},
     {NULL}
   };
-  option_context_add_entries (context, entries,
-			      "font",
-			      "Font options:",
-			      "Options controlling the font",
-			      NULL);
+  parser->add_group (entries,
+		     "font",
+		     "Font options:",
+		     "Options controlling the font",
+		     this);
 }
 
 void
-parse_options (int argc, char *argv[])
+text_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"version",		0, G_OPTION_FLAG_NO_ARG,
-			      G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			NULL},
-    {"debug",		0, 0, G_OPTION_ARG_NONE,	&debug,				"Free all resources before exit",	NULL},
-    {"output",		0, 0, G_OPTION_ARG_STRING,	&out_file,			"Set output file name",			"filename"},
+    {"text",		0, 0, G_OPTION_ARG_STRING,	&this->text,			"Set input text",			"string"},
+    {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name",		"filename"},
     {NULL}
   };
-  GError *parse_error = NULL;
-  GOptionContext *context;
+  parser->add_group (entries,
+		     "text",
+		     "Text options:",
+		     "Options controlling the input text",
+		     this);
+}
 
-  context = g_option_context_new ("- FONT-FILE TEXT");
-
-  g_option_context_add_main_entries (context, entries, NULL);
-  view_opts->add_options (context);
-  shape_opts->add_options (context);
-  font_opts->add_options (context);
-
-  if (!g_option_context_parse (context, &argc, &argv, &parse_error))
+void
+output_options_t::add_options (option_parser_t *parser)
+{
+  GOptionEntry entries[] =
   {
-    if (parse_error != NULL)
-      fail ("%s", parse_error->message);
-    else
-      fail ("Option parse error");
-    exit(1);
-  }
-  g_option_context_free(context);
+    {"output",		0, 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
+    {"format",		0, 0, G_OPTION_ARG_STRING,	&this->output_format,		"Set output format",			"format"},
+    {NULL}
+  };
+  parser->add_group (entries,
+		     "output",
+		     "Output options:",
+		     "Options controlling the output",
+		     this);
+}
 
-  if (argc != 3) {
-    g_printerr ("Usage: %s [OPTION...] FONT-FILE TEXT\n", g_get_prgname ());
-    exit (1);
+
+
+hb_font_t *
+font_options_t::get_font (void) const
+{
+  if (font)
+    return font;
+
+  hb_blob_t *blob = NULL;
+
+  /* Create the blob */
+  {
+    const char *font_data;
+    unsigned int len;
+    hb_destroy_func_t destroy;
+    void *user_data;
+    hb_memory_mode_t mm;
+
+    if (!font_file)
+      fail (TRUE, "No font file set");
+
+    GMappedFile *mf = g_mapped_file_new (font_file, FALSE, NULL);
+    if (!mf)
+      fail (FALSE, "Failed opening font file `%s'", font_file);
+    font_data = g_mapped_file_get_contents (mf);
+    len = g_mapped_file_get_length (mf);
+    destroy = (hb_destroy_func_t) g_mapped_file_unref;
+    user_data = (void *) mf;
+    mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
+
+    blob = hb_blob_create (font_data, len, mm, user_data, destroy);
   }
 
-  font_opts->font_file = argv[1];
-  text = argv[2];
+  /* Create the face */
+  hb_face_t *face = hb_face_create (blob, face_index);
+  hb_blob_destroy (blob);
+
+
+  font = hb_font_create (face);
+
+  unsigned int upem = hb_face_get_upem (face);
+  hb_font_set_scale (font, font_size * upem, font_size * upem);
+  hb_face_destroy (face);
+
+#if HAVE_FREETYPE
+  hb_ft_font_set_funcs (font);
+#endif
+
+  return font;
+}
+
+
+const char *
+text_options_t::get_line (unsigned int *len)
+{
+  if (!text) {
+    if (!text_file)
+      fail (TRUE, "At least one of text or text-file must be set");
+
+    GMappedFile *mf = g_mapped_file_new (text_file, FALSE, NULL);
+    if (!mf)
+      fail (FALSE, "Failed opening text file `%s'", text_file);
+    text = g_mapped_file_get_contents (mf);
+    text_len = g_mapped_file_get_length (mf);
+  }
+
+  if (text_len == (unsigned int) -1)
+    text_len = strlen (text);
+
+  if (!text_len) {
+    *len = 0;
+    return NULL;
+  }
+
+  const char *ret = text;
+  const char *p = (const char *) memchr (text, '\n', text_len);
+  unsigned int ret_len;
+  if (!p) {
+    ret_len = text_len;
+    text += ret_len;
+    text_len = 0;
+  } else {
+    ret_len = p - ret;
+    text += ret_len + 1;
+    text_len -= ret_len + 1;
+  }
+
+  *len = ret_len;
+  return ret;
 }
