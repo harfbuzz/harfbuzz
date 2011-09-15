@@ -194,10 +194,13 @@ _hb_ot_shape_normalize (hb_ot_shape_context_t *c)
   /* Technically speaking, two characters with ccc=0 may combine.  But all
    * those cases are in languages that the indic module handles (which expects
    * decomposed), or in Hangul jamo, which again, we want decomposed anyway.
-   * So we don't bother combining across cluster boundaries.
+   * So we don't bother combining across cluster boundaries.  This is a huge
+   * performance saver if the compose() callback is slow.
    *
    * TODO: Am I right about Hangul?  If I am, we should add a Hangul module
-   * that requests decomposed. */
+   * that requests decomposed.  If for Hangul we end up wanting composed, we
+   * can do that in the Hangul module.
+   */
 
   if (!has_multichar_clusters)
     return; /* Done! */
