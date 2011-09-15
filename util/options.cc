@@ -435,7 +435,7 @@ font_options_t::get_font (void) const
 
     GMappedFile *mf = g_mapped_file_new (font_file, FALSE, NULL);
     if (!mf)
-      fail (FALSE, "Failed opening font file `%s'", font_file);
+      fail (FALSE, "Failed opening font file `%s'", g_filename_display_name (font_file));
     font_data = g_mapped_file_get_contents (mf);
     len = g_mapped_file_get_length (mf);
     destroy = (hb_destroy_func_t) g_mapped_file_unref;
@@ -473,9 +473,10 @@ text_options_t::get_line (unsigned int *len)
 
     GMappedFile *mf = g_mapped_file_new (text_file, FALSE, NULL);
     if (!mf)
-      fail (FALSE, "Failed opening text file `%s'", text_file);
+      fail (FALSE, "Failed opening text file `%s'", g_filename_display_name (text_file));
     text = g_mapped_file_get_contents (mf);
     text_len = g_mapped_file_get_length (mf);
+    printf ("%d\n", text_len);
   }
 
   if (text_len == (unsigned int) -1)

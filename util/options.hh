@@ -245,8 +245,8 @@ struct output_options_t : option_group_t
 
     fp = output_file ? fopen (output_file, "wb") : stdout;
     if (!fp)
-      fail (FALSE, "Cannot open output file '%s': %s",
-	    output_file, strerror (errno));
+      fail (FALSE, "Cannot open output file `%s': %s",
+	    g_filename_display_name (output_file), strerror (errno));
 
     return fp;
   }
