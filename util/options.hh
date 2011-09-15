@@ -215,7 +215,13 @@ struct output_options_t : option_group_t
     output_file = NULL;
     output_format = NULL;
 
+    fp = NULL;
+
     add_options (parser);
+  }
+  ~output_options_t (void) {
+    if (fp && fp != stdout)
+      fclose (fp);
   }
 
   void add_options (option_parser_t *parser);
@@ -228,13 +234,21 @@ struct output_options_t : option_group_t
 	  output_format++; /* skip the dot */
     }
 
-      if (!output_file) {
-#if defined(_MSC_VER) || defined(__MINGW32__)
-        output_file = "CON"; /* XXX right? */
-#else
-        output_file = "/dev/stdout";
-#endif
-      }
+    if (output_file && 0 == strcmp (output_file, "-"))
+      output_file = NULL; /* STDOUT */
+  }
+
+  FILE *get_file_handle (void)
+  {
+    if (fp)
+      return fp;
+
+    fp = output_file ? fopen (output_file, "wb") : stdout;
+    if (!fp)
+      fail (FALSE, "Cannot open output file '%s': %s",
+	    output_file, strerror (errno));
+
+    return fp;
   }
 
   virtual void init (const font_options_t *font_opts) = 0;
@@ -243,8 +257,11 @@ struct output_options_t : option_group_t
 			     unsigned int  text_len) = 0;
   virtual void finish (const font_options_t *font_opts) = 0;
 
+  protected:
   const char *output_file;
   const char *output_format;
+
+  mutable FILE *fp;
 };
 
 

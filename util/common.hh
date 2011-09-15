@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <locale.h>
+#include <errno.h>
 
 #include <hb.h>
 #include <glib.h>

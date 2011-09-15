@@ -39,13 +39,14 @@
 #    define HAS_EPS 1
 
 static cairo_surface_t *
-_cairo_eps_surface_create (const char *filename,
-			   double      width,
-			   double      height)
+_cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
+				      void               *closure,
+				      double              width,
+				      double              height)
 {
   cairo_surface_t *surface;
 
-  surface = cairo_ps_surface_create (filename, width, height);
+  surface = cairo_ps_surface_create_for_stream (write_func, closure, width, height);
   cairo_ps_surface_set_eps (surface, TRUE);
 
   return surface;
@@ -223,7 +224,8 @@ view_cairo_t::create_scaled_font (const font_options_t *font_opts)
 struct finalize_closure_t {
   void (*callback)(finalize_closure_t *);
   cairo_surface_t *surface;
-  const char *filename;
+  cairo_write_func_t write_func;
+  void *closure;
 };
 static cairo_user_data_key_t finalize_closure_key;
 
@@ -233,17 +235,20 @@ static void
 finalize_png (finalize_closure_t *closure)
 {
   cairo_status_t status;
-  status = cairo_surface_write_to_png (closure->surface, closure->filename);
+  status = cairo_surface_write_to_png_stream (closure->surface,
+					      closure->write_func,
+					      closure->closure);
   if (status != CAIRO_STATUS_SUCCESS)
-    fail (FALSE, "Failed to write output to `%s': %s",
-	  closure->filename, cairo_status_to_string (status));
+    fail (FALSE, "Failed to write output: %s",
+	  cairo_status_to_string (status));
 }
 
 static cairo_surface_t *
-_cairo_png_surface_create (const char *filename,
-			   double width,
-			   double height,
-			   cairo_content_t content)
+_cairo_png_surface_create_for_stream (cairo_write_func_t write_func,
+				      void *closure,
+				      double width,
+				      double height,
+				      cairo_content_t content)
 {
   cairo_surface_t *surface;
   int w = ceil (width);
@@ -266,12 +271,13 @@ _cairo_png_surface_create (const char *filename,
     fail (FALSE, "Failed to create cairo surface: %s",
 	  cairo_status_to_string (status));
 
-  finalize_closure_t *closure = g_new0 (finalize_closure_t, 1);
-  closure->callback = finalize_png;
-  closure->surface = surface;
-  closure->filename = filename;
+  finalize_closure_t *png_closure = g_new0 (finalize_closure_t, 1);
+  png_closure->callback = finalize_png;
+  png_closure->surface = surface;
+  png_closure->write_func = write_func;
+  png_closure->closure = closure;
 
-  if (cairo_surface_set_user_data (surface, &finalize_closure_key, (void *) closure, (cairo_destroy_func_t) g_free))
+  if (cairo_surface_set_user_data (surface, &finalize_closure_key, (void *) png_closure, (cairo_destroy_func_t) g_free))
     g_free ((void *) closure);
 
   return surface;
@@ -304,13 +310,33 @@ view_cairo_t::render (const font_options_t *font_opts)
   cairo_destroy (cr);
 }
 
+static cairo_status_t
+stdio_write_func (void                *closure,
+		  const unsigned char *data,
+		  unsigned int         size)
+{
+  FILE *fp = (FILE *) closure;
+
+  while (size) {
+    size_t ret = fwrite (data, 1, size, fp);
+    size -= ret;
+    data += ret;
+    if (size && ferror (fp))
+      fail (FALSE, "Failed to write output: %s", strerror (errno));
+  }
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
 cairo_t *
 view_cairo_t::create_context (double w, double h)
 {
-  cairo_surface_t *(*constructor) (const char *filename,
+  cairo_surface_t *(*constructor) (cairo_write_func_t write_func,
+				   void *closure,
 				   double width,
 				   double height) = NULL;
-  cairo_surface_t *(*constructor2) (const char *filename,
+  cairo_surface_t *(*constructor2) (cairo_write_func_t write_func,
+				    void *closure,
 				    double width,
 				    double height,
 				    cairo_content_t content) = NULL;
@@ -322,22 +348,22 @@ view_cairo_t::create_context (double w, double h)
     ;
   #ifdef CAIRO_HAS_PNG_FUNCTIONS
     else if (0 == strcasecmp (extension, "png"))
-      constructor2 = _cairo_png_surface_create;
+      constructor2 = _cairo_png_surface_create_for_stream;
   #endif
   #ifdef CAIRO_HAS_SVG_SURFACE
     else if (0 == strcasecmp (extension, "svg"))
-      constructor = cairo_svg_surface_create;
+      constructor = cairo_svg_surface_create_for_stream;
   #endif
   #ifdef CAIRO_HAS_PDF_SURFACE
     else if (0 == strcasecmp (extension, "pdf"))
-      constructor = cairo_pdf_surface_create;
+      constructor = cairo_pdf_surface_create_for_stream;
   #endif
   #ifdef CAIRO_HAS_PS_SURFACE
     else if (0 == strcasecmp (extension, "ps"))
-      constructor = cairo_ps_surface_create;
+      constructor = cairo_ps_surface_create_for_stream;
    #ifdef HAS_EPS
     else if (0 == strcasecmp (extension, "eps"))
-      constructor = _cairo_eps_surface_create;
+      constructor = _cairo_eps_surface_create_for_stream;
    #endif
   #endif
 
@@ -357,10 +383,11 @@ view_cairo_t::create_context (double w, double h)
     content = CAIRO_CONTENT_COLOR_ALPHA;
 
   cairo_surface_t *surface;
+  FILE *f = get_file_handle ();
   if (constructor)
-    surface = constructor (output_file, w, h);
+    surface = constructor (stdio_write_func, f, w, h);
   else if (constructor2)
-    surface = constructor2 (output_file, w, h, content);
+    surface = constructor2 (stdio_write_func, f, w, h, content);
   else
     fail (FALSE, "Unknown output format `%s'", extension);
 
