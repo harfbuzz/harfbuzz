@@ -237,25 +237,7 @@ struct output_options_t : option_group_t
       output_file = NULL; /* STDOUT */
   }
 
-  FILE *get_file_handle (void)
-  {
-    if (fp)
-      return fp;
-
-    if (output_file)
-      fp = fopen (output_file, "wb");
-    else {
-#if HAVE_IO_H
-      _setmode (fileno (stdout), O_BINARY);
-#endif
-      fp = stdout;
-    }
-    if (!fp)
-      fail (FALSE, "Cannot open output file `%s': %s",
-	    g_filename_display_name (output_file), strerror (errno));
-
-    return fp;
-  }
+  FILE *get_file_handle (void);
 
   virtual void init (const font_options_t *font_opts) = 0;
   virtual void consume_line (hb_buffer_t  *buffer,
