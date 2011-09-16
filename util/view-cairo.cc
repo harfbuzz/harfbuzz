@@ -80,7 +80,7 @@ void
 view_cairo_t::init (const font_options_t *font_opts)
 {
   lines = g_array_new (FALSE, FALSE, sizeof (line_t));
-  upem = hb_face_get_upem (hb_font_get_face (font_opts->get_font ()));
+  scale = double (font_opts->font_size) / hb_face_get_upem (hb_font_get_face (font_opts->get_font ()));
 }
 
 void
@@ -115,8 +115,8 @@ view_cairo_t::consume_line (hb_buffer_t  *buffer,
   for (i = 0; i < (int) l.num_glyphs; i++)
     {
       l.glyphs[i].index = hb_glyph[i].codepoint;
-      l.glyphs[i].x = ( hb_position->x_offset + x) / double (upem);
-      l.glyphs[i].y = (-hb_position->y_offset + y) / double (upem);
+      l.glyphs[i].x = ( hb_position->x_offset + x) * scale;
+      l.glyphs[i].y = (-hb_position->y_offset + y) * scale;
       x +=  hb_position->x_advance;
       y += -hb_position->y_advance;
 
@@ -174,7 +174,7 @@ double
 view_cairo_t::line_width (unsigned int i)
 {
   line_t &line = g_array_index (lines, line_t, i);
-  return line.glyphs[line.num_glyphs].x / double (upem);
+  return line.glyphs[line.num_glyphs].x * scale;
 }
 
 void

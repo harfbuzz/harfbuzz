@@ -494,7 +494,7 @@ font_options_t::get_font (void) const
   font = hb_font_create (face);
 
   unsigned int upem = hb_face_get_upem (face);
-  hb_font_set_scale (font, font_size * upem, font_size * upem);
+  hb_font_set_scale (font, upem, upem);
   hb_face_destroy (face);
 
 #if HAVE_FREETYPE

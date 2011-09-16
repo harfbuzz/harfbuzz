@@ -57,7 +57,7 @@ struct view_cairo_t : output_options_t, view_options_t {
   double line_width (unsigned int i);
 
   GArray *lines;
-  unsigned int upem;
+  double scale;
 };
 
 #endif
