@@ -477,9 +477,7 @@ font_options_t::get_font (void) const
 	  user_data = (void *) font_data;
 	  mm = HB_MEMORY_MODE_WRITABLE;
 	} else {
-	  fail (FALSE, "Failed reading font file `%s': %s",
-		g_filename_display_name (font_file),
-		error->message);
+	  fail (FALSE, "%s", error->message);
 	  //g_error_free (error);
 	}
       }
