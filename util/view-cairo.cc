@@ -207,7 +207,7 @@ view_cairo_t::create_scaled_font (const font_options_t *font_opts)
   FT_Face ft_face = hb_ft_font_get_face (font);
   if (!ft_face)
     /* This allows us to get some boxes at least... */
-    cairo_face = cairo_toy_font_face_create ("sans",
+    cairo_face = cairo_toy_font_face_create ("@cairo:sans",
 					     CAIRO_FONT_SLANT_NORMAL,
 					     CAIRO_FONT_WEIGHT_NORMAL);
   else
