@@ -40,6 +40,11 @@
 #include <math.h>
 #include <locale.h>
 #include <errno.h>
+#include <fcntl.h>
+#if HAVE_IO_H
+#include <io.h> /* for _setmode() under Windows */
+#endif
+
 
 #include <hb.h>
 #include <glib.h>

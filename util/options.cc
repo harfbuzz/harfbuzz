@@ -424,23 +424,66 @@ font_options_t::get_font (void) const
 
   /* Create the blob */
   {
-    const char *font_data;
-    unsigned int len;
+    char *font_data;
+    unsigned int len = 0;
     hb_destroy_func_t destroy;
     void *user_data;
     hb_memory_mode_t mm;
 
+    /* This is a hell of a lot of code for just reading a file! */
     if (!font_file)
       fail (TRUE, "No font file set");
 
-    GMappedFile *mf = g_mapped_file_new (font_file, FALSE, NULL);
-    if (!mf)
-      fail (FALSE, "Failed opening font file `%s'", g_filename_display_name (font_file));
-    font_data = g_mapped_file_get_contents (mf);
-    len = g_mapped_file_get_length (mf);
-    destroy = (hb_destroy_func_t) g_mapped_file_unref;
-    user_data = (void *) mf;
-    mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
+    if (0 == strcmp (font_file, "-")) {
+      /* read it */
+      GString *gs = g_string_new (NULL);
+      char buf[BUFSIZ];
+#if HAVE_IO_H
+      _setmode (fileno (stdin), O_BINARY);
+#endif
+      while (!feof (stdin)) {
+	size_t ret = fread (buf, 1, sizeof (buf), stdin);
+	if (ferror (stdin))
+	  fail (FALSE, "Failed reading font from standard input: %s",
+		strerror (errno));
+	g_string_append_len (gs, buf, ret);
+      }
+      len = gs->len;
+      font_data = g_string_free (gs, FALSE);
+      user_data = font_data;
+      destroy = (hb_destroy_func_t) g_free;
+      mm = HB_MEMORY_MODE_WRITABLE;
+    } else {
+      GMappedFile *mf = g_mapped_file_new (font_file, FALSE, NULL);
+      if (mf) {
+	font_data = g_mapped_file_get_contents (mf);
+	len = g_mapped_file_get_length (mf);
+	if (len) {
+	  destroy = (hb_destroy_func_t) g_mapped_file_unref;
+	  user_data = (void *) mf;
+	  mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
+	} else
+	  g_mapped_file_unref (mf);
+      }
+      if (!len) {
+	/* GMappedFile is buggy, it doesn't fail if file isn't regular.
+	 * Try reading.
+	 * https://bugzilla.gnome.org/show_bug.cgi?id=659212 */
+        GError *error = NULL;
+	gsize l;
+	if (g_file_get_contents (font_file, &font_data, &l, &error)) {
+	  len = l;
+	  destroy = (hb_destroy_func_t) g_free;
+	  user_data = (void *) font_data;
+	  mm = HB_MEMORY_MODE_WRITABLE;
+	} else {
+	  fail (FALSE, "Failed reading font file `%s': %s",
+		g_filename_display_name (font_file),
+		error->message);
+	  //g_error_free (error);
+	}
+      }
+    }
 
     blob = hb_blob_create (font_data, len, mm, user_data, destroy);
   }
@@ -476,7 +519,6 @@ text_options_t::get_line (unsigned int *len)
       fail (FALSE, "Failed opening text file `%s'", g_filename_display_name (text_file));
     text = g_mapped_file_get_contents (mf);
     text_len = g_mapped_file_get_length (mf);
-    printf ("%d\n", text_len);
   }
 
   if (text_len == (unsigned int) -1)

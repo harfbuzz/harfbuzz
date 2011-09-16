@@ -53,7 +53,7 @@ GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
 AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap)
-AC_CHECK_HEADERS(unistd.h sys/mman.h)
+AC_CHECK_HEADERS(unistd.h sys/mman.h io.h)
 
 # Compiler flags
 AC_CANONICAL_HOST

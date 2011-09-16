@@ -208,7 +208,6 @@ struct text_options_t : option_group_t
   mutable unsigned int text_len;
 };
 
-
 struct output_options_t : option_group_t
 {
   output_options_t (option_parser_t *parser) {
@@ -243,7 +242,14 @@ struct output_options_t : option_group_t
     if (fp)
       return fp;
 
-    fp = output_file ? fopen (output_file, "wb") : stdout;
+    if (output_file)
+      fp = fopen (output_file, "wb");
+    else {
+#if HAVE_IO_H
+      _setmode (fileno (stdout), O_BINARY);
+#endif
+      fp = stdout;
+    }
     if (!fp)
       fail (FALSE, "Cannot open output file `%s': %s",
 	    g_filename_display_name (output_file), strerror (errno));
