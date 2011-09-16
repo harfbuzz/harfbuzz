@@ -26,7 +26,7 @@
 
 #include "options.hh"
 
-#if HAVE_FREETYPE
+#ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
 
@@ -439,7 +439,7 @@ font_options_t::get_font (void) const
       /* read it */
       GString *gs = g_string_new (NULL);
       char buf[BUFSIZ];
-#if HAVE_IO_H
+#ifdef HAVE_IO_H
       _setmode (fileno (stdin), O_BINARY);
 #endif
       while (!feof (stdin)) {
@@ -498,7 +498,7 @@ font_options_t::get_font (void) const
   hb_font_set_scale (font, upem, upem);
   hb_face_destroy (face);
 
-#if HAVE_FREETYPE
+#ifdef HAVE_FREETYPE
   hb_ft_font_set_funcs (font);
 #endif
 
@@ -579,7 +579,7 @@ output_options_t::get_file_handle (void)
   if (output_file)
     fp = fopen (output_file, "wb");
   else {
-#if HAVE_IO_H
+#ifdef HAVE_IO_H
     _setmode (fileno (stdout), O_BINARY);
 #endif
     fp = stdout;

@@ -29,7 +29,7 @@
 #ifndef HB_PRIVATE_HH
 #define HB_PRIVATE_HH
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 

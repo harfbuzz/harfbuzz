@@ -90,10 +90,10 @@ struct _hb_unicode_funcs_t {
 };
 
 
-#if HAVE_GLIB
+#ifdef HAVE_GLIB
 extern HB_INTERNAL hb_unicode_funcs_t _hb_glib_unicode_funcs;
 #define _hb_unicode_funcs_default _hb_glib_unicode_funcs
-#elif HAVE_ICU
+#elif defined(HAVE_ICU)
 extern HB_INTERNAL hb_unicode_funcs_t _hb_icu_unicode_funcs;
 #define _hb_unicode_funcs_default _hb_icu_unicode_funcs
 #else

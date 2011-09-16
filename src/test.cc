@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -93,7 +93,7 @@ main (int argc, char **argv)
   hb_font_t *font = hb_font_create (face);
   hb_font_set_scale (font, upem, upem);
 
-#if HAVE_FREETYPE
+#ifdef HAVE_FREETYPE
   hb_ft_font_set_funcs (font);
 #endif
 
