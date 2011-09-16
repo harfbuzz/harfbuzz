@@ -201,7 +201,13 @@ view_cairo_t::create_scaled_font (const font_options_t *font_opts)
 {
   hb_font_t *font = hb_font_reference (font_opts->get_font ());
 
-  cairo_font_face_t *cairo_face = cairo_ft_font_face_create_for_ft_face (hb_ft_font_get_face (font), 0);
+  cairo_font_face_t *cairo_face;
+  FT_Face ft_face = hb_ft_font_get_face (font);
+  if (!ft_face)
+    /* This allows us to get some boxes at least... */
+    cairo_face = cairo_toy_font_face_create ("sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+  else
+    cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;
 
