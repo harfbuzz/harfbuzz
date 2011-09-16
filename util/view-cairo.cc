@@ -187,7 +187,9 @@ view_cairo_t::get_surface_size (cairo_scaled_font_t *scaled_font,
 
   cairo_scaled_font_extents (scaled_font, &font_extents);
 
-  *h = font_extents.ascent + font_extents.descent + ((int) lines->len - 1) * font_extents.height;
+  *h = font_extents.ascent
+     + font_extents.descent
+     + ((int) lines->len - 1) * font_extents.height;
   *w = 0;
   for (unsigned int i = 0; i < lines->len; i++)
     *w = MAX (*w, line_width (i));
@@ -205,25 +207,34 @@ view_cairo_t::create_scaled_font (const font_options_t *font_opts)
   FT_Face ft_face = hb_ft_font_get_face (font);
   if (!ft_face)
     /* This allows us to get some boxes at least... */
-    cairo_face = cairo_toy_font_face_create ("sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_face = cairo_toy_font_face_create ("sans",
+					     CAIRO_FONT_SLANT_NORMAL,
+					     CAIRO_FONT_WEIGHT_NORMAL);
   else
     cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;
 
   cairo_matrix_init_identity (&ctm);
-  cairo_matrix_init_scale (&font_matrix, font_opts->font_size, font_opts->font_size);
+  cairo_matrix_init_scale (&font_matrix,
+			   font_opts->font_size, font_opts->font_size);
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
 
-  cairo_scaled_font_t *scaled_font = cairo_scaled_font_create (cairo_face, &font_matrix, &ctm, font_options);
+  cairo_scaled_font_t *scaled_font = cairo_scaled_font_create (cairo_face,
+							       &font_matrix,
+							       &ctm,
+							       font_options);
 
   cairo_font_options_destroy (font_options);
   cairo_font_face_destroy (cairo_face);
 
   static cairo_user_data_key_t key;
-  if (cairo_scaled_font_set_user_data (scaled_font, &key, (void *) font, (cairo_destroy_func_t) hb_font_destroy))
+  if (cairo_scaled_font_set_user_data (scaled_font,
+				       &key,
+				       (void *) font,
+				       (cairo_destroy_func_t) hb_font_destroy))
     hb_font_destroy (font);
 
   return scaled_font;
@@ -285,7 +296,10 @@ _cairo_png_surface_create_for_stream (cairo_write_func_t write_func,
   png_closure->write_func = write_func;
   png_closure->closure = closure;
 
-  if (cairo_surface_set_user_data (surface, &finalize_closure_key, (void *) png_closure, (cairo_destroy_func_t) g_free))
+  if (cairo_surface_set_user_data (surface,
+				   &finalize_closure_key,
+				   (void *) png_closure,
+				   (cairo_destroy_func_t) g_free))
     g_free ((void *) closure);
 
   return surface;
@@ -407,7 +421,8 @@ view_cairo_t::create_context (double w, double h)
       cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
       cairo_set_source_rgba (cr, 1., 1., 1., br / 255.);
       cairo_paint (cr);
-      cairo_set_source_rgba (cr, 1., 1., 1., (fr / 255.) * (fa / 255.) + (br / 255) * (1 - (fa / 255.)));
+      cairo_set_source_rgba (cr, 1., 1., 1.,
+			     (fr / 255.) * (fa / 255.) + (br / 255) * (1 - (fa / 255.)));
       break;
     default:
     case CAIRO_CONTENT_COLOR:
@@ -458,7 +473,7 @@ view_cairo_t::draw (cairo_t *cr)
     }
 
     if (cairo_surface_get_type (cairo_get_target (cr)) == CAIRO_SURFACE_TYPE_IMAGE) {
-      /* cairo_show_glyphs() doesn't support subpixel positioining */
+      /* cairo_show_glyphs() doesn't support subpixel positioning */
       cairo_glyph_path (cr, l.glyphs, l.num_glyphs);
       cairo_fill (cr);
     } else
