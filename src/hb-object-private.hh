@@ -54,9 +54,13 @@
 #include <glib.h>
 
 typedef volatile int hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
-#define hb_atomic_int_get(AI)			g_atomic_int_get (&(AI))
-#define hb_atomic_int_set(AI, V)		g_atomic_int_set (&(AI), V)
+#if GLIB_CHECK_VERSION(2,29,5)
+#define hb_atomic_int_add(AI, V)	g_atomic_int_add (&(AI), V)
+#else
+#define hb_atomic_int_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
+#endif
+#define hb_atomic_int_get(AI)		g_atomic_int_get (&(AI))
+#define hb_atomic_int_set(AI, V)	g_atomic_int_set (&(AI), V)
 
 
 #elif defined(_MSC_VER)
@@ -64,9 +68,9 @@ typedef volatile int hb_atomic_int_t;
 #include <intrin.h>
 
 typedef long hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
-#define hb_atomic_int_get(AI)			(_ReadBarrier (), (AI))
-#define hb_atomic_int_set(AI, V)		((void) _InterlockedExchange (&(AI), (V)))
+#define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
+#define hb_atomic_int_get(AI)		(_ReadBarrier (), (AI))
+#define hb_atomic_int_set(AI, V)	((void) _InterlockedExchange (&(AI), (V)))
 
 
 #else
@@ -74,9 +78,9 @@ typedef long hb_atomic_int_t;
 #warning "Could not find any system to define atomic_int macros, library will NOT be thread-safe"
 
 typedef volatile int hb_atomic_int_t;
-#define hb_atomic_int_fetch_and_add(AI, V)	((AI) += (V), (AI) - (V))
-#define hb_atomic_int_get(AI)			(AI)
-#define hb_atomic_int_set(AI, V)		((void) ((AI) = (V)))
+#define hb_atomic_int_add(AI, V)	((AI) += (V), (AI) - (V))
+#define hb_atomic_int_get(AI)		(AI)
+#define hb_atomic_int_set(AI, V)	((void) ((AI) = (V)))
 
 
 #endif
@@ -93,8 +97,8 @@ typedef struct {
 #define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
 
   inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
-  inline int inc (void) { return hb_atomic_int_fetch_and_add (ref_count,  1); }
-  inline int dec (void) { return hb_atomic_int_fetch_and_add (ref_count, -1); }
+  inline int inc (void) { return hb_atomic_int_add (ref_count,  1); }
+  inline int dec (void) { return hb_atomic_int_add (ref_count, -1); }
   inline void set (int v) { hb_atomic_int_set (ref_count, v); }
 
   inline int get (void) const { return hb_atomic_int_get (ref_count); }
