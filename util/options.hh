@@ -178,14 +178,17 @@ struct text_options_t : option_group_t
     text = NULL;
     text_file = NULL;
 
-    file = NULL;
+    fp = NULL;
+    gs = NULL;
     text_len = (unsigned int) -1;
 
     add_options (parser);
   }
   ~text_options_t (void) {
-    if (file)
-      g_mapped_file_unref (file);
+    if (gs)
+      g_string_free (gs, TRUE);
+    if (fp)
+      fclose (fp);
   }
 
   void add_options (option_parser_t *parser);
@@ -204,8 +207,9 @@ struct text_options_t : option_group_t
   const char *text_file;
 
   private:
-  mutable GMappedFile *file;
-  mutable unsigned int text_len;
+  FILE *fp;
+  GString *gs;
+  unsigned int text_len;
 };
 
 struct output_options_t : option_group_t
@@ -219,7 +223,7 @@ struct output_options_t : option_group_t
     add_options (parser);
   }
   ~output_options_t (void) {
-    if (fp && fp != stdout)
+    if (fp)
       fclose (fp);
   }
 

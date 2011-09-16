@@ -509,40 +509,64 @@ font_options_t::get_font (void) const
 const char *
 text_options_t::get_line (unsigned int *len)
 {
-  if (!text) {
+  if (text) {
+    if (text_len == (unsigned int) -1)
+      text_len = strlen (text);
+
+    if (!text_len) {
+      *len = 0;
+      return NULL;
+    }
+
+    const char *ret = text;
+    const char *p = (const char *) memchr (text, '\n', text_len);
+    unsigned int ret_len;
+    if (!p) {
+      ret_len = text_len;
+      text += ret_len;
+      text_len = 0;
+    } else {
+      ret_len = p - ret;
+      text += ret_len + 1;
+      text_len -= ret_len + 1;
+    }
+
+    *len = ret_len;
+    return ret;
+  }
+
+  if (!fp) {
     if (!text_file)
       fail (TRUE, "At least one of text or text-file must be set");
 
-    GMappedFile *mf = g_mapped_file_new (text_file, FALSE, NULL);
-    if (!mf)
-      fail (FALSE, "Failed opening text file `%s'", g_filename_display_name (text_file));
-    text = g_mapped_file_get_contents (mf);
-    text_len = g_mapped_file_get_length (mf);
+    if (0 != strcmp (text_file, "-"))
+      fp = fopen (text_file, "r");
+    else
+      fp = stdin;
+
+    if (!fp)
+      fail (FALSE, "Failed opening text file `%s': %s",
+	    text_file, strerror (errno));
+
+    gs = g_string_new (NULL);
   }
 
-  if (text_len == (unsigned int) -1)
-    text_len = strlen (text);
-
-  if (!text_len) {
-    *len = 0;
-    return NULL;
+  g_string_set_size (gs, 0);
+  char buf[BUFSIZ];
+  while (fgets (buf, sizeof (buf), fp)) {
+    unsigned int bytes = strlen (buf);
+    if (buf[bytes - 1] == '\n') {
+      bytes--;
+      g_string_append_len (gs, buf, bytes);
+      break;
+    }
+      g_string_append_len (gs, buf, bytes);
   }
-
-  const char *ret = text;
-  const char *p = (const char *) memchr (text, '\n', text_len);
-  unsigned int ret_len;
-  if (!p) {
-    ret_len = text_len;
-    text += ret_len;
-    text_len = 0;
-  } else {
-    ret_len = p - ret;
-    text += ret_len + 1;
-    text_len -= ret_len + 1;
-  }
-
-  *len = ret_len;
-  return ret;
+  if (ferror (fp))
+    fail (FALSE, "Failed reading text: %s",
+	  strerror (errno));
+  *len = gs->len;
+  return !*len && feof (fp) ? NULL : gs->str;
 }
 
 

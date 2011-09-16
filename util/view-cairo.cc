@@ -96,7 +96,7 @@ view_cairo_t::consume_line (hb_buffer_t  *buffer,
   l.glyphs = cairo_glyph_allocate (l.num_glyphs + 1);
   l.utf8 = g_strndup (text, text_len);
   l.utf8_len = text_len;
-  l.num_clusters = 1;
+  l.num_clusters = l.num_glyphs ? 1 : 0;
   for (unsigned int i = 1; i < l.num_glyphs; i++)
     if (hb_glyph[i].cluster != hb_glyph[i-1].cluster)
       l.num_clusters++;
@@ -129,8 +129,9 @@ view_cairo_t::consume_line (hb_buffer_t  *buffer,
   memset ((void *) l.clusters, 0, l.num_clusters * sizeof (l.clusters[0]));
   bool backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
   l.cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
-  g_assert (l.num_glyphs);
   unsigned int cluster = 0;
+  if (!l.num_glyphs)
+    goto done;
   l.clusters[cluster].num_glyphs++;
   if (backward) {
     for (i = l.num_glyphs - 2; i >= 0; i--) {
@@ -154,6 +155,7 @@ view_cairo_t::consume_line (hb_buffer_t  *buffer,
     l.clusters[cluster].num_bytes += text_len - hb_glyph[i - 1].cluster;
   }
 
+done:
   g_array_append_val (lines, l);
 }
 
