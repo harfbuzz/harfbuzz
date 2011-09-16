@@ -38,7 +38,7 @@
  * composed (NFC).
  *
  * In general what happens is that: each grapheme is decomposed in a chain
- * of 1:2 decompositions, marks reordered, and then recomposed if desires,
+ * of 1:2 decompositions, marks reordered, and then recomposed if desired,
  * so far it's like Unicode Normalization.  However, the decomposition and
  * recomposition only happens if the font supports the resulting characters.
  *
@@ -52,7 +52,7 @@
  *     though their NFC may be different.
  *
  *   - When a font has a precomposed character for a sequence but the 'ccmp'
- *     feature in the font is not adequate, form use the precomposed character
+ *     feature in the font is not adequate, use the precomposed character
  *     which typically has better mark positioning.
  *
  *   - When a font does not support a character but supports its decomposition,
