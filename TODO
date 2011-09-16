@@ -9,6 +9,12 @@ General fixes:
   * init/medi/fina/isol for non-cursive scripts
   * vkna,hkna etc for kana, *jmo for hangul, etc
 
+- Move non-native direction and normalization handling to the generic non-OT
+  layer, such that uniscribe and other backends can use.
+
+- Uniscribe backend needs to enforce one direction only, otherwise cluster
+  values can confused the user.
+
 
 API issues to fix before 1.0:
 ============================
