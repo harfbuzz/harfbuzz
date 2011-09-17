@@ -52,7 +52,7 @@ AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
-AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap)
+AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap _setmode)
 AC_CHECK_HEADERS(unistd.h sys/mman.h io.h)
 
 # Compiler flags

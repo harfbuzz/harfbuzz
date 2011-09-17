@@ -439,8 +439,8 @@ font_options_t::get_font (void) const
       /* read it */
       GString *gs = g_string_new (NULL);
       char buf[BUFSIZ];
-#ifdef HAVE_IO_H
-      _setmode (fileno (stdin), O_BINARY);
+#ifdef HAVE__SETMODE
+      _setmode (fileno (stdin), _O_BINARY);
 #endif
       while (!feof (stdin)) {
 	size_t ret = fread (buf, 1, sizeof (buf), stdin);
@@ -579,8 +579,8 @@ output_options_t::get_file_handle (void)
   if (output_file)
     fp = fopen (output_file, "wb");
   else {
-#ifdef HAVE_IO_H
-    _setmode (fileno (stdout), O_BINARY);
+#ifdef HAVE__SETMODE
+    _setmode (fileno (stdout), _O_BINARY);
 #endif
     fp = stdout;
   }
