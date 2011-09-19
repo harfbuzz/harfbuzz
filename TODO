@@ -1,6 +1,8 @@
 General fixes:
 =============
 
+- 'const' for getter APIs? (use mutable internally)
+
 - Fix TT 'kern' on/off and GPOS interaction (move kerning before GPOS)
 
 - Do proper rounding when scaling from font space?
