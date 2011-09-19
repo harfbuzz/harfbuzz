@@ -1,4 +1,5 @@
 /*
+ * Copyright © 2010  Behdad Esfahbod
  * Copyright © 2011  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
@@ -24,20 +25,54 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "common.hh"
+#include "hb-view.hh"
+
+struct output_buffer_t : output_options_t, format_options_t
+{
+  output_buffer_t (option_parser_t *parser)
+		  : output_options_t (parser),
+		    format_options_t (parser) {}
+
+  void init (const font_options_t *font_opts);
+  void consume_line (hb_buffer_t  *buffer,
+		     const char   *text,
+		     unsigned int  text_len);
+  void finish (const font_options_t *font_opts);
+
+  protected:
+  GString *gs;
+  hb_font_t *font;
+};
 
 void
-fail (hb_bool_t suggest_help, const char *format, ...)
+output_buffer_t::init (const font_options_t *font_opts)
 {
-  const char *msg;
+  get_file_handle ();
+  font = hb_font_reference (font_opts->get_font ());
+  gs = g_string_new (NULL);
+}
 
-  va_list vap;
-  va_start (vap, format);
-  msg = g_strdup_vprintf (format, vap);
-  const char *prgname = g_get_prgname ();
-  g_printerr ("%s: %s\n", prgname, msg);
-  if (suggest_help)
-    g_printerr ("Try `%s --help' for more information.\n", prgname);
+void
+output_buffer_t::consume_line (hb_buffer_t  *buffer,
+			       const char   *text,
+			       unsigned int  text_len)
+{
+  g_string_set_size (gs, 0);
+  serialize (buffer, font, gs);
+  fprintf (fp, "%s\n", gs->str);
+}
 
-  exit (1);
+void
+output_buffer_t::finish (const font_options_t *font_opts)
+{
+  g_string_free (gs, TRUE);
+  gs = NULL;
+  hb_font_destroy (font);
+  font = NULL;
+}
+
+int
+main (int argc, char **argv)
+{
+  return hb_view_t<output_buffer_t>::main (argc, argv);
 }

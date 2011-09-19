@@ -103,12 +103,6 @@ if $have_cairo; then
 fi
 AM_CONDITIONAL(HAVE_CAIRO, $have_cairo)
 
-PKG_CHECK_MODULES(CAIRO_PNG, cairo-png, have_cairo_png=true, have_cairo_png=false)
-if $have_cairo_png; then
-	AC_DEFINE(HAVE_CAIRO_PNG, 1, [Have cairo-png support in cairo graphics library])
-fi
-AM_CONDITIONAL(HAVE_CAIRO_PNG, $have_cairo_png)
-
 PKG_CHECK_MODULES(CAIRO_FT, cairo-ft, have_cairo_ft=true, have_cairo_ft=false)
 if $have_cairo_ft; then
 	AC_DEFINE(HAVE_CAIRO_FT, 1, [Have cairo-ft support in cairo graphics library])

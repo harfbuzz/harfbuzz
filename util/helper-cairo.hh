@@ -24,34 +24,56 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "options.hh"
 
-#ifndef COMMON_HH
-#define COMMON_HH
+#include <cairo.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <assert.h>
-#include <stdio.h>
-#include <math.h>
-#include <locale.h>
-#include <errno.h>
-#include <fcntl.h>
-#ifdef HAVE_IO_H
-#include <io.h> /* for _setmode() under Windows */
-#endif
+#ifndef HELPER_CAIRO_HH
+#define HELPER_CAIRO_HH
 
 
-#include <hb.h>
-#include <glib.h>
-#include <glib/gprintf.h>
+cairo_scaled_font_t *
+helper_cairo_create_scaled_font (const font_options_t *font_opts,
+				 double font_size);
 
 
-void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN;
+cairo_t *
+helper_cairo_create_context (double w, double h,
+			     view_options_t *view_opts,
+			     output_options_t *out_opts);
 
+void
+helper_cairo_destroy_context (cairo_t *cr);
+
+
+struct helper_cairo_line_t {
+  cairo_glyph_t *glyphs;
+  unsigned int num_glyphs;
+  char *utf8;
+  unsigned int utf8_len;
+  cairo_text_cluster_t *clusters;
+  unsigned int num_clusters;
+  cairo_text_cluster_flags_t cluster_flags;
+
+  void finish (void) {
+    if (glyphs)
+      cairo_glyph_free (glyphs);
+    if (clusters)
+      cairo_text_cluster_free (clusters);
+    if (utf8)
+      g_free (utf8);
+  }
+
+  double get_width (void) {
+    return glyphs[num_glyphs].x;
+  }
+};
+
+void
+helper_cairo_line_from_buffer (helper_cairo_line_t *l,
+			       hb_buffer_t         *buffer,
+			       const char          *text,
+			       unsigned int         text_len,
+			       double               scale);
 
 #endif

@@ -24,10 +24,32 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "common.hh"
-
 #ifndef OPTIONS_HH
 #define OPTIONS_HH
+
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
+#include <assert.h>
+#include <stdio.h>
+#include <math.h>
+#include <locale.h>
+#include <errno.h>
+#include <fcntl.h>
+#ifdef HAVE_IO_H
+#include <io.h> /* for _setmode() under Windows */
+#endif
+
+#include <hb.h>
+#include <glib.h>
+#include <glib/gprintf.h>
+
+void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN;
 
 
 extern bool debug;
@@ -248,11 +270,36 @@ struct output_options_t : option_group_t
 			     unsigned int  text_len) = 0;
   virtual void finish (const font_options_t *font_opts) = 0;
 
-  protected:
   const char *output_file;
   const char *output_format;
 
+  protected:
+
   mutable FILE *fp;
+};
+
+struct format_options_t : option_group_t
+{
+  format_options_t (option_parser_t *parser) {
+    show_glyph_names = true;
+    show_positions = true;
+    show_clusters = true;
+
+    add_options (parser);
+  }
+  ~format_options_t (void) {
+  }
+
+  void add_options (option_parser_t *parser);
+
+  void serialize (hb_buffer_t *buffer,
+		  hb_font_t   *font,
+		  GString     *gs);
+
+  protected:
+  bool show_glyph_names;
+  bool show_positions;
+  bool show_clusters;
 };
 
 

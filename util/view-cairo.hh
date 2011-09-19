@@ -25,12 +25,11 @@
  */
 
 #include "options.hh"
-
-#include <cairo-ft.h>
-#include <hb-ft.h>
+#include "helper-cairo.hh"
 
 #ifndef VIEW_CAIRO_HH
 #define VIEW_CAIRO_HH
+
 
 struct view_cairo_t : output_options_t, view_options_t {
   view_cairo_t (option_parser_t *parser)
@@ -50,11 +49,8 @@ struct view_cairo_t : output_options_t, view_options_t {
   protected:
 
   void render (const font_options_t *font_opts);
-  cairo_scaled_font_t *create_scaled_font (const font_options_t *font_opts);
   void get_surface_size (cairo_scaled_font_t *scaled_font, double *w, double *h);
-  cairo_t *create_context (double w, double h);
   void draw (cairo_t *cr);
-  double line_width (unsigned int i);
 
   GArray *lines;
   double scale;

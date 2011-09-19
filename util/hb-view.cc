@@ -25,51 +25,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "common.hh"
-#include "options.hh"
-
+#include "hb-view.hh"
 #include "view-cairo.hh"
 
 int
 main (int argc, char **argv)
 {
-  setlocale (LC_ALL, "");
-
-  option_parser_t options ("[FONT-FILE] [TEXT]");
-
-  shape_options_t shaper (&options);
-  font_options_t font_opts (&options);
-  text_options_t input (&options);
-
-  view_cairo_t output (&options);
-
-  options.parse (&argc, &argv);
-
-  argc--, argv++;
-  if (argc && !font_opts.font_file) font_opts.font_file = argv[0], argc--, argv++;
-  if (argc && !input.text && !input.text_file) input.text = argv[0], argc--, argv++;
-  if (argc)
-    fail (TRUE, "Too many arguments on the command line");
-  if (!font_opts.font_file || (!input.text && !input.text_file))
-    options.usage ();
-
-  output.init (&font_opts);
-
-  hb_buffer_t *buffer = hb_buffer_create ();
-  unsigned int text_len;
-  const char *text;
-  while ((text = input.get_line (&text_len)))
-  {
-    if (!shaper.shape (text, text_len,
-			   font_opts.get_font (),
-			   buffer))
-      fail (FALSE, "All shapers failed");
-
-    output.consume_line (buffer, text, text_len);
-  }
-  hb_buffer_destroy (buffer);
-
-  output.finish (&font_opts);
-
-  return 0;
+  return hb_view_t<view_cairo_t>::main (argc, argv);
 }
