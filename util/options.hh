@@ -77,6 +77,7 @@ struct option_parser_t
 #define DEFAULT_MARGIN 18
 #define DEFAULT_FORE "#000000"
 #define DEFAULT_BACK "#FFFFFF"
+#define DEFAULT_FONT_SIZE 36
 
 struct view_options_t : option_group_t
 {
@@ -86,6 +87,7 @@ struct view_options_t : option_group_t
     back = DEFAULT_BACK;
     line_space = 0;
     margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
+    font_size = DEFAULT_FONT_SIZE;
 
     add_options (parser);
   }
@@ -99,6 +101,7 @@ struct view_options_t : option_group_t
   struct margin_t {
     double t, r, b, l;
   } margin;
+  double font_size;
 };
 
 
@@ -142,14 +145,11 @@ struct shape_options_t : option_group_t
 };
 
 
-#define DEFAULT_FONT_SIZE 36
-
 struct font_options_t : option_group_t
 {
   font_options_t (option_parser_t *parser) {
     font_file = NULL;
     face_index = 0;
-    font_size = DEFAULT_FONT_SIZE;
 
     font = NULL;
 
@@ -165,7 +165,6 @@ struct font_options_t : option_group_t
 
   const char *font_file;
   int face_index;
-  double font_size;
 
   private:
   mutable hb_font_t *font;

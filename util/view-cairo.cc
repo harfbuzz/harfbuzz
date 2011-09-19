@@ -80,7 +80,7 @@ void
 view_cairo_t::init (const font_options_t *font_opts)
 {
   lines = g_array_new (FALSE, FALSE, sizeof (line_t));
-  scale = double (font_opts->font_size) / hb_face_get_upem (hb_font_get_face (font_opts->get_font ()));
+  scale = double (font_size) / hb_face_get_upem (hb_font_get_face (font_opts->get_font ()));
 }
 
 void
@@ -217,7 +217,7 @@ view_cairo_t::create_scaled_font (const font_options_t *font_opts)
 
   cairo_matrix_init_identity (&ctm);
   cairo_matrix_init_scale (&font_matrix,
-			   font_opts->font_size, font_opts->font_size);
+			   font_size, font_size);
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
