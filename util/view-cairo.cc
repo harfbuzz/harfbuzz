@@ -65,7 +65,7 @@ view_cairo_t::get_surface_size (cairo_scaled_font_t *scaled_font,
 
   *h = font_extents.ascent
      + font_extents.descent
-     + ((int) lines->len - 1) * font_extents.height;
+     + ((int) lines->len - 1) * (font_extents.height + line_space);
   *w = 0;
   for (unsigned int i = 0; i < lines->len; i++) {
     helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);

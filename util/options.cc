@@ -640,7 +640,7 @@ format_options_t::serialize (hb_buffer_t *buffer,
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
 
   g_string_append_c (gs, '<');
-  for (unsigned int i = 0; i < (int) num_glyphs; i++)
+  for (unsigned int i = 0; i < num_glyphs; i++)
   {
     if (i)
       g_string_append_c (gs, '|');
