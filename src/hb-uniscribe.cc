@@ -300,17 +300,22 @@ retry:
 #define MAX_ITEMS 10
 
   SCRIPT_ITEM items[MAX_ITEMS + 1];
+  SCRIPT_CONTROL bidi_control = {0};
   SCRIPT_STATE bidi_state = {0};
   WIN_ULONG script_tags[MAX_ITEMS];
   int item_count;
 
+  /* MinGW32 doesn't define fMergeNeutralItems, so we bruteforce */
+  //bidi_control.fMergeNeutralItems = TRUE;
+  *(uint32_t*)&bidi_control |= 1<<24;
+
   bidi_state.uBidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
-  bidi_state.fOverrideDirection = 1;
+//  bidi_state.fOverrideDirection = 1;
 
   hr = ScriptItemizeOpenType (wchars,
 			      chars_len,
 			      MAX_ITEMS,
-			      NULL,
+			      &bidi_control,
 			      &bidi_state,
 			      items,
 			      script_tags,
@@ -324,7 +329,7 @@ retry:
   TEXTRANGE_PROPERTIES **range_properties = NULL;
   int range_count = 0;
   if (num_features) {
-    /* XXX setup ranges */
+    /* TODO setup ranges */
   }
 
   OPENTYPE_TAG language_tag = hb_ot_tag_from_language (buffer->props.language);
@@ -399,15 +404,21 @@ retry:
    * very, *very*, carefully! */
 
   /* Calculate visual-clusters.  That's what we ship. */
-  for (unsigned int i = 0; i < buffer->len; i++)
-    vis_clusters[i] = 0;
+  for (unsigned int i = 0; i < glyphs_len; i++)
+    vis_clusters[i] = -1;
   for (unsigned int i = 0; i < buffer->len; i++) {
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
     *p = MIN (*p, buffer->info[i].cluster);
   }
-  for (unsigned int i = 1; i < glyphs_len; i++)
-    if (!glyph_props[i].sva.fClusterStart)
-    vis_clusters[i] = vis_clusters[i - 1];
+  if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
+    for (unsigned int i = 1; i < glyphs_len; i++)
+      if (!glyph_props[i].sva.fClusterStart)
+	vis_clusters[i] = vis_clusters[i - 1];
+  } else {
+    for (int i = glyphs_len - 2; i >= 0; i--)
+      if (!glyph_props[i].sva.fClusterStart)
+	vis_clusters[i] = vis_clusters[i + 1];
+  }
 
 #undef utf16_index
 
@@ -421,9 +432,6 @@ retry:
   buffer->len = 0;
   for (unsigned int i = 0; i < glyphs_len; i++)
   {
-    if (glyph_props[i].sva.fZeroWidth)
-      continue;
-
     hb_glyph_info_t *info = &buffer->info[buffer->len++];
 
     info->codepoint = glyphs[i];
