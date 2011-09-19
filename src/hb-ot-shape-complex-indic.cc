@@ -643,6 +643,10 @@ found_non_indic (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_ar
 static void
 remove_joiners (hb_buffer_t *buffer)
 {
+  /* For now we remove joiners.  However, Uniscbire seems to keep them
+   * and output a zero-width space glyph for them.  It is not clear to
+   * me how that is supposed to interact with GSUB. */
+
   buffer->clear_output ();
   unsigned int count = buffer->len;
   for (buffer->idx = 0; buffer->idx < count;)
