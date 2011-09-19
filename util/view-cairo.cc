@@ -94,13 +94,19 @@ view_cairo_t::consume_line (hb_buffer_t  *buffer,
   hb_glyph_info_t *hb_glyph = hb_buffer_get_glyph_infos (buffer, NULL);
   hb_glyph_position_t *hb_position = hb_buffer_get_glyph_positions (buffer, NULL);
   l.glyphs = cairo_glyph_allocate (l.num_glyphs + 1);
-  l.utf8 = g_strndup (text, text_len);
-  l.utf8_len = text_len;
-  l.num_clusters = l.num_glyphs ? 1 : 0;
-  for (unsigned int i = 1; i < l.num_glyphs; i++)
-    if (hb_glyph[i].cluster != hb_glyph[i-1].cluster)
-      l.num_clusters++;
-  l.clusters = cairo_text_cluster_allocate (l.num_clusters);
+
+  if (text) {
+    l.utf8 = g_strndup (text, text_len);
+    l.utf8_len = text_len;
+    l.num_clusters = l.num_glyphs ? 1 : 0;
+    for (unsigned int i = 1; i < l.num_glyphs; i++)
+      if (hb_glyph[i].cluster != hb_glyph[i-1].cluster)
+	l.num_clusters++;
+    l.clusters = cairo_text_cluster_allocate (l.num_clusters);
+  } else {
+    l.utf8_len = 0;
+    l.num_clusters = 0;
+  }
 
   if ((l.num_glyphs && !l.glyphs) ||
       (l.utf8_len && !l.utf8) ||
@@ -113,46 +119,48 @@ view_cairo_t::consume_line (hb_buffer_t  *buffer,
   hb_position_t x = 0, y = 0;
   int i;
   for (i = 0; i < (int) l.num_glyphs; i++)
-    {
-      l.glyphs[i].index = hb_glyph[i].codepoint;
-      l.glyphs[i].x = ( hb_position->x_offset + x) * scale;
-      l.glyphs[i].y = (-hb_position->y_offset + y) * scale;
-      x +=  hb_position->x_advance;
-      y += -hb_position->y_advance;
+  {
+    l.glyphs[i].index = hb_glyph[i].codepoint;
+    l.glyphs[i].x = ( hb_position->x_offset + x) * scale;
+    l.glyphs[i].y = (-hb_position->y_offset + y) * scale;
+    x +=  hb_position->x_advance;
+    y += -hb_position->y_advance;
 
-      hb_position++;
-    }
+    hb_position++;
+  }
   l.glyphs[i].index = 0;
   l.glyphs[i].x = x;
   l.glyphs[i].y = y;
 
-  memset ((void *) l.clusters, 0, l.num_clusters * sizeof (l.clusters[0]));
-  bool backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
-  l.cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
-  unsigned int cluster = 0;
-  if (!l.num_glyphs)
-    goto done;
-  l.clusters[cluster].num_glyphs++;
-  if (backward) {
-    for (i = l.num_glyphs - 2; i >= 0; i--) {
-      if (hb_glyph[i].cluster != hb_glyph[i+1].cluster) {
-        g_assert (hb_glyph[i].cluster > hb_glyph[i+1].cluster);
-	l.clusters[cluster].num_bytes += hb_glyph[i].cluster - hb_glyph[i+1].cluster;
-        cluster++;
+  if (l.num_clusters) {
+    memset ((void *) l.clusters, 0, l.num_clusters * sizeof (l.clusters[0]));
+    bool backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
+    l.cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
+    unsigned int cluster = 0;
+    if (!l.num_glyphs)
+      goto done;
+    l.clusters[cluster].num_glyphs++;
+    if (backward) {
+      for (i = l.num_glyphs - 2; i >= 0; i--) {
+	if (hb_glyph[i].cluster != hb_glyph[i+1].cluster) {
+	  g_assert (hb_glyph[i].cluster > hb_glyph[i+1].cluster);
+	  l.clusters[cluster].num_bytes += hb_glyph[i].cluster - hb_glyph[i+1].cluster;
+	  cluster++;
+	}
+	l.clusters[cluster].num_glyphs++;
       }
-      l.clusters[cluster].num_glyphs++;
-    }
-    l.clusters[cluster].num_bytes += text_len - hb_glyph[0].cluster;
-  } else {
-    for (i = 1; i < (int) l.num_glyphs; i++) {
-      if (hb_glyph[i].cluster != hb_glyph[i-1].cluster) {
-        g_assert (hb_glyph[i].cluster > hb_glyph[i-1].cluster);
-	l.clusters[cluster].num_bytes += hb_glyph[i].cluster - hb_glyph[i-1].cluster;
-        cluster++;
+      l.clusters[cluster].num_bytes += text_len - hb_glyph[0].cluster;
+    } else {
+      for (i = 1; i < (int) l.num_glyphs; i++) {
+	if (hb_glyph[i].cluster != hb_glyph[i-1].cluster) {
+	  g_assert (hb_glyph[i].cluster > hb_glyph[i-1].cluster);
+	  l.clusters[cluster].num_bytes += hb_glyph[i].cluster - hb_glyph[i-1].cluster;
+	  cluster++;
+	}
+	l.clusters[cluster].num_glyphs++;
       }
-      l.clusters[cluster].num_glyphs++;
+      l.clusters[cluster].num_bytes += text_len - hb_glyph[i - 1].cluster;
     }
-    l.clusters[cluster].num_bytes += text_len - hb_glyph[i - 1].cluster;
   }
 
 done:
@@ -476,12 +484,14 @@ view_cairo_t::draw (cairo_t *cr)
       /* cairo_show_glyphs() doesn't support subpixel positioning */
       cairo_glyph_path (cr, l.glyphs, l.num_glyphs);
       cairo_fill (cr);
-    } else
+    } else if (l.num_clusters)
       cairo_show_text_glyphs (cr,
 			      l.utf8, l.utf8_len,
 			      l.glyphs, l.num_glyphs,
 			      l.clusters, l.num_clusters,
 			      l.cluster_flags);
+    else
+      cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
 
     cairo_translate (cr, 0, font_extents.height - font_extents.ascent);
   }
