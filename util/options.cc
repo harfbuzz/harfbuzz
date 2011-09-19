@@ -421,8 +421,8 @@ output_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"output",		0, 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
-    {"format",		0, 0, G_OPTION_ARG_STRING,	&this->output_format,		"Set output format",			"format"},
+    {"output-file",	0, 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
+    {"output-format",	0, 0, G_OPTION_ARG_STRING,	&this->output_format,		"Set output format",			"format"},
     {NULL}
   };
   parser->add_group (entries,
