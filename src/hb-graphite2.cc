@@ -329,6 +329,14 @@ hb_graphite_shape (hb_font_t          *font,
     curradvy += pPos->y_advance;
   }
   pPos[-1].x_advance += gr_seg_advance_X(seg) - curradvx;
+
+  /* TODO(behdad):
+   * This shaper is badly broken with RTL text.  It returns glyphs
+   * in the logical order!
+   */
+//  if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+//    hb_buffer_reverse (buffer);
+
   success = 1;
 
 dieout:
