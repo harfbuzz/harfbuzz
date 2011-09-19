@@ -24,7 +24,6 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "common.hh"
 #include "options.hh"
 
 #ifndef HB_VIEW_HH
