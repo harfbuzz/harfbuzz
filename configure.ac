@@ -112,17 +112,21 @@ AM_CONDITIONAL(HAVE_CAIRO_FT, $have_cairo_ft)
 dnl ==========================================================================
 
 PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
-	if test $cross_compiling == no; then
-		AC_CHECK_PROG([have_icu], [icu-config], [true], [false])
-		if $have_icu; then
-			ICU_CFLAGS=`icu-config --cppflags`
-			ICU_LIBS=`icu-config --ldflags-libsonly`
-			ICU_CFLAGS=`echo "$ICU_CFLAGS" | sed "s@ -I/usr/include @ @"`
-			AC_SUBST(ICU_CFLAGS)
-			AC_SUBST(ICU_LIBS)
-		fi
-	else
-		have_icu=false
+	have_icu=true
+	AC_CHECK_HEADERS(unicode/uchar.h,, have_icu=false)
+	AC_MSG_CHECKING([for libicuuc])
+	LIBS_old=$LIBS
+	LIBS="$LIBS -licuuc"
+	AC_TRY_LINK([#include <unicode/uchar.h>],
+		    [u_getIntPropertyValue (0, (UProperty)0);],
+		    AC_MSG_RESULT(yes),
+		    AC_MSG_RESULT(no);have_icu=false)
+	LIBS=$LIBS_old
+	if $have_icu; then
+		ICU_CFLAGS=-D_REENTRANT
+		ICU_LIBS="-licuuc"
+		AC_SUBST(ICU_CFLAGS)
+		AC_SUBST(ICU_LIBS)
 	fi
 ])
 if $have_icu; then
