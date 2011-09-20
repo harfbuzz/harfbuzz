@@ -1,0 +1,59 @@
+#!/usr/bin/python
+
+import sys, re, difflib, os
+
+red_color = green_color = end_color = ""
+if 1 or os.isatty (sys.stdout.fileno ()):
+	red_color = '\033[41;37;1m'
+	green_color = '\033[42;37;1m'
+	end_color = '\033[m'
+
+def fancy_diff (l1, l2):
+
+	sep = "|<>@+,="
+	r ="(["+sep+"]?)([^"+sep+"]*)"
+	ss = [re.findall (r, l) for l in (l1, l2)]
+	ss = [reduce ((lambda a,b: a+b), s) for s in ss]
+	ss = [[x+"\n" for x in s] for s in ss]
+	oo = ["",""]
+	st = [0,0]
+	for l in difflib.Differ().compare (*ss):
+		if l[0] == '?':
+			continue
+		if l[0] == ' ':
+			for i in range(2):
+				if st[i]:
+					oo[i] += end_color
+					st[i] = 0
+			oo = [o + l[2:] for o in oo]
+			continue
+		if l[0] == '-':
+			if not st[0]:
+				oo[0] += red_color
+				st[0] = 1
+			oo[0] += l[2:]
+			continue
+		if l[0] == '+':
+			if not st[1]:
+				oo[1] += green_color
+				st[1] = 1
+			oo[1] += l[2:]
+	for i in range(2):
+		if st[i]:
+			oo[i] += end_color
+			st[i] = 0
+	oo = [o.replace ('\n', '') for o in oo]
+	if oo[0] == oo[1]:
+		return '  ' + oo[0] + '\n'
+	return '-'+oo[0]+'\n'+'+'+oo[1]+'\n'
+
+
+f1, f2 = (file (f) for f in sys.argv[1:3])
+
+for (l1,l2) in zip (f1, f2):
+	if l1 == l2:
+		print " " + l1.strip ()
+		continue
+	l1, l2 = l1.strip (), l2.strip ()
+
+	sys.stdout.writelines (fancy_diff (l1, l2))
