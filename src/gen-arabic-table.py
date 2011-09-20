@@ -35,7 +35,7 @@ num = 0
 last = -1
 block = ''
 for line in f:
-	
+
 	if line[0] == '#':
 		if line.find (" characters"):
 			block = line[2:].strip ()

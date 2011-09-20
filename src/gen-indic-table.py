@@ -19,7 +19,7 @@ for i, f in enumerate (files):
 		j = line.find ('#')
 		if j >= 0:
 			line = line[:j]
-		
+
 		fields = [x.strip () for x in line.split (';')]
 		if len (fields) == 1:
 			continue
