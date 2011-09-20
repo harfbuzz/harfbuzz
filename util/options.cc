@@ -48,7 +48,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
 }
 
 
-bool debug = FALSE;
+hb_bool_t debug = FALSE;
 
 static gchar *
 shapers_to_string (void)
@@ -644,6 +644,7 @@ format_options_t::serialize (hb_buffer_t *buffer,
   {
     if (i)
       g_string_append_c (gs, '|');
+
     char glyph_name[30];
     if (show_glyph_names && !FT_Get_Glyph_Name (ft_face, info->codepoint, glyph_name, sizeof (glyph_name)))
       g_string_append_printf (gs, "%s", glyph_name);

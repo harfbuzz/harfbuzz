@@ -51,7 +51,7 @@
 void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN;
 
 
-extern bool debug;
+extern hb_bool_t debug;
 
 struct option_group_t
 {
@@ -115,7 +115,7 @@ struct view_options_t : option_group_t
 
   void add_options (option_parser_t *parser);
 
-  bool annotate;
+  hb_bool_t annotate;
   const char *fore;
   const char *back;
   double line_space;
@@ -149,8 +149,8 @@ struct shape_options_t : option_group_t
     hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
   }
 
-  bool shape (const char *text, int text_len,
-	      hb_font_t *font, hb_buffer_t *buffer) {
+  hb_bool_t shape (const char *text, int text_len,
+		   hb_font_t *font, hb_buffer_t *buffer) {
     hb_buffer_reset (buffer);
     hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
     setup_buffer (buffer);
@@ -296,9 +296,9 @@ struct format_options_t : option_group_t
 		  GString     *gs);
 
   protected:
-  bool show_glyph_names;
-  bool show_positions;
-  bool show_clusters;
+  hb_bool_t show_glyph_names;
+  hb_bool_t show_positions;
+  hb_bool_t show_clusters;
 };
 
 
