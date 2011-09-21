@@ -646,10 +646,13 @@ format_options_t::serialize (hb_buffer_t *buffer,
       g_string_append_c (gs, '|');
 
     char glyph_name[30];
-    if (show_glyph_names && !FT_Get_Glyph_Name (ft_face, info->codepoint, glyph_name, sizeof (glyph_name)))
-      g_string_append_printf (gs, "%s", glyph_name);
-    else
-      g_string_append_printf (gs, "gid%d", info->codepoint);
+    if (show_glyph_names) {
+      if (!FT_Get_Glyph_Name (ft_face, info->codepoint, glyph_name, sizeof (glyph_name)))
+	g_string_append_printf (gs, "%s", glyph_name);
+      else
+	g_string_append_printf (gs, "gid%d", info->codepoint);
+    } else
+      g_string_append_printf (gs, "%d", info->codepoint);
 
     if (show_clusters)
       g_string_append_printf (gs, "=%d", info->cluster);
