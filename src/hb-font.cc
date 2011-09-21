@@ -286,8 +286,11 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
                                  void                        *user_data, \
                                  hb_destroy_func_t            destroy)   \
 {                                                                        \
-  if (ffuncs->immutable)                                                 \
+  if (ffuncs->immutable) {                                               \
+    if (destroy)                                                         \
+      destroy (user_data);                                               \
     return;                                                              \
+  }                                                                      \
                                                                          \
   if (ffuncs->destroy.name)                                              \
     ffuncs->destroy.name (ffuncs->user_data.name);                       \
@@ -901,8 +904,11 @@ hb_font_set_funcs (hb_font_t         *font,
 		   void              *user_data,
 		   hb_destroy_func_t  destroy)
 {
-  if (font->immutable)
+  if (font->immutable) {
+    if (destroy)
+      destroy (user_data);
     return;
+  }
 
   if (font->destroy)
     font->destroy (font->user_data);
@@ -922,8 +928,12 @@ hb_font_set_funcs_data (hb_font_t         *font,
 		        void              *user_data,
 		        hb_destroy_func_t  destroy)
 {
-  if (font->immutable)
+  /* Destroy user_data? */
+  if (font->immutable) {
+    if (destroy)
+      destroy (user_data);
     return;
+  }
 
   if (font->destroy)
     font->destroy (font->user_data);
