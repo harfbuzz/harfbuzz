@@ -64,8 +64,8 @@ static hb_blob_t _hb_blob_nil = {
 
   TRUE, /* immutable */
 
-  0, /* length */
   NULL, /* data */
+  0, /* length */
   HB_MEMORY_MODE_READONLY, /* mode */
 
   NULL, /* user_data */
