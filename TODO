@@ -1,6 +1,8 @@
 General fixes:
 =============
 
+- Move feature parsing from util into the library
+
 - 'const' for getter APIs? (use mutable internally)
 
 - Fix TT 'kern' on/off and GPOS interaction (move kerning before GPOS)
