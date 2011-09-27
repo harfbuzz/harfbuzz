@@ -47,7 +47,9 @@ struct SingleSubstFormat1
     if (likely (index == NOT_COVERED))
       return false;
 
-    glyph_id += deltaGlyphID;
+    /* According to the Adobe Annotated OpenType Suite, result is always
+     * limited to 16bit. */
+    glyph_id = (glyph_id + deltaGlyphID) & 0xFFFF;
     c->replace_glyph (glyph_id);
 
     return true;
