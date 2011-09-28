@@ -55,6 +55,10 @@
  *     feature in the font is not adequate, use the precomposed character
  *     which typically has better mark positioning.
  *
+ *   - When a font does not support a combining mark, but supports it precomposed
+ *     with previous base.  This needs the itemizer to have this knowledge too.
+ *     We need ot provide assistance to the itemizer.
+ *
  *   - When a font does not support a character but supports its decomposition,
  *     well, use the decomposition.
  *
