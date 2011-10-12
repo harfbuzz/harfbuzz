@@ -182,6 +182,19 @@ parse_shapers (const char *name G_GNUC_UNUSED,
   return TRUE;
 }
 
+static G_GNUC_NORETURN gboolean
+list_shapers (const char *name G_GNUC_UNUSED,
+	      const char *arg G_GNUC_UNUSED,
+	      gpointer    data G_GNUC_UNUSED,
+	      GError    **error G_GNUC_UNUSED)
+{
+  for (const char **shaper = hb_shape_list_shapers (); *shaper; shaper++)
+    g_printf ("%s\n", *shaper);
+
+  exit(0);
+}
+
+
 
 static void
 parse_space (char **pp)
@@ -370,7 +383,9 @@ shape_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers",	"list"},
+    {"list-shapers",	0, G_OPTION_FLAG_NO_ARG,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &list_shapers,	"List available shapers and quit",	NULL},
+    {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers to try","list"},
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
     {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
