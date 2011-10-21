@@ -63,7 +63,7 @@ typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_set(AI, V)	g_atomic_int_set (&(AI), V)
 
 
-#elif _MSC_VER >= 1600
+#elif defined(_MSC_VER) && _MSC_VER >= 1600
 
 #include <intrin.h>
 
