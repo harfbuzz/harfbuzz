@@ -269,6 +269,8 @@ parse_feature_tag (char **pp, hb_feature_t *feature)
 static hb_bool_t
 parse_feature_indices (char **pp, hb_feature_t *feature)
 {
+  parse_space (pp);
+
   hb_bool_t has_start;
 
   feature->start = 0;
