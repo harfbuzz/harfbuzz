@@ -175,7 +175,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return FALSE;
 
   UChar utf16[4], normalized[5];
-  gint len;
+  int len;
   hb_bool_t ret, err;
   UErrorCode icu_err;
 
@@ -209,7 +209,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			  void               *user_data HB_UNUSED)
 {
   UChar utf16[2], normalized[20];
-  gint len;
+  int len;
   hb_bool_t ret, err;
   UErrorCode icu_err;
 
