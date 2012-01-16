@@ -55,6 +55,8 @@
 enum hb_ot_complex_shaper_t {
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) hb_ot_complex_shaper_##name,
   HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+  /* Just here to avoid enum trailing comma: */
+  hb_ot_complex_shaper_generic = hb_ot_complex_shaper_default
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
 };
 

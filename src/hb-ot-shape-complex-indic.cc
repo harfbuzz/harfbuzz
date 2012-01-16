@@ -61,7 +61,7 @@ enum indic_position_t {
   POS_BASE,
   POS_ABOVE,
   POS_BELOW,
-  POS_POST,
+  POS_POST
 };
 
 /* Categories used in IndicSyllabicCategory.txt from UCD */
@@ -321,7 +321,7 @@ enum {
   HALF,
   _VATU,
   PSTF,
-  CJCT,
+  CJCT
 };
 
 static const hb_tag_t indic_other_features[] =
