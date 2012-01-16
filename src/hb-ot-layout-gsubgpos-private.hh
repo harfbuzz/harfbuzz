@@ -132,13 +132,12 @@ static inline bool match_input (hb_apply_context_t *c,
 				const void *match_data,
 				unsigned int *context_length_out)
 {
-  unsigned int i;
   unsigned int j = c->buffer->idx;
   unsigned int end = MIN (c->buffer->len, j + c->context_length);
   if (unlikely (j + count > end))
     return false;
 
-  for (i = 1; i < count; i++)
+  for (unsigned int i = 1; i < count; i++)
   {
     do
     {
@@ -187,11 +186,10 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    const void *match_data,
 				    unsigned int offset)
 {
-  unsigned int i;
   unsigned int j = c->buffer->idx + offset - 1;
   unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
 
-  for (i = 0; i < count; i++)
+  for (unsigned int i = 0; i < count; i++)
   {
     do
     {

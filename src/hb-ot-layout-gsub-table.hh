@@ -343,7 +343,6 @@ struct Ligature
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int i;
     unsigned int j = c->buffer->idx;
     unsigned int count = component.len;
     unsigned int end = MIN (c->buffer->len, j + c->context_length);
@@ -353,7 +352,7 @@ struct Ligature
     bool first_was_mark = (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
     bool found_non_mark = false;
 
-    for (i = 1; i < count; i++)
+    for (unsigned int i = 1; i < count; i++)
     {
       unsigned int property;
       do
@@ -392,7 +391,7 @@ struct Ligature
 	 value it is later possible to check whether a specific
 	 component value really belongs to a given ligature. */
 
-      for (i = 1; i < count; i++)
+      for (unsigned int i = 1; i < count; i++)
       {
 	while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[c->buffer->idx], c->lookup_props, NULL))
 	{
