@@ -343,24 +343,25 @@ struct Ligature
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int i, j;
+    unsigned int i;
+    unsigned int j = c->buffer->idx;
     unsigned int count = component.len;
-    unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
-    if (unlikely (count < 2 || c->buffer->idx + count > end))
+    unsigned int end = MIN (c->buffer->len, j + c->context_length);
+    if (unlikely (count < 2 || j >= end))
       return false;
 
     bool first_was_mark = (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
     bool found_non_mark = false;
 
-    for (i = 1, j = c->buffer->idx + 1; i < count; i++, j++)
+    for (i = 1; i < count; i++)
     {
       unsigned int property;
-      while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, &property))
+      do
       {
-	if (unlikely (j + count - i == end))
-	  return false;
 	j++;
-      }
+	if (unlikely (j == end))
+	  return false;
+      } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, &property));
 
       found_non_mark |= !(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
@@ -376,9 +377,9 @@ struct Ligature
     c->buffer->info[c->buffer->idx].lig_comp() = 0;
     c->buffer->info[c->buffer->idx].lig_id() = lig_id;
 
-    if (j == c->buffer->idx + i) /* No input glyphs skipped */
+    if (j < c->buffer->idx + count) /* No input glyphs skipped */
     {
-      c->replace_glyphs_be16 (i, 1, (const uint16_t *) &ligGlyph);
+      c->replace_glyphs_be16 (count, 1, (const uint16_t *) &ligGlyph);
     }
     else
     {
