@@ -629,23 +629,18 @@ struct PairPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int j = c->buffer->idx;
-    unsigned int end = MIN (c->buffer->len, j + c->context_length);
-    if (unlikely (j >= end))
+    hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    if (skippy_iter.has_no_chance ())
       return false;
 
-    unsigned int index = (this+coverage) (c->buffer->info[j].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
-    do
-    {
-      j++;
-      if (unlikely (j == end))
-	return false;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL));
+    if (!skippy_iter.next ())
+      return false;
 
-    return (this+pairSet[index]).apply (c, &valueFormat1, j);
+    return (this+pairSet[index]).apply (c, &valueFormat1, skippy_iter.idx);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -691,28 +686,23 @@ struct PairPosFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    unsigned int j = c->buffer->idx;
-    unsigned int end = MIN (c->buffer->len, j + c->context_length);
-    if (unlikely (j >= end))
+    hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    if (skippy_iter.has_no_chance ())
       return false;
 
-    unsigned int index = (this+coverage) (c->buffer->info[j].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED))
       return false;
 
-    do
-    {
-      j++;
-      if (unlikely (j == end))
-	return false;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL));
+    if (!skippy_iter.next ())
+      return false;
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
     unsigned int record_len = len1 + len2;
 
     unsigned int klass1 = (this+classDef1) (c->buffer->info[c->buffer->idx].codepoint);
-    unsigned int klass2 = (this+classDef2) (c->buffer->info[j].codepoint);
+    unsigned int klass2 = (this+classDef2) (c->buffer->info[skippy_iter.idx].codepoint);
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count))
       return false;
 
@@ -720,11 +710,11 @@ struct PairPosFormat2
     valueFormat1.apply_value (c->font, c->direction, this,
 			      v, c->buffer->pos[c->buffer->idx]);
     valueFormat2.apply_value (c->font, c->direction, this,
-			      v + len1, c->buffer->pos[j]);
+			      v + len1, c->buffer->pos[skippy_iter.idx]);
 
+    c->buffer->idx = skippy_iter.idx;
     if (len2)
-      j++;
-    c->buffer->idx = j;
+      c->buffer->idx++;
 
     return true;
   }
@@ -846,27 +836,23 @@ struct CursivePosFormat1
     if (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
       return false;
 
-    unsigned int j = c->buffer->idx;
-    unsigned int end = MIN (c->buffer->len, j + c->context_length);
-    if (unlikely (j >= end))
+    hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    if (skippy_iter.has_no_chance ())
       return false;
 
-    const EntryExitRecord &this_record = entryExitRecord[(this+coverage) (c->buffer->info[j].codepoint)];
+    const EntryExitRecord &this_record = entryExitRecord[(this+coverage) (c->buffer->info[c->buffer->idx].codepoint)];
     if (!this_record.exitAnchor)
       return false;
 
-    do
-    {
-      j++;
-      if (unlikely (j == end))
-	return false;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL));
+    if (!skippy_iter.next ())
+      return false;
 
-    const EntryExitRecord &next_record = entryExitRecord[(this+coverage) (c->buffer->info[j].codepoint)];
+    const EntryExitRecord &next_record = entryExitRecord[(this+coverage) (c->buffer->info[skippy_iter.idx].codepoint)];
     if (!next_record.entryAnchor)
       return false;
 
     unsigned int i = c->buffer->idx;
+    unsigned int j = skippy_iter.idx;
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
     (this+this_record.exitAnchor).get_anchor (c->font, c->buffer->info[i].codepoint, &exit_x, &exit_y);
@@ -997,23 +983,19 @@ struct MarkBasePosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = c->buffer->idx;
-    do
-    {
-      if (unlikely (!j))
-	return false;
-      j--;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], LookupFlag::IgnoreMarks, &property));
+    hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    if (!skippy_iter.prev (&property, LookupFlag::IgnoreMarks))
+      return false;
 
     /* The following assertion is too strong, so we've disabled it. */
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH))
     {/*return false;*/}
 
-    unsigned int base_index = (this+baseCoverage) (c->buffer->info[j].codepoint);
+    unsigned int base_index = (this+baseCoverage) (c->buffer->info[skippy_iter.idx].codepoint);
     if (base_index == NOT_COVERED)
       return false;
 
-    return (this+markArray).apply (c, mark_index, base_index, this+baseArray, classCount, j);
+    return (this+markArray).apply (c, mark_index, base_index, this+baseArray, classCount, skippy_iter.idx);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -1099,18 +1081,15 @@ struct MarkLigPosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    unsigned int j = c->buffer->idx;
-    do
-    {
-      if (unlikely (!j))
-	return false;
-      j--;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], LookupFlag::IgnoreMarks, &property));
+    hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    if (!skippy_iter.prev (&property, LookupFlag::IgnoreMarks))
+      return false;
 
     /* The following assertion is too strong, so we've disabled it. */
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE))
     {/*return false;*/}
 
+    unsigned int j = skippy_iter.idx;
     unsigned int lig_index = (this+ligatureCoverage) (c->buffer->info[j].codepoint);
     if (lig_index == NOT_COVERED)
       return false;
@@ -1218,16 +1197,14 @@ struct MarkMarkPosFormat1
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int property;
-    unsigned int j = c->buffer->idx;
-    do
-    {
-      if (unlikely (!j))
-	return false;
-      j--;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, &property));
+    hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    if (!skippy_iter.prev (&property))
+      return false;
 
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
       return false;
+
+    unsigned int j = skippy_iter.idx;
 
     /* Two marks match only if they belong to the same base, or same component
      * of the same ligature.  That is, the component numbers must match, and

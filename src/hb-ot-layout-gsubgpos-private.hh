@@ -68,6 +68,85 @@ struct hb_apply_context_t
   unsigned int property; /* propety of first glyph */
 
 
+  struct mark_skipping_forward_iterator_t
+  {
+    inline mark_skipping_forward_iterator_t (hb_apply_context_t *c_,
+					     unsigned int start_index_,
+					     unsigned int num_items_)
+    {
+      c = c_;
+      idx = start_index_;
+      num_items = num_items_;
+      end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+    }
+    inline bool has_no_chance (void) const
+    {
+      return unlikely (num_items && idx + num_items >= end);
+    }
+    inline bool next (unsigned int *property_out,
+		      unsigned int lookup_props)
+    {
+      do
+      {
+	idx++;
+	if (has_no_chance ())
+	  return false;
+      } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[idx], lookup_props, property_out));
+      num_items--;
+      return true;
+    }
+    inline bool next (unsigned int *property_out = NULL)
+    {
+      return next (property_out, c->lookup_props);
+    }
+
+    unsigned int idx;
+    private:
+    hb_apply_context_t *c;
+    unsigned int num_items;
+    unsigned int end;
+  };
+
+  struct mark_skipping_backward_iterator_t
+  {
+    inline mark_skipping_backward_iterator_t (hb_apply_context_t *c_,
+					      unsigned int start_index_,
+					      unsigned int num_items_)
+    {
+      c = c_;
+      idx = start_index_;
+      num_items = num_items_;
+    }
+    inline bool has_no_chance (void) const
+    {
+      return unlikely (num_items && num_items >= idx);
+    }
+    inline bool prev (unsigned int *property_out,
+		      unsigned int lookup_props)
+    {
+      do
+      {
+	if (has_no_chance ())
+	  return false;
+	idx--;
+      } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->out_info[idx], lookup_props, property_out));
+      num_items--;
+      return true;
+    }
+    inline bool prev (unsigned int *property_out = NULL)
+    {
+      return prev (property_out, c->lookup_props);
+    }
+
+    unsigned int idx;
+    private:
+    hb_apply_context_t *c;
+    unsigned int num_items;
+  };
+
+
+
+
   inline void replace_glyph (hb_codepoint_t glyph_index) const
   {
     clear_property ();
@@ -132,25 +211,20 @@ static inline bool match_input (hb_apply_context_t *c,
 				const void *match_data,
 				unsigned int *context_length_out)
 {
-  unsigned int j = c->buffer->idx;
-  unsigned int end = MIN (c->buffer->len, j + c->context_length);
-  if (unlikely (j + count > end))
+  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
+  if (skippy_iter.has_no_chance ())
     return false;
 
   for (unsigned int i = 1; i < count; i++)
   {
-    do
-    {
-      j++;
-      if (unlikely (j >= end))
-	return false;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL));
+    if (!skippy_iter.next ())
+      return false;
 
-    if (likely (!match_func (c->buffer->info[j].codepoint, input[i - 1], match_data)))
+    if (likely (!match_func (c->buffer->info[skippy_iter.idx].codepoint, input[i - 1], match_data)))
       return false;
   }
 
-  *context_length_out = j - c->buffer->idx + 1;
+  *context_length_out = skippy_iter.idx - c->buffer->idx + 1;
 
   return true;
 }
@@ -161,18 +235,16 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 				    match_func_t match_func,
 				    const void *match_data)
 {
-  unsigned int j = c->buffer->backtrack_len ();
+  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count);
+  if (skippy_iter.has_no_chance ())
+    return false;
 
   for (unsigned int i = 0; i < count; i++)
   {
-    do
-    {
-      if (unlikely (!j))
-	return false;
-      j--;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->out_info[j], c->lookup_props, NULL));
+    if (!skippy_iter.prev ())
+      return false;
 
-    if (likely (!match_func (c->buffer->out_info[j].codepoint, backtrack[i], match_data)))
+    if (likely (!match_func (c->buffer->out_info[skippy_iter.idx].codepoint, backtrack[i], match_data)))
       return false;
   }
 
@@ -186,19 +258,16 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    const void *match_data,
 				    unsigned int offset)
 {
-  unsigned int j = c->buffer->idx + offset - 1;
-  unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count);
+  if (skippy_iter.has_no_chance ())
+    return false;
 
   for (unsigned int i = 0; i < count; i++)
   {
-    do
-    {
-      j++;
-      if (unlikely (j >= end))
-	return false;
-    } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[j], c->lookup_props, NULL));
+    if (!skippy_iter.next ())
+      return false;
 
-    if (likely (!match_func (c->buffer->info[j].codepoint, lookahead[i], match_data)))
+    if (likely (!match_func (c->buffer->info[skippy_iter.idx].codepoint, lookahead[i], match_data)))
       return false;
   }
 
