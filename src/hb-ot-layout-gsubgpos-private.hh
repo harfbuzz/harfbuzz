@@ -88,9 +88,9 @@ struct hb_apply_context_t
     {
       do
       {
-	idx++;
 	if (has_no_chance ())
 	  return false;
+	idx++;
       } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[idx], lookup_props, property_out));
       num_items--;
       return true;
