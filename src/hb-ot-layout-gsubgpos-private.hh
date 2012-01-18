@@ -86,6 +86,7 @@ struct hb_apply_context_t
     inline bool next (unsigned int *property_out,
 		      unsigned int lookup_props)
     {
+      assert (num_items > 0);
       do
       {
 	if (has_no_chance ())
@@ -119,11 +120,12 @@ struct hb_apply_context_t
     }
     inline bool has_no_chance (void) const
     {
-      return unlikely (num_items && num_items >= idx);
+      return unlikely (idx < num_items);
     }
     inline bool prev (unsigned int *property_out,
 		      unsigned int lookup_props)
     {
+      assert (num_items > 0);
       do
       {
 	if (has_no_chance ())
