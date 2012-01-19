@@ -153,16 +153,12 @@ hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
 	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
 
-noinst_PROGRAMS = main test
+noinst_PROGRAMS = main
 bin_PROGRAMS =
 
 main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
-
-test_SOURCES = test.cc
-test_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
-test_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
