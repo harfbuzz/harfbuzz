@@ -283,6 +283,8 @@ struct format_options_t : option_group_t
     show_glyph_names = true;
     show_positions = true;
     show_clusters = true;
+    show_text = false;
+    show_unicode = false;
 
     add_options (parser);
   }
@@ -291,14 +293,18 @@ struct format_options_t : option_group_t
 
   void add_options (option_parser_t *parser);
 
-  void serialize (hb_buffer_t *buffer,
-		  hb_font_t   *font,
-		  GString     *gs);
+  void serialize_unicode (hb_buffer_t *buffer,
+			  GString     *gs);
+  void serialize_glyphs (hb_buffer_t *buffer,
+			 hb_font_t   *font,
+			 GString     *gs);
 
   protected:
   hb_bool_t show_glyph_names;
   hb_bool_t show_positions;
   hb_bool_t show_clusters;
+  hb_bool_t show_text;
+  hb_bool_t show_unicode;
 };
 
 

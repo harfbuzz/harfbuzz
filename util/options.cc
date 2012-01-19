@@ -676,6 +676,8 @@ format_options_t::add_options (option_parser_t *parser)
     {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Use glyph indices instead of names",	NULL},
     {"no-positions",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_positions,		"Do not show glyph positions",		NULL},
     {"no-clusters",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not show cluster mapping",		NULL},
+    {"show-text",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_text,		"Show input text",			NULL},
+    {"show-unicode",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_unicode,		"Show input Unicode codepoints",	NULL},
     {NULL}
   };
   parser->add_group (entries,
@@ -686,9 +688,27 @@ format_options_t::add_options (option_parser_t *parser)
 }
 
 void
-format_options_t::serialize (hb_buffer_t *buffer,
-			     hb_font_t   *font,
-			     GString     *gs)
+format_options_t::serialize_unicode (hb_buffer_t *buffer,
+				     GString     *gs)
+{
+  unsigned int num_glyphs = hb_buffer_get_length (buffer);
+  hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+
+  g_string_append_c (gs, '<');
+  for (unsigned int i = 0; i < num_glyphs; i++)
+  {
+    if (i)
+      g_string_append_c (gs, ',');
+    g_string_append_printf (gs, "U+%04X", info->codepoint);
+    info++;
+  }
+  g_string_append_c (gs, '>');
+}
+
+void
+format_options_t::serialize_glyphs (hb_buffer_t *buffer,
+				    hb_font_t   *font,
+				    GString     *gs)
 {
   FT_Face ft_face = show_glyph_names ? hb_ft_font_get_face (font) : NULL;
 
