@@ -317,12 +317,14 @@ static inline bool apply_lookup (hb_apply_context_t *c,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
+    if (unlikely (c->buffer->idx == end))
+      return true;
     while (c->should_mark_skip_current_glyph ())
     {
-      if (unlikely (c->buffer->idx == end))
-	return true;
       /* No lookup applied for this index */
       c->buffer->next_glyph ();
+      if (unlikely (c->buffer->idx == end))
+	return true;
     }
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
