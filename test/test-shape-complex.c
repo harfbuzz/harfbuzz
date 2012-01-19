@@ -181,6 +181,21 @@ static const test_set_t tests_devanagari2 = {
   }
 };
 
+static const test_set_t tests_devanagari3 = {
+  {"Lohit-Devanagari.ttf", 0},
+  {
+    { "Ka Halant Ssa Halant",
+      { 0x0915, 0x094D, 0x0937, 0x094D, 0},
+      { 0x00C4, 0x007D, 0}
+    },
+    { "Ja Halant Nya Halant",
+      { 0x091C, 0x094D, 0x091E, 0x094D, 0},
+      { 0x00C5, 0x007D, 0}
+    },
+    {{0}}
+  }
+};
+
 static const test_set_t tests_bengali1 = {
   {"AkaashNormal.ttf", 0},
   {
@@ -1151,6 +1166,7 @@ main (int argc, char **argv)
 
   TEST_SET (devanagari1);
   TEST_SET (devanagari2);
+  TEST_SET (devanagari3);
   TEST_SET (bengali1);
   TEST_SET (bengali2);
   TEST_SET (bengali3);
