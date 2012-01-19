@@ -3,20 +3,18 @@
 import sys, re, difflib, os
 
 red_color = green_color = end_color = ""
-if 1 or os.isatty (sys.stdout.fileno ()):
+if "--color" in sys.argv or os.isatty (sys.stdout.fileno ()):
+	if "--color" in sys.argv:
+		sys.argv.remove ("--color")
 	red_color = '\033[41;37;1m'
 	green_color = '\033[42;37;1m'
 	end_color = '\033[m'
 
 def fancy_diff (l1, l2):
 
-	sep = "|<>@+,="
-	r ="(["+sep+"]?)([^"+sep+"]*)"
-	ss = [re.findall (r, l) for l in (l1, l2)]
-	ss = [reduce ((lambda a,b: a+b), s) for s in ss]
-	ss = [[x+"\n" for x in s] for s in ss]
+	ss = [re.sub ('([A-Za-z0-9_]*)([^A-Za-z0-9_]?)', r'\1\n\2\n', l).splitlines (True) for l in (l1, l2)]
 	oo = ["",""]
-	st = [0,0]
+	st = [False, False]
 	for l in difflib.Differ().compare (*ss):
 		if l[0] == '?':
 			continue
@@ -24,19 +22,19 @@ def fancy_diff (l1, l2):
 			for i in range(2):
 				if st[i]:
 					oo[i] += end_color
-					st[i] = 0
+					st[i] = False
 			oo = [o + l[2:] for o in oo]
 			continue
 		if l[0] == '-':
 			if not st[0]:
 				oo[0] += red_color
-				st[0] = 1
+				st[0] = True
 			oo[0] += l[2:]
 			continue
 		if l[0] == '+':
 			if not st[1]:
 				oo[1] += green_color
-				st[1] = 1
+				st[1] = True
 			oo[1] += l[2:]
 	for i in range(2):
 		if st[i]:
@@ -44,16 +42,29 @@ def fancy_diff (l1, l2):
 			st[i] = 0
 	oo = [o.replace ('\n', '') for o in oo]
 	if oo[0] == oo[1]:
-		return '  ' + oo[0] + '\n'
-	return '-'+oo[0]+'\n'+'+'+oo[1]+'\n'
+		return [' ', oo[0], '\n']
+	return ['-', oo[0], '\n', '+', oo[1], '\n']
 
 
-f1, f2 = (file (f) for f in sys.argv[1:3])
+def open_file (f):
+	if f == '-':
+		return sys.stdin
+	return file (f)
+
+if len (sys.argv) != 3:
+	print "Usage: %s [--color] FILE1 FILE2" % sys.argv[0]
+	sys.exit (1)
+
+f1, f2 = (open_file (f) for f in sys.argv[1:3])
 
 for (l1,l2) in zip (f1, f2):
 	if l1 == l2:
-		print " " + l1.strip ()
+		sys.stdout.writelines ([" ", l1])
 		continue
-	l1, l2 = l1.strip (), l2.strip ()
 
 	sys.stdout.writelines (fancy_diff (l1, l2))
+# Print out residues
+for l in f1:
+	sys.stdout.writelines (["-", red_color, l1, end_color])
+for l in f1:
+	sys.stdout.writelines (["-", green_color, l1, end_color])
