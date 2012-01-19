@@ -184,6 +184,54 @@ static const test_set_t tests_devanagari2 = {
 static const test_set_t tests_devanagari3 = {
   {"Lohit-Devanagari.ttf", 0},
   {
+    { "I-Matra",
+      { 0x093f, 0 },
+      { 0x006f, 0x00b4, 0 }
+    },
+    { "Ka Halant SSA",
+      { 0x0915, 0x094d, 0x0937, 0 },
+      { 0x00c4, 0 }
+    },
+    { "Ka Halant ZWJ SSA",
+      { 0x0915, 0x094d, 0x200d, 0x0937, 0 },
+      { 0x00c6, 0x0067,0 }
+    },
+    { "Ka Halant ZWNJ SSA",
+      { 0x0915, 0x094d, 0x200c, 0x0937, 0 },
+      { 0x00c6, 0x0067,0 }
+    },
+    { "Ka Halant ZWJ",
+      { 0x0915, 0x094d, 0x200d, 0 },
+      { 0x00c6, 0 }
+    },
+    { "Ka MatraI",
+      { 0x0915, 0x093f, 0 },
+      { 0x006f, 0x0045, 0 }
+    },
+    { "Ra Halant Ka",
+      { 0x0930, 0x094d, 0x0915, 0 },
+      { 0x0045, 0x00bd, 0 }
+    },
+    { "Ra Halant Ka MatraI",
+      { 0x0930, 0x094d, 0x0915, 0x093f, 0 },
+      { 0x006f, 0x0045, 0x00bd, 0 }
+    },
+    { "Ka Nukta",
+      { 0x0915, 0x093c, 0 },
+      { 0x0085, 0 }
+    },
+    { "Ra Halant Ka Halant Ra I-Matra",
+      { 0x0930, 0x094d, 0x0915, 0x094d, 0x0930, 0x093f, 0 },
+      { 0x010b, 0x006f, 0x00bd, 0 }
+    },
+    { "Chha Halant Ra",
+      { 0x091b, 0x094d, 0x0930, 0x094d, 0x0915, 0 },
+      { 0x004b, 0x00c0, 0 }
+    },
+    { "Tta Halant Ra U-Matra",
+      { 0x091f, 0x094d, 0x0930, 0x0941, 0 },
+      { 0x004f, 0x0103, 0 }
+    },
     { "Ka Halant Ssa Halant",
       { 0x0915, 0x094D, 0x0937, 0x094D, 0},
       { 0x00C4, 0x007D, 0}
