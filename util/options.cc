@@ -717,7 +717,7 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
 
-  g_string_append_c (gs, '<');
+  g_string_append_c (gs, '[');
   for (unsigned int i = 0; i < num_glyphs; i++)
   {
     if (i)
@@ -749,7 +749,7 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
     info++;
     pos++;
   }
-  g_string_append_c (gs, '>');
+  g_string_append_c (gs, ']');
 }
 void
 format_options_t::serialize_line_no (unsigned int  line_no,
