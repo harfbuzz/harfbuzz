@@ -184,6 +184,7 @@ src/Makefile
 src/hb-version.h
 util/Makefile
 test/Makefile
+test/api/Makefile
 ])
 
 AC_OUTPUT
