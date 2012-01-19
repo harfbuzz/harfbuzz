@@ -67,7 +67,6 @@ struct hb_apply_context_t
   unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
 
-
   struct mark_skipping_forward_iterator_t
   {
     inline mark_skipping_forward_iterator_t (hb_apply_context_t *c_,
@@ -146,6 +145,10 @@ struct hb_apply_context_t
     unsigned int num_items;
   };
 
+  inline bool should_mark_skip_current_glyph (void) const
+  {
+    return _hb_ot_layout_skip_mark (face, &buffer->info[buffer->idx], lookup_props, NULL);
+  }
 
 
 
@@ -314,7 +317,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
    */
   for (unsigned int i = 0; i < count; /* NOP */)
   {
-    while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[c->buffer->idx], c->lookup_props, NULL))
+    while (c->should_mark_skip_current_glyph ())
     {
       if (unlikely (c->buffer->idx == end))
 	return true;

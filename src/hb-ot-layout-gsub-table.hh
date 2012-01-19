@@ -392,7 +392,7 @@ struct Ligature
 
       for (unsigned int i = 1; i < count; i++)
       {
-	while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[c->buffer->idx], c->lookup_props, NULL))
+	while (c->should_mark_skip_current_glyph ())
 	{
 	  c->buffer->info[c->buffer->idx].lig_comp() = i;
 	  c->buffer->info[c->buffer->idx].lig_id() = lig_id;
