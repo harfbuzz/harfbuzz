@@ -317,6 +317,8 @@ hb_buffer_t::copy_glyph (void)
 void
 hb_buffer_t::replace_glyph (hb_codepoint_t glyph_index)
 {
+  if (!make_room_for (1, 1)) return;
+
   out_info[out_len] = info[idx];
   out_info[out_len].codepoint = glyph_index;
 
