@@ -391,13 +391,53 @@ shape_options_t::add_options (option_parser_t *parser)
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
     {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
-    {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	"Font features to apply to text",	"TODO"},
     {NULL}
   };
   parser->add_group (entries,
 		     "shape",
 		     "Shape options:",
 		     "Options controlling the shaping process",
+		     this);
+
+  const gchar *features_help = "\n"
+    "\n"
+    "    Comma-separated list of font features to apply to text\n"
+    "\n"
+    "    Features can be enabled or disabled, either globally or limited to\n"
+    "    specific byte ranges. The format is Python-esque.  Here is how it all\n"
+    "    works:\n"
+    "\n"
+    "      Syntax:       Value:    Start:    End:\n"
+    "\n"
+    "    Setting value:\n"
+    "      \"kern\"        1         0         ∞         # Turn feature on\n"
+    "      \"+kern\"       1         0         ∞         # Turn feature on\n"
+    "      \"-kern\"       0         0         ∞         # Turn feature off\n"
+    "      \"kern=0\"      0         0         ∞         # Turn feature off\n"
+    "      \"kern=1\"      1         0         ∞         # Turn feature on\n"
+    "      \"aalt=2\"      2         0         ∞         # Choose 2nd alternate\n"
+    "\n"
+    "    Setting index:\n"
+    "      \"kern[]\"      1         0         ∞         # Turn feature on\n"
+    "      \"kern[:]\"     1         0         ∞         # Turn feature on\n"
+    "      \"kern[5:]\"    1         5         ∞         # Turn feature on, partial\n"
+    "      \"kern[:5]\"    1         0         5         # Turn feature on, partial\n"
+    "      \"kern[3:5]\"   1         3         5         # Turn feature on, range\n"
+    "      \"kern[3]\"     1         3         3+1       # Turn feature on, single char\n"
+    "\n"
+    "    Mixing it all:\n"
+    "\n"
+    "      \"kern[3:5]=0\" 1         3         5         # Turn feature off for range";
+
+  GOptionEntry entries2[] =
+  {
+    {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	features_help,	"list"},
+    {NULL}
+  };
+  parser->add_group (entries2,
+		     "features",
+		     "Features options:",
+		     "Options controlling the OpenType font features applied",
 		     this);
 }
 
