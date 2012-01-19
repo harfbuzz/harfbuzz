@@ -125,7 +125,8 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_LEPCHA:
     case HB_SCRIPT_MALAYALAM:
     case HB_SCRIPT_NEW_TAI_LUE:
-    case HB_SCRIPT_ORIYA: case HB_SCRIPT_REJANG:
+    case HB_SCRIPT_ORIYA:
+    case HB_SCRIPT_REJANG:
     case HB_SCRIPT_SINHALA:
     case HB_SCRIPT_SUNDANESE:
     case HB_SCRIPT_TAI_THAM:
