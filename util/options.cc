@@ -631,7 +631,7 @@ text_options_t::get_line (unsigned int *len)
   char buf[BUFSIZ];
   while (fgets (buf, sizeof (buf), fp)) {
     unsigned int bytes = strlen (buf);
-    if (buf[bytes - 1] == '\n') {
+    if (bytes && buf[bytes - 1] == '\n') {
       bytes--;
       g_string_append_len (gs, buf, bytes);
       break;
