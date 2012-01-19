@@ -36,7 +36,7 @@
 #include <unicode/uversion.h>
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
-#include <unicode/unistr.h>
+#include <unicode/ustring.h>
 
 
 
@@ -190,8 +190,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   len = unorm_normalize (utf16, len, UNORM_NFC, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
   if (icu_err)
     return FALSE;
-  normalized[len] = 0;
-  if (u_strlen (normalized) == 1) {
+  if (u_countChar32 (normalized, len) == 1) {
     U16_GET_UNSAFE (normalized, 0, *ab);
     ret = TRUE;
   } else {
@@ -227,8 +226,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   if (icu_err)
     return FALSE;
 
-  normalized[len] = 0;
-  len = u_strlen (normalized);
+  len = u_countChar32 (normalized, len);
 
   if (len == 1) {
     U16_GET_UNSAFE (normalized, 0, *a);
