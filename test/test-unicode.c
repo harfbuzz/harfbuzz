@@ -781,7 +781,6 @@ test_unicode_script_roundtrip (gconstpointer user_data)
 }
 
 
-/* TODO test compose() and decompose() */
 static void
 test_unicode_normalization (gconstpointer user_data)
 {
@@ -826,6 +825,7 @@ test_unicode_normalization (gconstpointer user_data)
   /* Not decomposable */
   g_assert (!hb_unicode_decompose (uf, 0x0041, &a, &b) && a == 0x0041 && b == 0);
   g_assert (!hb_unicode_decompose (uf, 0xFB01, &a, &b) && a == 0xFB01 && b == 0);
+  g_assert (!hb_unicode_decompose (uf, 0x1F1EF, &a, &b) && a == 0x1F1EF && b == 0);
 
   /* Singletons */
   g_assert (hb_unicode_decompose (uf, 0x212B, &a, &b) && a == 0x00C5 && b == 0);
