@@ -158,7 +158,7 @@ hb_icu_unicode_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   UErrorCode status = U_ZERO_ERROR;
   UScriptCode scriptCode = uscript_getScript(unicode, &status);
 
-  if (unlikely (status != U_ZERO_ERROR))
+  if (unlikely (U_FAILURE (status)))
     return HB_SCRIPT_UNKNOWN;
 
   return hb_icu_script_to_script (scriptCode);
@@ -188,7 +188,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 
   icu_err = U_ZERO_ERROR;
   len = unorm_normalize (utf16, len, UNORM_NFC, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
-  if (icu_err)
+  if (U_FAILURE (icu_err))
     return FALSE;
   if (u_countChar32 (normalized, len) == 1) {
     U16_GET_UNSAFE (normalized, 0, *ab);
@@ -223,7 +223,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 
   icu_err = U_ZERO_ERROR;
   len = unorm_normalize (utf16, len, UNORM_NFD, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
-  if (icu_err)
+  if (U_FAILURE (icu_err))
     return FALSE;
 
   len = u_countChar32 (normalized, len);
@@ -243,7 +243,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     UChar recomposed[20];
     icu_err = U_ZERO_ERROR;
     unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
-    if (icu_err)
+    if (U_FAILURE (icu_err))
       return FALSE;
     hb_codepoint_t c;
     U16_GET_UNSAFE (recomposed, 0, c);
@@ -259,7 +259,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     UChar recomposed[20];
     icu_err = U_ZERO_ERROR;
     len = unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
-    if (icu_err)
+    if (U_FAILURE (icu_err))
       return FALSE;
     /* We expect that recomposed has exactly one character now. */
     U16_GET_UNSAFE (recomposed, 0, *a);
