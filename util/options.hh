@@ -285,19 +285,31 @@ struct format_options_t : option_group_t
     show_clusters = true;
     show_text = false;
     show_unicode = false;
+    show_line_num = false;
+    scratch = hb_buffer_create ();
 
     add_options (parser);
   }
   ~format_options_t (void) {
+    hb_buffer_destroy (scratch);
   }
 
   void add_options (option_parser_t *parser);
 
-  void serialize_unicode (hb_buffer_t *buffer,
-			  GString     *gs);
-  void serialize_glyphs (hb_buffer_t *buffer,
-			 hb_font_t   *font,
-			 GString     *gs);
+  void serialize_unicode (hb_buffer_t  *buffer,
+			  GString      *gs);
+  void serialize_glyphs (hb_buffer_t  *buffer,
+			 hb_font_t    *font,
+			 GString      *gs);
+  void serialize_line_no (unsigned int  line_no,
+			  GString      *gs);
+  void serialize_line (hb_buffer_t  *buffer,
+		       unsigned int  line_no,
+		       const char   *text,
+		       unsigned int  text_len,
+		       hb_font_t    *font,
+		       GString      *gs);
+
 
   protected:
   hb_bool_t show_glyph_names;
@@ -305,6 +317,9 @@ struct format_options_t : option_group_t
   hb_bool_t show_clusters;
   hb_bool_t show_text;
   hb_bool_t show_unicode;
+  hb_bool_t show_line_num;
+  private:
+  hb_buffer_t *scratch;
 };
 
 

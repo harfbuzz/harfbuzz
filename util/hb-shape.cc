@@ -42,7 +42,7 @@ struct output_buffer_t : output_options_t, format_options_t
   protected:
   GString *gs;
   hb_font_t *font;
-  hb_buffer_t *scratch;
+  unsigned int line_no;
 };
 
 void
@@ -51,7 +51,7 @@ output_buffer_t::init (const font_options_t *font_opts)
   get_file_handle ();
   font = hb_font_reference (font_opts->get_font ());
   gs = g_string_new (NULL);
-  scratch = hb_buffer_create ();
+  line_no = 0;
 }
 
 void
@@ -59,29 +59,15 @@ output_buffer_t::consume_line (hb_buffer_t  *buffer,
 			       const char   *text,
 			       unsigned int  text_len)
 {
+  line_no++;
   g_string_set_size (gs, 0);
-
-  if (show_text) {
-    g_string_append_len (gs, text, text_len);
-    g_string_append_c (gs, '\n');
-  }
-
-  if (show_unicode) {
-    hb_buffer_reset (scratch);
-    hb_buffer_add_utf8 (scratch, text, text_len, 0, -1);
-    serialize_unicode (buffer, gs);
-    g_string_append_c (gs, '\n');
-  }
-
-  serialize_glyphs (buffer, font, gs);
-  fprintf (fp, "%s\n", gs->str);
+  serialize_line (buffer, line_no, text, text_len, font, gs);
+  fprintf (fp, "%s", gs->str);
 }
 
 void
 output_buffer_t::finish (const font_options_t *font_opts)
 {
-  hb_buffer_destroy (scratch);
-  scratch = NULL;
   g_string_free (gs, TRUE);
   gs = NULL;
   hb_font_destroy (font);

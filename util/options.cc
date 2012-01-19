@@ -678,6 +678,7 @@ format_options_t::add_options (option_parser_t *parser)
     {"no-clusters",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not show cluster mapping",		NULL},
     {"show-text",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_text,		"Show input text",			NULL},
     {"show-unicode",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_unicode,		"Show input Unicode codepoints",	NULL},
+    {"show-line-num",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_line_num,		"Show line numbers",			NULL},
     {NULL}
   };
   parser->add_group (entries,
@@ -749,4 +750,37 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
     pos++;
   }
   g_string_append_c (gs, '>');
+}
+void
+format_options_t::serialize_line_no (unsigned int  line_no,
+				     GString      *gs)
+{
+  if (show_line_num)
+    g_string_append_printf (gs, "%d: ", line_no);
+}
+void
+format_options_t::serialize_line (hb_buffer_t  *buffer,
+				  unsigned int  line_no,
+				  const char   *text,
+				  unsigned int  text_len,
+				  hb_font_t    *font,
+				  GString      *gs)
+{
+  if (show_text) {
+    serialize_line_no (line_no, gs);
+    g_string_append_len (gs, text, text_len);
+    g_string_append_c (gs, '\n');
+  }
+
+  if (show_unicode) {
+    serialize_line_no (line_no, gs);
+    hb_buffer_reset (scratch);
+    hb_buffer_add_utf8 (scratch, text, text_len, 0, -1);
+    serialize_unicode (buffer, gs);
+    g_string_append_c (gs, '\n');
+  }
+
+  serialize_line_no (line_no, gs);
+  serialize_glyphs (buffer, font, gs);
+  g_string_append_c (gs, '\n');
 }
