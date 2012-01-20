@@ -768,7 +768,9 @@ format_options_t::serialize_line (hb_buffer_t  *buffer,
 {
   if (show_text) {
     serialize_line_no (line_no, gs);
+    g_string_append_c (gs, '(');
     g_string_append_len (gs, text, text_len);
+    g_string_append_c (gs, ')');
     g_string_append_c (gs, '\n');
   }
 
