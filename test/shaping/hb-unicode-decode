@@ -1,19 +1,5 @@
 #!/usr/bin/python
 
-import sys
+from hb_test_tools import *
 
-def decode (s):
-	return '<' + ','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf8')) + '>'
-
-if __name__ == '__main__':
-
-	if len (sys.argv) == 1 or ('--stdin' in sys.argv and len (sys.argv) != 2):
-		print "Usage:\n  %s UNICODE_STRING...\nor:\n  %s --stdin" % (sys.argv[0], sys.argv[0])
-		sys.exit (1)
-
-	if '--stdin' in sys.argv:
-		sys.argv.remove ('--stdin')
-		for line in sys.stdin.readlines ():
-			print decode (line)
-	else:
-		print ' '.join (decode (x) for x in (sys.argv[1:]))
+UtilMains.filter_multiple_strings_or_stdin (Unicode.decode, "UNICODE_STRING")

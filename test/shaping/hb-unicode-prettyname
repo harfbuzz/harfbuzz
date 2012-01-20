@@ -1,53 +1,6 @@
 #!/usr/bin/python
 
-import sys
-import re
-import unicodedata
+from hb_test_tools import *
 
-shorthands = {
-	"ZERO WIDTH NON-JOINER": "ZWNJ",
-	"ZERO WIDTH JOINER": "ZWJ",
-	"NARROW NO-BREAK SPACE": "NNBSP",
-	"COMBINING GRAPHEME JOINER": "CGJ",
-	"LEFT-TO-RIGHT MARK": "LRM",
-	"RIGHT-TO-LEFT MARK": "RLM",
-	"LEFT-TO-RIGHT EMBEDDING": "LRE",
-	"RIGHT-TO-LEFT EMBEDDING": "RLE",
-	"POP DIRECTIONAL FORMATTING": "PDF",
-	"LEFT-TO-RIGHT OVERRIDE": "LRO",
-	"RIGHT-TO-LEFT OVERRIDE": "RLO",
-}
-def pretty_name (x):
-	try:
-		s = unicodedata.name (x)
-	except ValueError:
-		return "XXX"
-	s = re.sub (".* LETTER ", "", s)
-	s = re.sub (".* VOWEL SIGN (.*)", r"\1-MATRA", s)
-	s = re.sub (".* SIGN ", "", s)
-	s = re.sub (".* COMBINING ", "", s)
-	if re.match (".* VIRAMA", s):
-		s = "HALANT"
-	if s in shorthands:
-		s = shorthands[s]
-	return s
-
-
-def pretty_names (s):
-	s = re.sub (r"[<+>\\uU]", " ", s)
-	s = re.sub (r"0[xX]", " ", s)
-	s = [unichr (int (x, 16)) for x in re.split ('[, \n]', s) if len (x)]
-	return ' + '.join (pretty_name (x) for x in s)
-
-if __name__ == '__main__':
-
-	if len (sys.argv) == 1 or ('--stdin' in sys.argv and len (sys.argv) != 2):
-		print "Usage:\n  %s UNICODE_CODEPOINTS...\nor:\n  %s --stdin" % (sys.argv[0], sys.argv[0])
-		sys.exit (1)
-
-	if '--stdin' in sys.argv:
-		sys.argv.remove ('--stdin')
-		for line in sys.stdin.readlines ():
-			print pretty_names (line)
-	else:
-		print pretty_names (','.join (sys.argv[1:]))
+UtilMains.filter_multiple_strings_or_stdin (Unicode.pretty_names, "UNICODE_CODEPOINTS", \
+					    concat_separator = ' ')
