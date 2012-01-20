@@ -1,0 +1,22 @@
+#!/usr/bin/python
+
+import sys
+import re
+
+def encode (s):
+	s = re.sub (r"[<+>\\uU]", " ", s)
+	s = re.sub (r"0[xX]", " ", s)
+	return u''.join (unichr (int (x, 16)) for x in re.split ('[, \n]', s) if len (x))
+
+if __name__ == '__main__':
+
+	if len (sys.argv) == 1 or ('--stdin' in sys.argv and len (sys.argv) != 2):
+		print "Usage:\n  %s UNICODE_CODEPOINTS...\nor:\n  %s --stdin" % (sys.argv[0], sys.argv[0])
+		sys.exit (1)
+
+	if '--stdin' in sys.argv:
+		sys.argv.remove ('--stdin')
+		for line in sys.stdin.readlines ():
+			print encode (line)
+	else:
+		print encode (','.join (sys.argv[1:]))
