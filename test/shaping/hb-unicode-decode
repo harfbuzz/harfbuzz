@@ -8,7 +8,7 @@ def decode (s):
 if __name__ == '__main__':
 
 	if len (sys.argv) == 1 or ('--stdin' in sys.argv and len (sys.argv) != 2):
-		print "Usage:\n  %s [UNICODE_STRING]...\nor:\n  %s --stdin" % (sys.argv[0], sys.argv[0])
+		print "Usage:\n  %s UNICODE_STRING...\nor:\n  %s --stdin" % (sys.argv[0], sys.argv[0])
 		sys.exit (1)
 
 	if '--stdin' in sys.argv:
