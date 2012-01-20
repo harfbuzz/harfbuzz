@@ -1,0 +1,38 @@
+#!/usr/bin/python
+
+import sys
+import re
+import unicodedata
+
+shorthands = {
+	"ZERO WIDTH NON-JOINER": "ZWNJ",
+	"ZERO WIDTH JOINER": "ZWJ",
+	"NARROW NO-BREAK SPACE": "NNBSP",
+	"COMBINING GRAPHEME JOINER": "CGJ",
+}
+def pretty_name (x):
+	try:
+		s = unicodedata.name (x)
+	except ValueError:
+		return "XXX"
+	s = re.sub (".* LETTER ", "", s)
+	s = re.sub (".* VOWEL SIGN (.*)", r"\1-MATRA", s)
+	s = re.sub (".* SIGN ", "", s)
+	s = re.sub (".* COMBINING ", "", s)
+	if re.match (".* VIRAMA", s):
+		s = "HALANT"
+	if s in shorthands:
+		s = shorthands[s]
+	return s
+
+
+def pretty_names (s):
+	s = re.sub ("[<+>\\]", "", s)
+	s = re.sub ("[uU]", " ", s)
+	print s
+	s = [unichr (int (x, 16)) for x in re.split ('[, ]', s) if len (x)]
+	return ' + '.join (pretty_name (x) for x in s)
+
+if __name__ == '__main__':
+	print pretty_names (','.join (sys.argv[1:]))
+
