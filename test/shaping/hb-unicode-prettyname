@@ -27,12 +27,15 @@ def pretty_name (x):
 
 
 def pretty_names (s):
-	s = re.sub ("[<+>\\]", "", s)
-	s = re.sub ("[uU]", " ", s)
-	print s
-	s = [unichr (int (x, 16)) for x in re.split ('[, ]', s) if len (x)]
+	s = re.sub (r"[<+>\\]", "", s)
+	s = re.sub (r"[uU]", " ", s)
+	s = [unichr (int (x, 16)) for x in re.split ('[, \n]', s) if len (x)]
 	return ' + '.join (pretty_name (x) for x in s)
 
 if __name__ == '__main__':
-	print pretty_names (','.join (sys.argv[1:]))
-
+	if '--stdin' in sys.argv:
+		sys.argv.remove ('--stdin')
+		for line in sys.stdin.readlines ():
+			print pretty_names (line)
+	else:
+		print pretty_names (','.join (sys.argv[1:]))
