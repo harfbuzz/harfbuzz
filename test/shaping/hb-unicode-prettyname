@@ -35,6 +35,7 @@ def pretty_name (x):
 
 def pretty_names (s):
 	s = re.sub (r"[<+>\\uU]", " ", s)
+	s = re.sub (r"0[xX]", " ", s)
 	s = [unichr (int (x, 16)) for x in re.split ('[, \n]', s) if len (x)]
 	return ' + '.join (pretty_name (x) for x in s)
 

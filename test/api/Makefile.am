@@ -49,12 +49,6 @@ test_c_CPPFLAGS += $(FREETYPE_CFLAGS)
 test_cplusplus_CPPFLAGS += $(FREETYPE_CFLAGS)
 endif
 
-if HAVE_FREETYPE
-TEST_PROGS += test-shape-complex
-test_shape_complex_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
-test_shape_complex_LDADD = $(LDADD) $(FREETYPE_LIBS)
-endif
-
 
 # Default test running environment
 TESTS = $(TEST_PROGS)
