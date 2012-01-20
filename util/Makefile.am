@@ -57,6 +57,4 @@ bin_PROGRAMS += hb-shape
 endif
 endif
 
-EXTRA_DIST += hb-diff
-
 -include $(top_srcdir)/git.mk
