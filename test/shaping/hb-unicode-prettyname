@@ -40,6 +40,11 @@ def pretty_names (s):
 	return ' + '.join (pretty_name (x) for x in s)
 
 if __name__ == '__main__':
+
+	if len (sys.argv) == 1 or ('--stdin' in sys.argv and len (sys.argv) != 2):
+		print "Usage:\n  %s [UNICODE_CODEPOINTS]...\nor:\n  %s --stdin" % (sys.argv[0], sys.argv[0])
+		sys.exit (1)
+
 	if '--stdin' in sys.argv:
 		sys.argv.remove ('--stdin')
 		for line in sys.stdin.readlines ():
