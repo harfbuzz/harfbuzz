@@ -778,7 +778,7 @@ format_options_t::serialize_line (hb_buffer_t  *buffer,
     serialize_line_no (line_no, gs);
     hb_buffer_reset (scratch);
     hb_buffer_add_utf8 (scratch, text, text_len, 0, -1);
-    serialize_unicode (buffer, gs);
+    serialize_unicode (scratch, gs);
     g_string_append_c (gs, '\n');
   }
 
