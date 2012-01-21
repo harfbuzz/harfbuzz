@@ -3,12 +3,12 @@
 from hb_test_tools import *
 import sys, os
 
+colors, sys.argv = Colors.Auto (sys.argv)
+
 if len (sys.argv) != 3:
 	print "usage: %s [--color] file1 file2" % sys.argv[0]
 	sys.exit (1)
 
-colors = Colors.Auto (sys.argv)
+files = (FileHelpers.open_file_or_stdin (f) for f in sys.argv[1:3])
 
-f1, f2 = (open_file_or_stdin (f) for f in sys.argv[1:3])
-
-FancyDiffer.diff_files (f1, f2, colors=colors)
+FancyDiffer.diff_files (*files, colors=colors)

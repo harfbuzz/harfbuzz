@@ -21,9 +21,9 @@ class Colors:
 		if "--color" in argv or os.isatty (out.fileno ()):
 			if "--color" in sys.argv[1:]:
 				argv.remove ("--color")
-			return Colors.ANSI
+			return Colors.ANSI, argv
 		else:
-			return Colors.Null
+			return Colors.Null, argv
 
 	@staticmethod
 	def Default (argv = []):
