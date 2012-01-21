@@ -1,36 +1,5 @@
-#!/bin/bash
+#!/usr/bin/python
 
-if test $# = 0; then
-	echo "Usage: $0 DIR..."
-	exit 1
-fi
+from hb_test_tools import *
 
-strict=true
-
-recurse () {
-	if ! test -e "$1"; then
-		if $strict; then
-			echo "$0: $1 does not exist" 1>&2
-			exit 1
-		fi
-	fi
-	if test -d "$1"; then
-		if test -f "$1/MANIFEST"; then
-			cat "$1/MANIFEST" | while read f; do
-				recurse "$1/$f"
-			done
-		else
-			if $strict; then
-				echo "$0: $1/MANIFEST does not exist" 1>&2
-				exit 1
-			fi
-		fi
-	else
-		echo "$1"
-	fi
-}
-
-for root in "$@"; do
-	root=${root%/}
-	recurse "$root";
-done
+UtilMains.process_multiple_args (Manifest.print_to_stdout, mnemonic="DIR")

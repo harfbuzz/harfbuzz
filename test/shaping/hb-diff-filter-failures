@@ -2,4 +2,4 @@
 
 from hb_test_tools import *
 
-UtilMains.process_multiple_files (DiffFilters.filter_failures)
+UtilMains.filter_multiple_strings_or_stdin (Unicode.decode, "UNICODE_STRING")

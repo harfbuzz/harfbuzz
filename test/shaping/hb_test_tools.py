@@ -106,23 +106,33 @@ class ShapeFilters:
 class UtilMains:
 
 	@staticmethod
-	def process_multiple_files (callback):
+	def process_multiple_files (callback, mnemonic = "FILE"):
 
 		if len (sys.argv) == 1:
-			print "Usage: %s FILE..." % sys.argv[0]
+			print "Usage: %s %s..." % (sys.argv[0], mnemonic)
 			sys.exit (1)
 
 		for s in sys.argv[1:]:
 			callback (FileHelpers.open_file_or_stdin (s))
 
 	@staticmethod
-	def filter_multiple_strings_or_stdin (callback, string_mnemonic, \
+	def process_multiple_args (callback, mnemonic):
+
+		if len (sys.argv) == 1:
+			print "Usage: %s %s..." % (sys.argv[0], mnemonic)
+			sys.exit (1)
+
+		for s in sys.argv[1:]:
+			callback (s)
+
+	@staticmethod
+	def filter_multiple_strings_or_stdin (callback, mnemonic, \
 					      separator = " ", \
 					      concat_separator = False):
 
 		if len (sys.argv) == 1 or ('--stdin' in sys.argv and len (sys.argv) != 2):
 			print "Usage:\n  %s %s...\nor:\n  %s --stdin" \
-			      % (sys.argv[0], string_mnemonic, sys.argv[0])
+			      % (sys.argv[0], mnemonic, sys.argv[0])
 			sys.exit (1)
 
 		if '--stdin' in sys.argv:
@@ -189,13 +199,42 @@ class Unicode:
 		return u' + '.join (Unicode.pretty_name (x) for x in s).encode ('utf-8')
 
 
-class FileHelprs:
+class FileHelpers:
 
 	@staticmethod
 	def open_file_or_stdin (f):
 		if f == '-':
 			return sys.stdin
 		return file (f)
+
+
+class Manifest:
+
+	@staticmethod
+	def print_to_stdout (s, strict = True):
+		if not os.path.exists (s):
+			if strict:
+				print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], s)
+				sys.exit (1)
+			return
+
+		if os.path.isdir (s):
+
+			if s[-1] != '/':
+				s += "/"
+
+			try:
+				m = file (s + "/MANIFEST")
+				items = [x.strip () for x in m.readlines ()]
+				for f in items:
+					Manifest.print_to_stdout (s + f)
+			except IOError:
+				if strict:
+					print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], s + "/MANIFEST")
+					sys.exit (1)
+				return
+		else:
+			print s
 
 if __name__ == '__main__':
 	pass
