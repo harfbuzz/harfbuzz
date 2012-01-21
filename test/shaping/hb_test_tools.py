@@ -143,13 +143,13 @@ class Unicode:
 
 	@staticmethod
 	def decode (s):
-		return '<' + ','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf8')) + '>'
+		return '<' + u','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf-8')).encode ('utf-8') + '>'
 
 	@staticmethod
 	def encode (s):
-		s = re.sub (r"[<+>\\uU]", " ", s)
+		s = re.sub (r"[<+>,\\uU\n	]", " ", s)
 		s = re.sub (r"0[xX]", " ", s)
-		return u''.join (unichr (int (x, 16)) for x in re.split ('[, \n]', s) if len (x))
+		return u''.join (unichr (int (x, 16)) for x in s.split (' ') if len (x)).encode ('utf-8')
 
 	shorthands = {
 		"ZERO WIDTH NON-JOINER": "ZWNJ",
@@ -186,7 +186,7 @@ class Unicode:
 		s = re.sub (r"[<+>\\uU]", " ", s)
 		s = re.sub (r"0[xX]", " ", s)
 		s = [unichr (int (x, 16)) for x in re.split ('[, \n]', s) if len (x)]
-		return ' + '.join (Unicode.pretty_name (x) for x in s)
+		return u' + '.join (Unicode.pretty_name (x) for x in s).encode ('utf-8')
 
 
 class FileHelprs:
