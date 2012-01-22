@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, os, re, difflib, unicodedata
+import sys, os, re, difflib, unicodedata, errno
 
 class Colors:
 	class Null:
@@ -72,17 +72,22 @@ class FancyDiffer:
 
 	@staticmethod
 	def diff_files (f1, f2, colors=Colors.Null):
-		for (l1,l2) in zip (f1, f2):
-			if l1 == l2:
-				sys.stdout.writelines ([" ", l1])
-				continue
+		try:
+			for (l1,l2) in zip (f1, f2):
+				if l1 == l2:
+					sys.stdout.writelines ([" ", l1])
+					continue
 
-			sys.stdout.writelines (FancyDiffer.diff_lines (l1, l2, colors))
-		# print out residues
-		for l in f1:
-			sys.stdout.writelines (["-", colors.red, l1, colors.end])
-		for l in f1:
-			sys.stdout.writelines (["-", colors.green, l1, colors.end])
+				sys.stdout.writelines (FancyDiffer.diff_lines (l1, l2, colors))
+			# print out residues
+			for l in f1:
+				sys.stdout.writelines (["-", colors.red, l1, colors.end])
+			for l in f1:
+				sys.stdout.writelines (["-", colors.green, l1, colors.end])
+		except IOError as e:
+			if e.errno != errno.EPIPE:
+				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				sys.exit (1)
 
 
 class DiffFilters:
@@ -112,8 +117,13 @@ class UtilMains:
 			print "Usage: %s %s..." % (sys.argv[0], mnemonic)
 			sys.exit (1)
 
-		for s in sys.argv[1:]:
-			callback (FileHelpers.open_file_or_stdin (s))
+		try:
+			for s in sys.argv[1:]:
+				callback (FileHelpers.open_file_or_stdin (s))
+		except IOError as e:
+			if e.errno != errno.EPIPE:
+				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				sys.exit (1)
 
 	@staticmethod
 	def process_multiple_args (callback, mnemonic):
@@ -122,8 +132,13 @@ class UtilMains:
 			print "Usage: %s %s..." % (sys.argv[0], mnemonic)
 			sys.exit (1)
 
-		for s in sys.argv[1:]:
-			callback (s)
+		try:
+			for s in sys.argv[1:]:
+				callback (s)
+		except IOError as e:
+			if e.errno != errno.EPIPE:
+				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				sys.exit (1)
 
 	@staticmethod
 	def filter_multiple_strings_or_stdin (callback, mnemonic, \
@@ -135,18 +150,23 @@ class UtilMains:
 			      % (sys.argv[0], mnemonic, sys.argv[0])
 			sys.exit (1)
 
-		if '--stdin' in sys.argv:
-			sys.argv.remove ('--stdin')
-			while (1):
-				line = sys.stdin.readline ()
-				if not len (line):
-					break
-				print callback (line)
-		else:
-			args = sys.argv[1:]
-			if concat_separator != False:
-				args = [concat_separator.join (args)]
-			print separator.join (callback (x) for x in (args))
+		try:
+			if '--stdin' in sys.argv:
+				sys.argv.remove ('--stdin')
+				while (1):
+					line = sys.stdin.readline ()
+					if not len (line):
+						break
+					print callback (line)
+			else:
+				args = sys.argv[1:]
+				if concat_separator != False:
+					args = [concat_separator.join (args)]
+				print separator.join (callback (x) for x in (args))
+		except IOError as e:
+			if e.errno != errno.EPIPE:
+				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				sys.exit (1)
 
 
 class Unicode:
