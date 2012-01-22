@@ -18,12 +18,24 @@ class Colors:
 
 	@staticmethod
 	def Auto (argv = [], out = sys.stdout):
-		if "--color" in argv or os.isatty (out.fileno ()):
-			if "--color" in sys.argv[1:]:
-				argv.remove ("--color")
-			return Colors.ANSI, argv
+		if os.isatty (out.fileno ()):
+			color = Colors.ANSI
 		else:
-			return Colors.Null, argv
+			color = Colors.Null
+		if "--color" in argv:
+			argv.remove ("--color")
+			color = Colors.ANSI
+		if "--color=ansi" in argv:
+			argv.remove ("--color=ansi")
+			color = Colors.ANSI
+		if "--color=html" in argv:
+			argv.remove ("--color=html")
+			color = Colors.HTML
+		if "--no-color" in argv:
+			argv.remove ("--no-color")
+			color = Colors.Null
+		return color
+
 
 	@staticmethod
 	def Default (argv = []):

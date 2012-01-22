@@ -3,7 +3,7 @@
 from hb_test_tools import *
 import sys, os
 
-colors, sys.argv = Colors.Auto (sys.argv)
+colors = Colors.Auto (sys.argv)
 
 if len (sys.argv) != 3:
 	print "usage: %s [--color] file1 file2" % sys.argv[0]
