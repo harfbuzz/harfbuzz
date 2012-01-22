@@ -188,6 +188,8 @@ class UtilMains:
 					line = sys.stdin.readline ()
 					if not len (line):
 						break
+					if line[-1] == '\n':
+						line = line[:-1]
 					print callback (line)
 			else:
 				args = sys.argv[1:]
