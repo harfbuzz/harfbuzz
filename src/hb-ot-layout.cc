@@ -281,6 +281,15 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
     return FALSE;
   }
 
+  /* try with 'latn'; some old fonts put their features there even though
+     they're really trying to support Thai, for example :( */
+#define HB_OT_TAG_LATIN_SCRIPT		HB_TAG ('l', 'a', 't', 'n')
+  if (g.find_script_index (HB_OT_TAG_LATIN_SCRIPT, script_index)) {
+    if (chosen_script)
+      *chosen_script = HB_OT_TAG_LATIN_SCRIPT;
+    return FALSE;
+  }
+
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
   if (chosen_script)
     *chosen_script = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
