@@ -37,6 +37,12 @@ class FancyDiffer:
 	@staticmethod
 	def diff_lines (l1, l2, colors=Colors.Null):
 
+		# Easy without colors
+		if colors == Colors.Null:
+			if l1 == l2:
+				return [' ', l1]
+			return ['-', l1, '+', l2]
+
 		ss = [FancyDiffer.diff_regex.sub (r'\1\n\2\n', l).splitlines (True) for l in (l1, l2)]
 		oo = ["",""]
 		st = [False, False]
