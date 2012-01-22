@@ -1,22 +1,5 @@
-#!/bin/sh
+#!/usr/bin/python
 
-if test $# = 0; then
-	echo "Usage: $0 DIR..."
-	exit 1
-fi
+from hb_test_tools import *
 
-find "$@" -type d |
-while read d; do
-	echo "  GEN    $d/MANIFEST";
-	(
-		cd "$d" &&
-		ls |
-		grep -v "MANIFEST\|README\|LICENSE\|COPYING\|AUTHORS\|SOURCES" |
-		LANG=C sort > MANIFEST.tmp &&
-		mv MANIFEST.tmp MANIFEST ||
-		(
-			rm -f MANIFEST.tmp
-			false
-		)
-	)
-done
+UtilMains.process_multiple_args (Manifest.update_recursive, mnemonic="DIR")

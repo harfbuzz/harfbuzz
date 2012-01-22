@@ -86,7 +86,7 @@ class FancyDiffer:
 				sys.stdout.writelines (["-", colors.green, l1, colors.end])
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				print >> sys.stderr, "%s: %s: %s" % (sys.argv[0], e.filename, e.strerror)
 				sys.exit (1)
 
 
@@ -122,7 +122,7 @@ class UtilMains:
 				callback (FileHelpers.open_file_or_stdin (s))
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				print >> sys.stderr, "%s: %s: %s" % (sys.argv[0], e.filename, e.strerror)
 				sys.exit (1)
 
 	@staticmethod
@@ -137,7 +137,7 @@ class UtilMains:
 				callback (s)
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				print >> sys.stderr, "%s: %s: %s" % (sys.argv[0], e.filename, e.strerror)
 				sys.exit (1)
 
 	@staticmethod
@@ -165,7 +165,7 @@ class UtilMains:
 				print separator.join (callback (x) for x in (args))
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print >> sys.stderr, "%s: %s" (sys.argv[0], e.strerror)
+				print >> sys.stderr, "%s: %s: %s" % (sys.argv[0], e.filename, e.strerror)
 				sys.exit (1)
 
 
@@ -240,21 +240,43 @@ class Manifest:
 
 		if os.path.isdir (s):
 
-			if s[-1] != '/':
-				s += "/"
+			if s[-1] in '/\\':
+				s = s[:-1]
 
 			try:
-				m = file (s + "/MANIFEST")
+				m = file (os.path.join (s, "MANIFEST"))
 				items = [x.strip () for x in m.readlines ()]
 				for f in items:
 					Manifest.print_to_stdout (s + f)
 			except IOError:
 				if strict:
-					print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], s + "/MANIFEST")
+					print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], os.path.join (s, "MANIFEST"))
 					sys.exit (1)
 				return
 		else:
 			print s
+
+	@staticmethod
+	def update_recursive (s):
+
+		for dirpath, dirnames, filenames in os.walk (s, followlinks=True):
+
+			for f in ["MANIFEST", "README", "LICENSE", "COPYING", "AUTHORS", "SOURCES"]:
+				if f in dirnames:
+					dirnames.remove (f)
+				if f in filenames:
+					filenames.remove (f)
+			dirnames.sort ()
+			filenames.sort ()
+			ms = os.path.join (dirpath, "MANIFEST")
+			print "  GEN    %s" % ms
+			m = open (ms, "w")
+			for f in filenames:
+				print >> m, f
+			for f in dirnames:
+				print >> m, f
+			for f in dirnames:
+				Manifest.update_recursive (os.path.join (dirpath, f))
 
 if __name__ == '__main__':
 	pass
