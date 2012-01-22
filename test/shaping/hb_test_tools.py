@@ -295,7 +295,7 @@ class Manifest:
 
 		for dirpath, dirnames, filenames in os.walk (s, followlinks=True):
 
-			for f in ["MANIFEST", "README", "LICENSE", "COPYING", "AUTHORS", "SOURCES"]:
+			for f in ["MANIFEST", "README", "LICENSE", "COPYING", "AUTHORS", "SOURCES", "ChangeLog"]:
 				if f in dirnames:
 					dirnames.remove (f)
 				if f in filenames:
