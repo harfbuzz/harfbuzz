@@ -117,6 +117,14 @@ class ShapeFilters:
 class UtilMains:
 
 	@staticmethod
+	def filter_printer_function (callback):
+		def printer (f):
+			for line in callback (f):
+				print line
+		return printer
+
+
+	@staticmethod
 	def process_multiple_files (callback, mnemonic = "FILE"):
 
 		if len (sys.argv) == 1:
@@ -262,11 +270,6 @@ class Manifest:
 				return
 		else:
 			yield s
-
-	@staticmethod
-	def print_to_stdout (s, strict = True):
-		for f in Manifest.read (s, strict=strict):
-			print f
 
 	@staticmethod
 	def update_recursive (s):
