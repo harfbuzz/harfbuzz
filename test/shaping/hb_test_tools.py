@@ -102,27 +102,32 @@ class DiffFilters:
 	def filter_failures (f):
 		for l in f:
 			if l[0] in '-+':
-				sys.stdout.writelines (l)
+				yield l
 
 
 class ShapeFilters:
 
-	@staticmethod
-	def filter_failures (f):
-		for l in f:
-			if l[0] in '-+':
-				sys.stdout.writelines (l)
+	pass
 
 
-class UtilMains:
+class FilterHelpers:
 
 	@staticmethod
-	def filter_printer_function (callback):
+	def filter_printer_function (filter_callback):
 		def printer (f):
-			for line in callback (f):
+			for line in filter_callback (f):
 				print line
 		return printer
 
+	@staticmethod
+	def filter_printer_function_no_newline (filter_callback):
+		def printer (f):
+			for line in filter_callback (f):
+				sys.stdout.writelines ([line])
+		return printer
+
+
+class UtilMains:
 
 	@staticmethod
 	def process_multiple_files (callback, mnemonic = "FILE"):
@@ -249,7 +254,7 @@ class Manifest:
 
 		if not os.path.exists (s):
 			if strict:
-				print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], s)
+				print >> sys.stderr, "%s: %s does not exist" % (sys.argv[0], s)
 				sys.exit (1)
 			return
 
@@ -265,7 +270,7 @@ class Manifest:
 						yield p
 			except IOError:
 				if strict:
-					print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], os.path.join (s, "MANIFEST"))
+					print >> sys.stderr, "%s: %s does not exist" % (sys.argv[0], os.path.join (s, "MANIFEST"))
 					sys.exit (1)
 				return
 		else:
