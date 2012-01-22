@@ -153,6 +153,18 @@ struct shape_options_t : option_group_t
 		   hb_font_t *font, hb_buffer_t *buffer) {
     hb_buffer_reset (buffer);
     hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
+
+    /* Reset cluster values to refer to Unicode character index
+     * instead of UTF-8 index.
+     * TODO: Add an option for this. */
+    unsigned int num_glyphs = hb_buffer_get_length (buffer);
+    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+    for (unsigned int i = 0; i < num_glyphs; i++)
+    {
+      info->cluster = i;
+      info++;
+    }
+
     setup_buffer (buffer);
     return hb_shape_full (font, buffer, features, num_features, NULL, shapers);
   }
