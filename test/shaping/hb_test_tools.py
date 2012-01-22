@@ -231,30 +231,36 @@ class FileHelpers:
 class Manifest:
 
 	@staticmethod
-	def print_to_stdout (s, strict = True):
+	def read (s, strict = True):
+
 		if not os.path.exists (s):
 			if strict:
 				print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], s)
 				sys.exit (1)
 			return
 
-		if os.path.isdir (s):
+		s = os.path.normpath (s)
 
-			if s[-1] in '/\\':
-				s = s[:-1]
+		if os.path.isdir (s):
 
 			try:
 				m = file (os.path.join (s, "MANIFEST"))
 				items = [x.strip () for x in m.readlines ()]
 				for f in items:
-					Manifest.print_to_stdout (s + f)
+					for p in Manifest.read (os.path.join (s, f)):
+						yield p
 			except IOError:
 				if strict:
 					print >> sys.stderr, "%s: %s does not exist" (sys.argv[0], os.path.join (s, "MANIFEST"))
 					sys.exit (1)
 				return
 		else:
-			print s
+			yield s
+
+	@staticmethod
+	def print_to_stdout (s, strict = True):
+		for f in Manifest.read (s, strict=strict):
+			print f
 
 	@staticmethod
 	def update_recursive (s):
