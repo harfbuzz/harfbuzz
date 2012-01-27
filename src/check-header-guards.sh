@@ -15,7 +15,7 @@ for x in $HBHEADERS $HBSOURCES; do
 	echo "$x" | grep '[^h]$' -q && continue;
 	xx=`echo "$x" | sed 's@.*/@@'`
 	tag=`echo "$xx" | tr 'a-z.-' 'A-Z_'`
-	lines=`grep "\<$tag\>" "$x" | wc -l | sed 's/ 	//g'`
+	lines=`grep "\<$tag\>" "$x" | wc -l | sed 's/[ 	]*//g'`
 	if test "x$lines" != x3; then
 		echo "Ouch, header file $x does not have correct preprocessor guards"
 		stat=1
