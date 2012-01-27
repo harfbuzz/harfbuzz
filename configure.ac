@@ -11,14 +11,14 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.11.1 gnu dist-bzip2 no-dist-gzip -Wall no-define])
 AM_SILENT_RULES([yes])
 
+# Initialize libtool
+LT_PREREQ([2.2])
+LT_INIT([disable-static])
+
 # Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
-
-# Initialize libtool
-LT_PREREQ([2.2])
-LT_INIT([disable-static])
 
 # Version
 m4_define(hb_version_triplet,m4_split(AC_PACKAGE_VERSION,[[.]]))
