@@ -14,15 +14,20 @@ else
 	exit 77
 fi
 
-so=.libs/libharfbuzz.so
-if test -f "$so"; then
-	echo "Checking that we are exposing internal symbols"
-	if nm $so | grep ' T ' | grep -v ' T _fini\>\| T _init\>\| T hb_'; then
-		echo "Ouch, internal symbols exposed"
-		stat=1
+tested=false
+for suffix in so; do
+	so=.libs/libharfbuzz.$suffix
+	if test -f "$so"; then
+		echo "Checking that we are exposing internal symbols"
+		if nm $so | grep ' T ' | grep -v ' T _fini\>\| T _init\>\| T hb_'; then
+			echo "Ouch, internal symbols exposed"
+			stat=1
+		fi
+		tested=true
 	fi
-else
-	echo "check-internal-symbols.sh: libharfbuzz.so not found; skipping test"
+done
+if ! $tested; then
+	echo "check-internal-symbols.sh: libharfbuzz shared library not found; skipping test"
 	exit 77
 fi
 
