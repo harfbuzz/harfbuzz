@@ -534,7 +534,8 @@ font_options_t::get_font (void) const
       destroy = (hb_destroy_func_t) g_free;
       mm = HB_MEMORY_MODE_WRITABLE;
     } else {
-      GMappedFile *mf = g_mapped_file_new (font_file, FALSE, NULL);
+      GError *error = NULL;
+      GMappedFile *mf = g_mapped_file_new (font_file, FALSE, &error);
       if (mf) {
 	font_data = g_mapped_file_get_contents (mf);
 	len = g_mapped_file_get_length (mf);
@@ -544,6 +545,9 @@ font_options_t::get_font (void) const
 	  mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
 	} else
 	  g_mapped_file_unref (mf);
+      } else {
+	fail (FALSE, "%s", error->message);
+	//g_error_free (error);
       }
       if (!len) {
 	/* GMappedFile is buggy, it doesn't fail if file isn't regular.
