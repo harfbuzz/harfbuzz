@@ -60,7 +60,6 @@ typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
 #endif
 #define hb_atomic_int_get(AI)		g_atomic_int_get (&(AI))
-#define hb_atomic_int_set(AI, V)	g_atomic_int_set (&(AI), V)
 
 
 #elif !defined(HB_NO_MT) && defined(_MSC_VER) && _MSC_VER >= 1600
@@ -70,7 +69,6 @@ typedef volatile int hb_atomic_int_t;
 typedef long hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
 #define hb_atomic_int_get(AI)		(_ReadBarrier (), (AI))
-#define hb_atomic_int_set(AI, V)	((void) _InterlockedExchange (&(AI), (V)))
 
 
 #else
@@ -80,7 +78,6 @@ typedef long hb_atomic_int_t;
 typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	((AI) += (V), (AI) - (V))
 #define hb_atomic_int_get(AI)		(AI)
-#define hb_atomic_int_set(AI, V)	((void) ((AI) = (V)))
 
 #endif
 
@@ -98,7 +95,6 @@ typedef struct {
   inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
   inline int inc (void) { return hb_atomic_int_add (ref_count,  1); }
   inline int dec (void) { return hb_atomic_int_add (ref_count, -1); }
-  inline void set (int v) { hb_atomic_int_set (ref_count, v); }
 
   inline int get (void) const { return hb_atomic_int_get (ref_count); }
   inline bool is_invalid (void) const { return get () == HB_REFERENCE_COUNT_INVALID_VALUE; }
