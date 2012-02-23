@@ -40,7 +40,7 @@
 
 /* We need external help for these */
 
-#ifdef HAVE_GLIB
+#if !defined(HB_NO_MT) && defined(HAVE_GLIB)
 
 #include <glib.h>
 
@@ -52,7 +52,7 @@ typedef GStaticMutex hb_mutex_impl_t;
 #define hb_mutex_impl_free(M)	g_static_mutex_free (M)
 
 
-#elif defined(_MSC_VER) || defined(__MINGW32__)
+#elif !defined(HB_NO_MT) && defined(_MSC_VER) || defined(__MINGW32__)
 
 #include <windows.h>
 
@@ -66,7 +66,7 @@ typedef CRITICAL_SECTION hb_mutex_impl_t;
 
 #else
 
-#warning "Could not find any system to define platform macros, library will NOT be thread-safe"
+#define HB_MUTEX_IMPL_NIL 1
 
 typedef volatile int hb_mutex_impl_t;
 #define HB_MUTEX_IMPL_INIT	0
