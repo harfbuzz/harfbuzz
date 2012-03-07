@@ -14,6 +14,9 @@
  * # Date: 2011-06-14, 18:26:00 GMT [KW, LI]
  */
 
+#ifndef HB_OT_SHAPE_COMPLEX_INDIC_TABLE_HH
+#define HB_OT_SHAPE_COMPLEX_INDIC_TABLE_HH
+
 
 #define ISC_A	INDIC_SYLLABIC_CATEGORY_AVAGRAHA		/*  11 chars; Avagraha */
 #define ISC_Bi	INDIC_SYLLABIC_CATEGORY_BINDU			/*  34 chars; Bindu */
@@ -864,5 +867,6 @@ get_indic_categories (hb_codepoint_t u)
 #undef IMC_TR
 #undef IMC_VOL
 
+#endif /* HB_OT_SHAPE_COMPLEX_INDIC_TABLE_HH */
 
 /* == End of generated table == */

@@ -24,10 +24,12 @@ print " *"
 for line in header:
 	print " * %s" % (line.strip())
 print " */"
-
+print
+print "#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH"
+print "#define HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH"
+print
 print "static const uint8_t joining_table[] ="
 print "{"
-
 
 min_u = 0x110000
 max_u = 0
@@ -71,15 +73,14 @@ for line in f:
 	else:
 		value = "JOINING_TYPE_" + fields[2]
 	print "  %s, /* %s */" % (value, '; '.join(fields))
-
 print
 print "};"
 print
-
 print "#define JOINING_TABLE_FIRST	0x%04X" % min_u
 print "#define JOINING_TABLE_LAST	0x%04X" % max_u
 print
-
+print "#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH */"
+print
 print "/* == End of generated table == */"
 
 occupancy = num * 100 / (max_u - min_u + 1)

@@ -9,6 +9,10 @@
  * # ArabicShaping-6.1.0.txt
  * # Date: 2011-04-15, 23:16:00 GMT [KW]
  */
+
+#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH
+#define HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH
+
 static const uint8_t joining_table[] =
 {
 
@@ -719,5 +723,7 @@ static const uint8_t joining_table[] =
 
 #define JOINING_TABLE_FIRST	0x0600
 #define JOINING_TABLE_LAST	0x08AC
+
+#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH */
 
 /* == End of generated table == */
