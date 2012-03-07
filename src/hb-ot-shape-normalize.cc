@@ -34,8 +34,10 @@
  * This file exports one main function: _hb_ot_shape_normalize().
  *
  * This function closely reflects the Unicode Normalization Algorithm,
- * yet it's different.  The shaper an either prefer decomposed (NFD) or
- * composed (NFC).
+ * yet it's different.
+ *
+ * Each shaper specifies whether it prefers decomposed (NFD) or composed (NFC).
+ * The logic however tries to use whatever the font can support.
  *
  * In general what happens is that: each grapheme is decomposed in a chain
  * of 1:2 decompositions, marks reordered, and then recomposed if desired,
@@ -56,8 +58,8 @@
  *     which typically has better mark positioning.
  *
  *   - When a font does not support a combining mark, but supports it precomposed
- *     with previous base.  This needs the itemizer to have this knowledge too.
- *     We need ot provide assistance to the itemizer.
+ *     with previous base, use that.  This needs the itemizer to have this
+ *     knowledge too.  We need ot provide assistance to the itemizer.
  *
  *   - When a font does not support a character but supports its decomposition,
  *     well, use the decomposition.
