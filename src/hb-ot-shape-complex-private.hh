@@ -79,7 +79,9 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     /* Note:
      *
      * These disabled scripts are listed in ucd/IndicSyllabicCategory.txt, but according
-     * to Martin Hosken do not require complex shaping.
+     * to Martin Hosken and Jonathan Kew do not require complex shaping.
+     *
+     * TODO We should automate figuring out which scripts do not need complex shaping
      *
      * TODO We currently keep data for these scripts in our indic table.  Need to fix the
      * generator to not do that.
@@ -113,6 +115,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_BALINESE:
     case HB_SCRIPT_BENGALI:
     case HB_SCRIPT_BUGINESE:
+    case HB_SCRIPT_CHAKMA:
     case HB_SCRIPT_CHAM:
     case HB_SCRIPT_DEVANAGARI:
     case HB_SCRIPT_GUJARATI:
@@ -127,9 +130,11 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_NEW_TAI_LUE:
     case HB_SCRIPT_ORIYA:
     case HB_SCRIPT_REJANG:
+    case HB_SCRIPT_SHARADA:
     case HB_SCRIPT_SINHALA:
     case HB_SCRIPT_SUNDANESE:
     case HB_SCRIPT_TAI_THAM:
+    case HB_SCRIPT_TAKRI:
     case HB_SCRIPT_TAMIL:
     case HB_SCRIPT_TELUGU:
       return hb_ot_complex_shaper_indic;
