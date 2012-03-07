@@ -185,11 +185,9 @@ typedef enum
   HB_SCRIPT_CHEROKEE			= HB_TAG ('C','h','e','r'),
   HB_SCRIPT_COPTIC			= HB_TAG ('C','o','p','t'),
   HB_SCRIPT_CYRILLIC			= HB_TAG ('C','y','r','l'),
-  HB_SCRIPT_DESERET			= HB_TAG ('D','s','r','t'),
   HB_SCRIPT_DEVANAGARI			= HB_TAG ('D','e','v','a'),
   HB_SCRIPT_ETHIOPIC			= HB_TAG ('E','t','h','i'),
   HB_SCRIPT_GEORGIAN			= HB_TAG ('G','e','o','r'),
-  HB_SCRIPT_GOTHIC			= HB_TAG ('G','o','t','h'),
   HB_SCRIPT_GREEK			= HB_TAG ('G','r','e','k'),
   HB_SCRIPT_GUJARATI			= HB_TAG ('G','u','j','r'),
   HB_SCRIPT_GURMUKHI			= HB_TAG ('G','u','r','u'),
@@ -206,7 +204,6 @@ typedef enum
   HB_SCRIPT_MONGOLIAN			= HB_TAG ('M','o','n','g'),
   HB_SCRIPT_MYANMAR			= HB_TAG ('M','y','m','r'),
   HB_SCRIPT_OGHAM			= HB_TAG ('O','g','a','m'),
-  HB_SCRIPT_OLD_ITALIC			= HB_TAG ('I','t','a','l'),
   HB_SCRIPT_ORIYA			= HB_TAG ('O','r','y','a'),
   HB_SCRIPT_RUNIC			= HB_TAG ('R','u','n','r'),
   HB_SCRIPT_SINHALA			= HB_TAG ('S','i','n','h'),
@@ -218,9 +215,16 @@ typedef enum
   HB_SCRIPT_TIBETAN			= HB_TAG ('T','i','b','t'),
   HB_SCRIPT_CANADIAN_ABORIGINAL		= HB_TAG ('C','a','n','s'),
   HB_SCRIPT_YI				= HB_TAG ('Y','i','i','i'),
-  HB_SCRIPT_TAGALOG			= HB_TAG ('T','g','l','g'),
-  HB_SCRIPT_HANUNOO			= HB_TAG ('H','a','n','o'),
+
+  /* Unicode-3.1 additions */
+  HB_SCRIPT_DESERET			= HB_TAG ('D','s','r','t'),
+  HB_SCRIPT_GOTHIC			= HB_TAG ('G','o','t','h'),
+  HB_SCRIPT_OLD_ITALIC			= HB_TAG ('I','t','a','l'),
+
+  /* Unicode-3.2 additions */
   HB_SCRIPT_BUHID			= HB_TAG ('B','u','h','d'),
+  HB_SCRIPT_HANUNOO			= HB_TAG ('H','a','n','o'),
+  HB_SCRIPT_TAGALOG			= HB_TAG ('T','g','l','g'),
   HB_SCRIPT_TAGBANWA			= HB_TAG ('T','a','g','b'),
 
   /* Unicode-4.0 additions */
