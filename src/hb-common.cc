@@ -274,9 +274,15 @@ hb_script_get_horizontal_direction (hb_script_t script)
     /* Unicode-4.0 additions */
     case HB_SCRIPT_CYPRIOT:
 
+    /* Unicode-4.1 additions */
+    case HB_SCRIPT_KHAROSHTHI:
+
     /* Unicode-5.0 additions */
     case HB_SCRIPT_PHOENICIAN:
     case HB_SCRIPT_NKO:
+
+    /* Unicode-5.1 additions */
+    case HB_SCRIPT_LYDIAN:
 
     /* Unicode-5.2 additions */
     case HB_SCRIPT_AVESTAN:
