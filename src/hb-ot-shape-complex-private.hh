@@ -88,6 +88,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     /* Simple? */
     case HB_SCRIPT_BATAK:
     case HB_SCRIPT_BRAHMI:
+    case HB_SCRIPT_BUHID:
     case HB_SCRIPT_HANUNOO:
     case HB_SCRIPT_MEETEI_MAYEK:
     case HB_SCRIPT_SAURASHTRA:
@@ -112,7 +113,6 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_BALINESE:
     case HB_SCRIPT_BENGALI:
     case HB_SCRIPT_BUGINESE:
-    case HB_SCRIPT_BUHID:
     case HB_SCRIPT_CHAM:
     case HB_SCRIPT_DEVANAGARI:
     case HB_SCRIPT_GUJARATI:
