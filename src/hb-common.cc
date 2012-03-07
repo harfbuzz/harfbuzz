@@ -264,10 +264,14 @@ hb_script_to_iso15924_tag (hb_script_t script)
 hb_direction_t
 hb_script_get_horizontal_direction (hb_script_t script)
 {
+  /* http://goo.gl/x9ilM */
   switch ((hb_tag_t) script)
   {
+    /* Unicode-1.1 additions */
     case HB_SCRIPT_ARABIC:
     case HB_SCRIPT_HEBREW:
+
+    /* Unicode-3.0 additions */
     case HB_SCRIPT_SYRIAC:
     case HB_SCRIPT_THAANA:
 
@@ -295,6 +299,10 @@ hb_script_get_horizontal_direction (hb_script_t script)
 
     /* Unicode-6.0 additions */
     case HB_SCRIPT_MANDAIC:
+
+    /* Unicode-6.1 additions */
+    case HB_SCRIPT_MEROITIC_CURSIVE:
+    case HB_SCRIPT_MEROITIC_HIEROGLYPHS:
 
       return HB_DIRECTION_RTL;
   }
