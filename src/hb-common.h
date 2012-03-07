@@ -285,6 +285,15 @@ typedef enum
   HB_SCRIPT_BRAHMI			= HB_TAG ('B','r','a','h'),
   HB_SCRIPT_MANDAIC			= HB_TAG ('M','a','n','d'),
 
+  /* Unicode-6.1 additions */
+  HB_SCRIPT_CHAKMA			= HB_TAG ('C','a','k','m'),
+  HB_SCRIPT_MEROITIC_CURSIVE		= HB_TAG ('M','e','r','c'),
+  HB_SCRIPT_MEROITIC_HIEROGLYPHS	= HB_TAG ('M','e','r','o'),
+  HB_SCRIPT_MIAO			= HB_TAG ('P','l','r','d'),
+  HB_SCRIPT_SHARADA			= HB_TAG ('S','h','r','d'),
+  HB_SCRIPT_SORA_SOMPENG		= HB_TAG ('S','o','r','a'),
+  HB_SCRIPT_TAKRI			= HB_TAG ('T','a','k','r'),
+
   /* No script set */
   HB_SCRIPT_INVALID			= HB_TAG_NONE
 } hb_script_t;
