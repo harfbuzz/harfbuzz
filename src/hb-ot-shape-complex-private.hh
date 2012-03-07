@@ -68,11 +68,17 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     default:
       return hb_ot_complex_shaper_default;
 
+    /* Unicode-1.1 additions */
     case HB_SCRIPT_ARABIC:
-    case HB_SCRIPT_MANDAIC:
     case HB_SCRIPT_MONGOLIAN:
-    case HB_SCRIPT_NKO:
     case HB_SCRIPT_SYRIAC:
+
+    /* Unicode-5.0 additions */
+    case HB_SCRIPT_NKO:
+
+    /* Unicode-6.0 additions */
+    case HB_SCRIPT_MANDAIC:
+
       return hb_ot_complex_shaper_arabic;
 
 #if 0
