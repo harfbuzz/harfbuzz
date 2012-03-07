@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010,2011  Google, Inc.
+ * Copyright © 2010,2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -93,56 +93,102 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
      * generator to not do that.
      */
 
+
     /* Simple? */
-    case HB_SCRIPT_BATAK:
-    case HB_SCRIPT_BRAHMI:
+
+    /* Unicode-3.2 additions */
     case HB_SCRIPT_BUHID:
     case HB_SCRIPT_HANUNOO:
-    case HB_SCRIPT_MEETEI_MAYEK:
+
+    /* Unicode-5.1 additions */
     case HB_SCRIPT_SAURASHTRA:
 
+    /* Unicode-5.2 additions */
+    case HB_SCRIPT_MEETEI_MAYEK:
+
+    /* Unicode-6.0 additions */
+    case HB_SCRIPT_BATAK:
+    case HB_SCRIPT_BRAHMI:
+
+
     /* Simple */
-    case HB_SCRIPT_KAYAH_LI:
+
+    /* Unicode-1.1 additions */
+    /* TODO These two need their own shaper I guess? */
     case HB_SCRIPT_LAO:
-    case HB_SCRIPT_LIMBU:
-    case HB_SCRIPT_PHAGS_PA:
-    case HB_SCRIPT_SYLOTI_NAGRI:
-    case HB_SCRIPT_TAGALOG:
-    case HB_SCRIPT_TAGBANWA:
-    case HB_SCRIPT_TAI_LE:
-    case HB_SCRIPT_TAI_VIET:
     case HB_SCRIPT_THAI:
+
+    /* Unicode-2.0 additions */
     case HB_SCRIPT_TIBETAN:
 
+    /* Unicode-3.2 additions */
+    case HB_SCRIPT_TAGALOG:
+    case HB_SCRIPT_TAGBANWA:
+
+    /* Unicode-4.0 additions */
+    case HB_SCRIPT_LIMBU:
+    case HB_SCRIPT_TAI_LE:
+
+    /* Unicode-4.1 additions */
+    case HB_SCRIPT_SYLOTI_NAGRI:
+
+    /* Unicode-5.0 additions */
+    case HB_SCRIPT_PHAGS_PA:
+
+    /* Unicode-5.1 additions */
+    case HB_SCRIPT_KAYAH_LI:
+
+    /* Unicode-5.2 additions */
+    case HB_SCRIPT_TAI_VIET:
+
+
     /* May need Indic treatment in the future? */
+
+    /* Unicode-3.0 additions */
     case HB_SCRIPT_MYANMAR:
+
+
 #endif
 
-    case HB_SCRIPT_BALINESE:
+    /* Unicode-1.1 additions */
     case HB_SCRIPT_BENGALI:
-    case HB_SCRIPT_BUGINESE:
-    case HB_SCRIPT_CHAKMA:
-    case HB_SCRIPT_CHAM:
     case HB_SCRIPT_DEVANAGARI:
     case HB_SCRIPT_GUJARATI:
     case HB_SCRIPT_GURMUKHI:
-    case HB_SCRIPT_JAVANESE:
-    case HB_SCRIPT_KAITHI:
     case HB_SCRIPT_KANNADA:
-    case HB_SCRIPT_KHAROSHTHI:
-    case HB_SCRIPT_KHMER:
-    case HB_SCRIPT_LEPCHA:
     case HB_SCRIPT_MALAYALAM:
-    case HB_SCRIPT_NEW_TAI_LUE:
     case HB_SCRIPT_ORIYA:
-    case HB_SCRIPT_REJANG:
-    case HB_SCRIPT_SHARADA:
-    case HB_SCRIPT_SINHALA:
-    case HB_SCRIPT_SUNDANESE:
-    case HB_SCRIPT_TAI_THAM:
-    case HB_SCRIPT_TAKRI:
     case HB_SCRIPT_TAMIL:
     case HB_SCRIPT_TELUGU:
+
+    /* Unicode-3.0 additions */
+    case HB_SCRIPT_KHMER:
+    case HB_SCRIPT_SINHALA:
+
+    /* Unicode-4.1 additions */
+    case HB_SCRIPT_BUGINESE:
+    case HB_SCRIPT_KHAROSHTHI:
+    case HB_SCRIPT_NEW_TAI_LUE:
+
+    /* Unicode-5.0 additions */
+    case HB_SCRIPT_BALINESE:
+
+    /* Unicode-5.1 additions */
+    case HB_SCRIPT_CHAM:
+    case HB_SCRIPT_LEPCHA:
+    case HB_SCRIPT_REJANG:
+    case HB_SCRIPT_SUNDANESE:
+
+    /* Unicode-5.2 additions */
+    case HB_SCRIPT_JAVANESE:
+    case HB_SCRIPT_KAITHI:
+    case HB_SCRIPT_TAI_THAM:
+
+    /* Unicode-6.1 additions */
+    case HB_SCRIPT_CHAKMA:
+    case HB_SCRIPT_SHARADA:
+    case HB_SCRIPT_TAKRI:
+
       return hb_ot_complex_shaper_indic;
 
     /* ^--- Add new shapers here */
