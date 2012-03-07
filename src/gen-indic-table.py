@@ -120,6 +120,8 @@ print "#define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)"
 print
 print
 
+total = 0
+used = 0
 def print_block (block, start, end, data):
 	print
 	print
@@ -134,14 +136,9 @@ def print_block (block, start, end, data):
 		d = data.get (u, defaults)
 		sys.stdout.write ("%9s" % ("_(%s,%s)," % (short[0][d[0]], short[1][d[1]])))
 
-	if num == 0:
-		# Filler block, don't check occupancy
-		return
-	total = end - start + 1
-	occupancy = num * 100. / total
-	# Maintain at least 30% occupancy in the table */
-	if occupancy < 30:
-		raise Exception ("Table too sparse, please investigate: ", occupancy, block)
+	global total, used
+	total += end - start + 1
+	used += num
 
 uu = data.keys ()
 uu.sort ()
@@ -179,7 +176,8 @@ print
 print
 print "#define indic_offset_total %d" % offset
 print
-print "};"
+occupancy = used * 100. / total
+print "}; /* Table occupancy: %d%% */" % occupancy
 
 print
 print "static INDIC_TABLE_ELEMENT_TYPE"
@@ -206,3 +204,7 @@ for i in range (2):
 print
 print
 print "/* == End of generated table == */"
+
+# Maintain at least 30% occupancy in the table */
+if occupancy < 30:
+	raise Exception ("Table too sparse, please investigate: ", occupancy)
