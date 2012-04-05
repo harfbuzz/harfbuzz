@@ -362,7 +362,7 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   hb_ensure_native_direction (c->buffer);
 
-  _hb_ot_shape_normalize (c);
+  _hb_ot_shape_normalize (c->font, c->buffer, hb_ot_shape_complex_normalization_preference (c->plan->shaper));
 
   hb_ot_shape_setup_masks (c);
 

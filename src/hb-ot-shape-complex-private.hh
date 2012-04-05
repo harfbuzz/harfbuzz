@@ -30,6 +30,7 @@
 #include "hb-private.hh"
 
 #include "hb-ot-map-private.hh"
+#include "hb-ot-shape-normalize-private.hh"
 
 
 
@@ -227,26 +228,26 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
 
 
 /*
- * prefer_decomposed()
+ * normalization_preference()
  *
  * Called during shape_execute().
  *
  * Shapers should return TRUE if it prefers decomposed (NFD) input rather than precomposed (NFC).
  */
 
-typedef bool hb_ot_shape_complex_prefer_decomposed_func_t (void);
+typedef hb_ot_shape_normalization_mode_t hb_ot_shape_complex_normalization_preference_func_t (void);
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
-  HB_INTERNAL hb_ot_shape_complex_prefer_decomposed_func_t _hb_ot_shape_complex_prefer_decomposed_##name;
+  HB_INTERNAL hb_ot_shape_complex_normalization_preference_func_t _hb_ot_shape_complex_normalization_preference_##name;
   HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
 
-static inline bool
-hb_ot_shape_complex_prefer_decomposed (hb_ot_complex_shaper_t shaper)
+static inline hb_ot_shape_normalization_mode_t
+hb_ot_shape_complex_normalization_preference (hb_ot_complex_shaper_t shaper)
 {
   switch (shaper) {
     default:
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
-    case hb_ot_complex_shaper_##name:	return _hb_ot_shape_complex_prefer_decomposed_##name ();
+    case hb_ot_complex_shaper_##name:	return _hb_ot_shape_complex_normalization_preference_##name ();
     HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
   }

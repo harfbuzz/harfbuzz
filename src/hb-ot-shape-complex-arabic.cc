@@ -183,10 +183,10 @@ _hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map, const hb
   map->add_bool_feature (HB_TAG('c','s','w','h'));
 }
 
-bool
-_hb_ot_shape_complex_prefer_decomposed_arabic (void)
+hb_ot_shape_normalization_mode_t
+_hb_ot_shape_complex_normalization_preference_arabic (void)
 {
-  return FALSE;
+  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 
 void

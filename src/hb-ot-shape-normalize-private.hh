@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010  Google, Inc.
+ * Copyright © 2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,32 +24,23 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape-complex-private.hh"
+#ifndef HB_OT_SHAPE_NORMALIZE_PRIVATE_HH
+#define HB_OT_SHAPE_NORMALIZE_PRIVATE_HH
+
+#include "hb-private.hh"
+
+#include "hb-font.h"
+#include "hb-buffer.h"
 
 
-/* TODO Add kana, hangul, and other small shapers here */
+enum hb_ot_shape_normalization_mode_t {
+  HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED,
+  HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS, /* never composes base-to-base */
+  HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL /* including base-to-base composition */
+};
 
-/* When adding trivial shapers, eg. kana, hangul, etc, we can either
- * add a full shaper enum value for them, or switch on the script in
- * the default complex shaper.  The former is faster, so I think that's
- * what we would do, and hence the default complex shaper shall remain
- * empty.
- */
+HB_INTERNAL void _hb_ot_shape_normalize (hb_font_t *font,
+					 hb_buffer_t *buffer,
+					 hb_ot_shape_normalization_mode_t mode);
 
-void
-_hb_ot_shape_complex_collect_features_default (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
-{
-}
-
-hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_default (void)
-{
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
-}
-
-void
-_hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map, hb_buffer_t *buffer)
-{
-}
-
-
+#endif /* HB_OT_SHAPE_NORMALIZE_PRIVATE_HH */
