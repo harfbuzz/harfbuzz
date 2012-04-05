@@ -205,7 +205,7 @@ hb_map_glyphs (hb_font_t    *font,
 
   unsigned int count = buffer->len - 1;
   for (buffer->idx = 0; buffer->idx < count;) {
-    if (unlikely (is_variation_selector (buffer->info[buffer->idx + 1].codepoint))) {
+    if (unlikely (_hb_unicode_is_variation_selector (buffer->info[buffer->idx + 1].codepoint))) {
       hb_font_get_glyph (font, buffer->info[buffer->idx].codepoint, buffer->info[buffer->idx + 1].codepoint, &glyph);
       buffer->replace_glyph (glyph);
       buffer->skip_glyph ();

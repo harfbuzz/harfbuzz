@@ -145,7 +145,7 @@ decompose_multi_char_cluster (hb_ot_shape_context_t *c,
 {
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   for (unsigned int i = c->buffer->idx; i < end; i++)
-    if (unlikely (is_variation_selector (c->buffer->info[i].codepoint))) {
+    if (unlikely (_hb_unicode_is_variation_selector (c->buffer->info[i].codepoint))) {
       while (c->buffer->idx < end)
 	c->buffer->next_glyph ();
       return;
