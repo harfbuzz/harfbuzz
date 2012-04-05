@@ -102,6 +102,9 @@ extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #endif
 
 
+HB_INTERNAL unsigned int
+_hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
+				      hb_codepoint_t      unicode);
 
 
 #endif /* HB_UNICODE_PRIVATE_HH */
