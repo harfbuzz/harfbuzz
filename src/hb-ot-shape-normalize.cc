@@ -250,7 +250,8 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
     }
 
     hb_codepoint_t composed, glyph;
-    if ((buffer->out_info[buffer->out_len - 1].combining_class() < buffer->info[buffer->idx].combining_class()) &&
+    if ((starter == buffer->out_len - 1 ||
+	 buffer->out_info[buffer->out_len - 1].combining_class() < buffer->info[buffer->idx].combining_class()) &&
 	hb_unicode_compose (buffer->unicode,
 			    buffer->out_info[starter].codepoint,
 			    buffer->info[buffer->idx].codepoint,
