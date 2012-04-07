@@ -53,3 +53,19 @@ _hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map, hb_buffer_t *buffer)
 }
 
 
+
+void
+_hb_ot_shape_complex_collect_features_hangul (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
+{
+}
+
+hb_ot_shape_normalization_mode_t
+_hb_ot_shape_complex_normalization_preference_hangul (void)
+{
+  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL;
+}
+
+void
+_hb_ot_shape_complex_setup_masks_hangul (hb_ot_map_t *map, hb_buffer_t *buffer)
+{
+}

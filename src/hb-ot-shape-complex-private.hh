@@ -50,6 +50,7 @@
 #define HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS \
   HB_COMPLEX_SHAPER_IMPLEMENT (default) /* should be first */ \
   HB_COMPLEX_SHAPER_IMPLEMENT (arabic) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (hangul) \
   HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
   /* ^--- Add new shapers here */
 
@@ -69,6 +70,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     default:
       return hb_ot_complex_shaper_default;
 
+
     /* Unicode-1.1 additions */
     case HB_SCRIPT_ARABIC:
     case HB_SCRIPT_MONGOLIAN:
@@ -81,6 +83,17 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_MANDAIC:
 
       return hb_ot_complex_shaper_arabic;
+
+
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_HANGUL:
+
+      return hb_ot_complex_shaper_hangul;
+
+
+
+    /* ^--- Add new shapers here */
+
 
 #if 0
     /* Note:
@@ -191,8 +204,6 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_TAKRI:
 
       return hb_ot_complex_shaper_indic;
-
-    /* ^--- Add new shapers here */
   }
 }
 
