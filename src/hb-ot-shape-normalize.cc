@@ -198,17 +198,6 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
   buffer->swap_buffers ();
 
 
-  /* Technically speaking, two characters with ccc=0 may combine.  But all
-   * those cases are in languages that the indic module handles (which expects
-   * decomposed), or in Hangul jamo, which again, we want decomposed anyway.
-   * So we don't bother combining across cluster boundaries.  This is a huge
-   * performance saver if the compose() callback is slow.
-   *
-   * TODO: Am I right about Hangul?  If I am, we should add a Hangul module
-   * that requests decomposed.  If for Hangul we end up wanting composed, we
-   * can do that in the Hangul module.
-   */
-
   if (!has_multichar_clusters)
     return; /* Done! */
 
@@ -261,24 +250,23 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
     }
 
     hb_codepoint_t composed, glyph;
-    if ((buffer->out_info[buffer->out_len - 1].combining_class() >=
-	 buffer->info[buffer->idx].combining_class()) ||
-	!hb_unicode_compose (buffer->unicode,
-			     buffer->out_info[starter].codepoint,
-			     buffer->info[buffer->idx].codepoint,
-			     &composed) ||
-	!hb_font_get_glyph (font, composed, 0, &glyph))
+    if ((buffer->out_info[buffer->out_len - 1].combining_class() < buffer->info[buffer->idx].combining_class()) &&
+	hb_unicode_compose (buffer->unicode,
+			    buffer->out_info[starter].codepoint,
+			    buffer->info[buffer->idx].codepoint,
+			    &composed) &&
+	hb_font_get_glyph (font, composed, 0, &glyph))
     {
-      /* Blocked, or doesn't compose. */
-      buffer->next_glyph ();
+      /* Composes. Modify starter and carry on. */
+      buffer->out_info[starter].codepoint = composed;
+      hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
+
+      buffer->skip_glyph ();
       continue;
     }
 
-    /* Composes. Modify starter and carry on. */
-    buffer->out_info[starter].codepoint = composed;
-    hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
-
-    buffer->skip_glyph ();
+    /* Blocked, or doesn't compose. */
+    buffer->next_glyph ();
   }
   buffer->swap_buffers ();
 
