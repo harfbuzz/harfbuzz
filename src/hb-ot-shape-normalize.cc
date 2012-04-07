@@ -198,7 +198,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
   buffer->swap_buffers ();
 
 
-  if (!has_multichar_clusters)
+  if (mode != HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL && !has_multichar_clusters)
     return; /* Done! */
 
 
@@ -243,19 +243,21 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
   buffer->next_glyph ();
   while (buffer->idx < count)
   {
-    if (buffer->info[buffer->idx].combining_class() == 0) {
-      starter = buffer->out_len;
-      buffer->next_glyph ();
-      continue;
-    }
-
     hb_codepoint_t composed, glyph;
-    if ((starter == buffer->out_len - 1 ||
+    if (/* If mode is NOT COMPOSED_FULL (ie. it's COMPOSED_DIACRITICS), we don't try to
+	 * compose a CCC=0 character with it's preceding starter. */
+	(mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL ||
+	 buffer->info[buffer->idx].combining_class() != 0) &&
+	/* If there's anything between the starter and this char, they should have CCC
+	 * smaller than this character's. */
+	(starter == buffer->out_len - 1 ||
 	 buffer->out_info[buffer->out_len - 1].combining_class() < buffer->info[buffer->idx].combining_class()) &&
+	/* And compose. */
 	hb_unicode_compose (buffer->unicode,
 			    buffer->out_info[starter].codepoint,
 			    buffer->info[buffer->idx].codepoint,
 			    &composed) &&
+	/* And the font has glyph for the composite. */
 	hb_font_get_glyph (font, composed, 0, &glyph))
     {
       /* Composes. Modify starter and carry on. */
@@ -268,6 +270,9 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
 
     /* Blocked, or doesn't compose. */
     buffer->next_glyph ();
+
+    if (buffer->out_info[buffer->out_len - 1].combining_class() == 0)
+      starter = buffer->out_len - 1;
   }
   buffer->swap_buffers ();
 
