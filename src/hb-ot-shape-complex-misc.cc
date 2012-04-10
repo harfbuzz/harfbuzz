@@ -132,7 +132,7 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map, hb_buffer_t *buffer)
   unsigned int count = buffer->len;
   for (buffer->idx = 0; buffer->idx < count;)
   {
-    if (!IS_SARA_AM (buffer->info[buffer->idx].codepoint)) {
+    if (likely (!IS_SARA_AM (buffer->info[buffer->idx].codepoint))) {
       buffer->next_glyph ();
       continue;
     }
@@ -141,7 +141,7 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map, hb_buffer_t *buffer)
     uint16_t decomposed[2] = {NIKHAHIT_FROM_SARA_AM (buffer->info[buffer->idx].codepoint),
 			      SARA_AA_FROM_SARA_AM (buffer->info[buffer->idx].codepoint)};
     buffer->replace_glyphs (1, 2, decomposed);
-    if (buffer->in_error)
+    if (unlikely (buffer->in_error))
       return;
 
     /* Ok, let's see... */

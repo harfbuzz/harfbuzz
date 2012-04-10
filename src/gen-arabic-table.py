@@ -133,11 +133,7 @@ def print_shaping_table(f):
 	print "#define SHAPING_TABLE_LAST	0x%04X" % max_u
 	print
 
-	print
-	print "static const uint16_t ligature_table[][3] ="
-	print "{"
-
-	ligas = []
+	ligas = {}
 	for pair in ligatures.keys ():
 		for shape in ligatures[pair]:
 			c = ligatures[pair][shape]
@@ -147,11 +143,27 @@ def print_shaping_table(f):
 				liga = (shapes[pair[0]]['medial'], shapes[pair[1]]['final'])
 			else:
 				raise Exception ("Unexpected shape", shape)
-			ligas.append (liga + (c,))
-	ligas.sort ()
-	for liga in ligas:
-		value = ', '.join ("0x%04X" % c for c in liga)
-		print "  {%s}, /* U+%04X %s */" % (value, liga[2], names[liga[2]])
+			if liga[0] not in ligas:
+				ligas[liga[0]] = []
+			ligas[liga[0]].append ((liga[1], c))
+	max_i = max (len (ligas[l]) for l in ligas)
+	print
+	print "static const struct {"
+	print " uint16_t first;"
+	print " struct {"
+	print "   uint16_t second;"
+	print "   uint16_t ligature;"
+	print " } ligatures[%d];" % max_i
+	print "} ligature_table[] ="
+	print "{"
+	keys = ligas.keys ()
+	keys.sort ()
+	for first in keys:
+
+		print "  { 0x%04X, {" % (first)
+		for liga in ligas[first]:
+			print "    { 0x%04X, 0x%04X }, /* %s */" % (liga[0], liga[1], names[liga[1]])
+		print "  }},"
 
 	print "};"
 	print

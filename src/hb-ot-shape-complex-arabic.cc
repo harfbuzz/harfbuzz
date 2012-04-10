@@ -87,6 +87,16 @@ static hb_codepoint_t get_arabic_shape (hb_codepoint_t u, unsigned int shape)
   return u;
 }
 
+static uint16_t get_ligature (hb_codepoint_t first, hb_codepoint_t second)
+{
+  if (unlikely (!second)) return 0;
+  for (unsigned i = 0; i < ARRAY_LENGTH (ligature_table); i++)
+    if (ligature_table[i].first == first)
+      for (unsigned j = 0; j < ARRAY_LENGTH (ligature_table[i].ligatures); j++)
+	if (ligature_table[i].ligatures[j].second == second)
+	  return ligature_table[i].ligatures[j].ligature;
+  return 0;
+}
 
 static const hb_tag_t arabic_syriac_features[] =
 {
@@ -198,8 +208,29 @@ static void
 arabic_fallback_shape (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
+
+  /* Shape to presentation forms */
   for (unsigned int i = 0; i < count; i++)
     buffer->info[i].codepoint = get_arabic_shape (buffer->info[i].codepoint, buffer->info[i].arabic_shaping_action());
+
+  /* Mandatory ligatures */
+  buffer->clear_output ();
+  for (buffer->idx = 0; buffer->idx + 1 < count;) {
+    uint16_t ligature = get_ligature (buffer->info[buffer->idx].codepoint,
+				      buffer->info[buffer->idx + 1].codepoint);
+    if (likely (!ligature)) {
+      buffer->next_glyph ();
+      continue;
+    }
+
+    buffer->replace_glyphs (2, 1, &ligature);
+
+    /* Technically speaking we can skip marks and stuff, like the GSUB path does.
+     * But who cares, we're in fallback! */
+  }
+  for (; buffer->idx < count;)
+      buffer->next_glyph ();
+  buffer->swap_buffers ();
 }
 
 void
