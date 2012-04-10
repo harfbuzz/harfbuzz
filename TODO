@@ -58,13 +58,11 @@ API to add (maybe after 1.0):
 - Add hb-fribidi?
 
 
-hb-view enhancements:
-====================
+hb-view / hb-shape enhancements:
+===============================
 
-- Add --format
 - Add --width, --height, --auto-size, --align, etc?
-- Port to GOption, --help
-- Add XML and JSON formats
+- Add XML and JSON formats to hb-shape
 
 
 Tests to write:
@@ -82,4 +80,4 @@ Optimizations:
 
 - Avoid allocating blob objects internally for for_data() faces?
 
-- Add caching layer to hb-ft
+- Add caching layer to hb-ft?
