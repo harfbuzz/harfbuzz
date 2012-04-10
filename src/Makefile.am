@@ -153,12 +153,12 @@ unicode-tables: arabic-table indic-table
 
 indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicMatraCategory.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.hh.tmp && \
-	mv hb-ot-shape-complex-indic-table.hh.tmp hb-ot-shape-complex-indic-table.hh || \
+	mv hb-ot-shape-complex-indic-table.hh.tmp $(srcdir)/hb-ot-shape-complex-indic-table.hh || \
 	($(RM) hb-ot-shape-complex-indic-table.hh.tmp; false)
 
-arabic-table: gen-arabic-table.py ArabicShaping.txt
+arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh.tmp && \
-	mv hb-ot-shape-complex-arabic-table.hh.tmp hb-ot-shape-complex-arabic-table.hh || \
+	mv hb-ot-shape-complex-arabic-table.hh.tmp $(srcdir)/hb-ot-shape-complex-arabic-table.hh || \
 	($(RM) hb-ot-shape-complex-arabic-table.hh.tmp; false)
 
 

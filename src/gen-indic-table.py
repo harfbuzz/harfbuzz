@@ -2,11 +2,11 @@
 
 import sys
 
-if len (sys.argv) < 4:
+if len (sys.argv) != 4:
 	print >>sys.stderr, "usage: ./gen-indic-table.py IndicSyllabicCategory.txt IndicMatraCategory.txt Blocks.txt"
 	sys.exit (1)
 
-files = [file (sys.argv[i+1]) for i in range (3)]
+files = [file (x) for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for f in files]
 
