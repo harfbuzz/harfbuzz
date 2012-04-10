@@ -48,7 +48,7 @@ _hb_ot_shape_complex_normalization_preference_default (void)
 }
 
 void
-_hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map, hb_buffer_t *buffer)
+_hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map, hb_buffer_t *buffer, hb_font_t *font)
 {
 }
 
@@ -68,7 +68,7 @@ _hb_ot_shape_complex_normalization_preference_hangul (void)
 }
 
 void
-_hb_ot_shape_complex_setup_masks_hangul (hb_ot_map_t *map, hb_buffer_t *buffer)
+_hb_ot_shape_complex_setup_masks_hangul (hb_ot_map_t *map, hb_buffer_t *buffer, hb_font_t *font)
 {
 }
 
@@ -88,7 +88,7 @@ _hb_ot_shape_complex_normalization_preference_thai (void)
 }
 
 void
-_hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map, hb_buffer_t *buffer)
+_hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map, hb_buffer_t *buffer, hb_font_t *font)
 {
   /* The following is NOT specified in the MS OT Thai spec, however, it seems
    * to be what Uniscribe and other engines implement.  According to Eric Muller:

@@ -205,20 +205,22 @@ _hb_ot_shape_complex_normalization_preference_arabic (void)
 
 
 static void
-arabic_fallback_shape (hb_buffer_t *buffer)
+arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
+  hb_codepoint_t glyph;
 
   /* Shape to presentation forms */
   for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].codepoint = get_arabic_shape (buffer->info[i].codepoint, buffer->info[i].arabic_shaping_action());
+    if (hb_font_get_glyph (font, buffer->info[i].codepoint, 0, &glyph))
+      buffer->info[i].codepoint = get_arabic_shape (buffer->info[i].codepoint, buffer->info[i].arabic_shaping_action());
 
   /* Mandatory ligatures */
   buffer->clear_output ();
   for (buffer->idx = 0; buffer->idx + 1 < count;) {
     uint16_t ligature = get_ligature (buffer->info[buffer->idx].codepoint,
 				      buffer->info[buffer->idx + 1].codepoint);
-    if (likely (!ligature)) {
+    if (likely (!ligature) || !(hb_font_get_glyph (font, ligature, 0, &glyph))) {
       buffer->next_glyph ();
       continue;
     }
@@ -234,7 +236,7 @@ arabic_fallback_shape (hb_buffer_t *buffer)
 }
 
 void
-_hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer)
+_hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer, hb_font_t *font)
 {
   unsigned int count = buffer->len;
   unsigned int prev = 0, state = 0;
@@ -281,7 +283,7 @@ _hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer)
      *   Most probably it's safe to assume that init/medi/fina/isol
      *   still mean Arabic shaping, although they do not have to.
      */
-    arabic_fallback_shape (buffer);
+    arabic_fallback_shape (font, buffer);
   }
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);

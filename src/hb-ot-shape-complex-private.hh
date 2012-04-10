@@ -280,7 +280,7 @@ hb_ot_shape_complex_normalization_preference (hb_ot_complex_shaper_t shaper)
  * Shapers should use map to get feature masks and set on buffer.
  */
 
-typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_map_t *map, hb_buffer_t *buffer);
+typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_map_t *map, hb_buffer_t *buffer, hb_font_t *font);
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
   HB_INTERNAL hb_ot_shape_complex_setup_masks_func_t _hb_ot_shape_complex_setup_masks_##name;
   HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
@@ -289,12 +289,13 @@ typedef void hb_ot_shape_complex_setup_masks_func_t (hb_ot_map_t *map, hb_buffer
 static inline void
 hb_ot_shape_complex_setup_masks (hb_ot_complex_shaper_t shaper,
 				 hb_ot_map_t *map,
-				 hb_buffer_t *buffer)
+				 hb_buffer_t *buffer,
+				 hb_font_t *font)
 {
   switch (shaper) {
     default:
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
-    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_setup_masks_##name (map, buffer); return;
+    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_setup_masks_##name (map, buffer, font); return;
     HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
   }
