@@ -83,7 +83,6 @@ struct hb_ot_shape_context_t
 
   /* Transient stuff */
   hb_direction_t target_direction;
-  hb_bool_t applied_substitute_complex;
   hb_bool_t applied_position_complex;
 };
 

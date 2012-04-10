@@ -236,18 +236,11 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
   if (hb_ot_layout_has_substitution (c->face)) {
     c->plan->map.substitute (c->face, c->buffer);
-    c->applied_substitute_complex = TRUE;
   }
 
   hb_ot_layout_substitute_finish (c->buffer);
 
   return;
-}
-
-static void
-hb_substitute_complex_fallback (hb_ot_shape_context_t *c HB_UNUSED)
-{
-  /* TODO Arabic */
 }
 
 
@@ -371,9 +364,6 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
     hb_substitute_default (c);
 
     hb_ot_substitute_complex (c);
-
-    if (!c->applied_substitute_complex)
-      hb_substitute_complex_fallback (c);
   }
 
   /* POSITION */
