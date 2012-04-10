@@ -52,6 +52,7 @@
   HB_COMPLEX_SHAPER_IMPLEMENT (arabic) \
   HB_COMPLEX_SHAPER_IMPLEMENT (hangul) \
   HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
   /* ^--- Add new shapers here */
 
 enum hb_ot_complex_shaper_t {
@@ -89,6 +90,13 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     case HB_SCRIPT_HANGUL:
 
       return hb_ot_complex_shaper_hangul;
+
+
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_THAI:
+    case HB_SCRIPT_LAO:
+
+      return hb_ot_complex_shaper_thai;
 
 
 

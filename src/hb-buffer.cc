@@ -223,6 +223,7 @@ hb_buffer_t::swap_buffers (void)
   if (unlikely (in_error)) return;
 
   assert (have_output);
+  have_output = FALSE;
 
   if (out_info != info)
   {
