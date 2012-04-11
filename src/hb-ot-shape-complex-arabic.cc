@@ -211,9 +211,12 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
   hb_codepoint_t glyph;
 
   /* Shape to presentation forms */
-  for (unsigned int i = 0; i < count; i++)
-    if (hb_font_get_glyph (font, buffer->info[i].codepoint, 0, &glyph))
-      buffer->info[i].codepoint = get_arabic_shape (buffer->info[i].codepoint, buffer->info[i].arabic_shaping_action());
+  for (unsigned int i = 0; i < count; i++) {
+    hb_codepoint_t u = buffer->info[i].codepoint;
+    hb_codepoint_t shaped = get_arabic_shape (u, buffer->info[i].arabic_shaping_action());
+    if (shaped != u && hb_font_get_glyph (font, shaped, 0, &glyph))
+      buffer->info[i].codepoint = shaped;
+  }
 
   /* Mandatory ligatures */
   buffer->clear_output ();
