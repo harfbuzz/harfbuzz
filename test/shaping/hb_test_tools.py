@@ -99,9 +99,9 @@ class FancyDiffer:
 				sys.stdout.writelines (FancyDiffer.diff_lines (l1, l2, colors))
 			# print out residues
 			for l in f1:
-				sys.stdout.writelines (["-", colors.red, l1, colors.end])
+				sys.stdout.writelines (["-", colors.red, l, colors.end])
 			for l in f1:
-				sys.stdout.writelines (["-", colors.green, l1, colors.end])
+				sys.stdout.writelines (["-", colors.green, l, colors.end])
 		except IOError as e:
 			if e.errno != errno.EPIPE:
 				print >> sys.stderr, "%s: %s: %s" % (sys.argv[0], e.filename, e.strerror)
