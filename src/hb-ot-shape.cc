@@ -136,7 +136,7 @@ void
 _hb_set_unicode_props (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
-  for (unsigned int i = 1; i < count; i++)
+  for (unsigned int i = 0; i < count; i++)
     hb_glyph_info_set_unicode_props (&buffer->info[i], buffer->unicode);
 }
 
