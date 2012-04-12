@@ -56,9 +56,18 @@ _hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map, hb_buffer_t *buffer,
 
 /* Hangul shaper */
 
+static const hb_tag_t hangul_features[] =
+{
+  HB_TAG('l','j','m','o'),
+  HB_TAG('v','j','m','o'),
+  HB_TAG('t','j','m','o'),
+};
+
 void
 _hb_ot_shape_complex_collect_features_hangul (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
 {
+  for (unsigned int i = 0; i < ARRAY_LENGTH (hangul_features); i++)
+    map->add_bool_feature (hangul_features[i]);
 }
 
 hb_ot_shape_normalization_mode_t
