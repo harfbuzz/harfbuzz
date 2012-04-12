@@ -271,7 +271,7 @@ typedef RecordListOf<Feature> FeatureList;
 
 struct LookupFlag : USHORT
 {
-  enum {
+  enum Flags {
     RightToLeft		= 0x0001u,
     IgnoreBaseGlyphs	= 0x0002u,
     IgnoreLigatures	= 0x0004u,

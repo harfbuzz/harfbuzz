@@ -36,7 +36,7 @@
 HB_BEGIN_DECLS
 
 
-typedef enum {
+typedef enum _hb_memory_mode_t {
   HB_MEMORY_MODE_DUPLICATE,
   HB_MEMORY_MODE_READONLY,
   HB_MEMORY_MODE_WRITABLE,

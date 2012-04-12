@@ -46,8 +46,7 @@ typedef Value ValueRecord[VAR];
 
 struct ValueFormat : USHORT
 {
-  enum
-  {
+  enum Flags {
     xPlacement	= 0x0001,	/* Includes horizontal adjustment for placement */
     yPlacement	= 0x0002,	/* Includes vertical adjustment for placement */
     xAdvance	= 0x0004,	/* Includes horizontal adjustment for advance */
@@ -1336,7 +1335,7 @@ struct PosLookupSubTable
 {
   friend struct PosLookup;
 
-  enum {
+  enum Type {
     Single		= 1,
     Pair		= 2,
     Cursive		= 3,

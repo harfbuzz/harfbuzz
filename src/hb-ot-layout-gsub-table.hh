@@ -678,7 +678,7 @@ struct SubstLookupSubTable
 {
   friend struct SubstLookup;
 
-  enum {
+  enum Type {
     Single		= 1,
     Multiple		= 2,
     Alternate		= 3,
