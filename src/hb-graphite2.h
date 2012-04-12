@@ -26,8 +26,7 @@
 #ifndef HB_GRAPHITE2_H
 #define HB_GRAPHITE2_H
 
-#include "hb-common.h"
-#include "hb-shape.h"
+#include "hb.h"
 
 HB_BEGIN_DECLS
 
@@ -40,6 +39,8 @@ hb_graphite_shape (hb_font_t          *font,
 		   const hb_feature_t *features,
 		   unsigned int        num_features,
 		   const char * const *shaper_options);
+
+/* TODO add gr_font/face etc getters and other glue API */
 
 HB_END_DECLS
 

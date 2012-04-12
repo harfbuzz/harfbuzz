@@ -24,15 +24,16 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
+
 #ifndef HB_OT_SHAPE_H
 #define HB_OT_SHAPE_H
 
-#include "hb-common.h"
-#include "hb-shape.h"
-
-
 HB_BEGIN_DECLS
 
+#include "hb.h"
 
 hb_bool_t
 hb_ot_shape (hb_font_t          *font,

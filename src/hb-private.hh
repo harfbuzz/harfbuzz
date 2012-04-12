@@ -33,7 +33,10 @@
 #include "config.h"
 #endif
 
-#include "hb-common.h"
+#include "hb.h"
+#include "hb-ot.h"
+#define HB_H_IN
+#define HB_OT_H_IN
 
 #include <stdlib.h>
 #include <stddef.h>

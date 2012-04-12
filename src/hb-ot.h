@@ -26,6 +26,7 @@
 
 #ifndef HB_OT_H
 #define HB_OT_H
+#define HB_OT_H_IN
 
 #include "hb.h"
 
@@ -36,4 +37,5 @@
 HB_BEGIN_DECLS
 HB_END_DECLS
 
+#undef HB_OT_H_IN
 #endif /* HB_OT_H */

@@ -24,12 +24,14 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
+
 #ifndef HB_OT_LAYOUT_H
 #define HB_OT_LAYOUT_H
 
-#include "hb-common.h"
-#include "hb-buffer.h"
-#include "hb-font.h"
+#include "hb.h"
 
 #include "hb-ot-tag.h"
 
