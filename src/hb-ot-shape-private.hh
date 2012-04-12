@@ -29,8 +29,6 @@
 
 #include "hb-private.hh"
 
-#include "hb-ot-shape.h"
-
 #include "hb-ot-map-private.hh"
 #include "hb-ot-shape-complex-private.hh"
 #include "hb-ot-shape-normalize-private.hh"
@@ -95,6 +93,12 @@ hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unic
 }
 
 HB_INTERNAL void _hb_set_unicode_props (hb_buffer_t *buffer);
+
+HB_INTERNAL hb_bool_t
+_hb_ot_shape (hb_font_t          *font,
+	      hb_buffer_t        *buffer,
+	      const hb_feature_t *features,
+	      unsigned int        num_features);
 
 #include "hb-ot-shape-complex-private.hh"
 

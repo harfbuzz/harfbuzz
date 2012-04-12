@@ -77,7 +77,6 @@ HBSOURCES += \
 HBHEADERS += \
 	hb-ot.h \
 	hb-ot-layout.h \
-	hb-ot-shape.h \
 	hb-ot-tag.h \
 	$(NULL)
 endif
@@ -118,17 +117,17 @@ HBSOURCES += hb-ft.cc
 HBHEADERS += hb-ft.h
 endif
 
-if HAVE_GRAPHITE
-HBCFLAGS += $(GRAPHITE_CFLAGS)
-HBLIBS   += $(GRAPHITE_LIBS)
-HBSOURCES += hb-graphite2.cc
+if HAVE_GRAPHITE2
+HBCFLAGS += $(GRAPHITE2_CFLAGS)
+HBLIBS   += $(GRAPHITE2_LIBS)
+HBSOURCES += hb-graphite2.cc hb-graphite2-private.hh
 HBHEADERS += hb-graphite2.h
 endif
 
 if HAVE_UNISCRIBE
 HBCFLAGS += $(UNISCRIBE_CFLAGS)
 HBLIBS   += $(UNISCRIBE_LIBS)
-HBSOURCES += hb-uniscribe.cc
+HBSOURCES += hb-uniscribe.cc hb-uniscribe-private.hh
 HBHEADERS += hb-uniscribe.h
 endif
 

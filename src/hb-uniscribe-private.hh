@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010  Red Hat, Inc.
+ * Copyright © 2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,28 +21,22 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H_IN
-#error "Include <hb-ot.h> instead."
-#endif
+#ifndef HB_UNISCRIBE_PRIVATE_HH
+#define HB_UNISCRIBE_PRIVATE_HH
 
-#ifndef HB_OT_SHAPE_H
-#define HB_OT_SHAPE_H
+#include "hb-private.hh"
 
-HB_BEGIN_DECLS
-
-#include "hb.h"
-
-hb_bool_t
-hb_ot_shape (hb_font_t          *font,
-	     hb_buffer_t        *buffer,
-	     const hb_feature_t *features,
-	     unsigned int        num_features,
-	     const char * const *shaper_options);
+#include "hb-uniscribe.h"
 
 
-HB_END_DECLS
+HB_INTERNAL hb_bool_t
+_hb_uniscribe_shape (hb_font_t          *font,
+		     hb_buffer_t        *buffer,
+		     const hb_feature_t *features,
+		     unsigned int        num_features);
 
-#endif /* HB_OT_SHAPE_H */
+
+#endif /* HB_UNISCRIBE_PRIVATE_HH */

@@ -212,11 +212,10 @@ _hb_gr_font_get_data (hb_font_t *font)
 
 
 hb_bool_t
-hb_graphite_shape (hb_font_t          *font,
+_hb_graphite_shape (hb_font_t          *font,
 		   hb_buffer_t        *buffer,
 		   const hb_feature_t *features,
-		   unsigned int        num_features,
-		   const char * const *shaper_options)
+		   unsigned int        num_features)
 {
 
   buffer->guess_properties ();

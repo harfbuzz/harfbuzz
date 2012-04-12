@@ -419,11 +419,10 @@ hb_ot_shape_execute (hb_ot_shape_plan_t *plan,
 }
 
 hb_bool_t
-hb_ot_shape (hb_font_t          *font,
-	     hb_buffer_t        *buffer,
-	     const hb_feature_t *features,
-	     unsigned int        num_features,
-	     const char * const *shaper_options)
+_hb_ot_shape (hb_font_t          *font,
+	      hb_buffer_t        *buffer,
+	      const hb_feature_t *features,
+	      unsigned int        num_features)
 {
   hb_ot_shape_plan_t plan;
 
@@ -434,5 +433,3 @@ hb_ot_shape (hb_font_t          *font,
 
   return TRUE;
 }
-
-

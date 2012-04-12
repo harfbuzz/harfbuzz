@@ -166,7 +166,7 @@ struct shape_options_t : option_group_t
     }
 
     setup_buffer (buffer);
-    return hb_shape_full (font, buffer, features, num_features, NULL, shapers);
+    return hb_shape_full (font, buffer, features, num_features, shapers);
   }
 
   const char *direction;

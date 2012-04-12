@@ -136,11 +136,11 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(GRAPHITE, graphite2, have_graphite=true, have_graphite=false)
+PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite=true, have_graphite=false)
 if $have_graphite; then
-    AC_DEFINE(HAVE_GRAPHITE, 1, [Have Graphite library])
+    AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite library])
 fi
-AM_CONDITIONAL(HAVE_GRAPHITE, $have_graphite)
+AM_CONDITIONAL(HAVE_GRAPHITE2, $have_graphite)
 
 dnl ==========================================================================
 
