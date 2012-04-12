@@ -93,31 +93,31 @@ typedef uint32_t hb_tag_t;
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 
-/* len=-1 means s is NUL-terminated */
-hb_tag_t hb_tag_from_string (const char *s, int len);
+/* len=-1 means str is NUL-terminated */
+hb_tag_t hb_tag_from_string (const char *str, int len);
 
 
 /* hb_direction_t */
 
 typedef enum _hb_direction_t {
-  HB_DIRECTION_INVALID = -1,
-  HB_DIRECTION_LTR = 0,
+  HB_DIRECTION_INVALID = 0,
+  HB_DIRECTION_LTR = 4,
   HB_DIRECTION_RTL,
   HB_DIRECTION_TTB,
   HB_DIRECTION_BTT
 } hb_direction_t;
 
-/* len=-1 means s is NUL-terminated */
+/* len=-1 means str is NUL-terminated */
 hb_direction_t
 hb_direction_from_string (const char *str, int len);
 
 const char *
 hb_direction_to_string (hb_direction_t direction);
 
-#define HB_DIRECTION_IS_HORIZONTAL(dir)	((((unsigned int) (dir)) & ~1U) == 0)
-#define HB_DIRECTION_IS_VERTICAL(dir)	((((unsigned int) (dir)) & ~1U) == 2)
-#define HB_DIRECTION_IS_FORWARD(dir)	((((unsigned int) (dir)) & ~2U) == 0)
-#define HB_DIRECTION_IS_BACKWARD(dir)	((((unsigned int) (dir)) & ~2U) == 1)
+#define HB_DIRECTION_IS_HORIZONTAL(dir)	((((unsigned int) (dir)) & ~1U) == 4)
+#define HB_DIRECTION_IS_VERTICAL(dir)	((((unsigned int) (dir)) & ~1U) == 6)
+#define HB_DIRECTION_IS_FORWARD(dir)	((((unsigned int) (dir)) & ~2U) == 4)
+#define HB_DIRECTION_IS_BACKWARD(dir)	((((unsigned int) (dir)) & ~2U) == 5)
 #define HB_DIRECTION_REVERSE(dir)	((hb_direction_t) (((unsigned int) (dir)) ^ 1))
 
 
@@ -125,7 +125,7 @@ hb_direction_to_string (hb_direction_t direction);
 
 typedef struct _hb_language_t *hb_language_t;
 
-/* len=-1 means s is NUL-terminated */
+/* len=-1 means str is NUL-terminated */
 hb_language_t
 hb_language_from_string (const char *str, int len);
 

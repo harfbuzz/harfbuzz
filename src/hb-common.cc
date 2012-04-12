@@ -80,7 +80,7 @@ hb_direction_from_string (const char *str, int len)
   char c = TOLOWER (str[0]);
   for (unsigned int i = 0; i < ARRAY_LENGTH (direction_strings); i++)
     if (c == direction_strings[i][0])
-      return (hb_direction_t) i;
+      return (hb_direction_t) (HB_DIRECTION_LTR + i);
 
   return HB_DIRECTION_INVALID;
 }
@@ -88,8 +88,9 @@ hb_direction_from_string (const char *str, int len)
 const char *
 hb_direction_to_string (hb_direction_t direction)
 {
-  if (likely ((unsigned int) direction < ARRAY_LENGTH (direction_strings)))
-    return direction_strings[direction];
+  if (likely ((unsigned int) (direction - HB_DIRECTION_LTR)
+	      < ARRAY_LENGTH (direction_strings)))
+    return direction_strings[direction - HB_DIRECTION_LTR];
 
   return "invalid";
 }
