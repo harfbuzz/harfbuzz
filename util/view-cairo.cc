@@ -38,6 +38,7 @@ view_cairo_t::consume_line (hb_buffer_t  *buffer,
 			    const char   *text,
 			    unsigned int  text_len)
 {
+  direction = hb_buffer_get_direction (buffer);
   helper_cairo_line_t l;
   helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale);
   g_array_append_val (lines, l);
@@ -63,14 +64,17 @@ view_cairo_t::get_surface_size (cairo_scaled_font_t *scaled_font,
 
   cairo_scaled_font_extents (scaled_font, &font_extents);
 
-  *h = font_extents.ascent
-     + font_extents.descent
-     + ((int) lines->len - 1) * (font_extents.height + line_space);
-  *w = 0;
+  bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
+  (vertical ? *w : *h) = (int) lines->len * (font_extents.height + line_space) - line_space;
+  (vertical ? *h : *w) = 0;
   for (unsigned int i = 0; i < lines->len; i++) {
     helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
-    double line_width = line.get_width ();
-    *w = MAX (*w, line_width);
+    double x_advance, y_advance;
+    line.get_advance (&x_advance, &y_advance);
+    if (vertical)
+      *h =  MAX (*h, y_advance);
+    else
+      *w =  MAX (*w, x_advance);
   }
 
   *w += margin.l + margin.r;
@@ -97,17 +101,26 @@ view_cairo_t::draw (cairo_t *cr)
 {
   cairo_save (cr);
 
+  bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
+  int v = vertical ? 1 : 0;
+  int h = vertical ? 0 : 1;
   cairo_font_extents_t font_extents;
   cairo_font_extents (cr, &font_extents);
   cairo_translate (cr, margin.l, margin.t);
+  double descent;
+  if (vertical)
+    descent = font_extents.height * .5;
+  else
+    descent = font_extents.height - font_extents.ascent;
+  cairo_translate (cr, v * -descent, h * -descent);
   for (unsigned int i = 0; i < lines->len; i++)
   {
     helper_cairo_line_t &l = g_array_index (lines, helper_cairo_line_t, i);
 
     if (i)
-      cairo_translate (cr, 0, line_space);
+      cairo_translate (cr, v * line_space, h * line_space);
 
-    cairo_translate (cr, 0, font_extents.ascent);
+    cairo_translate (cr, v * font_extents.height, h * font_extents.height);
 
     if (annotate) {
       cairo_save (cr);
@@ -137,8 +150,6 @@ view_cairo_t::draw (cairo_t *cr)
 			      l.cluster_flags);
     else
       cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
-
-    cairo_translate (cr, 0, font_extents.height - font_extents.ascent);
   }
 
   cairo_restore (cr);

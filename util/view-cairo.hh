@@ -52,6 +52,7 @@ struct view_cairo_t : output_options_t, view_options_t {
   void get_surface_size (cairo_scaled_font_t *scaled_font, double *w, double *h);
   void draw (cairo_t *cr);
 
+  hb_direction_t direction; // Remove this, make segment_properties accessible
   GArray *lines;
   double scale;
 };

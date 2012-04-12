@@ -48,6 +48,13 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
+#undef MIN
+template <typename Type> static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
+
+#undef MAX
+template <typename Type> static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
+
+
 void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN;
 
 

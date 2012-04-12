@@ -64,8 +64,9 @@ struct helper_cairo_line_t {
       g_free (utf8);
   }
 
-  double get_width (void) {
-    return glyphs[num_glyphs].x;
+  void get_advance (double *x_advance, double *y_advance) {
+    *x_advance = glyphs[num_glyphs].x;
+    *y_advance = glyphs[num_glyphs].y;
   }
 };
 
