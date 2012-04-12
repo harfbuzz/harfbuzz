@@ -57,11 +57,11 @@ enum indic_category_t {
 
 /* Visual positions in a syllable from left to right. */
 enum indic_position_t {
-  POS_PRE,
-  POS_BASE,
-  POS_ABOVE,
-  POS_BELOW,
-  POS_POST
+  POS_PRE = 1,
+  POS_BASE = 3,
+  POS_ABOVE = 5,
+  POS_BELOW = 7,
+  POS_POST = 9
 };
 
 /* Categories used in IndicSyllabicCategory.txt from UCD */
@@ -95,7 +95,7 @@ enum indic_syllabic_category_t {
 enum indic_matra_category_t {
   INDIC_MATRA_CATEGORY_NOT_APPLICABLE		= POS_BASE,
 
-  INDIC_MATRA_CATEGORY_LEFT			= POS_PRE,
+  INDIC_MATRA_CATEGORY_LEFT			= POS_PRE - 1, /* Move *before* existing "pre" chars */
   INDIC_MATRA_CATEGORY_TOP			= POS_ABOVE,
   INDIC_MATRA_CATEGORY_BOTTOM			= POS_BELOW,
   INDIC_MATRA_CATEGORY_RIGHT			= POS_POST,
