@@ -44,7 +44,7 @@
 #define props_cache() var1.u16[1] /* glyph_props cache */
 
 /* XXX cleanup */
-typedef enum _hb_ot_layout_glyph_class_t {
+typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0001,
   HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
   HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 0x0004,

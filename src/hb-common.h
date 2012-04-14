@@ -99,7 +99,7 @@ hb_tag_t hb_tag_from_string (const char *str, int len);
 
 /* hb_direction_t */
 
-typedef enum _hb_direction_t {
+typedef enum {
   HB_DIRECTION_INVALID = 0,
   HB_DIRECTION_LTR = 4,
   HB_DIRECTION_RTL,
@@ -140,7 +140,7 @@ hb_language_get_default (void);
 
 /* hb_unicode_general_category_t */
 
-typedef enum _hb_unicode_general_category_t
+typedef enum
 {
   HB_UNICODE_GENERAL_CATEGORY_CONTROL,			/* Cc */
   HB_UNICODE_GENERAL_CATEGORY_FORMAT,			/* Cf */
@@ -179,7 +179,7 @@ typedef enum _hb_unicode_general_category_t
 
 /* http://unicode.org/iso15924/ */
 /* http://goo.gl/x9ilM */
-typedef enum _hb_script_t
+typedef enum
 {
   /* Unicode-1.1 additions */
   HB_SCRIPT_COMMON			= HB_TAG ('Z','y','y','y'),
