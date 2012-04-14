@@ -80,6 +80,8 @@ Tests to write:
 
 - Finish test-unicode.c, grep for TODO
 
+- GObject, FreeType, etc
+
 
 Optimizations:
 =============
