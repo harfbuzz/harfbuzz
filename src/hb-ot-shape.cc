@@ -400,6 +400,8 @@ hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
 {
   hb_ot_shape_planner_t planner;
 
+  assert (HB_DIRECTION_IS_VALID (props->direction));
+
   planner.shaper = hb_ot_shape_complex_categorize (props);
 
   hb_ot_shape_collect_features (&planner, props, user_features, num_user_features);
