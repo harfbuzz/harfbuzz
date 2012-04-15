@@ -169,12 +169,19 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 
 /* Prepare */
 
+static inline void
+set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
+{
+  info->general_category() = hb_unicode_general_category (unicode, info->codepoint);
+  info->combining_class() = _hb_unicode_modified_combining_class (unicode, info->codepoint);
+}
+
 static void
 hb_set_unicode_props (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    hb_glyph_info_set_unicode_props (&buffer->info[i], buffer->unicode);
+    set_unicode_props (&buffer->info[i], buffer->unicode);
 }
 
 static void

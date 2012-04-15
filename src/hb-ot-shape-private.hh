@@ -47,19 +47,10 @@ struct hb_ot_shape_plan_t
 
 
 
-static inline void
-hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
-{
-  info->general_category() = hb_unicode_general_category (unicode, info->codepoint);
-  info->combining_class() = _hb_unicode_modified_combining_class (unicode, info->codepoint);
-}
-
 HB_INTERNAL hb_bool_t
 _hb_ot_shape (hb_font_t          *font,
 	      hb_buffer_t        *buffer,
 	      const hb_feature_t *features,
 	      unsigned int        num_features);
-
-#include "hb-ot-shape-complex-private.hh"
 
 #endif /* HB_OT_SHAPE_PRIVATE_HH */

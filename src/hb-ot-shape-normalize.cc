@@ -68,12 +68,19 @@
  *     matra for the Indic shaper.
  */
 
+static inline void
+set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
+{
+  info->general_category() = hb_unicode_general_category (unicode, info->codepoint);
+  info->combining_class() = _hb_unicode_modified_combining_class (unicode, info->codepoint);
+}
+
 static void
 output_glyph (hb_font_t *font, hb_buffer_t *buffer,
 	      hb_codepoint_t glyph)
 {
   buffer->output_glyph (glyph);
-  hb_glyph_info_set_unicode_props (&buffer->out_info[buffer->out_len - 1], buffer->unicode);
+  set_unicode_props (&buffer->out_info[buffer->out_len - 1], buffer->unicode);
 }
 
 static bool
@@ -262,7 +269,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
     {
       /* Composes. Modify starter and carry on. */
       buffer->out_info[starter].codepoint = composed;
-      hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
+      set_unicode_props (&buffer->out_info[starter], buffer->unicode);
 
       buffer->skip_glyph ();
       continue;
