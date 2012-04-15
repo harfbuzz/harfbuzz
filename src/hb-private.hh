@@ -440,6 +440,14 @@ static inline uint16_t hb_be_uint16 (const uint16_t v)
   return (uint16_t) (V[0] << 8) + V[1];
 }
 
+/* Note, of the following macros, uint16_get is the one called many many times.
+ * If there is any optimizations to be done, it's in that macro.  However, I
+ * already confirmed that on my T400 ThinkPad at least, using bswap_16(), which
+ * results in a single ror instruction, does NOT speed this up.  In fact, it
+ * resulted in a minor slowdown.  At any rate, note that v may not be correctly
+ * aligned, so I think the current implementation is optimal.
+ */
+
 #define hb_be_uint16_put(v,V)	HB_STMT_START { v[0] = (V>>8); v[1] = (V); } HB_STMT_END
 #define hb_be_uint16_get(v)	(uint16_t) ((v[0] << 8) + v[1])
 #define hb_be_uint16_eq(a,b)	(a[0] == b[0] && a[1] == b[1])
