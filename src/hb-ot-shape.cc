@@ -27,7 +27,7 @@
  */
 
 #include "hb-ot-shape-private.hh"
-#include "hb-ot-shape-complex-private.hh"
+#include "hb-ot-shape-normalize-private.hh"
 
 #include "hb-font-private.hh"
 
@@ -60,6 +60,28 @@ hb_tag_t vertical_features[] = {
   HB_TAG('v','k','r','n'),
   HB_TAG('v','p','a','l'),
   HB_TAG('v','r','t','2'),
+};
+
+
+
+struct hb_ot_shape_planner_t
+{
+  hb_ot_map_builder_t map;
+  hb_ot_complex_shaper_t shaper;
+
+  hb_ot_shape_planner_t (void) : map () {}
+  ~hb_ot_shape_planner_t (void) { map.finish (); }
+
+  inline void compile (hb_face_t *face,
+		       const hb_segment_properties_t *props,
+		       struct hb_ot_shape_plan_t &plan)
+  {
+    plan.shaper = shaper;
+    map.compile (face, props, plan.map);
+  }
+
+  private:
+  NO_COPY (hb_ot_shape_planner_t);
 };
 
 static void
@@ -108,6 +130,21 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 }
 
 
+struct hb_ot_shape_context_t
+{
+  /* Input to hb_ot_shape_execute() */
+  hb_ot_shape_plan_t *plan;
+  hb_font_t *font;
+  hb_face_t *face;
+  hb_buffer_t  *buffer;
+  const hb_feature_t *user_features;
+  unsigned int        num_user_features;
+
+  /* Transient stuff */
+  hb_direction_t target_direction;
+  hb_bool_t applied_position_complex;
+};
+
 static void
 hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 {
@@ -132,8 +169,8 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 
 /* Prepare */
 
-void
-_hb_set_unicode_props (hb_buffer_t *buffer)
+static void
+hb_set_unicode_props (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
@@ -349,7 +386,7 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   HB_BUFFER_ALLOCATE_VAR (c->buffer, general_category);
   HB_BUFFER_ALLOCATE_VAR (c->buffer, combining_class);
 
-  _hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class */
+  hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class */
 
   hb_form_clusters (c->buffer);
 
