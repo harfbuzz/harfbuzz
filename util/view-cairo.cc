@@ -138,7 +138,7 @@ view_cairo_t::draw (cairo_t *cr)
       cairo_restore (cr);
     }
 
-    if (cairo_surface_get_type (cairo_get_target (cr)) == CAIRO_SURFACE_TYPE_IMAGE) {
+    if (0 && cairo_surface_get_type (cairo_get_target (cr)) == CAIRO_SURFACE_TYPE_IMAGE) {
       /* cairo_show_glyphs() doesn't support subpixel positioning */
       cairo_glyph_path (cr, l.glyphs, l.num_glyphs);
       cairo_fill (cr);
