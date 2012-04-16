@@ -36,11 +36,12 @@ view_cairo_t::init (const font_options_t *font_opts)
 void
 view_cairo_t::consume_line (hb_buffer_t  *buffer,
 			    const char   *text,
-			    unsigned int  text_len)
+			    unsigned int  text_len,
+			    hb_bool_t     utf8_clusters)
 {
   direction = hb_buffer_get_direction (buffer);
   helper_cairo_line_t l;
-  helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale);
+  helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale, utf8_clusters);
   g_array_append_val (lines, l);
 }
 

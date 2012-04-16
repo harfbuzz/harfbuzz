@@ -75,6 +75,7 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 			       hb_buffer_t         *buffer,
 			       const char          *text,
 			       unsigned int         text_len,
-			       double               scale);
+			       double               scale,
+			       hb_bool_t            utf8_clusters);
 
 #endif

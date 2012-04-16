@@ -36,7 +36,8 @@ struct output_buffer_t : output_options_t, format_options_t
   void init (const font_options_t *font_opts);
   void consume_line (hb_buffer_t  *buffer,
 		     const char   *text,
-		     unsigned int  text_len);
+		     unsigned int  text_len,
+		     hb_bool_t     utf8_clusters);
   void finish (const font_options_t *font_opts);
 
   protected:
@@ -57,11 +58,12 @@ output_buffer_t::init (const font_options_t *font_opts)
 void
 output_buffer_t::consume_line (hb_buffer_t  *buffer,
 			       const char   *text,
-			       unsigned int  text_len)
+			       unsigned int  text_len,
+			       hb_bool_t     utf8_clusters)
 {
   line_no++;
   g_string_set_size (gs, 0);
-  serialize_line (buffer, line_no, text, text_len, font, gs);
+  serialize_line (buffer, line_no, text, text_len, font, utf8_clusters, gs);
   fprintf (fp, "%s", gs->str);
 }
 

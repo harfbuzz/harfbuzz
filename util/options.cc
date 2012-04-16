@@ -391,6 +391,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
     {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
+    {"utf8-clusters",	0, 0, G_OPTION_ARG_NONE,	&this->utf8_clusters,		"Use UTF-8 byte indices, not char indices",	NULL},
     {NULL}
   };
   parser->add_group (entries,
@@ -404,9 +405,12 @@ shape_options_t::add_options (option_parser_t *parser)
     "    Comma-separated list of font features to apply to text\n"
     "\n"
     "    Features can be enabled or disabled, either globally or limited to\n"
-    "    specific character ranges.  The range indices refer to the positions\n"
-    "    between Unicode characters.  The position before the first character\n"
-    "    is 0, and the position after the first character is 1, and so on.\n"
+    "    specific character ranges.\n"
+    "\n"
+    "    The range indices refer to the positions between Unicode characters,\n"
+    "    unless the --utf8-clusters is provided, in which case range indices\n"
+    "    refer to UTF-8 byte indices. The position before the first character\n"
+    "    is always 0.\n"
     "\n"
     "    The format is Python-esque.  Here is how it all works:\n"
     "\n"
@@ -716,6 +720,7 @@ format_options_t::serialize_unicode (hb_buffer_t *buffer,
 void
 format_options_t::serialize_glyphs (hb_buffer_t *buffer,
 				    hb_font_t   *font,
+				    hb_bool_t    utf8_clusters,
 				    GString     *gs)
 {
   FT_Face ft_face = show_glyph_names ? hb_ft_font_get_face (font) : NULL;
@@ -739,8 +744,11 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
     } else
       g_string_append_printf (gs, "%u", info->codepoint);
 
-    if (show_clusters)
+    if (show_clusters) {
       g_string_append_printf (gs, "=%u", info->cluster);
+      if (utf8_clusters)
+	g_string_append (gs, "u8");
+    }
 
     if (show_positions && (pos->x_offset || pos->y_offset)) {
       g_string_append_c (gs, '@');
@@ -771,6 +779,7 @@ format_options_t::serialize_line (hb_buffer_t  *buffer,
 				  const char   *text,
 				  unsigned int  text_len,
 				  hb_font_t    *font,
+				  hb_bool_t     utf8_clusters,
 				  GString      *gs)
 {
   if (show_text) {
@@ -790,6 +799,6 @@ format_options_t::serialize_line (hb_buffer_t  *buffer,
   }
 
   serialize_line_no (line_no, gs);
-  serialize_glyphs (buffer, font, gs);
+  serialize_glyphs (buffer, font, utf8_clusters, gs);
   g_string_append_c (gs, '\n');
 }

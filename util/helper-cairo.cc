@@ -301,7 +301,8 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 			       hb_buffer_t         *buffer,
 			       const char          *text,
 			       unsigned int         text_len,
-			       double               scale)
+			       double               scale,
+			       hb_bool_t            utf8_clusters)
 {
   memset (l, 0, sizeof (*l));
 
@@ -349,27 +350,38 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
     hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
     l->cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
     unsigned int cluster = 0;
+    const char *start = l->utf8, *end = start;
     l->clusters[cluster].num_glyphs++;
     if (backward) {
       for (i = l->num_glyphs - 2; i >= 0; i--) {
 	if (hb_glyph[i].cluster != hb_glyph[i+1].cluster) {
 	  g_assert (hb_glyph[i].cluster > hb_glyph[i+1].cluster);
-	  l->clusters[cluster].num_bytes += hb_glyph[i].cluster - hb_glyph[i+1].cluster;
+	  if (utf8_clusters)
+	    end = start + hb_glyph[i].cluster - hb_glyph[i+1].cluster;
+	  else
+	    end = g_utf8_offset_to_pointer (start, hb_glyph[i].cluster - hb_glyph[i+1].cluster);
+	  l->clusters[cluster].num_bytes = end - start;
+	  start = end;
 	  cluster++;
 	}
 	l->clusters[cluster].num_glyphs++;
       }
-      l->clusters[cluster].num_bytes += text_len - hb_glyph[0].cluster;
+      l->clusters[cluster].num_bytes = l->utf8 + text_len - start;
     } else {
       for (i = 1; i < (int) l->num_glyphs; i++) {
 	if (hb_glyph[i].cluster != hb_glyph[i-1].cluster) {
 	  g_assert (hb_glyph[i].cluster > hb_glyph[i-1].cluster);
-	  l->clusters[cluster].num_bytes += hb_glyph[i].cluster - hb_glyph[i-1].cluster;
+	  if (utf8_clusters)
+	    end = start + hb_glyph[i].cluster - hb_glyph[i-1].cluster;
+	  else
+	    end = g_utf8_offset_to_pointer (start, hb_glyph[i].cluster - hb_glyph[i-1].cluster);
+	  l->clusters[cluster].num_bytes = end - start;
+	  start = end;
 	  cluster++;
 	}
 	l->clusters[cluster].num_glyphs++;
       }
-      l->clusters[cluster].num_bytes += text_len - hb_glyph[i - 1].cluster;
+      l->clusters[cluster].num_bytes = l->utf8 + text_len - start;
     }
   }
 }

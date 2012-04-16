@@ -140,6 +140,7 @@ struct shape_options_t : option_group_t
     features = NULL;
     num_features = 0;
     shapers = NULL;
+    utf8_clusters = false;
 
     add_options (parser);
   }
@@ -161,15 +162,16 @@ struct shape_options_t : option_group_t
     hb_buffer_reset (buffer);
     hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
 
-    /* Reset cluster values to refer to Unicode character index
-     * instead of UTF-8 index.
-     * TODO: Add an option for this. */
-    unsigned int num_glyphs = hb_buffer_get_length (buffer);
-    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
-    for (unsigned int i = 0; i < num_glyphs; i++)
-    {
-      info->cluster = i;
-      info++;
+    if (!utf8_clusters) {
+      /* Reset cluster values to refer to Unicode character index
+       * instead of UTF-8 index. */
+      unsigned int num_glyphs = hb_buffer_get_length (buffer);
+      hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
+      for (unsigned int i = 0; i < num_glyphs; i++)
+      {
+	info->cluster = i;
+	info++;
+      }
     }
 
     setup_buffer (buffer);
@@ -182,6 +184,7 @@ struct shape_options_t : option_group_t
   hb_feature_t *features;
   unsigned int num_features;
   char **shapers;
+  hb_bool_t utf8_clusters;
 };
 
 
@@ -285,7 +288,8 @@ struct output_options_t : option_group_t
   virtual void init (const font_options_t *font_opts) = 0;
   virtual void consume_line (hb_buffer_t  *buffer,
 			     const char   *text,
-			     unsigned int  text_len) = 0;
+			     unsigned int  text_len,
+			     hb_bool_t     utf8_clusters) = 0;
   virtual void finish (const font_options_t *font_opts) = 0;
 
   const char *output_file;
@@ -319,6 +323,7 @@ struct format_options_t : option_group_t
 			  GString      *gs);
   void serialize_glyphs (hb_buffer_t  *buffer,
 			 hb_font_t    *font,
+			 hb_bool_t    utf8_clusters,
 			 GString      *gs);
   void serialize_line_no (unsigned int  line_no,
 			  GString      *gs);
@@ -327,6 +332,7 @@ struct format_options_t : option_group_t
 		       const char   *text,
 		       unsigned int  text_len,
 		       hb_font_t    *font,
+		       hb_bool_t     utf8_clusters,
 		       GString      *gs);
 
 

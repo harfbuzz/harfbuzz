@@ -43,7 +43,8 @@ struct view_cairo_t : output_options_t, view_options_t {
   void init (const font_options_t *font_opts);
   void consume_line (hb_buffer_t  *buffer,
 		     const char   *text,
-		     unsigned int  text_len);
+		     unsigned int  text_len,
+		     hb_bool_t     utf8_clusters);
   void finish (const font_options_t *font_opts);
 
   protected:

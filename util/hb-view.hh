@@ -65,7 +65,7 @@ struct hb_view_t
 			 buffer))
 	fail (FALSE, "All shapers failed");
 
-      output.consume_line (buffer, text, text_len);
+      output.consume_line (buffer, text, text_len, shaper.utf8_clusters);
     }
     hb_buffer_destroy (buffer);
 
