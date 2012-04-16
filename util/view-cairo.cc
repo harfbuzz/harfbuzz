@@ -109,18 +109,18 @@ view_cairo_t::draw (cairo_t *cr)
   cairo_translate (cr, margin.l, margin.t);
   double descent;
   if (vertical)
-    descent = font_extents.height * .5;
+    descent = font_extents.height * (lines->len + .5);
   else
     descent = font_extents.height - font_extents.ascent;
-  cairo_translate (cr, v * -descent, h * -descent);
+  cairo_translate (cr, v * descent, h * -descent);
   for (unsigned int i = 0; i < lines->len; i++)
   {
     helper_cairo_line_t &l = g_array_index (lines, helper_cairo_line_t, i);
 
     if (i)
-      cairo_translate (cr, v * line_space, h * line_space);
+      cairo_translate (cr, v * -line_space, h * line_space);
 
-    cairo_translate (cr, v * font_extents.height, h * font_extents.height);
+    cairo_translate (cr, v * -font_extents.height, h * font_extents.height);
 
     if (annotate) {
       cairo_save (cr);
