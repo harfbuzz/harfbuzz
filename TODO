@@ -1,6 +1,9 @@
 General fixes:
 =============
 
+- Warn at compile time (and runtime with HB_DEBUG?) if no Unicode funcs
+  found / set.
+
 - In hb_shape(), assert if direction is INVALID.
 
 - Fix TT 'kern' on/off and GPOS interaction (move kerning before GPOS).
