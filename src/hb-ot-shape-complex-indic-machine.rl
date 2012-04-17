@@ -66,7 +66,7 @@ action found_non_indic { found_non_indic (map, buffer, mask_array, last, p); }
 
 action next_syllable { buffer->merge_clusters (last, p); last = p; }
 
-consonant_syllable =	(c.N? (z.H|H.z?))* c.N? A? (H.z? | matra_group*)? syllable_tail %(found_consonant_syllable);
+consonant_syllable =	(c.N? (H.z?|z.H))* c.N? A? (H.z? | matra_group*)? syllable_tail %(found_consonant_syllable);
 vowel_syllable =	(Ra H)? V N? (z.H.c | ZWJ.c)? matra_group* syllable_tail %(found_vowel_syllable);
 standalone_cluster =	(Ra H)? NBSP N? (z? H c)? matra_group* syllable_tail %(found_standalone_cluster);
 non_indic = X %(found_non_indic);
