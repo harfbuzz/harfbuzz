@@ -221,6 +221,9 @@ _hb_graphite_shape (hb_font_t          *font,
 
   buffer->guess_properties ();
 
+  /* XXX We do a hell of a lot of stuff just to figure out this font
+   * is not graphite!  Shouldn't do. */
+
   hb_gr_font_data_t *data = _hb_gr_font_get_data (font);
   if (!data->grface) return FALSE;
 
