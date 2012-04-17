@@ -130,6 +130,7 @@ static void _hb_gr_font_data_destroy (void *data)
   hb_gr_font_data_t *f = (hb_gr_font_data_t *) data;
 
   gr_font_destroy (f->grfont);
+  free (f);
 }
 
 static hb_user_data_key_t hb_gr_data_key;
