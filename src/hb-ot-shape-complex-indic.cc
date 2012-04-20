@@ -58,10 +58,10 @@ enum indic_category_t {
 /* Visual positions in a syllable from left to right. */
 enum indic_position_t {
   POS_PRE = 1,
-  POS_BASE = 3,
-  POS_ABOVE = 5,
-  POS_BELOW = 7,
-  POS_POST = 9
+  POS_BASE = 2,
+  POS_ABOVE = 3,
+  POS_BELOW = 4,
+  POS_POST = 5
 };
 
 /* Categories used in IndicSyllabicCategory.txt from UCD */
@@ -104,14 +104,18 @@ enum indic_matra_category_t {
    * in the generic pre-shaping layer.  They will only be used if
    * the font does not cover the decomposition.  In which case, we
    * define these as aliases to the place we want the split-matra
-   * glyph to show up.  Quite arbitrary. */
-  INDIC_MATRA_CATEGORY_BOTTOM_AND_RIGHT		= INDIC_MATRA_CATEGORY_BOTTOM,
-  INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		= INDIC_MATRA_CATEGORY_LEFT,
-  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM		= INDIC_MATRA_CATEGORY_BOTTOM,
-  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_RIGHT	= INDIC_MATRA_CATEGORY_BOTTOM,
-  INDIC_MATRA_CATEGORY_TOP_AND_LEFT		= INDIC_MATRA_CATEGORY_LEFT,
-  INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT	= INDIC_MATRA_CATEGORY_LEFT,
-  INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		= INDIC_MATRA_CATEGORY_RIGHT,
+   * glyph to show up.  Quite arbitrary.
+   *
+   * TODO: There are some split matras without Unicode decompositions.
+   * We have to figure out what to do with them.
+   */
+  INDIC_MATRA_CATEGORY_BOTTOM_AND_RIGHT		= 8 | INDIC_MATRA_CATEGORY_BOTTOM,
+  INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		= 8 | INDIC_MATRA_CATEGORY_LEFT,
+  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM		= 8 | INDIC_MATRA_CATEGORY_BOTTOM,
+  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_RIGHT	= 8 | INDIC_MATRA_CATEGORY_BOTTOM,
+  INDIC_MATRA_CATEGORY_TOP_AND_LEFT		= 8 | INDIC_MATRA_CATEGORY_LEFT,
+  INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT	= 8 | INDIC_MATRA_CATEGORY_LEFT,
+  INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		= 8 | INDIC_MATRA_CATEGORY_RIGHT,
 
   INDIC_MATRA_CATEGORY_INVISIBLE		= INDIC_MATRA_CATEGORY_NOT_APPLICABLE,
   INDIC_MATRA_CATEGORY_OVERSTRUCK		= INDIC_MATRA_CATEGORY_NOT_APPLICABLE,
@@ -392,7 +396,7 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
     unsigned int type = get_indic_categories (buffer->info[i].codepoint);
 
     buffer->info[i].indic_category() = type & 0x0F;
-    buffer->info[i].indic_position() = type >> 4;
+    buffer->info[i].indic_position() = (type >> 4) & 7;
 
     if (buffer->info[i].indic_category() == OT_C) {
       buffer->info[i].indic_position() = consonant_position (buffer->info[i].codepoint);
