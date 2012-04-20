@@ -67,6 +67,7 @@ HBSOURCES += \
 	hb-ot-shape-complex-arabic-table.hh \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-machine.hh \
+	hb-ot-shape-complex-indic-private.hh \
 	hb-ot-shape-complex-indic-table.hh \
 	hb-ot-shape-complex-misc.cc \
 	hb-ot-shape-complex-private.hh \
@@ -169,12 +170,16 @@ hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
 	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
 
-noinst_PROGRAMS = main
+noinst_PROGRAMS = main indic
 bin_PROGRAMS =
 
 main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
+
+indic_SOURCES = indic.cc
+indic_CPPFLAGS = $(HBCFLAGS)
+indic_LDADD = libharfbuzz.la $(HBLIBS)
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
