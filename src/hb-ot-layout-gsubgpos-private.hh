@@ -31,6 +31,8 @@
 
 #include "hb-buffer-private.hh"
 #include "hb-ot-layout-gdef-table.hh"
+#include "hb-ot-layout-closure.h"
+
 
 
 /* buffer var allocations */
@@ -45,6 +47,35 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 
 
 
+#ifndef HB_DEBUG_CLOSURE
+#define HB_DEBUG_CLOSURE (HB_DEBUG+0)
+#endif
+
+#define TRACE_CLOSURE() \
+	hb_auto_trace_t<HB_DEBUG_CLOSURE> trace (&c->debug_depth, "CLOSURE", this, NULL, HB_FUNC);
+
+
+
+struct hb_closure_context_t
+{
+  hb_face_t *face;
+  hb_glyph_map_t *glyphs;
+  unsigned int nesting_level_left;
+  unsigned int debug_depth;
+
+
+  hb_closure_context_t (hb_face_t *face_,
+			hb_glyph_map_t *glyphs_,
+		        unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
+			  face (face_), glyphs (glyphs_),
+			  nesting_level_left (nesting_level_left_),
+			  debug_depth (0) {}
+};
+
+typedef bool (*closure_lookup_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
+
+
+
 #ifndef HB_DEBUG_APPLY
 #define HB_DEBUG_APPLY (HB_DEBUG+0)
 #endif
@@ -56,7 +87,6 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 
 struct hb_apply_context_t
 {
-  unsigned int debug_depth;
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
@@ -66,6 +96,7 @@ struct hb_apply_context_t
   unsigned int nesting_level_left;
   unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
+  unsigned int debug_depth;
 
 
   hb_apply_context_t (hb_font_t *font_,
@@ -81,7 +112,7 @@ struct hb_apply_context_t
 			context_length (context_length_),
 			nesting_level_left (nesting_level_left_),
 			lookup_props (l.get_props ()),
-			property (0) {}
+			property (0), debug_depth (0) {}
 
   hb_apply_context_t (const hb_apply_context_t &c, const Lookup &l) {
     *this = c;
@@ -427,8 +458,8 @@ struct Rule
     return inputCount.sanitize (c)
 	&& lookupCount.sanitize (c)
 	&& c->check_range (input,
-				 input[0].static_size * inputCount
-				 + lookupRecordX[0].static_size * lookupCount);
+			   input[0].static_size * inputCount
+			   + lookupRecordX[0].static_size * lookupCount);
   }
 
   private:
@@ -478,6 +509,14 @@ struct ContextFormat1
   friend struct Context;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -517,6 +556,14 @@ struct ContextFormat2
   friend struct Context;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -562,6 +609,14 @@ struct ContextFormat3
   friend struct Context;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -608,6 +663,18 @@ struct ContextFormat3
 struct Context
 {
   protected:
+
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: return u.format1.closure (c, closure_func);
+    case 2: return u.format2.closure (c, closure_func);
+    case 3: return u.format3.closure (c, closure_func);
+    default:return false;
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -765,6 +832,14 @@ struct ChainContextFormat1
   friend struct ChainContext;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -803,6 +878,14 @@ struct ChainContextFormat2
   friend struct ChainContext;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -864,6 +947,13 @@ struct ChainContextFormat3
 
   private:
 
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -922,6 +1012,18 @@ struct ChainContextFormat3
 struct ChainContext
 {
   protected:
+
+  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: return u.format1.closure (c, closure_func);
+    case 2: return u.format2.closure (c, closure_func);
+    case 3: return u.format3.closure (c, closure_func);
+    default:return false;
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();

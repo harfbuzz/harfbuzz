@@ -39,6 +39,13 @@ struct SingleSubstFormat1
 
   private:
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
     return (this+coverage) (glyph_id) != NOT_COVERED;
@@ -82,6 +89,13 @@ struct SingleSubstFormat2
   friend struct SingleSubst;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
@@ -129,6 +143,16 @@ struct SingleSubst
 
   private:
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: return u.format1.closure (c);
+    case 2: return u.format2.closure (c);
+    default:return false;
+    }
+  }
+
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
@@ -172,6 +196,14 @@ struct Sequence
   friend struct MultipleSubstFormat1;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -203,6 +235,13 @@ struct MultipleSubstFormat1
   friend struct MultipleSubst;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
@@ -243,6 +282,15 @@ struct MultipleSubst
   friend struct SubstLookupSubTable;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: return u.format1.closure (c);
+    default:return false;
+    }
+  }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
@@ -286,6 +334,13 @@ struct AlternateSubstFormat1
   friend struct AlternateSubst;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
@@ -347,6 +402,15 @@ struct AlternateSubst
 
   private:
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: return u.format1.closure (c);
+    default:return false;
+    }
+  }
+
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
@@ -386,6 +450,13 @@ struct Ligature
   friend struct LigatureSet;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
 
   inline bool would_apply (hb_codepoint_t second) const
   {
@@ -482,6 +553,13 @@ struct LigatureSet
 
   private:
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool would_apply (hb_codepoint_t second) const
   {
     unsigned int num_ligs = ligature.len;
@@ -528,6 +606,13 @@ struct LigatureSubstFormat1
 
   private:
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const
   {
     unsigned int index;
@@ -572,6 +657,15 @@ struct LigatureSubst
 
   private:
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: return u.format1.closure (c);
+    default:return false;
+    }
+  }
+
   inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const
   {
     switch (u.format) {
@@ -607,12 +701,20 @@ struct LigatureSubst
 
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index);
+static inline bool closure_lookup (hb_closure_context_t *c, unsigned int lookup_index);
 
 struct ContextSubst : Context
 {
   friend struct SubstLookupSubTable;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    return Context::closure (c, closure_lookup);
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -625,6 +727,13 @@ struct ChainContextSubst : ChainContext
   friend struct SubstLookupSubTable;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    return ChainContext::closure (c, closure_lookup);
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -646,6 +755,13 @@ struct ExtensionSubst : Extension
     return StructAtOffset<SubstLookupSubTable> (this, offset);
   }
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool would_apply (hb_codepoint_t glyph_id) const;
   inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const;
 
@@ -662,6 +778,14 @@ struct ReverseChainSingleSubstFormat1
   friend struct ReverseChainSingleSubst;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    /* TODO FILLME */
+    return false;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -728,6 +852,16 @@ struct ReverseChainSingleSubst
   friend struct SubstLookupSubTable;
 
   private:
+
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: return u.format1.closure (c);
+    default:return false;
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -773,6 +907,23 @@ struct SubstLookupSubTable
     Extension		= 7,
     ReverseChainSingle	= 8
   };
+
+  inline bool closure (hb_closure_context_t *c,
+		       unsigned int    lookup_type) const
+  {
+    TRACE_CLOSURE ();
+    switch (lookup_type) {
+    case Single:		return u.single.closure (c);
+    case Multiple:		return u.multiple.closure (c);
+    case Alternate:		return u.alternate.closure (c);
+    case Ligature:		return u.ligature.closure (c);
+    case Context:		return u.c.closure (c);
+    case ChainContext:		return u.chainContext.closure (c);
+    case Extension:		return u.extension.closure (c);
+    case ReverseChainSingle:	return u.reverseChainContextSingle.closure (c);
+    default:return false;
+    }
+  }
 
   inline bool would_apply (hb_codepoint_t glyph_id,
 			   unsigned int lookup_type) const
@@ -860,6 +1011,15 @@ struct SubstLookup : Lookup
     return lookup_type_is_reverse (type);
   }
 
+  inline bool closure (hb_closure_context_t *c) const
+  {
+    unsigned int lookup_type = get_type ();
+    unsigned int count = get_subtable_count ();
+    bool ret = false;
+    for (unsigned int i = 0; i < count; i++)
+      ret = get_subtable (i).closure (c, lookup_type) || ret;
+    return ret;
+  }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
   {
@@ -984,6 +1144,10 @@ struct GSUB : GSUBGPOS
   static inline void substitute_start (hb_buffer_t *buffer);
   static inline void substitute_finish (hb_buffer_t *buffer);
 
+  inline bool closure_lookup (hb_closure_context_t *c,
+			      unsigned int          lookup_index) const
+  { return get_lookup (lookup_index).closure (c); }
+
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!GSUBGPOS::sanitize (c))) return false;
@@ -1046,6 +1210,21 @@ inline bool ExtensionSubst::is_reverse (void) const
   if (unlikely (type == SubstLookupSubTable::Extension))
     return CastR<ExtensionSubst> (get_subtable()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
+}
+
+static inline bool closure_lookup (hb_closure_context_t *c, unsigned int lookup_index)
+{
+  const GSUB &gsub = *(c->face->ot_layout->gsub);
+  const SubstLookup &l = gsub.get_lookup (lookup_index);
+
+  if (unlikely (c->nesting_level_left == 0))
+    return false;
+
+  c->nesting_level_left--;
+  bool ret = l.closure (c);
+  c->nesting_level_left++;
+
+  return ret;
 }
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index)
