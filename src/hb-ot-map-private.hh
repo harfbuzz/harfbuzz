@@ -125,6 +125,9 @@ struct hb_ot_map_t
 			  void *face_or_font,
 			  hb_buffer_t *buffer) const;
 
+  HB_INTERNAL void substitute_closure (hb_face_t *face,
+				       hb_glyph_map_t *glyphs) const;
+
   hb_mask_t global_mask;
 
   hb_tag_t chosen_script[2];
