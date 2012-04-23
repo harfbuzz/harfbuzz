@@ -42,8 +42,14 @@ struct SingleSubstFormat1
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    bool ret = false;
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      hb_codepoint_t glyph_id = iter.get_glyph ();
+      if (c->glyphs->has (glyph_id))
+	ret = c->glyphs->add ((glyph_id + deltaGlyphID) & 0xFFFF) || ret;
+    }
+    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -93,8 +99,13 @@ struct SingleSubstFormat2
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    bool ret = false;
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      if (c->glyphs->has (iter.get_glyph ()))
+	ret = c->glyphs->add (substitute[iter.get_coverage ()]) || ret;
+    }
+    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -200,8 +211,11 @@ struct Sequence
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    unsigned int count = substitute.len;
+    bool ret = false;
+    for (unsigned int i = 0; i < count; i++)
+      ret = c->glyphs->add (substitute[i]) || ret;
+    return ret;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -239,8 +253,13 @@ struct MultipleSubstFormat1
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    bool ret = false;
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      if (c->glyphs->has (iter.get_glyph ()))
+	ret = (this+sequence[iter.get_coverage ()]).closure (c) || ret;
+    }
+    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -338,8 +357,17 @@ struct AlternateSubstFormat1
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    bool ret = false;
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      if (c->glyphs->has (iter.get_glyph ())) {
+	const AlternateSet &alt_set = this+alternateSet[iter.get_coverage ()];
+	unsigned int count = alt_set.len;
+	for (unsigned int i = 0; i < count; i++)
+	  ret = c->glyphs->add (alt_set[i]) || ret;
+      }
+    }
+    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -454,8 +482,11 @@ struct Ligature
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    unsigned int count = component.len;
+    for (unsigned int i = 1; i < count; i++)
+      if (!c->glyphs->has (component[i]))
+        return false;
+    return c->glyphs->add (ligGlyph);
   }
 
   inline bool would_apply (hb_codepoint_t second) const
@@ -556,8 +587,14 @@ struct LigatureSet
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    bool ret = false;
+    unsigned int num_ligs = ligature.len;
+    for (unsigned int i = 0; i < num_ligs; i++)
+    {
+      const Ligature &lig = this+ligature[i];
+      ret = lig.closure (c) || ret;
+    }
+    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t second) const
@@ -609,7 +646,13 @@ struct LigatureSubstFormat1
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
+    bool ret = false;
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      if (c->glyphs->has (iter.get_glyph ()))
+	ret = (this+ligatureSet[iter.get_coverage ()]).closure (c) || ret;
+    }
+    return ret;
     return false;
   }
 
@@ -755,13 +798,7 @@ struct ExtensionSubst : Extension
     return StructAtOffset<SubstLookupSubTable> (this, offset);
   }
 
-  inline bool closure (hb_closure_context_t *c) const
-  {
-    TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
-  }
-
+  inline bool closure (hb_closure_context_t *c) const;
   inline bool would_apply (hb_codepoint_t glyph_id) const;
   inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const;
 
@@ -782,7 +819,27 @@ struct ReverseChainSingleSubstFormat1
   inline bool closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+
+    unsigned int count;
+
+    count = backtrack.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+backtrack[i]).intersects (c->glyphs))
+        return false;
+
+    count = lookahead.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+lookahead[i]).intersects (c->glyphs))
+        return false;
+
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+    bool ret = false;
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      if (c->glyphs->has (iter.get_glyph ()))
+	ret = c->glyphs->add (substitute[iter.get_coverage ()]) || ret;
+    }
     return false;
   }
 
@@ -1014,8 +1071,8 @@ struct SubstLookup : Lookup
   inline bool closure (hb_closure_context_t *c) const
   {
     unsigned int lookup_type = get_type ();
-    unsigned int count = get_subtable_count ();
     bool ret = false;
+    unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
       ret = get_subtable (i).closure (c, lookup_type) || ret;
     return ret;
@@ -1054,8 +1111,8 @@ struct SubstLookup : Lookup
        *
        * This is rather slow to do this here for every glyph,
        * but it's easiest, and who uses extension lookups anyway?!*/
-      unsigned int count = get_subtable_count ();
       unsigned int type = get_subtable(0).u.extension.get_type ();
+      unsigned int count = get_subtable_count ();
       for (unsigned int i = 1; i < count; i++)
         if (get_subtable(i).u.extension.get_type () != type)
 	  return false;
@@ -1173,6 +1230,11 @@ GSUB::substitute_finish (hb_buffer_t *buffer)
 
 
 /* Out-of-class implementation for methods recursing */
+
+inline bool ExtensionSubst::closure (hb_closure_context_t *c) const
+{
+  return get_subtable ().closure (c, get_type ());
+}
 
 inline bool ExtensionSubst::would_apply (hb_codepoint_t glyph_id) const
 {

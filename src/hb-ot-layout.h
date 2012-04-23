@@ -183,7 +183,7 @@ void
 hb_ot_layout_substitute_finish (hb_buffer_t  *buffer);
 
 
-typedef uint32_t hb_glyph_map_t[65536 / 32]; /* 8kb */
+typedef struct _hb_glyph_map_t hb_glyph_map_t;
 
 hb_bool_t
 hb_ot_layout_substitute_closure_lookup (hb_face_t      *face,
