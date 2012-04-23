@@ -103,7 +103,6 @@ struct hb_apply_context_t
 		      hb_face_t *face_,
 		      hb_buffer_t *buffer_,
 		      hb_mask_t lookup_mask_,
-		      const Lookup &l,
 		      unsigned int context_length_ = NO_CONTEXT,
 		      unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
 			font (font_), face (face_), buffer (buffer_),
@@ -111,12 +110,9 @@ struct hb_apply_context_t
 			lookup_mask (lookup_mask_),
 			context_length (context_length_),
 			nesting_level_left (nesting_level_left_),
-			lookup_props (l.get_props ()),
-			property (0), debug_depth (0) {}
+			lookup_props (0), property (0), debug_depth (0) {}
 
-  hb_apply_context_t (const hb_apply_context_t &c, const Lookup &l) {
-    *this = c;
-    nesting_level_left--;
+  void set_lookup (const Lookup &l) {
     lookup_props = l.get_props ();
   }
 

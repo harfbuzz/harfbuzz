@@ -1069,46 +1069,44 @@ struct SubstLookup : Lookup
     return false;
   }
 
-  inline bool apply_string (hb_face_t   *face,
-			    hb_buffer_t *buffer,
-			    hb_mask_t    mask) const
+  inline bool apply_string (hb_apply_context_t *c) const
   {
     bool ret = false;
 
-    if (unlikely (!buffer->len))
+    if (unlikely (!c->buffer->len))
       return false;
 
-    hb_apply_context_t c (NULL, face, buffer, mask, *this);
+    c->set_lookup (*this);
 
     if (likely (!is_reverse ()))
     {
 	/* in/out forward substitution */
-	buffer->clear_output ();
-	buffer->idx = 0;
-	while (buffer->idx < buffer->len)
+	c->buffer->clear_output ();
+	c->buffer->idx = 0;
+	while (c->buffer->idx < c->buffer->len)
 	{
-	  if ((buffer->info[buffer->idx].mask & mask) && apply_once (&c))
+	  if ((c->buffer->info[c->buffer->idx].mask & c->lookup_mask) && apply_once (c))
 	    ret = true;
 	  else
-	    buffer->next_glyph ();
+	    c->buffer->next_glyph ();
 
 	}
 	if (ret)
-	  buffer->swap_buffers ();
+	  c->buffer->swap_buffers ();
     }
     else
     {
 	/* in-place backward substitution */
-	buffer->idx = buffer->len - 1;
+	c->buffer->idx = c->buffer->len - 1;
 	do
 	{
-	  if ((buffer->info[buffer->idx].mask & mask) && apply_once (&c))
+	  if ((c->buffer->info[c->buffer->idx].mask & c->lookup_mask) && apply_once (c))
 	    ret = true;
 	  else
-	    buffer->idx--;
+	    c->buffer->idx--;
 
 	}
-	while ((int) buffer->idx >= 0);
+	while ((int) c->buffer->idx >= 0);
     }
 
     return ret;
@@ -1135,11 +1133,8 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
-  inline bool substitute_lookup (hb_face_t    *face,
-				 hb_buffer_t  *buffer,
-			         unsigned int  lookup_index,
-				 hb_mask_t     mask) const
-  { return get_lookup (lookup_index).apply_string (face, buffer, mask); }
+  inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index) const
+  { return get_lookup (lookup_index).apply_string (c); }
 
   static inline void substitute_start (hb_buffer_t *buffer);
   static inline void substitute_finish (hb_buffer_t *buffer);
@@ -1238,7 +1233,9 @@ static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup
   if (unlikely (c->context_length < 1))
     return false;
 
-  hb_apply_context_t new_c (*c, l);
+  hb_apply_context_t new_c (*c);
+  new_c.nesting_level_left--;
+  new_c.set_lookup (l);
   return l.apply_once (&new_c);
 }
 

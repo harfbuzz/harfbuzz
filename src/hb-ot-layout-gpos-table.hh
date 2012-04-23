@@ -1417,24 +1417,22 @@ struct PosLookup : Lookup
     return false;
   }
 
-   inline bool apply_string (hb_font_t   *font,
-			     hb_buffer_t *buffer,
-			     hb_mask_t    mask) const
+  inline bool apply_string (hb_apply_context_t *c) const
   {
     bool ret = false;
 
-    if (unlikely (!buffer->len))
+    if (unlikely (!c->buffer->len))
       return false;
 
-    hb_apply_context_t c (font, font->face, buffer, mask, *this);
+    c->set_lookup (*this);
 
-    buffer->idx = 0;
-    while (buffer->idx < buffer->len)
+    c->buffer->idx = 0;
+    while (c->buffer->idx < c->buffer->len)
     {
-      if ((buffer->info[buffer->idx].mask & mask) && apply_once (&c))
+      if ((c->buffer->info[c->buffer->idx].mask & c->lookup_mask) && apply_once (c))
 	ret = true;
       else
-	buffer->idx++;
+	c->buffer->idx++;
     }
 
     return ret;
@@ -1461,11 +1459,8 @@ struct GPOS : GSUBGPOS
   inline const PosLookup& get_lookup (unsigned int i) const
   { return CastR<PosLookup> (GSUBGPOS::get_lookup (i)); }
 
-  inline bool position_lookup (hb_font_t    *font,
-			       hb_buffer_t  *buffer,
-			       unsigned int  lookup_index,
-			       hb_mask_t     mask) const
-  { return get_lookup (lookup_index).apply_string (font, buffer, mask); }
+  inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index) const
+  { return get_lookup (lookup_index).apply_string (c); }
 
   static inline void position_start (hb_buffer_t *buffer);
   static inline void position_finish (hb_buffer_t *buffer);
@@ -1584,7 +1579,9 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
   if (unlikely (c->context_length < 1))
     return false;
 
-  hb_apply_context_t new_c (*c, l);
+  hb_apply_context_t new_c (*c);
+  new_c.nesting_level_left--;
+  new_c.set_lookup (l);
   return l.apply_once (&new_c);
 }
 
