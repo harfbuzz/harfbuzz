@@ -100,17 +100,30 @@ struct _hb_glyph_map_t
   void clear (void) {
     memset (elts, 0, sizeof elts);
   }
-  bool has (hb_codepoint_t g) const {
-    if (unlikely (g > MAX_G)) return false;
-    return !!(elt (g) & mask (g));
-  }
-  bool add (hb_codepoint_t g) {
+  bool add (hb_codepoint_t g)
+  {
     if (unlikely (g > MAX_G)) return false;
     elt_t &e = elt (g);
     elt_t m = mask (g);
     bool ret = !!(e & m);
     e |= m;
     return ret;
+  }
+  bool has (hb_codepoint_t g) const
+  {
+    if (unlikely (g > MAX_G)) return false;
+    return !!(elt (g) & mask (g));
+  }
+  bool intersects (hb_codepoint_t first,
+		   hb_codepoint_t last) const
+  {
+    if (unlikely (first > MAX_G)) return false;
+    if (unlikely (last  > MAX_G)) last = MAX_G;
+    unsigned int end = last + 1;
+    for (hb_codepoint_t i = first; i < end; i++)
+      if (has (i))
+        return true;
+    return false;
   }
 
   private:

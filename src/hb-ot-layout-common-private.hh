@@ -131,6 +131,10 @@ struct RangeRecord
     return c->check_struct (this);
   }
 
+  inline bool intersects (const hb_glyph_map_t *glyphs) const {
+    return glyphs->intersects (start, end);
+  }
+
   GlyphID	start;		/* First GlyphID in the range */
   GlyphID	end;		/* Last GlyphID in the range */
   USHORT	value;		/* Value */
@@ -354,6 +358,10 @@ struct CoverageFormat1
     return glyphArray.sanitize (c);
   }
 
+  inline bool intersects_coverage (const hb_glyph_map_t *glyphs, unsigned int index) const {
+    return glyphs->has (glyphArray[index]);
+  }
+
   struct Iter {
     inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
     inline bool more (void) { return i < c->glyphArray.len; }
@@ -392,6 +400,21 @@ struct CoverageFormat2
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     return rangeRecord.sanitize (c);
+  }
+
+  inline bool intersects_coverage (const hb_glyph_map_t *glyphs, unsigned int index) const {
+    unsigned int i;
+    unsigned int count = rangeRecord.len;
+    for (i = 0; i < count; i++) {
+      const RangeRecord &range = rangeRecord[i];
+      if (range.value <= index &&
+	  index < range.value + (range.end - range.start) &&
+	  range.intersects (glyphs))
+        return true;
+      else if (index < range.value)
+        return false;
+    }
+    return false;
   }
 
   struct Iter {
@@ -461,7 +484,14 @@ struct Coverage
         return true;
     }
     return false;
+  }
 
+  inline bool intersects_coverage (const hb_glyph_map_t *glyphs, unsigned int index) const {
+    switch (u.format) {
+    case 1: return u.format1.intersects_coverage (glyphs, index);
+    case 2: return u.format2.intersects_coverage (glyphs, index);
+    default:return false;
+    }
   }
 
   struct Iter {
@@ -544,6 +574,14 @@ struct ClassDefFormat1
 	&& classValue.sanitize (c);
   }
 
+  inline bool intersects_class (const hb_glyph_map_t *glyphs, unsigned int klass) const {
+    unsigned int count = classValue.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (classValue[i] == klass && glyphs->has (startGlyph + i))
+        return true;
+    return false;
+  }
+
   USHORT	classFormat;		/* Format identifier--format = 1 */
   GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
   ArrayOf<USHORT>
@@ -568,6 +606,14 @@ struct ClassDefFormat2
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     return rangeRecord.sanitize (c);
+  }
+
+  inline bool intersects_class (const hb_glyph_map_t *glyphs, unsigned int klass) const {
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].value == klass && rangeRecord[i].intersects (glyphs))
+        return true;
+    return false;
   }
 
   USHORT	classFormat;	/* Format identifier--format = 2 */
@@ -598,6 +644,14 @@ struct ClassDef
     case 1: return u.format1.sanitize (c);
     case 2: return u.format2.sanitize (c);
     default:return true;
+    }
+  }
+
+  inline bool intersects_class (const hb_glyph_map_t *glyphs, unsigned int klass) const {
+    switch (u.format) {
+    case 1: return u.format1.intersects_class (glyphs, klass);
+    case 2: return u.format2.intersects_class (glyphs, klass);
+    default:return false;
     }
   }
 
