@@ -354,6 +354,16 @@ struct CoverageFormat1
     return glyphArray.sanitize (c);
   }
 
+  struct Iter {
+    void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
+    bool more (void) { return i < c->glyphArray.len; }
+    uint16_t next (void) { return c->glyphArray[i++]; }
+
+    private:
+    const struct CoverageFormat1 *c;
+    unsigned int i;
+  };
+
   private:
   USHORT	coverageFormat;	/* Format identifier--format = 1 */
   SortedArrayOf<GlyphID>
@@ -381,6 +391,23 @@ struct CoverageFormat2
     TRACE_SANITIZE ();
     return rangeRecord.sanitize (c);
   }
+
+  struct Iter {
+    void init (const CoverageFormat2 &c_) { c = &c_; i = 0; j = c->rangeRecord.len ? c_.rangeRecord[0].start : 0; }
+    bool more (void) { return i < c->rangeRecord.len ||
+			      (i == c->rangeRecord.len && j < c->rangeRecord[i].end); }
+    uint16_t next (void) {
+      if (j == c->rangeRecord[i].end) {
+        i++;
+	j = c->rangeRecord[i].start;
+      }
+      return j++;
+    }
+
+    private:
+    const struct CoverageFormat2 *c;
+    unsigned int i, j;
+  };
 
   private:
   USHORT	coverageFormat;	/* Format identifier--format = 2 */
@@ -414,6 +441,38 @@ struct Coverage
     default:return true;
     }
   }
+
+  struct Iter {
+    void init (const Coverage &c_) {
+      format = c_.u.format;
+      switch (format) {
+      case 1: return u.format1.init (c_.u.format1);
+      case 2: return u.format2.init (c_.u.format2);
+      default:return;
+      }
+    }
+    bool more (void) {
+      switch (format) {
+      case 1: return u.format1.more ();
+      case 2: return u.format2.more ();
+      default:return true;
+      }
+    }
+    uint16_t next (void) {
+      switch (format) {
+      case 1: return u.format1.next ();
+      case 2: return u.format2.next ();
+      default:return true;
+      }
+    }
+
+    private:
+    USHORT format;
+    union {
+    CoverageFormat1::Iter	format1;
+    CoverageFormat2::Iter	format2;
+    } u;
+  };
 
   private:
   union {
