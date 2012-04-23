@@ -357,7 +357,8 @@ struct CoverageFormat1
   struct Iter {
     void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
     bool more (void) { return i < c->glyphArray.len; }
-    uint16_t next (void) { return c->glyphArray[i++]; }
+    void next (void) { i++; }
+    uint16_t get (void) { return c->glyphArray[i]; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -394,14 +395,18 @@ struct CoverageFormat2
 
   struct Iter {
     void init (const CoverageFormat2 &c_) { c = &c_; i = 0; j = c->rangeRecord.len ? c_.rangeRecord[0].start : 0; }
-    bool more (void) { return i < c->rangeRecord.len ||
-			      (i == c->rangeRecord.len && j < c->rangeRecord[i].end); }
-    uint16_t next (void) {
+    bool more (void) { return i < c->rangeRecord.len; }
+    void next (void) {
       if (j == c->rangeRecord[i].end) {
         i++;
-	j = c->rangeRecord[i].start;
+	if (more ())
+	  j = c->rangeRecord[i].start;
+	return;
       }
-      return j++;
+      j++;
+    }
+    uint16_t get (void) {
+      return j;
     }
 
     private:
@@ -458,10 +463,17 @@ struct Coverage
       default:return true;
       }
     }
-    uint16_t next (void) {
+    void next (void) {
       switch (format) {
-      case 1: return u.format1.next ();
-      case 2: return u.format2.next ();
+      case 1: u.format1.next (); break;
+      case 2: u.format2.next (); break;
+      default:                   break;
+      }
+    }
+    uint16_t get (void) {
+      switch (format) {
+      case 1: return u.format1.get ();
+      case 2: return u.format2.get ();
       default:return true;
       }
     }
