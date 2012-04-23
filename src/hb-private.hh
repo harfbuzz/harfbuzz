@@ -34,9 +34,11 @@
 #endif
 
 #include "hb.h"
-#include "hb-ot.h"
 #define HB_H_IN
+#ifdef HAVE_OT
+#include "hb-ot.h"
 #define HB_OT_H_IN
+#endif
 
 #include <stdlib.h>
 #include <stddef.h>

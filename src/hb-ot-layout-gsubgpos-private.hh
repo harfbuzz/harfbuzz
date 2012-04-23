@@ -31,7 +31,6 @@
 
 #include "hb-buffer-private.hh"
 #include "hb-ot-layout-gdef-table.hh"
-#include "hb-ot-layout-closure.h"
 
 
 
