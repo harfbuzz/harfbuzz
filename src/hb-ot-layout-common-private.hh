@@ -131,7 +131,7 @@ struct RangeRecord
     return c->check_struct (this);
   }
 
-  inline bool intersects (const hb_glyph_map_t *glyphs) const {
+  inline bool intersects (const hb_set_t *glyphs) const {
     return glyphs->intersects (start, end);
   }
 
@@ -358,7 +358,7 @@ struct CoverageFormat1
     return glyphArray.sanitize (c);
   }
 
-  inline bool intersects_coverage (const hb_glyph_map_t *glyphs, unsigned int index) const {
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
     return glyphs->has (glyphArray[index]);
   }
 
@@ -402,7 +402,7 @@ struct CoverageFormat2
     return rangeRecord.sanitize (c);
   }
 
-  inline bool intersects_coverage (const hb_glyph_map_t *glyphs, unsigned int index) const {
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
     unsigned int i;
     unsigned int count = rangeRecord.len;
     for (i = 0; i < count; i++) {
@@ -476,7 +476,7 @@ struct Coverage
     }
   }
 
-  inline bool intersects (const hb_glyph_map_t *glyphs) const {
+  inline bool intersects (const hb_set_t *glyphs) const {
     /* TODO speed this up */
     Coverage::Iter iter;
     for (iter.init (*this); iter.more (); iter.next ()) {
@@ -486,7 +486,7 @@ struct Coverage
     return false;
   }
 
-  inline bool intersects_coverage (const hb_glyph_map_t *glyphs, unsigned int index) const {
+  inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
     switch (u.format) {
     case 1: return u.format1.intersects_coverage (glyphs, index);
     case 2: return u.format2.intersects_coverage (glyphs, index);
@@ -574,7 +574,7 @@ struct ClassDefFormat1
 	&& classValue.sanitize (c);
   }
 
-  inline bool intersects_class (const hb_glyph_map_t *glyphs, unsigned int klass) const {
+  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
       if (classValue[i] == klass && glyphs->has (startGlyph + i))
@@ -608,7 +608,7 @@ struct ClassDefFormat2
     return rangeRecord.sanitize (c);
   }
 
-  inline bool intersects_class (const hb_glyph_map_t *glyphs, unsigned int klass) const {
+  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       if (rangeRecord[i].value == klass && rangeRecord[i].intersects (glyphs))
@@ -647,7 +647,7 @@ struct ClassDef
     }
   }
 
-  inline bool intersects_class (const hb_glyph_map_t *glyphs, unsigned int klass) const {
+  inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     switch (u.format) {
     case 1: return u.format1.intersects_class (glyphs, klass);
     case 2: return u.format2.intersects_class (glyphs, klass);

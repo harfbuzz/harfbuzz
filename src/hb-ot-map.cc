@@ -96,7 +96,7 @@ void hb_ot_map_t::apply (unsigned int table_index,
 }
 
 void hb_ot_map_t::substitute_closure (hb_face_t *face,
-				      hb_glyph_map_t *glyphs) const
+				      hb_set_t *glyphs) const
 {
   unsigned int table_index = 0;
   unsigned int i = 0;

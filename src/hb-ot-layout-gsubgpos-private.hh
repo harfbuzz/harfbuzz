@@ -58,13 +58,13 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 struct hb_closure_context_t
 {
   hb_face_t *face;
-  hb_glyph_map_t *glyphs;
+  hb_set_t *glyphs;
   unsigned int nesting_level_left;
   unsigned int debug_depth;
 
 
   hb_closure_context_t (hb_face_t *face_,
-			hb_glyph_map_t *glyphs_,
+			hb_set_t *glyphs_,
 		        unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
 			  face (face_), glyphs (glyphs_),
 			  nesting_level_left (nesting_level_left_),
@@ -227,7 +227,7 @@ struct hb_apply_context_t
 
 
 
-typedef bool (*intersects_func_t) (hb_glyph_map_t *glyphs, const USHORT &value, const void *data);
+typedef bool (*intersects_func_t) (hb_set_t *glyphs, const USHORT &value, const void *data);
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
 typedef bool (*closure_lookup_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
 typedef bool (*apply_lookup_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
@@ -243,16 +243,16 @@ struct ContextApplyFuncs
   apply_lookup_func_t apply;
 };
 
-static inline bool intersects_glyph (hb_glyph_map_t *glyphs, const USHORT &value, const void *data HB_UNUSED)
+static inline bool intersects_glyph (hb_set_t *glyphs, const USHORT &value, const void *data HB_UNUSED)
 {
   return glyphs->has (value);
 }
-static inline bool intersects_class (hb_glyph_map_t *glyphs, const USHORT &value, const void *data)
+static inline bool intersects_class (hb_set_t *glyphs, const USHORT &value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.intersects_class (glyphs, value);
 }
-static inline bool intersects_coverage (hb_glyph_map_t *glyphs, const USHORT &value, const void *data)
+static inline bool intersects_coverage (hb_set_t *glyphs, const USHORT &value, const void *data)
 {
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   return (data+coverage).intersects (glyphs);

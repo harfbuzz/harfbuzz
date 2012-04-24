@@ -95,7 +95,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
 
 
-struct _hb_glyph_map_t
+struct _hb_set_t
 {
   void clear (void) {
     memset (elts, 0, sizeof elts);
