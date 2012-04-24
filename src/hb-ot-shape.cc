@@ -30,6 +30,7 @@
 #include "hb-ot-shape-normalize-private.hh"
 
 #include "hb-font-private.hh"
+#include "hb-set-private.hh"
 
 
 
@@ -477,4 +478,38 @@ _hb_ot_shape (hb_font_t          *font,
   hb_ot_shape_execute (&plan, font, buffer, features, num_features);
 
   return TRUE;
+}
+
+
+void
+hb_ot_shape_glyphs_closure (hb_font_t          *font,
+			    hb_buffer_t        *buffer,
+			    const hb_feature_t *features,
+			    unsigned int        num_features,
+			    hb_set_t           *glyphs)
+{
+  hb_ot_shape_plan_t plan;
+
+  buffer->guess_properties ();
+
+  hb_ot_shape_plan_internal (&plan, font->face, &buffer->props, features, num_features);
+
+  /* TODO: normalization? have shapers do closure()? */
+  /* TODO: Deal with mirrored chars? */
+  hb_map_glyphs (font, buffer);
+
+  /* Seed it.  It's user's responsibility to have cleard glyphs
+   * if that's what they desire. */
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    hb_set_add (glyphs, buffer->info[i].codepoint);
+
+  /* And find transitive closure. */
+  hb_set_t copy;
+  copy.init ();
+
+  do {
+    copy.set (glyphs);
+    plan.map.substitute_closure (font->face, glyphs);
+  } while (!copy.equal (glyphs));
 }

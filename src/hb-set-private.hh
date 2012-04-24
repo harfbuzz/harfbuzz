@@ -35,6 +35,9 @@
 
 struct _hb_set_t
 {
+  inline void init (void) {
+    clear ();
+  }
   inline void clear (void) {
     memset (elts, 0, sizeof elts);
   }
