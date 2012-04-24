@@ -269,6 +269,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
     {
       /* Composes. Modify starter and carry on. */
       buffer->out_info[starter].codepoint = composed;
+      /* XXX update cluster */
       set_unicode_props (&buffer->out_info[starter], buffer->unicode);
 
       buffer->skip_glyph ();
