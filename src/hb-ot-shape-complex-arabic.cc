@@ -221,8 +221,8 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
   /* Mandatory ligatures */
   buffer->clear_output ();
   for (buffer->idx = 0; buffer->idx + 1 < count;) {
-    uint16_t ligature = get_ligature (buffer->info[buffer->idx].codepoint,
-				      buffer->info[buffer->idx + 1].codepoint);
+    hb_codepoint_t ligature = get_ligature (buffer->info[buffer->idx].codepoint,
+					    buffer->info[buffer->idx + 1].codepoint);
     if (likely (!ligature) || !(hb_font_get_glyph (font, ligature, 0, &glyph))) {
       buffer->next_glyph ();
       continue;

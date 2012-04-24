@@ -148,8 +148,8 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map, hb_buffer_t *buffer, hb
     }
 
     /* Is SARA AM. Decompose and reorder. */
-    uint16_t decomposed[2] = {uint16_t (NIKHAHIT_FROM_SARA_AM (u)),
-			      uint16_t (SARA_AA_FROM_SARA_AM (u))};
+    hb_codepoint_t decomposed[2] = {hb_codepoint_t (NIKHAHIT_FROM_SARA_AM (u)),
+				    hb_codepoint_t (SARA_AA_FROM_SARA_AM (u))};
     buffer->replace_glyphs (1, 2, decomposed);
     if (unlikely (buffer->in_error))
       return;
