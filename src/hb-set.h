@@ -52,14 +52,14 @@ void
 hb_set_destroy (hb_set_t *set);
 
 hb_bool_t
-hb_set_set_user_data (hb_set_t        *set,
+hb_set_set_user_data (hb_set_t           *set,
 		      hb_user_data_key_t *key,
 		      void *              data,
 		      hb_destroy_func_t   destroy,
 		      hb_bool_t           replace);
 
 void *
-hb_set_get_user_data (hb_set_t        *set,
+hb_set_get_user_data (hb_set_t           *set,
 		      hb_user_data_key_t *key);
 
 
@@ -69,6 +69,9 @@ hb_set_allocation_successful (hb_set_t  *set);
 
 void
 hb_set_clear (hb_set_t *set);
+
+hb_bool_t
+hb_set_empty (hb_set_t *set);
 
 hb_bool_t
 hb_set_has (hb_set_t       *set,
@@ -82,8 +85,33 @@ void
 hb_set_del (hb_set_t       *set,
 	    hb_codepoint_t  codepoint);
 
-/* TODO: add union, intersect, subtract, equal, empty, min, max, iter, etc */
+hb_bool_t
+hb_set_equal (hb_set_t *set,
+	      hb_set_t *other);
 
+void
+hb_set_set (hb_set_t *set,
+	    hb_set_t *other);
+
+void
+hb_set_union (hb_set_t *set,
+	      hb_set_t *other);
+
+void
+hb_set_intersect (hb_set_t *set,
+		  hb_set_t *other);
+
+void
+hb_set_subtract (hb_set_t *set,
+		 hb_set_t *other);
+
+hb_codepoint_t
+hb_set_min (hb_set_t *set);
+
+hb_codepoint_t
+hb_set_max (hb_set_t *set);
+
+/* TODO: Add faster iteration API? */
 
 
 HB_END_DECLS

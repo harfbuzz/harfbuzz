@@ -38,6 +38,12 @@ struct _hb_set_t
   inline void clear (void) {
     memset (elts, 0, sizeof elts);
   }
+  inline bool empty (void) const {
+    for (unsigned int i = 0; i < ARRAY_LENGTH (elts); i++)
+      if (elts[i])
+        return false;
+    return true;
+  }
   inline void add (hb_codepoint_t g)
   {
     if (unlikely (g > MAX_G)) return;
@@ -64,19 +70,65 @@ struct _hb_set_t
         return true;
     return false;
   }
+  inline bool equal (const hb_set_t *other) const
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      if (elts[i] != other->elts[i])
+        return false;
+    return true;
+  }
+  inline void set (const hb_set_t *other)
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      elts[i] = other->elts[i];
+  }
+  inline void union_ (const hb_set_t *other)
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      elts[i] |= other->elts[i];
+  }
+  inline void intersect (const hb_set_t *other)
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      elts[i] &= other->elts[i];
+  }
+  inline void subtract (const hb_set_t *other)
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      elts[i] &= ~other->elts[i];
+  }
+  inline hb_codepoint_t min (void) const
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      if (elts[i])
+	for (unsigned int j = 0; i < BITS; j++)
+	  if (elts[i] & (1 << j))
+	    return i * BITS + j;
+    return 0;
+  }
+  inline hb_codepoint_t max (void) const
+  {
+    for (unsigned int i = ELTS; i; i--)
+      if (elts[i - 1])
+	for (unsigned int j = BITS; j; j--)
+	  if (elts[i - 1] & (1 << (j - 1)))
+	    return (i - 1) * BITS + (j - 1);
+    return 0;
+  }
 
   typedef uint32_t elt_t;
   static const unsigned int MAX_G = 65536 - 1;
   static const unsigned int SHIFT = 5;
   static const unsigned int BITS = (1 << SHIFT);
   static const unsigned int MASK = BITS - 1;
+  static const unsigned int ELTS = (MAX_G + 1 + (BITS - 1)) / BITS;
 
   elt_t &elt (hb_codepoint_t g) { return elts[g >> SHIFT]; }
   elt_t elt (hb_codepoint_t g) const { return elts[g >> SHIFT]; }
   elt_t mask (hb_codepoint_t g) const { return elt_t (1) << (g & MASK); }
 
   hb_object_header_t header;
-  elt_t elts[(MAX_G + 1 + (BITS - 1)) / BITS]; /* 8kb */
+  elt_t elts[ELTS]; /* 8kb */
 
   ASSERT_STATIC (sizeof (elt_t) * 8 == BITS);
   ASSERT_STATIC (sizeof (elts) * 8 > MAX_G);

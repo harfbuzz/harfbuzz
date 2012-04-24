@@ -28,6 +28,8 @@
 
 
 
+/* Public API */
+
 static hb_set_t _hb_set_nil = {
   HB_OBJECT_HEADER_STATIC,
 
@@ -99,6 +101,12 @@ hb_set_clear (hb_set_t *set)
 }
 
 hb_bool_t
+hb_set_empty (hb_set_t *set)
+{
+  return set->empty ();
+}
+
+hb_bool_t
 hb_set_has (hb_set_t       *set,
 	    hb_codepoint_t  codepoint)
 {
@@ -117,4 +125,51 @@ hb_set_del (hb_set_t       *set,
 	    hb_codepoint_t  codepoint)
 {
   set->del (codepoint);
+}
+
+hb_bool_t
+hb_set_equal (hb_set_t *set,
+	      hb_set_t *other)
+{
+  return set->equal (other);
+}
+
+void
+hb_set_set (hb_set_t *set,
+	    hb_set_t *other)
+{
+  set->set (other);
+}
+
+void
+hb_set_union (hb_set_t *set,
+	      hb_set_t *other)
+{
+  set->union_ (other);
+}
+
+void
+hb_set_intersect (hb_set_t *set,
+		  hb_set_t *other)
+{
+  set->intersect (other);
+}
+
+void
+hb_set_subtract (hb_set_t *set,
+		 hb_set_t *other)
+{
+  set->subtract (other);
+}
+
+hb_codepoint_t
+hb_set_min (hb_set_t *set)
+{
+  return set->min ();
+}
+
+hb_codepoint_t
+hb_set_max (hb_set_t *set)
+{
+  return set->max ();
 }
