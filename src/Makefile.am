@@ -34,6 +34,8 @@ HBSOURCES =  \
 	hb-ot-name-table.hh \
 	hb-ot-tag.cc \
 	hb-private.hh \
+	hb-set-private.hh \
+	hb-set.cc \
 	hb-shape.cc \
 	hb-tt-font.cc \
 	hb-unicode-private.hh \
@@ -46,6 +48,7 @@ HBHEADERS = \
 	hb-buffer.h \
 	hb-common.h \
 	hb-font.h \
+	hb-set.h \
 	hb-shape.h \
 	hb-unicode.h \
 	hb-version.h \

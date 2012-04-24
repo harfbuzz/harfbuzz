@@ -85,6 +85,8 @@ Tests to write:
 
 - GObject, FreeType, etc
 
+- hb_set_t
+
 
 Optimizations:
 =============

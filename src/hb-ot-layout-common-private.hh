@@ -31,6 +31,7 @@
 
 #include "hb-ot-layout-private.hh"
 #include "hb-open-type-private.hh"
+#include "hb-set-private.hh"
 
 
 #define NO_CONTEXT		((unsigned int) 0x110000)
