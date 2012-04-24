@@ -193,7 +193,7 @@ hb_form_clusters (hb_buffer_t *buffer)
 	(FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
-      buffer->info[i].cluster = buffer->info[i - 1].cluster;
+      buffer->info[i].cluster = buffer->info[i - 1].cluster; /* XXX do the min() here */
 }
 
 static void
@@ -251,8 +251,7 @@ hb_map_glyphs (hb_font_t    *font,
   for (buffer->idx = 0; buffer->idx < count;) {
     if (unlikely (_hb_unicode_is_variation_selector (buffer->info[buffer->idx + 1].codepoint))) {
       hb_font_get_glyph (font, buffer->info[buffer->idx].codepoint, buffer->info[buffer->idx + 1].codepoint, &glyph);
-      buffer->replace_glyph (glyph);
-      buffer->skip_glyph ();
+      buffer->replace_glyphs (2, 1, &glyph);
     } else {
       hb_font_get_glyph (font, buffer->info[buffer->idx].codepoint, 0, &glyph);
       buffer->replace_glyph (glyph);
