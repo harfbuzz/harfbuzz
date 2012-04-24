@@ -183,10 +183,10 @@ void
 hb_ot_layout_substitute_finish (hb_buffer_t  *buffer);
 
 
-hb_bool_t
-hb_ot_layout_substitute_closure_lookup (hb_face_t      *face,
-				        hb_set_t *glyphs,
-				        unsigned int    lookup_index);
+void
+hb_ot_layout_substitute_closure_lookup (hb_face_t    *face,
+				        hb_set_t     *glyphs,
+				        unsigned int  lookup_index);
 
 /*
  * GPOS

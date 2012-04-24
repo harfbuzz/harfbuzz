@@ -39,17 +39,15 @@ struct SingleSubstFormat1
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       hb_codepoint_t glyph_id = iter.get_glyph ();
       if (c->glyphs->has (glyph_id))
-	ret = c->glyphs->add ((glyph_id + deltaGlyphID) & 0xFFFF) || ret;
+	c->glyphs->add ((glyph_id + deltaGlyphID) & 0xFFFF);
     }
-    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -96,16 +94,14 @@ struct SingleSubstFormat2
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       if (c->glyphs->has (iter.get_glyph ()))
-	ret = c->glyphs->add (substitute[iter.get_coverage ()]) || ret;
+	c->glyphs->add (substitute[iter.get_coverage ()]);
     }
-    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -154,13 +150,13 @@ struct SingleSubst
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     switch (u.format) {
-    case 1: return u.format1.closure (c);
-    case 2: return u.format2.closure (c);
-    default:return false;
+    case 1: u.format1.closure (c); break;
+    case 2: u.format2.closure (c); break;
+    default:                       break;
     }
   }
 
@@ -208,14 +204,12 @@ struct Sequence
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     unsigned int count = substitute.len;
-    bool ret = false;
     for (unsigned int i = 0; i < count; i++)
-      ret = c->glyphs->add (substitute[i]) || ret;
-    return ret;
+      c->glyphs->add (substitute[i]);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -250,16 +244,14 @@ struct MultipleSubstFormat1
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       if (c->glyphs->has (iter.get_glyph ()))
-	ret = (this+sequence[iter.get_coverage ()]).closure (c) || ret;
+	(this+sequence[iter.get_coverage ()]).closure (c);
     }
-    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -302,12 +294,12 @@ struct MultipleSubst
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     switch (u.format) {
-    case 1: return u.format1.closure (c);
-    default:return false;
+    case 1: u.format1.closure (c); break;
+    default:                       break;
     }
   }
 
@@ -354,20 +346,18 @@ struct AlternateSubstFormat1
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       if (c->glyphs->has (iter.get_glyph ())) {
 	const AlternateSet &alt_set = this+alternateSet[iter.get_coverage ()];
 	unsigned int count = alt_set.len;
 	for (unsigned int i = 0; i < count; i++)
-	  ret = c->glyphs->add (alt_set[i]) || ret;
+	  c->glyphs->add (alt_set[i]);
       }
     }
-    return ret;
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -430,12 +420,12 @@ struct AlternateSubst
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     switch (u.format) {
-    case 1: return u.format1.closure (c);
-    default:return false;
+    case 1: u.format1.closure (c); break;
+    default:                       break;
     }
   }
 
@@ -479,14 +469,14 @@ struct Ligature
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     unsigned int count = component.len;
     for (unsigned int i = 1; i < count; i++)
       if (!c->glyphs->has (component[i]))
-        return false;
-    return c->glyphs->add (ligGlyph);
+        return;
+    c->glyphs->add (ligGlyph);
   }
 
   inline bool would_apply (hb_codepoint_t second) const
@@ -584,17 +574,12 @@ struct LigatureSet
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
-    {
-      const Ligature &lig = this+ligature[i];
-      ret = lig.closure (c) || ret;
-    }
-    return ret;
+      (this+ligature[i]).closure (c);
   }
 
   inline bool would_apply (hb_codepoint_t second) const
@@ -643,17 +628,14 @@ struct LigatureSubstFormat1
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       if (c->glyphs->has (iter.get_glyph ()))
-	ret = (this+ligatureSet[iter.get_coverage ()]).closure (c) || ret;
+	(this+ligatureSet[iter.get_coverage ()]).closure (c);
     }
-    return ret;
-    return false;
   }
 
   inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const
@@ -700,12 +682,12 @@ struct LigatureSubst
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     switch (u.format) {
-    case 1: return u.format1.closure (c);
-    default:return false;
+    case 1: u.format1.closure (c); break;
+    default:                       break;
     }
   }
 
@@ -744,7 +726,7 @@ struct LigatureSubst
 
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index);
-static inline bool closure_lookup (hb_closure_context_t *c, unsigned int lookup_index);
+static inline void closure_lookup (hb_closure_context_t *c, unsigned int lookup_index);
 
 struct ContextSubst : Context
 {
@@ -752,7 +734,7 @@ struct ContextSubst : Context
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     return Context::closure (c, closure_lookup);
@@ -771,7 +753,7 @@ struct ChainContextSubst : ChainContext
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     return ChainContext::closure (c, closure_lookup);
@@ -798,7 +780,7 @@ struct ExtensionSubst : Extension
     return StructAtOffset<SubstLookupSubTable> (this, offset);
   }
 
-  inline bool closure (hb_closure_context_t *c) const;
+  inline void closure (hb_closure_context_t *c) const;
   inline bool would_apply (hb_codepoint_t glyph_id) const;
   inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const;
 
@@ -816,7 +798,7 @@ struct ReverseChainSingleSubstFormat1
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
@@ -826,21 +808,19 @@ struct ReverseChainSingleSubstFormat1
     count = backtrack.len;
     for (unsigned int i = 0; i < count; i++)
       if (!(this+backtrack[i]).intersects (c->glyphs))
-        return false;
+        return;
 
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
       if (!(this+lookahead[i]).intersects (c->glyphs))
-        return false;
+        return;
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
-    bool ret = false;
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       if (c->glyphs->has (iter.get_glyph ()))
-	ret = c->glyphs->add (substitute[iter.get_coverage ()]) || ret;
+	c->glyphs->add (substitute[iter.get_coverage ()]);
     }
-    return false;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -910,12 +890,12 @@ struct ReverseChainSingleSubst
 
   private:
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE ();
     switch (u.format) {
-    case 1: return u.format1.closure (c);
-    default:return false;
+    case 1: u.format1.closure (c); break;
+    default:                       break;
     }
   }
 
@@ -965,20 +945,20 @@ struct SubstLookupSubTable
     ReverseChainSingle	= 8
   };
 
-  inline bool closure (hb_closure_context_t *c,
+  inline void closure (hb_closure_context_t *c,
 		       unsigned int    lookup_type) const
   {
     TRACE_CLOSURE ();
     switch (lookup_type) {
-    case Single:		return u.single.closure (c);
-    case Multiple:		return u.multiple.closure (c);
-    case Alternate:		return u.alternate.closure (c);
-    case Ligature:		return u.ligature.closure (c);
-    case Context:		return u.c.closure (c);
-    case ChainContext:		return u.chainContext.closure (c);
-    case Extension:		return u.extension.closure (c);
-    case ReverseChainSingle:	return u.reverseChainContextSingle.closure (c);
-    default:return false;
+    case Single:		u.single.closure (c); break;
+    case Multiple:		u.multiple.closure (c); break;
+    case Alternate:		u.alternate.closure (c); break;
+    case Ligature:		u.ligature.closure (c); break;
+    case Context:		u.c.closure (c); break;
+    case ChainContext:		u.chainContext.closure (c); break;
+    case Extension:		u.extension.closure (c); break;
+    case ReverseChainSingle:	u.reverseChainContextSingle.closure (c); break;
+    default:                    break;
     }
   }
 
@@ -1068,14 +1048,12 @@ struct SubstLookup : Lookup
     return lookup_type_is_reverse (type);
   }
 
-  inline bool closure (hb_closure_context_t *c) const
+  inline void closure (hb_closure_context_t *c) const
   {
     unsigned int lookup_type = get_type ();
-    bool ret = false;
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
-      ret = get_subtable (i).closure (c, lookup_type) || ret;
-    return ret;
+      get_subtable (i).closure (c, lookup_type);
   }
 
   inline bool would_apply (hb_codepoint_t glyph_id) const
@@ -1196,7 +1174,7 @@ struct GSUB : GSUBGPOS
   static inline void substitute_start (hb_buffer_t *buffer);
   static inline void substitute_finish (hb_buffer_t *buffer);
 
-  inline bool closure_lookup (hb_closure_context_t *c,
+  inline void closure_lookup (hb_closure_context_t *c,
 			      unsigned int          lookup_index) const
   { return get_lookup (lookup_index).closure (c); }
 
@@ -1231,9 +1209,9 @@ GSUB::substitute_finish (hb_buffer_t *buffer)
 
 /* Out-of-class implementation for methods recursing */
 
-inline bool ExtensionSubst::closure (hb_closure_context_t *c) const
+inline void ExtensionSubst::closure (hb_closure_context_t *c) const
 {
-  return get_subtable ().closure (c, get_type ());
+  get_subtable ().closure (c, get_type ());
 }
 
 inline bool ExtensionSubst::would_apply (hb_codepoint_t glyph_id) const
@@ -1269,19 +1247,17 @@ inline bool ExtensionSubst::is_reverse (void) const
   return SubstLookup::lookup_type_is_reverse (type);
 }
 
-static inline bool closure_lookup (hb_closure_context_t *c, unsigned int lookup_index)
+static inline void closure_lookup (hb_closure_context_t *c, unsigned int lookup_index)
 {
   const GSUB &gsub = *(c->face->ot_layout->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   if (unlikely (c->nesting_level_left == 0))
-    return false;
+    return;
 
   c->nesting_level_left--;
-  bool ret = l.closure (c);
+  l.closure (c);
   c->nesting_level_left++;
-
-  return ret;
 }
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index)

@@ -229,7 +229,7 @@ struct hb_apply_context_t
 
 typedef bool (*intersects_func_t) (hb_set_t *glyphs, const USHORT &value, const void *data);
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
-typedef bool (*closure_lookup_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
+typedef void (*closure_lookup_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
 typedef bool (*apply_lookup_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
 
 struct ContextClosureFuncs
@@ -375,15 +375,13 @@ struct LookupRecord
 };
 
 
-static inline bool closure_lookup (hb_closure_context_t *c,
+static inline void closure_lookup (hb_closure_context_t *c,
 				   unsigned int lookupCount,
 				   const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				   closure_lookup_func_t closure_func)
 {
-  bool ret = false;
   for (unsigned int i = 0; i < lookupCount; i++)
-    ret = closure_func (c, lookupRecord->lookupListIndex) || ret;
-  return ret;
+    closure_func (c, lookupRecord->lookupListIndex);
 }
 
 static inline bool apply_lookup (hb_apply_context_t *c,
@@ -460,19 +458,19 @@ struct ContextApplyLookupContext
   const void *match_data;
 };
 
-static inline bool context_closure_lookup (hb_closure_context_t *c,
+static inline void context_closure_lookup (hb_closure_context_t *c,
 					   unsigned int inputCount, /* Including the first glyph (not matched) */
 					   const USHORT input[], /* Array of input values--start with second glyph */
 					   unsigned int lookupCount,
 					   const LookupRecord lookupRecord[],
 					   ContextClosureLookupContext &lookup_context)
 {
-  return intersects_array (c,
-			   inputCount ? inputCount - 1 : 0, input,
-			   lookup_context.funcs.intersects, lookup_context.intersects_data)
-      && closure_lookup (c,
-			 lookupCount, lookupRecord,
-			 lookup_context.funcs.closure);
+  if (intersects_array (c,
+			inputCount ? inputCount - 1 : 0, input,
+			lookup_context.funcs.intersects, lookup_context.intersects_data))
+    closure_lookup (c,
+		    lookupCount, lookupRecord,
+		    lookup_context.funcs.closure);
 }
 
 
@@ -500,14 +498,14 @@ struct Rule
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
+  inline void closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
   {
     TRACE_CLOSURE ();
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
-    return context_closure_lookup (c,
-				   inputCount, input,
-				   lookupCount, lookupRecord,
-				   lookup_context);
+    context_closure_lookup (c,
+			    inputCount, input,
+			    lookupCount, lookupRecord,
+			    lookup_context);
   }
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
@@ -545,14 +543,12 @@ struct Rule
 
 struct RuleSet
 {
-  inline bool closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
+  inline void closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
-      ret = (this+rule[i]).closure (c, lookup_context) || ret;
-    return ret;
+      (this+rule[i]).closure (c, lookup_context);
   }
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
@@ -587,7 +583,7 @@ struct ContextFormat1
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
 
@@ -598,14 +594,12 @@ struct ContextFormat1
       NULL
     };
 
-    bool ret = false;
     unsigned int count = ruleSet.len;
     for (unsigned int i = 0; i < count; i++)
       if (cov.intersects_coverage (c->glyphs, i)) {
 	const RuleSet &rule_set = this+ruleSet[i];
-	ret = rule_set.closure (c, lookup_context) || ret;
+	rule_set.closure (c, lookup_context);
       }
-    return ret;
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -648,11 +642,11 @@ struct ContextFormat2
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
     if (!(this+coverage).intersects (c->glyphs))
-      return false;
+      return;
 
     const ClassDef &class_def = this+classDef;
 
@@ -661,14 +655,12 @@ struct ContextFormat2
       NULL
     };
 
-    bool ret = false;
     unsigned int count = ruleSet.len;
     for (unsigned int i = 0; i < count; i++)
       if (class_def.intersects_class (c->glyphs, i)) {
 	const RuleSet &rule_set = this+ruleSet[i];
-	ret = rule_set.closure (c, lookup_context) || ret;
+	rule_set.closure (c, lookup_context);
       }
-    return ret;
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -717,21 +709,21 @@ struct ContextFormat3
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
     if (!(this+coverage[0]).intersects (c->glyphs))
-      return false;
+      return;
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextClosureLookupContext lookup_context = {
       {intersects_coverage, closure_func},
       this
     };
-    return context_closure_lookup (c,
-				   glyphCount, (const USHORT *) (coverage + 1),
-				   lookupCount, lookupRecord,
-				   lookup_context);
+    context_closure_lookup (c,
+			    glyphCount, (const USHORT *) (coverage + 1),
+			    lookupCount, lookupRecord,
+			    lookup_context);
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -781,14 +773,14 @@ struct Context
 {
   protected:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
     switch (u.format) {
-    case 1: return u.format1.closure (c, closure_func);
-    case 2: return u.format2.closure (c, closure_func);
-    case 3: return u.format3.closure (c, closure_func);
-    default:return false;
+    case 1: u.format1.closure (c, closure_func); break;
+    case 2: u.format2.closure (c, closure_func); break;
+    case 3: u.format3.closure (c, closure_func); break;
+    default:                                     break;
     }
   }
 
@@ -838,7 +830,7 @@ struct ChainContextApplyLookupContext
   const void *match_data[3];
 };
 
-static inline bool chain_context_closure_lookup (hb_closure_context_t *c,
+static inline void chain_context_closure_lookup (hb_closure_context_t *c,
 						 unsigned int backtrackCount,
 						 const USHORT backtrack[],
 						 unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -849,18 +841,18 @@ static inline bool chain_context_closure_lookup (hb_closure_context_t *c,
 						 const LookupRecord lookupRecord[],
 						 ChainContextClosureLookupContext &lookup_context)
 {
-  return intersects_array (c,
-			   backtrackCount, backtrack,
-			   lookup_context.funcs.intersects, lookup_context.intersects_data[0])
-      && intersects_array (c,
-			   inputCount ? inputCount - 1 : 0, input,
-			   lookup_context.funcs.intersects, lookup_context.intersects_data[1])
-      && intersects_array (c,
-			   lookaheadCount, lookahead,
-			   lookup_context.funcs.intersects, lookup_context.intersects_data[2])
-      && closure_lookup (c,
-			 lookupCount, lookupRecord,
-			 lookup_context.funcs.closure);
+  if (intersects_array (c,
+			backtrackCount, backtrack,
+			lookup_context.funcs.intersects, lookup_context.intersects_data[0])
+   && intersects_array (c,
+			inputCount ? inputCount - 1 : 0, input,
+			lookup_context.funcs.intersects, lookup_context.intersects_data[1])
+  && intersects_array (c,
+		       lookaheadCount, lookahead,
+		       lookup_context.funcs.intersects, lookup_context.intersects_data[2]))
+    closure_lookup (c,
+		    lookupCount, lookupRecord,
+		    lookup_context.funcs.closure);
 }
 
 static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
@@ -904,18 +896,18 @@ struct ChainRule
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
+  inline void closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
   {
     TRACE_CLOSURE ();
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return chain_context_closure_lookup (c,
-					 backtrack.len, backtrack.array,
-					 input.len, input.array,
-					 lookahead.len, lookahead.array,
-					 lookup.len, lookup.array,
-					 lookup_context);
+    chain_context_closure_lookup (c,
+				  backtrack.len, backtrack.array,
+				  input.len, input.array,
+				  lookahead.len, lookahead.array,
+				  lookup.len, lookup.array,
+				  lookup_context);
   }
 
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
@@ -964,14 +956,12 @@ struct ChainRule
 
 struct ChainRuleSet
 {
-  inline bool closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
+  inline void closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
   {
     TRACE_CLOSURE ();
-    bool ret = false;
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
-      ret = (this+rule[i]).closure (c, lookup_context) || ret;
-    return ret;
+      (this+rule[i]).closure (c, lookup_context);
   }
 
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
@@ -1006,7 +996,7 @@ struct ChainContextFormat1
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
     const Coverage &cov = (this+coverage);
@@ -1016,14 +1006,12 @@ struct ChainContextFormat1
       {NULL, NULL, NULL}
     };
 
-    bool ret = false;
     unsigned int count = ruleSet.len;
     for (unsigned int i = 0; i < count; i++)
       if (cov.intersects_coverage (c->glyphs, i)) {
 	const ChainRuleSet &rule_set = this+ruleSet[i];
-	ret = rule_set.closure (c, lookup_context) || ret;
+	rule_set.closure (c, lookup_context);
       }
-    return ret;
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -1065,11 +1053,11 @@ struct ChainContextFormat2
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
     if (!(this+coverage).intersects (c->glyphs))
-      return false;
+      return;
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
     const ClassDef &input_class_def = this+inputClassDef;
@@ -1082,14 +1070,12 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
 
-    bool ret = false;
     unsigned int count = ruleSet.len;
     for (unsigned int i = 0; i < count; i++)
       if (input_class_def.intersects_class (c->glyphs, i)) {
 	const ChainRuleSet &rule_set = this+ruleSet[i];
-	ret = rule_set.closure (c, lookup_context) || ret;
+	rule_set.closure (c, lookup_context);
       }
-    return ret;
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -1153,11 +1139,26 @@ struct ChainContextFormat3
 
   private:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
-    /* TODO FILLME */
-    return false;
+    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+
+    if (!(this+input[0]).intersects (c->glyphs))
+      return;
+
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
+    struct ChainContextClosureLookupContext lookup_context = {
+      {intersects_coverage, closure_func},
+      {this, this, this}
+    };
+    chain_context_closure_lookup (c,
+				  backtrack.len, (const USHORT *) backtrack.array,
+				  input.len, (const USHORT *) input.array + 1,
+				  lookahead.len, (const USHORT *) lookahead.array,
+				  lookup.len, lookup.array,
+				  lookup_context);
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -1219,14 +1220,14 @@ struct ChainContext
 {
   protected:
 
-  inline bool closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
+  inline void closure (hb_closure_context_t *c, closure_lookup_func_t closure_func) const
   {
     TRACE_CLOSURE ();
     switch (u.format) {
-    case 1: return u.format1.closure (c, closure_func);
-    case 2: return u.format2.closure (c, closure_func);
-    case 3: return u.format3.closure (c, closure_func);
-    default:return false;
+    case 1: u.format1.closure (c, closure_func); break;
+    case 2: u.format2.closure (c, closure_func); break;
+    case 3: u.format3.closure (c, closure_func); break;
+    default:                                     break;
     }
   }
 

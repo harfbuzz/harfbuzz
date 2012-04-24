@@ -38,23 +38,15 @@ struct _hb_set_t
   inline void clear (void) {
     memset (elts, 0, sizeof elts);
   }
-  inline bool add (hb_codepoint_t g)
+  inline void add (hb_codepoint_t g)
   {
-    if (unlikely (g > MAX_G)) return false;
-    elt_t &e = elt (g);
-    elt_t m = mask (g);
-    bool ret = !(e & m);
-    e |= m;
-    return ret;
+    if (unlikely (g > MAX_G)) return;
+    elt (g) |= mask (g);
   }
-  inline bool del (hb_codepoint_t g)
+  inline void del (hb_codepoint_t g)
   {
-    if (unlikely (g > MAX_G)) return false;
-    elt_t &e = elt (g);
-    elt_t m = mask (g);
-    bool ret = !!(e & m);
-    e &= ~m;
-    return ret;
+    if (unlikely (g > MAX_G)) return;
+    elt (g) &= ~mask (g);
   }
   inline bool has (hb_codepoint_t g) const
   {
