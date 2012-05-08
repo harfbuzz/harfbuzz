@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys, os, re, difflib, unicodedata, errno
+from itertools import *
 
 class Colors:
 	class Null:
@@ -91,7 +92,7 @@ class FancyDiffer:
 	@staticmethod
 	def diff_files (f1, f2, colors=Colors.Null):
 		try:
-			for (l1,l2) in zip (f1, f2):
+			for (l1,l2) in izip (f1, f2):
 				if l1 == l2:
 					sys.stdout.writelines ([" ", l1])
 					continue
@@ -100,7 +101,7 @@ class FancyDiffer:
 			# print out residues
 			for l in f1:
 				sys.stdout.writelines (["-", colors.red, l, colors.end])
-			for l in f1:
+			for l in f2:
 				sys.stdout.writelines (["-", colors.green, l, colors.end])
 		except IOError as e:
 			if e.errno != errno.EPIPE:
@@ -114,6 +115,7 @@ class DiffFilters:
 	def filter_failures (f):
 		for l in f:
 			if l[0] in '-+':
+				# TODO retain all lines of the failure
 				yield l
 
 
