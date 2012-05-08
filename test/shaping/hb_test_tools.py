@@ -1,65 +1,81 @@
 #!/usr/bin/python
 
-import sys, os, re, difflib, unicodedata, errno
+import sys, os, re, difflib, unicodedata, errno, cgi
 from itertools import *
 
 diff_symbols = "-+=*&^%$#@!~/"
 diff_colors = ['red', 'green', 'blue']
 
-class Colors:
+class ColorFormatter:
+
 	class Null:
-		red = ''
-		green = ''
-		end = ''
+		@staticmethod
+		def start_color (c): return ''
+		@staticmethod
+		def end_color (): return ''
+		@staticmethod
+		def escape (s): return s
+		@staticmethod
+		def newline (): return '\n'
+
 	class ANSI:
-		red = '\033[41;37;1m'
-		green = '\033[42;37;1m'
-		end = '\033[m'
+		@staticmethod
+		def start_color (c):
+			return {
+				'red': '\033[41;37;1m',
+				'green': '\033[42;37;1m',
+				'blue': '\033[44;37;1m',
+			}[c]
+		@staticmethod
+		def end_color ():
+			return '\033[m'
+		@staticmethod
+		def escape (s): return s
+		@staticmethod
+		def newline (): return '\n'
+
 	class HTML:
-		red = '<span style="color:red">'
-		green = '<span style="color:green">'
-		end = '</span>'
+		@staticmethod
+		def start_color (c):
+			return '<span style="background:%s">' % c
+		@staticmethod
+		def end_color ():
+			return '</span>'
+		@staticmethod
+		def escape (s): return cgi.escape (s)
+		@staticmethod
+		def newline (): return '<br/>\n'
 
 	@staticmethod
 	def Auto (argv = [], out = sys.stdout):
-		if os.isatty (out.fileno ()):
-			color = Colors.ANSI
-		else:
-			color = Colors.Null
-		if "--color" in argv:
-			argv.remove ("--color")
-			color = Colors.ANSI
-		if "--color=ansi" in argv:
-			argv.remove ("--color=ansi")
-			color = Colors.ANSI
-		if "--color=html" in argv:
-			argv.remove ("--color=html")
-			color = Colors.HTML
-		if "--no-color" in argv:
-			argv.remove ("--no-color")
-			color = Colors.Null
-		return color
+		format = ColorFormatter.ANSI
+		if "--format" in argv:
+			argv.remove ("--format")
+			format = ColorFormatter.ANSI
+		if "--format=ansi" in argv:
+			argv.remove ("--format=ansi")
+			format = ColorFormatter.ANSI
+		if "--format=html" in argv:
+			argv.remove ("--format=html")
+			format = ColorFormatter.HTML
+		if "--no-format" in argv:
+			argv.remove ("--no-format")
+			format = ColorFormatter.Null
+		return format
 
 
-	@staticmethod
-	def Default (argv = []):
-		return Colors.ANSI
-
-
-class FancyDiffer:
+class DiffColorizer:
 
 	diff_regex = re.compile ('([a-za-z0-9_]*)([^a-za-z0-9_]?)')
 
-	@staticmethod
-	def diff_lines (l1, l2, colors=Colors.Null):
+	def __init__ (self, formatter, colors=diff_colors, symbols=diff_symbols):
+		self.formatter = formatter
+		self.colors = colors
+		self.symbols = symbols
 
-		# Easy without colors
-		if colors == Colors.Null:
-			if l1 == l2:
-				return [' ', l1]
-			return ['-', l1, '+', l2]
-
-		ss = [FancyDiffer.diff_regex.sub (r'\1\n\2\n', l).splitlines (True) for l in (l1, l2)]
+	def colorize_lines (self, lines):
+		lines = (l if l else '' for l in lines)
+		ss = [self.diff_regex.sub (r'\1\n\2\n', l).splitlines (True) for l in lines]
 		oo = ["",""]
 		st = [False, False]
 		for l in difflib.Differ().compare (*ss):
@@ -68,29 +84,47 @@ class FancyDiffer:
 			if l[0] == ' ':
 				for i in range(2):
 					if st[i]:
-						oo[i] += colors.end
+						oo[i] += self.formatter.end_color ()
 						st[i] = False
-				oo = [o + l[2:] for o in oo]
+				oo = [o + self.formatter.escape (l[2:]) for o in oo]
 				continue
-			if l[0] == '-':
-				if not st[0]:
-					oo[0] += colors.red
-					st[0] = True
-				oo[0] += l[2:]
+			if l[0] in self.symbols:
+				i = self.symbols.index (l[0])
+				if not st[i]:
+					oo[i] += self.formatter.start_color (self.colors[i])
+					st[i] = True
+				oo[i] += self.formatter.escape (l[2:])
 				continue
-			if l[0] == '+':
-				if not st[1]:
-					oo[1] += colors.green
-					st[1] = True
-				oo[1] += l[2:]
 		for i in range(2):
 			if st[i]:
-				oo[i] += colors.end
-				st[i] = 0
+				oo[i] += self.formatter.end_color ()
+				st[i] = False
 		oo = [o.replace ('\n', '') for o in oo]
-		if oo[0] == oo[1]:
-			return [' ', oo[0], '\n']
-		return ['-', oo[0], '\n', '+', oo[1], '\n']
+		return [s1+s2+self.formatter.newline () for (s1,s2) in zip (self.symbols, oo) if s2]
+
+	def colorize_diff (self, f):
+		lines = [None, None]
+		for l in f:
+			if l[0] not in self.symbols:
+				yield self.formatter.escape (l).replace ('\n', self.formatter.newline ())
+				continue
+			i = self.symbols.index (l[0])
+			if lines[i]:
+				# Flush
+				for line in self.colorize_lines (lines):
+					yield line
+				lines = [None, None]
+			lines[i] = l[1:]
+			if (all (lines)):
+				# Flush
+				for line in self.colorize_lines (lines):
+					yield line
+				lines = [None, None]
+		if (any (lines)):
+			# Flush
+			for line in self.colorize_lines (lines):
+				yield line
+
 
 class ZipDiffer:
 

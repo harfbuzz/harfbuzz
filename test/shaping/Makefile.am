@@ -11,6 +11,7 @@ manifests:
 
 EXTRA_DIST += \
 	hb-diff \
+	hb-diff-colorize \
 	hb-diff-filter-failures \
 	hb-manifest-read \
 	hb-manifest-update \
