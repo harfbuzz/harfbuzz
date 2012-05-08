@@ -3,6 +3,9 @@
 import sys, os, re, difflib, unicodedata, errno
 from itertools import *
 
+diff_symbols = "-+=*&^%$#@!~/"
+diff_colors = ['red', 'green', 'blue']
+
 class Colors:
 	class Null:
 		red = ''
@@ -89,20 +92,20 @@ class FancyDiffer:
 			return [' ', oo[0], '\n']
 		return ['-', oo[0], '\n', '+', oo[1], '\n']
 
+class ZipDiffer:
+
 	@staticmethod
-	def diff_files (f1, f2, colors=Colors.Null):
+	def diff_files (files, symbols=diff_symbols):
+		files = tuple (files) # in case it's a generator, copy it
 		try:
-			for (l1,l2) in izip (f1, f2):
-				if l1 == l2:
-					sys.stdout.writelines ([" ", l1])
+			for lines in izip_longest (*files):
+				if all (lines[0] == line for line in lines[1:]):
+					sys.stdout.writelines ([" ", lines[0]])
 					continue
 
-				sys.stdout.writelines (FancyDiffer.diff_lines (l1, l2, colors))
-			# print out residues
-			for l in f1:
-				sys.stdout.writelines (["-", colors.red, l, colors.end])
-			for l in f2:
-				sys.stdout.writelines (["-", colors.green, l, colors.end])
+				for i, l in enumerate (lines):
+					if l:
+						sys.stdout.writelines ([symbols[i], l])
 		except IOError as e:
 			if e.errno != errno.EPIPE:
 				print >> sys.stderr, "%s: %s: %s" % (sys.argv[0], e.filename, e.strerror)
@@ -112,9 +115,9 @@ class FancyDiffer:
 class DiffFilters:
 
 	@staticmethod
-	def filter_failures (f):
+	def filter_failures (f, symbols=diff_symbols):
 		for l in f:
-			if l[0] in '-+':
+			if l[0] in symbols:
 				# TODO retain all lines of the failure
 				yield l
 
@@ -146,12 +149,13 @@ class UtilMains:
 	@staticmethod
 	def process_multiple_files (callback, mnemonic = "FILE"):
 
-		if len (sys.argv) == 1:
+		if "--help" in sys.argv:
 			print "Usage: %s %s..." % (sys.argv[0], mnemonic)
 			sys.exit (1)
 
 		try:
-			for s in sys.argv[1:]:
+			files = sys.argv[1:] if len (sys.argv) > 1 else ['-']
+			for s in files:
 				callback (FileHelpers.open_file_or_stdin (s))
 		except IOError as e:
 			if e.errno != errno.EPIPE:
