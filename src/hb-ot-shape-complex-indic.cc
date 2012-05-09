@@ -325,7 +325,7 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
       start + 3 <= end &&
       !is_joiner (info[start + 2]))
    {
-    info[start].indic_position() = POS_POST;
+    info[start].indic_position() = POS_POST + 1;
     info[start].mask = mask_array[RPHF];
    }
 
