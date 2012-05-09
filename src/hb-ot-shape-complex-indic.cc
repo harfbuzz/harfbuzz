@@ -220,14 +220,24 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
    */
 
   unsigned int base = end;
+  bool has_reph = false;
+
+  /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
+   *    and has more than one consonant, Ra is excluded from candidates for
+   *    base consonants. */
+  unsigned int limit = start;
+  if (mask_array[RPHF] &&
+      start + 2 < end &&
+      info[start].indic_category() == OT_Ra &&
+      info[start + 1].indic_category() == OT_H)
+  {
+    limit += 2;
+    base = start;
+    has_reph = true;
+  };
 
   /* -> starting from the end of the syllable, move backwards */
   i = end;
-  unsigned int limit = start;
-  if (info[start].indic_category() == OT_Ra && start + 2 <= end) {
-    limit += 2;
-    base = start;
-  };
   do {
     i--;
     /* -> until a consonant is found */
@@ -308,9 +318,8 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 
 
   /* Handle beginning Ra */
-  if (start + 3 <= end &&
-      info[start].indic_category() == OT_Ra &&
-      info[start + 1].indic_category() == OT_H &&
+  if (has_reph &&
+      start + 3 <= end &&
       !is_joiner (info[start + 2]))
    {
     info[start].indic_position() = POS_POST;
