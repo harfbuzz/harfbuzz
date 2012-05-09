@@ -78,7 +78,7 @@ static const struct {
   {HB_TAG('n','u','k','t'), true},
   {HB_TAG('a','k','h','n'), false},
   {HB_TAG('r','p','h','f'), false},
-  {HB_TAG('r','k','r','f'), false},
+  {HB_TAG('r','k','r','f'), true},
   {HB_TAG('p','r','e','f'), false},
   {HB_TAG('b','l','w','f'), false},
   {HB_TAG('h','a','l','f'), false},
