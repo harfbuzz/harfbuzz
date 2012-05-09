@@ -36,6 +36,7 @@
 /* buffer var allocations */
 #define indic_category() complex_var_persistent_u8_0() /* indic_category_t */
 #define indic_position() complex_var_persistent_u8_1() /* indic_matra_category_t */
+#define indic_syllable() complex_var_persistent_u8_2() /* serial */
 
 #define INDIC_TABLE_ELEMENT_TYPE uint8_t
 

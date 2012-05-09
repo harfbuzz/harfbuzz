@@ -59,12 +59,17 @@ z = ZWJ|ZWNJ;
 matra_group = M N? H?;
 syllable_tail = SM? (VD VD?)?;
 
-action found_consonant_syllable { found_consonant_syllable (map, buffer, mask_array, last, p); }
-action found_vowel_syllable { found_vowel_syllable (map, buffer, mask_array, last, p); }
-action found_standalone_cluster { found_standalone_cluster (map, buffer, mask_array, last, p); }
-action found_non_indic { found_non_indic (map, buffer, mask_array, last, p); }
+action found_consonant_syllable { initial_reordering_consonant_syllable (map, buffer, mask_array, last, p); }
+action found_vowel_syllable { initial_reordering_vowel_syllable (map, buffer, mask_array, last, p); }
+action found_standalone_cluster { initial_reordering_standalone_cluster (map, buffer, mask_array, last, p); }
+action found_non_indic { initial_reordering_non_indic (map, buffer, mask_array, last, p); }
 
-action next_syllable { buffer->merge_clusters (last, p); last = p; }
+action next_syllable {
+  for (unsigned int i = last; i < p; i++)
+    info[i].indic_syllable() = syllable_serial;
+  last = p;
+  syllable_serial++;
+}
 
 consonant_syllable =	(c.N? (H.z?|z.H))* c.N? A? (H.z? | matra_group*)? syllable_tail %(found_consonant_syllable);
 vowel_syllable =	(Ra H)? V N? (z?.H.c | ZWJ.c)? matra_group* syllable_tail %(found_vowel_syllable);
@@ -88,15 +93,17 @@ find_syllables (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_arr
 {
   unsigned int p, pe, eof;
   int cs;
+  hb_glyph_info_t *info = buffer->info;
   %%{
     write init;
-    getkey buffer->info[p].indic_category();
+    getkey info[p].indic_category();
   }%%
 
   p = 0;
   pe = eof = buffer->len;
 
   unsigned int last = 0;
+  uint8_t syllable_serial = 0;
   %%{
     write exec;
   }%%

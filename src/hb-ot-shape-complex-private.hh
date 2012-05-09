@@ -41,10 +41,9 @@
 /* buffer var allocations, used by complex shapers */
 #define complex_var_persistent_u8_0()	var2.u8[0]
 #define complex_var_persistent_u8_1()	var2.u8[1]
+#define complex_var_persistent_u8_2()	var2.u8[2]
 #define complex_var_persistent_u16()	var2.u16[0]
-#define complex_var_temporary_u8_0()	var2.u8[2]
-#define complex_var_temporary_u8_1()	var2.u8[3]
-#define complex_var_temporary_u16()	var2.u16[1]
+#define complex_var_temporary_u8()	var2.u8[3]
 
 
 #define HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS \

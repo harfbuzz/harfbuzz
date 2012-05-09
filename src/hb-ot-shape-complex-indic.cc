@@ -163,6 +163,7 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
+  HB_BUFFER_ALLOCATE_VAR (buffer, indic_syllable);
 
   /* We cannot setup masks here.  We save information about characters
    * and setup masks later on in a pause-callback. */
@@ -205,8 +206,8 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
 }
 
 static void
-found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
-			  unsigned int start, unsigned int end)
+initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+				       unsigned int start, unsigned int end)
 {
   unsigned int i;
   hb_glyph_info_t *info = buffer->info;
@@ -410,8 +411,8 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
 
 
 static void
-found_vowel_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
-		      unsigned int start, unsigned int end)
+initial_reordering_vowel_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+				   unsigned int start, unsigned int end)
 {
   /* TODO
    * Not clear to me how this should work.  Do the matras move to before the
@@ -420,17 +421,17 @@ found_vowel_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *ma
 }
 
 static void
-found_standalone_cluster (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
-			  unsigned int start, unsigned int end)
+initial_reordering_standalone_cluster (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+				       unsigned int start, unsigned int end)
 {
   /* TODO
    * Easiest thing to do here is to convert the NBSP to consonant and
-   * call found_consonant_syllable.
+   * call initial_reordering_consonant_syllable.
    */
 }
 
 static void
-found_non_indic (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+initial_reordering_non_indic (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
 		 unsigned int start, unsigned int end)
 {
   /* Nothing to do right now.  If we ever switch to using the output
@@ -454,10 +455,8 @@ initial_reordering (const hb_ot_map_t *map,
 }
 
 static void
-final_reordering (const hb_ot_map_t *map,
-		  hb_face_t *face,
-		  hb_buffer_t *buffer,
-		  void *user_data HB_UNUSED)
+final_reordering_syllable (hb_buffer_t *buffer,
+			   unsigned int start, unsigned int end)
 {
   /* 4. Final reordering:
    *
@@ -533,9 +532,31 @@ final_reordering (const hb_ot_map_t *map,
    */
 
   /* TODO */
+  buffer->merge_clusters (start, end);
+}
 
 
+static void
+final_reordering (const hb_ot_map_t *map,
+		  hb_face_t *face,
+		  hb_buffer_t *buffer,
+		  void *user_data HB_UNUSED)
+{
+  unsigned int count = buffer->len;
+  if (!count) return;
 
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int last = 0;
+  unsigned int last_syllable = info[0].indic_syllable();
+  for (unsigned int i = 1; i < count; i++)
+    if (last_syllable != info[i].indic_syllable()) {
+      final_reordering_syllable (buffer, last, i);
+      last = i;
+      last_syllable = info[last].indic_syllable();
+    }
+  final_reordering_syllable (buffer, last, count);
+
+  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_syllable);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
 }
