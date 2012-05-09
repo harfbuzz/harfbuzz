@@ -136,13 +136,17 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_
 
   map->add_gsub_pause (initial_reordering, NULL);
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++)
+  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++) {
     map->add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
+    map->add_gsub_pause (NULL, NULL);
+  }
 
   map->add_gsub_pause (final_reordering, NULL);
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++)
+  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++) {
     map->add_bool_feature (indic_other_features[i], true);
+    map->add_gsub_pause (NULL, NULL);
+  }
 }
 
 
