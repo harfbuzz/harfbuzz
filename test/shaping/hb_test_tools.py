@@ -169,6 +169,53 @@ class DiffSinks:
 		total = passed + failed
 		print "%d out of %d tests passed.  %d failed (%g%%)" % (passed, total, failed, 100. * failed / total)
 
+	@staticmethod
+	def print_ngrams (f, ns=(1,2,3)):
+		gens = tuple (Ngram.generator (n) for n in ns)
+		for key, lines in DiffHelpers.separate_test_cases (f):
+			test = Test (lines)
+			unicodes = test.unicodes
+			del test
+
+			for gen in gens:
+				print "Printing %d-grams:" % gen.n
+				for ngram in gen (unicodes):
+					print ngram
+
+
+
+class Test:
+
+	def __init__ (self, lines):
+		self.passed = True
+		self.identifier = None
+		self.text = None
+		self.unicodes = None
+		self.glyphs = None
+		for l in lines:
+			symbol = l[0]
+			if symbol != ' ':
+				self.passed = False
+			i = 1
+			if ':' in l:
+				i = l.index (':')
+				if not self.identifier:
+					self.identifier = l[1:i]
+				i = i + 2 # Skip colon and space
+			j = -1
+			if l[j] == '\n':
+				j -= 1
+			brackets = l[i] + l[j]
+			l = l[i+1:-2]
+			if brackets == '()':
+				self.text = l
+			elif brackets == '<>':
+				self.unicodes = Unicode.parse (l)
+			elif brackets == '[]':
+				# XXX we don't handle failed tests here
+				self.glyphs = l
+
+
 class DiffHelpers:
 
 	@staticmethod
@@ -203,6 +250,23 @@ class FilterHelpers:
 			for line in filter_callback (f):
 				sys.stdout.writelines ([line])
 		return printer
+
+
+class Ngram:
+
+	@staticmethod
+	def generator (n):
+
+		def gen (f):
+			l = []
+			for x in f:
+				l.append (x)
+				if len (l) == n:
+					yield tuple (l)
+					l[:1] = []
+
+		gen.n = n
+		return gen
 
 
 class UtilMains:
@@ -276,10 +340,14 @@ class Unicode:
 		return '<' + u','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf-8')).encode ('utf-8') + '>'
 
 	@staticmethod
-	def encode (s):
+	def parse (s):
 		s = re.sub (r"[<+>,\\uU\n	]", " ", s)
 		s = re.sub (r"0[xX]", " ", s)
-		return u''.join (unichr (int (x, 16)) for x in s.split (' ') if len (x)).encode ('utf-8')
+		return [int (x, 16) for x in s.split (' ') if len (x)]
+
+	@staticmethod
+	def encode (s):
+		return u''.join (unichr (x) for x in Unicode.parse (s)).encode ('utf-8')
 
 	shorthands = {
 		"ZERO WIDTH NON-JOINER": "ZWNJ",
