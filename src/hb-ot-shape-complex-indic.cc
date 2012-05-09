@@ -92,7 +92,7 @@ enum {
   _NUKT,
   AKHN,
   RPHF,
-  RKRF,
+  _RKRF,
   PREF,
   BLWF,
   HALF,
