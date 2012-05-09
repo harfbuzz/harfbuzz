@@ -46,7 +46,7 @@ consonant_position (hb_codepoint_t u)
 					     sizeof (consonant_positions[0]),
 					     compare_codepoint);
 
-  return record ? record->position : POS_BASE;
+  return record ? record->position : POS_BASE_C;
 }
 
 static bool
@@ -189,7 +189,7 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
 
     if (unlikely (buffer->info[i].codepoint == 0x0952)) {
       buffer->info[i].indic_category() = OT_A;
-      buffer->info[i].indic_position() = POS_BELOW;
+      buffer->info[i].indic_position() = POS_SMVD;
     }
   }
 }
@@ -253,8 +253,8 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
     {
       /* -> that does not have a below-base or post-base form
        * (post-base forms have to follow below-base forms), */
-      if (info[i].indic_position() != POS_BELOW &&
-	  info[i].indic_position() != POS_POST)
+      if (info[i].indic_position() != POS_BELOW_C &&
+	  info[i].indic_position() != POS_POST_C)
       {
         base = i;
 	break;
@@ -321,8 +321,8 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
   /* Reorder characters */
 
   for (i = start; i < base; i++)
-    info[i].indic_position() = POS_PRE;
-  info[base].indic_position() = POS_BASE;
+    info[i].indic_position() = POS_PRE_C;
+  info[base].indic_position() = POS_BASE_C;
 
 
   /* Handle beginning Ra */
