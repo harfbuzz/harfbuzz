@@ -35,12 +35,30 @@
 
 
 /* buffer var allocations */
-#define lig_id() var2.u8[2] /* unique ligature id */
-#define lig_comp() var2.u8[3] /* component number in the ligature (0 = base) */
+#define lig_props() var2.u8[3]
+
+/* unique ligature id */
+/* component number in the ligature (0 = base) */
+static inline void
+set_lig_props (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
+{
+  info.lig_props() = (lig_id << 4) | (lig_comp & 0x0F);
+}
+static inline unsigned int
+get_lig_id (hb_glyph_info_t &info)
+{
+  return info.lig_props() >> 4;
+}
+static inline unsigned int
+get_lig_comp (hb_glyph_info_t &info)
+{
+  return info.lig_props() & 0x0F;
+}
 
 static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
-  uint8_t lig_id = buffer->next_serial ();
-  if (unlikely (!lig_id)) lig_id = buffer->next_serial (); /* in case of overflow */
+  uint8_t lig_id = buffer->next_serial () & 0x0F;
+  if (unlikely (!lig_id))
+    lig_id = allocate_lig_id (buffer); /* in case of overflow */
   return lig_id;
 }
 

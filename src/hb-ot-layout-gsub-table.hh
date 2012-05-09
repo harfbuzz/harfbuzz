@@ -516,8 +516,7 @@ struct Ligature
 
     /* Allocate new ligature id */
     unsigned int lig_id = allocate_lig_id (c->buffer);
-    c->buffer->info[c->buffer->idx].lig_comp() = 0;
-    c->buffer->info[c->buffer->idx].lig_id() = lig_id;
+    set_lig_props (c->buffer->info[c->buffer->idx], lig_id, 0);
 
     if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
     {
@@ -538,8 +537,7 @@ struct Ligature
       {
 	while (c->should_mark_skip_current_glyph ())
 	{
-	  c->buffer->info[c->buffer->idx].lig_comp() = i;
-	  c->buffer->info[c->buffer->idx].lig_id() = lig_id;
+	  set_lig_props (c->buffer->info[c->buffer->idx],  lig_id, i);
 	  c->replace_glyph (c->buffer->info[c->buffer->idx].codepoint);
 	}
 
@@ -1193,12 +1191,11 @@ void
 GSUB::substitute_start (hb_buffer_t *buffer)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, props_cache);
-  HB_BUFFER_ALLOCATE_VAR (buffer, lig_id);
-  HB_BUFFER_ALLOCATE_VAR (buffer, lig_comp);
+  HB_BUFFER_ALLOCATE_VAR (buffer, lig_props);
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].props_cache() = buffer->info[i].lig_id() = buffer->info[i].lig_comp() = 0;
+    buffer->info[i].props_cache() = buffer->info[i].lig_props() = 0;
 }
 
 void
