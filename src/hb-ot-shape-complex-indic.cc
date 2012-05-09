@@ -173,7 +173,7 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
     unsigned int type = get_indic_categories (buffer->info[i].codepoint);
 
     buffer->info[i].indic_category() = type & 0x0F;
-    buffer->info[i].indic_position() = (type >> 4) & 7;
+    buffer->info[i].indic_position() = type >> 4;
 
     if (buffer->info[i].indic_category() == OT_C) {
       buffer->info[i].indic_position() = consonant_position (buffer->info[i].codepoint);
@@ -181,7 +181,7 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
 	buffer->info[i].indic_category() = OT_Ra;
     } else if (buffer->info[i].indic_category() == OT_SM ||
 	       buffer->info[i].indic_category() == OT_VD) {
-      buffer->info[i].indic_position() = POS_POST;
+      buffer->info[i].indic_position() = POS_SMVD;
     } else if (unlikely (buffer->info[i].codepoint == 0x200C))
       buffer->info[i].indic_category() = OT_ZWNJ;
     else if (unlikely (buffer->info[i].codepoint == 0x200D))
@@ -330,7 +330,7 @@ found_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t
       start + 3 <= end &&
       !is_joiner (info[start + 2]))
    {
-    info[start].indic_position() = POS_POST + 1;
+    info[start].indic_position() = POS_REPH;
     info[start].mask = mask_array[RPHF];
    }
 

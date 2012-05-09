@@ -40,7 +40,7 @@ main (void)
     unsigned int position = type >> 4;
 
     hb_codepoint_t a, b;
-    if ((position & 8) && !hb_unicode_decompose (funcs, u, &a, &b))
+    if (!hb_unicode_decompose (funcs, u, &a, &b))
       printf ("U+%04X\n", u);
   }
 }
