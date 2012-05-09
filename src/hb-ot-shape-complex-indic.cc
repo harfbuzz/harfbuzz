@@ -182,10 +182,15 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
     } else if (buffer->info[i].indic_category() == OT_SM ||
 	       buffer->info[i].indic_category() == OT_VD) {
       buffer->info[i].indic_position() = POS_POST;
-    } else if (buffer->info[i].codepoint == 0x200C)
+    } else if (unlikely (buffer->info[i].codepoint == 0x200C))
       buffer->info[i].indic_category() = OT_ZWNJ;
-    else if (buffer->info[i].codepoint == 0x200D)
+    else if (unlikely (buffer->info[i].codepoint == 0x200D))
       buffer->info[i].indic_category() = OT_ZWJ;
+
+    if (unlikely (buffer->info[i].codepoint == 0x0952)) {
+      buffer->info[i].indic_category() = OT_A;
+      buffer->info[i].indic_position() = POS_BELOW;
+    }
   }
 }
 
