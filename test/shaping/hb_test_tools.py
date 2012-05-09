@@ -150,7 +150,8 @@ class DiffFilters:
 
 	@staticmethod
 	def filter_failures (f):
-		for lines in DiffHelpers.separate_test_cases (f):
+		for key, lines in DiffHelpers.separate_test_cases (f):
+			lines = list (lines)
 			if not DiffHelpers.test_passed (lines):
 				for l in lines: yield l
 
@@ -160,7 +161,7 @@ class DiffSinks:
 	def print_stat (f):
 		passed = 0
 		failed = 0
-		for lines in DiffHelpers.separate_test_cases (f):
+		for key, lines in DiffHelpers.separate_test_cases (f):
 			if DiffHelpers.test_passed (lines):
 				passed += 1
 			else:
@@ -176,22 +177,11 @@ class DiffHelpers:
 		   have a colon character, groups them by identifier,
 		   yielding lists of all lines with the same identifier.'''
 
-		acc = []
-		iden = None
-		for l in f:
-			if ':' not in l:
-				if acc: yield acc
-				acc = []
-				iden = None
-				yield [l]
-				continue
-			l_iden = l[1:l.index (':')]
-			if acc and iden != l_iden:
-				yield acc
-				acc = []
-			iden = l_iden
-			acc.append (l)
-		if acc: yield acc
+		def identifier (l):
+			if ':' in l[1:]:
+				return l[1:l.index (':')]
+			return l
+		return groupby (f, key=identifier)
 
 	@staticmethod
 	def test_passed (lines):
