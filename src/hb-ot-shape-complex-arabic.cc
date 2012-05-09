@@ -25,6 +25,7 @@
  */
 
 #include "hb-ot-shape-complex-private.hh"
+#include "hb-ot-shape-private.hh"
 
 
 
@@ -248,7 +249,7 @@ _hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer, 
 
   for (unsigned int i = 0; i < count; i++)
   {
-    unsigned int this_type = get_joining_type (buffer->info[i].codepoint, (hb_unicode_general_category_t) buffer->info[i].general_category());
+    unsigned int this_type = get_joining_type (buffer->info[i].codepoint, _hb_glyph_info_get_general_category (&buffer->info[i]));
 
     if (unlikely (this_type == JOINING_TYPE_T)) {
       buffer->info[i].arabic_shaping_action() = NONE;

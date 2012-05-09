@@ -35,8 +35,8 @@
 
 
 /* buffer var allocations, used during the entire shaping process */
-#define general_category() var1.u8[0] /* unicode general_category (hb_unicode_general_category_t) */
-#define combining_class() var1.u8[1] /* unicode combining_class (uint8_t) */
+#define unicode_props0()	var1.u8[0]
+#define unicode_props1()	var1.u8[1]
 
 /* buffer var allocations, used by complex shapers */
 #define complex_var_persistent_u8_0()	var2.u8[0]

@@ -433,24 +433,6 @@ found_non_indic (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_ar
 #include "hb-ot-shape-complex-indic-machine.hh"
 
 static void
-remove_joiners (hb_buffer_t *buffer)
-{
-  /* For now we remove joiners.  However, Uniscbire seems to keep them
-   * and output a zero-width space glyph for them.  It is not clear to
-   * me how that is supposed to interact with GSUB. */
-
-  buffer->clear_output ();
-  unsigned int count = buffer->len;
-  for (buffer->idx = 0; buffer->idx < count;)
-    if (unlikely (is_joiner (buffer->info[buffer->idx])))
-      buffer->skip_glyph ();
-    else
-      buffer->next_glyph ();
-
-  buffer->swap_buffers ();
-}
-
-static void
 initial_reordering (const hb_ot_map_t *map,
 		    hb_face_t *face,
 		    hb_buffer_t *buffer,
@@ -462,8 +444,6 @@ initial_reordering (const hb_ot_map_t *map,
     mask_array[i] = map->get_1_mask (indic_basic_features[i].tag);
 
   find_syllables (map, buffer, mask_array);
-
-  remove_joiners (buffer);
 }
 
 static void

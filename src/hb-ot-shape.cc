@@ -43,6 +43,7 @@ hb_tag_t common_features[] = {
   HB_TAG('r','l','i','g'),
 };
 
+
 hb_tag_t horizontal_features[] = {
   HB_TAG('c','a','l','t'),
   HB_TAG('c','l','i','g'),
@@ -170,19 +171,12 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 
 /* Prepare */
 
-static inline void
-set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
-{
-  info->general_category() = hb_unicode_general_category (unicode, info->codepoint);
-  info->combining_class() = _hb_unicode_modified_combining_class (unicode, info->codepoint);
-}
-
 static void
 hb_set_unicode_props (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    set_unicode_props (&buffer->info[i], buffer->unicode);
+    _hb_glyph_info_set_unicode_props (&buffer->info[i], buffer->unicode);
 }
 
 static void
@@ -190,7 +184,7 @@ hb_form_clusters (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 1; i < count; i++)
-    if (FLAG (buffer->info[i].general_category()) &
+    if (FLAG (_hb_glyph_info_get_general_category (&buffer->info[i])) &
 	(FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
@@ -379,6 +373,23 @@ hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
   hb_truetype_kern (c);
 }
 
+static void
+hb_hide_zerowidth (hb_ot_shape_context_t *c)
+{
+  /* TODO Save the space character in the font? */
+  hb_codepoint_t space;
+  if (!hb_font_get_glyph (c->font, ' ', 0, &space))
+    return; /* No point! */
+
+  unsigned int count = c->buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    if (unlikely (_hb_glyph_info_is_zero_width (&c->buffer->info[i]))) {
+      c->buffer->info[i].codepoint = space;
+      c->buffer->pos[i].x_advance = 0;
+      c->buffer->pos[i].y_advance = 0;
+    }
+}
+
 
 /* Do it! */
 
@@ -390,10 +401,10 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   /* Save the original direction, we use it later. */
   c->target_direction = c->buffer->props.direction;
 
-  HB_BUFFER_ALLOCATE_VAR (c->buffer, general_category);
-  HB_BUFFER_ALLOCATE_VAR (c->buffer, combining_class);
+  HB_BUFFER_ALLOCATE_VAR (c->buffer, unicode_props0);
+  HB_BUFFER_ALLOCATE_VAR (c->buffer, unicode_props1);
 
-  hb_set_unicode_props (c->buffer); /* BUFFER: Set general_category and combining_class */
+  hb_set_unicode_props (c->buffer);
 
   hb_form_clusters (c->buffer);
 
@@ -427,8 +438,10 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
       hb_position_complex_fallback_visual (c);
   }
 
-  HB_BUFFER_DEALLOCATE_VAR (c->buffer, combining_class);
-  HB_BUFFER_DEALLOCATE_VAR (c->buffer, general_category);
+  hb_hide_zerowidth (c);
+
+  HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props1);
+  HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props0);
 
   c->buffer->props.direction = c->target_direction;
 
