@@ -151,8 +151,22 @@ class DiffFilters:
 	@staticmethod
 	def filter_failures (f):
 		for lines in DiffHelpers.separate_test_cases (f):
-			if any (l[0] != ' ' for l in lines):
+			if not DiffHelpers.test_passed (lines):
 				for l in lines: yield l
+
+class DiffSinks:
+
+	@staticmethod
+	def print_stat (f):
+		passed = 0
+		failed = 0
+		for lines in DiffHelpers.separate_test_cases (f):
+			if DiffHelpers.test_passed (lines):
+				passed += 1
+			else:
+				failed += 1
+		total = passed + failed
+		print "%d out of %d tests passed.  %d failed (%g%%)" % (passed, total, failed, 100. * failed / total)
 
 class DiffHelpers:
 
@@ -175,9 +189,13 @@ class DiffHelpers:
 			if acc and iden != l_iden:
 				yield acc
 				acc = []
-				iden = l_iden
+			iden = l_iden
 			acc.append (l)
 		if acc: yield acc
+
+	@staticmethod
+	def test_passed (lines):
+		return all (l[0] == ' ' for l in lines)
 
 
 class FilterHelpers:
