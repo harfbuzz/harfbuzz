@@ -170,26 +170,27 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
   {
-    unsigned int type = get_indic_categories (buffer->info[i].codepoint);
+    hb_glyph_info_t &info = buffer->info[i];
+    unsigned int type = get_indic_categories (info.codepoint);
 
-    buffer->info[i].indic_category() = type & 0x0F;
-    buffer->info[i].indic_position() = type >> 4;
+    info.indic_category() = type & 0x0F;
+    info.indic_position() = type >> 4;
 
-    if (buffer->info[i].indic_category() == OT_C) {
-      buffer->info[i].indic_position() = consonant_position (buffer->info[i].codepoint);
-      if (is_ra (buffer->info[i].codepoint))
-	buffer->info[i].indic_category() = OT_Ra;
-    } else if (buffer->info[i].indic_category() == OT_SM ||
-	       buffer->info[i].indic_category() == OT_VD) {
-      buffer->info[i].indic_position() = POS_SMVD;
-    } else if (unlikely (buffer->info[i].codepoint == 0x200C))
-      buffer->info[i].indic_category() = OT_ZWNJ;
-    else if (unlikely (buffer->info[i].codepoint == 0x200D))
-      buffer->info[i].indic_category() = OT_ZWJ;
+    if (info.indic_category() == OT_C) {
+      info.indic_position() = consonant_position (info.codepoint);
+      if (is_ra (info.codepoint))
+	info.indic_category() = OT_Ra;
+    } else if (info.indic_category() == OT_SM ||
+	       info.indic_category() == OT_VD) {
+      info.indic_position() = POS_SMVD;
+    } else if (unlikely (info.codepoint == 0x200C))
+      info.indic_category() = OT_ZWNJ;
+    else if (unlikely (info.codepoint == 0x200D))
+      info.indic_category() = OT_ZWJ;
 
-    if (unlikely (buffer->info[i].codepoint == 0x0952)) {
-      buffer->info[i].indic_category() = OT_A;
-      buffer->info[i].indic_position() = POS_SMVD;
+    if (unlikely (info.codepoint == 0x0952)) {
+      info.indic_category() = OT_A;
+      info.indic_position() = POS_SMVD;
     }
   }
 }
