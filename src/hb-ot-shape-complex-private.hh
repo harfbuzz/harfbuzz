@@ -136,7 +136,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     /* Simple */
 
     /* Unicode-1.1 additions */
-    /* TODO These two need their own shaper I guess? */
+    /* These have their own shaper now. */
     case HB_SCRIPT_LAO:
     case HB_SCRIPT_THAI:
 
