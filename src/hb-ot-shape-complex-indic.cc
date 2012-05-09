@@ -179,7 +179,8 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
       buffer->info[i].indic_position() = consonant_position (buffer->info[i].codepoint);
       if (is_ra (buffer->info[i].codepoint))
 	buffer->info[i].indic_category() = OT_Ra;
-    } else if (buffer->info[i].indic_category() == OT_SM) {
+    } else if (buffer->info[i].indic_category() == OT_SM ||
+	       buffer->info[i].indic_category() == OT_VD) {
       buffer->info[i].indic_position() = POS_POST;
     } else if (buffer->info[i].codepoint == 0x200C)
       buffer->info[i].indic_category() = OT_ZWNJ;
