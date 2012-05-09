@@ -149,16 +149,35 @@ class ZipDiffer:
 class DiffFilters:
 
 	@staticmethod
-	def filter_failures (f, symbols=diff_symbols):
+	def filter_failures (f):
+		for lines in DiffHelpers.separate_test_cases (f):
+			if any (l[0] != ' ' for l in lines):
+				for l in lines: yield l
+
+class DiffHelpers:
+
+	@staticmethod
+	def separate_test_cases (f):
+		'''Reads lines from f, and if the lines have identifiers, ie.
+		   have a colon character, groups them by identifier,
+		   yielding lists of all lines with the same identifier.'''
+
+		acc = []
+		iden = None
 		for l in f:
-			if l[0] in symbols:
-				# TODO retain all lines of the failure
-				yield l
-
-
-class ShapeFilters:
-
-	pass
+			if ':' not in l:
+				if acc: yield acc
+				acc = []
+				iden = None
+				yield [l]
+				continue
+			l_iden = l[1:l.index (':')]
+			if acc and iden != l_iden:
+				yield acc
+				acc = []
+				iden = l_iden
+			acc.append (l)
+		if acc: yield acc
 
 
 class FilterHelpers:
