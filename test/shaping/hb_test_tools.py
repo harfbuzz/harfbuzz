@@ -155,12 +155,60 @@ class DiffFilters:
 			if not DiffHelpers.test_passed (lines):
 				for l in lines: yield l
 
+class Stat:
+
+	def __init__ (self):
+		self.count = 0
+		self.freq = 0
+
+	def add (self, test):
+		self.count += 1
+		self.freq += test.freq
+
+class Stats:
+
+	def __init__ (self):
+		self.passed = Stat ()
+		self.failed = Stat ()
+		self.total  = Stat ()
+
+	def add (self, test):
+		self.total.add (test)
+		if test.passed:
+			self.passed.add (test)
+		else:
+			self.failed.add (test)
+
+	def mean (self):
+		return float (self.passed.count) / self.total.count
+
+	def variance (self):
+		return (float (self.passed.count) / self.total.count) * \
+		       (float (self.failed.count) / self.total.count)
+
+	def stddev (self):
+		return self.variance () ** .5
+
+	def zscore (self, population):
+		"""Calculate the standard score.
+		   Population is the Stats for population.
+		   Self is Stats for sample.
+		   Returns larger absolute value if sample is highly unlikely to be random.
+		   Anything outside of -3..+3 is very unlikely to be random.
+		   See: http://en.wikipedia.org/wiki/Standard_score"""
+
+		return (self.mean () - population.mean ()) / population.stddev ()
+
+
+
+
 class DiffSinks:
 
 	@staticmethod
 	def print_stat (f):
 		passed = 0
 		failed = 0
+		# XXX port to Stats, but that would really slow us down here
 		for key, lines in DiffHelpers.separate_test_cases (f):
 			if DiffHelpers.test_passed (lines):
 				passed += 1
@@ -172,21 +220,34 @@ class DiffSinks:
 	@staticmethod
 	def print_ngrams (f, ns=(1,2,3)):
 		gens = tuple (Ngram.generator (n) for n in ns)
+		allstats = Stats ()
+		allgrams = {}
 		for key, lines in DiffHelpers.separate_test_cases (f):
 			test = Test (lines)
-			unicodes = test.unicodes
-			del test
+			allstats.add (test)
 
 			for gen in gens:
-				print "Printing %d-grams:" % gen.n
-				for ngram in gen (unicodes):
-					print ngram
+				for ngram in gen (test.unicodes):
+					if ngram not in allgrams:
+						allgrams[ngram] = Stats ()
+					allgrams[ngram].add (test)
+
+		importantgrams = {}
+		for ngram, stats in allgrams.iteritems ():
+			if stats.failed.count >= 30: # for statistical reasons
+				importantgrams[ngram] = stats
+		allgrams = importantgrams
+		del importantgrams
+
+		for ngram, stats in allgrams.iteritems ():
+			print "zscore: %9f failed: %6d passed: %6d ngram: <%s>" % (stats.zscore (allstats), stats.failed.count, stats.passed.count, ','.join ("U+%04X" % u for u in ngram))
 
 
 
 class Test:
 
 	def __init__ (self, lines):
+		self.freq = 1
 		self.passed = True
 		self.identifier = None
 		self.text = None
