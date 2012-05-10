@@ -1,5 +1,6 @@
 /*
  * Copyright © 2007,2008,2009,2010  Red Hat, Inc.
+ * Copyright © 2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OPEN_TYPE_PRIVATE_HH
@@ -153,7 +155,7 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 
 #define TRACE_SANITIZE() \
-	hb_auto_trace_t<HB_DEBUG_SANITIZE, unsigned int> trace (&c->debug_depth, "SANITIZE", this, HB_FUNC, "");
+	hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&c->debug_depth, "SANITIZE", this, HB_FUNC, "");
 
 
 struct hb_sanitize_context_t
@@ -371,7 +373,7 @@ struct IntType
   inline int cmp (Type a) const { Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return likely (c->check_struct (this));
+    return TRACE_RETURN (likely (c->check_struct (this)));
   }
   protected:
   BEInt<Type, sizeof (Type)> v;
@@ -401,7 +403,7 @@ struct LONGDATETIME
 {
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return likely (c->check_struct (this));
+    return TRACE_RETURN (likely (c->check_struct (this)));
   }
   private:
   LONG major;
@@ -465,7 +467,7 @@ struct FixedVersion
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this);
+    return TRACE_RETURN (c->check_struct (this));
   }
 
   USHORT major;
@@ -493,20 +495,20 @@ struct GenericOffsetTo : OffsetType
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    if (unlikely (!c->check_struct (this))) return false;
+    if (unlikely (!c->check_struct (this))) return TRACE_RETURN (false);
     unsigned int offset = *this;
-    if (unlikely (!offset)) return true;
+    if (unlikely (!offset)) return TRACE_RETURN (true);
     Type &obj = StructAtOffset<Type> (base, offset);
-    return likely (obj.sanitize (c)) || neuter (c);
+    return TRACE_RETURN (likely (obj.sanitize (c)) || neuter (c));
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (unlikely (!c->check_struct (this))) return false;
+    if (unlikely (!c->check_struct (this))) return TRACE_RETURN (false);
     unsigned int offset = *this;
-    if (unlikely (!offset)) return true;
+    if (unlikely (!offset)) return TRACE_RETURN (true);
     Type &obj = StructAtOffset<Type> (base, offset);
-    return likely (obj.sanitize (c, user_data)) || neuter (c);
+    return TRACE_RETURN (likely (obj.sanitize (c, user_data)) || neuter (c));
   }
 
   private:
@@ -558,7 +560,7 @@ struct GenericArrayOf
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (c))) return false;
+    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
 
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
@@ -569,33 +571,32 @@ struct GenericArrayOf
      */
     (void) (false && array[0].sanitize (c));
 
-    return true;
+    return TRACE_RETURN (true);
   }
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (c))) return false;
+    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!array[i].sanitize (c, base)))
-        return false;
-    return true;
+        return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, void *base, T user_data) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (c))) return false;
+    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!array[i].sanitize (c, base, user_data)))
-        return false;
-    return true;
+        return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
   }
 
   private:
   inline bool sanitize_shallow (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& c->check_array (this, Type::static_size, len);
+    return TRACE_RETURN (c->check_struct (this) && c->check_array (this, Type::static_size, len));
   }
 
   public:
@@ -637,12 +638,12 @@ struct OffsetListOf : OffsetArrayOf<Type>
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (c, this);
+    return TRACE_RETURN (OffsetArrayOf<Type>::sanitize (c, this));
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, T user_data) {
     TRACE_SANITIZE ();
-    return OffsetArrayOf<Type>::sanitize (c, this, user_data);
+    return TRACE_RETURN (OffsetArrayOf<Type>::sanitize (c, this, user_data));
   }
 };
 
@@ -667,7 +668,7 @@ struct HeadlessArrayOf
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!sanitize_shallow (c))) return false;
+    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
 
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
@@ -678,7 +679,7 @@ struct HeadlessArrayOf
      */
     (void) (false && array[0].sanitize (c));
 
-    return true;
+    return TRACE_RETURN (true);
   }
 
   USHORT len;

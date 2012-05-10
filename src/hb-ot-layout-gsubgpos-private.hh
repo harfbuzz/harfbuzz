@@ -69,7 +69,7 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 #endif
 
 #define TRACE_CLOSURE() \
-	hb_auto_trace_t<HB_DEBUG_CLOSURE, unsigned int> trace (&c->debug_depth, "CLOSURE", this, HB_FUNC, "");
+	hb_auto_trace_t<HB_DEBUG_CLOSURE> trace (&c->debug_depth, "CLOSURE", this, HB_FUNC, "");
 
 
 
@@ -96,7 +96,7 @@ struct hb_closure_context_t
 #endif
 
 #define TRACE_APPLY() \
-	hb_auto_trace_t<HB_DEBUG_APPLY, unsigned int> trace (&c->debug_depth, "APPLY", this, HB_FUNC, "");
+	hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", this, HB_FUNC, "");
 
 
 
@@ -381,7 +381,7 @@ struct LookupRecord
 {
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this);
+    return TRACE_RETURN (c->check_struct (this));
   }
 
   USHORT	sequenceIndex;		/* Index into current glyph
@@ -583,7 +583,7 @@ struct RuleSet
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return rule.sanitize (c, this);
+    return TRACE_RETURN (rule.sanitize (c, this));
   }
 
   private:
@@ -637,8 +637,7 @@ struct ContextFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (c, this)
-	&& ruleSet.sanitize (c, this);
+    return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
   private:
@@ -700,9 +699,7 @@ struct ContextFormat2
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (c, this)
-        && classDef.sanitize (c, this)
-	&& ruleSet.sanitize (c, this);
+    return TRACE_RETURN (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
   private:
@@ -764,13 +761,13 @@ struct ContextFormat3
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!c->check_struct (this)) return false;
+    if (!c->check_struct (this)) return TRACE_RETURN (false);
     unsigned int count = glyphCount;
-    if (!c->check_array (coverage, coverage[0].static_size, count)) return false;
+    if (!c->check_array (coverage, coverage[0].static_size, count)) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < count; i++)
-      if (!coverage[i].sanitize (c, this)) return false;
+      if (!coverage[i].sanitize (c, this)) return TRACE_RETURN (false);
     LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * count);
-    return c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount);
+    return TRACE_RETURN (c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount));
   }
 
   private:
@@ -815,12 +812,12 @@ struct Context
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    case 3: return u.format3.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    case 2: return TRACE_RETURN (u.format2.sanitize (c));
+    case 3: return TRACE_RETURN (u.format3.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -945,13 +942,13 @@ struct ChainRule
   public:
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!backtrack.sanitize (c)) return false;
+    if (!backtrack.sanitize (c)) return TRACE_RETURN (false);
     HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
-    if (!input.sanitize (c)) return false;
+    if (!input.sanitize (c)) return TRACE_RETURN (false);
     ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
-    if (!lookahead.sanitize (c)) return false;
+    if (!lookahead.sanitize (c)) return TRACE_RETURN (false);
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return lookup.sanitize (c);
+    return TRACE_RETURN (lookup.sanitize (c));
   }
 
   private:
@@ -997,7 +994,7 @@ struct ChainRuleSet
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return rule.sanitize (c, this);
+    return TRACE_RETURN (rule.sanitize (c, this));
   }
 
   private:
@@ -1049,8 +1046,7 @@ struct ChainContextFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (c, this)
-	&& ruleSet.sanitize (c, this);
+    return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
   private:
@@ -1120,11 +1116,9 @@ struct ChainContextFormat2
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (c, this)
-	&& backtrackClassDef.sanitize (c, this)
-	&& inputClassDef.sanitize (c, this)
-	&& lookaheadClassDef.sanitize (c, this)
-	&& ruleSet.sanitize (c, this);
+    return TRACE_RETURN (coverage.sanitize (c, this) && backtrackClassDef.sanitize (c, this) &&
+			 inputClassDef.sanitize (c, this) && lookaheadClassDef.sanitize (c, this) &&
+			 ruleSet.sanitize (c, this));
   }
 
   private:
@@ -1204,13 +1198,13 @@ struct ChainContextFormat3
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!backtrack.sanitize (c, this)) return false;
+    if (!backtrack.sanitize (c, this)) return TRACE_RETURN (false);
     OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    if (!input.sanitize (c, this)) return false;
+    if (!input.sanitize (c, this)) return TRACE_RETURN (false);
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
-    if (!lookahead.sanitize (c, this)) return false;
+    if (!lookahead.sanitize (c, this)) return TRACE_RETURN (false);
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return lookup.sanitize (c);
+    return TRACE_RETURN (lookup.sanitize (c));
   }
 
   private:
@@ -1262,12 +1256,12 @@ struct ChainContext
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    case 3: return u.format3.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    case 2: return TRACE_RETURN (u.format2.sanitize (c));
+    case 3: return TRACE_RETURN (u.format3.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -1291,7 +1285,7 @@ struct ExtensionFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this);
+    return TRACE_RETURN (c->check_struct (this));
   }
 
   private:
@@ -1324,10 +1318,10 @@ struct Extension
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -1381,10 +1375,10 @@ struct GSUBGPOS
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return version.sanitize (c) && likely (version.major == 1)
-	&& scriptList.sanitize (c, this)
-	&& featureList.sanitize (c, this)
-	&& lookupList.sanitize (c, this);
+    return TRACE_RETURN (version.sanitize (c) && likely (version.major == 1) &&
+			 scriptList.sanitize (c, this) &&
+			 featureList.sanitize (c, this) &&
+			 lookupList.sanitize (c, this));
   }
 
   protected:

@@ -60,8 +60,7 @@ struct Record
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& offset.sanitize (c, base);
+    return TRACE_RETURN (c->check_struct (this) && offset.sanitize (c, base));
   }
 
   Tag		tag;		/* 4-byte Tag identifier */
@@ -115,7 +114,7 @@ struct RecordListOf : RecordArrayOf<Type>
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return RecordArrayOf<Type>::sanitize (c, this);
+    return TRACE_RETURN (RecordArrayOf<Type>::sanitize (c, this));
   }
 };
 
@@ -129,7 +128,7 @@ struct RangeRecord
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this);
+    return TRACE_RETURN (c->check_struct (this));
   }
 
   inline bool intersects (const hb_set_t *glyphs) const {
@@ -188,8 +187,7 @@ struct LangSys
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& featureIndex.sanitize (c);
+    return TRACE_RETURN (c->check_struct (this) && featureIndex.sanitize (c));
   }
 
   Offset	lookupOrder;	/* = Null (reserved for an offset to a
@@ -227,8 +225,7 @@ struct Script
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return defaultLangSys.sanitize (c, this)
-	&& langSys.sanitize (c, this);
+    return TRACE_RETURN (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
   }
 
   private:
@@ -258,8 +255,7 @@ struct Feature
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& lookupIndex.sanitize (c);
+    return TRACE_RETURN (c->check_struct (this) && lookupIndex.sanitize (c));
   }
 
   Offset	featureParams;	/* Offset to Feature Parameters table (if one
@@ -313,14 +309,13 @@ struct Lookup
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
-    if (!(c->check_struct (this)
-       && subTable.sanitize (c))) return false;
+    if (!(c->check_struct (this) && subTable.sanitize (c))) return TRACE_RETURN (false);
     if (unlikely (lookupFlag & LookupFlag::UseMarkFilteringSet))
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
-      if (!markFilteringSet.sanitize (c)) return false;
+      if (!markFilteringSet.sanitize (c)) return TRACE_RETURN (false);
     }
-    return true;
+    return TRACE_RETURN (true);
   }
 
   USHORT	lookupType;		/* Different enumerations for GSUB and GPOS */
@@ -356,7 +351,7 @@ struct CoverageFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return glyphArray.sanitize (c);
+    return TRACE_RETURN (glyphArray.sanitize (c));
   }
 
   inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
@@ -400,7 +395,7 @@ struct CoverageFormat2
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return rangeRecord.sanitize (c);
+    return TRACE_RETURN (rangeRecord.sanitize (c));
   }
 
   inline bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const {
@@ -469,11 +464,11 @@ struct Coverage
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    case 2: return TRACE_RETURN (u.format2.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -571,8 +566,7 @@ struct ClassDefFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& classValue.sanitize (c);
+    return TRACE_RETURN (c->check_struct (this) && classValue.sanitize (c));
   }
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
@@ -606,7 +600,7 @@ struct ClassDefFormat2
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return rangeRecord.sanitize (c);
+    return TRACE_RETURN (rangeRecord.sanitize (c));
   }
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
@@ -640,11 +634,11 @@ struct ClassDef
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    case 2: return TRACE_RETURN (u.format2.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -724,8 +718,7 @@ struct Device
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& c->check_range (this, this->get_size ());
+    return TRACE_RETURN (c->check_struct (this) && c->check_range (this, this->get_size ()));
   }
 
   private:

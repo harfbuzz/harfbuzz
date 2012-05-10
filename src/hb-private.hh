@@ -1,6 +1,6 @@
 /*
  * Copyright © 2007,2008,2009  Red Hat, Inc.
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -519,7 +519,7 @@ _hb_debug_msg_va (const char *what,
   fprintf (stderr, "%-10s", what ? what : "");
 
   if (obj)
-    fprintf (stderr, "(%p) ", obj);
+    fprintf (stderr, "(%0*x) ", (unsigned int) (2 * sizeof (void *)), (unsigned long) obj);
   else
     fprintf (stderr, " %*s  ", (unsigned int) (2 * sizeof (void *)), "");
 
@@ -601,14 +601,14 @@ _hb_debug_msg<0> (const char *what,
  * Trace
  */
 
-template <int max_level, typename T>
+template <int max_level>
 struct hb_auto_trace_t {
   explicit inline hb_auto_trace_t (unsigned int *plevel_,
 				   const char *what,
 				   const void *obj,
 				   const char *func,
 				   const char *message,
-				   ...) : plevel(plevel_)
+				   ...) : plevel(plevel_), returned (false)
   {
     if (plevel) ++*plevel;
 
@@ -617,26 +617,49 @@ struct hb_auto_trace_t {
     _hb_debug_msg_va<max_level> (what, obj, func, TRUE, plevel ? *plevel : 0, +1, message, ap);
     va_end (ap);
   }
-  ~hb_auto_trace_t (void)
+  inline ~hb_auto_trace_t (void)
   {
-    _hb_debug_msg<max_level> (NULL, NULL, NULL, TRUE, plevel ? *plevel : 1, -1, " ");
+    if (unlikely (!returned)) {
+      fprintf (stderr, "OUCH, returned with no call to TRACE_RETURN.  This is a bug, please report.  Level was %d.\n", plevel ? *plevel : -1);
+      _hb_debug_msg<max_level> (NULL, NULL, NULL, TRUE, plevel ? *plevel : 1, -1, " ");
+      return;
+    }
 
     if (plevel) --*plevel;
   }
 
+  inline bool ret (bool v)
+  {
+    if (unlikely (returned)) {
+      fprintf (stderr, "OUCH, double calls to TRACE_RETURN.  This is a bug, please report.\n");
+      return v;
+    }
+
+    _hb_debug_msg<max_level> (NULL, NULL, NULL, TRUE, plevel ? *plevel : 1, -1, "return %s", v ? "true" : "false");
+    if (plevel) --*plevel;
+    plevel = NULL;
+    returned = true;
+    return v;
+  }
+
   private:
   unsigned int *plevel;
+  bool returned;
 };
-template <typename T> /* Optimize when tracing is disabled */
-struct hb_auto_trace_t<0, T> {
+template <> /* Optimize when tracing is disabled */
+struct hb_auto_trace_t<0> {
   explicit inline hb_auto_trace_t (unsigned int *plevel_,
 				   const char *what,
 				   const void *obj,
 				   const char *func,
 				   const char *message,
 				   ...) {}
+
+  template <typename T>
+  inline T ret (T v) { return v; }
 };
 
+#define TRACE_RETURN(RET) trace.ret (RET)
 
 /* Misc */
 

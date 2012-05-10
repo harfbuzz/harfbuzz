@@ -171,40 +171,39 @@ struct ValueFormat : USHORT
 
   inline bool sanitize_value (hb_sanitize_context_t *c, void *base, Value *values) {
     TRACE_SANITIZE ();
-    return c->check_range (values, get_size ())
-	&& (!has_device () || sanitize_value_devices (c, base, values));
+    return TRACE_RETURN (c->check_range (values, get_size ()) && (!has_device () || sanitize_value_devices (c, base, values)));
   }
 
   inline bool sanitize_values (hb_sanitize_context_t *c, void *base, Value *values, unsigned int count) {
     TRACE_SANITIZE ();
     unsigned int len = get_len ();
 
-    if (!c->check_array (values, get_size (), count)) return false;
+    if (!c->check_array (values, get_size (), count)) return TRACE_RETURN (false);
 
-    if (!has_device ()) return true;
+    if (!has_device ()) return TRACE_RETURN (true);
 
     for (unsigned int i = 0; i < count; i++) {
       if (!sanitize_value_devices (c, base, values))
-        return false;
+        return TRACE_RETURN (false);
       values += len;
     }
 
-    return true;
+    return TRACE_RETURN (true);
   }
 
   /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
   inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *c, void *base, Value *values, unsigned int count, unsigned int stride) {
     TRACE_SANITIZE ();
 
-    if (!has_device ()) return true;
+    if (!has_device ()) return TRACE_RETURN (true);
 
     for (unsigned int i = 0; i < count; i++) {
       if (!sanitize_value_devices (c, base, values))
-        return false;
+        return TRACE_RETURN (false);
       values += stride;
     }
 
-    return true;
+    return TRACE_RETURN (true);
   }
 };
 
@@ -223,7 +222,7 @@ struct AnchorFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this);
+    return TRACE_RETURN (c->check_struct (this));
   }
 
   private:
@@ -255,7 +254,7 @@ struct AnchorFormat2
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this);
+    return TRACE_RETURN (c->check_struct (this));
   }
 
   private:
@@ -286,9 +285,7 @@ struct AnchorFormat3
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& xDeviceTable.sanitize (c, this)
-	&& yDeviceTable.sanitize (c, this);
+    return TRACE_RETURN (c->check_struct (this) && xDeviceTable.sanitize (c, this) && yDeviceTable.sanitize (c, this));
   }
 
   private:
@@ -323,12 +320,12 @@ struct Anchor
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    case 3: return u.format3.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    case 2: return TRACE_RETURN (u.format2.sanitize (c));
+    case 3: return TRACE_RETURN (u.format3.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -353,13 +350,13 @@ struct AnchorMatrix
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int cols) {
     TRACE_SANITIZE ();
-    if (!c->check_struct (this)) return false;
-    if (unlikely (rows > 0 && cols >= ((unsigned int) -1) / rows)) return false;
+    if (!c->check_struct (this)) return TRACE_RETURN (false);
+    if (unlikely (rows > 0 && cols >= ((unsigned int) -1) / rows)) return TRACE_RETURN (false);
     unsigned int count = rows * cols;
-    if (!c->check_array (matrix, matrix[0].static_size, count)) return false;
+    if (!c->check_array (matrix, matrix[0].static_size, count)) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < count; i++)
-      if (!matrix[i].sanitize (c, this)) return false;
-    return true;
+      if (!matrix[i].sanitize (c, this)) return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
   }
 
   USHORT	rows;			/* Number of rows */
@@ -378,8 +375,7 @@ struct MarkRecord
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& markAnchor.sanitize (c, base);
+    return TRACE_RETURN (c->check_struct (this) && markAnchor.sanitize (c, base));
   }
 
   private:
@@ -421,7 +417,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return ArrayOf<MarkRecord>::sanitize (c, this);
+    return TRACE_RETURN (ArrayOf<MarkRecord>::sanitize (c, this));
   }
 };
 
@@ -449,9 +445,7 @@ struct SinglePosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& coverage.sanitize (c, this)
-	&& valueFormat.sanitize_value (c, this, values);
+    return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && valueFormat.sanitize_value (c, this, values));
   }
 
   private:
@@ -493,9 +487,7 @@ struct SinglePosFormat2
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& coverage.sanitize (c, this)
-	&& valueFormat.sanitize_values (c, this, values, valueCount);
+    return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && valueFormat.sanitize_values (c, this, values, valueCount));
   }
 
   private:
@@ -529,11 +521,11 @@ struct SinglePos
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    case 2: return TRACE_RETURN (u.format2.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -604,12 +596,12 @@ struct PairSet
   inline bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) {
     TRACE_SANITIZE ();
     if (!(c->check_struct (this)
-       && c->check_array (array, USHORT::static_size * closure->stride, len))) return false;
+       && c->check_array (array, USHORT::static_size * closure->stride, len))) return TRACE_RETURN (false);
 
     unsigned int count = len;
     PairValueRecord *record = CastP<PairValueRecord> (array);
-    return closure->valueFormats[0].sanitize_values_stride_unsafe (c, closure->base, &record->values[0], count, closure->stride)
-	&& closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride);
+    return TRACE_RETURN (closure->valueFormats[0].sanitize_values_stride_unsafe (c, closure->base, &record->values[0], count, closure->stride)
+		      && closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride));
   }
 
   private:
@@ -654,9 +646,7 @@ struct PairPosFormat1
       1 + len1 + len2
     };
 
-    return c->check_struct (this)
-	&& coverage.sanitize (c, this)
-	&& pairSet.sanitize (c, this, &closure);
+    return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && pairSet.sanitize (c, this, &closure));
   }
 
   private:
@@ -723,16 +713,16 @@ struct PairPosFormat2
     if (!(c->check_struct (this)
        && coverage.sanitize (c, this)
        && classDef1.sanitize (c, this)
-       && classDef2.sanitize (c, this))) return false;
+       && classDef2.sanitize (c, this))) return TRACE_RETURN (false);
 
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
     unsigned int stride = len1 + len2;
     unsigned int record_size = valueFormat1.get_size () + valueFormat2.get_size ();
     unsigned int count = (unsigned int) class1Count * (unsigned int) class2Count;
-    return c->check_array (values, record_size, count) &&
-	   valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
-	   valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride);
+    return TRACE_RETURN (c->check_array (values, record_size, count) &&
+			 valueFormat1.sanitize_values_stride_unsafe (c, this, &values[0], count, stride) &&
+			 valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride));
   }
 
   private:
@@ -782,11 +772,11 @@ struct PairPos
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    case 2: return u.format2.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    case 2: return TRACE_RETURN (u.format2.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -805,8 +795,7 @@ struct EntryExitRecord
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
-    return entryAnchor.sanitize (c, base)
-	&& exitAnchor.sanitize (c, base);
+    return TRACE_RETURN (entryAnchor.sanitize (c, base) && exitAnchor.sanitize (c, base));
   }
 
   private:
@@ -916,8 +905,7 @@ struct CursivePosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return coverage.sanitize (c, this)
-	&& entryExitRecord.sanitize (c, this);
+    return TRACE_RETURN (coverage.sanitize (c, this) && entryExitRecord.sanitize (c, this));
   }
 
   private:
@@ -948,10 +936,10 @@ struct CursivePos
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -999,11 +987,8 @@ struct MarkBasePosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-        && markCoverage.sanitize (c, this)
-	&& baseCoverage.sanitize (c, this)
-	&& markArray.sanitize (c, this)
-	&& baseArray.sanitize (c, this, (unsigned int) classCount);
+    return TRACE_RETURN (c->check_struct (this) && markCoverage.sanitize (c, this) && baseCoverage.sanitize (c, this) &&
+			 markArray.sanitize (c, this) && baseArray.sanitize (c, this, (unsigned int) classCount));
   }
 
   private:
@@ -1041,10 +1026,10 @@ struct MarkBasePos
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -1121,11 +1106,8 @@ struct MarkLigPosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-        && markCoverage.sanitize (c, this)
-	&& ligatureCoverage.sanitize (c, this)
-	&& markArray.sanitize (c, this)
-	&& ligatureArray.sanitize (c, this, (unsigned int) classCount);
+    return TRACE_RETURN (c->check_struct (this) && markCoverage.sanitize (c, this) && ligatureCoverage.sanitize (c, this) &&
+			 markArray.sanitize (c, this) && ligatureArray.sanitize (c, this, (unsigned int) classCount));
   }
 
   private:
@@ -1164,10 +1146,10 @@ struct MarkLigPos
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -1224,11 +1206,9 @@ struct MarkMarkPosFormat1
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    return c->check_struct (this)
-	&& mark1Coverage.sanitize (c, this)
-	&& mark2Coverage.sanitize (c, this)
-	&& mark1Array.sanitize (c, this)
-	&& mark2Array.sanitize (c, this, (unsigned int) classCount);
+    return TRACE_RETURN (c->check_struct (this) && mark1Coverage.sanitize (c, this) &&
+			 mark2Coverage.sanitize (c, this) && mark1Array.sanitize (c, this)
+			 && mark2Array.sanitize (c, this, (unsigned int) classCount));
   }
 
   private:
@@ -1268,10 +1248,10 @@ struct MarkMarkPos
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (!u.format.sanitize (c)) return false;
+    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 1: return u.format1.sanitize (c);
-    default:return true;
+    case 1: return TRACE_RETURN (u.format1.sanitize (c));
+    default:return TRACE_RETURN (true);
     }
   }
 
@@ -1363,23 +1343,23 @@ struct PosLookupSubTable
     case Context:		return u.c.apply (c);
     case ChainContext:		return u.chainContext.apply (c);
     case Extension:		return u.extension.apply (c);
-    default:return false;
+    default:			return false;
     }
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
     TRACE_SANITIZE ();
     switch (lookup_type) {
-    case Single:		return u.single.sanitize (c);
-    case Pair:			return u.pair.sanitize (c);
-    case Cursive:		return u.cursive.sanitize (c);
-    case MarkBase:		return u.markBase.sanitize (c);
-    case MarkLig:		return u.markLig.sanitize (c);
-    case MarkMark:		return u.markMark.sanitize (c);
-    case Context:		return u.c.sanitize (c);
-    case ChainContext:		return u.chainContext.sanitize (c);
-    case Extension:		return u.extension.sanitize (c);
-    default:return true;
+    case Single:		return TRACE_RETURN (u.single.sanitize (c));
+    case Pair:			return TRACE_RETURN (u.pair.sanitize (c));
+    case Cursive:		return TRACE_RETURN (u.cursive.sanitize (c));
+    case MarkBase:		return TRACE_RETURN (u.markBase.sanitize (c));
+    case MarkLig:		return TRACE_RETURN (u.markLig.sanitize (c));
+    case MarkMark:		return TRACE_RETURN (u.markMark.sanitize (c));
+    case Context:		return TRACE_RETURN (u.c.sanitize (c));
+    case ChainContext:		return TRACE_RETURN (u.chainContext.sanitize (c));
+    case Extension:		return TRACE_RETURN (u.extension.sanitize (c));
+    default:			return TRACE_RETURN (true);
     }
   }
 
@@ -1443,9 +1423,9 @@ struct PosLookup : Lookup
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!Lookup::sanitize (c))) return false;
+    if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
     OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
-    return list.sanitize (c, this, get_type ());
+    return TRACE_RETURN (list.sanitize (c, this, get_type ()));
   }
 };
 
@@ -1470,9 +1450,9 @@ struct GPOS : GSUBGPOS
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
-    if (unlikely (!GSUBGPOS::sanitize (c))) return false;
+    if (unlikely (!GSUBGPOS::sanitize (c))) return TRACE_RETURN (false);
     OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
-    return list.sanitize (c, this);
+    return TRACE_RETURN (list.sanitize (c, this));
   }
   public:
   DEFINE_SIZE_STATIC (10);
@@ -1564,10 +1544,10 @@ inline bool ExtensionPos::apply (hb_apply_context_t *c) const
 inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
 {
   TRACE_SANITIZE ();
-  if (unlikely (!Extension::sanitize (c))) return false;
+  if (unlikely (!Extension::sanitize (c))) return TRACE_RETURN (false);
   unsigned int offset = get_offset ();
-  if (unlikely (!offset)) return true;
-  return StructAtOffset<PosLookupSubTable> (this, offset).sanitize (c, get_type ());
+  if (unlikely (!offset)) return TRACE_RETURN (true);
+  return TRACE_RETURN (StructAtOffset<PosLookupSubTable> (this, offset).sanitize (c, get_type ()));
 }
 
 static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index)
