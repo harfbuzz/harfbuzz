@@ -462,14 +462,32 @@ static void
 final_reordering_syllable (hb_buffer_t *buffer,
 			   unsigned int start, unsigned int end)
 {
+  hb_glyph_info_t *info = buffer->info;
+
   /* 4. Final reordering:
    *
    * After the localized forms and basic shaping forms GSUB features have been
    * applied (see below), the shaping engine performs some final glyph
    * reordering before applying all the remaining font features to the entire
    * cluster.
-   *
-   *   o Reorder matras:
+   */
+
+  /* Find base again */
+  unsigned int base = end;
+  for (unsigned int i = start; i < end; i++)
+    if (info[i].indic_position() == POS_BASE_C) {
+      base = i;
+      break;
+    }
+
+  if (base == start) {
+    /* There's no Reph, and no left Matra to reposition.  Just merge the cluster
+     * and go home. */
+    buffer->merge_clusters (start, end);
+    return;
+  }
+
+  /*   o Reorder matras:
    *
    *     If a pre-base matra character had been reordered before applying basic
    *     features, the glyph can be moved closer to the main consonant based on
@@ -477,8 +495,32 @@ final_reordering_syllable (hb_buffer_t *buffer,
    *     defined as “after last standalone halant glyph, after initial matra
    *     position and before the main consonant”. If ZWJ or ZWNJ follow this
    *     halant, position is moved after it.
-   *
-   *   o Reorder reph:
+   */
+
+  unsigned int new_matra_pos = base - 1;
+  while (new_matra_pos > start &&
+	 !(FLAG (info[new_matra_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
+    new_matra_pos--;
+  /* If we found no Halant we are done.  Otherwise... */
+  if (info[new_matra_pos].indic_category() == OT_H) {
+    /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
+    if (new_matra_pos + 1 < end && is_joiner (info[new_matra_pos + 1]))
+      new_matra_pos++;
+
+    /* Now go see if there's actually any matras... */
+    for (unsigned int i = new_matra_pos; i > start; i--)
+      if (info[i - 1].indic_category () == OT_M)
+      {
+	unsigned int old_matra_pos = i - 1;
+	hb_glyph_info_t matra = info[old_matra_pos];
+	memmove (&info[old_matra_pos], &info[old_matra_pos + 1], (new_matra_pos - old_matra_pos) * sizeof (info[0]));
+	info[new_matra_pos] = matra;
+	new_matra_pos--;
+      }
+  }
+
+
+  /*   o Reorder reph:
    *
    *     Reph’s original position is always at the beginning of the syllable,
    *     (i.e. it is not reordered at the character reordering stage). However,

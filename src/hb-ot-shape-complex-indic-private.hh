@@ -67,10 +67,6 @@ enum indic_position_t {
   POS_LEFT_MATRA,
 
   POS_PRE_C,
-
-  POS_BEFORE_HALFS,
-  POS_HALFS,
-
   POS_BASE_C,
   POS_ABOVE_C,
   POS_BELOW_C,
