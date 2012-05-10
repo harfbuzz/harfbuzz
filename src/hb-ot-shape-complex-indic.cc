@@ -343,7 +343,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       if (info[i].indic_category() == OT_H) {
         unsigned int j;
         for (j = end - 1; j > i; j--)
-	  if ((FLAG (info[j].indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra))))
+	  if (is_consonant (info[j]))
 	    break;
 	if (j > i) {
 	  /* Move Halant to after last consonant. */
