@@ -487,6 +487,8 @@ final_reordering_syllable (hb_buffer_t *buffer,
     return;
   }
 
+  unsigned int start_of_last_cluster = base;
+
   /*   o Reorder matras:
    *
    *     If a pre-base matra character had been reordered before applying basic
@@ -515,6 +517,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
 	hb_glyph_info_t matra = info[old_matra_pos];
 	memmove (&info[old_matra_pos], &info[old_matra_pos + 1], (new_matra_pos - old_matra_pos) * sizeof (info[0]));
 	info[new_matra_pos] = matra;
+	start_of_last_cluster = MIN (new_matra_pos, start_of_last_cluster);
 	new_matra_pos--;
       }
   }
