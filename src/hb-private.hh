@@ -514,9 +514,9 @@ _hb_debug_msg_va (const char *what,
 	  fprintf (stderr, "%s", what) &&
 	  (obj && fprintf (stderr, "(%p)", obj), TRUE) &&
 	  fprintf (stderr, ": ") &&
-	  (func && fprintf (stderr, "%s: ", func), TRUE) &&
 	  (indented && fprintf (stderr, "%-*d-> ", level + 1, level), TRUE) &&
-	  vfprintf (stderr, message, ap) &&
+	  (func && fprintf (stderr, "%s: ", func), TRUE) &&
+	  (vfprintf (stderr, message, ap), TRUE) &&
 	  fprintf (stderr, "\n"));
 
   return TRUE;

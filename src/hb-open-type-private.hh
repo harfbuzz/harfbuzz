@@ -153,7 +153,7 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 
 #define TRACE_SANITIZE() \
-	hb_auto_trace_t<HB_DEBUG_SANITIZE, unsigned int> trace (&c->debug_depth, "SANITIZE", this, NULL, "%s", HB_FUNC);
+	hb_auto_trace_t<HB_DEBUG_SANITIZE, unsigned int> trace (&c->debug_depth, "SANITIZE", this, HB_FUNC, "");
 
 
 struct hb_sanitize_context_t
