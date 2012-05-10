@@ -363,7 +363,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       info[i].indic_position() = info[i - 1].indic_position();
 
   /* We do bubble-sort, skip malicious clusters attempts */
-  if (end - start < 20)
+  if (end - start < 64)
   {
     /* Sit tight, rock 'n roll! */
     hb_bubble_sort (info + start, end - start, compare_indic_order);
