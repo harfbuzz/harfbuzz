@@ -287,6 +287,16 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   if (base < start)
     base = start; /* Just in case... */
 
+  /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
+   *    and has more than one consonant, Ra is excluded from candidates for
+   *    base consonants. */
+  if (has_reph && base == start) {
+    /* Have no other consonant, so Reph is not formed and Ra becomes base. */
+    has_reph = false;
+  }
+
+
+
 
   /* 2. Decompose and reorder Matras:
    *
