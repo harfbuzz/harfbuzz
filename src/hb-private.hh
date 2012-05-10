@@ -511,19 +511,33 @@ _hb_debug_msg_va (const char *what,
 		  const char *message,
 		  va_list ap)
 {
+  if (!_hb_debug (level, max_level))
+    return TRUE;
+
   static const char bars[] = "││││││││││││││││││││││││││││││││││││││││";
 
-  (void) (_hb_debug (level, max_level) &&
-	  (fprintf (stderr, "%-10s", what ? what : ""), TRUE) &&
-	  ((obj && fprintf (stderr, "(%p) ", obj), TRUE) || fprintf (stderr, " %*s  ", (unsigned int) (2 * sizeof (void *)), ""), TRUE) &&
-	  (indented && fprintf (stderr, "%2d %s├%s",
-				level,
-				bars + sizeof (bars) - 1 - MIN ((unsigned int) sizeof (bars), 3 * level),
-				level_dir ? (level_dir > 0 ? "╮" : "╯") : "╴"), TRUE) &&
-	  (!indented && fprintf (stderr, "   ├╴"), TRUE) &&
-	  (func && fprintf (stderr, "%s: ", func), TRUE) &&
-	  (vfprintf (stderr, message, ap), TRUE) &&
-	  fprintf (stderr, "\n"));
+  fprintf (stderr, "%-10s", what ? what : "");
+
+  if (obj)
+    fprintf (stderr, "(%p) ", obj);
+  else
+    fprintf (stderr, " %*s  ", (unsigned int) (2 * sizeof (void *)), "");
+
+  if (indented)
+    fprintf (stderr, "%2d %s├%s",
+	     level,
+	     bars + sizeof (bars) - 1 - MIN ((unsigned int) sizeof (bars), 3 * level),
+	     level_dir ? (level_dir > 0 ? "╮" : "╯") : "╴");
+  else
+    fprintf (stderr, "   ├╴");
+
+  if (func)
+    fprintf (stderr, "%s: ", func);
+
+  if (message)
+    vfprintf (stderr, message, ap);
+
+  fprintf (stderr, "\n");
 
   return TRUE;
 }
