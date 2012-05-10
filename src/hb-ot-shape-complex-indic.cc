@@ -582,6 +582,18 @@ final_reordering_syllable (hb_buffer_t *buffer,
     while (new_reph_pos > start && (FLAG (info[new_reph_pos].indic_position()) & (FLAG (POS_SMVD))))
       new_reph_pos--;
 
+    if (unlikely (info[new_reph_pos].indic_category() == OT_H)) {
+      /* *If* the Reph is to be ending up after a Matra,Halant sequence,
+       * position it before that Halant so it can interact with the Matra.
+       * However, if it's a plain Consonant,Halant we shouldn't do that.
+       */
+      for (unsigned int i = base + 1; i < new_reph_pos; i++)
+	if (info[i].indic_category() == OT_M) {
+	  /* Ok, got it. */
+	  new_reph_pos--;
+	}
+    }
+
     /* Move */
     hb_glyph_info_t reph = info[start];
     memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
