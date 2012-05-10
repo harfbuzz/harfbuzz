@@ -67,10 +67,12 @@ is_joiner (const hb_glyph_info_t &info)
 static bool
 is_consonant (const hb_glyph_info_t &info)
 {
-  /* Note: We treat Vowels as if they were consonants.  This is safe because Vowels
+  /* Note:
+   *
+   * We treat Vowels and NBSP as if they were consonants.  This is safe because Vowels
    * cannot happen in a consonant syllable.  The plus side however is, we can call the
    * consonant syllable logic from the vowel syllable function and get it all right! */
-  return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V)));
+  return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP)));
 }
 
 static const struct {
@@ -428,10 +430,8 @@ static void
 initial_reordering_standalone_cluster (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
 				       unsigned int start, unsigned int end)
 {
-  /* TODO
-   * Easiest thing to do here is to convert the NBSP to consonant and
-   * call initial_reordering_consonant_syllable.
-   */
+  /* We made the vowels look like consonants.  So let's call the consonant logic! */
+  initial_reordering_consonant_syllable (map, buffer, mask_array, start, end);
 }
 
 static void
