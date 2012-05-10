@@ -83,8 +83,7 @@ enum indic_position_t {
   POS_SMVD
 };
 
-/* Categories used in IndicSyllabicCategory.txt from UCD */
-/* The assignments are guesswork */
+/* Categories used in IndicSyllabicCategory.txt from UCD. */
 enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_OTHER			= OT_X,
 
