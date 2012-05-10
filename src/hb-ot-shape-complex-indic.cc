@@ -575,8 +575,6 @@ final_reordering_syllable (hb_buffer_t *buffer,
      *       6. Otherwise, reorder reph to the end of the syllable.
      */
 
-    start_of_last_cluster = start; /* Yay, one big cluster! */
-
     /* Now let's go shopping for a position. */
     unsigned int new_reph_pos = end - 1;
     while (new_reph_pos > start && (FLAG (info[new_reph_pos].indic_position()) & (FLAG (POS_SMVD))))
@@ -598,6 +596,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
     hb_glyph_info_t reph = info[start];
     memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
     info[new_reph_pos] = reph;
+    start_of_last_cluster = start; /* Yay, one big cluster! */
   }
 
 
@@ -617,8 +616,25 @@ final_reordering_syllable (hb_buffer_t *buffer,
    *          consonant.
    */
 
-  /* TODO */
-  buffer->merge_clusters (start, end);
+
+  /* Finish off the clusters and go home! */
+
+  if (1) {
+    /* This is what Uniscribe does.  Ie. add cluster boundaries after Halant,ZWNJ.
+     * This means, half forms are submerged into the main consonants cluster.
+     * This is unnecessary, and makes cursor positioning harder, but that's what
+     * Uniscribe does. */
+    unsigned int cluster_start = start;
+    for (unsigned int i = start + 1; i < start_of_last_cluster; i++)
+      if (info[i - 1].indic_category() == OT_H && info[i].indic_category() == OT_ZWNJ) {
+        i++;
+	buffer->merge_clusters (cluster_start, i);
+	cluster_start = i;
+      }
+    start_of_last_cluster = cluster_start;
+  }
+
+  buffer->merge_clusters (start_of_last_cluster, end);
 }
 
 
