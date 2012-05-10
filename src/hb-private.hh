@@ -502,6 +502,38 @@ _hb_debug (unsigned int level,
 #define DEBUG(WHAT) (DEBUG_LEVEL (WHAT, 0))
 
 template <int max_level> inline bool /* always returns TRUE */
+_hb_debug_msg_va (const char *what,
+	       const void *obj,
+	       const char *func,
+	       bool indented,
+	       int level,
+	       const char *message,
+	       va_list ap)
+{
+  (void) (_hb_debug (level, max_level) &&
+	  fprintf (stderr, "%s", what) &&
+	  (obj && fprintf (stderr, "(%p)", obj), TRUE) &&
+	  fprintf (stderr, ": ") &&
+	  (func && fprintf (stderr, "%s: ", func), TRUE) &&
+	  (indented && fprintf (stderr, "%-*d-> ", level + 1, level), TRUE) &&
+	  vfprintf (stderr, message, ap) &&
+	  fprintf (stderr, "\n"));
+
+  return TRUE;
+}
+template <> inline bool /* always returns TRUE */
+_hb_debug_msg_va<0> (const char *what,
+		  const void *obj,
+		  const char *func,
+		  bool indented,
+		  int level,
+		  const char *message,
+		  va_list ap)
+{
+  return TRUE;
+}
+
+template <int max_level> inline bool /* always returns TRUE */
 _hb_debug_msg (const char *what,
 	       const void *obj,
 	       const char *func,
@@ -521,18 +553,11 @@ _hb_debug_msg (const char *what,
   va_list ap;
   va_start (ap, message);
 
-  (void) (_hb_debug (level, max_level) &&
-	  fprintf (stderr, "%s", what) &&
-	  (obj && fprintf (stderr, "(%p)", obj), TRUE) &&
-	  fprintf (stderr, ": ") &&
-	  (func && fprintf (stderr, "%s: ", func), TRUE) &&
-	  (indented && fprintf (stderr, "%-*d-> ", level + 1, level), TRUE) &&
-	  vfprintf (stderr, message, ap) &&
-	  fprintf (stderr, "\n"));
+  bool ret = _hb_debug_msg_va<max_level> (what, obj, func, indented, level, message, ap);
 
   va_end (ap);
 
-  return TRUE;
+  return ret;
 }
 template <> inline bool /* always returns TRUE */
 _hb_debug_msg<0> (const char *what,
@@ -554,7 +579,7 @@ _hb_debug_msg<0> (const char *what,
   return TRUE;
 }
 
-#define DEBUG_MSG_LEVEL(WHAT, OBJ, LEVEL, ...) _hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), NULL, FALSE, (LEVEL), __VA_ARGS__)
+#define DEBUG_MSG_LEVEL(WHAT, OBJ, LEVEL, ...) _hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), NULL, TRUE, (LEVEL), __VA_ARGS__)
 #define DEBUG_MSG(WHAT, OBJ, ...) DEBUG_MSG_LEVEL (WHAT, OBJ, 0, __VA_ARGS__)
 #define DEBUG_MSG_FUNC(WHAT, OBJ, ...) _hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), HB_FUNC, FALSE, 0, __VA_ARGS__)
 
@@ -563,30 +588,35 @@ _hb_debug_msg<0> (const char *what,
  * Trace
  */
 
-template <int max_level>
+template <int max_level, typename T>
 struct hb_auto_trace_t {
   explicit inline hb_auto_trace_t (unsigned int *plevel_,
 				   const char *what,
 				   const void *obj,
 				   const char *func,
-				   const char *message) : plevel(plevel_)
+				   const char *message,
+				   ...) : plevel(plevel_)
   {
     if (max_level) ++*plevel;
-    /* TODO support variadic args here */
-    _hb_debug_msg<max_level> (what, obj, func, TRUE, *plevel, "%s", message);
+
+    va_list ap;
+    va_start (ap, message);
+    _hb_debug_msg_va<max_level> (what, obj, func, TRUE, *plevel, message, ap);
+    va_end (ap);
   }
   ~hb_auto_trace_t (void) { if (max_level) --*plevel; }
 
   private:
   unsigned int *plevel;
 };
-template <> /* Optimize when tracing is disabled */
-struct hb_auto_trace_t<0> {
+template <typename T> /* Optimize when tracing is disabled */
+struct hb_auto_trace_t<0, T> {
   explicit inline hb_auto_trace_t (unsigned int *plevel_,
 				   const char *what,
 				   const void *obj,
 				   const char *func,
-				   const char *message) {}
+				   const char *message,
+				   ...) {}
 };
 
 

@@ -153,7 +153,7 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 
 #define TRACE_SANITIZE() \
-	hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&c->debug_depth, "SANITIZE", this, NULL, HB_FUNC);
+	hb_auto_trace_t<HB_DEBUG_SANITIZE, unsigned int> trace (&c->debug_depth, "SANITIZE", this, NULL, "%s", HB_FUNC);
 
 
 struct hb_sanitize_context_t
@@ -195,9 +195,8 @@ struct hb_sanitize_context_t
 	       p <= this->end &&
 	       (unsigned int) (this->end - p) >= len;
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth,
-		     "%-*d-> range [%p..%p] (%d bytes) in [%p..%p] -> %s",
-		     this->debug_depth, this->debug_depth,
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1,
+		     "range [%p..%p] (%d bytes) in [%p..%p] -> %s",
 		     p, p + len, len,
 		     this->start, this->end,
 		     ret ? "pass" : "FAIL");
@@ -210,9 +209,8 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     bool overflows = _hb_unsigned_int_mul_overflows (len, record_size);
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth,
-		     "%-*d-> array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s",
-		     this->debug_depth, this->debug_depth,
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1,
+		     "array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s",
 		     p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
 		     this->start, this->end,
 		     !overflows ? "does not overflow" : "OVERFLOWS FAIL");
@@ -231,9 +229,8 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     this->edit_count++;
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth,
-		     "%-*d-> edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
-		     this->debug_depth, this->debug_depth,
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1,
+		     "edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
 		     this->edit_count,
 		     p, p + len, len,
 		     this->start, this->end,

@@ -69,7 +69,7 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 #endif
 
 #define TRACE_CLOSURE() \
-	hb_auto_trace_t<HB_DEBUG_CLOSURE> trace (&c->debug_depth, "CLOSURE", this, NULL, HB_FUNC);
+	hb_auto_trace_t<HB_DEBUG_CLOSURE, unsigned int> trace (&c->debug_depth, "CLOSURE", this, NULL, "%s", HB_FUNC);
 
 
 
@@ -96,7 +96,7 @@ struct hb_closure_context_t
 #endif
 
 #define TRACE_APPLY() \
-	hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", this, NULL, HB_FUNC);
+	hb_auto_trace_t<HB_DEBUG_APPLY, unsigned int> trace (&c->debug_depth, "APPLY", this, NULL, "%s", HB_FUNC);
 
 
 
