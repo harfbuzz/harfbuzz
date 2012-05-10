@@ -237,9 +237,10 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
    *    base consonants. */
   unsigned int limit = start;
   if (mask_array[RPHF] &&
-      start + 2 < end &&
+      start + 3 <= end &&
       info[start].indic_category() == OT_Ra &&
-      info[start + 1].indic_category() == OT_H)
+      info[start + 1].indic_category() == OT_H &&
+      !is_joiner (info[start + 2]))
   {
     limit += 2;
     base = start;
@@ -267,15 +268,6 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
        * TODO
        */
 
-      /* ->  o If the syllable starts with Ra + Halant (in a script that has Reph)
-       *       and has more than one consonant, Ra is excluded from candidates for
-       *       base consonants.
-       *
-       * IMPLEMENTATION NOTES:
-       *
-       * We do this by adjusting limit accordingly before entering the loop.
-       */
-
       /* -> or arrive at the first consonant. The consonant stopped at will
        * be the base. */
       base = i;
@@ -294,8 +286,6 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     /* Have no other consonant, so Reph is not formed and Ra becomes base. */
     has_reph = false;
   }
-
-
 
 
   /* 2. Decompose and reorder Matras:
@@ -336,15 +326,11 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     info[i].indic_position() = POS_PRE_C;
   info[base].indic_position() = POS_BASE_C;
 
-
   /* Handle beginning Ra */
-  if (has_reph &&
-      start + 3 <= end &&
-      !is_joiner (info[start + 2]))
-   {
+  if (has_reph) {
     info[start].indic_position() = POS_REPH;
     info[start].mask = mask_array[RPHF];
-   }
+  }
 
   /* For old-style Indic script tags, move the first post-base Halant after
    * last consonant. */
