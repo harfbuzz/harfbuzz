@@ -171,17 +171,17 @@ struct hb_sanitize_context_t
     this->edit_count = 0;
     this->debug_depth = 0;
 
-    DEBUG_MSG (SANITIZE, this->blob,
-	       "init [%p..%p] (%lu bytes)",
-	       this->start, this->end,
-	       (unsigned long) (this->end - this->start));
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, 0, +1,
+		     "init [%p..%p] (%lu bytes)",
+		     this->start, this->end,
+		     (unsigned long) (this->end - this->start));
   }
 
   inline void finish (void)
   {
-    DEBUG_MSG (SANITIZE, this->blob,
-	       "fini [%p..%p] %u edit requests",
-	       this->start, this->end, this->edit_count);
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, 0, -1,
+		     "fini [%p..%p] %u edit requests",
+		     this->start, this->end, this->edit_count);
 
     hb_blob_destroy (this->blob);
     this->blob = NULL;
@@ -195,7 +195,7 @@ struct hb_sanitize_context_t
 	       p <= this->end &&
 	       (unsigned int) (this->end - p) >= len;
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1,
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1, 0,
 		     "range [%p..%p] (%d bytes) in [%p..%p] -> %s",
 		     p, p + len, len,
 		     this->start, this->end,
@@ -209,7 +209,7 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     bool overflows = _hb_unsigned_int_mul_overflows (len, record_size);
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1,
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1, 0,
 		     "array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s",
 		     p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
 		     this->start, this->end,
@@ -229,7 +229,7 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     this->edit_count++;
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1,
+    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1, 0,
 		     "edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
 		     this->edit_count,
 		     p, p + len, len,
