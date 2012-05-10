@@ -252,19 +252,19 @@ static const struct consonant_position_t {
 
 /* XXX
  * This is a hack for now.  We should move this data into the main Indic table.
+ * Or completely remove it and just check in the tables.
  */
 static const hb_codepoint_t ra_chars[] = {
   0x0930, /* Devanagari */
   0x09B0, /* Bengali */
   0x09F0, /* Bengali */
-//0x09F1, /* Bengali */
-//0x0A30, /* Gurmukhi */
+  0x0A30, /* Gurmukhi */	/* No Reph */
   0x0AB0, /* Gujarati */
   0x0B30, /* Oriya */
-//0x0BB0, /* Tamil */
-//0x0C30, /* Telugu */
+  0x0BB0, /* Tamil */		/* No Reph */
+  0x0C30, /* Telugu */		/* No Reph */
   0x0CB0, /* Kannada */
-//0x0D30, /* Malayalam */
+  0x0D30, /* Malayalam */	/* No Reph */
 };
 
 
