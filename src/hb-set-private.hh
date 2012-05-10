@@ -133,7 +133,7 @@ struct _hb_set_t
   elt_t mask (hb_codepoint_t g) const { return elt_t (1) << (g & MASK); }
 
   hb_object_header_t header;
-  elt_t elts[ELTS]; /* 8kb */
+  elt_t elts[ELTS]; /* XXX 8kb */
 
   ASSERT_STATIC (sizeof (elt_t) * 8 == BITS);
   ASSERT_STATIC (sizeof (elt_t) * 8 * ELTS > MAX_G);
