@@ -74,8 +74,6 @@ enum indic_position_t {
 
   POS_MATRAS,
 
-  POS_REPH,
-
   POS_SMVD
 };
 

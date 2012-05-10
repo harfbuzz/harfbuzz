@@ -332,10 +332,8 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   info[base].indic_position() = POS_BASE_C;
 
   /* Handle beginning Ra */
-  if (has_reph) {
-    info[start].indic_position() = POS_REPH;
-    info[start].mask = mask_array[RPHF];
-  }
+  if (has_reph)
+    info[start].indic_position() = POS_RA_TO_BECOME_REPH;
 
   /* For old-style Indic script tags, move the first post-base Halant after
    * last consonant. */
@@ -381,6 +379,10 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
   {
     hb_mask_t mask;
+
+    /* Reph */
+    if (has_reph)
+      info[start].mask = mask_array[RPHF];
 
     /* Pre-base */
     mask = mask_array[HALF] | mask_array[AKHN] | mask_array[CJCT];
@@ -530,41 +532,64 @@ final_reordering_syllable (hb_buffer_t *buffer,
    *     it will be reordered according to the basic-forms shaping results.
    *     Possible positions for reph, depending on the script, are; after main,
    *     before post-base consonant forms, and after post-base consonant forms.
-   *
-   *       1. If reph should be positioned after post-base consonant forms,
-   *          proceed to step 5.
-   *
-   *       2. If the reph repositioning class is not after post-base: target
-   *          position is after the first explicit halant glyph between the
-   *          first post-reph consonant and last main consonant. If ZWJ or ZWNJ
-   *          are following this halant, position is moved after it. If such
-   *          position is found, this is the target position. Otherwise,
-   *          proceed to the next step.
-   *
-   *          Note: in old-implementation fonts, where classifications were
-   *          fixed in shaping engine, there was no case where reph position
-   *          will be found on this step.
-   *
-   *       3. If reph should be repositioned after the main consonant: from the
-   *          first consonant not ligated with main, or find the first
-   *          consonant that is not a potential pre-base reordering Ra.
-   *
-   *
-   *       4. If reph should be positioned before post-base consonant, find
-   *          first post-base classified consonant not ligated with main. If no
-   *          consonant is found, the target position should be before the
-   *          first matra, syllable modifier sign or vedic sign.
-   *
-   *       5. If no consonant is found in steps 3 or 4, move reph to a position
-   *          immediately before the first post-base matra, syllable modifier
-   *          sign or vedic sign that has a reordering class after the intended
-   *          reph position. For example, if the reordering position for reph
-   *          is post-main, it will skip above-base matras that also have a
-   *          post-main position.
-   *
-   *       6. Otherwise, reorder reph to the end of the syllable.
-   *
-   *   o Reorder pre-base reordering consonants:
+   */
+
+  /* If there's anything after the Ra that has the REPH pos, it ought to be halant.
+   * Which means that the font has failed to ligate the Reph.  In which case, we
+   * shouldn't move. */
+  if (start + 1 < end &&
+      info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
+      info[start + 1].indic_position() != POS_RA_TO_BECOME_REPH)
+  {
+    /*       1. If reph should be positioned after post-base consonant forms,
+     *          proceed to step 5.
+     *
+     *       2. If the reph repositioning class is not after post-base: target
+     *          position is after the first explicit halant glyph between the
+     *          first post-reph consonant and last main consonant. If ZWJ or ZWNJ
+     *          are following this halant, position is moved after it. If such
+     *          position is found, this is the target position. Otherwise,
+     *          proceed to the next step.
+     *
+     *          Note: in old-implementation fonts, where classifications were
+     *          fixed in shaping engine, there was no case where reph position
+     *          will be found on this step.
+     *
+     *       3. If reph should be repositioned after the main consonant: from the
+     *          first consonant not ligated with main, or find the first
+     *          consonant that is not a potential pre-base reordering Ra.
+     *
+     *
+     *       4. If reph should be positioned before post-base consonant, find
+     *          first post-base classified consonant not ligated with main. If no
+     *          consonant is found, the target position should be before the
+     *          first matra, syllable modifier sign or vedic sign.
+     *
+     *       5. If no consonant is found in steps 3 or 4, move reph to a position
+     *          immediately before the first post-base matra, syllable modifier
+     *          sign or vedic sign that has a reordering class after the intended
+     *          reph position. For example, if the reordering position for reph
+     *          is post-main, it will skip above-base matras that also have a
+     *          post-main position.
+     *
+     *       6. Otherwise, reorder reph to the end of the syllable.
+     */
+
+    start_of_last_cluster = start; /* Yay, one big cluster! */
+
+    /* Now let's go shopping for a position. */
+    unsigned int new_reph_pos = end - 1;
+    while (new_reph_pos > start && (FLAG (info[new_reph_pos].indic_position()) & (FLAG (POS_SMVD))))
+      new_reph_pos--;
+
+    /* Move */
+    hb_glyph_info_t reph = info[start];
+    memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
+    info[new_reph_pos] = reph;
+  }
+
+
+  /*   o Reorder pre-base reordering consonants:
    *
    *     If a pre-base reordering consonant is found, reorder it according to
    *     the following rules:
