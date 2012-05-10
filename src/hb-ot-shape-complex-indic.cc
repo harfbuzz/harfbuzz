@@ -513,7 +513,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
     /* Now go see if there's actually any matras... */
     for (unsigned int i = new_matra_pos; i > start; i--)
-      if (info[i - 1].indic_category () == OT_M)
+      if (info[i - 1].indic_position () == POS_LEFT_MATRA)
       {
 	unsigned int old_matra_pos = i - 1;
 	hb_glyph_info_t matra = info[old_matra_pos];
