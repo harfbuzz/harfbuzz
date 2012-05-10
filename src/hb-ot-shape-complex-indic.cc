@@ -619,6 +619,10 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
   /* Finish off the clusters and go home! */
 
+  /* For testing purposes we want to enable this to test against Uniscribe.
+   * One day when we don't compare to Uniscribe output anymore, we want to
+   * disable this because we believe it would make for superior cursor
+   * positioning. */
   if (1) {
     /* This is what Uniscribe does.  Ie. add cluster boundaries after Halant,ZWNJ.
      * This means, half forms are submerged into the main consonants cluster.
