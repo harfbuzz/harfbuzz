@@ -541,10 +541,26 @@ final_reordering_syllable (hb_buffer_t *buffer,
       info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
       info[start + 1].indic_position() != POS_RA_TO_BECOME_REPH)
   {
+      unsigned int new_reph_pos;
+
+     enum reph_position_t {
+       REPH_AFTER_MAIN, /* Malayalam, Oriya */
+       REPH_BEFORE_SUBSCRIPT, /* Gurmukhi  */
+       REPH_AFTER_SUBSCRIPT, /* Bengali */
+       REPH_BEFORE_POSTSCRIPT, /* Devanagari, Gujarati  */
+       REPH_AFTER_POSTSCRIPT, /* Kannada, Tamil, Telugu  */
+     } reph_pos = REPH_BEFORE_POSTSCRIPT; /* XXX */ /* XXX Figure out old behavior too */
+
     /*       1. If reph should be positioned after post-base consonant forms,
      *          proceed to step 5.
-     *
-     *       2. If the reph repositioning class is not after post-base: target
+     */
+    reph_step_1:
+    {
+      if (reph_pos == REPH_AFTER_POSTSCRIPT)
+	goto reph_step_5;
+    }
+
+    /*       2. If the reph repositioning class is not after post-base: target
      *          position is after the first explicit halant glyph between the
      *          first post-reph consonant and last main consonant. If ZWJ or ZWNJ
      *          are following this halant, position is moved after it. If such
@@ -554,49 +570,82 @@ final_reordering_syllable (hb_buffer_t *buffer,
      *          Note: in old-implementation fonts, where classifications were
      *          fixed in shaping engine, there was no case where reph position
      *          will be found on this step.
-     *
-     *       3. If reph should be repositioned after the main consonant: from the
+     */
+    reph_step_2:
+    {
+      new_reph_pos = start + 1;
+      while (new_reph_pos < base && info[new_reph_pos].indic_category() != OT_H)
+	new_reph_pos++;
+
+      if (new_reph_pos < base && info[new_reph_pos].indic_category() == OT_H) {
+	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
+	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
+	  new_reph_pos++;
+	goto reph_move;
+      }
+    }
+
+    /*       3. If reph should be repositioned after the main consonant: find the
      *          first consonant not ligated with main, or find the first
      *          consonant that is not a potential pre-base reordering Ra.
-     *
-     *
-     *       4. If reph should be positioned before post-base consonant, find
+     */
+    reph_step_3:
+    {
+      /* XXX */
+    }
+
+    /*       4. If reph should be positioned before post-base consonant, find
      *          first post-base classified consonant not ligated with main. If no
      *          consonant is found, the target position should be before the
      *          first matra, syllable modifier sign or vedic sign.
-     *
-     *       5. If no consonant is found in steps 3 or 4, move reph to a position
+     */
+    reph_step_4:
+    {
+      /* XXX */
+    }
+
+    /*       5. If no consonant is found in steps 3 or 4, move reph to a position
      *          immediately before the first post-base matra, syllable modifier
      *          sign or vedic sign that has a reordering class after the intended
      *          reph position. For example, if the reordering position for reph
      *          is post-main, it will skip above-base matras that also have a
      *          post-main position.
-     *
-     *       6. Otherwise, reorder reph to the end of the syllable.
      */
-
-    /* Now let's go shopping for a position. */
-    unsigned int new_reph_pos = end - 1;
-    while (new_reph_pos > start && (FLAG (info[new_reph_pos].indic_position()) & (FLAG (POS_SMVD))))
-      new_reph_pos--;
-
-    if (unlikely (info[new_reph_pos].indic_category() == OT_H)) {
-      /* *If* the Reph is to be ending up after a Matra,Halant sequence,
-       * position it before that Halant so it can interact with the Matra.
-       * However, if it's a plain Consonant,Halant we shouldn't do that.
-       */
-      for (unsigned int i = base + 1; i < new_reph_pos; i++)
-	if (info[i].indic_category() == OT_M) {
-	  /* Ok, got it. */
-	  new_reph_pos--;
-	}
+    reph_step_5:
+    {
+      /* XXX */
     }
 
-    /* Move */
-    hb_glyph_info_t reph = info[start];
-    memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
-    info[new_reph_pos] = reph;
-    start_of_last_cluster = start; /* Yay, one big cluster! */
+    /*       6. Otherwise, reorder reph to the end of the syllable.
+     */
+    reph_step_6:
+    {
+      new_reph_pos = end - 1;
+      while (new_reph_pos > start && info[new_reph_pos].indic_position() == POS_SMVD)
+	new_reph_pos--;
+
+      if (unlikely (info[new_reph_pos].indic_category() == OT_H)) {
+	/* *If* the Reph is to be ending up after a Matra,Halant sequence,
+	 * position it before that Halant so it can interact with the Matra.
+	 * However, if it's a plain Consonant,Halant we shouldn't do that.
+	 */
+	for (unsigned int i = base + 1; i < new_reph_pos; i++)
+	  if (info[i].indic_category() == OT_M) {
+	    /* Ok, got it. */
+	    new_reph_pos--;
+	  }
+      }
+      goto reph_move;
+    }
+
+    reph_move:
+    {
+      /* Move */
+      hb_glyph_info_t reph = info[start];
+      memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
+      info[new_reph_pos] = reph;
+      start_of_last_cluster = start; /* Yay, one big cluster! */
+    }
   }
 
 
