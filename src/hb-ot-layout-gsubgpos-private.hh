@@ -135,12 +135,14 @@ struct hb_apply_context_t
     inline mark_skipping_forward_iterator_t (hb_apply_context_t *c_,
 					     unsigned int start_index_,
 					     unsigned int num_items_,
-					     hb_mask_t mask_ = 0)
+					     hb_mask_t mask_ = 0,
+					     bool match_syllable_ = true)
     {
       c = c_;
       idx = start_index_;
       num_items = num_items_;
       mask = mask_ ? mask_ : c->lookup_mask;
+      syllable = match_syllable_ ? c->buffer->info[c->buffer->idx].syllable () : 0;
       end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
     }
     inline bool has_no_chance (void) const
@@ -158,7 +160,7 @@ struct hb_apply_context_t
 	idx++;
       } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[idx], lookup_props, property_out));
       num_items--;
-      return !!(c->buffer->info[idx].mask & mask);
+      return (c->buffer->info[idx].mask & mask) && (!syllable || syllable == c->buffer->info[idx].syllable ());
     }
     inline bool next (unsigned int *property_out = NULL)
     {
@@ -170,6 +172,7 @@ struct hb_apply_context_t
     hb_apply_context_t *c;
     unsigned int num_items;
     hb_mask_t mask;
+    uint8_t syllable;
     unsigned int end;
   };
 
@@ -178,12 +181,14 @@ struct hb_apply_context_t
     inline mark_skipping_backward_iterator_t (hb_apply_context_t *c_,
 					      unsigned int start_index_,
 					      unsigned int num_items_,
-					      hb_mask_t mask_ = 0)
+					      hb_mask_t mask_ = 0,
+					     bool match_syllable_ = true)
     {
       c = c_;
       idx = start_index_;
       num_items = num_items_;
       mask = mask_ ? mask_ : c->lookup_mask;
+      syllable = match_syllable_ ? c->buffer->info[c->buffer->idx].syllable () : 0;
     }
     inline bool has_no_chance (void) const
     {
@@ -200,7 +205,7 @@ struct hb_apply_context_t
 	idx--;
       } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->out_info[idx], lookup_props, property_out));
       num_items--;
-      return !!(c->buffer->out_info[idx].mask & mask);
+      return (c->buffer->out_info[idx].mask & mask) && (!syllable || syllable == c->buffer->out_info[idx].syllable ());
     }
     inline bool prev (unsigned int *property_out = NULL)
     {
@@ -212,6 +217,7 @@ struct hb_apply_context_t
     hb_apply_context_t *c;
     unsigned int num_items;
     hb_mask_t mask;
+    uint8_t syllable;
   };
 
   inline bool should_mark_skip_current_glyph (void) const
@@ -341,7 +347,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 				    match_func_t match_func,
 				    const void *match_data)
 {
-  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, (hb_mask_t) -1);
+  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, (hb_mask_t) -1, false);
   if (skippy_iter.has_no_chance ())
     return false;
 
@@ -364,7 +370,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    const void *match_data,
 				    unsigned int offset)
 {
-  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, (hb_mask_t) -1);
+  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, (hb_mask_t) -1, false);
   if (skippy_iter.has_no_chance ())
     return false;
 
