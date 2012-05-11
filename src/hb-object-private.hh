@@ -197,10 +197,12 @@ struct _hb_object_header_t {
 
   inline void trace (const char *function) const {
     if (unlikely (!this)) return;
+    /* XXX We cannot use DEBUG_MSG_FUNC here since that one currecntly only
+     * prints the class name and throughs away the template info. */
     DEBUG_MSG (OBJECT, (void *) this,
-	       "refcount=%d %s",
-	       this ? ref_count.get_unsafe () : 0,
-	       function);
+	       "%s refcount=%d",
+	       function,
+	       this ? ref_count.get_unsafe () : 0);
   }
 
 };
