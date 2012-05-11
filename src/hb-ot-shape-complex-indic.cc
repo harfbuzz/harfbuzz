@@ -213,7 +213,6 @@ static void
 initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
 				       unsigned int start, unsigned int end)
 {
-  unsigned int i;
   hb_glyph_info_t *info = buffer->info;
 
   /* Comments from:
@@ -251,37 +250,39 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     has_reph = true;
   };
 
-  /* -> starting from the end of the syllable, move backwards */
-  i = end;
-  do {
-    i--;
-    /* -> until a consonant is found */
-    if (is_consonant (info[i]))
-    {
-      /* -> that does not have a below-base or post-base form
-       * (post-base forms have to follow below-base forms), */
-      if (info[i].indic_position() != POS_BELOW_C &&
-	  info[i].indic_position() != POS_POST_C)
+  {
+    /* -> starting from the end of the syllable, move backwards */
+    unsigned int i = end;
+    do {
+      i--;
+      /* -> until a consonant is found */
+      if (is_consonant (info[i]))
       {
-        base = i;
-	break;
+	/* -> that does not have a below-base or post-base form
+	 * (post-base forms have to follow below-base forms), */
+	if (info[i].indic_position() != POS_BELOW_C &&
+	    info[i].indic_position() != POS_POST_C)
+	{
+	  base = i;
+	  break;
+	}
+
+	/* -> or that is not a pre-base reordering Ra,
+	 *
+	 * TODO
+	 */
+
+	/* -> or arrive at the first consonant. The consonant stopped at will
+	 * be the base. */
+	base = i;
       }
-
-      /* -> or that is not a pre-base reordering Ra,
-       *
-       * TODO
-       */
-
-      /* -> or arrive at the first consonant. The consonant stopped at will
-       * be the base. */
-      base = i;
-    }
-    else
-      if (is_joiner (info[i]))
-        break;
-  } while (i > limit);
-  if (base < start)
-    base = start; /* Just in case... */
+      else
+	if (is_joiner (info[i]))
+	  break;
+    } while (i > limit);
+    if (base < start)
+      base = start; /* Just in case... */
+  }
 
   /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
    *    and has more than one consonant, Ra is excluded from candidates for
@@ -326,7 +327,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
   /* Reorder characters */
 
-  for (i = start; i < base; i++)
+  for (unsigned int i = start; i < base; i++)
     info[i].indic_position() = POS_PRE_C;
   info[base].indic_position() = POS_BASE_C;
 
@@ -338,7 +339,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
    * last consonant. */
   if ((map->get_chosen_script (0) & 0x000000FF) != '2') {
     /* We should only do this for Indic scripts which have a version two I guess. */
-    for (i = base + 1; i < end; i++)
+    for (unsigned int i = base + 1; i < end; i++)
       if (info[i].indic_category() == OT_H) {
         unsigned int j;
         for (j = end - 1; j > i; j--)
@@ -355,7 +356,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   }
 
   /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
-  for (i = start + 1; i < end; i++)
+  for (unsigned int i = start + 1; i < end; i++)
     if ((FLAG (info[i].indic_category()) &
 	 (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H))))
       info[i].indic_position() = info[i - 1].indic_position();
@@ -367,7 +368,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     hb_bubble_sort (info + start, end - start, compare_indic_order);
     /* Find base again */
     base = end;
-    for (i = start; i < end; i++)
+    for (unsigned int i = start; i < end; i++)
       if (info[i].indic_position() == POS_BASE_C) {
         base = i;
 	break;
@@ -385,19 +386,19 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
     /* Pre-base */
     mask = mask_array[HALF] | mask_array[AKHN] | mask_array[CJCT];
-    for (i = start; i < base; i++)
+    for (unsigned int i = start; i < base; i++)
       info[i].mask  |= mask;
     /* Base */
     mask = mask_array[AKHN] | mask_array[CJCT];
     info[base].mask |= mask;
     /* Post-base */
     mask = mask_array[BLWF] | mask_array[PSTF] | mask_array[CJCT];
-    for (i = base + 1; i < end; i++)
+    for (unsigned int i = base + 1; i < end; i++)
       info[i].mask  |= mask;
   }
 
   /* Apply ZWJ/ZWNJ effects */
-  for (i = start + 1; i < end; i++)
+  for (unsigned int i = start + 1; i < end; i++)
     if (is_joiner (info[i])) {
       bool non_joiner = info[i].indic_category() == OT_ZWNJ;
       unsigned int j = i;
