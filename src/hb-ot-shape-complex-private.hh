@@ -38,12 +38,15 @@
 #define unicode_props0()	var1.u8[0]
 #define unicode_props1()	var1.u8[1]
 
+/* buffer var allocations, used during the GSUB/GPOS processing */
+#define props_cache()		var1.u16[1] /* GSUB/GPOS glyph_props cache */
+#define syllable()		var2.u8[0] /* GSUB/GPOS shaping boundaries */
+#define lig_props()		var2.u8[1] /* GSUB/GPOS ligature tracking */
+
 /* buffer var allocations, used by complex shapers */
-#define complex_var_persistent_u8_0()	var2.u8[0]
-#define complex_var_persistent_u8_1()	var2.u8[1]
-#define complex_var_persistent_u8_2()	var2.u8[2]
-#define complex_var_persistent_u16()	var2.u16[0]
-#define complex_var_temporary_u8()	var2.u8[3]
+#define complex_var_persistent_u8_0()	var2.u8[2]
+#define complex_var_persistent_u8_1()	var2.u8[3]
+#define complex_var_temporary_u8()	var2.u8[0]
 
 
 #define HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS \

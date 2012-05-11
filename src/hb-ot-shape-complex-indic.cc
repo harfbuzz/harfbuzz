@@ -168,7 +168,6 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
-  HB_BUFFER_ALLOCATE_VAR (buffer, indic_syllable);
 
   /* We cannot setup masks here.  We save information about characters
    * and setup masks later on in a pause-callback. */
@@ -697,16 +696,15 @@ final_reordering (const hb_ot_map_t *map,
 
   hb_glyph_info_t *info = buffer->info;
   unsigned int last = 0;
-  unsigned int last_syllable = info[0].indic_syllable();
+  unsigned int last_syllable = info[0].syllable();
   for (unsigned int i = 1; i < count; i++)
-    if (last_syllable != info[i].indic_syllable()) {
+    if (last_syllable != info[i].syllable()) {
       final_reordering_syllable (buffer, last, i);
       last = i;
-      last_syllable = info[last].indic_syllable();
+      last_syllable = info[last].syllable();
     }
   final_reordering_syllable (buffer, last, count);
 
-  HB_BUFFER_DEALLOCATE_VAR (buffer, indic_syllable);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
 }

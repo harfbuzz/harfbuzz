@@ -1169,10 +1169,11 @@ GSUB::substitute_start (hb_buffer_t *buffer)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, props_cache);
   HB_BUFFER_ALLOCATE_VAR (buffer, lig_props);
+  HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].props_cache() = buffer->info[i].lig_props() = 0;
+    buffer->info[i].props_cache() = buffer->info[i].lig_props() = buffer->info[i].syllable() = 0;
 }
 
 void

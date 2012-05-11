@@ -66,7 +66,7 @@ action found_non_indic { initial_reordering_non_indic (map, buffer, mask_array, 
 
 action next_syllable {
   for (unsigned int i = last; i < p; i++)
-    info[i].indic_syllable() = syllable_serial;
+    info[i].syllable() = syllable_serial;
   last = p;
   syllable_serial++;
 }

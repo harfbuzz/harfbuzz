@@ -34,9 +34,6 @@
 
 
 
-/* buffer var allocations */
-#define lig_props() var2.u8[3]
-
 /* unique ligature id */
 /* component number in the ligature (0 = base) */
 static inline void
