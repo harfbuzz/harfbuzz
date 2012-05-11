@@ -79,10 +79,10 @@ is_consonant (const hb_glyph_info_t &info)
 {
   /* Note:
    *
-   * We treat Vowels and NBSP as if they were consonants.  This is safe because Vowels
+   * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
    * cannot happen in a consonant syllable.  The plus side however is, we can call the
    * consonant syllable logic from the vowel syllable function and get it all right! */
-  return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP)));
+  return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE)));
 }
 
 static const struct {
@@ -213,7 +213,8 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
       info.indic_category() = OT_ZWNJ;
     else if (unlikely (info.codepoint == 0x200D))
       info.indic_category() = OT_ZWJ;
-
+    else if (unlikely (info.codepoint == 0x25CC))
+      info.indic_category() = OT_DOTTEDCIRCLE;
   }
 }
 
@@ -473,7 +474,18 @@ static void
 initial_reordering_standalone_cluster (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
 				       unsigned int start, unsigned int end)
 {
-  /* We made the vowels look like consonants.  So let's call the consonant logic! */
+  /* We treat NBSP/dotted-circle as if they are consonants, so we should just chain.
+   * Only if not in compatibility mode that is... */
+
+  if (options.uniscribe_bug_compatible)
+  {
+    /* For dotted-circle, this is what Uniscribe does:
+     * If dotted-circle is the last glyph, it just does nothing.
+     * Ie. It doesn't form Reph. */
+    if (buffer->info[end - 1].indic_category() == OT_DOTTEDCIRCLE)
+      return;
+  }
+
   initial_reordering_consonant_syllable (map, buffer, mask_array, start, end);
 }
 

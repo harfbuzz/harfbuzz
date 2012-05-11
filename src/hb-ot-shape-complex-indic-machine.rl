@@ -53,17 +53,19 @@ SM   = 9;
 VD   = 10;
 A    = 11;
 NBSP = 12;
+DOTTEDCIRCLE = 13;
 
 c = C | Ra;
 n = N N?;
 z = ZWJ|ZWNJ;
 matra_group = M N? H?;
 syllable_tail = SM? (VD VD?)?;
+place_holder = NBSP | DOTTEDCIRCLE;
 
 
 consonant_syllable =	(c.n? (H.z?|z.H))* c.n? A? (H.z? | matra_group*)? syllable_tail;
 vowel_syllable =	(Ra H)? V n? (z?.H.c | ZWJ.c)* matra_group* syllable_tail;
-standalone_cluster =	(Ra H)? NBSP n? (z? H c)* matra_group* syllable_tail;
+standalone_cluster =	(Ra H)? place_holder n? (z? H c)* matra_group* syllable_tail;
 other =			any;
 
 main := |*

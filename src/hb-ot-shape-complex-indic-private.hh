@@ -57,7 +57,8 @@ enum indic_category_t {
   OT_SM,
   OT_VD,
   OT_A,
-  OT_NBSP
+  OT_NBSP,
+  OT_DOTTEDCIRCLE /* Not in the spec, but special in Uniscribe. /Very very/ special! */
 };
 
 /* Visual positions in a syllable from left to right. */
