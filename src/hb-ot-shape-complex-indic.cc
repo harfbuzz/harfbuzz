@@ -410,9 +410,9 @@ initial_reordering_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mas
     for (unsigned int i = start + 1; i < end; i++)
       if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H)))) {
 	info[i].indic_position() = info[i - 1].indic_position();
-	if (info[i].indic_category() == OT_H && info[i].indic_position() == POS_LEFT_MATRA)
+	if (info[i].indic_category() == OT_H && info[i].indic_position() == POS_PRE_M)
 	  for (unsigned int j = i; j > start; j--)
-	    if (info[j - 1].indic_position() != POS_LEFT_MATRA) {
+	    if (info[j - 1].indic_position() != POS_PRE_M) {
 	      info[i].indic_position() = info[j - 1].indic_position();
 	      break;
 	    }
@@ -573,14 +573,14 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
     /* If we found no Halant we are done.  Otherwise only proceed if the Halant does
      * not belong to the Matra itself! */
     if (info[new_matra_pos].indic_category() == OT_H &&
-	info[new_matra_pos].indic_position() != POS_LEFT_MATRA) {
+	info[new_matra_pos].indic_position() != POS_PRE_M) {
       /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
       if (new_matra_pos + 1 < end && is_joiner (info[new_matra_pos + 1]))
 	new_matra_pos++;
 
       /* Now go see if there's actually any matras... */
       for (unsigned int i = new_matra_pos; i > start; i--)
-	if (info[i - 1].indic_position () == POS_LEFT_MATRA)
+	if (info[i - 1].indic_position () == POS_PRE_M)
 	{
 	  unsigned int old_matra_pos = i - 1;
 	  hb_glyph_info_t matra = info[old_matra_pos];
@@ -703,7 +703,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
     {
       new_reph_pos = base;
       while (new_reph_pos < end &&
-	     !( FLAG (info[new_reph_pos + 1].indic_position()) & (FLAG (POS_MATRAS) | FLAG (POS_SMVD))))
+	     !( FLAG (info[new_reph_pos + 1].indic_position()) & (FLAG (POS_POST_C) | FLAG (POS_POST_M) | FLAG (POS_SMVD))))
 	new_reph_pos++;
       if (new_reph_pos < end)
         goto reph_move;
@@ -779,7 +779,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
 
 
   /* Apply 'init' to the Left Matra if it's a word start. */
-  if (info[start].indic_position () == POS_LEFT_MATRA &&
+  if (info[start].indic_position () == POS_PRE_M &&
       (!start ||
        !(FLAG (_hb_glyph_info_get_general_category (&buffer->info[start - 1])) &
 	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |
