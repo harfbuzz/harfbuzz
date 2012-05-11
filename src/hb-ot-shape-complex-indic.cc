@@ -610,12 +610,41 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
       unsigned int new_reph_pos;
 
      enum reph_position_t {
-       REPH_AFTER_MAIN, /* Malayalam, Oriya */
-       REPH_BEFORE_SUBSCRIPT, /* Gurmukhi  */
-       REPH_AFTER_SUBSCRIPT, /* Bengali */
-       REPH_BEFORE_POSTSCRIPT, /* Devanagari, Gujarati  */
-       REPH_AFTER_POSTSCRIPT, /* Kannada, Tamil, Telugu  */
-     } reph_pos = REPH_BEFORE_POSTSCRIPT; /* XXX */ /* XXX Figure out old behavior too */
+       REPH_AFTER_MAIN,
+       REPH_BEFORE_SUBSCRIPT,
+       REPH_AFTER_SUBSCRIPT,
+       REPH_BEFORE_POSTSCRIPT,
+       REPH_AFTER_POSTSCRIPT,
+     } reph_pos;
+
+     /* XXX Figure out old behavior too */
+     switch (buffer->props.script)
+     {
+       case HB_SCRIPT_MALAYALAM:
+       case HB_SCRIPT_ORIYA:
+	 reph_pos = REPH_AFTER_MAIN;
+	 break;
+
+       case HB_SCRIPT_GURMUKHI:
+	 reph_pos = REPH_BEFORE_SUBSCRIPT;
+	 break;
+
+       case HB_SCRIPT_BENGALI:
+	 reph_pos = REPH_AFTER_SUBSCRIPT;
+	 break;
+
+       default:
+       case HB_SCRIPT_DEVANAGARI:
+       case HB_SCRIPT_GUJARATI:
+	 reph_pos = REPH_BEFORE_POSTSCRIPT;
+	 break;
+
+       case HB_SCRIPT_KANNADA:
+       case HB_SCRIPT_TAMIL:
+       case HB_SCRIPT_TELUGU:
+	 reph_pos = REPH_AFTER_POSTSCRIPT;
+	 break;
+     }
 
     /*       1. If reph should be positioned after post-base consonant forms,
      *          proceed to step 5.
