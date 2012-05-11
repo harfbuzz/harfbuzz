@@ -514,8 +514,6 @@ _hb_debug_msg_va (const char *what,
   if (!_hb_debug (level, max_level))
     return;
 
-  static const char bars[] = "││││││││││││││││││││││││││││││││││││││││";
-
   fprintf (stderr, "%-10s", what ? what : "");
 
   if (obj)
@@ -523,19 +521,23 @@ _hb_debug_msg_va (const char *what,
   else
     fprintf (stderr, " %*s  ", (unsigned int) (2 * sizeof (void *)), "");
 
-  if (indented)
+  if (indented) {
+    static const char bars[] = "││││││││││││││││││││││││││││││││││││││││";
     fprintf (stderr, "%2d %s├%s",
 	     level,
 	     bars + sizeof (bars) - 1 - MIN ((unsigned int) sizeof (bars), 3 * level),
 	     level_dir ? (level_dir > 0 ? "╮" : "╯") : "╴");
-  else
+  } else
     fprintf (stderr, "   ├╴");
 
   if (func) {
     /* If there's a class name, just write that. */
     const char *dotdot = strstr (func, "::");
+    const char *space = strchr (func, ' ');
+    if (space && dotdot && space < dotdot)
+      func = space + 1;
     unsigned int func_len = dotdot ? dotdot - func : strlen (func);
-    fprintf (stderr, "%*s: ", func_len, func);
+    fprintf (stderr, "%.*s: ", func_len, func);
   }
 
   if (message)
