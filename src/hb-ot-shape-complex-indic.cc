@@ -226,14 +226,14 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
   return a < b ? -1 : a == b ? 0 : +1;
 }
 
+/* Rules from:
+ * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
+
 static void
 initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
 				       unsigned int start, unsigned int end)
 {
   hb_glyph_info_t *info = buffer->info;
-
-  /* Comments from:
-   * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
 
   /* 1. Find base consonant:
    *
