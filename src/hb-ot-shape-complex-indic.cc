@@ -380,8 +380,8 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     hb_mask_t mask;
 
     /* Reph */
-    if (has_reph)
-      info[start].mask |= mask_array[RPHF];
+    for (unsigned int i = start; i < end && info[i].indic_position() == POS_RA_TO_BECOME_REPH; i++)
+      info[i].mask |= mask_array[RPHF];
 
     /* Pre-base */
     mask = mask_array[HALF] | mask_array[AKHN] | mask_array[CJCT];
