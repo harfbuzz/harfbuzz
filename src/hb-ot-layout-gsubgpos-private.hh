@@ -72,6 +72,8 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 	hb_auto_trace_t<HB_DEBUG_CLOSURE> trace (&c->debug_depth, "CLOSURE", this, HB_FUNC, "");
 
 
+/* TODO Add TRACE_RETURN annotation for would_apply */
+
 
 struct hb_closure_context_t
 {
