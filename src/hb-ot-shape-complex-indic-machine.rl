@@ -82,6 +82,7 @@ main := |*
     PASTE (initial_reordering_, func) (map, buffer, mask_array, last, p+1); \
     last = p+1; \
     syllable_serial++; \
+    if (unlikely (!syllable_serial)) syllable_serial++; \
   } HB_STMT_END
 
 static void
@@ -99,7 +100,7 @@ find_syllables (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_arr
   pe = eof = buffer->len;
 
   unsigned int last = 0;
-  uint8_t syllable_serial = 0;
+  uint8_t syllable_serial = 1;
   %%{
     write exec;
   }%%
