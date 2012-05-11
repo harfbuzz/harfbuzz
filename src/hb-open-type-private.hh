@@ -166,7 +166,7 @@ struct hb_sanitize_context_t
     this->writable = false;
   }
 
-  inline void setup (void)
+  inline void start_processing (void)
   {
     this->start = hb_blob_get_data (this->blob, NULL);
     this->end = this->start + hb_blob_get_length (this->blob);
@@ -174,15 +174,15 @@ struct hb_sanitize_context_t
     this->debug_depth = 0;
 
     DEBUG_MSG_LEVEL (SANITIZE, this->blob, 0, +1,
-		     "init [%p..%p] (%lu bytes)",
+		     "start [%p..%p] (%lu bytes)",
 		     this->start, this->end,
 		     (unsigned long) (this->end - this->start));
   }
 
-  inline void finish (void)
+  inline void end_processing (void)
   {
     DEBUG_MSG_LEVEL (SANITIZE, this->blob, 0, -1,
-		     "fini [%p..%p] %u edit requests",
+		     "end [%p..%p] %u edit requests",
 		     this->start, this->end, this->edit_count);
 
     hb_blob_destroy (this->blob);
@@ -193,17 +193,13 @@ struct hb_sanitize_context_t
   inline bool check_range (const void *base, unsigned int len) const
   {
     const char *p = (const char *) base;
-    bool ret = this->start <= p &&
-	       p <= this->end &&
-	       (unsigned int) (this->end - p) >= len;
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1, 0,
-		     "range [%p..%p] (%d bytes) in [%p..%p] -> %s",
-		     p, p + len, len,
-		     this->start, this->end,
-		     ret ? "pass" : "FAIL");
+    hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&this->debug_depth, "SANITIZE", this->blob, NULL,
+					      "check_range [%p..%p] (%d bytes) in [%p..%p]",
+					      p, p + len, len,
+					      this->start, this->end);
 
-    return likely (ret);
+    return TRACE_RETURN (likely (this->start <= p && p <= this->end && (unsigned int) (this->end - p) >= len));
   }
 
   inline bool check_array (const void *base, unsigned int record_size, unsigned int len) const
@@ -211,13 +207,12 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     bool overflows = _hb_unsigned_int_mul_overflows (len, record_size);
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1, 0,
-		     "array [%p..%p] (%d*%d=%ld bytes) in [%p..%p] -> %s",
-		     p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
-		     this->start, this->end,
-		     !overflows ? "does not overflow" : "OVERFLOWS FAIL");
+    hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&this->debug_depth, "SANITIZE", this->blob, NULL,
+					      "check_array [%p..%p] (%d*%d=%ld bytes) in [%p..%p]",
+					      p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
+					      this->start, this->end);
 
-    return likely (!overflows && this->check_range (base, record_size * len));
+    return TRACE_RETURN (likely (!overflows && this->check_range (base, record_size * len)));
   }
 
   template <typename Type>
@@ -226,22 +221,21 @@ struct hb_sanitize_context_t
     return likely (this->check_range (obj, obj->min_size));
   }
 
-  inline bool can_edit (const void *base HB_UNUSED, unsigned int len HB_UNUSED)
+  inline bool may_edit (const void *base HB_UNUSED, unsigned int len HB_UNUSED)
   {
     const char *p = (const char *) base;
     this->edit_count++;
 
-    DEBUG_MSG_LEVEL (SANITIZE, this->blob, this->debug_depth + 1, 0,
-		     "edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
-		     this->edit_count,
-		     p, p + len, len,
-		     this->start, this->end,
-		     this->writable ? "granted" : "REJECTED");
+    hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&this->debug_depth, "SANITIZE", this->blob, NULL,
+					      "may_edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
+					      this->edit_count,
+					      p, p + len, len,
+					      this->start, this->end);
 
-    return this->writable;
+    return TRACE_RETURN (this->writable);
   }
 
-  unsigned int debug_depth;
+  mutable unsigned int debug_depth;
   const char *start, *end;
   bool writable;
   unsigned int edit_count;
@@ -265,10 +259,10 @@ struct Sanitizer
   retry:
     DEBUG_MSG_FUNC (SANITIZE, blob, "start");
 
-    c->setup ();
+    c->start_processing ();
 
     if (unlikely (!c->start)) {
-      c->finish ();
+      c->end_processing ();
       return blob;
     }
 
@@ -302,7 +296,7 @@ struct Sanitizer
       }
     }
 
-    c->finish ();
+    c->end_processing ();
 
     DEBUG_MSG_FUNC (SANITIZE, blob, sane ? "PASSED" : "FAILED");
     if (sane)
@@ -514,7 +508,7 @@ struct GenericOffsetTo : OffsetType
   private:
   /* Set the offset to Null */
   inline bool neuter (hb_sanitize_context_t *c) {
-    if (c->can_edit (this, this->static_size)) {
+    if (c->may_edit (this, this->static_size)) {
       this->set (0); /* 0 is Null offset */
       return true;
     }
