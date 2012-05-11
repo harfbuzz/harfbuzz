@@ -77,6 +77,7 @@ main := |*
 
 #define process_syllable(func) \
   HB_STMT_START { \
+    /* printf ("syllable %d..%d %s\n", last, p+1, #func); */ \
     for (unsigned int i = last; i < p+1; i++) \
       info[i].syllable() = syllable_serial; \
     PASTE (initial_reordering_, func) (map, buffer, mask_array, last, p+1); \

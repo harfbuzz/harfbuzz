@@ -191,6 +191,17 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
     info.indic_category() = type & 0x0F;
     info.indic_position() = type >> 4;
 
+    /* The spec says U+0952 is OT_A.  However, testing shows that Uniscribe
+     * treats U+0951..U+0952 all as OT_VD.
+     * TESTS:
+     * U+092E,U+0947,U+0952
+     * U+092E,U+0952,U+0947
+     * U+092E,U+0947,U+0951
+     * U+092E,U+0951,U+0947
+     * */
+    if (unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x0951, 0x0954)))
+      info.indic_category() = OT_VD;
+
     if (info.indic_category() == OT_C) {
       info.indic_position() = consonant_position (info.codepoint);
       if (is_ra (info.codepoint))
@@ -203,11 +214,6 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
     else if (unlikely (info.codepoint == 0x200D))
       info.indic_category() = OT_ZWJ;
 
-    /* The spec only suggests this for U+0952, but we do more. */
-    if (unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x0951, 0x0954))) {
-      info.indic_category() = OT_A;
-      info.indic_position() = POS_SMVD;
-    }
   }
 }
 
