@@ -59,39 +59,35 @@ z = ZWJ|ZWNJ;
 matra_group = M N? H?;
 syllable_tail = SM? (VD VD?)?;
 
-action found_consonant_syllable { initial_reordering_consonant_syllable (map, buffer, mask_array, last, p); }
-action found_vowel_syllable { initial_reordering_vowel_syllable (map, buffer, mask_array, last, p); }
-action found_standalone_cluster { initial_reordering_standalone_cluster (map, buffer, mask_array, last, p); }
-action found_non_indic { initial_reordering_non_indic (map, buffer, mask_array, last, p); }
 
-action next_syllable {
-  for (unsigned int i = last; i < p; i++)
-    info[i].syllable() = syllable_serial;
-  last = p;
-  syllable_serial++;
-}
+consonant_syllable =	(c.N? (H.z?|z.H))* c.N? A? (H.z? | matra_group*)? syllable_tail;
+vowel_syllable =	(Ra H)? V N? (z?.H.c | ZWJ.c)? matra_group* syllable_tail;
+standalone_cluster =	(Ra H)? NBSP N? (z? H c)? matra_group* syllable_tail;
+other =			any;
 
-consonant_syllable =	(c.N? (H.z?|z.H))* c.N? A? (H.z? | matra_group*)? syllable_tail %(found_consonant_syllable);
-vowel_syllable =	(Ra H)? V N? (z?.H.c | ZWJ.c)? matra_group* syllable_tail %(found_vowel_syllable);
-standalone_cluster =	(Ra H)? NBSP N? (z? H c)? matra_group* syllable_tail %(found_standalone_cluster);
-other = /./ %(found_non_indic);
+main := |*
+	consonant_syllable	=> { process_syllable (consonant_syllable); };
+	vowel_syllable		=> { process_syllable (vowel_syllable); };
+	standalone_cluster	=> { process_syllable (standalone_cluster); };
+	other			=> { process_syllable (non_indic); };
+*|;
 
-syllable =
-	  consonant_syllable
-	| vowel_syllable
-	| standalone_cluster
-	| other
-	;
-
-main := (syllable %(next_syllable))**;
 
 }%%
 
+#define process_syllable(func) \
+  HB_STMT_START { \
+    for (unsigned int i = last; i < p+1; i++) \
+      info[i].syllable() = syllable_serial; \
+    PASTE (initial_reordering_, func) (map, buffer, mask_array, last, p+1); \
+    last = p+1; \
+    syllable_serial++; \
+  } HB_STMT_END
 
 static void
 find_syllables (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array)
 {
-  unsigned int p, pe, eof;
+  unsigned int p, pe, eof, ts, te, act;
   int cs;
   hb_glyph_info_t *info = buffer->info;
   %%{

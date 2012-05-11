@@ -91,6 +91,8 @@ template <typename Type> static inline Type MAX (const Type &a, const Type &b) {
 #define ASSERT_STATIC_EXPR(_cond) ((void) sizeof (char[(_cond) ? 1 : -1]))
 #define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * sizeof (char[(_cond) ? 1 : -1]))
 
+#define _PASTE1(a,b) a##b
+#define PASTE(a,b) _PASTE1(a,b)
 
 /* Lets assert int types.  Saves trouble down the road. */
 
