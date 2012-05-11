@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([harfbuzz],
-        [0.7.0],
+        [0.9.0],
         [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz],
         [harfbuzz],
         [http://harfbuzz.org/])
