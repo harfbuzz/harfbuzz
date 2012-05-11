@@ -24,6 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#define UNISCRIBE_BUG_COMPATIBLE 1
 
 #include "hb-ot-shape-complex-indic-private.hh"
 
@@ -669,7 +670,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
    * One day when we don't compare to Uniscribe output anymore, we want to
    * disable this because we believe it would make for superior cursor
    * positioning. */
-  if (1) {
+  if (UNISCRIBE_BUG_COMPATIBLE) {
     /* This is what Uniscribe does.  Ie. add cluster boundaries after Halant,ZWNJ.
      * This means, half forms are submerged into the main consonants cluster.
      * This is unnecessary, and makes cursor positioning harder, but that's what
