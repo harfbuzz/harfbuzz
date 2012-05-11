@@ -196,6 +196,7 @@ struct _hb_object_header_t {
   }
 
   inline void trace (const char *function) const {
+    if (unlikely (!this)) return;
     DEBUG_MSG (OBJECT, (void *) this,
 	       "refcount=%d %s",
 	       this ? ref_count.get_unsafe () : 0,
