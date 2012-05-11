@@ -24,9 +24,18 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define UNISCRIBE_BUG_COMPATIBLE 1
-
 #include "hb-ot-shape-complex-indic-private.hh"
+
+static const struct indic_options_t
+{
+  indic_options_t (void)
+  {
+    char *c = getenv ("HB_OT_INDIC_OPTIONS");
+    uniscribe_bug_compatible = c && strstr (c, "uniscribe-bug-compatible");
+  }
+
+  bool uniscribe_bug_compatible;
+} options;
 
 static int
 compare_codepoint (const void *pa, const void *pb)
@@ -357,10 +366,26 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   }
 
   /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
-  for (unsigned int i = start + 1; i < end; i++)
-    if ((FLAG (info[i].indic_category()) &
-	 (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H))))
-      info[i].indic_position() = info[i - 1].indic_position();
+  if (!options.uniscribe_bug_compatible)
+  {
+    /* Please update the Uniscribe branch when touching this! */
+    for (unsigned int i = start + 1; i < end; i++)
+      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H))))
+	info[i].indic_position() = info[i - 1].indic_position();
+  } else {
+    /* Please update the non-Uniscribe branch when touching this! */
+    for (unsigned int i = start + 1; i < end; i++)
+      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H)))) {
+	info[i].indic_position() = info[i - 1].indic_position();
+	if (info[i].indic_category() == OT_H && info[i].indic_position() == POS_LEFT_MATRA)
+	  for (unsigned int j = i; j > start; j--)
+	    if (info[j - 1].indic_position() != POS_LEFT_MATRA) {
+	      /* Uniscribe doesn't move the Halant with Left Matra. */
+	      info[i].indic_position() = info[j - 1].indic_position();
+	      break;
+	    }
+      }
+  }
 
   /* We do bubble-sort, skip malicious clusters attempts */
   if (end - start < 64)
@@ -666,11 +691,8 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
   /* Finish off the clusters and go home! */
 
-  /* For testing purposes we want to enable this to test against Uniscribe.
-   * One day when we don't compare to Uniscribe output anymore, we want to
-   * disable this because we believe it would make for superior cursor
-   * positioning. */
-  if (UNISCRIBE_BUG_COMPATIBLE) {
+  if (!options.uniscribe_bug_compatible)
+  {
     /* This is what Uniscribe does.  Ie. add cluster boundaries after Halant,ZWNJ.
      * This means, half forms are submerged into the main consonants cluster.
      * This is unnecessary, and makes cursor positioning harder, but that's what
