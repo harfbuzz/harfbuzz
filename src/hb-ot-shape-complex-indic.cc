@@ -565,29 +565,31 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
    *     halant, position is moved after it.
    */
 
-  unsigned int new_matra_pos = base - 1;
-  while (new_matra_pos > start &&
-	 !(FLAG (info[new_matra_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
-    new_matra_pos--;
-  /* If we found no Halant we are done.  Otherwise only proceed if the Halant does
-   * not belong to the Matra itself! */
-  if (info[new_matra_pos].indic_category() == OT_H &&
-      info[new_matra_pos].indic_position() != POS_LEFT_MATRA) {
-    /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
-    if (new_matra_pos + 1 < end && is_joiner (info[new_matra_pos + 1]))
-      new_matra_pos++;
+  {
+    unsigned int new_matra_pos = base - 1;
+    while (new_matra_pos > start &&
+	   !(FLAG (info[new_matra_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
+      new_matra_pos--;
+    /* If we found no Halant we are done.  Otherwise only proceed if the Halant does
+     * not belong to the Matra itself! */
+    if (info[new_matra_pos].indic_category() == OT_H &&
+	info[new_matra_pos].indic_position() != POS_LEFT_MATRA) {
+      /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
+      if (new_matra_pos + 1 < end && is_joiner (info[new_matra_pos + 1]))
+	new_matra_pos++;
 
-    /* Now go see if there's actually any matras... */
-    for (unsigned int i = new_matra_pos; i > start; i--)
-      if (info[i - 1].indic_position () == POS_LEFT_MATRA)
-      {
-	unsigned int old_matra_pos = i - 1;
-	hb_glyph_info_t matra = info[old_matra_pos];
-	memmove (&info[old_matra_pos], &info[old_matra_pos + 1], (new_matra_pos - old_matra_pos) * sizeof (info[0]));
-	info[new_matra_pos] = matra;
-	start_of_last_cluster = MIN (new_matra_pos, start_of_last_cluster);
-	new_matra_pos--;
-      }
+      /* Now go see if there's actually any matras... */
+      for (unsigned int i = new_matra_pos; i > start; i--)
+	if (info[i - 1].indic_position () == POS_LEFT_MATRA)
+	{
+	  unsigned int old_matra_pos = i - 1;
+	  hb_glyph_info_t matra = info[old_matra_pos];
+	  memmove (&info[old_matra_pos], &info[old_matra_pos + 1], (new_matra_pos - old_matra_pos) * sizeof (info[0]));
+	  info[new_matra_pos] = matra;
+	  start_of_last_cluster = MIN (new_matra_pos, start_of_last_cluster);
+	  new_matra_pos--;
+	}
+    }
   }
 
 
@@ -650,9 +652,9 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
      *          proceed to step 5.
      */
     reph_step_1:
+    if (reph_pos == REPH_AFTER_POSTSCRIPT)
     {
-      if (reph_pos == REPH_AFTER_POSTSCRIPT)
-	goto reph_step_5;
+      goto reph_step_5;
     }
 
     /*       2. If the reph repositioning class is not after post-base: target
@@ -685,6 +687,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
      *          consonant that is not a potential pre-base reordering Ra.
      */
     reph_step_3:
+    if (reph_pos == REPH_AFTER_MAIN)
     {
       /* XXX */
     }
@@ -695,8 +698,15 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
      *          first matra, syllable modifier sign or vedic sign.
      */
     reph_step_4:
+    /* This is our take on what step 4 is trying to say (and failing, BADLY). */
+    if (reph_pos == REPH_AFTER_SUBSCRIPT)
     {
-      /* XXX */
+      new_reph_pos = base;
+      while (new_reph_pos < end &&
+	     !( FLAG (info[new_reph_pos + 1].indic_position()) & (FLAG (POS_MATRAS) | FLAG (POS_SMVD))))
+	new_reph_pos++;
+      if (new_reph_pos < end)
+        goto reph_move;
     }
 
     /*       5. If no consonant is found in steps 3 or 4, move reph to a position
