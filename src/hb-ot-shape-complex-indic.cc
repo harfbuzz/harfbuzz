@@ -85,10 +85,13 @@ is_consonant (const hb_glyph_info_t &info)
   return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE)));
 }
 
-static const struct {
+struct feature_list_t {
   hb_tag_t tag;
   hb_bool_t is_global;
-} indic_basic_features[] =
+};
+
+static const feature_list_t
+indic_basic_features[] =
 {
   {HB_TAG('n','u','k','t'), true},
   {HB_TAG('a','k','h','n'), false},
@@ -116,17 +119,24 @@ enum {
   CJCT
 };
 
-static const hb_tag_t indic_other_features[] =
+static const feature_list_t
+indic_other_features[] =
 {
-  HB_TAG('p','r','e','s'),
-  HB_TAG('a','b','v','s'),
-  HB_TAG('b','l','w','s'),
-  HB_TAG('p','s','t','s'),
-  HB_TAG('h','a','l','n'),
+  {HB_TAG('i','n','i','t'), false},
+  {HB_TAG('p','r','e','s'), true},
+  {HB_TAG('a','b','v','s'), true},
+  {HB_TAG('b','l','w','s'), true},
+  {HB_TAG('p','s','t','s'), true},
+  {HB_TAG('h','a','l','n'), true},
 
-  HB_TAG('d','i','s','t'),
-  HB_TAG('a','b','v','m'),
-  HB_TAG('b','l','w','m'),
+  {HB_TAG('d','i','s','t'), true},
+  {HB_TAG('a','b','v','m'), true},
+  {HB_TAG('b','l','w','m'), true},
+};
+
+/* Same order as the indic_other_features array */
+enum {
+  INIT
 };
 
 
@@ -159,7 +169,7 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_
   map->add_gsub_pause (final_reordering, NULL);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++) {
-    map->add_bool_feature (indic_other_features[i], true);
+    map->add_bool_feature (indic_other_features[i].tag, indic_other_features[i].is_global);
     map->add_gsub_pause (NULL, NULL);
   }
 }
@@ -514,7 +524,7 @@ initial_reordering (const hb_ot_map_t *map,
 }
 
 static void
-final_reordering_syllable (hb_buffer_t *buffer,
+final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
 			   unsigned int start, unsigned int end)
 {
   hb_glyph_info_t *info = buffer->info;
@@ -724,6 +734,11 @@ final_reordering_syllable (hb_buffer_t *buffer,
    *          consonant.
    */
 
+  /* TODO */
+
+
+
+
 
   /* Finish off the clusters and go home! */
 
@@ -756,16 +771,21 @@ final_reordering (const hb_ot_map_t *map,
   unsigned int count = buffer->len;
   if (!count) return;
 
+  hb_mask_t mask_array[ARRAY_LENGTH (indic_other_features)] = {0};
+  unsigned int num_masks = ARRAY_LENGTH (indic_other_features);
+  for (unsigned int i = 0; i < num_masks; i++)
+    mask_array[i] = map->get_1_mask (indic_other_features[i].tag);
+
   hb_glyph_info_t *info = buffer->info;
   unsigned int last = 0;
   unsigned int last_syllable = info[0].syllable();
   for (unsigned int i = 1; i < count; i++)
     if (last_syllable != info[i].syllable()) {
-      final_reordering_syllable (buffer, last, i);
+      final_reordering_syllable (buffer, mask_array, last, i);
       last = i;
       last_syllable = info[last].syllable();
     }
-  final_reordering_syllable (buffer, last, count);
+  final_reordering_syllable (buffer, mask_array, last, count);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
