@@ -25,6 +25,7 @@
  */
 
 #include "hb-ot-shape-complex-indic-private.hh"
+#include "hb-ot-shape-private.hh"
 
 static const struct indic_options_t
 {
@@ -737,6 +738,20 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
   /* TODO */
 
 
+
+  /* Apply 'init' to the Left Matra if it's a word start. */
+  if (info[start].indic_position () == POS_LEFT_MATRA &&
+      (!start ||
+       !(FLAG (_hb_glyph_info_get_general_category (&buffer->info[start - 1])) &
+	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER) |
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) |
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER) |
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER) |
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))))
+    info[start].mask |= mask_array[INIT];
 
 
 
