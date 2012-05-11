@@ -200,7 +200,7 @@ struct hb_apply_context_t
 	idx--;
       } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->out_info[idx], lookup_props, property_out));
       num_items--;
-      return !!(c->buffer->info[idx].mask & mask);
+      return !!(c->buffer->out_info[idx].mask & mask);
     }
     inline bool prev (unsigned int *property_out = NULL)
     {
