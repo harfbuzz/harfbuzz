@@ -650,11 +650,15 @@ final_reordering_syllable (hb_buffer_t *buffer,
       while (new_reph_pos > start && info[new_reph_pos].indic_position() == POS_SMVD)
 	new_reph_pos--;
 
-      if (unlikely (info[new_reph_pos].indic_category() == OT_H)) {
-	/* *If* the Reph is to be ending up after a Matra,Halant sequence,
-	 * position it before that Halant so it can interact with the Matra.
-	 * However, if it's a plain Consonant,Halant we shouldn't do that.
-	 */
+      /*
+       * If the Reph is to be ending up after a Matra,Halant sequence,
+       * position it before that Halant so it can interact with the Matra.
+       * However, if it's a plain Consonant,Halant we shouldn't do that.
+       * Uniscribe doesn't do this.
+       * TEST: U+0930,U+094D,U+0915,U+094B,U+094D
+       */
+      if (!options.uniscribe_bug_compatible &&
+	  unlikely (info[new_reph_pos].indic_category() == OT_H)) {
 	for (unsigned int i = base + 1; i < new_reph_pos; i++)
 	  if (info[i].indic_category() == OT_M) {
 	    /* Ok, got it. */
