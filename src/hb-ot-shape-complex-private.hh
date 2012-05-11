@@ -68,7 +68,7 @@ enum hb_ot_complex_shaper_t {
 static inline hb_ot_complex_shaper_t
 hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
 {
-  switch ((int) props->script)
+  switch ((hb_tag_t) props->script)
   {
     default:
       return hb_ot_complex_shaper_default;

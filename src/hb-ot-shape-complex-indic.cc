@@ -620,7 +620,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
      } reph_pos;
 
      /* XXX Figure out old behavior too */
-     switch (buffer->props.script)
+     switch ((hb_tag_t) buffer->props.script)
      {
        case HB_SCRIPT_MALAYALAM:
        case HB_SCRIPT_ORIYA:
