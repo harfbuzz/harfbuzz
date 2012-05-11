@@ -373,6 +373,10 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H))))
 	info[i].indic_position() = info[i - 1].indic_position();
   } else {
+    /*
+     * Uniscribe doesn't move the Halant with Left Matra.
+     * TEST: U+092B,U+093F,U+094DE
+     */
     /* Please update the non-Uniscribe branch when touching this! */
     for (unsigned int i = start + 1; i < end; i++)
       if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H)))) {
@@ -380,7 +384,6 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	if (info[i].indic_category() == OT_H && info[i].indic_position() == POS_LEFT_MATRA)
 	  for (unsigned int j = i; j > start; j--)
 	    if (info[j - 1].indic_position() != POS_LEFT_MATRA) {
-	      /* Uniscribe doesn't move the Halant with Left Matra. */
 	      info[i].indic_position() = info[j - 1].indic_position();
 	      break;
 	    }
