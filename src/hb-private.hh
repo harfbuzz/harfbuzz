@@ -531,8 +531,12 @@ _hb_debug_msg_va (const char *what,
   else
     fprintf (stderr, "   ├╴");
 
-  if (func)
-    fprintf (stderr, "%s: ", func);
+  if (func) {
+    /* If there's a class name, just write that. */
+    const char *dotdot = strstr (func, "::");
+    unsigned int func_len = dotdot ? dotdot - func : strlen (func);
+    fprintf (stderr, "%*s: ", func_len, func);
+  }
 
   if (message)
     vfprintf (stderr, message, ap);
