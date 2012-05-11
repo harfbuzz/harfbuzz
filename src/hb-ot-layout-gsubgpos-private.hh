@@ -134,11 +134,13 @@ struct hb_apply_context_t
   {
     inline mark_skipping_forward_iterator_t (hb_apply_context_t *c_,
 					     unsigned int start_index_,
-					     unsigned int num_items_)
+					     unsigned int num_items_,
+					     hb_mask_t mask_ = 0)
     {
       c = c_;
       idx = start_index_;
       num_items = num_items_;
+      mask = mask_ ? mask_ : c->lookup_mask;
       end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
     }
     inline bool has_no_chance (void) const
@@ -156,7 +158,7 @@ struct hb_apply_context_t
 	idx++;
       } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[idx], lookup_props, property_out));
       num_items--;
-      return true;
+      return !!(c->buffer->info[idx].mask & mask);
     }
     inline bool next (unsigned int *property_out = NULL)
     {
@@ -167,6 +169,7 @@ struct hb_apply_context_t
     private:
     hb_apply_context_t *c;
     unsigned int num_items;
+    hb_mask_t mask;
     unsigned int end;
   };
 
@@ -174,11 +177,13 @@ struct hb_apply_context_t
   {
     inline mark_skipping_backward_iterator_t (hb_apply_context_t *c_,
 					      unsigned int start_index_,
-					      unsigned int num_items_)
+					      unsigned int num_items_,
+					      hb_mask_t mask_ = 0)
     {
       c = c_;
       idx = start_index_;
       num_items = num_items_;
+      mask = mask_ ? mask_ : c->lookup_mask;
     }
     inline bool has_no_chance (void) const
     {
@@ -195,7 +200,7 @@ struct hb_apply_context_t
 	idx--;
       } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->out_info[idx], lookup_props, property_out));
       num_items--;
-      return true;
+      return !!(c->buffer->info[idx].mask & mask);
     }
     inline bool prev (unsigned int *property_out = NULL)
     {
@@ -206,6 +211,7 @@ struct hb_apply_context_t
     private:
     hb_apply_context_t *c;
     unsigned int num_items;
+    hb_mask_t mask;
   };
 
   inline bool should_mark_skip_current_glyph (void) const
@@ -335,7 +341,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 				    match_func_t match_func,
 				    const void *match_data)
 {
-  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count);
+  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, (hb_mask_t) -1);
   if (skippy_iter.has_no_chance ())
     return false;
 
@@ -358,7 +364,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    const void *match_data,
 				    unsigned int offset)
 {
-  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count);
+  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, (hb_mask_t) -1);
   if (skippy_iter.has_no_chance ())
     return false;
 
