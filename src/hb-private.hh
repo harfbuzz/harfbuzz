@@ -519,7 +519,7 @@ _hb_debug_msg_va (const char *what,
   fprintf (stderr, "%-10s", what ? what : "");
 
   if (obj)
-    fprintf (stderr, "(%0*x) ", (unsigned int) (2 * sizeof (void *)), (unsigned long) obj);
+    fprintf (stderr, "(%0*lx) ", (unsigned int) (2 * sizeof (void *)), (unsigned long) obj);
   else
     fprintf (stderr, " %*s  ", (unsigned int) (2 * sizeof (void *)), "");
 
