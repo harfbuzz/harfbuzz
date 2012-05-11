@@ -500,8 +500,10 @@ final_reordering_syllable (hb_buffer_t *buffer,
   while (new_matra_pos > start &&
 	 !(FLAG (info[new_matra_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
     new_matra_pos--;
-  /* If we found no Halant we are done.  Otherwise... */
-  if (info[new_matra_pos].indic_category() == OT_H) {
+  /* If we found no Halant we are done.  Otherwise only proceed if the Halant does
+   * not belong to the Matra itself! */
+  if (info[new_matra_pos].indic_category() == OT_H &&
+      info[new_matra_pos].indic_position() != POS_LEFT_MATRA) {
     /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
     if (new_matra_pos + 1 < end && is_joiner (info[new_matra_pos + 1]))
       new_matra_pos++;
