@@ -203,7 +203,8 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, h
     else if (unlikely (info.codepoint == 0x200D))
       info.indic_category() = OT_ZWJ;
 
-    if (unlikely (info.codepoint == 0x0952)) {
+    /* The spec only suggests this for U+0952, but we do more. */
+    if (unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x0951, 0x0954))) {
       info.indic_category() = OT_A;
       info.indic_position() = POS_SMVD;
     }
