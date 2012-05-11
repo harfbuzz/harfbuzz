@@ -610,11 +610,11 @@ _hb_debug_msg<0> (const char *what,
 template <int max_level>
 struct hb_auto_trace_t {
   explicit inline hb_auto_trace_t (unsigned int *plevel_,
-				   const char *what,
-				   const void *obj,
+				   const char *what_,
+				   const void *obj_,
 				   const char *func,
 				   const char *message,
-				   ...) : plevel(plevel_), returned (false)
+				   ...) : plevel (plevel_), what (what_), obj (obj_), returned (false)
   {
     if (plevel) ++*plevel;
 
@@ -627,7 +627,7 @@ struct hb_auto_trace_t {
   {
     if (unlikely (!returned)) {
       fprintf (stderr, "OUCH, returned with no call to TRACE_RETURN.  This is a bug, please report.  Level was %d.\n", plevel ? *plevel : -1);
-      _hb_debug_msg<max_level> (NULL, NULL, NULL, TRUE, plevel ? *plevel : 1, -1, " ");
+      _hb_debug_msg<max_level> (what, obj, NULL, TRUE, plevel ? *plevel : 1, -1, " ");
       return;
     }
 
@@ -641,7 +641,7 @@ struct hb_auto_trace_t {
       return v;
     }
 
-    _hb_debug_msg<max_level> (NULL, NULL, NULL, TRUE, plevel ? *plevel : 1, -1, "return %s", v ? "true" : "false");
+    _hb_debug_msg<max_level> (what, obj, NULL, TRUE, plevel ? *plevel : 1, -1, "return %s", v ? "true" : "false");
     if (plevel) --*plevel;
     plevel = NULL;
     returned = true;
@@ -651,6 +651,8 @@ struct hb_auto_trace_t {
   private:
   unsigned int *plevel;
   bool returned;
+  const char *what;
+  const void *obj;
 };
 template <> /* Optimize when tracing is disabled */
 struct hb_auto_trace_t<0> {
