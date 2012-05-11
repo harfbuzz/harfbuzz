@@ -55,14 +55,15 @@ A    = 11;
 NBSP = 12;
 
 c = C | Ra;
+n = N N?;
 z = ZWJ|ZWNJ;
 matra_group = M N? H?;
 syllable_tail = SM? (VD VD?)?;
 
 
-consonant_syllable =	(c.N? (H.z?|z.H))* c.N? A? (H.z? | matra_group*)? syllable_tail;
-vowel_syllable =	(Ra H)? V N? (z?.H.c | ZWJ.c)? matra_group* syllable_tail;
-standalone_cluster =	(Ra H)? NBSP N? (z? H c)? matra_group* syllable_tail;
+consonant_syllable =	(c.n? (H.z?|z.H))* c.n? A? (H.z? | matra_group*)? syllable_tail;
+vowel_syllable =	(Ra H)? V n? (z?.H.c | ZWJ.c)? matra_group* syllable_tail;
+standalone_cluster =	(Ra H)? NBSP n? (z? H c)? matra_group* syllable_tail;
 other =			any;
 
 main := |*
