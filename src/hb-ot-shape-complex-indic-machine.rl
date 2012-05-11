@@ -62,8 +62,8 @@ syllable_tail = SM? (VD VD?)?;
 
 
 consonant_syllable =	(c.n? (H.z?|z.H))* c.n? A? (H.z? | matra_group*)? syllable_tail;
-vowel_syllable =	(Ra H)? V n? (z?.H.c | ZWJ.c)? matra_group* syllable_tail;
-standalone_cluster =	(Ra H)? NBSP n? (z? H c)? matra_group* syllable_tail;
+vowel_syllable =	(Ra H)? V n? (z?.H.c | ZWJ.c)* matra_group* syllable_tail;
+standalone_cluster =	(Ra H)? NBSP n? (z? H c)* matra_group* syllable_tail;
 other =			any;
 
 main := |*
@@ -78,7 +78,7 @@ main := |*
 
 #define process_syllable(func) \
   HB_STMT_START { \
-    /* printf ("syllable %d..%d %s\n", last, p+1, #func); */ \
+    /* fprintf (stderr, "syllable %d..%d %s\n", last, p+1, #func); */ \
     for (unsigned int i = last; i < p+1; i++) \
       info[i].syllable() = syllable_serial; \
     PASTE (initial_reordering_, func) (map, buffer, mask_array, last, p+1); \
