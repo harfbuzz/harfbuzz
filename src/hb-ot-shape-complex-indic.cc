@@ -411,9 +411,9 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	 * The test suite has been drinking, not me...  But disable while
 	 * investigating.
 	 */
-	//info[j].mask &= !mask_array[CJCT];
+	//info[j].mask &= ~mask_array[CJCT];
 	if (non_joiner)
-	  info[j].mask &= !mask_array[HALF];
+	  info[j].mask &= ~mask_array[HALF];
 
       } while (j > start && !is_consonant (info[j]));
     }
