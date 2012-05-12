@@ -651,7 +651,6 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
     /*       1. If reph should be positioned after post-base consonant forms,
      *          proceed to step 5.
      */
-    reph_step_1:
     if (reph_pos == REPH_AFTER_POSTSCRIPT)
     {
       goto reph_step_5;
@@ -668,7 +667,6 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
      *          fixed in shaping engine, there was no case where reph position
      *          will be found on this step.
      */
-    reph_step_2:
     {
       new_reph_pos = start + 1;
       while (new_reph_pos < base && info[new_reph_pos].indic_category() != OT_H)
@@ -686,7 +684,6 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
      *          first consonant not ligated with main, or find the first
      *          consonant that is not a potential pre-base reordering Ra.
      */
-    reph_step_3:
     if (reph_pos == REPH_AFTER_MAIN)
     {
       /* XXX */
@@ -697,7 +694,6 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
      *          consonant is found, the target position should be before the
      *          first matra, syllable modifier sign or vedic sign.
      */
-    reph_step_4:
     /* This is our take on what step 4 is trying to say (and failing, BADLY). */
     if (reph_pos == REPH_AFTER_SUBSCRIPT)
     {
@@ -723,7 +719,6 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
 
     /*       6. Otherwise, reorder reph to the end of the syllable.
      */
-    reph_step_6:
     {
       new_reph_pos = end - 1;
       while (new_reph_pos > start && info[new_reph_pos].indic_position() == POS_SMVD)
