@@ -102,10 +102,10 @@ struct option_parser_t
 };
 
 
-#define DEFAULT_MARGIN 18
+#define DEFAULT_MARGIN 64
 #define DEFAULT_FORE "#000000"
 #define DEFAULT_BACK "#FFFFFF"
-#define DEFAULT_FONT_SIZE 36
+#define DEFAULT_FONT_SIZE 256
 
 struct view_options_t : option_group_t
 {
