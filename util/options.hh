@@ -239,7 +239,7 @@ struct text_options_t : option_group_t
     if (text && text_file)
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Only one of text and text-file must be set");
+		   "Only one of text and text-file can be set");
 
   };
 

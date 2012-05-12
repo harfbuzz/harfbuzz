@@ -376,7 +376,7 @@ view_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "view",
 		     "View options:",
-		     "Options controlling the output rendering",
+		     "Options controlling output rendering",
 		     this);
 }
 
@@ -391,7 +391,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
     {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
-    {"utf8-clusters",	0, 0, G_OPTION_ARG_NONE,	&this->utf8_clusters,		"Use UTF-8 byte indices, not char indices",	NULL},
+    {"utf8-clusters",	0, 0, G_OPTION_ARG_NONE,	&this->utf8_clusters,		"Use UTF8 byte indices, not char indices",	NULL},
     {NULL}
   };
   parser->add_group (entries,
@@ -400,9 +400,7 @@ shape_options_t::add_options (option_parser_t *parser)
 		     "Options controlling the shaping process",
 		     this);
 
-  const gchar *features_help = "\n"
-    "\n"
-    "    Comma-separated list of font features to apply to text\n"
+  const gchar *features_help = "Comma-separated list of font features\n"
     "\n"
     "    Features can be enabled or disabled, either globally or limited to\n"
     "    specific character ranges.\n"
@@ -444,7 +442,7 @@ shape_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries2,
 		     "features",
 		     "Features options:",
-		     "Options controlling the OpenType font features applied",
+		     "Options controlling font features used",
 		     this);
 }
 
@@ -470,7 +468,7 @@ text_options_t::add_options (option_parser_t *parser)
   GOptionEntry entries[] =
   {
     {"text",		0, 0, G_OPTION_ARG_STRING,	&this->text,			"Set input text",			"string"},
-    {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name",		"filename"},
+    {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name\n\n    If no text is provided, standard input is used for input.",		"filename"},
     {NULL}
   };
   parser->add_group (entries,

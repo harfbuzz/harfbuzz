@@ -50,8 +50,10 @@ struct hb_view_t
     if (argc && !input.text && !input.text_file) input.text = argv[0], argc--, argv++;
     if (argc)
       fail (TRUE, "Too many arguments on the command line");
-    if (!font_opts.font_file || (!input.text && !input.text_file))
+    if (!font_opts.font_file)
       options.usage ();
+    if (!input.text && !input.text_file)
+      input.text_file = "-";
 
     output.init (&font_opts);
 
