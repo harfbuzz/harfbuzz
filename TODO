@@ -22,6 +22,8 @@ General fixes:
 
 - GSUB ligation should call merge_clusters().
 
+- Convert NBSP into space glyph.
+
 
 API issues to fix before 1.0:
 ============================
