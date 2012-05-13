@@ -729,7 +729,7 @@ hb_face_set_index (hb_face_t    *face,
   if (hb_object_is_inert (face))
     return;
 
-  face->index = 0;
+  face->index = index;
 }
 
 unsigned int
