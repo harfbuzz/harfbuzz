@@ -1532,9 +1532,6 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
   if (unlikely (c->nesting_level_left == 0))
     return false;
 
-  if (unlikely (c->context_length < 1))
-    return false;
-
   hb_apply_context_t new_c (*c);
   new_c.nesting_level_left--;
   new_c.set_lookup (l);

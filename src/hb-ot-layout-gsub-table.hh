@@ -804,7 +804,8 @@ struct ReverseChainSingleSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    if (unlikely (c->context_length != NO_CONTEXT)) return TRACE_RETURN (false); /* No chaining to this type */
+    if (unlikely (c->nesting_level_left != MAX_NESTING_LEVEL))
+      return TRACE_RETURN (false); /* No chaining to this type */
 
     unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
@@ -1241,9 +1242,6 @@ static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   if (unlikely (c->nesting_level_left == 0))
-    return false;
-
-  if (unlikely (c->context_length < 1))
     return false;
 
   hb_apply_context_t new_c (*c);

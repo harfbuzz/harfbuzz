@@ -106,7 +106,6 @@ struct hb_apply_context_t
   hb_buffer_t *buffer;
   hb_direction_t direction;
   hb_mask_t lookup_mask;
-  unsigned int context_length;
   unsigned int nesting_level_left;
   unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
@@ -117,12 +116,10 @@ struct hb_apply_context_t
 		      hb_face_t *face_,
 		      hb_buffer_t *buffer_,
 		      hb_mask_t lookup_mask_,
-		      unsigned int context_length_ = NO_CONTEXT,
 		      unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
 			font (font_), face (face_), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
-			context_length (context_length_),
 			nesting_level_left (nesting_level_left_),
 			lookup_props (0), property (0), debug_depth (0) {}
 
@@ -142,7 +139,7 @@ struct hb_apply_context_t
       num_items = num_items_;
       mask = context_match ? -1 : c->lookup_mask;
       syllable = context_match ? 0 : c->buffer->info[c->buffer->idx].syllable ();
-      end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+      end = c->buffer->len;
     }
     inline bool has_no_chance (void) const
     {
@@ -320,7 +317,7 @@ static inline bool match_input (hb_apply_context_t *c,
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
 				const void *match_data,
-				unsigned int *context_length_out)
+				unsigned int *end_offset = NULL)
 {
   hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
   if (skippy_iter.has_no_chance ())
@@ -335,7 +332,8 @@ static inline bool match_input (hb_apply_context_t *c,
       return false;
   }
 
-  *context_length_out = skippy_iter.idx - c->buffer->idx + 1;
+  if (end_offset)
+    *end_offset = skippy_iter.idx - c->buffer->idx + 1;
 
   return true;
 }
@@ -418,7 +416,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
 				 apply_lookup_func_t apply_func)
 {
-  unsigned int end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
+  unsigned int end = c->buffer->len;
   if (unlikely (count == 0 || c->buffer->idx + count > end))
     return false;
 
@@ -509,12 +507,10 @@ static inline bool context_apply_lookup (hb_apply_context_t *c,
 					 const LookupRecord lookupRecord[],
 					 ContextApplyLookupContext &lookup_context)
 {
-  hb_apply_context_t new_context = *c;
   return match_input (c,
 		      inputCount, input,
-		      lookup_context.funcs.match, lookup_context.match_data,
-		      &new_context.context_length)
-      && apply_lookup (&new_context,
+		      lookup_context.funcs.match, lookup_context.match_data)
+      && apply_lookup (c,
 		       inputCount,
 		       lookupCount, lookupRecord,
 		       lookup_context.funcs.apply);
@@ -883,25 +879,19 @@ static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
 					       const LookupRecord lookupRecord[],
 					       ChainContextApplyLookupContext &lookup_context)
 {
-  /* First guess */
-  if (unlikely (c->buffer->backtrack_len () < backtrackCount ||
-		c->buffer->idx + inputCount + lookaheadCount > c->buffer->len ||
-		inputCount + lookaheadCount > c->context_length))
-    return false;
-
-  hb_apply_context_t new_context = *c;
+  unsigned int lookahead_offset;
   return match_backtrack (c,
 			  backtrackCount, backtrack,
 			  lookup_context.funcs.match, lookup_context.match_data[0])
       && match_input (c,
 		      inputCount, input,
 		      lookup_context.funcs.match, lookup_context.match_data[1],
-		      &new_context.context_length)
+		      &lookahead_offset)
       && match_lookahead (c,
 			  lookaheadCount, lookahead,
 			  lookup_context.funcs.match, lookup_context.match_data[2],
-			  new_context.context_length)
-      && apply_lookup (&new_context,
+			  lookahead_offset)
+      && apply_lookup (c,
 		       inputCount,
 		       lookupCount, lookupRecord,
 		       lookup_context.funcs.apply);
