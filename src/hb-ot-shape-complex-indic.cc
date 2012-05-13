@@ -776,7 +776,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
   /* Apply 'init' to the Left Matra if it's a word start. */
   if (info[start].indic_position () == POS_PRE_M &&
       (!start ||
-       !(FLAG (_hb_glyph_info_get_general_category (&buffer->info[start - 1])) &
+       !(FLAG (_hb_glyph_info_get_general_category (&info[start - 1])) &
 	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER) |
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) |
