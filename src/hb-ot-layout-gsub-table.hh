@@ -1178,7 +1178,7 @@ GSUB::substitute_start (hb_buffer_t *buffer)
 }
 
 void
-GSUB::substitute_finish (hb_buffer_t *buffer)
+GSUB::substitute_finish (hb_buffer_t *buffer HB_UNUSED)
 {
 }
 

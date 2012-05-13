@@ -188,7 +188,7 @@ _hb_ot_shape_complex_normalization_preference_indic (void)
 void
 _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
 					hb_buffer_t *buffer,
-					hb_font_t *font)
+					hb_font_t *font HB_UNUSED)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
@@ -513,7 +513,7 @@ static void
 initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
 			      hb_buffer_t *buffer HB_UNUSED,
 			      hb_mask_t *mask_array HB_UNUSED,
-			      unsigned int start, unsigned int end)
+			      unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
 {
   /* Nothing to do right now.  If we ever switch to using the output
    * buffer in the reordering process, we'd need to next_glyph() here. */
@@ -523,7 +523,7 @@ initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
 
 static void
 initial_reordering (const hb_ot_map_t *map,
-		    hb_face_t *face,
+		    hb_face_t *face HB_UNUSED,
 		    hb_buffer_t *buffer,
 		    void *user_data HB_UNUSED)
 {
@@ -824,7 +824,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
 
 static void
 final_reordering (const hb_ot_map_t *map,
-		  hb_face_t *face,
+		  hb_face_t *face HB_UNUSED,
 		  hb_buffer_t *buffer,
 		  void *user_data HB_UNUSED)
 {

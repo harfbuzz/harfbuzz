@@ -403,7 +403,7 @@ struct CoverageFormat2
     for (i = 0; i < count; i++) {
       const RangeRecord &range = rangeRecord[i];
       if (range.value <= index &&
-	  index < range.value + (range.end - range.start) &&
+	  index < (unsigned int) range.value + (range.end - range.start) &&
 	  range.intersects (glyphs))
         return true;
       else if (index < range.value)
