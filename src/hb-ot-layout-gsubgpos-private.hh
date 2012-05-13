@@ -135,14 +135,13 @@ struct hb_apply_context_t
     inline mark_skipping_forward_iterator_t (hb_apply_context_t *c_,
 					     unsigned int start_index_,
 					     unsigned int num_items_,
-					     hb_mask_t mask_ = 0,
-					     bool match_syllable_ = true)
+					     bool context_match = false)
     {
       c = c_;
       idx = start_index_;
       num_items = num_items_;
-      mask = mask_ ? mask_ : c->lookup_mask;
-      syllable = match_syllable_ ? c->buffer->info[c->buffer->idx].syllable () : 0;
+      mask = context_match ? -1 : c->lookup_mask;
+      syllable = context_match ? 0 : c->buffer->info[c->buffer->idx].syllable ();
       end = MIN (c->buffer->len, c->buffer->idx + c->context_length);
     }
     inline bool has_no_chance (void) const
@@ -347,7 +346,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 				    match_func_t match_func,
 				    const void *match_data)
 {
-  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, (hb_mask_t) -1, false);
+  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
   if (skippy_iter.has_no_chance ())
     return false;
 
@@ -370,7 +369,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    const void *match_data,
 				    unsigned int offset)
 {
-  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, (hb_mask_t) -1, false);
+  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
   if (skippy_iter.has_no_chance ())
     return false;
 
