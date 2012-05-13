@@ -115,12 +115,11 @@ struct hb_apply_context_t
   hb_apply_context_t (hb_font_t *font_,
 		      hb_face_t *face_,
 		      hb_buffer_t *buffer_,
-		      hb_mask_t lookup_mask_,
-		      unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
+		      hb_mask_t lookup_mask_) :
 			font (font_), face (face_), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
-			nesting_level_left (nesting_level_left_),
+			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0), property (0), debug_depth (0) {}
 
   void set_lookup (const Lookup &l) {
@@ -178,7 +177,7 @@ struct hb_apply_context_t
 					      unsigned int start_index_,
 					      unsigned int num_items_,
 					      hb_mask_t mask_ = 0,
-					     bool match_syllable_ = true)
+					      bool match_syllable_ = true)
     {
       c = c_;
       idx = start_index_;
