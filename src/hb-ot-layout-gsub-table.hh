@@ -58,7 +58,7 @@ struct SingleSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
+    hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
@@ -110,7 +110,7 @@ struct SingleSubstFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
+    hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
@@ -257,7 +257,7 @@ struct MultipleSubstFormat1
   {
     TRACE_APPLY ();
 
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     return TRACE_RETURN ((this+sequence[index]).apply (c));
@@ -360,7 +360,7 @@ struct AlternateSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
+    hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
 
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
@@ -369,7 +369,7 @@ struct AlternateSubstFormat1
 
     if (unlikely (!alt_set.len)) return TRACE_RETURN (false);
 
-    hb_mask_t glyph_mask = c->buffer->info[c->buffer->idx].mask;
+    hb_mask_t glyph_mask = c->buffer->cur().mask;
     hb_mask_t lookup_mask = c->lookup_mask;
 
     /* Note: This breaks badly if two features enabled this lookup together. */
@@ -500,7 +500,7 @@ struct Ligature
 
     /* Allocate new ligature id */
     unsigned int lig_id = allocate_lig_id (c->buffer);
-    set_lig_props (c->buffer->info[c->buffer->idx], lig_id, 0);
+    set_lig_props (c->buffer->cur(), lig_id, 0);
 
     if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
     {
@@ -521,8 +521,8 @@ struct Ligature
       {
 	while (c->should_mark_skip_current_glyph ())
 	{
-	  set_lig_props (c->buffer->info[c->buffer->idx],  lig_id, i);
-	  c->replace_glyph (c->buffer->info[c->buffer->idx].codepoint);
+	  set_lig_props (c->buffer->cur(),  lig_id, i);
+	  c->replace_glyph (c->buffer->cur().codepoint);
 	}
 
 	/* Skip the base glyph */
@@ -628,7 +628,7 @@ struct LigatureSubstFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
-    hb_codepoint_t glyph_id = c->buffer->info[c->buffer->idx].codepoint;
+    hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
 
     unsigned int index = (this+coverage) (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
@@ -807,7 +807,7 @@ struct ReverseChainSingleSubstFormat1
     if (unlikely (c->nesting_level_left != MAX_NESTING_LEVEL))
       return TRACE_RETURN (false); /* No chaining to this type */
 
-    unsigned int index = (this+coverage) (c->buffer->info[c->buffer->idx].codepoint);
+    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
@@ -821,7 +821,7 @@ struct ReverseChainSingleSubstFormat1
 			 match_coverage, this,
 			 1))
     {
-      c->buffer->info[c->buffer->idx].codepoint = substitute[index];
+      c->buffer->cur().codepoint = substitute[index];
       c->buffer->idx--; /* Reverse! */
       return TRACE_RETURN (true);
     }
@@ -1055,7 +1055,7 @@ struct SubstLookup : Lookup
   {
     unsigned int lookup_type = get_type ();
 
-    if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->info[c->buffer->idx], c->lookup_props, &c->property))
+    if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 
     if (unlikely (lookup_type == SubstLookupSubTable::Extension))
@@ -1096,7 +1096,7 @@ struct SubstLookup : Lookup
 	c->buffer->idx = 0;
 	while (c->buffer->idx < c->buffer->len)
 	{
-	  if ((c->buffer->info[c->buffer->idx].mask & c->lookup_mask) && apply_once (c))
+	  if ((c->buffer->cur().mask & c->lookup_mask) && apply_once (c))
 	    ret = true;
 	  else
 	    c->buffer->next_glyph ();
@@ -1111,7 +1111,7 @@ struct SubstLookup : Lookup
 	c->buffer->idx = c->buffer->len - 1;
 	do
 	{
-	  if ((c->buffer->info[c->buffer->idx].mask & c->lookup_mask) && apply_once (c))
+	  if ((c->buffer->cur().mask & c->lookup_mask) && apply_once (c))
 	    ret = true;
 	  else
 	    c->buffer->idx--;

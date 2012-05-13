@@ -141,7 +141,7 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map, hb_buffer_t *buffer, hb
   unsigned int count = buffer->len;
   for (buffer->idx = 0; buffer->idx < count;)
   {
-    hb_codepoint_t u = buffer->info[buffer->idx].codepoint;
+    hb_codepoint_t u = buffer->cur().codepoint;
     if (likely (!IS_SARA_AM (u))) {
       buffer->next_glyph ();
       continue;
@@ -167,11 +167,12 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map, hb_buffer_t *buffer, hb
 	     sizeof (buffer->out_info[0]) * (end - start - 2));
     buffer->out_info[start] = t;
 
+    /* XXX Make this easier! */
     /* Make cluster */
     for (; start > 0 && buffer->out_info[start - 1].cluster == buffer->out_info[start].cluster; start--)
       ;
     for (; buffer->idx < count;)
-      if (buffer->info[buffer->idx].cluster == buffer->out_info[buffer->out_len - 1].cluster)
+      if (buffer->cur().cluster == buffer->prev().cluster)
         buffer->next_glyph ();
       else
         break;

@@ -73,7 +73,7 @@ output_glyph (hb_font_t *font, hb_buffer_t *buffer,
 	      hb_codepoint_t glyph)
 {
   buffer->output_glyph (glyph);
-  _hb_glyph_info_set_unicode_props (&buffer->out_info[buffer->out_len - 1], buffer->unicode);
+  _hb_glyph_info_set_unicode_props (&buffer->prev(), buffer->unicode);
 }
 
 static bool
@@ -116,7 +116,7 @@ static void
 decompose_current_glyph (hb_font_t *font, hb_buffer_t *buffer,
 			 bool shortest)
 {
-  if (decompose (font, buffer, shortest, buffer->info[buffer->idx].codepoint))
+  if (decompose (font, buffer, shortest, buffer->cur().codepoint))
     buffer->skip_glyph ();
   else
     buffer->next_glyph ();
@@ -129,7 +129,7 @@ decompose_single_char_cluster (hb_font_t *font, hb_buffer_t *buffer,
   hb_codepoint_t glyph;
 
   /* If recomposing and font supports this, we're good to go */
-  if (will_recompose && hb_font_get_glyph (font, buffer->info[buffer->idx].codepoint, 0, &glyph)) {
+  if (will_recompose && hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph)) {
     buffer->next_glyph ();
     return;
   }
@@ -185,7 +185,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
   {
     unsigned int end;
     for (end = buffer->idx + 1; end < count; end++)
-      if (buffer->info[buffer->idx].cluster != buffer->info[end].cluster)
+      if (buffer->cur().cluster != buffer->info[end].cluster)
         break;
 
     if (buffer->idx + 1 == end)
@@ -247,15 +247,15 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
     if (/* If mode is NOT COMPOSED_FULL (ie. it's COMPOSED_DIACRITICS), we don't try to
 	 * compose a CCC=0 character with it's preceding starter. */
 	(mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL ||
-	 _hb_glyph_info_get_modified_combining_class (&buffer->info[buffer->idx]) != 0) &&
+	 _hb_glyph_info_get_modified_combining_class (&buffer->cur()) != 0) &&
 	/* If there's anything between the starter and this char, they should have CCC
 	 * smaller than this character's. */
 	(starter == buffer->out_len - 1 ||
-	 _hb_glyph_info_get_modified_combining_class (&buffer->out_info[buffer->out_len - 1]) < _hb_glyph_info_get_modified_combining_class (&buffer->info[buffer->idx])) &&
+	 _hb_glyph_info_get_modified_combining_class (&buffer->prev()) < _hb_glyph_info_get_modified_combining_class (&buffer->cur())) &&
 	/* And compose. */
 	hb_unicode_compose (buffer->unicode,
 			    buffer->out_info[starter].codepoint,
-			    buffer->info[buffer->idx].codepoint,
+			    buffer->cur().codepoint,
 			    &composed) &&
 	/* And the font has glyph for the composite. */
 	hb_font_get_glyph (font, composed, 0, &glyph))
@@ -272,7 +272,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
     /* Blocked, or doesn't compose. */
     buffer->next_glyph ();
 
-    if (_hb_glyph_info_get_modified_combining_class (&buffer->out_info[buffer->out_len - 1]) == 0)
+    if (_hb_glyph_info_get_modified_combining_class (&buffer->prev()) == 0)
       starter = buffer->out_len - 1;
   }
   buffer->swap_buffers ();

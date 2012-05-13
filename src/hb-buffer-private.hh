@@ -70,6 +70,15 @@ struct _hb_buffer_t {
   hb_glyph_info_t     *out_info;
   hb_glyph_position_t *pos;
 
+  inline hb_glyph_info_t &cur (unsigned int i = 0) { return info[idx + i]; }
+  inline hb_glyph_info_t cur (unsigned int i = 0) const { return info[idx + i]; }
+
+  inline hb_glyph_position_t &cur_pos (unsigned int i = 0) { return pos[idx + i]; }
+  inline hb_glyph_position_t cur_pos (unsigned int i = 0) const { return pos[idx + i]; }
+
+  inline hb_glyph_info_t &prev (void) { return out_info[out_len - 1]; }
+  inline hb_glyph_info_t prev (void) const { return info[out_len - 1]; }
+
   unsigned int serial;
   uint8_t allocated_var_bytes[8];
   const char *allocated_var_owner[8];
