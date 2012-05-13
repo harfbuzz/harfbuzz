@@ -40,6 +40,9 @@
 #include <locale.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h> /* for isatty() */
+#endif
 #ifdef HAVE_IO_H
 #include <io.h> /* for _setmode() under Windows */
 #endif

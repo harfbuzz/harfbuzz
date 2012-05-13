@@ -29,6 +29,7 @@
 #include <cairo-ft.h>
 #include <hb-ft.h>
 
+#include "helper-cairo-ansi.hh"
 #ifdef CAIRO_HAS_SVG_SURFACE
 #  include <cairo-svg.h>
 #endif
@@ -110,6 +111,63 @@ struct finalize_closure_t {
   void *closure;
 };
 static cairo_user_data_key_t finalize_closure_key;
+
+
+static void
+finalize_ansi (finalize_closure_t *closure)
+{
+  cairo_status_t status;
+  status = helper_cairo_surface_write_to_ansi_stream (closure->surface,
+						      closure->write_func,
+						      closure->closure);
+  if (status != CAIRO_STATUS_SUCCESS)
+    fail (FALSE, "Failed to write output: %s",
+	  cairo_status_to_string (status));
+}
+
+static cairo_surface_t *
+_cairo_ansi_surface_create_for_stream (cairo_write_func_t write_func,
+				       void *closure,
+				       double width,
+				       double height,
+				       cairo_content_t content)
+{
+  cairo_surface_t *surface;
+  int w = ceil (width);
+  int h = ceil (height);
+
+  switch (content) {
+    case CAIRO_CONTENT_ALPHA:
+      surface = cairo_image_surface_create (CAIRO_FORMAT_A8, w, h);
+      break;
+    default:
+    case CAIRO_CONTENT_COLOR:
+      surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, w, h);
+      break;
+    case CAIRO_CONTENT_COLOR_ALPHA:
+      surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
+      break;
+  }
+  cairo_status_t status = cairo_surface_status (surface);
+  if (status != CAIRO_STATUS_SUCCESS)
+    fail (FALSE, "Failed to create cairo surface: %s",
+	  cairo_status_to_string (status));
+
+  finalize_closure_t *ansi_closure = g_new0 (finalize_closure_t, 1);
+  ansi_closure->callback = finalize_ansi;
+  ansi_closure->surface = surface;
+  ansi_closure->write_func = write_func;
+  ansi_closure->closure = closure;
+
+  if (cairo_surface_set_user_data (surface,
+				   &finalize_closure_key,
+				   (void *) ansi_closure,
+				   (cairo_destroy_func_t) g_free))
+    g_free ((void *) closure);
+
+  return surface;
+}
+
 
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
 
@@ -204,10 +262,18 @@ helper_cairo_create_context (double w, double h,
 				    cairo_content_t content) = NULL;
 
   const char *extension = out_opts->output_format;
-  if (!extension)
-    extension = "png";
+  if (!extension) {
+#if HAVE_ISATTY
+    if (isatty (fileno (out_opts->get_file_handle ())))
+      extension = "ansi";
+    else
+#endif
+      extension = "png";
+  }
   if (0)
     ;
+    else if (0 == strcasecmp (extension, "ansi"))
+      constructor2 = _cairo_ansi_surface_create_for_stream;
   #ifdef CAIRO_HAS_PNG_FUNCTIONS
     else if (0 == strcasecmp (extension, "png"))
       constructor2 = _cairo_png_surface_create_for_stream;

@@ -52,8 +52,8 @@ AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 dnl GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
-AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap _setmode)
-AC_CHECK_HEADERS(unistd.h sys/mman.h io.h)
+AC_CHECK_FUNCS(mprotect sysconf getpagesize mmap _setmode isatty)
+AC_CHECK_HEADERS(unistd.h sys/mman.h io.h sys/ioctl.h)
 
 # Compiler flags
 AC_CANONICAL_HOST

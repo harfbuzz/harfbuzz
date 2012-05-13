@@ -28,10 +28,14 @@ if HAVE_CAIRO_FT
 hb_view_SOURCES = \
 	hb-view.cc \
 	hb-view.hh \
+	ansi-print.cc \
+	ansi-print.hh \
 	options.cc \
 	options.hh \
 	helper-cairo.cc \
 	helper-cairo.hh \
+	helper-cairo-ansi.cc \
+	helper-cairo-ansi.hh \
 	view-cairo.cc \
 	view-cairo.hh \
 	$(NULL)
