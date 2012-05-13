@@ -548,14 +548,14 @@ _hb_debug_msg_va (const char *what,
   fprintf (stderr, "\n");
 }
 template <> inline void
-_hb_debug_msg_va<0> (const char *what,
-		     const void *obj,
-		     const char *func,
-		     bool indented,
-		     unsigned int level,
-		     int level_dir,
-		     const char *message,
-		     va_list ap) {}
+_hb_debug_msg_va<0> (const char *what HB_UNUSED,
+		     const void *obj HB_UNUSED,
+		     const char *func HB_UNUSED,
+		     bool indented HB_UNUSED,
+		     unsigned int level HB_UNUSED,
+		     int level_dir HB_UNUSED,
+		     const char *message HB_UNUSED,
+		     va_list ap HB_UNUSED) {}
 
 template <int max_level> inline void
 _hb_debug_msg (const char *what,
@@ -582,22 +582,22 @@ _hb_debug_msg (const char *what,
   va_end (ap);
 }
 template <> inline void
-_hb_debug_msg<0> (const char *what,
-		  const void *obj,
-		  const char *func,
-		  bool indented,
-		  unsigned int level,
-		  int level_dir,
-		  const char *message,
+_hb_debug_msg<0> (const char *what HB_UNUSED,
+		  const void *obj HB_UNUSED,
+		  const char *func HB_UNUSED,
+		  bool indented HB_UNUSED,
+		  unsigned int level HB_UNUSED,
+		  int level_dir HB_UNUSED,
+		  const char *message HB_UNUSED,
 		  ...) HB_PRINTF_FUNC(7, 8);
 template <> inline void
-_hb_debug_msg<0> (const char *what,
-		  const void *obj,
-		  const char *func,
-		  bool indented,
-		  unsigned int level,
-		  int level_dir,
-		  const char *message,
+_hb_debug_msg<0> (const char *what HB_UNUSED,
+		  const void *obj HB_UNUSED,
+		  const char *func HB_UNUSED,
+		  bool indented HB_UNUSED,
+		  unsigned int level HB_UNUSED,
+		  int level_dir HB_UNUSED,
+		  const char *message HB_UNUSED,
 		  ...) {}
 
 #define DEBUG_MSG_LEVEL(WHAT, OBJ, LEVEL, LEVEL_DIR, ...)	_hb_debug_msg<HB_DEBUG_##WHAT> (#WHAT, (OBJ), NULL,    TRUE, (LEVEL), (LEVEL_DIR), __VA_ARGS__)
@@ -658,11 +658,11 @@ struct hb_auto_trace_t {
 };
 template <> /* Optimize when tracing is disabled */
 struct hb_auto_trace_t<0> {
-  explicit inline hb_auto_trace_t (unsigned int *plevel_,
-				   const char *what,
-				   const void *obj,
-				   const char *func,
-				   const char *message,
+  explicit inline hb_auto_trace_t (unsigned int *plevel_ HB_UNUSED,
+				   const char *what HB_UNUSED,
+				   const void *obj HB_UNUSED,
+				   const char *func HB_UNUSED,
+				   const char *message HB_UNUSED,
 				   ...) {}
 
   template <typename T>
