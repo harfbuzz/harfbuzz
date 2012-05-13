@@ -69,8 +69,7 @@
  */
 
 static void
-output_glyph (hb_font_t *font, hb_buffer_t *buffer,
-	      hb_codepoint_t glyph)
+output_glyph (hb_buffer_t *buffer, hb_codepoint_t glyph)
 {
   buffer->output_glyph (glyph);
   _hb_glyph_info_set_unicode_props (&buffer->prev(), buffer->unicode);
@@ -90,22 +89,22 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
   bool has_a = hb_font_get_glyph (font, a, 0, &glyph);
   if (shortest && has_a) {
     /* Output a and b */
-    output_glyph (font, buffer, a);
+    output_glyph (buffer, a);
     if (b)
-      output_glyph (font, buffer, b);
+      output_glyph (buffer, b);
     return TRUE;
   }
 
   if (decompose (font, buffer, shortest, a)) {
     if (b)
-      output_glyph (font, buffer, b);
+      output_glyph (buffer, b);
     return TRUE;
   }
 
   if (has_a) {
-    output_glyph (font, buffer, a);
+    output_glyph (buffer, a);
     if (b)
-      output_glyph (font, buffer, b);
+      output_glyph (buffer, b);
     return TRUE;
   }
 

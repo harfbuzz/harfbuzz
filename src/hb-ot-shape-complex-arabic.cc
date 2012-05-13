@@ -165,7 +165,8 @@ static const struct arabic_state_table_entry {
 
 
 void
-_hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
+_hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map,
+					      const hb_segment_properties_t *props)
 {
   /* For Language forms (in ArabicOT speak), we do the iso/fina/medi/init together,
    * then rlig and calt each in their own stage.  This makes IranNastaliq's ALLAH
@@ -240,7 +241,9 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 void
-_hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map, hb_buffer_t *buffer, hb_font_t *font)
+_hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map,
+					 hb_buffer_t *buffer,
+					 hb_font_t *font)
 {
   unsigned int count = buffer->len;
   unsigned int prev = 0, state = 0;

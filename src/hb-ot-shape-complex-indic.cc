@@ -153,7 +153,8 @@ final_reordering (const hb_ot_map_t *map,
 		  void *user_data HB_UNUSED);
 
 void
-_hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props)
+_hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map,
+					     const hb_segment_properties_t *props HB_UNUSED)
 {
   map->add_bool_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
@@ -185,7 +186,9 @@ _hb_ot_shape_complex_normalization_preference_indic (void)
 
 
 void
-_hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map, hb_buffer_t *buffer, hb_font_t *font)
+_hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
+					hb_buffer_t *buffer,
+					hb_font_t *font)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
@@ -322,7 +325,9 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 }
 
 static void
-initial_reordering_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+initial_reordering_syllable (const hb_ot_map_t *map,
+			     hb_buffer_t *buffer,
+			     hb_mask_t *mask_array,
 			     unsigned int start, unsigned int end, unsigned int base)
 {
   hb_glyph_info_t *info = buffer->info;
@@ -474,7 +479,9 @@ initial_reordering_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mas
 
 
 static void
-initial_reordering_vowel_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+initial_reordering_vowel_syllable (const hb_ot_map_t *map,
+				   hb_buffer_t *buffer,
+				   hb_mask_t *mask_array,
 				   unsigned int start, unsigned int end)
 {
   /* We made the vowels look like consonants.  So let's call the consonant logic! */
@@ -482,7 +489,9 @@ initial_reordering_vowel_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, 
 }
 
 static void
-initial_reordering_standalone_cluster (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
+initial_reordering_standalone_cluster (const hb_ot_map_t *map,
+				       hb_buffer_t *buffer,
+				       hb_mask_t *mask_array,
 				       unsigned int start, unsigned int end)
 {
   /* We treat NBSP/dotted-circle as if they are consonants, so we should just chain.
@@ -501,8 +510,10 @@ initial_reordering_standalone_cluster (const hb_ot_map_t *map, hb_buffer_t *buff
 }
 
 static void
-initial_reordering_non_indic (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
-		 unsigned int start, unsigned int end)
+initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
+			      hb_buffer_t *buffer HB_UNUSED,
+			      hb_mask_t *mask_array HB_UNUSED,
+			      unsigned int start, unsigned int end)
 {
   /* Nothing to do right now.  If we ever switch to using the output
    * buffer in the reordering process, we'd need to next_glyph() here. */
