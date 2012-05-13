@@ -245,10 +245,6 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
  * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
 
 static void
-initial_reordering_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
-			     unsigned int start, unsigned int end, unsigned int base);
-
-static void
 initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_array,
 				       unsigned int start, unsigned int end)
 {
@@ -320,17 +316,14 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       base = start; /* Just in case... */
   }
 
-  /* Continue reading below ------v */
-  initial_reordering_syllable (map, buffer, mask_array, start, end, base);
-}
+  /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
+   *    and has more than one consonant, Ra is excluded from candidates for
+   *    base consonants. */
+  if (has_reph && base == start) {
+    /* Have no other consonant, so Reph is not formed and Ra becomes base. */
+    has_reph = false;
+  }
 
-static void
-initial_reordering_syllable (const hb_ot_map_t *map,
-			     hb_buffer_t *buffer,
-			     hb_mask_t *mask_array,
-			     unsigned int start, unsigned int end, unsigned int base)
-{
-  hb_glyph_info_t *info = buffer->info;
 
   /* 2. Decompose and reorder Matras:
    *
@@ -371,12 +364,7 @@ initial_reordering_syllable (const hb_ot_map_t *map,
   info[base].indic_position() = POS_BASE_C;
 
   /* Handle beginning Ra */
-  if (mask_array[RPHF] &&
-      start != base &&
-      start + 3 <= end &&
-      info[start].indic_category() == OT_Ra &&
-      info[start + 1].indic_category() == OT_H &&
-      !is_joiner (info[start + 2]))
+  if (has_reph)
     info[start].indic_position() = POS_RA_TO_BECOME_REPH;
 
   /* For old-style Indic script tags, move the first post-base Halant after
