@@ -40,9 +40,6 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h> /* for isatty() */
 #endif
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
@@ -377,14 +374,6 @@ ansi_print_image_rgb24 (const uint32_t *data,
 			unsigned int height,
 			unsigned int stride)
 {
-  /* Get screen size */
-   struct winsize w;
-   if (ioctl(1, TIOCGWINSZ, &w)) /* Ought to be stdout, right? */
-   {
-     w.ws_row = 25;
-     w.ws_col = 80;
-   }
-
   image_t image (width, height, data, stride);
 
   unsigned int rows = (height + CELL_H - 1) / CELL_H;
