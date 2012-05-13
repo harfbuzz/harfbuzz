@@ -105,7 +105,7 @@ struct option_parser_t
 };
 
 
-#define DEFAULT_MARGIN 64
+#define DEFAULT_MARGIN 16
 #define DEFAULT_FORE "#000000"
 #define DEFAULT_BACK "#FFFFFF"
 #define DEFAULT_FONT_SIZE 256
