@@ -251,8 +251,6 @@ block_best (const biimage_t &bi, unsigned int *score, bool *inverse)
     col_sum_i[i] += col_sum_i[i - 1];
   }
 
-  *score = (unsigned int) -1;
-  *inverse = false;
   const char *best_c = " ";
 
   /* Maybe empty is better! */
@@ -301,7 +299,6 @@ block_best (const biimage_t &bi, unsigned int *score, bool *inverse)
   }
 
   /* Find best left line */
-  /* Disable this as it looks ugly because of line height issues. */
   if (1) {
     unsigned int best_s = (unsigned int) -1;
     bool best_inv = false;
@@ -333,35 +330,37 @@ block_best (const biimage_t &bi, unsigned int *score, bool *inverse)
     }
   }
 
-  /* Quadrant? */
-  unsigned int q = 0;
-  unsigned int qs = 0;
-  for (unsigned int i = 0; i < 2; i++)
-    for (unsigned int j = 0; j < 2; j++)
-      if (quad[i][j] > quad_i[i][j]) {
-        q += 1 << (2 * i + j);
-	qs += quad_i[i][j];
-      } else
-	qs += quad[i][j];
-  if (qs < *score) {
-    const char *c = NULL;
-    bool inv = false;
-    switch (q) {
-      case 1:  c = "▟"; inv = true;  break;
-      case 2:  c = "▙"; inv = true;  break;
-      case 4:  c = "▖"; inv = false; break;
-      case 8:  c = "▗"; inv = false; break;
-      case 9:  c = "▚"; inv = false; break;
-      case 6:  c = "▞"; inv = false; break;
-      case 7:  c = "▜"; inv = true;  break;
-      case 11: c = "▜"; inv = true;  break;
-      case 13: c = "▙"; inv = true;  break;
-      case 14: c = "▟"; inv = true;  break;
-    }
-    if (c) {
-      *score = qs;
-      *inverse = inv;
-      best_c = c;
+  /* Find best quadrant */
+  if (1) {
+    unsigned int q = 0;
+    unsigned int qs = 0;
+    for (unsigned int i = 0; i < 2; i++)
+      for (unsigned int j = 0; j < 2; j++)
+	if (quad[i][j] > quad_i[i][j]) {
+	  q += 1 << (2 * i + j);
+	  qs += quad_i[i][j];
+	} else
+	  qs += quad[i][j];
+    if (qs < *score) {
+      const char *c = NULL;
+      bool inv = false;
+      switch (q) {
+	case 1:  c = "▟"; inv = true;  break;
+	case 2:  c = "▙"; inv = true;  break;
+	case 4:  c = "▖"; inv = false; break;
+	case 8:  c = "▗"; inv = false; break;
+	case 9:  c = "▚"; inv = false; break;
+	case 6:  c = "▞"; inv = false; break;
+	case 7:  c = "▜"; inv = true;  break;
+	case 11: c = "▜"; inv = true;  break;
+	case 13: c = "▙"; inv = true;  break;
+	case 14: c = "▟"; inv = true;  break;
+      }
+      if (c) {
+	*score = qs;
+	*inverse = inv;
+	best_c = c;
+      }
     }
   }
 
@@ -377,7 +376,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
   image_t image (width, height, data, stride);
 
   unsigned int rows = (height + CELL_H - 1) / CELL_H;
-  unsigned int cols = (width + CELL_W - 1) / CELL_W;
+  unsigned int cols = (width +  CELL_W - 1) / CELL_W;
   image_t cell (CELL_W, CELL_H);
   biimage_t bi (CELL_W, CELL_H);
   unsigned int last_bg = -1, last_fg = -1;
@@ -394,7 +393,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
       } else {
         /* Figure out the closest character to the biimage */
         unsigned int score = (unsigned int) -1;
-	bool inverse;
+	bool inverse = false;
         const char *c = block_best (bi, &score, &inverse);
 	if (inverse) {
 	  if (last_bg != bi.fg || last_fg != bi.bg) {
