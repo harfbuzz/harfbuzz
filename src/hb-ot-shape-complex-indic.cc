@@ -101,9 +101,9 @@ indic_basic_features[] =
   {HB_TAG('p','r','e','f'), false},
   {HB_TAG('b','l','w','f'), false},
   {HB_TAG('h','a','l','f'), false},
-  {HB_TAG('v','a','t','u'), true},
   {HB_TAG('p','s','t','f'), false},
   {HB_TAG('c','j','c','t'), false},
+  {HB_TAG('v','a','t','u'), true},
 };
 
 /* Same order as the indic_basic_features array */
@@ -115,9 +115,9 @@ enum {
   PREF,
   BLWF,
   HALF,
-  _VATU,
   PSTF,
-  CJCT
+  CJCT,
+  VATU
 };
 
 static const feature_list_t
