@@ -250,6 +250,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 {
   hb_glyph_info_t *info = buffer->info;
 
+
   /* 1. Find base consonant:
    *
    * The shaping engine finds the base consonant of the syllable, using the
@@ -267,22 +268,22 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   unsigned int base = end;
   bool has_reph = false;
 
-  /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
-   *    and has more than one consonant, Ra is excluded from candidates for
-   *    base consonants. */
-  unsigned int limit = start;
-  if (mask_array[RPHF] &&
-      start + 3 <= end &&
-      info[start].indic_category() == OT_Ra &&
-      info[start + 1].indic_category() == OT_H &&
-      !is_joiner (info[start + 2]))
   {
-    limit += 2;
-    base = start;
-    has_reph = true;
-  };
+    /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
+     *    and has more than one consonant, Ra is excluded from candidates for
+     *    base consonants. */
+    unsigned int limit = start;
+    if (mask_array[RPHF] &&
+	start + 3 <= end &&
+	info[start].indic_category() == OT_Ra &&
+	info[start + 1].indic_category() == OT_H &&
+	!is_joiner (info[start + 2]))
+    {
+      limit += 2;
+      base = start;
+      has_reph = true;
+    };
 
-  {
     /* -> starting from the end of the syllable, move backwards */
     unsigned int i = end;
     do {
@@ -314,14 +315,15 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     } while (i > limit);
     if (base < start)
       base = start; /* Just in case... */
-  }
 
-  /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
-   *    and has more than one consonant, Ra is excluded from candidates for
-   *    base consonants. */
-  if (has_reph && base == start) {
-    /* Have no other consonant, so Reph is not formed and Ra becomes base. */
-    has_reph = false;
+
+    /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
+     *    and has more than one consonant, Ra is excluded from candidates for
+     *    base consonants. */
+    if (has_reph && base == start) {
+      /* Have no other consonant, so Reph is not formed and Ra becomes base. */
+      has_reph = false;
+    }
   }
 
 
