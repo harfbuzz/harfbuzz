@@ -45,7 +45,6 @@
 #endif
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define CELL_W 8
 #define CELL_H (2 * CELL_W)
@@ -392,20 +391,39 @@ ansi_print_image_rgb24 (const uint32_t *data,
   unsigned int cols = (width + CELL_W - 1) / CELL_W;
   image_t cell (CELL_W, CELL_H);
   biimage_t bi (CELL_W, CELL_H);
+  unsigned int last_bg = -1, last_fg = -1;
   for (unsigned int row = 0; row < rows; row++) {
     for (unsigned int col = 0; col < cols; col++) {
       image.copy_sub_image (cell, col * CELL_W, row * CELL_H, CELL_W, CELL_H);
       bi.set (cell);
-      if (bi.unicolor)
-	printf ("\e[%dm ", 40 + bi.bg);
-      else {
+      if (bi.unicolor) {
+        if (last_bg != bi.bg) {
+	  printf ("\e[%dm", 40 + bi.bg);
+	  last_bg = bi.bg;
+	}
+	printf (" ");
+      } else {
         /* Figure out the closest character to the biimage */
         unsigned int score = (unsigned int) -1;
 	bool inverse;
         const char *c = block_best (bi, &score, &inverse);
-	printf ("\e[%d;%dm%s", (inverse ? 30 : 40) + bi.bg, (inverse ? 40 : 30) + bi.fg, c);
+	if (inverse) {
+	  if (last_bg != bi.fg || last_fg != bi.bg) {
+	    printf ("\e[%d;%dm", 30 + bi.bg, 40 + bi.fg);
+	    last_bg = bi.fg;
+	    last_fg = bi.bg;
+	  }
+	} else {
+	  if (last_bg != bi.bg || last_fg != bi.fg) {
+	    printf ("\e[%d;%dm", 40 + bi.bg, 30 + bi.fg);
+	    last_bg = bi.bg;
+	    last_fg = bi.fg;
+	  }
+	}
+	printf ("%s", c);
       }
     }
     printf ("\e[0m\n"); /* Reset */
+    last_bg = last_fg = -1;
   }
 }
