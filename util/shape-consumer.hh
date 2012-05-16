@@ -1,5 +1,4 @@
 /*
- * Copyright © 2010  Behdad Esfahbod
  * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
@@ -25,13 +24,46 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "main-font-text.hh"
-#include "shape-consumer.hh"
-#include "view-cairo.hh"
+#include "options.hh"
 
-int
-main (int argc, char **argv)
+#ifndef HB_SHAPE_CONSUMER_HH
+#define HB_SHAPE_CONSUMER_HH
+
+
+template <typename output_t>
+struct shape_consumer_t
 {
-  main_font_text_t<shape_consumer_t<view_cairo_t> > driver;
-  return driver.main (argc, argv);
-}
+  shape_consumer_t (option_parser_t *parser)
+		  : shaper (parser),
+		    output (parser) {}
+
+  void init (const font_options_t *font_opts)
+  {
+    font = hb_font_reference (font_opts->get_font ());
+    output.init (font_opts);
+  }
+  void consume_line (hb_buffer_t  *buffer,
+		     const char   *text,
+		     unsigned int  text_len)
+  {
+    if (!shaper.shape (text, text_len, font, buffer))
+      fail (FALSE, "All shapers failed");
+
+    output.consume_line (buffer, text, text_len, shaper.utf8_clusters);
+  }
+  void finish (const font_options_t *font_opts)
+  {
+    output.finish (font_opts);
+    hb_font_destroy (font);
+    font = NULL;
+  }
+
+  protected:
+  shape_options_t shaper;
+  output_t output;
+
+  hb_font_t *font;
+};
+
+
+#endif

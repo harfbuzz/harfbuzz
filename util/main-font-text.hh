@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -26,23 +26,23 @@
 
 #include "options.hh"
 
-#ifndef HB_VIEW_HH
-#define HB_VIEW_HH
+#ifndef HB_MAIN_FONT_TEXT_HH
+#define HB_MAIN_FONT_TEXT_HH
 
-template <typename output_t>
-struct hb_view_t
+/* main() body for utilities taking font and processing text.*/
+
+template <typename consumer_t>
+struct main_font_text_t
 {
-  static int
+  main_font_text_t (void)
+		  : options ("[FONT-FILE] [TEXT]"),
+		    font_opts (&options),
+		    input (&options),
+		    consumer (&options) {}
+
+  int
   main (int argc, char **argv)
   {
-    option_parser_t options ("[FONT-FILE] [TEXT]");
-
-    shape_options_t shaper (&options);
-    font_options_t font_opts (&options);
-    text_options_t input (&options);
-
-    output_t output (&options);
-
     options.parse (&argc, &argv);
 
     argc--, argv++;
@@ -55,26 +55,26 @@ struct hb_view_t
     if (!input.text && !input.text_file)
       input.text_file = "-";
 
-    output.init (&font_opts);
+    consumer.init (&font_opts);
 
     hb_buffer_t *buffer = hb_buffer_create ();
     unsigned int text_len;
     const char *text;
     while ((text = input.get_line (&text_len)))
-    {
-      if (!shaper.shape (text, text_len,
-			 font_opts.get_font (),
-			 buffer))
-	fail (FALSE, "All shapers failed");
-
-      output.consume_line (buffer, text, text_len, shaper.utf8_clusters);
-    }
+      consumer.consume_line (buffer, text, text_len);
     hb_buffer_destroy (buffer);
 
-    output.finish (&font_opts);
+    consumer.finish (&font_opts);
 
     return 0;
   }
+
+  protected:
+  option_parser_t options;
+  font_options_t font_opts;
+  text_options_t input;
+  consumer_t consumer;
 };
 
 #endif
+

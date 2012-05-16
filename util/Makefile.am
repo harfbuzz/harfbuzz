@@ -27,11 +27,12 @@ if HAVE_FREETYPE
 if HAVE_CAIRO_FT
 hb_view_SOURCES = \
 	hb-view.cc \
-	hb-view.hh \
-	ansi-print.cc \
-	ansi-print.hh \
 	options.cc \
 	options.hh \
+	main-font-text.hh \
+	shape-consumer.hh \
+	ansi-print.cc \
+	ansi-print.hh \
 	helper-cairo.cc \
 	helper-cairo.hh \
 	helper-cairo-ansi.cc \
@@ -53,9 +54,10 @@ if HAVE_GLIB
 if HAVE_FREETYPE
 hb_shape_SOURCES = \
 	hb-shape.cc \
-	hb-view.hh \
 	options.cc \
 	options.hh \
+	main-font-text.hh \
+	shape-consumer.hh \
 	$(NULL)
 bin_PROGRAMS += hb-shape
 endif
