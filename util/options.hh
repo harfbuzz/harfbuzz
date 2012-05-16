@@ -48,6 +48,9 @@
 #endif
 
 #include <hb.h>
+#ifdef HAVE_OT
+#include <hb-ot.h>
+#endif
 #include <glib.h>
 #include <glib/gprintf.h>
 
@@ -179,6 +182,15 @@ struct shape_options_t : option_group_t
 
     setup_buffer (buffer);
     return hb_shape_full (font, buffer, features, num_features, shapers);
+  }
+
+  void shape_closure (const char *text, int text_len,
+		      hb_font_t *font, hb_buffer_t *buffer,
+		      hb_set_t *glyphs) {
+    hb_buffer_reset (buffer);
+    hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
+    setup_buffer (buffer);
+    hb_ot_shape_glyphs_closure (font, buffer, features, num_features, glyphs);
   }
 
   const char *direction;

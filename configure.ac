@@ -159,7 +159,7 @@ AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ===========================================================================
 
-have_ot=true;
+have_ot=true
 if $have_ot; then
 	AC_DEFINE(HAVE_OT, 1, [Have native OpenType Layout backend])
 fi
