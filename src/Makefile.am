@@ -19,6 +19,7 @@ HBSOURCES =  \
 	hb-blob.cc \
 	hb-buffer-private.hh \
 	hb-buffer.cc \
+	hb-cache-private.hh \
 	hb-common.cc \
 	hb-fallback-shape-private.hh \
 	hb-fallback-shape.cc \

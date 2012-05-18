@@ -91,6 +91,8 @@ Tests to write:
 
 - hb_set_t
 
+- hb_cache_t and relatives
+
 
 Optimizations:
 =============

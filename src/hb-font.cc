@@ -33,6 +33,8 @@
 #include "hb-open-file-private.hh"
 #include "hb-ot-head-table.hh"
 
+#include "hb-cache-private.hh"
+
 #include <string.h>
 
 
