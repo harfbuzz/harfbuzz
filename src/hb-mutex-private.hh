@@ -39,8 +39,10 @@
 
 /* We need external help for these */
 
+#if 0
 
-#if !defined(HB_NO_MT) && defined(_MSC_VER) || defined(__MINGW32__)
+
+#elif !defined(HB_NO_MT) && defined(_MSC_VER) || defined(__MINGW32__)
 
 #include <windows.h>
 typedef CRITICAL_SECTION hb_mutex_impl_t;

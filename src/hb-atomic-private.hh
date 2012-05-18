@@ -39,8 +39,10 @@
 
 /* We need external help for these */
 
+#if 0
 
-#if !defined(HB_NO_MT) && defined(_MSC_VER) && _MSC_VER >= 1600
+
+#elif !defined(HB_NO_MT) && defined(_MSC_VER) && _MSC_VER >= 1600
 
 #include <intrin.h>
 typedef long hb_atomic_int_t;
