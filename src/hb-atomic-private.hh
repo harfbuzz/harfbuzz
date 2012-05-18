@@ -1,7 +1,7 @@
 /*
  * Copyright © 2007  Chris Wilson
  * Copyright © 2009,2010  Red Hat, Inc.
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -39,7 +39,24 @@
 
 /* We need external help for these */
 
-#if !defined(HB_NO_MT) && defined(HAVE_GLIB)
+
+#if !defined(HB_NO_MT) && defined(_MSC_VER) && _MSC_VER >= 1600
+
+#include <intrin.h>
+typedef long hb_atomic_int_t;
+#define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
+#define hb_atomic_int_get(AI)		(_ReadBarrier (), (AI))
+
+
+#elif !defined(HB_NO_MT) && defined(__APPLE__)
+
+#include <libkern/OSAtomic.h>
+typedef int32_t hb_atomic_int_t;
+#define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier((V), &(AI)), (AI) - (V))
+#define hb_atomic_int_get(AI)		OSAtomicAdd32Barrier(0, &(AI))
+
+
+#elif !defined(HB_NO_MT) && defined(HAVE_GLIB)
 
 #include <glib.h>
 typedef volatile int hb_atomic_int_t;
@@ -50,20 +67,6 @@ typedef volatile int hb_atomic_int_t;
 #endif
 #define hb_atomic_int_get(AI)		g_atomic_int_get (&(AI))
 
-
-#elif !defined(HB_NO_MT) && defined(_MSC_VER) && _MSC_VER >= 1600
-
-#include <intrin.h>
-typedef long hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
-#define hb_atomic_int_get(AI)		(_ReadBarrier (), (AI))
-
-#elif !defined(HB_NO_MT) && defined(__APPLE__)
-
-#include <libkern/OSAtomic.h>
-typedef int32_t hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier((V), &(AI)), (AI) - (V))
-#define hb_atomic_int_get(AI)		OSAtomicAdd32Barrier(0, &(AI))
 
 #else
 
