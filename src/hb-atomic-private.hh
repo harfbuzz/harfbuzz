@@ -56,6 +56,8 @@ typedef long hb_atomic_int_t;
 #include <libkern/OSAtomic.h>
 typedef int32_t hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier((V), &(AI)), (AI) - (V))
+#define hb_atomic_int_set(AI, V)	\
+  do {} while (!OSAtomicCompareAndSwap32 (hb_atomic_int_get (AI), (V), (&(AI))))
 #define hb_atomic_int_get(AI)		OSAtomicAdd32Barrier(0, &(AI))
 
 
