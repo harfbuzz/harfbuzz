@@ -35,7 +35,6 @@
 #include "hb-private.hh"
 
 
-
 /* mutex */
 
 /* We need external help for these */
