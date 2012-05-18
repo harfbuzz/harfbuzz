@@ -102,7 +102,7 @@ struct _hb_set_t
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] &= ~other->elts[i];
   }
-  inline hb_codepoint_t min (void) const
+  inline hb_codepoint_t get_min (void) const
   {
     for (unsigned int i = 0; i < ELTS; i++)
       if (elts[i])
@@ -111,7 +111,7 @@ struct _hb_set_t
 	    return i * BITS + j;
     return 0;
   }
-  inline hb_codepoint_t max (void) const
+  inline hb_codepoint_t get_max (void) const
   {
     for (unsigned int i = ELTS; i; i--)
       if (elts[i - 1])

@@ -167,11 +167,11 @@ hb_set_subtract (hb_set_t *set,
 hb_codepoint_t
 hb_set_min (hb_set_t *set)
 {
-  return set->min ();
+  return set->get_min ();
 }
 
 hb_codepoint_t
 hb_set_max (hb_set_t *set)
 {
-  return set->max ();
+  return set->get_max ();
 }
