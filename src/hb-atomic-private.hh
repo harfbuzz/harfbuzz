@@ -44,7 +44,8 @@
 
 #include <intrin.h>
 typedef long hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), V)
+#define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), (V))
+#define hb_atomic_int_set(AI, V)	_InterlockedExchange (&(AI), (V))
 #define hb_atomic_int_get(AI)		(_ReadBarrier (), (AI))
 
 
@@ -61,10 +62,11 @@ typedef int32_t hb_atomic_int_t;
 #include <glib.h>
 typedef volatile int hb_atomic_int_t;
 #if GLIB_CHECK_VERSION(2,29,5)
-#define hb_atomic_int_add(AI, V)	g_atomic_int_add (&(AI), V)
+#define hb_atomic_int_add(AI, V)	g_atomic_int_add (&(AI), (V))
 #else
-#define hb_atomic_int_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), V)
+#define hb_atomic_int_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), (V))
 #endif
+#define hb_atomic_int_set(AI, V)	g_atomic_int_set (&(AI), (V))
 #define hb_atomic_int_get(AI)		g_atomic_int_get (&(AI))
 
 
@@ -73,6 +75,7 @@ typedef volatile int hb_atomic_int_t;
 #define HB_ATOMIC_INT_NIL 1
 typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	((AI) += (V), (AI) - (V))
+#define hb_atomic_int_set(AI)		((void) ((AI) = (V)))
 #define hb_atomic_int_get(AI)		(AI)
 
 #endif
