@@ -212,9 +212,8 @@ struct Sequence
     TRACE_APPLY ();
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
-    if (c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)
-      c->guess_glyph_class (HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH);
-    c->replace_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array);
+    unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE ? HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH : 0;
+    c->replace_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array, klass);
 
     return TRACE_RETURN (true);
   }
@@ -495,8 +494,7 @@ struct Ligature
       if (likely (c->buffer->info[skippy_iter.idx].codepoint != component[i])) return TRACE_RETURN (false);
     }
 
-    if (first_was_mark && found_non_mark)
-      c->guess_glyph_class (HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE);
+    unsigned int klass = first_was_mark && found_non_mark ? HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE : 0;
 
     /* Allocate new ligature id */
     unsigned int lig_id = allocate_lig_id (c->buffer);
@@ -504,7 +502,7 @@ struct Ligature
 
     if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
     {
-      c->replace_glyphs_be16 (count, 1, (const uint16_t *) &ligGlyph);
+      c->replace_glyphs_be16 (count, 1, (const uint16_t *) &ligGlyph, klass);
     }
     else
     {

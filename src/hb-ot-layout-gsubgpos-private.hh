@@ -222,30 +222,19 @@ struct hb_apply_context_t
 
 
 
-  inline void replace_glyph (hb_codepoint_t glyph_index) const
+  inline void replace_glyph (hb_codepoint_t glyph_index,
+			     unsigned int klass = 0) const
   {
-    clear_property ();
+    buffer->cur().props_cache() = klass; /*XXX if has gdef? */
     buffer->replace_glyph (glyph_index);
   }
   inline void replace_glyphs_be16 (unsigned int num_in,
 				   unsigned int num_out,
-				   const uint16_t *glyph_data_be) const
+				   const uint16_t *glyph_data_be,
+				   unsigned int klass = 0) const
   {
-    clear_property ();
+    buffer->cur().props_cache() = klass; /* XXX if has gdef? */
     buffer->replace_glyphs_be16 (num_in, num_out, glyph_data_be);
-  }
-
-  inline void guess_glyph_class (unsigned int klass)
-  {
-    /* XXX if ! has gdef */
-    buffer->cur().props_cache() = klass;
-  }
-
-  private:
-  inline void clear_property (void) const
-  {
-    /* XXX if has gdef */
-    buffer->cur().props_cache() = 0;
   }
 };
 
