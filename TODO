@@ -1,8 +1,8 @@
 General fixes:
 =============
 
-- Warn at compile time (and runtime with HB_DEBUG?) if no Unicode funcs
-  found / set.
+- Warn at compile time (and runtime with HB_DEBUG?) if no Unicode / font
+  funcs found / set.
 
 - In hb_shape(), assert if direction is INVALID.
 
@@ -26,9 +26,23 @@ General fixes:
 
 - Synthetic GDEF.
 
+- Add Pango backend?
+
+- Add ICUlayout backend?
+
+- Add ICUlayout API?
+
+- Add Old HarfBuzz backend?
+
+- Add Old HarfBuzz API?
+
 
 API issues to fix before 1.0:
 ============================
+
+- Add default font_funcs / Unicode funcs API and to utils.
+
+- Add init_func to font_funcs.  Adjust ft.
 
 - Add pkg-config files for glue codes (harfbuzz-glib, etc)
 
