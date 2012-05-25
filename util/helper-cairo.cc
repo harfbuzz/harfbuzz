@@ -297,7 +297,7 @@ helper_cairo_create_context (double w, double h,
 
 
   unsigned int fr, fg, fb, fa, br, bg, bb, ba;
-  br = bg = bb = ba = 255;
+  br = bg = bb = 0; ba = 255;
   sscanf (view_opts->back + (*view_opts->back=='#'), "%2x%2x%2x%2x", &br, &bg, &bb, &ba);
   fr = fg = fb = 0; fa = 255;
   sscanf (view_opts->fore + (*view_opts->fore=='#'), "%2x%2x%2x%2x", &fr, &fg, &fb, &fa);

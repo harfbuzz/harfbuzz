@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -178,6 +178,7 @@ parse_shapers (const char *name G_GNUC_UNUSED,
 	       GError    **error G_GNUC_UNUSED)
 {
   shape_options_t *shape_opts = (shape_options_t *) data;
+  g_free (shape_opts->shapers);
   shape_opts->shapers = g_strsplit (arg, ",", 0);
   return TRUE;
 }
@@ -330,6 +331,7 @@ parse_features (const char *name G_GNUC_UNUSED,
   char *p;
 
   shape_opts->num_features = 0;
+  g_free (shape_opts->features);
   shape_opts->features = NULL;
 
   if (!*s)
@@ -387,6 +389,8 @@ shape_options_t::add_options (option_parser_t *parser)
   {
     {"list-shapers",	0, G_OPTION_FLAG_NO_ARG,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &list_shapers,	"List available shapers and quit",	NULL},
+    {"shaper",		0, G_OPTION_FLAG_HIDDEN,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Hidden duplicate of --shapers",	NULL},
     {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers to try","list"},
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
     {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
