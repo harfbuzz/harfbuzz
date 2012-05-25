@@ -102,6 +102,11 @@ struct _hb_set_t
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] &= ~other->elts[i];
   }
+  inline void symmetric_difference (const hb_set_t *other)
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      elts[i] ^= other->elts[i];
+  }
   inline hb_codepoint_t get_min (void) const
   {
     for (unsigned int i = 0; i < ELTS; i++)

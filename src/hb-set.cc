@@ -164,6 +164,13 @@ hb_set_subtract (hb_set_t *set,
   set->subtract (other);
 }
 
+void
+hb_set_symmetric_difference (hb_set_t *set,
+			     hb_set_t *other)
+{
+  set->symmetric_difference (other);
+}
+
 hb_codepoint_t
 hb_set_min (hb_set_t *set)
 {

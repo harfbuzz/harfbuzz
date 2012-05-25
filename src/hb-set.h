@@ -105,9 +105,15 @@ void
 hb_set_subtract (hb_set_t *set,
 		 hb_set_t *other);
 
+void
+hb_set_symmetric_difference (hb_set_t *set,
+			     hb_set_t *other);
+
+/* Undefined if set empty */
 hb_codepoint_t
 hb_set_min (hb_set_t *set);
 
+/* Undefined if set empty */
 hb_codepoint_t
 hb_set_max (hb_set_t *set);
 
