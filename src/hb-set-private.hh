@@ -32,6 +32,7 @@
 #include "hb-object-private.hh"
 
 
+/* TODO Make this faster and memmory efficient. */
 
 struct _hb_set_t
 {
@@ -51,6 +52,7 @@ struct _hb_set_t
   }
   inline void add (hb_codepoint_t g)
   {
+    if (unlikely (g == SENTINEL)) return;
     if (unlikely (g > MAX_G)) return;
     elt (g) |= mask (g);
   }
@@ -107,6 +109,23 @@ struct _hb_set_t
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] ^= other->elts[i];
   }
+  inline bool next (hb_codepoint_t *codepoint)
+  {
+    if (unlikely (*codepoint == SENTINEL)) {
+      hb_codepoint_t i = get_min ();
+      if (i != SENTINEL) {
+        *codepoint = i;
+	return true;
+      } else
+        return false;
+    }
+    for (hb_codepoint_t i = *codepoint + 1; i < MAX_G + 1; i++)
+      if (has (i)) {
+        *codepoint = i;
+	return true;
+      }
+    return false;
+  }
   inline hb_codepoint_t get_min (void) const
   {
     for (unsigned int i = 0; i < ELTS; i++)
@@ -114,7 +133,7 @@ struct _hb_set_t
 	for (unsigned int j = 0; i < BITS; j++)
 	  if (elts[i] & (1 << j))
 	    return i * BITS + j;
-    return 0;
+    return SENTINEL;
   }
   inline hb_codepoint_t get_max (void) const
   {
@@ -123,15 +142,16 @@ struct _hb_set_t
 	for (unsigned int j = BITS; j; j--)
 	  if (elts[i - 1] & (1 << (j - 1)))
 	    return (i - 1) * BITS + (j - 1);
-    return 0;
+    return SENTINEL;
   }
 
   typedef uint32_t elt_t;
-  static const unsigned int MAX_G = 65536 - 1;
+  static const unsigned int MAX_G = 65536 - 1; /* XXX Fix this... */
   static const unsigned int SHIFT = 5;
   static const unsigned int BITS = (1 << SHIFT);
   static const unsigned int MASK = BITS - 1;
   static const unsigned int ELTS = (MAX_G + 1 + (BITS - 1)) / BITS;
+  static  const hb_codepoint_t SENTINEL = (hb_codepoint_t) -1;
 
   elt_t &elt (hb_codepoint_t g) { return elts[g >> SHIFT]; }
   elt_t elt (hb_codepoint_t g) const { return elts[g >> SHIFT]; }

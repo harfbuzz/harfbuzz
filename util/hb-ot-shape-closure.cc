@@ -66,11 +66,13 @@ struct shape_closure_consumer_t : option_group_t
 
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);
+
+    if (hb_set_empty (glyphs))
+      return;
+
     /* Print it out! */
-    hb_codepoint_t start = hb_set_min (glyphs);
-    hb_codepoint_t end = 1 + hb_set_max (glyphs);
     bool first = true;
-    for (hb_codepoint_t i = start; i < end; i++)
+    for (hb_codepoint_t i = -1; hb_set_next (glyphs, &i);)
       if (hb_set_has (glyphs, i)) {
         if (first)
 	  first = false;

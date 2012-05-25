@@ -182,3 +182,10 @@ hb_set_max (hb_set_t *set)
 {
   return set->get_max ();
 }
+
+hb_bool_t
+hb_set_next (hb_set_t       *set,
+	     hb_codepoint_t *codepoint)
+{
+  return set->next (codepoint);
+}
