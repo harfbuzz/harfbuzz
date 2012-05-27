@@ -78,7 +78,7 @@ typedef volatile int hb_atomic_int_t;
 
 #define HB_ATOMIC_INT_NIL 1
 typedef volatile int hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	((AI) += (V), (AI) - (V))
+#define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
 #define hb_atomic_int_set(AI, V)	((void) ((AI) = (V)))
 #define hb_atomic_int_get(AI)		(AI)
 
