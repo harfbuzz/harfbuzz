@@ -97,6 +97,7 @@ extern HB_INTERNAL hb_unicode_funcs_t _hb_glib_unicode_funcs;
 extern HB_INTERNAL hb_unicode_funcs_t _hb_icu_unicode_funcs;
 #define _hb_unicode_funcs_default _hb_icu_unicode_funcs
 #else
+#define HB_UNICODE_FUNCS_NIL 1
 extern HB_INTERNAL hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #define _hb_unicode_funcs_default _hb_unicode_funcs_nil
 #endif
