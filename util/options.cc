@@ -725,8 +725,6 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
 				    hb_bool_t    utf8_clusters,
 				    GString     *gs)
 {
-  FT_Face ft_face = show_glyph_names ? hb_ft_font_get_face (font) : NULL;
-
   unsigned int num_glyphs = hb_buffer_get_length (buffer);
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
@@ -737,12 +735,10 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
     if (i)
       g_string_append_c (gs, '|');
 
-    char glyph_name[30];
+    char glyph_name[32];
     if (show_glyph_names) {
-      if (!FT_Get_Glyph_Name (ft_face, info->codepoint, glyph_name, sizeof (glyph_name)))
-	g_string_append_printf (gs, "%s", glyph_name);
-      else
-	g_string_append_printf (gs, "gid%u", info->codepoint);
+      hb_font_get_glyph_name (font, info->codepoint, glyph_name, sizeof (glyph_name));
+      g_string_append_printf (gs, "%s", glyph_name);
     } else
       g_string_append_printf (gs, "%u", info->codepoint);
 

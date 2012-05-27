@@ -78,13 +78,10 @@ struct shape_closure_consumer_t : option_group_t
 	  first = false;
 	else
 	  printf (" ");
-        /* TODO refactor this */
-	char glyph_name[30];
+	char glyph_name[32];
 	if (show_glyph_names) {
-	  if (!FT_Get_Glyph_Name (ft_face, i, glyph_name, sizeof (glyph_name)))
-	    printf ("%s", glyph_name);
-	  else
-	    printf ("gid%u", i);
+	  hb_font_get_glyph_name (font, i, glyph_name, sizeof (glyph_name));
+	  printf ("%s", glyph_name);
 	} else
 	  printf ("%u", i);
       }

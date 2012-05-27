@@ -192,6 +192,16 @@ typedef hb_bool_t (*hb_font_get_glyph_contour_point_func_t) (hb_font_t *font, vo
 							     void *user_data);
 
 
+typedef hb_bool_t (*hb_font_get_glyph_name_func_t) (hb_font_t *font, void *font_data,
+						    hb_codepoint_t glyph,
+						    char *name, unsigned int size,
+						    void *user_data);
+typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *font_data,
+							 const char *name, int len, /* -1 means nul-terminated */
+							 hb_codepoint_t *glyph,
+							 void *user_data);
+
+
 /* func setters */
 
 void
@@ -235,6 +245,15 @@ hb_font_funcs_set_glyph_contour_point_func (hb_font_funcs_t *ffuncs,
 					    hb_font_get_glyph_contour_point_func_t func,
 					    void *user_data, hb_destroy_func_t destroy);
 
+void
+hb_font_funcs_set_glyph_name_func (hb_font_funcs_t *ffuncs,
+				   hb_font_get_glyph_name_func_t glyph_func,
+				   void *user_data, hb_destroy_func_t destroy);
+void
+hb_font_funcs_set_glyph_from_name_func (hb_font_funcs_t *ffuncs,
+					hb_font_get_glyph_from_name_func_t glyph_func,
+					void *user_data, hb_destroy_func_t destroy);
+
 
 /* func dispatch */
 
@@ -275,6 +294,15 @@ hb_bool_t
 hb_font_get_glyph_contour_point (hb_font_t *font,
 				 hb_codepoint_t glyph, unsigned int point_index,
 				 hb_position_t *x, hb_position_t *y);
+
+hb_bool_t
+hb_font_get_glyph_name (hb_font_t *font,
+			hb_codepoint_t glyph,
+			char *name, unsigned int size);
+hb_bool_t
+hb_font_get_glyph_from_name (hb_font_t *font,
+			     const char *name, int len, /* -1 means nul-terminated */
+			     hb_codepoint_t *glyph);
 
 
 /* high-level funcs, with fallback */

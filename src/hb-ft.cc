@@ -231,21 +231,55 @@ hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
   return TRUE;
 }
 
+static hb_bool_t
+hb_ft_get_glyph_name (hb_font_t *font,
+		      void *font_data,
+		      hb_codepoint_t glyph,
+		      char *name, unsigned int size,
+		      void *user_data HB_UNUSED)
+{
+  FT_Face ft_face = (FT_Face) font_data;
+
+  hb_bool_t ret = !FT_Get_Glyph_Name (ft_face, glyph, name, size);
+  if (!ret)
+    snprintf (name, size, "gid%u", glyph);
+
+  return ret;
+}
+
+static hb_bool_t
+hb_ft_get_glyph_from_name (hb_font_t *font,
+			   void *font_data,
+			   const char *name, int len, /* -1 means nul-terminated */
+			   hb_codepoint_t *glyph,
+			   void *user_data HB_UNUSED)
+{
+  FT_Face ft_face = (FT_Face) font_data;
+
+  if (len < 0)
+    *glyph = FT_Get_Name_Index (ft_face, (FT_String *) name);
+  else {
+    /* Make a nul-terminated version. */
+    char buf[128];
+    len = MIN (len, (int) sizeof (buf) - 1);
+    strncpy (buf, name, len);
+    buf[len] = '\0';
+    *glyph = FT_Get_Name_Index (ft_face, buf);
+  }
+
+  return *glyph != 0;
+}
+
+
 static hb_font_funcs_t ft_ffuncs = {
   HB_OBJECT_HEADER_STATIC,
 
   TRUE, /* immutable */
 
   {
-    hb_ft_get_glyph,
-    hb_ft_get_glyph_h_advance,
-    hb_ft_get_glyph_v_advance,
-    hb_ft_get_glyph_h_origin,
-    hb_ft_get_glyph_v_origin,
-    hb_ft_get_glyph_h_kerning,
-    hb_ft_get_glyph_v_kerning,
-    hb_ft_get_glyph_extents,
-    hb_ft_get_glyph_contour_point,
+#define HB_FONT_FUNC_IMPLEMENT(name) hb_ft_get_##name,
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
   }
 };
 

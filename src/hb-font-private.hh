@@ -50,6 +50,8 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_v_kerning) \
   HB_FONT_FUNC_IMPLEMENT (glyph_extents) \
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_name) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
   /* ^--- Add new callbacks here */
 
 struct _hb_font_funcs_t {

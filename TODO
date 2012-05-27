@@ -57,6 +57,7 @@ API additions
 =============
 
 - Buffer (de)serialize API ala hb-shape?
+
 - Move feature parsing from util into the library
 
 - Add hb-cairo glue
