@@ -47,8 +47,8 @@
 #include <intrin.h>
 typedef long hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), (V))
-#define hb_atomic_int_set(AI, V)	_InterlockedExchange (&(AI), (V))
-#define hb_atomic_int_get(AI)		(_ReadBarrier (), (AI))
+#define hb_atomic_int_set(AI, V)	((AI) = (V), MemoryBarrier ())
+#define hb_atomic_int_get(AI)		(MemoryBarrier (), (AI))
 
 
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
