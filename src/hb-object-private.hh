@@ -48,17 +48,15 @@
 /* reference_count */
 
 typedef struct {
-  hb_atomic_int_t ref_count;
+  const hb_atomic_int_t ref_count;
 
 #define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
 #define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
 
-  inline void init (int v) { ref_count = v; /* non-atomic is fine */ }
-  inline int inc (void) { return hb_atomic_int_add (ref_count,  1); }
-  inline int dec (void) { return hb_atomic_int_add (ref_count, -1); }
+  inline void init (int v) { const_cast<hb_atomic_int_t &> (ref_count) = v; }
+  inline int inc (void) { return hb_atomic_int_add (const_cast<hb_atomic_int_t &> (ref_count),  1); }
+  inline int dec (void) { return hb_atomic_int_add (const_cast<hb_atomic_int_t &> (ref_count), -1); }
 
-  inline int get (void) { return hb_atomic_int_get (ref_count); }
-  inline int get_unsafe (void) const { return ref_count; }
   inline bool is_invalid (void) const { return ref_count == HB_REFERENCE_COUNT_INVALID_VALUE; }
 
 } hb_reference_count_t;
@@ -159,7 +157,7 @@ struct _hb_object_header_t {
     DEBUG_MSG (OBJECT, (void *) this,
 	       "%s refcount=%d",
 	       function,
-	       this ? ref_count.get_unsafe () : 0);
+	       this ? ref_count.ref_count : 0);
   }
 
 };
