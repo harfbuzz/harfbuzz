@@ -62,8 +62,6 @@ struct shape_closure_consumer_t : option_group_t
 		     const char   *text,
 		     unsigned int  text_len)
   {
-    FT_Face ft_face = show_glyph_names ? hb_ft_font_get_face (font) : NULL;
-
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);
 
