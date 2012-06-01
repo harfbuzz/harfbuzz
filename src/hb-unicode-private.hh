@@ -149,7 +149,8 @@ _hb_unicode_is_zero_width (hb_codepoint_t ch)
 	  (ch >= 0x202A && ch <= 0x202E) ||
 	  (ch >= 0x2060 && ch <= 0x2063) ||
 	  (ch == 0x2028)
-	 )) || unlikely (ch == 0x00AD
+	 )) || unlikely (ch == 0x0009
+		      || ch == 0x00AD
 		      || ch == 0x034F
 		      || ch == 0xFEFF);
 }
