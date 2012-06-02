@@ -790,9 +790,7 @@ format_options_t::serialize_buffer_of_text (hb_buffer_t  *buffer,
 
   if (show_unicode) {
     serialize_line_no (line_no, gs);
-    hb_buffer_reset (scratch);
-    hb_buffer_add_utf8 (scratch, text, text_len, 0, -1);
-    serialize_unicode (scratch, gs);
+    serialize_unicode (buffer, gs);
     g_string_append_c (gs, '\n');
   }
 }

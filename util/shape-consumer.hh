@@ -48,9 +48,11 @@ struct shape_consumer_t
 		     unsigned int  text_len)
   {
     output.new_line ();
+
+    shaper.populate_buffer (buffer, text, text_len);
     output.consume_text (buffer, text, text_len, shaper.utf8_clusters);
 
-    if (!shaper.shape (text, text_len, font, buffer)) {
+    if (!shaper.shape (font, buffer)) {
       failed = true;
       hb_buffer_set_length (buffer, 0);
       output.shape_failed (buffer, text, text_len, shaper.utf8_clusters);

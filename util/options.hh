@@ -141,7 +141,8 @@ struct view_options_t : option_group_t
 
 struct shape_options_t : option_group_t
 {
-  shape_options_t (option_parser_t *parser) {
+  shape_options_t (option_parser_t *parser)
+  {
     direction = language = script = NULL;
     features = NULL;
     num_features = 0;
@@ -150,21 +151,23 @@ struct shape_options_t : option_group_t
 
     add_options (parser);
   }
-  ~shape_options_t (void) {
+  ~shape_options_t (void)
+  {
     free (features);
     g_free (shapers);
   }
 
   void add_options (option_parser_t *parser);
 
-  void setup_buffer (hb_buffer_t *buffer) {
+  void setup_buffer (hb_buffer_t *buffer)
+  {
     hb_buffer_set_direction (buffer, hb_direction_from_string (direction, -1));
     hb_buffer_set_script (buffer, hb_script_from_string (script, -1));
     hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
   }
 
-  hb_bool_t shape (const char *text, int text_len,
-		   hb_font_t *font, hb_buffer_t *buffer) {
+  void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len)
+  {
     hb_buffer_reset (buffer);
     hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
 
@@ -181,12 +184,17 @@ struct shape_options_t : option_group_t
     }
 
     setup_buffer (buffer);
+  }
+
+  hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer)
+  {
     return hb_shape_full (font, buffer, features, num_features, shapers);
   }
 
   void shape_closure (const char *text, int text_len,
 		      hb_font_t *font, hb_buffer_t *buffer,
-		      hb_set_t *glyphs) {
+		      hb_set_t *glyphs)
+  {
     hb_buffer_reset (buffer);
     hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
     setup_buffer (buffer);
@@ -315,12 +323,8 @@ struct format_options_t : option_group_t
     show_text = false;
     show_unicode = false;
     show_line_num = false;
-    scratch = hb_buffer_create ();
 
     add_options (parser);
-  }
-  ~format_options_t (void) {
-    hb_buffer_destroy (scratch);
   }
 
   void add_options (option_parser_t *parser);
@@ -359,8 +363,6 @@ struct format_options_t : option_group_t
   hb_bool_t show_text;
   hb_bool_t show_unicode;
   hb_bool_t show_line_num;
-  private:
-  hb_buffer_t *scratch;
 };
 
 
