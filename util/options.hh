@@ -300,17 +300,8 @@ struct output_options_t : option_group_t
 
   FILE *get_file_handle (void);
 
-  virtual void init (const font_options_t *font_opts) = 0;
-  virtual void consume_line (hb_buffer_t  *buffer,
-			     const char   *text,
-			     unsigned int  text_len,
-			     hb_bool_t     utf8_clusters) = 0;
-  virtual void finish (const font_options_t *font_opts) = 0;
-
   const char *output_file;
   const char *output_format;
-
-  protected:
 
   mutable FILE *fp;
 };
@@ -342,13 +333,23 @@ struct format_options_t : option_group_t
 			 GString      *gs);
   void serialize_line_no (unsigned int  line_no,
 			  GString      *gs);
-  void serialize_line (hb_buffer_t  *buffer,
-		       unsigned int  line_no,
-		       const char   *text,
-		       unsigned int  text_len,
-		       hb_font_t    *font,
-		       hb_bool_t     utf8_clusters,
-		       GString      *gs);
+  void serialize_buffer_of_text (hb_buffer_t  *buffer,
+				 unsigned int  line_no,
+				 const char   *text,
+				 unsigned int  text_len,
+				 hb_font_t    *font,
+				 hb_bool_t     utf8_clusters,
+				 GString      *gs);
+  void serialize_message (unsigned int  line_no,
+			  const char   *msg,
+			  GString      *gs);
+  void serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
+				   unsigned int  line_no,
+				   const char   *text,
+				   unsigned int  text_len,
+				   hb_font_t    *font,
+				   hb_bool_t     utf8_clusters,
+				   GString      *gs);
 
 
   protected:

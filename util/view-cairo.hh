@@ -31,23 +31,61 @@
 #define VIEW_CAIRO_HH
 
 
-struct view_cairo_t : output_options_t, view_options_t {
+struct view_cairo_t {
   view_cairo_t (option_parser_t *parser)
-	       : output_options_t (parser),
-	         view_options_t (parser) {}
+	       : output_options (parser),
+	         view_options (parser) {}
   ~view_cairo_t (void) {
     if (debug)
       cairo_debug_reset_static_data ();
   }
 
-  void init (const font_options_t *font_opts);
-  void consume_line (hb_buffer_t  *buffer,
+  void init (const font_options_t *font_opts)
+  {
+    lines = g_array_new (FALSE, FALSE, sizeof (helper_cairo_line_t));
+    scale = double (view_options.font_size) / hb_face_get_upem (hb_font_get_face (font_opts->get_font ()));
+  }
+  void new_line (void)
+  {
+  }
+  void consume_text (hb_buffer_t  *buffer,
 		     const char   *text,
 		     unsigned int  text_len,
-		     hb_bool_t     utf8_clusters);
-  void finish (const font_options_t *font_opts);
+		     hb_bool_t     utf8_clusters)
+  {
+  }
+  void shape_failed (hb_buffer_t  *buffer,
+		     const char   *text,
+		     unsigned int  text_len,
+		     hb_bool_t     utf8_clusters)
+  {
+    consume_glyphs (buffer, text, text_len, utf8_clusters);
+  }
+  void consume_glyphs (hb_buffer_t  *buffer,
+		       const char   *text,
+		       unsigned int  text_len,
+		       hb_bool_t     utf8_clusters)
+  {
+    direction = hb_buffer_get_direction (buffer);
+    helper_cairo_line_t l;
+    helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale, utf8_clusters);
+    g_array_append_val (lines, l);
+  }
+  void finish (const font_options_t *font_opts)
+  {
+    render (font_opts);
+
+    for (unsigned int i = 0; i < lines->len; i++) {
+      helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
+      line.finish ();
+    }
+    g_array_unref (lines);
+  }
 
   protected:
+
+  output_options_t output_options;
+  view_options_t view_options;
 
   void render (const font_options_t *font_opts);
   void get_surface_size (cairo_scaled_font_t *scaled_font, double *w, double *h);

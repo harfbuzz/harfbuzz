@@ -27,37 +27,6 @@
 #include "view-cairo.hh"
 
 void
-view_cairo_t::init (const font_options_t *font_opts)
-{
-  lines = g_array_new (FALSE, FALSE, sizeof (helper_cairo_line_t));
-  scale = double (font_size) / hb_face_get_upem (hb_font_get_face (font_opts->get_font ()));
-}
-
-void
-view_cairo_t::consume_line (hb_buffer_t  *buffer,
-			    const char   *text,
-			    unsigned int  text_len,
-			    hb_bool_t     utf8_clusters)
-{
-  direction = hb_buffer_get_direction (buffer);
-  helper_cairo_line_t l;
-  helper_cairo_line_from_buffer (&l, buffer, text, text_len, scale, utf8_clusters);
-  g_array_append_val (lines, l);
-}
-
-void
-view_cairo_t::finish (const font_options_t *font_opts)
-{
-  render (font_opts);
-
-  for (unsigned int i = 0; i < lines->len; i++) {
-    helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
-    line.finish ();
-  }
-  g_array_unref (lines);
-}
-
-void
 view_cairo_t::get_surface_size (cairo_scaled_font_t *scaled_font,
 				double *w, double *h)
 {
@@ -66,7 +35,7 @@ view_cairo_t::get_surface_size (cairo_scaled_font_t *scaled_font,
   cairo_scaled_font_extents (scaled_font, &font_extents);
 
   bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
-  (vertical ? *w : *h) = (int) lines->len * (font_extents.height + line_space) - line_space;
+  (vertical ? *w : *h) = (int) lines->len * (font_extents.height + view_options.line_space) - view_options.line_space;
   (vertical ? *h : *w) = 0;
   for (unsigned int i = 0; i < lines->len; i++) {
     helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
@@ -78,17 +47,17 @@ view_cairo_t::get_surface_size (cairo_scaled_font_t *scaled_font,
       *w =  MAX (*w, x_advance);
   }
 
-  *w += margin.l + margin.r;
-  *h += margin.t + margin.b;
+  *w += view_options.margin.l + view_options.margin.r;
+  *h += view_options.margin.t + view_options.margin.b;
 }
 
 void
 view_cairo_t::render (const font_options_t *font_opts)
 {
-  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts, font_size);
+  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts, view_options.font_size);
   double w, h;
   get_surface_size (scaled_font, &w, &h);
-  cairo_t *cr = helper_cairo_create_context (w, h, this, this);
+  cairo_t *cr = helper_cairo_create_context (w, h, &view_options, &output_options);
   cairo_set_scaled_font (cr, scaled_font);
   cairo_scaled_font_destroy (scaled_font);
 
@@ -107,7 +76,7 @@ view_cairo_t::draw (cairo_t *cr)
   int h = vertical ? 0 : 1;
   cairo_font_extents_t font_extents;
   cairo_font_extents (cr, &font_extents);
-  cairo_translate (cr, margin.l, margin.t);
+  cairo_translate (cr, view_options.margin.l, view_options.margin.t);
   double descent;
   if (vertical)
     descent = font_extents.height * (lines->len + .5);
@@ -119,11 +88,11 @@ view_cairo_t::draw (cairo_t *cr)
     helper_cairo_line_t &l = g_array_index (lines, helper_cairo_line_t, i);
 
     if (i)
-      cairo_translate (cr, v * -line_space, h * line_space);
+      cairo_translate (cr, v * -view_options.line_space, h * view_options.line_space);
 
     cairo_translate (cr, v * -font_extents.height, h * font_extents.height);
 
-    if (annotate) {
+    if (view_options.annotate) {
       cairo_save (cr);
 
       /* Draw actual glyph origins */

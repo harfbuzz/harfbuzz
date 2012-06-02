@@ -28,28 +28,49 @@
 #include "main-font-text.hh"
 #include "shape-consumer.hh"
 
-struct output_buffer_t : output_options_t
+struct output_buffer_t
 {
   output_buffer_t (option_parser_t *parser)
-		  : output_options_t (parser),
+		  : options (parser),
 		    format (parser) {}
 
   void init (const font_options_t *font_opts)
   {
-    get_file_handle ();
+    options.get_file_handle ();
     gs = g_string_new (NULL);
     line_no = 0;
     font = hb_font_reference (font_opts->get_font ());
   }
-  void consume_line (hb_buffer_t  *buffer,
+  void new_line (void)
+  {
+    line_no++;
+  }
+  void consume_text (hb_buffer_t  *buffer,
 		     const char   *text,
 		     unsigned int  text_len,
 		     hb_bool_t     utf8_clusters)
   {
-    line_no++;
     g_string_set_size (gs, 0);
-    format.serialize_line (buffer, line_no, text, text_len, font, utf8_clusters, gs);
-    fprintf (fp, "%s", gs->str);
+    format.serialize_buffer_of_text (buffer, line_no, text, text_len, font, utf8_clusters, gs);
+    fprintf (options.fp, "%s", gs->str);
+  }
+  void shape_failed (hb_buffer_t  *buffer,
+		     const char   *text,
+		     unsigned int  text_len,
+		     hb_bool_t     utf8_clusters)
+  {
+    g_string_set_size (gs, 0);
+    format.serialize_message (line_no, "msg: all shapers failed", gs);
+    fprintf (options.fp, "%s", gs->str);
+  }
+  void consume_glyphs (hb_buffer_t  *buffer,
+		       const char   *text,
+		       unsigned int  text_len,
+		       hb_bool_t     utf8_clusters)
+  {
+    g_string_set_size (gs, 0);
+    format.serialize_buffer_of_glyphs (buffer, line_no, text, text_len, font, utf8_clusters, gs);
+    fprintf (options.fp, "%s", gs->str);
   }
   void finish (const font_options_t *font_opts)
   {
@@ -60,6 +81,7 @@ struct output_buffer_t : output_options_t
   }
 
   protected:
+  output_options_t options;
   format_options_t format;
 
   GString *gs;

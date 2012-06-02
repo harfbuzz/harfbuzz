@@ -772,13 +772,13 @@ format_options_t::serialize_line_no (unsigned int  line_no,
     g_string_append_printf (gs, "%d: ", line_no);
 }
 void
-format_options_t::serialize_line (hb_buffer_t  *buffer,
-				  unsigned int  line_no,
-				  const char   *text,
-				  unsigned int  text_len,
-				  hb_font_t    *font,
-				  hb_bool_t     utf8_clusters,
-				  GString      *gs)
+format_options_t::serialize_buffer_of_text (hb_buffer_t  *buffer,
+					    unsigned int  line_no,
+					    const char   *text,
+					    unsigned int  text_len,
+					    hb_font_t    *font,
+					    hb_bool_t     utf8_clusters,
+					    GString      *gs)
 {
   if (show_text) {
     serialize_line_no (line_no, gs);
@@ -795,7 +795,25 @@ format_options_t::serialize_line (hb_buffer_t  *buffer,
     serialize_unicode (scratch, gs);
     g_string_append_c (gs, '\n');
   }
-
+}
+void
+format_options_t::serialize_message (unsigned int  line_no,
+				     const char   *msg,
+				     GString      *gs)
+{
+  serialize_line_no (line_no, gs);
+  g_string_append_printf (gs, "%s", msg);
+  g_string_append_c (gs, '\n');
+}
+void
+format_options_t::serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
+					      unsigned int  line_no,
+					      const char   *text,
+					      unsigned int  text_len,
+					      hb_font_t    *font,
+					      hb_bool_t     utf8_clusters,
+					      GString      *gs)
+{
   serialize_line_no (line_no, gs);
   serialize_glyphs (buffer, font, utf8_clusters, gs);
   g_string_append_c (gs, '\n');

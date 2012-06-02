@@ -41,15 +41,23 @@ struct shape_consumer_t
   {
     font = hb_font_reference (font_opts->get_font ());
     output.init (font_opts);
+    failed = false;
   }
   void consume_line (hb_buffer_t  *buffer,
 		     const char   *text,
 		     unsigned int  text_len)
   {
-    if (!shaper.shape (text, text_len, font, buffer))
-      fail (FALSE, "All shapers failed");
+    output.new_line ();
+    output.consume_text (buffer, text, text_len, shaper.utf8_clusters);
 
-    output.consume_line (buffer, text, text_len, shaper.utf8_clusters);
+    if (!shaper.shape (text, text_len, font, buffer)) {
+      failed = true;
+      hb_buffer_set_length (buffer, 0);
+      output.shape_failed (buffer, text, text_len, shaper.utf8_clusters);
+      return;
+    }
+
+    output.consume_glyphs (buffer, text, text_len, shaper.utf8_clusters);
   }
   void finish (const font_options_t *font_opts)
   {
@@ -57,6 +65,9 @@ struct shape_consumer_t
     hb_font_destroy (font);
     font = NULL;
   }
+
+  public:
+  bool failed;
 
   protected:
   shape_options_t shaper;

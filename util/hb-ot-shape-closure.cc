@@ -57,6 +57,7 @@ struct shape_closure_consumer_t : option_group_t
   {
     glyphs = hb_set_create ();
     font = hb_font_reference (font_opts->get_font ());
+    failed = false;
   }
   void consume_line (hb_buffer_t  *buffer,
 		     const char   *text,
@@ -92,6 +93,8 @@ struct shape_closure_consumer_t : option_group_t
     hb_set_destroy (glyphs);
     glyphs = NULL;
   }
+
+  bool failed;
 
   protected:
   shape_options_t shaper;

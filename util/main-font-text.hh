@@ -66,7 +66,7 @@ struct main_font_text_t
 
     consumer.finish (&font_opts);
 
-    return 0;
+    return consumer.failed ? 1 : 0;
   }
 
   protected:
