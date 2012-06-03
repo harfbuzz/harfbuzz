@@ -47,7 +47,8 @@
 
 /* reference_count */
 
-typedef struct {
+struct hb_reference_count_t
+{
   const hb_atomic_int_t ref_count;
 
 #define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
@@ -59,13 +60,13 @@ typedef struct {
 
   inline bool is_invalid (void) const { return ref_count == HB_REFERENCE_COUNT_INVALID_VALUE; }
 
-} hb_reference_count_t;
+};
 
 
 /* user_data */
 
-struct hb_user_data_array_t {
-
+struct hb_user_data_array_t
+{
   struct hb_user_data_item_t {
     hb_user_data_key_t *key;
     void *data;
@@ -92,9 +93,8 @@ struct hb_user_data_array_t {
 
 /* object_header */
 
-typedef struct _hb_object_header_t hb_object_header_t;
-
-struct _hb_object_header_t {
+struct hb_object_header_t
+{
   hb_reference_count_t ref_count;
   hb_user_data_array_t user_data;
 
