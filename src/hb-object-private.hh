@@ -49,7 +49,7 @@
 
 struct hb_reference_count_t
 {
-  const hb_atomic_int_t ref_count;
+  hb_atomic_int_t ref_count;
 
 #define HB_REFERENCE_COUNT_INVALID_VALUE ((hb_atomic_int_t) -1)
 #define HB_REFERENCE_COUNT_INVALID {HB_REFERENCE_COUNT_INVALID_VALUE}
