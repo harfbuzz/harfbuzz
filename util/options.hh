@@ -356,7 +356,6 @@ struct format_options_t : option_group_t
 				   GString      *gs);
 
 
-  protected:
   hb_bool_t show_glyph_names;
   hb_bool_t show_positions;
   hb_bool_t show_clusters;

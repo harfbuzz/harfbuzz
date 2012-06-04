@@ -680,6 +680,16 @@ output_options_t::get_file_handle (void)
   return fp;
 }
 
+static gboolean
+parse_verbose (const char *name G_GNUC_UNUSED,
+	       const char *arg G_GNUC_UNUSED,
+	       gpointer    data G_GNUC_UNUSED,
+	       GError    **error G_GNUC_UNUSED)
+{
+  format_options_t *format_opts = (format_options_t *) data;
+  format_opts->show_text = format_opts->show_unicode = format_opts->show_line_num = TRUE;
+  return TRUE;
+}
 
 void
 format_options_t::add_options (option_parser_t *parser)
@@ -692,6 +702,7 @@ format_options_t::add_options (option_parser_t *parser)
     {"show-text",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_text,		"Show input text",			NULL},
     {"show-unicode",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_unicode,		"Show input Unicode codepoints",	NULL},
     {"show-line-num",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_line_num,		"Show line numbers",			NULL},
+    {"verbose",		0, G_OPTION_FLAG_NO_ARG,  G_OPTION_ARG_CALLBACK,(gpointer) &parse_verbose,	"Show everything",			NULL},
     {NULL}
   };
   parser->add_group (entries,
