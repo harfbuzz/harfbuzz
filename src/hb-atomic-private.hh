@@ -56,10 +56,15 @@ typedef int32_t hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier ((V), &(AI)) - (V))
 
 
+#elif !defined(HB_NO_MT) && defined(__GNUC__)
+
+typedef int hb_atomic_int_t;
+#define hb_atomic_int_add(AI, V)	__sync_fetch_and_add (&(AI), (V))
+
 #elif !defined(HB_NO_MT) && defined(HAVE_GLIB)
 
 #include <glib.h>
-typedef volatile int hb_atomic_int_t;
+typedef int hb_atomic_int_t;
 #if GLIB_CHECK_VERSION(2,29,5)
 #define hb_atomic_int_add(AI, V)	g_atomic_int_add (&(AI), (V))
 #else
@@ -70,7 +75,7 @@ typedef volatile int hb_atomic_int_t;
 #else
 
 #define HB_ATOMIC_INT_NIL 1
-typedef volatile int hb_atomic_int_t;
+typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
 
 #endif
