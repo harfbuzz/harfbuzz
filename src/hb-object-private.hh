@@ -1,7 +1,7 @@
 /*
  * Copyright © 2007  Chris Wilson
  * Copyright © 2009,2010  Red Hat, Inc.
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -68,6 +68,8 @@ struct hb_reference_count_t
 #define HB_USER_DATA_ARRAY_INIT {HB_LOCKABLE_SET_INIT}
 struct hb_user_data_array_t
 {
+  /* TODO Add tracing. */
+
   struct hb_user_data_item_t {
     hb_user_data_key_t *key;
     void *data;
