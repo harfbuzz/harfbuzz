@@ -398,21 +398,37 @@ hb_ft_font_create (FT_Face           ft_face,
 }
 
 
-static FT_Library
-_get_ft_library (void)
-{
-  static struct ft_library_singleton
-  {
-    ft_library_singleton (void) {
-      FT_Init_FreeType (&ft_library);
-    }
-    ~ft_library_singleton (void) {
-      FT_Done_FreeType (ft_library);
-    }
-    FT_Library ft_library;
-  } ft_library_singleton;
+static FT_Library ft_library;
 
-  return ft_library_singleton.ft_library;
+static
+void free_ft_library (void)
+{
+  FT_Done_FreeType (ft_library);
+}
+
+static FT_Library
+get_ft_library (void)
+{
+retry:
+  FT_Library library = (FT_Library) hb_atomic_ptr_get (&ft_library);
+
+  if (unlikely (!library))
+  {
+    /* Not found; allocate one. */
+    if (FT_Init_FreeType (&library))
+      return NULL;
+
+    if (!hb_atomic_ptr_cmpexch (&ft_library, NULL, library)) {
+      FT_Done_FreeType (library);
+      goto retry;
+    }
+
+#ifdef HAVE_ATEXIT
+    atexit (free_ft_library); /* First person registers atexit() callback. */
+#endif
+  }
+
+  return library;
 }
 
 static void
@@ -431,7 +447,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
     DEBUG_MSG (FT, font, "Font face has empty blob");
 
   FT_Face ft_face = NULL;
-  FT_Error err = FT_New_Memory_Face (_get_ft_library (),
+  FT_Error err = FT_New_Memory_Face (get_ft_library (),
 				     (const FT_Byte *) blob_data,
 				     blob_length,
 				     hb_face_get_index (font->face),

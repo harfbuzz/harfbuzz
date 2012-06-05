@@ -182,7 +182,6 @@ void free_langs (void)
 static hb_language_item_t *
 lang_find_or_insert (const char *key)
 {
-
 retry:
   hb_language_item_t *first_lang = (hb_language_item_t *) hb_atomic_ptr_get (&langs);
 
@@ -203,8 +202,8 @@ retry:
   }
 
 #ifdef HAVE_ATEXIT
-  if (!first_lang) /* First person registers atexit() callback. */
-    atexit (free_langs);
+  if (!first_lang)
+    atexit (free_langs); /* First person registers atexit() callback. */
 #endif
 
   return lang;
