@@ -45,21 +45,33 @@
 #elif !defined(HB_NO_MT) && defined(_MSC_VER) && _MSC_VER >= 1600
 
 #include <intrin.h>
+#pragma intrinsic(_InterlockedExchangeAdd, _InterlockedCompareExchangePointer)
+
 typedef long hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), (V))
+
+#define hb_atomic_ptr_get(P)		(MemoryBarrier (), (void *) *(P))
+#define hb_atomic_ptr_cmpexch(P,O,N)	(_InterlockedCompareExchangePointer ((void * volatile *) (P), (N), (O)) == (O))
 
 
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
 
 #include <libkern/OSAtomic.h>
+
 typedef int32_t hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier ((V), &(AI)) - (V))
+
+#define hb_atomic_ptr_get(P)		(OSMemoryBarrier (), (void *) *(P))
+#define hb_atomic_ptr_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((O), (N), (void * volatile *) (P))
 
 
 #elif !defined(HB_NO_MT) && defined(__GNUC__)
 
 typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	__sync_fetch_and_add (&(AI), (V))
+
+#define hb_atomic_ptr_get(P)		(void *) (__sync_synchronize (), *(P))
+#define hb_atomic_ptr_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
 
 #elif !defined(HB_NO_MT) && defined(HAVE_GLIB)
 
@@ -71,6 +83,9 @@ typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), (V))
 #endif
 
+#define hb_atomic_ptr_get(P)		g_atomic_pointer_get (P)
+#define hb_atomic_ptr_cmpexch(P,O,N)	g_atomic_pointer_compare_and_exchange ((void * volatile *) (P), (O), (N))
+
 
 #elif !defined(HB_NO_MT)
 
@@ -78,11 +93,17 @@ typedef int hb_atomic_int_t;
 typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
 
+#define hb_atomic_ptr_get(P)		((void *) *(P))
+#define hb_atomic_ptr_cmpexch(P,O,N)	(*(P) == (O) ? (*(P) = (N), TRUE) : FALSE)
+
 
 #else /* HB_NO_MT */
 
 typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
+
+#define hb_atomic_ptr_get(P)		((void *) *(P))
+#define hb_atomic_ptr_cmpexch(P,O,N)	*(P)
 
 #endif
 
