@@ -337,21 +337,22 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 }
 
 
+extern HB_INTERNAL const hb_unicode_funcs_t _hb_glib_unicode_funcs;
+const hb_unicode_funcs_t _hb_glib_unicode_funcs = {
+  HB_OBJECT_HEADER_STATIC,
+
+  NULL, /* parent */
+  TRUE, /* immutable */
+  {
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_glib_unicode_##name,
+    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
+  }
+};
+
 hb_unicode_funcs_t *
 hb_glib_get_unicode_funcs (void)
 {
-  static const hb_unicode_funcs_t _hb_glib_unicode_funcs = {
-    HB_OBJECT_HEADER_STATIC,
-
-    NULL, /* parent */
-    TRUE, /* immutable */
-    {
-#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_glib_unicode_##name,
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-    }
-  };
-
   return const_cast<hb_unicode_funcs_t *> (&_hb_glib_unicode_funcs);
 }
 

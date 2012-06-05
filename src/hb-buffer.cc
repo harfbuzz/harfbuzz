@@ -37,7 +37,7 @@
 #define HB_DEBUG_BUFFER (HB_DEBUG+0)
 #endif
 
-#define _HB_BUFFER_UNICODE_FUNCS_DEFAULT _hb_unicode_funcs_default
+#define _HB_BUFFER_UNICODE_FUNCS_DEFAULT (const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_default))
 #define _HB_BUFFER_PROPS_DEFAULT { HB_DIRECTION_INVALID, HB_SCRIPT_INVALID, HB_LANGUAGE_INVALID }
 
 /* Here is how the buffer works internally:

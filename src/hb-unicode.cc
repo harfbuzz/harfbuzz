@@ -103,7 +103,7 @@ hb_unicode_decompose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default (void)
 {
-  return _hb_unicode_funcs_default;
+  return const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_default);
 }
 
 hb_unicode_funcs_t *
@@ -130,21 +130,23 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
   return ufuncs;
 }
 
+
+extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
+const hb_unicode_funcs_t _hb_unicode_funcs_nil = {
+  HB_OBJECT_HEADER_STATIC,
+
+  NULL, /* parent */
+  TRUE, /* immutable */
+  {
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_nil,
+    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
+  }
+};
+
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_empty (void)
 {
-  static const hb_unicode_funcs_t _hb_unicode_funcs_nil = {
-    HB_OBJECT_HEADER_STATIC,
-
-    NULL, /* parent */
-    TRUE, /* immutable */
-    {
-#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_nil,
-      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-    }
-  };
-
   return const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil);
 }
 

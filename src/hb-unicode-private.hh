@@ -91,14 +91,14 @@ struct _hb_unicode_funcs_t {
 
 
 #ifdef HAVE_GLIB
-extern "C" hb_unicode_funcs_t * hb_glib_get_unicode_funcs (void);
-#define _hb_unicode_funcs_default hb_glib_get_unicode_funcs ()
+extern HB_INTERNAL const hb_unicode_funcs_t _hb_glib_unicode_funcs;
+#define _hb_unicode_funcs_default _hb_glib_unicode_funcs
 #elif defined(HAVE_ICU)
-extern "C" hb_unicode_funcs_t * hb_icu_get_unicode_funcs (void);
-#define _hb_unicode_funcs_default hb_icu_get_unicode_funcs ()
+extern HB_INTERNAL const hb_unicode_funcs_t _hb_icu_unicode_funcs;
+#define _hb_unicode_funcs_default _hb_icu_unicode_funcs
 #else
 #define HB_UNICODE_FUNCS_NIL 1
-#define _hb_unicode_funcs_default hb_unicode_funcs_get_empty ()
+#define _hb_unicode_funcs_default _hb_unicode_funcs_nil
 #endif
 
 
