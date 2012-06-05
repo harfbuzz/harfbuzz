@@ -59,7 +59,7 @@ struct view_cairo_t {
 		     unsigned int  text_len,
 		     hb_bool_t     utf8_clusters)
   {
-    consume_glyphs (buffer, text, text_len, utf8_clusters);
+    fail (false, "all shapers failed");
   }
   void consume_glyphs (hb_buffer_t  *buffer,
 		       const char   *text,
