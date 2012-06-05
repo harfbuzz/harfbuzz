@@ -27,16 +27,44 @@
 #include "hb-ot-shape-complex-indic-private.hh"
 #include "hb-ot-shape-private.hh"
 
-static const struct indic_options_t
+struct indic_options_t
 {
-  indic_options_t (void)
-  {
-    char *c = getenv ("HB_OT_INDIC_OPTIONS");
-    uniscribe_bug_compatible = c && strstr (c, "uniscribe-bug-compatible");
+  int initialized : 1;
+  int uniscribe_bug_compatible : 1;
+};
+
+union indic_options_union_t {
+  int i;
+  indic_options_t opts;
+};
+ASSERT_STATIC (sizeof (int) == sizeof (indic_options_union_t));
+
+static indic_options_union_t
+indic_options_init (void)
+{
+  indic_options_union_t u;
+  u.i = 0;
+  u.opts.initialized = 1;
+
+  char *c = getenv ("HB_OT_INDIC_OPTIONS");
+  u.opts.uniscribe_bug_compatible = c && strstr (c, "uniscribe-bug-compatible");
+
+  return u;
+}
+
+inline indic_options_t
+indic_options (void)
+{
+  static indic_options_union_t options;
+
+  if (unlikely (!options.i)) {
+    /* This is idempotent and threadsafe. */
+    options = indic_options_init ();
   }
 
-  bool uniscribe_bug_compatible;
-} options;
+  return options.opts;
+}
+
 
 static int
 compare_codepoint (const void *pa, const void *pb)
@@ -390,7 +418,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   }
 
   /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
-  if (!options.uniscribe_bug_compatible)
+  if (!indic_options ().uniscribe_bug_compatible)
   {
     /* Please update the Uniscribe branch when touching this! */
     for (unsigned int i = start + 1; i < end; i++)
@@ -487,7 +515,7 @@ initial_reordering_standalone_cluster (const hb_ot_map_t *map,
   /* We treat NBSP/dotted-circle as if they are consonants, so we should just chain.
    * Only if not in compatibility mode that is... */
 
-  if (options.uniscribe_bug_compatible)
+  if (indic_options ().uniscribe_bug_compatible)
   {
     /* For dotted-circle, this is what Uniscribe does:
      * If dotted-circle is the last glyph, it just does nothing.
@@ -732,7 +760,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
        * Uniscribe doesn't do this.
        * TEST: U+0930,U+094D,U+0915,U+094B,U+094D
        */
-      if (!options.uniscribe_bug_compatible &&
+      if (!indic_options ().uniscribe_bug_compatible &&
 	  unlikely (info[new_reph_pos].indic_category() == OT_H)) {
 	for (unsigned int i = base + 1; i < new_reph_pos; i++)
 	  if (info[i].indic_category() == OT_M) {
@@ -792,7 +820,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
 
   /* Finish off the clusters and go home! */
 
-  if (!options.uniscribe_bug_compatible)
+  if (!indic_options ().uniscribe_bug_compatible)
   {
     /* This is what Uniscribe does.  Ie. add cluster boundaries after Halant,ZWNJ.
      * This means, half forms are submerged into the main consonants cluster.
