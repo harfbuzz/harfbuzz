@@ -37,21 +37,8 @@
 #define HB_DEBUG_BUFFER (HB_DEBUG+0)
 #endif
 
-
-static hb_buffer_t _hb_buffer_nil = {
-  HB_OBJECT_HEADER_STATIC,
-
-  &_hb_unicode_funcs_default,
-  {
-    HB_DIRECTION_INVALID,
-    HB_SCRIPT_INVALID,
-    NULL,
-  },
-
-  TRUE, /* in_error */
-  TRUE, /* have_output */
-  TRUE  /* have_positions */
-};
+#define _HB_BUFFER_UNICODE_FUNCS_DEFAULT _hb_unicode_funcs_default
+#define _HB_BUFFER_PROPS_DEFAULT { HB_DIRECTION_INVALID, HB_SCRIPT_INVALID, HB_LANGUAGE_INVALID }
 
 /* Here is how the buffer works internally:
  *
@@ -154,9 +141,10 @@ hb_buffer_t::reset (void)
     return;
 
   hb_unicode_funcs_destroy (unicode);
-  unicode = _hb_buffer_nil.unicode;
+  unicode = _HB_BUFFER_UNICODE_FUNCS_DEFAULT;
 
-  props = _hb_buffer_nil.props;
+  hb_segment_properties_t default_props = _HB_BUFFER_PROPS_DEFAULT;
+  props = default_props;
 
   in_error = FALSE;
   have_output = FALSE;
@@ -543,7 +531,7 @@ hb_buffer_create ()
   hb_buffer_t *buffer;
 
   if (!(buffer = hb_object_create<hb_buffer_t> ()))
-    return &_hb_buffer_nil;
+    return hb_buffer_get_empty ();
 
   buffer->reset ();
 
@@ -553,7 +541,18 @@ hb_buffer_create ()
 hb_buffer_t *
 hb_buffer_get_empty (void)
 {
-  return &_hb_buffer_nil;
+  static const hb_buffer_t _hb_buffer_nil = {
+    HB_OBJECT_HEADER_STATIC,
+
+    _HB_BUFFER_UNICODE_FUNCS_DEFAULT,
+    _HB_BUFFER_PROPS_DEFAULT,
+
+    TRUE, /* in_error */
+    TRUE, /* have_output */
+    TRUE  /* have_positions */
+  };
+
+  return const_cast<hb_buffer_t *> (&_hb_buffer_nil);
 }
 
 hb_buffer_t *
@@ -601,7 +600,7 @@ hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
     return;
 
   if (!unicode)
-    unicode = _hb_buffer_nil.unicode;
+    unicode = _HB_BUFFER_UNICODE_FUNCS_DEFAULT;
 
   hb_unicode_funcs_reference (unicode);
   hb_unicode_funcs_destroy (buffer->unicode);

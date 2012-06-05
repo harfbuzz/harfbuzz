@@ -99,23 +99,11 @@ hb_unicode_decompose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 }
 
 
-hb_unicode_funcs_t _hb_unicode_funcs_nil = {
-  HB_OBJECT_HEADER_STATIC,
-
-  NULL, /* parent */
-  TRUE, /* immutable */
-  {
-#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_nil,
-    HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_UNICODE_FUNC_IMPLEMENT
-  }
-};
-
 
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default (void)
 {
-  return &_hb_unicode_funcs_default;
+  return _hb_unicode_funcs_default;
 }
 
 hb_unicode_funcs_t *
@@ -124,10 +112,10 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
   hb_unicode_funcs_t *ufuncs;
 
   if (!(ufuncs = hb_object_create<hb_unicode_funcs_t> ()))
-    return &_hb_unicode_funcs_nil;
+    return hb_unicode_funcs_get_empty ();
 
   if (!parent)
-    parent = &_hb_unicode_funcs_nil;
+    parent = hb_unicode_funcs_get_empty ();
 
   hb_unicode_funcs_make_immutable (parent);
   ufuncs->parent = hb_unicode_funcs_reference (parent);
@@ -145,7 +133,19 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_empty (void)
 {
-  return &_hb_unicode_funcs_nil;
+  static const hb_unicode_funcs_t _hb_unicode_funcs_nil = {
+    HB_OBJECT_HEADER_STATIC,
+
+    NULL, /* parent */
+    TRUE, /* immutable */
+    {
+#define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_nil,
+      HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_UNICODE_FUNC_IMPLEMENT
+    }
+  };
+
+  return const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil);
 }
 
 hb_unicode_funcs_t *
@@ -205,7 +205,7 @@ hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs)
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_parent (hb_unicode_funcs_t *ufuncs)
 {
-  return ufuncs->parent ? ufuncs->parent : &_hb_unicode_funcs_nil;
+  return ufuncs->parent ? ufuncs->parent : hb_unicode_funcs_get_empty ();
 }
 
 

@@ -217,7 +217,7 @@ hb_font_get_glyph_from_name_nil (hb_font_t *font,
 }
 
 
-static hb_font_funcs_t _hb_font_funcs_nil = {
+static const hb_font_funcs_t _hb_font_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 
   TRUE, /* immutable */
@@ -236,7 +236,7 @@ hb_font_funcs_create (void)
   hb_font_funcs_t *ffuncs;
 
   if (!(ffuncs = hb_object_create<hb_font_funcs_t> ()))
-    return &_hb_font_funcs_nil;
+    return hb_font_funcs_get_empty ();
 
   ffuncs->get = _hb_font_funcs_nil.get;
 
@@ -246,7 +246,7 @@ hb_font_funcs_create (void)
 hb_font_funcs_t *
 hb_font_funcs_get_empty (void)
 {
-  return &_hb_font_funcs_nil;
+  return const_cast<hb_font_funcs_t *> (&_hb_font_funcs_nil);
 }
 
 hb_font_funcs_t *
@@ -578,7 +578,7 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t *font,
  * hb_face_t
  */
 
-static hb_face_t _hb_face_nil = {
+static const hb_face_t _hb_face_nil = {
   HB_OBJECT_HEADER_STATIC,
 
   TRUE, /* immutable */
@@ -604,7 +604,7 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table,
   if (!reference_table || !(face = hb_object_create<hb_face_t> ())) {
     if (destroy)
       destroy (user_data);
-    return &_hb_face_nil;
+    return hb_face_get_empty ();
   }
 
   face->reference_table = reference_table;
@@ -671,12 +671,12 @@ hb_face_create (hb_blob_t    *blob,
   hb_face_t *face;
 
   if (unlikely (!blob || !hb_blob_get_length (blob)))
-    return &_hb_face_nil;
+    return hb_face_get_empty ();
 
   hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (Sanitizer<OpenTypeFontFile>::sanitize (hb_blob_reference (blob)), index);
 
   if (unlikely (!closure))
-    return &_hb_face_nil;
+    return hb_face_get_empty ();
 
   face = hb_face_create_for_tables (_hb_face_for_data_reference_table,
 				    closure,
@@ -690,7 +690,7 @@ hb_face_create (hb_blob_t    *blob,
 hb_face_t *
 hb_face_get_empty (void)
 {
-  return &_hb_face_nil;
+  return const_cast<hb_face_t *> (&_hb_face_nil);
 }
 
 
@@ -811,40 +811,21 @@ hb_face_get_upem (hb_face_t *face)
  * hb_font_t
  */
 
-static hb_font_t _hb_font_nil = {
-  HB_OBJECT_HEADER_STATIC,
-
-  TRUE, /* immutable */
-
-  NULL, /* parent */
-  &_hb_face_nil,
-
-  0, /* x_scale */
-  0, /* y_scale */
-
-  0, /* x_ppem */
-  0, /* y_ppem */
-
-  &_hb_font_funcs_nil, /* klass */
-  NULL, /* user_data */
-  NULL  /* destroy */
-};
-
 hb_font_t *
 hb_font_create (hb_face_t *face)
 {
   hb_font_t *font;
 
   if (unlikely (!face))
-    face = &_hb_face_nil;
+    face = hb_face_get_empty ();
   if (unlikely (hb_object_is_inert (face)))
-    return &_hb_font_nil;
+    return hb_font_get_empty ();
   if (!(font = hb_object_create<hb_font_t> ()))
-    return &_hb_font_nil;
+    return hb_font_get_empty ();
 
   hb_face_make_immutable (face);
   font->face = hb_face_reference (face);
-  font->klass = &_hb_font_funcs_nil;
+  font->klass = hb_font_funcs_get_empty ();
 
   return font;
 }
@@ -853,7 +834,7 @@ hb_font_t *
 hb_font_create_sub_font (hb_font_t *parent)
 {
   if (unlikely (!parent))
-    return &_hb_font_nil;
+    return hb_font_get_empty ();
 
   hb_font_t *font = hb_font_create (parent->face);
 
@@ -868,15 +849,32 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
 
-  font->klass = &_hb_font_funcs_nil;
-
   return font;
 }
 
 hb_font_t *
 hb_font_get_empty (void)
 {
-  return &_hb_font_nil;
+  static const hb_font_t _hb_font_nil = {
+    HB_OBJECT_HEADER_STATIC,
+
+    TRUE, /* immutable */
+
+    NULL, /* parent */
+    const_cast<hb_face_t *> (&_hb_face_nil),
+
+    0, /* x_scale */
+    0, /* y_scale */
+
+    0, /* x_ppem */
+    0, /* y_ppem */
+
+    const_cast<hb_font_funcs_t *> (&_hb_font_funcs_nil), /* klass */
+    NULL, /* user_data */
+    NULL  /* destroy */
+  };
+
+  return const_cast<hb_font_t *> (&_hb_font_nil);
 }
 
 hb_font_t *
@@ -960,7 +958,7 @@ hb_font_set_funcs (hb_font_t         *font,
     font->destroy (font->user_data);
 
   if (!klass)
-    klass = &_hb_font_funcs_nil;
+    klass = hb_font_funcs_get_empty ();
 
   hb_font_funcs_reference (klass);
   hb_font_funcs_destroy (font->klass);

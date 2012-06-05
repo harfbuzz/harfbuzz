@@ -271,22 +271,22 @@ hb_ft_get_glyph_from_name (hb_font_t *font,
 }
 
 
-static hb_font_funcs_t ft_ffuncs = {
-  HB_OBJECT_HEADER_STATIC,
-
-  TRUE, /* immutable */
-
-  {
-#define HB_FONT_FUNC_IMPLEMENT(name) hb_ft_get_##name,
-    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_FONT_FUNC_IMPLEMENT
-  }
-};
-
 static hb_font_funcs_t *
 _hb_ft_get_font_funcs (void)
 {
-  return &ft_ffuncs;
+  static const hb_font_funcs_t ft_ffuncs = {
+    HB_OBJECT_HEADER_STATIC,
+
+    TRUE, /* immutable */
+
+    {
+#define HB_FONT_FUNC_IMPLEMENT(name) hb_ft_get_##name,
+      HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
+    }
+  };
+
+  return const_cast<hb_font_funcs_t *> (&ft_ffuncs);
 }
 
 
@@ -398,26 +398,21 @@ hb_ft_font_create (FT_Face           ft_face,
 }
 
 
-
-
-static FT_Library ft_library;
-static hb_bool_t ft_library_initialized;
-static struct ft_library_destructor {
-  ~ft_library_destructor (void) {
-    if (ft_library)
-      FT_Done_FreeType (ft_library);
-  }
-} static_ft_library_destructor;
-
 static FT_Library
 _get_ft_library (void)
 {
-  if (unlikely (!ft_library_initialized)) {
-    FT_Init_FreeType (&ft_library);
-    ft_library_initialized = TRUE;
-  }
+  static struct ft_library_singleton
+  {
+    ft_library_singleton (void) {
+      FT_Init_FreeType (&ft_library);
+    }
+    ~ft_library_singleton (void) {
+      FT_Done_FreeType (ft_library);
+    }
+    FT_Library ft_library;
+  } ft_library_singleton;
 
-  return ft_library;
+  return ft_library_singleton.ft_library;
 }
 
 static void

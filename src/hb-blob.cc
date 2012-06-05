@@ -59,19 +59,6 @@ struct _hb_blob_t {
   hb_destroy_func_t destroy;
 };
 
-static hb_blob_t _hb_blob_nil = {
-  HB_OBJECT_HEADER_STATIC,
-
-  TRUE, /* immutable */
-
-  NULL, /* data */
-  0, /* length */
-  HB_MEMORY_MODE_READONLY, /* mode */
-
-  NULL, /* user_data */
-  NULL  /* destroy */
-};
-
 
 static bool _try_writable (hb_blob_t *blob);
 
@@ -97,7 +84,7 @@ hb_blob_create (const char        *data,
   if (!length || !(blob = hb_object_create<hb_blob_t> ())) {
     if (destroy)
       destroy (user_data);
-    return &_hb_blob_nil;
+    return hb_blob_get_empty ();
   }
 
   blob->data = data;
@@ -111,7 +98,7 @@ hb_blob_create (const char        *data,
     blob->mode = HB_MEMORY_MODE_READONLY;
     if (!_try_writable (blob)) {
       hb_blob_destroy (blob);
-      return &_hb_blob_nil;
+      return hb_blob_get_empty ();
     }
   }
 
@@ -126,7 +113,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
   hb_blob_t *blob;
 
   if (!length || offset >= parent->length)
-    return &_hb_blob_nil;
+    return hb_blob_get_empty ();
 
   hb_blob_make_immutable (parent);
 
@@ -142,7 +129,20 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
 hb_blob_t *
 hb_blob_get_empty (void)
 {
-  return &_hb_blob_nil;
+  static const hb_blob_t _hb_blob_nil = {
+    HB_OBJECT_HEADER_STATIC,
+
+    TRUE, /* immutable */
+
+    NULL, /* data */
+    0, /* length */
+    HB_MEMORY_MODE_READONLY, /* mode */
+
+    NULL, /* user_data */
+    NULL  /* destroy */
+  };
+
+  return const_cast<hb_blob_t *> (&_hb_blob_nil);
 }
 
 hb_blob_t *
