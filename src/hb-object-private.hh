@@ -80,6 +80,8 @@ struct hb_user_data_array_t
 
   hb_lockable_set_t<hb_user_data_item_t, hb_static_mutex_t> items;
 
+  inline void init (void) { items.init (); }
+
   HB_INTERNAL bool set (hb_user_data_key_t *key,
 			void *              data,
 			hb_destroy_func_t   destroy,
@@ -111,6 +113,7 @@ struct hb_object_header_t
 
   inline void init (void) {
     ref_count.init (1);
+    user_data.init ();
   }
 
   inline bool is_inert (void) const {

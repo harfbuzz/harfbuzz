@@ -37,6 +37,7 @@
 struct _hb_set_t
 {
   inline void init (void) {
+    header.init ();
     clear ();
   }
   inline void fini (void) {

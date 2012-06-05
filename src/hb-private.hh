@@ -247,7 +247,7 @@ struct hb_prealloced_array_t {
   Type *array;
   Type static_array[StaticSize];
 
-  hb_prealloced_array_t (void) { memset (this, 0, sizeof (*this)); }
+  void init (void) { memset (this, 0, sizeof (*this)); }
 
   inline Type& operator [] (unsigned int i) { return array[i]; }
   inline const Type& operator [] (unsigned int i) const { return array[i]; }
@@ -350,6 +350,8 @@ template <typename item_t, typename lock_t>
 struct hb_lockable_set_t
 {
   hb_array_t <item_t> items;
+
+  inline void init (void) { items.init (); }
 
   template <typename T>
   inline item_t *replace_or_insert (T v, lock_t &l, bool replace)
