@@ -314,47 +314,41 @@ hb_script_get_horizontal_direction (hb_script_t script)
 
 /* hb_user_data_array_t */
 
-
-/* NOTE: Currently we use a global lock for user_data access
- * threadsafety.  If one day we add a mutex to any object, we
- * should switch to using that insted for these too.
- */
-
-static hb_static_mutex_t user_data_lock;
-
 bool
 hb_user_data_array_t::set (hb_user_data_key_t *key,
 			   void *              data,
 			   hb_destroy_func_t   destroy,
-			   hb_bool_t           replace)
+			   hb_bool_t           replace,
+			   hb_mutex_t         &lock)
 {
   if (!key)
     return false;
 
   if (replace) {
     if (!data && !destroy) {
-      items.remove (key, user_data_lock);
+      items.remove (key, lock);
       return true;
     }
   }
   hb_user_data_item_t item = {key, data, destroy};
-  bool ret = !!items.replace_or_insert (item, user_data_lock, replace);
+  bool ret = !!items.replace_or_insert (item, lock, replace);
 
   return ret;
 }
 
 void *
-hb_user_data_array_t::get (hb_user_data_key_t *key)
+hb_user_data_array_t::get (hb_user_data_key_t *key,
+			   hb_mutex_t         &lock)
 {
   hb_user_data_item_t item = {NULL };
 
-  return items.find (key, &item, user_data_lock) ? item.data : NULL;
+  return items.find (key, &item, lock) ? item.data : NULL;
 }
 
 void
-hb_user_data_array_t::finish (void)
+hb_user_data_array_t::finish (hb_mutex_t &lock)
 {
-  items.finish (user_data_lock);
+  items.finish (lock);
 }
 
 

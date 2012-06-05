@@ -239,9 +239,10 @@ typedef int (*hb_compare_func_t) (const void *, const void *);
 /* arrays and maps */
 
 
+#define HB_PREALLOCED_ARRAY_INIT {0}
 template <typename Type, unsigned int StaticSize>
-struct hb_prealloced_array_t {
-
+struct hb_prealloced_array_t
+{
   unsigned int len;
   unsigned int allocated;
   Type *array;
@@ -342,14 +343,12 @@ struct hb_prealloced_array_t {
   }
 };
 
-template <typename Type>
-struct hb_array_t : hb_prealloced_array_t<Type, 2> {};
 
-
+#define HB_LOCKABLE_SET_INIT {HB_PREALLOCED_ARRAY_INIT}
 template <typename item_t, typename lock_t>
 struct hb_lockable_set_t
 {
-  hb_array_t <item_t> items;
+  hb_prealloced_array_t <item_t, 2> items;
 
   inline void init (void) { items.init (); }
 
