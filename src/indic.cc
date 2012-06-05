@@ -41,6 +41,6 @@ main (void)
 
     hb_codepoint_t a, b;
     if (!hb_unicode_decompose (funcs, u, &a, &b))
-      printf ("U+%04X\n", u);
+      printf ("U+%04X %x %x\n", u, category, position);
   }
 }
