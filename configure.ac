@@ -75,6 +75,14 @@ fi
 
 dnl ==========================================================================
 
+have_ot=true
+if $have_ot; then
+	AC_DEFINE(HAVE_OT, 1, [Have native OpenType Layout backend])
+fi
+AM_CONDITIONAL(HAVE_OT, $have_ot)
+
+dnl ===========================================================================
+
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
@@ -156,14 +164,6 @@ if $have_freetype; then
 	CFLAGS="$_save_cflags"
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
-
-dnl ===========================================================================
-
-have_ot=true
-if $have_ot; then
-	AC_DEFINE(HAVE_OT, 1, [Have native OpenType Layout backend])
-fi
-AM_CONDITIONAL(HAVE_OT, $have_ot)
 
 dnl ===========================================================================
 
