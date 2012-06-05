@@ -398,6 +398,8 @@ hb_ft_font_create (FT_Face           ft_face,
 }
 
 
+/* Thread-safe, lock-free, FT_Library */
+
 static FT_Library ft_library;
 
 static
