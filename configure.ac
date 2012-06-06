@@ -137,7 +137,6 @@ PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
 		AC_SUBST(ICU_LIBS)
 	fi
 ])
-have_icu=false
 if $have_icu; then
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
 fi
