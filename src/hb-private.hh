@@ -78,9 +78,9 @@ template <typename Type> static inline Type MAX (const Type &a, const Type &b) {
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
 
-#define _ASSERT_STATIC1(_line, _cond) typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]
-#define _ASSERT_STATIC0(_line, _cond) _ASSERT_STATIC1 (_line, (_cond))
-#define ASSERT_STATIC(_cond) _ASSERT_STATIC0 (__LINE__, (_cond))
+#define _ASSERT_STATIC1(_line, _cond)	typedef int _static_assert_on_line_##_line##_failed[(_cond)?1:-1]
+#define _ASSERT_STATIC0(_line, _cond)	_ASSERT_STATIC1 (_line, (_cond))
+#define ASSERT_STATIC(_cond)		_ASSERT_STATIC0 (__LINE__, (_cond))
 
 #define ASSERT_STATIC_EXPR(_cond)((void) sizeof (char[(_cond) ? 1 : -1]))
 #define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * sizeof (char[(_cond) ? 1 : -1]))
@@ -107,9 +107,9 @@ ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 
 /* We like our types POD */
 
-#define _ASSERT_TYPE_POD1(_line, _type) union _type_##_type##_on_line_##_line##_is_not_POD { _type instance; }
-#define _ASSERT_TYPE_POD0(_line, _type) _ASSERT_TYPE_POD1 (_line, _type)
-#define ASSERT_TYPE_POD(_type) _ASSERT_TYPE_POD0 (__LINE__, _type)
+#define _ASSERT_TYPE_POD1(_line, _type)	union _type_##_type##_on_line_##_line##_is_not_POD { _type instance; }
+#define _ASSERT_TYPE_POD0(_line, _type)	_ASSERT_TYPE_POD1 (_line, _type)
+#define ASSERT_TYPE_POD(_type)		_ASSERT_TYPE_POD0 (__LINE__, _type)
 
 #ifdef __GNUC__
 # define _ASSERT_INSTANCE_POD1(_line, _instance) \
@@ -118,17 +118,17 @@ ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 		_ASSERT_TYPE_POD1 (_line, _type_##_line); \
 	} HB_STMT_END
 #else
-# define _ASSERT_INSTANCE_POD1(_line, _instance) typedef int _assertion_on_line_##_line##_not_tested
+# define _ASSERT_INSTANCE_POD1(_line, _instance)	typedef int _assertion_on_line_##_line##_not_tested
 #endif
-# define _ASSERT_INSTANCE_POD0(_line, _instance) _ASSERT_INSTANCE_POD1 (_line, _instance)
-# define ASSERT_INSTANCE_POD(_instance) _ASSERT_INSTANCE_POD0 (__LINE__, _instance)
+# define _ASSERT_INSTANCE_POD0(_line, _instance)	_ASSERT_INSTANCE_POD1 (_line, _instance)
+# define ASSERT_INSTANCE_POD(_instance)			_ASSERT_INSTANCE_POD0 (__LINE__, _instance)
 
 /* Check _assertion in a method environment */
 #define _ASSERT_POD1(_line) \
-  inline void _static_assertion_on_line_##_line (void) const \
-  { _ASSERT_INSTANCE_POD1 (_line, *this); /* Make sure it's POD. */ }
-# define _ASSERT_POD0(_line) _ASSERT_POD1 (_line)
-# define ASSERT_POD() _ASSERT_POD0 (__LINE__)
+	inline void _static_assertion_on_line_##_line (void) const \
+	{ _ASSERT_INSTANCE_POD1 (_line, *this); /* Make sure it's POD. */ }
+# define _ASSERT_POD0(_line)	_ASSERT_POD1 (_line)
+# define ASSERT_POD()		_ASSERT_POD0 (__LINE__)
 
 
 
