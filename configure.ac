@@ -177,6 +177,23 @@ if $have_uniscribe; then
 fi
 AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 
+dnl ===========================================================================
+
+AC_CACHE_CHECK([for Intel atomic primitives], hb_cv_have_intel_atomic_primitives, [
+	hb_cv_have_intel_atomic_primitives=false
+	AC_TRY_LINK([], [
+		void memory_barrier (void) { __sync_synchronize (); }
+		int atomic_add (int i) { return __sync_fetch_and_add (&i, 1); }
+		int atomic_cmpxchg (int *i, int *j, int *k) { return __sync_bool_compare_and_swap (&i, j, k); }
+		], hb_cv_have_intel_atomic_primitives=true
+	)
+])
+if $hb_cv_have_intel_atomic_primitives; then
+	AC_DEFINE(HAVE_INTEL_ATOMIC_PRIMITIVES, 1, [Have Intel __sync_* atomic primitives])
+fi
+
+dnl ===========================================================================
+
 AC_CONFIG_FILES([
 Makefile
 harfbuzz.pc

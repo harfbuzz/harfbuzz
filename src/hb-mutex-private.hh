@@ -75,7 +75,7 @@ typedef GStaticMutex hb_mutex_impl_t;
 #define hb_mutex_impl_finish(M)	g_static_mutex_free (M)
 
 
-#elif !defined(HB_NO_MT) && defined(__GNUC__)
+#elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES)
 
 #if defined(HAVE_SCHED_H) && defined(HAVE_SCHED_YIELD)
 # include <sched.h>

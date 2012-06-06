@@ -51,7 +51,7 @@ typedef long hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), (V))
 
 #define hb_atomic_ptr_get(P)		(MemoryBarrier (), (void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	(_InterlockedCompareExchangePointer ((void * volatile *) (P), (N), (O)) == (O))
+#define hb_atomic_ptr_cmpexch(P,O,N)	(_InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
 
 
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
@@ -62,10 +62,10 @@ typedef int32_t hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier ((V), &(AI)) - (V))
 
 #define hb_atomic_ptr_get(P)		(OSMemoryBarrier (), (void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((O), (N), (void * volatile *) (P))
+#define hb_atomic_ptr_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
 
 
-#elif !defined(HB_NO_MT) && defined(__GNUC__)
+#elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES)
 
 typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	__sync_fetch_and_add (&(AI), (V))
@@ -84,7 +84,7 @@ typedef int hb_atomic_int_t;
 #endif
 
 #define hb_atomic_ptr_get(P)		g_atomic_pointer_get (P)
-#define hb_atomic_ptr_cmpexch(P,O,N)	g_atomic_pointer_compare_and_exchange ((void * volatile *) (P), (O), (N))
+#define hb_atomic_ptr_cmpexch(P,O,N)	g_atomic_pointer_compare_and_exchange ((void **) (P), (void *) (O), (void *) (N))
 
 
 #elif !defined(HB_NO_MT)
@@ -94,7 +94,7 @@ typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
 
 #define hb_atomic_ptr_get(P)		((void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	(*(P) == (O) ? (*(P) = (N), TRUE) : FALSE)
+#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), TRUE) : FALSE)
 
 
 #else /* HB_NO_MT */
@@ -103,7 +103,7 @@ typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
 
 #define hb_atomic_ptr_get(P)		((void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	*(P)
+#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), TRUE) : FALSE)
 
 #endif
 
