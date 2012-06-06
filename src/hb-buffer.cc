@@ -694,6 +694,9 @@ hb_bool_t
 hb_buffer_set_length (hb_buffer_t  *buffer,
 		      unsigned int  length)
 {
+  if (unlikely (hb_object_is_inert (buffer)))
+    return length == 0;
+
   if (!buffer->ensure (length))
     return FALSE;
 
