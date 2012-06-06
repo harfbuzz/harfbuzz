@@ -80,17 +80,25 @@ inline Type& StructAfter(TObject &X)
  */
 
 /* Check _assertion in a method environment */
-#define _DEFINE_SIZE_ASSERTION(_assertion) \
-  inline void _size_assertion (void) const \
-  { ASSERT_STATIC (_assertion); }
+#define _DEFINE_INSTANCE_ASSERTION1(_line, _assertion) \
+  inline void _instance_assertion_on_line_##_line (void) const \
+  { \
+    ASSERT_STATIC (_assertion); \
+    ASSERT_INSTANCE_POD (*this); /* Make sure it's POD. */ \
+  }
+# define _DEFINE_INSTANCE_ASSERTION0(_line, _assertion) _DEFINE_INSTANCE_ASSERTION1 (_line, _assertion)
+# define DEFINE_INSTANCE_ASSERTION(_assertion) _DEFINE_INSTANCE_ASSERTION0 (__LINE__, _assertion)
+
 /* Check that _code compiles in a method environment */
-#define _DEFINE_COMPILES_ASSERTION(_code) \
-  inline void _compiles_assertion (void) const \
+#define _DEFINE_COMPILES_ASSERTION1(_line, _code) \
+  inline void _compiles_assertion_on_line_##_line (void) const \
   { _code; }
+# define _DEFINE_COMPILES_ASSERTION0(_line, _code) _DEFINE_COMPILES_ASSERTION1 (_line, _code)
+# define DEFINE_COMPILES_ASSERTION(_code) _DEFINE_COMPILES_ASSERTION0 (__LINE__, _code)
 
 
 #define DEFINE_SIZE_STATIC(size) \
-  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size)); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size)); \
   static const unsigned int static_size = (size); \
   static const unsigned int min_size = (size)
 
@@ -98,21 +106,21 @@ inline Type& StructAfter(TObject &X)
 #define VAR 1
 
 #define DEFINE_SIZE_UNION(size, _member) \
-  _DEFINE_SIZE_ASSERTION (this->u._member.static_size == (size)); \
+  DEFINE_INSTANCE_ASSERTION (this->u._member.static_size == (size)); \
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_MIN(size) \
-  _DEFINE_SIZE_ASSERTION (sizeof (*this) >= (size)); \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)); \
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
-  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + sizeof (array[0])); \
-  _DEFINE_COMPILES_ASSERTION ((void) array[0].static_size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (array[0])); \
+  DEFINE_COMPILES_ASSERTION ((void) array[0].static_size) \
   static const unsigned int min_size = (size)
 
 #define DEFINE_SIZE_ARRAY2(size, array1, array2) \
-  _DEFINE_SIZE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
-  _DEFINE_COMPILES_ASSERTION ((void) array1[0].static_size; (void) array2[0].static_size) \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + sizeof (this->array1[0]) + sizeof (this->array2[0])); \
+  DEFINE_COMPILES_ASSERTION ((void) array1[0].static_size; (void) array2[0].static_size) \
   static const unsigned int min_size = (size)
 
 

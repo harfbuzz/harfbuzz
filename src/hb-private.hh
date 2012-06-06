@@ -104,6 +104,30 @@ ASSERT_STATIC (sizeof (hb_position_t) == 4);
 ASSERT_STATIC (sizeof (hb_mask_t) == 4);
 ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 
+
+/* We like our types POD */
+
+#define _ASSERT_TYPE_POD1(_line, _type) union _type_##_type##_on_line_##_line##_is_not_POD { _type instance; }
+#define _ASSERT_TYPE_POD0(_line, _type) _ASSERT_TYPE_POD1 (_line, _type)
+#define ASSERT_TYPE_POD(_type) _ASSERT_TYPE_POD0 (__LINE__, _type)
+
+#ifdef __GNUC__
+# define _ASSERT_INSTANCE_POD1(_line, _instance) union _type_of_instance_on_line_##_line##_is_not_POD { __typeof__(_instance) instance; }
+#else
+# define _ASSERT_INSTANCE_POD1(_line, _instance) typedef int _assertion_on_line_##_line##_not_tested
+#endif
+# define _ASSERT_INSTANCE_POD0(_line, _instance) _ASSERT_INSTANCE_POD1 (_line, _instance)
+# define ASSERT_INSTANCE_POD(_instance) _ASSERT_INSTANCE_POD0 (__LINE__, _instance)
+
+/* Check _assertion in a method environment */
+#define _ASSERT_POD1(_line) \
+  inline void _static_assertion_on_line_##_line (void) const \
+  { _ASSERT_INSTANCE_POD1 (*this); /* Make sure it's POD. */ }
+# define _ASSERT_POD0(_line) _ASSERT_POD1 (_line)
+# define ASSERT_POD() _ASSERT_POD0 (__LINE__)
+
+
+
 /* Misc */
 
 
