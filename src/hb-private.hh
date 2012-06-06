@@ -82,7 +82,7 @@ template <typename Type> static inline Type MAX (const Type &a, const Type &b) {
 #define _ASSERT_STATIC0(_line, _cond) _ASSERT_STATIC1 (_line, (_cond))
 #define ASSERT_STATIC(_cond) _ASSERT_STATIC0 (__LINE__, (_cond))
 
-#define ASSERT_STATIC_EXPR(_cond) ((void) sizeof (char[(_cond) ? 1 : -1]))
+#define ASSERT_STATIC_EXPR(_cond)((void) sizeof (char[(_cond) ? 1 : -1]))
 #define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * sizeof (char[(_cond) ? 1 : -1]))
 
 #define _PASTE1(a,b) a##b
@@ -112,7 +112,11 @@ ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 #define ASSERT_TYPE_POD(_type) _ASSERT_TYPE_POD0 (__LINE__, _type)
 
 #ifdef __GNUC__
-# define _ASSERT_INSTANCE_POD1(_line, _instance) union _type_of_instance_on_line_##_line##_is_not_POD { __typeof__(_instance) instance; }
+# define _ASSERT_INSTANCE_POD1(_line, _instance) \
+	HB_STMT_START { \
+		typedef __typeof__(_instance) _type_##_line; \
+		_ASSERT_TYPE_POD1 (_line, _type_##_line); \
+	} HB_STMT_END
 #else
 # define _ASSERT_INSTANCE_POD1(_line, _instance) typedef int _assertion_on_line_##_line##_not_tested
 #endif
