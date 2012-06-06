@@ -173,6 +173,8 @@ struct hb_object_header_t
 	       this ? ref_count.ref_count : 0);
   }
 
+  private:
+  ASSERT_POD ();
 };
 
 

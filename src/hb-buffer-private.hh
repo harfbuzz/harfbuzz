@@ -44,11 +44,13 @@ typedef struct _hb_segment_properties_t {
     hb_direction_t      direction;
     hb_script_t         script;
     hb_language_t       language;
+    ASSERT_POD ();
 } hb_segment_properties_t;
 
 
 struct _hb_buffer_t {
   hb_object_header_t header;
+  ASSERT_POD ();
 
   /* Information about how the text in the buffer should be treated */
 

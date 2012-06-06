@@ -56,6 +56,7 @@
 
 struct _hb_font_funcs_t {
   hb_object_header_t header;
+  ASSERT_POD ();
 
   hb_bool_t immutable;
 
@@ -87,6 +88,7 @@ struct _hb_font_funcs_t {
 
 struct _hb_face_t {
   hb_object_header_t header;
+  ASSERT_POD ();
 
   hb_bool_t immutable;
 
@@ -107,6 +109,7 @@ struct _hb_face_t {
 
 struct _hb_font_t {
   hb_object_header_t header;
+  ASSERT_POD ();
 
   hb_bool_t immutable;
 

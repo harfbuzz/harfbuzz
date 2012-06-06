@@ -122,7 +122,7 @@ ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 /* Check _assertion in a method environment */
 #define _ASSERT_POD1(_line) \
   inline void _static_assertion_on_line_##_line (void) const \
-  { _ASSERT_INSTANCE_POD1 (*this); /* Make sure it's POD. */ }
+  { _ASSERT_INSTANCE_POD1 (_line, *this); /* Make sure it's POD. */ }
 # define _ASSERT_POD0(_line) _ASSERT_POD1 (_line)
 # define ASSERT_POD() _ASSERT_POD0 (__LINE__)
 

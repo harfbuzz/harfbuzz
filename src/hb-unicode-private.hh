@@ -63,6 +63,7 @@
 
 struct _hb_unicode_funcs_t {
   hb_object_header_t header;
+  ASSERT_POD ();
 
   hb_unicode_funcs_t *parent;
 
