@@ -81,7 +81,7 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
   if (unlikely (variation_selector)) {
     *glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
     if (*glyph)
-      return TRUE;
+      return true;
   }
 #endif
 
@@ -132,7 +132,7 @@ hb_ft_get_glyph_h_origin (hb_font_t *font HB_UNUSED,
 			  void *user_data HB_UNUSED)
 {
   /* We always work in the horizontal coordinates. */
-  return TRUE;
+  return true;
 }
 
 static hb_bool_t
@@ -147,14 +147,14 @@ hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
   int load_flags = FT_LOAD_DEFAULT;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
-    return FALSE;
+    return false;
 
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
   *x = ft_face->glyph->metrics.horiBearingX -   ft_face->glyph->metrics.vertBearingX;
   *y = ft_face->glyph->metrics.horiBearingY - (-ft_face->glyph->metrics.vertBearingY);
 
-  return TRUE;
+  return true;
 }
 
 static hb_position_t
@@ -195,13 +195,13 @@ hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
   int load_flags = FT_LOAD_DEFAULT;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
-    return FALSE;
+    return false;
 
   extents->x_bearing = ft_face->glyph->metrics.horiBearingX;
   extents->y_bearing = ft_face->glyph->metrics.horiBearingY;
   extents->width = ft_face->glyph->metrics.width;
   extents->height = ft_face->glyph->metrics.height;
-  return TRUE;
+  return true;
 }
 
 static hb_bool_t
@@ -217,18 +217,18 @@ hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
   int load_flags = FT_LOAD_DEFAULT;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, load_flags)))
-      return FALSE;
+      return false;
 
   if (unlikely (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE))
-      return FALSE;
+      return false;
 
   if (unlikely (point_index >= (unsigned int) ft_face->glyph->outline.n_points))
-      return FALSE;
+      return false;
 
   *x = ft_face->glyph->outline.points[point_index].x;
   *y = ft_face->glyph->outline.points[point_index].y;
 
-  return TRUE;
+  return true;
 }
 
 static hb_bool_t
@@ -277,7 +277,7 @@ _hb_ft_get_font_funcs (void)
   static const hb_font_funcs_t ft_ffuncs = {
     HB_OBJECT_HEADER_STATIC,
 
-    TRUE, /* immutable */
+    true, /* immutable */
 
     {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_ft_get_##name,

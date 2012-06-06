@@ -48,7 +48,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
 }
 
 
-hb_bool_t debug = FALSE;
+hb_bool_t debug = false;
 
 static gchar *
 shapers_to_string (void)
@@ -62,7 +62,7 @@ shapers_to_string (void)
   }
   g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
 
-  return g_string_free (shapers, FALSE);
+  return g_string_free (shapers, false);
 }
 
 static G_GNUC_NORETURN gboolean
@@ -141,10 +141,10 @@ option_parser_t::parse (int *argc, char ***argv)
   if (!g_option_context_parse (context, argc, argv, &parse_error))
   {
     if (parse_error != NULL) {
-      fail (TRUE, "%s", parse_error->message);
+      fail (true, "%s", parse_error->message);
       //g_error_free (parse_error);
     } else
-      fail (TRUE, "Option parse error");
+      fail (true, "Option parse error");
   }
 }
 
@@ -161,12 +161,12 @@ parse_margin (const char *name G_GNUC_UNUSED,
     case 1: m.r = m.t;
     case 2: m.b = m.t;
     case 3: m.l = m.r;
-    case 4: return TRUE;
+    case 4: return true;
     default:
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "%s argument should be one to four space-separated numbers",
 		   name);
-      return FALSE;
+      return false;
   }
 }
 
@@ -180,7 +180,7 @@ parse_shapers (const char *name G_GNUC_UNUSED,
   shape_options_t *shape_opts = (shape_options_t *) data;
   g_free (shape_opts->shapers);
   shape_opts->shapers = g_strsplit (arg, ",", 0);
-  return TRUE;
+  return true;
 }
 
 static G_GNUC_NORETURN gboolean
@@ -213,10 +213,10 @@ parse_char (char **pp, char c)
   parse_space (pp);
 
   if (**pp != c)
-    return FALSE;
+    return false;
 
   (*pp)++;
-  return TRUE;
+  return true;
 }
 
 static hb_bool_t
@@ -228,10 +228,10 @@ parse_uint (char **pp, unsigned int *pv)
   v = strtol (p, pp, 0);
 
   if (p == *pp)
-    return FALSE;
+    return false;
 
   *pv = v;
-  return TRUE;
+  return true;
 }
 
 
@@ -245,7 +245,7 @@ parse_feature_value_prefix (char **pp, hb_feature_t *feature)
     feature->value = 1;
   }
 
-  return TRUE;
+  return true;
 }
 
 static hb_bool_t
@@ -261,10 +261,10 @@ parse_feature_tag (char **pp, hb_feature_t *feature)
 #undef ISALNUM
 
   if (p == *pp)
-    return FALSE;
+    return false;
 
   feature->tag = hb_tag_from_string (p, *pp - p);
-  return TRUE;
+  return true;
 }
 
 static hb_bool_t
@@ -278,7 +278,7 @@ parse_feature_indices (char **pp, hb_feature_t *feature)
   feature->end = (unsigned int) -1;
 
   if (!parse_char (pp, '['))
-    return TRUE;
+    return true;
 
   has_start = parse_uint (pp, &feature->start);
 
@@ -335,7 +335,7 @@ parse_features (const char *name G_GNUC_UNUSED,
   shape_opts->features = NULL;
 
   if (!*s)
-    return TRUE;
+    return true;
 
   /* count the features first, so we can allocate memory */
   p = s;
@@ -358,7 +358,7 @@ parse_features (const char *name G_GNUC_UNUSED,
       skip_one_feature (&p);
   }
 
-  return TRUE;
+  return true;
 }
 
 
@@ -518,7 +518,7 @@ font_options_t::get_font (void) const
 
     /* This is a hell of a lot of code for just reading a file! */
     if (!font_file)
-      fail (TRUE, "No font file set");
+      fail (true, "No font file set");
 
     if (0 == strcmp (font_file, "-")) {
       /* read it */
@@ -530,18 +530,18 @@ font_options_t::get_font (void) const
       while (!feof (stdin)) {
 	size_t ret = fread (buf, 1, sizeof (buf), stdin);
 	if (ferror (stdin))
-	  fail (FALSE, "Failed reading font from standard input: %s",
+	  fail (false, "Failed reading font from standard input: %s",
 		strerror (errno));
 	g_string_append_len (gs, buf, ret);
       }
       len = gs->len;
-      font_data = g_string_free (gs, FALSE);
+      font_data = g_string_free (gs, false);
       user_data = font_data;
       destroy = (hb_destroy_func_t) g_free;
       mm = HB_MEMORY_MODE_WRITABLE;
     } else {
       GError *error = NULL;
-      GMappedFile *mf = g_mapped_file_new (font_file, FALSE, &error);
+      GMappedFile *mf = g_mapped_file_new (font_file, false, &error);
       if (mf) {
 	font_data = g_mapped_file_get_contents (mf);
 	len = g_mapped_file_get_length (mf);
@@ -552,7 +552,7 @@ font_options_t::get_font (void) const
 	} else
 	  g_mapped_file_unref (mf);
       } else {
-	fail (FALSE, "%s", error->message);
+	fail (false, "%s", error->message);
 	//g_error_free (error);
       }
       if (!len) {
@@ -567,7 +567,7 @@ font_options_t::get_font (void) const
 	  user_data = (void *) font_data;
 	  mm = HB_MEMORY_MODE_WRITABLE;
 	} else {
-	  fail (FALSE, "%s", error->message);
+	  fail (false, "%s", error->message);
 	  //g_error_free (error);
 	}
       }
@@ -626,7 +626,7 @@ text_options_t::get_line (unsigned int *len)
 
   if (!fp) {
     if (!text_file)
-      fail (TRUE, "At least one of text or text-file must be set");
+      fail (true, "At least one of text or text-file must be set");
 
     if (0 != strcmp (text_file, "-"))
       fp = fopen (text_file, "r");
@@ -634,7 +634,7 @@ text_options_t::get_line (unsigned int *len)
       fp = stdin;
 
     if (!fp)
-      fail (FALSE, "Failed opening text file `%s': %s",
+      fail (false, "Failed opening text file `%s': %s",
 	    text_file, strerror (errno));
 
     gs = g_string_new (NULL);
@@ -652,7 +652,7 @@ text_options_t::get_line (unsigned int *len)
       g_string_append_len (gs, buf, bytes);
   }
   if (ferror (fp))
-    fail (FALSE, "Failed reading text: %s",
+    fail (false, "Failed reading text: %s",
 	  strerror (errno));
   *len = gs->len;
   return !*len && feof (fp) ? NULL : gs->str;
@@ -674,7 +674,7 @@ output_options_t::get_file_handle (void)
     fp = stdout;
   }
   if (!fp)
-    fail (FALSE, "Cannot open output file `%s': %s",
+    fail (false, "Cannot open output file `%s': %s",
 	  g_filename_display_name (output_file), strerror (errno));
 
   return fp;
@@ -687,8 +687,8 @@ parse_verbose (const char *name G_GNUC_UNUSED,
 	       GError    **error G_GNUC_UNUSED)
 {
   format_options_t *format_opts = (format_options_t *) data;
-  format_opts->show_text = format_opts->show_unicode = format_opts->show_line_num = TRUE;
-  return TRUE;
+  format_opts->show_text = format_opts->show_unicode = format_opts->show_line_num = true;
+  return true;
 }
 
 void

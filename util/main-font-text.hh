@@ -49,7 +49,7 @@ struct main_font_text_t
     if (argc && !font_opts.font_file) font_opts.font_file = argv[0], argc--, argv++;
     if (argc && !input.text && !input.text_file) input.text = argv[0], argc--, argv++;
     if (argc)
-      fail (TRUE, "Too many arguments on the command line");
+      fail (true, "Too many arguments on the command line");
     if (!font_opts.font_file)
       options.usage ();
     if (!input.text && !input.text_file)

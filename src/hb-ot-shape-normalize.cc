@@ -84,7 +84,7 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
 
   if (!hb_unicode_decompose (buffer->unicode, ab, &a, &b) ||
       (b && !hb_font_get_glyph (font, b, 0, &glyph)))
-    return FALSE;
+    return false;
 
   bool has_a = hb_font_get_glyph (font, a, 0, &glyph);
   if (shortest && has_a) {
@@ -92,23 +92,23 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
     output_glyph (buffer, a);
     if (b)
       output_glyph (buffer, b);
-    return TRUE;
+    return true;
   }
 
   if (decompose (font, buffer, shortest, a)) {
     if (b)
       output_glyph (buffer, b);
-    return TRUE;
+    return true;
   }
 
   if (has_a) {
     output_glyph (buffer, a);
     if (b)
       output_glyph (buffer, b);
-    return TRUE;
+    return true;
   }
 
-  return FALSE;
+  return false;
 }
 
 static void
@@ -149,7 +149,7 @@ decompose_multi_char_cluster (hb_font_t *font, hb_buffer_t *buffer,
     }
 
   while (buffer->idx < end)
-    decompose_current_glyph (font, buffer, FALSE);
+    decompose_current_glyph (font, buffer, false);
 }
 
 static int
@@ -166,7 +166,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
 			hb_ot_shape_normalization_mode_t mode)
 {
   bool recompose = mode != HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED;
-  bool has_multichar_clusters = FALSE;
+  bool has_multichar_clusters = false;
   unsigned int count;
 
   /* We do a fairly straightforward yet custom normalization process in three
@@ -191,7 +191,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
       decompose_single_char_cluster (font, buffer, recompose);
     else {
       decompose_multi_char_cluster (font, buffer, end);
-      has_multichar_clusters = TRUE;
+      has_multichar_clusters = true;
     }
   }
   buffer->swap_buffers ();

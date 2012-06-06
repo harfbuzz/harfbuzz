@@ -50,7 +50,7 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
   cairo_surface_t *surface;
 
   surface = cairo_ps_surface_create_for_stream (write_func, closure, width, height);
-  cairo_ps_surface_set_eps (surface, TRUE);
+  cairo_ps_surface_set_eps (surface, true);
 
   return surface;
 }
@@ -121,7 +121,7 @@ finalize_ansi (finalize_closure_t *closure)
 						      closure->write_func,
 						      closure->closure);
   if (status != CAIRO_STATUS_SUCCESS)
-    fail (FALSE, "Failed to write output: %s",
+    fail (false, "Failed to write output: %s",
 	  cairo_status_to_string (status));
 }
 
@@ -150,7 +150,7 @@ _cairo_ansi_surface_create_for_stream (cairo_write_func_t write_func,
   }
   cairo_status_t status = cairo_surface_status (surface);
   if (status != CAIRO_STATUS_SUCCESS)
-    fail (FALSE, "Failed to create cairo surface: %s",
+    fail (false, "Failed to create cairo surface: %s",
 	  cairo_status_to_string (status));
 
   finalize_closure_t *ansi_closure = g_new0 (finalize_closure_t, 1);
@@ -179,7 +179,7 @@ finalize_png (finalize_closure_t *closure)
 					      closure->write_func,
 					      closure->closure);
   if (status != CAIRO_STATUS_SUCCESS)
-    fail (FALSE, "Failed to write output: %s",
+    fail (false, "Failed to write output: %s",
 	  cairo_status_to_string (status));
 }
 
@@ -208,7 +208,7 @@ _cairo_png_surface_create_for_stream (cairo_write_func_t write_func,
   }
   cairo_status_t status = cairo_surface_status (surface);
   if (status != CAIRO_STATUS_SUCCESS)
-    fail (FALSE, "Failed to create cairo surface: %s",
+    fail (false, "Failed to create cairo surface: %s",
 	  cairo_status_to_string (status));
 
   finalize_closure_t *png_closure = g_new0 (finalize_closure_t, 1);
@@ -240,7 +240,7 @@ stdio_write_func (void                *closure,
     size -= ret;
     data += ret;
     if (size && ferror (fp))
-      fail (FALSE, "Failed to write output: %s", strerror (errno));
+      fail (false, "Failed to write output: %s", strerror (errno));
   }
 
   return CAIRO_STATUS_SUCCESS;
@@ -317,7 +317,7 @@ helper_cairo_create_context (double w, double h,
   else if (constructor2)
     surface = constructor2 (stdio_write_func, f, w, h, content);
   else
-    fail (FALSE, "Unknown output format `%s'", extension);
+    fail (false, "Unknown output format `%s'", extension);
 
   cairo_t *cr = cairo_create (surface);
   content = cairo_surface_get_content (surface);
@@ -356,7 +356,7 @@ helper_cairo_destroy_context (cairo_t *cr)
 
   cairo_status_t status = cairo_status (cr);
   if (status != CAIRO_STATUS_SUCCESS)
-    fail (FALSE, "Failed: %s",
+    fail (false, "Failed: %s",
 	  cairo_status_to_string (status));
   cairo_destroy (cr);
 }

@@ -192,19 +192,19 @@ hb_shape_full (hb_font_t          *font,
     const hb_shaper_pair_t *shapers = get_shapers ();
     for (unsigned int i = 0; i < ARRAY_LENGTH (all_shapers); i++)
       if (likely (shapers[i].func (font, buffer, features, num_features)))
-        return TRUE;
+        return true;
   } else {
     while (*shaper_list) {
       for (unsigned int i = 0; i < ARRAY_LENGTH (all_shapers); i++)
 	if (0 == strcmp (*shaper_list, all_shapers[i].name)) {
 	  if (likely (all_shapers[i].func (font, buffer, features, num_features)))
-	    return TRUE;
+	    return true;
 	  break;
 	}
       shaper_list++;
     }
   }
-  return FALSE;
+  return false;
 }
 
 void

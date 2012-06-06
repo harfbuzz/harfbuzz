@@ -75,7 +75,7 @@ struct output_buffer_t
   void finish (const font_options_t *font_opts)
   {
     hb_font_destroy (font);
-    g_string_free (gs, TRUE);
+    g_string_free (gs, true);
     gs = NULL;
     font = NULL;
   }

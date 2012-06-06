@@ -94,7 +94,7 @@ typedef volatile int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
 
 #define hb_atomic_ptr_get(P)		((void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), TRUE) : FALSE)
+#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), true) : false)
 
 
 #else /* HB_NO_MT */
@@ -103,7 +103,7 @@ typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
 
 #define hb_atomic_ptr_get(P)		((void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), TRUE) : FALSE)
+#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
 #endif
 

@@ -327,7 +327,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 						   &c->buffer->pos[i].y_offset);
     }
 
-    c->applied_position_complex = TRUE;
+    c->applied_position_complex = true;
   }
 
   hb_ot_layout_position_finish (c->buffer);
@@ -490,7 +490,7 @@ _hb_ot_shape (hb_font_t          *font,
   hb_ot_shape_plan_internal (&plan, font->face, &buffer->props, features, num_features);
   hb_ot_shape_execute (&plan, font, buffer, features, num_features);
 
-  return TRUE;
+  return true;
 }
 
 

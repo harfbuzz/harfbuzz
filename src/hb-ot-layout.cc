@@ -232,19 +232,19 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   const GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
   if (g.find_script_index (script_tag, script_index))
-    return TRUE;
+    return true;
 
   /* try finding 'DFLT' */
   if (g.find_script_index (HB_OT_TAG_DEFAULT_SCRIPT, script_index))
-    return FALSE;
+    return false;
 
   /* try with 'dflt'; MS site has had typos and many fonts use it now :(.
    * including many versions of DejaVu Sans Mono! */
   if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index))
-    return FALSE;
+    return false;
 
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
-  return FALSE;
+  return false;
 }
 
 hb_bool_t
@@ -262,7 +262,7 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
     if (g.find_script_index (*script_tags, script_index)) {
       if (chosen_script)
         *chosen_script = *script_tags;
-      return TRUE;
+      return true;
     }
     script_tags++;
   }
@@ -271,14 +271,14 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
   if (g.find_script_index (HB_OT_TAG_DEFAULT_SCRIPT, script_index)) {
     if (chosen_script)
       *chosen_script = HB_OT_TAG_DEFAULT_SCRIPT;
-    return FALSE;
+    return false;
   }
 
   /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
   if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index)) {
     if (chosen_script)
       *chosen_script = HB_OT_TAG_DEFAULT_LANGUAGE;
-    return FALSE;
+    return false;
   }
 
   /* try with 'latn'; some old fonts put their features there even though
@@ -287,13 +287,13 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
   if (g.find_script_index (HB_OT_TAG_LATIN_SCRIPT, script_index)) {
     if (chosen_script)
       *chosen_script = HB_OT_TAG_LATIN_SCRIPT;
-    return FALSE;
+    return false;
   }
 
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
   if (chosen_script)
     *chosen_script = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
-  return FALSE;
+  return false;
 }
 
 unsigned int
@@ -333,14 +333,14 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
   const Script &s = get_gsubgpos_table (face, table_tag).get_script (script_index);
 
   if (s.find_lang_sys_index (language_tag, language_index))
-    return TRUE;
+    return true;
 
   /* try with 'dflt'; MS site has had typos and many fonts use it now :( */
   if (s.find_lang_sys_index (HB_OT_TAG_DEFAULT_LANGUAGE, language_index))
-    return FALSE;
+    return false;
 
   if (language_index) *language_index = HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX;
-  return FALSE;
+  return false;
 }
 
 hb_bool_t
@@ -415,12 +415,12 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
 
     if (feature_tag == g.get_feature_tag (f_index)) {
       if (feature_index) *feature_index = f_index;
-      return TRUE;
+      return true;
     }
   }
 
   if (feature_index) *feature_index = HB_OT_LAYOUT_NO_FEATURE_INDEX;
-  return FALSE;
+  return false;
 }
 
 unsigned int

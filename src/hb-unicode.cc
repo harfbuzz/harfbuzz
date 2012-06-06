@@ -85,7 +85,7 @@ hb_unicode_compose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 			hb_codepoint_t     *ab        HB_UNUSED,
 			void               *user_data HB_UNUSED)
 {
-  return FALSE;
+  return false;
 }
 
 static hb_bool_t
@@ -95,7 +95,7 @@ hb_unicode_decompose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 			  hb_codepoint_t     *b         HB_UNUSED,
 			  void               *user_data HB_UNUSED)
 {
-  return FALSE;
+  return false;
 }
 
 
@@ -136,7 +136,7 @@ const hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 
   NULL, /* parent */
-  TRUE, /* immutable */
+  true, /* immutable */
   {
 #define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_nil,
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
@@ -195,7 +195,7 @@ hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
   if (hb_object_is_inert (ufuncs))
     return;
 
-  ufuncs->immutable = TRUE;
+  ufuncs->immutable = true;
 }
 
 hb_bool_t

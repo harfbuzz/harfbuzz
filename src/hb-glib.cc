@@ -251,7 +251,7 @@ hb_glib_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
    * sees it and makes sure it's compilable. */
 
   if (!a || !b)
-    return FALSE;
+    return false;
 
   gchar utf8[12];
   gchar *normalized;
@@ -263,13 +263,13 @@ hb_glib_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   normalized = g_utf8_normalize (utf8, len, G_NORMALIZE_NFC);
   len = g_utf8_strlen (normalized, -1);
   if (unlikely (!len))
-    return FALSE;
+    return false;
 
   if (len == 1) {
     *ab = g_utf8_get_char (normalized);
-    ret = TRUE;
+    ret = true;
   } else {
-    ret = FALSE;
+    ret = false;
   }
 
   g_free (normalized);
@@ -299,7 +299,7 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   normalized = g_utf8_normalize (utf8, len, G_NORMALIZE_NFD);
   len = g_utf8_strlen (normalized, -1);
   if (unlikely (!len))
-    return FALSE;
+    return false;
 
   if (len == 1) {
     *a = g_utf8_get_char (normalized);
@@ -318,7 +318,7 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
       *b = 0;
     }
     g_free (recomposed);
-    ret = TRUE;
+    ret = true;
   } else {
     /* If decomposed to more than two characters, take the last one,
      * and recompose the rest to get the first component. */
@@ -329,7 +329,7 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     /* We expect that recomposed has exactly one character now. */
     *a = g_utf8_get_char (recomposed);
     g_free (recomposed);
-    ret = TRUE;
+    ret = true;
   }
 
   g_free (normalized);
@@ -342,7 +342,7 @@ const hb_unicode_funcs_t _hb_glib_unicode_funcs = {
   HB_OBJECT_HEADER_STATIC,
 
   NULL, /* parent */
-  TRUE, /* immutable */
+  true, /* immutable */
   {
 #define HB_UNICODE_FUNC_IMPLEMENT(name) hb_glib_unicode_##name,
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS

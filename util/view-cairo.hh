@@ -42,7 +42,7 @@ struct view_cairo_t {
 
   void init (const font_options_t *font_opts)
   {
-    lines = g_array_new (FALSE, FALSE, sizeof (helper_cairo_line_t));
+    lines = g_array_new (false, false, sizeof (helper_cairo_line_t));
     scale = double (view_options.font_size) / hb_face_get_upem (hb_font_get_face (font_opts->get_font ()));
   }
   void new_line (void)

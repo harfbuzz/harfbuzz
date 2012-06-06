@@ -66,7 +66,7 @@ bool
 hb_buffer_t::enlarge (unsigned int size)
 {
   if (unlikely (in_error))
-    return FALSE;
+    return false;
 
   unsigned int new_allocated = allocated;
   hb_glyph_position_t *new_pos = NULL;
@@ -88,7 +88,7 @@ hb_buffer_t::enlarge (unsigned int size)
 
 done:
   if (unlikely (!new_pos || !new_info))
-    in_error = TRUE;
+    in_error = true;
 
   if (likely (new_pos))
     pos = new_pos;
@@ -107,7 +107,7 @@ bool
 hb_buffer_t::make_room_for (unsigned int num_in,
 			    unsigned int num_out)
 {
-  if (unlikely (!ensure (out_len + num_out))) return FALSE;
+  if (unlikely (!ensure (out_len + num_out))) return false;
 
   if (out_info == info &&
       out_len + num_out > idx + num_in)
@@ -118,14 +118,14 @@ hb_buffer_t::make_room_for (unsigned int num_in,
     memcpy (out_info, info, out_len * sizeof (out_info[0]));
   }
 
-  return TRUE;
+  return true;
 }
 
 void *
 hb_buffer_t::get_scratch_buffer (unsigned int *size)
 {
-  have_output = FALSE;
-  have_positions = FALSE;
+  have_output = false;
+  have_positions = false;
   out_len = 0;
   *size = allocated * sizeof (pos[0]);
   return pos;
@@ -146,9 +146,9 @@ hb_buffer_t::reset (void)
   hb_segment_properties_t default_props = _HB_BUFFER_PROPS_DEFAULT;
   props = default_props;
 
-  in_error = FALSE;
-  have_output = FALSE;
-  have_positions = FALSE;
+  in_error = false;
+  have_output = false;
+  have_positions = false;
 
   idx = 0;
   len = 0;
@@ -186,8 +186,8 @@ hb_buffer_t::clear_output (void)
   if (unlikely (hb_object_is_inert (this)))
     return;
 
-  have_output = TRUE;
-  have_positions = FALSE;
+  have_output = true;
+  have_positions = false;
 
   out_len = 0;
   out_info = info;
@@ -199,8 +199,8 @@ hb_buffer_t::clear_positions (void)
   if (unlikely (hb_object_is_inert (this)))
     return;
 
-  have_output = FALSE;
-  have_positions = TRUE;
+  have_output = false;
+  have_positions = true;
 
   memset (pos, 0, sizeof (pos[0]) * len);
 }
@@ -211,7 +211,7 @@ hb_buffer_t::swap_buffers (void)
   if (unlikely (in_error)) return;
 
   assert (have_output);
-  have_output = FALSE;
+  have_output = false;
 
   if (out_info != info)
   {
@@ -547,9 +547,9 @@ hb_buffer_get_empty (void)
     _HB_BUFFER_UNICODE_FUNCS_DEFAULT,
     _HB_BUFFER_PROPS_DEFAULT,
 
-    TRUE, /* in_error */
-    TRUE, /* have_output */
-    TRUE  /* have_positions */
+    true, /* in_error */
+    true, /* have_output */
+    true  /* have_positions */
   };
 
   return const_cast<hb_buffer_t *> (&_hb_buffer_nil);
@@ -698,7 +698,7 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
     return length == 0;
 
   if (!buffer->ensure (length))
-    return FALSE;
+    return false;
 
   /* Wipe the new space */
   if (length > buffer->len) {
@@ -708,7 +708,7 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
   }
 
   buffer->len = length;
-  return TRUE;
+  return true;
 }
 
 unsigned int

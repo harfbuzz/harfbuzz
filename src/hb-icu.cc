@@ -172,7 +172,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			void               *user_data HB_UNUSED)
 {
   if (!a || !b)
-    return FALSE;
+    return false;
 
   UChar utf16[4], normalized[5];
   int len;
@@ -180,21 +180,21 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   UErrorCode icu_err;
 
   len = 0;
-  err = FALSE;
+  err = false;
   U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), a, err);
-  if (err) return FALSE;
+  if (err) return false;
   U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), b, err);
-  if (err) return FALSE;
+  if (err) return false;
 
   icu_err = U_ZERO_ERROR;
   len = unorm_normalize (utf16, len, UNORM_NFC, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
   if (U_FAILURE (icu_err))
-    return FALSE;
+    return false;
   if (u_countChar32 (normalized, len) == 1) {
     U16_GET_UNSAFE (normalized, 0, *ab);
-    ret = TRUE;
+    ret = true;
   } else {
-    ret = FALSE;
+    ret = false;
   }
 
   return ret;
@@ -217,14 +217,14 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   /* Watchout for the dragons.  Err, watchout for macros changing len. */
 
   len = 0;
-  err = FALSE;
+  err = false;
   U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), ab, err);
-  if (err) return FALSE;
+  if (err) return false;
 
   icu_err = U_ZERO_ERROR;
   len = unorm_normalize (utf16, len, UNORM_NFD, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
   if (U_FAILURE (icu_err))
-    return FALSE;
+    return false;
 
   len = u_countChar32 (normalized, len);
 
@@ -244,14 +244,14 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     icu_err = U_ZERO_ERROR;
     unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
     if (U_FAILURE (icu_err))
-      return FALSE;
+      return false;
     hb_codepoint_t c;
     U16_GET_UNSAFE (recomposed, 0, c);
     if (c != *a && c != ab) {
       *a = c;
       *b = 0;
     }
-    ret = TRUE;
+    ret = true;
   } else {
     /* If decomposed to more than two characters, take the last one,
      * and recompose the rest to get the first component. */
@@ -260,10 +260,10 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     icu_err = U_ZERO_ERROR;
     len = unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
     if (U_FAILURE (icu_err))
-      return FALSE;
+      return false;
     /* We expect that recomposed has exactly one character now. */
     U16_GET_UNSAFE (recomposed, 0, *a);
-    ret = TRUE;
+    ret = true;
   }
 
   return ret;
@@ -275,7 +275,7 @@ const hb_unicode_funcs_t _hb_icu_unicode_funcs = {
   HB_OBJECT_HEADER_STATIC,
 
   NULL, /* parent */
-  TRUE, /* immutable */
+  true, /* immutable */
   {
 #define HB_UNICODE_FUNC_IMPLEMENT(name) hb_icu_unicode_##name,
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS

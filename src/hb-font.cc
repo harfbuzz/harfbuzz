@@ -55,7 +55,7 @@ hb_font_get_glyph_nil (hb_font_t *font,
     return hb_font_get_glyph (font->parent, unicode, variation_selector, glyph);
 
   *glyph = 0;
-  return FALSE;
+  return false;
 }
 
 static hb_position_t
@@ -98,7 +98,7 @@ hb_font_get_glyph_h_origin_nil (hb_font_t *font,
   }
 
   *x = *y = 0;
-  return FALSE;
+  return false;
 }
 
 static hb_bool_t
@@ -117,7 +117,7 @@ hb_font_get_glyph_v_origin_nil (hb_font_t *font,
   }
 
   *x = *y = 0;
-  return FALSE;
+  return false;
 }
 
 static hb_position_t
@@ -165,7 +165,7 @@ hb_font_get_glyph_extents_nil (hb_font_t *font,
   }
 
   memset (extents, 0, sizeof (*extents));
-  return FALSE;
+  return false;
 }
 
 static hb_bool_t
@@ -185,7 +185,7 @@ hb_font_get_glyph_contour_point_nil (hb_font_t *font,
   }
 
   *x = *y = 0;
-  return FALSE;
+  return false;
 }
 
 static hb_bool_t
@@ -199,7 +199,7 @@ hb_font_get_glyph_name_nil (hb_font_t *font,
     return hb_font_get_glyph_name (font->parent, glyph, name, size);
 
   snprintf (name, size, "gid%u", glyph);
-  return FALSE;
+  return false;
 }
 
 static hb_bool_t
@@ -213,14 +213,14 @@ hb_font_get_glyph_from_name_nil (hb_font_t *font,
     return hb_font_get_glyph_from_name (font->parent, name, len, glyph);
 
   *glyph = 0;
-  return FALSE;
+  return false;
 }
 
 
 static const hb_font_funcs_t _hb_font_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 
-  TRUE, /* immutable */
+  true, /* immutable */
 
   {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_nil,
@@ -292,7 +292,7 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
   if (hb_object_is_inert (ffuncs))
     return;
 
-  ffuncs->immutable = TRUE;
+  ffuncs->immutable = true;
 }
 
 hb_bool_t
@@ -581,7 +581,7 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t *font,
 static const hb_face_t _hb_face_nil = {
   HB_OBJECT_HEADER_STATIC,
 
-  TRUE, /* immutable */
+  true, /* immutable */
 
   NULL, /* reference_table */
   NULL, /* user_data */
@@ -858,7 +858,7 @@ hb_font_get_empty (void)
   static const hb_font_t _hb_font_nil = {
     HB_OBJECT_HEADER_STATIC,
 
-    TRUE, /* immutable */
+    true, /* immutable */
 
     NULL, /* parent */
     const_cast<hb_face_t *> (&_hb_face_nil),

@@ -251,7 +251,7 @@ struct text_options_t : option_group_t
   }
   ~text_options_t (void) {
     if (gs)
-      g_string_free (gs, TRUE);
+      g_string_free (gs, true);
     if (fp)
       fclose (fp);
   }

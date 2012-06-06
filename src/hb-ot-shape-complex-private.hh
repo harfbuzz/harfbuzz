@@ -253,7 +253,7 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
  *
  * Called during shape_execute().
  *
- * Shapers should return TRUE if it prefers decomposed (NFD) input rather than precomposed (NFC).
+ * Shapers should return true if it prefers decomposed (NFD) input rather than precomposed (NFC).
  */
 
 typedef hb_ot_shape_normalization_mode_t hb_ot_shape_complex_normalization_preference_func_t (void);

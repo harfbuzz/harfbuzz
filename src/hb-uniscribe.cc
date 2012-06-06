@@ -77,18 +77,18 @@ populate_log_font (LOGFONTW  *lf,
 
   if (unlikely (!len)) {
     DEBUG_MSG (UNISCRIBE, NULL, "Didn't find English name table entry");
-    return FALSE;
+    return false;
   }
   if (unlikely (len >= LF_FACESIZE)) {
     DEBUG_MSG (UNISCRIBE, NULL, "Font name too long");
-    return FALSE;
+    return false;
   }
 
   for (unsigned int i = 0; i < len; i++)
     lf->lfFaceName[i] = hb_be_uint16 (lf->lfFaceName[i]);
   lf->lfFaceName[len] = 0;
 
-  return TRUE;
+  return true;
 }
 
 
@@ -133,7 +133,7 @@ _hb_uniscribe_face_get_data (hb_face_t *face)
 
   if (unlikely (!hb_face_set_user_data (face, &hb_uniscribe_data_key, data,
 					(hb_destroy_func_t) _hb_uniscribe_face_data_destroy,
-					FALSE)))
+					false)))
   {
     _hb_uniscribe_face_data_destroy (data);
     data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
@@ -190,7 +190,7 @@ _hb_uniscribe_font_get_data (hb_font_t *font)
 
   if (unlikely (!hb_font_set_user_data (font, &hb_uniscribe_data_key, data,
 					(hb_destroy_func_t) _hb_uniscribe_font_data_destroy,
-					FALSE)))
+					false)))
   {
     _hb_uniscribe_font_data_destroy (data);
     data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
@@ -233,7 +233,7 @@ _hb_uniscribe_shape (hb_font_t          *font,
 #define FAIL(...) \
   HB_STMT_START { \
     DEBUG_MSG (UNISCRIBE, NULL, __VA_ARGS__); \
-    return FALSE; \
+    return false; \
   } HB_STMT_END;
 
   hb_uniscribe_face_data_t *face_data = _hb_uniscribe_face_get_data (font->face);
@@ -245,7 +245,7 @@ _hb_uniscribe_shape (hb_font_t          *font,
     FAIL ("Couldn't get font font");
 
   if (unlikely (!buffer->len))
-    return TRUE;
+    return true;
 
   HRESULT hr;
 
@@ -305,7 +305,7 @@ retry:
   int item_count;
 
   /* MinGW32 doesn't define fMergeNeutralItems, so we bruteforce */
-  //bidi_control.fMergeNeutralItems = TRUE;
+  //bidi_control.fMergeNeutralItems = true;
   *(uint32_t*)&bidi_control |= 1<<24;
 
   bidi_state.uBidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
@@ -459,7 +459,7 @@ retry:
   }
 
   /* Wow, done! */
-  return TRUE;
+  return true;
 }
 
 

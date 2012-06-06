@@ -57,5 +57,5 @@ _hb_fallback_shape (hb_font_t          *font,
   if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
     hb_buffer_reverse (buffer);
 
-  return TRUE;
+  return true;
 }
