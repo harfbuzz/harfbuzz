@@ -137,7 +137,8 @@ HBSOURCES += hb-uniscribe.cc hb-uniscribe-private.hh
 HBHEADERS += hb-uniscribe.h
 endif
 
-CXXLINK = $(LINK)
+# Use a C linker, not C++; Don't link to libstdc++
+libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 nodist_libharfbuzz_la_SOURCES = $(nodist_HBSOURCES)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
