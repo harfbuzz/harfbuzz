@@ -137,15 +137,4 @@ struct hb_mutex_t
 };
 
 
-struct hb_static_mutex_t : hb_mutex_t
-{
-  hb_static_mutex_t (void)  { this->init (); }
-  ~hb_static_mutex_t (void) { this->finish (); }
-
-  private:
-  NO_COPY (hb_static_mutex_t);
-};
-
-
-
 #endif /* HB_MUTEX_PRIVATE_HH */
