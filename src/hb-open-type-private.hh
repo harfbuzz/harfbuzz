@@ -130,6 +130,7 @@ inline Type& StructAfter(TObject &X)
  */
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
+/* TODO This really should be a extern HB_INTERNAL and defined somewhere... */
 static const void *_NullPool[64 / sizeof (void *)];
 
 /* Generic nul-content Null objects. */
