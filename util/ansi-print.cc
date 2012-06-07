@@ -212,34 +212,30 @@ struct biimage_t
 const char *
 block_best (const biimage_t &bi, unsigned int *score, bool *inverse)
 {
-  unsigned int row_sum[bi.height];
-  unsigned int col_sum[bi.width];
-  unsigned int row_sum_i[bi.height];
-  unsigned int col_sum_i[bi.width];
+  assert (bi.width  <= CELL_W);
+  assert (bi.height <= CELL_H);
 
-  for (unsigned int i = 0; i < bi.height; i++)
-    row_sum[i] = row_sum_i[i] = 0;
-  for (unsigned int i = 0; i < bi.width;  i++)
-    col_sum[i] = col_sum_i[i] = 0;
-
-  unsigned int total = 0;
-  unsigned int total_i = 0;
+  unsigned int row_sum[CELL_H] = {0};
+  unsigned int col_sum[CELL_W] = {0};
+  unsigned int row_sum_i[CELL_H] = {0};
+  unsigned int col_sum_i[CELL_W] = {0};
   unsigned int quad[2][2] = {{0}};
   unsigned int quad_i[2][2] = {{0}};
+  unsigned int total = 0;
+  unsigned int total_i = 0;
   for (unsigned int y = 0; y < bi.height; y++)
     for (unsigned int x = 0; x < bi.width; x++) {
       unsigned int c = bi (x, y);
+      unsigned int c_i = 255 - c;
       row_sum[y] += c;
+      row_sum_i[y] += c_i;
       col_sum[x] += c;
+      col_sum_i[x] += c_i;
       quad[2 * y / bi.height][2 * x / bi.width] += c;
-      quad_i[2 * y / bi.height][2 * x / bi.width] += 255 - c;
+      quad_i[2 * y / bi.height][2 * x / bi.width] += c_i;
       total += c;
-      total_i += 255 - c;
+      total_i += c_i;
     }
-  for (unsigned int i = 0; i < bi.height; i++)
-    row_sum_i[i] = 255 * bi.width - row_sum[i];
-  for (unsigned int i = 0; i < bi.width; i++)
-    col_sum_i[i] = 255 * bi.height - col_sum[i];
 
   /* Make the sums cummulative */
   for (unsigned int i = 1; i < bi.height; i++) {
