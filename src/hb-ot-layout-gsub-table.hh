@@ -213,7 +213,7 @@ struct Sequence
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
     unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE ? HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH : 0;
-    c->replace_glyphs_be16 (1, substitute.len, (const uint16_t *) substitute.array, klass);
+    c->replace_glyphs_be16 (1, substitute.len, (const char *) substitute.array, klass);
 
     return TRACE_RETURN (true);
   }
@@ -502,7 +502,7 @@ struct Ligature
 
     if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
     {
-      c->replace_glyphs_be16 (count, 1, (const uint16_t *) &ligGlyph, klass);
+      c->replace_glyphs_be16 (count, 1, (const char *) &ligGlyph, klass);
     }
     else
     {

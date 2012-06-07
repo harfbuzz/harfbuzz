@@ -112,7 +112,7 @@ struct _hb_buffer_t {
   HB_INTERNAL void clear_positions (void);
   HB_INTERNAL void replace_glyphs_be16 (unsigned int num_in,
 					unsigned int num_out,
-					const uint16_t *glyph_data_be);
+					const char *glyph_data_be);
   HB_INTERNAL void replace_glyphs (unsigned int num_in,
 				   unsigned int num_out,
 				   const hb_codepoint_t *glyph_data);

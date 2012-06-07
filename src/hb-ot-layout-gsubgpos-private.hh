@@ -230,7 +230,7 @@ struct hb_apply_context_t
   }
   inline void replace_glyphs_be16 (unsigned int num_in,
 				   unsigned int num_out,
-				   const uint16_t *glyph_data_be,
+				   const char *glyph_data_be,
 				   unsigned int klass = 0) const
   {
     buffer->cur().props_cache() = klass; /* XXX if has gdef? */
