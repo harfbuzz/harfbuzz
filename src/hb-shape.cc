@@ -87,7 +87,7 @@ retry:
   {
     char *env = getenv ("HB_SHAPER_LIST");
     if (!env || !*env) {
-      hb_atomic_ptr_cmpexch (&static_shapers, NULL, (const hb_shaper_pair_t *) all_shapers);
+      (void) hb_atomic_ptr_cmpexch (&static_shapers, NULL, (const hb_shaper_pair_t *) all_shapers);
       return (const hb_shaper_pair_t *) all_shapers;
     }
 
