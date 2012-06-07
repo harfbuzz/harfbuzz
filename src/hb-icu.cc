@@ -255,13 +255,15 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   } else {
     /* If decomposed to more than two characters, take the last one,
      * and recompose the rest to get the first component. */
-    U16_PREV_UNSAFE (normalized, len, *b);
-    UChar recomposed[20];
+    U16_PREV_UNSAFE (normalized, len, *b); /* Changes len in-place. */
+    UChar recomposed[18 * 2];
     icu_err = U_ZERO_ERROR;
     len = unorm_normalize (normalized, len, UNORM_NFC, 0, recomposed, ARRAY_LENGTH (recomposed), &icu_err);
     if (U_FAILURE (icu_err))
       return false;
     /* We expect that recomposed has exactly one character now. */
+    if (unlikely (u_countChar32 (recomposed, len) != 1))
+      return false;
     U16_GET_UNSAFE (recomposed, 0, *a);
     ret = true;
   }

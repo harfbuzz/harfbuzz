@@ -68,7 +68,7 @@ test_blob_empty (void)
   g_assert_cmpint (len, ==, 0);
 
   data_writable = hb_blob_get_data_writable (blob, NULL);
-  g_assert (data == NULL);
+  g_assert (data_writable == NULL);
 
   data_writable = hb_blob_get_data_writable (blob, &len);
   g_assert (data_writable == NULL);

@@ -152,7 +152,7 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
   }
 
   len = hb_buffer_get_length (b);
-  glyphs = hb_buffer_get_glyph_infos (b, NULL); /* test NULL */
+  hb_buffer_get_glyph_infos (b, NULL); /* test NULL */
   glyphs = hb_buffer_get_glyph_infos (b, &len2);
   g_assert_cmpint (len, ==, len2);
   g_assert_cmpint (len, ==, 5);
@@ -264,7 +264,7 @@ test_buffer_positions (fixture_t *fixture, gconstpointer user_data)
 
   /* Without shaping, positions should all be zero */
   len = hb_buffer_get_length (b);
-  positions = hb_buffer_get_glyph_positions (b, NULL); /* test NULL */
+  hb_buffer_get_glyph_positions (b, NULL); /* test NULL */
   positions = hb_buffer_get_glyph_positions (b, &len2);
   g_assert_cmpint (len, ==, len2);
   for (i = 0; i < len; i++) {
