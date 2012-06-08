@@ -464,7 +464,17 @@ struct hb_lockable_set_t
 static inline uint16_t hb_be_uint16 (const uint16_t v)
 {
   const uint8_t *V = (const uint8_t *) &v;
-  return (uint16_t) (V[0] << 8) + V[1];
+  return (V[0] << 8) | V[1];
+}
+
+static inline uint16_t hb_uint16_swap (const uint16_t v)
+{
+  return (v >> 8) | (v << 8);
+}
+
+static inline uint32_t hb_uint32_swap (const uint32_t v)
+{
+  return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16);
 }
 
 /* Note, of the following macros, uint16_get is the one called many many times.

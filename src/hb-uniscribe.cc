@@ -331,7 +331,7 @@ retry:
     /* TODO setup ranges */
   }
 
-  OPENTYPE_TAG language_tag = hb_ot_tag_from_language (buffer->props.language);
+  OPENTYPE_TAG language_tag = hb_uint32_swap (hb_ot_tag_from_language (buffer->props.language));
   hb_tag_t buffer_script_tags[2];
   hb_ot_tags_from_script (buffer->props.script,
 			  &buffer_script_tags[0],
@@ -347,10 +347,10 @@ retry:
       OPENTYPE_TAG script_tag;
       /* We ignore what script tag Uniscribe chose, except to differentiate
        * between old/new tags.  Not sure if this picks DFLT up correctly... */
-      if (script_tags[i] == buffer_script_tags[1])
-        script_tag = buffer_script_tags[1];
+      if (script_tags[i] == hb_uint32_swap (buffer_script_tags[1]))
+        script_tag = hb_uint32_swap (buffer_script_tags[1]);
       else
-        script_tag = buffer_script_tags[0];
+        script_tag = hb_uint32_swap (buffer_script_tags[0]);
 
       hr = ScriptShapeOpenType (font_data->hdc,
 				&font_data->script_cache,
