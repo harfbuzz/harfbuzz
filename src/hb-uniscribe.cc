@@ -295,7 +295,7 @@ retry:
   ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
 
 
-#define MAX_ITEMS 10
+#define MAX_ITEMS 256
 
   SCRIPT_ITEM items[MAX_ITEMS + 1];
   SCRIPT_CONTROL bidi_control = {0};
