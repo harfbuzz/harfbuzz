@@ -383,6 +383,7 @@ hb_hide_zerowidth (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++)
+    /* TODO Do this if no ligature was formed? */
     if (unlikely (_hb_glyph_info_is_zero_width (&c->buffer->info[i]))) {
       c->buffer->info[i].codepoint = space;
       c->buffer->pos[i].x_advance = 0;
