@@ -342,78 +342,78 @@ retry:
   bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
   for (unsigned int j = 0; j < item_count; j++)
   {
-      unsigned int i = backward ? item_count - 1 - j : j;
-      unsigned int chars_offset = items[i].iCharPos;
-      unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
+    unsigned int i = backward ? item_count - 1 - j : j;
+    unsigned int chars_offset = items[i].iCharPos;
+    unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
 
-      OPENTYPE_TAG script_tag;
-      /* We ignore what script tag Uniscribe chose, except to differentiate
-       * between old/new tags.  Not sure if this picks DFLT up correctly...
-       * This also screws things up as the item.analysis also has an opaque
-       * script member. */
-      if (script_tags[i] == hb_uint32_swap (buffer_script_tags[1]))
-        script_tag = hb_uint32_swap (buffer_script_tags[1]);
-      else
-        script_tag = hb_uint32_swap (buffer_script_tags[0]);
+    OPENTYPE_TAG script_tag;
+    /* We ignore what script tag Uniscribe chose, except to differentiate
+     * between old/new tags.  Not sure if this picks DFLT up correctly...
+     * This also screws things up as the item.analysis also has an opaque
+     * script member. */
+    if (script_tags[i] == hb_uint32_swap (buffer_script_tags[1]))
+      script_tag = hb_uint32_swap (buffer_script_tags[1]);
+    else
+      script_tag = hb_uint32_swap (buffer_script_tags[0]);
 
-      hr = ScriptShapeOpenType (font_data->hdc,
-				&font_data->script_cache,
-				&items[i].a,
-				script_tag,
-				language_tag,
-				range_char_counts,
-				range_properties,
-				range_count,
-				wchars + chars_offset,
-				item_chars_len,
-				glyphs_size - glyphs_offset,
-				/* out */
-				log_clusters + chars_offset,
-				char_props + chars_offset,
-				glyphs + glyphs_offset,
-				glyph_props + glyphs_offset,
-				(int *) &glyphs_len);
+    hr = ScriptShapeOpenType (font_data->hdc,
+			      &font_data->script_cache,
+			      &items[i].a,
+			      script_tag,
+			      language_tag,
+			      range_char_counts,
+			      range_properties,
+			      range_count,
+			      wchars + chars_offset,
+			      item_chars_len,
+			      glyphs_size - glyphs_offset,
+			      /* out */
+			      log_clusters + chars_offset,
+			      char_props + chars_offset,
+			      glyphs + glyphs_offset,
+			      glyph_props + glyphs_offset,
+			      (int *) &glyphs_len);
 
-      for (unsigned int j = chars_offset; j < chars_offset + item_chars_len; j++)
-        log_clusters[j] += glyphs_offset;
+    for (unsigned int j = chars_offset; j < chars_offset + item_chars_len; j++)
+      log_clusters[j] += glyphs_offset;
 
-      if (unlikely (items[i].a.fNoGlyphIndex))
-	FAIL ("ScriptShapeOpenType() set fNoGlyphIndex");
-      if (unlikely (hr == E_OUTOFMEMORY))
-      {
-        buffer->ensure (buffer->allocated * 2);
-	if (buffer->in_error)
-	  FAIL ("Buffer resize failed");
-	goto retry;
-      }
-      if (unlikely (hr == USP_E_SCRIPT_NOT_IN_FONT))
-	FAIL ("ScriptShapeOpenType() failed: Font doesn't support script");
-      if (unlikely (FAILED (hr)))
-	FAIL ("ScriptShapeOpenType() failed: 0x%08xL", hr);
+    if (unlikely (items[i].a.fNoGlyphIndex))
+      FAIL ("ScriptShapeOpenType() set fNoGlyphIndex");
+    if (unlikely (hr == E_OUTOFMEMORY))
+    {
+      buffer->ensure (buffer->allocated * 2);
+      if (buffer->in_error)
+	FAIL ("Buffer resize failed");
+      goto retry;
+    }
+    if (unlikely (hr == USP_E_SCRIPT_NOT_IN_FONT))
+      FAIL ("ScriptShapeOpenType() failed: Font doesn't support script");
+    if (unlikely (FAILED (hr)))
+      FAIL ("ScriptShapeOpenType() failed: 0x%08xL", hr);
 
-      hr = ScriptPlaceOpenType (font_data->hdc,
-				&font_data->script_cache,
-				&items[i].a,
-				script_tag,
-				language_tag,
-				range_char_counts,
-				range_properties,
-				range_count,
-				wchars + chars_offset,
-				log_clusters + chars_offset,
-				char_props + chars_offset,
-				item_chars_len,
-				glyphs + glyphs_offset,
-				glyph_props + glyphs_offset,
-				glyphs_len,
-				/* out */
-				advances + glyphs_offset,
-				offsets + glyphs_offset,
-				NULL);
-      if (unlikely (FAILED (hr)))
-	FAIL ("ScriptPlaceOpenType() failed: 0x%08xL", hr);
+    hr = ScriptPlaceOpenType (font_data->hdc,
+			      &font_data->script_cache,
+			      &items[i].a,
+			      script_tag,
+			      language_tag,
+			      range_char_counts,
+			      range_properties,
+			      range_count,
+			      wchars + chars_offset,
+			      log_clusters + chars_offset,
+			      char_props + chars_offset,
+			      item_chars_len,
+			      glyphs + glyphs_offset,
+			      glyph_props + glyphs_offset,
+			      glyphs_len,
+			      /* out */
+			      advances + glyphs_offset,
+			      offsets + glyphs_offset,
+			      NULL);
+    if (unlikely (FAILED (hr)))
+      FAIL ("ScriptPlaceOpenType() failed: 0x%08xL", hr);
 
-      glyphs_offset += glyphs_len;
+    glyphs_offset += glyphs_len;
   }
   glyphs_len = glyphs_offset;
 
