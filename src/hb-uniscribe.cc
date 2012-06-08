@@ -429,11 +429,11 @@ retry:
   }
   if (!backward) {
     for (unsigned int i = 1; i < glyphs_len; i++)
-      if (!glyph_props[i].sva.fClusterStart)
+      if (vis_clusters[i] == -1)
 	vis_clusters[i] = vis_clusters[i - 1];
   } else {
     for (int i = glyphs_len - 2; i >= 0; i--)
-      if (!glyph_props[i].sva.fClusterStart)
+      if (vis_clusters[i] == -1)
 	vis_clusters[i] = vis_clusters[i + 1];
   }
 
