@@ -309,7 +309,7 @@ retry:
   *(uint32_t*)&bidi_control |= 1<<24;
 
   bidi_state.uBidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
-//  bidi_state.fOverrideDirection = 1;
+  bidi_state.fOverrideDirection = 1;
 
   hr = ScriptItemizeOpenType (wchars,
 			      chars_len,
