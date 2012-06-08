@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -332,6 +332,10 @@ retry:
   }
 
   OPENTYPE_TAG language_tag = hb_ot_tag_from_language (buffer->props.language);
+  hb_tag_t buffer_script_tags[2];
+  hb_ot_tags_from_script (buffer->props.script,
+			  &buffer_script_tags[0],
+			  &buffer_script_tags[1]);
 
   unsigned int glyphs_offset = 0;
   unsigned int glyphs_len;
@@ -339,7 +343,14 @@ retry:
   {
       unsigned int chars_offset = items[i].iCharPos;
       unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
-      OPENTYPE_TAG script_tag = script_tags[i]; /* XXX buffer->props.script */
+
+      OPENTYPE_TAG script_tag;
+      /* We ignore what script tag Uniscribe chose, except to differentiate
+       * between old/new tags.  Not sure if this picks DFLT up correctly... */
+      if (script_tags[i] == buffer_script_tags[1])
+        script_tag = buffer_script_tags[1];
+      else
+        script_tag = buffer_script_tags[0];
 
       hr = ScriptShapeOpenType (font_data->hdc,
 				&font_data->script_cache,
