@@ -520,7 +520,7 @@ struct Ligature
 	while (c->should_mark_skip_current_glyph ())
 	{
 	  set_lig_props (c->buffer->cur(),  lig_id, i);
-	  c->replace_glyph (c->buffer->cur().codepoint);
+	  c->buffer->next_glyph ();
 	}
 
 	/* Skip the base glyph */
