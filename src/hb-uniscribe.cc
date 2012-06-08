@@ -339,14 +339,18 @@ retry:
 
   unsigned int glyphs_offset = 0;
   unsigned int glyphs_len;
-  for (unsigned int i = 0; i < item_count; i++)
+  bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
+  for (unsigned int j = 0; j < item_count; j++)
   {
+      unsigned int i = backward ? item_count - 1 - j : j;
       unsigned int chars_offset = items[i].iCharPos;
       unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
 
       OPENTYPE_TAG script_tag;
       /* We ignore what script tag Uniscribe chose, except to differentiate
-       * between old/new tags.  Not sure if this picks DFLT up correctly... */
+       * between old/new tags.  Not sure if this picks DFLT up correctly...
+       * This also screws things up as the item.analysis also has an opaque
+       * script member. */
       if (script_tags[i] == hb_uint32_swap (buffer_script_tags[1]))
         script_tag = hb_uint32_swap (buffer_script_tags[1]);
       else
@@ -423,7 +427,7 @@ retry:
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
     *p = MIN (*p, buffer->info[i].cluster);
   }
-  if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
+  if (!backward) {
     for (unsigned int i = 1; i < glyphs_len; i++)
       if (!glyph_props[i].sva.fClusterStart)
 	vis_clusters[i] = vis_clusters[i - 1];
