@@ -60,11 +60,9 @@ DWORD GetFontData(
 
 static bool
 populate_log_font (LOGFONTW  *lf,
-		   HDC        hdc,
 		   hb_font_t *font)
 {
   memset (lf, 0, sizeof (*lf));
-  int dpi = GetDeviceCaps (hdc, LOGPIXELSY);
   lf->lfHeight = -font->y_scale;
 
   hb_blob_t *blob = Sanitizer<name>::sanitize (hb_face_reference_table (font->face, HB_TAG ('n','a','m','e')));
@@ -178,7 +176,7 @@ _hb_uniscribe_font_get_data (hb_font_t *font)
 
   data->hdc = GetDC (NULL);
 
-  if (unlikely (!populate_log_font (&data->log_font, data->hdc, font)))
+  if (unlikely (!populate_log_font (&data->log_font, font)))
     DEBUG_MSG (UNISCRIBE, font, "Font populate_log_font() failed");
   else {
     data->hfont = CreateFontIndirectW (&data->log_font);
