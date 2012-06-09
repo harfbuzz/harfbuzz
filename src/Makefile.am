@@ -190,8 +190,9 @@ indic_LDADD = libharfbuzz.la $(HBLIBS)
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-header-guards.sh \
-	check-internal-symbols.sh \
 	check-includes.sh \
+	check-internal-symbols.sh \
+	check-static-inits.sh \
 	$(NULL)
 
 if HAVE_ICU
