@@ -94,7 +94,7 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face)
   return _get_gdef (face).has_glyph_classes ();
 }
 
-static unsigned int
+static inline unsigned int
 _hb_ot_layout_get_glyph_property (hb_face_t       *face,
 				  hb_glyph_info_t *info)
 {
