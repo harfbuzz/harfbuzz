@@ -464,6 +464,10 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
   while (start && out_info[start - 1].cluster == out_info[start].cluster)
     start--;
 
+  /* Extend end */
+  while (end < out_len && out_info[end - 1].cluster == out_info[end].cluster)
+    end++;
+
   for (unsigned int i = start; i < end; i++)
     out_info[i].cluster = cluster;
 }
