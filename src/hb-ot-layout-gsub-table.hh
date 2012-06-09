@@ -968,6 +968,17 @@ struct SubstLookupSubTable
   inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
   {
     TRACE_APPLY ();
+    if (likely (lookup_type < Context) ||
+	(hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
+	 hb_in_range<unsigned int> (u.header.sub_format, 1, 2)))
+    {
+      /* Fast path, for most that have coverage in the same place.
+       * Note that ReverseChainSingle can also go through this but
+       * it's not worth the effort. */
+      hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
+      unsigned int index = (this+u.header.coverage) (glyph_id);
+      if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+    }
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.apply (c));
     case Multiple:		return TRACE_RETURN (u.multiple.apply (c));
@@ -998,7 +1009,10 @@ struct SubstLookupSubTable
 
   private:
   union {
-  USHORT			sub_format;
+  struct {
+    USHORT			sub_format;
+    OffsetTo<Coverage>		coverage;
+  } header;
   SingleSubst			single;
   MultipleSubst			multiple;
   AlternateSubst		alternate;
@@ -1009,7 +1023,7 @@ struct SubstLookupSubTable
   ReverseChainSingleSubst	reverseChainContextSingle;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, sub_format);
+  DEFINE_SIZE_UNION (2, header.sub_format);
 };
 
 
