@@ -144,7 +144,7 @@ struct hb_apply_context_t
     {
       return unlikely (num_items && idx + num_items >= end);
     }
-    inline bool reject (void)
+    inline void reject (void)
     {
       num_items++;
     }
@@ -193,7 +193,7 @@ struct hb_apply_context_t
     {
       return unlikely (idx < num_items);
     }
-    inline bool reject (void)
+    inline void reject (void)
     {
       num_items++;
     }
