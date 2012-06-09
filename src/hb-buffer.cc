@@ -452,10 +452,18 @@ void
 hb_buffer_t::merge_out_clusters (unsigned int start,
 				 unsigned int end)
 {
+  if (unlikely (start >= end))
+    return;
+
   unsigned int cluster = out_info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
     cluster = MIN (cluster, out_info[i].cluster);
+
+  /* Extend start */
+  while (start && out_info[start - 1].cluster == out_info[start].cluster)
+    start--;
+
   for (unsigned int i = start; i < end; i++)
     out_info[i].cluster = cluster;
 }
