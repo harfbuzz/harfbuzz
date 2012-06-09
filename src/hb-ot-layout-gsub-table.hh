@@ -214,8 +214,10 @@ struct Sequence
 
     unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE ? HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH : 0;
     unsigned int count = substitute.len;
-    for (unsigned int i = 0; i < count; i++)
+    for (unsigned int i = 0; i < count; i++) {
+      set_lig_props (c->buffer->cur(), 0, i);
       c->output_glyph (substitute.array[i], klass);
+    }
     c->buffer->skip_glyph ();
 
     return TRACE_RETURN (true);
