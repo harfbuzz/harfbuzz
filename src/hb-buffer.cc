@@ -468,6 +468,11 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
   while (end < out_len && out_info[end - 1].cluster == out_info[end].cluster)
     end++;
 
+  /* If we hit the end of out-buffer, continue in buffer. */
+  if (end == out_len)
+    for (unsigned i = idx; i < len && info[i].cluster == out_info[end - 1].cluster; i++)
+      info[i].cluster = cluster;
+
   for (unsigned int i = start; i < end; i++)
     out_info[i].cluster = cluster;
 }

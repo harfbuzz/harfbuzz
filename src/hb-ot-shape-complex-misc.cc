@@ -176,15 +176,6 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
 	     sizeof (buffer->out_info[0]) * (end - start - 2));
     buffer->out_info[start] = t;
 
-    /* XXX Make this easier! */
-    /* Make cluster */
-    for (; buffer->idx < count;)
-      if (buffer->cur().cluster == buffer->prev().cluster)
-        buffer->next_glyph ();
-      else
-        break;
-    end = buffer->out_len;
-
     buffer->merge_out_clusters (start, end);
   }
   buffer->swap_buffers ();
