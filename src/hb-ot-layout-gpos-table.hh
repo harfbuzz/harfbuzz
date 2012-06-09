@@ -1371,7 +1371,8 @@ struct PosLookup : Lookup
     if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 
-    for (unsigned int i = 0; i < get_subtable_count (); i++)
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++)
       if (get_subtable (i).apply (c, lookup_type))
 	return true;
 

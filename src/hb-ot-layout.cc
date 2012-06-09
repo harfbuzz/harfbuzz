@@ -147,7 +147,7 @@ _hb_ot_layout_check_glyph_property (hb_face_t    *face,
   unsigned int property;
 
   property = _hb_ot_layout_get_glyph_property (face, ginfo);
-  (void) (property_out && (*property_out = property));
+  *property_out = property;
 
   return _hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
 }
