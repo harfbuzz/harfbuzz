@@ -88,6 +88,9 @@ void hb_ot_map_t::apply (unsigned int table_index,
     for (; i < pause->num_lookups; i++)
       apply_lookup_func (face_or_font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 
+    if (table_index == 0)
+      buffer->clear_output ();
+
     pause->callback.func (this, face_or_font, buffer, pause->callback.user_data);
   }
 
