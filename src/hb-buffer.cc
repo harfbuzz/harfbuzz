@@ -424,23 +424,31 @@ void
 hb_buffer_t::merge_clusters (unsigned int start,
 			     unsigned int end)
 {
-  unsigned int cluster = this->info[start].cluster;
+  if (unlikely (start >= end))
+    return;
+
+  unsigned int cluster = info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
-    cluster = MIN (cluster, this->info[i].cluster);
+    cluster = MIN (cluster, info[i].cluster);
+
+  /* Extend end */
+  while (end < len && info[end - 1].cluster == info[end].cluster)
+    end++;
+
   for (unsigned int i = start; i < end; i++)
-    this->info[i].cluster = cluster;
+    info[i].cluster = cluster;
 }
 void
 hb_buffer_t::merge_out_clusters (unsigned int start,
 				 unsigned int end)
 {
-  unsigned int cluster = this->out_info[start].cluster;
+  unsigned int cluster = out_info[start].cluster;
 
   for (unsigned int i = start + 1; i < end; i++)
-    cluster = MIN (cluster, this->out_info[i].cluster);
+    cluster = MIN (cluster, out_info[i].cluster);
   for (unsigned int i = start; i < end; i++)
-    this->out_info[i].cluster = cluster;
+    out_info[i].cluster = cluster;
 }
 
 void
