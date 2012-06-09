@@ -49,7 +49,6 @@ struct shape_consumer_t
   {
     output.new_line ();
 
-    for (unsigned int i = 0; i < 10000; i++) {
     shaper.populate_buffer (buffer, text, text_len);
     output.consume_text (buffer, text, text_len, shaper.utf8_clusters);
 
@@ -58,7 +57,6 @@ struct shape_consumer_t
       hb_buffer_set_length (buffer, 0);
       output.shape_failed (buffer, text, text_len, shaper.utf8_clusters);
       return;
-    }
     }
 
     output.consume_glyphs (buffer, text, text_len, shaper.utf8_clusters);
