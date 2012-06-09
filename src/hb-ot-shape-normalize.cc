@@ -259,12 +259,15 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
 	/* And the font has glyph for the composite. */
 	hb_font_get_glyph (font, composed, 0, &glyph))
     {
-      /* Composes. Modify starter and carry on. */
-      buffer->out_info[starter].codepoint = composed;
-      /* XXX update cluster */
+      /* Composes. */
+      buffer->next_glyph (); /* Copy to out-buffer. */
+      if (unlikely (buffer->in_error))
+        return;
+      buffer->merge_out_clusters (starter, buffer->out_len);
+      buffer->out_len--; /* Remove the second composble. */
+      buffer->out_info[starter].codepoint = composed; /* Modify starter and carry on. */
       _hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
 
-      buffer->skip_glyph ();
       continue;
     }
 
