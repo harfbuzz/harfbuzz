@@ -1000,7 +1000,7 @@ struct SubstLookupSubTable
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
     TRACE_SANITIZE ();
     if (!u.header.sub_format.sanitize (c) ||
-	(can_use_fast_path (lookup_type)) && !u.header.coverage.sanitize (c, this))
+	(can_use_fast_path (lookup_type) && !u.header.coverage.sanitize (c, this)))
       return TRACE_RETURN (false);
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.sanitize (c));
