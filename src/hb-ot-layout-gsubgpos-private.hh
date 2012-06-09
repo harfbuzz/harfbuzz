@@ -221,7 +221,12 @@ struct hb_apply_context_t
   }
 
 
-
+  inline void output_glyph (hb_codepoint_t glyph_index,
+			    unsigned int klass = 0) const
+  {
+    buffer->cur().props_cache() = klass; /*XXX if has gdef? */
+    buffer->output_glyph (glyph_index);
+  }
   inline void replace_glyph (hb_codepoint_t glyph_index,
 			     unsigned int klass = 0) const
   {

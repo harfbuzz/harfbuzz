@@ -213,7 +213,10 @@ struct Sequence
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
     unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE ? HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH : 0;
-    c->replace_glyphs_be16 (1, substitute.len, (const char *) substitute.array, klass);
+    unsigned int count = substitute.len;
+    for (unsigned int i = 0; i < count; i++)
+      c->output_glyph (substitute.array[i], klass);
+    c->buffer->skip_glyph ();
 
     return TRACE_RETURN (true);
   }
