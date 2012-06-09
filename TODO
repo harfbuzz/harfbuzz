@@ -15,12 +15,7 @@ General fixes:
   * vkna,hkna etc for kana, etc
 
 - Move non-native direction and normalization handling to the generic non-OT
-  layer, such that uniscribe and other backends can use.
-
-- Uniscribe backend needs to enforce one direction only, otherwise cluster
-  values can confuse the user.
-
-- GSUB ligation should call merge_clusters().  Also other places.
+  layer, such that other backends can use (Uniscribe doesn't need this).
 
 - Convert NBSP into space glyph.
 
