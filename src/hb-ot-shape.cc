@@ -188,7 +188,7 @@ hb_form_clusters (hb_buffer_t *buffer)
 	(FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
 	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
-      buffer->info[i].cluster = buffer->info[i - 1].cluster; /* XXX do the min() here */
+      buffer->merge_clusters (i - 1, i + 1);
 }
 
 static void
@@ -404,6 +404,8 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
 
   HB_BUFFER_ALLOCATE_VAR (c->buffer, unicode_props0);
   HB_BUFFER_ALLOCATE_VAR (c->buffer, unicode_props1);
+
+  c->buffer->clear_output ();
 
   hb_set_unicode_props (c->buffer);
 
