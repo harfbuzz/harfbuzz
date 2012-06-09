@@ -970,7 +970,7 @@ struct SubstLookupSubTable
     /* Fast path, for those that have coverage in the same place.
      * Note that ReverseChainSingle can also go through this but
      * it's not worth the effort. */
-    return likely (lookup_type < Context) ||
+    return likely (lookup_type && lookup_type < Context) ||
 	   (hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
 	    hb_in_range<unsigned int> (u.header.sub_format, 1, 2));
   }

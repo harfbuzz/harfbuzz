@@ -1311,7 +1311,7 @@ struct PosLookupSubTable
   inline bool can_use_fast_path (unsigned int lookup_type) const
   {
     /* Fast path, for those that have coverage in the same place. */
-    return likely (lookup_type < Context) ||
+    return likely (lookup_type && lookup_type < Context) ||
 	   (hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
 	    hb_in_range<unsigned int> (u.header.sub_format, 1, 2));
   }
