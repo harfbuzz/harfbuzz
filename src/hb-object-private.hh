@@ -165,7 +165,7 @@ struct hb_object_header_t
 
   inline void trace (const char *function) const {
     if (unlikely (!this)) return;
-    /* XXX We cannot use DEBUG_MSG_FUNC here since that one currecntly only
+    /* TODO We cannot use DEBUG_MSG_FUNC here since that one currently only
      * prints the class name and throws away the template info. */
     DEBUG_MSG (OBJECT, (void *) this,
 	       "%s refcount=%d",
