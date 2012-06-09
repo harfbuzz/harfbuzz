@@ -436,6 +436,15 @@ hb_buffer_t::merge_clusters (unsigned int start,
   while (end < len && info[end - 1].cluster == info[end].cluster)
     end++;
 
+  /* Extend start */
+  while (idx < start && info[start - 1].cluster == info[start].cluster)
+    start--;
+
+  /* If we hit the start of buffer, continue in out-buffer. */
+  if (idx == start)
+    for (unsigned i = out_len; i && out_info[i - 1].cluster == info[start].cluster; i--)
+      out_info[i - 1].cluster = cluster;
+
   for (unsigned int i = start; i < end; i++)
     info[i].cluster = cluster;
 }
