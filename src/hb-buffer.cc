@@ -231,29 +231,6 @@ hb_buffer_t::swap_buffers (void)
 }
 
 void
-hb_buffer_t::replace_glyphs_be16 (unsigned int num_in,
-				  unsigned int num_out,
-				  const char *glyph_data_be)
-{
-  if (!make_room_for (num_in, num_out)) return;
-
-  merge_clusters (idx, idx + num_in);
-
-  hb_glyph_info_t orig_info = info[idx];
-  hb_glyph_info_t *pinfo = &out_info[out_len];
-  const unsigned char *data = (const unsigned char *) glyph_data_be;
-  for (unsigned int i = 0; i < num_out; i++)
-  {
-    *pinfo = orig_info;
-    pinfo->codepoint = (data[2*i] << 8) | data[2*i+1];
-    pinfo++;
-  }
-
-  idx  += num_in;
-  out_len += num_out;
-}
-
-void
 hb_buffer_t::replace_glyphs (unsigned int num_in,
 			     unsigned int num_out,
 			     const uint32_t *glyph_data)
