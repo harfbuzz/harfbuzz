@@ -225,7 +225,8 @@ struct hb_apply_context_t
 
   inline bool should_mark_skip_current_glyph (void) const
   {
-    return _hb_ot_layout_skip_mark (face, &buffer->cur(), lookup_props, NULL);
+    unsigned int property;
+    return _hb_ot_layout_skip_mark (face, &buffer->cur(), lookup_props, &property);
   }
 
 
