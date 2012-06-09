@@ -965,16 +965,21 @@ struct SubstLookupSubTable
     }
   }
 
+  inline bool can_use_fast_path (unsigned int lookup_type) const
+  {
+    /* Fast path, for those that have coverage in the same place.
+     * Note that ReverseChainSingle can also go through this but
+     * it's not worth the effort. */
+    return likely (lookup_type < Context) ||
+	   (hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
+	    hb_in_range<unsigned int> (u.header.sub_format, 1, 2));
+  }
+
   inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
   {
     TRACE_APPLY ();
-    if (likely (lookup_type < Context) ||
-	(hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
-	 hb_in_range<unsigned int> (u.header.sub_format, 1, 2)))
+    if (can_use_fast_path (lookup_type))
     {
-      /* Fast path, for most that have coverage in the same place.
-       * Note that ReverseChainSingle can also go through this but
-       * it's not worth the effort. */
       hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
       unsigned int index = (this+u.header.coverage) (glyph_id);
       if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
@@ -994,6 +999,9 @@ struct SubstLookupSubTable
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
     TRACE_SANITIZE ();
+    if (!u.header.sub_format.sanitize (c) ||
+	(can_use_fast_path (lookup_type)) && !u.header.coverage.sanitize (c, this))
+      return TRACE_RETURN (false);
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.sanitize (c));
     case Multiple:		return TRACE_RETURN (u.multiple.sanitize (c));
