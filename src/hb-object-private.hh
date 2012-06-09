@@ -103,7 +103,7 @@ struct hb_user_data_array_t
 struct hb_object_header_t
 {
   hb_reference_count_t ref_count;
-  hb_mutex_t lock;
+  hb_mutex_t mutex;
   hb_user_data_array_t user_data;
 
 #define HB_OBJECT_HEADER_STATIC {HB_REFERENCE_COUNT_INVALID, HB_MUTEX_INIT, HB_USER_DATA_ARRAY_INIT}
@@ -119,7 +119,7 @@ struct hb_object_header_t
 
   inline void init (void) {
     ref_count.init (1);
-    lock.init ();
+    mutex.init ();
     user_data.init ();
   }
 
@@ -140,10 +140,18 @@ struct hb_object_header_t
       return false;
 
     ref_count.finish (); /* Do this before user_data */
-    user_data.finish (lock);
-    lock.finish ();
+    user_data.finish (mutex);
+    mutex.finish ();
 
     return true;
+  }
+
+  inline void lock (void) {
+    mutex.lock ();
+  }
+
+  inline void unlock (void) {
+    mutex.unlock ();
   }
 
   inline bool set_user_data (hb_user_data_key_t *key,
@@ -153,14 +161,14 @@ struct hb_object_header_t
     if (unlikely (!this || this->is_inert ()))
       return false;
 
-    return user_data.set (key, data, destroy_func, replace, lock);
+    return user_data.set (key, data, destroy_func, replace, mutex);
   }
 
   inline void *get_user_data (hb_user_data_key_t *key) {
     if (unlikely (!this || this->is_inert ()))
       return NULL;
 
-    return user_data.get (key, lock);
+    return user_data.get (key, mutex);
   }
 
   inline void trace (const char *function) const {
@@ -209,6 +217,18 @@ static inline bool hb_object_destroy (Type *obj)
 {
   hb_object_trace (obj, HB_FUNC);
   return obj->header.destroy ();
+}
+template <typename Type>
+static inline void hb_object_lock (Type *obj)
+{
+  hb_object_trace (obj, HB_FUNC);
+  return obj->header.lock ();
+}
+template <typename Type>
+static inline void hb_object_unlock (Type *obj)
+{
+  hb_object_trace (obj, HB_FUNC);
+  return obj->header.unlock ();
 }
 template <typename Type>
 static inline bool hb_object_set_user_data (Type               *obj,
