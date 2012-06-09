@@ -1063,6 +1063,8 @@ struct SubstLookup : Lookup
     if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 
+    /* TODO: For the most common case this can move out of the main
+     * loop, but it's not a big deal for now. */
     if (unlikely (lookup_type == SubstLookupSubTable::Extension))
     {
       /* The spec says all subtables should have the same type.
