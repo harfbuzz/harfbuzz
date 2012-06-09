@@ -134,6 +134,10 @@ struct RangeRecord
     return glyphs->intersects (start, end);
   }
 
+  inline void add_coverage (hb_set_t *glyphs) const {
+    glyphs->add_range (start, end);
+  }
+
   GlyphID	start;		/* First GlyphID in the range */
   GlyphID	end;		/* Last GlyphID in the range */
   USHORT	value;		/* Value */
@@ -357,6 +361,12 @@ struct CoverageFormat1
     return glyphs->has (glyphArray[index]);
   }
 
+  inline void add_coverage (hb_set_t *glyphs) const {
+    unsigned int count = glyphArray.len;
+    for (unsigned int i = 0; i < count; i++)
+      glyphs->add (glyphArray[i]);
+  }
+
   struct Iter {
     inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
     inline bool more (void) { return i < c->glyphArray.len; }
@@ -410,6 +420,12 @@ struct CoverageFormat2
         return false;
     }
     return false;
+  }
+
+  inline void add_coverage (hb_set_t *glyphs) const {
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      rangeRecord[i].add_coverage (glyphs);
   }
 
   struct Iter {
@@ -486,6 +502,14 @@ struct Coverage
     case 1: return u.format1.intersects_coverage (glyphs, index);
     case 2: return u.format2.intersects_coverage (glyphs, index);
     default:return false;
+    }
+  }
+
+  inline void add_coverage (hb_set_t *glyphs) const {
+    switch (u.format) {
+    case 1: u.format1.add_coverage (glyphs); break;
+    case 2: u.format2.add_coverage (glyphs); break;
+    default:                                 break;
     }
   }
 

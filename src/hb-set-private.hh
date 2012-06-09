@@ -60,6 +60,11 @@ struct _hb_set_t
     if (unlikely (g > MAX_G)) return;
     elt (g) |= mask (g);
   }
+  inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
+  {
+    for (unsigned int i = a; i < b + 1; i++)
+      add (i);
+  }
   inline void del (hb_codepoint_t g)
   {
     if (unlikely (g > MAX_G)) return;
