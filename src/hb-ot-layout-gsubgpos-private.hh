@@ -882,13 +882,13 @@ static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
 					       ChainContextApplyLookupContext &lookup_context)
 {
   unsigned int lookahead_offset;
-  return match_backtrack (c,
-			  backtrackCount, backtrack,
-			  lookup_context.funcs.match, lookup_context.match_data[0])
-      && match_input (c,
+  return match_input (c,
 		      inputCount, input,
 		      lookup_context.funcs.match, lookup_context.match_data[1],
 		      &lookahead_offset)
+      && match_backtrack (c,
+			  backtrackCount, backtrack,
+			  lookup_context.funcs.match, lookup_context.match_data[0])
       && match_lookahead (c,
 			  lookaheadCount, lookahead,
 			  lookup_context.funcs.match, lookup_context.match_data[2],
