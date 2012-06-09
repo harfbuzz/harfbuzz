@@ -51,10 +51,6 @@ typedef enum {
 } hb_ot_layout_glyph_class_t;
 
 
-HB_INTERNAL unsigned int
-_hb_ot_layout_get_glyph_property (hb_face_t       *face,
-				  hb_glyph_info_t *info);
-
 HB_INTERNAL hb_bool_t
 _hb_ot_layout_check_glyph_property (hb_face_t    *face,
 				    hb_glyph_info_t *ginfo,
