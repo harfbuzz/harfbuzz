@@ -698,11 +698,20 @@ struct SortedArrayOf : ArrayOf<Type> {
 
   template <typename SearchType>
   inline int search (const SearchType &x) const {
-    struct Cmp {
-      static int cmp (const SearchType *a, const Type *b) { return b->cmp (*a); }
-    };
-    const Type *p = (const Type *) bsearch (&x, this->array, this->len, sizeof (this->array[0]), (hb_compare_func_t) Cmp::cmp);
-    return p ? p - this->array : -1;
+    unsigned int count = this->len;
+    /* Linear search is *much* faster for small counts. */
+    if (likely (count < 32)) {
+      for (unsigned int i = 0; i < count; i++)
+	if (this->array[i].cmp (x) == 0)
+	  return i;
+      return -1;
+    } else {
+      struct Cmp {
+	static int cmp (const SearchType *a, const Type *b) { return b->cmp (*a); }
+      };
+      const Type *p = (const Type *) bsearch (&x, this->array, this->len, sizeof (this->array[0]), (hb_compare_func_t) Cmp::cmp);
+      return p ? p - this->array : -1;
+    }
   }
 };
 
