@@ -506,6 +506,7 @@ struct Ligature
     }
     else
     {
+      c->buffer->merge_clusters (c->buffer->idx, skippy_iter.idx + 1);
       c->replace_glyph (ligGlyph);
 
       /* Now we must do a second loop to copy the skipped glyphs to
