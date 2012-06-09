@@ -237,13 +237,9 @@ hb_buffer_t::replace_glyphs_be16 (unsigned int num_in,
 {
   if (!make_room_for (num_in, num_out)) return;
 
-  hb_glyph_info_t orig_info = info[idx];
-  for (unsigned int i = 1; i < num_in; i++)
-  {
-    hb_glyph_info_t *inf = &info[idx + i];
-    orig_info.cluster = MIN (orig_info.cluster, inf->cluster);
-  }
+  merge_clusters (idx, idx + num_in);
 
+  hb_glyph_info_t orig_info = info[idx];
   hb_glyph_info_t *pinfo = &out_info[out_len];
   const unsigned char *data = (const unsigned char *) glyph_data_be;
   for (unsigned int i = 0; i < num_out; i++)
@@ -264,13 +260,9 @@ hb_buffer_t::replace_glyphs (unsigned int num_in,
 {
   if (!make_room_for (num_in, num_out)) return;
 
-  hb_glyph_info_t orig_info = info[idx];
-  for (unsigned int i = 1; i < num_in; i++)
-  {
-    hb_glyph_info_t *inf = &info[idx + i];
-    orig_info.cluster = MIN (orig_info.cluster, inf->cluster);
-  }
+  merge_clusters (idx, idx + num_in);
 
+  hb_glyph_info_t orig_info = info[idx];
   hb_glyph_info_t *pinfo = &out_info[out_len];
   for (unsigned int i = 0; i < num_out; i++)
   {
