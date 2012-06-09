@@ -416,7 +416,7 @@ void
 hb_buffer_t::merge_clusters (unsigned int start,
 			     unsigned int end)
 {
-  if (unlikely (start >= end))
+  if (unlikely (end - start < 2))
     return;
 
   unsigned int cluster = info[start].cluster;
@@ -444,7 +444,7 @@ void
 hb_buffer_t::merge_out_clusters (unsigned int start,
 				 unsigned int end)
 {
-  if (unlikely (start >= end))
+  if (unlikely (end - start < 2))
     return;
 
   unsigned int cluster = out_info[start].cluster;
