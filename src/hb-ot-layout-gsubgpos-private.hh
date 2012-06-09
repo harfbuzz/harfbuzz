@@ -144,6 +144,10 @@ struct hb_apply_context_t
     {
       return unlikely (num_items && idx + num_items >= end);
     }
+    inline bool reject (void)
+    {
+      num_items++;
+    }
     inline bool next (unsigned int *property_out,
 		      unsigned int lookup_props)
     {
@@ -188,6 +192,10 @@ struct hb_apply_context_t
     inline bool has_no_chance (void) const
     {
       return unlikely (idx < num_items);
+    }
+    inline bool reject (void)
+    {
+      num_items++;
     }
     inline bool prev (unsigned int *property_out,
 		      unsigned int lookup_props)

@@ -955,7 +955,12 @@ struct MarkBasePosFormat1
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
     hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
-    if (!skippy_iter.prev (&property, LookupFlag::IgnoreMarks)) return TRACE_RETURN (false);
+    do {
+      if (!skippy_iter.prev (&property, LookupFlag::IgnoreMarks)) return TRACE_RETURN (false);
+      /* We only want to attach to the first of a MultipleSubst sequence.  Reject others. */
+      if (0 == get_lig_comp (c->buffer->info[skippy_iter.idx])) break;
+      skippy_iter.reject ();
+    } while (1);
 
     /* The following assertion is too strong, so we've disabled it. */
     if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH)) {/*return TRACE_RETURN (false);*/}
