@@ -502,7 +502,8 @@ struct Ligature
 
     if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
     {
-      c->replace_glyphs_be16 (count, 1, (const char *) &ligGlyph, klass);
+      hb_codepoint_t lig_glyph = ligGlyph;
+      c->replace_glyphs (count, 1, &lig_glyph, klass);
     }
     else
     {
