@@ -51,6 +51,8 @@ API issues to fix before 1.0:
 API additions
 =============
 
+- Language to/from script.
+
 - Buffer (de)serialize API ala hb-shape?
 
 - Move feature parsing from util into the library
