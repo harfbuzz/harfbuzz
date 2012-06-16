@@ -619,7 +619,7 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table,
 }
 
 
-typedef struct _hb_face_for_data_closure_t {
+typedef struct hb_face_for_data_closure_t {
   hb_blob_t *blob;
   unsigned int  index;
 } hb_face_for_data_closure_t;

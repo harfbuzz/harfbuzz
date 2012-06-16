@@ -98,7 +98,7 @@ hb_direction_to_string (hb_direction_t direction)
 
 /* hb_language_t */
 
-struct _hb_language_t {
+struct hb_language_impl_t {
   const char s[1];
 };
 

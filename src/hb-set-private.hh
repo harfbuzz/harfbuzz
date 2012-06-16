@@ -34,7 +34,7 @@
 
 /* TODO Make this faster and memmory efficient. */
 
-struct _hb_set_t
+struct hb_set_t
 {
   hb_object_header_t header;
   ASSERT_POD ();

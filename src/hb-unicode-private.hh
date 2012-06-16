@@ -61,7 +61,7 @@
   HB_UNICODE_FUNC_IMPLEMENT (hb_script_t, script) \
   /* ^--- Add new simple callbacks here */
 
-struct _hb_unicode_funcs_t {
+struct hb_unicode_funcs_t {
   hb_object_header_t header;
   ASSERT_POD ();
 

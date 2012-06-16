@@ -124,7 +124,7 @@ hb_direction_to_string (hb_direction_t direction);
 
 /* hb_language_t */
 
-typedef struct _hb_language_t *hb_language_t;
+typedef struct hb_language_impl_t *hb_language_t;
 
 /* len=-1 means str is NUL-terminated */
 hb_language_t
@@ -333,7 +333,7 @@ hb_script_get_horizontal_direction (hb_script_t script);
 
 /* User data */
 
-typedef struct _hb_user_data_key_t {
+typedef struct hb_user_data_key_t {
   /*< private >*/
   char unused;
 } hb_user_data_key_t;

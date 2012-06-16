@@ -54,7 +54,7 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
   /* ^--- Add new callbacks here */
 
-struct _hb_font_funcs_t {
+struct hb_font_funcs_t {
   hb_object_header_t header;
   ASSERT_POD ();
 
@@ -86,7 +86,7 @@ struct _hb_font_funcs_t {
  * hb_face_t
  */
 
-struct _hb_face_t {
+struct hb_face_t {
   hb_object_header_t header;
   ASSERT_POD ();
 
@@ -107,7 +107,7 @@ struct _hb_face_t {
  * hb_font_t
  */
 
-struct _hb_font_t {
+struct hb_font_t {
   hb_object_header_t header;
   ASSERT_POD ();
 

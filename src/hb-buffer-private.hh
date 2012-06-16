@@ -40,7 +40,7 @@
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == 20);
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
-typedef struct _hb_segment_properties_t {
+typedef struct hb_segment_properties_t {
     hb_direction_t      direction;
     hb_script_t         script;
     hb_language_t       language;
@@ -48,7 +48,7 @@ typedef struct _hb_segment_properties_t {
 } hb_segment_properties_t;
 
 
-struct _hb_buffer_t {
+struct hb_buffer_t {
   hb_object_header_t header;
   ASSERT_POD ();
 

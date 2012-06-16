@@ -44,7 +44,7 @@ HB_BEGIN_DECLS
  * hb_unicode_funcs_t
  */
 
-typedef struct _hb_unicode_funcs_t hb_unicode_funcs_t;
+typedef struct hb_unicode_funcs_t hb_unicode_funcs_t;
 
 
 /*

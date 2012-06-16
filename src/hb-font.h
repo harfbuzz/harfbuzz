@@ -37,8 +37,8 @@
 HB_BEGIN_DECLS
 
 
-typedef struct _hb_face_t hb_face_t;
-typedef struct _hb_font_t hb_font_t;
+typedef struct hb_face_t hb_face_t;
+typedef struct hb_font_t hb_font_t;
 
 /*
  * hb_face_t
@@ -110,7 +110,7 @@ hb_face_get_upem (hb_face_t *face);
  * hb_font_funcs_t
  */
 
-typedef struct _hb_font_funcs_t hb_font_funcs_t;
+typedef struct hb_font_funcs_t hb_font_funcs_t;
 
 hb_font_funcs_t *
 hb_font_funcs_create (void);
@@ -145,7 +145,7 @@ hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs);
 
 /* funcs */
 
-typedef struct _hb_glyph_extents_t
+typedef struct hb_glyph_extents_t
 {
   hb_position_t x_bearing;
   hb_position_t y_bearing;
