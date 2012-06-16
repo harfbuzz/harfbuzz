@@ -6,6 +6,7 @@ EXTRA_DIST =
 CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
+DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 
 # The following warning options are useful for debugging: -Wpadded -Wcast-align
 #AM_CXXFLAGS =
@@ -208,8 +209,26 @@ TESTS_ENVIRONMENT = \
 	HBHEADERS="$(HBHEADERS)" \
 	$(NULL)
 
-scan:
-	g-ir-scanner $(HBCFLAGS) $(HBHEADERS) -n hb --strip-prefix=hb --library libharfbuzz.la
+-include $(INTROSPECTION_MAKEFILE)
+INTROSPECTION_GIRS = hb-1.0.gir
+INTROSPECTION_SCANNER_ARGS = -I$(srcdir) -n hb --identifier-prefix=hb_
+INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
+if HAVE_INTROSPECTION
+
+hb-1.0.gir: libharfbuzz.la
+hb_1_0_gir_INCLUDES = GObject-2.0
+hb_1_0_gir_CFLAGS = $(INCLUDES) $(HBCFLAGS) -DHB_H -DHB_H_IN -DHB_OT_H -DHB_OT_H_IN
+hb_1_0_gir_LIBS = libharfbuzz.la
+hb_1_0_gir_FILES = $(HBHEADERS)
+
+girdir = $(datadir)/gir-1.0
+gir_DATA = $(INTROSPECTION_GIRS)
+
+typelibdir = $(libdir)/girepository-1.0
+typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
+
+CLEANFILES += $(gir_DATA) $(typelib_DATA)
+endif
 
 -include $(top_srcdir)/git.mk
