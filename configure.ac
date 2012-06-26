@@ -182,11 +182,12 @@ dnl ===========================================================================
 
 AC_CACHE_CHECK([for Intel atomic primitives], hb_cv_have_intel_atomic_primitives, [
 	hb_cv_have_intel_atomic_primitives=false
-	AC_TRY_LINK([], [
+	AC_TRY_LINK([
 		void memory_barrier (void) { __sync_synchronize (); }
-		int atomic_add (int i) { return __sync_fetch_and_add (&i, 1); }
-		int atomic_cmpxchg (int *i, int *j, int *k) { return __sync_bool_compare_and_swap (&i, j, k); }
-		], hb_cv_have_intel_atomic_primitives=true
+		int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
+		int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
+		void mutex_unlock (int *m) { __sync_lock_release (m); }
+		], [], hb_cv_have_intel_atomic_primitives=true
 	)
 ])
 if $hb_cv_have_intel_atomic_primitives; then

@@ -65,7 +65,7 @@ typedef int32_t hb_atomic_int_t;
 #define hb_atomic_ptr_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
 
 
-#elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES) && !defined(__MINGW32__)
+#elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES)
 
 typedef int hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	__sync_fetch_and_add (&(AI), (V))
