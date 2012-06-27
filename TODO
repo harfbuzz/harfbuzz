@@ -31,6 +31,8 @@ General fixes:
 
 - Add Old HarfBuzz API?
 
+- Add namespace to avoid type clashes with Windows
+
 
 API issues to fix before 1.0:
 ============================
