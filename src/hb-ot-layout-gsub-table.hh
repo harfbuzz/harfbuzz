@@ -750,7 +750,7 @@ struct ChainContextSubst : ChainContext
 };
 
 
-struct ExtensionSubst : Extension
+struct ExtensionSubst : Extension<struct GSUB>
 {
   friend struct SubstLookupSubTable;
   friend struct SubstLookup;
@@ -1037,16 +1037,18 @@ struct SubstLookupSubTable
 
 struct SubstLookup : Lookup
 {
-  inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i]; }
+  typedef struct SubstLookupSubTable SubTable;
+
+  inline const SubTable& get_subtable (unsigned int i) const
+  { return this+CastR<OffsetArrayOf<SubTable> > (subTable)[i]; }
 
   inline static bool lookup_type_is_reverse (unsigned int lookup_type)
-  { return lookup_type == SubstLookupSubTable::ReverseChainSingle; }
+  { return lookup_type == SubTable::ReverseChainSingle; }
 
   inline bool is_reverse (void) const
   {
     unsigned int type = get_type ();
-    if (unlikely (type == SubstLookupSubTable::Extension))
+    if (unlikely (type == SubTable::Extension))
       return CastR<ExtensionSubst> (get_subtable(0)).is_reverse ();
     return lookup_type_is_reverse (type);
   }
@@ -1087,7 +1089,7 @@ struct SubstLookup : Lookup
 
     /* TODO: For the most common case this can move out of the main
      * loop, but it's not a big deal for now. */
-    if (unlikely (lookup_type == SubstLookupSubTable::Extension))
+    if (unlikely (lookup_type == SubTable::Extension))
     {
       /* The spec says all subtables should have the same type.
        * This is specially important if one has a reverse type!
@@ -1155,7 +1157,7 @@ struct SubstLookup : Lookup
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
+    OffsetArrayOf<SubTable> &list = CastR<OffsetArrayOf<SubTable> > (subTable);
     return TRACE_RETURN (list.sanitize (c, this, get_type ()));
   }
 };
@@ -1168,6 +1170,8 @@ typedef OffsetListOf<SubstLookup> SubstLookupList;
 
 struct GSUB : GSUBGPOS
 {
+  typedef struct SubstLookup Lookup;
+
   static const hb_tag_t Tag	= HB_OT_TAG_GSUB;
 
   inline const SubstLookup& get_lookup (unsigned int i) const
@@ -1238,16 +1242,16 @@ inline bool ExtensionSubst::apply (hb_apply_context_t *c) const
 inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *c)
 {
   TRACE_SANITIZE ();
-  if (unlikely (!Extension::sanitize (c))) return TRACE_RETURN (false);
+  if (unlikely (!Extension<GSUB>::sanitize (c))) return TRACE_RETURN (false);
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return TRACE_RETURN (true);
-  return TRACE_RETURN (StructAtOffset<SubstLookupSubTable> (this, offset).sanitize (c, get_type ()));
+  return TRACE_RETURN (StructAtOffset<GSUB::Lookup::SubTable> (this, offset).sanitize (c, get_type ()));
 }
 
 inline bool ExtensionSubst::is_reverse (void) const
 {
   unsigned int type = get_type ();
-  if (unlikely (type == SubstLookupSubTable::Extension))
+  if (unlikely (type == SubstLookup::SubTable::Extension))
     return CastR<ExtensionSubst> (get_subtable()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
 }

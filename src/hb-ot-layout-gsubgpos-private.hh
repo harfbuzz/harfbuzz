@@ -298,6 +298,27 @@ static inline bool intersects_array (hb_closure_context_t *c,
 }
 
 
+struct match_glyph_t {
+  inline bool operator() (hb_codepoint_t glyph_id, const USHORT &value, const void *data)
+  {
+    return glyph_id == value;
+  }
+};
+struct match_class_t {
+  inline bool operator() (hb_codepoint_t glyph_id, const USHORT &value, const void *data)
+  {
+    const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+    return class_def.get_class (glyph_id) == value;
+  }
+};
+struct match_coverage_t {
+  inline bool operator() (hb_codepoint_t glyph_id, const USHORT &value, const void *data)
+  {
+    const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+    return (data+coverage).get_coverage (glyph_id) != NOT_COVERED;
+  }
+};
+
 static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, const void *data HB_UNUSED)
 {
   return glyph_id == value;
@@ -314,6 +335,7 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
 }
 
 
+template <typename match_func_t>
 static inline bool match_input (hb_apply_context_t *c,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
@@ -340,6 +362,7 @@ static inline bool match_input (hb_apply_context_t *c,
   return true;
 }
 
+template <typename match_func_t>
 static inline bool match_backtrack (hb_apply_context_t *c,
 				    unsigned int count,
 				    const USHORT backtrack[],
@@ -362,6 +385,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
   return true;
 }
 
+template <typename match_func_t>
 static inline bool match_lookahead (hb_apply_context_t *c,
 				    unsigned int count,
 				    const USHORT lookahead[],
@@ -1262,9 +1286,12 @@ struct ChainContext
 };
 
 
+template <typename Table> struct Extension;
+
+template <typename Table>
 struct ExtensionFormat1
 {
-  friend struct Extension;
+  friend struct Extension<Table>;
 
   protected:
   inline unsigned int get_type (void) const { return extensionLookupType; }
@@ -1286,6 +1313,7 @@ struct ExtensionFormat1
   DEFINE_SIZE_STATIC (8);
 };
 
+template <typename Table>
 struct Extension
 {
   inline unsigned int get_type (void) const
@@ -1315,7 +1343,8 @@ struct Extension
   private:
   union {
   USHORT		format;		/* Format identifier */
-  ExtensionFormat1	format1;
+  ExtensionFormat1<Table>
+			format1;
   } u;
 };
 

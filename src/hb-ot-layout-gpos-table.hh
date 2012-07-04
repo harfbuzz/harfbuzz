@@ -1268,7 +1268,7 @@ struct ChainContextPos : ChainContext
 };
 
 
-struct ExtensionPos : Extension
+struct ExtensionPos : Extension<struct GPOS>
 {
   friend struct PosLookupSubTable;
 
@@ -1382,8 +1382,10 @@ struct PosLookupSubTable
 
 struct PosLookup : Lookup
 {
-  inline const PosLookupSubTable& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
+  typedef struct PosLookupSubTable SubTable;
+
+  inline const SubTable& get_subtable (unsigned int i) const
+  { return this+CastR<OffsetArrayOf<SubTable> > (subTable)[i]; }
 
   inline bool apply_once (hb_apply_context_t *c) const
   {
@@ -1424,7 +1426,7 @@ struct PosLookup : Lookup
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
+    OffsetArrayOf<SubTable> &list = CastR<OffsetArrayOf<SubTable> > (subTable);
     return TRACE_RETURN (list.sanitize (c, this, get_type ()));
   }
 };
@@ -1437,6 +1439,8 @@ typedef OffsetListOf<PosLookup> PosLookupList;
 
 struct GPOS : GSUBGPOS
 {
+  typedef struct PosLookup Lookup;
+
   static const hb_tag_t Tag	= HB_OT_TAG_GPOS;
 
   inline const PosLookup& get_lookup (unsigned int i) const
@@ -1545,10 +1549,10 @@ inline bool ExtensionPos::apply (hb_apply_context_t *c) const
 inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
 {
   TRACE_SANITIZE ();
-  if (unlikely (!Extension::sanitize (c))) return TRACE_RETURN (false);
+  if (unlikely (!Extension<GPOS>::sanitize (c))) return TRACE_RETURN (false);
   unsigned int offset = get_offset ();
   if (unlikely (!offset)) return TRACE_RETURN (true);
-  return TRACE_RETURN (StructAtOffset<PosLookupSubTable> (this, offset).sanitize (c, get_type ()));
+  return TRACE_RETURN (StructAtOffset<PosLookup::SubTable> (this, offset).sanitize (c, get_type ()));
 }
 
 static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index)
