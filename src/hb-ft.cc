@@ -158,7 +158,7 @@ hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
 }
 
 static hb_position_t
-hb_ft_get_glyph_h_kerning (hb_font_t *font HB_UNUSED,
+hb_ft_get_glyph_h_kerning (hb_font_t *font,
 			   void *font_data,
 			   hb_codepoint_t left_glyph,
 			   hb_codepoint_t right_glyph,
@@ -167,7 +167,8 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font HB_UNUSED,
   FT_Face ft_face = (FT_Face) font_data;
   FT_Vector kerningv;
 
-  if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, FT_KERNING_DEFAULT, &kerningv))
+  FT_Kerning_Mode mode = font->x_ppem ? FT_KERNING_DEFAULT : FT_KERNING_UNFITTED;
+  if (FT_Get_Kerning (ft_face, left_glyph, right_glyph, mode, &kerningv))
     return 0;
 
   return kerningv.x;
