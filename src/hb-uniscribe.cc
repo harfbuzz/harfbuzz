@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINNT 0x0600
 
 #include "hb-private.hh"
 
