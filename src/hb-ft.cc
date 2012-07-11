@@ -466,8 +466,11 @@ hb_ft_font_set_funcs (hb_font_t *font)
 
   FT_Set_Char_Size (ft_face,
 		    font->x_scale, font->y_scale,
+		    0, 0);
+#if 0
 		    font->x_ppem * 72 * 64 / font->x_scale,
 		    font->y_ppem * 72 * 64 / font->y_scale);
+#endif
 
   ft_face->generic.data = blob;
   ft_face->generic.finalizer = (FT_Generic_Finalizer) _release_blob;
