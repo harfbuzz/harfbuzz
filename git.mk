@@ -5,7 +5,7 @@
 # Written by Behdad Esfahbod
 #
 # Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
+# is permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.
 #
 # The canonical source for this file is https://github.com/behdad/git.mk.
@@ -42,8 +42,14 @@
 # build dir.
 #
 # This file knows how to handle autoconf, automake, libtool, gtk-doc,
-# gnome-doc-utils, yelp.m4, mallard, intltool, gsettings.
+# gnome-doc-utils, yelp.m4, mallard, intltool, gsettings, dejagnu.
 #
+# This makefile provides the following targets:
+#
+# - all: "make all" will build all gitignore files.
+# - gitignore: makes all gitignore files in the current dir and subdirs.
+# - .gitignore: make gitignore file for the current dir.
+# - gitignore-recurse: makes all gitignore files in the subdirs.
 #
 # KNOWN ISSUES:
 #
@@ -97,25 +103,31 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 			; do echo /$$x; done; \
 		fi; \
 		if test "x$(DOC_MODULE)$(DOC_ID)" = x -o "x$(DOC_LINGUAS)" = x; then :; else \
+			for lc in $(DOC_LINGUAS); do \
+				for x in \
+					$(if $(DOC_MODULE),$(DOC_MODULE).xml) \
+					$(DOC_PAGES) \
+					$(DOC_INCLUDES) \
+				; do echo /$$lc/$$x; done; \
+			done; \
 			for x in \
-				$(_DOC_C_DOCS) \
-				$(_DOC_LC_DOCS) \
 				$(_DOC_OMF_ALL) \
 				$(_DOC_DSK_ALL) \
 				$(_DOC_HTML_ALL) \
 				$(_DOC_MOFILES) \
-				$(_DOC_POFILES) \
 				$(DOC_H_FILE) \
 				"*/.xml2po.mo" \
 				"*/*.omf.out" \
 			; do echo /$$x; done; \
 		fi; \
 		if test "x$(HELP_ID)" = x -o "x$(HELP_LINGUAS)" = x; then :; else \
-			for x in \
-				$(_HELP_LC_FILES) \
-				$(_HELP_LC_STAMPS) \
-				$(_HELP_MOFILES) \
-			; do echo /$$x; done; \
+			for lc in $(HELP_LINGUAS); do \
+				for x in \
+					$(HELP_FILES) \
+					"$$lc.stamp" \
+					"$$lc.mo" \
+				; do echo /$$lc/$$x; done; \
+			done; \
 		fi; \
 		if test "x$(gsettings_SCHEMAS)" = x; then :; else \
 			for x in \
@@ -149,14 +161,19 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 				config.lt \
 			; do echo /$$x; done; \
 		fi; \
+		if test "x$(DEJATOOL)" = x; then :; else \
+			for x in \
+				$(DEJATOOL) \
+			; do echo /$$x.sum; echo /$$x.log; done; \
+			echo /site.exp; \
+		fi; \
 		for x in \
 			.gitignore \
 			$(GITIGNOREFILES) \
 			$(CLEANFILES) \
-			$(PROGRAMS) \
-			$(check_PROGRAMS) \
-			$(EXTRA_PROGRAMS) \
-			$(LTLIBRARIES) \
+			$(PROGRAMS) $(check_PROGRAMS) $(EXTRA_PROGRAMS) \
+			$(LIBRARIES) $(check_LIBRARIES) $(EXTRA_LIBRARIES) \
+			$(LTLIBRARIES) $(check_LTLIBRARIES) $(EXTRA_LTLIBRARIES) \
 			so_locations \
 			.libs _libs \
 			$(MOSTLYCLEANFILES) \
@@ -186,18 +203,19 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 	mv $@.tmp $@;
 
 all: $(srcdir)/.gitignore gitignore-recurse-maybe
+gitignore: $(srcdir)/.gitignore gitignore-recurse
+
 gitignore-recurse-maybe:
-	@if test "x$(SUBDIRS)" = "x$(DIST_SUBDIRS)"; then :; else \
-		$(MAKE) $(AM_MAKEFLAGS) gitignore-recurse; \
-	fi;
-gitignore-recurse:
 	@for subdir in $(DIST_SUBDIRS); do \
 	  case " $(SUBDIRS) " in \
 	    *" $$subdir "*) :;; \
-	    *) test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) .gitignore gitignore-recurse || echo "Skipping $$subdir");; \
+	    *) test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) .gitignore gitignore-recurse-maybe || echo "Skipping $$subdir");; \
 	  esac; \
 	done
-gitignore: $(srcdir)/.gitignore gitignore-recurse
+gitignore-recurse:
+	@for subdir in $(DIST_SUBDIRS); do \
+	    test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) .gitignore gitignore-recurse || echo "Skipping $$subdir"); \
+	done
 
 maintainer-clean: gitignore-clean
 gitignore-clean:
