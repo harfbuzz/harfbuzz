@@ -8,7 +8,7 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 
-# The following warning options are useful for debugging: -Wpadded -Wcast-align
+# The following warning options are useful for debugging: -Wpadded
 #AM_CXXFLAGS =
 
 lib_LTLIBRARIES = libharfbuzz.la

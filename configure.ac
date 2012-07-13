@@ -69,6 +69,9 @@ if test "x$GCC" = "xyes"; then
 	# Hide inline methods
 	CXXFLAGS="$CXXFLAGS -fvisibility-inlines-hidden"
 
+	# Assorted warnings
+	CXXFLAGS="$CXXFLAGS -Wcast-align"
+
 	case "$host" in
 		arm-*-*)
 			# Request byte alignment on arm
