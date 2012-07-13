@@ -718,7 +718,7 @@ struct hb_auto_trace_t<0> {
  * Checks for lo <= u <= hi but with an optimization if lo and hi
  * are only different in a contiguous set of lower-most bits.
  */
-template <typename T> inline bool
+template <typename T> static inline bool
 hb_in_range (T u, T lo, T hi)
 {
   if ( ((lo^hi) & lo) == 0 &&
