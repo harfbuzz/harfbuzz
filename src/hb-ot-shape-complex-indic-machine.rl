@@ -29,8 +29,6 @@
 
 #include "hb-private.hh"
 
-HB_BEGIN_DECLS
-
 %%{
   machine indic_syllable_machine;
   alphtype unsigned char;
@@ -109,7 +107,5 @@ find_syllables (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *mask_arr
     write exec;
   }%%
 }
-
-HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_COMPLEX_INDIC_MACHINE_HH */
