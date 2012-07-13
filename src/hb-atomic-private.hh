@@ -45,7 +45,13 @@
 #elif !defined(HB_NO_MT) && defined(_MSC_VER) && _MSC_VER >= 1600
 
 #include <intrin.h>
+/* On x86, _InterlockedCompareExchangePointer is a macro defined in concrt.h */
+#if defined(_M_IX86)
+#include <concrt.h>
+#pragma intrinsic(_InterlockedExchangeAdd)
+#else
 #pragma intrinsic(_InterlockedExchangeAdd, _InterlockedCompareExchangePointer)
+#endif
 
 typedef long hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	_InterlockedExchangeAdd (&(AI), (V))
