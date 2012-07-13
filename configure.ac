@@ -66,6 +66,9 @@ if test "x$GCC" = "xyes"; then
 	# Make sure we don't link to libstdc++
 	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
 
+	# Hide inline methods
+	CXXFLAGS="$CXXFLAGS -fvisibility-inlines-hidden"
+
 	case "$host" in
 		arm-*-*)
 			# Request byte alignment on arm
