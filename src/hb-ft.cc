@@ -233,7 +233,7 @@ hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_ft_get_glyph_name (hb_font_t *font,
+hb_ft_get_glyph_name (hb_font_t *font HB_UNUSED,
 		      void *font_data,
 		      hb_codepoint_t glyph,
 		      char *name, unsigned int size,
@@ -249,7 +249,7 @@ hb_ft_get_glyph_name (hb_font_t *font,
 }
 
 static hb_bool_t
-hb_ft_get_glyph_from_name (hb_font_t *font,
+hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   const char *name, int len, /* -1 means nul-terminated */
 			   hb_codepoint_t *glyph,
