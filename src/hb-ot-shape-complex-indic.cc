@@ -495,6 +495,16 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       info[i].mask  |= mask;
   }
 
+  /* XXX This will not match for old-Indic spec since the Halant-Ra order is reversed already. */
+  if (basic_mask_array[PREF] &&
+      base + 3 <= end &&
+      info[base + 1].indic_category() == OT_H &&
+      info[base + 2].indic_category() == OT_Ra)
+  {
+    info[base + 1].mask |= basic_mask_array[PREF];
+    info[base + 2].mask |= basic_mask_array[PREF];
+  }
+
   /* Apply ZWJ/ZWNJ effects */
   for (unsigned int i = start + 1; i < end; i++)
     if (is_joiner (info[i])) {
