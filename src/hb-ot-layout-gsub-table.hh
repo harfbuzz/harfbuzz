@@ -480,7 +480,7 @@ struct Ligature
   {
     TRACE_APPLY ();
     unsigned int count = component.len;
-    if (unlikely (count < 2)) return TRACE_RETURN (false);
+    if (unlikely (count < 1)) return TRACE_RETURN (false);
 
     hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
