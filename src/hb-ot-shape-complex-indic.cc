@@ -592,13 +592,6 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *other_mask_array,
       break;
     }
 
-  if (base == start) {
-    /* There's no Reph, and no left Matra to reposition.  Just merge the cluster
-     * and go home. */
-    buffer->merge_clusters (start, end);
-    return;
-  }
-
   unsigned int start_of_last_cluster = base;
 
   /*   o Reorder matras:
@@ -611,6 +604,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *other_mask_array,
    *     halant, position is moved after it.
    */
 
+  if (start < base) /* Otherwise there can't be any pre-base matra characters. */
   {
     unsigned int new_matra_pos = base - 1;
     while (new_matra_pos > start &&
