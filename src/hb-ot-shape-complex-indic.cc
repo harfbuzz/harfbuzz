@@ -27,6 +27,18 @@
 #include "hb-ot-shape-complex-indic-private.hh"
 #include "hb-ot-shape-private.hh"
 
+#define OLD_INDIC_TAG(script) (((hb_tag_t) script) | 0x20000000)
+#define IS_OLD_INDIC_TAG(tag) ( \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_BENGALI) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_DEVANAGARI) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GUJARATI) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GURMUKHI) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_KANNADA) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_MALAYALAM) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_ORIYA) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TAMIL) || \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TELUGU) \
+			      )
 struct indic_options_t
 {
   int initialized : 1;
@@ -405,8 +417,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
   /* For old-style Indic script tags, move the first post-base Halant after
    * last consonant. */
-  if ((map->get_chosen_script (0) & 0x000000FF) != '2') {
-    /* We should only do this for Indic scripts which have a version two I guess. */
+  if (IS_OLD_INDIC_TAG (map->get_chosen_script (0))) {
     for (unsigned int i = base + 1; i < end; i++)
       if (info[i].indic_category() == OT_H) {
         unsigned int j;
