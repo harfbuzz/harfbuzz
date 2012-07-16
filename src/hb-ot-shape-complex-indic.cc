@@ -809,27 +809,43 @@ final_reordering_syllable (hb_buffer_t *buffer,
    *
    *     If a pre-base reordering consonant is found, reorder it according to
    *     the following rules:
-   *
-   *       1. Only reorder a glyph produced by substitution during application
-   *          of the <pref> feature. (Note that a font may shape a Ra consonant with
-   *          the feature generally but block it in certain contexts.)
-   *
-   *       2. Try to find a target position the same way as for pre-base matra.
-   *          If it is found, reorder pre-base consonant glyph.
-   *
-   *       3. If position is not found, reorder immediately before main
-   *          consonant.
    */
 
-  /* XXX */
   if (pref_mask && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
   {
+    /*       1. Only reorder a glyph produced by substitution during application
+     *          of the <pref> feature. (Note that a font may shape a Ra consonant with
+     *          the feature generally but block it in certain contexts.)
+     */
     if ((info[base + 1].mask & pref_mask) != 0 &&
 	(base + 2 == end ||
 	 (info[base + 2].mask & pref_mask) == 0))
     {
-      /* Found a pre-base reordering Ra produced by substitution during application of the
-       * <pref> feature. */
+      /*
+       *       2. Try to find a target position the same way as for pre-base matra.
+       *          If it is found, reorder pre-base consonant glyph.
+       *
+       *       3. If position is not found, reorder immediately before main
+       *          consonant.
+       */
+
+      unsigned int new_pos = base;
+      while (new_pos > start + 1 &&
+	     !(FLAG (info[new_pos - 1].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
+	new_pos--;
+
+      if (new_pos > start && info[new_pos - 1].indic_category() == OT_H)
+	/* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
+	if (new_pos < end && is_joiner (info[new_pos]))
+	  new_pos++;
+
+      {
+	unsigned int old_pos = base + 1;
+	hb_glyph_info_t tmp = info[old_pos];
+	memmove (&info[new_pos + 1], &info[new_pos], (old_pos - new_pos) * sizeof (info[0]));
+	info[new_pos] = tmp;
+	start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
+      }
     }
   }
 
