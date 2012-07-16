@@ -257,6 +257,10 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
     if (unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x0951, 0x0954)))
       info.indic_category() = OT_VD;
 
+    if (info.indic_category() == OT_X &&
+	unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x17CB, 0x17D0)))
+      info.indic_category() = OT_RS;
+
     if (info.indic_category() == OT_C) {
       info.indic_position() = consonant_position (info.codepoint);
       if (is_ra (info.codepoint))
