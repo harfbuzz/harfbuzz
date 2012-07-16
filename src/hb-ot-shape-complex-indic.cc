@@ -493,13 +493,17 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   }
 
   /* XXX This will not match for old-Indic spec since the Halant-Ra order is reversed already. */
-  if (basic_mask_array[PREF] &&
-      base + 3 <= end &&
-      info[base + 1].indic_category() == OT_H &&
-      info[base + 2].indic_category() == OT_Ra)
+  if (basic_mask_array[PREF] && base + 3 <= end)
   {
-    info[base + 1].mask |= basic_mask_array[PREF];
-    info[base + 2].mask |= basic_mask_array[PREF];
+    /* Find a Halant,Ra sequence and mark it fore pre-base reordering processing. */
+    for (unsigned int i = base + 1; i + 1 < end; i++)
+      if (info[i].indic_category() == OT_H &&
+	  info[i + 1].indic_category() == OT_Ra)
+      {
+	info[i].mask |= basic_mask_array[PREF];
+	info[i + 1].mask |= basic_mask_array[PREF];
+	break;
+      }
   }
 
   /* Apply ZWJ/ZWNJ effects */
@@ -815,40 +819,44 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
   if (pref_mask && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
   {
-    /*       1. Only reorder a glyph produced by substitution during application
-     *          of the <pref> feature. (Note that a font may shape a Ra consonant with
-     *          the feature generally but block it in certain contexts.)
-     */
-    if ((info[base + 1].mask & pref_mask) != 0 &&
-	(base + 2 == end ||
-	 (info[base + 2].mask & pref_mask) == 0))
-    {
-      /*
-       *       2. Try to find a target position the same way as for pre-base matra.
-       *          If it is found, reorder pre-base consonant glyph.
-       *
-       *       3. If position is not found, reorder immediately before main
-       *          consonant.
-       */
-
-      unsigned int new_pos = base;
-      while (new_pos > start + 1 &&
-	     !(FLAG (info[new_pos - 1].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
-	new_pos--;
-
-      if (new_pos > start && info[new_pos - 1].indic_category() == OT_H)
-	/* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
-	if (new_pos < end && is_joiner (info[new_pos]))
-	  new_pos++;
-
+    for (unsigned int i = base + 1; i < end; i++)
+      if ((info[i].mask & pref_mask) != 0)
       {
-	unsigned int old_pos = base + 1;
-	hb_glyph_info_t tmp = info[old_pos];
-	memmove (&info[new_pos + 1], &info[new_pos], (old_pos - new_pos) * sizeof (info[0]));
-	info[new_pos] = tmp;
-	start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
+	/*       1. Only reorder a glyph produced by substitution during application
+	 *          of the <pref> feature. (Note that a font may shape a Ra consonant with
+	 *          the feature generally but block it in certain contexts.)
+	 */
+	if (i + 1 == end || (info[i + 1].mask & pref_mask) == 0)
+	{
+	  /*
+	   *       2. Try to find a target position the same way as for pre-base matra.
+	   *          If it is found, reorder pre-base consonant glyph.
+	   *
+	   *       3. If position is not found, reorder immediately before main
+	   *          consonant.
+	   */
+
+	  unsigned int new_pos = base;
+	  while (new_pos > start + 1 &&
+		 !(FLAG (info[new_pos - 1].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
+	    new_pos--;
+
+	  if (new_pos > start && info[new_pos - 1].indic_category() == OT_H)
+	    /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
+	    if (new_pos < end && is_joiner (info[new_pos]))
+	      new_pos++;
+
+	  {
+	    unsigned int old_pos = i;
+	    hb_glyph_info_t tmp = info[old_pos];
+	    memmove (&info[new_pos + 1], &info[new_pos], (old_pos - new_pos) * sizeof (info[0]));
+	    info[new_pos] = tmp;
+	    start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
+	  }
+	}
+
+        break;
       }
-    }
   }
 
 
