@@ -181,11 +181,6 @@ indic_other_features[] =
   {HB_TAG('b','l','w','m'), true},
 };
 
-/* Same order as the indic_other_features array */
-enum {
-  INIT
-};
-
 
 static void
 initial_reordering (const hb_ot_map_t *map,
@@ -581,7 +576,8 @@ initial_reordering (const hb_ot_map_t *map,
 }
 
 static void
-final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *other_mask_array,
+final_reordering_syllable (hb_buffer_t *buffer,
+			   hb_mask_t init_mask, hb_mask_t pref_mask,
 			   unsigned int start, unsigned int end)
 {
   hb_glyph_info_t *info = buffer->info;
@@ -825,8 +821,17 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *other_mask_array,
    *          consonant.
    */
 
-  /* TODO */
-
+  /* XXX */
+  if (pref_mask && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
+  {
+    if ((info[base + 1].mask & pref_mask) != 0 &&
+	(base + 2 == end ||
+	 (info[base + 2].mask & pref_mask) == 0))
+    {
+      /* Found a pre-base reordering Ra produced by substitution during application of the
+       * <pref> feature. */
+    }
+  }
 
 
   /* Apply 'init' to the Left Matra if it's a word start. */
@@ -841,7 +846,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *other_mask_array,
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
 	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))))
-    info[start].mask |= other_mask_array[INIT];
+    info[start].mask |= init_mask;
 
 
 
@@ -876,21 +881,19 @@ final_reordering (const hb_ot_map_t *map,
   unsigned int count = buffer->len;
   if (!count) return;
 
-  hb_mask_t other_mask_array[ARRAY_LENGTH (indic_other_features)] = {0};
-  unsigned int num_masks = ARRAY_LENGTH (indic_other_features);
-  for (unsigned int i = 0; i < num_masks; i++)
-    other_mask_array[i] = map->get_1_mask (indic_other_features[i].tag);
+  hb_mask_t init_mask = map->get_1_mask (HB_TAG('i','n','i','t'));
+  hb_mask_t pref_mask = map->get_1_mask (HB_TAG('p','r','e','f'));
 
   hb_glyph_info_t *info = buffer->info;
   unsigned int last = 0;
   unsigned int last_syllable = info[0].syllable();
   for (unsigned int i = 1; i < count; i++)
     if (last_syllable != info[i].syllable()) {
-      final_reordering_syllable (buffer, other_mask_array, last, i);
+      final_reordering_syllable (buffer, init_mask, pref_mask, last, i);
       last = i;
       last_syllable = info[last].syllable();
     }
-  final_reordering_syllable (buffer, other_mask_array, last, count);
+  final_reordering_syllable (buffer, init_mask, pref_mask, last, count);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
