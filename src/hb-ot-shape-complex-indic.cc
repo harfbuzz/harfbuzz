@@ -628,10 +628,10 @@ final_reordering_syllable (hb_buffer_t *buffer,
       for (unsigned int i = new_pos; i > start; i--)
 	if (info[i - 1].indic_position () == POS_PRE_M)
 	{
-	  unsigned int old_matra_pos = i - 1;
-	  hb_glyph_info_t matra = info[old_matra_pos];
-	  memmove (&info[old_matra_pos], &info[old_matra_pos + 1], (new_pos - old_matra_pos) * sizeof (info[0]));
-	  info[new_pos] = matra;
+	  unsigned int old_pos = i - 1;
+	  hb_glyph_info_t tmp = info[old_pos];
+	  memmove (&info[old_pos], &info[old_pos + 1], (new_pos - old_pos) * sizeof (info[0]));
+	  info[new_pos] = tmp;
 	  start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
 	  new_pos--;
 	}
