@@ -80,6 +80,10 @@ consonant_position (hb_codepoint_t u)
 {
   consonant_position_t *record;
 
+  /* Khmer does not have pre-base half forms. */
+  if (0x1780 <= u && u <= 0x17FF)
+    return POS_BELOW_C;
+
   record = (consonant_position_t *) bsearch (&u, consonant_positions,
 					     ARRAY_LENGTH (consonant_positions),
 					     sizeof (consonant_positions[0]),
