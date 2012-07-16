@@ -267,6 +267,28 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
 		      hb_codepoint_t     *a,
 		      hb_codepoint_t     *b)
 {
+  /* XXX FIXME, move these to complex shapers and propagage to normalizer.*/
+  switch (ab) {
+    case 0x0AC9  : *a = 0x0AC5; *b= 0x0ABE; return true;
+    case 0x0F77  : *a = 0x0FB2; *b= 0x0F81; return true;
+    case 0x0F79  : *a = 0x0FB3; *b= 0x0F81; return true;
+    case 0x17BE  : *a = 0x17C1; *b= 0x17BE; return true;
+    case 0x17BF  : *a = 0x17C1; *b= 0x17BF; return true;
+    case 0x17C0  : *a = 0x17C1; *b= 0x17C0; return true;
+    case 0x17C4  : *a = 0x17C1; *b= 0x17C4; return true;
+    case 0x17C5  : *a = 0x17C1; *b= 0x17C5; return true;
+    case 0x1925  : *a = 0x1920; *b= 0x1923; return true;
+    case 0x1926  : *a = 0x1920; *b= 0x1924; return true;
+    case 0x1B3C  : *a = 0x1B42; *b= 0x1B3C; return true;
+    case 0x1112E  : *a = 0x11127; *b= 0x11131; return true;
+    case 0x1112F  : *a = 0x11127; *b= 0x11132; return true;
+#if 0
+    case 0x0B57  : *a = 0xno decomp, -> RIGHT; return true;
+    case 0x1C29  : *a = 0xno decomp, -> LEFT; return true;
+    case 0xA9C0  : *a = 0xno decomp, -> RIGHT; return true;
+    case 0x111BF  : *a = 0xno decomp, -> ABOVE; return true;
+#endif
+  }
   *a = ab; *b = 0;
   return ufuncs->func.decompose (ufuncs, ab, a, b, ufuncs->user_data.decompose);
 }
