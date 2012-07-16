@@ -736,7 +736,13 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *other_mask_array,
      */
     if (reph_pos == REPH_AFTER_MAIN)
     {
-      /* XXX */
+      new_reph_pos = base;
+      /* XXX Skip potential pre-base reordering Ra. */
+      while (new_reph_pos < end &&
+	     !( FLAG (info[new_reph_pos + 1].indic_position()) & (FLAG (POS_BELOW_C) | FLAG (POS_POST_C) | FLAG (POS_POST_M) | FLAG (POS_SMVD))))
+	new_reph_pos++;
+      if (new_reph_pos < end)
+        goto reph_move;
     }
 
     /*       4. If reph should be positioned before post-base consonant, find
