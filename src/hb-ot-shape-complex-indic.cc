@@ -616,28 +616,28 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *other_mask_array,
 
   if (start < base) /* Otherwise there can't be any pre-base matra characters. */
   {
-    unsigned int new_matra_pos = base - 1;
-    while (new_matra_pos > start &&
-	   !(FLAG (info[new_matra_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
-      new_matra_pos--;
+    unsigned int new_pos = base - 1;
+    while (new_pos > start &&
+	   !(FLAG (info[new_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
+      new_pos--;
     /* If we found no Halant we are done.  Otherwise only proceed if the Halant does
      * not belong to the Matra itself! */
-    if (info[new_matra_pos].indic_category() == OT_H &&
-	info[new_matra_pos].indic_position() != POS_PRE_M) {
+    if (info[new_pos].indic_category() == OT_H &&
+	info[new_pos].indic_position() != POS_PRE_M) {
       /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
-      if (new_matra_pos + 1 < end && is_joiner (info[new_matra_pos + 1]))
-	new_matra_pos++;
+      if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
+	new_pos++;
 
       /* Now go see if there's actually any matras... */
-      for (unsigned int i = new_matra_pos; i > start; i--)
+      for (unsigned int i = new_pos; i > start; i--)
 	if (info[i - 1].indic_position () == POS_PRE_M)
 	{
 	  unsigned int old_matra_pos = i - 1;
 	  hb_glyph_info_t matra = info[old_matra_pos];
-	  memmove (&info[old_matra_pos], &info[old_matra_pos + 1], (new_matra_pos - old_matra_pos) * sizeof (info[0]));
-	  info[new_matra_pos] = matra;
-	  start_of_last_cluster = MIN (new_matra_pos, start_of_last_cluster);
-	  new_matra_pos--;
+	  memmove (&info[old_matra_pos], &info[old_matra_pos + 1], (new_pos - old_matra_pos) * sizeof (info[0]));
+	  info[new_pos] = matra;
+	  start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
+	  new_pos--;
 	}
     }
   }
