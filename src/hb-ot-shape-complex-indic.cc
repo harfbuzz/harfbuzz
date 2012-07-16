@@ -129,6 +129,7 @@ indic_basic_features[] =
   {HB_TAG('p','r','e','f'), false},
   {HB_TAG('b','l','w','f'), false},
   {HB_TAG('h','a','l','f'), false},
+  {HB_TAG('a','b','v','f'), false},
   {HB_TAG('p','s','t','f'), false},
   {HB_TAG('c','j','c','t'), false},
   {HB_TAG('v','a','t','u'), true},
@@ -143,6 +144,7 @@ enum {
   PREF,
   BLWF,
   HALF,
+  ABVF,
   PSTF,
   CJCT,
   VATU
@@ -473,7 +475,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     mask = mask_array[AKHN] | mask_array[CJCT];
     info[base].mask |= mask;
     /* Post-base */
-    mask = mask_array[BLWF] | mask_array[PSTF] | mask_array[CJCT];
+    mask = mask_array[BLWF] | mask_array[ABVF] | mask_array[PSTF] | mask_array[CJCT];
     for (unsigned int i = base + 1; i < end; i++)
       info[i].mask  |= mask;
   }
