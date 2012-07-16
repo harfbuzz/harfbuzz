@@ -805,7 +805,7 @@ final_reordering_syllable (hb_buffer_t *buffer, hb_mask_t *mask_array,
    *     the following rules:
    *
    *       1. Only reorder a glyph produced by substitution during application
-   *          of the feature. (Note that a font may shape a Ra consonant with
+   *          of the <pref> feature. (Note that a font may shape a Ra consonant with
    *          the feature generally but block it in certain contexts.)
    *
    *       2. Try to find a target position the same way as for pre-base matra.
