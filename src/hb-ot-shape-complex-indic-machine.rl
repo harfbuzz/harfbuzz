@@ -52,11 +52,12 @@ VD   = 10;
 A    = 11;
 NBSP = 12;
 DOTTEDCIRCLE = 13;
+RS   = 14;
 
 c = C | Ra;
 n = N N?;
 z = ZWJ|ZWNJ;
-matra_group = M N? H?;
+matra_group = (M | RS) N? H?;
 syllable_tail = SM? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 

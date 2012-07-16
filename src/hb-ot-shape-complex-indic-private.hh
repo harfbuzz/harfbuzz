@@ -58,7 +58,8 @@ enum indic_category_t {
   OT_VD,
   OT_A,
   OT_NBSP,
-  OT_DOTTEDCIRCLE /* Not in the spec, but special in Uniscribe. /Very very/ special! */
+  OT_DOTTEDCIRCLE, /* Not in the spec, but special in Uniscribe. /Very very/ special! */
+  OT_RS /* Register Shifter, used in Khmer OT spec */
 };
 
 /* Visual positions in a syllable from left to right. */
@@ -92,7 +93,7 @@ enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_CONSONANT_REPHA	= OT_C,
   INDIC_SYLLABIC_CATEGORY_MODIFYING_LETTER	= OT_X,
   INDIC_SYLLABIC_CATEGORY_NUKTA			= OT_N,
-  INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	= OT_X,
+  INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	= OT_RS,
   INDIC_SYLLABIC_CATEGORY_TONE_LETTER		= OT_X,
   INDIC_SYLLABIC_CATEGORY_TONE_MARK		= OT_X,
   INDIC_SYLLABIC_CATEGORY_VIRAMA		= OT_H,
