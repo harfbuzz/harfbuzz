@@ -110,6 +110,7 @@ struct hb_apply_context_t
   unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
   unsigned int debug_depth;
+  bool has_glyph_classes;
 
 
   hb_apply_context_t (hb_font_t *font_,
@@ -120,7 +121,8 @@ struct hb_apply_context_t
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
 			nesting_level_left (MAX_NESTING_LEVEL),
-			lookup_props (0), property (0), debug_depth (0) {}
+			lookup_props (0), property (0), debug_depth (0),
+			has_glyph_classes (hb_ot_layout_has_glyph_classes (face_)) {}
 
   void set_lookup (const Lookup &l) {
     lookup_props = l.get_props ();
@@ -229,25 +231,29 @@ struct hb_apply_context_t
     return _hb_ot_layout_skip_mark (face, &buffer->cur(), lookup_props, &property);
   }
 
+  inline void set_klass_guess (unsigned int klass_guess) const
+  {
+    buffer->cur().props_cache() = has_glyph_classes ? 0 : klass_guess;
+  }
 
   inline void output_glyph (hb_codepoint_t glyph_index,
-			    unsigned int klass = 0) const
+			    unsigned int klass_guess = 0) const
   {
-    buffer->cur().props_cache() = klass; /*XXX if has gdef? */
+    set_klass_guess (klass_guess);
     buffer->output_glyph (glyph_index);
   }
   inline void replace_glyph (hb_codepoint_t glyph_index,
-			     unsigned int klass = 0) const
+			     unsigned int klass_guess = 0) const
   {
-    buffer->cur().props_cache() = klass; /*XXX if has gdef? */
+    set_klass_guess (klass_guess);
     buffer->replace_glyph (glyph_index);
   }
   inline void replace_glyphs (unsigned int num_in,
 			      unsigned int num_out,
 			      hb_codepoint_t *glyph_data,
-			      unsigned int klass = 0) const
+			      unsigned int klass_guess = 0) const
   {
-    buffer->cur().props_cache() = klass; /* XXX if has gdef? */
+    set_klass_guess (klass_guess);
     buffer->replace_glyphs (num_in, num_out, glyph_data);
   }
 };
