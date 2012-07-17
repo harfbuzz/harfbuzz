@@ -65,8 +65,8 @@ place_holder = NBSP | DOTTEDCIRCLE;
 
 
 consonant_syllable =	(c.n? (h.z?|z.h))* c.n? A? (h.z? | matra_group*)? (Coeng (c|V))? syllable_tail;
-vowel_syllable =	(Ra H)? V n? (z?.h.c | ZWJ.c)* matra_group* syllable_tail;
-standalone_cluster =	(Ra H)? place_holder n? (z? h c)* matra_group* syllable_tail;
+vowel_syllable =	(Ra H)? V.n? (z?.h.c | ZWJ.c)* matra_group* syllable_tail;
+standalone_cluster =	(Ra H)? place_holder.n? (z? h c)* matra_group* syllable_tail;
 other =			any;
 
 main := |*
