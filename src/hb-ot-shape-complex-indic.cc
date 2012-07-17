@@ -468,6 +468,17 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	    }
       }
   }
+  /* Re-attach ZWJ, ZWNJ, and halant to next char, for after-base consonants. */
+  {
+    unsigned int last_halant = end;
+    for (unsigned int i = base + 1; i < end; i++)
+      if (info[i].indic_category() == OT_H)
+        last_halant = i;
+      else if (is_consonant (info[i])) {
+	for (unsigned int j = last_halant; j < i; j++)
+	  info[j].indic_position() = info[i].indic_position();
+      }
+  }
 
   /* We do bubble-sort, skip malicious clusters attempts */
   if (end - start < 64)
