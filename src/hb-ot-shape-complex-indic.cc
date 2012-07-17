@@ -352,35 +352,46 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       has_reph = true;
     };
 
-    /* -> starting from the end of the syllable, move backwards */
-    unsigned int i = end;
-    do {
-      i--;
-      /* -> until a consonant is found */
-      if (is_consonant (info[i]))
-      {
-	/* -> that does not have a below-base or post-base form
-	 * (post-base forms have to follow below-base forms), */
-	if (info[i].indic_position() != POS_BELOW_C &&
-	    info[i].indic_position() != POS_POST_C)
+    if (basic_mask_array[HALF])
+    {
+      /* -> starting from the end of the syllable, move backwards */
+      unsigned int i = end;
+      do {
+	i--;
+	/* -> until a consonant is found */
+	if (is_consonant (info[i]))
 	{
+	  /* -> that does not have a below-base or post-base form
+	   * (post-base forms have to follow below-base forms), */
+	  if (info[i].indic_position() != POS_BELOW_C &&
+	      info[i].indic_position() != POS_POST_C)
+	  {
+	    base = i;
+	    break;
+	  }
+
+	  /* -> or that is not a pre-base reordering Ra,
+	   *
+	   * TODO
+	   */
+
+	  /* -> or arrive at the first consonant. The consonant stopped at will
+	   * be the base. */
 	  base = i;
-	  break;
 	}
+	else
+	  if (is_joiner (info[i]))
+	    break;
+      } while (i > limit);
+    }
+    else
+    {
+      /* In scripts without half forms (eg. Khmer), the first consonant is always the base. */
 
-	/* -> or that is not a pre-base reordering Ra,
-	 *
-	 * TODO
-	 */
+      if (!has_reph)
+	base = limit;
+    }
 
-	/* -> or arrive at the first consonant. The consonant stopped at will
-	 * be the base. */
-	base = i;
-      }
-      else
-	if (is_joiner (info[i]))
-	  break;
-    } while (i > limit);
     if (base < start)
       base = start; /* Just in case... */
 
