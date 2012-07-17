@@ -135,6 +135,7 @@ struct feature_list_t {
   hb_bool_t is_global;
 };
 
+/* These features are applied one at a time, given the order in this table. */
 static const feature_list_t
 indic_basic_features[] =
 {
@@ -166,6 +167,7 @@ enum {
   VATU
 };
 
+/* These features are applied all at once. */
 static const feature_list_t
 indic_other_features[] =
 {
@@ -211,10 +213,8 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map,
 
   map->add_gsub_pause (final_reordering, NULL);
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++) {
+  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++)
     map->add_bool_feature (indic_other_features[i].tag, indic_other_features[i].is_global);
-    map->add_gsub_pause (NULL, NULL);
-  }
 }
 
 void
