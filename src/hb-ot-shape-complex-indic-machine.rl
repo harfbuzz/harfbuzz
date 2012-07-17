@@ -56,7 +56,7 @@ RS   = 14;
 Coeng = 15;
 
 c = C | Ra;
-n = N N?;
+n = (N.N? | ZWNJ?.RS);
 z = ZWJ|ZWNJ;
 h = H | Coeng;
 matra_group = (M | RS) N? H?;
