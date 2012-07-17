@@ -199,6 +199,12 @@ _hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map,
   map->add_bool_feature (HB_TAG('c','s','w','h'));
 }
 
+void
+_hb_ot_shape_complex_override_features_arabic (hb_ot_map_builder_t *map,
+					       const hb_segment_properties_t *props)
+{
+}
+
 hb_ot_shape_normalization_mode_t
 _hb_ot_shape_complex_normalization_preference_arabic (void)
 {

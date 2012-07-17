@@ -217,6 +217,12 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map,
   }
 }
 
+void
+_hb_ot_shape_complex_override_features_indic (hb_ot_map_builder_t *map,
+					      const hb_segment_properties_t *props HB_UNUSED)
+{
+}
+
 
 hb_ot_shape_normalization_mode_t
 _hb_ot_shape_complex_normalization_preference_indic (void)

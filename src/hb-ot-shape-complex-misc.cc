@@ -42,6 +42,12 @@ _hb_ot_shape_complex_collect_features_default (hb_ot_map_builder_t *map HB_UNUSE
 {
 }
 
+void
+_hb_ot_shape_complex_override_features_default (hb_ot_map_builder_t *map HB_UNUSED,
+					        const hb_segment_properties_t *props HB_UNUSED)
+{
+}
+
 hb_ot_shape_normalization_mode_t
 _hb_ot_shape_complex_normalization_preference_default (void)
 {
@@ -74,6 +80,12 @@ _hb_ot_shape_complex_collect_features_hangul (hb_ot_map_builder_t *map,
     map->add_bool_feature (hangul_features[i]);
 }
 
+void
+_hb_ot_shape_complex_override_features_hangul (hb_ot_map_builder_t *map,
+					       const hb_segment_properties_t *props HB_UNUSED)
+{
+}
+
 hb_ot_shape_normalization_mode_t
 _hb_ot_shape_complex_normalization_preference_hangul (void)
 {
@@ -94,6 +106,12 @@ _hb_ot_shape_complex_setup_masks_hangul (hb_ot_map_t *map HB_UNUSED,
 void
 _hb_ot_shape_complex_collect_features_thai (hb_ot_map_builder_t *map HB_UNUSED,
 					    const hb_segment_properties_t *props HB_UNUSED)
+{
+}
+
+void
+_hb_ot_shape_complex_override_features_thai (hb_ot_map_builder_t *map HB_UNUSED,
+					     const hb_segment_properties_t *props HB_UNUSED)
 {
 }
 

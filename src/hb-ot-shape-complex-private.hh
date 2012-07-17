@@ -249,6 +249,36 @@ hb_ot_shape_complex_collect_features (hb_ot_complex_shaper_t shaper,
 
 
 /*
+ * override_features()
+ *
+ * Called during shape_plan().
+ *
+ * Shapers should use map to override features and add callbacks after
+ * common features are added.
+ */
+
+typedef void hb_ot_shape_complex_override_features_func_t (hb_ot_map_builder_t *map, const hb_segment_properties_t  *props);
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+  HB_INTERNAL hb_ot_shape_complex_override_features_func_t _hb_ot_shape_complex_override_features_##name;
+  HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
+
+static inline void
+hb_ot_shape_complex_override_features (hb_ot_complex_shaper_t shaper,
+				       hb_ot_map_builder_t *map,
+				       const hb_segment_properties_t  *props)
+{
+  switch (shaper) {
+    default:
+#define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
+    case hb_ot_complex_shaper_##name:	_hb_ot_shape_complex_override_features_##name (map, props); return;
+    HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_COMPLEX_SHAPER_IMPLEMENT
+  }
+}
+
+
+/*
  * normalization_preference()
  *
  * Called during shape_execute().

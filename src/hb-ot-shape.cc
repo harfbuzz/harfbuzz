@@ -123,6 +123,8 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   else
     ADD_FEATURES (vertical_features);
 
+  hb_ot_shape_complex_override_features (planner->shaper, &planner->map, props);
+
 #undef ADD_FEATURES
 
   for (unsigned int i = 0; i < num_user_features; i++) {
