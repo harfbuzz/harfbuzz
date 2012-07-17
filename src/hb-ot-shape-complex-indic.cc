@@ -275,8 +275,8 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
       info.indic_category() = OT_VD;
 
     if (info.indic_category() == OT_X &&
-	unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x17CB, 0x17D0)))
-      info.indic_category() = OT_RS;
+	unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x17CB, 0x17D2))) /* Khmer Various signs */
+      info.indic_category() = OT_N;
 
     /* Khmer Virama is different since it can be used to form a final consonant. */
     if (unlikely (info.codepoint == 0x17D2))
@@ -488,7 +488,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   {
     /* Please update the Uniscribe branch when touching this! */
     for (unsigned int i = start + 1; i < end; i++)
-      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H))))
+      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_RS) | FLAG (OT_H))))
 	info[i].indic_position() = info[i - 1].indic_position();
   } else {
     /*
@@ -497,7 +497,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
      */
     /* Please update the non-Uniscribe branch when touching this! */
     for (unsigned int i = start + 1; i < end; i++)
-      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_H)))) {
+      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_RS) | FLAG (OT_H)))) {
 	info[i].indic_position() = info[i - 1].indic_position();
 	if (info[i].indic_category() == OT_H && info[i].indic_position() == POS_PRE_M)
 	  for (unsigned int j = i; j > start; j--)

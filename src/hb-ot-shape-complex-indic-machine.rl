@@ -55,16 +55,16 @@ DOTTEDCIRCLE = 13;
 RS   = 14;
 Coeng = 15;
 
-c = C | Ra;
-n = (N.N? | ZWNJ?.RS);
-z = ZWJ|ZWNJ;
-h = H | Coeng;
-matra_group = (M | RS) N? H?;
-syllable_tail = SM? (VD VD?)?;
+c = C | Ra;			# is_consonant
+n = (N.N? | ZWNJ?.RS);		# is_consonant_modifier
+z = ZWJ|ZWNJ;			# is_joiner
+h = H | Coeng;			# is_halant_or_coeng
+matra_group = M.N?.H?;
+syllable_tail = SM? (Coeng (c|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 
 
-consonant_syllable =	(c.n? (h.z?|z.h))* c.n? A? (h.z? | matra_group*)? (Coeng (c|V))? syllable_tail;
+consonant_syllable =	(c.n? (h.z?|z.h))* c.n? A? (h.z? | matra_group*)? syllable_tail;
 vowel_syllable =	(Ra H)? V.n? (z?.h.c | ZWJ.c)* matra_group* syllable_tail;
 standalone_cluster =	(Ra H)? place_holder.n? (z? h c)* matra_group* syllable_tail;
 other =			any;

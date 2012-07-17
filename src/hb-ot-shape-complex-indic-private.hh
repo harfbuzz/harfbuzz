@@ -59,7 +59,7 @@ enum indic_category_t {
   OT_A,
   OT_NBSP,
   OT_DOTTEDCIRCLE, /* Not in the spec, but special in Uniscribe. /Very very/ special! */
-  OT_RS, /* Register Shifter (and other marks), used in Khmer OT spec */
+  OT_RS, /* Register Shifter, used in Khmer OT spec */
   OT_Coeng
 };
 
