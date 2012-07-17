@@ -53,6 +53,7 @@ A    = 11;
 NBSP = 12;
 DOTTEDCIRCLE = 13;
 RS   = 14;
+Coeng = 15;
 
 c = C | Ra;
 n = N N?;

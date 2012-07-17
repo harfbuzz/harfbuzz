@@ -130,6 +130,12 @@ is_consonant (const hb_glyph_info_t &info)
   return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE)));
 }
 
+static bool
+is_halant_or_coeng (const hb_glyph_info_t &info)
+{
+  return !!(FLAG (info.indic_category()) & (FLAG (OT_H) | FLAG (OT_Coeng)));
+}
+
 struct feature_list_t {
   hb_tag_t tag;
   hb_bool_t is_global;
@@ -472,7 +478,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   {
     unsigned int last_halant = end;
     for (unsigned int i = base + 1; i < end; i++)
-      if (info[i].indic_category() == OT_H)
+      if (is_halant_or_coeng (info[i]))
         last_halant = i;
       else if (is_consonant (info[i])) {
 	for (unsigned int j = last_halant; j < i; j++)
@@ -521,7 +527,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   {
     /* Find a Halant,Ra sequence and mark it fore pre-base reordering processing. */
     for (unsigned int i = base + 1; i + 1 < end; i++)
-      if (info[i].indic_category() == OT_H &&
+      if (is_halant_or_coeng (info[i]) &&
 	  info[i + 1].indic_category() == OT_Ra)
       {
 	info[i].mask |= basic_mask_array[PREF];
@@ -644,11 +650,11 @@ final_reordering_syllable (hb_buffer_t *buffer,
   {
     unsigned int new_pos = base - 1;
     while (new_pos > start &&
-	   !(FLAG (info[new_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
+	   !(FLAG (info[new_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng))))
       new_pos--;
     /* If we found no Halant we are done.  Otherwise only proceed if the Halant does
      * not belong to the Matra itself! */
-    if (info[new_pos].indic_category() == OT_H &&
+    if (is_halant_or_coeng (info[new_pos]) &&
 	info[new_pos].indic_position() != POS_PRE_M) {
       /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
       if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
@@ -745,10 +751,10 @@ final_reordering_syllable (hb_buffer_t *buffer,
      */
     {
       new_reph_pos = start + 1;
-      while (new_reph_pos < base && info[new_reph_pos].indic_category() != OT_H)
+      while (new_reph_pos < base && !is_halant_or_coeng (info[new_reph_pos]))
 	new_reph_pos++;
 
-      if (new_reph_pos < base && info[new_reph_pos].indic_category() == OT_H) {
+      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos])) {
 	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
 	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
 	  new_reph_pos++;
@@ -814,7 +820,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
        * TEST: U+0930,U+094D,U+0915,U+094B,U+094D
        */
       if (!indic_options ().uniscribe_bug_compatible &&
-	  unlikely (info[new_reph_pos].indic_category() == OT_H)) {
+	  unlikely (is_halant_or_coeng (info[new_reph_pos]))) {
 	for (unsigned int i = base + 1; i < new_reph_pos; i++)
 	  if (info[i].indic_category() == OT_M) {
 	    /* Ok, got it. */
@@ -862,10 +868,10 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
 	  unsigned int new_pos = base;
 	  while (new_pos > start + 1 &&
-		 !(FLAG (info[new_pos - 1].indic_category()) & (FLAG (OT_M) | FLAG (OT_H))))
+		 !(FLAG (info[new_pos - 1].indic_category()) & (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng))))
 	    new_pos--;
 
-	  if (new_pos > start && info[new_pos - 1].indic_category() == OT_H)
+	  if (new_pos > start && is_halant_or_coeng (info[new_pos - 1]))
 	    /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
 	    if (new_pos < end && is_joiner (info[new_pos]))
 	      new_pos++;
@@ -910,7 +916,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
      * Uniscribe does. */
     unsigned int cluster_start = start;
     for (unsigned int i = start + 1; i < start_of_last_cluster; i++)
-      if (info[i - 1].indic_category() == OT_H && info[i].indic_category() == OT_ZWNJ) {
+      if (is_halant_or_coeng (info[i - 1]) && info[i].indic_category() == OT_ZWNJ) {
         i++;
 	buffer->merge_clusters (cluster_start, i);
 	cluster_start = i;
