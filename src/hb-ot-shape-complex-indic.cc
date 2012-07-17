@@ -154,6 +154,7 @@ indic_basic_features[] =
   {HB_TAG('h','a','l','f'), false},
   {HB_TAG('a','b','v','f'), false},
   {HB_TAG('p','s','t','f'), false},
+  {HB_TAG('c','f','a','r'), false},
   {HB_TAG('c','j','c','t'), false},
   {HB_TAG('v','a','t','u'), true},
 };
@@ -169,6 +170,7 @@ enum {
   HALF,
   ABVF,
   PSTF,
+  CFAR,
   CJCT,
   VATU
 };
@@ -547,8 +549,18 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       if (is_halant_or_coeng (info[i]) &&
 	  info[i + 1].indic_category() == OT_Ra)
       {
-	info[i].mask |= basic_mask_array[PREF];
-	info[i + 1].mask |= basic_mask_array[PREF];
+	info[i++].mask |= basic_mask_array[PREF];
+	info[i++].mask |= basic_mask_array[PREF];
+
+	/* Mark the subsequent stuff with 'cfar'.  Used in Khmer.
+	 * Read the feature spec.
+	 * This allows distinguishing the following cases with MS Khmer fonts:
+	 * U+1784,U+17D2,U+179A,U+17D2,U+1782
+	 * U+1784,U+17D2,U+1782,U+17D2,U+179A
+	 */
+	for (; i < end; i++)
+	  info[i].mask |= basic_mask_array[CFAR];
+
 	break;
       }
   }
