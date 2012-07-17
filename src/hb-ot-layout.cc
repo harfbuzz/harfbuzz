@@ -123,7 +123,7 @@ _hb_ot_layout_match_properties_mark (hb_face_t      *face,
    * "ignore marks of attachment type different than
    * the attachment type specified."
    */
-  if (lookup_props & LookupFlag::MarkAttachmentType && glyph_props & LookupFlag::MarkAttachmentType)
+  if (lookup_props & LookupFlag::MarkAttachmentType)
     return (lookup_props & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
 
   return true;
