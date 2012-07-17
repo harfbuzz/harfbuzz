@@ -276,7 +276,11 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
 	unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x17CB, 0x17D0)))
       info.indic_category() = OT_RS;
 
-    if (info.indic_category() == OT_C) {
+    /* Khmer Virama is different since it can be used to form a final consonant. */
+    if (unlikely (info.codepoint == 0x17D2))
+      info.indic_category() = OT_Coeng;
+
+    if (is_consonant (info)) {
       info.indic_position() = consonant_position (info.codepoint);
       if (is_ra (info.codepoint))
 	info.indic_category() = OT_Ra;
