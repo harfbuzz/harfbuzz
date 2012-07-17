@@ -372,7 +372,10 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
 	  /* -> or that is not a pre-base reordering Ra,
 	   *
-	   * TODO
+	   * IMPLEMENTATION NOTES:
+	   *
+	   * Our pre-base reordering Ra's are marked POS_BELOW, so will be skipped
+	   * by the logic above already.
 	   */
 
 	  /* -> or arrive at the first consonant. The consonant stopped at will
