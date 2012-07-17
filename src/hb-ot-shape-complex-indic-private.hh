@@ -75,6 +75,7 @@ enum indic_position_t {
   POS_BELOW_M,
   POS_POST_C,
   POS_POST_M,
+  POS_FINAL_C,
   POS_SMVD
 };
 

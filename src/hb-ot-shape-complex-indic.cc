@@ -429,7 +429,20 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
   for (unsigned int i = start; i < base; i++)
     info[i].indic_position() = POS_PRE_C;
+
   info[base].indic_position() = POS_BASE_C;
+
+  /* Mark final consonants.  A final consonant is one appearing after a matra,
+   * like in Khmer. */
+  for (unsigned int i = base + 1; i < end; i++)
+    if (info[i].indic_category() == OT_M) {
+      for (unsigned int j = i + 1; j < end; j++)
+        if (is_consonant (info[j])) {
+	  info[j].indic_position() = POS_FINAL_C;
+	  break;
+	}
+      break;
+    }
 
   /* Handle beginning Ra */
   if (has_reph)
