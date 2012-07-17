@@ -47,7 +47,6 @@
 enum indic_category_t {
   OT_X = 0,
   OT_C,
-  OT_Ra, /* Not explicitly listed in the OT spec, but used in the grammar. */
   OT_V,
   OT_N,
   OT_H,
@@ -60,7 +59,9 @@ enum indic_category_t {
   OT_NBSP,
   OT_DOTTEDCIRCLE, /* Not in the spec, but special in Uniscribe. /Very very/ special! */
   OT_RS, /* Register Shifter, used in Khmer OT spec */
-  OT_Coeng
+  OT_Coeng,
+  OT_Repha,
+  OT_Ra /* Not explicitly listed in the OT spec, but used in the grammar. */
 };
 
 /* Visual positions in a syllable from left to right. */
@@ -92,7 +93,7 @@ enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_CONSONANT_MEDIAL	= OT_C,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	= OT_NBSP,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_SUBJOINED	= OT_C,
-  INDIC_SYLLABIC_CATEGORY_CONSONANT_REPHA	= OT_C,
+  INDIC_SYLLABIC_CATEGORY_CONSONANT_REPHA	= OT_Repha,
   INDIC_SYLLABIC_CATEGORY_MODIFYING_LETTER	= OT_X,
   INDIC_SYLLABIC_CATEGORY_NUKTA			= OT_N,
   INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	= OT_RS,

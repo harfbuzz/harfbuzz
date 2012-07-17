@@ -40,33 +40,35 @@
 # Same order as enum indic_category_t.  Not sure how to avoid duplication.
 X    = 0;
 C    = 1;
-Ra   = 2;
-V    = 3;
-N    = 4;
-H    = 5;
-ZWNJ = 6;
-ZWJ  = 7;
-M    = 8;
-SM   = 9;
-VD   = 10;
-A    = 11;
-NBSP = 12;
-DOTTEDCIRCLE = 13;
-RS   = 14;
-Coeng = 15;
+V    = 2;
+N    = 3;
+H    = 4;
+ZWNJ = 5;
+ZWJ  = 6;
+M    = 7;
+SM   = 8;
+VD   = 9;
+A    = 10;
+NBSP = 11;
+DOTTEDCIRCLE = 12;
+RS   = 13;
+Coeng = 14;
+Repha = 15;
+Ra    = 16;
 
 c = C | Ra;			# is_consonant
 n = (N.N? | ZWNJ?.RS);		# is_consonant_modifier
 z = ZWJ|ZWNJ;			# is_joiner
 h = H | Coeng;			# is_halant_or_coeng
+reph = (Ra H | Repha);		# possible reph
 matra_group = M.N?.H?;
 syllable_tail = SM? (Coeng (c|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 
 
-consonant_syllable =	(c.n? (h.z?|z.h))* c.n? A? (h.z? | matra_group*)? syllable_tail;
-vowel_syllable =	(Ra H)? V.n? (z?.h.c | ZWJ.c)* matra_group* syllable_tail;
-standalone_cluster =	(Ra H)? place_holder.n? (z? h c)* matra_group* syllable_tail;
+consonant_syllable =	Repha? (c.n? (h.z?|z.h))* c.n? A? (h.z? | matra_group*)? syllable_tail;
+vowel_syllable =	reph? V.n? (z?.h.c | ZWJ.c)* matra_group* syllable_tail;
+standalone_cluster =	reph? place_holder.n? (z? h c)* matra_group* syllable_tail;
 other =			any;
 
 main := |*

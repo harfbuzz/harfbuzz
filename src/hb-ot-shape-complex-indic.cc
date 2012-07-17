@@ -282,6 +282,19 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
     if (unlikely (info.codepoint == 0x17D2))
       info.indic_category() = OT_Coeng;
 
+    if (info.indic_category() == OT_Repha) {
+      /* There are two kinds of characters marked as Repha:
+       * - The ones that are GenCat=Mn are already positioned visually, ie. after base. (eg. Khmer)
+       * - The ones that are GenCat=Lo is encoded logically, ie. beginning of syllable. (eg. Malayalam)
+       *
+       * We recategorize the first kind to look like a Nukta and attached to the base directly.
+       */
+      if (_hb_glyph_info_get_general_category (&info) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+        info.indic_category() = OT_N;
+    }
+
+
+    /* Assign positions... */
     if (is_consonant (info)) {
       info.indic_position() = consonant_position (info.codepoint);
       if (is_ra (info.codepoint))
