@@ -221,6 +221,9 @@ void
 _hb_ot_shape_complex_override_features_indic (hb_ot_map_builder_t *map,
 					      const hb_segment_properties_t *props HB_UNUSED)
 {
+  /* Uniscribe does not apply 'kern'. */
+  if (indic_options ().uniscribe_bug_compatible)
+    map->add_feature (HB_TAG('k','e','r','n'), 0, true);
 }
 
 
