@@ -193,6 +193,19 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
                                unsigned int *length);
 
 
+/* Reorders a glyph buffer to have canonical in-cluster glyph order / position.
+ * The resulting clusters should behave identical to pre-reordering clusters.
+ * NOTE: This has nothing to do with Unicode normalization. */
+void
+hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
+
+/*
+ * NOT IMPLEMENTED
+void
+hb_buffer_normalize_characters (hb_buffer_t *buffer);
+*/
+
+
 HB_END_DECLS
 
 #endif /* HB_BUFFER_H */

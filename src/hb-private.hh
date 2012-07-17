@@ -737,8 +737,8 @@ hb_in_range (T u, T lo, T hi)
 #define FLAG(x) (1<<(x))
 
 
-template <typename T> inline void
-hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
+template <typename T, typename T2> inline void
+hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *), T2 *array2)
 {
   if (unlikely (!len))
     return;
@@ -748,11 +748,21 @@ hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
     unsigned int new_k = 0;
 
     for (unsigned int j = 0; j < k; j++)
-      if (compar (&array[j], &array[j+1]) > 0) {
-        T t;
-	t = array[j];
-	array[j] = array[j + 1];
-	array[j + 1] = t;
+      if (compar (&array[j], &array[j+1]) > 0)
+      {
+        {
+	  T t;
+	  t = array[j];
+	  array[j] = array[j + 1];
+	  array[j + 1] = t;
+	}
+        if (array2)
+        {
+	  T2 t;
+	  t = array2[j];
+	  array2[j] = array2[j + 1];
+	  array2[j + 1] = t;
+	}
 
 	new_k = j;
       }
@@ -760,6 +770,11 @@ hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
   } while (k);
 }
 
+template <typename T> inline void
+hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
+{
+  hb_bubble_sort (array, len, compar, (int *) NULL);
+}
 
 
 

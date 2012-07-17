@@ -148,6 +148,7 @@ struct shape_options_t : option_group_t
     num_features = 0;
     shapers = NULL;
     utf8_clusters = false;
+    normalize_glyphs = false;
 
     add_options (parser);
   }
@@ -188,7 +189,10 @@ struct shape_options_t : option_group_t
 
   hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer)
   {
-    return hb_shape_full (font, buffer, features, num_features, shapers);
+    hb_bool_t res = hb_shape_full (font, buffer, features, num_features, shapers);
+    if (normalize_glyphs)
+      hb_buffer_normalize_glyphs (buffer);
+    return res;
   }
 
   void shape_closure (const char *text, int text_len,
@@ -208,6 +212,7 @@ struct shape_options_t : option_group_t
   unsigned int num_features;
   char **shapers;
   hb_bool_t utf8_clusters;
+  hb_bool_t normalize_glyphs;
 };
 
 
