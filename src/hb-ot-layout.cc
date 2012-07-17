@@ -173,7 +173,7 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
   if (property_out)
     *property_out = property;
 
-  /* If it's a mark, skip it we don't accept it. */
+  /* If it's a mark, skip it if we don't accept it. */
   if (unlikely (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
     return !_hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
 
