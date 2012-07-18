@@ -66,9 +66,10 @@ cn = c.n?;
 matra_group = M.N?.H?;
 syllable_tail = SM? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
+halant_group = (h.z?|z.h);
 
 
-consonant_syllable =	Repha? (cn (h.z?|z.h))* cn A? (h.z? | matra_group*)? syllable_tail;
+consonant_syllable =	Repha? (cn halant_group)* cn A? (h.z? | matra_group*)? syllable_tail;
 vowel_syllable =	reph? V.n? (z?.h.cn | ZWJ.cn)* matra_group* syllable_tail;
 standalone_cluster =	reph? place_holder.n? (z? h.cn)* matra_group* syllable_tail;
 other =			any;
