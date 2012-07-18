@@ -365,7 +365,23 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       has_reph = true;
     };
 
-    if (basic_mask_array[HALF])
+     enum base_position_t {
+       BASE_FIRST,
+       BASE_LAST
+     } base_pos;
+
+    switch ((hb_tag_t) buffer->props.script)
+    {
+      case HB_SCRIPT_KHMER:
+	base_pos = BASE_FIRST;
+	break;
+
+      default:
+	base_pos = BASE_LAST;
+	break;
+    }
+
+    if (base_pos == BASE_LAST)
     {
       /* -> starting from the end of the syllable, move backwards */
       unsigned int i = end;
