@@ -705,11 +705,8 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
   /* Find base again */
   unsigned int base = end;
-  for (unsigned int i = start; i < end; i++)
-    if (info[i].indic_position() == POS_BASE_C) {
-      base = i;
-      break;
-    }
+  while (start < base && info[base - 1].indic_position() >= POS_BASE_C)
+    base--;
 
   unsigned int start_of_last_cluster = base;
 
