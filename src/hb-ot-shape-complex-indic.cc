@@ -473,7 +473,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   /* Reorder characters */
 
   for (unsigned int i = start; i < base; i++)
-    info[i].indic_position() = POS_PRE_C;
+    info[i].indic_position() = MIN (POS_PRE_C, info[i].indic_position());
 
   if (base < end)
     info[base].indic_position() = POS_BASE_C;
