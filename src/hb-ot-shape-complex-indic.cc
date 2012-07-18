@@ -797,6 +797,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
        default:
        case HB_SCRIPT_DEVANAGARI:
        case HB_SCRIPT_GUJARATI:
+       case HB_SCRIPT_SINHALA:
 	 reph_pos = REPH_BEFORE_POSTSCRIPT;
 	 break;
 
