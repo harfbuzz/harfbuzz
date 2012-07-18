@@ -56,19 +56,21 @@ Coeng = 14;
 Repha = 15;
 Ra    = 16;
 
-c = C | Ra;			# is_consonant
+c = (C | Ra);			# is_consonant
 n = (N.N? | ZWNJ?.RS);		# is_consonant_modifier
 z = ZWJ|ZWNJ;			# is_joiner
 h = H | Coeng;			# is_halant_or_coeng
 reph = (Ra H | Repha);		# possible reph
+
+cn = c.n?;
 matra_group = M.N?.H?;
-syllable_tail = SM? (Coeng (c|V))? (VD VD?)?;
+syllable_tail = SM? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 
 
-consonant_syllable =	Repha? (c.n? (h.z?|z.h))* c.n? A? (h.z? | matra_group*)? syllable_tail;
-vowel_syllable =	reph? V.n? (z?.h.c | ZWJ.c)* matra_group* syllable_tail;
-standalone_cluster =	reph? place_holder.n? (z? h c)* matra_group* syllable_tail;
+consonant_syllable =	Repha? (cn (h.z?|z.h))* cn A? (h.z? | matra_group*)? syllable_tail;
+vowel_syllable =	reph? V.n? (z?.h.cn | ZWJ.cn)* matra_group* syllable_tail;
+standalone_cluster =	reph? place_holder.n? (z? h.cn)* matra_group* syllable_tail;
 other =			any;
 
 main := |*
