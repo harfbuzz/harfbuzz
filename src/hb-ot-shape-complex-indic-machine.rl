@@ -63,7 +63,7 @@ h = H | Coeng;			# is_halant_or_coeng
 reph = (Ra H | Repha);		# possible reph
 
 cn = c.n?;
-matra_group = M.N?.H?;
+matra_group = z*.M.N?.H?;
 syllable_tail = SM? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 halant_group = (h.z?|z.h);
@@ -87,7 +87,7 @@ main := |*
 
 #define process_syllable(func) \
   HB_STMT_START { \
-    /* fprintf (stderr, "syllable %d..%d %s\n", last, p+1, #func); */ \
+    if (0) fprintf (stderr, "syllable %d..%d %s\n", last, p+1, #func); \
     for (unsigned int i = last; i < p+1; i++) \
       info[i].syllable() = syllable_serial; \
     PASTE (initial_reordering_, func) (map, buffer, mask_array, last, p+1); \
