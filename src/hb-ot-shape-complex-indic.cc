@@ -299,8 +299,6 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
       info.indic_position() = consonant_position (info.codepoint);
       if (is_ra (info.codepoint))
 	info.indic_category() = OT_Ra;
-    } else if (info.indic_category() == OT_RS) {
-      info.indic_position() = POS_ABOVE_M;
     } else if (info.indic_category() == OT_SM ||
 	       info.indic_category() == OT_VD) {
       info.indic_position() = POS_SMVD;

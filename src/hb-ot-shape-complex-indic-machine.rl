@@ -57,7 +57,7 @@ Repha = 15;
 Ra    = 16;
 
 c = (C | Ra);			# is_consonant
-n = (N.N? | ZWNJ?.RS);		# is_consonant_modifier
+n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier
 z = ZWJ|ZWNJ;			# is_joiner
 h = H | Coeng;			# is_halant_or_coeng
 reph = (Ra H | Repha);		# possible reph
