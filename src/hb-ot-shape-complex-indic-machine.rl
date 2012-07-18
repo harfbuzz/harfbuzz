@@ -67,11 +67,12 @@ matra_group = M.N?.H?;
 syllable_tail = SM? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 halant_group = (h.z?|z.h);
+halant_or_matra_group = (halant_group | matra_group*);
 
 
-consonant_syllable =	Repha? (cn.halant_group)* cn A? (halant_group | matra_group*)? syllable_tail;
-vowel_syllable =	reph? V.n? (halant_group.cn | ZWJ.cn)* matra_group* syllable_tail;
-standalone_cluster =	reph? place_holder.n? (halant_group.cn)* matra_group* syllable_tail;
+consonant_syllable =	Repha? (cn.halant_group)* cn A? halant_or_matra_group? syllable_tail;
+vowel_syllable =	reph? V.n? (halant_group.cn | ZWJ.cn)* halant_or_matra_group? syllable_tail;
+standalone_cluster =	reph? place_holder.n? (halant_group.cn)* halant_or_matra_group? syllable_tail;
 other =			any;
 
 main := |*
