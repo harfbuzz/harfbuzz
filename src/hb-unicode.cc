@@ -270,6 +270,14 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
   /* XXX FIXME, move these to complex shapers and propagage to normalizer.*/
   switch (ab) {
     case 0x0AC9  : *a = 0x0AC5; *b= 0x0ABE; return true;
+
+    /* These ones have Unicode decompositions, but we do it
+     * this way to be close to what Uniscribe does. */
+    case 0x0DDA  : *a = 0x0DD9; *b= 0x0DDA; return true;
+    case 0x0DDC  : *a = 0x0DD9; *b= 0x0DDC; return true;
+    case 0x0DDD  : *a = 0x0DD9; *b= 0x0DDD; return true;
+    case 0x0DDE  : *a = 0x0DD9; *b= 0x0DDE; return true;
+
     case 0x0F77  : *a = 0x0FB2; *b= 0x0F81; return true;
     case 0x0F79  : *a = 0x0FB3; *b= 0x0F81; return true;
     case 0x17BE  : *a = 0x17C1; *b= 0x17BE; return true;
