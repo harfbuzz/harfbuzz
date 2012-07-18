@@ -29,17 +29,47 @@
 
 /* TODO Add kana, and other small shapers here */
 
-/* When adding trivial shapers, eg. kana, hangul, etc, we can either
- * add a full shaper enum value for them, or switch on the script in
- * the default complex shaper.  The former is faster, so I think that's
- * what we would do, and hence the default complex shaper shall remain
- * empty.
- */
+
+/* The default shaper *only* adds additional per-script features.*/
+
+static const hb_tag_t hangul_features[] =
+{
+  HB_TAG('l','j','m','o'),
+  HB_TAG('v','j','m','o'),
+  HB_TAG('t','j','m','o'),
+  HB_TAG_NONE
+};
+
+static const hb_tag_t tibetan_features[] =
+{
+  HB_TAG('a','b','v','s'),
+  HB_TAG('b','l','w','s'),
+  HB_TAG('a','b','v','m'),
+  HB_TAG('b','l','w','m'),
+  HB_TAG_NONE
+};
 
 void
 _hb_ot_shape_complex_collect_features_default (hb_ot_map_builder_t *map HB_UNUSED,
-					       const hb_segment_properties_t *props HB_UNUSED)
+					       const hb_segment_properties_t *props)
 {
+  const hb_tag_t *script_features = NULL;
+
+  switch ((hb_tag_t) props->script)
+  {
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_HANGUL:
+      script_features = hangul_features;
+      break;
+
+    /* Unicode-2.0 additions */
+    case HB_SCRIPT_TIBETAN:
+      script_features = tibetan_features;
+      break;
+  }
+
+  for (; script_features && *script_features; script_features++)
+    map->add_bool_feature (*script_features);
 }
 
 void
@@ -58,44 +88,6 @@ void
 _hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map HB_UNUSED,
 					  hb_buffer_t *buffer HB_UNUSED,
 					  hb_font_t *font HB_UNUSED)
-{
-}
-
-
-
-/* Hangul shaper */
-
-static const hb_tag_t hangul_features[] =
-{
-  HB_TAG('l','j','m','o'),
-  HB_TAG('v','j','m','o'),
-  HB_TAG('t','j','m','o'),
-};
-
-void
-_hb_ot_shape_complex_collect_features_hangul (hb_ot_map_builder_t *map,
-					      const hb_segment_properties_t *props HB_UNUSED)
-{
-  for (unsigned int i = 0; i < ARRAY_LENGTH (hangul_features); i++)
-    map->add_bool_feature (hangul_features[i]);
-}
-
-void
-_hb_ot_shape_complex_override_features_hangul (hb_ot_map_builder_t *map,
-					       const hb_segment_properties_t *props HB_UNUSED)
-{
-}
-
-hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_hangul (void)
-{
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL;
-}
-
-void
-_hb_ot_shape_complex_setup_masks_hangul (hb_ot_map_t *map HB_UNUSED,
-					 hb_buffer_t *buffer HB_UNUSED,
-					 hb_font_t *font HB_UNUSED)
 {
 }
 
