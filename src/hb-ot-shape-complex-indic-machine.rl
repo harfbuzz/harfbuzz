@@ -66,7 +66,7 @@ cn = c.n?;
 matra_group = z*.M.N?.H?;
 syllable_tail = SM? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
-halant_group = (h.z?|z.h);
+halant_group = (z?.h.z?);
 halant_or_matra_group = (halant_group | matra_group*);
 
 
