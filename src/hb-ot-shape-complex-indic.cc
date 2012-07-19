@@ -87,21 +87,48 @@ compare_codepoint (const void *pa, const void *pb)
   return a < b ? -1 : a == b ? 0 : +1;
 }
 
-static indic_position_t
-consonant_position (hb_codepoint_t u)
+static bool
+would_substitute (hb_codepoint_t *glyphs, unsigned int glyphs_count,
+		  hb_tag_t feature_tag, hb_ot_map_t *map, hb_face_t *face)
 {
-  consonant_position_t *record;
+  unsigned int lookup_indices[32];
+  unsigned int offset, len;
 
-  /* Khmer does not have pre-base half forms. */
-  if (0x1780 <= u && u <= 0x17FF)
-    return POS_BELOW_C;
+  offset = 0;
+  do {
+    len = ARRAY_LENGTH (lookup_indices);
+    hb_ot_layout_feature_get_lookup_indexes (face, HB_OT_TAG_GSUB,
+					     map->get_feature_index (0/*GSUB*/, feature_tag),
+					     offset,
+					     &len,
+					     lookup_indices);
 
-  record = (consonant_position_t *) bsearch (&u, consonant_positions,
-					     ARRAY_LENGTH (consonant_positions),
-					     sizeof (consonant_positions[0]),
-					     compare_codepoint);
+    for (unsigned int i = 0; i < len; i++)
+      if (hb_ot_layout_would_substitute_lookup (face, glyphs, glyphs_count, lookup_indices[i]))
+	return true;
 
-  return record ? record->position : POS_BASE_C;
+    offset += len;
+  } while (len == ARRAY_LENGTH (lookup_indices));
+
+  return false;
+}
+
+static indic_position_t
+consonant_position (hb_codepoint_t u, hb_ot_map_t *map, hb_font_t *font)
+{
+  hb_codepoint_t virama = (u & ~0x007F) | 0x004D;
+  if ((u & ~0x007F) == 0x0D80) virama = 0x0DCA; /* Sinahla */
+  if ((u & ~0x007F) == 0x1780) virama = 0x17D2; /* Khmer */
+  hb_codepoint_t glyphs[2];
+
+  hb_font_get_glyph (font, virama, 0, &glyphs[0]);
+  hb_font_get_glyph (font, u,      0, &glyphs[1]);
+
+  hb_face_t *face = hb_font_get_face (font);
+  if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('p','r','e','f'), map, face)) return POS_BELOW_C;
+  if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('b','l','w','f'), map, face)) return POS_BELOW_C;
+  if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('p','s','t','f'), map, face)) return POS_POST_C;
+  return POS_BASE_C;
 }
 
 #define MATRA_POS_LEFT(u)	POS_PRE_M
@@ -193,7 +220,7 @@ is_halant_or_coeng (const hb_glyph_info_t &info)
 }
 
 static inline void
-set_indic_properties (hb_glyph_info_t &info)
+set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = get_indic_categories (u);
@@ -247,7 +274,7 @@ set_indic_properties (hb_glyph_info_t &info)
 
   if ((FLAG (cat) & CONSONANT_FLAGS))
   {
-    pos = consonant_position (u);
+    pos = consonant_position (u, map, font);
     if (is_ra (u))
       cat = OT_Ra;
   }
@@ -380,9 +407,9 @@ _hb_ot_shape_complex_normalization_preference_indic (void)
 
 
 void
-_hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
+_hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map,
 					hb_buffer_t *buffer,
-					hb_font_t *font HB_UNUSED)
+					hb_font_t *font)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
@@ -392,7 +419,7 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    set_indic_properties (buffer->info[i]);
+    set_indic_properties (buffer->info[i], map, font);
 }
 
 static int
