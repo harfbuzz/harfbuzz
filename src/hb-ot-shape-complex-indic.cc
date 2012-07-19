@@ -113,12 +113,14 @@ is_ra (hb_codepoint_t u)
 		    compare_codepoint);
 }
 
+#define JOINER_FLAGS (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ))
 static bool
 is_joiner (const hb_glyph_info_t &info)
 {
-  return !!(FLAG (info.indic_category()) & (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ)));
+  return !!(FLAG (info.indic_category()) & JOINER_FLAGS);
 }
 
+#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE))
 static bool
 is_consonant (const hb_glyph_info_t &info)
 {
@@ -127,14 +129,79 @@ is_consonant (const hb_glyph_info_t &info)
    * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
    * cannot happen in a consonant syllable.  The plus side however is, we can call the
    * consonant syllable logic from the vowel syllable function and get it all right! */
-  return !!(FLAG (info.indic_category()) & (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE)));
+  return !!(FLAG (info.indic_category()) & CONSONANT_FLAGS);
 }
 
+#define HALANT_OR_COENG_FLAGS (FLAG (OT_H) | FLAG (OT_Coeng))
 static bool
 is_halant_or_coeng (const hb_glyph_info_t &info)
 {
-  return !!(FLAG (info.indic_category()) & (FLAG (OT_H) | FLAG (OT_Coeng)));
+  return !!(FLAG (info.indic_category()) & HALANT_OR_COENG_FLAGS);
 }
+
+static inline void
+set_indic_properties (hb_glyph_info_t &info)
+{
+  hb_codepoint_t u = info.codepoint;
+  unsigned int type = get_indic_categories (u);
+  unsigned int cat = type & 0x0F;
+  unsigned int pos = type >> 4;
+
+  /* The spec says U+0952 is OT_A.  However, testing shows that Uniscribe
+   * treats U+0951..U+0952 all as OT_VD.
+   * TESTS:
+   * U+092E,U+0947,U+0952
+   * U+092E,U+0952,U+0947
+   * U+092E,U+0947,U+0951
+   * U+092E,U+0951,U+0947
+   * */
+  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0951, 0x0954)))
+    cat = OT_VD;
+
+  if (cat == OT_X &&
+      unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D2))) /* Khmer Various signs */
+    cat = OT_N;
+
+  /* Khmer Virama is different since it can be used to form a final consonant. */
+  if (unlikely (u == 0x17D2))
+    cat = OT_Coeng;
+
+  if (cat == OT_Repha) {
+    /* There are two kinds of characters marked as Repha:
+     * - The ones that are GenCat=Mn are already positioned visually, ie. after base. (eg. Khmer)
+     * - The ones that are GenCat=Lo is encoded logically, ie. beginning of syllable. (eg. Malayalam)
+     *
+     * We recategorize the first kind to look like a Nukta and attached to the base directly.
+     */
+    if (_hb_glyph_info_get_general_category (&info) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+      cat = OT_N;
+  }
+
+
+  /* Assign positions... */
+  if ((FLAG (cat) & CONSONANT_FLAGS)) {
+    pos = consonant_position (u);
+    if (is_ra (u))
+      cat = OT_Ra;
+  } else if (cat == OT_SM ||
+	     cat == OT_VD) {
+    pos = POS_SMVD;
+  } else if (unlikely (u == 0x200C))
+    cat = OT_ZWNJ;
+  else if (unlikely (u == 0x200D))
+    cat = OT_ZWJ;
+  else if (unlikely (u == 0x25CC))
+    cat = OT_DOTTEDCIRCLE;
+
+  info.indic_category() = cat;
+  info.indic_position() = pos;
+}
+
+
+
+
+
+
 
 struct feature_list_t {
   hb_tag_t tag;
@@ -256,59 +323,7 @@ _hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map HB_UNUSED,
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-  {
-    hb_glyph_info_t &info = buffer->info[i];
-    unsigned int type = get_indic_categories (info.codepoint);
-
-    info.indic_category() = type & 0x0F;
-    info.indic_position() = type >> 4;
-
-    /* The spec says U+0952 is OT_A.  However, testing shows that Uniscribe
-     * treats U+0951..U+0952 all as OT_VD.
-     * TESTS:
-     * U+092E,U+0947,U+0952
-     * U+092E,U+0952,U+0947
-     * U+092E,U+0947,U+0951
-     * U+092E,U+0951,U+0947
-     * */
-    if (unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x0951, 0x0954)))
-      info.indic_category() = OT_VD;
-
-    if (info.indic_category() == OT_X &&
-	unlikely (hb_in_range<hb_codepoint_t> (info.codepoint, 0x17CB, 0x17D2))) /* Khmer Various signs */
-      info.indic_category() = OT_N;
-
-    /* Khmer Virama is different since it can be used to form a final consonant. */
-    if (unlikely (info.codepoint == 0x17D2))
-      info.indic_category() = OT_Coeng;
-
-    if (info.indic_category() == OT_Repha) {
-      /* There are two kinds of characters marked as Repha:
-       * - The ones that are GenCat=Mn are already positioned visually, ie. after base. (eg. Khmer)
-       * - The ones that are GenCat=Lo is encoded logically, ie. beginning of syllable. (eg. Malayalam)
-       *
-       * We recategorize the first kind to look like a Nukta and attached to the base directly.
-       */
-      if (_hb_glyph_info_get_general_category (&info) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
-        info.indic_category() = OT_N;
-    }
-
-
-    /* Assign positions... */
-    if (is_consonant (info)) {
-      info.indic_position() = consonant_position (info.codepoint);
-      if (is_ra (info.codepoint))
-	info.indic_category() = OT_Ra;
-    } else if (info.indic_category() == OT_SM ||
-	       info.indic_category() == OT_VD) {
-      info.indic_position() = POS_SMVD;
-    } else if (unlikely (info.codepoint == 0x200C))
-      info.indic_category() = OT_ZWNJ;
-    else if (unlikely (info.codepoint == 0x200D))
-      info.indic_category() = OT_ZWJ;
-    else if (unlikely (info.codepoint == 0x25CC))
-      info.indic_category() = OT_DOTTEDCIRCLE;
-  }
+    set_indic_properties (buffer->info[i]);
 }
 
 static int
