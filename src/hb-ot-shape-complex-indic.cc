@@ -104,6 +104,25 @@ consonant_position (hb_codepoint_t u)
   return record ? record->position : POS_BASE_C;
 }
 
+#define MATRA_POS_LEFT(u)	POS_PRE_M
+#define MATRA_POS_RIGHT(u)	POS_AFTER_POST
+#define MATRA_POS_TOP(u)	POS_BEFORE_POST
+#define MATRA_POS_BOTTOM(u)	POS_BEFORE_POST
+
+
+static indic_position_t
+matra_position (hb_codepoint_t u, indic_position_t side)
+{
+  switch ((int) side)
+  {
+    case POS_PRE_C:	return MATRA_POS_LEFT (u);
+    case POS_POST_C:	return MATRA_POS_RIGHT (u);
+    case POS_ABOVE_C:	return MATRA_POS_TOP (u);
+    case POS_BELOW_C:	return MATRA_POS_BOTTOM (u);
+  };
+  abort ();
+}
+
 static bool
 is_ra (hb_codepoint_t u)
 {
@@ -144,8 +163,13 @@ set_indic_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = get_indic_categories (u);
-  unsigned int cat = type & 0x0F;
-  unsigned int pos = type >> 4;
+
+
+  /*
+   * Assign category
+   */
+
+  indic_category_t cat = (indic_category_t) (type & 0x0F);
 
   /* The spec says U+0952 is OT_A.  However, testing shows that Uniscribe
    * treats U+0951..U+0952 all as OT_VD.
@@ -162,9 +186,10 @@ set_indic_properties (hb_glyph_info_t &info)
       unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D2))) /* Khmer Various signs */
     cat = OT_N;
 
-  /* Khmer Virama is different since it can be used to form a final consonant. */
-  if (unlikely (u == 0x17D2))
-    cat = OT_Coeng;
+  if (unlikely (u == 0x17D2)) cat = OT_Coeng; /* Khmer coeng */
+  else if (unlikely (u == 0x200C)) cat = OT_ZWNJ;
+  else if (unlikely (u == 0x200D)) cat = OT_ZWJ;
+  else if (unlikely (u == 0x25CC)) cat = OT_DOTTEDCIRCLE;
 
   if (cat == OT_Repha) {
     /* There are two kinds of characters marked as Repha:
@@ -178,20 +203,30 @@ set_indic_properties (hb_glyph_info_t &info)
   }
 
 
-  /* Assign positions... */
-  if ((FLAG (cat) & CONSONANT_FLAGS)) {
+
+
+  /*
+   * Assign position.
+   */
+
+  indic_position_t pos = (indic_position_t) (type >> 4);
+
+  if ((FLAG (cat) & CONSONANT_FLAGS))
+  {
     pos = consonant_position (u);
     if (is_ra (u))
       cat = OT_Ra;
-  } else if (cat == OT_SM ||
-	     cat == OT_VD) {
+  }
+  else if (cat == OT_M)
+  {
+    pos = matra_position (u, pos);
+  }
+  else if (cat == OT_SM || cat == OT_VD)
+  {
     pos = POS_SMVD;
-  } else if (unlikely (u == 0x200C))
-    cat = OT_ZWNJ;
-  else if (unlikely (u == 0x200D))
-    cat = OT_ZWJ;
-  else if (unlikely (u == 0x25CC))
-    cat = OT_DOTTEDCIRCLE;
+  }
+
+
 
   info.indic_category() = cat;
   info.indic_position() = pos;
