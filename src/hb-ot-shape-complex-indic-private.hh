@@ -39,7 +39,7 @@
 
 
 
-#define IN_HALF_BLOCK(u, Base) ((u) & ~0x7F == (Base))
+#define IN_HALF_BLOCK(u, Base) (((u) & ~0x7F) == (Base))
 
 #define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x900))
 #define IS_BENG(u) (IN_HALF_BLOCK (u, 0x980))

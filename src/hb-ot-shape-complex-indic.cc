@@ -105,9 +105,43 @@ consonant_position (hb_codepoint_t u)
 }
 
 #define MATRA_POS_LEFT(u)	POS_PRE_M
-#define MATRA_POS_RIGHT(u)	POS_AFTER_POST
-#define MATRA_POS_TOP(u)	POS_BEFORE_POST
-#define MATRA_POS_BOTTOM(u)	POS_BEFORE_POST
+#define MATRA_POS_RIGHT(u)	( \
+				  IS_DEVA(u) ? POS_AFTER_SUB   : \
+				  IS_BENG(u) ? POS_AFTER_POST  : \
+				  IS_GURM(u) ? POS_AFTER_POST  : \
+				  IS_GUJA(u) ? POS_AFTER_POST  : \
+				  IS_ORYA(u) ? POS_AFTER_POST  : \
+				  IS_TAML(u) ? POS_AFTER_POST  : \
+				  IS_TELU(u) ? (u <= 0x0C42 ? POS_BEFORE_SUB : POS_AFTER_SUB)  : \
+				  IS_KNDA(u) ? POS_BEFORE_SUB  : \
+				  IS_MLYM(u) ? POS_AFTER_POST  : \
+				  IS_SINH(u) ? POS_AFTER_SUB   : \
+				  /*default*/  POS_AFTER_SUB     \
+				)
+#define MATRA_POS_TOP(u)	( /* BENG and MLYM don't have top matras. */ \
+				  IS_DEVA(u) ? POS_AFTER_SUB  : \
+				  IS_GURM(u) ? POS_AFTER_SUB  : \
+				  IS_GUJA(u) ? POS_AFTER_SUB  : \
+				  IS_ORYA(u) ? POS_AFTER_MAIN : \
+				  IS_TAML(u) ? POS_AFTER_SUB  : \
+				  IS_TELU(u) ? POS_BEFORE_SUB : \
+				  IS_KNDA(u) ? POS_BEFORE_SUB : \
+				  IS_SINH(u) ? POS_AFTER_SUB  : \
+				  /*default*/  POS_AFTER_SUB    \
+				)
+#define MATRA_POS_BOTTOM(u)	( \
+				  IS_DEVA(u) ? POS_AFTER_SUB  : \
+				  IS_BENG(u) ? POS_AFTER_SUB  : \
+				  IS_GURM(u) ? POS_AFTER_POST : \
+				  IS_GUJA(u) ? POS_AFTER_POST : \
+				  IS_ORYA(u) ? POS_AFTER_SUB  : \
+				  IS_TAML(u) ? POS_AFTER_POST : \
+				  IS_TELU(u) ? POS_BEFORE_SUB : \
+				  IS_KNDA(u) ? POS_BEFORE_SUB : \
+				  IS_MLYM(u) ? POS_AFTER_POST : \
+				  IS_SINH(u) ? POS_AFTER_SUB  : \
+				  /*default*/  POS_AFTER_SUB    \
+				)
 
 
 static indic_position_t

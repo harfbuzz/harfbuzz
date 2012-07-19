@@ -272,7 +272,7 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
     case 0x0AC9  : *a = 0x0AC5; *b= 0x0ABE; return true;
 
     case 0x0931  : return false;
-    case 0x0B92  : return false;
+    case 0x0B94  : return false;
 
     /* These ones have Unicode decompositions, but we do it
      * this way to be close to what Uniscribe does. */
