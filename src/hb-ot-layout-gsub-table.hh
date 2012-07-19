@@ -965,6 +965,7 @@ struct SubstLookupSubTable
     case Single:		return u.single.would_apply (c);
     case Multiple:		return u.multiple.would_apply (c);
     case Alternate:		return u.alternate.would_apply (c);
+    case Ligature:		return u.ligature.would_apply (c);
     case Context:		return u.context.would_apply (c);
     case ChainContext:		return u.chainContext.would_apply (c);
     case Extension:		return u.extension.would_apply (c);
