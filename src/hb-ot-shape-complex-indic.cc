@@ -139,8 +139,8 @@ consonant_position (hb_codepoint_t u, hb_ot_map_t *map, hb_font_t *font)
 				  IS_GUJA(u) ? POS_AFTER_POST  : \
 				  IS_ORYA(u) ? POS_AFTER_POST  : \
 				  IS_TAML(u) ? POS_AFTER_POST  : \
-				  IS_TELU(u) ? (u <= 0x0C42 ? POS_BEFORE_SUB : POS_AFTER_SUB)  : \
-				  IS_KNDA(u) ? POS_BEFORE_SUB  : \
+				  IS_TELU(u) ? (u <= 0x0C42 ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
+				  IS_KNDA(u) ? (u != 0x0CD5 ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
 				  IS_MLYM(u) ? POS_AFTER_POST  : \
 				  IS_SINH(u) ? POS_AFTER_SUB   : \
 				  /*default*/  POS_AFTER_SUB     \
