@@ -458,6 +458,17 @@ hb_ot_layout_has_substitution (hb_face_t *face)
   return &_get_gsub (face) != &Null(GSUB);
 }
 
+hb_bool_t
+hb_ot_layout_would_substitute_lookup (hb_face_t            *face,
+				      const hb_codepoint_t *glyphs,
+				      unsigned int          glyphs_length,
+				      unsigned int          lookup_index)
+{
+  if (unlikely (glyphs_length < 1 || glyphs_length > 2)) return false;
+  hb_would_apply_context_t c (face, glyphs[0], glyphs_length == 2 ? glyphs[1] : -1);
+  return _get_gsub (face).would_substitute_lookup (&c, lookup_index);
+}
+
 void
 hb_ot_layout_substitute_start (hb_buffer_t  *buffer)
 {

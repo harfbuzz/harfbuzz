@@ -50,9 +50,9 @@ struct SingleSubstFormat1
     }
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    return (this+coverage) (glyph_id) != NOT_COVERED;
+    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -102,9 +102,9 @@ struct SingleSubstFormat2
     }
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    return (this+coverage) (glyph_id) != NOT_COVERED;
+    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -155,11 +155,11 @@ struct SingleSubst
     }
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.would_apply (glyph_id);
-    case 2: return u.format2.would_apply (glyph_id);
+    case 1: return u.format1.would_apply (c);
+    case 2: return u.format2.would_apply (c);
     default:return false;
     }
   }
@@ -252,9 +252,9 @@ struct MultipleSubstFormat1
     }
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    return (this+coverage) (glyph_id) != NOT_COVERED;
+    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -299,10 +299,10 @@ struct MultipleSubst
     }
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.would_apply (glyph_id);
+    case 1: return u.format1.would_apply (c);
     default:return false;
     }
   }
@@ -356,9 +356,9 @@ struct AlternateSubstFormat1
     }
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    return (this+coverage) (glyph_id) != NOT_COVERED;
+    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -421,10 +421,10 @@ struct AlternateSubst
     }
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.would_apply (glyph_id);
+    case 1: return u.format1.would_apply (c);
     default:return false;
     }
   }
@@ -471,9 +471,9 @@ struct Ligature
     c->glyphs->add (ligGlyph);
   }
 
-  inline bool would_apply (hb_codepoint_t second) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    return component.len == 2 && component[1] == second;
+    return c->len == 1 || (c->len == 2 && component.len == 2 && component[1] == c->second);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -568,13 +568,13 @@ struct LigatureSet
       (this+ligature[i]).closure (c);
   }
 
-  inline bool would_apply (hb_codepoint_t second) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
     {
       const Ligature &lig = this+ligature[i];
-      if (lig.would_apply (second))
+      if (lig.would_apply (c))
         return true;
     }
     return false;
@@ -623,11 +623,11 @@ struct LigatureSubstFormat1
     }
   }
 
-  inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
     unsigned int index;
-    return (index = (this+coverage) (first)) != NOT_COVERED &&
-	   (this+ligatureSet[index]).would_apply (second);
+    return (index = (this+coverage) (c->first)) != NOT_COVERED &&
+	   (this+ligatureSet[index]).would_apply (c);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -674,10 +674,10 @@ struct LigatureSubst
     }
   }
 
-  inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.would_apply (first, second);
+    case 1: return u.format1.would_apply (c);
     default:return false;
     }
   }
@@ -764,8 +764,7 @@ struct ExtensionSubst : Extension
   }
 
   inline void closure (hb_closure_context_t *c) const;
-  inline bool would_apply (hb_codepoint_t glyph_id) const;
-  inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const;
+  inline bool would_apply (hb_would_apply_context_t *c) const;
 
   inline bool apply (hb_apply_context_t *c) const;
 
@@ -935,33 +934,11 @@ struct SubstLookupSubTable
     case Multiple:		u.multiple.closure (c); break;
     case Alternate:		u.alternate.closure (c); break;
     case Ligature:		u.ligature.closure (c); break;
-    case Context:		u.c.closure (c); break;
+    case Context:		u.context.closure (c); break;
     case ChainContext:		u.chainContext.closure (c); break;
     case Extension:		u.extension.closure (c); break;
     case ReverseChainSingle:	u.reverseChainContextSingle.closure (c); break;
     default:                    break;
-    }
-  }
-
-  inline bool would_apply (hb_codepoint_t glyph_id,
-			   unsigned int lookup_type) const
-  {
-    switch (lookup_type) {
-    case Single:		return u.single.would_apply (glyph_id);
-    case Multiple:		return u.multiple.would_apply (glyph_id);
-    case Alternate:		return u.alternate.would_apply (glyph_id);
-    case Extension:		return u.extension.would_apply (glyph_id);
-    default:			return false;
-    }
-  }
-  inline bool would_apply (hb_codepoint_t first,
-			   hb_codepoint_t second,
-			   unsigned int lookup_type) const
-  {
-    switch (lookup_type) {
-    case Ligature:		return u.ligature.would_apply (first, second);
-    case Extension:		return u.extension.would_apply (first, second);
-    default:			return false;
     }
   }
 
@@ -973,6 +950,26 @@ struct SubstLookupSubTable
     return likely (lookup_type && lookup_type < Context) ||
 	   (hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
 	    hb_in_range<unsigned int> (u.header.sub_format, 1, 2));
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c,
+			   unsigned int lookup_type) const
+  {
+    TRACE_WOULD_APPLY ();
+    if (can_use_fast_path (lookup_type))
+    {
+      unsigned int index = (this+u.header.coverage) (c->first);
+      if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+    }
+    switch (lookup_type) {
+    case Single:		return u.single.would_apply (c);
+    case Multiple:		return u.multiple.would_apply (c);
+    case Alternate:		return u.alternate.would_apply (c);
+    case Context:		return u.context.would_apply (c);
+    case ChainContext:		return u.chainContext.would_apply (c);
+    case Extension:		return u.extension.would_apply (c);
+    default:			return false;
+    }
   }
 
   inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
@@ -989,7 +986,7 @@ struct SubstLookupSubTable
     case Multiple:		return TRACE_RETURN (u.multiple.apply (c));
     case Alternate:		return TRACE_RETURN (u.alternate.apply (c));
     case Ligature:		return TRACE_RETURN (u.ligature.apply (c));
-    case Context:		return TRACE_RETURN (u.c.apply (c));
+    case Context:		return TRACE_RETURN (u.context.apply (c));
     case ChainContext:		return TRACE_RETURN (u.chainContext.apply (c));
     case Extension:		return TRACE_RETURN (u.extension.apply (c));
     case ReverseChainSingle:	return TRACE_RETURN (u.reverseChainContextSingle.apply (c));
@@ -1007,7 +1004,7 @@ struct SubstLookupSubTable
     case Multiple:		return TRACE_RETURN (u.multiple.sanitize (c));
     case Alternate:		return TRACE_RETURN (u.alternate.sanitize (c));
     case Ligature:		return TRACE_RETURN (u.ligature.sanitize (c));
-    case Context:		return TRACE_RETURN (u.c.sanitize (c));
+    case Context:		return TRACE_RETURN (u.context.sanitize (c));
     case ChainContext:		return TRACE_RETURN (u.chainContext.sanitize (c));
     case Extension:		return TRACE_RETURN (u.extension.sanitize (c));
     case ReverseChainSingle:	return TRACE_RETURN (u.reverseChainContextSingle.sanitize (c));
@@ -1025,7 +1022,7 @@ struct SubstLookupSubTable
   MultipleSubst			multiple;
   AlternateSubst		alternate;
   LigatureSubst			ligature;
-  ContextSubst			c;
+  ContextSubst			context;
   ChainContextSubst		chainContext;
   ExtensionSubst		extension;
   ReverseChainSingleSubst	reverseChainContextSingle;
@@ -1059,21 +1056,12 @@ struct SubstLookup : Lookup
       get_subtable (i).closure (c, lookup_type);
   }
 
-  inline bool would_apply (hb_codepoint_t glyph_id) const
+  inline bool would_apply (hb_would_apply_context_t *c) const
   {
     unsigned int lookup_type = get_type ();
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
-      if (get_subtable (i).would_apply (glyph_id, lookup_type))
-	return true;
-    return false;
-  }
-  inline bool would_apply (hb_codepoint_t first, hb_codepoint_t second) const
-  {
-    unsigned int lookup_type = get_type ();
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 0; i < count; i++)
-      if (get_subtable (i).would_apply (first, second, lookup_type))
+      if (get_subtable (i).would_apply (c, lookup_type))
 	return true;
     return false;
   }
@@ -1173,6 +1161,9 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
+  inline bool would_substitute_lookup (hb_would_apply_context_t *c, unsigned int lookup_index) const
+  { return get_lookup (lookup_index).would_apply (c); }
+
   inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index) const
   { return get_lookup (lookup_index).apply_string (c); }
 
@@ -1219,14 +1210,9 @@ inline void ExtensionSubst::closure (hb_closure_context_t *c) const
   get_subtable ().closure (c, get_type ());
 }
 
-inline bool ExtensionSubst::would_apply (hb_codepoint_t glyph_id) const
+inline bool ExtensionSubst::would_apply (hb_would_apply_context_t *c) const
 {
-  return get_subtable ().would_apply (glyph_id, get_type ());
-}
-
-inline bool ExtensionSubst::would_apply (hb_codepoint_t first, hb_codepoint_t second) const
-{
-  return get_subtable ().would_apply (first, second, get_type ());
+  return get_subtable ().would_apply (c, get_type ());
 }
 
 inline bool ExtensionSubst::apply (hb_apply_context_t *c) const

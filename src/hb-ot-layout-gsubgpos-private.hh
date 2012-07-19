@@ -69,7 +69,13 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 	hb_auto_trace_t<HB_DEBUG_CLOSURE> trace (&c->debug_depth, "CLOSURE", this, HB_FUNC, "");
 
 
-/* TODO Add TRACE_RETURN annotation for would_apply */
+/* TODO Add TRACE_RETURN annotation to gsub. */
+#ifndef HB_DEBUG_WOULD_APPLY
+#define HB_DEBUG_WOULD_APPLY (HB_DEBUG+0)
+#endif
+
+#define TRACE_WOULD_APPLY() \
+	hb_auto_trace_t<HB_DEBUG_WOULD_APPLY> trace (&c->debug_depth, "WOULD_APPLY", this, HB_FUNC, "first %u second %u", c->first, c->second);
 
 
 struct hb_closure_context_t
@@ -83,11 +89,30 @@ struct hb_closure_context_t
   hb_closure_context_t (hb_face_t *face_,
 			hb_set_t *glyphs_,
 		        unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
-			  face (face_), glyphs (glyphs_),
+			  face (face_),
+			  glyphs (glyphs_),
 			  nesting_level_left (nesting_level_left_),
 			  debug_depth (0) {}
 };
 
+
+
+
+struct hb_would_apply_context_t
+{
+  hb_face_t *face;
+  hb_codepoint_t first;
+  hb_codepoint_t second;
+  unsigned int len;
+  unsigned int debug_depth;
+
+  hb_would_apply_context_t (hb_face_t *face_,
+			    hb_codepoint_t first_,
+			    hb_codepoint_t second_ = -1) :
+			      face (face_),
+			      first (first_), second (second_), len (second == (hb_codepoint_t) -1 ? 1 : 2),
+			      debug_depth (0) {};
+};
 
 
 #ifndef HB_DEBUG_APPLY
@@ -320,6 +345,21 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
 }
 
 
+static inline bool would_match_input (hb_would_apply_context_t *c,
+				      unsigned int count, /* Including the first glyph (not matched) */
+				      const USHORT input[], /* Array of input values--start with second glyph */
+				      match_func_t match_func,
+				      const void *match_data)
+{
+  if (count != c->len)
+    return false;
+
+  for (unsigned int i = 1; i < count; i++)
+    if (likely (!match_func (c->second, input[i - 1], match_data)))
+      return false;
+
+  return true;
+}
 static inline bool match_input (hb_apply_context_t *c,
 				unsigned int count, /* Including the first glyph (not matched) */
 				const USHORT input[], /* Array of input values--start with second glyph */
@@ -508,6 +548,17 @@ static inline void context_closure_lookup (hb_closure_context_t *c,
 }
 
 
+static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
+					       unsigned int inputCount, /* Including the first glyph (not matched) */
+					       const USHORT input[], /* Array of input values--start with second glyph */
+					       unsigned int lookupCount,
+					       const LookupRecord lookupRecord[],
+					       ContextApplyLookupContext &lookup_context)
+{
+  return would_match_input (c,
+			    inputCount, input,
+			    lookup_context.funcs.match, lookup_context.match_data);
+}
 static inline bool context_apply_lookup (hb_apply_context_t *c,
 					 unsigned int inputCount, /* Including the first glyph (not matched) */
 					 const USHORT input[], /* Array of input values--start with second glyph */
@@ -538,6 +589,13 @@ struct Rule
 			    inputCount, input,
 			    lookupCount, lookupRecord,
 			    lookup_context);
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
+  {
+    TRACE_WOULD_APPLY ();
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
+    return TRACE_RETURN (context_would_apply_lookup (c, inputCount, input, lookupCount, lookupRecord, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
@@ -578,6 +636,18 @@ struct RuleSet
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       (this+rule[i]).closure (c, lookup_context);
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
+  {
+    TRACE_WOULD_APPLY ();
+    unsigned int num_rules = rule.len;
+    for (unsigned int i = 0; i < num_rules; i++)
+    {
+      if ((this+rule[i]).would_apply (c, lookup_context))
+        return TRACE_RETURN (true);
+    }
+    return TRACE_RETURN (false);
   }
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
@@ -629,6 +699,21 @@ struct ContextFormat1
 	const RuleSet &rule_set = this+ruleSet[i];
 	rule_set.closure (c, lookup_context);
       }
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    TRACE_WOULD_APPLY ();
+    unsigned int index = (this+coverage) (c->first);
+    if (likely (index == NOT_COVERED))
+      return TRACE_RETURN (false);
+
+    const RuleSet &rule_set = this+ruleSet[index];
+    struct ContextApplyLookupContext lookup_context = {
+      {match_glyph, NULL},
+      NULL
+    };
+    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -691,6 +776,22 @@ struct ContextFormat2
       }
   }
 
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    TRACE_WOULD_APPLY ();
+    unsigned int index = (this+coverage) (c->first);
+    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+
+    const ClassDef &class_def = this+classDef;
+    index = class_def (c->first);
+    const RuleSet &rule_set = this+ruleSet[index];
+    struct ContextApplyLookupContext lookup_context = {
+      {match_class, NULL},
+      &class_def
+    };
+    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -751,6 +852,20 @@ struct ContextFormat3
 			    lookup_context);
   }
 
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    TRACE_WOULD_APPLY ();
+    unsigned int index = (this+coverage[0]) (c->first);
+    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
+    struct ContextApplyLookupContext lookup_context = {
+      {match_coverage, NULL},
+      this
+    };
+    return TRACE_RETURN (context_would_apply_lookup (c, glyphCount, (const USHORT *) (coverage + 1), lookupCount, lookupRecord, lookup_context));
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -802,6 +917,16 @@ struct Context
     case 2: u.format2.closure (c, closure_func); break;
     case 3: u.format3.closure (c, closure_func); break;
     default:                                     break;
+    }
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.would_apply (c);
+    case 2: return u.format2.would_apply (c);
+    case 3: return u.format3.would_apply (c);
+    default:return false;
     }
   }
 
@@ -876,6 +1001,24 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
 		    lookup_context.funcs.closure);
 }
 
+static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c,
+						     unsigned int backtrackCount,
+						     const USHORT backtrack[],
+						     unsigned int inputCount, /* Including the first glyph (not matched) */
+						     const USHORT input[], /* Array of input values--start with second glyph */
+						     unsigned int lookaheadCount,
+						     const USHORT lookahead[],
+						     unsigned int lookupCount,
+						     const LookupRecord lookupRecord[],
+						     ChainContextApplyLookupContext &lookup_context)
+{
+  return !backtrackCount
+      && !lookaheadCount
+      && would_match_input (c,
+			    inputCount, input,
+			    lookup_context.funcs.match, lookup_context.match_data[1]);
+}
+
 static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
 					       unsigned int backtrackCount,
 					       const USHORT backtrack[],
@@ -923,6 +1066,19 @@ struct ChainRule
 				  lookahead.len, lookahead.array,
 				  lookup.len, lookup.array,
 				  lookup_context);
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
+  {
+    TRACE_WOULD_APPLY ();
+    const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
+    const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
+    return TRACE_RETURN (chain_context_would_apply_lookup (c,
+							   backtrack.len, backtrack.array,
+							   input.len, input.array,
+							   lookahead.len, lookahead.array, lookup.len,
+							   lookup.array, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
@@ -978,6 +1134,17 @@ struct ChainRuleSet
       (this+rule[i]).closure (c, lookup_context);
   }
 
+  inline bool would_apply (hb_would_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
+  {
+    TRACE_WOULD_APPLY ();
+    unsigned int num_rules = rule.len;
+    for (unsigned int i = 0; i < num_rules; i++)
+      if ((this+rule[i]).would_apply (c, lookup_context))
+        return TRACE_RETURN (true);
+
+    return TRACE_RETURN (false);
+  }
+
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY ();
@@ -1024,6 +1191,20 @@ struct ChainContextFormat1
 	const ChainRuleSet &rule_set = this+ruleSet[i];
 	rule_set.closure (c, lookup_context);
       }
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    TRACE_WOULD_APPLY ();
+    unsigned int index = (this+coverage) (c->first);
+    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+
+    const ChainRuleSet &rule_set = this+ruleSet[index];
+    struct ChainContextApplyLookupContext lookup_context = {
+      {match_glyph, NULL},
+      {NULL, NULL, NULL}
+    };
+    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -1086,6 +1267,23 @@ struct ChainContextFormat2
 	const ChainRuleSet &rule_set = this+ruleSet[i];
 	rule_set.closure (c, lookup_context);
       }
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    TRACE_WOULD_APPLY ();
+    unsigned int index = (this+coverage) (c->first);
+    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+
+    const ClassDef &input_class_def = this+inputClassDef;
+
+    index = input_class_def (c->first);
+    const ChainRuleSet &rule_set = this+ruleSet[index];
+    struct ChainContextApplyLookupContext lookup_context = {
+      {match_class, NULL},
+      {NULL, &input_class_def, NULL}
+    };
+    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
@@ -1168,6 +1366,27 @@ struct ChainContextFormat3
 				  lookup_context);
   }
 
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    TRACE_WOULD_APPLY ();
+    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+
+    unsigned int index = (this+input[0]) (c->first);
+    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
+    struct ChainContextApplyLookupContext lookup_context = {
+      {match_coverage, NULL},
+      {this, this, this}
+    };
+    return TRACE_RETURN (chain_context_would_apply_lookup (c,
+							   backtrack.len, (const USHORT *) backtrack.array,
+							   input.len, (const USHORT *) input.array + 1,
+							   lookahead.len, (const USHORT *) lookahead.array,
+							   lookup.len, lookup.array, lookup_context));
+  }
+
   inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
   {
     TRACE_APPLY ();
@@ -1233,6 +1452,16 @@ struct ChainContext
     case 2: u.format2.closure (c, closure_func); break;
     case 3: u.format3.closure (c, closure_func); break;
     default:                                     break;
+    }
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.would_apply (c);
+    case 2: return u.format2.would_apply (c);
+    case 3: return u.format3.would_apply (c);
+    default:return false;
     }
   }
 

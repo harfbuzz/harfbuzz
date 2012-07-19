@@ -1333,7 +1333,7 @@ struct PosLookupSubTable
     case MarkBase:		return TRACE_RETURN (u.markBase.apply (c));
     case MarkLig:		return TRACE_RETURN (u.markLig.apply (c));
     case MarkMark:		return TRACE_RETURN (u.markMark.apply (c));
-    case Context:		return TRACE_RETURN (u.c.apply (c));
+    case Context:		return TRACE_RETURN (u.context.apply (c));
     case ChainContext:		return TRACE_RETURN (u.chainContext.apply (c));
     case Extension:		return TRACE_RETURN (u.extension.apply (c));
     default:			return TRACE_RETURN (false);
@@ -1352,7 +1352,7 @@ struct PosLookupSubTable
     case MarkBase:		return TRACE_RETURN (u.markBase.sanitize (c));
     case MarkLig:		return TRACE_RETURN (u.markLig.sanitize (c));
     case MarkMark:		return TRACE_RETURN (u.markMark.sanitize (c));
-    case Context:		return TRACE_RETURN (u.c.sanitize (c));
+    case Context:		return TRACE_RETURN (u.context.sanitize (c));
     case ChainContext:		return TRACE_RETURN (u.chainContext.sanitize (c));
     case Extension:		return TRACE_RETURN (u.extension.sanitize (c));
     default:			return TRACE_RETURN (true);
@@ -1371,7 +1371,7 @@ struct PosLookupSubTable
   MarkBasePos		markBase;
   MarkLigPos		markLig;
   MarkMarkPos		markMark;
-  ContextPos		c;
+  ContextPos		context;
   ChainContextPos	chainContext;
   ExtensionPos		extension;
   } u;
