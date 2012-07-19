@@ -37,6 +37,23 @@
 #define indic_category() complex_var_persistent_u8_0() /* indic_category_t */
 #define indic_position() complex_var_persistent_u8_1() /* indic_matra_category_t */
 
+
+
+#define IN_HALF_BLOCK(u, Base) ((u) & ~0x7F == (Base))
+
+#define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x900))
+#define IS_BENG(u) (IN_HALF_BLOCK (u, 0x980))
+#define IS_GURM(u) (IN_HALF_BLOCK (u, 0xA00))
+#define IS_GUJA(u) (IN_HALF_BLOCK (u, 0xA80))
+#define IS_ORYA(u) (IN_HALF_BLOCK (u, 0xB00))
+#define IS_TAML(u) (IN_HALF_BLOCK (u, 0xB80))
+#define IS_TELU(u) (IN_HALF_BLOCK (u, 0xC00))
+#define IS_KNDA(u) (IN_HALF_BLOCK (u, 0xC80))
+#define IS_MLYM(u) (IN_HALF_BLOCK (u, 0xD00))
+#define IS_SINH(u) (IN_HALF_BLOCK (u, 0xD80))
+
+
+
 #define INDIC_TABLE_ELEMENT_TYPE uint8_t
 
 /* Cateories used in the OpenType spec:
@@ -119,26 +136,19 @@ enum indic_matra_category_t {
   INDIC_MATRA_CATEGORY_NOT_APPLICABLE		= POS_BASE_C,
 
   INDIC_MATRA_CATEGORY_LEFT			= POS_PRE_M,
+
   INDIC_MATRA_CATEGORY_TOP			= POS_BEFORE_POST,
   INDIC_MATRA_CATEGORY_BOTTOM			= POS_BEFORE_POST,
   INDIC_MATRA_CATEGORY_RIGHT			= POS_AFTER_POST,
 
-  /* We don't really care much about these since we decompose them
-   * in the generic pre-shaping layer.  They will only be used if
-   * the font does not cover the decomposition.  In which case, we
-   * define these as aliases to the place we want the split-matra
-   * glyph to show up.  Quite arbitrary.
-   *
-   * TODO: There are some split matras without Unicode decompositions.
-   * We have to figure out what to do with them.
-   */
-  INDIC_MATRA_CATEGORY_BOTTOM_AND_RIGHT		= POS_AFTER_POST,
-  INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		= POS_AFTER_POST,
-  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM		= POS_BEFORE_POST,
-  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_RIGHT	= POS_AFTER_POST,
-  INDIC_MATRA_CATEGORY_TOP_AND_LEFT		= POS_BEFORE_POST,
-  INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT	= POS_AFTER_POST,
-  INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		= POS_AFTER_POST,
+  /* These should resolve to the position of the last part of the split sequence. */
+  INDIC_MATRA_CATEGORY_BOTTOM_AND_RIGHT		= INDIC_MATRA_CATEGORY_RIGHT,
+  INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		= INDIC_MATRA_CATEGORY_RIGHT,
+  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM		= INDIC_MATRA_CATEGORY_BOTTOM,
+  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_RIGHT	= INDIC_MATRA_CATEGORY_RIGHT,
+  INDIC_MATRA_CATEGORY_TOP_AND_LEFT		= INDIC_MATRA_CATEGORY_TOP,
+  INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT	= INDIC_MATRA_CATEGORY_RIGHT,
+  INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		= INDIC_MATRA_CATEGORY_RIGHT,
 
   INDIC_MATRA_CATEGORY_INVISIBLE		= INDIC_MATRA_CATEGORY_NOT_APPLICABLE,
   INDIC_MATRA_CATEGORY_OVERSTRUCK		= INDIC_MATRA_CATEGORY_NOT_APPLICABLE,
