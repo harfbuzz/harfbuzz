@@ -63,7 +63,8 @@ h = H | Coeng;			# is_halant_or_coeng
 reph = (Ra H | Repha);		# possible reph
 
 cn = c.n?;
-matra_group = z*.M.N?.H?;
+forced_rakar = ZWJ H ZWJ Ra;
+matra_group = z*.M.N?.(H | forced_rakar)?;
 syllable_tail = SM? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 halant_group = (z?.h.z?);
