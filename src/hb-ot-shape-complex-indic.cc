@@ -530,8 +530,12 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	  base = i;
 	}
 	else
-	  if (is_joiner (info[i]))
+	{
+	  /* A ZWJ at the end of syllable, or any ZWJ/ZWNJ in other places, stop the base
+	   * search (to request explicit half or halant forms. */
+	  if (is_joiner (info[i]) && (i + 1 < end || info[i].indic_category() == OT_ZWJ))
 	    break;
+	}
       } while (i > limit);
     }
     else
