@@ -1108,7 +1108,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
    * Finish off the clusters and go home!
    */
 
-  if (!indic_options ().uniscribe_bug_compatible)
+  if (indic_options ().uniscribe_bug_compatible)
   {
     /* This is what Uniscribe does.  Ie. add cluster boundaries after Halant,ZWNJ.
      * This means, half forms are submerged into the main consonants cluster.
