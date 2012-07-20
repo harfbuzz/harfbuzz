@@ -975,8 +975,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
     {
       new_reph_pos = base;
       /* XXX Skip potential pre-base reordering Ra. */
-      while (new_reph_pos < end &&
-	     !( FLAG (info[new_reph_pos + 1].indic_position()) & (FLAG (POS_BELOW_C) | FLAG (POS_POST_C) | FLAG (POS_AFTER_POST) | FLAG (POS_SMVD))))
+      while (new_reph_pos + 1 < end && info[new_reph_pos + 1].indic_position() <= POS_AFTER_MAIN)
 	new_reph_pos++;
       if (new_reph_pos < end)
         goto reph_move;
