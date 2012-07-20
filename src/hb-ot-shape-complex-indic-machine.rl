@@ -67,8 +67,9 @@ forced_rakar = ZWJ H ZWJ Ra;
 matra_group = z*.M.N?.(H | forced_rakar)?;
 syllable_tail = SM? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
-halant_group = (z?.h.z?);
-halant_or_matra_group = (halant_group | matra_group*);
+halant_group = (z?.h.ZWJ?);
+final_halant_group = halant_group | h.ZWNJ;
+halant_or_matra_group = (final_halant_group | matra_group*);
 
 
 consonant_syllable =	Repha? (cn.halant_group)* cn A? halant_or_matra_group? syllable_tail;
