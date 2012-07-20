@@ -331,10 +331,6 @@ retry:
   }
 
   OPENTYPE_TAG language_tag = hb_uint32_swap (hb_ot_tag_from_language (buffer->props.language));
-  hb_tag_t buffer_script_tags[2];
-  hb_ot_tags_from_script (buffer->props.script,
-			  &buffer_script_tags[0],
-			  &buffer_script_tags[1]);
 
   unsigned int glyphs_offset = 0;
   unsigned int glyphs_len;
@@ -345,20 +341,11 @@ retry:
     unsigned int chars_offset = items[i].iCharPos;
     unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
 
-    OPENTYPE_TAG script_tag;
-    /* We ignore what script tag Uniscribe chose, except to differentiate
-     * between old/new tags.  Not sure if this picks DFLT up correctly...
-     * This also screws things up as the item.analysis also has an opaque
-     * script member. */
-    if (script_tags[i] == hb_uint32_swap (buffer_script_tags[1]))
-      script_tag = hb_uint32_swap (buffer_script_tags[1]);
-    else
-      script_tag = hb_uint32_swap (buffer_script_tags[0]);
-
+  retry_shape:
     hr = ScriptShapeOpenType (font_data->hdc,
 			      &font_data->script_cache,
 			      &items[i].a,
-			      script_tag,
+			      script_tags[i],
 			      language_tag,
 			      range_char_counts,
 			      range_properties,
@@ -373,9 +360,6 @@ retry:
 			      glyph_props + glyphs_offset,
 			      (int *) &glyphs_len);
 
-    for (unsigned int j = chars_offset; j < chars_offset + item_chars_len; j++)
-      log_clusters[j] += glyphs_offset;
-
     if (unlikely (items[i].a.fNoGlyphIndex))
       FAIL ("ScriptShapeOpenType() set fNoGlyphIndex");
     if (unlikely (hr == E_OUTOFMEMORY))
@@ -386,14 +370,24 @@ retry:
       goto retry;
     }
     if (unlikely (hr == USP_E_SCRIPT_NOT_IN_FONT))
-      FAIL ("ScriptShapeOpenType() failed: Font doesn't support script");
+    {
+      if (items[i].a.eScript == SCRIPT_UNDEFINED)
+	FAIL ("ScriptShapeOpenType() failed: Font doesn't support script");
+      items[i].a.eScript = SCRIPT_UNDEFINED;
+      goto retry_shape;
+    }
     if (unlikely (FAILED (hr)))
+    {
       FAIL ("ScriptShapeOpenType() failed: 0x%08xL", hr);
+    }
+
+    for (unsigned int j = chars_offset; j < chars_offset + item_chars_len; j++)
+      log_clusters[j] += glyphs_offset;
 
     hr = ScriptPlaceOpenType (font_data->hdc,
 			      &font_data->script_cache,
 			      &items[i].a,
-			      script_tag,
+			      script_tags[i],
 			      language_tag,
 			      range_char_counts,
 			      range_properties,
