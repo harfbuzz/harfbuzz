@@ -126,7 +126,10 @@ hb_buffer_t::get_scratch_buffer (unsigned int *size)
 {
   have_output = false;
   have_positions = false;
+
   out_len = 0;
+  out_info = info;
+
   *size = allocated * sizeof (pos[0]);
   return pos;
 }
@@ -153,12 +156,11 @@ hb_buffer_t::reset (void)
   idx = 0;
   len = 0;
   out_len = 0;
+  out_info = info;
 
   serial = 0;
   memset (allocated_var_bytes, 0, sizeof allocated_var_bytes);
   memset (allocated_var_owner, 0, sizeof allocated_var_owner);
-
-  out_info = info;
 }
 
 void
@@ -201,6 +203,9 @@ hb_buffer_t::clear_positions (void)
 
   have_output = false;
   have_positions = true;
+
+  out_len = 0;
+  out_info = info;
 
   memset (pos, 0, sizeof (pos[0]) * len);
 }
