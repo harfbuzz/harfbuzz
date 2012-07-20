@@ -322,7 +322,7 @@ indic_basic_features[] =
   {HB_TAG('a','b','v','f'), false},
   {HB_TAG('p','s','t','f'), false},
   {HB_TAG('c','f','a','r'), false},
-  {HB_TAG('c','j','c','t'), false},
+  {HB_TAG('c','j','c','t'), true},
   {HB_TAG('v','a','t','u'), true},
 };
 
@@ -338,7 +338,7 @@ enum {
   ABVF,
   PSTF,
   CFAR,
-  CJCT,
+  _CJCT,
   VATU
 };
 
@@ -691,15 +691,15 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       info[i].mask |= basic_mask_array[RPHF];
 
     /* Pre-base */
-    mask = basic_mask_array[HALF] | basic_mask_array[CJCT];
+    mask = basic_mask_array[HALF];
     for (unsigned int i = start; i < base; i++)
       info[i].mask  |= mask;
     /* Base */
-    mask = basic_mask_array[CJCT];
+    mask = 0;
     if (base < end)
       info[base].mask |= mask;
     /* Post-base */
-    mask = basic_mask_array[BLWF] | basic_mask_array[ABVF] | basic_mask_array[PSTF] | basic_mask_array[CJCT];
+    mask = basic_mask_array[BLWF] | basic_mask_array[ABVF] | basic_mask_array[PSTF];
     for (unsigned int i = base + 1; i < end; i++)
       info[i].mask  |= mask;
   }
@@ -737,7 +737,10 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       do {
 	j--;
 
-	info[j].mask &= ~basic_mask_array[CJCT];
+	/* A ZWJ disables CJCT, however, it's mere presence is enough
+	 * to disable ligation.  No explicit action needed. */
+
+	/* A ZWNJ disables HALF. */
 	if (non_joiner)
 	  info[j].mask &= ~basic_mask_array[HALF];
 
