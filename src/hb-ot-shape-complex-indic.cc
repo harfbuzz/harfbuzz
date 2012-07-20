@@ -634,29 +634,32 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       }
   }
 
-  /* Attach ZWJ, ZWNJ, nukta, and halant to previous char to move with them. */
-  if (!indic_options ().uniscribe_bug_compatible)
+  /* Attach misc marks to previous char to move with them. */
   {
-    /* Please update the Uniscribe branch when touching this! */
-    for (unsigned int i = start + 1; i < end; i++)
-      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_RS) | FLAG (OT_H))))
-	info[i].indic_position() = info[i - 1].indic_position();
-  } else {
-    /*
-     * Uniscribe doesn't move the Halant with Left Matra.
-     * TEST: U+092B,U+093F,U+094DE
-     */
-    /* Please update the non-Uniscribe branch when touching this! */
-    for (unsigned int i = start + 1; i < end; i++)
-      if ((FLAG (info[i].indic_category()) & (FLAG (OT_ZWNJ) | FLAG (OT_ZWJ) | FLAG (OT_N) | FLAG (OT_RS) | FLAG (OT_H)))) {
-	info[i].indic_position() = info[i - 1].indic_position();
-	if (info[i].indic_category() == OT_H && info[i].indic_position() == POS_PRE_M)
+    indic_position_t last_pos = POS_START;
+    for (unsigned int i = start; i < end; i++)
+    {
+      if ((FLAG (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | HALANT_OR_COENG_FLAGS)))
+      {
+	info[i].indic_position() = last_pos;
+	if (unlikely (indic_options ().uniscribe_bug_compatible &&
+		      info[i].indic_category() == OT_H &&
+		      info[i].indic_position() == POS_PRE_M))
+	{
+	  /*
+	   * Uniscribe doesn't move the Halant with Left Matra.
+	   * TEST: U+092B,U+093F,U+094DE
+	   */
 	  for (unsigned int j = i; j > start; j--)
 	    if (info[j - 1].indic_position() != POS_PRE_M) {
 	      info[i].indic_position() = info[j - 1].indic_position();
 	      break;
 	    }
+	}
+      } else if (info[i].indic_position() != POS_SMVD) {
+        last_pos = (indic_position_t) info[i].indic_position();
       }
+    }
   }
   /* Re-attach ZWJ, ZWNJ, and halant to next char, for after-base consonants. */
   {
@@ -666,7 +669,8 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
         last_halant = i;
       else if (is_consonant (info[i])) {
 	for (unsigned int j = last_halant; j < i; j++)
-	  info[j].indic_position() = info[i].indic_position();
+	  if (info[j].indic_position() != POS_SMVD)
+	    info[j].indic_position() = info[i].indic_position();
       }
   }
 

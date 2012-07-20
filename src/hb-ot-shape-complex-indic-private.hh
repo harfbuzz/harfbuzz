@@ -83,6 +83,8 @@ enum indic_category_t {
 
 /* Visual positions in a syllable from left to right. */
 enum indic_position_t {
+  POS_START,
+
   POS_RA_TO_BECOME_REPH,
   POS_PRE_M,
   POS_PRE_C,
@@ -102,6 +104,7 @@ enum indic_position_t {
 
   POS_FINAL_C,
   POS_SMVD,
+
   POS_END
 };
 
