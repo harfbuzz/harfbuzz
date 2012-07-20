@@ -505,6 +505,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
     {
       /* -> starting from the end of the syllable, move backwards */
       unsigned int i = end;
+      bool seen_below = false;
       do {
 	i--;
 	/* -> until a consonant is found */
@@ -513,11 +514,13 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	  /* -> that does not have a below-base or post-base form
 	   * (post-base forms have to follow below-base forms), */
 	  if (info[i].indic_position() != POS_BELOW_C &&
-	      info[i].indic_position() != POS_POST_C)
+	      (info[i].indic_position() != POS_POST_C || seen_below))
 	  {
 	    base = i;
 	    break;
 	  }
+	  if (info[i].indic_position() == POS_BELOW_C)
+	    seen_below = true;
 
 	  /* -> or that is not a pre-base reordering Ra,
 	   *
