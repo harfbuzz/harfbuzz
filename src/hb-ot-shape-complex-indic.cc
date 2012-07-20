@@ -1110,18 +1110,11 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
   if (indic_options ().uniscribe_bug_compatible)
   {
-    /* This is what Uniscribe does.  Ie. add cluster boundaries after Halant,ZWNJ.
+    /* Uniscribe merges the entire cluster.
      * This means, half forms are submerged into the main consonants cluster.
      * This is unnecessary, and makes cursor positioning harder, but that's what
      * Uniscribe does. */
-    unsigned int cluster_start = start;
-    for (unsigned int i = start + 1; i < start_of_last_cluster; i++)
-      if (is_halant_or_coeng (info[i - 1]) && info[i].indic_category() == OT_ZWNJ) {
-        i++;
-	buffer->merge_clusters (cluster_start, i);
-	cluster_start = i;
-      }
-    start_of_last_cluster = cluster_start;
+    start_of_last_cluster = start;
   }
 
   buffer->merge_clusters (start_of_last_cluster, end);
