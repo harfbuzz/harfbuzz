@@ -176,7 +176,7 @@ struct hb_apply_context_t
       num_items++;
     }
     inline bool next (unsigned int *property_out,
-		      unsigned int lookup_props)
+		      unsigned int  lookup_props)
     {
       assert (num_items > 0);
       do
@@ -225,7 +225,7 @@ struct hb_apply_context_t
       num_items++;
     }
     inline bool prev (unsigned int *property_out,
-		      unsigned int lookup_props)
+		      unsigned int  lookup_props)
     {
       assert (num_items > 0);
       do
