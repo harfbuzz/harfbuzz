@@ -253,6 +253,7 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
   else if (unlikely (u == 0x200C)) cat = OT_ZWNJ;
   else if (unlikely (u == 0x200D)) cat = OT_ZWJ;
   else if (unlikely (u == 0x25CC)) cat = OT_DOTTEDCIRCLE;
+  else if (unlikely (u == 0x0A71)) cat = OT_SM; /* GURMUKHI ADDAK.  More like consonant medial. like 0A75. */
 
   if (cat == OT_Repha) {
     /* There are two kinds of characters marked as Repha:
