@@ -712,7 +712,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   }
 
   /* XXX This will not match for old-Indic spec since the Halant-Ra order is reversed already. */
-  if (basic_mask_array[PREF] && base + 3 <= end)
+  if (basic_mask_array[PREF] && base + 2 < end)
   {
     /* Find a Halant,Ra sequence and mark it fore pre-base reordering processing. */
     for (unsigned int i = base + 1; i + 1 < end; i++)
@@ -829,9 +829,13 @@ final_reordering_syllable (hb_buffer_t *buffer,
    */
 
   /* Find base again */
-  unsigned int base = end;
-  while (start < base && info[base - 1].indic_position() >= POS_BASE_C)
-    base--;
+  unsigned int base;
+  for (base = start; base < end; base++)
+    if (info[base].indic_position() >= POS_BASE_C) {
+      if (start < base && info[base].indic_position() > POS_BASE_C)
+        base--;
+      break;
+    }
 
   unsigned int start_of_last_cluster = base;
 
