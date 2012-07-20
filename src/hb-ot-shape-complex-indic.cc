@@ -116,9 +116,11 @@ would_substitute (hb_codepoint_t *glyphs, unsigned int glyphs_count,
 static indic_position_t
 consonant_position (hb_codepoint_t u, hb_ot_map_t *map, hb_font_t *font)
 {
+  if ((u & ~0x007F) == 0x1780)
+    return POS_BELOW_C; /* In Khmer coeng model, all are subjoining. */
+
   hb_codepoint_t virama = (u & ~0x007F) | 0x004D;
   if ((u & ~0x007F) == 0x0D80) virama = 0x0DCA; /* Sinahla */
-  if ((u & ~0x007F) == 0x1780) virama = 0x17D2; /* Khmer */
   hb_codepoint_t glyphs[2];
 
   hb_font_get_glyph (font, virama, 0, &glyphs[0]);
