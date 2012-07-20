@@ -258,6 +258,14 @@ hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
 		    hb_codepoint_t     *ab)
 {
   *ab = 0;
+  /* XXX, this belongs to indic normalizer. */
+  if ((FLAG (hb_unicode_general_category (ufuncs, a)) &
+       (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
+        FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
+        FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK))))
+    return false;
+  /* XXX, add composition-exclusion exceptions to Indic shaper. */
+  if (a == 0x09AF && b == 0x09BC) { *ab = 0x09DF; return true; }
   return ufuncs->func.compose (ufuncs, a, b, ab, ufuncs->user_data.compose);
 }
 

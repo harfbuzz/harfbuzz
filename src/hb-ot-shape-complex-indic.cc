@@ -407,7 +407,8 @@ hb_ot_shape_normalization_mode_t
 _hb_ot_shape_complex_normalization_preference_indic (void)
 {
   /* We want split matras decomposed by the common shaping logic. */
-  return HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED;
+  /* XXX sort this out after adding per-shaper normalizers. */
+  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 
 
@@ -548,7 +549,6 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
     if (base < start)
       base = start; /* Just in case... */
-
 
     /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
      *    and has more than one consonant, Ra is excluded from candidates for
