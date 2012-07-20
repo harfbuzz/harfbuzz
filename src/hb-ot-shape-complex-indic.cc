@@ -1112,8 +1112,9 @@ final_reordering_syllable (hb_buffer_t *buffer,
     info[start].mask |= init_mask;
 
 
-
-  /* Finish off the clusters and go home! */
+  /*
+   * Finish off the clusters and go home!
+   */
 
   if (!indic_options ().uniscribe_bug_compatible)
   {
