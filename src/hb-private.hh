@@ -676,14 +676,14 @@ struct hb_auto_trace_t {
     if (plevel) --*plevel;
   }
 
-  inline bool ret (bool v)
+  inline bool ret (bool v, unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to TRACE_RETURN.  This is a bug, please report.\n");
       return v;
     }
 
-    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, "return %s", v ? "true" : "false");
+    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, "return %s (line %d)", v ? "true" : "false", line);
     if (plevel) --*plevel;
     plevel = NULL;
     returned = true;
@@ -706,10 +706,10 @@ struct hb_auto_trace_t<0> {
 				   ...) {}
 
   template <typename T>
-  inline T ret (T v) { return v; }
+  inline T ret (T v, unsigned int line = 0) { return v; }
 };
 
-#define TRACE_RETURN(RET) trace.ret (RET)
+#define TRACE_RETURN(RET) trace.ret (RET, __LINE__)
 
 /* Misc */
 
