@@ -291,6 +291,7 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
     pos = POS_SMVD;
   }
 
+  if (unlikely (u == 0x0B01)) pos = POS_BEFORE_SUB; /* Oriya Bindu is BeforeSub in the spec. */
 
 
   info.indic_category() = cat;
