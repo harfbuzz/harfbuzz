@@ -999,7 +999,17 @@ final_reordering_syllable (hb_buffer_t *buffer,
      */
     reph_step_5:
     {
-      /* XXX */
+      /* Copied from step 2. */
+      new_reph_pos = start + 1;
+      while (new_reph_pos < base && !is_halant_or_coeng (info[new_reph_pos]))
+	new_reph_pos++;
+
+      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos])) {
+	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
+	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
+	  new_reph_pos++;
+	goto reph_move;
+      }
     }
 
     /*       6. Otherwise, reorder reph to the end of the syllable.
