@@ -123,8 +123,9 @@ consonant_position (hb_codepoint_t u, hb_ot_map_t *map, hb_font_t *font)
   if ((u & ~0x007F) == 0x0D80) virama = 0x0DCA; /* Sinahla */
   hb_codepoint_t glyphs[2];
 
-  hb_font_get_glyph (font, virama, 0, &glyphs[0]);
-  hb_font_get_glyph (font, u,      0, &glyphs[1]);
+  unsigned int virama_pos = IS_OLD_INDIC_TAG (map->get_chosen_script (0)) ? 1 : 0;
+  hb_font_get_glyph (font, virama, 0, &glyphs[virama_pos]);
+  hb_font_get_glyph (font, u,      0, &glyphs[1-virama_pos]);
 
   hb_face_t *face = hb_font_get_face (font);
   if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('p','r','e','f'), map, face)) return POS_BELOW_C;
