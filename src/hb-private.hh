@@ -734,7 +734,7 @@ hb_in_range (T u, T lo, T hi)
  * For example, for testing "x ∈ {x1, x2, x3}" use:
  * (FLAG(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
  */
-#define FLAG(x) (ASSERT_STATIC_EXPR_ZERO((x) < 8 * sizeof(int)) + (1<<(x)))
+#define FLAG(x) (1<<(x))
 #define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
 
 
