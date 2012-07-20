@@ -309,7 +309,7 @@ static const feature_list_t
 indic_basic_features[] =
 {
   {HB_TAG('n','u','k','t'), true},
-  {HB_TAG('a','k','h','n'), false},
+  {HB_TAG('a','k','h','n'), true},
   {HB_TAG('r','p','h','f'), false},
   {HB_TAG('r','k','r','f'), true},
   {HB_TAG('p','r','e','f'), false},
@@ -325,7 +325,7 @@ indic_basic_features[] =
 /* Same order as the indic_basic_features array */
 enum {
   _NUKT,
-  AKHN,
+  _AKHN,
   RPHF,
   _RKRF,
   PREF,
@@ -687,11 +687,11 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       info[i].mask |= basic_mask_array[RPHF];
 
     /* Pre-base */
-    mask = basic_mask_array[HALF] | basic_mask_array[AKHN] | basic_mask_array[CJCT];
+    mask = basic_mask_array[HALF] | basic_mask_array[CJCT];
     for (unsigned int i = start; i < base; i++)
       info[i].mask  |= mask;
     /* Base */
-    mask = basic_mask_array[AKHN] | basic_mask_array[CJCT];
+    mask = basic_mask_array[CJCT];
     if (base < end)
       info[base].mask |= mask;
     /* Post-base */
