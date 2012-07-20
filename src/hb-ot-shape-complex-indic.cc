@@ -471,8 +471,8 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	start + 3 <= end &&
 	info[start].indic_category() == OT_Ra &&
 	info[start + 1].indic_category() == OT_H &&
-	(unlikely (buffer->props.script == HB_SCRIPT_SINHALA) ?
-	 info[start + 2].indic_category() == OT_ZWJ /* In Sinhala, form Reph only if ZWJ is present */:
+	(unlikely (buffer->props.script == HB_SCRIPT_SINHALA || buffer->props.script == HB_SCRIPT_TELUGU) ?
+	 info[start + 2].indic_category() == OT_ZWJ /* In Sinhala & Telugu, form Reph only if ZWJ is present */:
 	 !is_joiner (info[start + 2] /* In other scripts, any joiner blocks Reph formation */ )
 	))
     {

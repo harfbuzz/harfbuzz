@@ -177,7 +177,7 @@ static const hb_codepoint_t ra_chars[] = {
   0x0AB0, /* Gujarati */
   0x0B30, /* Oriya */
   0x0BB0, /* Tamil */		/* No Reph */
-  0x0C30, /* Telugu */		/* No Reph */
+  0x0C30, /* Telugu */		/* Reph formed only with ZWJ */
   0x0CB0, /* Kannada */
   0x0D30, /* Malayalam */	/* No Reph, Logical Repha */
 
