@@ -1486,8 +1486,8 @@ fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t di
 
   unsigned int j = i - pos[i].attach_lookback();
 
-  pos[i].x_advance = 0;
-  pos[i].y_advance = 0;
+//  pos[i].x_advance = 0;
+//  pos[i].y_advance = 0;
   pos[i].x_offset += pos[j].x_offset;
   pos[i].y_offset += pos[j].y_offset;
 
