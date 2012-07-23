@@ -681,6 +681,10 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   /* We do bubble-sort, skip malicious clusters attempts */
   if (end - start < 64)
   {
+    /* Things are out-of-control for post base positions, they may shuffle
+     * around like crazy, so merge clusters.  For pre-base stuff, we handle
+     * cluster issues in final reordering. */
+    buffer->merge_clusters (base, end);
     /* Sit tight, rock 'n roll! */
     hb_bubble_sort (info + start, end - start, compare_indic_order);
     /* Find base again */
