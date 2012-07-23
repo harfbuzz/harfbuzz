@@ -729,6 +729,12 @@ hb_in_range (T u, T lo, T hi)
     return lo <= u && u <= hi;
 }
 
+template <typename T> static inline bool
+hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2)
+{
+  return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2);
+}
+
 
 /* Useful for set-operations on small enums.
  * For example, for testing "x ∈ {x1, x2, x3}" use:

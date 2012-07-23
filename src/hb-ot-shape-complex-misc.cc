@@ -121,18 +121,19 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
   /* The following is NOT specified in the MS OT Thai spec, however, it seems
    * to be what Uniscribe and other engines implement.  According to Eric Muller:
    *
-   * When you have a sara am, decompose it in nikhahit + sara a, *and* mode the
-   * nihka hit backwards over any *tone* mark (0E48-0E4B).
+   * When you have a SARA AM, decompose it in NIKHAHIT + SARA AA, *and* move the
+   * NIKHAHIT backwards over any tone mark (0E48-0E4B).
    *
    * <0E14, 0E4B, 0E33> -> <0E14, 0E4D, 0E4B, 0E32>
    *
-   * This reordering is legit only when the nikhahit comes from a sara am, not
+   * This reordering is legit only when the NIKHAHIT comes from a SARA AM, not
    * when it's there to start with. The string <0E14, 0E4B, 0E4D> is probably
-   * not what a u↪ser wanted, but the rendering is nevertheless nikhahit above
+   * not what a user wanted, but the rendering is nevertheless nikhahit above
    * chattawa.
    *
    * Same for Lao.
    */
+
 
   /*
    * Here are the characters of significance:
@@ -142,9 +143,9 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
    * SARA AA:		U+0E32	U+0EB2
    * Nikhahit:		U+0E4D	U+0ECD
    *
-   * Tone marks:
-   * Thai:	<0E48..0E4B> CCC=107
-   * Lao:	<0EC8..0ECB> CCC=122
+   * Testing shows that Uniscribe reorder the following marks:
+   * Thai:	<0E31..0E37,0E47..0E4E>
+   * Lao:	<0EB1..0EB7,0EC7..0ECE>
    *
    * Note how the Lao versions are the same as Thai + 0x80.
    */
@@ -154,7 +155,7 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
 #define IS_SARA_AM(x) (((x) & ~0x0080) == 0x0E33)
 #define NIKHAHIT_FROM_SARA_AM(x) ((x) - 0xE33 + 0xE4D)
 #define SARA_AA_FROM_SARA_AM(x) ((x) - 1)
-#define IS_TONE_MARK(x) (((x) & ~0x0083) == 0x0E48)
+#define IS_TONE_MARK(x) (hb_in_ranges<hb_codepoint_t> ((x) & ~0x0080, 0x0E31, 0x0E37, 0x0E47, 0x0E4E))
 
   buffer->clear_output ();
   unsigned int count = buffer->len;
@@ -179,14 +180,23 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
     while (start > 0 && IS_TONE_MARK (buffer->out_info[start - 1].codepoint))
       start--;
 
-    /* Move Nikhahit (end-2) to the beginning */
-    hb_glyph_info_t t = buffer->out_info[end - 2];
-    memmove (buffer->out_info + start + 1,
-	     buffer->out_info + start,
-	     sizeof (buffer->out_info[0]) * (end - start - 2));
-    buffer->out_info[start] = t;
-
-    buffer->merge_out_clusters (start, end);
+    if (start + 2 < end)
+    {
+      /* Move Nikhahit (end-2) to the beginning */
+      buffer->merge_out_clusters (start, end);
+      hb_glyph_info_t t = buffer->out_info[end - 2];
+      memmove (buffer->out_info + start + 1,
+	       buffer->out_info + start,
+	       sizeof (buffer->out_info[0]) * (end - start - 2));
+      buffer->out_info[start] = t;
+    }
+    else
+    {
+      /* Since we decomposed, and NIKHAHIT is combining, merge clusters with the
+       * previous cluster. */
+      if (start)
+	buffer->merge_out_clusters (start - 1, end);
+    }
   }
   buffer->swap_buffers ();
 }
