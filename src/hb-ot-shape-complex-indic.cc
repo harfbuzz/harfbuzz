@@ -859,7 +859,8 @@ final_reordering_syllable (hb_buffer_t *buffer,
     while (new_pos > start &&
 	   !(FLAG (info[new_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng))))
       new_pos--;
-    /* If we found no Halant we are done.  Otherwise only proceed if the Halant does
+    /* If we found no Halant we are done (just need to update clusters).
+     * Otherwise only proceed if the Halant does
      * not belong to the Matra itself! */
     if (is_halant_or_coeng (info[new_pos]) &&
 	info[new_pos].indic_position() != POS_PRE_M) {
@@ -877,6 +878,12 @@ final_reordering_syllable (hb_buffer_t *buffer,
 	  info[new_pos] = tmp;
 	  start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
 	  new_pos--;
+	}
+    } else {
+      for (unsigned int i = start; i < start_of_last_cluster; i++)
+	if (info[i].indic_position () == POS_PRE_M) {
+	  start_of_last_cluster = i;
+	  break;
 	}
     }
   }
