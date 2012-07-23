@@ -882,11 +882,11 @@ final_reordering_syllable (hb_buffer_t *buffer,
 	  info[new_pos] = tmp;
 	  new_pos--;
 	}
-      buffer->merge_clusters (new_pos, base);
+      buffer->merge_clusters (new_pos, MIN (end, base + 1));
     } else {
       for (unsigned int i = start; i < base; i++)
 	if (info[i].indic_position () == POS_PRE_M) {
-	  buffer->merge_clusters (i, base);
+	  buffer->merge_clusters (i, MIN (end, base + 1));
 	  break;
 	}
     }
