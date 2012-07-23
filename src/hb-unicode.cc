@@ -363,6 +363,12 @@ _hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
     };
     c = permuted_hebrew_classes[c - 10];
   }
+  else if (unlikely (unicode == 0x0E3A)) /* THAI VOWEL SIGN PHINTHU */
+  {
+    /* Assign 104, so it reorders after the THAI ccc=103 marks.
+     * Uniscribe does this. */
+    c = 104;
+  }
 
   return c;
 }

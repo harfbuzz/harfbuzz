@@ -132,6 +132,13 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
    * chattawa.
    *
    * Same for Lao.
+   *
+   * Note:
+   *
+   * Uniscribe also does so below-marks reordering.  Namely, it positions U+0E3A
+   * after U+0E38 and U+0E39.  We do that by modifying the ccc for U+0E3A.
+   * See _hb_unicode_modified_combining_class ().  Lao does NOT have a U+0E3A
+   * equivalent.
    */
 
 
