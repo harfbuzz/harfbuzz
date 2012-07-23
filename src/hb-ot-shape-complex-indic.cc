@@ -845,7 +845,6 @@ final_reordering_syllable (hb_buffer_t *buffer,
       break;
     }
 
-  unsigned int start_of_last_cluster = base;
 
   /*   o Reorder matras:
    *
@@ -867,7 +866,8 @@ final_reordering_syllable (hb_buffer_t *buffer,
      * Otherwise only proceed if the Halant does
      * not belong to the Matra itself! */
     if (is_halant_or_coeng (info[new_pos]) &&
-	info[new_pos].indic_position() != POS_PRE_M) {
+	info[new_pos].indic_position() != POS_PRE_M)
+    {
       /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
       if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
 	new_pos++;
@@ -880,13 +880,13 @@ final_reordering_syllable (hb_buffer_t *buffer,
 	  hb_glyph_info_t tmp = info[old_pos];
 	  memmove (&info[old_pos], &info[old_pos + 1], (new_pos - old_pos) * sizeof (info[0]));
 	  info[new_pos] = tmp;
-	  start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
 	  new_pos--;
 	}
+      buffer->merge_clusters (new_pos, base);
     } else {
-      for (unsigned int i = start; i < start_of_last_cluster; i++)
+      for (unsigned int i = start; i < base; i++)
 	if (info[i].indic_position () == POS_PRE_M) {
-	  start_of_last_cluster = i;
+	  buffer->merge_clusters (i, base);
 	  break;
 	}
     }
@@ -1060,11 +1060,13 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
     reph_move:
     {
+      /* Yay, one big cluster! Merge before moving. */
+      buffer->merge_clusters (start, end);
+
       /* Move */
       hb_glyph_info_t reph = info[start];
       memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
       info[new_reph_pos] = reph;
-      start_of_last_cluster = start; /* Yay, one big cluster! */
     }
   }
 
@@ -1106,10 +1108,10 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
 	  {
 	    unsigned int old_pos = i;
+	    buffer->merge_clusters (new_pos, old_pos + 1);
 	    hb_glyph_info_t tmp = info[old_pos];
 	    memmove (&info[new_pos + 1], &info[new_pos], (old_pos - new_pos) * sizeof (info[0]));
 	    info[new_pos] = tmp;
-	    start_of_last_cluster = MIN (new_pos, start_of_last_cluster);
 	  }
 	}
 
@@ -1129,17 +1131,14 @@ final_reordering_syllable (hb_buffer_t *buffer,
   /*
    * Finish off the clusters and go home!
    */
-
   if (indic_options ().uniscribe_bug_compatible)
   {
     /* Uniscribe merges the entire cluster.
      * This means, half forms are submerged into the main consonants cluster.
      * This is unnecessary, and makes cursor positioning harder, but that's what
      * Uniscribe does. */
-    start_of_last_cluster = start;
+    buffer->merge_clusters (start, end);
   }
-
-  buffer->merge_clusters (start_of_last_cluster, end);
 }
 
 
