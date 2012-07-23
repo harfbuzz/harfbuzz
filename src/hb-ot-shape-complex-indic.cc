@@ -222,6 +222,12 @@ is_halant_or_coeng (const hb_glyph_info_t &info)
   return !!(FLAG (info.indic_category()) & HALANT_OR_COENG_FLAGS);
 }
 
+static bool
+is_one_of (const hb_glyph_info_t &info, unsigned int flags)
+{
+  return !!(FLAG (info.indic_category()) & flags);
+}
+
 static inline void
 set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
 {
@@ -858,7 +864,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
   {
     unsigned int new_pos = base - 1;
     while (new_pos > start &&
-	   !(FLAG (info[new_pos].indic_category()) & (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng))))
+	   !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng)))))
       new_pos--;
     /* If we found no Halant we are done (just need to update clusters).
      * Otherwise only proceed if the Halant does
@@ -1096,7 +1102,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
 	  unsigned int new_pos = base;
 	  while (new_pos > start + 1 &&
-		 !(FLAG (info[new_pos - 1].indic_category()) & (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng))))
+		 !(is_one_of (info[new_pos - 1], (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng)))))
 	    new_pos--;
 
 	  if (new_pos > start && is_halant_or_coeng (info[new_pos - 1]))
