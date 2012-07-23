@@ -42,12 +42,12 @@ set_lig_props (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp
   info.lig_props() = (lig_id << 4) | (lig_comp & 0x0F);
 }
 static inline unsigned int
-get_lig_id (hb_glyph_info_t &info)
+get_lig_id (const hb_glyph_info_t &info)
 {
   return info.lig_props() >> 4;
 }
 static inline unsigned int
-get_lig_comp (hb_glyph_info_t &info)
+get_lig_comp (const hb_glyph_info_t &info)
 {
   return info.lig_props() & 0x0F;
 }
