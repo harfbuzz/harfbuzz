@@ -151,8 +151,8 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
    * Nikhahit:		U+0E4D	U+0ECD
    *
    * Testing shows that Uniscribe reorder the following marks:
-   * Thai:	<0E31..0E37,0E47..0E4E>
-   * Lao:	<0EB1..0EB7,0EC7..0ECE>
+   * Thai:	<0E31,0E34..0E37,0E47..0E4E>
+   * Lao:	<0EB1,0EB4..0EB7,0EC7..0ECE>
    *
    * Note how the Lao versions are the same as Thai + 0x80.
    */
@@ -162,7 +162,7 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
 #define IS_SARA_AM(x) (((x) & ~0x0080) == 0x0E33)
 #define NIKHAHIT_FROM_SARA_AM(x) ((x) - 0xE33 + 0xE4D)
 #define SARA_AA_FROM_SARA_AM(x) ((x) - 1)
-#define IS_TONE_MARK(x) (hb_in_ranges<hb_codepoint_t> ((x) & ~0x0080, 0x0E31, 0x0E37, 0x0E47, 0x0E4E))
+#define IS_TONE_MARK(x) (hb_in_ranges<hb_codepoint_t> ((x) & ~0x0080, 0x0E34, 0x0E37, 0x0E47, 0x0E4E, 0x0E31, 0x0E31))
 
   buffer->clear_output ();
   unsigned int count = buffer->len;

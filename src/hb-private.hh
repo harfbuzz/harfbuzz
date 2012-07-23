@@ -730,9 +730,9 @@ hb_in_range (T u, T lo, T hi)
 }
 
 template <typename T> static inline bool
-hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2)
+hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 {
-  return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2);
+  return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2) || hb_in_range (u, lo3, hi3);
 }
 
 
