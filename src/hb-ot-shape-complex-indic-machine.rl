@@ -64,12 +64,12 @@ reph = (Ra H | Repha);		# possible reph
 
 cn = c.n?;
 forced_rakar = ZWJ H ZWJ Ra;
-matra_group = z*.M.N?.(H | forced_rakar)?;
+matra_group = z{0,3}.M.N?.(H | forced_rakar)?;
 syllable_tail = (SM.ZWNJ?)? (Coeng (cn|V))? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 halant_group = (z?.h.ZWJ?);
 final_halant_group = halant_group | h.ZWNJ;
-halant_or_matra_group = (final_halant_group | matra_group*);
+halant_or_matra_group = (final_halant_group | matra_group{0,4});
 
 
 consonant_syllable =	Repha? (cn.halant_group){0,4} cn A? halant_or_matra_group? syllable_tail;
