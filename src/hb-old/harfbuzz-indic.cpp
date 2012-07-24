@@ -1866,29 +1866,3 @@ HB_Bool HB_IndicShape(HB_ShaperItem *item)
     item->num_glyphs = first_glyph;
     return true;
 }
-
-void HB_IndicAttributes(HB_Script script, const HB_UChar16 *text, hb_uint32 from, hb_uint32 len, HB_CharAttributes *attributes)
-{
-    int end = from + len;
-    const HB_UChar16 *uc = text + from;
-    attributes += from;
-    hb_uint32 i = 0;
-    while (i < len) {
-        bool invalid;
-        hb_uint32 boundary = indic_nextSyllableBoundary(script, text, from+i, end, &invalid) - from;
-         attributes[i].charStop = true;
-
-        if (boundary > len-1) boundary = len;
-        i++;
-        while (i < boundary) {
-            attributes[i].charStop = false;
-            ++uc;
-            ++i;
-        }
-        assert(i == boundary);
-    }
-
-
-}
-
-

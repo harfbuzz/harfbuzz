@@ -32,205 +32,6 @@
 #define HB_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define HB_MAX(a, b) ((a) > (b) ? (a) : (b))
 
-// -----------------------------------------------------------------------------------------------------
-//
-// The line break algorithm. See http://www.unicode.org/reports/tr14/tr14-13.html
-//
-// -----------------------------------------------------------------------------------------------------
-
-/* The Unicode algorithm does in our opinion allow line breaks at some
-   places they shouldn't be allowed. The following changes were thus
-   made in comparison to the Unicode reference:
-
-   EX->AL from DB to IB
-   SY->AL from DB to IB
-   SY->PO from DB to IB
-   SY->PR from DB to IB
-   SY->OP from DB to IB
-   AL->PR from DB to IB
-   AL->PO from DB to IB
-   PR->PR from DB to IB
-   PO->PO from DB to IB
-   PR->PO from DB to IB
-   PO->PR from DB to IB
-   HY->PO from DB to IB
-   HY->PR from DB to IB
-   HY->OP from DB to IB
-   NU->EX from PB to IB
-   EX->PO from DB to IB
-*/
-
-// The following line break classes are not treated by the table:
-//  AI, BK, CB, CR, LF, NL, SA, SG, SP, XX
-
-enum break_class {
-    // the first 4 values have to agree with the enum in QCharAttributes
-    ProhibitedBreak,            // PB in table
-    DirectBreak,                // DB in table
-    IndirectBreak,              // IB in table
-    CombiningIndirectBreak,     // CI in table
-    CombiningProhibitedBreak    // CP in table
-};
-#define DB DirectBreak
-#define IB IndirectBreak
-#define CI CombiningIndirectBreak
-#define CP CombiningProhibitedBreak
-#define PB ProhibitedBreak
-
-static const hb_uint8 breakTable[HB_LineBreak_JT+1][HB_LineBreak_JT+1] =
-{
-/*          OP  CL  QU  GL  NS  EX  SY  IS  PR  PO  NU  AL  ID  IN  HY  BA  BB  B2  ZW  CM  WJ  H2  H3  JL  JV  JT */
-/* OP */ { PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, PB, CP, PB, PB, PB, PB, PB, PB },
-/* CL */ { DB, PB, IB, IB, PB, PB, PB, PB, IB, IB, IB, IB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* QU */ { PB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, IB, IB, IB, IB, IB, IB, PB, CI, PB, IB, IB, IB, IB, IB },
-/* GL */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, IB, IB, IB, IB, IB, IB, PB, CI, PB, IB, IB, IB, IB, IB },
-/* NS */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, DB, DB, DB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* EX */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, IB, DB, IB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* SY */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* IS */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, DB, IB, IB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* PR */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, IB, DB, IB, IB, DB, DB, PB, CI, PB, IB, IB, IB, IB, IB },
-/* PO */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* NU */ { IB, PB, IB, IB, IB, IB, PB, PB, IB, IB, IB, IB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* AL */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* ID */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, IB, DB, DB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* IN */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, DB, DB, DB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* HY */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, DB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* BA */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, DB, DB, DB, DB, DB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* BB */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, IB, IB, IB, IB, IB, IB, PB, CI, PB, IB, IB, IB, IB, IB },
-/* B2 */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, DB, DB, DB, DB, DB, IB, IB, DB, PB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* ZW */ { DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, DB, PB, DB, DB, DB, DB, DB, DB, DB },
-/* CM */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, DB, IB, IB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, DB },
-/* WJ */ { IB, PB, IB, IB, IB, PB, PB, PB, IB, IB, IB, IB, IB, IB, IB, IB, IB, IB, PB, CI, PB, IB, IB, IB, IB, IB },
-/* H2 */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, IB, DB, DB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, IB, IB },
-/* H3 */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, IB, DB, DB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, IB },
-/* JL */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, IB, DB, DB, DB, IB, IB, IB, DB, DB, PB, CI, PB, IB, IB, IB, IB, DB },
-/* JV */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, IB, DB, DB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, IB, IB },
-/* JT */ { DB, PB, IB, IB, IB, PB, PB, PB, DB, IB, DB, DB, DB, IB, IB, IB, DB, DB, PB, CI, PB, DB, DB, DB, DB, IB }
-};
-#undef DB
-#undef IB
-#undef CI
-#undef CP
-#undef PB
-
-static const hb_uint8 graphemeTable[HB_Grapheme_LVT + 1][HB_Grapheme_LVT + 1] =
-{
-//      Other, CR,    LF,    Control,Extend,L,    V,     T,     LV,    LVT
-    { true , true , true , true , true , true , true , true , true , true  }, // Other, 
-    { true , true , true , true , true , true , true , true , true , true  }, // CR,
-    { true , false, true , true , true , true , true , true , true , true  }, // LF,
-    { true , true , true , true , true , true , true , true , true , true  }, // Control,
-    { false, true , true , true , false, false, false, false, false, false }, // Extend,
-    { true , true , true , true , true , false, true , true , true , true  }, // L, 
-    { true , true , true , true , true , false, false, true , false, true  }, // V, 
-    { true , true , true , true , true , true , false, false, false, false }, // T, 
-    { true , true , true , true , true , false, true , true , true , true  }, // LV, 
-    { true , true , true , true , true , false, true , true , true , true  }, // LVT
-};
-    
-static void calcLineBreaks(const HB_UChar16 *uc, hb_uint32 len, HB_CharAttributes *charAttributes)
-{
-    if (!len)
-        return;
-
-    // ##### can this fail if the first char is a surrogate?
-    HB_LineBreakClass cls;
-    HB_GraphemeClass grapheme;
-    HB_GetGraphemeAndLineBreakClass(*uc, &grapheme, &cls);
-    // handle case where input starts with an LF
-    if (cls == HB_LineBreak_LF)
-        cls = HB_LineBreak_BK;
-
-    charAttributes[0].whiteSpace = (cls == HB_LineBreak_SP || cls == HB_LineBreak_BK);
-    charAttributes[0].charStop = true;
-
-    int lcls = cls;
-    for (hb_uint32 i = 1; i < len; ++i) {
-        charAttributes[i].whiteSpace = false;
-        charAttributes[i].charStop = true;
-
-        HB_UChar32 code = uc[i];
-        HB_GraphemeClass ngrapheme;
-        HB_LineBreakClass ncls;
-        HB_GetGraphemeAndLineBreakClass(code, &ngrapheme, &ncls);
-        charAttributes[i].charStop = graphemeTable[ngrapheme][grapheme];
-        // handle surrogates
-        if (ncls == HB_LineBreak_SG) {
-            if (HB_IsHighSurrogate(uc[i]) && i < len - 1 && HB_IsLowSurrogate(uc[i+1])) {
-                continue;
-            } else if (HB_IsLowSurrogate(uc[i]) && HB_IsHighSurrogate(uc[i-1])) {
-                code = HB_SurrogateToUcs4(uc[i-1], uc[i]);
-                HB_GetGraphemeAndLineBreakClass(code, &ngrapheme, &ncls);
-                charAttributes[i].charStop = false;
-            } else {
-                ncls = HB_LineBreak_AL;
-            }
-        }
-
-        // set white space and char stop flag
-        if (ncls >= HB_LineBreak_SP)
-            charAttributes[i].whiteSpace = true;
-
-        HB_LineBreakType lineBreakType = HB_NoBreak;
-        if (cls >= HB_LineBreak_LF) {
-            lineBreakType = HB_ForcedBreak;
-        } else if(cls == HB_LineBreak_CR) {
-            lineBreakType = (ncls == HB_LineBreak_LF) ? HB_NoBreak : HB_ForcedBreak;
-        }
-
-        if (ncls == HB_LineBreak_SP)
-            goto next_no_cls_update;
-        if (ncls >= HB_LineBreak_CR)
-            goto next;
-
-        {
-            int tcls = ncls;
-            // for south east asian chars that require a complex (dictionary analysis), the unicode
-            // standard recommends to treat them as AL. thai_attributes and other attribute methods that
-            // do dictionary analysis can override
-            if (tcls >= HB_LineBreak_SA)
-                tcls = HB_LineBreak_AL;
-            if (cls >= HB_LineBreak_SA)
-                cls = HB_LineBreak_AL;
-
-            int brk = breakTable[cls][tcls];
-            switch (brk) {
-            case DirectBreak:
-                lineBreakType = HB_Break;
-                if (uc[i-1] == 0xad) // soft hyphen
-                    lineBreakType = HB_SoftHyphen;
-                break;
-            case IndirectBreak:
-                lineBreakType = (lcls == HB_LineBreak_SP) ? HB_Break : HB_NoBreak;
-                break;
-            case CombiningIndirectBreak:
-                lineBreakType = HB_NoBreak;
-                if (lcls == HB_LineBreak_SP){
-                    if (i > 1)
-                        charAttributes[i-2].lineBreakType = HB_Break;
-                } else {
-                    goto next_no_cls_update;
-                }
-                break;
-            case CombiningProhibitedBreak:
-                lineBreakType = HB_NoBreak;
-                if (lcls != HB_LineBreak_SP)
-                    goto next_no_cls_update;
-            case ProhibitedBreak:
-            default:
-                break;
-            }
-        }
-    next:
-        cls = ncls;
-    next_no_cls_update:
-        lcls = ncls;
-        grapheme = ngrapheme;
-        charAttributes[i-1].lineBreakType = lineBreakType;
-    }
-    charAttributes[len-1].lineBreakType = HB_ForcedBreak;
-}
-
 // --------------------------------------------------------------------------------------------------------------------------------------------
 //
 // Basic processing
@@ -582,209 +383,62 @@ HB_Bool HB_BasicShape(HB_ShaperItem *shaper_item)
 
 const HB_ScriptEngine HB_ScriptEngines[] = {
     // Common
-    { HB_BasicShape, 0},
+    { HB_BasicShape},
     // Greek
-    { HB_GreekShape, 0},
+    { HB_GreekShape},
     // Cyrillic
-    { HB_BasicShape, 0},
+    { HB_BasicShape},
     // Armenian
-    { HB_BasicShape, 0},
+    { HB_BasicShape},
     // Hebrew
-    { HB_HebrewShape, 0 },
+    { HB_HebrewShape},
     // Arabic
-    { HB_ArabicShape, 0},
+    { HB_ArabicShape},
     // Syriac
-    { HB_ArabicShape, 0},
+    { HB_ArabicShape},
     // Thaana
-    { HB_BasicShape, 0 },
+    { HB_BasicShape},
     // Devanagari
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Bengali
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Gurmukhi
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Gujarati
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Oriya
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Tamil
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Telugu
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Kannada
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Malayalam
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Sinhala
-    { HB_IndicShape, HB_IndicAttributes },
+    { HB_IndicShape},
     // Thai
-    { HB_BasicShape, HB_ThaiAttributes },
+    { HB_BasicShape},
     // Lao
-    { HB_BasicShape, 0 },
+    { HB_BasicShape},
     // Tibetan
-    { HB_TibetanShape, HB_TibetanAttributes },
+    { HB_TibetanShape},
     // Myanmar
-    { HB_MyanmarShape, HB_MyanmarAttributes },
+    { HB_MyanmarShape},
     // Georgian
-    { HB_BasicShape, 0 },
+    { HB_BasicShape},
     // Hangul
-    { HB_HangulShape, 0 },
+    { HB_HangulShape},
     // Ogham
-    { HB_BasicShape, 0 },
+    { HB_BasicShape},
     // Runic
-    { HB_BasicShape, 0 },
+    { HB_BasicShape},
     // Khmer
-    { HB_KhmerShape, HB_KhmerAttributes },
+    { HB_KhmerShape},
     // N'Ko
-    { HB_ArabicShape, 0}
+    { HB_ArabicShape}
 };
-
-void HB_GetCharAttributes(const HB_UChar16 *string, hb_uint32 stringLength,
-                          const HB_ScriptItem *items, hb_uint32 numItems,
-                          HB_CharAttributes *attributes)
-{
-    calcLineBreaks(string, stringLength, attributes);
-
-    for (hb_uint32 i = 0; i < numItems; ++i) {
-        HB_Script script = items[i].script;
-        if (script == HB_Script_Inherited)
-            script = HB_Script_Common;
-        HB_AttributeFunction attributeFunction = HB_ScriptEngines[script].charAttributes;
-        if (!attributeFunction)
-            continue;
-        attributeFunction(script, string, items[i].pos, items[i].length, attributes);
-    }
-}
-
-
-enum BreakRule { NoBreak = 0, Break = 1, Middle = 2 };
-
-static const hb_uint8 wordbreakTable[HB_Word_ExtendNumLet + 1][HB_Word_ExtendNumLet + 1] = {
-//        Other    Format   Katakana ALetter  MidLetter MidNum  Numeric  ExtendNumLet
-    {   Break,   Break,   Break,   Break,   Break,   Break,   Break,   Break }, // Other
-    {   Break,   Break,   Break,   Break,   Break,   Break,   Break,   Break }, // Format 
-    {   Break,   Break, NoBreak,   Break,   Break,   Break,   Break, NoBreak }, // Katakana
-    {   Break,   Break,   Break, NoBreak,  Middle,   Break, NoBreak, NoBreak }, // ALetter
-    {   Break,   Break,   Break,   Break,   Break,   Break,   Break,   Break }, // MidLetter
-    {   Break,   Break,   Break,   Break,   Break,   Break,   Break,   Break }, // MidNum
-    {   Break,   Break,   Break, NoBreak,   Break,  Middle, NoBreak, NoBreak }, // Numeric
-    {   Break,   Break, NoBreak, NoBreak,   Break,   Break, NoBreak, NoBreak }, // ExtendNumLet
-};
-
-void HB_GetWordBoundaries(const HB_UChar16 *string, hb_uint32 stringLength,
-                          const HB_ScriptItem * /*items*/, hb_uint32 /*numItems*/,
-                          HB_CharAttributes *attributes)
-{
-    if (stringLength == 0)
-        return;
-    unsigned int brk = HB_GetWordClass(string[0]);
-    attributes[0].wordBoundary = true;
-    for (hb_uint32 i = 1; i < stringLength; ++i) {
-        if (!attributes[i].charStop) {
-            attributes[i].wordBoundary = false;
-            continue;
-        }
-        hb_uint32 nbrk = HB_GetWordClass(string[i]);
-        if (nbrk == HB_Word_Format) {
-            attributes[i].wordBoundary = (HB_GetSentenceClass(string[i-1]) == HB_Sentence_Sep);
-            continue;
-        }
-        BreakRule rule = (BreakRule)wordbreakTable[brk][nbrk];
-        if (rule == Middle) {
-            rule = Break;
-            hb_uint32 lookahead = i + 1;
-            while (lookahead < stringLength) {
-                hb_uint32 testbrk = HB_GetWordClass(string[lookahead]);
-                if (testbrk == HB_Word_Format && HB_GetSentenceClass(string[lookahead]) != HB_Sentence_Sep) {
-                    ++lookahead;
-                    continue;
-                }
-                if (testbrk == brk) {
-                    rule = NoBreak;
-                    while (i < lookahead)
-                        attributes[i++].wordBoundary = false;
-                    nbrk = testbrk;
-                }
-                break;
-            }
-        }
-        attributes[i].wordBoundary = (rule == Break);
-        brk = nbrk;
-    }
-}
-
-
-enum SentenceBreakStates {
-    SB_Initial,
-    SB_Upper,
-    SB_UpATerm, 
-    SB_ATerm,
-    SB_ATermC, 
-    SB_ACS, 
-    SB_STerm, 
-    SB_STermC, 
-    SB_SCS,
-    SB_BAfter, 
-    SB_Break,
-    SB_Look
-};
-
-static const hb_uint8 sentenceBreakTable[HB_Sentence_Close + 1][HB_Sentence_Close + 1] = {
-//        Other       Sep         Format      Sp          Lower       Upper       OLetter     Numeric     ATerm       STerm       Close
-      { SB_Initial, SB_BAfter , SB_Initial, SB_Initial, SB_Initial, SB_Upper  , SB_Initial, SB_Initial, SB_ATerm  , SB_STerm  , SB_Initial }, // SB_Initial,
-      { SB_Initial, SB_BAfter , SB_Upper  , SB_Initial, SB_Initial, SB_Upper  , SB_Initial, SB_Initial, SB_UpATerm, SB_STerm  , SB_Initial }, // SB_Upper
-      
-      { SB_Look   , SB_BAfter , SB_UpATerm, SB_ACS    , SB_Initial, SB_Upper  , SB_Break  , SB_Initial, SB_ATerm  , SB_STerm  , SB_ATermC  }, // SB_UpATerm
-      { SB_Look   , SB_BAfter , SB_ATerm  , SB_ACS    , SB_Initial, SB_Break  , SB_Break  , SB_Initial, SB_ATerm  , SB_STerm  , SB_ATermC  }, // SB_ATerm
-      { SB_Look   , SB_BAfter , SB_ATermC , SB_ACS    , SB_Initial, SB_Break  , SB_Break  , SB_Look   , SB_ATerm  , SB_STerm  , SB_ATermC  }, // SB_ATermC,
-      { SB_Look   , SB_BAfter , SB_ACS    , SB_ACS    , SB_Initial, SB_Break  , SB_Break  , SB_Look   , SB_ATerm  , SB_STerm  , SB_Look    }, // SB_ACS,
-      
-      { SB_Break  , SB_BAfter , SB_STerm  , SB_SCS    , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_ATerm  , SB_STerm  , SB_STermC  }, // SB_STerm,
-      { SB_Break  , SB_BAfter , SB_STermC , SB_SCS    , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_ATerm  , SB_STerm  , SB_STermC  }, // SB_STermC,
-      { SB_Break  , SB_BAfter , SB_SCS    , SB_SCS    , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_ATerm  , SB_STerm  , SB_Break   }, // SB_SCS,
-      { SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_Break  , SB_Break   }, // SB_BAfter,
-};
-
-void HB_GetSentenceBoundaries(const HB_UChar16 *string, hb_uint32 stringLength,
-                              const HB_ScriptItem * /*items*/, hb_uint32 /*numItems*/,
-                              HB_CharAttributes *attributes)
-{
-    if (stringLength == 0)
-        return;
-    hb_uint32 brk = sentenceBreakTable[SB_Initial][HB_GetSentenceClass(string[0])];
-    attributes[0].sentenceBoundary = true;
-    for (hb_uint32 i = 1; i < stringLength; ++i) {
-        if (!attributes[i].charStop) {
-            attributes[i].sentenceBoundary = false;
-            continue;
-        }
-        brk = sentenceBreakTable[brk][HB_GetSentenceClass(string[i])];
-        if (brk == SB_Look) {
-            brk = SB_Break;
-            hb_uint32 lookahead = i + 1;
-            while (lookahead < stringLength) {
-                hb_uint32 sbrk = HB_GetSentenceClass(string[lookahead]);
-                if (sbrk != HB_Sentence_Other && sbrk != HB_Sentence_Numeric && sbrk != HB_Sentence_Close) {
-                    break;
-                } else if (sbrk == HB_Sentence_Lower) {
-                    brk = SB_Initial;
-                    break;
-                }
-                ++lookahead;
-            }
-            if (brk == SB_Initial) {
-                while (i < lookahead)
-                    attributes[i++].sentenceBoundary = false;
-            }
-        }
-        if (brk == SB_Break) {
-            attributes[i].sentenceBoundary = true;
-            brk = sentenceBreakTable[SB_Initial][HB_GetSentenceClass(string[i])];
-        } else {
-            attributes[i].sentenceBoundary = false;
-        }
-    }
-}
 
 
 static inline char *tag_to_string(HB_UInt tag)
@@ -1335,4 +989,3 @@ HB_Bool HB_ShapeItem(HB_ShaperItem *shaper_item)
     shaper_item->glyphIndicesPresent = false;
     return result;
 }
-

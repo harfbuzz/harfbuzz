@@ -18,10 +18,7 @@ MAINSOURCES =  \
 	harfbuzz-hebrew.c \
 	harfbuzz-arabic.c \
 	harfbuzz-hangul.c \
-	harfbuzz-myanmar.c \
-	harfbuzz-thai.c
-
-EXTRA_SOURCES = harfbuzz.c
+	harfbuzz-myanmar.c
 
 PUBLICHEADERS = \
 	harfbuzz.h \
@@ -50,7 +47,4 @@ libhb_old_la_SOURCES = \
 	$(PUBLICHEADERS) \
 	$(PRIVATEHEADERS)
 
-EXTRA_DIST = 		\
-	README		\
-	COPYING		\
-	$(EXTRA_SOURCES)
+EXTRA_DIST = README COPYING

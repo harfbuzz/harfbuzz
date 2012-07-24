@@ -35,21 +35,6 @@ HB_BEGIN_HEADER
 */
 
 
-/*
- see http://www.unicode.org/reports/tr14/tr14-19.html
- we don't use the XX, AI and CB properties and map them to AL instead.
- as we don't support any EBDIC based OS'es, NL is ignored and mapped to AL as well.
-*/
-typedef enum {
-    HB_LineBreak_OP, HB_LineBreak_CL, HB_LineBreak_QU, HB_LineBreak_GL, HB_LineBreak_NS,
-    HB_LineBreak_EX, HB_LineBreak_SY, HB_LineBreak_IS, HB_LineBreak_PR, HB_LineBreak_PO,
-    HB_LineBreak_NU, HB_LineBreak_AL, HB_LineBreak_ID, HB_LineBreak_IN, HB_LineBreak_HY,
-    HB_LineBreak_BA, HB_LineBreak_BB, HB_LineBreak_B2, HB_LineBreak_ZW, HB_LineBreak_CM,
-    HB_LineBreak_WJ, HB_LineBreak_H2, HB_LineBreak_H3, HB_LineBreak_JL, HB_LineBreak_JV,
-    HB_LineBreak_JT, HB_LineBreak_SA, HB_LineBreak_SG,
-    HB_LineBreak_SP, HB_LineBreak_CR, HB_LineBreak_LF, HB_LineBreak_BK
-} HB_LineBreakClass;
-
 typedef enum 
 {
     HB_Mark_NonSpacing,          /*   Mn */
@@ -90,61 +75,10 @@ typedef enum
     HB_Symbol_Other              /*   So */
 } HB_CharCategory;
 
-typedef enum
-{
-    HB_Grapheme_Other, 
-    HB_Grapheme_CR,
-    HB_Grapheme_LF,
-    HB_Grapheme_Control,
-    HB_Grapheme_Extend,
-    HB_Grapheme_L, 
-    HB_Grapheme_V, 
-    HB_Grapheme_T, 
-    HB_Grapheme_LV, 
-    HB_Grapheme_LVT
-} HB_GraphemeClass;
-
-
-typedef enum
-{
-    HB_Word_Other,
-    HB_Word_Format,
-    HB_Word_Katakana,
-    HB_Word_ALetter,
-    HB_Word_MidLetter,
-    HB_Word_MidNum,
-    HB_Word_Numeric,
-    HB_Word_ExtendNumLet
-} HB_WordClass;
-
-
-typedef enum
-{
-    HB_Sentence_Other,
-    HB_Sentence_Sep,
-    HB_Sentence_Format,
-    HB_Sentence_Sp,
-    HB_Sentence_Lower,
-    HB_Sentence_Upper,
-    HB_Sentence_OLetter,
-    HB_Sentence_Numeric,
-    HB_Sentence_ATerm,
-    HB_Sentence_STerm,
-    HB_Sentence_Close
-} HB_SentenceClass;
-
-HB_GraphemeClass HB_GetGraphemeClass(HB_UChar32 ch);
-HB_WordClass HB_GetWordClass(HB_UChar32 ch);
-HB_SentenceClass HB_GetSentenceClass(HB_UChar32 ch);
-HB_LineBreakClass HB_GetLineBreakClass(HB_UChar32 ch);
-
-void HB_GetGraphemeAndLineBreakClass(HB_UChar32 ch, HB_GraphemeClass *grapheme, HB_LineBreakClass *lineBreak);
 void HB_GetUnicodeCharProperties(HB_UChar32 ch, HB_CharCategory *category, int *combiningClass);
 HB_CharCategory HB_GetUnicodeCharCategory(HB_UChar32 ch);
 int HB_GetUnicodeCharCombiningClass(HB_UChar32 ch);
 HB_UChar16 HB_GetMirroredChar(HB_UChar16 ch);
-
-void *HB_Library_Resolve(const char *library, int version, const char *symbol);
 
 HB_END_HEADER
 

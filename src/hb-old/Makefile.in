@@ -52,7 +52,7 @@ am__objects_1 = harfbuzz-buffer.lo harfbuzz-stream.lo harfbuzz-gdef.lo \
 	harfbuzz-open.lo harfbuzz-shaper.lo harfbuzz-greek.lo \
 	harfbuzz-tibetan.lo harfbuzz-khmer.lo harfbuzz-indic.lo \
 	harfbuzz-hebrew.lo harfbuzz-arabic.lo harfbuzz-hangul.lo \
-	harfbuzz-myanmar.lo harfbuzz-thai.lo
+	harfbuzz-myanmar.lo
 am__objects_2 =
 am_libhb_old_la_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_2)
@@ -268,10 +268,8 @@ MAINSOURCES = \
 	harfbuzz-hebrew.c \
 	harfbuzz-arabic.c \
 	harfbuzz-hangul.c \
-	harfbuzz-myanmar.c \
-	harfbuzz-thai.c
+	harfbuzz-myanmar.c
 
-EXTRA_SOURCES = harfbuzz.c
 PUBLICHEADERS = \
 	harfbuzz.h \
 	harfbuzz-buffer.h \
@@ -299,11 +297,7 @@ libhb_old_la_SOURCES = \
 	$(PUBLICHEADERS) \
 	$(PRIVATEHEADERS)
 
-EXTRA_DIST = \
-	README		\
-	COPYING		\
-	$(EXTRA_SOURCES)
-
+EXTRA_DIST = README COPYING
 all: all-am
 
 .SUFFIXES:
@@ -371,7 +365,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-open.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-shaper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-stream.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-thai.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-tibetan.Plo@am__quote@
 
 .c.o:

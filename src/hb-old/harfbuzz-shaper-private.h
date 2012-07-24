@@ -93,11 +93,9 @@ typedef enum {
 
 /* return true if ok. */
 typedef HB_Bool (*HB_ShapeFunction)(HB_ShaperItem *shaper_item);
-typedef void (*HB_AttributeFunction)(HB_Script script, const HB_UChar16 *string, hb_uint32 from, hb_uint32 len, HB_CharAttributes *attributes);
 
 typedef struct {
     HB_ShapeFunction shape;
-    HB_AttributeFunction charAttributes;
 } HB_ScriptEngine;
 
 extern const HB_ScriptEngine hb_scriptEngines[];
@@ -111,16 +109,6 @@ extern HB_Bool HB_HangulShape(HB_ShaperItem *shaper_item);
 extern HB_Bool HB_MyanmarShape(HB_ShaperItem *shaper_item);
 extern HB_Bool HB_KhmerShape(HB_ShaperItem *shaper_item);
 extern HB_Bool HB_IndicShape(HB_ShaperItem *shaper_item);
-
-extern void HB_TibetanAttributes(HB_Script script, const HB_UChar16 *string, hb_uint32 from, hb_uint32 len, HB_CharAttributes *attributes);
-
-extern void HB_MyanmarAttributes(HB_Script script, const HB_UChar16 *string, hb_uint32 from, hb_uint32 len, HB_CharAttributes *attributes);
-
-extern void HB_KhmerAttributes(HB_Script script, const HB_UChar16 *string, hb_uint32 from, hb_uint32 len, HB_CharAttributes *attributes);
-
-extern void HB_IndicAttributes(HB_Script script, const HB_UChar16 *string, hb_uint32 from, hb_uint32 len, HB_CharAttributes *attributes);
-
-extern void HB_ThaiAttributes(HB_Script script, const HB_UChar16 *string, hb_uint32 from, hb_uint32 len, HB_CharAttributes *attributes);
 
 typedef struct {
     hb_uint32 tag;

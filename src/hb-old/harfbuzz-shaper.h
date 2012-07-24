@@ -130,37 +130,6 @@ typedef struct
     hb_uint8 bidiLevel;
 } HB_ScriptItem;
 
-typedef enum {
-    HB_NoBreak,
-    HB_SoftHyphen,
-    HB_Break,
-    HB_ForcedBreak
-} HB_LineBreakType;
-
-
-typedef struct {
-    /*HB_LineBreakType*/ hb_bitfield lineBreakType  :2;
-    /*HB_Bool*/ hb_bitfield whiteSpace              :1;     /* A unicode whitespace character, except NBSP, ZWNBSP */
-    /*HB_Bool*/ hb_bitfield charStop                :1;     /* Valid cursor position (for left/right arrow) */
-    /*HB_Bool*/ hb_bitfield wordBoundary            :1;
-    /*HB_Bool*/ hb_bitfield sentenceBoundary        :1;
-    hb_bitfield unused                  :2;
-} HB_CharAttributes;
-
-void HB_GetCharAttributes(const HB_UChar16 *string, hb_uint32 stringLength,
-                          const HB_ScriptItem *items, hb_uint32 numItems,
-                          HB_CharAttributes *attributes);
-
-/* requires HB_GetCharAttributes to be called before */
-void HB_GetWordBoundaries(const HB_UChar16 *string, hb_uint32 stringLength,
-                          const HB_ScriptItem *items, hb_uint32 numItems,
-                          HB_CharAttributes *attributes);
-
-/* requires HB_GetCharAttributes to be called before */
-void HB_GetSentenceBoundaries(const HB_UChar16 *string, hb_uint32 stringLength,
-                              const HB_ScriptItem *items, hb_uint32 numItems,
-                              HB_CharAttributes *attributes);
-
 
 typedef enum {
     HB_LeftToRight = 0,
