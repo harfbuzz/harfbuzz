@@ -256,6 +256,8 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0951, 0x0954)))
     cat = OT_VD;
 
+  if (unlikely (u == 0x17D1))
+    cat = OT_X;
   if (cat == OT_X &&
       unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D3))) /* Khmer Various signs */
   {
