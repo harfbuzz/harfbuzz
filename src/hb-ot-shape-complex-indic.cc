@@ -26,6 +26,7 @@
 
 #include "hb-ot-shape-complex-indic-private.hh"
 #include "hb-ot-shape-private.hh"
+#include "hb-ot-layout-gsubgpos-private.hh"
 
 #define OLD_INDIC_TAG(script) (((hb_tag_t) script) | 0x20000000)
 #define IS_OLD_INDIC_TAG(tag) ( \
@@ -187,7 +188,7 @@ matra_position (hb_codepoint_t u, indic_position_t side)
   abort ();
 }
 
-static bool
+static inline bool
 is_ra (hb_codepoint_t u)
 {
   return !!bsearch (&u, ra_chars,
@@ -196,36 +197,38 @@ is_ra (hb_codepoint_t u)
 		    compare_codepoint);
 }
 
-#define JOINER_FLAGS (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ))
-static bool
-is_joiner (const hb_glyph_info_t &info)
+static inline bool
+is_one_of (const hb_glyph_info_t &info, unsigned int flags)
 {
-  return !!(FLAG (info.indic_category()) & JOINER_FLAGS);
+  /* If it ligated, all bets are off. */
+  if (unlikely (get_lig_id (info))) return false;
+  return !!(FLAG (info.indic_category()) & flags);
 }
 
+#define JOINER_FLAGS (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ))
+static inline bool
+is_joiner (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, JOINER_FLAGS);
+}
+
+/* Note:
+ *
+ * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
+ * cannot happen in a consonant syllable.  The plus side however is, we can call the
+ * consonant syllable logic from the vowel syllable function and get it all right! */
 #define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE))
-static bool
+static inline bool
 is_consonant (const hb_glyph_info_t &info)
 {
-  /* Note:
-   *
-   * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
-   * cannot happen in a consonant syllable.  The plus side however is, we can call the
-   * consonant syllable logic from the vowel syllable function and get it all right! */
-  return !!(FLAG (info.indic_category()) & CONSONANT_FLAGS);
+  return is_one_of (info, CONSONANT_FLAGS);
 }
 
 #define HALANT_OR_COENG_FLAGS (FLAG (OT_H) | FLAG (OT_Coeng))
-static bool
+static inline bool
 is_halant_or_coeng (const hb_glyph_info_t &info)
 {
-  return !!(FLAG (info.indic_category()) & HALANT_OR_COENG_FLAGS);
-}
-
-static bool
-is_one_of (const hb_glyph_info_t &info, unsigned int flags)
-{
-  return !!(FLAG (info.indic_category()) & flags);
+  return is_one_of (info, HALANT_OR_COENG_FLAGS);
 }
 
 static inline void
@@ -726,7 +729,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
   /* XXX This will not match for old-Indic spec since the Halant-Ra order is reversed already. */
   if (basic_mask_array[PREF] && base + 2 < end)
   {
-    /* Find a Halant,Ra sequence and mark it fore pre-base reordering processing. */
+    /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
     for (unsigned int i = base + 1; i + 1 < end; i++)
       if (is_halant_or_coeng (info[i]) &&
 	  info[i + 1].indic_category() == OT_Ra)
