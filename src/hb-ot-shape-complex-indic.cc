@@ -236,13 +236,14 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = get_indic_categories (u);
+  indic_category_t cat = (indic_category_t) (type & 0x0F);
+  indic_position_t pos = (indic_position_t) (type >> 4);
 
 
   /*
-   * Assign category
+   * Re-assign category
    */
 
-  indic_category_t cat = (indic_category_t) (type & 0x0F);
 
   /* The spec says U+0952 is OT_A.  However, testing shows that Uniscribe
    * treats U+0951..U+0952 all as OT_VD.
@@ -256,8 +257,12 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
     cat = OT_VD;
 
   if (cat == OT_X &&
-      unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D2))) /* Khmer Various signs */
-    cat = OT_N;
+      unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D3))) /* Khmer Various signs */
+  {
+    /* These are like Top Matras. */
+    cat = OT_M;
+    pos = POS_ABOVE_C;
+  }
   if (u == 0x17C6) /* Khmer Bindu doesn't like to be repositioned. */
     cat = OT_N;
 
@@ -280,12 +285,9 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
 
 
 
-
   /*
-   * Assign position.
+   * Re-assign position.
    */
-
-  indic_position_t pos = (indic_position_t) (type >> 4);
 
   if ((FLAG (cat) & CONSONANT_FLAGS))
   {
@@ -304,11 +306,6 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
 
   if (unlikely (u == 0x0B01)) pos = POS_BEFORE_SUB; /* Oriya Bindu is BeforeSub in the spec. */
 
-  if (u == 0x17CE) /* U+17CE is not in Indic files.  Likes to be treated like Top Matra */
-  {
-    cat = OT_M;
-    pos = POS_AFTER_SUB;
-  }
 
 
   info.indic_category() = cat;
