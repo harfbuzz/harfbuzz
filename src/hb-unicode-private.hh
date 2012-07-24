@@ -121,6 +121,8 @@ _hb_unicode_is_variation_selector (hb_codepoint_t unicode)
  *  00AD  SOFT HYPHEN
  *  034F  COMBINING GRAPHEME JOINER
  *
+ *  180E  MONGOLIAN VOWEL SEPARATOR
+ *
  *  200B  ZERO WIDTH SPACE
  *  200C  ZERO WIDTH NON-JOINER
  *  200D  ZERO WIDTH JOINER
@@ -153,6 +155,7 @@ _hb_unicode_is_zero_width (hb_codepoint_t ch)
 	 )) || unlikely (ch == 0x0009
 		      || ch == 0x00AD
 		      || ch == 0x034F
+		      || ch == 0x180E
 		      || ch == 0xFEFF);
 }
 
