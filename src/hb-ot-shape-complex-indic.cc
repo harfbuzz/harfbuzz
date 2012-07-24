@@ -1135,6 +1135,19 @@ final_reordering_syllable (hb_buffer_t *buffer,
 		 !(is_one_of (info[new_pos - 1], FLAG(OT_M) | HALANT_OR_COENG_FLAGS)))
 	    new_pos--;
 
+	  /* In Khmer coeng model, a V,Ra can go *after* matras.  If it goes after a
+	   * split matra, it should be reordered to *before* the left part of such matra. */
+	  if (new_pos > start && info[new_pos - 1].indic_category() == OT_M)
+	  {
+	    unsigned int old_pos = i;
+	    for (unsigned int i = base + 1; i < old_pos; i++)
+	      if (info[i].indic_category() == OT_M)
+	      {
+		new_pos--;
+		break;
+	      }
+	  }
+
 	  if (new_pos > start && is_halant_or_coeng (info[new_pos - 1]))
 	    /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
 	    if (new_pos < end && is_joiner (info[new_pos]))
