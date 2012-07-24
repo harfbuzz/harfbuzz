@@ -201,7 +201,7 @@ static inline bool
 is_one_of (const hb_glyph_info_t &info, unsigned int flags)
 {
   /* If it ligated, all bets are off. */
-  if (unlikely (get_lig_id (info))) return false;
+  if (is_a_ligature (info)) return false;
   return !!(FLAG (info.indic_category()) & flags);
 }
 

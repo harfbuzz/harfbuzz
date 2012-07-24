@@ -51,6 +51,11 @@ get_lig_comp (const hb_glyph_info_t &info)
 {
   return info.lig_props() & 0x0F;
 }
+static inline bool
+is_a_ligature (const hb_glyph_info_t &info)
+{
+  return unlikely (get_lig_id (info) && ~get_lig_comp (info));
+}
 
 static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
   uint8_t lig_id = buffer->next_serial () & 0x0F;
