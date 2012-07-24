@@ -29,6 +29,7 @@
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-shape-normalize-private.hh"
 
+#include "hb-ot-layout-private.hh"
 #include "hb-font-private.hh"
 #include "hb-set-private.hh"
 
@@ -378,15 +379,14 @@ hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
 static void
 hb_hide_zerowidth (hb_ot_shape_context_t *c)
 {
-  /* TODO Save the space character in the font? */
   hb_codepoint_t space;
   if (!hb_font_get_glyph (c->font, ' ', 0, &space))
     return; /* No point! */
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    /* TODO Do this if no ligature was formed? */
-    if (unlikely (_hb_glyph_info_is_zero_width (&c->buffer->info[i]))) {
+    if (unlikely (!is_a_ligature (c->buffer->info[i]) &&
+		  _hb_glyph_info_is_zero_width (&c->buffer->info[i]))) {
       c->buffer->info[i].codepoint = space;
       c->buffer->pos[i].x_advance = 0;
       c->buffer->pos[i].y_advance = 0;
