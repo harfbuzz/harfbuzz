@@ -8,6 +8,9 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 
+SUBDIRS = hb-old
+DIST_SUBDIRS = hb-old
+
 # The following warning options are useful for debugging: -Wpadded
 #AM_CXXFLAGS =
 
@@ -144,6 +147,8 @@ HBLIBS   += $(CORETEXT_LIBS)
 HBSOURCES += hb-coretext.cc hb-coretext-private.hh
 HBHEADERS += hb-coretext.h
 endif
+
+HBLIBS += hb-old/libhb-old.la
 
 # Use a C linker, not C++; Don't link to libstdc++
 libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)

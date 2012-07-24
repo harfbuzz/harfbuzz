@@ -219,6 +219,7 @@ Makefile
 harfbuzz.pc
 src/Makefile
 src/hb-version.h
+src/hb-old/Makefile
 util/Makefile
 test/Makefile
 test/api/Makefile
