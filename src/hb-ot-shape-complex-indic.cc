@@ -258,6 +258,8 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
   if (cat == OT_X &&
       unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D2))) /* Khmer Various signs */
     cat = OT_N;
+  if (u == 0x17C6) /* Khmer Bindu doesn't like to be repositioned. */
+    cat = OT_N;
 
   if (unlikely (u == 0x17D2)) cat = OT_Coeng; /* Khmer coeng */
   else if (unlikely (u == 0x200C)) cat = OT_ZWNJ;
