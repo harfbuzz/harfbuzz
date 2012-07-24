@@ -553,8 +553,14 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	}
 	else
 	{
-	  /* A ZWJ stops the base search, and requests an explicit half form. */
-	  if (info[i].indic_category() == OT_ZWJ)
+	  /* A ZWJ after a Halant stops the base search, and requests an explicit
+	   * half form.
+	   * A ZWJ before a Halant, requests a subjoined form instead, and hence
+	   * search continues.  This is particularly important for Bengali
+	   * sequence Ra,H,Ya that shouls form Ya-Phalaa by subjoining Ya. */
+	  if (start < i &&
+	      info[i].indic_category() == OT_ZWJ &&
+	      info[i - 1].indic_category() == OT_H)
 	    break;
 	}
       } while (i > limit);
