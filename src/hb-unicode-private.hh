@@ -111,9 +111,10 @@ _hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
 static inline hb_bool_t
 _hb_unicode_is_variation_selector (hb_codepoint_t unicode)
 {
-  return unlikely ((unicode >=  0x180B && unicode <=  0x180D) || /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
-		   (unicode >=  0xFE00 && unicode <=  0xFE0F) || /* VARIATION SELECTOR-1..16 */
-		   (unicode >= 0xE0100 && unicode <= 0xE01EF));  /* VARIATION SELECTOR-17..256 */
+  return unlikely (hb_in_ranges<hb_codepoint_t> (unicode,
+						 0x180B, 0x180D, /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
+						 0xFE00, 0xFE0F, /* VARIATION SELECTOR-1..16 */
+						 0xE0100, 0xE01EF));  /* VARIATION SELECTOR-17..256 */
 }
 
 /* Zero-Width invisible characters:
@@ -147,16 +148,16 @@ _hb_unicode_is_variation_selector (hb_codepoint_t unicode)
 static inline hb_bool_t
 _hb_unicode_is_zero_width (hb_codepoint_t ch)
 {
-  return ((ch & ~0x007F) == 0x2000 && (
-	  (ch >= 0x200B && ch <= 0x200F) ||
-	  (ch >= 0x202A && ch <= 0x202E) ||
-	  (ch >= 0x2060 && ch <= 0x2063) ||
-	  (ch == 0x2028)
-	 )) || unlikely (ch == 0x0009
-		      || ch == 0x00AD
-		      || ch == 0x034F
-		      || ch == 0x180E
-		      || ch == 0xFEFF);
+  return ((ch & ~0x007F) == 0x2000 && (hb_in_ranges<hb_codepoint_t> (ch,
+								     0x200B, 0x200F,
+								     0x202A, 0x202E,
+								     0x2060, 0x2063) ||
+				       (ch == 0x2028))) ||
+	  unlikely (ch == 0x0009 ||
+		    ch == 0x00AD ||
+		    ch == 0x034F ||
+		    ch == 0x180E ||
+		    ch == 0xFEFF);
 }
 
 #endif /* HB_UNICODE_PRIVATE_HH */
