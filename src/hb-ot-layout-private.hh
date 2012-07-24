@@ -64,6 +64,41 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
 			 unsigned int *property_out);
 
 
+/*
+ * GSUB/GPOS
+ */
+
+/* unique ligature id */
+/* component number in the ligature (0 = base) */
+static inline void
+set_lig_props (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
+{
+  info.lig_props() = (lig_id << 4) | (lig_comp & 0x0F);
+}
+static inline unsigned int
+get_lig_id (const hb_glyph_info_t &info)
+{
+  return info.lig_props() >> 4;
+}
+static inline unsigned int
+get_lig_comp (const hb_glyph_info_t &info)
+{
+  return info.lig_props() & 0x0F;
+}
+static inline bool
+is_a_ligature (const hb_glyph_info_t &info)
+{
+  return unlikely (get_lig_id (info) && ~get_lig_comp (info));
+}
+
+static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
+  uint8_t lig_id = buffer->next_serial () & 0x0F;
+  if (unlikely (!lig_id))
+    lig_id = allocate_lig_id (buffer); /* in case of overflow */
+  return lig_id;
+}
+
+
 
 /*
  * hb_ot_layout_t

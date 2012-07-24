@@ -26,7 +26,7 @@
 
 #include "hb-ot-shape-complex-indic-private.hh"
 #include "hb-ot-shape-private.hh"
-#include "hb-ot-layout-gsubgpos-private.hh"
+#include "hb-ot-layout-private.hh"
 
 #define OLD_INDIC_TAG(script) (((hb_tag_t) script) | 0x20000000)
 #define IS_OLD_INDIC_TAG(tag) ( \
