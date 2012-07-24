@@ -60,7 +60,7 @@
 /* Internal API */
 
 static HB_Error
-hb_buffer_ensure( HB_Buffer buffer,
+HB_Buffer_ensure( HB_Buffer buffer,
 		   HB_UInt   size )
 {
   HB_UInt new_allocated = buffer->allocated;
@@ -106,7 +106,7 @@ hb_buffer_ensure( HB_Buffer buffer,
 }
 
 static HB_Error
-hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
+HB_Buffer_duplicate_out_buffer( HB_Buffer buffer )
 {
   if ( !buffer->alt_string )
     {
@@ -126,7 +126,7 @@ hb_buffer_duplicate_out_buffer( HB_Buffer buffer )
 /* Public API */
 
 HB_Error
-hb_buffer_new( HB_Buffer *pbuffer )
+HB_Buffer_new( HB_Buffer *pbuffer )
 {
   HB_Buffer buffer;
   HB_Error error;
@@ -139,7 +139,7 @@ hb_buffer_new( HB_Buffer *pbuffer )
   buffer->alt_string = NULL;
   buffer->positions = NULL;
 
-  hb_buffer_clear( buffer );
+  HB_Buffer_clear( buffer );
 
   *pbuffer = buffer;
 
@@ -147,7 +147,7 @@ hb_buffer_new( HB_Buffer *pbuffer )
 }
 
 void
-hb_buffer_free( HB_Buffer buffer )
+HB_Buffer_free( HB_Buffer buffer )
 {
   FREE( buffer->in_string );
   FREE( buffer->alt_string );
@@ -157,7 +157,7 @@ hb_buffer_free( HB_Buffer buffer )
 }
 
 void
-hb_buffer_clear( HB_Buffer buffer )
+HB_Buffer_clear( HB_Buffer buffer )
 {
   buffer->in_length = 0;
   buffer->out_length = 0;
@@ -169,7 +169,7 @@ hb_buffer_clear( HB_Buffer buffer )
 }
 
 HB_Error
-hb_buffer_add_glyph( HB_Buffer buffer,
+HB_Buffer_add_glyph( HB_Buffer buffer,
 		      HB_UInt   glyph_index,
 		      HB_UInt   properties,
 		      HB_UInt   cluster )
@@ -177,7 +177,7 @@ hb_buffer_add_glyph( HB_Buffer buffer,
   HB_Error error;
   HB_GlyphItem glyph;
   
-  error = hb_buffer_ensure( buffer, buffer->in_length + 1 );
+  error = HB_Buffer_ensure( buffer, buffer->in_length + 1 );
   if ( error )
     return error;
 
@@ -277,13 +277,13 @@ _hb_buffer_add_output_glyphs( HB_Buffer  buffer,
   HB_UInt properties;
   HB_UInt cluster;
 
-  error = hb_buffer_ensure( buffer, buffer->out_pos + num_out );
+  error = HB_Buffer_ensure( buffer, buffer->out_pos + num_out );
   if ( error )
     return error;
 
   if ( !buffer->separate_out )
     {
-      error = hb_buffer_duplicate_out_buffer( buffer );
+      error = HB_Buffer_duplicate_out_buffer( buffer );
       if ( error )
 	return error;
     }
@@ -332,7 +332,7 @@ _hb_buffer_copy_output_glyph ( HB_Buffer buffer )
 {  
   HB_Error  error;
 
-  error = hb_buffer_ensure( buffer, buffer->out_pos + 1 );
+  error = HB_Buffer_ensure( buffer, buffer->out_pos + 1 );
   if ( error )
     return error;
   

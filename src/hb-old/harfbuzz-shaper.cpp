@@ -1009,7 +1009,7 @@ HB_Face HB_NewFace(void *font, HB_GetFontTableFunc tableFunc)
     for (unsigned int i = 0; i < HB_ScriptCount; ++i)
         face->supported_scripts[i] = checkScript(face, i);
 
-    if (hb_buffer_new(&face->buffer) != HB_Err_Ok) {
+    if (HB_Buffer_new(&face->buffer) != HB_Err_Ok) {
         HB_FreeFace(face);
         return 0;
     }
@@ -1028,7 +1028,7 @@ void HB_FreeFace(HB_Face face)
     if (face->gdef)
         HB_Done_GDEF_Table(face->gdef);
     if (face->buffer)
-        hb_buffer_free(face->buffer);
+        HB_Buffer_free(face->buffer);
     if (face->tmpAttributes)
         free(face->tmpAttributes);
     if (face->tmpLogClusters)
@@ -1139,7 +1139,7 @@ HB_Bool HB_OpenTypeShape(HB_ShaperItem *item, const hb_uint32 *properties)
 
     face->length = item->num_glyphs;
 
-    hb_buffer_clear(face->buffer);
+    HB_Buffer_clear(face->buffer);
 
     tmpAttributes = (HB_GlyphAttributes *) realloc(face->tmpAttributes, face->length*sizeof(HB_GlyphAttributes));
     if (!tmpAttributes)
@@ -1152,7 +1152,7 @@ HB_Bool HB_OpenTypeShape(HB_ShaperItem *item, const hb_uint32 *properties)
     face->tmpLogClusters = tmpLogClusters;
 
     for (int i = 0; i < face->length; ++i) {
-        hb_buffer_add_glyph(face->buffer, item->glyphs[i], properties ? properties[i] : 0, i);
+        HB_Buffer_add_glyph(face->buffer, item->glyphs[i], properties ? properties[i] : 0, i);
         face->tmpAttributes[i] = item->attributes[i];
         face->tmpLogClusters[i] = item->log_clusters[i];
     }

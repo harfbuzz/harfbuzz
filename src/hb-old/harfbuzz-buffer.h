@@ -79,16 +79,16 @@ typedef struct HB_BufferRec_{
 } HB_BufferRec, *HB_Buffer;
 
 HB_Error
-hb_buffer_new( HB_Buffer *buffer );
+HB_Buffer_new( HB_Buffer *buffer );
 
 void
-hb_buffer_free( HB_Buffer buffer );
+HB_Buffer_free( HB_Buffer buffer );
 
 void
-hb_buffer_clear( HB_Buffer buffer );
+HB_Buffer_clear( HB_Buffer buffer );
 
 HB_Error
-hb_buffer_add_glyph( HB_Buffer buffer,
+HB_Buffer_add_glyph( HB_Buffer buffer,
 		      HB_UInt    glyph_index,
 		      HB_UInt    properties,
 		      HB_UInt    cluster );
