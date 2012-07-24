@@ -151,7 +151,7 @@ consonant_position (hb_codepoint_t u, hb_ot_map_t *map, hb_font_t *font)
 				)
 #define MATRA_POS_TOP(u)	( /* BENG and MLYM don't have top matras. */ \
 				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_GURM(u) ? POS_AFTER_SUB  : \
+				  IS_GURM(u) ? POS_AFTER_POST  : /* Deviate from spec */ \
 				  IS_GUJA(u) ? POS_AFTER_SUB  : \
 				  IS_ORYA(u) ? POS_AFTER_MAIN : \
 				  IS_TAML(u) ? POS_AFTER_SUB  : \
