@@ -136,7 +136,7 @@ enum indic_syllabic_category_t {
 
 /* Categories used in IndicSMatraCategory.txt from UCD */
 enum indic_matra_category_t {
-  INDIC_MATRA_CATEGORY_NOT_APPLICABLE		= POS_BASE_C,
+  INDIC_MATRA_CATEGORY_NOT_APPLICABLE		= POS_END,
 
   INDIC_MATRA_CATEGORY_LEFT			= POS_PRE_C,
   INDIC_MATRA_CATEGORY_TOP			= POS_ABOVE_C,
