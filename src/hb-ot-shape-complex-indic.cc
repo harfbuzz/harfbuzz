@@ -560,12 +560,15 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	base = limit;
 
       /* Find the last base consonant that is not blocked by ZWJ.  If there is
-       * a ZWJ before a bse consonant, that would request a subjoined form. */
+       * a ZWJ right before a base consonant, that would request a subjoined form. */
       for (unsigned int i = limit; i < end; i++)
         if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
-	  base = i;
-	else if (info[i].indic_category() == OT_ZWJ)
-	  break;
+	{
+	  if (limit < i && info[i - 1].indic_category() == OT_ZWJ)
+	    break;
+          else
+	    base = i;
+	}
 
       /* Mark all subsequent consonants as below. */
       for (unsigned int i = base + 1; i < end; i++)
