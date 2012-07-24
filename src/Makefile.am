@@ -138,6 +138,13 @@ HBSOURCES += hb-uniscribe.cc hb-uniscribe-private.hh
 HBHEADERS += hb-uniscribe.h
 endif
 
+if HAVE_CORETEXT
+HBCFLAGS += $(CORETEXT_CFLAGS)
+HBLIBS   += $(CORETEXT_LIBS)
+HBSOURCES += hb-coretext.cc hb-coretext-private.hh
+HBHEADERS += hb-coretext.h
+endif
+
 # Use a C linker, not C++; Don't link to libstdc++
 libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)

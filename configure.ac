@@ -186,6 +186,18 @@ AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 
 dnl ===========================================================================
 
+AC_CHECK_HEADERS(ApplicationServices/ApplicationServices.h, have_coretext=true, have_coretext=false)
+if $have_coretext; then
+	CORETEXT_CFLAGS=
+	CORETEXT_LIBS=
+	AC_SUBST(CORETEXT_CFLAGS)
+	AC_SUBST(CORETEXT_LIBS)
+	AC_DEFINE(HAVE_CORETEXT, 1, [Have Core Text backend])
+fi
+AM_CONDITIONAL(HAVE_CORETEXT, $have_coretext)
+
+dnl ===========================================================================
+
 AC_CACHE_CHECK([for Intel atomic primitives], hb_cv_have_intel_atomic_primitives, [
 	hb_cv_have_intel_atomic_primitives=false
 	AC_TRY_LINK([

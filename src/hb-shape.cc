@@ -36,6 +36,9 @@
 #ifdef HAVE_UNISCRIBE
 # include "hb-uniscribe-private.hh"
 #endif
+#ifdef HAVE_CORETEXT
+# include "hb-coretext-private.hh"
+#endif
 #ifdef HAVE_OT
 # include "hb-ot-shape-private.hh"
 #endif
@@ -57,6 +60,9 @@ static const struct hb_shaper_pair_t {
 #endif
 #ifdef HAVE_UNISCRIBE
   HB_SHAPER_IMPLEMENT (uniscribe),
+#endif
+#ifdef HAVE_CORETEXT
+  HB_SHAPER_IMPLEMENT (coretext),
 #endif
 #ifdef HAVE_OT
   HB_SHAPER_IMPLEMENT (ot),
