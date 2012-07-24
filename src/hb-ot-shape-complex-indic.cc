@@ -576,17 +576,17 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 	  info[i].indic_position() = POS_BELOW_C;
     }
 
-    if (base < start)
-      base = start; /* Just in case... */
-
     /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
      *    and has more than one consonant, Ra is excluded from candidates for
-     *    base consonants. */
-    if (has_reph && base == start) {
+     *    base consonants.
+     *
+     *  Only do this for unforced Reph. (ie. not for Ra,H,ZWJ. */
+    if (has_reph && base == start && start + 2 == limit) {
       /* Have no other consonant, so Reph is not formed and Ra becomes base. */
       has_reph = false;
     }
   }
+
   if (base < end)
     info[base].indic_position() = POS_BASE_C;
 
