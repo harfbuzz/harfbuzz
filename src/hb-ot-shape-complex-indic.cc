@@ -1131,8 +1131,8 @@ final_reordering_syllable (hb_buffer_t *buffer,
 	   */
 
 	  unsigned int new_pos = base;
-	  while (new_pos > start + 1 &&
-		 !(is_one_of (info[new_pos - 1], (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng)))))
+	  while (new_pos > start &&
+		 !(is_one_of (info[new_pos - 1], FLAG(OT_M) | HALANT_OR_COENG_FLAGS)))
 	    new_pos--;
 
 	  if (new_pos > start && is_halant_or_coeng (info[new_pos - 1]))
