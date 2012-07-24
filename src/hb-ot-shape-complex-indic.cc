@@ -501,6 +501,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
     switch ((hb_tag_t) buffer->props.script)
     {
+      case HB_SCRIPT_SINHALA:
       case HB_SCRIPT_KHMER:
 	base_pos = BASE_FIRST;
 	break;
@@ -557,6 +558,19 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
       if (!has_reph)
 	base = limit;
+
+      /* Find the last base consonant that is not blocked by ZWJ.  If there is
+       * a ZWJ before a bse consonant, that would request a subjoined form. */
+      for (unsigned int i = limit; i < end; i++)
+        if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	  base = i;
+	else if (info[i].indic_category() == OT_ZWJ)
+	  break;
+
+      /* Mark all subsequent consonants as below. */
+      for (unsigned int i = base + 1; i < end; i++)
+        if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	  info[i].indic_position() = POS_BELOW_C;
     }
 
     if (base < start)
@@ -570,6 +584,8 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
       has_reph = false;
     }
   }
+  if (base < end)
+    info[base].indic_position() = POS_BASE_C;
 
 
   /* 2. Decompose and reorder Matras:
@@ -931,6 +947,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
      {
        case HB_SCRIPT_MALAYALAM:
        case HB_SCRIPT_ORIYA:
+       case HB_SCRIPT_SINHALA:
 	 reph_pos = REPH_AFTER_MAIN;
 	 break;
 
@@ -945,7 +962,6 @@ final_reordering_syllable (hb_buffer_t *buffer,
        default:
        case HB_SCRIPT_DEVANAGARI:
        case HB_SCRIPT_GUJARATI:
-       case HB_SCRIPT_SINHALA:
 	 reph_pos = REPH_BEFORE_POSTSCRIPT;
 	 break;
 
