@@ -46,5 +46,9 @@ libhb_old_la_SOURCES = \
 	$(MAINSOURCES) \
 	$(PUBLICHEADERS) \
 	$(PRIVATEHEADERS)
+libhb_old_la_CPPFLAGS = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src
 
 EXTRA_DIST = README COPYING

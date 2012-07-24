@@ -25,6 +25,7 @@
 #ifndef HARFBUZZ_EXTERNAL_H
 #define HARFBUZZ_EXTERNAL_H
 
+#include <hb.h>
 #include "harfbuzz-global.h"
 
 HB_BEGIN_HEADER
@@ -37,48 +38,67 @@ HB_BEGIN_HEADER
 
 typedef enum 
 {
-    HB_Mark_NonSpacing,          /*   Mn */
-    HB_Mark_SpacingCombining,    /*   Mc */
-    HB_Mark_Enclosing,           /*   Me */
+    HB_Mark_NonSpacing		= HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK,		/* Mn */
+    HB_Mark_SpacingCombining	= HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK,		/* Mc */
+    HB_Mark_Enclosing		= HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK,		/* Me */
 
-    HB_Number_DecimalDigit,      /*   Nd */
-    HB_Number_Letter,            /*   Nl */
-    HB_Number_Other,             /*   No */
+    HB_Number_DecimalDigit	= HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER,		/* Nd */
+    HB_Number_Letter		= HB_UNICODE_GENERAL_CATEGORY_LETTER_NUMBER,		/* Nl */
+    HB_Number_Other		= HB_UNICODE_GENERAL_CATEGORY_OTHER_NUMBER,		/* No */
 
-    HB_Separator_Space,          /*   Zs */
-    HB_Separator_Line,           /*   Zl */
-    HB_Separator_Paragraph,      /*   Zp */
+    HB_Separator_Space		= HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR,		/* Zs */
+    HB_Separator_Line		= HB_UNICODE_GENERAL_CATEGORY_LINE_SEPARATOR,		/* Zl */
+    HB_Separator_Paragraph	= HB_UNICODE_GENERAL_CATEGORY_PARAGRAPH_SEPARATOR,	/* Zp */
 
-    HB_Other_Control,            /*   Cc */
-    HB_Other_Format,             /*   Cf */
-    HB_Other_Surrogate,          /*   Cs */
-    HB_Other_PrivateUse,         /*   Co */
-    HB_Other_NotAssigned,        /*   Cn */
+    HB_Other_Control		= HB_UNICODE_GENERAL_CATEGORY_CONTROL,			/* Cc */
+    HB_Other_Format		= HB_UNICODE_GENERAL_CATEGORY_FORMAT,			/* Cf */
+    HB_Other_Surrogate		= HB_UNICODE_GENERAL_CATEGORY_SURROGATE,		/* Cs */
+    HB_Other_PrivateUse		= HB_UNICODE_GENERAL_CATEGORY_PRIVATE_USE,		/* Co */
+    HB_Other_NotAssigned	= HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED,		/* Cn */
 
-    HB_Letter_Uppercase,         /*   Lu */
-    HB_Letter_Lowercase,         /*   Ll */
-    HB_Letter_Titlecase,         /*   Lt */
-    HB_Letter_Modifier,          /*   Lm */
-    HB_Letter_Other,             /*   Lo */
+    HB_Letter_Uppercase		= HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER,		/* Lu */
+    HB_Letter_Lowercase		= HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER,		/* Ll */
+    HB_Letter_Titlecase		= HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER,		/* Lt */
+    HB_Letter_Modifier		= HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER,		/* Lm */
+    HB_Letter_Other		= HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER,		/* Lo */
 
-    HB_Punctuation_Connector,    /*   Pc */
-    HB_Punctuation_Dash,         /*   Pd */
-    HB_Punctuation_Open,         /*   Ps */
-    HB_Punctuation_Close,        /*   Pe */
-    HB_Punctuation_InitialQuote, /*   Pi */
-    HB_Punctuation_FinalQuote,   /*   Pf */
-    HB_Punctuation_Other,        /*   Po */
+    HB_Punctuation_Connector	= HB_UNICODE_GENERAL_CATEGORY_CONNECT_PUNCTUATION,	/* Pc */
+    HB_Punctuation_Dash		= HB_UNICODE_GENERAL_CATEGORY_DASH_PUNCTUATION,		/* Pd */
+    HB_Punctuation_Open		= HB_UNICODE_GENERAL_CATEGORY_OPEN_PUNCTUATION,		/* Ps */
+    HB_Punctuation_Close	= HB_UNICODE_GENERAL_CATEGORY_CLOSE_PUNCTUATION,	/* Pe */
+    HB_Punctuation_InitialQuote	= HB_UNICODE_GENERAL_CATEGORY_INITIAL_PUNCTUATION,	/* Pi */
+    HB_Punctuation_FinalQuote	= HB_UNICODE_GENERAL_CATEGORY_FINAL_PUNCTUATION,	/* Pf */
+    HB_Punctuation_Other	= HB_UNICODE_GENERAL_CATEGORY_OTHER_PUNCTUATION,	/* Po */
 
-    HB_Symbol_Math,              /*   Sm */
-    HB_Symbol_Currency,          /*   Sc */
-    HB_Symbol_Modifier,          /*   Sk */
-    HB_Symbol_Other              /*   So */
+    HB_Symbol_Math		= HB_UNICODE_GENERAL_CATEGORY_MATH_SYMBOL,		/* Sm */
+    HB_Symbol_Currency		= HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL,		/* Sc */
+    HB_Symbol_Modifier		= HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL,		/* Sk */
+    HB_Symbol_Other		= HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL		/* So */
 } HB_CharCategory;
 
-void HB_GetUnicodeCharProperties(HB_UChar32 ch, HB_CharCategory *category, int *combiningClass);
-HB_CharCategory HB_GetUnicodeCharCategory(HB_UChar32 ch);
-int HB_GetUnicodeCharCombiningClass(HB_UChar32 ch);
-HB_UChar16 HB_GetMirroredChar(HB_UChar16 ch);
+
+static inline HB_CharCategory HB_GetUnicodeCharCategory(HB_UChar32 ch)
+{
+  return (HB_CharCategory) hb_unicode_general_category (hb_unicode_funcs_get_default (), ch);
+}
+
+static inline int HB_GetUnicodeCharCombiningClass(HB_UChar32 ch)
+{
+  return hb_unicode_combining_class (hb_unicode_funcs_get_default (), ch);
+}
+
+static inline HB_UChar16 HB_GetMirroredChar(HB_UChar16 ch)
+{
+  return hb_unicode_mirroring (hb_unicode_funcs_get_default (), ch);
+}
+
+static inline void HB_GetUnicodeCharProperties(HB_UChar32 ch, HB_CharCategory *category, int *combiningClass)
+{
+  if (category)
+    *category = HB_GetUnicodeCharCategory (ch);
+  if (combiningClass)
+    *combiningClass = HB_GetUnicodeCharCombiningClass (ch);
+}
 
 HB_END_HEADER
 

@@ -47,12 +47,17 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libhb_old_la_LIBADD =
-am__objects_1 = harfbuzz-buffer.lo harfbuzz-stream.lo harfbuzz-gdef.lo \
-	harfbuzz-gpos.lo harfbuzz-gsub.lo harfbuzz-impl.lo \
-	harfbuzz-open.lo harfbuzz-shaper.lo harfbuzz-greek.lo \
-	harfbuzz-tibetan.lo harfbuzz-khmer.lo harfbuzz-indic.lo \
-	harfbuzz-hebrew.lo harfbuzz-arabic.lo harfbuzz-hangul.lo \
-	harfbuzz-myanmar.lo
+am__objects_1 = libhb_old_la-harfbuzz-buffer.lo \
+	libhb_old_la-harfbuzz-stream.lo libhb_old_la-harfbuzz-gdef.lo \
+	libhb_old_la-harfbuzz-gpos.lo libhb_old_la-harfbuzz-gsub.lo \
+	libhb_old_la-harfbuzz-impl.lo libhb_old_la-harfbuzz-open.lo \
+	libhb_old_la-harfbuzz-shaper.lo libhb_old_la-harfbuzz-greek.lo \
+	libhb_old_la-harfbuzz-tibetan.lo \
+	libhb_old_la-harfbuzz-khmer.lo libhb_old_la-harfbuzz-indic.lo \
+	libhb_old_la-harfbuzz-hebrew.lo \
+	libhb_old_la-harfbuzz-arabic.lo \
+	libhb_old_la-harfbuzz-hangul.lo \
+	libhb_old_la-harfbuzz-myanmar.lo
 am__objects_2 =
 am_libhb_old_la_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_2)
@@ -297,6 +302,11 @@ libhb_old_la_SOURCES = \
 	$(PUBLICHEADERS) \
 	$(PRIVATEHEADERS)
 
+libhb_old_la_CPPFLAGS = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/src \
+	-I$(top_builddir)/src
+
 EXTRA_DIST = README COPYING
 all: all-am
 
@@ -350,22 +360,22 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-arabic.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-buffer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-gdef.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-gpos.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-greek.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-gsub.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-hangul.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-hebrew.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-impl.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-indic.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-khmer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-myanmar.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-open.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-shaper.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-stream.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/harfbuzz-tibetan.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-arabic.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-buffer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-gdef.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-gpos.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-greek.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-gsub.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-hangul.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-hebrew.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-impl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-indic.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-khmer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-myanmar.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-open.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-shaper.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-stream.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libhb_old_la-harfbuzz-tibetan.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -391,6 +401,118 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
+libhb_old_la-harfbuzz-buffer.lo: harfbuzz-buffer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-buffer.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-buffer.Tpo -c -o libhb_old_la-harfbuzz-buffer.lo `test -f 'harfbuzz-buffer.c' || echo '$(srcdir)/'`harfbuzz-buffer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-buffer.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-buffer.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-buffer.c' object='libhb_old_la-harfbuzz-buffer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-buffer.lo `test -f 'harfbuzz-buffer.c' || echo '$(srcdir)/'`harfbuzz-buffer.c
+
+libhb_old_la-harfbuzz-stream.lo: harfbuzz-stream.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-stream.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-stream.Tpo -c -o libhb_old_la-harfbuzz-stream.lo `test -f 'harfbuzz-stream.c' || echo '$(srcdir)/'`harfbuzz-stream.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-stream.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-stream.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-stream.c' object='libhb_old_la-harfbuzz-stream.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-stream.lo `test -f 'harfbuzz-stream.c' || echo '$(srcdir)/'`harfbuzz-stream.c
+
+libhb_old_la-harfbuzz-gdef.lo: harfbuzz-gdef.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-gdef.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-gdef.Tpo -c -o libhb_old_la-harfbuzz-gdef.lo `test -f 'harfbuzz-gdef.c' || echo '$(srcdir)/'`harfbuzz-gdef.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-gdef.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-gdef.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-gdef.c' object='libhb_old_la-harfbuzz-gdef.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-gdef.lo `test -f 'harfbuzz-gdef.c' || echo '$(srcdir)/'`harfbuzz-gdef.c
+
+libhb_old_la-harfbuzz-gpos.lo: harfbuzz-gpos.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-gpos.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-gpos.Tpo -c -o libhb_old_la-harfbuzz-gpos.lo `test -f 'harfbuzz-gpos.c' || echo '$(srcdir)/'`harfbuzz-gpos.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-gpos.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-gpos.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-gpos.c' object='libhb_old_la-harfbuzz-gpos.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-gpos.lo `test -f 'harfbuzz-gpos.c' || echo '$(srcdir)/'`harfbuzz-gpos.c
+
+libhb_old_la-harfbuzz-gsub.lo: harfbuzz-gsub.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-gsub.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-gsub.Tpo -c -o libhb_old_la-harfbuzz-gsub.lo `test -f 'harfbuzz-gsub.c' || echo '$(srcdir)/'`harfbuzz-gsub.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-gsub.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-gsub.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-gsub.c' object='libhb_old_la-harfbuzz-gsub.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-gsub.lo `test -f 'harfbuzz-gsub.c' || echo '$(srcdir)/'`harfbuzz-gsub.c
+
+libhb_old_la-harfbuzz-impl.lo: harfbuzz-impl.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-impl.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-impl.Tpo -c -o libhb_old_la-harfbuzz-impl.lo `test -f 'harfbuzz-impl.c' || echo '$(srcdir)/'`harfbuzz-impl.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-impl.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-impl.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-impl.c' object='libhb_old_la-harfbuzz-impl.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-impl.lo `test -f 'harfbuzz-impl.c' || echo '$(srcdir)/'`harfbuzz-impl.c
+
+libhb_old_la-harfbuzz-open.lo: harfbuzz-open.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-open.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-open.Tpo -c -o libhb_old_la-harfbuzz-open.lo `test -f 'harfbuzz-open.c' || echo '$(srcdir)/'`harfbuzz-open.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-open.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-open.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-open.c' object='libhb_old_la-harfbuzz-open.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-open.lo `test -f 'harfbuzz-open.c' || echo '$(srcdir)/'`harfbuzz-open.c
+
+libhb_old_la-harfbuzz-greek.lo: harfbuzz-greek.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-greek.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-greek.Tpo -c -o libhb_old_la-harfbuzz-greek.lo `test -f 'harfbuzz-greek.c' || echo '$(srcdir)/'`harfbuzz-greek.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-greek.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-greek.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-greek.c' object='libhb_old_la-harfbuzz-greek.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-greek.lo `test -f 'harfbuzz-greek.c' || echo '$(srcdir)/'`harfbuzz-greek.c
+
+libhb_old_la-harfbuzz-tibetan.lo: harfbuzz-tibetan.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-tibetan.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-tibetan.Tpo -c -o libhb_old_la-harfbuzz-tibetan.lo `test -f 'harfbuzz-tibetan.c' || echo '$(srcdir)/'`harfbuzz-tibetan.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-tibetan.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-tibetan.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-tibetan.c' object='libhb_old_la-harfbuzz-tibetan.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-tibetan.lo `test -f 'harfbuzz-tibetan.c' || echo '$(srcdir)/'`harfbuzz-tibetan.c
+
+libhb_old_la-harfbuzz-khmer.lo: harfbuzz-khmer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-khmer.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-khmer.Tpo -c -o libhb_old_la-harfbuzz-khmer.lo `test -f 'harfbuzz-khmer.c' || echo '$(srcdir)/'`harfbuzz-khmer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-khmer.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-khmer.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-khmer.c' object='libhb_old_la-harfbuzz-khmer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-khmer.lo `test -f 'harfbuzz-khmer.c' || echo '$(srcdir)/'`harfbuzz-khmer.c
+
+libhb_old_la-harfbuzz-hebrew.lo: harfbuzz-hebrew.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-hebrew.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-hebrew.Tpo -c -o libhb_old_la-harfbuzz-hebrew.lo `test -f 'harfbuzz-hebrew.c' || echo '$(srcdir)/'`harfbuzz-hebrew.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-hebrew.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-hebrew.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-hebrew.c' object='libhb_old_la-harfbuzz-hebrew.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-hebrew.lo `test -f 'harfbuzz-hebrew.c' || echo '$(srcdir)/'`harfbuzz-hebrew.c
+
+libhb_old_la-harfbuzz-arabic.lo: harfbuzz-arabic.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-arabic.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-arabic.Tpo -c -o libhb_old_la-harfbuzz-arabic.lo `test -f 'harfbuzz-arabic.c' || echo '$(srcdir)/'`harfbuzz-arabic.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-arabic.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-arabic.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-arabic.c' object='libhb_old_la-harfbuzz-arabic.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-arabic.lo `test -f 'harfbuzz-arabic.c' || echo '$(srcdir)/'`harfbuzz-arabic.c
+
+libhb_old_la-harfbuzz-hangul.lo: harfbuzz-hangul.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-hangul.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-hangul.Tpo -c -o libhb_old_la-harfbuzz-hangul.lo `test -f 'harfbuzz-hangul.c' || echo '$(srcdir)/'`harfbuzz-hangul.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-hangul.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-hangul.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-hangul.c' object='libhb_old_la-harfbuzz-hangul.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-hangul.lo `test -f 'harfbuzz-hangul.c' || echo '$(srcdir)/'`harfbuzz-hangul.c
+
+libhb_old_la-harfbuzz-myanmar.lo: harfbuzz-myanmar.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libhb_old_la-harfbuzz-myanmar.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-myanmar.Tpo -c -o libhb_old_la-harfbuzz-myanmar.lo `test -f 'harfbuzz-myanmar.c' || echo '$(srcdir)/'`harfbuzz-myanmar.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-myanmar.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-myanmar.Plo
+@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='harfbuzz-myanmar.c' object='libhb_old_la-harfbuzz-myanmar.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libhb_old_la-harfbuzz-myanmar.lo `test -f 'harfbuzz-myanmar.c' || echo '$(srcdir)/'`harfbuzz-myanmar.c
+
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
@@ -414,6 +536,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+libhb_old_la-harfbuzz-shaper.lo: harfbuzz-shaper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libhb_old_la-harfbuzz-shaper.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-shaper.Tpo -c -o libhb_old_la-harfbuzz-shaper.lo `test -f 'harfbuzz-shaper.cpp' || echo '$(srcdir)/'`harfbuzz-shaper.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-shaper.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-shaper.Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='harfbuzz-shaper.cpp' object='libhb_old_la-harfbuzz-shaper.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libhb_old_la-harfbuzz-shaper.lo `test -f 'harfbuzz-shaper.cpp' || echo '$(srcdir)/'`harfbuzz-shaper.cpp
+
+libhb_old_la-harfbuzz-indic.lo: harfbuzz-indic.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libhb_old_la-harfbuzz-indic.lo -MD -MP -MF $(DEPDIR)/libhb_old_la-harfbuzz-indic.Tpo -c -o libhb_old_la-harfbuzz-indic.lo `test -f 'harfbuzz-indic.cpp' || echo '$(srcdir)/'`harfbuzz-indic.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libhb_old_la-harfbuzz-indic.Tpo $(DEPDIR)/libhb_old_la-harfbuzz-indic.Plo
+@am__fastdepCXX_FALSE@	$(AM_V_CXX) @AM_BACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='harfbuzz-indic.cpp' object='libhb_old_la-harfbuzz-indic.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libhb_old_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libhb_old_la-harfbuzz-indic.lo `test -f 'harfbuzz-indic.cpp' || echo '$(srcdir)/'`harfbuzz-indic.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
