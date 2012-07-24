@@ -304,6 +304,12 @@ set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
 
   if (unlikely (u == 0x0B01)) pos = POS_BEFORE_SUB; /* Oriya Bindu is BeforeSub in the spec. */
 
+  if (u == 0x17CE) /* U+17CE is not in Indic files.  Likes to be treated like Top Matra */
+  {
+    cat = OT_M;
+    pos = POS_AFTER_SUB;
+  }
+
 
   info.indic_category() = cat;
   info.indic_position() = pos;
