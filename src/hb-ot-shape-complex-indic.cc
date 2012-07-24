@@ -895,22 +895,37 @@ final_reordering_syllable (hb_buffer_t *buffer,
    *     halant, position is moved after it.
    */
 
-  if (start < base) /* Otherwise there can't be any pre-base matra characters. */
+  if (start + 1 < end && start < base) /* Otherwise there can't be any pre-base matra characters. */
   {
-    unsigned int new_pos = base - 1;
-    while (new_pos > start &&
-	   !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng)))))
-      new_pos--;
-    /* If we found no Halant we are done (just need to update clusters).
-     * Otherwise only proceed if the Halant does
-     * not belong to the Matra itself! */
-    if (is_halant_or_coeng (info[new_pos]) &&
-	info[new_pos].indic_position() != POS_PRE_M)
-    {
-      /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
-      if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
-	new_pos++;
+    /* If we lost track of base, alas, position before last thingy. */
+    unsigned int new_pos = base == end ? base - 2 : base - 1;
 
+    /* Malayalam does not have "half" forms or explicit virama forms.
+     * The glyphs formed by 'half' are Chillus.  We want to position
+     * matra after them all.
+     */
+    if (buffer->props.script != HB_SCRIPT_MALAYALAM)
+    {
+      while (new_pos > start &&
+	     !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng)))))
+	new_pos--;
+
+      /* If we found no Halant we are done.
+       * Otherwise only proceed if the Halant does
+       * not belong to the Matra itself! */
+      if (is_halant_or_coeng (info[new_pos]) &&
+	  info[new_pos].indic_position() != POS_PRE_M)
+      {
+	/* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
+	if (new_pos + 1 < end && is_joiner (info[new_pos + 1]))
+	  new_pos++;
+      }
+      else
+        new_pos = start; /* No move. */
+    }
+
+    if (start < new_pos)
+    {
       /* Now go see if there's actually any matras... */
       for (unsigned int i = new_pos; i > start; i--)
 	if (info[i - 1].indic_position () == POS_PRE_M)
