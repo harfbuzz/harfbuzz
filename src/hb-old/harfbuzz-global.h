@@ -31,12 +31,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define HB_BEGIN_VISIBILITY _Pragma ("GCC visibility push(hidden)")
+#define HB_END_VISIBILITY _Pragma ("GCC visibility pop")
 #ifdef __cplusplus
-#define HB_BEGIN_HEADER  extern "C" {
-#define HB_END_HEADER  }
+#define HB_BEGIN_HEADER  extern "C" { HB_BEGIN_VISIBILITY
+#define HB_END_HEADER  HB_END_VISIBILITY }
 #else
-#define HB_BEGIN_HEADER  /* nothing */
-#define HB_END_HEADER  /* nothing */
+#define HB_BEGIN_HEADER  HB_BEGIN_VISIBILITY
+#define HB_END_HEADER  HB_END_VISIBILITY
 #endif
 
 HB_BEGIN_HEADER
