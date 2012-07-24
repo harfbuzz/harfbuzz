@@ -68,13 +68,13 @@ static const struct hb_shaper_pair_t {
 
 /* Thread-safe, lock-free, shapers */
 
-static hb_shaper_pair_t *static_shapers;
+static const hb_shaper_pair_t *static_shapers;
 
 static
 void free_static_shapers (void)
 {
   if (unlikely (static_shapers != all_shapers))
-    free (static_shapers);
+    free ((void *) static_shapers);
 }
 
 static const hb_shaper_pair_t *
@@ -87,7 +87,7 @@ retry:
   {
     char *env = getenv ("HB_SHAPER_LIST");
     if (!env || !*env) {
-      (void) hb_atomic_ptr_cmpexch (&static_shapers, NULL, (const hb_shaper_pair_t *) all_shapers);
+      (void) hb_atomic_ptr_cmpexch (&static_shapers, NULL, &all_shapers[0]);
       return (const hb_shaper_pair_t *) all_shapers;
     }
 
