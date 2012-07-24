@@ -167,7 +167,7 @@ struct hb_apply_context_t
     }
 
     unsigned int idx;
-    private:
+    protected:
     hb_apply_context_t *c;
     unsigned int num_items;
     hb_mask_t mask;
@@ -216,7 +216,7 @@ struct hb_apply_context_t
     }
 
     unsigned int idx;
-    private:
+    protected:
     hb_apply_context_t *c;
     unsigned int num_items;
     hb_mask_t mask;
@@ -588,7 +588,7 @@ struct Rule
 			   + lookupRecordX[0].static_size * lookupCount);
   }
 
-  private:
+  protected:
   USHORT	inputCount;		/* Total number of glyphs in input
 					 * glyph sequence--includes the first
 					 * glyph */
@@ -640,7 +640,7 @@ struct RuleSet
     return TRACE_RETURN (rule.sanitize (c, this));
   }
 
-  private:
+  protected:
   OffsetArrayOf<Rule>
 		rule;			/* Array of Rule tables
 					 * ordered by preference */
@@ -709,7 +709,7 @@ struct ContextFormat1
     return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -786,7 +786,7 @@ struct ContextFormat2
     return TRACE_RETURN (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -864,7 +864,7 @@ struct ContextFormat3
     return TRACE_RETURN (c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 3 */
   USHORT	glyphCount;		/* Number of glyphs in the input glyph
 					 * sequence */
@@ -925,7 +925,7 @@ struct Context
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   ContextFormat1	format1;
@@ -1079,7 +1079,7 @@ struct ChainRule
     return TRACE_RETURN (lookup.sanitize (c));
   }
 
-  private:
+  protected:
   ArrayOf<USHORT>
 		backtrack;		/* Array of backtracking values
 					 * (to be matched before the input
@@ -1134,7 +1134,7 @@ struct ChainRuleSet
     return TRACE_RETURN (rule.sanitize (c, this));
   }
 
-  private:
+  protected:
   OffsetArrayOf<ChainRule>
 		rule;			/* Array of ChainRule tables
 					 * ordered by preference */
@@ -1199,7 +1199,7 @@ struct ChainContextFormat1
     return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -1287,7 +1287,7 @@ struct ChainContextFormat2
 			 ruleSet.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -1392,7 +1392,7 @@ struct ChainContextFormat3
     return TRACE_RETURN (lookup.sanitize (c));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 3 */
   OffsetArrayOf<Coverage>
 		backtrack;		/* Array of coverage tables
@@ -1460,7 +1460,7 @@ struct ChainContext
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;	/* Format identifier */
   ChainContextFormat1	format1;
@@ -1483,7 +1483,7 @@ struct ExtensionFormat1
     return TRACE_RETURN (c->check_struct (this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier. Set to 1. */
   USHORT	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
@@ -1520,7 +1520,7 @@ struct Extension
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   ExtensionFormat1	format1;

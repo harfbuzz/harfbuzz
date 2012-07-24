@@ -225,7 +225,7 @@ struct AnchorFormat1
     return TRACE_RETURN (c->check_struct (this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   SHORT		xCoordinate;		/* Horizontal value--in design units */
   SHORT		yCoordinate;		/* Vertical value--in design units */
@@ -257,7 +257,7 @@ struct AnchorFormat2
     return TRACE_RETURN (c->check_struct (this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 2 */
   SHORT		xCoordinate;		/* Horizontal value--in design units */
   SHORT		yCoordinate;		/* Vertical value--in design units */
@@ -288,7 +288,7 @@ struct AnchorFormat3
     return TRACE_RETURN (c->check_struct (this) && xDeviceTable.sanitize (c, this) && yDeviceTable.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 3 */
   SHORT		xCoordinate;		/* Horizontal value--in design units */
   SHORT		yCoordinate;		/* Vertical value--in design units */
@@ -329,7 +329,7 @@ struct Anchor
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   AnchorFormat1		format1;
@@ -360,7 +360,7 @@ struct AnchorMatrix
   }
 
   USHORT	rows;			/* Number of rows */
-  private:
+  protected:
   OffsetTo<Anchor>
 		matrix[VAR];		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
@@ -378,7 +378,7 @@ struct MarkRecord
     return TRACE_RETURN (c->check_struct (this) && markAnchor.sanitize (c, base));
   }
 
-  private:
+  protected:
   USHORT	klass;			/* Class defined for this mark */
   OffsetTo<Anchor>
 		markAnchor;		/* Offset to Anchor table--from
@@ -447,7 +447,7 @@ struct SinglePosFormat1
     return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && valueFormat.sanitize_value (c, this, values));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -487,7 +487,7 @@ struct SinglePosFormat2
     return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && valueFormat.sanitize_values (c, this, values, valueCount));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -526,7 +526,7 @@ struct SinglePos
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   SinglePosFormat1	format1;
@@ -539,7 +539,7 @@ struct PairValueRecord
 {
   friend struct PairSet;
 
-  private:
+  protected:
   GlyphID	secondGlyph;		/* GlyphID of second glyph in the
 					 * pair--first glyph is listed in the
 					 * Coverage table */
@@ -601,7 +601,7 @@ struct PairSet
 		      && closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride));
   }
 
-  private:
+  protected:
   USHORT	len;			/* Number of PairValueRecords */
   USHORT	array[VAR];		/* Array of PairValueRecords--ordered
 					 * by GlyphID of the second glyph */
@@ -643,7 +643,7 @@ struct PairPosFormat1
     return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && pairSet.sanitize (c, this, &closure));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -715,7 +715,7 @@ struct PairPosFormat2
 			 valueFormat2.sanitize_values_stride_unsafe (c, this, &values[len1], count, stride));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -770,7 +770,7 @@ struct PairPos
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   PairPosFormat1	format1;
@@ -788,7 +788,7 @@ struct EntryExitRecord
     return TRACE_RETURN (entryAnchor.sanitize (c, base) && exitAnchor.sanitize (c, base));
   }
 
-  private:
+  protected:
   OffsetTo<Anchor>
 		entryAnchor;		/* Offset to EntryAnchor table--from
 					 * beginning of CursivePos
@@ -893,7 +893,7 @@ struct CursivePosFormat1
     return TRACE_RETURN (coverage.sanitize (c, this) && entryExitRecord.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -928,7 +928,7 @@ struct CursivePos
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   CursivePosFormat1	format1;
@@ -977,7 +977,7 @@ struct MarkBasePosFormat1
 			 markArray.sanitize (c, this) && baseArray.sanitize (c, this, (unsigned int) classCount));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		markCoverage;		/* Offset to MarkCoverage table--from
@@ -1019,7 +1019,7 @@ struct MarkBasePos
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   MarkBasePosFormat1	format1;
@@ -1092,7 +1092,7 @@ struct MarkLigPosFormat1
 			 markArray.sanitize (c, this) && ligatureArray.sanitize (c, this, (unsigned int) classCount));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		markCoverage;		/* Offset to Mark Coverage table--from
@@ -1135,7 +1135,7 @@ struct MarkLigPos
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   MarkLigPosFormat1	format1;
@@ -1189,7 +1189,7 @@ struct MarkMarkPosFormat1
 			 && mark2Array.sanitize (c, this, (unsigned int) classCount));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		mark1Coverage;		/* Offset to Combining Mark1 Coverage
@@ -1233,7 +1233,7 @@ struct MarkMarkPos
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   MarkMarkPosFormat1	format1;
@@ -1359,7 +1359,7 @@ struct PosLookupSubTable
     }
   }
 
-  private:
+  protected:
   union {
   struct {
     USHORT			sub_format;

@@ -75,7 +75,7 @@ struct SingleSubstFormat1
     return TRACE_RETURN (coverage.sanitize (c, this) && deltaGlyphID.sanitize (c));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -127,7 +127,7 @@ struct SingleSubstFormat2
     return TRACE_RETURN (coverage.sanitize (c, this) && substitute.sanitize (c));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 2 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -184,7 +184,7 @@ struct SingleSubst
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   SingleSubstFormat1	format1;
@@ -229,7 +229,7 @@ struct Sequence
     return TRACE_RETURN (substitute.sanitize (c));
   }
 
-  private:
+  protected:
   ArrayOf<GlyphID>
 		substitute;		/* String of GlyphIDs to substitute */
   public:
@@ -272,7 +272,7 @@ struct MultipleSubstFormat1
     return TRACE_RETURN (coverage.sanitize (c, this) && sequence.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -325,7 +325,7 @@ struct MultipleSubst
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   MultipleSubstFormat1	format1;
@@ -394,7 +394,7 @@ struct AlternateSubstFormat1
     return TRACE_RETURN (coverage.sanitize (c, this) && alternateSet.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -447,7 +447,7 @@ struct AlternateSubst
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   AlternateSubstFormat1	format1;
@@ -544,7 +544,7 @@ struct Ligature
     return TRACE_RETURN (ligGlyph.sanitize (c) && component.sanitize (c));
   }
 
-  private:
+  protected:
   GlyphID	ligGlyph;		/* GlyphID of ligature to substitute */
   HeadlessArrayOf<GlyphID>
 		component;		/* Array of component GlyphIDs--start
@@ -599,7 +599,7 @@ struct LigatureSet
     return TRACE_RETURN (ligature.sanitize (c, this));
   }
 
-  private:
+  protected:
   OffsetArrayOf<Ligature>
 		ligature;		/* Array LigatureSet tables
 					 * ordered by preference */
@@ -647,7 +647,7 @@ struct LigatureSubstFormat1
     return TRACE_RETURN (coverage.sanitize (c, this) && ligatureSet.sanitize (c, this));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -700,7 +700,7 @@ struct LigatureSubst
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   LigatureSubstFormat1	format1;
@@ -844,7 +844,7 @@ struct ReverseChainSingleSubstFormat1
     return TRACE_RETURN (substitute.sanitize (c));
   }
 
-  private:
+  protected:
   USHORT	format;			/* Format identifier--format = 1 */
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
@@ -897,7 +897,7 @@ struct ReverseChainSingleSubst
     }
   }
 
-  private:
+  protected:
   union {
   USHORT				format;		/* Format identifier */
   ReverseChainSingleSubstFormat1	format1;
@@ -1013,7 +1013,7 @@ struct SubstLookupSubTable
     }
   }
 
-  private:
+  protected:
   union {
   struct {
     USHORT			sub_format;

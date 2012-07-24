@@ -231,7 +231,7 @@ struct Script
     return TRACE_RETURN (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
   }
 
-  private:
+  protected:
   OffsetTo<LangSys>
 		defaultLangSys;	/* Offset to DefaultLangSys table--from
 				 * beginning of Script table--may be Null */
@@ -379,7 +379,7 @@ struct CoverageFormat1
     unsigned int i;
   };
 
-  private:
+  protected:
   USHORT	coverageFormat;	/* Format identifier--format = 1 */
   SortedArrayOf<GlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
@@ -454,7 +454,7 @@ struct CoverageFormat2
     unsigned int i, j, coverage;
   };
 
-  private:
+  protected:
   USHORT	coverageFormat;	/* Format identifier--format = 2 */
   SortedArrayOf<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
@@ -560,7 +560,7 @@ struct Coverage
     } u;
   };
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   CoverageFormat1	format1;
@@ -600,6 +600,7 @@ struct ClassDefFormat1
     return false;
   }
 
+  protected:
   USHORT	classFormat;		/* Format identifier--format = 1 */
   GlyphID	startGlyph;		/* First GlyphID of the classValueArray */
   ArrayOf<USHORT>
@@ -634,6 +635,7 @@ struct ClassDefFormat2
     return false;
   }
 
+  protected:
   USHORT	classFormat;	/* Format identifier--format = 2 */
   SortedArrayOf<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
@@ -673,7 +675,7 @@ struct ClassDef
     }
   }
 
-  private:
+  protected:
   union {
   USHORT		format;		/* Format identifier */
   ClassDefFormat1	format1;
@@ -744,7 +746,7 @@ struct Device
     return TRACE_RETURN (c->check_struct (this) && c->check_range (this, this->get_size ()));
   }
 
-  private:
+  protected:
   USHORT	startSize;		/* Smallest size to correct--in ppem */
   USHORT	endSize;		/* Largest size to correct--in ppem */
   USHORT	deltaFormat;		/* Format of DeltaValue array data: 1, 2, or 3
