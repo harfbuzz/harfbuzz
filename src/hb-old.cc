@@ -329,14 +329,15 @@ retry:
 #undef ALLOCATE_ARRAY
 
   if (!HB_ShapeItem (&item))
-    return false;
-
-  if (unlikely (item.num_glyphs > num_glyphs))
   {
-    buffer->ensure (buffer->allocated * 2);
-    if (buffer->in_error)
-      FAIL ("Buffer resize failed");
-    goto retry;
+    if (unlikely (item.num_glyphs > num_glyphs))
+    {
+      buffer->ensure (buffer->allocated * 2);
+      if (buffer->in_error)
+	FAIL ("Buffer resize failed");
+      goto retry;
+    }
+    return false;
   }
   num_glyphs = item.num_glyphs;
 
