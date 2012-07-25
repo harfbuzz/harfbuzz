@@ -1169,11 +1169,11 @@ struct MarkMarkPosFormat1
     unsigned int j = skippy_iter.idx;
 
     /* Two marks match only if they belong to the same base, or same component
-     * of the same ligature.  That is, the component numbers must match, and
-     * if those are non-zero, the ligid number should also match. */
-    if ((get_lig_comp (c->buffer->info[j]) != get_lig_comp (c->buffer->cur())) ||
-	(get_lig_comp (c->buffer->info[j]) > 0 &&
-	 get_lig_id (c->buffer->info[j]) != get_lig_id (c->buffer->cur())))
+     * of the same ligature.  That is, the lig_id numbers must match, and
+     * if those are non-zero, the lig_comp number should also match. */
+    if ((get_lig_id (c->buffer->info[j]) != get_lig_id (c->buffer->cur())) ||
+	(get_lig_id (c->buffer->info[j]) > 0 &&
+	 get_lig_comp (c->buffer->info[j]) != get_lig_comp (c->buffer->cur())))
       return TRACE_RETURN (false);
 
     unsigned int mark2_index = (this+mark2Coverage) (c->buffer->info[j].codepoint);

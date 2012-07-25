@@ -68,8 +68,27 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
  * GSUB/GPOS
  */
 
-/* unique ligature id */
-/* component number in the ligature (0 = base) */
+/* lig_id / lig_comp
+ *
+ * When a ligature is formed:
+ *
+ *   - The ligature glyph and any marks in between all get a unique lig_id,
+ *   - The ligature glyph will get lig_comp = 0
+ *   - The marks get lig_comp > 0, reflecting which component of the ligature
+ *     they were applied to.
+ *   - This is used in GPOS to attach marks to the right component of a ligature
+ *     in MarkLigPos.
+ *
+ * When a multiple-substitution is done:
+ *
+ *   - All resulting glyphs will have lig_id = 0,
+ *   - The resulting glyphs will have lig_comp = 0, 1, 2, ... respectively.
+ *   - This is used in GPOS to attack marks to the first component of a
+ *     multiple substitution in MarkBasePos.
+ *
+ * The numbers are also used in GPOS to do mark-to-mark positioning only
+ * to marks that belong to the same component of a ligature in MarkMarPos.
+ */
 static inline void
 set_lig_props (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
 {
