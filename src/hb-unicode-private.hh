@@ -151,7 +151,7 @@ _hb_unicode_is_zero_width (hb_codepoint_t ch)
   return ((ch & ~0x007F) == 0x2000 && (hb_in_ranges<hb_codepoint_t> (ch,
 								     0x200B, 0x200F,
 								     0x202A, 0x202E,
-								     0x2060, 0x2063) ||
+								     0x2060, 0x2064) ||
 				       (ch == 0x2028))) ||
 	  unlikely (ch == 0x0009 ||
 		    ch == 0x00AD ||
