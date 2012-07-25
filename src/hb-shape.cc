@@ -39,6 +39,9 @@
 #ifdef HAVE_CORETEXT
 # include "hb-coretext-private.hh"
 #endif
+#ifdef HAVE_HB_OLD
+# include "hb-old-private.hh"
+#endif
 #ifdef HAVE_OT
 # include "hb-ot-shape-private.hh"
 #endif
@@ -67,7 +70,10 @@ static const struct hb_shaper_pair_t {
 #ifdef HAVE_OT
   HB_SHAPER_IMPLEMENT (ot),
 #endif
-  HB_SHAPER_IMPLEMENT (fallback) /* should be last */
+#ifdef HAVE_HB_OLD
+  HB_SHAPER_IMPLEMENT (old),
+#endif
+  HB_SHAPER_IMPLEMENT (fallback), /* This should be last. */
 };
 #undef HB_SHAPER_IMPLEMENT
 

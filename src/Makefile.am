@@ -1,15 +1,14 @@
 # Process this file with automake to produce Makefile.in
 
 NULL =
+SUBDIRS =
+DIST_SUBDIRS =
 BUILT_SOURCES =
 EXTRA_DIST =
 CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
-
-SUBDIRS = hb-old
-DIST_SUBDIRS = hb-old
 
 # The following warning options are useful for debugging: -Wpadded
 #AM_CXXFLAGS =
@@ -148,7 +147,14 @@ HBSOURCES += hb-coretext.cc hb-coretext-private.hh
 HBHEADERS += hb-coretext.h
 endif
 
-HBLIBS += hb-old/libhb-old.la
+if HAVE_HB_OLD
+SUBDIRS += hb-old
+HBCFLAGS += -I$(srcdir)/hb-old
+HBLIBS   += hb-old/libhb-old.la
+HBSOURCES += hb-old.cc hb-old-private.hh
+endif
+DIST_SUBDIRS += hb-old
+
 
 # Use a C linker, not C++; Don't link to libstdc++
 libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)

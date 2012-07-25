@@ -90,6 +90,14 @@ AM_CONDITIONAL(HAVE_OT, $have_ot)
 
 dnl ===========================================================================
 
+have_hb_old=true
+if $have_hb_old; then
+	AC_DEFINE(HAVE_HB_OLD, 1, [Have Old HarfBuzz backend])
+fi
+AM_CONDITIONAL(HAVE_HB_OLD, $have_hb_old)
+
+dnl ===========================================================================
+
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])

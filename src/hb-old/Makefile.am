@@ -52,3 +52,5 @@ libhb_old_la_CPPFLAGS = \
 	-I$(top_builddir)/src
 
 EXTRA_DIST = README COPYING
+
+-include $(top_srcdir)/git.mk
