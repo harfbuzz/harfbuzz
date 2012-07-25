@@ -251,6 +251,8 @@ _hb_old_shape (hb_font_t          *font,
 
   buffer->guess_properties ();
 
+  bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
+
 #define FAIL(...) \
   HB_STMT_START { \
     DEBUG_MSG (OLD, NULL, __VA_ARGS__); \
@@ -285,23 +287,23 @@ retry:
       pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
     }
   }
-#undef utf16_index
 
 
 #define ALLOCATE_ARRAY(Type, name, len) \
   name = (Type *) scratch; \
-  scratch += len * sizeof (name[0]); \
-  scratch_size -= len * sizeof (name[0]);
+  scratch += (len) * sizeof ((name)[0]); \
+  scratch_size -= (len) * sizeof ((name)[0]);
 
 
   HB_ShaperItem item = {0};
 
   ALLOCATE_ARRAY (const HB_UChar16, item.string, chars_len);
+  ALLOCATE_ARRAY (unsigned short, item.log_clusters, chars_len + 2);
   item.stringLength = chars_len;
   item.item.pos = 0;
   item.item.length = item.stringLength;
   item.item.script = hb_old_script_from_script (buffer->props.script);
-  item.item.bidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
+  item.item.bidiLevel = backward ? 1 : 0;
 
   item.font = old_font;
   item.face = old_face;
@@ -314,14 +316,17 @@ retry:
 					    sizeof (HB_GlyphAttributes) +
 					    sizeof (HB_Fixed) +
 					    sizeof (HB_FixedPoint) +
-					    sizeof (unsigned short));
+					    sizeof (uint32_t));
 
   item.num_glyphs = num_glyphs;
   ALLOCATE_ARRAY (HB_Glyph, item.glyphs, num_glyphs);
   ALLOCATE_ARRAY (HB_GlyphAttributes, item.attributes, num_glyphs);
   ALLOCATE_ARRAY (HB_Fixed, item.advances, num_glyphs);
   ALLOCATE_ARRAY (HB_FixedPoint, item.offsets, num_glyphs);
-  ALLOCATE_ARRAY (unsigned short, item.log_clusters, num_glyphs);
+  uint32_t *vis_clusters;
+  ALLOCATE_ARRAY (uint32_t, vis_clusters, num_glyphs);
+
+#undef ALLOCATE_ARRAY
 
   if (!HB_ShapeItem (&item))
     return false;
@@ -335,24 +340,48 @@ retry:
   }
   num_glyphs = item.num_glyphs;
 
-#undef ALLOCATE_ARRAY
+  /* Ok, we've got everything we need, now compose output buffer,
+   * very, *very*, carefully! */
 
+  /* Calculate visual-clusters.  That's what we ship. */
+  for (unsigned int i = 0; i < num_glyphs; i++)
+    vis_clusters[i] = -1;
+  for (unsigned int i = 0; i < buffer->len; i++) {
+    uint32_t *p = &vis_clusters[item.log_clusters[buffer->info[i].utf16_index()]];
+    *p = MIN (*p, buffer->info[i].cluster);
+  }
+  if (!backward) {
+    for (unsigned int i = 1; i < num_glyphs; i++)
+      if (vis_clusters[i] == -1)
+	vis_clusters[i] = vis_clusters[i - 1];
+  } else {
+    for (int i = num_glyphs - 2; i >= 0; i--)
+      if (vis_clusters[i] == -1)
+	vis_clusters[i] = vis_clusters[i + 1];
+  }
+
+#undef utf16_index
+
+  buffer->ensure (num_glyphs);
+  if (buffer->in_error)
+    FAIL ("Buffer in error");
+
+
+  buffer->len = num_glyphs;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < num_glyphs; i++)
   {
     info[i].codepoint = item.glyphs[i];
-    info[i].cluster = item.log_clusters[i];
+    info[i].cluster = vis_clusters[i];
 
     info[i].mask = item.advances[i];
     info[i].var1.u32 = item.offsets[i].x;
     info[i].var2.u32 = item.offsets[i].y;
   }
-  buffer->len = num_glyphs;
 
   buffer->clear_positions ();
 
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; ++i) {
+  for (unsigned int i = 0; i < num_glyphs; ++i) {
     hb_glyph_info_t *info = &buffer->info[i];
     hb_glyph_position_t *pos = &buffer->pos[i];
 

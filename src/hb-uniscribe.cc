@@ -257,8 +257,8 @@ retry:
 
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
-  scratch += len * sizeof (name[0]); \
-  scratch_size -= len * sizeof (name[0]);
+  scratch += (len) * sizeof ((name)[0]); \
+  scratch_size -= (len) * sizeof ((name)[0]);
 
 #define utf16_index() var1.u32
 
@@ -294,6 +294,7 @@ retry:
   ALLOCATE_ARRAY (GOFFSET, offsets, glyphs_size);
   ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
 
+#undef ALLOCATE_ARRAY
 
 #define MAX_ITEMS 256
 

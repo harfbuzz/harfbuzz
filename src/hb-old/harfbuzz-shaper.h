@@ -251,6 +251,7 @@ struct HB_ShaperItem_ {
     HB_Fixed *advances;                     /* output: <num_glyphs> advances */
     HB_FixedPoint *offsets;                 /* output: <num_glyphs> offsets */
     unsigned short *log_clusters;           /* output: for each output glyph, the index in the input of the start of its logical cluster */
+    /* XXX the discription for log_clusters is wrong.  It maps each input position to output glyph position! */
 
     /* internal */
     HB_Bool kerning_applied;                /* output: true if kerning was applied by the shaper */
