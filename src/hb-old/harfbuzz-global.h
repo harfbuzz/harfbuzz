@@ -31,14 +31,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define HB_BEGIN_VISIBILITY _Pragma ("GCC visibility push(hidden)")
-#define HB_END_VISIBILITY _Pragma ("GCC visibility pop")
-#ifdef __cplusplus
-#define HB_BEGIN_HEADER  extern "C" { HB_BEGIN_VISIBILITY
-#define HB_END_HEADER  HB_END_VISIBILITY }
+#if defined(__GNUC__) && (__GNUC__ >= 4) && !defined(__MINGW32__)
+# define HB_BEGIN_VISIBILITY _Pragma ("GCC visibility push(hidden)")
+# define HB_END_VISIBILITY _Pragma ("GCC visibility pop")
 #else
-#define HB_BEGIN_HEADER  HB_BEGIN_VISIBILITY
-#define HB_END_HEADER  HB_END_VISIBILITY
+# define HB_BEGIN_VISIBILITY
+# define HB_END_VISIBILITY
+#endif
+#ifdef __cplusplus
+# define HB_BEGIN_HEADER  extern "C" { HB_BEGIN_VISIBILITY
+# define HB_END_HEADER  HB_END_VISIBILITY }
+#else
+# define HB_BEGIN_HEADER  HB_BEGIN_VISIBILITY
+# define HB_END_HEADER  HB_END_VISIBILITY
 #endif
 
 HB_BEGIN_HEADER

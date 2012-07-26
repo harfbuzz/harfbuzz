@@ -33,7 +33,11 @@
 HB_BEGIN_HEADER
 
 #ifndef HB_INTERNAL
-# define HB_INTERNAL __attribute__((visibility("hidden")))
+# ifndef __MINGW32__
+#  define HB_INTERNAL __attribute__((__visibility__("hidden")))
+# else
+#  define HB_INTERNAL
+# endif
 #endif
 
 #ifndef NULL
