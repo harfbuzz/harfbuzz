@@ -319,5 +319,42 @@ _hb_coretext_shape (hb_font_t          *font,
     pos->y_offset = info->var2.u32;
   }
 
+  // Fix up clusters so that we never return out-of-order indices;
+  // if core text has reordered glyphs, we'll merge them to the
+  // beginning of the reordered cluster.
+  // This does *not* mean we'll form the same clusters as Uniscribe
+  // or the native OT backend, only that the cluster indices will be
+  // non-decreasing in the output buffer.
+  if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
+    unsigned int prev_cluster = 0;
+    for (unsigned int i = 0; i < count; i++) {
+      unsigned int curr_cluster = buffer->info[i].cluster;
+      if (curr_cluster < prev_cluster) {
+        for (unsigned int j = i; j > 0; j--) {
+          if (buffer->info[j - 1].cluster > curr_cluster)
+            buffer->info[j - 1].cluster = curr_cluster;
+          else
+            break;
+        }
+      }
+      prev_cluster = curr_cluster;
+    }
+  } else {
+    // For RTL runs, we make them non-increasing instead.
+    unsigned int prev_cluster = (unsigned int)-1;
+    for (unsigned int i = 0; i < count; i++) {
+      unsigned int curr_cluster = buffer->info[i].cluster;
+      if (curr_cluster > prev_cluster) {
+        for (unsigned int j = i; j > 0; j--) {
+          if (buffer->info[j - 1].cluster < curr_cluster)
+            buffer->info[j - 1].cluster = curr_cluster;
+          else
+            break;
+        }
+      }
+      prev_cluster = curr_cluster;
+    }
+  }
+
   return true;
 }
