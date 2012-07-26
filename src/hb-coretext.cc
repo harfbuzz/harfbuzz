@@ -260,8 +260,8 @@ _hb_coretext_shape (hb_font_t          *font,
 
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
-  scratch += len * sizeof (name[0]); \
-  scratch_size -= len * sizeof (name[0]);
+  scratch += (len) * sizeof ((name)[0]); \
+  scratch_size -= (len) * sizeof ((name)[0]);
 
     const CGGlyph* glyphs = CTRunGetGlyphsPtr (run);
     if (!glyphs) {
