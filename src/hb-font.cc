@@ -1,5 +1,6 @@
 /*
  * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #include "hb-private.hh"
@@ -707,6 +709,10 @@ hb_face_destroy (hb_face_t *face)
 
   _hb_ot_layout_destroy (face->ot_layout);
 
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, face);
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+
   if (face->destroy)
     face->destroy (face->user_data);
 
@@ -888,11 +894,16 @@ hb_font_destroy (hb_font_t *font)
 {
   if (!hb_object_destroy (font)) return;
 
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, font);
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+
+  if (font->destroy)
+    font->destroy (font->user_data);
+
   hb_font_destroy (font->parent);
   hb_face_destroy (font->face);
   hb_font_funcs_destroy (font->klass);
-  if (font->destroy)
-    font->destroy (font->user_data);
 
   free (font);
 }

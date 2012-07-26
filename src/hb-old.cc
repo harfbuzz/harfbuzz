@@ -24,12 +24,10 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
-
-#include "hb-old-private.hh"
-
-#include "hb-font-private.hh"
-#include "hb-buffer-private.hh"
+#define HB_SHAPER old
+#define hb_old_shaper_face_data_t HB_FaceRec_
+#define hb_old_shaper_font_data_t HB_Font_
+#include "hb-shaper-impl-private.hh"
 
 #include <harfbuzz.h>
 
@@ -166,8 +164,6 @@ static const HB_FontClass hb_old_font_class = {
 
 
 
-static hb_user_data_key_t hb_old_data_key;
-
 static HB_Error
 table_func (void *font, HB_Tag tag, HB_Byte *buffer, HB_UInt *length)
 {
@@ -180,13 +176,86 @@ table_func (void *font, HB_Tag tag, HB_Byte *buffer, HB_UInt *length)
  return HB_Err_Ok;
 }
 
+
+/*
+ * shaper face data
+ */
+
+hb_old_shaper_face_data_t *
+_hb_old_shaper_face_data_create (hb_face_t *face)
+{
+  return HB_NewFace (face, table_func);
+}
+
+void
+_hb_old_shaper_face_data_destroy (hb_old_shaper_face_data_t *data)
+{
+  HB_FreeFace (data);
+}
+
+
+/*
+ * shaper font data
+ */
+
+hb_old_shaper_font_data_t *
+_hb_old_shaper_font_data_create (hb_font_t *font)
+{
+  HB_FontRec *data = (HB_FontRec *) calloc (1, sizeof (HB_FontRec));
+  if (unlikely (!data)) {
+    DEBUG_MSG (OLD, font, "malloc()ing HB_Font failed");
+    return NULL;
+  }
+
+  data->klass = &hb_old_font_class;
+  data->x_ppem = font->x_ppem;
+  data->y_ppem = font->y_ppem;
+  data->x_scale = font->x_scale; // XXX
+  data->y_scale = font->y_scale; // XXX
+  data->userData = font;
+
+  return data;
+}
+
+void
+_hb_old_shaper_font_data_destroy (hb_old_shaper_font_data_t *data)
+{
+  free (data);
+}
+
+
+/*
+ * shaper shape_plan data
+ */
+
+struct hb_old_shaper_shape_plan_data_t {};
+
+hb_old_shaper_shape_plan_data_t *
+_hb_old_shaper_shape_plan_data_create (hb_shape_plan_t *shape_plan)
+{
+  return (hb_old_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_old_shaper_shape_plan_data_destroy (hb_old_shaper_shape_plan_data_t *data)
+{
+}
+
+
+/*
+ * shaper
+ */
+
+
+static hb_user_data_key_t hb_old_data_key;
+
 static HB_Face
 _hb_old_face_get (hb_face_t *face)
 {
   HB_Face data = (HB_Face) hb_face_get_user_data (face, &hb_old_data_key);
   if (likely (data)) return data;
 
-  data = HB_NewFace (face, table_func);
+  data = _hb_old_shaper_face_data_create (face);
 
   if (unlikely (!data)) {
     DEBUG_MSG (OLD, face, "HB_NewFace failed");
@@ -194,10 +263,10 @@ _hb_old_face_get (hb_face_t *face)
   }
 
   if (unlikely (!hb_face_set_user_data (face, &hb_old_data_key, data,
-                                        (hb_destroy_func_t) HB_FreeFace,
+                                        (hb_destroy_func_t) _hb_old_shaper_face_data_destroy,
                                         false)))
   {
-    HB_FreeFace (data);
+    _hb_old_shaper_face_data_destroy (data);
     data = (HB_Face) hb_face_get_user_data (face, &hb_old_data_key);
     if (data)
       return data;
@@ -212,24 +281,16 @@ _hb_old_face_get (hb_face_t *face)
 static HB_Font
 _hb_old_font_get (hb_font_t *font)
 {
-  HB_Font data = (HB_Font) calloc (1, sizeof (HB_FontRec));
-  if (unlikely (!data)) {
-    DEBUG_MSG (OLD, font, "malloc()ing HB_Font failed");
+  /* Ouch, check user_data! */
+  HB_Font data = _hb_old_shaper_font_data_create (font);
+  if (!data)
     return NULL;
-  }
-
-  data->klass = &hb_old_font_class;
-  data->x_ppem = font->x_ppem;
-  data->y_ppem = font->y_ppem;
-  data->x_scale = font->x_scale; // XXX
-  data->y_scale = font->y_scale; // XXX
-  data->userData = font;
 
   if (unlikely (!hb_font_set_user_data (font, &hb_old_data_key, data,
-                                        (hb_destroy_func_t) free,
+                                        (hb_destroy_func_t) _hb_old_shaper_font_data_destroy,
                                         false)))
   {
-    free (data);
+    _hb_old_shaper_font_data_destroy (data);
     data = (HB_Font) hb_font_get_user_data (font, &hb_old_data_key);
     if (data)
       return data;

@@ -24,16 +24,14 @@
  * Mozilla Author(s): Jonathan Kew
  */
 
-#include "hb-private.hh"
+#define HB_SHAPER coretext
+#include "hb-shaper-private.hh"
 
 #define GlyphID GlyphID_mac
 #include <ApplicationServices/ApplicationServices.h>
 #undef GlyphID
 
 #include "hb-coretext.h"
-
-#include "hb-ot-name-table.hh"
-#include "hb-ot-tag.h"
 
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"

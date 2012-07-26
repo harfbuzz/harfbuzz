@@ -33,6 +33,7 @@
 
 #include "hb-font.h"
 #include "hb-object-private.hh"
+#include "hb-shaper-private.hh"
 
 
 
@@ -100,7 +101,13 @@ struct hb_face_t {
 
   unsigned int index;
   unsigned int upem;
+
+  struct hb_shaper_data_t shaper_data;
 };
+
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, face);
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
 
 
 /*
@@ -125,6 +132,8 @@ struct hb_font_t {
   hb_font_funcs_t   *klass;
   void              *user_data;
   hb_destroy_func_t  destroy;
+
+  struct hb_shaper_data_t shaper_data;
 
 
   /* Convert from font-space to user-space */
@@ -163,6 +172,9 @@ struct hb_font_t {
   inline hb_position_t em_scale (int16_t v, int scale) { return v * (int64_t) scale / hb_face_get_upem (this->face); }
 };
 
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, font);
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
 
 
 #endif /* HB_FONT_PRIVATE_HH */

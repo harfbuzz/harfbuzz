@@ -24,7 +24,6 @@ HBSOURCES =  \
 	hb-buffer.cc \
 	hb-cache-private.hh \
 	hb-common.cc \
-	hb-fallback-shape-private.hh \
 	hb-fallback-shape.cc \
 	hb-font-private.hh \
 	hb-font.cc \
@@ -42,6 +41,12 @@ HBSOURCES =  \
 	hb-set-private.hh \
 	hb-set.cc \
 	hb-shape.cc \
+	hb-shape-plan-private.hh \
+	hb-shape-plan.cc \
+	hb-shape-plan.h \
+	hb-shaper-list.hh \
+	hb-shaper-impl-private.hh \
+	hb-shaper-private.hh \
 	hb-tt-font.cc \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
@@ -129,21 +134,21 @@ endif
 if HAVE_GRAPHITE2
 HBCFLAGS += $(GRAPHITE2_CFLAGS)
 HBLIBS   += $(GRAPHITE2_LIBS)
-HBSOURCES += hb-graphite2.cc hb-graphite2-private.hh
+HBSOURCES += hb-graphite2.cc
 HBHEADERS += hb-graphite2.h
 endif
 
 if HAVE_UNISCRIBE
 HBCFLAGS += $(UNISCRIBE_CFLAGS)
 HBLIBS   += $(UNISCRIBE_LIBS)
-HBSOURCES += hb-uniscribe.cc hb-uniscribe-private.hh
+HBSOURCES += hb-uniscribe.cc
 HBHEADERS += hb-uniscribe.h
 endif
 
 if HAVE_CORETEXT
 HBCFLAGS += $(CORETEXT_CFLAGS)
 HBLIBS   += $(CORETEXT_LIBS)
-HBSOURCES += hb-coretext.cc hb-coretext-private.hh
+HBSOURCES += hb-coretext.cc
 HBHEADERS += hb-coretext.h
 endif
 
@@ -151,7 +156,7 @@ if HAVE_HB_OLD
 SUBDIRS += hb-old
 HBCFLAGS += -I$(srcdir)/hb-old
 HBLIBS   += hb-old/libhb-old.la
-HBSOURCES += hb-old.cc hb-old-private.hh
+HBSOURCES += hb-old.cc
 endif
 DIST_SUBDIRS += hb-old
 

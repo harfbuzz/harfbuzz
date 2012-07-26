@@ -26,14 +26,72 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#define HB_SHAPER ot
+#define hb_ot_shaper_face_data_t hb_ot_layout_t
+#include "hb-shaper-impl-private.hh"
+
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-shape-normalize-private.hh"
 
 #include "hb-ot-layout-private.hh"
-#include "hb-font-private.hh"
 #include "hb-set-private.hh"
 
 
+/*
+ * shaper face data
+ */
+
+hb_ot_shaper_face_data_t *
+_hb_ot_shaper_face_data_create (hb_face_t *face)
+{
+  return (hb_ot_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
+{
+}
+
+
+/*
+ * shaper font data
+ */
+
+struct hb_ot_shaper_font_data_t {};
+
+hb_ot_shaper_font_data_t *
+_hb_ot_shaper_font_data_create (hb_font_t *font)
+{
+  return (hb_ot_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
+{
+}
+
+
+/*
+ * shaper shape_plan data
+ */
+
+struct hb_ot_shaper_shape_plan_data_t {};
+
+hb_ot_shaper_shape_plan_data_t *
+_hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t *shape_plan)
+{
+  return (hb_ot_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *data)
+{
+}
+
+
+/*
+ * shaper
+ */
 
 hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),

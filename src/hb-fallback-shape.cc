@@ -24,9 +24,67 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-fallback-shape-private.hh"
+#define HB_SHAPER fallback
+#include "hb-shaper-impl-private.hh"
 
-#include "hb-buffer-private.hh"
+
+/*
+ * shaper face data
+ */
+
+struct hb_fallback_shaper_face_data_t {};
+
+hb_fallback_shaper_face_data_t *
+_hb_fallback_shaper_face_data_create (hb_face_t *face)
+{
+  return (hb_fallback_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_fallback_shaper_face_data_destroy (hb_fallback_shaper_face_data_t *data)
+{
+}
+
+
+/*
+ * shaper font data
+ */
+
+struct hb_fallback_shaper_font_data_t {};
+
+hb_fallback_shaper_font_data_t *
+_hb_fallback_shaper_font_data_create (hb_font_t *font)
+{
+  return (hb_fallback_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_fallback_shaper_font_data_destroy (hb_fallback_shaper_font_data_t *data)
+{
+}
+
+
+/*
+ * shaper shape_plan data
+ */
+
+struct hb_fallback_shaper_shape_plan_data_t {};
+
+hb_fallback_shaper_shape_plan_data_t *
+_hb_fallback_shaper_shape_plan_data_create (hb_shape_plan_t *shape_plan)
+{
+  return (hb_fallback_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_fallback_shaper_shape_plan_data_destroy (hb_fallback_shaper_shape_plan_data_t *data)
+{
+}
+
+
+/*
+ * shaper
+ */
 
 hb_bool_t
 _hb_fallback_shape (hb_font_t          *font,

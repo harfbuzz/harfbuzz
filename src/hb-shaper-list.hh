@@ -24,19 +24,27 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_GRAPHITE2_PRIVATE_HH
-#define HB_GRAPHITE2_PRIVATE_HH
+#ifndef HB_SHAPER_LIST_HH
+#define HB_SHAPER_LIST_HH
+#endif /* HB_SHAPER_LIST_HH */ /* Dummy header guards */
 
-#include "hb-private.hh"
+/* v--- Add new shapers in the right place here. */
+#ifdef HAVE_GRAPHITE
+HB_SHAPER_IMPLEMENT (graphite2)
+#endif
+#ifdef HAVE_UNISCRIBE
+HB_SHAPER_IMPLEMENT (uniscribe)
+#endif
+#ifdef HAVE_CORETEXT
+HB_SHAPER_IMPLEMENT (coretext)
+#endif
 
-#include "hb-graphite2.h"
+#ifdef HAVE_OT
+HB_SHAPER_IMPLEMENT (ot) /* <--- This is our main OpenType shaper. */
+#endif
 
+#ifdef HAVE_HB_OLD
+HB_SHAPER_IMPLEMENT (old)
+#endif
 
-HB_INTERNAL hb_bool_t
-_hb_graphite2_shape (hb_font_t          *font,
-		     hb_buffer_t        *buffer,
-		     const hb_feature_t *features,
-		     unsigned int        num_features);
-
-
-#endif /* HB_GRAPHITE2_PRIVATE_HH */
+HB_SHAPER_IMPLEMENT (fallback) /* <--- This should be last. */

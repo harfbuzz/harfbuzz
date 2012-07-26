@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012  Mozilla Foundation.
+ * Copyright © 2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,22 +21,40 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Mozilla Author(s): Jonathan Kew
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_CORETEXT_PRIVATE_HH
-#define HB_CORETEXT_PRIVATE_HH
+#ifndef HB_SHAPE_PLAN_H
+#define HB_SHAPE_PLAN_H
+
+/* TODO To become public one day */
 
 #include "hb-private.hh"
 
-#include "hb-coretext.h"
+#include "hb-buffer-private.hh"
 
 
-HB_INTERNAL hb_bool_t
-_hb_coretext_shape (hb_font_t          *font,
-		     hb_buffer_t        *buffer,
-		     const hb_feature_t *features,
-		     unsigned int        num_features);
+typedef struct hb_shape_plan_t hb_shape_plan;
+
+/*
+ * hb_shape_plan_t
+ */
+
+HB_INTERNAL hb_shape_plan_t *
+hb_shape_plan_create (hb_face_t                     *face,
+		      const hb_segment_properties_t *props,
+		      const hb_feature_t            *user_features,
+		      unsigned int                   num_user_features,
+		      const char * const            *shaper_list);
+
+HB_INTERNAL hb_shape_plan_t *
+hb_shape_plan_get_empty (void);
+
+HB_INTERNAL hb_shape_plan_t *
+hb_shape_plan_reference (hb_shape_plan_t *shape_plan);
+
+HB_INTERNAL void
+hb_shape_plan_destroy (hb_shape_plan_t *shape_plan);
 
 
-#endif /* HB_CORETEXT_PRIVATE_HH */
+#endif /* HB_SHAPE_PLAN_H */

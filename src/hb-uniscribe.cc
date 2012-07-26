@@ -26,7 +26,8 @@
 
 #define _WIN32_WINNT 0x0600
 
-#include "hb-private.hh"
+#define HB_SHAPER uniscribe
+#include "hb-shaper-impl-private.hh"
 
 #include <windows.h>
 #include <usp10.h>
@@ -37,10 +38,6 @@ typedef ULONG WIN_ULONG;
 
 #include "hb-ot-name-table.hh"
 #include "hb-ot-tag.h"
-
-#include "hb-font-private.hh"
-#include "hb-buffer-private.hh"
-
 
 
 #ifndef HB_DEBUG_UNISCRIBE
@@ -91,31 +88,20 @@ populate_log_font (LOGFONTW  *lf,
 }
 
 
-static hb_user_data_key_t hb_uniscribe_data_key;
+/*
+ * shaper face data
+ */
 
-
-static struct hb_uniscribe_face_data_t {
+struct hb_uniscribe_shaper_face_data_t {
   HANDLE fh;
-} _hb_uniscribe_face_data_nil = {0};
+};
 
-static void
-_hb_uniscribe_face_data_destroy (hb_uniscribe_face_data_t *data)
+hb_uniscribe_shaper_face_data_t *
+_hb_uniscribe_shaper_face_data_create (hb_face_t *face)
 {
-  if (data->fh)
-    RemoveFontMemResourceEx (data->fh);
-  free (data);
-}
-
-static hb_uniscribe_face_data_t *
-_hb_uniscribe_face_get_data (hb_face_t *face)
-{
-  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
-  if (likely (data)) return data;
-
-  data = (hb_uniscribe_face_data_t *) calloc (1, sizeof (hb_uniscribe_face_data_t));
+  hb_uniscribe_shaper_face_data_t *data = (hb_uniscribe_shaper_face_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_face_data_t));
   if (unlikely (!data))
-    return &_hb_uniscribe_face_data_nil;
-
+    return NULL;
 
   hb_blob_t *blob = hb_face_reference_blob (face);
   unsigned int blob_length;
@@ -126,35 +112,68 @@ _hb_uniscribe_face_get_data (hb_face_t *face)
   DWORD num_fonts_installed;
   data->fh = AddFontMemResourceEx ((void *) blob_data, blob_length, 0, &num_fonts_installed);
   hb_blob_destroy (blob);
-  if (unlikely (!data->fh))
+  if (unlikely (!data->fh)) {
     DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
-
-
-  if (unlikely (!hb_face_set_user_data (face, &hb_uniscribe_data_key, data,
-					(hb_destroy_func_t) _hb_uniscribe_face_data_destroy,
-					false)))
-  {
-    _hb_uniscribe_face_data_destroy (data);
-    data = (hb_uniscribe_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
-    if (data)
-      return data;
-    else
-      return &_hb_uniscribe_face_data_nil;
+    free (data);
+    return NULL;
   }
 
   return data;
 }
 
+void
+_hb_uniscribe_shaper_face_data_destroy (hb_uniscribe_shaper_face_data_t *data)
+{
+  if (data->fh)
+    RemoveFontMemResourceEx (data->fh);
+  free (data);
+}
 
-static struct hb_uniscribe_font_data_t {
+
+/*
+ * shaper font data
+ */
+
+struct hb_uniscribe_shaper_font_data_t {
   HDC hdc;
   LOGFONTW log_font;
   HFONT hfont;
   SCRIPT_CACHE script_cache;
-} _hb_uniscribe_font_data_nil = {NULL, NULL, NULL};
+};
 
-static void
-_hb_uniscribe_font_data_destroy (hb_uniscribe_font_data_t *data)
+hb_uniscribe_shaper_font_data_t *
+_hb_uniscribe_shaper_font_data_create (hb_font_t *font)
+{
+  hb_uniscribe_shaper_font_data_t * data = (hb_uniscribe_shaper_font_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_font_data_t));
+  if (unlikely (!data))
+    return NULL;
+
+  data->hdc = GetDC (NULL);
+
+  if (unlikely (!populate_log_font (&data->log_font, font))) {
+    DEBUG_MSG (UNISCRIBE, font, "Font populate_log_font() failed");
+    _hb_uniscribe_shaper_font_data_destroy (data);
+    return NULL;
+  }
+
+  data->hfont = CreateFontIndirectW (&data->log_font);
+  if (unlikely (!data->hfont)) {
+    DEBUG_MSG (UNISCRIBE, font, "Font CreateFontIndirectW() failed");
+    _hb_uniscribe_shaper_font_data_destroy (data);
+     return NULL;
+  }
+
+  if (!SelectObject (data->hdc, data->hfont)) {
+    DEBUG_MSG (UNISCRIBE, font, "Font SelectObject() failed");
+    _hb_uniscribe_shaper_font_data_destroy (data);
+     return NULL;
+  }
+
+  return data;
+}
+
+void
+_hb_uniscribe_shaper_font_data_destroy (hb_uniscribe_shaper_font_data_t *data)
 {
   if (data->hdc)
     ReleaseDC (NULL, data->hdc);
@@ -165,38 +184,67 @@ _hb_uniscribe_font_data_destroy (hb_uniscribe_font_data_t *data)
   free (data);
 }
 
-static hb_uniscribe_font_data_t *
-_hb_uniscribe_font_get_data (hb_font_t *font)
+
+/*
+ * shaper shape_plan data
+ */
+
+struct hb_uniscribe_shaper_shape_plan_data_t {};
+
+hb_uniscribe_shaper_shape_plan_data_t *
+_hb_uniscribe_shaper_shape_plan_data_create (hb_shape_plan_t *shape_plan)
 {
-  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
+  return (hb_uniscribe_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_uniscribe_shaper_shape_plan_data_destroy (hb_uniscribe_shaper_shape_plan_data_t *data)
+{
+}
+
+
+/*
+ * shaper
+ */
+static hb_user_data_key_t hb_uniscribe_data_key;
+
+static hb_uniscribe_shaper_face_data_t *
+_hb_uniscribe_face_get_data (hb_face_t *face)
+{
+  hb_uniscribe_shaper_face_data_t *data = (hb_uniscribe_shaper_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
   if (likely (data)) return data;
 
-  data = (hb_uniscribe_font_data_t *) calloc (1, sizeof (hb_uniscribe_font_data_t));
-  if (unlikely (!data))
-    return &_hb_uniscribe_font_data_nil;
+  data = _hb_uniscribe_shaper_face_data_create (face);
+  if (!data) return NULL;
 
-  data->hdc = GetDC (NULL);
-
-  if (unlikely (!populate_log_font (&data->log_font, font)))
-    DEBUG_MSG (UNISCRIBE, font, "Font populate_log_font() failed");
-  else {
-    data->hfont = CreateFontIndirectW (&data->log_font);
-    if (unlikely (!data->hfont))
-      DEBUG_MSG (UNISCRIBE, font, "Font CreateFontIndirectW() failed");
-    if (!SelectObject (data->hdc, data->hfont))
-      DEBUG_MSG (UNISCRIBE, font, "Font SelectObject() failed");
-  }
-
-  if (unlikely (!hb_font_set_user_data (font, &hb_uniscribe_data_key, data,
-					(hb_destroy_func_t) _hb_uniscribe_font_data_destroy,
+  if (unlikely (!hb_face_set_user_data (face, &hb_uniscribe_data_key, data,
+					(hb_destroy_func_t) _hb_uniscribe_shaper_face_data_destroy,
 					false)))
   {
-    _hb_uniscribe_font_data_destroy (data);
-    data = (hb_uniscribe_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
-    if (data)
-      return data;
-    else
-      return &_hb_uniscribe_font_data_nil;
+    _hb_uniscribe_shaper_face_data_destroy (data);
+    data = (hb_uniscribe_shaper_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
+  }
+
+  return data;
+}
+
+
+static hb_uniscribe_shaper_font_data_t *
+_hb_uniscribe_font_get_data (hb_font_t *font)
+{
+  hb_uniscribe_shaper_font_data_t *data = (hb_uniscribe_shaper_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
+  if (likely (data)) return data;
+
+  data = _hb_uniscribe_shaper_font_data_create (font);
+  if (unlikely (!data))
+    return NULL;
+
+  if (unlikely (!hb_font_set_user_data (font, &hb_uniscribe_data_key, data,
+					(hb_destroy_func_t) _hb_uniscribe_shaper_font_data_destroy,
+					false)))
+  {
+    _hb_uniscribe_shaper_font_data_destroy (data);
+    data = (hb_uniscribe_shaper_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
   }
 
   return data;
@@ -205,7 +253,7 @@ _hb_uniscribe_font_get_data (hb_font_t *font)
 LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font)
 {
-  hb_uniscribe_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
+  hb_uniscribe_shaper_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
   if (unlikely (!font_data))
     return NULL;
   return &font_data->log_font;
@@ -214,7 +262,7 @@ hb_uniscribe_font_get_logfontw (hb_font_t *font)
 HFONT
 hb_uniscribe_font_get_hfont (hb_font_t *font)
 {
-  hb_uniscribe_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
+  hb_uniscribe_shaper_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
   if (unlikely (!font_data))
     return 0;
   return font_data->hfont;
@@ -235,11 +283,11 @@ _hb_uniscribe_shape (hb_font_t          *font,
     return false; \
   } HB_STMT_END;
 
-  hb_uniscribe_face_data_t *face_data = _hb_uniscribe_face_get_data (font->face);
+  hb_uniscribe_shaper_face_data_t *face_data = _hb_uniscribe_face_get_data (font->face);
   if (unlikely (!face_data->fh))
     FAIL ("Couldn't get face data");
 
-  hb_uniscribe_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
+  hb_uniscribe_shaper_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
   if (unlikely (!font_data->hfont))
     FAIL ("Couldn't get font font");
 

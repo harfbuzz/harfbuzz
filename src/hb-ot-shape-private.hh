@@ -46,14 +46,6 @@ struct hb_ot_shape_plan_t
 };
 
 
-
-HB_INTERNAL hb_bool_t
-_hb_ot_shape (hb_font_t          *font,
-	      hb_buffer_t        *buffer,
-	      const hb_feature_t *features,
-	      unsigned int        num_features);
-
-
 inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {

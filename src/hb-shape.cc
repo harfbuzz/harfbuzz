@@ -26,56 +26,18 @@
 
 #include "hb-private.hh"
 
-#include "hb-shape.h"
-
+#include "hb-shaper-private.hh"
 #include "hb-buffer-private.hh"
 
-#ifdef HAVE_GRAPHITE
-#include "hb-graphite2-private.hh"
-#endif
-#ifdef HAVE_UNISCRIBE
-# include "hb-uniscribe-private.hh"
-#endif
-#ifdef HAVE_CORETEXT
-# include "hb-coretext-private.hh"
-#endif
-#ifdef HAVE_HB_OLD
-# include "hb-old-private.hh"
-#endif
-#ifdef HAVE_OT
-# include "hb-ot-shape-private.hh"
-#endif
-#include "hb-fallback-shape-private.hh"
 
-typedef hb_bool_t (*hb_shape_func_t) (hb_font_t          *font,
-				      hb_buffer_t        *buffer,
-				      const hb_feature_t *features,
-				      unsigned int        num_features);
-
-#define HB_SHAPER_IMPLEMENT(name) {#name, _hb_##name##_shape}
 static const struct hb_shaper_pair_t {
   char name[16];
-  hb_shape_func_t func;
+  hb_shape_func_t *func;
 } all_shapers[] = {
-  /* v--- Add new shapers in the right place here */
-#ifdef HAVE_GRAPHITE
-  HB_SHAPER_IMPLEMENT (graphite2),
-#endif
-#ifdef HAVE_UNISCRIBE
-  HB_SHAPER_IMPLEMENT (uniscribe),
-#endif
-#ifdef HAVE_CORETEXT
-  HB_SHAPER_IMPLEMENT (coretext),
-#endif
-#ifdef HAVE_OT
-  HB_SHAPER_IMPLEMENT (ot),
-#endif
-#ifdef HAVE_HB_OLD
-  HB_SHAPER_IMPLEMENT (old),
-#endif
-  HB_SHAPER_IMPLEMENT (fallback), /* This should be last. */
-};
+#define HB_SHAPER_IMPLEMENT(name) {#name, _hb_##name##_shape},
+#include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
+};
 
 
 /* Thread-safe, lock-free, shapers */
