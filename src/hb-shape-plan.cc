@@ -48,13 +48,10 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 #define HB_SHAPER_PLAN(shaper) \
 	HB_STMT_START { \
 	  if (hb_##shaper##_shaper_face_data_ensure (shape_plan->face)) { \
-	    HB_SHAPER_DATA_TYPE (shaper, shape_plan) *data= \
+	    HB_SHAPER_DATA (shaper, shape_plan) = \
 	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, user_features, num_user_features); \
-	    if (data) { \
-	      HB_SHAPER_DATA (shaper, shape_plan) = data; \
-	      shape_plan->shaper_func = _hb_##shaper##_shape; \
-	      return; \
-	    } \
+	    shape_plan->shaper_func = _hb_##shaper##_shape; \
+	    return; \
 	  } \
 	} HB_STMT_END
 
@@ -163,11 +160,9 @@ hb_shape_plan_execute (hb_shape_plan      *shape_plan,
 
 #define HB_SHAPER_EXECUTE(shaper) \
 	HB_STMT_START { \
-	  if (hb_##shaper##_shaper_font_data_ensure (font) && \
-	      _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features)) \
-	    return true; \
-	  else \
-	    return false; \
+	  return HB_SHAPER_DATA (shaper, shape_plan) && \
+		 hb_##shaper##_shaper_font_data_ensure (font) && \
+		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
 	} HB_STMT_END
 
   if (0)
