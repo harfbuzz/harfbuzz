@@ -40,14 +40,44 @@
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == 20);
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
+
+/*
+ * hb_segment_properties_t
+ */
+
 typedef struct hb_segment_properties_t {
     hb_direction_t      direction;
     hb_script_t         script;
     hb_language_t       language;
     ASSERT_POD ();
 } hb_segment_properties_t;
+
 #define _HB_BUFFER_PROPS_DEFAULT { HB_DIRECTION_INVALID, HB_SCRIPT_INVALID, HB_LANGUAGE_INVALID }
 
+static inline hb_bool_t
+hb_segment_properties_equal (const hb_segment_properties_t *a,
+			     const hb_segment_properties_t *b)
+{
+  return a->direction == b->direction &&
+	 a->script    == b->script    &&
+	 a->language  == b->language;
+}
+
+
+static inline long
+hb_segment_properties_hash (const hb_segment_properties_t *p)
+{
+  /* TODO improve */
+  return (long) p->direction +
+	 (long) p->script +
+	 (long) p->language;
+}
+
+
+
+/*
+ * hb_buffer_t
+ */
 
 struct hb_buffer_t {
   hb_object_header_t header;

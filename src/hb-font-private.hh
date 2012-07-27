@@ -34,6 +34,7 @@
 #include "hb-font.h"
 #include "hb-object-private.hh"
 #include "hb-shaper-private.hh"
+#include "hb-shape-plan-private.hh"
 
 
 
@@ -101,6 +102,11 @@ struct hb_face_t {
   unsigned int upem;
 
   struct hb_shaper_data_t shaper_data;
+
+  struct plan_node_t {
+    hb_shape_plan_t *shape_plan;
+    plan_node_t *next;
+  } *shape_plans;
 };
 
 #define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS

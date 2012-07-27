@@ -596,7 +596,9 @@ static const hb_face_t _hb_face_nil = {
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
-  }
+  },
+
+  NULL, /* shape_plans */
 };
 
 
@@ -708,6 +710,17 @@ void
 hb_face_destroy (hb_face_t *face)
 {
   if (!hb_object_destroy (face)) return;
+
+  /* The cached shape_plans think they have a reference on us, and
+   * try to release it.  Make sure that doesn't mess up. */
+  face->header.ref_count.ref_count = HB_REFERENCE_COUNT_INVALID_VALUE;
+  for (hb_face_t::plan_node_t *node = face->shape_plans; node; )
+  {
+    hb_face_t::plan_node_t *next = node->next;
+    hb_shape_plan_destroy (node->shape_plan);
+    free (node);
+    node = next;
+  }
 
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, face);
 #include "hb-shaper-list.hh"

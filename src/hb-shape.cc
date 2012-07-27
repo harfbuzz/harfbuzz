@@ -87,7 +87,7 @@ hb_shape_full (hb_font_t          *font,
 
   buffer->guess_properties ();
 
-  hb_shape_plan_t *shape_plan = hb_shape_plan_create (font->face, &buffer->props, features, num_features, shaper_list);
+  hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props, features, num_features, shaper_list);
   hb_bool_t res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
   hb_shape_plan_destroy (shape_plan);
   return res;

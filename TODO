@@ -1,6 +1,10 @@
 General fixes:
 =============
 
+- mask propagation (when ligation, "or" the masks).
+
+- fail_shaper that always fails.
+
 - Make map in setup_masks() const, etc.
 
 - Warn at compile time (and runtime with HB_DEBUG?) if no Unicode / font
