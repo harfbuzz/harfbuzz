@@ -70,17 +70,20 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 static inline const GDEF&
 _get_gdef (hb_face_t *face)
 {
-  return likely (face->ot_layout && face->ot_layout->gdef) ? *face->ot_layout->gdef : Null(GDEF);
+  /* XXX ensure ot_layout, and speed up */
+  return *hb_ot_layout_from_face (face)->gdef;
 }
 static inline const GSUB&
 _get_gsub (hb_face_t *face)
 {
-  return likely (face->ot_layout && face->ot_layout->gsub) ? *face->ot_layout->gsub : Null(GSUB);
+  /* XXX ensure ot_layout, and speed up */
+  return *hb_ot_layout_from_face (face)->gsub;
 }
 static inline const GPOS&
 _get_gpos (hb_face_t *face)
 {
-  return likely (face->ot_layout && face->ot_layout->gpos) ? *face->ot_layout->gpos : Null(GPOS);
+  /* XXX ensure ot_layout, and speed up */
+  return *hb_ot_layout_from_face (face)->gpos;
 }
 
 

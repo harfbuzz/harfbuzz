@@ -36,6 +36,7 @@
 #include "hb-ot-shape-complex-private.hh"
 
 
+#define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
 
 /*
  * GDEF

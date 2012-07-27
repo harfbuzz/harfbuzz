@@ -46,6 +46,7 @@ typedef struct hb_segment_properties_t {
     hb_language_t       language;
     ASSERT_POD ();
 } hb_segment_properties_t;
+#define _HB_BUFFER_PROPS_DEFAULT { HB_DIRECTION_INVALID, HB_SCRIPT_INVALID, HB_LANGUAGE_INVALID }
 
 
 struct hb_buffer_t {

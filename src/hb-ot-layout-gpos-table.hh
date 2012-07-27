@@ -1553,7 +1553,7 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
 
 static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index)
 {
-  const GPOS &gpos = *(c->face->ot_layout->gpos);
+  const GPOS &gpos = *(hb_ot_layout_from_face (c->face)->gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
 
   if (unlikely (c->nesting_level_left == 0))

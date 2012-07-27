@@ -44,12 +44,13 @@
 hb_ot_shaper_face_data_t *
 _hb_ot_shaper_face_data_create (hb_face_t *face)
 {
-  return (hb_ot_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  return _hb_ot_layout_create (face);
 }
 
 void
 _hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
 {
+  _hb_ot_layout_destroy (data);
 }
 
 

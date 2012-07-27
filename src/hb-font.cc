@@ -589,10 +589,14 @@ static const hb_face_t _hb_face_nil = {
   NULL, /* user_data */
   NULL, /* destroy */
 
-  NULL, /* ot_layout */
-
   0,    /* index */
-  1000  /* upem */
+  1000, /* upem */
+
+  {
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+  }
 };
 
 
@@ -612,8 +616,6 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table,
   face->reference_table = reference_table;
   face->user_data = user_data;
   face->destroy = destroy;
-
-  face->ot_layout = _hb_ot_layout_create (face);
 
   face->upem = 0;
 
@@ -706,8 +708,6 @@ void
 hb_face_destroy (hb_face_t *face)
 {
   if (!hb_object_destroy (face)) return;
-
-  _hb_ot_layout_destroy (face->ot_layout);
 
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_DESTROY(shaper, face);
 #include "hb-shaper-list.hh"
@@ -877,7 +877,13 @@ hb_font_get_empty (void)
 
     const_cast<hb_font_funcs_t *> (&_hb_font_funcs_nil), /* klass */
     NULL, /* user_data */
-    NULL  /* destroy */
+    NULL, /* destroy */
+
+    {
+#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+    }
   };
 
   return const_cast<hb_font_t *> (&_hb_font_nil);

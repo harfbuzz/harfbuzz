@@ -97,8 +97,6 @@ struct hb_face_t {
   void                      *user_data;
   hb_destroy_func_t          destroy;
 
-  struct hb_ot_layout_t *ot_layout;
-
   unsigned int index;
   unsigned int upem;
 

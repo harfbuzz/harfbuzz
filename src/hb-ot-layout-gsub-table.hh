@@ -1241,7 +1241,7 @@ inline bool ExtensionSubst::is_reverse (void) const
 
 static inline void closure_lookup (hb_closure_context_t *c, unsigned int lookup_index)
 {
-  const GSUB &gsub = *(c->face->ot_layout->gsub);
+  const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   if (unlikely (c->nesting_level_left == 0))
@@ -1254,7 +1254,7 @@ static inline void closure_lookup (hb_closure_context_t *c, unsigned int lookup_
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index)
 {
-  const GSUB &gsub = *(c->face->ot_layout->gsub);
+  const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
 
   if (unlikely (c->nesting_level_left == 0))
