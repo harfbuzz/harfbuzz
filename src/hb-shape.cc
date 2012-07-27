@@ -27,7 +27,9 @@
 #include "hb-private.hh"
 
 #include "hb-shaper-private.hh"
+#include "hb-shape-plan-private.hh"
 #include "hb-buffer-private.hh"
+#include "hb-font-private.hh"
 
 
 
@@ -81,6 +83,8 @@ hb_shape_full (hb_font_t          *font,
 	       unsigned int        num_features,
 	       const char * const *shaper_list)
 {
+//  hb_shape_plan_t *shape_plan = hb_shape_plan_create (font->face, &buffer->props, features, num_features, shaper_list);
+
   const hb_shaper_pair_t *shapers = _hb_shapers_get ();
 
   hb_font_make_immutable (font); /* So we can safely cache stuff on it */

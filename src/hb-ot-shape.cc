@@ -78,7 +78,9 @@ _hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
 struct hb_ot_shaper_shape_plan_data_t {};
 
 hb_ot_shaper_shape_plan_data_t *
-_hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t *shape_plan)
+_hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
+				      const hb_feature_t *user_features,
+				      unsigned int        num_user_features)
 {
   return (hb_ot_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }

@@ -68,7 +68,7 @@ struct hb_shaper_data_t {
 #define HB_SHAPER_DATA_IS_INVALID(data) ((void *) (data) == HB_SHAPER_DATA_INVALID)
 
 #define HB_SHAPER_DATA_TYPE(shaper, object)		struct hb_##shaper##_shaper_##object##_data_t
-#define HB_SHAPER_DATA(shaper, object)			((HB_SHAPER_DATA_TYPE(shaper, object) *) (object)->shaper_data.shaper)
+#define HB_SHAPER_DATA(shaper, object)			(* (HB_SHAPER_DATA_TYPE(shaper, object) **) &(object)->shaper_data.shaper)
 #define HB_SHAPER_DATA_GET_FUNC(shaper, object)		_hb_##shaper##_shaper_get_##object##_data
 #define HB_SHAPER_DATA_CREATE_FUNC(shaper, object)	_hb_##shaper##_shaper_##object##_data_create
 #define HB_SHAPER_DATA_DESTROY_FUNC(shaper, object)	_hb_##shaper##_shaper_##object##_data_destroy
@@ -79,7 +79,7 @@ struct hb_shaper_data_t {
 	HB_SHAPER_DATA_GET_FUNC (shaper, object) (hb_##object##_t *object) \
 	{ return HB_SHAPER_DATA (shaper, object); } \
 	extern "C" HB_INTERNAL HB_SHAPER_DATA_TYPE (shaper, object) * \
-	HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (hb_##object##_t *object); \
+	HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (hb_##object##_t *object HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS); \
 	extern "C" HB_INTERNAL void \
 	HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (HB_SHAPER_DATA_TYPE (shaper, object) *data)
 

@@ -39,14 +39,21 @@ struct hb_shape_plan_t
   hb_object_header_t header;
   ASSERT_POD ();
 
+  hb_face_t *face;
+  hb_segment_properties_t props;
+
   hb_shape_func_t *shapers[HB_SHAPERS_COUNT];
 
   struct hb_shaper_data_t shaper_data;
 };
 
+#define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS \
+	, const hb_feature_t            *user_features \
+	, unsigned int                   num_user_features
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, shape_plan);
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
+#undef HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 
 
 #endif /* HB_SHAPE_PLAN_PRIVATE_HH */

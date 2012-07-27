@@ -105,9 +105,11 @@ struct hb_face_t {
   struct hb_shaper_data_t shaper_data;
 };
 
+#define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, face);
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
+#undef HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 
 
 /*
@@ -172,9 +174,11 @@ struct hb_font_t {
   inline hb_position_t em_scale (int16_t v, int scale) { return v * (int64_t) scale / hb_face_get_upem (this->face); }
 };
 
+#define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_PROTOTYPE(shaper, font);
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
+#undef HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
 
 
 #endif /* HB_FONT_PRIVATE_HH */
