@@ -39,6 +39,7 @@ struct hb_shape_plan_t
   hb_object_header_t header;
   ASSERT_POD ();
 
+  hb_bool_t default_shaper_list;
   hb_face_t *face;
   hb_segment_properties_t props;
 

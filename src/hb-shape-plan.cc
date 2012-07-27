@@ -100,6 +100,7 @@ hb_shape_plan_create (hb_face_t                     *face,
     return hb_shape_plan_get_empty ();
 
   hb_face_make_immutable (face);
+  shape_plan->default_shaper_list = shaper_list == NULL;
   shape_plan->face = hb_face_reference (face);
   shape_plan->props = *props;
 
@@ -114,6 +115,7 @@ hb_shape_plan_get_empty (void)
   static const hb_shape_plan_t _hb_shape_plan_nil = {
     HB_OBJECT_HEADER_STATIC,
 
+    TRUE, /* default_shaper_list */
     NULL, /* face */
     _HB_BUFFER_PROPS_DEFAULT, /* props */
 
