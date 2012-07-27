@@ -53,6 +53,8 @@ hb_shape_plan_create (hb_face_t                     *face,
 
   hb_face_make_immutable (face);
 
+  /* Plan! */
+
   return shape_plan;
 }
 

@@ -270,7 +270,8 @@ hb_uniscribe_font_get_hfont (hb_font_t *font)
 
 
 hb_bool_t
-_hb_uniscribe_shape (hb_font_t          *font,
+_hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
+		     hb_font_t          *font,
 		     hb_buffer_t        *buffer,
 		     const hb_feature_t *features,
 		     unsigned int        num_features)

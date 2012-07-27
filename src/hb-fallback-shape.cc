@@ -87,7 +87,8 @@ _hb_fallback_shaper_shape_plan_data_destroy (hb_fallback_shaper_shape_plan_data_
  */
 
 hb_bool_t
-_hb_fallback_shape (hb_font_t          *font,
+_hb_fallback_shape (hb_shape_plan_t    *shape_plan,
+		    hb_font_t          *font,
 		    hb_buffer_t        *buffer,
 		    const hb_feature_t *features HB_UNUSED,
 		    unsigned int        num_features HB_UNUSED)

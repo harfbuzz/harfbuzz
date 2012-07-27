@@ -47,6 +47,7 @@ HBSOURCES =  \
 	hb-shaper-list.hh \
 	hb-shaper-impl-private.hh \
 	hb-shaper-private.hh \
+	hb-shaper.cc \
 	hb-tt-font.cc \
 	hb-unicode-private.hh \
 	hb-unicode.cc \

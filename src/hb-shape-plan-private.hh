@@ -39,7 +39,7 @@ struct hb_shape_plan_t
   hb_object_header_t header;
   ASSERT_POD ();
 
-  hb_shape_func_t *shapers[HB_NUM_SHAPERS];
+  hb_shape_func_t *shapers[HB_SHAPERS_COUNT];
 
   struct hb_shaper_data_t shaper_data;
 };

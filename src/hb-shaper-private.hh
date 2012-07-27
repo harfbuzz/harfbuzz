@@ -29,7 +29,10 @@
 
 #include "hb-private.hh"
 
-typedef hb_bool_t hb_shape_func_t (hb_font_t          *font,
+#include "hb-shape-plan.h" /* TODO remove */
+
+typedef hb_bool_t hb_shape_func_t (hb_shape_plan_t    *shape_plan,
+				   hb_font_t          *font,
 				   hb_buffer_t        *buffer,
 				   const hb_feature_t *features,
 				   unsigned int        num_features);
@@ -39,6 +42,15 @@ typedef hb_bool_t hb_shape_func_t (hb_font_t          *font,
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
 
+struct hb_shaper_pair_t {
+  char name[16];
+  hb_shape_func_t *func;
+};
+
+HB_INTERNAL const hb_shaper_pair_t *
+_hb_shapers_get (void);
+
+
 /* For embedding in face / font / ... */
 struct hb_shaper_data_t {
 #define HB_SHAPER_IMPLEMENT(shaper) void *shaper;
@@ -46,7 +58,7 @@ struct hb_shaper_data_t {
 #undef HB_SHAPER_IMPLEMENT
 };
 
-#define HB_NUM_SHAPERS (sizeof (hb_shaper_data_t) / sizeof (void *))
+#define HB_SHAPERS_COUNT (sizeof (hb_shaper_data_t) / sizeof (void *))
 
 /* Means: succeeded, but don't need to keep any data. */
 #define HB_SHAPER_DATA_SUCCEEDED ((void *) +1)
