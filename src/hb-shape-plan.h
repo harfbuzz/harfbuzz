@@ -57,4 +57,12 @@ HB_INTERNAL void
 hb_shape_plan_destroy (hb_shape_plan_t *shape_plan);
 
 
+HB_INTERNAL hb_bool_t
+hb_shape_plan_execute (hb_shape_plan      *shape_plan,
+		       hb_font_t          *font,
+		       hb_buffer_t        *buffer,
+		       const hb_feature_t *features,
+		       unsigned int        num_features);
+
+
 #endif /* HB_SHAPE_PLAN_H */

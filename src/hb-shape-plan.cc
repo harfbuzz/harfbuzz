@@ -48,7 +48,9 @@ hb_##shaper##_##object##_data_ensure (hb_##object##_t *object) \
   return data != NULL && !HB_SHAPER_DATA_IS_INVALID (data); \
 }
 
-#define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_ENSURE_DECLARE(shaper, face)
+#define HB_SHAPER_IMPLEMENT(shaper) \
+	HB_SHAPER_DATA_ENSURE_DECLARE(shaper, face) \
+	HB_SHAPER_DATA_ENSURE_DECLARE(shaper, font)
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
 
@@ -65,7 +67,6 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 #define HB_SHAPER_PLAN(shaper) \
 	HB_STMT_START { \
 	  if (hb_##shaper##_face_data_ensure (shape_plan->face)) { \
-	    /* TODO Ensure face shaper data. */ \
 	    HB_SHAPER_DATA_TYPE (shaper, shape_plan) *data= \
 	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, user_features, num_user_features); \
 	    if (data) { \
@@ -156,4 +157,36 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
 #undef HB_SHAPER_IMPLEMENT
 
   free (shape_plan);
+}
+
+
+hb_bool_t
+hb_shape_plan_execute (hb_shape_plan      *shape_plan,
+		       hb_font_t          *font,
+		       hb_buffer_t        *buffer,
+		       const hb_feature_t *features,
+		       unsigned int        num_features)
+{
+  if (unlikely (shape_plan->face != font->face))
+    return false;
+
+#define HB_SHAPER_EXECUTE(shaper) \
+	HB_STMT_START { \
+	  if (hb_##shaper##_font_data_ensure (font) && \
+	      _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features)) \
+	    return true; \
+	} HB_STMT_END
+
+  for (hb_shape_func_t **shaper_func = shape_plan->shapers; *shaper_func; shaper_func++)
+    if (0)
+      ;
+#define HB_SHAPER_IMPLEMENT(shaper) \
+    else if (*shaper_func == _hb_##shaper##_shape) \
+      HB_SHAPER_EXECUTE (shaper);
+#include "hb-shaper-list.hh"
+#undef HB_SHAPER_IMPLEMENT
+
+#undef HB_SHAPER_EXECUTE
+
+  return false;
 }

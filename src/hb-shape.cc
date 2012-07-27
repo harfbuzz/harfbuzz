@@ -32,7 +32,6 @@
 #include "hb-font-private.hh"
 
 
-
 static const char **static_shaper_list;
 
 static
@@ -83,28 +82,10 @@ hb_shape_full (hb_font_t          *font,
 	       unsigned int        num_features,
 	       const char * const *shaper_list)
 {
-//  hb_shape_plan_t *shape_plan = hb_shape_plan_create (font->face, &buffer->props, features, num_features, shaper_list);
-
-  const hb_shaper_pair_t *shapers = _hb_shapers_get ();
-
-  hb_font_make_immutable (font); /* So we can safely cache stuff on it */
-
-  if (likely (!shaper_list)) {
-    for (unsigned int i = 0; i < HB_SHAPERS_COUNT; i++)
-      if (likely (shapers[i].func (NULL, font, buffer, features, num_features)))
-        return true;
-  } else {
-    while (*shaper_list) {
-      for (unsigned int i = 0; i < HB_SHAPERS_COUNT; i++)
-	if (0 == strcmp (*shaper_list, shapers[i].name)) {
-	  if (likely (shapers[i].func (NULL, font, buffer, features, num_features)))
-	    return true;
-	  break;
-	}
-      shaper_list++;
-    }
-  }
-  return false;
+  hb_shape_plan_t *shape_plan = hb_shape_plan_create (font->face, &buffer->props, features, num_features, shaper_list);
+  hb_bool_t res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
+  hb_shape_plan_destroy (shape_plan);
+  return res;
 }
 
 void
