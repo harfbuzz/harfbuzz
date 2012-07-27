@@ -30,24 +30,6 @@
 #include "hb-shaper-private.hh"
 #include "hb-font-private.hh"
 
-#define HB_SHAPER_DATA_ENSURE_DECLARE(shaper, object) \
-static inline bool \
-hb_##shaper##_##object##_data_ensure (hb_##object##_t *object) \
-{\
-  retry: \
-  HB_SHAPER_DATA_TYPE (shaper, object) *data = (HB_SHAPER_DATA_TYPE (shaper, object) *) hb_atomic_ptr_get (&HB_SHAPER_DATA (shaper, object)); \
-  if (unlikely (!data)) { \
-    data = HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (object); \
-    if (unlikely (!data)) \
-      data = (HB_SHAPER_DATA_TYPE (shaper, object) *) HB_SHAPER_DATA_INVALID; \
-    if (!hb_atomic_ptr_cmpexch (&HB_SHAPER_DATA (shaper, object), NULL, data)) { \
-      HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (data); \
-      goto retry; \
-    } \
-  } \
-  return data != NULL && !HB_SHAPER_DATA_IS_INVALID (data); \
-}
-
 #define HB_SHAPER_IMPLEMENT(shaper) \
 	HB_SHAPER_DATA_ENSURE_DECLARE(shaper, face) \
 	HB_SHAPER_DATA_ENSURE_DECLARE(shaper, font)
@@ -65,7 +47,7 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 
 #define HB_SHAPER_PLAN(shaper) \
 	HB_STMT_START { \
-	  if (hb_##shaper##_face_data_ensure (shape_plan->face)) { \
+	  if (hb_##shaper##_shaper_face_data_ensure (shape_plan->face)) { \
 	    HB_SHAPER_DATA_TYPE (shaper, shape_plan) *data= \
 	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, user_features, num_user_features); \
 	    if (data) { \
@@ -181,7 +163,7 @@ hb_shape_plan_execute (hb_shape_plan      *shape_plan,
 
 #define HB_SHAPER_EXECUTE(shaper) \
 	HB_STMT_START { \
-	  if (hb_##shaper##_font_data_ensure (font) && \
+	  if (hb_##shaper##_shaper_font_data_ensure (font) && \
 	      _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features)) \
 	    return true; \
 	  else \

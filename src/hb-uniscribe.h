@@ -34,6 +34,10 @@
 
 HB_BEGIN_DECLS
 
+/* Must call before all other funtions in this file.  Idempotent. */
+hb_bool_t
+hb_uniscribe_font_ensure (hb_font_t *font);
+
 
 LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font);

@@ -86,5 +86,23 @@ struct hb_shaper_data_t {
 	    object->shaper_data.shaper != HB_SHAPER_DATA_SUCCEEDED) \
 	  HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (HB_SHAPER_DATA (shaper, object));
 
+#define HB_SHAPER_DATA_ENSURE_DECLARE(shaper, object) \
+static inline bool \
+hb_##shaper##_shaper_##object##_data_ensure (hb_##object##_t *object) \
+{\
+  retry: \
+  HB_SHAPER_DATA_TYPE (shaper, object) *data = (HB_SHAPER_DATA_TYPE (shaper, object) *) hb_atomic_ptr_get (&HB_SHAPER_DATA (shaper, object)); \
+  if (unlikely (!data)) { \
+    data = HB_SHAPER_DATA_CREATE_FUNC (shaper, object) (object); \
+    if (unlikely (!data)) \
+      data = (HB_SHAPER_DATA_TYPE (shaper, object) *) HB_SHAPER_DATA_INVALID; \
+    if (!hb_atomic_ptr_cmpexch (&HB_SHAPER_DATA (shaper, object), NULL, data)) { \
+      HB_SHAPER_DATA_DESTROY_FUNC (shaper, object) (data); \
+      goto retry; \
+    } \
+  } \
+  return data != NULL && !HB_SHAPER_DATA_IS_INVALID (data); \
+}
+
 
 #endif /* HB_SHAPER_PRIVATE_HH */

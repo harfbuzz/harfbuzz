@@ -38,6 +38,13 @@
 #include <string.h>
 
 
+HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
+hb_bool_t
+hb_ot_layout_ensure (hb_face_t *face)
+{
+  return hb_ot_shaper_face_data_ensure (face);
+}
+
 
 hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face)

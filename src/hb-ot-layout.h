@@ -42,6 +42,12 @@ HB_BEGIN_DECLS
 #define HB_OT_TAG_GSUB HB_TAG('G','S','U','B')
 #define HB_OT_TAG_GPOS HB_TAG('G','P','O','S')
 
+
+/* Must call before all other funtions in this file.  Idempotent. */
+hb_bool_t
+hb_ot_layout_ensure (hb_face_t *face);
+
+
 /*
  * GDEF
  */

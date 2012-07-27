@@ -56,6 +56,17 @@ DWORD GetFontData(
 */
 
 
+HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, face)
+HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, font)
+hb_bool_t
+hb_uniscribe_font_ensure (hb_font_t *font)
+{
+  hb_face_t *face = font->face;
+  return hb_uniscribe_shaper_face_data_ensure (face) &&
+         hb_uniscribe_shaper_font_data_ensure (font);
+}
+
+
 /*
  * shaper face data
  */
