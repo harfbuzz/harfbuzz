@@ -62,7 +62,6 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 		    const char * const *shaper_list)
 {
   const hb_shaper_pair_t *shapers = _hb_shapers_get ();
-  unsigned num_shapers = 0;
 
 #define HB_SHAPER_PLAN(shaper) \
 	HB_STMT_START { \
@@ -71,10 +70,9 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 	      HB_SHAPER_DATA_CREATE_FUNC (shaper, shape_plan) (shape_plan, user_features, num_user_features); \
 	    if (data) { \
 	      HB_SHAPER_DATA (shaper, shape_plan) = data; \
-	      shape_plan->shapers[num_shapers++] = _hb_##shaper##_shape; \
-	    } \
-	    if (false /* shaper never fails */) \
+	      shape_plan->shaper_func = _hb_##shaper##_shape; \
 	      return; \
+	    } \
 	  } \
 	} HB_STMT_END
 
@@ -140,7 +138,7 @@ hb_shape_plan_get_empty (void)
     NULL, /* face */
     _HB_BUFFER_PROPS_DEFAULT, /* props */
 
-    {NULL}, /* shapers */
+    NULL, /* shaper_func */
 
     {
 #define HB_SHAPER_IMPLEMENT(shaper) HB_SHAPER_DATA_INVALID,
@@ -186,14 +184,15 @@ hb_shape_plan_execute (hb_shape_plan      *shape_plan,
 	  if (hb_##shaper##_font_data_ensure (font) && \
 	      _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features)) \
 	    return true; \
+	  else \
+	    return false; \
 	} HB_STMT_END
 
-  for (hb_shape_func_t **shaper_func = shape_plan->shapers; *shaper_func; shaper_func++)
-    if (0)
-      ;
+  if (0)
+    ;
 #define HB_SHAPER_IMPLEMENT(shaper) \
-    else if (*shaper_func == _hb_##shaper##_shape) \
-      HB_SHAPER_EXECUTE (shaper);
+  else if (shape_plan->shaper_func == _hb_##shaper##_shape) \
+    HB_SHAPER_EXECUTE (shaper);
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
 

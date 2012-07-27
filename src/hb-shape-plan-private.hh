@@ -42,7 +42,7 @@ struct hb_shape_plan_t
   hb_face_t *face;
   hb_segment_properties_t props;
 
-  hb_shape_func_t *shapers[HB_SHAPERS_COUNT];
+  hb_shape_func_t *shaper_func;
 
   struct hb_shaper_data_t shaper_data;
 };
