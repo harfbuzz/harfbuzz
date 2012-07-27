@@ -28,6 +28,7 @@
 
 #define HB_SHAPER ot
 #define hb_ot_shaper_face_data_t hb_ot_layout_t
+#define hb_ot_shaper_shape_plan_data_t hb_ot_shape_plan_t
 #include "hb-shaper-impl-private.hh"
 
 #include "hb-ot-shape-private.hh"
@@ -36,65 +37,6 @@
 #include "hb-ot-layout-private.hh"
 #include "hb-set-private.hh"
 
-
-/*
- * shaper face data
- */
-
-hb_ot_shaper_face_data_t *
-_hb_ot_shaper_face_data_create (hb_face_t *face)
-{
-  return _hb_ot_layout_create (face);
-}
-
-void
-_hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
-{
-  _hb_ot_layout_destroy (data);
-}
-
-
-/*
- * shaper font data
- */
-
-struct hb_ot_shaper_font_data_t {};
-
-hb_ot_shaper_font_data_t *
-_hb_ot_shaper_font_data_create (hb_font_t *font)
-{
-  return (hb_ot_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
-}
-
-void
-_hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
-{
-}
-
-
-/*
- * shaper shape_plan data
- */
-
-struct hb_ot_shaper_shape_plan_data_t {};
-
-hb_ot_shaper_shape_plan_data_t *
-_hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
-				      const hb_feature_t *user_features,
-				      unsigned int        num_user_features)
-{
-  return (hb_ot_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
-}
-
-void
-_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *data)
-{
-}
-
-
-/*
- * shaper
- */
 
 hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),
@@ -138,7 +80,7 @@ struct hb_ot_shape_planner_t
 
   inline void compile (hb_face_t *face,
 		       const hb_segment_properties_t *props,
-		       struct hb_ot_shape_plan_t &plan)
+		       hb_ot_shape_plan_t &plan)
   {
     plan.shaper = shaper;
     map.compile (face, props, plan.map);
@@ -196,9 +138,81 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 }
 
 
+/*
+ * shaper face data
+ */
+
+hb_ot_shaper_face_data_t *
+_hb_ot_shaper_face_data_create (hb_face_t *face)
+{
+  return _hb_ot_layout_create (face);
+}
+
+void
+_hb_ot_shaper_face_data_destroy (hb_ot_shaper_face_data_t *data)
+{
+  _hb_ot_layout_destroy (data);
+}
+
+
+/*
+ * shaper font data
+ */
+
+struct hb_ot_shaper_font_data_t {};
+
+hb_ot_shaper_font_data_t *
+_hb_ot_shaper_font_data_create (hb_font_t *font)
+{
+  return (hb_ot_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
+{
+}
+
+
+/*
+ * shaper shape_plan data
+ */
+
+hb_ot_shaper_shape_plan_data_t *
+_hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
+				      const hb_feature_t *user_features,
+				      unsigned int        num_user_features)
+{
+  hb_ot_shape_plan_t *data = (hb_ot_shape_plan_t *) calloc (1, sizeof (hb_ot_shape_plan_t));
+  if (unlikely (!data))
+    return NULL;
+
+  hb_ot_shape_planner_t planner;
+
+  assert (HB_DIRECTION_IS_VALID (shape_plan->props.direction));
+
+  planner.shaper = hb_ot_shape_complex_categorize (&shape_plan->props);
+
+  hb_ot_shape_collect_features (&planner, &shape_plan->props, user_features, num_user_features);
+
+  planner.compile (shape_plan->face, &shape_plan->props, *data);
+
+  return data;
+}
+
+void
+_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *data)
+{
+  data->map.finish ();
+}
+
+
+/*
+ * shaper
+ */
+
 struct hb_ot_shape_context_t
 {
-  /* Input to hb_ot_shape_execute() */
+  /* Input to hb_ot_shape_internal() */
   hb_ot_shape_plan_t *plan;
   hb_font_t *font;
   hb_face_t *face;
@@ -458,7 +472,7 @@ hb_hide_zerowidth (hb_ot_shape_context_t *c)
 /* Do it! */
 
 static void
-hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
+hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
   c->buffer->deallocate_var_all ();
 
@@ -514,34 +528,6 @@ hb_ot_shape_execute_internal (hb_ot_shape_context_t *c)
   c->buffer->deallocate_var_all ();
 }
 
-static void
-hb_ot_shape_plan_internal (hb_ot_shape_plan_t       *plan,
-			   hb_face_t                *face,
-			   const hb_segment_properties_t  *props,
-			   const hb_feature_t       *user_features,
-			   unsigned int              num_user_features)
-{
-  hb_ot_shape_planner_t planner;
-
-  assert (HB_DIRECTION_IS_VALID (props->direction));
-
-  planner.shaper = hb_ot_shape_complex_categorize (props);
-
-  hb_ot_shape_collect_features (&planner, props, user_features, num_user_features);
-
-  planner.compile (face, props, *plan);
-}
-
-static void
-hb_ot_shape_execute (hb_ot_shape_plan_t *plan,
-		     hb_font_t          *font,
-		     hb_buffer_t        *buffer,
-		     const hb_feature_t *user_features,
-		     unsigned int        num_user_features)
-{
-  hb_ot_shape_context_t c = {plan, font, font->face, buffer, user_features, num_user_features};
-  hb_ot_shape_execute_internal (&c);
-}
 
 hb_bool_t
 _hb_ot_shape (hb_shape_plan_t    *shape_plan,
@@ -550,12 +536,8 @@ _hb_ot_shape (hb_shape_plan_t    *shape_plan,
 	      const hb_feature_t *features,
 	      unsigned int        num_features)
 {
-  hb_ot_shape_plan_t plan;
-
-  buffer->guess_properties ();
-
-  hb_ot_shape_plan_internal (&plan, font->face, &buffer->props, features, num_features);
-  hb_ot_shape_execute (&plan, font, buffer, features, num_features);
+  hb_ot_shape_context_t c = {HB_SHAPER_DATA_GET (shape_plan), font, font->face, buffer, features, num_features};
+  hb_ot_shape_internal (&c);
 
   return true;
 }
@@ -572,7 +554,8 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 
   buffer->guess_properties ();
 
-  hb_ot_shape_plan_internal (&plan, font->face, &buffer->props, features, num_features);
+  /* TODO cache / ensure correct backend, etc. */
+  hb_shape_plan_t *shape_plan = hb_shape_plan_create (font->face, &buffer->props, features, num_features, NULL);
 
   /* TODO: normalization? have shapers do closure()? */
   /* TODO: Deal with mirrored chars? */
@@ -590,6 +573,8 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 
   do {
     copy.set (glyphs);
-    plan.map.substitute_closure (font->face, glyphs);
+    HB_SHAPER_DATA_GET (shape_plan)->map.substitute_closure (font->face, glyphs);
   } while (!copy.equal (glyphs));
+
+  hb_shape_plan_destroy (shape_plan);
 }

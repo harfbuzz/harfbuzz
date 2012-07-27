@@ -144,7 +144,7 @@ populate_log_font (LOGFONTW  *lf,
 hb_uniscribe_shaper_font_data_t *
 _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
 {
-  hb_uniscribe_shaper_font_data_t * data = (hb_uniscribe_shaper_font_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_font_data_t));
+  hb_uniscribe_shaper_font_data_t *data = (hb_uniscribe_shaper_font_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_font_data_t));
   if (unlikely (!data))
     return NULL;
 
