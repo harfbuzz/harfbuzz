@@ -36,8 +36,7 @@
 
 
 #ifdef HB_SHAPER
-/* For use in things like font->shaper_data() in the shaper implementations. */
-#define shaper_data() shaper_data.HB_SHAPER
+#define HB_SHAPER_DATA_GET(object) HB_SHAPER_DATA (HB_SHAPER, object)
 #endif
 
 

@@ -55,38 +55,6 @@ DWORD GetFontData(
 );
 */
 
-static bool
-populate_log_font (LOGFONTW  *lf,
-		   hb_font_t *font)
-{
-  memset (lf, 0, sizeof (*lf));
-  lf->lfHeight = -font->y_scale;
-  lf->lfCharSet = DEFAULT_CHARSET;
-
-  hb_blob_t *blob = Sanitizer<name>::sanitize (hb_face_reference_table (font->face, HB_TAG ('n','a','m','e')));
-  const name *name_table = Sanitizer<name>::lock_instance (blob);
-  unsigned int len = name_table->get_name (3, 1, 0x409, 4,
-					   lf->lfFaceName,
-					   sizeof (lf->lfFaceName[0]) * LF_FACESIZE)
-					  / sizeof (lf->lfFaceName[0]);
-  hb_blob_destroy (blob);
-
-  if (unlikely (!len)) {
-    DEBUG_MSG (UNISCRIBE, NULL, "Didn't find English name table entry");
-    return false;
-  }
-  if (unlikely (len >= LF_FACESIZE)) {
-    DEBUG_MSG (UNISCRIBE, NULL, "Font name too long");
-    return false;
-  }
-
-  for (unsigned int i = 0; i < len; i++)
-    lf->lfFaceName[i] = hb_be_uint16 (lf->lfFaceName[i]);
-  lf->lfFaceName[len] = 0;
-
-  return true;
-}
-
 
 /*
  * shaper face data
@@ -140,6 +108,38 @@ struct hb_uniscribe_shaper_font_data_t {
   HFONT hfont;
   SCRIPT_CACHE script_cache;
 };
+
+static bool
+populate_log_font (LOGFONTW  *lf,
+		   hb_font_t *font)
+{
+  memset (lf, 0, sizeof (*lf));
+  lf->lfHeight = -font->y_scale;
+  lf->lfCharSet = DEFAULT_CHARSET;
+
+  hb_blob_t *blob = Sanitizer<name>::sanitize (hb_face_reference_table (font->face, HB_TAG ('n','a','m','e')));
+  const name *name_table = Sanitizer<name>::lock_instance (blob);
+  unsigned int len = name_table->get_name (3, 1, 0x409, 4,
+					   lf->lfFaceName,
+					   sizeof (lf->lfFaceName[0]) * LF_FACESIZE)
+					  / sizeof (lf->lfFaceName[0]);
+  hb_blob_destroy (blob);
+
+  if (unlikely (!len)) {
+    DEBUG_MSG (UNISCRIBE, NULL, "Didn't find English name table entry");
+    return false;
+  }
+  if (unlikely (len >= LF_FACESIZE)) {
+    DEBUG_MSG (UNISCRIBE, NULL, "Font name too long");
+    return false;
+  }
+
+  for (unsigned int i = 0; i < len; i++)
+    lf->lfFaceName[i] = hb_be_uint16 (lf->lfFaceName[i]);
+  lf->lfFaceName[len] = 0;
+
+  return true;
+}
 
 hb_uniscribe_shaper_font_data_t *
 _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
@@ -208,65 +208,18 @@ _hb_uniscribe_shaper_shape_plan_data_destroy (hb_uniscribe_shaper_shape_plan_dat
 /*
  * shaper
  */
-static hb_user_data_key_t hb_uniscribe_data_key;
-
-static hb_uniscribe_shaper_face_data_t *
-_hb_uniscribe_face_get_data (hb_face_t *face)
-{
-  hb_uniscribe_shaper_face_data_t *data = (hb_uniscribe_shaper_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
-  if (likely (data)) return data;
-
-  data = _hb_uniscribe_shaper_face_data_create (face);
-  if (!data) return NULL;
-
-  if (unlikely (!hb_face_set_user_data (face, &hb_uniscribe_data_key, data,
-					(hb_destroy_func_t) _hb_uniscribe_shaper_face_data_destroy,
-					false)))
-  {
-    _hb_uniscribe_shaper_face_data_destroy (data);
-    data = (hb_uniscribe_shaper_face_data_t *) hb_face_get_user_data (face, &hb_uniscribe_data_key);
-  }
-
-  return data;
-}
-
-
-static hb_uniscribe_shaper_font_data_t *
-_hb_uniscribe_font_get_data (hb_font_t *font)
-{
-  hb_uniscribe_shaper_font_data_t *data = (hb_uniscribe_shaper_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
-  if (likely (data)) return data;
-
-  data = _hb_uniscribe_shaper_font_data_create (font);
-  if (unlikely (!data))
-    return NULL;
-
-  if (unlikely (!hb_font_set_user_data (font, &hb_uniscribe_data_key, data,
-					(hb_destroy_func_t) _hb_uniscribe_shaper_font_data_destroy,
-					false)))
-  {
-    _hb_uniscribe_shaper_font_data_destroy (data);
-    data = (hb_uniscribe_shaper_font_data_t *) hb_font_get_user_data (font, &hb_uniscribe_data_key);
-  }
-
-  return data;
-}
 
 LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font)
 {
-  hb_uniscribe_shaper_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
-  if (unlikely (!font_data))
-    return NULL;
+  hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return &font_data->log_font;
 }
 
 HFONT
 hb_uniscribe_font_get_hfont (hb_font_t *font)
 {
-  hb_uniscribe_shaper_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
-  if (unlikely (!font_data))
-    return 0;
+  hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return font_data->hfont;
 }
 
@@ -278,24 +231,15 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
 		     const hb_feature_t *features,
 		     unsigned int        num_features)
 {
-  buffer->guess_properties ();
+  hb_face_t *face = font->face;
+  hb_uniscribe_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
+  hb_uniscribe_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
 
 #define FAIL(...) \
   HB_STMT_START { \
     DEBUG_MSG (UNISCRIBE, NULL, __VA_ARGS__); \
     return false; \
   } HB_STMT_END;
-
-  hb_uniscribe_shaper_face_data_t *face_data = _hb_uniscribe_face_get_data (font->face);
-  if (unlikely (!face_data->fh))
-    FAIL ("Couldn't get face data");
-
-  hb_uniscribe_shaper_font_data_t *font_data = _hb_uniscribe_font_get_data (font);
-  if (unlikely (!font_data->hfont))
-    FAIL ("Couldn't get font font");
-
-  if (unlikely (!buffer->len))
-    return true;
 
   HRESULT hr;
 

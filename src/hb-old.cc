@@ -248,61 +248,6 @@ _hb_old_shaper_shape_plan_data_destroy (hb_old_shaper_shape_plan_data_t *data)
  * shaper
  */
 
-
-static hb_user_data_key_t hb_old_data_key;
-
-static HB_Face
-_hb_old_face_get (hb_face_t *face)
-{
-  HB_Face data = (HB_Face) hb_face_get_user_data (face, &hb_old_data_key);
-  if (likely (data)) return data;
-
-  data = _hb_old_shaper_face_data_create (face);
-
-  if (unlikely (!data)) {
-    DEBUG_MSG (OLD, face, "HB_NewFace failed");
-    return NULL;
-  }
-
-  if (unlikely (!hb_face_set_user_data (face, &hb_old_data_key, data,
-                                        (hb_destroy_func_t) _hb_old_shaper_face_data_destroy,
-                                        false)))
-  {
-    _hb_old_shaper_face_data_destroy (data);
-    data = (HB_Face) hb_face_get_user_data (face, &hb_old_data_key);
-    if (data)
-      return data;
-    else
-      return NULL;
-  }
-
-  return data;
-}
-
-
-static HB_Font
-_hb_old_font_get (hb_font_t *font)
-{
-  /* Ouch, check user_data! */
-  HB_Font data = _hb_old_shaper_font_data_create (font);
-  if (!data)
-    return NULL;
-
-  if (unlikely (!hb_font_set_user_data (font, &hb_old_data_key, data,
-                                        (hb_destroy_func_t) _hb_old_shaper_font_data_destroy,
-                                        false)))
-  {
-    _hb_old_shaper_font_data_destroy (data);
-    data = (HB_Font) hb_font_get_user_data (font, &hb_old_data_key);
-    if (data)
-      return data;
-    else
-      return NULL;
-  }
-
-  return data;
-}
-
 hb_bool_t
 _hb_old_shape (hb_shape_plan_t    *shape_plan,
 	       hb_font_t          *font,
@@ -310,26 +255,11 @@ _hb_old_shape (hb_shape_plan_t    *shape_plan,
 	       const hb_feature_t *features,
 	       unsigned int        num_features)
 {
-  if (unlikely (!buffer->len))
-    return true;
-
-  buffer->guess_properties ();
+  hb_face_t *face = font->face;
+  HB_Face old_face = HB_SHAPER_DATA_GET (face);
+  HB_Font old_font = HB_SHAPER_DATA_GET (font);
 
   bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
-
-#define FAIL(...) \
-  HB_STMT_START { \
-    DEBUG_MSG (OLD, NULL, __VA_ARGS__); \
-    return false; \
-  } HB_STMT_END;
-
-  HB_Face old_face = _hb_old_face_get (font->face);
-  if (unlikely (!old_face))
-    FAIL ("Couldn't get old face");
-
-  HB_Font old_font = _hb_old_font_get (font);
-  if (unlikely (!old_font))
-    FAIL ("Couldn't get old font");
 
 retry:
 
@@ -398,7 +328,7 @@ retry:
     {
       buffer->ensure (buffer->allocated * 2);
       if (buffer->in_error)
-	FAIL ("Buffer resize failed");
+        return false;
       goto retry;
     }
     return false;
@@ -429,7 +359,7 @@ retry:
 
   buffer->ensure (num_glyphs);
   if (buffer->in_error)
-    FAIL ("Buffer in error");
+    return false;
 
 
   buffer->len = num_glyphs;
