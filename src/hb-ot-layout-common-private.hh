@@ -34,7 +34,7 @@
 #include "hb-set-private.hh"
 
 
-#define NOT_COVERED		((unsigned int) 0x110000)
+#define NOT_COVERED		((unsigned int) -1)
 #define MAX_NESTING_LEVEL	8
 
 
@@ -348,9 +348,8 @@ struct CoverageFormat1
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     int i = glyphArray.search (glyph_id);
-    if (i != -1)
-        return i;
-    return NOT_COVERED;
+    ASSERT_STATIC (((unsigned int) -1) == NOT_COVERED);
+    return i;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {

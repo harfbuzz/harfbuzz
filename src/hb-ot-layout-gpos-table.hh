@@ -1533,7 +1533,7 @@ struct PosLookup : Lookup
       while (c->buffer->idx < c->buffer->len)
       {
 	if ((c->buffer->cur().mask & c->lookup_mask) &&
-	    (*coverage) (c->buffer->cur().codepoint) != NOT_COVERED &&
+	    coverage->get_coverage (c->buffer->cur().codepoint) != NOT_COVERED &&
 	    apply_once (c))
 	  ret = true;
 	else
