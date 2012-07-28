@@ -1106,22 +1106,6 @@ struct SubstLookup : Lookup
     if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 
-    /* TODO: For the most common case this can move out of the main
-     * loop, but it's not a big deal for now. */
-    if (unlikely (lookup_type == SubstLookupSubTable::Extension))
-    {
-      /* The spec says all subtables should have the same type.
-       * This is specially important if one has a reverse type!
-       *
-       * This is rather slow to do this here for every glyph,
-       * but it's easiest, and who uses extension lookups anyway?!*/
-      unsigned int type = get_subtable(0).u.extension.get_type ();
-      unsigned int count = get_subtable_count ();
-      for (unsigned int i = 1; i < count; i++)
-        if (get_subtable(i).u.extension.get_type () != type)
-	  return false;
-    }
-
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
       if (get_subtable (i).apply (c, lookup_type))
@@ -1191,7 +1175,22 @@ struct SubstLookup : Lookup
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
     OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
-    return TRACE_RETURN (list.sanitize (c, this, get_type ()));
+    if (unlikely (!list.sanitize (c, this, get_type ()))) return TRACE_RETURN (false);
+
+    if (unlikely (get_type () == SubstLookupSubTable::Extension))
+    {
+      /* The spec says all subtables of an Extension lookup should
+       * have the same type.  This is specially important if one has
+       * a reverse type!
+       *
+       * We just check that they are all either forward, or reverse. */
+      unsigned int type = get_subtable (0).u.extension.get_type ();
+      unsigned int count = get_subtable_count ();
+      for (unsigned int i = 1; i < count; i++)
+        if (get_subtable (i).u.extension.get_type () != type)
+	  return TRACE_RETURN (false);
+    }
+    return TRACE_RETURN (true);
   }
 };
 
