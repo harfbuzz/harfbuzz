@@ -50,6 +50,11 @@ struct SingleSubstFormat1
     }
   }
 
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
@@ -102,6 +107,11 @@ struct SingleSubstFormat2
     }
   }
 
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
@@ -152,6 +162,15 @@ struct SingleSubst
     case 1: u.format1.closure (c); break;
     case 2: u.format2.closure (c); break;
     default:                       break;
+    }
+  }
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    case 2: return u.format2.get_coverage ();
+    default:return Null(Coverage);
     }
   }
 
@@ -252,6 +271,11 @@ struct MultipleSubstFormat1
     }
   }
 
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
@@ -296,6 +320,14 @@ struct MultipleSubst
     switch (u.format) {
     case 1: u.format1.closure (c); break;
     default:                       break;
+    }
+  }
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
     }
   }
 
@@ -354,6 +386,11 @@ struct AlternateSubstFormat1
 	  c->glyphs->add (alt_set[i]);
       }
     }
+  }
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -418,6 +455,14 @@ struct AlternateSubst
     switch (u.format) {
     case 1: u.format1.closure (c); break;
     default:                       break;
+    }
+  }
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
     }
   }
 
@@ -623,6 +668,11 @@ struct LigatureSubstFormat1
     }
   }
 
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     unsigned int index;
@@ -671,6 +721,14 @@ struct LigatureSubst
     switch (u.format) {
     case 1: u.format1.closure (c); break;
     default:                       break;
+    }
+  }
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
     }
   }
 
@@ -764,6 +822,9 @@ struct ExtensionSubst : Extension
   }
 
   inline void closure (hb_closure_context_t *c) const;
+
+  inline const Coverage &get_coverage (void) const;
+
   inline bool would_apply (hb_would_apply_context_t *c) const;
 
   inline bool apply (hb_apply_context_t *c) const;
@@ -803,6 +864,16 @@ struct ReverseChainSingleSubstFormat1
       if (c->glyphs->has (iter.get_glyph ()))
 	c->glyphs->add (substitute[iter.get_coverage ()]);
     }
+  }
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -879,6 +950,22 @@ struct ReverseChainSingleSubst
     }
   }
 
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
+    }
+  }
+
+  inline bool would_apply (hb_would_apply_context_t *c) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.would_apply (c);
+    default:return false;
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -942,25 +1029,25 @@ struct SubstLookupSubTable
     }
   }
 
-  inline bool can_use_fast_path (unsigned int lookup_type) const
+  inline const Coverage &get_coverage (unsigned int lookup_type) const
   {
-    /* Fast path, for those that have coverage in the same place.
-     * Note that ReverseChainSingle can also go through this but
-     * it's not worth the effort. */
-    return likely (lookup_type && lookup_type < Context) ||
-	   (hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
-	    hb_in_range<unsigned int> (u.header.sub_format, 1, 2));
+    switch (lookup_type) {
+    case Single:		return u.single.get_coverage ();
+    case Multiple:		return u.multiple.get_coverage ();
+    case Alternate:		return u.alternate.get_coverage ();
+    case Ligature:		return u.ligature.get_coverage ();
+    case Context:		return u.context.get_coverage ();
+    case ChainContext:		return u.chainContext.get_coverage ();
+    case Extension:		return u.extension.get_coverage ();
+    case ReverseChainSingle:	return u.reverseChainContextSingle.get_coverage ();
+    default:			return Null(Coverage);
+    }
   }
 
   inline bool would_apply (hb_would_apply_context_t *c,
 			   unsigned int lookup_type) const
   {
     TRACE_WOULD_APPLY ();
-    if (can_use_fast_path (lookup_type))
-    {
-      unsigned int index = (this+u.header.coverage) (c->first);
-      if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
-    }
     switch (lookup_type) {
     case Single:		return u.single.would_apply (c);
     case Multiple:		return u.multiple.would_apply (c);
@@ -969,6 +1056,7 @@ struct SubstLookupSubTable
     case Context:		return u.context.would_apply (c);
     case ChainContext:		return u.chainContext.would_apply (c);
     case Extension:		return u.extension.would_apply (c);
+    case ReverseChainSingle:	return u.reverseChainContextSingle.would_apply (c);
     default:			return false;
     }
   }
@@ -976,12 +1064,6 @@ struct SubstLookupSubTable
   inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
   {
     TRACE_APPLY ();
-    if (can_use_fast_path (lookup_type))
-    {
-      hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
-      unsigned int index = (this+u.header.coverage) (glyph_id);
-      if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
-    }
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.apply (c));
     case Multiple:		return TRACE_RETURN (u.multiple.apply (c));
@@ -997,8 +1079,7 @@ struct SubstLookupSubTable
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
     TRACE_SANITIZE ();
-    if (!u.header.sub_format.sanitize (c) ||
-	(can_use_fast_path (lookup_type) && !u.header.coverage.sanitize (c, this)))
+    if (!u.header.sub_format.sanitize (c))
       return TRACE_RETURN (false);
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.sanitize (c));
@@ -1017,7 +1098,6 @@ struct SubstLookupSubTable
   union {
   struct {
     USHORT			sub_format;
-    OffsetTo<Coverage>		coverage;
   } header;
   SingleSubst			single;
   MultipleSubst			multiple;
@@ -1055,6 +1135,17 @@ struct SubstLookup : Lookup
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
       get_subtable (i).closure (c, lookup_type);
+  }
+
+  inline const Coverage *get_coverage (void) const
+  {
+    /* Only return non-NULL if there's just one Coverage table we care about. */
+    const Coverage *c = &get_subtable (0).get_coverage (get_type ());
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 1; i < count; i++)
+      if (c != &get_subtable (i).get_coverage (get_type ()))
+        return NULL;
+    return c;
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -1112,14 +1203,28 @@ struct SubstLookup : Lookup
 	/* in/out forward substitution */
 	c->buffer->clear_output ();
 	c->buffer->idx = 0;
-	while (c->buffer->idx < c->buffer->len)
-	{
-	  if ((c->buffer->cur().mask & c->lookup_mask) && apply_once (c))
-	    ret = true;
-	  else
-	    c->buffer->next_glyph ();
 
-	}
+	/* Fast path for lookups with one coverage only (which is most). */
+	const Coverage *coverage = get_coverage ();
+	if (coverage)
+	  while (c->buffer->idx < c->buffer->len)
+	  {
+	    if ((c->buffer->cur().mask & c->lookup_mask) &&
+		(*coverage) (c->buffer->cur().codepoint) != NOT_COVERED &&
+		apply_once (c))
+	      ret = true;
+	    else
+	      c->buffer->next_glyph ();
+	  }
+	else
+	  while (c->buffer->idx < c->buffer->len)
+	  {
+	    if ((c->buffer->cur().mask & c->lookup_mask) && apply_once (c))
+	      ret = true;
+	    else
+	      c->buffer->next_glyph ();
+
+	  }
 	if (ret)
 	  c->buffer->swap_buffers ();
     }
@@ -1209,6 +1314,11 @@ GSUB::substitute_finish (hb_buffer_t *buffer HB_UNUSED)
 inline void ExtensionSubst::closure (hb_closure_context_t *c) const
 {
   get_subtable ().closure (c, get_type ());
+}
+
+inline const Coverage & ExtensionSubst::get_coverage (void) const
+{
+  return get_subtable ().get_coverage (get_type ());
 }
 
 inline bool ExtensionSubst::would_apply (hb_would_apply_context_t *c) const

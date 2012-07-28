@@ -429,6 +429,12 @@ struct SinglePosFormat1
   friend struct SinglePos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -466,6 +472,12 @@ struct SinglePosFormat2
   friend struct SinglePos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -506,6 +518,16 @@ struct SinglePos
   friend struct PosLookupSubTable;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    case 2: return u.format2.get_coverage ();
+    default:return Null(Coverage);
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -614,6 +636,12 @@ struct PairPosFormat1
   friend struct PairPos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -666,6 +694,12 @@ struct PairPosFormat2
   friend struct PairPos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -750,6 +784,16 @@ struct PairPos
   friend struct PosLookupSubTable;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    case 2: return u.format2.get_coverage ();
+    default:return Null(Coverage);
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -806,6 +850,12 @@ struct CursivePosFormat1
   friend struct CursivePos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+coverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -910,6 +960,15 @@ struct CursivePos
   friend struct PosLookupSubTable;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -946,6 +1005,12 @@ struct MarkBasePosFormat1
   friend struct MarkBasePos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+markCoverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1001,6 +1066,15 @@ struct MarkBasePos
   friend struct PosLookupSubTable;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1042,6 +1116,12 @@ struct MarkLigPosFormat1
   friend struct MarkLigPos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+markCoverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1117,6 +1197,15 @@ struct MarkLigPos
   friend struct PosLookupSubTable;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1153,6 +1242,12 @@ struct MarkMarkPosFormat1
   friend struct MarkMarkPos;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    return this+mark1Coverage;
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1215,6 +1310,15 @@ struct MarkMarkPos
   friend struct PosLookupSubTable;
 
   private:
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_coverage ();
+    default:return Null(Coverage);
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1280,6 +1384,8 @@ struct ExtensionPos : Extension
     return StructAtOffset<PosLookupSubTable> (this, offset);
   }
 
+  inline const Coverage &get_coverage (void) const;
+
   inline bool apply (hb_apply_context_t *c) const;
 
   inline bool sanitize (hb_sanitize_context_t *c);
@@ -1308,24 +1414,25 @@ struct PosLookupSubTable
     Extension		= 9
   };
 
-  inline bool can_use_fast_path (unsigned int lookup_type) const
+  inline const Coverage &get_coverage (unsigned int lookup_type) const
   {
-    /* Fast path, for those that have coverage in the same place. */
-    return likely (lookup_type && lookup_type < Context) ||
-	   (hb_in_range<unsigned int> (lookup_type, Context, ChainContext) &&
-	    hb_in_range<unsigned int> (u.header.sub_format, 1, 2));
+    switch (lookup_type) {
+    case Single:		return u.single.get_coverage ();
+    case Pair:			return u.pair.get_coverage ();
+    case Cursive:		return u.cursive.get_coverage ();
+    case MarkBase:		return u.markBase.get_coverage ();
+    case MarkLig:		return u.markLig.get_coverage ();
+    case MarkMark:		return u.markMark.get_coverage ();
+    case Context:		return u.context.get_coverage ();
+    case ChainContext:		return u.chainContext.get_coverage ();
+    case Extension:		return u.extension.get_coverage ();
+    default:			return Null(Coverage);
+    }
   }
 
   inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
   {
     TRACE_APPLY ();
-    if (can_use_fast_path (lookup_type))
-    {
-      /* Fast path, for most that have coverage in the same place. */
-      hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
-      unsigned int index = (this+u.header.coverage) (glyph_id);
-      if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
-    }
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.apply (c));
     case Pair:			return TRACE_RETURN (u.pair.apply (c));
@@ -1342,8 +1449,7 @@ struct PosLookupSubTable
 
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
     TRACE_SANITIZE ();
-    if (!u.header.sub_format.sanitize (c) ||
-	(can_use_fast_path (lookup_type) && !u.header.coverage.sanitize (c, this)))
+    if (!u.header.sub_format.sanitize (c))
       return TRACE_RETURN (false);
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.sanitize (c));
@@ -1363,7 +1469,6 @@ struct PosLookupSubTable
   union {
   struct {
     USHORT			sub_format;
-    OffsetTo<Coverage>		coverage;
   } header;
   SinglePos		single;
   PairPos		pair;
@@ -1384,6 +1489,17 @@ struct PosLookup : Lookup
 {
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
   { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
+
+  inline const Coverage *get_coverage (void) const
+  {
+    /* Only return non-NULL if there's just one Coverage table we care about. */
+    const Coverage *c = &get_subtable (0).get_coverage (get_type ());
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 1; i < count; i++)
+      if (c != &get_subtable (i).get_coverage (get_type ()))
+        return NULL;
+    return c;
+  }
 
   inline bool apply_once (hb_apply_context_t *c) const
   {
@@ -1410,13 +1526,27 @@ struct PosLookup : Lookup
     c->set_lookup (*this);
 
     c->buffer->idx = 0;
-    while (c->buffer->idx < c->buffer->len)
-    {
-      if ((c->buffer->cur().mask & c->lookup_mask) && apply_once (c))
-	ret = true;
-      else
-	c->buffer->idx++;
-    }
+
+    /* Fast path for lookups with one coverage only (which is most). */
+    const Coverage *coverage = get_coverage ();
+    if (coverage)
+      while (c->buffer->idx < c->buffer->len)
+      {
+	if ((c->buffer->cur().mask & c->lookup_mask) &&
+	    (*coverage) (c->buffer->cur().codepoint) != NOT_COVERED &&
+	    apply_once (c))
+	  ret = true;
+	else
+	  c->buffer->idx++;
+      }
+    else
+      while (c->buffer->idx < c->buffer->len)
+      {
+	if ((c->buffer->cur().mask & c->lookup_mask) && apply_once (c))
+	  ret = true;
+	else
+	  c->buffer->idx++;
+      }
 
     return ret;
   }
@@ -1535,6 +1665,11 @@ GPOS::position_finish (hb_buffer_t *buffer)
 
 
 /* Out-of-class implementation for methods recursing */
+
+inline const Coverage & ExtensionPos::get_coverage (void) const
+{
+  return get_subtable ().get_coverage (get_type ());
+}
 
 inline bool ExtensionPos::apply (hb_apply_context_t *c) const
 {

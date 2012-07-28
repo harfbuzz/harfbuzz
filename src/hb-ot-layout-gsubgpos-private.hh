@@ -894,6 +894,16 @@ struct Context
     }
   }
 
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return this + u.format1.coverage;
+    case 2: return this + u.format2.coverage;
+    case 3: return this + u.format3.coverage[0];
+    default:return Null(Coverage);
+    }
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     switch (u.format) {
@@ -1340,6 +1350,12 @@ struct ChainContextFormat3
 				  lookup_context);
   }
 
+  inline const Coverage &get_coverage (void) const
+  {
+    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    return this+input[0];
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY ();
@@ -1427,6 +1443,16 @@ struct ChainContext
     case 2: u.format2.closure (c, closure_func); break;
     case 3: u.format3.closure (c, closure_func); break;
     default:                                     break;
+    }
+  }
+
+  inline const Coverage &get_coverage (void) const
+  {
+    switch (u.format) {
+    case 1: return this + u.format1.coverage;
+    case 2: return this + u.format2.coverage;
+    case 3: return u.format3.get_coverage ();
+    default:return Null(Coverage);
     }
   }
 
