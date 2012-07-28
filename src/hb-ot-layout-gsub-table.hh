@@ -55,11 +55,6 @@ struct SingleSubstFormat1
     return this+coverage;
   }
 
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
-  }
-
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -110,11 +105,6 @@ struct SingleSubstFormat2
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -171,15 +161,6 @@ struct SingleSubst
     case 1: return u.format1.get_coverage ();
     case 2: return u.format2.get_coverage ();
     default:return Null(Coverage);
-    }
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.would_apply (c);
-    case 2: return u.format2.would_apply (c);
-    default:return false;
     }
   }
 
@@ -276,11 +257,6 @@ struct MultipleSubstFormat1
     return this+coverage;
   }
 
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
-  }
-
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -328,14 +304,6 @@ struct MultipleSubst
     switch (u.format) {
     case 1: return u.format1.get_coverage ();
     default:return Null(Coverage);
-    }
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.would_apply (c);
-    default:return false;
     }
   }
 
@@ -391,11 +359,6 @@ struct AlternateSubstFormat1
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -463,14 +426,6 @@ struct AlternateSubst
     switch (u.format) {
     case 1: return u.format1.get_coverage ();
     default:return Null(Coverage);
-    }
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.would_apply (c);
-    default:return false;
     }
   }
 
@@ -675,9 +630,7 @@ struct LigatureSubstFormat1
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    unsigned int index;
-    return (index = (this+coverage) (c->first)) != NOT_COVERED &&
-	   (this+ligatureSet[index]).would_apply (c);
+    return (this+ligatureSet[(this+coverage) (c->first)]).would_apply (c);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -871,11 +824,6 @@ struct ReverseChainSingleSubstFormat1
     return this+coverage;
   }
 
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    return c->len == 1 && (this+coverage) (c->first) != NOT_COVERED;
-  }
-
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -955,14 +903,6 @@ struct ReverseChainSingleSubst
     switch (u.format) {
     case 1: return u.format1.get_coverage ();
     default:return Null(Coverage);
-    }
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.would_apply (c);
-    default:return false;
     }
   }
 
@@ -1048,15 +988,16 @@ struct SubstLookupSubTable
 			   unsigned int lookup_type) const
   {
     TRACE_WOULD_APPLY ();
+    if (get_coverage (lookup_type).get_coverage (c->first) == NOT_COVERED) return false;
+    if (c->len == 1) return true; /* Done! */
+
+    /* Only need to look further for lookups that support substitutions
+     * of input longer than 1. */
     switch (lookup_type) {
-    case Single:		return u.single.would_apply (c);
-    case Multiple:		return u.multiple.would_apply (c);
-    case Alternate:		return u.alternate.would_apply (c);
     case Ligature:		return u.ligature.would_apply (c);
     case Context:		return u.context.would_apply (c);
     case ChainContext:		return u.chainContext.would_apply (c);
     case Extension:		return u.extension.would_apply (c);
-    case ReverseChainSingle:	return u.reverseChainContextSingle.would_apply (c);
     default:			return false;
     }
   }

@@ -677,11 +677,8 @@ struct ContextFormat1
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY ();
-    unsigned int index = (this+coverage) (c->first);
-    if (likely (index == NOT_COVERED))
-      return TRACE_RETURN (false);
 
-    const RuleSet &rule_set = this+ruleSet[index];
+    const RuleSet &rule_set = this+ruleSet[(this+coverage) (c->first)];
     struct ContextApplyLookupContext lookup_context = {
       {match_glyph, NULL},
       NULL
@@ -752,11 +749,9 @@ struct ContextFormat2
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY ();
-    unsigned int index = (this+coverage) (c->first);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const ClassDef &class_def = this+classDef;
-    index = class_def (c->first);
+    unsigned int index = class_def (c->first);
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextApplyLookupContext lookup_context = {
       {match_class, NULL},
@@ -828,8 +823,6 @@ struct ContextFormat3
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY ();
-    unsigned int index = (this+coverage[0]) (c->first);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextApplyLookupContext lookup_context = {
@@ -1180,10 +1173,8 @@ struct ChainContextFormat1
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY ();
-    unsigned int index = (this+coverage) (c->first);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
-    const ChainRuleSet &rule_set = this+ruleSet[index];
+    const ChainRuleSet &rule_set = this+ruleSet[(this+coverage) (c->first)];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_glyph, NULL},
       {NULL, NULL, NULL}
@@ -1256,12 +1247,10 @@ struct ChainContextFormat2
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY ();
-    unsigned int index = (this+coverage) (c->first);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const ClassDef &input_class_def = this+inputClassDef;
 
-    index = input_class_def (c->first);
+    unsigned int index = input_class_def (c->first);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_class, NULL},
@@ -1359,11 +1348,8 @@ struct ChainContextFormat3
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY ();
+
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-
-    unsigned int index = (this+input[0]) (c->first);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
-
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     struct ChainContextApplyLookupContext lookup_context = {
