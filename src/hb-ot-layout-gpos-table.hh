@@ -1263,14 +1263,27 @@ struct MarkMarkPosFormat1
 
     unsigned int j = skippy_iter.idx;
 
-    /* Two marks match only if they belong to the same base, or same component
-     * of the same ligature.  That is, the lig_id numbers must match, and
-     * if those are non-zero, the lig_comp number should also match. */
-    if ((get_lig_id (c->buffer->info[j]) != get_lig_id (c->buffer->cur())) ||
-	(get_lig_id (c->buffer->info[j]) > 0 &&
-	 get_lig_comp (c->buffer->info[j]) != get_lig_comp (c->buffer->cur())))
-      return TRACE_RETURN (false);
+    unsigned int id1 = get_lig_id (c->buffer->cur());
+    unsigned int id2 = get_lig_id (c->buffer->info[j]);
+    unsigned int comp1 = get_lig_comp (c->buffer->cur());
+    unsigned int comp2 = get_lig_comp (c->buffer->info[j]);
 
+    if (likely (id1 == id2)) {
+      if (id1 == 0) /* Marks belonging to the same base. */
+	goto good;
+      else if (comp1 == comp2) /* Marks belonging to the same ligature component. */
+        goto good;
+    } else {
+      /* If ligature ids don't match, it may be the case that one of the marks
+       * itself is a ligature.  In which case match. */
+      if ((id1 > 0 && !comp1) || (id2 > 0 && !comp2))
+	goto good;
+    }
+
+    /* Didn't match. */
+    return TRACE_RETURN (false);
+
+    good:
     unsigned int mark2_index = (this+mark2Coverage) (c->buffer->info[j].codepoint);
     if (mark2_index == NOT_COVERED) return TRACE_RETURN (false);
 
