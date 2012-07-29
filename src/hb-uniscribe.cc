@@ -58,7 +58,7 @@ DWORD GetFontData(
 
 HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, face)
 HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, font)
-hb_bool_t
+static hb_bool_t
 hb_uniscribe_font_ensure (hb_font_t *font)
 {
   hb_face_t *face = font->face;
@@ -223,6 +223,8 @@ _hb_uniscribe_shaper_shape_plan_data_destroy (hb_uniscribe_shaper_shape_plan_dat
 LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font)
 {
+  if (unlikely (!hb_uniscribe_font_ensure (font)))
+    return NULL;
   hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return &font_data->log_font;
 }
@@ -230,6 +232,8 @@ hb_uniscribe_font_get_logfontw (hb_font_t *font)
 HFONT
 hb_uniscribe_font_get_hfont (hb_font_t *font)
 {
+  if (unlikely (!hb_uniscribe_font_ensure (font)))
+    return NULL;
   hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return font_data->hfont;
 }
