@@ -345,15 +345,9 @@ retry:
     uint32_t *p = &vis_clusters[item.log_clusters[buffer->info[i].utf16_index()]];
     *p = MIN (*p, buffer->info[i].cluster);
   }
-  if (!backward) {
-    for (unsigned int i = 1; i < num_glyphs; i++)
-      if (vis_clusters[i] == -1)
-	vis_clusters[i] = vis_clusters[i - 1];
-  } else {
-    for (int i = num_glyphs - 2; i >= 0; i--)
-      if (vis_clusters[i] == -1)
-	vis_clusters[i] = vis_clusters[i + 1];
-  }
+  for (unsigned int i = 1; i < num_glyphs; i++)
+    if (vis_clusters[i] == -1)
+      vis_clusters[i] = vis_clusters[i - 1];
 
 #undef utf16_index
 
