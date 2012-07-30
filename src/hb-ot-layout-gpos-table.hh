@@ -1147,19 +1147,16 @@ struct MarkLigPosFormat1
     unsigned int comp_count = lig_attach.rows;
     if (unlikely (!comp_count)) return TRACE_RETURN (false);
 
-    unsigned int comp_index;
     /* We must now check whether the ligature ID of the current mark glyph
      * is identical to the ligature ID of the found ligature.  If yes, we
      * can directly use the component index.  If not, we attach the mark
      * glyph to the last component of the ligature. */
-    if (get_lig_id (c->buffer->info[j]) &&
-	get_lig_id (c->buffer->info[j]) == get_lig_id (c->buffer->cur()) &&
-	get_lig_comp (c->buffer->cur()) > 0)
-    {
-      comp_index = get_lig_comp (c->buffer->cur()) - 1;
-      if (comp_index >= comp_count)
-	comp_index = comp_count - 1;
-    }
+    unsigned int comp_index;
+    unsigned int lig_id = get_lig_id (c->buffer->info[j]);
+    unsigned int mark_id = get_lig_id (c->buffer->cur());
+    unsigned int mark_comp = get_lig_comp (c->buffer->cur());
+    if (lig_id && lig_id == mark_id && mark_comp > 0)
+      comp_index = MIN (comp_count, get_lig_comp (c->buffer->cur())) - 1;
     else
       comp_index = comp_count - 1;
 
