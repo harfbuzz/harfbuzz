@@ -1,5 +1,6 @@
 /*
  * Copyright © 2012  Mozilla Foundation.
+ * Copyright © 2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,10 +23,11 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Mozilla Author(s): Jonathan Kew
+ * Google Author(s): Behdad Esfahbod
  */
 
 #define HB_SHAPER coretext
-#include "hb-shaper-private.hh"
+#include "hb-shaper-impl-private.hh"
 
 #define GlyphID GlyphID_mac
 #include <ApplicationServices/ApplicationServices.h>
@@ -33,28 +35,23 @@
 
 #include "hb-coretext.h"
 
-#include "hb-font-private.hh"
-#include "hb-buffer-private.hh"
-
 
 #ifndef HB_DEBUG_CORETEXT
 #define HB_DEBUG_CORETEXT (HB_DEBUG+0)
 #endif
 
 
-static hb_user_data_key_t hb_coretext_data_key;
+HB_SHAPER_DATA_ENSURE_DECLARE(coretext, face)
+HB_SHAPER_DATA_ENSURE_DECLARE(coretext, font)
 
-static struct hb_coretext_face_data_t {
-  CGFontRef  cg_font;
-} _hb_coretext_face_data_nil = {0};
 
-static void
-_hb_coretext_face_data_destroy (hb_coretext_face_data_t *data)
-{
-  if (data->cg_font)
-    CFRelease (data->cg_font);
-  free (data);
-}
+/*
+ * shaper face data
+ */
+
+struct hb_coretext_shaper_face_data_t {
+  CGFontRef cg_font;
+};
 
 static void
 release_data (void *info, const void *data, size_t size)
@@ -65,16 +62,12 @@ release_data (void *info, const void *data, size_t size)
   hb_blob_destroy ((hb_blob_t *) info);
 }
 
-static hb_coretext_face_data_t *
-_hb_coretext_face_get_data (hb_face_t *face)
+hb_coretext_shaper_face_data_t *
+_hb_coretext_shaper_face_data_create (hb_face_t *face)
 {
-  hb_coretext_face_data_t *data = (hb_coretext_face_data_t *) hb_face_get_user_data (face, &hb_coretext_data_key);
-  if (likely (data)) return data;
-
-  data = (hb_coretext_face_data_t *) calloc (1, sizeof (hb_coretext_face_data_t));
+  hb_coretext_shaper_face_data_t *data = (hb_coretext_shaper_face_data_t *) calloc (1, sizeof (hb_coretext_shaper_face_data_t));
   if (unlikely (!data))
-    return &_hb_coretext_face_data_nil;
-
+    return NULL;
 
   hb_blob_t *blob = hb_face_reference_blob (face);
   unsigned int blob_length;
@@ -86,103 +79,109 @@ _hb_coretext_face_get_data (hb_face_t *face)
   data->cg_font = CGFontCreateWithDataProvider (provider);
   CGDataProviderRelease (provider);
 
-  if (unlikely (!data->cg_font))
+  if (unlikely (!data->cg_font)) {
     DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
-
-
-  if (unlikely (!hb_face_set_user_data (face, &hb_coretext_data_key, data,
-                                        (hb_destroy_func_t) _hb_coretext_face_data_destroy,
-                                        false)))
-  {
-    _hb_coretext_face_data_destroy (data);
-    data = (hb_coretext_face_data_t *) hb_face_get_user_data (face, &hb_coretext_data_key);
-    if (data)
-      return data;
-    else
-      return &_hb_coretext_face_data_nil;
+    free (data);
+    return NULL;
   }
 
   return data;
 }
 
-
-static struct hb_coretext_font_data_t {
-  CTFontRef ct_font;
-} _hb_coretext_font_data_nil = {0};
-
-static void
-_hb_coretext_font_data_destroy (hb_coretext_font_data_t *data)
+void
+_hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
 {
-  if (data->ct_font)
-    CFRelease (data->ct_font);
+  CFRelease (data->cg_font);
   free (data);
 }
 
-static hb_coretext_font_data_t *
-_hb_coretext_font_get_data (hb_font_t *font)
+
+/*
+ * shaper font data
+ */
+
+struct hb_coretext_shaper_font_data_t {
+  CTFontRef ct_font;
+};
+
+hb_coretext_shaper_font_data_t *
+_hb_coretext_shaper_font_data_create (hb_font_t *font)
 {
-  hb_coretext_font_data_t *data = (hb_coretext_font_data_t *) hb_font_get_user_data (font, &hb_coretext_data_key);
-  if (likely (data)) return data;
+  if (unlikely (!hb_coretext_shaper_face_data_ensure (font->face))) return NULL;
 
-  data = (hb_coretext_font_data_t *) calloc (1, sizeof (hb_coretext_font_data_t));
+  hb_coretext_shaper_font_data_t *data = (hb_coretext_shaper_font_data_t *) calloc (1, sizeof (hb_coretext_shaper_font_data_t));
   if (unlikely (!data))
-    return &_hb_coretext_font_data_nil;
+    return NULL;
 
-  hb_coretext_face_data_t *face_data = _hb_coretext_face_get_data (font->face);
+  hb_face_t *face = font->face;
+  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
   data->ct_font = CTFontCreateWithGraphicsFont (face_data->cg_font, font->y_scale, NULL, NULL);
-  if (unlikely (!data->ct_font))
+  if (unlikely (!data->ct_font)) {
     DEBUG_MSG (CORETEXT, font, "Font CTFontCreateWithGraphicsFont() failed");
-
-  if (unlikely (!hb_font_set_user_data (font, &hb_coretext_data_key, data,
-                                        (hb_destroy_func_t) _hb_coretext_font_data_destroy,
-                                        false)))
-  {
-    _hb_coretext_font_data_destroy (data);
-    data = (hb_coretext_font_data_t *) hb_font_get_user_data (font, &hb_coretext_data_key);
-    if (data)
-      return data;
-    else
-      return &_hb_coretext_font_data_nil;
+    free (data);
+    return NULL;
   }
 
   return data;
 }
+
+void
+_hb_coretext_shaper_font_data_destroy (hb_coretext_shaper_font_data_t *data)
+{
+  CFRelease (data->ct_font);
+  free (data);
+}
+
+
+/*
+ * shaper shape_plan data
+ */
+
+struct hb_coretext_shaper_shape_plan_data_t {};
+
+hb_coretext_shaper_shape_plan_data_t *
+_hb_coretext_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
+					     const hb_feature_t *user_features,
+					     unsigned int        num_user_features)
+{
+  return (hb_coretext_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_coretext_shaper_shape_plan_data_destroy (hb_coretext_shaper_shape_plan_data_t *data)
+{
+}
+
+
+/*
+ * shaper
+ */
 
 CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
-  hb_coretext_font_data_t *font_data = _hb_coretext_font_get_data (font);
-  if (unlikely (!font_data))
-    return 0;
+  if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return 0;
+  hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
   return font_data->ct_font;
 }
 
-
 hb_bool_t
-_hb_coretext_shape (hb_font_t          *font,
+_hb_coretext_shape (hb_shape_plan_t    *shape_plan,
+		    hb_font_t          *font,
                     hb_buffer_t        *buffer,
                     const hb_feature_t *features,
                     unsigned int        num_features)
 {
-  buffer->guess_properties ();
+  hb_face_t *face = font->face;
+  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
+  hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
 
 #define FAIL(...) \
   HB_STMT_START { \
     DEBUG_MSG (CORETEXT, NULL, __VA_ARGS__); \
     return false; \
   } HB_STMT_END;
-
-  hb_coretext_face_data_t *face_data = _hb_coretext_face_get_data (font->face);
-  if (unlikely (!face_data->cg_font))
-    FAIL ("Couldn't get face data");
-
-  hb_coretext_font_data_t *font_data = _hb_coretext_font_get_data (font);
-  if (unlikely (!font_data->ct_font))
-    FAIL ("Couldn't get font font");
-
-  if (unlikely (!buffer->len))
-    return true;
 
   unsigned int scratch_size;
   char *scratch = (char *) buffer->get_scratch_buffer (&scratch_size);
