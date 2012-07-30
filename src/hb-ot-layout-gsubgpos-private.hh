@@ -231,7 +231,10 @@ struct hb_apply_context_t
 
   inline void set_klass_guess (unsigned int klass_guess) const
   {
-    buffer->cur().props_cache() = has_glyph_classes ? 0 : klass_guess;
+    if (likely (has_glyph_classes))
+      buffer->cur().props_cache() = 0;
+    else if (klass_guess)
+      buffer->cur().props_cache() = klass_guess;
   }
 
   inline void output_glyph (hb_codepoint_t glyph_index,
