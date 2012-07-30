@@ -585,7 +585,7 @@ struct Ligature
       {
 	if (!is_mark_ligature) {
 	  unsigned int new_lig_comp = components_so_far - last_num_components +
-				      MIN (MAX (get_lig_comp (c->buffer->cur()), 1), last_num_components);
+				      MIN (MAX (get_lig_comp (c->buffer->cur()), 1u), last_num_components);
 	  set_lig_props_for_mark (c->buffer->cur(), lig_id, new_lig_comp);
 	}
 	c->buffer->next_glyph ();
@@ -604,7 +604,7 @@ struct Ligature
       for (unsigned int i = c->buffer->idx; i < c->buffer->len; i++) {
 	if (last_lig_id == get_lig_id (c->buffer->info[i])) {
 	  unsigned int new_lig_comp = components_so_far - last_num_components +
-				      MIN (MAX (get_lig_comp (c->buffer->info[i]), 1), last_num_components);
+				      MIN (MAX (get_lig_comp (c->buffer->info[i]), 1u), last_num_components);
 	  set_lig_props_for_mark (c->buffer->info[i], lig_id, new_lig_comp);
 	} else
 	  break;
