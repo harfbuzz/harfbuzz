@@ -203,6 +203,8 @@ void
 _hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *data)
 {
   data->map.finish ();
+
+  free (data);
 }
 
 
