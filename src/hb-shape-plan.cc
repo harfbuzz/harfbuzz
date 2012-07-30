@@ -115,7 +115,7 @@ hb_shape_plan_get_empty (void)
   static const hb_shape_plan_t _hb_shape_plan_nil = {
     HB_OBJECT_HEADER_STATIC,
 
-    false, /* default_shaper_list */
+    true, /* default_shaper_list */
     NULL, /* face */
     _HB_BUFFER_PROPS_DEFAULT, /* props */
 
