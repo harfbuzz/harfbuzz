@@ -95,24 +95,6 @@ _get_gpos (hb_face_t *face)
   return *hb_ot_layout_from_face (face)->gpos;
 }
 
-static inline const GDEF&
-_get_gdef_fast (hb_face_t *face)
-{
-  return *hb_ot_layout_from_face (face)->gdef;
-}
-static inline const GSUB&
-_get_gsub_fast (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GSUB);
-  return *hb_ot_layout_from_face (face)->gsub;
-}
-static inline const GPOS&
-_get_gpos_fast (hb_face_t *face)
-{
-  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GPOS);
-  return *hb_ot_layout_from_face (face)->gpos;
-}
-
 
 /*
  * GDEF
@@ -130,8 +112,7 @@ _hb_ot_layout_get_glyph_property (hb_face_t       *face,
 {
   if (!info->props_cache())
   {
-    const GDEF &gdef = _get_gdef_fast (face);
-    info->props_cache() = gdef.get_glyph_props (info->codepoint);
+    info->props_cache() = hb_ot_layout_from_face (face)->gdef->get_glyph_props (info->codepoint);
   }
 
   return info->props_cache();
@@ -147,7 +128,7 @@ _hb_ot_layout_match_properties_mark (hb_face_t      *face,
    * lookup_props has the set index.
    */
   if (lookup_props & LookupFlag::UseMarkFilteringSet)
-    return _get_gdef_fast (face).mark_set_covers (lookup_props >> 16, glyph);
+    return hb_ot_layout_from_face (face)->gdef->mark_set_covers (lookup_props >> 16, glyph);
 
   /* The second byte of lookup_props has the meaning
    * "ignore marks of attachment type different than
@@ -507,7 +488,7 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 {
   if (unlikely (glyphs_length < 1 || glyphs_length > 2)) return false;
   hb_would_apply_context_t c (face, glyphs[0], glyphs_length == 2 ? glyphs[1] : -1);
-  return _get_gsub_fast (face).would_substitute_lookup (&c, lookup_index);
+  return hb_ot_layout_from_face (face)->gsub->would_substitute_lookup (&c, lookup_index);
 }
 
 void
@@ -533,7 +514,7 @@ hb_ot_layout_substitute_lookup_fast (hb_face_t    *face,
 				     hb_mask_t     mask)
 {
   hb_apply_context_t c (NULL, face, buffer, mask);
-  return _get_gsub_fast (face).substitute_lookup (&c, lookup_index);
+  return hb_ot_layout_from_face (face)->gsub->substitute_lookup (&c, lookup_index);
 }
 
 void
@@ -584,7 +565,7 @@ hb_ot_layout_position_lookup_fast (hb_font_t    *font,
 				   hb_mask_t     mask)
 {
   hb_apply_context_t c (font, font->face, buffer, mask);
-  return _get_gpos_fast (font->face).position_lookup (&c, lookup_index);
+  return hb_ot_layout_from_face (font->face)->gpos->position_lookup (&c, lookup_index);
 }
 
 void
