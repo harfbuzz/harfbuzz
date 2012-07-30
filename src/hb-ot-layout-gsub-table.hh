@@ -518,12 +518,20 @@ struct Ligature
      *
      *   This in fact happened to a font...  See:
      *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
+     *
+     * - Ligatures cannot be formed across glyphs attached to different components
+     *   of previous ligatures.  Eg. the sequence is LAM,SHADDA,LAM,FATHA,HEH, and
+     *   LAM,LAM,HEH form a ligature, leaving SHADDA,FATHA next to eachother.
+     *   However, it would be wrong to ligate that SHADDA,FATHA sequence.
      */
 
     bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
     unsigned int total_component_count = 0;
     total_component_count += get_lig_num_comps (c->buffer->cur());
+
+    unsigned int first_lig_id = get_lig_id (c->buffer->cur());
+    unsigned int first_lig_comp = get_lig_comp (c->buffer->cur());
 
     for (unsigned int i = 1; i < count; i++)
     {
@@ -532,6 +540,22 @@ struct Ligature
       if (!skippy_iter.next (&property)) return TRACE_RETURN (false);
 
       if (likely (c->buffer->info[skippy_iter.idx].codepoint != component[i])) return TRACE_RETURN (false);
+
+      unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
+      unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
+      if (first_lig_id && first_lig_comp) {
+        /* If first component was attached to a previous ligature component,
+	 * all subsequent components should be attached to the same ligature
+	 * component, otherwise we shouldn't ligate them. */
+        if (first_lig_id != this_lig_id || first_lig_comp != this_lig_comp)
+	  return TRACE_RETURN (false);
+      } else {
+        /* If first component was NOT attached to a previous ligature component,
+	 * all subsequent components should also NOT be attached to any ligature
+	 * component, otherwise we shouldn't ligate them. */
+        if (this_lig_id && this_lig_comp)
+	  return TRACE_RETURN (false);
+      }
 
       is_mark_ligature = is_mark_ligature && (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
       total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
