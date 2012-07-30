@@ -97,6 +97,81 @@ struct hb_would_apply_context_t
 
 
 
+static inline hb_bool_t
+_hb_ot_layout_match_properties_mark (hb_face_t      *face,
+				     hb_codepoint_t  glyph,
+				     unsigned int    glyph_props,
+				     unsigned int    lookup_props)
+{
+  /* If using mark filtering sets, the high short of
+   * lookup_props has the set index.
+   */
+  if (lookup_props & LookupFlag::UseMarkFilteringSet)
+    return hb_ot_layout_from_face (face)->gdef->mark_set_covers (lookup_props >> 16, glyph);
+
+  /* The second byte of lookup_props has the meaning
+   * "ignore marks of attachment type different than
+   * the attachment type specified."
+   */
+  if (lookup_props & LookupFlag::MarkAttachmentType)
+    return (lookup_props & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
+
+  return true;
+}
+
+static inline hb_bool_t
+_hb_ot_layout_match_properties (hb_face_t      *face,
+				hb_codepoint_t  glyph,
+				unsigned int    glyph_props,
+				unsigned int    lookup_props)
+{
+  /* Not covered, if, for example, glyph class is ligature and
+   * lookup_props includes LookupFlags::IgnoreLigatures
+   */
+  if (glyph_props & lookup_props & LookupFlag::IgnoreFlags)
+    return false;
+
+  if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+    return _hb_ot_layout_match_properties_mark (face, glyph, glyph_props, lookup_props);
+
+  return true;
+}
+
+static inline hb_bool_t
+_hb_ot_layout_check_glyph_property (hb_face_t    *face,
+				    hb_glyph_info_t *ginfo,
+				    unsigned int  lookup_props,
+				    unsigned int *property_out)
+{
+  unsigned int property;
+
+  property = ginfo->props_cache();
+  *property_out = property;
+
+  return _hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
+}
+
+static inline hb_bool_t
+_hb_ot_layout_skip_mark (hb_face_t    *face,
+			 hb_glyph_info_t *ginfo,
+			 unsigned int  lookup_props,
+			 unsigned int *property_out)
+{
+  unsigned int property;
+
+  property = ginfo->props_cache();
+  if (property_out)
+    *property_out = property;
+
+  /* If it's a mark, skip it if we don't accept it. */
+  if (unlikely (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+    return !_hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
+
+  /* If not a mark, don't skip. */
+  return false;
+}
+
+
 struct hb_apply_context_t
 {
   hb_font_t *font;
@@ -109,6 +184,7 @@ struct hb_apply_context_t
   unsigned int property; /* propety of first glyph */
   unsigned int debug_depth;
   bool has_glyph_classes;
+  const GDEF &gdef;
 
 
   hb_apply_context_t (hb_font_t *font_,
@@ -120,7 +196,8 @@ struct hb_apply_context_t
 			lookup_mask (lookup_mask_),
 			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0), property (0), debug_depth (0),
-			has_glyph_classes (hb_ot_layout_has_glyph_classes (face_)) {}
+			has_glyph_classes (hb_ot_layout_has_glyph_classes (face_)),
+			gdef (*hb_ot_layout_from_face (face_)->gdef /* XXX Unsafe dereference */) {}
 
   void set_lookup (const Lookup &l) {
     lookup_props = l.get_props ();
@@ -229,30 +306,30 @@ struct hb_apply_context_t
     return _hb_ot_layout_skip_mark (face, &buffer->cur(), lookup_props, &property);
   }
 
-  inline void set_klass_guess (unsigned int klass_guess) const
+  inline void set_class (hb_codepoint_t glyph_index, unsigned int class_guess) const
   {
     if (likely (has_glyph_classes))
-      buffer->cur().props_cache() = 0;
-    else if (klass_guess)
-      buffer->cur().props_cache() = klass_guess;
+      buffer->cur().props_cache() = gdef.get_glyph_props (glyph_index);
+    else if (class_guess)
+      buffer->cur().props_cache() = class_guess;
   }
 
   inline void output_glyph (hb_codepoint_t glyph_index,
-			    unsigned int klass_guess = 0) const
+			    unsigned int class_guess = 0) const
   {
-    set_klass_guess (klass_guess);
+    set_class (glyph_index, class_guess);
     buffer->output_glyph (glyph_index);
   }
   inline void replace_glyph (hb_codepoint_t glyph_index,
-			     unsigned int klass_guess = 0) const
+			     unsigned int class_guess = 0) const
   {
-    set_klass_guess (klass_guess);
+    set_class (glyph_index, class_guess);
     buffer->replace_glyph (glyph_index);
   }
   inline void replace_glyph_inplace (hb_codepoint_t glyph_index,
-				     unsigned int klass_guess = 0) const
+				     unsigned int class_guess = 0) const
   {
-    set_klass_guess (klass_guess);
+    set_class (glyph_index, class_guess);
     buffer->cur().codepoint = glyph_index;
   }
 };

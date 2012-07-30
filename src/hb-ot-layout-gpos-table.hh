@@ -1552,7 +1552,8 @@ struct PosLookup : Lookup
     else
       while (c->buffer->idx < c->buffer->len)
       {
-	if ((c->buffer->cur().mask & c->lookup_mask) && apply_once (c))
+	if ((c->buffer->cur().mask & c->lookup_mask) &&
+	    apply_once (c))
 	  ret = true;
 	else
 	  c->buffer->idx++;
@@ -1585,8 +1586,8 @@ struct GPOS : GSUBGPOS
   inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index) const
   { return get_lookup (lookup_index).apply_string (c); }
 
-  static inline void position_start (hb_buffer_t *buffer);
-  static inline void position_finish (hb_buffer_t *buffer);
+  static inline void position_start (hb_font_t *font, hb_buffer_t *buffer);
+  static inline void position_finish (hb_font_t *font, hb_buffer_t *buffer);
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
@@ -1644,7 +1645,7 @@ fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t di
 }
 
 void
-GPOS::position_start (hb_buffer_t *buffer)
+GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 {
   buffer->clear_positions ();
 
@@ -1654,7 +1655,7 @@ GPOS::position_start (hb_buffer_t *buffer)
 }
 
 void
-GPOS::position_finish (hb_buffer_t *buffer)
+GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 {
   unsigned int len;
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &len);

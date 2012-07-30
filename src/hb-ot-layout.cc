@@ -106,93 +106,6 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face)
   return _get_gdef (face).has_glyph_classes ();
 }
 
-static inline unsigned int
-_hb_ot_layout_get_glyph_property (hb_face_t       *face,
-				  hb_glyph_info_t *info)
-{
-  if (!info->props_cache())
-  {
-    info->props_cache() = hb_ot_layout_from_face (face)->gdef->get_glyph_props (info->codepoint);
-  }
-
-  return info->props_cache();
-}
-
-static inline hb_bool_t
-_hb_ot_layout_match_properties_mark (hb_face_t      *face,
-				     hb_codepoint_t  glyph,
-				     unsigned int    glyph_props,
-				     unsigned int    lookup_props)
-{
-  /* If using mark filtering sets, the high short of
-   * lookup_props has the set index.
-   */
-  if (lookup_props & LookupFlag::UseMarkFilteringSet)
-    return hb_ot_layout_from_face (face)->gdef->mark_set_covers (lookup_props >> 16, glyph);
-
-  /* The second byte of lookup_props has the meaning
-   * "ignore marks of attachment type different than
-   * the attachment type specified."
-   */
-  if (lookup_props & LookupFlag::MarkAttachmentType)
-    return (lookup_props & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
-
-  return true;
-}
-
-static inline hb_bool_t
-_hb_ot_layout_match_properties (hb_face_t      *face,
-				hb_codepoint_t  glyph,
-				unsigned int    glyph_props,
-				unsigned int    lookup_props)
-{
-  /* Not covered, if, for example, glyph class is ligature and
-   * lookup_props includes LookupFlags::IgnoreLigatures
-   */
-  if (glyph_props & lookup_props & LookupFlag::IgnoreFlags)
-    return false;
-
-  if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-    return _hb_ot_layout_match_properties_mark (face, glyph, glyph_props, lookup_props);
-
-  return true;
-}
-
-hb_bool_t
-_hb_ot_layout_check_glyph_property (hb_face_t    *face,
-				    hb_glyph_info_t *ginfo,
-				    unsigned int  lookup_props,
-				    unsigned int *property_out)
-{
-  unsigned int property;
-
-  property = _hb_ot_layout_get_glyph_property (face, ginfo);
-  *property_out = property;
-
-  return _hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
-}
-
-hb_bool_t
-_hb_ot_layout_skip_mark (hb_face_t    *face,
-			 hb_glyph_info_t *ginfo,
-			 unsigned int  lookup_props,
-			 unsigned int *property_out)
-{
-  unsigned int property;
-
-  property = _hb_ot_layout_get_glyph_property (face, ginfo);
-  if (property_out)
-    *property_out = property;
-
-  /* If it's a mark, skip it if we don't accept it. */
-  if (unlikely (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-    return !_hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
-
-  /* If not a mark, don't skip. */
-  return false;
-}
-
-
 
 unsigned int
 hb_ot_layout_get_attach_points (hb_face_t      *face,
@@ -214,6 +127,7 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
 {
   return _get_gdef (font->face).get_lig_carets (font, direction, glyph, start_offset, caret_count, caret_array);
 }
+
 
 /*
  * GSUB/GPOS
@@ -492,9 +406,9 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 }
 
 void
-hb_ot_layout_substitute_start (hb_buffer_t  *buffer)
+hb_ot_layout_substitute_start (hb_face_t *face, hb_buffer_t *buffer)
 {
-  GSUB::substitute_start (buffer);
+  GSUB::substitute_start (face, buffer);
 }
 
 hb_bool_t
@@ -518,9 +432,9 @@ hb_ot_layout_substitute_lookup_fast (hb_face_t    *face,
 }
 
 void
-hb_ot_layout_substitute_finish (hb_buffer_t  *buffer HB_UNUSED)
+hb_ot_layout_substitute_finish (hb_face_t *face, hb_buffer_t *buffer)
 {
-  GSUB::substitute_finish (buffer);
+  GSUB::substitute_finish (face, buffer);
 }
 
 void
@@ -543,9 +457,9 @@ hb_ot_layout_has_positioning (hb_face_t *face)
 }
 
 void
-hb_ot_layout_position_start (hb_buffer_t  *buffer)
+hb_ot_layout_position_start (hb_font_t *font, hb_buffer_t *buffer)
 {
-  GPOS::position_start (buffer);
+  GPOS::position_start (font, buffer);
 }
 
 hb_bool_t
@@ -569,9 +483,9 @@ hb_ot_layout_position_lookup_fast (hb_font_t    *font,
 }
 
 void
-hb_ot_layout_position_finish (hb_buffer_t  *buffer)
+hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer)
 {
-  GPOS::position_finish (buffer);
+  GPOS::position_finish (font, buffer);
 }
 
 

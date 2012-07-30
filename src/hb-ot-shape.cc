@@ -342,8 +342,6 @@ hb_map_glyphs (hb_font_t    *font,
 static void
 hb_substitute_default (hb_ot_shape_context_t *c)
 {
-  hb_ot_layout_substitute_start (c->buffer);
-
   hb_mirror_chars (c);
 
   hb_map_glyphs (c->font, c->buffer);
@@ -352,11 +350,13 @@ hb_substitute_default (hb_ot_shape_context_t *c)
 static void
 hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
+  hb_ot_layout_substitute_start (c->face, c->buffer);
+
   if (hb_ot_layout_has_substitution (c->face)) {
     c->plan->map.substitute (c->face, c->buffer);
   }
 
-  hb_ot_layout_substitute_finish (c->buffer);
+  hb_ot_layout_substitute_finish (c->face, c->buffer);
 
   return;
 }
@@ -367,7 +367,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 static void
 hb_position_default (hb_ot_shape_context_t *c)
 {
-  hb_ot_layout_position_start (c->buffer);
+  hb_ot_layout_position_start (c->font, c->buffer);
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
@@ -410,7 +410,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
     c->applied_position_complex = true;
   }
 
-  hb_ot_layout_position_finish (c->buffer);
+  hb_ot_layout_position_finish (c->font, c->buffer);
 
   return;
 }
