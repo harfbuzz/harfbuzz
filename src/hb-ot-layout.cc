@@ -49,7 +49,6 @@ hb_ot_layout_ensure (hb_face_t *face)
 hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face)
 {
-  /* TODO Remove this object altogether */
   hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
 
   layout->gdef_blob = Sanitizer<GDEF>::sanitize (hb_face_reference_table (face, HB_OT_TAG_GDEF));

@@ -42,7 +42,6 @@
  * GDEF
  */
 
-/* XXX cleanup */
 typedef enum {
   HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0001,
   HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
@@ -141,7 +140,6 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
     lig_id = allocate_lig_id (buffer); /* in case of overflow */
   return lig_id;
 }
-
 
 
 /*
