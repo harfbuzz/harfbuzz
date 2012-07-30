@@ -522,7 +522,11 @@ struct Ligature
      * - Ligatures cannot be formed across glyphs attached to different components
      *   of previous ligatures.  Eg. the sequence is LAM,SHADDA,LAM,FATHA,HEH, and
      *   LAM,LAM,HEH form a ligature, leaving SHADDA,FATHA next to eachother.
-     *   However, it would be wrong to ligate that SHADDA,FATHA sequence.
+     *   However, it would be wrong to ligate that SHADDA,FATHA sequence.o
+     *   There is an exception to this: If a ligature tries ligating with marks that
+     *   belong to it itself, go ahead, assuming that the font designer knows what
+     *   they are doing (otherwise it can break Indic stuff when a matra wants to
+     *   ligate with a conjunct...)
      */
 
     bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
@@ -543,6 +547,7 @@ struct Ligature
 
       unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
       unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
+
       if (first_lig_id && first_lig_comp) {
         /* If first component was attached to a previous ligature component,
 	 * all subsequent components should be attached to the same ligature
@@ -552,8 +557,8 @@ struct Ligature
       } else {
         /* If first component was NOT attached to a previous ligature component,
 	 * all subsequent components should also NOT be attached to any ligature
-	 * component, otherwise we shouldn't ligate them. */
-        if (this_lig_id && this_lig_comp)
+	 * component, unless they are attached to the first component itself! */
+        if (this_lig_id && this_lig_comp && (this_lig_id != first_lig_id))
 	  return TRACE_RETURN (false);
       }
 
