@@ -75,7 +75,7 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
  *
  *   - The ligature glyph and any marks in between all the same newly allocated
  *     lig_id,
- *   - The ligature glyph will get lig_comp = 0
+ *   - The ligature glyph will get lig_num_comps set to the number of components
  *   - The marks get lig_comp > 0, reflecting which component of the ligature
  *     they were applied to.
  *   - This is used in GPOS to attach marks to the right component of a ligature
@@ -91,10 +91,11 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
  * The numbers are also used in GPOS to do mark-to-mark positioning only
  * to marks that belong to the same component of a ligature in MarkMarPos.
  */
+#define IS_LIG_BASE 0x10
 static inline void
 set_lig_props_for_ligature (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_num_comps)
 {
-  info.lig_props() = (lig_id << 5) | 0x10 | (lig_num_comps & 0x0F);
+  info.lig_props() = (lig_id << 5) | IS_LIG_BASE | (lig_num_comps & 0x0F);
 }
 static inline void
 set_lig_props_for_mark (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
@@ -112,10 +113,15 @@ get_lig_id (const hb_glyph_info_t &info)
 {
   return info.lig_props() >> 5;
 }
+static inline bool
+is_a_ligature (const hb_glyph_info_t &info)
+{
+  return !!(info.lig_props() & IS_LIG_BASE);
+}
 static inline unsigned int
 get_lig_comp (const hb_glyph_info_t &info)
 {
-  if (info.lig_props() & 0x10)
+  if (is_a_ligature (info))
     return 0;
   else
     return info.lig_props() & 0x0F;
@@ -123,16 +129,10 @@ get_lig_comp (const hb_glyph_info_t &info)
 static inline unsigned int
 get_lig_num_comps (const hb_glyph_info_t &info)
 {
-  if ((info.props_cache() & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE) &&
-      info.lig_props() & 0x10)
+  if ((info.props_cache() & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE) && is_a_ligature (info))
     return info.lig_props() & 0x0F;
   else
     return 1;
-}
-static inline bool
-is_a_ligature (const hb_glyph_info_t &info)
-{
-  return unlikely (get_lig_id (info) && ~get_lig_comp (info));
 }
 
 static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
