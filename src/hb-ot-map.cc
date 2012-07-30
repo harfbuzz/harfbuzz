@@ -31,7 +31,6 @@
 #include "hb-ot-shape-private.hh"
 
 
-
 void
 hb_ot_map_t::add_lookups (hb_face_t    *face,
 			  unsigned int  table_index,
@@ -76,26 +75,42 @@ void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool gl
   info->stage[1] = current_stage[1];
 }
 
-void hb_ot_map_t::apply (unsigned int table_index,
-			 hb_ot_map_t::apply_lookup_func_t apply_lookup_func,
-			 void *face_or_font,
-			 hb_buffer_t *buffer) const
+/* Keep the next two functions in sync. */
+
+void hb_ot_map_t::substitute (hb_face_t *face, hb_buffer_t *buffer) const
 {
+  const unsigned int table_index = 0;
   unsigned int i = 0;
 
   for (unsigned int pause_index = 0; pause_index < pauses[table_index].len; pause_index++) {
     const pause_map_t *pause = &pauses[table_index][pause_index];
     for (; i < pause->num_lookups; i++)
-      apply_lookup_func (face_or_font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+      hb_ot_layout_substitute_lookup_fast (face, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 
-    if (table_index == 0)
-      buffer->clear_output ();
+    buffer->clear_output ();
 
-    pause->callback.func (this, face_or_font, buffer, pause->callback.user_data);
+    pause->callback.func (this, face, buffer, pause->callback.user_data);
   }
 
   for (; i < lookups[table_index].len; i++)
-    apply_lookup_func (face_or_font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+    hb_ot_layout_substitute_lookup_fast (face, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+}
+
+void hb_ot_map_t::position (hb_font_t *font, hb_buffer_t *buffer) const
+{
+  const unsigned int table_index = 1;
+  unsigned int i = 0;
+
+  for (unsigned int pause_index = 0; pause_index < pauses[table_index].len; pause_index++) {
+    const pause_map_t *pause = &pauses[table_index][pause_index];
+    for (; i < pause->num_lookups; i++)
+      hb_ot_layout_position_lookup_fast (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+
+    pause->callback.func (this, font, buffer, pause->callback.user_data);
+  }
+
+  for (; i < lookups[table_index].len; i++)
+    hb_ot_layout_position_lookup_fast (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 }
 
 void hb_ot_map_t::substitute_closure (hb_face_t *face,

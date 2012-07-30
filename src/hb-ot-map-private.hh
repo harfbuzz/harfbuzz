@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009,2010  Red Hat, Inc.
- * Copyright © 2010,2011  Google, Inc.
+ * Copyright © 2010,2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -31,8 +31,7 @@
 
 #include "hb-buffer-private.hh"
 
-#include "hb-ot-layout.h"
-
+#include "hb-ot-layout-private.hh"
 
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
@@ -69,14 +68,9 @@ struct hb_ot_map_t
   inline hb_tag_t get_chosen_script (unsigned int table_index) const
   { return chosen_script[table_index]; }
 
-  inline void substitute (hb_face_t *face, hb_buffer_t *buffer) const
-  { apply (0, (hb_ot_map_t::apply_lookup_func_t) hb_ot_layout_substitute_lookup, face, buffer); }
-  inline void position (hb_font_t *font, hb_buffer_t *buffer) const
-  { apply (1, (hb_ot_map_t::apply_lookup_func_t) hb_ot_layout_position_lookup, font, buffer); }
-
-  HB_INTERNAL void substitute_closure (hb_face_t *face,
-				       hb_set_t *glyphs) const;
-
+  HB_INTERNAL void substitute_closure (hb_face_t *face, hb_set_t *glyphs) const;
+  HB_INTERNAL void substitute (hb_face_t *face, hb_buffer_t *buffer) const;
+  HB_INTERNAL void position (hb_font_t *font, hb_buffer_t *buffer) const;
 
   inline void finish (void) {
     features.finish ();
@@ -119,20 +113,10 @@ struct hb_ot_map_t
     pause_callback_t callback;
   };
 
-  typedef hb_bool_t (*apply_lookup_func_t) (void *face_or_font,
-					    hb_buffer_t  *buffer,
-					    unsigned int  lookup_index,
-					    hb_mask_t     mask);
-
   HB_INTERNAL void add_lookups (hb_face_t    *face,
 				unsigned int  table_index,
 				unsigned int  feature_index,
 				hb_mask_t     mask);
-
-  HB_INTERNAL void apply (unsigned int table_index,
-			  hb_ot_map_t::apply_lookup_func_t apply_lookup_func,
-			  void *face_or_font,
-			  hb_buffer_t *buffer) const;
 
   hb_mask_t global_mask;
 

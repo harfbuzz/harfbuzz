@@ -1,5 +1,6 @@
 /*
  * Copyright © 2007,2008,2009  Red Hat, Inc.
+ * Copyright © 2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,6 +23,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
 #ifndef HB_OT_LAYOUT_PRIVATE_HH
@@ -33,8 +35,12 @@
 
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
-#include "hb-ot-shape-complex-private.hh"
 
+
+/* buffer var allocations, used during the GSUB/GPOS processing */
+#define props_cache()		var1.u16[1] /* GSUB/GPOS glyph_props cache */
+#define syllable()		var2.u8[0] /* GSUB/GPOS shaping boundaries */
+#define lig_props()		var2.u8[1] /* GSUB/GPOS ligature tracking */
 
 #define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
 
@@ -140,6 +146,25 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
     lig_id = allocate_lig_id (buffer); /* in case of overflow */
   return lig_id;
 }
+
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
+					   const hb_codepoint_t *glyphs,
+					   unsigned int          glyphs_length,
+					   unsigned int          lookup_index);
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_substitute_lookup_fast (hb_face_t    *face,
+				     hb_buffer_t  *buffer,
+				     unsigned int  lookup_index,
+				     hb_mask_t     mask);
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_position_lookup_fast (hb_font_t    *font,
+				   hb_buffer_t  *buffer,
+				   unsigned int  lookup_index,
+				   hb_mask_t     mask);
 
 
 /*

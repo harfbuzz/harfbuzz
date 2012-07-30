@@ -105,7 +105,7 @@ would_substitute (hb_codepoint_t *glyphs, unsigned int glyphs_count,
 					     lookup_indices);
 
     for (unsigned int i = 0; i < len; i++)
-      if (hb_ot_layout_would_substitute_lookup (face, glyphs, glyphs_count, lookup_indices[i]))
+      if (hb_ot_layout_would_substitute_lookup_fast (face, glyphs, glyphs_count, lookup_indices[i]))
 	return true;
 
     offset += len;
