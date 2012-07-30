@@ -96,82 +96,6 @@ struct hb_would_apply_context_t
 	hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", this, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
 
 
-
-static inline hb_bool_t
-_hb_ot_layout_match_properties_mark (hb_face_t      *face,
-				     hb_codepoint_t  glyph,
-				     unsigned int    glyph_props,
-				     unsigned int    lookup_props)
-{
-  /* If using mark filtering sets, the high short of
-   * lookup_props has the set index.
-   */
-  if (lookup_props & LookupFlag::UseMarkFilteringSet)
-    return hb_ot_layout_from_face (face)->gdef->mark_set_covers (lookup_props >> 16, glyph);
-
-  /* The second byte of lookup_props has the meaning
-   * "ignore marks of attachment type different than
-   * the attachment type specified."
-   */
-  if (lookup_props & LookupFlag::MarkAttachmentType)
-    return (lookup_props & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
-
-  return true;
-}
-
-static inline hb_bool_t
-_hb_ot_layout_match_properties (hb_face_t      *face,
-				hb_codepoint_t  glyph,
-				unsigned int    glyph_props,
-				unsigned int    lookup_props)
-{
-  /* Not covered, if, for example, glyph class is ligature and
-   * lookup_props includes LookupFlags::IgnoreLigatures
-   */
-  if (glyph_props & lookup_props & LookupFlag::IgnoreFlags)
-    return false;
-
-  if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-    return _hb_ot_layout_match_properties_mark (face, glyph, glyph_props, lookup_props);
-
-  return true;
-}
-
-static inline hb_bool_t
-_hb_ot_layout_check_glyph_property (hb_face_t    *face,
-				    hb_glyph_info_t *ginfo,
-				    unsigned int  lookup_props,
-				    unsigned int *property_out)
-{
-  unsigned int property;
-
-  property = ginfo->props_cache();
-  *property_out = property;
-
-  return _hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
-}
-
-static inline hb_bool_t
-_hb_ot_layout_skip_mark (hb_face_t    *face,
-			 hb_glyph_info_t *ginfo,
-			 unsigned int  lookup_props,
-			 unsigned int *property_out)
-{
-  unsigned int property;
-
-  property = ginfo->props_cache();
-  if (property_out)
-    *property_out = property;
-
-  /* If it's a mark, skip it if we don't accept it. */
-  if (unlikely (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
-    return !_hb_ot_layout_match_properties (face, ginfo->codepoint, property, lookup_props);
-
-  /* If not a mark, don't skip. */
-  return false;
-}
-
-
 struct hb_apply_context_t
 {
   hb_font_t *font;
@@ -236,7 +160,7 @@ struct hb_apply_context_t
 	if (has_no_chance ())
 	  return false;
 	idx++;
-      } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->info[idx], lookup_props, property_out));
+      } while (c->should_skip_mark (&c->buffer->info[idx], lookup_props, property_out));
       num_items--;
       return (c->buffer->info[idx].mask & mask) && (!syllable || syllable == c->buffer->info[idx].syllable ());
     }
@@ -285,7 +209,7 @@ struct hb_apply_context_t
 	if (has_no_chance ())
 	  return false;
 	idx--;
-      } while (_hb_ot_layout_skip_mark (c->face, &c->buffer->out_info[idx], lookup_props, property_out));
+      } while (c->should_skip_mark (&c->buffer->out_info[idx], lookup_props, property_out));
       num_items--;
       return (c->buffer->out_info[idx].mask & mask) && (!syllable || syllable == c->buffer->out_info[idx].syllable ());
     }
@@ -302,10 +226,80 @@ struct hb_apply_context_t
     uint8_t syllable;
   };
 
-  inline bool should_mark_skip_current_glyph (void) const
+  inline bool
+  match_properties_mark (hb_codepoint_t  glyph,
+			 unsigned int    glyph_props,
+			 unsigned int    lookup_props) const
+  {
+    /* If using mark filtering sets, the high short of
+     * lookup_props has the set index.
+     */
+    if (lookup_props & LookupFlag::UseMarkFilteringSet)
+      return gdef.mark_set_covers (lookup_props >> 16, glyph);
+
+    /* The second byte of lookup_props has the meaning
+     * "ignore marks of attachment type different than
+     * the attachment type specified."
+     */
+    if (lookup_props & LookupFlag::MarkAttachmentType)
+      return (lookup_props & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
+
+    return true;
+  }
+
+  inline bool
+  match_properties (hb_codepoint_t  glyph,
+		    unsigned int    glyph_props,
+		    unsigned int    lookup_props) const
+  {
+    /* Not covered, if, for example, glyph class is ligature and
+     * lookup_props includes LookupFlags::IgnoreLigatures
+     */
+    if (glyph_props & lookup_props & LookupFlag::IgnoreFlags)
+      return false;
+
+    if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+      return match_properties_mark (glyph, glyph_props, lookup_props);
+
+    return true;
+  }
+
+  inline bool
+  check_glyph_property (hb_glyph_info_t *info,
+			unsigned int  lookup_props,
+			unsigned int *property_out) const
   {
     unsigned int property;
-    return _hb_ot_layout_skip_mark (face, &buffer->cur(), lookup_props, &property);
+
+    property = info->props_cache();
+    *property_out = property;
+
+    return match_properties (info->codepoint, property, lookup_props);
+  }
+
+  inline bool
+  should_skip_mark (hb_glyph_info_t *info,
+		   unsigned int  lookup_props,
+		   unsigned int *property_out) const
+  {
+    unsigned int property;
+
+    property = info->props_cache();
+    if (property_out)
+      *property_out = property;
+
+    /* If it's a mark, skip it if we don't accept it. */
+    if (unlikely (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+      return !match_properties (info->codepoint, property, lookup_props);
+
+    /* If not a mark, don't skip. */
+    return false;
+  }
+
+
+  inline bool should_mark_skip_current_glyph (void) const
+  {
+    return should_skip_mark (&buffer->cur(), lookup_props, NULL);
   }
 
   inline void set_class (hb_codepoint_t glyph_index, unsigned int class_guess) const

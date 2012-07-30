@@ -1515,7 +1515,7 @@ struct PosLookup : Lookup
   {
     unsigned int lookup_type = get_type ();
 
-    if (!_hb_ot_layout_check_glyph_property (c->face, &c->buffer->cur(), c->lookup_props, &c->property))
+    if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 
     unsigned int count = get_subtable_count ();
