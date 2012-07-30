@@ -92,11 +92,6 @@ _hb_ot_layout_skip_mark (hb_face_t    *face,
  * to marks that belong to the same component of a ligature in MarkMarPos.
  */
 static inline void
-set_lig_props (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
-{
-  info.lig_props() = (lig_id << 5) | (lig_comp & 0x0F);
-}
-static inline void
 set_lig_props_for_ligature (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_num_comps)
 {
   info.lig_props() = (lig_id << 5) | 0x10 | (lig_num_comps & 0x0F);
@@ -128,7 +123,8 @@ get_lig_comp (const hb_glyph_info_t &info)
 static inline unsigned int
 get_lig_num_comps (const hb_glyph_info_t &info)
 {
-  if (info.lig_props() & 0x10)
+  if ((info.props_cache() & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE) &&
+      info.lig_props() & 0x10)
     return info.lig_props() & 0x0F;
   else
     return 1;

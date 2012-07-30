@@ -485,8 +485,45 @@ struct Ligature
     hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
-    bool first_was_mark = (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
-    bool found_non_mark = false;
+    /*
+     * This is perhaps the trickiest part of GSUB...  Remarks:
+     *
+     * - If all components of the ligature were marks, we call this a mark ligature.
+     *
+     * - If there is no GDEF, and the ligature is NOT a mark ligature, we categorize
+     *   it as a ligature glyph.  Though, really, this will not really be used...
+     *
+     * - If it *is* a mark ligature, we don't allocate a new ligature id, and leave
+     *   the ligature to keep its old ligature id.  This will allow it to attach to
+     *   a base ligature in GPOS.  Eg. if the sequence is: LAM,LAM,SHADDA,FATHA,HEH,
+     *   and LAM,LAM,HEH for a ligature, they will leave SHADDA and FATHA wit a
+     *   ligature id and component value of 2.  Then if SHADDA,FATHA form a ligature
+     *   later, we don't want them to lose their ligature id/component, otherwise
+     *   GPOS will fail to correctly position the mark ligature on top of the
+     *   LAM,LAM,HEH ligature.  See:
+     *     https://bugzilla.gnome.org/show_bug.cgi?id=676343
+     *
+     * - If a ligature is formed of components that some of which are also ligatures
+     *   themselves, and those ligature components had marks attached to *their*
+     *   components, we have to attach the marks to the new ligature component
+     *   positions!  Now *that*'s tricky!  And these marks may be following the
+     *   last component of the whole sequence, so we should loop forward looking
+     *   for them and update them.
+     *
+     *   Eg. the sequence is LAM,LAM,SHADDA,FATHA,HEH, and the font first forms a
+     *   'clig' ligature of LAM,HEH, leaving the SHADDA and FATHA with a ligature
+     *   id and component == 1.  Now, during 'liga', the LAM and the LAM-HEH ligature
+     *   form a LAM-LAM-HEH ligature.  We need to reassign the SHADDA and FATHA to
+     *   the new ligature with a component value of 2.
+     *
+     *   This in fact happened to a font...  See:
+     *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
+     */
+
+    bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+
+    unsigned int total_component_count = 0;
+    total_component_count += get_lig_num_comps (c->buffer->cur());
 
     for (unsigned int i = 1; i < count; i++)
     {
@@ -494,54 +531,54 @@ struct Ligature
 
       if (!skippy_iter.next (&property)) return TRACE_RETURN (false);
 
-      found_non_mark |= !(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
-
       if (likely (c->buffer->info[skippy_iter.idx].codepoint != component[i])) return TRACE_RETURN (false);
+
+      is_mark_ligature = is_mark_ligature && (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+      total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
     }
 
-    bool is_a_mark_ligature = first_was_mark && !found_non_mark;
+    /* Deal, we are forming the ligature. */
+    c->buffer->merge_clusters (c->buffer->idx, skippy_iter.idx + 1);
 
-    unsigned int klass = is_a_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
+    unsigned int klass = is_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
+    unsigned int lig_id = is_mark_ligature ? 0 : allocate_lig_id (c->buffer);
+    unsigned int last_lig_id = get_lig_id (c->buffer->cur());
+    unsigned int last_num_components = get_lig_num_comps (c->buffer->cur());
+    unsigned int components_so_far = last_num_components;
 
-    /* If it's a mark ligature, we should leave the lig_id / lig_comp alone such that
-     * the resulting mark ligature has the opportunity to attach to ligature components
-     * of it's base later on.  See for example:
-     * https://bugzilla.gnome.org/show_bug.cgi?id=676343
-     */
+    if (!is_mark_ligature)
+      set_lig_props_for_ligature (c->buffer->cur(), lig_id, total_component_count);
+    c->replace_glyph (ligGlyph, klass);
 
-    /* Allocate new ligature id */
-    unsigned int lig_id = is_a_mark_ligature ? 0 : allocate_lig_id (c->buffer);
-    if (!is_a_mark_ligature)
-      set_lig_props_for_ligature (c->buffer->cur(), lig_id, count);
-
-    if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
+    for (unsigned int i = 1; i < count; i++)
     {
-      hb_codepoint_t lig_glyph = ligGlyph;
-      c->replace_glyphs (count, 1, &lig_glyph, klass);
-    }
-    else
-    {
-      c->buffer->merge_clusters (c->buffer->idx, skippy_iter.idx + 1);
-      c->replace_glyph (ligGlyph);
-
-      /* Now we must do a second loop to copy the skipped glyphs to
-	 `out' and assign component values to it.  We start with the
-	 glyph after the first component.  Glyphs between component
-	 i and i+1 belong to component i.  Together with the lig_id
-	 value it is later possible to check whether a specific
-	 component value really belongs to a given ligature. */
-
-      for (unsigned int i = 1; i < count; i++)
+      while (c->should_mark_skip_current_glyph ())
       {
-	while (c->should_mark_skip_current_glyph ())
-	{
-	  if (!is_a_mark_ligature)
-	    set_lig_props_for_mark (c->buffer->cur(),  lig_id, i);
-	  c->buffer->next_glyph ();
+	if (!is_mark_ligature) {
+	  unsigned int new_lig_comp = components_so_far - last_num_components +
+				      MIN (MAX (get_lig_comp (c->buffer->cur()), 1), last_num_components);
+	  set_lig_props_for_mark (c->buffer->cur(), lig_id, new_lig_comp);
 	}
+	c->buffer->next_glyph ();
+      }
 
-	/* Skip the base glyph */
-	c->buffer->idx++;
+      last_lig_id = get_lig_id (c->buffer->cur());
+      last_num_components = get_lig_num_comps (c->buffer->cur());
+      components_so_far += last_num_components;
+
+      /* Skip the base glyph */
+      c->buffer->idx++;
+    }
+
+    if (!is_mark_ligature && last_lig_id) {
+      /* Re-adjust components for any marks following. */
+      for (unsigned int i = c->buffer->idx; i < c->buffer->len; i++) {
+	if (last_lig_id == get_lig_id (c->buffer->info[i])) {
+	  unsigned int new_lig_comp = components_so_far - last_num_components +
+				      MIN (MAX (get_lig_comp (c->buffer->info[i]), 1), last_num_components);
+	  set_lig_props_for_mark (c->buffer->info[i], lig_id, new_lig_comp);
+	} else
+	  break;
       }
     }
 
