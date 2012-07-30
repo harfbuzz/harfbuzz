@@ -499,11 +499,20 @@ struct Ligature
       if (likely (c->buffer->info[skippy_iter.idx].codepoint != component[i])) return TRACE_RETURN (false);
     }
 
-    unsigned int klass = first_was_mark && found_non_mark ? HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE : 0;
+    bool is_a_mark_ligature = first_was_mark && !found_non_mark;
+
+    unsigned int klass = is_a_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
+
+    /* If it's a mark ligature, we should leave the lig_id / lig_comp alone such that
+     * the resulting mark ligature has the opportunity to attach to ligature components
+     * of it's base later on.  See for example:
+     * https://bugzilla.gnome.org/show_bug.cgi?id=676343
+     */
 
     /* Allocate new ligature id */
-    unsigned int lig_id = allocate_lig_id (c->buffer);
-    set_lig_props (c->buffer->cur(), lig_id, 0);
+    unsigned int lig_id = is_a_mark_ligature ? 0 : allocate_lig_id (c->buffer);
+    if (!is_a_mark_ligature)
+      set_lig_props (c->buffer->cur(), lig_id, 0);
 
     if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
     {
@@ -526,7 +535,8 @@ struct Ligature
       {
 	while (c->should_mark_skip_current_glyph ())
 	{
-	  set_lig_props (c->buffer->cur(),  lig_id, i);
+	  if (!is_a_mark_ligature)
+	    set_lig_props (c->buffer->cur(),  lig_id, i);
 	  c->buffer->next_glyph ();
 	}
 
