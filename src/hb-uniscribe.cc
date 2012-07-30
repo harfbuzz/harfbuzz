@@ -58,13 +58,6 @@ DWORD GetFontData(
 
 HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, face)
 HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, font)
-static hb_bool_t
-hb_uniscribe_font_ensure (hb_font_t *font)
-{
-  hb_face_t *face = font->face;
-  return hb_uniscribe_shaper_face_data_ensure (face) &&
-         hb_uniscribe_shaper_font_data_ensure (font);
-}
 
 
 /*
@@ -103,8 +96,7 @@ _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
 void
 _hb_uniscribe_shaper_face_data_destroy (hb_uniscribe_shaper_face_data_t *data)
 {
-  if (data->fh)
-    RemoveFontMemResourceEx (data->fh);
+  RemoveFontMemResourceEx (data->fh);
   free (data);
 }
 
@@ -155,6 +147,8 @@ populate_log_font (LOGFONTW  *lf,
 hb_uniscribe_shaper_font_data_t *
 _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
 {
+  if (unlikely (!hb_uniscribe_shaper_face_data_ensure (font->face))) return NULL;
+
   hb_uniscribe_shaper_font_data_t *data = (hb_uniscribe_shaper_font_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_font_data_t));
   if (unlikely (!data))
     return NULL;
@@ -223,7 +217,7 @@ _hb_uniscribe_shaper_shape_plan_data_destroy (hb_uniscribe_shaper_shape_plan_dat
 LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font)
 {
-  if (unlikely (!hb_uniscribe_font_ensure (font)))
+  if (unlikely (!hb_uniscribe_shaper_font_data_ensure (font))) return NULL;
     return NULL;
   hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return &font_data->log_font;
@@ -232,8 +226,7 @@ hb_uniscribe_font_get_logfontw (hb_font_t *font)
 HFONT
 hb_uniscribe_font_get_hfont (hb_font_t *font)
 {
-  if (unlikely (!hb_uniscribe_font_ensure (font)))
-    return NULL;
+  if (unlikely (!hb_uniscribe_shaper_font_data_ensure (font))) return NULL;
   hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return font_data->hfont;
 }
