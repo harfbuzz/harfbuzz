@@ -79,8 +79,14 @@ _hb_ot_shape_complex_override_features_default (hb_ot_map_builder_t *map HB_UNUS
 }
 
 hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_default (void)
+_hb_ot_shape_complex_normalization_preference_default (const hb_segment_properties_t *props)
 {
+  switch ((hb_tag_t) props->script)
+  {
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_HANGUL:
+      return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL;
+  }
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 
@@ -108,9 +114,9 @@ _hb_ot_shape_complex_override_features_thai (hb_ot_map_builder_t *map HB_UNUSED,
 }
 
 hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_thai (void)
+_hb_ot_shape_complex_normalization_preference_thai (const hb_segment_properties_t *props HB_UNUSED)
 {
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL;
+  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 
 void

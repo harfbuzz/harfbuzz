@@ -206,7 +206,7 @@ _hb_ot_shape_complex_override_features_arabic (hb_ot_map_builder_t *map,
 }
 
 hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_arabic (void)
+_hb_ot_shape_complex_normalization_preference_arabic (const hb_segment_properties_t *props)
 {
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }

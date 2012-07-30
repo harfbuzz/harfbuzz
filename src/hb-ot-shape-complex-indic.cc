@@ -420,10 +420,8 @@ _hb_ot_shape_complex_override_features_indic (hb_ot_map_builder_t *map,
 
 
 hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_indic (void)
+_hb_ot_shape_complex_normalization_preference_indic (const hb_segment_properties_t *props)
 {
-  /* We want split matras decomposed by the common shaping logic. */
-  /* XXX sort this out after adding per-shaper normalizers. */
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 

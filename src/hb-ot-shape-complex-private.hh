@@ -270,23 +270,22 @@ hb_ot_shape_complex_override_features (hb_ot_complex_shaper_t shaper,
  * normalization_preference()
  *
  * Called during shape_execute().
- *
- * Shapers should return true if it prefers decomposed (NFD) input rather than precomposed (NFC).
  */
 
-typedef hb_ot_shape_normalization_mode_t hb_ot_shape_complex_normalization_preference_func_t (void);
+typedef hb_ot_shape_normalization_mode_t hb_ot_shape_complex_normalization_preference_func_t (const hb_segment_properties_t *props HB_UNUSED);
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
   HB_INTERNAL hb_ot_shape_complex_normalization_preference_func_t _hb_ot_shape_complex_normalization_preference_##name;
   HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
 
 static inline hb_ot_shape_normalization_mode_t
-hb_ot_shape_complex_normalization_preference (hb_ot_complex_shaper_t shaper)
+hb_ot_shape_complex_normalization_preference (hb_ot_complex_shaper_t shaper,
+					      const hb_segment_properties_t *props)
 {
   switch (shaper) {
     default:
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) \
-    case hb_ot_complex_shaper_##name:	return _hb_ot_shape_complex_normalization_preference_##name ();
+    case hb_ot_complex_shaper_##name:	return _hb_ot_shape_complex_normalization_preference_##name (props);
     HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_COMPLEX_SHAPER_IMPLEMENT
   }
