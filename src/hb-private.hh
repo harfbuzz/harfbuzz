@@ -442,6 +442,11 @@ struct hb_lockable_set_t
 
   inline void finish (lock_t &l)
   {
+    if (!items.len) {
+      /* No need for locking. */
+      items.finish ();
+      return;
+    }
     l.lock ();
     while (items.len) {
       item_t old = items[items.len - 1];
