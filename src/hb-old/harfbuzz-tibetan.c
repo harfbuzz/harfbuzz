@@ -113,6 +113,7 @@ static HB_Bool tibetan_shape_syllable(HB_Bool openType, HB_ShaperItem *item, HB_
 
     if (item->num_glyphs < item->item.length + 4) {
         item->num_glyphs = item->item.length + 4;
+        HB_FREE_STACKARRAY(reordered);
         return FALSE;
     }
 
