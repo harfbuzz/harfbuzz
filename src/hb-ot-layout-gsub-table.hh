@@ -511,7 +511,7 @@ struct Ligature
      *   for them and update them.
      *
      *   Eg. the sequence is LAM,LAM,SHADDA,FATHA,HEH, and the font first forms a
-     *   'clig' ligature of LAM,HEH, leaving the SHADDA and FATHA with a ligature
+     *   'calt' ligature of LAM,HEH, leaving the SHADDA and FATHA with a ligature
      *   id and component == 1.  Now, during 'liga', the LAM and the LAM-HEH ligature
      *   form a LAM-LAM-HEH ligature.  We need to reassign the SHADDA and FATHA to
      *   the new ligature with a component value of 2.
