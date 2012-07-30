@@ -39,7 +39,8 @@
 
 
 HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
-hb_bool_t
+
+static hb_bool_t
 hb_ot_layout_ensure (hb_face_t *face)
 {
   return hb_ot_shaper_face_data_ensure (face);
@@ -76,19 +77,19 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 static inline const GDEF&
 _get_gdef (hb_face_t *face)
 {
-  /* XXX ensure ot_layout, and speed up */
+  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GDEF);
   return *hb_ot_layout_from_face (face)->gdef;
 }
 static inline const GSUB&
 _get_gsub (hb_face_t *face)
 {
-  /* XXX ensure ot_layout, and speed up */
+  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GSUB);
   return *hb_ot_layout_from_face (face)->gsub;
 }
 static inline const GPOS&
 _get_gpos (hb_face_t *face)
 {
-  /* XXX ensure ot_layout, and speed up */
+  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GPOS);
   return *hb_ot_layout_from_face (face)->gpos;
 }
 
