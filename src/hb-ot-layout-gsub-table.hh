@@ -920,7 +920,7 @@ struct ReverseChainSingleSubstFormat1
 			 match_coverage, this,
 			 1))
     {
-      c->buffer->cur().codepoint = substitute[index];
+      c->replace_glyph_inplace (substitute[index]);
       c->buffer->idx--; /* Reverse! */
       return TRACE_RETURN (true);
     }

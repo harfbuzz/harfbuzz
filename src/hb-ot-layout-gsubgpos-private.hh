@@ -246,6 +246,12 @@ struct hb_apply_context_t
     set_klass_guess (klass_guess);
     buffer->replace_glyph (glyph_index);
   }
+  inline void replace_glyph_inplace (hb_codepoint_t glyph_index,
+				     unsigned int klass_guess = 0) const
+  {
+    set_klass_guess (klass_guess);
+    buffer->cur().codepoint = glyph_index;
+  }
 };
 
 
