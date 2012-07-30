@@ -1311,7 +1311,7 @@ struct GSUB : GSUBGPOS
 void
 GSUB::substitute_start (hb_face_t *face, hb_buffer_t *buffer)
 {
-  HB_BUFFER_ALLOCATE_VAR (buffer, props_cache);
+  HB_BUFFER_ALLOCATE_VAR (buffer, glyph_props);
   HB_BUFFER_ALLOCATE_VAR (buffer, lig_props);
   HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
 
@@ -1319,7 +1319,7 @@ GSUB::substitute_start (hb_face_t *face, hb_buffer_t *buffer)
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++) {
     buffer->info[i].lig_props() = buffer->info[i].syllable() = 0;
-    buffer->info[i].props_cache() = gdef.get_glyph_props (buffer->info[i].codepoint);
+    buffer->info[i].glyph_props() = gdef.get_glyph_props (buffer->info[i].codepoint);
   }
 }
 

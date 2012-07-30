@@ -1671,7 +1671,7 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, syllable);
   HB_BUFFER_DEALLOCATE_VAR (buffer, lig_props);
-  HB_BUFFER_DEALLOCATE_VAR (buffer, props_cache);
+  HB_BUFFER_DEALLOCATE_VAR (buffer, glyph_props);
 }
 
 

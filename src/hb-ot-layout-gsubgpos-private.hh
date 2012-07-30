@@ -271,7 +271,7 @@ struct hb_apply_context_t
   {
     unsigned int property;
 
-    property = info->props_cache();
+    property = info->glyph_props();
     *property_out = property;
 
     return match_properties (info->codepoint, property, lookup_props);
@@ -284,7 +284,7 @@ struct hb_apply_context_t
   {
     unsigned int property;
 
-    property = info->props_cache();
+    property = info->glyph_props();
     if (property_out)
       *property_out = property;
 
@@ -305,9 +305,9 @@ struct hb_apply_context_t
   inline void set_class (hb_codepoint_t glyph_index, unsigned int class_guess) const
   {
     if (likely (has_glyph_classes))
-      buffer->cur().props_cache() = gdef.get_glyph_props (glyph_index);
+      buffer->cur().glyph_props() = gdef.get_glyph_props (glyph_index);
     else if (class_guess)
-      buffer->cur().props_cache() = class_guess;
+      buffer->cur().glyph_props() = class_guess;
   }
 
   inline void output_glyph (hb_codepoint_t glyph_index,

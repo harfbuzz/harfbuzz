@@ -38,7 +38,7 @@
 
 
 /* buffer var allocations, used during the GSUB/GPOS processing */
-#define props_cache()		var1.u16[1] /* GSUB/GPOS glyph_props cache */
+#define glyph_props()		var1.u16[1] /* GDEF glyph properties */
 #define syllable()		var2.u8[0] /* GSUB/GPOS shaping boundaries */
 #define lig_props()		var2.u8[1] /* GSUB/GPOS ligature tracking */
 
@@ -122,7 +122,7 @@ get_lig_comp (const hb_glyph_info_t &info)
 static inline unsigned int
 get_lig_num_comps (const hb_glyph_info_t &info)
 {
-  if ((info.props_cache() & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE) && is_a_ligature (info))
+  if ((info.glyph_props() & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE) && is_a_ligature (info))
     return info.lig_props() & 0x0F;
   else
     return 1;
