@@ -183,8 +183,8 @@ struct hb_apply_context_t
   unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
   unsigned int debug_depth;
-  bool has_glyph_classes;
   const GDEF &gdef;
+  bool has_glyph_classes;
 
 
   hb_apply_context_t (hb_font_t *font_,
@@ -196,8 +196,10 @@ struct hb_apply_context_t
 			lookup_mask (lookup_mask_),
 			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0), property (0), debug_depth (0),
-			has_glyph_classes (hb_ot_layout_has_glyph_classes (face_)),
-			gdef (*hb_ot_layout_from_face (face_)->gdef /* XXX Unsafe dereference */) {}
+			gdef (hb_ot_layout_from_face (face_) &&
+			      !HB_SHAPER_DATA_IS_INVALID (hb_ot_layout_from_face (face_)) ?
+			      *hb_ot_layout_from_face (face_)->gdef : Null(GDEF)),
+			has_glyph_classes (gdef.has_glyph_classes ()) {}
 
   void set_lookup (const Lookup &l) {
     lookup_props = l.get_props ();
