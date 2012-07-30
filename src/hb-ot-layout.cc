@@ -42,17 +42,12 @@
 
 HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
 
-static hb_bool_t
-hb_ot_layout_ensure (hb_face_t *face)
-{
-  return hb_ot_shaper_face_data_ensure (face);
-}
-
-
 hb_ot_layout_t *
 _hb_ot_layout_create (hb_face_t *face)
 {
   hb_ot_layout_t *layout = (hb_ot_layout_t *) calloc (1, sizeof (hb_ot_layout_t));
+  if (unlikely (!layout))
+    return NULL;
 
   layout->gdef_blob = Sanitizer<GDEF>::sanitize (hb_face_reference_table (face, HB_OT_TAG_GDEF));
   layout->gdef = Sanitizer<GDEF>::lock_instance (layout->gdef_blob);
@@ -79,19 +74,19 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 static inline const GDEF&
 _get_gdef (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GDEF);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(GDEF);
   return *hb_ot_layout_from_face (face)->gdef;
 }
 static inline const GSUB&
 _get_gsub (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GSUB);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(GSUB);
   return *hb_ot_layout_from_face (face)->gsub;
 }
 static inline const GPOS&
 _get_gpos (hb_face_t *face)
 {
-  if (unlikely (!hb_ot_layout_ensure (face))) return Null(GPOS);
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return Null(GPOS);
   return *hb_ot_layout_from_face (face)->gpos;
 }
 
