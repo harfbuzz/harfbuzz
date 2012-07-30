@@ -215,7 +215,7 @@ struct Sequence
     unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE ? HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH : 0;
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++) {
-      set_lig_props (c->buffer->cur(), 0, i);
+      set_lig_props_for_component (c->buffer->cur(), i);
       c->output_glyph (substitute.array[i], klass);
     }
     c->buffer->skip_glyph ();
@@ -512,7 +512,7 @@ struct Ligature
     /* Allocate new ligature id */
     unsigned int lig_id = is_a_mark_ligature ? 0 : allocate_lig_id (c->buffer);
     if (!is_a_mark_ligature)
-      set_lig_props (c->buffer->cur(), lig_id, 0);
+      set_lig_props_for_ligature (c->buffer->cur(), lig_id, count);
 
     if (skippy_iter.idx < c->buffer->idx + count) /* No input glyphs skipped */
     {
@@ -536,7 +536,7 @@ struct Ligature
 	while (c->should_mark_skip_current_glyph ())
 	{
 	  if (!is_a_mark_ligature)
-	    set_lig_props (c->buffer->cur(),  lig_id, i);
+	    set_lig_props_for_mark (c->buffer->cur(),  lig_id, i);
 	  c->buffer->next_glyph ();
 	}
 
