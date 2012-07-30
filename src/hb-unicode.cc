@@ -369,6 +369,14 @@ _hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
      * Uniscribe does this. */
     c = 104;
   }
+  else if (unlikely (hb_in_range<hb_codepoint_t> (unicode, 0x0C55, 0x0C56)))
+  {
+    /* Telugu length marks.
+     * These are the only matras in the main Indic script range that have
+     * a non-zero ccc.  That makes them reorder with the Halant that is
+     * ccc=9.  Just zero them, we don't need them in our Indic shaper. */
+    c = 0;
+  }
 
   return c;
 }
