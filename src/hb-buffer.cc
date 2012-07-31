@@ -134,6 +134,7 @@ hb_buffer_t::get_scratch_buffer (unsigned int *size)
 }
 
 
+
 /* HarfBuzz-Internal API */
 
 void
@@ -234,12 +235,13 @@ hb_buffer_t::swap_buffers (void)
   idx = 0;
 }
 
+
 void
 hb_buffer_t::replace_glyphs (unsigned int num_in,
 			     unsigned int num_out,
 			     const uint32_t *glyph_data)
 {
-  if (!make_room_for (num_in, num_out)) return;
+  if (unlikely (!make_room_for (num_in, num_out))) return;
 
   merge_clusters (idx, idx + num_in);
 
@@ -259,7 +261,7 @@ hb_buffer_t::replace_glyphs (unsigned int num_in,
 void
 hb_buffer_t::output_glyph (hb_codepoint_t glyph_index)
 {
-  if (!make_room_for (0, 1)) return;
+  if (unlikely (!make_room_for (0, 1))) return;
 
   out_info[out_len] = info[idx];
   out_info[out_len].codepoint = glyph_index;
@@ -270,7 +272,7 @@ hb_buffer_t::output_glyph (hb_codepoint_t glyph_index)
 void
 hb_buffer_t::copy_glyph (void)
 {
-  if (!make_room_for (0, 1)) return;
+  if (unlikely (!make_room_for (0, 1))) return;
 
   out_info[out_len] = info[idx];
 
@@ -280,9 +282,10 @@ hb_buffer_t::copy_glyph (void)
 void
 hb_buffer_t::replace_glyph (hb_codepoint_t glyph_index)
 {
-  if (!make_room_for (1, 1)) return;
-
-  out_info[out_len] = info[idx];
+  if (unlikely (out_info != info || out_len != idx)) {
+    if (unlikely (!make_room_for (1, 1))) return;
+    out_info[out_len] = info[idx];
+  }
   out_info[out_len].codepoint = glyph_index;
 
   idx++;
@@ -294,19 +297,16 @@ hb_buffer_t::next_glyph (void)
 {
   if (have_output)
   {
-    if (out_info != info)
-    {
-      if (unlikely (!ensure (out_len + 1))) return;
+    if (unlikely (out_info != info || out_len != idx)) {
+      if (unlikely (!make_room_for (1, 1))) return;
       out_info[out_len] = info[idx];
     }
-    else if (out_len != idx)
-      out_info[out_len] = info[idx];
-
     out_len++;
   }
 
   idx++;
 }
+
 
 void
 hb_buffer_t::set_masks (hb_mask_t    value,
