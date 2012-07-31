@@ -89,8 +89,11 @@ compare_codepoint (const void *pa, const void *pb)
 }
 
 static bool
-would_substitute (hb_codepoint_t *glyphs, unsigned int glyphs_count,
-		  hb_tag_t feature_tag, hb_ot_map_t *map, hb_face_t *face)
+would_substitute (hb_codepoint_t    *glyphs,
+		  unsigned int       glyphs_count,
+		  hb_tag_t           feature_tag,
+		  const hb_ot_map_t *map,
+		  hb_face_t         *face)
 {
   unsigned int lookup_indices[32];
   unsigned int offset, len;
@@ -115,7 +118,9 @@ would_substitute (hb_codepoint_t *glyphs, unsigned int glyphs_count,
 }
 
 static indic_position_t
-consonant_position (hb_codepoint_t u, hb_ot_map_t *map, hb_font_t *font)
+consonant_position (hb_codepoint_t     u,
+		    const hb_ot_map_t *map,
+		    hb_font_t         *font)
 {
   if ((u & ~0x007F) == 0x1780)
     return POS_BELOW_C; /* In Khmer coeng model, all are subjoining. */
@@ -232,7 +237,9 @@ is_halant_or_coeng (const hb_glyph_info_t &info)
 }
 
 static inline void
-set_indic_properties (hb_glyph_info_t &info, hb_ot_map_t *map, hb_font_t *font)
+set_indic_properties (hb_glyph_info_t   &info,
+		      const hb_ot_map_t *map,
+		      hb_font_t         *font)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = get_indic_categories (u);
@@ -387,9 +394,10 @@ final_reordering (const hb_ot_map_t *map,
 		  hb_buffer_t *buffer,
 		  void *user_data HB_UNUSED);
 
-void
-_hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map,
-					     const hb_segment_properties_t *props HB_UNUSED)
+static void
+collect_features_indic (const hb_ot_complex_shaper_t  *shaper,
+			hb_ot_map_builder_t           *map,
+			const hb_segment_properties_t *props)
 {
   map->add_bool_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
@@ -409,9 +417,10 @@ _hb_ot_shape_complex_collect_features_indic (hb_ot_map_builder_t *map,
     map->add_bool_feature (indic_other_features[i].tag, indic_other_features[i].is_global);
 }
 
-void
-_hb_ot_shape_complex_override_features_indic (hb_ot_map_builder_t *map,
-					      const hb_segment_properties_t *props HB_UNUSED)
+static void
+override_features_indic (const hb_ot_complex_shaper_t  *shaper,
+			 hb_ot_map_builder_t           *map,
+			 const hb_segment_properties_t *props)
 {
   /* Uniscribe does not apply 'kern'. */
   if (indic_options ().uniscribe_bug_compatible)
@@ -426,10 +435,11 @@ _hb_ot_shape_complex_normalization_preference_indic (const hb_segment_properties
 }
 
 
-void
-_hb_ot_shape_complex_setup_masks_indic (hb_ot_map_t *map,
-					hb_buffer_t *buffer,
-					hb_font_t *font)
+static void
+setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
+		   const hb_ot_map_t            *map,
+		   hb_buffer_t                  *buffer,
+		   hb_font_t                    *font)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
@@ -1235,4 +1245,11 @@ final_reordering (const hb_ot_map_t *map,
 }
 
 
-
+const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
+{
+  "indic",
+  collect_features_indic,
+  override_features_indic,
+  NULL, /* normalization_preference */
+  setup_masks_indic,
+};

@@ -49,9 +49,10 @@ static const hb_tag_t tibetan_features[] =
   HB_TAG_NONE
 };
 
-void
-_hb_ot_shape_complex_collect_features_default (hb_ot_map_builder_t *map HB_UNUSED,
-					       const hb_segment_properties_t *props)
+static void
+collect_features_default (const hb_ot_complex_shaper_t  *shaper,
+			  hb_ot_map_builder_t           *map,
+			  const hb_segment_properties_t *props)
 {
   const hb_tag_t *script_features = NULL;
 
@@ -72,14 +73,9 @@ _hb_ot_shape_complex_collect_features_default (hb_ot_map_builder_t *map HB_UNUSE
     map->add_bool_feature (*script_features);
 }
 
-void
-_hb_ot_shape_complex_override_features_default (hb_ot_map_builder_t *map HB_UNUSED,
-					        const hb_segment_properties_t *props HB_UNUSED)
-{
-}
-
-hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_default (const hb_segment_properties_t *props)
+static hb_ot_shape_normalization_mode_t
+normalization_preference_default (const hb_ot_complex_shaper_t  *shaper,
+				  const hb_segment_properties_t *props)
 {
   switch ((hb_tag_t) props->script)
   {
@@ -90,39 +86,23 @@ _hb_ot_shape_complex_normalization_preference_default (const hb_segment_properti
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 
-void
-_hb_ot_shape_complex_setup_masks_default (hb_ot_map_t *map HB_UNUSED,
-					  hb_buffer_t *buffer HB_UNUSED,
-					  hb_font_t *font HB_UNUSED)
+const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
 {
-}
-
+  "default",
+  collect_features_default,
+  NULL, /* override_features */
+  normalization_preference_default,
+  NULL, /* setup_masks */
+};
 
 
 /* Thai / Lao shaper */
 
-void
-_hb_ot_shape_complex_collect_features_thai (hb_ot_map_builder_t *map HB_UNUSED,
-					    const hb_segment_properties_t *props HB_UNUSED)
-{
-}
-
-void
-_hb_ot_shape_complex_override_features_thai (hb_ot_map_builder_t *map HB_UNUSED,
-					     const hb_segment_properties_t *props HB_UNUSED)
-{
-}
-
-hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_thai (const hb_segment_properties_t *props HB_UNUSED)
-{
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
-}
-
-void
-_hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
-				       hb_buffer_t *buffer,
-				       hb_font_t *font HB_UNUSED)
+static void
+setup_masks_thai (const hb_ot_complex_shaper_t *shaper,
+		  const hb_ot_map_t            *map,
+		  hb_buffer_t                  *buffer,
+		  hb_font_t                    *font)
 {
   /* The following is NOT specified in the MS OT Thai spec, however, it seems
    * to be what Uniscribe and other engines implement.  According to Eric Muller:
@@ -213,3 +193,12 @@ _hb_ot_shape_complex_setup_masks_thai (hb_ot_map_t *map HB_UNUSED,
   }
   buffer->swap_buffers ();
 }
+
+const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
+{
+  "thai",
+  NULL, /* collect_features */
+  NULL, /* override_features */
+  NULL, /* normalization_preference */
+  setup_masks_thai,
+};

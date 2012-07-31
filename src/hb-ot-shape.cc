@@ -73,7 +73,7 @@ hb_tag_t vertical_features[] = {
 struct hb_ot_shape_planner_t
 {
   hb_ot_map_builder_t map;
-  hb_ot_complex_shaper_t shaper;
+  const hb_ot_complex_shaper_t *shaper;
 
   hb_ot_shape_planner_t (void) : map () {}
   ~hb_ot_shape_planner_t (void) { map.finish (); }
@@ -118,7 +118,8 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       planner->map.add_bool_feature (array[i]); \
   } HB_STMT_END
 
-  hb_ot_shape_complex_collect_features (planner->shaper, &planner->map, props);
+  if (planner->shaper->collect_features)
+    planner->shaper->collect_features (planner->shaper, &planner->map, props);
 
   ADD_FEATURES (common_features);
 
@@ -127,7 +128,8 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   else
     ADD_FEATURES (vertical_features);
 
-  hb_ot_shape_complex_override_features (planner->shaper, &planner->map, props);
+  if (planner->shaper->override_features)
+    planner->shaper->override_features (planner->shaper, &planner->map, props);
 
 #undef ADD_FEATURES
 
@@ -233,7 +235,8 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   hb_mask_t global_mask = c->plan->map.get_global_mask ();
   c->buffer->reset_masks (global_mask);
 
-  hb_ot_shape_complex_setup_masks (c->plan->shaper, &c->plan->map, c->buffer, c->font);
+  if (c->plan->shaper->setup_masks)
+    c->plan->shaper->setup_masks (c->plan->shaper, &c->plan->map, c->buffer, c->font);
 
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {
@@ -493,8 +496,9 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   hb_ensure_native_direction (c->buffer);
 
   _hb_ot_shape_normalize (c->font, c->buffer,
-			  hb_ot_shape_complex_normalization_preference (c->plan->shaper,
-									&c->buffer->props));
+			  c->plan->shaper->normalization_preference ?
+			  c->plan->shaper->normalization_preference (c->plan->shaper, &c->buffer->props) :
+			  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT);
 
   hb_ot_shape_setup_masks (c);
 

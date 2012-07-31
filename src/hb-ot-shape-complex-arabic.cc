@@ -164,9 +164,10 @@ static const struct arabic_state_table_entry {
 
 
 
-void
-_hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map,
-					      const hb_segment_properties_t *props)
+static void
+collect_features_arabic (const hb_ot_complex_shaper_t  *shaper,
+			 hb_ot_map_builder_t           *map,
+			 const hb_segment_properties_t *props)
 {
   /* For Language forms (in ArabicOT speak), we do the iso/fina/medi/init together,
    * then rlig and calt each in their own stage.  This makes IranNastaliq's ALLAH
@@ -197,18 +198,6 @@ _hb_ot_shape_complex_collect_features_arabic (hb_ot_map_builder_t *map,
 
   /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
   map->add_bool_feature (HB_TAG('c','s','w','h'));
-}
-
-void
-_hb_ot_shape_complex_override_features_arabic (hb_ot_map_builder_t *map,
-					       const hb_segment_properties_t *props)
-{
-}
-
-hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_arabic (const hb_segment_properties_t *props)
-{
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 
 
@@ -246,10 +235,11 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
   buffer->swap_buffers ();
 }
 
-void
-_hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map,
-					 hb_buffer_t *buffer,
-					 hb_font_t *font)
+static void
+setup_masks_arabic (const hb_ot_complex_shaper_t *shaper,
+		    const hb_ot_map_t            *map,
+		    hb_buffer_t                  *buffer,
+		    hb_font_t                    *font)
 {
   unsigned int count = buffer->len;
   unsigned int prev = 0, state = 0;
@@ -302,4 +292,11 @@ _hb_ot_shape_complex_setup_masks_arabic (hb_ot_map_t *map,
   HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
 }
 
-
+const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
+{
+  "arabic",
+  collect_features_arabic,
+  NULL, /* override_features */
+  NULL, /* normalization_preference */
+  setup_masks_arabic,
+};
