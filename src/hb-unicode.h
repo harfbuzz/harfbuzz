@@ -79,6 +79,10 @@ typedef enum
 
 /* hb_unicode_combining_class_t */
 
+/* Note: newer versions of Unicode may add new values.  Clients should be ready to handle
+ * any value in the 0..254 range being returned from hb_unicode_combining_class().
+ */
+
 /* Unicode Character Database property: Canonical_Combining_Class (ccc) */
 typedef enum
 {

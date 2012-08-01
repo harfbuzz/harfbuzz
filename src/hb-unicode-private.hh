@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009  Red Hat, Inc.
  * Copyright © 2011  Codethink Limited
- * Copyright © 2010,2011  Google, Inc.
+ * Copyright © 2010,2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -37,6 +37,7 @@
 #include "hb-object-private.hh"
 
 
+extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
 
 /*
  * hb_unicode_funcs_t
@@ -143,8 +144,11 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   }
 
 
-  HB_INTERNAL unsigned int
-  modified_combining_class (hb_codepoint_t unicode);
+  unsigned int
+  modified_combining_class (hb_codepoint_t unicode)
+  {
+    return _hb_modified_combining_class[combining_class (unicode)];
+  }
 
   inline hb_bool_t
   is_variation_selector (hb_codepoint_t unicode)
