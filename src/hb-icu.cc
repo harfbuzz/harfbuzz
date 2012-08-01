@@ -207,7 +207,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			  hb_codepoint_t     *b,
 			  void               *user_data HB_UNUSED)
 {
-  UChar utf16[2], normalized[20];
+  UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
   int len;
   hb_bool_t ret, err;
   UErrorCode icu_err;
@@ -269,6 +269,40 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   }
 
   return ret;
+}
+
+static unsigned int
+hb_icu_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
+					hb_codepoint_t      u,
+					hb_codepoint_t     *decomposed,
+					void               *user_data HB_UNUSED)
+{
+  UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
+  gint len;
+  int32_t utf32_len;
+  hb_bool_t err;
+  UErrorCode icu_err;
+
+  /* Copy @u into a UTF-16 array to be passed to ICU. */
+  len = 0;
+  err = FALSE;
+  U16_APPEND (utf16, len, ARRAY_LENGTH (utf16), u, err);
+  if (err)
+    return 0;
+
+  /* Normalise the codepoint using NFKD mode. */
+  icu_err = U_ZERO_ERROR;
+  len = unorm_normalize (utf16, len, UNORM_NFKD, 0, normalized, ARRAY_LENGTH (normalized), &icu_err);
+  if (icu_err)
+    return 0;
+
+  /* Convert the decomposed form from UTF-16 to UTF-32. */
+  icu_err = U_ZERO_ERROR;
+  u_strToUTF32 ((UChar32*) decomposed, HB_UNICODE_MAX_DECOMPOSITION_LEN, &utf32_len, normalized, len, &icu_err);
+  if (icu_err)
+    return 0;
+
+  return utf32_len;
 }
 
 

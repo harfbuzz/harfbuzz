@@ -50,6 +50,7 @@
   HB_UNICODE_FUNC_IMPLEMENT (script) \
   HB_UNICODE_FUNC_IMPLEMENT (compose) \
   HB_UNICODE_FUNC_IMPLEMENT (decompose) \
+  HB_UNICODE_FUNC_IMPLEMENT (decompose_compatibility) \
   /* ^--- Add new callbacks here */
 
 /* Simple callbacks are those taking a hb_codepoint_t and returning a hb_codepoint_t */

@@ -99,6 +99,15 @@ hb_unicode_decompose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 }
 
 
+static unsigned int
+hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED,
+					hb_codepoint_t      u          HB_UNUSED,
+					hb_codepoint_t     *decomposed HB_UNUSED,
+					void               *user_data  HB_UNUSED)
+{
+  return 0;
+}
+
 
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default (void)
@@ -312,6 +321,23 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
   return ufuncs->func.decompose (ufuncs, ab, a, b, ufuncs->user_data.decompose);
 }
 
+unsigned int
+hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
+				    hb_codepoint_t      u,
+				    hb_codepoint_t     *decomposed)
+{
+  unsigned int ret = ufuncs->func.decompose_compatibility (ufuncs, u,
+							   decomposed,
+							   ufuncs->user_data.decompose_compatibility);
+  if (ret == 1 && u == decomposed[0]) {
+    decomposed[0] = 0;
+    return 0;
+  }
+
+  decomposed[ret] = 0;
+
+  return ret;
+}
 
 
 unsigned int
@@ -380,4 +406,3 @@ _hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
 
   return c;
 }
-

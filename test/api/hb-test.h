@@ -33,6 +33,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 HB_BEGIN_DECLS
 

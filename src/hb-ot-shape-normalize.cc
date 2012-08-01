@@ -62,7 +62,8 @@
  *     knowledge too.  We need to provide assistance to the itemizer.
  *
  *   - When a font does not support a character but supports its decomposition,
- *     well, use the decomposition.
+ *     well, use the decomposition (preferring the canonical decomposition, but
+ *     falling back to the compatibility decomposition if necessary).
  *
  *   - The Indic shaper requests decomposed output.  This will handle splitting
  *     matra for the Indic shaper.
@@ -111,29 +112,45 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
   return false;
 }
 
-static void
-decompose_current_glyph (hb_font_t *font, hb_buffer_t *buffer,
-			 bool shortest)
+static bool
+decompose_compatibility (hb_font_t *font, hb_buffer_t *buffer,
+			 hb_codepoint_t u)
 {
-  if (decompose (font, buffer, shortest, buffer->cur().codepoint))
-    buffer->skip_glyph ();
-  else
-    buffer->next_glyph ();
+  unsigned int len, i;
+  hb_codepoint_t decomposed[HB_UNICODE_MAX_DECOMPOSITION_LEN];
+
+  len = hb_unicode_decompose_compatibility (buffer->unicode, u, decomposed);
+  if (!len)
+    return false;
+
+  hb_codepoint_t glyph;
+  for (i = 0; i < len; i++)
+    if (!hb_font_get_glyph (font, decomposed[i], 0, &glyph))
+      return false;
+
+  for (i = 0; i < len; i++)
+    output_glyph (buffer, decomposed[i]);
+
+  return true;
 }
 
 static void
-decompose_single_char_cluster (hb_font_t *font, hb_buffer_t *buffer,
-			       bool will_recompose)
+decompose_current_character (hb_font_t *font, hb_buffer_t *buffer,
+			     bool shortest)
 {
   hb_codepoint_t glyph;
 
-  /* If recomposing and font supports this, we're good to go */
-  if (will_recompose && hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph)) {
+  /* Kind of a cute waterfall here... */
+  if (shortest && hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph))
     buffer->next_glyph ();
-    return;
-  }
-
-  decompose_current_glyph (font, buffer, will_recompose);
+  else if (decompose (font, buffer, shortest, buffer->cur().codepoint))
+    buffer->skip_glyph ();
+  else if (!shortest && hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph))
+    buffer->next_glyph ();
+  else if (decompose_compatibility (font, buffer, buffer->cur().codepoint))
+    buffer->skip_glyph ();
+  else
+    buffer->next_glyph ();
 }
 
 static void
@@ -149,7 +166,7 @@ decompose_multi_char_cluster (hb_font_t *font, hb_buffer_t *buffer,
     }
 
   while (buffer->idx < end)
-    decompose_current_glyph (font, buffer, false);
+    decompose_current_character (font, buffer, false);
 }
 
 static int
@@ -188,7 +205,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
         break;
 
     if (buffer->idx + 1 == end)
-      decompose_single_char_cluster (font, buffer, recompose);
+      decompose_current_character (font, buffer, recompose);
     else {
       decompose_multi_char_cluster (font, buffer, end);
       has_multichar_clusters = true;
