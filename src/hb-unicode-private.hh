@@ -55,7 +55,7 @@
 
 /* Simple callbacks are those taking a hb_codepoint_t and returning a hb_codepoint_t */
 #define HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE \
-  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, combining_class) \
+  HB_UNICODE_FUNC_IMPLEMENT (hb_unicode_combining_class_t, combining_class) \
   HB_UNICODE_FUNC_IMPLEMENT (unsigned int, eastasian_width) \
   HB_UNICODE_FUNC_IMPLEMENT (hb_unicode_general_category_t, general_category) \
   HB_UNICODE_FUNC_IMPLEMENT (hb_codepoint_t, mirroring) \

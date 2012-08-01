@@ -192,13 +192,13 @@ hb_glib_script_from_script (hb_script_t script)
 }
 
 
-static unsigned int
+static hb_unicode_combining_class_t
 hb_glib_unicode_combining_class (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 				 hb_codepoint_t      unicode,
 				 void               *user_data HB_UNUSED)
 
 {
-  return g_unichar_combining_class (unicode);
+  return (hb_unicode_combining_class_t) g_unichar_combining_class (unicode);
 }
 
 static unsigned int

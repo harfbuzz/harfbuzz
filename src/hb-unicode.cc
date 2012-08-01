@@ -38,12 +38,12 @@
  * hb_unicode_funcs_t
  */
 
-static unsigned int
+static hb_unicode_combining_class_t
 hb_unicode_combining_class_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 				hb_codepoint_t      unicode   HB_UNUSED,
 				void               *user_data HB_UNUSED)
 {
-  return 0;
+  return HB_UNICODE_COMBINING_CLASS_NOT_REORDERED;
 }
 
 static unsigned int
@@ -354,11 +354,11 @@ _hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
      */
     c = c == 33 ? 27 : c + 1;
   }
-  else if (unlikely (hb_in_range<int> (c, 10, 25)))
+  else if (unlikely (hb_in_range<int> (c, 10, 26)))
   {
     /* The equivalent fix for Hebrew is more complex.
      *
-     * We permute the "fixed-position" classes 10-25 into the order
+     * We permute the "fixed-position" classes 10-26 into the order
      * described in the SBL Hebrew manual:
      *
      * http://www.sbl-site.org/Fonts/SBLHebrewUserManual1.5x.pdf
@@ -369,7 +369,7 @@ _hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
      * More details here:
      * https://bugzilla.mozilla.org/show_bug.cgi?id=662055
      */
-    static const int permuted_hebrew_classes[25 - 10 + 1] = {
+    static const int permuted_hebrew_classes[26 - 10 + 1] = {
       /* 10 sheva */        22,
       /* 11 hataf segol */  15,
       /* 12 hataf patah */  16,
@@ -386,6 +386,7 @@ _hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
       /* 23 rafe */         13,
       /* 24 shin dot */     10,
       /* 25 sin dot */      11,
+      /* 26 point varika */ 26,
     };
     c = permuted_hebrew_classes[c - 10];
   }
