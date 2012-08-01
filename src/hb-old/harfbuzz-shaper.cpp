@@ -63,6 +63,7 @@ static inline void positionCluster(HB_ShaperItem *item, int gfrom,  int glast)
         offsetBase += HB_FIXED_CONSTANT(4);
     else
         offsetBase += size;
+    offsetBase = -offsetBase;
     //qreal offsetBase = (size - 4) / 4 + qMin<qreal>(size, 4) + 1;
 //     qDebug("offset = %f", offsetBase);
 
