@@ -402,6 +402,18 @@ hb_position_default (hb_ot_shape_context_t *c)
 }
 
 static void
+hb_zero_mark_advances (hb_ot_shape_context_t *c)
+{
+  unsigned int count = c->buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    if (c->buffer->info[i].glyph_props() & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+    {
+      c->buffer->pos[i].x_advance = 0;
+      c->buffer->pos[i].y_advance = 0;
+    }
+}
+
+static void
 hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
 
@@ -428,6 +440,9 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 
     c->applied_position_complex = true;
   }
+
+  if (c->plan->shaper->zero_width_marks)
+    hb_zero_mark_advances (c);
 
   hb_ot_layout_position_finish (c->font, c->buffer);
 

@@ -299,4 +299,5 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   NULL, /* override_features */
   NULL, /* normalization_preference */
   setup_masks_arabic,
+  true, /* zero_width_marks */
 };
