@@ -428,13 +428,6 @@ override_features_indic (const hb_ot_complex_shaper_t  *shaper,
 }
 
 
-hb_ot_shape_normalization_mode_t
-_hb_ot_shape_complex_normalization_preference_indic (const hb_segment_properties_t *props)
-{
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
-}
-
-
 static void
 setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
 		   const hb_ot_map_t            *map,
