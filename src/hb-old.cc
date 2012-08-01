@@ -161,7 +161,16 @@ static HB_Fixed
 hb_old_getFontMetric (HB_Font old_font,
 		      HB_FontMetric metric)
 {
-  return 0; // TODO
+  hb_font_t *font = (hb_font_t *) old_font->userData;
+
+  switch (metric)
+  {
+    case HB_FontAscent:
+       return font->y_scale; /* XXX We don't have ascent data yet. */
+
+    default:
+      return 0;
+  }
 }
 
 static const HB_FontClass hb_old_font_class = {
