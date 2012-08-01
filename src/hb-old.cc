@@ -143,7 +143,18 @@ hb_old_getGlyphMetrics (HB_Font old_font,
 			HB_Glyph glyph,
 			HB_GlyphMetrics *metrics)
 {
-  // TODO
+  hb_font_t *font = (hb_font_t *) old_font->userData;
+
+  hb_glyph_extents_t extents;
+
+  hb_font_get_glyph_extents (font, glyph, &extents);
+
+  metrics->xOffset = extents.x_bearing;
+  metrics->yOffset = extents.y_bearing;
+  metrics->width   = extents.width;
+  metrics->height  = extents.height;
+  metrics->x       = hb_font_get_glyph_h_advance (font, glyph);
+  metrics->y       = 0;
 }
 
 static HB_Fixed
