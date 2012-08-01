@@ -439,12 +439,10 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
     }
 
     c->applied_position_complex = true;
-  }
-
-  if (c->plan->shaper->zero_width_marks)
+  } else
     hb_zero_mark_advances (c);
 
-  hb_ot_layout_position_finish (c->font, c->buffer);
+  hb_ot_layout_position_finish (c->font, c->buffer, c->plan->shaper->zero_width_attached_marks);
 
   return;
 }

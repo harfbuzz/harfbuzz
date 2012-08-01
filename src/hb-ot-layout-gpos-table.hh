@@ -1587,7 +1587,7 @@ struct GPOS : GSUBGPOS
   { return get_lookup (lookup_index).apply_string (c); }
 
   static inline void position_start (hb_font_t *font, hb_buffer_t *buffer);
-  static inline void position_finish (hb_font_t *font, hb_buffer_t *buffer);
+  static inline void position_finish (hb_font_t *font, hb_buffer_t *buffer, hb_bool_t zero_width_attahced_marks);
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
@@ -1620,15 +1620,17 @@ fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction
 }
 
 static void
-fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
+fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction, hb_bool_t zero_width_attached_marks)
 {
   if (likely (!(pos[i].attach_lookback())))
     return;
 
   unsigned int j = i - pos[i].attach_lookback();
 
-//  pos[i].x_advance = 0;
-//  pos[i].y_advance = 0;
+  if (zero_width_attached_marks) {
+    pos[i].x_advance = 0;
+    pos[i].y_advance = 0;
+  }
   pos[i].x_offset += pos[j].x_offset;
   pos[i].y_offset += pos[j].y_offset;
 
@@ -1655,7 +1657,7 @@ GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 }
 
 void
-GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
+GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer, hb_bool_t zero_width_attached_marks)
 {
   unsigned int len;
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &len);
@@ -1667,7 +1669,7 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 
   /* Handle attachments */
   for (unsigned int i = 0; i < len; i++)
-    fix_mark_attachment (pos, i, direction);
+    fix_mark_attachment (pos, i, direction, zero_width_attached_marks);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, syllable);
   HB_BUFFER_DEALLOCATE_VAR (buffer, lig_props);

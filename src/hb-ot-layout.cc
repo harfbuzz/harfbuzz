@@ -478,9 +478,9 @@ hb_ot_layout_position_lookup_fast (hb_font_t    *font,
 }
 
 void
-hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer)
+hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer, hb_bool_t zero_width_attached_marks)
 {
-  GPOS::position_finish (font, buffer);
+  GPOS::position_finish (font, buffer, zero_width_attached_marks);
 }
 
 

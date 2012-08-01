@@ -93,7 +93,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
   NULL, /* override_features */
   normalization_preference_default,
   NULL, /* setup_masks */
-  true, /* zero_width_marks */
+  true, /* zero_width_attached_marks */
 };
 
 
@@ -202,5 +202,5 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
   NULL, /* override_features */
   NULL, /* normalization_preference */
   setup_masks_thai,
-  true, /* zero_width_marks */
+  true, /* zero_width_attached_marks */
 };

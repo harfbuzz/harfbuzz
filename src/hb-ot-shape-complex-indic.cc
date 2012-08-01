@@ -1245,5 +1245,5 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   override_features_indic,
   NULL, /* normalization_preference */
   setup_masks_indic,
-  false, /* zero_width_marks */
+  false, /* zero_width_attached_marks */
 };
