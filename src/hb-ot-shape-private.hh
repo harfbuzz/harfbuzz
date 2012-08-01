@@ -43,9 +43,9 @@ struct hb_ot_shape_plan_t
 inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
-  info->unicode_props0() = ((unsigned int) hb_unicode_general_category (unicode, info->codepoint)) |
-			   (_hb_unicode_is_zero_width (info->codepoint) ? 0x80 : 0);
-  info->unicode_props1() = _hb_unicode_modified_combining_class (unicode, info->codepoint);
+  info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
+			   (unicode->is_zero_width (info->codepoint) ? 0x80 : 0);
+  info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
 }
 
 inline hb_unicode_general_category_t

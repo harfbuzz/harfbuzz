@@ -124,7 +124,7 @@ setup_masks_thai (const hb_ot_complex_shaper_t *shaper,
    *
    * Uniscribe also does so below-marks reordering.  Namely, it positions U+0E3A
    * after U+0E38 and U+0E39.  We do that by modifying the ccc for U+0E3A.
-   * See _hb_unicode_modified_combining_class ().  Lao does NOT have a U+0E3A
+   * See unicode->modified_combining_class ().  Lao does NOT have a U+0E3A
    * equivalent.
    */
 

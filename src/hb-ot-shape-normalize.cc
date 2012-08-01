@@ -95,7 +95,7 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
 {
   hb_codepoint_t a, b, glyph;
 
-  if (!hb_unicode_decompose (buffer->unicode, ab, &a, &b) ||
+  if (!buffer->unicode->decompose (ab, &a, &b) ||
       (b && !hb_font_get_glyph (font, b, 0, &glyph)))
     return false;
 
@@ -131,7 +131,7 @@ decompose_compatibility (hb_font_t *font, hb_buffer_t *buffer,
   unsigned int len, i;
   hb_codepoint_t decomposed[HB_UNICODE_MAX_DECOMPOSITION_LEN];
 
-  len = hb_unicode_decompose_compatibility (buffer->unicode, u, decomposed);
+  len = buffer->unicode->decompose_compatibility (u, decomposed);
   if (!len)
     return false;
 
@@ -171,7 +171,7 @@ decompose_multi_char_cluster (hb_font_t *font, hb_buffer_t *buffer,
 {
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   for (unsigned int i = buffer->idx; i < end; i++)
-    if (unlikely (_hb_unicode_is_variation_selector (buffer->info[i].codepoint))) {
+    if (unlikely (buffer->unicode->is_variation_selector (buffer->info[i].codepoint))) {
       while (buffer->idx < end)
 	buffer->next_glyph ();
       return;
@@ -281,10 +281,9 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
 	(starter == buffer->out_len - 1 ||
 	 _hb_glyph_info_get_modified_combining_class (&buffer->prev()) < _hb_glyph_info_get_modified_combining_class (&buffer->cur())) &&
 	/* And compose. */
-	hb_unicode_compose (buffer->unicode,
-			    buffer->out_info[starter].codepoint,
-			    buffer->cur().codepoint,
-			    &composed) &&
+	buffer->unicode->compose (buffer->out_info[starter].codepoint,
+				  buffer->cur().codepoint,
+				  &composed) &&
 	/* And the font has glyph for the composite. */
 	hb_font_get_glyph (font, composed, 0, &glyph))
     {

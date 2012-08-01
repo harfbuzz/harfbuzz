@@ -306,7 +306,7 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_codepoint_t codepoint = hb_unicode_mirroring (unicode, c->buffer->info[i].codepoint);
+    hb_codepoint_t codepoint = unicode->mirroring (c->buffer->info[i].codepoint);
     if (likely (codepoint == c->buffer->info[i].codepoint))
       c->buffer->info[i].mask |= rtlm_mask; /* XXX this should be moved to before setting user-feature masks */
     else
@@ -327,7 +327,7 @@ hb_map_glyphs (hb_font_t    *font,
 
   unsigned int count = buffer->len - 1;
   for (buffer->idx = 0; buffer->idx < count;) {
-    if (unlikely (_hb_unicode_is_variation_selector (buffer->cur(+1).codepoint))) {
+    if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
       hb_font_get_glyph (font, buffer->cur().codepoint, buffer->cur(+1).codepoint, &glyph);
       buffer->replace_glyphs (2, 1, &glyph);
     } else {

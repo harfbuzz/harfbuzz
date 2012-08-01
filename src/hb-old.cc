@@ -94,7 +94,7 @@ hb_old_convertStringToGlyphIndices (HB_Font old_font,
     u = string[i];
 
     if (rightToLeft)
-      u = hb_unicode_mirroring (hb_unicode_funcs_get_default (), u);
+      u = hb_unicode_funcs_get_default ()->mirroring (u);
 
     hb_font_get_glyph (font, u, 0, &u); /* TODO Variation selectors */
 

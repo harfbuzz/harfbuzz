@@ -143,6 +143,62 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   }
 
 
+  HB_INTERNAL unsigned int
+  modified_combining_class (hb_codepoint_t unicode);
+
+  inline hb_bool_t
+  is_variation_selector (hb_codepoint_t unicode)
+  {
+    return unlikely (hb_in_ranges<hb_codepoint_t> (unicode,
+						   0x180B, 0x180D, /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
+						   0xFE00, 0xFE0F, /* VARIATION SELECTOR-1..16 */
+						   0xE0100, 0xE01EF));  /* VARIATION SELECTOR-17..256 */
+  }
+
+  /* Zero-Width invisible characters:
+   *
+   *  00AD  SOFT HYPHEN
+   *  034F  COMBINING GRAPHEME JOINER
+   *
+   *  180E  MONGOLIAN VOWEL SEPARATOR
+   *
+   *  200B  ZERO WIDTH SPACE
+   *  200C  ZERO WIDTH NON-JOINER
+   *  200D  ZERO WIDTH JOINER
+   *  200E  LEFT-TO-RIGHT MARK
+   *  200F  RIGHT-TO-LEFT MARK
+   *
+   *  2028  LINE SEPARATOR
+   *
+   *  202A  LEFT-TO-RIGHT EMBEDDING
+   *  202B  RIGHT-TO-LEFT EMBEDDING
+   *  202C  POP DIRECTIONAL FORMATTING
+   *  202D  LEFT-TO-RIGHT OVERRIDE
+   *  202E  RIGHT-TO-LEFT OVERRIDE
+   *
+   *  2060  WORD JOINER
+   *  2061  FUNCTION APPLICATION
+   *  2062  INVISIBLE TIMES
+   *  2063  INVISIBLE SEPARATOR
+   *
+   *  FEFF  ZERO WIDTH NO-BREAK SPACE
+   */
+  inline hb_bool_t
+  is_zero_width (hb_codepoint_t ch)
+  {
+    return ((ch & ~0x007F) == 0x2000 && (hb_in_ranges<hb_codepoint_t> (ch,
+								       0x200B, 0x200F,
+								       0x202A, 0x202E,
+								       0x2060, 0x2064) ||
+					 (ch == 0x2028))) ||
+	    unlikely (ch == 0x0009 ||
+		      ch == 0x00AD ||
+		      ch == 0x034F ||
+		      ch == 0x180E ||
+		      ch == 0xFEFF);
+  }
+
+
   struct {
 #define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_func_t name;
     HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
@@ -175,61 +231,5 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #define _hb_unicode_funcs_default _hb_unicode_funcs_nil
 #endif
 
-
-HB_INTERNAL unsigned int
-_hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
-				      hb_codepoint_t      unicode);
-
-static inline hb_bool_t
-_hb_unicode_is_variation_selector (hb_codepoint_t unicode)
-{
-  return unlikely (hb_in_ranges<hb_codepoint_t> (unicode,
-						 0x180B, 0x180D, /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
-						 0xFE00, 0xFE0F, /* VARIATION SELECTOR-1..16 */
-						 0xE0100, 0xE01EF));  /* VARIATION SELECTOR-17..256 */
-}
-
-/* Zero-Width invisible characters:
- *
- *  00AD  SOFT HYPHEN
- *  034F  COMBINING GRAPHEME JOINER
- *
- *  180E  MONGOLIAN VOWEL SEPARATOR
- *
- *  200B  ZERO WIDTH SPACE
- *  200C  ZERO WIDTH NON-JOINER
- *  200D  ZERO WIDTH JOINER
- *  200E  LEFT-TO-RIGHT MARK
- *  200F  RIGHT-TO-LEFT MARK
- *
- *  2028  LINE SEPARATOR
- *
- *  202A  LEFT-TO-RIGHT EMBEDDING
- *  202B  RIGHT-TO-LEFT EMBEDDING
- *  202C  POP DIRECTIONAL FORMATTING
- *  202D  LEFT-TO-RIGHT OVERRIDE
- *  202E  RIGHT-TO-LEFT OVERRIDE
- *
- *  2060  WORD JOINER
- *  2061  FUNCTION APPLICATION
- *  2062  INVISIBLE TIMES
- *  2063  INVISIBLE SEPARATOR
- *
- *  FEFF  ZERO WIDTH NO-BREAK SPACE
- */
-static inline hb_bool_t
-_hb_unicode_is_zero_width (hb_codepoint_t ch)
-{
-  return ((ch & ~0x007F) == 0x2000 && (hb_in_ranges<hb_codepoint_t> (ch,
-								     0x200B, 0x200F,
-								     0x202A, 0x202E,
-								     0x2060, 0x2064) ||
-				       (ch == 0x2028))) ||
-	  unlikely (ch == 0x0009 ||
-		    ch == 0x00AD ||
-		    ch == 0x034F ||
-		    ch == 0x180E ||
-		    ch == 0xFEFF);
-}
 
 #endif /* HB_UNICODE_PRIVATE_HH */

@@ -106,7 +106,7 @@ _hb_fallback_shape (hb_shape_plan_t    *shape_plan,
 
   for (unsigned int i = 0; i < count; i++)
   {
-    if (_hb_unicode_is_zero_width (buffer->info[i].codepoint)) {
+    if (buffer->unicode->is_zero_width (buffer->info[i].codepoint)) {
       buffer->info[i].codepoint = space;
       buffer->pos[i].x_advance = 0;
       buffer->pos[i].y_advance = 0;

@@ -288,10 +288,9 @@ hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
 
 
 unsigned int
-_hb_unicode_modified_combining_class (hb_unicode_funcs_t *ufuncs,
-				      hb_codepoint_t      unicode)
+hb_unicode_funcs_t::modified_combining_class (hb_codepoint_t unicode)
 {
-  int c = hb_unicode_combining_class (ufuncs, unicode);
+  int c = combining_class (unicode);
 
   if (unlikely (hb_in_range<int> (c, 27, 33)))
   {
