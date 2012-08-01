@@ -25,8 +25,6 @@ General fixes:
 
 - Convert NBSP into space glyph.
 
-- Synthetic GDEF.
-
 - Add Pango backend?
 
 - Add ICUlayout backend?

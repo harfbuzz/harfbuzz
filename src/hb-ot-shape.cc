@@ -351,13 +351,29 @@ hb_substitute_default (hb_ot_shape_context_t *c)
 }
 
 static void
+hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
+{
+  unsigned int count = c->buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    c->buffer->info[i].glyph_props() = FLAG (_hb_glyph_info_get_general_category (&c->buffer->info[i])) &
+				       (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
+					FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
+					FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)) ?
+				       HB_OT_LAYOUT_GLYPH_CLASS_MARK :
+				       HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
+}
+
+
+static void
 hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
   hb_ot_layout_substitute_start (c->face, c->buffer);
 
-  if (hb_ot_layout_has_substitution (c->face)) {
+  if (!hb_ot_layout_has_glyph_classes (c->face))
+    hb_synthesize_glyph_classes (c);
+
+  if (hb_ot_layout_has_substitution (c->face))
     c->plan->map.substitute (c->face, c->buffer);
-  }
 
   hb_ot_layout_substitute_finish (c->face, c->buffer);
 
