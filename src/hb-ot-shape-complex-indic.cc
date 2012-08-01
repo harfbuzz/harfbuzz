@@ -130,10 +130,10 @@ consonant_position (hb_codepoint_t     u,
   hb_codepoint_t glyphs[2];
 
   unsigned int virama_pos = IS_OLD_INDIC_TAG (map->get_chosen_script (0)) ? 1 : 0;
-  hb_font_get_glyph (font, virama, 0, &glyphs[virama_pos]);
-  hb_font_get_glyph (font, u,      0, &glyphs[1-virama_pos]);
+  font->get_glyph (virama, 0, &glyphs[virama_pos]);
+  font->get_glyph (u,      0, &glyphs[1-virama_pos]);
 
-  hb_face_t *face = hb_font_get_face (font);
+  hb_face_t *face = font->face;
   if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('p','r','e','f'), map, face)) return POS_BELOW_C;
   if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('b','l','w','f'), map, face)) return POS_BELOW_C;
   if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('p','s','t','f'), map, face)) return POS_POST_C;

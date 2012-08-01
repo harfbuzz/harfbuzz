@@ -90,13 +90,13 @@ hb_old_convertStringToGlyphIndices (HB_Font old_font,
   {
     hb_codepoint_t u;
 
-    /* TODO Handle UTF-16.  Ugh */
+    /* XXX Handle UTF-16.  Ugh */
     u = string[i];
 
     if (rightToLeft)
       u = hb_unicode_funcs_get_default ()->mirroring (u);
 
-    hb_font_get_glyph (font, u, 0, &u); /* TODO Variation selectors */
+    font->get_glyph (u, 0, &u); /* TODO Variation selectors */
 
     glyphs[i] = u;
   }
@@ -115,7 +115,7 @@ hb_old_getGlyphAdvances (HB_Font old_font,
   hb_font_t *font = (hb_font_t *) old_font->userData;
 
   for (unsigned int i = 0; i < numGlyphs; i++)
-    advances[i] = hb_font_get_glyph_h_advance (font, glyphs[i]);
+    advances[i] = font->get_glyph_h_advance (glyphs[i]);
 }
 
 static HB_Bool
@@ -147,13 +147,13 @@ hb_old_getGlyphMetrics (HB_Font old_font,
 
   hb_glyph_extents_t extents;
 
-  hb_font_get_glyph_extents (font, glyph, &extents);
+  font->get_glyph_extents (glyph, &extents);
 
   metrics->x       = extents.x_bearing;
   metrics->y       = extents.y_bearing;
   metrics->width   = extents.width;
   metrics->height  = -extents.height;
-  metrics->xOffset = hb_font_get_glyph_h_advance (font, glyph);
+  metrics->xOffset = font->get_glyph_h_advance (glyph);
   metrics->yOffset = 0;
 }
 

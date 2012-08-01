@@ -328,15 +328,15 @@ hb_map_glyphs (hb_font_t    *font,
   unsigned int count = buffer->len - 1;
   for (buffer->idx = 0; buffer->idx < count;) {
     if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
-      hb_font_get_glyph (font, buffer->cur().codepoint, buffer->cur(+1).codepoint, &glyph);
+      font->get_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &glyph);
       buffer->replace_glyphs (2, 1, &glyph);
     } else {
-      hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph);
+      font->get_glyph (buffer->cur().codepoint, 0, &glyph);
       buffer->replace_glyph (glyph);
     }
   }
   if (likely (buffer->idx < buffer->len)) {
-    hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph);
+    font->get_glyph (buffer->cur().codepoint, 0, &glyph);
     buffer->replace_glyph (glyph);
   }
   buffer->swap_buffers ();
@@ -390,14 +390,14 @@ hb_position_default (hb_ot_shape_context_t *c)
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++) {
-    hb_font_get_glyph_advance_for_direction (c->font, c->buffer->info[i].codepoint,
-					     c->buffer->props.direction,
-					     &c->buffer->pos[i].x_advance,
-					     &c->buffer->pos[i].y_advance);
-    hb_font_subtract_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
-						 c->buffer->props.direction,
-						 &c->buffer->pos[i].x_offset,
-						 &c->buffer->pos[i].y_offset);
+    c->font->get_glyph_advance_for_direction (c->buffer->info[i].codepoint,
+					      c->buffer->props.direction,
+					      &c->buffer->pos[i].x_advance,
+					      &c->buffer->pos[i].y_advance);
+    c->font->subtract_glyph_origin_for_direction (c->buffer->info[i].codepoint,
+						  c->buffer->props.direction,
+						  &c->buffer->pos[i].x_offset,
+						  &c->buffer->pos[i].y_offset);
   }
 }
 
@@ -423,19 +423,19 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 
     unsigned int count = c->buffer->len;
     for (unsigned int i = 0; i < count; i++) {
-      hb_font_add_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
-					      HB_DIRECTION_LTR,
-					      &c->buffer->pos[i].x_offset,
-					      &c->buffer->pos[i].y_offset);
+      c->font->add_glyph_origin_for_direction (c->buffer->info[i].codepoint,
+					       HB_DIRECTION_LTR,
+					       &c->buffer->pos[i].x_offset,
+					       &c->buffer->pos[i].y_offset);
     }
 
     c->plan->map.position (c->font, c->buffer);
 
     for (unsigned int i = 0; i < count; i++) {
-      hb_font_subtract_glyph_origin_for_direction (c->font, c->buffer->info[i].codepoint,
-						   HB_DIRECTION_LTR,
-						   &c->buffer->pos[i].x_offset,
-						   &c->buffer->pos[i].y_offset);
+      c->font->subtract_glyph_origin_for_direction (c->buffer->info[i].codepoint,
+						    HB_DIRECTION_LTR,
+						    &c->buffer->pos[i].x_offset,
+						    &c->buffer->pos[i].y_offset);
     }
 
     c->applied_position_complex = true;
@@ -460,10 +460,9 @@ hb_truetype_kern (hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   for (unsigned int i = 1; i < count; i++) {
     hb_position_t x_kern, y_kern, kern1, kern2;
-    hb_font_get_glyph_kerning_for_direction (c->font,
-					     c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
-					     c->buffer->props.direction,
-					     &x_kern, &y_kern);
+    c->font->get_glyph_kerning_for_direction (c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
+					      c->buffer->props.direction,
+					      &x_kern, &y_kern);
 
     kern1 = x_kern >> 1;
     kern2 = x_kern - kern1;
@@ -489,7 +488,7 @@ static void
 hb_hide_zerowidth (hb_ot_shape_context_t *c)
 {
   hb_codepoint_t space;
-  if (!hb_font_get_glyph (c->font, ' ', 0, &space))
+  if (!c->font->get_glyph (' ', 0, &space))
     return; /* No point! */
 
   unsigned int count = c->buffer->len;

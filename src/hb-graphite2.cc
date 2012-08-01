@@ -108,7 +108,7 @@ static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *
 
 static float hb_gr_get_advance (const void *hb_font, unsigned short gid)
 {
-  return hb_font_get_glyph_h_advance ((hb_font_t *) hb_font, gid);
+  return ((hb_font_t *) font)->get_glyph_h_advance (gid);
 }
 
 static void _hb_gr_face_data_destroy (void *data)
@@ -191,9 +191,7 @@ _hb_gr_font_get_data (hb_font_t *font)
   }
 
   data->grface = _hb_gr_face_get_data (font->face)->grface;
-  int scale;
-  hb_font_get_scale (font, &scale, NULL);
-  data->grfont = gr_make_font_with_advance_fn (scale, font, &hb_gr_get_advance, data->grface);
+  data->grfont = gr_make_font_with_advance_fn (font->x_scale, font, &hb_gr_get_advance, data->grface);
 
 
   if (unlikely (!hb_font_set_user_data (font, &hb_gr_data_key, data,

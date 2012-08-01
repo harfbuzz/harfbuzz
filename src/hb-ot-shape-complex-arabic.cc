@@ -211,7 +211,7 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
   for (unsigned int i = 0; i < count; i++) {
     hb_codepoint_t u = buffer->info[i].codepoint;
     hb_codepoint_t shaped = get_arabic_shape (u, buffer->info[i].arabic_shaping_action());
-    if (shaped != u && hb_font_get_glyph (font, shaped, 0, &glyph))
+    if (shaped != u && font->get_glyph (shaped, 0, &glyph))
       buffer->info[i].codepoint = shaped;
   }
 
@@ -220,7 +220,7 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
   for (buffer->idx = 0; buffer->idx + 1 < count;) {
     hb_codepoint_t ligature = get_ligature (buffer->cur().codepoint,
 					    buffer->cur(+1).codepoint);
-    if (likely (!ligature) || !(hb_font_get_glyph (font, ligature, 0, &glyph))) {
+    if (likely (!ligature) || !(font->get_glyph (ligature, 0, &glyph))) {
       buffer->next_glyph ();
       continue;
     }

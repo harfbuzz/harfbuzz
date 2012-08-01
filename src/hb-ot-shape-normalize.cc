@@ -96,10 +96,10 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
   hb_codepoint_t a, b, glyph;
 
   if (!buffer->unicode->decompose (ab, &a, &b) ||
-      (b && !hb_font_get_glyph (font, b, 0, &glyph)))
+      (b && !font->get_glyph (b, 0, &glyph)))
     return false;
 
-  bool has_a = hb_font_get_glyph (font, a, 0, &glyph);
+  bool has_a = font->get_glyph (a, 0, &glyph);
   if (shortest && has_a) {
     /* Output a and b */
     output_glyph (buffer, a);
@@ -137,7 +137,7 @@ decompose_compatibility (hb_font_t *font, hb_buffer_t *buffer,
 
   hb_codepoint_t glyph;
   for (i = 0; i < len; i++)
-    if (!hb_font_get_glyph (font, decomposed[i], 0, &glyph))
+    if (!font->get_glyph (decomposed[i], 0, &glyph))
       return false;
 
   for (i = 0; i < len; i++)
@@ -153,11 +153,11 @@ decompose_current_character (hb_font_t *font, hb_buffer_t *buffer,
   hb_codepoint_t glyph;
 
   /* Kind of a cute waterfall here... */
-  if (shortest && hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph))
+  if (shortest && font->get_glyph (buffer->cur().codepoint, 0, &glyph))
     buffer->next_glyph ();
   else if (decompose (font, buffer, shortest, buffer->cur().codepoint))
     buffer->skip_glyph ();
-  else if (!shortest && hb_font_get_glyph (font, buffer->cur().codepoint, 0, &glyph))
+  else if (!shortest && font->get_glyph (buffer->cur().codepoint, 0, &glyph))
     buffer->next_glyph ();
   else if (decompose_compatibility (font, buffer, buffer->cur().codepoint))
     buffer->skip_glyph ();
@@ -285,7 +285,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
 				  buffer->cur().codepoint,
 				  &composed) &&
 	/* And the font has glyph for the composite. */
-	hb_font_get_glyph (font, composed, 0, &glyph))
+	font->get_glyph (composed, 0, &glyph))
     {
       /* Composes. */
       buffer->next_glyph (); /* Copy to out-buffer. */

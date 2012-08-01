@@ -95,9 +95,8 @@ _hb_fallback_shape (hb_shape_plan_t    *shape_plan,
 		    const hb_feature_t *features HB_UNUSED,
 		    unsigned int        num_features HB_UNUSED)
 {
-  /* TODO Save the space character in the font? */
   hb_codepoint_t space;
-  hb_font_get_glyph (font, ' ', 0, &space);
+  font->get_glyph (' ', 0, &space);
 
   buffer->guess_properties ();
   buffer->clear_positions ();
@@ -112,15 +111,15 @@ _hb_fallback_shape (hb_shape_plan_t    *shape_plan,
       buffer->pos[i].y_advance = 0;
       continue;
     }
-    hb_font_get_glyph (font, buffer->info[i].codepoint, 0, &buffer->info[i].codepoint);
-    hb_font_get_glyph_advance_for_direction (font, buffer->info[i].codepoint,
-					     buffer->props.direction,
-					     &buffer->pos[i].x_advance,
-					     &buffer->pos[i].y_advance);
-    hb_font_subtract_glyph_origin_for_direction (font, buffer->info[i].codepoint,
-						 buffer->props.direction,
-						 &buffer->pos[i].x_offset,
-						 &buffer->pos[i].y_offset);
+    font->get_glyph (buffer->info[i].codepoint, 0, &buffer->info[i].codepoint);
+    font->get_glyph_advance_for_direction (buffer->info[i].codepoint,
+					   buffer->props.direction,
+					   &buffer->pos[i].x_advance,
+					   &buffer->pos[i].y_advance);
+    font->subtract_glyph_origin_for_direction (buffer->info[i].codepoint,
+					       buffer->props.direction,
+					       &buffer->pos[i].x_offset,
+					       &buffer->pos[i].y_offset);
   }
 
   if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
