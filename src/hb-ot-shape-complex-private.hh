@@ -29,14 +29,10 @@
 
 #include "hb-private.hh"
 
-#include "hb-ot-map-private.hh"
+#include "hb-ot-shape-private.hh"
 #include "hb-ot-shape-normalize-private.hh"
 
 
-
-/* buffer var allocations, used during the entire shaping process */
-#define unicode_props0()	var1.u8[0]
-#define unicode_props1()	var1.u8[1]
 
 /* buffer var allocations, used by complex shapers */
 #define complex_var_persistent_u8_0()	var2.u8[2]
@@ -60,39 +56,33 @@ struct hb_ot_complex_shaper_t
 
   /* collect_features()
    * Called during shape_plan().
-   * Shapers should use map to add their features and callbacks.
+   * Shapers should use plan->map to add their features and callbacks.
    * May be NULL.
    */
-  void (*collect_features) (const hb_ot_complex_shaper_t  *shaper,
-			    hb_ot_map_builder_t           *map,
-			    const hb_segment_properties_t *props);
+  void (*collect_features) (hb_ot_shape_planner_t *plan);
 
   /* override_features()
    * Called during shape_plan().
-   * Shapers should use map to override features and add callbacks after
+   * Shapers should use plan->map to override features and add callbacks after
    * common features are added.
    * May be NULL.
    */
-  void (*override_features) (const hb_ot_complex_shaper_t  *shaper,
-			     hb_ot_map_builder_t           *map,
-			     const hb_segment_properties_t *props);
+  void (*override_features) (hb_ot_shape_planner_t *plan);
 
   /* normalization_preference()
-   * Called during shape_execute().
+   * Called during shape().
    */
   hb_ot_shape_normalization_mode_t
-  (*normalization_preference) (const hb_ot_complex_shaper_t  *shaper,
-			       const hb_segment_properties_t *props);
+  (*normalization_preference) (const hb_ot_shape_plan_t *plan);
 
 
   /* setup_masks()
-   * Called during shape_execute().
+   * Called during shape().
    * Shapers should use map to get feature masks and set on buffer.
    */
-  void (*setup_masks) (const hb_ot_complex_shaper_t *shaper,
-		       const hb_ot_map_t            *map,
-		       hb_buffer_t                  *buffer,
-		       hb_font_t                    *font);
+  void (*setup_masks) (const hb_ot_shape_plan_t *plan,
+		       hb_buffer_t              *buffer,
+		       hb_font_t                *font);
 
   bool zero_width_attached_marks;
 };

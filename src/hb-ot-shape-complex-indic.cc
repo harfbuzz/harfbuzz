@@ -203,10 +203,10 @@ final_reordering (const hb_ot_map_t *map,
 		  void *user_data HB_UNUSED);
 
 static void
-collect_features_indic (const hb_ot_complex_shaper_t  *shaper,
-			hb_ot_map_builder_t           *map,
-			const hb_segment_properties_t *props)
+collect_features_indic (hb_ot_shape_planner_t *plan)
 {
+  hb_ot_map_builder_t *map = &plan->map;
+
   map->add_bool_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
    * there is a use of it, it's typically at the beginning. */
@@ -226,21 +226,18 @@ collect_features_indic (const hb_ot_complex_shaper_t  *shaper,
 }
 
 static void
-override_features_indic (const hb_ot_complex_shaper_t  *shaper,
-			 hb_ot_map_builder_t           *map,
-			 const hb_segment_properties_t *props)
+override_features_indic (hb_ot_shape_planner_t *plan)
 {
   /* Uniscribe does not apply 'kern'. */
   if (indic_options ().uniscribe_bug_compatible)
-    map->add_feature (HB_TAG('k','e','r','n'), 0, true);
+    plan->map.add_feature (HB_TAG('k','e','r','n'), 0, true);
 }
 
 
 static void
-setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
-		   const hb_ot_map_t            *map,
-		   hb_buffer_t                  *buffer,
-		   hb_font_t                    *font HB_UNUSED)
+setup_masks_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
+		   hb_buffer_t              *buffer,
+		   hb_font_t                *font HB_UNUSED)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);

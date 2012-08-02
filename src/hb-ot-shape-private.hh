@@ -30,12 +30,19 @@
 #include "hb-private.hh"
 
 #include "hb-ot-map-private.hh"
-#include "hb-ot-shape-complex-private.hh"
+
+
+
+/* buffer var allocations, used during the entire shaping process */
+#define unicode_props0()	var1.u8[0]
+#define unicode_props1()	var1.u8[1]
+
 
 
 struct hb_ot_shape_plan_t
 {
-  const hb_ot_complex_shaper_t *shaper;
+  hb_segment_properties_t props;
+  const struct hb_ot_complex_shaper_t *shaper;
   hb_ot_map_t map;
 };
 
@@ -44,7 +51,7 @@ struct hb_ot_shape_planner_t
   /* In the order that they are filled in. */
   hb_face_t *face;
   hb_segment_properties_t props;
-  const hb_ot_complex_shaper_t *shaper;
+  const struct hb_ot_complex_shaper_t *shaper;
   hb_ot_map_builder_t map;
 
   hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
@@ -56,6 +63,7 @@ struct hb_ot_shape_planner_t
 
   inline void compile (hb_ot_shape_plan_t &plan)
   {
+    plan.props = props;
     plan.shaper = shaper;
     map.compile (face, &props, plan.map);
   }

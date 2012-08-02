@@ -165,10 +165,10 @@ static const struct arabic_state_table_entry {
 
 
 static void
-collect_features_arabic (const hb_ot_complex_shaper_t  *shaper,
-			 hb_ot_map_builder_t           *map,
-			 const hb_segment_properties_t *props)
+collect_features_arabic (hb_ot_shape_planner_t *plan)
 {
+  hb_ot_map_builder_t *map = &plan->map;
+
   /* For Language forms (in ArabicOT speak), we do the iso/fina/medi/init together,
    * then rlig and calt each in their own stage.  This makes IranNastaliq's ALLAH
    * ligature work correctly. It's unfortunate though...
@@ -184,7 +184,7 @@ collect_features_arabic (const hb_ot_complex_shaper_t  *shaper,
 
   map->add_gsub_pause (NULL, NULL);
 
-  unsigned int num_features = props->script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
+  unsigned int num_features = plan->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_features; i++)
     map->add_bool_feature (arabic_syriac_features[i], false);
 
@@ -236,10 +236,9 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 static void
-setup_masks_arabic (const hb_ot_complex_shaper_t *shaper,
-		    const hb_ot_map_t            *map,
-		    hb_buffer_t                  *buffer,
-		    hb_font_t                    *font)
+setup_masks_arabic (const hb_ot_shape_plan_t *plan,
+		    hb_buffer_t              *buffer,
+		    hb_font_t                *font)
 {
   unsigned int count = buffer->len;
   unsigned int prev = 0, state = 0;
@@ -270,7 +269,7 @@ setup_masks_arabic (const hb_ot_complex_shaper_t *shaper,
   hb_mask_t total_masks = 0;
   unsigned int num_masks = buffer->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_masks; i++) {
-    mask_array[i] = map->get_1_mask (arabic_syriac_features[i]);
+    mask_array[i] = plan->map.get_1_mask (arabic_syriac_features[i]);
     total_masks |= mask_array[i];
   }
 

@@ -50,13 +50,11 @@ static const hb_tag_t tibetan_features[] =
 };
 
 static void
-collect_features_default (const hb_ot_complex_shaper_t  *shaper,
-			  hb_ot_map_builder_t           *map,
-			  const hb_segment_properties_t *props)
+collect_features_default (hb_ot_shape_planner_t *plan)
 {
   const hb_tag_t *script_features = NULL;
 
-  switch ((hb_tag_t) props->script)
+  switch ((hb_tag_t) plan->props.script)
   {
     /* Unicode-1.1 additions */
     case HB_SCRIPT_HANGUL:
@@ -70,14 +68,13 @@ collect_features_default (const hb_ot_complex_shaper_t  *shaper,
   }
 
   for (; script_features && *script_features; script_features++)
-    map->add_bool_feature (*script_features);
+    plan->map.add_bool_feature (*script_features);
 }
 
 static hb_ot_shape_normalization_mode_t
-normalization_preference_default (const hb_ot_complex_shaper_t  *shaper,
-				  const hb_segment_properties_t *props)
+normalization_preference_default (const hb_ot_shape_plan_t *plan)
 {
-  switch ((hb_tag_t) props->script)
+  switch ((hb_tag_t) plan->props.script)
   {
     /* Unicode-1.1 additions */
     case HB_SCRIPT_HANGUL:
@@ -100,10 +97,9 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
 /* Thai / Lao shaper */
 
 static void
-setup_masks_thai (const hb_ot_complex_shaper_t *shaper,
-		  const hb_ot_map_t            *map,
-		  hb_buffer_t                  *buffer,
-		  hb_font_t                    *font)
+setup_masks_thai (const hb_ot_shape_plan_t *plan HB_UNUSED,
+		  hb_buffer_t              *buffer,
+		  hb_font_t                *font HB_UNUSED)
 {
   /* The following is NOT specified in the MS OT Thai spec, however, it seems
    * to be what Uniscribe and other engines implement.  According to Eric Muller:

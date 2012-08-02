@@ -33,6 +33,7 @@
 
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-shape-normalize-private.hh"
+#include "hb-ot-shape-complex-private.hh"
 
 #include "hb-ot-layout-private.hh"
 #include "hb-set-private.hh"
@@ -99,7 +100,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
   } HB_STMT_END
 
   if (planner->shaper->collect_features)
-    planner->shaper->collect_features (planner->shaper, &planner->map, props);
+    planner->shaper->collect_features (planner);
 
   ADD_FEATURES (common_features);
 
@@ -109,7 +110,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
     ADD_FEATURES (vertical_features);
 
   if (planner->shaper->override_features)
-    planner->shaper->override_features (planner->shaper, &planner->map, props);
+    planner->shaper->override_features (planner);
 
 #undef ADD_FEATURES
 
@@ -214,7 +215,7 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   c->buffer->reset_masks (global_mask);
 
   if (c->plan->shaper->setup_masks)
-    c->plan->shaper->setup_masks (c->plan->shaper, &c->plan->map, c->buffer, c->font);
+    c->plan->shaper->setup_masks (c->plan, c->buffer, c->font);
 
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {
@@ -503,7 +504,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   _hb_ot_shape_normalize (c->font, c->buffer,
 			  c->plan->shaper->normalization_preference ?
-			  c->plan->shaper->normalization_preference (c->plan->shaper, &c->buffer->props) :
+			  c->plan->shaper->normalization_preference (c->plan) :
 			  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT);
 
   hb_ot_shape_setup_masks (c);
