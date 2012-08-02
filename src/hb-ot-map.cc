@@ -87,8 +87,8 @@ void hb_ot_map_t::substitute (hb_font_t *font, hb_buffer_t *buffer) const
 
     buffer->clear_output ();
 
-    if (pause->callback.func)
-      pause->callback.func (this, font, buffer, pause->callback.user_data);
+    if (pause->callback)
+      pause->callback (this, font, buffer);
   }
 
   for (; i < lookups[table_index].len; i++)
@@ -105,8 +105,8 @@ void hb_ot_map_t::position (hb_font_t *font, hb_buffer_t *buffer) const
     for (; i < pause->num_lookups; i++)
       hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 
-    if (pause->callback.func)
-      pause->callback.func (this, font, buffer, pause->callback.user_data);
+    if (pause->callback)
+      pause->callback (this, font, buffer);
   }
 
   for (; i < lookups[table_index].len; i++)
@@ -129,13 +129,12 @@ void hb_ot_map_t::substitute_closure (hb_face_t *face,
     hb_ot_layout_substitute_closure_lookup (face, glyphs, lookups[table_index][i].index);
 }
 
-void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func, void *user_data)
+void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func)
 {
   pause_info_t *p = pauses[table_index].push ();
   if (likely (p)) {
     p->stage = current_stage[table_index];
-    p->callback.func = pause_func;
-    p->callback.user_data = user_data;
+    p->callback = pause_func;
   }
 
   current_stage[table_index]++;
@@ -249,8 +248,8 @@ hb_ot_map_builder_t::compile (hb_face_t *face,
   feature_infos.shrink (0); /* Done with these */
 
 
-  add_gsub_pause (NULL, NULL);
-  add_gpos_pause (NULL, NULL);
+  add_gsub_pause (NULL);
+  add_gpos_pause (NULL);
 
   for (unsigned int table_index = 0; table_index < 2; table_index++) {
     hb_tag_t table_tag = table_tags[table_index];

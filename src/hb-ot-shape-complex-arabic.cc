@@ -182,19 +182,19 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   map->add_bool_feature (HB_TAG('c','c','m','p'));
   map->add_bool_feature (HB_TAG('l','o','c','l'));
 
-  map->add_gsub_pause (NULL, NULL);
+  map->add_gsub_pause (NULL);
 
   unsigned int num_features = plan->props.script == HB_SCRIPT_SYRIAC ? SYRIAC_NUM_FEATURES : COMMON_NUM_FEATURES;
   for (unsigned int i = 0; i < num_features; i++)
     map->add_bool_feature (arabic_syriac_features[i], false);
 
-  map->add_gsub_pause (NULL, NULL);
+  map->add_gsub_pause (NULL);
 
   map->add_bool_feature (HB_TAG('r','l','i','g'));
-  map->add_gsub_pause (NULL, NULL);
+  map->add_gsub_pause (NULL);
 
   map->add_bool_feature (HB_TAG('c','a','l','t'));
-  map->add_gsub_pause (NULL, NULL);
+  map->add_gsub_pause (NULL);
 
   /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
   map->add_bool_feature (HB_TAG('c','s','w','h'));

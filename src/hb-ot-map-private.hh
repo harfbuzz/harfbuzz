@@ -62,15 +62,11 @@ struct hb_ot_map_t
     { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
   };
 
-  typedef void (*pause_func_t) (const hb_ot_map_t *map, hb_font_t *font, hb_buffer_t *buffer, void *user_data);
-  typedef struct {
-    pause_func_t func;
-    void *user_data;
-  } pause_callback_t;
+  typedef void (*pause_func_t) (const hb_ot_map_t *map, hb_font_t *font, hb_buffer_t *buffer);
 
   struct pause_map_t {
     unsigned int num_lookups; /* Cumulative */
-    pause_callback_t callback;
+    pause_func_t callback;
   };
 
 
@@ -156,10 +152,10 @@ struct hb_ot_map_builder_t
   inline void add_bool_feature (hb_tag_t tag, bool global = true)
   { add_feature (tag, 1, global); }
 
-  inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func, void *user_data)
-  { add_pause (0, pause_func, user_data); }
-  inline void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func, void *user_data)
-  { add_pause (1, pause_func, user_data); }
+  inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
+  { add_pause (0, pause_func); }
+  inline void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func)
+  { add_pause (1, pause_func); }
 
   HB_INTERNAL void compile (hb_face_t *face,
 			    const hb_segment_properties_t *props,
@@ -187,10 +183,10 @@ struct hb_ot_map_builder_t
 
   struct pause_info_t {
     unsigned int stage;
-    hb_ot_map_t::pause_callback_t callback;
+    hb_ot_map_t::pause_func_t callback;
   };
 
-  HB_INTERNAL void add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func, void *user_data);
+  HB_INTERNAL void add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func);
 
   unsigned int current_stage[2]; /* GSUB/GPOS */
   hb_prealloced_array_t<feature_info_t,16> feature_infos;

@@ -194,13 +194,11 @@ indic_other_features[] =
 static void
 initial_reordering (const hb_ot_map_t *map,
 		    hb_font_t *font,
-		    hb_buffer_t *buffer,
-		    void *user_data HB_UNUSED);
+		    hb_buffer_t *buffer);
 static void
 final_reordering (const hb_ot_map_t *map,
 		  hb_font_t *font,
-		  hb_buffer_t *buffer,
-		  void *user_data HB_UNUSED);
+		  hb_buffer_t *buffer);
 
 static void
 collect_features_indic (hb_ot_shape_planner_t *plan)
@@ -212,14 +210,14 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
    * there is a use of it, it's typically at the beginning. */
   map->add_bool_feature (HB_TAG('c','c','m','p'));
 
-  map->add_gsub_pause (initial_reordering, NULL);
+  map->add_gsub_pause (initial_reordering);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++) {
     map->add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
-    map->add_gsub_pause (NULL, NULL);
+    map->add_gsub_pause (NULL);
   }
 
-  map->add_gsub_pause (final_reordering, NULL);
+  map->add_gsub_pause (final_reordering);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++)
     map->add_bool_feature (indic_other_features[i].tag, indic_other_features[i].is_global);
@@ -697,8 +695,7 @@ initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
 static void
 initial_reordering (const hb_ot_map_t *map,
 		    hb_font_t *font,
-		    hb_buffer_t *buffer,
-		    void *user_data HB_UNUSED)
+		    hb_buffer_t *buffer)
 {
   update_consonant_positions (map, buffer, font);
 
@@ -1062,8 +1059,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
 static void
 final_reordering (const hb_ot_map_t *map,
 		  hb_font_t *font HB_UNUSED,
-		  hb_buffer_t *buffer,
-		  void *user_data HB_UNUSED)
+		  hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   if (!count) return;
