@@ -44,6 +44,12 @@ struct hb_ot_shape_plan_t
   hb_segment_properties_t props;
   const struct hb_ot_complex_shaper_t *shaper;
   hb_ot_map_t map;
+
+  inline void substitute_closure (hb_face_t *face, hb_set_t *glyphs) const { map.substitute_closure (this, face, glyphs); }
+  inline void substitute (hb_font_t *font, hb_buffer_t *buffer) const { map.substitute (this, font, buffer); }
+  inline void position (hb_font_t *font, hb_buffer_t *buffer) const { map.position (this, font, buffer); }
+
+  void finish (void) { map.finish (); }
 };
 
 struct hb_ot_shape_planner_t

@@ -77,14 +77,16 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      const hb_feature_t             *user_features,
 			      unsigned int                    num_user_features)
 {
+  hb_ot_map_builder_t *map = &planner->map;
+
   switch (props->direction) {
     case HB_DIRECTION_LTR:
-      planner->map.add_bool_feature (HB_TAG ('l','t','r','a'));
-      planner->map.add_bool_feature (HB_TAG ('l','t','r','m'));
+      map->add_bool_feature (HB_TAG ('l','t','r','a'));
+      map->add_bool_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      planner->map.add_bool_feature (HB_TAG ('r','t','l','a'));
-      planner->map.add_bool_feature (HB_TAG ('r','t','l','m'), false);
+      map->add_bool_feature (HB_TAG ('r','t','l','a'));
+      map->add_bool_feature (HB_TAG ('r','t','l','m'), false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -96,7 +98,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 #define ADD_FEATURES(array) \
   HB_STMT_START { \
     for (unsigned int i = 0; i < ARRAY_LENGTH (array); i++) \
-      planner->map.add_bool_feature (array[i]); \
+      map->add_bool_feature (array[i]); \
   } HB_STMT_END
 
   if (planner->shaper->collect_features)
@@ -116,7 +118,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
   for (unsigned int i = 0; i < num_user_features; i++) {
     const hb_feature_t *feature = &user_features[i];
-    planner->map.add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+    map->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
   }
 }
 
@@ -183,7 +185,7 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 void
 _hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *data)
 {
-  data->map.finish ();
+  data->finish ();
 
   free (data);
 }
@@ -211,7 +213,9 @@ struct hb_ot_shape_context_t
 static void
 hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 {
-  hb_mask_t global_mask = c->plan->map.get_global_mask ();
+  hb_ot_map_t *map = &c->plan->map;
+
+  hb_mask_t global_mask = map->get_global_mask ();
   c->buffer->reset_masks (global_mask);
 
   if (c->plan->shaper->setup_masks)
@@ -222,7 +226,7 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
     const hb_feature_t *feature = &c->user_features[i];
     if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
       unsigned int shift;
-      hb_mask_t mask = c->plan->map.get_mask (feature->tag, &shift);
+      hb_mask_t mask = map->get_mask (feature->tag, &shift);
       c->buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
     }
   }
@@ -352,7 +356,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
     hb_synthesize_glyph_classes (c);
 
   if (hb_ot_layout_has_substitution (c->face))
-    c->plan->map.substitute (c->font, c->buffer);
+    c->plan->substitute (c->font, c->buffer);
 
   hb_ot_layout_substitute_finish (c->font, c->buffer);
 
@@ -408,7 +412,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 					       &c->buffer->pos[i].y_offset);
     }
 
-    c->plan->map.position (c->font, c->buffer);
+    c->plan->position (c->font, c->buffer);
 
     for (unsigned int i = 0; i < count; i++) {
       c->font->subtract_glyph_origin_for_direction (c->buffer->info[i].codepoint,
@@ -588,7 +592,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 
   do {
     copy.set (glyphs);
-    HB_SHAPER_DATA_GET (shape_plan)->map.substitute_closure (font->face, glyphs);
+    HB_SHAPER_DATA_GET (shape_plan)->substitute_closure (font->face, glyphs);
   } while (!copy.equal (glyphs));
 
   hb_shape_plan_destroy (shape_plan);

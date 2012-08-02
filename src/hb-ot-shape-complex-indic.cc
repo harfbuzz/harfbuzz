@@ -108,14 +108,12 @@ struct indic_shape_plan_t
     unsigned int count;
   };
 
-  indic_shape_plan_t (const hb_ot_map_t *map_) :
-		      map (map_),
-		      pref (map_, HB_TAG('p','r','e','f')),
-		      blwf (map_, HB_TAG('b','l','w','f')),
-		      pstf (map_, HB_TAG('p','s','t','f')),
-		      is_old_spec (IS_OLD_INDIC_TAG (map->get_chosen_script (0))) {}
+  indic_shape_plan_t (const hb_ot_shape_plan_t *plan) :
+		      pref (&plan->map, HB_TAG('p','r','e','f')),
+		      blwf (&plan->map, HB_TAG('b','l','w','f')),
+		      pstf (&plan->map, HB_TAG('p','s','t','f')),
+		      is_old_spec (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))) {}
 
-  const hb_ot_map_t *map;
   would_apply_feature_t pref;
   would_apply_feature_t blwf;
   would_apply_feature_t pstf;
@@ -192,11 +190,11 @@ indic_other_features[] =
 
 
 static void
-initial_reordering (const hb_ot_map_t *map,
+initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
 		    hb_buffer_t *buffer);
 static void
-final_reordering (const hb_ot_map_t *map,
+final_reordering (const hb_ot_shape_plan_t *plan,
 		  hb_font_t *font,
 		  hb_buffer_t *buffer);
 
@@ -260,7 +258,7 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
 
 
 static void
-update_consonant_positions (const hb_ot_map_t *map,
+update_consonant_positions (const hb_ot_shape_plan_t *plan,
 			    hb_buffer_t       *buffer,
 			    hb_font_t         *font)
 {
@@ -280,7 +278,7 @@ update_consonant_positions (const hb_ot_map_t *map,
     default:			virama = 0;      break;
   }
 
-  indic_shape_plan_t indic_plan (map);
+  indic_shape_plan_t indic_plan (plan);
 
   unsigned int consonant_pos = indic_plan.is_old_spec ? 0 : 1;
   hb_codepoint_t glyphs[2];
@@ -303,7 +301,7 @@ update_consonant_positions (const hb_ot_map_t *map,
  * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
 
 static void
-initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buffer, hb_mask_t *basic_mask_array,
+initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer, hb_mask_t *basic_mask_array,
 				       unsigned int start, unsigned int end)
 {
   hb_glyph_info_t *info = buffer->info;
@@ -508,7 +506,7 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
   /* For old-style Indic script tags, move the first post-base Halant after
    * last consonant. */
-  if (IS_OLD_INDIC_TAG (map->get_chosen_script (0))) {
+  if (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))) {
     for (unsigned int i = base + 1; i < end; i++)
       if (info[i].indic_category() == OT_H) {
         unsigned int j;
@@ -650,17 +648,17 @@ initial_reordering_consonant_syllable (const hb_ot_map_t *map, hb_buffer_t *buff
 
 
 static void
-initial_reordering_vowel_syllable (const hb_ot_map_t *map,
+initial_reordering_vowel_syllable (const hb_ot_shape_plan_t *plan,
 				   hb_buffer_t *buffer,
 				   hb_mask_t *basic_mask_array,
 				   unsigned int start, unsigned int end)
 {
   /* We made the vowels look like consonants.  So let's call the consonant logic! */
-  initial_reordering_consonant_syllable (map, buffer, basic_mask_array, start, end);
+  initial_reordering_consonant_syllable (plan, buffer, basic_mask_array, start, end);
 }
 
 static void
-initial_reordering_standalone_cluster (const hb_ot_map_t *map,
+initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
 				       hb_buffer_t *buffer,
 				       hb_mask_t *basic_mask_array,
 				       unsigned int start, unsigned int end)
@@ -677,11 +675,11 @@ initial_reordering_standalone_cluster (const hb_ot_map_t *map,
       return;
   }
 
-  initial_reordering_consonant_syllable (map, buffer, basic_mask_array, start, end);
+  initial_reordering_consonant_syllable (plan, buffer, basic_mask_array, start, end);
 }
 
 static void
-initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
+initial_reordering_non_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			      hb_buffer_t *buffer HB_UNUSED,
 			      hb_mask_t *basic_mask_array HB_UNUSED,
 			      unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
@@ -693,18 +691,18 @@ initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
 #include "hb-ot-shape-complex-indic-machine.hh"
 
 static void
-initial_reordering (const hb_ot_map_t *map,
+initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
 		    hb_buffer_t *buffer)
 {
-  update_consonant_positions (map, buffer, font);
+  update_consonant_positions (plan, buffer, font);
 
   hb_mask_t basic_mask_array[ARRAY_LENGTH (indic_basic_features)] = {0};
   unsigned int num_masks = ARRAY_LENGTH (indic_basic_features);
   for (unsigned int i = 0; i < num_masks; i++)
-    basic_mask_array[i] = map->get_1_mask (indic_basic_features[i].tag);
+    basic_mask_array[i] = plan->map.get_1_mask (indic_basic_features[i].tag);
 
-  find_syllables (map, buffer, basic_mask_array);
+  find_syllables (plan, buffer, basic_mask_array);
 }
 
 static void
@@ -1057,15 +1055,15 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
 
 static void
-final_reordering (const hb_ot_map_t *map,
+final_reordering (const hb_ot_shape_plan_t *plan,
 		  hb_font_t *font HB_UNUSED,
 		  hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   if (!count) return;
 
-  hb_mask_t init_mask = map->get_1_mask (HB_TAG('i','n','i','t'));
-  hb_mask_t pref_mask = map->get_1_mask (HB_TAG('p','r','e','f'));
+  hb_mask_t init_mask = plan->map.get_1_mask (HB_TAG('i','n','i','t'));
+  hb_mask_t pref_mask = plan->map.get_1_mask (HB_TAG('p','r','e','f'));
 
   hb_glyph_info_t *info = buffer->info;
   unsigned int last = 0;

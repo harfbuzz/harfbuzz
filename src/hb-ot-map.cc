@@ -75,7 +75,7 @@ void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool gl
 
 /* Keep the next two functions in sync. */
 
-void hb_ot_map_t::substitute (hb_font_t *font, hb_buffer_t *buffer) const
+void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
 {
   const unsigned int table_index = 0;
   unsigned int i = 0;
@@ -88,14 +88,14 @@ void hb_ot_map_t::substitute (hb_font_t *font, hb_buffer_t *buffer) const
     buffer->clear_output ();
 
     if (pause->callback)
-      pause->callback (this, font, buffer);
+      pause->callback (plan, font, buffer);
   }
 
   for (; i < lookups[table_index].len; i++)
     hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 }
 
-void hb_ot_map_t::position (hb_font_t *font, hb_buffer_t *buffer) const
+void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
 {
   const unsigned int table_index = 1;
   unsigned int i = 0;
@@ -106,15 +106,14 @@ void hb_ot_map_t::position (hb_font_t *font, hb_buffer_t *buffer) const
       hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 
     if (pause->callback)
-      pause->callback (this, font, buffer);
+      pause->callback (plan, font, buffer);
   }
 
   for (; i < lookups[table_index].len; i++)
     hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 }
 
-void hb_ot_map_t::substitute_closure (hb_face_t *face,
-				      hb_set_t *glyphs) const
+void hb_ot_map_t::substitute_closure (const hb_ot_shape_plan_t *plan, hb_face_t *face, hb_set_t *glyphs) const
 {
   unsigned int table_index = 0;
   unsigned int i = 0;

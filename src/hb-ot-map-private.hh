@@ -62,7 +62,7 @@ struct hb_ot_map_t
     { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
   };
 
-  typedef void (*pause_func_t) (const hb_ot_map_t *map, hb_font_t *font, hb_buffer_t *buffer);
+  typedef void (*pause_func_t) (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer);
 
   struct pause_map_t {
     unsigned int num_lookups; /* Cumulative */
@@ -112,9 +112,9 @@ struct hb_ot_map_t
   inline hb_tag_t get_chosen_script (unsigned int table_index) const
   { return chosen_script[table_index]; }
 
-  HB_INTERNAL void substitute_closure (hb_face_t *face, hb_set_t *glyphs) const;
-  HB_INTERNAL void substitute (hb_font_t *font, hb_buffer_t *buffer) const;
-  HB_INTERNAL void position (hb_font_t *font, hb_buffer_t *buffer) const;
+  HB_INTERNAL void substitute_closure (const struct hb_ot_shape_plan_t *plan, hb_face_t *face, hb_set_t *glyphs) const;
+  HB_INTERNAL void substitute (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
+  HB_INTERNAL void position (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
 
   inline void finish (void) {
     features.finish ();
