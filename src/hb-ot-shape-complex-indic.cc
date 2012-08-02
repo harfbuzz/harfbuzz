@@ -237,6 +237,34 @@ override_features_indic (const hb_ot_complex_shaper_t  *shaper,
 
 
 static void
+setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
+		   const hb_ot_map_t            *map,
+		   hb_buffer_t                  *buffer,
+		   hb_font_t                    *font HB_UNUSED)
+{
+  HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
+  HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
+
+  /* We cannot setup masks here.  We save information about characters
+   * and setup masks later on in a pause-callback. */
+
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    set_indic_properties (buffer->info[i]);
+}
+
+static int
+compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
+{
+  int a = pa->indic_position();
+  int b = pb->indic_position();
+
+  return a < b ? -1 : a == b ? 0 : +1;
+}
+
+
+
+static void
 update_consonant_positions (const hb_ot_map_t *map,
 			    hb_buffer_t       *buffer,
 			    hb_font_t         *font)
@@ -254,7 +282,7 @@ update_consonant_positions (const hb_ot_map_t *map,
     case HB_SCRIPT_MALAYALAM:	virama = 0x0D4D; break;
     case HB_SCRIPT_SINHALA:	virama = 0x0DCA; break;
     case HB_SCRIPT_KHMER:	virama = 0x17D2; break;
-    default:			virama = 0;       break;
+    default:			virama = 0;      break;
   }
 
   indic_shape_plan_t indic_plan (map);
@@ -263,43 +291,18 @@ update_consonant_positions (const hb_ot_map_t *map,
   hb_codepoint_t glyphs[2];
   if (virama && font->get_glyph (virama, 0, &glyphs[1 - consonant_pos]))
   {
+    /* Technically speaking, the spec says we should apply 'locl' to virama too.
+     * Maybe one day... */
     hb_face_t *face = font->face;
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++)
       if (buffer->info[i].indic_position() == POS_BASE_C) {
-	font->get_glyph (buffer->info[i].codepoint, 0, &glyphs[consonant_pos]);
+	glyphs[consonant_pos] = buffer->info[i].codepoint;
 	buffer->info[i].indic_position() = consonant_position_from_font (&indic_plan, glyphs, 2, face);
       }
   }
 }
 
-static void
-setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
-		   const hb_ot_map_t            *map,
-		   hb_buffer_t                  *buffer,
-		   hb_font_t                    *font)
-{
-  HB_BUFFER_ALLOCATE_VAR (buffer, indic_category);
-  HB_BUFFER_ALLOCATE_VAR (buffer, indic_position);
-
-  /* We cannot setup masks here.  We save information about characters
-   * and setup masks later on in a pause-callback. */
-
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-    set_indic_properties (buffer->info[i]);
-
-  update_consonant_positions (map, buffer, font);
-}
-
-static int
-compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
-{
-  int a = pa->indic_position();
-  int b = pb->indic_position();
-
-  return a < b ? -1 : a == b ? 0 : +1;
-}
 
 /* Rules from:
  * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
@@ -696,10 +699,12 @@ initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
 
 static void
 initial_reordering (const hb_ot_map_t *map,
-		    hb_font_t *font HB_UNUSED,
+		    hb_font_t *font,
 		    hb_buffer_t *buffer,
 		    void *user_data HB_UNUSED)
 {
+  update_consonant_positions (map, buffer, font);
+
   hb_mask_t basic_mask_array[ARRAY_LENGTH (indic_basic_features)] = {0};
   unsigned int num_masks = ARRAY_LENGTH (indic_basic_features);
   for (unsigned int i = 0; i < num_masks; i++)
