@@ -35,9 +35,35 @@
 
 struct hb_ot_shape_plan_t
 {
-  hb_ot_map_t map;
   const hb_ot_complex_shaper_t *shaper;
+  hb_ot_map_t map;
 };
+
+struct hb_ot_shape_planner_t
+{
+  /* In the order that they are filled in. */
+  hb_face_t *face;
+  hb_segment_properties_t props;
+  const hb_ot_complex_shaper_t *shaper;
+  hb_ot_map_builder_t map;
+
+  hb_ot_shape_planner_t (const hb_shape_plan_t *master_plan) :
+			 face (master_plan->face),
+			 props (master_plan->props),
+			 shaper (NULL),
+			 map () {}
+  ~hb_ot_shape_planner_t (void) { map.finish (); }
+
+  inline void compile (hb_ot_shape_plan_t &plan)
+  {
+    plan.shaper = shaper;
+    map.compile (face, &props, plan.map);
+  }
+
+  private:
+  NO_COPY (hb_ot_shape_planner_t);
+};
+
 
 
 inline void

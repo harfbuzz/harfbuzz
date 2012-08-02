@@ -70,26 +70,6 @@ hb_tag_t vertical_features[] = {
 
 
 
-struct hb_ot_shape_planner_t
-{
-  hb_ot_map_builder_t map;
-  const hb_ot_complex_shaper_t *shaper;
-
-  hb_ot_shape_planner_t (void) : map () {}
-  ~hb_ot_shape_planner_t (void) { map.finish (); }
-
-  inline void compile (hb_face_t *face,
-		       const hb_segment_properties_t *props,
-		       hb_ot_shape_plan_t &plan)
-  {
-    plan.shaper = shaper;
-    map.compile (face, props, plan.map);
-  }
-
-  private:
-  NO_COPY (hb_ot_shape_planner_t);
-};
-
 static void
 hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      const hb_segment_properties_t  *props,
@@ -188,15 +168,13 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
   if (unlikely (!data))
     return NULL;
 
-  hb_ot_shape_planner_t planner;
-
-  assert (HB_DIRECTION_IS_VALID (shape_plan->props.direction));
+  hb_ot_shape_planner_t planner (shape_plan);
 
   planner.shaper = hb_ot_shape_complex_categorize (&shape_plan->props);
 
   hb_ot_shape_collect_features (&planner, &shape_plan->props, user_features, num_user_features);
 
-  planner.compile (shape_plan->face, &shape_plan->props, *data);
+  planner.compile (*data);
 
   return data;
 }

@@ -90,6 +90,8 @@ hb_shape_plan_create (hb_face_t                     *face,
 		      unsigned int                   num_user_features,
 		      const char * const            *shaper_list)
 {
+  assert (props->direction != HB_DIRECTION_INVALID);
+
   hb_shape_plan_t *shape_plan;
 
   if (unlikely (!face))
