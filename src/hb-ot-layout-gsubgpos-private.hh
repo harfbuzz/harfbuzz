@@ -31,6 +31,7 @@
 
 #include "hb-buffer-private.hh"
 #include "hb-ot-layout-gdef-table.hh"
+#include "hb-set-private.hh"
 
 
 
@@ -109,12 +110,14 @@ struct hb_apply_context_t
   unsigned int debug_depth;
   const GDEF &gdef;
   bool has_glyph_classes;
+  const hb_set_digest_t *digest;
 
 
   hb_apply_context_t (hb_font_t *font_,
 		      hb_face_t *face_,
 		      hb_buffer_t *buffer_,
-		      hb_mask_t lookup_mask_) :
+		      hb_mask_t lookup_mask_,
+		      const hb_set_digest_t *digest_) :
 			font (font_), face (face_), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
@@ -123,7 +126,8 @@ struct hb_apply_context_t
 			gdef (hb_ot_layout_from_face (face_) &&
 			      !HB_SHAPER_DATA_IS_INVALID (hb_ot_layout_from_face (face_)) ?
 			      *hb_ot_layout_from_face (face_)->gdef : Null(GDEF)),
-			has_glyph_classes (gdef.has_glyph_classes ()) {}
+			has_glyph_classes (gdef.has_glyph_classes ()),
+			digest (digest_) {}
 
   void set_lookup (const Lookup &l) {
     lookup_props = l.get_props ();

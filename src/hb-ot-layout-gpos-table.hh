@@ -1551,27 +1551,15 @@ struct PosLookup : Lookup
 
     c->buffer->idx = 0;
 
-    /* Fast path for lookups with one coverage only (which is most). */
-    const Coverage *coverage = get_coverage ();
-    if (coverage)
-      while (c->buffer->idx < c->buffer->len)
-      {
-	if ((c->buffer->cur().mask & c->lookup_mask) &&
-	    coverage->get_coverage (c->buffer->cur().codepoint) != NOT_COVERED &&
-	    apply_once (c))
-	  ret = true;
-	else
-	  c->buffer->idx++;
-      }
-    else
-      while (c->buffer->idx < c->buffer->len)
-      {
-	if ((c->buffer->cur().mask & c->lookup_mask) &&
-	    apply_once (c))
-	  ret = true;
-	else
-	  c->buffer->idx++;
-      }
+    while (c->buffer->idx < c->buffer->len)
+    {
+      if ((c->buffer->cur().mask & c->lookup_mask) &&
+	  c->digest->may_have (c->buffer->cur().codepoint) &&
+	  apply_once (c))
+	ret = true;
+      else
+	c->buffer->idx++;
+    }
 
     return ret;
   }

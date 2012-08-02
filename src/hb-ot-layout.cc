@@ -58,6 +58,24 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos_blob = Sanitizer<GPOS>::sanitize (hb_face_reference_table (face, HB_OT_TAG_GPOS));
   layout->gpos = Sanitizer<GPOS>::lock_instance (layout->gpos_blob);
 
+  layout->gsub_digests = (hb_set_digest_t *) calloc (layout->gsub->get_lookup_count (), sizeof (hb_set_digest_t));
+  layout->gpos_digests = (hb_set_digest_t *) calloc (layout->gpos->get_lookup_count (), sizeof (hb_set_digest_t));
+
+  if (unlikely ((layout->gsub->get_lookup_count() && !layout->gsub_digests) ||
+		(layout->gpos->get_lookup_count() && !layout->gpos_digests)))
+  {
+    _hb_ot_layout_destroy (layout);
+    return NULL;
+  }
+
+  unsigned int count;
+  count = layout->gsub->get_lookup_count();
+  for (unsigned int i = 0; i < count; i++)
+    layout->gsub->add_coverage (&layout->gsub_digests[i], i);
+  count = layout->gpos->get_lookup_count();
+  for (unsigned int i = 0; i < count; i++)
+    layout->gpos->add_coverage (&layout->gpos_digests[i], i);
+
   return layout;
 }
 
@@ -67,6 +85,9 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gdef_blob);
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
+
+  free (layout->gsub_digests);
+  free (layout->gpos_digests);
 
   free (layout);
 }
@@ -412,7 +433,7 @@ hb_ot_layout_substitute_lookup (hb_face_t    *face,
 				unsigned int  lookup_index,
 				hb_mask_t     mask)
 {
-  hb_apply_context_t c (NULL, face, buffer, mask);
+  hb_apply_context_t c (NULL, face, buffer, mask, NULL);
   return _get_gsub (face).substitute_lookup (&c, lookup_index);
 }
 
@@ -422,7 +443,7 @@ hb_ot_layout_substitute_lookup_fast (hb_face_t    *face,
 				     unsigned int  lookup_index,
 				     hb_mask_t     mask)
 {
-  hb_apply_context_t c (NULL, face, buffer, mask);
+  hb_apply_context_t c (NULL, face, buffer, mask, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
   return hb_ot_layout_from_face (face)->gsub->substitute_lookup (&c, lookup_index);
 }
 
@@ -463,7 +484,7 @@ hb_ot_layout_position_lookup (hb_font_t    *font,
 			      unsigned int  lookup_index,
 			      hb_mask_t     mask)
 {
-  hb_apply_context_t c (font, font->face, buffer, mask);
+  hb_apply_context_t c (font, font->face, buffer, mask, NULL);
   return _get_gpos (font->face).position_lookup (&c, lookup_index);
 }
 
@@ -473,7 +494,7 @@ hb_ot_layout_position_lookup_fast (hb_font_t    *font,
 				   unsigned int  lookup_index,
 				   hb_mask_t     mask)
 {
-  hb_apply_context_t c (font, font->face, buffer, mask);
+  hb_apply_context_t c (font, font->face, buffer, mask, &hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
   return hb_ot_layout_from_face (font->face)->gpos->position_lookup (&c, lookup_index);
 }
 

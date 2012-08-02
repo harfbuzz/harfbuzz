@@ -35,6 +35,7 @@
 
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
+#include "hb-set-private.hh"
 
 
 /* buffer var allocations, used during the GSUB/GPOS processing */
@@ -168,6 +169,9 @@ struct hb_ot_layout_t
   const struct GDEF *gdef;
   const struct GSUB *gsub;
   const struct GPOS *gpos;
+
+  hb_set_digest_t *gsub_digests;
+  hb_set_digest_t *gpos_digests;
 };
 
 
