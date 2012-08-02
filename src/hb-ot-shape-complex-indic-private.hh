@@ -157,8 +157,8 @@ enum indic_matra_category_t {
 
 #define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x0900))
 #define IS_BENG(u) (IN_HALF_BLOCK (u, 0x0980))
-#define IS_GURM(u) (IN_HALF_BLOCK (u, 0x0A00))
-#define IS_GUJA(u) (IN_HALF_BLOCK (u, 0x0A80))
+#define IS_GURU(u) (IN_HALF_BLOCK (u, 0x0A00))
+#define IS_GUJR(u) (IN_HALF_BLOCK (u, 0x0A80))
 #define IS_ORYA(u) (IN_HALF_BLOCK (u, 0x0B00))
 #define IS_TAML(u) (IN_HALF_BLOCK (u, 0x0B80))
 #define IS_TELU(u) (IN_HALF_BLOCK (u, 0x0C00))
@@ -172,8 +172,8 @@ enum indic_matra_category_t {
 #define MATRA_POS_RIGHT(u)	( \
 				  IS_DEVA(u) ? POS_AFTER_SUB  : \
 				  IS_BENG(u) ? POS_AFTER_POST : \
-				  IS_GURM(u) ? POS_AFTER_POST : \
-				  IS_GUJA(u) ? POS_AFTER_POST : \
+				  IS_GURU(u) ? POS_AFTER_POST : \
+				  IS_GUJR(u) ? POS_AFTER_POST : \
 				  IS_ORYA(u) ? POS_AFTER_POST : \
 				  IS_TAML(u) ? POS_AFTER_POST : \
 				  IS_TELU(u) ? (u <= 0x0C42 ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
@@ -185,8 +185,8 @@ enum indic_matra_category_t {
 				)
 #define MATRA_POS_TOP(u)	( /* BENG and MLYM don't have top matras. */ \
 				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_GURM(u) ? POS_AFTER_POST : /* Deviate from spec */ \
-				  IS_GUJA(u) ? POS_AFTER_SUB  : \
+				  IS_GURU(u) ? POS_AFTER_POST : /* Deviate from spec */ \
+				  IS_GUJR(u) ? POS_AFTER_SUB  : \
 				  IS_ORYA(u) ? POS_AFTER_MAIN : \
 				  IS_TAML(u) ? POS_AFTER_SUB  : \
 				  IS_TELU(u) ? POS_BEFORE_SUB : \
@@ -198,8 +198,8 @@ enum indic_matra_category_t {
 #define MATRA_POS_BOTTOM(u)	( \
 				  IS_DEVA(u) ? POS_AFTER_SUB  : \
 				  IS_BENG(u) ? POS_AFTER_SUB  : \
-				  IS_GURM(u) ? POS_AFTER_POST : \
-				  IS_GUJA(u) ? POS_AFTER_POST : \
+				  IS_GURU(u) ? POS_AFTER_POST : \
+				  IS_GUJR(u) ? POS_AFTER_POST : \
 				  IS_ORYA(u) ? POS_AFTER_SUB  : \
 				  IS_TAML(u) ? POS_AFTER_POST : \
 				  IS_TELU(u) ? POS_BEFORE_SUB : \

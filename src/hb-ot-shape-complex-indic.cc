@@ -25,23 +25,12 @@
  */
 
 #include "hb-ot-shape-complex-indic-private.hh"
-#include "hb-ot-shape-private.hh"
 #include "hb-ot-layout-private.hh"
 
 
-#define OLD_INDIC_TAG(script) (((hb_tag_t) script) | 0x20000000)
-#define IS_OLD_INDIC_TAG(tag) ( \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_BENGALI)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_DEVANAGARI)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GUJARATI)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GURMUKHI)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_KANNADA)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_MALAYALAM)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_ORIYA)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TAMIL)	|| \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TELUGU)	|| \
-			      0)
-
+/*
+ * Global Indic shaper options.
+ */
 
 struct indic_options_t
 {
@@ -82,6 +71,65 @@ indic_options (void)
 }
 
 
+/*
+ * Indic configurations.  Note that we do not want to keep every single script-specific
+ * behavior in these tables necessarily.  This should mainly be used for per-script
+ * properties that are cheaper keeping here, than in the code.  Ie. if, say, one and
+ * only one script has an exception, that one script can be if'ed directly in the code,
+ * instead of adding a new flag in these structs.
+ */
+
+enum base_position_t {
+  BASE_POS_FIRST,
+  BASE_POS_LAST
+};
+enum reph_position_t {
+  REPH_POS_DEFAULT     = POS_BEFORE_POST,
+
+  REPH_POS_AFTER_MAIN  = POS_AFTER_MAIN,
+  REPH_POS_BEFORE_SUB  = POS_BEFORE_SUB,
+  REPH_POS_AFTER_SUB   = POS_AFTER_SUB,
+  REPH_POS_BEFORE_POST = POS_BEFORE_POST,
+  REPH_POS_AFTER_POST  = POS_AFTER_POST
+};
+enum reph_mode_t {
+  REPH_MODE_IMPLICIT,  /* Reph formed out of initial Ra,H sequence. */
+  REPH_MODE_EXPLICIT,  /* Reph formed out of initial Ra,H,ZWJ sequence. */
+  REPH_MODE_VIS_REPHA, /* Encoded Repha character, no reordering needed. */
+  REPH_MODE_LOG_REPHA  /* Encoded Repha character, needs reordering. */
+};
+struct indic_config_t
+{
+  hb_script_t     script;
+  bool            has_old_spec;
+  hb_codepoint_t  virama;
+  base_position_t base_pos;
+  reph_position_t reph_pos;
+  reph_mode_t     reph_mode;
+};
+
+static const indic_config_t indic_configs[] =
+{
+  /* Default.  Should be first. */
+  {HB_SCRIPT_INVALID,	false,     0,BASE_POS_LAST, REPH_POS_DEFAULT,    REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_DEVANAGARI,true, 0x094D,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_BENGALI,	true, 0x09CD,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_GURMUKHI,	true, 0x0A4D,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_GUJARATI,	true, 0x0ACD,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_ORIYA,	true, 0x0B4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_TAMIL,	true, 0x0BCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_TELUGU,	true, 0x0C4D,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT},
+  {HB_SCRIPT_KANNADA,	true, 0x0CCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT},
+  {HB_SCRIPT_MALAYALAM,	true, 0x0D4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA},
+  {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_FIRST,REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT},
+  {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DEFAULT,    REPH_MODE_VIS_REPHA},
+};
+
+
+
+/*
+ * Indic shaper.
+ */
 
 struct feature_list_t {
   hb_tag_t tag;
@@ -228,7 +276,7 @@ struct indic_shape_plan_t
     hb_codepoint_t glyph = virama_glyph;
     if (unlikely (virama_glyph == (hb_codepoint_t) -1))
     {
-      if (!font->get_glyph (virama, 0, &glyph))
+      if (!config->virama || !font->get_glyph (config->virama, 0, &glyph))
 	glyph = 0;
       /* Technically speaking, the spec says we should apply 'locl' to virama too.
        * Maybe one day... */
@@ -242,10 +290,9 @@ struct indic_shape_plan_t
     return glyph != 0;
   }
 
+  const indic_config_t *config;
 
   bool is_old_spec;
-
-  hb_codepoint_t virama;
   hb_codepoint_t virama_glyph;
 
   would_substitute_feature_t pref;
@@ -262,26 +309,15 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
   if (unlikely (!indic_plan))
     return NULL;
 
-  indic_plan->is_old_spec = IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0));
-  {
-    hb_codepoint_t virama;
-    switch ((int) plan->props.script) {
-      case HB_SCRIPT_DEVANAGARI:virama = 0x094D; break;
-      case HB_SCRIPT_BENGALI:	virama = 0x09CD; break;
-      case HB_SCRIPT_GURMUKHI:	virama = 0x0A4D; break;
-      case HB_SCRIPT_GUJARATI:	virama = 0x0ACD; break;
-      case HB_SCRIPT_ORIYA:	virama = 0x0B4D; break;
-      case HB_SCRIPT_TAMIL:	virama = 0x0BCD; break;
-      case HB_SCRIPT_TELUGU:	virama = 0x0C4D; break;
-      case HB_SCRIPT_KANNADA:	virama = 0x0CCD; break;
-      case HB_SCRIPT_MALAYALAM:	virama = 0x0D4D; break;
-      case HB_SCRIPT_SINHALA:	virama = 0x0DCA; break;
-      case HB_SCRIPT_KHMER:	virama = 0x17D2; break;
-      default:			virama = 0;      break;
+  indic_plan->config = &indic_configs[0];
+  for (unsigned int i = 1; i < ARRAY_LENGTH (indic_configs); i++)
+    if (plan->props.script == indic_configs[i].script) {
+      indic_plan->config = &indic_configs[i];
+      break;
     }
-    indic_plan->virama = virama;
-  }
-  indic_plan->virama_glyph = indic_plan->virama ? (hb_codepoint_t) -1 : 0;
+
+  indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.get_chosen_script (0) & 0x000000FF) != '2');
+  indic_plan->virama_glyph = (hb_codepoint_t) -1;
 
   indic_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'));
   indic_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'));
@@ -397,9 +433,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
 	start + 3 <= end &&
 	info[start].indic_category() == OT_Ra &&
 	info[start + 1].indic_category() == OT_H &&
-	(unlikely (buffer->props.script == HB_SCRIPT_SINHALA || buffer->props.script == HB_SCRIPT_TELUGU) ?
-	 info[start + 2].indic_category() == OT_ZWJ /* In Sinhala & Telugu, form Reph only if ZWJ is present */:
-	 !is_joiner (info[start + 2] /* In other scripts, any joiner blocks Reph formation */ )
+	(/* TODO Handle other Reph modes. */
+	 (indic_plan->config->reph_mode == REPH_MODE_IMPLICIT && !is_joiner (info[start + 2])) ||
+	 (indic_plan->config->reph_mode == REPH_MODE_EXPLICIT && info[start + 2].indic_category() == OT_ZWJ)
 	))
     {
       limit += 2;
@@ -409,92 +445,84 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
       has_reph = true;
     };
 
-     enum base_position_t {
-       BASE_FIRST,
-       BASE_LAST
-     } base_pos;
-
-    switch ((hb_tag_t) buffer->props.script)
+    switch (indic_plan->config->base_pos == BASE_POS_LAST)
     {
-      case HB_SCRIPT_SINHALA:
-      case HB_SCRIPT_KHMER:
-	base_pos = BASE_FIRST;
-	break;
+      case BASE_POS_LAST:
+      {
+	/* -> starting from the end of the syllable, move backwards */
+	unsigned int i = end;
+	bool seen_below = false;
+	do {
+	  i--;
+	  /* -> until a consonant is found */
+	  if (is_consonant (info[i]))
+	  {
+	    /* -> that does not have a below-base or post-base form
+	     * (post-base forms have to follow below-base forms), */
+	    if (info[i].indic_position() != POS_BELOW_C &&
+		(info[i].indic_position() != POS_POST_C || seen_below))
+	    {
+	      base = i;
+	      break;
+	    }
+	    if (info[i].indic_position() == POS_BELOW_C)
+	      seen_below = true;
+
+	    /* -> or that is not a pre-base reordering Ra,
+	     *
+	     * IMPLEMENTATION NOTES:
+	     *
+	     * Our pre-base reordering Ra's are marked POS_BELOW, so will be skipped
+	     * by the logic above already.
+	     */
+
+	    /* -> or arrive at the first consonant. The consonant stopped at will
+	     * be the base. */
+	    base = i;
+	  }
+	  else
+	  {
+	    /* A ZWJ after a Halant stops the base search, and requests an explicit
+	     * half form.
+	     * A ZWJ before a Halant, requests a subjoined form instead, and hence
+	     * search continues.  This is particularly important for Bengali
+	     * sequence Ra,H,Ya that shouls form Ya-Phalaa by subjoining Ya. */
+	    if (start < i &&
+		info[i].indic_category() == OT_ZWJ &&
+		info[i - 1].indic_category() == OT_H)
+	      break;
+	  }
+	} while (i > limit);
+      }
+      break;
+
+      case BASE_POS_FIRST:
+      {
+	/* In scripts without half forms (eg. Khmer), the first consonant is always the base. */
+
+	if (!has_reph)
+	  base = limit;
+
+	/* Find the last base consonant that is not blocked by ZWJ.  If there is
+	 * a ZWJ right before a base consonant, that would request a subjoined form. */
+	for (unsigned int i = limit; i < end; i++)
+	  if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	  {
+	    if (limit < i && info[i - 1].indic_category() == OT_ZWJ)
+	      break;
+	    else
+	      base = i;
+	  }
+
+	/* Mark all subsequent consonants as below. */
+	for (unsigned int i = base + 1; i < end; i++)
+	  if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	    info[i].indic_position() = POS_BELOW_C;
+      }
+      break;
 
       default:
-	base_pos = BASE_LAST;
-	break;
-    }
-
-    if (base_pos == BASE_LAST)
-    {
-      /* -> starting from the end of the syllable, move backwards */
-      unsigned int i = end;
-      bool seen_below = false;
-      do {
-	i--;
-	/* -> until a consonant is found */
-	if (is_consonant (info[i]))
-	{
-	  /* -> that does not have a below-base or post-base form
-	   * (post-base forms have to follow below-base forms), */
-	  if (info[i].indic_position() != POS_BELOW_C &&
-	      (info[i].indic_position() != POS_POST_C || seen_below))
-	  {
-	    base = i;
-	    break;
-	  }
-	  if (info[i].indic_position() == POS_BELOW_C)
-	    seen_below = true;
-
-	  /* -> or that is not a pre-base reordering Ra,
-	   *
-	   * IMPLEMENTATION NOTES:
-	   *
-	   * Our pre-base reordering Ra's are marked POS_BELOW, so will be skipped
-	   * by the logic above already.
-	   */
-
-	  /* -> or arrive at the first consonant. The consonant stopped at will
-	   * be the base. */
-	  base = i;
-	}
-	else
-	{
-	  /* A ZWJ after a Halant stops the base search, and requests an explicit
-	   * half form.
-	   * A ZWJ before a Halant, requests a subjoined form instead, and hence
-	   * search continues.  This is particularly important for Bengali
-	   * sequence Ra,H,Ya that shouls form Ya-Phalaa by subjoining Ya. */
-	  if (start < i &&
-	      info[i].indic_category() == OT_ZWJ &&
-	      info[i - 1].indic_category() == OT_H)
-	    break;
-	}
-      } while (i > limit);
-    }
-    else
-    {
-      /* In scripts without half forms (eg. Khmer), the first consonant is always the base. */
-
-      if (!has_reph)
-	base = limit;
-
-      /* Find the last base consonant that is not blocked by ZWJ.  If there is
-       * a ZWJ right before a base consonant, that would request a subjoined form. */
-      for (unsigned int i = limit; i < end; i++)
-        if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
-	{
-	  if (limit < i && info[i - 1].indic_category() == OT_ZWJ)
-	    break;
-          else
-	    base = i;
-	}
-
-      /* Mark all subsequent consonants as below. */
-      for (unsigned int i = base + 1; i < end; i++)
-        if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
-	  info[i].indic_position() = POS_BELOW_C;
+      abort ();
     }
 
     /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
@@ -864,50 +892,15 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
       info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
       info[start + 1].indic_position() != POS_RA_TO_BECOME_REPH)
   {
-      unsigned int new_reph_pos;
+    unsigned int new_reph_pos;
+    reph_position_t reph_pos = indic_plan->config->reph_pos;
 
-     enum reph_position_t {
-       REPH_AFTER_MAIN,
-       REPH_BEFORE_SUBSCRIPT,
-       REPH_AFTER_SUBSCRIPT,
-       REPH_BEFORE_POSTSCRIPT,
-       REPH_AFTER_POSTSCRIPT
-     } reph_pos;
-
-     /* XXX Figure out old behavior too */
-     switch ((hb_tag_t) buffer->props.script)
-     {
-       case HB_SCRIPT_MALAYALAM:
-       case HB_SCRIPT_ORIYA:
-       case HB_SCRIPT_SINHALA:
-	 reph_pos = REPH_AFTER_MAIN;
-	 break;
-
-       case HB_SCRIPT_GURMUKHI:
-	 reph_pos = REPH_BEFORE_SUBSCRIPT;
-	 break;
-
-       case HB_SCRIPT_BENGALI:
-	 reph_pos = REPH_AFTER_SUBSCRIPT;
-	 break;
-
-       default:
-       case HB_SCRIPT_DEVANAGARI:
-       case HB_SCRIPT_GUJARATI:
-	 reph_pos = REPH_BEFORE_POSTSCRIPT;
-	 break;
-
-       case HB_SCRIPT_KANNADA:
-       case HB_SCRIPT_TAMIL:
-       case HB_SCRIPT_TELUGU:
-	 reph_pos = REPH_AFTER_POSTSCRIPT;
-	 break;
-     }
+    /* XXX Figure out old behavior too */
 
     /*       1. If reph should be positioned after post-base consonant forms,
      *          proceed to step 5.
      */
-    if (reph_pos == REPH_AFTER_POSTSCRIPT)
+    if (reph_pos == REPH_POS_AFTER_POST)
     {
       goto reph_step_5;
     }
@@ -940,7 +933,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
      *          first consonant not ligated with main, or find the first
      *          consonant that is not a potential pre-base reordering Ra.
      */
-    if (reph_pos == REPH_AFTER_MAIN)
+    if (reph_pos == REPH_POS_AFTER_MAIN)
     {
       new_reph_pos = base;
       /* XXX Skip potential pre-base reordering Ra. */
@@ -956,7 +949,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
      *          first matra, syllable modifier sign or vedic sign.
      */
     /* This is our take on what step 4 is trying to say (and failing, BADLY). */
-    if (reph_pos == REPH_AFTER_SUBSCRIPT)
+    if (reph_pos == REPH_POS_AFTER_SUB)
     {
       new_reph_pos = base;
       while (new_reph_pos < end &&
