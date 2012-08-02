@@ -1543,7 +1543,7 @@ struct PosLookup : Lookup
     while (c->buffer->idx < c->buffer->len)
     {
       if ((c->buffer->cur().mask & c->lookup_mask) &&
-	  c->digest->may_have (c->buffer->cur().codepoint) &&
+	  c->digest.may_have (c->buffer->cur().codepoint) &&
 	  apply_once (c))
 	ret = true;
       else
