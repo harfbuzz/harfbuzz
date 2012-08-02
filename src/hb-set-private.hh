@@ -36,7 +36,7 @@ struct hb_set_digest_common_bits_t
 {
   ASSERT_POD ();
 
-  typedef uint16_t mask_t;
+  typedef unsigned int mask_t;
 
   inline void init (void) {
     mask = ~0;
@@ -72,7 +72,7 @@ struct hb_set_digest_lowest_bits_t
 {
   ASSERT_POD ();
 
-  typedef uint32_t mask_t;
+  typedef unsigned long mask_t;
 
   inline void init (void) {
     mask = 0;
@@ -94,7 +94,7 @@ struct hb_set_digest_lowest_bits_t
 
   private:
 
-  mask_t mask_for (hb_codepoint_t g) const { return 1 << (g & (sizeof (mask_t) * 8 - 1)); }
+  mask_t mask_for (hb_codepoint_t g) const { return ((mask_t) 1) << (g & (sizeof (mask_t) * 8 - 1)); }
   mask_t mask;
 };
 
