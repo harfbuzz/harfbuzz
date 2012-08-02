@@ -210,12 +210,50 @@ struct indic_shape_plan_t
 		      pref (&plan->map, HB_TAG('p','r','e','f')),
 		      blwf (&plan->map, HB_TAG('b','l','w','f')),
 		      pstf (&plan->map, HB_TAG('p','s','t','f')),
-		      is_old_spec (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))) {}
+		      is_old_spec (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))),
+		      virama_glyph ((hb_codepoint_t) -1)
+  {
+    switch ((int) plan->props.script) {
+      case HB_SCRIPT_DEVANAGARI:virama = 0x094D; break;
+      case HB_SCRIPT_BENGALI:	virama = 0x09CD; break;
+      case HB_SCRIPT_GURMUKHI:	virama = 0x0A4D; break;
+      case HB_SCRIPT_GUJARATI:	virama = 0x0ACD; break;
+      case HB_SCRIPT_ORIYA:	virama = 0x0B4D; break;
+      case HB_SCRIPT_TAMIL:	virama = 0x0BCD; break;
+      case HB_SCRIPT_TELUGU:	virama = 0x0C4D; break;
+      case HB_SCRIPT_KANNADA:	virama = 0x0CCD; break;
+      case HB_SCRIPT_MALAYALAM:	virama = 0x0D4D; break;
+      case HB_SCRIPT_SINHALA:	virama = 0x0DCA; break;
+      case HB_SCRIPT_KHMER:	virama = 0x17D2; break;
+      default:			virama = 0;      break;
+    }
+  }
 
   would_apply_feature_t pref;
   would_apply_feature_t blwf;
   would_apply_feature_t pstf;
   bool is_old_spec;
+  hb_codepoint_t virama;
+  hb_codepoint_t virama_glyph;
+
+  inline bool get_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
+  {
+    hb_codepoint_t glyph = virama_glyph;
+    if (unlikely (virama_glyph == (hb_codepoint_t) -1))
+    {
+      if (!font->get_glyph (virama, 0, &glyph))
+	glyph = 0;
+      /* Technically speaking, the spec says we should apply 'locl' to virama too.
+       * Maybe one day... */
+
+      /* Our get_glyph() function needs a font, so we can't get the virama glyph
+       * during shape planning...  Instead, overwrite it here.  It's safe.  Don't worry! */
+      (const_cast<indic_shape_plan_t *> (this))->virama_glyph = glyph;
+    }
+
+    *pglyph = glyph;
+    return glyph != 0;
+  }
 };
 
 static void *
@@ -282,30 +320,12 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
 			    hb_buffer_t       *buffer,
 			    hb_font_t         *font)
 {
-  hb_codepoint_t virama;
-  switch ((int) buffer->props.script) {
-    case HB_SCRIPT_DEVANAGARI:	virama = 0x094D; break;
-    case HB_SCRIPT_BENGALI:	virama = 0x09CD; break;
-    case HB_SCRIPT_GURMUKHI:	virama = 0x0A4D; break;
-    case HB_SCRIPT_GUJARATI:	virama = 0x0ACD; break;
-    case HB_SCRIPT_ORIYA:	virama = 0x0B4D; break;
-    case HB_SCRIPT_TAMIL:	virama = 0x0BCD; break;
-    case HB_SCRIPT_TELUGU:	virama = 0x0C4D; break;
-    case HB_SCRIPT_KANNADA:	virama = 0x0CCD; break;
-    case HB_SCRIPT_MALAYALAM:	virama = 0x0D4D; break;
-    case HB_SCRIPT_SINHALA:	virama = 0x0DCA; break;
-    case HB_SCRIPT_KHMER:	virama = 0x17D2; break;
-    default:			virama = 0;      break;
-  }
-
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
 
   unsigned int consonant_pos = indic_plan->is_old_spec ? 0 : 1;
   hb_codepoint_t glyphs[2];
-  if (virama && font->get_glyph (virama, 0, &glyphs[1 - consonant_pos]))
+  if (indic_plan->get_virama_glyph (font, &glyphs[1 - consonant_pos]))
   {
-    /* Technically speaking, the spec says we should apply 'locl' to virama too.
-     * Maybe one day... */
     hb_face_t *face = font->face;
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++)
@@ -324,6 +344,7 @@ static void
 initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer, hb_mask_t *basic_mask_array,
 				       unsigned int start, unsigned int end)
 {
+  const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
   hb_glyph_info_t *info = buffer->info;
 
 
@@ -526,7 +547,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
 
   /* For old-style Indic script tags, move the first post-base Halant after
    * last consonant. */
-  if (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))) {
+  if (indic_plan->is_old_spec) {
     for (unsigned int i = base + 1; i < end; i++)
       if (info[i].indic_category() == OT_H) {
         unsigned int j;
