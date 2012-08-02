@@ -134,7 +134,8 @@ struct RangeRecord
     return glyphs->intersects (start, end);
   }
 
-  inline void add_coverage (hb_set_t *glyphs) const {
+  template <typename set_t>
+  inline void add_coverage (set_t *glyphs) const {
     glyphs->add_range (start, end);
   }
 
@@ -361,7 +362,8 @@ struct CoverageFormat1
     return glyphs->has (glyphArray[index]);
   }
 
-  inline void add_coverage (hb_set_t *glyphs) const {
+  template <typename set_t>
+  inline void add_coverage (set_t *glyphs) const {
     unsigned int count = glyphArray.len;
     for (unsigned int i = 0; i < count; i++)
       glyphs->add (glyphArray[i]);
@@ -422,7 +424,8 @@ struct CoverageFormat2
     return false;
   }
 
-  inline void add_coverage (hb_set_t *glyphs) const {
+  template <typename set_t>
+  inline void add_coverage (set_t *glyphs) const {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       rangeRecord[i].add_coverage (glyphs);
@@ -505,7 +508,8 @@ struct Coverage
     }
   }
 
-  inline void add_coverage (hb_set_t *glyphs) const {
+  template <typename set_t>
+  inline void add_coverage (set_t *glyphs) const {
     switch (u.format) {
     case 1: u.format1.add_coverage (glyphs); break;
     case 2: u.format2.add_coverage (glyphs); break;
