@@ -1165,6 +1165,20 @@ struct SubstLookup : Lookup
     return c;
   }
 
+  template <typename set_t>
+  inline void add_coverage (set_t *glyphs) const
+  {
+    const Coverage *last = NULL;
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++) {
+      const Coverage *c = &get_subtable (i).get_coverage (get_type ());
+      if (c != last) {
+        c->add_coverage (glyphs);
+        last = c;
+      }
+    }
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     unsigned int lookup_type = get_type ();
@@ -1283,6 +1297,10 @@ struct GSUB : GSUBGPOS
 
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
+
+  template <typename set_t>
+  inline void add_coverage (set_t *glyphs, unsigned int lookup_index) const
+  { get_lookup (lookup_index).add_coverage (glyphs); }
 
   inline bool would_substitute_lookup (hb_would_apply_context_t *c, unsigned int lookup_index) const
   { return get_lookup (lookup_index).would_apply (c); }
