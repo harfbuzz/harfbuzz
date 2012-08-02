@@ -85,7 +85,7 @@ void hb_ot_map_t::substitute (hb_face_t *face, hb_buffer_t *buffer) const
   for (unsigned int pause_index = 0; pause_index < pauses[table_index].len; pause_index++) {
     const pause_map_t *pause = &pauses[table_index][pause_index];
     for (; i < pause->num_lookups; i++)
-      hb_ot_layout_substitute_lookup_fast (face, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+      hb_ot_layout_substitute_lookup (face, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 
     buffer->clear_output ();
 
@@ -94,7 +94,7 @@ void hb_ot_map_t::substitute (hb_face_t *face, hb_buffer_t *buffer) const
   }
 
   for (; i < lookups[table_index].len; i++)
-    hb_ot_layout_substitute_lookup_fast (face, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+    hb_ot_layout_substitute_lookup (face, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 }
 
 void hb_ot_map_t::position (hb_font_t *font, hb_buffer_t *buffer) const
@@ -105,14 +105,14 @@ void hb_ot_map_t::position (hb_font_t *font, hb_buffer_t *buffer) const
   for (unsigned int pause_index = 0; pause_index < pauses[table_index].len; pause_index++) {
     const pause_map_t *pause = &pauses[table_index][pause_index];
     for (; i < pause->num_lookups; i++)
-      hb_ot_layout_position_lookup_fast (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+      hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 
     if (pause->callback.func)
       pause->callback.func (this, font, buffer, pause->callback.user_data);
   }
 
   for (; i < lookups[table_index].len; i++)
-    hb_ot_layout_position_lookup_fast (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
+    hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 }
 
 void hb_ot_map_t::substitute_closure (hb_face_t *face,

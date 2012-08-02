@@ -176,23 +176,6 @@ hb_ot_layout_would_substitute_lookup (hb_face_t            *face,
 				      unsigned int          glyphs_length,
 				      unsigned int          lookup_index);
 
-/* Should be called before all the substitute_lookup's are done. */
-void
-hb_ot_layout_substitute_start (hb_face_t    *face,
-			       hb_buffer_t  *buffer);
-
-hb_bool_t
-hb_ot_layout_substitute_lookup (hb_face_t    *face,
-				hb_buffer_t  *buffer,
-				unsigned int  lookup_index,
-				hb_mask_t     mask);
-
-/* Should be called after all the substitute_lookup's are done */
-void
-hb_ot_layout_substitute_finish (hb_face_t    *face,
-				hb_buffer_t  *buffer);
-
-
 void
 hb_ot_layout_substitute_closure_lookup (hb_face_t    *face,
 				        hb_set_t     *glyphs,
@@ -204,23 +187,6 @@ hb_ot_layout_substitute_closure_lookup (hb_face_t    *face,
 
 hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face);
-
-/* Should be called before all the position_lookup's are done.  Resets positions to zero. */
-void
-hb_ot_layout_position_start (hb_font_t    *font,
-			     hb_buffer_t  *buffer);
-
-hb_bool_t
-hb_ot_layout_position_lookup (hb_font_t    *font,
-			      hb_buffer_t  *buffer,
-			      unsigned int  lookup_index,
-			      hb_mask_t     mask);
-
-/* Should be called after all the position_lookup's are done */
-void
-hb_ot_layout_position_finish (hb_font_t    *font,
-			      hb_buffer_t  *buffer,
-			      hb_bool_t     zero_width_attached_marks);
 
 
 HB_END_DECLS

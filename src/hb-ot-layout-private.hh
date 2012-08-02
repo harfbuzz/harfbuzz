@@ -143,17 +143,41 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 					   unsigned int          glyphs_length,
 					   unsigned int          lookup_index);
 
-HB_INTERNAL hb_bool_t
-hb_ot_layout_substitute_lookup_fast (hb_face_t    *face,
-				     hb_buffer_t  *buffer,
-				     unsigned int  lookup_index,
-				     hb_mask_t     mask);
+
+/* Should be called before all the substitute_lookup's are done. */
+HB_INTERNAL void
+hb_ot_layout_substitute_start (hb_face_t    *face,
+			       hb_buffer_t  *buffer);
 
 HB_INTERNAL hb_bool_t
-hb_ot_layout_position_lookup_fast (hb_font_t    *font,
-				   hb_buffer_t  *buffer,
-				   unsigned int  lookup_index,
-				   hb_mask_t     mask);
+hb_ot_layout_substitute_lookup (hb_face_t    *face,
+				hb_buffer_t  *buffer,
+				unsigned int  lookup_index,
+				hb_mask_t     mask);
+
+/* Should be called after all the substitute_lookup's are done */
+HB_INTERNAL void
+hb_ot_layout_substitute_finish (hb_face_t    *face,
+				hb_buffer_t  *buffer);
+
+
+/* Should be called before all the position_lookup's are done.  Resets positions to zero. */
+HB_INTERNAL void
+hb_ot_layout_position_start (hb_font_t    *font,
+			     hb_buffer_t  *buffer);
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_position_lookup (hb_font_t    *font,
+			      hb_buffer_t  *buffer,
+			      unsigned int  lookup_index,
+			      hb_mask_t     mask);
+
+/* Should be called after all the position_lookup's are done */
+HB_INTERNAL void
+hb_ot_layout_position_finish (hb_font_t    *font,
+			      hb_buffer_t  *buffer,
+			      hb_bool_t     zero_width_attached_marks);
+
 
 
 /*
