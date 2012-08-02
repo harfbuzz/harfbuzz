@@ -167,8 +167,8 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 				      const hb_feature_t *user_features,
 				      unsigned int        num_user_features)
 {
-  hb_ot_shape_plan_t *data = (hb_ot_shape_plan_t *) calloc (1, sizeof (hb_ot_shape_plan_t));
-  if (unlikely (!data))
+  hb_ot_shape_plan_t *plan = (hb_ot_shape_plan_t *) calloc (1, sizeof (hb_ot_shape_plan_t));
+  if (unlikely (!plan))
     return NULL;
 
   hb_ot_shape_planner_t planner (shape_plan);
@@ -177,17 +177,26 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 
   hb_ot_shape_collect_features (&planner, &shape_plan->props, user_features, num_user_features);
 
-  planner.compile (*data);
+  planner.compile (*plan);
 
-  return data;
+  if (plan->shaper->data_create) {
+    plan->data = plan->shaper->data_create (plan);
+    if (unlikely (!plan->data))
+      return NULL;
+  }
+
+  return plan;
 }
 
 void
-_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *data)
+_hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *plan)
 {
-  data->finish ();
+  if (plan->shaper->data_destroy)
+    plan->shaper->data_destroy (const_cast<void *> (plan->data));
 
-  free (data);
+  plan->finish ();
+
+  free (plan);
 }
 
 

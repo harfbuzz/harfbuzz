@@ -88,6 +88,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
   "default",
   collect_features_default,
   NULL, /* override_features */
+  NULL, /* data_create */
+  NULL, /* data_destroy */
   normalization_preference_default,
   NULL, /* setup_masks */
   true, /* zero_width_attached_marks */
@@ -196,6 +198,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
   "thai",
   NULL, /* collect_features */
   NULL, /* override_features */
+  NULL, /* data_create */
+  NULL, /* data_destroy */
   NULL, /* normalization_preference */
   setup_masks_thai,
   true, /* zero_width_attached_marks */

@@ -82,56 +82,6 @@ indic_options (void)
 }
 
 
-struct indic_shape_plan_t
-{
-  struct would_apply_feature_t
-  {
-    would_apply_feature_t (const hb_ot_map_t *map, hb_tag_t feature_tag)
-    {
-      map->get_stage_lookups (0/*GSUB*/,
-			      map->get_feature_stage (0/*GSUB*/, feature_tag),
-			      &lookups, &count);
-    }
-
-    inline bool would_substitute (hb_codepoint_t    *glyphs,
-				  unsigned int       glyphs_count,
-				  hb_face_t         *face) const
-    {
-      for (unsigned int i = 0; i < count; i++)
-	if (hb_ot_layout_would_substitute_lookup_fast (face, glyphs, glyphs_count, lookups[i].index))
-	  return true;
-      return false;
-    }
-
-    private:
-    const hb_ot_map_t::lookup_map_t *lookups;
-    unsigned int count;
-  };
-
-  indic_shape_plan_t (const hb_ot_shape_plan_t *plan) :
-		      pref (&plan->map, HB_TAG('p','r','e','f')),
-		      blwf (&plan->map, HB_TAG('b','l','w','f')),
-		      pstf (&plan->map, HB_TAG('p','s','t','f')),
-		      is_old_spec (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))) {}
-
-  would_apply_feature_t pref;
-  would_apply_feature_t blwf;
-  would_apply_feature_t pstf;
-  bool is_old_spec;
-};
-
-static indic_position_t
-consonant_position_from_font (const indic_shape_plan_t *indic_plan,
-			      hb_codepoint_t *glyphs, unsigned int glyphs_len,
-			      hb_face_t      *face)
-{
-  if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
-  if (indic_plan->blwf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
-  if (indic_plan->pstf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_POST_C;
-  return POS_BASE_C;
-}
-
-
 
 struct feature_list_t {
   hb_tag_t tag;
@@ -230,6 +180,76 @@ override_features_indic (hb_ot_shape_planner_t *plan)
 }
 
 
+struct would_apply_feature_t
+{
+  would_apply_feature_t (const hb_ot_map_t *map, hb_tag_t feature_tag)
+  {
+    map->get_stage_lookups (0/*GSUB*/,
+			    map->get_feature_stage (0/*GSUB*/, feature_tag),
+			    &lookups, &count);
+  }
+
+  inline bool would_substitute (hb_codepoint_t    *glyphs,
+				unsigned int       glyphs_count,
+				hb_face_t         *face) const
+  {
+    for (unsigned int i = 0; i < count; i++)
+      if (hb_ot_layout_would_substitute_lookup_fast (face, glyphs, glyphs_count, lookups[i].index))
+	return true;
+    return false;
+  }
+
+  private:
+  const hb_ot_map_t::lookup_map_t *lookups;
+  unsigned int count;
+};
+
+struct indic_shape_plan_t
+{
+  indic_shape_plan_t (const hb_ot_shape_plan_t *plan) :
+		      pref (&plan->map, HB_TAG('p','r','e','f')),
+		      blwf (&plan->map, HB_TAG('b','l','w','f')),
+		      pstf (&plan->map, HB_TAG('p','s','t','f')),
+		      is_old_spec (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))) {}
+
+  would_apply_feature_t pref;
+  would_apply_feature_t blwf;
+  would_apply_feature_t pstf;
+  bool is_old_spec;
+};
+
+static void *
+data_create_indic (const hb_ot_shape_plan_t *plan)
+{
+  indic_shape_plan_t *data = (indic_shape_plan_t *) calloc (1, sizeof (indic_shape_plan_t));
+  if (unlikely (!data))
+    return NULL;
+
+  /* Mixing C++ and C, oh well... */
+  indic_shape_plan_t indic_plan (plan);
+
+  *data = indic_plan;
+  return data;
+}
+
+static void
+data_destroy_indic (void *data)
+{
+  free (data);
+}
+
+static indic_position_t
+consonant_position_from_face (const indic_shape_plan_t *indic_plan,
+			      hb_codepoint_t *glyphs, unsigned int glyphs_len,
+			      hb_face_t      *face)
+{
+  if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
+  if (indic_plan->blwf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
+  if (indic_plan->pstf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_POST_C;
+  return POS_BASE_C;
+}
+
+
 static void
 setup_masks_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		   hb_buffer_t              *buffer,
@@ -278,9 +298,9 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
     default:			virama = 0;      break;
   }
 
-  indic_shape_plan_t indic_plan (plan);
+  const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
 
-  unsigned int consonant_pos = indic_plan.is_old_spec ? 0 : 1;
+  unsigned int consonant_pos = indic_plan->is_old_spec ? 0 : 1;
   hb_codepoint_t glyphs[2];
   if (virama && font->get_glyph (virama, 0, &glyphs[1 - consonant_pos]))
   {
@@ -291,7 +311,7 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
     for (unsigned int i = 0; i < count; i++)
       if (buffer->info[i].indic_position() == POS_BASE_C) {
 	glyphs[consonant_pos] = buffer->info[i].codepoint;
-	buffer->info[i].indic_position() = consonant_position_from_font (&indic_plan, glyphs, 2, face);
+	buffer->info[i].indic_position() = consonant_position_from_face (indic_plan, glyphs, 2, face);
       }
   }
 }
@@ -1086,6 +1106,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   "indic",
   collect_features_indic,
   override_features_indic,
+  data_create_indic,
+  data_destroy_indic,
   NULL, /* normalization_preference */
   setup_masks_indic,
   false, /* zero_width_attached_marks */

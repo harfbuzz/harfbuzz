@@ -69,12 +69,26 @@ struct hb_ot_complex_shaper_t
    */
   void (*override_features) (hb_ot_shape_planner_t *plan);
 
+
+  /* data_create()
+   * Called at the end of shape_plan().
+   * Whatever shapers return will be accessible through plan->data later.
+   * If NULL is returned, means a plan failure.
+   * May be NULL. */
+  void *(*data_create) (const hb_ot_shape_plan_t *plan);
+
+  /* data_destroy()
+   * Called when the shape_plan is being destroyed.
+   * plan->data is passed here for destruction.
+   * If NULL is returned, means a plan failure.
+   * May be NULL. */
+  void (*data_destroy) (void *data);
+
   /* normalization_preference()
    * Called during shape().
    */
   hb_ot_shape_normalization_mode_t
   (*normalization_preference) (const hb_ot_shape_plan_t *plan);
-
 
   /* setup_masks()
    * Called during shape().

@@ -296,6 +296,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   "arabic",
   collect_features_arabic,
   NULL, /* override_features */
+  NULL, /* data_create */
+  NULL, /* data_destroy */
   NULL, /* normalization_preference */
   setup_masks_arabic,
   true, /* zero_width_attached_marks */
