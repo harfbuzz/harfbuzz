@@ -32,6 +32,101 @@
 #include "hb-object-private.hh"
 
 
+struct hb_set_digest_common_bits_t
+{
+  ASSERT_POD ();
+
+  typedef uint16_t mask_t;
+
+  inline void init (void) {
+    mask = ~0;
+    value = (mask_t) -1;
+  }
+
+  inline void add (hb_codepoint_t g) {
+    if (unlikely (value == (mask_t) -1)) {
+      value = g;
+      return;
+    }
+
+    mask ^= (g & mask) ^ value;
+    value &= mask;
+  }
+
+  inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
+    /* TODO Speedup. */
+    for (unsigned int i = a; i < b + 1; i++)
+      add (i);
+  }
+
+  inline bool may_have (hb_codepoint_t g) const {
+    return (g & mask) == value;
+  }
+
+  private:
+  mask_t mask;
+  mask_t value;
+};
+
+struct hb_set_digest_lowest_bits_t
+{
+  ASSERT_POD ();
+
+  typedef uint32_t mask_t;
+
+  inline void init (void) {
+    mask = 0;
+  }
+
+  inline void add (hb_codepoint_t g) {
+    mask |= mask_for (g);
+  }
+
+  inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
+    /* TODO Speedup. */
+    for (unsigned int i = a; i < b + 1; i++)
+      add (i);
+  }
+
+  inline bool may_have (hb_codepoint_t g) const {
+    return !!(mask & mask_for (g));
+  }
+
+  private:
+
+  mask_t mask_for (hb_codepoint_t g) const { return 1 << (g & (sizeof (mask_t) * 8 - 1)); }
+  mask_t mask;
+};
+
+struct hb_set_digest_t
+{
+  ASSERT_POD ();
+
+  inline void init (void) {
+    digest1.init ();
+    digest2.init ();
+  }
+
+  inline void add (hb_codepoint_t g) {
+    digest1.add (g);
+    digest2.add (g);
+  }
+
+  inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
+    digest1.add_range (a, b);
+    digest2.add_range (a, b);
+  }
+
+  inline bool may_have (hb_codepoint_t g) const {
+    return digest1.may_have (g) && digest2.may_have (g);
+  }
+
+  private:
+  hb_set_digest_common_bits_t digest1;
+  hb_set_digest_lowest_bits_t digest2;
+};
+
+
 /* TODO Make this faster and memmory efficient. */
 
 struct hb_set_t
