@@ -77,8 +77,8 @@ struct hb_would_apply_context_t
   hb_face_t *face;
   hb_codepoint_t first;
   hb_codepoint_t second;
-  const hb_set_digest_t digest;
   unsigned int len;
+  const hb_set_digest_t digest;
   unsigned int debug_depth;
 
   hb_would_apply_context_t (hb_face_t *face_,
