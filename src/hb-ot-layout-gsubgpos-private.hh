@@ -118,18 +118,15 @@ struct hb_apply_context_t
 
 
   hb_apply_context_t (hb_font_t *font_,
-		      hb_face_t *face_,
 		      hb_buffer_t *buffer_,
 		      hb_mask_t lookup_mask_,
 		      const hb_set_digest_t *digest_) :
-			font (font_), face (face_), buffer (buffer_),
+			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
 			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0), property (0), debug_depth (0),
-			gdef (hb_ot_layout_from_face (face_) &&
-			      !HB_SHAPER_DATA_IS_INVALID (hb_ot_layout_from_face (face_)) ?
-			      *hb_ot_layout_from_face (face_)->gdef : Null(GDEF)),
+			gdef (*hb_ot_layout_from_face (face)->gdef),
 			has_glyph_classes (gdef.has_glyph_classes ()),
 			digest (*digest_) {}
 

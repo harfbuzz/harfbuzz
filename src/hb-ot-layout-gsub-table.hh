@@ -1287,8 +1287,8 @@ struct GSUB : GSUBGPOS
   inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index) const
   { return get_lookup (lookup_index).apply_string (c); }
 
-  static inline void substitute_start (hb_face_t *face, hb_buffer_t *buffer);
-  static inline void substitute_finish (hb_face_t *face, hb_buffer_t *buffer);
+  static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
+  static inline void substitute_finish (hb_font_t *font, hb_buffer_t *buffer);
 
   inline void closure_lookup (hb_closure_context_t *c,
 			      unsigned int          lookup_index) const
@@ -1306,16 +1306,13 @@ struct GSUB : GSUBGPOS
 
 
 void
-GSUB::substitute_start (hb_face_t *face, hb_buffer_t *buffer)
+GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, glyph_props);
   HB_BUFFER_ALLOCATE_VAR (buffer, lig_props);
   HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
 
-  /* TODO This pattern is duplicated from gsubgpos-private.h.  Do something about it. */
-  const GDEF &gdef = hb_ot_layout_from_face (face) &&
-		     !HB_SHAPER_DATA_IS_INVALID (hb_ot_layout_from_face (face)) ?
-		     *hb_ot_layout_from_face (face)->gdef : Null(GDEF);
+  const GDEF &gdef = *hb_ot_layout_from_face (font->face)->gdef;
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++) {
     buffer->info[i].lig_props() = buffer->info[i].syllable() = 0;
@@ -1324,7 +1321,7 @@ GSUB::substitute_start (hb_face_t *face, hb_buffer_t *buffer)
 }
 
 void
-GSUB::substitute_finish (hb_face_t *face HB_UNUSED, hb_buffer_t *buffer HB_UNUSED)
+GSUB::substitute_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer HB_UNUSED)
 {
 }
 

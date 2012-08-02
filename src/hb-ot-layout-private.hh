@@ -146,18 +146,18 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 
 /* Should be called before all the substitute_lookup's are done. */
 HB_INTERNAL void
-hb_ot_layout_substitute_start (hb_face_t    *face,
+hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer);
 
 HB_INTERNAL hb_bool_t
-hb_ot_layout_substitute_lookup (hb_face_t    *face,
+hb_ot_layout_substitute_lookup (hb_font_t    *font,
 				hb_buffer_t  *buffer,
 				unsigned int  lookup_index,
 				hb_mask_t     mask);
 
 /* Should be called after all the substitute_lookup's are done */
 HB_INTERNAL void
-hb_ot_layout_substitute_finish (hb_face_t    *face,
+hb_ot_layout_substitute_finish (hb_font_t    *font,
 				hb_buffer_t  *buffer);
 
 

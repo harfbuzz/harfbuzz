@@ -62,7 +62,7 @@ struct hb_ot_map_t
     { return a->index < b->index ? -1 : a->index > b->index ? 1 : 0; }
   };
 
-  typedef void (*pause_func_t) (const hb_ot_map_t *map, void *face_or_font, hb_buffer_t *buffer, void *user_data);
+  typedef void (*pause_func_t) (const hb_ot_map_t *map, hb_font_t *font, hb_buffer_t *buffer, void *user_data);
   typedef struct {
     pause_func_t func;
     void *user_data;
@@ -75,9 +75,6 @@ struct hb_ot_map_t
 
 
   hb_ot_map_t (void) { memset (this, 0, sizeof (*this)); }
-
-  typedef void (*gsub_pause_func_t) (const hb_ot_map_t *map, hb_face_t *face, hb_buffer_t *buffer, void *user_data);
-  typedef void (*gpos_pause_func_t) (const hb_ot_map_t *map, hb_font_t *font, hb_buffer_t *buffer, void *user_data);
 
   inline hb_mask_t get_global_mask (void) const { return global_mask; }
 
@@ -120,7 +117,7 @@ struct hb_ot_map_t
   { return chosen_script[table_index]; }
 
   HB_INTERNAL void substitute_closure (hb_face_t *face, hb_set_t *glyphs) const;
-  HB_INTERNAL void substitute (hb_face_t *face, hb_buffer_t *buffer) const;
+  HB_INTERNAL void substitute (hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void position (hb_font_t *font, hb_buffer_t *buffer) const;
 
   inline void finish (void) {
@@ -159,10 +156,10 @@ struct hb_ot_map_builder_t
   inline void add_bool_feature (hb_tag_t tag, bool global = true)
   { add_feature (tag, 1, global); }
 
-  inline void add_gsub_pause (hb_ot_map_t::gsub_pause_func_t pause_func, void *user_data)
-  { add_pause (0, (hb_ot_map_t::pause_func_t) pause_func, user_data); }
-  inline void add_gpos_pause (hb_ot_map_t::gpos_pause_func_t pause_func, void *user_data)
-  { add_pause (1, (hb_ot_map_t::pause_func_t) pause_func, user_data); }
+  inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func, void *user_data)
+  { add_pause (0, pause_func, user_data); }
+  inline void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func, void *user_data)
+  { add_pause (1, pause_func, user_data); }
 
   HB_INTERNAL void compile (hb_face_t *face,
 			    const hb_segment_properties_t *props,

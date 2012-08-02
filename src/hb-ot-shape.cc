@@ -367,15 +367,15 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
 static void
 hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
-  hb_ot_layout_substitute_start (c->face, c->buffer);
+  hb_ot_layout_substitute_start (c->font, c->buffer);
 
   if (!hb_ot_layout_has_glyph_classes (c->face))
     hb_synthesize_glyph_classes (c);
 
   if (hb_ot_layout_has_substitution (c->face))
-    c->plan->map.substitute (c->face, c->buffer);
+    c->plan->map.substitute (c->font, c->buffer);
 
-  hb_ot_layout_substitute_finish (c->face, c->buffer);
+  hb_ot_layout_substitute_finish (c->font, c->buffer);
 
   return;
 }

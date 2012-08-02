@@ -422,26 +422,26 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 }
 
 void
-hb_ot_layout_substitute_start (hb_face_t *face, hb_buffer_t *buffer)
+hb_ot_layout_substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 {
-  GSUB::substitute_start (face, buffer);
+  GSUB::substitute_start (font, buffer);
 }
 
 hb_bool_t
-hb_ot_layout_substitute_lookup (hb_face_t    *face,
+hb_ot_layout_substitute_lookup (hb_font_t    *font,
 				hb_buffer_t  *buffer,
 				unsigned int  lookup_index,
 				hb_mask_t     mask)
 {
-  if (unlikely (lookup_index >= hb_ot_layout_from_face (face)->gsub_lookup_count)) return false;
-  hb_apply_context_t c (NULL, face, buffer, mask, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
-  return hb_ot_layout_from_face (face)->gsub->substitute_lookup (&c, lookup_index);
+  if (unlikely (lookup_index >= hb_ot_layout_from_face (font->face)->gsub_lookup_count)) return false;
+  hb_apply_context_t c (font, buffer, mask, &hb_ot_layout_from_face (font->face)->gsub_digests[lookup_index]);
+  return hb_ot_layout_from_face (font->face)->gsub->substitute_lookup (&c, lookup_index);
 }
 
 void
-hb_ot_layout_substitute_finish (hb_face_t *face, hb_buffer_t *buffer)
+hb_ot_layout_substitute_finish (hb_font_t *font, hb_buffer_t *buffer)
 {
-  GSUB::substitute_finish (face, buffer);
+  GSUB::substitute_finish (font, buffer);
 }
 
 void
@@ -476,7 +476,7 @@ hb_ot_layout_position_lookup (hb_font_t    *font,
 			      hb_mask_t     mask)
 {
   if (unlikely (lookup_index >= hb_ot_layout_from_face (font->face)->gpos_lookup_count)) return false;
-  hb_apply_context_t c (font, font->face, buffer, mask, &hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
+  hb_apply_context_t c (font, buffer, mask, &hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
   return hb_ot_layout_from_face (font->face)->gpos->position_lookup (&c, lookup_index);
 }
 

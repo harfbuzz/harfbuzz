@@ -193,12 +193,12 @@ indic_other_features[] =
 
 static void
 initial_reordering (const hb_ot_map_t *map,
-		    hb_face_t *face,
+		    hb_font_t *font,
 		    hb_buffer_t *buffer,
 		    void *user_data HB_UNUSED);
 static void
 final_reordering (const hb_ot_map_t *map,
-		  hb_face_t *face,
+		  hb_font_t *font,
 		  hb_buffer_t *buffer,
 		  void *user_data HB_UNUSED);
 
@@ -696,7 +696,7 @@ initial_reordering_non_indic (const hb_ot_map_t *map HB_UNUSED,
 
 static void
 initial_reordering (const hb_ot_map_t *map,
-		    hb_face_t *face HB_UNUSED,
+		    hb_font_t *font HB_UNUSED,
 		    hb_buffer_t *buffer,
 		    void *user_data HB_UNUSED)
 {
@@ -1059,7 +1059,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
 static void
 final_reordering (const hb_ot_map_t *map,
-		  hb_face_t *face HB_UNUSED,
+		  hb_font_t *font HB_UNUSED,
 		  hb_buffer_t *buffer,
 		  void *user_data HB_UNUSED)
 {
