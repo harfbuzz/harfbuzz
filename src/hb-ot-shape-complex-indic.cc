@@ -88,10 +88,13 @@ struct feature_list_t {
   hb_bool_t is_global;
 };
 
-/* These features are applied one at a time, given the order in this table. */
 static const feature_list_t
-indic_basic_features[] =
+indic_features[] =
 {
+  /*
+   * Basic features.
+   * These features are applied in order, one at a time, after initial_reordering.
+   */
   {HB_TAG('n','u','k','t'), true},
   {HB_TAG('a','k','h','n'), true},
   {HB_TAG('r','p','h','f'), false},
@@ -104,9 +107,25 @@ indic_basic_features[] =
   {HB_TAG('c','f','a','r'), false},
   {HB_TAG('c','j','c','t'), true},
   {HB_TAG('v','a','t','u'), true},
+  /*
+   * Other features.
+   * These features are applied all at once, after final_reordering.
+   */
+  {HB_TAG('i','n','i','t'), false},
+  {HB_TAG('p','r','e','s'), true},
+  {HB_TAG('a','b','v','s'), true},
+  {HB_TAG('b','l','w','s'), true},
+  {HB_TAG('p','s','t','s'), true},
+  {HB_TAG('h','a','l','n'), true},
+  /* Positioning features, though we don't care about the types. */
+  {HB_TAG('d','i','s','t'), true},
+  {HB_TAG('a','b','v','m'), true},
+  {HB_TAG('b','l','w','m'), true},
 };
 
-/* Same order as the indic_basic_features array */
+/*
+ * Must be in the same order as the indic_features array.
+ */
 enum {
   _NUKT,
   _AKHN,
@@ -119,25 +138,21 @@ enum {
   PSTF,
   CFAR,
   _CJCT,
-  VATU
+  _VATU,
+
+  INIT,
+  _PRES,
+  _ABVS,
+  _BLWS,
+  _PSTS,
+  _HALN,
+  _DIST,
+  _ABVM,
+  _BLWM,
+
+  INDIC_NUM_FEATURES,
+  INDIC_BASIC_FEATURES = INIT /* Don't forget to update this! */
 };
-
-/* These features are applied all at once. */
-static const feature_list_t
-indic_other_features[] =
-{
-  {HB_TAG('i','n','i','t'), false},
-  {HB_TAG('p','r','e','s'), true},
-  {HB_TAG('a','b','v','s'), true},
-  {HB_TAG('b','l','w','s'), true},
-  {HB_TAG('p','s','t','s'), true},
-  {HB_TAG('h','a','l','n'), true},
-
-  {HB_TAG('d','i','s','t'), true},
-  {HB_TAG('a','b','v','m'), true},
-  {HB_TAG('b','l','w','m'), true},
-};
-
 
 static void
 initial_reordering (const hb_ot_shape_plan_t *plan,
@@ -158,17 +173,17 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
    * there is a use of it, it's typically at the beginning. */
   map->add_bool_feature (HB_TAG('c','c','m','p'));
 
-  map->add_gsub_pause (initial_reordering);
 
-  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_basic_features); i++) {
-    map->add_bool_feature (indic_basic_features[i].tag, indic_basic_features[i].is_global);
+  unsigned int i = 0;
+  map->add_gsub_pause (initial_reordering);
+  for (; i < INDIC_BASIC_FEATURES; i++) {
+    map->add_bool_feature (indic_features[i].tag, indic_features[i].is_global);
     map->add_gsub_pause (NULL);
   }
-
   map->add_gsub_pause (final_reordering);
-
-  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_other_features); i++)
-    map->add_bool_feature (indic_other_features[i].tag, indic_other_features[i].is_global);
+  for (; i < INDIC_NUM_FEATURES; i++) {
+    map->add_bool_feature (indic_features[i].tag, indic_features[i].is_global);
+  }
 }
 
 static void
@@ -180,9 +195,9 @@ override_features_indic (hb_ot_shape_planner_t *plan)
 }
 
 
-struct would_apply_feature_t
+struct would_substitute_feature_t
 {
-  would_apply_feature_t (const hb_ot_map_t *map, hb_tag_t feature_tag)
+  inline void init (const hb_ot_map_t *map, hb_tag_t feature_tag)
   {
     map->get_stage_lookups (0/*GSUB*/,
 			    map->get_feature_stage (0/*GSUB*/, feature_tag),
@@ -206,35 +221,7 @@ struct would_apply_feature_t
 
 struct indic_shape_plan_t
 {
-  indic_shape_plan_t (const hb_ot_shape_plan_t *plan) :
-		      pref (&plan->map, HB_TAG('p','r','e','f')),
-		      blwf (&plan->map, HB_TAG('b','l','w','f')),
-		      pstf (&plan->map, HB_TAG('p','s','t','f')),
-		      is_old_spec (IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0))),
-		      virama_glyph ((hb_codepoint_t) -1)
-  {
-    switch ((int) plan->props.script) {
-      case HB_SCRIPT_DEVANAGARI:virama = 0x094D; break;
-      case HB_SCRIPT_BENGALI:	virama = 0x09CD; break;
-      case HB_SCRIPT_GURMUKHI:	virama = 0x0A4D; break;
-      case HB_SCRIPT_GUJARATI:	virama = 0x0ACD; break;
-      case HB_SCRIPT_ORIYA:	virama = 0x0B4D; break;
-      case HB_SCRIPT_TAMIL:	virama = 0x0BCD; break;
-      case HB_SCRIPT_TELUGU:	virama = 0x0C4D; break;
-      case HB_SCRIPT_KANNADA:	virama = 0x0CCD; break;
-      case HB_SCRIPT_MALAYALAM:	virama = 0x0D4D; break;
-      case HB_SCRIPT_SINHALA:	virama = 0x0DCA; break;
-      case HB_SCRIPT_KHMER:	virama = 0x17D2; break;
-      default:			virama = 0;      break;
-    }
-  }
-
-  would_apply_feature_t pref;
-  would_apply_feature_t blwf;
-  would_apply_feature_t pstf;
-  bool is_old_spec;
-  hb_codepoint_t virama;
-  hb_codepoint_t virama_glyph;
+  ASSERT_POD ();
 
   inline bool get_virama_glyph (hb_font_t *font, hb_codepoint_t *pglyph) const
   {
@@ -254,20 +241,56 @@ struct indic_shape_plan_t
     *pglyph = glyph;
     return glyph != 0;
   }
+
+
+  bool is_old_spec;
+
+  hb_codepoint_t virama;
+  hb_codepoint_t virama_glyph;
+
+  would_substitute_feature_t pref;
+  would_substitute_feature_t blwf;
+  would_substitute_feature_t pstf;
+
+  hb_mask_t mask_array[INDIC_NUM_FEATURES];
 };
 
 static void *
 data_create_indic (const hb_ot_shape_plan_t *plan)
 {
-  indic_shape_plan_t *data = (indic_shape_plan_t *) calloc (1, sizeof (indic_shape_plan_t));
-  if (unlikely (!data))
+  indic_shape_plan_t *indic_plan = (indic_shape_plan_t *) calloc (1, sizeof (indic_shape_plan_t));
+  if (unlikely (!indic_plan))
     return NULL;
 
-  /* Mixing C++ and C, oh well... */
-  indic_shape_plan_t indic_plan (plan);
+  indic_plan->is_old_spec = IS_OLD_INDIC_TAG (plan->map.get_chosen_script (0));
+  {
+    hb_codepoint_t virama;
+    switch ((int) plan->props.script) {
+      case HB_SCRIPT_DEVANAGARI:virama = 0x094D; break;
+      case HB_SCRIPT_BENGALI:	virama = 0x09CD; break;
+      case HB_SCRIPT_GURMUKHI:	virama = 0x0A4D; break;
+      case HB_SCRIPT_GUJARATI:	virama = 0x0ACD; break;
+      case HB_SCRIPT_ORIYA:	virama = 0x0B4D; break;
+      case HB_SCRIPT_TAMIL:	virama = 0x0BCD; break;
+      case HB_SCRIPT_TELUGU:	virama = 0x0C4D; break;
+      case HB_SCRIPT_KANNADA:	virama = 0x0CCD; break;
+      case HB_SCRIPT_MALAYALAM:	virama = 0x0D4D; break;
+      case HB_SCRIPT_SINHALA:	virama = 0x0DCA; break;
+      case HB_SCRIPT_KHMER:	virama = 0x17D2; break;
+      default:			virama = 0;      break;
+    }
+    indic_plan->virama = virama;
+  }
+  indic_plan->virama_glyph = indic_plan->virama ? (hb_codepoint_t) -1 : 0;
 
-  *data = indic_plan;
-  return data;
+  indic_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'));
+  indic_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'));
+  indic_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'));
+
+  for (unsigned int i = 0; i < ARRAY_LENGTH (indic_plan->mask_array); i++)
+    indic_plan->mask_array[i] = indic_features[i].is_global ? 0 : plan->map.get_1_mask (indic_features[i].tag);
+
+  return indic_plan;
 }
 
 static void
@@ -317,8 +340,8 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
 
 static void
 update_consonant_positions (const hb_ot_shape_plan_t *plan,
-			    hb_buffer_t       *buffer,
-			    hb_font_t         *font)
+			    hb_font_t         *font,
+			    hb_buffer_t       *buffer)
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
 
@@ -341,7 +364,7 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
  * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
 
 static void
-initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer, hb_mask_t *basic_mask_array,
+initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer,
 				       unsigned int start, unsigned int end)
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
@@ -370,7 +393,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
      *    and has more than one consonant, Ra is excluded from candidates for
      *    base consonants. */
     unsigned int limit = start;
-    if (basic_mask_array[RPHF] &&
+    if (indic_plan->mask_array[RPHF] &&
 	start + 3 <= end &&
 	info[start].indic_category() == OT_Ra &&
 	info[start + 1].indic_category() == OT_H &&
@@ -627,10 +650,10 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
 
     /* Reph */
     for (unsigned int i = start; i < end && info[i].indic_position() == POS_RA_TO_BECOME_REPH; i++)
-      info[i].mask |= basic_mask_array[RPHF];
+      info[i].mask |= indic_plan->mask_array[RPHF];
 
     /* Pre-base */
-    mask = basic_mask_array[HALF];
+    mask = indic_plan->mask_array[HALF];
     for (unsigned int i = start; i < base; i++)
       info[i].mask  |= mask;
     /* Base */
@@ -638,21 +661,21 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
     if (base < end)
       info[base].mask |= mask;
     /* Post-base */
-    mask = basic_mask_array[BLWF] | basic_mask_array[ABVF] | basic_mask_array[PSTF];
+    mask = indic_plan->mask_array[BLWF] | indic_plan->mask_array[ABVF] | indic_plan->mask_array[PSTF];
     for (unsigned int i = base + 1; i < end; i++)
       info[i].mask  |= mask;
   }
 
   /* XXX This will not match for old-Indic spec since the Halant-Ra order is reversed already. */
-  if (basic_mask_array[PREF] && base + 2 < end)
+  if (indic_plan->mask_array[PREF] && base + 2 < end)
   {
     /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
     for (unsigned int i = base + 1; i + 1 < end; i++)
       if (is_halant_or_coeng (info[i]) &&
 	  info[i + 1].indic_category() == OT_Ra)
       {
-	info[i++].mask |= basic_mask_array[PREF];
-	info[i++].mask |= basic_mask_array[PREF];
+	info[i++].mask |= indic_plan->mask_array[PREF];
+	info[i++].mask |= indic_plan->mask_array[PREF];
 
 	/* Mark the subsequent stuff with 'cfar'.  Used in Khmer.
 	 * Read the feature spec.
@@ -661,7 +684,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
 	 * U+1784,U+17D2,U+1782,U+17D2,U+179A
 	 */
 	for (; i < end; i++)
-	  info[i].mask |= basic_mask_array[CFAR];
+	  info[i].mask |= indic_plan->mask_array[CFAR];
 
 	break;
       }
@@ -681,7 +704,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
 
 	/* A ZWNJ disables HALF. */
 	if (non_joiner)
-	  info[j].mask &= ~basic_mask_array[HALF];
+	  info[j].mask &= ~indic_plan->mask_array[HALF];
 
       } while (j > start && !is_consonant (info[j]));
     }
@@ -691,17 +714,15 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
 static void
 initial_reordering_vowel_syllable (const hb_ot_shape_plan_t *plan,
 				   hb_buffer_t *buffer,
-				   hb_mask_t *basic_mask_array,
 				   unsigned int start, unsigned int end)
 {
   /* We made the vowels look like consonants.  So let's call the consonant logic! */
-  initial_reordering_consonant_syllable (plan, buffer, basic_mask_array, start, end);
+  initial_reordering_consonant_syllable (plan, buffer, start, end);
 }
 
 static void
 initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
 				       hb_buffer_t *buffer,
-				       hb_mask_t *basic_mask_array,
 				       unsigned int start, unsigned int end)
 {
   /* We treat NBSP/dotted-circle as if they are consonants, so we should just chain.
@@ -716,13 +737,12 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
       return;
   }
 
-  initial_reordering_consonant_syllable (plan, buffer, basic_mask_array, start, end);
+  initial_reordering_consonant_syllable (plan, buffer, start, end);
 }
 
 static void
 initial_reordering_non_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			      hb_buffer_t *buffer HB_UNUSED,
-			      hb_mask_t *basic_mask_array HB_UNUSED,
 			      unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
 {
   /* Nothing to do right now.  If we ever switch to using the output
@@ -736,21 +756,16 @@ initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
 		    hb_buffer_t *buffer)
 {
-  update_consonant_positions (plan, buffer, font);
-
-  hb_mask_t basic_mask_array[ARRAY_LENGTH (indic_basic_features)] = {0};
-  unsigned int num_masks = ARRAY_LENGTH (indic_basic_features);
-  for (unsigned int i = 0; i < num_masks; i++)
-    basic_mask_array[i] = plan->map.get_1_mask (indic_basic_features[i].tag);
-
-  find_syllables (plan, buffer, basic_mask_array);
+  update_consonant_positions (plan, font, buffer);
+  find_syllables (plan, buffer);
 }
 
 static void
-final_reordering_syllable (hb_buffer_t *buffer,
-			   hb_mask_t init_mask, hb_mask_t pref_mask,
+final_reordering_syllable (const hb_ot_shape_plan_t *plan,
+			   hb_buffer_t *buffer,
 			   unsigned int start, unsigned int end)
 {
+  const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
   hb_glyph_info_t *info = buffer->info;
 
   /* 4. Final reordering:
@@ -1017,16 +1032,16 @@ final_reordering_syllable (hb_buffer_t *buffer,
    *     the following rules:
    */
 
-  if (pref_mask && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
+  if (indic_plan->mask_array[PREF] && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
   {
     for (unsigned int i = base + 1; i < end; i++)
-      if ((info[i].mask & pref_mask) != 0)
+      if ((info[i].mask & indic_plan->mask_array[PREF]) != 0)
       {
 	/*       1. Only reorder a glyph produced by substitution during application
 	 *          of the <pref> feature. (Note that a font may shape a Ra consonant with
 	 *          the feature generally but block it in certain contexts.)
 	 */
-	if (i + 1 == end || (info[i + 1].mask & pref_mask) == 0)
+	if (i + 1 == end || (info[i + 1].mask & indic_plan->mask_array[PREF]) == 0)
 	{
 	  /*
 	   *       2. Try to find a target position the same way as for pre-base matra.
@@ -1078,7 +1093,7 @@ final_reordering_syllable (hb_buffer_t *buffer,
       (!start ||
        !(FLAG (_hb_glyph_info_get_general_category (&info[start - 1])) &
 	 FLAG_RANGE (HB_UNICODE_GENERAL_CATEGORY_FORMAT, HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK))))
-    info[start].mask |= init_mask;
+    info[start].mask |= indic_plan->mask_array[INIT];
 
 
   /*
@@ -1097,25 +1112,22 @@ final_reordering_syllable (hb_buffer_t *buffer,
 
 static void
 final_reordering (const hb_ot_shape_plan_t *plan,
-		  hb_font_t *font HB_UNUSED,
+		  hb_font_t *font,
 		  hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   if (!count) return;
-
-  hb_mask_t init_mask = plan->map.get_1_mask (HB_TAG('i','n','i','t'));
-  hb_mask_t pref_mask = plan->map.get_1_mask (HB_TAG('p','r','e','f'));
 
   hb_glyph_info_t *info = buffer->info;
   unsigned int last = 0;
   unsigned int last_syllable = info[0].syllable();
   for (unsigned int i = 1; i < count; i++)
     if (last_syllable != info[i].syllable()) {
-      final_reordering_syllable (buffer, init_mask, pref_mask, last, i);
+      final_reordering_syllable (plan, buffer, last, i);
       last = i;
       last_syllable = info[last].syllable();
     }
-  final_reordering_syllable (buffer, init_mask, pref_mask, last, count);
+  final_reordering_syllable (plan, buffer, last, count);
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);

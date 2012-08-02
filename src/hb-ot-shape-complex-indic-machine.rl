@@ -92,14 +92,14 @@ main := |*
     if (0) fprintf (stderr, "syllable %d..%d %s\n", last, p+1, #func); \
     for (unsigned int i = last; i < p+1; i++) \
       info[i].syllable() = syllable_serial; \
-    PASTE (initial_reordering_, func) (plan, buffer, mask_array, last, p+1); \
+    PASTE (initial_reordering_, func) (plan, buffer, last, p+1); \
     last = p+1; \
     syllable_serial++; \
     if (unlikely (!syllable_serial)) syllable_serial++; \
   } HB_STMT_END
 
 static void
-find_syllables (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer, hb_mask_t *mask_array)
+find_syllables (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer)
 {
   unsigned int p, pe, eof, ts, te, act;
   int cs;
