@@ -28,18 +28,36 @@
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-layout-private.hh"
 
+
+#define IN_HALF_BLOCK(u, Base) (((u) & ~0x7F) == (Base))
+
+#define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x0900))
+#define IS_BENG(u) (IN_HALF_BLOCK (u, 0x0980))
+#define IS_GURM(u) (IN_HALF_BLOCK (u, 0x0A00))
+#define IS_GUJA(u) (IN_HALF_BLOCK (u, 0x0A80))
+#define IS_ORYA(u) (IN_HALF_BLOCK (u, 0x0B00))
+#define IS_TAML(u) (IN_HALF_BLOCK (u, 0x0B80))
+#define IS_TELU(u) (IN_HALF_BLOCK (u, 0x0C00))
+#define IS_KNDA(u) (IN_HALF_BLOCK (u, 0x0C80))
+#define IS_MLYM(u) (IN_HALF_BLOCK (u, 0x0D00))
+#define IS_SINH(u) (IN_HALF_BLOCK (u, 0x0D80))
+#define IS_KHMR(u) (IN_HALF_BLOCK (u, 0x1780))
+
+
 #define OLD_INDIC_TAG(script) (((hb_tag_t) script) | 0x20000000)
 #define IS_OLD_INDIC_TAG(tag) ( \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_BENGALI) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_DEVANAGARI) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GUJARATI) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GURMUKHI) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_KANNADA) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_MALAYALAM) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_ORIYA) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TAMIL) || \
-				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TELUGU) \
-			      )
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_BENGALI)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_DEVANAGARI)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GUJARATI)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_GURMUKHI)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_KANNADA)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_MALAYALAM)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_ORIYA)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TAMIL)	|| \
+				(tag) == OLD_INDIC_TAG (HB_SCRIPT_TELUGU)	|| \
+			      0)
+
+
 struct indic_options_t
 {
   int initialized : 1;
@@ -123,10 +141,11 @@ consonant_position (hb_codepoint_t     u,
 		    hb_font_t         *font)
 {
   if ((u & ~0x007F) == 0x1780)
-    return POS_BELOW_C; /* In Khmer coeng model, all are subjoining. */
+    return POS_BELOW_C; /* In Khmer coeng model, post and below forms should not be reordered. */
 
   hb_codepoint_t virama = (u & ~0x007F) | 0x004D;
   if ((u & ~0x007F) == 0x0D80) virama = 0x0DCA; /* Sinahla */
+  if ((u & ~0x007F) == 0x1780) virama = 0x17D2; /* Khmaer */
   hb_codepoint_t glyphs[2];
 
   unsigned int virama_pos = IS_OLD_INDIC_TAG (map->get_chosen_script (0)) ? 1 : 0;
@@ -142,27 +161,29 @@ consonant_position (hb_codepoint_t     u,
 
 #define MATRA_POS_LEFT(u)	POS_PRE_M
 #define MATRA_POS_RIGHT(u)	( \
-				  IS_DEVA(u) ? POS_AFTER_SUB   : \
-				  IS_BENG(u) ? POS_AFTER_POST  : \
-				  IS_GURM(u) ? POS_AFTER_POST  : \
-				  IS_GUJA(u) ? POS_AFTER_POST  : \
-				  IS_ORYA(u) ? POS_AFTER_POST  : \
-				  IS_TAML(u) ? POS_AFTER_POST  : \
+				  IS_DEVA(u) ? POS_AFTER_SUB  : \
+				  IS_BENG(u) ? POS_AFTER_POST : \
+				  IS_GURM(u) ? POS_AFTER_POST : \
+				  IS_GUJA(u) ? POS_AFTER_POST : \
+				  IS_ORYA(u) ? POS_AFTER_POST : \
+				  IS_TAML(u) ? POS_AFTER_POST : \
 				  IS_TELU(u) ? (u <= 0x0C42 ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
 				  IS_KNDA(u) ? (u < 0x0CC3 || u > 0xCD6 ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
-				  IS_MLYM(u) ? POS_AFTER_POST  : \
-				  IS_SINH(u) ? POS_AFTER_SUB   : \
-				  /*default*/  POS_AFTER_SUB     \
+				  IS_MLYM(u) ? POS_AFTER_POST : \
+				  IS_SINH(u) ? POS_AFTER_SUB  : \
+				  IS_KHMR(u) ? POS_AFTER_POST : \
+				  /*default*/  POS_AFTER_SUB    \
 				)
 #define MATRA_POS_TOP(u)	( /* BENG and MLYM don't have top matras. */ \
 				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_GURM(u) ? POS_AFTER_POST  : /* Deviate from spec */ \
+				  IS_GURM(u) ? POS_AFTER_POST : /* Deviate from spec */ \
 				  IS_GUJA(u) ? POS_AFTER_SUB  : \
 				  IS_ORYA(u) ? POS_AFTER_MAIN : \
 				  IS_TAML(u) ? POS_AFTER_SUB  : \
 				  IS_TELU(u) ? POS_BEFORE_SUB : \
 				  IS_KNDA(u) ? POS_BEFORE_SUB : \
 				  IS_SINH(u) ? POS_AFTER_SUB  : \
+				  IS_KHMR(u) ? POS_AFTER_POST : \
 				  /*default*/  POS_AFTER_SUB    \
 				)
 #define MATRA_POS_BOTTOM(u)	( \
@@ -176,6 +197,7 @@ consonant_position (hb_codepoint_t     u,
 				  IS_KNDA(u) ? POS_BEFORE_SUB : \
 				  IS_MLYM(u) ? POS_AFTER_POST : \
 				  IS_SINH(u) ? POS_AFTER_SUB  : \
+				  IS_KHMR(u) ? POS_AFTER_POST : \
 				  /*default*/  POS_AFTER_SUB    \
 				)
 

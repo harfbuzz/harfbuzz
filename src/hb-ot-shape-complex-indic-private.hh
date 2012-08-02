@@ -38,22 +38,6 @@
 #define indic_position() complex_var_persistent_u8_1() /* indic_matra_category_t */
 
 
-
-#define IN_HALF_BLOCK(u, Base) (((u) & ~0x7F) == (Base))
-
-#define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x900))
-#define IS_BENG(u) (IN_HALF_BLOCK (u, 0x980))
-#define IS_GURM(u) (IN_HALF_BLOCK (u, 0xA00))
-#define IS_GUJA(u) (IN_HALF_BLOCK (u, 0xA80))
-#define IS_ORYA(u) (IN_HALF_BLOCK (u, 0xB00))
-#define IS_TAML(u) (IN_HALF_BLOCK (u, 0xB80))
-#define IS_TELU(u) (IN_HALF_BLOCK (u, 0xC00))
-#define IS_KNDA(u) (IN_HALF_BLOCK (u, 0xC80))
-#define IS_MLYM(u) (IN_HALF_BLOCK (u, 0xD00))
-#define IS_SINH(u) (IN_HALF_BLOCK (u, 0xD80))
-
-
-
 #define INDIC_TABLE_ELEMENT_TYPE uint8_t
 
 /* Cateories used in the OpenType spec:
