@@ -1154,17 +1154,6 @@ struct SubstLookup : Lookup
       get_subtable (i).closure (c, lookup_type);
   }
 
-  inline const Coverage *get_coverage (void) const
-  {
-    /* Only return non-NULL if there's just one Coverage table we care about. */
-    const Coverage *c = &get_subtable (0).get_coverage (get_type ());
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 1; i < count; i++)
-      if (c != &get_subtable (i).get_coverage (get_type ()))
-        return NULL;
-    return c;
-  }
-
   template <typename set_t>
   inline void add_coverage (set_t *glyphs) const
   {
