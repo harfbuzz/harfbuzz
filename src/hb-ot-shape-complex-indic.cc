@@ -106,39 +106,48 @@ compare_codepoint (const void *pa, const void *pb)
   return a < b ? -1 : a == b ? 0 : +1;
 }
 
-static bool
-would_substitute (hb_codepoint_t    *glyphs,
-		  unsigned int       glyphs_count,
-		  hb_tag_t           feature_tag,
-		  const hb_ot_map_t *map,
-		  hb_face_t         *face)
+struct consonant_position_closure_t
 {
-  unsigned int lookup_indices[32];
-  unsigned int offset, len;
+  struct feature_t
+  {
+    feature_t (const hb_ot_map_t *map, hb_tag_t feature_tag)
+    {
+      map->get_stage_lookups (0/*GSUB*/,
+			      map->get_feature_stage (0/*GSUB*/, feature_tag),
+			      &lookups, &count);
+    }
 
-  offset = 0;
-  do {
-    len = ARRAY_LENGTH (lookup_indices);
-    hb_ot_layout_feature_get_lookup_indexes (face, HB_OT_TAG_GSUB,
-					     map->get_feature_index (0/*GSUB*/, feature_tag),
-					     offset,
-					     &len,
-					     lookup_indices);
+    inline bool would_substitute (hb_codepoint_t    *glyphs,
+				  unsigned int       glyphs_count,
+				  hb_face_t         *face) const
+    {
+      for (unsigned int i = 0; i < count; i++)
+	if (hb_ot_layout_would_substitute_lookup_fast (face, glyphs, glyphs_count, lookups[i].index))
+	  return true;
+      return false;
+    }
 
-    for (unsigned int i = 0; i < len; i++)
-      if (hb_ot_layout_would_substitute_lookup_fast (face, glyphs, glyphs_count, lookup_indices[i]))
-	return true;
+    private:
+    const hb_ot_map_t::lookup_map_t *lookups;
+    unsigned int count;
+  };
 
-    offset += len;
-  } while (len == ARRAY_LENGTH (lookup_indices));
+  consonant_position_closure_t (const hb_ot_map_t *map_) :
+					map (map_),
+					pref (map_, HB_TAG('p','r','e','f')),
+					blwf (map_, HB_TAG('b','l','w','f')),
+					pstf (map_, HB_TAG('p','s','t','f')) {}
 
-  return false;
-}
+  const hb_ot_map_t *map;
+  feature_t pref;
+  feature_t blwf;
+  feature_t pstf;
+};
 
 static indic_position_t
-consonant_position (hb_codepoint_t     u,
-		    const hb_ot_map_t *map,
-		    hb_font_t         *font)
+consonant_position (hb_codepoint_t  u,
+		    const consonant_position_closure_t *closure,
+		    hb_font_t      *font)
 {
   if ((u & ~0x007F) == 0x1780)
     return POS_BELOW_C; /* In Khmer coeng model, post and below forms should not be reordered. */
@@ -148,14 +157,14 @@ consonant_position (hb_codepoint_t     u,
   if ((u & ~0x007F) == 0x1780) virama = 0x17D2; /* Khmaer */
   hb_codepoint_t glyphs[2];
 
-  unsigned int virama_pos = IS_OLD_INDIC_TAG (map->get_chosen_script (0)) ? 1 : 0;
+  unsigned int virama_pos = IS_OLD_INDIC_TAG (closure->map->get_chosen_script (0)) ? 1 : 0;
   font->get_glyph (virama, 0, &glyphs[virama_pos]);
   font->get_glyph (u,      0, &glyphs[1-virama_pos]);
 
   hb_face_t *face = font->face;
-  if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('p','r','e','f'), map, face)) return POS_BELOW_C;
-  if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('b','l','w','f'), map, face)) return POS_BELOW_C;
-  if (would_substitute (glyphs, ARRAY_LENGTH (glyphs), HB_TAG('p','s','t','f'), map, face)) return POS_POST_C;
+  if (closure->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
+  if (closure->blwf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
+  if (closure->pstf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_POST_C;
   return POS_BASE_C;
 }
 
@@ -260,7 +269,7 @@ is_halant_or_coeng (const hb_glyph_info_t &info)
 
 static inline void
 set_indic_properties (hb_glyph_info_t   &info,
-		      const hb_ot_map_t *map,
+		      const consonant_position_closure_t *closure,
 		      hb_font_t         *font)
 {
   hb_codepoint_t u = info.codepoint;
@@ -322,7 +331,7 @@ set_indic_properties (hb_glyph_info_t   &info,
 
   if ((FLAG (cat) & CONSONANT_FLAGS))
   {
-    pos = consonant_position (u, map, font);
+    pos = consonant_position (u, closure, font);
     if (is_ra (u))
       cat = OT_Ra;
   }
@@ -462,9 +471,11 @@ setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
   /* We cannot setup masks here.  We save information about characters
    * and setup masks later on in a pause-callback. */
 
+  consonant_position_closure_t closure (map);
+
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    set_indic_properties (buffer->info[i], map, font);
+    set_indic_properties (buffer->info[i], &closure, font);
 }
 
 static int

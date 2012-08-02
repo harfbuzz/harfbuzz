@@ -89,7 +89,8 @@ void hb_ot_map_t::substitute (hb_face_t *face, hb_buffer_t *buffer) const
 
     buffer->clear_output ();
 
-    pause->callback.func (this, face, buffer, pause->callback.user_data);
+    if (pause->callback.func)
+      pause->callback.func (this, face, buffer, pause->callback.user_data);
   }
 
   for (; i < lookups[table_index].len; i++)
@@ -106,7 +107,8 @@ void hb_ot_map_t::position (hb_font_t *font, hb_buffer_t *buffer) const
     for (; i < pause->num_lookups; i++)
       hb_ot_layout_position_lookup_fast (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 
-    pause->callback.func (this, font, buffer, pause->callback.user_data);
+    if (pause->callback.func)
+      pause->callback.func (this, font, buffer, pause->callback.user_data);
   }
 
   for (; i < lookups[table_index].len; i++)
@@ -131,13 +133,11 @@ void hb_ot_map_t::substitute_closure (hb_face_t *face,
 
 void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func, void *user_data)
 {
-  if (pause_func) {
-    pause_info_t *p = pauses[table_index].push ();
-    if (likely (p)) {
-      p->stage = current_stage[table_index];
-      p->callback.func = pause_func;
-      p->callback.user_data = user_data;
-    }
+  pause_info_t *p = pauses[table_index].push ();
+  if (likely (p)) {
+    p->stage = current_stage[table_index];
+    p->callback.func = pause_func;
+    p->callback.user_data = user_data;
   }
 
   current_stage[table_index]++;
