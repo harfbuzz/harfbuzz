@@ -106,11 +106,11 @@ compare_codepoint (const void *pa, const void *pb)
   return a < b ? -1 : a == b ? 0 : +1;
 }
 
-struct consonant_position_closure_t
+struct indic_shape_plan_t
 {
-  struct feature_t
+  struct would_apply_feature_t
   {
-    feature_t (const hb_ot_map_t *map, hb_tag_t feature_tag)
+    would_apply_feature_t (const hb_ot_map_t *map, hb_tag_t feature_tag)
     {
       map->get_stage_lookups (0/*GSUB*/,
 			      map->get_feature_stage (0/*GSUB*/, feature_tag),
@@ -132,21 +132,23 @@ struct consonant_position_closure_t
     unsigned int count;
   };
 
-  consonant_position_closure_t (const hb_ot_map_t *map_) :
-					map (map_),
-					pref (map_, HB_TAG('p','r','e','f')),
-					blwf (map_, HB_TAG('b','l','w','f')),
-					pstf (map_, HB_TAG('p','s','t','f')) {}
+  indic_shape_plan_t (const hb_ot_map_t *map_) :
+		      map (map_),
+		      pref (map_, HB_TAG('p','r','e','f')),
+		      blwf (map_, HB_TAG('b','l','w','f')),
+		      pstf (map_, HB_TAG('p','s','t','f')),
+		      is_old_spec (IS_OLD_INDIC_TAG (map->get_chosen_script (0))) {}
 
   const hb_ot_map_t *map;
-  feature_t pref;
-  feature_t blwf;
-  feature_t pstf;
+  would_apply_feature_t pref;
+  would_apply_feature_t blwf;
+  would_apply_feature_t pstf;
+  bool is_old_spec;
 };
 
 static indic_position_t
 consonant_position (hb_codepoint_t  u,
-		    const consonant_position_closure_t *closure,
+		    const indic_shape_plan_t *indic_plan,
 		    hb_font_t      *font)
 {
   if ((u & ~0x007F) == 0x1780)
@@ -157,14 +159,14 @@ consonant_position (hb_codepoint_t  u,
   if ((u & ~0x007F) == 0x1780) virama = 0x17D2; /* Khmaer */
   hb_codepoint_t glyphs[2];
 
-  unsigned int virama_pos = IS_OLD_INDIC_TAG (closure->map->get_chosen_script (0)) ? 1 : 0;
+  unsigned int virama_pos = indic_plan->is_old_spec ? 1 : 0;
   font->get_glyph (virama, 0, &glyphs[virama_pos]);
   font->get_glyph (u,      0, &glyphs[1-virama_pos]);
 
   hb_face_t *face = font->face;
-  if (closure->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
-  if (closure->blwf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
-  if (closure->pstf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_POST_C;
+  if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
+  if (indic_plan->blwf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
+  if (indic_plan->pstf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_POST_C;
   return POS_BASE_C;
 }
 
@@ -269,7 +271,7 @@ is_halant_or_coeng (const hb_glyph_info_t &info)
 
 static inline void
 set_indic_properties (hb_glyph_info_t   &info,
-		      const consonant_position_closure_t *closure,
+		      const indic_shape_plan_t *closure,
 		      hb_font_t         *font)
 {
   hb_codepoint_t u = info.codepoint;
@@ -471,11 +473,11 @@ setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
   /* We cannot setup masks here.  We save information about characters
    * and setup masks later on in a pause-callback. */
 
-  consonant_position_closure_t closure (map);
+  indic_shape_plan_t indic_plan (map);
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    set_indic_properties (buffer->info[i], &closure, font);
+    set_indic_properties (buffer->info[i], &indic_plan, font);
 }
 
 static int
