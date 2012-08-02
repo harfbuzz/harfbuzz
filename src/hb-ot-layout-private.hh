@@ -170,6 +170,9 @@ struct hb_ot_layout_t
   const struct GSUB *gsub;
   const struct GPOS *gpos;
 
+  unsigned int gsub_lookup_count;
+  unsigned int gpos_lookup_count;
+
   hb_set_digest_t *gsub_digests;
   hb_set_digest_t *gpos_digests;
 };
