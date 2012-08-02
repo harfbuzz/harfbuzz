@@ -123,20 +123,10 @@ struct indic_shape_plan_t
 };
 
 static indic_position_t
-consonant_position_from_font (hb_codepoint_t  u,
-			      const indic_shape_plan_t *indic_plan,
-			      hb_font_t      *font)
+consonant_position_from_font (const indic_shape_plan_t *indic_plan,
+			      hb_codepoint_t *glyphs, unsigned int glyphs_len,
+			      hb_face_t      *face)
 {
-  hb_codepoint_t virama = (u & ~0x007F) | 0x004D;
-  if ((u & ~0x007F) == 0x0D80) virama = 0x0DCA; /* Sinahla */
-  if ((u & ~0x007F) == 0x1780) virama = 0x17D2; /* Khmaer */
-  hb_codepoint_t glyphs[2];
-
-  unsigned int virama_pos = indic_plan->is_old_spec ? 1 : 0;
-  font->get_glyph (virama, 0, &glyphs[virama_pos]);
-  font->get_glyph (u,      0, &glyphs[1-virama_pos]);
-
-  hb_face_t *face = font->face;
   if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
   if (indic_plan->blwf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
   if (indic_plan->pstf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_POST_C;
@@ -247,6 +237,43 @@ override_features_indic (const hb_ot_complex_shaper_t  *shaper,
 
 
 static void
+update_consonant_positions (const hb_ot_map_t *map,
+			    hb_buffer_t       *buffer,
+			    hb_font_t         *font)
+{
+  hb_codepoint_t virama;
+  switch ((int) buffer->props.script) {
+    case HB_SCRIPT_DEVANAGARI:	virama = 0x094D; break;
+    case HB_SCRIPT_BENGALI:	virama = 0x09CD; break;
+    case HB_SCRIPT_GURMUKHI:	virama = 0x0A4D; break;
+    case HB_SCRIPT_GUJARATI:	virama = 0x0ACD; break;
+    case HB_SCRIPT_ORIYA:	virama = 0x0B4D; break;
+    case HB_SCRIPT_TAMIL:	virama = 0x0BCD; break;
+    case HB_SCRIPT_TELUGU:	virama = 0x0C4D; break;
+    case HB_SCRIPT_KANNADA:	virama = 0x0CCD; break;
+    case HB_SCRIPT_MALAYALAM:	virama = 0x0D4D; break;
+    case HB_SCRIPT_SINHALA:	virama = 0x0DCA; break;
+    case HB_SCRIPT_KHMER:	virama = 0x17D2; break;
+    default:			virama = 0;       break;
+  }
+
+  indic_shape_plan_t indic_plan (map);
+
+  unsigned int consonant_pos = indic_plan.is_old_spec ? 0 : 1;
+  hb_codepoint_t glyphs[2];
+  if (virama && font->get_glyph (virama, 0, &glyphs[1 - consonant_pos]))
+  {
+    hb_face_t *face = font->face;
+    unsigned int count = buffer->len;
+    for (unsigned int i = 0; i < count; i++)
+      if (buffer->info[i].indic_position() == POS_BASE_C) {
+	font->get_glyph (buffer->info[i].codepoint, 0, &glyphs[consonant_pos]);
+	buffer->info[i].indic_position() = consonant_position_from_font (&indic_plan, glyphs, 2, face);
+      }
+  }
+}
+
+static void
 setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
 		   const hb_ot_map_t            *map,
 		   hb_buffer_t                  *buffer,
@@ -258,15 +285,11 @@ setup_masks_indic (const hb_ot_complex_shaper_t *shaper,
   /* We cannot setup masks here.  We save information about characters
    * and setup masks later on in a pause-callback. */
 
-  indic_shape_plan_t indic_plan (map);
-
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
     set_indic_properties (buffer->info[i]);
 
-  for (unsigned int i = 0; i < count; i++)
-    if (buffer->info[i].indic_position() == POS_BASE_C)
-      buffer->info[i].indic_position() = consonant_position_from_font (buffer->info[i].codepoint, &indic_plan, font);
+  update_consonant_positions (map, buffer, font);
 }
 
 static int
