@@ -1170,6 +1170,7 @@ struct SubstLookup : Lookup
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
+    if (!c->digest.may_have (c->first)) return false;
     unsigned int lookup_type = get_type ();
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)

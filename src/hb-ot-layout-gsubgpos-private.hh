@@ -77,14 +77,18 @@ struct hb_would_apply_context_t
   hb_face_t *face;
   hb_codepoint_t first;
   hb_codepoint_t second;
+  const hb_set_digest_t digest;
   unsigned int len;
   unsigned int debug_depth;
 
   hb_would_apply_context_t (hb_face_t *face_,
 			    hb_codepoint_t first_,
-			    hb_codepoint_t second_ = -1) :
+			    hb_codepoint_t second_,
+			    const hb_set_digest_t *digest_
+			    ) :
 			      face (face_),
 			      first (first_), second (second_), len (second == (hb_codepoint_t) -1 ? 1 : 2),
+			      digest (*digest_),
 			      debug_depth (0) {};
 };
 

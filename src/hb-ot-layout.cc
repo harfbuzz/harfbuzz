@@ -406,7 +406,7 @@ hb_ot_layout_would_substitute_lookup (hb_face_t            *face,
 				      unsigned int          lookup_index)
 {
   if (unlikely (glyphs_length < 1 || glyphs_length > 2)) return false;
-  hb_would_apply_context_t c (face, glyphs[0], glyphs_length == 2 ? glyphs[1] : -1);
+  hb_would_apply_context_t c (face, glyphs[0], glyphs_length == 2 ? glyphs[1] : -1, NULL);
   return _get_gsub (face).would_substitute_lookup (&c, lookup_index);
 }
 
@@ -417,7 +417,7 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 					   unsigned int          lookup_index)
 {
   if (unlikely (glyphs_length < 1 || glyphs_length > 2)) return false;
-  hb_would_apply_context_t c (face, glyphs[0], glyphs_length == 2 ? glyphs[1] : -1);
+  hb_would_apply_context_t c (face, glyphs[0], glyphs_length == 2 ? glyphs[1] : -1, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
   return hb_ot_layout_from_face (face)->gsub->would_substitute_lookup (&c, lookup_index);
 }
 
