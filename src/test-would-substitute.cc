@@ -47,7 +47,7 @@ main (int argc, char **argv)
   hb_blob_t *blob = NULL;
 
   if (argc != 4 && argc != 5) {
-    fprintf (stderr, "usage: %s lookup-index first-glyph [second-glyph]\n", argv[0]);
+    fprintf (stderr, "usage: %s font-file lookup-index first-glyph [second-glyph]\n", argv[0]);
     exit (1);
   }
 
