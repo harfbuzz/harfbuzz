@@ -66,14 +66,17 @@
 
 
 #undef MIN
-template <typename Type> static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
+template <typename Type>
+static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
 
 #undef MAX
-template <typename Type> static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
+template <typename Type>
+static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
 
 
 #undef  ARRAY_LENGTH
-#define ARRAY_LENGTH(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
+template <typename Type, unsigned int n>
+static inline unsigned int ARRAY_LENGTH (const Type (&a)[n]) { return n; }
 
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
