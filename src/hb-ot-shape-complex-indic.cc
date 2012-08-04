@@ -340,9 +340,9 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
 			      hb_codepoint_t *glyphs, unsigned int glyphs_len,
 			      hb_face_t      *face)
 {
-  if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
-  if (indic_plan->blwf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_BELOW_C;
-  if (indic_plan->pstf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face)) return POS_POST_C;
+  if (indic_plan->pref.would_substitute (glyphs, glyphs_len, face)) return POS_BELOW_C;
+  if (indic_plan->blwf.would_substitute (glyphs, glyphs_len, face)) return POS_BELOW_C;
+  if (indic_plan->pstf.would_substitute (glyphs, glyphs_len, face)) return POS_POST_C;
   return POS_BASE_C;
 }
 
