@@ -278,7 +278,7 @@ hb_icu_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 					void               *user_data HB_UNUSED)
 {
   UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
-  gint len;
+  int len;
   int32_t utf32_len;
   hb_bool_t err;
   UErrorCode icu_err;
