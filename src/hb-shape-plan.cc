@@ -148,6 +148,8 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
 
+  hb_face_destroy (shape_plan->face);
+
   free (shape_plan);
 }
 
