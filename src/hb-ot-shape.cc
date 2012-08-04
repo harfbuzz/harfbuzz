@@ -347,10 +347,7 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    c->buffer->info[i].glyph_props() = FLAG (_hb_glyph_info_get_general_category (&c->buffer->info[i])) &
-				       (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
-					FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
-					FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)) ?
+    c->buffer->info[i].glyph_props() = _hb_glyph_info_get_general_category (&c->buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK ?
 				       HB_OT_LAYOUT_GLYPH_CLASS_MARK :
 				       HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
 }
@@ -398,7 +395,7 @@ hb_zero_mark_advances (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    if (c->buffer->info[i].glyph_props() & HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+    if (_hb_glyph_info_get_general_category (&c->buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     {
       c->buffer->pos[i].x_advance = 0;
       c->buffer->pos[i].y_advance = 0;
