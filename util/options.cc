@@ -747,7 +747,7 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
     if (i)
       g_string_append_c (gs, '|');
 
-    char glyph_name[32];
+    char glyph_name[128];
     if (show_glyph_names) {
       hb_font_get_glyph_name (font, info->codepoint, glyph_name, sizeof (glyph_name));
       g_string_append_printf (gs, "%s", glyph_name);
