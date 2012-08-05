@@ -83,9 +83,13 @@ struct hb_set_digest_lowest_bits_t
   }
 
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
-    /* TODO Speedup. */
-    for (unsigned int i = a; i < b + 1; i++)
-      add (i);
+    if (b - a >= sizeof (mask_t) * 8 - 1)
+      mask = (mask_t) -1;
+    else {
+      mask_t ma = mask_for (a);
+      mask_t mb = mask_for (b);
+      mask |= mb + (mb - ma) - (mb < ma);
+    }
   }
 
   inline bool may_have (hb_codepoint_t g) const {
