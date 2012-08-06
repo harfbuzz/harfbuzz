@@ -66,11 +66,17 @@ if test "x$GCC" = "xyes"; then
 	# Make sure we don't link to libstdc++
 	CXXFLAGS="$CXXFLAGS -fno-rtti -fno-exceptions"
 
-	# Hide inline methods
-	CXXFLAGS="$CXXFLAGS -fvisibility-inlines-hidden"
-
 	# Assorted warnings
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
+
+	case "$host" in
+		*-mingw*)
+		;;
+		*)
+			# Hide inline methods
+			CXXFLAGS="$CXXFLAGS -fvisibility-inlines-hidden"
+		;;
+	esac
 
 	case "$host" in
 		arm-*-*)
