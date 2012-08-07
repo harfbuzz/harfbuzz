@@ -81,6 +81,24 @@
  *     egrep  "`echo -n ';('; grep ';<' UnicodeData.txt | cut -d';' -f1 | tr '\n' '|'; echo ') '`" UnicodeData.txt
  */
 
+static hb_bool_t
+decompose_func (hb_unicode_funcs_t *unicode,
+		hb_codepoint_t  ab,
+		hb_codepoint_t *a,
+		hb_codepoint_t *b)
+{
+  return unicode->decompose (ab, a, b);
+}
+
+static hb_bool_t
+compose_func (hb_unicode_funcs_t *unicode,
+	      hb_codepoint_t  a,
+	      hb_codepoint_t  b,
+	      hb_codepoint_t *ab)
+{
+  return unicode->compose (a, b, ab);
+}
+
 static void
 output_glyph (hb_buffer_t *buffer, hb_codepoint_t glyph)
 {
@@ -95,7 +113,7 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
 {
   hb_codepoint_t a, b, glyph;
 
-  if (!buffer->unicode->decompose (ab, &a, &b) ||
+  if (!decompose_func (buffer->unicode, ab, &a, &b) ||
       (b && !font->get_glyph (b, 0, &glyph)))
     return false;
 
@@ -281,9 +299,10 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
 	(starter == buffer->out_len - 1 ||
 	 _hb_glyph_info_get_modified_combining_class (&buffer->prev()) < _hb_glyph_info_get_modified_combining_class (&buffer->cur())) &&
 	/* And compose. */
-	buffer->unicode->compose (buffer->out_info[starter].codepoint,
-				  buffer->cur().codepoint,
-				  &composed) &&
+	compose_func (buffer->unicode,
+		      buffer->out_info[starter].codepoint,
+		      buffer->cur().codepoint,
+		      &composed) &&
 	/* And the font has glyph for the composite. */
 	font->get_glyph (composed, 0, &glyph))
     {
