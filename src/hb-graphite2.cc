@@ -295,27 +295,30 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
     buffer->replace_glyphs (clusters[i].num_chars, clusters[i].num_glyphs, gids + clusters[i].base_glyph);
   buffer->swap_buffers ();
 
+  if (HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
+    curradvx = gr_seg_advance_X(seg);
+
   hb_glyph_position_t *pPos;
   for (pPos = hb_buffer_get_glyph_positions (buffer, NULL), is = gr_seg_first_slot (seg);
        is; pPos++, is = gr_slot_next_in_segment (is))
   {
-    pPos->x_offset = gr_slot_origin_X(is) - curradvx;
-    pPos->y_offset = gr_slot_origin_Y(is) - curradvy;
-    pPos->x_advance = gr_slot_advance_X(is, grface, grfont);
-    pPos->y_advance = gr_slot_advance_Y(is, grface, grfont);
-//    if (pPos->x_advance < 0 && gr_slot_attached_to(is))
-//      pPos->x_advance = 0;
-    curradvx += pPos->x_advance;
+    pPos->x_offset = gr_slot_origin_X (is) - curradvx;
+    pPos->y_offset = gr_slot_origin_Y (is) - curradvy;
+    pPos->x_advance = gr_slot_advance_X (is, grface, grfont);
+    pPos->y_advance = gr_slot_advance_Y (is, grface, grfont);
+    if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+      curradvx -= pPos->x_advance;
+    pPos->x_offset = gr_slot_origin_X (is) - curradvx;
+    if (!HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+      curradvx += pPos->x_advance;
+    pPos->y_offset = gr_slot_origin_Y (is) - curradvy;
     curradvy += pPos->y_advance;
   }
-  pPos[-1].x_advance += gr_seg_advance_X(seg) - curradvx;
+  if (!HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+    pPos[-1].x_advance += gr_seg_advance_X(seg) - curradvx;
 
-  /* TODO(behdad):
-   * This shaper is badly broken with RTL text.  It returns glyphs
-   * in the logical order!
-   */
-//  if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
-//    hb_buffer_reverse (buffer);
+  if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+    hb_buffer_reverse_clusters (buffer);
 
   success = 1;
 
