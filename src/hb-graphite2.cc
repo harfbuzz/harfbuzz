@@ -1,7 +1,7 @@
 /*
  * Copyright © 2011  Martin Hosken
  * Copyright © 2011  SIL International
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -26,49 +26,43 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
-
-#include "hb-graphite2.h"
-
-#include "hb-buffer-private.hh"
-#include "hb-font-private.hh"
-#include "hb-ot-tag.h"
+#define HB_SHAPER graphite2
+#define hb_graphite2_shaper_font_data_t gr_font
+#include "hb-shaper-impl-private.hh"
 
 #include <graphite2/Font.h>
 #include <graphite2/Segment.h>
 
+#include "hb-graphite2.h"
 
-struct hb_gr_cluster_t {
-  unsigned int base_char;
-  unsigned int num_chars;
-  unsigned int base_glyph;
-  unsigned int num_glyphs;
-};
+#include "hb-ot-tag.h"
 
 
-typedef struct hb_gr_tablelist_t {
-  hb_blob_t   *blob;
-  struct hb_gr_tablelist_t *next;
+HB_SHAPER_DATA_ENSURE_DECLARE(graphite2, face)
+HB_SHAPER_DATA_ENSURE_DECLARE(graphite2, font)
+
+
+/*
+ * shaper face data
+ */
+
+typedef struct hb_graphite2_tablelist_t {
+  hb_blob_t *blob;
+  struct hb_graphite2_tablelist_t *next;
   unsigned int tag;
-} hb_gr_tablelist_t;
+} hb_graphite2_tablelist_t;
 
-static struct hb_gr_face_data_t {
-  hb_face_t         *face;
-  gr_face           *grface;
-  hb_gr_tablelist_t *tlist;
-} _hb_gr_face_data_nil = {NULL, NULL};
-
-static struct hb_gr_font_data_t {
-  gr_font   *grfont;
+struct hb_graphite2_shaper_face_data_t {
+  hb_face_t *face;
   gr_face   *grface;
-} _hb_gr_font_data_nil = {NULL, NULL};
-
+  hb_graphite2_tablelist_t *tlist;
+};
 
 static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *len)
 {
-  hb_gr_tablelist_t *pl = NULL, *p;
-  hb_gr_face_data_t *face = (hb_gr_face_data_t *) data;
-  hb_gr_tablelist_t *tlist = face->tlist;
+  hb_graphite2_tablelist_t *pl = NULL, *p;
+  hb_graphite2_shaper_face_data_t *face = (hb_graphite2_shaper_face_data_t *) data;
+  hb_graphite2_tablelist_t *tlist = face->tlist;
 
   for (p = tlist; p; p = p->next)
     if (p->tag == tag ) {
@@ -79,13 +73,12 @@ static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *
     } else
       pl = p;
 
-  if (!face->face)
-    return NULL;
   hb_blob_t *blob = hb_face_reference_table (face->face, tag);
 
+  /* TODO Not thread-safe. */
   if (!pl || pl->blob)
   {
-    p = (hb_gr_tablelist_t *) malloc (sizeof (hb_gr_tablelist_t));
+    p = (hb_graphite2_tablelist_t *) calloc (1, sizeof (hb_graphite2_tablelist_t));
     if (!p) {
       hb_blob_destroy (blob);
       return NULL;
@@ -106,147 +99,134 @@ static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *
   return d;
 }
 
-static float hb_gr_get_advance (const void *hb_font, unsigned short gid)
+hb_graphite2_shaper_face_data_t *
+_hb_graphite2_shaper_face_data_create (hb_face_t *face)
 {
-  return ((hb_font_t *) font)->get_glyph_h_advance (gid);
-}
-
-static void _hb_gr_face_data_destroy (void *data)
-{
-  hb_gr_face_data_t *f = (hb_gr_face_data_t *) data;
-  hb_gr_tablelist_t *tlist = f->tlist;
-  while (tlist)
-  {
-    hb_gr_tablelist_t *old = tlist;
-    hb_blob_destroy (tlist->blob);
-    tlist = tlist->next;
-    free (old);
-  }
-  gr_face_destroy (f->grface);
-}
-
-static void _hb_gr_font_data_destroy (void *data)
-{
-  hb_gr_font_data_t *f = (hb_gr_font_data_t *) data;
-
-  gr_font_destroy (f->grfont);
-  free (f);
-}
-
-static hb_user_data_key_t hb_gr_data_key;
-
-static hb_gr_face_data_t *
-_hb_gr_face_get_data (hb_face_t *face)
-{
-  hb_gr_face_data_t *data = (hb_gr_face_data_t *) hb_face_get_user_data (face, &hb_gr_data_key);
-  if (likely (data)) return data;
-
-  data = (hb_gr_face_data_t *) calloc (1, sizeof (hb_gr_face_data_t));
+  hb_graphite2_shaper_face_data_t *data = (hb_graphite2_shaper_face_data_t *) calloc (1, sizeof (hb_graphite2_shaper_face_data_t));
   if (unlikely (!data))
-    return &_hb_gr_face_data_nil;
+    return NULL;
 
-
-  hb_blob_t *silf_blob = hb_face_reference_table (face, HB_GRAPHITE_TAG_Silf);
+  hb_blob_t *silf_blob = hb_face_reference_table (face, HB_GRAPHITE2_TAG_SILF);
   if (!hb_blob_get_length (silf_blob))
   {
     hb_blob_destroy (silf_blob);
-    return &_hb_gr_face_data_nil;
+    return NULL;
   }
 
   data->face = face;
   data->grface = gr_make_face (data, &hb_gr_get_table, gr_face_default);
 
-
-  if (unlikely (!hb_face_set_user_data (face, &hb_gr_data_key, data,
-					(hb_destroy_func_t) _hb_gr_face_data_destroy,
-					false)))
-  {
-    _hb_gr_face_data_destroy (data);
-    data = (hb_gr_face_data_t *) hb_face_get_user_data (face, &hb_gr_data_key);
-    if (data)
-      return data;
-    else
-      return &_hb_gr_face_data_nil;
-  }
-
   return data;
 }
 
-static hb_gr_font_data_t *
-_hb_gr_font_get_data (hb_font_t *font)
+void
+_hb_graphite2_shaper_face_data_destroy (hb_graphite2_shaper_face_data_t *data)
 {
-  hb_gr_font_data_t *data = (hb_gr_font_data_t *) hb_font_get_user_data (font, &hb_gr_data_key);
-  if (likely (data)) return data;
+  hb_graphite2_tablelist_t *tlist = data->tlist;
 
-  data = (hb_gr_font_data_t *) calloc (1, sizeof (hb_gr_font_data_t));
-  if (unlikely (!data))
-    return &_hb_gr_font_data_nil;
-
-
-  hb_blob_t *silf_blob = hb_face_reference_table (font->face, HB_GRAPHITE_TAG_Silf);
-  if (!hb_blob_get_length (silf_blob))
+  while (tlist)
   {
-    hb_blob_destroy (silf_blob);
-    return &_hb_gr_font_data_nil;
+    hb_graphite2_tablelist_t *old = tlist;
+    hb_blob_destroy (tlist->blob);
+    tlist = tlist->next;
+    free (old);
   }
 
-  data->grface = _hb_gr_face_get_data (font->face)->grface;
-  data->grfont = gr_make_font_with_advance_fn (font->x_scale, font, &hb_gr_get_advance, data->grface);
+  gr_face_destroy (data->grface);
 
-
-  if (unlikely (!hb_font_set_user_data (font, &hb_gr_data_key, data,
-					(hb_destroy_func_t) _hb_gr_font_data_destroy,
-					false)))
-  {
-    _hb_gr_font_data_destroy (data);
-    data = (hb_gr_font_data_t *) hb_font_get_user_data (font, &hb_gr_data_key);
-    if (data)
-      return data;
-    else
-      return &_hb_gr_font_data_nil;
-  }
-
-  return data;
+  free (data);
 }
 
+
+/*
+ * shaper font data
+ */
+
+static float hb_gr_get_advance (const void *hb_font, unsigned short gid)
+{
+  return ((hb_font_t *) hb_font)->get_glyph_h_advance (gid);
+}
+
+hb_graphite2_shaper_font_data_t *
+_hb_graphite2_shaper_font_data_create (hb_font_t *font)
+{
+  if (unlikely (!hb_graphite2_shaper_face_data_ensure (font->face))) return NULL;
+
+  hb_face_t *face = font->face;
+  hb_graphite2_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
+
+  return gr_make_font_with_advance_fn (font->x_scale, font, &hb_gr_get_advance, face_data->grface);
+}
+
+void
+_hb_graphite2_shaper_font_data_destroy (hb_graphite2_shaper_font_data_t *data)
+{
+  gr_font_destroy (data);
+}
+
+
+/*
+ * shaper shape_plan data
+ */
+
+struct hb_graphite2_shaper_shape_plan_data_t {};
+
+hb_graphite2_shaper_shape_plan_data_t *
+_hb_graphite2_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
+					     const hb_feature_t *user_features,
+					     unsigned int        num_user_features)
+{
+  return (hb_graphite2_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_graphite2_shaper_shape_plan_data_destroy (hb_graphite2_shaper_shape_plan_data_t *data)
+{
+}
+
+
+/*
+ * shaper
+ */
+
+struct hb_graphite2_cluster_t {
+  unsigned int base_char;
+  unsigned int num_chars;
+  unsigned int base_glyph;
+  unsigned int num_glyphs;
+};
 
 hb_bool_t
-_hb_graphite_shape (hb_font_t          *font,
-		   hb_buffer_t        *buffer,
-		   const hb_feature_t *features,
-		   unsigned int        num_features)
+_hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
+		     hb_font_t          *font,
+		     hb_buffer_t        *buffer,
+		     const hb_feature_t *features,
+		     unsigned int        num_features)
 {
-
-  buffer->guess_properties ();
-
-  /* XXX We do a hell of a lot of stuff just to figure out this font
-   * is not graphite!  Shouldn't do. */
-
-  hb_gr_font_data_t *data = _hb_gr_font_get_data (font);
-  if (!data->grface) return false;
+  hb_face_t *face = font->face;
+  gr_face *grface = HB_SHAPER_DATA_GET (face)->grface;
+  gr_font *grfont = HB_SHAPER_DATA_GET (font);
 
   unsigned int charlen;
   hb_glyph_info_t *bufferi = hb_buffer_get_glyph_infos (buffer, &charlen);
 
   int success = 0;
 
-  if (!charlen) return true;
-
   const char *lang = hb_language_to_string (hb_buffer_get_language (buffer));
   const char *lang_end = strchr (lang, '-');
   int lang_len = lang_end ? lang_end - lang : -1;
-  gr_feature_val *feats = gr_face_featureval_for_lang (data->grface, lang ? hb_tag_from_string (lang, lang_len) : 0);
+  gr_feature_val *feats = gr_face_featureval_for_lang (grface, lang ? hb_tag_from_string (lang, lang_len) : 0);
 
   while (num_features--)
   {
-    const gr_feature_ref *fref = gr_face_find_fref (data->grface, features->tag);
+    const gr_feature_ref *fref = gr_face_find_fref (grface, features->tag);
     if (fref)
       gr_fref_set_feature_value (fref, features->value, feats);
     features++;
   }
 
   hb_codepoint_t *gids = NULL, *pg;
-  hb_gr_cluster_t *clusters = NULL;
+  hb_graphite2_cluster_t *clusters = NULL;
   gr_segment *seg = NULL;
   uint32_t *text = NULL;
   const gr_slot *is;
@@ -266,7 +246,7 @@ _hb_graphite_shape (hb_font_t          *font,
   hb_tag_t script_tag[2];
   hb_ot_tags_from_script (hb_buffer_get_script (buffer), &script_tag[0], &script_tag[1]);
 
-  seg = gr_make_seg (data->grfont, data->grface,
+  seg = gr_make_seg (grfont, grface,
 		     script_tag[1] == HB_TAG_NONE ? script_tag[0] : script_tag[1],
 		     feats,
 		     gr_utf32, text, charlen,
@@ -274,7 +254,7 @@ _hb_graphite_shape (hb_font_t          *font,
   if (!seg) goto dieout;
 
   glyphlen = gr_seg_n_slots (seg);
-  clusters = (hb_gr_cluster_t *) calloc (charlen, sizeof (hb_gr_cluster_t));
+  clusters = (hb_graphite2_cluster_t *) calloc (charlen, sizeof (hb_graphite2_cluster_t));
   if (!glyphlen || !clusters) goto dieout;
 
   gids = (hb_codepoint_t *) malloc (glyphlen * sizeof (hb_codepoint_t));
@@ -296,7 +276,7 @@ _hb_graphite_shape (hb_font_t          *font,
 
     if (gr_slot_can_insert_before (is) && clusters[ci].num_chars && before >= clusters[ci].base_char + clusters[ci].num_chars)
     {
-      hb_gr_cluster_t *c = clusters + ci + 1;
+      hb_graphite2_cluster_t *c = clusters + ci + 1;
       c->base_char = clusters[ci].base_char + clusters[ci].num_chars;
       c->num_chars = before - c->base_char;
       c->base_glyph = ic;
@@ -321,8 +301,8 @@ _hb_graphite_shape (hb_font_t          *font,
   {
     pPos->x_offset = gr_slot_origin_X(is) - curradvx;
     pPos->y_offset = gr_slot_origin_Y(is) - curradvy;
-    pPos->x_advance = gr_slot_advance_X(is, data->grface, data->grfont);
-    pPos->y_advance = gr_slot_advance_Y(is, data->grface, data->grfont);
+    pPos->x_advance = gr_slot_advance_X(is, grface, grfont);
+    pPos->y_advance = gr_slot_advance_Y(is, grface, grfont);
 //    if (pPos->x_advance < 0 && gr_slot_attached_to(is))
 //      pPos->x_advance = 0;
     curradvx += pPos->x_advance;
