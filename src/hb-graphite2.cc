@@ -102,19 +102,27 @@ static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *
 hb_graphite2_shaper_face_data_t *
 _hb_graphite2_shaper_face_data_create (hb_face_t *face)
 {
-  hb_graphite2_shaper_face_data_t *data = (hb_graphite2_shaper_face_data_t *) calloc (1, sizeof (hb_graphite2_shaper_face_data_t));
-  if (unlikely (!data))
-    return NULL;
-
   hb_blob_t *silf_blob = hb_face_reference_table (face, HB_GRAPHITE2_TAG_SILF);
+  /* Umm, we just reference the table to check whether it exists.
+   * Maybe add better API for this? */
   if (!hb_blob_get_length (silf_blob))
   {
     hb_blob_destroy (silf_blob);
     return NULL;
   }
+  hb_blob_destroy (silf_blob);
+
+  hb_graphite2_shaper_face_data_t *data = (hb_graphite2_shaper_face_data_t *) calloc (1, sizeof (hb_graphite2_shaper_face_data_t));
+  if (unlikely (!data))
+    hb_blob_destroy (silf_blob);
 
   data->face = face;
   data->grface = gr_make_face (data, &hb_gr_get_table, gr_face_default);
+
+  if (unlikely (!data->grface)) {
+    free (data);
+    return NULL;
+  }
 
   return data;
 }
@@ -225,6 +233,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
     features++;
   }
 
+  /* TODO Use scratch buffer for these. */
   hb_codepoint_t *gids = NULL, *pg;
   hb_graphite2_cluster_t *clusters = NULL;
   gr_segment *seg = NULL;
@@ -323,6 +332,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   success = 1;
 
 dieout:
+  if (feats) gr_featureval_destroy (feats);
   if (gids) free (gids);
   if (clusters) free (clusters);
   if (seg) gr_seg_destroy (seg);

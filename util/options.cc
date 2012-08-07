@@ -178,7 +178,7 @@ parse_shapers (const char *name G_GNUC_UNUSED,
 	       GError    **error G_GNUC_UNUSED)
 {
   shape_options_t *shape_opts = (shape_options_t *) data;
-  g_free (shape_opts->shapers);
+  g_strfreev (shape_opts->shapers);
   shape_opts->shapers = g_strsplit (arg, ",", 0);
   return true;
 }

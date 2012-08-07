@@ -155,7 +155,7 @@ struct shape_options_t : option_group_t
   ~shape_options_t (void)
   {
     free (features);
-    g_free (shapers);
+    g_strfreev (shapers);
   }
 
   void add_options (option_parser_t *parser);
