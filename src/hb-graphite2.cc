@@ -47,8 +47,8 @@ HB_SHAPER_DATA_ENSURE_DECLARE(graphite2, font)
  */
 
 typedef struct hb_graphite2_tablelist_t {
-  hb_blob_t *blob;
   struct hb_graphite2_tablelist_t *next;
+  hb_blob_t *blob;
   unsigned int tag;
 } hb_graphite2_tablelist_t;
 
@@ -58,40 +58,36 @@ struct hb_graphite2_shaper_face_data_t {
   hb_graphite2_tablelist_t *tlist;
 };
 
-static const void *hb_gr_get_table (const void *data, unsigned int tag, size_t *len)
+static const void *hb_graphite2_get_table (const void *data, unsigned int tag, size_t *len)
 {
-  hb_graphite2_tablelist_t *pl = NULL, *p;
-  hb_graphite2_shaper_face_data_t *face = (hb_graphite2_shaper_face_data_t *) data;
-  hb_graphite2_tablelist_t *tlist = face->tlist;
+  hb_graphite2_shaper_face_data_t *face_data = (hb_graphite2_shaper_face_data_t *) data;
+  hb_graphite2_tablelist_t *tlist = face_data->tlist;
 
-  for (p = tlist; p; p = p->next)
-    if (p->tag == tag ) {
-      unsigned int tlen;
-      const char *d = hb_blob_get_data (p->blob, &tlen);
-      *len = tlen;
-      return d;
-    } else
-      pl = p;
+  hb_blob_t *blob = NULL;
 
-  hb_blob_t *blob = hb_face_reference_table (face->face, tag);
+  for (hb_graphite2_tablelist_t *p = tlist; p; p = p->next)
+    if (p->tag == tag) {
+      blob = p->blob;
+      break;
+    }
 
-  /* TODO Not thread-safe. */
-  if (!pl || pl->blob)
+  if (unlikely (!blob))
   {
-    p = (hb_graphite2_tablelist_t *) calloc (1, sizeof (hb_graphite2_tablelist_t));
-    if (!p) {
+    blob = hb_face_reference_table (face_data->face, tag);
+
+    hb_graphite2_tablelist_t *p = (hb_graphite2_tablelist_t *) calloc (1, sizeof (hb_graphite2_tablelist_t));
+    if (unlikely (!p)) {
       hb_blob_destroy (blob);
       return NULL;
     }
-    p->next = NULL;
-    if (pl)
-      pl->next = p;
-    else
-      face->tlist = p;
-    pl = p;
+    p->blob = blob;
+    p->tag = tag;
+
+    /* TODO Not thread-safe, but fairly harmless.
+     * We can do the double-chcked pointer cmpexch thing here. */
+    p->next = face_data->tlist;
+    face_data->tlist = p;
   }
-  pl->blob = blob;
-  pl->tag = tag;
 
   unsigned int tlen;
   const char *d = hb_blob_get_data (blob, &tlen);
@@ -117,7 +113,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
     hb_blob_destroy (silf_blob);
 
   data->face = face;
-  data->grface = gr_make_face (data, &hb_gr_get_table, gr_face_default);
+  data->grface = gr_make_face (data, &hb_graphite2_get_table, gr_face_default);
 
   if (unlikely (!data->grface)) {
     free (data);
@@ -150,7 +146,7 @@ _hb_graphite2_shaper_face_data_destroy (hb_graphite2_shaper_face_data_t *data)
  * shaper font data
  */
 
-static float hb_gr_get_advance (const void *hb_font, unsigned short gid)
+static float hb_graphite2_get_advance (const void *hb_font, unsigned short gid)
 {
   return ((hb_font_t *) hb_font)->get_glyph_h_advance (gid);
 }
@@ -163,7 +159,7 @@ _hb_graphite2_shaper_font_data_create (hb_font_t *font)
   hb_face_t *face = font->face;
   hb_graphite2_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
-  return gr_make_font_with_advance_fn (font->x_scale, font, &hb_gr_get_advance, face_data->grface);
+  return gr_make_font_with_advance_fn (font->x_scale, font, &hb_graphite2_get_advance, face_data->grface);
 }
 
 void
