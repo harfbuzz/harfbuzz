@@ -624,9 +624,6 @@ hb_face_destroy (hb_face_t *face)
 {
   if (!hb_object_destroy (face)) return;
 
-  /* The cached shape_plans think they have a reference on us, and
-   * try to release it.  Make sure that doesn't mess up. */
-  face->header.ref_count.ref_count = HB_REFERENCE_COUNT_INVALID_VALUE;
   for (hb_face_t::plan_node_t *node = face->shape_plans; node; )
   {
     hb_face_t::plan_node_t *next = node->next;
