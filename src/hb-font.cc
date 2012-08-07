@@ -200,7 +200,6 @@ hb_font_get_glyph_name_nil (hb_font_t *font,
   if (font->parent)
     return hb_font_get_glyph_name (font->parent, glyph, name, size);
 
-  snprintf (name, size, "gid%u", glyph);
   return false;
 }
 
@@ -411,7 +410,10 @@ hb_font_get_glyph_name (hb_font_t *font,
 			hb_codepoint_t glyph,
 			char *name, unsigned int size)
 {
-  return font->get_glyph_name (glyph, name, size);
+  hb_bool_t ret = font->get_glyph_name (glyph, name, size);
+  if (!ret)
+    snprintf (name, size, "gid%u", glyph);
+  return ret;
 }
 
 hb_bool_t
