@@ -175,7 +175,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     return false;
 
   UChar utf16[4], normalized[5];
-  int len;
+  unsigned int len;
   hb_bool_t ret, err;
   UErrorCode icu_err;
 
@@ -208,7 +208,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			  void               *user_data HB_UNUSED)
 {
   UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
-  int len;
+  unsigned int len;
   hb_bool_t ret, err;
   UErrorCode icu_err;
 
@@ -278,7 +278,7 @@ hb_icu_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 					void               *user_data HB_UNUSED)
 {
   UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
-  int len;
+  unsigned int len;
   int32_t utf32_len;
   hb_bool_t err;
   UErrorCode icu_err;
