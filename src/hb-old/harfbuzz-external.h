@@ -25,7 +25,8 @@
 #ifndef HARFBUZZ_EXTERNAL_H
 #define HARFBUZZ_EXTERNAL_H
 
-#include <hb.h>
+#define HB_H_IN
+#include <hb-unicode.h>
 #include "harfbuzz-global.h"
 
 HB_BEGIN_HEADER
