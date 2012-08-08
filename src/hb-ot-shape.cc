@@ -301,7 +301,7 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
   for (unsigned int i = 0; i < count; i++) {
     hb_codepoint_t codepoint = unicode->mirroring (c->buffer->info[i].codepoint);
     if (likely (codepoint == c->buffer->info[i].codepoint))
-      c->buffer->info[i].mask |= rtlm_mask; /* XXX this should be moved to before setting user-feature masks */
+      c->buffer->info[i].mask |= rtlm_mask; /* TODO this should be moved to before setting user-feature masks */
     else
       c->buffer->info[i].codepoint = codepoint;
   }
