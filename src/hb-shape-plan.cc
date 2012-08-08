@@ -37,7 +37,7 @@
 #undef HB_SHAPER_IMPLEMENT
 
 
-void
+static void
 hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 		    const hb_feature_t *user_features,
 		    unsigned int        num_user_features,

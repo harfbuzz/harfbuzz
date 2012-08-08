@@ -52,7 +52,7 @@ typedef hb_blob_t * (*hb_reference_table_func_t)  (hb_face_t *face, hb_tag_t tag
 
 /* calls destroy() when not needing user_data anymore */
 hb_face_t *
-hb_face_create_for_tables (hb_reference_table_func_t  reference_table,
+hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
 			   void                      *user_data,
 			   hb_destroy_func_t          destroy);
 

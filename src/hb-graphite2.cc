@@ -73,7 +73,7 @@ static const void *hb_graphite2_get_table (const void *data, unsigned int tag, s
 
   if (unlikely (!blob))
   {
-    blob = hb_face_reference_table (face_data->face, tag);
+    blob = face_data->face->reference_table (tag);
 
     hb_graphite2_tablelist_t *p = (hb_graphite2_tablelist_t *) calloc (1, sizeof (hb_graphite2_tablelist_t));
     if (unlikely (!p)) {
@@ -98,7 +98,7 @@ static const void *hb_graphite2_get_table (const void *data, unsigned int tag, s
 hb_graphite2_shaper_face_data_t *
 _hb_graphite2_shaper_face_data_create (hb_face_t *face)
 {
-  hb_blob_t *silf_blob = hb_face_reference_table (face, HB_GRAPHITE2_TAG_SILF);
+  hb_blob_t *silf_blob = face->reference_table (HB_GRAPHITE2_TAG_SILF);
   /* Umm, we just reference the table to check whether it exists.
    * Maybe add better API for this? */
   if (!hb_blob_get_length (silf_blob))

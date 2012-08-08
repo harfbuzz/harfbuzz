@@ -109,9 +109,8 @@ position_mark (const hb_ot_shape_plan_t *plan,
 	       unsigned int combining_class)
 {
   hb_glyph_extents_t mark_extents;
-  if (!hb_font_get_glyph_extents (font,
-				  buffer->info[i].codepoint,
-				  &mark_extents))
+  if (!font->get_glyph_extents (buffer->info[i].codepoint,
+				&mark_extents))
     return;
 
   hb_position_t y_gap = font->y_scale / 16;
@@ -193,9 +192,8 @@ position_around_base (const hb_ot_shape_plan_t *plan,
 		      unsigned int end)
 {
   hb_glyph_extents_t base_extents;
-  if (!hb_font_get_glyph_extents (font,
-				  buffer->info[base].codepoint,
-				  &base_extents))
+  if (!font->get_glyph_extents (buffer->info[base].codepoint,
+				&base_extents))
   {
     /* If extents don't work, zero marks and go home. */
     zero_mark_advances (buffer, base + 1, end);

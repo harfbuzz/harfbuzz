@@ -188,7 +188,7 @@ static HB_Error
 table_func (void *font, HB_Tag tag, HB_Byte *buffer, HB_UInt *length)
 {
   hb_face_t *face = (hb_face_t *) font;
-  hb_blob_t *blob = hb_face_reference_table (face, (hb_tag_t) tag);
+  hb_blob_t *blob = face->reference_table ((hb_tag_t) tag);
   unsigned int capacity = *length;
   *length = hb_blob_get_length (blob);
   memcpy (buffer, hb_blob_get_data (blob, NULL), MIN (capacity, *length));

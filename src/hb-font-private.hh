@@ -94,12 +94,12 @@ struct hb_face_t {
 
   hb_bool_t immutable;
 
-  hb_reference_table_func_t  reference_table;
+  hb_reference_table_func_t  reference_table_func;
   void                      *user_data;
   hb_destroy_func_t          destroy;
 
   unsigned int index;
-  unsigned int upem;
+  mutable unsigned int upem;
 
   struct hb_shaper_data_t shaper_data;
 
@@ -107,6 +107,31 @@ struct hb_face_t {
     hb_shape_plan_t *shape_plan;
     plan_node_t *next;
   } *shape_plans;
+
+
+  inline hb_blob_t *reference_table (hb_tag_t tag) const
+  {
+    hb_blob_t *blob;
+
+    if (unlikely (!this || !reference_table_func))
+      return hb_blob_get_empty ();
+
+    blob = reference_table_func (/*XXX*/const_cast<hb_face_t *> (this), tag, user_data);
+    if (unlikely (!blob))
+      return hb_blob_get_empty ();
+
+    return blob;
+  }
+
+  inline unsigned int get_upem (void) const
+  {
+    if (unlikely (!upem))
+      load_upem ();
+    return upem;
+  }
+
+  private:
+  HB_INTERNAL void load_upem (void) const;
 };
 
 #define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS

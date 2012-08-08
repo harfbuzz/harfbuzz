@@ -578,7 +578,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
    * if that's what they desire. */
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    hb_set_add (glyphs, buffer->info[i].codepoint);
+    glyphs->add (buffer->info[i].codepoint);
 
   /* And find transitive closure. */
   hb_set_t copy;
