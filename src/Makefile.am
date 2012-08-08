@@ -87,6 +87,8 @@ HBSOURCES += \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-normalize-private.hh \
 	hb-ot-shape-normalize.cc \
+	hb-ot-shape-position-fallback-private.hh \
+	hb-ot-shape-position-fallback.cc \
 	hb-ot-shape-private.hh \
 	$(NULL)
 HBHEADERS += \

@@ -32,8 +32,9 @@
 #include "hb-shaper-impl-private.hh"
 
 #include "hb-ot-shape-private.hh"
-#include "hb-ot-shape-normalize-private.hh"
 #include "hb-ot-shape-complex-private.hh"
+#include "hb-ot-shape-normalize-private.hh"
+#include "hb-ot-shape-position-fallback-private.hh"
 
 #include "hb-ot-layout-private.hh"
 #include "hb-set-private.hh"
@@ -207,7 +208,6 @@ _hb_ot_shaper_shape_plan_data_destroy (hb_ot_shaper_shape_plan_data_t *plan)
 
 struct hb_ot_shape_context_t
 {
-  /* Input to hb_ot_shape_internal() */
   hb_ot_shape_plan_t *plan;
   hb_font_t *font;
   hb_face_t *face;
@@ -392,18 +392,6 @@ hb_position_default (hb_ot_shape_context_t *c)
 }
 
 static void
-hb_zero_mark_advances (hb_ot_shape_context_t *c)
-{
-  unsigned int count = c->buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-    if (_hb_glyph_info_get_general_category (&c->buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
-    {
-      c->buffer->pos[i].x_advance = 0;
-      c->buffer->pos[i].y_advance = 0;
-    }
-}
-
-static void
 hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
 
@@ -429,8 +417,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
     }
 
     c->applied_position_complex = true;
-  } else
-    hb_zero_mark_advances (c);
+  }
 
   hb_ot_layout_position_finish (c->font, c->buffer, c->plan->shaper->zero_width_attached_marks);
 
@@ -438,9 +425,9 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 }
 
 static void
-hb_position_complex_fallback (hb_ot_shape_context_t *c HB_UNUSED)
+hb_position_complex_fallback (hb_ot_shape_context_t *c)
 {
-  /* TODO Mark pos */
+  _hb_ot_shape_position_fallback (c->plan, c->font, c->buffer);
 }
 
 static void
