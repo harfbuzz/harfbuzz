@@ -70,7 +70,7 @@ if test "x$GCC" = "xyes"; then
 	CXXFLAGS="$CXXFLAGS -Wcast-align"
 
 	case "$host" in
-		*-mingw*)
+		*-*-mingw*)
 		;;
 		*)
 			# Hide inline methods
@@ -85,6 +85,18 @@ if test "x$GCC" = "xyes"; then
 		;;
 	esac
 fi
+
+AC_MSG_CHECKING([for native Win32])
+case "$host" in
+  *-*-mingw*)
+    hb_os_win32=yes
+    ;;
+  *)
+    hb_os_win32=no
+    ;;
+esac
+AC_MSG_RESULT([$hb_os_win32])
+AM_CONDITIONAL(OS_WIN32, test "$hb_os_win32" = "yes")
 
 dnl ==========================================================================
 
