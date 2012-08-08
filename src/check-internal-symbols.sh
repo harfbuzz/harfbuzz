@@ -21,8 +21,8 @@ else
 fi
 
 tested=false
-for suffix in so; do
-	so=.libs/libharfbuzz.$suffix
+for suffix in .so -*.dll; do
+	so=`echo .libs/libharfbuzz$suffix`
 	if test -f "$so"; then
 		echo "Checking that we are not exposing internal symbols"
 		if nm $so | grep ' [TW] ' | $cplusplusfilt | grep -v ' T _fini\>\| T _init\>\| T hb_'; then
