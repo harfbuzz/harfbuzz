@@ -54,6 +54,7 @@ hb_tag_t horizontal_features[] = {
   HB_TAG('c','l','i','g'),
   HB_TAG('c','u','r','s'),
   HB_TAG('k','e','r','n'),
+  HB_TAG('r','c','l','t'),
 };
 
 /* Note:
