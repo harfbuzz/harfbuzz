@@ -465,8 +465,10 @@ static void dump_string(HB_Buffer buffer)
 #define DEBUG if (1) ; else printf
 #endif
 
+#if 0
 #define DefaultLangSys 0xffff
 #define DefaultScript HB_MAKE_TAG('D', 'F', 'L', 'T')
+#endif
 
 enum {
     RequiresGsub = 1,
