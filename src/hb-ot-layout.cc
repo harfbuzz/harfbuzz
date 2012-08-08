@@ -415,9 +415,8 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 					   unsigned int          glyphs_length,
 					   unsigned int          lookup_index)
 {
-  if (unlikely (glyphs_length < 1 || glyphs_length > 2)) return false;
   if (unlikely (lookup_index >= hb_ot_layout_from_face (face)->gsub_lookup_count)) return false;
-  hb_would_apply_context_t c (face, glyphs[0], glyphs_length == 2 ? glyphs[1] : -1, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
+  hb_would_apply_context_t c (face, glyphs, glyphs_length, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
   return hb_ot_layout_from_face (face)->gsub->would_substitute_lookup (&c, lookup_index);
 }
 
