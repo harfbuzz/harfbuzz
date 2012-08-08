@@ -1,7 +1,7 @@
 General fixes:
 =============
 
-- mask propagation (when ligation, "or" the masks).
+- mask propagation? (when ligation, "or" the masks).
 
 - Warn at compile time (and runtime with HB_DEBUG?) if no Unicode / font
   funcs found / set.
@@ -52,7 +52,7 @@ API additions
 
 - Add glib GBoxedType stuff and introspection
 
-- Add Uniscribe face / font get API
+- Finish Uniscribe / CoreText face / font get API
 
 - BCP 47 language handling / API (language_matches?)
 
