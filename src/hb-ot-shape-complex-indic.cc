@@ -57,7 +57,7 @@ indic_options_init (void)
   return u;
 }
 
-inline indic_options_t
+static inline indic_options_t
 indic_options (void)
 {
   static indic_options_union_t options;

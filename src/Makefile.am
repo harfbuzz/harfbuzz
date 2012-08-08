@@ -241,6 +241,7 @@ test_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-header-guards.sh \
+	check-exported-symbols.sh \
 	check-includes.sh \
 	check-internal-symbols.sh \
 	check-static-inits.sh \

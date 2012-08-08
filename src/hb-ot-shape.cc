@@ -40,7 +40,7 @@
 #include "hb-set-private.hh"
 
 
-hb_tag_t common_features[] = {
+static hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),
   HB_TAG('l','i','g','a'),
   HB_TAG('l','o','c','l'),
@@ -50,7 +50,7 @@ hb_tag_t common_features[] = {
 };
 
 
-hb_tag_t horizontal_features[] = {
+static hb_tag_t horizontal_features[] = {
   HB_TAG('c','a','l','t'),
   HB_TAG('c','l','i','g'),
   HB_TAG('c','u','r','s'),
@@ -63,7 +63,7 @@ hb_tag_t horizontal_features[] = {
  * According to the spec, valt and vpal are also mutually exclusive.
  * But we apply them all for now.
  */
-hb_tag_t vertical_features[] = {
+static hb_tag_t vertical_features[] = {
   HB_TAG('v','a','l','t'),
   HB_TAG('v','e','r','t'),
   HB_TAG('v','k','r','n'),
