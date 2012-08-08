@@ -43,8 +43,6 @@
 # endif /* !__cplusplus */
 #endif
 
-HB_BEGIN_DECLS
-
 #if !defined (HB_DONT_DEFINE_STDINT)
 
 #if defined (_SVR4) || defined (SVR4) || defined (__OpenBSD__) || \
@@ -68,6 +66,8 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #endif
+
+HB_BEGIN_DECLS
 
 
 typedef int hb_bool_t;
