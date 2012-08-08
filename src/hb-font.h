@@ -346,6 +346,17 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t *font,
 					    hb_direction_t direction,
 					    hb_position_t *x, hb_position_t *y);
 
+/* Generates gidDDD if glyph has no name. */
+void
+hb_font_glyph_to_string (hb_font_t *font,
+			 hb_codepoint_t glyph,
+			 char *s, unsigned int size);
+/* Parses gidDDD and uniUUUU strings automatically. */
+hb_bool_t
+hb_font_glyph_from_string (hb_font_t *font,
+			   const char *s, int len, /* -1 means nul-terminated */
+			   hb_codepoint_t *glyph);
+
 
 /*
  * hb_font_t

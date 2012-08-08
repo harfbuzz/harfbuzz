@@ -200,6 +200,7 @@ hb_font_get_glyph_name_nil (hb_font_t *font,
   if (font->parent)
     return hb_font_get_glyph_name (font->parent, glyph, name, size);
 
+  if (size) *name = '\0';
   return false;
 }
 
@@ -410,10 +411,7 @@ hb_font_get_glyph_name (hb_font_t *font,
 			hb_codepoint_t glyph,
 			char *name, unsigned int size)
 {
-  hb_bool_t ret = font->get_glyph_name (glyph, name, size);
-  if (!ret)
-    snprintf (name, size, "gid%u", glyph);
-  return ret;
+  return font->get_glyph_name (glyph, name, size);
 }
 
 hb_bool_t
@@ -488,6 +486,24 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t *font,
 					    hb_position_t *x, hb_position_t *y)
 {
   return font->get_glyph_contour_point_for_origin (glyph, point_index, direction, x, y);
+}
+
+/* Generates gidDDD if glyph has no name. */
+void
+hb_font_glyph_to_string (hb_font_t *font,
+			 hb_codepoint_t glyph,
+			 char *s, unsigned int size)
+{
+  font->glyph_to_string (glyph, s, size);
+}
+
+/* Parses gidDDD and uniUUUU strings automatically. */
+hb_bool_t
+hb_font_glyph_from_string (hb_font_t *font,
+			   const char *s, int len, /* -1 means nul-terminated */
+			   hb_codepoint_t *glyph)
+{
+  return font->glyph_from_string (s, len, glyph);
 }
 
 

@@ -791,6 +791,22 @@ hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
   hb_bubble_sort (array, len, compar, (int *) NULL);
 }
 
+static inline hb_bool_t
+hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *out)
+{
+  /* Pain because we don't know whether s is nul-terminated. */
+  char buf[64];
+  strncpy (buf, s, MIN (ARRAY_LENGTH (buf) - 1, len));
+  buf[MIN (ARRAY_LENGTH (buf) - 1, len)] = '\0';
+
+  char *end;
+  errno = 0;
+  unsigned long v = strtoul (buf, &end, base);
+  if (errno) return false;
+  if (*end) return false;
+  *out = v;
+  return true;
+}
 
 
 #endif /* HB_PRIVATE_HH */

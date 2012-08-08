@@ -254,6 +254,7 @@ struct hb_font_t {
   inline hb_bool_t get_glyph_name (hb_codepoint_t glyph,
 				   char *name, unsigned int size)
   {
+    if (size) *name = '\0';
     return klass->get.glyph_name (this, user_data,
 				  glyph,
 				  name, size,
@@ -263,6 +264,8 @@ struct hb_font_t {
   inline hb_bool_t get_glyph_from_name (const char *name, int len, /* -1 means nul-terminated */
 					hb_codepoint_t *glyph)
   {
+    *glyph = 0;
+    if (len == -1) len = strlen (name);
     return klass->get.glyph_from_name (this, user_data,
 				       name, len,
 				       glyph,
@@ -377,6 +380,46 @@ struct hb_font_t {
     return ret;
   }
 
+  /* Generates gidDDD if glyph has no name. */
+  inline void
+  glyph_to_string (hb_codepoint_t glyph,
+		   char *s, unsigned int size)
+  {
+    if (get_glyph_name (glyph, s, size)) return;
+
+    snprintf (s, size, "gid%u", glyph);
+  }
+
+  /* Parses gidDDD and uniUUUU strings automatically. */
+  inline hb_bool_t
+  glyph_from_string (const char *s, int len, /* -1 means nul-terminated */
+		     hb_codepoint_t *glyph)
+  {
+    if (get_glyph_from_name (s, len, glyph)) return true;
+
+    if (len == -1) len = strlen (s);
+
+    /* Straight glyph index. */
+    if (hb_codepoint_parse (s, len, 10, glyph))
+      return true;
+
+    if (len > 3)
+    {
+      /* gidDDD syntax for glyph indices. */
+      if (0 == strncmp (s, "gid", 3) &&
+	  hb_codepoint_parse (s + 3, len - 3, 10, glyph))
+	return true;
+
+      /* uniUUUU and other Unicode character indices. */
+      hb_codepoint_t unichar;
+      if (0 == strncmp (s, "uni", 3) &&
+	  hb_codepoint_parse (s + 3, len - 3, 16, &unichar) &&
+	  get_glyph (unichar, 0, glyph))
+	return true;
+    }
+
+    return false;
+  }
 
   private:
   inline hb_position_t em_scale (int16_t v, int scale) { return v * (int64_t) scale / hb_face_get_upem (this->face); }
