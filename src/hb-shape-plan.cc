@@ -190,11 +190,11 @@ hb_shape_plan_execute (hb_shape_plan      *shape_plan,
  */
 
 #if 0
-static long
+static unsigned int
 hb_shape_plan_hash (const hb_shape_plan_t *shape_plan)
 {
   return hb_segment_properties_hash (&shape_plan->props) +
-	 shape_plan->default_shaper_list ? 0 : (long) shape_plan->shaper_func;
+	 shape_plan->default_shaper_list ? 0 : (intptr_t) shape_plan->shaper_func;
 }
 #endif
 
