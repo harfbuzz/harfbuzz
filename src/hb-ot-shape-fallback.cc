@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape-position-fallback-private.hh"
+#include "hb-ot-shape-fallback-private.hh"
 
 static void
 zero_mark_advances (hb_buffer_t *buffer,
@@ -259,7 +259,7 @@ position_cluster (const hb_ot_shape_plan_t *plan,
 }
 
 void
-_hb_ot_shape_position_fallback (const hb_ot_shape_plan_t *plan,
+_hb_ot_shape_fallback_position (const hb_ot_shape_plan_t *plan,
 				hb_font_t *font,
 				hb_buffer_t  *buffer)
 {

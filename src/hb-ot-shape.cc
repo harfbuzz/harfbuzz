@@ -33,8 +33,8 @@
 
 #include "hb-ot-shape-private.hh"
 #include "hb-ot-shape-complex-private.hh"
+#include "hb-ot-shape-fallback-private.hh"
 #include "hb-ot-shape-normalize-private.hh"
-#include "hb-ot-shape-position-fallback-private.hh"
 
 #include "hb-ot-layout-private.hh"
 #include "hb-set-private.hh"
@@ -427,7 +427,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 static void
 hb_position_complex_fallback (hb_ot_shape_context_t *c)
 {
-  _hb_ot_shape_position_fallback (c->plan, c->font, c->buffer);
+  _hb_ot_shape_fallback_position (c->plan, c->font, c->buffer);
 }
 
 static void
