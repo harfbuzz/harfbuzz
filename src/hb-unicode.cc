@@ -287,6 +287,7 @@ hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
 }
 
 
+/* See hb-unicode-private.hh for details. */
 const uint8_t
 _hb_modified_combining_class[256] =
 {
@@ -298,58 +299,37 @@ _hb_modified_combining_class[256] =
   9, /* HB_UNICODE_COMBINING_CLASS_VIRAMA */
 
   /* Hebrew */
-
-  /*
-   * We permute the "fixed-position" classes 10-26 into the order
-   * described in the SBL Hebrew manual:
-   *
-   * http://www.sbl-site.org/Fonts/SBLHebrewUserManual1.5x.pdf
-   *
-   * (as recommended by:
-   *  http://forum.fontlab.com/archive-old-microsoft-volt-group/vista-and-diacritic-ordering-t6751.0.html)
-   *
-   * More details here:
-   * https://bugzilla.mozilla.org/show_bug.cgi?id=662055
-   */
-  22, /* HB_UNICODE_COMBINING_CLASS_CCC10 sheva */
-  15, /* HB_UNICODE_COMBINING_CLASS_CCC11 hataf segol */
-  16, /* HB_UNICODE_COMBINING_CLASS_CCC12 hataf patah*/
-  17, /* HB_UNICODE_COMBINING_CLASS_CCC13 hataf qamats */
-  23, /* HB_UNICODE_COMBINING_CLASS_CCC14 hiriq */
-  18, /* HB_UNICODE_COMBINING_CLASS_CCC15 tsere */
-  19, /* HB_UNICODE_COMBINING_CLASS_CCC16 segol */
-  20, /* HB_UNICODE_COMBINING_CLASS_CCC17 patah */
-  21, /* HB_UNICODE_COMBINING_CLASS_CCC18 qamats */
-  14, /* HB_UNICODE_COMBINING_CLASS_CCC19 holam */
-  24, /* HB_UNICODE_COMBINING_CLASS_CCC20 qubuts */
-  12, /* HB_UNICODE_COMBINING_CLASS_CCC21 dagesh */
-  25, /* HB_UNICODE_COMBINING_CLASS_CCC22 meteg */
-  13, /* HB_UNICODE_COMBINING_CLASS_CCC23 rafe */
-  10, /* HB_UNICODE_COMBINING_CLASS_CCC24 shin dot */
-  11, /* HB_UNICODE_COMBINING_CLASS_CCC25 sin dot */
-
-  26, /* HB_UNICODE_COMBINING_CLASS_CCC26 */
+  HB_MODIFIED_COMBINING_CLASS_CCC10,
+  HB_MODIFIED_COMBINING_CLASS_CCC11,
+  HB_MODIFIED_COMBINING_CLASS_CCC12,
+  HB_MODIFIED_COMBINING_CLASS_CCC13,
+  HB_MODIFIED_COMBINING_CLASS_CCC14,
+  HB_MODIFIED_COMBINING_CLASS_CCC15,
+  HB_MODIFIED_COMBINING_CLASS_CCC16,
+  HB_MODIFIED_COMBINING_CLASS_CCC17,
+  HB_MODIFIED_COMBINING_CLASS_CCC18,
+  HB_MODIFIED_COMBINING_CLASS_CCC19,
+  HB_MODIFIED_COMBINING_CLASS_CCC20,
+  HB_MODIFIED_COMBINING_CLASS_CCC21,
+  HB_MODIFIED_COMBINING_CLASS_CCC22,
+  HB_MODIFIED_COMBINING_CLASS_CCC23,
+  HB_MODIFIED_COMBINING_CLASS_CCC24,
+  HB_MODIFIED_COMBINING_CLASS_CCC25,
+  HB_MODIFIED_COMBINING_CLASS_CCC26,
 
   /* Arabic */
-
-  /*
-   * Modify to move Shadda (ccc=33) before other marks.  See:
-   * http://unicode.org/faq/normalization.html#8
-   * http://unicode.org/faq/normalization.html#9
-   */
-  28, /* HB_UNICODE_COMBINING_CLASS_CCC27 */
-  29, /* HB_UNICODE_COMBINING_CLASS_CCC28 */
-  30, /* HB_UNICODE_COMBINING_CLASS_CCC29 */
-  31, /* HB_UNICODE_COMBINING_CLASS_CCC30 */
-  32, /* HB_UNICODE_COMBINING_CLASS_CCC31 */
-  33, /* HB_UNICODE_COMBINING_CLASS_CCC32 */
-  27, /* HB_UNICODE_COMBINING_CLASS_CCC33 shadda */
-
-  34, /* HB_UNICODE_COMBINING_CLASS_CCC34 */
-  35, /* HB_UNICODE_COMBINING_CLASS_CCC35 */
+  HB_MODIFIED_COMBINING_CLASS_CCC27,
+  HB_MODIFIED_COMBINING_CLASS_CCC28,
+  HB_MODIFIED_COMBINING_CLASS_CCC29,
+  HB_MODIFIED_COMBINING_CLASS_CCC30,
+  HB_MODIFIED_COMBINING_CLASS_CCC31,
+  HB_MODIFIED_COMBINING_CLASS_CCC32,
+  HB_MODIFIED_COMBINING_CLASS_CCC33,
+  HB_MODIFIED_COMBINING_CLASS_CCC34,
+  HB_MODIFIED_COMBINING_CLASS_CCC35,
 
   /* Syriac */
-  36, /* HB_UNICODE_COMBINING_CLASS_CCC36 */
+  HB_MODIFIED_COMBINING_CLASS_CCC36,
 
   37, 38, 39,
   40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
@@ -357,41 +337,28 @@ _hb_modified_combining_class[256] =
   80, 81, 82, 83,
 
   /* Telugu */
-
-  /*
-   * Modify Telugu length marks (ccc=84, ccc=91).
-   * These are the only matras in the main Indic scripts range that have
-   * a non-zero ccc.  That makes them reorder with the Halant that is
-   * ccc=9.  Just zero them, we don't need them in our Indic shaper.
-   */
-  0, /* HB_UNICODE_COMBINING_CLASS_CCC84 */
+  HB_MODIFIED_COMBINING_CLASS_CCC84,
   85, 86, 87, 88, 89, 90,
-  0, /* HB_UNICODE_COMBINING_CLASS_CCC91 */
+  HB_MODIFIED_COMBINING_CLASS_CCC91,
   92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
 
   /* Thai */
-
-  /*
-   * Modify U+0E38 and U+0E39 (ccc=104) to be reordered before U+0E3A (ccc=9).
-   * Uniscribe does this too.
-   */
-  3, /* HB_UNICODE_COMBINING_CLASS_CCC103 */
-
+  HB_MODIFIED_COMBINING_CLASS_CCC103,
   104, 105, 106,
-  107, /* HB_UNICODE_COMBINING_CLASS_CCC107 */
+  HB_MODIFIED_COMBINING_CLASS_CCC107,
   108, 109, 110, 111, 112, 113, 114, 115, 116, 117,
 
   /* Lao */
-  118, /* HB_UNICODE_COMBINING_CLASS_CCC118 */
+  HB_MODIFIED_COMBINING_CLASS_CCC118,
   119, 120, 121,
-  122, /* HB_UNICODE_COMBINING_CLASS_CCC122 */
+  HB_MODIFIED_COMBINING_CLASS_CCC122,
   123, 124, 125, 126, 127, 128,
 
   /* Tibetan */
-  129, /* HB_UNICODE_COMBINING_CLASS_CCC129 */
-  130, /* HB_UNICODE_COMBINING_CLASS_CCC130 */
+  HB_MODIFIED_COMBINING_CLASS_CCC129,
+  HB_MODIFIED_COMBINING_CLASS_CCC130,
   131,
-  132, /* HB_UNICODE_COMBINING_CLASS_CCC133 */
+  HB_MODIFIED_COMBINING_CLASS_CCC133,
   133, 134, 135, 136, 137, 138, 139,
 
 

@@ -195,4 +195,85 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 #endif
 
 
+/* Modified combining marks */
+
+/* Hebrew
+ *
+ * We permute the "fixed-position" classes 10-26 into the order
+ * described in the SBL Hebrew manual:
+ *
+ * http://www.sbl-site.org/Fonts/SBLHebrewUserManual1.5x.pdf
+ *
+ * (as recommended by:
+ *  http://forum.fontlab.com/archive-old-microsoft-volt-group/vista-and-diacritic-ordering-t6751.0.html)
+ *
+ * More details here:
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=662055
+ */
+#define HB_MODIFIED_COMBINING_CLASS_CCC10 22 /* sheva */
+#define HB_MODIFIED_COMBINING_CLASS_CCC11 15 /* hataf segol */
+#define HB_MODIFIED_COMBINING_CLASS_CCC12 16 /* hataf patah */
+#define HB_MODIFIED_COMBINING_CLASS_CCC13 17 /* hataf qamats */
+#define HB_MODIFIED_COMBINING_CLASS_CCC14 23 /* hiriq */
+#define HB_MODIFIED_COMBINING_CLASS_CCC15 18 /* tsere */
+#define HB_MODIFIED_COMBINING_CLASS_CCC16 19 /* segol */
+#define HB_MODIFIED_COMBINING_CLASS_CCC17 20 /* patah */
+#define HB_MODIFIED_COMBINING_CLASS_CCC18 21 /* qamats */
+#define HB_MODIFIED_COMBINING_CLASS_CCC19 14 /* holam */
+#define HB_MODIFIED_COMBINING_CLASS_CCC20 24 /* qubuts */
+#define HB_MODIFIED_COMBINING_CLASS_CCC21 12 /* dagesh */
+#define HB_MODIFIED_COMBINING_CLASS_CCC22 25 /* meteg */
+#define HB_MODIFIED_COMBINING_CLASS_CCC23 13 /* rafe */
+#define HB_MODIFIED_COMBINING_CLASS_CCC24 10 /* shin dot */
+#define HB_MODIFIED_COMBINING_CLASS_CCC25 11 /* sin dot */
+#define HB_MODIFIED_COMBINING_CLASS_CCC26 26 /* point varika */
+
+/*
+ * Arabic
+ *
+ * Modify to move Shadda (ccc=33) before other marks.  See:
+ * http://unicode.org/faq/normalization.html#8
+ * http://unicode.org/faq/normalization.html#9
+ */
+#define HB_MODIFIED_COMBINING_CLASS_CCC27 28 /* fathatan */
+#define HB_MODIFIED_COMBINING_CLASS_CCC28 29 /* dammatan */
+#define HB_MODIFIED_COMBINING_CLASS_CCC29 30 /* kasratan */
+#define HB_MODIFIED_COMBINING_CLASS_CCC30 31 /* fatha */
+#define HB_MODIFIED_COMBINING_CLASS_CCC31 32 /* damma */
+#define HB_MODIFIED_COMBINING_CLASS_CCC32 33 /* kasra */
+#define HB_MODIFIED_COMBINING_CLASS_CCC33 27 /* shadda */
+#define HB_MODIFIED_COMBINING_CLASS_CCC34 34 /* sukun */
+#define HB_MODIFIED_COMBINING_CLASS_CCC35 35 /* superscript alef */
+
+/* Syriac */
+#define HB_MODIFIED_COMBINING_CLASS_CCC36 36 /* superscript alaph */
+
+/* Telugu
+ *
+ * Modify Telugu length marks (ccc=84, ccc=91).
+ * These are the only matras in the main Indic scripts range that have
+ * a non-zero ccc.  That makes them reorder with the Halant that is
+ * ccc=9.  Just zero them, we don't need them in our Indic shaper.
+ */
+#define HB_MODIFIED_COMBINING_CLASS_CCC84 0 /* length mark */
+#define HB_MODIFIED_COMBINING_CLASS_CCC91 0 /* ai length mark */
+
+/* Thai
+ *
+ * Modify U+0E38 and U+0E39 (ccc=104) to be reordered before U+0E3A (ccc=9).
+ * Uniscribe does this too.
+ */
+#define HB_MODIFIED_COMBINING_CLASS_CCC103 3 /* sara u / sara uu */
+#define HB_MODIFIED_COMBINING_CLASS_CCC107 107 /* mai * */
+
+/* Lao */
+#define HB_MODIFIED_COMBINING_CLASS_CCC118 118 /* sign u / sign uu */
+#define HB_MODIFIED_COMBINING_CLASS_CCC122 122 /* mai * */
+
+/* Tibetan */
+#define HB_MODIFIED_COMBINING_CLASS_CCC129 129 /* sign aa */
+#define HB_MODIFIED_COMBINING_CLASS_CCC130 130 /* sign i */
+#define HB_MODIFIED_COMBINING_CLASS_CCC133 132 /* sign u */
+
+
 #endif /* HB_UNICODE_PRIVATE_HH */

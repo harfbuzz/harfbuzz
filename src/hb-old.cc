@@ -152,7 +152,7 @@ hb_old_getGlyphMetrics (HB_Font old_font,
   metrics->x       = extents.x_bearing;
   metrics->y       = extents.y_bearing;
   metrics->width   = extents.width;
-  metrics->height  = -extents.height;
+  metrics->height  = extents.height;
   metrics->xOffset = font->get_glyph_h_advance (glyph);
   metrics->yOffset = 0;
 }
