@@ -242,6 +242,10 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   HB_UNUSED bool is_ligature = is_a_ligature (buffer->info[base]);
 
   hb_position_t x_offset = 0, y_offset = 0;
+  if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
+    x_offset -= buffer->pos[base].x_advance;
+    y_offset -= buffer->pos[base].y_advance;
+  }
   unsigned int last_combining_class = 255;
   hb_glyph_extents_t cluster_extents;
   for (unsigned int i = base + 1; i < end; i++)
@@ -262,8 +266,13 @@ position_around_base (const hb_ot_shape_plan_t *plan,
 
       last_combining_class = this_combining_class;
     } else {
-      x_offset -= buffer->pos[i].x_advance;
-      y_offset -= buffer->pos[i].y_advance;
+      if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
+	x_offset -= buffer->pos[i].x_advance;
+	y_offset -= buffer->pos[i].y_advance;
+      } else {
+	x_offset += buffer->pos[i].x_advance;
+	y_offset += buffer->pos[i].y_advance;
+      }
     }
 
 
