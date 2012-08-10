@@ -308,34 +308,20 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_map_glyphs (hb_font_t    *font,
-		  hb_buffer_t  *buffer)
+hb_ot_map_glyphs_fast (hb_buffer_t  *buffer)
 {
-  hb_codepoint_t glyph;
-
-  buffer->clear_output ();
-
-  unsigned int count = buffer->len - 1;
-  for (buffer->idx = 0; buffer->idx < count;) {
-    if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
-      font->get_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &glyph);
-      buffer->replace_glyphs (2, 1, &glyph);
-    } else {
-      font->get_glyph (buffer->cur().codepoint, 0, &glyph);
-      buffer->replace_glyph (glyph);
-    }
-  }
-  if (likely (buffer->idx < buffer->len)) {
-    font->get_glyph (buffer->cur().codepoint, 0, &glyph);
-    buffer->replace_glyph (glyph);
-  }
-  buffer->swap_buffers ();
+  /* Normalization process sets up glyph_index(), we just copy it. */
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    buffer->info[i].codepoint = buffer->info[i].glyph_index();
 }
 
 static inline void
 hb_ot_substitute_default (hb_ot_shape_context_t *c)
 {
   hb_ot_mirror_chars (c);
+
+  HB_BUFFER_ALLOCATE_VAR (c->buffer, glyph_index);
 
   _hb_ot_shape_normalize (c->font, c->buffer,
 			  c->plan->shaper->normalization_preference ?
@@ -344,7 +330,9 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
 
   hb_ot_shape_setup_masks (c);
 
-  hb_ot_map_glyphs (c->font, c->buffer);
+  hb_ot_map_glyphs_fast (c->buffer);
+
+  HB_BUFFER_DEALLOCATE_VAR (c->buffer, glyph_index);
 }
 
 static inline void
@@ -558,6 +546,16 @@ _hb_ot_shape (hb_shape_plan_t    *shape_plan,
 }
 
 
+
+static inline void
+hb_ot_map_glyphs_dumb (hb_font_t    *font,
+		       hb_buffer_t  *buffer)
+{
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    font->get_glyph (buffer->cur().codepoint, 0, &buffer->cur().codepoint);
+}
+
 void
 hb_ot_shape_glyphs_closure (hb_font_t          *font,
 			    hb_buffer_t        *buffer,
@@ -574,7 +572,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 
   /* TODO: normalization? have shapers do closure()? */
   /* TODO: Deal with mirrored chars? */
-  hb_ot_map_glyphs (font, buffer);
+  hb_ot_map_glyphs_dumb (font, buffer);
 
   /* Seed it.  It's user's responsibility to have cleard glyphs
    * if that's what they desire. */

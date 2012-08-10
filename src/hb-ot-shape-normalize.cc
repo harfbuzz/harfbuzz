@@ -258,16 +258,25 @@ compose_func (hb_unicode_funcs_t *unicode,
   return found;
 }
 
+
 static inline void
-output_char (hb_buffer_t *buffer, hb_codepoint_t unichar)
+set_glyph (hb_glyph_info_t &info, hb_font_t *font)
 {
+  hb_font_get_glyph (font, info.codepoint, 0, &info.glyph_index());
+}
+
+static inline void
+output_char (hb_buffer_t *buffer, hb_codepoint_t unichar, hb_codepoint_t glyph)
+{
+  buffer->cur().glyph_index() = glyph;
   buffer->output_glyph (unichar);
   _hb_glyph_info_set_unicode_props (&buffer->prev(), buffer->unicode);
 }
 
 static inline void
-next_char (hb_buffer_t *buffer)
+next_char (hb_buffer_t *buffer, hb_codepoint_t glyph)
 {
+  buffer->cur().glyph_index() = glyph;
   buffer->next_glyph ();
 }
 
@@ -282,31 +291,31 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
 	   bool shortest,
 	   hb_codepoint_t ab)
 {
-  hb_codepoint_t a, b, glyph;
+  hb_codepoint_t a, b, a_glyph, b_glyph;
 
   if (!decompose_func (buffer->unicode, ab, &a, &b) ||
-      (b && !font->get_glyph (b, 0, &glyph)))
+      (b && !font->get_glyph (b, 0, &b_glyph)))
     return false;
 
-  bool has_a = font->get_glyph (a, 0, &glyph);
+  bool has_a = font->get_glyph (a, 0, &a_glyph);
   if (shortest && has_a) {
     /* Output a and b */
-    output_char (buffer, a);
+    output_char (buffer, a, a_glyph);
     if (b)
-      output_char (buffer, b);
+      output_char (buffer, b, b_glyph);
     return true;
   }
 
   if (decompose (font, buffer, shortest, a)) {
     if (b)
-      output_char (buffer, b);
+      output_char (buffer, b, b_glyph);
     return true;
   }
 
   if (has_a) {
-    output_char (buffer, a);
+    output_char (buffer, a, a_glyph);
     if (b)
-      output_char (buffer, b);
+      output_char (buffer, b, b_glyph);
     return true;
   }
 
@@ -319,18 +328,18 @@ decompose_compatibility (hb_font_t *font, hb_buffer_t *buffer,
 {
   unsigned int len, i;
   hb_codepoint_t decomposed[HB_UNICODE_MAX_DECOMPOSITION_LEN];
+  hb_codepoint_t glyphs[HB_UNICODE_MAX_DECOMPOSITION_LEN];
 
   len = buffer->unicode->decompose_compatibility (u, decomposed);
   if (!len)
     return false;
 
-  hb_codepoint_t glyph;
   for (i = 0; i < len; i++)
-    if (!font->get_glyph (decomposed[i], 0, &glyph))
+    if (!font->get_glyph (decomposed[i], 0, &glyphs[i]))
       return false;
 
   for (i = 0; i < len; i++)
-    output_char (buffer, decomposed[i]);
+    output_char (buffer, decomposed[i], glyphs[i]);
 
   return true;
 }
@@ -343,15 +352,38 @@ decompose_current_character (hb_font_t *font, hb_buffer_t *buffer,
 
   /* Kind of a cute waterfall here... */
   if (shortest && font->get_glyph (buffer->cur().codepoint, 0, &glyph))
-    next_char (buffer);
+    next_char (buffer, glyph);
   else if (decompose (font, buffer, shortest, buffer->cur().codepoint))
     skip_char (buffer);
   else if (!shortest && font->get_glyph (buffer->cur().codepoint, 0, &glyph))
-    next_char (buffer);
+    next_char (buffer, glyph);
   else if (decompose_compatibility (font, buffer, buffer->cur().codepoint))
     skip_char (buffer);
-  else
-    next_char (buffer);
+  else {
+    /* A glyph-not-found case... */
+    font->get_glyph (buffer->cur().codepoint, 0, &glyph);
+    next_char (buffer, glyph);
+  }
+}
+
+static inline void
+handle_variation_selector_cluster (hb_font_t *font, hb_buffer_t *buffer,
+				   unsigned int end)
+{
+  for (; buffer->idx < end - 1;) {
+    if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
+      /* The next two lines are some ugly lines... But work. */
+      font->get_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &buffer->cur().glyph_index());
+      buffer->replace_glyphs (2, 1, &buffer->cur().codepoint);
+    } else {
+      set_glyph (buffer->cur(), font);
+      buffer->next_glyph ();
+    }
+  }
+  if (likely (buffer->idx < end)) {
+    set_glyph (buffer->cur(), font);
+    buffer->next_glyph ();
+  }
 }
 
 static void
@@ -361,8 +393,7 @@ decompose_multi_char_cluster (hb_font_t *font, hb_buffer_t *buffer,
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   for (unsigned int i = buffer->idx; i < end; i++)
     if (unlikely (buffer->unicode->is_variation_selector (buffer->info[i].codepoint))) {
-      while (buffer->idx < end)
-	next_char (buffer);
+      handle_variation_selector_cluster (font, buffer, end);
       return;
     }
 
@@ -457,7 +488,7 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
   buffer->clear_output ();
   count = buffer->len;
   unsigned int starter = 0;
-  next_char (buffer);
+  buffer->next_glyph ();
   while (buffer->idx < count)
   {
     hb_codepoint_t composed, glyph;
@@ -478,19 +509,20 @@ _hb_ot_shape_normalize (hb_font_t *font, hb_buffer_t *buffer,
 	font->get_glyph (composed, 0, &glyph))
     {
       /* Composes. */
-      next_char (buffer); /* Copy to out-buffer. */
+      buffer->next_glyph (); /* Copy to out-buffer. */
       if (unlikely (buffer->in_error))
         return;
       buffer->merge_out_clusters (starter, buffer->out_len);
       buffer->out_len--; /* Remove the second composable. */
       buffer->out_info[starter].codepoint = composed; /* Modify starter and carry on. */
+      set_glyph (buffer->out_info[starter], font);
       _hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
 
       continue;
     }
 
     /* Blocked, or doesn't compose. */
-    next_char (buffer);
+    buffer->next_glyph ();
 
     if (_hb_glyph_info_get_modified_combining_class (&buffer->prev()) == 0)
       starter = buffer->out_len - 1;
