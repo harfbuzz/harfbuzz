@@ -1,3 +1,139 @@
+Overview of changes leading to 0.9.2
+Friday, Aug 10, 2011
+====================================
+
+- Over a thousand commits!  This is the first major release of HarfBuzz.
+
+- HarfBuzz is feature-complete now!  It should be in par, or better, than
+  both Pango's shapers and old HarfBuzz / Qt shapers.
+
+- New Indic shaper, supporting main Indic scripts, Sinhala, and Khmer.
+
+- Improved Arabic shaper, with fallback Arabic shaping, supporting Arabic,
+  Sinhala, N'ko, Mongolian, and Mandaic.
+
+- New Thai / Lao shaper.
+
+- Tibetan / Hangul support in the generic shaper.
+
+- Synthetic GDEF support for fonts without a GDEF table.
+
+- Fallback mark positioning for fonts without a GPOS table.
+
+- Unicode normalization shaping heuristic during glyph mapping.
+
+- New experimental Graphite2 backend.
+
+- New Uniscribe backend (primarily for testing).
+
+- New CoreText backend (primarily for testing).
+
+- Major optimization and speedup.
+
+- Test suites and testing infrastructure (work in progress).
+
+- Greatly improved hb-view cmdline tool.
+
+- hb-shape cmdline tool.
+
+- Unicode 6.1 support.
+
+Summary of API changes:
+
+o Changed API:
+
+  - Users are expected to only include main header files now (ie. hb.h,
+    hb-glib.h, hb-ft.h, ...)
+
+  - All struct tag names had their initial underscore removed.
+    Ie. "struct _hb_buffer_t" is "struct hb_buffer_t" now.
+
+  - All set_user_data() functions now take a "replace" boolean parameter.
+
+  - hb_buffer_create() takes zero arguments now.
+    Use hb_buffer_pre_allocate() to pre-allocate.
+
+  - hb_buffer_add_utf*() now accept -1 for length parameteres,
+    meaning "nul-terminated".
+
+  - hb_direction_t enum values changed.
+
+  - All *_from_string() APIs now take a length parameter to allow for
+    non-nul-terminated strings. A -1 length means "nul-terminated".
+
+  - Typedef for hb_language_t changed.
+
+  - hb_get_table_func_t renamed to hb_reference_table_func_t.
+
+  - hb_ot_layout_table_choose_script()
+
+  - Various renames in hb-unicode.h.
+
+o New API:
+
+  - hb_buffer_guess_properties()
+    Automatically called by hb_shape().
+
+  - hb_buffer_normalize_glyphs()
+
+  - hb_tag_from_string()
+
+  - hb-coretext.h
+
+  - hb-uniscribe.h
+
+  - hb_face_reference_blob()
+  - hb_face_[sg]et_index()
+  - hb_face_set_upem()
+
+  - hb_font_get_glyph_name_func_t
+    hb_font_get_glyph_from_name_func_t
+    hb_font_funcs_set_glyph_name_func()
+    hb_font_funcs_set_glyph_from_name_func()
+    hb_font_get_glyph_name()
+    hb_font_get_glyph_from_name()
+    hb_font_glyph_to_string()
+    hb_font_glyph_from_string()
+
+  - hb_font_set_funcs_data()
+
+  - hb_ft_font_set_funcs()
+  - hb_ft_font_get_face()
+
+  - hb-gobject.h (work in progress)
+
+  - hb_ot_shape_glyphs_closure()
+    hb_ot_layout_substitute_closure_lookup()
+
+  - hb-set.h
+
+  - hb_shape_full()
+
+  - hb_unicode_combining_class_t
+
+  - hb_unicode_compose_func_t
+    hb_unicode_decompose_func_t
+    hb_unicode_decompose_compatibility_func_t
+    hb_unicode_funcs_set_compose_func()
+    hb_unicode_funcs_set_decompose_func()
+    hb_unicode_funcs_set_decompose_compatibility_func()
+    hb_unicode_compose()
+    hb_unicode_decompose()
+    hb_unicode_decompose_compatibility()
+
+o Removed API:
+
+  - hb_ft_get_font_funcs()
+
+  - hb_ot_layout_substitute_start()
+    hb_ot_layout_substitute_lookup()
+    hb_ot_layout_substitute_finish()
+    hb_ot_layout_position_start()
+    hb_ot_layout_position_lookup()
+    hb_ot_layout_position_finish()
+
+
+
 Overview of changes leading to 0.6.0
 Friday, May 27, 2011
 ====================================
