@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009,2010  Red Hat, Inc.
- * Copyright © 2010,2011  Google, Inc.
+ * Copyright © 2010,2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *

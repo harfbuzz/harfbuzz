@@ -262,7 +262,7 @@ compose_func (hb_unicode_funcs_t *unicode,
 static inline void
 set_glyph (hb_glyph_info_t &info, hb_font_t *font)
 {
-  hb_font_get_glyph (font, info.codepoint, 0, &info.glyph_index());
+  font->get_glyph (info.codepoint, 0, &info.glyph_index());
 }
 
 static inline void
@@ -287,9 +287,7 @@ skip_char (hb_buffer_t *buffer)
 }
 
 static bool
-decompose (hb_font_t *font, hb_buffer_t *buffer,
-	   bool shortest,
-	   hb_codepoint_t ab)
+decompose (hb_font_t *font, hb_buffer_t *buffer, bool shortest, hb_codepoint_t ab)
 {
   hb_codepoint_t a, b, a_glyph, b_glyph;
 
@@ -323,8 +321,7 @@ decompose (hb_font_t *font, hb_buffer_t *buffer,
 }
 
 static bool
-decompose_compatibility (hb_font_t *font, hb_buffer_t *buffer,
-			 hb_codepoint_t u)
+decompose_compatibility (hb_font_t *font, hb_buffer_t *buffer, hb_codepoint_t u)
 {
   unsigned int len, i;
   hb_codepoint_t decomposed[HB_UNICODE_MAX_DECOMPOSITION_LEN];
@@ -345,8 +342,7 @@ decompose_compatibility (hb_font_t *font, hb_buffer_t *buffer,
 }
 
 static void
-decompose_current_character (hb_font_t *font, hb_buffer_t *buffer,
-			     bool shortest)
+decompose_current_character (hb_font_t *font, hb_buffer_t *buffer, bool shortest)
 {
   hb_codepoint_t glyph;
 
@@ -359,16 +355,12 @@ decompose_current_character (hb_font_t *font, hb_buffer_t *buffer,
     next_char (buffer, glyph);
   else if (decompose_compatibility (font, buffer, buffer->cur().codepoint))
     skip_char (buffer);
-  else {
-    /* A glyph-not-found case... */
-    font->get_glyph (buffer->cur().codepoint, 0, &glyph);
-    next_char (buffer, glyph);
-  }
+  else
+    next_char (buffer, glyph); /* glyph is initialized in earlier branches. */
 }
 
 static inline void
-handle_variation_selector_cluster (hb_font_t *font, hb_buffer_t *buffer,
-				   unsigned int end)
+handle_variation_selector_cluster (hb_font_t *font, hb_buffer_t *buffer, unsigned int end)
 {
   for (; buffer->idx < end - 1;) {
     if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
@@ -387,8 +379,7 @@ handle_variation_selector_cluster (hb_font_t *font, hb_buffer_t *buffer,
 }
 
 static void
-decompose_multi_char_cluster (hb_font_t *font, hb_buffer_t *buffer,
-			      unsigned int end)
+decompose_multi_char_cluster (hb_font_t *font, hb_buffer_t *buffer, unsigned int end)
 {
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   for (unsigned int i = buffer->idx; i < end; i++)
