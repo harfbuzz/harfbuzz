@@ -217,33 +217,12 @@ struct hb_ot_shape_context_t
 
   /* Transient stuff */
   hb_direction_t target_direction;
-  hb_bool_t applied_position_complex;
 };
 
-static void
-hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
-{
-  hb_ot_map_t *map = &c->plan->map;
-
-  hb_mask_t global_mask = map->get_global_mask ();
-  c->buffer->reset_masks (global_mask);
-
-  if (c->plan->shaper->setup_masks)
-    c->plan->shaper->setup_masks (c->plan, c->buffer, c->font);
-
-  for (unsigned int i = 0; i < c->num_user_features; i++)
-  {
-    const hb_feature_t *feature = &c->user_features[i];
-    if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
-      unsigned int shift;
-      hb_mask_t mask = map->get_mask (feature->tag, &shift);
-      c->buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
-    }
-  }
-}
 
 
 /* Main shaper */
+
 
 /* Prepare */
 
@@ -287,14 +266,13 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
 
 /* Substitute */
 
-static void
-hb_mirror_chars (hb_ot_shape_context_t *c)
+static inline void
+hb_ot_mirror_chars (hb_ot_shape_context_t *c)
 {
-  hb_unicode_funcs_t *unicode = c->buffer->unicode;
-
   if (HB_DIRECTION_IS_FORWARD (c->target_direction))
     return;
 
+  hb_unicode_funcs_t *unicode = c->buffer->unicode;
   hb_mask_t rtlm_mask = c->plan->map.get_1_mask (HB_TAG ('r','t','l','m'));
 
   unsigned int count = c->buffer->len;
@@ -307,9 +285,31 @@ hb_mirror_chars (hb_ot_shape_context_t *c)
   }
 }
 
-static void
-hb_map_glyphs (hb_font_t    *font,
-	       hb_buffer_t  *buffer)
+static inline void
+hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
+{
+  hb_ot_map_t *map = &c->plan->map;
+
+  hb_mask_t global_mask = map->get_global_mask ();
+  c->buffer->reset_masks (global_mask);
+
+  if (c->plan->shaper->setup_masks)
+    c->plan->shaper->setup_masks (c->plan, c->buffer, c->font);
+
+  for (unsigned int i = 0; i < c->num_user_features; i++)
+  {
+    const hb_feature_t *feature = &c->user_features[i];
+    if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
+      unsigned int shift;
+      hb_mask_t mask = map->get_mask (feature->tag, &shift);
+      c->buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);
+    }
+  }
+}
+
+static inline void
+hb_ot_map_glyphs (hb_font_t    *font,
+		  hb_buffer_t  *buffer)
 {
   hb_codepoint_t glyph;
 
@@ -335,15 +335,22 @@ hb_map_glyphs (hb_font_t    *font,
   buffer->swap_buffers ();
 }
 
-static void
-hb_substitute_default (hb_ot_shape_context_t *c)
+static inline void
+hb_ot_substitute_default (hb_ot_shape_context_t *c)
 {
-  hb_mirror_chars (c);
+  hb_ot_mirror_chars (c);
 
-  hb_map_glyphs (c->font, c->buffer);
+  _hb_ot_shape_normalize (c->font, c->buffer,
+			  c->plan->shaper->normalization_preference ?
+			  c->plan->shaper->normalization_preference (c->plan) :
+			  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT);
+
+  hb_ot_shape_setup_masks (c);
+
+  hb_ot_map_glyphs (c->font, c->buffer);
 }
 
-static void
+static inline void
 hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
@@ -354,7 +361,7 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
 }
 
 
-static void
+static inline void
 hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
   hb_ot_layout_substitute_start (c->font, c->buffer);
@@ -370,11 +377,17 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
   return;
 }
 
+static inline void
+hb_ot_substitute (hb_ot_shape_context_t *c)
+{
+  hb_ot_substitute_default (c);
+  hb_ot_substitute_complex (c);
+}
 
 /* Position */
 
-static void
-hb_position_default (hb_ot_shape_context_t *c)
+static inline void
+hb_ot_position_default (hb_ot_shape_context_t *c)
 {
   hb_ot_layout_position_start (c->font, c->buffer);
 
@@ -391,9 +404,10 @@ hb_position_default (hb_ot_shape_context_t *c)
   }
 }
 
-static void
+static inline bool
 hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
+  bool ret = false;
 
   if (hb_ot_layout_has_positioning (c->face))
   {
@@ -416,22 +430,22 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 						    &c->buffer->pos[i].y_offset);
     }
 
-    c->applied_position_complex = true;
+    ret = true;
   }
 
   hb_ot_layout_position_finish (c->font, c->buffer, c->plan->shaper->zero_width_attached_marks);
 
-  return;
+  return ret;
 }
 
-static void
-hb_position_complex_fallback (hb_ot_shape_context_t *c)
+static inline void
+hb_ot_position_complex_fallback (hb_ot_shape_context_t *c)
 {
   _hb_ot_shape_fallback_position (c->plan, c->font, c->buffer);
 }
 
-static void
-hb_truetype_kern (hb_ot_shape_context_t *c)
+static inline void
+hb_ot_truetype_kern (hb_ot_shape_context_t *c)
 {
   /* TODO Check for kern=0 */
   unsigned int count = c->buffer->len;
@@ -455,14 +469,34 @@ hb_truetype_kern (hb_ot_shape_context_t *c)
   }
 }
 
-static void
+static inline void
 hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
 {
-  hb_truetype_kern (c);
+  hb_ot_truetype_kern (c);
 }
 
+static inline void
+hb_ot_position (hb_ot_shape_context_t *c)
+{
+  hb_ot_position_default (c);
+
+  hb_bool_t fallback = !hb_ot_position_complex (c);
+
+  if (fallback)
+    hb_ot_position_complex_fallback (c);
+
+  if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
+    hb_buffer_reverse (c->buffer);
+
+  if (fallback)
+    hb_position_complex_fallback_visual (c);
+}
+
+
+/* Post-process */
+
 static void
-hb_hide_zerowidth (hb_ot_shape_context_t *c)
+hb_ot_hide_zerowidth (hb_ot_shape_context_t *c)
 {
   hb_codepoint_t space;
   if (!c->font->get_glyph (' ', 0, &space))
@@ -479,7 +513,7 @@ hb_hide_zerowidth (hb_ot_shape_context_t *c)
 }
 
 
-/* Do it! */
+/* Pull it all together! */
 
 static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
@@ -495,43 +529,14 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   c->buffer->clear_output ();
 
   hb_set_unicode_props (c->buffer);
-
   hb_form_clusters (c->buffer);
 
   hb_ensure_native_direction (c->buffer);
 
-  _hb_ot_shape_normalize (c->font, c->buffer,
-			  c->plan->shaper->normalization_preference ?
-			  c->plan->shaper->normalization_preference (c->plan) :
-			  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT);
+  hb_ot_substitute (c);
+  hb_ot_position (c);
 
-  hb_ot_shape_setup_masks (c);
-
-  /* SUBSTITUTE */
-  {
-    hb_substitute_default (c);
-
-    hb_ot_substitute_complex (c);
-  }
-
-  /* POSITION */
-  {
-    hb_position_default (c);
-
-    hb_ot_position_complex (c);
-
-    hb_bool_t position_fallback = !c->applied_position_complex;
-    if (position_fallback)
-      hb_position_complex_fallback (c);
-
-    if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
-      hb_buffer_reverse (c->buffer);
-
-    if (position_fallback)
-      hb_position_complex_fallback_visual (c);
-  }
-
-  hb_hide_zerowidth (c);
+  hb_ot_hide_zerowidth (c);
 
   HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props1);
   HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props0);
@@ -572,7 +577,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 
   /* TODO: normalization? have shapers do closure()? */
   /* TODO: Deal with mirrored chars? */
-  hb_map_glyphs (font, buffer);
+  hb_ot_map_glyphs (font, buffer);
 
   /* Seed it.  It's user's responsibility to have cleard glyphs
    * if that's what they desire. */
