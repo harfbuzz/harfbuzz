@@ -49,7 +49,9 @@ recategorize_combining_class (unsigned int modified_combining_class)
    * from hb-unicode.cc. */
   switch (modified_combining_class)
   {
+
     /* Hebrew */
+
     case HB_MODIFIED_COMBINING_CLASS_CCC10: /* sheva */
     case HB_MODIFIED_COMBINING_CLASS_CCC11: /* hataf segol */
     case HB_MODIFIED_COMBINING_CLASS_CCC12: /* hataf patah */
@@ -79,7 +81,9 @@ recategorize_combining_class (unsigned int modified_combining_class)
     case HB_MODIFIED_COMBINING_CLASS_CCC21: /* dagesh */
       break;
 
+
     /* Arabic and Syriac */
+
     case HB_MODIFIED_COMBINING_CLASS_CCC27: /* fathatan */
     case HB_MODIFIED_COMBINING_CLASS_CCC28: /* dammatan */
     case HB_MODIFIED_COMBINING_CLASS_CCC30: /* fatha */
@@ -94,7 +98,39 @@ recategorize_combining_class (unsigned int modified_combining_class)
     case HB_MODIFIED_COMBINING_CLASS_CCC32: /* kasra */
       return HB_UNICODE_COMBINING_CLASS_BELOW;
 
-    /* TODO Thai, Lao, and Tibetan */
+
+    /* Thai */
+
+    /* Note: to be useful we also need to position U+0E3A that has ccc=9 (virama).
+     * But viramas can be both above and below based on the codepoint / script. */
+
+    case HB_MODIFIED_COMBINING_CLASS_CCC103: /* sara u / sara uu */
+      return HB_UNICODE_COMBINING_CLASS_BELOW;
+
+    case HB_MODIFIED_COMBINING_CLASS_CCC107: /* mai */
+      return HB_UNICODE_COMBINING_CLASS_ABOVE;
+
+
+    /* Lao */
+
+    case HB_MODIFIED_COMBINING_CLASS_CCC118: /* sign u / sign uu */
+      return HB_UNICODE_COMBINING_CLASS_BELOW;
+
+    case HB_MODIFIED_COMBINING_CLASS_CCC122: /* mai */
+      return HB_UNICODE_COMBINING_CLASS_ABOVE;
+
+
+    /* Tibetan */
+
+    case HB_MODIFIED_COMBINING_CLASS_CCC129: /* sign aa */
+      return HB_UNICODE_COMBINING_CLASS_BELOW;
+
+    case HB_MODIFIED_COMBINING_CLASS_CCC130: /* sign i*/
+      return HB_UNICODE_COMBINING_CLASS_ABOVE;
+
+    case HB_MODIFIED_COMBINING_CLASS_CCC132: /* sign u */
+      return HB_UNICODE_COMBINING_CLASS_BELOW;
+
   }
 
   return modified_combining_class;

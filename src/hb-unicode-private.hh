@@ -260,8 +260,9 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 
 /* Thai
  *
- * Modify U+0E38 and U+0E39 (ccc=104) to be reordered before U+0E3A (ccc=9).
- * Uniscribe does this too.
+ * Modify U+0E38 and U+0E39 (ccc=103) to be reordered before U+0E3A (ccc=9).
+ * Assign 3, which is unassigned otherwise.
+ * Uniscribe does this reordering too.
  */
 #define HB_MODIFIED_COMBINING_CLASS_CCC103 3 /* sara u / sara uu */
 #define HB_MODIFIED_COMBINING_CLASS_CCC107 107 /* mai * */
@@ -273,7 +274,7 @@ extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 /* Tibetan */
 #define HB_MODIFIED_COMBINING_CLASS_CCC129 129 /* sign aa */
 #define HB_MODIFIED_COMBINING_CLASS_CCC130 130 /* sign i */
-#define HB_MODIFIED_COMBINING_CLASS_CCC133 132 /* sign u */
+#define HB_MODIFIED_COMBINING_CLASS_CCC132 132 /* sign u */
 
 
 #endif /* HB_UNICODE_PRIVATE_HH */
