@@ -30,7 +30,7 @@
 
 
 /* buffer var allocations */
-#define arabic_shaping_action() complex_var_temporary_u8() /* arabic shaping action */
+#define arabic_shaping_action() complex_var_u8_0() /* arabic shaping action */
 
 
 /*
