@@ -274,12 +274,8 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 static void
-setup_masks_arabic (const hb_ot_shape_plan_t *plan,
-		    hb_buffer_t              *buffer,
-		    hb_font_t                *font)
+arabic_joining (hb_buffer_t *buffer)
 {
-  const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
-
   unsigned int count = buffer->len;
   unsigned int prev = 0, state = 0;
 
@@ -305,14 +301,37 @@ setup_masks_arabic (const hb_ot_shape_plan_t *plan,
     state = entry->next_state;
   }
 
-  if (likely (!arabic_plan->do_fallback)) {
-    /* Has OpenType tables */
+  HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
+}
+
+static void
+preprocess_text_arabic (const hb_ot_shape_plan_t *plan,
+			hb_buffer_t              *buffer,
+			hb_font_t                *font)
+{
+  const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
+
+  if (unlikely (arabic_plan->do_fallback))
+  {
+    arabic_joining (buffer);
+    arabic_fallback_shape (font, buffer);
+  }
+}
+
+static void
+setup_masks_arabic (const hb_ot_shape_plan_t *plan,
+		    hb_buffer_t              *buffer,
+		    hb_font_t                *font)
+{
+  const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
+
+  if (likely (!arabic_plan->do_fallback))
+  {
+    arabic_joining (buffer);
+    unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++)
       buffer->info[i].mask |= arabic_plan->mask_array[buffer->info[i].arabic_shaping_action()];
-  } else
-    arabic_fallback_shape (font, buffer);
-
-  HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
+  }
 }
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
@@ -322,6 +341,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   NULL, /* override_features */
   data_create_arabic,
   data_destroy_arabic,
+  preprocess_text_arabic,
   NULL, /* normalization_preference */
   setup_masks_arabic,
   true, /* zero_width_attached_marks */
