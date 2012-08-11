@@ -17,6 +17,7 @@ General fixes:
 - Misc features:
   * init/medi/fina/isol for non-cursive scripts
   * vkna,hkna etc for kana, etc
+  * smpl,trad for ZHS / ZHT
 
 - Add Pango backend?
 
