@@ -1,6 +1,10 @@
 General fixes:
 =============
 
+- Ligature matching and match_input() of (Chain)Context should use the
+  same logic.  Right now the Ligature logic is more involved.  Possibly
+  merge, or duplicate.
+
 - mask propagation? (when ligation, "or" the masks).
 
 - Warn at compile time (and runtime with HB_DEBUG?) if no Unicode / font
