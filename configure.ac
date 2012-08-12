@@ -152,6 +152,8 @@ AM_CONDITIONAL(HAVE_CAIRO_FT, $have_cairo_ft)
 
 dnl ==========================================================================
 
+dnl The following check is misleading since it would print ICU...no if there's
+dnl no pkgconfig file for icu.
 PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
 	have_icu=true
 	AC_CHECK_HEADERS(unicode/uchar.h,, have_icu=false)
