@@ -109,11 +109,43 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 }
 
 
+#define HB_UNICODE_FUNCS_IMPLEMENT_SET \
+  HB_UNICODE_FUNCS_IMPLEMENT (glib) \
+  HB_UNICODE_FUNCS_IMPLEMENT (icu) \
+  HB_UNICODE_FUNCS_IMPLEMENT (nil) \
+  /* ^--- Add new callbacks before nil */
+
+#define hb_nil_get_unicode_funcs hb_unicode_funcs_get_empty
+
+/* Prototype them all */
+#define HB_UNICODE_FUNCS_IMPLEMENT(set) \
+extern "C" hb_unicode_funcs_t *hb_##set##_get_unicode_funcs (void);
+HB_UNICODE_FUNCS_IMPLEMENT_SET
+#undef HB_UNICODE_FUNCS_IMPLEMENT
+
+
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default (void)
 {
-  return const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_default);
+#define HB_UNICODE_FUNCS_IMPLEMENT(set) \
+  return hb_##set##_get_unicode_funcs ();
+
+#ifdef HAVE_GLIB
+  HB_UNICODE_FUNCS_IMPLEMENT(glib)
+#elif defined(HAVE_ICU)
+  HB_UNICODE_FUNCS_IMPLEMENT(icu)
+#else
+#define HB_UNICODE_FUNCS_NIL 1
+  HB_UNICODE_FUNCS_IMPLEMENT(nil)
+#endif
+
+#undef HB_UNICODE_FUNCS_IMPLEMENT
 }
+
+#if !defined(HB_NO_UNICODE_FUNCS) && defined(HB_UNICODE_FUNCS_NIL)
+#pragma message("Could not find any Unicode functions implementation, you have to provide your own.")
+#pragma message("To suppress this warnings, define HB_NO_UNICODE_FUNCS.")
+#endif
 
 hb_unicode_funcs_t *
 hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
@@ -140,7 +172,6 @@ hb_unicode_funcs_create (hb_unicode_funcs_t *parent)
 }
 
 
-extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
 const hb_unicode_funcs_t _hb_unicode_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 

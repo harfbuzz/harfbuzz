@@ -80,13 +80,14 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 			    hb_codepoint_t *ab)
   {
     *ab = 0;
+    if (unlikely (!a || !b)) return false;
     return func.compose (this, a, b, ab, user_data.compose);
   }
 
   inline hb_bool_t decompose (hb_codepoint_t ab,
 			      hb_codepoint_t *a, hb_codepoint_t *b)
   {
-    *a = *b = 0;
+    *a = ab; *b = 0;
     return func.decompose (this, ab, a, b, user_data.decompose);
   }
 
@@ -182,17 +183,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 };
 
 
-#ifdef HAVE_GLIB
-extern HB_INTERNAL const hb_unicode_funcs_t _hb_glib_unicode_funcs;
-#define _hb_unicode_funcs_default _hb_glib_unicode_funcs
-#elif defined(HAVE_ICU)
-extern HB_INTERNAL const hb_unicode_funcs_t _hb_icu_unicode_funcs;
-#define _hb_unicode_funcs_default _hb_icu_unicode_funcs
-#else
-#define HB_UNICODE_FUNCS_NIL 1
 extern HB_INTERNAL const hb_unicode_funcs_t _hb_unicode_funcs_nil;
-#define _hb_unicode_funcs_default _hb_unicode_funcs_nil
-#endif
 
 
 /* Modified combining marks */
