@@ -36,13 +36,7 @@
 #include <unicode/uchar.h>
 #include <unicode/unorm.h>
 #include <unicode/ustring.h>
-
 #include <unicode/uversion.h>
-#ifndef U_ICU_VERSION_MAJOR_NUM
-/* I wish ICU had stronger stability guarantees.  Oh well... */
-#include <unicode/uvernum.h>
-#endif
-
 
 
 hb_script_t
