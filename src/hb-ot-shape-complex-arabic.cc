@@ -202,7 +202,7 @@ struct arabic_shape_plan_t
   ASSERT_POD ();
 
   bool do_fallback;
-  hb_mask_t mask_array[ARABIC_NUM_FEATURES];
+  hb_mask_t mask_array[ARABIC_NUM_FEATURES + 1];
 };
 
 static void *
