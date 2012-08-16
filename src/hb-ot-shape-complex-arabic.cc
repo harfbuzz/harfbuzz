@@ -202,6 +202,10 @@ struct arabic_shape_plan_t
   ASSERT_POD ();
 
   bool do_fallback;
+  /* The "+ 1" in the next array is to accommodate for the "NONE" command,
+   * which is not an OpenType feature, but this simplifies the code by not
+   * having to do a "if (... < NONE) ..." and just rely on the fact that
+   * mask_array[NONE] == 0. */
   hb_mask_t mask_array[ARABIC_NUM_FEATURES + 1];
 };
 
