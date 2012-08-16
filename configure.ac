@@ -152,26 +152,7 @@ AM_CONDITIONAL(HAVE_CAIRO_FT, $have_cairo_ft)
 
 dnl ==========================================================================
 
-dnl The following check is misleading since it would print ICU...no if there's
-dnl no pkgconfig file for icu.
-PKG_CHECK_MODULES(ICU, icu, have_icu=true, [
-	have_icu=true
-	AC_CHECK_HEADERS(unicode/uchar.h,, have_icu=false)
-	AC_MSG_CHECKING([for libicuuc])
-	LIBS_old=$LIBS
-	LIBS="$LIBS -licuuc"
-	AC_TRY_LINK([#include <unicode/uchar.h>],
-		    [u_getIntPropertyValue (0, (UProperty)0);],
-		    AC_MSG_RESULT(yes),
-		    AC_MSG_RESULT(no);have_icu=false)
-	LIBS=$LIBS_old
-	if $have_icu; then
-		ICU_CFLAGS=-D_REENTRANT
-		ICU_LIBS="-licuuc"
-		AC_SUBST(ICU_CFLAGS)
-		AC_SUBST(ICU_LIBS)
-	fi
-])
+PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
 if $have_icu; then
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
 fi
