@@ -1,3 +1,19 @@
+Overview of changes leading to 0.9.3
+Friday, Aug 18, 2012
+====================================
+
+- Fixed fallback mark positioning for left-to-right text.
+
+- Improve mark positioning for the remaining combining classes.
+
+- Unbreak Thai and fallback Arabic shaping.
+
+- Port Arabic shaper to shape-plan caching.
+
+- Use new ICU normalizer functions.
+
+
+
 Overview of changes leading to 0.9.2
 Friday, Aug 10, 2012
 ====================================
