@@ -38,7 +38,7 @@ ChangeLog:
 	$(AM_V_GEN) if test -d "$(top_srcdir)/.git"; then \
 	  (GIT_DIR=$(top_srcdir)/.git $(top_srcdir)/missing --run \
 	   git log $(CHANGELOG_RANGE) --stat) | fmt --split-only > $@.tmp \
-	  && mv -f $@.tmp "$(srcdir)/$@" \
+	  && mv -f $@.tmp "$(srcdir)/ChangeLog" \
 	  || ($(RM) $@.tmp; \
 	      echo Failed to generate ChangeLog, your ChangeLog may be outdated >&2; \
 	      (test -f $@ || echo git-log is required to generate this file >> "$(srcdir)/$@")); \
