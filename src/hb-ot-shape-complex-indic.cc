@@ -694,13 +694,12 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
       info[i].mask  |= mask;
   }
 
-  /* XXX This will not match for old-Indic spec since the Halant-Ra order is reversed already. */
   if (indic_plan->mask_array[PREF] && base + 2 < end)
   {
     /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
     for (unsigned int i = base + 1; i + 1 < end; i++)
-      if (is_halant_or_coeng (info[i]) &&
-	  info[i + 1].indic_category() == OT_Ra)
+      if (is_halant_or_coeng (info[i + (indic_plan->is_old_spec ? 1 : 0)]) &&
+	  info[i + (indic_plan->is_old_spec ? 0 : 1)].indic_category() == OT_Ra)
       {
 	info[i++].mask |= indic_plan->mask_array[PREF];
 	info[i++].mask |= indic_plan->mask_array[PREF];
