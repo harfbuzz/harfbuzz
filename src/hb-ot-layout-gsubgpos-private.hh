@@ -1066,11 +1066,9 @@ static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c
 						     const LookupRecord lookupRecord[],
 						     ChainContextApplyLookupContext &lookup_context)
 {
-  /* The MS Indic specs say "...all classifications are determined ... using context-free substitutions."
-   * However, testing shows that MS's Malayalam shapers (both old and new), "match" even if there is no
-   * zero-context rule.  We follow.  Hence the commented out line. */
-  return /* !backtrackCount && !lookaheadCount && */
-         would_match_input (c,
+  return !backtrackCount
+      && !lookaheadCount
+      && would_match_input (c,
 			    inputCount, input,
 			    lookup_context.funcs.match, lookup_context.match_data[1]);
 }
