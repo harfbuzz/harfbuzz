@@ -254,10 +254,11 @@ struct would_substitute_feature_t
 
   inline bool would_substitute (hb_codepoint_t    *glyphs,
 				unsigned int       glyphs_count,
+				bool               zero_context,
 				hb_face_t         *face) const
   {
     for (unsigned int i = 0; i < count; i++)
-      if (hb_ot_layout_would_substitute_lookup_fast (face, lookups[i].index, glyphs, glyphs_count, true))
+      if (hb_ot_layout_would_substitute_lookup_fast (face, lookups[i].index, glyphs, glyphs_count, zero_context))
 	return true;
     return false;
   }
@@ -340,9 +341,10 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
 			      hb_codepoint_t *glyphs, unsigned int glyphs_len,
 			      hb_face_t      *face)
 {
-  if (indic_plan->pref.would_substitute (glyphs, glyphs_len, face)) return POS_BELOW_C;
-  if (indic_plan->blwf.would_substitute (glyphs, glyphs_len, face)) return POS_BELOW_C;
-  if (indic_plan->pstf.would_substitute (glyphs, glyphs_len, face)) return POS_POST_C;
+  bool zero_context = indic_plan->is_old_spec ? false : true;
+  if (indic_plan->pref.would_substitute (glyphs, glyphs_len, zero_context, face)) return POS_BELOW_C;
+  if (indic_plan->blwf.would_substitute (glyphs, glyphs_len, zero_context, face)) return POS_BELOW_C;
+  if (indic_plan->pstf.would_substitute (glyphs, glyphs_len, zero_context, face)) return POS_POST_C;
   return POS_BASE_C;
 }
 
