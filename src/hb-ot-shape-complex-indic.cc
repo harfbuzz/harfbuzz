@@ -1122,6 +1122,10 @@ final_reordering (const hb_ot_shape_plan_t *plan,
     }
   final_reordering_syllable (plan, buffer, last, count);
 
+  /* Zero syllables now... */
+  for (unsigned int i = 0; i < count; i++)
+    info[i].syllable() = 0;
+
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
 }
