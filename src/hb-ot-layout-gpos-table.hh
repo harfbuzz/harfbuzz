@@ -1598,20 +1598,20 @@ struct GPOS : GSUBGPOS
 static void
 fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
 {
-    unsigned int j = pos[i].cursive_chain();
-    if (likely (!j))
-      return;
+  unsigned int j = pos[i].cursive_chain();
+  if (likely (!j))
+    return;
 
-    j += i;
+  j += i;
 
-    pos[i].cursive_chain() = 0;
+  pos[i].cursive_chain() = 0;
 
-    fix_cursive_minor_offset (pos, j, direction);
+  fix_cursive_minor_offset (pos, j, direction);
 
-    if (HB_DIRECTION_IS_HORIZONTAL (direction))
-      pos[i].y_offset += pos[j].y_offset;
-    else
-      pos[i].x_offset += pos[j].x_offset;
+  if (HB_DIRECTION_IS_HORIZONTAL (direction))
+    pos[i].y_offset += pos[j].y_offset;
+  else
+    pos[i].x_offset += pos[j].x_offset;
 }
 
 static void
