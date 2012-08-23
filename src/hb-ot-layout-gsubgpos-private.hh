@@ -76,17 +76,20 @@ struct hb_would_apply_context_t
   hb_face_t *face;
   const hb_codepoint_t *glyphs;
   unsigned int len;
+  bool zero_context;
   const hb_set_digest_t digest;
   unsigned int debug_depth;
 
   hb_would_apply_context_t (hb_face_t *face_,
 			    const hb_codepoint_t *glyphs_,
 			    unsigned int len_,
+			    bool zero_context_,
 			    const hb_set_digest_t *digest_
 			    ) :
 			      face (face_),
 			      glyphs (glyphs_),
 			      len (len_),
+			      zero_context (zero_context_),
 			      digest (*digest_),
 			      debug_depth (0) {};
 };
@@ -1066,8 +1069,7 @@ static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c
 						     const LookupRecord lookupRecord[],
 						     ChainContextApplyLookupContext &lookup_context)
 {
-  return !backtrackCount
-      && !lookaheadCount
+  return (c->zero_context ? !backtrackCount && !lookaheadCount : true)
       && would_match_input (c,
 			    inputCount, input,
 			    lookup_context.funcs.match, lookup_context.match_data[1]);

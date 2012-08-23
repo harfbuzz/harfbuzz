@@ -116,16 +116,8 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
 void hb_ot_map_t::substitute_closure (const hb_ot_shape_plan_t *plan, hb_face_t *face, hb_set_t *glyphs) const
 {
   unsigned int table_index = 0;
-  unsigned int i = 0;
-
-  for (unsigned int pause_index = 0; pause_index < pauses[table_index].len; pause_index++) {
-    const pause_map_t *pause = &pauses[table_index][pause_index];
-    for (; i < pause->num_lookups; i++)
-      hb_ot_layout_substitute_closure_lookup (face, glyphs, lookups[table_index][i].index);
-  }
-
-  for (; i < lookups[table_index].len; i++)
-    hb_ot_layout_substitute_closure_lookup (face, glyphs, lookups[table_index][i].index);
+  for (unsigned int i = 0; i < lookups[table_index].len; i++)
+    hb_ot_layout_substitute_closure_lookup (face, lookups[table_index][i].index, glyphs);
 }
 
 void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func)

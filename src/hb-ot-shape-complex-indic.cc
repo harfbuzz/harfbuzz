@@ -257,7 +257,7 @@ struct would_substitute_feature_t
 				hb_face_t         *face) const
   {
     for (unsigned int i = 0; i < count; i++)
-      if (hb_ot_layout_would_substitute_lookup_fast (face, glyphs, glyphs_count, lookups[i].index))
+      if (hb_ot_layout_would_substitute_lookup_fast (face, lookups[i].index, glyphs, glyphs_count, true))
 	return true;
     return false;
   }

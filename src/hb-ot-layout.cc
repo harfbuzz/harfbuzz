@@ -401,22 +401,24 @@ hb_ot_layout_has_substitution (hb_face_t *face)
 
 hb_bool_t
 hb_ot_layout_would_substitute_lookup (hb_face_t            *face,
+				      unsigned int          lookup_index,
 				      const hb_codepoint_t *glyphs,
 				      unsigned int          glyphs_length,
-				      unsigned int          lookup_index)
+				      hb_bool_t             zero_context)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return false;
-  return hb_ot_layout_would_substitute_lookup_fast (face, glyphs, glyphs_length, lookup_index);
+  return hb_ot_layout_would_substitute_lookup_fast (face, lookup_index, glyphs, glyphs_length, zero_context);
 }
 
 hb_bool_t
 hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
+					   unsigned int          lookup_index,
 					   const hb_codepoint_t *glyphs,
 					   unsigned int          glyphs_length,
-					   unsigned int          lookup_index)
+					   hb_bool_t             zero_context)
 {
   if (unlikely (lookup_index >= hb_ot_layout_from_face (face)->gsub_lookup_count)) return false;
-  hb_would_apply_context_t c (face, glyphs, glyphs_length, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
+  hb_would_apply_context_t c (face, glyphs, glyphs_length, zero_context, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
   return hb_ot_layout_from_face (face)->gsub->would_substitute_lookup (&c, lookup_index);
 }
 
@@ -445,8 +447,8 @@ hb_ot_layout_substitute_finish (hb_font_t *font, hb_buffer_t *buffer)
 
 void
 hb_ot_layout_substitute_closure_lookup (hb_face_t    *face,
-				        hb_set_t     *glyphs,
-				        unsigned int  lookup_index)
+				        unsigned int  lookup_index,
+				        hb_set_t     *glyphs)
 {
   hb_closure_context_t c (face, glyphs);
   _get_gsub (face).closure_lookup (&c, lookup_index);
