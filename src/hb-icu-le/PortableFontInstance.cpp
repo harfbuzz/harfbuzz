@@ -112,7 +112,7 @@ PortableFontInstance::PortableFontInstance(const char *fileName, float pointSize
     fDirExtra = numTables - fDirPower;
 
     // read unitsPerEm from 'head' table
-    headTable = (const HEADTable *) readFontTable(headTag);
+    headTable = (const HEADTable *) getFontTable(headTag);
 
     if (headTable == NULL) {
         status = LE_MISSING_FONT_TABLE_ERROR;
@@ -121,9 +121,8 @@ PortableFontInstance::PortableFontInstance(const char *fileName, float pointSize
 
     fUnitsPerEM   = SWAPW(headTable->unitsPerEm);
     fFontChecksum = SWAPL(headTable->checksumAdjustment);
-    freeFontTable(headTable);
 
-    //nameTable = (NAMETable *) readFontTable(nameTag);
+    //nameTable = (NAMETable *) getFontTable(nameTag);
 
     //if (nameTable == NULL) {
     //    status = LE_MISSING_FONT_TABLE_ERROR;
@@ -137,9 +136,7 @@ PortableFontInstance::PortableFontInstance(const char *fileName, float pointSize
     //    goto error_exit;
     //}
 
-    //freeFontTable(nameTable);
-
-    hheaTable = (HHEATable *) readFontTable(hheaTag);
+    hheaTable = (HHEATable *) getFontTable(hheaTag);
 
     if (hheaTable == NULL) {
         status = LE_MISSING_FONT_TABLE_ERROR;
@@ -151,8 +148,6 @@ PortableFontInstance::PortableFontInstance(const char *fileName, float pointSize
     fLeading = (le_int32) yUnitsToPoints((float) SWAPW(hheaTable->lineGap));
 
     fNumLongHorMetrics = SWAPW(hheaTable->numOfLongHorMetrics);
-
-    freeFontTable((void *) hheaTable);
 
     fCMAPMapper = findUnicodeMapper();
 
@@ -173,9 +168,6 @@ PortableFontInstance::~PortableFontInstance()
 {
     if (fFile != NULL) {
         fclose(fFile);
-
-        freeFontTable(fHMTXTable);
-        freeFontTable(fNAMETable);
 
         delete fCMAPMapper;
 
@@ -245,7 +237,7 @@ const void *PortableFontInstance::readFontTable(LETag tableTag) const
 CMAPMapper *PortableFontInstance::findUnicodeMapper()
 {
     LETag cmapTag = LE_CMAP_TABLE_TAG;
-    const CMAPTable *cmap = (CMAPTable *) readFontTable(cmapTag);
+    const CMAPTable *cmap = (CMAPTable *) getFontTable(cmapTag);
 
     if (cmap == NULL) {
         return NULL;
@@ -260,7 +252,7 @@ const char *PortableFontInstance::getNameString(le_uint16 nameID, le_uint16 plat
         LETag nameTag = LE_NAME_TABLE_TAG;
         PortableFontInstance *realThis = (PortableFontInstance *) this;
 
-        realThis->fNAMETable = (const NAMETable *) readFontTable(nameTag);
+        realThis->fNAMETable = (const NAMETable *) getFontTable(nameTag);
 
         if (realThis->fNAMETable != NULL) {
             realThis->fNameCount        = SWAPW(realThis->fNAMETable->count);
@@ -293,7 +285,7 @@ const LEUnicode16 *PortableFontInstance::getUnicodeNameString(le_uint16 nameID, 
         LETag nameTag = LE_NAME_TABLE_TAG;
         PortableFontInstance *realThis = (PortableFontInstance *) this;
 
-        realThis->fNAMETable = (const NAMETable *) readFontTable(nameTag);
+        realThis->fNAMETable = (const NAMETable *) getFontTable(nameTag);
 
         if (realThis->fNAMETable != NULL) {
             realThis->fNameCount        = SWAPW(realThis->fNAMETable->count);
@@ -340,15 +332,14 @@ void PortableFontInstance::getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) co
     if (fHMTXTable == NULL) {
         LETag maxpTag = LE_MAXP_TABLE_TAG;
         LETag hmtxTag = LE_HMTX_TABLE_TAG;
-        const MAXPTable *maxpTable = (MAXPTable *) readFontTable(maxpTag);
+        const MAXPTable *maxpTable = (MAXPTable *) getFontTable(maxpTag);
         PortableFontInstance *realThis = (PortableFontInstance *) this;
 
         if (maxpTable != NULL) {
             realThis->fNumGlyphs = SWAPW(maxpTable->numGlyphs);
-            freeFontTable(maxpTable);
         }
 
-        realThis->fHMTXTable = (const HMTXTable *) readFontTable(hmtxTag);
+        realThis->fHMTXTable = (const HMTXTable *) getFontTable(hmtxTag);
     }
 
     le_uint16 index = ttGlyph;
