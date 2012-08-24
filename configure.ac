@@ -160,6 +160,14 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
 dnl ==========================================================================
 
+PKG_CHECK_MODULES(ICU_LE, icu-le, have_icu_le=true, have_icu_le=false)
+if $have_icu_le; then
+	AC_DEFINE(HAVE_ICU_LE, 1, [Have ICU Layout Engine library])
+fi
+AM_CONDITIONAL(HAVE_ICU_LE, $have_icu_le)
+
+dnl ==========================================================================
+
 PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite=true, have_graphite=false)
 if $have_graphite; then
     AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite library])
@@ -229,6 +237,7 @@ harfbuzz.pc
 src/Makefile
 src/hb-version.h
 src/hb-old/Makefile
+src/hb-icu-le/Makefile
 util/Makefile
 test/Makefile
 test/api/Makefile

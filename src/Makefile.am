@@ -163,6 +163,14 @@ HBSOURCES += hb-old.cc
 endif
 DIST_SUBDIRS += hb-old
 
+if HAVE_ICU_LE
+SUBDIRS += hb-icu-le
+HBCFLAGS += -I$(srcdir)/hb-icu-le
+HBLIBS   += hb-icu-le/libhb-icu-le.la
+HBSOURCES += hb-icu-le.cc
+endif
+DIST_SUBDIRS += hb-icu-le
+
 
 
 # Put the library together
