@@ -19,10 +19,6 @@ General fixes:
   * vkna,hkna etc for kana, etc
   * smpl,trad for ZHS / ZHT
 
-- Add Pango backend?
-
-- Add ICUlayout backend?
-
 - Add ICUlayout API?
 
 
