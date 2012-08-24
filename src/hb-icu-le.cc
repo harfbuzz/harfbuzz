@@ -25,6 +25,7 @@
  */
 
 #define HB_SHAPER icu_le
+#define hb_icu_le_shaper_font_data_t PortableFontInstance
 #include "hb-shaper-impl-private.hh"
 
 #include "hb-icu-le/PortableFontInstance.h"
@@ -61,18 +62,26 @@ _hb_icu_le_shaper_face_data_destroy (hb_icu_le_shaper_face_data_t *data)
  * shaper font data
  */
 
-struct hb_icu_le_shaper_font_data_t {};
-
 hb_icu_le_shaper_font_data_t *
 _hb_icu_le_shaper_font_data_create (hb_font_t *font)
 {
-  return (hb_icu_le_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+  LEErrorCode status = LE_NO_ERROR;
+  hb_icu_le_shaper_font_data_t *data = new PortableFontInstance (font->face,
+								 font->x_scale,
+								 font->y_scale,
+								 status);
+  if (status != LE_NO_ERROR) {
+    delete (data);
+    return NULL;
+  }
+
+  return data;
 }
 
 void
 _hb_icu_le_shaper_font_data_destroy (hb_icu_le_shaper_font_data_t *data)
 {
-  free (data);
+  delete (data);
 }
 
 

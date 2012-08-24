@@ -9,6 +9,9 @@
 
 #define __FONTTABLECACHE_H
 
+#define HB_H_IN
+#include <hb-blob.h>
+
 #include "layout/LETypes.h"
 
 U_NAMESPACE_USE
@@ -25,12 +28,12 @@ public:
     const void *find(LETag tableTag) const;
 
 protected:
-    virtual const void *readFontTable(LETag tableTag) const = 0;
-    virtual void freeFontTable(const void *table) const;
+    virtual hb_blob_t *readFontTable(LETag tableTag) const = 0;
+    virtual void freeFontTable(hb_blob_t *blob) const;
 
 private:
 
-    void add(LETag tableTag, const void *table);
+    void add(LETag tableTag, hb_blob_t *blob);
 
     FontTableCacheEntry *fTableCache;
     le_int32 fTableCacheCurr;

@@ -15,31 +15,28 @@
 #ifndef __PORTABLEFONTINSTANCE_H
 #define __PORTABLEFONTINSTANCE_H
 
-#include <stdio.h>
+#define HB_H_IN
+#include <hb-font.h>
+#include <hb-blob.h>
 
 #include "layout/LETypes.h"
 #include "layout/LEFontInstance.h"
 
 #include "FontTableCache.h"
 
-#include "sfnt.h"
 #include "cmaps.h"
 
 class PortableFontInstance : public LEFontInstance, protected FontTableCache
 {
 private:
-    FILE *fFile;
+    hb_face_t *fFace;
 
-    float     fPointSize;
+    float     fXScale;
+    float     fYScale;
     le_int32  fUnitsPerEM;
-    le_uint32 fFontChecksum;
     le_int32  fAscent;
     le_int32  fDescent;
     le_int32  fLeading;
-
-    const SFNTDirectory *fDirectory;
-    le_uint16 fDirPower;
-    le_uint16 fDirExtra;
 
     float fDeviceScaleX;
     float fDeviceScaleY;
@@ -56,17 +53,15 @@ private:
 
     static le_int8 highBit(le_int32 value);
 
-    const DirectoryEntry *findTable(LETag tag) const;
-    const void *readTable(LETag tag, le_uint32 *length) const;
     void getMetrics();
 
     CMAPMapper *findUnicodeMapper();
 
 protected:
-    const void *readFontTable(LETag tableTag) const;
+    hb_blob_t *readFontTable(LETag tableTag) const;
 
 public:
-    PortableFontInstance(const char *fileName, float pointSize, LEErrorCode &status);
+    PortableFontInstance(hb_face_t *face, float xScale, float yScale, LEErrorCode &status);
 
     virtual ~PortableFontInstance();
 

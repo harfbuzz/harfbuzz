@@ -16,7 +16,7 @@
 struct FontTableCacheEntry
 {
     LETag tag;
-    const void *table;
+    hb_blob_t *blob;
 };
 
 FontTableCache::FontTableCache()
@@ -30,18 +30,18 @@ FontTableCache::FontTableCache()
     }
 
     for (int i = 0; i < fTableCacheSize; i += 1) {
-        fTableCache[i].tag   = 0;
-        fTableCache[i].table = NULL;
+        fTableCache[i].tag  = 0;
+        fTableCache[i].blob = NULL;
     }
 }
 
 FontTableCache::~FontTableCache()
 {
     for (int i = fTableCacheCurr - 1; i >= 0; i -= 1) {
-        DELETE_ARRAY(fTableCache[i].table);
+        hb_blob_destroy(fTableCache[i].blob);
 
-        fTableCache[i].tag   = 0;
-        fTableCache[i].table = NULL;
+        fTableCache[i].tag  = 0;
+        fTableCache[i].blob = NULL;
     }
 
     fTableCacheCurr = 0;
@@ -49,27 +49,27 @@ FontTableCache::~FontTableCache()
     DELETE_ARRAY(fTableCache);
 }
 
-void FontTableCache::freeFontTable(const void *table) const
+void FontTableCache::freeFontTable(hb_blob_t *blob) const
 {
-    DELETE_ARRAY(table);
+    hb_blob_destroy(blob);
 }
 
 const void *FontTableCache::find(LETag tableTag) const
 {
     for (int i = 0; i < fTableCacheCurr; i += 1) {
         if (fTableCache[i].tag == tableTag) {
-            return fTableCache[i].table;
+            return hb_blob_get_data(fTableCache[i].blob, NULL);
         }
     }
 
-    const void *table = readFontTable(tableTag);
+    hb_blob_t *blob = readFontTable(tableTag);
 
-    ((FontTableCache *) this)->add(tableTag, table);
+    ((FontTableCache *) this)->add(tableTag, blob);
 
-    return table;
+    return hb_blob_get_data (blob, NULL);
 }
 
-void FontTableCache::add(LETag tableTag, const void *table)
+void FontTableCache::add(LETag tableTag, hb_blob_t *blob)
 {
     if (fTableCacheCurr >= fTableCacheSize) {
         le_int32 newSize = fTableCacheSize + TABLE_CACHE_GROW;
@@ -77,15 +77,15 @@ void FontTableCache::add(LETag tableTag, const void *table)
         fTableCache = (FontTableCacheEntry *) GROW_ARRAY(fTableCache, newSize);
 
         for (le_int32 i = fTableCacheSize; i < newSize; i += 1) {
-            fTableCache[i].tag   = 0;
-            fTableCache[i].table = NULL;
+            fTableCache[i].tag  = 0;
+            fTableCache[i].blob = NULL;
         }
 
         fTableCacheSize = newSize;
     }
 
-    fTableCache[fTableCacheCurr].tag   = tableTag;
-    fTableCache[fTableCacheCurr].table = table;
+    fTableCache[fTableCacheCurr].tag  = tableTag;
+    fTableCache[fTableCacheCurr].blob = blob;
 
     fTableCacheCurr += 1;
 }
