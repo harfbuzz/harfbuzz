@@ -447,7 +447,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
       has_reph = true;
     };
 
-    switch (indic_plan->config->base_pos == BASE_POS_LAST)
+    switch (indic_plan->config->base_pos)
     {
       case BASE_POS_LAST:
       {
