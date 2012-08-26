@@ -206,7 +206,7 @@ dnl ===========================================================================
 AC_CHECK_HEADERS(ApplicationServices/ApplicationServices.h, have_coretext=true, have_coretext=false)
 if $have_coretext; then
 	CORETEXT_CFLAGS=
-	CORETEXT_LIBS=
+	CORETEXT_LIBS="-framework ApplicationServices"
 	AC_SUBST(CORETEXT_CFLAGS)
 	AC_SUBST(CORETEXT_LIBS)
 	AC_DEFINE(HAVE_CORETEXT, 1, [Have Core Text backend])
