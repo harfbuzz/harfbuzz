@@ -90,7 +90,6 @@ static hb_codepoint_t get_arabic_shape (hb_codepoint_t u, unsigned int shape)
 
 static uint16_t get_ligature (hb_codepoint_t first, hb_codepoint_t second)
 {
-  if (unlikely (!second)) return 0;
   for (unsigned i = 0; i < ARRAY_LENGTH (ligature_table); i++)
     if (ligature_table[i].first == first)
       for (unsigned j = 0; j < ARRAY_LENGTH (ligature_table[i].ligatures); j++)
