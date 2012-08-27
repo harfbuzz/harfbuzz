@@ -257,7 +257,7 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   unsigned int last_combining_class = 255;
   hb_glyph_extents_t cluster_extents;
   for (unsigned int i = base + 1; i < end; i++)
-    if (_hb_glyph_info_get_general_category (&buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+    if (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]))
     {
       unsigned int this_combining_class = recategorize_combining_class (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]));
       if (this_combining_class != last_combining_class)
