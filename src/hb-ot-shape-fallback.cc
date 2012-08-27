@@ -263,14 +263,12 @@ position_around_base (const hb_ot_shape_plan_t *plan,
       if (this_combining_class != last_combining_class)
         cluster_extents = base_extents;
 
-      position_mark (plan, font, buffer, base_extents, i, this_combining_class);
+      position_mark (plan, font, buffer, cluster_extents, i, this_combining_class);
 
       buffer->pos[i].x_advance = 0;
       buffer->pos[i].y_advance = 0;
       buffer->pos[i].x_offset += x_offset;
       buffer->pos[i].y_offset += y_offset;
-
-      /* combine cluster extents. */
 
       last_combining_class = this_combining_class;
     } else {
