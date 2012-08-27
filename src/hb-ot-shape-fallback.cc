@@ -171,6 +171,7 @@ position_mark (const hb_ot_shape_plan_t *plan,
       }
       /* Fall through */
 
+    default:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE:
     case HB_UNICODE_COMBINING_CLASS_BELOW:
