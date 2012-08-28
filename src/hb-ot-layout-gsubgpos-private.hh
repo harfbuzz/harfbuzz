@@ -34,6 +34,8 @@
 #include "hb-set-private.hh"
 
 
+namespace OT {
+
 
 #ifndef HB_DEBUG_CLOSURE
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
@@ -1681,6 +1683,8 @@ struct GSUBGPOS
   DEFINE_SIZE_STATIC (10);
 };
 
+
+} // namespace OT
 
 
 #endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH */

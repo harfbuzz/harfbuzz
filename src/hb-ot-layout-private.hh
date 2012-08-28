@@ -185,15 +185,21 @@ hb_ot_layout_position_finish (hb_font_t    *font,
  * hb_ot_layout_t
  */
 
+namespace OT {
+  struct GDEF;
+  struct GSUB;
+  struct GPOS;
+}
+
 struct hb_ot_layout_t
 {
   hb_blob_t *gdef_blob;
   hb_blob_t *gsub_blob;
   hb_blob_t *gpos_blob;
 
-  const struct GDEF *gdef;
-  const struct GSUB *gsub;
-  const struct GPOS *gpos;
+  const struct OT::GDEF *gdef;
+  const struct OT::GSUB *gsub;
+  const struct OT::GPOS *gpos;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;

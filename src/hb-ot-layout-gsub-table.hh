@@ -32,6 +32,8 @@
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 
+namespace OT {
+
 
 struct SingleSubstFormat1
 {
@@ -1409,6 +1411,8 @@ static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup
   return l.apply_once (&new_c);
 }
 
+
+} // namespace OT
 
 
 #endif /* HB_OT_LAYOUT_GSUB_TABLE_HH */

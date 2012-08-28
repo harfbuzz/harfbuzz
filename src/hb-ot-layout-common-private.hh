@@ -34,6 +34,9 @@
 #include "hb-set-private.hh"
 
 
+namespace OT {
+
+
 #define NOT_COVERED		((unsigned int) -1)
 #define MAX_NESTING_LEVEL	8
 
@@ -762,6 +765,8 @@ struct Device
   DEFINE_SIZE_ARRAY (6, deltaValue);
 };
 
+
+} // namespace OT
 
 
 #endif /* HB_OT_LAYOUT_COMMON_PRIVATE_HH */

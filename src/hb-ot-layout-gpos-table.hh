@@ -32,6 +32,8 @@
 #include "hb-ot-layout-gsubgpos-private.hh"
 
 
+namespace OT {
+
 
 /* buffer **position** var allocations */
 #define attach_lookback() var.u16[0] /* number of glyphs to go back to attach this glyph to its base */
@@ -1712,6 +1714,8 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
 #undef attach_lookback
 #undef cursive_chain
 
+
+} // namespace OT
 
 
 #endif /* HB_OT_LAYOUT_GPOS_TABLE_HH */
