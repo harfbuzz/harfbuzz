@@ -13,6 +13,9 @@
 #include <hb-blob.h>
 
 #include "layout/LETypes.h"
+#include "letest.h"
+
+HB_BEGIN_VISIBILITY
 
 U_NAMESPACE_USE
 
@@ -40,5 +43,6 @@ private:
     le_int32 fTableCacheSize;
 };
 
-#endif
+HB_END_VISIBILITY
 
+#endif

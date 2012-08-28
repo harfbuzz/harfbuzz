@@ -9,6 +9,9 @@
 #define __SFNT_H
 
 #include "layout/LETypes.h"
+#include "letest.h"
+
+HB_BEGIN_VISIBILITY
 
 U_NAMESPACE_USE
 
@@ -445,5 +448,6 @@ struct NAMETable
 typedef struct NAMETable NAMETable;
 #endif
 
-#endif
+HB_END_VISIBILITY
 
+#endif

@@ -13,6 +13,8 @@
 #include "letest.h"
 #include "sfnt.h"
 
+HB_BEGIN_VISIBILITY
+
 class CMAPMapper
 {
 public:
@@ -80,5 +82,6 @@ inline CMAPMapper::~CMAPMapper()
 {
 }
 
-#endif
+HB_END_VISIBILITY
 
+#endif

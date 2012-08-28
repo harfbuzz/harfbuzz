@@ -14,11 +14,23 @@
 #ifndef __LETEST_H
 #define __LETEST_H
 
+
+#if defined(__GNUC__) && (__GNUC__ >= 4) && !defined(__MINGW32__)
+# define HB_BEGIN_VISIBILITY _Pragma ("GCC visibility push(hidden)")
+# define HB_END_VISIBILITY _Pragma ("GCC visibility pop")
+#else
+# define HB_BEGIN_VISIBILITY
+# define HB_END_VISIBILITY
+#endif
+
+
 #include "layout/LETypes.h"
 /*#include "unicode/ctest.h"*/
 
 #include <stdlib.h>
 #include <string.h>
+
+HB_BEGIN_VISIBILITY
 
 U_NAMESPACE_USE
 
@@ -45,5 +57,7 @@ typedef struct TestResult TestResult;
 #endif
 
 //U_CFUNC void addCTests(TestNode **root);
+
+HB_END_VISIBILITY
 
 #endif

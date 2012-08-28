@@ -18,7 +18,7 @@
 // Finds the high bit by binary searching
 // through the bits in value.
 //
-le_int8 highBit(le_uint32 value)
+static inline le_int8 highBit(le_uint32 value)
 {
     le_uint8 bit = 0;
 

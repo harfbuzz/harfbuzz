@@ -21,10 +21,13 @@
 
 #include "layout/LETypes.h"
 #include "layout/LEFontInstance.h"
+#include "letest.h"
 
 #include "FontTableCache.h"
 
 #include "cmaps.h"
+
+HB_BEGIN_VISIBILITY
 
 class PortableFontInstance : public LEFontInstance, protected FontTableCache
 {
@@ -50,8 +53,6 @@ private:
     const HMTXTable *fHMTXTable;
     le_uint16 fNumGlyphs;
     le_uint16 fNumLongHorMetrics;
-
-    static le_int8 highBit(le_int32 value);
 
     void getMetrics();
 
@@ -108,5 +109,7 @@ public:
     virtual float getScaleFactorY() const;
 
 };
+
+HB_END_VISIBILITY
 
 #endif

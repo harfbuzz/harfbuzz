@@ -24,45 +24,6 @@
 
 #include <string.h>
 
-//
-// Finds the high bit by binary searching
-// through the bits in n.
-//
-le_int8 PortableFontInstance::highBit(le_int32 value)
-{
-    if (value <= 0) {
-        return -32;
-    }
-
-    le_uint8 bit = 0;
-
-    if (value >= 1 << 16) {
-        value >>= 16;
-        bit += 16;
-    }
-
-    if (value >= 1 << 8) {
-        value >>= 8;
-        bit += 8;
-    }
-
-    if (value >= 1 << 4) {
-        value >>= 4;
-        bit += 4;
-    }
-
-    if (value >= 1 << 2) {
-        value >>= 2;
-        bit += 2;
-    }
-
-    if (value >= 1 << 1) {
-        value >>= 1;
-        bit += 1;
-    }
-
-    return bit;
-}
 
 PortableFontInstance::PortableFontInstance(hb_face_t *face, float xScale, float yScale, LEErrorCode &status)
     : fFace(face), fXScale(xScale), fYScale(yScale), fUnitsPerEM(0), fAscent(0), fDescent(0), fLeading(0),
