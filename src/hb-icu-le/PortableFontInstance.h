@@ -99,13 +99,13 @@ public:
 
     virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const;
 
-    float getXPixelsPerEm() const;
+    virtual float getXPixelsPerEm() const;
 
-    float getYPixelsPerEm() const;
+    virtual float getYPixelsPerEm() const;
 
-    float getScaleFactorX() const;
+    virtual float getScaleFactorX() const;
 
-    float getScaleFactorY() const;
+    virtual float getScaleFactorY() const;
 
 };
 
