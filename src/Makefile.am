@@ -252,12 +252,16 @@ dist_check_SCRIPTS = \
 	check-exported-symbols.sh \
 	check-includes.sh \
 	check-internal-symbols.sh \
-	check-static-inits.sh \
 	$(NULL)
 
 if HAVE_ICU
 else
 dist_check_SCRIPTS += check-libstdc++.sh
+endif
+
+if HAVE_ICU_LE
+else
+dist_check_SCRIPTS += check-static-inits.sh
 endif
 
 TESTS = $(dist_check_SCRIPTS)
