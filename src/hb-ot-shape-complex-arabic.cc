@@ -26,7 +26,7 @@
 
 #include "hb-ot-shape-complex-private.hh"
 #include "hb-ot-shape-private.hh"
-
+#include "hb-ot-layout-gsubgpos-private.hh"
 
 
 /* buffer var allocations */
@@ -86,17 +86,6 @@ static hb_codepoint_t get_arabic_shape (hb_codepoint_t u, unsigned int shape)
   if (likely (hb_in_range<hb_codepoint_t> (u, SHAPING_TABLE_FIRST, SHAPING_TABLE_LAST)) && shape < 4)
     return shaping_table[u - SHAPING_TABLE_FIRST][shape];
   return u;
-}
-
-static uint16_t get_ligature (hb_codepoint_t first, hb_codepoint_t second)
-{
-  if (unlikely (!second)) return 0;
-  for (unsigned i = 0; i < ARRAY_LENGTH (ligature_table); i++)
-    if (ligature_table[i].first == first)
-      for (unsigned j = 0; j < ARRAY_LENGTH (ligature_table[i].ligatures); j++)
-	if (ligature_table[i].ligatures[j].second == second)
-	  return ligature_table[i].ligatures[j].ligature;
-  return 0;
 }
 
 static const hb_tag_t arabic_features[] =
@@ -257,20 +246,57 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
       buffer->info[i].codepoint = shaped;
   }
 
+  OT::hb_apply_context_t c (font, buffer, 1/*global mask*/, NULL);
+  c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
+
   /* Mandatory ligatures */
   buffer->clear_output ();
-  for (buffer->idx = 0; buffer->idx + 1 < count;) {
-    hb_codepoint_t ligature = get_ligature (buffer->cur().codepoint,
-					    buffer->cur(+1).codepoint);
-    if (likely (!ligature) || !(font->get_glyph (ligature, 0, &glyph))) {
-      buffer->next_glyph ();
-      continue;
+  for (buffer->idx = 0; buffer->idx + 1 < count;)
+  {
+    const unsigned int count = 2;
+    unsigned int end_offset;
+    bool is_mark_ligature;
+    unsigned int total_component_count;
+
+    bool matched = false;
+    for (unsigned i = 0; i < ARRAY_LENGTH (ligature_table); i++)
+    {
+      if (ligature_table[i].first != buffer->cur().codepoint)
+        continue;
+      for (unsigned j = 0; j < ARRAY_LENGTH (ligature_table[i].ligatures); j++)
+      {
+	OT::USHORT component;
+	component.set (ligature_table[i].ligatures[j].second);
+	hb_codepoint_t ligature = ligature_table[i].ligatures[j].ligature;
+	if (likely (!OT::match_input (&c, count,
+				      &component,
+				      OT::match_glyph,
+				      NULL,
+				      &end_offset,
+				      &is_mark_ligature,
+				      &total_component_count) ||
+		    !(font->get_glyph (ligature, 0, &glyph))))
+	  continue;
+
+	/* Deal, we are forming the ligature. */
+	buffer->merge_clusters (buffer->idx, buffer->idx + end_offset);
+
+	OT::ligate_input (&c,
+			  count,
+			  &component,
+			  ligature,
+			  OT::match_glyph,
+			  NULL,
+			  is_mark_ligature,
+			  total_component_count);
+	matched = true;
+	break;
+      }
+      if (matched)
+        break;
     }
-
-    buffer->replace_glyphs (2, 1, &ligature);
-
-    /* Technically speaking we can skip marks and stuff, like the GSUB path does.
-     * But who cares, we're in fallback! */
+    if (!matched)
+      buffer->next_glyph ();
   }
   for (; buffer->idx < count;)
       buffer->next_glyph ();

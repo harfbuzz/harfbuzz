@@ -319,8 +319,10 @@ hb_ot_map_glyphs_fast (hb_buffer_t  *buffer)
 static inline void
 hb_ot_substitute_default (hb_ot_shape_context_t *c)
 {
-  if (c->plan->shaper->preprocess_text)
+  if (c->plan->shaper->preprocess_text) {
+    hb_synthesize_glyph_classes (c); /* XXX This is a hack for now. */
     c->plan->shaper->preprocess_text (c->plan, c->buffer, c->font);
+  }
 
   hb_ot_mirror_chars (c);
 

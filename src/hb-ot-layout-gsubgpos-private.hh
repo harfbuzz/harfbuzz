@@ -134,6 +134,10 @@ struct hb_apply_context_t
 			has_glyph_classes (gdef.has_glyph_classes ()),
 			digest (*digest_) {}
 
+  void set_lookup_props (unsigned int lookup_props_) {
+    lookup_props = lookup_props_;
+  }
+
   void set_lookup (const Lookup &l) {
     lookup_props = l.get_props ();
   }
