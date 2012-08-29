@@ -502,7 +502,6 @@ static inline void ligate_input (hb_apply_context_t *c,
 				 hb_codepoint_t lig_glyph,
 				 match_func_t match_func,
 				 const void *match_data,
-				 unsigned int end_offset,
 				 bool is_mark_ligature,
 				 unsigned int total_component_count)
 {

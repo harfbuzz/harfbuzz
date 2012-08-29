@@ -513,7 +513,6 @@ struct Ligature
 		  ligGlyph,
 		  match_glyph,
 		  NULL,
-		  end_offset,
 		  is_mark_ligature,
 		  total_component_count);
 
