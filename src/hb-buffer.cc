@@ -523,6 +523,22 @@ void hb_buffer_t::deallocate_var (unsigned int byte_i, unsigned int count, const
   }
 }
 
+void hb_buffer_t::assert_var (unsigned int byte_i, unsigned int count, const char *owner)
+{
+  if (DEBUG (BUFFER))
+    dump_var_allocation (this);
+
+  DEBUG_MSG (BUFFER, this,
+	     "Asserting var bytes %d..%d for %s",
+	     byte_i, byte_i + count - 1, owner);
+
+  assert (byte_i < 8 && byte_i + count <= 8);
+  for (unsigned int i = byte_i; i < byte_i + count; i++) {
+    assert (allocated_var_bytes[i]);
+    assert (0 == strcmp (allocated_var_owner[i], owner));
+  }
+}
+
 void hb_buffer_t::deallocate_var_all (void)
 {
   memset (allocated_var_bytes, 0, sizeof (allocated_var_bytes));

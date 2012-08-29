@@ -129,6 +129,7 @@ struct hb_buffer_t {
 
   HB_INTERNAL void allocate_var (unsigned int byte_i, unsigned int count, const char *owner);
   HB_INTERNAL void deallocate_var (unsigned int byte_i, unsigned int count, const char *owner);
+  HB_INTERNAL void assert_var (unsigned int byte_i, unsigned int count, const char *owner);
   HB_INTERNAL void deallocate_var_all (void);
 
   HB_INTERNAL void add (hb_codepoint_t  codepoint,
@@ -198,6 +199,8 @@ struct hb_buffer_t {
 	HB_BUFFER_XALLOCATE_VAR (b, allocate_var, var (), #var)
 #define HB_BUFFER_DEALLOCATE_VAR(b, var) \
 	HB_BUFFER_XALLOCATE_VAR (b, deallocate_var, var (), #var)
+#define HB_BUFFER_ASSERT_VAR(b, var) \
+	HB_BUFFER_XALLOCATE_VAR (b, assert_var, var (), #var)
 
 
 #endif /* HB_BUFFER_PRIVATE_HH */
