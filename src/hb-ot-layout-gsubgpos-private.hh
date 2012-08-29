@@ -423,17 +423,47 @@ static inline bool match_input (hb_apply_context_t *c,
 				const void *match_data,
 				unsigned int *end_offset = NULL)
 {
+  hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+
   hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
-  if (skippy_iter.has_no_chance ())
-    return false;
+  if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
+
+  bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+
+  unsigned int total_component_count = 0;
+  total_component_count += get_lig_num_comps (c->buffer->cur());
+
+  unsigned int first_lig_id = get_lig_id (c->buffer->cur());
+  unsigned int first_lig_comp = get_lig_comp (c->buffer->cur());
 
   for (unsigned int i = 1; i < count; i++)
   {
-    if (!skippy_iter.next ())
-      return false;
+    unsigned int property;
 
-    if (likely (!match_func (c->buffer->info[skippy_iter.idx].codepoint, input[i - 1], match_data)))
-      return false;
+    if (!skippy_iter.next (&property)) return TRACE_RETURN (false);
+
+    if (likely (!match_func (c->buffer->info[skippy_iter.idx].codepoint, input[i - 1], match_data))) return false;
+//    if (likely (c->buffer->info[skippy_iter.idx].codepoint != component[i])) return TRACE_RETURN (false);
+
+    unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
+    unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
+
+    if (first_lig_id && first_lig_comp) {
+      /* If first component was attached to a previous ligature component,
+       * all subsequent components should be attached to the same ligature
+       * component, otherwise we shouldn't ligate them. */
+      if (first_lig_id != this_lig_id || first_lig_comp != this_lig_comp)
+	return TRACE_RETURN (false);
+    } else {
+      /* If first component was NOT attached to a previous ligature component,
+       * all subsequent components should also NOT be attached to any ligature
+       * component, unless they are attached to the first component itself! */
+      if (this_lig_id && this_lig_comp && (this_lig_id != first_lig_id))
+	return TRACE_RETURN (false);
+    }
+
+    is_mark_ligature = is_mark_ligature && (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+    total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
   }
 
   if (end_offset)
@@ -448,20 +478,22 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 				    match_func_t match_func,
 				    const void *match_data)
 {
+  hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+
   hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
   if (skippy_iter.has_no_chance ())
-    return false;
+    return TRACE_RETURN (false);
 
   for (unsigned int i = 0; i < count; i++)
   {
     if (!skippy_iter.prev ())
-      return false;
+      return TRACE_RETURN (false);
 
     if (likely (!match_func (c->buffer->out_info[skippy_iter.idx].codepoint, backtrack[i], match_data)))
-      return false;
+      return TRACE_RETURN (false);
   }
 
-  return true;
+  return TRACE_RETURN (true);
 }
 
 static inline bool match_lookahead (hb_apply_context_t *c,
@@ -471,20 +503,22 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    const void *match_data,
 				    unsigned int offset)
 {
+  hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+
   hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
   if (skippy_iter.has_no_chance ())
-    return false;
+    return TRACE_RETURN (false);
 
   for (unsigned int i = 0; i < count; i++)
   {
     if (!skippy_iter.next ())
-      return false;
+      return TRACE_RETURN (false);
 
     if (likely (!match_func (c->buffer->info[skippy_iter.idx].codepoint, lookahead[i], match_data)))
-      return false;
+      return TRACE_RETURN (false);
   }
 
-  return true;
+  return TRACE_RETURN (true);
 }
 
 

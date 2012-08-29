@@ -495,38 +495,12 @@ struct Ligature
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
     /*
-     * This is perhaps the trickiest part of GSUB...  Remarks:
+     * This is perhaps the trickiest part of OpenType...  Remarks:
      *
      * - If all components of the ligature were marks, we call this a mark ligature.
      *
      * - If there is no GDEF, and the ligature is NOT a mark ligature, we categorize
-     *   it as a ligature glyph.  Though, really, this will not really be used...
-     *
-     * - If it *is* a mark ligature, we don't allocate a new ligature id, and leave
-     *   the ligature to keep its old ligature id.  This will allow it to attach to
-     *   a base ligature in GPOS.  Eg. if the sequence is: LAM,LAM,SHADDA,FATHA,HEH,
-     *   and LAM,LAM,HEH for a ligature, they will leave SHADDA and FATHA wit a
-     *   ligature id and component value of 2.  Then if SHADDA,FATHA form a ligature
-     *   later, we don't want them to lose their ligature id/component, otherwise
-     *   GPOS will fail to correctly position the mark ligature on top of the
-     *   LAM,LAM,HEH ligature.  See:
-     *     https://bugzilla.gnome.org/show_bug.cgi?id=676343
-     *
-     * - If a ligature is formed of components that some of which are also ligatures
-     *   themselves, and those ligature components had marks attached to *their*
-     *   components, we have to attach the marks to the new ligature component
-     *   positions!  Now *that*'s tricky!  And these marks may be following the
-     *   last component of the whole sequence, so we should loop forward looking
-     *   for them and update them.
-     *
-     *   Eg. the sequence is LAM,LAM,SHADDA,FATHA,HEH, and the font first forms a
-     *   'calt' ligature of LAM,HEH, leaving the SHADDA and FATHA with a ligature
-     *   id and component == 1.  Now, during 'liga', the LAM and the LAM-HEH ligature
-     *   form a LAM-LAM-HEH ligature.  We need to reassign the SHADDA and FATHA to
-     *   the new ligature with a component value of 2.
-     *
-     *   This in fact happened to a font...  See:
-     *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
+     *   it as a ligature glyph.
      *
      * - Ligatures cannot be formed across glyphs attached to different components
      *   of previous ligatures.  Eg. the sequence is LAM,SHADDA,LAM,FATHA,HEH, and
@@ -577,6 +551,34 @@ struct Ligature
 
     /* Deal, we are forming the ligature. */
     c->buffer->merge_clusters (c->buffer->idx, skippy_iter.idx + 1);
+
+    /*
+     * - If it *is* a mark ligature, we don't allocate a new ligature id, and leave
+     *   the ligature to keep its old ligature id.  This will allow it to attach to
+     *   a base ligature in GPOS.  Eg. if the sequence is: LAM,LAM,SHADDA,FATHA,HEH,
+     *   and LAM,LAM,HEH for a ligature, they will leave SHADDA and FATHA wit a
+     *   ligature id and component value of 2.  Then if SHADDA,FATHA form a ligature
+     *   later, we don't want them to lose their ligature id/component, otherwise
+     *   GPOS will fail to correctly position the mark ligature on top of the
+     *   LAM,LAM,HEH ligature.  See:
+     *     https://bugzilla.gnome.org/show_bug.cgi?id=676343
+     *
+     * - If a ligature is formed of components that some of which are also ligatures
+     *   themselves, and those ligature components had marks attached to *their*
+     *   components, we have to attach the marks to the new ligature component
+     *   positions!  Now *that*'s tricky!  And these marks may be following the
+     *   last component of the whole sequence, so we should loop forward looking
+     *   for them and update them.
+     *
+     *   Eg. the sequence is LAM,LAM,SHADDA,FATHA,HEH, and the font first forms a
+     *   'calt' ligature of LAM,HEH, leaving the SHADDA and FATHA with a ligature
+     *   id and component == 1.  Now, during 'liga', the LAM and the LAM-HEH ligature
+     *   form a LAM-LAM-HEH ligature.  We need to reassign the SHADDA and FATHA to
+     *   the new ligature with a component value of 2.
+     *
+     *   This in fact happened to a font...  See:
+     *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
+     */
 
     unsigned int klass = is_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
     unsigned int lig_id = is_mark_ligature ? 0 : allocate_lig_id (c->buffer);
