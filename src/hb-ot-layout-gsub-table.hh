@@ -507,75 +507,15 @@ struct Ligature
     /* Deal, we are forming the ligature. */
     c->buffer->merge_clusters (c->buffer->idx, c->buffer->idx + end_offset);
 
-    /*
-     * - If it *is* a mark ligature, we don't allocate a new ligature id, and leave
-     *   the ligature to keep its old ligature id.  This will allow it to attach to
-     *   a base ligature in GPOS.  Eg. if the sequence is: LAM,LAM,SHADDA,FATHA,HEH,
-     *   and LAM,LAM,HEH for a ligature, they will leave SHADDA and FATHA wit a
-     *   ligature id and component value of 2.  Then if SHADDA,FATHA form a ligature
-     *   later, we don't want them to lose their ligature id/component, otherwise
-     *   GPOS will fail to correctly position the mark ligature on top of the
-     *   LAM,LAM,HEH ligature.  See:
-     *     https://bugzilla.gnome.org/show_bug.cgi?id=676343
-     *
-     * - If a ligature is formed of components that some of which are also ligatures
-     *   themselves, and those ligature components had marks attached to *their*
-     *   components, we have to attach the marks to the new ligature component
-     *   positions!  Now *that*'s tricky!  And these marks may be following the
-     *   last component of the whole sequence, so we should loop forward looking
-     *   for them and update them.
-     *
-     *   Eg. the sequence is LAM,LAM,SHADDA,FATHA,HEH, and the font first forms a
-     *   'calt' ligature of LAM,HEH, leaving the SHADDA and FATHA with a ligature
-     *   id and component == 1.  Now, during 'liga', the LAM and the LAM-HEH ligature
-     *   form a LAM-LAM-HEH ligature.  We need to reassign the SHADDA and FATHA to
-     *   the new ligature with a component value of 2.
-     *
-     *   This in fact happened to a font...  See:
-     *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
-     */
-
-    unsigned int klass = is_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
-    unsigned int lig_id = is_mark_ligature ? 0 : allocate_lig_id (c->buffer);
-    unsigned int last_lig_id = get_lig_id (c->buffer->cur());
-    unsigned int last_num_components = get_lig_num_comps (c->buffer->cur());
-    unsigned int components_so_far = last_num_components;
-
-    if (!is_mark_ligature)
-      set_lig_props_for_ligature (c->buffer->cur(), lig_id, total_component_count);
-    c->replace_glyph (ligGlyph, klass);
-
-    for (unsigned int i = 1; i < count; i++)
-    {
-      while (c->should_mark_skip_current_glyph ())
-      {
-	if (!is_mark_ligature) {
-	  unsigned int new_lig_comp = components_so_far - last_num_components +
-				      MIN (MAX (get_lig_comp (c->buffer->cur()), 1u), last_num_components);
-	  set_lig_props_for_mark (c->buffer->cur(), lig_id, new_lig_comp);
-	}
-	c->buffer->next_glyph ();
-      }
-
-      last_lig_id = get_lig_id (c->buffer->cur());
-      last_num_components = get_lig_num_comps (c->buffer->cur());
-      components_so_far += last_num_components;
-
-      /* Skip the base glyph */
-      c->buffer->idx++;
-    }
-
-    if (!is_mark_ligature && last_lig_id) {
-      /* Re-adjust components for any marks following. */
-      for (unsigned int i = c->buffer->idx; i < c->buffer->len; i++) {
-	if (last_lig_id == get_lig_id (c->buffer->info[i])) {
-	  unsigned int new_lig_comp = components_so_far - last_num_components +
-				      MIN (MAX (get_lig_comp (c->buffer->info[i]), 1u), last_num_components);
-	  set_lig_props_for_mark (c->buffer->info[i], lig_id, new_lig_comp);
-	} else
-	  break;
-      }
-    }
+    ligate_input (c,
+		  count,
+		  &component[1],
+		  ligGlyph,
+		  match_glyph,
+		  NULL,
+		  end_offset,
+		  is_mark_ligature,
+		  total_component_count);
 
     return TRACE_RETURN (true);
   }
