@@ -421,12 +421,32 @@ static inline bool match_input (hb_apply_context_t *c,
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
 				const void *match_data,
-				unsigned int *end_offset = NULL)
+				unsigned int *end_offset = NULL,
+				bool *p_is_mark_ligature = NULL,
+				unsigned int *p_total_component_count = NULL)
 {
   hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
 
   hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
   if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
+
+  /*
+   * This is perhaps the trickiest part of OpenType...  Remarks:
+   *
+   * - If all components of the ligature were marks, we call this a mark ligature.
+   *
+   * - If there is no GDEF, and the ligature is NOT a mark ligature, we categorize
+   *   it as a ligature glyph.
+   *
+   * - Ligatures cannot be formed across glyphs attached to different components
+   *   of previous ligatures.  Eg. the sequence is LAM,SHADDA,LAM,FATHA,HEH, and
+   *   LAM,LAM,HEH form a ligature, leaving SHADDA,FATHA next to eachother.
+   *   However, it would be wrong to ligate that SHADDA,FATHA sequence.o
+   *   There is an exception to this: If a ligature tries ligating with marks that
+   *   belong to it itself, go ahead, assuming that the font designer knows what
+   *   they are doing (otherwise it can break Indic stuff when a matra wants to
+   *   ligate with a conjunct...)
+   */
 
   bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
 
@@ -443,7 +463,6 @@ static inline bool match_input (hb_apply_context_t *c,
     if (!skippy_iter.next (&property)) return TRACE_RETURN (false);
 
     if (likely (!match_func (c->buffer->info[skippy_iter.idx].codepoint, input[i - 1], match_data))) return false;
-//    if (likely (c->buffer->info[skippy_iter.idx].codepoint != component[i])) return TRACE_RETURN (false);
 
     unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
     unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
@@ -468,6 +487,12 @@ static inline bool match_input (hb_apply_context_t *c,
 
   if (end_offset)
     *end_offset = skippy_iter.idx - c->buffer->idx + 1;
+
+  if (p_is_mark_ligature)
+    *p_is_mark_ligature = is_mark_ligature;
+
+  if (p_total_component_count)
+    *p_total_component_count = total_component_count;
 
   return true;
 }

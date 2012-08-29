@@ -491,66 +491,21 @@ struct Ligature
     unsigned int count = component.len;
     if (unlikely (count < 1)) return TRACE_RETURN (false);
 
-    hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
-    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
+    unsigned int end_offset;
+    bool is_mark_ligature;
+    unsigned int total_component_count;
 
-    /*
-     * This is perhaps the trickiest part of OpenType...  Remarks:
-     *
-     * - If all components of the ligature were marks, we call this a mark ligature.
-     *
-     * - If there is no GDEF, and the ligature is NOT a mark ligature, we categorize
-     *   it as a ligature glyph.
-     *
-     * - Ligatures cannot be formed across glyphs attached to different components
-     *   of previous ligatures.  Eg. the sequence is LAM,SHADDA,LAM,FATHA,HEH, and
-     *   LAM,LAM,HEH form a ligature, leaving SHADDA,FATHA next to eachother.
-     *   However, it would be wrong to ligate that SHADDA,FATHA sequence.o
-     *   There is an exception to this: If a ligature tries ligating with marks that
-     *   belong to it itself, go ahead, assuming that the font designer knows what
-     *   they are doing (otherwise it can break Indic stuff when a matra wants to
-     *   ligate with a conjunct...)
-     */
-
-    bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
-
-    unsigned int total_component_count = 0;
-    total_component_count += get_lig_num_comps (c->buffer->cur());
-
-    unsigned int first_lig_id = get_lig_id (c->buffer->cur());
-    unsigned int first_lig_comp = get_lig_comp (c->buffer->cur());
-
-    for (unsigned int i = 1; i < count; i++)
-    {
-      unsigned int property;
-
-      if (!skippy_iter.next (&property)) return TRACE_RETURN (false);
-
-      if (likely (c->buffer->info[skippy_iter.idx].codepoint != component[i])) return TRACE_RETURN (false);
-
-      unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
-      unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
-
-      if (first_lig_id && first_lig_comp) {
-        /* If first component was attached to a previous ligature component,
-	 * all subsequent components should be attached to the same ligature
-	 * component, otherwise we shouldn't ligate them. */
-        if (first_lig_id != this_lig_id || first_lig_comp != this_lig_comp)
-	  return TRACE_RETURN (false);
-      } else {
-        /* If first component was NOT attached to a previous ligature component,
-	 * all subsequent components should also NOT be attached to any ligature
-	 * component, unless they are attached to the first component itself! */
-        if (this_lig_id && this_lig_comp && (this_lig_id != first_lig_id))
-	  return TRACE_RETURN (false);
-      }
-
-      is_mark_ligature = is_mark_ligature && (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
-      total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
-    }
+    if (likely (!match_input (c, count,
+			      &component[1],
+			      match_glyph,
+			      NULL,
+			      &end_offset,
+			      &is_mark_ligature,
+			      &total_component_count)))
+      return TRACE_RETURN (false);
 
     /* Deal, we are forming the ligature. */
-    c->buffer->merge_clusters (c->buffer->idx, skippy_iter.idx + 1);
+    c->buffer->merge_clusters (c->buffer->idx, c->buffer->idx + end_offset);
 
     /*
      * - If it *is* a mark ligature, we don't allocate a new ligature id, and leave
