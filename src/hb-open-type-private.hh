@@ -327,6 +327,83 @@ struct Sanitizer
 
 
 
+/*
+ * Serialize
+ */
+
+#ifndef HB_DEBUG_SERIALIZE
+#define HB_DEBUG_SERIALIZE (HB_DEBUG+0)
+#endif
+
+
+#define TRACE_SERIALIZE() \
+	hb_auto_trace_t<HB_DEBUG_SERIALIZE> trace (&c->debug_depth, "SERIALIZE", this, HB_FUNC, "");
+
+
+struct hb_serialize_context_t
+{
+  inline void init (void *start, unsigned int size)
+  {
+    this->start = (char *) start;
+    this->end = this->start + size;
+  }
+
+  inline void start_processing (void)
+  {
+    this->ran_out_of_room = false;
+    this->head = this->start;
+    this->debug_depth = 0;
+
+    DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, +1,
+		     "start [%p..%p] (%lu bytes)",
+		     this->start, this->end,
+		     (unsigned long) (this->end - this->start));
+  }
+
+  inline void end_processing (void)
+  {
+    DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, -1,
+		     "end [%p..%p] %s",
+		     this->start, this->end,
+		     this->ran_out_of_room ? "RAN OUT OF ROOM" : "did not ran out of room");
+
+    this->start = this->end = this->head = NULL;
+  }
+
+  template <typename Type>
+  inline Type *allocate (unsigned int size = -1, unsigned int alignment = 2)
+  {
+    if (size == -1)
+      size == Type::static_size;
+    unsigned int padding = (alignment - (this->head - this->start) % alignment) % alignment; /* TODO speedup */
+    if (unlikely (this->ran_out_of_room || this->end - this->head > padding + size)) {
+      this->ran_out_of_room = true;
+      return NULL;
+    }
+    this->head += padding;
+    const char *ret = this->head;
+    this->head += size;
+    return reinterpret_cast<Type *> (ret);
+  }
+
+  template <typename Type>
+  inline Type *embed (const Type &obj, unsigned int alignment = 2)
+  {
+    return allocate (obj.size (), alignment);
+  }
+
+  inline void truncate (void *head)
+  {
+    assert (this->start < head && head <= this->head);
+    this->head = (char *) head;
+  }
+
+  unsigned int debug_depth;
+  char *start, *end, *head;
+  bool ran_out_of_room;
+};
+
+
 
 /*
  *
