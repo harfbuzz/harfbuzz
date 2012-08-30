@@ -337,7 +337,7 @@ struct Sanitizer
 
 
 #define TRACE_SERIALIZE() \
-	hb_auto_trace_t<HB_DEBUG_SERIALIZE> trace (&c->debug_depth, "SERIALIZE", this, HB_FUNC, "");
+	hb_auto_trace_t<HB_DEBUG_SERIALIZE> trace (&c->debug_depth, "SERIALIZE", c, HB_FUNC, "");
 
 
 struct hb_serialize_context_t
@@ -371,25 +371,43 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  inline Type *allocate (unsigned int size = -1, unsigned int alignment = 2)
+  inline Type *allocate (unsigned int size, unsigned int alignment = 2)
   {
-    if (size == -1)
-      size == Type::static_size;
     unsigned int padding = (alignment - (this->head - this->start) % alignment) % alignment; /* TODO speedup */
     if (unlikely (this->ran_out_of_room || this->end - this->head > padding + size)) {
       this->ran_out_of_room = true;
       return NULL;
     }
     this->head += padding;
-    const char *ret = this->head;
+    char *ret = this->head;
     this->head += size;
     return reinterpret_cast<Type *> (ret);
   }
 
   template <typename Type>
+  inline Type *allocate_min (unsigned int alignment = 2)
+  {
+    return this->allocate<Type> (Type::min_size, alignment);
+  }
+
+  template <typename Type>
   inline Type *embed (const Type &obj, unsigned int alignment = 2)
   {
-    return allocate (obj.size (), alignment);
+    return this->allocate<Type> (obj.get_size (), alignment);
+  }
+
+  template <typename Type>
+  inline Type *extend (Type &obj, unsigned int size, unsigned int alignment = 2)
+  {
+    assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
+    this->allocate<Type> (((char *) &obj) + size - this->head, alignment);
+    return reinterpret_cast<Type *> (&obj);
+  }
+
+  template <typename Type>
+  inline Type *extend (Type &obj)
+  {
+    return this->extend<Type> (obj, obj.get_size ());
   }
 
   inline void truncate (void *head)
@@ -628,6 +646,10 @@ struct GenericArrayOf
   inline const Type& operator [] (unsigned int i) const
   {
     if (unlikely (i >= len)) return Null(Type);
+    return array[i];
+  }
+  inline Type& operator [] (unsigned int i)
+  {
     return array[i];
   }
   inline unsigned int get_size (void) const
