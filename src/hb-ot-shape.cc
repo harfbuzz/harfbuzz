@@ -487,14 +487,18 @@ hb_ot_position (hb_ot_shape_context_t *c)
 static void
 hb_ot_hide_zerowidth (hb_ot_shape_context_t *c)
 {
-  hb_codepoint_t space;
-  if (!c->font->get_glyph (' ', 0, &space))
-    return; /* No point! */
+  hb_codepoint_t space = 0;
 
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++)
     if (unlikely (!is_a_ligature (c->buffer->info[i]) &&
-		  _hb_glyph_info_is_zero_width (&c->buffer->info[i]))) {
+		  _hb_glyph_info_is_zero_width (&c->buffer->info[i])))
+    {
+      if (!space) {
+        /* We assume that the space glyph is not gid0. */
+        if (unlikely (!c->font->get_glyph (' ', 0, &space)) || !space)
+	return; /* No point! */
+      }
       c->buffer->info[i].codepoint = space;
       c->buffer->pos[i].x_advance = 0;
       c->buffer->pos[i].y_advance = 0;
