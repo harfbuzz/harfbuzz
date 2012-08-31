@@ -78,24 +78,23 @@ standalone_cluster =	reph? place_holder.n? (halant_group.cn){0,4} halant_or_matr
 other =			any;
 
 main := |*
-	consonant_syllable	=> { process_syllable (consonant_syllable); };
-	vowel_syllable		=> { process_syllable (vowel_syllable); };
-	standalone_cluster	=> { process_syllable (standalone_cluster); };
-	other			=> { process_syllable (non_indic); };
+	consonant_syllable	=> { found_syllable (consonant_syllable); };
+	vowel_syllable		=> { found_syllable (vowel_syllable); };
+	standalone_cluster	=> { found_syllable (standalone_cluster); };
+	other			=> { found_syllable (non_indic_cluster); };
 *|;
 
 
 }%%
 
-#define process_syllable(func) \
+#define found_syllable(syllable_type) \
   HB_STMT_START { \
-    if (0) fprintf (stderr, "syllable %d..%d %s\n", last, p+1, #func); \
+    if (0) fprintf (stderr, "syllable %d..%d %s\n", last, p+1, #syllable_type); \
     for (unsigned int i = last; i < p+1; i++) \
-      info[i].syllable() = syllable_serial; \
-    PASTE (initial_reordering_, func) (plan, buffer, last, p+1); \
+      info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     last = p+1; \
     syllable_serial++; \
-    if (unlikely (!syllable_serial)) syllable_serial++; \
+    if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
 
 static void
@@ -113,7 +112,7 @@ find_syllables (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer)
   pe = eof = buffer->len;
 
   unsigned int last = 0;
-  uint8_t syllable_serial = 1;
+  unsigned int syllable_serial = 1;
   %%{
     write exec;
   }%%

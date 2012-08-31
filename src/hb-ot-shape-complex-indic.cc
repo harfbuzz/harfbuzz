@@ -770,23 +770,61 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-initial_reordering_non_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
-			      hb_buffer_t *buffer HB_UNUSED,
-			      unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
+initial_reordering_non_indic_cluster (const hb_ot_shape_plan_t *plan HB_UNUSED,
+				      hb_buffer_t *buffer HB_UNUSED,
+				      unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
 {
   /* Nothing to do right now.  If we ever switch to using the output
    * buffer in the reordering process, we'd need to next_glyph() here. */
 }
 
+
+enum syllable_type_t {
+  consonant_syllable,
+  vowel_syllable,
+  standalone_cluster,
+  broken_cluster,
+  non_indic_cluster,
+};
+
 #include "hb-ot-shape-complex-indic-machine.hh"
+
+static void
+initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
+			     hb_buffer_t *buffer,
+			     unsigned int start, unsigned int end)
+{
+  syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
+  switch (syllable_type) {
+  case consonant_syllable:	initial_reordering_consonant_syllable (plan, buffer, start, end); return;
+  case vowel_syllable:		initial_reordering_vowel_syllable     (plan, buffer, start, end); return;
+  case standalone_cluster:	initial_reordering_standalone_cluster (plan, buffer, start, end); return;
+  case broken_cluster:		initial_reordering_non_indic_cluster  (plan, buffer, start, end); return;
+  case non_indic_cluster:	initial_reordering_non_indic_cluster  (plan, buffer, start, end); return;
+  }
+}
 
 static void
 initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
 		    hb_buffer_t *buffer)
 {
+  unsigned int count = buffer->len;
+  if (unlikely (!count)) return;
+
   update_consonant_positions (plan, font, buffer);
   find_syllables (plan, buffer);
+
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int last = 0;
+  unsigned int last_syllable = info[0].syllable();
+  for (unsigned int i = 1; i < count; i++)
+    if (last_syllable != info[i].syllable()) {
+      initial_reordering_syllable (plan, buffer, last, i);
+      last = i;
+      last_syllable = info[last].syllable();
+    }
+  initial_reordering_syllable (plan, buffer, last, count);
 }
 
 static void
@@ -1110,7 +1148,7 @@ final_reordering (const hb_ot_shape_plan_t *plan,
 		  hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
-  if (!count) return;
+  if (unlikely (!count)) return;
 
   hb_glyph_info_t *info = buffer->info;
   unsigned int last = 0;
