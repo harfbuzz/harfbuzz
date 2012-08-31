@@ -156,7 +156,21 @@ struct hb_buffer_t {
   HB_INTERNAL void copy_glyph (void);
   /* Copies glyph at idx to output and advance idx.
    * If there's no output, just advance idx. */
-  HB_INTERNAL void next_glyph (void);
+  inline void
+  next_glyph (void)
+  {
+    if (have_output)
+    {
+      if (unlikely (out_info != info || out_len != idx)) {
+	if (unlikely (!make_room_for (1, 1))) return;
+	out_info[out_len] = info[idx];
+      }
+      out_len++;
+    }
+
+    idx++;
+  }
+
   /* Advance idx without copying to output. */
   inline void skip_glyph (void) { idx++; }
 

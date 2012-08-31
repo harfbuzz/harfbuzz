@@ -290,21 +290,6 @@ hb_buffer_t::replace_glyph (hb_codepoint_t glyph_index)
   out_len++;
 }
 
-void
-hb_buffer_t::next_glyph (void)
-{
-  if (have_output)
-  {
-    if (unlikely (out_info != info || out_len != idx)) {
-      if (unlikely (!make_room_for (1, 1))) return;
-      out_info[out_len] = info[idx];
-    }
-    out_len++;
-  }
-
-  idx++;
-}
-
 
 void
 hb_buffer_t::set_masks (hb_mask_t    value,
