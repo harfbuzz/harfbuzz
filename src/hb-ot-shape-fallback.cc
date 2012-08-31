@@ -105,19 +105,19 @@ recategorize_combining_class (unsigned int modified_combining_class)
      * But viramas can be both above and below based on the codepoint / script. */
 
     case HB_MODIFIED_COMBINING_CLASS_CCC103: /* sara u / sara uu */
-      return HB_UNICODE_COMBINING_CLASS_BELOW;
+      return HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT;
 
     case HB_MODIFIED_COMBINING_CLASS_CCC107: /* mai */
-      return HB_UNICODE_COMBINING_CLASS_ABOVE;
+      return HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT;
 
 
     /* Lao */
 
     case HB_MODIFIED_COMBINING_CLASS_CCC118: /* sign u / sign uu */
-      return HB_UNICODE_COMBINING_CLASS_BELOW;
+      return HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT;
 
     case HB_MODIFIED_COMBINING_CLASS_CCC122: /* mai */
-      return HB_UNICODE_COMBINING_CLASS_ABOVE;
+      return HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT;
 
 
     /* Tibetan */
