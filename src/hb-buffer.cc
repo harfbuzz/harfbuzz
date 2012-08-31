@@ -268,6 +268,16 @@ hb_buffer_t::output_glyph (hb_codepoint_t glyph_index)
 }
 
 void
+hb_buffer_t::output_info (hb_glyph_info_t &glyph_info)
+{
+  if (unlikely (!make_room_for (0, 1))) return;
+
+  out_info[out_len] = glyph_info;
+
+  out_len++;
+}
+
+void
 hb_buffer_t::copy_glyph (void)
 {
   if (unlikely (!make_room_for (0, 1))) return;

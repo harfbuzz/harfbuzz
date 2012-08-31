@@ -770,6 +770,15 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
 }
 
 static void
+initial_reordering_broken_cluster (const hb_ot_shape_plan_t *plan,
+				   hb_buffer_t *buffer,
+				   unsigned int start, unsigned int end)
+{
+  /* We already inserted dotted-circles, so just call the standalone_cluster. */
+  initial_reordering_standalone_cluster (plan, buffer, start, end);
+}
+
+static void
 initial_reordering_non_indic_cluster (const hb_ot_shape_plan_t *plan HB_UNUSED,
 				      hb_buffer_t *buffer HB_UNUSED,
 				      unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
@@ -799,9 +808,46 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
   case consonant_syllable:	initial_reordering_consonant_syllable (plan, buffer, start, end); return;
   case vowel_syllable:		initial_reordering_vowel_syllable     (plan, buffer, start, end); return;
   case standalone_cluster:	initial_reordering_standalone_cluster (plan, buffer, start, end); return;
-  case broken_cluster:		initial_reordering_non_indic_cluster  (plan, buffer, start, end); return;
+  case broken_cluster:		initial_reordering_broken_cluster     (plan, buffer, start, end); return;
   case non_indic_cluster:	initial_reordering_non_indic_cluster  (plan, buffer, start, end); return;
   }
+}
+
+static void
+insert_dotted_circles (const hb_ot_shape_plan_t *plan,
+		       hb_font_t *font,
+		       hb_buffer_t *buffer)
+{
+  hb_codepoint_t dottedcircle_glyph;
+  if (!font->get_glyph (0x25CC, 0, &dottedcircle_glyph))
+    return;
+
+  hb_glyph_info_t dottedcircle;
+  dottedcircle.codepoint = 0x25CC;
+  set_indic_properties (dottedcircle);
+  dottedcircle.codepoint = dottedcircle_glyph;
+
+  buffer->clear_output ();
+
+  buffer->idx = 0;
+  unsigned int last_syllable = 0;
+  while (buffer->idx < buffer->len)
+  {
+    unsigned int syllable = buffer->cur().syllable();
+    syllable_type_t syllable_type = (syllable_type_t) (syllable & 0x0F);
+    if (unlikely (last_syllable != syllable && syllable_type == broken_cluster))
+    {
+      hb_glyph_info_t info = dottedcircle;
+      info.cluster = buffer->cur().cluster;
+      info.mask = buffer->cur().mask;
+      info.syllable() = buffer->cur().syllable();
+      buffer->output_info (info);
+      last_syllable = syllable;
+    }
+    buffer->next_glyph ();
+  }
+
+  buffer->swap_buffers ();
 }
 
 static void
@@ -809,13 +855,16 @@ initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
 		    hb_buffer_t *buffer)
 {
-  unsigned int count = buffer->len;
-  if (unlikely (!count)) return;
-
   update_consonant_positions (plan, font, buffer);
-  find_syllables (plan, buffer);
+
+  bool had_broken_clusters = false;
+  find_syllables (plan, buffer, &had_broken_clusters);
+  if (unlikely (had_broken_clusters))
+    insert_dotted_circles (plan, font, buffer);
 
   hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  if (unlikely (!count)) return;
   unsigned int last = 0;
   unsigned int last_syllable = info[0].syllable();
   for (unsigned int i = 1; i < count; i++)
@@ -1170,6 +1219,12 @@ final_reordering (const hb_ot_shape_plan_t *plan,
 }
 
 
+static hb_ot_shape_normalization_mode_t
+normalization_preference_indic (const hb_ot_shape_plan_t *plan)
+{
+  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
+}
+
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
 {
   "indic",
@@ -1178,7 +1233,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   data_create_indic,
   data_destroy_indic,
   NULL, /* preprocess_text */
-  NULL, /* normalization_preference */
+  normalization_preference_indic,
   setup_masks_indic,
   false, /* zero_width_attached_marks */
 };

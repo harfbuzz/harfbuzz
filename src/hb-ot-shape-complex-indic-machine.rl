@@ -75,12 +75,14 @@ halant_or_matra_group = (final_halant_group | matra_group{0,4});
 consonant_syllable =	Repha? (cn.halant_group){0,4} cn A? halant_or_matra_group? syllable_tail;
 vowel_syllable =	reph? V.n? (ZWJ | (halant_group.cn){0,4} halant_or_matra_group? syllable_tail);
 standalone_cluster =	reph? place_holder.n? (halant_group.cn){0,4} halant_or_matra_group? syllable_tail;
+broken_cluster =	n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 other =			any;
 
 main := |*
 	consonant_syllable	=> { found_syllable (consonant_syllable); };
 	vowel_syllable		=> { found_syllable (vowel_syllable); };
 	standalone_cluster	=> { found_syllable (standalone_cluster); };
+	broken_cluster		=> { found_syllable (broken_cluster); *had_broken_cluster = true; };
 	other			=> { found_syllable (non_indic_cluster); };
 *|;
 
@@ -98,7 +100,7 @@ main := |*
   } HB_STMT_END
 
 static void
-find_syllables (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer)
+find_syllables (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer, bool *had_broken_cluster)
 {
   unsigned int p, pe, eof, ts, te, act;
   int cs;
