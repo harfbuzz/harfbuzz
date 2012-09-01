@@ -345,6 +345,10 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
 
   hb_ot_shape_setup_masks (c);
 
+  /* This is unfortunate to go here, but necessary... */
+  if (!hb_ot_layout_has_positioning (c->face))
+    _hb_ot_shape_fallback_position_recategorize_marks (c->plan, c->font, c->buffer);
+
   hb_ot_map_glyphs_fast (c->buffer);
 
   HB_BUFFER_DEALLOCATE_VAR (c->buffer, glyph_index);

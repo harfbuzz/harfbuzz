@@ -26,21 +26,9 @@
 
 #include "hb-ot-shape-fallback-private.hh"
 
-static void
-zero_mark_advances (hb_buffer_t *buffer,
-		    unsigned int start,
-		    unsigned int end)
-{
-  for (unsigned int i = start; i < end; i++)
-    if (_hb_glyph_info_get_general_category (&buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
-    {
-      buffer->pos[i].x_advance = 0;
-      buffer->pos[i].y_advance = 0;
-    }
-}
-
 static unsigned int
-recategorize_combining_class (unsigned int modified_combining_class)
+recategorize_combining_class (hb_codepoint_t u,
+			      unsigned int modified_combining_class)
 {
   if (modified_combining_class >= 200)
     return modified_combining_class;
@@ -134,6 +122,34 @@ recategorize_combining_class (unsigned int modified_combining_class)
   }
 
   return modified_combining_class;
+}
+
+void
+_hb_ot_shape_fallback_position_recategorize_marks (const hb_ot_shape_plan_t *plan,
+						   hb_font_t *font,
+						   hb_buffer_t  *buffer)
+{
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    if (_hb_glyph_info_get_general_category (&buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) {
+      unsigned int combining_class = _hb_glyph_info_get_modified_combining_class (&buffer->info[i]);
+      combining_class = recategorize_combining_class (buffer->info[i].codepoint, combining_class);
+      _hb_glyph_info_set_modified_combining_class (&buffer->info[i], combining_class);
+    }
+}
+
+
+static void
+zero_mark_advances (hb_buffer_t *buffer,
+		    unsigned int start,
+		    unsigned int end)
+{
+  for (unsigned int i = start; i < end; i++)
+    if (_hb_glyph_info_get_general_category (&buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+    {
+      buffer->pos[i].x_advance = 0;
+      buffer->pos[i].y_advance = 0;
+    }
 }
 
 static inline void
@@ -259,7 +275,7 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   for (unsigned int i = base + 1; i < end; i++)
     if (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]))
     {
-      unsigned int this_combining_class = recategorize_combining_class (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]));
+      unsigned int this_combining_class = _hb_glyph_info_get_modified_combining_class (&buffer->info[i]);
       if (this_combining_class != last_combining_class)
         cluster_extents = base_extents;
 
