@@ -600,9 +600,11 @@ struct GenericOffsetTo : OffsetType
     return StructAtOffset<Type> (base, offset);
   }
 
-  inline void set_offset (void *base, void *obj)
+  inline Type& serialize (hb_serialize_context_t *c, void *base)
   {
-    this->set ((char *) obj - (char *) base);
+    Type *t = (Type *) c->head;
+    this->set ((char *) t - (char *) base);
+    return *t;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {

@@ -79,9 +79,8 @@ struct SingleSubstFormat1
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     deltaGlyphID.set (delta);
-    coverage.set_offset (this, c->head);
-    if (unlikely (!(this+coverage).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     return TRACE_RETURN (true);
   }
 
