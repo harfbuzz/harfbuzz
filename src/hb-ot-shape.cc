@@ -235,6 +235,37 @@ hb_set_unicode_props (hb_buffer_t *buffer)
 }
 
 static void
+hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
+{
+  /* TODO One day, when we keep _before_ text for the buffer, take
+   * that into consideration.  For now, insert dotted-circle if the
+   * very first character is a non-spacing mark. */
+  if (_hb_glyph_info_get_general_category (&buffer->info[0]) !=
+      HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+    return;
+
+  hb_codepoint_t dottedcircle_glyph;
+  if (!font->get_glyph (0x25CC, 0, &dottedcircle_glyph))
+    return;
+
+  hb_glyph_info_t dottedcircle;
+  dottedcircle.codepoint = 0x25CC;
+  _hb_glyph_info_set_unicode_props (&dottedcircle, buffer->unicode);
+
+  buffer->clear_output ();
+
+  buffer->idx = 0;
+  hb_glyph_info_t info = dottedcircle;
+  info.cluster = buffer->cur().cluster;
+  info.mask = buffer->cur().mask;
+  buffer->output_info (info);
+  while (buffer->idx < buffer->len)
+    buffer->next_glyph ();
+
+  buffer->swap_buffers ();
+}
+
+static void
 hb_form_clusters (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
@@ -526,6 +557,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   c->buffer->clear_output ();
 
   hb_set_unicode_props (c->buffer);
+  hb_insert_dotted_circle (c->buffer, c->font);
   hb_form_clusters (c->buffer);
 
   hb_ensure_native_direction (c->buffer);
