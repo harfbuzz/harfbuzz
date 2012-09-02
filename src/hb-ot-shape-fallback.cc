@@ -28,14 +28,53 @@
 
 static unsigned int
 recategorize_combining_class (hb_codepoint_t u,
-			      unsigned int modified_combining_class)
+			      unsigned int klass)
 {
-  if (modified_combining_class >= 200)
-    return modified_combining_class;
+  if (klass >= 200)
+    return klass;
 
-  /* This should be kept in sync with modified combining class mapping
-   * from hb-unicode.cc. */
-  switch (modified_combining_class)
+  /* Thai / Lao need some per-character work. */
+  if ((u & ~0xFF) == 0x0E00)
+  {
+    if (unlikely (klass == 0))
+    {
+      switch (u)
+      {
+        case 0x0E31:
+        case 0x0E34:
+        case 0x0E35:
+        case 0x0E36:
+        case 0x0E37:
+        case 0x0E47:
+        case 0x0E4C:
+        case 0x0E4D:
+        case 0x0E4E:
+	  klass = HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT;
+	  break;
+
+        case 0x0EB1:
+        case 0x0EB4:
+        case 0x0EB5:
+        case 0x0EB6:
+        case 0x0EB7:
+        case 0x0EBB:
+        case 0x0ECC:
+        case 0x0ECD:
+	  klass = HB_UNICODE_COMBINING_CLASS_ABOVE;
+	  break;
+
+        case 0x0EBC:
+	  klass = HB_UNICODE_COMBINING_CLASS_BELOW;
+	  break;
+      }
+    } else {
+      /* Thai virama is below-right */
+      if (u == 0x0E3A)
+	klass = HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT;
+    }
+  }
+
+  switch (klass)
   {
 
     /* Hebrew */
@@ -89,9 +128,6 @@ recategorize_combining_class (hb_codepoint_t u,
 
     /* Thai */
 
-    /* Note: to be useful we also need to position U+0E3A that has ccc=9 (virama).
-     * But viramas can be both above and below based on the codepoint / script. */
-
     case HB_MODIFIED_COMBINING_CLASS_CCC103: /* sara u / sara uu */
       return HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT;
 
@@ -121,7 +157,7 @@ recategorize_combining_class (hb_codepoint_t u,
 
   }
 
-  return modified_combining_class;
+  return klass;
 }
 
 void
