@@ -371,51 +371,49 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  inline Type *allocate_size (unsigned int size, unsigned int alignment = 1)
+  inline Type *allocate_size (unsigned int size)
   {
-    unsigned int padding = alignment < 2 ? 0 : (alignment - (this->head - this->start) % alignment) % alignment;
-    if (unlikely (this->ran_out_of_room || this->end - this->head > padding + size)) {
+    if (unlikely (this->ran_out_of_room || this->end - this->head > size)) {
       this->ran_out_of_room = true;
       return NULL;
     }
-    memset (this->head, 0, padding + size);
-    this->head += padding;
+    memset (this->head, 0, size);
     char *ret = this->head;
     this->head += size;
     return reinterpret_cast<Type *> (ret);
   }
 
   template <typename Type>
-  inline Type *allocate_min (unsigned int alignment = 2)
+  inline Type *allocate_min (void)
   {
-    return this->allocate_size<Type> (Type::min_size, alignment);
+    return this->allocate_size<Type> (Type::min_size);
   }
 
   template <typename Type>
-  inline Type *embed (const Type &obj, unsigned int alignment = 2)
+  inline Type *embed (const Type &obj)
   {
     unsigned int size = obj.get_size ();
-    Type *ret = this->allocate_size<Type> (size, alignment);
+    Type *ret = this->allocate_size<Type> (size);
     if (unlikely (!ret)) return NULL;
     memcpy (ret, obj, size);
     return ret;
   }
 
   template <typename Type>
-  inline Type *extend_min (Type &obj, unsigned int alignment = 2)
+  inline Type *extend_min (Type &obj)
   {
     unsigned int size = obj.min_size;
     assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    this->allocate_size<Type> (((char *) &obj) + size - this->head, alignment);
+    this->allocate_size<Type> (((char *) &obj) + size - this->head);
     return reinterpret_cast<Type *> (&obj);
   }
 
   template <typename Type>
-  inline Type *extend (Type &obj, unsigned int alignment = 2)
+  inline Type *extend (Type &obj)
   {
     unsigned int size = obj.get_size ();
     assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    this->allocate_size<Type> (((char *) &obj) + size - this->head, alignment);
+    this->allocate_size<Type> (((char *) &obj) + size - this->head);
     return reinterpret_cast<Type *> (&obj);
   }
 
