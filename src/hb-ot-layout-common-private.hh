@@ -530,7 +530,7 @@ struct Coverage
 			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
-    if (unlikely (c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
     unsigned int num_ranges = 1;
     for (unsigned int i = 1; i < num_glyphs; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])

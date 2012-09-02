@@ -678,6 +678,20 @@ struct GenericArrayOf
   inline unsigned int get_size (void) const
   { return len.static_size + len * Type::static_size; }
 
+  inline bool serialize (hb_serialize_context_t *c,
+			 const Type *items,
+			 unsigned int items_len)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    len.set (items_len); /* TODO may overflow */
+    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
+    unsigned int count = items_len;
+    for (unsigned int i = 0; i < count; i++)
+      array[i].set (items[i]);
+    return TRACE_RETURN (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
