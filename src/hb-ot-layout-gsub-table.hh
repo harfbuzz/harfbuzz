@@ -72,6 +72,19 @@ struct SingleSubstFormat1
     return TRACE_RETURN (true);
   }
 
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int num_glyphs,
+			 SHORT delta)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    deltaGlyphID.set (delta);
+    coverage.set_offset (this, c->head);
+    if (unlikely (!(this+coverage).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     return TRACE_RETURN (coverage.sanitize (c, this) && deltaGlyphID.sanitize (c));

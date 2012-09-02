@@ -355,18 +355,16 @@ struct CoverageFormat1
     return i;
   }
 
-  inline static bool serialize (hb_serialize_context_t *c,
-				const USHORT *glyphs,
-				unsigned int num_glyphs)
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
-    CoverageFormat1 *t = c->allocate_min<CoverageFormat1> ();
-    if (unlikely (!t)) return TRACE_RETURN (false);
-    t->coverageFormat.set (1);
-    t->glyphArray.len.set (num_glyphs);
-    if (unlikely (!c->extend (t->glyphArray))) return TRACE_RETURN (false);
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    glyphArray.len.set (num_glyphs);
+    if (unlikely (!c->extend (glyphArray))) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < num_glyphs; i++)
-      t->glyphArray[i].set (glyphs[i]);
+      glyphArray[i].set (glyphs[i]);
     return TRACE_RETURN (true);
   }
 
@@ -421,31 +419,32 @@ struct CoverageFormat2
     return NOT_COVERED;
   }
 
-  inline static bool serialize (hb_serialize_context_t *c,
-				const USHORT *glyphs,
-				unsigned int num_glyphs)
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
-    CoverageFormat2 *t = c->allocate_min<CoverageFormat2> ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+
+    if (unlikely (!num_glyphs)) return TRACE_RETURN (true);
+
     unsigned int num_ranges = 1;
     for (unsigned int i = 1; i < num_glyphs; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
         num_ranges++;
-    if (unlikely (!t)) return TRACE_RETURN (false);
-    t->coverageFormat.set (2);
-    t->rangeRecord.len.set (num_ranges);
-    if (unlikely (!c->extend (t->rangeRecord))) return TRACE_RETURN (false);
-    if (unlikely (!num_glyphs)) return TRACE_RETURN (true);
+    rangeRecord.len.set (num_ranges);
+    if (unlikely (!c->extend (rangeRecord))) return TRACE_RETURN (false);
+
     unsigned int range = 0;
-    t->rangeRecord[range].start.set (glyphs[0]);
-    t->rangeRecord[range].value.set (0);
+    rangeRecord[range].start.set (glyphs[0]);
+    rangeRecord[range].value.set (0);
     for (unsigned int i = 1; i < num_glyphs; i++)
       if (glyphs[i - 1] + 1 != glyphs[i]) {
-	t->rangeRecord[range].start.set (glyphs[i]);
-	t->rangeRecord[range].value.set (i);
+	rangeRecord[range].start.set (glyphs[i]);
+	rangeRecord[range].value.set (i);
 	range++;
       } else {
-        t->rangeRecord[range].end = glyphs[i];
+        rangeRecord[range].end = glyphs[i];
       }
     return TRACE_RETURN (true);
   }
@@ -526,20 +525,20 @@ struct Coverage
     }
   }
 
-  inline static bool serialize (hb_serialize_context_t *c,
-				const USHORT *glyphs,
-				unsigned int num_glyphs)
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
-    unsigned int format;
+    if (unlikely (c->extend_min (*this))) return TRACE_RETURN (false);
     unsigned int num_ranges = 1;
     for (unsigned int i = 1; i < num_glyphs; i++)
       if (glyphs[i - 1] + 1 != glyphs[i])
         num_ranges++;
-    format = num_glyphs * 2 < num_ranges * 3 ? 1 : 2;
-    switch (format) {
-    case 1: return TRACE_RETURN (CoverageFormat1::serialize (c, glyphs, num_glyphs));
-    case 2: return TRACE_RETURN (CoverageFormat2::serialize (c, glyphs, num_glyphs));
+    u.format.set (num_glyphs * 2 < num_ranges * 3 ? 1 : 2);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (u.format1.serialize (c, glyphs, num_glyphs));
+    case 2: return TRACE_RETURN (u.format2.serialize (c, glyphs, num_glyphs));
     default:return TRACE_RETURN (false);
     }
   }

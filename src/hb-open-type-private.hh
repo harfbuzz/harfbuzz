@@ -371,13 +371,14 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  inline Type *allocate (unsigned int size, unsigned int alignment = 2)
+  inline Type *allocate_size (unsigned int size, unsigned int alignment = 1)
   {
-    unsigned int padding = (alignment - (this->head - this->start) % alignment) % alignment; /* TODO speedup */
+    unsigned int padding = alignment < 2 ? 0 : (alignment - (this->head - this->start) % alignment) % alignment;
     if (unlikely (this->ran_out_of_room || this->end - this->head > padding + size)) {
       this->ran_out_of_room = true;
       return NULL;
     }
+    memset (this->head, 0, padding + size);
     this->head += padding;
     char *ret = this->head;
     this->head += size;
@@ -387,27 +388,35 @@ struct hb_serialize_context_t
   template <typename Type>
   inline Type *allocate_min (unsigned int alignment = 2)
   {
-    return this->allocate<Type> (Type::min_size, alignment);
+    return this->allocate_size<Type> (Type::min_size, alignment);
   }
 
   template <typename Type>
   inline Type *embed (const Type &obj, unsigned int alignment = 2)
   {
-    return this->allocate<Type> (obj.get_size (), alignment);
+    unsigned int size = obj.get_size ();
+    Type *ret = this->allocate_size<Type> (size, alignment);
+    if (unlikely (!ret)) return NULL;
+    memcpy (ret, obj, size);
+    return ret;
   }
 
   template <typename Type>
-  inline Type *extend (Type &obj, unsigned int size, unsigned int alignment = 2)
+  inline Type *extend_min (Type &obj, unsigned int alignment = 2)
   {
+    unsigned int size = obj.min_size;
     assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    this->allocate<Type> (((char *) &obj) + size - this->head, alignment);
+    this->allocate_size<Type> (((char *) &obj) + size - this->head, alignment);
     return reinterpret_cast<Type *> (&obj);
   }
 
   template <typename Type>
-  inline Type *extend (Type &obj)
+  inline Type *extend (Type &obj, unsigned int alignment = 2)
   {
-    return this->extend<Type> (obj, obj.get_size ());
+    unsigned int size = obj.get_size ();
+    assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
+    this->allocate_size<Type> (((char *) &obj) + size - this->head, alignment);
+    return reinterpret_cast<Type *> (&obj);
   }
 
   inline void truncate (void *head)
@@ -585,6 +594,16 @@ struct GenericOffsetTo : OffsetType
     if (unlikely (!offset)) return Null(Type);
     return StructAtOffset<Type> (base, offset);
   }
+  inline Type& operator () (void *base)
+  {
+    unsigned int offset = *this;
+    return StructAtOffset<Type> (base, offset);
+  }
+
+  inline void set_offset (void *base, void *obj)
+  {
+    this->set ((char *) obj - (char *) base);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE ();
@@ -615,7 +634,9 @@ struct GenericOffsetTo : OffsetType
   }
 };
 template <typename Base, typename OffsetType, typename Type>
-inline const Type& operator + (const Base &base, GenericOffsetTo<OffsetType, Type> offset) { return offset (base); }
+inline const Type& operator + (const Base &base, const GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
+template <typename Base, typename OffsetType, typename Type>
+inline Type& operator + (Base &base, GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
 
 template <typename Type>
 struct OffsetTo : GenericOffsetTo<Offset, Type> {};
