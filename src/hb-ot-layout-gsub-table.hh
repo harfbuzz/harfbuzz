@@ -276,6 +276,16 @@ struct Sequence
     return TRACE_RETURN (true);
   }
 
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int num_glyphs)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!substitute.serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
+  }
+
   public:
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
@@ -318,6 +328,23 @@ struct MultipleSubstFormat1
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     return TRACE_RETURN ((this+sequence[index]).apply (c));
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int *substitute_len_list,
+			 unsigned int num_glyphs,
+			 const USHORT *substitute_glyphs_list)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
+    if (unlikely (!sequence.serialize (c, num_glyphs))) return TRACE_RETURN (false);
+    for (unsigned int i = 0; i < num_glyphs; i++) {
+      if (unlikely (!sequence[i].serialize (c, this).serialize (c, substitute_glyphs_list, substitute_len_list[i]))) return TRACE_RETURN (false);
+      substitute_glyphs_list += substitute_len_list[i];
+    }
+    return TRACE_RETURN (true);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -365,6 +392,22 @@ struct MultipleSubst
     TRACE_APPLY ();
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.apply (c));
+    default:return TRACE_RETURN (false);
+    }
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int *substitute_len_list,
+			 unsigned int num_glyphs,
+			 const USHORT *substitute_glyphs_list)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (u.format))) return TRACE_RETURN (false);
+    unsigned int format = 1;
+    u.format.set (format);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (u.format1.serialize (c, glyphs, substitute_len_list, num_glyphs, substitute_glyphs_list));
     default:return TRACE_RETURN (false);
     }
   }

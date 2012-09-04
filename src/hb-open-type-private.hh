@@ -677,6 +677,16 @@ struct GenericArrayOf
   { return len.static_size + len * Type::static_size; }
 
   inline bool serialize (hb_serialize_context_t *c,
+			 unsigned int items_len)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    len.set (items_len); /* TODO(serialize) Overflow? */
+    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
 			 const Type *items,
 			 unsigned int items_len)
   {
