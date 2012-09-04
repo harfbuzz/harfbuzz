@@ -485,6 +485,23 @@ struct AlternateSubstFormat1
     return TRACE_RETURN (true);
   }
 
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int *alternate_len_list,
+			 unsigned int num_glyphs,
+			 const USHORT *alternate_glyphs_list)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
+    if (unlikely (!alternateSet.serialize (c, num_glyphs))) return TRACE_RETURN (false);
+    for (unsigned int i = 0; i < num_glyphs; i++) {
+      if (unlikely (!alternateSet[i].serialize (c, this).serialize (c, alternate_glyphs_list, alternate_len_list[i]))) return TRACE_RETURN (false);
+      alternate_glyphs_list += alternate_len_list[i];
+    }
+    return TRACE_RETURN (true);
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     return TRACE_RETURN (coverage.sanitize (c, this) && alternateSet.sanitize (c, this));
@@ -530,6 +547,22 @@ struct AlternateSubst
     TRACE_APPLY ();
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.apply (c));
+    default:return TRACE_RETURN (false);
+    }
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 const USHORT *glyphs,
+			 unsigned int *alternate_len_list,
+			 unsigned int num_glyphs,
+			 const USHORT *alternate_glyphs_list)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (u.format))) return TRACE_RETURN (false);
+    unsigned int format = 1;
+    u.format.set (format);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (u.format1.serialize (c, glyphs, alternate_len_list, num_glyphs, alternate_glyphs_list));
     default:return TRACE_RETURN (false);
     }
   }
