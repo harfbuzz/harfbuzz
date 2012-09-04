@@ -417,8 +417,11 @@ hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
 					   hb_bool_t             zero_context)
 {
   if (unlikely (lookup_index >= hb_ot_layout_from_face (face)->gsub_lookup_count)) return false;
-  OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, zero_context, hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
-  return hb_ot_layout_from_face (face)->gsub->would_substitute_lookup (&c, lookup_index);
+  OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, zero_context);
+
+  const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
+
+  return l.would_apply (&c, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
 }
 
 void
@@ -434,8 +437,12 @@ hb_ot_layout_substitute_lookup (hb_font_t    *font,
 				hb_mask_t     mask)
 {
   if (unlikely (lookup_index >= hb_ot_layout_from_face (font->face)->gsub_lookup_count)) return false;
-  OT::hb_apply_context_t c (font, buffer, mask, hb_ot_layout_from_face (font->face)->gsub_digests[lookup_index]);
-  return hb_ot_layout_from_face (font->face)->gsub->substitute_lookup (&c, lookup_index);
+
+  OT::hb_apply_context_t c (font, buffer, mask);
+
+  const OT::SubstLookup& l = hb_ot_layout_from_face (font->face)->gsub->get_lookup (lookup_index);
+
+  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gsub_digests[lookup_index]);
 }
 
 void
@@ -476,8 +483,12 @@ hb_ot_layout_position_lookup (hb_font_t    *font,
 			      hb_mask_t     mask)
 {
   if (unlikely (lookup_index >= hb_ot_layout_from_face (font->face)->gpos_lookup_count)) return false;
-  OT::hb_apply_context_t c (font, buffer, mask, hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
-  return hb_ot_layout_from_face (font->face)->gpos->position_lookup (&c, lookup_index);
+
+  OT::hb_apply_context_t c (font, buffer, mask);
+
+  const OT::PosLookup& l = hb_ot_layout_from_face (font->face)->gpos->get_lookup (lookup_index);
+
+  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
 }
 
 void

@@ -246,9 +246,7 @@ arabic_fallback_shape (hb_font_t *font, hb_buffer_t *buffer)
       buffer->info[i].codepoint = shaped;
   }
 
-  hb_set_digest_t digest;
-  digest.init ();
-  OT::hb_apply_context_t c (font, buffer, 1/*global mask*/, digest);
+  OT::hb_apply_context_t c (font, buffer, 1/*global mask*/);
   c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
 
   /* Mandatory ligatures */

@@ -1531,7 +1531,7 @@ struct PosLookup : Lookup
     return false;
   }
 
-  inline bool apply_string (hb_apply_context_t *c) const
+  inline bool apply_string (hb_apply_context_t *c, const hb_set_digest_t *digest) const
   {
     bool ret = false;
 
@@ -1545,7 +1545,7 @@ struct PosLookup : Lookup
     while (c->buffer->idx < c->buffer->len)
     {
       if ((c->buffer->cur().mask & c->lookup_mask) &&
-	  c->digest.may_have (c->buffer->cur().codepoint) &&
+	  digest->may_have (c->buffer->cur().codepoint) &&
 	  apply_once (c))
 	ret = true;
       else
@@ -1579,9 +1579,6 @@ struct GPOS : GSUBGPOS
   template <typename set_t>
   inline void add_coverage (set_t *glyphs, unsigned int lookup_index) const
   { get_lookup (lookup_index).add_coverage (glyphs); }
-
-  inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index) const
-  { return get_lookup (lookup_index).apply_string (c); }
 
   static inline void position_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void position_finish (hb_font_t *font, hb_buffer_t *buffer, hb_bool_t zero_width_attahced_marks);

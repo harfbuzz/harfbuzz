@@ -1208,10 +1208,10 @@ struct SubstLookup : Lookup
     }
   }
 
-  inline bool would_apply (hb_would_apply_context_t *c) const
+  inline bool would_apply (hb_would_apply_context_t *c, const hb_set_digest_t *digest) const
   {
     if (unlikely (!c->len)) return false;
-    if (!c->digest.may_have (c->glyphs[0])) return false;
+    if (!digest->may_have (c->glyphs[0])) return false;
     unsigned int lookup_type = get_type ();
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++)
@@ -1235,7 +1235,7 @@ struct SubstLookup : Lookup
     return false;
   }
 
-  inline bool apply_string (hb_apply_context_t *c) const
+  inline bool apply_string (hb_apply_context_t *c, const hb_set_digest_t *digest) const
   {
     bool ret = false;
 
@@ -1253,7 +1253,7 @@ struct SubstLookup : Lookup
 	while (c->buffer->idx < c->buffer->len)
 	{
 	  if ((c->buffer->cur().mask & c->lookup_mask) &&
-	      c->digest.may_have (c->buffer->cur().codepoint) &&
+	      digest->may_have (c->buffer->cur().codepoint) &&
 	      apply_once (c))
 	    ret = true;
 	  else
@@ -1269,7 +1269,7 @@ struct SubstLookup : Lookup
 	do
 	{
 	  if ((c->buffer->cur().mask & c->lookup_mask) &&
-	      c->digest.may_have (c->buffer->cur().codepoint) &&
+	      digest->may_have (c->buffer->cur().codepoint) &&
 	      apply_once (c))
 	    ret = true;
 	  else
@@ -1321,12 +1321,6 @@ struct GSUB : GSUBGPOS
   template <typename set_t>
   inline void add_coverage (set_t *glyphs, unsigned int lookup_index) const
   { get_lookup (lookup_index).add_coverage (glyphs); }
-
-  inline bool would_substitute_lookup (hb_would_apply_context_t *c, unsigned int lookup_index) const
-  { return get_lookup (lookup_index).would_apply (c); }
-
-  inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index) const
-  { return get_lookup (lookup_index).apply_string (c); }
 
   static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void substitute_finish (hb_font_t *font, hb_buffer_t *buffer);
