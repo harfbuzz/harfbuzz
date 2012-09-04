@@ -601,7 +601,7 @@ struct GenericOffsetTo : OffsetType
   inline Type& serialize (hb_serialize_context_t *c, void *base)
   {
     Type *t = (Type *) c->head;
-    this->set ((char *) t - (char *) base);
+    this->set ((char *) t - (char *) base); /* TODO(serialize) Overflow? */
     return *t;
   }
 
@@ -682,7 +682,7 @@ struct GenericArrayOf
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
-    len.set (items_len); /* TODO may overflow */
+    len.set (items_len); /* TODO(serialize) Overflow? */
     if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
     unsigned int count = items_len;
     for (unsigned int i = 0; i < count; i++)
