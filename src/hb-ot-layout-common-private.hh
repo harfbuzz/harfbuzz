@@ -356,7 +356,7 @@ struct CoverageFormat1
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
+			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
@@ -365,6 +365,7 @@ struct CoverageFormat1
     if (unlikely (!c->extend (glyphArray))) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < num_glyphs; i++)
       glyphArray[i].set (glyphs[i]);
+    glyphs.advance (num_glyphs);
     return TRACE_RETURN (true);
   }
 
@@ -420,7 +421,7 @@ struct CoverageFormat2
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
+			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
@@ -446,6 +447,7 @@ struct CoverageFormat2
       } else {
         rangeRecord[range].end = glyphs[i];
       }
+    glyphs.advance (num_glyphs);
     return TRACE_RETURN (true);
   }
 
@@ -526,7 +528,7 @@ struct Coverage
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
+			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();

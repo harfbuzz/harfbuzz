@@ -73,7 +73,7 @@ struct SingleSubstFormat1
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
+			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs,
 			 int delta)
   {
@@ -137,8 +137,8 @@ struct SingleSubstFormat2
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
-			 const USHORT *substitutes,
+			 Supplier<GlyphID> &glyphs,
+			 Supplier<GlyphID> &substitutes,
 			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
@@ -201,8 +201,8 @@ struct SingleSubst
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
-			 const USHORT *substitutes,
+			 Supplier<GlyphID> &glyphs,
+			 Supplier<GlyphID> &substitutes,
 			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
@@ -277,7 +277,7 @@ struct Sequence
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
+			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs)
   {
     TRACE_SERIALIZE ();
@@ -331,19 +331,20 @@ struct MultipleSubstFormat1
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
-			 unsigned int *substitute_len_list,
+			 Supplier<GlyphID> &glyphs,
+			 Supplier<unsigned int> &substitute_len_list,
 			 unsigned int num_glyphs,
-			 const USHORT *substitute_glyphs_list)
+			 Supplier<GlyphID> &substitute_glyphs_list)
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     if (unlikely (!sequence.serialize (c, num_glyphs))) return TRACE_RETURN (false);
-    for (unsigned int i = 0; i < num_glyphs; i++) {
-      if (unlikely (!sequence[i].serialize (c, this).serialize (c, substitute_glyphs_list, substitute_len_list[i]))) return TRACE_RETURN (false);
-      substitute_glyphs_list += substitute_len_list[i];
-    }
+    for (unsigned int i = 0; i < num_glyphs; i++)
+      if (unlikely (!sequence[i].serialize (c, this).serialize (c,
+								substitute_glyphs_list,
+								substitute_len_list[i]))) return TRACE_RETURN (false);
+    substitute_len_list.advance (num_glyphs);
     return TRACE_RETURN (true);
   }
 
@@ -397,10 +398,10 @@ struct MultipleSubst
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
-			 unsigned int *substitute_len_list,
+			 Supplier<GlyphID> &glyphs,
+			 Supplier<unsigned int> &substitute_len_list,
 			 unsigned int num_glyphs,
-			 const USHORT *substitute_glyphs_list)
+			 Supplier<GlyphID> &substitute_glyphs_list)
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (u.format))) return TRACE_RETURN (false);
@@ -486,19 +487,20 @@ struct AlternateSubstFormat1
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
-			 unsigned int *alternate_len_list,
+			 Supplier<GlyphID> &glyphs,
+			 Supplier<unsigned int> &alternate_len_list,
 			 unsigned int num_glyphs,
-			 const USHORT *alternate_glyphs_list)
+			 Supplier<GlyphID> &alternate_glyphs_list)
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     if (unlikely (!alternateSet.serialize (c, num_glyphs))) return TRACE_RETURN (false);
-    for (unsigned int i = 0; i < num_glyphs; i++) {
-      if (unlikely (!alternateSet[i].serialize (c, this).serialize (c, alternate_glyphs_list, alternate_len_list[i]))) return TRACE_RETURN (false);
-      alternate_glyphs_list += alternate_len_list[i];
-    }
+    for (unsigned int i = 0; i < num_glyphs; i++)
+      if (unlikely (!alternateSet[i].serialize (c, this).serialize (c,
+								    alternate_glyphs_list,
+								    alternate_len_list[i]))) return TRACE_RETURN (false);
+    alternate_len_list.advance (num_glyphs);
     return TRACE_RETURN (true);
   }
 
@@ -552,10 +554,10 @@ struct AlternateSubst
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const USHORT *glyphs,
-			 unsigned int *alternate_len_list,
+			 Supplier<GlyphID> &glyphs,
+			 Supplier<unsigned int> &alternate_len_list,
 			 unsigned int num_glyphs,
-			 const USHORT *alternate_glyphs_list)
+			 Supplier<GlyphID> &alternate_glyphs_list)
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (u.format))) return TRACE_RETURN (false);
@@ -646,6 +648,18 @@ struct Ligature
     return TRACE_RETURN (true);
   }
 
+  inline bool serialize (hb_serialize_context_t *c,
+			 GlyphID ligature,
+			 Supplier<GlyphID> &components, /* Starting from second */
+			 unsigned int num_components /* Including first component */)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    ligGlyph.set (ligature);
+    if (unlikely (!component.serialize (c, components, num_components))) return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
+  }
+
   public:
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
@@ -701,6 +715,24 @@ struct LigatureSet
     return TRACE_RETURN (false);
   }
 
+  inline bool serialize (hb_serialize_context_t *c,
+			 Supplier<GlyphID> &ligatures,
+			 Supplier<unsigned int> &component_count_list,
+			 unsigned int num_ligatures,
+			 Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!ligature.serialize (c, num_ligatures))) return TRACE_RETURN (false);
+    for (unsigned int i = 0; i < num_ligatures; i++)
+      if (unlikely (!ligature[i].serialize (c, this).serialize (c,
+								ligatures[i],
+								component_list,
+								component_count_list[i]))) return TRACE_RETURN (false);
+    component_count_list.advance (num_ligatures);
+    return TRACE_RETURN (true);
+  }
+
   public:
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
@@ -751,6 +783,28 @@ struct LigatureSubstFormat1
 
     const LigatureSet &lig_set = this+ligatureSet[index];
     return TRACE_RETURN (lig_set.apply (c));
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 Supplier<GlyphID> &first_glyphs,
+			 Supplier<unsigned int> &ligature_per_first_glyph_count_list,
+			 unsigned int num_first_glyphs,
+			 Supplier<GlyphID> &ligatures_list,
+			 Supplier<unsigned int> &component_count_list,
+			 Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, first_glyphs, num_first_glyphs))) return TRACE_RETURN (false);
+    if (unlikely (!ligatureSet.serialize (c, num_first_glyphs))) return TRACE_RETURN (false);
+    for (unsigned int i = 0; i < num_first_glyphs; i++)
+      if (unlikely (!ligatureSet[i].serialize (c, this).serialize (c,
+								   ligatures_list,
+								   component_count_list,
+								   ligature_per_first_glyph_count_list[i],
+								   component_list))) return TRACE_RETURN (false);
+    ligature_per_first_glyph_count_list.advance (num_first_glyphs);
+    return TRACE_RETURN (true);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -806,6 +860,25 @@ struct LigatureSubst
     TRACE_APPLY ();
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.apply (c));
+    default:return TRACE_RETURN (false);
+    }
+  }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 Supplier<GlyphID> &first_glyphs,
+			 Supplier<unsigned int> &ligature_per_first_glyph_count_list,
+			 unsigned int num_first_glyphs,
+			 Supplier<GlyphID> &ligatures_list,
+			 Supplier<unsigned int> &component_count_list,
+			 Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (u.format))) return TRACE_RETURN (false);
+    unsigned int format = 1;
+    u.format.set (format);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (u.format1.serialize (c, first_glyphs, ligature_per_first_glyph_count_list, num_first_glyphs,
+						      ligatures_list, component_count_list, component_list));
     default:return TRACE_RETURN (false);
     }
   }

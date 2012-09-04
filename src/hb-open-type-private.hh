@@ -428,6 +428,40 @@ struct hb_serialize_context_t
   bool ran_out_of_room;
 };
 
+template <typename Type>
+struct Supplier
+{
+  /* For automatic wrapping of bare arrays */
+  inline Supplier (const Type *array)
+  {
+    head = array;
+    len = (unsigned int) -1;
+  }
+
+  inline Supplier (const Type *array, unsigned int len_)
+  {
+    head = array;
+    len = len_;
+  }
+  inline const Type operator [] (unsigned int i) const
+  {
+    if (unlikely (i >= len)) return Type ();
+    return head[i];
+  }
+
+  inline void advance (unsigned int count) {
+    if (unlikely (count > len))
+      count = len;
+    len -= count;
+    head += count;
+  }
+
+  private:
+  unsigned int len;
+  const Type *head;
+};
+
+
 
 
 /*
@@ -687,7 +721,7 @@ struct GenericArrayOf
   }
 
   inline bool serialize (hb_serialize_context_t *c,
-			 const Type *items,
+			 Supplier<Type> &items,
 			 unsigned int items_len)
   {
     TRACE_SERIALIZE ();
@@ -697,6 +731,7 @@ struct GenericArrayOf
     unsigned int count = items_len;
     for (unsigned int i = 0; i < count; i++)
       array[i].set (items[i]);
+    items.advance (items_len);
     return TRACE_RETURN (true);
   }
 
@@ -802,6 +837,22 @@ struct HeadlessArrayOf
   }
   inline unsigned int get_size (void) const
   { return len.static_size + (len ? len - 1 : 0) * Type::static_size; }
+
+  inline bool serialize (hb_serialize_context_t *c,
+			 Supplier<Type> &items,
+			 unsigned int items_len)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    len.set (items_len); /* TODO(serialize) Overflow? */
+    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
+    if (unlikely (!items_len)) return TRACE_RETURN (true);
+    unsigned int count = items_len;
+    for (unsigned int i = 1; i < count; i++)
+      array[i-1].set (items[i]);
+    items.advance (items_len - 1);
+    return TRACE_RETURN (true);
+  }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *c) {
     return c->check_struct (this)
