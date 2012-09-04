@@ -75,7 +75,7 @@ struct SingleSubstFormat1
   inline bool serialize (hb_serialize_context_t *c,
 			 const USHORT *glyphs,
 			 unsigned int num_glyphs,
-			 unsigned int delta)
+			 int delta)
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
@@ -208,7 +208,7 @@ struct SingleSubst
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (u.format))) return TRACE_RETURN (false);
     unsigned int format = 2;
-    unsigned int delta;
+    int delta;
     if (num_glyphs) {
       format = 1;
       /* TODO(serialize) check for wrap-around */
