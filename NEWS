@@ -1,3 +1,21 @@
+Overview of changes leading to 0.9.4
+Tuesday, Sep 03, 2012
+====================================
+
+- Indic improvements with old-spec Malayalam.
+
+- Better fallback glyph positioning, specially with Thai / Lao marks.
+
+- Implement dotted-circle insertion.
+
+- Better Arabic fallback shaping / ligation.
+
+- Added ICU LayoutEngine backend for testing.  Call it by the 'icu_le' name.
+
+- Misc fixes.
+
+
+
 Overview of changes leading to 0.9.3
 Friday, Aug 18, 2012
 ====================================
