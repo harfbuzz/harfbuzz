@@ -92,7 +92,7 @@ struct hb_would_apply_context_t
 			      glyphs (glyphs_),
 			      len (len_),
 			      zero_context (zero_context_),
-			      digest (*digest_),
+			      digest (digest_ ? *digest_ : hb_set_digest_t()),
 			      debug_depth (0) {};
 };
 
