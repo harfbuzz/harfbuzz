@@ -86,13 +86,13 @@ struct hb_would_apply_context_t
 			    const hb_codepoint_t *glyphs_,
 			    unsigned int len_,
 			    bool zero_context_,
-			    const hb_set_digest_t *digest_
+			    const hb_set_digest_t &digest_
 			    ) :
 			      face (face_),
 			      glyphs (glyphs_),
 			      len (len_),
 			      zero_context (zero_context_),
-			      digest (digest_ ? *digest_ : hb_set_digest_t()),
+			      digest (digest_),
 			      debug_depth (0) {};
 };
 
@@ -124,7 +124,7 @@ struct hb_apply_context_t
   hb_apply_context_t (hb_font_t *font_,
 		      hb_buffer_t *buffer_,
 		      hb_mask_t lookup_mask_,
-		      const hb_set_digest_t *digest_) :
+		      const hb_set_digest_t &digest_) :
 			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
@@ -132,7 +132,7 @@ struct hb_apply_context_t
 			lookup_props (0), property (0), debug_depth (0),
 			gdef (*hb_ot_layout_from_face (face)->gdef),
 			has_glyph_classes (gdef.has_glyph_classes ()),
-			digest (*digest_) {}
+			digest (digest_) {}
 
   void set_lookup_props (unsigned int lookup_props_) {
     lookup_props = lookup_props_;
