@@ -1535,7 +1535,7 @@ struct PosLookup : Lookup
   {
     bool ret = false;
 
-    if (unlikely (!c->buffer->len))
+    if (unlikely (!c->buffer->len || !c->lookup_mask))
       return false;
 
     c->set_lookup (*this);
