@@ -917,11 +917,11 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     /* If we lost track of base, alas, position before last thingy. */
     unsigned int new_pos = base == end ? base - 2 : base - 1;
 
-    /* Malayalam does not have "half" forms or explicit virama forms.
-     * The glyphs formed by 'half' are Chillus.  We want to position
-     * matra after them all.
+    /* Malayalam / Tamil do not have "half" forms or explicit virama forms.
+     * The glyphs formed by 'half' are Chillus or ligated explicit viramas.
+     * We want to position matra after them.
      */
-    if (buffer->props.script != HB_SCRIPT_MALAYALAM)
+    if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
     {
       while (new_pos > start &&
 	     !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng)))))
@@ -941,7 +941,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
         new_pos = start; /* No move. */
     }
 
-    if (start < new_pos)
+    if (start < new_pos && info[new_pos].indic_position () != POS_PRE_M)
     {
       /* Now go see if there's actually any matras... */
       for (unsigned int i = new_pos; i > start; i--)
