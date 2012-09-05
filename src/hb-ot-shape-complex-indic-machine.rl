@@ -69,7 +69,7 @@ syllable_tail =  (Coeng (cn|V))? (SM.ZWNJ?)? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 halant_group = (z?.h.(ZWJ.N?)?);
 final_halant_group = halant_group | h.ZWNJ;
-halant_or_matra_group = (final_halant_group | matra_group{0,4});
+halant_or_matra_group = (final_halant_group | (h.ZWJ)? matra_group{0,4});
 
 
 consonant_syllable =	Repha? (cn.halant_group){0,4} cn A? halant_or_matra_group? syllable_tail;
