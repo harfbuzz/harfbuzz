@@ -62,12 +62,12 @@ z = ZWJ|ZWNJ;			# is_joiner
 h = H | Coeng;			# is_halant_or_coeng
 reph = (Ra H | Repha);		# possible reph
 
-cn = c.n?;
+cn = c.ZWJ?.n?;
 forced_rakar = ZWJ H ZWJ Ra;
 matra_group = z{0,3}.M.N?.(H | forced_rakar)?;
 syllable_tail =  (Coeng (cn|V))? (SM.ZWNJ?)? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
-halant_group = (z?.h.ZWJ?);
+halant_group = (z?.h.(ZWJ.N?)?);
 final_halant_group = halant_group | h.ZWNJ;
 halant_or_matra_group = (final_halant_group | matra_group{0,4});
 
