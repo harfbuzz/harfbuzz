@@ -60,7 +60,7 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
 }
 
 
-void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool global)
+void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool global, bool has_fallback)
 {
   feature_info_t *info = feature_infos.push();
   if (unlikely (!info)) return;
@@ -68,6 +68,7 @@ void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool gl
   info->seq = feature_infos.len;
   info->max_value = value;
   info->global = global;
+  info->has_fallback = has_fallback;
   info->default_value = global ? value : 0;
   info->stage[0] = current_stage[0];
   info->stage[1] = current_stage[1];
@@ -175,6 +176,7 @@ hb_ot_map_builder_t::compile (hb_face_t *face,
 	  feature_infos[j].global = false;
 	  feature_infos[j].max_value = MAX (feature_infos[j].max_value, feature_infos[i].max_value);
 	}
+	feature_infos[j].has_fallback = feature_infos[j].has_fallback || feature_infos[i].has_fallback;
 	feature_infos[j].stage[0] = MIN (feature_infos[j].stage[0], feature_infos[i].stage[0]);
 	feature_infos[j].stage[1] = MIN (feature_infos[j].stage[1], feature_infos[i].stage[1]);
 	/* Inherit default_value from j */
@@ -209,7 +211,7 @@ hb_ot_map_builder_t::compile (hb_face_t *face,
 						   language_index[table_index],
 						   info->tag,
 						   &feature_index[table_index]);
-    if (!found)
+    if (!found && !info->has_fallback)
       continue;
 
 

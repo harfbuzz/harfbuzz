@@ -147,10 +147,10 @@ struct hb_ot_map_builder_t
 
   hb_ot_map_builder_t (void) { memset (this, 0, sizeof (*this)); }
 
-  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global);
+  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global, bool has_fallback = false);
 
-  inline void add_bool_feature (hb_tag_t tag, bool global = true)
-  { add_feature (tag, 1, global); }
+  inline void add_bool_feature (hb_tag_t tag, bool global = true, bool has_fallback = false)
+  { add_feature (tag, 1, global, has_fallback); }
 
   inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (0, pause_func); }
@@ -174,6 +174,7 @@ struct hb_ot_map_builder_t
     unsigned int seq; /* sequence#, used for stable sorting only */
     unsigned int max_value;
     bool global; /* whether the feature applies value to every glyph in the buffer */
+    bool has_fallback; /* whether to allocate bits even if feature not found */
     unsigned int default_value; /* for non-global features, what should the unset glyphs take */
     unsigned int stage[2]; /* GSUB/GPOS */
 
