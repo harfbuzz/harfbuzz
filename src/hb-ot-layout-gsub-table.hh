@@ -168,6 +168,7 @@ struct SingleSubstFormat2
 struct SingleSubst
 {
   friend struct SubstLookupSubTable;
+  friend struct SubstLookup;
 
   private:
 
@@ -368,6 +369,7 @@ struct MultipleSubstFormat1
 struct MultipleSubst
 {
   friend struct SubstLookupSubTable;
+  friend struct SubstLookup;
 
   private:
 
@@ -524,6 +526,7 @@ struct AlternateSubstFormat1
 struct AlternateSubst
 {
   friend struct SubstLookupSubTable;
+  friend struct SubstLookup;
 
   private:
 
@@ -827,6 +830,7 @@ struct LigatureSubstFormat1
 struct LigatureSubst
 {
   friend struct SubstLookupSubTable;
+  friend struct SubstLookup;
 
   private:
 
@@ -1355,7 +1359,66 @@ struct SubstLookup : Lookup
     return ret;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  private:
+  inline SubstLookupSubTable& serialize_subtable (hb_serialize_context_t *c,
+						  unsigned int i)
+  { return CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i].serialize (c, this); }
+  public:
+
+  inline bool serialize_single (hb_serialize_context_t *c,
+				uint32_t lookup_props,
+			        Supplier<GlyphID> &glyphs,
+			        Supplier<GlyphID> &substitutes,
+			        unsigned int num_glyphs)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Single, lookup_props, 1))) return TRACE_RETURN (false);
+    return TRACE_RETURN (serialize_subtable (c, 0).u.single.serialize (c, glyphs, substitutes, num_glyphs));
+  }
+
+  inline bool serialize_multiple (hb_serialize_context_t *c,
+				  uint32_t lookup_props,
+				  Supplier<GlyphID> &glyphs,
+				  Supplier<unsigned int> &substitute_len_list,
+				  unsigned int num_glyphs,
+				  Supplier<GlyphID> &substitute_glyphs_list)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Multiple, lookup_props, 1))) return TRACE_RETURN (false);
+    return TRACE_RETURN (serialize_subtable (c, 0).u.multiple.serialize (c, glyphs, substitute_len_list, num_glyphs,
+									 substitute_glyphs_list));
+  }
+
+  inline bool serialize_alternate (hb_serialize_context_t *c,
+				   uint32_t lookup_props,
+				   Supplier<GlyphID> &glyphs,
+				   Supplier<unsigned int> &alternate_len_list,
+				   unsigned int num_glyphs,
+				   Supplier<GlyphID> &alternate_glyphs_list)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Alternate, lookup_props, 1))) return TRACE_RETURN (false);
+    return TRACE_RETURN (serialize_subtable (c, 0).u.alternate.serialize (c, glyphs, alternate_len_list, num_glyphs,
+									  alternate_glyphs_list));
+  }
+
+  inline bool serialize_ligature (hb_serialize_context_t *c,
+				  uint32_t lookup_props,
+				  Supplier<GlyphID> &first_glyphs,
+				  Supplier<unsigned int> &ligature_per_first_glyph_count_list,
+				  unsigned int num_first_glyphs,
+				  Supplier<GlyphID> &ligatures_list,
+				  Supplier<unsigned int> &component_count_list,
+				  Supplier<GlyphID> &component_list /* Starting from second for each ligature */)
+  {
+    TRACE_SERIALIZE ();
+    if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Ligature, lookup_props, 1))) return TRACE_RETURN (false);
+    return TRACE_RETURN (serialize_subtable (c, 0).u.ligature.serialize (c, first_glyphs, ligature_per_first_glyph_count_list, num_first_glyphs,
+									 ligatures_list, component_count_list, component_list));
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c)
+  {
     TRACE_SANITIZE ();
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
     OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);

@@ -323,7 +323,7 @@ struct Lookup
     lookupType.set (lookup_type);
     lookupFlag.set (lookup_props & 0xFFFF);
     if (unlikely (!subTable.serialize (c, num_subtables))) return TRACE_RETURN (false);
-    if ((lookup_props >> 16) || lookupFlag & LookupFlag::UseMarkFilteringSet)
+    if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
       USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
       markFilteringSet.set (lookup_props >> 16);
