@@ -295,9 +295,11 @@ class DiffHelpers:
 	def test_passed (lines):
 		lines = list (lines)
 		# XXX This is a hack, but does the job for now.
-		if any (l.find("space|space") >= 0 for l in lines): return True
-		if any (l.find("uni25CC") >= 0 for l in lines): return True
-		if any (l.find("dottedcircle") >= 0 for l in lines): return True
+		if any (l.find("space|space") >= 0 for l in lines if l[0] == '+'): return True
+		if any (l.find("uni25CC") >= 0 for l in lines if l[0] == '+'): return True
+		if any (l.find("dottedcircle") >= 0 for l in lines if l[0] == '+'): return True
+		if any (l.find("glyph0") >= 0 for l in lines if l[0] == '+'): return True
+		if any (l.find("notdef") >= 0 for l in lines if l[0] == '+'): return True
 		return all (l[0] == ' ' for l in lines)
 
 
