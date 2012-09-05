@@ -725,11 +725,8 @@ struct GenericArrayOf
 			 unsigned int items_len)
   {
     TRACE_SERIALIZE ();
-    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
-    len.set (items_len); /* TODO(serialize) Overflow? */
-    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
-    unsigned int count = items_len;
-    for (unsigned int i = 0; i < count; i++)
+    if (unlikely (!serialize (c, items_len))) return TRACE_RETURN (false);
+    for (unsigned int i = 0; i < items_len; i++)
       array[i].set (items[i]);
     items.advance (items_len);
     return TRACE_RETURN (true);
