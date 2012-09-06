@@ -287,6 +287,7 @@ position_around_base (const hb_ot_shape_plan_t *plan,
 		      unsigned int base,
 		      unsigned int end)
 {
+  hb_direction_t horiz_dir = HB_DIRECTION_INVALID;
   hb_glyph_extents_t base_extents;
   if (!font->get_glyph_extents (buffer->info[base].codepoint,
 				&base_extents))
@@ -298,22 +299,53 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   base_extents.x_bearing += buffer->pos[base].x_offset;
   base_extents.y_bearing += buffer->pos[base].y_offset;
 
-  /* XXX Handle ligature component positioning... */
-  HB_UNUSED bool is_ligature = is_a_ligature (buffer->info[base]);
+  unsigned int lig_id = get_lig_id (buffer->info[base]);
+  unsigned int num_lig_components = get_lig_num_comps (buffer->info[base]);
 
   hb_position_t x_offset = 0, y_offset = 0;
   if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
     x_offset -= buffer->pos[base].x_advance;
     y_offset -= buffer->pos[base].y_advance;
   }
+
+  hb_glyph_extents_t component_extents = base_extents;
+  unsigned int last_lig_component = (unsigned int) -1;
   unsigned int last_combining_class = 255;
   hb_glyph_extents_t cluster_extents;
   for (unsigned int i = base + 1; i < end; i++)
     if (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]))
     {
+      if (num_lig_components > 1) {
+	unsigned int this_lig_id = get_lig_id (buffer->info[i]);
+	unsigned int this_lig_component = get_lig_comp (buffer->info[i]) - 1;
+	/* Conditions for attaching to the last component. */
+	if (!lig_id || lig_id != this_lig_id || this_lig_component >= num_lig_components)
+	  this_lig_component = num_lig_components - 1;
+	if (last_lig_component != this_lig_component)
+	{
+	  last_lig_component = this_lig_component;
+	  last_combining_class = 255;
+	  component_extents = base_extents;
+	  if (unlikely (horiz_dir == HB_DIRECTION_INVALID)) {
+	    if (HB_DIRECTION_IS_HORIZONTAL (plan->props.direction))
+	      horiz_dir = plan->props.direction;
+	    else
+	      horiz_dir = hb_script_get_horizontal_direction (plan->props.script);
+	  }
+	  if (horiz_dir == HB_DIRECTION_LTR)
+	    component_extents.x_bearing += (this_lig_component * component_extents.width) / num_lig_components;
+	  else
+	    component_extents.x_bearing += ((num_lig_components - 1 - this_lig_component) * component_extents.width) / num_lig_components;
+	  component_extents.width /= num_lig_components;
+	}
+      }
+
       unsigned int this_combining_class = _hb_glyph_info_get_modified_combining_class (&buffer->info[i]);
-      if (this_combining_class != last_combining_class)
-        cluster_extents = base_extents;
+      if (last_combining_class != this_combining_class)
+      {
+	last_combining_class = this_combining_class;
+        cluster_extents = component_extents;
+      }
 
       position_mark (plan, font, buffer, cluster_extents, i, this_combining_class);
 
@@ -322,7 +354,6 @@ position_around_base (const hb_ot_shape_plan_t *plan,
       buffer->pos[i].x_offset += x_offset;
       buffer->pos[i].y_offset += y_offset;
 
-      last_combining_class = this_combining_class;
     } else {
       if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
 	x_offset -= buffer->pos[i].x_advance;
@@ -332,8 +363,6 @@ position_around_base (const hb_ot_shape_plan_t *plan,
 	y_offset += buffer->pos[i].y_advance;
       }
     }
-
-
 }
 
 static inline void
