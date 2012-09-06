@@ -270,10 +270,7 @@ hb_form_clusters (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 1; i < count; i++)
-    if (FLAG (_hb_glyph_info_get_general_category (&buffer->info[i])) &
-	(FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
-	 FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
-	 FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)))
+    if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[i])))
       buffer->merge_clusters (i - 1, i + 1);
 }
 

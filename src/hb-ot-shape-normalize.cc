@@ -130,10 +130,7 @@ compose_func (hb_unicode_funcs_t *unicode,
 	      hb_codepoint_t *ab)
 {
   /* XXX, this belongs to indic normalizer. */
-  if ((FLAG (unicode->general_category (a)) &
-       (FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) |
-	FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
-	FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK))))
+  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (unicode->general_category (a)))
     return false;
   /* XXX, add composition-exclusion exceptions to Indic shaper. */
   if (a == 0x09AF && b == 0x09BC) { *ab = 0x09DF; return true; }
