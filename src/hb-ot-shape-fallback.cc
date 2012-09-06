@@ -350,8 +350,15 @@ position_cluster (const hb_ot_shape_plan_t *plan,
   for (unsigned int i = start; i < end; i++)
     if (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[i])))
     {
-      position_around_base (plan, font, buffer, i, end);
-      break;
+      /* Find mark glyphs */
+      unsigned int j;
+      for (j = i + 1; j < end; j++)
+	if (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[j])))
+	  break;
+
+      position_around_base (plan, font, buffer, i, j);
+
+      i = j - 1;
     }
 }
 
