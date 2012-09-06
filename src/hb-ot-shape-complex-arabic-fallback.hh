@@ -67,7 +67,7 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan,
     hb_codepoint_t s = shaping_table[u - SHAPING_TABLE_FIRST][feature_index];
     hb_codepoint_t u_glyph, s_glyph;
 
-    if (u == s ||
+    if (!s ||
 	!hb_font_get_glyph (font, u, 0, &u_glyph) ||
 	!hb_font_get_glyph (font, s, 0, &s_glyph) ||
 	u_glyph == s_glyph ||
