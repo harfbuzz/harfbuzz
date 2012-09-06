@@ -360,10 +360,8 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
 static inline void
 hb_ot_substitute_default (hb_ot_shape_context_t *c)
 {
-  if (c->plan->shaper->preprocess_text) {
-    hb_synthesize_glyph_classes (c); /* XXX This is a hack for now. */
+  if (c->plan->shaper->preprocess_text)
     c->plan->shaper->preprocess_text (c->plan, c->buffer, c->font);
-  }
 
   hb_ot_mirror_chars (c);
 
@@ -393,8 +391,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
   if (!hb_ot_layout_has_glyph_classes (c->face))
     hb_synthesize_glyph_classes (c);
 
-  if (hb_ot_layout_has_substitution (c->face))
-    c->plan->substitute (c->font, c->buffer);
+  c->plan->substitute (c->font, c->buffer);
 
   hb_ot_layout_substitute_finish (c->font, c->buffer);
 

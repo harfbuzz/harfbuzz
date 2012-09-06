@@ -236,6 +236,7 @@ hb_ot_map_builder_t::compile (hb_face_t *face,
 	m.global_mask |= (info->default_value << map->shift) & map->mask;
     }
     map->_1_mask = (1 << map->shift) & map->mask;
+    map->needs_fallback = !found;
 
   }
   feature_infos.shrink (0); /* Done with these */

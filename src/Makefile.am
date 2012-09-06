@@ -78,6 +78,7 @@ HBSOURCES += \
 	hb-ot-map-private.hh \
 	hb-ot-shape.cc \
 	hb-ot-shape-complex-arabic.cc \
+	hb-ot-shape-complex-arabic-fallback.hh \
 	hb-ot-shape-complex-arabic-table.hh \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-machine.hh \

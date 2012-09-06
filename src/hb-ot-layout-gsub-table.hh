@@ -143,8 +143,8 @@ struct SingleSubstFormat2
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
-    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     if (unlikely (!substitute.serialize (c, substitutes, num_glyphs))) return TRACE_RETURN (false);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     return TRACE_RETURN (true);
   }
 
@@ -339,13 +339,13 @@ struct MultipleSubstFormat1
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
-    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     if (unlikely (!sequence.serialize (c, num_glyphs))) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < num_glyphs; i++)
       if (unlikely (!sequence[i].serialize (c, this).serialize (c,
 								substitute_glyphs_list,
 								substitute_len_list[i]))) return TRACE_RETURN (false);
     substitute_len_list.advance (num_glyphs);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     return TRACE_RETURN (true);
   }
 
@@ -496,13 +496,13 @@ struct AlternateSubstFormat1
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
-    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     if (unlikely (!alternateSet.serialize (c, num_glyphs))) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < num_glyphs; i++)
       if (unlikely (!alternateSet[i].serialize (c, this).serialize (c,
 								    alternate_glyphs_list,
 								    alternate_len_list[i]))) return TRACE_RETURN (false);
     alternate_len_list.advance (num_glyphs);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs, num_glyphs))) return TRACE_RETURN (false);
     return TRACE_RETURN (true);
   }
 
@@ -658,7 +658,7 @@ struct Ligature
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
-    ligGlyph.set (ligature);
+    ligGlyph = ligature;
     if (unlikely (!component.serialize (c, components, num_components))) return TRACE_RETURN (false);
     return TRACE_RETURN (true);
   }
@@ -732,6 +732,7 @@ struct LigatureSet
 								ligatures[i],
 								component_list,
 								component_count_list[i]))) return TRACE_RETURN (false);
+    ligatures.advance (num_ligatures);
     component_count_list.advance (num_ligatures);
     return TRACE_RETURN (true);
   }
@@ -798,7 +799,6 @@ struct LigatureSubstFormat1
   {
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
-    if (unlikely (!coverage.serialize (c, this).serialize (c, first_glyphs, num_first_glyphs))) return TRACE_RETURN (false);
     if (unlikely (!ligatureSet.serialize (c, num_first_glyphs))) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < num_first_glyphs; i++)
       if (unlikely (!ligatureSet[i].serialize (c, this).serialize (c,
@@ -807,6 +807,7 @@ struct LigatureSubstFormat1
 								   ligature_per_first_glyph_count_list[i],
 								   component_list))) return TRACE_RETURN (false);
     ligature_per_first_glyph_count_list.advance (num_first_glyphs);
+    if (unlikely (!coverage.serialize (c, this).serialize (c, first_glyphs, num_first_glyphs))) return TRACE_RETURN (false);
     return TRACE_RETURN (true);
   }
 

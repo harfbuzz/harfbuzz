@@ -382,7 +382,7 @@ struct CoverageFormat1
     glyphArray.len.set (num_glyphs);
     if (unlikely (!c->extend (glyphArray))) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < num_glyphs; i++)
-      glyphArray[i].set (glyphs[i]);
+      glyphArray[i] = glyphs[i];
     glyphs.advance (num_glyphs);
     return TRACE_RETURN (true);
   }
@@ -455,13 +455,14 @@ struct CoverageFormat2
     if (unlikely (!c->extend (rangeRecord))) return TRACE_RETURN (false);
 
     unsigned int range = 0;
-    rangeRecord[range].start.set (glyphs[0]);
+    rangeRecord[range].start = glyphs[0];
     rangeRecord[range].value.set (0);
     for (unsigned int i = 1; i < num_glyphs; i++)
       if (glyphs[i - 1] + 1 != glyphs[i]) {
-	rangeRecord[range].start.set (glyphs[i]);
-	rangeRecord[range].value.set (i);
 	range++;
+	rangeRecord[range].start = glyphs[i];
+	rangeRecord[range].value.set (i);
+        rangeRecord[range].end = glyphs[i];
       } else {
         rangeRecord[range].end = glyphs[i];
       }

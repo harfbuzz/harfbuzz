@@ -342,38 +342,52 @@ struct Sanitizer
 
 struct hb_serialize_context_t
 {
-  inline void init (void *start, unsigned int size)
+  inline hb_serialize_context_t (void *start, unsigned int size)
   {
     this->start = (char *) start;
     this->end = this->start + size;
-  }
 
-  inline void start_processing (void)
-  {
     this->ran_out_of_room = false;
     this->head = this->start;
     this->debug_depth = 0;
+  }
 
+  template <typename Type>
+  inline Type *start_serialize (void)
+  {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, +1,
 		     "start [%p..%p] (%lu bytes)",
 		     this->start, this->end,
 		     (unsigned long) (this->end - this->start));
+
+    return start_embed<Type> ();
   }
 
-  inline void end_processing (void)
+  inline void end_serialize (void)
   {
     DEBUG_MSG_LEVEL (SERIALIZE, this->start, 0, -1,
-		     "end [%p..%p] %s",
+		     "end [%p..%p] serialized %d bytes; %s",
 		     this->start, this->end,
+		     (int) (this->head - this->start),
 		     this->ran_out_of_room ? "RAN OUT OF ROOM" : "did not ran out of room");
 
-    this->start = this->end = this->head = NULL;
+  }
+
+  template <typename Type>
+  inline Type *copy (void)
+  {
+    assert (!this->ran_out_of_room);
+    unsigned int len = this->head - this->start;
+    void *p = malloc (len);
+    if (p)
+      memcpy (p, this->start, len);
+    return reinterpret_cast<Type *> (p);
   }
 
   template <typename Type>
   inline Type *allocate_size (unsigned int size)
   {
-    if (unlikely (this->ran_out_of_room || this->end - this->head > size)) {
+    if (unlikely (this->ran_out_of_room || this->end - this->head < size)) {
       this->ran_out_of_room = true;
       return NULL;
     }
@@ -390,6 +404,13 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
+  inline Type *start_embed (void)
+  {
+    Type *ret = reinterpret_cast<Type *> (this->head);
+    return ret;
+  }
+
+  template <typename Type>
   inline Type *embed (const Type &obj)
   {
     unsigned int size = obj.get_size ();
@@ -403,8 +424,8 @@ struct hb_serialize_context_t
   inline Type *extend_min (Type &obj)
   {
     unsigned int size = obj.min_size;
-    assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    this->allocate_size<Type> (((char *) &obj) + size - this->head);
+    assert (this->start <= (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
+    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return NULL;
     return reinterpret_cast<Type *> (&obj);
   }
 
@@ -413,7 +434,7 @@ struct hb_serialize_context_t
   {
     unsigned int size = obj.get_size ();
     assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    this->allocate_size<Type> (((char *) &obj) + size - this->head);
+    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return false;
     return reinterpret_cast<Type *> (&obj);
   }
 
@@ -431,13 +452,6 @@ struct hb_serialize_context_t
 template <typename Type>
 struct Supplier
 {
-  /* For automatic wrapping of bare arrays */
-  inline Supplier (const Type *array)
-  {
-    head = array;
-    len = (unsigned int) -1;
-  }
-
   inline Supplier (const Type *array, unsigned int len_)
   {
     head = array;
@@ -449,7 +463,8 @@ struct Supplier
     return head[i];
   }
 
-  inline void advance (unsigned int count) {
+  inline void advance (unsigned int count)
+  {
     if (unlikely (count > len))
       count = len;
     len -= count;
@@ -457,6 +472,9 @@ struct Supplier
   }
 
   private:
+  inline Supplier (const Supplier<Type> &); /* Disallow copy */
+  inline Supplier<Type>& operator= (const Supplier<Type> &); /* Disallow copy */
+
   unsigned int len;
   const Type *head;
 };
@@ -509,6 +527,8 @@ struct IntType
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
   inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
+  static inline int cmp (const IntType<Type> *a, const IntType<Type> *b) { return b->cmp (*a); }
+  inline int cmp (IntType<Type> va) const { Type a = va; Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
   inline int cmp (Type a) const { Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
@@ -634,7 +654,7 @@ struct GenericOffsetTo : OffsetType
 
   inline Type& serialize (hb_serialize_context_t *c, void *base)
   {
-    Type *t = (Type *) c->head;
+    Type *t = c->start_embed<Type> ();
     this->set ((char *) t - (char *) base); /* TODO(serialize) Overflow? */
     return *t;
   }
@@ -727,7 +747,7 @@ struct GenericArrayOf
     TRACE_SERIALIZE ();
     if (unlikely (!serialize (c, items_len))) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < items_len; i++)
-      array[i].set (items[i]);
+      array[i] = items[i];
     items.advance (items_len);
     return TRACE_RETURN (true);
   }
@@ -842,11 +862,10 @@ struct HeadlessArrayOf
     TRACE_SERIALIZE ();
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
     len.set (items_len); /* TODO(serialize) Overflow? */
-    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
     if (unlikely (!items_len)) return TRACE_RETURN (true);
-    unsigned int count = items_len;
-    for (unsigned int i = 1; i < count; i++)
-      array[i-1].set (items[i]);
+    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
+    for (unsigned int i = 0; i < items_len - 1; i++)
+      array[i] = items[i];
     items.advance (items_len - 1);
     return TRACE_RETURN (true);
   }
