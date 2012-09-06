@@ -112,9 +112,9 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan,
   unsigned int num_first_glyphs = 0;
 
   /* We know that all our ligatures are 2-component */
-  OT::GlyphID ligatures_list[ARRAY_LENGTH_CONST (first_glyphs) * ARRAY_LENGTH_CONST(ligature_table[0].ligatures)];
-  unsigned int component_count_list[ARRAY_LENGTH_CONST (ligatures_list)];
-  OT::GlyphID component_list[ARRAY_LENGTH_CONST (ligatures_list) * 1/* One extra component per ligature */];
+  OT::GlyphID ligature_list[ARRAY_LENGTH_CONST (first_glyphs) * ARRAY_LENGTH_CONST(ligature_table[0].ligatures)];
+  unsigned int component_count_list[ARRAY_LENGTH_CONST (ligature_list)];
+  OT::GlyphID component_list[ARRAY_LENGTH_CONST (ligature_list) * 1/* One extra component per ligature */];
   unsigned int num_ligatures = 0;
 
   /* Populate arrays */
@@ -150,7 +150,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan,
 
       ligature_per_first_glyph_count_list[i]++;
 
-      ligatures_list[num_ligatures].set (ligature_glyph);
+      ligature_list[num_ligatures].set (ligature_glyph);
       component_count_list[num_ligatures] = 2;
       component_list[num_ligatures].set (second_glyph);
       num_ligatures++;
@@ -159,11 +159,12 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan,
 
   OT::Supplier<OT::GlyphID>   first_glyphs_supplier                      (first_glyphs, num_first_glyphs);
   OT::Supplier<unsigned int > ligature_per_first_glyph_count_supplier    (ligature_per_first_glyph_count_list, num_first_glyphs);
-  OT::Supplier<OT::GlyphID>   ligatures_supplier                         (ligatures_list, num_ligatures);
+  OT::Supplier<OT::GlyphID>   ligatures_supplier                         (ligature_list, num_ligatures);
   OT::Supplier<unsigned int > component_count_supplier                   (component_count_list, num_ligatures);
   OT::Supplier<OT::GlyphID>   component_supplier                         (component_list, num_ligatures);
 
-  char buf[2048];
+  /* 16 bytes per ligature ought to be enough... */
+  char buf[ARRAY_LENGTH_CONST (ligature_list) * 16 + 128];
   OT::hb_serialize_context_t c (buf, sizeof (buf));
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_ligature (&c,
