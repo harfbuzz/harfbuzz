@@ -203,6 +203,10 @@ enum {
 };
 
 static void
+setup_syllables (const hb_ot_shape_plan_t *plan,
+		 hb_font_t *font,
+		 hb_buffer_t *buffer);
+static void
 initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_font_t *font,
 		    hb_buffer_t *buffer);
@@ -215,6 +219,9 @@ static void
 collect_features_indic (hb_ot_shape_planner_t *plan)
 {
   hb_ot_map_builder_t *map = &plan->map;
+
+  /* Do this before any lookups have been applied. */
+  map->add_gsub_pause (setup_syllables);
 
   map->add_bool_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
@@ -349,6 +356,17 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
 }
 
 
+enum syllable_type_t {
+  consonant_syllable,
+  vowel_syllable,
+  standalone_cluster,
+  broken_cluster,
+  non_indic_cluster,
+};
+
+#include "hb-ot-shape-complex-indic-machine.hh"
+
+
 static void
 setup_masks_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		   hb_buffer_t              *buffer,
@@ -363,6 +381,14 @@ setup_masks_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
     set_indic_properties (buffer->info[i]);
+}
+
+static void
+setup_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
+		 hb_font_t *font HB_UNUSED,
+		 hb_buffer_t *buffer)
+{
+  find_syllables (buffer);
 }
 
 static int
@@ -788,16 +814,6 @@ initial_reordering_non_indic_cluster (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 
-enum syllable_type_t {
-  consonant_syllable,
-  vowel_syllable,
-  standalone_cluster,
-  broken_cluster,
-  non_indic_cluster,
-};
-
-#include "hb-ot-shape-complex-indic-machine.hh"
-
 static void
 initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
 			     hb_buffer_t *buffer,
@@ -813,11 +829,23 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
   }
 }
 
-static void
+static inline void
 insert_dotted_circles (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer)
 {
+  /* Note: This loop is extra overhead, but should not be measurable. */
+  bool has_broken_syllables = false;
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    if ((buffer->info[i].syllable() & 0x0F) == broken_cluster) {
+      has_broken_syllables = true;
+      break;
+    }
+  if (likely (!has_broken_syllables))
+    return;
+
+
   hb_codepoint_t dottedcircle_glyph;
   if (!font->get_glyph (0x25CC, 0, &dottedcircle_glyph))
     return;
@@ -856,11 +884,7 @@ initial_reordering (const hb_ot_shape_plan_t *plan,
 		    hb_buffer_t *buffer)
 {
   update_consonant_positions (plan, font, buffer);
-
-  bool had_broken_clusters = false;
-  find_syllables (plan, buffer, &had_broken_clusters);
-  if (unlikely (had_broken_clusters))
-    insert_dotted_circles (plan, font, buffer);
+  insert_dotted_circles (plan, font, buffer);
 
   hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;

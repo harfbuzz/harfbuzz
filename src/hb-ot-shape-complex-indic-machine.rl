@@ -82,7 +82,7 @@ main := |*
 	consonant_syllable	=> { found_syllable (consonant_syllable); };
 	vowel_syllable		=> { found_syllable (vowel_syllable); };
 	standalone_cluster	=> { found_syllable (standalone_cluster); };
-	broken_cluster		=> { found_syllable (broken_cluster); *had_broken_cluster = true; };
+	broken_cluster		=> { found_syllable (broken_cluster); };
 	other			=> { found_syllable (non_indic_cluster); };
 *|;
 
@@ -100,7 +100,7 @@ main := |*
   } HB_STMT_END
 
 static void
-find_syllables (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer, bool *had_broken_cluster)
+find_syllables (hb_buffer_t *buffer)
 {
   unsigned int p, pe, eof, ts, te, act;
   int cs;
