@@ -196,130 +196,6 @@ list_shapers (const char *name G_GNUC_UNUSED,
 }
 
 
-
-static void
-parse_space (char **pp)
-{
-  char c;
-#define ISSPACE(c) ((c)==' '||(c)=='\f'||(c)=='\n'||(c)=='\r'||(c)=='\t'||(c)=='\v')
-  while (c = **pp, ISSPACE (c))
-    (*pp)++;
-#undef ISSPACE
-}
-
-static hb_bool_t
-parse_char (char **pp, char c)
-{
-  parse_space (pp);
-
-  if (**pp != c)
-    return false;
-
-  (*pp)++;
-  return true;
-}
-
-static hb_bool_t
-parse_uint (char **pp, unsigned int *pv)
-{
-  char *p = *pp;
-  unsigned int v;
-
-  v = strtol (p, pp, 0);
-
-  if (p == *pp)
-    return false;
-
-  *pv = v;
-  return true;
-}
-
-
-static hb_bool_t
-parse_feature_value_prefix (char **pp, hb_feature_t *feature)
-{
-  if (parse_char (pp, '-'))
-    feature->value = 0;
-  else {
-    parse_char (pp, '+');
-    feature->value = 1;
-  }
-
-  return true;
-}
-
-static hb_bool_t
-parse_feature_tag (char **pp, hb_feature_t *feature)
-{
-  char *p = *pp, c;
-
-  parse_space (pp);
-
-#define ISALNUM(c) (('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z') || ('0' <= (c) && (c) <= '9'))
-  while (c = **pp, ISALNUM(c))
-    (*pp)++;
-#undef ISALNUM
-
-  if (p == *pp)
-    return false;
-
-  feature->tag = hb_tag_from_string (p, *pp - p);
-  return true;
-}
-
-static hb_bool_t
-parse_feature_indices (char **pp, hb_feature_t *feature)
-{
-  parse_space (pp);
-
-  hb_bool_t has_start;
-
-  feature->start = 0;
-  feature->end = (unsigned int) -1;
-
-  if (!parse_char (pp, '['))
-    return true;
-
-  has_start = parse_uint (pp, &feature->start);
-
-  if (parse_char (pp, ':')) {
-    parse_uint (pp, &feature->end);
-  } else {
-    if (has_start)
-      feature->end = feature->start + 1;
-  }
-
-  return parse_char (pp, ']');
-}
-
-static hb_bool_t
-parse_feature_value_postfix (char **pp, hb_feature_t *feature)
-{
-  return !parse_char (pp, '=') || parse_uint (pp, &feature->value);
-}
-
-
-static hb_bool_t
-parse_one_feature (char **pp, hb_feature_t *feature)
-{
-  return parse_feature_value_prefix (pp, feature) &&
-	 parse_feature_tag (pp, feature) &&
-	 parse_feature_indices (pp, feature) &&
-	 parse_feature_value_postfix (pp, feature) &&
-	 (parse_char (pp, ',') || **pp == '\0');
-}
-
-static void
-skip_one_feature (char **pp)
-{
-  char *e;
-  e = strchr (*pp, ',');
-  if (e)
-    *pp = e + 1;
-  else
-    *pp = *pp + strlen (*pp);
-}
-
 static gboolean
 parse_features (const char *name G_GNUC_UNUSED,
 	        const char *arg,
@@ -351,11 +227,11 @@ parse_features (const char *name G_GNUC_UNUSED,
   /* now do the actual parsing */
   p = s;
   shape_opts->num_features = 0;
-  while (*p) {
-    if (parse_one_feature (&p, &shape_opts->features[shape_opts->num_features]))
+  while (p && *p) {
+    char *end = strchr (p, ',');
+    if (hb_feature_from_string (p, end ? end - p : -1, &shape_opts->features[shape_opts->num_features]))
       shape_opts->num_features++;
-    else
-      skip_one_feature (&p);
+    p = end ? end + 1 : NULL;
   }
 
   return true;
