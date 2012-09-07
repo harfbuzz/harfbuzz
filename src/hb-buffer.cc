@@ -147,6 +147,7 @@ hb_buffer_t::reset (void)
   hb_segment_properties_t default_props = _HB_BUFFER_PROPS_DEFAULT;
   props = default_props;
 
+  content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
   in_error = false;
   have_output = false;
   have_positions = false;
@@ -446,6 +447,9 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
 void
 hb_buffer_t::guess_properties (void)
 {
+  if (unlikely (!len)) return;
+  assert (content_type == HB_BUFFER_CONTENT_TYPE_UNICODE);
+
   /* If script is set to INVALID, guess from buffer contents */
   if (props.script == HB_SCRIPT_INVALID) {
     for (unsigned int i = 0; i < len; i++) {
@@ -564,6 +568,7 @@ hb_buffer_get_empty (void)
     const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil),
     _HB_BUFFER_PROPS_DEFAULT,
 
+    HB_BUFFER_CONTENT_TYPE_INVALID,
     true, /* in_error */
     true, /* have_output */
     true  /* have_positions */
@@ -606,6 +611,20 @@ hb_buffer_get_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (buffer, key);
+}
+
+
+void
+hb_buffer_set_content_type (hb_buffer_t              *buffer,
+			    hb_buffer_content_type_t  content_type)
+{
+  buffer->content_type = content_type;
+}
+
+hb_buffer_content_type_t
+hb_buffer_get_content_type (hb_buffer_t *buffer)
+{
+  return buffer->content_type;
 }
 
 
@@ -849,6 +868,11 @@ hb_buffer_add_utf8 (hb_buffer_t  *buffer,
 		    unsigned int  item_offset,
 		    int           item_length)
 {
+  assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
+	  (!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID));
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+  buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
 #define UTF_NEXT(S, E, U)	hb_utf8_next (S, E, &(U))
   ADD_UTF (uint8_t);
 #undef UTF_NEXT
@@ -883,6 +907,11 @@ hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int            item_length)
 {
+  assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
+	  (!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID));
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+  buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
 #define UTF_NEXT(S, E, U)	hb_utf16_next (S, E, &(U))
   ADD_UTF (uint16_t);
 #undef UTF_NEXT
@@ -895,6 +924,11 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int             item_length)
 {
+  assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
+	  (!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID));
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+  buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
 #define UTF_NEXT(S, E, U)	((U) = *(S), (S)+1)
   ADD_UTF (uint32_t);
 #undef UTF_NEXT

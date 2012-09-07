@@ -92,6 +92,8 @@ struct hb_buffer_t {
 
   /* Buffer contents */
 
+  hb_buffer_content_type_t content_type;
+
   bool in_error; /* Allocation failed */
   bool have_output; /* Whether we have an output buffer going on */
   bool have_positions; /* Whether we have positions */

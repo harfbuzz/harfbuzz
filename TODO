@@ -91,3 +91,4 @@ Tests to write:
 - hb_cache_t and relatives
 
 - hb_feature_to/from_string
+- hb_buffer_[sg]et_contents
