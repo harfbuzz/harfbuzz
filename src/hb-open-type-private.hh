@@ -434,7 +434,7 @@ struct hb_serialize_context_t
   {
     unsigned int size = obj.get_size ();
     assert (this->start < (char *) &obj && (char *) &obj <= this->head && (char *) &obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return false;
+    if (unlikely (!this->allocate_size<Type> (((char *) &obj) + size - this->head))) return NULL;
     return reinterpret_cast<Type *> (&obj);
   }
 
