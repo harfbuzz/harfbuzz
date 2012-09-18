@@ -17,6 +17,7 @@ lib_LTLIBRARIES = libharfbuzz.la
 
 HBCFLAGS =
 HBLIBS =
+HBDEPENDENCIES =
 HBSOURCES =  \
 	hb-atomic-private.hh \
 	hb-blob.cc \
@@ -160,6 +161,7 @@ if HAVE_HB_OLD
 SUBDIRS += hb-old
 HBCFLAGS += -I$(srcdir)/hb-old
 HBLIBS   += hb-old/libhb-old.la
+HBDEPENDENCIES += hb-old/libhb-old.la
 HBSOURCES += hb-old.cc
 endif
 DIST_SUBDIRS += hb-old
@@ -168,6 +170,7 @@ if HAVE_ICU_LE
 SUBDIRS += hb-icu-le
 HBCFLAGS += -I$(srcdir)/hb-icu-le
 HBLIBS   += hb-icu-le/libhb-icu-le.la
+HBDEPENDENCIES += hb-icu-le/libhb-icu-le.la
 HBSOURCES += hb-icu-le.cc
 endif
 DIST_SUBDIRS += hb-icu-le
@@ -188,7 +191,7 @@ nodist_libharfbuzz_la_SOURCES = $(nodist_HBSOURCES)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) $(export_symbols) -no-undefined
 libharfbuzz_la_LIBADD = $(HBLIBS)
-libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
+libharfbuzz_la_DEPENDENCIES = $(HBDEPENDENCIES) $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
 nodist_pkginclude_HEADERS = hb-version.h
 
