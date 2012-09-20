@@ -192,7 +192,8 @@ AM_CONDITIONAL(HAVE_GRAPHITE2, $have_graphite)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true, have_freetype=false)
+have_freetype=false
+#PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true, have_freetype=false)
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
 	_save_libs="$LIBS"
