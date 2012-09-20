@@ -152,6 +152,14 @@ AM_CONDITIONAL(HAVE_CAIRO_FT, $have_cairo_ft)
 
 dnl ==========================================================================
 
+have_ucdn=true
+if $have_ucdn; then
+	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN library])
+fi
+AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
+
+dnl ==========================================================================
+
 PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
 if $have_icu; then
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])

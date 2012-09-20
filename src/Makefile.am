@@ -52,6 +52,7 @@ HBSOURCES =  \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
 	hb-warning.cc \
+	ucdn.c \
 	$(NULL)
 HBHEADERS = \
 	hb.h \
@@ -61,8 +62,11 @@ HBHEADERS = \
 	hb-font.h \
 	hb-set.h \
 	hb-shape.h \
+	hb-ucdn.h \
 	hb-unicode.h \
 	hb-version.h \
+	unicodedata_db.h \
+	ucdn.h \
 	$(NULL)
 
 if HAVE_OT
