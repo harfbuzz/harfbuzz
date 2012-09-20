@@ -108,7 +108,7 @@ AM_CONDITIONAL(HAVE_OT, $have_ot)
 
 dnl ===========================================================================
 
-have_hb_old=true
+have_hb_old=false
 if $have_hb_old; then
 	AC_DEFINE(HAVE_HB_OLD, 1, [Have Old HarfBuzz backend])
 fi
@@ -116,19 +116,22 @@ AM_CONDITIONAL(HAVE_HB_OLD, $have_hb_old)
 
 dnl ===========================================================================
 
-PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
+have_glib=false
+#PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
-PKG_CHECK_MODULES(GTHREAD, gthread-2.0, have_gthread=true, have_gthread=false)
+have_gthread=false
+#PKG_CHECK_MODULES(GTHREAD, gthread-2.0, have_gthread=true, have_gthread=false)
 if $have_gthread; then
 	AC_DEFINE(HAVE_GTHREAD, 1, [Have gthread2 library])
 fi
 AM_CONDITIONAL(HAVE_GTHREAD, $have_gthread)
 
-PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0 >= 2.16, have_gobject=true, have_gobject=false)
+have_gobject=false
+#PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0 >= 2.16, have_gobject=true, have_gobject=false)
 if $have_gobject; then
 	AC_DEFINE(HAVE_GOBJECT, 1, [Have gobject2 library])
 	GLIB_MKENUMS=`$PKG_CONFIG --variable=glib_mkenums glib-2.0`
@@ -138,13 +141,15 @@ AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true, have_cairo=false)
+have_cairo=false
+#PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true, have_cairo=false)
 if $have_cairo; then
 	AC_DEFINE(HAVE_CAIRO, 1, [Have cairo graphics library])
 fi
 AM_CONDITIONAL(HAVE_CAIRO, $have_cairo)
 
-PKG_CHECK_MODULES(CAIRO_FT, cairo-ft, have_cairo_ft=true, have_cairo_ft=false)
+have_cairo_ft=false
+#PKG_CHECK_MODULES(CAIRO_FT, cairo-ft, have_cairo_ft=true, have_cairo_ft=false)
 if $have_cairo_ft; then
 	AC_DEFINE(HAVE_CAIRO_FT, 1, [Have cairo-ft support in cairo graphics library])
 fi
@@ -160,7 +165,8 @@ AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
+have_icu=false
+#PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
 if $have_icu; then
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
 fi
@@ -168,7 +174,8 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true, have_icu_le=false)
+have_icu_le=false
+#PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true, have_icu_le=false)
 if $have_icu_le; then
 	AC_DEFINE(HAVE_ICU_LE, 1, [Have ICU Layout Engine library])
 fi
@@ -176,7 +183,8 @@ AM_CONDITIONAL(HAVE_ICU_LE, $have_icu_le)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite=true, have_graphite=false)
+have_graphite=false
+#PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite=true, have_graphite=false)
 if $have_graphite; then
     AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite library])
 fi
@@ -199,7 +207,8 @@ AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ===========================================================================
 
-AC_CHECK_HEADERS(usp10.h windows.h, have_uniscribe=true, have_uniscribe=false)
+have_uniscribe=false
+#AC_CHECK_HEADERS(usp10.h windows.h, have_uniscribe=true, have_uniscribe=false)
 if $have_uniscribe; then
 	UNISCRIBE_CFLAGS=
 	UNISCRIBE_LIBS="-lusp10 -lgdi32"
@@ -211,7 +220,8 @@ AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 
 dnl ===========================================================================
 
-AC_CHECK_HEADERS(ApplicationServices/ApplicationServices.h, have_coretext=true, have_coretext=false)
+have_coretext=false
+#AC_CHECK_HEADERS(ApplicationServices/ApplicationServices.h, have_coretext=true, have_coretext=false)
 if $have_coretext; then
 	CORETEXT_CFLAGS=
 	CORETEXT_LIBS="-framework ApplicationServices"
@@ -223,16 +233,17 @@ AM_CONDITIONAL(HAVE_CORETEXT, $have_coretext)
 
 dnl ===========================================================================
 
-AC_CACHE_CHECK([for Intel atomic primitives], hb_cv_have_intel_atomic_primitives, [
-	hb_cv_have_intel_atomic_primitives=false
-	AC_TRY_LINK([
-		void memory_barrier (void) { __sync_synchronize (); }
-		int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
-		int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
-		void mutex_unlock (int *m) { __sync_lock_release (m); }
-		], [], hb_cv_have_intel_atomic_primitives=true
-	)
-])
+hb_cv_have_intel_atomic_primitives=false
+#AC_CACHE_CHECK([for Intel atomic primitives], hb_cv_have_intel_atomic_primitives, [
+#	hb_cv_have_intel_atomic_primitives=false
+#	AC_TRY_LINK([
+#		void memory_barrier (void) { __sync_synchronize (); }
+#		int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
+#		int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
+#		void mutex_unlock (int *m) { __sync_lock_release (m); }
+#		], [], hb_cv_have_intel_atomic_primitives=true
+#	)
+#)
 if $hb_cv_have_intel_atomic_primitives; then
 	AC_DEFINE(HAVE_INTEL_ATOMIC_PRIMITIVES, 1, [Have Intel __sync_* atomic primitives])
 fi
