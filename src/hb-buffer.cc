@@ -917,6 +917,15 @@ hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 #undef UTF_NEXT
 }
 
+static inline const uint32_t *
+hb_utf32_next (const uint32_t *text,
+	       const uint32_t *end,
+	       hb_codepoint_t *unicode)
+{
+  *unicode = *text;
+  return text + 1;
+}
+
 void
 hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     const uint32_t *text,
@@ -929,7 +938,7 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
   if (unlikely (hb_object_is_inert (buffer)))
     return;
   buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
-#define UTF_NEXT(S, E, U)	((U) = *(S), (S)+1)
+#define UTF_NEXT(S, E, U)	hb_utf32_next (S, E, &(U))
   ADD_UTF (uint32_t);
 #undef UTF_NEXT
 }
