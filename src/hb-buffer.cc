@@ -1,7 +1,7 @@
 /*
  * Copyright © 1998-2004  David Turner and Werner Lemberg
  * Copyright © 2004,2007,2009,2010  Red Hat, Inc.
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -158,6 +158,9 @@ hb_buffer_t::reset (void)
   serial = 0;
   memset (allocated_var_bytes, 0, sizeof allocated_var_bytes);
   memset (allocated_var_owner, 0, sizeof allocated_var_owner);
+
+  memset (context, 0, sizeof context);
+  memset (context_len, 0, sizeof context_len);
 }
 
 void
@@ -570,6 +573,8 @@ hb_buffer_get_empty (void)
     true, /* in_error */
     true, /* have_output */
     true  /* have_positions */
+
+    /* Zero is good enough for everything else. */
   };
 
   return const_cast<hb_buffer_t *> (&_hb_buffer_nil);
@@ -723,6 +728,7 @@ hb_buffer_add (hb_buffer_t    *buffer,
 	       unsigned int    cluster)
 {
   buffer->add (codepoint, mask, cluster);
+  buffer->clear_context (1);
 }
 
 hb_bool_t
@@ -743,6 +749,11 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
   }
 
   buffer->len = length;
+
+  if (!length)
+    buffer->clear_context (0);
+  buffer->clear_context (1);
+
   return true;
 }
 
@@ -817,13 +828,38 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 
   buffer->ensure (buffer->len + item_length * sizeof (T) / 4);
 
-  const T *next = (const T *) text + item_offset;
+  if (!buffer->len)
+  {
+    /* Add pre-context */
+    buffer->clear_context (0);
+    const T *prev = text + item_offset;
+    const T *start = text;
+    while (start < prev && buffer->context_len[0] < buffer->CONTEXT_LENGTH)
+    {
+      hb_codepoint_t u;
+      prev = hb_utf_prev (prev, start, &u);
+      buffer->context[0][buffer->context_len[0]++] = u;
+    }
+  }
+
+  const T *next = text + item_offset;
   const T *end = next + item_length;
-  while (next < end) {
+  while (next < end)
+  {
     hb_codepoint_t u;
     const T *old_next = next;
     next = hb_utf_next (next, end, &u);
-    hb_buffer_add (buffer, u, 1,  old_next - (const T *) text);
+    buffer->add (u, 1,  old_next - (const T *) text);
+  }
+
+  /* Add post-context */
+  buffer->clear_context (1);
+  end = text + text_length;
+  while (next < end && buffer->context_len[1] < buffer->CONTEXT_LENGTH)
+  {
+    hb_codepoint_t u;
+    next = hb_utf_next (next, end, &u);
+    buffer->context[1][buffer->context_len[1]++] = u;
   }
 
   buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
