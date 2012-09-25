@@ -233,16 +233,12 @@ hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
 	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
 
-noinst_PROGRAMS = main indic test-would-substitute
+noinst_PROGRAMS = main test-would-substitute
 bin_PROGRAMS =
 
 main_SOURCES = main.cc
 main_CPPFLAGS = $(HBCFLAGS)
 main_LDADD = libharfbuzz.la $(HBLIBS)
-
-indic_SOURCES = indic.cc
-indic_CPPFLAGS = $(HBCFLAGS)
-indic_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_would_substitute_SOURCES = test-would-substitute.cc
 test_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
