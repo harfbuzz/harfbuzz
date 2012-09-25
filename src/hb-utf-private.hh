@@ -72,6 +72,12 @@ hb_utf_next (const uint8_t *text,
   }
 }
 
+static inline unsigned int
+hb_utf_strlen (const uint8_t *text)
+{
+  return strlen ((const char *) text);
+}
+
 
 /* UTF-16 */
 
@@ -97,6 +103,14 @@ hb_utf_next (const uint16_t *text,
   return text;
 }
 
+static inline unsigned int
+hb_utf_strlen (const uint16_t *text)
+{
+  unsigned int l = 0;
+  while (*text++) l++;
+  return l;
+}
+
 
 /* UTF-32 */
 
@@ -107,6 +121,14 @@ hb_utf_next (const uint32_t *text,
 {
   *unicode = *text;
   return text + 1;
+}
+
+static inline unsigned int
+hb_utf_strlen (const uint32_t *text)
+{
+  unsigned int l = 0;
+  while (*text++) l++;
+  return l;
 }
 
 

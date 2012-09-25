@@ -30,9 +30,6 @@
 #include "hb-buffer-private.hh"
 #include "hb-utf-private.hh"
 
-#include <string.h>
-
-
 
 #ifndef HB_DEBUG_BUFFER
 #define HB_DEBUG_BUFFER (HB_DEBUG+0)
@@ -812,14 +809,8 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   if (unlikely (hb_object_is_inert (buffer)))
     return;
 
-  if (text_length == -1) {
-    text_length = 0;
-    const T *p = (const T *) text;
-    while (*p) {
-      text_length++;
-      p++;
-    }
-  }
+  if (text_length == -1)
+    text_length = hb_utf_strlen (text);
 
   if (item_length == -1)
     item_length = text_length - item_offset;
