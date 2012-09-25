@@ -44,8 +44,8 @@ hb_utf_next (const uint8_t *text,
 	     const uint8_t *end,
 	     hb_codepoint_t *unicode)
 {
-  uint8_t c = *text;
-  unsigned int mask, len;
+  hb_codepoint_t c = *text, mask;
+  unsigned int len;
 
   /* TODO check for overlong sequences? */
 
