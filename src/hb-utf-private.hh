@@ -86,14 +86,16 @@ hb_utf_next (const uint16_t *text,
 	     const uint16_t *end,
 	     hb_codepoint_t *unicode)
 {
-  uint16_t c = *text++;
+  hb_codepoint_t c = *text++;
 
-  if (unlikely (c >= 0xd800 && c < 0xdc00)) {
+  if (unlikely (hb_in_range<hb_codepoint_t> (c, 0xd800, 0xdbff)))
+  {
     /* high surrogate */
-    uint16_t l;
-    if (text < end && ((l = *text), likely (l >= 0xdc00 && l < 0xe000))) {
+    hb_codepoint_t l;
+    if (text < end && ((l = *text), likely (hb_in_range<hb_codepoint_t> (l, 0xdc00, 0xdfff))))
+    {
       /* low surrogate */
-      *unicode = ((hb_codepoint_t) ((c) - 0xd800) * 0x400 + (l) - 0xdc00 + 0x10000);
+      *unicode = (c << 10) + l - ((0xd800 << 10) - 0x10000 + 0xdc00);
        text++;
     } else
       *unicode = -1;
