@@ -51,6 +51,7 @@ HBSOURCES =  \
 	hb-tt-font.cc \
 	hb-unicode-private.hh \
 	hb-unicode.cc \
+	hb-utf-private.hh \
 	hb-warning.cc \
 	$(NULL)
 HBHEADERS = \
