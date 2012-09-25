@@ -179,10 +179,12 @@ DIST_SUBDIRS += hb-icu-le
 if OS_WIN32
 export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
-endif
-
+libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
+else
 # Use a C linker, not C++; Don't link to libstdc++
 libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)
+endif
+
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS)
 nodist_libharfbuzz_la_SOURCES = $(nodist_HBSOURCES)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
