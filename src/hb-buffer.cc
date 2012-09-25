@@ -994,7 +994,7 @@ void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
 {
   assert (buffer->have_positions);
-  /* XXX assert (buffer->have_glyphs); */
+  assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS);
 
   bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
 
