@@ -206,7 +206,7 @@ ASSERT_STATIC (sizeof (hb_var_int_t) == 4);
 static inline HB_CONST_FUNC unsigned int
 _hb_popcount32 (uint32_t mask)
 {
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#if 0 // __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
   return __builtin_popcount (mask);
 #else
   /* "HACKMEM 169" */
