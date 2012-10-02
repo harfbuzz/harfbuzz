@@ -100,6 +100,13 @@ esac
 AC_MSG_RESULT([$hb_os_win32])
 AM_CONDITIONAL(OS_WIN32, test "$hb_os_win32" = "yes")
 
+have_pthread=false
+AX_PTHREAD([have_pthread=true])
+if $have_pthread; then
+	AC_DEFINE(HAVE_PTHREAD, 1, [Have POSIX threads])
+fi
+AM_CONDITIONAL(HAVE_PTHREAD, $have_pthread)
+
 dnl ==========================================================================
 
 have_ot=true
