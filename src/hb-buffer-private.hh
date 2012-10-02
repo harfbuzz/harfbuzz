@@ -1,7 +1,7 @@
 /*
  * Copyright © 1998-2004  David Turner and Werner Lemberg
  * Copyright © 2004,2007,2009,2010  Red Hat, Inc.
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2011,2012  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -117,8 +117,17 @@ struct hb_buffer_t {
   inline hb_glyph_info_t prev (void) const { return info[out_len - 1]; }
 
   unsigned int serial;
+
+  /* These reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
   uint8_t allocated_var_bytes[8];
   const char *allocated_var_owner[8];
+
+  /* Text before / after the main buffer contents.
+   * Always in Unicode, and ordered outward.
+   * Index 0 is for "pre-context", 1 for "post-context". */
+  static const unsigned int CONTEXT_LENGTH = 5;
+  hb_codepoint_t context[2][CONTEXT_LENGTH];
+  unsigned int context_len[2];
 
 
   /* Methods */
@@ -206,6 +215,8 @@ struct hb_buffer_t {
   HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
 
   HB_INTERNAL void *get_scratch_buffer (unsigned int *size);
+
+  inline void clear_context (unsigned int side) { context_len[side] = 0; }
 };
 
 

@@ -237,10 +237,8 @@ hb_set_unicode_props (hb_buffer_t *buffer)
 static void
 hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
 {
-  /* TODO One day, when we keep _before_ text for the buffer, take
-   * that into consideration.  For now, insert dotted-circle if the
-   * very first character is a non-spacing mark. */
-  if (_hb_glyph_info_get_general_category (&buffer->info[0]) !=
+  if (buffer->context_len[0] ||
+      _hb_glyph_info_get_general_category (&buffer->info[0]) !=
       HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     return;
 
