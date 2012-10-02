@@ -2,6 +2,8 @@
 
 NULL =
 
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = src util test
 
 pkgconfigdir = $(libdir)/pkgconfig

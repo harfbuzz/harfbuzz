@@ -5,6 +5,7 @@ AC_INIT([HarfBuzz],
         [harfbuzz],
         [http://harfbuzz.org/])
 
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 
@@ -19,6 +20,7 @@ LT_INIT([disable-static])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
+PKG_PROG_PKG_CONFIG([0.20])
 
 # Version
 m4_define(hb_version_triplet,m4_split(AC_PACKAGE_VERSION,[[.]]))
