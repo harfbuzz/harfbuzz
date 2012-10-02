@@ -88,20 +88,20 @@ if test "x$GCC" = "xyes"; then
 	esac
 fi
 
+hb_os_win32=no
 AC_MSG_CHECKING([for native Win32])
 case "$host" in
   *-*-mingw*)
     hb_os_win32=yes
-    ;;
-  *)
-    hb_os_win32=no
     ;;
 esac
 AC_MSG_RESULT([$hb_os_win32])
 AM_CONDITIONAL(OS_WIN32, test "$hb_os_win32" = "yes")
 
 have_pthread=false
-AX_PTHREAD([have_pthread=true])
+if test "$hb_os_win32" = no; then
+	AX_PTHREAD([have_pthread=true])
+fi
 if $have_pthread; then
 	AC_DEFINE(HAVE_PTHREAD, 1, [Have POSIX threads])
 fi

@@ -85,19 +85,6 @@ typedef int hb_atomic_int_t;
 #define hb_atomic_ptr_get(P)		(void *) (__sync_synchronize (), *(P))
 #define hb_atomic_ptr_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
 
-#elif !defined(HB_NO_MT) && defined(HAVE_GLIB)
-
-#include <glib.h>
-typedef int hb_atomic_int_t;
-#if GLIB_CHECK_VERSION(2,29,5)
-#define hb_atomic_int_add(AI, V)	g_atomic_int_add (&(AI), (V))
-#else
-#define hb_atomic_int_add(AI, V)	g_atomic_int_exchange_and_add (&(AI), (V))
-#endif
-
-#define hb_atomic_ptr_get(P)		g_atomic_pointer_get (P)
-#define hb_atomic_ptr_cmpexch(P,O,N)	g_atomic_pointer_compare_and_exchange ((void **) (P), (void *) (O), (void *) (N))
-
 
 #elif !defined(HB_NO_MT)
 
