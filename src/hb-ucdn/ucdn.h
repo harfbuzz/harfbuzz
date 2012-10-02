@@ -17,6 +17,23 @@
 #ifndef UCDN_H
 #define UCDN_H
 
+#if defined(__GNUC__) && (__GNUC__ >= 4) && !defined(__MINGW32__)
+# define HB_BEGIN_VISIBILITY _Pragma ("GCC visibility push(hidden)")
+# define HB_END_VISIBILITY _Pragma ("GCC visibility pop")
+#else
+# define HB_BEGIN_VISIBILITY
+# define HB_END_VISIBILITY
+#endif
+#ifdef __cplusplus
+# define HB_BEGIN_HEADER  extern "C" { HB_BEGIN_VISIBILITY
+# define HB_END_HEADER  HB_END_VISIBILITY }
+#else
+# define HB_BEGIN_HEADER  HB_BEGIN_VISIBILITY
+# define HB_END_HEADER  HB_END_VISIBILITY
+#endif
+
+HB_BEGIN_HEADER
+
 #include <stdint.h>
 
 #define UCDN_EAST_ASIAN_F 0
@@ -286,5 +303,7 @@ int ucdn_compat_decompose(uint32_t code, uint32_t *decomposed);
  * @return success
  */
 int ucdn_compose(uint32_t *code, uint32_t a, uint32_t b);
+
+HB_END_HEADER
 
 #endif

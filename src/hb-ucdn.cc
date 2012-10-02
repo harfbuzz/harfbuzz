@@ -18,9 +18,7 @@
 
 #include "hb-unicode-private.hh"
 
-HB_BEGIN_DECLS
 #include "ucdn.h"
-HB_END_DECLS
 
 static const hb_script_t ucdn_script_translate[] =
 {
