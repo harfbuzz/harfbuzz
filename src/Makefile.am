@@ -178,6 +178,13 @@ HBSOURCES += hb-icu-le.cc
 endif
 DIST_SUBDIRS += hb-icu-le
 
+if HAVE_UCDN
+SUBDIRS += hb-ucdn
+HBCFLAGS += -I$(srcdir)/hb-ucdn
+HBLIBS   += hb-ucdn/libhb-ucdn.la
+HBSOURCES += hb-ucdn.cc
+endif
+DIST_SUBDIRS += hb-ucdn
 
 
 # Put the library together

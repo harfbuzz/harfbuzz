@@ -125,6 +125,14 @@ AM_CONDITIONAL(HAVE_HB_OLD, $have_hb_old)
 
 dnl ===========================================================================
 
+have_ucdn=true
+if $have_ucdn; then
+	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
+fi
+AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
+
+dnl ===========================================================================
+
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
@@ -245,8 +253,9 @@ Makefile
 harfbuzz.pc
 src/Makefile
 src/hb-version.h
-src/hb-old/Makefile
 src/hb-icu-le/Makefile
+src/hb-old/Makefile
+src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile
 test/api/Makefile
