@@ -4,8 +4,6 @@
 /*.orig
 /*.rej
 /*.tab.c
-/*.js
-/*.otf
 /*~
 /.*.sw[nop]
 /.deps
@@ -22,10 +20,7 @@
 /TAGS
 /_libs
 /harfbuzz.def
-/hb-ot-shape-complex-indic-machine.hh
 /hb-version.h
-/hb-gobject-enums.cc
-/indic
 /libharfbuzz.la
 /main
 /so_locations

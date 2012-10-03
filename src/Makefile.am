@@ -104,6 +104,11 @@ HBHEADERS += \
 	$(NULL)
 endif
 
+if HAVE_PTHREAD
+HBCFLAGS += $(PTHREAD_CFLAGS)
+HBLIBS   += $(PTHREAD_LIBS)
+endif
+
 if HAVE_GLIB
 HBCFLAGS += $(GLIB_CFLAGS)
 HBLIBS   += $(GLIB_LIBS)
@@ -177,6 +182,13 @@ HBSOURCES += hb-icu-le.cc
 endif
 DIST_SUBDIRS += hb-icu-le
 
+if HAVE_UCDN
+SUBDIRS += hb-ucdn
+HBCFLAGS += -I$(srcdir)/hb-ucdn
+HBLIBS   += hb-ucdn/libhb-ucdn.la
+HBSOURCES += hb-ucdn.cc
+endif
+DIST_SUBDIRS += hb-ucdn
 
 
 # Put the library together

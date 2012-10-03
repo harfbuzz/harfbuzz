@@ -5,6 +5,7 @@ AC_INIT([HarfBuzz],
         [harfbuzz],
         [http://harfbuzz.org/])
 
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 
@@ -19,6 +20,7 @@ LT_INIT([disable-static])
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
+PKG_PROG_PKG_CONFIG([0.20])
 
 # Version
 m4_define(hb_version_triplet,m4_split(AC_PACKAGE_VERSION,[[.]]))
@@ -86,17 +88,24 @@ if test "x$GCC" = "xyes"; then
 	esac
 fi
 
+hb_os_win32=no
 AC_MSG_CHECKING([for native Win32])
 case "$host" in
   *-*-mingw*)
     hb_os_win32=yes
     ;;
-  *)
-    hb_os_win32=no
-    ;;
 esac
 AC_MSG_RESULT([$hb_os_win32])
 AM_CONDITIONAL(OS_WIN32, test "$hb_os_win32" = "yes")
+
+have_pthread=false
+if test "$hb_os_win32" = no; then
+	AX_PTHREAD([have_pthread=true])
+fi
+if $have_pthread; then
+	AC_DEFINE(HAVE_PTHREAD, 1, [Have POSIX threads])
+fi
+AM_CONDITIONAL(HAVE_PTHREAD, $have_pthread)
 
 dnl ==========================================================================
 
@@ -113,6 +122,14 @@ if $have_hb_old; then
 	AC_DEFINE(HAVE_HB_OLD, 1, [Have Old HarfBuzz backend])
 fi
 AM_CONDITIONAL(HAVE_HB_OLD, $have_hb_old)
+
+dnl ===========================================================================
+
+have_ucdn=true
+if $have_ucdn; then
+	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
+fi
+AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
 
 dnl ===========================================================================
 
@@ -256,8 +273,9 @@ Makefile
 harfbuzz.pc
 src/Makefile
 src/hb-version.h
-src/hb-old/Makefile
 src/hb-icu-le/Makefile
+src/hb-old/Makefile
+src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile
 test/api/Makefile
