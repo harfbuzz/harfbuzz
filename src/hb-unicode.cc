@@ -32,11 +32,7 @@
 
 #include "hb-unicode-private.hh"
 
-#ifdef HAVE_UCDN
-extern "C" {
-	#include "hb-ucdn.h"
-}
-#endif
+
 
 /*
  * hb_unicode_funcs_t
@@ -114,7 +110,6 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 
 
 #define HB_UNICODE_FUNCS_IMPLEMENT_SET \
-  HB_UNICODE_FUNCS_IMPLEMENT (ucdn) \
   HB_UNICODE_FUNCS_IMPLEMENT (glib) \
   HB_UNICODE_FUNCS_IMPLEMENT (icu) \
   HB_UNICODE_FUNCS_IMPLEMENT (ucdn) \
@@ -136,9 +131,7 @@ hb_unicode_funcs_get_default (void)
 #define HB_UNICODE_FUNCS_IMPLEMENT(set) \
   return hb_##set##_get_unicode_funcs ();
 
-#ifdef HAVE_UCDN
-  HB_UNICODE_FUNCS_IMPLEMENT(ucdn)
-#elif defined(HAVE_GLIB)
+#ifdef HAVE_GLIB
   HB_UNICODE_FUNCS_IMPLEMENT(glib)
 #elif defined(HAVE_ICU)
   HB_UNICODE_FUNCS_IMPLEMENT(icu)
