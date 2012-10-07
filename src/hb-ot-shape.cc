@@ -589,7 +589,7 @@ hb_ot_map_glyphs_dumb (hb_font_t    *font,
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    font->get_glyph (buffer->cur().codepoint, 0, &buffer->cur().codepoint);
+    font->get_glyph (buffer->info[i].codepoint, 0, &buffer->info[i].codepoint);
 }
 
 void
