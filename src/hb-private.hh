@@ -546,7 +546,7 @@ _hb_debug (unsigned int level,
 #define DEBUG_LEVEL(WHAT, LEVEL) (_hb_debug ((LEVEL), HB_DEBUG_##WHAT))
 #define DEBUG(WHAT) (DEBUG_LEVEL (WHAT, 0))
 
-template <int max_level> inline void
+template <int max_level> static inline void
 _hb_debug_msg_va (const char *what,
 		  const void *obj,
 		  const char *func,
@@ -608,7 +608,7 @@ _hb_debug_msg_va<0> (const char *what HB_UNUSED,
 		     const char *message HB_UNUSED,
 		     va_list ap HB_UNUSED) {}
 
-template <int max_level> inline void
+template <int max_level> static inline void
 _hb_debug_msg (const char *what,
 	       const void *obj,
 	       const char *func,
@@ -617,7 +617,7 @@ _hb_debug_msg (const char *what,
 	       int level_dir,
 	       const char *message,
 	       ...) HB_PRINTF_FUNC(7, 8);
-template <int max_level> inline void
+template <int max_level> static inline void
 _hb_debug_msg (const char *what,
 	       const void *obj,
 	       const char *func,
