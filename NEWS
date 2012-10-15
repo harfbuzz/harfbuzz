@@ -1,3 +1,26 @@
+Overview of changes leading to 0.9.5
+Sunday, October 14, 2012
+====================================
+
+- Synthetic-GSUB Arabic fallback shaping.
+
+- Misc Indic improvements.
+
+- Add build system support for pthread.
+
+- Imported UCDN for in-tree Unicode callbacks implementation.
+
+- Context-aware Arabic joining.
+
+- Misc other fixes.
+
+- New API:
+
+  hb_feature_to/from-string()
+  hb_buffer_[sg]et_content_type()
+
+
+
 Overview of changes leading to 0.9.4
 Tuesday, Sep 03, 2012
 ====================================
