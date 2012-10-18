@@ -447,7 +447,7 @@ struct hb_font_t {
   }
 
   private:
-  inline hb_position_t em_scale (int16_t v, int scale) { return hb_position_t ret = v * (int32_t) scale / hb_face_get_upem (this->face); }
+  inline hb_position_t em_scale (int16_t v, int scale) { return v * (int32_t) scale / hb_face_get_upem (this->face); }
 };
 
 #define HB_SHAPER_DATA_CREATE_FUNC_EXTRA_ARGS
