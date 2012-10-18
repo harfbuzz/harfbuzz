@@ -795,7 +795,7 @@ struct Device
 
     if (!pixels) return 0;
 
-    return pixels * (int32_t) scale / ppem;
+    return (int) (pixels * (double) scale / ppem);
   }
 
 
