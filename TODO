@@ -1,12 +1,20 @@
 General fixes:
 =============
 
+- AAT 'morx' implementation.
+
+- Return "safe-to-break" bit from shaping.
+
+- Disable 'vert' if 'vrt2' is available (eg. Motoya fonts with arrow chars).
+
+- Fix TT 'kern' on/off and GPOS interaction (move kerning before GPOS).
+
+- Implement 'rand' feature.
+
 - mask propagation? (when ligation, "or" the masks).
 
 - Warn at compile time (and runtime with HB_DEBUG?) if no Unicode / font
   funcs found / set.
-
-- Fix TT 'kern' on/off and GPOS interaction (move kerning before GPOS).
 
 - Do proper rounding when scaling from font space?  May be a non-issue.
 
@@ -14,8 +22,6 @@ General fixes:
   * init/medi/fina/isol for non-cursive scripts
   * vkna,hkna etc for kana, etc
   * smpl,trad for ZHS / ZHT
-
-- Add ICUlayout API?
 
 
 API issues to fix before 1.0:
