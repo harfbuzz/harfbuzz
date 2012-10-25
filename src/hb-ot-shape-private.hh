@@ -85,7 +85,7 @@ inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
   info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
-			   (unicode->is_zero_width (info->codepoint) ? 0x80 : 0);
+			   (unicode->is_default_ignorable (info->codepoint) ? 0x80 : 0);
   info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
 }
 
@@ -108,7 +108,7 @@ _hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
 }
 
 inline hb_bool_t
-_hb_glyph_info_is_zero_width (const hb_glyph_info_t *info)
+_hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
 {
   return !!(info->unicode_props0() & 0x80);
 }
