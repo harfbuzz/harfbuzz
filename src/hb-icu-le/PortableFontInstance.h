@@ -41,9 +41,6 @@ private:
     le_int32  fDescent;
     le_int32  fLeading;
 
-    float fDeviceScaleX;
-    float fDeviceScaleY;
-
     const NAMETable *fNAMETable;
     le_uint16 fNameCount;
     le_uint16 fNameStringOffset;
