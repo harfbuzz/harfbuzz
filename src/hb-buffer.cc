@@ -71,7 +71,7 @@ hb_buffer_t::enlarge (unsigned int size)
   if (unlikely (_hb_unsigned_int_mul_overflows (size, sizeof (info[0]))))
     goto done;
 
-  while (size > new_allocated)
+  while (size >= new_allocated)
     new_allocated += (new_allocated >> 1) + 32;
 
   ASSERT_STATIC (sizeof (info[0]) == sizeof (pos[0]));
