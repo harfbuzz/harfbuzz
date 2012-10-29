@@ -1,3 +1,10 @@
+Contents of this directory are derived from UCDN:
+
+  https://github.com/grigorig/ucdn
+
+The original README follows:
+
+
 UCDN - Unicode Database and Normalization
 
 UCDN is a Unicode support library. Currently, it provides access
