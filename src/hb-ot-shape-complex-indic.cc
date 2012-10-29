@@ -1157,21 +1157,28 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	   */
 
 	  unsigned int new_pos = base;
-	  while (new_pos > start &&
-		 !(is_one_of (info[new_pos - 1], FLAG(OT_M) | HALANT_OR_COENG_FLAGS)))
-	    new_pos--;
-
-	  /* In Khmer coeng model, a V,Ra can go *after* matras.  If it goes after a
-	   * split matra, it should be reordered to *before* the left part of such matra. */
-	  if (new_pos > start && info[new_pos - 1].indic_category() == OT_M)
+	  /* Malayalam / Tamil do not have "half" forms or explicit virama forms.
+	   * The glyphs formed by 'half' are Chillus or ligated explicit viramas.
+	   * We want to position matra after them.
+	   */
+	  if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
 	  {
-	    unsigned int old_pos = i;
-	    for (unsigned int i = base + 1; i < old_pos; i++)
-	      if (info[i].indic_category() == OT_M)
-	      {
-		new_pos--;
-		break;
-	      }
+	    while (new_pos > start &&
+		   !(is_one_of (info[new_pos - 1], FLAG(OT_M) | HALANT_OR_COENG_FLAGS)))
+	      new_pos--;
+
+	    /* In Khmer coeng model, a V,Ra can go *after* matras.  If it goes after a
+	     * split matra, it should be reordered to *before* the left part of such matra. */
+	    if (new_pos > start && info[new_pos - 1].indic_category() == OT_M)
+	    {
+	      unsigned int old_pos = i;
+	      for (unsigned int i = base + 1; i < old_pos; i++)
+		if (info[i].indic_category() == OT_M)
+		{
+		  new_pos--;
+		  break;
+		}
+	    }
 	  }
 
 	  if (new_pos > start && is_halant_or_coeng (info[new_pos - 1]))
