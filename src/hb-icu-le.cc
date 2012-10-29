@@ -138,6 +138,7 @@ retry:
   ALLOCATE_ARRAY (LEUnicode, chars, buffer->len);
   ALLOCATE_ARRAY (unsigned int, clusters, buffer->len);
 
+  /* XXX Use UTF-16 decoder! */
   for (unsigned int i = 0; i < buffer->len; i++) {
     chars[i] = buffer->info[i].codepoint;
     clusters[i] = buffer->info[i].cluster;
