@@ -189,7 +189,7 @@ retry:
     info[j].codepoint = glyphs[i];
     info[j].cluster = clusters[indices[i]];
 
-    /* icu-le doesn't seem to have separapte advance values. */
+    /* icu-le doesn't seem to have separate advance values. */
     info[j].mask = positions[2 * i + 2] - positions[2 * i];
     info[j].var1.u32 = 0;
     info[j].var2.u32 = -positions[2 * i + 1];
