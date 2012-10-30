@@ -491,7 +491,7 @@ static inline bool match_input (hb_apply_context_t *c,
   if (p_total_component_count)
     *p_total_component_count = total_component_count;
 
-  return true;
+  return TRACE_RETURN (true);
 }
 static inline void ligate_input (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph (not matched) */
