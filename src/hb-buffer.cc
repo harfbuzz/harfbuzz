@@ -183,6 +183,19 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
 }
 
 void
+hb_buffer_t::remove_output (void)
+{
+  if (unlikely (hb_object_is_inert (this)))
+    return;
+
+  have_output = false;
+  have_positions = false;
+
+  out_len = 0;
+  out_info = info;
+}
+
+void
 hb_buffer_t::clear_output (void)
 {
   if (unlikely (hb_object_is_inert (this)))
