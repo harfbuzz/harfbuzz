@@ -841,7 +841,14 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 
   buffer->ensure (buffer->len + item_length * sizeof (T) / 4);
 
-  if (!buffer->len)
+  /* If buffer is empty and pre-context provided, install it.
+   * This check is written this way, to make sure people can
+   * provide pre-context in one add_utf() call, then provide
+   * text in a follow-up call.  See:
+   *
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=801410#c13
+   */
+  if (!buffer->len && item_offset > 0)
   {
     /* Add pre-context */
     buffer->clear_context (0);
