@@ -26,6 +26,15 @@ TEST_PROGS = \
 	test-version \
 	$(NULL)
 
+test_unicode_CPPFLAGS = $(AM_CPPFLAGS)
+if HAVE_GLIB
+test_unicode_CPPFLAGS += $(GLIB_CFLAGS)
+endif
+if HAVE_ICU
+test_unicode_CPPFLAGS += $(ICU_CFLAGS)
+endif
+
+
 if HAVE_OT
 TEST_PROGS += \
 	test-ot-tag \
@@ -48,7 +57,6 @@ if HAVE_FREETYPE
 test_c_CPPFLAGS += $(FREETYPE_CFLAGS)
 test_cplusplus_CPPFLAGS += $(FREETYPE_CFLAGS)
 endif
-
 
 # Default test running environment
 TESTS = $(TEST_PROGS)
