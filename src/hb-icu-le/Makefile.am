@@ -20,6 +20,6 @@ libhb_icu_le_la_CPPFLAGS = \
 libhb_icu_le_la_LIBADD = \
 	$(ICU_LE_LIBS)
 
-EXTRA_DIST = README license.html
+EXTRA_DIST = README license.html COPYING
 
 -include $(top_srcdir)/git.mk

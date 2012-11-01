@@ -71,7 +71,7 @@ hb_buffer_t::enlarge (unsigned int size)
   if (unlikely (_hb_unsigned_int_mul_overflows (size, sizeof (info[0]))))
     goto done;
 
-  while (size > new_allocated)
+  while (size >= new_allocated)
     new_allocated += (new_allocated >> 1) + 32;
 
   ASSERT_STATIC (sizeof (info[0]) == sizeof (pos[0]));
@@ -180,6 +180,19 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
   glyph->cluster = cluster;
 
   len++;
+}
+
+void
+hb_buffer_t::remove_output (void)
+{
+  if (unlikely (hb_object_is_inert (this)))
+    return;
+
+  have_output = false;
+  have_positions = false;
+
+  out_len = 0;
+  out_info = info;
 }
 
 void
@@ -828,7 +841,14 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 
   buffer->ensure (buffer->len + item_length * sizeof (T) / 4);
 
-  if (!buffer->len)
+  /* If buffer is empty and pre-context provided, install it.
+   * This check is written this way, to make sure people can
+   * provide pre-context in one add_utf() call, then provide
+   * text in a follow-up call.  See:
+   *
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=801410#c13
+   */
+  if (!buffer->len && item_offset > 0)
   {
     /* Add pre-context */
     buffer->clear_context (0);

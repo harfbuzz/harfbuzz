@@ -178,8 +178,9 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   map->add_bool_feature (HB_TAG('c','a','l','t'));
   map->add_gsub_pause (NULL);
 
-  /* ArabicOT spec enables 'cswh' for Arabic where as for basic shaper it's disabled by default. */
   map->add_bool_feature (HB_TAG('c','s','w','h'));
+  map->add_bool_feature (HB_TAG('d','l','i','g'));
+  map->add_bool_feature (HB_TAG('m','s','e','t'));
 }
 
 #include "hb-ot-shape-complex-arabic-fallback.hh"
