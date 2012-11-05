@@ -67,6 +67,9 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
   /* Mongolian joining data is not in ArabicJoining.txt yet. */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1800, 0x18AF)))
   {
+    if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1880, 0x1886)))
+      return JOINING_TYPE_U;
+
     /* All letters, SIBE SYLLABLE BOUNDARY MARKER, and NIRUGU are D */
     if ((FLAG(gen_cat) & (FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) |
 			  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER)))
