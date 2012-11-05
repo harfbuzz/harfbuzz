@@ -98,7 +98,7 @@ struct hb_set_digest_lowest_bits_t
 
   private:
 
-  mask_t mask_for (hb_codepoint_t g) const { return ((mask_t) 1) << (g & (sizeof (mask_t) * 8 - 1)); }
+  static inline mask_t mask_for (hb_codepoint_t g) { return ((mask_t) 1) << (g & (sizeof (mask_t) * 8 - 1)); }
   mask_t mask;
 };
 
