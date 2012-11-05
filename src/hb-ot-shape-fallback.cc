@@ -311,7 +311,7 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   hb_glyph_extents_t component_extents = base_extents;
   unsigned int last_lig_component = (unsigned int) -1;
   unsigned int last_combining_class = 255;
-  hb_glyph_extents_t cluster_extents;
+  hb_glyph_extents_t cluster_extents = base_extents; /* Initialization is just to shut gcc up. */
   for (unsigned int i = base + 1; i < end; i++)
     if (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]))
     {
