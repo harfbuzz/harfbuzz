@@ -80,6 +80,9 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
   /* 'Phags-pa joining data is not in ArabicJoining.txt yet. */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xA840, 0xA872)))
   {
+      if (unlikely (u == 0xA872))
+	return JOINING_TYPE_R;
+
       return JOINING_TYPE_D;
   }
 
