@@ -734,9 +734,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   if (indic_plan->mask_array[PREF] && base + 2 < end)
   {
     /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
-    for (unsigned int i = base + 1; i + 1 < end; i++)
-      if (is_halant_or_coeng (info[i + (indic_plan->is_old_spec ? 1 : 0)]) &&
-	  info[i + (indic_plan->is_old_spec ? 0 : 1)].indic_category() == OT_Ra)
+    for (unsigned int i = base + 1; i + 1 < end; i++) {
+      hb_codepoint_t glyphs[2] = {info[i].codepoint, info[i + 1].codepoint};
+      if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), true, face))
       {
 	info[i++].mask |= indic_plan->mask_array[PREF];
 	info[i++].mask |= indic_plan->mask_array[PREF];
@@ -752,6 +752,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
 	break;
       }
+    }
   }
 
   /* Apply ZWJ/ZWNJ effects */
