@@ -39,7 +39,7 @@
 #define indic_position() complex_var_u8_1() /* indic_matra_category_t */
 
 
-#define INDIC_TABLE_ELEMENT_TYPE uint8_t
+#define INDIC_TABLE_ELEMENT_TYPE uint16_t
 
 /* Cateories used in the OpenType spec:
  * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx
@@ -146,8 +146,8 @@ enum indic_matra_category_t {
  * because gcc fails to optimize the latter and fills the table in at runtime. */
 #define INDIC_COMBINE_CATEGORIES(S,M) \
   (ASSERT_STATIC_EXPR_ZERO (M == INDIC_MATRA_CATEGORY_NOT_APPLICABLE || (S == INDIC_SYLLABIC_CATEGORY_VIRAMA || S == INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT)) + \
-   ASSERT_STATIC_EXPR_ZERO (S < 16 && M < 16) + \
-   ((M << 4) | S))
+   ASSERT_STATIC_EXPR_ZERO (S < 255 && M < 255) + \
+   ((M << 8) | S))
 
 
 #include "hb-ot-shape-complex-indic-table.hh"
@@ -304,8 +304,8 @@ set_indic_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = get_indic_categories (u);
-  indic_category_t cat = (indic_category_t) (type & 0x0F);
-  indic_position_t pos = (indic_position_t) (type >> 4);
+  indic_category_t cat = (indic_category_t) (type & 0x7F);
+  indic_position_t pos = (indic_position_t) (type >> 8);
 
 
   /*
