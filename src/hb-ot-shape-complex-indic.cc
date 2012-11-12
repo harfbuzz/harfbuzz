@@ -523,7 +523,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	     * half form.
 	     * A ZWJ before a Halant, requests a subjoined form instead, and hence
 	     * search continues.  This is particularly important for Bengali
-	     * sequence Ra,H,Ya that shouls form Ya-Phalaa by subjoining Ya. */
+	     * sequence Ra,H,Ya that should form Ya-Phalaa by subjoining Ya. */
 	    if (start < i &&
 		info[i].indic_category() == OT_ZWJ &&
 		info[i - 1].indic_category() == OT_H)
