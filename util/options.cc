@@ -313,7 +313,7 @@ shape_options_t::add_options (option_parser_t *parser)
     "\n"
     "    Mixing it all:\n"
     "\n"
-    "      \"kern[3:5]=0\" 1         3         5         # Turn feature off for range";
+    "      \"aalt[3:5]=2\" 2         3         5         # Turn 2nd alternate on for range";
 
   GOptionEntry entries2[] =
   {
