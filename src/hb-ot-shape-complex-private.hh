@@ -171,9 +171,6 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     /* Unicode-5.1 additions */
     case HB_SCRIPT_SAURASHTRA:
 
-    /* Unicode-5.2 additions */
-    case HB_SCRIPT_MEETEI_MAYEK:
-
     /* Unicode-6.0 additions */
     case HB_SCRIPT_BATAK:
     case HB_SCRIPT_BRAHMI:
@@ -247,7 +244,9 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
     /* Unicode-5.2 additions */
     case HB_SCRIPT_JAVANESE:
     case HB_SCRIPT_KAITHI:
+    case HB_SCRIPT_MEETEI_MAYEK:
     case HB_SCRIPT_TAI_THAM:
+
 
     /* Unicode-6.1 additions */
     case HB_SCRIPT_CHAKMA:
