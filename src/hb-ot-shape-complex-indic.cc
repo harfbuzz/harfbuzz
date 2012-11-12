@@ -247,6 +247,8 @@ override_features_indic (hb_ot_shape_planner_t *plan)
   /* Uniscribe does not apply 'kern'. */
   if (indic_options ().uniscribe_bug_compatible)
     plan->map.add_feature (HB_TAG('k','e','r','n'), 0, true);
+
+  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, true);
 }
 
 
