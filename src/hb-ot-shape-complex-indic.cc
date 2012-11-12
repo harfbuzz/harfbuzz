@@ -305,6 +305,7 @@ struct indic_shape_plan_t
   bool is_old_spec;
   hb_codepoint_t virama_glyph;
 
+  would_substitute_feature_t rphf;
   would_substitute_feature_t pref;
   would_substitute_feature_t blwf;
   would_substitute_feature_t pstf;
@@ -329,6 +330,7 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
   indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.get_chosen_script (0) & 0x000000FF) != '2');
   indic_plan->virama_glyph = (hb_codepoint_t) -1;
 
+  indic_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'));
   indic_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'));
   indic_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'));
   indic_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'));
@@ -430,7 +432,9 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
  * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
 
 static void
-initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer_t *buffer,
+initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
+				       hb_face_t *face,
+				       hb_buffer_t *buffer,
 				       unsigned int start, unsigned int end)
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
@@ -461,18 +465,21 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
     unsigned int limit = start;
     if (indic_plan->mask_array[RPHF] &&
 	start + 3 <= end &&
-	info[start].indic_category() == OT_Ra &&
-	info[start + 1].indic_category() == OT_H &&
 	(/* TODO Handle other Reph modes. */
 	 (indic_plan->config->reph_mode == REPH_MODE_IMPLICIT && !is_joiner (info[start + 2])) ||
 	 (indic_plan->config->reph_mode == REPH_MODE_EXPLICIT && info[start + 2].indic_category() == OT_ZWJ)
 	))
     {
-      limit += 2;
-      while (limit < end && is_joiner (info[limit]))
-        limit++;
-      base = start;
-      has_reph = true;
+      /* See if it matches the 'rphf' feature. */
+      hb_codepoint_t glyphs[2] = {info[start].codepoint, info[start + 1].codepoint};
+      if (indic_plan->rphf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), true, face))
+      {
+	limit += 2;
+	while (limit < end && is_joiner (info[limit]))
+	  limit++;
+	base = start;
+	has_reph = true;
+      }
     };
 
     switch (indic_plan->config->base_pos)
@@ -770,15 +777,17 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan, hb_buffer
 
 static void
 initial_reordering_vowel_syllable (const hb_ot_shape_plan_t *plan,
+				   hb_face_t *face,
 				   hb_buffer_t *buffer,
 				   unsigned int start, unsigned int end)
 {
   /* We made the vowels look like consonants.  So let's call the consonant logic! */
-  initial_reordering_consonant_syllable (plan, buffer, start, end);
+  initial_reordering_consonant_syllable (plan, face, buffer, start, end);
 }
 
 static void
 initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
+				       hb_face_t *face,
 				       hb_buffer_t *buffer,
 				       unsigned int start, unsigned int end)
 {
@@ -794,20 +803,22 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
       return;
   }
 
-  initial_reordering_consonant_syllable (plan, buffer, start, end);
+  initial_reordering_consonant_syllable (plan, face, buffer, start, end);
 }
 
 static void
 initial_reordering_broken_cluster (const hb_ot_shape_plan_t *plan,
+				   hb_face_t *face,
 				   hb_buffer_t *buffer,
 				   unsigned int start, unsigned int end)
 {
   /* We already inserted dotted-circles, so just call the standalone_cluster. */
-  initial_reordering_standalone_cluster (plan, buffer, start, end);
+  initial_reordering_standalone_cluster (plan, face, buffer, start, end);
 }
 
 static void
 initial_reordering_non_indic_cluster (const hb_ot_shape_plan_t *plan HB_UNUSED,
+				      hb_face_t *face HB_UNUSED,
 				      hb_buffer_t *buffer HB_UNUSED,
 				      unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
 {
@@ -818,16 +829,17 @@ initial_reordering_non_indic_cluster (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
 static void
 initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
+			     hb_face_t *face,
 			     hb_buffer_t *buffer,
 			     unsigned int start, unsigned int end)
 {
   syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   switch (syllable_type) {
-  case consonant_syllable:	initial_reordering_consonant_syllable (plan, buffer, start, end); return;
-  case vowel_syllable:		initial_reordering_vowel_syllable     (plan, buffer, start, end); return;
-  case standalone_cluster:	initial_reordering_standalone_cluster (plan, buffer, start, end); return;
-  case broken_cluster:		initial_reordering_broken_cluster     (plan, buffer, start, end); return;
-  case non_indic_cluster:	initial_reordering_non_indic_cluster  (plan, buffer, start, end); return;
+  case consonant_syllable:	initial_reordering_consonant_syllable (plan, face, buffer, start, end); return;
+  case vowel_syllable:		initial_reordering_vowel_syllable     (plan, face, buffer, start, end); return;
+  case standalone_cluster:	initial_reordering_standalone_cluster (plan, face, buffer, start, end); return;
+  case broken_cluster:		initial_reordering_broken_cluster     (plan, face, buffer, start, end); return;
+  case non_indic_cluster:	initial_reordering_non_indic_cluster  (plan, face, buffer, start, end); return;
   }
 }
 
@@ -895,11 +907,11 @@ initial_reordering (const hb_ot_shape_plan_t *plan,
   unsigned int last_syllable = info[0].syllable();
   for (unsigned int i = 1; i < count; i++)
     if (last_syllable != info[i].syllable()) {
-      initial_reordering_syllable (plan, buffer, last, i);
+      initial_reordering_syllable (plan, font->face, buffer, last, i);
       last = i;
       last_syllable = info[last].syllable();
     }
-  initial_reordering_syllable (plan, buffer, last, count);
+  initial_reordering_syllable (plan, font->face, buffer, last, count);
 }
 
 static void
