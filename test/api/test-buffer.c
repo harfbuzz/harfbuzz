@@ -110,6 +110,7 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
   g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (b) == NULL);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAGS_DEFAULT);
 
 
   /* test property changes are retained */
@@ -127,6 +128,9 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   hb_buffer_set_language (b, hb_language_from_string ("fa", -1));
   g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa", -1));
 
+  hb_buffer_set_flags (b, HB_BUFFER_FLAG_BOT);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAG_BOT);
+
 
 
   /* test clear clears all properties but unicode_funcs */
@@ -137,6 +141,7 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
   g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (b) == NULL);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAGS_DEFAULT);
 
 
   /* test reset clears all properties */
@@ -150,12 +155,16 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   hb_buffer_set_language (b, hb_language_from_string ("fa", -1));
   g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa", -1));
 
+  hb_buffer_set_flags (b, HB_BUFFER_FLAG_BOT);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAG_BOT);
+
   hb_buffer_reset (b);
 
   g_assert (hb_buffer_get_unicode_funcs (b) == hb_unicode_funcs_get_default ());
   g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
   g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (b) == NULL);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAGS_DEFAULT);
 }
 
 static void

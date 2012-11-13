@@ -237,7 +237,7 @@ hb_set_unicode_props (hb_buffer_t *buffer)
 static void
 hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
 {
-  if (buffer->context_len[0] ||
+  if (!(buffer->flags & HB_BUFFER_FLAG_BOT) ||
       _hb_glyph_info_get_general_category (&buffer->info[0]) !=
       HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     return;
@@ -509,8 +509,11 @@ hb_ot_position (hb_ot_shape_context_t *c)
 /* Post-process */
 
 static void
-hb_ot_hide_zerowidth (hb_ot_shape_context_t *c)
+hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
 {
+  if (c->buffer->flags & HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES)
+    return;
+
   hb_codepoint_t space = 0;
 
   unsigned int count = c->buffer->len;
@@ -554,7 +557,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   hb_ot_substitute (c);
   hb_ot_position (c);
 
-  hb_ot_hide_zerowidth (c);
+  hb_ot_hide_default_ignorables (c);
 
   HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props1);
   HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props0);

@@ -153,6 +153,7 @@ hb_buffer_t::clear (void)
 
   hb_segment_properties_t default_props = _HB_BUFFER_PROPS_DEFAULT;
   props = default_props;
+  flags = HB_BUFFER_FLAGS_DEFAULT;
 
   content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
   in_error = false;
@@ -590,6 +591,7 @@ hb_buffer_get_empty (void)
 
     const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil),
     _HB_BUFFER_PROPS_DEFAULT,
+    HB_BUFFER_FLAGS_DEFAULT,
 
     HB_BUFFER_CONTENT_TYPE_INVALID,
     true, /* in_error */
@@ -722,6 +724,22 @@ hb_language_t
 hb_buffer_get_language (hb_buffer_t *buffer)
 {
   return buffer->props.language;
+}
+
+void
+hb_buffer_set_flags (hb_buffer_t       *buffer,
+		     hb_buffer_flags_t  flags)
+{
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
+  buffer->flags = flags;
+}
+
+hb_buffer_flags_t
+hb_buffer_get_flags (hb_buffer_t *buffer)
+{
+  return buffer->flags;
 }
 
 
