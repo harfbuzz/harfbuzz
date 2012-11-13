@@ -132,6 +132,7 @@ test_ot_tag_script_indic (void)
   test_indic_tags ("ory2", "orya", HB_SCRIPT_ORIYA);
   test_indic_tags ("tml2", "taml", HB_SCRIPT_TAMIL);
   test_indic_tags ("tel2", "telu", HB_SCRIPT_TELUGU);
+  test_indic_tags ("mym2", "mymr", HB_SCRIPT_MYANMAR);
 }
 
 
