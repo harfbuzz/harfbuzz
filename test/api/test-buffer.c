@@ -128,7 +128,27 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa", -1));
 
 
-  /* test reset clears properties */
+
+  /* test clear clears all properties but unicode_funcs */
+
+  hb_buffer_clear (b);
+
+  g_assert (hb_buffer_get_unicode_funcs (b) == ufuncs);
+  g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
+  g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
+  g_assert (hb_buffer_get_language (b) == NULL);
+
+
+  /* test reset clears all properties */
+
+  hb_buffer_set_direction (b, HB_DIRECTION_RTL);
+  g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_RTL);
+
+  hb_buffer_set_script (b, HB_SCRIPT_ARABIC);
+  g_assert (hb_buffer_get_script (b) == HB_SCRIPT_ARABIC);
+
+  hb_buffer_set_language (b, hb_language_from_string ("fa", -1));
+  g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa", -1));
 
   hb_buffer_reset (b);
 

@@ -135,6 +135,10 @@ hb_buffer_get_language (hb_buffer_t *buffer);
 void
 hb_buffer_reset (hb_buffer_t *buffer);
 
+/* Like reset, but does NOT clear unicode_funcs. */
+void
+hb_buffer_clear (hb_buffer_t *buffer);
+
 /* Returns false if allocation failed */
 hb_bool_t
 hb_buffer_pre_allocate (hb_buffer_t  *buffer,

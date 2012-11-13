@@ -133,6 +133,7 @@ struct hb_buffer_t {
   /* Methods */
 
   HB_INTERNAL void reset (void);
+  HB_INTERNAL void clear (void);
 
   inline unsigned int backtrack_len (void) const
   { return have_output? out_len : idx; }
