@@ -167,10 +167,18 @@ struct shape_options_t : option_group_t
     hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
   }
 
-  void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len)
+  void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,
+			const char *text_before, const char *text_after)
   {
-    hb_buffer_reset (buffer);
+    hb_buffer_clear (buffer);
+    if (text_before) {
+      unsigned int len = strlen (text_before);
+      hb_buffer_add_utf8 (buffer, text_before, len, len, 0);
+    }
     hb_buffer_add_utf8 (buffer, text, text_len, 0, text_len);
+    if (text_after) {
+      hb_buffer_add_utf8 (buffer, text_after, -1, 0, 0);
+    }
 
     if (!utf8_clusters) {
       /* Reset cluster values to refer to Unicode character index
@@ -245,6 +253,9 @@ struct font_options_t : option_group_t
 struct text_options_t : option_group_t
 {
   text_options_t (option_parser_t *parser) {
+    text_before = NULL;
+    text_after = NULL;
+
     text = NULL;
     text_file = NULL;
 
@@ -272,6 +283,9 @@ struct text_options_t : option_group_t
   };
 
   const char *get_line (unsigned int *len);
+
+  const char *text_before;
+  const char *text_after;
 
   const char *text;
   const char *text_file;

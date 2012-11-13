@@ -61,7 +61,9 @@ struct shape_closure_consumer_t : option_group_t
   }
   void consume_line (hb_buffer_t  *buffer,
 		     const char   *text,
-		     unsigned int  text_len)
+		     unsigned int  text_len,
+		     const char   *text_before,
+		     const char   *text_after)
   {
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);

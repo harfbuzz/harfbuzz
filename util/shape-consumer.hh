@@ -45,11 +45,13 @@ struct shape_consumer_t
   }
   void consume_line (hb_buffer_t  *buffer,
 		     const char   *text,
-		     unsigned int  text_len)
+		     unsigned int  text_len,
+		     const char   *text_before,
+		     const char   *text_after)
   {
     output.new_line ();
 
-    shaper.populate_buffer (buffer, text, text_len);
+    shaper.populate_buffer (buffer, text, text_len, text_before, text_after);
     output.consume_text (buffer, text, text_len, shaper.utf8_clusters);
 
     if (!shaper.shape (font, buffer)) {
