@@ -135,7 +135,11 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     /* Unicode-6.0 additions */
     case HB_SCRIPT_MANDAIC:
 
-      return &_hb_ot_complex_shaper_arabic;
+      if (planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT ||
+	  planner->props.script == HB_SCRIPT_ARABIC)
+	return &_hb_ot_complex_shaper_arabic;
+      else
+	return &_hb_ot_complex_shaper_default;
 
 
     /* Unicode-1.1 additions */
@@ -253,7 +257,10 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_SHARADA:
     case HB_SCRIPT_TAKRI:
 
-      return &_hb_ot_complex_shaper_indic;
+      if (planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT)
+	return &_hb_ot_complex_shaper_indic;
+      else
+	return &_hb_ot_complex_shaper_default;
   }
 }
 
