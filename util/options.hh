@@ -144,6 +144,7 @@ struct shape_options_t : option_group_t
   shape_options_t (option_parser_t *parser)
   {
     direction = language = script = NULL;
+    bot = eot = preserve_default_ignorables = false;
     features = NULL;
     num_features = 0;
     shapers = NULL;
@@ -165,6 +166,10 @@ struct shape_options_t : option_group_t
     hb_buffer_set_direction (buffer, hb_direction_from_string (direction, -1));
     hb_buffer_set_script (buffer, hb_script_from_string (script, -1));
     hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
+    hb_buffer_set_flags (buffer, (hb_buffer_flags_t) (HB_BUFFER_FLAGS_DEFAULT |
+			 (bot ? HB_BUFFER_FLAG_BOT : 0) |
+			 (eot ? HB_BUFFER_FLAG_EOT : 0) |
+			 (preserve_default_ignorables ? HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES : 0)));
   }
 
   void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,
@@ -213,9 +218,16 @@ struct shape_options_t : option_group_t
     hb_ot_shape_glyphs_closure (font, buffer, features, num_features, glyphs);
   }
 
+  /* Buffer properties */
   const char *direction;
   const char *language;
   const char *script;
+
+  /* Buffer flags */
+  hb_bool_t bot;
+  hb_bool_t eot;
+  hb_bool_t preserve_default_ignorables;
+
   hb_feature_t *features;
   unsigned int num_features;
   char **shapers;
