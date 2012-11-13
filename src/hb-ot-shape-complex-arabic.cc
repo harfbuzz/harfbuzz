@@ -64,15 +64,30 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
       return j_type;
   }
 
-  /* Mongolian joining data is not in ArabicJoining.txt yet */
+  /* Mongolian joining data is not in ArabicJoining.txt yet. */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1800, 0x18AF)))
   {
+    if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1880, 0x1886)))
+      return JOINING_TYPE_U;
+
     /* All letters, SIBE SYLLABLE BOUNDARY MARKER, and NIRUGU are D */
-    if (gen_cat == HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER || u == 0x1807 || u == 0x180A)
+    if ((FLAG(gen_cat) & (FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) |
+			  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER)))
+	|| u == 0x1807 || u == 0x180A)
       return JOINING_TYPE_D;
   }
 
-  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x200C, 0x200D))) {
+  /* 'Phags-pa joining data is not in ArabicJoining.txt yet. */
+  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xA840, 0xA872)))
+  {
+      if (unlikely (u == 0xA872))
+	return JOINING_TYPE_R;
+
+      return JOINING_TYPE_D;
+  }
+
+  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x200C, 0x200D)))
+  {
     return u == 0x200C ? JOINING_TYPE_U : JOINING_TYPE_C;
   }
 

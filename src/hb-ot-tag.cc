@@ -38,6 +38,8 @@
 static hb_tag_t
 hb_ot_old_tag_from_script (hb_script_t script)
 {
+  /* This seems to be accurate as of end of 2012. */
+
   switch ((hb_tag_t) script) {
     case HB_SCRIPT_INVALID:		return HB_OT_TAG_DEFAULT_SCRIPT;
 

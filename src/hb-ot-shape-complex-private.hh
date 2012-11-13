@@ -130,6 +130,7 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
 
     /* Unicode-5.0 additions */
     case HB_SCRIPT_NKO:
+    case HB_SCRIPT_PHAGS_PA:
 
     /* Unicode-6.0 additions */
     case HB_SCRIPT_MANDAIC:
@@ -198,9 +199,6 @@ hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
 
     /* Unicode-4.1 additions */
     case HB_SCRIPT_SYLOTI_NAGRI:
-
-    /* Unicode-5.0 additions */
-    case HB_SCRIPT_PHAGS_PA:
 
     /* Unicode-5.1 additions */
     case HB_SCRIPT_KAYAH_LI:
