@@ -151,7 +151,8 @@ struct hb_ot_map_builder_t
 {
   public:
 
-  hb_ot_map_builder_t (void) { memset (this, 0, sizeof (*this)); }
+  HB_INTERNAL hb_ot_map_builder_t (hb_face_t *face_,
+				   const hb_segment_properties_t *props_);
 
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global, bool has_fallback = false);
 
@@ -163,9 +164,7 @@ struct hb_ot_map_builder_t
   inline void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (1, pause_func); }
 
-  HB_INTERNAL void compile (hb_face_t *face,
-			    const hb_segment_properties_t *props,
-			    struct hb_ot_map_t &m);
+  HB_INTERNAL void compile (struct hb_ot_map_t &m);
 
   inline void finish (void) {
     feature_infos.finish ();
@@ -194,6 +193,12 @@ struct hb_ot_map_builder_t
   };
 
   HB_INTERNAL void add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func);
+
+  hb_face_t *face;
+  hb_segment_properties_t props;
+
+  hb_tag_t chosen_script[2];
+  unsigned int script_index[2], language_index[2];
 
   unsigned int current_stage[2]; /* GSUB/GPOS */
   hb_prealloced_array_t<feature_info_t,16> feature_infos;

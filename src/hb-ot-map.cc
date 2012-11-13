@@ -59,6 +59,30 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
   } while (len == ARRAY_LENGTH (lookup_indices));
 }
 
+hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
+					  const hb_segment_properties_t *props_)
+{
+  memset (this, 0, sizeof (*this));
+
+  face = face_;
+  props = *props_;
+
+
+  /* Fetch script/language indices for GSUB/GPOS.  We need these later to skip
+   * features not available in either table and not waste precious bits for them. */
+
+  hb_tag_t script_tags[3] = {HB_TAG_NONE, HB_TAG_NONE, HB_TAG_NONE};
+  hb_tag_t language_tag;
+
+  hb_ot_tags_from_script (props.script, &script_tags[0], &script_tags[1]);
+  language_tag = hb_ot_tag_from_language (props.language);
+
+  for (unsigned int table_index = 0; table_index < 2; table_index++) {
+    hb_tag_t table_tag = table_tags[table_index];
+    hb_ot_layout_table_choose_script (face, table_tag, script_tags, &script_index[table_index], &chosen_script[table_index]);
+    hb_ot_layout_script_find_language (face, table_tag, script_index[table_index], language_tag, &language_index[table_index]);
+  }
+}
 
 void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool global, bool has_fallback)
 {
@@ -133,32 +157,15 @@ void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::paus
 }
 
 void
-hb_ot_map_builder_t::compile (hb_face_t *face,
-			      const hb_segment_properties_t *props,
-			      hb_ot_map_t &m)
+hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 {
- m.global_mask = 1;
+  m.global_mask = 1;
+
+  for (unsigned int table_index = 0; table_index < 2; table_index++)
+    m.chosen_script[table_index] = chosen_script[table_index];
 
   if (!feature_infos.len)
     return;
-
-
-  /* Fetch script/language indices for GSUB/GPOS.  We need these later to skip
-   * features not available in either table and not waste precious bits for them. */
-
-  hb_tag_t script_tags[3] = {HB_TAG_NONE};
-  hb_tag_t language_tag;
-
-  hb_ot_tags_from_script (props->script, &script_tags[0], &script_tags[1]);
-  language_tag = hb_ot_tag_from_language (props->language);
-
-  unsigned int script_index[2], language_index[2];
-  for (unsigned int table_index = 0; table_index < 2; table_index++) {
-    hb_tag_t table_tag = table_tags[table_index];
-    hb_ot_layout_table_choose_script (face, table_tag, script_tags, &script_index[table_index], &m.chosen_script[table_index]);
-    hb_ot_layout_script_find_language (face, table_tag, script_index[table_index], language_tag, &language_index[table_index]);
-  }
-
 
   /* Sort features and merge duplicates */
   {

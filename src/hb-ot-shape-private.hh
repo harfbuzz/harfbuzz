@@ -65,14 +65,14 @@ struct hb_ot_shape_planner_t
 			 face (master_plan->face),
 			 props (master_plan->props),
 			 shaper (NULL),
-			 map () {}
+			 map (face, &props) {}
   ~hb_ot_shape_planner_t (void) { map.finish (); }
 
   inline void compile (hb_ot_shape_plan_t &plan)
   {
     plan.props = props;
     plan.shaper = shaper;
-    map.compile (face, &props, plan.map);
+    map.compile (plan.map);
   }
 
   private:
