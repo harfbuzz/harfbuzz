@@ -135,6 +135,8 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     /* Unicode-6.0 additions */
     case HB_SCRIPT_MANDAIC:
 
+      /* For Arabic script, use the Arabic shaper even if no OT script tag was found.
+       * This is because we do fallback shaping for Arabic script (and not others). */
       if (planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT ||
 	  planner->props.script == HB_SCRIPT_ARABIC)
 	return &_hb_ot_complex_shaper_arabic;
@@ -208,12 +210,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_TAI_VIET:
 
 
-    /* May need Indic treatment in the future? */
-
-    /* Unicode-3.0 additions */
-    case HB_SCRIPT_MYANMAR:
-
-
 #endif
 
     /* Unicode-1.1 additions */
@@ -229,6 +225,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 
     /* Unicode-3.0 additions */
     case HB_SCRIPT_KHMER:
+    case HB_SCRIPT_MYANMAR:
     case HB_SCRIPT_SINHALA:
 
     /* Unicode-4.1 additions */
@@ -257,7 +254,10 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_SHARADA:
     case HB_SCRIPT_TAKRI:
 
-      if (planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT)
+      /* For Myanmar, we only want to use the Indic shaper if the "new" script
+       * tag is found.  For "old" script tag we want to use the default shaper. */
+      if (planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT &&
+	  planner->map.chosen_script[0] != HB_TAG ('m','y','m','r'))
 	return &_hb_ot_complex_shaper_indic;
       else
 	return &_hb_ot_complex_shaper_default;
