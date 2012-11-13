@@ -28,10 +28,10 @@ TEST_PROGS = \
 
 test_unicode_CPPFLAGS = $(AM_CPPFLAGS)
 if HAVE_GLIB
-test_unicode_CPPFLAGS += $(GLIB_CFLAGS)
+AM_CPPFLAGS += $(GLIB_CFLAGS)
 endif
 if HAVE_ICU
-test_unicode_CPPFLAGS += $(ICU_CFLAGS)
+AM_CPPFLAGS += $(ICU_CFLAGS)
 endif
 
 
