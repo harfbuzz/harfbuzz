@@ -175,7 +175,7 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 
   hb_ot_shape_planner_t planner (shape_plan);
 
-  planner.shaper = hb_ot_shape_complex_categorize (&shape_plan->props);
+  planner.shaper = hb_ot_shape_complex_categorize (&planner);
 
   hb_ot_shape_collect_features (&planner, &shape_plan->props, user_features, num_user_features);
 

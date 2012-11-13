@@ -115,9 +115,9 @@ HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
 
 
 static inline const hb_ot_complex_shaper_t *
-hb_ot_shape_complex_categorize (const hb_segment_properties_t *props)
+hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 {
-  switch ((hb_tag_t) props->script)
+  switch ((hb_tag_t) planner->props.script)
   {
     default:
       return &_hb_ot_complex_shaper_default;
