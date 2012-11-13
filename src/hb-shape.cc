@@ -176,7 +176,7 @@ hb_feature_to_string (hb_feature_t *feature,
   len += 4;
   while (len && s[len - 1] == ' ')
     len--;
-  if (feature->start != 0 || feature->start != (unsigned int) -1)
+  if (feature->start != 0 || feature->end != (unsigned int) -1)
   {
     s[len++] = '[';
     if (feature->start)
