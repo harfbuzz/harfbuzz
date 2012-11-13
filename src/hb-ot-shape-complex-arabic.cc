@@ -348,6 +348,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   data_destroy_arabic,
   NULL, /* preprocess_text_arabic */
   NULL, /* normalization_preference */
+  NULL, /* decompose */
+  NULL, /* compose */
   setup_masks_arabic,
   true, /* zero_width_attached_marks */
 };

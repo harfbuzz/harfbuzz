@@ -1268,10 +1268,80 @@ final_reordering (const hb_ot_shape_plan_t *plan,
 
 
 static hb_ot_shape_normalization_mode_t
-normalization_preference_indic (const hb_ot_shape_plan_t *plan)
+normalization_preference_indic (const hb_segment_properties_t *props)
 {
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
 }
+
+static hb_bool_t
+decompose_indic (hb_unicode_funcs_t *unicode,
+		 hb_codepoint_t  ab,
+		 hb_codepoint_t *a,
+		 hb_codepoint_t *b)
+{
+  switch (ab)
+  {
+    /* Don't decompose these. */
+    case 0x0931  : return false;
+    case 0x0B94  : return false;
+
+
+    /*
+     * Decompose split matras that don't have Unicode decompositions.
+     */
+
+    case 0x0F77  : *a = 0x0FB2; *b= 0x0F81; return true;
+    case 0x0F79  : *a = 0x0FB3; *b= 0x0F81; return true;
+    case 0x17BE  : *a = 0x17C1; *b= 0x17BE; return true;
+    case 0x17BF  : *a = 0x17C1; *b= 0x17BF; return true;
+    case 0x17C0  : *a = 0x17C1; *b= 0x17C0; return true;
+    case 0x17C4  : *a = 0x17C1; *b= 0x17C4; return true;
+    case 0x17C5  : *a = 0x17C1; *b= 0x17C5; return true;
+    case 0x1925  : *a = 0x1920; *b= 0x1923; return true;
+    case 0x1926  : *a = 0x1920; *b= 0x1924; return true;
+    case 0x1B3C  : *a = 0x1B42; *b= 0x1B3C; return true;
+    case 0x1112E  : *a = 0x11127; *b= 0x11131; return true;
+    case 0x1112F  : *a = 0x11127; *b= 0x11132; return true;
+#if 0
+    /* This one has no decomposition in Unicode, but needs no decomposition either. */
+    /* case 0x0AC9  : return false; */
+    case 0x0B57  : *a = no decomp, -> RIGHT; return true;
+    case 0x1C29  : *a = no decomp, -> LEFT; return true;
+    case 0xA9C0  : *a = no decomp, -> RIGHT; return true;
+    case 0x111BF  : *a = no decomp, -> ABOVE; return true;
+#endif
+  }
+
+  if (indic_options ().uniscribe_bug_compatible)
+  switch (ab)
+  {
+    /* These Sinhala ones have Unicode decompositions, but Uniscribe
+     * decomposes them "Khmer-style". */
+    case 0x0DDA  : *a = 0x0DD9; *b= 0x0DDA; return true;
+    case 0x0DDC  : *a = 0x0DD9; *b= 0x0DDC; return true;
+    case 0x0DDD  : *a = 0x0DD9; *b= 0x0DDD; return true;
+    case 0x0DDE  : *a = 0x0DD9; *b= 0x0DDE; return true;
+  }
+
+  return unicode->decompose (ab, a, b);
+}
+
+static hb_bool_t
+compose_indic (hb_unicode_funcs_t *unicode,
+	       hb_codepoint_t  a,
+	       hb_codepoint_t  b,
+	       hb_codepoint_t *ab)
+{
+  /* Avoid recomposing split matras. */
+  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (unicode->general_category (a)))
+    return false;
+
+  /* Composition-exclusion exceptions that we want to recompose. */
+  if (a == 0x09AF && b == 0x09BC) { *ab = 0x09DF; return true; }
+
+  return unicode->compose (a, b, ab);
+}
+
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
 {
@@ -1282,6 +1352,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   data_destroy_indic,
   NULL, /* preprocess_text */
   normalization_preference_indic,
+  decompose_indic,
+  compose_indic,
   setup_masks_indic,
   false, /* zero_width_attached_marks */
 };

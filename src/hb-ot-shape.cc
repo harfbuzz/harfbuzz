@@ -362,10 +362,7 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
 
   HB_BUFFER_ALLOCATE_VAR (c->buffer, glyph_index);
 
-  _hb_ot_shape_normalize (c->font, c->buffer,
-			  c->plan->shaper->normalization_preference ?
-			  c->plan->shaper->normalization_preference (c->plan) :
-			  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT);
+  _hb_ot_shape_normalize (c->plan->shaper, c->buffer, c->font);
 
   hb_ot_shape_setup_masks (c);
 
