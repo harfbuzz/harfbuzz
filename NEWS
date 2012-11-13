@@ -1,3 +1,31 @@
+Overview of changes leading to 0.9.6
+Sunday, November 13, 2012
+====================================
+
+- Don't clear pre-context text if no new context is provided.
+- Fix ReverseChainingSubstLookup, which was totally borked.
+- Adjust output format of hb-shape a bit.
+- Include config.h.in in-tree.  Makes it easier for alternate build systems.
+- Fix hb_buffer_set_length(buffer, 0) invalid memory allocation.
+- Use ICU LayoutEngine's C API instead of C++.  Avoids much headache.
+- Drop glyphs for all of Unicode Default_Ignorable characters.
+- Misc build fixes.
+
+Arabic shaper:
+- Enable 'dlig' and 'mset' features in Arabic shaper.
+- Implement 'Phags-pa shaping, improve Mongolian.
+
+Indic shaper:
+- Decompose Sinhala split matras the way old HarfBuzz / Pango did.
+- Initial support for Consonant Medials.
+- Start adding new-style Myanmar shaping.
+- Make reph and 'pref' logic introspect the font.
+- Route Meetei-Mayek through the Indic shaper.
+- Don't apply 'liga' in Indic shaper.
+- Improve Malayalam pre-base reordering Ra interaction with Chillus.
+
+
+
 Overview of changes leading to 0.9.5
 Sunday, October 14, 2012
 ====================================
