@@ -27,6 +27,8 @@ General fixes:
 API issues to fix before 1.0:
 ============================
 
+- API to accept a list of languages.
+
 - Add default font_funcs / Unicode funcs API and to utils.
 
 - Add init_func to font_funcs.  Adjust ft.
