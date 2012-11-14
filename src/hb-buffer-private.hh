@@ -146,7 +146,6 @@ struct hb_buffer_t {
   HB_INTERNAL void deallocate_var_all (void);
 
   HB_INTERNAL void add (hb_codepoint_t  codepoint,
-			hb_mask_t       mask,
 			unsigned int    cluster);
 
   HB_INTERNAL void reverse_range (unsigned int start, unsigned int end);

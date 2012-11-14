@@ -175,7 +175,6 @@ hb_buffer_t::clear (void)
 
 void
 hb_buffer_t::add (hb_codepoint_t  codepoint,
-		  hb_mask_t       mask,
 		  unsigned int    cluster)
 {
   hb_glyph_info_t *glyph;
@@ -186,7 +185,7 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
 
   memset (glyph, 0, sizeof (*glyph));
   glyph->codepoint = codepoint;
-  glyph->mask = mask;
+  glyph->mask = 1;
   glyph->cluster = cluster;
 
   len++;
@@ -770,10 +769,9 @@ hb_buffer_allocation_successful (hb_buffer_t  *buffer)
 void
 hb_buffer_add (hb_buffer_t    *buffer,
 	       hb_codepoint_t  codepoint,
-	       hb_mask_t       mask,
 	       unsigned int    cluster)
 {
-  buffer->add (codepoint, mask, cluster);
+  buffer->add (codepoint, cluster);
   buffer->clear_context (1);
 }
 
@@ -902,7 +900,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
     hb_codepoint_t u;
     const T *old_next = next;
     next = hb_utf_next (next, end, &u);
-    buffer->add (u, 1,  old_next - (const T *) text);
+    buffer->add (u, old_next - (const T *) text);
   }
 
   /* Add post-context */

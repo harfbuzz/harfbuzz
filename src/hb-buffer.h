@@ -177,7 +177,6 @@ hb_buffer_guess_properties (hb_buffer_t *buffer);
 void
 hb_buffer_add (hb_buffer_t    *buffer,
 	       hb_codepoint_t  codepoint,
-	       hb_mask_t       mask,
 	       unsigned int    cluster);
 
 void
