@@ -71,7 +71,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 
     case BUFFER_ONE_BY_ONE:
       for (i = 1; i < G_N_ELEMENTS (utf32) - 1; i++)
-	hb_buffer_add (b, utf32[i], 1, i);
+	hb_buffer_add (b, utf32[i], i);
       break;
 
     case BUFFER_UTF32:
