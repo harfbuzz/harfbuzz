@@ -62,18 +62,6 @@ typedef struct hb_glyph_position_t {
   hb_var_int_t   var;
 } hb_glyph_position_t;
 
-typedef enum {
-  HB_BUFFER_CONTENT_TYPE_INVALID = 0,
-  HB_BUFFER_CONTENT_TYPE_UNICODE,
-  HB_BUFFER_CONTENT_TYPE_GLYPHS
-} hb_buffer_content_type_t;
-
-typedef enum {
-  HB_BUFFER_FLAGS_DEFAULT			= 0x00000000,
-  HB_BUFFER_FLAG_BOT				= 0x00000001, /* Beginning-of-text */
-  HB_BUFFER_FLAG_EOT				= 0x00000002, /* End-of-text */
-  HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES	= 0x00000004
-} hb_buffer_flags_t;
 
 hb_buffer_t *
 hb_buffer_create (void);
@@ -98,6 +86,12 @@ void *
 hb_buffer_get_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key);
 
+
+typedef enum {
+  HB_BUFFER_CONTENT_TYPE_INVALID = 0,
+  HB_BUFFER_CONTENT_TYPE_UNICODE,
+  HB_BUFFER_CONTENT_TYPE_GLYPHS
+} hb_buffer_content_type_t;
 
 void
 hb_buffer_set_content_type (hb_buffer_t              *buffer,
@@ -134,6 +128,14 @@ hb_buffer_set_language (hb_buffer_t   *buffer,
 
 hb_language_t
 hb_buffer_get_language (hb_buffer_t *buffer);
+
+
+typedef enum {
+  HB_BUFFER_FLAGS_DEFAULT			= 0x00000000,
+  HB_BUFFER_FLAG_BOT				= 0x00000001, /* Beginning-of-text */
+  HB_BUFFER_FLAG_EOT				= 0x00000002, /* End-of-text */
+  HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES	= 0x00000004
+} hb_buffer_flags_t;
 
 void
 hb_buffer_set_flags (hb_buffer_t       *buffer,
