@@ -248,8 +248,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_TELUGU:
 
     /* Unicode-3.0 additions */
-    case HB_SCRIPT_KHMER:
-    case HB_SCRIPT_MYANMAR:
     case HB_SCRIPT_SINHALA:
 
     /* Unicode-4.1 additions */
@@ -278,10 +276,25 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_SHARADA:
     case HB_SCRIPT_TAKRI:
 
+      /* Only use Indic shaper if the font has Indic tables. */
+      if (planner->map.chosen_script[0] == HB_OT_TAG_DEFAULT_SCRIPT)
+	return &_hb_ot_complex_shaper_default;
+      else
+	return &_hb_ot_complex_shaper_indic;
+
+    case HB_SCRIPT_KHMER:
+      /* If the font has 'liga', let the generic shaper do it. */
+      if (planner->map.chosen_script[0] == HB_OT_TAG_DEFAULT_SCRIPT ||
+	  hb_ot_layout_language_find_feature (planner->face, HB_OT_TAG_GSUB, planner->map.script_index[0], planner->map.language_index[0], HB_TAG ('l','i','g','a'), NULL))
+	return &_hb_ot_complex_shaper_default;
+      else
+	return &_hb_ot_complex_shaper_indic;
+
+
+    case HB_SCRIPT_MYANMAR:
       /* For Myanmar, we only want to use the Indic shaper if the "new" script
        * tag is found.  For "old" script tag we want to use the default shaper. */
-      if (planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT &&
-	  planner->map.chosen_script[0] != HB_TAG ('m','y','m','r'))
+      if (planner->map.chosen_script[0] == HB_TAG ('m','y','m','2'))
 	return &_hb_ot_complex_shaper_indic;
       else
 	return &_hb_ot_complex_shaper_default;
