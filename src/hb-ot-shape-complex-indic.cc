@@ -662,13 +662,17 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       if ((FLAG (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | HALANT_OR_COENG_FLAGS)))
       {
 	info[i].indic_position() = last_pos;
-	if (unlikely (indic_options ().uniscribe_bug_compatible &&
-		      info[i].indic_category() == OT_H &&
+	if (unlikely (info[i].indic_category() == OT_H &&
 		      info[i].indic_position() == POS_PRE_M))
 	{
 	  /*
 	   * Uniscribe doesn't move the Halant with Left Matra.
 	   * TEST: U+092B,U+093F,U+094DE
+	   * We follow.  This is important for the Sinhala
+	   * U+0DDA split matra since it decomposes to U+0DD9,U+0DCA
+	   * where U+0DD9 is a left matra and U+0DCA is the virama.
+	   * We don't want to move the virama with the left matra.
+	   * TEST: U+0D9A,U+0DDA
 	   */
 	  for (unsigned int j = i; j > start; j--)
 	    if (info[j - 1].indic_position() != POS_PRE_M) {
