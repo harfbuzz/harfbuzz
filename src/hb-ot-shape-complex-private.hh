@@ -226,6 +226,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_TAI_LE:
 
     /* Unicode-4.1 additions */
+    case HB_SCRIPT_KHAROSHTHI:
     case HB_SCRIPT_SYLOTI_NAGRI:
 
     /* Unicode-5.1 additions */
@@ -253,7 +254,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 
     /* Unicode-4.1 additions */
     case HB_SCRIPT_BUGINESE:
-    case HB_SCRIPT_KHAROSHTHI:
     case HB_SCRIPT_NEW_TAI_LUE:
 
     /* Unicode-5.0 additions */
