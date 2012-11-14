@@ -221,6 +221,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
   compose_default,
   NULL, /* setup_masks */
   true, /* zero_width_attached_marks */
+  true, /* fallback_position */
 };
 
 
@@ -334,4 +335,5 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
   NULL, /* compose */
   NULL, /* setup_masks */
   true, /* zero_width_attached_marks */
+  false,/* fallback_position */
 };

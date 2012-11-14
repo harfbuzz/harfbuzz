@@ -452,12 +452,6 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_position_complex_fallback (hb_ot_shape_context_t *c)
-{
-  _hb_ot_shape_fallback_position (c->plan, c->font, c->buffer);
-}
-
-static inline void
 hb_ot_truetype_kern (hb_ot_shape_context_t *c)
 {
   /* TODO Check for kern=0 */
@@ -483,26 +477,22 @@ hb_ot_truetype_kern (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_position_complex_fallback_visual (hb_ot_shape_context_t *c)
-{
-  hb_ot_truetype_kern (c);
-}
-
-static inline void
 hb_ot_position (hb_ot_shape_context_t *c)
 {
   hb_ot_position_default (c);
 
   hb_bool_t fallback = !hb_ot_position_complex (c);
 
-  if (fallback)
-    hb_ot_position_complex_fallback (c);
+  if (fallback && c->plan->shaper->fallback_position)
+    _hb_ot_shape_fallback_position (c->plan, c->font, c->buffer);
 
   if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
     hb_buffer_reverse (c->buffer);
 
+  /* Visual fallback goes here. */
+
   if (fallback)
-    hb_position_complex_fallback_visual (c);
+    hb_ot_truetype_kern (c);
 }
 
 

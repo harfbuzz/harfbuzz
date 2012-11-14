@@ -131,6 +131,7 @@ struct hb_ot_complex_shaper_t
 		       hb_font_t                *font);
 
   bool zero_width_attached_marks;
+  bool fallback_position;
 };
 
 #define HB_COMPLEX_SHAPER_IMPLEMENT(name) extern HB_INTERNAL const hb_ot_complex_shaper_t _hb_ot_complex_shaper_##name;

@@ -1360,4 +1360,5 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   compose_indic,
   setup_masks_indic,
   false, /* zero_width_attached_marks */
+  false, /* fallback_position */
 };
