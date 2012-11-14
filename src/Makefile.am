@@ -81,11 +81,12 @@ HBSOURCES += \
 	hb-ot-shape-complex-arabic.cc \
 	hb-ot-shape-complex-arabic-fallback.hh \
 	hb-ot-shape-complex-arabic-table.hh \
+	hb-ot-shape-complex-default.cc \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-indic-private.hh \
 	hb-ot-shape-complex-indic-table.hh \
-	hb-ot-shape-complex-misc.cc \
+	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-normalize-private.hh \
 	hb-ot-shape-normalize.cc \
