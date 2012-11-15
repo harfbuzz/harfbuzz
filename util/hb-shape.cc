@@ -45,6 +45,12 @@ struct output_buffer_t
       output_format = HB_BUFFER_SERIALIZE_FORMAT_TEXT;
     else
       output_format = hb_buffer_serialize_format_from_string (options.output_format, -1);
+    if (!hb_buffer_serialize_format_to_string (output_format))
+    {
+      fail (false, "Unknown output format `%s'; supported formats are: %s",
+	    options.output_format,
+	    g_strjoinv (" / ", (gchar**) hb_buffer_serialize_list_formats ()));
+    }
 
     unsigned int flags = HB_BUFFER_SERIALIZE_FLAGS_DEFAULT;
     if (!format.show_glyph_names)
