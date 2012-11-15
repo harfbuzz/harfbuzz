@@ -259,6 +259,9 @@ hb_buffer_serialize_format_from_string (const char *str, int len);
 const char *
 hb_buffer_serialize_format_to_string (hb_buffer_serialize_format_t format);
 
+const char **
+hb_buffer_serialize_list_formats (void);
+
 /* Returns number of items, starting at start, that were serialized. */
 unsigned int
 hb_buffer_serialize_glyphs (hb_buffer_t *buffer,

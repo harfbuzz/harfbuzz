@@ -1035,6 +1035,12 @@ static const char *serialize_formats[] = {
   NULL
 };
 
+const char **
+hb_buffer_serialize_list_formats (void)
+{
+  return serialize_formats;
+}
+
 hb_buffer_serialize_format_t
 hb_buffer_serialize_format_from_string (const char *str, int len)
 {
