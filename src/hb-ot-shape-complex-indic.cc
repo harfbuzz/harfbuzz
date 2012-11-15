@@ -872,7 +872,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan,
   if (!font->get_glyph (0x25CC, 0, &dottedcircle_glyph))
     return;
 
-  hb_glyph_info_t dottedcircle;
+  hb_glyph_info_t dottedcircle = {0};
   dottedcircle.codepoint = 0x25CC;
   set_indic_properties (dottedcircle);
   dottedcircle.codepoint = dottedcircle_glyph;
