@@ -46,7 +46,7 @@ enum thai_consonant_type_t
 static thai_consonant_type_t
 get_consonant_type (hb_codepoint_t u)
 {
-  if (u == 0x0E1B || u == 0x0E1D || u == 0x0E1F || u == 0x0E2C)
+  if (u == 0x0E1B || u == 0x0E1D || u == 0x0E1F/* || u == 0x0E2C*/)
     return AC;
   if (u == 0x0E0D || u == 0x0E10)
     return RC;
