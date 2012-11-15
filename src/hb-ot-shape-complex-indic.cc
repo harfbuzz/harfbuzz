@@ -329,7 +329,7 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
       break;
     }
 
-  indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.get_chosen_script (0) & 0x000000FF) != '2');
+  indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FF) != '2');
   indic_plan->virama_glyph = (hb_codepoint_t) -1;
 
   indic_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'));

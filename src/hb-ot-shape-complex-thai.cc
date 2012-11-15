@@ -30,10 +30,26 @@
 /* Thai / Lao shaper */
 
 static void
-preprocess_text_thai (const hb_ot_shape_plan_t *plan HB_UNUSED,
-		      hb_buffer_t              *buffer,
-		      hb_font_t                *font HB_UNUSED)
+do_thai_pua_shaping (const hb_ot_shape_plan_t *plan,
+		     hb_buffer_t              *buffer,
+		     hb_font_t                *font)
 {
+}
+
+static void
+preprocess_text_thai (const hb_ot_shape_plan_t *plan,
+		      hb_buffer_t              *buffer,
+		      hb_font_t                *font)
+{
+  /* This function implements the shaping logic documented here:
+   *
+   *   http://linux.thai.net/~thep/th-otf/shaping.html
+   *
+   * The first shaping rule listed there is needed even if the font has Thai
+   * OpenType tables.  The rest do fallback positioning based on PUA codepoints.
+   * We implement that only if there exist no Thai GSUB in the font.
+   */
+
   /* The following is NOT specified in the MS OT Thai spec, however, it seems
    * to be what Uniscribe and other engines implement.  According to Eric Muller:
    *
@@ -122,6 +138,10 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan HB_UNUSED,
     }
   }
   buffer->swap_buffers ();
+
+  /* If font has Thai GSUB, we are done. */
+  if (plan->props.script == HB_SCRIPT_THAI && !plan->map.found_script[0])
+    do_thai_pua_shaping (plan, buffer, font);
 }
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
