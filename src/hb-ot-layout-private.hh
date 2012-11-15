@@ -138,7 +138,7 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 
 
 HB_INTERNAL hb_bool_t
-hb_ot_layout_would_substitute_lookup_fast (hb_face_t            *face,
+hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
 					   unsigned int          lookup_index,
 					   const hb_codepoint_t *glyphs,
 					   unsigned int          glyphs_length,

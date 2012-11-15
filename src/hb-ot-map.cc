@@ -142,7 +142,7 @@ void hb_ot_map_t::substitute_closure (const hb_ot_shape_plan_t *plan, hb_face_t 
 {
   unsigned int table_index = 0;
   for (unsigned int i = 0; i < lookups[table_index].len; i++)
-    hb_ot_layout_substitute_closure_lookup (face, lookups[table_index][i].index, glyphs);
+    hb_ot_layout_lookup_substitute_closure (face, lookups[table_index][i].index, glyphs);
 }
 
 void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func)

@@ -170,14 +170,14 @@ hb_bool_t
 hb_ot_layout_has_substitution (hb_face_t *face);
 
 hb_bool_t
-hb_ot_layout_would_substitute_lookup (hb_face_t            *face,
+hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 				      unsigned int          lookup_index,
 				      const hb_codepoint_t *glyphs,
 				      unsigned int          glyphs_length,
 				      hb_bool_t             zero_context);
 
 void
-hb_ot_layout_substitute_closure_lookup (hb_face_t    *face,
+hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        unsigned int  lookup_index,
 				        hb_set_t     *glyphs);
 
