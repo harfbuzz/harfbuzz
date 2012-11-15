@@ -13,10 +13,21 @@ Module["unregisterMemoryRemapCallback"] = unregisterMemoryRemapCallback = (callb
 	remapCallbacks.splice index, 1 unless index is -1
 
 # When memory size is increased, we need to re-map our arrays
-enlargeMemory = Runtime.enlargeMemory
-Runtime.enlargeMemory = ->
-	enlargeMemory()
-	for remapCallback in oldRemapCallbacks
+__originalEnlargeMemory = enlargeMemory
+enlargeMemory = ->
+	__originalEnlargeMemory()
+
+	# Fix for https://github.com/kripken/emscripten/issues/713
+	Module["HEAP8"] = HEAP8
+	Module["HEAP16"] = HEAP16
+	Module["HEAP32"] = HEAP32
+	Module["HEAPU8"] = HEAPU8
+	Module["HEAPU16"] = HEAPU16
+	Module["HEAPU32"] = HEAPU32
+	Module["HEAPF32"] = HEAPF32
+	Module["HEAPF64"] = HEAPF64
+
+	for remapCallback in remapCallbacks
 		remapCallback["callback"] Module["HEAPU8"], remapCallback["userData"]
 
 Module["Void"] = Void = "i32"

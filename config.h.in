@@ -1,9 +1,5 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the <ApplicationServices/ApplicationServices.h>
-   header file. */
-#undef HAVE_APPLICATIONSERVICES_APPLICATIONSERVICES_H
-
 /* Define to 1 if you have the `atexit' function. */
 #undef HAVE_ATEXIT
 
@@ -109,7 +105,7 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
-/* Have UCDN Unicode functions */
+/* Have UCDN library */
 #undef HAVE_UCDN
 
 /* Have Uniscribe backend */
@@ -117,12 +113,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
-
-/* Define to 1 if you have the <usp10.h> header file. */
-#undef HAVE_USP10_H
-
-/* Define to 1 if you have the <windows.h> header file. */
-#undef HAVE_WINDOWS_H
 
 /* Define to 1 if you have the `_setmode' function. */
 #undef HAVE__SETMODE
