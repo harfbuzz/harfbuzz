@@ -153,6 +153,7 @@ struct hb_buffer_t {
   HB_INTERNAL void guess_properties (void);
 
   HB_INTERNAL void swap_buffers (void);
+  HB_INTERNAL void remove_output (void);
   HB_INTERNAL void clear_output (void);
   HB_INTERNAL void clear_positions (void);
 

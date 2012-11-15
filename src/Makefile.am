@@ -242,7 +242,7 @@ arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt
 .PHONY: unicode-tables arabic-table indic-table
 
 EXTRA_DIST += hb-ot-shape-complex-indic-machine.rl
-hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
+$(srcdir)/hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
 	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
 

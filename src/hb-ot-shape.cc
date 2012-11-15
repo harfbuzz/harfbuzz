@@ -175,7 +175,7 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 
   hb_ot_shape_planner_t planner (shape_plan);
 
-  planner.shaper = hb_ot_shape_complex_categorize (&shape_plan->props);
+  planner.shaper = hb_ot_shape_complex_categorize (&planner);
 
   hb_ot_shape_collect_features (&planner, &shape_plan->props, user_features, num_user_features);
 
@@ -362,10 +362,7 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
 
   HB_BUFFER_ALLOCATE_VAR (c->buffer, glyph_index);
 
-  _hb_ot_shape_normalize (c->font, c->buffer,
-			  c->plan->shaper->normalization_preference ?
-			  c->plan->shaper->normalization_preference (c->plan) :
-			  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT);
+  _hb_ot_shape_normalize (c->plan->shaper, c->buffer, c->font);
 
   hb_ot_shape_setup_masks (c);
 
@@ -519,7 +516,7 @@ hb_ot_hide_zerowidth (hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++)
     if (unlikely (!is_a_ligature (c->buffer->info[i]) &&
-		  _hb_glyph_info_is_zero_width (&c->buffer->info[i])))
+		  _hb_glyph_info_is_default_ignorable (&c->buffer->info[i])))
     {
       if (!space) {
         /* We assume that the space glyph is not gid0. */

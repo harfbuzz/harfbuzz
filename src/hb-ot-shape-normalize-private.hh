@@ -35,6 +35,8 @@
 /* buffer var allocations, used during the normalization process */
 #define glyph_index()	var1.u32
 
+struct hb_ot_complex_shaper_t;
+
 enum hb_ot_shape_normalization_mode_t {
   HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED,
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS, /* never composes base-to-base */
@@ -44,8 +46,8 @@ enum hb_ot_shape_normalization_mode_t {
   HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS
 };
 
-HB_INTERNAL void _hb_ot_shape_normalize (hb_font_t *font,
+HB_INTERNAL void _hb_ot_shape_normalize (const hb_ot_complex_shaper_t *shaper,
 					 hb_buffer_t *buffer,
-					 hb_ot_shape_normalization_mode_t mode);
+					 hb_font_t *font);
 
 #endif /* HB_OT_SHAPE_NORMALIZE_PRIVATE_HH */

@@ -313,7 +313,7 @@ shape_options_t::add_options (option_parser_t *parser)
     "\n"
     "    Mixing it all:\n"
     "\n"
-    "      \"kern[3:5]=0\" 1         3         5         # Turn feature off for range";
+    "      \"aalt[3:5]=2\" 2         3         5         # Turn 2nd alternate on for range";
 
   GOptionEntry entries2[] =
   {
@@ -616,6 +616,7 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
   unsigned int num_glyphs = hb_buffer_get_length (buffer);
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+  hb_direction_t direction = hb_buffer_get_direction (buffer);
 
   g_string_append_c (gs, '[');
   for (unsigned int i = 0; i < num_glyphs; i++)
@@ -637,14 +638,14 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
     }
 
     if (show_positions && (pos->x_offset || pos->y_offset)) {
-      g_string_append_c (gs, '@');
-      if (pos->x_offset) g_string_append_printf (gs, "%d", pos->x_offset);
-      if (pos->y_offset) g_string_append_printf (gs, ",%d", pos->y_offset);
+      g_string_append_printf (gs, "@%d,%d", pos->x_offset, pos->y_offset);
     }
-    if (show_positions && (pos->x_advance || pos->y_advance)) {
+    if (show_positions) {
       g_string_append_c (gs, '+');
-      if (pos->x_advance) g_string_append_printf (gs, "%d", pos->x_advance);
-      if (pos->y_advance) g_string_append_printf (gs, ",%d", pos->y_advance);
+      if (HB_DIRECTION_IS_HORIZONTAL (direction) || pos->x_advance)
+	g_string_append_printf (gs, "%d", pos->x_advance);
+      if (HB_DIRECTION_IS_VERTICAL (direction) || pos->y_advance)
+	g_string_append_printf (gs, ",%d", pos->y_advance);
     }
 
     info++;

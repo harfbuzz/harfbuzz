@@ -13,6 +13,6 @@ libhb_ucdn_CPPFLAGS = \
 	-I$(top_builddir)/src
 libhb_ucdn_la_LIBADD =
 
-EXTRA_DIST = README
+EXTRA_DIST = README COPYING
 
 -include $(top_srcdir)/git.mk
