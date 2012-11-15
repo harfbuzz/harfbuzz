@@ -364,7 +364,8 @@ struct format_options_t : option_group_t
 			  GString      *gs);
   void serialize_glyphs (hb_buffer_t  *buffer,
 			 hb_font_t    *font,
-			 hb_bool_t    utf8_clusters,
+			 hb_buffer_serialize_format_t format,
+			 hb_buffer_serialize_flags_t flags,
 			 GString      *gs);
   void serialize_line_no (unsigned int  line_no,
 			  GString      *gs);
@@ -373,7 +374,6 @@ struct format_options_t : option_group_t
 				 const char   *text,
 				 unsigned int  text_len,
 				 hb_font_t    *font,
-				 hb_bool_t     utf8_clusters,
 				 GString      *gs);
   void serialize_message (unsigned int  line_no,
 			  const char   *msg,
@@ -383,7 +383,8 @@ struct format_options_t : option_group_t
 				   const char   *text,
 				   unsigned int  text_len,
 				   hb_font_t    *font,
-				   hb_bool_t     utf8_clusters,
+				   hb_buffer_serialize_format_t output_format,
+				   hb_buffer_serialize_flags_t format_flags,
 				   GString      *gs);
 
 

@@ -36,6 +36,7 @@
 
 #include "hb-common.h"
 #include "hb-unicode.h"
+#include "hb-font.h"
 
 HB_BEGIN_DECLS
 
@@ -236,6 +237,47 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
  void
  hb_buffer_normalize_characters (hb_buffer_t *buffer);
 */
+
+
+typedef enum {
+  HB_BUFFER_SERIALIZE_FLAGS_DEFAULT		= 0x00000000,
+  HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS		= 0x00000001,
+  HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS		= 0x00000002,
+  HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES	= 0x00000004
+} hb_buffer_serialize_flags_t;
+
+typedef enum {
+  HB_BUFFER_SERIALIZE_FORMAT_TEXT	= HB_TAG('T','E','X','T'),
+  HB_BUFFER_SERIALIZE_FORMAT_JSON	= HB_TAG('J','S','O','N'),
+  HB_BUFFER_SERIALIZE_FORMAT_INVALID	= HB_TAG_NONE
+} hb_buffer_serialize_format_t;
+
+/* len=-1 means str is NUL-terminated. */
+hb_buffer_serialize_format_t
+hb_buffer_serialize_format_from_string (const char *str, int len);
+
+const char *
+hb_buffer_serialize_format_to_string (hb_buffer_serialize_format_t format);
+
+/* Returns number of items, starting at start, that were serialized. */
+unsigned int
+hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
+			    unsigned int start,
+			    unsigned int end,
+			    char *buf,
+			    unsigned int buf_size,
+			    unsigned int *buf_consumed,
+			    hb_font_t *font, /* May be NULL */
+			    hb_buffer_serialize_format_t format,
+			    hb_buffer_serialize_flags_t flags);
+
+hb_bool_t
+hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
+			      const char *buf,
+			      unsigned int buf_len,
+			      unsigned int *buf_consumed,
+			      hb_font_t *font, /* May be NULL */
+			      hb_buffer_serialize_format_t format);
 
 
 HB_END_DECLS
