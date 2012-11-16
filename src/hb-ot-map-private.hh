@@ -115,7 +115,7 @@ struct hb_ot_map_t
     *lookup_count = end - start;
   }
 
-  HB_INTERNAL void substitute_closure (const struct hb_ot_shape_plan_t *plan, hb_face_t *face, hb_set_t *glyphs) const;
+  HB_INTERNAL void collect_lookups (unsigned int table_index, hb_set_t *lookups) const;
   HB_INTERNAL void substitute (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void position (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
 

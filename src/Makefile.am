@@ -43,7 +43,6 @@ HBSOURCES =  \
 	hb-shape.cc \
 	hb-shape-plan-private.hh \
 	hb-shape-plan.cc \
-	hb-shape-plan.h \
 	hb-shaper-list.hh \
 	hb-shaper-impl-private.hh \
 	hb-shaper-private.hh \
@@ -62,6 +61,7 @@ HBHEADERS = \
 	hb-font.h \
 	hb-set.h \
 	hb-shape.h \
+	hb-shape-plan.h \
 	hb-unicode.h \
 	hb-version.h \
 	$(NULL)

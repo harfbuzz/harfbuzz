@@ -41,11 +41,11 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
   offset = 0;
   do {
     len = ARRAY_LENGTH (lookup_indices);
-    hb_ot_layout_feature_get_lookup_indexes (face,
-					     table_tags[table_index],
-					     feature_index,
-					     offset, &len,
-					     lookup_indices);
+    hb_ot_layout_feature_get_lookups (face,
+				      table_tags[table_index],
+				      feature_index,
+				      offset, &len,
+				      lookup_indices);
 
     for (unsigned int i = 0; i < len; i++) {
       hb_ot_map_t::lookup_map_t *lookup = lookups[table_index].push ();
@@ -138,11 +138,10 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
     hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index, lookups[table_index][i].mask);
 }
 
-void hb_ot_map_t::substitute_closure (const hb_ot_shape_plan_t *plan, hb_face_t *face, hb_set_t *glyphs) const
+void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_out) const
 {
-  unsigned int table_index = 0;
   for (unsigned int i = 0; i < lookups[table_index].len; i++)
-    hb_ot_layout_lookup_substitute_closure (face, lookups[table_index][i].index, glyphs);
+    hb_set_add (lookups_out, lookups[table_index][i].index);
 }
 
 void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func)

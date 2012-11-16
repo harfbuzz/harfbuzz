@@ -41,8 +41,6 @@
 HB_BEGIN_DECLS
 
 
-typedef struct hb_buffer_t hb_buffer_t;
-
 typedef struct hb_glyph_info_t {
   hb_codepoint_t codepoint;
   hb_mask_t      mask;
@@ -63,6 +61,36 @@ typedef struct hb_glyph_position_t {
   hb_var_int_t   var;
 } hb_glyph_position_t;
 
+
+typedef struct hb_segment_properties_t {
+  hb_direction_t  direction;
+  hb_script_t     script;
+  hb_language_t   language;
+  /*< private >*/
+  void           *reserved1;
+  void           *reserved2;
+} hb_segment_properties_t;
+
+#define HB_SEGMENT_PROPERTIES_DEFAULT {HB_DIRECTION_INVALID, \
+				       HB_SCRIPT_INVALID, \
+				       HB_LANGUAGE_INVALID, \
+				       NULL, \
+				       NULL}
+
+hb_bool_t
+hb_segment_properties_equal (const hb_segment_properties_t *a,
+			     const hb_segment_properties_t *b);
+
+unsigned int
+hb_segment_properties_hash (const hb_segment_properties_t *p);
+
+
+
+/*
+ * hb_buffer_t
+ */
+
+typedef struct hb_buffer_t hb_buffer_t;
 
 hb_buffer_t *
 hb_buffer_create (void);
@@ -127,8 +155,20 @@ void
 hb_buffer_set_language (hb_buffer_t   *buffer,
 			hb_language_t  language);
 
+
 hb_language_t
 hb_buffer_get_language (hb_buffer_t *buffer);
+
+void
+hb_buffer_set_segment_properties (hb_buffer_t *buffer,
+				  const hb_segment_properties_t *props);
+
+void
+hb_buffer_get_segment_properties (hb_buffer_t *buffer,
+				  hb_segment_properties_t *props);
+
+void
+hb_buffer_guess_properties (hb_buffer_t *buffer);
 
 
 typedef enum {
@@ -170,9 +210,6 @@ hb_buffer_reverse (hb_buffer_t *buffer);
 
 void
 hb_buffer_reverse_clusters (hb_buffer_t *buffer);
-
-void
-hb_buffer_guess_properties (hb_buffer_t *buffer);
 
 
 /* Filling the buffer in */

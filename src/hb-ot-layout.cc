@@ -374,12 +374,12 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
 }
 
 unsigned int
-hb_ot_layout_feature_get_lookup_indexes (hb_face_t    *face,
-					 hb_tag_t      table_tag,
-					 unsigned int  feature_index,
-					 unsigned int  start_offset,
-					 unsigned int *lookup_count /* IN/OUT */,
-					 unsigned int *lookup_indexes /* OUT */)
+hb_ot_layout_feature_get_lookups (hb_face_t    *face,
+				  hb_tag_t      table_tag,
+				  unsigned int  feature_index,
+				  unsigned int  start_offset,
+				  unsigned int *lookup_count /* IN/OUT */,
+				  unsigned int *lookup_indexes /* OUT */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const OT::Feature &f = g.get_feature (feature_index);

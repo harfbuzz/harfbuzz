@@ -572,15 +572,34 @@ _hb_ot_shape (hb_shape_plan_t    *shape_plan,
 }
 
 
-
-static inline void
-hb_ot_map_glyphs_dumb (hb_font_t    *font,
-		       hb_buffer_t  *buffer)
+void
+hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
+				  hb_tag_t         table_tag,
+				  hb_set_t        *lookup_indexes /* OUT */)
 {
-  unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++)
-    font->get_glyph (buffer->info[i].codepoint, 0, &buffer->info[i].codepoint);
+  HB_SHAPER_DATA_GET (shape_plan)->collect_lookups (table_tag, lookup_indexes);
 }
+
+
+/* TODO Move this to hb-ot-shape-normalize, make it do decompose, and make it public. */
+static void
+add_char (hb_font_t          *font,
+	  hb_unicode_funcs_t *unicode,
+	  hb_bool_t           mirror,
+	  hb_codepoint_t      u,
+	  hb_set_t           *glyphs)
+{
+  hb_codepoint_t glyph;
+  if (font->get_glyph (u, 0, &glyph))
+    glyphs->add (glyph);
+  if (mirror)
+  {
+    hb_codepoint_t m = unicode->mirroring (u);
+    if (m != u && font->get_glyph (m, 0, &glyph))
+      glyphs->add (glyph);
+  }
+}
+
 
 void
 hb_ot_shape_glyphs_closure (hb_font_t          *font,
@@ -593,26 +612,27 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 
   buffer->guess_properties ();
 
-  /* TODO cache / ensure correct backend, etc. */
-  hb_shape_plan_t *shape_plan = hb_shape_plan_create (font->face, &buffer->props, features, num_features, NULL);
+  const char *shapers[] = {"ot", NULL};
+  hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,
+							     features, num_features, shapers);
 
-  /* TODO: normalization? have shapers do closure()? */
-  /* TODO: Deal with mirrored chars? */
-  hb_ot_map_glyphs_dumb (font, buffer);
+  bool mirror = hb_script_get_horizontal_direction (buffer->props.script) == HB_DIRECTION_RTL;
 
-  /* Seed it.  It's user's responsibility to have cleard glyphs
-   * if that's what they desire. */
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    glyphs->add (buffer->info[i].codepoint);
+    add_char (font, buffer->unicode, mirror, buffer->info[i].codepoint, glyphs);
+
+  hb_set_t lookups;
+  lookups.init ();
+  hb_ot_shape_plan_collect_lookups (shape_plan, HB_OT_TAG_GSUB, &lookups);
 
   /* And find transitive closure. */
   hb_set_t copy;
   copy.init ();
-
   do {
     copy.set (glyphs);
-    HB_SHAPER_DATA_GET (shape_plan)->substitute_closure (font->face, glyphs);
+    for (hb_codepoint_t lookup_index = -1; hb_set_next (&lookups, &lookup_index);)
+      hb_ot_layout_lookup_substitute_closure (font->face, lookup_index, glyphs);
   } while (!copy.is_equal (glyphs));
 
   hb_shape_plan_destroy (shape_plan);

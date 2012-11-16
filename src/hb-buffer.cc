@@ -35,6 +35,29 @@
 #define HB_DEBUG_BUFFER (HB_DEBUG+0)
 #endif
 
+
+hb_bool_t
+hb_segment_properties_equal (const hb_segment_properties_t *a,
+			     const hb_segment_properties_t *b)
+{
+  return a->direction == b->direction &&
+	 a->script    == b->script    &&
+	 a->language  == b->language  &&
+	 a->reserved1 == b->reserved1 &&
+	 a->reserved2 == b->reserved2;
+
+}
+
+unsigned int
+hb_segment_properties_hash (const hb_segment_properties_t *p)
+{
+  return (unsigned int) p->direction ^
+	 (unsigned int) p->script ^
+	 (intptr_t) (p->language);
+}
+
+
+
 /* Here is how the buffer works internally:
  *
  * There are two info pointers: info and out_info.  They always have
@@ -151,7 +174,7 @@ hb_buffer_t::clear (void)
   if (unlikely (hb_object_is_inert (this)))
     return;
 
-  hb_segment_properties_t default_props = _HB_BUFFER_PROPS_DEFAULT;
+  hb_segment_properties_t default_props = HB_SEGMENT_PROPERTIES_DEFAULT;
   props = default_props;
   flags = HB_BUFFER_FLAGS_DEFAULT;
 
@@ -589,7 +612,7 @@ hb_buffer_get_empty (void)
     HB_OBJECT_HEADER_STATIC,
 
     const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil),
-    _HB_BUFFER_PROPS_DEFAULT,
+    HB_SEGMENT_PROPERTIES_DEFAULT,
     HB_BUFFER_FLAGS_DEFAULT,
 
     HB_BUFFER_CONTENT_TYPE_INVALID,
@@ -724,6 +747,24 @@ hb_buffer_get_language (hb_buffer_t *buffer)
 {
   return buffer->props.language;
 }
+
+void
+hb_buffer_set_segment_properties (hb_buffer_t *buffer,
+				  const hb_segment_properties_t *props)
+{
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
+  buffer->props = *props;
+}
+
+void
+hb_buffer_get_segment_properties (hb_buffer_t *buffer,
+				  hb_segment_properties_t *props)
+{
+  *props = buffer->props;
+}
+
 
 void
 hb_buffer_set_flags (hb_buffer_t       *buffer,
