@@ -74,18 +74,18 @@ struct shape_closure_consumer_t : option_group_t
     /* Print it out! */
     bool first = true;
     for (hb_codepoint_t i = -1; hb_set_next (glyphs, &i);)
-      if (hb_set_has (glyphs, i)) {
-        if (first)
-	  first = false;
-	else
-	  printf (" ");
-	char glyph_name[32];
-	if (show_glyph_names) {
-	  hb_font_get_glyph_name (font, i, glyph_name, sizeof (glyph_name));
-	  printf ("%s", glyph_name);
-	} else
-	  printf ("%u", i);
-      }
+    {
+      if (first)
+	first = false;
+      else
+	printf (" ");
+      char glyph_name[32];
+      if (show_glyph_names) {
+	hb_font_get_glyph_name (font, i, glyph_name, sizeof (glyph_name));
+	printf ("%s", glyph_name);
+      } else
+	printf ("%u", i);
+    }
   }
   void finish (const font_options_t *font_opts)
   {
