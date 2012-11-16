@@ -128,6 +128,14 @@ hb_ot_layout_get_glyph_class (hb_face_t      *face,
   return (hb_ot_layout_glyph_class_t) _get_gdef (face).get_glyph_class (glyph);
 }
 
+void
+hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
+				  hb_ot_layout_glyph_class_t  klass,
+				  hb_set_t                   *glyphs /* OUT */)
+{
+  return _get_gdef (face).get_glyphs_in_class (klass, glyphs);
+}
+
 unsigned int
 hb_ot_layout_get_attach_points (hb_face_t      *face,
 				hb_codepoint_t  glyph,

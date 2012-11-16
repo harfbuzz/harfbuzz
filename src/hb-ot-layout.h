@@ -62,11 +62,10 @@ hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_face_t      *face,
 			      hb_codepoint_t  glyph);
 
-#ifdef HB_NOT_IMPLEMENTED
-Xhb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
+void
+hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
 				  hb_ot_layout_glyph_class_t  klass,
 				  hb_set_t                   *glyphs /* OUT */);
-#endif
 
 
 /* Not that useful.  Provides list of attach points for a glyph that a

@@ -686,6 +686,14 @@ struct ClassDefFormat1
     return TRACE_RETURN (c->check_struct (this) && classValue.sanitize (c));
   }
 
+  template <typename set_t>
+  inline void add_class (set_t *glyphs, unsigned int klass) const {
+    unsigned int count = classValue.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (classValue[i] == klass)
+        glyphs->add (startGlyph + i);
+  }
+
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
@@ -719,6 +727,14 @@ struct ClassDefFormat2
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     return TRACE_RETURN (rangeRecord.sanitize (c));
+  }
+
+  template <typename set_t>
+  inline void add_class (set_t *glyphs, unsigned int klass) const {
+    unsigned int count = rangeRecord.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (rangeRecord[i].value == klass)
+        rangeRecord[i].add_coverage (glyphs);
   }
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
@@ -758,6 +774,14 @@ struct ClassDef
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
     case 2: return TRACE_RETURN (u.format2.sanitize (c));
     default:return TRACE_RETURN (true);
+    }
+  }
+
+  inline void add_class (hb_set_t *glyphs, unsigned int klass) const {
+    switch (u.format) {
+    case 1: u.format1.add_class (glyphs, klass); return;
+    case 2: u.format2.add_class (glyphs, klass); return;
+    default:return;
     }
   }
 
