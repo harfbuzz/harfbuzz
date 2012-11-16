@@ -51,18 +51,16 @@ hb_bool_t
 hb_ot_layout_has_glyph_classes (hb_face_t *face);
 
 typedef enum {
-  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0x0001,
-  HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 0x0002,
-  HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 0x0004,
-  HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 0x0008,
-  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 0x0010
+  HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED	= 0,
+  HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH	= 1,
+  HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE	= 2,
+  HB_OT_LAYOUT_GLYPH_CLASS_MARK		= 3,
+  HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT	= 4
 } hb_ot_layout_glyph_class_t;
 
-#ifdef HB_NOT_IMPLEMENTED
 hb_ot_layout_glyph_class_t
-Xhb_ot_layout_get_glyph_class (hb_face_t      *face,
+hb_ot_layout_get_glyph_class (hb_face_t      *face,
 			      hb_codepoint_t  glyph);
-#endif
 
 #ifdef HB_NOT_IMPLEMENTED
 Xhb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,

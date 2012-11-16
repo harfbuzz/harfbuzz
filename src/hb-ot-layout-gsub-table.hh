@@ -266,7 +266,7 @@ struct Sequence
     TRACE_APPLY ();
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
-    unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE ? HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH : 0;
+    unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE ? HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++) {
       set_lig_props_for_component (c->buffer->cur(), i);

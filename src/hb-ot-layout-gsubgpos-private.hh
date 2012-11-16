@@ -264,7 +264,7 @@ struct hb_apply_context_t
     if (glyph_props & lookup_props & LookupFlag::IgnoreFlags)
       return false;
 
-    if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+    if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
       return match_properties_mark (glyph, glyph_props, lookup_props);
 
     return true;
@@ -295,7 +295,7 @@ struct hb_apply_context_t
       *property_out = property;
 
     /* If it's a mark, skip it if we don't accept it. */
-    if (unlikely (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK))
+    if (unlikely (property & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
       return !match_properties (info->codepoint, property, lookup_props);
 
     /* If not a mark, don't skip. */
@@ -445,7 +445,7 @@ static inline bool match_input (hb_apply_context_t *c,
    *   ligate with a conjunct...)
    */
 
-  bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+  bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
 
   unsigned int total_component_count = 0;
   total_component_count += get_lig_num_comps (c->buffer->cur());
@@ -478,7 +478,7 @@ static inline bool match_input (hb_apply_context_t *c,
 	return TRACE_RETURN (false);
     }
 
-    is_mark_ligature = is_mark_ligature && (property & HB_OT_LAYOUT_GLYPH_CLASS_MARK);
+    is_mark_ligature = is_mark_ligature && (property & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
     total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
   }
 
@@ -530,7 +530,7 @@ static inline void ligate_input (hb_apply_context_t *c,
    *   https://bugzilla.gnome.org/show_bug.cgi?id=437633
    */
 
-  unsigned int klass = is_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
+  unsigned int klass = is_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE;
   unsigned int lig_id = is_mark_ligature ? 0 : allocate_lig_id (c->buffer);
   unsigned int last_lig_id = get_lig_id (c->buffer->cur());
   unsigned int last_num_components = get_lig_num_comps (c->buffer->cur());

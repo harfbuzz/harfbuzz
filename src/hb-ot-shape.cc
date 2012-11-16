@@ -348,8 +348,8 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   for (unsigned int i = 0; i < count; i++)
     c->buffer->info[i].glyph_props() = _hb_glyph_info_get_general_category (&c->buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK ?
-				       HB_OT_LAYOUT_GLYPH_CLASS_MARK :
-				       HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
+				       HB_OT_LAYOUT_GLYPH_PROPS_MARK :
+				       HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH;
 }
 
 static inline void

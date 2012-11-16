@@ -383,13 +383,13 @@ struct GDEF
 
     switch (klass) {
     default:
-    case UnclassifiedGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_UNCLASSIFIED;
-    case BaseGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH;
-    case LigatureGlyph:		return HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE;
-    case ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_CLASS_COMPONENT;
+    case UnclassifiedGlyph:	return HB_OT_LAYOUT_GLYPH_PROPS_UNCLASSIFIED;
+    case BaseGlyph:		return HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH;
+    case LigatureGlyph:		return HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE;
+    case ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_PROPS_COMPONENT;
     case MarkGlyph:
 	  klass = get_mark_attachment_type (glyph);
-	  return HB_OT_LAYOUT_GLYPH_CLASS_MARK | (klass << 8);
+	  return HB_OT_LAYOUT_GLYPH_PROPS_MARK | (klass << 8);
     }
   }
 

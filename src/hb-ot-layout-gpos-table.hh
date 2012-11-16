@@ -863,7 +863,7 @@ struct CursivePosFormat1
     TRACE_APPLY ();
 
     /* We don't handle mark glyphs here. */
-    if (c->property & HB_OT_LAYOUT_GLYPH_CLASS_MARK) return TRACE_RETURN (false);
+    if (c->property & HB_OT_LAYOUT_GLYPH_PROPS_MARK) return TRACE_RETURN (false);
 
     hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
@@ -1030,7 +1030,7 @@ struct MarkBasePosFormat1
     } while (1);
 
     /* The following assertion is too strong, so we've disabled it. */
-    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_BASE_GLYPH)) {/*return TRACE_RETURN (false);*/}
+    if (!(property & HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH)) {/*return TRACE_RETURN (false);*/}
 
     unsigned int base_index = (this+baseCoverage) (c->buffer->info[skippy_iter.idx].codepoint);
     if (base_index == NOT_COVERED) return TRACE_RETURN (false);
@@ -1136,7 +1136,7 @@ struct MarkLigPosFormat1
     if (!skippy_iter.prev (&property, LookupFlag::IgnoreMarks)) return TRACE_RETURN (false);
 
     /* The following assertion is too strong, so we've disabled it. */
-    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_LIGATURE)) {/*return TRACE_RETURN (false);*/}
+    if (!(property & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE)) {/*return TRACE_RETURN (false);*/}
 
     unsigned int j = skippy_iter.idx;
     unsigned int lig_index = (this+ligatureCoverage) (c->buffer->info[j].codepoint);
@@ -1258,7 +1258,7 @@ struct MarkMarkPosFormat1
     hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (!skippy_iter.prev (&property)) return TRACE_RETURN (false);
 
-    if (!(property & HB_OT_LAYOUT_GLYPH_CLASS_MARK)) return TRACE_RETURN (false);
+    if (!(property & HB_OT_LAYOUT_GLYPH_PROPS_MARK)) return TRACE_RETURN (false);
 
     unsigned int j = skippy_iter.idx;
 
