@@ -82,7 +82,7 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 
 #ifdef HB_NOT_IMPLEMENTED
 const char *
-hb_shape_plan_get_shaper (hb_shape_plan_t *shape_plan);
+Xhb_shape_plan_get_shaper (hb_shape_plan_t *shape_plan);
 #endif
 
 

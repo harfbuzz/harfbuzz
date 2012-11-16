@@ -60,12 +60,12 @@ typedef enum {
 
 #ifdef HB_NOT_IMPLEMENTED
 hb_ot_layout_glyph_class_t
-hb_ot_layout_get_glyph_class (hb_face_t      *face,
+Xhb_ot_layout_get_glyph_class (hb_face_t      *face,
 			      hb_codepoint_t  glyph);
 #endif
 
 #ifdef HB_NOT_IMPLEMENTED
-hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
+Xhb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
 				  hb_ot_layout_glyph_class_t  klass,
 				  hb_set_t                   *glyphs /* OUT */);
 #endif
@@ -184,7 +184,7 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 
 #ifdef HB_NOT_IMPLEMENTED
 void
-hb_ot_layout_collect_lookups (hb_face_t      *face,
+Xhb_ot_layout_collect_lookups (hb_face_t      *face,
 			      hb_tag_t        table_tag,
 			      const hb_tag_t *scripts,
 			      const hb_tag_t *languages,
@@ -199,7 +199,7 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 
 #ifdef HB_NOT_IMPLEMENTED
 void
-hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
+Xhb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,
 				    hb_set_t     *glyphs_before, /* OUT. May be NULL */
@@ -227,7 +227,7 @@ typedef hb_bool_t
 				       void         *user_data);
 
 void
-hb_ot_layout_lookup_enumerate_sequences (hb_face_t    *face,
+Xhb_ot_layout_lookup_enumerate_sequences (hb_face_t    *face,
 					 hb_tag_t      table_tag,
 					 unsigned int  lookup_index,
 					 hb_ot_layout_glyph_sequence_func_t callback,
@@ -258,7 +258,7 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 #ifdef HB_NOT_IMPLEMENTED
 /* Note: You better have GDEF when using this API, or marks won't do much. */
 hb_bool_t
-hb_ot_layout_lookup_substitute (hb_font_t            *font,
+Xhb_ot_layout_lookup_substitute (hb_font_t            *font,
 				unsigned int          lookup_index,
 				const hb_ot_layout_glyph_sequence_t *sequence,
 				unsigned int          out_size,
@@ -278,7 +278,7 @@ hb_ot_layout_has_positioning (hb_face_t *face);
 #ifdef HB_NOT_IMPLEMENTED
 /* Note: You better have GDEF when using this API, or marks won't do much. */
 hb_bool_t
-hb_ot_layout_lookup_position (hb_font_t            *font,
+Xhb_ot_layout_lookup_position (hb_font_t            *font,
 			      unsigned int          lookup_index,
 			      const hb_ot_layout_glyph_sequence_t *sequence,
 			      hb_glyph_position_t  *positions /* IN / OUT */);
