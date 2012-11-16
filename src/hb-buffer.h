@@ -168,7 +168,7 @@ hb_buffer_get_segment_properties (hb_buffer_t *buffer,
 				  hb_segment_properties_t *props);
 
 void
-hb_buffer_guess_properties (hb_buffer_t *buffer);
+hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
 
 
 typedef enum {

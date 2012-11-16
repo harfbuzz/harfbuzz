@@ -491,7 +491,7 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
 }
 
 void
-hb_buffer_t::guess_properties (void)
+hb_buffer_t::guess_segment_properties (void)
 {
   if (unlikely (!len)) return;
   assert (content_type == HB_BUFFER_CONTENT_TYPE_UNICODE);
@@ -886,9 +886,9 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 }
 
 void
-hb_buffer_guess_properties (hb_buffer_t *buffer)
+hb_buffer_guess_segment_properties (hb_buffer_t *buffer)
 {
-  buffer->guess_properties ();
+  buffer->guess_segment_properties ();
 }
 
 template <typename T>
