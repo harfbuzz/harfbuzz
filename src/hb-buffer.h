@@ -232,12 +232,10 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
 
-/*
- * NOT IMPLEMENTED
- void
- hb_buffer_normalize_characters (hb_buffer_t *buffer);
-*/
 
+/*
+ * Serialize
+ */
 
 typedef enum {
   HB_BUFFER_SERIALIZE_FLAGS_DEFAULT		= 0x00000000,
