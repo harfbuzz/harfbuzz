@@ -1278,8 +1278,8 @@ normalization_preference_indic (const hb_segment_properties_t *props)
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
 }
 
-static hb_bool_t
-decompose_indic (hb_unicode_funcs_t *unicode,
+static bool
+decompose_indic (const hb_ot_shape_normalize_context_t *c,
 		 hb_codepoint_t  ab,
 		 hb_codepoint_t *a,
 		 hb_codepoint_t *b)
@@ -1328,23 +1328,23 @@ decompose_indic (hb_unicode_funcs_t *unicode,
     case 0x0DDE  : *a = 0x0DD9; *b= 0x0DDE; return true;
   }
 
-  return unicode->decompose (ab, a, b);
+  return c->unicode->decompose (ab, a, b);
 }
 
-static hb_bool_t
-compose_indic (hb_unicode_funcs_t *unicode,
+static bool
+compose_indic (const hb_ot_shape_normalize_context_t *c,
 	       hb_codepoint_t  a,
 	       hb_codepoint_t  b,
 	       hb_codepoint_t *ab)
 {
   /* Avoid recomposing split matras. */
-  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (unicode->general_category (a)))
+  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (c->unicode->general_category (a)))
     return false;
 
   /* Composition-exclusion exceptions that we want to recompose. */
   if (a == 0x09AF && b == 0x09BC) { *ab = 0x09DF; return true; }
 
-  return unicode->compose (a, b, ab);
+  return c->unicode->compose (a, b, ab);
 }
 
 

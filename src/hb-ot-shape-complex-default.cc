@@ -83,8 +83,8 @@ normalization_preference_default (const hb_segment_properties_t *props)
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
 }
 
-static hb_bool_t
-compose_default (hb_unicode_funcs_t *unicode,
+static bool
+compose_default (const hb_ot_shape_normalize_context_t *c,
 		 hb_codepoint_t  a,
 		 hb_codepoint_t  b,
 		 hb_codepoint_t *ab)
@@ -123,7 +123,7 @@ compose_default (hb_unicode_funcs_t *unicode,
     0xFB4A // TAV
   };
 
-  hb_bool_t found = unicode->compose (a, b, ab);
+  bool found = c->unicode->compose (a, b, ab);
 
   if (!found && (b & ~0x7F) == 0x0580) {
       // special-case Hebrew presentation forms that are excluded from
