@@ -577,6 +577,7 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 				  hb_tag_t         table_tag,
 				  hb_set_t        *lookup_indexes /* OUT */)
 {
+  /* XXX Does the first part always succeed? */
   HB_SHAPER_DATA_GET (shape_plan)->collect_lookups (table_tag, lookup_indexes);
 }
 
