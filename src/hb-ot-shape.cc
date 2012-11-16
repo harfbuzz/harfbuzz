@@ -613,7 +613,7 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
   do {
     copy.set (glyphs);
     HB_SHAPER_DATA_GET (shape_plan)->substitute_closure (font->face, glyphs);
-  } while (!copy.equal (glyphs));
+  } while (!copy.is_equal (glyphs));
 
   hb_shape_plan_destroy (shape_plan);
 }

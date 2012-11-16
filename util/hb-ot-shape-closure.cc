@@ -68,7 +68,7 @@ struct shape_closure_consumer_t : option_group_t
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);
 
-    if (hb_set_empty (glyphs))
+    if (hb_set_is_empty (glyphs))
       return;
 
     /* Print it out! */
