@@ -1317,15 +1317,42 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
 #endif
   }
 
-  if (indic_options ().uniscribe_bug_compatible)
-  switch (ab)
+  if ((ab == 0x0DDA || hb_in_range<hb_codepoint_t> (ab, 0x0DDC, 0x0DDE)))
   {
-    /* These Sinhala ones have Unicode decompositions, but Uniscribe
-     * decomposes them "Khmer-style". */
-    case 0x0DDA  : *a = 0x0DD9; *b= 0x0DDA; return true;
-    case 0x0DDC  : *a = 0x0DD9; *b= 0x0DDC; return true;
-    case 0x0DDD  : *a = 0x0DD9; *b= 0x0DDD; return true;
-    case 0x0DDE  : *a = 0x0DD9; *b= 0x0DDE; return true;
+    /*
+     * Sinhala split matras...  Let the fun begin.
+     *
+     * These four characters have Unicode decompositions.  However, Uniscribe
+     * decomposes them "Khmer-style", that is, it uses the character itself to
+     * get the second half.  The first half of all four decompositions is always
+     * U+0DD9.
+     *
+     * Now, there are buggy fonts, namely, the widely used lklug.ttf, that are
+     * broken with Uniscribe.  But we need to support them.  As such, we only
+     * do the Uniscribe-style decomposition if the character is transformed into
+     * its "sec.half" form by the 'pstf' feature.  Otherwise, we fall back to
+     * Unicode decomposition.
+     *
+     * Note that we can't unconditionally use Unicode decomposition.  That would
+     * break some other fonts, that are designed to work with Uniscribe, and
+     * don't have positioning features for the Unicode-style decomposition.
+     *
+     * Argh...
+     */
+
+    const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) c->plan->data;
+
+    hb_codepoint_t glyph;
+
+    if (indic_options ().uniscribe_bug_compatible ||
+	(c->font->get_glyph (ab, 0, &glyph) &&
+	 indic_plan->pstf.would_substitute (&glyph, 1, true, c->font->face)))
+    {
+      /* Ok, safe to use Uniscribe-style decomposition. */
+      *a = 0x0DD9;
+      *b = ab;
+      return true;
+    }
   }
 
   return c->unicode->decompose (ab, a, b);
