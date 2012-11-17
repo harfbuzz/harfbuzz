@@ -401,6 +401,35 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
   return f.get_lookup_indexes (start_offset, lookup_count, lookup_indexes);
 }
 
+void
+hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
+				    hb_tag_t      table_tag,
+				    unsigned int  lookup_index,
+				    hb_set_t     *glyphs_before, /* OUT. May be NULL */
+				    hb_set_t     *glyphs_input,  /* OUT. May be NULL */
+				    hb_set_t     *glyphs_after,  /* OUT. May be NULL */
+				    hb_set_t     *glyphs_output  /* OUT. May be NULL */)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+
+  OT::hb_collect_glyphs_context_t c (face, glyphs_before, glyphs_input, glyphs_after, glyphs_output);
+
+  switch (table_tag) {
+    case HB_OT_TAG_GSUB:
+    {
+      const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
+      l.collect_glyphs (&c);
+      return;
+    }
+    case HB_OT_TAG_GPOS:
+    {
+      const OT::PosLookup& l = hb_ot_layout_from_face (face)->gpos->get_lookup (lookup_index);
+//      l.collect_glyphs (&c);
+      return;
+    }
+  }
+}
+
 
 /*
  * OT::GSUB

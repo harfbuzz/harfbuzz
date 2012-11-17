@@ -194,16 +194,14 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 				  hb_tag_t         table_tag,
 				  hb_set_t        *lookup_indexes /* OUT */);
 
-#ifdef HB_NOT_IMPLEMENTED
 void
-Xhb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
+hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,
 				    hb_set_t     *glyphs_before, /* OUT. May be NULL */
 				    hb_set_t     *glyphs_input,  /* OUT. May be NULL */
 				    hb_set_t     *glyphs_after,  /* OUT. May be NULL */
 				    hb_set_t     *glyphs_output  /* OUT. May be NULL */);
-#endif
 
 #ifdef HB_NOT_IMPLEMENTED
 typedef struct

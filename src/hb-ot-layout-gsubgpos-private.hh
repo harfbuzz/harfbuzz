@@ -93,6 +93,40 @@ struct hb_would_apply_context_t
 };
 
 
+
+/* TODO Add TRACE_RETURN annotation to gsub. */
+#ifndef HB_DEBUG_COLLECT_GLYPHS
+#define HB_DEBUG_COLLECT_GLYPHS (HB_DEBUG+0)
+#endif
+
+#define TRACE_COLLECT_GLYPHS() \
+	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS> trace (&c->debug_depth, "COLLECT_GLYPHS", this, HB_FUNC, "");
+
+
+struct hb_collect_glyphs_context_t
+{
+  hb_face_t *face;
+  hb_set_t &before;
+  hb_set_t &input;
+  hb_set_t &after;
+  hb_set_t &output;
+  unsigned int debug_depth;
+
+  hb_collect_glyphs_context_t (hb_face_t *face_,
+			       hb_set_t  *glyphs_before, /* OUT. May be NULL */
+			       hb_set_t  *glyphs_input,  /* OUT. May be NULL */
+			       hb_set_t  *glyphs_after,  /* OUT. May be NULL */
+			       hb_set_t  *glyphs_output  /* OUT. May be NULL */) :
+			      face (face_),
+			      before (glyphs_before ? *glyphs_before : *hb_set_get_empty ()),
+			      input  (glyphs_input  ? *glyphs_input  : *hb_set_get_empty ()),
+			      after  (glyphs_after  ? *glyphs_after  : *hb_set_get_empty ()),
+			      output (glyphs_output ? *glyphs_output : *hb_set_get_empty ()),
+			      debug_depth (0) {};
+};
+
+
+
 #ifndef HB_DEBUG_APPLY
 #define HB_DEBUG_APPLY (HB_DEBUG+0)
 #endif
@@ -341,6 +375,7 @@ struct hb_apply_context_t
 typedef bool (*intersects_func_t) (hb_set_t *glyphs, const USHORT &value, const void *data);
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
 typedef void (*closure_lookup_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
+typedef void (*collect_glyphs_lookup_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
 typedef bool (*apply_lookup_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
 
 struct ContextClosureFuncs
@@ -1105,6 +1140,17 @@ struct Context
     }
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c, collect_glyphs_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+//    case 1: u.format1.collect_glyphs (c); break;
+//    case 2: u.format2.collect_glyphs (c); break;
+//    case 3: u.format2.collect_glyphs (c); break;
+    default:                              break;
+    }
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     switch (u.format) {
@@ -1645,6 +1691,17 @@ struct ChainContext
     case 2: u.format2.closure (c, closure_func); break;
     case 3: u.format3.closure (c, closure_func); break;
     default:                                     break;
+    }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c, collect_glyphs_lookup_func_t closure_func) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+//    case 1: u.format1.collect_glyphs (c); break;
+//    case 2: u.format2.collect_glyphs (c); break;
+//    case 3: u.format2.collect_glyphs (c); break;
+    default:                              break;
     }
   }
 

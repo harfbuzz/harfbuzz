@@ -52,6 +52,16 @@ struct SingleSubstFormat1
     }
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      hb_codepoint_t glyph_id = iter.get_glyph ();
+      c->input.add (glyph_id);
+      c->output.add ((glyph_id + deltaGlyphID) & 0xFFFF);
+    }
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -113,6 +123,15 @@ struct SingleSubstFormat2
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       if (c->glyphs->has (iter.get_glyph ()))
 	c->glyphs->add (substitute[iter.get_coverage ()]);
+    }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      c->input.add (iter.get_glyph ());
+      c->output.add (substitute[iter.get_coverage ()]);
     }
   }
 
@@ -179,6 +198,16 @@ struct SingleSubst
     case 1: u.format1.closure (c); break;
     case 2: u.format2.closure (c); break;
     default:                       break;
+    }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_CLOSURE ();
+    switch (u.format) {
+    case 1: u.format1.collect_glyphs (c); break;
+    case 2: u.format2.collect_glyphs (c); break;
+    default:                              break;
     }
   }
 
@@ -261,6 +290,13 @@ struct Sequence
       c->glyphs->add (substitute[i]);
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    unsigned int count = substitute.len;
+    for (unsigned int i = 0; i < count; i++)
+      c->output.add (substitute[i]);
+  }
+
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -314,6 +350,14 @@ struct MultipleSubstFormat1
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+sequence[iter.get_coverage ()]).closure (c);
     }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    (this+coverage).add_coverage (&c->input);
+    unsigned int count = sequence.len;
+    for (unsigned int i = 0; i < count; i++)
+	(this+sequence[i]).collect_glyphs (c);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -379,6 +423,14 @@ struct MultipleSubst
     switch (u.format) {
     case 1: u.format1.closure (c); break;
     default:                       break;
+    }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    switch (u.format) {
+    case 1: u.format1.collect_glyphs (c); break;
+    default:                              break;
     }
   }
 
@@ -452,6 +504,18 @@ struct AlternateSubstFormat1
 	for (unsigned int i = 0; i < count; i++)
 	  c->glyphs->add (alt_set[i]);
       }
+    }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      c->input.add (iter.get_glyph ());
+      const AlternateSet &alt_set = this+alternateSet[iter.get_coverage ()];
+      unsigned int count = alt_set.len;
+      for (unsigned int i = 0; i < count; i++)
+	c->output.add (alt_set[i]);
     }
   }
 
@@ -539,6 +603,14 @@ struct AlternateSubst
     }
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    switch (u.format) {
+    case 1: u.format1.collect_glyphs (c); break;
+    default:                              break;
+    }
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     switch (u.format) {
@@ -603,6 +675,14 @@ struct Ligature
       if (!c->glyphs->has (component[i]))
         return;
     c->glyphs->add (ligGlyph);
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    unsigned int count = component.len;
+    for (unsigned int i = 1; i < count; i++)
+      c->input.add (component[i]);
+    c->output.add (ligGlyph);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -693,6 +773,13 @@ struct LigatureSet
       (this+ligature[i]).closure (c);
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    unsigned int num_ligs = ligature.len;
+    for (unsigned int i = 0; i < num_ligs; i++)
+      (this+ligature[i]).collect_glyphs (c);
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     unsigned int num_ligs = ligature.len;
@@ -764,6 +851,15 @@ struct LigatureSubstFormat1
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       if (c->glyphs->has (iter.get_glyph ()))
 	(this+ligatureSet[iter.get_coverage ()]).closure (c);
+    }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    Coverage::Iter iter;
+    for (iter.init (this+coverage); iter.more (); iter.next ()) {
+      c->input.add (iter.get_glyph ());
+      (this+ligatureSet[iter.get_coverage ()]).collect_glyphs (c);
     }
   }
 
@@ -844,6 +940,14 @@ struct LigatureSubst
     }
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    switch (u.format) {
+    case 1: u.format1.collect_glyphs (c); break;
+    default:                              break;
+    }
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     switch (u.format) {
@@ -907,6 +1011,7 @@ struct LigatureSubst
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index);
 static inline void closure_lookup (hb_closure_context_t *c, unsigned int lookup_index);
+static inline void collect_glyphs_lookup (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
 
 struct ContextSubst : Context
 {
@@ -918,6 +1023,11 @@ struct ContextSubst : Context
   {
     TRACE_CLOSURE ();
     return Context::closure (c, closure_lookup);
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    return Context::collect_glyphs (c, collect_glyphs_lookup);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -937,6 +1047,11 @@ struct ChainContextSubst : ChainContext
   {
     TRACE_CLOSURE ();
     return ChainContext::closure (c, closure_lookup);
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    return ChainContext::collect_glyphs (c, collect_glyphs_lookup);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -961,6 +1076,8 @@ struct ExtensionSubst : Extension
   }
 
   inline void closure (hb_closure_context_t *c) const;
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const;
 
   inline const Coverage &get_coverage (void) const;
 
@@ -1003,6 +1120,28 @@ struct ReverseChainSingleSubstFormat1
       if (c->glyphs->has (iter.get_glyph ()))
 	c->glyphs->add (substitute[iter.get_coverage ()]);
     }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+
+    unsigned int count;
+
+    (this+coverage).add_coverage (&c->input);
+
+    count = backtrack.len;
+    for (unsigned int i = 0; i < count; i++)
+      (this+backtrack[i]).add_coverage (&c->before);
+
+    count = lookahead.len;
+    for (unsigned int i = 0; i < count; i++)
+      (this+lookahead[i]).add_coverage (&c->after);
+
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+    count = substitute.len;
+    for (unsigned int i = 0; i < count; i++)
+      c->output.add (substitute[i]);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1084,6 +1223,14 @@ struct ReverseChainSingleSubst
     }
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    switch (u.format) {
+    case 1: u.format1.collect_glyphs (c); break;
+    default:                              break;
+    }
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     switch (u.format) {
@@ -1151,6 +1298,22 @@ struct SubstLookupSubTable
     case ChainContext:		u.chainContext.closure (c); break;
     case Extension:		u.extension.closure (c); break;
     case ReverseChainSingle:	u.reverseChainContextSingle.closure (c); break;
+    default:                    break;
+    }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c,
+			      unsigned int lookup_type) const
+  {
+    switch (lookup_type) {
+    case Single:		u.single.collect_glyphs (c); break;
+    case Multiple:		u.multiple.collect_glyphs (c); break;
+    case Alternate:		u.alternate.collect_glyphs (c); break;
+    case Ligature:		u.ligature.collect_glyphs (c); break;
+    case Context:		u.context.collect_glyphs (c); break;
+    case ChainContext:		u.chainContext.collect_glyphs (c); break;
+    case Extension:		u.extension.collect_glyphs (c); break;
+    case ReverseChainSingle:	u.reverseChainContextSingle.collect_glyphs (c); break;
     default:                    break;
     }
   }
@@ -1284,6 +1447,14 @@ struct SubstLookup : Lookup
         last = c;
       }
     }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    unsigned int lookup_type = get_type ();
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++)
+      get_subtable (i).collect_glyphs (c, lookup_type);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c, const hb_set_digest_t *digest) const
@@ -1506,6 +1677,11 @@ inline void ExtensionSubst::closure (hb_closure_context_t *c) const
   get_subtable ().closure (c, get_type ());
 }
 
+inline void ExtensionSubst::collect_glyphs (hb_collect_glyphs_context_t *c) const
+{
+  get_subtable ().collect_glyphs (c, get_type ());
+}
+
 inline const Coverage & ExtensionSubst::get_coverage (void) const
 {
   return get_subtable ().get_coverage (get_type ());
@@ -1550,6 +1726,15 @@ static inline void closure_lookup (hb_closure_context_t *c, unsigned int lookup_
   c->nesting_level_left--;
   l.closure (c);
   c->nesting_level_left++;
+}
+
+static inline void collect_glyphs_lookup (hb_collect_glyphs_context_t *c, unsigned int lookup_index)
+{
+  const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
+  const SubstLookup &l = gsub.get_lookup (lookup_index);
+
+  /* XXX TODO */
+  l.collect_glyphs (c);
 }
 
 static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index)
