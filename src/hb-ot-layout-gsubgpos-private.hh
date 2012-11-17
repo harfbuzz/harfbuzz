@@ -1820,7 +1820,7 @@ struct GSUBGPOS
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_LAYOUT_GSUBGPOS_PRIVATE_HH */

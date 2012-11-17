@@ -1712,7 +1712,7 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
 #undef cursive_chain
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_LAYOUT_GPOS_TABLE_HH */

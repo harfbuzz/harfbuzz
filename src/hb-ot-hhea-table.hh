@@ -91,7 +91,7 @@ struct hhea
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_HHEA_TABLE_HH */

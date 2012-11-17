@@ -86,7 +86,7 @@ struct hmtx
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_HMTX_TABLE_HH */

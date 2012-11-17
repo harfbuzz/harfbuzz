@@ -922,7 +922,7 @@ struct SortedArrayOf : ArrayOf<Type> {
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OPEN_TYPE_PRIVATE_HH */

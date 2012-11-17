@@ -878,7 +878,7 @@ struct Device
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_LAYOUT_COMMON_PRIVATE_HH */

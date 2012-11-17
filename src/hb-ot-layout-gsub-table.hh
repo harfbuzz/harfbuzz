@@ -1567,7 +1567,7 @@ static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup
 }
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_LAYOUT_GSUB_TABLE_HH */

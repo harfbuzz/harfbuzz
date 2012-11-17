@@ -126,7 +126,7 @@ struct name
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_NAME_TABLE_HH */

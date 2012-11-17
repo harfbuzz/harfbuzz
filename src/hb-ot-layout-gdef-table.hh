@@ -425,7 +425,7 @@ struct GDEF
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_LAYOUT_GDEF_TABLE_HH */

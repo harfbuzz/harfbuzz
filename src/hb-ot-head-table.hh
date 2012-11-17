@@ -143,7 +143,7 @@ struct head
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_HEAD_TABLE_HH */

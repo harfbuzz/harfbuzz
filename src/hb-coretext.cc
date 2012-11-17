@@ -212,26 +212,22 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   CFDictionaryRef attrs = CFDictionaryCreate (kCFAllocatorDefault,
                                               (const void**) &kCTFontAttributeName,
                                               (const void**) &font_data->ct_font,
-                                              1, // count of attributes
+                                              1, /* count of attributes */
                                               &kCFTypeDictionaryKeyCallBacks,
                                               &kCFTypeDictionaryValueCallBacks);
 
-  // TODO: support features
+  /* TODO: support features */
 
-  // Now we can create an attributed string
   CFAttributedStringRef attr_string = CFAttributedStringCreate (kCFAllocatorDefault, string_ref, attrs);
   CFRelease (string_ref);
   CFRelease (attrs);
 
-  // Create the CoreText line from our string, then we're done with it
   CTLineRef line = CTLineCreateWithAttributedString (attr_string);
   CFRelease (attr_string);
 
-  // and finally retrieve the glyph data and store into the gfxTextRun
   CFArrayRef glyph_runs = CTLineGetGlyphRuns (line);
   unsigned int num_runs = CFArrayGetCount (glyph_runs);
 
-  // Iterate through the glyph runs.
   bool success = true;
   buffer->len = 0;
 
@@ -246,11 +242,9 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
     buffer->ensure (buffer->len + num_glyphs);
 
-    // retrieve the laid-out glyph data from the CTRun
-
-    // Testing indicates that CTRunGetGlyphsPtr (almost?) always succeeds,
-    // and so copying data to our own buffer with CTRunGetGlyphs will be
-    // extremely rare.
+    /* Testing indicates that CTRunGetGlyphsPtr (almost?) always succeeds,
+     * and so copying data to our own buffer with CTRunGetGlyphs will be
+     * extremely rare. */
 
     unsigned int scratch_size;
     char *scratch = (char *) buffer->get_scratch_buffer (&scratch_size);
@@ -294,7 +288,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       info->codepoint = glyphs[j];
       info->cluster = string_indices[j];
 
-      // currently, we do all x-positioning by setting the advance, we never use x-offset
+      /* Currently, we do all x-positioning by setting the advance, we never use x-offset. */
       info->mask = advance;
       info->var1.u32 = 0;
       info->var2.u32 = positions[j].y;
@@ -316,12 +310,13 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     pos->y_offset = info->var2.u32;
   }
 
-  // Fix up clusters so that we never return out-of-order indices;
-  // if core text has reordered glyphs, we'll merge them to the
-  // beginning of the reordered cluster.
-  // This does *not* mean we'll form the same clusters as Uniscribe
-  // or the native OT backend, only that the cluster indices will be
-  // non-decreasing in the output buffer.
+  /* Fix up clusters so that we never return out-of-order indices;
+   * if core text has reordered glyphs, we'll merge them to the
+   * beginning of the reordered cluster.
+   *
+   * This does *not* mean we'll form the same clusters as Uniscribe
+   * or the native OT backend, only that the cluster indices will be
+   * monotonic in the output buffer. */
   if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
     unsigned int prev_cluster = 0;
     for (unsigned int i = 0; i < count; i++) {
@@ -337,7 +332,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       prev_cluster = curr_cluster;
     }
   } else {
-    // For RTL runs, we make them non-increasing instead.
     unsigned int prev_cluster = (unsigned int)-1;
     for (unsigned int i = 0; i < count; i++) {
       unsigned int curr_cluster = buffer->info[i].cluster;

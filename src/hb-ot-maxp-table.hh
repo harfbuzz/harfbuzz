@@ -63,7 +63,7 @@ struct maxp
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OT_MAXP_TABLE_HH */

@@ -255,7 +255,7 @@ struct OpenTypeFontFile
 };
 
 
-} // namespace OT
+} /* namespace OT */
 
 
 #endif /* HB_OPEN_FILE_PRIVATE_HH */
