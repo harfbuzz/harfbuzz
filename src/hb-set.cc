@@ -188,7 +188,7 @@ hb_set_symmetric_difference (hb_set_t       *set,
 }
 
 unsigned int
-hb_set_population (const hb_set_t *set)
+hb_set_get_population (const hb_set_t *set)
 {
   return set->get_population ();
 }
