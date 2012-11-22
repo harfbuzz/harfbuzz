@@ -510,16 +510,6 @@ struct SinglePos
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    case 2: return TRACE_RETURN (u.format2.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
@@ -765,16 +755,6 @@ struct PairPos
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    case 2: return TRACE_RETURN (u.format2.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
@@ -933,15 +913,6 @@ struct CursivePos
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
@@ -1029,15 +1000,6 @@ struct MarkBasePos
     switch (u.format) {
     case 1: return c->process (u.format1);
     default:return c->default_return_value ();
-    }
-  }
-
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
     }
   }
 
@@ -1153,15 +1115,6 @@ struct MarkLigPos
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
@@ -1272,15 +1225,6 @@ struct MarkMarkPos
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
@@ -1298,23 +1242,21 @@ struct MarkMarkPos
 };
 
 
-static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index);
-
 struct ContextPos : Context
 {
-  inline bool apply (hb_apply_context_t *c) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
-    TRACE_APPLY ();
-    return TRACE_RETURN (Context::apply (c, position_lookup));
+    return Context::process (c);
   }
 };
 
 struct ChainContextPos : ChainContext
 {
-  inline bool apply (hb_apply_context_t *c) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
-    TRACE_APPLY ();
-    return TRACE_RETURN (ChainContext::apply (c, position_lookup));
+    return ChainContext::process (c);
   }
 };
 
@@ -1330,8 +1272,6 @@ struct ExtensionPos : Extension
 
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const;
-
-  inline bool apply (hb_apply_context_t *c) const;
 
   inline bool sanitize (hb_sanitize_context_t *c);
 };
@@ -1373,23 +1313,6 @@ struct PosLookupSubTable
     case ChainContext:		return u.chainContext.process (c);
     case Extension:		return u.extension.process (c);
     default:			return c->default_return_value ();
-    }
-  }
-
-  inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
-  {
-    TRACE_APPLY ();
-    switch (lookup_type) {
-    case Single:		return TRACE_RETURN (u.single.apply (c));
-    case Pair:			return TRACE_RETURN (u.pair.apply (c));
-    case Cursive:		return TRACE_RETURN (u.cursive.apply (c));
-    case MarkBase:		return TRACE_RETURN (u.markBase.apply (c));
-    case MarkLig:		return TRACE_RETURN (u.markLig.apply (c));
-    case MarkMark:		return TRACE_RETURN (u.markMark.apply (c));
-    case Context:		return TRACE_RETURN (u.context.apply (c));
-    case ChainContext:		return TRACE_RETURN (u.chainContext.apply (c));
-    case Extension:		return TRACE_RETURN (u.extension.apply (c));
-    default:			return TRACE_RETURN (false);
     }
   }
 
@@ -1471,13 +1394,10 @@ struct PosLookup : Lookup
     if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 0; i < count; i++)
-      if (get_subtable (i).apply (c, lookup_type))
-	return true;
-
-    return false;
+    return process (c);
   }
+
+  static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
 
   inline bool apply_string (hb_apply_context_t *c, const hb_set_digest_t *digest) const
   {
@@ -1486,6 +1406,7 @@ struct PosLookup : Lookup
     if (unlikely (!c->buffer->len || !c->lookup_mask))
       return false;
 
+    c->set_recurse_func (apply_recurse_func);
     c->set_lookup (*this);
 
     c->buffer->idx = 0;
@@ -1627,12 +1548,6 @@ inline typename context_t::return_t ExtensionPos::process (context_t *c) const
   return get_subtable ().process (c, get_type ());
 }
 
-inline bool ExtensionPos::apply (hb_apply_context_t *c) const
-{
-  TRACE_APPLY ();
-  return TRACE_RETURN (get_subtable ().apply (c, get_type ()));
-}
-
 inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
 {
   TRACE_SANITIZE ();
@@ -1642,18 +1557,12 @@ inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
   return TRACE_RETURN (StructAtOffset<PosLookupSubTable> (this, offset).sanitize (c, get_type ()));
 }
 
-static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_index)
+inline bool PosLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index)
 {
   const GPOS &gpos = *(hb_ot_layout_from_face (c->face)->gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
-
-  if (unlikely (c->nesting_level_left == 0))
-    return false;
-
-  hb_apply_context_t new_c (*c);
-  new_c.nesting_level_left--;
-  new_c.set_lookup (l);
-  return l.apply_once (&new_c);
+  c->set_lookup (l);
+  return l.apply_once (c);
 }
 
 

@@ -193,11 +193,28 @@ struct hb_get_coverage_context_t
 
 struct hb_apply_context_t
 {
+  typedef bool return_t;
+  typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
+  template <typename T>
+  inline return_t process (const T &obj) { return obj.apply (this); }
+  static const return_t default_return_value (void) { return false; }
+  bool stop_sublookup_iteration (const return_t r) const { return r; }
+  return_t recurse (unsigned int lookup_index)
+  {
+    if (unlikely (nesting_level_left == 0 || !recurse_func))
+      return default_return_value ();
+
+    hb_apply_context_t new_c (*this);
+    new_c.nesting_level_left--;
+    return recurse_func (&new_c, lookup_index);
+  }
+
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
   hb_direction_t direction;
   hb_mask_t lookup_mask;
+  recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
@@ -212,18 +229,15 @@ struct hb_apply_context_t
 			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
+			recurse_func (NULL),
 			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0), property (0), debug_depth (0),
 			gdef (*hb_ot_layout_from_face (face)->gdef),
 			has_glyph_classes (gdef.has_glyph_classes ()) {}
 
-  void set_lookup_props (unsigned int lookup_props_) {
-    lookup_props = lookup_props_;
-  }
-
-  void set_lookup (const Lookup &l) {
-    lookup_props = l.get_props ();
-  }
+  void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+  void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
+  void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }
 
   struct mark_skipping_forward_iterator_t
   {
@@ -430,7 +444,6 @@ struct hb_apply_context_t
 
 typedef bool (*intersects_func_t) (hb_set_t *glyphs, const USHORT &value, const void *data);
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
-typedef bool (*apply_lookup_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
 
 struct ContextClosureFuncs
 {
@@ -439,7 +452,6 @@ struct ContextClosureFuncs
 struct ContextApplyFuncs
 {
   match_func_t match;
-  apply_lookup_func_t apply;
 };
 
 static inline bool intersects_glyph (hb_set_t *glyphs, const USHORT &value, const void *data HB_UNUSED)
@@ -739,8 +751,7 @@ static inline void closure_lookup (hb_closure_context_t *c,
 static inline bool apply_lookup (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int lookupCount,
-				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
-				 apply_lookup_func_t apply_func)
+				 const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */)
 {
   hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
   unsigned int end = c->buffer->len;
@@ -771,7 +782,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
       unsigned int old_pos = c->buffer->idx;
 
       /* Apply a lookup */
-      bool done = apply_func (c, lookupRecord->lookupListIndex);
+      bool done = c->recurse (lookupRecord->lookupListIndex);
 
       lookupRecord++;
       lookupCount--;
@@ -849,8 +860,7 @@ static inline bool context_apply_lookup (hb_apply_context_t *c,
 		      lookup_context.funcs.match, lookup_context.match_data)
       && apply_lookup (c,
 		       inputCount,
-		       lookupCount, lookupRecord,
-		       lookup_context.funcs.apply);
+		       lookupCount, lookupRecord);
 }
 
 struct Rule
@@ -977,7 +987,7 @@ struct ContextFormat1
 
     const RuleSet &rule_set = this+ruleSet[(this+coverage) (c->glyphs[0])];
     struct ContextApplyLookupContext lookup_context = {
-      {match_glyph, NULL},
+      {match_glyph},
       NULL
     };
     return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
@@ -988,7 +998,7 @@ struct ContextFormat1
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
@@ -997,7 +1007,7 @@ struct ContextFormat1
 
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextApplyLookupContext lookup_context = {
-      {match_glyph, apply_func},
+      {match_glyph},
       NULL
     };
     return TRACE_RETURN (rule_set.apply (c, lookup_context));
@@ -1052,7 +1062,7 @@ struct ContextFormat2
     unsigned int index = class_def (c->glyphs[0]);
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextApplyLookupContext lookup_context = {
-      {match_class, NULL},
+      {match_class},
       &class_def
     };
     return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
@@ -1063,7 +1073,7 @@ struct ContextFormat2
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
@@ -1073,7 +1083,7 @@ struct ContextFormat2
     index = class_def (c->buffer->cur().codepoint);
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextApplyLookupContext lookup_context = {
-      {match_class, apply_func},
+      {match_class},
       &class_def
     };
     return TRACE_RETURN (rule_set.apply (c, lookup_context));
@@ -1125,7 +1135,7 @@ struct ContextFormat3
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextApplyLookupContext lookup_context = {
-      {match_coverage, NULL},
+      {match_coverage},
       this
     };
     return TRACE_RETURN (context_would_apply_lookup (c, glyphCount, (const USHORT *) (coverage + 1), lookupCount, lookupRecord, lookup_context));
@@ -1136,7 +1146,7 @@ struct ContextFormat3
     return this+coverage[0];
   }
 
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage[0]) (c->buffer->cur().codepoint);
@@ -1144,7 +1154,7 @@ struct ContextFormat3
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextApplyLookupContext lookup_context = {
-      {match_coverage, apply_func},
+      {match_coverage},
       this
     };
     return TRACE_RETURN (context_apply_lookup (c, glyphCount, (const USHORT *) (coverage + 1), lookupCount, lookupRecord, lookup_context));
@@ -1185,17 +1195,6 @@ struct Context
     case 2: return c->process (u.format2);
     case 3: return c->process (u.format3);
     default:return c->default_return_value ();
-    }
-  }
-
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c, apply_func));
-    case 2: return TRACE_RETURN (u.format2.apply (c, apply_func));
-    case 3: return TRACE_RETURN (u.format3.apply (c, apply_func));
-    default:return TRACE_RETURN (false);
     }
   }
 
@@ -1300,8 +1299,7 @@ static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
 			  lookahead_offset)
       && apply_lookup (c,
 		       inputCount,
-		       lookupCount, lookupRecord,
-		       lookup_context.funcs.apply);
+		       lookupCount, lookupRecord);
 }
 
 struct ChainRule
@@ -1446,7 +1444,7 @@ struct ChainContextFormat1
 
     const ChainRuleSet &rule_set = this+ruleSet[(this+coverage) (c->glyphs[0])];
     struct ChainContextApplyLookupContext lookup_context = {
-      {match_glyph, NULL},
+      {match_glyph},
       {NULL, NULL, NULL}
     };
     return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
@@ -1457,7 +1455,7 @@ struct ChainContextFormat1
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
@@ -1465,7 +1463,7 @@ struct ChainContextFormat1
 
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
-      {match_glyph, apply_func},
+      {match_glyph},
       {NULL, NULL, NULL}
     };
     return TRACE_RETURN (rule_set.apply (c, lookup_context));
@@ -1524,7 +1522,7 @@ struct ChainContextFormat2
     unsigned int index = input_class_def (c->glyphs[0]);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
-      {match_class, NULL},
+      {match_class},
       {NULL, &input_class_def, NULL}
     };
     return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
@@ -1535,7 +1533,7 @@ struct ChainContextFormat2
     return this+coverage;
   }
 
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
@@ -1548,7 +1546,7 @@ struct ChainContextFormat2
     index = input_class_def (c->buffer->cur().codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
-      {match_class, apply_func},
+      {match_class},
       {&backtrack_class_def,
        &input_class_def,
        &lookahead_class_def}
@@ -1619,7 +1617,7 @@ struct ChainContextFormat3
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     struct ChainContextApplyLookupContext lookup_context = {
-      {match_coverage, NULL},
+      {match_coverage},
       {this, this, this}
     };
     return TRACE_RETURN (chain_context_would_apply_lookup (c,
@@ -1635,7 +1633,7 @@ struct ChainContextFormat3
     return this+input[0];
   }
 
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
+  inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
@@ -1646,7 +1644,7 @@ struct ChainContextFormat3
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     struct ChainContextApplyLookupContext lookup_context = {
-      {match_coverage, apply_func},
+      {match_coverage},
       {this, this, this}
     };
     return TRACE_RETURN (chain_context_apply_lookup (c,
@@ -1698,17 +1696,6 @@ struct ChainContext
     case 2: return c->process (u.format2);
     case 3: return c->process (u.format3);
     default:return c->default_return_value ();
-    }
-  }
-
-  inline bool apply (hb_apply_context_t *c, apply_lookup_func_t apply_func) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c, apply_func));
-    case 2: return TRACE_RETURN (u.format2.apply (c, apply_func));
-    case 3: return TRACE_RETURN (u.format3.apply (c, apply_func));
-    default:return TRACE_RETURN (false);
     }
   }
 

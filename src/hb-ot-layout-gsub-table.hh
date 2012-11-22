@@ -200,16 +200,6 @@ struct SingleSubst
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    case 2: return TRACE_RETURN (u.format2.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<GlyphID> &glyphs,
 			 Supplier<GlyphID> &substitutes,
@@ -398,15 +388,6 @@ struct MultipleSubst
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<GlyphID> &glyphs,
 			 Supplier<unsigned int> &substitute_len_list,
@@ -553,15 +534,6 @@ struct AlternateSubst
     switch (u.format) {
     case 1: return c->process (u.format1);
     default:return c->default_return_value ();
-    }
-  }
-
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
     }
   }
 
@@ -866,15 +838,6 @@ struct LigatureSubst
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<GlyphID> &first_glyphs,
 			 Supplier<unsigned int> &ligature_per_first_glyph_count_list,
@@ -911,20 +874,12 @@ struct LigatureSubst
 };
 
 
-static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index);
-
 struct ContextSubst : Context
 {
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
     return Context::process (c);
-  }
-
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    return TRACE_RETURN (Context::apply (c, substitute_lookup));
   }
 };
 
@@ -934,12 +889,6 @@ struct ChainContextSubst : ChainContext
   inline typename context_t::return_t process (context_t *c) const
   {
     return ChainContext::process (c);
-  }
-
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    return TRACE_RETURN (ChainContext::apply (c, substitute_lookup));
   }
 };
 
@@ -955,8 +904,6 @@ struct ExtensionSubst : Extension
 
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const;
-
-  inline bool apply (hb_apply_context_t *c) const;
 
   inline bool sanitize (hb_sanitize_context_t *c);
 
@@ -1094,15 +1041,6 @@ struct ReverseChainSingleSubst
     }
   }
 
-  inline bool apply (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY ();
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.apply (c));
-    default:return TRACE_RETURN (false);
-    }
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE ();
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
@@ -1153,22 +1091,6 @@ struct SubstLookupSubTable
     case Extension:		return u.extension.process (c);
     case ReverseChainSingle:	return u.reverseChainContextSingle.process (c);
     default:			return c->default_return_value ();
-    }
-  }
-
-  inline bool apply (hb_apply_context_t *c, unsigned int lookup_type) const
-  {
-    TRACE_APPLY ();
-    switch (lookup_type) {
-    case Single:		return TRACE_RETURN (u.single.apply (c));
-    case Multiple:		return TRACE_RETURN (u.multiple.apply (c));
-    case Alternate:		return TRACE_RETURN (u.alternate.apply (c));
-    case Ligature:		return TRACE_RETURN (u.ligature.apply (c));
-    case Context:		return TRACE_RETURN (u.context.apply (c));
-    case ChainContext:		return TRACE_RETURN (u.chainContext.apply (c));
-    case Extension:		return TRACE_RETURN (u.extension.apply (c));
-    case ReverseChainSingle:	return TRACE_RETURN (u.reverseChainContextSingle.apply (c));
-    default:			return TRACE_RETURN (false);
     }
   }
 
@@ -1267,13 +1189,10 @@ struct SubstLookup : Lookup
     if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 0; i < count; i++)
-      if (get_subtable (i).apply (c, lookup_type))
-	return true;
-
-    return false;
+    return process (c);
   }
+
+  static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
 
   inline bool apply_string (hb_apply_context_t *c, const hb_set_digest_t *digest) const
   {
@@ -1282,6 +1201,7 @@ struct SubstLookup : Lookup
     if (unlikely (!c->buffer->len || !c->lookup_mask))
       return false;
 
+    c->set_recurse_func (apply_recurse_func);
     c->set_lookup (*this);
 
     if (likely (!is_reverse ()))
@@ -1423,7 +1343,7 @@ struct GSUB : GSUBGPOS
   static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void substitute_finish (hb_font_t *font, hb_buffer_t *buffer);
 
-  static void_t closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
+  static inline void_t closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
   {
     const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
     const SubstLookup &l = gsub.get_lookup (lookup_index);
@@ -1483,12 +1403,6 @@ inline typename context_t::return_t ExtensionSubst::process (context_t *c) const
   return get_subtable ().process (c, get_type ());
 }
 
-inline bool ExtensionSubst::apply (hb_apply_context_t *c) const
-{
-  TRACE_APPLY ();
-  return TRACE_RETURN (get_subtable ().apply (c, get_type ()));
-}
-
 inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *c)
 {
   TRACE_SANITIZE ();
@@ -1506,18 +1420,12 @@ inline bool ExtensionSubst::is_reverse (void) const
   return SubstLookup::lookup_type_is_reverse (type);
 }
 
-static inline bool substitute_lookup (hb_apply_context_t *c, unsigned int lookup_index)
+inline bool SubstLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index)
 {
   const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
-
-  if (unlikely (c->nesting_level_left == 0))
-    return false;
-
-  hb_apply_context_t new_c (*c);
-  new_c.nesting_level_left--;
-  new_c.set_lookup (l);
-  return l.apply_once (&new_c);
+  c->set_lookup (l);
+  return l.apply_once (c);
 }
 
 
