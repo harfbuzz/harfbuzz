@@ -53,17 +53,17 @@ struct hb_closure_context_t
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
   inline return_t process (const T &obj) { obj.closure (this); return void_t (); }
-  static const return_t default_return_value;
+  static const return_t default_return_value (void) { return return_t (); }
   bool stop_sublookup_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0))
-      return default_return_value;
+      return default_return_value ();
 
     nesting_level_left--;
     recurse_func (this, lookup_index);
     nesting_level_left++;
-    return default_return_value;
+    return default_return_value ();
   }
 
   hb_face_t *face;
@@ -111,6 +111,13 @@ struct hb_would_apply_context_t
 			      len (len_),
 			      zero_context (zero_context_),
 			      debug_depth (0) {};
+
+  typedef bool return_t;
+  template <typename T>
+  inline return_t process (const T &obj) { return obj.would_apply (this); }
+  static return_t default_return_value (void) { return false; }
+  bool stop_sublookup_iteration (const return_t r) const { return r; }
+  return_t recurse (unsigned int lookup_index) { return true; }
 };
 
 
@@ -148,15 +155,30 @@ struct hb_collect_glyphs_context_t
   typedef void_t return_t;
   template <typename T>
   inline return_t process (const T &obj) { obj.collect_glyphs (this); return void_t (); }
-  static const return_t default_return_value;
+  static const return_t default_return_value (void) { return return_t (); }
   bool stop_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
 #if 0
     /* XXX */
 #endif
-    return default_return_value;
+    return default_return_value ();
   }
+};
+
+
+
+struct hb_get_coverage_context_t
+{
+  hb_get_coverage_context_t (void) {}
+
+  typedef const Coverage &return_t;
+  template <typename T>
+  inline return_t process (const T &obj) { return obj.get_coverage (); }
+  static return_t default_return_value (void) { return Null(Coverage); }
+  bool stop_sublookup_iteration (const return_t r) const { return true; /* Unused */ }
+  return_t recurse (unsigned int lookup_index)
+  { return default_return_value (); }
 };
 
 
@@ -1162,27 +1184,7 @@ struct Context
     case 1: return c->process (u.format1);
     case 2: return c->process (u.format2);
     case 3: return c->process (u.format3);
-    default:return c->default_return_value;
-    }
-  }
-
-  inline const Coverage &get_coverage (void) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    case 2: return u.format2.get_coverage ();
-    case 3: return u.format3.get_coverage ();
-    default:return Null(Coverage);
-    }
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.would_apply (c);
-    case 2: return u.format2.would_apply (c);
-    case 3: return u.format3.would_apply (c);
-    default:return false;
+    default:return c->default_return_value ();
     }
   }
 
@@ -1695,27 +1697,7 @@ struct ChainContext
     case 1: return c->process (u.format1);
     case 2: return c->process (u.format2);
     case 3: return c->process (u.format3);
-    default:return c->default_return_value;
-    }
-  }
-
-  inline const Coverage &get_coverage (void) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    case 2: return u.format2.get_coverage ();
-    case 3: return u.format3.get_coverage ();
-    default:return Null(Coverage);
-    }
-  }
-
-  inline bool would_apply (hb_would_apply_context_t *c) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.would_apply (c);
-    case 2: return u.format2.would_apply (c);
-    case 3: return u.format3.would_apply (c);
-    default:return false;
+    default:return c->default_return_value ();
     }
   }
 

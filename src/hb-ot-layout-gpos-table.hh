@@ -212,9 +212,6 @@ struct ValueFormat : USHORT
 
 struct AnchorFormat1
 {
-  friend struct Anchor;
-
-  private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
@@ -237,9 +234,6 @@ struct AnchorFormat1
 
 struct AnchorFormat2
 {
-  friend struct Anchor;
-
-  private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
@@ -270,9 +264,6 @@ struct AnchorFormat2
 
 struct AnchorFormat3
 {
-  friend struct Anchor;
-
-  private:
   inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
@@ -428,10 +419,6 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
 struct SinglePosFormat1
 {
-  friend struct SinglePos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -471,10 +458,6 @@ struct SinglePosFormat1
 
 struct SinglePosFormat2
 {
-  friend struct SinglePos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -517,16 +500,13 @@ struct SinglePosFormat2
 
 struct SinglePos
 {
-  friend struct PosLookupSubTable;
-
-  private:
-
-  inline const Coverage &get_coverage (void) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    case 2: return u.format2.get_coverage ();
-    default:return Null(Coverage);
+    case 1: return c->process (u.format1);
+    case 2: return c->process (u.format2);
+    default:return c->default_return_value ();
     }
   }
 
@@ -635,10 +615,6 @@ struct PairSet
 
 struct PairPosFormat1
 {
-  friend struct PairPos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -693,10 +669,6 @@ struct PairPosFormat1
 
 struct PairPosFormat2
 {
-  friend struct PairPos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -783,16 +755,13 @@ struct PairPosFormat2
 
 struct PairPos
 {
-  friend struct PosLookupSubTable;
-
-  private:
-
-  inline const Coverage &get_coverage (void) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    case 2: return u.format2.get_coverage ();
-    default:return Null(Coverage);
+    case 1: return c->process (u.format1);
+    case 2: return c->process (u.format2);
+    default:return c->default_return_value ();
     }
   }
 
@@ -849,10 +818,6 @@ struct EntryExitRecord
 
 struct CursivePosFormat1
 {
-  friend struct CursivePos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -959,15 +924,12 @@ struct CursivePosFormat1
 
 struct CursivePos
 {
-  friend struct PosLookupSubTable;
-
-  private:
-
-  inline const Coverage &get_coverage (void) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    default:return Null(Coverage);
+    case 1: return c->process (u.format1);
+    default:return c->default_return_value ();
     }
   }
 
@@ -1004,10 +966,6 @@ typedef AnchorMatrix BaseArray;		/* base-major--
 
 struct MarkBasePosFormat1
 {
-  friend struct MarkBasePos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+markCoverage;
@@ -1065,15 +1023,12 @@ struct MarkBasePosFormat1
 
 struct MarkBasePos
 {
-  friend struct PosLookupSubTable;
-
-  private:
-
-  inline const Coverage &get_coverage (void) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    default:return Null(Coverage);
+    case 1: return c->process (u.format1);
+    default:return c->default_return_value ();
     }
   }
 
@@ -1115,10 +1070,6 @@ typedef OffsetListOf<LigatureAttach> LigatureArray;
 
 struct MarkLigPosFormat1
 {
-  friend struct MarkLigPos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+markCoverage;
@@ -1193,15 +1144,12 @@ struct MarkLigPosFormat1
 
 struct MarkLigPos
 {
-  friend struct PosLookupSubTable;
-
-  private:
-
-  inline const Coverage &get_coverage (void) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    default:return Null(Coverage);
+    case 1: return c->process (u.format1);
+    default:return c->default_return_value ();
     }
   }
 
@@ -1238,10 +1186,6 @@ typedef AnchorMatrix Mark2Array;	/* mark2-major--
 
 struct MarkMarkPosFormat1
 {
-  friend struct MarkMarkPos;
-
-  private:
-
   inline const Coverage &get_coverage (void) const
   {
     return this+mark1Coverage;
@@ -1319,15 +1263,12 @@ struct MarkMarkPosFormat1
 
 struct MarkMarkPos
 {
-  friend struct PosLookupSubTable;
-
-  private:
-
-  inline const Coverage &get_coverage (void) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage ();
-    default:return Null(Coverage);
+    case 1: return c->process (u.format1);
+    default:return c->default_return_value ();
     }
   }
 
@@ -1361,9 +1302,6 @@ static inline bool position_lookup (hb_apply_context_t *c, unsigned int lookup_i
 
 struct ContextPos : Context
 {
-  friend struct PosLookupSubTable;
-
-  private:
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1373,9 +1311,6 @@ struct ContextPos : Context
 
 struct ChainContextPos : ChainContext
 {
-  friend struct PosLookupSubTable;
-
-  private:
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY ();
@@ -1386,9 +1321,6 @@ struct ChainContextPos : ChainContext
 
 struct ExtensionPos : Extension
 {
-  friend struct PosLookupSubTable;
-
-  private:
   inline const struct PosLookupSubTable& get_subtable (void) const
   {
     unsigned int offset = get_offset ();
@@ -1396,7 +1328,8 @@ struct ExtensionPos : Extension
     return StructAtOffset<PosLookupSubTable> (this, offset);
   }
 
-  inline const Coverage &get_coverage (void) const;
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const;
 
   inline bool apply (hb_apply_context_t *c) const;
 
@@ -1426,19 +1359,20 @@ struct PosLookupSubTable
     Extension		= 9
   };
 
-  inline const Coverage &get_coverage (unsigned int lookup_type) const
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c, unsigned int lookup_type) const
   {
     switch (lookup_type) {
-    case Single:		return u.single.get_coverage ();
-    case Pair:			return u.pair.get_coverage ();
-    case Cursive:		return u.cursive.get_coverage ();
-    case MarkBase:		return u.markBase.get_coverage ();
-    case MarkLig:		return u.markLig.get_coverage ();
-    case MarkMark:		return u.markMark.get_coverage ();
-    case Context:		return u.context.get_coverage ();
-    case ChainContext:		return u.chainContext.get_coverage ();
-    case Extension:		return u.extension.get_coverage ();
-    default:			return Null(Coverage);
+    case Single:		return u.single.process (c);
+    case Pair:			return u.pair.process (c);
+    case Cursive:		return u.cursive.process (c);
+    case MarkBase:		return u.markBase.process (c);
+    case MarkLig:		return u.markLig.process (c);
+    case MarkMark:		return u.markMark.process (c);
+    case Context:		return u.context.process (c);
+    case ChainContext:		return u.chainContext.process (c);
+    case Extension:		return u.extension.process (c);
+    default:			return c->default_return_value ();
     }
   }
 
@@ -1480,7 +1414,7 @@ struct PosLookupSubTable
   protected:
   union {
   struct {
-    USHORT			sub_format;
+    USHORT		sub_format;
   } header;
   SinglePos		single;
   PairPos		pair;
@@ -1502,16 +1436,30 @@ struct PosLookup : Lookup
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
   { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
+  {
+    unsigned int lookup_type = get_type ();
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++) {
+      typename context_t::return_t r = get_subtable (i).process (c, lookup_type);
+      if (c->stop_sublookup_iteration (r))
+        return r;
+    }
+    return c->default_return_value ();
+  }
+
   template <typename set_t>
   inline void add_coverage (set_t *glyphs) const
   {
+    hb_get_coverage_context_t c;
     const Coverage *last = NULL;
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
-      const Coverage *c = &get_subtable (i).get_coverage (get_type ());
-      if (c != last) {
-        c->add_coverage (glyphs);
-        last = c;
+      const Coverage *coverage = &get_subtable (i).process (&c, get_type ());
+      if (coverage != last) {
+        coverage->add_coverage (glyphs);
+        last = coverage;
       }
     }
   }
@@ -1673,9 +1621,10 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer, hb_bool_t
 
 /* Out-of-class implementation for methods recursing */
 
-inline const Coverage & ExtensionPos::get_coverage (void) const
+template <typename context_t>
+inline typename context_t::return_t ExtensionPos::process (context_t *c) const
 {
-  return get_subtable ().get_coverage (get_type ());
+  return get_subtable ().process (c, get_type ());
 }
 
 inline bool ExtensionPos::apply (hb_apply_context_t *c) const
