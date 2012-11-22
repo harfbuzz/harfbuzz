@@ -2,7 +2,7 @@
 
 #define UNIDATA_VERSION "6.2.0"
 /* a list of unique database records */
-static UCDRecord ucd_records[] = {
+static const UCDRecord ucd_records[] = {
     {2, 0, 18, 0, 5, 0, 102},
     {0, 0, 14, 0, 5, 0, 0},
     {0, 0, 16, 0, 5, 0, 0},
@@ -704,7 +704,7 @@ static UCDRecord ucd_records[] = {
 };
 
 #define BIDI_MIRROR_LEN 364
-static MirrorPair mirror_pairs[] = {
+static const MirrorPair mirror_pairs[] = {
     {40, 41},
     {41, 40},
     {60, 62},
@@ -1074,7 +1074,7 @@ static MirrorPair mirror_pairs[] = {
 /* Reindexing of NFC first characters. */
 #define TOTAL_FIRST 372
 #define TOTAL_LAST 56
-static Reindex nfc_first[] = {
+static const Reindex nfc_first[] = {
   { 60, 2, 0},
   { 65, 15, 3},
   { 82, 8, 19},
@@ -1285,7 +1285,7 @@ static Reindex nfc_first[] = {
   {0,0,0}
 };
 
-static Reindex nfc_last[] = {
+static const Reindex nfc_last[] = {
   { 768, 4, 0},
   { 774, 6, 5},
   { 783, 0, 12},
@@ -1487,7 +1487,7 @@ static Reindex nfc_last[] = {
 /* index tables for the database records */
 #define SHIFT1 5
 #define SHIFT2 3
-static unsigned char index0[] = {
+static const unsigned char index0[] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
     21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 
     39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 53, 53, 53, 
@@ -1737,7 +1737,7 @@ static unsigned char index0[] = {
     74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 74, 131, 
 };
 
-static unsigned short index1[] = {
+static const unsigned short index1[] = {
     0, 1, 0, 2, 3, 4, 5, 6, 7, 8, 8, 9, 10, 11, 11, 12, 13, 0, 0, 0, 14, 15, 
     16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 29, 31, 32, 
     33, 34, 35, 27, 30, 29, 27, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 
@@ -2042,7 +2042,7 @@ static unsigned short index1[] = {
     854, 854, 854, 854, 854, 854, 854, 1119, 
 };
 
-static unsigned short index2[] = {
+static const unsigned short index2[] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 2, 4, 3, 1, 1, 1, 1, 1, 1, 3, 3, 3, 2, 
     5, 6, 6, 7, 8, 7, 6, 6, 9, 10, 6, 11, 12, 13, 12, 12, 14, 14, 14, 14, 14, 
     14, 14, 14, 14, 14, 12, 6, 15, 16, 15, 6, 6, 17, 17, 17, 17, 17, 17, 17, 
@@ -2624,7 +2624,7 @@ static unsigned short index2[] = {
 };
 
 /* decomposition data */
-static unsigned short decomp_data[] = {
+static const unsigned short decomp_data[] = {
     0, 257, 32, 514, 32, 776, 259, 97, 514, 32, 772, 259, 50, 259, 51, 514, 
     32, 769, 258, 956, 514, 32, 807, 259, 49, 259, 111, 772, 49, 8260, 52, 
     772, 49, 8260, 50, 772, 51, 8260, 52, 512, 65, 768, 512, 65, 769, 512, 
@@ -3702,7 +3702,7 @@ static unsigned short decomp_data[] = {
 /* index tables for the decomposition data */
 #define DECOMP_SHIFT1 6
 #define DECOMP_SHIFT2 4
-static unsigned char decomp_index0[] = {
+static const unsigned char decomp_index0[] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 13, 5, 5, 5, 5, 5, 
     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 14, 15, 5, 5, 5, 5, 16, 5, 
@@ -3751,7 +3751,7 @@ static unsigned char decomp_index0[] = {
     5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
 };
 
-static unsigned short decomp_index1[] = {
+static const unsigned short decomp_index1[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 
     14, 0, 0, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 0, 0, 0, 0, 0, 0, 0, 
     25, 0, 26, 27, 0, 0, 0, 0, 0, 28, 0, 0, 29, 30, 31, 32, 33, 34, 35, 0, 
@@ -3825,7 +3825,7 @@ static unsigned short decomp_index1[] = {
     0, 0, 0, 
 };
 
-static unsigned short decomp_index2[] = {
+static const unsigned short decomp_index2[] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 
     3, 0, 6, 0, 0, 0, 0, 8, 0, 0, 11, 13, 15, 18, 0, 0, 20, 23, 25, 0, 27, 
     31, 35, 0, 39, 42, 45, 48, 51, 54, 0, 57, 60, 63, 66, 69, 72, 75, 78, 81, 
@@ -4414,7 +4414,7 @@ static unsigned short decomp_index2[] = {
 /* NFC pairs */
 #define COMP_SHIFT1 2
 #define COMP_SHIFT2 1
-static unsigned short comp_index0[] = {
+static const unsigned short comp_index0[] = {
     0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 4, 5, 6, 
     0, 0, 0, 0, 7, 0, 8, 9, 0, 0, 0, 10, 11, 12, 0, 0, 0, 0, 13, 14, 15, 16, 
     0, 0, 0, 17, 18, 19, 20, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 22, 23, 24, 0, 0, 
@@ -4538,7 +4538,7 @@ static unsigned short comp_index0[] = {
     0, 0, 0, 0, 0, 0, 541, 0, 0, 0, 0, 0, 0, 542, 0, 0, 0, 0, 0, 0, 543, 
 };
 
-static unsigned short comp_index1[] = {
+static const unsigned short comp_index1[] = {
     0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 4, 5, 6, 7, 8, 9, 10, 0, 
     11, 12, 0, 13, 0, 0, 0, 14, 15, 0, 0, 0, 0, 16, 0, 0, 17, 18, 0, 19, 0, 
     20, 0, 0, 0, 0, 21, 0, 0, 0, 0, 22, 0, 23, 0, 0, 24, 0, 25, 26, 0, 27, 0, 
@@ -4651,7 +4651,7 @@ static unsigned short comp_index1[] = {
     725, 0, 0, 0, 726, 
 };
 
-static unsigned int comp_data[] = {
+static const unsigned int comp_data[] = {
     0, 0, 0, 8814, 0, 8800, 0, 8815, 192, 193, 194, 195, 256, 258, 550, 196, 
     7842, 197, 0, 461, 512, 514, 0, 7840, 0, 7680, 260, 0, 7682, 0, 0, 7684, 
     7686, 0, 0, 262, 264, 0, 266, 0, 0, 268, 0, 199, 7690, 0, 0, 270, 0, 
