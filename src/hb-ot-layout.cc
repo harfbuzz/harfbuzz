@@ -417,14 +417,13 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
   switch (table_tag) {
     case HB_OT_TAG_GSUB:
     {
-      const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
-      l.collect_glyphs (&c);
+//      hb_ot_layout_from_face (face)->gsub->collect_glyphs_lookup (&c, lookup_index);
       return;
     }
     case HB_OT_TAG_GPOS:
     {
-      const OT::PosLookup& l = hb_ot_layout_from_face (face)->gpos->get_lookup (lookup_index);
-//      l.collect_glyphs (&c);
+//      hb_ot_layout_from_face (face)->gpos->collect_glyphs_lookup (&c, lookup_index);
+//      l.collect_glyphs_lookup (&c);
       return;
     }
   }
@@ -499,8 +498,7 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        unsigned int  lookup_index,
 				        hb_set_t     *glyphs)
 {
-  OT::hb_closure_context_t c (face, glyphs);
-  _get_gsub (face).closure_lookup (&c, lookup_index);
+  _get_gsub (face).closure_lookup (face, glyphs, lookup_index);
 }
 
 /*
