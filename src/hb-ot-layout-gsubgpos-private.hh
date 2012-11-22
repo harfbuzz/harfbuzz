@@ -96,6 +96,13 @@ struct hb_closure_context_t
 
 struct hb_would_apply_context_t
 {
+  typedef bool return_t;
+  template <typename T>
+  inline return_t process (const T &obj) { return obj.would_apply (this); }
+  static return_t default_return_value (void) { return false; }
+  bool stop_sublookup_iteration (const return_t r) const { return r; }
+  return_t recurse (unsigned int lookup_index) { return true; }
+
   hb_face_t *face;
   const hb_codepoint_t *glyphs;
   unsigned int len;
@@ -111,13 +118,6 @@ struct hb_would_apply_context_t
 			      len (len_),
 			      zero_context (zero_context_),
 			      debug_depth (0) {};
-
-  typedef bool return_t;
-  template <typename T>
-  inline return_t process (const T &obj) { return obj.would_apply (this); }
-  static return_t default_return_value (void) { return false; }
-  bool stop_sublookup_iteration (const return_t r) const { return r; }
-  return_t recurse (unsigned int lookup_index) { return true; }
 };
 
 
@@ -133,6 +133,19 @@ struct hb_would_apply_context_t
 
 struct hb_collect_glyphs_context_t
 {
+  typedef void_t return_t;
+  template <typename T>
+  inline return_t process (const T &obj) { obj.collect_glyphs (this); return void_t (); }
+  static const return_t default_return_value (void) { return return_t (); }
+  bool stop_iteration (const return_t r) const { return false; }
+  return_t recurse (unsigned int lookup_index)
+  {
+#if 0
+    /* XXX */
+#endif
+    return default_return_value ();
+  }
+
   hb_face_t *face;
   hb_set_t &before;
   hb_set_t &input;
@@ -151,27 +164,12 @@ struct hb_collect_glyphs_context_t
 			      after  (glyphs_after  ? *glyphs_after  : *hb_set_get_empty ()),
 			      output (glyphs_output ? *glyphs_output : *hb_set_get_empty ()),
 			      debug_depth (0) {};
-
-  typedef void_t return_t;
-  template <typename T>
-  inline return_t process (const T &obj) { obj.collect_glyphs (this); return void_t (); }
-  static const return_t default_return_value (void) { return return_t (); }
-  bool stop_iteration (const return_t r) const { return false; }
-  return_t recurse (unsigned int lookup_index)
-  {
-#if 0
-    /* XXX */
-#endif
-    return default_return_value ();
-  }
 };
 
 
 
 struct hb_get_coverage_context_t
 {
-  hb_get_coverage_context_t (void) {}
-
   typedef const Coverage &return_t;
   template <typename T>
   inline return_t process (const T &obj) { return obj.get_coverage (); }
@@ -179,6 +177,8 @@ struct hb_get_coverage_context_t
   bool stop_sublookup_iteration (const return_t r) const { return true; /* Unused */ }
   return_t recurse (unsigned int lookup_index)
   { return default_return_value (); }
+
+  hb_get_coverage_context_t (void) {}
 };
 
 
