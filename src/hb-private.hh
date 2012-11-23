@@ -62,6 +62,10 @@
 #endif
 
 
+/* Void! */
+typedef struct {} void_t;
+
+
 /* Basics */
 
 
@@ -657,6 +661,24 @@ _hb_debug_msg<0> (const char *what HB_UNUSED,
 
 
 /*
+ * Printer
+ */
+
+template <typename T>
+struct hb_printer_t {};
+
+template <>
+struct hb_printer_t<bool> {
+  const char *print (bool v) { return v ? "true" : "false"; }
+};
+
+template <>
+struct hb_printer_t<void_t> {
+  const char *print (void_t v) { return ""; }
+};
+
+
+/*
  * Trace
  */
 
@@ -687,14 +709,15 @@ struct hb_auto_trace_t {
     if (plevel) --*plevel;
   }
 
-  inline bool ret (bool v, unsigned int line = 0)
+  template <typename T>
+  inline T ret (T v, unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to TRACE_RETURN.  This is a bug, please report.\n");
       return v;
     }
 
-    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, "return %s (line %d)", v ? "true" : "false", line);
+    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, "return %s (line %d)", hb_printer_t<bool>().print (v), line);
     if (plevel) --*plevel;
     plevel = NULL;
     returned = true;

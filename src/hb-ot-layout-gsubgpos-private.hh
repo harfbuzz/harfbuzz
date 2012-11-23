@@ -50,7 +50,7 @@ struct hb_closure_context_t
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
   inline return_t process (const T &obj) { obj.closure (this); return void_t (); }
-  static const return_t default_return_value (void) { return return_t (); }
+  static return_t default_return_value (void) { return return_t (); }
   bool stop_sublookup_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
@@ -82,7 +82,6 @@ struct hb_closure_context_t
 
 
 
-/* TODO Add TRACE_RETURN annotation to gsub. */
 #ifndef HB_DEBUG_WOULD_APPLY
 #define HB_DEBUG_WOULD_APPLY (HB_DEBUG+0)
 #endif
@@ -119,7 +118,6 @@ struct hb_would_apply_context_t
 
 
 
-/* TODO Add TRACE_RETURN annotation to gsub. */
 #ifndef HB_DEBUG_COLLECT_GLYPHS
 #define HB_DEBUG_COLLECT_GLYPHS (HB_DEBUG+0)
 #endif
@@ -133,7 +131,7 @@ struct hb_collect_glyphs_context_t
   typedef void_t return_t;
   template <typename T>
   inline return_t process (const T &obj) { obj.collect_glyphs (this); return void_t (); }
-  static const return_t default_return_value (void) { return return_t (); }
+  static return_t default_return_value (void) { return return_t (); }
   bool stop_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
@@ -170,7 +168,7 @@ struct hb_get_coverage_context_t
   typedef const Coverage &return_t;
   template <typename T>
   inline return_t process (const T &obj) { return obj.get_coverage (); }
-  static return_t default_return_value (void) { return Null(Coverage); }
+  static const return_t default_return_value (void) { return Null(Coverage); }
   bool stop_sublookup_iteration (const return_t r) const { return true; /* Unused */ }
   return_t recurse (unsigned int lookup_index)
   { return default_return_value (); }
@@ -194,7 +192,7 @@ struct hb_apply_context_t
   typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
   template <typename T>
   inline return_t process (const T &obj) { return obj.apply (this); }
-  static const return_t default_return_value (void) { return false; }
+  static return_t default_return_value (void) { return false; }
   bool stop_sublookup_iteration (const return_t r) const { return r; }
   return_t recurse (unsigned int lookup_index)
   {
