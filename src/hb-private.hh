@@ -720,7 +720,7 @@ struct hb_auto_trace_t {
     if (plevel) --*plevel;
   }
 
-  inline ret_t &ret (ret_t &v, unsigned int line = 0)
+  inline ret_t ret (ret_t v, unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to TRACE_RETURN.  This is a bug, please report.\n");
@@ -751,8 +751,7 @@ struct hb_auto_trace_t<0, ret_t> {
 				   const char *message HB_UNUSED,
 				   ...) {}
 
-  template <typename T>
-  inline T ret (T v, unsigned int line = 0) { return v; }
+  inline ret_t ret (ret_t v, unsigned int line = 0) { return v; }
 };
 
 #define TRACE_RETURN(RET) trace.ret (RET, __LINE__)
