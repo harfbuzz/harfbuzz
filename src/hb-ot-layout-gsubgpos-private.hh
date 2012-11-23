@@ -50,7 +50,7 @@ namespace OT {
 
 #define TRACE_CLOSURE(this) \
 	hb_auto_trace_t<HB_DEBUG_CLOSURE, void_t> trace \
-	(&c->debug_depth, "CLOSURE", this, HB_FUNC, \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
 struct hb_closure_context_t
@@ -99,7 +99,7 @@ struct hb_closure_context_t
 
 #define TRACE_WOULD_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_WOULD_APPLY, bool> trace \
-	(&c->debug_depth, "WOULD_APPLY", this, HB_FUNC, \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "%d glyphs", c->len);
 
 struct hb_would_apply_context_t
@@ -138,7 +138,7 @@ struct hb_would_apply_context_t
 
 #define TRACE_COLLECT_GLYPHS(this) \
 	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, void_t> trace \
-	(&c->debug_depth, "COLLECT_GLYPHS", this, HB_FUNC, \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
 struct hb_collect_glyphs_context_t
@@ -206,7 +206,7 @@ struct hb_get_coverage_context_t
 
 #define TRACE_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace \
-	(&c->debug_depth, "APPLY", this, HB_FUNC, \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
 
 struct hb_apply_context_t

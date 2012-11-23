@@ -168,12 +168,22 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 #define TRACE_SANITIZE(this) \
 	hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace \
-	(&c->debug_depth, "SANITIZE", this, HB_FUNC, \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
 
 struct hb_sanitize_context_t
 {
+  inline const char *get_name (void) { return "SANITIZE"; }
+  static const unsigned int max_debug_depth = HB_DEBUG_SANITIZE;
+  typedef bool return_t;
+  template <typename T>
+  inline return_t process (const T &obj) { return obj.sanitize (this); }
+  static return_t default_return_value (void) { return true; }
+  bool stop_sublookup_iteration (const return_t r) const { return false; }
+  return_t recurse (unsigned int lookup_index)
+  { return default_return_value (); }
+
   inline void init (hb_blob_t *b)
   {
     this->blob = hb_blob_reference (b);
