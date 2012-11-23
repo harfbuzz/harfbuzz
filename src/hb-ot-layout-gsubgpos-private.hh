@@ -477,16 +477,22 @@ struct hb_apply_context_t
 
 
 typedef bool (*intersects_func_t) (hb_set_t *glyphs, const USHORT &value, const void *data);
+typedef void (*collect_glyphs_func_t) (hb_set_t *glyphs, const USHORT &value, const void *data);
 typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
 
 struct ContextClosureFuncs
 {
   intersects_func_t intersects;
 };
+struct ContextCollectGlyphsFuncs
+{
+  collect_glyphs_func_t collect;
+};
 struct ContextApplyFuncs
 {
   match_func_t match;
 };
+
 
 static inline bool intersects_glyph (hb_set_t *glyphs, const USHORT &value, const void *data HB_UNUSED)
 {
@@ -516,6 +522,31 @@ static inline bool intersects_array (hb_closure_context_t *c,
 }
 
 
+static inline void collect_glyph (hb_set_t *glyphs, const USHORT &value, const void *data HB_UNUSED)
+{
+  glyphs->add (value);
+}
+static inline void collect_class (hb_set_t *glyphs, const USHORT &value, const void *data)
+{
+  const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
+  class_def.add_class (glyphs, value);
+}
+static inline void collect_coverage (hb_set_t *glyphs, const USHORT &value, const void *data)
+{
+  const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+  (data+coverage).add_coverage (glyphs);
+}
+static inline void collect_array (hb_collect_glyphs_context_t *c,
+				  unsigned int count,
+				  const USHORT values[],
+				  collect_glyphs_func_t collect_func,
+				  const void *collect_data)
+{
+  for (unsigned int i = 0; i < count; i++)
+    collect_func (&c->input, values[i], collect_data);
+}
+
+
 static inline bool match_glyph (hb_codepoint_t glyph_id, const USHORT &value, const void *data HB_UNUSED)
 {
   return glyph_id == value;
@@ -530,7 +561,6 @@ static inline bool match_coverage (hb_codepoint_t glyph_id, const USHORT &value,
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   return (data+coverage).get_coverage (glyph_id) != NOT_COVERED;
 }
-
 
 static inline bool would_match_input (hb_would_apply_context_t *c,
 				      unsigned int count, /* Including the first glyph (not matched) */
@@ -774,9 +804,10 @@ struct LookupRecord
 };
 
 
-static inline void closure_lookup (hb_closure_context_t *c,
-				   unsigned int lookupCount,
-				   const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */)
+template <typename context_t>
+static inline void recurse_lookups (context_t *c,
+				    unsigned int lookupCount,
+				    const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */)
 {
   for (unsigned int i = 0; i < lookupCount; i++)
     c->recurse (lookupRecord->lookupListIndex);
@@ -851,6 +882,12 @@ struct ContextClosureLookupContext
   const void *intersects_data;
 };
 
+struct ContextCollectGlyphsLookupContext
+{
+  ContextCollectGlyphsFuncs funcs;
+  const void *collect_data;
+};
+
 struct ContextApplyLookupContext
 {
   ContextApplyFuncs funcs;
@@ -867,10 +904,23 @@ static inline void context_closure_lookup (hb_closure_context_t *c,
   if (intersects_array (c,
 			inputCount ? inputCount - 1 : 0, input,
 			lookup_context.funcs.intersects, lookup_context.intersects_data))
-    closure_lookup (c,
-		    lookupCount, lookupRecord);
+    recurse_lookups (c,
+		     lookupCount, lookupRecord);
 }
 
+static inline void context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c,
+						  unsigned int inputCount, /* Including the first glyph (not matched) */
+						  const USHORT input[], /* Array of input values--start with second glyph */
+						  unsigned int lookupCount,
+						  const LookupRecord lookupRecord[],
+						  ContextCollectGlyphsLookupContext &lookup_context)
+{
+  collect_array (c,
+		 inputCount ? inputCount - 1 : 0, input,
+		 lookup_context.funcs.collect, lookup_context.collect_data);
+  recurse_lookups (c,
+		   lookupCount, lookupRecord);
+}
 
 static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
 					       unsigned int inputCount, /* Including the first glyph (not matched) */
@@ -908,6 +958,16 @@ struct Rule
 			    inputCount, input,
 			    lookupCount, lookupRecord,
 			    lookup_context);
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c, ContextCollectGlyphsLookupContext &lookup_context) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
+    context_collect_glyphs_lookup (c,
+				   inputCount, input,
+				   lookupCount, lookupRecord,
+				   lookup_context);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
@@ -955,6 +1015,14 @@ struct RuleSet
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       (this+rule[i]).closure (c, lookup_context);
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c, ContextCollectGlyphsLookupContext &lookup_context) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    unsigned int num_rules = rule.len;
+    for (unsigned int i = 0; i < num_rules; i++)
+      (this+rule[i]).collect_glyphs (c, lookup_context);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
@@ -1018,7 +1086,17 @@ struct ContextFormat1
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    /* XXXXXXXXXX */
+    TRACE_COLLECT_GLYPHS (this);
+    (this+coverage).add_coverage (&c->input);
+
+    struct ContextCollectGlyphsLookupContext lookup_context = {
+      {collect_glyph},
+      NULL
+    };
+
+    unsigned int count = ruleSet.len;
+    for (unsigned int i = 0; i < count; i++)
+	(this+ruleSet[i]).collect_glyphs (c, lookup_context);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -1096,7 +1174,17 @@ struct ContextFormat2
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    /* XXXXXXXXXX */
+    TRACE_COLLECT_GLYPHS (this);
+    (this+coverage).add_coverage (&c->input);
+
+    struct ContextCollectGlyphsLookupContext lookup_context = {
+      {collect_class},
+      NULL
+    };
+
+    unsigned int count = ruleSet.len;
+    for (unsigned int i = 0; i < count; i++)
+	(this+ruleSet[i]).collect_glyphs (c, lookup_context);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -1176,7 +1264,19 @@ struct ContextFormat3
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    /* XXXXXXXXXX */
+    TRACE_COLLECT_GLYPHS (this);
+    (this+coverage[0]).add_coverage (&c->input);
+
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
+    struct ContextCollectGlyphsLookupContext lookup_context = {
+      {collect_coverage},
+      NULL
+    };
+
+    context_collect_glyphs_lookup (c,
+				   glyphCount, (const USHORT *) (coverage + 1),
+				   lookupCount, lookupRecord,
+				   lookup_context);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -1304,8 +1404,8 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
   && intersects_array (c,
 		       lookaheadCount, lookahead,
 		       lookup_context.funcs.intersects, lookup_context.intersects_data[2]))
-    closure_lookup (c,
-		    lookupCount, lookupRecord);
+    recurse_lookups (c,
+		     lookupCount, lookupRecord);
 }
 
 static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c,
