@@ -878,7 +878,7 @@ struct ContextSubst : Context {};
 
 struct ChainContextSubst : ChainContext {};
 
-struct ExtensionSubst : Extension
+struct ExtensionSubst : Extension<ExtensionSubst>
 {
   inline const struct SubstLookupSubTable& get_subtable (void) const
   {
@@ -886,9 +886,6 @@ struct ExtensionSubst : Extension
     if (unlikely (!offset)) return Null(SubstLookupSubTable);
     return StructAtOffset<SubstLookupSubTable> (this, offset);
   }
-
-  template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const;
 
   inline bool sanitize (hb_sanitize_context_t *c);
 
@@ -1379,12 +1376,6 @@ GSUB::substitute_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer HB_UNUSE
 
 
 /* Out-of-class implementation for methods recursing */
-
-template <typename context_t>
-inline typename context_t::return_t ExtensionSubst::process (context_t *c) const
-{
-  return get_subtable ().process (c, get_type ());
-}
 
 inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *c)
 {

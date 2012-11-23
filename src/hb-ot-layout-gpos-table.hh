@@ -1246,7 +1246,7 @@ struct ContextPos : Context {};
 
 struct ChainContextPos : ChainContext {};
 
-struct ExtensionPos : Extension
+struct ExtensionPos : Extension<ExtensionPos>
 {
   inline const struct PosLookupSubTable& get_subtable (void) const
   {
@@ -1254,9 +1254,6 @@ struct ExtensionPos : Extension
     if (unlikely (!offset)) return Null(PosLookupSubTable);
     return StructAtOffset<PosLookupSubTable> (this, offset);
   }
-
-  template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const;
 
   inline bool sanitize (hb_sanitize_context_t *c);
 };
@@ -1524,12 +1521,6 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer, hb_bool_t
 
 
 /* Out-of-class implementation for methods recursing */
-
-template <typename context_t>
-inline typename context_t::return_t ExtensionPos::process (context_t *c) const
-{
-  return get_subtable ().process (c, get_type ());
-}
 
 inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
 {

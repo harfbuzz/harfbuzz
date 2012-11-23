@@ -1765,6 +1765,7 @@ struct ExtensionFormat1
   DEFINE_SIZE_STATIC (8);
 };
 
+template <typename T>
 struct Extension
 {
   inline unsigned int get_type (void) const
@@ -1780,6 +1781,12 @@ struct Extension
     case 1: return u.format1.get_offset ();
     default:return 0;
     }
+  }
+
+  template <typename context_t>
+  inline typename context_t::return_t process (context_t *c) const
+  {
+    return CastP<T>(this)->get_subtable ().process (c, get_type ());
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
