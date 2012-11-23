@@ -1354,6 +1354,8 @@ struct PosLookup : Lookup
     }
     return TRACE_RETURN (c->default_return_value ());
   }
+  template <typename context_t>
+  static inline typename context_t::return_t process_recurse_func (context_t *c, unsigned int lookup_index);
 
   template <typename set_t>
   inline void add_coverage (set_t *glyphs) const
@@ -1522,6 +1524,14 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer, hb_bool_t
 
 
 /* Out-of-class implementation for methods recursing */
+
+template <typename context_t>
+inline typename context_t::return_t PosLookup::process_recurse_func (context_t *c, unsigned int lookup_index)
+{
+  const GPOS &gpos = *(hb_ot_layout_from_face (c->face)->gpos);
+  const PosLookup &l = gpos.get_lookup (lookup_index);
+  return l.process (c);
+}
 
 inline bool PosLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index)
 {

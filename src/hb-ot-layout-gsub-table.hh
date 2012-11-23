@@ -1140,11 +1140,12 @@ struct SubstLookup : Lookup
     }
     return TRACE_RETURN (c->default_return_value ());
   }
+  template <typename context_t>
+  static inline typename context_t::return_t process_recurse_func (context_t *c, unsigned int lookup_index);
 
-  static inline void_t closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index);
   inline hb_closure_context_t::return_t closure (hb_closure_context_t *c) const
   {
-    c->set_recurse_func (closure_recurse_func);
+    c->set_recurse_func (process_recurse_func<hb_closure_context_t>);
     return process (c);
   }
 
@@ -1377,7 +1378,8 @@ inline bool ExtensionSubst::is_reverse (void) const
   return SubstLookup::lookup_type_is_reverse (type);
 }
 
-inline void_t SubstLookup::closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
+template <typename context_t>
+inline typename context_t::return_t SubstLookup::process_recurse_func (context_t *c, unsigned int lookup_index)
 {
   const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
