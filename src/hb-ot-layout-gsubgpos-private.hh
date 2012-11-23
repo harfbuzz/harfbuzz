@@ -37,12 +37,15 @@
 namespace OT {
 
 
+
 #ifndef HB_DEBUG_CLOSURE
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
 #endif
 
 #define TRACE_CLOSURE() \
-	hb_auto_trace_t<HB_DEBUG_CLOSURE> trace (&c->debug_depth, "CLOSURE", this, HB_FUNC, "");
+	hb_auto_trace_t<HB_DEBUG_CLOSURE, void_t> trace \
+	(&c->debug_depth, "CLOSURE", this, HB_FUNC, \
+	 "");
 
 struct hb_closure_context_t
 {
@@ -87,8 +90,9 @@ struct hb_closure_context_t
 #endif
 
 #define TRACE_WOULD_APPLY() \
-	hb_auto_trace_t<HB_DEBUG_WOULD_APPLY> trace (&c->debug_depth, "WOULD_APPLY", this, HB_FUNC, "%d glyphs", c->len);
-
+	hb_auto_trace_t<HB_DEBUG_WOULD_APPLY, bool> trace \
+	(&c->debug_depth, "WOULD_APPLY", this, HB_FUNC, \
+	 "%d glyphs", c->len);
 
 struct hb_would_apply_context_t
 {
@@ -123,8 +127,9 @@ struct hb_would_apply_context_t
 #endif
 
 #define TRACE_COLLECT_GLYPHS() \
-	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS> trace (&c->debug_depth, "COLLECT_GLYPHS", this, HB_FUNC, "");
-
+	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, void_t> trace \
+	(&c->debug_depth, "COLLECT_GLYPHS", this, HB_FUNC, \
+	 "");
 
 struct hb_collect_glyphs_context_t
 {
@@ -183,8 +188,9 @@ struct hb_get_coverage_context_t
 #endif
 
 #define TRACE_APPLY() \
-	hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", this, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
-
+	hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace \
+	(&c->debug_depth, "APPLY", this, HB_FUNC, \
+	 "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
 
 struct hb_apply_context_t
 {
@@ -517,7 +523,9 @@ static inline bool match_input (hb_apply_context_t *c,
 				bool *p_is_mark_ligature = NULL,
 				unsigned int *p_total_component_count = NULL)
 {
-  hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+  hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace
+    (&c->debug_depth, "APPLY", NULL, HB_FUNC,
+     "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
 
   hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
   if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
@@ -674,7 +682,9 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 				    match_func_t match_func,
 				    const void *match_data)
 {
-  hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+  hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace
+    (&c->debug_depth, "APPLY", NULL, HB_FUNC,
+     "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
 
   hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
   if (skippy_iter.has_no_chance ())
@@ -699,7 +709,9 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 				    const void *match_data,
 				    unsigned int offset)
 {
-  hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+  hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace
+    (&c->debug_depth, "APPLY", NULL, HB_FUNC,
+     "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
 
   hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
   if (skippy_iter.has_no_chance ())
@@ -748,7 +760,10 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 				 unsigned int lookupCount,
 				 const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */)
 {
-  hb_auto_trace_t<HB_DEBUG_APPLY> trace (&c->debug_depth, "APPLY", NULL, HB_FUNC, "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+  hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace
+    (&c->debug_depth, "APPLY", NULL, HB_FUNC,
+     "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
+
   unsigned int end = c->buffer->len;
   if (unlikely (count == 0 || c->buffer->idx + count > end))
     return TRACE_RETURN (false);

@@ -682,7 +682,18 @@ struct hb_printer_t<void_t> {
  * Trace
  */
 
-template <int max_level>
+template <typename T>
+static inline void _hb_warn_no_return (bool returned)
+{
+  if (unlikely (!returned)) {
+    fprintf (stderr, "OUCH, returned with no call to TRACE_RETURN.  This is a bug, please report.\n");
+  }
+}
+template <>
+inline void _hb_warn_no_return<void_t> (bool returned)
+{}
+
+template <int max_level, typename ret_t>
 struct hb_auto_trace_t {
   explicit inline hb_auto_trace_t (unsigned int *plevel_,
 				   const char *what_,
@@ -700,24 +711,23 @@ struct hb_auto_trace_t {
   }
   inline ~hb_auto_trace_t (void)
   {
-    if (unlikely (!returned)) {
-      fprintf (stderr, "OUCH, returned with no call to TRACE_RETURN.  This is a bug, please report.  Level was %d.\n", plevel ? *plevel : -1);
+    _hb_warn_no_return<ret_t> (returned);
+    if (!returned) {
       _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, " ");
-      return;
     }
-
     if (plevel) --*plevel;
   }
 
-  template <typename T>
-  inline T ret (T v, unsigned int line = 0)
+  inline ret_t ret (ret_t v, unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to TRACE_RETURN.  This is a bug, please report.\n");
       return v;
     }
 
-    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, "return %s (line %d)", hb_printer_t<bool>().print (v), line);
+    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1,
+			      "return %s (line %d)",
+			      hb_printer_t<ret_t>().print (v), line);
     if (plevel) --*plevel;
     plevel = NULL;
     returned = true;
@@ -730,8 +740,8 @@ struct hb_auto_trace_t {
   const void *obj;
   bool returned;
 };
-template <> /* Optimize when tracing is disabled */
-struct hb_auto_trace_t<0> {
+template <typename ret_t> /* Optimize when tracing is disabled */
+struct hb_auto_trace_t<0, ret_t> {
   explicit inline hb_auto_trace_t (unsigned int *plevel_ HB_UNUSED,
 				   const char *what HB_UNUSED,
 				   const void *obj HB_UNUSED,

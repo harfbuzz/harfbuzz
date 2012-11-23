@@ -167,7 +167,9 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 
 
 #define TRACE_SANITIZE() \
-	hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&c->debug_depth, "SANITIZE", this, HB_FUNC, "");
+	hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace \
+	(&c->debug_depth, "SANITIZE", this, HB_FUNC, \
+	 "");
 
 
 struct hb_sanitize_context_t
@@ -206,10 +208,11 @@ struct hb_sanitize_context_t
   {
     const char *p = (const char *) base;
 
-    hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&this->debug_depth, "SANITIZE", this->blob, NULL,
-					      "check_range [%p..%p] (%d bytes) in [%p..%p]",
-					      p, p + len, len,
-					      this->start, this->end);
+    hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace
+      (&this->debug_depth, "SANITIZE", this->blob, NULL,
+       "check_range [%p..%p] (%d bytes) in [%p..%p]",
+       p, p + len, len,
+       this->start, this->end);
 
     return TRACE_RETURN (likely (this->start <= p && p <= this->end && (unsigned int) (this->end - p) >= len));
   }
@@ -219,10 +222,11 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     bool overflows = _hb_unsigned_int_mul_overflows (len, record_size);
 
-    hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&this->debug_depth, "SANITIZE", this->blob, NULL,
-					      "check_array [%p..%p] (%d*%d=%ld bytes) in [%p..%p]",
-					      p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
-					      this->start, this->end);
+    hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace
+      (&this->debug_depth, "SANITIZE", this->blob, NULL,
+       "check_array [%p..%p] (%d*%d=%ld bytes) in [%p..%p]",
+       p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
+       this->start, this->end);
 
     return TRACE_RETURN (likely (!overflows && this->check_range (base, record_size * len)));
   }
@@ -238,11 +242,12 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     this->edit_count++;
 
-    hb_auto_trace_t<HB_DEBUG_SANITIZE> trace (&this->debug_depth, "SANITIZE", this->blob, NULL,
-					      "may_edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
-					      this->edit_count,
-					      p, p + len, len,
-					      this->start, this->end);
+    hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace
+      (&this->debug_depth, "SANITIZE", this->blob, NULL,
+       "may_edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
+       this->edit_count,
+       p, p + len, len,
+       this->start, this->end);
 
     return TRACE_RETURN (this->writable);
   }
@@ -338,7 +343,9 @@ struct Sanitizer
 
 
 #define TRACE_SERIALIZE() \
-	hb_auto_trace_t<HB_DEBUG_SERIALIZE> trace (&c->debug_depth, "SERIALIZE", c, HB_FUNC, "");
+	hb_auto_trace_t<HB_DEBUG_SERIALIZE, bool> trace \
+	(&c->debug_depth, "SERIALIZE", c, HB_FUNC, \
+	 "");
 
 
 struct hb_serialize_context_t
