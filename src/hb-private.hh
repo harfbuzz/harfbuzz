@@ -588,7 +588,11 @@ _hb_debug_msg_va (const char *what,
   } else
     fprintf (stderr, "   " VRBAR LBAR);
 
-  if (func) {
+  if (func)
+  {
+    /* Skip "typename" */
+    if (0 == strncmp (func, "typename ", 9))
+      func += 9;
     /* Skip return type */
     const char *space = strchr (func, ' ');
     if (space)
