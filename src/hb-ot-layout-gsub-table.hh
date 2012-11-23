@@ -50,6 +50,7 @@ struct SingleSubstFormat1
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       hb_codepoint_t glyph_id = iter.get_glyph ();
@@ -126,6 +127,7 @@ struct SingleSubstFormat2
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       c->input.add (iter.get_glyph ());
@@ -259,6 +261,7 @@ struct Sequence
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++)
       c->output.add (substitute[i]);
@@ -316,6 +319,7 @@ struct MultipleSubstFormat1
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     (this+coverage).add_coverage (&c->input);
     unsigned int count = sequence.len;
     for (unsigned int i = 0; i < count; i++)
@@ -444,6 +448,7 @@ struct AlternateSubstFormat1
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       c->input.add (iter.get_glyph ());
@@ -587,6 +592,7 @@ struct Ligature
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     unsigned int count = component.len;
     for (unsigned int i = 1; i < count; i++)
       c->input.add (component[i]);
@@ -680,6 +686,7 @@ struct LigatureSet
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     unsigned int num_ligs = ligature.len;
     for (unsigned int i = 0; i < num_ligs; i++)
       (this+ligature[i]).collect_glyphs (c);
@@ -757,6 +764,7 @@ struct LigatureSubstFormat1
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       c->input.add (iter.get_glyph ());
@@ -919,6 +927,8 @@ struct ReverseChainSingleSubstFormat1
 
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
+    TRACE_COLLECT_GLYPHS (this);
+
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
     unsigned int count;
@@ -1145,8 +1155,16 @@ struct SubstLookup : Lookup
 
   inline hb_closure_context_t::return_t closure (hb_closure_context_t *c) const
   {
+    TRACE_CLOSURE (this);
     c->set_recurse_func (process_recurse_func<hb_closure_context_t>);
-    return process (c);
+    return TRACE_RETURN (process (c));
+  }
+
+  inline hb_collect_glyphs_context_t::return_t collect_glyphs_lookup (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    c->set_recurse_func (process_recurse_func<hb_collect_glyphs_context_t>);
+    return TRACE_RETURN (process (c));
   }
 
   template <typename set_t>
@@ -1174,10 +1192,10 @@ struct SubstLookup : Lookup
 
   inline bool apply_once (hb_apply_context_t *c) const
   {
+    TRACE_APPLY (this);
     if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
-      return false;
-
-    return process (c);
+      return TRACE_RETURN (false);
+    return TRACE_RETURN (process (c));
   }
 
   static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
@@ -1329,12 +1347,6 @@ struct GSUB : GSUBGPOS
 
   static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void substitute_finish (hb_font_t *font, hb_buffer_t *buffer);
-
-#if 0
-  inline hb_collect_glyphs_context_t::return_t collect_glyphs_lookup (hb_collect_glyphs_context_t *c,
-								      unsigned int lookup_index) const
-  { return get_lookup (lookup_index).process (c); }
-#endif
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE (this);

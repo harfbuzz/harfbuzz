@@ -147,15 +147,19 @@ struct hb_collect_glyphs_context_t
   inline const char *get_name (void) { return "COLLECT_GLYPHS"; }
   static const unsigned int max_debug_depth = HB_DEBUG_COLLECT_GLYPHS;
   typedef void_t return_t;
+  typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
   inline return_t process (const T &obj) { obj.collect_glyphs (this); return VOID; }
   static return_t default_return_value (void) { return VOID; }
-  bool stop_iteration (const return_t r) const { return false; }
+  bool stop_sublookup_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
-#if 0
-    /* XXX */
-#endif
+    if (unlikely (nesting_level_left == 0 || !recurse_func))
+      return default_return_value ();
+
+    nesting_level_left--;
+    recurse_func (this, lookup_index);
+    nesting_level_left++;
     return default_return_value ();
   }
 
@@ -164,19 +168,26 @@ struct hb_collect_glyphs_context_t
   hb_set_t &input;
   hb_set_t &after;
   hb_set_t &output;
+  recurse_func_t recurse_func;
+  unsigned int nesting_level_left;
   unsigned int debug_depth;
 
   hb_collect_glyphs_context_t (hb_face_t *face_,
 			       hb_set_t  *glyphs_before, /* OUT. May be NULL */
 			       hb_set_t  *glyphs_input,  /* OUT. May be NULL */
 			       hb_set_t  *glyphs_after,  /* OUT. May be NULL */
-			       hb_set_t  *glyphs_output  /* OUT. May be NULL */) :
+			       hb_set_t  *glyphs_output, /* OUT. May be NULL */
+			       unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
 			      face (face_),
 			      before (glyphs_before ? *glyphs_before : *hb_set_get_empty ()),
 			      input  (glyphs_input  ? *glyphs_input  : *hb_set_get_empty ()),
 			      after  (glyphs_after  ? *glyphs_after  : *hb_set_get_empty ()),
 			      output (glyphs_output ? *glyphs_output : *hb_set_get_empty ()),
+			      recurse_func (NULL),
+			      nesting_level_left (nesting_level_left_),
 			      debug_depth (0) {}
+
+  void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
 
 
@@ -1005,6 +1016,11 @@ struct ContextFormat1
       }
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    /* XXXXXXXXXX */
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
@@ -1076,6 +1092,11 @@ struct ContextFormat2
 	const RuleSet &rule_set = this+ruleSet[i];
 	rule_set.closure (c, lookup_context);
       }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    /* XXXXXXXXXX */
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -1151,6 +1172,11 @@ struct ContextFormat3
 			    glyphCount, (const USHORT *) (coverage + 1),
 			    lookupCount, lookupRecord,
 			    lookup_context);
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    /* XXXXXXXXXX */
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -1463,6 +1489,11 @@ struct ChainContextFormat1
       }
   }
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    /* XXXXXXXXXX */
+  }
+
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
@@ -1536,6 +1567,11 @@ struct ChainContextFormat2
 	const ChainRuleSet &rule_set = this+ruleSet[i];
 	rule_set.closure (c, lookup_context);
       }
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    /* XXXXXXXXXX */
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -1632,6 +1668,11 @@ struct ChainContextFormat3
 				  lookahead.len, (const USHORT *) lookahead.array,
 				  lookup.len, lookup.array,
 				  lookup_context);
+  }
+
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    /* XXXXXXXXXX */
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const

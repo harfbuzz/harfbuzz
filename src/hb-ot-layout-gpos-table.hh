@@ -1374,10 +1374,10 @@ struct PosLookup : Lookup
 
   inline bool apply_once (hb_apply_context_t *c) const
   {
+    TRACE_APPLY (this);
     if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
-      return false;
-
-    return process (c);
+      return TRACE_RETURN (false);
+    return TRACE_RETURN (process (c));
   }
 
   static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
