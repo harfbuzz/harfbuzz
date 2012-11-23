@@ -1389,8 +1389,6 @@ struct PosLookup : Lookup
 
   inline bool apply_once (hb_apply_context_t *c) const
   {
-    unsigned int lookup_type = get_type ();
-
     if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 

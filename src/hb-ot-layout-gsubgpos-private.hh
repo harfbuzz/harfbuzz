@@ -1282,7 +1282,7 @@ static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
 					       const LookupRecord lookupRecord[],
 					       ChainContextApplyLookupContext &lookup_context)
 {
-  unsigned int lookahead_offset;
+  unsigned int lookahead_offset = 0;
   return match_input (c,
 		      inputCount, input,
 		      lookup_context.funcs.match, lookup_context.match_data[1],

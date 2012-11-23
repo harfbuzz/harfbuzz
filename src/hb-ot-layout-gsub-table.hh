@@ -609,9 +609,9 @@ struct Ligature
     unsigned int count = component.len;
     if (unlikely (count < 1)) return TRACE_RETURN (false);
 
-    unsigned int end_offset;
-    bool is_mark_ligature;
-    unsigned int total_component_count;
+    unsigned int end_offset = 0;
+    bool is_mark_ligature = false;
+    unsigned int total_component_count = 0;
 
     if (likely (!match_input (c, count,
 			      &component[1],
@@ -1184,8 +1184,6 @@ struct SubstLookup : Lookup
 
   inline bool apply_once (hb_apply_context_t *c) const
   {
-    unsigned int lookup_type = get_type ();
-
     if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
       return false;
 

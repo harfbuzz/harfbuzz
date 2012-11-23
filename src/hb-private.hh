@@ -703,9 +703,9 @@ struct hb_auto_trace_t {
 
   private:
   unsigned int *plevel;
-  bool returned;
   const char *what;
   const void *obj;
+  bool returned;
 };
 template <> /* Optimize when tracing is disabled */
 struct hb_auto_trace_t<0> {
