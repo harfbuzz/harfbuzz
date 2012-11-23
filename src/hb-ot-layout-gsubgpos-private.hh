@@ -1794,16 +1794,24 @@ struct Extension
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
-    return CastP<T>(this)->get_subtable<typename T::LookupSubTable> ().process (c, get_type ());
+    return get_subtable<typename T::LookupSubTable> ().process (c, get_type ());
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize_self (hb_sanitize_context_t *c) {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
     default:return TRACE_RETURN (true);
     }
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    if (!sanitize_self (c)) return TRACE_RETURN (false);
+    unsigned int offset = get_offset ();
+    if (unlikely (!offset)) return TRACE_RETURN (true);
+    return TRACE_RETURN (StructAtOffset<typename T::LookupSubTable> (this, offset).sanitize (c, get_type ()));
   }
 
   protected:

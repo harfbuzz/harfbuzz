@@ -882,8 +882,6 @@ struct ExtensionSubst : Extension<ExtensionSubst>
 {
   typedef struct SubstLookupSubTable LookupSubTable;
 
-  inline bool sanitize (hb_sanitize_context_t *c);
-
   inline bool is_reverse (void) const;
 };
 
@@ -1371,15 +1369,6 @@ GSUB::substitute_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer HB_UNUSE
 
 
 /* Out-of-class implementation for methods recursing */
-
-inline bool ExtensionSubst::sanitize (hb_sanitize_context_t *c)
-{
-  TRACE_SANITIZE (this);
-  if (unlikely (!Extension::sanitize (c))) return TRACE_RETURN (false);
-  unsigned int offset = get_offset ();
-  if (unlikely (!offset)) return TRACE_RETURN (true);
-  return TRACE_RETURN (StructAtOffset<SubstLookupSubTable> (this, offset).sanitize (c, get_type ()));
-}
 
 inline bool ExtensionSubst::is_reverse (void) const
 {

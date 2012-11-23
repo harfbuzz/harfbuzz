@@ -1249,8 +1249,6 @@ struct ChainContextPos : ChainContext {};
 struct ExtensionPos : Extension<ExtensionPos>
 {
   typedef struct PosLookupSubTable LookupSubTable;
-
-  inline bool sanitize (hb_sanitize_context_t *c);
 };
 
 
@@ -1516,15 +1514,6 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer, hb_bool_t
 
 
 /* Out-of-class implementation for methods recursing */
-
-inline bool ExtensionPos::sanitize (hb_sanitize_context_t *c)
-{
-  TRACE_SANITIZE (this);
-  if (unlikely (!Extension::sanitize (c))) return TRACE_RETURN (false);
-  unsigned int offset = get_offset ();
-  if (unlikely (!offset)) return TRACE_RETURN (true);
-  return TRACE_RETURN (StructAtOffset<PosLookupSubTable> (this, offset).sanitize (c, get_type ()));
-}
 
 inline bool PosLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index)
 {
