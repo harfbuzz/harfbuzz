@@ -38,6 +38,12 @@ namespace OT {
 
 
 
+#define TRACE_PROCESS(this) \
+	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
+	 "");
+
+
 #ifndef HB_DEBUG_CLOSURE
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
 #endif
@@ -49,11 +55,13 @@ namespace OT {
 
 struct hb_closure_context_t
 {
+  inline const char *get_name (void) { return "CLOSURE"; }
+  static const unsigned int max_debug_depth = HB_DEBUG_CLOSURE;
   typedef void_t return_t;
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { obj.closure (this); return void_t (); }
-  static return_t default_return_value (void) { return return_t (); }
+  inline return_t process (const T &obj) { obj.closure (this); return VOID; }
+  static return_t default_return_value (void) { return VOID; }
   bool stop_sublookup_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
@@ -96,6 +104,8 @@ struct hb_closure_context_t
 
 struct hb_would_apply_context_t
 {
+  inline const char *get_name (void) { return "WOULD_APPLY"; }
+  static const unsigned int max_debug_depth = HB_DEBUG_WOULD_APPLY;
   typedef bool return_t;
   template <typename T>
   inline return_t process (const T &obj) { return obj.would_apply (this); }
@@ -117,7 +127,7 @@ struct hb_would_apply_context_t
 			      glyphs (glyphs_),
 			      len (len_),
 			      zero_context (zero_context_),
-			      debug_depth (0) {};
+			      debug_depth (0) {}
 };
 
 
@@ -133,10 +143,12 @@ struct hb_would_apply_context_t
 
 struct hb_collect_glyphs_context_t
 {
+  inline const char *get_name (void) { return "COLLECT_GLYPHS"; }
+  static const unsigned int max_debug_depth = HB_DEBUG_COLLECT_GLYPHS;
   typedef void_t return_t;
   template <typename T>
-  inline return_t process (const T &obj) { obj.collect_glyphs (this); return void_t (); }
-  static return_t default_return_value (void) { return return_t (); }
+  inline return_t process (const T &obj) { obj.collect_glyphs (this); return VOID; }
+  static return_t default_return_value (void) { return VOID; }
   bool stop_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
@@ -163,22 +175,27 @@ struct hb_collect_glyphs_context_t
 			      input  (glyphs_input  ? *glyphs_input  : *hb_set_get_empty ()),
 			      after  (glyphs_after  ? *glyphs_after  : *hb_set_get_empty ()),
 			      output (glyphs_output ? *glyphs_output : *hb_set_get_empty ()),
-			      debug_depth (0) {};
+			      debug_depth (0) {}
 };
 
 
 
 struct hb_get_coverage_context_t
 {
+  inline const char *get_name (void) { return "GET_COVERAGE"; }
+  static const unsigned int max_debug_depth = 0;
   typedef const Coverage &return_t;
   template <typename T>
   inline return_t process (const T &obj) { return obj.get_coverage (); }
-  static const return_t default_return_value (void) { return Null(Coverage); }
+  static return_t default_return_value (void) { return Null(Coverage); }
   bool stop_sublookup_iteration (const return_t r) const { return true; /* Unused */ }
   return_t recurse (unsigned int lookup_index)
   { return default_return_value (); }
 
-  hb_get_coverage_context_t (void) {}
+  hb_get_coverage_context_t (void) :
+			    debug_depth (0) {}
+
+  unsigned int debug_depth;
 };
 
 
@@ -194,6 +211,8 @@ struct hb_get_coverage_context_t
 
 struct hb_apply_context_t
 {
+  inline const char *get_name (void) { return "APPLY"; }
+  static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
   typedef bool return_t;
   typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
   template <typename T>
@@ -205,6 +224,7 @@ struct hb_apply_context_t
     if (unlikely (nesting_level_left == 0 || !recurse_func))
       return default_return_value ();
 
+    /* TODO Reuse context. */
     hb_apply_context_t new_c (*this);
     new_c.nesting_level_left--;
     return recurse_func (&new_c, lookup_index);
@@ -219,9 +239,9 @@ struct hb_apply_context_t
   unsigned int nesting_level_left;
   unsigned int lookup_props;
   unsigned int property; /* propety of first glyph */
-  unsigned int debug_depth;
   const GDEF &gdef;
   bool has_glyph_classes;
+  unsigned int debug_depth;
 
 
   hb_apply_context_t (hb_font_t *font_,
@@ -232,9 +252,10 @@ struct hb_apply_context_t
 			lookup_mask (lookup_mask_),
 			recurse_func (NULL),
 			nesting_level_left (MAX_NESTING_LEVEL),
-			lookup_props (0), property (0), debug_depth (0),
+			lookup_props (0), property (0),
 			gdef (*hb_ot_layout_from_face (face)->gdef),
-			has_glyph_classes (gdef.has_glyph_classes ()) {}
+			has_glyph_classes (gdef.has_glyph_classes ()),
+			debug_depth (0) {}
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
   void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
@@ -1693,6 +1714,7 @@ struct ChainContext
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     switch (u.format) {
     case 1: return c->process (u.format1);
     case 2: return c->process (u.format2);

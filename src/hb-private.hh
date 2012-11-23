@@ -63,7 +63,9 @@
 
 
 /* Void! */
-typedef struct {} void_t;
+struct _void_t;
+typedef const _void_t &void_t;
+#define VOID (* (const _void_t *) NULL)
 
 
 /* Basics */
@@ -718,7 +720,7 @@ struct hb_auto_trace_t {
     if (plevel) --*plevel;
   }
 
-  inline ret_t ret (ret_t v, unsigned int line = 0)
+  inline ret_t &ret (ret_t &v, unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to TRACE_RETURN.  This is a bug, please report.\n");
