@@ -1783,10 +1783,18 @@ struct Extension
     }
   }
 
+  template <typename X>
+  inline const X& get_subtable (void) const
+  {
+    unsigned int offset = get_offset ();
+    if (unlikely (!offset)) return Null(typename T::LookupSubTable);
+    return StructAtOffset<typename T::LookupSubTable> (this, offset);
+  }
+
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
-    return CastP<T>(this)->get_subtable ().process (c, get_type ());
+    return CastP<T>(this)->get_subtable<typename T::LookupSubTable> ().process (c, get_type ());
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {

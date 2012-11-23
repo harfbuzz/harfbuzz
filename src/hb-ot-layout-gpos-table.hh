@@ -1248,12 +1248,7 @@ struct ChainContextPos : ChainContext {};
 
 struct ExtensionPos : Extension<ExtensionPos>
 {
-  inline const struct PosLookupSubTable& get_subtable (void) const
-  {
-    unsigned int offset = get_offset ();
-    if (unlikely (!offset)) return Null(PosLookupSubTable);
-    return StructAtOffset<PosLookupSubTable> (this, offset);
-  }
+  typedef struct PosLookupSubTable LookupSubTable;
 
   inline bool sanitize (hb_sanitize_context_t *c);
 };

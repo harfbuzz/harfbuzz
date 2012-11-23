@@ -880,12 +880,7 @@ struct ChainContextSubst : ChainContext {};
 
 struct ExtensionSubst : Extension<ExtensionSubst>
 {
-  inline const struct SubstLookupSubTable& get_subtable (void) const
-  {
-    unsigned int offset = get_offset ();
-    if (unlikely (!offset)) return Null(SubstLookupSubTable);
-    return StructAtOffset<SubstLookupSubTable> (this, offset);
-  }
+  typedef struct SubstLookupSubTable LookupSubTable;
 
   inline bool sanitize (hb_sanitize_context_t *c);
 
@@ -1390,7 +1385,7 @@ inline bool ExtensionSubst::is_reverse (void) const
 {
   unsigned int type = get_type ();
   if (unlikely (type == SubstLookupSubTable::Extension))
-    return CastR<ExtensionSubst> (get_subtable()).is_reverse ();
+    return CastR<ExtensionSubst> (get_subtable<SubstLookupSubTable>()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
 }
 
