@@ -1242,24 +1242,9 @@ struct MarkMarkPos
 };
 
 
-struct ContextPos : Context
-{
-  template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
-  {
-    return Context::process (c);
-  }
-};
+struct ContextPos : Context {};
 
-struct ChainContextPos : ChainContext
-{
-  template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
-  {
-    return ChainContext::process (c);
-  }
-};
-
+struct ChainContextPos : ChainContext {};
 
 struct ExtensionPos : Extension
 {

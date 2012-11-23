@@ -874,24 +874,9 @@ struct LigatureSubst
 };
 
 
-struct ContextSubst : Context
-{
-  template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
-  {
-    return Context::process (c);
-  }
-};
+struct ContextSubst : Context {};
 
-struct ChainContextSubst : ChainContext
-{
-  template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
-  {
-    return ChainContext::process (c);
-  }
-};
-
+struct ChainContextSubst : ChainContext {};
 
 struct ExtensionSubst : Extension
 {
