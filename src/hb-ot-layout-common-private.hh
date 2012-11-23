@@ -61,7 +61,7 @@ struct Record
   }
 
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && offset.sanitize (c, base));
   }
 
@@ -115,7 +115,7 @@ struct RecordListOf : RecordArrayOf<Type>
   { return this+RecordArrayOf<Type>::operator [](i).offset; }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (RecordArrayOf<Type>::sanitize (c, this));
   }
 };
@@ -129,7 +129,7 @@ struct RangeRecord
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
 
@@ -193,7 +193,7 @@ struct LangSys
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && featureIndex.sanitize (c));
   }
 
@@ -231,7 +231,7 @@ struct Script
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
   }
 
@@ -261,7 +261,7 @@ struct Feature
   { return lookupIndex.get_indexes (start_index, lookup_count, lookup_tags); }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && lookupIndex.sanitize (c));
   }
 
@@ -318,7 +318,7 @@ struct Lookup
 			 uint32_t lookup_props,
 			 unsigned int num_subtables)
   {
-    TRACE_SERIALIZE ();
+    TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
     lookupType.set (lookup_type);
     lookupFlag.set (lookup_props & 0xFFFF);
@@ -332,7 +332,7 @@ struct Lookup
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
     if (!(c->check_struct (this) && subTable.sanitize (c))) return TRACE_RETURN (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
@@ -377,7 +377,7 @@ struct CoverageFormat1
 			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs)
   {
-    TRACE_SERIALIZE ();
+    TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
     glyphArray.len.set (num_glyphs);
     if (unlikely (!c->extend (glyphArray))) return TRACE_RETURN (false);
@@ -388,7 +388,7 @@ struct CoverageFormat1
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (glyphArray.sanitize (c));
   }
 
@@ -445,7 +445,7 @@ struct CoverageFormat2
 			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs)
   {
-    TRACE_SERIALIZE ();
+    TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
 
     if (unlikely (!num_glyphs)) return TRACE_RETURN (true);
@@ -474,7 +474,7 @@ struct CoverageFormat2
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (rangeRecord.sanitize (c));
   }
 
@@ -556,7 +556,7 @@ struct Coverage
 			 Supplier<GlyphID> &glyphs,
 			 unsigned int num_glyphs)
   {
-    TRACE_SERIALIZE ();
+    TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
     unsigned int num_ranges = 1;
     for (unsigned int i = 1; i < num_glyphs; i++)
@@ -571,7 +571,7 @@ struct Coverage
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
@@ -682,7 +682,7 @@ struct ClassDefFormat1
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && classValue.sanitize (c));
   }
 
@@ -725,7 +725,7 @@ struct ClassDefFormat2
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (rangeRecord.sanitize (c));
   }
 
@@ -768,7 +768,7 @@ struct ClassDef
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
@@ -860,7 +860,7 @@ struct Device
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && c->check_range (this, this->get_size ()));
   }
 

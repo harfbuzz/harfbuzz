@@ -42,7 +42,7 @@ namespace OT {
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
 #endif
 
-#define TRACE_CLOSURE() \
+#define TRACE_CLOSURE(this) \
 	hb_auto_trace_t<HB_DEBUG_CLOSURE, void_t> trace \
 	(&c->debug_depth, "CLOSURE", this, HB_FUNC, \
 	 "");
@@ -89,7 +89,7 @@ struct hb_closure_context_t
 #define HB_DEBUG_WOULD_APPLY (HB_DEBUG+0)
 #endif
 
-#define TRACE_WOULD_APPLY() \
+#define TRACE_WOULD_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_WOULD_APPLY, bool> trace \
 	(&c->debug_depth, "WOULD_APPLY", this, HB_FUNC, \
 	 "%d glyphs", c->len);
@@ -126,7 +126,7 @@ struct hb_would_apply_context_t
 #define HB_DEBUG_COLLECT_GLYPHS (HB_DEBUG+0)
 #endif
 
-#define TRACE_COLLECT_GLYPHS() \
+#define TRACE_COLLECT_GLYPHS(this) \
 	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, void_t> trace \
 	(&c->debug_depth, "COLLECT_GLYPHS", this, HB_FUNC, \
 	 "");
@@ -187,7 +187,7 @@ struct hb_get_coverage_context_t
 #define HB_DEBUG_APPLY (HB_DEBUG+0)
 #endif
 
-#define TRACE_APPLY() \
+#define TRACE_APPLY(this) \
 	hb_auto_trace_t<HB_DEBUG_APPLY, bool> trace \
 	(&c->debug_depth, "APPLY", this, HB_FUNC, \
 	 "idx %d codepoint %u", c->buffer->idx, c->buffer->cur().codepoint);
@@ -734,7 +734,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 struct LookupRecord
 {
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
 
@@ -877,7 +877,7 @@ struct Rule
 {
   inline void closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
     context_closure_lookup (c,
 			    inputCount, input,
@@ -887,21 +887,21 @@ struct Rule
 
   inline bool would_apply (hb_would_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
     return TRACE_RETURN (context_would_apply_lookup (c, inputCount, input, lookupCount, lookupRecord, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (input, input[0].static_size * (inputCount ? inputCount - 1 : 0));
     return TRACE_RETURN (context_apply_lookup (c, inputCount, input, lookupCount, lookupRecord, lookup_context));
   }
 
   public:
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return inputCount.sanitize (c)
 	&& lookupCount.sanitize (c)
 	&& c->check_range (input,
@@ -926,7 +926,7 @@ struct RuleSet
 {
   inline void closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       (this+rule[i]).closure (c, lookup_context);
@@ -934,7 +934,7 @@ struct RuleSet
 
   inline bool would_apply (hb_would_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
@@ -946,7 +946,7 @@ struct RuleSet
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
     {
@@ -957,7 +957,7 @@ struct RuleSet
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (rule.sanitize (c, this));
   }
 
@@ -974,7 +974,7 @@ struct ContextFormat1
 {
   inline void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
 
     const Coverage &cov = (this+coverage);
 
@@ -993,7 +993,7 @@ struct ContextFormat1
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
 
     const RuleSet &rule_set = this+ruleSet[(this+coverage) (c->glyphs[0])];
     struct ContextApplyLookupContext lookup_context = {
@@ -1010,7 +1010,7 @@ struct ContextFormat1
 
   inline bool apply (hb_apply_context_t *c) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED))
       return TRACE_RETURN (false);
@@ -1024,7 +1024,7 @@ struct ContextFormat1
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
@@ -1045,7 +1045,7 @@ struct ContextFormat2
 {
   inline void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
@@ -1066,7 +1066,7 @@ struct ContextFormat2
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
 
     const ClassDef &class_def = this+classDef;
     unsigned int index = class_def (c->glyphs[0]);
@@ -1085,7 +1085,7 @@ struct ContextFormat2
 
   inline bool apply (hb_apply_context_t *c) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
@@ -1100,7 +1100,7 @@ struct ContextFormat2
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
@@ -1124,7 +1124,7 @@ struct ContextFormat3
 {
   inline void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     if (!(this+coverage[0]).intersects (c->glyphs))
       return;
 
@@ -1141,7 +1141,7 @@ struct ContextFormat3
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextApplyLookupContext lookup_context = {
@@ -1158,7 +1158,7 @@ struct ContextFormat3
 
   inline bool apply (hb_apply_context_t *c) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     unsigned int index = (this+coverage[0]) (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
@@ -1171,7 +1171,7 @@ struct ContextFormat3
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!c->check_struct (this)) return TRACE_RETURN (false);
     unsigned int count = glyphCount;
     if (!c->check_array (coverage, coverage[0].static_size, count)) return TRACE_RETURN (false);
@@ -1209,7 +1209,7 @@ struct Context
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
@@ -1316,7 +1316,7 @@ struct ChainRule
 {
   inline void closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
@@ -1330,7 +1330,7 @@ struct ChainRule
 
   inline bool would_apply (hb_would_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
@@ -1343,7 +1343,7 @@ struct ChainRule
 
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
@@ -1355,7 +1355,7 @@ struct ChainRule
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!backtrack.sanitize (c)) return TRACE_RETURN (false);
     HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     if (!input.sanitize (c)) return TRACE_RETURN (false);
@@ -1387,7 +1387,7 @@ struct ChainRuleSet
 {
   inline void closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       (this+rule[i]).closure (c, lookup_context);
@@ -1395,7 +1395,7 @@ struct ChainRuleSet
 
   inline bool would_apply (hb_would_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       if ((this+rule[i]).would_apply (c, lookup_context))
@@ -1406,7 +1406,7 @@ struct ChainRuleSet
 
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       if ((this+rule[i]).apply (c, lookup_context))
@@ -1416,7 +1416,7 @@ struct ChainRuleSet
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (rule.sanitize (c, this));
   }
 
@@ -1432,7 +1432,7 @@ struct ChainContextFormat1
 {
   inline void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     const Coverage &cov = (this+coverage);
 
     struct ChainContextClosureLookupContext lookup_context = {
@@ -1450,7 +1450,7 @@ struct ChainContextFormat1
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
 
     const ChainRuleSet &rule_set = this+ruleSet[(this+coverage) (c->glyphs[0])];
     struct ChainContextApplyLookupContext lookup_context = {
@@ -1467,7 +1467,7 @@ struct ChainContextFormat1
 
   inline bool apply (hb_apply_context_t *c) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
@@ -1480,7 +1480,7 @@ struct ChainContextFormat1
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
@@ -1500,7 +1500,7 @@ struct ChainContextFormat2
 {
   inline void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
@@ -1525,7 +1525,7 @@ struct ChainContextFormat2
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
 
     const ClassDef &input_class_def = this+inputClassDef;
 
@@ -1545,7 +1545,7 @@ struct ChainContextFormat2
 
   inline bool apply (hb_apply_context_t *c) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
@@ -1565,7 +1565,7 @@ struct ChainContextFormat2
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && backtrackClassDef.sanitize (c, this) &&
 			 inputClassDef.sanitize (c, this) && lookaheadClassDef.sanitize (c, this) &&
 			 ruleSet.sanitize (c, this));
@@ -1599,7 +1599,7 @@ struct ChainContextFormat3
 {
   inline void closure (hb_closure_context_t *c) const
   {
-    TRACE_CLOSURE ();
+    TRACE_CLOSURE (this);
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
     if (!(this+input[0]).intersects (c->glyphs))
@@ -1621,7 +1621,7 @@ struct ChainContextFormat3
 
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
-    TRACE_WOULD_APPLY ();
+    TRACE_WOULD_APPLY (this);
 
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
@@ -1645,7 +1645,7 @@ struct ChainContextFormat3
 
   inline bool apply (hb_apply_context_t *c) const
   {
-    TRACE_APPLY ();
+    TRACE_APPLY (this);
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
     unsigned int index = (this+input[0]) (c->buffer->cur().codepoint);
@@ -1665,7 +1665,7 @@ struct ChainContextFormat3
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!backtrack.sanitize (c, this)) return TRACE_RETURN (false);
     OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     if (!input.sanitize (c, this)) return TRACE_RETURN (false);
@@ -1710,7 +1710,7 @@ struct ChainContext
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
@@ -1736,7 +1736,7 @@ struct ExtensionFormat1
   inline unsigned int get_offset (void) const { return extensionOffset; }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
 
@@ -1769,7 +1769,7 @@ struct Extension
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
@@ -1826,7 +1826,7 @@ struct GSUBGPOS
   { return (this+lookupList)[i]; }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (version.sanitize (c) && likely (version.major == 1) &&
 			 scriptList.sanitize (c, this) &&
 			 featureList.sanitize (c, this) &&

@@ -72,7 +72,7 @@ struct AttachList
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && attachPoint.sanitize (c, this));
   }
 
@@ -102,7 +102,7 @@ struct CaretValueFormat1
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
 
@@ -128,7 +128,7 @@ struct CaretValueFormat2
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
 
@@ -151,7 +151,7 @@ struct CaretValueFormat3
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && deviceTable.sanitize (c, this));
   }
 
@@ -179,7 +179,7 @@ struct CaretValue
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
@@ -220,7 +220,7 @@ struct LigGlyph
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (carets.sanitize (c, this));
   }
 
@@ -254,7 +254,7 @@ struct LigCaretList
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && ligGlyph.sanitize (c, this));
   }
 
@@ -276,7 +276,7 @@ struct MarkGlyphSetsFormat1
   { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this));
   }
 
@@ -300,7 +300,7 @@ struct MarkGlyphSets
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.sanitize (c));
@@ -365,7 +365,7 @@ struct GDEF
   { return version.to_int () >= 0x00010002 && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE ();
+    TRACE_SANITIZE (this);
     return TRACE_RETURN (version.sanitize (c) &&
 			 likely (version.major == 1) &&
 			 glyphClassDef.sanitize (c, this) &&
