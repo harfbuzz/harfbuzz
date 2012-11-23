@@ -193,10 +193,11 @@ struct SingleSubst
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     switch (u.format) {
-    case 1: return c->process (u.format1);
-    case 2: return c->process (u.format2);
-    default:return c->default_return_value ();
+    case 1: return TRACE_RETURN (c->process (u.format1));
+    case 2: return TRACE_RETURN (c->process (u.format2));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -382,9 +383,10 @@ struct MultipleSubst
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     switch (u.format) {
-    case 1: return c->process (u.format1);
-    default:return c->default_return_value ();
+    case 1: return TRACE_RETURN (c->process (u.format1));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -531,9 +533,10 @@ struct AlternateSubst
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     switch (u.format) {
-    case 1: return c->process (u.format1);
-    default:return c->default_return_value ();
+    case 1: return TRACE_RETURN (c->process (u.format1));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -832,9 +835,10 @@ struct LigatureSubst
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     switch (u.format) {
-    case 1: return c->process (u.format1);
-    default:return c->default_return_value ();
+    case 1: return TRACE_RETURN (c->process (u.format1));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -1010,9 +1014,10 @@ struct ReverseChainSingleSubst
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     switch (u.format) {
-    case 1: return c->process (u.format1);
-    default:return c->default_return_value ();
+    case 1: return TRACE_RETURN (c->process (u.format1));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -1056,16 +1061,17 @@ struct SubstLookupSubTable
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c, unsigned int lookup_type) const
   {
+    TRACE_PROCESS (this);
     switch (lookup_type) {
-    case Single:		return u.single.process (c);
-    case Multiple:		return u.multiple.process (c);
-    case Alternate:		return u.alternate.process (c);
-    case Ligature:		return u.ligature.process (c);
-    case Context:		return u.context.process (c);
-    case ChainContext:		return u.chainContext.process (c);
-    case Extension:		return u.extension.process (c);
-    case ReverseChainSingle:	return u.reverseChainContextSingle.process (c);
-    default:			return c->default_return_value ();
+    case Single:		return TRACE_RETURN (u.single.process (c));
+    case Multiple:		return TRACE_RETURN (u.multiple.process (c));
+    case Alternate:		return TRACE_RETURN (u.alternate.process (c));
+    case Ligature:		return TRACE_RETURN (u.ligature.process (c));
+    case Context:		return TRACE_RETURN (u.context.process (c));
+    case ChainContext:		return TRACE_RETURN (u.chainContext.process (c));
+    case Extension:		return TRACE_RETURN (u.extension.process (c));
+    case ReverseChainSingle:	return TRACE_RETURN (u.reverseChainContextSingle.process (c));
+    default:			return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -1124,14 +1130,15 @@ struct SubstLookup : Lookup
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     unsigned int lookup_type = get_type ();
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
       typename context_t::return_t r = get_subtable (i).process (c, lookup_type);
       if (c->stop_sublookup_iteration (r))
-        return r;
+        return TRACE_RETURN (r);
     }
-    return c->default_return_value ();
+    return TRACE_RETURN (c->default_return_value ());
   }
 
   template <typename set_t>

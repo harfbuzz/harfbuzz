@@ -1213,11 +1213,12 @@ struct Context
   template <typename context_t>
   inline typename context_t::return_t process (context_t *c) const
   {
+    TRACE_PROCESS (this);
     switch (u.format) {
-    case 1: return c->process (u.format1);
-    case 2: return c->process (u.format2);
-    case 3: return c->process (u.format3);
-    default:return c->default_return_value ();
+    case 1: return TRACE_RETURN (c->process (u.format1));
+    case 2: return TRACE_RETURN (c->process (u.format2));
+    case 3: return TRACE_RETURN (c->process (u.format3));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -1716,10 +1717,10 @@ struct ChainContext
   {
     TRACE_PROCESS (this);
     switch (u.format) {
-    case 1: return c->process (u.format1);
-    case 2: return c->process (u.format2);
-    case 3: return c->process (u.format3);
-    default:return c->default_return_value ();
+    case 1: return TRACE_RETURN (c->process (u.format1));
+    case 2: return TRACE_RETURN (c->process (u.format2));
+    case 3: return TRACE_RETURN (c->process (u.format3));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
