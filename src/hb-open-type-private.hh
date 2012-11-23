@@ -38,6 +38,12 @@ namespace OT {
 
 
 /*
+ * Void!
+ */
+typedef struct {} void_t;
+
+
+/*
  * Casts
  */
 

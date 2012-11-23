@@ -37,9 +37,6 @@
 namespace OT {
 
 
-typedef struct {} void_t; /* To be used as return value when void is meant. */
-
-
 #ifndef HB_DEBUG_CLOSURE
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
 #endif
