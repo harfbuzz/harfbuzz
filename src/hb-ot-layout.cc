@@ -498,7 +498,11 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        unsigned int  lookup_index,
 				        hb_set_t     *glyphs)
 {
-  _get_gsub (face).closure_lookup (face, glyphs, lookup_index);
+  OT::hb_closure_context_t c (face, glyphs);
+
+  const OT::SubstLookup& l = _get_gsub (face).get_lookup (lookup_index);
+
+  l.closure (&c);
 }
 
 /*

@@ -1141,6 +1141,13 @@ struct SubstLookup : Lookup
     return TRACE_RETURN (c->default_return_value ());
   }
 
+  static inline void_t closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index);
+  inline hb_closure_context_t::return_t closure (hb_closure_context_t *c) const
+  {
+    c->set_recurse_func (closure_recurse_func);
+    return process (c);
+  }
+
   template <typename set_t>
   inline void add_coverage (set_t *glyphs) const
   {
@@ -1173,7 +1180,6 @@ struct SubstLookup : Lookup
   }
 
   static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
-
   inline bool apply_string (hb_apply_context_t *c, const hb_set_digest_t *digest) const
   {
     bool ret = false;
@@ -1323,20 +1329,6 @@ struct GSUB : GSUBGPOS
   static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void substitute_finish (hb_font_t *font, hb_buffer_t *buffer);
 
-  static inline void_t closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
-  {
-    const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
-    const SubstLookup &l = gsub.get_lookup (lookup_index);
-    return l.process (c);
-  }
-  inline hb_closure_context_t::return_t closure_lookup (hb_face_t *face,
-							hb_set_t *glyphs,
-							unsigned int lookup_index) const
-  {
-    hb_closure_context_t c (face, glyphs, closure_recurse_func);
-    return get_lookup (lookup_index).process (&c);
-  }
-
 #if 0
   inline hb_collect_glyphs_context_t::return_t collect_glyphs_lookup (hb_collect_glyphs_context_t *c,
 								      unsigned int lookup_index) const
@@ -1383,6 +1375,13 @@ inline bool ExtensionSubst::is_reverse (void) const
   if (unlikely (type == SubstLookupSubTable::Extension))
     return CastR<ExtensionSubst> (get_subtable<SubstLookupSubTable>()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
+}
+
+inline void_t SubstLookup::closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
+{
+  const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
+  const SubstLookup &l = gsub.get_lookup (lookup_index);
+  return l.process (c);
 }
 
 inline bool SubstLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index)

@@ -65,7 +65,7 @@ struct hb_closure_context_t
   bool stop_sublookup_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
-    if (unlikely (nesting_level_left == 0))
+    if (unlikely (nesting_level_left == 0 || !recurse_func))
       return default_return_value ();
 
     nesting_level_left--;
@@ -82,13 +82,14 @@ struct hb_closure_context_t
 
   hb_closure_context_t (hb_face_t *face_,
 			hb_set_t *glyphs_,
-			recurse_func_t recurse_func_,
 		        unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
-			  recurse_func (recurse_func_),
+			  recurse_func (NULL),
 			  nesting_level_left (nesting_level_left_),
 			  debug_depth (0) {}
+
+  void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
 
 
