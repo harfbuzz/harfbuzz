@@ -200,9 +200,6 @@ struct hb_get_coverage_context_t
   template <typename T>
   inline return_t process (const T &obj) { return obj.get_coverage (); }
   static return_t default_return_value (void) { return Null(Coverage); }
-  bool stop_sublookup_iteration (const return_t r) const { return true; /* Unused */ }
-  return_t recurse (unsigned int lookup_index)
-  { return default_return_value (); }
 
   hb_get_coverage_context_t (void) :
 			    debug_depth (0) {}
