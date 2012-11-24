@@ -158,7 +158,9 @@ struct hb_collect_glyphs_context_t
       return default_return_value ();
 
     nesting_level_left--;
-    recurse_func (this, lookup_index);
+    /* Only collect output glyphs in the recursion. */
+    hb_collect_glyphs_context_t new_c (this->face, NULL, NULL, NULL, &output, nesting_level_left);
+    recurse_func (&new_c, lookup_index);
     nesting_level_left++;
     return default_return_value ();
   }
