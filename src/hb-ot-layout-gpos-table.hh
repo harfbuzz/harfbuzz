@@ -1537,8 +1537,13 @@ inline bool PosLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int l
 {
   const GPOS &gpos = *(hb_ot_layout_from_face (c->face)->gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
+  unsigned int saved_lookup_props = c->lookup_props;
+  unsigned int saved_property = c->property;
   c->set_lookup (l);
-  return l.apply_once (c);
+  bool ret = l.apply_once (c);
+  c->lookup_props = saved_lookup_props;
+  c->property = saved_property;
+  return ret;
 }
 
 

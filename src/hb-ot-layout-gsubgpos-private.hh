@@ -233,10 +233,10 @@ struct hb_apply_context_t
     if (unlikely (nesting_level_left == 0 || !recurse_func))
       return default_return_value ();
 
-    /* TODO Reuse context. */
-    hb_apply_context_t new_c (*this);
-    new_c.nesting_level_left--;
-    return recurse_func (&new_c, lookup_index);
+    nesting_level_left--;
+    recurse_func (this, lookup_index);
+    nesting_level_left++;
+    return default_return_value ();
   }
 
   hb_font_t *font;

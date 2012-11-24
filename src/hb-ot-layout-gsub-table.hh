@@ -1402,8 +1402,13 @@ inline bool SubstLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int
 {
   const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
+  unsigned int saved_lookup_props = c->lookup_props;
+  unsigned int saved_property = c->property;
   c->set_lookup (l);
-  return l.apply_once (c);
+  bool ret = l.apply_once (c);
+  c->lookup_props = saved_lookup_props;
+  c->property = saved_property;
+  return ret;
 }
 
 
