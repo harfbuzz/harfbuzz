@@ -179,15 +179,13 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 				  unsigned int *lookup_count /* IN/OUT */,
 				  unsigned int *lookup_indexes /* OUT */);
 
-#ifdef HB_NOT_IMPLEMENTED
 void
-Xhb_ot_layout_collect_lookups (hb_face_t      *face,
+hb_ot_layout_collect_lookups (hb_face_t      *face,
 			      hb_tag_t        table_tag,
 			      const hb_tag_t *scripts,
 			      const hb_tag_t *languages,
 			      const hb_tag_t *features,
 			      hb_set_t       *lookup_indexes /* OUT */);
-#endif
 
 void
 hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
