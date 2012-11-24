@@ -412,18 +412,19 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
 
-//  OT::hb_collect_glyphs_context_t c (face, glyphs_before, glyphs_input, glyphs_after, glyphs_output);
+  OT::hb_collect_glyphs_context_t c (face, glyphs_before, glyphs_input, glyphs_after, glyphs_output);
 
   switch (table_tag) {
     case HB_OT_TAG_GSUB:
     {
-//      hb_ot_layout_from_face (face)->gsub->collect_glyphs_lookup (&c, lookup_index);
+      const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
+      l.collect_glyphs_lookup (&c);
       return;
     }
     case HB_OT_TAG_GPOS:
     {
-//      hb_ot_layout_from_face (face)->gpos->collect_glyphs_lookup (&c, lookup_index);
-//      l.collect_glyphs_lookup (&c);
+      const OT::PosLookup& l = hb_ot_layout_from_face (face)->gpos->get_lookup (lookup_index);
+      l.collect_glyphs_lookup (&c);
       return;
     }
   }

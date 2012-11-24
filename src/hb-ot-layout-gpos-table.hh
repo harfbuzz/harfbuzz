@@ -419,6 +419,12 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
 struct SinglePosFormat1
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    (this+coverage).add_coverage (&c->input);
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -458,6 +464,12 @@ struct SinglePosFormat1
 
 struct SinglePosFormat2
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    (this+coverage).add_coverage (&c->input);
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -548,6 +560,23 @@ struct PairSet
 {
   friend struct PairPosFormat1;
 
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c,
+			      const ValueFormat *valueFormats) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    unsigned int len1 = valueFormats[0].get_len ();
+    unsigned int len2 = valueFormats[1].get_len ();
+    unsigned int record_size = USHORT::static_size * (1 + len1 + len2);
+
+    const PairValueRecord *record = CastP<PairValueRecord> (array);
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      c->input.add (record->secondGlyph);
+      record = &StructAtOffset<PairValueRecord> (record, record_size);
+    }
+  }
+
   inline bool apply (hb_apply_context_t *c,
 		     const ValueFormat *valueFormats,
 		     unsigned int pos) const
@@ -557,8 +586,8 @@ struct PairSet
     unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = USHORT::static_size * (1 + len1 + len2);
 
-    unsigned int count = len;
     const PairValueRecord *record = CastP<PairValueRecord> (array);
+    unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
     {
       if (c->buffer->info[pos].codepoint == record->secondGlyph)
@@ -606,6 +635,15 @@ struct PairSet
 
 struct PairPosFormat1
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    (this+coverage).add_coverage (&c->input);
+    unsigned int count = pairSet.len;
+    for (unsigned int i = 0; i < count; i++)
+      (this+pairSet[i]).collect_glyphs (c, &valueFormat1);
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -660,6 +698,24 @@ struct PairPosFormat1
 
 struct PairPosFormat2
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    /* (this+coverage).add_coverage (&c->input); // Don't need this. */
+
+    /* TODO only add values for pairs that have nonzero adjustments. */
+
+    unsigned int count1 = class1Count;
+    const ClassDef &klass1 = this+classDef1;
+    for (unsigned int i = 0; i < count1; i++)
+      klass1.add_class (&c->input, i);
+
+    unsigned int count2 = class2Count;
+    const ClassDef &klass2 = this+classDef2;
+    for (unsigned int i = 0; i < count2; i++)
+      klass2.add_class (&c->input, i);
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -800,6 +856,12 @@ struct EntryExitRecord
 
 struct CursivePosFormat1
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    (this+coverage).add_coverage (&c->input);
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+coverage;
@@ -940,6 +1002,14 @@ typedef AnchorMatrix BaseArray;		/* base-major--
 
 struct MarkBasePosFormat1
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    (this+markCoverage).add_coverage (&c->input);
+    (this+baseCoverage).add_coverage (&c->input);
+    /* TODO only add combinations that have nonzero adjustment. */
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+markCoverage;
@@ -1036,6 +1106,14 @@ typedef OffsetListOf<LigatureAttach> LigatureArray;
 
 struct MarkLigPosFormat1
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    (this+markCoverage).add_coverage (&c->input);
+    (this+ligatureCoverage).add_coverage (&c->input);
+    /* TODO only add combinations that have nonzero adjustment. */
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+markCoverage;
@@ -1144,6 +1222,14 @@ typedef AnchorMatrix Mark2Array;	/* mark2-major--
 
 struct MarkMarkPosFormat1
 {
+  inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    (this+mark1Coverage).add_coverage (&c->input);
+    (this+mark2Coverage).add_coverage (&c->input);
+    /* TODO only add combinations that have nonzero adjustment. */
+  }
+
   inline const Coverage &get_coverage (void) const
   {
     return this+mark1Coverage;
@@ -1356,6 +1442,13 @@ struct PosLookup : Lookup
   }
   template <typename context_t>
   static inline typename context_t::return_t process_recurse_func (context_t *c, unsigned int lookup_index);
+
+  inline hb_collect_glyphs_context_t::return_t collect_glyphs_lookup (hb_collect_glyphs_context_t *c) const
+  {
+    TRACE_COLLECT_GLYPHS (this);
+    c->set_recurse_func (process_recurse_func<hb_collect_glyphs_context_t>);
+    return TRACE_RETURN (process (c));
+  }
 
   template <typename set_t>
   inline void add_coverage (set_t *glyphs) const
