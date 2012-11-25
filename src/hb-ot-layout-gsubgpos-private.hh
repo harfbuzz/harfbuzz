@@ -1192,7 +1192,7 @@ struct ContextFormat2
     TRACE_WOULD_APPLY (this);
 
     const ClassDef &class_def = this+classDef;
-    unsigned int index = class_def (c->glyphs[0]);
+    unsigned int index = class_def.get_class (c->glyphs[0]);
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextApplyLookupContext lookup_context = {
       {match_class},
@@ -1213,7 +1213,7 @@ struct ContextFormat2
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const ClassDef &class_def = this+classDef;
-    index = class_def (c->buffer->cur().codepoint);
+    index = class_def.get_class (c->buffer->cur().codepoint);
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextApplyLookupContext lookup_context = {
       {match_class},
@@ -1752,7 +1752,7 @@ struct ChainContextFormat2
 
     const ClassDef &input_class_def = this+inputClassDef;
 
-    unsigned int index = input_class_def (c->glyphs[0]);
+    unsigned int index = input_class_def.get_class (c->glyphs[0]);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_class},
@@ -1776,7 +1776,7 @@ struct ChainContextFormat2
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    index = input_class_def (c->buffer->cur().codepoint);
+    index = input_class_def.get_class (c->buffer->cur().codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_class},

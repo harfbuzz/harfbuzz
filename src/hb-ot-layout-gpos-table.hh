@@ -736,8 +736,8 @@ struct PairPosFormat2
     unsigned int len2 = valueFormat2.get_len ();
     unsigned int record_len = len1 + len2;
 
-    unsigned int klass1 = (this+classDef1) (c->buffer->cur().codepoint);
-    unsigned int klass2 = (this+classDef2) (c->buffer->info[skippy_iter.idx].codepoint);
+    unsigned int klass1 = (this+classDef1).get_class (c->buffer->cur().codepoint);
+    unsigned int klass2 = (this+classDef2).get_class (c->buffer->info[skippy_iter.idx].codepoint);
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count)) return TRACE_RETURN (false);
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];

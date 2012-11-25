@@ -754,8 +754,6 @@ struct ClassDefFormat2
 
 struct ClassDef
 {
-  inline unsigned int operator () (hb_codepoint_t glyph_id) const { return get_class (glyph_id); }
-
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
