@@ -1103,7 +1103,7 @@ struct ContextFormat1
   {
     TRACE_WOULD_APPLY (this);
 
-    const RuleSet &rule_set = this+ruleSet[(this+coverage) (c->glyphs[0])];
+    const RuleSet &rule_set = this+ruleSet[(this+coverage).get_coverage (c->glyphs[0])];
     struct ContextApplyLookupContext lookup_context = {
       {match_glyph},
       NULL
@@ -1119,7 +1119,7 @@ struct ContextFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED))
       return TRACE_RETURN (false);
 
@@ -1209,7 +1209,7 @@ struct ContextFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const ClassDef &class_def = this+classDef;
@@ -1299,7 +1299,7 @@ struct ContextFormat3
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage[0]) (c->buffer->cur().codepoint);
+    unsigned int index = (this+coverage[0]).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
@@ -1660,7 +1660,7 @@ struct ChainContextFormat1
   {
     TRACE_WOULD_APPLY (this);
 
-    const ChainRuleSet &rule_set = this+ruleSet[(this+coverage) (c->glyphs[0])];
+    const ChainRuleSet &rule_set = this+ruleSet[(this+coverage).get_coverage (c->glyphs[0])];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_glyph},
       {NULL, NULL, NULL}
@@ -1676,7 +1676,7 @@ struct ChainContextFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const ChainRuleSet &rule_set = this+ruleSet[index];
@@ -1769,7 +1769,7 @@ struct ChainContextFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
@@ -1892,7 +1892,7 @@ struct ChainContextFormat3
     TRACE_APPLY (this);
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
-    unsigned int index = (this+input[0]) (c->buffer->cur().codepoint);
+    unsigned int index = (this+input[0]).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);

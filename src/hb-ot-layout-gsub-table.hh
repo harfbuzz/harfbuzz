@@ -67,14 +67,14 @@ struct SingleSubstFormat1
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
-    return TRACE_RETURN (c->len == 1 && (this+coverage) (c->glyphs[0]) != NOT_COVERED);
+    return TRACE_RETURN (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
-    unsigned int index = (this+coverage) (glyph_id);
+    unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     /* According to the Adobe Annotated OpenType Suite, result is always
@@ -143,14 +143,14 @@ struct SingleSubstFormat2
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
-    return TRACE_RETURN (c->len == 1 && (this+coverage) (c->glyphs[0]) != NOT_COVERED);
+    return TRACE_RETURN (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
-    unsigned int index = (this+coverage) (glyph_id);
+    unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     if (unlikely (index >= substitute.len)) return TRACE_RETURN (false);
@@ -334,14 +334,14 @@ struct MultipleSubstFormat1
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
-    return TRACE_RETURN (c->len == 1 && (this+coverage) (c->glyphs[0]) != NOT_COVERED);
+    return TRACE_RETURN (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
 
-    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     return TRACE_RETURN ((this+sequence[index]).apply (c));
@@ -467,7 +467,7 @@ struct AlternateSubstFormat1
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
-    return TRACE_RETURN (c->len == 1 && (this+coverage) (c->glyphs[0]) != NOT_COVERED);
+    return TRACE_RETURN (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -475,7 +475,7 @@ struct AlternateSubstFormat1
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
 
-    unsigned int index = (this+coverage) (glyph_id);
+    unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const AlternateSet &alt_set = this+alternateSet[index];
@@ -780,7 +780,7 @@ struct LigatureSubstFormat1
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
-    unsigned int index = (this+coverage) (c->glyphs[0]);
+    unsigned int index = (this+coverage).get_coverage (c->glyphs[0]);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const LigatureSet &lig_set = this+ligatureSet[index];
@@ -792,7 +792,7 @@ struct LigatureSubstFormat1
     TRACE_APPLY (this);
     hb_codepoint_t glyph_id = c->buffer->cur().codepoint;
 
-    unsigned int index = (this+coverage) (glyph_id);
+    unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const LigatureSet &lig_set = this+ligatureSet[index];
@@ -957,7 +957,7 @@ struct ReverseChainSingleSubstFormat1
   inline bool would_apply (hb_would_apply_context_t *c) const
   {
     TRACE_WOULD_APPLY (this);
-    return TRACE_RETURN (c->len == 1 && (this+coverage) (c->glyphs[0]) != NOT_COVERED);
+    return TRACE_RETURN (c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -966,7 +966,7 @@ struct ReverseChainSingleSubstFormat1
     if (unlikely (c->nesting_level_left != MAX_NESTING_LEVEL))
       return TRACE_RETURN (false); /* No chaining to this type */
 
-    unsigned int index = (this+coverage) (c->buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);

@@ -541,8 +541,6 @@ struct CoverageFormat2
 
 struct Coverage
 {
-  inline unsigned int operator () (hb_codepoint_t glyph_id) const { return get_coverage (glyph_id); }
-
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {

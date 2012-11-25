@@ -51,7 +51,7 @@ struct AttachList
 					 unsigned int *point_count /* IN/OUT */,
 					 unsigned int *point_array /* OUT */) const
   {
-    unsigned int index = (this+coverage) (glyph_id);
+    unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (index == NOT_COVERED)
     {
       if (point_count)
@@ -242,7 +242,7 @@ struct LigCaretList
 				      unsigned int *caret_count /* IN/OUT */,
 				      hb_position_t *caret_array /* OUT */) const
   {
-    unsigned int index = (this+coverage) (glyph_id);
+    unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (index == NOT_COVERED)
     {
       if (caret_count)
