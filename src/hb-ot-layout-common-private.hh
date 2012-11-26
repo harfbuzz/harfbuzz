@@ -248,6 +248,33 @@ struct Script
 
 typedef RecordListOf<Script> ScriptList;
 
+struct FeatureParamsSize
+{
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this));
+  }
+
+  USHORT params[5];
+  public:
+  DEFINE_SIZE_STATIC (10);
+};
+
+struct FeatureParams
+{
+  /* Note: currently the only feature with params is 'size', so we hardcode
+   * the length of the table to that of the FeatureParamsSize. */
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this));
+  }
+
+  union {
+  FeatureParamsSize size;
+  } u;
+  DEFINE_SIZE_STATIC (10);
+};
 
 struct Feature
 {
@@ -260,12 +287,17 @@ struct Feature
 					  unsigned int *lookup_tags /* OUT */) const
   { return lookupIndex.get_indexes (start_index, lookup_count, lookup_tags); }
 
+  inline const FeatureParams &get_feature_params (void) const
+  { return this+featureParams; }
+
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && lookupIndex.sanitize (c));
+    return TRACE_RETURN (c->check_struct (this) && lookupIndex.sanitize (c) &&
+			 featureParams.sanitize (c, this));
   }
 
-  Offset	featureParams;	/* Offset to Feature Parameters table (if one
+  OffsetTo<FeatureParams>
+		 featureParams;	/* Offset to Feature Parameters table (if one
 				 * has been defined for the feature), relative
 				 * to the beginning of the Feature Table; = Null
 				 * if not required */
