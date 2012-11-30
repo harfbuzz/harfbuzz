@@ -641,8 +641,8 @@ hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer, hb_bool_t ze
 }
 
 hb_bool_t
-hb_ot_layout_position_get_size (hb_face_t *face,
-				uint16_t  *data /* OUT, 5 items */)
+hb_ot_layout_get_size_params (hb_face_t *face,
+			      uint16_t  *data /* OUT, 5 items */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
   unsigned int script_index;

@@ -277,10 +277,11 @@ Xhb_ot_layout_lookup_position (hb_font_t            *font,
 			      hb_glyph_position_t  *positions /* IN / OUT */);
 #endif
 
-/* Optical 'size' feature info.  Returns true if found. */
+/* Optical 'size' feature info.  Returns true if found.
+ * XXX Add URL. */
 hb_bool_t
-hb_ot_layout_position_get_size (hb_face_t *face,
-				uint16_t  *data /* OUT, 5 items */);
+hb_ot_layout_get_size_params (hb_face_t *face,
+			      uint16_t  *data /* OUT, 5 items */);
 
 
 HB_END_DECLS
