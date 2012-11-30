@@ -71,7 +71,7 @@ struct hb_closure_context_t
     nesting_level_left--;
     recurse_func (this, lookup_index);
     nesting_level_left++;
-    return default_return_value ();
+    return VOID;
   }
 
   hb_face_t *face;
@@ -112,7 +112,6 @@ struct hb_would_apply_context_t
   inline return_t process (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value (void) { return false; }
   bool stop_sublookup_iteration (const return_t r) const { return r; }
-  return_t recurse (unsigned int lookup_index) { return true; }
 
   hb_face_t *face;
   const hb_codepoint_t *glyphs;
@@ -162,7 +161,7 @@ struct hb_collect_glyphs_context_t
     hb_collect_glyphs_context_t new_c (this->face, NULL, NULL, NULL, &output, nesting_level_left);
     recurse_func (&new_c, lookup_index);
     nesting_level_left++;
-    return default_return_value ();
+    return VOID;
   }
 
   hb_face_t *face;
@@ -236,9 +235,9 @@ struct hb_apply_context_t
       return default_return_value ();
 
     nesting_level_left--;
-    recurse_func (this, lookup_index);
+    bool ret = recurse_func (this, lookup_index);
     nesting_level_left++;
-    return default_return_value ();
+    return ret;
   }
 
   hb_font_t *font;
