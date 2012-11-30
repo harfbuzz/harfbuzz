@@ -1269,7 +1269,7 @@ struct ContextFormat3
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextCollectGlyphsLookupContext lookup_context = {
       {collect_coverage},
-      NULL
+      this
     };
 
     context_collect_glyphs_lookup (c,
