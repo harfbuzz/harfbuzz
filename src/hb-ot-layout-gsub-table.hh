@@ -1341,10 +1341,6 @@ struct GSUB : GSUBGPOS
   inline const SubstLookup& get_lookup (unsigned int i) const
   { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
 
-  template <typename set_t>
-  inline void add_coverage (set_t *glyphs, unsigned int lookup_index) const
-  { get_lookup (lookup_index).add_coverage (glyphs); }
-
   static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void substitute_finish (hb_font_t *font, hb_buffer_t *buffer);
 

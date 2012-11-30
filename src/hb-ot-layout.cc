@@ -71,9 +71,9 @@ _hb_ot_layout_create (hb_face_t *face)
   }
 
   for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
-    layout->gsub->add_coverage (&layout->gsub_digests[i], i);
+    layout->gsub->get_lookup (i).add_coverage (&layout->gsub_digests[i]);
   for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
-    layout->gpos->add_coverage (&layout->gpos_digests[i], i);
+    layout->gpos->get_lookup (i).add_coverage (&layout->gpos_digests[i]);
 
   return layout;
 }
