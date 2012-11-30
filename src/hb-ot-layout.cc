@@ -645,17 +645,13 @@ hb_ot_layout_get_size_params (hb_face_t *face,
 			      uint16_t  *data /* OUT, 5 items */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
-  unsigned int script_index;
-  gpos.find_script_index (HB_OT_TAG_DEFAULT_SCRIPT, &script_index);
-  const OT::LangSys &l = gpos.get_script (script_index).get_lang_sys (HB_OT_TAG_DEFAULT_LANGUAGE);
 
-  unsigned int num_features = l.get_feature_count ();
-  for (unsigned int i = 0; i < num_features; i++) {
-    unsigned int f_index = l.get_feature_index (i);
-
-    if (HB_TAG ('s','i','z','e') == gpos.get_feature_tag (f_index))
+  unsigned int num_features = gpos.get_feature_count ();
+  for (unsigned int i = 0; i < num_features; i++)
+  {
+    if (HB_TAG ('s','i','z','e') == gpos.get_feature_tag (i))
     {
-      const OT::Feature &f = gpos.get_feature (f_index);
+      const OT::Feature &f = gpos.get_feature (i);
       const OT::FeatureParams &params = f.get_feature_params ();
 
       for (unsigned int i = 0; i < 5; i++)
