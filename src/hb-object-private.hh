@@ -146,14 +146,6 @@ struct hb_object_header_t
     return true;
   }
 
-  inline void lock (void) {
-    mutex.lock ();
-  }
-
-  inline void unlock (void) {
-    mutex.unlock ();
-  }
-
   inline bool set_user_data (hb_user_data_key_t *key,
 			     void *              data,
 			     hb_destroy_func_t   destroy_func,
@@ -217,18 +209,6 @@ static inline bool hb_object_destroy (Type *obj)
 {
   hb_object_trace (obj, HB_FUNC);
   return obj->header.destroy ();
-}
-template <typename Type>
-static inline void hb_object_lock (Type *obj)
-{
-  hb_object_trace (obj, HB_FUNC);
-  return obj->header.lock ();
-}
-template <typename Type>
-static inline void hb_object_unlock (Type *obj)
-{
-  hb_object_trace (obj, HB_FUNC);
-  return obj->header.unlock ();
 }
 template <typename Type>
 static inline bool hb_object_set_user_data (Type               *obj,
