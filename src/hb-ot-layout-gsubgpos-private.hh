@@ -158,13 +158,24 @@ struct hb_collect_glyphs_context_t
 
     /* Note that GPOS sets recurse_func to NULL already, so it doesn't get
      * past the previous check.  For GSUB, we only want to collect the output
-     * glyphs in the recursion.  If those are not requested, we can go home now. */
+     * glyphs in the recursion.  If output is not requested, we can go home now. */
+
+    if (output == hb_set_get_empty ())
+      return VOID;
+
+    hb_set_t *old_before = before;
+    hb_set_t *old_input  = input;
+    hb_set_t *old_after  = after;
+    before = input = after = hb_set_get_empty ();
 
     nesting_level_left--;
-    /* Only collect output glyphs in the recursion. */
-    hb_collect_glyphs_context_t new_c (this->face, NULL, NULL, NULL, output, nesting_level_left);
-    recurse_func (&new_c, lookup_index);
+    recurse_func (this, lookup_index);
     nesting_level_left++;
+
+    before = old_before;
+    input  = old_input;
+    after  = old_after;
+
     return VOID;
   }
 
