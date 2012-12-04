@@ -1,3 +1,19 @@
+Overview of changes leading to 0.9.8
+Tuesday, December 4, 2012
+====================================
+
+
+- Actually implement hb_shape_plan_get_shaper ().
+- Make UCDB data tables const.
+- Lots of internal refactoring in OTLayout tables.
+- Flesh out hb_ot_layout_lookup_collect_glyphs().
+
+New API:
+
+hb_ot_layout_collect_lookups()
+hb_ot_layout_get_size_params()
+
+
 Overview of changes leading to 0.9.7
 Sunday, November 21, 2012
 ====================================
