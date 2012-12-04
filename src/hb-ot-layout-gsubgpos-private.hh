@@ -156,6 +156,10 @@ struct hb_collect_glyphs_context_t
     if (unlikely (nesting_level_left == 0 || !recurse_func))
       return default_return_value ();
 
+    /* Note that GPOS sets recurse_func to NULL already, so it doesn't get
+     * past the previous check.  For GSUB, we only want to collect the output
+     * glyphs in the recursion.  If those are not requested, we can go home now. */
+
     nesting_level_left--;
     /* Only collect output glyphs in the recursion. */
     hb_collect_glyphs_context_t new_c (this->face, NULL, NULL, NULL, &output, nesting_level_left);
