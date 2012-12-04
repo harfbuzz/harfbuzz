@@ -422,7 +422,7 @@ struct SinglePosFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -467,7 +467,7 @@ struct SinglePosFormat2
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -572,7 +572,7 @@ struct PairSet
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
     {
-      c->input.add (record->secondGlyph);
+      c->input->add (record->secondGlyph);
       record = &StructAtOffset<PairValueRecord> (record, record_size);
     }
   }
@@ -638,7 +638,7 @@ struct PairPosFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
     unsigned int count = pairSet.len;
     for (unsigned int i = 0; i < count; i++)
       (this+pairSet[i]).collect_glyphs (c, &valueFormat1);
@@ -701,19 +701,19 @@ struct PairPosFormat2
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    /* (this+coverage).add_coverage (&c->input); // Don't need this. */
+    /* (this+coverage).add_coverage (c->input); // Don't need this. */
 
     /* TODO only add values for pairs that have nonzero adjustments. */
 
     unsigned int count1 = class1Count;
     const ClassDef &klass1 = this+classDef1;
     for (unsigned int i = 0; i < count1; i++)
-      klass1.add_class (&c->input, i);
+      klass1.add_class (c->input, i);
 
     unsigned int count2 = class2Count;
     const ClassDef &klass2 = this+classDef2;
     for (unsigned int i = 0; i < count2; i++)
-      klass2.add_class (&c->input, i);
+      klass2.add_class (c->input, i);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -859,7 +859,7 @@ struct CursivePosFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1005,8 +1005,8 @@ struct MarkBasePosFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+markCoverage).add_coverage (&c->input);
-    (this+baseCoverage).add_coverage (&c->input);
+    (this+markCoverage).add_coverage (c->input);
+    (this+baseCoverage).add_coverage (c->input);
     /* TODO only add combinations that have nonzero adjustment. */
   }
 
@@ -1109,8 +1109,8 @@ struct MarkLigPosFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+markCoverage).add_coverage (&c->input);
-    (this+ligatureCoverage).add_coverage (&c->input);
+    (this+markCoverage).add_coverage (c->input);
+    (this+ligatureCoverage).add_coverage (c->input);
     /* TODO only add combinations that have nonzero adjustment. */
   }
 
@@ -1225,8 +1225,8 @@ struct MarkMarkPosFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+mark1Coverage).add_coverage (&c->input);
-    (this+mark2Coverage).add_coverage (&c->input);
+    (this+mark1Coverage).add_coverage (c->input);
+    (this+mark2Coverage).add_coverage (c->input);
     /* TODO only add combinations that have nonzero adjustment. */
   }
 

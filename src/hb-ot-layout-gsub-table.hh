@@ -54,8 +54,8 @@ struct SingleSubstFormat1
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       hb_codepoint_t glyph_id = iter.get_glyph ();
-      c->input.add (glyph_id);
-      c->output.add ((glyph_id + deltaGlyphID) & 0xFFFF);
+      c->input->add (glyph_id);
+      c->output->add ((glyph_id + deltaGlyphID) & 0xFFFF);
     }
   }
 
@@ -130,8 +130,8 @@ struct SingleSubstFormat2
     TRACE_COLLECT_GLYPHS (this);
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
-      c->input.add (iter.get_glyph ());
-      c->output.add (substitute[iter.get_coverage ()]);
+      c->input->add (iter.get_glyph ());
+      c->output->add (substitute[iter.get_coverage ()]);
     }
   }
 
@@ -264,7 +264,7 @@ struct Sequence
     TRACE_COLLECT_GLYPHS (this);
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++)
-      c->output.add (substitute[i]);
+      c->output->add (substitute[i]);
   }
 
   inline bool apply (hb_apply_context_t *c) const
@@ -320,7 +320,7 @@ struct MultipleSubstFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
     unsigned int count = sequence.len;
     for (unsigned int i = 0; i < count; i++)
 	(this+sequence[i]).collect_glyphs (c);
@@ -451,11 +451,11 @@ struct AlternateSubstFormat1
     TRACE_COLLECT_GLYPHS (this);
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
-      c->input.add (iter.get_glyph ());
+      c->input->add (iter.get_glyph ());
       const AlternateSet &alt_set = this+alternateSet[iter.get_coverage ()];
       unsigned int count = alt_set.len;
       for (unsigned int i = 0; i < count; i++)
-	c->output.add (alt_set[i]);
+	c->output->add (alt_set[i]);
     }
   }
 
@@ -595,8 +595,8 @@ struct Ligature
     TRACE_COLLECT_GLYPHS (this);
     unsigned int count = component.len;
     for (unsigned int i = 1; i < count; i++)
-      c->input.add (component[i]);
-    c->output.add (ligGlyph);
+      c->input->add (component[i]);
+    c->output->add (ligGlyph);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c) const
@@ -767,7 +767,7 @@ struct LigatureSubstFormat1
     TRACE_COLLECT_GLYPHS (this);
     Coverage::Iter iter;
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
-      c->input.add (iter.get_glyph ());
+      c->input->add (iter.get_glyph ());
       (this+ligatureSet[iter.get_coverage ()]).collect_glyphs (c);
     }
   }
@@ -933,20 +933,20 @@ struct ReverseChainSingleSubstFormat1
 
     unsigned int count;
 
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
 
     count = backtrack.len;
     for (unsigned int i = 0; i < count; i++)
-      (this+backtrack[i]).add_coverage (&c->before);
+      (this+backtrack[i]).add_coverage (c->before);
 
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
-      (this+lookahead[i]).add_coverage (&c->after);
+      (this+lookahead[i]).add_coverage (c->after);
 
     const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     count = substitute.len;
     for (unsigned int i = 0; i < count; i++)
-      c->output.add (substitute[i]);
+      c->output->add (substitute[i]);
   }
 
   inline const Coverage &get_coverage (void) const

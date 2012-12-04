@@ -162,17 +162,17 @@ struct hb_collect_glyphs_context_t
 
     nesting_level_left--;
     /* Only collect output glyphs in the recursion. */
-    hb_collect_glyphs_context_t new_c (this->face, NULL, NULL, NULL, &output, nesting_level_left);
+    hb_collect_glyphs_context_t new_c (this->face, NULL, NULL, NULL, output, nesting_level_left);
     recurse_func (&new_c, lookup_index);
     nesting_level_left++;
     return VOID;
   }
 
   hb_face_t *face;
-  hb_set_t &before;
-  hb_set_t &input;
-  hb_set_t &after;
-  hb_set_t &output;
+  hb_set_t *before;
+  hb_set_t *input;
+  hb_set_t *after;
+  hb_set_t *output;
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int debug_depth;
@@ -184,10 +184,10 @@ struct hb_collect_glyphs_context_t
 			       hb_set_t  *glyphs_output, /* OUT. May be NULL */
 			       unsigned int nesting_level_left_ = MAX_NESTING_LEVEL) :
 			      face (face_),
-			      before (glyphs_before ? *glyphs_before : *hb_set_get_empty ()),
-			      input  (glyphs_input  ? *glyphs_input  : *hb_set_get_empty ()),
-			      after  (glyphs_after  ? *glyphs_after  : *hb_set_get_empty ()),
-			      output (glyphs_output ? *glyphs_output : *hb_set_get_empty ()),
+			      before (glyphs_before ? glyphs_before : hb_set_get_empty ()),
+			      input  (glyphs_input  ? glyphs_input  : hb_set_get_empty ()),
+			      after  (glyphs_after  ? glyphs_after  : hb_set_get_empty ()),
+			      output (glyphs_output ? glyphs_output : hb_set_get_empty ()),
 			      recurse_func (NULL),
 			      nesting_level_left (nesting_level_left_),
 			      debug_depth (0) {}
@@ -918,7 +918,7 @@ static inline void context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c
 						  const LookupRecord lookupRecord[],
 						  ContextCollectGlyphsLookupContext &lookup_context)
 {
-  collect_array (c, &c->input,
+  collect_array (c, c->input,
 		 inputCount ? inputCount - 1 : 0, input,
 		 lookup_context.funcs.collect, lookup_context.collect_data);
   recurse_lookups (c,
@@ -1090,7 +1090,7 @@ struct ContextFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
 
     struct ContextCollectGlyphsLookupContext lookup_context = {
       {collect_glyph},
@@ -1178,7 +1178,7 @@ struct ContextFormat2
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
 
     struct ContextCollectGlyphsLookupContext lookup_context = {
       {collect_class},
@@ -1268,7 +1268,7 @@ struct ContextFormat3
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage[0]).add_coverage (&c->input);
+    (this+coverage[0]).add_coverage (c->input);
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverage, coverage[0].static_size * glyphCount);
     struct ContextCollectGlyphsLookupContext lookup_context = {
@@ -1428,13 +1428,13 @@ static inline void chain_context_collect_glyphs_lookup (hb_collect_glyphs_contex
 						        const LookupRecord lookupRecord[],
 						        ChainContextCollectGlyphsLookupContext &lookup_context)
 {
-  collect_array (c, &c->before,
+  collect_array (c, c->before,
 		 backtrackCount, backtrack,
 		 lookup_context.funcs.collect, lookup_context.collect_data[0]);
-  collect_array (c, &c->input,
+  collect_array (c, c->input,
 		 inputCount ? inputCount - 1 : 0, input,
 		 lookup_context.funcs.collect, lookup_context.collect_data[1]);
-  collect_array (c, &c->after,
+  collect_array (c, c->after,
 		 lookaheadCount, lookahead,
 		 lookup_context.funcs.collect, lookup_context.collect_data[2]);
   recurse_lookups (c,
@@ -1647,7 +1647,7 @@ struct ChainContextFormat1
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
 
     struct ChainContextCollectGlyphsLookupContext lookup_context = {
       {collect_glyph},
@@ -1737,7 +1737,7 @@ struct ChainContextFormat2
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    (this+coverage).add_coverage (&c->input);
+    (this+coverage).add_coverage (c->input);
 
     struct ChainContextCollectGlyphsLookupContext lookup_context = {
       {collect_class},
@@ -1850,7 +1850,7 @@ struct ChainContextFormat3
     TRACE_COLLECT_GLYPHS (this);
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
-    (this+input[0]).add_coverage (&c->input);
+    (this+input[0]).add_coverage (c->input);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
