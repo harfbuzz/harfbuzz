@@ -20,13 +20,13 @@
 #include "ucdn.h"
 
 typedef struct {
-    const unsigned char category;
-    const unsigned char combining;
-    const unsigned char bidi_class;
-    const unsigned char mirrored;
-    const unsigned char east_asian_width;
-    const unsigned char normalization_check;
-    const unsigned char script;
+    unsigned char category;
+    unsigned char combining;
+    unsigned char bidi_class;
+    unsigned char mirrored;
+    unsigned char east_asian_width;
+    unsigned char normalization_check;
+    unsigned char script;
 } UCDRecord;
 
 typedef struct {
@@ -86,7 +86,7 @@ static const unsigned short *get_decomp_record(uint32_t code)
     return &decomp_data[index];
 }
 
-static const int get_comp_index(uint32_t code, const Reindex *idx)
+static int get_comp_index(uint32_t code, const Reindex *idx)
 {
     int i;
 
