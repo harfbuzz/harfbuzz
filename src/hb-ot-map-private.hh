@@ -115,10 +115,7 @@ struct hb_ot_map_t
     *lookup_count = end - start;
   }
 
-  inline hb_tag_t get_chosen_script (unsigned int table_index) const
-  { return chosen_script[table_index]; }
-
-  HB_INTERNAL void substitute_closure (const struct hb_ot_shape_plan_t *plan, hb_face_t *face, hb_set_t *glyphs) const;
+  HB_INTERNAL void collect_lookups (unsigned int table_index, hb_set_t *lookups) const;
   HB_INTERNAL void substitute (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void position (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
 
@@ -130,6 +127,9 @@ struct hb_ot_map_t
     pauses[1].finish ();
   }
 
+  public:
+  hb_tag_t chosen_script[2];
+  bool found_script[2];
 
   private:
 
@@ -140,7 +140,6 @@ struct hb_ot_map_t
 
   hb_mask_t global_mask;
 
-  hb_tag_t chosen_script[2];
   hb_prealloced_array_t<feature_map_t, 8> features;
   hb_prealloced_array_t<lookup_map_t, 32> lookups[2]; /* GSUB/GPOS */
   hb_prealloced_array_t<pause_map_t, 1> pauses[2]; /* GSUB/GPOS */
@@ -200,6 +199,7 @@ struct hb_ot_map_builder_t
   hb_segment_properties_t props;
 
   hb_tag_t chosen_script[2];
+  bool found_script[2];
   unsigned int script_index[2], language_index[2];
 
   private:

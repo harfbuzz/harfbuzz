@@ -20,13 +20,13 @@
 #include "ucdn.h"
 
 typedef struct {
-    const unsigned char category;
-    const unsigned char combining;
-    const unsigned char bidi_class;
-    const unsigned char mirrored;
-    const unsigned char east_asian_width;
-    const unsigned char normalization_check;
-    const unsigned char script;
+    unsigned char category;
+    unsigned char combining;
+    unsigned char bidi_class;
+    unsigned char mirrored;
+    unsigned char east_asian_width;
+    unsigned char normalization_check;
+    unsigned char script;
 } UCDRecord;
 
 typedef struct {
@@ -51,7 +51,7 @@ typedef struct {
 #define TCOUNT 28
 #define NCOUNT (VCOUNT * TCOUNT)
 
-static UCDRecord *get_ucd_record(uint32_t code)
+static const UCDRecord *get_ucd_record(uint32_t code)
 {
     int index, offset;
 
@@ -68,7 +68,7 @@ static UCDRecord *get_ucd_record(uint32_t code)
     return &ucd_records[index];
 }
 
-static unsigned short *get_decomp_record(uint32_t code)
+static const unsigned short *get_decomp_record(uint32_t code)
 {
     int index, offset;
 
@@ -86,12 +86,12 @@ static unsigned short *get_decomp_record(uint32_t code)
     return &decomp_data[index];
 }
 
-static int get_comp_index(uint32_t code, Reindex *idx)
+static int get_comp_index(uint32_t code, const Reindex *idx)
 {
     int i;
 
     for (i = 0; idx[i].start; i++) {
-        Reindex *cur = &idx[i];
+        const Reindex *cur = &idx[i];
         if (code < cur->start)
             return -1;
         if (code <= cur->start + cur->count) {
@@ -151,9 +151,9 @@ static int hangul_pair_compose(uint32_t *code, uint32_t a, uint32_t b)
     }
 }
 
-static uint32_t decode_utf16(unsigned short **code_ptr)
+static uint32_t decode_utf16(const unsigned short **code_ptr)
 {
-    unsigned short *code = *code_ptr;
+    const unsigned short *code = *code_ptr;
 
     if ((code[0] & 0xd800) != 0xd800) {
         *code_ptr += 1;
@@ -220,7 +220,7 @@ uint32_t ucdn_mirror(uint32_t code)
 
 int ucdn_decompose(uint32_t code, uint32_t *a, uint32_t *b)
 {
-    unsigned short *rec;
+    const unsigned short *rec;
     int len;
 
     if (hangul_pair_decompose(code, a, b))
@@ -268,7 +268,7 @@ int ucdn_compose(uint32_t *code, uint32_t a, uint32_t b)
 int ucdn_compat_decompose(uint32_t code, uint32_t *decomposed)
 {
     int i, len;
-    unsigned short *rec = get_decomp_record(code);
+    const unsigned short *rec = get_decomp_record(code);
     len = rec[0] >> 8;
 
     if (len == 0)

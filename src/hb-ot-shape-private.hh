@@ -46,7 +46,16 @@ struct hb_ot_shape_plan_t
   hb_ot_map_t map;
   const void *data;
 
-  inline void substitute_closure (hb_face_t *face, hb_set_t *glyphs) const { map.substitute_closure (this, face, glyphs); }
+  inline void collect_lookups (hb_tag_t table_tag, hb_set_t *lookups) const
+  {
+    unsigned int table_index;
+    switch (table_tag) {
+      case HB_OT_TAG_GSUB: table_index = 0; break;
+      case HB_OT_TAG_GPOS: table_index = 1; break;
+      default: return;
+    }
+    map.collect_lookups (table_index, lookups);
+  }
   inline void substitute (hb_font_t *font, hb_buffer_t *buffer) const { map.substitute (this, font, buffer); }
   inline void position (hb_font_t *font, hb_buffer_t *buffer) const { map.position (this, font, buffer); }
 

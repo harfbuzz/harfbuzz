@@ -269,7 +269,7 @@ struct would_substitute_feature_t
 				hb_face_t         *face) const
   {
     for (unsigned int i = 0; i < count; i++)
-      if (hb_ot_layout_would_substitute_lookup_fast (face, lookups[i].index, glyphs, glyphs_count, zero_context))
+      if (hb_ot_layout_lookup_would_substitute_fast (face, lookups[i].index, glyphs, glyphs_count, zero_context))
 	return true;
     return false;
   }
@@ -329,7 +329,7 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
       break;
     }
 
-  indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.get_chosen_script (0) & 0x000000FF) != '2');
+  indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FF) != '2');
   indic_plan->virama_glyph = (hb_codepoint_t) -1;
 
   indic_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'));
@@ -486,6 +486,10 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
     switch (indic_plan->config->base_pos)
     {
+      default:
+        assert (false);
+	/* fallthrough */
+
       case BASE_POS_LAST:
       {
 	/* -> starting from the end of the syllable, move backwards */
@@ -559,9 +563,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	    info[i].indic_position() = POS_BELOW_C;
       }
       break;
-
-      default:
-      abort ();
     }
 
     /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
@@ -662,13 +663,17 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       if ((FLAG (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | HALANT_OR_COENG_FLAGS)))
       {
 	info[i].indic_position() = last_pos;
-	if (unlikely (indic_options ().uniscribe_bug_compatible &&
-		      info[i].indic_category() == OT_H &&
+	if (unlikely (info[i].indic_category() == OT_H &&
 		      info[i].indic_position() == POS_PRE_M))
 	{
 	  /*
 	   * Uniscribe doesn't move the Halant with Left Matra.
 	   * TEST: U+092B,U+093F,U+094DE
+	   * We follow.  This is important for the Sinhala
+	   * U+0DDA split matra since it decomposes to U+0DD9,U+0DCA
+	   * where U+0DD9 is a left matra and U+0DCA is the virama.
+	   * We don't want to move the virama with the left matra.
+	   * TEST: U+0D9A,U+0DDA
 	   */
 	  for (unsigned int j = i; j > start; j--)
 	    if (info[j - 1].indic_position() != POS_PRE_M) {
@@ -867,7 +872,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan,
   if (!font->get_glyph (0x25CC, 0, &dottedcircle_glyph))
     return;
 
-  hb_glyph_info_t dottedcircle;
+  hb_glyph_info_t dottedcircle = {0};
   dottedcircle.codepoint = 0x25CC;
   set_indic_properties (dottedcircle);
   dottedcircle.codepoint = dottedcircle_glyph;
@@ -1273,8 +1278,8 @@ normalization_preference_indic (const hb_segment_properties_t *props)
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
 }
 
-static hb_bool_t
-decompose_indic (hb_unicode_funcs_t *unicode,
+static bool
+decompose_indic (const hb_ot_shape_normalize_context_t *c,
 		 hb_codepoint_t  ab,
 		 hb_codepoint_t *a,
 		 hb_codepoint_t *b)
@@ -1312,34 +1317,61 @@ decompose_indic (hb_unicode_funcs_t *unicode,
 #endif
   }
 
-  if (indic_options ().uniscribe_bug_compatible)
-  switch (ab)
+  if ((ab == 0x0DDA || hb_in_range<hb_codepoint_t> (ab, 0x0DDC, 0x0DDE)))
   {
-    /* These Sinhala ones have Unicode decompositions, but Uniscribe
-     * decomposes them "Khmer-style". */
-    case 0x0DDA  : *a = 0x0DD9; *b= 0x0DDA; return true;
-    case 0x0DDC  : *a = 0x0DD9; *b= 0x0DDC; return true;
-    case 0x0DDD  : *a = 0x0DD9; *b= 0x0DDD; return true;
-    case 0x0DDE  : *a = 0x0DD9; *b= 0x0DDE; return true;
+    /*
+     * Sinhala split matras...  Let the fun begin.
+     *
+     * These four characters have Unicode decompositions.  However, Uniscribe
+     * decomposes them "Khmer-style", that is, it uses the character itself to
+     * get the second half.  The first half of all four decompositions is always
+     * U+0DD9.
+     *
+     * Now, there are buggy fonts, namely, the widely used lklug.ttf, that are
+     * broken with Uniscribe.  But we need to support them.  As such, we only
+     * do the Uniscribe-style decomposition if the character is transformed into
+     * its "sec.half" form by the 'pstf' feature.  Otherwise, we fall back to
+     * Unicode decomposition.
+     *
+     * Note that we can't unconditionally use Unicode decomposition.  That would
+     * break some other fonts, that are designed to work with Uniscribe, and
+     * don't have positioning features for the Unicode-style decomposition.
+     *
+     * Argh...
+     */
+
+    const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) c->plan->data;
+
+    hb_codepoint_t glyph;
+
+    if (indic_options ().uniscribe_bug_compatible ||
+	(c->font->get_glyph (ab, 0, &glyph) &&
+	 indic_plan->pstf.would_substitute (&glyph, 1, true, c->font->face)))
+    {
+      /* Ok, safe to use Uniscribe-style decomposition. */
+      *a = 0x0DD9;
+      *b = ab;
+      return true;
+    }
   }
 
-  return unicode->decompose (ab, a, b);
+  return c->unicode->decompose (ab, a, b);
 }
 
-static hb_bool_t
-compose_indic (hb_unicode_funcs_t *unicode,
+static bool
+compose_indic (const hb_ot_shape_normalize_context_t *c,
 	       hb_codepoint_t  a,
 	       hb_codepoint_t  b,
 	       hb_codepoint_t *ab)
 {
   /* Avoid recomposing split matras. */
-  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (unicode->general_category (a)))
+  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (c->unicode->general_category (a)))
     return false;
 
   /* Composition-exclusion exceptions that we want to recompose. */
   if (a == 0x09AF && b == 0x09BC) { *ab = 0x09DF; return true; }
 
-  return unicode->compose (a, b, ab);
+  return c->unicode->compose (a, b, ab);
 }
 
 
@@ -1356,4 +1388,5 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   compose_indic,
   setup_masks_indic,
   false, /* zero_width_attached_marks */
+  false, /* fallback_position */
 };

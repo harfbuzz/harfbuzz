@@ -219,7 +219,7 @@ test_object (void)
   for (i = 0; i < G_N_ELEMENTS (objects); i++) {
     const object_t *o = &objects[i];
     void *obj;
-    hb_user_data_key_t key[2];
+    hb_user_data_key_t key[1001];
 
     {
       unsigned int j;

@@ -100,7 +100,7 @@ hb_old_convertStringToGlyphIndices (HB_Font old_font,
 
     glyphs[i] = u;
   }
-  *numGlyphs = length; // XXX
+  *numGlyphs = length; /* XXX */
 
   return true;
 }
@@ -123,7 +123,7 @@ hb_old_canRender (HB_Font old_font,
 		  const HB_UChar16 *string,
 		  hb_uint32 length)
 {
-  return true; // TODO
+  return true; /* TODO */
 }
 
 static HB_Error
@@ -135,7 +135,7 @@ hb_old_getPointInOutline (HB_Font old_font,
 			  HB_Fixed *ypos,
 			  hb_uint32 *nPoints)
 {
-  return HB_Err_Ok; // TODO
+  return HB_Err_Ok; /* TODO */
 }
 
 static void
@@ -230,8 +230,8 @@ _hb_old_shaper_font_data_create (hb_font_t *font)
   data->klass = &hb_old_font_class;
   data->x_ppem = font->x_ppem;
   data->y_ppem = font->y_ppem;
-  data->x_scale = font->x_scale; // XXX
-  data->y_scale = font->y_scale; // XXX
+  data->x_scale = font->x_scale; /* XXX */
+  data->y_scale = font->y_scale; /* XXX */
   data->userData = font;
 
   return data;

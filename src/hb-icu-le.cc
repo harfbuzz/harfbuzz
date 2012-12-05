@@ -115,7 +115,7 @@ _hb_icu_le_shape (hb_shape_plan_t    *shape_plan,
   LEFontInstance *font_instance = HB_SHAPER_DATA_GET (font);
   le_int32 script_code = hb_icu_script_from_script (shape_plan->props.script);
   le_int32 language_code = -1 /* TODO */;
-  le_int32 typography_flags = 3; // essential for ligatures and kerning
+  le_int32 typography_flags = 3; /* Needed for ligatures and kerning */
   LEErrorCode status = LE_NO_ERROR;
   le_engine *le = le_create ((const le_font *) font_instance,
 			     script_code,

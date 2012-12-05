@@ -61,29 +61,31 @@ struct shape_closure_consumer_t : option_group_t
   }
   void consume_line (hb_buffer_t  *buffer,
 		     const char   *text,
-		     unsigned int  text_len)
+		     unsigned int  text_len,
+		     const char   *text_before,
+		     const char   *text_after)
   {
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);
 
-    if (hb_set_empty (glyphs))
+    if (hb_set_is_empty (glyphs))
       return;
 
     /* Print it out! */
     bool first = true;
     for (hb_codepoint_t i = -1; hb_set_next (glyphs, &i);)
-      if (hb_set_has (glyphs, i)) {
-        if (first)
-	  first = false;
-	else
-	  printf (" ");
-	char glyph_name[32];
-	if (show_glyph_names) {
-	  hb_font_get_glyph_name (font, i, glyph_name, sizeof (glyph_name));
-	  printf ("%s", glyph_name);
-	} else
-	  printf ("%u", i);
-      }
+    {
+      if (first)
+	first = false;
+      else
+	printf (" ");
+      char glyph_name[32];
+      if (show_glyph_names) {
+	hb_font_get_glyph_name (font, i, glyph_name, sizeof (glyph_name));
+	printf ("%s", glyph_name);
+      } else
+	printf ("%u", i);
+    }
   }
   void finish (const font_options_t *font_opts)
   {

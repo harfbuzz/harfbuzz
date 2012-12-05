@@ -138,10 +138,10 @@ recategorize_combining_class (hb_codepoint_t u,
     /* Lao */
 
     case HB_MODIFIED_COMBINING_CLASS_CCC118: /* sign u / sign uu */
-      return HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT;
+      return HB_UNICODE_COMBINING_CLASS_BELOW;
 
     case HB_MODIFIED_COMBINING_CLASS_CCC122: /* mai */
-      return HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT;
+      return HB_UNICODE_COMBINING_CLASS_ABOVE;
 
 
     /* Tibetan */

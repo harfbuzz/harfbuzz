@@ -82,22 +82,22 @@
  *     egrep  "`echo -n ';('; grep ';<' UnicodeData.txt | cut -d';' -f1 | tr '\n' '|'; echo ') '`" UnicodeData.txt
  */
 
-static hb_bool_t
-decompose_unicode (hb_unicode_funcs_t *unicode,
+static bool
+decompose_unicode (const hb_ot_shape_normalize_context_t *c,
 		   hb_codepoint_t  ab,
 		   hb_codepoint_t *a,
 		   hb_codepoint_t *b)
 {
-  return unicode->decompose (ab, a, b);
+  return c->unicode->decompose (ab, a, b);
 }
 
-static hb_bool_t
-compose_unicode (hb_unicode_funcs_t *unicode,
+static bool
+compose_unicode (const hb_ot_shape_normalize_context_t *c,
 		 hb_codepoint_t  a,
 		 hb_codepoint_t  b,
 		 hb_codepoint_t *ab)
 {
-  return unicode->compose (a, b, ab);
+  return c->unicode->compose (a, b, ab);
 }
 
 static inline void
@@ -127,27 +127,13 @@ skip_char (hb_buffer_t *buffer)
   buffer->skip_glyph ();
 }
 
-struct normalize_context_t
-{
-  hb_buffer_t *buffer;
-  hb_font_t *font;
-  hb_bool_t (*decompose) (hb_unicode_funcs_t *unicode,
-			  hb_codepoint_t  ab,
-			  hb_codepoint_t *a,
-			  hb_codepoint_t *b);
-  hb_bool_t (*compose) (hb_unicode_funcs_t *unicode,
-			hb_codepoint_t  a,
-			hb_codepoint_t  b,
-			hb_codepoint_t *ab);
-};
-
 /* Returns 0 if didn't decompose, number of resulting characters otherwise. */
 static inline unsigned int
-decompose (const normalize_context_t *c, bool shortest, hb_codepoint_t ab)
+decompose (const hb_ot_shape_normalize_context_t *c, bool shortest, hb_codepoint_t ab)
 {
   hb_codepoint_t a, b, a_glyph, b_glyph;
 
-  if (!c->decompose (c->buffer->unicode, ab, &a, &b) ||
+  if (!c->decompose (c, ab, &a, &b) ||
       (b && !c->font->get_glyph (b, 0, &b_glyph)))
     return 0;
 
@@ -185,7 +171,7 @@ decompose (const normalize_context_t *c, bool shortest, hb_codepoint_t ab)
 
 /* Returns 0 if didn't decompose, number of resulting characters otherwise. */
 static inline bool
-decompose_compatibility (const normalize_context_t *c, hb_codepoint_t u)
+decompose_compatibility (const hb_ot_shape_normalize_context_t *c, hb_codepoint_t u)
 {
   unsigned int len, i;
   hb_codepoint_t decomposed[HB_UNICODE_MAX_DECOMPOSITION_LEN];
@@ -207,7 +193,7 @@ decompose_compatibility (const normalize_context_t *c, hb_codepoint_t u)
 
 /* Returns true if recomposition may be benefitial. */
 static inline bool
-decompose_current_character (const normalize_context_t *c, bool shortest)
+decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shortest)
 {
   hb_buffer_t * const buffer = c->buffer;
   hb_codepoint_t glyph;
@@ -233,7 +219,7 @@ decompose_current_character (const normalize_context_t *c, bool shortest)
 }
 
 static inline void
-handle_variation_selector_cluster (const normalize_context_t *c, unsigned int end)
+handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end)
 {
   hb_buffer_t * const buffer = c->buffer;
   for (; buffer->idx < end - 1;) {
@@ -254,7 +240,7 @@ handle_variation_selector_cluster (const normalize_context_t *c, unsigned int en
 
 /* Returns true if recomposition may be benefitial. */
 static inline bool
-decompose_multi_char_cluster (const normalize_context_t *c, unsigned int end)
+decompose_multi_char_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end)
 {
   hb_buffer_t * const buffer = c->buffer;
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
@@ -272,7 +258,7 @@ decompose_multi_char_cluster (const normalize_context_t *c, unsigned int end)
 }
 
 static inline bool
-decompose_cluster (const normalize_context_t *c, bool short_circuit, unsigned int end)
+decompose_cluster (const hb_ot_shape_normalize_context_t *c, bool short_circuit, unsigned int end)
 {
   if (likely (c->buffer->idx + 1 == end))
     return decompose_current_character (c, short_circuit);
@@ -292,18 +278,20 @@ compare_combining_class (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
 
 
 void
-_hb_ot_shape_normalize (const hb_ot_complex_shaper_t *shaper,
+_hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 			hb_buffer_t *buffer,
 			hb_font_t *font)
 {
-  hb_ot_shape_normalization_mode_t mode = shaper->normalization_preference ?
-					  shaper->normalization_preference (&buffer->props) :
+  hb_ot_shape_normalization_mode_t mode = plan->shaper->normalization_preference ?
+					  plan->shaper->normalization_preference (&buffer->props) :
 					  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT;
-  const normalize_context_t c = {
+  const hb_ot_shape_normalize_context_t c = {
+    plan,
     buffer,
     font,
-    shaper->decompose ? shaper->decompose : decompose_unicode,
-    shaper->compose ? shaper->compose : compose_unicode
+    buffer->unicode,
+    plan->shaper->decompose ? plan->shaper->decompose : decompose_unicode,
+    plan->shaper->compose   ? plan->shaper->compose   : compose_unicode
   };
 
   bool short_circuit = mode != HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED &&
@@ -389,7 +377,7 @@ _hb_ot_shape_normalize (const hb_ot_complex_shaper_t *shaper,
 	(starter == buffer->out_len - 1 ||
 	 _hb_glyph_info_get_modified_combining_class (&buffer->prev()) < _hb_glyph_info_get_modified_combining_class (&buffer->cur())) &&
 	/* And compose. */
-	c.compose (buffer->unicode,
+	c.compose (&c,
 		   buffer->out_info[starter].codepoint,
 		   buffer->cur().codepoint,
 		   &composed) &&

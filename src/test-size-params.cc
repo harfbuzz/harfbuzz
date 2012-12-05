@@ -37,17 +37,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef HAVE_FREETYPE
-#include "hb-ft.h"
-#endif
-
 int
 main (int argc, char **argv)
 {
   hb_blob_t *blob = NULL;
 
-  if (argc != 4 && argc != 5) {
-    fprintf (stderr, "usage: %s font-file lookup-index first-glyph [second-glyph]\n", argv[0]);
+  if (argc != 2) {
+    fprintf (stderr, "usage: %s font-file\n", argv[0]);
     exit (1);
   }
 
@@ -88,16 +84,15 @@ main (int argc, char **argv)
   hb_blob_destroy (blob);
   blob = NULL;
 
-  hb_font_t *font = hb_font_create (face);
-#ifdef HAVE_FREETYPE
-  hb_ft_font_set_funcs (font);
-#endif
+  uint16_t params[5];
+  if (!hb_ot_layout_get_size_params (face, params))
+    return 1;
 
-  unsigned int len = argc - 3;
-  hb_codepoint_t glyphs[2];
-  if (!hb_font_glyph_from_string (font, argv[3], -1, &glyphs[0]) ||
-      (argc > 4 &&
-       !hb_font_glyph_from_string (font, argv[4], -1, &glyphs[1])))
-    return 2;
-  return !hb_ot_layout_lookup_would_substitute (face, strtol (argv[2], NULL, 0), glyphs, len, false);
+  for (unsigned int i = 0; i < 5; i++) {
+    if (i) printf (" ");
+    printf ("%u", params[i]);
+  }
+  printf ("\n");
+
+  return 0;
 }

@@ -71,7 +71,7 @@ fixture_init (fixture_t *fixture, gconstpointer user_data)
 
     case BUFFER_ONE_BY_ONE:
       for (i = 1; i < G_N_ELEMENTS (utf32) - 1; i++)
-	hb_buffer_add (b, utf32[i], 1, i);
+	hb_buffer_add (b, utf32[i], i);
       break;
 
     case BUFFER_UTF32:
@@ -110,6 +110,7 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
   g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (b) == NULL);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAGS_DEFAULT);
 
 
   /* test property changes are retained */
@@ -127,8 +128,35 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   hb_buffer_set_language (b, hb_language_from_string ("fa", -1));
   g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa", -1));
 
+  hb_buffer_set_flags (b, HB_BUFFER_FLAG_BOT);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAG_BOT);
 
-  /* test reset clears properties */
+
+
+  /* test clear clears all properties but unicode_funcs */
+
+  hb_buffer_clear (b);
+
+  g_assert (hb_buffer_get_unicode_funcs (b) == ufuncs);
+  g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
+  g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
+  g_assert (hb_buffer_get_language (b) == NULL);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAGS_DEFAULT);
+
+
+  /* test reset clears all properties */
+
+  hb_buffer_set_direction (b, HB_DIRECTION_RTL);
+  g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_RTL);
+
+  hb_buffer_set_script (b, HB_SCRIPT_ARABIC);
+  g_assert (hb_buffer_get_script (b) == HB_SCRIPT_ARABIC);
+
+  hb_buffer_set_language (b, hb_language_from_string ("fa", -1));
+  g_assert (hb_buffer_get_language (b) == hb_language_from_string ("Fa", -1));
+
+  hb_buffer_set_flags (b, HB_BUFFER_FLAG_BOT);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAG_BOT);
 
   hb_buffer_reset (b);
 
@@ -136,6 +164,7 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
   g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (b) == NULL);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAGS_DEFAULT);
 }
 
 static void

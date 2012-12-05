@@ -62,6 +62,12 @@
 #endif
 
 
+/* Void! */
+struct _void_t;
+typedef const _void_t &void_t;
+#define VOID (* (const _void_t *) NULL)
+
+
 /* Basics */
 
 
@@ -582,7 +588,11 @@ _hb_debug_msg_va (const char *what,
   } else
     fprintf (stderr, "   " VRBAR LBAR);
 
-  if (func) {
+  if (func)
+  {
+    /* Skip "typename" */
+    if (0 == strncmp (func, "typename ", 9))
+      func += 9;
     /* Skip return type */
     const char *space = strchr (func, ' ');
     if (space)
@@ -657,10 +667,39 @@ _hb_debug_msg<0> (const char *what HB_UNUSED,
 
 
 /*
+ * Printer
+ */
+
+template <typename T>
+struct hb_printer_t {};
+
+template <>
+struct hb_printer_t<bool> {
+  const char *print (bool v) { return v ? "true" : "false"; }
+};
+
+template <>
+struct hb_printer_t<void_t> {
+  const char *print (void_t v) { return ""; }
+};
+
+
+/*
  * Trace
  */
 
-template <int max_level>
+template <typename T>
+static inline void _hb_warn_no_return (bool returned)
+{
+  if (unlikely (!returned)) {
+    fprintf (stderr, "OUCH, returned with no call to TRACE_RETURN.  This is a bug, please report.\n");
+  }
+}
+template <>
+inline void _hb_warn_no_return<void_t> (bool returned)
+{}
+
+template <int max_level, typename ret_t>
 struct hb_auto_trace_t {
   explicit inline hb_auto_trace_t (unsigned int *plevel_,
 				   const char *what_,
@@ -678,23 +717,23 @@ struct hb_auto_trace_t {
   }
   inline ~hb_auto_trace_t (void)
   {
-    if (unlikely (!returned)) {
-      fprintf (stderr, "OUCH, returned with no call to TRACE_RETURN.  This is a bug, please report.  Level was %d.\n", plevel ? *plevel : -1);
+    _hb_warn_no_return<ret_t> (returned);
+    if (!returned) {
       _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, " ");
-      return;
     }
-
     if (plevel) --*plevel;
   }
 
-  inline bool ret (bool v, unsigned int line = 0)
+  inline ret_t ret (ret_t v, unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to TRACE_RETURN.  This is a bug, please report.\n");
       return v;
     }
 
-    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1, "return %s (line %d)", v ? "true" : "false", line);
+    _hb_debug_msg<max_level> (what, obj, NULL, true, plevel ? *plevel : 1, -1,
+			      "return %s (line %d)",
+			      hb_printer_t<ret_t>().print (v), line);
     if (plevel) --*plevel;
     plevel = NULL;
     returned = true;
@@ -703,12 +742,12 @@ struct hb_auto_trace_t {
 
   private:
   unsigned int *plevel;
-  bool returned;
   const char *what;
   const void *obj;
+  bool returned;
 };
-template <> /* Optimize when tracing is disabled */
-struct hb_auto_trace_t<0> {
+template <typename ret_t> /* Optimize when tracing is disabled */
+struct hb_auto_trace_t<0, ret_t> {
   explicit inline hb_auto_trace_t (unsigned int *plevel_ HB_UNUSED,
 				   const char *what HB_UNUSED,
 				   const void *obj HB_UNUSED,
@@ -716,8 +755,7 @@ struct hb_auto_trace_t<0> {
 				   const char *message HB_UNUSED,
 				   ...) {}
 
-  template <typename T>
-  inline T ret (T v, unsigned int line = 0) { return v; }
+  inline ret_t ret (ret_t v, unsigned int line = 0) { return v; }
 };
 
 #define TRACE_RETURN(RET) trace.ret (RET, __LINE__)
