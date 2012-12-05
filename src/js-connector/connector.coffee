@@ -37,7 +37,7 @@ class CObject
 			heap = allocate @["$type"]["size"], "i8", ALLOC_NORMAL
 		if heap != NON_HEAP
 			# console.log "Setting $ptr to #{heap}"
-			Object.defineProperty @, "$ptr", value: heap
+			@["$ptr"] = heap
 
 	@::["$offset"] = (index) ->
 		if @["$ptr"] == NON_HEAP then throw new Error "Non-heap"
@@ -65,7 +65,7 @@ class CObject
 
 
 Module["struct"] = struct = (fields) -> class CStruct extends CObject
-	Object.defineProperty @::, "$type", value: @
+	@::["$type"] = @
 
 	constructor: (heap) ->
 		super heap
@@ -128,7 +128,7 @@ Module["struct"] = struct = (fields) -> class CStruct extends CObject
 							return
 			offset += sizeof type
 
-		Object.defineProperty @, "size", value: offset
+		@["size"] = offset
 
 		resolved = true
 
@@ -137,9 +137,9 @@ Module["array"] = array = (elemType, count) -> class CArray extends CObject
 	if not elemType? then throw new Error "Element type is not specified"
 	if typeof count isnt "number" or count < 0 then throw new Error "Array size must be non-negative: #{count}"
 
-	Object.defineProperty @::, "$type", value: @
-	Object.defineProperty @, "count", value: count
-	Object.defineProperty @, "elemType", value: elemType
+	@::["$type"] = @
+	@["count"] = count
+	@["elemType"] = elemType
 
 	constructor: (heap) ->
 		super heap
@@ -186,43 +186,51 @@ Module["array"] = array = (elemType, count) -> class CArray extends CObject
 		if resolved then return
 		elemType["resolve"]() unless simpleType elemType
 		size = count * sizeofType elemType
-		Object.defineProperty @, "size", value: size
+		@["size"] = size
 		resolved = true
 
 
 Module["ptr"] = ptr = (targetType) -> class CPointer extends CObject
 	if not targetType? then throw new Error "Target type is not specified"
 
-	Object.defineProperty @::, "$type", value: @
+	@::["$type"] = @
 	size = sizeof "i32"
-	Object.defineProperty @, "size", value: size
+	@["size"] = size
+
+	_address = 0
 
 	constructor: (heap = NON_HEAP, target = null) ->
 		super heap
-		if heap == NON_HEAP
+		@nonHeap = heap == NON_HEAP
+		if @nonHeap
 			# console.log "Non-heap pointer pointing to #{target}"
 			_address = addressof target
-			Object.defineProperty @, "address",
-				get: -> return _address,
-				set: (targetAddress) -> _address = targetAddress
+
+	@::["getAddress"] = ->
+		if @nonHeap
+			_address
 		else
-			# console.log "Heap pointer at #{heap} pointing to #{target}"
-			Object.defineProperty @, "address",
-				get: -> getValue(@["$ptr"], "i32"),
-				set: (targetAddress) -> setValue @["$ptr"], targetAddress, "i32"
+			getValue(@["$ptr"], "i32")
+
+	@::["setAddress"] = (targetAddress) ->
+		if @nonHeap
+			_address = targetAddress
+		else
+			setValue @["$ptr"], targetAddress, "i32"
 
 	@::["get"] = ->
-		if @["address"] == 0 then null
-		else if simpleType targetType then getValue @["address"], targetType
-		else new targetType @["address"]
+		address = @["getAddress"]()
+		if address == 0 then null
+		else if simpleType targetType then getValue address, targetType
+		else new targetType address
 
 	@::["set"] = (target) ->
-		if @["address"] == 0 then throw new Error "Null reference"
-		writeTo @["address"], target, targetType
+		if @["getAddress"]() == 0 then throw new Error "Null reference"
+		writeTo @["getAddress"](), target, targetType
 		return
 
 	@::["toString"] = (stack = []) ->
-		address = @["address"]
+		address = @["getAddress"]()
 		if address == 0
 			"NULL"
 		else
@@ -239,15 +247,15 @@ Module["ptr"] = ptr = (targetType) -> class CPointer extends CObject
 
 	@["fromNative"] = (value) ->
 		result = new @()
-		result["address"] = value
+		result["setAddress"] value
 		return result
 
 	@["toNative"] = (value) ->
-		if value is null then 0 else value["address"]
+		if value is null then 0 else value["getAddress"]()
 
 
 Module["string"] = string = class CString extends CObject
-	Object.defineProperty @::, "$type", value: @
+	@::["$type"] = @
 
 	constructor: (arg, alloc = ALLOC_NORMAL) ->
 		if arg is null
