@@ -110,7 +110,7 @@ hb_old_getGlyphAdvances (HB_Font old_font,
 			 const HB_Glyph *glyphs,
 			 hb_uint32 numGlyphs,
 			 HB_Fixed *advances,
-			 int flags /*HB_ShaperFlag*/)
+			 int flags /*HB_ShaperFlag*/ HB_UNUSED)
 {
   hb_font_t *font = (hb_font_t *) old_font->userData;
 
@@ -251,15 +251,15 @@ _hb_old_shaper_font_data_destroy (hb_old_shaper_font_data_t *data)
 struct hb_old_shaper_shape_plan_data_t {};
 
 hb_old_shaper_shape_plan_data_t *
-_hb_old_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
-				       const hb_feature_t *user_features,
-				       unsigned int        num_user_features)
+_hb_old_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
+				       const hb_feature_t *user_features HB_UNUSED,
+				       unsigned int        num_user_features HB_UNUSED)
 {
   return (hb_old_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_old_shaper_shape_plan_data_destroy (hb_old_shaper_shape_plan_data_t *data)
+_hb_old_shaper_shape_plan_data_destroy (hb_old_shaper_shape_plan_data_t *data HB_UNUSED)
 {
 }
 
@@ -269,7 +269,7 @@ _hb_old_shaper_shape_plan_data_destroy (hb_old_shaper_shape_plan_data_t *data)
  */
 
 hb_bool_t
-_hb_old_shape (hb_shape_plan_t    *shape_plan,
+_hb_old_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
 	       hb_font_t          *font,
 	       hb_buffer_t        *buffer,
 	       const hb_feature_t *features,
@@ -369,7 +369,7 @@ retry:
     *p = MIN (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < num_glyphs; i++)
-    if (vis_clusters[i] == -1)
+    if (vis_clusters[i] == (uint32_t) -1)
       vis_clusters[i] = vis_clusters[i - 1];
 
 #undef utf16_index

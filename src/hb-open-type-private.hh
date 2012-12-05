@@ -180,9 +180,7 @@ struct hb_sanitize_context_t
   template <typename T>
   inline return_t process (const T &obj) { return obj.sanitize (this); }
   static return_t default_return_value (void) { return true; }
-  bool stop_sublookup_iteration (const return_t r) const { return false; }
-  return_t recurse (unsigned int lookup_index)
-  { return default_return_value (); }
+  bool stop_sublookup_iteration (const return_t r HB_UNUSED) const { return false; }
 
   inline void init (hb_blob_t *b)
   {

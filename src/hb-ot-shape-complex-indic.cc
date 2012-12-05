@@ -852,7 +852,7 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
 }
 
 static inline void
-insert_dotted_circles (const hb_ot_shape_plan_t *plan,
+insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer)
 {
@@ -1246,7 +1246,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
 static void
 final_reordering (const hb_ot_shape_plan_t *plan,
-		  hb_font_t *font,
+		  hb_font_t *font HB_UNUSED,
 		  hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
@@ -1273,7 +1273,7 @@ final_reordering (const hb_ot_shape_plan_t *plan,
 
 
 static hb_ot_shape_normalization_mode_t
-normalization_preference_indic (const hb_segment_properties_t *props)
+normalization_preference_indic (const hb_segment_properties_t *props HB_UNUSED)
 {
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
 }

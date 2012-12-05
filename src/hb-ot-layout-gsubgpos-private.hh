@@ -62,7 +62,7 @@ struct hb_closure_context_t
   template <typename T>
   inline return_t process (const T &obj) { obj.closure (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (const return_t r) const { return false; }
+  bool stop_sublookup_iteration (const return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -150,7 +150,7 @@ struct hb_collect_glyphs_context_t
   template <typename T>
   inline return_t process (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (const return_t r) const { return false; }
+  bool stop_sublookup_iteration (const return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -549,7 +549,7 @@ static inline void collect_coverage (hb_set_t *glyphs, const USHORT &value, cons
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   (data+coverage).add_coverage (glyphs);
 }
-static inline void collect_array (hb_collect_glyphs_context_t *c,
+static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
 				  hb_set_t *glyphs,
 				  unsigned int count,
 				  const USHORT values[],
@@ -673,10 +673,10 @@ static inline bool match_input (hb_apply_context_t *c,
 }
 static inline void ligate_input (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph (not matched) */
-				 const USHORT input[], /* Array of input values--start with second glyph */
+				 const USHORT input[] HB_UNUSED, /* Array of input values--start with second glyph */
 				 hb_codepoint_t lig_glyph,
-				 match_func_t match_func,
-				 const void *match_data,
+				 match_func_t match_func HB_UNUSED,
+				 const void *match_data HB_UNUSED,
 				 bool is_mark_ligature,
 				 unsigned int total_component_count)
 {
@@ -939,8 +939,8 @@ static inline void context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c
 static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
 					       unsigned int inputCount, /* Including the first glyph (not matched) */
 					       const USHORT input[], /* Array of input values--start with second glyph */
-					       unsigned int lookupCount,
-					       const LookupRecord lookupRecord[],
+					       unsigned int lookupCount HB_UNUSED,
+					       const LookupRecord lookupRecord[] HB_UNUSED,
 					       ContextApplyLookupContext &lookup_context)
 {
   return would_match_input (c,
@@ -1454,13 +1454,13 @@ static inline void chain_context_collect_glyphs_lookup (hb_collect_glyphs_contex
 
 static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c,
 						     unsigned int backtrackCount,
-						     const USHORT backtrack[],
+						     const USHORT backtrack[] HB_UNUSED,
 						     unsigned int inputCount, /* Including the first glyph (not matched) */
 						     const USHORT input[], /* Array of input values--start with second glyph */
 						     unsigned int lookaheadCount,
-						     const USHORT lookahead[],
-						     unsigned int lookupCount,
-						     const LookupRecord lookupRecord[],
+						     const USHORT lookahead[] HB_UNUSED,
+						     unsigned int lookupCount HB_UNUSED,
+						     const LookupRecord lookupRecord[] HB_UNUSED,
 						     ChainContextApplyLookupContext &lookup_context)
 {
   return (c->zero_context ? !backtrackCount && !lookaheadCount : true)
