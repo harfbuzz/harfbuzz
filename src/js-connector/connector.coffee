@@ -71,7 +71,7 @@ Module["struct"] = struct = (fields) -> class CStruct extends CObject
 		super heap
 
 	@::["toString"] = (stack = []) ->
-		"{" + (" #{field}: #{dumpData @[field], type, stack}" for own field, type of fields).join(",") + " }"
+		"{" + (" #{field}: #{dumpData @['get'](field), type, stack}" for own field, type of fields).join(",") + " }"
 
 	@["toString"] = (stack = []) ->
 		"{" + (" #{field}: #{dumpType type, stack}" for own field, type of fields).join(",") + " }"
@@ -82,6 +82,8 @@ Module["struct"] = struct = (fields) -> class CStruct extends CObject
 		if resolved then throw new Error "Type #{@} is already resolved"
 		fields = newFields
 
+	getters = {}
+	setters = {}
 	@["resolve"] = ->
 		if resolved then return
 
@@ -100,37 +102,42 @@ Module["struct"] = struct = (fields) -> class CStruct extends CObject
 			do (offset, field, type) ->
 				if simpleType type
 					# console.log "Creating simple property at #{offset} with type #{type}"
-					Object.defineProperty CStruct::, field,
-						enumerable: true,
-						get: ->
-							# console.log "Getting at #{@["$ptr"] + offset}"
-							return getValue @["$ptr"] + offset, type
-						set: (value) ->
-							# console.log "Setting #{value} at #{@["$ptr"] + offset}"
-							return setValue @["$ptr"] + offset, value, type
+					getters[field] = (object) ->
+						# console.log "Getting #{field} at #{object['$ptr']} + #{offset}"
+						getValue object["$ptr"] + offset, type
+					setters[field] = (object, value) ->
+						# console.log "Setting #{field} to #{value} at #{object['$ptr']} + #{offset}"
+						setValue object["$ptr"] + offset, value, type
+						return
 				else
+					# console.log "Creating compound property at #{offset} with type #{type}"
 					type["resolve"]() if fieldsNotToResolve.indexOf(field) is -1
 					compoundProperty = null
 
-					Object.defineProperty CStruct::, field,
-						enumerable: true,
-						get: ->
-							# console.log "Getting compound #{field} at #{@["$ptr"] + offset}"
-							if compoundProperty is null
-								# console.log "Creating compound at #{ptr + offset} for #{field}"
-								compoundProperty = new type(@["$ptr"] + offset)
-							return compoundProperty
-						set: (otherStruct) ->
-							# console.log "Setting compound #{field} at #{@["$ptr"] + offset} to #{struct}"
-							if otherStruct["$type"] isnt type
-								throw new Error "Cannot load incompatible data"
-							writeTo @["$ptr"] + offset, otherStruct, type
-							return
+					getters[field] = (object) ->
+						# console.log "Getting compound #{field} at #{object['$ptr']} + #{offset}"
+						if compoundProperty is null
+							# console.log "Creating compound at #{object['ptr']} + #{offset} for #{field}"
+							compoundProperty = new type(object["$ptr"] + offset)
+						return compoundProperty
+					setters[field] = (object, otherStruct) ->
+						# console.log "Setting compound #{field} at #{object['$ptr']} + #{offset} to #{otherStruct}"
+						if otherStruct["$type"] isnt type
+							throw new Error "Cannot load incompatible data"
+						writeTo object["$ptr"] + offset, otherStruct, type
+						return
 			offset += sizeof type
 
 		@["size"] = offset
 
 		resolved = true
+
+	@::["get"] = (field) ->
+		getters[field](@)
+
+	@::["set"] = (field, value) ->
+		setters[field](@, value)
+		return
 
 
 Module["array"] = array = (elemType, count) -> class CArray extends CObject
