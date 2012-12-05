@@ -63,9 +63,9 @@
 
 
 /* Void! */
-struct _void_t;
-typedef const _void_t &void_t;
-#define VOID (* (const _void_t *) NULL)
+struct _hb_void_t;
+typedef const _hb_void_t &hb_void_t;
+#define HB_VOID (* (const _hb_void_t *) NULL)
 
 
 /* Basics */
@@ -679,8 +679,8 @@ struct hb_printer_t<bool> {
 };
 
 template <>
-struct hb_printer_t<void_t> {
-  const char *print (void_t v) { return ""; }
+struct hb_printer_t<hb_void_t> {
+  const char *print (hb_void_t v) { return ""; }
 };
 
 
@@ -696,7 +696,7 @@ static inline void _hb_warn_no_return (bool returned)
   }
 }
 template <>
-inline void _hb_warn_no_return<void_t> (bool returned)
+inline void _hb_warn_no_return<hb_void_t> (bool returned)
 {}
 
 template <int max_level, typename ret_t>

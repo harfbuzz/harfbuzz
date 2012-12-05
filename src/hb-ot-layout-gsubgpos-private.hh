@@ -49,7 +49,7 @@ namespace OT {
 #endif
 
 #define TRACE_CLOSURE(this) \
-	hb_auto_trace_t<HB_DEBUG_CLOSURE, void_t> trace \
+	hb_auto_trace_t<HB_DEBUG_CLOSURE, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
@@ -57,11 +57,11 @@ struct hb_closure_context_t
 {
   inline const char *get_name (void) { return "CLOSURE"; }
   static const unsigned int max_debug_depth = HB_DEBUG_CLOSURE;
-  typedef void_t return_t;
+  typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { obj.closure (this); return VOID; }
-  static return_t default_return_value (void) { return VOID; }
+  inline return_t process (const T &obj) { obj.closure (this); return HB_VOID; }
+  static return_t default_return_value (void) { return HB_VOID; }
   bool stop_sublookup_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
@@ -71,7 +71,7 @@ struct hb_closure_context_t
     nesting_level_left--;
     recurse_func (this, lookup_index);
     nesting_level_left++;
-    return VOID;
+    return HB_VOID;
   }
 
   hb_face_t *face;
@@ -137,7 +137,7 @@ struct hb_would_apply_context_t
 #endif
 
 #define TRACE_COLLECT_GLYPHS(this) \
-	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, void_t> trace \
+	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
@@ -145,11 +145,11 @@ struct hb_collect_glyphs_context_t
 {
   inline const char *get_name (void) { return "COLLECT_GLYPHS"; }
   static const unsigned int max_debug_depth = HB_DEBUG_COLLECT_GLYPHS;
-  typedef void_t return_t;
+  typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { obj.collect_glyphs (this); return VOID; }
-  static return_t default_return_value (void) { return VOID; }
+  inline return_t process (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
+  static return_t default_return_value (void) { return HB_VOID; }
   bool stop_sublookup_iteration (const return_t r) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
@@ -161,7 +161,7 @@ struct hb_collect_glyphs_context_t
      * glyphs in the recursion.  If output is not requested, we can go home now. */
 
     if (output == hb_set_get_empty ())
-      return VOID;
+      return HB_VOID;
 
     hb_set_t *old_before = before;
     hb_set_t *old_input  = input;
@@ -176,7 +176,7 @@ struct hb_collect_glyphs_context_t
     input  = old_input;
     after  = old_after;
 
-    return VOID;
+    return HB_VOID;
   }
 
   hb_face_t *face;
