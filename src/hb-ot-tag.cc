@@ -544,7 +544,7 @@ static const LangTag ot_languages[] = {
 /*{"??",	HB_TAG('P','A','A',' ')},*/	/* Palestinian Aramaic */
 /*{"??",	HB_TAG('P','G','R',' ')},*/	/* Polytonic Greek */
 /*{"??",	HB_TAG('P','L','G',' ')},*/	/* Palaung */
-/*{"??",	HB_TAG('Q','I','N',' ')},*/	/* Chin */
+/*{"??",	HB_TAG('Q','I','N',' ')},*/	/* Asho Chin */
 /*{"??",	HB_TAG('R','B','U',' ')},*/	/* Russian Buriat */
 /*{"??",	HB_TAG('R','C','R',' ')},*/	/* R-Cree */
 /*{"??",	HB_TAG('R','M','S',' ')},*/	/* Rhaeto-Romanic */
