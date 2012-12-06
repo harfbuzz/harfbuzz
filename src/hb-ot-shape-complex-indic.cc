@@ -1338,6 +1338,11 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
      * don't have positioning features for the Unicode-style decomposition.
      *
      * Argh...
+     *
+     * The Uniscribe behavior is now documented in the newly published Sinhala
+     * spec in 2012:
+     *
+     *   http://www.microsoft.com/typography/OpenTypeDev/sinhala/intro.htm#shaping
      */
 
     const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) c->plan->data;
