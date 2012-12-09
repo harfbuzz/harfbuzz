@@ -113,7 +113,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
     hb_blob_destroy (silf_blob);
 
   data->face = face;
-  data->grface = gr_make_face (data, &hb_graphite2_get_table, gr_face_default);
+  data->grface = gr_make_face (data, &hb_graphite2_get_table, gr_face_preloadAll);
 
   if (unlikely (!data->grface)) {
     free (data);
