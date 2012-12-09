@@ -91,6 +91,14 @@ _hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
   free (data);
 }
 
+CGFontRef
+hb_coretext_face_get_ct_font (hb_face_t *face)
+{
+  if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
+  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
+  return face_data->cg_font;
+}
+
 
 /*
  * shaper font data
@@ -149,18 +157,18 @@ _hb_coretext_shaper_shape_plan_data_destroy (hb_coretext_shaper_shape_plan_data_
 {
 }
 
+CTFontRef
+hb_coretext_font_get_ct_font (hb_font_t *font)
+{
+  if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return NULL;
+  hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
+  return font_data->ct_font;
+}
+
 
 /*
  * shaper
  */
-
-CTFontRef
-hb_coretext_font_get_ct_font (hb_font_t *font)
-{
-  if (unlikely (!hb_coretext_shaper_font_data_ensure (font))) return 0;
-  hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
-  return font_data->ct_font;
-}
 
 hb_bool_t
 _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
