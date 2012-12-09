@@ -325,10 +325,18 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   }
   ci++;
 
-  buffer->clear_output ();
+  //buffer->clear_output ();
   for (unsigned int i = 0; i < ci; ++i)
-    buffer->replace_glyphs (clusters[i].num_chars, clusters[i].num_glyphs, gids + clusters[i].base_glyph);
-  buffer->swap_buffers ();
+  {
+    for (unsigned int j = 0; j < clusters[i].num_glyphs; ++j)
+    {
+      hb_glyph_info_t *info = &buffer->info[clusters[i].base_glyph + j];
+      info->codepoint = gids[clusters[i].base_glyph + j];
+      info->cluster = gr_cinfo_base(gr_seg_cinfo(seg, clusters[i].base_char));
+    }
+  }
+  buffer->len = glyph_count;
+  //buffer->swap_buffers ();
 
   if (HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
     curradvx = gr_seg_advance_X(seg);
