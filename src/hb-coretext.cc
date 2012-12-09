@@ -29,10 +29,6 @@
 #define HB_SHAPER coretext
 #include "hb-shaper-impl-private.hh"
 
-#define GlyphID GlyphID_mac
-#include <ApplicationServices/ApplicationServices.h>
-#undef GlyphID
-
 #include "hb-coretext.h"
 
 
