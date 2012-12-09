@@ -217,7 +217,6 @@ LOGFONTW *
 hb_uniscribe_font_get_logfontw (hb_font_t *font)
 {
   if (unlikely (!hb_uniscribe_shaper_font_data_ensure (font))) return NULL;
-    return NULL;
   hb_uniscribe_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
   return &font_data->log_font;
 }
