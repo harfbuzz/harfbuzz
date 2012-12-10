@@ -208,7 +208,19 @@ AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ===========================================================================
 
-AC_CHECK_HEADERS(usp10.h windows.h, have_uniscribe=true, have_uniscribe=false)
+AC_MSG_CHECKING([for ScriptShapeOpenType in usp10])
+saved_LIBS=$LIBS
+LIBS="$LIBS -lusp10 -lgdi32"
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	[[
+	 #define _WIN32_WINNT 0x0600
+	 #include <windows.h>
+	 #include <usp10.h>
+	 ]],
+	ScriptShapeOpenType)],
+	[have_uniscribe=true; AC_MSG_RESULT(yes)],
+	[have_uniscribe=false;AC_MSG_RESULT(no)])
+LIBS=$saved_LIBS
 if $have_uniscribe; then
 	UNISCRIBE_CFLAGS=
 	UNISCRIBE_LIBS="-lusp10 -lgdi32"
