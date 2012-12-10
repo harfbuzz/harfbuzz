@@ -92,7 +92,7 @@ _hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
 }
 
 CGFontRef
-hb_coretext_face_get_ct_font (hb_face_t *face)
+hb_coretext_face_get_cg_font (hb_face_t *face)
 {
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
