@@ -69,12 +69,23 @@ typedef long hb_atomic_int_t;
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
 
 #include <libkern/OSAtomic.h>
+#include <AvailabilityMacros.h>
 
 typedef int32_t hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier ((V), &(AI)) - (V))
 
 #define hb_atomic_ptr_get(P)		(OSMemoryBarrier (), (void *) *(P))
+#if (MAX_OS_X_VERSION_MAX_ALLOWED >= MAX_OS_X_VERSION_10_5)
+/* XXX We should expand the above check to also allow iPhone OS >= 2.0, but I can't find any info re
+ * AvailabilityMacros.h for iOS.  Is it even available there? */
 #define hb_atomic_ptr_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
+#else
+#if __ppc64__ || __x86_64__
+#define hb_atomic_ptr_cmpexch(P,O,N)    OSAtomicCompareAndSwap64Barrier ((int64_t) (O), (int64_t) (N), (int64_t*) (P))
+#else
+#define hb_atomic_ptr_cmpexch(P,O,N)    OSAtomicCompareAndSwap32Barrier ((int32_t) (O), (int32_t) (N), (int32_t*) (P))
+#endif
+#endif
 
 
 #elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES)
