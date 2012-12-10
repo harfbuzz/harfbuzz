@@ -220,7 +220,7 @@ AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 
 dnl ===========================================================================
 
-AC_CHECK_HEADERS(ApplicationServices/ApplicationServices.h, have_coretext=true, have_coretext=false)
+AC_CHECK_TYPE(CTFontRef, have_coretext=true, have_coretext=false, [#include <ApplicationServices/ApplicationServices.h>])
 if $have_coretext; then
 	CORETEXT_CFLAGS=
 	CORETEXT_LIBS="-framework ApplicationServices"
