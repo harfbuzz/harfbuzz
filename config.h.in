@@ -1,9 +1,5 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the <ApplicationServices/ApplicationServices.h>
-   header file. */
-#undef HAVE_APPLICATIONSERVICES_APPLICATIONSERVICES_H
-
 /* Define to 1 if you have the `atexit' function. */
 #undef HAVE_ATEXIT
 
