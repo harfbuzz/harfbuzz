@@ -640,8 +640,12 @@ hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer, hb_bool_t ze
 }
 
 hb_bool_t
-hb_ot_layout_get_size_params (hb_face_t *face,
-			      uint16_t  *data /* OUT, 5 items */)
+hb_ot_layout_get_size_params (hb_face_t    *face,
+			      unsigned int *design_size,       /* OUT.  May be NULL */
+			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
+			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
+			      unsigned int *range_start,       /* OUT.  May be NULL */
+			      unsigned int *range_end          /* OUT.  May be NULL */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
 
@@ -651,17 +655,27 @@ hb_ot_layout_get_size_params (hb_face_t *face,
     if (HB_TAG ('s','i','z','e') == gpos.get_feature_tag (i))
     {
       const OT::Feature &f = gpos.get_feature (i);
-      const OT::FeatureParams &params = f.get_feature_params ();
+      const OT::FeatureParamsSize &params = f.get_feature_params ().u.size;
 
-      for (unsigned int i = 0; i < 5; i++)
-	data[i] = params.u.size.params[i];
+#define PARAM(a, A) if (a) *a = params.A
+      PARAM (design_size, designSize);
+      PARAM (subfamily_id, subfamilyID);
+      PARAM (subfamily_name_id, subfamilyNameID);
+      PARAM (range_start, rangeStart);
+      PARAM (range_end, rangeEnd);
+#undef PARAM
 
       return true;
     }
   }
 
-  for (unsigned int i = 0; i < 5; i++)
-    data[i] = 0;
+#define PARAM(a, A) if (a) *a = 0
+  PARAM (design_size, designSize);
+  PARAM (subfamily_id, subfamilyID);
+  PARAM (subfamily_name_id, subfamilyNameID);
+  PARAM (range_start, rangeStart);
+  PARAM (range_end, rangeEnd);
+#undef PARAM
 
   return false;
 }

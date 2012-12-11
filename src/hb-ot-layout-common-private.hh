@@ -248,6 +248,8 @@ struct Script
 
 typedef RecordListOf<Script> ScriptList;
 
+
+/* http://www.microsoft.com/typography/otspec/features_pt.htm#size */
 struct FeatureParamsSize
 {
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -255,15 +257,89 @@ struct FeatureParamsSize
     return TRACE_RETURN (c->check_struct (this));
   }
 
-  USHORT params[5];
+  USHORT	designSize;	/* Represents the design size in 720/inch
+				 * units (decipoints).  The design size entry
+				 * must be non-zero.  When there is a design
+				 * size but no recommended size range, the
+				 * rest of the array will consist of zeros. */
+  USHORT	subfamilyID;	/* Has no independent meaning, but serves
+				 * as an identifier that associates fonts
+				 * in a subfamily. All fonts which share a
+				 * Preferred or Font Family name and which
+				 * differ only by size range shall have the
+				 * same subfamily value, and no fonts which
+				 * differ in weight or style shall have the
+				 * same subfamily value. If this value is
+				 * zero, the remaining fields in the array
+				 * will be ignored. */
+  USHORT	subfamilyNameID;/* If the preceding value is non-zero, this
+				 * value must be set in the range 256 - 32767
+				 * (inclusive). It records the value of a
+				 * field in the name table, which must
+				 * contain English-language strings encoded
+				 * in Windows Unicode and Macintosh Roman,
+				 * and may contain additional strings
+				 * localized to other scripts and languages.
+				 * Each of these strings is the name an
+				 * application should use, in combination
+				 * with the family name, to represent the
+				 * subfamily in a menu.  Applications will
+				 * choose the appropriate version based on
+				 * their selection criteria. */
+  USHORT	rangeStart;	/* Large end of the recommended usage range
+				 * (inclusive), stored in 720/inch units
+				 * (decipoints). */
+  USHORT	rangeEnd;	/* Small end of the recommended usage range
+				   (exclusive), stored in 720/inch units
+				 * (decipoints). */
   public:
   DEFINE_SIZE_STATIC (10);
 };
 
+/* http://www.microsoft.com/typography/otspec/features_pt.htm#ssxx */
+struct FeatureParamsStylisticSet
+{
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    /* Right now minorVersion is at zero.  Which means, any table supports
+     * the uiNameID field. */
+    return TRACE_RETURN (c->check_struct (this));
+  }
+
+  USHORT	minorVersion;	/* (set to 0): This corresponds to a “minor”
+				 * version number. Additional data may be
+				 * added to the end of this Feature Parameters
+				 * table in the future. */
+
+  USHORT	uiNameID;	/* The 'name' table name ID that specifies a
+				 * string (or strings, for multiple languages)
+				 * for a user-interface label for this
+				 * feature.  The values of uiLabelNameId and
+				 * sampleTextNameId are expected to be in the
+				 * font-specific name ID range (256-32767),
+				 * though that is not a requirement in this
+				 * Feature Parameters specification. The
+				 * user-interface label for the feature can
+				 * be provided in multiple languages. An
+				 * English string should be included as a
+				 * fallback. The string should be kept to a
+				 * minimal length to fit comfortably with
+				 * different application interfaces. */
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
+
 struct FeatureParams
 {
-  /* Note: currently the only feature with params is 'size', so we hardcode
-   * the length of the table to that of the FeatureParamsSize. */
+  /* Note:
+   *
+   * FeatureParams structures unfortunately don't have a generic length argument,
+   * so their length depends on the feature name / requested use.  We don't have
+   * that information at sanitize time.  As such, we sanitize for the longest
+   * subtable possible.  This may nuke a possibly valid subtable if it's unfortunate
+   * enough to happen at the very end of the GSUB/GPOS table.  But that's very
+   * unlikely (I hope!).
+   */
 
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE (this);
@@ -271,7 +347,8 @@ struct FeatureParams
   }
 
   union {
-  FeatureParamsSize size;
+  FeatureParamsSize		size;
+  FeatureParamsStylisticSet	stylisticSet;
   } u;
   DEFINE_SIZE_STATIC (10);
 };

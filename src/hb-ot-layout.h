@@ -280,8 +280,12 @@ Xhb_ot_layout_lookup_position (hb_font_t            *font,
 /* Optical 'size' feature info.  Returns true if found.
  * http://www.microsoft.com/typography/otspec/features_pt.htm#size */
 hb_bool_t
-hb_ot_layout_get_size_params (hb_face_t *face,
-			      uint16_t  *data /* OUT, 5 items */);
+hb_ot_layout_get_size_params (hb_face_t    *face,
+			      unsigned int *design_size,       /* OUT.  May be NULL */
+			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
+			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
+			      unsigned int *range_start,       /* OUT.  May be NULL */
+			      unsigned int *range_end          /* OUT.  May be NULL */);
 
 
 HB_END_DECLS

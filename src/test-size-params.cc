@@ -84,8 +84,13 @@ main (int argc, char **argv)
   hb_blob_destroy (blob);
   blob = NULL;
 
-  uint16_t params[5];
-  if (!hb_ot_layout_get_size_params (face, params))
+  unsigned int params[5];
+  if (!hb_ot_layout_get_size_params (face,
+				     params,
+				     params+1,
+				     params+2,
+				     params+3,
+				     params+4))
     return 1;
 
   for (unsigned int i = 0; i < 5; i++) {
