@@ -647,6 +647,7 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *range_start,       /* OUT.  May be NULL */
 			      unsigned int *range_end          /* OUT.  May be NULL */)
 {
+  bool ret = false;
   const OT::GPOS &gpos = _get_gpos (face);
 
   unsigned int num_features = gpos.get_feature_count ();
@@ -658,7 +659,14 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
       const OT::FeatureParamsSize &params = f.get_feature_params ().u.size;
 
 #define PARAM(a, A) if (a) *a = params.A
+      if (!params.designSize)
+        goto zero_all;
       PARAM (design_size, designSize);
+      if (!params.subfamilyID)
+      {
+        ret = true;
+	goto zero_most;
+      };
       PARAM (subfamily_id, subfamilyID);
       PARAM (subfamily_name_id, subfamilyNameID);
       PARAM (range_start, rangeStart);
@@ -670,12 +678,14 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
   }
 
 #define PARAM(a, A) if (a) *a = 0
+zero_all:
   PARAM (design_size, designSize);
+zero_most:
   PARAM (subfamily_id, subfamilyID);
   PARAM (subfamily_name_id, subfamilyNameID);
   PARAM (range_start, rangeStart);
   PARAM (range_end, rangeEnd);
 #undef PARAM
 
-  return false;
+  return ret;
 }
