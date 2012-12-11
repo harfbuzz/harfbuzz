@@ -534,32 +534,43 @@ struct BEInt<Type, 4>
   inline bool operator != (const BEInt<Type, 4>& o) const { return !(*this == o); }
   private: uint8_t v[4];
 };
+template <typename Type>
+struct BEInt<Type, 3>
+{
+  public:
+  inline void set (Type i) { hb_be_uint24_put (v,i); }
+  inline operator Type (void) const { return hb_be_uint24_get (v); }
+  inline bool operator == (const BEInt<Type, 3>& o) const { return hb_be_uint24_eq (v, o.v); }
+  inline bool operator != (const BEInt<Type, 3>& o) const { return !(*this == o); }
+  private: uint8_t v[3];
+};
 
 /* Integer types in big-endian order and no alignment requirement */
-template <typename Type>
+template <typename Type, unsigned int Size>
 struct IntType
 {
   inline void set (Type i) { v.set (i); }
   inline operator Type(void) const { return v; }
-  inline bool operator == (const IntType<Type> &o) const { return v == o.v; }
-  inline bool operator != (const IntType<Type> &o) const { return v != o.v; }
-  static inline int cmp (const IntType<Type> *a, const IntType<Type> *b) { return b->cmp (*a); }
-  inline int cmp (IntType<Type> va) const { Type a = va; Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
+  inline bool operator == (const IntType<Type,Size> &o) const { return v == o.v; }
+  inline bool operator != (const IntType<Type,Size> &o) const { return v != o.v; }
+  static inline int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
+  inline int cmp (IntType<Type,Size> va) const { Type a = va; Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
   inline int cmp (Type a) const { Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (likely (c->check_struct (this)));
   }
   protected:
-  BEInt<Type, sizeof (Type)> v;
+  BEInt<Type, Size> v;
   public:
-  DEFINE_SIZE_STATIC (sizeof (Type));
+  DEFINE_SIZE_STATIC (Size);
 };
 
-typedef IntType<uint16_t> USHORT;	/* 16-bit unsigned integer. */
-typedef IntType<int16_t>  SHORT;	/* 16-bit signed integer. */
-typedef IntType<uint32_t> ULONG;	/* 32-bit unsigned integer. */
-typedef IntType<int32_t>  LONG;		/* 32-bit signed integer. */
+typedef IntType<uint16_t, 2> USHORT;	/* 16-bit unsigned integer. */
+typedef IntType<int16_t,  2> SHORT;	/* 16-bit signed integer. */
+typedef IntType<uint32_t, 4> ULONG;	/* 32-bit unsigned integer. */
+typedef IntType<int32_t,  4> LONG;	/* 32-bit signed integer. */
+typedef IntType<uint32_t, 3> UINT24;	/* 24-bit unsigned integer. */
 
 /* 16-bit signed integer (SHORT) that describes a quantity in FUnits. */
 typedef SHORT FWORD;
