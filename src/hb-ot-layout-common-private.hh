@@ -329,6 +329,48 @@ struct FeatureParamsStylisticSet
   DEFINE_SIZE_STATIC (4);
 };
 
+struct FeatureParamsCharacterVariants
+{
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this) &&
+			 characters.sanitize (c));
+  }
+  /* TODO: This is made private since we don't have the facilities in
+   * FeatureParams to correctly sanitize this. */
+  private:
+  USHORT	format;			/* Format number is set to 0. */
+  USHORT	featUILableNameID;	/* The ‘name’ table name ID that
+					 * specifies a string (or strings,
+					 * for multiple languages) for a
+					 * user-interface label for this
+					 * feature. (May be NULL.) */
+  USHORT	featUITooltipTextNameID;/* The ‘name’ table name ID that
+					 * specifies a string (or strings,
+					 * for multiple languages) that an
+					 * application can use for tooltip
+					 * text for this feature. (May be
+					 * NULL.) */
+  USHORT	sampleTextNameID;	/* The ‘name’ table name ID that
+					 * specifies sample text that
+					 * illustrates the effect of this
+					 * feature. (May be NULL.) */
+  USHORT	numNamedParameters;	/* Number of named parameters. (May
+					 * be zero.) */
+  USHORT	firstParamUILabelNameID;/* The first ‘name’ table name ID
+					 * used to specify strings for
+					 * user-interface labels for the
+					 * feature parameters. (Must be zero
+					 * if numParameters is zero.) */
+  ArrayOf<UINT24>
+		characters;		/* Array of the Unicode Scalar Value
+					 * of the characters for which this
+					 * feature provides glyph variants.
+					 * (May be zero.) */
+  public:
+  DEFINE_SIZE_ARRAY (14, characters);
+};
+
 struct FeatureParams
 {
   /* Note:
@@ -339,6 +381,9 @@ struct FeatureParams
    * subtable possible.  This may nuke a possibly valid subtable if it's unfortunate
    * enough to happen at the very end of the GSUB/GPOS table.  But that's very
    * unlikely (I hope!).
+   *
+   * When we fully implement FeatureParamsCharacterVariants, we should fix this
+   * shortcoming...
    */
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -347,10 +392,11 @@ struct FeatureParams
   }
 
   union {
-  FeatureParamsSize		size;
-  FeatureParamsStylisticSet	stylisticSet;
+  FeatureParamsSize			size;
+  FeatureParamsStylisticSet		stylisticSet;
+  FeatureParamsCharacterVariants	characterVariants;
   } u;
-  DEFINE_SIZE_STATIC (10);
+  DEFINE_SIZE_STATIC (17);
 };
 
 struct Feature
