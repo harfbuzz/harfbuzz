@@ -658,33 +658,92 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
       const OT::Feature &f = gpos.get_feature (i);
       const OT::FeatureParamsSize &params = f.get_feature_params ().u.size;
 
-#define PARAM(a, A) if (a) *a = params.A
-      if (!params.designSize)
-        goto zero_all;
-      PARAM (design_size, designSize);
-      if (!params.subfamilyID)
-      {
-        ret = true;
-	goto zero_most;
-      };
-      PARAM (subfamily_id, subfamilyID);
-      PARAM (subfamily_name_id, subfamilyNameID);
-      PARAM (range_start, rangeStart);
-      PARAM (range_end, rangeEnd);
-#undef PARAM
+      /* This subtable has some "history", if you will.  Some earlier versions of
+       * Adobe tools calculated the offset of the FeatureParams sutable from the
+       * beginning of the FeatureList table!  Now, we don't check for that possibility,
+       * but we want to at least detect junk data and reject it.
+       *
+       * Read Roberts wrote on 9/15/06 on opentype-list@indx.co.uk :
+       *
+       * Yes, it is correct that a new version of the AFDKO (version 2.0) will be
+       * coming out soon, and that the makeotf program will build a font with a
+       * 'size' feature that is correct by the specification.
+       *
+       * The specification for this feature tag is in the "OpenType Layout Tag
+       * Registry". You can see a copy of this at:
+       * http://partners.adobe.com/public/developer/opentype/index_tag8.html#size
+       *
+       * Here is one set of rules to determine if the 'size' feature is built
+       * correctly, or as by the older versions of MakeOTF. You may be able to do
+       * better.
+       *
+       * Assume that the offset to the size feature is according to specification,
+       * and make the following value checks. If it fails, assume the the size
+       * feature is calculated as versions of MakeOTF before the AFDKO 2.0 built it.
+       * If this fails, reject the 'size' feature. The older makeOTF's calculated the
+       * offset from the beginning of the FeatureList table, rather than from the
+       * beginning of the 'size' Feature table.
+       *
+       * If "design size" == 0:
+       *     fails check
+       *
+       * Else if ("subfamily identifier" == 0 and
+       *     "range start" == 0 and
+       *     "range end" == 0 and
+       *     "range start" == 0 and
+       *     "menu name ID" == 0)
+       *     passes check: this is the format used when there is a design size
+       * specified, but there is no recommended size range.
+       *
+       * Else if ("design size" <  "range start" or
+       *     "design size" >   "range end" or
+       *     "range end" <= "range start" or
+       *     "menu name ID"  < 256 or
+       *     "menu name ID"  > 32767 or
+       *     menu name ID is not a name ID which is actually in the name table)
+       *     fails test
+       * Else
+       *     passes test.
+       */
 
-      return true;
+      if (!params.designSize)
+        ret = false;
+      else if (params.subfamilyID == 0 &&
+	       params.subfamilyNameID == 0 &&
+	       params.rangeStart == 0 &&
+	       params.rangeEnd == 0)
+        ret = true;
+      else if (params.designSize < params.rangeStart ||
+	       params.designSize > params.rangeEnd ||
+	       params.subfamilyNameID < 256 ||
+	       params.subfamilyNameID > 32767)
+        ret = false;
+      else
+        ret = true;
+
+#define PARAM(a, A) if (a) *a = params.A
+      if (ret)
+      {
+	PARAM (design_size, designSize);
+	PARAM (subfamily_id, subfamilyID);
+	PARAM (subfamily_name_id, subfamilyNameID);
+	PARAM (range_start, rangeStart);
+	PARAM (range_end, rangeEnd);
+	break;
+      }
+#undef PARAM
     }
   }
 
 #define PARAM(a, A) if (a) *a = 0
-zero_all:
-  PARAM (design_size, designSize);
-zero_most:
-  PARAM (subfamily_id, subfamilyID);
-  PARAM (subfamily_name_id, subfamilyNameID);
-  PARAM (range_start, rangeStart);
-  PARAM (range_end, rangeEnd);
+  if (!ret)
+  {
+    PARAM (design_size, designSize);
+    PARAM (subfamily_id, subfamilyID);
+    PARAM (subfamily_name_id, subfamilyNameID);
+    PARAM (range_start, rangeStart);
+    PARAM (range_end, rangeEnd);
+  }
 #undef PARAM
 
   return ret;
