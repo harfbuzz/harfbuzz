@@ -60,9 +60,14 @@ struct Record
     return tag.cmp (a);
   }
 
+  struct sanitize_closure_t {
+    hb_tag_t tag;
+    void *list_base;
+  };
   inline bool sanitize (hb_sanitize_context_t *c, void *base) {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && offset.sanitize (c, base));
+    const sanitize_closure_t closure = {tag, base};
+    return TRACE_RETURN (c->check_struct (this) && offset.sanitize (c, base, &closure));
   }
 
   Tag		tag;		/* 4-byte Tag identifier */
@@ -192,7 +197,8 @@ struct LangSys
    return reqFeatureIndex;;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c,
+			const Record<LangSys>::sanitize_closure_t * = NULL) {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && featureIndex.sanitize (c));
   }
@@ -230,7 +236,8 @@ struct Script
   inline bool has_default_lang_sys (void) const { return defaultLangSys != 0; }
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c,
+			const Record<Script>::sanitize_closure_t * = NULL) {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
   }
@@ -413,7 +420,8 @@ struct Feature
   inline const FeatureParams &get_feature_params (void) const
   { return this+featureParams; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c,
+			const Record<Feature>::sanitize_closure_t *closure) {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && lookupIndex.sanitize (c) &&
 			 featureParams.sanitize (c, this));
