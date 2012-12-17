@@ -255,7 +255,8 @@ struct hb_sanitize_context_t
        "may_edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
        this->edit_count,
        p, p + len, len,
-       this->start, this->end);
+       this->start, this->end,
+       this->writable ? "GRANTED" : "DENIED");
 
     return TRACE_RETURN (this->writable);
   }
