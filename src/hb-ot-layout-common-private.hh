@@ -423,8 +423,29 @@ struct Feature
   inline bool sanitize (hb_sanitize_context_t *c,
 			const Record<Feature>::sanitize_closure_t *closure) {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && lookupIndex.sanitize (c) &&
-			 featureParams.sanitize (c, this));
+    if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
+      return TRACE_RETURN (false);
+
+    Offset orig_offset = featureParams;
+    if (likely (featureParams.sanitize (c, this)))
+      return TRACE_RETURN (true);
+
+    /* Some earlier versions of Adobe tools calculated the offset of the
+     * FeatureParams sutable from the beginning of the FeatureList table!
+     * Try that instead... */
+    if (closure && closure->list_base)
+    {
+      Offset new_offset;
+      new_offset.set (orig_offset - ((char *) this - (char *) closure->list_base));
+      /* Check that it did not overflow. */
+      if (new_offset != (orig_offset - ((char *) this - (char *) closure->list_base)))
+	return TRACE_RETURN (false);
+
+      return TRACE_RETURN (featureParams.try_set (c, new_offset) &&
+			   featureParams.sanitize (c, this));
+    }
+
+    return TRACE_RETURN (false);
   }
 
   OffsetTo<FeatureParams>

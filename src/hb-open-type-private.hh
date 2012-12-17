@@ -704,7 +704,13 @@ struct GenericOffsetTo : OffsetType
     return TRACE_RETURN (likely (obj.sanitize (c, user_data)) || neuter (c));
   }
 
-  private:
+  inline bool try_set (hb_sanitize_context_t *c, const OffsetType &v) {
+    if (c->may_edit (this, this->static_size)) {
+      this->set (v);
+      return true;
+    }
+    return false;
+  }
   /* Set the offset to Null */
   inline bool neuter (hb_sanitize_context_t *c) {
     if (c->may_edit (this, this->static_size)) {
