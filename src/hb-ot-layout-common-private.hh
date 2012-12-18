@@ -261,7 +261,71 @@ struct FeatureParamsSize
 {
   inline bool sanitize (hb_sanitize_context_t *c) {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this));
+    if (unlikely (!c->check_struct (this))) return TRACE_RETURN (false);
+
+    /* This subtable has some "history", if you will.  Some earlier versions of
+     * Adobe tools calculated the offset of the FeatureParams sutable from the
+     * beginning of the FeatureList table!  Now, that is dealt with in the
+     * Feature implementation.  But we still need to be able to tell junk from
+     * real data.  Note: We don't check that the nameID actually exists.
+     *
+     * Read Roberts wrote on 9/15/06 on opentype-list@indx.co.uk :
+     *
+     * Yes, it is correct that a new version of the AFDKO (version 2.0) will be
+     * coming out soon, and that the makeotf program will build a font with a
+     * 'size' feature that is correct by the specification.
+     *
+     * The specification for this feature tag is in the "OpenType Layout Tag
+     * Registry". You can see a copy of this at:
+     * http://partners.adobe.com/public/developer/opentype/index_tag8.html#size
+     *
+     * Here is one set of rules to determine if the 'size' feature is built
+     * correctly, or as by the older versions of MakeOTF. You may be able to do
+     * better.
+     *
+     * Assume that the offset to the size feature is according to specification,
+     * and make the following value checks. If it fails, assume the the size
+     * feature is calculated as versions of MakeOTF before the AFDKO 2.0 built it.
+     * If this fails, reject the 'size' feature. The older makeOTF's calculated the
+     * offset from the beginning of the FeatureList table, rather than from the
+     * beginning of the 'size' Feature table.
+     *
+     * If "design size" == 0:
+     *     fails check
+     *
+     * Else if ("subfamily identifier" == 0 and
+     *     "range start" == 0 and
+     *     "range end" == 0 and
+     *     "range start" == 0 and
+     *     "menu name ID" == 0)
+     *     passes check: this is the format used when there is a design size
+     * specified, but there is no recommended size range.
+     *
+     * Else if ("design size" <  "range start" or
+     *     "design size" >   "range end" or
+     *     "range end" <= "range start" or
+     *     "menu name ID"  < 256 or
+     *     "menu name ID"  > 32767 or
+     *     menu name ID is not a name ID which is actually in the name table)
+     *     fails test
+     * Else
+     *     passes test.
+     */
+
+    if (!designSize)
+      return TRACE_RETURN (false);
+    else if (subfamilyID == 0 &&
+	     subfamilyNameID == 0 &&
+	     rangeStart == 0 &&
+	     rangeEnd == 0)
+      return TRACE_RETURN (true);
+    else if (designSize < rangeStart ||
+	     designSize > rangeEnd ||
+	     subfamilyNameID < 256 ||
+	     subfamilyNameID > 32767)
+      return TRACE_RETURN (false);
+    else
+      return TRACE_RETURN (true);
   }
 
   USHORT	designSize;	/* Represents the design size in 720/inch
@@ -343,9 +407,7 @@ struct FeatureParamsCharacterVariants
     return TRACE_RETURN (c->check_struct (this) &&
 			 characters.sanitize (c));
   }
-  /* TODO: This is made private since we don't have the facilities in
-   * FeatureParams to correctly sanitize this. */
-  private:
+
   USHORT	format;			/* Format number is set to 0. */
   USHORT	featUILableNameID;	/* The ‘name’ table name ID that
 					 * specifies a string (or strings,
@@ -380,24 +442,25 @@ struct FeatureParamsCharacterVariants
 
 struct FeatureParams
 {
-  /* Note:
-   *
-   * FeatureParams structures unfortunately don't have a generic length argument,
-   * so their length depends on the feature name / requested use.  We don't have
-   * that information at sanitize time.  As such, we sanitize for the longest
-   * subtable possible.  This may nuke a possibly valid subtable if it's unfortunate
-   * enough to happen at the very end of the GSUB/GPOS table.  But that's very
-   * unlikely (I hope!).
-   *
-   * When we fully implement FeatureParamsCharacterVariants, we should fix this
-   * shortcoming...
-   */
-
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this));
+    if (tag == HB_TAG ('s','i','z','e'))
+      return TRACE_RETURN (u.size.sanitize (c));
+    if ((tag & 0xFFFF0000) == HB_TAG ('s','s','\0','\0')) /* ssXX */
+      return TRACE_RETURN (u.stylisticSet.sanitize (c));
+    if ((tag & 0xFFFF0000) == HB_TAG ('c','v','\0','\0')) /* cvXX */
+      return TRACE_RETURN (u.characterVariants.sanitize (c));
+    return TRACE_RETURN (true);
   }
 
+  inline const FeatureParamsSize& get_size_params (hb_tag_t tag) const
+  {
+    if (tag == HB_TAG ('s','i','z','e'))
+      return u.size;
+    return Null(FeatureParamsSize);
+  }
+
+  private:
   union {
   FeatureParamsSize			size;
   FeatureParamsStylisticSet		stylisticSet;
@@ -426,26 +489,36 @@ struct Feature
     if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
       return TRACE_RETURN (false);
 
+    /* Some earlier versions of Adobe tools calculated the offset of the
+     * FeatureParams subtable from the beginning of the FeatureList table!
+     *
+     * If sanitizing "failed" for the FeatureParams subtable, try it with the
+     * alternative location.  We would know sanitize "failed" if old value
+     * of the offset was non-zero, but it's zeroed now.
+     */
+
     Offset orig_offset = featureParams;
-    if (likely (featureParams.sanitize (c, this)))
+    if (unlikely (!featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE)))
+      return TRACE_RETURN (false);
+
+    if (likely (!orig_offset))
       return TRACE_RETURN (true);
 
-    /* Some earlier versions of Adobe tools calculated the offset of the
-     * FeatureParams sutable from the beginning of the FeatureList table!
-     * Try that instead... */
-    if (closure && closure->list_base)
+    if (featureParams == 0 && closure && closure->list_base && closure->list_base < this)
     {
-      Offset new_offset;
-      new_offset.set (orig_offset - ((char *) this - (char *) closure->list_base));
-      /* Check that it did not overflow. */
-      if (new_offset != (orig_offset - ((char *) this - (char *) closure->list_base)))
-	return TRACE_RETURN (false);
+      unsigned int new_offset_int = (unsigned int) orig_offset -
+				    ((char *) this - (char *) closure->list_base);
 
-      return TRACE_RETURN (featureParams.try_set (c, new_offset) &&
-			   featureParams.sanitize (c, this));
+      Offset new_offset;
+      /* Check that it did not overflow. */
+      new_offset.set (new_offset_int);
+      if (new_offset == new_offset_int &&
+	  featureParams.try_set (c, new_offset) &&
+	  !featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE))
+	return TRACE_RETURN (false);
     }
 
-    return TRACE_RETURN (false);
+    return TRACE_RETURN (true);
   }
 
   OffsetTo<FeatureParams>
