@@ -495,6 +495,9 @@ struct Feature
      * If sanitizing "failed" for the FeatureParams subtable, try it with the
      * alternative location.  We would know sanitize "failed" if old value
      * of the offset was non-zero, but it's zeroed now.
+     *
+     * Only do this for the 'size' feature, since at the time of the faulty
+     * Adobe tools, only the 'size' feature had FeatureParams defined.
      */
 
     Offset orig_offset = featureParams;
@@ -504,7 +507,9 @@ struct Feature
     if (likely (!orig_offset))
       return TRACE_RETURN (true);
 
-    if (featureParams == 0 && closure && closure->list_base && closure->list_base < this)
+    if (featureParams == 0 && closure &&
+	closure->tag == HB_TAG ('s','i','z','e') &&
+	closure->list_base && closure->list_base < this)
     {
       unsigned int new_offset_int = (unsigned int) orig_offset -
 				    ((char *) this - (char *) closure->list_base);
