@@ -275,3 +275,28 @@ test/shaping/Makefile
 ])
 
 AC_OUTPUT
+
+AC_MSG_NOTICE([
+
+Build configuration:
+
+Unicode callbacks (you want at least one):
+	Glib:			${have_glib}
+	ICU:			${have_icu}
+	UCDN:			${have_ucdn}
+
+Font callbacks (the more the better):
+	FreeType:		${have_freetype}
+
+Tools used for command-line utilities:
+	Cairo:			${have_cairo}
+
+Additional shapers (the more the better):
+	Graphite2:		${have_graphite}
+
+Test / platform shapers (not normally needed):
+	CoreText:		${have_coretext}
+	ICU Layout Engine:	${have_icu_le}
+	Old HarfBuzz:		${have_hb_old}
+	Uniscribe:		${have_uniscribe}
+])
