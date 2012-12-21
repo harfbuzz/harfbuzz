@@ -246,7 +246,7 @@ stdio_write_func (void                *closure,
   return CAIRO_STATUS_SUCCESS;
 }
 
-static const char helper_cairo_supported_formats[] =
+const char helper_cairo_supported_formats[] =
   "ansi"
   #ifdef CAIRO_HAS_PNG_FUNCTIONS
   "/png"

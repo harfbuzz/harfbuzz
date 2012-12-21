@@ -31,7 +31,8 @@
 struct output_buffer_t
 {
   output_buffer_t (option_parser_t *parser)
-		  : options (parser),
+		  : options (parser,
+			     g_strjoinv (" / ", (gchar**) hb_buffer_serialize_list_formats ())),
 		    format (parser) {}
 
   void init (const font_options_t *font_opts)
@@ -49,8 +50,7 @@ struct output_buffer_t
     {
       if (options.explicit_output_format)
 	fail (false, "Unknown output format `%s'; supported formats are: %s",
-	      options.output_format,
-	      g_strjoinv (" / ", (gchar**) hb_buffer_serialize_list_formats ()));
+	      options.output_format, options.supported_formats);
       else
 	/* Just default to TEXT if not explicitly requested and the
 	 * file extension is not recognized. */
