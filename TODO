@@ -71,7 +71,6 @@ API additions
 hb-view / hb-shape enhancements:
 ===============================
 
-- --output-format should list available formats.
 - Add --width, --height, --auto-size, --align, etc?
 - --features="init=medi=isol=fina=0"
 
