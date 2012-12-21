@@ -72,7 +72,6 @@ hb-view / hb-shape enhancements:
 ===============================
 
 - Add --width, --height, --auto-size, --align, etc?
-- --features="init=medi=isol=fina=0"
 
 
 Tests to write:
