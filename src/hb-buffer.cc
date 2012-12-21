@@ -1071,8 +1071,8 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
  */
 
 static const char *serialize_formats[] = {
-  "TEXT",
-  "JSON",
+  "text",
+  "json",
   NULL
 };
 
