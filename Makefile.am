@@ -12,6 +12,7 @@ pkgconfig_DATA = harfbuzz.pc
 EXTRA_DIST = \
 	autogen.sh \
 	harfbuzz.doap \
+	Android.mk \
 	$(NULL)
 
 MAINTAINERCLEANFILES = \
