@@ -313,6 +313,7 @@ struct output_options_t : option_group_t
   output_options_t (option_parser_t *parser) {
     output_file = NULL;
     output_format = NULL;
+    explicit_output_format = false;
 
     fp = NULL;
 
@@ -327,6 +328,9 @@ struct output_options_t : option_group_t
 
   void post_parse (GError **error G_GNUC_UNUSED)
   {
+    if (output_format)
+      explicit_output_format = true;
+
     if (output_file && !output_format) {
       output_format = strrchr (output_file, '.');
       if (output_format)
@@ -341,6 +345,7 @@ struct output_options_t : option_group_t
 
   const char *output_file;
   const char *output_format;
+  bool explicit_output_format;
 
   mutable FILE *fp;
 };
