@@ -32,7 +32,7 @@ struct output_buffer_t
 {
   output_buffer_t (option_parser_t *parser)
 		  : options (parser,
-			     g_strjoinv (" / ", (gchar**) hb_buffer_serialize_list_formats ())),
+			     g_strjoinv ("/", (gchar**) hb_buffer_serialize_list_formats ())),
 		    format (parser) {}
 
   void init (const font_options_t *font_opts)
