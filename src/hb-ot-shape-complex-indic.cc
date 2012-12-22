@@ -894,14 +894,23 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
     syllable_type_t syllable_type = (syllable_type_t) (syllable & 0x0F);
     if (unlikely (last_syllable != syllable && syllable_type == broken_cluster))
     {
+      last_syllable = syllable;
+
       hb_glyph_info_t info = dottedcircle;
       info.cluster = buffer->cur().cluster;
       info.mask = buffer->cur().mask;
       info.syllable() = buffer->cur().syllable();
+
+      /* Insert dottedcircle after possible Repha. */
+      while (buffer->idx < buffer->len &&
+	     last_syllable == buffer->cur().syllable() &&
+	     buffer->cur().indic_category() == OT_Repha)
+        buffer->next_glyph ();
+
       buffer->output_info (info);
-      last_syllable = syllable;
     }
-    buffer->next_glyph ();
+    else
+      buffer->next_glyph ();
   }
 
   buffer->swap_buffers ();

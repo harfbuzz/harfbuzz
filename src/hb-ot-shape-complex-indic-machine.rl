@@ -76,7 +76,7 @@ halant_or_matra_group = (final_halant_group | (h.ZWJ)? matra_group{0,4});
 consonant_syllable =	Repha? (cn.halant_group){0,4} cn A? halant_or_matra_group? syllable_tail;
 vowel_syllable =	reph? V.n? (ZWJ | (halant_group.cn){0,4} halant_or_matra_group? syllable_tail);
 standalone_cluster =	reph? place_holder.n? (halant_group.cn){0,4} halant_or_matra_group? syllable_tail;
-broken_cluster =	n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
+broken_cluster =	reph? n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 other =			any;
 
 main := |*
