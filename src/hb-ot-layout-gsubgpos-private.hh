@@ -1175,7 +1175,7 @@ struct ContextFormat2
 
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class},
-      NULL
+      &class_def
     };
 
     unsigned int count = ruleSet.len;
@@ -1191,9 +1191,10 @@ struct ContextFormat2
     TRACE_COLLECT_GLYPHS (this);
     (this+coverage).add_coverage (c->input);
 
+    const ClassDef &class_def = this+classDef;
     struct ContextCollectGlyphsLookupContext lookup_context = {
       {collect_class},
-      NULL
+      &class_def
     };
 
     unsigned int count = ruleSet.len;
@@ -1750,9 +1751,15 @@ struct ChainContextFormat2
     TRACE_COLLECT_GLYPHS (this);
     (this+coverage).add_coverage (c->input);
 
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
+    const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+
     struct ChainContextCollectGlyphsLookupContext lookup_context = {
       {collect_class},
-      {NULL, NULL, NULL}
+      {&backtrack_class_def,
+       &input_class_def,
+       &lookahead_class_def}
     };
 
     unsigned int count = ruleSet.len;
@@ -1764,13 +1771,17 @@ struct ChainContextFormat2
   {
     TRACE_WOULD_APPLY (this);
 
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
     const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
     unsigned int index = input_class_def.get_class (c->glyphs[0]);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_class},
-      {NULL, &input_class_def, NULL}
+      {&backtrack_class_def,
+       &input_class_def,
+       &lookahead_class_def}
     };
     return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
   }
