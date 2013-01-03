@@ -433,6 +433,14 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 					const hb_tag_t *features,
 					hb_set_t       *lookup_indexes /* OUT */)
 {
+  unsigned int required_feature_index;
+  if (hb_ot_layout_language_get_required_feature_index (face,
+							table_tag,
+							script_index,
+							language_index,
+							&required_feature_index))
+    _hb_ot_layout_collect_lookups_lookups (face, table_tag, required_feature_index, lookup_indexes);
+
   if (!features)
   {
     /* All features */
