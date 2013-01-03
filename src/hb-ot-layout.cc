@@ -439,20 +439,38 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 							script_index,
 							language_index,
 							&required_feature_index))
-    _hb_ot_layout_collect_lookups_lookups (face, table_tag, required_feature_index, lookup_indexes);
+    _hb_ot_layout_collect_lookups_lookups (face,
+					   table_tag,
+					   required_feature_index,
+					   lookup_indexes);
 
   if (!features)
   {
     /* All features */
-    unsigned int count = hb_ot_layout_language_get_feature_tags (face, table_tag, script_index, language_index, 0, NULL, NULL);
+    unsigned int count = hb_ot_layout_language_get_feature_tags (face,
+								 table_tag,
+								 script_index,
+								 language_index,
+								 0, NULL, NULL);
     for (unsigned int feature_index = 0; feature_index < count; feature_index++)
-      _hb_ot_layout_collect_lookups_lookups (face, table_tag, feature_index, lookup_indexes);
+      _hb_ot_layout_collect_lookups_lookups (face,
+					     table_tag,
+					     feature_index,
+					     lookup_indexes);
   } else {
     for (; *features; features++)
     {
       unsigned int feature_index;
-      if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index, *features, &feature_index))
-        _hb_ot_layout_collect_lookups_lookups (face, table_tag, feature_index, lookup_indexes);
+      if (hb_ot_layout_language_find_feature (face,
+					      table_tag,
+					      script_index,
+					      language_index,
+					      *features,
+					      &feature_index))
+        _hb_ot_layout_collect_lookups_lookups (face,
+					       table_tag,
+					       feature_index,
+					       lookup_indexes);
     }
   }
 }
@@ -468,15 +486,32 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
   if (!languages)
   {
     /* All languages */
-    unsigned int count = hb_ot_layout_script_get_language_tags (face, table_tag, script_index, 0, NULL, NULL);
+    unsigned int count = hb_ot_layout_script_get_language_tags (face,
+								table_tag,
+								script_index,
+								0, NULL, NULL);
     for (unsigned int language_index = 0; language_index < count; language_index++)
-      _hb_ot_layout_collect_lookups_features (face, table_tag, script_index, language_index, features, lookup_indexes);
+      _hb_ot_layout_collect_lookups_features (face,
+					      table_tag,
+					      script_index,
+					      language_index,
+					      features,
+					      lookup_indexes);
   } else {
     for (; *languages; languages++)
     {
       unsigned int language_index;
-      if (hb_ot_layout_script_find_language (face, table_tag, script_index, *languages, &language_index))
-        _hb_ot_layout_collect_lookups_features (face, table_tag, script_index, language_index, features, lookup_indexes);
+      if (hb_ot_layout_script_find_language (face,
+					     table_tag,
+					     script_index,
+					     *languages,
+					     &language_index))
+        _hb_ot_layout_collect_lookups_features (face,
+						table_tag,
+						script_index,
+						language_index,
+						features,
+						lookup_indexes);
     }
   }
 }
@@ -492,15 +527,30 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
   if (!scripts)
   {
     /* All scripts */
-    unsigned int count = hb_ot_layout_table_get_script_tags (face, table_tag, 0, NULL, NULL);
+    unsigned int count = hb_ot_layout_table_get_script_tags (face,
+							     table_tag,
+							     0, NULL, NULL);
     for (unsigned int script_index = 0; script_index < count; script_index++)
-      _hb_ot_layout_collect_lookups_languages (face, table_tag, script_index, languages, features, lookup_indexes);
+      _hb_ot_layout_collect_lookups_languages (face,
+					       table_tag,
+					       script_index,
+					       languages,
+					       features,
+					       lookup_indexes);
   } else {
     for (; *scripts; scripts++)
     {
       unsigned int script_index;
-      if (hb_ot_layout_table_find_script (face, table_tag, *scripts, &script_index))
-        _hb_ot_layout_collect_lookups_languages (face, table_tag, script_index, languages, features, lookup_indexes);
+      if (hb_ot_layout_table_find_script (face,
+					  table_tag,
+					  *scripts,
+					  &script_index))
+        _hb_ot_layout_collect_lookups_languages (face,
+						 table_tag,
+						 script_index,
+						 languages,
+						 features,
+						 lookup_indexes);
     }
   }
 }
@@ -516,7 +566,11 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
 
-  OT::hb_collect_glyphs_context_t c (face, glyphs_before, glyphs_input, glyphs_after, glyphs_output);
+  OT::hb_collect_glyphs_context_t c (face,
+				     glyphs_before,
+				     glyphs_input,
+				     glyphs_after,
+				     glyphs_output);
 
   switch (table_tag) {
     case HB_OT_TAG_GSUB:
