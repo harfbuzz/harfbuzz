@@ -49,6 +49,7 @@ hb_set_get_empty (void)
 {
   static const hb_set_t _hb_set_nil = {
     HB_OBJECT_HEADER_STATIC,
+    true, /* in_error */
 
     {0} /* elts */
   };
@@ -93,7 +94,7 @@ hb_set_get_user_data (hb_set_t           *set,
 hb_bool_t
 hb_set_allocation_successful (const hb_set_t  *set HB_UNUSED)
 {
-  return true;
+  return !set->in_error;
 }
 
 void
@@ -185,6 +186,12 @@ hb_set_symmetric_difference (hb_set_t       *set,
 			     const hb_set_t *other)
 {
   set->symmetric_difference (other);
+}
+
+void
+hb_set_invert (hb_set_t *set)
+{
+  set->invert ();
 }
 
 unsigned int

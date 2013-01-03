@@ -85,8 +85,6 @@ Tests to write:
 
 - GObject, FreeType, etc
 
-- hb_set_t
-
 - hb_cache_t and relatives
 
 - hb_feature_to/from_string

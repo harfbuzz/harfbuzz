@@ -137,6 +137,7 @@ struct hb_set_t
 {
   hb_object_header_t header;
   ASSERT_POD ();
+  bool in_error;
 
   inline void init (void) {
     header.init ();
@@ -223,6 +224,11 @@ struct hb_set_t
   {
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] ^= other->elts[i];
+  }
+  inline void invert (void)
+  {
+    for (unsigned int i = 0; i < ELTS; i++)
+      elts[i] = ~elts[i];
   }
   inline bool next (hb_codepoint_t *codepoint) const
   {
