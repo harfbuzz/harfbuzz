@@ -496,6 +496,13 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 					 const hb_tag_t *features,
 					 hb_set_t       *lookup_indexes /* OUT */)
 {
+  _hb_ot_layout_collect_lookups_features (face,
+					  table_tag,
+					  script_index,
+					  HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
+					  features,
+					  lookup_indexes);
+
   if (!languages)
   {
     /* All languages */
