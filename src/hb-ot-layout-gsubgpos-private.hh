@@ -62,7 +62,7 @@ struct hb_closure_context_t
   template <typename T>
   inline return_t process (const T &obj) { obj.closure (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (const return_t r HB_UNUSED) const { return false; }
+  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -111,7 +111,7 @@ struct hb_would_apply_context_t
   template <typename T>
   inline return_t process (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value (void) { return false; }
-  bool stop_sublookup_iteration (const return_t r) const { return r; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
 
   hb_face_t *face;
   const hb_codepoint_t *glyphs;
@@ -150,7 +150,7 @@ struct hb_collect_glyphs_context_t
   template <typename T>
   inline return_t process (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
-  bool stop_sublookup_iteration (const return_t r HB_UNUSED) const { return false; }
+  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -243,7 +243,7 @@ struct hb_apply_context_t
   template <typename T>
   inline return_t process (const T &obj) { return obj.apply (this); }
   static return_t default_return_value (void) { return false; }
-  bool stop_sublookup_iteration (const return_t r) const { return r; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
