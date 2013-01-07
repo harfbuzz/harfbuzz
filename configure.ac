@@ -171,6 +171,7 @@ dnl ==========================================================================
 
 PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
 if $have_icu; then
+	CXXFLAGS="$CXXFLAGS `$PKG_CONFIG --variable=CXXFLAGS icu-uc`"
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
 fi
 AM_CONDITIONAL(HAVE_ICU, $have_icu)
