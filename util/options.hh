@@ -175,7 +175,7 @@ struct shape_options_t : option_group_t
   void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,
 			const char *text_before, const char *text_after)
   {
-    hb_buffer_clear (buffer);
+    hb_buffer_clear_contents (buffer);
     if (text_before) {
       unsigned int len = strlen (text_before);
       hb_buffer_add_utf8 (buffer, text_before, len, len, 0);
