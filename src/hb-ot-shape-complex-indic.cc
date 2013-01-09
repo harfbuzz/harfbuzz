@@ -644,15 +644,16 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     info[start].indic_position() = POS_RA_TO_BECOME_REPH;
 
   /* For old-style Indic script tags, move the first post-base Halant after
-   * last consonant. */
+   * last consonant.  Only do this if there is *not* a Halant after last
+   * consonant.  Otherwise it becomes messy. */
   if (indic_plan->is_old_spec) {
     for (unsigned int i = base + 1; i < end; i++)
       if (info[i].indic_category() == OT_H) {
         unsigned int j;
         for (j = end - 1; j > i; j--)
-	  if (is_consonant (info[j]))
+	  if (is_consonant (info[j]) || info[j].indic_category() == OT_H)
 	    break;
-	if (j > i) {
+	if (info[j].indic_category() != OT_H && j > i) {
 	  /* Move Halant to after last consonant. */
 	  hb_glyph_info_t t = info[i];
 	  memmove (&info[i], &info[i + 1], (j - i) * sizeof (info[0]));
