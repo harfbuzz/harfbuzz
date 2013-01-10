@@ -1,3 +1,17 @@
+Overview of changes leading to 0.9.11
+Thursday, January 10, 2013
+=====================================
+
+- Build fixes.
+- Fix GPOS mark attachment with null Anchor offsets.
+- [Indic] Fix old-spec reordering of viramas if sequence ends in one.
+- Fix multi-threaded shaper data creation crash.
+- Add atomic ops for Solaris.
+
+API changes:
+- Rename hb_buffer_clear() to hb_buffer_clear_contents().
+
+
 Overview of changes leading to 0.9.10
 Thursday, January 3, 2013
 =====================================
