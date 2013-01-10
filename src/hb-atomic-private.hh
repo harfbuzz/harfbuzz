@@ -99,6 +99,18 @@ typedef int hb_atomic_int_t;
 #define hb_atomic_ptr_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
 
 
+#elif !defined(HB_NO_MT) && defined(HAVE_SOLARIS_ATOMIC_OPS)
+
+#include <atomic.h>
+#include <mbarrier.h>
+
+typedef unsigned int fc_atomic_int_t;
+#define fc_atomic_int_add(AI, V)	( ({__machine_rw_barrier ();}), atomic_add_int_nv (&(AI), (V)) - (V))
+
+#define fc_atomic_ptr_get(P)		( ({__machine_rw_barrier ();}), (void *) *(P))
+#define fc_atomic_ptr_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((P), (O), (N)) == (void *) (O) ? FcTrue : FcFalse)
+
+
 #elif !defined(HB_NO_MT)
 
 #define HB_ATOMIC_INT_NIL 1 /* Warn that fallback implementation is in use. */

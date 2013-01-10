@@ -78,8 +78,11 @@
 /* Define to 1 if you have the <sched.h> header file. */
 #undef HAVE_SCHED_H
 
-/* Define to 1 if you have the `sched_yield' function. */
+/* Have sched_yield */
 #undef HAVE_SCHED_YIELD
+
+/* Have Solaris __machine_*_barrier and atomic_* operations */
+#undef HAVE_SOLARIS_ATOMIC_OPS
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
