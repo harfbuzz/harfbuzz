@@ -88,6 +88,8 @@ if test "x$GCC" = "xyes"; then
 	esac
 fi
 
+AM_CONDITIONAL(HAVE_GCC, test "x$GCC" = "xyes")
+
 hb_os_win32=no
 AC_MSG_CHECKING([for native Win32])
 case "$host" in

@@ -198,8 +198,12 @@ else
 if HAVE_ICU
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
 else
-# Use a C linker, not C++; Don't link to libstdc++
+# Use a C linker for GCC, not C++; Don't link to libstdc++
+if HAVE_GCC
 libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)
+else
+libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
+endif
 endif
 endif
 
