@@ -104,11 +104,11 @@ typedef int hb_atomic_int_t;
 #include <atomic.h>
 #include <mbarrier.h>
 
-typedef unsigned int fc_atomic_int_t;
-#define fc_atomic_int_add(AI, V)	( ({__machine_rw_barrier ();}), atomic_add_int_nv (&(AI), (V)) - (V))
+typedef unsigned int hb_atomic_int_t;
+#define hb_atomic_int_add(AI, V)	( ({__machine_rw_barrier ();}), atomic_add_int_nv (&(AI), (V)) - (V))
 
-#define fc_atomic_ptr_get(P)		( ({__machine_rw_barrier ();}), (void *) *(P))
-#define fc_atomic_ptr_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((P), (O), (N)) == (void *) (O) ? FcTrue : FcFalse)
+#define hb_atomic_ptr_get(P)		( ({__machine_rw_barrier ();}), (void *) *(P))
+#define hb_atomic_ptr_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false)
 
 
 #elif !defined(HB_NO_MT)
