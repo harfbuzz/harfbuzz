@@ -185,6 +185,8 @@ hb_ot_layout_table_get_script_tags (hb_face_t    *face,
   return g.get_script_tags (start_offset, script_count, script_tags);
 }
 
+#define HB_OT_TAG_LATIN_SCRIPT		HB_TAG ('l', 'a', 't', 'n')
+
 hb_bool_t
 hb_ot_layout_table_find_script (hb_face_t    *face,
 				hb_tag_t      table_tag,
@@ -204,6 +206,11 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   /* try with 'dflt'; MS site has had typos and many fonts use it now :(.
    * including many versions of DejaVu Sans Mono! */
   if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index))
+    return false;
+
+  /* try with 'latn'; some old fonts put their features there even though
+     they're really trying to support Thai, for example :( */
+  if (g.find_script_index (HB_OT_TAG_LATIN_SCRIPT, script_index))
     return false;
 
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
@@ -246,7 +253,6 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
 
   /* try with 'latn'; some old fonts put their features there even though
      they're really trying to support Thai, for example :( */
-#define HB_OT_TAG_LATIN_SCRIPT		HB_TAG ('l', 'a', 't', 'n')
   if (g.find_script_index (HB_OT_TAG_LATIN_SCRIPT, script_index)) {
     if (chosen_script)
       *chosen_script = HB_OT_TAG_LATIN_SCRIPT;
