@@ -246,6 +246,25 @@ stdio_write_func (void                *closure,
   return CAIRO_STATUS_SUCCESS;
 }
 
+const char helper_cairo_supported_formats[] =
+  "ansi"
+  #ifdef CAIRO_HAS_PNG_FUNCTIONS
+  "/png"
+  #endif
+  #ifdef CAIRO_HAS_SVG_SURFACE
+  "/svg"
+  #endif
+  #ifdef CAIRO_HAS_PDF_SURFACE
+  "/pdf"
+  #endif
+  #ifdef CAIRO_HAS_PS_SURFACE
+  "/ps"
+   #ifdef HAS_EPS
+    "/eps"
+   #endif
+  #endif
+;
+
 cairo_t *
 helper_cairo_create_context (double w, double h,
 			     view_options_t *view_opts,
@@ -268,7 +287,13 @@ helper_cairo_create_context (double w, double h,
       extension = "ansi";
     else
 #endif
+    {
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
       extension = "png";
+#else
+      extension = "ansi";
+#endif
+    }
   }
   if (0)
     ;
@@ -317,7 +342,10 @@ helper_cairo_create_context (double w, double h,
   else if (constructor2)
     surface = constructor2 (stdio_write_func, f, w, h, content);
   else
-    fail (false, "Unknown output format `%s'", extension);
+    fail (false, "Unknown output format `%s'; supported formats are: %s%s",
+	  extension, helper_cairo_supported_formats,
+	  out_opts->explicit_output_format ? "" :
+	  "\nTry setting format using --output-format");
 
   cairo_t *cr = cairo_create (surface);
   content = cairo_surface_get_content (surface);

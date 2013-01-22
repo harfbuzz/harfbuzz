@@ -336,8 +336,10 @@ struct Anchor
 
 struct AnchorMatrix
 {
-  inline const Anchor& get_anchor (unsigned int row, unsigned int col, unsigned int cols) const {
+  inline const Anchor& get_anchor (unsigned int row, unsigned int col, unsigned int cols, bool *found) const {
+    *found = false;
     if (unlikely (row >= rows || col >= cols)) return Null(Anchor);
+    *found = !matrix[row * cols + col].is_null ();
     return this+matrix[row * cols + col];
   }
 
@@ -392,7 +394,11 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     unsigned int mark_class = record.klass;
 
     const Anchor& mark_anchor = this + record.markAnchor;
-    const Anchor& glyph_anchor = anchors.get_anchor (glyph_index, mark_class, class_count);
+    bool found;
+    const Anchor& glyph_anchor = anchors.get_anchor (glyph_index, mark_class, class_count, &found);
+    /* If this subtable doesn't have an anchor for this base and this class,
+     * return false such that the subsequent subtables have a chance at it. */
+    if (unlikely (!found)) return TRACE_RETURN (false);
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 

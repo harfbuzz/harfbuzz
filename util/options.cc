@@ -244,11 +244,11 @@ view_options_t::add_options (option_parser_t *parser)
   GOptionEntry entries[] =
   {
     {"annotate",	0, 0, G_OPTION_ARG_NONE,	&this->annotate,		"Annotate output rendering",				NULL},
-    {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,			"Set background color (default: "DEFAULT_BACK")",	"red/#rrggbb/#rrggbbaa"},
-    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: "DEFAULT_FORE")",	"red/#rrggbb/#rrggbbaa"},
+    {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,			"Set background color (default: " DEFAULT_BACK ")",	"red/#rrggbb/#rrggbbaa"},
+    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: " DEFAULT_FORE ")",	"red/#rrggbb/#rrggbbaa"},
     {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&this->line_space,		"Set space between lines (default: 0)",			"units"},
-    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: "G_STRINGIFY(DEFAULT_MARGIN)")","one to four numbers"},
-    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&this->font_size,		"Font size (default: "G_STRINGIFY(DEFAULT_FONT_SIZE)")","size"},
+    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: " G_STRINGIFY(DEFAULT_MARGIN) ")","one to four numbers"},
+    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&this->font_size,		"Font size (default: " G_STRINGIFY(DEFAULT_FONT_SIZE) ")","size"},
     {NULL}
   };
   parser->add_group (entries,
@@ -367,10 +367,17 @@ text_options_t::add_options (option_parser_t *parser)
 void
 output_options_t::add_options (option_parser_t *parser)
 {
+  const char *text;
+
+  if (NULL == supported_formats)
+    text = "Set output format";
+  else
+    text = g_strdup_printf ("Set output format\n\n    Supported formats are: %s", supported_formats);
+
   GOptionEntry entries[] =
   {
     {"output-file",	0, 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
-    {"output-format",	0, 0, G_OPTION_ARG_STRING,	&this->output_format,		"Set output format",			"format"},
+    {"output-format",	0, 0, G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
     {NULL}
   };
   parser->add_group (entries,

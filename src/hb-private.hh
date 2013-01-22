@@ -63,9 +63,9 @@
 
 
 /* Void! */
-struct _void_t;
-typedef const _void_t &void_t;
-#define VOID (* (const _void_t *) NULL)
+struct _hb_void_t {};
+typedef const _hb_void_t &hb_void_t;
+#define HB_VOID (* (const _hb_void_t *) NULL)
 
 
 /* Basics */
@@ -82,7 +82,7 @@ static inline Type MAX (const Type &a, const Type &b) { return a > b ? a : b; }
 
 #undef  ARRAY_LENGTH
 template <typename Type, unsigned int n>
-static inline unsigned int ARRAY_LENGTH (const Type (&a)[n]) { return n; }
+static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
 /* A const version, but does not detect erratically being called on pointers. */
 #define ARRAY_LENGTH_CONST(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
 
@@ -509,6 +509,10 @@ static inline uint32_t hb_uint32_swap (const uint32_t v)
 #define hb_be_uint32_get(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
 #define hb_be_uint32_eq(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
 
+#define hb_be_uint24_put(v,V)	HB_STMT_START { v[0] = (V>>16); v[1] = (V>>8); v[2] (V); } HB_STMT_END
+#define hb_be_uint24_get(v)	(uint32_t) ((v[0] << 16) + (v[1] << 8) + v[2])
+#define hb_be_uint24_eq(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
+
 
 /* ASCII tag/character handling */
 
@@ -679,8 +683,8 @@ struct hb_printer_t<bool> {
 };
 
 template <>
-struct hb_printer_t<void_t> {
-  const char *print (void_t v) { return ""; }
+struct hb_printer_t<hb_void_t> {
+  const char *print (hb_void_t) { return ""; }
 };
 
 
@@ -696,7 +700,7 @@ static inline void _hb_warn_no_return (bool returned)
   }
 }
 template <>
-inline void _hb_warn_no_return<void_t> (bool returned)
+inline void _hb_warn_no_return<hb_void_t> (bool returned HB_UNUSED)
 {}
 
 template <int max_level, typename ret_t>
@@ -755,7 +759,7 @@ struct hb_auto_trace_t<0, ret_t> {
 				   const char *message HB_UNUSED,
 				   ...) {}
 
-  inline ret_t ret (ret_t v, unsigned int line = 0) { return v; }
+  inline ret_t ret (ret_t v, unsigned int line HB_UNUSED = 0) { return v; }
 };
 
 #define TRACE_RETURN(RET) trace.ret (RET, __LINE__)

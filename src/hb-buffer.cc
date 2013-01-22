@@ -790,7 +790,7 @@ hb_buffer_reset (hb_buffer_t *buffer)
 }
 
 void
-hb_buffer_clear (hb_buffer_t *buffer)
+hb_buffer_clear_contents (hb_buffer_t *buffer)
 {
   buffer->clear ();
 }
@@ -1071,8 +1071,8 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
  */
 
 static const char *serialize_formats[] = {
-  "TEXT",
-  "JSON",
+  "text",
+  "json",
   NULL
 };
 

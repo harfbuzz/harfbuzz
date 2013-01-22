@@ -185,6 +185,8 @@ hb_ot_layout_table_get_script_tags (hb_face_t    *face,
   return g.get_script_tags (start_offset, script_count, script_tags);
 }
 
+#define HB_OT_TAG_LATIN_SCRIPT		HB_TAG ('l', 'a', 't', 'n')
+
 hb_bool_t
 hb_ot_layout_table_find_script (hb_face_t    *face,
 				hb_tag_t      table_tag,
@@ -204,6 +206,11 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
   /* try with 'dflt'; MS site has had typos and many fonts use it now :(.
    * including many versions of DejaVu Sans Mono! */
   if (g.find_script_index (HB_OT_TAG_DEFAULT_LANGUAGE, script_index))
+    return false;
+
+  /* try with 'latn'; some old fonts put their features there even though
+     they're really trying to support Thai, for example :( */
+  if (g.find_script_index (HB_OT_TAG_LATIN_SCRIPT, script_index))
     return false;
 
   if (script_index) *script_index = HB_OT_LAYOUT_NO_SCRIPT_INDEX;
@@ -246,7 +253,6 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
 
   /* try with 'latn'; some old fonts put their features there even though
      they're really trying to support Thai, for example :( */
-#define HB_OT_TAG_LATIN_SCRIPT		HB_TAG ('l', 'a', 't', 'n')
   if (g.find_script_index (HB_OT_TAG_LATIN_SCRIPT, script_index)) {
     if (chosen_script)
       *chosen_script = HB_OT_TAG_LATIN_SCRIPT;
@@ -433,18 +439,57 @@ _hb_ot_layout_collect_lookups_features (hb_face_t      *face,
 					const hb_tag_t *features,
 					hb_set_t       *lookup_indexes /* OUT */)
 {
+  unsigned int required_feature_index;
+  if (hb_ot_layout_language_get_required_feature_index (face,
+							table_tag,
+							script_index,
+							language_index,
+							&required_feature_index))
+    _hb_ot_layout_collect_lookups_lookups (face,
+					   table_tag,
+					   required_feature_index,
+					   lookup_indexes);
+
   if (!features)
   {
     /* All features */
-    unsigned int count = hb_ot_layout_language_get_feature_tags (face, table_tag, script_index, language_index, 0, NULL, NULL);
-    for (unsigned int feature_index = 0; feature_index < count; feature_index++)
-      _hb_ot_layout_collect_lookups_lookups (face, table_tag, feature_index, lookup_indexes);
-  } else {
+    unsigned int feature_indices[32];
+    unsigned int offset, len;
+
+    offset = 0;
+    do {
+      len = ARRAY_LENGTH (feature_indices);
+      hb_ot_layout_language_get_feature_indexes (face,
+						 table_tag,
+						 script_index,
+						 language_index,
+						 offset, &len,
+						 feature_indices);
+
+      for (unsigned int i = 0; i < len; i++)
+	_hb_ot_layout_collect_lookups_lookups (face,
+					       table_tag,
+					       feature_indices[i],
+					       lookup_indexes);
+
+      offset += len;
+    } while (len == ARRAY_LENGTH (feature_indices));
+  }
+  else
+  {
     for (; *features; features++)
     {
       unsigned int feature_index;
-      if (hb_ot_layout_language_find_feature (face, table_tag, script_index, language_index, *features, &feature_index))
-        _hb_ot_layout_collect_lookups_lookups (face, table_tag, feature_index, lookup_indexes);
+      if (hb_ot_layout_language_find_feature (face,
+					      table_tag,
+					      script_index,
+					      language_index,
+					      *features,
+					      &feature_index))
+        _hb_ot_layout_collect_lookups_lookups (face,
+					       table_tag,
+					       feature_index,
+					       lookup_indexes);
     }
   }
 }
@@ -457,18 +502,44 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 					 const hb_tag_t *features,
 					 hb_set_t       *lookup_indexes /* OUT */)
 {
+  _hb_ot_layout_collect_lookups_features (face,
+					  table_tag,
+					  script_index,
+					  HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
+					  features,
+					  lookup_indexes);
+
   if (!languages)
   {
     /* All languages */
-    unsigned int count = hb_ot_layout_script_get_language_tags (face, table_tag, script_index, 0, NULL, NULL);
+    unsigned int count = hb_ot_layout_script_get_language_tags (face,
+								table_tag,
+								script_index,
+								0, NULL, NULL);
     for (unsigned int language_index = 0; language_index < count; language_index++)
-      _hb_ot_layout_collect_lookups_features (face, table_tag, script_index, language_index, features, lookup_indexes);
-  } else {
+      _hb_ot_layout_collect_lookups_features (face,
+					      table_tag,
+					      script_index,
+					      language_index,
+					      features,
+					      lookup_indexes);
+  }
+  else
+  {
     for (; *languages; languages++)
     {
       unsigned int language_index;
-      if (hb_ot_layout_script_find_language (face, table_tag, script_index, *languages, &language_index))
-        _hb_ot_layout_collect_lookups_features (face, table_tag, script_index, language_index, features, lookup_indexes);
+      if (hb_ot_layout_script_find_language (face,
+					     table_tag,
+					     script_index,
+					     *languages,
+					     &language_index))
+        _hb_ot_layout_collect_lookups_features (face,
+						table_tag,
+						script_index,
+						language_index,
+						features,
+						lookup_indexes);
     }
   }
 }
@@ -484,15 +555,32 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
   if (!scripts)
   {
     /* All scripts */
-    unsigned int count = hb_ot_layout_table_get_script_tags (face, table_tag, 0, NULL, NULL);
+    unsigned int count = hb_ot_layout_table_get_script_tags (face,
+							     table_tag,
+							     0, NULL, NULL);
     for (unsigned int script_index = 0; script_index < count; script_index++)
-      _hb_ot_layout_collect_lookups_languages (face, table_tag, script_index, languages, features, lookup_indexes);
-  } else {
+      _hb_ot_layout_collect_lookups_languages (face,
+					       table_tag,
+					       script_index,
+					       languages,
+					       features,
+					       lookup_indexes);
+  }
+  else
+  {
     for (; *scripts; scripts++)
     {
       unsigned int script_index;
-      if (hb_ot_layout_table_find_script (face, table_tag, *scripts, &script_index))
-        _hb_ot_layout_collect_lookups_languages (face, table_tag, script_index, languages, features, lookup_indexes);
+      if (hb_ot_layout_table_find_script (face,
+					  table_tag,
+					  *scripts,
+					  &script_index))
+        _hb_ot_layout_collect_lookups_languages (face,
+						 table_tag,
+						 script_index,
+						 languages,
+						 features,
+						 lookup_indexes);
     }
   }
 }
@@ -508,9 +596,14 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
 
-  OT::hb_collect_glyphs_context_t c (face, glyphs_before, glyphs_input, glyphs_after, glyphs_output);
+  OT::hb_collect_glyphs_context_t c (face,
+				     glyphs_before,
+				     glyphs_input,
+				     glyphs_after,
+				     glyphs_output);
 
-  switch (table_tag) {
+  switch (table_tag)
+  {
     case HB_OT_TAG_GSUB:
     {
       const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
@@ -640,28 +733,46 @@ hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer, hb_bool_t ze
 }
 
 hb_bool_t
-hb_ot_layout_get_size_params (hb_face_t *face,
-			      uint16_t  *data /* OUT, 5 items */)
+hb_ot_layout_get_size_params (hb_face_t    *face,
+			      unsigned int *design_size,       /* OUT.  May be NULL */
+			      unsigned int *subfamily_id,      /* OUT.  May be NULL */
+			      unsigned int *subfamily_name_id, /* OUT.  May be NULL */
+			      unsigned int *range_start,       /* OUT.  May be NULL */
+			      unsigned int *range_end          /* OUT.  May be NULL */)
 {
   const OT::GPOS &gpos = _get_gpos (face);
+  const hb_tag_t tag = HB_TAG ('s','i','z','e');
 
   unsigned int num_features = gpos.get_feature_count ();
   for (unsigned int i = 0; i < num_features; i++)
   {
-    if (HB_TAG ('s','i','z','e') == gpos.get_feature_tag (i))
+    if (tag == gpos.get_feature_tag (i))
     {
       const OT::Feature &f = gpos.get_feature (i);
-      const OT::FeatureParams &params = f.get_feature_params ();
+      const OT::FeatureParamsSize &params = f.get_feature_params ().get_size_params (tag);
 
-      for (unsigned int i = 0; i < 5; i++)
-	data[i] = params.u.size.params[i];
+      if (params.designSize)
+      {
+#define PARAM(a, A) if (a) *a = params.A
+	PARAM (design_size, designSize);
+	PARAM (subfamily_id, subfamilyID);
+	PARAM (subfamily_name_id, subfamilyNameID);
+	PARAM (range_start, rangeStart);
+	PARAM (range_end, rangeEnd);
+#undef PARAM
 
-      return true;
+	return true;
+      }
     }
   }
 
-  for (unsigned int i = 0; i < 5; i++)
-    data[i] = 0;
+#define PARAM(a, A) if (a) *a = 0
+  PARAM (design_size, designSize);
+  PARAM (subfamily_id, subfamilyID);
+  PARAM (subfamily_name_id, subfamilyNameID);
+  PARAM (range_start, rangeStart);
+  PARAM (range_end, rangeEnd);
+#undef PARAM
 
   return false;
 }

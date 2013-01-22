@@ -21,6 +21,7 @@ TEST_PROGS = \
 	test-common \
 	test-font \
 	test-object \
+	test-set \
 	test-shape \
 	test-unicode \
 	test-version \

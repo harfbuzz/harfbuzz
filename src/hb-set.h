@@ -121,6 +121,9 @@ void
 hb_set_symmetric_difference (hb_set_t       *set,
 			     const hb_set_t *other);
 
+void
+hb_set_invert (hb_set_t *set);
+
 unsigned int
 hb_set_get_population (const hb_set_t *set);
 

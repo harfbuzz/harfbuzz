@@ -175,7 +175,7 @@ struct shape_options_t : option_group_t
   void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,
 			const char *text_before, const char *text_after)
   {
-    hb_buffer_clear (buffer);
+    hb_buffer_clear_contents (buffer);
     if (text_before) {
       unsigned int len = strlen (text_before);
       hb_buffer_add_utf8 (buffer, text_before, len, len, 0);
@@ -310,9 +310,12 @@ struct text_options_t : option_group_t
 
 struct output_options_t : option_group_t
 {
-  output_options_t (option_parser_t *parser) {
+  output_options_t (option_parser_t *parser,
+		    const char *supported_formats_ = NULL) {
     output_file = NULL;
     output_format = NULL;
+    supported_formats = supported_formats_;
+    explicit_output_format = false;
 
     fp = NULL;
 
@@ -327,6 +330,9 @@ struct output_options_t : option_group_t
 
   void post_parse (GError **error G_GNUC_UNUSED)
   {
+    if (output_format)
+      explicit_output_format = true;
+
     if (output_file && !output_format) {
       output_format = strrchr (output_file, '.');
       if (output_format)
@@ -341,6 +347,8 @@ struct output_options_t : option_group_t
 
   const char *output_file;
   const char *output_format;
+  const char *supported_formats;
+  bool explicit_output_format;
 
   mutable FILE *fp;
 };

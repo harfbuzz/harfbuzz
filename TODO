@@ -55,15 +55,9 @@ API additions
 
 - Add glib GBoxedType stuff and introspection
 
-- Finish Uniscribe / CoreText face / font get API
-
 - BCP 47 language handling / API (language_matches?)
 
-- Add hb_face_get_glyph_count()?
-
 - Add hb_font_create_linear()?
-
-- Add hb_shape_plan()/hb_shape_planned()
 
 - Add query API for aalt-like features?
 
@@ -77,10 +71,7 @@ API additions
 hb-view / hb-shape enhancements:
 ===============================
 
-- --output-format should list available formats.
 - Add --width, --height, --auto-size, --align, etc?
-- Add XML and JSON formats to hb-shape
-- --features="init=medi=isol=fina=0"
 
 
 Tests to write:
@@ -93,8 +84,6 @@ Tests to write:
 - Finish test-unicode.c, grep for TODO
 
 - GObject, FreeType, etc
-
-- hb_set_t
 
 - hb_cache_t and relatives
 

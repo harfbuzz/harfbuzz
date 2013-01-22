@@ -84,15 +84,10 @@ main (int argc, char **argv)
   hb_blob_destroy (blob);
   blob = NULL;
 
-  uint16_t params[5];
-  if (!hb_ot_layout_get_size_params (face, params))
-    return 1;
+  unsigned int p[5];
+  bool ret = hb_ot_layout_get_size_params (face, p, p+1, p+2, p+3, p+4);
 
-  for (unsigned int i = 0; i < 5; i++) {
-    if (i) printf (" ");
-    printf ("%u", params[i]);
-  }
-  printf ("\n");
+  printf ("%g %u %u %g %g\n", p[0]/10., p[1], p[2], p[3]/10., p[4]/10.);
 
-  return 0;
+  return !ret;
 }

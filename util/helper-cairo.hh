@@ -36,6 +36,7 @@ cairo_scaled_font_t *
 helper_cairo_create_scaled_font (const font_options_t *font_opts,
 				 double font_size);
 
+extern const char helper_cairo_supported_formats[];
 
 cairo_t *
 helper_cairo_create_context (double w, double h,

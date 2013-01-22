@@ -135,7 +135,7 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
 
   /* test clear clears all properties but unicode_funcs */
 
-  hb_buffer_clear (b);
+  hb_buffer_clear_contents (b);
 
   g_assert (hb_buffer_get_unicode_funcs (b) == ufuncs);
   g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);

@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([HarfBuzz],
-        [0.9.8],
+        [0.9.12],
         [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz],
         [harfbuzz],
         [http://harfbuzz.org/])
@@ -55,8 +55,8 @@ dnl GOBJECT_INTROSPECTION_CHECK([0.9.0])
 dnl GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
-AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize sched_yield mmap _setmode isatty)
-AC_CHECK_HEADERS(unistd.h sys/mman.h sched.h io.h)
+AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap _setmode isatty)
+AC_CHECK_HEADERS(unistd.h sys/mman.h io.h)
 
 # Compiler flags
 AC_CANONICAL_HOST
@@ -87,6 +87,8 @@ if test "x$GCC" = "xyes"; then
 		;;
 	esac
 fi
+
+AM_CONDITIONAL(HAVE_GCC, test "x$GCC" = "xyes")
 
 hb_os_win32=no
 AC_MSG_CHECKING([for native Win32])
@@ -185,6 +187,7 @@ dnl ==========================================================================
 have_icu=false
 #PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
 if $have_icu; then
+	CXXFLAGS="$CXXFLAGS `$PKG_CONFIG --variable=CXXFLAGS icu-uc`"
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
 fi
 AM_CONDITIONAL(HAVE_ICU, $have_icu)
@@ -225,8 +228,20 @@ AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ===========================================================================
 
+AC_MSG_CHECKING([for ScriptShapeOpenType in usp10])
+saved_LIBS=$LIBS
+LIBS="$LIBS -lusp10 -lgdi32"
+AC_LINK_IFELSE([AC_LANG_PROGRAM(
+	[[
+	 #define _WIN32_WINNT 0x0600
+	 #include <windows.h>
+	 #include <usp10.h>
+	 ]],
+	ScriptShapeOpenType)],
+	[have_uniscribe=true; AC_MSG_RESULT(yes)],
+	[have_uniscribe=false;AC_MSG_RESULT(no)])
+LIBS=$saved_LIBS
 have_uniscribe=false
-#AC_CHECK_HEADERS(usp10.h windows.h, have_uniscribe=true, have_uniscribe=false)
 if $have_uniscribe; then
 	UNISCRIBE_CFLAGS=
 	UNISCRIBE_LIBS="-lusp10 -lgdi32"
@@ -239,7 +254,7 @@ AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 dnl ===========================================================================
 
 have_coretext=false
-#AC_CHECK_HEADERS(ApplicationServices/ApplicationServices.h, have_coretext=true, have_coretext=false)
+#AC_CHECK_TYPE(CTFontRef, have_coretext=true, have_coretext=false, [#include <ApplicationServices/ApplicationServices.h>])
 if $have_coretext; then
 	CORETEXT_CFLAGS=
 	CORETEXT_LIBS="-framework ApplicationServices"
@@ -268,6 +283,29 @@ fi
 
 dnl ===========================================================================
 
+AC_CACHE_CHECK([for Solaris atomic operations], hb_cv_have_solaris_atomic_ops, [
+	hb_cv_have_solaris_atomic_ops=false
+	AC_TRY_LINK([
+		#include <atomic.h>
+		/* This requires Solaris Studio 12.2 or newer: */
+		#include <mbarrier.h>
+		void memory_barrier (void) { __machine_rw_barrier (); }
+		int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
+		void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
+		], [], hb_cv_have_solaris_atomic_ops=true
+	)
+])
+if $hb_cv_have_solaris_atomic_ops; then
+	AC_DEFINE(HAVE_SOLARIS_ATOMIC_OPS, 1, [Have Solaris __machine_*_barrier and atomic_* operations])
+fi
+
+if test "$os_win32" = no && ! $have_pthread; then
+	AC_CHECK_HEADERS(sched.h)
+	AC_SEARCH_LIBS(sched_yield,rt,AC_DEFINE(HAVE_SCHED_YIELD, 1, [Have sched_yield]))
+fi
+
+dnl ===========================================================================
+
 AC_CONFIG_FILES([
 Makefile
 harfbuzz.pc
@@ -283,3 +321,28 @@ test/shaping/Makefile
 ])
 
 AC_OUTPUT
+
+AC_MSG_NOTICE([
+
+Build configuration:
+
+Unicode callbacks (you want at least one):
+	Glib:			${have_glib}
+	ICU:			${have_icu}
+	UCDN:			${have_ucdn}
+
+Font callbacks (the more the better):
+	FreeType:		${have_freetype}
+
+Tools used for command-line utilities:
+	Cairo:			${have_cairo}
+
+Additional shapers (the more the better):
+	Graphite2:		${have_graphite}
+
+Test / platform shapers (not normally needed):
+	CoreText:		${have_coretext}
+	ICU Layout Engine:	${have_icu_le}
+	Old HarfBuzz:		${have_hb_old}
+	Uniscribe:		${have_uniscribe}
+])

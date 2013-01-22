@@ -124,7 +124,7 @@ static const indic_config_t indic_configs[] =
   {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_FIRST,REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT},
   {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DEFAULT,    REPH_MODE_VIS_REPHA},
   /* Myanmar does not have the "old_indic" behavior, even though it has a "new" tag. */
-  {HB_SCRIPT_MYANMAR,	false, 0x1039,BASE_POS_LAST, REPH_POS_DEFAULT,    REPH_MODE_EXPLICIT},
+  {HB_SCRIPT_MYANMAR,	false,0x1039,BASE_POS_LAST, REPH_POS_DEFAULT,    REPH_MODE_EXPLICIT},
 };
 
 
@@ -467,7 +467,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     unsigned int limit = start;
     if (indic_plan->mask_array[RPHF] &&
 	start + 3 <= end &&
-	(/* TODO Handle other Reph modes. */
+	(
 	 (indic_plan->config->reph_mode == REPH_MODE_IMPLICIT && !is_joiner (info[start + 2])) ||
 	 (indic_plan->config->reph_mode == REPH_MODE_EXPLICIT && info[start + 2].indic_category() == OT_ZWJ)
 	))
@@ -482,7 +482,14 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	base = start;
 	has_reph = true;
       }
-    };
+    } else if (indic_plan->config->reph_mode == REPH_MODE_LOG_REPHA && info[start].indic_category() == OT_Repha)
+    {
+	limit += 1;
+	while (limit < end && is_joiner (info[limit]))
+	  limit++;
+	base = start;
+	has_reph = true;
+    }
 
     switch (indic_plan->config->base_pos)
     {
@@ -570,7 +577,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      *    base consonants.
      *
      *  Only do this for unforced Reph. (ie. not for Ra,H,ZWJ. */
-    if (has_reph && base == start && start + 2 == limit) {
+    if (has_reph && base == start && start - limit <= 2) {
       /* Have no other consonant, so Reph is not formed and Ra becomes base. */
       has_reph = false;
     }
@@ -637,15 +644,16 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     info[start].indic_position() = POS_RA_TO_BECOME_REPH;
 
   /* For old-style Indic script tags, move the first post-base Halant after
-   * last consonant. */
+   * last consonant.  Only do this if there is *not* a Halant after last
+   * consonant.  Otherwise it becomes messy. */
   if (indic_plan->is_old_spec) {
     for (unsigned int i = base + 1; i < end; i++)
       if (info[i].indic_category() == OT_H) {
         unsigned int j;
         for (j = end - 1; j > i; j--)
-	  if (is_consonant (info[j]))
+	  if (is_consonant (info[j]) || info[j].indic_category() == OT_H)
 	    break;
-	if (j > i) {
+	if (info[j].indic_category() != OT_H && j > i) {
 	  /* Move Halant to after last consonant. */
 	  hb_glyph_info_t t = info[i];
 	  memmove (&info[i], &info[i + 1], (j - i) * sizeof (info[0]));
@@ -852,7 +860,7 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
 }
 
 static inline void
-insert_dotted_circles (const hb_ot_shape_plan_t *plan,
+insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer)
 {
@@ -887,14 +895,23 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan,
     syllable_type_t syllable_type = (syllable_type_t) (syllable & 0x0F);
     if (unlikely (last_syllable != syllable && syllable_type == broken_cluster))
     {
+      last_syllable = syllable;
+
       hb_glyph_info_t info = dottedcircle;
       info.cluster = buffer->cur().cluster;
       info.mask = buffer->cur().mask;
       info.syllable() = buffer->cur().syllable();
+
+      /* Insert dottedcircle after possible Repha. */
+      while (buffer->idx < buffer->len &&
+	     last_syllable == buffer->cur().syllable() &&
+	     buffer->cur().indic_category() == OT_Repha)
+        buffer->next_glyph ();
+
       buffer->output_info (info);
-      last_syllable = syllable;
     }
-    buffer->next_glyph ();
+    else
+      buffer->next_glyph ();
   }
 
   buffer->swap_buffers ();
@@ -1246,7 +1263,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
 static void
 final_reordering (const hb_ot_shape_plan_t *plan,
-		  hb_font_t *font,
+		  hb_font_t *font HB_UNUSED,
 		  hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
@@ -1273,7 +1290,7 @@ final_reordering (const hb_ot_shape_plan_t *plan,
 
 
 static hb_ot_shape_normalization_mode_t
-normalization_preference_indic (const hb_segment_properties_t *props)
+normalization_preference_indic (const hb_segment_properties_t *props HB_UNUSED)
 {
   return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
 }
@@ -1338,6 +1355,11 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
      * don't have positioning features for the Unicode-style decomposition.
      *
      * Argh...
+     *
+     * The Uniscribe behavior is now documented in the newly published Sinhala
+     * spec in 2012:
+     *
+     *   http://www.microsoft.com/typography/OpenTypeDev/sinhala/intro.htm#shaping
      */
 
     const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) c->plan->data;

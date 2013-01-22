@@ -49,7 +49,7 @@ namespace OT {
 #endif
 
 #define TRACE_CLOSURE(this) \
-	hb_auto_trace_t<HB_DEBUG_CLOSURE, void_t> trace \
+	hb_auto_trace_t<HB_DEBUG_CLOSURE, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
@@ -57,12 +57,12 @@ struct hb_closure_context_t
 {
   inline const char *get_name (void) { return "CLOSURE"; }
   static const unsigned int max_debug_depth = HB_DEBUG_CLOSURE;
-  typedef void_t return_t;
+  typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { obj.closure (this); return VOID; }
-  static return_t default_return_value (void) { return VOID; }
-  bool stop_sublookup_iteration (const return_t r) const { return false; }
+  inline return_t process (const T &obj) { obj.closure (this); return HB_VOID; }
+  static return_t default_return_value (void) { return HB_VOID; }
+  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -71,7 +71,7 @@ struct hb_closure_context_t
     nesting_level_left--;
     recurse_func (this, lookup_index);
     nesting_level_left++;
-    return VOID;
+    return HB_VOID;
   }
 
   hb_face_t *face;
@@ -111,7 +111,7 @@ struct hb_would_apply_context_t
   template <typename T>
   inline return_t process (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value (void) { return false; }
-  bool stop_sublookup_iteration (const return_t r) const { return r; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
 
   hb_face_t *face;
   const hb_codepoint_t *glyphs;
@@ -137,7 +137,7 @@ struct hb_would_apply_context_t
 #endif
 
 #define TRACE_COLLECT_GLYPHS(this) \
-	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, void_t> trace \
+	hb_auto_trace_t<HB_DEBUG_COLLECT_GLYPHS, hb_void_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
@@ -145,12 +145,12 @@ struct hb_collect_glyphs_context_t
 {
   inline const char *get_name (void) { return "COLLECT_GLYPHS"; }
   static const unsigned int max_debug_depth = HB_DEBUG_COLLECT_GLYPHS;
-  typedef void_t return_t;
+  typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { obj.collect_glyphs (this); return VOID; }
-  static return_t default_return_value (void) { return VOID; }
-  bool stop_sublookup_iteration (const return_t r) const { return false; }
+  inline return_t process (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
+  static return_t default_return_value (void) { return HB_VOID; }
+  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -161,7 +161,7 @@ struct hb_collect_glyphs_context_t
      * glyphs in the recursion.  If output is not requested, we can go home now. */
 
     if (output == hb_set_get_empty ())
-      return VOID;
+      return HB_VOID;
 
     hb_set_t *old_before = before;
     hb_set_t *old_input  = input;
@@ -176,7 +176,7 @@ struct hb_collect_glyphs_context_t
     input  = old_input;
     after  = old_after;
 
-    return VOID;
+    return HB_VOID;
   }
 
   hb_face_t *face;
@@ -243,7 +243,7 @@ struct hb_apply_context_t
   template <typename T>
   inline return_t process (const T &obj) { return obj.apply (this); }
   static return_t default_return_value (void) { return false; }
-  bool stop_sublookup_iteration (const return_t r) const { return r; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func))
@@ -549,7 +549,7 @@ static inline void collect_coverage (hb_set_t *glyphs, const USHORT &value, cons
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   (data+coverage).add_coverage (glyphs);
 }
-static inline void collect_array (hb_collect_glyphs_context_t *c,
+static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
 				  hb_set_t *glyphs,
 				  unsigned int count,
 				  const USHORT values[],
@@ -673,10 +673,10 @@ static inline bool match_input (hb_apply_context_t *c,
 }
 static inline void ligate_input (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph (not matched) */
-				 const USHORT input[], /* Array of input values--start with second glyph */
+				 const USHORT input[] HB_UNUSED, /* Array of input values--start with second glyph */
 				 hb_codepoint_t lig_glyph,
-				 match_func_t match_func,
-				 const void *match_data,
+				 match_func_t match_func HB_UNUSED,
+				 const void *match_data HB_UNUSED,
 				 bool is_mark_ligature,
 				 unsigned int total_component_count)
 {
@@ -939,8 +939,8 @@ static inline void context_collect_glyphs_lookup (hb_collect_glyphs_context_t *c
 static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
 					       unsigned int inputCount, /* Including the first glyph (not matched) */
 					       const USHORT input[], /* Array of input values--start with second glyph */
-					       unsigned int lookupCount,
-					       const LookupRecord lookupRecord[],
+					       unsigned int lookupCount HB_UNUSED,
+					       const LookupRecord lookupRecord[] HB_UNUSED,
 					       ContextApplyLookupContext &lookup_context)
 {
   return would_match_input (c,
@@ -1175,7 +1175,7 @@ struct ContextFormat2
 
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class},
-      NULL
+      &class_def
     };
 
     unsigned int count = ruleSet.len;
@@ -1191,9 +1191,10 @@ struct ContextFormat2
     TRACE_COLLECT_GLYPHS (this);
     (this+coverage).add_coverage (c->input);
 
+    const ClassDef &class_def = this+classDef;
     struct ContextCollectGlyphsLookupContext lookup_context = {
       {collect_class},
-      NULL
+      &class_def
     };
 
     unsigned int count = ruleSet.len;
@@ -1454,13 +1455,13 @@ static inline void chain_context_collect_glyphs_lookup (hb_collect_glyphs_contex
 
 static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c,
 						     unsigned int backtrackCount,
-						     const USHORT backtrack[],
+						     const USHORT backtrack[] HB_UNUSED,
 						     unsigned int inputCount, /* Including the first glyph (not matched) */
 						     const USHORT input[], /* Array of input values--start with second glyph */
 						     unsigned int lookaheadCount,
-						     const USHORT lookahead[],
-						     unsigned int lookupCount,
-						     const LookupRecord lookupRecord[],
+						     const USHORT lookahead[] HB_UNUSED,
+						     unsigned int lookupCount HB_UNUSED,
+						     const LookupRecord lookupRecord[] HB_UNUSED,
 						     ChainContextApplyLookupContext &lookup_context)
 {
   return (c->zero_context ? !backtrackCount && !lookaheadCount : true)
@@ -1750,9 +1751,15 @@ struct ChainContextFormat2
     TRACE_COLLECT_GLYPHS (this);
     (this+coverage).add_coverage (c->input);
 
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
+    const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+
     struct ChainContextCollectGlyphsLookupContext lookup_context = {
       {collect_class},
-      {NULL, NULL, NULL}
+      {&backtrack_class_def,
+       &input_class_def,
+       &lookahead_class_def}
     };
 
     unsigned int count = ruleSet.len;
@@ -1764,13 +1771,17 @@ struct ChainContextFormat2
   {
     TRACE_WOULD_APPLY (this);
 
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
     const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
     unsigned int index = input_class_def.get_class (c->glyphs[0]);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_class},
-      {NULL, &input_class_def, NULL}
+      {&backtrack_class_def,
+       &input_class_def,
+       &lookahead_class_def}
     };
     return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
   }
