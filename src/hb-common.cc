@@ -177,7 +177,7 @@ struct hb_language_item_t {
 
 static hb_language_item_t *langs;
 
-static
+static inline
 void free_langs (void)
 {
   while (langs) {
