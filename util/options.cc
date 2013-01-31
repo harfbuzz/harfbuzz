@@ -414,7 +414,7 @@ font_options_t::get_font (void) const
       GString *gs = g_string_new (NULL);
       char buf[BUFSIZ];
 #ifdef HAVE__SETMODE
-      _setmode (fileno (stdin), _O_BINARY);
+      setmode (fileno (stdin), _O_BINARY);
 #endif
       while (!feof (stdin)) {
 	size_t ret = fread (buf, 1, sizeof (buf), stdin);

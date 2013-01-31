@@ -81,6 +81,9 @@
 /* Have sched_yield */
 #undef HAVE_SCHED_YIELD
 
+/* Define to 1 if you have the `setmode' function. */
+#undef HAVE_SETMODE
+
 /* Have Solaris __machine_*_barrier and atomic_* operations */
 #undef HAVE_SOLARIS_ATOMIC_OPS
 
@@ -116,9 +119,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
-
-/* Define to 1 if you have the `_setmode' function. */
-#undef HAVE__SETMODE
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
