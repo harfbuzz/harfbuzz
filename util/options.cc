@@ -558,7 +558,7 @@ output_options_t::get_file_handle (void)
     fp = fopen (output_file, "wb");
   else {
 #ifdef HAVE_SETMODE
-    _setmode (fileno (stdout), _O_BINARY);
+    setmode (fileno (stdout), _O_BINARY);
 #endif
     fp = stdout;
   }
