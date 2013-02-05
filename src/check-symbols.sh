@@ -10,7 +10,7 @@ stat=0
 if which nm 2>/dev/null >/dev/null; then
 	:
 else
-	echo "check-exported-symbols.sh: 'nm' not found; skipping test"
+	echo "check-symbols.sh: 'nm' not found; skipping test"
 	exit 77
 fi
 
@@ -20,15 +20,25 @@ tested=false
 for def in $defs; do
 	lib=`echo "$def" | sed 's/[.]def$//;s@.*/@@'`
 	so=.libs/lib${lib}.so
+
+	EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] ' | grep -v ' T _fini\>\| T _init\>\| __bss_start\>\| __bss_start__\>\| __bss_end__\>\| _edata\>\| _end\>\| _bss_end__\>\| __end__\>' | cut -d' ' -f3`"
+
 	if test -f "$so"; then
+
 		echo "Checking that $so has the same symbol list as $def"
 		{
 			echo EXPORTS
-			nm "$so" | grep ' [BCDGINRSTVW] ' | grep -v ' T _fini\>\| T _init\>\| __bss_start\>\| __bss_start__\>\| __bss_end__\>\| _edata\>\| _end\>\| _bss_end__\>\| __end__\>' | cut -d' ' -f3
-			stat=1
+			echo "$EXPORTED_SYMBOLS"
 			# cheat: copy the last line from the def file!
 			tail -n1 "$def"
 		} | diff "$def" - >&2 || stat=1
+
+		echo "Checking that we are not exposing internal symbols"
+		if echo "$EXPORTED_SYMBOLS" | grep -v 'hb_'; then
+			echo "Ouch, internal symbols exposed"
+			stat=1
+		fi
+
 		tested=true
 	fi
 done

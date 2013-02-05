@@ -277,9 +277,8 @@ test_size_params_LDADD = libharfbuzz.la $(HBLIBS)
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-header-guards.sh \
-	check-exported-symbols.sh \
 	check-includes.sh \
-	check-internal-symbols.sh \
+	check-symbols.sh \
 	$(NULL)
 
 if HAVE_ICU
