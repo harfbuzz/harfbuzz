@@ -29,10 +29,10 @@ TEST_PROGS = \
 
 test_unicode_CPPFLAGS = $(AM_CPPFLAGS)
 if HAVE_GLIB
-test_unicode_CPPFLAGS += $(GLIB_CFLAGS)
+AM_CPPFLAGS += $(GLIB_CFLAGS)
 endif
 if HAVE_ICU
-test_unicode_CPPFLAGS += $(ICU_CFLAGS)
+AM_CPPFLAGS += $(ICU_CFLAGS)
 endif
 
 
@@ -50,9 +50,11 @@ TEST_PROGS += \
 test_cplusplus_SOURCES = test-cplusplus.cc
 test_c_CPPFLAGS = $(AM_CPPFLAGS)
 test_cplusplus_CPPFLAGS = $(AM_CPPFLAGS)
+test_unicode_CPPFLAGS = $(AM_CPPFLAGS)
 if HAVE_ICU
 test_c_CPPFLAGS += $(ICU_CFLAGS)
 test_cplusplus_CPPFLAGS += $(ICU_CFLAGS)
+test_unicode_CPPFLAGS += $(ICU_CFLAGS)
 endif
 if HAVE_FREETYPE
 test_c_CPPFLAGS += $(FREETYPE_CFLAGS)
