@@ -67,7 +67,7 @@ TESTS_ENVIRONMENT = \
 	G_DEBUG=gc-friendly \
 	G_SLICE=always-malloc \
 	srcdir=$(srcdir) \
-	$(ENV)
+	$(NULL)
 
 
 # check-tool: Run tests under $(TOOL)
