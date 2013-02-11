@@ -123,8 +123,6 @@ static const indic_config_t indic_configs[] =
   {HB_SCRIPT_MALAYALAM,	true, 0x0D4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA},
   {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_FIRST,REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT},
   {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DEFAULT,    REPH_MODE_VIS_REPHA},
-  /* Myanmar does not have the "old_indic" behavior, even though it has a "new" tag. */
-  {HB_SCRIPT_MYANMAR,	false,0x1039,BASE_POS_LAST, REPH_POS_DEFAULT,    REPH_MODE_EXPLICIT},
 };
 
 

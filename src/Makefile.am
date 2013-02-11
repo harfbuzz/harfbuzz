@@ -88,6 +88,8 @@ HBSOURCES += \
 	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-indic-private.hh \
 	hb-ot-shape-complex-indic-table.hh \
+	hb-ot-shape-complex-myanmar.cc \
+	hb-ot-shape-complex-myanmar-machine.hh \
 	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-normalize-private.hh \
@@ -252,9 +254,15 @@ arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt
 
 .PHONY: unicode-tables arabic-table indic-table
 
-BUILT_SOURCES += hb-ot-shape-complex-indic-machine.hh
-EXTRA_DIST += hb-ot-shape-complex-indic-machine.rl
-$(srcdir)/hb-ot-shape-complex-indic-machine.hh: hb-ot-shape-complex-indic-machine.rl
+BUILT_SOURCES += \
+	hb-ot-shape-complex-indic-machine.hh \
+	hb-ot-shape-complex-myanmar-machine.hh \
+	$(NULL)
+EXTRA_DIST += \
+	hb-ot-shape-complex-indic-machine.rl \
+	hb-ot-shape-complex-myanmar-machine.rl \
+	$(NULL)
+%.hh: %.rl
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
 	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
 
