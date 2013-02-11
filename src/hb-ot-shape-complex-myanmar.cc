@@ -146,7 +146,7 @@ enum myanmar_category_t {
   OT_SM   = 8,
   OT_A    = 10,
   OT_NBSP = 11,
-  OT_DOTTEDCIRCLE = 12, /* Not in the spec, but special in Uniscribe. /Very very/ special! */
+  OT_GB = 12,
 
   OT_Ra = 16, /* Not explicitly listed in the OT spec, but used in the grammar. */
   OT_CM = 17, /* Generic Consonant_Medial; NOT used for Myanmar. */
@@ -210,7 +210,7 @@ is_one_of (const hb_glyph_info_t &info, unsigned int flags)
  * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
  * cannot happen in a consonant syllable.  The plus side however is, we can call the
  * consonant syllable logic from the vowel syllable function and get it all right! */
-#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CM) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE))
+#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CM) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_GB))
 static inline bool
 is_consonant (const hb_glyph_info_t &info)
 {
@@ -232,6 +232,21 @@ set_myanmar_properties (hb_glyph_info_t &info)
     cat = OT_VS;
   switch (u)
   {
+    case 0x002D: case 0x00A0: case 0x00D7: case 0x2012:
+    case 0x2013: case 0x2014: case 0x2015: case 0x2022:
+    case 0x25CC: case 0x25FB: case 0x25FC: case 0x25FD:
+    case 0x25FE:
+      cat = OT_GB;
+      break;
+
+    case 0x200C:
+      cat = OT_ZWNJ;
+      break;
+
+    case 0x200D:
+      cat = OT_ZWJ;
+      break;
+
     case 0x1004: case 0x101B: case 0x105A:
       cat = OT_Ra;
       break;

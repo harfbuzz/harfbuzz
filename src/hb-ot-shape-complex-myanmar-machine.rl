@@ -44,8 +44,7 @@ C    = 1;
 D    = 19;
 D0   = 20;
 DB   = 3;
-DOTTEDCIRCLE = 12;
-NBSP = 11;
+GB   = 12;
 H    = 4;
 IV   = 2;
 MH   = 21;
@@ -63,7 +62,6 @@ ZWJ  = 6;
 ZWNJ = 5;
 Ra   = 16;
 
-gb = (DOTTEDCIRCLE | NBSP);	# Generic base characters
 j = ZWJ|ZWNJ;			# Joiners
 k = (Ra As H);			# Kinzi
 
@@ -77,7 +75,7 @@ pwo_tone_group = PT A* (DB As?)?;
 complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* V* j?;
 syllable_tail = (H | complex_syllable_tail);
 
-consonant_syllable =	k? (c|IV|D|gb).VS? (H (c|IV).VS?)* syllable_tail;
+consonant_syllable =	k? (c|IV|D|GB).VS? (H (c|IV).VS?)* syllable_tail;
 broken_cluster =	k? VS? syllable_tail;
 other =			any;
 
