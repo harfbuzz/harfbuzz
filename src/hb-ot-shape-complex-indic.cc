@@ -577,7 +577,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      *    base consonants.
      *
      *  Only do this for unforced Reph. (ie. not for Ra,H,ZWJ. */
-    if (has_reph && base == start && start - limit <= 2) {
+    if (has_reph && base == start && limit - base <= 2) {
       /* Have no other consonant, so Reph is not formed and Ra becomes base. */
       has_reph = false;
     }
