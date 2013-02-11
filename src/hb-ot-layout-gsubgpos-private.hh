@@ -286,12 +286,12 @@ struct hb_apply_context_t
   void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
   void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }
 
-  struct mark_skipping_forward_iterator_t
+  struct skipping_forward_iterator_t
   {
-    inline mark_skipping_forward_iterator_t (hb_apply_context_t *c_,
-					     unsigned int start_index_,
-					     unsigned int num_items_,
-					     bool context_match = false)
+    inline skipping_forward_iterator_t (hb_apply_context_t *c_,
+					unsigned int start_index_,
+					unsigned int num_items_,
+					bool context_match = false)
     {
       c = c_;
       idx = start_index_;
@@ -335,13 +335,13 @@ struct hb_apply_context_t
     unsigned int end;
   };
 
-  struct mark_skipping_backward_iterator_t
+  struct skipping_backward_iterator_t
   {
-    inline mark_skipping_backward_iterator_t (hb_apply_context_t *c_,
-					      unsigned int start_index_,
-					      unsigned int num_items_,
-					      hb_mask_t mask_ = 0,
-					      bool match_syllable_ = true)
+    inline skipping_backward_iterator_t (hb_apply_context_t *c_,
+					 unsigned int start_index_,
+					 unsigned int num_items_,
+					 hb_mask_t mask_ = 0,
+					 bool match_syllable_ = true)
     {
       c = c_;
       idx = start_index_;
@@ -602,7 +602,7 @@ static inline bool match_input (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
+  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
   if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
   /*
@@ -759,7 +759,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
+  hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
   if (skippy_iter.has_no_chance ())
     return TRACE_RETURN (false);
 
@@ -784,7 +784,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
+  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
   if (skippy_iter.has_no_chance ())
     return TRACE_RETURN (false);
 

@@ -658,7 +658,7 @@ struct PairPosFormat1
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
     unsigned int index = (this+coverage).get_coverage  (c->buffer->cur().codepoint);
@@ -730,7 +730,7 @@ struct PairPosFormat2
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
     unsigned int index = (this+coverage).get_coverage  (c->buffer->cur().codepoint);
@@ -880,7 +880,7 @@ struct CursivePosFormat1
     /* We don't handle mark glyphs here. */
     if (c->property & HB_OT_LAYOUT_GLYPH_PROPS_MARK) return TRACE_RETURN (false);
 
-    hb_apply_context_t::mark_skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
     const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (c->buffer->cur().codepoint)];
@@ -1029,7 +1029,7 @@ struct MarkBasePosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     do {
       if (!skippy_iter.prev (&property, LookupFlag::IgnoreMarks)) return TRACE_RETURN (false);
       /* We only want to attach to the first of a MultipleSubst sequence.  Reject others. */
@@ -1133,7 +1133,7 @@ struct MarkLigPosFormat1
 
     /* now we search backwards for a non-mark glyph */
     unsigned int property;
-    hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (!skippy_iter.prev (&property, LookupFlag::IgnoreMarks)) return TRACE_RETURN (false);
 
     /* The following assertion is too strong, so we've disabled it. */
@@ -1249,7 +1249,7 @@ struct MarkMarkPosFormat1
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int property;
-    hb_apply_context_t::mark_skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (!skippy_iter.prev (&property)) return TRACE_RETURN (false);
 
     if (!(property & HB_OT_LAYOUT_GLYPH_PROPS_MARK)) return TRACE_RETURN (false);
