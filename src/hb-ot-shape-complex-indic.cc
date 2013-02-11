@@ -583,9 +583,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     }
   }
 
-  if (base < end)
-    info[base].indic_position() = POS_BASE_C;
-
 
   /* 2. Decompose and reorder Matras:
    *
