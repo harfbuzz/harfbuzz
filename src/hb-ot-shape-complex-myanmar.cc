@@ -232,6 +232,18 @@ set_myanmar_properties (hb_glyph_info_t &info)
     cat = OT_VS;
   switch (u)
   {
+    case 0x104A: case 0x104B:
+      /* Punctuation; don't care. */
+      cat = OT_X;
+      break;
+
+    case 0x104C: case 0x104D: case 0x104F: case 0x109E:
+    case 0x109F: case 0xAA70: case 0xAA77: case 0xAA78:
+    case 0xAA79:
+      /* Symbols; don't care. */
+      cat = OT_X;
+      break;
+
     case 0x002D: case 0x00A0: case 0x00D7: case 0x2012:
     case 0x2013: case 0x2014: case 0x2015: case 0x2022:
     case 0x25CC: case 0x25FB: case 0x25FC: case 0x25FD:
