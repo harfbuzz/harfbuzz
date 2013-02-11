@@ -1250,7 +1250,7 @@ struct MarkMarkPosFormat1
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     unsigned int property;
     hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
-    if (!skippy_iter.prev (&property)) return TRACE_RETURN (false);
+    if (!skippy_iter.prev (&property, c->lookup_props & ~LookupFlag::IgnoreFlags)) return TRACE_RETURN (false);
 
     if (!(property & HB_OT_LAYOUT_GLYPH_PROPS_MARK)) return TRACE_RETURN (false);
 

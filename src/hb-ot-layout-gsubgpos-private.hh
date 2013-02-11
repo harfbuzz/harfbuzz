@@ -317,7 +317,7 @@ struct hb_apply_context_t
 	if (has_no_chance ())
 	  return false;
 	idx++;
-      } while (c->should_skip_mark (&c->buffer->info[idx], lookup_props, property_out));
+      } while (c->should_skip (&c->buffer->info[idx], lookup_props, property_out));
       num_items--;
       return (c->buffer->info[idx].mask & mask) && (!syllable || syllable == c->buffer->info[idx].syllable ());
     }
@@ -366,7 +366,7 @@ struct hb_apply_context_t
 	if (has_no_chance ())
 	  return false;
 	idx--;
-      } while (c->should_skip_mark (&c->buffer->out_info[idx], lookup_props, property_out));
+      } while (c->should_skip (&c->buffer->out_info[idx], lookup_props, property_out));
       num_items--;
       return (c->buffer->out_info[idx].mask & mask) && (!syllable || syllable == c->buffer->out_info[idx].syllable ());
     }
@@ -435,9 +435,9 @@ struct hb_apply_context_t
   }
 
   inline bool
-  should_skip_mark (hb_glyph_info_t *info,
-		   unsigned int  lookup_props,
-		   unsigned int *property_out) const
+  should_skip (hb_glyph_info_t *info,
+	       unsigned int  lookup_props,
+	       unsigned int *property_out) const
   {
     unsigned int property;
 
@@ -445,18 +445,13 @@ struct hb_apply_context_t
     if (property_out)
       *property_out = property;
 
-    /* If it's a mark, skip it if we don't accept it. */
-    if (unlikely (property & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
-      return !match_properties (info->codepoint, property, lookup_props);
-
-    /* If not a mark, don't skip. */
-    return false;
+    return !match_properties (info->codepoint, property, lookup_props);
   }
 
 
-  inline bool should_mark_skip_current_glyph (void) const
+  inline bool should_skip_current_glyph (void) const
   {
-    return should_skip_mark (&buffer->cur(), lookup_props, NULL);
+    return should_skip (&buffer->cur(), lookup_props, NULL);
   }
 
   inline void set_class (hb_codepoint_t glyph_index, unsigned int class_guess) const
@@ -720,7 +715,7 @@ static inline void ligate_input (hb_apply_context_t *c,
 
   for (unsigned int i = 1; i < count; i++)
   {
-    while (c->should_mark_skip_current_glyph ())
+    while (c->should_skip_current_glyph ())
     {
       if (!is_mark_ligature) {
 	unsigned int new_lig_comp = components_so_far - last_num_components +
@@ -849,7 +844,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
   {
     if (unlikely (c->buffer->idx == end))
       return TRACE_RETURN (true);
-    while (c->should_mark_skip_current_glyph ())
+    while (c->should_skip_current_glyph ())
     {
       /* No lookup applied for this index */
       c->buffer->next_glyph ();
