@@ -128,12 +128,9 @@ override_features_myanmar (hb_ot_shape_planner_t *plan)
    * Windows 8 has lookups for it.  But testing suggests that
    * Windows 8 Uniscribe is NOT applying it.  It *is* applying
    * 'mkmk' however.
-   *
-   * We want to apply it, since that's the right thing to do.
    */
-#if 0
-  plan->map.add_feature (HB_TAG('m','a','r','k'), 0, true);
-#endif
+  if (hb_options ().uniscribe_bug_compatible)
+    plan->map.add_feature (HB_TAG('m','a','r','k'), 0, true);
 }
 
 
