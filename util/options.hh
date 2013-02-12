@@ -43,7 +43,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h> /* for isatty() */
 #endif
-#ifdef HAVE_IO_H
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include <io.h> /* for setmode() under Windows */
 #endif
 

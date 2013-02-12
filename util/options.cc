@@ -413,7 +413,7 @@ font_options_t::get_font (void) const
       /* read it */
       GString *gs = g_string_new (NULL);
       char buf[BUFSIZ];
-#ifdef HAVE_SETMODE
+#if defined(_WIN32) || defined(__CYGWIN__)
       setmode (fileno (stdin), _O_BINARY);
 #endif
       while (!feof (stdin)) {
@@ -557,7 +557,7 @@ output_options_t::get_file_handle (void)
   if (output_file)
     fp = fopen (output_file, "wb");
   else {
-#ifdef HAVE_SETMODE
+#if defined(_WIN32) || defined(__CYGWIN__)
     setmode (fileno (stdout), _O_BINARY);
 #endif
     fp = stdout;
