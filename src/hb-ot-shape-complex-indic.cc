@@ -937,6 +937,38 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       info[i].mask  |= mask;
   }
 
+  if (indic_plan->is_old_spec &&
+      buffer->props.script == HB_SCRIPT_DEVANAGARI)
+  {
+    /* Old-spec eye-lash Ra needs special handling.  From the
+     * spec:
+     *
+     * "The feature 'below-base form' is applied to consonants
+     * having below-base forms and following the base consonant.
+     * The exception is vattu, which may appear below half forms
+     * as well as below the base glyph. The feature 'below-base
+     * form' will be applied to all such occurrences of Ra as well."
+     *
+     * Test case: U+0924,U+094D,U+0930,U+094d,U+0915
+     * with Sanskrit 2003 font.
+     *
+     * However, note that Ra,Halant,ZWJ is the correct way to
+     * request eyelash form of Ra, so we wouldbn't inhibit it
+     * in that sequence.
+     *
+     * Test case: U+0924,U+094D,U+0930,U+094d,U+200D,U+0915
+     */
+    for (unsigned int i = start; i + 1 < base; i++)
+      if (info[i  ].indic_category() == OT_Ra &&
+	  info[i+1].indic_category() == OT_H  &&
+	  (i + 2 == base ||
+	   info[i+2].indic_category() != OT_ZWJ))
+      {
+	info[i  ].mask |= indic_plan->mask_array[BLWF];
+	info[i+1].mask |= indic_plan->mask_array[BLWF];
+      }
+  }
+
   if (indic_plan->mask_array[PREF] && base + 2 < end)
   {
     /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
