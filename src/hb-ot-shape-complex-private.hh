@@ -285,11 +285,15 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_SHARADA:
     case HB_SCRIPT_TAKRI:
 
-      /* Only use Indic shaper if the font has Indic tables. */
-      if (planner->map.found_script[0])
-	return &_hb_ot_complex_shaper_indic;
-      else
+      /* If the designer designed the font for the 'DFLT' script,
+       * use the default shaper.  Otherwise, use the Indic shaper.
+       * Note that for some scripts, like New Tai Lue, there may
+       * not be *any* GSUB/GPOS needed, so there may be no scripts
+       * found! */
+      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T'))
 	return &_hb_ot_complex_shaper_default;
+      else
+	return &_hb_ot_complex_shaper_indic;
 
     case HB_SCRIPT_KHMER:
       /* A number of Khmer fonts in the wild don't have a 'pref' feature,
