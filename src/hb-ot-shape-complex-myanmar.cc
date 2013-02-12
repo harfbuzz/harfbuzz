@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-ot-shape-complex-private.hh"
+#include "hb-ot-shape-complex-indic-private.hh"
 
 /* buffer var allocations */
 #define myanmar_category() complex_var_u8_0() /* myanmar_category_t */
@@ -146,28 +146,11 @@ enum syllable_type_t {
 /* Note: This enum is duplicated in the -machine.rl source file.
  * Not sure how to avoid duplication. */
 enum myanmar_category_t {
-  OT_X = 0,
-  OT_C = 1,
-  OT_V = 2,
-  OT_N = 3,
-  OT_H = 4,
-  OT_ZWNJ = 5,
-  OT_ZWJ  = 6,
-  OT_M    = 7,
-  OT_SM   = 8,
-  OT_A    = 10,
-  OT_NBSP = 11,
-  OT_GB = 12,
-
-  OT_Ra = 16, /* Not explicitly listed in the OT spec, but used in the grammar. */
-  OT_CM = 17, /* Generic Consonant_Medial; NOT used for Myanmar. */
-
-  /* Myanmar OT spec types */
-
   OT_As  = 18, /* Asat */
   OT_D   = 19, /* Digits except zero */
   OT_D0  = 20, /* Digit zero */
   OT_DB  = OT_N, /* Dot below */
+  OT_GB  = OT_DOTTEDCIRCLE,
   OT_MH  = 21, /* Various consonant medial types */
   OT_MR  = 22, /* Various consonant medial types */
   OT_MW  = 23, /* Various consonant medial types */
@@ -178,33 +161,6 @@ enum myanmar_category_t {
   OT_VPre = 28,
   OT_VPst = 29,
   OT_VS   = 30 /* Variation selectors */
-};
-
-/* Visual positions in a syllable from left to right. */
-enum myanmar_position_t {
-  POS_START,
-
-  POS_RA_TO_BECOME_REPH,
-  POS_PRE_M,
-  POS_PRE_C,
-
-  POS_BASE_C,
-  POS_AFTER_MAIN,
-
-  POS_ABOVE_C,
-
-  POS_BEFORE_SUB,
-  POS_BELOW_C,
-  POS_AFTER_SUB,
-
-  POS_BEFORE_POST,
-  POS_POST_C,
-  POS_AFTER_POST,
-
-  POS_FINAL_C,
-  POS_SMVD,
-
-  POS_END
 };
 
 
@@ -233,57 +189,37 @@ static inline void
 set_myanmar_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
-  myanmar_category_t cat = OT_C;
-  myanmar_position_t pos = POS_BASE_C;
+  unsigned int type = hb_indic_get_categories (u);
+  indic_category_t cat = (indic_category_t) (type & 0x7F);
+  indic_position_t pos = (indic_position_t) (type >> 8);
 
   /* Myanmar
    * http://www.microsoft.com/typography/OpenTypeDev/myanmar/intro.htm#analyze
    */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xFE00, 0xFE0F)))
-    cat = OT_VS;
+    cat = (indic_category_t) OT_VS;
+  else if (unlikely (u == 0x200C)) cat = (indic_category_t) OT_ZWNJ;
+  else if (unlikely (u == 0x200D)) cat = (indic_category_t) OT_ZWJ;
+
   switch (u)
   {
-    case 0x104A: case 0x104B:
-      /* Punctuation; don't care. */
-      cat = OT_X;
-      break;
-
-    case 0x104C: case 0x104D: case 0x104F: case 0x109E:
-    case 0x109F: case 0xAA70: case 0xAA77: case 0xAA78:
-    case 0xAA79:
-      /* Symbols; don't care. */
-      cat = OT_X;
-      break;
-
     case 0x002D: case 0x00A0: case 0x00D7: case 0x2012:
     case 0x2013: case 0x2014: case 0x2015: case 0x2022:
     case 0x25CC: case 0x25FB: case 0x25FC: case 0x25FD:
     case 0x25FE:
-      cat = OT_GB;
-      break;
-
-    case 0x200C:
-      cat = OT_ZWNJ;
-      break;
-
-    case 0x200D:
-      cat = OT_ZWJ;
+      cat = (indic_category_t) OT_GB;
       break;
 
     case 0x1004: case 0x101B: case 0x105A:
-      cat = OT_Ra;
+      cat = (indic_category_t) OT_Ra;
       break;
 
     case 0x1032: case 0x1036:
-      cat = OT_A;
-      break;
-
-    case 0x1039:
-      cat = OT_H;
+      cat = (indic_category_t) OT_A;
       break;
 
     case 0x103A:
-      cat = OT_As;
+      cat = (indic_category_t) OT_As;
       break;
 
     case 0x1041: case 0x1042: case 0x1043: case 0x1044:
@@ -291,66 +227,54 @@ set_myanmar_properties (hb_glyph_info_t &info)
     case 0x1049: case 0x1090: case 0x1091: case 0x1092:
     case 0x1093: case 0x1094: case 0x1095: case 0x1096:
     case 0x1097: case 0x1098: case 0x1099:
-      cat = OT_D;
+      cat = (indic_category_t) OT_D;
       break;
 
     case 0x1040:
-      cat = OT_D; /* XXX The spec says D0, but Uniscribe doesn't seem to do. */
-      break;
-
-    case 0x1037:
-      cat = OT_DB;
+      cat = (indic_category_t) OT_D; /* XXX The spec says D0, but Uniscribe doesn't seem to do. */
       break;
 
     case 0x103E: case 0x1060:
-      cat = OT_MH;
+      cat = (indic_category_t) OT_MH;
       break;
 
     case 0x103C:
-      cat = OT_MR;
+      cat = (indic_category_t) OT_MR;
       break;
 
     case 0x103D: case 0x1082:
-      cat = OT_MW;
+      cat = (indic_category_t) OT_MW;
       break;
 
     case 0x103B: case 0x105E: case 0x105F:
-      cat = OT_MY;
+      cat = (indic_category_t) OT_MY;
       break;
 
     case 0x1063: case 0x1064: case 0x1069: case 0x106A:
     case 0x106B: case 0x106C: case 0x106D: case 0xAA7B:
-      cat = OT_PT;
+      cat = (indic_category_t) OT_PT;
       break;
 
     case 0x1038: case 0x1087: case 0x1088: case 0x1089:
     case 0x108A: case 0x108B: case 0x108C: case 0x108D:
     case 0x108F: case 0x109A: case 0x109B: case 0x109C:
-      cat = OT_SM;
-      break;
-
-    case 0x102D: case 0x102E: case 0x1033: case 0x1034:
-    case 0x1035: case 0x1071: case 0x1072: case 0x1073:
-    case 0x1074: case 0x1085: case 0x1086: case 0x109D:
-      cat = OT_VAbv;
-      break;
-
-    case 0x102F: case 0x1030: case 0x1058: case 0x1059:
-      cat = OT_VBlw;
-      break;
-
-    case 0x1031: case 0x1084:
-      cat = OT_VPre;
-      pos = POS_PRE_M;
-      break;
-
-    case 0x102B: case 0x102C: case 0x1056: case 0x1057:
-    case 0x1062: case 0x1067: case 0x1068: case 0x1083:
-      cat = OT_VPst;
+      cat = (indic_category_t) OT_SM;
       break;
   }
 
-  info.myanmar_category() = cat;
+  if (cat == OT_M)
+  {
+    switch ((int) pos)
+    {
+      case POS_PRE_C:	cat = (indic_category_t) OT_VPre;
+			pos = POS_PRE_M;                  break;
+      case POS_ABOVE_C:	cat = (indic_category_t) OT_VAbv; break;
+      case POS_BELOW_C:	cat = (indic_category_t) OT_VBlw; break;
+      case POS_POST_C:	cat = (indic_category_t) OT_VPst; break;
+    }
+  }
+
+  info.myanmar_category() = (myanmar_category_t) cat;
   info.myanmar_position() = pos;
 }
 
@@ -441,7 +365,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       info[i].myanmar_position() = POS_BASE_C;
       i++;
     }
-    myanmar_position_t pos = POS_AFTER_MAIN;
+    indic_position_t pos = POS_AFTER_MAIN;
     /* The following loop may be ugly, but it implements all of
      * Myanmar reordering! */
     for (; i < end; i++)

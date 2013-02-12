@@ -301,6 +301,7 @@ class DiffHelpers:
 		if any (l.find("glyph0") >= 0 for l in lines if l[0] == '+'): return True
 		if any (l.find("gid0") >= 0 for l in lines if l[0] == '+'): return True
 		if any (l.find("notdef") >= 0 for l in lines if l[0] == '+'): return True
+		if any (l.find("gid232") >= 0 for l in lines if l[0] == '+'): return True
 		return all (l[0] == ' ' for l in lines)
 
 
