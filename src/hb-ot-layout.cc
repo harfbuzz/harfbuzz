@@ -727,9 +727,9 @@ hb_ot_layout_position_lookup (hb_font_t    *font,
 }
 
 void
-hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer, hb_bool_t zero_width_attached_marks)
+hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer)
 {
-  OT::GPOS::position_finish (font, buffer, zero_width_attached_marks);
+  OT::GPOS::position_finish (font, buffer);
 }
 
 hb_bool_t

@@ -39,6 +39,12 @@
 #define complex_var_u8_1()	var2.u8[3]
 
 
+enum hb_ot_shape_zero_width_marks_type_t {
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF
+};
+
 
 /* Master OT shaper list */
 #define HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS \
@@ -131,7 +137,8 @@ struct hb_ot_complex_shaper_t
 		       hb_buffer_t              *buffer,
 		       hb_font_t                *font);
 
-  bool zero_width_attached_marks;
+  hb_ot_shape_zero_width_marks_type_t zero_width_marks;
+
   bool fallback_position;
 };
 
