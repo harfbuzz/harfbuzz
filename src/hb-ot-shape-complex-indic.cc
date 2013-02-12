@@ -349,8 +349,8 @@ indic_features[] =
   {HB_TAG('a','b','v','f'), false},
   {HB_TAG('p','s','t','f'), false},
   {HB_TAG('c','f','a','r'), false},
-  {HB_TAG('c','j','c','t'), true},
   {HB_TAG('v','a','t','u'), true},
+  {HB_TAG('c','j','c','t'), true},
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
@@ -381,8 +381,8 @@ enum {
   ABVF,
   PSTF,
   CFAR,
-  _CJCT,
   _VATU,
+  _CJCT,
 
   INIT,
   _PRES,
