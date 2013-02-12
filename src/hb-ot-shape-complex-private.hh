@@ -52,6 +52,7 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_COMPLEX_SHAPER_IMPLEMENT (arabic) \
   HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (sea) \
   HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
   /* ^--- Add new shapers here */
 
@@ -262,13 +263,11 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 
     /* Unicode-4.1 additions */
     case HB_SCRIPT_BUGINESE:
-    case HB_SCRIPT_NEW_TAI_LUE:
 
     /* Unicode-5.0 additions */
     case HB_SCRIPT_BALINESE:
 
     /* Unicode-5.1 additions */
-    case HB_SCRIPT_CHAM:
     case HB_SCRIPT_LEPCHA:
     case HB_SCRIPT_REJANG:
     case HB_SCRIPT_SUNDANESE:
@@ -277,8 +276,8 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_JAVANESE:
     case HB_SCRIPT_KAITHI:
     case HB_SCRIPT_MEETEI_MAYEK:
-    case HB_SCRIPT_TAI_THAM:
 
+    /* Unicode-6.0 additions */
 
     /* Unicode-6.1 additions */
     case HB_SCRIPT_CHAKMA:
@@ -287,9 +286,8 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 
       /* If the designer designed the font for the 'DFLT' script,
        * use the default shaper.  Otherwise, use the Indic shaper.
-       * Note that for some scripts, like New Tai Lue, there may
-       * not be *any* GSUB/GPOS needed, so there may be no scripts
-       * found! */
+       * Note that for some simple scripts, there may not be *any*
+       * GSUB/GPOS needed, so there may be no scripts found! */
       if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T'))
 	return &_hb_ot_complex_shaper_default;
       else
@@ -318,6 +316,24 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_myanmar;
       else
 	return &_hb_ot_complex_shaper_default;
+
+    /* Unicode-4.1 additions */
+    case HB_SCRIPT_NEW_TAI_LUE:
+
+    /* Unicode-5.1 additions */
+    case HB_SCRIPT_CHAM:
+
+    /* Unicode-5.2 additions */
+    case HB_SCRIPT_TAI_THAM:
+
+      /* If the designer designed the font for the 'DFLT' script,
+       * use the default shaper.  Otherwise, use the Indic shaper.
+       * Note that for some simple scripts, there may not be *any*
+       * GSUB/GPOS needed, so there may be no scripts found! */
+      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T'))
+	return &_hb_ot_complex_shaper_default;
+      else
+	return &_hb_ot_complex_shaper_sea;
   }
 }
 

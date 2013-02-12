@@ -28,7 +28,7 @@
 
 /* buffer var allocations */
 #define myanmar_category() complex_var_u8_0() /* myanmar_category_t */
-#define myanmar_position() complex_var_u8_1() /* myanmar_matra_category_t */
+#define myanmar_position() complex_var_u8_1() /* myanmar_position_t */
 
 
 /*

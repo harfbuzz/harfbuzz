@@ -87,9 +87,11 @@ HBSOURCES += \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-indic-private.hh \
-	hb-ot-shape-complex-indic-table.hh \
+	hb-ot-shape-complex-indic-table.cc \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-myanmar-machine.hh \
+	hb-ot-shape-complex-sea.cc \
+	hb-ot-shape-complex-sea-machine.hh \
 	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-normalize-private.hh \
@@ -242,9 +244,9 @@ EXTRA_DIST += $(GENERATORS)
 unicode-tables: arabic-table indic-table
 
 indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicMatraCategory.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.hh.tmp && \
-	mv hb-ot-shape-complex-indic-table.hh.tmp $(srcdir)/hb-ot-shape-complex-indic-table.hh || \
-	($(RM) hb-ot-shape-complex-indic-table.hh.tmp; false)
+	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc.tmp && \
+	mv hb-ot-shape-complex-indic-table.cc.tmp $(srcdir)/hb-ot-shape-complex-indic-table.cc || \
+	($(RM) hb-ot-shape-complex-indic-table.cc.tmp; false)
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh.tmp && \
@@ -257,10 +259,12 @@ arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt
 BUILT_SOURCES += \
 	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-myanmar-machine.hh \
+	hb-ot-shape-complex-sea-machine.hh \
 	$(NULL)
 EXTRA_DIST += \
 	hb-ot-shape-complex-indic-machine.rl \
 	hb-ot-shape-complex-myanmar-machine.rl \
+	hb-ot-shape-complex-sea-machine.rl \
 	$(NULL)
 %.hh: %.rl
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
