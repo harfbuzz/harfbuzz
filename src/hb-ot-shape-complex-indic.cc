@@ -1304,7 +1304,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
       while (new_reph_pos < base && !is_halant_or_coeng (info[new_reph_pos]))
 	new_reph_pos++;
 
-      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos])) {
+      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos]))
+      {
 	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
 	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
 	  new_reph_pos++;
@@ -1356,7 +1357,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
       while (new_reph_pos < base && !is_halant_or_coeng (info[new_reph_pos]))
 	new_reph_pos++;
 
-      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos])) {
+      if (new_reph_pos < base && is_halant_or_coeng (info[new_reph_pos]))
+      {
 	/* ->If ZWJ or ZWNJ are following this halant, position is moved after it. */
 	if (new_reph_pos + 1 < base && is_joiner (info[new_reph_pos + 1]))
 	  new_reph_pos++;
@@ -1455,9 +1457,11 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	  }
 
 	  if (new_pos > start && is_halant_or_coeng (info[new_pos - 1]))
+	  {
 	    /* -> If ZWJ or ZWNJ follow this halant, position is moved after it. */
 	    if (new_pos < end && is_joiner (info[new_pos]))
 	      new_pos++;
+	  }
 
 	  {
 	    unsigned int old_pos = i;
