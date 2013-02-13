@@ -340,15 +340,14 @@ struct hb_apply_context_t
     inline skipping_backward_iterator_t (hb_apply_context_t *c_,
 					 unsigned int start_index_,
 					 unsigned int num_items_,
-					 hb_mask_t mask_ = 0,
-					 bool match_syllable_ = true)
+					 bool context_match = false)
     {
       c = c_;
       lookup_props = c->lookup_props;
       idx = start_index_;
       num_items = num_items_;
-      mask = mask_ ? mask_ : c->lookup_mask;
-      syllable = match_syllable_ ? c->buffer->cur().syllable () : 0;
+      mask = context_match ? -1 : c->lookup_mask;
+      syllable = context_match ? 0 : c->buffer->cur().syllable ();
     }
     inline void set_lookup_props (unsigned int lookup_props_)
     {
