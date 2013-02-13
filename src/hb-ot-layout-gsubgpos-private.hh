@@ -281,9 +281,9 @@ struct hb_apply_context_t
 			has_glyph_classes (gdef.has_glyph_classes ()),
 			debug_depth (0) {}
 
-  void set_recurse_func (recurse_func_t func) { recurse_func = func; }
-  void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
-  void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }
+  inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+  inline void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
+  inline void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }
 
   struct skipping_forward_iterator_t
   {
@@ -293,11 +293,16 @@ struct hb_apply_context_t
 					bool context_match = false)
     {
       c = c_;
+      lookup_props = c->lookup_props;
       idx = start_index_;
       num_items = num_items_;
       mask = context_match ? -1 : c->lookup_mask;
       syllable = context_match ? 0 : c->buffer->cur().syllable ();
       end = c->buffer->len;
+    }
+    inline void set_lookup_props (unsigned int lookup_props_)
+    {
+      lookup_props = lookup_props_;
     }
     inline bool has_no_chance (void) const
     {
@@ -307,7 +312,7 @@ struct hb_apply_context_t
     {
       num_items++;
     }
-    inline bool next (unsigned int  lookup_props)
+    inline bool next (void)
     {
       assert (num_items > 0);
       do
@@ -319,14 +324,11 @@ struct hb_apply_context_t
       num_items--;
       return (c->buffer->info[idx].mask & mask) && (!syllable || syllable == c->buffer->info[idx].syllable ());
     }
-    inline bool next (void)
-    {
-      return next (c->lookup_props);
-    }
 
     unsigned int idx;
     protected:
     hb_apply_context_t *c;
+    unsigned int lookup_props;
     unsigned int num_items;
     hb_mask_t mask;
     uint8_t syllable;
@@ -342,10 +344,15 @@ struct hb_apply_context_t
 					 bool match_syllable_ = true)
     {
       c = c_;
+      lookup_props = c->lookup_props;
       idx = start_index_;
       num_items = num_items_;
       mask = mask_ ? mask_ : c->lookup_mask;
       syllable = match_syllable_ ? c->buffer->cur().syllable () : 0;
+    }
+    inline void set_lookup_props (unsigned int lookup_props_)
+    {
+      lookup_props = lookup_props_;
     }
     inline bool has_no_chance (void) const
     {
@@ -355,7 +362,7 @@ struct hb_apply_context_t
     {
       num_items++;
     }
-    inline bool prev (unsigned int  lookup_props)
+    inline bool prev (void)
     {
       assert (num_items > 0);
       do
@@ -367,14 +374,11 @@ struct hb_apply_context_t
       num_items--;
       return (c->buffer->out_info[idx].mask & mask) && (!syllable || syllable == c->buffer->out_info[idx].syllable ());
     }
-    inline bool prev (void)
-    {
-      return prev (c->lookup_props);
-    }
 
     unsigned int idx;
     protected:
     hb_apply_context_t *c;
+    unsigned int lookup_props;
     unsigned int num_items;
     hb_mask_t mask;
     uint8_t syllable;

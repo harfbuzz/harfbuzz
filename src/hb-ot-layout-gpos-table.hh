@@ -1029,8 +1029,9 @@ struct MarkBasePosFormat1
 
     /* now we search backwards for a non-mark glyph */
     hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
+    skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
     do {
-      if (!skippy_iter.prev (LookupFlag::IgnoreMarks)) return TRACE_RETURN (false);
+      if (!skippy_iter.prev ()) return TRACE_RETURN (false);
       /* We only want to attach to the first of a MultipleSubst sequence.  Reject others. */
       if (0 == get_lig_comp (c->buffer->info[skippy_iter.idx])) break;
       skippy_iter.reject ();
@@ -1132,7 +1133,8 @@ struct MarkLigPosFormat1
 
     /* now we search backwards for a non-mark glyph */
     hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
-    if (!skippy_iter.prev (LookupFlag::IgnoreMarks)) return TRACE_RETURN (false);
+    skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
+    if (!skippy_iter.prev ()) return TRACE_RETURN (false);
 
     /* The following assertion is too strong, so we've disabled it. */
     if (!(c->buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE)) {/*return TRACE_RETURN (false);*/}
@@ -1247,7 +1249,8 @@ struct MarkMarkPosFormat1
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
     hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->idx, 1);
-    if (!skippy_iter.prev (c->lookup_props & ~LookupFlag::IgnoreFlags)) return TRACE_RETURN (false);
+    skippy_iter.set_lookup_props (c->lookup_props & ~LookupFlag::IgnoreFlags);
+    if (!skippy_iter.prev ()) return TRACE_RETURN (false);
 
     if (!(c->buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK)) { return TRACE_RETURN (false); }
 
