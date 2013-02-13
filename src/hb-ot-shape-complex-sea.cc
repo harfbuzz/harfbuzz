@@ -395,6 +395,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_sea =
   NULL, /* decompose */
   NULL, /* compose */
   setup_masks_sea,
-  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */
 };
