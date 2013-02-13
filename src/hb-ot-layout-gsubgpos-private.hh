@@ -263,7 +263,6 @@ struct hb_apply_context_t
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int lookup_props;
-  unsigned int property; /* propety of first glyph */
   const GDEF &gdef;
   bool has_glyph_classes;
   unsigned int debug_depth;
@@ -277,7 +276,7 @@ struct hb_apply_context_t
 			lookup_mask (lookup_mask_),
 			recurse_func (NULL),
 			nesting_level_left (MAX_NESTING_LEVEL),
-			lookup_props (0), property (0),
+			lookup_props (0),
 			gdef (*hb_ot_layout_from_face (face)->gdef),
 			has_glyph_classes (gdef.has_glyph_classes ()),
 			debug_depth (0) {}
@@ -308,8 +307,7 @@ struct hb_apply_context_t
     {
       num_items++;
     }
-    inline bool next (unsigned int *property_out,
-		      unsigned int  lookup_props)
+    inline bool next (unsigned int  lookup_props)
     {
       assert (num_items > 0);
       do
@@ -317,13 +315,13 @@ struct hb_apply_context_t
 	if (has_no_chance ())
 	  return false;
 	idx++;
-      } while (c->should_skip (&c->buffer->info[idx], lookup_props, property_out));
+      } while (c->should_skip (&c->buffer->info[idx], lookup_props));
       num_items--;
       return (c->buffer->info[idx].mask & mask) && (!syllable || syllable == c->buffer->info[idx].syllable ());
     }
-    inline bool next (unsigned int *property_out = NULL)
+    inline bool next (void)
     {
-      return next (property_out, c->lookup_props);
+      return next (c->lookup_props);
     }
 
     unsigned int idx;
@@ -357,8 +355,7 @@ struct hb_apply_context_t
     {
       num_items++;
     }
-    inline bool prev (unsigned int *property_out,
-		      unsigned int  lookup_props)
+    inline bool prev (unsigned int  lookup_props)
     {
       assert (num_items > 0);
       do
@@ -366,13 +363,13 @@ struct hb_apply_context_t
 	if (has_no_chance ())
 	  return false;
 	idx--;
-      } while (c->should_skip (&c->buffer->out_info[idx], lookup_props, property_out));
+      } while (c->should_skip (&c->buffer->out_info[idx], lookup_props));
       num_items--;
       return (c->buffer->out_info[idx].mask & mask) && (!syllable || syllable == c->buffer->out_info[idx].syllable ());
     }
-    inline bool prev (unsigned int *property_out = NULL)
+    inline bool prev (void)
     {
-      return prev (property_out, c->lookup_props);
+      return prev (c->lookup_props);
     }
 
     unsigned int idx;
@@ -423,27 +420,22 @@ struct hb_apply_context_t
 
   inline bool
   check_glyph_property (hb_glyph_info_t *info,
-			unsigned int  lookup_props,
-			unsigned int *property_out) const
+			unsigned int  lookup_props) const
   {
     unsigned int property;
 
     property = info->glyph_props();
-    *property_out = property;
 
     return match_properties (info->codepoint, property, lookup_props);
   }
 
   inline bool
   should_skip (hb_glyph_info_t *info,
-	       unsigned int  lookup_props,
-	       unsigned int *property_out) const
+	       unsigned int  lookup_props) const
   {
     unsigned int property;
 
     property = info->glyph_props();
-    if (property_out)
-      *property_out = property;
 
     return !match_properties (info->codepoint, property, lookup_props);
   }
@@ -451,7 +443,7 @@ struct hb_apply_context_t
 
   inline bool should_skip_current_glyph (void) const
   {
-    return should_skip (&buffer->cur(), lookup_props, NULL);
+    return should_skip (&buffer->cur(), lookup_props);
   }
 
   inline void set_class (hb_codepoint_t glyph_index, unsigned int class_guess) const
@@ -618,7 +610,7 @@ static inline bool match_input (hb_apply_context_t *c,
    *   ligate with a conjunct...)
    */
 
-  bool is_mark_ligature = !!(c->property & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+  bool is_mark_ligature = !!(c->buffer->cur().glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
 
   unsigned int total_component_count = 0;
   total_component_count += get_lig_num_comps (c->buffer->cur());
@@ -628,9 +620,7 @@ static inline bool match_input (hb_apply_context_t *c,
 
   for (unsigned int i = 1; i < count; i++)
   {
-    unsigned int property;
-
-    if (!skippy_iter.next (&property)) return TRACE_RETURN (false);
+    if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     if (likely (!match_func (c->buffer->info[skippy_iter.idx].codepoint, input[i - 1], match_data))) return TRACE_RETURN (false);
 
@@ -651,7 +641,7 @@ static inline bool match_input (hb_apply_context_t *c,
 	return TRACE_RETURN (false);
     }
 
-    is_mark_ligature = is_mark_ligature && (property & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+    is_mark_ligature = is_mark_ligature && (c->buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
     total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
   }
 
