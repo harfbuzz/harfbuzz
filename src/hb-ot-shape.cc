@@ -418,17 +418,10 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
 
   }
 
+  /* Zero'ing mark widths by GDEF (as used in Myanmar spec) happens
+   * *before* GPOS. */
   switch (c->plan->shaper->zero_width_marks)
   {
-    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE:
-      for (unsigned int i = 0; i < count; i++)
-	if (_hb_glyph_info_get_general_category (&c->buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
-	{
-	  c->buffer->pos[i].x_advance = 0;
-	  c->buffer->pos[i].y_advance = 0;
-	}
-      break;
-
     case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF:
       for (unsigned int i = 0; i < count; i++)
 	if ((c->buffer->info[i].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
@@ -440,6 +433,7 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
 
     default:
     case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE:
       break;
   }
 }
@@ -448,12 +442,12 @@ static inline bool
 hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
   bool ret = false;
+  unsigned int count = c->buffer->len;
 
   if (hb_ot_layout_has_positioning (c->face))
   {
     /* Change glyph origin to what GPOS expects, apply GPOS, change it back. */
 
-    unsigned int count = c->buffer->len;
     for (unsigned int i = 0; i < count; i++) {
       c->font->add_glyph_origin_for_direction (c->buffer->info[i].codepoint,
 					       HB_DIRECTION_LTR,
@@ -471,6 +465,25 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
     }
 
     ret = true;
+  }
+
+  /* Zero'ing mark widths by Unicode happens
+   * *after* GPOS. */
+  switch (c->plan->shaper->zero_width_marks)
+  {
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE:
+      for (unsigned int i = 0; i < count; i++)
+	if (_hb_glyph_info_get_general_category (&c->buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+	{
+	  c->buffer->pos[i].x_advance = 0;
+	  c->buffer->pos[i].y_advance = 0;
+	}
+      break;
+
+    default:
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF:
+      break;
   }
 
   hb_ot_layout_position_finish (c->font, c->buffer);
