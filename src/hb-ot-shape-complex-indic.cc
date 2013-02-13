@@ -1186,6 +1186,13 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
         base--;
       break;
     }
+  if (base == end && start < base &&
+      info[base - 1].indic_category() != OT_ZWJ)
+    base--;
+  while (start < base &&
+	 (info[base].indic_category() == OT_H ||
+	  info[base].indic_category() == OT_N))
+    base--;
 
 
   /*   o Reorder matras:
