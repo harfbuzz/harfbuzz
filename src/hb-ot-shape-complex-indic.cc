@@ -1237,6 +1237,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	  hb_glyph_info_t tmp = info[old_pos];
 	  memmove (&info[old_pos], &info[old_pos + 1], (new_pos - old_pos) * sizeof (info[0]));
 	  info[new_pos] = tmp;
+	  if (old_pos < base && base <= new_pos) /* Shouldn't actually happen. */
+	    base--;
 	  new_pos--;
 	}
       buffer->merge_clusters (new_pos, MIN (end, base + 1));
@@ -1389,6 +1391,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
       hb_glyph_info_t reph = info[start];
       memmove (&info[start], &info[start + 1], (new_reph_pos - start) * sizeof (info[0]));
       info[new_reph_pos] = reph;
+      if (start < base && base <= new_reph_pos)
+	base--;
     }
   }
 
@@ -1454,6 +1458,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	    hb_glyph_info_t tmp = info[old_pos];
 	    memmove (&info[new_pos + 1], &info[new_pos], (old_pos - new_pos) * sizeof (info[0]));
 	    info[new_pos] = tmp;
+	    if (new_pos <= base && base < old_pos)
+	      base++;
 	  }
 	}
 
