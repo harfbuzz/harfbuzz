@@ -94,14 +94,15 @@ inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
   info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
-			   (unicode->is_default_ignorable (info->codepoint) ? 0x80 : 0);
+			   (unicode->is_default_ignorable (info->codepoint) ? 0x80 : 0) |
+			   (info->codepoint == 0x200C ? 0x40 : 0);
   info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
 }
 
 inline hb_unicode_general_category_t
 _hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
 {
-  return (hb_unicode_general_category_t) (info->unicode_props0() & 0x7F);
+  return (hb_unicode_general_category_t) (info->unicode_props0() & 0x3F);
 }
 
 inline void
@@ -120,6 +121,12 @@ inline hb_bool_t
 _hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
 {
   return !!(info->unicode_props0() & 0x80);
+}
+
+inline hb_bool_t
+_hb_glyph_info_is_zwnj (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props0() & 0x40);
 }
 
 #endif /* HB_OT_SHAPE_PRIVATE_HH */
