@@ -255,6 +255,7 @@ struct hb_apply_context_t
     return ret;
   }
 
+  unsigned int table_index; /* GSUB/GPOS */
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
@@ -268,9 +269,11 @@ struct hb_apply_context_t
   unsigned int debug_depth;
 
 
-  hb_apply_context_t (hb_font_t *font_,
+  hb_apply_context_t (unsigned int table_index_,
+		      hb_font_t *font_,
 		      hb_buffer_t *buffer_,
 		      hb_mask_t lookup_mask_) :
+			table_index (table_index_),
 			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
