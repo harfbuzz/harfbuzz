@@ -840,13 +840,15 @@ static inline bool apply_lookup (hb_apply_context_t *c,
   {
     if (unlikely (c->buffer->idx == end))
       return TRACE_RETURN (true);
-    while (c->should_skip_current_glyph ())
-    {
-      /* No lookup applied for this index */
-      c->buffer->next_glyph ();
-      if (unlikely (c->buffer->idx == end))
-	return TRACE_RETURN (true);
-    }
+
+    if (i)
+      while (c->should_skip_current_glyph ())
+      {
+	/* No lookup applied for this index */
+	c->buffer->next_glyph ();
+	if (unlikely (c->buffer->idx == end))
+	  return TRACE_RETURN (true);
+      }
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
     {
