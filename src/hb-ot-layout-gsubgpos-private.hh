@@ -447,11 +447,6 @@ struct hb_apply_context_t
   }
 
 
-  inline bool should_skip_current_glyph (void) const
-  {
-    return should_skip (&buffer->cur(), lookup_props);
-  }
-
   inline void set_class (hb_codepoint_t glyph_index, unsigned int class_guess) const
   {
     if (likely (has_glyph_classes))
