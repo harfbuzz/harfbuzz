@@ -839,19 +839,35 @@ static inline bool apply_lookup (hb_apply_context_t *c,
    * and we jump out of it.  Not entirely disastrous.  So we don't check
    * for reverse lookup here.
    */
-  for (unsigned int i = 0; i < count; /* NOP */)
+  unsigned int i = 0;
+  if (lookupCount && 0 == lookupRecord->sequenceIndex)
   {
-    if (unlikely (c->buffer->idx == end))
-      return TRACE_RETURN (true);
+    unsigned int old_pos = c->buffer->idx;
 
-    if (i)
-      while (c->should_skip_current_glyph ())
-      {
-	/* No lookup applied for this index */
-	c->buffer->next_glyph ();
-	if (unlikely (c->buffer->idx == end))
-	  return TRACE_RETURN (true);
-      }
+    /* Apply a lookup */
+    bool done = c->recurse (lookupRecord->lookupListIndex);
+
+    lookupRecord++;
+    lookupCount--;
+    /* Err, this is wrong if the lookup jumped over some glyphs */
+    i += c->buffer->idx - old_pos;
+
+    if (!done)
+      goto not_applied;
+  }
+  else
+  {
+  not_applied:
+    /* No lookup applied for this index */
+    c->buffer->next_glyph ();
+    i++;
+  }
+  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx - 1, count - i);
+  while (i < count)
+  {
+    if (!skippy_iter.next ()) return TRACE_RETURN (true);
+    while (c->buffer->idx < skippy_iter.idx)
+      c->buffer->next_glyph ();
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
     {
@@ -864,15 +880,19 @@ static inline bool apply_lookup (hb_apply_context_t *c,
       lookupCount--;
       /* Err, this is wrong if the lookup jumped over some glyphs */
       i += c->buffer->idx - old_pos;
-      if (unlikely (c->buffer->idx == end))
-	return TRACE_RETURN (true);
 
       if (!done)
-	goto not_applied;
+	goto not_applied2;
+      else
+      {
+        /* Reinitialize iterator. */
+	hb_apply_context_t::skipping_forward_iterator_t tmp (c, c->buffer->idx - 1, count - i);
+	skippy_iter = tmp;
+      }
     }
     else
     {
-    not_applied:
+    not_applied2:
       /* No lookup applied for this index */
       c->buffer->next_glyph ();
       i++;
