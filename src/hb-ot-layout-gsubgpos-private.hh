@@ -705,13 +705,16 @@ static inline void ligate_input (hb_apply_context_t *c,
   unsigned int last_num_components = get_lig_num_comps (c->buffer->cur());
   unsigned int components_so_far = last_num_components;
 
+  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
+
   if (!is_mark_ligature)
     set_lig_props_for_ligature (c->buffer->cur(), lig_id, total_component_count);
   c->replace_glyph (lig_glyph, klass);
 
   for (unsigned int i = 1; i < count; i++)
   {
-    while (c->should_skip_current_glyph ())
+    if (!skippy_iter.next ()) return;
+    while (c->buffer->idx < skippy_iter.idx)
     {
       if (!is_mark_ligature) {
 	unsigned int new_lig_comp = components_so_far - last_num_components +
