@@ -53,14 +53,15 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *uni
 {
   info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
 			   (unicode->is_default_ignorable (info->codepoint) ? 0x80 : 0) |
-			   (info->codepoint == 0x200C ? 0x40 : 0);
+			   (info->codepoint == 0x200C ? 0x40 : 0) |
+			   (info->codepoint == 0x200D ? 0x20 : 0);
   info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
 }
 
 inline hb_unicode_general_category_t
 _hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
 {
-  return (hb_unicode_general_category_t) (info->unicode_props0() & 0x3F);
+  return (hb_unicode_general_category_t) (info->unicode_props0() & 0x1F);
 }
 
 inline void
@@ -85,6 +86,12 @@ inline hb_bool_t
 _hb_glyph_info_is_zwnj (const hb_glyph_info_t *info)
 {
   return !!(info->unicode_props0() & 0x40);
+}
+
+inline hb_bool_t
+_hb_glyph_info_is_zwj (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props0() & 0x20);
 }
 
 

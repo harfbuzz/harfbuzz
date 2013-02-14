@@ -293,6 +293,7 @@ struct hb_apply_context_t
     inline matcher_t (void) :
 	     lookup_props (0),
 	     ignore_zwnj (true),
+	     ignore_zwj (true),
 	     mask (-1),
 #define arg1(arg) (arg) /* Remove the macro to see why it's needed! */
 	     syllable arg1(0),
@@ -303,6 +304,7 @@ struct hb_apply_context_t
     typedef bool (*match_func_t) (hb_codepoint_t glyph_id, const USHORT &value, const void *data);
 
     inline void set_ignore_zwnj (bool ignore_zwnj_) { ignore_zwnj = ignore_zwnj_; }
+    inline void set_ignore_zwj (bool ignore_zwj_) { ignore_zwj = ignore_zwj_; }
     inline void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
     inline void set_mask (hb_mask_t mask_) { mask = mask_; }
     inline void set_syllable (uint8_t syllable_)  { syllable = syllable_; }
@@ -335,8 +337,9 @@ struct hb_apply_context_t
       if (!c->match_properties (info.codepoint, property, lookup_props))
 	return SKIP_YES;
 
-      if (unlikely ((_hb_glyph_info_is_default_ignorable (&info) &&
-		     (ignore_zwnj || !_hb_glyph_info_is_zwnj (&info))) &&
+      if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&
+		    (ignore_zwnj || !_hb_glyph_info_is_zwnj (&info)) &&
+		    (ignore_zwj || !_hb_glyph_info_is_zwj (&info)) &&
 		    !is_a_ligature (info)))
 	return SKIP_MAYBE;
 
@@ -346,6 +349,7 @@ struct hb_apply_context_t
     protected:
     unsigned int lookup_props;
     bool ignore_zwnj;
+    bool ignore_zwj;
     hb_mask_t mask;
     uint8_t syllable;
     match_func_t match_func;
@@ -367,6 +371,7 @@ struct hb_apply_context_t
       matcher.set_lookup_props (c->lookup_props);
       /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
       matcher.set_ignore_zwnj (context_match || c->table_index == 1);
+      matcher.set_ignore_zwj (true);
       if (!context_match)
       {
         matcher.set_mask (c->lookup_mask);
@@ -436,6 +441,7 @@ struct hb_apply_context_t
       matcher.set_lookup_props (c->lookup_props);
       /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
       matcher.set_ignore_zwnj (context_match || c->table_index == 1);
+      matcher.set_ignore_zwj (true);
       if (!context_match)
       {
         matcher.set_mask (c->lookup_mask);
