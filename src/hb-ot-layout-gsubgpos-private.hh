@@ -261,6 +261,7 @@ struct hb_apply_context_t
   hb_buffer_t *buffer;
   hb_direction_t direction;
   hb_mask_t lookup_mask;
+  bool auto_joiners;
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int lookup_props;
@@ -272,11 +273,13 @@ struct hb_apply_context_t
   hb_apply_context_t (unsigned int table_index_,
 		      hb_font_t *font_,
 		      hb_buffer_t *buffer_,
-		      hb_mask_t lookup_mask_) :
+		      hb_mask_t lookup_mask_,
+		      bool auto_joiners_) :
 			table_index (table_index_),
 			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
+			auto_joiners (auto_joiners_),
 			recurse_func (NULL),
 			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0),
@@ -292,8 +295,8 @@ struct hb_apply_context_t
   {
     inline matcher_t (void) :
 	     lookup_props (0),
-	     ignore_zwnj (true),
-	     ignore_zwj (true),
+	     ignore_zwnj (false),
+	     ignore_zwj (false),
 	     mask (-1),
 #define arg1(arg) (arg) /* Remove the macro to see why it's needed! */
 	     syllable arg1(0),
@@ -369,13 +372,16 @@ struct hb_apply_context_t
 					 end (c->buffer->len)
     {
       matcher.set_lookup_props (c->lookup_props);
-      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
-      matcher.set_ignore_zwnj (context_match || c->table_index == 1);
-      matcher.set_ignore_zwj (true);
+      if (c->auto_joiners)
+      {
+	/* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
+	matcher.set_ignore_zwnj (context_match || c->table_index == 1);
+	matcher.set_ignore_zwj (true);
+      }
       if (!context_match)
       {
-        matcher.set_mask (c->lookup_mask);
-        matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
+	matcher.set_mask (c->lookup_mask);
+	matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
       }
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
@@ -439,13 +445,16 @@ struct hb_apply_context_t
 					  num_items (num_items_)
     {
       matcher.set_lookup_props (c->lookup_props);
-      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
-      matcher.set_ignore_zwnj (context_match || c->table_index == 1);
-      matcher.set_ignore_zwj (true);
+      if (c->auto_joiners)
+      {
+	/* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
+	matcher.set_ignore_zwnj (context_match || c->table_index == 1);
+	matcher.set_ignore_zwj (true);
+      }
       if (!context_match)
       {
-        matcher.set_mask (c->lookup_mask);
-        matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
+	matcher.set_mask (c->lookup_mask);
+	matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
       }
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }

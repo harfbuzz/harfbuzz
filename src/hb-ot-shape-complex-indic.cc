@@ -339,18 +339,18 @@ indic_features[] =
    * Basic features.
    * These features are applied in order, one at a time, after initial_reordering.
    */
-  {HB_TAG('n','u','k','t'), F_GLOBAL},
-  {HB_TAG('a','k','h','n'), F_GLOBAL},
-  {HB_TAG('r','p','h','f'), F_NONE},
-  {HB_TAG('r','k','r','f'), F_GLOBAL},
-  {HB_TAG('p','r','e','f'), F_NONE},
-  {HB_TAG('b','l','w','f'), F_NONE},
-  {HB_TAG('h','a','l','f'), F_NONE},
-  {HB_TAG('a','b','v','f'), F_NONE},
-  {HB_TAG('p','s','t','f'), F_NONE},
-  {HB_TAG('c','f','a','r'), F_NONE},
-  {HB_TAG('v','a','t','u'), F_GLOBAL},
-  {HB_TAG('c','j','c','t'), F_GLOBAL},
+  {HB_TAG('n','u','k','t'), F_MANUAL_JOINERS | F_GLOBAL},
+  {HB_TAG('a','k','h','n'), F_MANUAL_JOINERS | F_GLOBAL},
+  {HB_TAG('r','p','h','f'), F_MANUAL_JOINERS},
+  {HB_TAG('r','k','r','f'), F_MANUAL_JOINERS | F_GLOBAL},
+  {HB_TAG('p','r','e','f'), F_MANUAL_JOINERS},
+  {HB_TAG('b','l','w','f'), F_MANUAL_JOINERS},
+  {HB_TAG('h','a','l','f'), F_MANUAL_JOINERS},
+  {HB_TAG('a','b','v','f'), F_MANUAL_JOINERS},
+  {HB_TAG('p','s','t','f'), F_MANUAL_JOINERS},
+  {HB_TAG('c','f','a','r'), F_MANUAL_JOINERS},
+  {HB_TAG('v','a','t','u'), F_MANUAL_JOINERS | F_GLOBAL},
+  {HB_TAG('c','j','c','t'), F_MANUAL_JOINERS | F_GLOBAL},
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
@@ -1003,8 +1003,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       do {
 	j--;
 
-	/* A ZWJ disables CJCT, however, it's mere presence is enough
-	 * to disable ligation.  No explicit action needed. */
+	/* ZWJ/ZWNJ should disable CJCT.  They do that by simply
+	 * being there, since we don't skip them for the CJCT
+	 * feature (ie. F_MANUAL_JOINERS) */
 
 	/* A ZWNJ disables HALF. */
 	if (non_joiner)

@@ -109,12 +109,12 @@ collect_features_sea (hb_ot_shape_planner_t *plan)
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
   for (; i < SEA_BASIC_FEATURES; i++) {
-    map->add_global_bool_feature (sea_features[i]);
+    map->add_feature (sea_features[i], 1, F_GLOBAL | F_MANUAL_JOINERS);
     map->add_gsub_pause (NULL);
   }
   map->add_gsub_pause (final_reordering);
   for (; i < SEA_NUM_FEATURES; i++) {
-    map->add_global_bool_feature (sea_features[i]);
+    map->add_feature (sea_features[i], 1, F_GLOBAL | F_MANUAL_JOINERS);
   }
 }
 

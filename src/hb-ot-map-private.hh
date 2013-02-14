@@ -49,14 +49,16 @@ struct hb_ot_map_t
     unsigned int shift;
     hb_mask_t mask;
     hb_mask_t _1_mask; /* mask for value=1, for quick access */
-    hb_bool_t needs_fallback;
+    unsigned int needs_fallback : 1;
+    unsigned int auto_joiners : 1;
 
     static int cmp (const feature_map_t *a, const feature_map_t *b)
     { return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0; }
   };
 
   struct lookup_map_t {
-    unsigned int index;
+    unsigned short index;
+    unsigned short auto_joiners : 1;
     hb_mask_t mask;
 
     static int cmp (const lookup_map_t *a, const lookup_map_t *b)
@@ -136,7 +138,8 @@ struct hb_ot_map_t
   HB_INTERNAL void add_lookups (hb_face_t    *face,
 				unsigned int  table_index,
 				unsigned int  feature_index,
-				hb_mask_t     mask);
+				hb_mask_t     mask,
+				bool          auto_joiners);
 
   hb_mask_t global_mask;
 
@@ -148,7 +151,8 @@ struct hb_ot_map_t
 enum hb_ot_map_feature_flags_t {
   F_NONE		= 0x0000,
   F_GLOBAL		= 0x0001,
-  F_HAS_FALLBACK	= 0x0002
+  F_HAS_FALLBACK	= 0x0002,
+  F_MANUAL_JOINERS	= 0x0004
 };
 inline hb_ot_map_feature_flags_t
 operator | (hb_ot_map_feature_flags_t l, hb_ot_map_feature_flags_t r)

@@ -206,7 +206,8 @@ HB_INTERNAL hb_bool_t
 hb_ot_layout_substitute_lookup (hb_font_t    *font,
 				hb_buffer_t  *buffer,
 				unsigned int  lookup_index,
-				hb_mask_t     mask);
+				hb_mask_t     mask,
+				hb_bool_t     auto_joiners);
 
 /* Should be called after all the substitute_lookup's are done */
 HB_INTERNAL void
@@ -223,7 +224,8 @@ HB_INTERNAL hb_bool_t
 hb_ot_layout_position_lookup (hb_font_t    *font,
 			      hb_buffer_t  *buffer,
 			      unsigned int  lookup_index,
-			      hb_mask_t     mask);
+			      hb_mask_t     mask,
+			      hb_bool_t     auto_joiners);
 
 /* Should be called after all the position_lookup's are done */
 HB_INTERNAL void
