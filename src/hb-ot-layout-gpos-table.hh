@@ -596,6 +596,7 @@ struct PairSet
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
     {
+      /* TODO bsearch */
       if (c->buffer->info[pos].codepoint == record->secondGlyph)
       {
 	valueFormats[0].apply_value (c->font, c->direction, this,

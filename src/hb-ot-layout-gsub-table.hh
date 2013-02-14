@@ -638,9 +638,9 @@ struct Ligature
     ligate_input (c,
 		  count,
 		  &component[1],
-		  ligGlyph,
 		  match_glyph,
 		  NULL,
+		  ligGlyph,
 		  is_mark_ligature,
 		  total_component_count);
 

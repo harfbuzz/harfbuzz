@@ -43,6 +43,51 @@
 #define syllable()		var1.u8[2] /* GSUB/GPOS shaping boundaries */
 #define lig_props()		var1.u8[3] /* GSUB/GPOS ligature tracking */
 
+/* buffer var allocations, used during the entire shaping process */
+#define unicode_props0()	var2.u8[0]
+#define unicode_props1()	var2.u8[1]
+
+
+inline void
+_hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
+{
+  info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
+			   (unicode->is_default_ignorable (info->codepoint) ? 0x80 : 0) |
+			   (info->codepoint == 0x200C ? 0x40 : 0);
+  info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
+}
+
+inline hb_unicode_general_category_t
+_hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
+{
+  return (hb_unicode_general_category_t) (info->unicode_props0() & 0x3F);
+}
+
+inline void
+_hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info, unsigned int modified_class)
+{
+  info->unicode_props1() = modified_class;
+}
+
+inline unsigned int
+_hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
+{
+  return info->unicode_props1();
+}
+
+inline hb_bool_t
+_hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props0() & 0x80);
+}
+
+inline hb_bool_t
+_hb_glyph_info_is_zwnj (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props0() & 0x40);
+}
+
+
 #define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
 
 /*
