@@ -155,8 +155,8 @@ struct hb_ot_map_builder_t
 
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global, bool has_fallback = false);
 
-  inline void add_bool_feature (hb_tag_t tag, bool global = true, bool has_fallback = false)
-  { add_feature (tag, 1, global, has_fallback); }
+  inline void add_global_bool_feature (hb_tag_t tag)
+  { add_feature (tag, 1, true, false); }
 
   inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (0, pause_func); }

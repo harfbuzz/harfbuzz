@@ -98,21 +98,21 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
   /* Do this before any lookups have been applied. */
   map->add_gsub_pause (setup_syllables);
 
-  map->add_bool_feature (HB_TAG('l','o','c','l'));
+  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
   /* The Indic specs do not require ccmp, but we apply it here since if
    * there is a use of it, it's typically at the beginning. */
-  map->add_bool_feature (HB_TAG('c','c','m','p'));
+  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
 
 
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
   for (; i < MYANMAR_BASIC_FEATURES; i++) {
-    map->add_bool_feature (myanmar_features[i]);
+    map->add_global_bool_feature (myanmar_features[i]);
     map->add_gsub_pause (NULL);
   }
   map->add_gsub_pause (final_reordering);
   for (; i < MYANMAR_NUM_FEATURES; i++) {
-    map->add_bool_feature (myanmar_features[i]);
+    map->add_global_bool_feature (myanmar_features[i]);
   }
 }
 

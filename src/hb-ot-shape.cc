@@ -83,12 +83,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
   switch (props->direction) {
     case HB_DIRECTION_LTR:
-      map->add_bool_feature (HB_TAG ('l','t','r','a'));
-      map->add_bool_feature (HB_TAG ('l','t','r','m'));
+      map->add_global_bool_feature (HB_TAG ('l','t','r','a'));
+      map->add_global_bool_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      map->add_bool_feature (HB_TAG ('r','t','l','a'));
-      map->add_bool_feature (HB_TAG ('r','t','l','m'), false);
+      map->add_global_bool_feature (HB_TAG ('r','t','l','a'));
+      map->add_feature (HB_TAG ('r','t','l','m'), 1, false);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -100,7 +100,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 #define ADD_FEATURES(array) \
   HB_STMT_START { \
     for (unsigned int i = 0; i < ARRAY_LENGTH (array); i++) \
-      map->add_bool_feature (array[i]); \
+      map->add_global_bool_feature (array[i]); \
   } HB_STMT_END
 
   if (planner->shaper->collect_features)

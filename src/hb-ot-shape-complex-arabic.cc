@@ -178,25 +178,25 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
    * TODO: Add test cases for these two.
    */
 
-  map->add_bool_feature (HB_TAG('c','c','m','p'));
-  map->add_bool_feature (HB_TAG('l','o','c','l'));
+  map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->add_global_bool_feature (HB_TAG('l','o','c','l'));
 
   map->add_gsub_pause (NULL);
 
   for (unsigned int i = 0; i < ARABIC_NUM_FEATURES; i++)
-    map->add_bool_feature (arabic_features[i], false, i < 4); /* The first four features have fallback. */
+    map->add_feature (arabic_features[i], 1, false, i < 4); /* The first four features have fallback. */
 
   map->add_gsub_pause (NULL);
 
-  map->add_bool_feature (HB_TAG('r','l','i','g'), true, true);
+  map->add_feature (HB_TAG('r','l','i','g'), 1, true, true);
   map->add_gsub_pause (arabic_fallback_shape);
 
-  map->add_bool_feature (HB_TAG('c','a','l','t'));
+  map->add_global_bool_feature (HB_TAG('c','a','l','t'));
   map->add_gsub_pause (NULL);
 
-  map->add_bool_feature (HB_TAG('c','s','w','h'));
-  map->add_bool_feature (HB_TAG('d','l','i','g'));
-  map->add_bool_feature (HB_TAG('m','s','e','t'));
+  map->add_global_bool_feature (HB_TAG('c','s','w','h'));
+  map->add_global_bool_feature (HB_TAG('d','l','i','g'));
+  map->add_global_bool_feature (HB_TAG('m','s','e','t'));
 }
 
 #include "hb-ot-shape-complex-arabic-fallback.hh"

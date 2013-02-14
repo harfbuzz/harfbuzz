@@ -68,7 +68,7 @@ collect_features_default (hb_ot_shape_planner_t *plan)
   }
 
   for (; script_features && *script_features; script_features++)
-    plan->map.add_bool_feature (*script_features);
+    plan->map.add_global_bool_feature (*script_features);
 }
 
 static hb_ot_shape_normalization_mode_t
