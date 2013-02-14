@@ -329,7 +329,7 @@ static const indic_config_t indic_configs[] =
 
 struct feature_list_t {
   hb_tag_t tag;
-  hb_bool_t is_global;
+  hb_ot_map_feature_flags_t flags;
 };
 
 static const feature_list_t
@@ -339,32 +339,32 @@ indic_features[] =
    * Basic features.
    * These features are applied in order, one at a time, after initial_reordering.
    */
-  {HB_TAG('n','u','k','t'), true},
-  {HB_TAG('a','k','h','n'), true},
-  {HB_TAG('r','p','h','f'), false},
-  {HB_TAG('r','k','r','f'), true},
-  {HB_TAG('p','r','e','f'), false},
-  {HB_TAG('b','l','w','f'), false},
-  {HB_TAG('h','a','l','f'), false},
-  {HB_TAG('a','b','v','f'), false},
-  {HB_TAG('p','s','t','f'), false},
-  {HB_TAG('c','f','a','r'), false},
-  {HB_TAG('v','a','t','u'), true},
-  {HB_TAG('c','j','c','t'), true},
+  {HB_TAG('n','u','k','t'), F_GLOBAL},
+  {HB_TAG('a','k','h','n'), F_GLOBAL},
+  {HB_TAG('r','p','h','f'), F_NONE},
+  {HB_TAG('r','k','r','f'), F_GLOBAL},
+  {HB_TAG('p','r','e','f'), F_NONE},
+  {HB_TAG('b','l','w','f'), F_NONE},
+  {HB_TAG('h','a','l','f'), F_NONE},
+  {HB_TAG('a','b','v','f'), F_NONE},
+  {HB_TAG('p','s','t','f'), F_NONE},
+  {HB_TAG('c','f','a','r'), F_NONE},
+  {HB_TAG('v','a','t','u'), F_GLOBAL},
+  {HB_TAG('c','j','c','t'), F_GLOBAL},
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
    */
-  {HB_TAG('i','n','i','t'), false},
-  {HB_TAG('p','r','e','s'), true},
-  {HB_TAG('a','b','v','s'), true},
-  {HB_TAG('b','l','w','s'), true},
-  {HB_TAG('p','s','t','s'), true},
-  {HB_TAG('h','a','l','n'), true},
+  {HB_TAG('i','n','i','t'), F_NONE},
+  {HB_TAG('p','r','e','s'), F_GLOBAL},
+  {HB_TAG('a','b','v','s'), F_GLOBAL},
+  {HB_TAG('b','l','w','s'), F_GLOBAL},
+  {HB_TAG('p','s','t','s'), F_GLOBAL},
+  {HB_TAG('h','a','l','n'), F_GLOBAL},
   /* Positioning features, though we don't care about the types. */
-  {HB_TAG('d','i','s','t'), true},
-  {HB_TAG('a','b','v','m'), true},
-  {HB_TAG('b','l','w','m'), true},
+  {HB_TAG('d','i','s','t'), F_GLOBAL},
+  {HB_TAG('a','b','v','m'), F_GLOBAL},
+  {HB_TAG('b','l','w','m'), F_GLOBAL},
 };
 
 /*
@@ -428,12 +428,12 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
   for (; i < INDIC_BASIC_FEATURES; i++) {
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].is_global);
+    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags);
     map->add_gsub_pause (NULL);
   }
   map->add_gsub_pause (final_reordering);
   for (; i < INDIC_NUM_FEATURES; i++) {
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].is_global);
+    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags);
   }
 }
 
@@ -442,9 +442,9 @@ override_features_indic (hb_ot_shape_planner_t *plan)
 {
   /* Uniscribe does not apply 'kern'. */
   if (hb_options ().uniscribe_bug_compatible)
-    plan->map.add_feature (HB_TAG('k','e','r','n'), 0, true);
+    plan->map.add_feature (HB_TAG('k','e','r','n'), 0, F_GLOBAL);
 
-  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, true);
+  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
 }
 
 
@@ -532,7 +532,8 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
   indic_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'));
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_plan->mask_array); i++)
-    indic_plan->mask_array[i] = indic_features[i].is_global ? 0 : plan->map.get_1_mask (indic_features[i].tag);
+    indic_plan->mask_array[i] = (indic_features[i].flags & F_GLOBAL) ?
+				 0 : plan->map.get_1_mask (indic_features[i].tag);
 
   return indic_plan;
 }

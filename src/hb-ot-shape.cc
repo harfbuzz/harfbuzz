@@ -88,7 +88,7 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
     case HB_DIRECTION_RTL:
       map->add_global_bool_feature (HB_TAG ('r','t','l','a'));
-      map->add_feature (HB_TAG ('r','t','l','m'), 1, false);
+      map->add_feature (HB_TAG ('r','t','l','m'), 1, F_NONE);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -120,7 +120,9 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
   for (unsigned int i = 0; i < num_user_features; i++) {
     const hb_feature_t *feature = &user_features[i];
-    map->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+    map->add_feature (feature->tag, feature->value,
+		      (feature->start == 0 && feature->end == (unsigned int) -1) ?
+		       F_GLOBAL : F_NONE);
   }
 }
 

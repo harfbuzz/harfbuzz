@@ -184,11 +184,11 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (NULL);
 
   for (unsigned int i = 0; i < ARABIC_NUM_FEATURES; i++)
-    map->add_feature (arabic_features[i], 1, false, i < 4); /* The first four features have fallback. */
+    map->add_feature (arabic_features[i], 1, i < 4 ? F_HAS_FALLBACK : F_NONE); /* The first four features have fallback. */
 
   map->add_gsub_pause (NULL);
 
-  map->add_feature (HB_TAG('r','l','i','g'), 1, true, true);
+  map->add_feature (HB_TAG('r','l','i','g'), 1, F_GLOBAL|F_HAS_FALLBACK);
   map->add_gsub_pause (arabic_fallback_shape);
 
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));

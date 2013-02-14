@@ -121,7 +121,7 @@ collect_features_sea (hb_ot_shape_planner_t *plan)
 static void
 override_features_sea (hb_ot_shape_planner_t *plan)
 {
-  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, true);
+  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
 }
 
 

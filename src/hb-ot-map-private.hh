@@ -145,6 +145,27 @@ struct hb_ot_map_t
   hb_prealloced_array_t<pause_map_t, 1> pauses[2]; /* GSUB/GPOS */
 };
 
+enum hb_ot_map_feature_flags_t {
+  F_NONE		= 0x0000,
+  F_GLOBAL		= 0x0001,
+  F_HAS_FALLBACK	= 0x0002
+};
+inline hb_ot_map_feature_flags_t
+operator | (hb_ot_map_feature_flags_t l, hb_ot_map_feature_flags_t r)
+{ return hb_ot_map_feature_flags_t ((unsigned int) l | (unsigned int) r); }
+inline hb_ot_map_feature_flags_t
+operator & (hb_ot_map_feature_flags_t l, hb_ot_map_feature_flags_t r)
+{ return hb_ot_map_feature_flags_t ((unsigned int) l & (unsigned int) r); }
+inline hb_ot_map_feature_flags_t
+operator ~ (hb_ot_map_feature_flags_t r)
+{ return hb_ot_map_feature_flags_t (~(unsigned int) r); }
+inline hb_ot_map_feature_flags_t&
+operator |= (hb_ot_map_feature_flags_t &l, hb_ot_map_feature_flags_t r)
+{ l = l | r; return l; }
+inline hb_ot_map_feature_flags_t&
+operator &= (hb_ot_map_feature_flags_t& l, hb_ot_map_feature_flags_t r)
+{ l = l & r; return l; }
+
 
 struct hb_ot_map_builder_t
 {
@@ -153,10 +174,11 @@ struct hb_ot_map_builder_t
   HB_INTERNAL hb_ot_map_builder_t (hb_face_t *face_,
 				   const hb_segment_properties_t *props_);
 
-  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value, bool global, bool has_fallback = false);
+  HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value,
+				hb_ot_map_feature_flags_t flags);
 
   inline void add_global_bool_feature (hb_tag_t tag)
-  { add_feature (tag, 1, true, false); }
+  { add_feature (tag, 1, F_GLOBAL); }
 
   inline void add_gsub_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (0, pause_func); }
@@ -177,8 +199,7 @@ struct hb_ot_map_builder_t
     hb_tag_t tag;
     unsigned int seq; /* sequence#, used for stable sorting only */
     unsigned int max_value;
-    bool global; /* whether the feature applies value to every glyph in the buffer */
-    bool has_fallback; /* whether to allocate bits even if feature not found */
+    hb_ot_map_feature_flags_t flags;
     unsigned int default_value; /* for non-global features, what should the unset glyphs take */
     unsigned int stage[2]; /* GSUB/GPOS */
 

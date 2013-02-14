@@ -119,7 +119,7 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
 static void
 override_features_myanmar (hb_ot_shape_planner_t *plan)
 {
-  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, true);
+  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
 
   /*
    * Note:
@@ -130,7 +130,7 @@ override_features_myanmar (hb_ot_shape_planner_t *plan)
    * 'mkmk' however.
    */
   if (hb_options ().uniscribe_bug_compatible)
-    plan->map.add_feature (HB_TAG('m','a','r','k'), 0, true);
+    plan->map.add_feature (HB_TAG('m','a','r','k'), 0, F_GLOBAL);
 }
 
 

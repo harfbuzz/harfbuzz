@@ -84,16 +84,16 @@ hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
   }
 }
 
-void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value, bool global, bool has_fallback)
+void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value,
+				       hb_ot_map_feature_flags_t flags)
 {
   feature_info_t *info = feature_infos.push();
   if (unlikely (!info)) return;
   info->tag = tag;
   info->seq = feature_infos.len;
   info->max_value = value;
-  info->global = global;
-  info->has_fallback = has_fallback;
-  info->default_value = global ? value : 0;
+  info->flags = flags;
+  info->default_value = (flags & F_GLOBAL) ? value : 0;
   info->stage[0] = current_stage[0];
   info->stage[1] = current_stage[1];
 }
@@ -176,15 +176,15 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
       if (feature_infos[i].tag != feature_infos[j].tag)
 	feature_infos[++j] = feature_infos[i];
       else {
-	if (feature_infos[i].global) {
-	  feature_infos[j].global = true;
+	if (feature_infos[i].flags & F_GLOBAL) {
+	  feature_infos[j].flags |= F_GLOBAL;
 	  feature_infos[j].max_value = feature_infos[i].max_value;
 	  feature_infos[j].default_value = feature_infos[i].default_value;
 	} else {
-	  feature_infos[j].global = false;
+	  feature_infos[j].flags &= ~F_GLOBAL;
 	  feature_infos[j].max_value = MAX (feature_infos[j].max_value, feature_infos[i].max_value);
 	}
-	feature_infos[j].has_fallback = feature_infos[j].has_fallback || feature_infos[i].has_fallback;
+	feature_infos[j].flags |= (feature_infos[i].flags & F_HAS_FALLBACK);
 	feature_infos[j].stage[0] = MIN (feature_infos[j].stage[0], feature_infos[i].stage[0]);
 	feature_infos[j].stage[1] = MIN (feature_infos[j].stage[1], feature_infos[i].stage[1]);
 	/* Inherit default_value from j */
@@ -200,7 +200,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 
     unsigned int bits_needed;
 
-    if (info->global && info->max_value == 1)
+    if ((info->flags & F_GLOBAL) && info->max_value == 1)
       /* Uses the global bit */
       bits_needed = 0;
     else
@@ -219,7 +219,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 						   language_index[table_index],
 						   info->tag,
 						   &feature_index[table_index]);
-    if (!found && !info->has_fallback)
+    if (!found && !(info->flags & F_HAS_FALLBACK))
       continue;
 
 
@@ -232,7 +232,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
     map->index[1] = feature_index[1];
     map->stage[0] = info->stage[0];
     map->stage[1] = info->stage[1];
-    if (info->global && info->max_value == 1) {
+    if ((info->flags & F_GLOBAL) && info->max_value == 1) {
       /* Uses the global bit */
       map->shift = 0;
       map->mask = 1;
@@ -240,7 +240,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
       map->shift = next_bit;
       map->mask = (1 << (next_bit + bits_needed)) - (1 << next_bit);
       next_bit += bits_needed;
-      if (info->global)
+      if ((info->flags & F_GLOBAL))
 	m.global_mask |= (info->default_value << map->shift) & map->mask;
     }
     map->_1_mask = (1 << map->shift) & map->mask;
