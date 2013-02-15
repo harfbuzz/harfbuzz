@@ -684,11 +684,6 @@ struct GenericOffsetTo : OffsetType
     if (unlikely (!offset)) return Null(Type);
     return StructAtOffset<Type> (base, offset);
   }
-  inline Type& operator () (void *base)
-  {
-    unsigned int offset = *this;
-    return StructAtOffset<Type> (base, offset);
-  }
 
   inline Type& serialize (hb_serialize_context_t *c, void *base)
   {
