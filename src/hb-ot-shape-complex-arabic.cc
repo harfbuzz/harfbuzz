@@ -37,17 +37,16 @@
  */
 enum {
   JOINING_TYPE_U		= 0,
-  JOINING_TYPE_R		= 1,
-  JOINING_TYPE_D		= 2,
+  JOINING_TYPE_L		= 1,
+  JOINING_TYPE_R		= 2,
+  JOINING_TYPE_D		= 3,
   JOINING_TYPE_C		= JOINING_TYPE_D,
-  JOINING_GROUP_ALAPH		= 3,
-  JOINING_GROUP_DALATH_RISH	= 4,
-  NUM_STATE_MACHINE_COLS	= 5,
+  JOINING_GROUP_ALAPH		= 4,
+  JOINING_GROUP_DALATH_RISH	= 5,
+  NUM_STATE_MACHINE_COLS	= 6,
 
-  /* We deliberately don't have a JOINING_TYPE_L since that's unused in Unicode. */
-
-  JOINING_TYPE_T = 6,
-  JOINING_TYPE_X = 7  /* means: use general-category to choose between U or T. */
+  JOINING_TYPE_T = 7,
+  JOINING_TYPE_X = 8  /* means: use general-category to choose between U or T. */
 };
 
 /*
@@ -81,8 +80,7 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xA840, 0xA872)))
   {
       if (unlikely (u == 0xA872))
-	/* XXX Looks like this should be TYPE_L, but we don't support that yet! */
-	return JOINING_TYPE_R;
+	return JOINING_TYPE_L;
 
       return JOINING_TYPE_D;
   }
@@ -133,28 +131,28 @@ static const struct arabic_state_table_entry {
 	uint16_t next_state;
 } arabic_state_table[][NUM_STATE_MACHINE_COLS] =
 {
-  /*   jt_U,          jt_R,          jt_D,          jg_ALAPH,      jg_DALATH_RISH */
+  /*   jt_U,          jt_L,          jt_R,          jt_D,          jg_ALAPH,      jg_DALATH_RISH */
 
   /* State 0: prev was U, not willing to join. */
-  { {NONE,NONE,0}, {NONE,ISOL,1}, {NONE,ISOL,2}, {NONE,ISOL,1}, {NONE,ISOL,6}, },
+  { {NONE,NONE,0}, {NONE,ISOL,2}, {NONE,ISOL,1}, {NONE,ISOL,2}, {NONE,ISOL,1}, {NONE,ISOL,6}, },
 
   /* State 1: prev was R or ISOL/ALAPH, not willing to join. */
-  { {NONE,NONE,0}, {NONE,ISOL,1}, {NONE,ISOL,2}, {NONE,FIN2,5}, {NONE,ISOL,6}, },
+  { {NONE,NONE,0}, {NONE,ISOL,2}, {NONE,ISOL,1}, {NONE,ISOL,2}, {NONE,FIN2,5}, {NONE,ISOL,6}, },
 
-  /* State 2: prev was D/ISOL, willing to join. */
-  { {NONE,NONE,0}, {INIT,FINA,1}, {INIT,FINA,3}, {INIT,FINA,4}, {INIT,FINA,6}, },
+  /* State 2: prev was D/L in ISOL form, willing to join. */
+  { {NONE,NONE,0}, {NONE,ISOL,2}, {INIT,FINA,1}, {INIT,FINA,3}, {INIT,FINA,4}, {INIT,FINA,6}, },
 
-  /* State 3: prev was D/FINA, willing to join. */
-  { {NONE,NONE,0}, {MEDI,FINA,1}, {MEDI,FINA,3}, {MEDI,FINA,4}, {MEDI,FINA,6}, },
+  /* State 3: prev was D in FINA form, willing to join. */
+  { {NONE,NONE,0}, {NONE,ISOL,2}, {MEDI,FINA,1}, {MEDI,FINA,3}, {MEDI,FINA,4}, {MEDI,FINA,6}, },
 
   /* State 4: prev was FINA ALAPH, not willing to join. */
-  { {NONE,NONE,0}, {MED2,ISOL,1}, {MED2,ISOL,2}, {MED2,FIN2,5}, {MED2,ISOL,6}, },
+  { {NONE,NONE,0}, {NONE,ISOL,2}, {MED2,ISOL,1}, {MED2,ISOL,2}, {MED2,FIN2,5}, {MED2,ISOL,6}, },
 
   /* State 5: prev was FIN2/FIN3 ALAPH, not willing to join. */
-  { {NONE,NONE,0}, {ISOL,ISOL,1}, {ISOL,ISOL,2}, {ISOL,FIN2,5}, {ISOL,ISOL,6}, },
+  { {NONE,NONE,0}, {NONE,ISOL,2}, {ISOL,ISOL,1}, {ISOL,ISOL,2}, {ISOL,FIN2,5}, {ISOL,ISOL,6}, },
 
   /* State 6: prev was DALATH/RISH, not willing to join. */
-  { {NONE,NONE,0}, {NONE,ISOL,1}, {NONE,ISOL,2}, {NONE,FIN3,5}, {NONE,ISOL,6}, }
+  { {NONE,NONE,0}, {NONE,ISOL,2}, {NONE,ISOL,1}, {NONE,ISOL,2}, {NONE,FIN3,5}, {NONE,ISOL,6}, }
 };
 
 
