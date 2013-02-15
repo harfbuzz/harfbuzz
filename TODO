@@ -7,8 +7,6 @@ General fixes:
 
 - Disable 'vert' if 'vrt2' is available (eg. Motoya fonts with arrow chars).
 
-- Fix TT 'kern' on/off and GPOS interaction (move kerning before GPOS).
-
 - Implement 'rand' feature.
 
 - mask propagation? (when ligation, "or" the masks).

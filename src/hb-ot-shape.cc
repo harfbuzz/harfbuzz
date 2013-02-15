@@ -105,10 +105,14 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
     for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
-      map->add_global_bool_feature (horizontal_features[i]);
+      map->add_feature (horizontal_features[i], 1, F_GLOBAL |
+			(horizontal_features[i] == HB_TAG('k','e','r','n') ?
+			 F_HAS_FALLBACK : F_NONE));
   else
     for (unsigned int i = 0; i < ARRAY_LENGTH (vertical_features); i++)
-      map->add_global_bool_feature (vertical_features[i]);
+      map->add_feature (vertical_features[i], 1, F_GLOBAL |
+			(vertical_features[i] == HB_TAG('v','k','r','n') ?
+			 F_HAS_FALLBACK : F_NONE));
 
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
@@ -491,25 +495,36 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 static inline void
 hb_ot_truetype_kern (hb_ot_shape_context_t *c)
 {
-  /* TODO Check for kern=0 */
   unsigned int count = c->buffer->len;
-  for (unsigned int i = 1; i < count; i++) {
-    hb_position_t x_kern, y_kern, kern1, kern2;
-    c->font->get_glyph_kerning_for_direction (c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
-					      c->buffer->props.direction,
-					      &x_kern, &y_kern);
+  hb_mask_t kern_mask = c->plan->map.get_1_mask (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) ?
+						 HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n'));
 
-    kern1 = x_kern >> 1;
-    kern2 = x_kern - kern1;
-    c->buffer->pos[i - 1].x_advance += kern1;
-    c->buffer->pos[i].x_advance += kern2;
-    c->buffer->pos[i].x_offset += kern2;
+  if (unlikely (!count)) return;
 
-    kern1 = y_kern >> 1;
-    kern2 = y_kern - kern1;
-    c->buffer->pos[i - 1].y_advance += kern1;
-    c->buffer->pos[i].y_advance += kern2;
-    c->buffer->pos[i].y_offset += kern2;
+  bool enabled = c->buffer->info[0].mask & kern_mask;
+  for (unsigned int i = 1; i < count; i++)
+  {
+    bool next = c->buffer->info[i].mask & kern_mask;
+    if (enabled && next)
+    {
+      hb_position_t x_kern, y_kern, kern1, kern2;
+      c->font->get_glyph_kerning_for_direction (c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
+						c->buffer->props.direction,
+						&x_kern, &y_kern);
+
+      kern1 = x_kern >> 1;
+      kern2 = x_kern - kern1;
+      c->buffer->pos[i - 1].x_advance += kern1;
+      c->buffer->pos[i].x_advance += kern2;
+      c->buffer->pos[i].x_offset += kern2;
+
+      kern1 = y_kern >> 1;
+      kern2 = y_kern - kern1;
+      c->buffer->pos[i - 1].y_advance += kern1;
+      c->buffer->pos[i].y_advance += kern2;
+      c->buffer->pos[i].y_offset += kern2;
+    }
+    enabled = next;
   }
 }
 
