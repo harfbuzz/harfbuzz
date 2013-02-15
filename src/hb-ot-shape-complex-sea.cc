@@ -38,7 +38,7 @@
  */
 
 static const hb_tag_t
-sea_features[] =
+basic_features[] =
 {
   /*
    * Basic features.
@@ -48,6 +48,10 @@ sea_features[] =
   HB_TAG('a','b','v','f'),
   HB_TAG('b','l','w','f'),
   HB_TAG('p','s','t','f'),
+};
+static const hb_tag_t
+other_features[] =
+{
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
@@ -58,25 +62,6 @@ sea_features[] =
   HB_TAG('p','s','t','s'),
   /* Positioning features, though we don't care about the types. */
   HB_TAG('d','i','s','t'),
-};
-
-/*
- * Must be in the same order as the sea_features array.
- */
-enum {
-  _PREF,
-  _ABVF,
-  _BLWF,
-  _PSTF,
-
-  _PRES,
-  _ABVS,
-  _BLWS,
-  _PSTS,
-  _DIST,
-
-  SEA_NUM_FEATURES,
-  SEA_BASIC_FEATURES = _PRES /* Don't forget to update this! */
 };
 
 static void
@@ -105,17 +90,15 @@ collect_features_sea (hb_ot_shape_planner_t *plan)
    * there is a use of it, it's typically at the beginning. */
   map->add_global_bool_feature (HB_TAG('c','c','m','p'));
 
-
-  unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
-  for (; i < SEA_BASIC_FEATURES; i++) {
-    map->add_feature (sea_features[i], 1, F_GLOBAL | F_MANUAL_JOINERS);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
+  {
+    map->add_feature (basic_features[i], 1, F_GLOBAL | F_MANUAL_JOINERS);
     map->add_gsub_pause (NULL);
   }
   map->add_gsub_pause (final_reordering);
-  for (; i < SEA_NUM_FEATURES; i++) {
-    map->add_feature (sea_features[i], 1, F_GLOBAL | F_MANUAL_JOINERS);
-  }
+  for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
+    map->add_feature (other_features[i], 1, F_GLOBAL);
 }
 
 static void

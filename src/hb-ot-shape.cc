@@ -97,26 +97,21 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
-#define ADD_FEATURES(array) \
-  HB_STMT_START { \
-    for (unsigned int i = 0; i < ARRAY_LENGTH (array); i++) \
-      map->add_global_bool_feature (array[i]); \
-  } HB_STMT_END
-
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
-  ADD_FEATURES (common_features);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
+    map->add_global_bool_feature (common_features[i]);
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
-    ADD_FEATURES (horizontal_features);
+    for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
+      map->add_global_bool_feature (horizontal_features[i]);
   else
-    ADD_FEATURES (vertical_features);
+    for (unsigned int i = 0; i < ARRAY_LENGTH (vertical_features); i++)
+      map->add_global_bool_feature (vertical_features[i]);
 
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
-
-#undef ADD_FEATURES
 
   for (unsigned int i = 0; i < num_user_features; i++) {
     const hb_feature_t *feature = &user_features[i];
