@@ -663,8 +663,6 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 {
   hb_ot_shape_plan_t plan;
 
-  buffer->guess_segment_properties ();
-
   const char *shapers[] = {"ot", NULL};
   hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,
 							     features, num_features, shapers);
