@@ -381,8 +381,8 @@ struct hb_apply_context_t
       if (!context_match)
       {
 	matcher.set_mask (c->lookup_mask);
-	matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
       }
+      matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
     inline void set_syllable (unsigned int syllable) { matcher.set_syllable (syllable); }
@@ -454,8 +454,8 @@ struct hb_apply_context_t
       if (!context_match)
       {
 	matcher.set_mask (c->lookup_mask);
-	matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
       }
+      matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
     inline void set_syllable (unsigned int syllable) { matcher.set_syllable (syllable); }
