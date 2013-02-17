@@ -314,7 +314,7 @@ Module["define"] = define = (returnType, name, argumentsDef = {}) ->
 Module["callback"] = callback = (returnType, name, argumentsDef = {}, func) ->
 	argumentTypes = (type for own argument, type of argumentsDef)
 
-	functionIndex = Runtime.addFunction (nativeArgs...) ->
+	callbackFunc = (nativeArgs...) ->
 		# console.log "Calling callback #{name} with arguments:", nativeArgs
 		# console.log "  -- argument defs:", argumentsDef
 		args = new Array(argumentTypes.length)
@@ -328,6 +328,8 @@ Module["callback"] = callback = (returnType, name, argumentsDef = {}, func) ->
 		resultNative = toNative result, returnType
 		# console.log "native result: ", resultNative
 		return resultNative
+
+	functionIndex = Runtime.addFunction callbackFunc, "x"
 
 	if name? then Module[name] = functionIndex
 
