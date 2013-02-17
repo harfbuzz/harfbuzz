@@ -44,7 +44,7 @@
 #include <unistd.h> /* for isatty() */
 #endif
 #ifdef HAVE_IO_H
-#include <io.h> /* for _setmode() under Windows */
+#include <io.h> /* for setmode() under Windows */
 #endif
 
 #include <hb.h>

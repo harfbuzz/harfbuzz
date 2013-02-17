@@ -55,7 +55,7 @@ dnl GOBJECT_INTROSPECTION_CHECK([0.9.0])
 dnl GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
-AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap _setmode isatty)
+AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap setmode isatty)
 AC_CHECK_HEADERS(unistd.h sys/mman.h io.h)
 
 # Compiler flags
