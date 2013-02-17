@@ -292,6 +292,7 @@ Module["define"] = define = (returnType, name, argumentsDef = {}) ->
 	argumentNativeTypes = (nativeTypeOf type for type in argumentTypes)
 
 	# console.log "Defining #{returnType} #{name} ( " + ("#{arg}: #{type}" for own arg, type of argumentsDef).join(", ") + " )"
+	cFunc = cwrap name, returnNative, argumentNativeTypes
 
 	Module[name] = (args...) ->
 		nativeArgs = new Array(argumentTypes.length)
@@ -303,7 +304,7 @@ Module["define"] = define = (returnType, name, argumentsDef = {}) ->
 			nativeArgs[i] = toNative args[i], argumentTypes[i]
 		# console.log "ccall '#{name}', '#{returnNative}',", argumentNativeTypes, ",", nativeArgs
 
-		resultNative = ccall name, returnNative, argumentNativeTypes, nativeArgs
+		resultNative = cFunc.apply null, nativeArgs
 
 		# console.log "  native result:", resultNative
 		result = fromNative resultNative, returnType
