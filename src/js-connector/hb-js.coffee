@@ -242,6 +242,8 @@ define Void, "hb_buffer_add_utf32", "buffer": hb_buffer_t, "text": ptr(uint32_t)
 
 define Unsigned_Int, "hb_buffer_get_length", "buffer": hb_buffer_t
 
+define Void, "hb_buffer_guess_segment_properties", "buffer": hb_buffer_t
+
 define Void, "hb_buffer_set_direction", "buffer": hb_buffer_t, "direction": hb_direction_t
 define hb_direction_t, "hb_buffer_get_direction", "buffer": hb_buffer_t
 
