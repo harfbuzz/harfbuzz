@@ -272,7 +272,8 @@ struct Sequence
     TRACE_APPLY (this);
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
-    unsigned int klass = c->property & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE ? HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
+    unsigned int klass = c->buffer->cur().glyph_props() &
+			 HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE ? HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
     unsigned int count = substitute.len;
     for (unsigned int i = 0; i < count; i++) {
       set_lig_props_for_component (c->buffer->cur(), i);
@@ -637,9 +638,9 @@ struct Ligature
     ligate_input (c,
 		  count,
 		  &component[1],
-		  ligGlyph,
 		  match_glyph,
 		  NULL,
+		  ligGlyph,
 		  is_mark_ligature,
 		  total_component_count);
 
@@ -1193,7 +1194,7 @@ struct SubstLookup : Lookup
   inline bool apply_once (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props, &c->property))
+    if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props))
       return TRACE_RETURN (false);
     return TRACE_RETURN (process (c));
   }
@@ -1315,9 +1316,7 @@ struct SubstLookup : Lookup
     {
       /* The spec says all subtables of an Extension lookup should
        * have the same type.  This is specially important if one has
-       * a reverse type!
-       *
-       * We just check that they are all either forward, or reverse. */
+       * a reverse type! */
       unsigned int type = get_subtable (0).u.extension.get_type ();
       unsigned int count = get_subtable_count ();
       for (unsigned int i = 1; i < count; i++)
@@ -1399,11 +1398,9 @@ inline bool SubstLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int
   const GSUB &gsub = *(hb_ot_layout_from_face (c->face)->gsub);
   const SubstLookup &l = gsub.get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
-  unsigned int saved_property = c->property;
   c->set_lookup (l);
   bool ret = l.apply_once (c);
   c->lookup_props = saved_lookup_props;
-  c->property = saved_property;
   return ret;
 }
 

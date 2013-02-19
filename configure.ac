@@ -9,7 +9,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([1.11.1 gnits dist-bzip2 no-dist-gzip -Wall no-define])
+AM_INIT_AUTOMAKE([1.11.1 gnits dist-bzip2 no-dist-gzip -Wall no-define color-tests])
 AM_SILENT_RULES([yes])
 
 # Initialize libtool
@@ -55,8 +55,8 @@ dnl GOBJECT_INTROSPECTION_CHECK([0.9.0])
 dnl GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
-AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap setmode isatty)
-AC_CHECK_HEADERS(unistd.h sys/mman.h io.h)
+AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty)
+AC_CHECK_HEADERS(unistd.h sys/mman.h)
 
 # Compiler flags
 AC_CANONICAL_HOST

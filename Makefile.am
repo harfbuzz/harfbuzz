@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = \
 	$(srcdir)/autoscan.log \
 	$(srcdir)/compile \
 	$(srcdir)/config.guess \
+	$(srcdir)/config.h.in \
 	$(srcdir)/config.sub \
 	$(srcdir)/configure.scan \
 	$(srcdir)/depcomp \

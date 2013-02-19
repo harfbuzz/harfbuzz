@@ -83,12 +83,12 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 
   switch (props->direction) {
     case HB_DIRECTION_LTR:
-      map->add_bool_feature (HB_TAG ('l','t','r','a'));
-      map->add_bool_feature (HB_TAG ('l','t','r','m'));
+      map->add_global_bool_feature (HB_TAG ('l','t','r','a'));
+      map->add_global_bool_feature (HB_TAG ('l','t','r','m'));
       break;
     case HB_DIRECTION_RTL:
-      map->add_bool_feature (HB_TAG ('r','t','l','a'));
-      map->add_bool_feature (HB_TAG ('r','t','l','m'), false);
+      map->add_global_bool_feature (HB_TAG ('r','t','l','a'));
+      map->add_feature (HB_TAG ('r','t','l','m'), 1, F_NONE);
       break;
     case HB_DIRECTION_TTB:
     case HB_DIRECTION_BTT:
@@ -97,30 +97,31 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
-#define ADD_FEATURES(array) \
-  HB_STMT_START { \
-    for (unsigned int i = 0; i < ARRAY_LENGTH (array); i++) \
-      map->add_bool_feature (array[i]); \
-  } HB_STMT_END
-
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
-  ADD_FEATURES (common_features);
+  for (unsigned int i = 0; i < ARRAY_LENGTH (common_features); i++)
+    map->add_global_bool_feature (common_features[i]);
 
   if (HB_DIRECTION_IS_HORIZONTAL (props->direction))
-    ADD_FEATURES (horizontal_features);
+    for (unsigned int i = 0; i < ARRAY_LENGTH (horizontal_features); i++)
+      map->add_feature (horizontal_features[i], 1, F_GLOBAL |
+			(horizontal_features[i] == HB_TAG('k','e','r','n') ?
+			 F_HAS_FALLBACK : F_NONE));
   else
-    ADD_FEATURES (vertical_features);
+    for (unsigned int i = 0; i < ARRAY_LENGTH (vertical_features); i++)
+      map->add_feature (vertical_features[i], 1, F_GLOBAL |
+			(vertical_features[i] == HB_TAG('v','k','r','n') ?
+			 F_HAS_FALLBACK : F_NONE));
 
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
 
-#undef ADD_FEATURES
-
   for (unsigned int i = 0; i < num_user_features; i++) {
     const hb_feature_t *feature = &user_features[i];
-    map->add_feature (feature->tag, feature->value, (feature->start == 0 && feature->end == (unsigned int) -1));
+    map->add_feature (feature->tag, feature->value,
+		      (feature->start == 0 && feature->end == (unsigned int) -1) ?
+		       F_GLOBAL : F_NONE);
   }
 }
 
@@ -405,7 +406,8 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
   hb_ot_layout_position_start (c->font, c->buffer);
 
   unsigned int count = c->buffer->len;
-  for (unsigned int i = 0; i < count; i++) {
+  for (unsigned int i = 0; i < count; i++)
+  {
     c->font->get_glyph_advance_for_direction (c->buffer->info[i].codepoint,
 					      c->buffer->props.direction,
 					      &c->buffer->pos[i].x_advance,
@@ -414,6 +416,26 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
 						  c->buffer->props.direction,
 						  &c->buffer->pos[i].x_offset,
 						  &c->buffer->pos[i].y_offset);
+
+  }
+
+  /* Zero'ing mark widths by GDEF (as used in Myanmar spec) happens
+   * *before* GPOS. */
+  switch (c->plan->shaper->zero_width_marks)
+  {
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF:
+      for (unsigned int i = 0; i < count; i++)
+	if ((c->buffer->info[i].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
+	{
+	  c->buffer->pos[i].x_advance = 0;
+	  c->buffer->pos[i].y_advance = 0;
+	}
+      break;
+
+    default:
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE:
+      break;
   }
 }
 
@@ -421,12 +443,12 @@ static inline bool
 hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
   bool ret = false;
+  unsigned int count = c->buffer->len;
 
   if (hb_ot_layout_has_positioning (c->face))
   {
     /* Change glyph origin to what GPOS expects, apply GPOS, change it back. */
 
-    unsigned int count = c->buffer->len;
     for (unsigned int i = 0; i < count; i++) {
       c->font->add_glyph_origin_for_direction (c->buffer->info[i].codepoint,
 					       HB_DIRECTION_LTR,
@@ -446,7 +468,26 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
     ret = true;
   }
 
-  hb_ot_layout_position_finish (c->font, c->buffer, c->plan->shaper->zero_width_attached_marks);
+  /* Zero'ing mark widths by Unicode happens
+   * *after* GPOS. */
+  switch (c->plan->shaper->zero_width_marks)
+  {
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE:
+      for (unsigned int i = 0; i < count; i++)
+	if (_hb_glyph_info_get_general_category (&c->buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+	{
+	  c->buffer->pos[i].x_advance = 0;
+	  c->buffer->pos[i].y_advance = 0;
+	}
+      break;
+
+    default:
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE:
+    case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF:
+      break;
+  }
+
+  hb_ot_layout_position_finish (c->font, c->buffer);
 
   return ret;
 }
@@ -454,25 +495,36 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 static inline void
 hb_ot_truetype_kern (hb_ot_shape_context_t *c)
 {
-  /* TODO Check for kern=0 */
   unsigned int count = c->buffer->len;
-  for (unsigned int i = 1; i < count; i++) {
-    hb_position_t x_kern, y_kern, kern1, kern2;
-    c->font->get_glyph_kerning_for_direction (c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
-					      c->buffer->props.direction,
-					      &x_kern, &y_kern);
+  hb_mask_t kern_mask = c->plan->map.get_1_mask (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) ?
+						 HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n'));
 
-    kern1 = x_kern >> 1;
-    kern2 = x_kern - kern1;
-    c->buffer->pos[i - 1].x_advance += kern1;
-    c->buffer->pos[i].x_advance += kern2;
-    c->buffer->pos[i].x_offset += kern2;
+  if (unlikely (!count)) return;
 
-    kern1 = y_kern >> 1;
-    kern2 = y_kern - kern1;
-    c->buffer->pos[i - 1].y_advance += kern1;
-    c->buffer->pos[i].y_advance += kern2;
-    c->buffer->pos[i].y_offset += kern2;
+  bool enabled = c->buffer->info[0].mask & kern_mask;
+  for (unsigned int i = 1; i < count; i++)
+  {
+    bool next = c->buffer->info[i].mask & kern_mask;
+    if (enabled && next)
+    {
+      hb_position_t x_kern, y_kern, kern1, kern2;
+      c->font->get_glyph_kerning_for_direction (c->buffer->info[i - 1].codepoint, c->buffer->info[i].codepoint,
+						c->buffer->props.direction,
+						&x_kern, &y_kern);
+
+      kern1 = x_kern >> 1;
+      kern2 = x_kern - kern1;
+      c->buffer->pos[i - 1].x_advance += kern1;
+      c->buffer->pos[i].x_advance += kern2;
+      c->buffer->pos[i].x_offset += kern2;
+
+      kern1 = y_kern >> 1;
+      kern2 = y_kern - kern1;
+      c->buffer->pos[i - 1].y_advance += kern1;
+      c->buffer->pos[i].y_advance += kern2;
+      c->buffer->pos[i].y_offset += kern2;
+    }
+    enabled = next;
   }
 }
 
@@ -610,8 +662,6 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
 			    hb_set_t           *glyphs)
 {
   hb_ot_shape_plan_t plan;
-
-  buffer->guess_segment_properties ();
 
   const char *shapers[] = {"ot", NULL};
   hb_shape_plan_t *shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,

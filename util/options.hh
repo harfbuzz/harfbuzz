@@ -43,7 +43,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h> /* for isatty() */
 #endif
-#ifdef HAVE_IO_H
+#if defined(_WIN32) || defined(__CYGWIN__)
 #include <io.h> /* for setmode() under Windows */
 #endif
 
@@ -170,6 +170,7 @@ struct shape_options_t : option_group_t
 			 (bot ? HB_BUFFER_FLAG_BOT : 0) |
 			 (eot ? HB_BUFFER_FLAG_EOT : 0) |
 			 (preserve_default_ignorables ? HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES : 0)));
+    hb_buffer_guess_segment_properties (buffer);
   }
 
   void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,

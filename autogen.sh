@@ -7,6 +7,12 @@ test -n "$srcdir" || srcdir=.
 olddir=`pwd`
 cd $srcdir
 
+echo -n "checking for ragel... "
+which ragel || {
+	echo "You need to install ragel... See http://www.complang.org/ragel/"
+	exit 1
+}
+
 echo -n "checking for pkg-config... "
 which pkg-config || {
 	echo "*** No pkg-config found, please install it ***"
