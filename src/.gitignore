@@ -4,7 +4,6 @@
 /*.orig
 /*.rej
 /*.tab.c
-/*.js
 /*~
 /.*.sw[nop]
 /.deps
@@ -21,6 +20,9 @@
 /TAGS
 /_libs
 /harfbuzz.def
+/hb-ot-shape-complex-indic-machine.hh
+/hb-ot-shape-complex-myanmar-machine.hh
+/hb-ot-shape-complex-sea-machine.hh
 /hb-version.h
 /libharfbuzz.la
 /main
@@ -29,3 +31,4 @@
 /test
 /test-size-params
 /test-would-substitute
+/*.js
