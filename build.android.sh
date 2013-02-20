@@ -1,6 +1,12 @@
 #!/bin/bash
+PWD="$(pwd)"
+if [ -z "$DESTDIR" ]; then
+    DESTDIR="$PWD"
+fi
+DESTDIR="$DESTDIR/build"
+echo "Target: $DESTDIR"
 
-if [ -z "$NDK_BUILD" ]; then
+if [ -z "$ANDROID_NDK" ]; then
     echo "ANDROID_NDK not set (e.g. ~/android/android-ndk-r8d)"
     exit 1
 fi
@@ -11,7 +17,7 @@ if [ ! -x "./configure" ]; then
     ./autogen.sh
 fi
 
-DESTDIR="$(pwd)/harfbuzz"
+
 rm -rf $DESTDIR
 ANDROID_PLATFORM=android-14
 TMP="$DESTDIR/.tmp-build-hb"
@@ -22,9 +28,15 @@ TOOLCHAIN_DIR="$TMP/ndk-standalone"
         --install-dir=$TOOLCHAIN_DIR
 PATH=$TOOLCHAIN_DIR/bin:$PATH
 
-CFLAGS="-std=gnu99" ./configure --host=arm-linux-androideabi --prefix=$DESTDIR --disable-shared --enable-static && make clean >/dev/null && make && make install
+CFLAGS="-std=gnu99" ./configure --host=arm-linux-androideabi --prefix="$DESTDIR" --disable-shared --enable-static && make clean >/dev/null && make && make install
 
 cp -f src/*-private.hh "$DESTDIR"
+
+cd "$DESTDIR"
+mv -f lib/*.a .
+mv -f include/harfbuzz/*.h .
+
 echo Cleanup.
+rm -rf bin lib include
 rm -rf "$TMP"
 exit
