@@ -1,10 +1,7 @@
 #!/bin/bash
 PWD="$(pwd)"
-if [ -z "$DESTDIR" ]; then
-    DESTDIR="$PWD"
-fi
-DESTDIR="$DESTDIR/build"
-echo "Target: $DESTDIR"
+ANDROID_PLATFORM=android-14
+DESTDIR="$PWD/build"
 
 if [ -z "$ANDROID_NDK" ]; then
     echo "ANDROID_NDK not set (e.g. ~/android/android-ndk-r8d)"
@@ -19,16 +16,14 @@ fi
 
 
 rm -rf $DESTDIR
-ANDROID_PLATFORM=android-14
 TMP="$DESTDIR/.tmp-build-hb"
 TOOLCHAIN_DIR="$TMP/ndk-standalone"
-
 "$ANDROID_NDK/build/tools/make-standalone-toolchain.sh" \
         --platform=$ANDROID_PLATFORM \
         --install-dir=$TOOLCHAIN_DIR
 PATH=$TOOLCHAIN_DIR/bin:$PATH
 
-CFLAGS="-std=gnu99" ./configure --host=arm-linux-androideabi --prefix="$DESTDIR" --disable-shared --enable-static && make clean >/dev/null && make && make install
+CFLAGS="-std=gnu99" ./configure --host=arm-linux-androideabi --prefix=$DESTDIR --disable-shared --enable-static && make clean >/dev/null && make && make install
 
 cp -f src/*-private.hh "$DESTDIR"
 
