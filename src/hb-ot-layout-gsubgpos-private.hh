@@ -420,7 +420,9 @@ struct hb_apply_context_t
 	  continue;
 
 	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data);
-	if (unlikely (match == matcher_t::MATCH_YES))
+	if (match == matcher_t::MATCH_YES ||
+	    (match == matcher_t::MATCH_MAYBE &&
+	     skip == matcher_t::SKIP_NO))
 	{
 	  num_items--;
 	  match_glyph_data++;
@@ -428,7 +430,7 @@ struct hb_apply_context_t
 	}
 
 	if (skip == matcher_t::SKIP_NO)
-	  return match == matcher_t::MATCH_MAYBE ? true : false;
+	  return false;
       }
       return false;
     }
@@ -493,7 +495,9 @@ struct hb_apply_context_t
 	  continue;
 
 	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data);
-	if (unlikely (match == matcher_t::MATCH_YES))
+	if (match == matcher_t::MATCH_YES ||
+	    (match == matcher_t::MATCH_MAYBE &&
+	     skip == matcher_t::SKIP_NO))
 	{
 	  num_items--;
 	  match_glyph_data++;
@@ -501,7 +505,7 @@ struct hb_apply_context_t
 	}
 
 	if (skip == matcher_t::SKIP_NO)
-	  return match == matcher_t::MATCH_MAYBE ? true : false;
+	  return false;
       }
       return false;
     }
