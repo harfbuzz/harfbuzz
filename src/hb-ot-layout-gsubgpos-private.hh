@@ -315,12 +315,23 @@ struct hb_apply_context_t
 				const void *match_data_)
     { match_func = match_func_; match_data = match_data_; }
 
-    inline bool matches (const hb_glyph_info_t &info,
-			 const USHORT          *glyph_data) const
+    enum may_match_t {
+      MATCH_NO,
+      MATCH_YES,
+      MATCH_MAYBE
+    };
+
+    inline may_match_t may_match (const hb_glyph_info_t &info,
+				  const USHORT          *glyph_data) const
     {
-      return (info.mask & mask) &&
-	     (!syllable || syllable == info.syllable ()) &&
-	     (!match_func || match_func (info.codepoint, *glyph_data, match_data));
+      if (!(info.mask & mask) ||
+	  (syllable && syllable != info.syllable ()))
+	return MATCH_NO;
+
+      if (match_func)
+        return match_func (info.codepoint, *glyph_data, match_data) ? MATCH_YES : MATCH_NO;
+
+      return MATCH_MAYBE;
     }
 
     enum may_skip_t {
@@ -405,11 +416,11 @@ struct hb_apply_context_t
 	const hb_glyph_info_t &info = c->buffer->info[idx];
 
 	matcher_t::may_skip_t skip = matcher.may_skip (c, info);
-
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
 
-	if (matcher.matches (info, match_glyph_data))
+	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data);
+	if (unlikely (match == matcher_t::MATCH_YES))
 	{
 	  num_items--;
 	  match_glyph_data++;
@@ -417,7 +428,7 @@ struct hb_apply_context_t
 	}
 
 	if (skip == matcher_t::SKIP_NO)
-	  return false;
+	  return match == matcher_t::MATCH_MAYBE ? true : false;
       }
       return false;
     }
@@ -481,7 +492,8 @@ struct hb_apply_context_t
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
 
-	if (matcher.matches (info, match_glyph_data))
+	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data);
+	if (unlikely (match == matcher_t::MATCH_YES))
 	{
 	  num_items--;
 	  match_glyph_data++;
@@ -489,7 +501,7 @@ struct hb_apply_context_t
 	}
 
 	if (skip == matcher_t::SKIP_NO)
-	  return false;
+	  return match == matcher_t::MATCH_MAYBE ? true : false;
       }
       return false;
     }
