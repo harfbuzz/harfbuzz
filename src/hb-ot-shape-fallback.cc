@@ -407,3 +407,43 @@ _hb_ot_shape_fallback_position (const hb_ot_shape_plan_t *plan,
     }
   position_cluster (plan, font, buffer, start, count);
 }
+
+
+/* Performs old-style TrueType kerning. */
+void
+_hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
+			    hb_font_t *font,
+			    hb_buffer_t  *buffer)
+{
+  unsigned int count = buffer->len;
+  hb_mask_t kern_mask = plan->map.get_1_mask (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction) ?
+					      HB_TAG ('k','e','r','n') : HB_TAG ('v','k','r','n'));
+
+  if (unlikely (!count)) return;
+
+  bool enabled = buffer->info[0].mask & kern_mask;
+  for (unsigned int i = 1; i < count; i++)
+  {
+    bool next = buffer->info[i].mask & kern_mask;
+    if (enabled && next)
+    {
+      hb_position_t x_kern, y_kern, kern1, kern2;
+      font->get_glyph_kerning_for_direction (buffer->info[i - 1].codepoint, buffer->info[i].codepoint,
+					     buffer->props.direction,
+					     &x_kern, &y_kern);
+
+      kern1 = x_kern >> 1;
+      kern2 = x_kern - kern1;
+      buffer->pos[i - 1].x_advance += kern1;
+      buffer->pos[i].x_advance += kern2;
+      buffer->pos[i].x_offset += kern2;
+
+      kern1 = y_kern >> 1;
+      kern2 = y_kern - kern1;
+      buffer->pos[i - 1].y_advance += kern1;
+      buffer->pos[i].y_advance += kern2;
+      buffer->pos[i].y_offset += kern2;
+    }
+    enabled = next;
+  }
+}
