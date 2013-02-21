@@ -399,13 +399,12 @@ struct hb_apply_context_t
     inline bool next (void)
     {
       assert (num_items > 0);
-      matcher_t::may_skip_t skip;
       while (!has_no_chance ())
       {
 	idx++;
 	const hb_glyph_info_t &info = c->buffer->info[idx];
 
-	skip = matcher.may_skip (c, info);
+	matcher_t::may_skip_t skip = matcher.may_skip (c, info);
 
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
@@ -472,13 +471,12 @@ struct hb_apply_context_t
     inline bool prev (void)
     {
       assert (num_items > 0);
-      matcher_t::may_skip_t skip;
       while (!has_no_chance ())
       {
 	idx--;
 	const hb_glyph_info_t &info = c->buffer->out_info[idx];
 
-	skip = matcher.may_skip (c, info);
+	matcher_t::may_skip_t skip = matcher.may_skip (c, info);
 
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
