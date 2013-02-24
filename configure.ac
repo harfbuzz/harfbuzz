@@ -53,7 +53,7 @@ HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
 dnl GOBJECT_INTROSPECTION_CHECK([0.9.0])
-dnl GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
+GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
 AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty)
@@ -379,6 +379,8 @@ util/Makefile
 test/Makefile
 test/api/Makefile
 test/shaping/Makefile
+docs/Makefile
+docs/reference/Makefile
 ])
 
 AC_OUTPUT
@@ -406,4 +408,7 @@ Test / platform shapers (not normally needed):
 	ICU Layout Engine:	${have_icu_le}
 	Old HarfBuzz:		${have_hb_old}
 	Uniscribe:		${have_uniscribe}
+
+Documentation:
+	Referece docs:		${enable_gtk_doc}
 ])

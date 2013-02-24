@@ -293,7 +293,7 @@ EXTRA_DIST += \
 	hb-ot-shape-complex-myanmar-machine.rl \
 	hb-ot-shape-complex-sea-machine.rl \
 	$(NULL)
-%.hh: %.rl
+.rl.hh:
 	$(AM_V_GEN)$(top_srcdir)/missing --run ragel -e -F1 -o "$@.tmp" "$<" && \
 	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
 

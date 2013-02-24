@@ -19,6 +19,13 @@ which pkg-config || {
 	exit 1
 }
 
+echo -n "checking for gtkdocize... "
+which gtkdocize || {
+	echo "*** No gtkdocize found, please install it ***"
+	exit 1
+}
+gtkdocize || exit 1
+
 echo -n "checking for autoreconf... "
 which autoreconf || {
 	echo "*** No autoreconf found, please install it ***"

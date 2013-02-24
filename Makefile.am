@@ -4,7 +4,7 @@ NULL =
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src util test
+SUBDIRS = src util test docs
 
 EXTRA_DIST = \
 	autogen.sh \
@@ -45,6 +45,11 @@ $(srcdir)/ChangeLog:
 #
 # Release engineering
 #
+
+DISTCHECK_CONFIGURE_FLAGS = \
+	--enable-gtk-doc \
+	--disable-doc-cross-references \
+	$(NULL)
 
 # TODO: Copy infrastructure from cairo
 

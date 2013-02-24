@@ -33,7 +33,7 @@
 
 HB_BEGIN_DECLS
 
-
+#ifndef __GTK_DOC_IGNORE__
 /* Objects */
 
 #define HB_GOBJECT_TYPE_BLOB hb_gobject_blob_get_type ()
@@ -60,6 +60,7 @@ hb_gobject_font_funcs_get_type (void);
 GType
 hb_gobject_unicode_funcs_get_type (void);
 
+#endif /* __GTK_DOC_IGNORE__ */
 
 /* Enums */
 
