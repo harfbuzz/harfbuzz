@@ -1,3 +1,32 @@
+Overview of changes leading to 0.9.13
+Thursday, February 25, 2013
+=====================================
+
+- Build fixes.
+- Ngapi HarfBuzz Hackfest in London (February 2013):
+  * Fixed all known Indic bugs,
+  * New Win8-style Myanmar shaper,
+  * New South-East Asian shaper for Tai Tham, Cham, and New Tai Lue,
+  * Smartly ignore Default_Ignorable characters (joiners, etc) wheb
+    matching GSUB/GPOS lookups,
+  * Fix 'Phags-Pa U+A872 shaping,
+  * Fix partial disabling of default-on features,
+  * Allow disabling of TrueType kerning.
+- Fix possible crasher with broken fonts with overlapping tables.
+- Removed generated files from git again.  So, one needs ragel to
+  bootstrap from the git tree.
+
+API changes:
+- hb_shape() and related APIs now abort if buffer direction is
+  HB_DIRECTION_INVALID.  Previously, hb_shape() was calling
+  hb_buffer_guess_segment_properties() on the buffer before
+  shaping.  The heuristics in that function are fragile.  If the
+  user really wants the old behvaior, they can call that function
+  right before calling hb_shape() to get the old behavior.
+- hb_blob_create_sub_blob() always creates sub-blob with
+  HB_MEMORY_MODE_READONLY.  See comments for the reason.
+
+
 Overview of changes leading to 0.9.12
 Thursday, January 18, 2013
 =====================================
