@@ -262,16 +262,61 @@ static void
 test_blob_subblob (fixture_t *fixture, gconstpointer user_data)
 {
   hb_blob_t *b = fixture->blob;
+  hb_memory_mode_t mm = GPOINTER_TO_INT (user_data);
+  unsigned int len;
+  const char *data;
+  char *data_writable;
+  unsigned int i;
 
-  fixture->len -= 2;
-  fixture->data++;
-  fixture->blob = hb_blob_create_sub_blob (b, 1, fixture->len);
+  if (mm == HB_MEMORY_MODE_DUPLICATE) {
+    g_assert_cmpint (fixture->freed, ==, 1);
+    fixture->data = hb_blob_get_data (b, NULL);
+  } else {
+    g_assert_cmpint (fixture->freed, ==, 0);
+  }
+  fixture->blob = hb_blob_create_sub_blob (b, 1, fixture->len - 2);
   hb_blob_destroy (b);
+  b = fixture->blob;
 
-  test_blob (fixture, user_data);
+  /* A sub-blob is always created READONLY. */
 
-  fixture->data--;
-  fixture->len += 2;
+  g_assert (b);
+
+  len = hb_blob_get_length (b);
+  g_assert_cmpint (len, ==, fixture->len - 2);
+
+  data = hb_blob_get_data (b, &len);
+  g_assert_cmpint (len, ==, fixture->len - 2);
+  g_assert (data == fixture->data + 1);
+
+  data_writable = hb_blob_get_data_writable (b, &len);
+  g_assert_cmpint (len, ==, fixture->len - 2);
+  g_assert (data_writable);
+  if (mm == HB_MEMORY_MODE_READONLY)
+    g_assert (0 == memcmp (data_writable, fixture->data + 1, fixture->len - 2));
+  g_assert (data_writable != data);
+  g_assert_cmpint (fixture->freed, ==, 1);
+
+  data = hb_blob_get_data (b, &len);
+  g_assert_cmpint (len, ==, fixture->len - 2);
+  g_assert (data == data_writable);
+
+  memset (data_writable, 0, fixture->len - 2);
+
+  /* Now, make it immutable and watch get_data_writable() fail */
+
+  g_assert (!hb_blob_is_immutable (b));
+  hb_blob_make_immutable (b);
+  g_assert (hb_blob_is_immutable (b));
+
+  data_writable = hb_blob_get_data_writable (b, &len);
+  g_assert (!data_writable);
+  g_assert_cmpint (len, ==, 0);
+
+  data = hb_blob_get_data (b, &len);
+  g_assert_cmpint (len, ==, fixture->len - 2);
+  for (i = 0; i < len; i++)
+    g_assert ('\0' == data[i]);
 }
 
 
