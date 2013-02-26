@@ -411,7 +411,7 @@ struct hb_serialize_context_t
   template <typename Type>
   inline Type *allocate_size (unsigned int size)
   {
-    if (unlikely (this->ran_out_of_room || this->end - this->head < size)) {
+    if (unlikely (this->ran_out_of_room || this->end - this->head < ptrdiff_t (size))) {
       this->ran_out_of_room = true;
       return NULL;
     }
