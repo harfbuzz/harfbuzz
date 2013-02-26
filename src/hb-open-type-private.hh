@@ -171,6 +171,10 @@ ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
+/* This limits sanitizing time on really broken fonts. */
+#ifndef HB_SANITIZE_MAX_EDITS
+#define HB_SANITIZE_MAX_EDITS 100
+#endif
 
 struct hb_sanitize_context_t
 {
@@ -247,6 +251,9 @@ struct hb_sanitize_context_t
 
   inline bool may_edit (const void *base HB_UNUSED, unsigned int len HB_UNUSED)
   {
+    if (this->edit_count >= HB_SANITIZE_MAX_EDITS)
+      return false;
+
     const char *p = (const char *) base;
     this->edit_count++;
 
@@ -404,7 +411,7 @@ struct hb_serialize_context_t
   template <typename Type>
   inline Type *allocate_size (unsigned int size)
   {
-    if (unlikely (this->ran_out_of_room || this->end - this->head < size)) {
+    if (unlikely (this->ran_out_of_room || this->end - this->head < ptrdiff_t (size))) {
       this->ran_out_of_room = true;
       return NULL;
     }
