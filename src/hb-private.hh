@@ -594,6 +594,8 @@ _hb_debug_msg_va (const char *what,
 
   if (func)
   {
+    unsigned int func_len = strlen (func);
+#ifndef HB_DEBUG_VERBOSE
     /* Skip "typename" */
     if (0 == strncmp (func, "typename ", 9))
       func += 9;
@@ -603,7 +605,9 @@ _hb_debug_msg_va (const char *what,
       func = space + 1;
     /* Skip parameter list */
     const char *paren = strchr (func, '(');
-    unsigned int func_len = paren ? paren - func : strlen (func);
+    if (paren)
+      func_len = paren - func;
+#endif
     fprintf (stderr, "%.*s: ", func_len, func);
   }
 
