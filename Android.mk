@@ -28,6 +28,7 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES:= \
 	src/hb-blob.cc \
+	src/hb-buffer-serialize.cc \
 	src/hb-buffer.cc \
 	src/hb-common.cc \
 	src/hb-fallback-shape.cc \

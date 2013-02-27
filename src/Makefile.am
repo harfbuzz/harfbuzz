@@ -21,6 +21,7 @@ HBSOURCES =  \
 	hb-atomic-private.hh \
 	hb-blob.cc \
 	hb-buffer-private.hh \
+	hb-buffer-serialize.cc \
 	hb-buffer.cc \
 	hb-cache-private.hh \
 	hb-common.cc \
