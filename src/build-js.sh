@@ -1,7 +1,7 @@
 #!/bin/bash -x -e
 
 VERSION=`git describe`
-EMCC_VERSION=`emcc --version | head -n 1`
+EMCC_VERSION=`emcc --version | head -n 1 | perl -pe 's/emcc \(Emscripten GCC-like replacement\) (\d+(?:\.\d+)*) \(commit ([0-9a-f]+)\)/$1-$2/'`
 
 {
 	echo "Module['version'] = '$VERSION';";
