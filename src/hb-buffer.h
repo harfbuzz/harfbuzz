@@ -313,7 +313,7 @@ hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
 			      int buf_len, /* -1 means nul-terminated */
-			      unsigned int *buf_consumed, /* May be NULL */
+			      const char **end_ptr, /* May be NULL */
 			      hb_font_t *font, /* May be NULL */
 			      hb_buffer_serialize_format_t format);
 

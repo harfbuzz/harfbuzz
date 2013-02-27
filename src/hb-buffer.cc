@@ -215,6 +215,17 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
 }
 
 void
+hb_buffer_t::add_info (const hb_glyph_info_t &glyph_info)
+{
+  if (unlikely (!ensure (len + 1))) return;
+
+  info[len] = glyph_info;
+
+  len++;
+}
+
+
+void
 hb_buffer_t::remove_output (void)
 {
   if (unlikely (hb_object_is_inert (this)))
@@ -315,7 +326,7 @@ hb_buffer_t::output_glyph (hb_codepoint_t glyph_index)
 }
 
 void
-hb_buffer_t::output_info (hb_glyph_info_t &glyph_info)
+hb_buffer_t::output_info (const hb_glyph_info_t &glyph_info)
 {
   if (unlikely (!make_room_for (0, 1))) return;
 

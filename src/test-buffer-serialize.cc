@@ -29,6 +29,9 @@
 #endif
 
 #include "hb.h"
+#ifdef HAVE_FREETYPE
+#include "hb-ft.h"
+#endif
 
 #ifdef HAVE_GLIB
 #include <glib.h>
@@ -84,7 +87,11 @@ main (int argc, char **argv)
 
   unsigned int upem = hb_face_get_upem (face);
   hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
   hb_font_set_scale (font, upem, upem);
+#ifdef HAVE_FREETYPE
+  hb_ft_font_set_funcs (font);
+#endif
 
   hb_buffer_t *buf;
   buf = hb_buffer_create ();
@@ -95,8 +102,13 @@ main (int argc, char **argv)
   {
     hb_buffer_clear_contents (buf);
 
-    if (!hb_buffer_deserialize_glyphs (buf, line, -1, NULL,
-				       font, HB_BUFFER_SERIALIZE_FORMAT_TEXT))
+    const char *p = line;
+    while (hb_buffer_deserialize_glyphs (buf,
+					 p, -1, &p,
+					 font,
+					 HB_BUFFER_SERIALIZE_FORMAT_TEXT))
+      ;
+    if (*p && *p != '\n')
       ret = false;
 
     hb_buffer_serialize_glyphs (buf, 0, hb_buffer_get_length (buf),

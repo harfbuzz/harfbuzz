@@ -143,7 +143,6 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 {
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
-  hb_direction_t direction = hb_buffer_get_direction (buffer);
 
   *buf_consumed = 0;
   for (unsigned int i = start; i < end; i++)
@@ -174,9 +173,8 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 	p += snprintf (p, ARRAY_LENGTH (b) - (p - b), "@%d,%d", pos[i].x_offset, pos[i].y_offset);
 
       *p++ = '+';
-      if (!HB_DIRECTION_IS_VERTICAL (direction) || pos[i].x_advance)
-	p += snprintf (p, ARRAY_LENGTH (b) - (p - b), "%d", pos[i].x_advance);
-      if (HB_DIRECTION_IS_VERTICAL (direction) || pos->y_advance)
+      p += snprintf (p, ARRAY_LENGTH (b) - (p - b), "%d", pos[i].x_advance);
+      if (pos->y_advance)
 	p += snprintf (p, ARRAY_LENGTH (b) - (p - b), ",%d", pos[i].y_advance);
     }
 
@@ -247,34 +245,26 @@ static hb_bool_t
 _hb_buffer_deserialize_glyphs_json (hb_buffer_t *buffer,
 				    const char *buf,
 				    unsigned int buf_len,
-				    unsigned int *buf_consumed,
+				    const char **end_ptr,
 				    hb_font_t *font)
 {
   return false;
 }
 
-static hb_bool_t
-_hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
-				    const char *buf,
-				    unsigned int buf_len,
-				    unsigned int *buf_consumed,
-				    hb_font_t *font)
-{
-  return false;
-}
+#include "hb-buffer-deserialize-text.hh"
 
 hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
 			      int buf_len, /* -1 means nul-terminated */
-			      unsigned int *buf_consumed, /* May be NULL */
+			      const char **end_ptr, /* May be NULL */
 			      hb_font_t *font, /* May be NULL */
 			      hb_buffer_serialize_format_t format)
 {
-  unsigned int sconsumed;
-  if (!buf_consumed)
-    buf_consumed = &sconsumed;
-  *buf_consumed = 0;
+  const char *end;
+  if (!end_ptr)
+    end_ptr = &end;
+  *end_ptr = buf;
 
   assert ((!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID) ||
 	  buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS);
@@ -284,8 +274,8 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 
   if (!buf_len)
   {
-    *buf_consumed = 0;
-    return true;
+    *end_ptr = buf;
+    return false;
   }
 
   hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
@@ -297,12 +287,12 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
   {
     case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
       return _hb_buffer_deserialize_glyphs_text (buffer,
-						 buf, buf_len, buf_consumed,
+						 buf, buf_len, end_ptr,
 						 font);
 
     case HB_BUFFER_SERIALIZE_FORMAT_JSON:
       return _hb_buffer_deserialize_glyphs_json (buffer,
-						 buf, buf_len, buf_consumed,
+						 buf, buf_len, end_ptr,
 						 font);
 
     default:

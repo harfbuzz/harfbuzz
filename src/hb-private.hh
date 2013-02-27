@@ -845,8 +845,9 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 {
   /* Pain because we don't know whether s is nul-terminated. */
   char buf[64];
-  strncpy (buf, s, MIN (ARRAY_LENGTH (buf) - 1, len));
-  buf[MIN (ARRAY_LENGTH (buf) - 1, len)] = '\0';
+  len = MIN (ARRAY_LENGTH (buf) - 1, len);
+  strncpy (buf, s, len);
+  buf[len] = '\0';
 
   char *end;
   errno = 0;
