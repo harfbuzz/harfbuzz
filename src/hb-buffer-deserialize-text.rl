@@ -68,7 +68,10 @@ action parse_y_advance { if (!parse_int  (tok, p, &pos.y_advance)) return false;
 unum	= '0' | [1-9] digit*;
 num	= '-'? unum;
 
-glyph	= alnum+ >tok %parse_glyph;
+glyph_id = unum;
+glyph_name = alpha (alnum|'_'|'.'|'-')*;
+
+glyph	= (glyph_id | glyph_name) >tok %parse_glyph;
 cluster	= '=' (unum >tok %parse_cluster);
 offsets	= '@' (num >tok %parse_x_offset)   ',' (num >tok %parse_y_offset );
 advances= '+' (num >tok %parse_x_advance) (',' (num >tok %parse_y_advance))?;

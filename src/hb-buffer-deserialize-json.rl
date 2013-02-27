@@ -72,10 +72,13 @@ num	= '-'? unum;
 comma = space* ',' space*;
 colon = space* ':' space*;
 
-glyph_name   = '"' (alnum+ >tok %parse_glyph) '"';
-glyph_number = (unum >tok %parse_gid);
+glyph_id = unum;
+glyph_name = alpha (alnum|'_'|'.'|'-')*;
 
-glyph	= "\"g\""  colon (glyph_name | glyph_number);
+glyph_string   = '"' (glyph_name >tok %parse_glyph) '"';
+glyph_number = (glyph_id >tok %parse_gid);
+
+glyph	= "\"g\""  colon (glyph_string | glyph_number);
 cluster	= "\"cl\"" colon (unum >tok %parse_cluster);
 xoffset	= "\"dx\"" colon (num >tok %parse_x_offset);
 yoffset	= "\"dy\"" colon (num >tok %parse_y_offset);
