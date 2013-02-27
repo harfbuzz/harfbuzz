@@ -1,6 +1,9 @@
 #!/bin/bash -x -e
 
 VERSION=`git describe`
+EMCC_VERSION=`emcc --version | head -n 1`
+
+{ echo "Module['emccVersion'] = '$EMCC_VERSION';"; cat "pre.js.in"; } > pre.js
 
 make
 coffee -j post.js -cb js-connector
