@@ -312,7 +312,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
-			      unsigned int buf_len,
+			      int buf_len, /* -1 means nul-terminated */
 			      unsigned int *buf_consumed, /* May be NULL */
 			      hb_font_t *font, /* May be NULL */
 			      hb_buffer_serialize_format_t format);

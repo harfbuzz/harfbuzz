@@ -212,7 +212,6 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
   unsigned int sconsumed;
   if (!buf_consumed)
     buf_consumed = &sconsumed;
-
   *buf_consumed = 0;
 
   assert ((!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID) ||
@@ -243,13 +242,72 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
   }
 }
 
+
+static hb_bool_t
+_hb_buffer_deserialize_glyphs_json (hb_buffer_t *buffer,
+				    const char *buf,
+				    unsigned int buf_len,
+				    unsigned int *buf_consumed,
+				    hb_font_t *font)
+{
+  return false;
+}
+
+static hb_bool_t
+_hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
+				    const char *buf,
+				    unsigned int buf_len,
+				    unsigned int *buf_consumed,
+				    hb_font_t *font)
+{
+  return false;
+}
+
 hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
-			      unsigned int buf_len, /* -1 means nul-terminated */
+			      int buf_len, /* -1 means nul-terminated */
 			      unsigned int *buf_consumed, /* May be NULL */
 			      hb_font_t *font, /* May be NULL */
 			      hb_buffer_serialize_format_t format)
 {
-  return false;
+  unsigned int sconsumed;
+  if (!buf_consumed)
+    buf_consumed = &sconsumed;
+  *buf_consumed = 0;
+
+  assert ((!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID) ||
+	  buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS);
+
+  if (buf_len == -1)
+    buf_len = strlen (buf);
+
+  if (!buf_len)
+  {
+    *buf_consumed = 0;
+    return true;
+  }
+
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_GLYPHS);
+
+  if (!font)
+    font = hb_font_get_empty ();
+
+  switch (format)
+  {
+    case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
+      return _hb_buffer_deserialize_glyphs_text (buffer,
+						 buf, buf_len, buf_consumed,
+						 font);
+
+    case HB_BUFFER_SERIALIZE_FORMAT_JSON:
+      return _hb_buffer_deserialize_glyphs_json (buffer,
+						 buf, buf_len, buf_consumed,
+						 font);
+
+    default:
+    case HB_BUFFER_SERIALIZE_FORMAT_INVALID:
+      return false;
+
+  }
 }
