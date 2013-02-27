@@ -202,12 +202,16 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 			    unsigned int end,
 			    char *buf,
 			    unsigned int buf_size,
-			    unsigned int *buf_consumed,
+			    unsigned int *buf_consumed, /* May be NULL */
 			    hb_font_t *font, /* May be NULL */
 			    hb_buffer_serialize_format_t format,
 			    hb_buffer_serialize_flags_t flags)
 {
   assert (start <= end && end <= buffer->len);
+
+  unsigned int sconsumed;
+  if (!buf_consumed)
+    buf_consumed = &sconsumed;
 
   *buf_consumed = 0;
 
@@ -242,8 +246,8 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
-			      unsigned int buf_len,
-			      unsigned int *buf_consumed,
+			      unsigned int buf_len, /* -1 means nul-terminated */
+			      unsigned int *buf_consumed, /* May be NULL */
 			      hb_font_t *font, /* May be NULL */
 			      hb_buffer_serialize_format_t format)
 {
