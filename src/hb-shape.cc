@@ -67,6 +67,8 @@ parse_uint (const char **pp, const char *end, unsigned int *pv)
   char *pend = p;
   unsigned int v;
 
+  /* Intentionally use strtol instead of strtoul, such that
+   * -1 turns into "big number"... */
   v = strtol (p, &pend, 0);
 
   if (p == pend)
