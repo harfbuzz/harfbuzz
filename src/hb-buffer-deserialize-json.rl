@@ -24,14 +24,14 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_BUFFER_DESERIALIZE_TEXT_HH
-#define HB_BUFFER_DESERIALIZE_TEXT_HH
+#ifndef HB_BUFFER_DESERIALIZE_JSON_HH
+#define HB_BUFFER_DESERIALIZE_JSON_HH
 
 #include "hb-private.hh"
 
 %%{
 
-machine deserialize_text;
+machine deserialize_json;
 alphtype unsigned char;
 write data;
 
@@ -59,6 +59,7 @@ action parse_glyph {
 	  return false;
 }
 
+action parse_gid       { if (!parse_uint (tok, p, &info.codepoint)) return false; }
 action parse_cluster   { if (!parse_uint (tok, p, &info.cluster )) return false; }
 action parse_x_offset  { if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 action parse_y_offset  { if (!parse_int  (tok, p, &pos.y_offset )) return false; }
@@ -68,27 +69,32 @@ action parse_y_advance { if (!parse_int  (tok, p, &pos.y_advance)) return false;
 unum	= '0' | [1-9] digit*;
 num	= '-'? unum;
 
-glyph	= alnum+ >tok %parse_glyph;
-cluster	= '=' (unum >tok %parse_cluster);
-offsets	= '@' (num >tok %parse_x_offset)   ',' (num >tok %parse_y_offset );
-advances= '+' (num >tok %parse_x_advance) (',' (num >tok %parse_y_advance))?;
+comma = space* ',' space*;
+colon = space* ':' space*;
+
+glyph_name   = '"' (alnum+ >tok %parse_glyph) '"';
+glyph_number = (unum >tok %parse_gid);
+
+glyph	= "\"g\""  colon (glyph_name | glyph_number);
+cluster	= "\"cl\"" colon (unum >tok %parse_cluster);
+xoffset	= "\"dx\"" colon (num >tok %parse_x_offset);
+yoffset	= "\"dy\"" colon (num >tok %parse_y_offset);
+xadvance= "\"ax\"" colon (num >tok %parse_x_advance);
+yadvance= "\"ay\"" colon (num >tok %parse_y_advance);
+
+element = glyph | cluster | xoffset | yoffset | xadvance | yadvance;
 item	=
-	(
-		glyph
-		cluster?
-		offsets?
-		advances?
-	)
+	( '{' space* element (comma element)* space* '}')
 	>clear_item
-	%add_item
+	@add_item
 	;
 
-main := space* item (space* '|' space* item)* space* ('|'|']')?;
+main := space* item (comma item)* space* (','|']')?;
 
 }%%
 
 static hb_bool_t
-_hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
+_hb_buffer_deserialize_glyphs_json (hb_buffer_t *buffer,
 				    const char *buf,
 				    unsigned int buf_len,
 				    const char **end_ptr,
@@ -101,12 +107,12 @@ _hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
 
   while (p < pe && ISSPACE (*p))
     p++;
-  if (p < pe && *p == (buffer->len ? '|' : '['))
+  if (p < pe && *p == (buffer->len ? ',' : '['))
   {
     *end_ptr = ++p;
   }
 
-  const char *eof = pe, *tok = NULL;
+  const char *tok = NULL;
   int cs;
   hb_glyph_info_t info;
   hb_glyph_position_t pos;
@@ -120,4 +126,4 @@ _hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
   return p == pe && *(p-1) != ']';
 }
 
-#endif /* HB_BUFFER_DESERIALIZE_TEXT_HH */
+#endif /* HB_BUFFER_DESERIALIZE_JSON_HH */

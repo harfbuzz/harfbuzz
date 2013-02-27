@@ -38,10 +38,8 @@ static void
 parse_space (const char **pp, const char *end)
 {
   char c;
-#define ISSPACE(c) ((c)==' '||(c)=='\f'||(c)=='\n'||(c)=='\r'||(c)=='\t'||(c)=='\v')
   while (*pp < end && (c = **pp, ISSPACE (c)))
     (*pp)++;
-#undef ISSPACE
 }
 
 static hb_bool_t

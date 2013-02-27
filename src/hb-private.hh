@@ -516,10 +516,12 @@ static inline uint32_t hb_uint32_swap (const uint32_t v)
 
 /* ASCII tag/character handling */
 
-static inline unsigned char ISALPHA (unsigned char c)
+static inline bool ISALPHA (unsigned char c)
 { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
-static inline unsigned char ISALNUM (unsigned char c)
+static inline bool ISALNUM (unsigned char c)
 { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'); }
+static inline bool ISSPACE (unsigned char c)
+{ return c == ' ' || c =='\f'|| c =='\n'|| c =='\r'|| c =='\t'|| c =='\v'; }
 static inline unsigned char TOUPPER (unsigned char c)
 { return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c; }
 static inline unsigned char TOLOWER (unsigned char c)

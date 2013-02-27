@@ -258,12 +258,14 @@ arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt
 .PHONY: unicode-tables arabic-table indic-table
 
 BUILT_SOURCES += \
+	hb-buffer-deserialize-json.hh \
 	hb-buffer-deserialize-text.hh \
 	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-myanmar-machine.hh \
 	hb-ot-shape-complex-sea-machine.hh \
 	$(NULL)
 EXTRA_DIST += \
+	hb-buffer-deserialize-json.rl \
 	hb-buffer-deserialize-text.rl \
 	hb-ot-shape-complex-indic-machine.rl \
 	hb-ot-shape-complex-myanmar-machine.rl \

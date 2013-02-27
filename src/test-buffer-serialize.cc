@@ -106,14 +106,14 @@ main (int argc, char **argv)
     while (hb_buffer_deserialize_glyphs (buf,
 					 p, -1, &p,
 					 font,
-					 HB_BUFFER_SERIALIZE_FORMAT_TEXT))
+					 HB_BUFFER_SERIALIZE_FORMAT_JSON))
       ;
     if (*p && *p != '\n')
       ret = false;
 
     hb_buffer_serialize_glyphs (buf, 0, hb_buffer_get_length (buf),
 				out, sizeof (out), NULL,
-				font, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+				font, HB_BUFFER_SERIALIZE_FORMAT_JSON,
 				HB_BUFFER_SERIALIZE_FLAGS_DEFAULT);
     puts (out);
   }

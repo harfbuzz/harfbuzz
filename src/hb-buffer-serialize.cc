@@ -242,15 +242,48 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 
 
 static hb_bool_t
-_hb_buffer_deserialize_glyphs_json (hb_buffer_t *buffer,
-				    const char *buf,
-				    unsigned int buf_len,
-				    const char **end_ptr,
-				    hb_font_t *font)
+parse_uint (const char *pp, const char *end, uint32_t *pv)
 {
-  return false;
+  char buf[32];
+  unsigned int len = MIN (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - pp));
+  strncpy (buf, pp, len);
+  buf[len] = '\0';
+
+  char *p = buf;
+  char *pend = p;
+  uint32_t v;
+
+  errno = 0;
+  v = strtol (p, &pend, 10);
+  if (errno || p == pend || pend - p != end - pp)
+    return false;
+
+  *pv = v;
+  return true;
 }
 
+static hb_bool_t
+parse_int (const char *pp, const char *end, int32_t *pv)
+{
+  char buf[32];
+  unsigned int len = MIN (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - pp));
+  strncpy (buf, pp, len);
+  buf[len] = '\0';
+
+  char *p = buf;
+  char *pend = p;
+  int32_t v;
+
+  errno = 0;
+  v = strtol (p, &pend, 10);
+  if (errno || p == pend || pend - p != end - pp)
+    return false;
+
+  *pv = v;
+  return true;
+}
+
+#include "hb-buffer-deserialize-json.hh"
 #include "hb-buffer-deserialize-text.hh"
 
 hb_bool_t
