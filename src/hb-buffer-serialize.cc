@@ -174,7 +174,7 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 	p += snprintf (p, ARRAY_LENGTH (b) - (p - b), "@%d,%d", pos[i].x_offset, pos[i].y_offset);
 
       *p++ = '+';
-      if (HB_DIRECTION_IS_HORIZONTAL (direction) || pos[i].x_advance)
+      if (!HB_DIRECTION_IS_VERTICAL (direction) || pos[i].x_advance)
 	p += snprintf (p, ARRAY_LENGTH (b) - (p - b), "%d", pos[i].x_advance);
       if (HB_DIRECTION_IS_VERTICAL (direction) || pos->y_advance)
 	p += snprintf (p, ARRAY_LENGTH (b) - (p - b), ",%d", pos[i].y_advance);
