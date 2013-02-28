@@ -154,6 +154,8 @@ enum hb_ot_map_feature_flags_t {
   F_HAS_FALLBACK	= 0x0002,
   F_MANUAL_JOINERS	= 0x0004
 };
+/* Macro version for where const is desired. */
+#define F_COMBINE(l,r) (hb_ot_map_feature_flags_t ((unsigned int) (l) | (unsigned int) (r)))
 inline hb_ot_map_feature_flags_t
 operator | (hb_ot_map_feature_flags_t l, hb_ot_map_feature_flags_t r)
 { return hb_ot_map_feature_flags_t ((unsigned int) l | (unsigned int) r); }
