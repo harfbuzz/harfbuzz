@@ -20,6 +20,8 @@ HBLIBS =
 HBSOURCES =  \
 	hb-atomic-private.hh \
 	hb-blob.cc \
+	hb-buffer-deserialize-json.hh \
+	hb-buffer-deserialize-text.hh \
 	hb-buffer-private.hh \
 	hb-buffer-serialize.cc \
 	hb-buffer.cc \
