@@ -1,0 +1,12 @@
+language: cpp
+compiler:
+  - clang
+  - gcc
+install:
+  - sudo apt-get install pkg-config ragel   # for autogen.sh
+  - sudo apt-get install libfreetype6-dev   # for font fallbacks
+  - sudo apt-get install libglib2.0-dev     # for tests / utils
+  - sudo apt-get install libcairo2-dev      # for utils
+notifications:
+  irc: "irc.freenode.org#harfbuzz"
+  email: harfbuzz@lists.freedesktop.org
