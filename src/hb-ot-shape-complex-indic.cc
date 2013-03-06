@@ -457,10 +457,10 @@ struct would_substitute_feature_t
 			    &lookups, &count);
   }
 
-  inline bool would_substitute (hb_codepoint_t    *glyphs,
-				unsigned int       glyphs_count,
-				bool               zero_context,
-				hb_face_t         *face) const
+  inline bool would_substitute (const hb_codepoint_t *glyphs,
+				unsigned int          glyphs_count,
+				bool                  zero_context,
+				hb_face_t            *face) const
   {
     for (unsigned int i = 0; i < count; i++)
       if (hb_ot_layout_lookup_would_substitute_fast (face, lookups[i].index, glyphs, glyphs_count, zero_context))
@@ -546,13 +546,30 @@ data_destroy_indic (void *data)
 
 static indic_position_t
 consonant_position_from_face (const indic_shape_plan_t *indic_plan,
-			      hb_codepoint_t *glyphs, unsigned int glyphs_len,
-			      hb_face_t      *face)
+			      const hb_codepoint_t glyphs[2],
+			      hb_face_t *face)
 {
+  /* For old-spec, the order of glyphs is Consonant,Virama,
+   * whereas for new-spec, it's Virama,Consonant.  However,
+   * some broken fonts (like Free Sans) simply copied lookups
+   * from old-spec to new-spec without modification.
+   * And oddly enough, Uniscribe seems to respect those lookups.
+   * Eg. in the sequence U+0924,U+094D,U+0930, Uniscribe finds
+   * base at 0.  The font however, only has lookups matching
+   * 930,94D in 'blwf', not the expected 94D,930 (with new-spec
+   * table).  As such, we simply match both sequences.  Seems
+   * to work. */
   bool zero_context = indic_plan->is_old_spec ? false : true;
-  if (indic_plan->pref.would_substitute (glyphs, glyphs_len, zero_context, face)) return POS_POST_C;
-  if (indic_plan->blwf.would_substitute (glyphs, glyphs_len, zero_context, face)) return POS_BELOW_C;
-  if (indic_plan->pstf.would_substitute (glyphs, glyphs_len, zero_context, face)) return POS_POST_C;
+  hb_codepoint_t glyphs_r[2] = {glyphs[1], glyphs[0]};
+  if (indic_plan->pref.would_substitute (glyphs  , 2, zero_context, face) ||
+      indic_plan->pref.would_substitute (glyphs_r, 2, zero_context, face))
+    return POS_POST_C;
+  if (indic_plan->blwf.would_substitute (glyphs  , 2, zero_context, face) ||
+      indic_plan->blwf.would_substitute (glyphs_r, 2, zero_context, face))
+    return POS_BELOW_C;
+  if (indic_plan->pstf.would_substitute (glyphs  , 2, zero_context, face) ||
+      indic_plan->pstf.would_substitute (glyphs_r, 2, zero_context, face))
+    return POS_POST_C;
   return POS_BASE_C;
 }
 
@@ -610,16 +627,15 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
 
-  unsigned int consonant_pos = indic_plan->is_old_spec ? 0 : 1;
   hb_codepoint_t glyphs[2];
-  if (indic_plan->get_virama_glyph (font, &glyphs[1 - consonant_pos]))
+  if (indic_plan->get_virama_glyph (font, &glyphs[0]))
   {
     hb_face_t *face = font->face;
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++)
       if (buffer->info[i].indic_position() == POS_BASE_C) {
-	glyphs[consonant_pos] = buffer->info[i].codepoint;
-	buffer->info[i].indic_position() = consonant_position_from_face (indic_plan, glyphs, 2, face);
+	glyphs[1] = buffer->info[i].codepoint;
+	buffer->info[i].indic_position() = consonant_position_from_face (indic_plan, glyphs, face);
       }
   }
 }
