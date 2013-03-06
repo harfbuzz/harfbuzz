@@ -733,7 +733,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	     *
 	     * IMPLEMENTATION NOTES:
 	     *
-	     * Our pre-base reordering Ra's are marked POS_BELOW, so will be skipped
+	     * Our pre-base reordering Ra's are marked POS_POST_C, so will be skipped
 	     * by the logic above already.
 	     */
 
