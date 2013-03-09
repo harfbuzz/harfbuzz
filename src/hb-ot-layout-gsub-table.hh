@@ -192,17 +192,6 @@ struct SingleSubstFormat2
 
 struct SingleSubst
 {
-  template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
-  {
-    TRACE_DISPATCH (this);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (c->dispatch (u.format1));
-    case 2: return TRACE_RETURN (c->dispatch (u.format2));
-    default:return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<GlyphID> &glyphs,
 			 Supplier<GlyphID> &substitutes,
@@ -227,6 +216,17 @@ struct SingleSubst
     case 1: return TRACE_RETURN (u.format1.serialize (c, glyphs, num_glyphs, delta));
     case 2: return TRACE_RETURN (u.format2.serialize (c, glyphs, substitutes, num_glyphs));
     default:return TRACE_RETURN (false);
+    }
+  }
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    TRACE_DISPATCH (this);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    case 2: return TRACE_RETURN (c->dispatch (u.format2));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -385,16 +385,6 @@ struct MultipleSubstFormat1
 
 struct MultipleSubst
 {
-  template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
-  {
-    TRACE_DISPATCH (this);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (c->dispatch (u.format1));
-    default:return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<GlyphID> &glyphs,
 			 Supplier<unsigned int> &substitute_len_list,
@@ -408,6 +398,16 @@ struct MultipleSubst
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.serialize (c, glyphs, substitute_len_list, num_glyphs, substitute_glyphs_list));
     default:return TRACE_RETURN (false);
+    }
+  }
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    TRACE_DISPATCH (this);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -536,16 +536,6 @@ struct AlternateSubstFormat1
 
 struct AlternateSubst
 {
-  template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
-  {
-    TRACE_DISPATCH (this);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (c->dispatch (u.format1));
-    default:return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<GlyphID> &glyphs,
 			 Supplier<unsigned int> &alternate_len_list,
@@ -559,6 +549,16 @@ struct AlternateSubst
     switch (u.format) {
     case 1: return TRACE_RETURN (u.format1.serialize (c, glyphs, alternate_len_list, num_glyphs, alternate_glyphs_list));
     default:return TRACE_RETURN (false);
+    }
+  }
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    TRACE_DISPATCH (this);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -841,16 +841,6 @@ struct LigatureSubstFormat1
 
 struct LigatureSubst
 {
-  template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
-  {
-    TRACE_DISPATCH (this);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (c->dispatch (u.format1));
-    default:return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
   inline bool serialize (hb_serialize_context_t *c,
 			 Supplier<GlyphID> &first_glyphs,
 			 Supplier<unsigned int> &ligature_per_first_glyph_count_list,
@@ -867,6 +857,16 @@ struct LigatureSubst
     case 1: return TRACE_RETURN (u.format1.serialize (c, first_glyphs, ligature_per_first_glyph_count_list, num_first_glyphs,
 						      ligatures_list, component_count_list, component_list));
     default:return TRACE_RETURN (false);
+    }
+  }
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    TRACE_DISPATCH (this);
+    switch (u.format) {
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
   }
 
@@ -1138,22 +1138,6 @@ struct SubstLookup : Lookup
     return lookup_type_is_reverse (type);
   }
 
-  template <typename context_t>
-  inline typename context_t::return_t dispatch (context_t *c) const
-  {
-    TRACE_DISPATCH (this);
-    unsigned int lookup_type = get_type ();
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 0; i < count; i++) {
-      typename context_t::return_t r = get_subtable (i).dispatch (c, lookup_type);
-      if (c->stop_sublookup_iteration (r))
-        return TRACE_RETURN (r);
-    }
-    return TRACE_RETURN (c->default_return_value ());
-  }
-  template <typename context_t>
-  static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
-
   inline hb_closure_context_t::return_t closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -1303,6 +1287,23 @@ struct SubstLookup : Lookup
     if (unlikely (!Lookup::serialize (c, SubstLookupSubTable::Ligature, lookup_props, 1))) return TRACE_RETURN (false);
     return TRACE_RETURN (serialize_subtable (c, 0).u.ligature.serialize (c, first_glyphs, ligature_per_first_glyph_count_list, num_first_glyphs,
 									 ligatures_list, component_count_list, component_list));
+  }
+
+  template <typename context_t>
+  static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    TRACE_DISPATCH (this);
+    unsigned int lookup_type = get_type ();
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++) {
+      typename context_t::return_t r = get_subtable (i).dispatch (c, lookup_type);
+      if (c->stop_sublookup_iteration (r))
+        return TRACE_RETURN (r);
+    }
+    return TRACE_RETURN (c->default_return_value ());
   }
 
   inline bool sanitize (hb_sanitize_context_t *c)
