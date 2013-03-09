@@ -376,6 +376,14 @@ struct hb_prealloced_array_t
   }
 };
 
+#define HB_AUTO_ARRAY_PREALLOCED 64
+template <typename Type>
+struct hb_auto_array_t : hb_prealloced_array_t <Type, HB_AUTO_ARRAY_PREALLOCED>
+{
+  hb_auto_array_t (void) { hb_prealloced_array_t<Type, HB_AUTO_ARRAY_PREALLOCED>::init (); }
+  ~hb_auto_array_t (void) { hb_prealloced_array_t<Type, HB_AUTO_ARRAY_PREALLOCED>::finish (); }
+};
+
 
 #define HB_LOCKABLE_SET_INIT {HB_PREALLOCED_ARRAY_INIT}
 template <typename item_t, typename lock_t>
