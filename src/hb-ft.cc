@@ -53,12 +53,7 @@
  *
  *   - We don't handle / allow for emboldening / obliqueing.
  *
- *   - Rounding, etc?
- *
- *   - In the future, we should add constructors to create fonts in font space.
- *
- *   - I believe transforms are not correctly implemented.  FreeType does not
- *     provide any API to get to the transform/delta set on the face. :(
+ *   - In the future, we should add constructors to create fonts in font space?
  *
  *   - FT_Load_Glyph() is exteremely costly.  Do something about it?
  */
