@@ -60,8 +60,6 @@
  *   - I believe transforms are not correctly implemented.  FreeType does not
  *     provide any API to get to the transform/delta set on the face. :(
  *
- *   - Always use FT_LOAD_IGNORE_GLOBAL_ADVANCE_WIDTH?
- *
  *   - FT_Load_Glyph() is exteremely costly.  Do something about it?
  */
 
