@@ -519,12 +519,12 @@ struct SinglePosFormat2
 struct SinglePos
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
-    case 2: return TRACE_RETURN (c->process (u.format2));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    case 2: return TRACE_RETURN (c->dispatch (u.format2));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -810,12 +810,12 @@ struct PairPosFormat2
 struct PairPos
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
-    case 2: return TRACE_RETURN (c->process (u.format2));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    case 2: return TRACE_RETURN (c->dispatch (u.format2));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -976,11 +976,11 @@ struct CursivePosFormat1
 struct CursivePos
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -1075,11 +1075,11 @@ struct MarkBasePosFormat1
 struct MarkBasePos
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -1196,11 +1196,11 @@ struct MarkLigPosFormat1
 struct MarkLigPos
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -1315,11 +1315,11 @@ struct MarkMarkPosFormat1
 struct MarkMarkPos
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -1374,19 +1374,19 @@ struct PosLookupSubTable
   };
 
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c, unsigned int lookup_type) const
+  inline typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (lookup_type) {
-    case Single:		return TRACE_RETURN (u.single.process (c));
-    case Pair:			return TRACE_RETURN (u.pair.process (c));
-    case Cursive:		return TRACE_RETURN (u.cursive.process (c));
-    case MarkBase:		return TRACE_RETURN (u.markBase.process (c));
-    case MarkLig:		return TRACE_RETURN (u.markLig.process (c));
-    case MarkMark:		return TRACE_RETURN (u.markMark.process (c));
-    case Context:		return TRACE_RETURN (u.context.process (c));
-    case ChainContext:		return TRACE_RETURN (u.chainContext.process (c));
-    case Extension:		return TRACE_RETURN (u.extension.process (c));
+    case Single:		return TRACE_RETURN (u.single.dispatch (c));
+    case Pair:			return TRACE_RETURN (u.pair.dispatch (c));
+    case Cursive:		return TRACE_RETURN (u.cursive.dispatch (c));
+    case MarkBase:		return TRACE_RETURN (u.markBase.dispatch (c));
+    case MarkLig:		return TRACE_RETURN (u.markLig.dispatch (c));
+    case MarkMark:		return TRACE_RETURN (u.markMark.dispatch (c));
+    case Context:		return TRACE_RETURN (u.context.dispatch (c));
+    case ChainContext:		return TRACE_RETURN (u.chainContext.dispatch (c));
+    case Extension:		return TRACE_RETURN (u.extension.dispatch (c));
     default:			return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -1434,27 +1434,11 @@ struct PosLookup : Lookup
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
   { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
-  template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
-  {
-    TRACE_PROCESS (this);
-    unsigned int lookup_type = get_type ();
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 0; i < count; i++) {
-      typename context_t::return_t r = get_subtable (i).process (c, lookup_type);
-      if (c->stop_sublookup_iteration (r))
-        return TRACE_RETURN (r);
-    }
-    return TRACE_RETURN (c->default_return_value ());
-  }
-  template <typename context_t>
-  static inline typename context_t::return_t process_recurse_func (context_t *c, unsigned int lookup_index);
-
   inline hb_collect_glyphs_context_t::return_t collect_glyphs_lookup (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
     c->set_recurse_func (NULL);
-    return TRACE_RETURN (process (c));
+    return TRACE_RETURN (dispatch (c));
   }
 
   template <typename set_t>
@@ -1464,7 +1448,7 @@ struct PosLookup : Lookup
     const Coverage *last = NULL;
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
-      const Coverage *coverage = &get_subtable (i).process (&c, get_type ());
+      const Coverage *coverage = &get_subtable (i).dispatch (&c, get_type ());
       if (coverage != last) {
         coverage->add_coverage (glyphs);
         last = coverage;
@@ -1477,7 +1461,7 @@ struct PosLookup : Lookup
     TRACE_APPLY (this);
     if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props))
       return TRACE_RETURN (false);
-    return TRACE_RETURN (process (c));
+    return TRACE_RETURN (dispatch (c));
   }
 
   static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
@@ -1505,6 +1489,23 @@ struct PosLookup : Lookup
     }
 
     return ret;
+  }
+
+  template <typename context_t>
+  static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    TRACE_DISPATCH (this);
+    unsigned int lookup_type = get_type ();
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++) {
+      typename context_t::return_t r = get_subtable (i).dispatch (c, lookup_type);
+      if (c->stop_sublookup_iteration (r))
+        return TRACE_RETURN (r);
+    }
+    return TRACE_RETURN (c->default_return_value ());
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
@@ -1618,11 +1619,11 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 /* Out-of-class implementation for methods recursing */
 
 template <typename context_t>
-inline typename context_t::return_t PosLookup::process_recurse_func (context_t *c, unsigned int lookup_index)
+inline typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
   const GPOS &gpos = *(hb_ot_layout_from_face (c->face)->gpos);
   const PosLookup &l = gpos.get_lookup (lookup_index);
-  return l.process (c);
+  return l.dispatch (c);
 }
 
 inline bool PosLookup::apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index)

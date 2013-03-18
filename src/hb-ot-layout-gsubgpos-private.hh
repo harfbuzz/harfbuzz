@@ -38,7 +38,7 @@ namespace OT {
 
 
 
-#define TRACE_PROCESS(this) \
+#define TRACE_DISPATCH(this) \
 	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
@@ -60,7 +60,7 @@ struct hb_closure_context_t
   typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { obj.closure (this); return HB_VOID; }
+  inline return_t dispatch (const T &obj) { obj.closure (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
   bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
@@ -109,7 +109,7 @@ struct hb_would_apply_context_t
   static const unsigned int max_debug_depth = HB_DEBUG_WOULD_APPLY;
   typedef bool return_t;
   template <typename T>
-  inline return_t process (const T &obj) { return obj.would_apply (this); }
+  inline return_t dispatch (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value (void) { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
@@ -148,7 +148,7 @@ struct hb_collect_glyphs_context_t
   typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
+  inline return_t dispatch (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
   bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return false; }
   return_t recurse (unsigned int lookup_index)
@@ -214,7 +214,7 @@ struct hb_get_coverage_context_t
   static const unsigned int max_debug_depth = 0;
   typedef const Coverage &return_t;
   template <typename T>
-  inline return_t process (const T &obj) { return obj.get_coverage (); }
+  inline return_t dispatch (const T &obj) { return obj.get_coverage (); }
   static return_t default_return_value (void) { return Null(Coverage); }
 
   hb_get_coverage_context_t (void) :
@@ -241,7 +241,7 @@ struct hb_apply_context_t
   typedef bool return_t;
   typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
   template <typename T>
-  inline return_t process (const T &obj) { return obj.apply (this); }
+  inline return_t dispatch (const T &obj) { return obj.apply (this); }
   static return_t default_return_value (void) { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int lookup_index)
@@ -1493,13 +1493,13 @@ struct ContextFormat3
 struct Context
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
-    case 2: return TRACE_RETURN (c->process (u.format2));
-    case 3: return TRACE_RETURN (c->process (u.format3));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    case 2: return TRACE_RETURN (c->dispatch (u.format2));
+    case 3: return TRACE_RETURN (c->dispatch (u.format3));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -2109,13 +2109,13 @@ struct ChainContextFormat3
 struct ChainContext
 {
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_PROCESS (this);
+    TRACE_DISPATCH (this);
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->process (u.format1));
-    case 2: return TRACE_RETURN (c->process (u.format2));
-    case 3: return TRACE_RETURN (c->process (u.format3));
+    case 1: return TRACE_RETURN (c->dispatch (u.format1));
+    case 2: return TRACE_RETURN (c->dispatch (u.format2));
+    case 3: return TRACE_RETURN (c->dispatch (u.format3));
     default:return TRACE_RETURN (c->default_return_value ());
     }
   }
@@ -2189,9 +2189,9 @@ struct Extension
   }
 
   template <typename context_t>
-  inline typename context_t::return_t process (context_t *c) const
+  inline typename context_t::return_t dispatch (context_t *c) const
   {
-    return get_subtable<typename T::LookupSubTable> ().process (c, get_type ());
+    return get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ());
   }
 
   inline bool sanitize_self (hb_sanitize_context_t *c) {

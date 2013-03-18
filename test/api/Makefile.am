@@ -95,8 +95,8 @@ VALGRIND_FLAGS = \
 	$(EXTRA_VALGRIND_FLAGS)
 #	Can't do for now: --show-reachable=yes
 CLEANFILES +=  log-valgrind.txt
-valgrind_verbose = $(valgrind_verbose_$(V))
-valgrind_verbose_ = $(valgrind_verbose_$(AM_DEFAULT_VERBOSITY))
+valgrind_verbose = $(valgrind_verbose_@AM_V@)
+valgrind_verbose_ = $(valgrind_verbose_@AM_DEFAULT_V@)
 valgrind_verbose_0 = | \
 	grep '\(^[^=]\|ERROR SUMMARY\|definitely lost\|indirectly lost\)' | grep -v ': 0'
 # TODO: The following check does not fail if valgrind finds error.  It should.

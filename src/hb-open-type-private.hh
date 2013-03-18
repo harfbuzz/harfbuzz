@@ -182,7 +182,7 @@ struct hb_sanitize_context_t
   static const unsigned int max_debug_depth = HB_DEBUG_SANITIZE;
   typedef bool return_t;
   template <typename T>
-  inline return_t process (const T &obj) { return obj.sanitize (this); }
+  inline return_t dispatch (const T &obj) { return obj.sanitize (this); }
   static return_t default_return_value (void) { return true; }
   bool stop_sublookup_iteration (const return_t r HB_UNUSED) const { return false; }
 

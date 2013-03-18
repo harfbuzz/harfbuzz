@@ -1,14 +1,17 @@
 # git.mk
 #
 # Copyright 2009, Red Hat, Inc.
-# Copyright 2010,2011 Behdad Esfahbod
+# Copyright 2010,2011,2012,2013 Behdad Esfahbod
 # Written by Behdad Esfahbod
 #
 # Copying and distribution of this file, with or without modification,
 # is permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.
 #
-# The canonical source for this file is https://github.com/behdad/git.mk.
+# The latest version of this file can be downloaded from:
+#   https://raw.github.com/behdad/git.mk/master/git.mk
+# Bugs, etc, should be reported upstream at:
+#   https://github.com/behdad/git.mk
 #
 # To use in your project, import this file in your git repo's toplevel,
 # then do "make -f git.mk".  This modifies all Makefile.am files in
@@ -61,6 +64,53 @@
 #   example.
 #
 
+
+
+###############################################################################
+# Variables user modules may want to add to toplevel MAINTAINERCLEANFILES:
+###############################################################################
+
+#
+# Most autotools-using modules should be fine including this variable in their
+# toplevel MAINTAINERCLEANFILES:
+GITIGNORE_MAINTAINERCLEANFILES_TOPLEVEL = \
+	$(srcdir)/aclocal.m4 \
+	$(srcdir)/autoscan.log \
+	$(srcdir)/compile \
+	$(srcdir)/config.guess \
+	$(srcdir)/config.h.in \
+	$(srcdir)/config.sub \
+	$(srcdir)/configure.scan \
+	$(srcdir)/depcomp \
+	$(srcdir)/install-sh \
+	$(srcdir)/ltmain.sh \
+	$(srcdir)/missing \
+	$(srcdir)/mkinstalldirs
+#
+# All modules should also be fine including the following variable, which
+# removes automake-generated Makefile.in files:
+GITIGNORE_MAINTAINERCLEANFILES_MAKEFILE_IN = \
+	`$(AUTOCONF) --trace 'AC_CONFIG_FILES:$$1' $(srcdir)/configure.ac | \
+	while read f; do \
+	  case $$f in Makefile|*/Makefile) \
+	    test -f "$(srcdir)/$$f.am" && echo "$(srcdir)/$$f.in";; esac; \
+	done`
+#
+# Modules that use libtool /and/ use  AC_CONFIG_MACRO_DIR([m4]) may also
+# include this:
+GITIGNORE_MAINTAINERCLEANFILES_M4_LIBTOOL = \
+	$(srcdir)/m4/libtool.m4 \
+	$(srcdir)/m4/ltoptions.m4 \
+	$(srcdir)/m4/ltsugar.m4 \
+	$(srcdir)/m4/ltversion.m4 \
+	$(srcdir)/m4/lt~obsolete.m4
+
+
+
+###############################################################################
+# Default rule is to install ourselves in all Makefile.am files:
+###############################################################################
+
 git-all: git-mk-install
 
 git-mk-install:
@@ -88,7 +138,10 @@ git-mk-install:
 .PHONY: git-all git-mk-install
 
 
-### .gitignore generation
+
+###############################################################################
+# Actual .gitignore generation:
+###############################################################################
 
 $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 	$(AM_V_GEN) \
