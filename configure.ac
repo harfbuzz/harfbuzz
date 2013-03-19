@@ -177,7 +177,7 @@ dnl Fallback to icu-config if ICU pkg-config files could not be found
 if test "$have_icu" != "true"; then
 	AC_PATH_PROG(icu_config, icu-config, no)
 	AC_MSG_CHECKING([for ICU by using icu-config fallback])
-	if test "$icu_config" != "no"; then
+	if test "$icu_config" != "no" && "$icu_config" --version >/dev/null; then
 		have_icu=true
 		# We don't use --cflags as this gives us a lot of things that we don't
 		# necessarily want, like debugging and optimization flags
@@ -205,7 +205,7 @@ dnl Fallback to icu-config if ICU pkg-config files could not be found
 if test "$have_icu_le" != "true"; then
 	AC_PATH_PROG(icu_config, icu-config, no)
 	AC_MSG_CHECKING([for ICU_LE by using icu-config fallback])
-	if test "$icu_config" != "no"; then
+	if test "$icu_config" != "no" && "$icu_config" --version >/dev/null; then
 		have_icu_le=true
 		# We don't use --cflags as this gives us a lot of things that we don't
 		# necessarily want, like debugging and optimization flags
