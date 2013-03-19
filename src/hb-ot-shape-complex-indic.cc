@@ -339,18 +339,18 @@ indic_features[] =
    * Basic features.
    * These features are applied in order, one at a time, after initial_reordering.
    */
-  {HB_TAG('n','u','k','t'), F_COMBINE (F_MANUAL_JOINERS, F_GLOBAL)},
-  {HB_TAG('a','k','h','n'), F_COMBINE (F_MANUAL_JOINERS, F_GLOBAL)},
-  {HB_TAG('r','p','h','f'), F_COMBINE (F_MANUAL_JOINERS, F_NONE  )},
-  {HB_TAG('r','k','r','f'), F_COMBINE (F_MANUAL_JOINERS, F_GLOBAL)},
-  {HB_TAG('p','r','e','f'), F_COMBINE (F_MANUAL_JOINERS, F_NONE  )},
-  {HB_TAG('b','l','w','f'), F_COMBINE (F_MANUAL_JOINERS, F_NONE  )},
-  {HB_TAG('h','a','l','f'), F_COMBINE (F_MANUAL_JOINERS, F_NONE  )},
-  {HB_TAG('a','b','v','f'), F_COMBINE (F_MANUAL_JOINERS, F_NONE  )},
-  {HB_TAG('p','s','t','f'), F_COMBINE (F_MANUAL_JOINERS, F_NONE  )},
-  {HB_TAG('c','f','a','r'), F_COMBINE (F_MANUAL_JOINERS, F_NONE  )},
-  {HB_TAG('v','a','t','u'), F_COMBINE (F_MANUAL_JOINERS, F_GLOBAL)},
-  {HB_TAG('c','j','c','t'), F_COMBINE (F_MANUAL_JOINERS, F_GLOBAL)},
+  {HB_TAG('n','u','k','t'), F_GLOBAL},
+  {HB_TAG('a','k','h','n'), F_GLOBAL},
+  {HB_TAG('r','p','h','f'), F_NONE},
+  {HB_TAG('r','k','r','f'), F_GLOBAL},
+  {HB_TAG('p','r','e','f'), F_NONE},
+  {HB_TAG('b','l','w','f'), F_NONE},
+  {HB_TAG('h','a','l','f'), F_NONE},
+  {HB_TAG('a','b','v','f'), F_NONE},
+  {HB_TAG('p','s','t','f'), F_NONE},
+  {HB_TAG('c','f','a','r'), F_NONE},
+  {HB_TAG('v','a','t','u'), F_GLOBAL},
+  {HB_TAG('c','j','c','t'), F_GLOBAL},
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
@@ -428,12 +428,12 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   unsigned int i = 0;
   map->add_gsub_pause (initial_reordering);
   for (; i < INDIC_BASIC_FEATURES; i++) {
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags);
+    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ);
     map->add_gsub_pause (NULL);
   }
   map->add_gsub_pause (final_reordering);
   for (; i < INDIC_NUM_FEATURES; i++) {
-    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags);
+    map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ);
   }
 }
 
@@ -1021,7 +1021,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
 	/* ZWJ/ZWNJ should disable CJCT.  They do that by simply
 	 * being there, since we don't skip them for the CJCT
-	 * feature (ie. F_MANUAL_JOINERS) */
+	 * feature (ie. F_MANUAL_ZWJ) */
 
 	/* A ZWNJ disables HALF. */
 	if (non_joiner)

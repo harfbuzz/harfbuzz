@@ -34,7 +34,7 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
 			  unsigned int  table_index,
 			  unsigned int  feature_index,
 			  hb_mask_t     mask,
-			  bool          auto_joiners)
+			  bool          auto_zwj)
 {
   unsigned int lookup_indices[32];
   unsigned int offset, len;
@@ -54,7 +54,7 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
         return;
       lookup->mask = mask;
       lookup->index = lookup_indices[i];
-      lookup->auto_joiners = auto_joiners;
+      lookup->auto_zwj = auto_zwj;
     }
 
     offset += len;
@@ -113,7 +113,7 @@ void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, h
       hb_ot_layout_substitute_lookup (font, buffer,
 				      lookups[table_index][i].index,
 				      lookups[table_index][i].mask,
-				      lookups[table_index][i].auto_joiners);
+				      lookups[table_index][i].auto_zwj);
 
     buffer->clear_output ();
 
@@ -124,7 +124,7 @@ void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, h
   for (; i < lookups[table_index].len; i++)
     hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index,
 				    lookups[table_index][i].mask,
-				    lookups[table_index][i].auto_joiners);
+				    lookups[table_index][i].auto_zwj);
 }
 
 void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
@@ -137,7 +137,7 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
     for (; i < pause->num_lookups; i++)
       hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
 				    lookups[table_index][i].mask,
-				    lookups[table_index][i].auto_joiners);
+				    lookups[table_index][i].auto_zwj);
 
     if (pause->callback)
       pause->callback (plan, font, buffer);
@@ -146,7 +146,7 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
   for (; i < lookups[table_index].len; i++)
     hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
 				  lookups[table_index][i].mask,
-				  lookups[table_index][i].auto_joiners);
+				  lookups[table_index][i].auto_zwj);
 }
 
 void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_out) const
@@ -243,7 +243,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
     map->index[1] = feature_index[1];
     map->stage[0] = info->stage[0];
     map->stage[1] = info->stage[1];
-    map->auto_joiners = !(info->flags & F_MANUAL_JOINERS);
+    map->auto_zwj = !(info->flags & F_MANUAL_ZWJ);
     if ((info->flags & F_GLOBAL) && info->max_value == 1) {
       /* Uses the global bit */
       map->shift = 0;
@@ -286,7 +286,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 	  m.add_lookups (face, table_index,
 			 m.features[i].index[table_index],
 			 m.features[i].mask,
-			 m.features[i].auto_joiners);
+			 m.features[i].auto_zwj);
 
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].len)
@@ -300,7 +300,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 	  else
 	  {
 	    m.lookups[table_index][j].mask |= m.lookups[table_index][i].mask;
-	    m.lookups[table_index][j].auto_joiners &= m.lookups[table_index][i].auto_joiners;
+	    m.lookups[table_index][j].auto_zwj &= m.lookups[table_index][i].auto_zwj;
 	  }
 	m.lookups[table_index].shrink (j + 1);
       }

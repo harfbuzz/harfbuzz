@@ -50,7 +50,7 @@ struct hb_ot_map_t
     hb_mask_t mask;
     hb_mask_t _1_mask; /* mask for value=1, for quick access */
     unsigned int needs_fallback : 1;
-    unsigned int auto_joiners : 1;
+    unsigned int auto_zwj : 1;
 
     static int cmp (const feature_map_t *a, const feature_map_t *b)
     { return a->tag < b->tag ? -1 : a->tag > b->tag ? 1 : 0; }
@@ -58,7 +58,7 @@ struct hb_ot_map_t
 
   struct lookup_map_t {
     unsigned short index;
-    unsigned short auto_joiners : 1;
+    unsigned short auto_zwj : 1;
     hb_mask_t mask;
 
     static int cmp (const lookup_map_t *a, const lookup_map_t *b)
@@ -139,7 +139,7 @@ struct hb_ot_map_t
 				unsigned int  table_index,
 				unsigned int  feature_index,
 				hb_mask_t     mask,
-				bool          auto_joiners);
+				bool          auto_zwj);
 
   hb_mask_t global_mask;
 
@@ -152,7 +152,7 @@ enum hb_ot_map_feature_flags_t {
   F_NONE		= 0x0000,
   F_GLOBAL		= 0x0001,
   F_HAS_FALLBACK	= 0x0002,
-  F_MANUAL_JOINERS	= 0x0004
+  F_MANUAL_ZWJ		= 0x0004
 };
 /* Macro version for where const is desired. */
 #define F_COMBINE(l,r) (hb_ot_map_feature_flags_t ((unsigned int) (l) | (unsigned int) (r)))
