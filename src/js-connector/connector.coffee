@@ -46,8 +46,8 @@ class CObject
 	@::["$next"] = ->
 		@["$offset"] 1
 
-	@::["toString"] = ->
-		dump @, @["$type"]
+	@::["toString"] = (stack = []) ->
+		dumpData @, @["$type"], stack
 
 	@["resolve"] = ->
 		throw new Error("Unknown type, cannot resolve")
