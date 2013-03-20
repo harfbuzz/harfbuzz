@@ -337,6 +337,10 @@ Module["callback"] = callback = (returnType, name, argumentsDef = {}, func) ->
 	return functionIndex
 
 
+Module["unregisterCallback"] = unregisterCallback = (functionIndex) ->
+	Runtime.removeFunction functionIndex
+
+
 Module["typedef"] = typedef = (name, type) ->
 	# console.log "Defining #{name} = #{type}"
 	type["typeName"] = name
