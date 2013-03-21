@@ -1,3 +1,17 @@
+Overview of changes leading to 0.9.14
+Thursday, March 21, 2013
+=====================================
+
+- Build fixes.
+- Fix time-consuming sanitize with malicious fonts.
+- Implement hb_buffer_deserialize_glyphs() for both json and text.
+- Do not ignore Hangul filler characters.
+- Indic fixes:
+  * Fix Malayalam pre-base reordering interaction with post-forms.
+  * Further adjust ZWJ handling.  Should fix known regressions from
+    0.9.13.
+
+
 Overview of changes leading to 0.9.13
 Thursday, February 25, 2013
 =====================================
