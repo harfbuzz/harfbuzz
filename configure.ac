@@ -175,15 +175,15 @@ dnl ==========================================================================
 PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
 dnl Fallback to icu-config if ICU pkg-config files could not be found
 if test "$have_icu" != "true"; then
-	AC_PATH_PROG(icu_config, icu-config, no)
+	AC_CHECK_TOOL(ICU_CONFIG, icu-config, no)
 	AC_MSG_CHECKING([for ICU by using icu-config fallback])
-	if test "$icu_config" != "no" && "$icu_config" --version >/dev/null; then
+	if test "$ICU_CONFIG" != "no" && "$ICU_CONFIG" --version >/dev/null; then
 		have_icu=true
 		# We don't use --cflags as this gives us a lot of things that we don't
 		# necessarily want, like debugging and optimization flags
 		# See man (1) icu-config for more info.
-		ICU_CFLAGS=`$icu_config --cppflags`
-		ICU_LIBS=`$icu_config --ldflags-libsonly`
+		ICU_CFLAGS=`$ICU_CONFIG --cppflags`
+		ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
 		AC_SUBST(ICU_CFLAGS)
 		AC_SUBST(ICU_LIBS)
 		AC_MSG_RESULT([yes])
@@ -203,15 +203,15 @@ dnl ==========================================================================
 PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true, have_icu_le=false)
 dnl Fallback to icu-config if ICU pkg-config files could not be found
 if test "$have_icu_le" != "true"; then
-	AC_PATH_PROG(icu_config, icu-config, no)
+	AC_CHECK_TOOL(ICU_CONFIG, icu-config, no)
 	AC_MSG_CHECKING([for ICU_LE by using icu-config fallback])
-	if test "$icu_config" != "no" && "$icu_config" --version >/dev/null; then
+	if test "$ICU_CONFIG" != "no" && "$ICU_CONFIG" --version >/dev/null; then
 		have_icu_le=true
 		# We don't use --cflags as this gives us a lot of things that we don't
 		# necessarily want, like debugging and optimization flags
 		# See man (1) icu-config for more info.
-		ICU_LE_CFLAGS=`$icu_config --cppflags`
-		ICU_LE_LIBS=`$icu_config --ldflags-libsonly --ldflags-layout`
+		ICU_LE_CFLAGS=`$ICU_CONFIG --cppflags`
+		ICU_LE_LIBS=`$ICU_CONFIG --ldflags-libsonly --ldflags-layout`
 		AC_SUBST(ICU_LE_CFLAGS)
 		AC_SUBST(ICU_LE_LIBS)
 		AC_MSG_RESULT([yes])
