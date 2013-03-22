@@ -170,7 +170,7 @@ decompose (const hb_ot_shape_normalize_context_t *c, bool shortest, hb_codepoint
 }
 
 /* Returns 0 if didn't decompose, number of resulting characters otherwise. */
-static inline bool
+static inline unsigned int
 decompose_compatibility (const hb_ot_shape_normalize_context_t *c, hb_codepoint_t u)
 {
   unsigned int len, i;
@@ -191,7 +191,6 @@ decompose_compatibility (const hb_ot_shape_normalize_context_t *c, hb_codepoint_
   return len;
 }
 
-/* Returns true if recomposition may be benefitial. */
 static inline void
 decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shortest)
 {
@@ -231,7 +230,6 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c, uns
   }
 }
 
-/* Returns true if recomposition may be benefitial. */
 static inline void
 decompose_multi_char_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end)
 {
