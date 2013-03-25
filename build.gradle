@@ -47,10 +47,12 @@ apply plugin: "js"
 apply plugin: "haxe"
 
 clean << {
-	def proc = "make clean".execute()
-	proc.waitForProcessOutput(System.out, System.err)
-	if (proc.exitValue()) {
-		throw new RuntimeException("Emscripten clean failed")
+	if (file("Makefile").exists()) {
+		def proc = "make clean".execute()
+		proc.waitForProcessOutput(System.out, System.err)
+		if (proc.exitValue()) {
+			throw new RuntimeException("Emscripten clean failed")
+		}
 	}
 }
 
