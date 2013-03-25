@@ -54,6 +54,7 @@ clean << {
 			throw new RuntimeException("Emscripten clean failed")
 		}
 	}
+	delete file("config.h")
 }
 
 task cleanTools {
