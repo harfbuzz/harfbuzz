@@ -21,7 +21,6 @@ buildscript {
 		classpath "com.prezi.gradle:gradle-coffee-plugin:0.0.1-SNAPSHOT"
 		classpath "com.prezi.gradle:gradle-haxe-plugin:0.0.5-SNAPSHOT"
 		classpath "com.eriwen:gradle-js-plugin:1.1"
-		classpath 'org.batcha.gradle.plugins:git-dependencies:0.1'
 	}
 }
 
@@ -43,20 +42,34 @@ configurations {
 	emcc
 }
 
-dependencies {
-	emcc(group: "org.emscripten", name: "emscripten", version: "$emscripten_version").ext.git = "https://github.com/lptr/emscripten.git"
-}
-
 apply plugin: "coffee"
 apply plugin: "js"
 apply plugin: "haxe"
-apply plugin: "git-dependencies"
 
 clean << {
 	def proc = "make clean".execute()
 	proc.waitForProcessOutput(System.out, System.err)
 	if (proc.exitValue()) {
 		throw new RuntimeException("Emscripten clean failed")
+	}
+}
+
+task cleanTools {
+	delete file("tools")
+}
+
+task downloadEmscripten {
+	mkdir("tools/emscripten")
+	for (command in [
+		"git clone https://github.com/lptr/emscripten.git .",
+		"git pull",
+		"git reset --hard ${emscripten_version}"
+	]) {
+		def proc = command.execute(null, file("tools/emscripten"))
+		proc.waitForProcessOutput(System.out, System.err)
+		if (proc.exitValue()) {
+			throw new RuntimeException("Could not clone Emscripten")
+		}
 	}
 }
 
@@ -92,7 +105,9 @@ class ConfigureHarfbuzz extends DefaultTask {
 	}
 }
 
-task configureHarfbuzz(type: ConfigureHarfbuzz)
+task configureHarfbuzz(type: ConfigureHarfbuzz) {
+	dependsOn downloadEmscripten
+}
 
 task makeHarfbuzz() {
 	dependsOn configureHarfbuzz
@@ -195,7 +210,7 @@ public class CompileEmcc extends DefaultTask {
 
 	@TaskAction
 	void doCompile() {
-		def emccPath = "${project.buildDir}/git-dependencies/emscripten/emcc"
+		def emccPath = "tools/emscripten/emcc"
 
 		def emccVersion = "${emccPath} --version | perl -pe 's/emcc \\(Emscripten GCC-like replacement\\) (\\d+(?:\\.\\d+)*) \\(commit ([0-9a-f]+)\\)/\$1-\$2/'".execute().text.split("\n")[0].trim()
 		logger.info "Compiling with ${emccVersion}"
