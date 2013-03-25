@@ -105,7 +105,7 @@ class ConfigureHarfbuzz extends DefaultTask {
 
 	@TaskAction
 	void doConfigure() {
-		def proc = "emconfigure ./autogen.sh".execute()
+		def proc = "tools/emscripten/emconfigure ./autogen.sh".execute()
 		proc.waitForProcessOutput(System.out, System.err)
 
 		if (proc.exitValue()) {
