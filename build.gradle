@@ -55,20 +55,27 @@ clean << {
 }
 
 task cleanTools {
-	delete file("tools")
+	doLast {
+		delete file("tools")
+	}
 }
 
 task downloadEmscripten {
-	mkdir("tools/emscripten")
-	for (command in [
-		"git clone https://github.com/lptr/emscripten.git .",
-		"git pull",
-		"git reset --hard ${emscripten_version}"
-	]) {
-		def proc = command.execute(null, file("tools/emscripten"))
-		proc.waitForProcessOutput(System.out, System.err)
-		if (proc.exitValue()) {
-			throw new RuntimeException("Could not clone Emscripten")
+	doLast {
+		def commands = []
+		if (!file("tools/emscripten").isDirectory()) {
+			mkdir("tools/emscripten")
+			commands.add("git clone https://github.com/lptr/emscripten.git .")
+		} else {
+			commands.add("git pull")
+		}
+		commands.add("git reset --hard ${emscripten_version}")
+		for (command in commands) {
+			def proc = command.execute(null, file("tools/emscripten"))
+			proc.waitForProcessOutput(System.out, System.err)
+			if (proc.exitValue()) {
+				throw new RuntimeException("Could not clone Emscripten")
+			}
 		}
 	}
 }
@@ -220,7 +227,7 @@ public class CompileEmcc extends DefaultTask {
 		versionHeader.createNewFile()
 		versionHeader << "Module = Module || {};\n"
 		versionHeader << "Module['version'] = '${project.harfbuzzVersion}${type}';\n";
-		versionHeader << "Module['emccVersion'] = '${project.emccVersion}';\n";
+		versionHeader << "Module['emccVersion'] = '${emccVersion}';\n";
 
 		def commandLine = emccPath
 		commandLine += " " + source.files.join(" ")
