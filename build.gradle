@@ -21,6 +21,7 @@ buildscript {
 
 	dependencies {
 		classpath "com.prezi.gradle:gradle-coffee-plugin:0.0.1-SNAPSHOT"
+		classpath "com.prezi.gradle:gradle-haxe-plugin:0.0.5-SNAPSHOT"
 		classpath "com.eriwen:gradle-js-plugin:1.1"
 	}
 }
@@ -37,10 +38,13 @@ repositories {
 	}
 }
 
+configurations {
+	hxsrc
+}
+
 apply plugin: "coffee"
 apply plugin: "js"
-apply plugin: "java"
-apply plugin: "maven"
+apply plugin: "haxe"
 
 clean << {
 	def proc = "make clean".execute()
@@ -277,11 +281,20 @@ install {
 	dependsOn compileEmccDebugUntyped
 
 	def jarArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['jar'] }
-	project.configurations.archives.artifacts.remove(jarArtifact)	
+	project.configurations.archives.artifacts.remove(jarArtifact)
+
+	def hxsrcArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['zip'] }
+	project.configurations.archives.artifacts.remove(hxsrcArtifact)
+
+	repositories.clear()
+    repositories.add(project.repositories['localIvy'])
 }
 
 uploadArchives {
 	dependsOn install
+
+	repositories.clear()
+    repositories.add(project.repositories['remoteIvy'])
 }
 
 artifacts {
