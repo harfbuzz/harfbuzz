@@ -1,9 +1,9 @@
 #!/usr/bin/env gradle -b
 group = "org.harfbuzz"
 def archivesBaseName = "harfbuzz-js"
-ext.version = version = "git describe --tags".execute().text.trim()
+ext.harfbuzzVersion = version = "git describe --tags".execute().text.trim()
 ext.emccVersion = emccVersion = "emcc --version | perl -pe 's/emcc \\(Emscripten GCC-like replacement\\) (\\d+(?:\\.\\d+)*) \\(commit ([0-9a-f]+)\\)/\$1-\$2/'".execute().text.split("\n")[0].trim()
-println "Version: ${ext.version}"
+println "Version: ${ext.harfbuzzVersion}"
 println "Emscripten version: ${ext.emccVersion}"
 
 buildscript {
@@ -195,7 +195,7 @@ public class CompileEmcc extends DefaultTask {
 		versionHeader.delete()
 		versionHeader.createNewFile()
 		versionHeader << "Module = Module || {};\n"
-		versionHeader << "Module['version'] = '${project.version}${type}';\n";
+		versionHeader << "Module['version'] = '${project.harfbuzzVersion}${type}';\n";
 		versionHeader << "Module['emccVersion'] = '${project.emccVersion}';\n";
 
 		def commandLine = "emcc"
