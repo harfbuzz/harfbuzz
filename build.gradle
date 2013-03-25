@@ -71,7 +71,7 @@ task downloadEmscripten {
 		} else {
 			commands.add("git pull")
 		}
-		commands.add("git reset --hard ${emscripten_version}")
+		commands.add("git checkout -f ${emscripten_version}")
 		for (command in commands) {
 			def proc = command.execute(null, file("tools/emscripten"))
 			proc.waitForProcessOutput(System.out, System.err)
