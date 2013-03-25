@@ -67,7 +67,30 @@ task combineJsConnector(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dest = file("${buildDir}/post.js")
 }
 
+class ConfigureHarfbuzz extends DefaultTask {
+
+    @InputFiles
+    List<File> inputFiles = [ project.file("configure.ac") ]
+
+    @OutputFiles
+    List<File> outputFiles = [ project.file("config.h") ]
+
+	@TaskAction
+	void doConfigure() {
+		def proc = "emconfigure ./autogen.sh".execute()
+		proc.waitForProcessOutput(System.out, System.err)
+
+		if (proc.exitValue()) {
+			throw new RuntimeException("Emscripten configuration failed")
+		}
+	}
+}
+
+task configureHarfbuzz(type: ConfigureHarfbuzz)
+
 task makeHarfbuzz() {
+	dependsOn configureHarfbuzz
+
 	doLast {
 		def proc = "make all-recursive".execute()
 		proc.waitForProcessOutput(System.out, System.err)
