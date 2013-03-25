@@ -69,9 +69,9 @@ task downloadEmscripten {
 			mkdir("tools/emscripten")
 			commands.add("git clone https://github.com/lptr/emscripten.git .")
 		} else {
-			commands.add("git pull")
+			commands.add("git fetch --all")
 		}
-		commands.add("git checkout -f ${emscripten_version}")
+		commands.add("git checkout --force ${emscripten_version}")
 		for (command in commands) {
 			def proc = command.execute(null, file("tools/emscripten"))
 			proc.waitForProcessOutput(System.out, System.err)
