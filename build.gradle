@@ -1,0 +1,307 @@
+#!/usr/bin/env gradle -b
+group = "org.harfbuzz"
+def archivesBaseName = "harfbuzz-js"
+ext.version = version = "git describe --tags".execute().text.trim()
+ext.emccVersion = emccVersion = "emcc --version | perl -pe 's/emcc \\(Emscripten GCC-like replacement\\) (\\d+(?:\\.\\d+)*) \\(commit ([0-9a-f]+)\\)/\$1-\$2/'".execute().text.split("\n")[0].trim()
+println "Version: ${ext.version}"
+println "Emscripten version: ${ext.emccVersion}"
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		maven {
+			credentials {
+				username "$nexusUser"
+				password "$nexusPassword"
+			}
+			url "$nexusRepositoriesUrl/snapshots"
+		}
+	}
+
+	dependencies {
+		classpath "com.prezi.gradle:gradle-coffee-plugin:0.0.1-SNAPSHOT"
+		classpath "com.eriwen:gradle-js-plugin:1.1"
+	}
+}
+
+repositories {
+	mavenLocal()
+
+	maven {
+		credentials {
+			username "$nexusUser"
+			password "$nexusPassword"
+		}
+		url "http://intra.prezi.com:8081/nexus/content/groups/public/"
+	}
+}
+
+apply plugin: "coffee"
+apply plugin: "js"
+apply plugin: "java"
+apply plugin: "maven"
+
+clean << {
+	def proc = "make clean".execute()
+	proc.waitForProcessOutput(System.out, System.err)
+	if (proc.exitValue()) {
+		throw new RuntimeException("Emscripten clean failed")
+	}
+}
+
+task compileJsConnector(type: com.prezi.gradle.task.CompileCoffee) {
+	srcDir = file("src/js-connector/")
+	outputDir = file("${project.buildDir}/compiled-coffee-for-node")
+}
+
+task combineJsConnector(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
+    dependsOn compileJsConnector
+
+    source files(compileJsConnector.outputDir)
+    
+    dest = file("${buildDir}/post.js")
+}
+
+task makeHarfbuzz() {
+	doLast {
+		def proc = "make all-recursive".execute()
+		proc.waitForProcessOutput(System.out, System.err)
+
+		if (proc.exitValue()) {
+			throw new RuntimeException("Emscripten build failed")
+		}
+	}
+}
+
+def EXPORTED_FUNCTIONS = [
+	'ccall',
+	'cwrap',
+	'_hb_language_from_string',
+	'_hb_language_to_string',
+	'_hb_unicode_funcs_get_default',
+	'_hb_unicode_funcs_reference',
+	'_hb_buffer_create',
+	'_hb_buffer_reference',
+	'_hb_buffer_destroy',
+	'_hb_buffer_reset',
+	'_hb_buffer_get_empty',
+	'_hb_buffer_set_content_type',
+	'_hb_buffer_get_content_type',
+	'_hb_buffer_get_length',
+	'_hb_buffer_get_glyph_infos',
+	'_hb_buffer_get_glyph_positions',
+	'_hb_buffer_normalize_glyphs',
+	'_hb_buffer_add',
+	'_hb_buffer_add_utf8',
+	'_hb_buffer_add_utf16',
+	'_hb_buffer_add_utf32',
+	'_hb_buffer_get_length',
+	'_hb_buffer_guess_segment_properties',
+	'_hb_buffer_set_direction',
+	'_hb_buffer_get_direction',
+	'_hb_buffer_set_script',
+	'_hb_buffer_get_script',
+	'_hb_buffer_set_language',
+	'_hb_buffer_get_language',
+	'_hb_blob_create',
+	'_hb_blob_create_sub_blob',
+	'_hb_blob_get_empty',
+	'_hb_blob_reference',
+	'_hb_blob_destroy',
+	'_hb_feature_from_string',
+	'_hb_feature_to_string',
+	'_hb_shape_list_shapers',
+	'_hb_shape',
+	'_hb_shape_full',
+	'_hb_face_create',
+	'_hb_face_destroy',
+	'_hb_font_create',
+	'_hb_font_destroy',
+	'_hb_font_set_scale',
+	'_hb_font_get_face',
+	'_hb_font_funcs_create',
+	'_hb_font_funcs_destroy',
+	'_hb_font_set_funcs',
+	'_hb_font_funcs_set_glyph_func',
+	'_hb_font_funcs_set_glyph_h_advance_func',
+	'_hb_font_funcs_set_glyph_v_advance_func',
+	'_hb_font_funcs_set_glyph_h_origin_func',
+	'_hb_font_funcs_set_glyph_v_origin_func',
+	'_hb_font_funcs_set_glyph_h_kerning_func',
+	'_hb_font_funcs_set_glyph_v_kerning_func',
+	'_hb_font_funcs_set_glyph_extents_func',
+	'_hb_font_funcs_set_glyph_contour_point_func',
+	'_hb_font_funcs_set_glyph_name_func',
+	'_hb_font_funcs_set_glyph_from_name_func'
+]
+
+public class CompileEmcc extends DefaultTask {
+    @InputFiles
+    @SkipWhenEmpty
+    FileCollection source = new org.gradle.api.internal.file.UnionFileCollection()
+
+    @OutputFile
+    File outputFile
+
+	List<File> inputFiles = new ArrayList<File>()
+
+	File postJs
+	String type = ""
+	List<String> exportedFunctions = new ArrayList<String>()
+
+	int optimizationLevel = 0
+	boolean closure = false
+	boolean allowMemoryGrowth = true
+	int typedArraySupport = 2
+
+    public void source(paths)
+    {
+        source.add(project.files(paths))
+    }
+
+	@TaskAction
+	void doCompile() {
+		logger.info "Compiling with ${project.emccVersion}"
+
+		def versionHeader = project.file("${project.buildDir}/version-header.js")
+		versionHeader.delete()
+		versionHeader.createNewFile()
+		versionHeader << "Module = Module || {};\n"
+		versionHeader << "Module['version'] = '${project.version}${type}';\n";
+		versionHeader << "Module['emccVersion'] = '${project.emccVersion}';\n";
+
+		def commandLine = "emcc"
+		commandLine += " " + source.files.join(" ")
+
+		commandLine += " --pre-js " + versionHeader
+		if (postJs != null) commandLine += " --post-js " + postJs
+
+		commandLine += " -o " + outputFile
+
+		commandLine += " -O" + optimizationLevel
+
+		commandLine += " --closure " + (closure ? 1 : 0)
+
+		commandLine += " -s ALLOW_MEMORY_GROWTH=" + (allowMemoryGrowth ? 1 : 0)
+
+		commandLine += " -s USE_TYPED_ARRAYS=" + typedArraySupport
+
+		if (exportedFunctions != null && exportedFunctions.size() > 0) {
+			commandLine += " -s EXPORTED_FUNCTIONS=['" + exportedFunctions.join("','") + "']";
+		}
+
+		println "Executing: ${commandLine}"
+
+		def proc = commandLine.execute()
+		proc.waitForProcessOutput(System.out, System.err)
+
+		if (proc.exitValue()) {
+			throw new RuntimeException("Emscripten build failed")
+		}
+	}
+}
+
+task compileEmccProduction(type: CompileEmcc) {
+	dependsOn combineJsConnector
+	dependsOn makeHarfbuzz
+
+	type = ""
+	closure = true
+	typedArraySupport = 2
+
+	source "src/.libs/libharfbuzz.dylib"
+	source "src/hb-ucdn/.libs/ucdn.o"
+	postJs = combineJsConnector.dest
+	allowMemoryGrowth = true
+	optimizationLevel = 2
+	exportedFunctions = EXPORTED_FUNCTIONS
+	outputFile = file("${buildDir}/harfbuzz${type}.js")
+}
+
+task compileEmccProductionUntyped(type: CompileEmcc) {
+	dependsOn combineJsConnector
+	dependsOn makeHarfbuzz
+
+	type = "-untyped"
+	closure = true
+	typedArraySupport = 0
+
+	source "src/.libs/libharfbuzz.dylib"
+	source "src/hb-ucdn/.libs/ucdn.o"
+	postJs = combineJsConnector.dest
+	allowMemoryGrowth = true
+	optimizationLevel = 2
+	exportedFunctions = EXPORTED_FUNCTIONS
+	outputFile = file("${buildDir}/harfbuzz${type}.js")
+}
+
+task compileEmccDebug(type: CompileEmcc) {
+	dependsOn combineJsConnector
+	dependsOn makeHarfbuzz
+
+	type = "-debug"
+	closure = false
+	typedArraySupport = 2
+
+	source "src/.libs/libharfbuzz.dylib"
+	source "src/hb-ucdn/.libs/ucdn.o"
+	postJs = combineJsConnector.dest
+	allowMemoryGrowth = true
+	optimizationLevel = 2
+	exportedFunctions = EXPORTED_FUNCTIONS
+	outputFile = file("${buildDir}/harfbuzz${type}.js")
+}
+
+task compileEmccDebugUntyped(type: CompileEmcc) {
+	dependsOn combineJsConnector
+	dependsOn makeHarfbuzz
+
+	type = "-untyped-debug"
+	closure = false
+	typedArraySupport = 0
+
+	source "src/.libs/libharfbuzz.dylib"
+	source "src/hb-ucdn/.libs/ucdn.o"
+	postJs = combineJsConnector.dest
+	allowMemoryGrowth = true
+	optimizationLevel = 2
+	exportedFunctions = EXPORTED_FUNCTIONS
+	outputFile = file("${buildDir}/harfbuzz${type}.js")
+}
+
+install {
+	dependsOn compileEmccProduction
+	dependsOn compileEmccProductionUntyped
+	dependsOn compileEmccDebug
+	dependsOn compileEmccDebugUntyped
+
+	def jarArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['jar'] }
+	project.configurations.archives.artifacts.remove(jarArtifact)	
+}
+
+uploadArchives {
+	dependsOn install
+}
+
+artifacts {
+	archives(compileEmccProduction.outputFile) {
+		name archivesBaseName
+		type "js"
+	}
+	archives(compileEmccProductionUntyped.outputFile) {
+		name archivesBaseName
+		type "js"
+		classifier "untyped"
+	}
+	archives(compileEmccDebug.outputFile) {
+		name archivesBaseName
+		type "js"
+		classifier "debug"
+	}
+	archives(compileEmccDebugUntyped.outputFile) {
+		name archivesBaseName
+		type "js"
+		classifier "untyped-debug"
+	}
+}
