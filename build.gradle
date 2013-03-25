@@ -1,10 +1,8 @@
 #!/usr/bin/env gradle -b
 group = "org.harfbuzz"
 def archivesBaseName = "harfbuzz-js"
-ext.harfbuzzVersion = version = "git describe --tags".execute().text.trim()
-ext.emccVersion = emccVersion = "emcc --version | perl -pe 's/emcc \\(Emscripten GCC-like replacement\\) (\\d+(?:\\.\\d+)*) \\(commit ([0-9a-f]+)\\)/\$1-\$2/'".execute().text.split("\n")[0].trim()
-println "Version: ${ext.harfbuzzVersion}"
-println "Emscripten version: ${ext.emccVersion}"
+def version = ext.harfbuzzVersion = "git describe --tags".execute().text.trim()
+println "Version: ${version}"
 
 buildscript {
 	repositories {
@@ -23,6 +21,7 @@ buildscript {
 		classpath "com.prezi.gradle:gradle-coffee-plugin:0.0.1-SNAPSHOT"
 		classpath "com.prezi.gradle:gradle-haxe-plugin:0.0.5-SNAPSHOT"
 		classpath "com.eriwen:gradle-js-plugin:1.1"
+		classpath 'org.batcha.gradle.plugins:git-dependencies:0.1'
 	}
 }
 
@@ -39,12 +38,19 @@ repositories {
 }
 
 configurations {
+	// Dummy, needed for haxe plugin
 	hxsrc
+	emcc
+}
+
+dependencies {
+	emcc(group: "org.emscripten", name: "emscripten", version: "$emscripten_version").ext.git = "https://github.com/lptr/emscripten.git"
 }
 
 apply plugin: "coffee"
 apply plugin: "js"
 apply plugin: "haxe"
+apply plugin: "git-dependencies"
 
 clean << {
 	def proc = "make clean".execute()
@@ -189,7 +195,10 @@ public class CompileEmcc extends DefaultTask {
 
 	@TaskAction
 	void doCompile() {
-		logger.info "Compiling with ${project.emccVersion}"
+		def emccPath = "${project.buildDir}/git-dependencies/emscripten/emcc"
+
+		def emccVersion = "${emccPath} --version | perl -pe 's/emcc \\(Emscripten GCC-like replacement\\) (\\d+(?:\\.\\d+)*) \\(commit ([0-9a-f]+)\\)/\$1-\$2/'".execute().text.split("\n")[0].trim()
+		logger.info "Compiling with ${emccVersion}"
 
 		def versionHeader = project.file("${project.buildDir}/version-header.js")
 		versionHeader.delete()
@@ -198,7 +207,7 @@ public class CompileEmcc extends DefaultTask {
 		versionHeader << "Module['version'] = '${project.harfbuzzVersion}${type}';\n";
 		versionHeader << "Module['emccVersion'] = '${project.emccVersion}';\n";
 
-		def commandLine = "emcc"
+		def commandLine = emccPath
 		commandLine += " " + source.files.join(" ")
 
 		commandLine += " --pre-js " + versionHeader
