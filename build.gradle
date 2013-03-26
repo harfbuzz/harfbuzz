@@ -102,7 +102,7 @@ class ConfigureHarfbuzz extends DefaultTask {
     List<File> inputFiles = [ project.file("configure.ac") ]
 
     @OutputFiles
-    List<File> outputFiles = [ project.file("config.h") ]
+    List<File> outputFiles = [ project.file("config.h"), project.file("Makefile") ]
 
 	@TaskAction
 	void doConfigure() {
@@ -111,6 +111,12 @@ class ConfigureHarfbuzz extends DefaultTask {
 
 		if (proc.exitValue()) {
 			throw new RuntimeException("Emscripten configuration failed")
+		}
+
+		for (outputFile in outputFiles) {
+			if (!outputFile.exists()) {
+				throw new RuntimeException("Emscripten configuration didn't create required file: " + outputFile)
+			}
 		}
 	}
 }
