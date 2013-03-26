@@ -13,7 +13,8 @@ AM_INIT_AUTOMAKE([1.11.1 gnits dist-bzip2 no-dist-gzip -Wall no-define color-tes
 AM_SILENT_RULES([yes])
 
 # Initialize libtool
-m4_pattern_allow([AM_PROG_AR], [AM_PROG_AR])
+m4_pattern_allow([AM_PROG_AR])
+AM_PROG_AR
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
