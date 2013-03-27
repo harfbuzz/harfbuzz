@@ -48,7 +48,7 @@ apply plugin: "haxe"
 
 clean << {
 	if (file("Makefile").exists()) {
-		def proc = "make clean".execute()
+		def proc = "emmake make clean".execute()
 		proc.waitForProcessOutput(System.out, System.err)
 		if (proc.exitValue()) {
 			throw new RuntimeException("Emscripten clean failed")
@@ -129,7 +129,7 @@ task makeHarfbuzz() {
 	dependsOn configureHarfbuzz
 
 	doLast {
-		def proc = "make all-recursive".execute()
+		def proc = "emmake make all-recursive".execute()
 		proc.waitForProcessOutput(System.out, System.err)
 
 		if (proc.exitValue()) {
