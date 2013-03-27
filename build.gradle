@@ -22,7 +22,7 @@ buildscript {
 
 	dependencies {
 		classpath "com.prezi.gradle:gradle-coffee-plugin:0.0.1-SNAPSHOT"
-		classpath "com.prezi.gradle:gradle-haxe-plugin:0.0.5-SNAPSHOT"
+		classpath "com.prezi.gradle:gradle-haxe-plugin:0.0.7-SNAPSHOT"
 		classpath "com.eriwen:gradle-js-plugin:1.1"
 	}
 }
