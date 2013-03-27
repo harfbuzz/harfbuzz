@@ -111,7 +111,7 @@ class ConfigureHarfbuzz extends DefaultTask {
 
 	@TaskAction
 	void doConfigure() {
-		var commandLine = "tools/emscripten/emconfigure ./autogen.sh"
+		def commandLine = "tools/emscripten/emconfigure ./autogen.sh"
 
 		if (host != null) {
 			commandLine += " --host " + host
