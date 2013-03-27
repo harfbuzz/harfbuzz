@@ -136,7 +136,7 @@ task configureHarfbuzz(type: ConfigureHarfbuzz) {
 	dependsOn downloadEmscripten
 
 	if (Os.isFamily(Os.FAMILY_MAC)) {
-	} else if (Os.isFamily(Os.FAMILY_LINUX)) {
+	} else if (Os.isFamily(Os.FAMILY_UNIX)) {
 		// Hack to make shared linbrary linking work on Jenkins
 		host = "i386-linux"
 	} else {
@@ -328,7 +328,7 @@ tasks.withType(CompileEmcc) { task ->
 	task.configure {
 		if (Os.isFamily(Os.FAMILY_MAC)) {
 			source "src/.libs/libharfbuzz.dylib"
-		} else if (Os.isFamily(Os.FAMILY_LINUX)) {
+		} else if (Os.isFamily(Os.FAMILY_UNIX)) {
 			source "src/.libs/libharfbuzz.so"
 		} else {
 			throw new RuntimeException("Unsupported platform: " + Os.OS_NAME)
