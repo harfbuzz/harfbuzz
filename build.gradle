@@ -1,4 +1,7 @@
 #!/usr/bin/env gradle -b
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
 group = "org.harfbuzz"
 def archivesBaseName = "harfbuzz-js"
 def version = ext.harfbuzzVersion = "git describe --tags".execute().text.trim()
@@ -104,9 +107,17 @@ class ConfigureHarfbuzz extends DefaultTask {
     @OutputFiles
     List<File> outputFiles = [ project.file("config.h"), project.file("Makefile") ]
 
+    String host
+
 	@TaskAction
 	void doConfigure() {
-		def proc = "tools/emscripten/emconfigure ./autogen.sh".execute()
+		var commandLine = "tools/emscripten/emconfigure ./autogen.sh"
+
+		if (host != null) {
+			commandLine += " --host " + host
+		}
+
+		def proc = commandLine.execute()
 		proc.waitForProcessOutput(System.out, System.err)
 
 		if (proc.exitValue()) {
@@ -123,6 +134,14 @@ class ConfigureHarfbuzz extends DefaultTask {
 
 task configureHarfbuzz(type: ConfigureHarfbuzz) {
 	dependsOn downloadEmscripten
+
+	if (Os.isFamily(Os.FAMILY_MAC)) {
+	} else if (Os.isFamily(Os.FAMILY_LINUX)) {
+		// Hack to make shared linbrary linking work on Jenkins
+		host = "i386-linux"
+	} else {
+		throw new RuntimeException("Unsupported platform: " + Os.OS_NAME)
+	}
 }
 
 task makeHarfbuzz() {
@@ -200,7 +219,7 @@ def EXPORTED_FUNCTIONS = [
 	'_hb_font_funcs_set_glyph_from_name_func'
 ]
 
-public class CompileEmcc extends DefaultTask {
+class CompileEmcc extends DefaultTask {
     @InputFiles
     @SkipWhenEmpty
     FileCollection source = new org.gradle.api.internal.file.UnionFileCollection()
@@ -219,7 +238,7 @@ public class CompileEmcc extends DefaultTask {
 	boolean allowMemoryGrowth = true
 	int typedArraySupport = 2
 
-    public void source(paths)
+    void source(paths)
     {
         source.add(project.files(paths))
     }
@@ -276,14 +295,6 @@ task compileEmccProduction(type: CompileEmcc) {
 	type = ""
 	closure = true
 	typedArraySupport = 2
-
-	source "src/.libs/libharfbuzz.dylib"
-	source "src/hb-ucdn/.libs/ucdn.o"
-	postJs = combineJsConnector.dest
-	allowMemoryGrowth = true
-	optimizationLevel = 2
-	exportedFunctions = EXPORTED_FUNCTIONS
-	outputFile = file("${buildDir}/harfbuzz${type}.js")
 }
 
 task compileEmccProductionUntyped(type: CompileEmcc) {
@@ -293,14 +304,6 @@ task compileEmccProductionUntyped(type: CompileEmcc) {
 	type = "-untyped"
 	closure = true
 	typedArraySupport = 0
-
-	source "src/.libs/libharfbuzz.dylib"
-	source "src/hb-ucdn/.libs/ucdn.o"
-	postJs = combineJsConnector.dest
-	allowMemoryGrowth = true
-	optimizationLevel = 2
-	exportedFunctions = EXPORTED_FUNCTIONS
-	outputFile = file("${buildDir}/harfbuzz${type}.js")
 }
 
 task compileEmccDebug(type: CompileEmcc) {
@@ -310,14 +313,6 @@ task compileEmccDebug(type: CompileEmcc) {
 	type = "-debug"
 	closure = false
 	typedArraySupport = 2
-
-	source "src/.libs/libharfbuzz.dylib"
-	source "src/hb-ucdn/.libs/ucdn.o"
-	postJs = combineJsConnector.dest
-	allowMemoryGrowth = true
-	optimizationLevel = 2
-	exportedFunctions = EXPORTED_FUNCTIONS
-	outputFile = file("${buildDir}/harfbuzz${type}.js")
 }
 
 task compileEmccDebugUntyped(type: CompileEmcc) {
@@ -327,14 +322,24 @@ task compileEmccDebugUntyped(type: CompileEmcc) {
 	type = "-untyped-debug"
 	closure = false
 	typedArraySupport = 0
+}
 
-	source "src/.libs/libharfbuzz.dylib"
-	source "src/hb-ucdn/.libs/ucdn.o"
-	postJs = combineJsConnector.dest
-	allowMemoryGrowth = true
-	optimizationLevel = 2
-	exportedFunctions = EXPORTED_FUNCTIONS
-	outputFile = file("${buildDir}/harfbuzz${type}.js")
+tasks.withType(CompileEmcc) { task ->
+	task.configure {
+		if (Os.isFamily(Os.FAMILY_MAC)) {
+			source "src/.libs/libharfbuzz.dylib"
+		} else if (Os.isFamily(Os.FAMILY_LINUX)) {
+			source "src/.libs/libharfbuzz.so"
+		} else {
+			throw new RuntimeException("Unsupported platform: " + Os.OS_NAME)
+		}
+		source "src/hb-ucdn/.libs/ucdn.o"
+		postJs = combineJsConnector.dest
+		allowMemoryGrowth = true
+		optimizationLevel = 2
+		exportedFunctions = EXPORTED_FUNCTIONS
+		outputFile = file("${buildDir}/harfbuzz${type}.js")
+	}
 }
 
 install {
