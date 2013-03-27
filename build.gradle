@@ -348,9 +348,6 @@ install {
 	dependsOn compileEmccDebug
 	dependsOn compileEmccDebugUntyped
 
-	def jarArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['jar'] }
-	project.configurations.archives.artifacts.remove(jarArtifact)
-
 	def hxsrcArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['zip'] }
 	project.configurations.archives.artifacts.remove(hxsrcArtifact)
 
