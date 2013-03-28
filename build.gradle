@@ -343,7 +343,7 @@ tasks.withType(CompileEmcc) { task ->
 	}
 }
 
-buildAll {
+task buildAll {
 	dependsOn compileEmccProduction
 	dependsOn compileEmccProductionUntyped
 	dependsOn compileEmccDebug
