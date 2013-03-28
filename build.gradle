@@ -277,7 +277,7 @@ class CompileEmcc extends DefaultTask {
 			commandLine += " -s EXPORTED_FUNCTIONS=['" + exportedFunctions.join("','") + "']";
 		}
 
-		println "Executing: ${commandLine}"
+		logger.info("Executing: ${commandLine}")
 
 		def proc = commandLine.execute()
 		proc.waitForProcessOutput(System.out, System.err)
