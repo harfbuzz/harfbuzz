@@ -356,8 +356,6 @@ install {
 }
 
 uploadArchives {
-	dependsOn install
-
 	repositories.clear()
     repositories.add(project.repositories['remoteIvy'])
 }
