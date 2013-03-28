@@ -353,7 +353,7 @@ task buildAll {
 install {
 	dependsOn buildAll
 
-	def jarArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['jar'] }
+	def jarArtifact = project.configurations.archives.artifacts.find { it.extension == 'jar' }
 	project.configurations.archives.artifacts.remove(jarArtifact)
 
 	def hxsrcArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['zip'] }
