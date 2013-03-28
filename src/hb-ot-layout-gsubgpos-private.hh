@@ -261,7 +261,7 @@ struct hb_apply_context_t
   hb_buffer_t *buffer;
   hb_direction_t direction;
   hb_mask_t lookup_mask;
-  bool auto_joiners;
+  bool auto_zwj;
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
   unsigned int lookup_props;
@@ -274,12 +274,12 @@ struct hb_apply_context_t
 		      hb_font_t *font_,
 		      hb_buffer_t *buffer_,
 		      hb_mask_t lookup_mask_,
-		      bool auto_joiners_) :
+		      bool auto_zwj_) :
 			table_index (table_index_),
 			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
 			lookup_mask (lookup_mask_),
-			auto_joiners (auto_joiners_),
+			auto_zwj (auto_zwj_),
 			recurse_func (NULL),
 			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0),
@@ -383,16 +383,12 @@ struct hb_apply_context_t
 					 end (c->buffer->len)
     {
       matcher.set_lookup_props (c->lookup_props);
-      if (c->auto_joiners)
-      {
-	/* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
-	matcher.set_ignore_zwnj (context_match || c->table_index == 1);
-	matcher.set_ignore_zwj (true);
-      }
+      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
+      matcher.set_ignore_zwnj (context_match || c->table_index == 1);
+      /* Ignore ZWJ if we are matching GSUB context, or matching GPOS, or if asked to. */
+      matcher.set_ignore_zwj (context_match || c->table_index == 1 || c->auto_zwj);
       if (!context_match)
-      {
 	matcher.set_mask (c->lookup_mask);
-      }
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
@@ -457,16 +453,12 @@ struct hb_apply_context_t
 					  num_items (num_items_)
     {
       matcher.set_lookup_props (c->lookup_props);
-      if (c->auto_joiners)
-      {
-	/* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
-	matcher.set_ignore_zwnj (context_match || c->table_index == 1);
-	matcher.set_ignore_zwj (true);
-      }
+      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
+      matcher.set_ignore_zwnj (context_match || c->table_index == 1);
+      /* Ignore ZWJ if we are matching GSUB context, or matching GPOS, or if asked to. */
+      matcher.set_ignore_zwj (context_match || c->table_index == 1 || c->auto_zwj);
       if (!context_match)
-      {
 	matcher.set_mask (c->lookup_mask);
-      }
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
