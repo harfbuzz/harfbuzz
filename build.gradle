@@ -95,8 +95,9 @@ task compileJsConnector(type: com.prezi.gradle.task.CompileCoffee) {
 task combineJsConnector(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn compileJsConnector
 
-    source files(compileJsConnector.outputDir)
-    
+    source new File(compileJsConnector.outputDir, "connector.js")
+    source new File(compileJsConnector.outputDir, "hb-js.js")
+
     dest = file("${buildDir}/post.js")
 }
 
