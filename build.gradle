@@ -5,6 +5,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 group = "org.harfbuzz"
 def archivesBaseName = "harfbuzz-js"
 version = ext.harfbuzzVersion = "git describe --tags".execute().text.trim()
+ext.projectVersion = version
 println "Version: ${version}"
 
 buildscript {
