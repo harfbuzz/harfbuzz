@@ -30,7 +30,7 @@ if [ ! -d "$SDK_IOS" ]; then
     exit 1;
 fi
 
-./configure --prefix=$INSTALL_DIR --disable-shared --enable-static --host=i686-apple-darwin && make clean >/dev/null && make && cp src/.libs/libharfbuzz.a build/libharfbuzz-i386.a
+./configure --prefix=$INSTALL_DIR --disable-shared --enable-static --host=i686-apple-darwin && make clean >/dev/null && make -j && cp src/.libs/libharfbuzz.a build/libharfbuzz-i386.a
 
 export DEV_IOS=/Developer/Platforms/iPhoneOS.platform/Developer
 export SDK_IOS=${DEV_IOS}/SDKs/iPhoneOS5.0.sdk
@@ -54,6 +54,6 @@ if [ ! -d "$SDK_IOS" ]; then
     exit 1;
 fi
 
-./configure --prefix=$INSTALL_DIR --disable-shared --enable-static --host=arm-apple-darwin && make clean >/dev/null && make && cp src/.libs/libharfbuzz.a build/libharfbuzz-armv7.a
+./configure --prefix=$INSTALL_DIR --disable-shared --enable-static --host=arm-apple-darwin && make clean >/dev/null && make -j && cp src/.libs/libharfbuzz.a build/libharfbuzz-armv7.a
 ls -l build
 exit
