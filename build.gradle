@@ -343,11 +343,18 @@ tasks.withType(CompileEmcc) { task ->
 	}
 }
 
-install {
+buildAll {
 	dependsOn compileEmccProduction
 	dependsOn compileEmccProductionUntyped
 	dependsOn compileEmccDebug
 	dependsOn compileEmccDebugUntyped
+}
+
+install {
+	dependsOn buildAll
+
+	def jarArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['jar'] }
+	project.configurations.archives.artifacts.remove(jarArtifact)
 
 	def hxsrcArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['zip'] }
 	project.configurations.archives.artifacts.remove(hxsrcArtifact)
@@ -357,6 +364,8 @@ install {
 }
 
 uploadArchives {
+	dependsOn install
+
 	repositories.clear()
     repositories.add(project.repositories['remoteIvy'])
 }
