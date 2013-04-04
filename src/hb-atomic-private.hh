@@ -47,6 +47,14 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#if defined(__MINGW32__) && !defined(MemoryBarrier)
+static inline void _HBMemoryBarrier (void) {
+  long dummy = 0;
+  InterlockedExchange (&dummy, 1);
+}
+# define MemoryBarrier _HBMemoryBarrier
+#endif
+
 typedef LONG hb_atomic_int_t;
 #define hb_atomic_int_add(AI, V)	InterlockedExchangeAdd (&(AI), (V))
 
