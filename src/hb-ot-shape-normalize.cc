@@ -351,12 +351,11 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   while (buffer->idx < count)
   {
     hb_codepoint_t composed, glyph;
-    if (/* If mode is NOT COMPOSED_FULL (ie. it's COMPOSED_DIACRITICS), we don't try to
-	 * compose a non-mark character with it's preceding starter.  This is just an
-	 * optimization to avoid trying to compose every two neighboring glyphs in most
-	 * scripts. */
-	(mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_FULL ||
-	 HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->cur()))) &&
+    if (/* We don't try to compose a non-mark character with it's preceding starter.
+	 * This is both an optimization to avoid trying to compose every two neighboring
+	 * glyphs in most scripts AND a desired feature for Hangul.  Apparently Hangul
+	 * fonts are not designed to mix-and-match pre-composed syllables and Jamo. */
+	HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->cur())) &&
 	/* If there's anything between the starter and this char, they should have CCC
 	 * smaller than this character's. */
 	(starter == buffer->out_len - 1 ||
