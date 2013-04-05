@@ -1,3 +1,13 @@
+Overview of changes leading to 0.9.15
+Thursday, April 05, 2013
+=====================================
+
+- Build fixes.
+- Fix crasher in graphite2 shaper.
+- Fix Arabic mark width zeroing regression.
+- Don't compose Hangul jamo into Unicode syllables.
+
+
 Overview of changes leading to 0.9.14
 Thursday, March 21, 2013
 =====================================
