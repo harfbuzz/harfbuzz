@@ -75,6 +75,7 @@
 # toplevel MAINTAINERCLEANFILES:
 GITIGNORE_MAINTAINERCLEANFILES_TOPLEVEL = \
 	$(srcdir)/aclocal.m4 \
+	$(srcdir)/ar-lib \
 	$(srcdir)/autoscan.log \
 	$(srcdir)/compile \
 	$(srcdir)/config.guess \
