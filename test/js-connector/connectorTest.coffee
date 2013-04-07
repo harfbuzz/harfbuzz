@@ -658,4 +658,4 @@ describe "Local string", ->
 	it "should return the right string when allocated to a string", ->
 		test = new localString(allocate intArrayFromString("Tibor"), "i8", module.ALLOC_STACK)
 		test.toString().should.equal "Tibor"
-
+###
