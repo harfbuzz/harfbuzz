@@ -123,7 +123,7 @@ Module["struct"] = struct = (fields) -> class CStruct extends CObject
 					setters[field] = (object, otherStruct) ->
 						# console.log "Setting compound #{field} at #{object['$ptr']} + #{offset} to #{otherStruct}"
 						if otherStruct["$type"] isnt type
-							throw new Error "Cannot load incompatible data"
+							throw new Error "Cannot load incompatible data: #{type} vs. #{otherStruct['$type']}"
 						writeTo object["$ptr"] + offset, otherStruct, type
 						return
 			offset += sizeof type
