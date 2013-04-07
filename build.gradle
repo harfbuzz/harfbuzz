@@ -380,7 +380,7 @@ task testJs(type:Exec) {
 	dependsOn installMocha
 	dependsOn combineJsForTest
 
-	commandLine "mocha", "--compilers", "coffee:coffee-script", "-R", "spec",
+	commandLine "node_modules/mocha/bin/mocha", "--compilers", "coffee:coffee-script", "-R", "spec",
 		"test/js-connector/connectorTest.coffee",
 		"test/js-connector/harfbuzzTest.coffee"
 }
