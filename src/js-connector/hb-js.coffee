@@ -424,3 +424,17 @@ define Void, "hb_font_funcs_destroy", "ffuncs": hb_font_funcs_t
 
 define Void, "hb_font_set_funcs", "font": hb_font_t, "klass": hb_font_funcs_t, "font_data": ptr(Void), "destroy": hb_destroy_func_t
 
+#
+# ucdn.h
+#
+
+define string, "ucdn_get_unicode_version"
+define Int, "ucdn_get_combining_class", "code": uint32_t
+define Int, "ucdn_get_east_asian_width", "code": uint32_t
+define Int, "ucdn_get_general_category", "code": uint32_t
+define Int, "ucdn_get_bidi_class", "code": uint32_t
+define Int, "ucdn_get_script", "code": uint32_t
+define Int, "ucdn_get_mirrored", "code": uint32_t
+define Int, "ucdn_mirror", "code": uint32_t
+define Int, "ucdn_decompose", "code": uint32_t, "a": ptr(uint32_t), "b": ptr(uint32_t)
+define Int, "ucdn_compose", "code": ptr(uint32_t), "a": uint32_t, "b": uint32_t

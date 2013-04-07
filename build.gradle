@@ -160,8 +160,6 @@ task makeHarfbuzz() {
 }
 
 def EXPORTED_FUNCTIONS = [
-	'ccall',
-	'cwrap',
 	'_hb_language_from_string',
 	'_hb_language_to_string',
 	'_hb_unicode_funcs_get_default',
@@ -218,7 +216,18 @@ def EXPORTED_FUNCTIONS = [
 	'_hb_font_funcs_set_glyph_extents_func',
 	'_hb_font_funcs_set_glyph_contour_point_func',
 	'_hb_font_funcs_set_glyph_name_func',
-	'_hb_font_funcs_set_glyph_from_name_func'
+	'_hb_font_funcs_set_glyph_from_name_func',
+
+	'_ucdn_get_unicode_version',
+	'_ucdn_get_combining_class',
+	'_ucdn_get_east_asian_width',
+	'_ucdn_get_general_category',
+	'_ucdn_get_bidi_class',
+	'_ucdn_get_script',
+	'_ucdn_get_mirrored',
+	'_ucdn_mirror',
+	'_ucdn_decompose',
+	'_ucdn_compose',
 ]
 
 class CompileEmcc extends DefaultTask {
