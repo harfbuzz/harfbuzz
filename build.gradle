@@ -87,6 +87,10 @@ task downloadEmscripten {
 	}
 }
 
+task installMocha(type:Exec) {
+	commandLine "npm", "install", "mocha", "chai"
+}
+
 task compileJsConnector(type: com.prezi.gradle.task.CompileCoffee) {
 	srcDir = file("src/js-connector/")
 	outputDir = file("${project.buildDir}/compiled-coffee-for-node")
@@ -356,6 +360,29 @@ tasks.withType(CompileEmcc) { task ->
 		exportedFunctions = EXPORTED_FUNCTIONS
 		outputFile = file("${buildDir}/harfbuzz${type}.js")
 	}
+}
+
+task combineJsForTest(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
+    dependsOn compileEmccDebug
+
+	def testFooter = project.file("${project.buildDir}/test-post.js")
+	testFooter.delete()
+	testFooter.createNewFile()
+	testFooter << "module.exports = Module;\n"
+
+	source compileEmccDebug.outputFile
+	source testFooter
+
+	dest = file("${buildDir}/harfbuzz-test.js");
+}
+
+task testJs(type:Exec) {
+	dependsOn installMocha
+	dependsOn combineJsForTest
+
+	commandLine "mocha", "--compilers", "coffee:coffee-script", "-R", "spec",
+		"test/js-connector/connectorTest.coffee",
+		"test/js-connector/harfbuzzTest.coffee"
 }
 
 task buildAll {
