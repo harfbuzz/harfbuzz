@@ -65,3 +65,4 @@
 build/
 .gradle/
 tools/
+node_modules/
