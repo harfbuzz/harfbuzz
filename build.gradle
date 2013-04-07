@@ -93,7 +93,7 @@ task installMocha(type:Exec) {
 
 task compileJsConnector(type: com.prezi.gradle.task.CompileCoffee) {
 	srcDir = file("src/js-connector/")
-	outputDir = file("${project.buildDir}/compiled-coffee-for-node")
+	outputDir = file("${project.buildDir}/compiled-coffee")
 }
 
 task combineJsConnector(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
@@ -365,13 +365,8 @@ tasks.withType(CompileEmcc) { task ->
 task combineJsForTest(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn compileEmccDebug
 
-	def testFooter = project.file("${project.buildDir}/test-post.js")
-	testFooter.delete()
-	testFooter.createNewFile()
-	testFooter << "module.exports = Module;\n"
-
 	source compileEmccDebug.outputFile
-	source testFooter
+	source file("test/js-connector/harfbuzz-test-post.js")
 
 	dest = file("${buildDir}/harfbuzz-test.js");
 }
