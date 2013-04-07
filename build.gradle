@@ -381,6 +381,7 @@ task testJs(type:Exec) {
 }
 
 task buildAll {
+	dependsOn testJs
 	dependsOn compileEmccProduction
 	dependsOn compileEmccProductionUntyped
 	dependsOn compileEmccDebug
