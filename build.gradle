@@ -88,7 +88,7 @@ task downloadEmscripten {
 }
 
 task installMocha(type:Exec) {
-	commandLine "npm", "install", "mocha", "chai"
+	commandLine "npm", "install", "mocha", "chai", "coffee-script"
 }
 
 task compileJsConnector(type: com.prezi.gradle.task.CompileCoffee) {
