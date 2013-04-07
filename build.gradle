@@ -239,6 +239,7 @@ class CompileEmcc extends DefaultTask {
 	boolean closure = false
 	boolean allowMemoryGrowth = true
 	int typedArraySupport = 2
+	boolean debug = false
 
     void source(paths)
     {
@@ -261,6 +262,8 @@ class CompileEmcc extends DefaultTask {
 
 		def commandLine = emccPath
 		commandLine += " " + source.files.join(" ")
+
+		if (debug) commandLine += " -g"
 
 		commandLine += " --pre-js " + versionHeader
 		if (postJs != null) commandLine += " --post-js " + postJs
@@ -313,6 +316,7 @@ task compileEmccDebug(type: CompileEmcc) {
 	dependsOn makeHarfbuzz
 
 	type = "-debug"
+	debug = true
 	closure = false
 	typedArraySupport = 2
 }
@@ -322,6 +326,7 @@ task compileEmccDebugUntyped(type: CompileEmcc) {
 	dependsOn makeHarfbuzz
 
 	type = "-untyped-debug"
+	debug = true
 	closure = false
 	typedArraySupport = 0
 }
