@@ -115,11 +115,11 @@ GITIGNORE_MAINTAINERCLEANFILES_M4_LIBTOOL = \
 git-all: git-mk-install
 
 git-mk-install:
-	@echo Installing git makefile
+	@echo "Installing git makefile"
 	@any_failed=; \
 		find "`test -z "$(top_srcdir)" && echo . || echo "$(top_srcdir)"`" -name Makefile.am | while read x; do \
 		if grep 'include .*/git.mk' $$x >/dev/null; then \
-			echo $$x already includes git.mk; \
+			echo "$$x already includes git.mk"; \
 		else \
 			failed=; \
 			echo "Updating $$x"; \
@@ -131,7 +131,7 @@ git-mk-install:
 				mv $$x.tmp $$x || failed=1; \
 			fi; \
 			if test x$$failed = x; then : else \
-				echo Failed updating $$x; >&2 \
+				echo "Failed updating $$x"; >&2 \
 				any_failed=1; \
 			fi; \
 	fi; done; test -z "$$any_failed"
@@ -154,7 +154,7 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 				tmpl/$(DOC_MODULE)-unused.sgml \
 				"tmpl/*.bak" \
 				xml html \
-			; do echo /$$x; done; \
+			; do echo "/$$x"; done; \
 		fi; \
 		if test "x$(DOC_MODULE)$(DOC_ID)" = x -o "x$(DOC_LINGUAS)" = x; then :; else \
 			for lc in $(DOC_LINGUAS); do \
@@ -162,7 +162,7 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 					$(if $(DOC_MODULE),$(DOC_MODULE).xml) \
 					$(DOC_PAGES) \
 					$(DOC_INCLUDES) \
-				; do echo /$$lc/$$x; done; \
+				; do echo "/$$lc/$$x"; done; \
 			done; \
 			for x in \
 				$(_DOC_OMF_ALL) \
@@ -180,14 +180,14 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 					$(HELP_FILES) \
 					"$$lc.stamp" \
 					"$$lc.mo" \
-				; do echo /$$lc/$$x; done; \
+				; do echo "/$$lc/$$x"; done; \
 			done; \
 		fi; \
 		if test "x$(gsettings_SCHEMAS)" = x; then :; else \
 			for x in \
 				$(gsettings_SCHEMAS:.xml=.valid) \
 				$(gsettings__enum_file) \
-			; do echo /$$x; done; \
+			; do echo "/$$x"; done; \
 		fi; \
 		if test -f $(srcdir)/po/Makefile.in.in; then \
 			for x in \
@@ -203,7 +203,7 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 				intltool-extract.in \
 				intltool-merge.in \
 				intltool-update.in \
-			; do echo /$$x; done; \
+			; do echo "/$$x"; done; \
 		fi; \
 		if test -f $(srcdir)/configure; then \
 			for x in \
@@ -213,13 +213,22 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 				stamp-h1 \
 				libtool \
 				config.lt \
-			; do echo /$$x; done; \
+			; do echo "/$$x"; done; \
 		fi; \
 		if test "x$(DEJATOOL)" = x; then :; else \
 			for x in \
 				$(DEJATOOL) \
-			; do echo /$$x.sum; echo /$$x.log; done; \
+			; do echo "/$$x.sum"; echo "/$$x.log"; done; \
 			echo /site.exp; \
+		fi; \
+		if test "x$(am__dirstamp)" = x; then :; else \
+			echo "$(am__dirstamp)"; \
+		fi; \
+		if test "x$(LTCOMPILE)" = x; then :; else \
+			for x in \
+				"*.lo" \
+				".libs" "_libs" \
+			; do echo "$$x"; done; \
 		fi; \
 		for x in \
 			.gitignore \
@@ -229,10 +238,8 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 			$(LIBRARIES) $(check_LIBRARIES) $(EXTRA_LIBRARIES) \
 			$(LTLIBRARIES) $(check_LTLIBRARIES) $(EXTRA_LTLIBRARIES) \
 			so_locations \
-			.libs _libs \
 			$(MOSTLYCLEANFILES) \
 			"*.$(OBJEXT)" \
-			"*.lo" \
 			$(DISTCLEANFILES) \
 			$(am__CONFIG_DISTCLEAN_FILES) \
 			$(CONFIG_CLEAN_FILES) \
@@ -249,7 +256,7 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 			"*~" \
 			".*.sw[nop]" \
 			".dirstamp" \
-		; do echo /$$x; done; \
+		; do echo "/$$x"; done; \
 	} | \
 	sed "s@^/`echo "$(srcdir)" | sed 's/\(.\)/[\1]/g'`/@/@" | \
 	sed 's@/[.]/@/@g' | \
