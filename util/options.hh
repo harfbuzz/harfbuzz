@@ -150,6 +150,7 @@ struct shape_options_t : option_group_t
     shapers = NULL;
     utf8_clusters = false;
     normalize_glyphs = false;
+    num_iterations = 1;
 
     add_options (parser);
   }
@@ -234,6 +235,7 @@ struct shape_options_t : option_group_t
   char **shapers;
   hb_bool_t utf8_clusters;
   hb_bool_t normalize_glyphs;
+  unsigned int num_iterations;
 };
 
 
