@@ -30,22 +30,22 @@
 
 #define FLAG(x) (1 << (x))
 
-static HB_Bool isLetter(HB_UChar16 ucs)
+static HB_Bool isLetter(hb_unicode_funcs_t *ufuncs, HB_UChar16 ucs)
 {
     const int test = FLAG(HB_Letter_Uppercase) |
                      FLAG(HB_Letter_Lowercase) |
                      FLAG(HB_Letter_Titlecase) |
                      FLAG(HB_Letter_Modifier) |
                      FLAG(HB_Letter_Other);
-    return !!(FLAG(HB_GetUnicodeCharCategory(ucs)) & test);
+    return !!(FLAG(HB_GetUnicodeCharCategory(ufuncs, ucs)) & test);
 }
 
-static HB_Bool isMark(HB_UChar16 ucs)
+static HB_Bool isMark(hb_unicode_funcs_t *ufuncs, HB_UChar16 ucs)
 {
     const int test = FLAG(HB_Mark_NonSpacing) |
                      FLAG(HB_Mark_SpacingCombining) |
                      FLAG(HB_Mark_Enclosing);
-    return !!(FLAG(HB_GetUnicodeCharCategory(ucs)) & test);
+    return !!(FLAG(HB_GetUnicodeCharCategory(ufuncs, ucs)) & test);
 }
 
 enum Form {
@@ -1576,7 +1576,7 @@ static bool indic_shape_syllable(HB_Bool openType, HB_ShaperItem *item, bool inv
         // Ccmp always applies
         // Init
         if (item->item.pos == 0
-            || !(isLetter(item->string[item->item.pos-1]) || isMark(item->string[item->item.pos-1])))
+            || !(isLetter(item->ufuncs, item->string[item->item.pos-1]) || isMark(item->ufuncs, item->string[item->item.pos-1])))
             properties[0] &= ~InitProperty;
 
         // Nukta always applies

@@ -78,27 +78,27 @@ typedef enum
 } HB_CharCategory;
 
 
-static inline HB_CharCategory HB_GetUnicodeCharCategory(HB_UChar32 ch)
+static inline HB_CharCategory HB_GetUnicodeCharCategory(hb_unicode_funcs_t *funcs, HB_UChar32 ch)
 {
-  return (HB_CharCategory) hb_unicode_general_category (hb_unicode_funcs_get_default (), ch);
+  return (HB_CharCategory) hb_unicode_general_category (funcs, ch);
 }
 
-static inline int HB_GetUnicodeCharCombiningClass(HB_UChar32 ch)
+static inline int HB_GetUnicodeCharCombiningClass(hb_unicode_funcs_t *funcs, HB_UChar32 ch)
 {
-  return hb_unicode_combining_class (hb_unicode_funcs_get_default (), ch);
+  return hb_unicode_combining_class (funcs, ch);
 }
 
-static inline HB_UChar16 HB_GetMirroredChar(HB_UChar16 ch)
+static inline HB_UChar16 HB_GetMirroredChar(hb_unicode_funcs_t *funcs, HB_UChar16 ch)
 {
-  return hb_unicode_mirroring (hb_unicode_funcs_get_default (), ch);
+  return hb_unicode_mirroring (funcs, ch);
 }
 
-static inline void HB_GetUnicodeCharProperties(HB_UChar32 ch, HB_CharCategory *category, int *combiningClass)
+static inline void HB_GetUnicodeCharProperties(hb_unicode_funcs_t *funcs, HB_UChar32 ch, HB_CharCategory *category, int *combiningClass)
 {
   if (category)
-    *category = HB_GetUnicodeCharCategory (ch);
+    *category = HB_GetUnicodeCharCategory (funcs, ch);
   if (combiningClass)
-    *combiningClass = HB_GetUnicodeCharCombiningClass (ch);
+    *combiningClass = HB_GetUnicodeCharCombiningClass (funcs, ch);
 }
 
 HB_END_HEADER

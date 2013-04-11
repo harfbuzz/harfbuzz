@@ -237,13 +237,13 @@ static const unsigned char arabic_group[0x150] = {
     ArabicNone, Zain, Kaph, Fe,
 };
 
-static ArabicGroup arabicGroup(unsigned short uc)
+static ArabicGroup arabicGroup(hb_unicode_funcs_t *ufuncs, unsigned short uc)
 {
     if (uc >= 0x0600 && uc < 0x750)
         return (ArabicGroup) arabic_group[uc-0x600];
     else if (uc == 0x200d)
         return Center;
-    else if (HB_GetUnicodeCharCategory(uc) == HB_Separator_Space)
+    else if (HB_GetUnicodeCharCategory(ufuncs, uc) == HB_Separator_Space)
         return ArabicSpace;
     else
         return ArabicNone;
@@ -375,14 +375,14 @@ This seems to imply that we have at most one kashida point per arabic word.
 
 */
 
-static void getArabicProperties(const unsigned short *chars, int len, HB_ArabicProperties *properties)
+static void getArabicProperties(hb_unicode_funcs_t *ufuncs, const unsigned short *chars, int len, HB_ArabicProperties *properties)
 {
 /*     qDebug("arabicSyriacOpenTypeShape: properties:"); */
     int lastPos = 0;
     int lastGroup = ArabicNone;
     int i = 0;
 
-    ArabicGroup group = arabicGroup(chars[0]);
+    ArabicGroup group = arabicGroup(ufuncs, chars[0]);
     Joining j = joining_for_group[group];
     ArabicShape shape = joining_table[XIsolated][j].form2;
     properties[0].justification = HB_NoJustification;
@@ -391,7 +391,7 @@ static void getArabicProperties(const unsigned short *chars, int len, HB_ArabicP
         /* #### fix handling for spaces and punktuation */
         properties[i].justification = HB_NoJustification;
 
-        group = arabicGroup(chars[i]);
+        group = arabicGroup(ufuncs, chars[i]);
         j = joining_for_group[group];
 
         if (j == JTransparent) {
@@ -460,7 +460,7 @@ static void getArabicProperties(const unsigned short *chars, int len, HB_ArabicP
 
         case Yeh:
         case Reh:
-            if (properties[lastPos].shape == XMedial && arabicGroup(chars[lastPos]) == Beh)
+            if (properties[lastPos].shape == XMedial && arabicGroup(ufuncs, chars[lastPos]) == Beh)
                 properties[lastPos-1].justification = HB_Arabic_BaRa;
             break;
 
@@ -504,7 +504,7 @@ static Joining getNkoJoining(unsigned short uc)
     return JNone;
 }
 
-static void getNkoProperties(const unsigned short *chars, int len, HB_ArabicProperties *properties)
+static void getNkoProperties(hb_unicode_funcs_t *ufuncs, const unsigned short *chars, int len, HB_ArabicProperties *properties)
 {
     int lastPos = 0;
     int i = 0;
@@ -514,7 +514,7 @@ static void getNkoProperties(const unsigned short *chars, int len, HB_ArabicProp
     properties[0].justification = HB_NoJustification;
 
     for (i = 1; i < len; ++i) {
-        properties[i].justification = (HB_GetUnicodeCharCategory(chars[i]) == HB_Separator_Space) ?
+        properties[i].justification = (HB_GetUnicodeCharCategory(ufuncs, chars[i]) == HB_Separator_Space) ?
                                       ArabicSpace : ArabicNone;
 
         j = getNkoJoining(chars[i]);
@@ -854,13 +854,13 @@ static int getShape(hb_uint8 cell, int shape)
 /*
   Two small helper functions for arabic shaping.
 */
-static HB_UChar16 prevChar(const HB_UChar16 *str, int pos)
+static HB_UChar16 prevChar(hb_unicode_funcs_t *ufuncs, const HB_UChar16 *str, int pos)
 {
     /*qDebug("leftChar: pos=%d", pos); */
     const HB_UChar16 *ch = str + pos - 1;
     pos--;
     while(pos > -1) {
-        if(HB_GetUnicodeCharCategory(*ch) != HB_Mark_NonSpacing)
+        if(HB_GetUnicodeCharCategory(ufuncs, *ch) != HB_Mark_NonSpacing)
             return *ch;
         pos--;
         ch--;
@@ -868,13 +868,13 @@ static HB_UChar16 prevChar(const HB_UChar16 *str, int pos)
     return ReplacementCharacter;
 }
 
-static HB_UChar16 nextChar(const HB_UChar16 *str, hb_uint32 len, hb_uint32 pos)
+static HB_UChar16 nextChar(hb_unicode_funcs_t *ufuncs, const HB_UChar16 *str, hb_uint32 len, hb_uint32 pos)
 {
     const HB_UChar16 *ch = str + pos + 1;
     pos++;
     while(pos < len) {
         /*qDebug("rightChar: %d isLetter=%d, joining=%d", pos, ch.isLetter(), ch.joining()); */
-        if(HB_GetUnicodeCharCategory(*ch) != HB_Mark_NonSpacing)
+        if(HB_GetUnicodeCharCategory(ufuncs, *ch) != HB_Mark_NonSpacing)
             return *ch;
         /* assume it's a transparent char, this might not be 100% correct */
         pos++;
@@ -883,7 +883,7 @@ static HB_UChar16 nextChar(const HB_UChar16 *str, hb_uint32 len, hb_uint32 pos)
     return ReplacementCharacter;
 }
 
-static void shapedString(const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32 from, hb_uint32 len, HB_UChar16 *shapeBuffer, int *shapedLength,
+static void shapedString(hb_unicode_funcs_t *ufuncs, const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32 from, hb_uint32 len, HB_UChar16 *shapeBuffer, int *shapedLength,
                          HB_Bool reverse, HB_GlyphAttributes *attributes, unsigned short *logClusters)
 {
     HB_ArabicProperties *properties;
@@ -910,7 +910,7 @@ static void shapedString(const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32
     }
     if (f + l < stringLength)
         ++l;
-    getArabicProperties(uc+f, l, props);
+    getArabicProperties(ufuncs, uc+f, l, props);
 
     ch = uc + from;
     data = shapeBuffer;
@@ -927,7 +927,7 @@ static void shapedString(const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32
                     goto skip;
             }
             if (reverse)
-                *data = HB_GetMirroredChar(*ch);
+                *data = HB_GetMirroredChar(ufuncs, *ch);
             else
                 *data = *ch;
         } else {
@@ -939,7 +939,7 @@ static void shapedString(const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32
             hb_uint16 map;
             switch (c) {
                 case 0x44: { /* lam */
-                    const HB_UChar16 pch = nextChar(uc, stringLength, pos);
+                    const HB_UChar16 pch = nextChar(ufuncs, uc, stringLength, pos);
                     if ((pch >> 8) == 0x06) {
                         switch (pch & 0xff) {
                             case 0x22:
@@ -959,7 +959,7 @@ static void shapedString(const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32
                 case 0x23: /* alef with hamza above */
                 case 0x25: /* alef with hamza below */
                 case 0x27: /* alef */
-                    if (prevChar(uc, pos) == 0x0644) {
+                    if (prevChar(ufuncs, uc, pos) == 0x0644) {
                         /* have a lam alef ligature */
                         /*qDebug(" alef of lam-alef ligature"); */
                         goto skip;
@@ -973,7 +973,7 @@ static void shapedString(const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32
         }
         /* ##### Fixme */
         /*glyphs[gpos].attributes.zeroWidth = zeroWidth; */
-        if (HB_GetUnicodeCharCategory(*ch) == HB_Mark_NonSpacing) {
+        if (HB_GetUnicodeCharCategory(ufuncs, *ch) == HB_Mark_NonSpacing) {
             attributes[gpos].mark = TRUE;
 /*             qDebug("glyph %d (char %d) is mark!", gpos, i); */
         } else {
@@ -981,7 +981,7 @@ static void shapedString(const HB_UChar16 *uc, hb_uint32 stringLength, hb_uint32
             clusterStart = data - shapeBuffer;
         }
         attributes[gpos].clusterStart = !attributes[gpos].mark;
-        attributes[gpos].combiningClass = HB_GetUnicodeCharCombiningClass(*ch);
+        attributes[gpos].combiningClass = HB_GetUnicodeCharCombiningClass(ufuncs, *ch);
         attributes[gpos].justification = properties[i].justification;
 /*         qDebug("data[%d] = %x (from %x)", gpos, (uint)data->unicode(), ch->unicode());*/
         data++;
@@ -1063,9 +1063,9 @@ static HB_Bool arabicSyriacOpenTypeShape(HB_ShaperItem *item, HB_Bool *ot_ok)
         ++l;
     }
     if (item->item.script == HB_Script_Nko)
-        getNkoProperties(uc+f, l, props);
+        getNkoProperties(item->ufuncs, uc+f, l, props);
     else
-        getArabicProperties(uc+f, l, props);
+        getArabicProperties(item->ufuncs, uc+f, l, props);
 
     for (i = 0; i < (int)item->num_glyphs; i++) {
         apply[i] = 0;
@@ -1128,7 +1128,7 @@ HB_Bool HB_ArabicShape(HB_ShaperItem *item)
         return HB_BasicShape(item);
     }
 
-    shapedString(item->string, item->stringLength, item->item.pos, item->item.length, shapedChars, &slen,
+    shapedString(item->ufuncs, item->string, item->stringLength, item->item.pos, item->item.length, shapedChars, &slen,
                   item->item.bidiLevel % 2,
                   item->attributes, item->log_clusters);
 

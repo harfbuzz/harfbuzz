@@ -262,7 +262,7 @@ void HB_HeuristicSetGlyphAttributes(HB_ShaperItem *item)
     int pos = 0;
     HB_CharCategory lastCat;
     int dummy;
-    HB_GetUnicodeCharProperties(uc[0], &lastCat, &dummy);
+    HB_GetUnicodeCharProperties(item->ufuncs, uc[0], &lastCat, &dummy);
     for (i = 1; i < length; ++i) {
         if (logClusters[i] == pos)
             // same glyph
@@ -277,7 +277,7 @@ void HB_HeuristicSetGlyphAttributes(HB_ShaperItem *item)
             attributes[pos].dontPrint = true;
         HB_CharCategory cat;
         int cmb;
-        HB_GetUnicodeCharProperties(uc[i], &cat, &cmb);
+        HB_GetUnicodeCharProperties(item->ufuncs, uc[i], &cat, &cmb);
         if (cat != HB_Mark_NonSpacing) {
             attributes[pos].mark = false;
             attributes[pos].clusterStart = true;
@@ -988,6 +988,8 @@ HB_Bool HB_ShapeItem(HB_ShaperItem *shaper_item)
         return false;
     }
     assert(shaper_item->item.script < HB_ScriptCount);
+    if (!shaper_item->ufuncs)
+        shaper_item->ufuncs = hb_unicode_funcs_get_default ();
     result = HB_ScriptEngines[shaper_item->item.script].shape(shaper_item);
     shaper_item->glyphIndicesPresent = false;
     return result;

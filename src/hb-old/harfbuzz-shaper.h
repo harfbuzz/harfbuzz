@@ -234,6 +234,7 @@ typedef struct HB_Font_ {
 typedef struct HB_ShaperItem_ HB_ShaperItem;
 
 struct HB_ShaperItem_ {
+    hb_unicode_funcs_t *ufuncs;
     const HB_UChar16 *string;               /* input: the Unicode UTF16 text to be shaped */
     hb_uint32 stringLength;                 /* input: the length of the input in 16-bit words */
     HB_ScriptItem item;                     /* input: the current run to be shaped: a run of text all in the same script that is a substring of <string> */

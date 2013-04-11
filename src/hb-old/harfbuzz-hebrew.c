@@ -151,7 +151,7 @@ HB_Bool HB_HebrewShape(HB_ShaperItem *shaper_item)
                 HB_CharCategory category;
                 int cmb;
                 shapedChars[slen] = uc[i];
-                HB_GetUnicodeCharProperties(uc[i], &category, &cmb);
+                HB_GetUnicodeCharProperties(shaper_item->ufuncs, uc[i], &category, &cmb);
                 if (category != HB_Mark_NonSpacing) {
                     attributes[slen].clusterStart = TRUE;
                     attributes[slen].mark = FALSE;
