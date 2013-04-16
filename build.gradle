@@ -253,6 +253,7 @@ class CompileEmcc extends DefaultTask {
 	boolean allowMemoryGrowth = true
 	int typedArraySupport = 2
 	boolean debug = false
+	boolean memoryInitFile = false
 
     void source(paths)
     {
@@ -286,6 +287,8 @@ class CompileEmcc extends DefaultTask {
 		commandLine += " -O" + optimizationLevel
 
 		commandLine += " --closure " + (closure ? 1 : 0)
+
+		commandLine += " --memory-init-file " + (memoryInitFile ? 1 : 0)
 
 		commandLine += " -s ALLOW_MEMORY_GROWTH=" + (allowMemoryGrowth ? 1 : 0)
 
@@ -356,6 +359,7 @@ tasks.withType(CompileEmcc) { task ->
 		source "src/hb-ucdn/.libs/ucdn.o"
 		postJs = combineJsConnector.dest
 		allowMemoryGrowth = true
+		memoryInitFile = false
 		optimizationLevel = 2
 		exportedFunctions = EXPORTED_FUNCTIONS
 		outputFile = file("${buildDir}/harfbuzz${type}.js")
