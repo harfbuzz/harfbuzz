@@ -234,6 +234,10 @@ def EXPORTED_FUNCTIONS = [
 	'_ucdn_compose',
 ]
 
+def DEAD_FUNCTIONS = [
+	'_mprotect',
+]
+
 class CompileEmcc extends DefaultTask {
     @InputFiles
     @SkipWhenEmpty
@@ -247,6 +251,7 @@ class CompileEmcc extends DefaultTask {
 	File postJs
 	String type = ""
 	List<String> exportedFunctions = new ArrayList<String>()
+	List<String> deadFunctions = new ArrayList<String>()
 
 	int optimizationLevel = 0
 	boolean closure = false
@@ -254,6 +259,7 @@ class CompileEmcc extends DefaultTask {
 	int typedArraySupport = 2
 	boolean debug = false
 	boolean memoryInitFile = false
+	boolean asmJs = false
 
     void source(paths)
     {
@@ -293,8 +299,14 @@ class CompileEmcc extends DefaultTask {
 
 		commandLine += " -s USE_TYPED_ARRAYS=" + typedArraySupport
 
+		commandLine += " -s ASM_JS=" + (asmJs ? 1 : 0)
+
 		if (exportedFunctions != null && exportedFunctions.size() > 0) {
 			commandLine += " -s EXPORTED_FUNCTIONS=['" + exportedFunctions.join("','") + "']";
+		}
+
+		if (deadFunctions != null && deadFunctions.size() > 0) {
+			commandLine += " -s DEAD_FUNCTIONS=['" + deadFunctions.join("','") + "']";
 		}
 
 		logger.info("Executing: ${commandLine}")
@@ -359,8 +371,10 @@ tasks.withType(CompileEmcc) { task ->
 		postJs = combineJsConnector.dest
 		allowMemoryGrowth = true
 		memoryInitFile = false
+		asmJs = false
 		optimizationLevel = 2
 		exportedFunctions = EXPORTED_FUNCTIONS
+		deadFunctions = DEAD_FUNCTIONS
 		outputFile = file("${buildDir}/harfbuzz${type}.js")
 	}
 }
