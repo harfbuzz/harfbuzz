@@ -269,7 +269,7 @@ class CompileEmcc extends DefaultTask {
 		def versionHeader = project.file("${project.buildDir}/version-header.js")
 		versionHeader.delete()
 		versionHeader.createNewFile()
-		versionHeader << "var Module = Module || {};\n"
+		versionHeader << "Module = Module || {};\n"
 		versionHeader << "Module['version'] = '${project.harfbuzzVersion}${type}';\n";
 		versionHeader << "Module['emccVersion'] = '${emccVersion}';\n";
 
@@ -365,6 +365,7 @@ tasks.withType(CompileEmcc) { task ->
 task combineJsForTest(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn compileEmccDebug
 
+	source file("test/js-connector/harfbuzz-test-pre.js")
 	source compileEmccDebug.outputFile
 	source file("test/js-connector/harfbuzz-test-post.js")
 
