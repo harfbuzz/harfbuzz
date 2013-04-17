@@ -40,44 +40,6 @@
  * queries.  As a result, our filters have much higher.
  */
 
-struct hb_set_digest_common_bits_t
-{
-  ASSERT_POD ();
-
-  typedef unsigned int mask_t;
-
-  inline void init (void) {
-    mask = ~0;
-    value = (mask_t) -1;
-  }
-
-  inline void add (hb_codepoint_t g) {
-    if (unlikely (value == (mask_t) -1)) {
-      value = g;
-      return;
-    }
-
-    mask ^= (g & mask) ^ value;
-    value &= mask;
-  }
-
-  inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
-    add (a);
-    /* The negation here stands for ~(x-1). */
-    mask_t upper_bits = -(1 << _hb_bit_storage (a ^ b));
-    mask &= upper_bits;
-    value &= upper_bits;
-  }
-
-  inline bool may_have (hb_codepoint_t g) const {
-    return (g & mask) == value;
-  }
-
-  private:
-  mask_t mask;
-  mask_t value;
-};
-
 template <typename mask_t, unsigned int shift>
 struct hb_set_digest_lowest_bits_t
 {
