@@ -54,9 +54,9 @@ struct hb_set_digest_common_bits_t
   }
 
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
-    /* The negation here stands for ~(x-1). */
-    mask &= -(1 << _hb_bit_storage (a ^ b));
-    value &= mask;
+    /* TODO Speedup. */
+    for (unsigned int i = a; i < b + 1; i++)
+      add (i);
   }
 
   inline bool may_have (hb_codepoint_t g) const {
