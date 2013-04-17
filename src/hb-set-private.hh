@@ -167,11 +167,29 @@ struct hb_set_digest_combiner_t
   tail_t tail;
 };
 
-typedef hb_set_digest_combiner_t<
-	hb_set_digest_common_bits_t,
-	hb_set_digest_lowest_bits_t<unsigned long, 0>
-	>
-	hb_set_digest_t;
+
+/*
+ * hb_set_digest_t
+ *
+ * This is a combination of digests that performs "best".
+ * There is not much science to this: it's a result of intuition
+ * and testing.
+ */
+typedef hb_set_digest_combiner_t
+<
+  hb_set_digest_lowest_bits_t<unsigned long, 4>,
+  hb_set_digest_combiner_t
+  <
+    hb_set_digest_lowest_bits_t<unsigned long, 0>,
+    hb_set_digest_lowest_bits_t<unsigned long, 9>
+  >
+> hb_set_digest_t;
+
+
+
+/*
+ * hb_set_t
+ */
 
 
 /* TODO Make this faster and memmory efficient. */
