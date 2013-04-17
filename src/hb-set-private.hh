@@ -102,6 +102,10 @@ struct hb_set_digest_lowest_bits_t
   mask_t mask;
 };
 
+#ifdef HB_DEBUG_SET_DIGESTS
+extern unsigned long digest_total, digest_yes, digest_yes1, digest_yes2;
+#endif
+
 struct hb_set_digest_t
 {
   ASSERT_POD ();
@@ -122,6 +126,15 @@ struct hb_set_digest_t
   }
 
   inline bool may_have (hb_codepoint_t g) const {
+#ifdef HB_DEBUG_SET_DIGESTS
+    digest_total++;
+    if (digest1.may_have (g) && digest2.may_have (g))
+      digest_yes++;
+    if (digest1.may_have (g))
+      digest_yes1++;
+    if (digest2.may_have (g))
+      digest_yes2++;
+#endif
     return digest1.may_have (g) && digest2.may_have (g);
   }
 
