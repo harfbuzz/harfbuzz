@@ -32,6 +32,14 @@
 #include "hb-object-private.hh"
 
 
+/*
+ * The set digests here implement various "filters" that support
+ * "approximate member query".  Conceptually these are like Bloom
+ * Filter and Quotient Filter, however, much smaller, faster, and
+ * designed to fit the requirements of our uses for glyph coverage
+ * queries.  As a result, our filters have much higher.
+ */
+
 struct hb_set_digest_common_bits_t
 {
   ASSERT_POD ();
