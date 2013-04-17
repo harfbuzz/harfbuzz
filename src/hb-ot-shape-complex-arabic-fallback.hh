@@ -212,7 +212,9 @@ arabic_fallback_plan_create (const hb_ot_shape_plan_t *plan,
   if (unlikely (!fallback_plan))
     return const_cast<arabic_fallback_plan_t *> (&arabic_fallback_plan_nil);
 
-  for (unsigned int i = 0; i < ARABIC_NUM_FALLBACK_FEATURES; i++) {
+  for (unsigned int i = 0; i < ARABIC_NUM_FALLBACK_FEATURES; i++)
+  {
+    fallback_plan->digest_array[i].init ();
     fallback_plan->mask_array[i] = plan->map.get_1_mask (arabic_fallback_features[i]);
     if (fallback_plan->mask_array[i]) {
       fallback_plan->lookup_array[i] = arabic_fallback_synthesize_lookup (plan, font, i);

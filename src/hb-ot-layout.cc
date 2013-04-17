@@ -70,9 +70,15 @@ _hb_ot_layout_create (hb_face_t *face)
   }
 
   for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
+  {
+    layout->gsub_digests[i].init ();
     layout->gsub->get_lookup (i).add_coverage (&layout->gsub_digests[i]);
+  }
   for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
+  {
+    layout->gpos_digests[i].init ();
     layout->gpos->get_lookup (i).add_coverage (&layout->gpos_digests[i]);
+  }
 
   return layout;
 }
