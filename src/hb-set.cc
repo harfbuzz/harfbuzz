@@ -27,20 +27,6 @@
 #include "hb-set-private.hh"
 
 
-#ifdef HB_DEBUG_SET_DIGESTS
-unsigned long digest_total, digest_yes, digest_yes1, digest_yes2;
-__attribute__((__destructor__))
-void digest_print (void)
-{
-  if (!digest_total)
-    return;
-  printf("Set digest summary: both %%%ld first %%%ld second %%%ld\n",
-	 100 * digest_yes / digest_total,
-	 100 * digest_yes1 / digest_total,
-	 100 * digest_yes2 / digest_total);
-}
-#endif
-
 /* Public API */
 
 

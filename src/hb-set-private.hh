@@ -80,16 +80,11 @@ struct hb_set_digest_lowest_bits_t
 
   private:
 
-  static inline mask_t mask_for (hb_codepoint_t g)
-  {
+  static inline mask_t mask_for (hb_codepoint_t g) {
     return ((mask_t) 1) << ((g >> shift) & (sizeof (mask_t) * 8 - 1));
   }
   mask_t mask;
 };
-
-#ifdef HB_DEBUG_SET_DIGESTS
-extern unsigned long digest_total, digest_yes, digest_yes1, digest_yes2;
-#endif
 
 template <typename head_t, typename tail_t>
 struct hb_set_digest_combiner_t
@@ -112,15 +107,6 @@ struct hb_set_digest_combiner_t
   }
 
   inline bool may_have (hb_codepoint_t g) const {
-#ifdef HB_DEBUG_SET_DIGESTS
-    digest_total++;
-    if (head.may_have (g) && tail.may_have (g))
-      digest_yes++;
-    if (head.may_have (g))
-      digest_yes1++;
-    if (tail.may_have (g))
-      digest_yes2++;
-#endif
     return head.may_have (g) && tail.may_have (g);
   }
 
