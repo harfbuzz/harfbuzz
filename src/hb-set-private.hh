@@ -108,42 +108,49 @@ struct hb_set_digest_lowest_bits_t
 extern unsigned long digest_total, digest_yes, digest_yes1, digest_yes2;
 #endif
 
-struct hb_set_digest_t
+template <typename head_t, typename tail_t>
+struct hb_set_digest_combiner_t
 {
   ASSERT_POD ();
 
   inline void init (void) {
-    digest1.init ();
-    digest2.init ();
+    head.init ();
+    tail.init ();
   }
 
   inline void add (hb_codepoint_t g) {
-    digest1.add (g);
-    digest2.add (g);
+    head.add (g);
+    tail.add (g);
   }
 
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
-    digest1.add_range (a, b);
-    digest2.add_range (a, b);
+    head.add_range (a, b);
+    tail.add_range (a, b);
   }
 
   inline bool may_have (hb_codepoint_t g) const {
 #ifdef HB_DEBUG_SET_DIGESTS
     digest_total++;
-    if (digest1.may_have (g) && digest2.may_have (g))
+    if (head.may_have (g) && tail.may_have (g))
       digest_yes++;
-    if (digest1.may_have (g))
+    if (head.may_have (g))
       digest_yes1++;
-    if (digest2.may_have (g))
+    if (tail.may_have (g))
       digest_yes2++;
 #endif
-    return digest1.may_have (g) && digest2.may_have (g);
+    return head.may_have (g) && tail.may_have (g);
   }
 
   private:
-  hb_set_digest_common_bits_t digest1;
-  hb_set_digest_lowest_bits_t digest2;
+  head_t head;
+  tail_t tail;
 };
+
+typedef hb_set_digest_combiner_t<
+	hb_set_digest_common_bits_t,
+	hb_set_digest_lowest_bits_t
+	>
+	hb_set_digest_t;
 
 
 /* TODO Make this faster and memmory efficient. */
