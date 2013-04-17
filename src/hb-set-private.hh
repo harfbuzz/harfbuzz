@@ -78,11 +78,21 @@ struct hb_set_digest_common_bits_t
   mask_t value;
 };
 
+template <typename mask_t, unsigned int shift>
 struct hb_set_digest_lowest_bits_t
 {
   ASSERT_POD ();
 
-  typedef unsigned long mask_t;
+  static const unsigned int num_bits = 0
+				     + (sizeof (mask_t) >= 1 ? 3 : 0)
+				     + (sizeof (mask_t) >= 2 ? 1 : 0)
+				     + (sizeof (mask_t) >= 4 ? 1 : 0)
+				     + (sizeof (mask_t) >= 8 ? 1 : 0)
+				     + (sizeof (mask_t) >= 16? 1 : 0)
+				     + 0;
+
+  ASSERT_STATIC (shift < sizeof (hb_codepoint_t) * 8);
+  ASSERT_STATIC (shift + num_bits <= sizeof (hb_codepoint_t) * 8);
 
   inline void init (void) {
     mask = 0;
@@ -93,7 +103,7 @@ struct hb_set_digest_lowest_bits_t
   }
 
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
-    if (b - a >= sizeof (mask_t) * 8 - 1)
+    if ((b >> shift) - (a >> shift) >= sizeof (mask_t) * 8 - 1)
       mask = (mask_t) -1;
     else {
       mask_t ma = mask_for (a);
@@ -108,7 +118,10 @@ struct hb_set_digest_lowest_bits_t
 
   private:
 
-  static inline mask_t mask_for (hb_codepoint_t g) { return ((mask_t) 1) << (g & (sizeof (mask_t) * 8 - 1)); }
+  static inline mask_t mask_for (hb_codepoint_t g)
+  {
+    return ((mask_t) 1) << ((g >> shift) & (sizeof (mask_t) * 8 - 1));
+  }
   mask_t mask;
 };
 
@@ -156,7 +169,7 @@ struct hb_set_digest_combiner_t
 
 typedef hb_set_digest_combiner_t<
 	hb_set_digest_common_bits_t,
-	hb_set_digest_lowest_bits_t
+	hb_set_digest_lowest_bits_t<unsigned long, 0>
 	>
 	hb_set_digest_t;
 
