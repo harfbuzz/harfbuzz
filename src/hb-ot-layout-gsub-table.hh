@@ -1202,8 +1202,8 @@ struct SubstLookup : Lookup
 
 	while (c->buffer->idx < c->buffer->len)
 	{
-	  if ((c->buffer->cur().mask & c->lookup_mask) &&
-	      digest->may_have (c->buffer->cur().codepoint) &&
+	  if (digest->may_have (c->buffer->cur().codepoint) &&
+	      (c->buffer->cur().mask & c->lookup_mask) &&
 	      apply_once (c))
 	    ret = true;
 	  else
@@ -1219,8 +1219,8 @@ struct SubstLookup : Lookup
 	c->buffer->idx = c->buffer->len - 1;
 	do
 	{
-	  if ((c->buffer->cur().mask & c->lookup_mask) &&
-	      digest->may_have (c->buffer->cur().codepoint) &&
+	  if (digest->may_have (c->buffer->cur().codepoint) &&
+	      (c->buffer->cur().mask & c->lookup_mask) &&
 	      apply_once (c))
 	    ret = true;
 	  else
