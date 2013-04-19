@@ -1,5 +1,16 @@
+Overview of changes leading to 0.9.16
+Friday, April 19, 2013
+=====================================
+
+- Major speedup in OpenType lookup processing.  With the Amiri
+  Arabic font, this release is over 3x faster than previous
+  release.  All scripts / languages should see this speedup.
+
+- New --num-iterations option for hb-shape / hb-view; useful for
+  profiling.
+
 Overview of changes leading to 0.9.15
-Thursday, April 05, 2013
+Friday, April 05, 2013
 =====================================
 
 - Build fixes.
