@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009,2010  Red Hat, Inc.
- * Copyright © 2010,2011  Google, Inc.
+ * Copyright © 2010,2011,2013  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -120,11 +120,6 @@ void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, h
     if (pause->callback)
       pause->callback (plan, font, buffer);
   }
-
-  for (; i < lookups[table_index].len; i++)
-    hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index,
-				    lookups[table_index][i].mask,
-				    lookups[table_index][i].auto_zwj);
 }
 
 void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
@@ -142,11 +137,6 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
     if (pause->callback)
       pause->callback (plan, font, buffer);
   }
-
-  for (; i < lookups[table_index].len; i++)
-    hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
-				  lookups[table_index][i].mask,
-				  lookups[table_index][i].auto_zwj);
 }
 
 void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_out) const
