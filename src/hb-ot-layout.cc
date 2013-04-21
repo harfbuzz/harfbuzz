@@ -592,6 +592,31 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 }
 
 void
+hb_ot_layout_lookup_get_coverage (hb_face_t    *face,
+				  hb_tag_t      table_tag,
+				  unsigned int  lookup_index,
+				  hb_set_t     *glyphs /* OUT */)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return;
+
+  switch (table_tag)
+  {
+    case HB_OT_TAG_GSUB:
+    {
+      const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
+      l.add_coverage (glyphs);
+      return;
+    }
+    case HB_OT_TAG_GPOS:
+    {
+      const OT::PosLookup& l = hb_ot_layout_from_face (face)->gpos->get_lookup (lookup_index);
+      l.add_coverage (glyphs);
+      return;
+    }
+  }
+}
+
+void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,

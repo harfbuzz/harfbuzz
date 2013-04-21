@@ -193,6 +193,12 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 				  hb_set_t        *lookup_indexes /* OUT */);
 
 void
+hb_ot_layout_lookup_get_coverage (hb_face_t    *face,
+				  hb_tag_t      table_tag,
+				  unsigned int  lookup_index,
+				  hb_set_t     *glyphs /* OUT */);
+
+void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,
