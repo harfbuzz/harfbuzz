@@ -109,16 +109,16 @@ void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, h
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
     const stage_map_t *stage = &stages[table_index][stage_index];
-    for (; i < stage->num_lookups; i++)
+    for (; i < stage->last_lookup; i++)
       hb_ot_layout_substitute_lookup (font, buffer,
 				      lookups[table_index][i].index,
 				      lookups[table_index][i].mask,
 				      lookups[table_index][i].auto_zwj);
 
-    if (stage->callback)
+    if (stage->pause_func)
     {
       buffer->clear_output ();
-      stage->callback (plan, font, buffer);
+      stage->pause_func (plan, font, buffer);
     }
   }
 }
@@ -130,13 +130,13 @@ void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
     const stage_map_t *stage = &stages[table_index][stage_index];
-    for (; i < stage->num_lookups; i++)
+    for (; i < stage->last_lookup; i++)
       hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
 				    lookups[table_index][i].mask,
 				    lookups[table_index][i].auto_zwj);
 
-    if (stage->callback)
-      stage->callback (plan, font, buffer);
+    if (stage->pause_func)
+      stage->pause_func (plan, font, buffer);
   }
 }
 
@@ -151,7 +151,7 @@ void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::paus
   stage_info_t *s = stages[table_index].push ();
   if (likely (s)) {
     s->index = current_stage[table_index];
-    s->callback = pause_func;
+    s->pause_func = pause_func;
   }
 
   current_stage[table_index]++;
@@ -299,10 +299,10 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
       last_num_lookups = m.lookups[table_index].len;
 
       if (stage_index < stages[table_index].len && stages[table_index][stage_index].index == stage) {
-	hb_ot_map_t::stage_map_t *pause_map = m.stages[table_index].push ();
-	if (likely (pause_map)) {
-	  pause_map->num_lookups = last_num_lookups;
-	  pause_map->callback = stages[table_index][stage_index].callback;
+	hb_ot_map_t::stage_map_t *stage_map = m.stages[table_index].push ();
+	if (likely (stage_map)) {
+	  stage_map->last_lookup = last_num_lookups;
+	  stage_map->pause_func = stages[table_index][stage_index].pause_func;
 	}
 
 	stage_index++;
