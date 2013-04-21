@@ -710,8 +710,6 @@ struct PairPosFormat2
     TRACE_COLLECT_GLYPHS (this);
     /* (this+coverage).add_coverage (c->input); // Don't need this. */
 
-    /* TODO only add values for pairs that have nonzero adjustments. */
-
     unsigned int count1 = class1Count;
     const ClassDef &klass1 = this+classDef1;
     for (unsigned int i = 0; i < count1; i++)
@@ -1014,7 +1012,6 @@ struct MarkBasePosFormat1
     TRACE_COLLECT_GLYPHS (this);
     (this+markCoverage).add_coverage (c->input);
     (this+baseCoverage).add_coverage (c->input);
-    /* TODO only add combinations that have nonzero adjustment. */
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1118,7 +1115,6 @@ struct MarkLigPosFormat1
     TRACE_COLLECT_GLYPHS (this);
     (this+markCoverage).add_coverage (c->input);
     (this+ligatureCoverage).add_coverage (c->input);
-    /* TODO only add combinations that have nonzero adjustment. */
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1234,7 +1230,6 @@ struct MarkMarkPosFormat1
     TRACE_COLLECT_GLYPHS (this);
     (this+mark1Coverage).add_coverage (c->input);
     (this+mark2Coverage).add_coverage (c->input);
-    /* TODO only add combinations that have nonzero adjustment. */
   }
 
   inline const Coverage &get_coverage (void) const
