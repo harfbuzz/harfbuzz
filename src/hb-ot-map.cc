@@ -115,10 +115,11 @@ void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, h
 				      lookups[table_index][i].mask,
 				      lookups[table_index][i].auto_zwj);
 
-    buffer->clear_output ();
-
     if (pause->callback)
+    {
+      buffer->clear_output ();
       pause->callback (plan, font, buffer);
+    }
   }
 }
 
