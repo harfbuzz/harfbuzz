@@ -223,6 +223,8 @@ HB_INTERNAL hb_bool_t
 hb_ot_layout_substitute_lookup (hb_font_t    *font,
 				hb_buffer_t  *buffer,
 				unsigned int  lookup_index,
+				unsigned int  start,
+				unsigned int  end,
 				hb_mask_t     mask,
 				hb_bool_t     auto_zwj);
 
@@ -246,6 +248,8 @@ HB_INTERNAL hb_bool_t
 hb_ot_layout_position_lookup (hb_font_t    *font,
 			      hb_buffer_t  *buffer,
 			      unsigned int  lookup_index,
+			      unsigned int  start,
+			      unsigned int  end,
 			      hb_mask_t     mask,
 			      hb_bool_t     auto_zwj);
 

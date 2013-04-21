@@ -724,6 +724,8 @@ hb_bool_t
 hb_ot_layout_substitute_lookup (hb_font_t    *font,
 				hb_buffer_t  *buffer,
 				unsigned int  lookup_index,
+				unsigned int  start,
+				unsigned int  end,
 				hb_mask_t     mask,
 				hb_bool_t     auto_zwj)
 {
@@ -733,7 +735,7 @@ hb_ot_layout_substitute_lookup (hb_font_t    *font,
 
   const OT::SubstLookup& l = hb_ot_layout_from_face (font->face)->gsub->get_lookup (lookup_index);
 
-  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gsub_digests[lookup_index]);
+  return l.apply_string (&c, start, end, &hb_ot_layout_from_face (font->face)->gsub_digests[lookup_index]);
 }
 
 void
@@ -775,6 +777,8 @@ hb_bool_t
 hb_ot_layout_position_lookup (hb_font_t    *font,
 			      hb_buffer_t  *buffer,
 			      unsigned int  lookup_index,
+			      unsigned int  start,
+			      unsigned int  end,
 			      hb_mask_t     mask,
 			      hb_bool_t     auto_zwj)
 {
@@ -784,7 +788,7 @@ hb_ot_layout_position_lookup (hb_font_t    *font,
 
   const OT::PosLookup& l = hb_ot_layout_from_face (font->face)->gpos->get_lookup (lookup_index);
 
-  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
+  return l.apply_string (&c, start, end, &hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
 }
 
 void

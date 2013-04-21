@@ -116,12 +116,14 @@ inline void hb_ot_map_t::apply (unsigned int table_index,
       {
         case 0:
 	  hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index,
+					  0, (unsigned int) -1,
 					  lookups[table_index][i].mask,
 					  lookups[table_index][i].auto_zwj);
 	  break;
 
 	case 1:
 	  hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
+					0, (unsigned int) -1,
 					lookups[table_index][i].mask,
 					lookups[table_index][i].auto_zwj);
 	  break;

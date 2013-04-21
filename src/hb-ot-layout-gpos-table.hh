@@ -1461,19 +1461,24 @@ struct PosLookup : Lookup
 
   static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
 
-  inline bool apply_string (hb_apply_context_t *c, const hb_set_digest_t *digest) const
+  inline bool apply_string (hb_apply_context_t *c,
+			    unsigned int start,
+			    unsigned int end,
+			    const hb_set_digest_t *digest) const
   {
     bool ret = false;
 
-    if (unlikely (!c->buffer->len || !c->lookup_mask))
+    end = MIN (end, c->buffer->len);
+
+    if (unlikely (start >= end || !c->lookup_mask))
       return false;
 
     c->set_recurse_func (apply_recurse_func);
     c->set_lookup (*this);
 
-    c->buffer->idx = 0;
+    c->buffer->idx = start;
 
-    while (c->buffer->idx < c->buffer->len)
+    while (c->buffer->idx < end)
     {
       if (digest->may_have (c->buffer->cur().codepoint) &&
 	  (c->buffer->cur().mask & c->lookup_mask) &&
