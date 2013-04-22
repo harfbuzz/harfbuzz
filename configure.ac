@@ -205,7 +205,7 @@ if test "$have_icu_le" != "true"; then
 		# necessarily want, like debugging and optimization flags
 		# See man (1) icu-config for more info.
 		ICU_LE_CFLAGS=`$ICU_CONFIG --cppflags`
-		ICU_LE_LIBS=`$ICU_CONFIG --ldflags-libsonly --ldflags-layout`
+		ICU_LE_LIBS=`$ICU_CONFIG --ldflags-searchpath --ldflags-libsonly --ldflags-layout`
 		AC_SUBST(ICU_LE_CFLAGS)
 		AC_SUBST(ICU_LE_LIBS)
 		AC_MSG_RESULT([yes])
