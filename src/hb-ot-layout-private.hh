@@ -189,6 +189,23 @@ static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
 }
 
 
+
+/*
+ * GSUBGPOS
+ */
+
+/* Always returns true for GPOS, but make writing code easier. */
+HB_INTERNAL bool
+hb_ot_layout_lookup_is_inplace (hb_face_t    *face,
+				hb_tag_t      table_tag,
+				unsigned int  lookup_index);
+
+
+
+/*
+ * GSUB
+ */
+
 HB_INTERNAL hb_bool_t
 hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
 					   unsigned int          lookup_index,
@@ -214,6 +231,11 @@ HB_INTERNAL void
 hb_ot_layout_substitute_finish (hb_font_t    *font,
 				hb_buffer_t  *buffer);
 
+
+
+/*
+ * GPOS
+ */
 
 /* Should be called before all the position_lookup's are done.  Resets positions to zero. */
 HB_INTERNAL void

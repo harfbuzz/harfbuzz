@@ -652,6 +652,33 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 
 
 /*
+ * GSUBGPOS
+ */
+
+bool
+hb_ot_layout_lookup_is_inplace (hb_face_t    *face,
+				hb_tag_t      table_tag,
+				unsigned int  lookup_index)
+{
+  OT::hb_is_inplace_context_t c (face);
+
+  switch (table_tag)
+  {
+    case HB_OT_TAG_GSUB:
+    {
+      const OT::SubstLookup& l = _get_gsub (face).get_lookup (lookup_index);
+      return l.is_inplace (&c);
+    }
+
+    default:
+    case HB_OT_TAG_GPOS:
+    {
+      return true;
+    }
+  }
+}
+
+/*
  * OT::GSUB
  */
 
@@ -726,6 +753,7 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 
   l.closure (&c);
 }
+
 
 /*
  * OT::GPOS
