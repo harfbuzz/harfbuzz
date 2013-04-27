@@ -15,7 +15,7 @@ fi
 case $ARCH in
     arm) HOST=arm-linux-androideabi
         ;;
-    x86) HOST=x86
+    x86) HOST=i686-linux-android
         ;;
 esac
 
