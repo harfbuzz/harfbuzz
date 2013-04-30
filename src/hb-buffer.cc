@@ -549,7 +549,7 @@ void hb_buffer_t::allocate_var (unsigned int byte_i, unsigned int count, const c
 {
   assert (byte_i < 8 && byte_i + count <= 8);
 
-  if (DEBUG (BUFFER))
+  if (DEBUG_ENABLED (BUFFER))
     dump_var_allocation (this);
   DEBUG_MSG (BUFFER, this,
 	     "Allocating var bytes %d..%d for %s",
@@ -564,7 +564,7 @@ void hb_buffer_t::allocate_var (unsigned int byte_i, unsigned int count, const c
 
 void hb_buffer_t::deallocate_var (unsigned int byte_i, unsigned int count, const char *owner)
 {
-  if (DEBUG (BUFFER))
+  if (DEBUG_ENABLED (BUFFER))
     dump_var_allocation (this);
 
   DEBUG_MSG (BUFFER, this,
@@ -581,7 +581,7 @@ void hb_buffer_t::deallocate_var (unsigned int byte_i, unsigned int count, const
 
 void hb_buffer_t::assert_var (unsigned int byte_i, unsigned int count, const char *owner)
 {
-  if (DEBUG (BUFFER))
+  if (DEBUG_ENABLED (BUFFER))
     dump_var_allocation (this);
 
   DEBUG_MSG (BUFFER, this,

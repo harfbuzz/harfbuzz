@@ -563,8 +563,8 @@ _hb_debug (unsigned int level,
   return level < max_level;
 }
 
-#define DEBUG_LEVEL(WHAT, LEVEL) (_hb_debug ((LEVEL), HB_DEBUG_##WHAT))
-#define DEBUG(WHAT) (DEBUG_LEVEL (WHAT, 0))
+#define DEBUG_LEVEL_ENABLED(WHAT, LEVEL) (_hb_debug ((LEVEL), HB_DEBUG_##WHAT))
+#define DEBUG_ENABLED(WHAT) (DEBUG_LEVEL_ENABLED (WHAT, 0))
 
 template <int max_level> static inline void
 _hb_debug_msg_va (const char *what,
