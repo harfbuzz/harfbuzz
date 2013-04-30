@@ -27,6 +27,14 @@
  */
 
 #include "hb-ot-map-private.hh"
+#include "hb-ot-layout-private.hh"
+
+
+
+#ifndef HB_DEBUG_MAP
+#define HB_DEBUG_MAP (HB_DEBUG+0)
+#endif
+
 
 #include "hb-ot-layout-private.hh"
 
@@ -102,38 +110,98 @@ void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value,
   info->stage[1] = current_stage[1];
 }
 
+
+static inline bool
+may_skip (const hb_glyph_info_t &info, hb_set_t *coverage)
+{
+  return !(info.glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK) &&
+	 !coverage->has (info.codepoint);
+}
+
 inline void hb_ot_map_t::apply (unsigned int table_index,
 				const hb_ot_shape_plan_t *plan,
 				hb_font_t *font,
 				hb_buffer_t *buffer) const
 {
   unsigned int i = 0;
+  unsigned int b = 0;
 
-  for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
-    const stage_map_t *stage = &stages[table_index][stage_index];
-    for (; i < stage->last_lookup; i++)
-      switch (table_index)
-      {
-        case 0:
-	  hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index,
-					  0, (unsigned int) -1,
-					  lookups[table_index][i].mask,
-					  lookups[table_index][i].auto_zwj);
-	  break;
+  for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++)
+  {
+    const stage_map_t stage = stages[table_index][stage_index];
 
-	case 1:
-	  hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
-					0, (unsigned int) -1,
-					lookups[table_index][i].mask,
-					lookups[table_index][i].auto_zwj);
-	  break;
-      }
-
-    if (stage->pause_func)
+    for (; b < batches[table_index].len && batches[table_index][b].last_lookup <= stage.last_lookup; b++)
     {
-      buffer->clear_output ();
-      stage->pause_func (plan, font, buffer);
+      const batch_map_t batch = batches[table_index][b];
+
+      if (!batch.coverage)
+      {
+        switch (table_index)
+	{
+	  case 0:
+	    for (; i < batch.last_lookup; i++)
+	    {
+	      buffer->clear_output ();
+	      hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index,
+					      0, (unsigned int) -1,
+					      lookups[table_index][i].mask,
+					      lookups[table_index][i].auto_zwj);
+	      if (buffer->have_output)
+		buffer->swap_buffers ();
+	    }
+	    break;
+	  case 1:
+	    for (; i < batch.last_lookup; i++)
+	      hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
+					    0, (unsigned int) -1,
+					    lookups[table_index][i].mask,
+					    lookups[table_index][i].auto_zwj);
+	    break;
+	}
+      }
+      else
+      {
+	unsigned int start = 0, end = 0;
+	if (table_index == 0)
+	  buffer->clear_output ();
+	for (;;)
+	{
+	  while (start < buffer->len && may_skip (buffer->info[start], batch.coverage))
+	    start++;
+	  if (start >= buffer->len)
+	    break;
+	  end = start + 1;
+	  while (end < buffer->len && !may_skip (buffer->info[end], batch.coverage))
+	    end++;
+
+	  switch (table_index)
+	  {
+	    case 0:
+	      for (unsigned int j = i; j < batch.last_lookup; j++)
+		hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][j].index,
+						start, end,
+						lookups[table_index][j].mask,
+						lookups[table_index][j].auto_zwj);
+	      break;
+	    case 1:
+	      for (unsigned int j = i; j < batch.last_lookup; j++)
+		hb_ot_layout_position_lookup (font, buffer, lookups[table_index][j].index,
+					      start, end,
+					      lookups[table_index][j].mask,
+					      lookups[table_index][j].auto_zwj);
+	      break;
+	  }
+
+	  start = end + 1;
+	}
+
+	assert (!buffer->has_separate_output ());
+	i = batch.last_lookup;
+      }
     }
+
+    if (stage.pause_func)
+      stage.pause_func (plan, font, buffer);
   }
 }
 
@@ -315,6 +383,193 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 
 	stage_index++;
       }
+    }
+  }
+
+  m.optimize (face);
+}
+
+
+struct optimize_lookups_context_t
+{
+  inline optimize_lookups_context_t (hb_ot_map_t *map_,
+				     hb_face_t *face_,
+				     unsigned int table_index_) :
+				map (map_),
+				face (face_),
+				table_index (table_index_),
+				start_lookup (0),
+				num_lookups (0),
+				num_glyphs (hb_face_get_glyph_count (face_)) {}
+
+  inline void add_lookups (unsigned int start_lookup_,
+			   unsigned int num_lookups_)
+  {
+    set_lookups (start_lookup_, num_lookups_);
+    solve ();
+  }
+
+  private:
+
+  inline void set_lookups (unsigned int start_lookup_,
+			   unsigned int num_lookups_)
+  {
+    start_lookup = start_lookup_;
+    num_lookups = num_lookups_;
+  }
+
+  inline void
+  solve (void)
+  {
+    if (!num_lookups)
+      return;
+
+    DEBUG_MSG_FUNC (MAP, map, "%d lookups", num_lookups);
+
+    hb_set_t *cov = hb_set_create ();
+
+    int best_move[num_lookups];
+    float best_cost[num_lookups];
+    best_move[0] = -1;
+    best_cost[0] = single_lookup_cost (0);
+    for (unsigned int i = 1; i < num_lookups; i++)
+    {
+      cov->clear ();
+      add_coverage (i, cov);
+      float this_cost = single_lookup_cost (i);
+      best_cost[i] = 1e20;
+      for (unsigned int j = i - 1; (int) j >= 0; j--)
+      {
+	if (best_cost[i] > best_cost[j] + this_cost)
+	{
+	  best_cost[i] = best_cost[j] + this_cost;
+	  best_move[i] = j;
+	}
+	add_coverage (j, cov);
+	this_cost = lookup_batch_cost (cov, i - j + 1);
+        if (this_cost > best_cost[i])
+	  break; /* No chance */
+      }
+      if (best_cost[i] > this_cost)
+      {
+	best_cost[i] = this_cost;
+	best_move[i] = -1;
+      }
+    }
+
+    DEBUG_MSG_FUNC (MAP, map, "optimal solution costs %f", best_cost[num_lookups - 1]);
+    for (int i = num_lookups - 1; i >= 0; i = best_move[i])
+    {
+      unsigned int batch_num_lookups = i - best_move[i];
+      if (DEBUG_LEVEL_ENABLED (MAP, 1))
+	DEBUG_MSG_FUNC (MAP, map, "batch has %d lookups; costs %f",
+			batch_num_lookups,
+			best_cost[i] - (best_move[i] == -1 ? 0 : best_cost[best_move[i]]));
+
+      hb_ot_map_t::batch_map_t *batch = map->batches[table_index].push ();
+      if (batch)
+      {
+	batch->last_lookup = MAX (lookup_offset (i), lookup_offset (best_move[i] + 1)) + 1;
+	batch->coverage = batch_num_lookups == 1 ? NULL : hb_set_create ();
+
+	for (int j = i; j > best_move[i]; j--)
+	{
+	  if (batch->coverage)
+	    add_coverage (j, batch->coverage);
+	  if (DEBUG_LEVEL_ENABLED (MAP, 2))
+	  {
+	    cov->clear ();
+	    add_coverage (j, cov);
+	    DEBUG_MSG_FUNC (MAP, map, "lookup %d (lookup-index %d) popcount %d",
+			    lookup_offset (j),
+			    lookup_index (j),
+			    cov->get_population ());
+	  }
+	}
+      }
+    }
+
+    hb_set_destroy (cov);
+  }
+
+  inline unsigned int lookup_offset (unsigned int i)
+  {
+    assert (i < num_lookups);
+    return start_lookup + num_lookups - 1 - i;
+  }
+
+  inline unsigned int lookup_index (unsigned int i)
+  {
+    return map->lookups[table_index][lookup_offset (i)].index;
+  }
+
+  inline void add_coverage (unsigned int i, hb_set_t *coverage)
+  {
+    hb_ot_layout_lookup_get_coverage (face,
+				      table_tags[table_index],
+				      lookup_index (i),
+				      coverage);
+  }
+
+  /* Parameters */
+
+  inline float single_lookup_cost (unsigned int lookup_index HB_UNUSED)
+  {
+    return 1.0;
+  }
+  inline float
+  lookup_batch_cost (hb_set_t *cov, unsigned int n_lookups)
+  {
+    return .1 + probability (cov) * n_lookups;
+  }
+  inline float
+  probability (hb_set_t *cov)
+  {
+    /* Biggest hack: assume uniform glyph probability. */
+    return cov->get_population () / (float) num_glyphs;
+  }
+
+  private:
+
+  hb_ot_map_t *map;
+  hb_face_t *face;
+  unsigned int table_index;
+  unsigned int start_lookup;
+  unsigned int num_lookups;
+
+  unsigned int num_glyphs;
+};
+
+void
+hb_ot_map_t::optimize (hb_face_t *face)
+{
+  DEBUG_MSG_FUNC (MAP, this, "face %p", face);
+  for (unsigned int table_index = 0; table_index < 2; table_index++)
+  {
+    DEBUG_MSG_FUNC (MAP, this, "table %c%c%c%c", HB_UNTAG (table_tags[table_index]));
+
+    unsigned int i = 0;
+
+    for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++)
+    {
+      stage_map_t *stage = &stages[table_index][stage_index];
+      unsigned int num_lookups = stage->last_lookup - i;
+      DEBUG_MSG_FUNC (MAP, this, "stage %d: %d lookups", stage_index, num_lookups);
+
+      optimize_lookups_context_t c (this, face, table_index);
+      unsigned int start = i;
+      for (; i < num_lookups; i++)
+	if (!hb_ot_layout_lookup_is_inplace (face, table_tags[table_index],
+					     lookups[table_index][i].index))
+	{
+	  DEBUG_MSG_FUNC (MAP, this, "lookup %d (lookup-index %d) NOT inplace",
+			  i, lookups[table_index][i].index);
+
+	  c.add_lookups (start, i - start);
+	  c.add_lookups (i, 1);
+	  start = i + 1;
+	}
+      c.add_lookups (start, i - start);
     }
   }
 }

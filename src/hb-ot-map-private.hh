@@ -39,6 +39,7 @@ static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
 struct hb_ot_map_t
 {
   friend struct hb_ot_map_builder_t;
+  friend struct optimize_lookups_context_t;
 
   public:
 
@@ -68,8 +69,13 @@ struct hb_ot_map_t
   typedef void (*pause_func_t) (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer);
 
   struct stage_map_t {
-    unsigned int last_lookup; /* Cumulative */
+    unsigned int last_lookup; /* Actually, last_lookup+1 */
     pause_func_t pause_func;
+  };
+
+  struct batch_map_t {
+    unsigned int last_lookup; /* Actually, last_lookup+1 */
+    hb_set_t *coverage;
   };
 
 
@@ -117,6 +123,8 @@ struct hb_ot_map_t
     *lookup_count = end - start;
   }
 
+  HB_INTERNAL void optimize (hb_face_t *face);
+
   HB_INTERNAL void collect_lookups (unsigned int table_index, hb_set_t *lookups) const;
   HB_INTERNAL inline void apply (unsigned int table_index,
 				 const struct hb_ot_shape_plan_t *plan,
@@ -131,6 +139,9 @@ struct hb_ot_map_t
     {
       lookups[table_index].finish ();
       stages[table_index].finish ();
+      for (unsigned int batch_index = 0; batch_index < batches[table_index].len; batch_index++)
+	hb_set_destroy (batches[table_index][batch_index].coverage);
+      batches[table_index].finish ();
     }
   }
 
@@ -151,6 +162,7 @@ struct hb_ot_map_t
   hb_prealloced_array_t<feature_map_t, 8> features;
   hb_prealloced_array_t<lookup_map_t, 32> lookups[2]; /* GSUB/GPOS */
   hb_prealloced_array_t<stage_map_t, 4> stages[2]; /* GSUB/GPOS */
+  hb_prealloced_array_t<batch_map_t, 4> batches[2]; /* GSUB/GPOS */
 };
 
 enum hb_ot_map_feature_flags_t {

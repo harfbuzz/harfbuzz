@@ -1252,6 +1252,7 @@ struct SubstLookup : Lookup
 			    unsigned int end,
 			    const hb_set_digest_t *digest) const
   {
+    bool inplace = end != (unsigned int) -1;
     bool ret = false;
     end = MIN (end, c->buffer->len);
 
@@ -1264,9 +1265,9 @@ struct SubstLookup : Lookup
     if (likely (!is_reverse ()))
     {
       /* in/out forward substitution */
-      c->buffer->clear_output ();
-
       c->buffer->idx = start;
+      if (inplace)
+        c->buffer->out_len = start;
 
       while (c->buffer->idx < end)
       {
@@ -1277,9 +1278,6 @@ struct SubstLookup : Lookup
 	else
 	  c->buffer->next_glyph ();
       }
-
-      if (ret)
-        c->buffer->swap_buffers ();
     }
     else
     {
