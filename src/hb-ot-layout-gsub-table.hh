@@ -1196,38 +1196,38 @@ struct SubstLookup : Lookup
 
     if (likely (!is_reverse ()))
     {
-	/* in/out forward substitution */
-	c->buffer->clear_output ();
-	c->buffer->idx = 0;
+      /* in/out forward substitution */
+      c->buffer->clear_output ();
+      c->buffer->idx = 0;
 
-	while (c->buffer->idx < c->buffer->len)
-	{
-	  if (digest->may_have (c->buffer->cur().codepoint) &&
-	      (c->buffer->cur().mask & c->lookup_mask) &&
-	      apply_once (c))
-	    ret = true;
-	  else
-	    c->buffer->next_glyph ();
-	}
-	if (ret)
-	  c->buffer->swap_buffers ();
+      while (c->buffer->idx < c->buffer->len)
+      {
+	if (digest->may_have (c->buffer->cur().codepoint) &&
+	    (c->buffer->cur().mask & c->lookup_mask) &&
+	    apply_once (c))
+	  ret = true;
+	else
+	  c->buffer->next_glyph ();
+      }
+      if (ret)
+	c->buffer->swap_buffers ();
     }
     else
     {
-	/* in-place backward substitution */
-	c->buffer->remove_output ();
-	c->buffer->idx = c->buffer->len - 1;
-	do
-	{
-	  if (digest->may_have (c->buffer->cur().codepoint) &&
-	      (c->buffer->cur().mask & c->lookup_mask) &&
-	      apply_once (c))
-	    ret = true;
-	  else
-	    c->buffer->idx--;
+      /* in-place backward substitution */
+      c->buffer->remove_output ();
+      c->buffer->idx = c->buffer->len - 1;
+      do
+      {
+	if (digest->may_have (c->buffer->cur().codepoint) &&
+	    (c->buffer->cur().mask & c->lookup_mask) &&
+	    apply_once (c))
+	  ret = true;
+	else
+	  c->buffer->idx--;
 
-	}
-	while ((int) c->buffer->idx >= 0);
+      }
+      while ((int) c->buffer->idx >= 0);
     }
 
     return ret;
