@@ -202,12 +202,19 @@ HB_INTERNAL void
 hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer);
 
-HB_INTERNAL hb_bool_t
-hb_ot_layout_substitute_lookup (hb_font_t    *font,
-				hb_buffer_t  *buffer,
-				unsigned int  lookup_index,
-				hb_mask_t     mask,
-				hb_bool_t     auto_zwj);
+
+struct hb_ot_layout_lookup_accelerator_t;
+
+namespace OT {
+  struct hb_apply_context_t;
+  struct SubstLookup;
+}
+
+HB_INTERNAL void
+hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
+				const OT::SubstLookup &lookup,
+				const hb_ot_layout_lookup_accelerator_t &accel);
+
 
 /* Should be called after all the substitute_lookup's are done */
 HB_INTERNAL void
@@ -219,13 +226,6 @@ hb_ot_layout_substitute_finish (hb_font_t    *font,
 HB_INTERNAL void
 hb_ot_layout_position_start (hb_font_t    *font,
 			     hb_buffer_t  *buffer);
-
-HB_INTERNAL hb_bool_t
-hb_ot_layout_position_lookup (hb_font_t    *font,
-			      hb_buffer_t  *buffer,
-			      unsigned int  lookup_index,
-			      hb_mask_t     mask,
-			      hb_bool_t     auto_zwj);
 
 /* Should be called after all the position_lookup's are done */
 HB_INTERNAL void

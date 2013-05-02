@@ -278,14 +278,12 @@ struct hb_apply_context_t
 
   hb_apply_context_t (unsigned int table_index_,
 		      hb_font_t *font_,
-		      hb_buffer_t *buffer_,
-		      hb_mask_t lookup_mask_,
-		      bool auto_zwj_) :
+		      hb_buffer_t *buffer_) :
 			table_index (table_index_),
 			font (font_), face (font->face), buffer (buffer_),
 			direction (buffer_->props.direction),
-			lookup_mask (lookup_mask_),
-			auto_zwj (auto_zwj_),
+			lookup_mask (1),
+			auto_zwj (true),
 			recurse_func (NULL),
 			nesting_level_left (MAX_NESTING_LEVEL),
 			lookup_props (0),
@@ -293,6 +291,8 @@ struct hb_apply_context_t
 			has_glyph_classes (gdef.has_glyph_classes ()),
 			debug_depth (0) {}
 
+  inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
+  inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
   inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
   inline void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
   inline void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }

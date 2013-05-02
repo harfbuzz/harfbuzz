@@ -669,22 +669,6 @@ hb_ot_layout_substitute_start (hb_font_t *font, hb_buffer_t *buffer)
   OT::GSUB::substitute_start (font, buffer);
 }
 
-hb_bool_t
-hb_ot_layout_substitute_lookup (hb_font_t    *font,
-				hb_buffer_t  *buffer,
-				unsigned int  lookup_index,
-				hb_mask_t     mask,
-				hb_bool_t     auto_zwj)
-{
-  if (unlikely (lookup_index >= hb_ot_layout_from_face (font->face)->gsub_lookup_count)) return false;
-
-  OT::hb_apply_context_t c (0, font, buffer, mask, auto_zwj);
-
-  const OT::SubstLookup& l = hb_ot_layout_from_face (font->face)->gsub->get_lookup (lookup_index);
-
-  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gsub_accels[lookup_index].digest);
-}
-
 void
 hb_ot_layout_substitute_finish (hb_font_t *font, hb_buffer_t *buffer)
 {
@@ -717,22 +701,6 @@ void
 hb_ot_layout_position_start (hb_font_t *font, hb_buffer_t *buffer)
 {
   OT::GPOS::position_start (font, buffer);
-}
-
-hb_bool_t
-hb_ot_layout_position_lookup (hb_font_t    *font,
-			      hb_buffer_t  *buffer,
-			      unsigned int  lookup_index,
-			      hb_mask_t     mask,
-			      hb_bool_t     auto_zwj)
-{
-  if (unlikely (lookup_index >= hb_ot_layout_from_face (font->face)->gpos_lookup_count)) return false;
-
-  OT::hb_apply_context_t c (1, font, buffer, mask, auto_zwj);
-
-  const OT::PosLookup& l = hb_ot_layout_from_face (font->face)->gpos->get_lookup (lookup_index);
-
-  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gpos_accels[lookup_index].digest);
 }
 
 void
@@ -788,35 +756,57 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
 
 /*
- * Parts of hb-ot-map are implemented here such that they have direct
+ * Parts of different types are implemented here such that they have direct
  * access to GSUB/GPOS lookups.
  */
 
 
-inline void hb_ot_map_t::apply (unsigned int table_index,
+struct GSUBProxy
+{
+  static const unsigned int table_index = 0;
+  typedef OT::SubstLookup Lookup;
+
+  GSUBProxy (hb_face_t *face) :
+    table (*hb_ot_layout_from_face (face)->gsub),
+    accels (hb_ot_layout_from_face (face)->gsub_accels) {}
+
+  const OT::GSUB &table;
+  const hb_ot_layout_lookup_accelerator_t *accels;
+};
+
+struct GPOSProxy
+{
+  static const unsigned int table_index = 1;
+  typedef OT::PosLookup Lookup;
+
+  GPOSProxy (hb_face_t *face) :
+    table (*hb_ot_layout_from_face (face)->gpos),
+    accels (hb_ot_layout_from_face (face)->gpos_accels) {}
+
+  const OT::GPOS &table;
+  const hb_ot_layout_lookup_accelerator_t *accels;
+};
+
+
+template <typename Proxy>
+inline void hb_ot_map_t::apply (const Proxy &proxy,
 				const hb_ot_shape_plan_t *plan,
 				hb_font_t *font,
 				hb_buffer_t *buffer) const
 {
+  const unsigned int table_index = proxy.table_index;
   unsigned int i = 0;
+  OT::hb_apply_context_t c (table_index, font, buffer);
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
     const stage_map_t *stage = &stages[table_index][stage_index];
     for (; i < stage->last_lookup; i++)
-      switch (table_index)
-      {
-        case 0:
-	  hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index,
-					  lookups[table_index][i].mask,
-					  lookups[table_index][i].auto_zwj);
-	  break;
-
-	case 1:
-	  hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
-					lookups[table_index][i].mask,
-					lookups[table_index][i].auto_zwj);
-	  break;
-      }
+    {
+      unsigned int lookup_index = lookups[table_index][i].index;
+      c.set_lookup_mask (lookups[table_index][i].mask);
+      c.set_auto_zwj (lookups[table_index][i].auto_zwj);
+      proxy.table.get_lookup (lookup_index).apply_string (&c, &proxy.accels[lookup_index].digest);
+    }
 
     if (stage->pause_func)
     {
@@ -828,10 +818,20 @@ inline void hb_ot_map_t::apply (unsigned int table_index,
 
 void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
 {
-  apply (0, plan, font, buffer);
+  GSUBProxy proxy (font->face);
+  apply (proxy, plan, font, buffer);
 }
 
 void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
 {
-  apply (1, plan, font, buffer);
+  GPOSProxy proxy (font->face);
+  apply (proxy, plan, font, buffer);
+}
+
+HB_INTERNAL void
+hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
+				const OT::SubstLookup &lookup,
+				const hb_ot_layout_lookup_accelerator_t &accel)
+{
+  lookup.apply_string (c, &accel.digest);
 }

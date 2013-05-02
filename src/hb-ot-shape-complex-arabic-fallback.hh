@@ -246,10 +246,13 @@ arabic_fallback_plan_shape (arabic_fallback_plan_t *fallback_plan,
 			    hb_font_t *font,
 			    hb_buffer_t *buffer)
 {
+  OT::hb_apply_context_t c (0, font, buffer);
   for (unsigned int i = 0; i < ARABIC_NUM_FALLBACK_FEATURES; i++)
     if (fallback_plan->lookup_array[i]) {
-      OT::hb_apply_context_t c (0, font, buffer, fallback_plan->mask_array[i], true/*auto_zwj*/);
-      fallback_plan->lookup_array[i]->apply_string (&c, &fallback_plan->accel_array[i].digest);
+      c.set_lookup_mask (fallback_plan->mask_array[i]);
+      hb_ot_layout_substitute_lookup (&c,
+				      *fallback_plan->lookup_array[i],
+				      fallback_plan->accel_array[i]);
     }
 }
 
