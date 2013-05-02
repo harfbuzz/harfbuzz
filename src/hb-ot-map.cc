@@ -102,20 +102,30 @@ void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value,
   info->stage[1] = current_stage[1];
 }
 
-/* Keep the next two functions in sync. */
-
-void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
+inline void hb_ot_map_t::apply (unsigned int table_index,
+				const hb_ot_shape_plan_t *plan,
+				hb_font_t *font,
+				hb_buffer_t *buffer) const
 {
-  const unsigned int table_index = 0;
   unsigned int i = 0;
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
     const stage_map_t *stage = &stages[table_index][stage_index];
     for (; i < stage->last_lookup; i++)
-      hb_ot_layout_substitute_lookup (font, buffer,
-				      lookups[table_index][i].index,
-				      lookups[table_index][i].mask,
-				      lookups[table_index][i].auto_zwj);
+      switch (table_index)
+      {
+        case 0:
+	  hb_ot_layout_substitute_lookup (font, buffer, lookups[table_index][i].index,
+					  lookups[table_index][i].mask,
+					  lookups[table_index][i].auto_zwj);
+	  break;
+
+	case 1:
+	  hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
+					lookups[table_index][i].mask,
+					lookups[table_index][i].auto_zwj);
+	  break;
+      }
 
     if (stage->pause_func)
     {
@@ -125,22 +135,16 @@ void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, h
   }
 }
 
+void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
+{
+  apply (0, plan, font, buffer);
+}
+
 void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
 {
-  const unsigned int table_index = 1;
-  unsigned int i = 0;
-
-  for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
-    const stage_map_t *stage = &stages[table_index][stage_index];
-    for (; i < stage->last_lookup; i++)
-      hb_ot_layout_position_lookup (font, buffer, lookups[table_index][i].index,
-				    lookups[table_index][i].mask,
-				    lookups[table_index][i].auto_zwj);
-
-    if (stage->pause_func)
-      stage->pause_func (plan, font, buffer);
-  }
+  apply (1, plan, font, buffer);
 }
+
 
 void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_out) const
 {
