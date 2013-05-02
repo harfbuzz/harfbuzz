@@ -146,7 +146,7 @@ struct hb_ot_map_t
 
   hb_prealloced_array_t<feature_map_t, 8> features;
   hb_prealloced_array_t<lookup_map_t, 32> lookups[2]; /* GSUB/GPOS */
-  hb_prealloced_array_t<stage_map_t, 1> stages[2]; /* GSUB/GPOS */
+  hb_prealloced_array_t<stage_map_t, 4> stages[2]; /* GSUB/GPOS */
 };
 
 enum hb_ot_map_feature_flags_t {
@@ -235,8 +235,8 @@ struct hb_ot_map_builder_t
   private:
 
   unsigned int current_stage[2]; /* GSUB/GPOS */
-  hb_prealloced_array_t<feature_info_t,16> feature_infos;
-  hb_prealloced_array_t<stage_info_t, 1> stages[2]; /* GSUB/GPOS */
+  hb_prealloced_array_t<feature_info_t, 32> feature_infos;
+  hb_prealloced_array_t<stage_info_t, 8> stages[2]; /* GSUB/GPOS */
 };
 
 
