@@ -59,26 +59,20 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gsub_lookup_count = layout->gsub->get_lookup_count ();
   layout->gpos_lookup_count = layout->gpos->get_lookup_count ();
 
-  layout->gsub_digests = (hb_set_digest_t *) calloc (layout->gsub->get_lookup_count (), sizeof (hb_set_digest_t));
-  layout->gpos_digests = (hb_set_digest_t *) calloc (layout->gpos->get_lookup_count (), sizeof (hb_set_digest_t));
+  layout->gsub_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (layout->gsub->get_lookup_count (), sizeof (hb_ot_layout_lookup_accelerator_t));
+  layout->gpos_accels = (hb_ot_layout_lookup_accelerator_t *) calloc (layout->gpos->get_lookup_count (), sizeof (hb_ot_layout_lookup_accelerator_t));
 
-  if (unlikely ((layout->gsub_lookup_count && !layout->gsub_digests) ||
-		(layout->gpos_lookup_count && !layout->gpos_digests)))
+  if (unlikely ((layout->gsub_lookup_count && !layout->gsub_accels) ||
+		(layout->gpos_lookup_count && !layout->gpos_accels)))
   {
     _hb_ot_layout_destroy (layout);
     return NULL;
   }
 
   for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
-  {
-    layout->gsub_digests[i].init ();
-    layout->gsub->get_lookup (i).add_coverage (&layout->gsub_digests[i]);
-  }
+    layout->gsub_accels[i].init (layout->gsub->get_lookup (i));
   for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
-  {
-    layout->gpos_digests[i].init ();
-    layout->gpos->get_lookup (i).add_coverage (&layout->gpos_digests[i]);
-  }
+    layout->gpos_accels[i].init (layout->gpos->get_lookup (i));
 
   return layout;
 }
@@ -90,8 +84,13 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
 
-  free (layout->gsub_digests);
-  free (layout->gpos_digests);
+  for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
+    layout->gsub_accels[i].fini (layout->gsub->get_lookup (i));
+  for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
+    layout->gpos_accels[i].fini (layout->gpos->get_lookup (i));
+
+  free (layout->gsub_accels);
+  free (layout->gpos_accels);
 
   free (layout);
 }
@@ -659,7 +658,7 @@ hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
 
   const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
 
-  return l.would_apply (&c, &hb_ot_layout_from_face (face)->gsub_digests[lookup_index]);
+  return l.would_apply (&c, &hb_ot_layout_from_face (face)->gsub_accels[lookup_index].digest);
 }
 
 void
@@ -681,7 +680,7 @@ hb_ot_layout_substitute_lookup (hb_font_t    *font,
 
   const OT::SubstLookup& l = hb_ot_layout_from_face (font->face)->gsub->get_lookup (lookup_index);
 
-  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gsub_digests[lookup_index]);
+  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gsub_accels[lookup_index].digest);
 }
 
 void
@@ -731,7 +730,7 @@ hb_ot_layout_position_lookup (hb_font_t    *font,
 
   const OT::PosLookup& l = hb_ot_layout_from_face (font->face)->gpos->get_lookup (lookup_index);
 
-  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gpos_digests[lookup_index]);
+  return l.apply_string (&c, &hb_ot_layout_from_face (font->face)->gpos_accels[lookup_index].digest);
 }
 
 void

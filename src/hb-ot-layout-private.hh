@@ -244,6 +244,23 @@ namespace OT {
   struct GPOS;
 }
 
+struct hb_ot_layout_lookup_accelerator_t
+{
+  template <typename TLookup>
+  inline void init (const TLookup &lookup)
+  {
+    digest.init ();
+    lookup.add_coverage (&digest);
+  }
+
+  template <typename TLookup>
+  inline void fini (const TLookup &lookup)
+  {
+  }
+
+  hb_set_digest_t digest;
+};
+
 struct hb_ot_layout_t
 {
   hb_blob_t *gdef_blob;
@@ -257,8 +274,8 @@ struct hb_ot_layout_t
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;
 
-  hb_set_digest_t *gsub_digests;
-  hb_set_digest_t *gpos_digests;
+  hb_ot_layout_lookup_accelerator_t *gsub_accels;
+  hb_ot_layout_lookup_accelerator_t *gpos_accels;
 };
 
 
