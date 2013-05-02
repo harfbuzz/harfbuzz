@@ -31,8 +31,8 @@
 
 #include "hb-buffer-private.hh"
 
-#include "hb-ot-layout-private.hh"
 
+struct hb_ot_shape_plan_t;
 
 static const hb_tag_t table_tags[2] = {HB_OT_TAG_GSUB, HB_OT_TAG_GPOS};
 
@@ -123,10 +123,11 @@ struct hb_ot_map_t
 
   inline void finish (void) {
     features.finish ();
-    lookups[0].finish ();
-    lookups[1].finish ();
-    stages[0].finish ();
-    stages[1].finish ();
+    for (unsigned int table_index = 0; table_index < 2; table_index++)
+    {
+      lookups[table_index].finish ();
+      stages[table_index].finish ();
+    }
   }
 
   public:
@@ -195,8 +196,10 @@ struct hb_ot_map_builder_t
 
   inline void finish (void) {
     feature_infos.finish ();
-    stages[0].finish ();
-    stages[1].finish ();
+    for (unsigned int table_index = 0; table_index < 2; table_index++)
+    {
+      stages[table_index].finish ();
+    }
   }
 
   private:

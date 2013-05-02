@@ -28,6 +28,8 @@
 
 #include "hb-ot-map-private.hh"
 
+#include "hb-ot-layout-private.hh"
+
 
 void
 hb_ot_map_t::add_lookups (hb_face_t    *face,
