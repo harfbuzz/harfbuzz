@@ -275,11 +275,18 @@ struct Sequence
     unsigned int klass = c->buffer->cur().glyph_props() &
 			 HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE ? HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
     unsigned int count = substitute.len;
-    for (unsigned int i = 0; i < count; i++) {
-      set_lig_props_for_component (c->buffer->cur(), i);
-      c->output_glyph (substitute.array[i], klass);
+    if (count == 1) /* Special-case to make it in-place. */
+    {
+      c->replace_glyph (substitute.array[0]);
     }
-    c->buffer->skip_glyph ();
+    else
+    {
+      for (unsigned int i = 0; i < count; i++) {
+	set_lig_props_for_component (c->buffer->cur(), i);
+	c->output_glyph (substitute.array[i], klass);
+      }
+      c->buffer->skip_glyph ();
+    }
 
     return TRACE_RETURN (true);
   }
