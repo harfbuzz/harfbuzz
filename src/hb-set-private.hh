@@ -45,12 +45,14 @@ struct hb_set_digest_lowest_bits_t
 {
   ASSERT_POD ();
 
+  static const unsigned int mask_bytes = sizeof (mask_t);
+  static const unsigned int mask_bits = sizeof (mask_t) * 8;
   static const unsigned int num_bits = 0
-				     + (sizeof (mask_t) >= 1 ? 3 : 0)
-				     + (sizeof (mask_t) >= 2 ? 1 : 0)
-				     + (sizeof (mask_t) >= 4 ? 1 : 0)
-				     + (sizeof (mask_t) >= 8 ? 1 : 0)
-				     + (sizeof (mask_t) >= 16? 1 : 0)
+				     + (mask_bytes >= 1 ? 3 : 0)
+				     + (mask_bytes >= 2 ? 1 : 0)
+				     + (mask_bytes >= 4 ? 1 : 0)
+				     + (mask_bytes >= 8 ? 1 : 0)
+				     + (mask_bytes >= 16? 1 : 0)
 				     + 0;
 
   ASSERT_STATIC (shift < sizeof (hb_codepoint_t) * 8);
@@ -65,7 +67,7 @@ struct hb_set_digest_lowest_bits_t
   }
 
   inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
-    if ((b >> shift) - (a >> shift) >= sizeof (mask_t) * 8 - 1)
+    if ((b >> shift) - (a >> shift) >= mask_bits - 1)
       mask = (mask_t) -1;
     else {
       mask_t ma = mask_for (a);
@@ -81,7 +83,7 @@ struct hb_set_digest_lowest_bits_t
   private:
 
   static inline mask_t mask_for (hb_codepoint_t g) {
-    return ((mask_t) 1) << ((g >> shift) & (sizeof (mask_t) * 8 - 1));
+    return ((mask_t) 1) << ((g >> shift) & (mask_bits - 1));
   }
   mask_t mask;
 };
