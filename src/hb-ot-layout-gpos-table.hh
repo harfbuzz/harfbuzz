@@ -1429,6 +1429,11 @@ struct PosLookup : Lookup
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
   { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
 
+  inline bool is_reverse (void) const
+  {
+    return false;
+  }
+
   inline hb_is_inplace_context_t::return_t is_inplace (hb_is_inplace_context_t *c) const
   {
     TRACE_IS_INPLACE (this);
