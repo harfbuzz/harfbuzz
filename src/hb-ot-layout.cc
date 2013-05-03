@@ -614,13 +614,13 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
     case HB_OT_TAG_GSUB:
     {
       const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
-      l.collect_glyphs_lookup (&c);
+      l.collect_glyphs (&c);
       return;
     }
     case HB_OT_TAG_GPOS:
     {
       const OT::PosLookup& l = hb_ot_layout_from_face (face)->gpos->get_lookup (lookup_index);
-      l.collect_glyphs_lookup (&c);
+      l.collect_glyphs (&c);
       return;
     }
   }
