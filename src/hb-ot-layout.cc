@@ -2,7 +2,7 @@
  * Copyright © 1998-2004  David Turner and Werner Lemberg
  * Copyright © 2006  Behdad Esfahbod
  * Copyright © 2007,2008,2009  Red Hat, Inc.
- * Copyright © 2012  Google, Inc.
+ * Copyright © 2012,2013  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -788,6 +788,69 @@ struct GPOSProxy
 };
 
 
+template <typename Lookup>
+static inline bool apply_once (OT::hb_apply_context_t *c,
+			       const Lookup &lookup)
+{
+  if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props))
+    return false;
+  return lookup.dispatch (c);
+}
+
+template <typename Proxy>
+static inline bool
+apply_string (OT::hb_apply_context_t *c,
+	      const typename Proxy::Lookup &lookup,
+	      const hb_ot_layout_lookup_accelerator_t &accel)
+{
+  bool ret = false;
+
+  if (unlikely (!c->buffer->len || !c->lookup_mask))
+    return false;
+
+  c->set_lookup (lookup);
+
+  if (likely (!lookup.is_reverse ()))
+  {
+    /* in/out forward substitution/positioning */
+    if (Proxy::table_index == 0)
+      c->buffer->clear_output ();
+    c->buffer->idx = 0;
+
+    while (c->buffer->idx < c->buffer->len)
+    {
+      if (accel.digest.may_have (c->buffer->cur().codepoint) &&
+	  (c->buffer->cur().mask & c->lookup_mask) &&
+	  apply_once (c, lookup))
+	ret = true;
+      else
+	c->buffer->next_glyph ();
+    }
+    if (ret && Proxy::table_index == 0)
+	c->buffer->swap_buffers ();
+  }
+  else
+  {
+    /* in-place backward substitution/positioning */
+    if (Proxy::table_index == 0)
+      c->buffer->remove_output ();
+    c->buffer->idx = c->buffer->len - 1;
+    do
+    {
+      if (accel.digest.may_have (c->buffer->cur().codepoint) &&
+	  (c->buffer->cur().mask & c->lookup_mask) &&
+	  apply_once (c, lookup))
+	ret = true;
+      else
+	c->buffer->idx--;
+
+    }
+    while ((int) c->buffer->idx >= 0);
+  }
+
+  return ret;
+}
+
 template <typename Proxy>
 inline void hb_ot_map_t::apply (const Proxy &proxy,
 				const hb_ot_shape_plan_t *plan,
@@ -797,6 +860,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   const unsigned int table_index = proxy.table_index;
   unsigned int i = 0;
   OT::hb_apply_context_t c (table_index, font, buffer);
+  c.set_recurse_func (Proxy::Lookup::apply_recurse_func);
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].len; stage_index++) {
     const stage_map_t *stage = &stages[table_index][stage_index];
@@ -805,7 +869,9 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       unsigned int lookup_index = lookups[table_index][i].index;
       c.set_lookup_mask (lookups[table_index][i].mask);
       c.set_auto_zwj (lookups[table_index][i].auto_zwj);
-      proxy.table.get_lookup (lookup_index).apply_string (&c, &proxy.accels[lookup_index].digest);
+      apply_string<Proxy> (&c,
+			   proxy.table.get_lookup (lookup_index),
+			   proxy.accels[lookup_index]);
     }
 
     if (stage->pause_func)
@@ -833,5 +899,5 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
 				const OT::SubstLookup &lookup,
 				const hb_ot_layout_lookup_accelerator_t &accel)
 {
-  lookup.apply_string (c, &accel.digest);
+  apply_string<GSUBProxy> (c, lookup, accel);
 }
