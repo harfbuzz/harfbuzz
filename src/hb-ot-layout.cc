@@ -804,6 +804,8 @@ apply_string (OT::hb_apply_context_t *c,
 	      const hb_ot_layout_lookup_accelerator_t &accel)
 {
   bool ret = false;
+  OT::hb_is_inplace_context_t inplace_c (c->face);
+  bool inplace = lookup.is_inplace (&inplace_c);
 
   if (unlikely (!c->buffer->len || !c->lookup_mask))
     return false;
@@ -826,8 +828,13 @@ apply_string (OT::hb_apply_context_t *c,
       else
 	c->buffer->next_glyph ();
     }
-    if (ret && Proxy::table_index == 0)
+    if (ret)
+    {
+      if (!inplace)
 	c->buffer->swap_buffers ();
+      else
+        assert (!c->buffer->has_separate_output ());
+    }
   }
   else
   {
