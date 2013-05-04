@@ -158,7 +158,13 @@ struct hb_collect_glyphs_context_t
 
     /* Note that GPOS sets recurse_func to NULL already, so it doesn't get
      * past the previous check.  For GSUB, we only want to collect the output
-     * glyphs in the recursion.  If output is not requested, we can go home now. */
+     * glyphs in the recursion.  If output is not requested, we can go home now.
+     *
+     * Note further, that the above is not exactly correct.  A recursed lookup
+     * is allowed to match input that is not matched in the context, but that's
+     * not how most fonts are built.  It's possible to relax that and recurse
+     * with all sets here if it proves to be an issue.
+     */
 
     if (output == hb_set_get_empty ())
       return HB_VOID;
