@@ -64,6 +64,10 @@ test_set_basic (void)
   hb_set_clear (s);
   test_empty (s);
 
+  hb_set_add (s, 33000);
+  test_not_empty (s);
+  hb_set_clear (s);
+
   hb_set_add_range (s, 10, 29);
   test_not_empty (s);
   g_assert (hb_set_has (s, 13));
