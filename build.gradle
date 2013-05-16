@@ -140,14 +140,8 @@ class ConfigureHarfbuzz extends DefaultTask {
 
 task configureHarfbuzz(type: ConfigureHarfbuzz) {
 	dependsOn downloadEmscripten
-
-	if (Os.isFamily(Os.FAMILY_MAC)) {
-	} else if (Os.isFamily(Os.FAMILY_UNIX)) {
-		// Hack to make shared linbrary linking work on Jenkins
-		host = "i386-linux"
-	} else {
-		throw new RuntimeException("Unsupported platform: " + Os.OS_NAME)
-	}
+	// We need to do this to build shared libs
+	host = "i386-linux"
 }
 
 task makeHarfbuzz() {
@@ -360,14 +354,8 @@ task compileEmccDebugUntyped(type: CompileEmcc) {
 
 tasks.withType(CompileEmcc) { task ->
 	task.configure {
-		if (Os.isFamily(Os.FAMILY_MAC)) {
-			source "src/.libs/libharfbuzz.dylib"
-		} else if (Os.isFamily(Os.FAMILY_UNIX)) {
-			source "src/.libs/libharfbuzz.so"
-		} else {
-			throw new RuntimeException("Unsupported platform: " + Os.OS_NAME)
-		}
-		source "src/hb-ucdn/.libs/ucdn.o"
+		source "src/.libs/libharfbuzz.so"
+		source "src/hb-ucdn/.libs/libhb-ucdn.a"
 		postJs = combineJsConnector.dest
 		allowMemoryGrowth = true
 		memoryInitFile = false
