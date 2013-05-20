@@ -1,3 +1,11 @@
+Overview of changes leading to 0.9.17
+Monday, May 20, 2013
+=====================================
+
+- Build fixes.
+- Fix bug in hb_set_get_min().
+- Fix regression with Arabic mark positioning / width-zeroing.
+
 Overview of changes leading to 0.9.16
 Friday, April 19, 2013
 =====================================
