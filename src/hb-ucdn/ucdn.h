@@ -34,7 +34,29 @@
 
 HB_BEGIN_HEADER
 
-#include <stdint.h>
+#if !defined (HB_DONT_DEFINE_STDINT)
+
+#if defined (_SVR4) || defined (SVR4) || defined (__OpenBSD__) || \
+    defined (_sgi) || defined (__sun) || defined (sun) || \
+    defined (__digital__) || defined (__HP_cc)
+#  include <inttypes.h>
+#elif defined (_AIX)
+#  include <sys/inttypes.h>
+/* VS 2010 (_MSC_VER 1600) has stdint.h */
+#elif defined (_MSC_VER) && _MSC_VER < 1600
+typedef __int8 int8_t;
+typedef unsigned __int8 uint8_t;
+typedef __int16 int16_t;
+typedef unsigned __int16 uint16_t;
+typedef __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
+#else
+#  include <stdint.h>
+#endif
+
+#endif
 
 #define UCDN_EAST_ASIAN_F 0
 #define UCDN_EAST_ASIAN_H 1
