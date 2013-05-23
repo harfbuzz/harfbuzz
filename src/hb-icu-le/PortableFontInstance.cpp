@@ -25,8 +25,16 @@
 #include <string.h>
 
 
-PortableFontInstance::PortableFontInstance(hb_face_t *face, float xScale, float yScale, LEErrorCode &status)
-    : fFace(face), fXScale(xScale), fYScale(yScale), fUnitsPerEM(0), fAscent(0), fDescent(0), fLeading(0),
+PortableFontInstance::PortableFontInstance(hb_face_t *face,
+					   float xScale,
+					   float yScale,
+					   unsigned int xPixelsPerEM,
+					   unsigned int yPixelsPerEM,
+					   LEErrorCode &status)
+    : fFace(face),
+      fXScale(xScale), fYScale(yScale),
+      fXPixelsPerEM(xPixelsPerEM), fYPixelsPerEM(yPixelsPerEM),
+      fUnitsPerEM(0), fAscent(0), fDescent(0), fLeading(0),
       fNAMETable(NULL), fNameCount(0), fNameStringOffset(0), fCMAPMapper(NULL), fHMTXTable(NULL), fNumGlyphs(0), fNumLongHorMetrics(0)
 {
     if (LE_FAILURE(status)) {
@@ -194,8 +202,7 @@ void PortableFontInstance::getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) co
         index = fNumLongHorMetrics - 1;
     }
 
-    advance.fX = xUnitsToPoints(SWAPW(fHMTXTable->hMetrics[index].advanceWidth));
-    advance.fY = 0;
+    transformFunits (SWAPW(fHMTXTable->hMetrics[index].advanceWidth), 0, advance);
 }
 
 le_bool PortableFontInstance::getGlyphPoint(LEGlyphID /*glyph*/, le_int32 /*pointNumber*/, LEPoint &/*point*/) const
@@ -249,20 +256,20 @@ LEGlyphID PortableFontInstance::mapCharToGlyph(LEUnicode32 ch) const
 
 float PortableFontInstance::getXPixelsPerEm() const
 {
-    return fXScale;
+    return fXPixelsPerEM;
 }
 
 float PortableFontInstance::getYPixelsPerEm() const
 {
-    return fYScale;
+    return fYPixelsPerEM;
 }
 
 float PortableFontInstance::getScaleFactorX() const
 {
-    return 1.0;
+    return fXScale;
 }
 
 float PortableFontInstance::getScaleFactorY() const
 {
-    return 1.0;
+    return fYScale;
 }

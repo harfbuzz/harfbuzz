@@ -63,6 +63,8 @@ _hb_icu_le_shaper_font_data_create (hb_font_t *font)
 {
   LEErrorCode status = LE_NO_ERROR;
   hb_icu_le_shaper_font_data_t *data = new PortableFontInstance (font->face,
+								 1,
+								 1,
 								 font->x_scale,
 								 font->y_scale,
 								 status);

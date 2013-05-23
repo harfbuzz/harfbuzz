@@ -36,6 +36,8 @@ private:
 
     float     fXScale;
     float     fYScale;
+    unsigned int fXPixelsPerEM;
+    unsigned int fYPixelsPerEM;
     le_int32  fUnitsPerEM;
     le_int32  fAscent;
     le_int32  fDescent;
@@ -59,7 +61,12 @@ protected:
     hb_blob_t *readFontTable(LETag tableTag) const;
 
 public:
-    PortableFontInstance(hb_face_t *face, float xScale, float yScale, LEErrorCode &status);
+    PortableFontInstance(hb_face_t *face,
+			 float xScale,
+			 float yScale,
+			 unsigned int xPixelsPerEM,
+			 unsigned int yPixelsPerEM,
+			 LEErrorCode &status);
 
     virtual ~PortableFontInstance();
 
