@@ -202,12 +202,19 @@ HB_INTERNAL void
 hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer);
 
-HB_INTERNAL hb_bool_t
-hb_ot_layout_substitute_lookup (hb_font_t    *font,
-				hb_buffer_t  *buffer,
-				unsigned int  lookup_index,
-				hb_mask_t     mask,
-				hb_bool_t     auto_zwj);
+
+struct hb_ot_layout_lookup_accelerator_t;
+
+namespace OT {
+  struct hb_apply_context_t;
+  struct SubstLookup;
+}
+
+HB_INTERNAL void
+hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
+				const OT::SubstLookup &lookup,
+				const hb_ot_layout_lookup_accelerator_t &accel);
+
 
 /* Should be called after all the substitute_lookup's are done */
 HB_INTERNAL void
@@ -219,13 +226,6 @@ hb_ot_layout_substitute_finish (hb_font_t    *font,
 HB_INTERNAL void
 hb_ot_layout_position_start (hb_font_t    *font,
 			     hb_buffer_t  *buffer);
-
-HB_INTERNAL hb_bool_t
-hb_ot_layout_position_lookup (hb_font_t    *font,
-			      hb_buffer_t  *buffer,
-			      unsigned int  lookup_index,
-			      hb_mask_t     mask,
-			      hb_bool_t     auto_zwj);
 
 /* Should be called after all the position_lookup's are done */
 HB_INTERNAL void
@@ -244,6 +244,23 @@ namespace OT {
   struct GPOS;
 }
 
+struct hb_ot_layout_lookup_accelerator_t
+{
+  template <typename TLookup>
+  inline void init (const TLookup &lookup)
+  {
+    digest.init ();
+    lookup.add_coverage (&digest);
+  }
+
+  template <typename TLookup>
+  inline void fini (const TLookup &lookup)
+  {
+  }
+
+  hb_set_digest_t digest;
+};
+
 struct hb_ot_layout_t
 {
   hb_blob_t *gdef_blob;
@@ -257,8 +274,8 @@ struct hb_ot_layout_t
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;
 
-  hb_set_digest_t *gsub_digests;
-  hb_set_digest_t *gpos_digests;
+  hb_ot_layout_lookup_accelerator_t *gsub_accels;
+  hb_ot_layout_lookup_accelerator_t *gpos_accels;
 };
 
 
