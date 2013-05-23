@@ -62,11 +62,13 @@ hb_icu_le_shaper_font_data_t *
 _hb_icu_le_shaper_font_data_create (hb_font_t *font)
 {
   LEErrorCode status = LE_NO_ERROR;
+  unsigned int x_ppem = font->x_ppem ? font->x_ppem : 72;
+  unsigned int y_ppem = font->y_ppem ? font->y_ppem : 72;
   hb_icu_le_shaper_font_data_t *data = new PortableFontInstance (font->face,
-								 1,
-								 1,
-								 font->x_scale,
-								 font->y_scale,
+								 font->x_scale / x_ppem,
+								 font->y_scale / y_ppem,
+								 x_ppem,
+								 y_ppem,
 								 status);
   if (status != LE_NO_ERROR) {
     delete (data);
