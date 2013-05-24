@@ -134,25 +134,46 @@ retry:
   unsigned int scratch_size;
   char *scratch = (char *) buffer->get_scratch_buffer (&scratch_size);
 
+  LEUnicode *pchars = (LEUnicode *) scratch;
+  unsigned int chars_len = 0;
+  for (unsigned int i = 0; i < buffer->len; i++) {
+    hb_codepoint_t c = buffer->info[i].codepoint;
+    if (likely (c < 0x10000))
+      pchars[chars_len++] = c;
+    else if (unlikely (c >= 0x110000))
+      pchars[chars_len++] = 0xFFFD;
+    else {
+      pchars[chars_len++] = 0xD800 + ((c - 0x10000) >> 10);
+      pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
+    }
+  }
+
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
   scratch += (len) * sizeof ((name)[0]); \
   scratch_size -= (len) * sizeof ((name)[0]);
 
-  ALLOCATE_ARRAY (LEUnicode, chars, buffer->len);
-  ALLOCATE_ARRAY (unsigned int, clusters, buffer->len);
+  ALLOCATE_ARRAY (LEUnicode, chars, chars_len);
+  ALLOCATE_ARRAY (unsigned int, clusters, chars_len);
 
-  /* XXX Use UTF-16 decoder! */
+  chars_len = 0;
   for (unsigned int i = 0; i < buffer->len; i++) {
-    chars[i] = buffer->info[i].codepoint;
-    clusters[i] = buffer->info[i].cluster;
+    hb_codepoint_t c = buffer->info[i].codepoint;
+    if (likely (c < 0x10000))
+      clusters[chars_len++] = buffer->info[i].cluster;
+    else if (unlikely (c >= 0x110000))
+      clusters[chars_len++] = buffer->info[i].cluster;
+    else {
+      clusters[chars_len++] = buffer->info[i].cluster;
+      clusters[chars_len++] = buffer->info[i].cluster;
+    }
   }
 
   unsigned int glyph_count = le_layoutChars (le,
 					     chars,
 					     0,
-					     buffer->len,
-					     buffer->len,
+					     chars_len,
+					     chars_len,
 					     HB_DIRECTION_IS_BACKWARD (buffer->props.direction),
 					     0., 0.,
 					     &status);
