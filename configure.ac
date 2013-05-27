@@ -130,8 +130,8 @@ dnl ===========================================================================
 
 AC_ARG_WITH(glib,
 	[AS_HELP_STRING([--with-glib=@<:@yes/no/auto@:>@],
-			[Use glib @<:@default=yes@:>@])],,
-	[with_glib=yes])
+			[Use glib @<:@default=auto@:>@])],,
+	[with_glib=auto])
 have_glib=false
 if test "x$with_glib" = "xyes" -o "x$with_glib" = "xauto"; then
 	PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true)
