@@ -128,14 +128,6 @@ AM_CONDITIONAL(HAVE_HB_OLD, $have_hb_old)
 
 dnl ===========================================================================
 
-have_ucdn=true
-if $have_ucdn; then
-	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
-fi
-AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
-
-dnl ===========================================================================
-
 PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
@@ -149,6 +141,14 @@ if $have_gobject; then
 	AC_SUBST(GLIB_MKENUMS)
 fi
 AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
+
+dnl ===========================================================================
+
+have_ucdn=true
+if $have_ucdn; then
+	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
+fi
+AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
 
 dnl ==========================================================================
 
