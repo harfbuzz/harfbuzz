@@ -204,7 +204,8 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true, have_icu_le=false)
+have_icu_le=false
+dnl PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true)
 if $have_icu_le; then
 	AC_DEFINE(HAVE_ICU_LE, 1, [Have ICU Layout Engine library])
 fi
