@@ -128,13 +128,26 @@ AM_CONDITIONAL(HAVE_HB_OLD, $have_hb_old)
 
 dnl ===========================================================================
 
-PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, have_glib=false)
+AC_ARG_WITH(glib,
+	[AS_HELP_STRING([--with-glib=@<:@yes/no/auto@:>@],
+			[Use glib @<:@default=yes@:>@])],,
+	[with_glib=yes])
+have_glib=false
+if test "x$with_glib" = "xyes" -o "x$with_glib" = "xauto"; then
+	PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true)
+fi
+if test "x$with_glib" = "xyes" -a "x$have_glib" != "xtrue"; then
+	AC_MSG_ERROR([glib support requested but glib-2.0 not found])
+fi
 if $have_glib; then
 	AC_DEFINE(HAVE_GLIB, 1, [Have glib2 library])
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
-PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0 >= 2.16, have_gobject=true, have_gobject=false)
+have_gobject=false
+if $have_glib; then
+	PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0 >= 2.16, have_gobject=true)
+fi
 if $have_gobject; then
 	AC_DEFINE(HAVE_GOBJECT, 1, [Have gobject2 library])
 	GLIB_MKENUMS=`$PKG_CONFIG --variable=glib_mkenums glib-2.0`
@@ -249,25 +262,35 @@ AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
 dnl ===========================================================================
 
-AC_MSG_CHECKING([for ScriptShapeOpenType in usp10])
-saved_LIBS=$LIBS
-LIBS="$LIBS -lusp10 -lgdi32"
-AC_LINK_IFELSE([AC_LANG_PROGRAM(
-	[[
-	 #define _WIN32_WINNT 0x0600
-	 #include <windows.h>
-	 #include <usp10.h>
-	 ]],
-	ScriptShapeOpenType)],
-	[have_uniscribe=true; AC_MSG_RESULT(yes)],
-	[have_uniscribe=false;AC_MSG_RESULT(no)])
-LIBS=$saved_LIBS
+AC_ARG_WITH(uniscribe,
+	[AS_HELP_STRING([--with-uniscribe=@<:@yes/no/auto@:>@],
+			[Use the Uniscribe library @<:@default=no@:>@])],,
+	[with_uniscribe=no])
+have_uniscribe=false
+if test "x$with_uniscribe" = "xyes" -o "x$with_uniscribe" = "xauto"; then
+	AC_MSG_CHECKING([for ScriptShapeOpenType in usp10])
+	saved_LIBS=$LIBS
+	LIBS="$LIBS -lusp10 -lgdi32"
+	AC_LINK_IFELSE([AC_LANG_PROGRAM(
+		[[
+		 #define _WIN32_WINNT 0x0600
+		 #include <windows.h>
+		 #include <usp10.h>
+		 ]],
+		ScriptShapeOpenType)],
+		[have_uniscribe=true; AC_MSG_RESULT(yes)],
+		[AC_MSG_RESULT(no)])
+	LIBS=$saved_LIBS
+fi
+if test "x$with_uniscribe" = "xyes" -a "x$have_uniscribe" != "xtrue"; then
+	AC_MSG_ERROR([uniscribe support requested but not found])
+fi
 if $have_uniscribe; then
 	UNISCRIBE_CFLAGS=
 	UNISCRIBE_LIBS="-lusp10 -lgdi32"
 	AC_SUBST(UNISCRIBE_CFLAGS)
 	AC_SUBST(UNISCRIBE_LIBS)
-	AC_DEFINE(HAVE_UNISCRIBE, 1, [Have Uniscribe backend])
+	AC_DEFINE(HAVE_UNISCRIBE, 1, [Have Uniscribe library])
 fi
 AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 
