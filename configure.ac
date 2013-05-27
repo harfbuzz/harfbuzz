@@ -247,7 +247,17 @@ AM_CONDITIONAL(HAVE_GRAPHITE2, $have_graphite2)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true, have_freetype=false)
+AC_ARG_WITH(freetype,
+	[AS_HELP_STRING([--with-freetype=@<:@yes/no/auto@:>@],
+			[Use the FreeType library @<:@default=auto@:>@])],,
+	[with_freetype=auto])
+have_freetype=false
+if test "x$with_freetype" = "xyes" -o "x$with_freetype" = "xauto"; then
+	PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true)
+fi
+if test "x$with_freetype" = "xyes" -a "x$have_freetype" != "xtrue"; then
+	AC_MSG_ERROR([FreeType support requested but libfreetype2 not found])
+fi
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
 	_save_libs="$LIBS"
