@@ -220,11 +220,21 @@ AM_CONDITIONAL(HAVE_ICU_LE, $have_icu_le)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite=true, have_graphite=false)
-if $have_graphite; then
-    AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite library])
+AC_ARG_WITH(graphite2,
+	[AS_HELP_STRING([--with-graphite2=@<:@yes/no/auto@:>@],
+			[Use the graphite2 library @<:@default=no@:>@])],,
+	[with_graphite2=no])
+have_graphite2=false
+if test "x$with_graphite2" = "xyes" -o "x$with_graphite2" = "xauto"; then
+	PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite2=true)
 fi
-AM_CONDITIONAL(HAVE_GRAPHITE2, $have_graphite)
+if test "x$with_graphite2" = "xyes" -a "x$have_graphite2" != "xtrue"; then
+	AC_MSG_ERROR([graphite2 support requested but libgraphite2 not found])
+fi
+if $have_graphite2; then
+    AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite2 library])
+fi
+AM_CONDITIONAL(HAVE_GRAPHITE2, $have_graphite2)
 
 dnl ==========================================================================
 
@@ -350,7 +360,7 @@ Tools used for command-line utilities:
 	Cairo:			${have_cairo}
 
 Additional shapers (the more the better):
-	Graphite2:		${have_graphite}
+	Graphite2:		${have_graphite2}
 
 Test / platform shapers (not normally needed):
 	CoreText:		${have_coretext}
