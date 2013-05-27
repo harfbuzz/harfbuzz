@@ -120,7 +120,7 @@ AM_CONDITIONAL(HAVE_OT, $have_ot)
 
 dnl ===========================================================================
 
-have_hb_old=true
+have_hb_old=false
 if $have_hb_old; then
 	AC_DEFINE(HAVE_HB_OLD, 1, [Have Old HarfBuzz backend])
 fi
