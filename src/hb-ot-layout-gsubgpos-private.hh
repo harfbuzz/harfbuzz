@@ -872,7 +872,11 @@ static inline void ligate_input (hb_apply_context_t *c,
   unsigned int components_so_far = last_num_components;
 
   if (!is_mark_ligature)
+  {
     set_lig_props_for_ligature (c->buffer->cur(), lig_id, total_component_count);
+    if (_hb_glyph_info_get_general_category (&c->buffer->cur()) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+      _hb_glyph_info_set_general_category (&c->buffer->cur(), HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER);
+  }
   c->replace_glyph (lig_glyph, klass);
 
   for (unsigned int i = 1; i < count; i++)

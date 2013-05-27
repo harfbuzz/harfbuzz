@@ -58,6 +58,12 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *uni
   info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
 }
 
+inline void
+_hb_glyph_info_set_general_category (hb_glyph_info_t *info, hb_unicode_general_category_t gen_cat)
+{
+  info->unicode_props0() = (unsigned int) gen_cat | ((info->unicode_props0()) & ~0x1F);
+}
+
 inline hb_unicode_general_category_t
 _hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
 {
