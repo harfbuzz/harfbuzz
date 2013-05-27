@@ -168,13 +168,26 @@ AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
 
 dnl ==========================================================================
 
-PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true, have_cairo=false)
+AC_ARG_WITH(cairo,
+	[AS_HELP_STRING([--with-cairo=@<:@yes/no/auto@:>@],
+			[Use cairo @<:@default=auto@:>@])],,
+	[with_cairo=auto])
+have_cairo=false
+if test "x$with_cairo" = "xyes" -o "x$with_cairo" = "xauto"; then
+	PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true)
+fi
+if test "x$with_cairo" = "xyes" -a "x$have_cairo" != "xtrue"; then
+	AC_MSG_ERROR([cairo support requested but not found])
+fi
 if $have_cairo; then
 	AC_DEFINE(HAVE_CAIRO, 1, [Have cairo graphics library])
 fi
 AM_CONDITIONAL(HAVE_CAIRO, $have_cairo)
 
-PKG_CHECK_MODULES(CAIRO_FT, cairo-ft, have_cairo_ft=true, have_cairo_ft=false)
+have_cairo_ft=false
+if $have_cairo; then
+	PKG_CHECK_MODULES(CAIRO_FT, cairo-ft, have_cairo_ft=true)
+fi
 if $have_cairo_ft; then
 	AC_DEFINE(HAVE_CAIRO_FT, 1, [Have cairo-ft support in cairo graphics library])
 fi
