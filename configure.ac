@@ -205,24 +205,6 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 dnl ==========================================================================
 
 PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true, have_icu_le=false)
-dnl Fallback to icu-config if ICU pkg-config files could not be found
-if test "$have_icu_le" != "true"; then
-	AC_CHECK_TOOL(ICU_CONFIG, icu-config, no)
-	AC_MSG_CHECKING([for ICU_LE by using icu-config fallback])
-	if test "$ICU_CONFIG" != "no" && "$ICU_CONFIG" --version >/dev/null; then
-		have_icu_le=true
-		# We don't use --cflags as this gives us a lot of things that we don't
-		# necessarily want, like debugging and optimization flags
-		# See man (1) icu-config for more info.
-		ICU_LE_CFLAGS=`$ICU_CONFIG --cppflags`
-		ICU_LE_LIBS=`$ICU_CONFIG --ldflags-searchpath --ldflags-libsonly --ldflags-layout`
-		AC_SUBST(ICU_LE_CFLAGS)
-		AC_SUBST(ICU_LE_LIBS)
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])
-	fi
-fi
 if $have_icu_le; then
 	AC_DEFINE(HAVE_ICU_LE, 1, [Have ICU Layout Engine library])
 fi
