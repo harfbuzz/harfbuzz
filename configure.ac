@@ -296,7 +296,17 @@ AM_CONDITIONAL(HAVE_UNISCRIBE, $have_uniscribe)
 
 dnl ===========================================================================
 
-AC_CHECK_TYPE(CTFontRef, have_coretext=true, have_coretext=false, [#include <ApplicationServices/ApplicationServices.h>])
+AC_ARG_WITH(coretext,
+	[AS_HELP_STRING([--with-coretext=@<:@yes/no/auto@:>@],
+			[Use CoreText @<:@default=no@:>@])],,
+	[with_coretext=no])
+have_coretext=false
+if test "x$with_coretext" = "xyes" -o "x$with_coretext" = "xauto"; then
+	AC_CHECK_TYPE(CTFontRef, have_coretext=true,, [#include <ApplicationServices/ApplicationServices.h>])
+fi
+if test "x$with_coretext" = "xyes" -a "x$have_coretext" != "xtrue"; then
+	AC_MSG_ERROR([CoreText support requested but libcoretext not found])
+fi
 if $have_coretext; then
 	CORETEXT_CFLAGS=
 	CORETEXT_LIBS="-framework ApplicationServices"
