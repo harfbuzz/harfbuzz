@@ -145,6 +145,9 @@ AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
 dnl ===========================================================================
 
 have_ucdn=true
+if $have_glib; then
+	have_ucdn=false
+fi
 if $have_ucdn; then
 	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
 fi
