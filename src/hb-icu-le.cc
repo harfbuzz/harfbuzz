@@ -30,10 +30,35 @@
 
 #include "hb-icu-le/PortableFontInstance.h"
 
-#include "layout/loengine.h"
-#include "unicode/unistr.h"
+#include <layout/LEScripts.h>
+#include <layout/loengine.h>
+#include <unicode/uscript.h>
+#include <unicode/unistr.h>
 
-#include "hb-icu.h"
+
+/* Duplicated here so we don't depend on hb-icu. */
+
+static hb_script_t
+_hb_icu_script_to_script (UScriptCode script)
+{
+  if (unlikely (script == USCRIPT_INVALID_CODE))
+    return HB_SCRIPT_INVALID;
+
+  return hb_script_from_string (uscript_getShortName (script), -1);
+}
+
+static UScriptCode
+_hb_icu_script_from_script (hb_script_t script)
+{
+  if (unlikely (script == HB_SCRIPT_INVALID))
+    return USCRIPT_INVALID_CODE;
+
+  for (unsigned int i = 0; i < USCRIPT_CODE_LIMIT; i++)
+    if (unlikely (_hb_icu_script_to_script ((UScriptCode) i) == script))
+      return (UScriptCode) i;
+
+  return USCRIPT_UNKNOWN;
+}
 
 
 /*
@@ -117,7 +142,7 @@ _hb_icu_le_shape (hb_shape_plan_t    *shape_plan,
 		  unsigned int        num_features)
 {
   LEFontInstance *font_instance = HB_SHAPER_DATA_GET (font);
-  le_int32 script_code = hb_icu_script_from_script (shape_plan->props.script);
+  le_int32 script_code = _hb_icu_script_from_script (shape_plan->props.script);
   le_int32 language_code = -1 /* TODO */;
   le_int32 typography_flags = 3; /* Needed for ligatures and kerning */
   LEErrorCode status = LE_NO_ERROR;
