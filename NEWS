@@ -1,3 +1,31 @@
+Overview of changes leading to 0.9.18
+Tuesday, May 28, 2013
+=====================================
+
+New build system:
+
+- All unneeded code is all disabled by default,
+
+- Uniscribe and CoreText shapers can be enabled with their --with options,
+
+- icu_le and old shapers cannot be enabled for now,
+
+- glib, freetype, and cairo will be detected automatically.
+  They can be force on/off'ed with their --with options,
+
+- icu and graphite2 are default off, can be enabled with their --with
+  options,
+
+Moreover, ICU support is now build into a separate library:
+libharfbuzz-icu.so, and a new harfbuzz-icu.pc is shipped for it.
+Distros can enable ICU now without every application on earth
+getting linked to via libharfbuzz.so.
+
+For distros I recommend that they make sure they are building --with-glib
+--with-freetype --with-cairo, --with-icu, and optionally --with-graphite2;
+And package harfbuzz and harfbuzz-icu separately.
+
+
 Overview of changes leading to 0.9.17
 Monday, May 20, 2013
 =====================================
