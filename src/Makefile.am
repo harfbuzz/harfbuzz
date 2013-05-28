@@ -217,6 +217,8 @@ libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
 nodist_pkginclude_HEADERS = $(HBNODISTHEADERS)
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = harfbuzz.pc
 
 if HAVE_ICU
 lib_LTLIBRARIES += libharfbuzz-icu.la
@@ -225,7 +227,18 @@ libharfbuzz_icu_la_CPPFLAGS = $(ICU_CFLAGS)
 libharfbuzz_icu_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 pkginclude_HEADERS += hb-icu.h
+pkgconfig_DATA += harfbuzz-icu.pc
 endif
+
+%.pc: %.pc.in $(top_builddir)/config.status
+	$(AM_V_GEN) \
+	cat "$<" | \
+	$(SED) -e 's@%prefix%@$(prefix)@g;' | \
+	$(SED) -e 's@%exec_prefix%@$(exec_prefix)@g;' | \
+	$(SED) -e 's@%libdir%@$(libdir)@g;' | \
+	$(SED) -e 's@%includedir%@$(includedir)@g;' | \
+	$(SED) -e 's@%VERSION%@$(VERSION)@g;' | \
+	cat > "$@.tmp" && mv "$@.tmp" "$@" || ( $(RM) "$@.tmp"; false )
 
 
 CLEANFILES += harfbuzz.def

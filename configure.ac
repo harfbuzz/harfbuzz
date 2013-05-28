@@ -6,10 +6,10 @@ AC_INIT([HarfBuzz],
         [http://harfbuzz.org/])
 
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([harfbuzz.pc.in])
+AC_CONFIG_SRCDIR([src/harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([1.11.1 gnits dist-bzip2 no-dist-gzip -Wall no-define color-tests])
+AM_INIT_AUTOMAKE([1.11.1 gnits dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
 AM_SILENT_RULES([yes])
 
 # Initialize libtool
@@ -370,7 +370,6 @@ dnl ===========================================================================
 
 AC_CONFIG_FILES([
 Makefile
-harfbuzz.pc
 src/Makefile
 src/hb-version.h
 src/hb-icu-le/Makefile
