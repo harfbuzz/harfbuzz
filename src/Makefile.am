@@ -219,6 +219,7 @@ pkginclude_HEADERS = $(HBHEADERS)
 nodist_pkginclude_HEADERS = $(HBNODISTHEADERS)
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
+EXTRA_DIST += harfbuzz.pc.in
 
 if HAVE_ICU
 lib_LTLIBRARIES += libharfbuzz-icu.la
@@ -228,6 +229,7 @@ libharfbuzz_icu_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_IN
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 pkginclude_HEADERS += hb-icu.h
 pkgconfig_DATA += harfbuzz-icu.pc
+EXTRA_DIST += harfbuzz-icu.pc.in
 endif
 
 %.pc: %.pc.in $(top_builddir)/config.status
@@ -239,6 +241,8 @@ endif
 	$(SED) -e 's@%includedir%@$(includedir)@g;' | \
 	$(SED) -e 's@%VERSION%@$(VERSION)@g;' | \
 	cat > "$@.tmp" && mv "$@.tmp" "$@" || ( $(RM) "$@.tmp"; false )
+
+CLEANFILES += $(pkgconfig_DATA)
 
 
 CLEANFILES += harfbuzz.def
