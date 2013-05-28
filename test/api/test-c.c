@@ -51,6 +51,10 @@
 #include <hb-uniscribe.h>
 #endif
 
+#ifdef HAVE_CORETEXT
+#include <hb-coretext.h>
+#endif
+
 int
 main (int argc, char **argv)
 {
