@@ -291,19 +291,7 @@ AC_ARG_WITH(uniscribe,
 	[with_uniscribe=no])
 have_uniscribe=false
 if test "x$with_uniscribe" = "xyes" -o "x$with_uniscribe" = "xauto"; then
-	AC_MSG_CHECKING([for ScriptShapeOpenType in usp10])
-	saved_LIBS=$LIBS
-	LIBS="$LIBS -lusp10 -lgdi32"
-	AC_LINK_IFELSE([AC_LANG_PROGRAM(
-		[[
-		 #define _WIN32_WINNT 0x0600
-		 #include <windows.h>
-		 #include <usp10.h>
-		 ]],
-		ScriptShapeOpenType)],
-		[have_uniscribe=true; AC_MSG_RESULT(yes)],
-		[AC_MSG_RESULT(no)])
-	LIBS=$saved_LIBS
+	AC_CHECK_HEADERS(usp10.h windows.h, have_uniscribe=true)
 fi
 if test "x$with_uniscribe" = "xyes" -a "x$have_uniscribe" != "xtrue"; then
 	AC_MSG_ERROR([uniscribe support requested but not found])

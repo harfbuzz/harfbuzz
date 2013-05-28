@@ -44,15 +44,215 @@
 #endif
 
 
-/*
-DWORD GetFontData(
-  __in   HDC hdc,
-  __in   DWORD dwTable,
-  __in   DWORD dwOffset,
-  __out  LPVOID lpvBuffer,
-  __in   DWORD cbData
+typedef HRESULT WINAPI (*SIOT) /*ScriptItemizeOpenType*/(
+  const WCHAR *pwcInChars,
+  int cInChars,
+  int cMaxItems,
+  const SCRIPT_CONTROL *psControl,
+  const SCRIPT_STATE *psState,
+  SCRIPT_ITEM *pItems,
+  OPENTYPE_TAG *pScriptTags,
+  int *pcItems
 );
-*/
+
+typedef HRESULT WINAPI (*SSOT) /*ScriptShapeOpenType*/(
+  HDC hdc,
+  SCRIPT_CACHE *psc,
+  SCRIPT_ANALYSIS *psa,
+  OPENTYPE_TAG tagScript,
+  OPENTYPE_TAG tagLangSys,
+  int *rcRangeChars,
+  TEXTRANGE_PROPERTIES **rpRangeProperties,
+  int cRanges,
+  const WCHAR *pwcChars,
+  int cChars,
+  int cMaxGlyphs,
+  WORD *pwLogClust,
+  SCRIPT_CHARPROP *pCharProps,
+  WORD *pwOutGlyphs,
+  SCRIPT_GLYPHPROP *pOutGlyphProps,
+  int *pcGlyphs
+);
+
+typedef HRESULT WINAPI (*SPOT) /*ScriptPlaceOpenType*/(
+  HDC hdc,
+  SCRIPT_CACHE *psc,
+  SCRIPT_ANALYSIS *psa,
+  OPENTYPE_TAG tagScript,
+  OPENTYPE_TAG tagLangSys,
+  int *rcRangeChars,
+  TEXTRANGE_PROPERTIES **rpRangeProperties,
+  int cRanges,
+  const WCHAR *pwcChars,
+  WORD *pwLogClust,
+  SCRIPT_CHARPROP *pCharProps,
+  int cChars,
+  const WORD *pwGlyphs,
+  const SCRIPT_GLYPHPROP *pGlyphProps,
+  int cGlyphs,
+  int *piAdvance,
+  GOFFSET *pGoffset,
+  ABC *pABC
+);
+
+
+/* Fallback implementations. */
+
+static HRESULT WINAPI
+hb_ScriptItemizeOpenType(
+  const WCHAR *pwcInChars,
+  int cInChars,
+  int cMaxItems,
+  const SCRIPT_CONTROL *psControl,
+  const SCRIPT_STATE *psState,
+  SCRIPT_ITEM *pItems,
+  OPENTYPE_TAG *pScriptTags,
+  int *pcItems
+)
+{
+{
+  return ScriptItemize (pwcInChars,
+			cInChars,
+			cMaxItems,
+			psControl,
+			psState,
+			pItems,
+			pcItems);
+}
+}
+
+static HRESULT WINAPI
+hb_ScriptShapeOpenType(
+  HDC hdc,
+  SCRIPT_CACHE *psc,
+  SCRIPT_ANALYSIS *psa,
+  OPENTYPE_TAG tagScript,
+  OPENTYPE_TAG tagLangSys,
+  int *rcRangeChars,
+  TEXTRANGE_PROPERTIES **rpRangeProperties,
+  int cRanges,
+  const WCHAR *pwcChars,
+  int cChars,
+  int cMaxGlyphs,
+  WORD *pwLogClust,
+  SCRIPT_CHARPROP *pCharProps,
+  WORD *pwOutGlyphs,
+  SCRIPT_GLYPHPROP *pOutGlyphProps,
+  int *pcGlyphs
+)
+{
+  SCRIPT_VISATTR *psva = (SCRIPT_VISATTR *) pOutGlyphProps;
+  return ScriptShape (hdc,
+		      psc,
+		      pwcChars,
+		      cChars,
+		      cMaxGlyphs,
+		      psa,
+		      pwOutGlyphs,
+		      pwLogClust,
+		      psva,
+		      pcGlyphs);
+}
+
+static HRESULT WINAPI
+hb_ScriptPlaceOpenType(
+  HDC hdc,
+  SCRIPT_CACHE *psc,
+  SCRIPT_ANALYSIS *psa,
+  OPENTYPE_TAG tagScript,
+  OPENTYPE_TAG tagLangSys,
+  int *rcRangeChars,
+  TEXTRANGE_PROPERTIES **rpRangeProperties,
+  int cRanges,
+  const WCHAR *pwcChars,
+  WORD *pwLogClust,
+  SCRIPT_CHARPROP *pCharProps,
+  int cChars,
+  const WORD *pwGlyphs,
+  const SCRIPT_GLYPHPROP *pGlyphProps,
+  int cGlyphs,
+  int *piAdvance,
+  GOFFSET *pGoffset,
+  ABC *pABC
+)
+{
+  SCRIPT_VISATTR *psva = (SCRIPT_VISATTR *) pGlyphProps;
+  return ScriptPlace (hdc,
+		      psc,
+		      pwGlyphs,
+		      cGlyphs,
+		      psva,
+		      psa,
+		      piAdvance,
+		      pGoffset,
+		      pABC);
+}
+
+
+struct hb_uniscribe_shaper_funcs_t {
+  SIOT ScriptItemizeOpenType;
+  SSOT ScriptShapeOpenType;
+  SPOT ScriptPlaceOpenType;
+
+  inline void init (void)
+  {
+    this->ScriptItemizeOpenType = NULL;
+    this->ScriptShapeOpenType   = NULL;
+    this->ScriptPlaceOpenType   = NULL;
+
+    HMODULE hinstLib = GetModuleHandle("usp10.dll");
+    if (hinstLib)
+    {
+      this->ScriptItemizeOpenType = (SIOT) GetProcAddress (hinstLib, "ScriptItemizeOpenType");
+      this->ScriptShapeOpenType   = (SSOT) GetProcAddress (hinstLib, "ScriptShapeOpenType");
+      this->ScriptPlaceOpenType   = (SPOT) GetProcAddress (hinstLib, "ScriptPlaceOpenType");
+    }
+    if (!this->ScriptItemizeOpenType ||
+	!this->ScriptShapeOpenType   ||
+	!this->ScriptPlaceOpenType)
+    {
+      DEBUG_MSG (UNISCRIBE, NULL, "OpenType versions of functions not found; falling back.");
+      this->ScriptItemizeOpenType = hb_ScriptItemizeOpenType;
+      this->ScriptShapeOpenType   = hb_ScriptShapeOpenType;
+      this->ScriptPlaceOpenType   = hb_ScriptPlaceOpenType;
+    }
+  }
+};
+static hb_uniscribe_shaper_funcs_t *uniscribe_funcs;
+
+static inline void
+free_uniscribe_funcs (void)
+{
+  free (uniscribe_funcs);
+}
+
+
+static hb_uniscribe_shaper_funcs_t *
+hb_uniscribe_shaper_get_funcs (void)
+{
+retry:
+  hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) hb_atomic_ptr_get (&uniscribe_funcs);
+
+  if (unlikely (!funcs))
+  {
+    funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
+    if (unlikely (!funcs))
+      return NULL;
+
+    funcs->init ();
+
+    if (!hb_atomic_ptr_cmpexch (&uniscribe_funcs, NULL, funcs)) {
+      free (funcs);
+      goto retry;
+    }
+
+#ifdef HAVE_ATEXIT
+    atexit (free_uniscribe_funcs); /* First person registers atexit() callback. */
+#endif
+  }
+
+  return funcs;
+}
 
 
 HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, face)
@@ -65,6 +265,7 @@ HB_SHAPER_DATA_ENSURE_DECLARE(uniscribe, font)
 
 struct hb_uniscribe_shaper_face_data_t {
   HANDLE fh;
+  hb_uniscribe_shaper_funcs_t *funcs;
 };
 
 hb_uniscribe_shaper_face_data_t *
@@ -73,6 +274,13 @@ _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
   hb_uniscribe_shaper_face_data_t *data = (hb_uniscribe_shaper_face_data_t *) calloc (1, sizeof (hb_uniscribe_shaper_face_data_t));
   if (unlikely (!data))
     return NULL;
+
+  data->funcs = hb_uniscribe_shaper_get_funcs ();
+  if (unlikely (!data->funcs))
+  {
+    free (data);
+    return NULL;
+  }
 
   hb_blob_t *blob = hb_face_reference_blob (face);
   unsigned int blob_length;
@@ -240,6 +448,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
   hb_face_t *face = font->face;
   hb_uniscribe_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
   hb_uniscribe_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
+  hb_uniscribe_shaper_funcs_t *funcs = face_data->funcs;
 
 #define FAIL(...) \
   HB_STMT_START { \
@@ -291,9 +500,18 @@ retry:
 
   ALLOCATE_ARRAY (WORD, glyphs, glyphs_size);
   ALLOCATE_ARRAY (SCRIPT_GLYPHPROP, glyph_props, glyphs_size);
+  ALLOCATE_ARRAY (SCRIPT_VISATTR, vis_attr, glyphs_size);
   ALLOCATE_ARRAY (int, advances, glyphs_size);
   ALLOCATE_ARRAY (GOFFSET, offsets, glyphs_size);
   ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
+
+  /* Note:
+   * We can't touch the contents of glyph_props.  Our fallback
+   * implementations of Shape and Place functions use that buffer
+   * by casting it to a different type.  It works because they
+   * both agree about it, but if we want to access it here we
+   * need address that issue first.
+   */
 
 #undef ALLOCATE_ARRAY
 
@@ -312,14 +530,14 @@ retry:
   bidi_state.uBidiLevel = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
   bidi_state.fOverrideDirection = 1;
 
-  hr = ScriptItemizeOpenType (wchars,
-			      chars_len,
-			      MAX_ITEMS,
-			      &bidi_control,
-			      &bidi_state,
-			      items,
-			      script_tags,
-			      &item_count);
+  hr = funcs->ScriptItemizeOpenType (wchars,
+				     chars_len,
+				     MAX_ITEMS,
+				     &bidi_control,
+				     &bidi_state,
+				     items,
+				     script_tags,
+				     &item_count);
   if (unlikely (FAILED (hr)))
     FAIL ("ScriptItemizeOpenType() failed: 0x%08xL", hr);
 
@@ -344,23 +562,23 @@ retry:
     unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
 
   retry_shape:
-    hr = ScriptShapeOpenType (font_data->hdc,
-			      &font_data->script_cache,
-			      &items[i].a,
-			      script_tags[i],
-			      language_tag,
-			      range_char_counts,
-			      range_properties,
-			      range_count,
-			      wchars + chars_offset,
-			      item_chars_len,
-			      glyphs_size - glyphs_offset,
-			      /* out */
-			      log_clusters + chars_offset,
-			      char_props + chars_offset,
-			      glyphs + glyphs_offset,
-			      glyph_props + glyphs_offset,
-			      (int *) &glyphs_len);
+    hr = funcs->ScriptShapeOpenType (font_data->hdc,
+				     &font_data->script_cache,
+				     &items[i].a,
+				     script_tags[i],
+				     language_tag,
+				     range_char_counts,
+				     range_properties,
+				     range_count,
+				     wchars + chars_offset,
+				     item_chars_len,
+				     glyphs_size - glyphs_offset,
+				     /* out */
+				     log_clusters + chars_offset,
+				     char_props + chars_offset,
+				     glyphs + glyphs_offset,
+				     glyph_props + glyphs_offset,
+				     (int *) &glyphs_len);
 
     if (unlikely (items[i].a.fNoGlyphIndex))
       FAIL ("ScriptShapeOpenType() set fNoGlyphIndex");
@@ -386,25 +604,25 @@ retry:
     for (unsigned int j = chars_offset; j < chars_offset + item_chars_len; j++)
       log_clusters[j] += glyphs_offset;
 
-    hr = ScriptPlaceOpenType (font_data->hdc,
-			      &font_data->script_cache,
-			      &items[i].a,
-			      script_tags[i],
-			      language_tag,
-			      range_char_counts,
-			      range_properties,
-			      range_count,
-			      wchars + chars_offset,
-			      log_clusters + chars_offset,
-			      char_props + chars_offset,
-			      item_chars_len,
-			      glyphs + glyphs_offset,
-			      glyph_props + glyphs_offset,
-			      glyphs_len,
-			      /* out */
-			      advances + glyphs_offset,
-			      offsets + glyphs_offset,
-			      NULL);
+    hr = funcs->ScriptPlaceOpenType (font_data->hdc,
+				     &font_data->script_cache,
+				     &items[i].a,
+				     script_tags[i],
+				     language_tag,
+				     range_char_counts,
+				     range_properties,
+				     range_count,
+				     wchars + chars_offset,
+				     log_clusters + chars_offset,
+				     char_props + chars_offset,
+				     item_chars_len,
+				     glyphs + glyphs_offset,
+				     glyph_props + glyphs_offset,
+				     glyphs_len,
+				     /* out */
+				     advances + glyphs_offset,
+				     offsets + glyphs_offset,
+				     NULL);
     if (unlikely (FAILED (hr)))
       FAIL ("ScriptPlaceOpenType() failed: 0x%08xL", hr);
 
