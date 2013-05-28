@@ -137,13 +137,6 @@ hb-gobject-enums.cc: hb-gobject-enums.cc.tmpl $(HBHEADERS)
 	mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
 endif
 
-if HAVE_ICU
-HBCFLAGS += $(ICU_CFLAGS)
-HBLIBS   += $(ICU_LIBS)
-HBSOURCES += hb-icu.cc
-HBHEADERS += hb-icu.h
-endif
-
 if HAVE_FREETYPE
 HBCFLAGS += $(FREETYPE_CFLAGS)
 HBLIBS   += $(FREETYPE_LIBS)
@@ -204,7 +197,7 @@ export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
 else
-if HAVE_ICU
+if HAVE_ICU_LE
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
 else
 # Use a C linker for GCC, not C++; Don't link to libstdc++
@@ -224,6 +217,16 @@ libharfbuzz_la_LIBADD = $(HBLIBS)
 EXTRA_libharfbuzz_la_DEPENDENCIES = $(harfbuzz_def_dependency)
 pkginclude_HEADERS = $(HBHEADERS)
 nodist_pkginclude_HEADERS = $(HBNODISTHEADERS)
+
+if HAVE_ICU
+lib_LTLIBRARIES += libharfbuzz-icu.la
+libharfbuzz_icu_la_SOURCES = hb-icu.cc
+libharfbuzz_icu_la_CPPFLAGS = $(ICU_CFLAGS)
+libharfbuzz_icu_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
+libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
+pkginclude_HEADERS += hb-icu.h
+endif
+
 
 CLEANFILES += harfbuzz.def
 harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
@@ -313,14 +316,12 @@ dist_check_SCRIPTS = \
 	check-symbols.sh \
 	$(NULL)
 
-if HAVE_ICU
-else
-dist_check_SCRIPTS += check-libstdc++.sh
-endif
-
 if HAVE_ICU_LE
 else
-dist_check_SCRIPTS += check-static-inits.sh
+dist_check_SCRIPTS += \
+	check-libstdc++.sh \
+	check-static-inits.sh \
+	$(NULL)
 endif
 
 TESTS = $(dist_check_SCRIPTS)

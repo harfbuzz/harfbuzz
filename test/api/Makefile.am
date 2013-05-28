@@ -33,6 +33,7 @@ test_unicode_CPPFLAGS += $(GLIB_CFLAGS)
 endif
 if HAVE_ICU
 test_unicode_CPPFLAGS += $(ICU_CFLAGS)
+test_unicode_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-icu.la
 endif
 
 
