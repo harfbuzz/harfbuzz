@@ -23,17 +23,17 @@ General fixes:
 API issues to fix before 1.0:
 ============================
 
-- API to accept a list of languages.
-
-- Add default font_funcs / Unicode funcs API and to utils.
+- API to accept a list of languages?
 
 - Add init_func to font_funcs.  Adjust ft.
+
+- hb-ft load_flags issues.
+
+- get_glyph() / get_glyph_variant()?
 
 - Add pkg-config files for glue codes (harfbuzz-glib, etc)
 
 - 'const' for getter APIs? (use mutable internally)
-
-- blob_from_file?
 
 
 API additions
@@ -41,7 +41,7 @@ API additions
 
 - Language to/from script.
 
-- Buffer (de)serialize API ala hb-shape?
+- blob_from_file?
 
 - Add hb-cairo glue
 
@@ -53,7 +53,7 @@ API additions
 
 - Add hb_font_create_linear()?
 
-- Add query API for aalt-like features?
+- Add query / enumeration API for aalt-like features?
 
 - SFNT api? get_num_faces? get_table_tags? (there's something in stash)
 
