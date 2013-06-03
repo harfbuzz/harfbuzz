@@ -16,7 +16,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include "ucdn.h"
 
 typedef struct {
