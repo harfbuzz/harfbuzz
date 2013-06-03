@@ -44,7 +44,7 @@
 #endif
 
 
-typedef HRESULT WINAPI (*SIOT) /*ScriptItemizeOpenType*/(
+typedef HRESULT (WINAPI *SIOT) /*ScriptItemizeOpenType*/(
   const WCHAR *pwcInChars,
   int cInChars,
   int cMaxItems,
@@ -55,7 +55,7 @@ typedef HRESULT WINAPI (*SIOT) /*ScriptItemizeOpenType*/(
   int *pcItems
 );
 
-typedef HRESULT WINAPI (*SSOT) /*ScriptShapeOpenType*/(
+typedef HRESULT (WINAPI *SSOT) /*ScriptShapeOpenType*/(
   HDC hdc,
   SCRIPT_CACHE *psc,
   SCRIPT_ANALYSIS *psa,
@@ -74,7 +74,7 @@ typedef HRESULT WINAPI (*SSOT) /*ScriptShapeOpenType*/(
   int *pcGlyphs
 );
 
-typedef HRESULT WINAPI (*SPOT) /*ScriptPlaceOpenType*/(
+typedef HRESULT (WINAPI *SPOT) /*ScriptPlaceOpenType*/(
   HDC hdc,
   SCRIPT_CACHE *psc,
   SCRIPT_ANALYSIS *psa,
@@ -196,11 +196,12 @@ struct hb_uniscribe_shaper_funcs_t {
 
   inline void init (void)
   {
+    HMODULE hinstLib;
     this->ScriptItemizeOpenType = NULL;
     this->ScriptShapeOpenType   = NULL;
     this->ScriptPlaceOpenType   = NULL;
 
-    HMODULE hinstLib = GetModuleHandle("usp10.dll");
+    hinstLib = GetModuleHandle("usp10.dll");
     if (hinstLib)
     {
       this->ScriptItemizeOpenType = (SIOT) GetProcAddress (hinstLib, "ScriptItemizeOpenType");
