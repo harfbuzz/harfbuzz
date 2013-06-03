@@ -41,6 +41,17 @@
 #include <unistd.h> /* for isatty() */
 #endif
 
+#ifdef _MSC_VER
+static inline long int
+lround (double x)
+{
+  if (x >= 0)
+    return floor (x + 0.5);
+  else
+    return ceil (x - 0.5);
+}
+#endif
+
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 #define CELL_W 8
