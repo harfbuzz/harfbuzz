@@ -134,7 +134,7 @@ AC_ARG_WITH(glib,
 	[with_glib=auto])
 have_glib=false
 if test "x$with_glib" = "xyes" -o "x$with_glib" = "xauto"; then
-	PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true)
+	PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.16, have_glib=true, :)
 fi
 if test "x$with_glib" = "xyes" -a "x$have_glib" != "xtrue"; then
 	AC_MSG_ERROR([glib support requested but glib-2.0 not found])
@@ -146,7 +146,7 @@ AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
 have_gobject=false
 if $have_glib; then
-	PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0 >= 2.16, have_gobject=true)
+	PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0 >= 2.16, have_gobject=true, :)
 fi
 if $have_gobject; then
 	AC_DEFINE(HAVE_GOBJECT, 1, [Have gobject2 library])
@@ -174,7 +174,7 @@ AC_ARG_WITH(cairo,
 	[with_cairo=auto])
 have_cairo=false
 if test "x$with_cairo" = "xyes" -o "x$with_cairo" = "xauto"; then
-	PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true)
+	PKG_CHECK_MODULES(CAIRO, cairo >= 1.8.0, have_cairo=true, :)
 fi
 if test "x$with_cairo" = "xyes" -a "x$have_cairo" != "xtrue"; then
 	AC_MSG_ERROR([cairo support requested but not found])
@@ -186,7 +186,7 @@ AM_CONDITIONAL(HAVE_CAIRO, $have_cairo)
 
 have_cairo_ft=false
 if $have_cairo; then
-	PKG_CHECK_MODULES(CAIRO_FT, cairo-ft, have_cairo_ft=true)
+	PKG_CHECK_MODULES(CAIRO_FT, cairo-ft, have_cairo_ft=true, :)
 fi
 if $have_cairo_ft; then
 	AC_DEFINE(HAVE_CAIRO_FT, 1, [Have cairo-ft support in cairo graphics library])
@@ -201,7 +201,7 @@ AC_ARG_WITH(icu,
 	[with_icu=auto])
 have_icu=false
 if test "x$with_icu" = "xyes" -o "x$with_icu" = "xauto"; then
-	PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false)
+	PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false, :)
 
 	dnl Fallback to icu-config if ICU pkg-config files could not be found
 	if test "$have_icu" != "true"; then
@@ -234,7 +234,7 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 dnl ==========================================================================
 
 have_icu_le=false
-dnl PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true)
+dnl PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true, :)
 if $have_icu_le; then
 	AC_DEFINE(HAVE_ICU_LE, 1, [Have ICU Layout Engine library])
 fi
@@ -248,7 +248,7 @@ AC_ARG_WITH(graphite2,
 	[with_graphite2=no])
 have_graphite2=false
 if test "x$with_graphite2" = "xyes" -o "x$with_graphite2" = "xauto"; then
-	PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite2=true)
+	PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite2=true, :)
 fi
 if test "x$with_graphite2" = "xyes" -a "x$have_graphite2" != "xtrue"; then
 	AC_MSG_ERROR([graphite2 support requested but libgraphite2 not found])
@@ -266,7 +266,7 @@ AC_ARG_WITH(freetype,
 	[with_freetype=auto])
 have_freetype=false
 if test "x$with_freetype" = "xyes" -o "x$with_freetype" = "xauto"; then
-	PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true)
+	PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true, :)
 fi
 if test "x$with_freetype" = "xyes" -a "x$have_freetype" != "xtrue"; then
 	AC_MSG_ERROR([FreeType support requested but libfreetype2 not found])
