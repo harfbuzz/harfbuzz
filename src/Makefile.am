@@ -234,13 +234,13 @@ endif
 
 %.pc: %.pc.in $(top_builddir)/config.status
 	$(AM_V_GEN) \
-	cat "$<" | \
-	$(SED) -e 's@%prefix%@$(prefix)@g;' | \
-	$(SED) -e 's@%exec_prefix%@$(exec_prefix)@g;' | \
-	$(SED) -e 's@%libdir%@$(libdir)@g;' | \
-	$(SED) -e 's@%includedir%@$(includedir)@g;' | \
-	$(SED) -e 's@%VERSION%@$(VERSION)@g;' | \
-	cat > "$@.tmp" && mv "$@.tmp" "$@" || ( $(RM) "$@.tmp"; false )
+	$(SED)	-e 's@%prefix%@$(prefix)@g' \
+		-e 's@%exec_prefix%@$(exec_prefix)@g' \
+		-e 's@%libdir%@$(libdir)@g' \
+		-e 's@%includedir%@$(includedir)@g' \
+		-e 's@%VERSION%@$(VERSION)@g' \
+	"$<" \
+	> "$@.tmp" && mv "$@.tmp" "$@" || ( $(RM) "$@.tmp"; false )
 
 CLEANFILES += $(pkgconfig_DATA)
 
