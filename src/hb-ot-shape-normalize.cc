@@ -219,6 +219,12 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c, uns
       /* The next two lines are some ugly lines... But work. */
       c->font->get_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &buffer->cur().glyph_index());
       buffer->replace_glyphs (2, 1, &buffer->cur().codepoint);
+      /* Skip any further variation selectors. */
+      while (buffer->idx < end && unlikely (buffer->unicode->is_variation_selector (buffer->cur().codepoint)))
+      {
+	set_glyph (buffer->cur(), c->font);
+	buffer->next_glyph ();
+      }
     } else {
       set_glyph (buffer->cur(), c->font);
       buffer->next_glyph ();
