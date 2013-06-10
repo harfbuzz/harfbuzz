@@ -201,7 +201,7 @@ AC_ARG_WITH(icu,
 	[with_icu=auto])
 have_icu=false
 if test "x$with_icu" = "xyes" -o "x$with_icu" = "xauto"; then
-	PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, have_icu=false, :)
+	PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, :)
 
 	dnl Fallback to icu-config if ICU pkg-config files could not be found
 	if test "$have_icu" != "true"; then
