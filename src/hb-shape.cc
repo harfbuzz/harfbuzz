@@ -197,7 +197,7 @@ hb_feature_to_string (hb_feature_t *feature,
   assert (len < ARRAY_LENGTH (s));
   len = MIN (len, size - 1);
   memcpy (buf, s, len);
-  s[len] = '\0';
+  buf[len] = '\0';
 }
 
 

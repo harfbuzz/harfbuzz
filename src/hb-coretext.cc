@@ -178,7 +178,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
                     unsigned int        num_features)
 {
   hb_face_t *face = font->face;
-  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
   hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
 
 #define FAIL(...) \
@@ -232,7 +231,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   CFArrayRef glyph_runs = CTLineGetGlyphRuns (line);
   unsigned int num_runs = CFArrayGetCount (glyph_runs);
 
-  bool success = true;
   buffer->len = 0;
 
   const CFRange range_all = CFRangeMake (0, 0);
@@ -287,7 +285,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       double advance = (j + 1 < num_glyphs ? positions[j + 1].x : positions[0].x + run_width) - positions[j].x;
 
       hb_glyph_info_t *info = &buffer->info[buffer->len];
-      hb_glyph_position_t *pos = &buffer->pos[buffer->len];
 
       info->codepoint = glyphs[j];
       info->cluster = string_indices[j];

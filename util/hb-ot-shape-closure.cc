@@ -79,8 +79,9 @@ struct shape_closure_consumer_t : option_group_t
 	first = false;
       else
 	printf (" ");
-      char glyph_name[32];
-      if (show_glyph_names) {
+      if (show_glyph_names)
+      {
+	char glyph_name[64];
 	hb_font_get_glyph_name (font, i, glyph_name, sizeof (glyph_name));
 	printf ("%s", glyph_name);
       } else

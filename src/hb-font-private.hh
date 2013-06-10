@@ -336,16 +336,21 @@ struct hb_font_t {
 					      hb_direction_t direction,
 					      hb_position_t *x, hb_position_t *y)
   {
-    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction))) {
-      hb_bool_t ret = get_glyph_h_origin (glyph, x, y);
-      if (!ret && (ret = get_glyph_v_origin (glyph, x, y))) {
+    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+    {
+      if (!get_glyph_h_origin (glyph, x, y) &&
+	   get_glyph_v_origin (glyph, x, y))
+      {
 	hb_position_t dx, dy;
 	guess_v_origin_minus_h_origin (glyph, &dx, &dy);
 	*x -= dx; *y -= dy;
       }
-    } else {
-      hb_bool_t ret = get_glyph_v_origin (glyph, x, y);
-      if (!ret && (ret = get_glyph_h_origin (glyph, x, y))) {
+    }
+    else
+    {
+      if (!get_glyph_v_origin (glyph, x, y) &&
+	   get_glyph_h_origin (glyph, x, y))
+      {
 	hb_position_t dx, dy;
 	guess_v_origin_minus_h_origin (glyph, &dx, &dy);
 	*x += dx; *y += dy;

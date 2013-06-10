@@ -136,7 +136,6 @@ _test_font_nil_funcs (hb_font_t *font)
   g_assert (!hb_font_get_glyph (font, 17, 2, &glyph));
   g_assert_cmpint (glyph, ==, 0);
 
-  x = 13;
   x = hb_font_get_glyph_h_kerning (font, 17, 19);
   g_assert_cmpint (x, ==, 0);
 }

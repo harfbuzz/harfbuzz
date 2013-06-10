@@ -157,6 +157,7 @@ struct biimage_t
   biimage_t (unsigned int width, unsigned int height) :
 		width (width),
 		height (height),
+		bg (0), fg (0), unicolor (true),
 		data ((uint8_t *) malloc (sizeof (data[0]) * width * height)) {}
   ~biimage_t (void)
   { free (data); }

@@ -33,7 +33,10 @@ struct output_buffer_t
   output_buffer_t (option_parser_t *parser)
 		  : options (parser,
 			     g_strjoinv ("/", (gchar**) hb_buffer_serialize_list_formats ())),
-		    format (parser) {}
+		    format (parser),
+		    gs (NULL),
+		    line_no (0),
+		    font (NULL) {}
 
   void init (const font_options_t *font_opts)
   {

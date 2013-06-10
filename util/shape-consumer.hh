@@ -34,8 +34,10 @@ template <typename output_t>
 struct shape_consumer_t
 {
   shape_consumer_t (option_parser_t *parser)
-		  : shaper (parser),
-		    output (parser) {}
+		  : failed (false),
+		    shaper (parser),
+		    output (parser),
+		    font (NULL) {}
 
   void init (const font_options_t *font_opts)
   {

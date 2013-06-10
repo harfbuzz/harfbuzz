@@ -243,8 +243,8 @@ hb_language_from_string (const char *str, int len)
   if (!str || !len || !*str)
     return HB_LANGUAGE_INVALID;
 
-  char strbuf[32];
   if (len >= 0) {
+    char strbuf[64];
     len = MIN (len, (int) sizeof (strbuf) - 1);
     str = (char *) memcpy (strbuf, str, len);
     strbuf[len] = '\0';
