@@ -73,8 +73,7 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
 #ifdef HAVE_FT_FACE_GETCHARVARIANTINDEX
   if (unlikely (variation_selector)) {
     *glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
-    if (*glyph)
-      return true;
+    return *glyph != 0;
   }
 #endif
 
