@@ -51,6 +51,13 @@ Module["hb_tag_t"] = hb_tag_t = uint32_t
 
 Module["hb_direction_t"] = hb_direction_t = Enumeration
 
+# hb_direction_t
+Module["HB_DIRECTION_INVALID"] = HB_DIRECTION_INVALID = 0;
+Module["HB_DIRECTION_LTR"] = HB_DIRECTION_LTR = 4;
+Module["HB_DIRECTION_RTL"] = HB_DIRECTION_RTL = 5;
+Module["HB_DIRECTION_TTB"] = HB_DIRECTION_TTB = 6;
+Module["HB_DIRECTION_BTT"] = HB_DIRECTION_BTT = 7;
+
 Module["hb_script_t"] = hb_script_t = Enumeration
 
 hb_user_data_key_t = typedef "hb_user_data_key_t", struct {
