@@ -96,11 +96,35 @@ task compileJsConnector(type: com.prezi.gradle.task.CompileCoffee) {
 	outputDir = file("${project.buildDir}/compiled-coffee")
 }
 
+task generateUcdnJs {
+	def input = file("src/hb-ucdn/ucdn.h")
+	def output = file("${project.buildDir}/ucdn.js")
+	inputs.file input
+	outputs.file output
+
+	doLast {
+		output.withWriter { writer ->
+			input.withReader { reader ->
+				while (true) {
+					def line = reader.readLine()
+					if (line == null) break
+					def matches = line =~ /#define (UCDN_[A-Z0-9_]+) (\d+)/
+					if (matches) {
+						writer.println "Module[\"${matches[0][1]}\"] = ${matches[0][1]} = ${matches[0][2]};"
+					}
+				}
+			}
+		}
+	}
+}
+
 task combineJsConnector(type: com.eriwen.gradle.js.tasks.CombineJsTask) {
     dependsOn compileJsConnector
+    dependsOn generateUcdnJs
 
     source new File(compileJsConnector.outputDir, "connector.js")
     source new File(compileJsConnector.outputDir, "hb-js.js")
+    source generateUcdnJs.outputs
 
     dest = file("${buildDir}/post.js")
 }
