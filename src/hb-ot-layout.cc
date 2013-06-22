@@ -82,10 +82,6 @@ _hb_ot_layout_create (hb_face_t *face)
 void
 _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 {
-  hb_blob_destroy (layout->gdef_blob);
-  hb_blob_destroy (layout->gsub_blob);
-  hb_blob_destroy (layout->gpos_blob);
-
   for (unsigned int i = 0; i < layout->gsub_lookup_count; i++)
     layout->gsub_accels[i].fini (layout->gsub->get_lookup (i));
   for (unsigned int i = 0; i < layout->gpos_lookup_count; i++)
@@ -93,6 +89,10 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
 
   free (layout->gsub_accels);
   free (layout->gpos_accels);
+
+  hb_blob_destroy (layout->gdef_blob);
+  hb_blob_destroy (layout->gsub_blob);
+  hb_blob_destroy (layout->gpos_blob);
 
   free (layout);
 }
