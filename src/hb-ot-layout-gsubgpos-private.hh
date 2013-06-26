@@ -1009,15 +1009,12 @@ static inline bool apply_lookup (hb_apply_context_t *c,
   unsigned int i = 0;
   if (lookupCount && 0 == lookupRecord->sequenceIndex)
   {
-    unsigned int old_pos = c->buffer->idx;
-
     /* Apply a lookup */
     bool done = c->recurse (lookupRecord->lookupListIndex);
 
     lookupRecord++;
     lookupCount--;
-    /* Err, this is wrong if the lookup jumped over some glyphs */
-    i += c->buffer->idx - old_pos;
+    i++;
 
     if (!done)
       goto not_applied;
@@ -1044,15 +1041,12 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
     {
-      unsigned int old_pos = c->buffer->idx;
-
       /* Apply a lookup */
       bool done = c->recurse (lookupRecord->lookupListIndex);
 
       lookupRecord++;
       lookupCount--;
-      /* Err, this is wrong if the lookup jumped over some glyphs */
-      i += c->buffer->idx - old_pos;
+      i++;
 
       if (!done)
 	goto not_applied2;
