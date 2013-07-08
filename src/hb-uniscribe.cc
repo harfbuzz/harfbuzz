@@ -501,7 +501,6 @@ retry:
 
   ALLOCATE_ARRAY (WORD, glyphs, glyphs_size);
   ALLOCATE_ARRAY (SCRIPT_GLYPHPROP, glyph_props, glyphs_size);
-  ALLOCATE_ARRAY (SCRIPT_VISATTR, vis_attr, glyphs_size);
   ALLOCATE_ARRAY (int, advances, glyphs_size);
   ALLOCATE_ARRAY (GOFFSET, offsets, glyphs_size);
   ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
