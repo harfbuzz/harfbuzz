@@ -1009,6 +1009,8 @@ static inline bool apply_lookup (hb_apply_context_t *c,
   unsigned int i = 0;
   if (lookupCount && 0 == lookupRecord->sequenceIndex)
   {
+    unsigned int old_pos = c->buffer->idx;
+
     /* Apply a lookup */
     bool done = c->recurse (lookupRecord->lookupListIndex);
 
@@ -1020,6 +1022,8 @@ static inline bool apply_lookup (hb_apply_context_t *c,
       goto not_applied;
     else
     {
+      if (c->table_index == 1)
+        c->buffer->idx = old_pos + 1;
       /* Reinitialize iterator. */
       hb_apply_context_t::skipping_forward_iterator_t tmp (c, c->buffer->idx - 1, count - i);
       tmp.set_syllable (syllable);
@@ -1041,6 +1045,8 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 
     if (lookupCount && i == lookupRecord->sequenceIndex)
     {
+      unsigned int old_pos = c->buffer->idx;
+
       /* Apply a lookup */
       bool done = c->recurse (lookupRecord->lookupListIndex);
 
@@ -1052,6 +1058,8 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 	goto not_applied2;
       else
       {
+	if (c->table_index == 1)
+	  c->buffer->idx = old_pos + 1;
         /* Reinitialize iterator. */
 	hb_apply_context_t::skipping_forward_iterator_t tmp (c, c->buffer->idx - 1, count - i);
 	tmp.set_syllable (syllable);
