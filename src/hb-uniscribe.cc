@@ -272,20 +272,18 @@ struct hb_uniscribe_shaper_face_data_t {
   wchar_t face_name[LF_FACESIZE];
 };
 
-/* Destroys blob. */
-static hb_blob_t *
-_hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
+/* face_name should point to a wchar_t[LF_FACESIZE] object. */
+static void
+_hb_generate_unique_face_name (wchar_t *face_name, unsigned int *plen)
 {
-  unsigned int length, new_length = 0;
-  const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
   /* We'll create a private name for the font from a UUID using a simple,
    * somewhat base64-like encoding scheme */
   const char *enc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
   UUID id;
   UuidCreate ((UUID*) &id);
   unsigned int name_str_len = 0;
-  new_name[name_str_len++] = 'F';
-  new_name[name_str_len++] = '_';
+  face_name[name_str_len++] = 'F';
+  face_name[name_str_len++] = '_';
   unsigned char *p = (unsigned char *) &id;
   for (unsigned int i = 0; i < 16; i += 2)
   {
@@ -294,11 +292,23 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
      * This will generate 24 characters; with the 'F_' prefix we already provided,
      * the name will be 26 chars (plus the NUL terminator), so will always fit within
      * face_name (LF_FACESIZE = 32). */
-    new_name[name_str_len++] = enc[p[i] >> 3];
-    new_name[name_str_len++] = enc[((p[i] << 2) | (p[i + 1] >> 6)) & 0x1f];
-    new_name[name_str_len++] = enc[p[i + 1] & 0x3f];
+    face_name[name_str_len++] = enc[p[i] >> 3];
+    face_name[name_str_len++] = enc[((p[i] << 2) | (p[i + 1] >> 6)) & 0x1f];
+    face_name[name_str_len++] = enc[p[i + 1] & 0x3f];
   }
-  new_name[name_str_len] = 0;
+  face_name[name_str_len] = 0;
+  if (plen)
+    *plen = name_str_len;
+}
+
+/* Destroys blob. */
+static hb_blob_t *
+_hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
+{
+  unsigned int length, new_length, name_str_len;
+  const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
+
+  _hb_generate_unique_face_name (new_name, &name_str_len);
 
   /* Create a copy of the font data, with the 'name' table replaced by a table
    * that names the font with our private F_* name created above.
@@ -328,7 +338,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 
   unsigned char *name_table_data = (unsigned char *) (new_sfnt_data + name_table_offset);
 
-  p = name_table_data;
+  unsigned char *p = name_table_data;
   *p++ = 0x00; *p++ = 0x00; /* format = 0 */
   *p++ = 0x00; *p++ = name_count; /* number of name records */
   *p++ = 0x00; *p++ = name_header_size + name_count * name_record_size; /* offset to string data */
