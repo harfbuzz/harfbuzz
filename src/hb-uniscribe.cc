@@ -272,10 +272,12 @@ struct hb_uniscribe_shaper_face_data_t {
   wchar_t face_name[LF_FACESIZE];
 };
 
-static char *
-_hb_rename_font (const char *orig_sfnt_data, unsigned int length,
-                 unsigned int *new_length, wchar_t *new_name)
+/* Destroys blob. */
+static hb_blob_t *
+_hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 {
+  unsigned int length, new_length = 0;
+  const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
   /* We'll create a private name for the font from a UUID using a simple,
    * somewhat base64-like encoding scheme */
   const char *enc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
@@ -317,8 +319,8 @@ _hb_rename_font (const char *orig_sfnt_data, unsigned int length,
 
   unsigned int name_table_offset = (length + 3) & ~3;
 
-  *new_length = name_table_offset + (name_table_length + 3) & ~3;
-  char *new_sfnt_data = (char *) calloc (1, *new_length);
+  new_length = name_table_offset + (name_table_length + 3) & ~3;
+  char *new_sfnt_data = (char *) calloc (1, new_length);
   if (!new_sfnt_data)
     return NULL;
 
@@ -372,7 +374,8 @@ _hb_rename_font (const char *orig_sfnt_data, unsigned int length,
      but AFAIK that doesn't actually cause any problems so I haven't
      bothered to fix it. */
 
-  return new_sfnt_data;
+  hb_blob_destroy (blob);
+  return hb_blob_create (new_sfnt_data, new_length, HB_MEMORY_MODE_WRITABLE, NULL, free);
 }
 
 hb_uniscribe_shaper_face_data_t *
@@ -390,18 +393,15 @@ _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
   }
 
   hb_blob_t *blob = hb_face_reference_blob (face);
-  unsigned int blob_length;
-  const char *blob_data = hb_blob_get_data (blob, &blob_length);
-  if (unlikely (!blob_length))
+  if (unlikely (!hb_blob_get_length (blob)))
     DEBUG_MSG (UNISCRIBE, face, "Face has empty blob");
 
-  unsigned int new_length;
-  char *new_font_data = _hb_rename_font (blob_data, blob_length, &new_length, data->face_name);  
-  hb_blob_destroy (blob);
+  blob = _hb_rename_font (blob, data->face_name);
 
   DWORD num_fonts_installed;
-  data->fh = AddFontMemResourceEx (new_font_data, new_length, 0, &num_fonts_installed);
-  free (new_font_data);
+  data->fh = AddFontMemResourceEx ((void *) hb_blob_get_data (blob, NULL),
+				   hb_blob_get_length (blob),
+				   0, &num_fonts_installed);
   if (unlikely (!data->fh)) {
     DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
     free (data);
