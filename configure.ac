@@ -298,7 +298,7 @@ if test "x$with_uniscribe" = "xyes" -a "x$have_uniscribe" != "xtrue"; then
 fi
 if $have_uniscribe; then
 	UNISCRIBE_CFLAGS=
-	UNISCRIBE_LIBS="-lusp10 -lgdi32"
+	UNISCRIBE_LIBS="-lusp10 -lgdi32 -lrpcrt4"
 	AC_SUBST(UNISCRIBE_CFLAGS)
 	AC_SUBST(UNISCRIBE_LIBS)
 	AC_DEFINE(HAVE_UNISCRIBE, 1, [Have Uniscribe library])
