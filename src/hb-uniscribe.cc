@@ -305,87 +305,84 @@ _hb_generate_unique_face_name (wchar_t *face_name, unsigned int *plen)
 static hb_blob_t *
 _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 {
+  /* Create a copy of the font data, with the 'name' table replaced by a
+   * table that names the font with our private F_* name created above.
+   * For simplicity, we just append a new 'name' table and update the
+   * sfnt directory; the original table is left in place, but unused.
+   *
+   * The new table will contain just 5 name IDs: family, style, unique,
+   * full, PS. All of them point to the same name data with our unique name.
+   */
+
   unsigned int length, new_length, name_str_len;
   const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
 
   _hb_generate_unique_face_name (new_name, &name_str_len);
 
-  /* Create a copy of the font data, with the 'name' table replaced by a table
-   * that names the font with our private F_* name created above.
-   * For simplicity, we just append a new 'name' table and update the sfnt directory;
-   * the original table is left in place, but unused. */
-
-  /* The new table will contain just 5 name IDs: family, style, unique, full, PS.
-   * All of them point to the same name data with our unique F_* name. */
-
   static const uint16_t name_IDs[] = { 1, 2, 3, 4, 6 };
 
-  const unsigned int name_header_size = 3 * 2; /* NameTableHeader: USHORT x 3 */
-  const unsigned int name_record_size = 6 * 2; /* NameRecord: USHORT x 6 */
-  const unsigned int name_count = sizeof (name_IDs) / sizeof (name_IDs[0]);
-  unsigned int name_table_length = name_header_size +
-                                   name_count * name_record_size +
+  unsigned int name_table_length = OT::name::min_size +
+                                   ARRAY_LENGTH (name_IDs) * OT::NameRecord::static_size +
                                    name_str_len * 2; /* for name data in UTF16BE form */
-
   unsigned int name_table_offset = (length + 3) & ~3;
 
-  new_length = name_table_offset + (name_table_length + 3) & ~3;
-  char *new_sfnt_data = (char *) calloc (1, new_length);
+  new_length = name_table_offset + ((name_table_length + 3) & ~3);
+  void *new_sfnt_data = calloc (1, new_length);
   if (!new_sfnt_data)
+  {
+    hb_blob_destroy (blob);
     return NULL;
+  }
 
   memcpy(new_sfnt_data, orig_sfnt_data, length);
 
-  unsigned char *name_table_data = (unsigned char *) (new_sfnt_data + name_table_offset);
-
-  unsigned char *p = name_table_data;
-  *p++ = 0x00; *p++ = 0x00; /* format = 0 */
-  *p++ = 0x00; *p++ = name_count; /* number of name records */
-  *p++ = 0x00; *p++ = name_header_size + name_count * name_record_size; /* offset to string data */
-
-  for (unsigned int i = 0; i < name_count; i++) {
-    *p++ = 0x00; *p++ = 0x03; /* platformID */
-    *p++ = 0x00; *p++ = 0x01; /* encodingID */
-    *p++ = 0x04; *p++ = 0x09; /* languageID = 0x0409 */
-    *p++ = 0x00; *p++ = name_IDs[i]; /* nameID */
-    *p++ = 0x00; *p++ = name_str_len * 2; /* string length (bytes) */
-    *p++ = 0x00; *p++ = 0x00; /* string offset */
+  OT::name &name = OT::StructAtOffset<OT::name> (new_sfnt_data, name_table_offset);
+  name.format.set (0);
+  name.count.set (ARRAY_LENGTH (name_IDs));
+  name.stringOffset.set (name.get_size ());
+  for (unsigned int i = 0; i < ARRAY_LENGTH (name_IDs); i++)
+  {
+    OT::NameRecord &record = name.nameRecord[i];
+    record.platformID.set (3);
+    record.encodingID.set (1);
+    record.languageID.set (0x0409); /* English */
+    record.nameID.set (name_IDs[i]);
+    record.length.set (name_str_len * 2);
+    record.offset.set (0);
   }
 
-  for (unsigned int i = 0; i < name_str_len; i++) {
-    /* copy string data from face_name, converting wchar_t to UTF16BE */
+  /* Copy string data from new_name, converting wchar_t to UTF16BE. */
+  unsigned char *p = &OT::StructAfter<unsigned char> (name);
+  for (unsigned int i = 0; i < name_str_len; i++)
+  {
     *p++ = new_name[i] >> 8;
     *p++ = new_name[i] & 0xff;
   }
 
-  /* calculate new name table checksum */
-  uint32_t checksum = 0;
-  while (name_table_data < p) {
-    checksum += (name_table_data[0] << 24) +
-                (name_table_data[1] << 16) +
-                (name_table_data[2] << 8) +
-                 name_table_data[3];
-    name_table_data += 4;
-  }
-
-  /* adjust name table entry to point to new name table */
+  /* Adjust name table entry to point to new name table */
   OT::OpenTypeFontFace *face = (OT::OpenTypeFontFace *) (new_sfnt_data);
   unsigned int index;
   if (face->find_table_index (HB_OT_TAG_name, &index))
   {
-    const OT::TableRecord& record = face->get_table (index);
-    OT::TableRecord *rp = const_cast<OT::TableRecord *> (&record);
-    rp->checkSum.set(checksum);
-    rp->offset.set(name_table_offset);
-    rp->length.set(name_table_length);
+    OT::TableRecord &record = const_cast<OT::TableRecord &> (face->get_table (index));
+    record.checkSum.set_for_data (&name, name_table_length);
+    record.offset.set (name_table_offset);
+    record.length.set (name_table_length);
+  }
+  else
+  {
+    free (new_sfnt_data);
+    hb_blob_destroy (blob);
+    return NULL;
   }
 
   /* The checkSumAdjustment field in the 'head' table is now wrong,
-     but AFAIK that doesn't actually cause any problems so I haven't
-     bothered to fix it. */
+   * but that doesn't actually seem to cause any problems so we don't
+   * bother. */
 
   hb_blob_destroy (blob);
-  return hb_blob_create (new_sfnt_data, new_length, HB_MEMORY_MODE_WRITABLE, NULL, free);
+  return hb_blob_create ((const char *) new_sfnt_data, new_length,
+			 HB_MEMORY_MODE_WRITABLE, NULL, free);
 }
 
 hb_uniscribe_shaper_face_data_t *
@@ -407,12 +404,18 @@ _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
     DEBUG_MSG (UNISCRIBE, face, "Face has empty blob");
 
   blob = _hb_rename_font (blob, data->face_name);
+  if (unlikely (!blob))
+  {
+    free (data);
+    return NULL;
+  }
 
   DWORD num_fonts_installed;
   data->fh = AddFontMemResourceEx ((void *) hb_blob_get_data (blob, NULL),
 				   hb_blob_get_length (blob),
 				   0, &num_fonts_installed);
-  if (unlikely (!data->fh)) {
+  if (unlikely (!data->fh))
+  {
     DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
     free (data);
     return NULL;
