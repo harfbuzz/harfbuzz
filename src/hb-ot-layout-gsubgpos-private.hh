@@ -977,7 +977,7 @@ static inline void recurse_lookups (context_t *c,
 				    const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */)
 {
   for (unsigned int i = 0; i < lookupCount; i++)
-    c->recurse (lookupRecord->lookupListIndex);
+    c->recurse (lookupRecord[i].lookupListIndex);
 }
 
 static inline bool apply_lookup (hb_apply_context_t *c,
