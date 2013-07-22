@@ -360,20 +360,25 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   }
 
   /* Adjust name table entry to point to new name table */
-  OT::OpenTypeFontFace *face = (OT::OpenTypeFontFace *) (new_sfnt_data);
-  unsigned int index;
-  if (face->find_table_index (HB_OT_TAG_name, &index))
+  const OT::OpenTypeFontFile &file = * (OT::OpenTypeFontFile *) (new_sfnt_data);
+  unsigned int face_count = file.get_face_count ();
+  for (unsigned int face_index = 0; face_index < face_count; face_index++)
   {
-    OT::TableRecord &record = const_cast<OT::TableRecord &> (face->get_table (index));
-    record.checkSum.set_for_data (&name, name_table_length);
-    record.offset.set (name_table_offset);
-    record.length.set (name_table_length);
-  }
-  else
-  {
-    free (new_sfnt_data);
-    hb_blob_destroy (blob);
-    return NULL;
+    const OT::OpenTypeFontFace &face = file.get_face (face_index);
+    unsigned int index;
+    if (face.find_table_index (HB_OT_TAG_name, &index))
+    {
+      OT::TableRecord &record = const_cast<OT::TableRecord &> (face.get_table (index));
+      record.checkSum.set_for_data (&name, name_table_length);
+      record.offset.set (name_table_offset);
+      record.length.set (name_table_length);
+    }
+    else if (face_index == 0) /* Fail if first face doesn't have 'name' table. */
+    {
+      free (new_sfnt_data);
+      hb_blob_destroy (blob);
+      return NULL;
+    }
   }
 
   /* The checkSumAdjustment field in the 'head' table is now wrong,
