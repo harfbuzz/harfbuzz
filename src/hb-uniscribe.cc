@@ -314,6 +314,8 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
    * full, PS. All of them point to the same name data with our unique name.
    */
 
+  blob = OT::Sanitizer<OT::OpenTypeFontFile>::sanitize (blob);
+
   unsigned int length, new_length, name_str_len;
   const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
 
@@ -364,6 +366,8 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   unsigned int face_count = file.get_face_count ();
   for (unsigned int face_index = 0; face_index < face_count; face_index++)
   {
+    /* Note: doing multiple edits (ie. TTC) can be unsafe.  There may be
+     * toe-stepping.  But we don't really care. */
     const OT::OpenTypeFontFace &face = file.get_face (face_index);
     unsigned int index;
     if (face.find_table_index (HB_OT_TAG_name, &index))
