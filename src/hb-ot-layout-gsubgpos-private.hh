@@ -1667,7 +1667,7 @@ static inline void chain_context_closure_lookup (hb_closure_context_t *c,
    && intersects_array (c,
 			inputCount ? inputCount - 1 : 0, input,
 			lookup_context.funcs.intersects, lookup_context.intersects_data[1])
-  && intersects_array (c,
+   && intersects_array (c,
 		       lookaheadCount, lookahead,
 		       lookup_context.funcs.intersects, lookup_context.intersects_data[2]))
     recurse_lookups (c,
