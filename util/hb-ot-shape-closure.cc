@@ -82,7 +82,7 @@ struct shape_closure_consumer_t : option_group_t
       if (show_glyph_names)
       {
 	char glyph_name[64];
-	hb_font_get_glyph_name (font, i, glyph_name, sizeof (glyph_name));
+	hb_font_glyph_to_string (font, i, glyph_name, sizeof (glyph_name));
 	printf ("%s", glyph_name);
       } else
 	printf ("%u", i);
