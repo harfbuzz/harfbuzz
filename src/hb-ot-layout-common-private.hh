@@ -871,16 +871,16 @@ struct Coverage
     inline void init (const Coverage &c_) {
       format = c_.u.format;
       switch (format) {
-      case 1: return u.format1.init (c_.u.format1);
-      case 2: return u.format2.init (c_.u.format2);
-      default:return;
+      case 1: u.format1.init (c_.u.format1); return;
+      case 2: u.format2.init (c_.u.format2); return;
+      default:                               return;
       }
     }
     inline bool more (void) {
       switch (format) {
       case 1: return u.format1.more ();
       case 2: return u.format2.more ();
-      default:return true;
+      default:return false;
       }
     }
     inline void next (void) {
@@ -894,14 +894,14 @@ struct Coverage
       switch (format) {
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
-      default:return true;
+      default:return 0;
       }
     }
     inline uint16_t get_coverage (void) {
       switch (format) {
       case 1: return u.format1.get_coverage ();
       case 2: return u.format2.get_coverage ();
-      default:return true;
+      default:return -1;
       }
     }
 
