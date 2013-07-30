@@ -348,5 +348,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     }
   }
 
+  CFRelease (line);
+
   return true;
 }
