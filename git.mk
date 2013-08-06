@@ -75,18 +75,21 @@
 # toplevel MAINTAINERCLEANFILES:
 GITIGNORE_MAINTAINERCLEANFILES_TOPLEVEL = \
 	$(srcdir)/aclocal.m4 \
-	$(srcdir)/ar-lib \
 	$(srcdir)/autoscan.log \
-	$(srcdir)/compile \
-	$(srcdir)/config.guess \
-	$(srcdir)/config.h.in \
-	$(srcdir)/config.sub \
 	$(srcdir)/configure.scan \
-	$(srcdir)/depcomp \
-	$(srcdir)/install-sh \
-	$(srcdir)/ltmain.sh \
-	$(srcdir)/missing \
-	$(srcdir)/mkinstalldirs
+	`AUX_DIR=$(srcdir)/$$($(AUTOCONF) --trace 'AC_CONFIG_AUX_DIR:$$1' $(srcdir)/configure.ac); for x in \
+		ar-lib \
+		compile \
+		config.guess \
+		config.sub \
+		depcomp \
+		install-sh \
+		ltmain.sh \
+		missing \
+		mkinstalldirs \
+	 ; do echo "$$AUX_DIR/$$x"; done` \
+	`$(AUTOCONF) --trace 'AC_CONFIG_HEADERS:$$1' $(srcdir)/configure.ac | \
+	head -n 1 | while read f; do echo "$(srcdir)/$$f.in"; done`
 #
 # All modules should also be fine including the following variable, which
 # removes automake-generated Makefile.in files:
@@ -145,8 +148,8 @@ git-mk-install:
 ###############################################################################
 
 $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
-	$(AM_V_GEN) \
-	{ \
+	@echo "git.mk: Generating $@"
+	@{ \
 		if test "x$(DOC_MODULE)" = x -o "x$(DOC_MAIN_SGML_FILE)" = x; then :; else \
 			for x in \
 				$(DOC_MODULE)-decl-list.txt \
@@ -192,13 +195,19 @@ $(srcdir)/.gitignore: Makefile.am $(top_srcdir)/git.mk
 		if test -f $(srcdir)/po/Makefile.in.in; then \
 			for x in \
 				po/Makefile.in.in \
+				po/Makefile.in.in~ \
 				po/Makefile.in \
 				po/Makefile \
+				po/Makevars.template \
 				po/POTFILES \
+				po/Rules-quot \
 				po/stamp-it \
 				po/.intltool-merge-cache \
 				"po/*.gmo" \
+				"po/*.header" \
 				"po/*.mo" \
+				"po/*.sed" \
+				"po/*.sin" \
 				po/$(GETTEXT_PACKAGE).pot \
 				intltool-extract.in \
 				intltool-merge.in \
@@ -270,12 +279,12 @@ gitignore-recurse-maybe:
 	@for subdir in $(DIST_SUBDIRS); do \
 	  case " $(SUBDIRS) " in \
 	    *" $$subdir "*) :;; \
-	    *) test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) .gitignore gitignore-recurse-maybe || echo "Skipping $$subdir");; \
+	    *) test "$$subdir" = . -o -e "$$subdir/.git" || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) gitignore || echo "Skipping $$subdir");; \
 	  esac; \
 	done
 gitignore-recurse:
 	@for subdir in $(DIST_SUBDIRS); do \
-	    test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) .gitignore gitignore-recurse || echo "Skipping $$subdir"); \
+	    test "$$subdir" = . -o -e "$$subdir/.git" || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) gitignore || echo "Skipping $$subdir"); \
 	done
 
 maintainer-clean: gitignore-clean
