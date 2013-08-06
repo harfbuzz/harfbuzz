@@ -955,6 +955,19 @@ struct ClassDefFormat1
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = classValue.len;
+    if (klass == 0)
+    {
+      /* Match if there's any glyph that is not listed! */
+      hb_codepoint_t g = -1;
+      if (!hb_set_next (glyphs, &g))
+        return false;
+      if (g < startGlyph)
+        return true;
+      g = startGlyph + count - 1;
+      if (hb_set_next (glyphs, &g))
+        return true;
+      /* Fall through. */
+    }
     for (unsigned int i = 0; i < count; i++)
       if (classValue[i] == klass && glyphs->has (startGlyph + i))
         return true;
@@ -998,6 +1011,22 @@ struct ClassDefFormat2
 
   inline bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const {
     unsigned int count = rangeRecord.len;
+    if (klass == 0)
+    {
+      /* Match if there's any glyph that is not listed! */
+      hb_codepoint_t g = -1;
+      for (unsigned int i = 0; i < count; i++)
+      {
+	if (!hb_set_next (glyphs, &g))
+	  break;
+	if (g < rangeRecord[i].start)
+	  return true;
+	g = rangeRecord[i].end;
+      }
+      if (g != -1 && hb_set_next (glyphs, &g))
+        return true;
+      /* Fall through. */
+    }
     for (unsigned int i = 0; i < count; i++)
       if (rangeRecord[i].value == klass && rangeRecord[i].intersects (glyphs))
         return true;
