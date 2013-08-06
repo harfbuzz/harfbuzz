@@ -659,11 +659,27 @@ retry:
 
 #undef MAX_ITEMS
 
-  int *range_char_counts = NULL;
-  TEXTRANGE_PROPERTIES **range_properties = NULL;
-  int range_count = 0;
-  if (num_features) {
-    /* TODO setup ranges */
+  hb_auto_array_t<OPENTYPE_FEATURE_RECORD> feature_records;
+  hb_auto_array_t<TEXTRANGE_PROPERTIES> range_records;
+  hb_auto_array_t<TEXTRANGE_PROPERTIES*> range_properties;
+  hb_auto_array_t<int> range_char_counts;
+  if (num_features)
+  {
+    for (unsigned int i = 0; i < num_features; i++)
+    {
+      OPENTYPE_FEATURE_RECORD *record = feature_records.push ();
+      if (likely (record))
+      {
+	record->tagFeature = hb_uint32_swap (features[i].tag);
+	record->lParameter = features[i].value;
+      }
+    }
+    TEXTRANGE_PROPERTIES *range_record = range_records.push ();
+    if (likely (range_record))
+    {
+      range_record->potfRecords = feature_records.array;
+      range_record->cotfRecords = feature_records.len;
+    }
   }
 
   OPENTYPE_TAG language_tag = hb_uint32_swap (hb_ot_tag_from_language (buffer->props.language));
@@ -677,15 +693,31 @@ retry:
     unsigned int chars_offset = items[i].iCharPos;
     unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
 
+    if (num_features)
+    {
+      /* XXX We currently ignore feature ranges and apply all features to all characters.
+       * Also, turning off a previously turned-on feature doesn't work.  We have to do
+       * that part ourselves and pass the active features down to Uniscribe. */
+
+      range_char_counts.shrink (0);
+      range_properties.shrink (0);
+
+      range_char_counts.push (); /* Can't fail. */
+      range_properties.push (); /* Can't fail. */
+
+      range_char_counts.array[0] = item_chars_len;
+      range_properties.array[0] = range_records.array;
+    }
+
   retry_shape:
     hr = funcs->ScriptShapeOpenType (font_data->hdc,
 				     &font_data->script_cache,
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts,
-				     range_properties,
-				     range_count,
+				     range_char_counts.array,
+				     range_properties.array,
+				     range_properties.len,
 				     wchars + chars_offset,
 				     item_chars_len,
 				     glyphs_size - glyphs_offset,
@@ -725,9 +757,9 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts,
-				     range_properties,
-				     range_count,
+				     range_char_counts.array,
+				     range_properties.array,
+				     range_properties.len,
 				     wchars + chars_offset,
 				     log_clusters + chars_offset,
 				     char_props + chars_offset,
