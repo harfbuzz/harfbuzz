@@ -321,14 +321,22 @@ struct hb_prealloced_array_t
   inline void pop (void)
   {
     len--;
-    /* TODO: shrink array if needed */
+  }
+
+  inline void remove (unsigned int i)
+  {
+     if (unlikely (i >= len))
+       return;
+     memmove (static_cast<void *> (&array[i]),
+	      static_cast<void *> (&array[i + 1]),
+	      (len - i - 1) * sizeof (Type));
+     len--;
   }
 
   inline void shrink (unsigned int l)
   {
      if (l < len)
        len = l;
-    /* TODO: shrink array if needed */
   }
 
   template <typename T>
@@ -376,7 +384,7 @@ struct hb_prealloced_array_t
   }
 };
 
-#define HB_AUTO_ARRAY_PREALLOCED 64
+#define HB_AUTO_ARRAY_PREALLOCED 16
 template <typename Type>
 struct hb_auto_array_t : hb_prealloced_array_t <Type, HB_AUTO_ARRAY_PREALLOCED>
 {
