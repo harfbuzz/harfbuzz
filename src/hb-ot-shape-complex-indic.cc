@@ -445,10 +445,6 @@ override_features_indic (hb_ot_shape_planner_t *plan)
   if (hb_options ().uniscribe_bug_compatible)
     plan->map.add_feature (HB_TAG('k','e','r','n'), 0, F_GLOBAL);
 
-  /* 'calt' is enabled by default in hb-ot-shape.cc, but is a
-   * discretionary, non-default feature for Indic scripts. */
-  plan->map.add_feature (HB_TAG('c','a','l','t'), 0, F_GLOBAL);
-
   plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
 }
 
