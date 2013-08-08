@@ -205,25 +205,68 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
     }
   }
+  unsigned int *log_clusters = (unsigned int *) (pchars + chars_len);
+  if (num_features)
+  {
+    /* Need log_clusters to assign features. */
+    chars_len = 0;
+    for (unsigned int i = 0; i < buffer->len; i++)
+    {
+      hb_codepoint_t c = buffer->info[i].codepoint;
+      unsigned int cluster = buffer->info[i].cluster;
+      log_clusters[chars_len++] = cluster;
+      if (c >= 0x10000 && c < 0x110000)
+	log_clusters[chars_len++] = cluster; /* Surrogates. */
+    }
+  }
 
 #undef utf16_index
 
-  CFStringRef string_ref = CFStringCreateWithCharactersNoCopy (kCFAllocatorDefault,
+  CFStringRef string_ref = CFStringCreateWithCharactersNoCopy (NULL,
                                                                pchars, chars_len,
                                                                kCFAllocatorNull);
 
-  CFDictionaryRef attrs = CFDictionaryCreate (kCFAllocatorDefault,
-                                              (const void**) &kCTFontAttributeName,
-                                              (const void**) &font_data->ct_font,
-                                              1, /* count of attributes */
-                                              &kCFTypeDictionaryKeyCallBacks,
-                                              &kCFTypeDictionaryValueCallBacks);
-
-  /* TODO: support features */
-
-  CFAttributedStringRef attr_string = CFAttributedStringCreate (kCFAllocatorDefault, string_ref, attrs);
+  CFMutableAttributedStringRef attr_string = CFAttributedStringCreateMutable (NULL, chars_len);
+  CFAttributedStringReplaceString (attr_string, CFRangeMake (0, 0), string_ref);
   CFRelease (string_ref);
-  CFRelease (attrs);
+  CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
+				  kCTFontAttributeName, font_data->ct_font);
+
+  for (unsigned int i = 0; i < num_features; i++)
+  {
+    CFStringRef a = NULL;
+    unsigned int v = features[i].value;
+
+    switch (features[i].tag)
+    {
+      case HB_TAG ('l','i','g','a'): a = kCTLigatureAttributeName; v = v ? 1 : 0; break;
+      case HB_TAG ('d','l','i','g'): a = kCTLigatureAttributeName; v = v ? 2 : 1; break;
+
+      case HB_TAG ('e','x','p','t'): a = kCTCharacterShapeAttributeName; v = v ? 11 : 16; break;
+      case HB_TAG ('j','s','7','8'): a = kCTCharacterShapeAttributeName; v = v ?  3 : 16; break;
+      case HB_TAG ('j','s','8','3'): a = kCTCharacterShapeAttributeName; v = v ?  4 : 16; break;
+      case HB_TAG ('j','s','9','0'): a = kCTCharacterShapeAttributeName; v = v ?  5 : 16; break;
+      case HB_TAG ('s','m','p','l'): a = kCTCharacterShapeAttributeName; v = v ?  2 : 16; break;
+      case HB_TAG ('t','r','a','d'): a = kCTCharacterShapeAttributeName; v = v ?  1 : 16; break;
+    }
+
+    if (!a)
+      continue;
+
+    CFTypeRef vref = CFNumberCreate (NULL, kCFNumberIntType, &v);
+    unsigned int start = features[i].start;
+    unsigned int end   = features[i].end;
+    for (unsigned int j = 0; j < chars_len; j++)
+    {
+      if (log_clusters[j] < start || log_clusters[j] >= end)
+        continue;
+      unsigned int range_start = j;
+      while (j < chars_len && log_clusters[j] >= start && log_clusters[j] < end)
+        j++;
+      CFAttributedStringSetAttribute (attr_string, CFRangeMake (range_start, j - range_start), a, vref);
+    }
+    CFRelease (vref);
+  }
 
   CTLineRef line = CTLineCreateWithAttributedString (attr_string);
   CFRelease (attr_string);
