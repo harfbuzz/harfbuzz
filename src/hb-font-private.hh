@@ -124,7 +124,7 @@ struct hb_face_t {
     return blob;
   }
 
-  inline unsigned int get_upem (void) const
+  inline HB_PURE_FUNC unsigned int get_upem (void) const
   {
     if (unlikely (!upem))
       load_upem ();
