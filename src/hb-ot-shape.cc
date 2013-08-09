@@ -58,17 +58,8 @@ static hb_tag_t horizontal_features[] = {
   HB_TAG('r','c','l','t'),
 };
 
-/* Note:
- * Technically speaking, vrt2 and vert are mutually exclusive.
- * According to the spec, valt and vpal are also mutually exclusive.
- * But we apply them all for now.
- */
 static hb_tag_t vertical_features[] = {
-  HB_TAG('v','a','l','t'),
   HB_TAG('v','e','r','t'),
-  HB_TAG('v','k','r','n'),
-  HB_TAG('v','p','a','l'),
-  HB_TAG('v','r','t','2'),
 };
 
 

@@ -5,8 +5,6 @@ General fixes:
 
 - Return "safe-to-break" bit from shaping.
 
-- Disable 'vert' if 'vrt2' is available (eg. Motoya fonts with arrow chars).
-
 - Implement 'rand' feature.
 
 - mask propagation? (when ligation, "or" the masks).
