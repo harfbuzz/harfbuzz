@@ -351,7 +351,7 @@ static const test_pair_t script_tests[] =
   {   0x07B1, HB_SCRIPT_THAANA },
   {   0x0E31, HB_SCRIPT_THAI },
   {   0x0FD4, HB_SCRIPT_TIBETAN },
-  {   0x1401, HB_SCRIPT_CANADIAN_ABORIGINAL },
+  {   0x1401, HB_SCRIPT_CANADIAN_SYLLABICS },
   {   0xA015, HB_SCRIPT_YI },
   {   0x1700, HB_SCRIPT_TAGALOG },
   {   0x1720, HB_SCRIPT_HANUNOO },
