@@ -25,11 +25,11 @@ API issues to fix before 1.0:
 
 - hb-ft load_flags issues.
 
-- get_glyph() / get_glyph_variant()?
-
 - Add pkg-config files for glue codes (harfbuzz-glib, etc)
 
 - 'const' for getter APIs? (use mutable internally)
+
+- Remove hb_ot_shape_glyphs_closure()?
 
 
 API additions
