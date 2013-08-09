@@ -12,8 +12,6 @@ General fixes:
 - Warn at compile time (and runtime with HB_DEBUG?) if no Unicode / font
   funcs found / set.
 
-- Do proper rounding when scaling from font space?  May be a non-issue.
-
 - Misc features:
   * init/medi/fina/isol for non-cursive scripts
 
