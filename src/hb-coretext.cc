@@ -1,6 +1,6 @@
 /*
- * Copyright © 2012  Mozilla Foundation.
- * Copyright © 2012  Google, Inc.
+ * Copyright © 2012,2013  Mozilla Foundation.
+ * Copyright © 2012,2013  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -170,6 +170,222 @@ hb_coretext_font_get_ct_font (hb_font_t *font)
  * shaper
  */
 
+struct feature_record_t {
+  unsigned int feature;
+  unsigned int setting;
+};
+
+struct active_feature_t {
+  feature_record_t rec;
+  unsigned int order;
+
+  static int cmp (const active_feature_t *a, const active_feature_t *b) {
+    return a->rec.feature < b->rec.feature ? -1 : a->rec.feature > b->rec.feature ? 1 :
+	   a->order < b->order ? -1 : a->order > b->order ? 1 :
+	   a->rec.setting < b->rec.setting ? -1 : a->rec.setting > b->rec.setting ? 1 :
+	   0;
+  }
+  bool operator== (const active_feature_t *f) {
+    return cmp (this, f) == 0;
+  }
+};
+
+struct feature_event_t {
+  unsigned int index;
+  bool start;
+  active_feature_t feature;
+
+  static int cmp (const feature_event_t *a, const feature_event_t *b) {
+    return a->index < b->index ? -1 : a->index > b->index ? 1 :
+	   a->start < b->start ? -1 : a->start > b->start ? 1 :
+	   active_feature_t::cmp (&a->feature, &b->feature);
+  }
+};
+
+struct range_record_t {
+  CTFontRef font;
+  unsigned int index_first; /* == start */
+  unsigned int index_last;  /* == end - 1 */
+};
+
+
+/* The following enum members are added in OS X 10.8. */
+#define kAltHalfWidthTextSelector		6
+#define kAltProportionalTextSelector		5
+#define kAlternateHorizKanaOffSelector		1
+#define kAlternateHorizKanaOnSelector		0
+#define kAlternateKanaType			34
+#define kAlternateVertKanaOffSelector		3
+#define kAlternateVertKanaOnSelector		2
+#define kCaseSensitiveLayoutOffSelector		1
+#define kCaseSensitiveLayoutOnSelector		0
+#define kCaseSensitiveLayoutType		33
+#define kCaseSensitiveSpacingOffSelector	3
+#define kCaseSensitiveSpacingOnSelector		2
+#define kContextualAlternatesOffSelector	1
+#define kContextualAlternatesOnSelector		0
+#define kContextualAlternatesType		36
+#define kContextualLigaturesOffSelector		19
+#define kContextualLigaturesOnSelector		18
+#define kContextualSwashAlternatesOffSelector	5
+#define kContextualSwashAlternatesOnSelector	4
+#define kDefaultLowerCaseSelector		0
+#define kDefaultUpperCaseSelector		0
+#define kHistoricalLigaturesOffSelector		21
+#define kHistoricalLigaturesOnSelector		20
+#define kHojoCharactersSelector			12
+#define kJIS2004CharactersSelector		11
+#define kLowerCasePetiteCapsSelector		2
+#define kLowerCaseSmallCapsSelector		1
+#define kLowerCaseType				37
+#define kMathematicalGreekOffSelector		11
+#define kMathematicalGreekOnSelector		10
+#define kNLCCharactersSelector			13
+#define kQuarterWidthTextSelector		4
+#define kScientificInferiorsSelector		4
+#define kStylisticAltEightOffSelector		17
+#define kStylisticAltEightOnSelector		16
+#define kStylisticAltEighteenOffSelector	37
+#define kStylisticAltEighteenOnSelector		36
+#define kStylisticAltElevenOffSelector		23
+#define kStylisticAltElevenOnSelector		22
+#define kStylisticAltFifteenOffSelector		31
+#define kStylisticAltFifteenOnSelector		30
+#define kStylisticAltFiveOffSelector		11
+#define kStylisticAltFiveOnSelector		10
+#define kStylisticAltFourOffSelector		9
+#define kStylisticAltFourOnSelector		8
+#define kStylisticAltFourteenOffSelector	29
+#define kStylisticAltFourteenOnSelector		28
+#define kStylisticAltNineOffSelector		19
+#define kStylisticAltNineOnSelector		18
+#define kStylisticAltNineteenOffSelector	39
+#define kStylisticAltNineteenOnSelector		38
+#define kStylisticAltOneOffSelector		3
+#define kStylisticAltOneOnSelector		2
+#define kStylisticAltSevenOffSelector		15
+#define kStylisticAltSevenOnSelector		14
+#define kStylisticAltSeventeenOffSelector	35
+#define kStylisticAltSeventeenOnSelector	34
+#define kStylisticAltSixOffSelector		13
+#define kStylisticAltSixOnSelector		12
+#define kStylisticAltSixteenOffSelector		33
+#define kStylisticAltSixteenOnSelector		32
+#define kStylisticAltTenOffSelector		21
+#define kStylisticAltTenOnSelector		20
+#define kStylisticAltThirteenOffSelector	27
+#define kStylisticAltThirteenOnSelector		26
+#define kStylisticAltThreeOffSelector		7
+#define kStylisticAltThreeOnSelector		6
+#define kStylisticAltTwelveOffSelector		25
+#define kStylisticAltTwelveOnSelector		24
+#define kStylisticAltTwentyOffSelector		41
+#define kStylisticAltTwentyOnSelector		40
+#define kStylisticAltTwoOffSelector		5
+#define kStylisticAltTwoOnSelector		4
+#define kStylisticAlternativesType		35
+#define kSwashAlternatesOffSelector		3
+#define kSwashAlternatesOnSelector		2
+#define kThirdWidthTextSelector			3
+#define kTraditionalNamesCharactersSelector	14
+#define kUpperCasePetiteCapsSelector		2
+#define kUpperCaseSmallCapsSelector		1
+#define kUpperCaseType				38
+
+/* Table data courtesy of Apple. */
+struct feature_mapping_t {
+    FourCharCode otFeatureTag;
+    uint16_t aatFeatureType;
+    uint16_t selectorToEnable;
+    uint16_t selectorToDisable;
+} feature_mappings[] = {
+    { 'c2pc',   kUpperCaseType,             kUpperCasePetiteCapsSelector,           kDefaultUpperCaseSelector },
+    { 'c2sc',   kUpperCaseType,             kUpperCaseSmallCapsSelector,            kDefaultUpperCaseSelector },
+    { 'calt',   kContextualAlternatesType,  kContextualAlternatesOnSelector,        kContextualAlternatesOffSelector },
+    { 'case',   kCaseSensitiveLayoutType,   kCaseSensitiveLayoutOnSelector,         kCaseSensitiveLayoutOffSelector },
+    { 'clig',   kLigaturesType,             kContextualLigaturesOnSelector,         kContextualLigaturesOffSelector },
+    { 'cpsp',   kCaseSensitiveLayoutType,   kCaseSensitiveSpacingOnSelector,        kCaseSensitiveSpacingOffSelector },
+    { 'cswh',   kContextualAlternatesType,  kContextualSwashAlternatesOnSelector,   kContextualSwashAlternatesOffSelector },
+    { 'dlig',   kLigaturesType,             kRareLigaturesOnSelector,               kRareLigaturesOffSelector },
+    { 'expt',   kCharacterShapeType,        kExpertCharactersSelector,              16 },
+    { 'frac',   kFractionsType,             kDiagonalFractionsSelector,             kNoFractionsSelector },
+    { 'fwid',   kTextSpacingType,           kMonospacedTextSelector,                7 },
+    { 'halt',   kTextSpacingType,           kAltHalfWidthTextSelector,              7 },
+    { 'hist',   kLigaturesType,             kHistoricalLigaturesOnSelector,         kHistoricalLigaturesOffSelector },
+    { 'hkna',   kAlternateKanaType,         kAlternateHorizKanaOnSelector,          kAlternateHorizKanaOffSelector, },
+    { 'hlig',   kLigaturesType,             kHistoricalLigaturesOnSelector,         kHistoricalLigaturesOffSelector },
+    { 'hngl',   kTransliterationType,       kHanjaToHangulSelector,                 kNoTransliterationSelector },
+    { 'hojo',   kCharacterShapeType,        kHojoCharactersSelector,                16 },
+    { 'hwid',   kTextSpacingType,           kHalfWidthTextSelector,                 7 },
+    { 'ital',   kItalicCJKRomanType,        kCJKItalicRomanOnSelector,              kCJKItalicRomanOffSelector },
+    { 'jp04',   kCharacterShapeType,        kJIS2004CharactersSelector,             16 },
+    { 'jp78',   kCharacterShapeType,        kJIS1978CharactersSelector,             16 },
+    { 'jp83',   kCharacterShapeType,        kJIS1983CharactersSelector,             16 },
+    { 'jp90',   kCharacterShapeType,        kJIS1990CharactersSelector,             16 },
+    { 'liga',   kLigaturesType,             kCommonLigaturesOnSelector,             kCommonLigaturesOffSelector },
+    { 'lnum',   kNumberCaseType,            kUpperCaseNumbersSelector,              2 },
+    { 'mgrk',   kMathematicalExtrasType,    kMathematicalGreekOnSelector,           kMathematicalGreekOffSelector },
+    { 'nlck',   kCharacterShapeType,        kNLCCharactersSelector,                 16 },
+    { 'onum',   kNumberCaseType,            kLowerCaseNumbersSelector,              2 },
+    { 'ordn',   kVerticalPositionType,      kOrdinalsSelector,                      kNormalPositionSelector },
+    { 'palt',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
+    { 'pcap',   kLowerCaseType,             kLowerCasePetiteCapsSelector,           kDefaultLowerCaseSelector },
+    { 'pkna',   kTextSpacingType,           kProportionalTextSelector,              7 },
+    { 'pnum',   kNumberSpacingType,         kProportionalNumbersSelector,           4 },
+    { 'pwid',   kTextSpacingType,           kProportionalTextSelector,              7 },
+    { 'qwid',   kTextSpacingType,           kQuarterWidthTextSelector,              7 },
+    { 'ruby',   kRubyKanaType,              kRubyKanaOnSelector,                    kRubyKanaOffSelector },
+    { 'sinf',   kVerticalPositionType,      kScientificInferiorsSelector,           kNormalPositionSelector },
+    { 'smcp',   kLowerCaseType,             kLowerCaseSmallCapsSelector,            kDefaultLowerCaseSelector },
+    { 'smpl',   kCharacterShapeType,        kSimplifiedCharactersSelector,          16 },
+    { 'ss01',   kStylisticAlternativesType, kStylisticAltOneOnSelector,             kStylisticAltOneOffSelector },
+    { 'ss02',   kStylisticAlternativesType, kStylisticAltTwoOnSelector,             kStylisticAltTwoOffSelector },
+    { 'ss03',   kStylisticAlternativesType, kStylisticAltThreeOnSelector,           kStylisticAltThreeOffSelector },
+    { 'ss04',   kStylisticAlternativesType, kStylisticAltFourOnSelector,            kStylisticAltFourOffSelector },
+    { 'ss05',   kStylisticAlternativesType, kStylisticAltFiveOnSelector,            kStylisticAltFiveOffSelector },
+    { 'ss06',   kStylisticAlternativesType, kStylisticAltSixOnSelector,             kStylisticAltSixOffSelector },
+    { 'ss07',   kStylisticAlternativesType, kStylisticAltSevenOnSelector,           kStylisticAltSevenOffSelector },
+    { 'ss08',   kStylisticAlternativesType, kStylisticAltEightOnSelector,           kStylisticAltEightOffSelector },
+    { 'ss09',   kStylisticAlternativesType, kStylisticAltNineOnSelector,            kStylisticAltNineOffSelector },
+    { 'ss10',   kStylisticAlternativesType, kStylisticAltTenOnSelector,             kStylisticAltTenOffSelector },
+    { 'ss11',   kStylisticAlternativesType, kStylisticAltElevenOnSelector,          kStylisticAltElevenOffSelector },
+    { 'ss12',   kStylisticAlternativesType, kStylisticAltTwelveOnSelector,          kStylisticAltTwelveOffSelector },
+    { 'ss13',   kStylisticAlternativesType, kStylisticAltThirteenOnSelector,        kStylisticAltThirteenOffSelector },
+    { 'ss14',   kStylisticAlternativesType, kStylisticAltFourteenOnSelector,        kStylisticAltFourteenOffSelector },
+    { 'ss15',   kStylisticAlternativesType, kStylisticAltFifteenOnSelector,         kStylisticAltFifteenOffSelector },
+    { 'ss16',   kStylisticAlternativesType, kStylisticAltSixteenOnSelector,         kStylisticAltSixteenOffSelector },
+    { 'ss17',   kStylisticAlternativesType, kStylisticAltSeventeenOnSelector,       kStylisticAltSeventeenOffSelector },
+    { 'ss18',   kStylisticAlternativesType, kStylisticAltEighteenOnSelector,        kStylisticAltEighteenOffSelector },
+    { 'ss19',   kStylisticAlternativesType, kStylisticAltNineteenOnSelector,        kStylisticAltNineteenOffSelector },
+    { 'ss20',   kStylisticAlternativesType, kStylisticAltTwentyOnSelector,          kStylisticAltTwentyOffSelector },
+    { 'subs',   kVerticalPositionType,      kInferiorsSelector,                     kNormalPositionSelector },
+    { 'sups',   kVerticalPositionType,      kSuperiorsSelector,                     kNormalPositionSelector },
+    { 'swsh',   kContextualAlternatesType,  kSwashAlternatesOnSelector,             kSwashAlternatesOffSelector },
+    { 'titl',   kStyleOptionsType,          kTitlingCapsSelector,                   kNoStyleOptionsSelector },
+    { 'tnam',   kCharacterShapeType,        kTraditionalNamesCharactersSelector,    16 },
+    { 'tnum',   kNumberSpacingType,         kMonospacedNumbersSelector,             4 },
+    { 'trad',   kCharacterShapeType,        kTraditionalCharactersSelector,         16 },
+    { 'twid',   kTextSpacingType,           kThirdWidthTextSelector,                7 },
+    { 'unic',   kLetterCaseType,            14,                                     15 },
+    { 'valt',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
+    { 'vert',   kVerticalSubstitutionType,  kSubstituteVerticalFormsOnSelector,     kSubstituteVerticalFormsOffSelector },
+    { 'vhal',   kTextSpacingType,           kAltHalfWidthTextSelector,              7 },
+    { 'vkna',   kAlternateKanaType,         kAlternateVertKanaOnSelector,           kAlternateVertKanaOffSelector },
+    { 'vpal',   kTextSpacingType,           kAltProportionalTextSelector,           7 },
+    { 'vrt2',   kVerticalSubstitutionType,  kSubstituteVerticalFormsOnSelector,     kSubstituteVerticalFormsOffSelector },
+    { 'zero',   kTypographicExtrasType,     kSlashedZeroOnSelector,                 kSlashedZeroOffSelector },
+};
+
+static int
+_hb_feature_mapping_cmp (const void *key_, const void *entry_)
+{
+  unsigned int key = * (unsigned int *) key_;
+  const feature_mapping_t * entry = (const feature_mapping_t *) entry_;
+  return key < entry->otFeatureTag ? -1 :
+	 key > entry->otFeatureTag ? 1 :
+	 0;
+}
+
 hb_bool_t
 _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 		    hb_font_t          *font,
@@ -179,6 +395,156 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
+
+  /*
+   * Set up features.
+   * (copied + modified from code from hb-uniscribe.cc)
+   */
+  hb_auto_array_t<feature_record_t> feature_records;
+  hb_auto_array_t<range_record_t> range_records;
+  if (num_features)
+  {
+    /* Sort features by start/end events. */
+    hb_auto_array_t<feature_event_t> feature_events;
+    for (unsigned int i = 0; i < num_features; i++)
+    {
+      const feature_mapping_t * mapping = (const feature_mapping_t *) bsearch (&features[i].tag,
+									       feature_mappings,
+									       ARRAY_LENGTH (feature_mappings),
+									       sizeof (feature_mappings[0]),
+									       _hb_feature_mapping_cmp);
+      if (!mapping)
+        continue;
+
+      active_feature_t feature;
+      feature.rec.feature = mapping->aatFeatureType;
+      feature.rec.setting = features[i].value ? mapping->selectorToEnable : mapping->selectorToDisable;
+      feature.order = i;
+
+      feature_event_t *event;
+
+      event = feature_events.push ();
+      if (unlikely (!event))
+	goto fail_features;
+      event->index = features[i].start;
+      event->start = true;
+      event->feature = feature;
+
+      event = feature_events.push ();
+      if (unlikely (!event))
+	goto fail_features;
+      event->index = features[i].end;
+      event->start = false;
+      event->feature = feature;
+    }
+    feature_events.sort ();
+    /* Add a strategic final event. */
+    {
+      active_feature_t feature;
+      feature.rec.feature = HB_TAG_NONE;
+      feature.rec.setting = 0;
+      feature.order = num_features + 1;
+
+      feature_event_t *event = feature_events.push ();
+      if (unlikely (!event))
+	goto fail_features;
+      event->index = 0; /* This value does magic. */
+      event->start = false;
+      event->feature = feature;
+    }
+
+    /* Scan events and save features for each range. */
+    hb_auto_array_t<active_feature_t> active_features;
+    unsigned int last_index = 0;
+    for (unsigned int i = 0; i < feature_events.len; i++)
+    {
+      feature_event_t *event = &feature_events[i];
+
+      if (event->index != last_index)
+      {
+        /* Save a snapshot of active features and the range. */
+	range_record_t *range = range_records.push ();
+	if (unlikely (!range))
+	  goto fail_features;
+
+	unsigned int offset = feature_records.len;
+
+	if (active_features.len)
+	{
+	  CFMutableArrayRef features_array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+
+	  /* TODO sort and resolve conflicting features? */
+	  /* active_features.sort (); */
+	  for (unsigned int j = 0; j < active_features.len; j++)
+	  {
+	    CFStringRef keys[2] = {
+	      kCTFontFeatureTypeIdentifierKey,
+	      kCTFontFeatureSelectorIdentifierKey
+	    };
+	    CFNumberRef values[2] = {
+	      CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &active_features[j].rec.feature),
+	      CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &active_features[j].rec.setting)
+	    };
+	    CFDictionaryRef dict = CFDictionaryCreate (kCFAllocatorDefault,
+						       (const void **) keys,
+						       (const void **) values,
+						       2,
+						       &kCFTypeDictionaryKeyCallBacks,
+						       &kCFTypeDictionaryValueCallBacks);
+	    CFRelease (values[0]);
+	    CFRelease (values[1]);
+
+	    CFArrayAppendValue (features_array, dict);
+	    CFRelease (dict);
+
+	  }
+
+	  CFDictionaryRef attributes = CFDictionaryCreate (kCFAllocatorDefault,
+							   (const void **) &kCTFontFeatureSettingsAttribute,
+							   (const void **) &features_array,
+							   1,
+							   &kCFTypeDictionaryKeyCallBacks,
+							   &kCFTypeDictionaryValueCallBacks);
+	  CFRelease (features_array);
+
+	  CTFontDescriptorRef font_desc = CTFontDescriptorCreateWithAttributes (attributes);
+	  CFRelease (attributes);
+
+	  range->font = CTFontCreateCopyWithAttributes (font_data->ct_font, 0.0, NULL, font_desc);
+
+	  CFRelease (font_desc);
+	}
+	else
+	{
+	  range->font = NULL;
+	}
+
+	range->index_first = last_index;
+	range->index_last  = event->index - 1;
+
+	last_index = event->index;
+      }
+
+      if (event->start) {
+        active_feature_t *feature = active_features.push ();
+	if (unlikely (!feature))
+	  goto fail_features;
+	*feature = event->feature;
+      } else {
+        active_feature_t *feature = active_features.find (&event->feature);
+	if (feature)
+	  active_features.remove (feature - active_features.array);
+      }
+    }
+
+    if (!range_records.len) /* No active feature found. */
+      goto fail_features;
+  }
+  else
+  {
+  fail_features:
+    num_features = 0;
+  }
 
 #define FAIL(...) \
   HB_STMT_START { \
@@ -205,20 +571,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
     }
   }
-  unsigned int *log_clusters = (unsigned int *) (pchars + chars_len);
-  if (num_features)
-  {
-    /* Need log_clusters to assign features. */
-    chars_len = 0;
-    for (unsigned int i = 0; i < buffer->len; i++)
-    {
-      hb_codepoint_t c = buffer->info[i].codepoint;
-      unsigned int cluster = buffer->info[i].cluster;
-      log_clusters[chars_len++] = cluster;
-      if (c >= 0x10000 && c < 0x110000)
-	log_clusters[chars_len++] = cluster; /* Surrogates. */
-    }
-  }
 
 #undef utf16_index
 
@@ -232,40 +584,48 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 				  kCTFontAttributeName, font_data->ct_font);
 
-  for (unsigned int i = 0; i < num_features; i++)
+  if (num_features)
   {
-    CFStringRef a = NULL;
-    unsigned int v = features[i].value;
+    unsigned int *log_clusters = (unsigned int *) (pchars + chars_len);
 
-    switch (features[i].tag)
+    /* Need log_clusters to assign features. */
+    chars_len = 0;
+    for (unsigned int i = 0; i < buffer->len; i++)
     {
-      case HB_TAG ('l','i','g','a'): a = kCTLigatureAttributeName; v = v ? 1 : 0; break;
-      case HB_TAG ('d','l','i','g'): a = kCTLigatureAttributeName; v = v ? 2 : 1; break;
-
-      case HB_TAG ('e','x','p','t'): a = kCTCharacterShapeAttributeName; v = v ? 11 : 16; break;
-      case HB_TAG ('j','s','7','8'): a = kCTCharacterShapeAttributeName; v = v ?  3 : 16; break;
-      case HB_TAG ('j','s','8','3'): a = kCTCharacterShapeAttributeName; v = v ?  4 : 16; break;
-      case HB_TAG ('j','s','9','0'): a = kCTCharacterShapeAttributeName; v = v ?  5 : 16; break;
-      case HB_TAG ('s','m','p','l'): a = kCTCharacterShapeAttributeName; v = v ?  2 : 16; break;
-      case HB_TAG ('t','r','a','d'): a = kCTCharacterShapeAttributeName; v = v ?  1 : 16; break;
+      hb_codepoint_t c = buffer->info[i].codepoint;
+      unsigned int cluster = buffer->info[i].cluster;
+      log_clusters[chars_len++] = cluster;
+      if (c >= 0x10000 && c < 0x110000)
+	log_clusters[chars_len++] = cluster; /* Surrogates. */
     }
 
-    if (!a)
-      continue;
-
-    CFTypeRef vref = CFNumberCreate (NULL, kCFNumberIntType, &v);
-    unsigned int start = features[i].start;
-    unsigned int end   = features[i].end;
-    for (unsigned int j = 0; j < chars_len; j++)
+    unsigned int start = 0;
+    range_record_t *last_range = &range_records[0];
+    for (unsigned int k = 0; k < chars_len; k++)
     {
-      if (log_clusters[j] < start || log_clusters[j] >= end)
-        continue;
-      unsigned int range_start = j;
-      while (j < chars_len && log_clusters[j] >= start && log_clusters[j] < end)
-        j++;
-      CFAttributedStringSetAttribute (attr_string, CFRangeMake (range_start, j - range_start), a, vref);
+      range_record_t *range = last_range;
+      while (log_clusters[k] < range->index_first)
+	range--;
+      while (log_clusters[k] > range->index_last)
+	range++;
+      if (range != last_range)
+      {
+        if (last_range->font)
+	  CFAttributedStringSetAttribute (attr_string, CFRangeMake (start, k - start),
+					  kCTFontAttributeName, last_range->font);
+
+	start = k;
+      }
+
+      last_range = range;
     }
-    CFRelease (vref);
+    if (start != chars_len && last_range->font)
+      CFAttributedStringSetAttribute (attr_string, CFRangeMake (start, chars_len - start - 1),
+				      kCTFontAttributeName, last_range->font);
+
+    for (unsigned int i = 0; i < range_records.len; i++)
+      if (range_records[i].font)
+	CFRelease (range_records[i].font);
   }
 
   CTLineRef line = CTLineCreateWithAttributedString (attr_string);
