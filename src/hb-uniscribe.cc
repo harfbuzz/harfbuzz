@@ -940,6 +940,14 @@ retry:
     if (unlikely (FAILED (hr)))
       FAIL ("ScriptPlaceOpenType() failed: 0x%08xL", hr);
 
+    if (DEBUG_ENABLED (UNISCRIBE))
+      fprintf (stderr, "Item %d RTL %d LayoutRTL %d LogicalOrder %d ScriptTag %c%c%c%c\n",
+	       i,
+	       items[i].a.fRTL,
+	       items[i].a.fLayoutRTL,
+	       items[i].a.fLogicalOrder,
+	       HB_UNTAG (hb_uint32_swap (script_tags[i])));
+
     glyphs_offset += glyphs_len;
   }
   glyphs_len = glyphs_offset;
