@@ -52,7 +52,7 @@ m4_define([hb_libtool_current],
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
-dnl GOBJECT_INTROSPECTION_CHECK([0.9.0])
+GOBJECT_INTROSPECTION_CHECK([1.32.0])
 GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 
 # Functions and headers
@@ -409,6 +409,7 @@ Test / platform shapers (not normally needed):
 	Old HarfBuzz:		${have_hb_old}
 	Uniscribe:		${have_uniscribe}
 
-Documentation:
-	Referece docs:		${enable_gtk_doc}
+Other features:
+	Documentation:		${enable_gtk_doc}
+	Introspection:		${found_introspection}
 ])
