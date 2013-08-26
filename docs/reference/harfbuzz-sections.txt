@@ -102,6 +102,7 @@ hb_script_from_string
 hb_script_get_horizontal_direction
 hb_script_t
 hb_script_to_iso15924_tag
+HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_tag_from_string
 hb_tag_t
 hb_tag_to_string
@@ -276,9 +277,6 @@ HB_OT_LAYOUT_NO_SCRIPT_INDEX
 HB_OT_TAG_GDEF
 HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB
-Xhb_ot_layout_lookup_enumerate_sequences
-Xhb_ot_layout_lookup_position
-Xhb_ot_layout_lookup_substitute
 hb_ot_layout_collect_lookups
 hb_ot_layout_feature_get_lookups
 hb_ot_layout_get_attach_points
@@ -305,6 +303,10 @@ hb_ot_layout_table_find_script
 hb_ot_layout_table_get_feature_tags
 hb_ot_layout_table_get_script_tags
 hb_ot_shape_plan_collect_lookups
+<SUBSECTION Private>
+Xhb_ot_layout_lookup_enumerate_sequences
+Xhb_ot_layout_lookup_position
+Xhb_ot_layout_lookup_substitute
 </SECTION>
 
 <SECTION>
