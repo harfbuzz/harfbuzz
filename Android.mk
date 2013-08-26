@@ -32,6 +32,7 @@ LOCAL_SRC_FILES:= \
 	src/hb-buffer.cc \
 	src/hb-common.cc \
 	src/hb-fallback-shape.cc \
+	src/hb-face.cc \
 	src/hb-font.cc \
 	src/hb-ot-tag.cc \
 	src/hb-set.cc \

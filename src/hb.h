@@ -31,6 +31,7 @@
 #include "hb-blob.h"
 #include "hb-buffer.h"
 #include "hb-common.h"
+#include "hb-face.h"
 #include "hb-font.h"
 #include "hb-set.h"
 #include "hb-shape.h"

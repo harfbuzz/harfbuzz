@@ -133,7 +133,7 @@ hb_coretext_font_get_ct_font
 </SECTION>
 
 <SECTION>
-<FILE>hb-font</FILE>
+<FILE>hb-face</FILE>
 hb_face_create
 hb_face_create_for_tables
 hb_face_destroy
@@ -152,6 +152,10 @@ hb_face_set_index
 hb_face_set_upem
 hb_face_set_user_data
 hb_face_t
+</SECTION>
+
+<SECTION>
+<FILE>hb-font</FILE>
 hb_font_add_glyph_origin_for_direction
 hb_font_create
 hb_font_create_sub_font

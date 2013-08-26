@@ -28,6 +28,8 @@ HBSOURCES =  \
 	hb-cache-private.hh \
 	hb-common.cc \
 	hb-fallback-shape.cc \
+	hb-face-private.hh \
+	hb-face.cc \
 	hb-font-private.hh \
 	hb-font.cc \
 	hb-mutex-private.hh \
@@ -61,6 +63,7 @@ HBHEADERS = \
 	hb-blob.h \
 	hb-buffer.h \
 	hb-common.h \
+	hb-face.h \
 	hb-font.h \
 	hb-set.h \
 	hb-shape.h \
