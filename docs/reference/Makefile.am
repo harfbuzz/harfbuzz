@@ -106,4 +106,7 @@ TESTS_ENVIRONMENT = cd $(srcdir) && \
 #TESTS = $(GTKDOC_CHECK)
 endif
 
+maintainer-clean-local:
+	-rm -rf $(srcdir)/tmpl
+
 -include $(top_srcdir)/git.mk
