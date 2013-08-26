@@ -8,6 +8,7 @@ install:
   - sudo apt-get install libglib2.0-dev # for font functions / tests / utils
   - sudo apt-get install libcairo2-dev # for utils
   - sudo apt-get install libicu-dev # for extra unicode functions
+  - sudo apt-get install libgraphite2-dev # for extra shapers
 script: ./autogen.sh && make && make check
 notifications:
   irc: "irc.freenode.org#harfbuzz"
