@@ -70,7 +70,7 @@ content_files= \
 	$(NULL)
 
 version.xml: $(top_srcdir)/configure.ac
-	echo $(HB_VERSION_MAJOR).$(HB_VERSION_MINOR).$(HB_VERSION_MICRO) > $@
+	$(AM_V_GEN) echo $(HB_VERSION_MAJOR).$(HB_VERSION_MINOR).$(HB_VERSION_MICRO) > $@
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
 # These files must be listed here *and* in content_files
