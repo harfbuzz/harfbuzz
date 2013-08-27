@@ -144,9 +144,16 @@ if $have_glib; then
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
+AC_ARG_WITH(gobject,
+	[AS_HELP_STRING([--with-gobject=@<:@yes/no/auto@:>@],
+			[Use gobject @<:@default=auto@:>@])],,
+	[with_gobject=auto])
 have_gobject=false
-if $have_glib; then
-	PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0 >= 2.16, have_gobject=true, :)
+if test "x$with_gobject" = "xyes" -o "x$with_gobject" = "xauto"; then
+	PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0, have_gobject=true, :)
+fi
+if test "x$with_gobject" = "xyes" -a "x$have_gobject" != "xtrue"; then
+	AC_MSG_ERROR([gobject support requested but gobject-2.0 / glib-2.0 not found])
 fi
 if $have_gobject; then
 	AC_DEFINE(HAVE_GOBJECT, 1, [Have gobject2 library])
@@ -411,5 +418,6 @@ Test / platform shapers (not normally needed):
 
 Other features:
 	Documentation:		${enable_gtk_doc}
+	GObject bindings:	${have_gobject}
 	Introspection:		${found_introspection}
 ])

@@ -26,6 +26,7 @@
     <xi:include href="xml/hb-shape.xml"/>
 
     <xi:include href="xml/hb-version.xml"/>
+    <xi:include href="xml/hb-deprecated.xml"/>
 
     <xi:include href="xml/hb-set.xml"/>
 
@@ -43,6 +44,8 @@
     <xi:include href="xml/hb-graphite2.xml"/>
     <xi:include href="xml/hb-uniscribe.xml"/>
     <xi:include href="xml/hb-coretext.xml"/>
+
+    <xi:include href="xml/hb-gobject.xml"/>
 
   </chapter>
   <chapter id="object-tree">

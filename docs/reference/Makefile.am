@@ -21,7 +21,7 @@ DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.xml
 # gtk-doc will search all .c and .h files beneath these paths
 # for inline comments documenting functions and macros.
 # e.g. DOC_SOURCE_DIR=$(top_srcdir)/gtk $(top_srcdir)/gdk
-DOC_SOURCE_DIR=$(top_srcdir)/src
+DOC_SOURCE_DIR=$(top_srcdir)/src $(top_builddir)/src
 
 # Extra options to pass to gtkdoc-scangobj. Not normally needed.
 SCANGOBJ_OPTIONS=
@@ -58,6 +58,11 @@ EXTRA_HFILES=$(top_builddir)/src/hb-version.h
 # Header files or dirs to ignore when scanning. Use base file/dir names
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h private_code
 IGNORE_HFILES=`cd $(top_srcdir)/src; find . -path './hb-*/*.h' | sed 's@^.*/@@'`
+if HAVE_GOBJECT
+else
+# XXX Prevent "make dist"
+IGNORE_HFILES+=hb-gobject.h
+endif
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
@@ -83,7 +88,10 @@ expand_content_files=
 # e.g. GTKDOC_CFLAGS=-I$(top_srcdir) -I$(top_builddir) $(GTK_DEBUG_FLAGS)
 # e.g. GTKDOC_LIBS=$(top_builddir)/gtk/$(gtktargetlib)
 GTKDOC_CFLAGS=
-GTKDOC_LIBS=
+GTKDOC_LIBS=$(top_builddir)/src/libharfbuzz.la
+if HAVE_GOBJECT
+GTKDOC_LIBS+=$(top_builddir)/src/libharfbuzz-gobject.la
+endif
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/gtk-doc.make

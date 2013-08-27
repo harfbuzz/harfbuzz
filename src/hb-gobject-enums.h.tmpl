@@ -1,6 +1,6 @@
 /*** BEGIN file-header ***/
 /*
- * Copyright © 2011  Google, Inc.
+ * Copyright © 2013  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -25,49 +25,31 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "hb-private.hh"
-
-/* g++ didn't like older gtype.h gcc-only code path. */
-#include <glib.h>
-#if !GLIB_CHECK_VERSION(2,29,16)
-#undef __GNUC__
-#undef __GNUC_MINOR__
-#define __GNUC__ 2
-#define __GNUC_MINOR__ 6
+#ifndef HB_GOBJECT_H_IN
+#error "Include <hb-gobject.h> instead."
 #endif
 
-#include "hb-gobject.h"
+#ifndef HB_GOBJECT_ENUMS_H
+#define HB_GOBJECT_ENUMS_H
+
+#include "hb.h"
+
+#include <glib-object.h>
+
+HB_BEGIN_DECLS
+
 
 /*** END file-header ***/
 
-/*** BEGIN file-production ***/
-/* enumerations from "@filename@" */
-/*** END file-production ***/
-
 /*** BEGIN value-header ***/
-GType
-@enum_name@_get_type (void)
-{
-  static gsize type_id = 0;
+GType @enum_name@_get_type (void) G_GNUC_CONST;
+#define @ENUMPREFIX@_TYPE_@ENUMSHORT@ (@enum_name@_get_type ())
 
-  if (g_once_init_enter (&type_id))
-    {
-      static const G@Type@Value values[] = {
 /*** END value-header ***/
 
-/*** BEGIN value-production ***/
-        { @VALUENAME@, "@VALUENAME@", "@valuenick@" },
-/*** END value-production ***/
+/*** BEGIN file-tail ***/
 
-/*** BEGIN value-tail ***/
-        { 0, NULL, NULL }
-      };
-      GType id =
-        g_@type@_register_static (g_intern_static_string ("@EnumName@"), values);
-      g_once_init_leave (&type_id, id);
-    }
+HB_END_DECLS
 
-  return type_id;
-}
-
-/*** END value-tail ***/
+#endif /* HB_GOBJECT_ENUMS_H */
+/*** END file-tail ***/

@@ -26,45 +26,15 @@
 
 #ifndef HB_GOBJECT_H
 #define HB_GOBJECT_H
+#define HB_GOBJECT_H_IN
 
 #include "hb.h"
 
-#include <glib-object.h>
+#include "hb-gobject-enums.h"
+#include "hb-gobject-structs.h"
 
 HB_BEGIN_DECLS
-
-#ifndef __GTK_DOC_IGNORE__
-/* Objects */
-
-#define HB_GOBJECT_TYPE_BLOB hb_gobject_blob_get_type ()
-GType
-hb_gobject_blob_get_type (void);
-
-#define HB_GOBJECT_TYPE_BUFFER hb_gobject_buffer_get_type ()
-GType
-hb_gobject_buffer_get_type (void);
-
-#define HB_GOBJECT_TYPE_FACE hb_gobject_face_get_type ()
-GType
-hb_gobject_face_get_type (void);
-
-#define HB_GOBJECT_TYPE_FONT hb_gobject_font_get_type ()
-GType
-hb_gobject_font_get_type (void);
-
-#define HB_GOBJECT_TYPE_FONT_FUNCS hb_gobject_font_funcs_get_type ()
-GType
-hb_gobject_font_funcs_get_type (void);
-
-#define HB_GOBJECT_TYPE_UNICODE_FUNCS hb_gobject_unicode_funcs_get_type ()
-GType
-hb_gobject_unicode_funcs_get_type (void);
-
-#endif /* __GTK_DOC_IGNORE__ */
-
-/* Enums */
-
-
 HB_END_DECLS
 
+#undef HB_GOBJECT_H_IN
 #endif /* HB_GOBJECT_H */

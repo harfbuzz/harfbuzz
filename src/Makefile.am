@@ -126,21 +126,6 @@ HBSOURCES += hb-glib.cc
 HBHEADERS += hb-glib.h
 endif
 
-if HAVE_GOBJECT
-HBCFLAGS += $(GOBJECT_CFLAGS)
-HBLIBS   += $(GOBJECT_LIBS)
-HBSOURCES += hb-gobject-structs.cc
-nodist_HBSOURCES = hb-gobject-enums.cc
-HBHEADERS += hb-gobject.h
-BUILT_SOURCES += hb-gobject-enums.cc
-EXTRA_DIST += hb-gobject-enums.cc.tmpl
-DISTCLEANFILES += hb-gobject-enums.cc
-
-hb-gobject-enums.cc: hb-gobject-enums.cc.tmpl $(HBHEADERS)
-	$(AM_V_GEN) $(GLIB_MKENUMS) --template $^ > "$@.tmp" && \
-	mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
-endif
-
 if HAVE_FREETYPE
 HBCFLAGS += $(FREETYPE_CFLAGS)
 HBLIBS   += $(FREETYPE_LIBS)
@@ -235,6 +220,39 @@ pkginclude_HEADERS += hb-icu.h
 pkgconfig_DATA += harfbuzz-icu.pc
 EXTRA_DIST += harfbuzz-icu.pc.in
 endif
+
+if HAVE_GOBJECT
+lib_LTLIBRARIES += libharfbuzz-gobject.la
+libharfbuzz_gobject_la_SOURCES = hb-gobject-structs.cc
+nodist_libharfbuzz_gobject_la_SOURCES = hb-gobject-enums.cc
+libharfbuzz_gobject_la_CPPFLAGS = $(GOBJECT_CFLAGS)
+libharfbuzz_gobject_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) -no-undefined
+libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
+pkginclude_HEADERS += hb-gobject.h hb-gobject-structs.h
+nodist_pkginclude_HEADERS += hb-gobject-enums.h
+pkgconfig_DATA += harfbuzz-gobject.pc
+EXTRA_DIST += harfbuzz-gobject.pc.in
+
+BUILT_SOURCES += \
+	hb-gobject-enums.cc \
+	hb-gobject-enums.h \
+	$(NULL)
+EXTRA_DIST += \
+	hb-gobject-enums.cc.tmpl \
+	hb-gobject-enums.h.tmpl \
+	$(NULL)
+DISTCLEANFILES += \
+	hb-gobject-enums.cc \
+	hb-gobject-enums.h \
+	$(NULL)
+hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
+	$(AM_V_GEN) $(GLIB_MKENUMS) \
+		--identifier-prefix hb_ --symbol-prefix hb_gobject \
+		--template $^ | \
+	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@.tmp" && \
+	mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
+endif
+
 
 %.pc: %.pc.in $(top_builddir)/config.status
 	$(AM_V_GEN) \
