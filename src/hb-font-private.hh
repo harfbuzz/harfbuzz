@@ -426,7 +426,8 @@ struct hb_font_t {
   {
     if (get_glyph_name (glyph, s, size)) return;
 
-    snprintf (s, size, "gid%u", glyph);
+    if (size && snprintf (s, size, "gid%u", glyph) < 0)
+      *s = '\0';
   }
 
   /* Parses gidDDD and uniUUUU strings automatically. */

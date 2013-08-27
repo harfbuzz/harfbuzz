@@ -181,18 +181,18 @@ hb_feature_to_string (hb_feature_t *feature,
   {
     s[len++] = '[';
     if (feature->start)
-      len += snprintf (s + len, ARRAY_LENGTH (s) - len, "%d", feature->start);
+      len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%d", feature->start));
     if (feature->end != feature->start + 1) {
       s[len++] = ':';
       if (feature->end != (unsigned int) -1)
-	len += snprintf (s + len, ARRAY_LENGTH (s) - len, "%d", feature->end);
+	len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%d", feature->end));
     }
     s[len++] = ']';
   }
   if (feature->value > 1)
   {
     s[len++] = '=';
-    len += snprintf (s + len, ARRAY_LENGTH (s) - len, "%d", feature->value);
+    len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%d", feature->value));
   }
   assert (len < ARRAY_LENGTH (s));
   len = MIN (len, size - 1);
