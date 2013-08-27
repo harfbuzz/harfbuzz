@@ -176,7 +176,7 @@ hb_buffer_t::clear (void)
 
   hb_segment_properties_t default_props = HB_SEGMENT_PROPERTIES_DEFAULT;
   props = default_props;
-  flags = HB_BUFFER_FLAGS_DEFAULT;
+  flags = HB_BUFFER_FLAG_DEFAULT;
 
   content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
   in_error = false;
@@ -624,7 +624,7 @@ hb_buffer_get_empty (void)
 
     const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil),
     HB_SEGMENT_PROPERTIES_DEFAULT,
-    HB_BUFFER_FLAGS_DEFAULT,
+    HB_BUFFER_FLAG_DEFAULT,
 
     HB_BUFFER_CONTENT_TYPE_INVALID,
     true, /* in_error */

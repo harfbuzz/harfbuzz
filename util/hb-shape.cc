@@ -60,7 +60,7 @@ struct output_buffer_t
 	output_format = HB_BUFFER_SERIALIZE_FORMAT_TEXT;
     }
 
-    unsigned int flags = HB_BUFFER_SERIALIZE_FLAGS_DEFAULT;
+    unsigned int flags = HB_BUFFER_SERIALIZE_FLAG_DEFAULT;
     if (!format.show_glyph_names)
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES;
     if (!format.show_clusters)

@@ -63,6 +63,7 @@ HBHEADERS = \
 	hb-blob.h \
 	hb-buffer.h \
 	hb-common.h \
+	hb-deprecated.h \
 	hb-face.h \
 	hb-font.h \
 	hb-set.h \

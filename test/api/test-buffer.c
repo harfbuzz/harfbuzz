@@ -110,7 +110,7 @@ test_buffer_properties (fixture_t *fixture, gconstpointer user_data)
   g_assert (hb_buffer_get_direction (b) == HB_DIRECTION_INVALID);
   g_assert (hb_buffer_get_script (b) == HB_SCRIPT_INVALID);
   g_assert (hb_buffer_get_language (b) == NULL);
-  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAGS_DEFAULT);
+  g_assert (hb_buffer_get_flags (b) == HB_BUFFER_FLAG_DEFAULT);
 
 
   /* test property changes are retained */

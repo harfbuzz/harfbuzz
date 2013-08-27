@@ -273,11 +273,6 @@ typedef enum
   /*---*/ HB_SCRIPT_INVALID			= HB_TAG_NONE
 } hb_script_t;
 
-#ifndef HB_DISABLE_DEPRECATED
-/* Deprecated misspelling. */
-#define HB_SCRIPT_CANADIAN_ABORIGINAL		  HB_SCRIPT_CANADIAN_SYLLABICS
-#endif
-
 /* These are moved out of hb_script_t because glib-mkenums chokes otherwise. */
 #if 0
   /*7.0*/ HB_SCRIPT_BASSA_VAH			= HB_TAG ('B','a','s','s'),

@@ -167,7 +167,7 @@ struct shape_options_t : option_group_t
     hb_buffer_set_direction (buffer, hb_direction_from_string (direction, -1));
     hb_buffer_set_script (buffer, hb_script_from_string (script, -1));
     hb_buffer_set_language (buffer, hb_language_from_string (language, -1));
-    hb_buffer_set_flags (buffer, (hb_buffer_flags_t) (HB_BUFFER_FLAGS_DEFAULT |
+    hb_buffer_set_flags (buffer, (hb_buffer_flags_t) (HB_BUFFER_FLAG_DEFAULT |
 			 (bot ? HB_BUFFER_FLAG_BOT : 0) |
 			 (eot ? HB_BUFFER_FLAG_EOT : 0) |
 			 (preserve_default_ignorables ? HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES : 0)));

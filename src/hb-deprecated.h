@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2013  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,27 +21,31 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_H
-#define HB_H
-#define HB_H_IN
+#ifndef HB_H_IN
+#error "Include <hb.h> instead."
+#endif
 
-#include "hb-blob.h"
-#include "hb-buffer.h"
+#ifndef HB_DEPRECATED_H
+#define HB_DEPRECATED_H
+
 #include "hb-common.h"
-#include "hb-deprecated.h"
-#include "hb-face.h"
-#include "hb-font.h"
-#include "hb-set.h"
-#include "hb-shape.h"
-#include "hb-shape-plan.h"
 #include "hb-unicode.h"
-#include "hb-version.h"
+#include "hb-font.h"
 
 HB_BEGIN_DECLS
+
+#ifndef HB_DISABLE_DEPRECATED
+
+#define HB_SCRIPT_CANADIAN_ABORIGINAL		HB_SCRIPT_CANADIAN_SYLLABICS
+
+#define HB_BUFFER_FLAGS_DEFAULT			HB_BUFFER_FLAG_DEFAULT
+#define HB_BUFFER_SERIALIZE_FLAGS_DEFAULT	HB_BUFFER_SERIALIZE_FLAG_DEFAULT
+
+#endif
+
 HB_END_DECLS
 
-#undef HB_H_IN
-#endif /* HB_H */
+#endif /* HB_DEPRECATED_H */

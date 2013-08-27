@@ -9,6 +9,7 @@ MAINTAINERCLEANFILES =
 bin_PROGRAMS =
 
 AM_CPPFLAGS = \
+	-DHB_DISABLE_DEPRECATED \
 	-I$(top_srcdir)/src/ \
 	-I$(top_builddir)/src/ \
 	$(GLIB_CFLAGS) \
