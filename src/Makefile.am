@@ -378,7 +378,7 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
 if HAVE_INTROSPECTION
 
-harfbuzz-0.0.gir: libharfbuzz.la
+harfbuzz-0.0.gir: libharfbuzz.la libharfbuzz-gobject.la
 harfbuzz_0_0_gir_INCLUDES = GObject-2.0
 harfbuzz_0_0_gir_CFLAGS = \
 	$(INCLUDES) \
@@ -387,9 +387,19 @@ harfbuzz_0_0_gir_CFLAGS = \
 	-DHB_H_IN \
 	-DHB_OT_H \
 	-DHB_OT_H_IN \
+	-DHB_GOBJECT_H \
+	-DHB_GOBJECT_H_IN \
 	$(NULL)
-harfbuzz_0_0_gir_LIBS = libharfbuzz.la
-harfbuzz_0_0_gir_FILES = $(HBHEADERS) $(HBNODISTHEADERS)
+harfbuzz_0_0_gir_LIBS = \
+	libharfbuzz.la \
+	libharfbuzz-gobject.la \
+	$(NULL)
+harfbuzz_0_0_gir_FILES = \
+	$(HBHEADERS) \
+	$(HBNODISTHEADERS) \
+	hb-gobject-enums.h \
+	hb-gobject-structs.h \
+	$(NULL)
 
 girdir = $(datadir)/gir-1.0
 gir_DATA = $(INTROSPECTION_GIRS)
