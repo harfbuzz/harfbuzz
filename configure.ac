@@ -52,8 +52,16 @@ m4_define([hb_libtool_current],
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
-GOBJECT_INTROSPECTION_CHECK([1.32.0])
-GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
+# Documentation
+have_gtk_doc=false
+m4_ifdef([GTK_DOC_CHECK], [
+	GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
+	if test "x$enable_gtk_doc" = xyes; then
+		have_gtk_doc=true
+	fi
+], [
+	AM_CONDITIONAL([ENABLE_GTK_DOC], false)
+])
 
 # Functions and headers
 AC_CHECK_FUNCS(atexit mprotect sysconf getpagesize mmap isatty)
@@ -144,10 +152,12 @@ if $have_glib; then
 fi
 AM_CONDITIONAL(HAVE_GLIB, $have_glib)
 
+dnl ===========================================================================
+
 AC_ARG_WITH(gobject,
 	[AS_HELP_STRING([--with-gobject=@<:@yes/no/auto@:>@],
 			[Use gobject @<:@default=auto@:>@])],,
-	[with_gobject=auto])
+	[with_gobject=no])
 have_gobject=false
 if test "x$with_gobject" = "xyes" -o "x$with_gobject" = "xauto"; then
 	PKG_CHECK_MODULES(GOBJECT, gobject-2.0 glib-2.0, have_gobject=true, :)
@@ -161,6 +171,25 @@ if $have_gobject; then
 	AC_SUBST(GLIB_MKENUMS)
 fi
 AM_CONDITIONAL(HAVE_GOBJECT, $have_gobject)
+
+dnl ===========================================================================
+
+
+dnl ===========================================================================
+# Gobject-Introspection
+have_introspection=false
+m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
+	if $have_gobject; then
+		GOBJECT_INTROSPECTION_CHECK([1.32.0])
+		if test "x$found_introspection" = xyes; then
+			have_introspection=true
+		fi
+	else
+		AM_CONDITIONAL([HAVE_INTROSPECTION], false)
+	fi
+], [
+	AM_CONDITIONAL([HAVE_INTROSPECTION], false)
+])
 
 dnl ===========================================================================
 
@@ -417,7 +446,7 @@ Test / platform shapers (not normally needed):
 	Uniscribe:		${have_uniscribe}
 
 Other features:
-	Documentation:		${enable_gtk_doc}
+	Documentation:		${have_gtk_doc}
 	GObject bindings:	${have_gobject}
-	Introspection:		${found_introspection}
+	Introspection:		${have_introspection}
 ])
