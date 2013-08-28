@@ -55,7 +55,7 @@ AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 # Documentation
 have_gtk_doc=false
 m4_ifdef([GTK_DOC_CHECK], [
-	GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
+GTK_DOC_CHECK([1.15],[--flavour no-tmpl])
 	if test "x$enable_gtk_doc" = xyes; then
 		have_gtk_doc=true
 	fi
