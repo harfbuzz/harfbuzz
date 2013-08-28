@@ -203,7 +203,7 @@ struct hb_uniscribe_shaper_funcs_t {
     this->ScriptShapeOpenType   = NULL;
     this->ScriptPlaceOpenType   = NULL;
 
-    hinstLib = GetModuleHandle("usp10.dll");
+    hinstLib = GetModuleHandle (TEXT ("usp10.dll"));
     if (hinstLib)
     {
       this->ScriptItemizeOpenType = (SIOT) GetProcAddress (hinstLib, "ScriptItemizeOpenType");
