@@ -61,7 +61,7 @@ IGNORE_HFILES=`cd $(top_srcdir)/src; find . -path './hb-*/*.h' | sed 's@^.*/@@'`
 if HAVE_GOBJECT
 else
 # XXX Prevent "make dist"
-IGNORE_HFILES+=hb-gobject.h
+IGNORE_HFILES+=hb-gobject.h hb-gobject-enums.h hb-gobject-structs.h
 endif
 
 # Images to copy into HTML directory.
