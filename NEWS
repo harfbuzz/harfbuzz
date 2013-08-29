@@ -1,3 +1,51 @@
+Overview of changes leading to 0.9.20
+Thursday, August 29, 2013
+=====================================
+
+General:
+- Misc substitute_closure() fixes.
+- Build fixes.
+
+Documentation:
+- gtk-doc boilerplate integrated.  Docs are built now, but
+  contain no contents.  By next release hopefully we have
+  some content in.  Enable using --enable-gtk-doc.
+
+GObject and Introspection:
+- Added harfbuzz-gobject library (hb-gobject.h) that has type
+  bindings for all HarfBuzz objects and enums.  Enable using
+  --with-gobject.
+- Added gobject-introspection boilerplate.  Nothing useful
+  right now.  Work in progress.  Gets enabled automatically if
+  --with-gobject is used.  Override with --disable-introspection.
+
+OpenType shaper:
+- Apply 'mark' in Myanmar shaper.
+- Don't apply 'dlig' by default.
+
+Uniscribe shaper:
+- Support user features.
+- Fix loading of fonts that are also installed on the system.
+- Fix shaping of Arabic Presentation Forms.
+- Fix build with wide chars.
+
+CoreText shaper:
+- Support user features.
+
+Source changes:
+- hb_face_t code moved to hb-face.h / hb-face.cc.
+- Added hb-deprecated.h.
+
+API changes:
+- Added HB_DISABLE_DEPRECATED.
+- Deprecated HB_SCRIPT_CANADIAN_ABORIGINAL; replaced by
+  HB_SCRIPT_CANADIAN_SYLLABICS.
+- Deprecated HB_BUFFER_FLAGS_DEFAULT; replaced by
+  HB_BUFFER_FLAG_DEFAULT.
+- Deprecated HB_BUFFER_SERIALIZE_FLAGS_DEFAULT; replaced by
+  HB_BUFFER_SERIALIZE_FLAG_DEFAULT.
+
+
 Overview of changes leading to 0.9.19
 Tuesday, July 16, 2013
 =====================================
