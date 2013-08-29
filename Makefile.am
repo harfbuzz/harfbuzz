@@ -49,6 +49,8 @@ $(srcdir)/ChangeLog:
 DISTCHECK_CONFIGURE_FLAGS = \
 	--enable-gtk-doc \
 	--disable-doc-cross-references \
+	--with-gobject \
+	--enable-introspection \
 	$(NULL)
 
 # TODO: Copy infrastructure from cairo
