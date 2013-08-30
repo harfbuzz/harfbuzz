@@ -43,11 +43,9 @@ API additions
 
 - Add sanitize API (and a cached version, that saves result on blob user-data)
 
-- Add glib GBoxedType stuff and introspection
-
 - BCP 47 language handling / API (language_matches?)
 
-- Add hb_font_create_linear()?
+- Add hb_font_create_unscaled()?
 
 - Add query / enumeration API for aalt-like features?
 
@@ -61,7 +59,7 @@ API additions
 hb-view / hb-shape enhancements:
 ===============================
 
-- Add --width, --height, --auto-size, --align, etc?
+- Add --width, --height, --auto-size, --ink-box, --align, etc?
 
 
 Tests to write:
