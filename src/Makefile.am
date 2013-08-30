@@ -374,13 +374,13 @@ TESTS_ENVIRONMENT = \
 if HAVE_INTROSPECTION
 
 -include $(INTROSPECTION_MAKEFILE)
-INTROSPECTION_GIRS = harfbuzz-$(HB_VERSION_MAJOR).0.gir # What does the 0 mean anyway?!
+INTROSPECTION_GIRS = HarfBuzz-$(HB_VERSION_MAJOR).0.gir # What does the 0 mean anyway?!
 INTROSPECTION_SCANNER_ARGS = -I$(srcdir) -n hb --identifier-prefix=hb_ --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 
-harfbuzz-0.0.gir: libharfbuzz.la libharfbuzz-gobject.la
-harfbuzz_0_0_gir_INCLUDES = GObject-2.0
-harfbuzz_0_0_gir_CFLAGS = \
+HarfBuzz-0.0.gir: libharfbuzz.la libharfbuzz-gobject.la
+HarfBuzz_0_0_gir_INCLUDES = GObject-2.0
+HarfBuzz_0_0_gir_CFLAGS = \
 	$(INCLUDES) \
 	$(HBCFLAGS) \
 	-DHB_H \
@@ -390,11 +390,11 @@ harfbuzz_0_0_gir_CFLAGS = \
 	-DHB_GOBJECT_H \
 	-DHB_GOBJECT_H_IN \
 	$(NULL)
-harfbuzz_0_0_gir_LIBS = \
+HarfBuzz_0_0_gir_LIBS = \
 	libharfbuzz.la \
 	libharfbuzz-gobject.la \
 	$(NULL)
-harfbuzz_0_0_gir_FILES = \
+HarfBuzz_0_0_gir_FILES = \
 	$(HBHEADERS) \
 	$(HBNODISTHEADERS) \
 	hb-gobject-enums.h \
