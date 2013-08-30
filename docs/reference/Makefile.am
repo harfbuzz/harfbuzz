@@ -1,4 +1,4 @@
-## Process this file with automake to produce Makefile.in
+# Process this file with automake to produce Makefile.in
 
 # We require automake 1.6 at least.
 AUTOMAKE_OPTIONS = 1.6
@@ -70,12 +70,7 @@ HTML_IMAGES=
 
 # Extra SGML files that are included by $(DOC_MAIN_SGML_FILE).
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
-content_files= \
-	version.xml \
-	$(NULL)
-
-version.xml: $(top_srcdir)/configure.ac
-	$(AM_V_GEN) echo $(HB_VERSION_MAJOR).$(HB_VERSION_MINOR).$(HB_VERSION_MICRO) > $@
+content_files= version.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
 # These files must be listed here *and* in content_files
@@ -98,7 +93,7 @@ include $(top_srcdir)/gtk-doc.make
 
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
-EXTRA_DIST +=
+EXTRA_DIST += version.xml.in
 
 # Files not to distribute
 # for --rebuild-types in $(SCAN_OPTIONS), e.g. $(DOC_MODULE).types
