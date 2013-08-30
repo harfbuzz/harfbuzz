@@ -128,14 +128,6 @@ AM_CONDITIONAL(HAVE_OT, $have_ot)
 
 dnl ===========================================================================
 
-have_hb_old=false
-if $have_hb_old; then
-	AC_DEFINE(HAVE_HB_OLD, 1, [Have Old HarfBuzz backend])
-fi
-AM_CONDITIONAL(HAVE_HB_OLD, $have_hb_old)
-
-dnl ===========================================================================
-
 AC_ARG_WITH(glib,
 	[AS_HELP_STRING([--with-glib=@<:@yes/no/auto@:>@],
 			[Use glib @<:@default=auto@:>@])],,
@@ -269,15 +261,6 @@ AM_CONDITIONAL(HAVE_ICU, $have_icu)
 
 dnl ==========================================================================
 
-have_icu_le=false
-dnl PKG_CHECK_MODULES(ICU_LE, icu-le icu-uc, have_icu_le=true, :)
-if $have_icu_le; then
-	AC_DEFINE(HAVE_ICU_LE, 1, [Have ICU Layout Engine library])
-fi
-AM_CONDITIONAL(HAVE_ICU_LE, $have_icu_le)
-
-dnl ==========================================================================
-
 AC_ARG_WITH(graphite2,
 	[AS_HELP_STRING([--with-graphite2=@<:@yes/no/auto@:>@],
 			[Use the graphite2 library @<:@default=no@:>@])],,
@@ -408,8 +391,6 @@ AC_CONFIG_FILES([
 Makefile
 src/Makefile
 src/hb-version.h
-src/hb-icu-le/Makefile
-src/hb-old/Makefile
 src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile
@@ -439,10 +420,8 @@ Tools used for command-line utilities:
 Additional shapers (the more the better):
 	Graphite2:		${have_graphite2}
 
-Test / platform shapers (not normally needed):
+Platform shapers (not normally needed):
 	CoreText:		${have_coretext}
-	ICU Layout Engine:	${have_icu_le}
-	Old HarfBuzz:		${have_hb_old}
 	Uniscribe:		${have_uniscribe}
 
 Other features:

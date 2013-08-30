@@ -154,22 +154,6 @@ HBSOURCES += hb-coretext.cc
 HBHEADERS += hb-coretext.h
 endif
 
-if HAVE_HB_OLD
-SUBDIRS += hb-old
-HBCFLAGS += -I$(srcdir)/hb-old
-HBLIBS   += hb-old/libhb-old.la
-HBSOURCES += hb-old.cc
-endif
-DIST_SUBDIRS += hb-old
-
-if HAVE_ICU_LE
-SUBDIRS += hb-icu-le
-HBCFLAGS += -I$(srcdir)/hb-icu-le
-HBLIBS   += hb-icu-le/libhb-icu-le.la
-HBSOURCES += hb-icu-le.cc
-endif
-DIST_SUBDIRS += hb-icu-le
-
 if HAVE_UCDN
 SUBDIRS += hb-ucdn
 HBCFLAGS += -I$(srcdir)/hb-ucdn
@@ -186,15 +170,11 @@ export_symbols = -export-symbols harfbuzz.def
 harfbuzz_def_dependency = harfbuzz.def
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
 else
-if HAVE_ICU_LE
-libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
-else
 # Use a C linker for GCC, not C++; Don't link to libstdc++
 if HAVE_GCC
 libharfbuzz_la_LINK = $(LINK) $(libharfbuzz_la_LDFLAGS)
 else
 libharfbuzz_la_LINK = $(CXXLINK) $(libharfbuzz_la_LDFLAGS)
-endif
 endif
 endif
 
@@ -352,16 +332,10 @@ dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
 	check-header-guards.sh \
 	check-includes.sh \
-	check-symbols.sh \
-	$(NULL)
-
-if HAVE_ICU_LE
-else
-dist_check_SCRIPTS += \
 	check-libstdc++.sh \
 	check-static-inits.sh \
+	check-symbols.sh \
 	$(NULL)
-endif
 
 TESTS = $(dist_check_SCRIPTS)
 TESTS_ENVIRONMENT = \
