@@ -198,8 +198,8 @@ libharfbuzz_icu_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_IN
 libharfbuzz_icu_la_LIBADD = $(ICU_LIBS) libharfbuzz.la
 pkginclude_HEADERS += hb-icu.h
 pkgconfig_DATA += harfbuzz-icu.pc
-EXTRA_DIST += harfbuzz-icu.pc.in
 endif
+EXTRA_DIST += harfbuzz-icu.pc.in
 
 if HAVE_GOBJECT
 lib_LTLIBRARIES += libharfbuzz-gobject.la
@@ -211,15 +211,10 @@ libharfbuzz_gobject_la_LIBADD = $(GOBJECT_LIBS) libharfbuzz.la
 pkginclude_HEADERS += hb-gobject.h hb-gobject-structs.h
 nodist_pkginclude_HEADERS += hb-gobject-enums.h
 pkgconfig_DATA += harfbuzz-gobject.pc
-EXTRA_DIST += harfbuzz-gobject.pc.in
 
 BUILT_SOURCES += \
 	hb-gobject-enums.cc \
 	hb-gobject-enums.h \
-	$(NULL)
-EXTRA_DIST += \
-	hb-gobject-enums.cc.tmpl \
-	hb-gobject-enums.h.tmpl \
 	$(NULL)
 DISTCLEANFILES += \
 	hb-gobject-enums.cc \
@@ -232,6 +227,11 @@ hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
 	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@.tmp" && \
 	mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
 endif
+EXTRA_DIST += \
+	harfbuzz-gobject.pc.in \
+	hb-gobject-enums.cc.tmpl \
+	hb-gobject-enums.h.tmpl \
+	$(NULL)
 
 
 %.pc: %.pc.in $(top_builddir)/config.status
