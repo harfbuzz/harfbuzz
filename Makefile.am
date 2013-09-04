@@ -55,7 +55,9 @@ DISTCHECK_CONFIGURE_FLAGS = \
 
 # TODO: Copy infrastructure from cairo
 
+# TAR_OPTIONS is not set as env var for 'make dist'.  How to fix that?
 TAR_OPTIONS = --owner=0 --group=0
+
 dist-hook: dist-clear-sticky-bits
 # Clean up any sticky bits we may inherit from parent dir
 dist-clear-sticky-bits:
