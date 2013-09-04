@@ -76,6 +76,22 @@ _hb_blob_destroy_user_data (hb_blob_t *blob)
   }
 }
 
+/**
+ * hb_blob_create:
+ * @data: (array length=length) (allow-none): Pointer to blob data.
+ * @length: Length of @data in bytes.
+ * @mode: Memory mode for @data.
+ * @user_data: (allow-none): Data parameter to pass to @destroy.
+ * @destroy: (allow-none) (closure user_data): Callback to call when @data is not needed anymore.
+ *
+ * Creates a new "blob" object wrapping @data.  The @mode parameter is used
+ * to negotiate ownership and lifecycle of @data.
+ *
+ * Returns: New blob, or the empty blob if something failed or if @length is
+ * zero.  Destroy with hb_blob_destroy().
+ *
+ * Since: 1.0
+ **/
 hb_blob_t *
 hb_blob_create (const char        *data,
 		unsigned int       length,
@@ -109,6 +125,26 @@ hb_blob_create (const char        *data,
   return blob;
 }
 
+/**
+ * hb_blob_create_sub_blob:
+ * @parent: Parent blob.
+ * @offset: Start offset of sub-blob within @parent, in bytes.
+ * @length: Length of sub-blob.
+ *
+ * Returns a blob that represents a range of bytes in @parent.  The new
+ * blob is always created with %HB_MEMORY_MODE_READONLY, meaning that it
+ * will never modify data in the parent blob.  The parent data is not
+ * expected to be modified, and will result in undefined behavior if it
+ * is.
+ *
+ * Makes @parent immutable.
+ *
+ * Returns: New blob, or the empty blob if something failed or if @length is
+ * zero or @offset is beyond the end of @parent's data.  Destroy with
+ * hb_blob_destroy().
+ *
+ * Since: 1.0
+ **/
 hb_blob_t *
 hb_blob_create_sub_blob (hb_blob_t    *parent,
 			 unsigned int  offset,
@@ -130,6 +166,17 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
   return blob;
 }
 
+/**
+ * hb_blob_get_empty:
+ *
+ * Returns the singleton empty blob.
+ *
+ * See TODO:link object types for more information.
+ *
+ * Returns: The empty blob.
+ *
+ * Since: 1.0
+ **/
 hb_blob_t *
 hb_blob_get_empty (void)
 {
@@ -149,12 +196,36 @@ hb_blob_get_empty (void)
   return const_cast<hb_blob_t *> (&_hb_blob_nil);
 }
 
+/**
+ * hb_blob_reference:
+ * @blob: a blob.
+ *
+ * Increases the reference count on @blob.
+ *
+ * See TODO:link object types for more information.
+ *
+ * Returns: @blob.
+ *
+ * Since: 1.0
+ **/
 hb_blob_t *
 hb_blob_reference (hb_blob_t *blob)
 {
   return hb_object_reference (blob);
 }
 
+/**
+ * hb_blob_destroy:
+ * @blob: a blob.
+ *
+ * Descreases the reference count on @blob, and if it reaches zero, destroys
+ * @blob, freeing all memory, possibly calling the destroy-callback the blob
+ * was created for if it has not been called already.
+ *
+ * See TODO:link object types for more information.
+ *
+ * Since: 1.0
+ **/
 void
 hb_blob_destroy (hb_blob_t *blob)
 {
@@ -165,6 +236,22 @@ hb_blob_destroy (hb_blob_t *blob)
   free (blob);
 }
 
+/**
+ * hb_blob_set_user_data:
+ * @blob: a blob.
+ * @key: key for data to set.
+ * @data: data to set.
+ * @destroy: callback to call when @data is not needed anymore.
+ * @replace: whether to replace an existing data with the same key.
+ *
+ * Attaches a piece of data to the object.
+ *
+ * See TODO:link object types for more information.
+ *
+ * Returns: TODO
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_blob_set_user_data (hb_blob_t          *blob,
 		       hb_user_data_key_t *key,
@@ -175,6 +262,19 @@ hb_blob_set_user_data (hb_blob_t          *blob,
   return hb_object_set_user_data (blob, key, data, destroy, replace);
 }
 
+/**
+ * hb_blob_get_user_data:
+ * @blob: a blob.
+ * @key: key for data to get.
+ *
+ * TODO
+ *
+ * See TODO:link object types for more information.
+ *
+ * Returns: (transfer none): data, or TODO
+ *
+ * Since: 1.0
+ **/
 void *
 hb_blob_get_user_data (hb_blob_t          *blob,
 		       hb_user_data_key_t *key)
@@ -183,6 +283,16 @@ hb_blob_get_user_data (hb_blob_t          *blob,
 }
 
 
+/**
+ * hb_blob_make_immutable:
+ * @blob: a blob.
+ *
+ * TODO
+ *
+ * See TODO:link object types for more information.
+ *
+ * Since: 1.0
+ **/
 void
 hb_blob_make_immutable (hb_blob_t *blob)
 {
@@ -192,6 +302,18 @@ hb_blob_make_immutable (hb_blob_t *blob)
   blob->immutable = true;
 }
 
+/**
+ * hb_blob_is_immutable:
+ * @blob: a blob.
+ *
+ * TODO
+ *
+ * See TODO:link object types for more information.
+ *
+ * Returns: TODO
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_blob_is_immutable (hb_blob_t *blob)
 {
@@ -199,12 +321,33 @@ hb_blob_is_immutable (hb_blob_t *blob)
 }
 
 
+/**
+ * hb_blob_get_length:
+ * @blob: a blob.
+ *
+ * TODO
+ *
+ * Returns: the length of blob data in bytes.
+ *
+ * Since: 1.0
+ **/
 unsigned int
 hb_blob_get_length (hb_blob_t *blob)
 {
   return blob->length;
 }
 
+/**
+ * hb_blob_get_data:
+ * @blob: a blob.
+ * @length: (out) TODO
+ *
+ * TODO
+ *
+ * Returns: (transfer none): TODO
+ *
+ * Since: 1.0
+ **/
 const char *
 hb_blob_get_data (hb_blob_t *blob, unsigned int *length)
 {
@@ -214,6 +357,21 @@ hb_blob_get_data (hb_blob_t *blob, unsigned int *length)
   return blob->data;
 }
 
+/**
+ * hb_blob_get_data_writable:
+ * @blob: a blob.
+ * @length: (out): output length of the writable data.
+ *
+ * Tries to make blob data writable (possibly copying it) and
+ * return pointer to data.
+ *
+ * Fails if blob has been made immutable, or if memory allocation
+ * fails.
+ *
+ * Returns: (transfer none): Writable blob data, or %NULL if failed.
+ *
+ * Since: 1.0
+ **/
 char *
 hb_blob_get_data_writable (hb_blob_t *blob, unsigned int *length)
 {
@@ -324,5 +482,3 @@ _try_writable (hb_blob_t *blob)
 
   return true;
 }
-
-

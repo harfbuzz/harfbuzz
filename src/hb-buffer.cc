@@ -853,13 +853,34 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
   return true;
 }
 
+/**
+ * hb_buffer_get_length:
+ * @buffer: a buffer.
+ *
+ * Returns the number of items in the buffer.
+ *
+ * Return value: buffer length.
+ *
+ * Since: 1.0
+ */
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer)
 {
   return buffer->len;
 }
 
-/* Return value valid as long as buffer not modified */
+/**
+ * hb_buffer_get_glyph_infos:
+ * @buffer: a buffer.
+ * @length: (out): output array length.
+ *
+ * Returns buffer glyph information array.  Returned pointer
+ * is valid as long as buffer contents are not modified.
+ *
+ * Return value: (transfer none) (array length=length): buffer glyph information array.
+ *
+ * Since: 1.0
+ */
 hb_glyph_info_t *
 hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
                            unsigned int *length)
@@ -870,7 +891,18 @@ hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
   return (hb_glyph_info_t *) buffer->info;
 }
 
-/* Return value valid as long as buffer not modified */
+/**
+ * hb_buffer_get_glyph_positions:
+ * @buffer: a buffer.
+ * @length: (out): output length.
+ *
+ * Returns buffer glyph position array.  Returned pointer
+ * is valid as long as buffer contents are not modified.
+ *
+ * Return value: (transfer none) (array length=length): buffer glyph position array.
+ *
+ * Since: 1.0
+ */
 hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
                                unsigned int *length)
@@ -884,18 +916,60 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
   return (hb_glyph_position_t *) buffer->pos;
 }
 
+/**
+ * hb_buffer_reverse:
+ * @buffer: a buffer.
+ *
+ * Reverses buffer contents.
+ *
+ * Since: 1.0
+ */
 void
 hb_buffer_reverse (hb_buffer_t *buffer)
 {
   buffer->reverse ();
 }
 
+/**
+ * hb_buffer_reverse_clusters:
+ * @buffer: a buffer.
+ *
+ * Reverses buffer clusters.  That is, the buffer contents are
+ * reversed, then each cluster (consecutive items having the
+ * same cluster number) are reversed again.
+ *
+ * Since: 1.0
+ */
 void
 hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 {
   buffer->reverse_clusters ();
 }
 
+/**
+ * hb_buffer_guess_segment_properties:
+ * @buffer: a buffer.
+ *
+ * Sets unset buffer segment properties based on buffer Unicode
+ * contents.  If buffer is not empty, it must have content type
+ * %HB_BUFFER_CONTENT_TYPE_UNICODE.
+ *
+ * If buffer script is not set (ie. is %HB_SCRIPT_INVALID), it
+ * will be set to the Unicode script of the first character in
+ * the buffer that has a script other than %HB_SCRIPT_COMMON,
+ * %HB_SCRIPT_INHERITED, and %HB_SCRIPT_UNKNOWN.
+ *
+ * Next, if buffer direction is not set (ie. is %HB_DIRECTION_INVALID),
+ * it will be set to the natural horizontal direction of the
+ * buffer script as returned by hb_script_get_horizontal_direction().
+ *
+ * Finally, if buffer language is not set (ie. is %HB_LANGUAGE_INVALID),
+ * it will be set to the process's default language as returned by
+ * hb_language_get_default().  This may change in the future by
+ * taking buffer script into consideration when choosing a language.
+ *
+ * Since: 1.0
+ */
 void
 hb_buffer_guess_segment_properties (hb_buffer_t *buffer)
 {
