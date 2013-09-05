@@ -32,7 +32,7 @@ SCAN_OPTIONS=--rebuild-types --deprecated-guards="HB_DISABLE_DEPRECATED"
 
 # Extra options to supply to gtkdoc-mkdb.
 # e.g. MKDB_OPTIONS=--xml-mode --output-format=xml
-MKDB_OPTIONS=--xml-mode --output-format=xml
+MKDB_OPTIONS=--source-suffixes=h,cc --xml-mode --output-format=xml
 
 # Extra options to supply to gtkdoc-mktmpl
 # e.g. MKTMPL_OPTIONS=--only-section-tmpl
@@ -60,7 +60,6 @@ EXTRA_HFILES=$(top_builddir)/src/hb-version.h
 IGNORE_HFILES=`cd $(top_srcdir)/src; find . -path './hb-*/*.h' | sed 's@^.*/@@'`
 if HAVE_GOBJECT
 else
-# XXX Prevent "make dist"
 IGNORE_HFILES+=hb-gobject.h hb-gobject-enums.h hb-gobject-structs.h
 endif
 
