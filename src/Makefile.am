@@ -179,7 +179,6 @@ endif
 endif
 
 libharfbuzz_la_SOURCES = $(HBSOURCES) $(HBHEADERS) $(HBNODISTHEADERS)
-nodist_libharfbuzz_la_SOURCES = $(nodist_HBSOURCES)
 libharfbuzz_la_CPPFLAGS = $(HBCFLAGS)
 libharfbuzz_la_LDFLAGS = $(AM_LDFLAGS) -version-info $(HB_LIBTOOL_VERSION_INFO) $(export_symbols) -no-undefined
 libharfbuzz_la_LIBADD = $(HBLIBS)
@@ -263,7 +262,6 @@ GENERATORS = \
 	gen-arabic-table.py \
 	gen-indic-table.py \
 	$(NULL)
-
 EXTRA_DIST += $(GENERATORS)
 
 unicode-tables: arabic-table indic-table
@@ -371,6 +369,7 @@ HarfBuzz_0_0_gir_LIBS = \
 HarfBuzz_0_0_gir_FILES = \
 	$(HBHEADERS) \
 	$(HBNODISTHEADERS) \
+	$(HBSOURCES) \
 	hb-gobject-enums.h \
 	hb-gobject-structs.h \
 	$(NULL)
