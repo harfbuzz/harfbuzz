@@ -94,10 +94,6 @@ static hb_glyph_position_t *glyph_position_reference (hb_glyph_position_t *g)
 static void glyph_position_destroy (hb_glyph_position_t *g) { free (g); }
 HB_DEFINE_BOXED_TYPE (glyph_position, glyph_position_reference, glyph_position_destroy)
 
-static hb_language_t language_reference (hb_language_t l) { return l; }
-static void language_destroy (hb_language_t l) { }
-HB_DEFINE_BOXED_TYPE (language, language_reference, language_destroy)
-
 static hb_segment_properties_t *segment_properties_reference (hb_segment_properties_t *g)
 {
   hb_segment_properties_t *c = (hb_segment_properties_t *) calloc (1, sizeof (hb_segment_properties_t));
@@ -111,3 +107,14 @@ HB_DEFINE_BOXED_TYPE (segment_properties, segment_properties_reference, segment_
 static hb_user_data_key_t user_data_key_reference (hb_user_data_key_t l) { return l; }
 static void user_data_key_destroy (hb_user_data_key_t l) { }
 HB_DEFINE_BOXED_TYPE (user_data_key, user_data_key_reference, user_data_key_destroy)
+
+
+static hb_language_t *language_reference (hb_language_t *l)
+{
+  hb_language_t *c = (hb_language_t *) calloc (1, sizeof (hb_language_t));
+  if (unlikely (!c)) return NULL;
+  *c = *l;
+  return c;
+}
+static void language_destroy (hb_language_t *l) { free (l); }
+HB_DEFINE_BOXED_TYPE (language, language_reference, language_destroy)
