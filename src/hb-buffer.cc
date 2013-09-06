@@ -603,6 +603,15 @@ void hb_buffer_t::deallocate_var_all (void)
 
 /* Public API */
 
+/**
+ * hb_buffer_create: (constructor)
+ *
+ * 
+ *
+ * Return value: (transfer full)
+ *
+ * Since: 1.0
+ **/
 hb_buffer_t *
 hb_buffer_create (void)
 {
@@ -616,6 +625,15 @@ hb_buffer_create (void)
   return buffer;
 }
 
+/**
+ * hb_buffer_get_empty:
+ *
+ * 
+ *
+ * Return value: (transfer full):
+ *
+ * Since: 1.0
+ **/
 hb_buffer_t *
 hb_buffer_get_empty (void)
 {
@@ -637,12 +655,30 @@ hb_buffer_get_empty (void)
   return const_cast<hb_buffer_t *> (&_hb_buffer_nil);
 }
 
+/**
+ * hb_buffer_reference: (skip)
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: (transfer full):
+ *
+ * Since: 1.0
+ **/
 hb_buffer_t *
 hb_buffer_reference (hb_buffer_t *buffer)
 {
   return hb_object_reference (buffer);
 }
 
+/**
+ * hb_buffer_destroy: (skip)
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_destroy (hb_buffer_t *buffer)
 {
@@ -656,6 +692,20 @@ hb_buffer_destroy (hb_buffer_t *buffer)
   free (buffer);
 }
 
+/**
+ * hb_buffer_set_user_data: (skip)
+ * @buffer: a buffer.
+ * @key: 
+ * @data: 
+ * @destroy: 
+ * @replace: 
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_buffer_set_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key,
@@ -666,6 +716,17 @@ hb_buffer_set_user_data (hb_buffer_t        *buffer,
   return hb_object_set_user_data (buffer, key, data, destroy, replace);
 }
 
+/**
+ * hb_buffer_get_user_data: (skip)
+ * @buffer: a buffer.
+ * @key: 
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 void *
 hb_buffer_get_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key)
@@ -674,6 +735,15 @@ hb_buffer_get_user_data (hb_buffer_t        *buffer,
 }
 
 
+/**
+ * hb_buffer_set_content_type:
+ * @buffer: a buffer.
+ * @content_type: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_set_content_type (hb_buffer_t              *buffer,
 			    hb_buffer_content_type_t  content_type)
@@ -681,6 +751,16 @@ hb_buffer_set_content_type (hb_buffer_t              *buffer,
   buffer->content_type = content_type;
 }
 
+/**
+ * hb_buffer_get_content_type:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_buffer_content_type_t
 hb_buffer_get_content_type (hb_buffer_t *buffer)
 {
@@ -688,28 +768,56 @@ hb_buffer_get_content_type (hb_buffer_t *buffer)
 }
 
 
+/**
+ * hb_buffer_set_unicode_funcs:
+ * @buffer: a buffer.
+ * @unicode_funcs: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
-			     hb_unicode_funcs_t *unicode)
+			     hb_unicode_funcs_t *unicode_funcs)
 {
   if (unlikely (hb_object_is_inert (buffer)))
     return;
 
-  if (!unicode)
-    unicode = hb_unicode_funcs_get_default ();
+  if (!unicode_funcs)
+    unicode_funcs = hb_unicode_funcs_get_default ();
 
 
-  hb_unicode_funcs_reference (unicode);
+  hb_unicode_funcs_reference (unicode_funcs);
   hb_unicode_funcs_destroy (buffer->unicode);
-  buffer->unicode = unicode;
+  buffer->unicode = unicode_funcs;
 }
 
+/**
+ * hb_buffer_get_unicode_funcs:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_unicode_funcs_t *
 hb_buffer_get_unicode_funcs (hb_buffer_t        *buffer)
 {
   return buffer->unicode;
 }
 
+/**
+ * hb_buffer_set_direction:
+ * @buffer: a buffer.
+ * @direction: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_set_direction (hb_buffer_t    *buffer,
 			 hb_direction_t  direction)
@@ -721,12 +829,31 @@ hb_buffer_set_direction (hb_buffer_t    *buffer,
   buffer->props.direction = direction;
 }
 
+/**
+ * hb_buffer_get_direction:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_direction_t
 hb_buffer_get_direction (hb_buffer_t    *buffer)
 {
   return buffer->props.direction;
 }
 
+/**
+ * hb_buffer_set_script:
+ * @buffer: a buffer.
+ * @script: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_set_script (hb_buffer_t *buffer,
 		      hb_script_t  script)
@@ -737,12 +864,31 @@ hb_buffer_set_script (hb_buffer_t *buffer,
   buffer->props.script = script;
 }
 
+/**
+ * hb_buffer_get_script:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_script_t
 hb_buffer_get_script (hb_buffer_t *buffer)
 {
   return buffer->props.script;
 }
 
+/**
+ * hb_buffer_set_language:
+ * @buffer: a buffer.
+ * @language: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_set_language (hb_buffer_t   *buffer,
 			hb_language_t  language)
@@ -753,12 +899,31 @@ hb_buffer_set_language (hb_buffer_t   *buffer,
   buffer->props.language = language;
 }
 
+/**
+ * hb_buffer_get_language:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_language_t
 hb_buffer_get_language (hb_buffer_t *buffer)
 {
   return buffer->props.language;
 }
 
+/**
+ * hb_buffer_set_segment_properties:
+ * @buffer: a buffer.
+ * @props: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_set_segment_properties (hb_buffer_t *buffer,
 				  const hb_segment_properties_t *props)
@@ -769,6 +934,15 @@ hb_buffer_set_segment_properties (hb_buffer_t *buffer,
   buffer->props = *props;
 }
 
+/**
+ * hb_buffer_get_segment_properties:
+ * @buffer: a buffer.
+ * @props: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_get_segment_properties (hb_buffer_t *buffer,
 				  hb_segment_properties_t *props)
@@ -777,6 +951,15 @@ hb_buffer_get_segment_properties (hb_buffer_t *buffer,
 }
 
 
+/**
+ * hb_buffer_set_flags:
+ * @buffer: a buffer.
+ * @flags: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_set_flags (hb_buffer_t       *buffer,
 		     hb_buffer_flags_t  flags)
@@ -787,6 +970,16 @@ hb_buffer_set_flags (hb_buffer_t       *buffer,
   buffer->flags = flags;
 }
 
+/**
+ * hb_buffer_get_flags:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_buffer_flags_t
 hb_buffer_get_flags (hb_buffer_t *buffer)
 {
@@ -794,30 +987,77 @@ hb_buffer_get_flags (hb_buffer_t *buffer)
 }
 
 
+/**
+ * hb_buffer_reset:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_reset (hb_buffer_t *buffer)
 {
   buffer->reset ();
 }
 
+/**
+ * hb_buffer_clear_contents:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_clear_contents (hb_buffer_t *buffer)
 {
   buffer->clear ();
 }
 
+/**
+ * hb_buffer_pre_allocate:
+ * @buffer: a buffer.
+ * @size: 
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
 {
   return buffer->ensure (size);
 }
 
+/**
+ * hb_buffer_allocation_successful:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_buffer_allocation_successful (hb_buffer_t  *buffer)
 {
   return !buffer->in_error;
 }
 
+/**
+ * hb_buffer_add:
+ * @buffer: a buffer.
+ * @codepoint: 
+ * @cluster: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_add (hb_buffer_t    *buffer,
 	       hb_codepoint_t  codepoint,
@@ -827,6 +1067,17 @@ hb_buffer_add (hb_buffer_t    *buffer,
   buffer->clear_context (1);
 }
 
+/**
+ * hb_buffer_set_length:
+ * @buffer: a buffer.
+ * @length: 
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_buffer_set_length (hb_buffer_t  *buffer,
 		      unsigned int  length)
@@ -1042,6 +1293,18 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
 }
 
+/**
+ * hb_buffer_add_utf8:
+ * @buffer: a buffer.
+ * @text: (array length=text_length):
+ * @text_length: 
+ * @item_offset: 
+ * @item_length: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_add_utf8 (hb_buffer_t  *buffer,
 		    const char   *text,
@@ -1052,16 +1315,40 @@ hb_buffer_add_utf8 (hb_buffer_t  *buffer,
   hb_buffer_add_utf (buffer, (const uint8_t *) text, text_length, item_offset, item_length);
 }
 
+/**
+ * hb_buffer_add_utf16:
+ * @buffer: a buffer.
+ * @text: (array length=text_length):
+ * @text_length: 
+ * @item_offset: 
+ * @item_length: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 		     const uint16_t *text,
 		     int             text_length,
 		     unsigned int    item_offset,
-		     int            item_length)
+		     int             item_length)
 {
   hb_buffer_add_utf (buffer, text, text_length, item_offset, item_length);
 }
 
+/**
+ * hb_buffer_add_utf32:
+ * @buffer: a buffer.
+ * @text: (array length=text_length):
+ * @text_length: 
+ * @item_offset: 
+ * @item_length: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     const uint32_t *text,
@@ -1128,6 +1415,14 @@ normalize_glyphs_cluster (hb_buffer_t *buffer,
   }
 }
 
+/**
+ * hb_buffer_normalize_glyphs:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
 {

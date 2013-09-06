@@ -153,6 +153,18 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
 	 *pp == end;
 }
 
+/**
+ * hb_feature_from_string:
+ * @str: (array length=len):
+ * @len: 
+ * @feature: (out):
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_feature_from_string (const char *str, int len,
 			hb_feature_t *feature)
@@ -163,6 +175,16 @@ hb_feature_from_string (const char *str, int len,
   return parse_one_feature (&str, str + len, feature);
 }
 
+/**
+ * hb_feature_to_string:
+ * @feature: 
+ * @buf: (array length=size):
+ * @size: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_feature_to_string (hb_feature_t *feature,
 		      char *buf, unsigned int size)
@@ -209,6 +231,15 @@ void free_static_shaper_list (void)
   free (static_shaper_list);
 }
 
+/**
+ * hb_shape_list_shapers:
+ *
+ * 
+ *
+ * Return value: (transfer none):
+ *
+ * Since: 1.0
+ **/
 const char **
 hb_shape_list_shapers (void)
 {
@@ -244,6 +275,20 @@ retry:
 }
 
 
+/**
+ * hb_shape_full:
+ * @font: a font.
+ * @buffer: a buffer.
+ * @features: (array length=num_features):
+ * @num_features: 
+ * @shaper_list: (array zero-terminated=1):
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_shape_full (hb_font_t          *font,
 	       hb_buffer_t        *buffer,
@@ -265,6 +310,17 @@ hb_shape_full (hb_font_t          *font,
   return res;
 }
 
+/**
+ * hb_shape:
+ * @font: a font.
+ * @buffer: a buffer.
+ * @features: (array length=num_features):
+ * @num_features: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_shape (hb_font_t           *font,
 	  hb_buffer_t         *buffer,

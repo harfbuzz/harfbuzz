@@ -68,6 +68,18 @@ const hb_face_t _hb_face_nil = {
 };
 
 
+/**
+ * hb_face_create_for_tables:
+ * @reference_table_func: 
+ * @user_data: 
+ * @destroy: 
+ *
+ * 
+ *
+ * Return value: (transfer full)
+ *
+ * Since: 1.0
+ **/
 hb_face_t *
 hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
 			   void                      *user_data,
@@ -137,6 +149,17 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
   return blob;
 }
 
+/**
+ * hb_face_create: (constructor)
+ * @blob: 
+ * @index: 
+ *
+ * 
+ *
+ * Return value: (transfer full):
+ *
+ * Since: 1.0
+ **/
 hb_face_t *
 hb_face_create (hb_blob_t    *blob,
 		unsigned int  index)
@@ -160,6 +183,15 @@ hb_face_create (hb_blob_t    *blob,
   return face;
 }
 
+/**
+ * hb_face_get_empty:
+ *
+ * 
+ *
+ * Return value: (transfer full)
+ *
+ * Since: 1.0
+ **/
 hb_face_t *
 hb_face_get_empty (void)
 {
@@ -167,12 +199,30 @@ hb_face_get_empty (void)
 }
 
 
+/**
+ * hb_face_reference: (skip)
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_face_t *
 hb_face_reference (hb_face_t *face)
 {
   return hb_object_reference (face);
 }
 
+/**
+ * hb_face_destroy: (skip)
+ * @face: a face.
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_face_destroy (hb_face_t *face)
 {
@@ -196,6 +246,20 @@ hb_face_destroy (hb_face_t *face)
   free (face);
 }
 
+/**
+ * hb_face_set_user_data: (skip)
+ * @face: a face.
+ * @key: 
+ * @data: 
+ * @destroy: 
+ * @replace: 
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_face_set_user_data (hb_face_t          *face,
 		       hb_user_data_key_t *key,
@@ -206,6 +270,17 @@ hb_face_set_user_data (hb_face_t          *face,
   return hb_object_set_user_data (face, key, data, destroy, replace);
 }
 
+/**
+ * hb_face_get_user_data: (skip)
+ * @face: a face.
+ * @key: 
+ *
+ * 
+ *
+ * Return value: (transfer none):
+ *
+ * Since: 1.0
+ **/
 void *
 hb_face_get_user_data (hb_face_t          *face,
 		       hb_user_data_key_t *key)
@@ -213,6 +288,14 @@ hb_face_get_user_data (hb_face_t          *face,
   return hb_object_get_user_data (face, key);
 }
 
+/**
+ * hb_face_make_immutable:
+ * @face: a face.
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_face_make_immutable (hb_face_t *face)
 {
@@ -222,6 +305,16 @@ hb_face_make_immutable (hb_face_t *face)
   face->immutable = true;
 }
 
+/**
+ * hb_face_is_immutable:
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 hb_bool_t
 hb_face_is_immutable (hb_face_t *face)
 {
@@ -229,6 +322,17 @@ hb_face_is_immutable (hb_face_t *face)
 }
 
 
+/**
+ * hb_face_reference_table:
+ * @face: a face.
+ * @tag: 
+ *
+ * 
+ *
+ * Return value: (transfer full):
+ *
+ * Since: 1.0
+ **/
 hb_blob_t *
 hb_face_reference_table (hb_face_t *face,
 			 hb_tag_t   tag)
@@ -236,12 +340,31 @@ hb_face_reference_table (hb_face_t *face,
   return face->reference_table (tag);
 }
 
+/**
+ * hb_face_reference_blob:
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: (transfer full):
+ *
+ * Since: 1.0
+ **/
 hb_blob_t *
 hb_face_reference_blob (hb_face_t *face)
 {
   return face->reference_table (HB_TAG_NONE);
 }
 
+/**
+ * hb_face_set_index:
+ * @face: a face.
+ * @index: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_face_set_index (hb_face_t    *face,
 		   unsigned int  index)
@@ -252,12 +375,31 @@ hb_face_set_index (hb_face_t    *face,
   face->index = index;
 }
 
+/**
+ * hb_face_get_index:
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 unsigned int
 hb_face_get_index (hb_face_t    *face)
 {
   return face->index;
 }
 
+/**
+ * hb_face_set_upem:
+ * @face: a face.
+ * @upem: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_face_set_upem (hb_face_t    *face,
 		  unsigned int  upem)
@@ -268,6 +410,16 @@ hb_face_set_upem (hb_face_t    *face,
   face->upem = upem;
 }
 
+/**
+ * hb_face_get_upem:
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 unsigned int
 hb_face_get_upem (hb_face_t *face)
 {
@@ -283,6 +435,15 @@ hb_face_t::load_upem (void) const
   hb_blob_destroy (head_blob);
 }
 
+/**
+ * hb_face_set_glyph_count:
+ * @face: a face.
+ * @glyph_count: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_face_set_glyph_count (hb_face_t    *face,
 			 unsigned int  glyph_count)
@@ -293,6 +454,16 @@ hb_face_set_glyph_count (hb_face_t    *face,
   face->num_glyphs = glyph_count;
 }
 
+/**
+ * hb_face_get_glyph_count:
+ * @face: a face.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 1.0
+ **/
 unsigned int
 hb_face_get_glyph_count (hb_face_t *face)
 {

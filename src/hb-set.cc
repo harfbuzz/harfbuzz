@@ -53,7 +53,7 @@ hb_set_create (void)
 /**
  * hb_set_get_empty:
  *
- * Return value: (transfer none):
+ * Return value: (transfer full):
  *
  * Since: 1.0
  **/

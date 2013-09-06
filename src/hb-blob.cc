@@ -77,17 +77,17 @@ _hb_blob_destroy_user_data (hb_blob_t *blob)
 }
 
 /**
- * hb_blob_create:
- * @data: (array length=length) (allow-none): Pointer to blob data.
+ * hb_blob_create: (constructor)
+ * @data: (array length=length): Pointer to blob data.
  * @length: Length of @data in bytes.
  * @mode: Memory mode for @data.
- * @user_data: (allow-none): Data parameter to pass to @destroy.
- * @destroy: (allow-none) (closure user_data): Callback to call when @data is not needed anymore.
+ * @user_data: Data parameter to pass to @destroy.
+ * @destroy: (closure user_data): Callback to call when @data is not needed anymore.
  *
  * Creates a new "blob" object wrapping @data.  The @mode parameter is used
  * to negotiate ownership and lifecycle of @data.
  *
- * Returns: New blob, or the empty blob if something failed or if @length is
+ * Return value: New blob, or the empty blob if something failed or if @length is
  * zero.  Destroy with hb_blob_destroy().
  *
  * Since: 1.0
@@ -139,9 +139,9 @@ hb_blob_create (const char        *data,
  *
  * Makes @parent immutable.
  *
- * Returns: New blob, or the empty blob if something failed or if @length is
- * zero or @offset is beyond the end of @parent's data.  Destroy with
- * hb_blob_destroy().
+ * Return value: New blob, or the empty blob if something failed or if
+ * @length is zero or @offset is beyond the end of @parent's data.  Destroy
+ * with hb_blob_destroy().
  *
  * Since: 1.0
  **/
@@ -173,7 +173,7 @@ hb_blob_create_sub_blob (hb_blob_t    *parent,
  *
  * See TODO:link object types for more information.
  *
- * Returns: The empty blob.
+ * Return value: (transfer full): the empty blob.
  *
  * Since: 1.0
  **/
@@ -197,14 +197,14 @@ hb_blob_get_empty (void)
 }
 
 /**
- * hb_blob_reference:
+ * hb_blob_reference: (skip)
  * @blob: a blob.
  *
  * Increases the reference count on @blob.
  *
  * See TODO:link object types for more information.
  *
- * Returns: @blob.
+ * Return value: @blob.
  *
  * Since: 1.0
  **/
@@ -215,7 +215,7 @@ hb_blob_reference (hb_blob_t *blob)
 }
 
 /**
- * hb_blob_destroy:
+ * hb_blob_destroy: (skip)
  * @blob: a blob.
  *
  * Descreases the reference count on @blob, and if it reaches zero, destroys
@@ -237,18 +237,14 @@ hb_blob_destroy (hb_blob_t *blob)
 }
 
 /**
- * hb_blob_set_user_data:
+ * hb_blob_set_user_data: (skip)
  * @blob: a blob.
  * @key: key for data to set.
  * @data: data to set.
  * @destroy: callback to call when @data is not needed anymore.
  * @replace: whether to replace an existing data with the same key.
  *
- * Attaches a piece of data to the object.
- *
- * See TODO:link object types for more information.
- *
- * Returns: TODO
+ * Return value: 
  *
  * Since: 1.0
  **/
@@ -263,15 +259,13 @@ hb_blob_set_user_data (hb_blob_t          *blob,
 }
 
 /**
- * hb_blob_get_user_data:
+ * hb_blob_get_user_data: (skip)
  * @blob: a blob.
  * @key: key for data to get.
  *
- * TODO
+ * 
  *
- * See TODO:link object types for more information.
- *
- * Returns: (transfer none): data, or TODO
+ * Return value: (transfer none): 
  *
  * Since: 1.0
  **/
@@ -287,9 +281,7 @@ hb_blob_get_user_data (hb_blob_t          *blob,
  * hb_blob_make_immutable:
  * @blob: a blob.
  *
- * TODO
- *
- * See TODO:link object types for more information.
+ * 
  *
  * Since: 1.0
  **/
@@ -306,11 +298,9 @@ hb_blob_make_immutable (hb_blob_t *blob)
  * hb_blob_is_immutable:
  * @blob: a blob.
  *
- * TODO
+ * 
  *
- * See TODO:link object types for more information.
- *
- * Returns: TODO
+ * Return value: TODO
  *
  * Since: 1.0
  **/
@@ -325,9 +315,9 @@ hb_blob_is_immutable (hb_blob_t *blob)
  * hb_blob_get_length:
  * @blob: a blob.
  *
- * TODO
+ * 
  *
- * Returns: the length of blob data in bytes.
+ * Return value: the length of blob data in bytes.
  *
  * Since: 1.0
  **/
@@ -340,11 +330,11 @@ hb_blob_get_length (hb_blob_t *blob)
 /**
  * hb_blob_get_data:
  * @blob: a blob.
- * @length: (out) TODO
+ * @length: (out):
  *
- * TODO
+ * 
  *
- * Returns: (transfer none): TODO
+ * Returns: (transfer none) (array length=length): 
  *
  * Since: 1.0
  **/
@@ -368,7 +358,8 @@ hb_blob_get_data (hb_blob_t *blob, unsigned int *length)
  * Fails if blob has been made immutable, or if memory allocation
  * fails.
  *
- * Returns: (transfer none): Writable blob data, or %NULL if failed.
+ * Returns: (transfer none) (array length=length): Writable blob data,
+ * or %NULL if failed.
  *
  * Since: 1.0
  **/

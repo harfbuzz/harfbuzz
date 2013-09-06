@@ -193,10 +193,10 @@ struct hb_font_t {
 				       klass->user_data.glyph_h_kerning);
   }
 
-  inline hb_position_t get_glyph_v_kerning (hb_codepoint_t left_glyph, hb_codepoint_t right_glyph)
+  inline hb_position_t get_glyph_v_kerning (hb_codepoint_t top_glyph, hb_codepoint_t bottom_glyph)
   {
     return klass->get.glyph_v_kerning (this, user_data,
-				       left_glyph, right_glyph,
+				       top_glyph, bottom_glyph,
 				       klass->user_data.glyph_v_kerning);
   }
 
