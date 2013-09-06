@@ -187,7 +187,7 @@ struct hb_language_item_t {
     return *this;
   }
 
-  void finish (void) { free (lang); }
+  void finish (void) { free ((void *) lang); }
 };
 
 

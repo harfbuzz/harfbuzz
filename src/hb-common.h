@@ -131,7 +131,7 @@ hb_direction_to_string (hb_direction_t direction);
 
 /* hb_language_t */
 
-typedef struct hb_language_impl_t *hb_language_t;
+typedef const struct hb_language_impl_t *hb_language_t;
 
 /* len=-1 means str is NUL-terminated */
 hb_language_t
