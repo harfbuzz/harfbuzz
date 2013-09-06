@@ -32,24 +32,24 @@
 static void
 test_empty (hb_set_t *s)
 {
-  hb_codepoint_t next = (hb_codepoint_t) -1;
+  hb_codepoint_t next = HB_SET_VALUE_INVALID;
   g_assert_cmpint (hb_set_get_population (s), ==, 0);
-  g_assert_cmpint (hb_set_get_min (s), ==, (hb_codepoint_t) -1);
-  g_assert_cmpint (hb_set_get_max (s), ==, (hb_codepoint_t) -1);
+  g_assert_cmpint (hb_set_get_min (s), ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (hb_set_get_max (s), ==, HB_SET_VALUE_INVALID);
   g_assert (!hb_set_has (s, 13));
   g_assert (!hb_set_next (s, &next));
-  g_assert_cmpint (next, ==, (hb_codepoint_t) -1);
+  g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
 }
 
 static void
 test_not_empty (hb_set_t *s)
 {
-  hb_codepoint_t next = (hb_codepoint_t) -1;
+  hb_codepoint_t next = HB_SET_VALUE_INVALID;
   g_assert_cmpint (hb_set_get_population (s), !=, 0);
-  g_assert_cmpint (hb_set_get_min (s), !=, (hb_codepoint_t) -1);
-  g_assert_cmpint (hb_set_get_max (s), !=, (hb_codepoint_t) -1);
+  g_assert_cmpint (hb_set_get_min (s), !=, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (hb_set_get_max (s), !=, HB_SET_VALUE_INVALID);
   g_assert (hb_set_next (s, &next));
-  g_assert_cmpint (next, !=, (hb_codepoint_t) -1);
+  g_assert_cmpint (next, !=, HB_SET_VALUE_INVALID);
 }
 
 static void
@@ -166,7 +166,7 @@ test_set_iter (void)
 
   test_not_empty (s);
 
-  next = (hb_codepoint_t) -1;
+  next = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next (s, &next));
   g_assert_cmpint (next, ==, 6);
   g_assert (hb_set_next (s, &next));
@@ -181,9 +181,9 @@ test_set_iter (void)
   g_assert (hb_set_next (s, &next));
   g_assert_cmpint (next, ==, 20005);
   g_assert (!hb_set_next (s, &next));
-  g_assert_cmpint (next, ==, 20005);
+  g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
 
-  first = last = (hb_codepoint_t) -1;
+  first = last = HB_SET_VALUE_INVALID;
   g_assert (hb_set_next_range (s, &first, &last));
   g_assert_cmpint (first, ==, 6);
   g_assert_cmpint (last,  ==, 6);
@@ -194,8 +194,8 @@ test_set_iter (void)
   g_assert_cmpint (first, ==, 20005);
   g_assert_cmpint (last,  ==, 20005);
   g_assert (!hb_set_next_range (s, &first, &last));
-  g_assert_cmpint (first, ==, 20005);
-  g_assert_cmpint (last,  ==, 20005);
+  g_assert_cmpint (first, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (last,  ==, HB_SET_VALUE_INVALID);
 }
 
 static void
