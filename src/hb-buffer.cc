@@ -862,7 +862,7 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
  * Return value: buffer length.
  *
  * Since: 1.0
- */
+ **/
 unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer)
 {
@@ -880,7 +880,7 @@ hb_buffer_get_length (hb_buffer_t *buffer)
  * Return value: (transfer none) (array length=length): buffer glyph information array.
  *
  * Since: 1.0
- */
+ **/
 hb_glyph_info_t *
 hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
                            unsigned int *length)
@@ -902,7 +902,7 @@ hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
  * Return value: (transfer none) (array length=length): buffer glyph position array.
  *
  * Since: 1.0
- */
+ **/
 hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
                                unsigned int *length)
@@ -923,7 +923,7 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
  * Reverses buffer contents.
  *
  * Since: 1.0
- */
+ **/
 void
 hb_buffer_reverse (hb_buffer_t *buffer)
 {
@@ -939,7 +939,7 @@ hb_buffer_reverse (hb_buffer_t *buffer)
  * same cluster number) are reversed again.
  *
  * Since: 1.0
- */
+ **/
 void
 hb_buffer_reverse_clusters (hb_buffer_t *buffer)
 {
@@ -969,7 +969,7 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
  * taking buffer script into consideration when choosing a language.
  *
  * Since: 1.0
- */
+ **/
 void
 hb_buffer_guess_segment_properties (hb_buffer_t *buffer)
 {
