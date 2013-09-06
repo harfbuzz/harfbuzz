@@ -47,30 +47,11 @@ HB_BEGIN_DECLS
 	 HB_VERSION_MAJOR*10000+HB_VERSION_MINOR*100+HB_VERSION_MICRO)
 
 
-/**
- * hb_version:
- * @major: (out): Library major version component.
- * @minor: (out): Library minor version component.
- * @micro: (out): Library micro version component.
- *
- * Returns library version as three integer components.
- *
- * Since: 1.0
- **/
 void
 hb_version (unsigned int *major,
 	    unsigned int *minor,
 	    unsigned int *micro);
 
-/**
- * hb_version_string:
- *
- * Returns library version as a string with three components.
- *
- * Return value: library version string.
- *
- * Since: 1.0
- **/
 const char *
 hb_version_string (void);
 

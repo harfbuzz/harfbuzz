@@ -1094,7 +1094,7 @@ hb_font_get_face (hb_font_t *font)
  * hb_font_set_funcs:
  * @font: a font.
  * @klass: 
- * @user_data: 
+ * @font_data: 
  * @destroy: 
  *
  * 
@@ -1104,12 +1104,12 @@ hb_font_get_face (hb_font_t *font)
 void
 hb_font_set_funcs (hb_font_t         *font,
 		   hb_font_funcs_t   *klass,
-		   void              *user_data,
+		   void              *font_data,
 		   hb_destroy_func_t  destroy)
 {
   if (font->immutable) {
     if (destroy)
-      destroy (user_data);
+      destroy (font_data);
     return;
   }
 
@@ -1122,14 +1122,14 @@ hb_font_set_funcs (hb_font_t         *font,
   hb_font_funcs_reference (klass);
   hb_font_funcs_destroy (font->klass);
   font->klass = klass;
-  font->user_data = user_data;
+  font->user_data = font_data;
   font->destroy = destroy;
 }
 
 /**
  * hb_font_set_funcs_data:
  * @font: a font.
- * @user_data: 
+ * @font_data: 
  * @destroy: 
  *
  * 
@@ -1138,20 +1138,20 @@ hb_font_set_funcs (hb_font_t         *font,
  **/
 void
 hb_font_set_funcs_data (hb_font_t         *font,
-		        void              *user_data,
+		        void              *font_data,
 		        hb_destroy_func_t  destroy)
 {
   /* Destroy user_data? */
   if (font->immutable) {
     if (destroy)
-      destroy (user_data);
+      destroy (font_data);
     return;
   }
 
   if (font->destroy)
     font->destroy (font->user_data);
 
-  font->user_data = user_data;
+  font->user_data = font_data;
   font->destroy = destroy;
 }
 
