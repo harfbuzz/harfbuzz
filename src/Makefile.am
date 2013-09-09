@@ -83,6 +83,7 @@ HBSOURCES += \
 	hb-ot-layout-gpos-table.hh \
 	hb-ot-layout-gsubgpos-private.hh \
 	hb-ot-layout-gsub-table.hh \
+	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout-private.hh \
 	hb-ot-map.cc \
 	hb-ot-map-private.hh \

@@ -74,7 +74,7 @@ struct NameRecord
 
 struct name
 {
-  static const hb_tag_t Tag	= HB_OT_TAG_name;
+  static const hb_tag_t tableTag	= HB_OT_TAG_name;
 
   inline unsigned int get_name (unsigned int platform_id,
 				unsigned int encoding_id,

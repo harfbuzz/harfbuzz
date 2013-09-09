@@ -1505,7 +1505,7 @@ typedef OffsetListOf<PosLookup> PosLookupList;
 
 struct GPOS : GSUBGPOS
 {
-  static const hb_tag_t Tag	= HB_OT_TAG_GPOS;
+  static const hb_tag_t tableTag	= HB_OT_TAG_GPOS;
 
   inline const PosLookup& get_lookup (unsigned int i) const
   { return CastR<PosLookup> (GSUBGPOS::get_lookup (i)); }

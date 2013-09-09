@@ -33,6 +33,7 @@
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
+#include "hb-ot-layout-jstf-table.hh"
 
 #include "hb-ot-map-private.hh"
 
