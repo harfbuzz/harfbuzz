@@ -77,7 +77,7 @@ _hb_blob_destroy_user_data (hb_blob_t *blob)
 }
 
 /**
- * hb_blob_create: (constructor)
+ * hb_blob_create: (Xconstructor)
  * @data: (array length=length): Pointer to blob data.
  * @length: Length of @data in bytes.
  * @mode: Memory mode for @data.

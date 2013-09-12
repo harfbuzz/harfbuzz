@@ -150,7 +150,7 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
 }
 
 /**
- * hb_face_create: (constructor)
+ * hb_face_create: (Xconstructor)
  * @blob: 
  * @index: 
  *

@@ -84,7 +84,7 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
  */
 
 /**
- * hb_shape_plan_create: (constructor)
+ * hb_shape_plan_create: (Xconstructor)
  * @face: 
  * @props: 
  * @user_features: (array length=num_user_features):

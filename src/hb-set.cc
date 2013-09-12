@@ -31,7 +31,7 @@
 
 
 /**
- * hb_set_create: (constructor)
+ * hb_set_create: (Xconstructor)
  *
  * Return value: (transfer full):
  *
