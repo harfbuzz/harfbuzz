@@ -371,7 +371,9 @@ HarfBuzz_0_0_gir_FILES = \
 	$(HBHEADERS) \
 	$(HBNODISTHEADERS) \
 	$(HBSOURCES) \
+	hb-gobject-enums.cc \
 	hb-gobject-enums.h \
+	hb-gobject-structs.cc \
 	hb-gobject-structs.h \
 	$(NULL)
 
