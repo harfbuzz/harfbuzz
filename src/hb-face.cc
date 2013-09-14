@@ -70,7 +70,7 @@ const hb_face_t _hb_face_nil = {
 
 /**
  * hb_face_create_for_tables:
- * @reference_table_func: 
+ * @reference_table_func:  (closure user_data) (destroy destroy) (scope notified):
  * @user_data: 
  * @destroy: 
  *

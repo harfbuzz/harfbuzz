@@ -139,54 +139,180 @@ typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *
 
 /* func setters */
 
+/**
+ * hb_font_funcs_set_glyph_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
-			      hb_font_get_glyph_func_t glyph_func,
+			      hb_font_get_glyph_func_t func,
 			      void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_font_funcs_set_glyph_h_advance_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_h_advance_func (hb_font_funcs_t *ffuncs,
 					hb_font_get_glyph_h_advance_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_font_funcs_set_glyph_v_advance_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_v_advance_func (hb_font_funcs_t *ffuncs,
 					hb_font_get_glyph_v_advance_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_font_funcs_set_glyph_h_origin_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_h_origin_func (hb_font_funcs_t *ffuncs,
 				       hb_font_get_glyph_h_origin_func_t func,
 				       void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_font_funcs_set_glyph_v_origin_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_v_origin_func (hb_font_funcs_t *ffuncs,
 				       hb_font_get_glyph_v_origin_func_t func,
 				       void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_font_funcs_set_glyph_h_kerning_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_h_kerning_func (hb_font_funcs_t *ffuncs,
 					hb_font_get_glyph_h_kerning_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_font_funcs_set_glyph_v_kerning_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_v_kerning_func (hb_font_funcs_t *ffuncs,
 					hb_font_get_glyph_v_kerning_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_font_funcs_set_glyph_extents_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_extents_func (hb_font_funcs_t *ffuncs,
 				      hb_font_get_glyph_extents_func_t func,
 				      void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_font_funcs_set_glyph_contour_point_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_contour_point_func (hb_font_funcs_t *ffuncs,
 					    hb_font_get_glyph_contour_point_func_t func,
 					    void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_font_funcs_set_glyph_name_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_name_func (hb_font_funcs_t *ffuncs,
-				   hb_font_get_glyph_name_func_t glyph_func,
+				   hb_font_get_glyph_name_func_t func,
 				   void *user_data, hb_destroy_func_t destroy);
+
+/**
+ * hb_font_funcs_set_glyph_from_name_func:
+ * @ffuncs: font functions.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
 void
 hb_font_funcs_set_glyph_from_name_func (hb_font_funcs_t *ffuncs,
-					hb_font_get_glyph_from_name_func_t glyph_func,
+					hb_font_get_glyph_from_name_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 
 

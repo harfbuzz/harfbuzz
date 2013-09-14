@@ -1093,7 +1093,7 @@ hb_font_get_face (hb_font_t *font)
 /**
  * hb_font_set_funcs:
  * @font: a font.
- * @klass: 
+ * @klass: (closure font_data) (destroy destroy) (scope notified):
  * @font_data: 
  * @destroy: 
  *
@@ -1129,7 +1129,7 @@ hb_font_set_funcs (hb_font_t         *font,
 /**
  * hb_font_set_funcs_data:
  * @font: a font.
- * @font_data: 
+ * @font_data: (destroy destroy) (scope notified):
  * @destroy: 
  *
  * 
