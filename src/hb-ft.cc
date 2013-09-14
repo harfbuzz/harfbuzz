@@ -319,7 +319,16 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 			 buffer, free);
 }
 
-
+/**
+ * hb_ft_face_create:
+ * @ft_face: (destroy destroy) (scope notified): 
+ * @destroy:
+ *
+ * 
+ *
+ * Return value: (transfer full): 
+ * Since: 1.0
+ **/
 hb_face_t *
 hb_ft_face_create (FT_Face           ft_face,
 		   hb_destroy_func_t destroy)
@@ -355,6 +364,15 @@ hb_ft_face_finalize (FT_Face ft_face)
   hb_face_destroy ((hb_face_t *) ft_face->generic.data);
 }
 
+/**
+ * hb_ft_face_create_cached:
+ * @ft_face: 
+ *
+ * 
+ *
+ * Return value: (transfer full): 
+ * Since: 1.0
+ **/
 hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face)
 {
@@ -376,6 +394,16 @@ _do_nothing (void)
 }
 
 
+/**
+ * hb_ft_font_create:
+ * @ft_face: (destroy destroy) (scope notified): 
+ * @destroy:
+ *
+ * 
+ *
+ * Return value: (transfer full): 
+ * Since: 1.0
+ **/
 hb_font_t *
 hb_ft_font_create (FT_Face           ft_face,
 		   hb_destroy_func_t destroy)
