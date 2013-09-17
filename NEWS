@@ -1,3 +1,15 @@
+Overview of changes leading to 0.9.21
+Monday, September 16, 2013
+=====================================
+
+- Rename gobject-introspection library name from harfbuzz to HarfBuzz.
+- Remove (long disabled) hb-old and hb-icu-le test shapers.
+- Misc gtk-doc and gobject-introspection annotations.
+- Misc fixes.
+- API changes:
+
+  * Add HB_SET_VALUE_INVALID
+
 Overview of changes leading to 0.9.20
 Thursday, August 29, 2013
 =====================================
