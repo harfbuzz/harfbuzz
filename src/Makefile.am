@@ -329,6 +329,7 @@ test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.sh \
+	check-defs.sh \
 	check-header-guards.sh \
 	check-includes.sh \
 	check-libstdc++.sh \
