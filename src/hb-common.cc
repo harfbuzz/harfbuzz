@@ -292,11 +292,13 @@ retry:
 hb_language_t
 hb_language_from_string (const char *str, int len)
 {
+  char strbuf[64];
+
   if (!str || !len || !*str)
     return HB_LANGUAGE_INVALID;
 
-  if (len >= 0) {
-    char strbuf[64];
+  if (len >= 0)
+  {
     len = MIN (len, (int) sizeof (strbuf) - 1);
     str = (char *) memcpy (strbuf, str, len);
     strbuf[len] = '\0';
