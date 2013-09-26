@@ -81,7 +81,7 @@ struct view_cairo_t
       helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
       line.finish ();
     }
-    g_array_unref (lines);
+    g_array_free (lines, TRUE);
   }
 
   protected:
