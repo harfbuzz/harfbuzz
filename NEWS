@@ -1,3 +1,16 @@
+Overview of changes leading to 0.9.22
+Thursday, October 3, 2013
+=====================================
+
+- Fix use-after-end-of-scope in hb_language_from_string().
+- Fix hiding of default_ignorables if font doesn't have space glyph.
+- Protect against out-of-range lookup indices.
+
+- API Changes:
+
+  * Added hb_ot_layout_table_get_lookup_count()
+
+
 Overview of changes leading to 0.9.21
 Monday, September 16, 2013
 =====================================
