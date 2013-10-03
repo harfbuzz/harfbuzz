@@ -414,6 +414,23 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
   return f.get_lookup_indexes (start_offset, lookup_count, lookup_indexes);
 }
 
+unsigned int
+hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
+				     hb_tag_t      table_tag)
+{
+  switch (table_tag)
+  {
+    case HB_OT_TAG_GSUB:
+    {
+      return hb_ot_layout_from_face (face)->gsub_lookup_count;
+    }
+    case HB_OT_TAG_GPOS:
+    {
+      return hb_ot_layout_from_face (face)->gpos_lookup_count;
+    }
+  }
+}
+
 static void
 _hb_ot_layout_collect_lookups_lookups (hb_face_t      *face,
 				       hb_tag_t        table_tag,
