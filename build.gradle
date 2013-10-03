@@ -4,51 +4,43 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 group = "org.harfbuzz"
 def archivesBaseName = "harfbuzz-js"
-version = ext.harfbuzzVersion = "git describe --tags".execute().text.trim()
-ext.projectVersion = version
-println "Version: ${version}"
 
 buildscript {
 	repositories {
 		mavenLocal()
-		mavenCentral()
 		maven {
 			credentials {
-				username "$nexusUser"
-				password "$nexusPassword"
+				username nexusUser
+				password nexusPassword
 			}
-			url "$nexusRepositoriesUrl/snapshots"
+			url "https://artifactory.prezi.com/plugins-snapshot"
 		}
 	}
 
 	dependencies {
-		classpath "com.prezi.gradle:gradle-coffee-plugin:0.0.1-SNAPSHOT"
-		classpath "com.prezi.gradle:gradle-haxe-plugin:0.0.7-SNAPSHOT"
+		classpath "com.prezi.gradle:gradle-coffee-plugin:1.0-SNAPSHOT"
+		classpath "com.prezi.gradle:gradle-prezi-plugin:1.0-SNAPSHOT"
 		classpath "com.eriwen:gradle-js-plugin:1.1"
 	}
 }
 
+apply plugin: "coffee"
+apply plugin: "prezi"
+apply plugin: "js"
+
+// JS plugin adds mavenCentral() -- let's remove it
+project.repositories.remove(project.repositories.findByName("MavenRepo"))
+
+println "Version: ${version}"
+
 repositories {
 	mavenLocal()
-
-	maven {
-		credentials {
-			username "$nexusUser"
-			password "$nexusPassword"
-		}
-		url "http://intra.prezi.com:8081/nexus/content/groups/public/"
-	}
+	maven downloadRepo("repo")
 }
 
 configurations {
-	// Dummy, needed for haxe plugin
-	hxsrc
 	emcc
 }
-
-apply plugin: "coffee"
-apply plugin: "js"
-apply plugin: "haxe"
 
 clean << {
 	if (file("Makefile").exists()) {
@@ -420,22 +412,13 @@ task buildAll {
 
 install {
 	dependsOn buildAll
-
-	def jarArtifact = project.configurations.archives.artifacts.find { it.extension == 'jar' }
-	project.configurations.archives.artifacts.remove(jarArtifact)
-
-	def hxsrcArtifact = project.configurations.archives.artifacts.find { it.archiveTask == project.tasks['zip'] }
-	project.configurations.archives.artifacts.remove(hxsrcArtifact)
-
-	repositories.clear()
-    repositories.add(project.repositories['localIvy'])
 }
 
 uploadArchives {
 	dependsOn install
-
-	repositories.clear()
-    repositories.add(project.repositories['remoteIvy'])
+	repositories {
+		ivy uploadRepo("prezi-client")
+	}
 }
 
 artifacts {
