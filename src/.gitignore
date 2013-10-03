@@ -20,6 +20,8 @@
 /TAGS
 /_libs
 /harfbuzz.def
+/hb-buffer-deserialize-json.hh
+/hb-buffer-deserialize-text.hh
 /hb-ot-shape-complex-indic-machine.hh
 /hb-ot-shape-complex-myanmar-machine.hh
 /hb-ot-shape-complex-sea-machine.hh
@@ -29,5 +31,6 @@
 /so_locations
 /tags
 /test
+/test-buffer-serialize
 /test-size-params
 /test-would-substitute
