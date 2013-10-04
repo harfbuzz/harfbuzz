@@ -155,10 +155,61 @@ class ConfigureHarfbuzz extends DefaultTask {
 }
 
 task configureHarfbuzz(type: ConfigureHarfbuzz) {
-	dependsOn downloadEmscripten
-	// We need to do this to build shared libs
-	host = "i386-linux"
+    dependsOn downloadEmscripten
+// We need to do this to build shared libs
+    host = "i386-linux"
 }
+
+class BuildHarfbuzzJava extends DefaultTask {
+
+    @InputFiles
+    List<File> inputFiles = [ ]
+
+    @OutputFiles
+    List<File> outputFiles = [ project.file("swig/build/cpp/lib/harfbuzz_wrap.so") ]
+
+    String host
+
+	@TaskAction
+	void doConfigure() {
+		def commandLine = "./build.java.sh"
+
+		def proc = commandLine.execute()
+		proc.waitForProcessOutput(System.out, System.err)
+
+		if (proc.exitValue()) {
+			throw new RuntimeException("Java build failed")
+		}
+
+		for (outputFile in outputFiles) {
+			if (!outputFile.exists()) {
+				throw new RuntimeException("Java Build didn't create required file: " + outputFile)
+			}
+		}
+	}
+}
+
+task buildHarfbuzzJava(type: BuildHarfbuzzJava) {
+}
+
+
+
+task packJavaHarfbuzz(type: Zip){
+    baseName = "harfbuzzJava"
+    dependsOn buildHarfbuzzJava
+
+
+    from fileTree("swig/build/java"),{
+        include "**/*.java"
+    }
+
+    from fileTree("swig/build/cpp/lib"),{
+        include "*.so"
+    }
+
+    destinationDir = project.file("swig/build")
+}
+
 
 task makeHarfbuzz() {
 	dependsOn configureHarfbuzz
@@ -403,11 +454,12 @@ task testJs(type:Exec) {
 }
 
 task buildAll {
-	dependsOn testJs
-	dependsOn compileEmccProduction
-	dependsOn compileEmccProductionUntyped
-	dependsOn compileEmccDebug
-	dependsOn compileEmccDebugUntyped
+//	dependsOn testJs
+	dependsOn packJavaHarfbuzz
+//	dependsOn compileEmccProduction
+//	dependsOn compileEmccProductionUntyped
+//	dependsOn compileEmccDebug
+//	dependsOn compileEmccDebugUntyped
 }
 
 install {
@@ -436,9 +488,10 @@ artifacts {
 		type "js"
 		classifier "debug"
 	}
-	archives(compileEmccDebugUntyped.outputFile) {
+	archives(packJavaHarfbuzz) {
 		name archivesBaseName
-		type "js"
-		classifier "untyped-debug"
+		type "zip"
+		classifier "java"
 	}
+
 }

@@ -25,4 +25,4 @@ echo "### compile wrapper"
 # -Wl,--add-stdcall-alias
 #echo "### link wrapper"
 #ld  build/harfbuzz.dylib swig/build/cpp/lib/harfbuzz_wrap.o -dylib -o build/libharfbuzz.so
-gcc  -I ./src -I /System/Library/Frameworks/JavaVM.framework/Headers  -pipe -Os -no-cpp-precomp -shared -o swig/build/cpp/lib/harfbuzz_wrap.dylib swig/build/cpp/harfbuzz_wrap.c  build/harfbuzz.a
+gcc  -I ./src -I /System/Library/Frameworks/JavaVM.framework/Headers  -pipe -Os -no-cpp-precomp -shared -o swig/build/cpp/lib/harfbuzz_wrap.so swig/build/cpp/harfbuzz_wrap.c  build/harfbuzz.a
