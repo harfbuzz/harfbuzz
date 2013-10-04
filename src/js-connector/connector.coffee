@@ -175,6 +175,9 @@ Module["array"] = array = (elemType, count) -> class CArray extends CObject
 			writeTo address, value, elemType
 		return
 
+	@::["getAddress"] = ->
+		@["$ptr"]
+
 	@::["ptr"] = (index) ->
 		type = if simpleType elemType then simplePointerTypes[elemType] else elemType
 		new type @["$ptr"] + checkIndex(index) * sizeofType elemType
