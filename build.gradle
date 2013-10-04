@@ -288,7 +288,7 @@ class CompileEmcc extends DefaultTask {
 		def versionHeader = project.file("${project.buildDir}/version-header.js")
 		versionHeader.delete()
 		versionHeader.createNewFile()
-		versionHeader << "Module['version'] = '${project.harfbuzzVersion}${type}';\n";
+		versionHeader << "Module['version'] = '${project.version}${type}';\n";
 		versionHeader << "Module['emccVersion'] = '${emccVersion}';\n";
 
 		def commandLine = emccPath
