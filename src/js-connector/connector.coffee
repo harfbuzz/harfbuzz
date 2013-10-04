@@ -277,6 +277,9 @@ Module["string"] = string = class CString extends CObject
 		else
 			throw new Error "Cannot create a string from #{arg}"
 
+	@::["getAddress"] = ->
+		@["$ptr"]
+
 	@::["toString"] = ->
 		Pointer_stringify(@["$ptr"])
 
