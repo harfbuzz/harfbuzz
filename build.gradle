@@ -102,7 +102,9 @@ task generateUcdnJs {
 					if (line == null) break
 					def matches = line =~ /#define (UCDN_[A-Z0-9_]+) (\d+)/
 					if (matches) {
-						writer.println "Module[\"${matches[0][1]}\"] = ${matches[0][1]} = ${matches[0][2]};"
+						def name = matches[0][1]
+						def value = matches[0][2]
+						writer.println "Module[\"${name}\"] = ${value};"
 					}
 				}
 			}
