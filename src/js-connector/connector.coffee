@@ -176,7 +176,7 @@ Module["array"] = array = (elemType, count) -> class CArray extends CObject
 		return
 
 	@::["getAddress"] = ->
-		@["ptr"]()
+		@["ptr"](0)
 
 	@::["ptr"] = (index) ->
 		type = if simpleType elemType then simplePointerTypes[elemType] else elemType
