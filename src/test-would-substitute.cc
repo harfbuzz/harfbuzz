@@ -63,7 +63,7 @@ main (int argc, char **argv)
     GMappedFile *mf = g_mapped_file_new (argv[1], false, NULL);
     font_data = g_mapped_file_get_contents (mf);
     len = g_mapped_file_get_length (mf);
-    destroy = (hb_destroy_func_t) g_mapped_file_unref;
+    destroy = (hb_destroy_func_t) g_mapped_file_free;
     user_data = (void *) mf;
     mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
 #else

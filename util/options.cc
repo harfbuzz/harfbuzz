@@ -436,11 +436,11 @@ font_options_t::get_font (void) const
 	font_data = g_mapped_file_get_contents (mf);
 	len = g_mapped_file_get_length (mf);
 	if (len) {
-	  destroy = (hb_destroy_func_t) g_mapped_file_unref;
+	  destroy = (hb_destroy_func_t) g_mapped_file_free;
 	  user_data = (void *) mf;
 	  mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
 	} else
-	  g_mapped_file_unref (mf);
+	  g_mapped_file_free (mf);
       } else {
 	fail (false, "%s", error->message);
 	//g_error_free (error);
