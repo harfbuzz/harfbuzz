@@ -7,7 +7,7 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
 manifests:
-	@$(srcdir)/hb-manifest-update "$(srcdir)/texts" "$(srcdir)/fonts"
+	@$(srcdir)/hb-manifest-update "$(srcdir)/texts" "$(srcdir)/fonts" "$(srcdir)/tests"
 
 EXTRA_DIST += \
 	hb-diff \
@@ -20,6 +20,7 @@ EXTRA_DIST += \
 	hb-unicode-decode \
 	hb-unicode-encode \
 	hb-unicode-prettyname \
+	run-tests.sh \
 	$(NULL)
 
 # TODO Figure out Python stuff
@@ -28,6 +29,13 @@ EXTRA_DIST += \
 	$(NULL)
 CLEANFILES += \
 	hb_test_tools.py[co] \
+	$(NULL)
+
+TESTS = $(srcdir)/tests/*.tests
+TESTS_ENVIRONMENT = \
+	srcdir="$(srcdir)" \
+	builddir="$(builddir)" \
+	$(srcdir)/run-tests.sh \
 	$(NULL)
 
 .PHONY: manifests
