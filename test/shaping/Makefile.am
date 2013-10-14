@@ -31,7 +31,7 @@ CLEANFILES += \
 	hb_test_tools.py[co] \
 	$(NULL)
 
-TESTS = $(srcdir)/tests/*.tests
+TESTS = tests/context-matching.tests
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
 	builddir="$(builddir)" \
