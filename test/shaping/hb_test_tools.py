@@ -405,7 +405,7 @@ class Unicode:
 
 	@staticmethod
 	def decode (s):
-		return '<' + u','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf-8')).encode ('utf-8') + '>'
+		return u','.join ("U+%04X" % ord (u) for u in unicode (s, 'utf-8')).encode ('utf-8')
 
 	@staticmethod
 	def parse (s):
