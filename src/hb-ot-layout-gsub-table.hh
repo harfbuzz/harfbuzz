@@ -672,6 +672,7 @@ struct Ligature
 			      match_glyph,
 			      NULL,
 			      &end_offset,
+			      NULL,
 			      &is_mark_ligature,
 			      &total_component_count)))
       return TRACE_RETURN (false);

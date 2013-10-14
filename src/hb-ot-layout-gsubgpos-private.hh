@@ -753,10 +753,13 @@ static inline bool match_input (hb_apply_context_t *c,
 				match_func_t match_func,
 				const void *match_data,
 				unsigned int *end_offset = NULL,
+				unsigned int match_positions[MAX_CONTEXT_LENGTH] = NULL,
 				bool *p_is_mark_ligature = NULL,
 				unsigned int *p_total_component_count = NULL)
 {
   TRACE_APPLY (NULL);
+
+  if (unlikely (count > MAX_CONTEXT_LENGTH)) TRACE_RETURN (false);
 
   hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
   skippy_iter.set_match_func (match_func, match_data, input);
@@ -788,9 +791,13 @@ static inline bool match_input (hb_apply_context_t *c,
   unsigned int first_lig_id = get_lig_id (c->buffer->cur());
   unsigned int first_lig_comp = get_lig_comp (c->buffer->cur());
 
+  if (match_positions)
+    match_positions[0] = c->buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
+    if (match_positions)
+      match_positions[i] = skippy_iter.idx;
 
     unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
     unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
@@ -982,98 +989,80 @@ static inline void recurse_lookups (context_t *c,
 
 static inline bool apply_lookup (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
-				 const USHORT input[], /* Array of input values--start with second glyph */
-				 match_func_t match_func,
-				 const void *match_data,
+				 unsigned int match_positions[MAX_CONTEXT_LENGTH], /* Including the first glyph */
 				 unsigned int lookupCount,
-				 const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */)
+				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
+				 unsigned int match_length)
 {
   TRACE_APPLY (NULL);
 
-  unsigned int end = c->buffer->len;
-  if (unlikely (count == 0 || c->buffer->idx + count > end))
-    return TRACE_RETURN (false);
+  hb_buffer_t *buffer = c->buffer;
+  unsigned int end;
 
-  /* TODO We don't support lookupRecord arrays that are not increasing:
-   *      Should be easy for in_place ones at least. */
-
-  /* Note: If sublookup is reverse, it will underflow after the first loop
-   * and we jump out of it.  Not entirely disastrous.  So we don't check
-   * for reverse lookup here.
-   */
-
-  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
-  skippy_iter.set_match_func (match_func, match_data, input);
-  uint8_t syllable = c->buffer->cur().syllable();
-
-  unsigned int i = 0;
-  if (lookupCount && 0 == lookupRecord->sequenceIndex)
+  /* All positions are distance from beginning of *output* buffer.
+   * Adjust. */
   {
-    unsigned int old_pos = c->buffer->idx;
+    unsigned int bl = buffer->backtrack_len ();
+    end = bl + match_length;
 
-    /* Apply a lookup */
-    bool done = c->recurse (lookupRecord->lookupListIndex);
-
-    lookupRecord++;
-    lookupCount--;
-    i++;
-
-    if (!done)
-      goto not_applied;
-    else
-    {
-      if (c->table_index == 1)
-        c->buffer->idx = old_pos + 1;
-      /* Reinitialize iterator. */
-      hb_apply_context_t::skipping_forward_iterator_t tmp (c, c->buffer->idx - 1, count - i);
-      tmp.set_syllable (syllable);
-      skippy_iter = tmp;
-    }
+    int delta = bl - buffer->idx;
+    /* Convert positions to new indexing. */
+    for (unsigned int j = 0; j < count; j++)
+      match_positions[j] += delta;
   }
-  else
-  {
-  not_applied:
-    /* No lookup applied for this index */
-    c->buffer->next_glyph ();
-    i++;
-  }
-  while (i < count)
-  {
-    if (!skippy_iter.next ()) return TRACE_RETURN (true);
-    while (c->buffer->idx < skippy_iter.idx)
-      c->buffer->next_glyph ();
 
-    if (lookupCount && i == lookupRecord->sequenceIndex)
+  for (unsigned int i = 0; i < lookupCount; i++)
+  {
+    unsigned int idx = lookupRecord[i].sequenceIndex;
+    if (idx >= count)
+      continue;
+
+    buffer->move_to (match_positions[idx]);
+
+    unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
+    if (!c->recurse (lookupRecord[i].lookupListIndex))
+      continue;
+
+    unsigned int new_len = buffer->backtrack_len () + buffer->lookahead_len ();
+    int delta = new_len - orig_len;
+
+    if (!delta)
+        continue;
+
+    /* Recursed lookup changed buffer len.  Adjust. */
+
+    end += delta;
+
+    unsigned int next = idx + 1; /* next now is the position after the recursed lookup. */
+
+    if (delta > 0)
     {
-      unsigned int old_pos = c->buffer->idx;
-
-      /* Apply a lookup */
-      bool done = c->recurse (lookupRecord->lookupListIndex);
-
-      lookupRecord++;
-      lookupCount--;
-      i++;
-
-      if (!done)
-	goto not_applied2;
-      else
-      {
-	if (c->table_index == 1)
-	  c->buffer->idx = old_pos + 1;
-        /* Reinitialize iterator. */
-	hb_apply_context_t::skipping_forward_iterator_t tmp (c, c->buffer->idx - 1, count - i);
-	tmp.set_syllable (syllable);
-	skippy_iter = tmp;
-      }
+      if (unlikely (delta + count > MAX_CONTEXT_LENGTH))
+	break;
     }
     else
     {
-    not_applied2:
-      /* No lookup applied for this index */
-      c->buffer->next_glyph ();
-      i++;
+      /* NOTE: delta is negative. */
+      delta = MAX (delta, (int) next - (int) count);
+      next -= delta;
     }
+
+    /* Shift! */
+    memmove (match_positions + next + delta, match_positions + next,
+	     (count - next) * sizeof (match_positions[0]));
+    next += delta;
+    count += delta;
+
+    /* Fill in new entries. */
+    for (unsigned int j = idx + 1; j < next; j++)
+      match_positions[j] = match_positions[j - 1] + 1;
+
+    /* And fixup the rest. */
+    for (; next < count; next++)
+      match_positions[next] += delta;
   }
+
+  buffer->move_to (end);
 
   return TRACE_RETURN (true);
 }
@@ -1146,13 +1135,16 @@ static inline bool context_apply_lookup (hb_apply_context_t *c,
 					 const LookupRecord lookupRecord[],
 					 ContextApplyLookupContext &lookup_context)
 {
+  unsigned int match_length = 0;
+  unsigned int match_positions[MAX_CONTEXT_LENGTH];
   return match_input (c,
 		      inputCount, input,
-		      lookup_context.funcs.match, lookup_context.match_data)
+		      lookup_context.funcs.match, lookup_context.match_data,
+		      &match_length, match_positions)
       && apply_lookup (c,
-		       inputCount, input,
-		       lookup_context.funcs.match, lookup_context.match_data,
-		       lookupCount, lookupRecord);
+		       inputCount, match_positions,
+		       lookupCount, lookupRecord,
+		       match_length);
 }
 
 struct Rule
@@ -1726,22 +1718,23 @@ static inline bool chain_context_apply_lookup (hb_apply_context_t *c,
 					       const LookupRecord lookupRecord[],
 					       ChainContextApplyLookupContext &lookup_context)
 {
-  unsigned int lookahead_offset = 0;
+  unsigned int match_length = 0;
+  unsigned int match_positions[MAX_CONTEXT_LENGTH];
   return match_input (c,
 		      inputCount, input,
 		      lookup_context.funcs.match, lookup_context.match_data[1],
-		      &lookahead_offset)
+		      &match_length, match_positions)
       && match_backtrack (c,
 			  backtrackCount, backtrack,
 			  lookup_context.funcs.match, lookup_context.match_data[0])
       && match_lookahead (c,
 			  lookaheadCount, lookahead,
 			  lookup_context.funcs.match, lookup_context.match_data[2],
-			  lookahead_offset)
+			  match_length)
       && apply_lookup (c,
-		       inputCount, input,
-		       lookup_context.funcs.match, lookup_context.match_data[1],
-		       lookupCount, lookupRecord);
+		       inputCount, match_positions,
+		       lookupCount, lookupRecord,
+		       match_length);
 }
 
 struct ChainRule
