@@ -429,6 +429,7 @@ hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
       return hb_ot_layout_from_face (face)->gpos_lookup_count;
     }
   }
+  return 0;
 }
 
 static void
