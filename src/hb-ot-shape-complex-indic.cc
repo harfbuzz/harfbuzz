@@ -1329,14 +1329,9 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    *   move it if it did NOT ligate.  If it ligated, it's probably the font trying
    *   to make it work without the reordering.
    */
-  if (start + 1 < end && (
-      (info[start].indic_category() != OT_Repha &&
-       info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
-       info[start + 1].indic_position() != POS_RA_TO_BECOME_REPH)
-      ||
-      (info[start].indic_category() == OT_Repha &&
-       !is_a_ligature (info[start]))
-     ))
+  if (start + 1 < end &&
+      info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
+      ((info[start].indic_category() == OT_Repha) ^ is_a_ligature (info[start])))
   {
     unsigned int new_reph_pos;
     reph_position_t reph_pos = indic_plan->config->reph_pos;
