@@ -249,7 +249,7 @@ set_indic_properties (hb_glyph_info_t &info)
   {
     pos = matra_position (u, pos);
   }
-  else if (cat == OT_SM || cat == OT_VD)
+  else if (cat == OT_SM || cat == OT_VD || cat == OT_Avag)
   {
     pos = POS_SMVD;
   }
@@ -584,6 +584,7 @@ enum syllable_type_t {
   consonant_syllable,
   vowel_syllable,
   standalone_cluster,
+  avagraha_cluster,
   broken_cluster,
   non_indic_cluster,
 };
@@ -1082,6 +1083,16 @@ initial_reordering_broken_cluster (const hb_ot_shape_plan_t *plan,
 }
 
 static void
+initial_reordering_avagraha_cluster (const hb_ot_shape_plan_t *plan HB_UNUSED,
+				     hb_face_t *face HB_UNUSED,
+				     hb_buffer_t *buffer HB_UNUSED,
+				     unsigned int start HB_UNUSED, unsigned int end HB_UNUSED)
+{
+  /* Nothing to do right now.  If we ever switch to using the output
+   * buffer in the reordering process, we'd need to next_glyph() here. */
+}
+
+static void
 initial_reordering_non_indic_cluster (const hb_ot_shape_plan_t *plan HB_UNUSED,
 				      hb_face_t *face HB_UNUSED,
 				      hb_buffer_t *buffer HB_UNUSED,
@@ -1103,6 +1114,7 @@ initial_reordering_syllable (const hb_ot_shape_plan_t *plan,
   case consonant_syllable:	initial_reordering_consonant_syllable (plan, face, buffer, start, end); return;
   case vowel_syllable:		initial_reordering_vowel_syllable     (plan, face, buffer, start, end); return;
   case standalone_cluster:	initial_reordering_standalone_cluster (plan, face, buffer, start, end); return;
+  case avagraha_cluster:	initial_reordering_avagraha_cluster   (plan, face, buffer, start, end); return;
   case broken_cluster:		initial_reordering_broken_cluster     (plan, face, buffer, start, end); return;
   case non_indic_cluster:	initial_reordering_non_indic_cluster  (plan, face, buffer, start, end); return;
   }

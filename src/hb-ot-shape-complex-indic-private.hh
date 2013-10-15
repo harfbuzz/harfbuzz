@@ -59,7 +59,8 @@ enum indic_category_t {
   OT_Coeng,
   OT_Repha,
   OT_Ra, /* Not explicitly listed in the OT spec, but used in the grammar. */
-  OT_CM
+  OT_CM,
+  OT_Avag
 };
 
 /* Visual positions in a syllable from left to right. */
@@ -93,7 +94,7 @@ enum indic_position_t {
 enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_OTHER			= OT_X,
 
-  INDIC_SYLLABIC_CATEGORY_AVAGRAHA		= OT_X,
+  INDIC_SYLLABIC_CATEGORY_AVAGRAHA		= OT_Avag,
   INDIC_SYLLABIC_CATEGORY_BINDU			= OT_SM,
   INDIC_SYLLABIC_CATEGORY_CONSONANT		= OT_C,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_DEAD	= OT_C,

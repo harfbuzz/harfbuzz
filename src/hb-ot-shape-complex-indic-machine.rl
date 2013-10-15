@@ -56,6 +56,7 @@ Coeng = 14;
 Repha = 15;
 Ra    = 16;
 CM    = 17;
+Avag  = 18;
 
 c = (C | Ra)CM*;		# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier
@@ -66,7 +67,7 @@ reph = (Ra H | Repha);		# possible reph
 cn = c.ZWJ?.n?;
 forced_rakar = ZWJ H ZWJ Ra;
 matra_group = z{0,3}.M.N?.(H | forced_rakar)?;
-syllable_tail =  (Coeng (cn|V))? (SM.ZWNJ?)? (VD VD?)?;
+syllable_tail =  (Coeng (cn|V))? (Avag.N?)? (SM.ZWNJ?)? (VD VD?)?;
 place_holder = NBSP | DOTTEDCIRCLE;
 halant_group = (z?.h.(ZWJ.N?)?);
 final_halant_group = halant_group | h.ZWNJ;
@@ -76,6 +77,7 @@ halant_or_matra_group = (final_halant_group | (h.ZWJ)? matra_group{0,4});
 consonant_syllable =	Repha? (cn.halant_group){0,4} cn A? halant_or_matra_group? syllable_tail;
 vowel_syllable =	reph? V.n? (ZWJ | (halant_group.cn){0,4} halant_or_matra_group? syllable_tail);
 standalone_cluster =	reph? place_holder.n? (halant_group.cn){0,4} halant_or_matra_group? syllable_tail;
+avagraha_cluster = 	Avag.N? (SM.ZWNJ?)? (VD VD?)?;
 broken_cluster =	reph? n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 other =			any;
 
@@ -83,6 +85,7 @@ main := |*
 	consonant_syllable	=> { found_syllable (consonant_syllable); };
 	vowel_syllable		=> { found_syllable (vowel_syllable); };
 	standalone_cluster	=> { found_syllable (standalone_cluster); };
+	avagraha_cluster	=> { found_syllable (avagraha_cluster); };
 	broken_cluster		=> { found_syllable (broken_cluster); };
 	other			=> { found_syllable (non_indic_cluster); };
 *|;
