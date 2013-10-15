@@ -351,15 +351,17 @@ indic_features[] =
   {HB_TAG('r','k','r','f'), F_GLOBAL},
   {HB_TAG('p','r','e','f'), F_NONE},
   {HB_TAG('b','l','w','f'), F_NONE},
-  {HB_TAG('h','a','l','f'), F_NONE},
   {HB_TAG('a','b','v','f'), F_NONE},
+  {HB_TAG('h','a','l','f'), F_NONE},
   {HB_TAG('p','s','t','f'), F_NONE},
-  {HB_TAG('c','f','a','r'), F_NONE},
   {HB_TAG('v','a','t','u'), F_GLOBAL},
   {HB_TAG('c','j','c','t'), F_GLOBAL},
+  {HB_TAG('c','f','a','r'), F_NONE},
   /*
    * Other features.
    * These features are applied all at once, after final_reordering.
+   * Default Bengali font in Windows for example has intermixed
+   * lookups for init,pres,abvs,blws features.
    */
   {HB_TAG('i','n','i','t'), F_NONE},
   {HB_TAG('p','r','e','s'), F_GLOBAL},
@@ -383,12 +385,12 @@ enum {
   _RKRF,
   PREF,
   BLWF,
-  HALF,
   ABVF,
+  HALF,
   PSTF,
-  CFAR,
   _VATU,
   _CJCT,
+  CFAR,
 
   INIT,
   _PRES,
