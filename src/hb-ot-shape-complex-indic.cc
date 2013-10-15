@@ -416,6 +416,10 @@ static void
 final_reordering (const hb_ot_shape_plan_t *plan,
 		  hb_font_t *font,
 		  hb_buffer_t *buffer);
+static void
+clear_syllables (const hb_ot_shape_plan_t *plan,
+		 hb_font_t *font,
+		 hb_buffer_t *buffer);
 
 static void
 collect_features_indic (hb_ot_shape_planner_t *plan)
@@ -441,6 +445,7 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   for (; i < INDIC_NUM_FEATURES; i++) {
     map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ);
   }
+  map->add_gsub_pause (clear_syllables);
 }
 
 static void
@@ -1558,12 +1563,20 @@ final_reordering (const hb_ot_shape_plan_t *plan,
     }
   final_reordering_syllable (plan, buffer, last, count);
 
-  /* Zero syllables now... */
-  for (unsigned int i = 0; i < count; i++)
-    info[i].syllable() = 0;
-
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
+}
+
+
+static void
+clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
+		 hb_font_t *font HB_UNUSED,
+		 hb_buffer_t *buffer)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    info[i].syllable() = 0;
 }
 
 
