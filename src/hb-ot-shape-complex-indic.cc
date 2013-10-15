@@ -1320,12 +1320,23 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    *     before post-base consonant forms, and after post-base consonant forms.
    */
 
-  /* If there's anything after the Ra that has the REPH pos, it ought to be halant.
-   * Which means that the font has failed to ligate the Reph.  In which case, we
-   * shouldn't move. */
-  if (start + 1 < end &&
-      info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
-      info[start + 1].indic_position() != POS_RA_TO_BECOME_REPH)
+  /* Two cases:
+   *
+   * - If repha is encoded as a sequence of characters (Ra,H or Ra,H,ZWJ), then
+   *   we should only move it if the sequence ligated to the repha form.
+   *
+   * - If repha is encoded separately and in the logical position, we should only
+   *   move it if it did NOT ligate.  If it ligated, it's probably the font trying
+   *   to make it work without the reordering.
+   */
+  if (start + 1 < end && (
+      (info[start].indic_category() != OT_Repha &&
+       info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
+       info[start + 1].indic_position() != POS_RA_TO_BECOME_REPH)
+      ||
+      (info[start].indic_category() == OT_Repha &&
+       !is_a_ligature (info[start]))
+     ))
   {
     unsigned int new_reph_pos;
     reph_position_t reph_pos = indic_plan->config->reph_pos;
