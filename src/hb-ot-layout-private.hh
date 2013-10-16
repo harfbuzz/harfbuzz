@@ -107,6 +107,12 @@ _hb_glyph_info_is_zwj (const hb_glyph_info_t *info)
   return !!(info->unicode_props0() & MASK0_ZWJ);
 }
 
+inline void
+_hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
+{
+  info->unicode_props0() ^= MASK0_ZWNJ | MASK0_ZWJ;
+}
+
 
 #define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
 
