@@ -66,8 +66,10 @@ reph = (Ra H | Repha);		# possible reph
 
 cn = c.ZWJ?.n?;
 forced_rakar = ZWJ H ZWJ Ra;
+avagraha = Avag.N?;
 matra_group = z{0,3}.M.N?.(H | forced_rakar)?;
-syllable_tail =  (Coeng (cn|V))? (Avag.N?)? (SM.SM?.ZWNJ?)? (A.A?)? VD?;
+syllable_tail2 = (SM.SM?.ZWNJ?)? (A.A?)? VD?;
+syllable_tail =  (Coeng (cn|V))? avagraha? syllable_tail2;
 place_holder = NBSP | DOTTEDCIRCLE;
 halant_group = (z?.h.(ZWJ.N?)?);
 final_halant_group = halant_group | h.ZWNJ;
@@ -77,7 +79,7 @@ halant_or_matra_group = (CM.CM* | final_halant_group | (h.ZWJ)? matra_group{0,4}
 consonant_syllable =	Repha? (cn.halant_group){0,4} cn halant_or_matra_group? syllable_tail;
 vowel_syllable =	reph? V.n? (ZWJ | (halant_group.cn){0,4} halant_or_matra_group? syllable_tail);
 standalone_cluster =	reph? place_holder.n? (halant_group.cn){0,4} halant_or_matra_group? syllable_tail;
-avagraha_cluster = 	Avag.N? (SM.ZWNJ?)? (VD VD?)?;
+avagraha_cluster = 	avagraha syllable_tail2;
 broken_cluster =	reph? n? (halant_group.cn){0,4} halant_or_matra_group syllable_tail;
 other =			any;
 
