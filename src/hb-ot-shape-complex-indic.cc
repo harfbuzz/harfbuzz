@@ -194,15 +194,15 @@ set_indic_properties (hb_glyph_info_t &info)
 
 
   /* The spec says U+0952 is OT_A.  However, testing shows that Uniscribe
-   * treats U+0951..U+0952 all as OT_VD.
+   * treats U+0951..U+0954 all behave similarly.
    * TESTS:
    * U+092E,U+0947,U+0952
    * U+092E,U+0952,U+0947
    * U+092E,U+0947,U+0951
    * U+092E,U+0951,U+0947
-   * */
+   */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0951, 0x0954)))
-    cat = OT_VD;
+    cat = OT_A;
 
   if (unlikely (u == 0x17D1))
     cat = OT_X;
@@ -220,7 +220,7 @@ set_indic_properties (hb_glyph_info_t &info)
   else if (unlikely (u == 0x200C)) cat = OT_ZWNJ;
   else if (unlikely (u == 0x200D)) cat = OT_ZWJ;
   else if (unlikely (u == 0x25CC)) cat = OT_DOTTEDCIRCLE;
-  else if (unlikely (u == 0x0A71)) cat = OT_SM; /* GURMUKHI ADDAK.  More like consonant medial. like 0A75. */
+  else if (unlikely (u == 0x0A71)) cat = OT_SM; /* GURMUKHI ADDAK.  Move it to the end. */
 
   if (cat == OT_Repha) {
     /* There are two kinds of characters marked as Repha:
@@ -249,7 +249,7 @@ set_indic_properties (hb_glyph_info_t &info)
   {
     pos = matra_position (u, pos);
   }
-  else if (cat == OT_SM || cat == OT_VD || cat == OT_Avag)
+  else if ((FLAG (cat) & (FLAG (OT_SM) | FLAG (OT_VD) | FLAG (OT_A) | FLAG (OT_Avag))))
   {
     pos = POS_SMVD;
   }
@@ -933,6 +933,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	for (unsigned int j = last_halant; j < i; j++)
 	  if (info[j].indic_position() != POS_SMVD)
 	    info[j].indic_position() = info[i].indic_position();
+	last_halant = end;
       }
   }
 
