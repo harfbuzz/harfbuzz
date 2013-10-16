@@ -936,20 +936,53 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       }
   }
 
+
   {
-    /* Things are out-of-control for post base positions, they may shuffle
-     * around like crazy, so merge clusters.  For pre-base stuff, we handle
-     * cluster issues in final reordering. */
-    buffer->merge_clusters (base, end);
+    /* Use syllable() for sort accounting temporarily. */
+    unsigned int syllable = info[start].syllable();
+    for (unsigned int i = start; i < end; i++)
+      info[i].syllable() = i - start;
+
     /* Sit tight, rock 'n roll! */
     hb_bubble_sort (info + start, end - start, compare_indic_order);
     /* Find base again */
     base = end;
     for (unsigned int i = start; i < end; i++)
-      if (info[i].indic_position() == POS_BASE_C) {
-        base = i;
+      if (info[i].indic_position() == POS_BASE_C)
+      {
+	base = i;
 	break;
       }
+    /* Things are out-of-control for post base positions, they may shuffle
+     * around like crazy.  In old-spec mode, we move halants around, so in
+     * that case merge all clusters after base.  Otherwise, check the sort
+     * order and merge as needed.
+     * For pre-base stuff, we handle cluster issues in final reordering. */
+    if (indic_plan->is_old_spec || end - base > 127)
+      buffer->merge_clusters (base, end);
+    else
+    {
+      /* Note!  syllable() is a one-byte field. */
+      for (unsigned int i = base; i < end; i++)
+        if (info[i].syllable() != 255)
+	{
+	  unsigned int max = i;
+	  unsigned int j = start + info[i].syllable();
+	  while (j != i)
+	  {
+	    max = MAX (max, j);
+	    unsigned int next = start + info[j].syllable();
+	    info[j].syllable() = 255; /* So we don't process j later again. */
+	    j = next;
+	  }
+	  if (i != max)
+	    buffer->merge_clusters (i, max + 1);
+	}
+    }
+
+    /* Put syllable back in. */
+    for (unsigned int i = start; i < end; i++)
+      info[i].syllable() = syllable;
   }
 
   /* Setup masks now */
