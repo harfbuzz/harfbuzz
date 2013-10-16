@@ -1298,9 +1298,9 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	  info[new_pos] = tmp;
 	  if (old_pos < base && base <= new_pos) /* Shouldn't actually happen. */
 	    base--;
+	  buffer->merge_clusters (new_pos, MIN (end, base + 1));
 	  new_pos--;
 	}
-      buffer->merge_clusters (new_pos, MIN (end, base + 1));
     } else {
       for (unsigned int i = start; i < base; i++)
 	if (info[i].indic_position () == POS_PRE_M) {
