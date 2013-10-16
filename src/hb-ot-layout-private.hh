@@ -48,26 +48,33 @@
 #define unicode_props1()	var2.u8[1]
 
 
+enum {
+  MASK0_ZWJ  = 0x20,
+  MASK0_ZWNJ = 0x40,
+  MASK0_IGNORABLE = 0x80,
+  MASK0_GEN_CAT = 0x1F
+};
+
 inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
   info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
-			   (unicode->is_default_ignorable (info->codepoint) ? 0x80 : 0) |
-			   (info->codepoint == 0x200C ? 0x40 : 0) |
-			   (info->codepoint == 0x200D ? 0x20 : 0);
+			   (unicode->is_default_ignorable (info->codepoint) ? MASK0_IGNORABLE : 0) |
+			   (info->codepoint == 0x200C ? MASK0_ZWNJ : 0) |
+			   (info->codepoint == 0x200D ? MASK0_ZWJ : 0);
   info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
 }
 
 inline void
 _hb_glyph_info_set_general_category (hb_glyph_info_t *info, hb_unicode_general_category_t gen_cat)
 {
-  info->unicode_props0() = (unsigned int) gen_cat | ((info->unicode_props0()) & ~0x1F);
+  info->unicode_props0() = (unsigned int) gen_cat | ((info->unicode_props0()) & ~MASK0_GEN_CAT);
 }
 
 inline hb_unicode_general_category_t
 _hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
 {
-  return (hb_unicode_general_category_t) (info->unicode_props0() & 0x1F);
+  return (hb_unicode_general_category_t) (info->unicode_props0() & MASK0_GEN_CAT);
 }
 
 inline void
@@ -85,19 +92,19 @@ _hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
 inline hb_bool_t
 _hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
 {
-  return !!(info->unicode_props0() & 0x80);
+  return !!(info->unicode_props0() & MASK0_IGNORABLE);
 }
 
 inline hb_bool_t
 _hb_glyph_info_is_zwnj (const hb_glyph_info_t *info)
 {
-  return !!(info->unicode_props0() & 0x40);
+  return !!(info->unicode_props0() & MASK0_ZWNJ);
 }
 
 inline hb_bool_t
 _hb_glyph_info_is_zwj (const hb_glyph_info_t *info)
 {
-  return !!(info->unicode_props0() & 0x20);
+  return !!(info->unicode_props0() & MASK0_ZWJ);
 }
 
 
