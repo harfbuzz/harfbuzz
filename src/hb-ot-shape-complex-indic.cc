@@ -1548,9 +1548,9 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   /*
    * Finish off the clusters and go home!
    */
-  if (hb_options ().uniscribe_bug_compatible)
+  if (hb_options ().uniscribe_bug_compatible && buffer->props.script != HB_SCRIPT_TAMIL)
   {
-    /* Uniscribe merges the entire cluster.
+    /* Uniscribe merges the entire cluster... Except for Tamil.
      * This means, half forms are submerged into the main consonants cluster.
      * This is unnecessary, and makes cursor positioning harder, but that's what
      * Uniscribe does. */
