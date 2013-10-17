@@ -447,6 +447,10 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   for (; i < INDIC_NUM_FEATURES; i++) {
     map->add_feature (indic_features[i].tag, 1, indic_features[i].flags | F_MANUAL_ZWJ);
   }
+
+  map->add_global_bool_feature (HB_TAG('c','a','l','t'));
+  map->add_global_bool_feature (HB_TAG('c','l','i','g'));
+
   map->add_gsub_pause (clear_syllables);
 }
 
