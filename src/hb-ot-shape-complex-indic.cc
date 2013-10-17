@@ -568,7 +568,8 @@ data_destroy_indic (void *data)
 
 static indic_position_t
 consonant_position_from_face (const indic_shape_plan_t *indic_plan,
-			      const hb_codepoint_t glyphs[2],
+			      const hb_codepoint_t consonant,
+			      const hb_codepoint_t virama,
 			      hb_face_t *face)
 {
   /* For old-spec, the order of glyphs is Consonant,Virama,
@@ -581,15 +582,15 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
    * 930,94D in 'blwf', not the expected 94D,930 (with new-spec
    * table).  As such, we simply match both sequences.  Seems
    * to work. */
-  hb_codepoint_t glyphs_r[2] = {glyphs[1], glyphs[0]};
+  hb_codepoint_t glyphs[3] = {virama, consonant, virama};
   if (indic_plan->blwf.would_substitute (glyphs  , 2, face) ||
-      indic_plan->blwf.would_substitute (glyphs_r, 2, face))
+      indic_plan->blwf.would_substitute (glyphs+1, 2, face))
     return POS_BELOW_C;
   if (indic_plan->pstf.would_substitute (glyphs  , 2, face) ||
-      indic_plan->pstf.would_substitute (glyphs_r, 2, face))
+      indic_plan->pstf.would_substitute (glyphs+1, 2, face))
     return POS_POST_C;
   if (indic_plan->pref.would_substitute (glyphs  , 2, face) ||
-      indic_plan->pref.would_substitute (glyphs_r, 2, face))
+      indic_plan->pref.would_substitute (glyphs+1, 2, face))
     return POS_POST_C;
   return POS_BASE_C;
 }
@@ -652,15 +653,15 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
   if (indic_plan->config->base_pos != BASE_POS_LAST)
     return;
 
-  hb_codepoint_t glyphs[2];
-  if (indic_plan->get_virama_glyph (font, &glyphs[0]))
+  hb_codepoint_t virama;
+  if (indic_plan->get_virama_glyph (font, &virama))
   {
     hb_face_t *face = font->face;
     unsigned int count = buffer->len;
     for (unsigned int i = 0; i < count; i++)
       if (buffer->info[i].indic_position() == POS_BASE_C) {
-	glyphs[1] = buffer->info[i].codepoint;
-	buffer->info[i].indic_position() = consonant_position_from_face (indic_plan, glyphs, face);
+	hb_codepoint_t consonant = buffer->info[i].codepoint;
+	buffer->info[i].indic_position() = consonant_position_from_face (indic_plan, consonant, virama, face);
       }
   }
 }
