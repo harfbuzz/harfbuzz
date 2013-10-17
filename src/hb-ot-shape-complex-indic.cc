@@ -1375,7 +1375,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     unsigned int new_reph_pos;
     reph_position_t reph_pos = indic_plan->config->reph_pos;
 
-    /* XXX Figure out old behavior too */
 
     /*       1. If reph should be positioned after post-base consonant forms,
      *          proceed to step 5.
@@ -1417,7 +1416,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     if (reph_pos == REPH_POS_AFTER_MAIN)
     {
       new_reph_pos = base;
-      /* XXX Skip potential pre-base reordering Ra. */
       while (new_reph_pos + 1 < end && info[new_reph_pos + 1].indic_position() <= POS_AFTER_MAIN)
 	new_reph_pos++;
       if (new_reph_pos < end)
@@ -1490,8 +1488,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
     reph_move:
     {
-      /* Yay, one big cluster! Merge before moving. */
-      buffer->merge_clusters (start, end);
+      buffer->merge_clusters (start, new_reph_pos + 1);
 
       /* Move */
       hb_glyph_info_t reph = info[start];
