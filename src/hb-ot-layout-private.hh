@@ -1,6 +1,6 @@
 /*
  * Copyright © 2007,2008,2009  Red Hat, Inc.
- * Copyright © 2012  Google, Inc.
+ * Copyright © 2012,2013  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -38,14 +38,14 @@
 #include "hb-set-private.hh"
 
 
-/* buffer var allocations, used during the GSUB/GPOS processing */
-#define glyph_props()		var1.u16[0] /* GDEF glyph properties */
-#define syllable()		var1.u8[2] /* GSUB/GPOS shaping boundaries */
-#define lig_props()		var1.u8[3] /* GSUB/GPOS ligature tracking */
-
 /* buffer var allocations, used during the entire shaping process */
 #define unicode_props0()	var2.u8[0]
 #define unicode_props1()	var2.u8[1]
+
+/* buffer var allocations, used during the GSUB/GPOS processing */
+#define glyph_props()		var1.u16[0] /* GDEF glyph properties */
+#define lig_props()		var1.u8[2] /* GSUB/GPOS ligature tracking */
+#define syllable()		var1.u8[3] /* GSUB/GPOS shaping boundaries */
 
 
 enum {
@@ -113,8 +113,6 @@ _hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
   info->unicode_props0() ^= MASK0_ZWNJ | MASK0_ZWJ;
 }
 
-
-#define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
 
 /*
  * GDEF
@@ -305,6 +303,8 @@ _hb_ot_layout_create (hb_face_t *face);
 HB_INTERNAL void
 _hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
+
+#define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
 
 
 #endif /* HB_OT_LAYOUT_PRIVATE_HH */
