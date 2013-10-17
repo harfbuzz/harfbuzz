@@ -365,8 +365,12 @@ hb_buffer_t::move_to (unsigned int i)
   {
     assert (i <= len);
     idx = i;
+    return true;
   }
-  else if (out_len < i)
+
+  assert (i <= out_len + (len - idx));
+
+  if (out_len < i)
   {
     unsigned int count = i - out_len;
     if (unlikely (!make_room_for (count, count))) return false;
@@ -388,6 +392,7 @@ hb_buffer_t::move_to (unsigned int i)
     out_len -= count;
     memmove (info + idx, out_info + out_len, count * sizeof (out_info[0]));
   }
+
   return true;
 }
 

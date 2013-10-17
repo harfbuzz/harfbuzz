@@ -1031,7 +1031,8 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 
     /* Recursed lookup changed buffer len.  Adjust. */
 
-    end += delta;
+    /* end can't go back past the current match position. */
+    end = MAX ((int) match_positions[idx] + 1, int (end) + delta);
 
     unsigned int next = idx + 1; /* next now is the position after the recursed lookup. */
 
