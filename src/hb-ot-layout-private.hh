@@ -42,13 +42,15 @@
  * GDEF
  */
 
-typedef enum {
-  /* One bit available here...          = 0x01u */
-
+typedef enum
+{
   /* The following three match LookupFlags::Ignore* numbers. */
   HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH	= 0x02u,
   HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE	= 0x04u,
-  HB_OT_LAYOUT_GLYPH_PROPS_MARK		= 0x08u
+  HB_OT_LAYOUT_GLYPH_PROPS_MARK		= 0x08u,
+
+  /* The following are used internally; not derived from GDEF. */
+  HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED	= 0x10u
 
 } hb_ot_layout_glyph_class_mask_t;
 
