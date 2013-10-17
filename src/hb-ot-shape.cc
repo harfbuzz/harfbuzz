@@ -410,7 +410,7 @@ zero_mark_widths_by_gdef (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    if ((buffer->info[i].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
+    if (_hb_glyph_info_is_mark (&buffer->info[i]))
     {
       buffer->pos[i].x_advance = 0;
       buffer->pos[i].y_advance = 0;
@@ -584,8 +584,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   /* Save the original direction, we use it later. */
   c->target_direction = c->buffer->props.direction;
 
-  HB_BUFFER_ALLOCATE_VAR (c->buffer, unicode_props0);
-  HB_BUFFER_ALLOCATE_VAR (c->buffer, unicode_props1);
+  _hb_buffer_allocate_unicode_vars (c->buffer);
 
   c->buffer->clear_output ();
 
@@ -600,8 +599,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   hb_ot_hide_default_ignorables (c);
 
-  HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props1);
-  HB_BUFFER_DEALLOCATE_VAR (c->buffer, unicode_props0);
+  _hb_buffer_deallocate_unicode_vars (c->buffer);
 
   c->buffer->props.direction = c->target_direction;
 

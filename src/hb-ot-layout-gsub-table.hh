@@ -291,8 +291,7 @@ struct Sequence
     TRACE_APPLY (this);
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
-    unsigned int klass = c->buffer->cur().glyph_props() &
-			 HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE ?
+    unsigned int klass = _hb_glyph_info_is_ligature (&c->buffer->cur()) ?
 			 HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
     unsigned int count = substitute.len;
     if (count == 1) /* Special-case to make it in-place. */
@@ -1375,15 +1374,15 @@ struct GSUB : GSUBGPOS
 void
 GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
 {
-  HB_BUFFER_ALLOCATE_VAR (buffer, glyph_props);
-  HB_BUFFER_ALLOCATE_VAR (buffer, lig_props);
-  HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
+  _hb_buffer_allocate_gsubgpos_vars (buffer);
 
   const GDEF &gdef = *hb_ot_layout_from_face (font->face)->gdef;
   unsigned int count = buffer->len;
-  for (unsigned int i = 0; i < count; i++) {
-    buffer->info[i].lig_props() = buffer->info[i].syllable() = 0;
+  for (unsigned int i = 0; i < count; i++)
+  {
     _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
+    _hb_glyph_info_clear_lig_props (&buffer->info[i]);
+    buffer->info[i].syllable() = 0;
   }
 }
 

@@ -401,7 +401,7 @@ struct hb_apply_context_t
     {
       unsigned int property;
 
-      property = info.glyph_props();
+      property = _hb_glyph_info_get_glyph_props (&info);
 
       if (!c->match_properties (info.codepoint, property, lookup_props))
 	return SKIP_YES;
@@ -610,7 +610,7 @@ struct hb_apply_context_t
   {
     unsigned int property;
 
-    property = info->glyph_props();
+    property = _hb_glyph_info_get_glyph_props (info);
 
     return match_properties (info->codepoint, property, lookup_props);
   }
@@ -790,7 +790,7 @@ static inline bool match_input (hb_apply_context_t *c,
    *   ligate with a conjunct...)
    */
 
-  bool is_mark_ligature = !!(buffer->cur().glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+  bool is_mark_ligature = _hb_glyph_info_is_mark (&buffer->cur());
 
   unsigned int total_component_count = 0;
   total_component_count += _hb_glyph_info_get_lig_num_comps (&buffer->cur());
@@ -822,7 +822,7 @@ static inline bool match_input (hb_apply_context_t *c,
 	return TRACE_RETURN (false);
     }
 
-    is_mark_ligature = is_mark_ligature && (buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+    is_mark_ligature = is_mark_ligature && _hb_glyph_info_is_mark (&buffer->info[skippy_iter.idx]);
     total_component_count += _hb_glyph_info_get_lig_num_comps (&buffer->info[skippy_iter.idx]);
   }
 

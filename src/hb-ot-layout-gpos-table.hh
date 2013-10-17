@@ -877,7 +877,7 @@ struct CursivePosFormat1
     TRACE_APPLY (this);
 
     /* We don't handle mark glyphs here. */
-    if (c->buffer->cur().glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK) return TRACE_RETURN (false);
+    if (unlikely (_hb_glyph_info_is_mark (&c->buffer->cur()))) return TRACE_RETURN (false);
 
     hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, 1);
     if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
@@ -1035,8 +1035,8 @@ struct MarkBasePosFormat1
       skippy_iter.reject ();
     } while (1);
 
-    /* The following assertion is too strong, so we've disabled it. */
-    if (!(c->buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH)) {/*return TRACE_RETURN (false);*/}
+    /* Checking that matched glyph is actually a base glyph by GDEF is too strong; disabled */
+    if (!_hb_glyph_info_is_base_glyph (&c->buffer->info[skippy_iter.idx])) { /*return TRACE_RETURN (false);*/ }
 
     unsigned int base_index = (this+baseCoverage).get_coverage  (c->buffer->info[skippy_iter.idx].codepoint);
     if (base_index == NOT_COVERED) return TRACE_RETURN (false);
@@ -1133,8 +1133,8 @@ struct MarkLigPosFormat1
     skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
     if (!skippy_iter.prev ()) return TRACE_RETURN (false);
 
-    /* The following assertion is too strong, so we've disabled it. */
-    if (!(c->buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE)) {/*return TRACE_RETURN (false);*/}
+    /* Checking that matched glyph is actually a ligature by GDEF is too strong; disabled */
+    if (!_hb_glyph_info_is_ligature (&c->buffer->info[skippy_iter.idx])) { /*return TRACE_RETURN (false);*/ }
 
     unsigned int j = skippy_iter.idx;
     unsigned int lig_index = (this+ligatureCoverage).get_coverage  (c->buffer->info[j].codepoint);
@@ -1248,7 +1248,7 @@ struct MarkMarkPosFormat1
     skippy_iter.set_lookup_props (c->lookup_props & ~LookupFlag::IgnoreFlags);
     if (!skippy_iter.prev ()) return TRACE_RETURN (false);
 
-    if (!(c->buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK)) { return TRACE_RETURN (false); }
+    if (!_hb_glyph_info_is_mark (&c->buffer->info[skippy_iter.idx])) { return TRACE_RETURN (false); }
 
     unsigned int j = skippy_iter.idx;
 
@@ -1591,9 +1591,7 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
   for (unsigned int i = 0; i < len; i++)
     fix_mark_attachment (pos, i, direction);
 
-  HB_BUFFER_DEALLOCATE_VAR (buffer, syllable);
-  HB_BUFFER_DEALLOCATE_VAR (buffer, lig_props);
-  HB_BUFFER_DEALLOCATE_VAR (buffer, glyph_props);
+  _hb_buffer_deallocate_gsubgpos_vars (buffer);
 }
 
 

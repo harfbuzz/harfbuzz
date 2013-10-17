@@ -38,16 +38,6 @@
 #include "hb-set-private.hh"
 
 
-/* buffer var allocations, used during the entire shaping process */
-#define unicode_props0()	var2.u8[0]
-#define unicode_props1()	var2.u8[1]
-
-/* buffer var allocations, used during the GSUB/GPOS processing */
-#define glyph_props()		var1.u16[0] /* GDEF glyph properties */
-#define lig_props()		var1.u8[2] /* GSUB/GPOS ligature tracking */
-#define syllable()		var1.u8[3] /* GSUB/GPOS shaping boundaries */
-
-
 /*
  * GDEF
  */
@@ -171,6 +161,15 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout);
  * Buffer var routines.
  */
 
+/* buffer var allocations, used during the entire shaping process */
+#define unicode_props0()	var2.u8[0]
+#define unicode_props1()	var2.u8[1]
+
+/* buffer var allocations, used during the GSUB/GPOS processing */
+#define glyph_props()		var1.u16[0] /* GDEF glyph properties */
+#define lig_props()		var1.u8[2] /* GSUB/GPOS ligature tracking */
+#define syllable()		var1.u8[3] /* GSUB/GPOS shaping boundaries */
+
 /* unicode_props */
 
 enum {
@@ -264,7 +263,15 @@ _hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
  * The numbers are also used in GPOS to do mark-to-mark positioning only
  * to marks that belong to the same component of the same ligature.
  */
+
+static inline void
+_hb_glyph_info_clear_lig_props (hb_glyph_info_t *info)
+{
+  info->lig_props() = 0;
+}
+
 #define IS_LIG_BASE 0x10
+
 static inline void
 _hb_glyph_info_set_lig_props_for_ligature (hb_glyph_info_t *info,
 					   unsigned int lig_id,
@@ -272,6 +279,7 @@ _hb_glyph_info_set_lig_props_for_ligature (hb_glyph_info_t *info,
 {
   info->lig_props() = (lig_id << 5) | IS_LIG_BASE | (lig_num_comps & 0x0F);
 }
+
 static inline void
 _hb_glyph_info_set_lig_props_for_mark (hb_glyph_info_t *info,
 				       unsigned int lig_id,
@@ -279,6 +287,7 @@ _hb_glyph_info_set_lig_props_for_mark (hb_glyph_info_t *info,
 {
   info->lig_props() = (lig_id << 5) | (lig_comp & 0x0F);
 }
+
 static inline void
 _hb_glyph_info_set_lig_props_for_component (hb_glyph_info_t *info, unsigned int comp)
 {
@@ -290,11 +299,13 @@ _hb_glyph_info_get_lig_id (const hb_glyph_info_t *info)
 {
   return info->lig_props() >> 5;
 }
+
 static inline bool
 _hb_glyph_info_is_ligated (const hb_glyph_info_t *info)
 {
   return !!(info->lig_props() & IS_LIG_BASE);
 }
+
 static inline unsigned int
 _hb_glyph_info_get_lig_comp (const hb_glyph_info_t *info)
 {
@@ -303,6 +314,7 @@ _hb_glyph_info_get_lig_comp (const hb_glyph_info_t *info)
   else
     return info->lig_props() & 0x0F;
 }
+
 static inline unsigned int
 _hb_glyph_info_get_lig_num_comps (const hb_glyph_info_t *info)
 {
@@ -329,7 +341,67 @@ _hb_glyph_info_set_glyph_props (hb_glyph_info_t *info, unsigned int props)
   info->glyph_props() = props;
 }
 
+inline unsigned int
+_hb_glyph_info_get_glyph_props (const hb_glyph_info_t *info)
+{
+  return info->glyph_props();
+}
 
+inline bool
+_hb_glyph_info_is_base_glyph (const hb_glyph_info_t *info)
+{
+  return !!(info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH);
+}
+
+inline bool
+_hb_glyph_info_is_ligature (const hb_glyph_info_t *info)
+{
+  return !!(info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE);
+}
+
+inline bool
+_hb_glyph_info_is_mark (const hb_glyph_info_t *info)
+{
+  return !!(info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+}
+
+/* Allocation / deallocation. */
+
+inline void
+_hb_buffer_allocate_unicode_vars (hb_buffer_t *buffer)
+{
+  HB_BUFFER_ALLOCATE_VAR (buffer, unicode_props0);
+  HB_BUFFER_ALLOCATE_VAR (buffer, unicode_props1);
+}
+
+inline void
+_hb_buffer_deallocate_unicode_vars (hb_buffer_t *buffer)
+{
+  HB_BUFFER_DEALLOCATE_VAR (buffer, unicode_props0);
+  HB_BUFFER_DEALLOCATE_VAR (buffer, unicode_props1);
+}
+
+inline void
+_hb_buffer_allocate_gsubgpos_vars (hb_buffer_t *buffer)
+{
+  HB_BUFFER_ALLOCATE_VAR (buffer, glyph_props);
+  HB_BUFFER_ALLOCATE_VAR (buffer, lig_props);
+  HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
+}
+
+inline void
+_hb_buffer_deallocate_gsubgpos_vars (hb_buffer_t *buffer)
+{
+  HB_BUFFER_DEALLOCATE_VAR (buffer, syllable);
+  HB_BUFFER_DEALLOCATE_VAR (buffer, lig_props);
+  HB_BUFFER_DEALLOCATE_VAR (buffer, glyph_props);
+}
+
+/* Make sure no one directly touches our props... */
+#undef unicode_props0
+#undef unicode_props1
+#undef lig_props
+#undef glyph_props
 
 
 #endif /* HB_OT_LAYOUT_PRIVATE_HH */
