@@ -277,6 +277,7 @@ set_indic_properties (hb_glyph_info_t &info)
 
 enum base_position_t {
   BASE_POS_FIRST,
+  BASE_POS_LAST_SINHALA,
   BASE_POS_LAST
 };
 enum reph_position_t {
@@ -322,7 +323,8 @@ static const indic_config_t indic_configs[] =
   {HB_SCRIPT_TELUGU,	true, 0x0C4D,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY},
   {HB_SCRIPT_KANNADA,	true, 0x0CCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY},
   {HB_SCRIPT_MALAYALAM,	true, 0x0D4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_FIRST,REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_LAST_SINHALA,
+						    REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
   {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DEFAULT,    REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
   {HB_SCRIPT_JAVANESE,	false,0xA9C0,BASE_POS_LAST, REPH_POS_DEFAULT,    REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
 };
@@ -782,7 +784,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       }
       break;
 
-      case BASE_POS_FIRST:
+      case BASE_POS_LAST_SINHALA:
       {
 	/* In scripts without half forms (eg. Khmer), the first consonant is always the base. */
 
@@ -799,6 +801,21 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	    else
 	      base = i;
 	  }
+
+	/* Mark all subsequent consonants as below. */
+	for (unsigned int i = base + 1; i < end; i++)
+	  if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	    info[i].indic_position() = POS_BELOW_C;
+      }
+      break;
+
+      case BASE_POS_FIRST:
+      {
+	/* The first consonant is always the base. */
+
+	assert (indic_plan->config->reph_mode == REPH_MODE_VIS_REPHA);
+
+	base = start;
 
 	/* Mark all subsequent consonants as below. */
 	for (unsigned int i = base + 1; i < end; i++)
