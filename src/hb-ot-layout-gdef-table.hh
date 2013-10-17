@@ -391,7 +391,6 @@ struct GDEF
     default:			return 0;
     case BaseGlyph:		return HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH;
     case LigatureGlyph:		return HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE;
-    case ComponentGlyph:	return HB_OT_LAYOUT_GLYPH_PROPS_COMPONENT;
     case MarkGlyph:
 	  klass = get_mark_attachment_type (glyph);
 	  return HB_OT_LAYOUT_GLYPH_PROPS_MARK | (klass << 8);

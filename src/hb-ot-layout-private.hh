@@ -121,10 +121,13 @@ _hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
  */
 
 typedef enum {
+  /* One bit available here...          = 0x01u */
+
+  /* The following three match LookupFlags::Ignore* numbers. */
   HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH	= 0x02u,
   HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE	= 0x04u,
-  HB_OT_LAYOUT_GLYPH_PROPS_MARK		= 0x08u,
-  HB_OT_LAYOUT_GLYPH_PROPS_COMPONENT	= 0x10u, /* Unused; can be removed. */
+  HB_OT_LAYOUT_GLYPH_PROPS_MARK		= 0x08u
+
 } hb_ot_layout_glyph_class_mask_t;
 
 

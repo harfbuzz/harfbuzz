@@ -292,7 +292,8 @@ struct Sequence
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
     unsigned int klass = c->buffer->cur().glyph_props() &
-			 HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE ? HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
+			 HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE ?
+			 HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
     unsigned int count = substitute.len;
     if (count == 1) /* Special-case to make it in-place. */
     {
