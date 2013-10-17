@@ -997,7 +997,8 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
     /* Pre-base */
     mask = indic_plan->mask_array[HALF];
-    if (indic_plan->config->blwf_mode == BLWF_MODE_PRE_AND_POST)
+    if (!indic_plan->is_old_spec &&
+	indic_plan->config->blwf_mode == BLWF_MODE_PRE_AND_POST)
       mask |= indic_plan->mask_array[BLWF];
     for (unsigned int i = start; i < base; i++)
       info[i].mask  |= mask;
