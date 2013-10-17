@@ -273,12 +273,12 @@ enum base_position_t {
   BASE_POS_LAST
 };
 enum reph_position_t {
-  REPH_POS_DONT_CARE   = POS_RA_TO_BECOME_REPH,
   REPH_POS_AFTER_MAIN  = POS_AFTER_MAIN,
   REPH_POS_BEFORE_SUB  = POS_BEFORE_SUB,
   REPH_POS_AFTER_SUB   = POS_AFTER_SUB,
   REPH_POS_BEFORE_POST = POS_BEFORE_POST,
-  REPH_POS_AFTER_POST  = POS_AFTER_POST
+  REPH_POS_AFTER_POST  = POS_AFTER_POST,
+  REPH_POS_DONT_CARE   = POS_RA_TO_BECOME_REPH
 };
 enum reph_mode_t {
   REPH_MODE_IMPLICIT,  /* Reph formed out of initial Ra,H sequence. */
@@ -290,6 +290,11 @@ enum blwf_mode_t {
   BLWF_MODE_PRE_AND_POST, /* Below-forms feature applied to pre-base and post-base. */
   BLWF_MODE_POST_ONLY     /* Below-forms feature applied to post-base only. */
 };
+enum pref_len_t {
+  PREF_LEN_1 = 1,
+  PREF_LEN_2 = 2,
+  PREF_LEN_DONT_CARE = PREF_LEN_2
+};
 struct indic_config_t
 {
   hb_script_t     script;
@@ -299,25 +304,26 @@ struct indic_config_t
   reph_position_t reph_pos;
   reph_mode_t     reph_mode;
   blwf_mode_t     blwf_mode;
+  pref_len_t      pref_len;
 };
 
 static const indic_config_t indic_configs[] =
 {
   /* Default.  Should be first. */
-  {HB_SCRIPT_INVALID,	false,     0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_DEVANAGARI,true, 0x094D,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_BENGALI,	true, 0x09CD,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_GURMUKHI,	true, 0x0A4D,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_GUJARATI,	true, 0x0ACD,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_ORIYA,	true, 0x0B4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_TAMIL,	true, 0x0BCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_TELUGU,	true, 0x0C4D,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY},
-  {HB_SCRIPT_KANNADA,	true, 0x0CCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY},
-  {HB_SCRIPT_MALAYALAM,	true, 0x0D4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_INVALID,	false,     0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_1},
+  {HB_SCRIPT_DEVANAGARI,true, 0x094D,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_BENGALI,	true, 0x09CD,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_GURMUKHI,	true, 0x0A4D,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_GUJARATI,	true, 0x0ACD,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_ORIYA,	true, 0x0B4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_TAMIL,	true, 0x0BCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
+  {HB_SCRIPT_TELUGU,	true, 0x0C4D,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
+  {HB_SCRIPT_KANNADA,	true, 0x0CCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
+  {HB_SCRIPT_MALAYALAM,	true, 0x0D4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
   {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_LAST_SINHALA,
-						    REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_JAVANESE,	false,0xA9C0,BASE_POS_LAST, REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+						    REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
+  {HB_SCRIPT_JAVANESE,	false,0xA9C0,BASE_POS_LAST, REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_1},
 };
 
 
@@ -588,8 +594,12 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
   if (indic_plan->pstf.would_substitute (glyphs  , 2, face) ||
       indic_plan->pstf.would_substitute (glyphs+1, 2, face))
     return POS_POST_C;
-  if (indic_plan->pref.would_substitute (glyphs  , 2, face) ||
-      indic_plan->pref.would_substitute (glyphs+1, 2, face))
+  unsigned int pref_len = indic_plan->config->pref_len;
+  if ((pref_len == PREF_LEN_2 &&
+       (indic_plan->pref.would_substitute (glyphs  , 2, face) ||
+        indic_plan->pref.would_substitute (glyphs+1, 2, face)))
+   || (pref_len == PREF_LEN_1 &&
+       indic_plan->pref.would_substitute (glyphs+1, 1, face)))
     return POS_POST_C;
   return POS_BASE_C;
 }
@@ -1068,15 +1078,19 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       }
   }
 
-  if (indic_plan->mask_array[PREF] && base + 2 < end)
+  unsigned int pref_len = indic_plan->config->pref_len;
+  if (indic_plan->mask_array[PREF] && base + pref_len < end)
   {
+    assert (1 <= pref_len && pref_len <= 2);
     /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
-    for (unsigned int i = base + 1; i + 1 < end; i++) {
-      hb_codepoint_t glyphs[2] = {info[i].codepoint, info[i + 1].codepoint};
-      if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face))
+    for (unsigned int i = base + 1; i + pref_len - 1 < end; i++) {
+      hb_codepoint_t glyphs[2];
+      for (unsigned int j = 0; j < pref_len; j++)
+        glyphs[j] = info[i + j].codepoint;
+      if (indic_plan->pref.would_substitute (glyphs, pref_len, face))
       {
-	info[i++].mask |= indic_plan->mask_array[PREF];
-	info[i++].mask |= indic_plan->mask_array[PREF];
+	for (unsigned int j = 0; j < pref_len; j++)
+	  info[i++].mask |= indic_plan->mask_array[PREF];
 
 	/* Mark the subsequent stuff with 'cfar'.  Used in Khmer.
 	 * Read the feature spec.
@@ -1084,8 +1098,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	 * U+1784,U+17D2,U+179A,U+17D2,U+1782
 	 * U+1784,U+17D2,U+1782,U+17D2,U+179A
 	 */
-	for (; i < end; i++)
-	  info[i].mask |= indic_plan->mask_array[CFAR];
+	if (indic_plan->mask_array[CFAR])
+	  for (; i < end; i++)
+	    info[i].mask |= indic_plan->mask_array[CFAR];
 
 	break;
       }
