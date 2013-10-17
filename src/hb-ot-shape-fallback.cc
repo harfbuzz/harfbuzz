@@ -300,8 +300,8 @@ position_around_base (const hb_ot_shape_plan_t *plan,
   base_extents.x_bearing += buffer->pos[base].x_offset;
   base_extents.y_bearing += buffer->pos[base].y_offset;
 
-  unsigned int lig_id = get_lig_id (buffer->info[base]);
-  unsigned int num_lig_components = get_lig_num_comps (buffer->info[base]);
+  unsigned int lig_id = _hb_glyph_info_get_lig_id (&buffer->info[base]);
+  unsigned int num_lig_components = _hb_glyph_info_get_lig_num_comps (&buffer->info[base]);
 
   hb_position_t x_offset = 0, y_offset = 0;
   if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
@@ -317,8 +317,8 @@ position_around_base (const hb_ot_shape_plan_t *plan,
     if (_hb_glyph_info_get_modified_combining_class (&buffer->info[i]))
     {
       if (num_lig_components > 1) {
-	unsigned int this_lig_id = get_lig_id (buffer->info[i]);
-	unsigned int this_lig_component = get_lig_comp (buffer->info[i]) - 1;
+	unsigned int this_lig_id = _hb_glyph_info_get_lig_id (&buffer->info[i]);
+	unsigned int this_lig_component = _hb_glyph_info_get_lig_comp (&buffer->info[i]) - 1;
 	/* Conditions for attaching to the last component. */
 	if (!lig_id || lig_id != this_lig_id || this_lig_component >= num_lig_components)
 	  this_lig_component = num_lig_components - 1;

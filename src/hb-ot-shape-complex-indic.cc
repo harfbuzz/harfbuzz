@@ -141,7 +141,7 @@ static inline bool
 is_one_of (const hb_glyph_info_t &info, unsigned int flags)
 {
   /* If it ligated, all bets are off. */
-  if (is_a_ligature (info)) return false;
+  if (_hb_glyph_info_is_ligated (&info)) return false;
   return !!(FLAG (info.indic_category()) & flags);
 }
 
@@ -1405,7 +1405,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    */
   if (start + 1 < end &&
       info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
-      ((info[start].indic_category() == OT_Repha) ^ is_a_ligature (info[start])))
+      ((info[start].indic_category() == OT_Repha) ^
+       _hb_glyph_info_is_ligated (&info[start])))
   {
     unsigned int new_reph_pos;
     reph_position_t reph_pos = indic_plan->config->reph_pos;

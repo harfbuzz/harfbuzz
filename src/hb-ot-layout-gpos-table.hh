@@ -1031,7 +1031,7 @@ struct MarkBasePosFormat1
     do {
       if (!skippy_iter.prev ()) return TRACE_RETURN (false);
       /* We only want to attach to the first of a MultipleSubst sequence.  Reject others. */
-      if (0 == get_lig_comp (c->buffer->info[skippy_iter.idx])) break;
+      if (0 == _hb_glyph_info_get_lig_comp (&c->buffer->info[skippy_iter.idx])) break;
       skippy_iter.reject ();
     } while (1);
 
@@ -1152,11 +1152,11 @@ struct MarkLigPosFormat1
      * can directly use the component index.  If not, we attach the mark
      * glyph to the last component of the ligature. */
     unsigned int comp_index;
-    unsigned int lig_id = get_lig_id (c->buffer->info[j]);
-    unsigned int mark_id = get_lig_id (c->buffer->cur());
-    unsigned int mark_comp = get_lig_comp (c->buffer->cur());
+    unsigned int lig_id = _hb_glyph_info_get_lig_id (&c->buffer->info[j]);
+    unsigned int mark_id = _hb_glyph_info_get_lig_id (&c->buffer->cur());
+    unsigned int mark_comp = _hb_glyph_info_get_lig_comp (&c->buffer->cur());
     if (lig_id && lig_id == mark_id && mark_comp > 0)
-      comp_index = MIN (comp_count, get_lig_comp (c->buffer->cur())) - 1;
+      comp_index = MIN (comp_count, _hb_glyph_info_get_lig_comp (&c->buffer->cur())) - 1;
     else
       comp_index = comp_count - 1;
 
@@ -1252,10 +1252,10 @@ struct MarkMarkPosFormat1
 
     unsigned int j = skippy_iter.idx;
 
-    unsigned int id1 = get_lig_id (c->buffer->cur());
-    unsigned int id2 = get_lig_id (c->buffer->info[j]);
-    unsigned int comp1 = get_lig_comp (c->buffer->cur());
-    unsigned int comp2 = get_lig_comp (c->buffer->info[j]);
+    unsigned int id1 = _hb_glyph_info_get_lig_id (&c->buffer->cur());
+    unsigned int id2 = _hb_glyph_info_get_lig_id (&c->buffer->info[j]);
+    unsigned int comp1 = _hb_glyph_info_get_lig_comp (&c->buffer->cur());
+    unsigned int comp2 = _hb_glyph_info_get_lig_comp (&c->buffer->info[j]);
 
     if (likely (id1 == id2)) {
       if (id1 == 0) /* Marks belonging to the same base. */

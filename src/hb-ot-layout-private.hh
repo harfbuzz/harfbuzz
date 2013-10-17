@@ -191,7 +191,8 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *uni
 }
 
 inline void
-_hb_glyph_info_set_general_category (hb_glyph_info_t *info, hb_unicode_general_category_t gen_cat)
+_hb_glyph_info_set_general_category (hb_glyph_info_t *info,
+				     hb_unicode_general_category_t gen_cat)
 {
   info->unicode_props0() = (unsigned int) gen_cat | ((info->unicode_props0()) & ~MASK0_GEN_CAT);
 }
@@ -203,7 +204,8 @@ _hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
 }
 
 inline void
-_hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info, unsigned int modified_class)
+_hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info,
+					     unsigned int modified_class)
 {
   info->unicode_props1() = modified_class;
 }
@@ -264,52 +266,58 @@ _hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
  */
 #define IS_LIG_BASE 0x10
 static inline void
-set_lig_props_for_ligature (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_num_comps)
+_hb_glyph_info_set_lig_props_for_ligature (hb_glyph_info_t *info,
+					   unsigned int lig_id,
+					   unsigned int lig_num_comps)
 {
-  info.lig_props() = (lig_id << 5) | IS_LIG_BASE | (lig_num_comps & 0x0F);
+  info->lig_props() = (lig_id << 5) | IS_LIG_BASE | (lig_num_comps & 0x0F);
 }
 static inline void
-set_lig_props_for_mark (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
+_hb_glyph_info_set_lig_props_for_mark (hb_glyph_info_t *info,
+				       unsigned int lig_id,
+				       unsigned int lig_comp)
 {
-  info.lig_props() = (lig_id << 5) | (lig_comp & 0x0F);
+  info->lig_props() = (lig_id << 5) | (lig_comp & 0x0F);
 }
 static inline void
-set_lig_props_for_component (hb_glyph_info_t &info, unsigned int comp)
+_hb_glyph_info_set_lig_props_for_component (hb_glyph_info_t *info, unsigned int comp)
 {
-  set_lig_props_for_mark (info, 0, comp);
+  _hb_glyph_info_set_lig_props_for_mark (info, 0, comp);
 }
 
 static inline unsigned int
-get_lig_id (const hb_glyph_info_t &info)
+_hb_glyph_info_get_lig_id (const hb_glyph_info_t *info)
 {
-  return info.lig_props() >> 5;
+  return info->lig_props() >> 5;
 }
 static inline bool
-is_a_ligature (const hb_glyph_info_t &info)
+_hb_glyph_info_is_ligated (const hb_glyph_info_t *info)
 {
-  return !!(info.lig_props() & IS_LIG_BASE);
+  return !!(info->lig_props() & IS_LIG_BASE);
 }
 static inline unsigned int
-get_lig_comp (const hb_glyph_info_t &info)
+_hb_glyph_info_get_lig_comp (const hb_glyph_info_t *info)
 {
-  if (is_a_ligature (info))
+  if (_hb_glyph_info_is_ligated (info))
     return 0;
   else
-    return info.lig_props() & 0x0F;
+    return info->lig_props() & 0x0F;
 }
 static inline unsigned int
-get_lig_num_comps (const hb_glyph_info_t &info)
+_hb_glyph_info_get_lig_num_comps (const hb_glyph_info_t *info)
 {
-  if ((info.glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE) && is_a_ligature (info))
-    return info.lig_props() & 0x0F;
+  if ((info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE) &&
+      _hb_glyph_info_is_ligated (info))
+    return info->lig_props() & 0x0F;
   else
     return 1;
 }
 
-static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
+static inline uint8_t
+_hb_allocate_lig_id (hb_buffer_t *buffer) {
   uint8_t lig_id = buffer->next_serial () & 0x07;
   if (unlikely (!lig_id))
-    lig_id = allocate_lig_id (buffer); /* in case of overflow */
+    lig_id = _hb_allocate_lig_id (buffer); /* in case of overflow */
   return lig_id;
 }
 

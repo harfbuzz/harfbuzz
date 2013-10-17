@@ -302,7 +302,7 @@ struct Sequence
     else
     {
       for (unsigned int i = 0; i < count; i++) {
-	set_lig_props_for_component (c->buffer->cur(), i);
+	_hb_glyph_info_set_lig_props_for_component (&c->buffer->cur(), i);
 	c->output_glyph (substitute.array[i], klass);
       }
       c->buffer->skip_glyph ();
