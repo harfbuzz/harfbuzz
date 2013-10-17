@@ -128,14 +128,6 @@ static const hb_codepoint_t ra_chars[] = {
   0x179A, /* Khmer */		/* No Reph, Visual Repha */
 };
 
-static inline indic_position_t
-consonant_position (hb_codepoint_t  u)
-{
-  if ((u & ~0x007F) == 0x1780)
-    return POS_BELOW_C; /* In Khmer coeng model, post and below forms should not be reordered. */
-  return POS_BASE_C; /* Will recategorize later based on font lookups. */
-}
-
 static inline bool
 is_ra (hb_codepoint_t u)
 {
@@ -241,7 +233,7 @@ set_indic_properties (hb_glyph_info_t &info)
 
   if ((FLAG (cat) & CONSONANT_FLAGS))
   {
-    pos = consonant_position (u);
+    pos = POS_BASE_C;
     if (is_ra (u))
       cat = OT_Ra;
   }
@@ -654,6 +646,9 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
 
+  if (indic_plan->config->base_pos != BASE_POS_LAST)
+    return;
+
   hb_codepoint_t glyphs[2];
   if (indic_plan->get_virama_glyph (font, &glyphs[0]))
   {
@@ -786,7 +781,10 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
       case BASE_POS_LAST_SINHALA:
       {
-	/* In scripts without half forms (eg. Khmer), the first consonant is always the base. */
+        /* Sinhala base positioning is slightly different from main Indic, in that:
+	 * 1. It's ZWJ behavior is different,
+	 * 2. We don't need to look into the font for consonant positions.
+	 */
 
 	if (!has_reph)
 	  base = limit;
@@ -794,7 +792,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	/* Find the last base consonant that is not blocked by ZWJ.  If there is
 	 * a ZWJ right before a base consonant, that would request a subjoined form. */
 	for (unsigned int i = limit; i < end; i++)
-	  if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	  if (is_consonant (info[i]))
 	  {
 	    if (limit < i && info[i - 1].indic_category() == OT_ZWJ)
 	      break;
@@ -804,7 +802,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
 	/* Mark all subsequent consonants as below. */
 	for (unsigned int i = base + 1; i < end; i++)
-	  if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	  if (is_consonant (info[i]))
 	    info[i].indic_position() = POS_BELOW_C;
       }
       break;
@@ -819,7 +817,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
 	/* Mark all subsequent consonants as below. */
 	for (unsigned int i = base + 1; i < end; i++)
-	  if (is_consonant (info[i]) && info[i].indic_position() == POS_BASE_C)
+	  if (is_consonant (info[i]))
 	    info[i].indic_position() = POS_BELOW_C;
       }
       break;
