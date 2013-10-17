@@ -49,10 +49,10 @@
 
 
 enum {
-  MASK0_ZWJ  = 0x20,
-  MASK0_ZWNJ = 0x40,
-  MASK0_IGNORABLE = 0x80,
-  MASK0_GEN_CAT = 0x1F
+  MASK0_ZWJ       = 0x20u,
+  MASK0_ZWNJ      = 0x40u,
+  MASK0_IGNORABLE = 0x80u,
+  MASK0_GEN_CAT   = 0x1Fu
 };
 
 inline void
