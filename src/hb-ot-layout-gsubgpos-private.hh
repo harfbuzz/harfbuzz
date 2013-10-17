@@ -752,8 +752,8 @@ static inline bool match_input (hb_apply_context_t *c,
 				const USHORT input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
 				const void *match_data,
-				unsigned int *end_offset = NULL,
-				unsigned int match_positions[MAX_CONTEXT_LENGTH] = NULL,
+				unsigned int *end_offset,
+				unsigned int match_positions[MAX_CONTEXT_LENGTH],
 				bool *p_is_mark_ligature = NULL,
 				unsigned int *p_total_component_count = NULL)
 {
@@ -791,13 +791,12 @@ static inline bool match_input (hb_apply_context_t *c,
   unsigned int first_lig_id = get_lig_id (c->buffer->cur());
   unsigned int first_lig_comp = get_lig_comp (c->buffer->cur());
 
-  if (match_positions)
-    match_positions[0] = c->buffer->idx;
+  match_positions[0] = c->buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
-    if (match_positions)
-      match_positions[i] = skippy_iter.idx;
+
+    match_positions[i] = skippy_iter.idx;
 
     unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
     unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
@@ -820,8 +819,7 @@ static inline bool match_input (hb_apply_context_t *c,
     total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
   }
 
-  if (end_offset)
-    *end_offset = skippy_iter.idx - c->buffer->idx + 1;
+  *end_offset = skippy_iter.idx - c->buffer->idx + 1;
 
   if (p_is_mark_ligature)
     *p_is_mark_ligature = is_mark_ligature;
