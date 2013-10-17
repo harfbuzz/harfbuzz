@@ -581,14 +581,14 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
    * to work. */
   bool zero_context = indic_plan->is_old_spec ? false : true;
   hb_codepoint_t glyphs_r[2] = {glyphs[1], glyphs[0]};
-  if (indic_plan->pref.would_substitute (glyphs  , 2, zero_context, face) ||
-      indic_plan->pref.would_substitute (glyphs_r, 2, zero_context, face))
-    return POS_POST_C;
   if (indic_plan->blwf.would_substitute (glyphs  , 2, zero_context, face) ||
       indic_plan->blwf.would_substitute (glyphs_r, 2, zero_context, face))
     return POS_BELOW_C;
   if (indic_plan->pstf.would_substitute (glyphs  , 2, zero_context, face) ||
       indic_plan->pstf.would_substitute (glyphs_r, 2, zero_context, face))
+    return POS_POST_C;
+  if (indic_plan->pref.would_substitute (glyphs  , 2, zero_context, face) ||
+      indic_plan->pref.would_substitute (glyphs_r, 2, zero_context, face))
     return POS_POST_C;
   return POS_BASE_C;
 }
