@@ -468,8 +468,9 @@ override_features_indic (hb_ot_shape_planner_t *plan)
 
 struct would_substitute_feature_t
 {
-  inline void init (const hb_ot_map_t *map, hb_tag_t feature_tag)
+  inline void init (const hb_ot_map_t *map, hb_tag_t feature_tag, bool zero_context_)
   {
+    zero_context = zero_context_;
     map->get_stage_lookups (0/*GSUB*/,
 			    map->get_feature_stage (0/*GSUB*/, feature_tag),
 			    &lookups, &count);
@@ -477,7 +478,6 @@ struct would_substitute_feature_t
 
   inline bool would_substitute (const hb_codepoint_t *glyphs,
 				unsigned int          glyphs_count,
-				bool                  zero_context,
 				hb_face_t            *face) const
   {
     for (unsigned int i = 0; i < count; i++)
@@ -489,6 +489,7 @@ struct would_substitute_feature_t
   private:
   const hb_ot_map_t::lookup_map_t *lookups;
   unsigned int count;
+  bool zero_context;
 };
 
 struct indic_shape_plan_t
@@ -544,10 +545,13 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
   indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FF) != '2');
   indic_plan->virama_glyph = (hb_codepoint_t) -1;
 
-  indic_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'));
-  indic_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'));
-  indic_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'));
-  indic_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'));
+  /* Use zero-context would_substitute() matching for new-spec of the main
+   * Indic scripts, but not for old-spec or scripts with one spec only. */
+  bool zero_context = indic_plan->config->has_old_spec || !indic_plan->is_old_spec;
+  indic_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'), zero_context);
+  indic_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'), zero_context);
+  indic_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'), zero_context);
+  indic_plan->pstf.init (&plan->map, HB_TAG('p','s','t','f'), zero_context);
 
   for (unsigned int i = 0; i < ARRAY_LENGTH (indic_plan->mask_array); i++)
     indic_plan->mask_array[i] = (indic_features[i].flags & F_GLOBAL) ?
@@ -577,16 +581,15 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
    * 930,94D in 'blwf', not the expected 94D,930 (with new-spec
    * table).  As such, we simply match both sequences.  Seems
    * to work. */
-  bool zero_context = indic_plan->is_old_spec ? false : true;
   hb_codepoint_t glyphs_r[2] = {glyphs[1], glyphs[0]};
-  if (indic_plan->blwf.would_substitute (glyphs  , 2, zero_context, face) ||
-      indic_plan->blwf.would_substitute (glyphs_r, 2, zero_context, face))
+  if (indic_plan->blwf.would_substitute (glyphs  , 2, face) ||
+      indic_plan->blwf.would_substitute (glyphs_r, 2, face))
     return POS_BELOW_C;
-  if (indic_plan->pstf.would_substitute (glyphs  , 2, zero_context, face) ||
-      indic_plan->pstf.would_substitute (glyphs_r, 2, zero_context, face))
+  if (indic_plan->pstf.would_substitute (glyphs  , 2, face) ||
+      indic_plan->pstf.would_substitute (glyphs_r, 2, face))
     return POS_POST_C;
-  if (indic_plan->pref.would_substitute (glyphs  , 2, zero_context, face) ||
-      indic_plan->pref.would_substitute (glyphs_r, 2, zero_context, face))
+  if (indic_plan->pref.would_substitute (glyphs  , 2, face) ||
+      indic_plan->pref.would_substitute (glyphs_r, 2, face))
     return POS_POST_C;
   return POS_BASE_C;
 }
@@ -707,7 +710,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     {
       /* See if it matches the 'rphf' feature. */
       hb_codepoint_t glyphs[2] = {info[start].codepoint, info[start + 1].codepoint};
-      if (indic_plan->rphf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), true, face))
+      if (indic_plan->rphf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face))
       {
 	limit += 2;
 	while (limit < end && is_joiner (info[limit]))
@@ -1068,7 +1071,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
     for (unsigned int i = base + 1; i + 1 < end; i++) {
       hb_codepoint_t glyphs[2] = {info[i].codepoint, info[i + 1].codepoint};
-      if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), true, face))
+      if (indic_plan->pref.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face))
       {
 	info[i++].mask |= indic_plan->mask_array[PREF];
 	info[i++].mask |= indic_plan->mask_array[PREF];
@@ -1734,7 +1737,7 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
 
     if (hb_options ().uniscribe_bug_compatible ||
 	(c->font->get_glyph (ab, 0, &glyph) &&
-	 indic_plan->pstf.would_substitute (&glyph, 1, true, c->font->face)))
+	 indic_plan->pstf.would_substitute (&glyph, 1, c->font->face)))
     {
       /* Ok, safe to use Uniscribe-style decomposition. */
       *a = 0x0DD9;
