@@ -867,8 +867,8 @@ apply_string (OT::hb_apply_context_t *c,
 	  (c->buffer->cur().mask & c->lookup_mask) &&
 	  apply_once (c, lookup))
 	ret = true;
-      else
-	c->buffer->idx--;
+      /* The reverse lookup doesn't "advance" cursor (for good reason). */
+      c->buffer->idx--;
 
     }
     while ((int) c->buffer->idx >= 0);

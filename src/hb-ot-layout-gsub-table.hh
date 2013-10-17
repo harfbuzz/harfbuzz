@@ -1037,7 +1037,9 @@ struct ReverseChainSingleSubstFormat1
 			 1))
     {
       c->replace_glyph_inplace (substitute[index]);
-      c->buffer->idx--; /* Reverse! */
+      /* Note: We DON'T decrease buffer->idx.  The main loop does it
+       * for us.  This is useful for preventing surprises if someone
+       * calls us through a Context lookup. */
       return TRACE_RETURN (true);
     }
 
