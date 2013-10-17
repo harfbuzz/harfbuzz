@@ -273,8 +273,7 @@ enum base_position_t {
   BASE_POS_LAST
 };
 enum reph_position_t {
-  REPH_POS_DEFAULT     = POS_BEFORE_POST,
-
+  REPH_POS_DONT_CARE   = POS_RA_TO_BECOME_REPH,
   REPH_POS_AFTER_MAIN  = POS_AFTER_MAIN,
   REPH_POS_BEFORE_SUB  = POS_BEFORE_SUB,
   REPH_POS_AFTER_SUB   = POS_AFTER_SUB,
@@ -305,7 +304,7 @@ struct indic_config_t
 static const indic_config_t indic_configs[] =
 {
   /* Default.  Should be first. */
-  {HB_SCRIPT_INVALID,	false,     0,BASE_POS_LAST, REPH_POS_DEFAULT,    REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_INVALID,	false,     0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
   {HB_SCRIPT_DEVANAGARI,true, 0x094D,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
   {HB_SCRIPT_BENGALI,	true, 0x09CD,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
   {HB_SCRIPT_GURMUKHI,	true, 0x0A4D,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
@@ -317,8 +316,8 @@ static const indic_config_t indic_configs[] =
   {HB_SCRIPT_MALAYALAM,	true, 0x0D4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST},
   {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_LAST_SINHALA,
 						    REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DEFAULT,    REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_JAVANESE,	false,0xA9C0,BASE_POS_LAST, REPH_POS_DEFAULT,    REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_JAVANESE,	false,0xA9C0,BASE_POS_LAST, REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
@@ -702,7 +701,8 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      *    and has more than one consonant, Ra is excluded from candidates for
      *    base consonants. */
     unsigned int limit = start;
-    if (indic_plan->mask_array[RPHF] &&
+    if (indic_plan->config->reph_pos != POS_RA_TO_BECOME_REPH &&
+	indic_plan->mask_array[RPHF] &&
 	start + 3 <= end &&
 	(
 	 (indic_plan->config->reph_mode == REPH_MODE_IMPLICIT && !is_joiner (info[start + 2])) ||
@@ -816,6 +816,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	/* The first consonant is always the base. */
 
 	assert (indic_plan->config->reph_mode == REPH_MODE_VIS_REPHA);
+	assert (!has_reph);
 
 	base = start;
 
@@ -1394,6 +1395,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     unsigned int new_reph_pos;
     reph_position_t reph_pos = indic_plan->config->reph_pos;
 
+    assert (reph_pos != POS_RA_TO_BECOME_REPH);
 
     /*       1. If reph should be positioned after post-base consonant forms,
      *          proceed to step 5.
