@@ -615,7 +615,8 @@ struct hb_apply_context_t
     return match_properties (info->codepoint, property, lookup_props);
   }
 
-  inline void set_class (hb_codepoint_t glyph_index, unsigned int class_guess) const
+  inline void _set_glyph_props (hb_codepoint_t glyph_index,
+			  unsigned int class_guess = 0) const
   {
     if (likely (has_glyph_classes))
       buffer->cur().glyph_props() = gdef.get_glyph_props (glyph_index);
@@ -623,23 +624,27 @@ struct hb_apply_context_t
       buffer->cur().glyph_props() = class_guess;
   }
 
-  inline void output_glyph (hb_codepoint_t glyph_index,
-			    unsigned int class_guess = 0) const
+  inline void replace_glyph (hb_codepoint_t glyph_index) const
   {
-    set_class (glyph_index, class_guess);
-    buffer->output_glyph (glyph_index);
-  }
-  inline void replace_glyph (hb_codepoint_t glyph_index,
-			     unsigned int class_guess = 0) const
-  {
-    set_class (glyph_index, class_guess);
+    _set_glyph_props (glyph_index);
     buffer->replace_glyph (glyph_index);
   }
-  inline void replace_glyph_inplace (hb_codepoint_t glyph_index,
-				     unsigned int class_guess = 0) const
+  inline void replace_glyph_inplace (hb_codepoint_t glyph_index) const
   {
-    set_class (glyph_index, class_guess);
+    _set_glyph_props (glyph_index);
     buffer->cur().codepoint = glyph_index;
+  }
+  inline void replace_glyph_with_ligature (hb_codepoint_t glyph_index,
+					   unsigned int class_guess) const
+  {
+    _set_glyph_props (glyph_index, class_guess);
+    buffer->replace_glyph (glyph_index);
+  }
+  inline void output_glyph (hb_codepoint_t glyph_index,
+			    unsigned int class_guess) const
+  {
+    _set_glyph_props (glyph_index, class_guess);
+    buffer->output_glyph (glyph_index);
   }
 };
 
@@ -885,7 +890,7 @@ static inline void ligate_input (hb_apply_context_t *c,
     if (_hb_glyph_info_get_general_category (&buffer->cur()) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
       _hb_glyph_info_set_general_category (&buffer->cur(), HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER);
   }
-  c->replace_glyph (lig_glyph, klass);
+  c->replace_glyph_with_ligature (lig_glyph, klass);
 
   for (unsigned int i = 1; i < count; i++)
   {
