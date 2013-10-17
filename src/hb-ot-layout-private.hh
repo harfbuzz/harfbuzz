@@ -50,8 +50,11 @@ typedef enum
   HB_OT_LAYOUT_GLYPH_PROPS_MARK		= 0x08u,
 
   /* The following are used internally; not derived from GDEF. */
-  HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED	= 0x10u
+  HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED	= 0x10u,
+  HB_OT_LAYOUT_GLYPH_PROPS_LIGATED	= 0x20u,
 
+  HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE     = HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED |
+					  HB_OT_LAYOUT_GLYPH_PROPS_LIGATED
 } hb_ot_layout_glyph_class_mask_t;
 
 

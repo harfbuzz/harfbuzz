@@ -616,13 +616,18 @@ struct hb_apply_context_t
   }
 
   inline void _set_glyph_props (hb_codepoint_t glyph_index,
-			  unsigned int class_guess = 0) const
+			  unsigned int class_guess = 0,
+			  bool ligature = false) const
   {
-    unsigned int add_in = HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
+    unsigned int add_in = _hb_glyph_info_get_glyph_props (&buffer->cur()) &
+			  HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
+    add_in |= HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
+    if (ligature)
+      add_in |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
     if (likely (has_glyph_classes))
       _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | gdef.get_glyph_props (glyph_index));
     else if (class_guess)
-      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in| class_guess);
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | class_guess);
   }
 
   inline void replace_glyph (hb_codepoint_t glyph_index) const
@@ -638,7 +643,7 @@ struct hb_apply_context_t
   inline void replace_glyph_with_ligature (hb_codepoint_t glyph_index,
 					   unsigned int class_guess) const
   {
-    _set_glyph_props (glyph_index, class_guess);
+    _set_glyph_props (glyph_index, class_guess, true);
     buffer->replace_glyph (glyph_index);
   }
   inline void output_glyph (hb_codepoint_t glyph_index,
