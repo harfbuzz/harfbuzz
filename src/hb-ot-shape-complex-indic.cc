@@ -463,7 +463,7 @@ override_features_indic (hb_ot_shape_planner_t *plan)
     switch ((hb_tag_t) plan->props.script)
     {
       case HB_SCRIPT_KHMER:
-	  plan->map.add_feature (HB_TAG('k','e','r','n'), 0, F_GLOBAL);
+	plan->map.add_feature (HB_TAG('k','e','r','n'), 0, F_GLOBAL);
 	break;
     }
   }
@@ -1584,13 +1584,22 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   /*
    * Finish off the clusters and go home!
    */
-  if (hb_options ().uniscribe_bug_compatible && buffer->props.script != HB_SCRIPT_TAMIL)
+  if (hb_options ().uniscribe_bug_compatible)
   {
-    /* Uniscribe merges the entire cluster... Except for Tamil.
-     * This means, half forms are submerged into the main consonants cluster.
-     * This is unnecessary, and makes cursor positioning harder, but that's what
-     * Uniscribe does. */
-    buffer->merge_clusters (start, end);
+    switch ((hb_tag_t) plan->props.script)
+    {
+      case HB_SCRIPT_TAMIL:
+      case HB_SCRIPT_SINHALA:
+        break;
+
+      default:
+	/* Uniscribe merges the entire cluster... Except for Tamil & Sinhala.
+	 * This means, half forms are submerged into the main consonants cluster.
+	 * This is unnecessary, and makes cursor positioning harder, but that's what
+	 * Uniscribe does. */
+	buffer->merge_clusters (start, end);
+	break;
+    }
   }
 }
 
