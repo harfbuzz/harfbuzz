@@ -761,7 +761,9 @@ static inline bool match_input (hb_apply_context_t *c,
 
   if (unlikely (count > MAX_CONTEXT_LENGTH)) TRACE_RETURN (false);
 
-  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
+  hb_buffer_t *buffer = c->buffer;
+
+  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, count - 1);
   skippy_iter.set_match_func (match_func, match_data, input);
   if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
@@ -783,23 +785,23 @@ static inline bool match_input (hb_apply_context_t *c,
    *   ligate with a conjunct...)
    */
 
-  bool is_mark_ligature = !!(c->buffer->cur().glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+  bool is_mark_ligature = !!(buffer->cur().glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
 
   unsigned int total_component_count = 0;
-  total_component_count += get_lig_num_comps (c->buffer->cur());
+  total_component_count += get_lig_num_comps (buffer->cur());
 
-  unsigned int first_lig_id = get_lig_id (c->buffer->cur());
-  unsigned int first_lig_comp = get_lig_comp (c->buffer->cur());
+  unsigned int first_lig_id = get_lig_id (buffer->cur());
+  unsigned int first_lig_comp = get_lig_comp (buffer->cur());
 
-  match_positions[0] = c->buffer->idx;
+  match_positions[0] = buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     match_positions[i] = skippy_iter.idx;
 
-    unsigned int this_lig_id = get_lig_id (c->buffer->info[skippy_iter.idx]);
-    unsigned int this_lig_comp = get_lig_comp (c->buffer->info[skippy_iter.idx]);
+    unsigned int this_lig_id = get_lig_id (buffer->info[skippy_iter.idx]);
+    unsigned int this_lig_comp = get_lig_comp (buffer->info[skippy_iter.idx]);
 
     if (first_lig_id && first_lig_comp) {
       /* If first component was attached to a previous ligature component,
@@ -815,11 +817,11 @@ static inline bool match_input (hb_apply_context_t *c,
 	return TRACE_RETURN (false);
     }
 
-    is_mark_ligature = is_mark_ligature && (c->buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
-    total_component_count += get_lig_num_comps (c->buffer->info[skippy_iter.idx]);
+    is_mark_ligature = is_mark_ligature && (buffer->info[skippy_iter.idx].glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+    total_component_count += get_lig_num_comps (buffer->info[skippy_iter.idx]);
   }
 
-  *end_offset = skippy_iter.idx - c->buffer->idx + 1;
+  *end_offset = skippy_iter.idx - buffer->idx + 1;
 
   if (p_is_mark_ligature)
     *p_is_mark_ligature = is_mark_ligature;
@@ -839,7 +841,9 @@ static inline void ligate_input (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  c->buffer->merge_clusters (c->buffer->idx, c->buffer->idx + match_length);
+  hb_buffer_t *buffer = c->buffer;
+
+  buffer->merge_clusters (buffer->idx, buffer->idx + match_length);
 
   /*
    * - If it *is* a mark ligature, we don't allocate a new ligature id, and leave
@@ -870,46 +874,46 @@ static inline void ligate_input (hb_apply_context_t *c,
    */
 
   unsigned int klass = is_mark_ligature ? 0 : HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE;
-  unsigned int lig_id = is_mark_ligature ? 0 : allocate_lig_id (c->buffer);
-  unsigned int last_lig_id = get_lig_id (c->buffer->cur());
-  unsigned int last_num_components = get_lig_num_comps (c->buffer->cur());
+  unsigned int lig_id = is_mark_ligature ? 0 : allocate_lig_id (buffer);
+  unsigned int last_lig_id = get_lig_id (buffer->cur());
+  unsigned int last_num_components = get_lig_num_comps (buffer->cur());
   unsigned int components_so_far = last_num_components;
 
   if (!is_mark_ligature)
   {
-    set_lig_props_for_ligature (c->buffer->cur(), lig_id, total_component_count);
-    if (_hb_glyph_info_get_general_category (&c->buffer->cur()) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
-      _hb_glyph_info_set_general_category (&c->buffer->cur(), HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER);
+    set_lig_props_for_ligature (buffer->cur(), lig_id, total_component_count);
+    if (_hb_glyph_info_get_general_category (&buffer->cur()) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+      _hb_glyph_info_set_general_category (&buffer->cur(), HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER);
   }
   c->replace_glyph (lig_glyph, klass);
 
   for (unsigned int i = 1; i < count; i++)
   {
-    while (c->buffer->idx < match_positions[i])
+    while (buffer->idx < match_positions[i])
     {
       if (!is_mark_ligature) {
 	unsigned int new_lig_comp = components_so_far - last_num_components +
-				    MIN (MAX (get_lig_comp (c->buffer->cur()), 1u), last_num_components);
-	set_lig_props_for_mark (c->buffer->cur(), lig_id, new_lig_comp);
+				    MIN (MAX (get_lig_comp (buffer->cur()), 1u), last_num_components);
+	set_lig_props_for_mark (buffer->cur(), lig_id, new_lig_comp);
       }
-      c->buffer->next_glyph ();
+      buffer->next_glyph ();
     }
 
-    last_lig_id = get_lig_id (c->buffer->cur());
-    last_num_components = get_lig_num_comps (c->buffer->cur());
+    last_lig_id = get_lig_id (buffer->cur());
+    last_num_components = get_lig_num_comps (buffer->cur());
     components_so_far += last_num_components;
 
     /* Skip the base glyph */
-    c->buffer->idx++;
+    buffer->idx++;
   }
 
   if (!is_mark_ligature && last_lig_id) {
     /* Re-adjust components for any marks following. */
-    for (unsigned int i = c->buffer->idx; i < c->buffer->len; i++) {
-      if (last_lig_id == get_lig_id (c->buffer->info[i])) {
+    for (unsigned int i = buffer->idx; i < buffer->len; i++) {
+      if (last_lig_id == get_lig_id (buffer->info[i])) {
 	unsigned int new_lig_comp = components_so_far - last_num_components +
-				    MIN (MAX (get_lig_comp (c->buffer->info[i]), 1u), last_num_components);
-	set_lig_props_for_mark (c->buffer->info[i], lig_id, new_lig_comp);
+				    MIN (MAX (get_lig_comp (buffer->info[i]), 1u), last_num_components);
+	set_lig_props_for_mark (buffer->info[i], lig_id, new_lig_comp);
       } else
 	break;
     }
