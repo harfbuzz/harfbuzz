@@ -371,6 +371,12 @@ _hb_glyph_info_is_mark (const hb_glyph_info_t *info)
 }
 
 static inline bool
+_hb_glyph_info_substituted (const hb_glyph_info_t *info)
+{
+  return !!(info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED);
+}
+
+static inline bool
 _hb_glyph_info_ligated (const hb_glyph_info_t *info)
 {
   return !!(info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATED);
