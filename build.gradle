@@ -168,7 +168,7 @@ class BuildHarfbuzzJava extends DefaultTask {
     List<File> inputFiles = [ ]
 
     @OutputFiles
-    List<File> outputFiles = [ project.file("swig/build/cpp/lib/harfbuzz_wrap.so") ]
+    List<File> outputFiles = [ project.file("swig/build/cpp/lib/harfbuzz_wrap.so") project.fileTree("swig/build/java/com/prezi/harfbuzz/harfbuzz.java")]
 
     String host
 
