@@ -619,9 +619,9 @@ struct hb_apply_context_t
 			  unsigned int class_guess = 0) const
   {
     if (likely (has_glyph_classes))
-      buffer->cur().glyph_props() = gdef.get_glyph_props (glyph_index);
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), gdef.get_glyph_props (glyph_index));
     else if (class_guess)
-      buffer->cur().glyph_props() = class_guess;
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), class_guess);
   }
 
   inline void replace_glyph (hb_codepoint_t glyph_index) const

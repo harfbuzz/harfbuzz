@@ -321,6 +321,15 @@ _hb_allocate_lig_id (hb_buffer_t *buffer) {
   return lig_id;
 }
 
+/* glyph_props: */
+
+inline void
+_hb_glyph_info_set_glyph_props (hb_glyph_info_t *info, unsigned int props)
+{
+  info->glyph_props() = props;
+}
+
+
 
 
 #endif /* HB_OT_LAYOUT_PRIVATE_HH */

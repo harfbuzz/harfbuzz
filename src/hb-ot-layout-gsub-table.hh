@@ -1383,7 +1383,7 @@ GSUB::substitute_start (hb_font_t *font, hb_buffer_t *buffer)
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++) {
     buffer->info[i].lig_props() = buffer->info[i].syllable() = 0;
-    buffer->info[i].glyph_props() = gdef.get_glyph_props (buffer->info[i].codepoint);
+    _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
   }
 }
 
