@@ -306,7 +306,7 @@ _hb_glyph_info_get_lig_id (const hb_glyph_info_t *info)
 }
 
 static inline bool
-_hb_glyph_info_is_ligated (const hb_glyph_info_t *info)
+_hb_glyph_info_ligated_internal (const hb_glyph_info_t *info)
 {
   return !!(info->lig_props() & IS_LIG_BASE);
 }
@@ -314,7 +314,7 @@ _hb_glyph_info_is_ligated (const hb_glyph_info_t *info)
 static inline unsigned int
 _hb_glyph_info_get_lig_comp (const hb_glyph_info_t *info)
 {
-  if (_hb_glyph_info_is_ligated (info))
+  if (_hb_glyph_info_ligated_internal (info))
     return 0;
   else
     return info->lig_props() & 0x0F;
@@ -324,7 +324,7 @@ static inline unsigned int
 _hb_glyph_info_get_lig_num_comps (const hb_glyph_info_t *info)
 {
   if ((info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE) &&
-      _hb_glyph_info_is_ligated (info))
+      _hb_glyph_info_ligated_internal (info))
     return info->lig_props() & 0x0F;
   else
     return 1;
@@ -368,6 +368,12 @@ inline bool
 _hb_glyph_info_is_mark (const hb_glyph_info_t *info)
 {
   return !!(info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_MARK);
+}
+
+static inline bool
+_hb_glyph_info_ligated (const hb_glyph_info_t *info)
+{
+  return !!(info->glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATED);
 }
 
 /* Allocation / deallocation. */

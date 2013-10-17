@@ -548,7 +548,7 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
   unsigned int j = 0;
   for (unsigned int i = 0; i < count; i++)
   {
-    if (unlikely (!_hb_glyph_info_is_ligated (&info[i]) &&
+    if (unlikely (!_hb_glyph_info_ligated (&info[i]) &&
 		  _hb_glyph_info_is_default_ignorable (&info[i])))
     {
       if (space_status == SPACE_DONT_KNOW)

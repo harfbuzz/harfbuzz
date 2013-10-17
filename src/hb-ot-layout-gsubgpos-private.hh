@@ -409,7 +409,7 @@ struct hb_apply_context_t
       if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&
 		    (ignore_zwnj || !_hb_glyph_info_is_zwnj (&info)) &&
 		    (ignore_zwj || !_hb_glyph_info_is_zwj (&info)) &&
-		    !_hb_glyph_info_is_ligated (&info)))
+		    !_hb_glyph_info_ligated (&info)))
 	return SKIP_MAYBE;
 
       return SKIP_NO;
