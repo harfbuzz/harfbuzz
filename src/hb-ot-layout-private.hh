@@ -48,72 +48,6 @@
 #define syllable()		var1.u8[3] /* GSUB/GPOS shaping boundaries */
 
 
-enum {
-  MASK0_ZWJ       = 0x20u,
-  MASK0_ZWNJ      = 0x40u,
-  MASK0_IGNORABLE = 0x80u,
-  MASK0_GEN_CAT   = 0x1Fu
-};
-
-inline void
-_hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
-{
-  info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
-			   (unicode->is_default_ignorable (info->codepoint) ? MASK0_IGNORABLE : 0) |
-			   (info->codepoint == 0x200C ? MASK0_ZWNJ : 0) |
-			   (info->codepoint == 0x200D ? MASK0_ZWJ : 0);
-  info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
-}
-
-inline void
-_hb_glyph_info_set_general_category (hb_glyph_info_t *info, hb_unicode_general_category_t gen_cat)
-{
-  info->unicode_props0() = (unsigned int) gen_cat | ((info->unicode_props0()) & ~MASK0_GEN_CAT);
-}
-
-inline hb_unicode_general_category_t
-_hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
-{
-  return (hb_unicode_general_category_t) (info->unicode_props0() & MASK0_GEN_CAT);
-}
-
-inline void
-_hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info, unsigned int modified_class)
-{
-  info->unicode_props1() = modified_class;
-}
-
-inline unsigned int
-_hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
-{
-  return info->unicode_props1();
-}
-
-inline hb_bool_t
-_hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
-{
-  return !!(info->unicode_props0() & MASK0_IGNORABLE);
-}
-
-inline hb_bool_t
-_hb_glyph_info_is_zwnj (const hb_glyph_info_t *info)
-{
-  return !!(info->unicode_props0() & MASK0_ZWNJ);
-}
-
-inline hb_bool_t
-_hb_glyph_info_is_zwj (const hb_glyph_info_t *info)
-{
-  return !!(info->unicode_props0() & MASK0_ZWJ);
-}
-
-inline void
-_hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
-{
-  info->unicode_props0() ^= MASK0_ZWNJ | MASK0_ZWJ;
-}
-
-
 /*
  * GDEF
  */
@@ -132,80 +66,6 @@ typedef enum {
 /*
  * GSUB/GPOS
  */
-
-/* lig_id / lig_comp
- *
- * When a ligature is formed:
- *
- *   - The ligature glyph and any marks in between all the same newly allocated
- *     lig_id,
- *   - The ligature glyph will get lig_num_comps set to the number of components
- *   - The marks get lig_comp > 0, reflecting which component of the ligature
- *     they were applied to.
- *   - This is used in GPOS to attach marks to the right component of a ligature
- *     in MarkLigPos.
- *
- * When a multiple-substitution is done:
- *
- *   - All resulting glyphs will have lig_id = 0,
- *   - The resulting glyphs will have lig_comp = 0, 1, 2, ... respectively.
- *   - This is used in GPOS to attach marks to the first component of a
- *     multiple substitution in MarkBasePos.
- *
- * The numbers are also used in GPOS to do mark-to-mark positioning only
- * to marks that belong to the same component of a ligature in MarkMarPos.
- */
-#define IS_LIG_BASE 0x10
-static inline void
-set_lig_props_for_ligature (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_num_comps)
-{
-  info.lig_props() = (lig_id << 5) | IS_LIG_BASE | (lig_num_comps & 0x0F);
-}
-static inline void
-set_lig_props_for_mark (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
-{
-  info.lig_props() = (lig_id << 5) | (lig_comp & 0x0F);
-}
-static inline void
-set_lig_props_for_component (hb_glyph_info_t &info, unsigned int comp)
-{
-  set_lig_props_for_mark (info, 0, comp);
-}
-
-static inline unsigned int
-get_lig_id (const hb_glyph_info_t &info)
-{
-  return info.lig_props() >> 5;
-}
-static inline bool
-is_a_ligature (const hb_glyph_info_t &info)
-{
-  return !!(info.lig_props() & IS_LIG_BASE);
-}
-static inline unsigned int
-get_lig_comp (const hb_glyph_info_t &info)
-{
-  if (is_a_ligature (info))
-    return 0;
-  else
-    return info.lig_props() & 0x0F;
-}
-static inline unsigned int
-get_lig_num_comps (const hb_glyph_info_t &info)
-{
-  if ((info.glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE) && is_a_ligature (info))
-    return info.lig_props() & 0x0F;
-  else
-    return 1;
-}
-
-static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
-  uint8_t lig_id = buffer->next_serial () & 0x07;
-  if (unlikely (!lig_id))
-    lig_id = allocate_lig_id (buffer); /* in case of overflow */
-  return lig_id;
-}
-
 
 HB_INTERNAL hb_bool_t
 hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
@@ -305,6 +165,154 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout);
 
 
 #define hb_ot_layout_from_face(face) ((hb_ot_layout_t *) face->shaper_data.ot)
+
+
+/*
+ * Buffer var routines.
+ */
+
+/* unicode_props */
+
+enum {
+  MASK0_ZWJ       = 0x20u,
+  MASK0_ZWNJ      = 0x40u,
+  MASK0_IGNORABLE = 0x80u,
+  MASK0_GEN_CAT   = 0x1Fu
+};
+
+inline void
+_hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
+{
+  info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
+			   (unicode->is_default_ignorable (info->codepoint) ? MASK0_IGNORABLE : 0) |
+			   (info->codepoint == 0x200C ? MASK0_ZWNJ : 0) |
+			   (info->codepoint == 0x200D ? MASK0_ZWJ : 0);
+  info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
+}
+
+inline void
+_hb_glyph_info_set_general_category (hb_glyph_info_t *info, hb_unicode_general_category_t gen_cat)
+{
+  info->unicode_props0() = (unsigned int) gen_cat | ((info->unicode_props0()) & ~MASK0_GEN_CAT);
+}
+
+inline hb_unicode_general_category_t
+_hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
+{
+  return (hb_unicode_general_category_t) (info->unicode_props0() & MASK0_GEN_CAT);
+}
+
+inline void
+_hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info, unsigned int modified_class)
+{
+  info->unicode_props1() = modified_class;
+}
+
+inline unsigned int
+_hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
+{
+  return info->unicode_props1();
+}
+
+inline hb_bool_t
+_hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props0() & MASK0_IGNORABLE);
+}
+
+inline hb_bool_t
+_hb_glyph_info_is_zwnj (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props0() & MASK0_ZWNJ);
+}
+
+inline hb_bool_t
+_hb_glyph_info_is_zwj (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props0() & MASK0_ZWJ);
+}
+
+inline void
+_hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
+{
+  info->unicode_props0() ^= MASK0_ZWNJ | MASK0_ZWJ;
+}
+
+/* lig_props: aka lig_id / lig_comp
+ *
+ * When a ligature is formed:
+ *
+ *   - The ligature glyph and any marks in between all the same newly allocated
+ *     lig_id,
+ *   - The ligature glyph will get lig_num_comps set to the number of components
+ *   - The marks get lig_comp > 0, reflecting which component of the ligature
+ *     they were applied to.
+ *   - This is used in GPOS to attach marks to the right component of a ligature
+ *     in MarkLigPos,
+ *   - Note that when marks are ligated together, much of the above is skipped
+ *     and the current lig_id reused.
+ *
+ * When a multiple-substitution is done:
+ *
+ *   - All resulting glyphs will have lig_id = 0,
+ *   - The resulting glyphs will have lig_comp = 0, 1, 2, ... respectively.
+ *   - This is used in GPOS to attach marks to the first component of a
+ *     multiple substitution in MarkBasePos.
+ *
+ * The numbers are also used in GPOS to do mark-to-mark positioning only
+ * to marks that belong to the same component of the same ligature.
+ */
+#define IS_LIG_BASE 0x10
+static inline void
+set_lig_props_for_ligature (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_num_comps)
+{
+  info.lig_props() = (lig_id << 5) | IS_LIG_BASE | (lig_num_comps & 0x0F);
+}
+static inline void
+set_lig_props_for_mark (hb_glyph_info_t &info, unsigned int lig_id, unsigned int lig_comp)
+{
+  info.lig_props() = (lig_id << 5) | (lig_comp & 0x0F);
+}
+static inline void
+set_lig_props_for_component (hb_glyph_info_t &info, unsigned int comp)
+{
+  set_lig_props_for_mark (info, 0, comp);
+}
+
+static inline unsigned int
+get_lig_id (const hb_glyph_info_t &info)
+{
+  return info.lig_props() >> 5;
+}
+static inline bool
+is_a_ligature (const hb_glyph_info_t &info)
+{
+  return !!(info.lig_props() & IS_LIG_BASE);
+}
+static inline unsigned int
+get_lig_comp (const hb_glyph_info_t &info)
+{
+  if (is_a_ligature (info))
+    return 0;
+  else
+    return info.lig_props() & 0x0F;
+}
+static inline unsigned int
+get_lig_num_comps (const hb_glyph_info_t &info)
+{
+  if ((info.glyph_props() & HB_OT_LAYOUT_GLYPH_PROPS_LIGATURE) && is_a_ligature (info))
+    return info.lig_props() & 0x0F;
+  else
+    return 1;
+}
+
+static inline uint8_t allocate_lig_id (hb_buffer_t *buffer) {
+  uint8_t lig_id = buffer->next_serial () & 0x07;
+  if (unlikely (!lig_id))
+    lig_id = allocate_lig_id (buffer); /* in case of overflow */
+  return lig_id;
+}
+
 
 
 #endif /* HB_OT_LAYOUT_PRIVATE_HH */
