@@ -832,17 +832,16 @@ static inline bool match_input (hb_apply_context_t *c,
   return TRACE_RETURN (true);
 }
 static inline void ligate_input (hb_apply_context_t *c,
-				 unsigned int count, /* Including the first glyph (not matched) */
-				 const USHORT input[], /* Array of input values--start with second glyph */
-				 match_func_t match_func,
-				 const void *match_data,
+				 unsigned int count, /* Including the first glyph */
+				 unsigned int match_positions[MAX_CONTEXT_LENGTH], /* Including the first glyph */
+				 unsigned int match_length,
 				 hb_codepoint_t lig_glyph,
 				 bool is_mark_ligature,
 				 unsigned int total_component_count)
 {
-  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx, count - 1);
-  skippy_iter.set_match_func (match_func, match_data, input);
-  if (skippy_iter.has_no_chance ()) return;
+  TRACE_APPLY (NULL);
+
+  c->buffer->merge_clusters (c->buffer->idx, c->buffer->idx + match_length);
 
   /*
    * - If it *is* a mark ligature, we don't allocate a new ligature id, and leave
@@ -888,9 +887,7 @@ static inline void ligate_input (hb_apply_context_t *c,
 
   for (unsigned int i = 1; i < count; i++)
   {
-    if (!skippy_iter.next ()) return;
-
-    while (c->buffer->idx < skippy_iter.idx)
+    while (c->buffer->idx < match_positions[i])
     {
       if (!is_mark_ligature) {
 	unsigned int new_lig_comp = components_so_far - last_num_components +

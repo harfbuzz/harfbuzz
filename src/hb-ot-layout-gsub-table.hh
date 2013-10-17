@@ -663,28 +663,26 @@ struct Ligature
     unsigned int count = component.len;
     if (unlikely (count < 1)) return TRACE_RETURN (false);
 
-    unsigned int end_offset = 0;
     bool is_mark_ligature = false;
     unsigned int total_component_count = 0;
+
+    unsigned int match_length = 0;
+    unsigned int match_positions[MAX_CONTEXT_LENGTH];
 
     if (likely (!match_input (c, count,
 			      &component[1],
 			      match_glyph,
 			      NULL,
-			      &end_offset,
-			      NULL,
+			      &match_length,
+			      match_positions,
 			      &is_mark_ligature,
 			      &total_component_count)))
       return TRACE_RETURN (false);
 
-    /* Deal, we are forming the ligature. */
-    c->buffer->merge_clusters (c->buffer->idx, c->buffer->idx + end_offset);
-
     ligate_input (c,
 		  count,
-		  &component[1],
-		  match_glyph,
-		  NULL,
+		  match_positions,
+		  match_length,
 		  ligGlyph,
 		  is_mark_ligature,
 		  total_component_count);
