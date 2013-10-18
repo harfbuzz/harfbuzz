@@ -962,18 +962,19 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       }
     }
   }
-  /* Re-attach ZWJ, ZWNJ, and halant to next char, for after-base consonants. */
+  /* For post-base consonants let them own anything before them
+   * since the last consonant or matra. */
   {
-    unsigned int last_halant = end;
+    unsigned int last = base;
     for (unsigned int i = base + 1; i < end; i++)
-      if (is_halant_or_coeng (info[i]))
-        last_halant = i;
-      else if (is_consonant (info[i])) {
-	for (unsigned int j = last_halant; j < i; j++)
-	  if (info[j].indic_position() != POS_SMVD)
+      if (is_consonant (info[i]))
+      {
+	for (unsigned int j = last + 1; j < i; j++)
+	  if (info[j].indic_position() < POS_SMVD)
 	    info[j].indic_position() = info[i].indic_position();
-	last_halant = end;
-      }
+	last = i;
+      } else if (info[i].indic_category() == OT_M)
+        last = i;
   }
 
 
