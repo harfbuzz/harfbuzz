@@ -280,7 +280,8 @@ arabic_joining (hb_buffer_t *buffer)
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
     if (entry->prev_action != NONE && prev != (unsigned int) -1)
-      buffer->info[prev].arabic_shaping_action() = entry->prev_action;
+      for (; prev < i; prev++)
+	buffer->info[prev].arabic_shaping_action() = entry->prev_action;
 
     buffer->info[i].arabic_shaping_action() = entry->curr_action;
 
