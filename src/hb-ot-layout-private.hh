@@ -187,6 +187,7 @@ enum {
 inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
+  /* XXX This shouldn't be inlined, or at least not while is_default_ignorable() is inline. */
   info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
 			   (unicode->is_default_ignorable (info->codepoint) ? MASK0_IGNORABLE : 0) |
 			   (info->codepoint == 0x200C ? MASK0_ZWNJ : 0) |
