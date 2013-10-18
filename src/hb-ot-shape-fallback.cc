@@ -260,7 +260,7 @@ position_mark (const hb_ot_shape_plan_t *plan,
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW:
-      pos.y_offset += base_extents.y_bearing + base_extents.height - mark_extents.y_bearing;
+      pos.y_offset = base_extents.y_bearing + base_extents.height - mark_extents.y_bearing;
       base_extents.height += mark_extents.height;
       break;
 
@@ -274,7 +274,7 @@ position_mark (const hb_ot_shape_plan_t *plan,
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT:
-      pos.y_offset += base_extents.y_bearing - (mark_extents.y_bearing + mark_extents.height);
+      pos.y_offset = base_extents.y_bearing - (mark_extents.y_bearing + mark_extents.height);
       base_extents.y_bearing -= mark_extents.height;
       base_extents.height += mark_extents.height;
       break;
