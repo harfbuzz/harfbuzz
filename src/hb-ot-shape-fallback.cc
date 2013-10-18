@@ -261,6 +261,12 @@ position_mark (const hb_ot_shape_plan_t *plan,
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW:
       pos.y_offset = base_extents.y_bearing + base_extents.height - mark_extents.y_bearing;
+      /* Never shift a "below" mark upwards. */
+      if ((y_gap > 0) == (pos.y_offset > 0))
+      {
+	base_extents.height -= pos.y_offset;
+	pos.y_offset = 0;
+      }
       base_extents.height += mark_extents.height;
       break;
 
