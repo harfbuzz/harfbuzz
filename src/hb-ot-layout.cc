@@ -825,8 +825,9 @@ apply_string (OT::hb_apply_context_t *c,
   bool ret = false;
   OT::hb_is_inplace_context_t inplace_c (c->face);
   bool inplace = lookup.is_inplace (&inplace_c);
+  hb_buffer_t *buffer = c->buffer;
 
-  if (unlikely (!c->buffer->len || !c->lookup_mask))
+  if (unlikely (!buffer->len || !c->lookup_mask))
     return false;
 
   c->set_lookup (lookup);
@@ -835,43 +836,43 @@ apply_string (OT::hb_apply_context_t *c,
   {
     /* in/out forward substitution/positioning */
     if (Proxy::table_index == 0)
-      c->buffer->clear_output ();
-    c->buffer->idx = 0;
+      buffer->clear_output ();
+    buffer->idx = 0;
 
-    while (c->buffer->idx < c->buffer->len)
+    while (buffer->idx < buffer->len)
     {
-      if (accel.digest.may_have (c->buffer->cur().codepoint) &&
-	  (c->buffer->cur().mask & c->lookup_mask) &&
+      if (accel.digest.may_have (buffer->cur().codepoint) &&
+	  (buffer->cur().mask & c->lookup_mask) &&
 	  apply_once (c, lookup))
 	ret = true;
       else
-	c->buffer->next_glyph ();
+	buffer->next_glyph ();
     }
     if (ret)
     {
       if (!inplace)
-	c->buffer->swap_buffers ();
+	buffer->swap_buffers ();
       else
-        assert (!c->buffer->has_separate_output ());
+        assert (!buffer->has_separate_output ());
     }
   }
   else
   {
     /* in-place backward substitution/positioning */
     if (Proxy::table_index == 0)
-      c->buffer->remove_output ();
-    c->buffer->idx = c->buffer->len - 1;
+      buffer->remove_output ();
+    buffer->idx = buffer->len - 1;
     do
     {
-      if (accel.digest.may_have (c->buffer->cur().codepoint) &&
-	  (c->buffer->cur().mask & c->lookup_mask) &&
+      if (accel.digest.may_have (buffer->cur().codepoint) &&
+	  (buffer->cur().mask & c->lookup_mask) &&
 	  apply_once (c, lookup))
 	ret = true;
       /* The reverse lookup doesn't "advance" cursor (for good reason). */
-      c->buffer->idx--;
+      buffer->idx--;
 
     }
-    while ((int) c->buffer->idx >= 0);
+    while ((int) buffer->idx >= 0);
   }
 
   return ret;
