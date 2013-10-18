@@ -1552,7 +1552,9 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	 *          of the <pref> feature. (Note that a font may shape a Ra consonant with
 	 *          the feature generally but block it in certain contexts.)
 	 */
-	if (i + 1 == end || (info[i + 1].mask & indic_plan->mask_array[PREF]) == 0)
+        /* Note: We just check that something got substituted.  We don't check that
+	 * the <pref> feature actually did it... */
+	if (_hb_glyph_info_substituted (&info[i]))
 	{
 	  /*
 	   *       2. Try to find a target position the same way as for pre-base matra.
@@ -1573,7 +1575,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 		   !(is_one_of (info[new_pos - 1], FLAG(OT_M) | HALANT_OR_COENG_FLAGS)))
 	      new_pos--;
 
-	    /* In Khmer coeng model, a V,Ra can go *after* matras.  If it goes after a
+	    /* In Khmer coeng model, a H,Ra can go *after* matras.  If it goes after a
 	     * split matra, it should be reordered to *before* the left part of such matra. */
 	    if (new_pos > start && info[new_pos - 1].indic_category() == OT_M)
 	    {
