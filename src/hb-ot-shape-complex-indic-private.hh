@@ -43,24 +43,25 @@
  * Not sure how to avoid duplication. */
 enum indic_category_t {
   OT_X = 0,
-  OT_C,
-  OT_V,
-  OT_N,
-  OT_H,
-  OT_ZWNJ,
-  OT_ZWJ,
-  OT_M,
-  OT_SM,
-  OT_VD,
-  OT_A,
-  OT_NBSP,
-  OT_DOTTEDCIRCLE, /* Not in the spec, but special in Uniscribe. /Very very/ special! */
-  OT_RS, /* Register Shifter, used in Khmer OT spec */
-  OT_Coeng,
-  OT_Repha,
-  OT_Ra, /* Not explicitly listed in the OT spec, but used in the grammar. */
-  OT_CM,
-  OT_Avag
+  OT_C = 1,
+  OT_V = 2,
+  OT_N = 3,
+  OT_H = 4,
+  OT_ZWNJ = 5,
+  OT_ZWJ = 6,
+  OT_M = 7,
+  OT_SM = 8,
+  OT_VD = 9,
+  OT_A = 10,
+  OT_NBSP = 11,
+  OT_DOTTEDCIRCLE = 12,
+  OT_RS = 13, /* Register Shifter, used in Khmer OT spec. */
+  OT_Coeng = 14, /* Khmer-style Virama. */
+  OT_Repha = 15, /* Atomically-encoded logical or visual repha. */
+  OT_Ra = 16,
+  OT_CM = 17,  /* Consonant-Medial. */
+  OT_Avag = 18, /* Avagraha. */
+  OT_CM2 = 41 /* Consonant-Medial, second slot. */
 };
 
 /* Visual positions in a syllable from left to right. */

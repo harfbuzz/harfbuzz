@@ -152,12 +152,14 @@ is_joiner (const hb_glyph_info_t &info)
   return is_one_of (info, JOINER_FLAGS);
 }
 
+#define MEDIAL_FLAGS (FLAG (OT_CM) | FLAG (OT_CM2))
+
 /* Note:
  *
  * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
  * cannot happen in a consonant syllable.  The plus side however is, we can call the
  * consonant syllable logic from the vowel syllable function and get it all right! */
-#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CM) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE))
+#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_Ra) | MEDIAL_FLAGS | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE))
 static inline bool
 is_consonant (const hb_glyph_info_t &info)
 {
@@ -213,6 +215,9 @@ set_indic_properties (hb_glyph_info_t &info)
   else if (unlikely (u == 0x200D)) cat = OT_ZWJ;
   else if (unlikely (u == 0x25CC)) cat = OT_DOTTEDCIRCLE;
   else if (unlikely (u == 0x0A71)) cat = OT_SM; /* GURMUKHI ADDAK.  Move it to the end. */
+  else if (unlikely (u == 0xA982)) cat = OT_SM; /* Javanese repha. */
+  else if (unlikely (u == 0xA9BE)) cat = OT_CM2; /* Javanese medial ya. */
+  else if (unlikely (u == 0xA9BD)) { cat = OT_M; pos = POS_POST_C; } /* Javanese vocalic r. */
 
   if (cat == OT_Repha) {
     /* There are two kinds of characters marked as Repha:
@@ -931,7 +936,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     indic_position_t last_pos = POS_START;
     for (unsigned int i = start; i < end; i++)
     {
-      if ((FLAG (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | HALANT_OR_COENG_FLAGS)))
+      if ((FLAG (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | MEDIAL_FLAGS | HALANT_OR_COENG_FLAGS)))
       {
 	info[i].indic_position() = last_pos;
 	if (unlikely (info[i].indic_category() == OT_H &&
