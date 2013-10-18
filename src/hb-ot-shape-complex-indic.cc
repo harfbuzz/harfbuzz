@@ -711,7 +711,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      *    and has more than one consonant, Ra is excluded from candidates for
      *    base consonants. */
     unsigned int limit = start;
-    if (indic_plan->config->reph_pos != POS_RA_TO_BECOME_REPH &&
+    if (indic_plan->config->reph_pos != REPH_POS_DONT_CARE &&
 	indic_plan->mask_array[RPHF] &&
 	start + 3 <= end &&
 	(
@@ -1411,7 +1411,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     unsigned int new_reph_pos;
     reph_position_t reph_pos = indic_plan->config->reph_pos;
 
-    assert (reph_pos != POS_RA_TO_BECOME_REPH);
+    assert (reph_pos != REPH_POS_DONT_CARE);
 
     /*       1. If reph should be positioned after post-base consonant forms,
      *          proceed to step 5.
