@@ -1791,6 +1791,12 @@ compose_indic (const hb_ot_shape_normalize_context_t *c,
   return c->unicode->compose (a, b, ab);
 }
 
+static hb_ot_shape_zero_width_marks_t
+zero_width_marks_preference_indic (const hb_segment_properties_t *props HB_UNUSED)
+{
+  return HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE;
+}
+
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
 {
@@ -1804,6 +1810,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   decompose_indic,
   compose_indic,
   setup_masks_indic,
-  HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
+  zero_width_marks_preference_indic,
   false, /* fallback_position */
 };

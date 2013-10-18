@@ -39,7 +39,7 @@
 #define complex_var_u8_1()	var2.u8[3]
 
 
-enum hb_ot_shape_zero_width_marks_type_t {
+enum hb_ot_shape_zero_width_marks_t {
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
 //  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_EARLY,
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_LATE,
@@ -140,7 +140,11 @@ struct hb_ot_complex_shaper_t
 		       hb_buffer_t              *buffer,
 		       hb_font_t                *font);
 
-  hb_ot_shape_zero_width_marks_type_t zero_width_marks;
+  /* zero_width_marks_preference()
+   * Called during shape().
+   */
+  hb_ot_shape_zero_width_marks_t
+  (*zero_width_marks_preference) (const hb_segment_properties_t *props);
 
   bool fallback_position;
 };

@@ -177,8 +177,6 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
    *
    * This also makes Arial Bold in Windows7 work.  See:
    * https://bugzilla.mozilla.org/show_bug.cgi?id=644184
-   *
-   * TODO: Add test cases for these two.
    */
 
   map->add_gsub_pause (nuke_joiners);
@@ -357,6 +355,12 @@ retry:
   arabic_fallback_plan_shape (fallback_plan, font, buffer);
 }
 
+static hb_ot_shape_zero_width_marks_t
+zero_width_marks_preference_arabic (const hb_segment_properties_t *props HB_UNUSED)
+{
+  return HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE;
+}
+
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
 {
@@ -370,6 +374,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   NULL, /* decompose */
   NULL, /* compose */
   setup_masks_arabic,
-  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
+  zero_width_marks_preference_arabic,
   true, /* fallback_position */
 };

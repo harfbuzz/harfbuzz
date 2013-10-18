@@ -616,8 +616,8 @@ struct hb_apply_context_t
   }
 
   inline void _set_glyph_props (hb_codepoint_t glyph_index,
-			  unsigned int class_guess = 0,
-			  bool ligature = false) const
+				unsigned int class_guess = 0,
+				bool ligature = false) const
   {
     unsigned int add_in = _hb_glyph_info_get_glyph_props (&buffer->cur()) &
 			  HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;

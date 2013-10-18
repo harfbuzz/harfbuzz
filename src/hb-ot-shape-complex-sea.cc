@@ -162,6 +162,12 @@ set_sea_properties (hb_glyph_info_t &info)
 }
 
 
+static hb_ot_shape_normalization_mode_t
+normalization_preference_sea (const hb_segment_properties_t *props HB_UNUSED)
+{
+  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
+}
+
 static void
 setup_masks_sea (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		 hb_buffer_t              *buffer,
@@ -360,10 +366,10 @@ final_reordering (const hb_ot_shape_plan_t *plan,
 }
 
 
-static hb_ot_shape_normalization_mode_t
-normalization_preference_sea (const hb_segment_properties_t *props HB_UNUSED)
+static hb_ot_shape_zero_width_marks_t
+zero_width_marks_preference_sea (const hb_segment_properties_t *props HB_UNUSED)
 {
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
+  return HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE;
 }
 
 
@@ -379,6 +385,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_sea =
   NULL, /* decompose */
   NULL, /* compose */
   setup_masks_sea,
-  HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
+  zero_width_marks_preference_sea,
   false, /* fallback_position */
 };
