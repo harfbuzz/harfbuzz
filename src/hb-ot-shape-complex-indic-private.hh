@@ -61,7 +61,7 @@ enum indic_category_t {
   OT_Ra = 16,
   OT_CM = 17,  /* Consonant-Medial. */
   OT_Avag = 18, /* Avagraha. */
-  OT_CM2 = 41 /* Consonant-Medial, second slot. */
+  OT_CM2 = 31 /* Consonant-Medial, second slot. */
 };
 
 /* Visual positions in a syllable from left to right. */
