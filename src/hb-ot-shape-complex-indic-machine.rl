@@ -57,7 +57,7 @@ Repha = 15;
 Ra    = 16;
 CM    = 17;
 Avag  = 18;
-CM2   = 41;
+CM2   = 31;
 
 c = (C | Ra);			# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier
