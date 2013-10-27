@@ -57,7 +57,7 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
     cairo_surface_reference (surface);
 
   unsigned int stride = cairo_image_surface_get_stride (surface);
-  const uint32_t *data = (uint32_t *) cairo_image_surface_get_data (surface);
+  const uint32_t *data = (uint32_t *) (void *) cairo_image_surface_get_data (surface);
 
   /* We don't have rows to spare on the terminal window...
    * Find the tight image top/bottom and only print in between. */

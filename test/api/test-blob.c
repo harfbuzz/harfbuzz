@@ -270,7 +270,7 @@ test_blob_subblob (fixture_t *fixture, gconstpointer user_data)
 
   if (mm == HB_MEMORY_MODE_DUPLICATE) {
     g_assert_cmpint (fixture->freed, ==, 1);
-    fixture->data = hb_blob_get_data (b, NULL);
+    fixture->data = (char *) hb_blob_get_data (b, NULL);
   } else {
     g_assert_cmpint (fixture->freed, ==, 0);
   }
