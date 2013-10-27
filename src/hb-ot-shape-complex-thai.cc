@@ -361,13 +361,6 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
     do_thai_pua_shaping (plan, buffer, font);
 }
 
-static hb_ot_shape_zero_width_marks_t
-zero_width_marks_preference_thai (const hb_segment_properties_t *props HB_UNUSED)
-{
-  return HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_LATE;
-}
-
-
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
 {
   "thai",
@@ -380,6 +373,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
   NULL, /* decompose */
   NULL, /* compose */
   NULL, /* setup_masks */
-  zero_width_marks_preference_thai,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_LATE,
   false,/* fallback_position */
 };

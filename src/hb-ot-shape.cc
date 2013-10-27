@@ -452,7 +452,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
   bool ret = false;
   unsigned int count = c->buffer->len;
 
-  switch (c->plan->shaper->zero_width_marks_preference (&c->plan->props))
+  switch (c->plan->shaper->zero_width_marks)
   {
     case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY:
       zero_mark_widths_by_gdef (c->buffer);
@@ -497,7 +497,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
     ret = true;
   }
 
-  switch (c->plan->shaper->zero_width_marks_preference (&c->plan->props))
+  switch (c->plan->shaper->zero_width_marks)
   {
     case HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_LATE:
       zero_mark_widths_by_unicode (c->buffer);

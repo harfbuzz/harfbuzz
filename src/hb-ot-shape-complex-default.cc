@@ -203,21 +203,6 @@ compose_default (const hb_ot_shape_normalize_context_t *c,
   return found;
 }
 
-static hb_ot_shape_zero_width_marks_t
-zero_width_marks_preference_default (const hb_segment_properties_t *props)
-{
-  switch ((hb_tag_t) props->script)
-  {
-    /* Unicode-2.0 additions */
-    case HB_SCRIPT_TIBETAN:
-      return HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE;
-
-    default:
-      return HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_LATE;
-  }
-}
-
-
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
 {
   "default",
@@ -230,6 +215,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
   NULL, /* decompose */
   compose_default,
   NULL, /* setup_masks */
-  zero_width_marks_preference_default,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_LATE,
   true, /* fallback_position */
 };

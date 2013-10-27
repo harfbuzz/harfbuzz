@@ -263,12 +263,6 @@ set_myanmar_properties (hb_glyph_info_t &info)
 
 
 
-static hb_ot_shape_normalization_mode_t
-normalization_preference_myanmar (const hb_segment_properties_t *props HB_UNUSED)
-{
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
-}
-
 static void
 setup_masks_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		   hb_buffer_t              *buffer,
@@ -525,10 +519,11 @@ final_reordering (const hb_ot_shape_plan_t *plan,
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_position);
 }
 
-static hb_ot_shape_zero_width_marks_t
-zero_width_marks_preference_myanmar (const hb_segment_properties_t *props HB_UNUSED)
+
+static hb_ot_shape_normalization_mode_t
+normalization_preference_myanmar (const hb_segment_properties_t *props HB_UNUSED)
 {
-  return HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY;
+  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT;
 }
 
 
@@ -544,6 +539,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar =
   NULL, /* decompose */
   NULL, /* compose */
   setup_masks_myanmar,
-  zero_width_marks_preference_myanmar,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_EARLY,
   false, /* fallback_position */
 };
