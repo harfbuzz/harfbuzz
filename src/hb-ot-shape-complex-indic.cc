@@ -1551,6 +1551,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
   if (indic_plan->mask_array[PREF] && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
   {
+    unsigned int pref_len = indic_plan->config->pref_len;
     for (unsigned int i = base + 1; i < end; i++)
       if ((info[i].mask & indic_plan->mask_array[PREF]) != 0)
       {
@@ -1559,8 +1560,12 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	 *          the feature generally but block it in certain contexts.)
 	 */
         /* Note: We just check that something got substituted.  We don't check that
-	 * the <pref> feature actually did it... */
-	if (_hb_glyph_info_substituted (&info[i]))
+	 * the <pref> feature actually did it...
+	 *
+	 * If pref len is longer than one, then only reorder if it ligated.  If
+	 * pref len is one, only reorder if it didn't ligate with other things. */
+	if (_hb_glyph_info_substituted (&info[i]) &&
+	    ((pref_len == 1) ^ _hb_glyph_info_ligated (&info[i])))
 	{
 	  /*
 	   *       2. Try to find a target position the same way as for pre-base matra.
