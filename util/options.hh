@@ -54,6 +54,10 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
+#if !GLIB_CHECK_VERSION (2, 22, 0)
+# define g_mapped_file_unref g_mapped_file_free
+#endif
+
 #undef MIN
 template <typename Type> static inline Type MIN (const Type &a, const Type &b) { return a < b ? a : b; }
 

@@ -34,7 +34,10 @@
 #endif
 
 #ifdef HAVE_GLIB
-#include <glib.h>
+# include <glib.h>
+# if !GLIB_CHECK_VERSION (2, 22, 0)
+#  define g_mapped_file_unref g_mapped_file_free
+# endif
 #endif
 #include <stdlib.h>
 #include <stdio.h>
@@ -61,7 +64,7 @@ main (int argc, char **argv)
     GMappedFile *mf = g_mapped_file_new (argv[1], false, NULL);
     font_data = g_mapped_file_get_contents (mf);
     len = g_mapped_file_get_length (mf);
-    destroy = (hb_destroy_func_t) g_mapped_file_free;
+    destroy = (hb_destroy_func_t) g_mapped_file_unref;
     user_data = (void *) mf;
     mm = HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE;
 #else
