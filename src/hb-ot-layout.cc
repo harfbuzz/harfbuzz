@@ -783,6 +783,7 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 struct GSUBProxy
 {
   static const unsigned int table_index = 0;
+  static const bool inplace = false;
   typedef OT::SubstLookup Lookup;
 
   GSUBProxy (hb_face_t *face) :
@@ -796,6 +797,7 @@ struct GSUBProxy
 struct GPOSProxy
 {
   static const unsigned int table_index = 1;
+  static const bool inplace = true;
   typedef OT::PosLookup Lookup;
 
   GPOSProxy (hb_face_t *face) :
@@ -823,8 +825,6 @@ apply_string (OT::hb_apply_context_t *c,
 	      const hb_ot_layout_lookup_accelerator_t &accel)
 {
   bool ret = false;
-  OT::hb_is_inplace_context_t inplace_c (c->face);
-  bool inplace = lookup.is_inplace (&inplace_c);
   hb_buffer_t *buffer = c->buffer;
 
   if (unlikely (!buffer->len || !c->lookup_mask))
@@ -850,7 +850,7 @@ apply_string (OT::hb_apply_context_t *c,
     }
     if (ret)
     {
-      if (!inplace)
+      if (!Proxy::inplace)
 	buffer->swap_buffers ();
       else
         assert (!buffer->has_separate_output ());
