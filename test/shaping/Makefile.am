@@ -36,6 +36,7 @@ CLEANFILES += \
 
 TESTS = tests/context-matching.tests
 TESTS_ENVIRONMENT = \
+	EXEEXT="$(EXEEXT)" \
 	srcdir="$(srcdir)" \
 	builddir="$(builddir)" \
 	$(srcdir)/run-tests.sh \

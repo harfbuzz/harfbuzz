@@ -4,7 +4,7 @@ test "x$srcdir" = x && srcdir=.
 test "x$builddir" = x && builddir=.
 test "x$top_builddir" = x && top_builddir=../..
 
-hb_shape=$top_builddir/util/hb-shape
+hb_shape=$top_builddir/util/hb-shape$EXEEXT
 
 fails=0
 
