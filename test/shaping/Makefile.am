@@ -21,6 +21,9 @@ EXTRA_DIST += \
 	hb-unicode-encode \
 	hb-unicode-prettyname \
 	run-tests.sh \
+	texts/in-tree \
+	fonts/sha1sum \
+	$(TESTS) \
 	$(NULL)
 
 # TODO Figure out Python stuff
