@@ -37,12 +37,6 @@ namespace OT {
 
 struct SingleSubstFormat1
 {
-  inline bool is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    return TRACE_RETURN (true);
-  }
-
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -121,12 +115,6 @@ struct SingleSubstFormat1
 
 struct SingleSubstFormat2
 {
-  inline bool is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    return TRACE_RETURN (true);
-  }
-
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -263,13 +251,6 @@ struct SingleSubst
 
 struct Sequence
 {
-  inline bool is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    /* For len==0 we don't do anything, so it's harmless. */
-    return TRACE_RETURN (substitute.len <= 1);
-  }
-
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -334,18 +315,6 @@ struct Sequence
 
 struct MultipleSubstFormat1
 {
-  inline bool is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    /* Some tools generate MultipleSubst with each substitute having length 1!
-     * So, check them. */
-    unsigned int count = sequence.len;
-    for (unsigned int i = 0; i < count; i++)
-	if (!(this+sequence[i]).is_inplace (c))
-	  return TRACE_RETURN (false);
-    return TRACE_RETURN (true);
-  }
-
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -471,12 +440,6 @@ typedef ArrayOf<GlyphID> AlternateSet;	/* Array of alternate GlyphIDs--in
 
 struct AlternateSubstFormat1
 {
-  inline bool is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    return TRACE_RETURN (true);
-  }
-
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -796,12 +759,6 @@ struct LigatureSet
 
 struct LigatureSubstFormat1
 {
-  inline bool is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    return TRACE_RETURN (false);
-  }
-
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -950,12 +907,6 @@ struct ExtensionSubst : Extension<ExtensionSubst>
 
 struct ReverseChainSingleSubstFormat1
 {
-  inline bool is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    return TRACE_RETURN (true);
-  }
-
   inline void closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);
@@ -1193,13 +1144,6 @@ struct SubstLookup : Lookup
     if (unlikely (type == SubstLookupSubTable::Extension))
       return CastR<ExtensionSubst> (get_subtable(0)).is_reverse ();
     return lookup_type_is_reverse (type);
-  }
-
-  inline hb_is_inplace_context_t::return_t is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    c->set_recurse_func (dispatch_recurse_func<hb_is_inplace_context_t>);
-    return TRACE_RETURN (dispatch (c));
   }
 
   inline hb_closure_context_t::return_t closure (hb_closure_context_t *c) const

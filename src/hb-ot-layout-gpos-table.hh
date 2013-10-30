@@ -1444,12 +1444,6 @@ struct PosLookup : Lookup
     return false;
   }
 
-  inline hb_is_inplace_context_t::return_t is_inplace (hb_is_inplace_context_t *c) const
-  {
-    TRACE_IS_INPLACE (this);
-    return TRACE_RETURN (true);
-  }
-
   inline hb_collect_glyphs_context_t::return_t collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
