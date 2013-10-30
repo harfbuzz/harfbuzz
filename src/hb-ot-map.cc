@@ -181,7 +181,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
       continue; /* Feature disabled, or not enough bits. */
 
 
-    bool found = false;
+    hb_bool_t found = false;
     unsigned int feature_index[2];
     for (unsigned int table_index = 0; table_index < 2; table_index++)
       found |= hb_ot_layout_language_find_feature (face,
