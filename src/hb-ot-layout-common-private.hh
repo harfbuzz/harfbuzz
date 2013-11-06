@@ -1112,7 +1112,7 @@ struct Device
 
     if (!pixels) return 0;
 
-    return pixels * (int64_t) scale / ppem;
+    return (int) (pixels * (int64_t) scale / ppem);
   }
 
 
