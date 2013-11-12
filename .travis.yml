@@ -9,7 +9,7 @@ install:
   - sudo apt-get install libcairo2-dev # for utils
   - sudo apt-get install libicu-dev # for extra unicode functions
   - sudo apt-get install libgraphite2-dev # for extra shapers
-script: ./autogen.sh && make CPPFLAGS=-Werror && make check CPPFLAGS=-Werror
+script: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make CPPFLAGS=-Werror && make check CPPFLAGS=-Werror
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz@lists.freedesktop.org
