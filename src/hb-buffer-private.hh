@@ -186,7 +186,7 @@ struct hb_buffer_t {
   HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
   HB_INTERNAL bool shift_forward (unsigned int count);
 
-  HB_INTERNAL void *get_scratch_buffer (unsigned int *size);
+  HB_INTERNAL int *get_scratch_buffer (unsigned int *int_size);
 
   inline void clear_context (unsigned int side) { context_len[side] = 0; }
 };

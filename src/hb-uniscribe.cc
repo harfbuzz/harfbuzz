@@ -729,14 +729,9 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
 retry:
 
   unsigned int scratch_size;
-  char *scratch = (char *) buffer->get_scratch_buffer (&scratch_size);
+  int *scratch = buffer->get_scratch_buffer (&scratch_size);
 
   /* Allocate char buffers; they all fit */
-
-#define ALLOCATE_ARRAY(Type, name, len) \
-  Type *name = (Type *) scratch; \
-  scratch += (len) * sizeof ((name)[0]); \
-  scratch_size -= (len) * sizeof ((name)[0]);
 
 #define utf16_index() var1.u32
 
@@ -754,6 +749,15 @@ retry:
       pchars[chars_len++] = 0xD800 + ((c - 0x10000) >> 10);
       pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
     }
+  }
+
+#define ALLOCATE_ARRAY(Type, name, len) \
+  Type *name = (Type *) scratch; \
+  { \
+    unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
+    assert (_consumed <= scratch_size); \
+    scratch += _consumed; \
+    scratch_size -= _consumed; \
   }
 
   ALLOCATE_ARRAY (WCHAR, wchars, chars_len);
@@ -774,12 +778,13 @@ retry:
     }
   }
 
-  /* On Windows, we don't care about alignment...*/
-  unsigned int glyphs_size = scratch_size / (sizeof (WORD) +
-					     sizeof (SCRIPT_GLYPHPROP) +
-					     sizeof (int) +
-					     sizeof (GOFFSET) +
-					     sizeof (uint32_t));
+  /* All the following types are sized in multiples of sizeof(int). */
+  unsigned int glyphs_size = scratch_size / ((sizeof (WORD) +
+					      sizeof (SCRIPT_GLYPHPROP) +
+					      sizeof (int) +
+					      sizeof (GOFFSET) +
+					      sizeof (uint32_t))
+					     / sizeof (int));
 
   ALLOCATE_ARRAY (WORD, glyphs, glyphs_size);
   ALLOCATE_ARRAY (SCRIPT_GLYPHPROP, glyph_props, glyphs_size);

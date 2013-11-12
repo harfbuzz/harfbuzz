@@ -152,8 +152,8 @@ hb_buffer_t::shift_forward (unsigned int count)
   return true;
 }
 
-void *
-hb_buffer_t::get_scratch_buffer (unsigned int *size)
+int *
+hb_buffer_t::get_scratch_buffer (unsigned int *int_size)
 {
   have_output = false;
   have_positions = false;
@@ -161,8 +161,9 @@ hb_buffer_t::get_scratch_buffer (unsigned int *size)
   out_len = 0;
   out_info = info;
 
-  *size = allocated * sizeof (pos[0]);
-  return pos;
+  ASSERT_STATIC (sizeof (pos[0]) % sizeof (int) == 0);
+  *int_size = allocated * (sizeof (pos[0]) / sizeof (int));
+  return (int *) pos;
 }
 
 

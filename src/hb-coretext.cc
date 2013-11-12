@@ -647,17 +647,20 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
     buffer->ensure (buffer->len + num_glyphs);
 
-    /* Testing indicates that CTRunGetGlyphsPtr (almost?) always succeeds,
-     * and so copying data to our own buffer with CTRunGetGlyphs will be
-     * extremely rare. */
-
     unsigned int scratch_size;
-    char *scratch = (char *) buffer->get_scratch_buffer (&scratch_size);
+    int *scratch = buffer->get_scratch_buffer (&scratch_size);
 
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
-  scratch += (len) * sizeof ((name)[0]); \
-  scratch_size -= (len) * sizeof ((name)[0]);
+  { \
+    unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
+    assert (_consumed <= scratch_size); \
+    scratch += _consumed; \
+    scratch_size -= _consumed; \
+  }
+
+    /* Testing indicates that CTRunGetGlyphsPtr, etc (almost?) always
+     * succeed, and so copying data to our own buffer will be rare. */
 
     const CGGlyph* glyphs = CTRunGetGlyphsPtr (run);
     if (!glyphs) {
