@@ -553,11 +553,21 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   } HB_STMT_END;
 
   unsigned int scratch_size;
-  char *scratch = (char *) buffer->get_scratch_buffer (&scratch_size);
+  int *scratch = buffer->get_scratch_buffer (&scratch_size);
+
+#define ALLOCATE_ARRAY(Type, name, len) \
+  Type *name = (Type *) scratch; \
+  { \
+    unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
+    assert (_consumed <= scratch_size); \
+    scratch += _consumed; \
+    scratch_size -= _consumed; \
+  }
 
 #define utf16_index() var1.u32
 
-  UniChar *pchars = (UniChar *) scratch;
+  ALLOCATE_ARRAY (UniChar, pchars, buffer->len * 2);
+
   unsigned int chars_len = 0;
   for (unsigned int i = 0; i < buffer->len; i++) {
     hb_codepoint_t c = buffer->info[i].codepoint;
@@ -586,7 +596,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
   if (num_features)
   {
-    unsigned int *log_clusters = (unsigned int *) (pchars + chars_len);
+    ALLOCATE_ARRAY (unsigned int, log_clusters, chars_len);
 
     /* Need log_clusters to assign features. */
     chars_len = 0;
@@ -649,15 +659,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
     unsigned int scratch_size;
     int *scratch = buffer->get_scratch_buffer (&scratch_size);
-
-#define ALLOCATE_ARRAY(Type, name, len) \
-  Type *name = (Type *) scratch; \
-  { \
-    unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
-    assert (_consumed <= scratch_size); \
-    scratch += _consumed; \
-    scratch_size -= _consumed; \
-  }
 
     /* Testing indicates that CTRunGetGlyphsPtr, etc (almost?) always
      * succeed, and so copying data to our own buffer will be rare. */
