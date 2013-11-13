@@ -553,7 +553,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   } HB_STMT_END;
 
   unsigned int scratch_size;
-  int *scratch = buffer->get_scratch_buffer (&scratch_size);
+  hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
 
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
@@ -657,8 +657,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
     buffer->ensure (buffer->len + num_glyphs);
 
-    unsigned int scratch_size;
-    int *scratch = buffer->get_scratch_buffer (&scratch_size);
+    scratch = buffer->get_scratch_buffer (&scratch_size);
 
     /* Testing indicates that CTRunGetGlyphsPtr, etc (almost?) always
      * succeed, and so copying data to our own buffer will be rare. */

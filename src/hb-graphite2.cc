@@ -243,7 +243,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   float curradvx = 0., curradvy = 0.;
 
   unsigned int scratch_size;
-  int *scratch = buffer->get_scratch_buffer (&scratch_size);
+  hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
 
   uint32_t *chars = (uint32_t *) scratch;
 
