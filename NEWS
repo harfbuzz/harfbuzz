@@ -1,3 +1,11 @@
+Overview of changes leading to 0.9.24
+Tuesday, November 13, 2013
+=====================================
+
+- Misc compiler warning fixes with clang.
+- No functional changes.
+
+
 Overview of changes leading to 0.9.23
 Monday, October 28, 2013
 =====================================
