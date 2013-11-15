@@ -1150,7 +1150,10 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
   buffer->len = length;
 
   if (!length)
+  {
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
     buffer->clear_context (0);
+  }
   buffer->clear_context (1);
 
   return true;
