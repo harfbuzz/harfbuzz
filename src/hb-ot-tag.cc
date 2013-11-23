@@ -330,6 +330,7 @@ static const LangTag ot_languages[] = {
   {"kfy",	HB_TAG('K','M','N',' ')},	/* Kumaoni */
   {"kha",	HB_TAG('K','S','I',' ')},	/* Khasi */
   {"khb",	HB_TAG('X','B','D',' ')},	/* Tai Lue */
+  {"kht",	HB_TAG('K','H','N',' ')},	/* Khamti */  
   {"khw",	HB_TAG('K','H','W',' ')},	/* Khowar */
   {"ki",	HB_TAG('K','I','K',' ')},	/* Kikuyu */
   {"kjh",	HB_TAG('K','H','A',' ')},	/* Khakass */
@@ -352,6 +353,7 @@ static const LangTag ot_languages[] = {
   {"krl",	HB_TAG('K','R','L',' ')},	/* Karelian */
   {"kru",	HB_TAG('K','U','U',' ')},	/* Kurukh */
   {"ks",	HB_TAG('K','S','H',' ')},	/* Kashmiri */
+  {"ksw",	HB_TAG('K','R','N',' ')},	/* S'gaw Karen */
   {"ku",	HB_TAG('K','U','R',' ')},	/* Kurdish */
   {"kum",	HB_TAG('K','U','M',' ')},	/* Kumyk */
   {"kvd",	HB_TAG('K','U','I',' ')},	/* Kui (Indonesia) */
