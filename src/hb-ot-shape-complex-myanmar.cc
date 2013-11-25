@@ -186,6 +186,10 @@ set_myanmar_properties (hb_glyph_info_t &info)
 
   switch (u)
   {
+    case 0x104E:
+      cat = (indic_category_t) OT_C; /* The spec says C, IndicSyllableCategory doesn't have. */
+      break;
+
     case 0x002D: case 0x00A0: case 0x00D7: case 0x2012:
     case 0x2013: case 0x2014: case 0x2015: case 0x2022:
     case 0x25CC: case 0x25FB: case 0x25FC: case 0x25FD:
