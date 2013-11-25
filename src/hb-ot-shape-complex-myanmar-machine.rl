@@ -61,6 +61,7 @@ VS   = 30;
 ZWJ  = 6;
 ZWNJ = 5;
 Ra   = 16;
+P    = 31;
 
 j = ZWJ|ZWNJ;			# Joiners
 k = (Ra As H);			# Kinzi
@@ -76,12 +77,14 @@ complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_
 syllable_tail = (H | complex_syllable_tail);
 
 consonant_syllable =	k? (c|IV|D|GB).VS? (H (c|IV).VS?)* syllable_tail;
+punctuation_cluster = 	P V;
 broken_cluster =	k? VS? syllable_tail;
 other =			any;
 
 main := |*
 	consonant_syllable	=> { found_syllable (consonant_syllable); };
 	j			=> { found_syllable (non_myanmar_cluster); };
+	punctuation_cluster	=> { found_syllable (punctuation_cluster); };
 	broken_cluster		=> { found_syllable (broken_cluster); };
 	other			=> { found_syllable (non_myanmar_cluster); };
 *|;
