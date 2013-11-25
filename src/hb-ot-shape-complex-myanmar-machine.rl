@@ -70,7 +70,7 @@ c = C|Ra;			# is_consonant
 medial_group = MY? MR? ((MW MH? | MH) As?)?;
 main_vowel_group = VPre* VAbv* VBlw* A* (DB As?)?;
 post_vowel_group = VPst MH? As* VAbv* A* (DB As?)?;
-pwo_tone_group = PT A* (DB As?)?;
+pwo_tone_group = PT A* DB? As?;
 
 complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* V* j?;
 syllable_tail = (H | complex_syllable_tail);
