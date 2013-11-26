@@ -377,7 +377,7 @@ struct FeatureParamsStylisticSet
     return TRACE_RETURN (c->check_struct (this));
   }
 
-  USHORT	minorVersion;	/* (set to 0): This corresponds to a “minor”
+  USHORT	version;	/* (set to 0): This corresponds to a “minor”
 				 * version number. Additional data may be
 				 * added to the end of this Feature Parameters
 				 * table in the future. */
