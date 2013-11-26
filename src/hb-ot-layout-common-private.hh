@@ -400,6 +400,7 @@ struct FeatureParamsStylisticSet
   DEFINE_SIZE_STATIC (4);
 };
 
+/* http://www.microsoft.com/typography/otspec/features_ae.htm#cv01-cv99 */
 struct FeatureParamsCharacterVariants
 {
   inline bool sanitize (hb_sanitize_context_t *c) {
