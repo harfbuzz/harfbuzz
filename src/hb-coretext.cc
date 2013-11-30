@@ -394,6 +394,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
                     unsigned int        num_features)
 {
   hb_face_t *face = font->face;
+  hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
   hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
 
   /*
@@ -648,7 +649,8 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
   const CFRange range_all = CFRangeMake (0, 0);
 
-  for (unsigned int i = 0; i < num_runs; i++) {
+  for (unsigned int i = 0; i < num_runs; i++)
+  {
     CTRunRef run = (CTRunRef) CFArrayGetValueAtIndex (glyph_runs, i);
 
     /* CoreText does automatic font fallback (AKA "cascading") for  characters
@@ -657,19 +659,24 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
      * one and fill in the buffer with .notdef glyphs instead of random glyph
      * indices from a different font.
      */
-    CFRange range = CTRunGetStringRange (run);
     CFDictionaryRef attributes = CTRunGetAttributes (run);
     CTFontRef run_ct_font = static_cast<CTFontRef>(CFDictionaryGetValue (attributes, kCTFontAttributeName));
     CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
-    CGFontRef cg_font = CTFontCopyGraphicsFont (font_data->ct_font, 0);
-    if (!CFEqual (run_cg_font, cg_font)) {
+    if (!CFEqual (run_cg_font, face_data->cg_font))
+    {
         CFRelease (run_cg_font);
-        CFRelease (cg_font);
-        for (CFIndex j = 0; j < range.length; j++) {
+
+	CFRange range = CTRunGetStringRange (run);
+	buffer->ensure (buffer->len + range.length);
+	if (buffer->in_error)
+	  FAIL ("Buffer resize failed");
+	hb_glyph_info_t *info = buffer->info + buffer->len;
+	buffer->len += range.length;
+
+        for (CFIndex j = 0; j < range.length; j++)
+	{
             CGGlyph notdef = 0;
             double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font, kCTFontHorizontalOrientation, &notdef, NULL, 1);
-
-            hb_glyph_info_t *info = &buffer->info[buffer->len];
 
             info->codepoint = notdef;
             info->cluster = range.location + j;
@@ -678,13 +685,11 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
             info->var1.u32 = 0;
             info->var2.u32 = 0;
 
-            buffer->len++;
+	    info++;
         }
         continue;
     }
-
     CFRelease (run_cg_font);
-    CFRelease (cg_font);
 
     unsigned int num_glyphs = CTRunGetGlyphCount (run);
     if (num_glyphs == 0)
