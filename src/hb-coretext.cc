@@ -679,6 +679,8 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
             double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font, kCTFontHorizontalOrientation, &notdef, NULL, 1);
 
             info->codepoint = notdef;
+	    /* TODO We have to fixup clusters later.  See vis_clusters in
+	     * hb-uniscribe.cc for example. */
             info->cluster = range.location + j;
 
             info->mask = advance;
