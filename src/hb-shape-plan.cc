@@ -396,6 +396,8 @@ retry:
   }
 
   /* Release our reference on face. */
+  /* XXX This is unsafe, since the face can be freed before us,
+   * and we will call hb_face_destroy() in our destroy()! */
   hb_face_destroy (face);
 
   return hb_shape_plan_reference (shape_plan);
