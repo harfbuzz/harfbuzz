@@ -369,11 +369,12 @@ void
 output_options_t::add_options (option_parser_t *parser)
 {
   const char *text;
+  char *text_free = NULL;
 
   if (NULL == supported_formats)
     text = "Set output format";
   else
-    text = g_strdup_printf ("Set output format\n\n    Supported formats are: %s", supported_formats);
+    text = text_free = g_strdup_printf ("Set output format\n\n    Supported formats are: %s", supported_formats);
 
   GOptionEntry entries[] =
   {
@@ -386,6 +387,8 @@ output_options_t::add_options (option_parser_t *parser)
 		     "Output options:",
 		     "Options controlling the output",
 		     this);
+
+  g_free (text_free);
 }
 
 
