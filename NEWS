@@ -1,3 +1,15 @@
+Overview of changes leading to 0.9.25
+Wednesday, December 4, 2013
+=====================================
+
+- Myanmar shaper improvements.
+- Avoid font fallback in CoreText backend.
+- Additional OpenType language tag mappiongs.
+- More aggressive shape-plan caching.
+- Build with / require automake 1.13.
+- Build with libtool 2.4.2.418 alpha to support ppc64le.
+
+
 Overview of changes leading to 0.9.24
 Tuesday, November 13, 2013
 =====================================
