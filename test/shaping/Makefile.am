@@ -35,12 +35,21 @@ CLEANFILES += \
 	$(NULL)
 
 TESTS = tests/context-matching.tests
-TESTS_ENVIRONMENT = \
-	EXEEXT="$(EXEEXT)" \
-	srcdir="$(srcdir)" \
-	builddir="$(builddir)" \
-	$(srcdir)/run-tests.sh \
+
+TEST_EXTENSIONS = \
+	.tests \
 	$(NULL)
+
+AM_TESTS_ENVIRONMENT = \
+	EXEEXT="$(EXEEXT)"; \
+	export EXEECT; \
+	srcdir="$(srcdir)"; \
+	export srcdir; \
+	builddir="$(builddir)"; \
+	export builddir; \
+	$(NULL)
+
+TESTS_LOG_COMPILER = sh $(srcdir)/run-tests.sh
 
 .PHONY: manifests
 
