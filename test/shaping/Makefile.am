@@ -49,6 +49,13 @@ AM_TESTS_ENVIRONMENT = \
 	export builddir; \
 	$(NULL)
 
+if AUTOMAKE_OLDER_THAN_1_13
+TESTS_ENVIRONMENT = \
+	$(AM_TESTS_ENVIRONMENT) \
+	$(TESTS_LOG_COMPILER) \
+	$(NULL)
+endif
+
 TESTS_LOG_COMPILER = sh $(srcdir)/run-tests.sh
 
 .PHONY: manifests
