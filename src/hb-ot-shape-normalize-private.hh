@@ -29,8 +29,6 @@
 
 #include "hb-private.hh"
 
-#include "hb-font.h"
-#include "hb-buffer.h"
 
 /* buffer var allocations, used during the normalization process */
 #define glyph_index()	var1.u32

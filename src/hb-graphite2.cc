@@ -34,8 +34,6 @@
 
 #include <graphite2/Segment.h>
 
-#include "hb-ot-tag.h"
-
 
 HB_SHAPER_DATA_ENSURE_DECLARE(graphite2, face)
 HB_SHAPER_DATA_ENSURE_DECLARE(graphite2, font)

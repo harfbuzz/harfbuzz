@@ -31,8 +31,6 @@
 
 #include "hb-private.hh"
 
-#include "hb-blob.h"
-
 
 namespace OT {
 

@@ -32,8 +32,6 @@
 #define HB_UNICODE_PRIVATE_HH
 
 #include "hb-private.hh"
-
-#include "hb-unicode.h"
 #include "hb-object-private.hh"
 
 
