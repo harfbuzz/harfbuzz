@@ -30,9 +30,17 @@ SCANGOBJ_OPTIONS=
 # e.g. SCAN_OPTIONS=--deprecated-guards="GTK_DISABLE_DEPRECATED"
 SCAN_OPTIONS=--rebuild-types --deprecated-guards="HB_DISABLE_DEPRECATED"
 
+# Header files or dirs to ignore when scanning. Use base file/dir names
+# e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h private_code
+IGNORE_HFILES=`cd $(top_srcdir)/src; find . -path './hb-*/*.h' | sed 's@^.*/@@'`
+if HAVE_GOBJECT
+else
+IGNORE_HFILES+=hb-gobject.h hb-gobject-enums.h hb-gobject-structs.h
+endif
+
 # Extra options to supply to gtkdoc-mkdb.
 # e.g. MKDB_OPTIONS=--xml-mode --output-format=xml
-MKDB_OPTIONS=--source-suffixes=h,cc --xml-mode --output-format=xml
+MKDB_OPTIONS=--source-suffixes=h,cc --xml-mode --output-format=xml --ignore-files="$(IGNORE_HFILES)"
 
 # Extra options to supply to gtkdoc-mktmpl
 # e.g. MKTMPL_OPTIONS=--only-section-tmpl
@@ -54,14 +62,6 @@ CFILE_GLOB=$(top_srcdir)/src/hb-*.cc
 # Extra header to include when scanning, which are not under DOC_SOURCE_DIR
 # e.g. EXTRA_HFILES=$(top_srcdir}/contrib/extra.h
 EXTRA_HFILES=$(top_builddir)/src/hb-version.h
-
-# Header files or dirs to ignore when scanning. Use base file/dir names
-# e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h private_code
-IGNORE_HFILES=`cd $(top_srcdir)/src; find . -path './hb-*/*.h' | sed 's@^.*/@@'`
-if HAVE_GOBJECT
-else
-IGNORE_HFILES+=hb-gobject.h hb-gobject-enums.h hb-gobject-structs.h
-endif
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
