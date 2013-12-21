@@ -306,13 +306,20 @@ hb_ot_mirror_chars (hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
+hb_ot_shape_initialize_masks (hb_ot_shape_context_t *c)
 {
   hb_ot_map_t *map = &c->plan->map;
   hb_buffer_t *buffer = c->buffer;
 
   hb_mask_t global_mask = map->get_global_mask ();
   buffer->reset_masks (global_mask);
+}
+
+static inline void
+hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
+{
+  hb_ot_map_t *map = &c->plan->map;
+  hb_buffer_t *buffer = c->buffer;
 
   if (c->plan->shaper->setup_masks)
     c->plan->shaper->setup_masks (c->plan, buffer, c->font);
@@ -357,6 +364,8 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
 
   if (c->plan->shaper->preprocess_text)
     c->plan->shaper->preprocess_text (c->plan, buffer, c->font);
+
+  hb_ot_shape_initialize_masks (c);
 
   hb_ot_mirror_chars (c);
 
