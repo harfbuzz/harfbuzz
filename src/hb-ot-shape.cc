@@ -88,6 +88,10 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       break;
   }
 
+  map->add_feature (HB_TAG ('f','r','a','c'), 1, F_NONE);
+  map->add_feature (HB_TAG ('n','u','m','r'), 1, F_NONE);
+  map->add_feature (HB_TAG ('d','n','o','m'), 1, F_NONE);
+
   if (planner->shaper->collect_features)
     planner->shaper->collect_features (planner);
 
@@ -306,6 +310,51 @@ hb_ot_mirror_chars (hb_ot_shape_context_t *c)
 }
 
 static inline void
+hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
+{
+  hb_buffer_t *buffer = c->buffer;
+  bool initialized = false;
+  hb_mask_t frac_mask = 0, numr_mask = 0, dnom_mask = 0;
+
+  /* TODO look in pre/post context text also. */
+  unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
+  for (unsigned int i = 0; i < count; i++)
+  {
+    if (info[i].codepoint == 0x2044) /* FRACTION SLASH */
+    {
+      if (!initialized)
+      {
+	initialized = true;
+
+	frac_mask = c->plan->map.get_1_mask (HB_TAG ('f','r','a','c'));
+	numr_mask = c->plan->map.get_1_mask (HB_TAG ('n','u','m','r'));
+	dnom_mask = c->plan->map.get_1_mask (HB_TAG ('d','n','o','m'));
+
+	if (!(frac_mask | numr_mask | dnom_mask))
+	  return;
+      }
+
+      unsigned int start = i, end = i + 1;
+      while (start &&
+	     _hb_glyph_info_get_general_category (&info[start - 1]) ==
+	     HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
+        start--;
+      while (end < count &&
+	     _hb_glyph_info_get_general_category (&info[end]) ==
+	     HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
+        end++;
+
+      buffer->set_masks (frac_mask, frac_mask, start, end);
+      buffer->set_masks (numr_mask, numr_mask, start, i);
+      buffer->set_masks (dnom_mask, dnom_mask, i + 1, end);
+
+      i = end - 1;
+    }
+  }
+}
+
+static inline void
 hb_ot_shape_initialize_masks (hb_ot_shape_context_t *c)
 {
   hb_ot_map_t *map = &c->plan->map;
@@ -320,6 +369,8 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
 {
   hb_ot_map_t *map = &c->plan->map;
   hb_buffer_t *buffer = c->buffer;
+
+  hb_ot_shape_setup_masks_fraction (c);
 
   if (c->plan->shaper->setup_masks)
     c->plan->shaper->setup_masks (c->plan, buffer, c->font);
