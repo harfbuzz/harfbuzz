@@ -88,6 +88,8 @@ struct hb_ot_map_t
     return map ? map->needs_fallback : false;
   }
 
+  /* XXX get_1_mask is actually unsafe if feature has more than
+   * one bit. */
   inline hb_mask_t get_1_mask (hb_tag_t feature_tag) const {
     const feature_map_t *map = features.bsearch (&feature_tag);
     return map ? map->_1_mask : 0;
