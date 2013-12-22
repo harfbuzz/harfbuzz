@@ -331,7 +331,8 @@ hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
 	numr_mask = c->plan->map.get_1_mask (HB_TAG ('n','u','m','r'));
 	dnom_mask = c->plan->map.get_1_mask (HB_TAG ('d','n','o','m'));
 
-	if (!(frac_mask | numr_mask | dnom_mask))
+	/* Only proceed if frac exists, or both numr and dnom exist. */
+	if (!frac_mask && (!numr_mask || !dnom_mask))
 	  return;
       }
 
