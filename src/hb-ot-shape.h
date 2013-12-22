@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2013  Red Hat, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -24,19 +24,30 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#ifndef HB_OT_SHAPE_H
+#define HB_OT_SHAPE_H
+#define HB_OT_SHAPE_H_IN
 
 #include "hb.h"
 
 #include "hb-ot-layout.h"
 #include "hb-ot-tag.h"
-#include "hb-ot-shape.h"
 
 HB_BEGIN_DECLS
 
+void
+hb_ot_shape_glyphs_closure (hb_font_t          *font,
+                hb_buffer_t        *buffer,
+                const hb_feature_t *features,
+                unsigned int        num_features,
+                hb_set_t           *glyphs);
+
+void
+hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
+                hb_tag_t         table_tag,
+                hb_set_t        *lookup_indexes /* OUT */);
+
 HB_END_DECLS
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#undef HB_OT_SHAPE_H_IN
+#endif /* HB_OT_SHAPE_H */
