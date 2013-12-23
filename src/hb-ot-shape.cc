@@ -346,9 +346,11 @@ hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
 	     HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
         end++;
 
-      buffer->set_masks (frac_mask, frac_mask, start, end);
-      buffer->set_masks (numr_mask, numr_mask, start, i);
-      buffer->set_masks (dnom_mask, dnom_mask, i + 1, end);
+      for (unsigned int j = start; j < i; j++)
+        info[j].mask |= numr_mask | frac_mask;
+      info[i].mask |= frac_mask;
+      for (unsigned int j = i + 1; j < end; j++)
+        info[j].mask |= frac_mask | dnom_mask;
 
       i = end - 1;
     }
