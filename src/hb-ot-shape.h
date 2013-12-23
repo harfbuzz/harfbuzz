@@ -35,6 +35,7 @@
 
 HB_BEGIN_DECLS
 
+/* TODO port to shape-plan / set. */
 void
 hb_ot_shape_glyphs_closure (hb_font_t          *font,
                 hb_buffer_t        *buffer,
