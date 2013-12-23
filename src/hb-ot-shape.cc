@@ -296,7 +296,7 @@ hb_ot_mirror_chars (hb_ot_shape_context_t *c)
 
   hb_buffer_t *buffer = c->buffer;
   hb_unicode_funcs_t *unicode = buffer->unicode;
-  hb_mask_t rtlm_mask = c->plan->map.get_1_mask (HB_TAG ('r','t','l','m'));
+  hb_mask_t rtlm_mask = c->plan->rtlm_mask;
 
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
@@ -312,9 +312,10 @@ hb_ot_mirror_chars (hb_ot_shape_context_t *c)
 static inline void
 hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
 {
+  if (!c->plan->has_frac)
+    return;
+
   hb_buffer_t *buffer = c->buffer;
-  bool initialized = false;
-  hb_mask_t frac_mask = 0, numr_mask = 0, dnom_mask = 0;
 
   /* TODO look in pre/post context text also. */
   unsigned int count = buffer->len;
@@ -323,19 +324,6 @@ hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
   {
     if (info[i].codepoint == 0x2044) /* FRACTION SLASH */
     {
-      if (!initialized)
-      {
-	initialized = true;
-
-	frac_mask = c->plan->map.get_1_mask (HB_TAG ('f','r','a','c'));
-	numr_mask = c->plan->map.get_1_mask (HB_TAG ('n','u','m','r'));
-	dnom_mask = c->plan->map.get_1_mask (HB_TAG ('d','n','o','m'));
-
-	/* Only proceed if frac exists, or both numr and dnom exist. */
-	if (!frac_mask && (!numr_mask || !dnom_mask))
-	  return;
-      }
-
       unsigned int start = i, end = i + 1;
       while (start &&
 	     _hb_glyph_info_get_general_category (&info[start - 1]) ==
@@ -347,10 +335,10 @@ hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
         end++;
 
       for (unsigned int j = start; j < i; j++)
-        info[j].mask |= numr_mask | frac_mask;
-      info[i].mask |= frac_mask;
+        info[j].mask |= c->plan->numr_mask | c->plan->frac_mask;
+      info[i].mask |= c->plan->frac_mask;
       for (unsigned int j = i + 1; j < end; j++)
-        info[j].mask |= frac_mask | dnom_mask;
+        info[j].mask |= c->plan->frac_mask | c->plan->dnom_mask;
 
       i = end - 1;
     }
