@@ -58,12 +58,6 @@ collect_features_default (hb_ot_shape_planner_t *plan)
     plan->map.add_global_bool_feature (*script_features);
 }
 
-static hb_ot_shape_normalization_mode_t
-normalization_preference_default (const hb_segment_properties_t *props)
-{
-  return HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
-}
-
 static bool
 compose_default (const hb_ot_shape_normalize_context_t *c,
 		 hb_codepoint_t  a,
@@ -198,7 +192,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
   NULL, /* data_create */
   NULL, /* data_destroy */
   NULL, /* preprocess_text */
-  normalization_preference_default,
+  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
   NULL, /* decompose */
   compose_default,
   NULL, /* setup_masks */

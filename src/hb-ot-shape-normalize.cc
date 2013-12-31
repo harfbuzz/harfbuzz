@@ -289,9 +289,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 			hb_buffer_t *buffer,
 			hb_font_t *font)
 {
-  hb_ot_shape_normalization_mode_t mode = plan->shaper->normalization_preference ?
-					  plan->shaper->normalization_preference (&buffer->props) :
-					  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT;
+  hb_ot_shape_normalization_mode_t mode = plan->shaper->normalization_preference;
   const hb_ot_shape_normalize_context_t c = {
     plan,
     buffer,

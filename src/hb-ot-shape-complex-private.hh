@@ -106,12 +106,7 @@ struct hb_ot_complex_shaper_t
 			   hb_font_t                *font);
 
 
-  /* normalization_preference()
-   * Called during shape().
-   * May be NULL.
-   */
-  hb_ot_shape_normalization_mode_t
-  (*normalization_preference) (const hb_segment_properties_t *props);
+  hb_ot_shape_normalization_mode_t normalization_preference;
 
   /* decompose()
    * Called during shape()'s normalization.
