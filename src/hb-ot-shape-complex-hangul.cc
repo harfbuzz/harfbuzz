@@ -227,6 +227,6 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_hangul =
   NULL, /* decompose */
   NULL, /* compose */
   NULL, /* setup_masks */
-  HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_UNICODE_LATE,
+  HB_OT_SHAPE_ZERO_WIDTH_MARKS_DEFAULT,
   false, /* fallback_position */
 };
