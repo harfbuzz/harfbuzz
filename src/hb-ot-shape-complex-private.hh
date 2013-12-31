@@ -55,10 +55,12 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_COMPLEX_SHAPER_IMPLEMENT (default) /* should be first */ \
   HB_COMPLEX_SHAPER_IMPLEMENT (arabic) \
   HB_COMPLEX_SHAPER_IMPLEMENT (hangul) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (hebrew) \
   HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar) \
   HB_COMPLEX_SHAPER_IMPLEMENT (sea) \
   HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (tibetan) \
   /* ^--- Add new shapers here */
 
 
@@ -193,6 +195,18 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
       return &_hb_ot_complex_shaper_hangul;
 
 
+    /* Unicode-2.0 additions */
+    case HB_SCRIPT_TIBETAN:
+
+      return &_hb_ot_complex_shaper_tibetan;
+
+
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_HEBREW:
+
+      return &_hb_ot_complex_shaper_hebrew;
+
+
     /* ^--- Add new shapers here */
 
 
@@ -229,9 +243,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     /* These have their own shaper now. */
     case HB_SCRIPT_LAO:
     case HB_SCRIPT_THAI:
-
-    /* Unicode-2.0 additions */
-    case HB_SCRIPT_TIBETAN:
 
     /* Unicode-3.2 additions */
     case HB_SCRIPT_TAGALOG:
