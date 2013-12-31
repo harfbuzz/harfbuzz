@@ -32,14 +32,6 @@
 
 /* The default shaper *only* adds additional per-script features.*/
 
-static const hb_tag_t hangul_features[] =
-{
-  HB_TAG('l','j','m','o'),
-  HB_TAG('v','j','m','o'),
-  HB_TAG('t','j','m','o'),
-  HB_TAG_NONE
-};
-
 static const hb_tag_t tibetan_features[] =
 {
   HB_TAG('a','b','v','s'),
@@ -56,11 +48,6 @@ collect_features_default (hb_ot_shape_planner_t *plan)
 
   switch ((hb_tag_t) plan->props.script)
   {
-    /* Unicode-1.1 additions */
-    case HB_SCRIPT_HANGUL:
-      script_features = hangul_features;
-      break;
-
     /* Unicode-2.0 additions */
     case HB_SCRIPT_TIBETAN:
       script_features = tibetan_features;

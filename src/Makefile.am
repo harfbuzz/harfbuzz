@@ -92,6 +92,7 @@ HBSOURCES += \
 	hb-ot-shape-complex-arabic-fallback.hh \
 	hb-ot-shape-complex-arabic-table.hh \
 	hb-ot-shape-complex-default.cc \
+	hb-ot-shape-complex-hangul.cc \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic-machine.hh \
 	hb-ot-shape-complex-indic-private.hh \
