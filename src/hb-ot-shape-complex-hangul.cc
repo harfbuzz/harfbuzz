@@ -60,7 +60,7 @@ collect_features_hangul (hb_ot_shape_planner_t *plan)
 #define isCombiningT(u) (hb_in_range<hb_codepoint_t> ((u), TBase+1, TBase+TCount-1))
 #define isCombinedS(u) (hb_in_range<hb_codepoint_t> ((u), SBase, SBase+SCount-1))
 
-#define isT(u) (hb_in_ranges<hb_codepoint_t> ((u),  0x11A8, 0x11FF, 0xD7C8, 0xD7FF))
+#define isT(u) (hb_in_ranges<hb_codepoint_t> ((u),  0x11A8, 0x11FF, 0xD7CB, 0xD7FB))
 
 static void
 preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
@@ -82,7 +82,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
    *
    *   - <L>: U+1100..115F, U+A960..A97F
    *   - <V>: U+1160..11A7, U+D7B0..D7C7
-   *   - <T>: U+11A8..11FF, U+D7C8..D7FF
+   *   - <T>: U+11A8..11FF, U+D7CB..D7FB
    *
    *   - Only the <L,V> sequences for the 11xx ranges combine.
    *   - Only <LV,T> sequences for T in U+11A8..11C3 combine.
