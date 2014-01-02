@@ -165,8 +165,8 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
       bool has_glyph = font->get_glyph (s, 0, &glyph);
       unsigned int lindex = (s - SBase) / NCount;
       unsigned int nindex = (s - SBase) % NCount;
-      unsigned int vindex = nindex / VCount;
-      unsigned int tindex = nindex % VCount;
+      unsigned int vindex = nindex / TCount;
+      unsigned int tindex = nindex % TCount;
 
       if (tindex && has_glyph)
 	goto next; /* <LVT> supported.  Nothing to do. */
