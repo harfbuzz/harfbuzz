@@ -218,7 +218,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_hangul =
   NULL, /* data_create */
   NULL, /* data_destroy */
   preprocess_text_hangul,
-  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
+  HB_OT_SHAPE_NORMALIZATION_MODE_NONE,
   NULL, /* decompose */
   NULL, /* compose */
   NULL, /* setup_masks */
