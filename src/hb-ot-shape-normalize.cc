@@ -391,8 +391,9 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
         return;
       buffer->merge_out_clusters (starter, buffer->out_len);
       buffer->out_len--; /* Remove the second composable. */
-      buffer->out_info[starter].codepoint = composed; /* Modify starter and carry on. */
-      set_glyph (buffer->out_info[starter], font);
+      /* Modify starter and carry on. */
+      buffer->out_info[starter].codepoint = composed;
+      buffer->out_info[starter].glyph_index() = glyph;
       _hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
 
       continue;
