@@ -238,8 +238,7 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
       HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     return;
 
-  hb_codepoint_t dottedcircle_glyph;
-  if (!font->get_glyph (0x25CC, 0, &dottedcircle_glyph))
+  if (!font->has_glyph (0x25CC))
     return;
 
   hb_glyph_info_t dottedcircle;

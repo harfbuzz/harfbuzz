@@ -145,8 +145,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	if (len)
 	{
 	  hb_codepoint_t s = SBase + (l - LBase) * NCount + (v - VBase) * TCount + tindex;
-	  hb_codepoint_t glyph;
-	  if (font->get_glyph (s, 0, &glyph))
+	  if (font->has_glyph (s))
 	  {
 	    buffer->replace_glyphs (len, 1, &s);
 	    if (unlikely (buffer->in_error))
@@ -161,8 +160,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
     {
        /* Have <LV>, <LVT>, or <LV,T> */
       hb_codepoint_t s = u;
-      hb_codepoint_t glyph;
-      bool has_glyph = font->get_glyph (s, 0, &glyph);
+      bool has_glyph = font->has_glyph (s);
       unsigned int lindex = (s - SBase) / NCount;
       unsigned int nindex = (s - SBase) % NCount;
       unsigned int vindex = nindex / TCount;
@@ -175,7 +173,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	/* <LV,T>, try to combine. */
 	unsigned int new_tindex = buffer->cur(+1).codepoint - TBase;
 	hb_codepoint_t new_s = s + new_tindex;
-        if (font->get_glyph (new_s, 0, &glyph))
+        if (font->has_glyph (new_s))
 	{
 	  buffer->replace_glyphs (2, 1, &new_s);
 	  if (unlikely (buffer->in_error))
@@ -195,9 +193,9 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	hb_codepoint_t decomposed[3] = {LBase + lindex,
 					VBase + vindex,
 					TBase + tindex};
-        if (font->get_glyph (decomposed[0], 0, &glyph) &&
-	    font->get_glyph (decomposed[1], 0, &glyph) &&
-	    (!tindex || font->get_glyph (decomposed[2], 0, &glyph)))
+        if (font->has_glyph (decomposed[0]) &&
+	    font->has_glyph (decomposed[1]) &&
+	    (!tindex || font->has_glyph (decomposed[2])))
 	{
 	  buffer->replace_glyphs (1, tindex ? 3 : 2, decomposed);
 	  if (unlikely (buffer->in_error))
