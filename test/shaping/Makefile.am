@@ -26,14 +26,6 @@ EXTRA_DIST += \
 	$(TESTS) \
 	$(NULL)
 
-# TODO Figure out Python stuff
-EXTRA_DIST += \
-	hb_test_tools.py \
-	$(NULL)
-CLEANFILES += \
-	hb_test_tools.py[co] \
-	$(NULL)
-
 TESTS = tests/context-matching.tests
 
 TEST_EXTENSIONS = \
@@ -61,3 +53,10 @@ TESTS_LOG_COMPILER = sh $(srcdir)/run-tests.sh
 .PHONY: manifests
 
 -include $(top_srcdir)/git.mk
+
+bin_SCRIPTS = hb-unicode-decode hb-unicode-encode hb-unicode-prettyname
+
+dist_pkgpython_PYTHON = \
+	__init__.py \
+	hb_test_tools.py \
+	hb_test_tools.pyc

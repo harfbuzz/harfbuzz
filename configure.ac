@@ -18,6 +18,9 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
+# Check for Python
+AM_PATH_PYTHON([2.7])
+
 # Check for programs
 AC_PROG_CC
 AM_PROG_CC_C_O
