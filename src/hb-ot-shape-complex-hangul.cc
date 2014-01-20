@@ -105,6 +105,8 @@ data_destroy_hangul (void *data)
 #define isV(u) (hb_in_ranges<hb_codepoint_t> ((u), 0x1160, 0x11A7, 0xD7B0, 0xD7C6))
 #define isT(u) (hb_in_ranges<hb_codepoint_t> ((u), 0x11A8, 0x11FF, 0xD7CB, 0xD7FB))
 
+#define isHangulTone(u) (hb_in_range<hb_codepoint_t> ((u), 0x302e, 0x302f))
+
 /* buffer var allocations */
 #define hangul_shaping_feature() complex_var_u8_0() /* hangul jamo shaping feature */
 
@@ -147,6 +149,9 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
    *
    *   - If the whole syllable can be precomposed, do that,
    *   - Otherwise, fully decompose and apply ljmo/vjmo/tjmo features.
+   *   - If a valid syllable is followed by a Hangul tone mark, reorder the tone
+   *     mark to precede the whole syllable - unless it is a zero-width glyph, in
+   *     which case we leave it untouched, assuming it's designed to overstrike.
    *
    * That is, of the different possible syllables:
    *
@@ -177,6 +182,56 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
   for (buffer->idx = 0; buffer->idx < count;)
   {
     hb_codepoint_t u = buffer->cur().codepoint;
+
+    if (isHangulTone (u))
+    {
+      /*
+       * We could cache the width of the tone marks and the existence of dotted-circle,
+       * but the use of the Hangul tone mark characters seems to be rare enough that
+       * I didn't bother for now.
+       */
+      if (start < end && end == buffer->out_len)
+      {
+	/* Tone mark follows a valid syllable; move it in front, unless it's zero width. */
+	buffer->next_glyph ();
+	if (!is_zero_width_char (font, u))
+	{
+	  hb_glyph_info_t *info = buffer->out_info;
+	  hb_glyph_info_t tone = info[end];
+	  memmove (&info[start + 1], &info[start], (end - start) * sizeof (hb_glyph_info_t));
+	  info[start] = tone;
+	}
+	/* Merge clusters across the (possibly reordered) syllable+tone.
+	 * We want to merge even in the zero-width tone mark case here,
+	 * so that clustering behavior isn't dependent on how the tone mark
+	 * is handled by the font.
+	 */
+	buffer->merge_out_clusters (start, end + 1);
+      }
+      else
+      {
+	/* No valid syllable as base for tone mark; try to insert dotted circle. */
+	if (font->has_glyph (0x25cc))
+	{
+	  hb_codepoint_t chars[2];
+	  if (is_zero_width_char (font, u)) {
+	    chars[0] = u;
+	    chars[1] = 0x25cc;
+	  } else {
+	    chars[0] = 0x25cc;
+	    chars[1] = u;
+	  }
+	  buffer->replace_glyphs (1, 2, chars);
+	}
+	else
+	{
+	  /* No dotted circle available in the font; just leave tone mark untouched. */
+	  buffer->next_glyph ();
+	}
+      }
+      start = end = buffer->out_len;
+      continue;
+    }
 
     start = buffer->out_len; /* Remember current position as a potential syllable start;
 			      * will only be used if we set end to a later position.
@@ -318,7 +373,9 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
       }
     }
 
-    /* Didn't find a recognizable syllable. */
+    /* Didn't find a recognizable syllable, so we leave end <= start;
+     * this will prevent tone-mark reordering happening.
+     */
     buffer->next_glyph ();
   }
   buffer->swap_buffers ();
