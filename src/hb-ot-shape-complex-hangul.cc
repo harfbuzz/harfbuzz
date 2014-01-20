@@ -214,7 +214,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 	if (font->has_glyph (0x25cc))
 	{
 	  hb_codepoint_t chars[2];
-	  if (is_zero_width_char (font, u)) {
+	  if (!is_zero_width_char (font, u)) {
 	    chars[0] = u;
 	    chars[1] = 0x25cc;
 	  } else {
