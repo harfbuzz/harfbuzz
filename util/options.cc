@@ -183,6 +183,29 @@ parse_shapers (const char *name G_GNUC_UNUSED,
   return true;
 }
 
+static gboolean
+parse_compare (const char *name,
+	       const char *arg,
+	       gpointer    data,
+	       GError    **error)
+{
+  shape_options_t *shape_opts = (shape_options_t *) data;
+  g_strfreev (shape_opts->shapers);
+  g_strfreev (shape_opts->reference_shaper);
+  char **list = g_strsplit (arg, ",", 0);
+  if (g_strv_length (list) != 2) {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                 "%s argument should be exactly two shaper names",
+                 name);
+    g_strfreev (list);
+    return false;
+  }
+  shape_opts->shapers = g_strsplit (list[0], ",", 0);
+  shape_opts->reference_shaper = g_strsplit (list[1], ",", 0);
+  g_strfreev (list);
+  return true;
+}
+
 static G_GNUC_NORETURN gboolean
 list_shapers (const char *name G_GNUC_UNUSED,
 	      const char *arg G_GNUC_UNUSED,
@@ -268,6 +291,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"shaper",		0, G_OPTION_FLAG_HIDDEN,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Hidden duplicate of --shapers",	NULL},
     {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Comma-separated list of shapers to try","list"},
+    {"compare",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_compare,	"Comma-separated pair of shapers to compare",	"test,reference"},
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
     {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
@@ -682,6 +706,16 @@ format_options_t::serialize_message (unsigned int  line_no,
 {
   serialize_line_no (line_no, gs);
   g_string_append_printf (gs, "%s", msg);
+  g_string_append_c (gs, '\n');
+}
+void
+format_options_t::serialize_message_2 (unsigned int  line_no,
+				     const char   *msg1,
+				     const char   *msg2,
+				     GString      *gs)
+{
+  serialize_line_no (line_no, gs);
+  g_string_append_printf (gs, "%s%s", msg1, msg2);
   g_string_append_c (gs, '\n');
 }
 void

@@ -520,3 +520,34 @@ hb_ft_font_get_face (hb_font_t *font)
 
   return NULL;
 }
+
+FT_Face
+hb_ft_font_get_new_face (hb_font_t *font)
+{
+  hb_blob_t *blob = hb_face_reference_blob (font->face);
+  unsigned int blob_length;
+  const char *blob_data = hb_blob_get_data (blob, &blob_length);
+  if (unlikely (!blob_length))
+    DEBUG_MSG (FT, font, "Font face has empty blob");
+
+  FT_Face ft_face = NULL;
+  FT_Error err = FT_New_Memory_Face (get_ft_library (),
+				     (const FT_Byte *) blob_data,
+				     blob_length,
+				     hb_face_get_index (font->face),
+				     &ft_face);
+
+  if (unlikely (err)) {
+    hb_blob_destroy (blob);
+    DEBUG_MSG (FT, font, "Font face FT_New_Memory_Face() failed");
+    return NULL;
+  }
+
+  FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
+
+  FT_Set_Char_Size (ft_face,
+		    font->x_scale, font->y_scale,
+		    0, 0);
+
+  return ft_face;
+}

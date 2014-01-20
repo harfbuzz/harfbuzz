@@ -49,7 +49,8 @@ struct shape_consumer_t
 		     const char   *text,
 		     unsigned int  text_len,
 		     const char   *text_before,
-		     const char   *text_after)
+		     const char   *text_after,
+		     const font_options_t *font_opts)
   {
     output.new_line ();
 

@@ -63,7 +63,8 @@ struct shape_closure_consumer_t : option_group_t
 		     const char   *text,
 		     unsigned int  text_len,
 		     const char   *text_before,
-		     const char   *text_after)
+		     const char   *text_after,
+		     const font_options_t *font_opts)
   {
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);

@@ -40,8 +40,9 @@ extern const char helper_cairo_supported_formats[];
 
 cairo_t *
 helper_cairo_create_context (double w, double h,
-			     view_options_t *view_opts,
-			     output_options_t *out_opts);
+			     const view_options_t *view_opts,
+			     output_options_t *out_opts,
+			     GString *out_string);
 
 void
 helper_cairo_destroy_context (cairo_t *cr);

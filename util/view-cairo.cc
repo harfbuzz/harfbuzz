@@ -57,7 +57,7 @@ view_cairo_t::render (const font_options_t *font_opts)
   cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts, view_options.font_size);
   double w, h;
   get_surface_size (scaled_font, &w, &h);
-  cairo_t *cr = helper_cairo_create_context (w, h, &view_options, &output_options);
+  cairo_t *cr = helper_cairo_create_context (w, h, &view_options, &output_options, NULL);
   cairo_set_scaled_font (cr, scaled_font);
   cairo_scaled_font_destroy (scaled_font);
 

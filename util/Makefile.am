@@ -48,6 +48,26 @@ hb_view_LDADD = \
 	$(CAIRO_FT_LIBS) \
 	$(NULL)
 bin_PROGRAMS += hb-view
+
+hb_compare_shapers_SOURCES = \
+	hb-compare-shapers.cc \
+	options.cc \
+	options.hh \
+	main-font-text.hh \
+	shape-compare.hh \
+	ansi-print.cc \
+	ansi-print.hh \
+	helper-cairo.cc \
+	helper-cairo.hh \
+	helper-cairo-ansi.cc \
+	helper-cairo-ansi.hh \
+	$(NULL)
+hb_compare_shapers_LDADD = \
+	$(LDADD) \
+	$(CAIRO_LIBS) \
+	$(CAIRO_FT_LIBS) \
+	$(NULL)
+bin_PROGRAMS += hb-compare-shapers
 endif # HAVE_CAIRO_FT
 
 hb_shape_SOURCES = \

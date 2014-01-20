@@ -61,7 +61,7 @@ struct main_font_text_t
     unsigned int text_len;
     const char *text;
     while ((text = input.get_line (&text_len)))
-      consumer.consume_line (buffer, text, text_len, input.text_before, input.text_after);
+      consumer.consume_line (buffer, text, text_len, input.text_before, input.text_after, &font_opts);
     hb_buffer_destroy (buffer);
 
     consumer.finish (&font_opts);

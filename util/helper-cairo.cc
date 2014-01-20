@@ -66,15 +66,23 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
 {
   hb_font_t *font = hb_font_reference (font_opts->get_font ());
 
-  cairo_font_face_t *cairo_face;
-  FT_Face ft_face = hb_ft_font_get_face (font);
-  if (!ft_face)
-    /* This allows us to get some boxes at least... */
+  cairo_font_face_t *cairo_face = NULL;
+  FT_Face ft_face = hb_ft_font_get_new_face (font);
+  if (ft_face) {
+    cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
+    static cairo_user_data_key_t key;
+    if (cairo_font_face_set_user_data (cairo_face,
+				       &key,
+				       (void *) ft_face,
+				       (cairo_destroy_func_t) FT_Done_Face)) {
+      FT_Done_Face (ft_face);
+      cairo_face = NULL;
+    }
+  }
+  if (!cairo_face)
     cairo_face = cairo_toy_font_face_create ("@cairo:sans",
 					     CAIRO_FONT_SLANT_NORMAL,
 					     CAIRO_FONT_WEIGHT_NORMAL);
-  else
-    cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;
 
@@ -92,13 +100,6 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
 
   cairo_font_options_destroy (font_options);
   cairo_font_face_destroy (cairo_face);
-
-  static cairo_user_data_key_t key;
-  if (cairo_scaled_font_set_user_data (scaled_font,
-				       &key,
-				       (void *) font,
-				       (cairo_destroy_func_t) hb_font_destroy))
-    hb_font_destroy (font);
 
   return scaled_font;
 }
@@ -246,6 +247,18 @@ stdio_write_func (void                *closure,
   return CAIRO_STATUS_SUCCESS;
 }
 
+static cairo_status_t
+gstring_write_func (void                *closure,
+		  const unsigned char *data,
+		  unsigned int         size)
+{
+  GString *str = (GString *) closure;
+
+  g_string_append_len (str, (const gchar *) data, size);
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
 const char helper_cairo_supported_formats[] =
   "ansi"
   #ifdef CAIRO_HAS_PNG_FUNCTIONS
@@ -267,8 +280,9 @@ const char helper_cairo_supported_formats[] =
 
 cairo_t *
 helper_cairo_create_context (double w, double h,
-			     view_options_t *view_opts,
-			     output_options_t *out_opts)
+			     const view_options_t *view_opts,
+			     output_options_t *out_opts,
+			     GString *out_string)
 {
   cairo_surface_t *(*constructor) (cairo_write_func_t write_func,
 				   void *closure,
@@ -283,7 +297,7 @@ helper_cairo_create_context (double w, double h,
   const char *extension = out_opts->output_format;
   if (!extension) {
 #if HAVE_ISATTY
-    if (isatty (fileno (out_opts->get_file_handle ())))
+    if (!out_string && isatty (fileno (out_opts->get_file_handle ())))
       extension = "ansi";
     else
 #endif
@@ -336,16 +350,29 @@ helper_cairo_create_context (double w, double h,
     content = CAIRO_CONTENT_COLOR_ALPHA;
 
   cairo_surface_t *surface;
-  FILE *f = out_opts->get_file_handle ();
-  if (constructor)
-    surface = constructor (stdio_write_func, f, w, h);
-  else if (constructor2)
-    surface = constructor2 (stdio_write_func, f, w, h, content);
-  else
-    fail (false, "Unknown output format `%s'; supported formats are: %s%s",
-	  extension, helper_cairo_supported_formats,
-	  out_opts->explicit_output_format ? "" :
-	  "\nTry setting format using --output-format");
+  if (out_string) {
+    if (constructor)
+      surface = constructor (gstring_write_func, out_string, w, h);
+    else if (constructor2)
+      surface = constructor2 (gstring_write_func, out_string, w, h, content);
+    else
+      fail (false, "Unknown output format `%s'; supported formats are: %s%s",
+	    extension, helper_cairo_supported_formats,
+	    out_opts->explicit_output_format ? "" :
+	    "\nTry setting format using --output-format");
+  }
+  else {
+    FILE *f = out_opts->get_file_handle ();
+    if (constructor)
+      surface = constructor (stdio_write_func, f, w, h);
+    else if (constructor2)
+      surface = constructor2 (stdio_write_func, f, w, h, content);
+    else
+      fail (false, "Unknown output format `%s'; supported formats are: %s%s",
+	    extension, helper_cairo_supported_formats,
+	    out_opts->explicit_output_format ? "" :
+	    "\nTry setting format using --output-format");
+  }
 
   cairo_t *cr = cairo_create (surface);
   content = cairo_surface_get_content (surface);

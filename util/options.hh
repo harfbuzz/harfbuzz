@@ -152,6 +152,7 @@ struct shape_options_t : option_group_t
     features = NULL;
     num_features = 0;
     shapers = NULL;
+    reference_shaper = NULL;
     utf8_clusters = false;
     normalize_glyphs = false;
     num_iterations = 1;
@@ -162,6 +163,7 @@ struct shape_options_t : option_group_t
   {
     free (features);
     g_strfreev (shapers);
+    g_strfreev (reference_shaper);
   }
 
   void add_options (option_parser_t *parser);
@@ -214,6 +216,14 @@ struct shape_options_t : option_group_t
     return res;
   }
 
+  hb_bool_t shape_reference (hb_font_t *font, hb_buffer_t *buffer)
+  {
+    hb_bool_t res = hb_shape_full (font, buffer, features, num_features, reference_shaper);
+    if (normalize_glyphs)
+      hb_buffer_normalize_glyphs (buffer);
+    return res;
+  }
+
   void shape_closure (const char *text, int text_len,
 		      hb_font_t *font, hb_buffer_t *buffer,
 		      hb_set_t *glyphs)
@@ -237,6 +247,7 @@ struct shape_options_t : option_group_t
   hb_feature_t *features;
   unsigned int num_features;
   char **shapers;
+  char **reference_shaper;
   hb_bool_t utf8_clusters;
   hb_bool_t normalize_glyphs;
   unsigned int num_iterations;
@@ -392,6 +403,10 @@ struct format_options_t : option_group_t
 				 GString      *gs);
   void serialize_message (unsigned int  line_no,
 			  const char   *msg,
+			  GString      *gs);
+  void serialize_message_2 (unsigned int  line_no,
+			  const char   *msg1,
+			  const char   *msg2,
 			  GString      *gs);
   void serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
 				   unsigned int  line_no,

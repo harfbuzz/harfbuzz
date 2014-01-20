@@ -56,6 +56,9 @@ hb_ft_font_set_funcs (hb_font_t *font);
 FT_Face
 hb_ft_font_get_face (hb_font_t *font);
 
+FT_Face
+hb_ft_font_get_new_face (hb_font_t *font);
+
 
 HB_END_DECLS
 
