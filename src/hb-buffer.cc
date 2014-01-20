@@ -1499,3 +1499,77 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
     }
   normalize_glyphs_cluster (buffer, start, end, backward);
 }
+
+hb_buffer_differences_t
+hb_buffers_compare (hb_buffer_t *buffer,
+                    hb_buffer_t *reference,
+                    hb_codepoint_t dotted_circle)
+{
+  if (buffer->content_type != reference->content_type)
+    return HB_BUFFER_COMPARE_CONTENT_TYPE_MISMATCH;
+
+  unsigned int result = 0;
+  unsigned int count = reference->len;
+
+  if (buffer->len != count)
+  {
+    /* We can't compare glyph-by-glyph, but we do want to know if there
+     * are .notdef or dottedcircle glyphs present in the reference buffer.
+     */
+    const hb_glyph_info_t *info = reference->info;
+    unsigned int i;
+    for (i = 0; i < count; i++)
+    {
+      if (info[i].codepoint == dotted_circle)
+        result |= HB_BUFFER_COMPARE_DOTTED_CIRCLE_PRESENT;
+      else if (info[i].codepoint == 0)
+        result |= HB_BUFFER_COMPARE_NOTDEF_PRESENT;
+    }
+    result |= HB_BUFFER_COMPARE_LENGTH_MISMATCH;
+    return hb_buffer_differences_t (result);
+  }
+
+  if (!count)
+    return hb_buffer_differences_t (result);
+
+  const hb_glyph_info_t *buf_info = buffer->info;
+  const hb_glyph_info_t *ref_info = reference->info;
+  for (unsigned int i = 0; i < count; i++)
+  {
+    if (buf_info->codepoint != ref_info->codepoint)
+      result |= HB_BUFFER_COMPARE_CODEPOINT_MISMATCH;
+    if (buf_info->cluster != ref_info->cluster)
+      result |= HB_BUFFER_COMPARE_CLUSTER_MISMATCH;
+    if (buf_info->mask != ref_info->mask)
+      result |= HB_BUFFER_COMPARE_MASK_MISMATCH;
+    if (ref_info->codepoint == dotted_circle)
+      result |= HB_BUFFER_COMPARE_DOTTED_CIRCLE_PRESENT;
+    else if (ref_info->codepoint == 0)
+      result |= HB_BUFFER_COMPARE_NOTDEF_PRESENT;
+    buf_info++;
+    ref_info++;
+  }
+
+  if (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS)
+  {
+#define FUZZ 1 /* we ignore a single-unit discrepancy as being uninteresting */
+    assert (buffer->have_positions);
+    const hb_glyph_position_t *buf_pos = buffer->pos;
+    const hb_glyph_position_t *ref_pos = reference->pos;
+    for (unsigned int i = 0; i < count; i++) {
+      if (abs(buf_pos->x_advance - ref_pos->x_advance) > FUZZ ||
+          abs(buf_pos->y_advance - ref_pos->y_advance) > FUZZ ||
+          abs(buf_pos->x_offset - ref_pos->x_offset) > FUZZ ||
+          abs(buf_pos->y_offset - ref_pos->y_offset) > FUZZ)
+      {
+        result |= HB_BUFFER_COMPARE_POSITION_MISMATCH;
+        break;
+      }
+      buf_pos++;
+      ref_pos++;
+    }
+#undef FUZZ
+  }
+
+  return hb_buffer_differences_t (result);
+}

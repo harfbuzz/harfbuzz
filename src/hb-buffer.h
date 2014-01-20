@@ -317,6 +317,41 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      hb_font_t *font, /* May be NULL */
 			      hb_buffer_serialize_format_t format);
 
+/*
+ * Compare buffers
+ */
+
+typedef enum {
+  /* We want to know if dottedcircle / .notdef glyphs are present in the reference,
+   * as we may not care so much about other differences in this case.
+   */
+  HB_BUFFER_COMPARE_DOTTED_CIRCLE_PRESENT = 0x0001,
+  HB_BUFFER_COMPARE_NOTDEF_PRESENT        = 0x0002,
+
+  /* If the buffers have the same length, we compare them glyph-by-glyph and report
+   * which aspect(s) of the glyph info/position are different.
+   */
+  HB_BUFFER_COMPARE_CODEPOINT_MISMATCH    = 0x0004,
+  HB_BUFFER_COMPARE_CLUSTER_MISMATCH      = 0x0008,
+  HB_BUFFER_COMPARE_MASK_MISMATCH         = 0x0010,
+  HB_BUFFER_COMPARE_POSITION_MISMATCH     = 0x0020,
+
+  /* For buffers with differing length, the per-glyph comparison is not attempted,
+   * though we do still scan reference for dottedcircle / .notdef glyphs.
+   */
+  HB_BUFFER_COMPARE_LENGTH_MISMATCH       = 0x0040,
+
+  /* Buffers with different content_type cannot be meaningfully compared in any
+   * further detail.
+   */
+  HB_BUFFER_COMPARE_CONTENT_TYPE_MISMATCH = 0x0080
+} hb_buffer_differences_t;
+
+/* Compare the contents of two buffers. */
+hb_buffer_differences_t
+hb_buffers_compare (hb_buffer_t *buffer,
+                    hb_buffer_t *reference,
+                    hb_codepoint_t dotted_circle);
 
 HB_END_DECLS
 
