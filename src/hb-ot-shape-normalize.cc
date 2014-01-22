@@ -355,7 +355,8 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   }
 
 
-  if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED)
+  if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_NONE ||
+      mode == HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED)
     return;
 
   /* Third round, recompose */
