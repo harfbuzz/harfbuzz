@@ -27,7 +27,6 @@ HBSOURCES =  \
 	hb-buffer.cc \
 	hb-cache-private.hh \
 	hb-common.cc \
-	hb-fallback-shape.cc \
 	hb-face-private.hh \
 	hb-face.cc \
 	hb-font-private.hh \
@@ -117,6 +116,10 @@ HBHEADERS += \
 	hb-ot-shape.h \
 	hb-ot-tag.h \
 	$(NULL)
+endif
+
+if HAVE_FALLBACK
+HBSOURCES += hb-fallback-shape.cc
 endif
 
 if HAVE_PTHREAD

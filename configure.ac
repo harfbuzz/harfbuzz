@@ -127,6 +127,12 @@ if $have_ot; then
 fi
 AM_CONDITIONAL(HAVE_OT, $have_ot)
 
+have_fallback=true
+if $have_fallback; then
+	AC_DEFINE(HAVE_FALLBACK, 1, [Have simple TrueType Layout backend])
+fi
+AM_CONDITIONAL(HAVE_FALLBACK, $have_fallback)
+
 dnl ===========================================================================
 
 AC_ARG_WITH(glib,
