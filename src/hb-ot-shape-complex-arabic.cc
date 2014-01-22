@@ -199,7 +199,6 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));
   map->add_gsub_pause (NULL);
 
-  map->add_global_bool_feature (HB_TAG('c','s','w','h'));
   map->add_global_bool_feature (HB_TAG('m','s','e','t'));
 }
 
