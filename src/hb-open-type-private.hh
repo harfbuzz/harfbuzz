@@ -592,7 +592,7 @@ struct LONGDATETIME
     TRACE_SANITIZE (this);
     return TRACE_RETURN (likely (c->check_struct (this)));
   }
-  private:
+  protected:
   LONG major;
   ULONG minor;
   public:
