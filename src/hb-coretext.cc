@@ -653,6 +653,14 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   {
     CTRunRef run = (CTRunRef) CFArrayGetValueAtIndex (glyph_runs, i);
 
+    unsigned int num_glyphs = CTRunGetGlyphCount (run);
+    if (num_glyphs == 0)
+      continue;
+
+    buffer->ensure (buffer->len + num_glyphs);
+    if (buffer->in_error)
+      FAIL ("Buffer resize failed");
+
     /* CoreText does automatic font fallback (AKA "cascading") for  characters
      * not supported by the requested font, and provides no way to turn it off,
      * so we detect if the returned run uses a font other than the requested
@@ -667,17 +675,14 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
         CFRelease (run_cg_font);
 
 	CFRange range = CTRunGetStringRange (run);
-	buffer->ensure (buffer->len + range.length);
-	if (buffer->in_error)
-	  FAIL ("Buffer resize failed");
 	hb_glyph_info_t *info = buffer->info + buffer->len;
-	buffer->len += range.length;
+      buffer->len += num_glyphs;
 
-        for (CFIndex j = 0; j < range.length; j++)
+      CGGlyph notdef = 0;
+      double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font, kCTFontHorizontalOrientation, &notdef, NULL, 1);
+
+      for (CFIndex j = 0; j < num_glyphs; j++)
 	{
-            CGGlyph notdef = 0;
-            double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font, kCTFontHorizontalOrientation, &notdef, NULL, 1);
-
             info->codepoint = notdef;
 	    /* TODO We have to fixup clusters later.  See vis_clusters in
 	     * hb-uniscribe.cc for example. */
@@ -692,12 +697,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
         continue;
     }
     CFRelease (run_cg_font);
-
-    unsigned int num_glyphs = CTRunGetGlyphCount (run);
-    if (num_glyphs == 0)
-      continue;
-
-    buffer->ensure (buffer->len + num_glyphs);
 
     scratch = buffer->get_scratch_buffer (&scratch_size);
 
