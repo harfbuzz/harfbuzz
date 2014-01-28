@@ -107,7 +107,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
 
   hb_graphite2_shaper_face_data_t *data = (hb_graphite2_shaper_face_data_t *) calloc (1, sizeof (hb_graphite2_shaper_face_data_t));
   if (unlikely (!data))
-    hb_blob_destroy (silf_blob);
+    return NULL;
 
   data->face = face;
   data->grface = gr_make_face (data, &hb_graphite2_get_table, gr_face_preloadAll);
