@@ -5,6 +5,7 @@ test "x$builddir" = x && builddir=.
 test "x$top_builddir" = x && top_builddir=../..
 
 hb_shape=$top_builddir/util/hb-shape$EXEEXT
+hb=$top_builddir/python/hb
 
 fails=0
 
@@ -17,7 +18,7 @@ for f in "$@"; do
 	echo "Running tests in $f"
 	while read fontfile unicodes glyphs_expected; do
 		echo "Testing $fontfile:$unicodes"
-		glyphs=`$srcdir/hb-unicode-encode "$unicodes" | $hb_shape "$srcdir/$fontfile"`
+		glyphs=`$hb unicode encode "$unicodes" | $hb_shape "$srcdir/$fontfile"`
 		if ! test "x$glyphs" = "x$glyphs_expected"; then
 			echo "Actual:   $glyphs" >&2
 			echo "Expected: $glyphs_expected" >&2

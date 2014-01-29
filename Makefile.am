@@ -4,7 +4,7 @@ NULL =
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src util test docs
+SUBDIRS = src util test docs python
 
 EXTRA_DIST = \
 	autogen.sh \

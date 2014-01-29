@@ -1,0 +1,32 @@
+#!/usr/bin/python
+
+from harfbuzz.tools import *
+import optparse
+
+parser = optparse.OptionParser("usage: %prog [options] arg")
+(options, args) = parser.parse_args()
+
+if len(args) < 1:
+    parser.error("You need to specify a subcommand.")
+else:
+    subcommand = args[0]
+    if subcommand == "unicode":
+        if len(args) < 2:
+            parser.error ("You need to specify an argument for " + subcommand)
+        else:
+            argument = args[1]
+            if argument == "decode":
+                UtilMains.filter_multiple_strings_or_stdin (Unicode.decode,
+                                                            "UNICODE_STRING")
+            elif argument == "encode":
+                UtilMains.filter_multiple_strings_or_stdin (Unicode.encode,
+                                                            "UNICODE_STRING", '')
+            elif argument == "prettyname":
+                UtilMains.filter_multiple_strings_or_stdin (Unicode.pretty_names,
+                                                            "UNICODE_CODEPOINTS", \
+                                                            concat_separator = ' ')
+            else:
+                parser.error(argument + " is an unknown argument for " +  \
+                             subcommand)
+    else:
+        parser.error("Unknown subcommand")

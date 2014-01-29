@@ -17,21 +17,10 @@ EXTRA_DIST += \
 	hb-diff-stat \
 	hb-manifest-read \
 	hb-manifest-update \
-	hb-unicode-decode \
-	hb-unicode-encode \
-	hb-unicode-prettyname \
 	run-tests.sh \
 	texts/in-tree \
 	fonts/sha1sum \
 	$(TESTS) \
-	$(NULL)
-
-# TODO Figure out Python stuff
-EXTRA_DIST += \
-	hb_test_tools.py \
-	$(NULL)
-CLEANFILES += \
-	hb_test_tools.py[co] \
 	$(NULL)
 
 TESTS = tests/context-matching.tests

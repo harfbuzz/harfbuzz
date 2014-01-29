@@ -391,7 +391,7 @@ class UtilMains:
 						line = line[:-1]
 					print callback (line)
 			else:
-				args = sys.argv[1:]
+				args = sys.argv[3:]
 				if concat_separator != False:
 					args = [concat_separator.join (args)]
 				print separator.join (callback (x) for x in (args))
