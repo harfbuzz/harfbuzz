@@ -1,3 +1,23 @@
+Overview of changes leading to 0.9.26
+Thursday, January 30, 2014
+=====================================
+
+- Misc fixes.
+- Fix application of 'rtlm' feature.
+- Automatically apply frac/numr/dnom around U+2044 FRACTION SLASH.
+- New header: hb-ot-shape.h
+- Uniscribe: fix scratch-buffer accounting.
+- Reorder Tai Tham SAKOT to after tone-marks.
+- Add Hangul shaper.
+- New files:
+  hb-ot-shape-complex-hangul.cc
+  hb-ot-shape-complex-hebrew.cc
+  hb-ot-shape-complex-tibetan.cc
+- Disable 'cswh' feature in Arabic shaper.
+- Coretext: better handle surrogate pairs.
+- Add HB_TAG_MAX and _HB_SCRIPT_MAX_VALUE.
+
+
 Overview of changes leading to 0.9.25
 Wednesday, December 4, 2013
 =====================================
