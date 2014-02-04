@@ -153,55 +153,58 @@ struct hb_set_t
     header.init ();
     clear ();
   }
+
   inline void fini (void) {
   }
+
   inline void clear (void) {
     if (unlikely (hb_object_is_inert (this)))
       return;
     in_error = false;
     memset (elts, 0, sizeof elts);
   }
+
   inline bool is_empty (void) const {
     for (unsigned int i = 0; i < ARRAY_LENGTH (elts); i++)
       if (elts[i])
         return false;
     return true;
   }
-  inline void add (hb_codepoint_t g)
-  {
+
+  inline void add (hb_codepoint_t g) {
     if (unlikely (in_error)) return;
     if (unlikely (g == INVALID)) return;
     if (unlikely (g > MAX_G)) return;
     elt (g) |= mask (g);
   }
-  inline void add_range (hb_codepoint_t a, hb_codepoint_t b)
-  {
+
+  inline void add_range (hb_codepoint_t a, hb_codepoint_t b) {
     if (unlikely (in_error)) return;
     /* TODO Speedup */
     for (unsigned int i = a; i < b + 1; i++)
       add (i);
   }
-  inline void del (hb_codepoint_t g)
-  {
+
+  inline void del (hb_codepoint_t g) {
     if (unlikely (in_error)) return;
     if (unlikely (g > MAX_G)) return;
     elt (g) &= ~mask (g);
   }
-  inline void del_range (hb_codepoint_t a, hb_codepoint_t b)
-  {
+
+  inline void del_range (hb_codepoint_t a, hb_codepoint_t b) {
     if (unlikely (in_error)) return;
     /* TODO Speedup */
     for (unsigned int i = a; i < b + 1; i++)
       del (i);
   }
-  inline bool has (hb_codepoint_t g) const
-  {
+
+  inline bool has (hb_codepoint_t g) const {
     if (unlikely (g > MAX_G)) return false;
     return !!(elt (g) & mask (g));
   }
+
   inline bool intersects (hb_codepoint_t first,
-			  hb_codepoint_t last) const
-  {
+			  hb_codepoint_t last) const {
     if (unlikely (first > MAX_G)) return false;
     if (unlikely (last  > MAX_G)) last = MAX_G;
     unsigned int end = last + 1;
@@ -210,71 +213,71 @@ struct hb_set_t
         return true;
     return false;
   }
-  inline bool is_equal (const hb_set_t *other) const
-  {
+
+  inline bool is_equal (const hb_set_t *other) const {
     for (unsigned int i = 0; i < ELTS; i++)
       if (elts[i] != other->elts[i])
         return false;
     return true;
   }
-  inline void set (const hb_set_t *other)
-  {
+
+  inline void set (const hb_set_t *other) {
     if (unlikely (in_error)) return;
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] = other->elts[i];
   }
-  inline void union_ (const hb_set_t *other)
-  {
+
+  inline void union_ (const hb_set_t *other) {
     if (unlikely (in_error)) return;
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] |= other->elts[i];
   }
-  inline void intersect (const hb_set_t *other)
-  {
+
+  inline void intersect (const hb_set_t *other) {
     if (unlikely (in_error)) return;
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] &= other->elts[i];
   }
-  inline void subtract (const hb_set_t *other)
-  {
+
+  inline void subtract (const hb_set_t *other) {
     if (unlikely (in_error)) return;
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] &= ~other->elts[i];
   }
-  inline void symmetric_difference (const hb_set_t *other)
-  {
+
+  inline void symmetric_difference (const hb_set_t *other) {
     if (unlikely (in_error)) return;
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] ^= other->elts[i];
   }
-  inline void invert (void)
-  {
+
+  inline void invert (void) {
     if (unlikely (in_error)) return;
     for (unsigned int i = 0; i < ELTS; i++)
       elts[i] = ~elts[i];
   }
-  inline bool next (hb_codepoint_t *codepoint) const
-  {
+
+  inline bool next (hb_codepoint_t *codepoint) const {
     if (unlikely (*codepoint == INVALID)) {
       hb_codepoint_t i = get_min ();
       if (i != INVALID) {
         *codepoint = i;
-	return true;
+        return true;
       } else {
-	*codepoint = INVALID;
+        *codepoint = INVALID;
         return false;
       }
     }
     for (hb_codepoint_t i = *codepoint + 1; i < MAX_G + 1; i++)
       if (has (i)) {
         *codepoint = i;
-	return true;
+        return true;
       }
     *codepoint = INVALID;
     return false;
   }
-  inline bool next_range (hb_codepoint_t *first, hb_codepoint_t *last) const
-  {
+
+  inline bool next_range (hb_codepoint_t *first, hb_codepoint_t *last) const {
     hb_codepoint_t i;
 
     i = *last;
@@ -291,29 +294,28 @@ struct hb_set_t
     return true;
   }
 
-  inline unsigned int get_population (void) const
-  {
+  inline unsigned int get_population (void) const {
     unsigned int count = 0;
     for (unsigned int i = 0; i < ELTS; i++)
       count += _hb_popcount32 (elts[i]);
     return count;
   }
-  inline hb_codepoint_t get_min (void) const
-  {
+
+  inline hb_codepoint_t get_min (void) const {
     for (unsigned int i = 0; i < ELTS; i++)
       if (elts[i])
-	for (unsigned int j = 0; j < BITS; j++)
-	  if (elts[i] & (1 << j))
-	    return i * BITS + j;
+        for (unsigned int j = 0; j < BITS; j++)
+          if (elts[i] & (1 << j))
+            return i * BITS + j;
     return INVALID;
   }
-  inline hb_codepoint_t get_max (void) const
-  {
+
+  inline hb_codepoint_t get_max (void) const {
     for (unsigned int i = ELTS; i; i--)
       if (elts[i - 1])
-	for (unsigned int j = BITS; j; j--)
-	  if (elts[i - 1] & (1 << (j - 1)))
-	    return (i - 1) * BITS + (j - 1);
+        for (unsigned int j = BITS; j; j--)
+          if (elts[i - 1] & (1 << (j - 1)))
+            return (i - 1) * BITS + (j - 1);
     return INVALID;
   }
 
