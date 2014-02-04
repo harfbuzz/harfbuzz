@@ -324,7 +324,7 @@ struct hb_set_t
   static const unsigned int SHIFT = 5;
   static const unsigned int BITS = (1 << SHIFT);
   static const unsigned int MASK = BITS - 1;
-  static const unsigned int ELTS = (MAX_G + 1 + (BITS - 1)) / BITS;
+  static const unsigned int ELTS = (MAX_G + 1) / BITS;
   static  const hb_codepoint_t INVALID = HB_SET_VALUE_INVALID;
 
   elt_t &elt (hb_codepoint_t g) { return elts[g >> SHIFT]; }
