@@ -45,6 +45,7 @@ hb_set_create (void)
   if (!(set = hb_object_create<hb_set_t> ()))
     return hb_set_get_empty ();
 
+  set->init ();
   set->clear ();
 
   return set;
