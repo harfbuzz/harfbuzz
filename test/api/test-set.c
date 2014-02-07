@@ -39,6 +39,7 @@ test_empty (hb_set_t *s)
   g_assert (!hb_set_has (s, 13));
   g_assert (!hb_set_next (s, &next));
   g_assert_cmpint (next, ==, HB_SET_VALUE_INVALID);
+  g_assert (hb_set_is_empty (s));
 }
 
 static void
@@ -90,6 +91,8 @@ test_set_basic (void)
   hb_set_del_range (s, 10, 18);
   test_not_empty (s);
   g_assert (!hb_set_has (s, 13));
+
+  hb_set_destroy (s);
 }
 
 static void
@@ -151,6 +154,8 @@ test_set_algebra (void)
   g_assert (hb_set_has (s, 12));
   g_assert (!hb_set_has (s, 13));
   g_assert (hb_set_has (s, 19));
+
+  hb_set_destroy (s);
 }
 
 static void
@@ -196,6 +201,8 @@ test_set_iter (void)
   g_assert (!hb_set_next_range (s, &first, &last));
   g_assert_cmpint (first, ==, HB_SET_VALUE_INVALID);
   g_assert_cmpint (last,  ==, HB_SET_VALUE_INVALID);
+
+  hb_set_destroy (s);
 }
 
 static void
@@ -225,6 +232,8 @@ test_set_empty (void)
   test_empty (b);
 
   g_assert (!hb_set_allocation_successful (b));
+
+  hb_set_destroy (b);
 }
 
 int
