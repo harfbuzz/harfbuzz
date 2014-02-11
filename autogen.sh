@@ -20,11 +20,11 @@ which pkg-config || {
 }
 
 echo -n "checking for gtkdocize... "
-which gtkdocize || {
-	echo "*** No gtkdocize found, please install it ***"
-	exit 1
-}
-gtkdocize --copy || exit 1
+if which gtkdocize ; then
+	gtkdocize --copy || exit 1
+else
+	echo "*** No gtkdocize found, skipping documentation ***"
+fi
 
 echo -n "checking for autoreconf... "
 which autoreconf || {
