@@ -126,14 +126,6 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 
   /* Default_Ignorable codepoints:
    *
-   * Note that as of Oct 2012 (Unicode 6.2), U+180E MONGOLIAN VOWEL SEPARATOR
-   * is NOT Default_Ignorable, but it really behaves in a way that it should
-   * be.  That has been reported to the Unicode Technical Committee for
-   * consideration.  As such, we include it here, since Uniscribe removes it.
-   * It *is* in Unicode 6.3 however.  U+061C ARABIC LETTER MARK from Unicode
-   * 6.3 is also added manually.  The new Unicode 6.3 bidi formatting
-   * characters are encoded in a block that was Default_Ignorable already.
-   *
    * Note: While U+115F, U+1160, U+3164 and U+FFA0 are Default_Ignorable,
    * we do NOT want to hide them, as the way Uniscribe has implemented them
    * is with regular spacing glyphs, and that's the way fonts are made to work.
@@ -143,19 +135,21 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
    * http://unicode.org/cldr/utility/list-unicodeset.jsp?a=[:DI:]&abb=on&ucd=on&esc=on
    *
    * Last updated to the page with the following versions:
-   * Version 3.6; ICU version: 50.0.1.0; Unicode version: 6.1.0.0
+   * Version 3.6; ICU version: 50.0.1.0; Unicode version: 6.3.0.0
    *
-   * 4,167 Code Points
+   * 4,169 Code Points
    *
-   * [\u00AD\u034F\u115F\u1160\u17B4\u17B5\u180B-\u180D\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFF8\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]
+   * [\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180D\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFF8\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]
    *
    * 00AD ;SOFT HYPHEN
    * 034F ;COMBINING GRAPHEME JOINER
+   * 061C ;ARABIC LETTER MARK
    * #115F ;HANGUL CHOSEONG FILLER
    * #1160 ;HANGUL JUNGSEONG FILLER
    * 17B4 ;KHMER VOWEL INHERENT AQ
    * 17B5 ;KHMER VOWEL INHERENT AA
    * 180B..180D ;MONGOLIAN FREE VARIATION SELECTOR THREE
+   * 180E ;MONGOLIAN VOWEL SEPARATOR
    * 200B..200F ;RIGHT-TO-LEFT MARK
    * 202A..202E ;RIGHT-TO-LEFT OVERRIDE
    * 2060..206F ;NOMINAL DIGIT SHAPES
