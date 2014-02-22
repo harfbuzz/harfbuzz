@@ -751,8 +751,6 @@ retry:
     buffer->info[i].utf16_index() = chars_len;
     if (likely (c < 0x10000))
       pchars[chars_len++] = c;
-    else if (unlikely (c >= 0x110000))
-      pchars[chars_len++] = 0xFFFD;
     else {
       pchars[chars_len++] = 0xD800 + ((c - 0x10000) >> 10);
       pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
@@ -771,7 +769,7 @@ retry:
       hb_codepoint_t c = buffer->info[i].codepoint;
       unsigned int cluster = buffer->info[i].cluster;
       log_clusters[chars_len++] = cluster;
-      if (c >= 0x10000 && c < 0x110000)
+      if (c >= 0x10000)
 	log_clusters[chars_len++] = cluster; /* Surrogates. */
     }
   }

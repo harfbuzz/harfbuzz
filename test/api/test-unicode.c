@@ -112,6 +112,7 @@ typedef struct {
 static const test_pair_t combining_class_tests[] =
 {
   {   0x0020, 0 },
+  {   0xFFFD, 0 },
   {   0x0334, 1 },
   {   0x093C, 7 },
   {   0x3099, 8 },
@@ -185,6 +186,7 @@ static const test_pair_t eastasian_width_tests[] =
   {   0x00A1, 1 },
   {   0x00D8, 1 },
   {   0x02DD, 1 },
+  {   0xFFFD, 1 },
   {  0xE0100, 1 },
   { 0x100000, 1 },
 
@@ -256,6 +258,7 @@ static const test_pair_t general_category_tests[] =
   {   0x2028, HB_UNICODE_GENERAL_CATEGORY_LINE_SEPARATOR },
   {   0x2029, HB_UNICODE_GENERAL_CATEGORY_PARAGRAPH_SEPARATOR },
   {   0x202F, HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR },
+  {   0xFFFD, HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL },
 
   { 0x111111, HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED }
 };
@@ -277,6 +280,7 @@ static const test_pair_t mirroring_tests[] =
   {   0x0041, 0x0041 },
   {   0x00F0, 0x00F0 },
   {   0x27CC, 0x27CC },
+  {   0xFFFD, 0xFFFD },
   {  0xE01EF, 0xE01EF },
   {  0x1D7C3, 0x1D7C3 },
   { 0x100000, 0x100000 },
@@ -312,6 +316,7 @@ static const test_pair_t mirroring_tests_more[] =
 static const test_pair_t script_tests[] =
 {
   {   0x002A, HB_SCRIPT_COMMON },
+  {   0xFFFD, HB_SCRIPT_COMMON },
   {   0x0670, HB_SCRIPT_INHERITED },
   {   0x060D, HB_SCRIPT_ARABIC },
   {   0x0559, HB_SCRIPT_ARMENIAN },
