@@ -177,10 +177,12 @@ struct hb_buffer_t {
 				       unsigned int end);
 
   /* Internal methods */
-  HB_INTERNAL bool enlarge (unsigned int size);
+  HB_INTERNAL bool enlarge (unsigned int size, bool exact);
 
   inline bool ensure (unsigned int size)
-  { return likely (!size || size < allocated) ? true : enlarge (size); }
+  { return likely (!size || size < allocated) ? true : enlarge (size, false); }
+  inline bool ensure_exact (unsigned int size)
+  { return likely (!size || size < allocated) ? true : enlarge (size, true); }
 
   HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
   HB_INTERNAL bool shift_forward (unsigned int count);
