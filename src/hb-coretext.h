@@ -34,6 +34,10 @@
 HB_BEGIN_DECLS
 
 
+#define HB_CORETEXT_TAG_MORT HB_TAG('m','o','r','t')
+#define HB_CORETEXT_TAG_MORX HB_TAG('m','o','r','x')
+
+
 CGFontRef
 hb_coretext_face_get_cg_font (hb_face_t *face);
 

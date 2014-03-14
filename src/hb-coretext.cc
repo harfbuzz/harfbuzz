@@ -810,3 +810,97 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
   return true;
 }
+
+
+/*
+ * AAT shaper
+ */
+
+HB_SHAPER_DATA_ENSURE_DECLARE(coretext_aat, face)
+HB_SHAPER_DATA_ENSURE_DECLARE(coretext_aat, font)
+
+
+/*
+ * shaper face data
+ */
+
+struct hb_coretext_aat_shaper_face_data_t {};
+
+hb_coretext_aat_shaper_face_data_t *
+_hb_coretext_aat_shaper_face_data_create (hb_face_t *face)
+{
+  hb_blob_t *mort_blob = face->reference_table (HB_CORETEXT_TAG_MORT);
+  /* Umm, we just reference the table to check whether it exists.
+   * Maybe add better API for this? */
+  if (!hb_blob_get_length (mort_blob))
+  {
+    hb_blob_destroy (mort_blob);
+    mort_blob = face->reference_table (HB_CORETEXT_TAG_MORX);
+    if (!hb_blob_get_length (mort_blob))
+    {
+      hb_blob_destroy (mort_blob);
+      return NULL;
+    }
+  }
+  hb_blob_destroy (mort_blob);
+
+  return hb_coretext_shaper_face_data_ensure (face) ? (hb_coretext_aat_shaper_face_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
+}
+
+void
+_hb_coretext_aat_shaper_face_data_destroy (hb_coretext_aat_shaper_face_data_t *data HB_UNUSED)
+{
+}
+
+
+/*
+ * shaper font data
+ */
+
+struct hb_coretext_aat_shaper_font_data_t {};
+
+hb_coretext_aat_shaper_font_data_t *
+_hb_coretext_aat_shaper_font_data_create (hb_font_t *font)
+{
+  return hb_coretext_shaper_font_data_ensure (font) ? (hb_coretext_aat_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED : NULL;
+}
+
+void
+_hb_coretext_aat_shaper_font_data_destroy (hb_coretext_aat_shaper_font_data_t *data HB_UNUSED)
+{
+}
+
+
+/*
+ * shaper shape_plan data
+ */
+
+struct hb_coretext_aat_shaper_shape_plan_data_t {};
+
+hb_coretext_aat_shaper_shape_plan_data_t *
+_hb_coretext_aat_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan HB_UNUSED,
+					     const hb_feature_t *user_features HB_UNUSED,
+					     unsigned int        num_user_features HB_UNUSED)
+{
+  return (hb_coretext_aat_shaper_shape_plan_data_t *) HB_SHAPER_DATA_SUCCEEDED;
+}
+
+void
+_hb_coretext_aat_shaper_shape_plan_data_destroy (hb_coretext_aat_shaper_shape_plan_data_t *data HB_UNUSED)
+{
+}
+
+
+/*
+ * shaper
+ */
+
+hb_bool_t
+_hb_coretext_aat_shape (hb_shape_plan_t    *shape_plan,
+			hb_font_t          *font,
+			hb_buffer_t        *buffer,
+			const hb_feature_t *features,
+			unsigned int        num_features)
+{
+  return _hb_coretext_shape (shape_plan, font, buffer, features, num_features);
+}
