@@ -133,7 +133,7 @@ hb_unicode_funcs_get_default (void)
 
 #ifdef HAVE_GLIB
   HB_UNICODE_FUNCS_IMPLEMENT(glib)
-#elif 0 && defined(HAVE_ICU)
+#elif defined(HAVE_ICU) && defined(HAVE_ICU_BUILTIN)
   HB_UNICODE_FUNCS_IMPLEMENT(icu)
 #elif defined(HAVE_UCDN)
   HB_UNICODE_FUNCS_IMPLEMENT(ucdn)
