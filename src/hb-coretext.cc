@@ -37,6 +37,38 @@
 #endif
 
 
+static void
+release_table_data (void *user_data)
+{
+  CFDataRef cf_data = reinterpret_cast<CFDataRef> (user_data);
+  CFRelease(cf_data);
+}
+
+static hb_blob_t *
+reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+{
+  CGFontRef cg_font = reinterpret_cast<CGFontRef> (user_data);
+  CFDataRef cf_data = CGFontCopyTableForTag (cg_font, tag);
+  if (unlikely (!cf_data))
+    return NULL;
+
+  const char *data = reinterpret_cast<const char*> (CFDataGetBytePtr (cf_data));
+  const size_t length = CFDataGetLength (cf_data);
+  if (!data || !length)
+    return NULL;
+
+  return hb_blob_create (data, length, HB_MEMORY_MODE_READONLY,
+			 reinterpret_cast<void *> (const_cast<__CFData *> (cf_data)),
+			 release_table_data);
+}
+
+hb_face_t *
+hb_coretext_face_create (CGFontRef cg_font)
+{
+  return hb_face_create_for_tables (reference_table, CGFontRetain (cg_font), (hb_destroy_func_t) CGFontRelease);
+}
+
+
 HB_SHAPER_DATA_ENSURE_DECLARE(coretext, face)
 HB_SHAPER_DATA_ENSURE_DECLARE(coretext, font)
 
@@ -65,15 +97,22 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return NULL;
 
-  hb_blob_t *blob = hb_face_reference_blob (face);
-  unsigned int blob_length;
-  const char *blob_data = hb_blob_get_data (blob, &blob_length);
-  if (unlikely (!blob_length))
-    DEBUG_MSG (CORETEXT, face, "Face has empty blob");
+  if (face->destroy == (hb_destroy_func_t) CGFontRelease)
+  {
+    data->cg_font = CGFontRetain ((CGFontRef) face->user_data);
+  }
+  else
+  {
+    hb_blob_t *blob = hb_face_reference_blob (face);
+    unsigned int blob_length;
+    const char *blob_data = hb_blob_get_data (blob, &blob_length);
+    if (unlikely (!blob_length))
+      DEBUG_MSG (CORETEXT, face, "Face has empty blob");
 
-  CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
-  data->cg_font = CGFontCreateWithDataProvider (provider);
-  CGDataProviderRelease (provider);
+    CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
+    data->cg_font = CGFontCreateWithDataProvider (provider);
+    CGDataProviderRelease (provider);
+  }
 
   if (unlikely (!data->cg_font)) {
     DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
