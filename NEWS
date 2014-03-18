@@ -1,3 +1,19 @@
+Overview of changes leading to 0.9.27
+Tuesday, March 18, 2014
+=====================================
+
+- Don't use "register" storage class specifier
+- Wrap definition of free_langs() with HAVE_ATEXIT
+- Add coretext_aat shaper and hb_coretext_face_create() constructor
+- If HAVE_ICU_BUILTIN is defined, use hb-icu Unicode callbacks
+- Add Myanmar test case from OpenType Myanmar spec
+- Only do fallback Hebrew composition if no GPOS 'mark' available
+- Allow bootstrapping without gtk-doc
+- Use AM_MISSING_PROG for ragel and git
+- Typo in ucdn's Makefile.am
+- Improve MemoryBarrier() implementation
+
+
 Overview of changes leading to 0.9.26
 Thursday, January 30, 2014
 =====================================
