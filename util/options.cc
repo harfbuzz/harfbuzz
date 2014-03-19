@@ -374,7 +374,11 @@ output_options_t::add_options (option_parser_t *parser)
   if (NULL == supported_formats)
     text = "Set output format";
   else
-    text = text_free = g_strdup_printf ("Set output format\n\n    Supported formats are: %s", supported_formats);
+  {
+    char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
+    text = text_free = g_strdup_printf ("Set output format\n\n    Supported formats are: %s", items);
+    g_free (items);
+  }
 
   GOptionEntry entries[] =
   {
