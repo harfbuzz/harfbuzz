@@ -88,7 +88,7 @@ GTKDOC_LIBS+=$(top_builddir)/src/libharfbuzz-gobject.la
 endif
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
--include $(top_srcdir)/gtk-doc.make
+include $(top_srcdir)/gtk-doc.make
 
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
