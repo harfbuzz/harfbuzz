@@ -146,8 +146,13 @@ hb_unicode_funcs_get_default (void)
 }
 
 #if !defined(HB_NO_UNICODE_FUNCS) && defined(HB_UNICODE_FUNCS_NIL)
-#pragma message("Could not find any Unicode functions implementation, you have to provide your own.")
-#pragma message("To suppress this warnings, define HB_NO_UNICODE_FUNCS.")
+#ifdef _MSC_VER
+#pragma message("Could not find any Unicode functions implementation, you have to provide your own")
+#pragma message("To suppress this warnings, define HB_NO_UNICODE_FUNCS")
+#else
+#warning "Could not find any Unicode functions implementation, you have to provide your own"
+#warning "To suppress this warning, define HB_NO_UNICODE_FUNCS"
+#endif
 #endif
 
 /**
