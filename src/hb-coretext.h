@@ -29,7 +29,13 @@
 
 #include "hb.h"
 
-#include <ApplicationServices/ApplicationServices.h>
+#include <TargetConditionals.h>
+#if defined(TARGET_OS_IPHONE)
+#  include <CoreText/CoreText.h>
+#  include <CoreGraphics/CoreGraphics.h>
+#else
+#  include <ApplicationServices/ApplicationServices.h>
+#endif
 
 HB_BEGIN_DECLS
 
