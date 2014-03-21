@@ -284,8 +284,9 @@ arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt
 	mv hb-ot-shape-complex-arabic-table.hh.tmp $(srcdir)/hb-ot-shape-complex-arabic-table.hh || \
 	($(RM) hb-ot-shape-complex-arabic-table.hh.tmp; false)
 
+built-sources: $(BUILT_SOURCES)
 
-.PHONY: unicode-tables arabic-table indic-table
+.PHONY: unicode-tables arabic-table indic-table built-sources
 
 BUILT_SOURCES += \
 	hb-buffer-deserialize-json.hh \
