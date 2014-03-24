@@ -28,6 +28,8 @@
 
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
+#else
+#include <hb-ot-font.h>
 #endif
 
 
@@ -486,6 +488,8 @@ font_options_t::get_font (void) const
 
 #ifdef HAVE_FREETYPE
   hb_ft_font_set_funcs (font);
+#else
+  hb_ot_font_set_funcs (font);
 #endif
 
   return font;
