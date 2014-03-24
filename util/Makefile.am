@@ -24,8 +24,8 @@ LDADD = \
 	$(NULL)
 
 if HAVE_GLIB
-if HAVE_FREETYPE
 
+if HAVE_FREETYPE
 if HAVE_CAIRO_FT
 hb_view_SOURCES = \
 	hb-view.cc \
@@ -49,6 +49,7 @@ hb_view_LDADD = \
 	$(NULL)
 bin_PROGRAMS += hb-view
 endif # HAVE_CAIRO_FT
+endif # HAVE_FREETYPE
 
 hb_shape_SOURCES = \
 	hb-shape.cc \
@@ -69,7 +70,6 @@ hb_ot_shape_closure_SOURCES = \
 bin_PROGRAMS += hb-ot-shape-closure
 endif # HAVE_OT
 
-endif # HAVE_FREETYPE
 endif # HAVE_GLIB
 
 -include $(top_srcdir)/git.mk
