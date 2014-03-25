@@ -882,6 +882,7 @@ static inline void ligate_input (hb_apply_context_t *c,
 	break;
     }
   }
+  TRACE_RETURN (true);
 }
 
 static inline bool match_backtrack (hb_apply_context_t *c,
