@@ -686,6 +686,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   buffer->len = 0;
 
   const CFRange range_all = CFRangeMake (0, 0);
+  CFStringRef font_ps_name = CTFontCopyName (font_data->ct_font, kCTFontPostScriptNameKey);
 
   for (unsigned int i = 0; i < num_runs; i++)
   {
@@ -699,10 +700,17 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
      */
     CFDictionaryRef attributes = CTRunGetAttributes (run);
     CTFontRef run_ct_font = static_cast<CTFontRef>(CFDictionaryGetValue (attributes, kCTFontAttributeName));
-    CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
-    if (!CFEqual (run_cg_font, face_data->cg_font))
+    if (!CFEqual (run_ct_font, font_data->ct_font))
     {
-        CFRelease (run_cg_font);
+        CFStringRef run_ps_name = CTFontCopyName (run_ct_font, kCTFontPostScriptNameKey);
+        /* Though we get a different CTFont for this run, since the PostScript
+         * names are the same, we still consider them the same font, as
+         * recommended by Apple.
+         */
+        CFComparisonResult result = CFStringCompare (run_ps_name, font_ps_name, 0);
+        CFRelease (run_ps_name);
+        if (result == kCFCompareEqualTo)
+          continue;
 
 	CFRange range = CTRunGetStringRange (run);
 	buffer->ensure (buffer->len + range.length);
@@ -739,7 +747,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
         }
         continue;
     }
-    CFRelease (run_cg_font);
+    CFRelease (font_ps_name);
 
     unsigned int num_glyphs = CTRunGetGlyphCount (run);
     if (num_glyphs == 0)
