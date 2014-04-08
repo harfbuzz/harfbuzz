@@ -201,7 +201,8 @@ set_indic_properties (hb_glyph_info_t &info)
   if (unlikely (u == 0x17D1))
     cat = OT_X;
   if (cat == OT_X &&
-      unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D3))) /* Khmer Various signs */
+      unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D3) ||
+		u == 0x17DD)) /* Khmer Various signs */
   {
     /* These are like Top Matras. */
     cat = OT_M;
