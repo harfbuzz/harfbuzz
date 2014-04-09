@@ -47,7 +47,7 @@ HB_BEGIN_DECLS
  * - Use MODE_READONLY otherse, unless you really really
  *   really know what you are doing,
  *
- * - MODE_WRITABLE is appropriate if you relaly made a
+ * - MODE_WRITABLE is appropriate if you really made a
  *   copy of data solely for the purpose of passing to
  *   HarfBuzz and doing that just once (no reuse!),
  *
