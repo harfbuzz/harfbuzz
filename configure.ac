@@ -181,7 +181,7 @@ dnl ===========================================================================
 have_introspection=false
 m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
 	if $have_gobject; then
-		GOBJECT_INTROSPECTION_CHECK([1.32.0])
+		GOBJECT_INTROSPECTION_CHECK([1.34.0])
 		if test "x$found_introspection" = xyes; then
 			have_introspection=true
 		fi
