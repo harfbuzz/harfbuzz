@@ -500,6 +500,10 @@ void
 hb_buffer_t::merge_clusters (unsigned int start,
 			     unsigned int end)
 {
+#ifdef HB_NO_MERGE_CLUSTERS
+  return;
+#endif
+
   if (unlikely (end - start < 2))
     return;
 
@@ -528,6 +532,10 @@ void
 hb_buffer_t::merge_out_clusters (unsigned int start,
 				 unsigned int end)
 {
+#ifdef HB_NO_MERGE_CLUSTERS
+  return;
+#endif
+
   if (unlikely (end - start < 2))
     return;
 
