@@ -27,6 +27,7 @@
  */
 
 #define HB_SHAPER coretext
+#define hb_coretext_shaper_face_data_t CGFont
 #include "hb-shaper-impl-private.hh"
 
 #include "hb-coretext.h"
@@ -77,10 +78,6 @@ HB_SHAPER_DATA_ENSURE_DECLARE(coretext, font)
  * shaper face data
  */
 
-struct hb_coretext_shaper_face_data_t {
-  CGFontRef cg_font;
-};
-
 static void
 release_data (void *info, const void *data, size_t size)
 {
@@ -93,13 +90,11 @@ release_data (void *info, const void *data, size_t size)
 hb_coretext_shaper_face_data_t *
 _hb_coretext_shaper_face_data_create (hb_face_t *face)
 {
-  hb_coretext_shaper_face_data_t *data = (hb_coretext_shaper_face_data_t *) calloc (1, sizeof (hb_coretext_shaper_face_data_t));
-  if (unlikely (!data))
-    return NULL;
+  hb_coretext_shaper_face_data_t *data = NULL;
 
   if (face->destroy == (hb_destroy_func_t) CGFontRelease)
   {
-    data->cg_font = CGFontRetain ((CGFontRef) face->user_data);
+    data = CGFontRetain ((CGFontRef) face->user_data);
   }
   else
   {
@@ -110,14 +105,12 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
       DEBUG_MSG (CORETEXT, face, "Face has empty blob");
 
     CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
-    data->cg_font = CGFontCreateWithDataProvider (provider);
+    data = CGFontCreateWithDataProvider (provider);
     CGDataProviderRelease (provider);
   }
 
-  if (unlikely (!data->cg_font)) {
+  if (unlikely (!data)) {
     DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
-    free (data);
-    return NULL;
   }
 
   return data;
@@ -126,8 +119,7 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
 void
 _hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
 {
-  CFRelease (data->cg_font);
-  free (data);
+  CFRelease (data);
 }
 
 CGFontRef
@@ -135,7 +127,7 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
 {
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-  return face_data->cg_font;
+  return face_data;
 }
 
 
@@ -159,7 +151,7 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
   hb_face_t *face = font->face;
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
-  data->ct_font = CTFontCreateWithGraphicsFont (face_data->cg_font, font->y_scale, NULL, NULL);
+  data->ct_font = CTFontCreateWithGraphicsFont (face_data, font->y_scale, NULL, NULL);
   if (unlikely (!data->ct_font)) {
     DEBUG_MSG (CORETEXT, font, "Font CTFontCreateWithGraphicsFont() failed");
     free (data);
@@ -698,7 +690,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     CFDictionaryRef attributes = CTRunGetAttributes (run);
     CTFontRef run_ct_font = static_cast<CTFontRef>(CFDictionaryGetValue (attributes, kCTFontAttributeName));
     CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
-    if (!CFEqual (run_cg_font, face_data->cg_font))
+    if (!CFEqual (run_cg_font, face_data))
     {
         CFRelease (run_cg_font);
 
