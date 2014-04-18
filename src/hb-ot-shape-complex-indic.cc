@@ -557,8 +557,8 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
   indic_plan->virama_glyph = (hb_codepoint_t) -1;
 
   /* Use zero-context would_substitute() matching for new-spec of the main
-   * Indic scripts, but not for old-spec or scripts with one spec only. */
-  bool zero_context = indic_plan->config->has_old_spec || !indic_plan->is_old_spec;
+   * Indic scripts, and scripts with one spec only, but not for old-specs. */
+  bool zero_context = !indic_plan->is_old_spec;
   indic_plan->rphf.init (&plan->map, HB_TAG('r','p','h','f'), zero_context);
   indic_plan->pref.init (&plan->map, HB_TAG('p','r','e','f'), zero_context);
   indic_plan->blwf.init (&plan->map, HB_TAG('b','l','w','f'), zero_context);
