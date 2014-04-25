@@ -802,7 +802,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       case BASE_POS_LAST_SINHALA:
       {
         /* Sinhala base positioning is slightly different from main Indic, in that:
-	 * 1. It's ZWJ behavior is different,
+	 * 1. Its ZWJ behavior is different,
 	 * 2. We don't need to look into the font for consonant positions.
 	 */
 
