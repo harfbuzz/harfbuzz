@@ -131,9 +131,19 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 {
   m.global_mask = 1;
 
+  hb_tag_t required_feature_tag[2];
+  unsigned int required_feature_index[2];
+
   for (unsigned int table_index = 0; table_index < 2; table_index++) {
     m.chosen_script[table_index] = chosen_script[table_index];
     m.found_script[table_index] = found_script[table_index];
+
+    hb_ot_layout_language_get_required_feature (face,
+						table_tags[table_index],
+						script_index[table_index],
+						language_index[table_index],
+						&required_feature_tag[table_index],
+						&required_feature_index[table_index]);
   }
 
   if (!feature_infos.len)
@@ -183,13 +193,21 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 
     hb_bool_t found = false;
     unsigned int feature_index[2];
-    for (unsigned int table_index = 0; table_index < 2; table_index++)
+    for (unsigned int table_index = 0; table_index < 2; table_index++) {
+      if (required_feature_index[table_index] != HB_OT_LAYOUT_NO_FEATURE_INDEX &&
+	  required_feature_tag[table_index] == info->tag) {
+	feature_index[table_index] = required_feature_index[table_index];
+	required_feature_index[table_index] = HB_OT_LAYOUT_NO_FEATURE_INDEX;
+	found = true;
+	continue;
+      }
       found |= hb_ot_layout_language_find_feature (face,
 						   table_tags[table_index],
 						   script_index[table_index],
 						   language_index[table_index],
 						   info->tag,
 						   &feature_index[table_index]);
+    }
     if (!found && !(info->flags & F_HAS_FALLBACK))
       continue;
 
@@ -229,13 +247,15 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 
     /* Collect lookup indices for features */
 
-    unsigned int required_feature_index;
-    if (hb_ot_layout_language_get_required_feature_index (face,
-							  table_tag,
-							  script_index[table_index],
-							  language_index[table_index],
-							  &required_feature_index))
-      m.add_lookups (face, table_index, required_feature_index, 1, true);
+    /* XXX
+     * Normally, any required feature will have been handled by the allocate-bits
+     * loop above. However, if the feature tag was not known among the features
+     * being applied by the shaper, then it won't have been processed yet - and
+     * we have no basis for knowing which stage to assign it to. We arbitrarily
+     * add its lookups here, before everything else, and hope that'll be OK.
+     */
+    if (required_feature_index[table_index] != HB_OT_LAYOUT_NO_FEATURE_INDEX)
+      m.add_lookups (face, table_index, required_feature_index[table_index], 1, true);
 
     unsigned int stage_index = 0;
     unsigned int last_num_lookups = 0;
