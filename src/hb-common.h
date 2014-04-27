@@ -274,9 +274,9 @@ typedef enum
   /*---*/ HB_SCRIPT_INVALID			= HB_TAG_NONE,
 
   /* Dummy value to ensure any hb_tag_t value can be passed/stored as hb_script_t
-   * without risking undefined behavior. */
+   * without risking undefined behavior.
+   */
   /*---*/ _HB_SCRIPT_MAX_VALUE			= HB_TAG_MAX
-
 } hb_script_t;
 
 /* These are moved out of hb_script_t because glib-mkenums chokes otherwise. */
