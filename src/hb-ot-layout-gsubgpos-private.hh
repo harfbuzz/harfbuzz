@@ -2268,8 +2268,8 @@ struct GSUBGPOS
 
   inline unsigned int get_feature_count (void) const
   { return (this+featureList).len; }
-  inline const Tag& get_feature_tag (unsigned int i) const
-  { return (this+featureList).get_tag (i); }
+  inline hb_tag_t get_feature_tag (unsigned int i) const
+  { return i == Index::NOT_FOUND_INDEX ? HB_TAG_NONE : (this+featureList).get_tag (i); }
   inline unsigned int get_feature_tags (unsigned int start_offset,
 					unsigned int *feature_count /* IN/OUT */,
 					hb_tag_t     *feature_tags /* OUT */) const

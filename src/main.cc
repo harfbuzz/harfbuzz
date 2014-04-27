@@ -151,8 +151,8 @@ main (int argc, char **argv)
 	for (int n_feature = 0; n_feature < num_features; n_feature++) {
 	  const Feature &feature = g.get_feature (n_feature);
 	  int num_lookups = feature.get_lookup_count ();
-	  printf ("    Feature %2d of %2d: %.4s\n", n_feature, num_features,
-	          (const char *)g.get_feature_tag(n_feature));
+	  printf ("    Feature %2d of %2d: %c%c%c%c\n", n_feature, num_features,
+	          HB_UNTAG(g.get_feature_tag(n_feature)));
 
 	  printf ("        %d lookup(s) found in feature\n", num_lookups);
 	  for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
