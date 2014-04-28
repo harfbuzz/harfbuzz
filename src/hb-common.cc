@@ -484,6 +484,14 @@ hb_script_get_horizontal_direction (hb_script_t script)
     case HB_SCRIPT_MEROITIC_CURSIVE:
     case HB_SCRIPT_MEROITIC_HIEROGLYPHS:
 
+    /* Unicode-7.0 additions */
+    case HB_SCRIPT_MANICHAEAN:
+    case HB_SCRIPT_MENDE_KIKAKUI:
+    case HB_SCRIPT_NABATAEAN:
+    case HB_SCRIPT_OLD_NORTH_ARABIAN:
+    case HB_SCRIPT_PALMYRENE:
+    case HB_SCRIPT_PSALTER_PAHLAVI:
+
       return HB_DIRECTION_RTL;
   }
 
