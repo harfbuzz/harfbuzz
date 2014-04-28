@@ -725,7 +725,7 @@ static inline void _hb_warn_no_return (bool returned)
   }
 }
 template <>
-inline void _hb_warn_no_return<hb_void_t> (bool returned HB_UNUSED)
+/*static*/ inline void _hb_warn_no_return<hb_void_t> (bool returned HB_UNUSED)
 {}
 
 template <int max_level, typename ret_t>

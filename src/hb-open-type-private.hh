@@ -42,36 +42,36 @@ namespace OT {
 
 /* Cast to struct T, reference to reference */
 template<typename Type, typename TObject>
-inline const Type& CastR(const TObject &X)
+static inline const Type& CastR(const TObject &X)
 { return reinterpret_cast<const Type&> (X); }
 template<typename Type, typename TObject>
-inline Type& CastR(TObject &X)
+static inline Type& CastR(TObject &X)
 { return reinterpret_cast<Type&> (X); }
 
 /* Cast to struct T, pointer to pointer */
 template<typename Type, typename TObject>
-inline const Type* CastP(const TObject *X)
+static inline const Type* CastP(const TObject *X)
 { return reinterpret_cast<const Type*> (X); }
 template<typename Type, typename TObject>
-inline Type* CastP(TObject *X)
+static inline Type* CastP(TObject *X)
 { return reinterpret_cast<Type*> (X); }
 
 /* StructAtOffset<T>(P,Ofs) returns the struct T& that is placed at memory
  * location pointed to by P plus Ofs bytes. */
 template<typename Type>
-inline const Type& StructAtOffset(const void *P, unsigned int offset)
+static inline const Type& StructAtOffset(const void *P, unsigned int offset)
 { return * reinterpret_cast<const Type*> ((const char *) P + offset); }
 template<typename Type>
-inline Type& StructAtOffset(void *P, unsigned int offset)
+static inline Type& StructAtOffset(void *P, unsigned int offset)
 { return * reinterpret_cast<Type*> ((char *) P + offset); }
 
 /* StructAfter<T>(X) returns the struct T& that is placed after X.
  * Works with X of variable size also.  X must implement get_size() */
 template<typename Type, typename TObject>
-inline const Type& StructAfter(const TObject &X)
+static inline const Type& StructAfter(const TObject &X)
 { return StructAtOffset<Type>(&X, X.get_size()); }
 template<typename Type, typename TObject>
-inline Type& StructAfter(TObject &X)
+static inline Type& StructAfter(TObject &X)
 { return StructAtOffset<Type>(&X, X.get_size()); }
 
 
@@ -145,7 +145,7 @@ static inline const Type& Null (void) {
 #define DEFINE_NULL_DATA(Type, data) \
 static const char _Null##Type[sizeof (Type) + 1] = data; /* +1 is for nul-termination in data */ \
 template <> \
-inline const Type& Null<Type> (void) { \
+/*static*/ inline const Type& Null<Type> (void) { \
   return *CastP<Type> (_Null##Type); \
 } /* The following line really exists such that we end in a place needing semicolon */ \
 ASSERT_STATIC (Type::min_size + 1 <= sizeof (_Null##Type))
@@ -738,9 +738,9 @@ struct GenericOffsetTo : OffsetType
   }
 };
 template <typename Base, typename OffsetType, typename Type>
-inline const Type& operator + (const Base &base, const GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
+static inline const Type& operator + (const Base &base, const GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
 template <typename Base, typename OffsetType, typename Type>
-inline Type& operator + (Base &base, GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
+static inline Type& operator + (Base &base, GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
 
 template <typename Type>
 struct OffsetTo : GenericOffsetTo<Offset, Type> {};
