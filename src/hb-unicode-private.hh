@@ -112,6 +112,10 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
      * Reorder SAKOT to ensure it comes after any tone marks. */
     if (unlikely (unicode == 0x1A60)) return 254;
 
+    /* XXX This hack belongs to the Tibetan shaper:
+     * Reorder PADMA to ensure it comes after any vowel marks. */
+    if (unlikely (unicode == 0x0FC6)) return 254;
+
     return _hb_modified_combining_class[combining_class (unicode)];
   }
 
