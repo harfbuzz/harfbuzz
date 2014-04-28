@@ -270,17 +270,6 @@ typedef enum
   /*6.1*/ HB_SCRIPT_SORA_SOMPENG		= HB_TAG ('S','o','r','a'),
   /*6.1*/ HB_SCRIPT_TAKRI			= HB_TAG ('T','a','k','r'),
 
-  /* No script set. */
-  /*---*/ HB_SCRIPT_INVALID			= HB_TAG_NONE,
-
-  /* Dummy value to ensure any hb_tag_t value can be passed/stored as hb_script_t
-   * without risking undefined behavior. */
-  /*---*/ _HB_SCRIPT_MAX_VALUE			= HB_TAG_MAX
-
-} hb_script_t;
-
-/* These are moved out of hb_script_t because glib-mkenums chokes otherwise. */
-#if 0
   /*7.0*/ HB_SCRIPT_BASSA_VAH			= HB_TAG ('B','a','s','s'),
   /*7.0*/ HB_SCRIPT_CAUCASIAN_ALBANIAN		= HB_TAG ('A','g','h','b'),
   /*7.0*/ HB_SCRIPT_DUPLOYAN			= HB_TAG ('D','u','p','l'),
@@ -304,7 +293,15 @@ typedef enum
   /*7.0*/ HB_SCRIPT_SIDDHAM			= HB_TAG ('S','i','d','d'),
   /*7.0*/ HB_SCRIPT_TIRHUTA			= HB_TAG ('T','i','r','h'),
   /*7.0*/ HB_SCRIPT_WARANG_CITI			= HB_TAG ('W','a','r','a'),
-#endif
+
+  /* No script set. */
+  /*---*/ HB_SCRIPT_INVALID			= HB_TAG_NONE,
+
+  /* Dummy value to ensure any hb_tag_t value can be passed/stored as hb_script_t
+   * without risking undefined behavior. */
+  /*---*/ _HB_SCRIPT_MAX_VALUE			= HB_TAG_MAX
+
+} hb_script_t;
 
 
 /* Script functions */
