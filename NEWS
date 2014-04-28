@@ -1,3 +1,16 @@
+Overview of changes leading to 0.9.28
+Monday, April 28, 2014
+=====================================
+
+- Unbreak old-spec Indic shaping. (bug 76705)
+- Fix shaping of U+17DD and U+0FC6.
+- Add HB_NO_MERGE_CLUSTERS build option.  NOT to be enabled by default
+  for shipping libraries.  It's an option for further experimentation
+  right now.  When we are sure how to do it properly, we will add
+  public run-time API for the functionality.
+- Build fixes.
+
+
 Overview of changes leading to 0.9.27
 Tuesday, March 18, 2014
 =====================================
