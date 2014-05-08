@@ -949,9 +949,9 @@ struct HeadlessArrayOf
 
 
 /* An array with sorted elements.  Supports binary searching. */
-template <typename Type>
-struct SortedArrayOf : ArrayOf<Type> {
-
+template <typename LenType, typename Type>
+struct GenericSortedArrayOf : GenericArrayOf<LenType, Type>
+{
   template <typename SearchType>
   inline int search (const SearchType &x) const
   {
@@ -971,6 +971,10 @@ struct SortedArrayOf : ArrayOf<Type> {
     return -1;
   }
 };
+
+/* A sorted array with a USHORT number of elements. */
+template <typename Type>
+struct SortedArrayOf : GenericSortedArrayOf<USHORT, Type> {};
 
 
 } /* namespace OT */
