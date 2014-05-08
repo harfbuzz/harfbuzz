@@ -837,6 +837,17 @@ struct GenericArrayOf
     return TRACE_RETURN (true);
   }
 
+  template <typename SearchType>
+  inline int search (const SearchType &x) const
+  {
+    /* Hand-coded bsearch here since this is in the hot inner loop. */
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!this->array[i].cmp (x))
+        return i;
+    return -1;
+  }
+
   private:
   inline bool sanitize_shallow (hb_sanitize_context_t *c) {
     TRACE_SANITIZE (this);
