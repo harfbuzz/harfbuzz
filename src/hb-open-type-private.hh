@@ -840,7 +840,6 @@ struct GenericArrayOf
   template <typename SearchType>
   inline int search (const SearchType &x) const
   {
-    /* Hand-coded bsearch here since this is in the hot inner loop. */
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (!this->array[i].cmp (x))
