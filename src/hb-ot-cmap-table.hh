@@ -47,7 +47,59 @@ struct CmapSubtableFormat4
   private:
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
+    unsigned int segCount;
+    const USHORT *endCount;
+    const USHORT *startCount;
+    const USHORT *idDelta;
+    const USHORT *idRangeOffset;
+    const USHORT *glyphIdArray;
+    unsigned int glyphIdArrayLength;
+
+    segCount = this->segCountX2 / 2;
+    endCount = this->values;
+    startCount = endCount + segCount + 1;
+    idDelta = startCount + segCount;
+    idRangeOffset = idDelta + segCount;
+    glyphIdArray = idRangeOffset + segCount;
+    glyphIdArrayLength = (this->length - 16 - 8 * segCount) / 2;
+
+    /* Custom bsearch. */
+    int min = 0, max = (int) segCount - 1;
+    unsigned int i;
+    while (min <= max)
+    {
+      int mid = (min + max) / 2;
+      if (codepoint < startCount[mid])
+        max = mid - 1;
+      else if (codepoint > endCount[mid])
+        min = mid + 1;
+      else
+      {
+	i = mid;
+	goto found;
+      }
+    }
     return false;
+
+  found:
+    hb_codepoint_t gid;
+    unsigned int rangeOffset = idRangeOffset[i];
+    if (rangeOffset == 0)
+      gid = codepoint + idDelta[i];
+    else
+    {
+      /* Somebody has been smoking... */
+      unsigned int index = rangeOffset / 2 + (codepoint - startCount[i]) + i - segCount;
+      if (unlikely (index >= glyphIdArrayLength))
+	return false;
+      gid = glyphIdArray[index];
+      if (unlikely (!gid))
+	return false;
+      gid += idDelta[i];
+    }
+
+    *glyph = gid & 0xFFFF;
+    return true;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {
