@@ -193,14 +193,18 @@ struct cmap
 {
   static const hb_tag_t tableTag	= HB_OT_TAG_cmap;
 
-  inline unsigned int find_subtable (unsigned int platform_id,
-				     unsigned int encoding_id) const
+  inline const CmapSubtable *find_subtable (unsigned int platform_id,
+					    unsigned int encoding_id) const
   {
     EncodingRecord key;
     key.platformID.set (platform_id);
     key.encodingID.set (encoding_id);
 
-    return encodingRecord.search (key);
+    int result = encodingRecord.search (key);
+    if (result == -1)
+      return NULL;
+
+    return &(this+encodingRecord[result].subtable);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) {

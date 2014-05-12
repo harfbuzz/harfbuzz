@@ -42,6 +42,9 @@ struct hb_ot_font_t
   unsigned int num_hmetrics;
   const OT::hmtx *hmtx;
   hb_blob_t *hmtx_blob;
+
+  const OT::CmapSubtable *cmap;
+  hb_blob_t *cmap_blob;
 };
 
 
@@ -69,8 +72,17 @@ _hb_ot_font_create (hb_font_t *font)
     free (ot_font);
     return NULL;
   }
-
   ot_font->hmtx = OT::Sanitizer<OT::hmtx>::lock_instance (ot_font->hmtx_blob);
+
+  ot_font->cmap_blob = OT::Sanitizer<OT::cmap>::sanitize (font->face->reference_table (HB_OT_TAG_cmap));
+  const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (ot_font->cmap_blob);
+  const OT::CmapSubtable *subtable = NULL;
+
+  if (!subtable) subtable = cmap->find_subtable (0, 3);
+  if (!subtable) subtable = cmap->find_subtable (3, 1);
+  if (!subtable) subtable = &OT::Null(OT::CmapSubtable);
+
+  ot_font->cmap = subtable;
 
   return ot_font;
 }
@@ -78,6 +90,7 @@ _hb_ot_font_create (hb_font_t *font)
 static void
 _hb_ot_font_destroy (hb_ot_font_t *ot_font)
 {
+  hb_blob_destroy (ot_font->cmap_blob);
   hb_blob_destroy (ot_font->hmtx_blob);
 
   free (ot_font);
@@ -93,24 +106,16 @@ hb_ot_get_glyph (hb_font_t *font HB_UNUSED,
 		 void *user_data HB_UNUSED)
 
 {
-#if 0
-  FT_Face ft_face = (FT_Face) font_data;
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
 
-#ifdef HAVE_FT_FACE_GETCHARVARIANTINDEX
-  if (unlikely (variation_selector)) {
-    *glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
-    return *glyph != 0;
-  }
-#endif
+  if (unlikely (variation_selector))
+    return false;
 
-  *glyph = FT_Get_Char_Index (ft_face, unicode);
-  return *glyph != 0;
-#endif
-  return true;
+  return ot_font->cmap->get_glyph (unicode, glyph);
 }
 
 static hb_position_t
-hb_ot_get_glyph_h_advance (hb_font_t *font,
+hb_ot_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t glyph,
 			   void *user_data HB_UNUSED)
