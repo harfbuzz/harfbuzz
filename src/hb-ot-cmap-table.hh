@@ -134,12 +134,69 @@ struct CmapSubtableFormat4
   DEFINE_SIZE_ARRAY (14, values);
 };
 
+struct CmapSubtableFormat12Record
+{
+  friend struct CmapSubtableFormat12;
+
+  int cmp (hb_codepoint_t codepoint) const
+  {
+    if (codepoint < startCharCode) return -1;
+    if (codepoint > endCharCode)   return +1;
+    return 0;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this));
+  }
+
+  private:
+  ULONG		startCharCode;	/* First character code in this group. */
+  ULONG		endCharCode;	/* Last character code in this group. */
+  ULONG		startGlyphID;	/* Glyph index corresponding to the starting
+				 * character code. */
+  public:
+  DEFINE_SIZE_STATIC (12);
+};
+
+struct CmapSubtableFormat12
+{
+  friend struct CmapSubtable;
+
+  private:
+  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  {
+    int i = groups.search (codepoint);
+    if (i == -1)
+      return false;
+    const CmapSubtableFormat12Record &group = groups[i];
+    *glyph = group.startGlyphID + (codepoint - group.startCharCode);
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this) && groups.sanitize (c));
+  }
+
+  protected:
+  USHORT	format;		/* Subtable format; set to 12. */
+  USHORT	reserved;	/* Reserved; set to 0. */
+  ULONG		length;		/* Byte length of this subtable (including the header). */
+  ULONG		language;	/* Ignore. */
+  LongArrayOf<CmapSubtableFormat12Record>
+		groups;		/* Groupings. */
+  public:
+  DEFINE_SIZE_ARRAY (16, groups);
+};
+
 struct CmapSubtable
 {
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     switch (u.format) {
-    case 4: return u.format4.get_glyph(codepoint, glyph);
+    case  4: return u.format4 .get_glyph(codepoint, glyph);
+    case 12: return u.format12.get_glyph(codepoint, glyph);
     default:return false;
     }
   }
@@ -148,7 +205,8 @@ struct CmapSubtable
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
-    case 4: return TRACE_RETURN (u.format4.sanitize (c));
+    case  4: return TRACE_RETURN (u.format4 .sanitize (c));
+    case 12: return TRACE_RETURN (u.format12.sanitize (c));
     default:return TRACE_RETURN (true);
     }
   }
@@ -157,6 +215,7 @@ struct CmapSubtable
   union {
   USHORT		format;		/* Format identifier */
   CmapSubtableFormat4	format4;
+  CmapSubtableFormat12	format12;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);

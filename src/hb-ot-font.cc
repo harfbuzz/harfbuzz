@@ -78,8 +78,13 @@ _hb_ot_font_create (hb_font_t *font)
   const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (ot_font->cmap_blob);
   const OT::CmapSubtable *subtable = NULL;
 
+  /* 32-bit subtables. */
+  if (!subtable) subtable = cmap->find_subtable (0, 4);
+  if (!subtable) subtable = cmap->find_subtable (3, 10);
+  /* 16-bit subtables. */
   if (!subtable) subtable = cmap->find_subtable (0, 3);
   if (!subtable) subtable = cmap->find_subtable (3, 1);
+  /* Meh. */
   if (!subtable) subtable = &OT::Null(OT::CmapSubtable);
 
   ot_font->cmap = subtable;
