@@ -160,6 +160,71 @@ struct CmapSubtableLongGroup
   DEFINE_SIZE_STATIC (12);
 };
 
+struct CmapSubtableFormat6
+{
+  friend struct CmapSubtable;
+
+  private:
+  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  {
+    /* Rely on our implicit array bound-checking. */
+    hb_codepoint_t gid = glyphIdArray[codepoint - startCharCode];
+    if (!gid)
+      return false;
+    *glyph = gid;
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this) && glyphIdArray.sanitize (c));
+  }
+
+  protected:
+  USHORT	format;		/* Subtable format; set to 6. */
+  USHORT	length;		/* Byte length of this subtable. */
+  USHORT	language;	/* Ignore. */
+  USHORT	startCharCode;	/* First character code covered. */
+  ArrayOf<GlyphID>
+		glyphIdArray;	/* Array of glyph index values for character
+				 * codes in the range. */
+  public:
+  DEFINE_SIZE_ARRAY (10, glyphIdArray);
+};
+
+struct CmapSubtableFormat10
+{
+  friend struct CmapSubtable;
+
+  private:
+  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  {
+    /* Rely on our implicit array bound-checking. */
+    hb_codepoint_t gid = glyphIdArray[codepoint - startCharCode];
+    if (!gid)
+      return false;
+    *glyph = gid;
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this) && glyphIdArray.sanitize (c));
+  }
+
+  protected:
+  USHORT	format;		/* Subtable format; set to 10. */
+  USHORT	reserved;	/* Reserved; set to 0. */
+  ULONG		length;		/* Byte length of this subtable. */
+  ULONG		language;	/* Ignore. */
+  ULONG		startCharCode;	/* First character code covered. */
+  LongArrayOf<GlyphID>
+		glyphIdArray;	/* Array of glyph index values for character
+				 * codes in the range. */
+  public:
+  DEFINE_SIZE_ARRAY (20, glyphIdArray);
+};
+
 struct CmapSubtableFormat12
 {
   friend struct CmapSubtable;
@@ -183,7 +248,7 @@ struct CmapSubtableFormat12
   protected:
   USHORT	format;		/* Subtable format; set to 12. */
   USHORT	reserved;	/* Reserved; set to 0. */
-  ULONG		length;		/* Byte length of this subtable (including the header). */
+  ULONG		length;		/* Byte length of this subtable. */
   ULONG		language;	/* Ignore. */
   LongArrayOf<CmapSubtableLongGroup>
 		groups;		/* Groupings. */
@@ -212,9 +277,9 @@ struct CmapSubtableFormat13
   }
 
   protected:
-  USHORT	format;		/* Subtable format; set to 12. */
+  USHORT	format;		/* Subtable format; set to 13. */
   USHORT	reserved;	/* Reserved; set to 0. */
-  ULONG		length;		/* Byte length of this subtable (including the header). */
+  ULONG		length;		/* Byte length of this subtable. */
   ULONG		language;	/* Ignore. */
   LongArrayOf<CmapSubtableLongGroup>
 		groups;		/* Groupings. */
@@ -228,6 +293,8 @@ struct CmapSubtable
   {
     switch (u.format) {
     case  4: return u.format4 .get_glyph(codepoint, glyph);
+    case  6: return u.format6 .get_glyph(codepoint, glyph);
+    case 10: return u.format10.get_glyph(codepoint, glyph);
     case 12: return u.format12.get_glyph(codepoint, glyph);
     case 13: return u.format13.get_glyph(codepoint, glyph);
     default:return false;
@@ -239,6 +306,8 @@ struct CmapSubtable
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
     case  4: return TRACE_RETURN (u.format4 .sanitize (c));
+    case  6: return TRACE_RETURN (u.format6 .sanitize (c));
+    case 10: return TRACE_RETURN (u.format10.sanitize (c));
     case 12: return TRACE_RETURN (u.format12.sanitize (c));
     case 13: return TRACE_RETURN (u.format13.sanitize (c));
     default:return TRACE_RETURN (true);
@@ -249,6 +318,8 @@ struct CmapSubtable
   union {
   USHORT		format;		/* Format identifier */
   CmapSubtableFormat4	format4;
+  CmapSubtableFormat6	format6;
+  CmapSubtableFormat10	format10;
   CmapSubtableFormat12	format12;
   CmapSubtableFormat13	format13;
   } u;
