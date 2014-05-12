@@ -134,9 +134,10 @@ struct CmapSubtableFormat4
   DEFINE_SIZE_ARRAY (14, values);
 };
 
-struct CmapSubtableFormat12Record
+struct CmapSubtableLongGroup
 {
   friend struct CmapSubtableFormat12;
+  friend struct CmapSubtableFormat13;
 
   int cmp (hb_codepoint_t codepoint) const
   {
@@ -153,8 +154,8 @@ struct CmapSubtableFormat12Record
   private:
   ULONG		startCharCode;	/* First character code in this group. */
   ULONG		endCharCode;	/* Last character code in this group. */
-  ULONG		startGlyphID;	/* Glyph index corresponding to the starting
-				 * character code. */
+  ULONG		glyphID;	/* Glyph index; interpretation depends on
+				 * subtable format. */
   public:
   DEFINE_SIZE_STATIC (12);
 };
@@ -169,8 +170,8 @@ struct CmapSubtableFormat12
     int i = groups.search (codepoint);
     if (i == -1)
       return false;
-    const CmapSubtableFormat12Record &group = groups[i];
-    *glyph = group.startGlyphID + (codepoint - group.startCharCode);
+    const CmapSubtableLongGroup &group = groups[i];
+    *glyph = group.glyphID + (codepoint - group.startCharCode);
     return true;
   }
 
@@ -184,7 +185,38 @@ struct CmapSubtableFormat12
   USHORT	reserved;	/* Reserved; set to 0. */
   ULONG		length;		/* Byte length of this subtable (including the header). */
   ULONG		language;	/* Ignore. */
-  LongArrayOf<CmapSubtableFormat12Record>
+  LongArrayOf<CmapSubtableLongGroup>
+		groups;		/* Groupings. */
+  public:
+  DEFINE_SIZE_ARRAY (16, groups);
+};
+
+struct CmapSubtableFormat13
+{
+  friend struct CmapSubtable;
+
+  private:
+  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  {
+    int i = groups.search (codepoint);
+    if (i == -1)
+      return false;
+    const CmapSubtableLongGroup &group = groups[i];
+    *glyph = group.glyphID;
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this) && groups.sanitize (c));
+  }
+
+  protected:
+  USHORT	format;		/* Subtable format; set to 12. */
+  USHORT	reserved;	/* Reserved; set to 0. */
+  ULONG		length;		/* Byte length of this subtable (including the header). */
+  ULONG		language;	/* Ignore. */
+  LongArrayOf<CmapSubtableLongGroup>
 		groups;		/* Groupings. */
   public:
   DEFINE_SIZE_ARRAY (16, groups);
@@ -197,6 +229,7 @@ struct CmapSubtable
     switch (u.format) {
     case  4: return u.format4 .get_glyph(codepoint, glyph);
     case 12: return u.format12.get_glyph(codepoint, glyph);
+    case 13: return u.format13.get_glyph(codepoint, glyph);
     default:return false;
     }
   }
@@ -207,6 +240,7 @@ struct CmapSubtable
     switch (u.format) {
     case  4: return TRACE_RETURN (u.format4 .sanitize (c));
     case 12: return TRACE_RETURN (u.format12.sanitize (c));
+    case 13: return TRACE_RETURN (u.format13.sanitize (c));
     default:return TRACE_RETURN (true);
     }
   }
@@ -216,6 +250,7 @@ struct CmapSubtable
   USHORT		format;		/* Format identifier */
   CmapSubtableFormat4	format4;
   CmapSubtableFormat12	format12;
+  CmapSubtableFormat13	format13;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
