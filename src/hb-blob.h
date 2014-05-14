@@ -52,9 +52,8 @@ HB_BEGIN_DECLS
  *   HarfBuzz and doing that just once (no reuse!),
  *
  * - If the font is mmap()ed, it's ok to use
- *   READONLY_MAY_MAKE_WRITABLE, however, there were
- *   design problems with that mode, so HarfBuzz do not
- *   really use it anymore.  If not sure, use MODE_READONLY.
+ *   READONLY_MAY_MAKE_WRITABLE, however, using that mode
+ *   correctly is very tricky.  Use MODE_READONLY instead.
  */
 typedef enum {
   HB_MEMORY_MODE_DUPLICATE,
