@@ -272,6 +272,8 @@ struct CmapSubtableFormat13 : CmapSubtableLongSegmented<CmapSubtableFormat13>
 
 struct CmapSubtable
 {
+  /* Note: We intentionally do NOT implement subtable formats 2 and 8. */
+
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     switch (u.format) {
