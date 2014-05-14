@@ -160,7 +160,8 @@ struct CmapSubtableLongGroup
   DEFINE_SIZE_STATIC (12);
 };
 
-struct CmapSubtableFormat6
+template <typename UINT>
+struct CmapSubtableTrimmed
 {
   friend struct CmapSubtable;
 
@@ -181,49 +182,19 @@ struct CmapSubtableFormat6
   }
 
   protected:
-  USHORT	format;		/* Subtable format; set to 6. */
-  USHORT	length;		/* Byte length of this subtable. */
-  USHORT	language;	/* Ignore. */
-  USHORT	startCharCode;	/* First character code covered. */
-  ArrayOf<GlyphID>
+  UINT		formatReserved;	/* Subtable format and (maybe) padding. */
+  UINT		length;		/* Byte length of this subtable. */
+  UINT		language;	/* Ignore. */
+  UINT		startCharCode;	/* First character code covered. */
+  GenericArrayOf<UINT, GlyphID>
 		glyphIdArray;	/* Array of glyph index values for character
 				 * codes in the range. */
   public:
-  DEFINE_SIZE_ARRAY (10, glyphIdArray);
+  DEFINE_SIZE_ARRAY (5 * sizeof (UINT), glyphIdArray);
 };
 
-struct CmapSubtableFormat10
-{
-  friend struct CmapSubtable;
-
-  private:
-  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
-  {
-    /* Rely on our implicit array bound-checking. */
-    hb_codepoint_t gid = glyphIdArray[codepoint - startCharCode];
-    if (!gid)
-      return false;
-    *glyph = gid;
-    return true;
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && glyphIdArray.sanitize (c));
-  }
-
-  protected:
-  USHORT	format;		/* Subtable format; set to 10. */
-  USHORT	reserved;	/* Reserved; set to 0. */
-  ULONG		length;		/* Byte length of this subtable. */
-  ULONG		language;	/* Ignore. */
-  ULONG		startCharCode;	/* First character code covered. */
-  LongArrayOf<GlyphID>
-		glyphIdArray;	/* Array of glyph index values for character
-				 * codes in the range. */
-  public:
-  DEFINE_SIZE_ARRAY (20, glyphIdArray);
-};
+struct CmapSubtableFormat6  : CmapSubtableTrimmed<USHORT> {};
+struct CmapSubtableFormat10 : CmapSubtableTrimmed<ULONG > {};
 
 struct CmapSubtableFormat12
 {
