@@ -132,7 +132,7 @@ static inline Type& StructAfter(TObject &X)
 
 /* Global nul-content Null pool.  Enlarge as necessary. */
 /* TODO This really should be a extern HB_INTERNAL and defined somewhere... */
-static const void *_NullPool[64 / sizeof (void *)];
+static const void *_NullPool[(256+8) / sizeof (void *)];
 
 /* Generic nul-content Null objects. */
 template <typename Type>
@@ -572,6 +572,7 @@ struct IntType
   DEFINE_SIZE_STATIC (Size);
 };
 
+typedef		uint8_t	     BYTE;	/* 8-bit unsigned integer. */
 typedef IntType<uint16_t, 2> USHORT;	/* 16-bit unsigned integer. */
 typedef IntType<int16_t,  2> SHORT;	/* 16-bit signed integer. */
 typedef IntType<uint32_t, 4> ULONG;	/* 32-bit unsigned integer. */

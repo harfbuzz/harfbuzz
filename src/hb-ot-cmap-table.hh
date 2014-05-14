@@ -40,6 +40,35 @@ namespace OT {
 #define HB_OT_TAG_cmap HB_TAG('c','m','a','p')
 
 
+struct CmapSubtableFormat0
+{
+  friend struct CmapSubtable;
+
+  private:
+  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  {
+    hb_codepoint_t gid = codepoint < 256 ? glyphIdArray[codepoint] : 0;
+    if (!gid)
+      return false;
+    *glyph = gid;
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this));
+  }
+
+  protected:
+  USHORT	format;		/* Format number is set to 0. */
+  USHORT	length;		/* Byte length of this subtable. */
+  USHORT	language;	/* Ignore. */
+  BYTE		glyphIdArray[256];/* An array that maps character
+				 * code to glyph index values. */
+  public:
+  DEFINE_SIZE_STATIC (6 + 256);
+};
+
 struct CmapSubtableFormat4
 {
   friend struct CmapSubtable;
@@ -246,6 +275,7 @@ struct CmapSubtable
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     switch (u.format) {
+    case  0: return u.format0 .get_glyph(codepoint, glyph);
     case  4: return u.format4 .get_glyph(codepoint, glyph);
     case  6: return u.format6 .get_glyph(codepoint, glyph);
     case 10: return u.format10.get_glyph(codepoint, glyph);
@@ -259,6 +289,7 @@ struct CmapSubtable
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
+    case  0: return TRACE_RETURN (u.format0 .sanitize (c));
     case  4: return TRACE_RETURN (u.format4 .sanitize (c));
     case  6: return TRACE_RETURN (u.format6 .sanitize (c));
     case 10: return TRACE_RETURN (u.format10.sanitize (c));
@@ -271,6 +302,7 @@ struct CmapSubtable
   protected:
   union {
   USHORT		format;		/* Format identifier */
+  CmapSubtableFormat0	format0;
   CmapSubtableFormat4	format4;
   CmapSubtableFormat6	format6;
   CmapSubtableFormat10	format10;
