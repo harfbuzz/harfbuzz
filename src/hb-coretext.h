@@ -30,7 +30,7 @@
 #include "hb.h"
 
 #include <TargetConditionals.h>
-#if defined(TARGET_OS_IPHONE)
+#if TARGET_OS_IPHONE
 #  include <CoreText/CoreText.h>
 #  include <CoreGraphics/CoreGraphics.h>
 #else
