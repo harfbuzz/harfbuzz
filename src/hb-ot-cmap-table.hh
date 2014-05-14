@@ -196,7 +196,8 @@ struct CmapSubtableTrimmed
 struct CmapSubtableFormat6  : CmapSubtableTrimmed<USHORT> {};
 struct CmapSubtableFormat10 : CmapSubtableTrimmed<ULONG > {};
 
-struct CmapSubtableFormat12
+template <typename T>
+struct CmapSubtableLongSegmented
 {
   friend struct CmapSubtable;
 
@@ -206,8 +207,7 @@ struct CmapSubtableFormat12
     int i = groups.search (codepoint);
     if (i == -1)
       return false;
-    const CmapSubtableLongGroup &group = groups[i];
-    *glyph = group.glyphID + (codepoint - group.startCharCode);
+    *glyph = T::group_get_glyph (groups[i], codepoint);
     return true;
   }
 
@@ -227,35 +227,18 @@ struct CmapSubtableFormat12
   DEFINE_SIZE_ARRAY (16, groups);
 };
 
-struct CmapSubtableFormat13
+struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 {
-  friend struct CmapSubtable;
+  static inline hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
+						hb_codepoint_t u)
+  { return group.glyphID + (u - group.startCharCode); }
+};
 
-  private:
-  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
-  {
-    int i = groups.search (codepoint);
-    if (i == -1)
-      return false;
-    const CmapSubtableLongGroup &group = groups[i];
-    *glyph = group.glyphID;
-    return true;
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) {
-    TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && groups.sanitize (c));
-  }
-
-  protected:
-  USHORT	format;		/* Subtable format; set to 13. */
-  USHORT	reserved;	/* Reserved; set to 0. */
-  ULONG		length;		/* Byte length of this subtable. */
-  ULONG		language;	/* Ignore. */
-  LongArrayOf<CmapSubtableLongGroup>
-		groups;		/* Groupings. */
-  public:
-  DEFINE_SIZE_ARRAY (16, groups);
+struct CmapSubtableFormat13 : CmapSubtableLongSegmented<CmapSubtableFormat13>
+{
+  static inline hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
+						hb_codepoint_t u HB_UNUSED)
+  { return group.glyphID; }
 };
 
 struct CmapSubtable
