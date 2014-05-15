@@ -726,8 +726,13 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	))
     {
       /* See if it matches the 'rphf' feature. */
-      hb_codepoint_t glyphs[2] = {info[start].codepoint, info[start + 1].codepoint};
-      if (indic_plan->rphf.would_substitute (glyphs, ARRAY_LENGTH (glyphs), face))
+      hb_codepoint_t glyphs[3] = {info[start].codepoint,
+				  info[start + 1].codepoint,
+				  indic_plan->config->reph_mode == REPH_MODE_EXPLICIT ?
+				    info[start + 2].codepoint : 0};
+      if (indic_plan->rphf.would_substitute (glyphs, 2, face) ||
+	  (indic_plan->config->reph_mode == REPH_MODE_EXPLICIT &&
+	   indic_plan->rphf.would_substitute (glyphs, 3, face)))
       {
 	limit += 2;
 	while (limit < end && is_joiner (info[limit]))
