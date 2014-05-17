@@ -8,6 +8,27 @@ if (NOT WIN32 OR (MINGW OR MSYS OR CYGWIN))
     "For any other platforms please use the autotools ./configure script.")
 endif (NOT WIN32 OR (MINGW OR MSYS OR CYGWIN))
 
+set(FREETYPE_DIR "$ENV{FREETYPE_DIR}"
+  CACHE PATH "root path for freetype lib/ and include/ folders"
+  )
+find_path(FREETYPE_INCLUDE_DIR
+  ft2build.h freetype2/freetype/freetype.h
+  PATHS ${FREETYPE_DIR}/include
+  )
+find_library(FREETYPE_LIBRARY
+  freetype libfreetype
+  PATHS ${FREETYPE_DIR}/lib
+  DOC "freetype library"
+  )
+if (FREETYPE_INCLUDE_DIR)
+  include_directories(AFTER ${FREETYPE_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIR}/freetype2)
+endif (FREETYPE_INCLUDE_DIR)
+
+if (FREETYPE_INCLUDE_DIR AND FREETYPE_LIBRARY)
+  set (THIRD_PARTY_LIBS ${THIRD_PARTY_LIBS} ${FREETYPE_LIBRARY})
+  add_definitions(-DHAVE_FREETYPE=1 -DHAVE_FT_FACE_GETCHARVARIANTINDEX=1)
+endif (FREETYPE_INCLUDE_DIR AND FREETYPE_LIBRARY)
+
 
 find_program(RAGEL "ragel")
 
@@ -34,7 +55,7 @@ include_directories(AFTER
   ${CMAKE_CURRENT_SOURCE_DIR}/../include
   )
 
-ADD_DEFINITIONS(-DHAVE_CONFIG_H)
+add_definitions(-DHAVE_CONFIG_H)
 
 ragel_preproc(../src hb-buffer-deserialize-json .hh)
 ragel_preproc(../src hb-buffer-deserialize-text .hh)
@@ -73,8 +94,10 @@ set(project_headers
   ../src/hb-blob.h
   ../src/hb-buffer.h
   ../src/hb-common.h
+  ../src/hb-deprecated.h
   ../src/hb-face.h
   ../src/hb-font.h
+  ../src/hb-ft.h
   ../src/hb-ot.h
   ../src/hb-ot-layout.h
   ../src/hb-ot-tag.h
@@ -94,6 +117,7 @@ set(project_sources
   ../src/hb-common.cc
   ../src/hb-face.cc
   ../src/hb-font.cc
+  ../src/hb-ft.cc
   ../src/hb-ot-tag.cc
   ../src/hb-set.cc
   ../src/hb-shape.cc
@@ -167,7 +191,7 @@ set(THIRD_PARTY_LIBS )
 
 if (APPLE)
   # Apple Advanced Typography
-  ADD_DEFINITIONS(-DHAVE_CORETEXT)
+  add_definitions(-DHAVE_CORETEXT)
 
   set(project_sources
     ${project_sources}
