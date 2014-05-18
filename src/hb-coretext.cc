@@ -699,11 +699,9 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
      */
     CFDictionaryRef attributes = CTRunGetAttributes (run);
     CTFontRef run_ct_font = static_cast<CTFontRef>(CFDictionaryGetValue (attributes, kCTFontAttributeName));
-    CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
-    if (!CFEqual (run_cg_font, face_data->cg_font))
-    {
-        CFRelease (run_cg_font);
 
+    if (!CFEqual (run_ct_font, font_data->ct_font))
+    {
 	CFRange range = CTRunGetStringRange (run);
 	buffer->ensure (buffer->len + range.length);
 	if (buffer->in_error)
@@ -739,7 +737,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
         }
         continue;
     }
-    CFRelease (run_cg_font);
 
     unsigned int num_glyphs = CTRunGetGlyphCount (run);
     if (num_glyphs == 0)
