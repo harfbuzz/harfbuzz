@@ -197,6 +197,9 @@ set_indic_properties (hb_glyph_info_t &info)
    */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0951, 0x0954)))
     cat = OT_A;
+  /* Same for the following... */
+  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xA8E0, 0xA8F1)))
+    cat = OT_A;
 
   if (unlikely (u == 0x17D1))
     cat = OT_X;
