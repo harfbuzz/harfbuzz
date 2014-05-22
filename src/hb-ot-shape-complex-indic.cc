@@ -208,6 +208,9 @@ set_indic_properties (hb_glyph_info_t &info)
   /* Cantillation marks. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xA8E0, 0xA8F1)))
     cat = OT_VD;
+  /* The following act like consonants. */
+  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CF5, 0x1CF6)))
+    cat = OT_C;
 
   if (unlikely (u == 0x17D1))
     cat = OT_X;
