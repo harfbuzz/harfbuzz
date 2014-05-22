@@ -211,6 +211,10 @@ set_indic_properties (hb_glyph_info_t &info)
   /* The following act like consonants. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CF5, 0x1CF6)))
     cat = OT_C;
+  /* TODO: The following should only be allowed after a Visarga.
+   * For now, just treat them like regular tone marks. */
+  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CE2, 0x1CE8)))
+    cat = OT_A;
 
   if (unlikely (u == 0x17D1))
     cat = OT_X;
