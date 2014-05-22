@@ -198,14 +198,16 @@ set_indic_properties (hb_glyph_info_t &info)
    * U+092E,U+0952,U+0951
    */
   if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0x0951, 0x0952,
-						 0xA8E0, 0xA8F1) &&
-		hb_in_ranges<hb_codepoint_t> (u, 0x1CD0, 0x1CD2,
-						 0x1CD4, 0x1CE0,
-						 0x1CF4, 0x1CF4)))
+						 0x1CD0, 0x1CD2,
+						 0x1CD4, 0x1CE0) ||
+		u == 0x1CF4))
     cat = OT_A;
   /* The following act more like the Bindus. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0953, 0x0954)))
     cat = OT_SM;
+  /* Cantillation marks. */
+  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xA8E0, 0xA8F1)))
+    cat = OT_VD;
 
   if (unlikely (u == 0x17D1))
     cat = OT_X;
