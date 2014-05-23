@@ -60,7 +60,7 @@ enum indic_category_t {
   OT_Repha = 15, /* Atomically-encoded logical or visual repha. */
   OT_Ra = 16,
   OT_CM = 17,  /* Consonant-Medial. */
-  OT_Avag = 18, /* Avagraha. */
+  OT_Symbol = 18, /* Avagraha, etc that take marks (SM,A,VD). */
   OT_CM2 = 31 /* Consonant-Medial, second slot. */
 };
 
@@ -95,7 +95,7 @@ enum indic_position_t {
 enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_OTHER			= OT_X,
 
-  INDIC_SYLLABIC_CATEGORY_AVAGRAHA		= OT_Avag,
+  INDIC_SYLLABIC_CATEGORY_AVAGRAHA		= OT_Symbol,
   INDIC_SYLLABIC_CATEGORY_BINDU			= OT_SM,
   INDIC_SYLLABIC_CATEGORY_CONSONANT		= OT_C,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_DEAD	= OT_C,
