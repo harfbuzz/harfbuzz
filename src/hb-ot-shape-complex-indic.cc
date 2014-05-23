@@ -215,6 +215,11 @@ set_indic_properties (hb_glyph_info_t &info)
    * For now, just treat them like regular tone marks. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CE2, 0x1CE8)))
     cat = OT_A;
+  /* TODO: The following should only be allowed after some of
+   * the nasalization marks, maybe only for U+1CE9..U+1CF1.
+   * For now, just treat them like tone marks. */
+  else if (unlikely (u == 0x1CED))
+    cat = OT_A;
   /* The following are Visarga variants. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CF2, 0x1CF3)))
   {
