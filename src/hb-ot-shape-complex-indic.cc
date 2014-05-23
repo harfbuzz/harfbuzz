@@ -221,6 +221,14 @@ set_indic_properties (hb_glyph_info_t &info)
     cat = OT_SM;
     ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_VISARGA == OT_SM);
   }
+  /* The following take marks in standalone clusters, similar to Avagraha. */
+  else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0xA8F2, 0xA8F7,
+						      0x1CE9, 0x1CEC,
+						      0x1CEE, 0x1CF1)))
+  {
+    cat = OT_Symbol;
+    ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
+  }
 
   if (unlikely (u == 0x17D1))
     cat = OT_X;
