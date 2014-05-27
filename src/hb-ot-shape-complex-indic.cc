@@ -242,7 +242,9 @@ set_indic_properties (hb_glyph_info_t &info)
   if (unlikely (u == 0x17D2)) cat = OT_Coeng; /* Khmer coeng */
   else if (unlikely (u == 0x200C)) cat = OT_ZWNJ;
   else if (unlikely (u == 0x200D)) cat = OT_ZWJ;
-  else if (unlikely (u == 0x00D7)) cat = OT_PLACEHOLDER;
+  else if (unlikely (u == 0x002D || u == 0x00D7 ||
+		     hb_in_range<hb_codepoint_t> (u, 0x2010, 0x2014)))
+				   cat = OT_PLACEHOLDER;
   else if (unlikely (u == 0x25CC)) cat = OT_DOTTEDCIRCLE;
   else if (unlikely (u == 0x0A71)) cat = OT_SM; /* GURMUKHI ADDAK.  Move it to the end. */
   else if (unlikely (u == 0xA982)) cat = OT_SM; /* Javanese repha. */
