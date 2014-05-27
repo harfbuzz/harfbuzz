@@ -225,21 +225,15 @@ set_indic_properties (hb_glyph_info_t &info)
     cat = OT_Symbol;
     ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
   }
-
-  if (unlikely (u == 0x17D1))
-    cat = OT_X;
-  if (cat == OT_X &&
-      unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CB, 0x17D3) ||
-		u == 0x17DD)) /* Khmer Various signs */
+  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CD, 0x17D1) ||
+		     u == 0x17CB || u == 0x17D3 || u == 0x17DD)) /* Khmer Various signs */
   {
     /* These are like Top Matras. */
     cat = OT_M;
     pos = POS_ABOVE_C;
   }
-  if (u == 0x17C6) /* Khmer Bindu doesn't like to be repositioned. */
-    cat = OT_N;
-
-  if (unlikely (u == 0x17D2)) cat = OT_Coeng; /* Khmer coeng */
+  else if (unlikely (u == 0x17C6)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
+  else if (unlikely (u == 0x17D2)) cat = OT_Coeng; /* Khmer coeng */
   else if (unlikely (u == 0x200C)) cat = OT_ZWNJ;
   else if (unlikely (u == 0x200D)) cat = OT_ZWJ;
   else if (unlikely (u == 0x002D || u == 0x00D7 ||
@@ -250,8 +244,7 @@ set_indic_properties (hb_glyph_info_t &info)
   else if (unlikely (u == 0xA982)) cat = OT_SM; /* Javanese repha. */
   else if (unlikely (u == 0xA9BE)) cat = OT_CM2; /* Javanese medial ya. */
   else if (unlikely (u == 0xA9BD)) { cat = OT_M; pos = POS_POST_C; } /* Javanese vocalic r. */
-
-  if (cat == OT_Repha) {
+  else if (cat == OT_Repha) {
     /* There are two kinds of characters marked as Repha:
      * - The ones that are GenCat=Mn are already positioned visually, ie. after base. (eg. Khmer)
      * - The ones that are GenCat=Lo is encoded logically, ie. beginning of syllable. (eg. Malayalam)
