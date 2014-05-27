@@ -134,7 +134,7 @@ enum myanmar_category_t {
   OT_D   = 19, /* Digits except zero */
   OT_D0  = 20, /* Digit zero */
   OT_DB  = OT_N, /* Dot below */
-  OT_GB  = OT_NBSP,
+  OT_GB  = OT_PLACEHOLDER,
   OT_MH  = 21, /* Various consonant medial types */
   OT_MR  = 22, /* Various consonant medial types */
   OT_MW  = 23, /* Various consonant medial types */

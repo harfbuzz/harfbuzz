@@ -53,7 +53,7 @@ enum indic_category_t {
   OT_SM = 8,
   OT_VD = 9,
   OT_A = 10,
-  OT_NBSP = 11,
+  OT_PLACEHOLDER = 11,
   OT_DOTTEDCIRCLE = 12,
   OT_RS = 13, /* Register Shifter, used in Khmer OT spec. */
   OT_Coeng = 14, /* Khmer-style Virama. */
@@ -71,7 +71,7 @@ enum indic_category_t {
  * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
  * cannot happen in a consonant syllable.  The plus side however is, we can call the
  * consonant syllable logic from the vowel syllable function and get it all right! */
-#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_Ra) | MEDIAL_FLAGS | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE))
+#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_Ra) | MEDIAL_FLAGS | FLAG (OT_V) | FLAG (OT_PLACEHOLDER) | FLAG (OT_DOTTEDCIRCLE))
 #define JOINER_FLAGS (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ))
 #define HALANT_OR_COENG_FLAGS (FLAG (OT_H) | FLAG (OT_Coeng))
 
@@ -114,7 +114,7 @@ enum indic_syllabic_category_t {
   INDIC_SYLLABIC_CATEGORY_CONSONANT_FINAL	= OT_CM,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_HEAD_LETTER	= OT_C,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_MEDIAL	= OT_CM,
-  INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	= OT_NBSP,
+  INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	= OT_PLACEHOLDER,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_SUBJOINED	= OT_CM,
   INDIC_SYLLABIC_CATEGORY_CONSONANT_REPHA	= OT_Repha,
   INDIC_SYLLABIC_CATEGORY_MODIFYING_LETTER	= OT_X,

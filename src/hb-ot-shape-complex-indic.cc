@@ -1185,8 +1185,8 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
 				       hb_buffer_t *buffer,
 				       unsigned int start, unsigned int end)
 {
-  /* We treat NBSP/dotted-circle as if they are consonants, so we should just chain.
-   * Only if not in compatibility mode that is... */
+  /* We treat placeholder/dotted-circle as if they are consonants, so we
+   * should just chain.  Only if not in compatibility mode that is... */
 
   if (hb_options ().uniscribe_bug_compatible)
   {
