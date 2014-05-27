@@ -157,12 +157,6 @@ is_one_of (const hb_glyph_info_t &info, unsigned int flags)
   return !!(FLAG (info.myanmar_category()) & flags);
 }
 
-/* Note:
- *
- * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
- * cannot happen in a consonant syllable.  The plus side however is, we can call the
- * consonant syllable logic from the vowel syllable function and get it all right! */
-#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CM) | FLAG (OT_Ra) | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_GB))
 static inline bool
 is_consonant (const hb_glyph_info_t &info)
 {

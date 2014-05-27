@@ -64,6 +64,18 @@ enum indic_category_t {
   OT_CM2 = 31 /* Consonant-Medial, second slot. */
 };
 
+#define MEDIAL_FLAGS (FLAG (OT_CM) | FLAG (OT_CM2))
+
+/* Note:
+ *
+ * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
+ * cannot happen in a consonant syllable.  The plus side however is, we can call the
+ * consonant syllable logic from the vowel syllable function and get it all right! */
+#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_Ra) | MEDIAL_FLAGS | FLAG (OT_V) | FLAG (OT_NBSP) | FLAG (OT_DOTTEDCIRCLE))
+#define JOINER_FLAGS (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ))
+#define HALANT_OR_COENG_FLAGS (FLAG (OT_H) | FLAG (OT_Coeng))
+
+
 /* Visual positions in a syllable from left to right. */
 enum indic_position_t {
   POS_START,
