@@ -1,3 +1,15 @@
+Overview of changes leading to 0.9.29
+Thursday, May 29, 2014
+=====================================
+
+- Implement cmap in hb-ot-font.h.  No variation-selectors yet.
+- Myanmar: Allow MedialYa+Asat.
+- Various Indic fixes:
+  * Support most characters in Extended Devanagary and Vedic
+    Unicode blocks.
+  * Allow digits and a some punctuation as consonant placeholders.
+- Build fixes.
+
 Overview of changes leading to 0.9.28
 Monday, April 28, 2014
 =====================================
