@@ -254,6 +254,10 @@ set_indic_properties (hb_glyph_info_t &info)
     if (_hb_glyph_info_get_general_category (&info) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
       cat = OT_N;
   }
+  /* Decimal and Brahmi numbers. */
+  else if (unlikely (_hb_glyph_info_get_general_category (&info) ==
+		     HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER ||
+		     hb_in_range<hb_codepoint_t> (u, 0x11052, 0x11065))) cat = OT_PLACEHOLDER;
 
 
 
