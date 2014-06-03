@@ -299,9 +299,11 @@ hb_language_from_string (const char *str, int len)
 
   if (len >= 0)
   {
+    /* NUL-terminate it. */
     len = MIN (len, (int) sizeof (strbuf) - 1);
-    str = (char *) memcpy (strbuf, str, len);
+    memcpy (strbuf, str, len);
     strbuf[len] = '\0';
+    str = strbuf;
   }
 
   hb_language_item_t *item = lang_find_or_insert (str);

@@ -513,7 +513,7 @@ struct Feature
 	closure->list_base && closure->list_base < this)
     {
       unsigned int new_offset_int = (unsigned int) orig_offset -
-				    ((char *) this - (char *) closure->list_base);
+				    (((char *) this) - ((char *) closure->list_base));
 
       Offset new_offset;
       /* Check that it did not overflow. */
