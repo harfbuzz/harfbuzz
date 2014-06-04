@@ -985,6 +985,10 @@ struct GenericSortedArrayOf : GenericArrayOf<LenType, Type>
 template <typename Type>
 struct SortedArrayOf : GenericSortedArrayOf<USHORT, Type> {};
 
+/* A sorted array with a ULONG number of elements. */
+template <typename Type>
+struct LongSortedArrayOf : GenericSortedArrayOf<ULONG, Type> {};
+
 
 } /* namespace OT */
 
