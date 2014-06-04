@@ -354,7 +354,7 @@ struct cmap
     key.encodingID.set (encoding_id);
 
     int result = encodingRecord.search (key);
-    if (result == -1)
+    if (result == -1 || !encodingRecord[result].subtable)
       return NULL;
 
     return &(this+encodingRecord[result].subtable);
