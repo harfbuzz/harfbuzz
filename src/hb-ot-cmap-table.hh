@@ -332,12 +332,12 @@ struct CmapSubtable
 
 struct EncodingRecord
 {
-  int cmp (const EncodingRecord &other) const
+  inline int cmp (const EncodingRecord &other) const
   {
     int ret;
-    ret = other.platformID.cmp (platformID);
+    ret = platformID.cmp (other.platformID);
     if (ret) return ret;
-    ret = other.encodingID.cmp (encodingID);
+    ret = encodingID.cmp (other.encodingID);
     if (ret) return ret;
     return 0;
   }
@@ -381,8 +381,12 @@ struct cmap
 			 encodingRecord.sanitize (c, this));
   }
 
-  USHORT			version;	/* Table version number (0). */
-  ArrayOf<EncodingRecord>	encodingRecord;	/* Encoding tables. */
+  USHORT		version;	/* Table version number (0). */
+  /* Note: We can use the Sorted array variant, but since it
+   * has no performance implications, we use non-sorted array and
+   * as such accept fonts with unsorted subtable list. */
+  /*Sorted*/ArrayOf<EncodingRecord>
+			encodingRecord;	/* Encoding tables. */
   public:
   DEFINE_SIZE_ARRAY (4, encodingRecord);
 };
