@@ -1446,7 +1446,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   if (start + 1 < end &&
       info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
       ((info[start].indic_category() == OT_Repha) ^
-       _hb_glyph_info_ligated (&info[start])))
+       _hb_glyph_info_ligated_and_didnt_multiply (&info[start])))
   {
     unsigned int new_reph_pos;
     reph_position_t reph_pos = indic_plan->config->reph_pos;
@@ -1599,7 +1599,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	 * If pref len is longer than one, then only reorder if it ligated.  If
 	 * pref len is one, only reorder if it didn't ligate with other things. */
 	if (_hb_glyph_info_substituted (&info[i]) &&
-	    ((pref_len == 1) ^ _hb_glyph_info_ligated (&info[i])))
+	    ((pref_len == 1) ^ _hb_glyph_info_ligated_and_didnt_multiply (&info[i])))
 	{
 	  /*
 	   *       2. Try to find a target position the same way as for pre-base matra.

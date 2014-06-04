@@ -295,7 +295,7 @@ struct Sequence
 
     for (unsigned int i = 0; i < count; i++) {
       _hb_glyph_info_set_lig_props_for_component (&c->buffer->cur(), i);
-      c->output_glyph (substitute.array[i], klass);
+      c->output_glyph_for_component (substitute.array[i], klass);
     }
     c->buffer->skip_glyph ();
 

@@ -34,7 +34,10 @@ CLEANFILES += \
 	hb_test_tools.py[co] \
 	$(NULL)
 
-TESTS = tests/context-matching.tests
+TESTS = \
+	tests/context-matching.tests \
+	tests/indic-pref-blocking.tests \
+	$(NULL)
 
 TEST_EXTENSIONS = \
 	.tests \
