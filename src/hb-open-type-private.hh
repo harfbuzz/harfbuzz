@@ -266,6 +266,15 @@ struct hb_sanitize_context_t
     return TRACE_RETURN (this->writable);
   }
 
+  template <typename Type, typename ValueType>
+  inline bool try_set (Type *obj, const ValueType &v) {
+    if (this->may_edit (obj, obj->static_size)) {
+      obj->set (v);
+      return true;
+    }
+    return false;
+  }
+
   mutable unsigned int debug_depth;
   const char *start, *end;
   bool writable;
@@ -722,20 +731,9 @@ struct GenericOffsetTo : OffsetType
     return TRACE_RETURN (likely (obj.sanitize (c, user_data)) || neuter (c));
   }
 
-  inline bool try_set (hb_sanitize_context_t *c, const OffsetType &v) {
-    if (c->may_edit (this, this->static_size)) {
-      this->set (v);
-      return true;
-    }
-    return false;
-  }
   /* Set the offset to Null */
   inline bool neuter (hb_sanitize_context_t *c) {
-    if (c->may_edit (this, this->static_size)) {
-      this->set (0); /* 0 is Null offset */
-      return true;
-    }
-    return false;
+    return c->try_set (this, 0);
   }
 };
 template <typename Base, typename OffsetType, typename Type>

@@ -519,7 +519,7 @@ struct Feature
       /* Check that it did not overflow. */
       new_offset.set (new_offset_int);
       if (new_offset == new_offset_int &&
-	  featureParams.try_set (c, new_offset) &&
+	  c->try_set (&featureParams, new_offset) &&
 	  !featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE))
 	return TRACE_RETURN (false);
     }
