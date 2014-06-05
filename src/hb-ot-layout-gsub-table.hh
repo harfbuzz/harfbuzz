@@ -270,6 +270,15 @@ struct Sequence
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+
+    /* TODO:
+     * Testing shows that Uniscribe actually allows zero-len susbstitute,
+     * which essentially deletes a glyph.  We don't allow for now.  It
+     * can be confusing to the client since the cluster from the deleted
+     * glyph won't be merged with any output cluster...  Also, currently
+     * buffer->move_to() makes assumptions about this too.  Perhaps fix
+     * in the future after figuring out what to do with the clusters.
+     */
     if (unlikely (!substitute.len)) return TRACE_RETURN (false);
 
     unsigned int klass = _hb_glyph_info_is_ligature (&c->buffer->cur()) ?

@@ -995,7 +995,9 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 
     /* Recursed lookup changed buffer len.  Adjust. */
 
-    /* end can't go back past the current match position. */
+    /* end can't go back past the current match position.
+     * Note: this is only true because we do NOT allow MultipleSubst
+     * with zero sequence len. */
     end = MAX ((int) match_positions[idx] + 1, int (end) + delta);
 
     unsigned int next = idx + 1; /* next now is the position after the recursed lookup. */
