@@ -270,6 +270,7 @@ struct Sequence
   inline bool apply (hb_apply_context_t *c) const
   {
     TRACE_APPLY (this);
+    unsigned int count = substitute.len;
 
     /* TODO:
      * Testing shows that Uniscribe actually allows zero-len susbstitute,
@@ -279,23 +280,24 @@ struct Sequence
      * buffer->move_to() makes assumptions about this too.  Perhaps fix
      * in the future after figuring out what to do with the clusters.
      */
-    if (unlikely (!substitute.len)) return TRACE_RETURN (false);
+    if (unlikely (!count)) return TRACE_RETURN (false);
+
+    /* Special-case to make it in-place and not consider this
+     * as a "multiplied" substitution. */
+    if (unlikely (count == 1))
+    {
+      c->replace_glyph (substitute.array[0]);
+      return TRACE_RETURN (true);
+    }
 
     unsigned int klass = _hb_glyph_info_is_ligature (&c->buffer->cur()) ?
 			 HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
-    unsigned int count = substitute.len;
-    if (count == 1) /* Special-case to make it in-place. */
-    {
-      c->replace_glyph (substitute.array[0]);
+
+    for (unsigned int i = 0; i < count; i++) {
+      _hb_glyph_info_set_lig_props_for_component (&c->buffer->cur(), i);
+      c->output_glyph (substitute.array[i], klass);
     }
-    else
-    {
-      for (unsigned int i = 0; i < count; i++) {
-	_hb_glyph_info_set_lig_props_for_component (&c->buffer->cur(), i);
-	c->output_glyph (substitute.array[i], klass);
-      }
-      c->buffer->skip_glyph ();
-    }
+    c->buffer->skip_glyph ();
 
     return TRACE_RETURN (true);
   }
@@ -633,7 +635,8 @@ struct Ligature
   {
     TRACE_APPLY (this);
     unsigned int count = component.len;
-    if (unlikely (count < 1)) return TRACE_RETURN (false);
+
+    if (unlikely (!count)) return TRACE_RETURN (false);
 
     bool is_mark_ligature = false;
     unsigned int total_component_count = 0;
