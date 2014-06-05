@@ -638,6 +638,14 @@ struct Ligature
 
     if (unlikely (!count)) return TRACE_RETURN (false);
 
+    /* Special-case to make it in-place and not consider this
+     * as a "ligated" substitution. */
+    if (unlikely (count == 1))
+    {
+      c->replace_glyph (ligGlyph);
+      return TRACE_RETURN (true);
+    }
+
     bool is_mark_ligature = false;
     unsigned int total_component_count = 0;
 
