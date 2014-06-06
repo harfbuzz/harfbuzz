@@ -1365,10 +1365,34 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    * cluster.
    */
 
+  bool try_pref = !!indic_plan->mask_array[PREF];
+
   /* Find base again */
   unsigned int base;
   for (base = start; base < end; base++)
-    if (info[base].indic_position() >= POS_BASE_C) {
+    if (info[base].indic_position() >= POS_BASE_C)
+    {
+      if (try_pref && base + 1 < end && indic_plan->config->pref_len == 2)
+      {
+	for (unsigned int i = base + 1; i < end; i++)
+	  if ((info[i].mask & indic_plan->mask_array[PREF]) != 0)
+	  {
+	    if (!(_hb_glyph_info_substituted (&info[i]) &&
+		  _hb_glyph_info_ligated_and_didnt_multiply (&info[i])))
+	    {
+	      /* Ok, this was a 'pref' candidate but didn't form any.
+	       * Base is around here... */
+	      base = i;
+	      while (base < end && is_halant_or_coeng (info[base]))
+		base++;
+	      info[base].indic_position() = POS_BASE_C;
+
+	      try_pref = false;
+	    }
+	    break;
+	  }
+      }
+
       if (start < base && info[base].indic_position() > POS_BASE_C)
         base--;
       break;
@@ -1603,7 +1627,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
    *     the following rules:
    */
 
-  if (indic_plan->mask_array[PREF] && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
+  if (try_pref && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
   {
     unsigned int pref_len = indic_plan->config->pref_len;
     for (unsigned int i = base + 1; i < end; i++)
