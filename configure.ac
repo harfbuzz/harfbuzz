@@ -72,6 +72,7 @@ AC_CHECK_HEADERS(unistd.h sys/mman.h)
 
 # Compiler flags
 AC_CANONICAL_HOST
+AC_CHECK_ALIGNOF([struct{char}])
 if test "x$GCC" = "xyes"; then
 
 	# Make symbols link locally
@@ -94,8 +95,10 @@ if test "x$GCC" = "xyes"; then
 
 	case "$host" in
 		arm-*-*)
-			# Request byte alignment on arm
-			CXXFLAGS="$CXXFLAGS -mstructure-size-boundary=8"
+			if test "x$ac_cv_alignof_struct_char_" != x1; then
+				# Request byte alignment
+				CXXFLAGS="$CXXFLAGS -mstructure-size-boundary=8"
+			fi
 		;;
 	esac
 fi
