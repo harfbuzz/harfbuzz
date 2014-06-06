@@ -395,6 +395,14 @@ _hb_glyph_info_ligated_and_didnt_multiply (const hb_glyph_info_t *info)
   return _hb_glyph_info_ligated (info) && !_hb_glyph_info_multiplied (info);
 }
 
+static inline void
+_hb_glyph_info_clear_ligated_and_multiplied (hb_glyph_info_t *info)
+{
+  info->glyph_props() &= ~(HB_OT_LAYOUT_GLYPH_PROPS_LIGATED |
+			   HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED);
+}
+
+
 /* Allocation / deallocation. */
 
 static inline void

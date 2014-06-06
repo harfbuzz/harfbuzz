@@ -1336,6 +1336,27 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
   hb_glyph_info_t *info = buffer->info;
 
+
+  /* This function relies heavily on halant glyphs.  Lots of ligation
+   * and possibly multiplication substitutions happened prior to this
+   * phase, and that might have messed up our properties.  Recover
+   * from a particular case of that where we're fairly sure that a
+   * class of OT_H is desired but has been lost. */
+  if (indic_plan->virama_glyph)
+  {
+    unsigned int virama_glyph = indic_plan->virama_glyph;
+    for (unsigned int i = start; i < end; i++)
+      if (info[i].codepoint == virama_glyph &&
+	  _hb_glyph_info_ligated (&info[i]) &&
+	  _hb_glyph_info_multiplied (&info[i]))
+      {
+        /* This will make sure that this glyph passes is_halant_or_coeng() test. */
+	info[i].indic_category() = OT_H;
+	_hb_glyph_info_clear_ligated_and_multiplied (&info[i]);
+      }
+  }
+
+
   /* 4. Final reordering:
    *
    * After the localized forms and basic shaping forms GSUB features have been
