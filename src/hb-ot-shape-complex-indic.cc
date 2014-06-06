@@ -1383,7 +1383,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
     if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
     {
       while (new_pos > start &&
-	     !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H) | FLAG (OT_Coeng)))))
+	     !(is_one_of (info[new_pos], (FLAG (OT_M) | HALANT_OR_COENG_FLAGS))))
 	new_pos--;
 
       /* If we found no Halant we are done.
