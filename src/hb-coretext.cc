@@ -507,8 +507,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	if (unlikely (!range))
 	  goto fail_features;
 
-	unsigned int offset = feature_records.len;
-
 	if (active_features.len)
 	{
 	  CFMutableArrayRef features_array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
