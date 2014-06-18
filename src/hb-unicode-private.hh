@@ -130,46 +130,39 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 
   /* Default_Ignorable codepoints:
    *
-   * Note that as of Oct 2012 (Unicode 6.2), U+180E MONGOLIAN VOWEL SEPARATOR
-   * is NOT Default_Ignorable, but it really behaves in a way that it should
-   * be.  That has been reported to the Unicode Technical Committee for
-   * consideration.  As such, we include it here, since Uniscribe removes it.
-   * It *is* in Unicode 6.3 however.  U+061C ARABIC LETTER MARK from Unicode
-   * 6.3 is also added manually.  The new Unicode 6.3 bidi formatting
-   * characters are encoded in a block that was Default_Ignorable already.
-   *
    * Note: While U+115F, U+1160, U+3164 and U+FFA0 are Default_Ignorable,
    * we do NOT want to hide them, as the way Uniscribe has implemented them
    * is with regular spacing glyphs, and that's the way fonts are made to work.
    * As such, we make exceptions for those four.
    *
-   * Gathered from:
-   * http://unicode.org/cldr/utility/list-unicodeset.jsp?a=[:DI:]&abb=on&ucd=on&esc=on
-   *
-   * Last updated to the page with the following versions:
-   * Version 3.6; ICU version: 50.0.1.0; Unicode version: 6.1.0.0
-   *
-   * 4,167 Code Points
-   *
-   * [\u00AD\u034F\u115F\u1160\u17B4\u17B5\u180B-\u180D\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0\uFFF0-\uFFF8\U0001D173-\U0001D17A\U000E0000-\U000E0FFF]
-   *
-   * 00AD ;SOFT HYPHEN
-   * 034F ;COMBINING GRAPHEME JOINER
-   * #115F ;HANGUL CHOSEONG FILLER
-   * #1160 ;HANGUL JUNGSEONG FILLER
-   * 17B4 ;KHMER VOWEL INHERENT AQ
-   * 17B5 ;KHMER VOWEL INHERENT AA
-   * 180B..180D ;MONGOLIAN FREE VARIATION SELECTOR THREE
-   * 200B..200F ;RIGHT-TO-LEFT MARK
-   * 202A..202E ;RIGHT-TO-LEFT OVERRIDE
-   * 2060..206F ;NOMINAL DIGIT SHAPES
-   * #3164 ;HANGUL FILLER
-   * FE00..FE0F ;VARIATION SELECTOR-16
-   * FEFF ;ZERO WIDTH NO-BREAK SPACE
-   * #FFA0 ;HALFWIDTH HANGUL FILLER
-   * FFF0..FFF8 ;<unassigned-FFF8>
-   * 1D173..1D17A ;MUSICAL SYMBOL END PHRASE
-   * E0000..E0FFF ;<unassigned-E0FFF>
+   * Unicode 7.0:
+   * $ grep '; Default_Ignorable_Code_Point ' DerivedCoreProperties.txt | sed 's/;.*#/#/'
+   * 00AD          # Cf       SOFT HYPHEN
+   * 034F          # Mn       COMBINING GRAPHEME JOINER
+   * 061C          # Cf       ARABIC LETTER MARK
+   * 115F..1160    # Lo   [2] HANGUL CHOSEONG FILLER..HANGUL JUNGSEONG FILLER
+   * 17B4..17B5    # Mn   [2] KHMER VOWEL INHERENT AQ..KHMER VOWEL INHERENT AA
+   * 180B..180D    # Mn   [3] MONGOLIAN FREE VARIATION SELECTOR ONE..MONGOLIAN FREE VARIATION SELECTOR THREE
+   * 180E          # Cf       MONGOLIAN VOWEL SEPARATOR
+   * 200B..200F    # Cf   [5] ZERO WIDTH SPACE..RIGHT-TO-LEFT MARK
+   * 202A..202E    # Cf   [5] LEFT-TO-RIGHT EMBEDDING..RIGHT-TO-LEFT OVERRIDE
+   * 2060..2064    # Cf   [5] WORD JOINER..INVISIBLE PLUS
+   * 2065          # Cn       <reserved-2065>
+   * 2066..206F    # Cf  [10] LEFT-TO-RIGHT ISOLATE..NOMINAL DIGIT SHAPES
+   * 3164          # Lo       HANGUL FILLER
+   * FE00..FE0F    # Mn  [16] VARIATION SELECTOR-1..VARIATION SELECTOR-16
+   * FEFF          # Cf       ZERO WIDTH NO-BREAK SPACE
+   * FFA0          # Lo       HALFWIDTH HANGUL FILLER
+   * FFF0..FFF8    # Cn   [9] <reserved-FFF0>..<reserved-FFF8>
+   * 1BCA0..1BCA3  # Cf   [4] SHORTHAND FORMAT LETTER OVERLAP..SHORTHAND FORMAT UP STEP
+   * 1D173..1D17A  # Cf   [8] MUSICAL SYMBOL BEGIN BEAM..MUSICAL SYMBOL END PHRASE
+   * E0000         # Cn       <reserved-E0000>
+   * E0001         # Cf       LANGUAGE TAG
+   * E0002..E001F  # Cn  [30] <reserved-E0002>..<reserved-E001F>
+   * E0020..E007F  # Cf  [96] TAG SPACE..CANCEL TAG
+   * E0080..E00FF  # Cn [128] <reserved-E0080>..<reserved-E00FF>
+   * E0100..E01EF  # Mn [240] VARIATION SELECTOR-17..VARIATION SELECTOR-256
+   * E01F0..E0FFF  # Cn [3600] <reserved-E01F0>..<reserved-E0FFF>
    */
   inline hb_bool_t
   is_default_ignorable (hb_codepoint_t ch)
@@ -197,7 +190,8 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     {
       /* Other planes */
       switch (plane) {
-	case 0x01: return hb_in_range<hb_codepoint_t> (ch, 0x0001D173, 0x0001D17A);
+	case 0x01: return hb_in_ranges<hb_codepoint_t> (ch, 0x0001BCA0, 0x0001BCA3,
+							    0x0001D173, 0x0001D17A);
 	case 0x0E: return hb_in_range<hb_codepoint_t> (ch, 0x000E0000, 0x000E0FFF);
 	default: return false;
       }
