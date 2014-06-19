@@ -477,7 +477,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       event->start = false;
       event->feature = feature;
     }
-    feature_events.sort ();
+    feature_events.qsort ();
     /* Add a strategic final event. */
     {
       active_feature_t feature;
@@ -512,7 +512,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	  CFMutableArrayRef features_array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
 
 	  /* TODO sort and resolve conflicting features? */
-	  /* active_features.sort (); */
+	  /* active_features.qsort (); */
 	  for (unsigned int j = 0; j < active_features.len; j++)
 	  {
 	    CFStringRef keys[2] = {

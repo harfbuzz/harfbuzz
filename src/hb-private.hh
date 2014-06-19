@@ -353,14 +353,14 @@ struct hb_prealloced_array_t
     return NULL;
   }
 
-  inline void sort (void)
+  inline void qsort (void)
   {
-    qsort (array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
+    ::qsort (array, len, sizeof (Type), (hb_compare_func_t) Type::cmp);
   }
 
-  inline void sort (unsigned int start, unsigned int end)
+  inline void qsort (unsigned int start, unsigned int end)
   {
-    qsort (array + start, end - start, sizeof (Type), (hb_compare_func_t) Type::cmp);
+    ::qsort (array + start, end - start, sizeof (Type), (hb_compare_func_t) Type::cmp);
   }
 
   template <typename T>

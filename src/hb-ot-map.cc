@@ -141,7 +141,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 
   /* Sort features and merge duplicates */
   {
-    feature_infos.sort ();
+    feature_infos.qsort ();
     unsigned int j = 0;
     for (unsigned int i = 1; i < feature_infos.len; i++)
       if (feature_infos[i].tag != feature_infos[j].tag)
@@ -251,7 +251,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].len)
       {
-	m.lookups[table_index].sort (last_num_lookups, m.lookups[table_index].len);
+	m.lookups[table_index].qsort (last_num_lookups, m.lookups[table_index].len);
 
 	unsigned int j = last_num_lookups;
 	for (unsigned int i = j + 1; i < m.lookups[table_index].len; i++)

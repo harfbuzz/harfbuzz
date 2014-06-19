@@ -631,7 +631,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       event->start = false;
       event->feature = feature;
     }
-    feature_events.sort ();
+    feature_events.qsort ();
     /* Add a strategic final event. */
     {
       active_feature_t feature;
@@ -663,7 +663,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
 
 	unsigned int offset = feature_records.len;
 
-	active_features.sort ();
+	active_features.qsort ();
 	for (unsigned int j = 0; j < active_features.len; j++)
 	{
 	  if (!j || active_features[j].rec.tagFeature != feature_records[feature_records.len - 1].tagFeature)
