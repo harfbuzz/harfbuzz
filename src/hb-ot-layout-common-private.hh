@@ -103,7 +103,8 @@ struct RecordArrayOf : SortedArrayOf<Record<Type> > {
   }
   inline bool find_index (hb_tag_t tag, unsigned int *index) const
   {
-    int i = this->search (tag);
+    /* If we want to allow non-sorted data, we can lsearch(). */
+    int i = this->/*lsearch*/bsearch (tag);
     if (i != -1) {
         if (index) *index = i;
         return true;
@@ -631,7 +632,7 @@ struct CoverageFormat1
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    int i = glyphArray.search (glyph_id);
+    int i = glyphArray.bsearch (glyph_id);
     ASSERT_STATIC (((unsigned int) -1) == NOT_COVERED);
     return i;
   }
@@ -696,7 +697,7 @@ struct CoverageFormat2
   private:
   inline unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    int i = rangeRecord.search (glyph_id);
+    int i = rangeRecord.bsearch (glyph_id);
     if (i != -1) {
       const RangeRecord &range = rangeRecord[i];
       return (unsigned int) range.value + (glyph_id - range.start);
@@ -992,7 +993,7 @@ struct ClassDefFormat2
   private:
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
-    int i = rangeRecord.search (glyph_id);
+    int i = rangeRecord.bsearch (glyph_id);
     if (i != -1)
       return rangeRecord[i].value;
     return 0;

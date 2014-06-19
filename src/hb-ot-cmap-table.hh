@@ -92,7 +92,7 @@ struct CmapSubtableFormat4
     glyphIdArray = idRangeOffset + segCount;
     glyphIdArrayLength = (this->length - 16 - 8 * segCount) / 2;
 
-    /* Custom bsearch. */
+    /* Custom two-array bsearch. */
     int min = 0, max = (int) segCount - 1;
     unsigned int i;
     while (min <= max)
@@ -247,7 +247,7 @@ struct CmapSubtableLongSegmented
   private:
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
-    int i = groups.search (codepoint);
+    int i = groups.bsearch (codepoint);
     if (i == -1)
       return false;
     *glyph = T::group_get_glyph (groups[i], codepoint);
@@ -367,7 +367,10 @@ struct cmap
     key.platformID.set (platform_id);
     key.encodingID.set (encoding_id);
 
-    int result = encodingRecord.search (key);
+    /* Note: We can use bsearch, but since it has no performance
+     * implications, we use lsearch and as such accept fonts with
+     * unsorted subtable list. */
+    int result = encodingRecord./*bsearch*/lsearch (key);
     if (result == -1 || !encodingRecord[result].subtable)
       return NULL;
 
@@ -382,10 +385,7 @@ struct cmap
   }
 
   USHORT		version;	/* Table version number (0). */
-  /* Note: We can use the Sorted array variant, but since it
-   * has no performance implications, we use non-sorted array and
-   * as such accept fonts with unsorted subtable list. */
-  /*Sorted*/ArrayOf<EncodingRecord>
+  SortedArrayOf<EncodingRecord>
 			encodingRecord;	/* Encoding tables. */
   public:
   DEFINE_SIZE_ARRAY (4, encodingRecord);

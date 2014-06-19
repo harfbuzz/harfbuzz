@@ -837,7 +837,7 @@ struct GenericArrayOf
   }
 
   template <typename SearchType>
-  inline int search (const SearchType &x) const
+  inline int lsearch (const SearchType &x) const
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
@@ -962,7 +962,7 @@ template <typename LenType, typename Type>
 struct GenericSortedArrayOf : GenericArrayOf<LenType, Type>
 {
   template <typename SearchType>
-  inline int search (const SearchType &x) const
+  inline int bsearch (const SearchType &x) const
   {
     /* Hand-coded bsearch here since this is in the hot inner loop. */
     int min = 0, max = (int) this->len - 1;
