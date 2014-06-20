@@ -46,27 +46,28 @@ test_version (void)
   g_free (s);
   g_assert (0 == strcmp (HB_VERSION_STRING, hb_version_string ()));
 
-  g_assert (HB_VERSION_CHECK (major, minor, micro));
-  g_assert (HB_VERSION_CHECK (major+1, minor, micro));
-  g_assert (HB_VERSION_CHECK (major, minor+1, micro));
-  g_assert (HB_VERSION_CHECK (major, minor, micro+1));
+  g_assert (HB_VERSION_ATLEAST (major, minor, micro));
   if (major)
-    g_assert (!HB_VERSION_CHECK (major-1, minor, micro));
+    g_assert (HB_VERSION_ATLEAST (major-1, minor, micro));
   if (minor)
-    g_assert (!HB_VERSION_CHECK (major, minor-1, micro));
+    g_assert (HB_VERSION_ATLEAST (major, minor-1, micro));
   if (micro)
-    g_assert (!HB_VERSION_CHECK (major, minor, micro-1));
+    g_assert (HB_VERSION_ATLEAST (major, minor, micro-1));
+  g_assert (!HB_VERSION_ATLEAST (major+1, minor, micro));
+  g_assert (!HB_VERSION_ATLEAST (major, minor+1, micro));
+  g_assert (!HB_VERSION_ATLEAST (major, minor, micro+1));
+  g_assert (!HB_VERSION_ATLEAST (major, minor, micro+1));
 
-  g_assert (hb_version_check (major, minor, micro));
-  g_assert (hb_version_check (major+1, minor, micro));
-  g_assert (hb_version_check (major, minor+1, micro));
-  g_assert (hb_version_check (major, minor, micro+1));
+  g_assert (hb_version_atleast (major, minor, micro));
   if (major)
-    g_assert (!hb_version_check (major-1, minor, micro));
+    g_assert (hb_version_atleast (major-1, minor, micro));
   if (minor)
-    g_assert (!hb_version_check (major, minor-1, micro));
+    g_assert (hb_version_atleast (major, minor-1, micro));
   if (micro)
-    g_assert (!hb_version_check (major, minor, micro-1));
+    g_assert (hb_version_atleast (major, minor, micro-1));
+  g_assert (!hb_version_atleast (major+1, minor, micro));
+  g_assert (!hb_version_atleast (major, minor+1, micro));
+  g_assert (!hb_version_atleast (major, minor, micro+1));
 }
 
 int

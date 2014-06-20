@@ -487,12 +487,12 @@ hb_uniscribe_font_get_logfontw
 
 <SECTION>
 <FILE>hb-version</FILE>
-HB_VERSION_CHECK
+HB_VERSION_ATLEAST
 HB_VERSION_MAJOR
 HB_VERSION_MICRO
 HB_VERSION_MINOR
 HB_VERSION_STRING
 hb_version
-hb_version_check
+hb_version_atleast
 hb_version_string
 </SECTION>

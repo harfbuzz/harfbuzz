@@ -569,7 +569,7 @@ hb_version_string (void)
 }
 
 /**
- * hb_version_check:
+ * hb_version_atleast:
  * @major: 
  * @minor: 
  * @micro: 
@@ -581,9 +581,9 @@ hb_version_string (void)
  * Since: 1.0
  **/
 hb_bool_t
-hb_version_check (unsigned int major,
-		  unsigned int minor,
-		  unsigned int micro)
+hb_version_atleast (unsigned int major,
+		    unsigned int minor,
+		    unsigned int micro)
 {
-  return HB_VERSION_CHECK (major, minor, micro);
+  return HB_VERSION_ATLEAST (major, minor, micro);
 }
