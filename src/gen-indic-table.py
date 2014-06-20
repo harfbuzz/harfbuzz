@@ -124,10 +124,13 @@ print
 
 total = 0
 used = 0
+last_block = None
 def print_block (block, start, end, data):
-	print
-	print
-	print "  /* %s */" % block
+	global total, used, last_block
+	if block and block != last_block:
+		print
+		print
+		print "  /* %s */" % block
 	num = 0
 	assert start % 8 == 0
 	assert (end+1) % 8 == 0
@@ -140,9 +143,10 @@ def print_block (block, start, end, data):
 		d = data.get (u, defaults)
 		sys.stdout.write ("%9s" % ("_(%s,%s)," % (short[0][d[0]], short[1][d[1]])))
 
-	global total, used
 	total += end - start + 1
 	used += num
+	if block:
+		last_block = block
 
 uu = data.keys ()
 uu.sort ()
@@ -157,11 +161,17 @@ for u in uu:
 	if u <= last:
 		continue
 	block = data[u][2]
-	(start, end) = blocks[block]
+	(bstart, bend) = blocks[block]
+
+	start = u//8*8
+	end = start+1
+	while end < bend and end in uu:
+		end += 1
+	end = (end-1)//8*8 + 7
 
 	if start != last + 1:
-		if start - last <= 33:
-			print_block ("FILLER", last+1, start-1, data)
+		if start - last <= 1+16*3:
+			print_block (None, last+1, start-1, data)
 			last = start-1
 		else:
 			if last >= 0:
