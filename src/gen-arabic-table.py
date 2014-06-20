@@ -59,10 +59,10 @@ def print_joining_table(f):
 			value = "JOINING_GROUP_" + fields[3].replace(' ', '_')
 		else:
 			value = "JOINING_TYPE_" + fields[2]
-		values[u] = (value, fields)
+		values[u] = value
 
 	short_value = {}
-	for value in set([v[0] for v in values.values()] + ['JOINING_TYPE_X']):
+	for value in set([v for v in values.values()] + ['JOINING_TYPE_X']):
 		short = ''.join(x[0] for x in value.split('_')[2:])
 		assert short not in short_value.values()
 		short_value[value] = short
@@ -80,13 +80,21 @@ def print_joining_table(f):
 	print "{"
 	last_block = None
 	for u in range(min_u, max_u+1):
-		value,fields = values.get(u, ("JOINING_TYPE_X", ["%04X"%u]))
+
+		value = values.get(u, "JOINING_TYPE_X")
+
 		block = blocks.get(u, last_block)
 		if block != last_block:
-			print "\n  /* %s */\n" % block
+			print "\n\n  /* %s */" % block
 			last_block = block
+			if u % 32 != 0:
+				print
+				print "  /* %04X */" % u, "  " * (u % 32),
 
-		print "  %s, /* %s */" % (short_value[value], '; '.join(fields))
+		if u % 32 == 0:
+			print
+			print "  /* %04X */ " % u,
+		sys.stdout.write("%s," % short_value[value])
 	print
 	print "};"
 	print
