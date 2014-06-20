@@ -61,6 +61,16 @@ def print_joining_table(f):
 			value = "JOINING_TYPE_" + fields[2]
 		values[u] = (value, fields)
 
+	short_value = {}
+	for value in set([v[0] for v in values.values()] + ['JOINING_TYPE_X']):
+		short = ''.join(x[0] for x in value.split('_')[2:])
+		assert short not in short_value.values()
+		short_value[value] = short
+
+	print
+	for value,short in short_value.items():
+		print "#define %s	%s" % (short, value)
+
 	keys = values.keys()
 	min_u = min(keys)
 	max_u = max(keys)
@@ -76,7 +86,7 @@ def print_joining_table(f):
 			print "\n  /* %s */\n" % block
 			last_block = block
 
-		print "  %s, /* %s */" % (value, '; '.join(fields))
+		print "  %s, /* %s */" % (short_value[value], '; '.join(fields))
 	print
 	print "};"
 	print
@@ -88,6 +98,10 @@ def print_joining_table(f):
 	# Maintain at least 40% occupancy in the table */
 	if occupancy < 40:
 		raise Exception ("Table too sparse, please investigate: ", occupancy)
+
+	for value,short in short_value.items():
+		print "#undef %s" % (short)
+	print
 
 def print_shaping_table(f):
 
