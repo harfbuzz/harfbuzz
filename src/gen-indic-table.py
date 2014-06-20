@@ -6,6 +6,8 @@ if len (sys.argv) != 4:
 	print >>sys.stderr, "usage: ./gen-indic-table.py IndicSyllabicCategory.txt IndicMatraCategory.txt Blocks.txt"
 	sys.exit (1)
 
+BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
+
 files = [file (x) for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for f in files]
@@ -52,6 +54,7 @@ for i,d in enumerate (data):
 		if not u in combined:
 			combined[u] = list (defaults)
 		combined[u][i] = v
+combined = {k:v for k,v in combined.items() if v[2] not in BLACKLISTED_BLOCKS}
 data = combined
 del combined
 num = len (data)
