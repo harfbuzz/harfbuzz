@@ -84,6 +84,7 @@ HB_DIRECTION_REVERSE
 HB_LANGUAGE_INVALID
 HB_TAG
 HB_TAG_NONE
+HB_TAG_MAX
 HB_UNTAG
 hb_bool_t
 hb_codepoint_t
@@ -134,6 +135,9 @@ HB_SCRIPT_CANADIAN_ABORIGINAL
 
 <SECTION>
 <FILE>hb-coretext</FILE>
+HB_CORETEXT_TAG_MORT
+HB_CORETEXT_TAG_MORX
+hb_coretext_face_create
 hb_coretext_face_get_cg_font
 hb_coretext_font_get_ct_font
 </SECTION>
@@ -314,9 +318,18 @@ hb_icu_script_to_script
 
 <SECTION>
 <FILE>hb-ot</FILE>
-hb_ot_shape_glyphs_closure
 <SUBSECTION Private>
 HB_OT_H_IN
+</SECTION>
+
+<SECTION>
+<FILE>hb-ot-font</FILE>
+hb_ot_font_set_funcs
+</SECTION>
+
+<SECTION>
+<FILE>hb-ot-shape</FILE>
+hb_ot_shape_glyphs_closure
 </SECTION>
 
 <SECTION>
@@ -342,7 +355,7 @@ hb_ot_layout_has_substitution
 hb_ot_layout_language_find_feature
 hb_ot_layout_language_get_feature_indexes
 hb_ot_layout_language_get_feature_tags
-hb_ot_layout_language_get_required_feature_index
+hb_ot_layout_language_get_required_feature
 hb_ot_layout_lookup_collect_glyphs
 hb_ot_layout_lookup_substitute_closure
 hb_ot_layout_lookup_would_substitute
@@ -352,6 +365,7 @@ hb_ot_layout_table_choose_script
 hb_ot_layout_table_find_script
 hb_ot_layout_table_get_feature_tags
 hb_ot_layout_table_get_script_tags
+hb_ot_layout_table_get_lookup_count
 hb_ot_shape_plan_collect_lookups
 <SUBSECTION Private>
 Xhb_ot_layout_lookup_enumerate_sequences
@@ -371,6 +385,7 @@ hb_ot_tags_from_script
 
 <SECTION>
 <FILE>hb-set</FILE>
+HB_SET_VALUE_INVALID
 hb_set_add
 hb_set_add_range
 hb_set_allocation_successful
