@@ -127,8 +127,10 @@ used = 0
 def print_block (block, start, end, data):
 	print
 	print
-	print "  /* %s  (%04X..%04X) */" % (block, start, end)
+	print "  /* %s */" % block
 	num = 0
+	assert start % 8 == 0
+	assert (end+1) % 8 == 0
 	for u in range (start, end+1):
 		if u % 8 == 0:
 			print
