@@ -188,10 +188,8 @@ ends.append (last + 1)
 offset += ends[-1] - starts[-1]
 print
 print
-print "#define indic_offset_total %d" % offset
-print
 occupancy = used * 100. / total
-print "}; /* Table occupancy: %d%% */" % occupancy
+print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
 print
 print "INDIC_TABLE_ELEMENT_TYPE"
 print "hb_indic_get_categories (hb_codepoint_t u)"

@@ -727,9 +727,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 116A8 */  _(C,x),  _(C,x),  _(C,x), _(Bi,x), _(Vs,x),  _(M,T),  _(M,L),  _(M,R),
   /* 116B0 */  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(V,T),  _(N,x),
 
-#define indic_offset_total 3816
-
-}; /* Table occupancy: 69% */
+}; /* Table items: 3816; occupancy: 69% */
 
 INDIC_TABLE_ELEMENT_TYPE
 hb_indic_get_categories (hb_codepoint_t u)
