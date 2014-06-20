@@ -187,22 +187,23 @@ offset += ends[-1] - starts[-1]
 print
 print
 occupancy = used * 100. / total
+page_bits = 12
 print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
 print
 print "INDIC_TABLE_ELEMENT_TYPE"
 print "hb_indic_get_categories (hb_codepoint_t u)"
 print "{"
-print "  switch (u >> 12)"
+print "  switch (u >> %d)" % page_bits
 print "  {"
-pages = set([u>>12 for u in starts+ends+singles.keys()])
+pages = set([u>>page_bits for u in starts+ends+singles.keys()])
 for p in sorted(pages):
 	print "    case 0x%0X:" % p
 	for (start,end) in zip (starts, ends):
-		if p not in [start>>12, end>>12]: continue
+		if p not in [start>>page_bits, end>>page_bits]: continue
 		offset = "indic_offset_0x%04x" % start
 		print "      if (0x%04X <= u && u <= 0x%04X) return indic_table[u - 0x%04X + %s];" % (start, end, start, offset)
 	for u,d in singles.items ():
-		if p != u>>12: continue
+		if p != u>>page_bits: continue
 		print "      if (unlikely (u == 0x%04X)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
 	print "      break;"
 	print ""
