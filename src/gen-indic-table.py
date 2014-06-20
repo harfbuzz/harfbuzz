@@ -12,7 +12,6 @@ files = [file (x) for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for f in files]
 
-blocks = {}
 data = [{} for f in files]
 values = [{} for f in files]
 for i, f in enumerate (files):
@@ -38,9 +37,6 @@ for i, f in enumerate (files):
 		for u in range (start, end + 1):
 			data[i][u] = t
 		values[i][t] = values[i].get (t, 0) + 1
-
-		if i == 2:
-			blocks[t] = (start, end)
 
 # Merge data into one dict:
 defaults = ('Other', 'Not_Applicable', 'No_Block')
@@ -164,11 +160,10 @@ for u in uu:
 	if u <= last:
 		continue
 	block = data[u][2]
-	(bstart, bend) = blocks[block]
 
 	start = u//8*8
 	end = start+1
-	while end < bend and end in uu:
+	while end in uu and block == data[end][2]:
 		end += 1
 	end = (end-1)//8*8 + 7
 
