@@ -57,11 +57,9 @@ enum {
 
 static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_category_t gen_cat)
 {
-  if (likely (hb_in_range<hb_codepoint_t> (u, JOINING_TABLE_FIRST, JOINING_TABLE_LAST))) {
-    unsigned int j_type = joining_table[u - JOINING_TABLE_FIRST];
-    if (likely (j_type != JOINING_TYPE_X))
-      return j_type;
-  }
+  unsigned int j_type = joining_type(u);
+  if (likely (j_type != JOINING_TYPE_X))
+    return j_type;
 
   /* Mongolian joining data is not in ArabicJoining.txt yet. */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1800, 0x18AF)))

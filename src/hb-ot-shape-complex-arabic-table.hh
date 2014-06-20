@@ -28,6 +28,7 @@
 static const uint8_t joining_table[] =
 {
 
+#define joining_offset_0x0600 0
 
   /* Arabic */
 
@@ -48,37 +49,55 @@ static const uint8_t joining_table[] =
 
   /* Arabic Supplement */
 
-  /* 0750 */                                 D,D,D,D,D,D,D,D,D,R,R,R,D,D,D,D,
+  /* 0740 */                                 D,D,D,D,D,D,D,D,D,R,R,R,D,D,D,D,
   /* 0760 */ D,D,D,D,D,D,D,D,D,D,D,R,R,D,D,D,D,R,D,R,R,D,D,D,R,R,D,D,D,D,D,D,
 
-  /* Thaana */
-
-  /* 0780 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 07A0 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+#define joining_offset_0x07ca 384
 
   /* NKo */
 
-  /* 07C0 */ X,X,X,X,X,X,X,X,X,X,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
-  /* 07E0 */ D,D,D,D,D,D,D,D,D,D,D,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,C,X,X,X,X,X,
+  /* 07C0 */                     D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
+  /* 07E0 */ D,D,D,D,D,D,D,D,D,D,D,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,C,
 
-  /* Samaritan */
-
-  /* 0800 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 0820 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+#define joining_offset_0x0840 433
 
   /* Mandaic */
 
-  /* 0840 */ R,D,D,D,D,D,R,D,D,R,D,D,D,D,D,R,D,D,D,D,R,D,U,U,U,X,X,X,X,X,X,X,
-  /* 0860 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
-  /* 0880 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 0840 */ R,D,D,D,D,D,R,D,D,R,D,D,D,D,D,R,D,D,D,D,R,D,U,U,U,
+
+#define joining_offset_0x08a0 458
 
   /* Arabic Extended-A */
 
   /* 08A0 */ D,X,D,D,D,D,D,D,D,D,R,R,R,
-};
 
-#define JOINING_TABLE_FIRST	0x0600
-#define JOINING_TABLE_LAST	0x08AC
+}; /* Table items: 471; occupancy: 66% */
+
+
+static unsigned int
+joining_type (hb_codepoint_t u)
+{
+  switch (u >> 8)
+  {
+    case 0x6:
+      if (0x0600 <= u && u <= 0x077F) return joining_table[u - 0x0600 + joining_offset_0x0600];
+      break;
+
+    case 0x7:
+      if (0x0600 <= u && u <= 0x077F) return joining_table[u - 0x0600 + joining_offset_0x0600];
+      if (0x07CA <= u && u <= 0x07FA) return joining_table[u - 0x07CA + joining_offset_0x07ca];
+      break;
+
+    case 0x8:
+      if (0x0840 <= u && u <= 0x0858) return joining_table[u - 0x0840 + joining_offset_0x0840];
+      if (0x08A0 <= u && u <= 0x08AC) return joining_table[u - 0x08A0 + joining_offset_0x08a0];
+      break;
+
+    default:
+      break;
+  }
+  return X;
+}
 
 #undef X
 #undef R

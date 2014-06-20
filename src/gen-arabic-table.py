@@ -71,42 +71,76 @@ def print_joining_table(f):
 	for value,short in short_value.items():
 		print "#define %s	%s" % (short, value)
 
-	keys = values.keys()
-	min_u = min(keys)
-	max_u = max(keys)
+	uu = sorted(values.keys())
 	num = len(values)
+
+	last = -1
+	ranges = []
+	for u in uu:
+		if u - last <= 1+16*3:
+			ranges[-1][-1] = u
+		else:
+			ranges.append([u,u])
+		last = u
+
 	print
 	print "static const uint8_t joining_table[] ="
 	print "{"
 	last_block = None
-	for u in range(min_u, max_u+1):
+	offset = 0
+	for start,end in ranges:
 
-		value = values.get(u, "JOINING_TYPE_X")
+		print
+		print "#define joining_offset_0x%04x %d" % (start, offset)
 
-		block = blocks.get(u, last_block)
-		if block != last_block:
-			print "\n\n  /* %s */" % block
-			last_block = block
-			if u % 32 != 0:
+		for u in range(start, end+1):
+
+			block = blocks.get(u, last_block)
+			value = values.get(u, "JOINING_TYPE_X")
+
+			if block != last_block or u == start:
+				if u != start:
+					print
+				print "\n  /* %s */" % block
+				last_block = block
+				if u % 32 != 0:
+					print
+					print "  /* %04X */" % (u//32*32), "  " * (u % 32),
+
+			if u % 32 == 0:
 				print
-				print "  /* %04X */" % u, "  " * (u % 32),
+				print "  /* %04X */ " % u,
+			sys.stdout.write("%s," % short_value[value])
+		print
 
-		if u % 32 == 0:
-			print
-			print "  /* %04X */ " % u,
-		sys.stdout.write("%s," % short_value[value])
+		offset += end - start + 1
 	print
-	print "};"
-	print
-	print "#define JOINING_TABLE_FIRST	0x%04X" % min_u
-	print "#define JOINING_TABLE_LAST	0x%04X" % max_u
+	occupancy = num * 100. / offset
+	print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
 	print
 
-	occupancy = num * 100 / (max_u - min_u + 1)
-	# Maintain at least 40% occupancy in the table */
-	if occupancy < 40:
-		raise Exception ("Table too sparse, please investigate: ", occupancy)
-
+	page_bits = 8
+	print
+	print "static unsigned int"
+	print "joining_type (hb_codepoint_t u)"
+	print "{"
+	print "  switch (u >> %d)" % page_bits
+	print "  {"
+	pages = set([u>>page_bits for u in [s for s,e in ranges]+[e for s,e in ranges]])
+	for p in sorted(pages):
+		print "    case 0x%0X:" % p
+		for (start,end) in ranges:
+			if p not in [start>>page_bits, end>>page_bits]: continue
+			offset = "joining_offset_0x%04x" % start
+			print "      if (0x%04X <= u && u <= 0x%04X) return joining_table[u - 0x%04X + %s];" % (start, end, start, offset)
+		print "      break;"
+		print ""
+	print "    default:"
+	print "      break;"
+	print "  }"
+	print "  return X;"
+	print "}"
+	print
 	for value,short in short_value.items():
 		print "#undef %s" % (short)
 	print
