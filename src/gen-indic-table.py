@@ -195,7 +195,7 @@ print "{"
 print "  switch (u >> 12)"
 print "  {"
 pages = set([u>>12 for u in starts+ends+singles.keys()])
-for p in pages:
+for p in sorted(pages):
 	print "    case 0x%0X:" % p
 	for (start,end) in zip (starts, ends):
 		if p not in [start>>12, end>>12]: continue
