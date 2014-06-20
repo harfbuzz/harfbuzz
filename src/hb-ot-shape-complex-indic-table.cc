@@ -732,25 +732,48 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
 INDIC_TABLE_ELEMENT_TYPE
 hb_indic_get_categories (hb_codepoint_t u)
 {
-  if (0x0900 <= u && u <= 0x0EE0) return indic_table[u - 0x0900 + indic_offset_0x0900];
-  if (0x0F40 <= u && u <= 0x0FC0) return indic_table[u - 0x0F40 + indic_offset_0x0f40];
-  if (0x1000 <= u && u <= 0x10A0) return indic_table[u - 0x1000 + indic_offset_0x1000];
-  if (0x1700 <= u && u <= 0x17E0) return indic_table[u - 0x1700 + indic_offset_0x1700];
-  if (0x1900 <= u && u <= 0x1A80) return indic_table[u - 0x1900 + indic_offset_0x1900];
-  if (0x1B00 <= u && u <= 0x1C50) return indic_table[u - 0x1B00 + indic_offset_0x1b00];
-  if (0x1CF0 <= u && u <= 0x1CF8) return indic_table[u - 0x1CF0 + indic_offset_0x1cf0];
-  if (0xA800 <= u && u <= 0xA8C8) return indic_table[u - 0xA800 + indic_offset_0xa800];
-  if (0xA908 <= u && u <= 0xA9C8) return indic_table[u - 0xA908 + indic_offset_0xa908];
-  if (0xAA00 <= u && u <= 0xAAF8) return indic_table[u - 0xAA00 + indic_offset_0xaa00];
-  if (0xABC0 <= u && u <= 0xABF0) return indic_table[u - 0xABC0 + indic_offset_0xabc0];
-  if (0x10A00 <= u && u <= 0x10A40) return indic_table[u - 0x10A00 + indic_offset_0x10a00];
-  if (0x11000 <= u && u <= 0x11048) return indic_table[u - 0x11000 + indic_offset_0x11000];
-  if (0x11080 <= u && u <= 0x110C0) return indic_table[u - 0x11080 + indic_offset_0x11080];
-  if (0x11100 <= u && u <= 0x11138) return indic_table[u - 0x11100 + indic_offset_0x11100];
-  if (0x11180 <= u && u <= 0x111C8) return indic_table[u - 0x11180 + indic_offset_0x11180];
-  if (0x11680 <= u && u <= 0x116B8) return indic_table[u - 0x11680 + indic_offset_0x11680];
-  if (unlikely (u == 0x00A0)) return _(CP,x);
-  if (unlikely (u == 0x25CC)) return _(CP,x);
+  switch (u >> 12)
+  {
+    case 0x0:
+      if (0x0900 <= u && u <= 0x0EE0) return indic_table[u - 0x0900 + indic_offset_0x0900];
+      if (0x0F40 <= u && u <= 0x0FC0) return indic_table[u - 0x0F40 + indic_offset_0x0f40];
+      if (unlikely (u == 0x00A0)) return _(CP,x);
+      break;
+
+    case 0x1:
+      if (0x1000 <= u && u <= 0x10A0) return indic_table[u - 0x1000 + indic_offset_0x1000];
+      if (0x1700 <= u && u <= 0x17E0) return indic_table[u - 0x1700 + indic_offset_0x1700];
+      if (0x1900 <= u && u <= 0x1A80) return indic_table[u - 0x1900 + indic_offset_0x1900];
+      if (0x1B00 <= u && u <= 0x1C50) return indic_table[u - 0x1B00 + indic_offset_0x1b00];
+      if (0x1CF0 <= u && u <= 0x1CF8) return indic_table[u - 0x1CF0 + indic_offset_0x1cf0];
+      break;
+
+    case 0x2:
+      if (unlikely (u == 0x25CC)) return _(CP,x);
+      break;
+
+    case 0xA:
+      if (0xA800 <= u && u <= 0xA8C8) return indic_table[u - 0xA800 + indic_offset_0xa800];
+      if (0xA908 <= u && u <= 0xA9C8) return indic_table[u - 0xA908 + indic_offset_0xa908];
+      if (0xAA00 <= u && u <= 0xAAF8) return indic_table[u - 0xAA00 + indic_offset_0xaa00];
+      if (0xABC0 <= u && u <= 0xABF0) return indic_table[u - 0xABC0 + indic_offset_0xabc0];
+      break;
+
+    case 0x10:
+      if (0x10A00 <= u && u <= 0x10A40) return indic_table[u - 0x10A00 + indic_offset_0x10a00];
+      break;
+
+    case 0x11:
+      if (0x11000 <= u && u <= 0x11048) return indic_table[u - 0x11000 + indic_offset_0x11000];
+      if (0x11080 <= u && u <= 0x110C0) return indic_table[u - 0x11080 + indic_offset_0x11080];
+      if (0x11100 <= u && u <= 0x11138) return indic_table[u - 0x11100 + indic_offset_0x11100];
+      if (0x11180 <= u && u <= 0x111C8) return indic_table[u - 0x11180 + indic_offset_0x11180];
+      if (0x11680 <= u && u <= 0x116B8) return indic_table[u - 0x11680 + indic_offset_0x11680];
+      break;
+
+    default:
+      break;
+  }
   return _(x,x);
 }
 

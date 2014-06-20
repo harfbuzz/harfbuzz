@@ -194,11 +194,23 @@ print
 print "INDIC_TABLE_ELEMENT_TYPE"
 print "hb_indic_get_categories (hb_codepoint_t u)"
 print "{"
-for (start,end) in zip (starts, ends):
-	offset = "indic_offset_0x%04x" % start
-	print "  if (0x%04X <= u && u <= 0x%04X) return indic_table[u - 0x%04X + %s];" % (start, end, start, offset)
-for u,d in singles.items ():
-	print "  if (unlikely (u == 0x%04X)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
+print "  switch (u >> 12)"
+print "  {"
+pages = set([u>>12 for u in starts+ends+singles.keys()])
+for p in pages:
+	print "    case 0x%0X:" % p
+	for (start,end) in zip (starts, ends):
+		if p not in [start>>12, end>>12]: continue
+		offset = "indic_offset_0x%04x" % start
+		print "      if (0x%04X <= u && u <= 0x%04X) return indic_table[u - 0x%04X + %s];" % (start, end, start, offset)
+	for u,d in singles.items ():
+		if p != u>>12: continue
+		print "      if (unlikely (u == 0x%04X)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
+	print "      break;"
+	print ""
+print "    default:"
+print "      break;"
+print "  }"
 print "  return _(x,x);"
 print "}"
 print
