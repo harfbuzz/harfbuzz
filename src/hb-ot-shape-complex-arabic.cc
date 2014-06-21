@@ -61,8 +61,11 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
   if (likely (j_type != JOINING_TYPE_X))
     return j_type;
 
-  return (FLAG(gen_cat) & (FLAG(HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) | FLAG(HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | FLAG(HB_UNICODE_GENERAL_CATEGORY_FORMAT))) ?
-	 JOINING_TYPE_T : JOINING_TYPE_U;
+  return (FLAG(gen_cat) &
+	  (FLAG(HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) |
+	   FLAG(HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) |
+	   FLAG(HB_UNICODE_GENERAL_CATEGORY_FORMAT))
+	 ) ?  JOINING_TYPE_T : JOINING_TYPE_U;
 }
 
 static const hb_tag_t arabic_features[] =
