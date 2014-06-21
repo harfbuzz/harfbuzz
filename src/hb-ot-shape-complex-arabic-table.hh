@@ -77,7 +77,13 @@ static const uint8_t joining_table[] =
 
   /* 08A0 */ D,X,D,D,D,D,D,D,D,D,R,R,R,
 
-}; /* Table items: 685; occupancy: 45% */
+#define joining_offset_0x200c 685
+
+  /* General Punctuation */
+
+  /* 2000 */                         U,C,
+
+}; /* Table items: 687; occupancy: 45% */
 
 
 static unsigned int
@@ -87,6 +93,10 @@ joining_type (hb_codepoint_t u)
   {
     case 0x0:
       if (0x0600 <= u && u <= 0x08AC) return joining_table[u - 0x0600 + joining_offset_0x0600];
+      break;
+
+    case 0x2:
+      if (0x200C <= u && u <= 0x200D) return joining_table[u - 0x200C + joining_offset_0x200c];
       break;
 
     default:

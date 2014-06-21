@@ -83,11 +83,6 @@ static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_categ
       return JOINING_TYPE_D;
   }
 
-  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x200C, 0x200D)))
-  {
-    return u == 0x200C ? JOINING_TYPE_U : JOINING_TYPE_C;
-  }
-
   return (FLAG(gen_cat) & (FLAG(HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) | FLAG(HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | FLAG(HB_UNICODE_GENERAL_CATEGORY_FORMAT))) ?
 	 JOINING_TYPE_T : JOINING_TYPE_U;
 }

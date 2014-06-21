@@ -52,8 +52,6 @@ def print_joining_table(f):
 			continue
 
 		u = int (fields[0], 16)
-		if u == 0x200C or u == 0x200D:
-			continue
 
 		if fields[3] in ["ALAPH", "DALATH RISH"]:
 			value = "JOINING_GROUP_" + fields[3].replace(' ', '_')
