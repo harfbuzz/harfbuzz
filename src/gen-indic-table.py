@@ -87,14 +87,14 @@ short = [{
 },{
 	"Not_Applicable":	'x',
 }]
-all_shorts = [[],[]]
+all_shorts = [{},{}]
 
 # Add some of the values, to make them more readable, and to avoid duplicates
 
 
 for i in range (2):
 	for v,s in short[i].items ():
-		all_shorts[i].append (s)
+		all_shorts[i][s] = v
 
 what = ["INDIC_SYLLABIC_CATEGORY", "INDIC_MATRA_CATEGORY"]
 what_short = ["ISC", "IMC"]
@@ -109,8 +109,8 @@ for i in range (2):
 		else:
 			s = ''.join ([c for c in v_no_and if ord ('A') <= ord (c) <= ord ('Z')])
 			if s in all_shorts[i]:
-				raise Exception ("Duplicate short value alias", v, s)
-			all_shorts[i].append (s)
+				raise Exception ("Duplicate short value alias", v, all_shorts[i][s])
+			all_shorts[i][s] = v
 			short[i][v] = s
 		print "#define %s_%s	%s_%s	%s/* %3d chars; %s */" % \
 			(what_short[i], s, what[i], v.upper (), \
