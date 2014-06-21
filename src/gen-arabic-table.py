@@ -73,11 +73,12 @@ def print_joining_table(f):
 
 	uu = sorted(values.keys())
 	num = len(values)
+	all_blocks = set([blocks[u] for u in uu])
 
 	last = -1
 	ranges = []
 	for u in uu:
-		if u - last <= 1+16*3:
+		if u - last <= 1+16*5:
 			ranges[-1][-1] = u
 		else:
 			ranges.append([u,u])
@@ -101,7 +102,10 @@ def print_joining_table(f):
 			if block != last_block or u == start:
 				if u != start:
 					print
-				print "\n  /* %s */" % block
+				if block in all_blocks:
+					print "\n  /* %s */" % block
+				else:
+					print "\n  /* FILLER */"
 				last_block = block
 				if u % 32 != 0:
 					print
@@ -119,7 +123,7 @@ def print_joining_table(f):
 	print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
 	print
 
-	page_bits = 8
+	page_bits = 12;
 	print
 	print "static unsigned int"
 	print "joining_type (hb_codepoint_t u)"
