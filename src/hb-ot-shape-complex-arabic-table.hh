@@ -6,10 +6,10 @@
  *
  * on files with these headers:
  *
- * # ArabicShaping-6.2.0.txt
- * # Date: 2012-05-15, 21:05:00 GMT [KW]
- * # Blocks-6.2.0.txt
- * # Date: 2012-05-14, 22:42:00 GMT [KW, LI]
+ * # ArabicShaping-7.0.0.txt
+ * # Date: 2014-02-14, 21:00:00 GMT [RP, KW, LI]
+ * # Blocks-7.0.0.txt
+ * # Date: 2014-04-03, 23:23:00 GMT [RP, KW]
  * UnicodeData.txt does not have a header.
  */
 
@@ -22,6 +22,7 @@
 #define U	JOINING_TYPE_U
 #define A	JOINING_GROUP_ALAPH
 #define DR	JOINING_GROUP_DALATH_RISH
+#define L	JOINING_TYPE_L
 #define C	JOINING_TYPE_C
 #define D	JOINING_TYPE_D
 
@@ -32,7 +33,7 @@ static const uint8_t joining_table[] =
 
   /* Arabic */
 
-  /* 0600 */ U,U,U,U,U,X,X,X,U,X,X,U,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 0600 */ U,U,U,U,U,U,X,X,U,X,X,U,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
   /* 0620 */ D,U,R,R,R,R,D,R,D,R,D,D,D,D,D,R,R,R,R,D,D,D,D,D,D,D,D,D,D,D,D,D,
   /* 0640 */ C,D,D,D,D,D,D,D,R,D,D,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
   /* 0660 */ X,X,X,X,X,X,X,X,X,X,X,X,X,X,D,D,X,R,R,R,U,R,R,R,D,D,D,D,D,D,D,D,
@@ -75,15 +76,53 @@ static const uint8_t joining_table[] =
 
   /* Arabic Extended-A */
 
-  /* 08A0 */ D,X,D,D,D,D,D,D,D,D,R,R,R,
+  /* 08A0 */ D,D,D,D,D,D,D,D,D,D,R,R,R,U,R,D,D,R,R,
 
-#define joining_offset_0x200c 685
+#define joining_offset_0x1806 691
+
+  /* Mongolian */
+
+  /* 1800 */             U,D,X,X,C,X,X,X,U,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 1820 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
+  /* 1840 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
+  /* 1860 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,X,X,X,X,X,X,X,X,
+  /* 1880 */ U,U,U,U,U,U,U,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
+  /* 18A0 */ D,D,D,D,D,D,D,D,D,X,D,
+
+#define joining_offset_0x200c 856
 
   /* General Punctuation */
 
   /* 2000 */                         U,C,
 
-}; /* Table items: 687; occupancy: 45% */
+#define joining_offset_0x2066 858
+
+  /* General Punctuation */
+
+  /* 2060 */             U,U,U,U,
+
+#define joining_offset_0xa840 862
+
+  /* Phags-pa */
+
+  /* A840 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
+  /* A860 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,L,U,
+
+#define joining_offset_0x10ac0 914
+
+  /* Manichaean */
+
+  /* 10AC0 */ D,D,D,D,D,R,U,R,U,R,R,U,U,L,R,R,R,R,R,D,D,D,D,L,D,D,D,D,D,R,D,D,
+  /* 10AE0 */ D,R,U,U,R,X,X,X,X,X,X,D,D,D,D,R,
+
+#define joining_offset_0x10b80 962
+
+  /* Psalter Pahlavi */
+
+  /* 10B80 */ D,R,D,R,R,R,D,D,D,R,D,D,R,D,R,R,D,R,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
+  /* 10BA0 */ X,X,X,X,X,X,X,X,X,R,R,R,R,D,D,U,
+
+}; /* Table items: 1010; occupancy: 57% */
 
 
 static unsigned int
@@ -92,11 +131,25 @@ joining_type (hb_codepoint_t u)
   switch (u >> 12)
   {
     case 0x0:
-      if (0x0600 <= u && u <= 0x08AC) return joining_table[u - 0x0600 + joining_offset_0x0600];
+      if (0x0600 <= u && u <= 0x08B2) return joining_table[u - 0x0600 + joining_offset_0x0600];
+      break;
+
+    case 0x1:
+      if (0x1806 <= u && u <= 0x18AA) return joining_table[u - 0x1806 + joining_offset_0x1806];
       break;
 
     case 0x2:
       if (0x200C <= u && u <= 0x200D) return joining_table[u - 0x200C + joining_offset_0x200c];
+      if (0x2066 <= u && u <= 0x2069) return joining_table[u - 0x2066 + joining_offset_0x2066];
+      break;
+
+    case 0xA:
+      if (0xA840 <= u && u <= 0xA873) return joining_table[u - 0xA840 + joining_offset_0xa840];
+      break;
+
+    case 0x10:
+      if (0x10AC0 <= u && u <= 0x10AEF) return joining_table[u - 0x10AC0 + joining_offset_0x10ac0];
+      if (0x10B80 <= u && u <= 0x10BAF) return joining_table[u - 0x10B80 + joining_offset_0x10b80];
       break;
 
     default:
@@ -110,6 +163,7 @@ joining_type (hb_codepoint_t u)
 #undef U
 #undef A
 #undef DR
+#undef L
 #undef C
 #undef D
 
