@@ -73,7 +73,7 @@ def print_joining_table(f):
 	num = len(values)
 	all_blocks = set([blocks[u] for u in uu])
 
-	last = -1
+	last = -100000
 	ranges = []
 	for u in uu:
 		if u - last <= 1+16*5:

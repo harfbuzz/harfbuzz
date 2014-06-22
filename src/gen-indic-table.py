@@ -150,7 +150,7 @@ def print_block (block, start, end, data):
 uu = data.keys ()
 uu.sort ()
 
-last = -1
+last = -100000
 num = 0
 offset = 0
 starts = []
