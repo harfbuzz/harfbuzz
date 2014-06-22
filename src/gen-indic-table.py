@@ -80,6 +80,10 @@ print
 # Shorten values
 short = [{
 	"Bindu":		'Bi',
+	"Cantillation_Mark":	'Ca',
+	"Joiner":		'ZWJ',
+	"Non_Joiner":		'ZWNJ',
+	"Number":		'Nd',
 	"Visarga":		'Vs',
 	"Vowel":		'Vo',
 	"Vowel_Dependent":	'M',
