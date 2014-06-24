@@ -140,6 +140,13 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 				   unsigned int *language_index);
 
 hb_bool_t
+hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
+						  hb_tag_t      table_tag,
+						  unsigned int  script_index,
+						  unsigned int  language_index,
+						  unsigned int *feature_index);
+
+hb_bool_t
 hb_ot_layout_language_get_required_feature (hb_face_t    *face,
 					    hb_tag_t      table_tag,
 					    unsigned int  script_index,
