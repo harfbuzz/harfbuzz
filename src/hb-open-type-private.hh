@@ -696,8 +696,8 @@ struct FixedVersion
  * Use: (base+offset)
  */
 
-template <typename OffsetType, typename Type>
-struct GenericOffsetTo : OffsetType
+template <typename Type, typename OffsetType=Offset>
+struct OffsetTo : OffsetType
 {
   inline const Type& operator () (const void *base) const
   {
@@ -737,15 +737,12 @@ struct GenericOffsetTo : OffsetType
   }
 };
 template <typename Base, typename OffsetType, typename Type>
-static inline const Type& operator + (const Base &base, const GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
+static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType> &offset) { return offset (base); }
 template <typename Base, typename OffsetType, typename Type>
-static inline Type& operator + (Base &base, GenericOffsetTo<OffsetType, Type> &offset) { return offset (base); }
+static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType> &offset) { return offset (base); }
 
 template <typename Type>
-struct OffsetTo : GenericOffsetTo<Offset, Type> {};
-
-template <typename Type>
-struct LongOffsetTo : GenericOffsetTo<LongOffset, Type> {};
+struct LongOffsetTo : OffsetTo<Type, LongOffset> {};
 
 
 /*
