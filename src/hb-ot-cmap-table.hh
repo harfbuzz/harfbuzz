@@ -428,7 +428,7 @@ struct CmapSubtable
     case 10: return TRACE_RETURN (u.format10.sanitize (c));
     case 12: return TRACE_RETURN (u.format12.sanitize (c));
     case 13: return TRACE_RETURN (u.format13.sanitize (c));
-    case 14: return TRACE_RETURN (u.format13.sanitize (c));
+    case 14: return TRACE_RETURN (u.format14.sanitize (c));
     default:return TRACE_RETURN (true);
     }
   }
