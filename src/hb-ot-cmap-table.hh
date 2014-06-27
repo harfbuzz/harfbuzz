@@ -229,7 +229,7 @@ struct CmapSubtableTrimmed
   UINT		length;		/* Byte length of this subtable. */
   UINT		language;	/* Ignore. */
   UINT		startCharCode;	/* First character code covered. */
-  GenericArrayOf<UINT, GlyphID>
+  GenericArrayOf<GlyphID, UINT>
 		glyphIdArray;	/* Array of glyph index values for character
 				 * codes in the range. */
   public:
