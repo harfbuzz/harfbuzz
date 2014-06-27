@@ -630,17 +630,14 @@ struct Index : USHORT {
 };
 DEFINE_NULL_DATA (Index, "\xff\xff");
 
-/* GenericOffset, Null offset = 0 */
-template <typename Type>
-struct GenericOffset : Type
+/* Offset, Null offset = 0 */
+template <typename Type=USHORT>
+struct Offset : Type
 {
   inline bool is_null (void) const { return 0 == *this; }
   public:
   DEFINE_SIZE_STATIC (sizeof(Type));
 };
-
-typedef GenericOffset<USHORT> Offset;
-typedef GenericOffset<ULONG>  LongOffset;
 
 
 /* CheckSum */
@@ -688,12 +685,12 @@ struct FixedVersion
 
 
 /*
- * Template subclasses of Offset and LongOffset that do the dereferencing.
+ * Template subclasses of Offset that do the dereferencing.
  * Use: (base+offset)
  */
 
 template <typename Type, typename OffsetType=USHORT>
-struct OffsetTo : GenericOffset<OffsetType>
+struct OffsetTo : Offset<OffsetType>
 {
   inline const Type& operator () (const void *base) const
   {
