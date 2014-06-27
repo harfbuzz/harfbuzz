@@ -855,14 +855,6 @@ struct LongArrayOf : ArrayOf<Type, ULONG> {};
 template <typename Type>
 struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
 
-/* Array of LongOffset's */
-template <typename Type>
-struct LongOffsetArrayOf : ArrayOf<OffsetTo<Type, ULONG> > {};
-
-/* LongArray of LongOffset's */
-template <typename Type>
-struct LongOffsetLongArrayOf : LongArrayOf<OffsetTo<Type, ULONG> > {};
-
 /* Array of offsets relative to the beginning of the array itself. */
 template <typename Type>
 struct OffsetListOf : OffsetArrayOf<Type>

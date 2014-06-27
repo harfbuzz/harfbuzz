@@ -282,7 +282,7 @@ struct MarkGlyphSetsFormat1
 
   protected:
   USHORT	format;			/* Format identifier--format = 1 */
-  LongOffsetArrayOf<Coverage>
+  ArrayOf<OffsetTo<Coverage, ULONG> >
 		coverage;		/* Array of long offsets to mark set
 					 * coverage tables */
   public:
