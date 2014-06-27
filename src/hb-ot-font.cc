@@ -44,6 +44,7 @@ struct hb_ot_font_t
   hb_blob_t *hmtx_blob;
 
   const OT::CmapSubtable *cmap;
+  const OT::CmapSubtable *cmap_uvs;
   hb_blob_t *cmap_blob;
 };
 
@@ -77,8 +78,10 @@ _hb_ot_font_create (hb_font_t *font)
   ot_font->cmap_blob = OT::Sanitizer<OT::cmap>::sanitize (font->face->reference_table (HB_OT_TAG_cmap));
   const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (ot_font->cmap_blob);
   const OT::CmapSubtable *subtable = NULL;
+  const OT::CmapSubtable *subtable_uvs = NULL;
 
   /* 32-bit subtables. */
+  if (!subtable) subtable = cmap->find_subtable (0, 6);
   if (!subtable) subtable = cmap->find_subtable (0, 4);
   if (!subtable) subtable = cmap->find_subtable (3, 10);
   /* 16-bit subtables. */
@@ -87,7 +90,13 @@ _hb_ot_font_create (hb_font_t *font)
   /* Meh. */
   if (!subtable) subtable = &OT::Null(OT::CmapSubtable);
 
+  /* UVS subtable. */
+  if (!subtable_uvs) subtable_uvs = cmap->find_subtable (0, 5);
+  /* Meh. */
+  if (!subtable_uvs) subtable_uvs = &OT::Null(OT::CmapSubtable);
+
   ot_font->cmap = subtable;
+  ot_font->cmap_uvs = subtable_uvs;
 
   return ot_font;
 }
@@ -114,7 +123,16 @@ hb_ot_get_glyph (hb_font_t *font HB_UNUSED,
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
 
   if (unlikely (variation_selector))
-    return false;
+  {
+    switch (ot_font->cmap_uvs->get_glyph_variant (unicode,
+						  variation_selector,
+						  glyph))
+    {
+      case OT::GLYPH_VARIANT_NOT_FOUND:		return false;
+      case OT::GLYPH_VARIANT_FOUND:		return true;
+      case OT::GLYPH_VARIANT_USE_DEFAULT:	break;
+    }
+  }
 
   return ot_font->cmap->get_glyph (unicode, glyph);
 }
