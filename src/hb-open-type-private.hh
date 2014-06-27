@@ -847,10 +847,6 @@ struct ArrayOf
   DEFINE_SIZE_ARRAY (sizeof (LenType), array);
 };
 
-/* An array with a ULONG number of elements. */
-template <typename Type>
-struct LongArrayOf : ArrayOf<Type, ULONG> {};
-
 /* Array of Offset's */
 template <typename Type>
 struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
