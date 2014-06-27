@@ -42,9 +42,6 @@ namespace OT {
 
 struct CmapSubtableFormat0
 {
-  friend struct CmapSubtable;
-
-  private:
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     hb_codepoint_t gid = codepoint < 256 ? glyphIdArray[codepoint] : 0;
@@ -71,9 +68,6 @@ struct CmapSubtableFormat0
 
 struct CmapSubtableFormat4
 {
-  friend struct CmapSubtable;
-
-  private:
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     unsigned int segCount;
@@ -206,9 +200,6 @@ struct CmapSubtableLongGroup
 template <typename UINT>
 struct CmapSubtableTrimmed
 {
-  friend struct CmapSubtable;
-
-  private:
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     /* Rely on our implicit array bound-checking. */
@@ -242,9 +233,6 @@ struct CmapSubtableFormat10 : CmapSubtableTrimmed<ULONG > {};
 template <typename T>
 struct CmapSubtableLongSegmented
 {
-  friend struct CmapSubtable;
-
-  private:
   inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     int i = groups.bsearch (codepoint);
@@ -284,11 +272,129 @@ struct CmapSubtableFormat13 : CmapSubtableLongSegmented<CmapSubtableFormat13>
   { return group.glyphID; }
 };
 
+typedef enum
+{
+  GLYPH_VARIANT_NOT_FOUND = 0,
+  GLYPH_VARIANT_FOUND = 1,
+  GLYPH_VARIANT_USE_DEFAULT = 2
+} glyph_variant_t;
+
+struct UnicodeValueRange
+{
+  inline int cmp (const hb_codepoint_t &codepoint) const
+  {
+    if (codepoint < startUnicodeValue) return -1;
+    if (codepoint > startUnicodeValue + additionalCount) return +1;
+    return 0;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this));
+  }
+
+  UINT24	startUnicodeValue;	/* First value in this range. */
+  BYTE		additionalCount;	/* Number of additional values in this
+					 * range. */
+  public:
+  DEFINE_SIZE_STATIC (4);
+};
+
+typedef SortedArrayOf<UnicodeValueRange, ULONG> DefaultUVS;
+
+struct UVSMapping
+{
+  inline int cmp (const hb_codepoint_t &codepoint) const
+  {
+    return unicodeValue.cmp (codepoint);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this));
+  }
+
+  UINT24	unicodeValue;	/* Base Unicode value of the UVS */
+  GlyphID	glyphID;	/* Glyph ID of the UVS */
+  public:
+  DEFINE_SIZE_STATIC (5);
+};
+
+typedef SortedArrayOf<UVSMapping, ULONG> NonDefaultUVS;
+
+struct VariationSelectorRecord
+{
+  inline glyph_variant_t get_glyph (hb_codepoint_t codepoint,
+				    hb_codepoint_t *glyph,
+				    const void *base) const
+  {
+    int i;
+    const DefaultUVS &defaults = base+defaultUVS;
+    i = defaults.bsearch (codepoint);
+    if (i != -1)
+      return GLYPH_VARIANT_USE_DEFAULT;
+    const NonDefaultUVS &nonDefaults = base+nonDefaultUVS;
+    i = nonDefaults.bsearch (codepoint);
+    if (i != -1)
+    {
+      *glyph = nonDefaults[i].glyphID;
+       return GLYPH_VARIANT_FOUND;
+    }
+    return GLYPH_VARIANT_NOT_FOUND;
+  }
+
+  inline int cmp (const hb_codepoint_t &variation_selector) const
+  {
+    return varSelector.cmp (variation_selector);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this) &&
+			 defaultUVS.sanitize (c, base) &&
+			 nonDefaultUVS.sanitize (c, base));
+  }
+
+  UINT24	varSelector;	/* Variation selector. */
+  OffsetTo<DefaultUVS, ULONG>
+		defaultUVS;	/* Offset to Default UVS Table. May be 0. */
+  OffsetTo<NonDefaultUVS, ULONG>
+		nonDefaultUVS;	/* Offset to Non-Default UVS Table. May be 0. */
+  public:
+  DEFINE_SIZE_STATIC (11);
+};
+
+struct CmapSubtableFormat14
+{
+  inline glyph_variant_t get_glyph_variant (hb_codepoint_t codepoint,
+					    hb_codepoint_t variation_selector,
+					    hb_codepoint_t *glyph) const
+  {
+    return record[record.bsearch(variation_selector)].get_glyph (codepoint, glyph, this);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) {
+    TRACE_SANITIZE (this);
+    return TRACE_RETURN (c->check_struct (this) &&
+			 record.sanitize (c, this));
+  }
+
+  protected:
+  USHORT	format;		/* Format number is set to 0. */
+  ULONG		length;		/* Byte length of this subtable. */
+  SortedArrayOf<VariationSelectorRecord, ULONG>
+		record;		/* Variation selector records; sorted
+				 * in increasing order of `varSelector'. */
+  public:
+  DEFINE_SIZE_ARRAY (10, record);
+};
+
 struct CmapSubtable
 {
   /* Note: We intentionally do NOT implement subtable formats 2 and 8. */
 
-  inline bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
+  inline bool get_glyph (hb_codepoint_t codepoint,
+			 hb_codepoint_t *glyph) const
   {
     switch (u.format) {
     case  0: return u.format0 .get_glyph(codepoint, glyph);
@@ -297,7 +403,18 @@ struct CmapSubtable
     case 10: return u.format10.get_glyph(codepoint, glyph);
     case 12: return u.format12.get_glyph(codepoint, glyph);
     case 13: return u.format13.get_glyph(codepoint, glyph);
-    default:return false;
+    case 14:
+    default: return false;
+    }
+  }
+
+  inline glyph_variant_t get_glyph_variant (hb_codepoint_t codepoint,
+					    hb_codepoint_t variation_selector,
+					    hb_codepoint_t *glyph) const
+  {
+    switch (u.format) {
+    case 14: return u.format14.get_glyph_variant(codepoint, variation_selector, glyph);
+    default: return GLYPH_VARIANT_NOT_FOUND;
     }
   }
 
@@ -311,6 +428,7 @@ struct CmapSubtable
     case 10: return TRACE_RETURN (u.format10.sanitize (c));
     case 12: return TRACE_RETURN (u.format12.sanitize (c));
     case 13: return TRACE_RETURN (u.format13.sanitize (c));
+    case 14: return TRACE_RETURN (u.format13.sanitize (c));
     default:return TRACE_RETURN (true);
     }
   }
@@ -324,6 +442,7 @@ struct CmapSubtable
   CmapSubtableFormat10	format10;
   CmapSubtableFormat12	format12;
   CmapSubtableFormat13	format13;
+  CmapSubtableFormat14	format14;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
