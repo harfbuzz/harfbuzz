@@ -264,7 +264,7 @@ struct CmapSubtableLongSegmented
   USHORT	reserved;	/* Reserved; set to 0. */
   ULONG		length;		/* Byte length of this subtable. */
   ULONG		language;	/* Ignore. */
-  LongSortedArrayOf<CmapSubtableLongGroup>
+  SortedArrayOf<CmapSubtableLongGroup, ULONG>
 		groups;		/* Groupings. */
   public:
   DEFINE_SIZE_ARRAY (16, groups);

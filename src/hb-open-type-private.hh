@@ -957,10 +957,6 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   }
 };
 
-/* A sorted array with a ULONG number of elements. */
-template <typename Type>
-struct LongSortedArrayOf : SortedArrayOf<Type, ULONG> {};
-
 
 } /* namespace OT */
 
