@@ -873,9 +873,8 @@ struct OffsetListOf : OffsetArrayOf<Type>
 };
 
 
-/* An array with a USHORT number of elements,
- * starting at second element. */
-template <typename Type>
+/* An array starting at second element. */
+template <typename Type, typename LenType=USHORT>
 struct HeadlessArrayOf
 {
   inline const Type& operator [] (unsigned int i) const
@@ -922,10 +921,10 @@ struct HeadlessArrayOf
     return TRACE_RETURN (true);
   }
 
-  USHORT len;
+  LenType len;
   Type array[VAR];
   public:
-  DEFINE_SIZE_ARRAY (sizeof (USHORT), array);
+  DEFINE_SIZE_ARRAY (sizeof (LenType), array);
 };
 
 
