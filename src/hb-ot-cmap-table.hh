@@ -229,7 +229,7 @@ struct CmapSubtableTrimmed
   UINT		length;		/* Byte length of this subtable. */
   UINT		language;	/* Ignore. */
   UINT		startCharCode;	/* First character code covered. */
-  GenericArrayOf<GlyphID, UINT>
+  ArrayOf<GlyphID, UINT>
 		glyphIdArray;	/* Array of glyph index values for character
 				 * codes in the range. */
   public:
@@ -350,7 +350,7 @@ struct EncodingRecord
 
   USHORT	platformID;	/* Platform ID. */
   USHORT	encodingID;	/* Platform-specific encoding ID. */
-  LongOffsetTo<CmapSubtable>
+  OffsetTo<CmapSubtable, ULONG>
 		subtable;	/* Byte offset from beginning of table to the subtable for this encoding. */
   public:
   DEFINE_SIZE_STATIC (8);

@@ -692,8 +692,8 @@ struct FixedVersion
  * Use: (base+offset)
  */
 
-template <typename Type, typename OffsetType=Offset>
-struct OffsetTo : OffsetType
+template <typename Type, typename OffsetType=USHORT>
+struct OffsetTo : GenericOffset<OffsetType>
 {
   inline const Type& operator () (const void *base) const
   {
@@ -737,16 +737,14 @@ static inline const Type& operator + (const Base &base, const OffsetTo<Type, Off
 template <typename Base, typename OffsetType, typename Type>
 static inline Type& operator + (Base &base, OffsetTo<Type, OffsetType> &offset) { return offset (base); }
 
-template <typename Type>
-struct LongOffsetTo : OffsetTo<Type, LongOffset> {};
-
 
 /*
  * Array Types
  */
 
-template <typename Type, typename LenType>
-struct GenericArrayOf
+/* An array with a number of elements. */
+template <typename Type, typename LenType=USHORT>
+struct ArrayOf
 {
   const Type *sub_array (unsigned int start_offset, unsigned int *pcount /* IN/OUT */) const
   {
@@ -852,13 +850,9 @@ struct GenericArrayOf
   DEFINE_SIZE_ARRAY (sizeof (LenType), array);
 };
 
-/* An array with a USHORT number of elements. */
-template <typename Type>
-struct ArrayOf : GenericArrayOf<Type, USHORT> {};
-
 /* An array with a ULONG number of elements. */
 template <typename Type>
-struct LongArrayOf : GenericArrayOf<Type, ULONG> {};
+struct LongArrayOf : ArrayOf<Type, ULONG> {};
 
 /* Array of Offset's */
 template <typename Type>
@@ -866,11 +860,11 @@ struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
 
 /* Array of LongOffset's */
 template <typename Type>
-struct LongOffsetArrayOf : ArrayOf<LongOffsetTo<Type> > {};
+struct LongOffsetArrayOf : ArrayOf<OffsetTo<Type, ULONG> > {};
 
 /* LongArray of LongOffset's */
 template <typename Type>
-struct LongOffsetLongArrayOf : LongArrayOf<LongOffsetTo<Type> > {};
+struct LongOffsetLongArrayOf : LongArrayOf<OffsetTo<Type, ULONG> > {};
 
 /* Array of offsets relative to the beginning of the array itself. */
 template <typename Type>
@@ -951,8 +945,8 @@ struct HeadlessArrayOf
 
 
 /* An array with sorted elements.  Supports binary searching. */
-template <typename Type, typename LenType>
-struct GenericSortedArrayOf : GenericArrayOf<Type, LenType>
+template <typename Type, typename LenType=USHORT>
+struct SortedArrayOf : ArrayOf<Type, LenType>
 {
   template <typename SearchType>
   inline int bsearch (const SearchType &x) const
@@ -974,13 +968,9 @@ struct GenericSortedArrayOf : GenericArrayOf<Type, LenType>
   }
 };
 
-/* A sorted array with a USHORT number of elements. */
-template <typename Type>
-struct SortedArrayOf : GenericSortedArrayOf<Type, USHORT> {};
-
 /* A sorted array with a ULONG number of elements. */
 template <typename Type>
-struct LongSortedArrayOf : GenericSortedArrayOf<Type, ULONG> {};
+struct LongSortedArrayOf : SortedArrayOf<Type, ULONG> {};
 
 
 } /* namespace OT */

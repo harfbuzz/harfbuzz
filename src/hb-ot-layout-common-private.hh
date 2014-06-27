@@ -506,7 +506,7 @@ struct Feature
     if (unlikely (!featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE)))
       return TRACE_RETURN (false);
 
-    if (likely (!orig_offset))
+    if (likely (orig_offset.is_null ()))
       return TRACE_RETURN (true);
 
     if (featureParams == 0 && closure &&
