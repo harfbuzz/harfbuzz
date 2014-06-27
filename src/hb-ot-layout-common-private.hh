@@ -502,7 +502,7 @@ struct Feature
      * Adobe tools, only the 'size' feature had FeatureParams defined.
      */
 
-    Offset<> orig_offset = featureParams;
+    OffsetTo<FeatureParams> orig_offset = featureParams;
     if (unlikely (!featureParams.sanitize (c, this, closure ? closure->tag : HB_TAG_NONE)))
       return TRACE_RETURN (false);
 
@@ -516,7 +516,7 @@ struct Feature
       unsigned int new_offset_int = (unsigned int) orig_offset -
 				    (((char *) this) - ((char *) closure->list_base));
 
-      Offset<> new_offset;
+      OffsetTo<FeatureParams> new_offset;
       /* Check that it did not overflow. */
       new_offset.set (new_offset_int);
       if (new_offset == new_offset_int &&

@@ -728,6 +728,7 @@ struct OffsetTo : Offset<OffsetType>
   inline bool neuter (hb_sanitize_context_t *c) {
     return c->try_set (this, 0);
   }
+  DEFINE_SIZE_STATIC (sizeof(OffsetType));
 };
 template <typename Base, typename OffsetType, typename Type>
 static inline const Type& operator + (const Base &base, const OffsetTo<Type, OffsetType> &offset) { return offset (base); }
