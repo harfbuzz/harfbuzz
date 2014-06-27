@@ -204,7 +204,7 @@ struct LangSys
     return TRACE_RETURN (c->check_struct (this) && featureIndex.sanitize (c));
   }
 
-  Offset<>	lookupOrder;	/* = Null (reserved for an offset to a
+  Offset<>	lookupOrderZ;	/* = Null (reserved for an offset to a
 				 * reordering table) */
   USHORT	reqFeatureIndex;/* Index of a feature required for this
 				 * language system--if no required features

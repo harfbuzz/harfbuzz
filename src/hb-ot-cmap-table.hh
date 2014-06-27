@@ -58,8 +58,8 @@ struct CmapSubtableFormat0
 
   protected:
   USHORT	format;		/* Format number is set to 0. */
-  USHORT	length;		/* Byte length of this subtable. */
-  USHORT	language;	/* Ignore. */
+  USHORT	lengthZ;	/* Byte length of this subtable. */
+  USHORT	languageZ;	/* Ignore. */
   BYTE		glyphIdArray[256];/* An array that maps character
 				 * code to glyph index values. */
   public:
@@ -150,11 +150,11 @@ struct CmapSubtableFormat4
   USHORT	format;		/* Format number is set to 4. */
   USHORT	length;		/* This is the length in bytes of the
 				 * subtable. */
-  USHORT	language;	/* Ignore. */
+  USHORT	languageZ;	/* Ignore. */
   USHORT	segCountX2;	/* 2 x segCount. */
-  USHORT	searchRange;	/* 2 * (2**floor(log2(segCount))) */
-  USHORT	entrySelector;	/* log2(searchRange/2) */
-  USHORT	rangeShift;	/* 2 x segCount - searchRange */
+  USHORT	searchRangeZ;	/* 2 * (2**floor(log2(segCount))) */
+  USHORT	entrySelectorZ;	/* log2(searchRange/2) */
+  USHORT	rangeShiftZ;	/* 2 x segCount - searchRange */
 
   USHORT	values[VAR];
 #if 0
@@ -217,8 +217,8 @@ struct CmapSubtableTrimmed
 
   protected:
   UINT		formatReserved;	/* Subtable format and (maybe) padding. */
-  UINT		length;		/* Byte length of this subtable. */
-  UINT		language;	/* Ignore. */
+  UINT		lengthZ;	/* Byte length of this subtable. */
+  UINT		languageZ;	/* Ignore. */
   UINT		startCharCode;	/* First character code covered. */
   ArrayOf<GlyphID, UINT>
 		glyphIdArray;	/* Array of glyph index values for character
@@ -249,9 +249,9 @@ struct CmapSubtableLongSegmented
 
   protected:
   USHORT	format;		/* Subtable format; set to 12. */
-  USHORT	reserved;	/* Reserved; set to 0. */
-  ULONG		length;		/* Byte length of this subtable. */
-  ULONG		language;	/* Ignore. */
+  USHORT	reservedZ;	/* Reserved; set to 0. */
+  ULONG		lengthZ;	/* Byte length of this subtable. */
+  ULONG		languageZ;	/* Ignore. */
   SortedArrayOf<CmapSubtableLongGroup, ULONG>
 		groups;		/* Groupings. */
   public:
@@ -381,7 +381,7 @@ struct CmapSubtableFormat14
 
   protected:
   USHORT	format;		/* Format number is set to 0. */
-  ULONG		length;		/* Byte length of this subtable. */
+  ULONG		lengthZ;	/* Byte length of this subtable. */
   SortedArrayOf<VariationSelectorRecord, ULONG>
 		record;		/* Variation selector records; sorted
 				 * in increasing order of `varSelector'. */
