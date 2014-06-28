@@ -51,7 +51,7 @@ hb_utf_next (const uint8_t *text,
 
   HB_UTF8_COMPUTE (c, mask, len);
   if (unlikely (!len || (unsigned int) (end - text) < len)) {
-    *unicode = -1;
+    *unicode = 0xfffd;
     return text + 1;
   } else {
     hb_codepoint_t result;
@@ -61,7 +61,7 @@ hb_utf_next (const uint8_t *text,
       {
 	if (unlikely ((text[i] & 0xc0) != 0x80))
 	  {
-	    *unicode = -1;
+	    *unicode = 0xfffd;
 	    return text + 1;
 	  }
 	result <<= 6;
@@ -88,7 +88,7 @@ hb_utf_prev (const uint8_t *text,
 
   HB_UTF8_COMPUTE (c, mask, len);
   if (unlikely (!len || (unsigned int) (end - text) != len)) {
-    *unicode = -1;
+    *unicode = 0xfffd;
     return end - 1;
   } else {
     hb_codepoint_t result;
@@ -131,7 +131,7 @@ hb_utf_next (const uint16_t *text,
       *unicode = (c << 10) + l - ((0xd800 << 10) - 0x10000 + 0xdc00);
        text++;
     } else
-      *unicode = -1;
+      *unicode = 0xfffd;
   } else
     *unicode = c;
 
@@ -155,7 +155,7 @@ hb_utf_prev (const uint16_t *text,
       *unicode = (h << 10) + c - ((0xd800 << 10) - 0x10000 + 0xdc00);
        text--;
     } else
-      *unicode = -1;
+      *unicode = 0xfffd;
   } else
     *unicode = c;
 
@@ -180,6 +180,8 @@ hb_utf_next (const uint32_t *text,
 	     hb_codepoint_t *unicode)
 {
   *unicode = *text++;
+  if (unlikely (*unicode >= 0x110000))
+    *unicode = 0xfffd;
   return text;
 }
 
@@ -189,6 +191,8 @@ hb_utf_prev (const uint32_t *text,
 	     hb_codepoint_t *unicode)
 {
   *unicode = *--text;
+  if (unlikely (*unicode >= 0x110000))
+    *unicode = 0xfffd;
   return text;
 }
 
