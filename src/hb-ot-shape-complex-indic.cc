@@ -208,12 +208,6 @@ set_indic_properties (hb_glyph_info_t &info)
    * For now, just treat them like tone marks. */
   else if (unlikely (u == 0x1CED))
     cat = OT_A;
-  /* The following are Visarga variants. */
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CF2, 0x1CF3)))
-  {
-    cat = OT_SM;
-    ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_VISARGA == OT_SM);
-  }
   /* The following take marks in standalone clusters, similar to Avagraha. */
   else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0xA8F2, 0xA8F7,
 						      0x1CE9, 0x1CEC,
