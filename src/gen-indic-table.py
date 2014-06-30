@@ -36,7 +36,7 @@ for i, f in enumerate (files):
 
 		for u in range (start, end + 1):
 			data[i][u] = t
-		values[i][t] = values[i].get (t, 0) + 1
+		values[i][t] = values[i].get (t, 0) + end - start + 1
 
 # Merge data into one dict:
 defaults = ('Other', 'Not_Applicable', 'No_Block')

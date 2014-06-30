@@ -18,42 +18,42 @@
 
 
 #define ISC_A	INDIC_SYLLABIC_CATEGORY_AVAGRAHA		/*  11 chars; Avagraha */
-#define ISC_Bi	INDIC_SYLLABIC_CATEGORY_BINDU			/*  34 chars; Bindu */
-#define ISC_C	INDIC_SYLLABIC_CATEGORY_CONSONANT		/* 123 chars; Consonant */
-#define ISC_CD	INDIC_SYLLABIC_CATEGORY_CONSONANT_DEAD		/*   2 chars; Consonant_Dead */
-#define ISC_CF	INDIC_SYLLABIC_CATEGORY_CONSONANT_FINAL		/*  17 chars; Consonant_Final */
-#define ISC_CHL	INDIC_SYLLABIC_CATEGORY_CONSONANT_HEAD_LETTER	/*   1 chars; Consonant_Head_Letter */
-#define ISC_CM	INDIC_SYLLABIC_CATEGORY_CONSONANT_MEDIAL	/*  12 chars; Consonant_Medial */
-#define ISC_CP	INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	/*   4 chars; Consonant_Placeholder */
+#define ISC_Bi	INDIC_SYLLABIC_CATEGORY_BINDU			/*  47 chars; Bindu */
+#define ISC_C	INDIC_SYLLABIC_CATEGORY_CONSONANT		/* 1481 chars; Consonant */
+#define ISC_CD	INDIC_SYLLABIC_CATEGORY_CONSONANT_DEAD		/*   7 chars; Consonant_Dead */
+#define ISC_CF	INDIC_SYLLABIC_CATEGORY_CONSONANT_FINAL		/*  61 chars; Consonant_Final */
+#define ISC_CHL	INDIC_SYLLABIC_CATEGORY_CONSONANT_HEAD_LETTER	/*   5 chars; Consonant_Head_Letter */
+#define ISC_CM	INDIC_SYLLABIC_CATEGORY_CONSONANT_MEDIAL	/*  19 chars; Consonant_Medial */
+#define ISC_CP	INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	/*   5 chars; Consonant_Placeholder */
 #define ISC_CR	INDIC_SYLLABIC_CATEGORY_CONSONANT_REPHA		/*   5 chars; Consonant_Repha */
-#define ISC_CS	INDIC_SYLLABIC_CATEGORY_CONSONANT_SUBJOINED	/*  10 chars; Consonant_Subjoined */
+#define ISC_CS	INDIC_SYLLABIC_CATEGORY_CONSONANT_SUBJOINED	/*  61 chars; Consonant_Subjoined */
 #define ISC_ML	INDIC_SYLLABIC_CATEGORY_MODIFYING_LETTER	/*   1 chars; Modifying_Letter */
 #define ISC_N	INDIC_SYLLABIC_CATEGORY_NUKTA			/*  12 chars; Nukta */
 #define ISC_x	INDIC_SYLLABIC_CATEGORY_OTHER			/*   1 chars; Other */
-#define ISC_RS	INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	/*   1 chars; Register_Shifter */
-#define ISC_TL	INDIC_SYLLABIC_CATEGORY_TONE_LETTER		/*   3 chars; Tone_Letter */
-#define ISC_TM	INDIC_SYLLABIC_CATEGORY_TONE_MARK		/*  16 chars; Tone_Mark */
-#define ISC_V	INDIC_SYLLABIC_CATEGORY_VIRAMA			/*  34 chars; Virama */
+#define ISC_RS	INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	/*   2 chars; Register_Shifter */
+#define ISC_TL	INDIC_SYLLABIC_CATEGORY_TONE_LETTER		/*   7 chars; Tone_Letter */
+#define ISC_TM	INDIC_SYLLABIC_CATEGORY_TONE_MARK		/*  40 chars; Tone_Mark */
+#define ISC_V	INDIC_SYLLABIC_CATEGORY_VIRAMA			/*  38 chars; Virama */
 #define ISC_Vs	INDIC_SYLLABIC_CATEGORY_VISARGA			/*  25 chars; Visarga */
-#define ISC_Vo	INDIC_SYLLABIC_CATEGORY_VOWEL			/*   5 chars; Vowel */
-#define ISC_M	INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT		/* 165 chars; Vowel_Dependent */
-#define ISC_VI	INDIC_SYLLABIC_CATEGORY_VOWEL_INDEPENDENT	/*  59 chars; Vowel_Independent */
+#define ISC_Vo	INDIC_SYLLABIC_CATEGORY_VOWEL			/*  25 chars; Vowel */
+#define ISC_M	INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT		/* 483 chars; Vowel_Dependent */
+#define ISC_VI	INDIC_SYLLABIC_CATEGORY_VOWEL_INDEPENDENT	/* 321 chars; Vowel_Independent */
 
-#define IMC_B	INDIC_MATRA_CATEGORY_BOTTOM			/*  65 chars; Bottom */
+#define IMC_B	INDIC_MATRA_CATEGORY_BOTTOM			/* 119 chars; Bottom */
 #define IMC_BR	INDIC_MATRA_CATEGORY_BOTTOM_AND_RIGHT		/*   2 chars; Bottom_And_Right */
 #define IMC_I	INDIC_MATRA_CATEGORY_INVISIBLE			/*   6 chars; Invisible */
-#define IMC_L	INDIC_MATRA_CATEGORY_LEFT			/*  30 chars; Left */
-#define IMC_LR	INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		/*   8 chars; Left_And_Right */
+#define IMC_L	INDIC_MATRA_CATEGORY_LEFT			/*  47 chars; Left */
+#define IMC_LR	INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		/*  17 chars; Left_And_Right */
 #define IMC_x	INDIC_MATRA_CATEGORY_NOT_APPLICABLE		/*   1 chars; Not_Applicable */
 #define IMC_O	INDIC_MATRA_CATEGORY_OVERSTRUCK			/*   2 chars; Overstruck */
-#define IMC_R	INDIC_MATRA_CATEGORY_RIGHT			/*  75 chars; Right */
-#define IMC_T	INDIC_MATRA_CATEGORY_TOP			/*  83 chars; Top */
-#define IMC_TB	INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM		/*   6 chars; Top_And_Bottom */
+#define IMC_R	INDIC_MATRA_CATEGORY_RIGHT			/* 132 chars; Right */
+#define IMC_T	INDIC_MATRA_CATEGORY_TOP			/* 143 chars; Top */
+#define IMC_TB	INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM		/*  10 chars; Top_And_Bottom */
 #define IMC_TBR	INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_RIGHT	/*   1 chars; Top_And_Bottom_And_Right */
 #define IMC_TL	INDIC_MATRA_CATEGORY_TOP_AND_LEFT		/*   4 chars; Top_And_Left */
 #define IMC_TLR	INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT	/*   2 chars; Top_And_Left_And_Right */
-#define IMC_TR	INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		/*   8 chars; Top_And_Right */
-#define IMC_VOL	INDIC_MATRA_CATEGORY_VISUAL_ORDER_LEFT		/*   5 chars; Visual_Order_Left */
+#define IMC_TR	INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		/*  11 chars; Top_And_Right */
+#define IMC_VOL	INDIC_MATRA_CATEGORY_VISUAL_ORDER_LEFT		/*  15 chars; Visual_Order_Left */
 
 #define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)
 
