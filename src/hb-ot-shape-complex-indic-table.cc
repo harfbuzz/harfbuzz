@@ -6,53 +6,62 @@
  *
  * on files with these headers:
  *
- * # IndicSyllabicCategory-6.3.0.txt
- * # Date: 2013-08-01, 21:17:00 GMT [KW, LI]
- * # IndicMatraCategory-6.3.0.txt
- * # Date: 2013-01-02, 08:33:00 GMT [KW, LI]
- * # Blocks-6.3.0.txt
- * # Date: 2012-12-02, 09:45:00 GMT [KW, LI]
+ * # IndicSyllabicCategory-7.0.0.txt
+ * # Date: 2014-06-03, 07:00:00 GMT [KW, LI, AG, RP]
+ * # IndicMatraCategory-7.0.0.txt
+ * # Date: 2014-06-03, 07:00:00 GMT [KW, LI, AG, RP]
+ * # Blocks-7.0.0.txt
+ * # Date: 2014-04-03, 23:23:00 GMT [RP, KW]
  */
 
 #include "hb-ot-shape-complex-indic-private.hh"
 
 
-#define ISC_A	INDIC_SYLLABIC_CATEGORY_AVAGRAHA		/*  11 chars; Avagraha */
-#define ISC_Bi	INDIC_SYLLABIC_CATEGORY_BINDU			/*  47 chars; Bindu */
-#define ISC_C	INDIC_SYLLABIC_CATEGORY_CONSONANT		/* 1481 chars; Consonant */
+#define ISC_A	INDIC_SYLLABIC_CATEGORY_AVAGRAHA		/*  13 chars; Avagraha */
+#define ISC_Bi	INDIC_SYLLABIC_CATEGORY_BINDU			/*  59 chars; Bindu */
+#define ISC_BJN	INDIC_SYLLABIC_CATEGORY_BRAHMI_JOINING_NUMBER	/*  20 chars; Brahmi_Joining_Number */
+#define ISC_Ca	INDIC_SYLLABIC_CATEGORY_CANTILLATION_MARK	/*  30 chars; Cantillation_Mark */
+#define ISC_C	INDIC_SYLLABIC_CATEGORY_CONSONANT		/* 1744 chars; Consonant */
 #define ISC_CD	INDIC_SYLLABIC_CATEGORY_CONSONANT_DEAD		/*   7 chars; Consonant_Dead */
 #define ISC_CF	INDIC_SYLLABIC_CATEGORY_CONSONANT_FINAL		/*  61 chars; Consonant_Final */
 #define ISC_CHL	INDIC_SYLLABIC_CATEGORY_CONSONANT_HEAD_LETTER	/*   5 chars; Consonant_Head_Letter */
 #define ISC_CM	INDIC_SYLLABIC_CATEGORY_CONSONANT_MEDIAL	/*  19 chars; Consonant_Medial */
-#define ISC_CP	INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	/*   5 chars; Consonant_Placeholder */
-#define ISC_CR	INDIC_SYLLABIC_CATEGORY_CONSONANT_REPHA		/*   5 chars; Consonant_Repha */
+#define ISC_CP	INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	/*  11 chars; Consonant_Placeholder */
+#define ISC_CPR	INDIC_SYLLABIC_CATEGORY_CONSONANT_PRECEDING_REPHA	/*   1 chars; Consonant_Preceding_Repha */
 #define ISC_CS	INDIC_SYLLABIC_CATEGORY_CONSONANT_SUBJOINED	/*  61 chars; Consonant_Subjoined */
+#define ISC_CSR	INDIC_SYLLABIC_CATEGORY_CONSONANT_SUCCEEDING_REPHA	/*   4 chars; Consonant_Succeeding_Repha */
+#define ISC_GM	INDIC_SYLLABIC_CATEGORY_GEMINATION_MARK		/*   2 chars; Gemination_Mark */
+#define ISC_IS	INDIC_SYLLABIC_CATEGORY_INVISIBLE_STACKER	/*   7 chars; Invisible_Stacker */
+#define ISC_ZWJ	INDIC_SYLLABIC_CATEGORY_JOINER			/*   1 chars; Joiner */
 #define ISC_ML	INDIC_SYLLABIC_CATEGORY_MODIFYING_LETTER	/*   1 chars; Modifying_Letter */
-#define ISC_N	INDIC_SYLLABIC_CATEGORY_NUKTA			/*  12 chars; Nukta */
+#define ISC_ZWNJ	INDIC_SYLLABIC_CATEGORY_NON_JOINER		/*   1 chars; Non_Joiner */
+#define ISC_N	INDIC_SYLLABIC_CATEGORY_NUKTA			/*  18 chars; Nukta */
+#define ISC_Nd	INDIC_SYLLABIC_CATEGORY_NUMBER			/* 408 chars; Number */
+#define ISC_NJ	INDIC_SYLLABIC_CATEGORY_NUMBER_JOINER		/*   1 chars; Number_Joiner */
 #define ISC_x	INDIC_SYLLABIC_CATEGORY_OTHER			/*   1 chars; Other */
-#define ISC_RS	INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	/*   2 chars; Register_Shifter */
+#define ISC_PK	INDIC_SYLLABIC_CATEGORY_PURE_KILLER		/*  15 chars; Pure_Killer */
+#define ISC_RS	INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	/*   3 chars; Register_Shifter */
 #define ISC_TL	INDIC_SYLLABIC_CATEGORY_TONE_LETTER		/*   7 chars; Tone_Letter */
-#define ISC_TM	INDIC_SYLLABIC_CATEGORY_TONE_MARK		/*  40 chars; Tone_Mark */
-#define ISC_V	INDIC_SYLLABIC_CATEGORY_VIRAMA			/*  38 chars; Virama */
-#define ISC_Vs	INDIC_SYLLABIC_CATEGORY_VISARGA			/*  25 chars; Visarga */
-#define ISC_Vo	INDIC_SYLLABIC_CATEGORY_VOWEL			/*  25 chars; Vowel */
-#define ISC_M	INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT		/* 483 chars; Vowel_Dependent */
-#define ISC_VI	INDIC_SYLLABIC_CATEGORY_VOWEL_INDEPENDENT	/* 321 chars; Vowel_Independent */
+#define ISC_TM	INDIC_SYLLABIC_CATEGORY_TONE_MARK		/*  62 chars; Tone_Mark */
+#define ISC_V	INDIC_SYLLABIC_CATEGORY_VIRAMA			/*  22 chars; Virama */
+#define ISC_Vs	INDIC_SYLLABIC_CATEGORY_VISARGA			/*  29 chars; Visarga */
+#define ISC_Vo	INDIC_SYLLABIC_CATEGORY_VOWEL			/*  30 chars; Vowel */
+#define ISC_M	INDIC_SYLLABIC_CATEGORY_VOWEL_DEPENDENT		/* 553 chars; Vowel_Dependent */
+#define ISC_VI	INDIC_SYLLABIC_CATEGORY_VOWEL_INDEPENDENT	/* 395 chars; Vowel_Independent */
 
-#define IMC_B	INDIC_MATRA_CATEGORY_BOTTOM			/* 119 chars; Bottom */
+#define IMC_B	INDIC_MATRA_CATEGORY_BOTTOM			/* 142 chars; Bottom */
 #define IMC_BR	INDIC_MATRA_CATEGORY_BOTTOM_AND_RIGHT		/*   2 chars; Bottom_And_Right */
-#define IMC_I	INDIC_MATRA_CATEGORY_INVISIBLE			/*   6 chars; Invisible */
-#define IMC_L	INDIC_MATRA_CATEGORY_LEFT			/*  47 chars; Left */
-#define IMC_LR	INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		/*  17 chars; Left_And_Right */
+#define IMC_L	INDIC_MATRA_CATEGORY_LEFT			/*  57 chars; Left */
+#define IMC_LR	INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT		/*  21 chars; Left_And_Right */
 #define IMC_x	INDIC_MATRA_CATEGORY_NOT_APPLICABLE		/*   1 chars; Not_Applicable */
 #define IMC_O	INDIC_MATRA_CATEGORY_OVERSTRUCK			/*   2 chars; Overstruck */
-#define IMC_R	INDIC_MATRA_CATEGORY_RIGHT			/* 132 chars; Right */
-#define IMC_T	INDIC_MATRA_CATEGORY_TOP			/* 143 chars; Top */
+#define IMC_R	INDIC_MATRA_CATEGORY_RIGHT			/* 163 chars; Right */
+#define IMC_T	INDIC_MATRA_CATEGORY_TOP			/* 169 chars; Top */
 #define IMC_TB	INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM		/*  10 chars; Top_And_Bottom */
 #define IMC_TBR	INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_RIGHT	/*   1 chars; Top_And_Bottom_And_Right */
-#define IMC_TL	INDIC_MATRA_CATEGORY_TOP_AND_LEFT		/*   4 chars; Top_And_Left */
-#define IMC_TLR	INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT	/*   2 chars; Top_And_Left_And_Right */
-#define IMC_TR	INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		/*  11 chars; Top_And_Right */
+#define IMC_TL	INDIC_MATRA_CATEGORY_TOP_AND_LEFT		/*   6 chars; Top_And_Left */
+#define IMC_TLR	INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT	/*   4 chars; Top_And_Left_And_Right */
+#define IMC_TR	INDIC_MATRA_CATEGORY_TOP_AND_RIGHT		/*  13 chars; Top_And_Right */
 #define IMC_VOL	INDIC_MATRA_CATEGORY_VISUAL_ORDER_LEFT		/*  15 chars; Visual_Order_Left */
 
 #define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)
@@ -61,7 +70,23 @@
 static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
 
 
-#define indic_offset_0x0900 0
+#define indic_offset_0x0028 0
+
+
+  /* Basic Latin */
+
+  /* 0028 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(CP,x),  _(x,x),  _(x,x),
+  /* 0030 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 0038 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+
+#define indic_offset_0x00d0 24
+
+
+  /* Latin-1 Supplement */
+
+  /* 00D0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(CP,x),
+
+#define indic_offset_0x0900 32
 
 
   /* Devanagari */
@@ -76,12 +101,12 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0938 */  _(C,x),  _(C,x),  _(M,T),  _(M,R),  _(N,x),  _(A,x),  _(M,R),  _(M,L),
   /* 0940 */  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T),
   /* 0948 */  _(M,T),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(V,B),  _(M,L),  _(M,R),
-  /* 0950 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,T),  _(M,B),  _(M,B),
+  /* 0950 */  _(x,x), _(TM,x), _(TM,x),  _(x,x),  _(x,x),  _(M,T),  _(M,B),  _(M,B),
   /* 0958 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* 0960 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0968 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0960 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0968 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0970 */  _(x,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
-  /* 0978 */  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 0978 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
 
   /* Bengali */
 
@@ -97,8 +122,8 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 09C8 */  _(M,L),  _(x,x),  _(x,x), _(M,LR), _(M,LR),  _(V,B), _(CD,x),  _(x,x),
   /* 09D0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,R),
   /* 09D8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(C,x),  _(C,x),  _(x,x),  _(C,x),
-  /* 09E0 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 09E8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 09E0 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 09E8 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 09F0 */  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 09F8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
@@ -116,9 +141,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0A48 */  _(M,T),  _(x,x),  _(x,x),  _(M,T),  _(M,T),  _(V,B),  _(x,x),  _(x,x),
   /* 0A50 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0A58 */  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(C,x),  _(x,x),
-  /* 0A60 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0A68 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0A70 */ _(Bi,x),  _(x,x), _(CP,x), _(CP,x),  _(x,x), _(CM,x),  _(x,x),  _(x,x),
+  /* 0A60 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0A68 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 0A70 */ _(Bi,x), _(GM,T), _(CP,x), _(CP,x),  _(x,x), _(CM,x),  _(x,x),  _(x,x),
   /* 0A78 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Gujarati */
@@ -135,8 +160,8 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0AC8 */  _(M,T), _(M,TR),  _(x,x),  _(M,R),  _(M,R),  _(V,B),  _(x,x),  _(x,x),
   /* 0AD0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0AD8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0AE0 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0AE8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0AE0 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0AE8 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0AF0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0AF8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
@@ -154,8 +179,8 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0B48 */ _(M,TL),  _(x,x),  _(x,x), _(M,LR),_(M,TLR),  _(V,B),  _(x,x),  _(x,x),
   /* 0B50 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,T), _(M,TR),
   /* 0B58 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(C,x),  _(C,x),  _(x,x),  _(C,x),
-  /* 0B60 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0B68 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0B60 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0B68 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0B70 */  _(x,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0B78 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
@@ -173,33 +198,33 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0BC8 */  _(M,L),  _(x,x), _(M,LR), _(M,LR), _(M,LR),  _(V,T),  _(x,x),  _(x,x),
   /* 0BD0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,R),
   /* 0BD8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0BE0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0BE8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0BE0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0BE8 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0BF0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0BF8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Telugu */
 
-  /* 0C00 */  _(x,x), _(Bi,x), _(Bi,x), _(Vs,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 0C00 */ _(Bi,x), _(Bi,x), _(Bi,x), _(Vs,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),
   /* 0C08 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(x,x), _(VI,x), _(VI,x),
   /* 0C10 */ _(VI,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0C18 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0C20 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0C28 */  _(C,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* 0C30 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 0C30 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0C38 */  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(A,x),  _(M,T),  _(M,T),
   /* 0C40 */  _(M,T),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(x,x),  _(M,T),  _(M,T),
   /* 0C48 */ _(M,TB),  _(x,x),  _(M,T),  _(M,T),  _(M,T),  _(V,T),  _(x,x),  _(x,x),
   /* 0C50 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,T),  _(M,B),  _(x,x),
   /* 0C58 */  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0C60 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0C68 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0C60 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0C68 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0C70 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0C78 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Kannada */
 
-  /* 0C80 */  _(x,x),  _(x,x), _(Bi,x), _(Vs,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 0C80 */  _(x,x), _(Bi,x), _(Bi,x), _(Vs,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),
   /* 0C88 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(x,x), _(VI,x), _(VI,x),
   /* 0C90 */ _(VI,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0C98 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -211,14 +236,14 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0CC8 */ _(M,TR),  _(x,x), _(M,TR), _(M,TR),  _(M,T),  _(V,T),  _(x,x),  _(x,x),
   /* 0CD0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,R),  _(M,R),  _(x,x),
   /* 0CD8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(C,x),  _(x,x),
-  /* 0CE0 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0CE8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0CE0 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0CE8 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0CF0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0CF8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Malayalam */
 
-  /* 0D00 */  _(x,x),  _(x,x), _(Bi,x), _(Vs,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 0D00 */  _(x,x), _(Bi,x), _(Bi,x), _(Vs,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),
   /* 0D08 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(x,x), _(VI,x), _(VI,x),
   /* 0D10 */ _(VI,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0D18 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -227,11 +252,11 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0D30 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0D38 */  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(A,x),  _(M,R),  _(M,R),
   /* 0D40 */  _(M,R),  _(M,R),  _(M,R),  _(M,B),  _(M,B),  _(x,x),  _(M,L),  _(M,L),
-  /* 0D48 */  _(M,L),  _(x,x), _(M,LR), _(M,LR), _(M,LR),  _(V,T), _(CR,x),  _(x,x),
+  /* 0D48 */  _(M,L),  _(x,x), _(M,LR), _(M,LR), _(M,LR),  _(V,T),_(CPR,x),  _(x,x),
   /* 0D50 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,R),
   /* 0D58 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0D60 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0D68 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0D60 */ _(VI,x), _(VI,x),  _(M,B),  _(M,B),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0D68 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0D70 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 0D78 */  _(x,x),  _(x,x), _(CD,x), _(CD,x), _(CD,x), _(CD,x), _(CD,x), _(CD,x),
 
@@ -248,12 +273,12 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 0DC0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),
   /* 0DC8 */  _(x,x),  _(x,x),  _(V,T),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,R),
   /* 0DD0 */  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,B),  _(x,x),  _(M,B),  _(x,x),
-  /* 0DD8 */  _(M,R),  _(M,L), _(M,TL),  _(M,L), _(M,LR), _(M,LR), _(M,LR),  _(M,R),
-  /* 0DE0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 0DE8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 0DD8 */  _(M,R),  _(M,L), _(M,TL),  _(M,L), _(M,LR),_(M,TLR), _(M,LR),  _(M,R),
+  /* 0DE0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 0DE8 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 0DF0 */  _(x,x),  _(x,x),  _(M,R),  _(M,R),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0x1000 1272
+#define indic_offset_0x1000 1304
 
 
   /* Myanmar */
@@ -265,9 +290,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1020 */  _(C,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
   /* 1028 */ _(VI,x), _(VI,x), _(VI,x),  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,B),
   /* 1030 */  _(M,B),  _(M,L),  _(M,T),  _(M,T),  _(M,T),  _(M,T), _(Bi,x), _(TM,x),
-  /* 1038 */ _(Vs,x),  _(V,I),  _(V,T), _(CM,x), _(CM,x), _(CM,x), _(CM,x),  _(C,x),
-  /* 1040 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1048 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1038 */ _(Vs,x), _(IS,x), _(PK,T), _(CM,x), _(CM,x), _(CM,x), _(CM,x),  _(C,x),
+  /* 1040 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 1048 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(CP,x),  _(x,x),
   /* 1050 */  _(C,x),  _(C,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(M,R),  _(M,R),
   /* 1058 */  _(M,B),  _(M,B),  _(C,x),  _(C,x),  _(C,x),  _(C,x), _(CM,x), _(CM,x),
   /* 1060 */ _(CM,x),  _(C,x),  _(M,R), _(TM,x), _(TM,x),  _(C,x),  _(C,x),  _(M,R),
@@ -276,24 +301,24 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1078 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1080 */  _(C,x),  _(C,x), _(CM,x),  _(M,R),  _(M,L),  _(M,T),  _(M,T), _(TM,x),
   /* 1088 */ _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x),  _(C,x), _(TM,x),
-  /* 1090 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1098 */  _(x,x),  _(x,x), _(TM,x), _(TM,x),  _(M,R),  _(M,T),  _(x,x),  _(x,x),
+  /* 1090 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 1098 */ _(Nd,x), _(Nd,x), _(TM,x), _(TM,x),  _(M,R),  _(M,T),  _(x,x),  _(x,x),
 
-#define indic_offset_0x1700 1432
+#define indic_offset_0x1700 1464
 
 
   /* Tagalog */
 
   /* 1700 */ _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1708 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(C,x),  _(C,x),
-  /* 1710 */  _(C,x),  _(C,x),  _(M,T),  _(M,B),  _(V,B),  _(x,x),  _(x,x),  _(x,x),
+  /* 1710 */  _(C,x),  _(C,x),  _(M,T),  _(M,B), _(PK,B),  _(x,x),  _(x,x),  _(x,x),
   /* 1718 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Hanunoo */
 
   /* 1720 */ _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1728 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* 1730 */  _(C,x),  _(C,x),  _(M,T),  _(M,B),  _(V,B),  _(x,x),  _(x,x),  _(x,x),
+  /* 1730 */  _(C,x),  _(C,x),  _(M,T),  _(M,B), _(PK,B),  _(x,x),  _(x,x),  _(x,x),
   /* 1738 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Buhid */
@@ -321,11 +346,13 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 17B0 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(x,x),  _(x,x),  _(M,R),  _(M,T),
   /* 17B8 */  _(M,T),  _(M,T),  _(M,T),  _(M,B),  _(M,B),  _(M,B), _(M,TL),_(M,TLR),
   /* 17C0 */ _(M,LR),  _(M,L),  _(M,L),  _(M,L), _(M,LR), _(M,LR), _(Bi,x), _(Vs,x),
-  /* 17C8 */  _(M,R), _(RS,x), _(RS,x),  _(x,x), _(CR,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 17D0 */  _(x,x),  _(V,T),  _(V,I),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 17C8 */  _(M,R), _(RS,T), _(RS,T), _(RS,T),_(CSR,T),  _(M,T),  _(M,T),  _(M,T),
+  /* 17D0 */  _(M,T), _(PK,T), _(IS,x),  _(M,T),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 17D8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(A,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 17E0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 17E8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0x1900 1656
+#define indic_offset_0x1900 1704
 
 
   /* Limbu */
@@ -333,13 +360,13 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1900 */ _(CP,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1908 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1910 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* 1918 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1918 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),
   /* 1920 */  _(M,T),  _(M,T),  _(M,B),  _(M,R),  _(M,R), _(M,TR), _(M,TR),  _(M,T),
   /* 1928 */  _(M,T), _(CS,x), _(CS,x), _(CS,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1930 */ _(CF,x), _(CF,x), _(Bi,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x),
   /* 1938 */ _(CF,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1940 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1948 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1940 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 1948 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
 
   /* Tai Le */
 
@@ -362,8 +389,8 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 19B8 */  _(M,R),  _(M,R),  _(M,L),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(M,R),
   /* 19C0 */  _(M,R), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x),
   /* 19C8 */ _(TM,x), _(TM,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 19D0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 19D8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 19D0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 19D8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 19E0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 19E8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 19F0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
@@ -374,7 +401,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1A00 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1A08 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1A10 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(M,T),
-  /* 1A18 */  _(M,B),  _(M,L),  _(M,R),  _(M,L),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1A18 */  _(M,B),  _(M,L),  _(M,R),  _(M,T),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Tai Tham */
 
@@ -384,19 +411,23 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1A38 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1A40 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1A48 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x), _(VI,x), _(VI,x), _(VI,x),
-  /* 1A50 */ _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x), _(CM,x), _(CM,x), _(CF,x),
+  /* 1A50 */ _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x), _(CM,L), _(CM,x), _(CF,x),
   /* 1A58 */ _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x),  _(x,x),
-  /* 1A60 */  _(V,I),  _(M,R),  _(M,T),  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,T),
+  /* 1A60 */ _(IS,x),  _(M,R),  _(M,T),  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,T),
   /* 1A68 */  _(M,T),  _(M,B),  _(M,B),  _(M,T),  _(M,B),  _(M,R),  _(M,L),  _(M,L),
   /* 1A70 */  _(M,L),  _(M,L),  _(M,L),  _(M,T),  _(M,T), _(TM,x), _(TM,x), _(TM,x),
   /* 1A78 */ _(TM,x), _(TM,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1A80 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 1A88 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1A90 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 1A98 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0x1b00 2040
+#define indic_offset_0x1b00 2120
 
 
   /* Balinese */
 
-  /* 1B00 */ _(Bi,x), _(Bi,x), _(Bi,x), _(CR,x), _(Vs,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 1B00 */ _(Bi,x), _(Bi,x), _(Bi,x),_(CSR,x), _(Vs,x), _(VI,x), _(VI,x), _(VI,x),
   /* 1B08 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
   /* 1B10 */ _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1B18 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -406,8 +437,8 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1B38 */  _(M,B),  _(M,B),  _(M,B), _(M,BR), _(M,TB),_(M,TBR),  _(M,L),  _(M,L),
   /* 1B40 */ _(M,LR), _(M,LR),  _(M,T), _(M,TR),  _(V,R),  _(C,x),  _(C,x),  _(C,x),
   /* 1B48 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1B50 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1B58 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1B50 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 1B58 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1B60 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1B68 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1B70 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
@@ -415,14 +446,14 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
 
   /* Sundanese */
 
-  /* 1B80 */ _(Bi,x), _(CR,x), _(Vs,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 1B80 */ _(Bi,x),_(CSR,x), _(Vs,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
   /* 1B88 */ _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1B90 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1B98 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1BA0 */  _(C,x), _(CS,x), _(CS,x), _(CS,x),  _(M,T),  _(M,B),  _(M,L),  _(M,R),
-  /* 1BA8 */  _(M,T),  _(M,T),  _(V,R),  _(V,x), _(CS,x), _(CS,x),  _(C,x),  _(C,x),
-  /* 1BB0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1BB8 */  _(x,x),  _(x,x),  _(A,x),  _(C,x),  _(C,x),  _(C,x), _(CF,x), _(CF,x),
+  /* 1BA8 */  _(M,T),  _(M,T), _(PK,R), _(IS,x), _(CS,x), _(CS,x),  _(C,x),  _(C,x),
+  /* 1BB0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 1BB8 */ _(Nd,x), _(Nd,x),  _(A,x),  _(C,x),  _(C,x),  _(C,x), _(CF,x), _(CF,x),
 
   /* Batak */
 
@@ -430,9 +461,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1BC8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1BD0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1BD8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* 1BE0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x), _(VI,x), _(VI,x),  _(N,x),  _(M,x),
-  /* 1BE8 */  _(M,x),  _(M,x),  _(M,x),  _(M,x),  _(M,x),  _(M,x),  _(M,x),  _(M,x),
-  /* 1BF0 */ _(CF,x), _(CF,x),  _(V,R),  _(V,R),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1BE0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x), _(VI,x), _(VI,x),  _(N,x),  _(M,R),
+  /* 1BE8 */  _(M,T),  _(M,T),  _(M,R),  _(M,R),  _(M,R),  _(M,T),  _(M,R),  _(M,T),
+  /* 1BF0 */ _(CF,x), _(CF,x), _(PK,R), _(PK,R),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 1BF8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Lepcha */
@@ -443,24 +474,36 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 1C18 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 1C20 */  _(C,x),  _(C,x),  _(C,x),  _(C,x), _(CS,x), _(CS,x),  _(M,R),  _(M,L),
   /* 1C28 */  _(M,L), _(M,TL),  _(M,R),  _(M,R),  _(M,B), _(CF,x), _(CF,x), _(CF,x),
-  /* 1C30 */ _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(Bi,x), _(Bi,x),  _(x,x),  _(N,x),
+  /* 1C30 */ _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(Bi,L), _(Bi,L),  _(x,x),  _(N,x),
   /* 1C38 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1C40 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 1C48 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 1C40 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 1C48 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),
 
-#define indic_offset_0x1cf0 2376
+#define indic_offset_0x1cd0 2456
 
 
   /* Vedic Extensions */
 
-  /* 1CF0 */  _(x,x),  _(x,x), _(Vs,x), _(Vs,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1CD0 */ _(TM,x), _(TM,x), _(TM,x),  _(x,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x),
+  /* 1CD8 */ _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x), _(TM,x),
+  /* 1CE0 */ _(TM,x), _(TM,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1CE8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 1CF0 */  _(x,x),  _(x,x), _(Vs,x), _(Vs,x), _(TM,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0xa800 2384
+#define indic_offset_0x2008 2496
+
+
+  /* General Punctuation */
+
+  /* 2008 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),_(ZWNJ,x),_(ZWJ,x),  _(x,x),  _(x,x),
+  /* 2010 */  _(x,x),  _(x,x), _(CP,x), _(CP,x), _(CP,x),  _(x,x),  _(x,x),  _(x,x),
+
+#define indic_offset_0xa800 2512
 
 
   /* Syloti Nagri */
 
-  /* A800 */ _(VI,x), _(VI,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),  _(V,T),  _(C,x),
+  /* A800 */ _(VI,x), _(VI,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x), _(PK,T),  _(C,x),
   /* A808 */  _(C,x),  _(C,x),  _(C,x), _(Bi,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* A810 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* A818 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -491,13 +534,21 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* A8B0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x), _(CF,x),  _(M,R),  _(M,R),  _(M,R),
   /* A8B8 */  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(M,R),
   /* A8C0 */  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(V,B),  _(x,x),  _(x,x),  _(x,x),
+  /* A8C8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* A8D0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* A8D8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0xa908 2584
+  /* Devanagari Extended */
 
+  /* A8E0 */ _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x),
+  /* A8E8 */ _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x),
+  /* A8F0 */ _(Ca,x), _(Ca,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* A8F8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Kayah Li */
 
-  /* A908 */  _(x,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* A900 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* A908 */ _(Nd,x), _(Nd,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* A910 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* A918 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* A920 */  _(C,x),  _(C,x), _(Vo,x), _(Vo,x), _(Vo,x), _(Vo,x), _(Vo,x), _(Vo,x),
@@ -509,7 +560,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* A938 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* A940 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(M,B),
   /* A948 */  _(M,B),  _(M,B),  _(M,T),  _(M,B),  _(M,B),  _(M,B),  _(M,B), _(CF,x),
-  /* A950 */ _(CF,x), _(CF,x), _(CF,x),  _(V,R),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* A950 */ _(CF,x), _(CF,x), _(CF,x), _(PK,R),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* A958 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* A960 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* A968 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
@@ -518,7 +569,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
 
   /* Javanese */
 
-  /* A980 */ _(Bi,x), _(Bi,x), _(CR,x), _(Vs,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
+  /* A980 */ _(Bi,x), _(Bi,x),_(CSR,x), _(Vs,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
   /* A988 */ _(VI,x),  _(C,x),  _(C,x),  _(C,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),
   /* A990 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* A998 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -527,9 +578,16 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* A9B0 */  _(C,x),  _(C,x),  _(C,x),  _(N,x),  _(M,R),  _(M,R),  _(M,T),  _(M,T),
   /* A9B8 */  _(M,B),  _(M,B),  _(M,L),  _(M,L),  _(M,T), _(CS,x), _(CM,x), _(CM,x),
   /* A9C0 */ _(V,BR),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* A9C8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* A9D0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* A9D8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0xaa00 2776
+  /* Myanmar Extended-B */
 
+  /* A9E0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(C,x),
+  /* A9E8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* A9F0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* A9F8 */ _(Nd,x), _(Nd,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),
 
   /* Cham */
 
@@ -539,19 +597,19 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* AA18 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* AA20 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* AA28 */  _(C,x),  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(M,B),  _(M,T),  _(M,L),
-  /* AA30 */  _(M,L),  _(M,T),  _(M,B), _(CM,x), _(CM,x), _(CM,x), _(CM,x),  _(x,x),
+  /* AA30 */  _(M,L),  _(M,T),  _(M,B), _(CM,x), _(CM,L), _(CM,x), _(CM,x),  _(x,x),
   /* AA38 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* AA40 */ _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x),
   /* AA48 */ _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x),  _(x,x),  _(x,x),
-  /* AA50 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* AA58 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* AA50 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* AA58 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Myanmar Extended-A */
 
   /* AA60 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* AA68 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* AA70 */  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* AA78 */  _(x,x),  _(x,x),  _(C,x), _(TM,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* AA78 */  _(x,x),  _(x,x),  _(C,x), _(TM,x), _(TM,x), _(TM,x),  _(C,x),  _(C,x),
 
   /* Tai Viet */
 
@@ -572,9 +630,9 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
 
   /* AAE0 */ _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* AAE8 */  _(C,x),  _(C,x),  _(C,x),  _(M,L),  _(M,B),  _(M,T),  _(M,L),  _(M,R),
-  /* AAF0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(Vs,x),  _(V,I),  _(x,x),
+  /* AAF0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(Vs,x), _(IS,x),  _(x,x),
 
-#define indic_offset_0xabc0 3024
+#define indic_offset_0xabc0 3272
 
 
   /* Meetei Mayek */
@@ -584,9 +642,11 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* ABD0 */  _(C,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* ABD8 */  _(C,x),  _(C,x),  _(C,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x), _(CF,x),
   /* ABE0 */ _(CF,x), _(CF,x), _(CF,x),  _(M,R),  _(M,R),  _(M,T),  _(M,R),  _(M,R),
-  /* ABE8 */  _(M,B),  _(M,R),  _(M,R),  _(x,x), _(TM,x),  _(V,B),  _(x,x),  _(x,x),
+  /* ABE8 */  _(M,B),  _(M,R),  _(M,R),  _(x,x), _(TM,x), _(PK,B),  _(x,x),  _(x,x),
+  /* ABF0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* ABF8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0x10a00 3072
+#define indic_offset_0x10a00 3336
 
 
   /* Kharoshthi */
@@ -598,9 +658,10 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 10A20 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 10A28 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 10A30 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 10A38 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(V,I),
+  /* 10A38 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(IS,x),
+  /* 10A40 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
 
-#define indic_offset_0x11000 3136
+#define indic_offset_0x11000 3408
 
 
   /* Brahmi */
@@ -614,9 +675,13 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 11030 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 11038 */  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(M,B),  _(M,B),  _(M,B),  _(M,B),
   /* 11040 */  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(V,T),  _(x,x),
-
-#define indic_offset_0x11080 3208
-
+  /* 11048 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11050 */  _(x,x),  _(x,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),
+  /* 11058 */_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),
+  /* 11060 */_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x), _(Nd,x), _(Nd,x),
+  /* 11068 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 11070 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11078 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(NJ,x),
 
   /* Kaithi */
 
@@ -629,7 +694,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 110B0 */  _(M,R),  _(M,L),  _(M,R),  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,R),
   /* 110B8 */  _(M,R),  _(V,B),  _(N,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0x11100 3272
+#define indic_offset_0x11100 3600
 
 
   /* Chakma */
@@ -640,10 +705,19 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 11118 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 11120 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(M,T),
   /* 11128 */  _(M,T),  _(M,T),  _(M,B),  _(M,B),  _(M,L),  _(M,T), _(M,TB), _(M,TB),
-  /* 11130 */  _(M,T),  _(M,B),  _(M,B),  _(V,I),  _(V,T),  _(x,x),  _(x,x),  _(x,x),
+  /* 11130 */  _(M,T),  _(M,B),  _(M,B), _(IS,x), _(PK,T),  _(x,x), _(Nd,x), _(Nd,x),
+  /* 11138 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 11140 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11148 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0x11180 3328
+  /* Mahajani */
 
+  /* 11150 */ _(Vo,x), _(Vo,x), _(Vo,x), _(Vo,x), _(Vo,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11158 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11160 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11168 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11170 */  _(C,x),  _(C,x),  _(C,x),  _(N,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11178 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Sharada */
 
@@ -656,9 +730,115 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 111B0 */  _(C,x),  _(C,x),  _(C,x),  _(M,R),  _(M,L),  _(M,R),  _(M,B),  _(M,B),
   /* 111B8 */  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T), _(M,TR),
   /* 111C0 */  _(V,R),  _(A,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 111C8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 111D0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 111D8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0x11680 3400
+  /* Sinhala Archaic Numbers */
 
+  /* 111E0 */  _(x,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 111E8 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 111F0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 111F8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+
+  /* Khojki */
+
+  /* 11200 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 11208 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11210 */  _(C,x),  _(C,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11218 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11220 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11228 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(M,R),  _(M,R),  _(M,R),  _(M,B),
+  /* 11230 */  _(M,T),  _(M,T), _(M,TR), _(M,TR), _(Bi,x),  _(V,R),  _(N,x), _(GM,T),
+
+#define indic_offset_0x112b0 3912
+
+
+  /* Khudawadi */
+
+  /* 112B0 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 112B8 */ _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 112C0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 112C8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 112D0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 112D8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x), _(Bi,x),
+  /* 112E0 */  _(M,R),  _(M,L),  _(M,R),  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T),
+  /* 112E8 */  _(M,T),  _(N,x), _(PK,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 112F0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 112F8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+
+  /* Grantha */
+
+  /* 11300 */  _(x,x), _(Bi,x), _(Bi,x), _(Vs,x),  _(x,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 11308 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(x,x),  _(x,x), _(VI,x),
+  /* 11310 */ _(VI,x),  _(x,x),  _(x,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11318 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11320 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11328 */  _(C,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11330 */  _(C,x),  _(x,x),  _(C,x),  _(C,x),  _(x,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11338 */  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(N,x),  _(A,x),  _(M,R),  _(M,R),
+  /* 11340 */  _(M,T),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(x,x),  _(x,x),  _(M,L),
+  /* 11348 */  _(M,L),  _(x,x),  _(x,x), _(M,LR), _(M,LR),  _(V,R),  _(x,x),  _(x,x),
+  /* 11350 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(M,R),
+  /* 11358 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11360 */ _(VI,x), _(VI,x),  _(M,R),  _(M,R),  _(x,x),  _(x,x), _(Ca,x), _(Ca,x),
+  /* 11368 */ _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11370 */ _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x), _(Ca,x),  _(x,x),  _(x,x),  _(x,x),
+
+#define indic_offset_0x11480 4112
+
+
+  /* Tirhuta */
+
+  /* 11480 */  _(x,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 11488 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),
+  /* 11490 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11498 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 114A0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 114A8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 114B0 */  _(M,R),  _(M,L),  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(M,B),
+  /* 114B8 */  _(M,B),  _(M,L),  _(M,T), _(M,TL), _(M,LR),  _(M,R), _(M,LR), _(Bi,x),
+  /* 114C0 */ _(Bi,x), _(Vs,x),  _(V,B),  _(N,x),  _(A,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 114C8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 114D0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 114D8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+
+#define indic_offset_0x11580 4208
+
+
+  /* Siddham */
+
+  /* 11580 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 11588 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),
+  /* 11590 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11598 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 115A0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 115A8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(M,R),
+  /* 115B0 */  _(M,L),  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(x,x),  _(x,x),
+  /* 115B8 */  _(M,L), _(M,TL), _(M,LR),_(M,TLR), _(Bi,x), _(Bi,x), _(Vs,x),  _(V,B),
+  /* 115C0 */  _(N,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+
+#define indic_offset_0x11600 4280
+
+
+  /* Modi */
+
+  /* 11600 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
+  /* 11608 */ _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),  _(C,x),
+  /* 11610 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11618 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11620 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11628 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
+  /* 11630 */  _(M,R),  _(M,R),  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(M,B),
+  /* 11638 */  _(M,B),  _(M,T),  _(M,T),  _(M,R),  _(M,R), _(Bi,x), _(Vs,x),  _(V,B),
+  /* 11640 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11648 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11650 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 11658 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11660 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11668 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11670 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 11678 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Takri */
 
@@ -669,8 +849,11 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 116A0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 116A8 */  _(C,x),  _(C,x),  _(C,x), _(Bi,x), _(Vs,x),  _(M,T),  _(M,L),  _(M,R),
   /* 116B0 */  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(V,T),  _(N,x),
+  /* 116B8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* 116C0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
+  /* 116C8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-}; /* Table items: 3456; occupancy: 69% */
+}; /* Table items: 4488; occupancy: 73% */
 
 INDIC_TABLE_ELEMENT_TYPE
 hb_indic_get_categories (hb_codepoint_t u)
@@ -678,39 +861,41 @@ hb_indic_get_categories (hb_codepoint_t u)
   switch (u >> 12)
   {
     case 0x0:
+      if (0x0028 <= u && u <= 0x0040) return indic_table[u - 0x0028 + indic_offset_0x0028];
+      if (0x00D0 <= u && u <= 0x00D8) return indic_table[u - 0x00D0 + indic_offset_0x00d0];
       if (0x0900 <= u && u <= 0x0DF8) return indic_table[u - 0x0900 + indic_offset_0x0900];
       if (unlikely (u == 0x00A0)) return _(CP,x);
       break;
 
     case 0x1:
       if (0x1000 <= u && u <= 0x10A0) return indic_table[u - 0x1000 + indic_offset_0x1000];
-      if (0x1700 <= u && u <= 0x17E0) return indic_table[u - 0x1700 + indic_offset_0x1700];
-      if (0x1900 <= u && u <= 0x1A80) return indic_table[u - 0x1900 + indic_offset_0x1900];
+      if (0x1700 <= u && u <= 0x17F0) return indic_table[u - 0x1700 + indic_offset_0x1700];
+      if (0x1900 <= u && u <= 0x1AA0) return indic_table[u - 0x1900 + indic_offset_0x1900];
       if (0x1B00 <= u && u <= 0x1C50) return indic_table[u - 0x1B00 + indic_offset_0x1b00];
-      if (0x1CF0 <= u && u <= 0x1CF8) return indic_table[u - 0x1CF0 + indic_offset_0x1cf0];
+      if (0x1CD0 <= u && u <= 0x1CF8) return indic_table[u - 0x1CD0 + indic_offset_0x1cd0];
       break;
 
     case 0x2:
+      if (0x2008 <= u && u <= 0x2018) return indic_table[u - 0x2008 + indic_offset_0x2008];
       if (unlikely (u == 0x25CC)) return _(CP,x);
       break;
 
     case 0xA:
-      if (0xA800 <= u && u <= 0xA8C8) return indic_table[u - 0xA800 + indic_offset_0xa800];
-      if (0xA908 <= u && u <= 0xA9C8) return indic_table[u - 0xA908 + indic_offset_0xa908];
-      if (0xAA00 <= u && u <= 0xAAF8) return indic_table[u - 0xAA00 + indic_offset_0xaa00];
-      if (0xABC0 <= u && u <= 0xABF0) return indic_table[u - 0xABC0 + indic_offset_0xabc0];
+      if (0xA800 <= u && u <= 0xAAF8) return indic_table[u - 0xA800 + indic_offset_0xa800];
+      if (0xABC0 <= u && u <= 0xAC00) return indic_table[u - 0xABC0 + indic_offset_0xabc0];
       break;
 
     case 0x10:
-      if (0x10A00 <= u && u <= 0x10A40) return indic_table[u - 0x10A00 + indic_offset_0x10a00];
+      if (0x10A00 <= u && u <= 0x10A48) return indic_table[u - 0x10A00 + indic_offset_0x10a00];
       break;
 
     case 0x11:
-      if (0x11000 <= u && u <= 0x11048) return indic_table[u - 0x11000 + indic_offset_0x11000];
-      if (0x11080 <= u && u <= 0x110C0) return indic_table[u - 0x11080 + indic_offset_0x11080];
-      if (0x11100 <= u && u <= 0x11138) return indic_table[u - 0x11100 + indic_offset_0x11100];
-      if (0x11180 <= u && u <= 0x111C8) return indic_table[u - 0x11180 + indic_offset_0x11180];
-      if (0x11680 <= u && u <= 0x116B8) return indic_table[u - 0x11680 + indic_offset_0x11680];
+      if (0x11000 <= u && u <= 0x110C0) return indic_table[u - 0x11000 + indic_offset_0x11000];
+      if (0x11100 <= u && u <= 0x11238) return indic_table[u - 0x11100 + indic_offset_0x11100];
+      if (0x112B0 <= u && u <= 0x11378) return indic_table[u - 0x112B0 + indic_offset_0x112b0];
+      if (0x11480 <= u && u <= 0x114E0) return indic_table[u - 0x11480 + indic_offset_0x11480];
+      if (0x11580 <= u && u <= 0x115C8) return indic_table[u - 0x11580 + indic_offset_0x11580];
+      if (0x11600 <= u && u <= 0x116D0) return indic_table[u - 0x11600 + indic_offset_0x11600];
       break;
 
     default:
@@ -723,17 +908,27 @@ hb_indic_get_categories (hb_codepoint_t u)
 
 #undef ISC_A
 #undef ISC_Bi
+#undef ISC_BJN
+#undef ISC_Ca
 #undef ISC_C
 #undef ISC_CD
 #undef ISC_CF
 #undef ISC_CHL
 #undef ISC_CM
 #undef ISC_CP
-#undef ISC_CR
+#undef ISC_CPR
 #undef ISC_CS
+#undef ISC_CSR
+#undef ISC_GM
+#undef ISC_IS
+#undef ISC_ZWJ
 #undef ISC_ML
+#undef ISC_ZWNJ
 #undef ISC_N
+#undef ISC_Nd
+#undef ISC_NJ
 #undef ISC_x
+#undef ISC_PK
 #undef ISC_RS
 #undef ISC_TL
 #undef ISC_TM
@@ -745,7 +940,6 @@ hb_indic_get_categories (hb_codepoint_t u)
 
 #undef IMC_B
 #undef IMC_BR
-#undef IMC_I
 #undef IMC_L
 #undef IMC_LR
 #undef IMC_x

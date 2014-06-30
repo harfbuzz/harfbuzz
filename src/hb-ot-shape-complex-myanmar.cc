@@ -177,8 +177,6 @@ set_myanmar_properties (hb_glyph_info_t &info)
    */
   if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xFE00, 0xFE0F)))
     cat = (indic_category_t) OT_VS;
-  else if (unlikely (u == 0x200C)) cat = (indic_category_t) OT_ZWNJ;
-  else if (unlikely (u == 0x200D)) cat = (indic_category_t) OT_ZWJ;
 
   switch (u)
   {

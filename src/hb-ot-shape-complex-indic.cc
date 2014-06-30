@@ -195,9 +195,6 @@ set_indic_properties (hb_glyph_info_t &info)
   /* The following act more like the Bindus. */
   else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0953, 0x0954)))
     cat = OT_SM;
-  /* Cantillation marks. */
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xA8E0, 0xA8F1)))
-    cat = OT_A;
   /* The following act like consonants. */
   else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0x0A72, 0x0A73,
 						      0x1CF5, 0x1CF6)))
@@ -234,31 +231,13 @@ set_indic_properties (hb_glyph_info_t &info)
   }
   else if (unlikely (u == 0x17C6)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
   else if (unlikely (u == 0x17D2)) cat = OT_Coeng; /* Khmer coeng */
-  else if (unlikely (u == 0x200C)) cat = OT_ZWNJ;
-  else if (unlikely (u == 0x200D)) cat = OT_ZWJ;
   else if (unlikely (u == 0x002D || u == 0x00D7 ||
 		     hb_in_range<hb_codepoint_t> (u, 0x2010, 0x2014)))
 				   cat = OT_PLACEHOLDER;
   else if (unlikely (u == 0x25CC)) cat = OT_DOTTEDCIRCLE;
-  else if (unlikely (u == 0x0A71)) cat = OT_SM; /* GURMUKHI ADDAK.  Move it to the end. */
   else if (unlikely (u == 0xA982)) cat = OT_SM; /* Javanese repha. */
   else if (unlikely (u == 0xA9BE)) cat = OT_CM2; /* Javanese medial ya. */
   else if (unlikely (u == 0xA9BD)) { cat = OT_M; pos = POS_POST_C; } /* Javanese vocalic r. */
-  else if (cat == OT_Repha) {
-    /* There are two kinds of characters marked as Repha:
-     * - The ones that are GenCat=Mn are already positioned visually, ie. after base. (eg. Khmer)
-     * - The ones that are GenCat=Lo is encoded logically, ie. beginning of syllable. (eg. Malayalam)
-     *
-     * We recategorize the first kind to look like a Nukta and attached to the base directly.
-     */
-    if (_hb_glyph_info_get_general_category (&info) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
-      cat = OT_N;
-  }
-  /* Decimal and Brahmi numbers. */
-  else if (unlikely (_hb_glyph_info_get_general_category (&info) ==
-		     HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER ||
-		     hb_in_range<hb_codepoint_t> (u, 0x11052, 0x11065))) cat = OT_PLACEHOLDER;
-
 
 
   /*
