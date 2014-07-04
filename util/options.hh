@@ -85,11 +85,14 @@ struct option_parser_t
     memset (this, 0, sizeof (*this));
     usage_str = usage;
     context = g_option_context_new (usage);
+    to_free = g_ptr_array_new ();
 
     add_main_options ();
   }
   ~option_parser_t (void) {
     g_option_context_free (context);
+    g_ptr_array_foreach (to_free, (GFunc) g_free, NULL);
+    g_ptr_array_free (to_free, TRUE);
   }
 
   void add_main_options (void);
@@ -100,6 +103,10 @@ struct option_parser_t
 		  const gchar    *help_description,
 		  option_group_t *option_group);
 
+  void free_later (char *p) {
+    g_ptr_array_add (to_free, p);
+  }
+
   void parse (int *argc, char ***argv);
 
   G_GNUC_NORETURN void usage (void) {
@@ -107,8 +114,10 @@ struct option_parser_t
     exit (1);
   }
 
+  private:
   const char *usage_str;
   GOptionContext *context;
+  GPtrArray *to_free;
 };
 
 
