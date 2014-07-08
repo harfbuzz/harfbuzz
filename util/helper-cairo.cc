@@ -60,6 +60,15 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
 #  endif
 #endif
 
+
+static FT_Library ft_library;
+
+static inline
+void free_ft_library (void)
+{
+  FT_Done_FreeType (ft_library);
+}
+
 cairo_scaled_font_t *
 helper_cairo_create_scaled_font (const font_options_t *font_opts,
 				 double font_size)
@@ -69,10 +78,26 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
   cairo_font_face_t *cairo_face;
   FT_Face ft_face = hb_ft_font_get_face (font);
   if (!ft_face)
+  {
+    if (!ft_library)
+    {
+      FT_Init_FreeType (&ft_library);
+#ifdef HAVE_ATEXIT
+      atexit (free_ft_library);
+#endif
+    }
+    FT_New_Face (ft_library,
+		 font_opts->font_file,
+		 font_opts->face_index,
+		 &ft_face);
+  }
+  if (!ft_face)
+  {
     /* This allows us to get some boxes at least... */
     cairo_face = cairo_toy_font_face_create ("@cairo:sans",
 					     CAIRO_FONT_SLANT_NORMAL,
 					     CAIRO_FONT_WEIGHT_NORMAL);
+  }
   else
     cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
   cairo_matrix_t ctm, font_matrix;
