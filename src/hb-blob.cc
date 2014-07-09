@@ -25,7 +25,11 @@
  */
 
 /* http://www.oracle.com/technetwork/articles/servers-storage-dev/standardheaderfiles-453865.html */
+#if defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE < 199309L
+#error "Do not use _POSIX_C_SOURCE < 199309L."
+#elif !defined(_POSIX_C_SOURCE)
 #define _POSIX_C_SOURCE 199309L
+#endif
 
 #include "hb-private.hh"
 
