@@ -59,14 +59,15 @@ LOCAL_SRC_FILES:= \
 	src/hb-icu.cc
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_SHARED_LIBRARIES := \
-        libcutils \
-        libicuuc \
-        libicui18n \
-        libutils
+	libcutils \
+	libicuuc \
+	libicui18n \
+	libutils \
+	liblog
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/src \
         external/icu4c/common
-LOCAL_CFLAGS += -DHB_NO_MT -DHAVE_OT -DHAVE_ICU
+LOCAL_CFLAGS += -DHB_NO_MT -DHAVE_OT -DHAVE_ICU -DHAVE_ICU_BUILTIN
 LOCAL_MODULE:= libharfbuzz_ng
 include $(BUILD_SHARED_LIBRARY)
 
