@@ -33,7 +33,7 @@ typedef struct {
 } MirrorPair;
 
 typedef struct {
-    int start;
+    unsigned int start;
     short count, index;
 } Reindex;
 
