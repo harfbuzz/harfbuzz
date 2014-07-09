@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 test "x$srcdir" = x && srcdir=.
 test "x$builddir" = x && builddir=.
@@ -21,7 +21,7 @@ for f in "$@"; do
 		if ! test "x$glyphs" = "x$glyphs_expected"; then
 			echo "Actual:   $glyphs" >&2
 			echo "Expected: $glyphs_expected" >&2
-			let fails=$fails+1
+			fails=$((fails+1))
 		fi
 	done < "$f"
 done
