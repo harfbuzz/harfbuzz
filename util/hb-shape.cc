@@ -50,7 +50,7 @@ struct output_buffer_t
       output_format = hb_buffer_serialize_format_from_string (options.output_format, -1);
     /* An empty "output_format" parameter basically skips output generating.
      * Useful for benchmarking. */
-    if (*options.output_format &&
+    if ((!options.output_format || *options.output_format) &&
 	!hb_buffer_serialize_format_to_string (output_format))
     {
       if (options.explicit_output_format)
