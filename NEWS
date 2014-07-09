@@ -1,3 +1,19 @@
+Overview of changes leading to 0.9.30
+Wednesday, July 9, 2014
+=====================================
+- Update to Unicode 7.0.0:
+  * New scripts Manichaean and Psalter Pahlavi are shaped using
+    Arabic shaper.
+  * All the other new scripts to through the generic shaper for
+    now.
+- Minor Indic improvements.
+- Fix graphite2 backend cluster mapping [crasher!]
+- API changes:
+  * New HB_SCRIPT_* values for Unicode 7.0 scripts.
+  * New function hb_ot_layout_language_get_required_feature().
+- Build fixes.
+
+
 Overview of changes leading to 0.9.29
 Thursday, May 29, 2014
 =====================================
@@ -9,6 +25,7 @@ Thursday, May 29, 2014
     Unicode blocks.
   * Allow digits and a some punctuation as consonant placeholders.
 - Build fixes.
+
 
 Overview of changes leading to 0.9.28
 Monday, April 28, 2014
