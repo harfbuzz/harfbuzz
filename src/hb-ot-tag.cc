@@ -880,18 +880,9 @@ hb_ot_tag_to_language (hb_tag_t tag)
   if ((tag & 0xFFFF0000)  == 0x5A480000) {
     switch (tag) {
       case HB_TAG('Z','H','H',' '): return hb_language_from_string ("zh-hk", -1); /* Hong Kong */
-      default: {
-        /* Encode the tag... */
-	unsigned char buf[14] = "zh-x-hbot";
-	buf[9] = tag >> 24;
-	buf[10] = (tag >> 16) & 0xFF;
-	buf[11] = (tag >> 8) & 0xFF;
-	buf[12] = tag & 0xFF;
-	if (buf[12] == 0x20)
-	  buf[12] = '\0';
-	buf[13] = '\0';
-	return hb_language_from_string ((char *) buf, -1);
-      }
+      case HB_TAG('Z','H','S',' '): return hb_language_from_string ("zh-Hans", -1); /* Simplified */
+      case HB_TAG('Z','H','T',' '): return hb_language_from_string ("zh-Hant", -1); /* Traditional */
+      default: break; /* Fall through */
     }
   }
 

@@ -207,9 +207,9 @@ test_ot_tag_language (void)
   test_tag_from_language ("ZHS", "zh"); /* Chinese */
   test_tag_from_language ("ZHS", "zh-xx");
 
-  test_tag_to_language ("ZHS", "zh-x-hbotzhs");
-  test_tag_to_language ("ZHT", "zh-x-hbotzht");
-  test_tag_to_language ("ZHP", "zh-x-hbotzhp");
+  test_tag_to_language ("ZHS", "zh-Hans");
+  test_tag_to_language ("ZHT", "zh-Hant");
+  test_tag_to_language ("ZHP", "x-hbotzhp");
 
   test_language_two_way ("ABC", "x-hbotabc");
   test_tag_from_language ("ABC", "asdf-asdf-wer-x-hbotabc-zxc");
