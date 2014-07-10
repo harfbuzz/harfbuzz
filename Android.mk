@@ -74,6 +74,13 @@ include $(BUILD_SHARED_LIBRARY)
 #############################################################
 #   build the harfbuzz static library
 #
+#   Uses UCDN instead of ICU for Unicode data, and comes with
+#   FreeType glue layer.  Most useful for NDK apps that want
+#   to bundle FreeType and HarfBuzz, though it's trivial to
+#   build for Android using the autoconf toolchain; eg:
+#
+# ./configure --host=arm-linux-androideabi --prefix=$PLATFORM_PREFIX
+#
 include $(CLEAR_VARS)
 LOCAL_ARM_MODE := arm
 LOCAL_MODULE_TAGS := optional
