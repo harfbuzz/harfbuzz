@@ -156,7 +156,7 @@ hb_ot_tag_to_script (hb_tag_t tag)
 /* hb_language_t */
 
 typedef struct {
-  char language[6];
+  char language[4];
   hb_tag_t tag;
 } LangTag;
 
@@ -763,12 +763,18 @@ static const LangTag ot_languages[] = {
 /*{"??",	HB_TAG('Z','H','P',' ')},*/	/* Chinese Phonetic */
 };
 
-static const LangTag ot_languages_zh[] = {
+typedef struct {
+  char language[8];
+  hb_tag_t tag;
+} LangTagLong;
+static const LangTagLong ot_languages_zh[] = {
   {"zh-cn",	HB_TAG('Z','H','S',' ')},	/* Chinese (China) */
   {"zh-hk",	HB_TAG('Z','H','H',' ')},	/* Chinese (Hong Kong) */
   {"zh-mo",	HB_TAG('Z','H','T',' ')},	/* Chinese (Macao) */
   {"zh-sg",	HB_TAG('Z','H','S',' ')},	/* Chinese (Singapore) */
-  {"zh-tw",	HB_TAG('Z','H','T',' ')} 	/* Chinese (Taiwan) */
+  {"zh-tw",	HB_TAG('Z','H','T',' ')},	/* Chinese (Taiwan) */
+  {"zh-hans",	HB_TAG('Z','H','S',' ')},	/* Chinese (Simplified) */
+  {"zh-hant",	HB_TAG('Z','H','T',' ')},	/* Chinese (Traditional) */
 };
 
 static int
@@ -800,7 +806,6 @@ hb_tag_t
 hb_ot_tag_from_language (hb_language_t language)
 {
   const char *lang_str, *s;
-  const LangTag *lang_tag;
 
   if (language == HB_LANGUAGE_INVALID)
     return HB_OT_TAG_DEFAULT_LANGUAGE;
@@ -822,11 +827,14 @@ hb_ot_tag_from_language (hb_language_t language)
   }
 
   /* Find a language matching in the first component */
-  lang_tag = (LangTag *) bsearch (lang_str, ot_languages,
-				  ARRAY_LENGTH (ot_languages), sizeof (LangTag),
-				  (hb_compare_func_t) lang_compare_first_component);
-  if (lang_tag)
-    return lang_tag->tag;
+  {
+    const LangTag *lang_tag;
+    lang_tag = (LangTag *) bsearch (lang_str, ot_languages,
+				    ARRAY_LENGTH (ot_languages), sizeof (LangTag),
+				    (hb_compare_func_t) lang_compare_first_component);
+    if (lang_tag)
+      return lang_tag->tag;
+  }
 
   /* Otherwise, check the Chinese ones */
   if (0 == lang_compare_first_component (lang_str, "zh"))
@@ -835,6 +843,7 @@ hb_ot_tag_from_language (hb_language_t language)
 
     for (i = 0; i < ARRAY_LENGTH (ot_languages_zh); i++)
     {
+      const LangTagLong *lang_tag;
       lang_tag = &ot_languages_zh[i];
       if (lang_matches (lang_tag->language, lang_str))
 	return lang_tag->tag;

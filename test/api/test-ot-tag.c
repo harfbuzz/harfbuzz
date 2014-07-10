@@ -199,6 +199,9 @@ test_ot_tag_language (void)
   test_tag_from_language ("ZHS", "zh-sg"); /* Chinese (Singapore) */
   test_tag_from_language ("ZHT", "zh-mo"); /* Chinese (Macao) */
   test_tag_from_language ("ZHT", "zh-tw"); /* Chinese (Taiwan) */
+  test_tag_from_language ("ZHS", "zh-Hans"); /* Chinese (Simplified) */
+  test_tag_from_language ("ZHT", "zh-Hant"); /* Chinese (Traditional) */
+  test_tag_from_language ("ZHS", "zh-xx"); /* Chinese (Other) */
 
   test_tag_from_language ("ZHS", "zh"); /* Chinese */
   test_tag_from_language ("ZHS", "zh-xx");
