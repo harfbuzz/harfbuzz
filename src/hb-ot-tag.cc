@@ -845,7 +845,7 @@ hb_ot_tag_from_language (hb_language_t language)
     {
       const LangTagLong *lang_tag;
       lang_tag = &ot_languages_zh[i];
-      if (lang_matches (lang_tag->language, lang_str))
+      if (lang_matches (lang_str, lang_tag->language))
 	return lang_tag->tag;
     }
 
