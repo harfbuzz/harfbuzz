@@ -37,19 +37,19 @@
  */
 
 
-#define IN_HALF_BLOCK(u, Base) (((u) & ~0x7F) == (Base))
+#define IN_HALF_BLOCK(u, Base) (((u) & ~0x7Fu) == (Base))
 
-#define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x0900))
-#define IS_BENG(u) (IN_HALF_BLOCK (u, 0x0980))
-#define IS_GURU(u) (IN_HALF_BLOCK (u, 0x0A00))
-#define IS_GUJR(u) (IN_HALF_BLOCK (u, 0x0A80))
-#define IS_ORYA(u) (IN_HALF_BLOCK (u, 0x0B00))
-#define IS_TAML(u) (IN_HALF_BLOCK (u, 0x0B80))
-#define IS_TELU(u) (IN_HALF_BLOCK (u, 0x0C00))
-#define IS_KNDA(u) (IN_HALF_BLOCK (u, 0x0C80))
-#define IS_MLYM(u) (IN_HALF_BLOCK (u, 0x0D00))
-#define IS_SINH(u) (IN_HALF_BLOCK (u, 0x0D80))
-#define IS_KHMR(u) (IN_HALF_BLOCK (u, 0x1780))
+#define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x0900u))
+#define IS_BENG(u) (IN_HALF_BLOCK (u, 0x0980u))
+#define IS_GURU(u) (IN_HALF_BLOCK (u, 0x0A00u))
+#define IS_GUJR(u) (IN_HALF_BLOCK (u, 0x0A80u))
+#define IS_ORYA(u) (IN_HALF_BLOCK (u, 0x0B00u))
+#define IS_TAML(u) (IN_HALF_BLOCK (u, 0x0B80u))
+#define IS_TELU(u) (IN_HALF_BLOCK (u, 0x0C00u))
+#define IS_KNDA(u) (IN_HALF_BLOCK (u, 0x0C80u))
+#define IS_MLYM(u) (IN_HALF_BLOCK (u, 0x0D00u))
+#define IS_SINH(u) (IN_HALF_BLOCK (u, 0x0D80u))
+#define IS_KHMR(u) (IN_HALF_BLOCK (u, 0x1780u))
 
 
 #define MATRA_POS_LEFT(u)	POS_PRE_M
@@ -60,8 +60,8 @@
 				  IS_GUJR(u) ? POS_AFTER_POST : \
 				  IS_ORYA(u) ? POS_AFTER_POST : \
 				  IS_TAML(u) ? POS_AFTER_POST : \
-				  IS_TELU(u) ? (u <= 0x0C42 ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
-				  IS_KNDA(u) ? (u < 0x0CC3 || u > 0xCD6 ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
+				  IS_TELU(u) ? (u <= 0x0C42u ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
+				  IS_KNDA(u) ? (u < 0x0CC3u || u > 0xCD6u ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
 				  IS_MLYM(u) ? POS_AFTER_POST : \
 				  IS_SINH(u) ? POS_AFTER_SUB  : \
 				  IS_KHMR(u) ? POS_AFTER_POST : \
@@ -112,20 +112,20 @@ matra_position (hb_codepoint_t u, indic_position_t side)
  * Or completely remove it and just check in the tables.
  */
 static const hb_codepoint_t ra_chars[] = {
-  0x0930, /* Devanagari */
-  0x09B0, /* Bengali */
-  0x09F0, /* Bengali */
-  0x0A30, /* Gurmukhi */	/* No Reph */
-  0x0AB0, /* Gujarati */
-  0x0B30, /* Oriya */
-  0x0BB0, /* Tamil */		/* No Reph */
-  0x0C30, /* Telugu */		/* Reph formed only with ZWJ */
-  0x0CB0, /* Kannada */
-  0x0D30, /* Malayalam */	/* No Reph, Logical Repha */
+  0x0930u, /* Devanagari */
+  0x09B0u, /* Bengali */
+  0x09F0u, /* Bengali */
+  0x0A30u, /* Gurmukhi */	/* No Reph */
+  0x0AB0u, /* Gujarati */
+  0x0B30u, /* Oriya */
+  0x0BB0u, /* Tamil */		/* No Reph */
+  0x0C30u, /* Telugu */		/* Reph formed only with ZWJ */
+  0x0CB0u, /* Kannada */
+  0x0D30u, /* Malayalam */	/* No Reph, Logical Repha */
 
-  0x0DBB, /* Sinhala */		/* Reph formed only with ZWJ */
+  0x0DBBu, /* Sinhala */		/* Reph formed only with ZWJ */
 
-  0x179A, /* Khmer */		/* No Reph, Visual Repha */
+  0x179Au, /* Khmer */		/* No Reph, Visual Repha */
 };
 
 static inline bool
@@ -168,7 +168,7 @@ set_indic_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = hb_indic_get_categories (u);
-  indic_category_t cat = (indic_category_t) (type & 0x7F);
+  indic_category_t cat = (indic_category_t) (type & 0x7Fu);
   indic_position_t pos = (indic_position_t) (type >> 8);
 
 
@@ -187,50 +187,50 @@ set_indic_properties (hb_glyph_info_t &info)
    * U+092E,U+0951,U+0952
    * U+092E,U+0952,U+0951
    */
-  if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0x0951, 0x0952,
-						 0x1CD0, 0x1CD2,
-						 0x1CD4, 0x1CE1) ||
-					    u == 0x1CF4))
+  if (unlikely (hb_in_ranges (u, 0x0951u, 0x0952u,
+				 0x1CD0u, 0x1CD2u,
+				 0x1CD4u, 0x1CE1u) ||
+			    u == 0x1CF4u))
     cat = OT_A;
   /* The following act more like the Bindus. */
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x0953, 0x0954)))
+  else if (unlikely (hb_in_range (u, 0x0953u, 0x0954u)))
     cat = OT_SM;
   /* The following act like consonants. */
-  else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0x0A72, 0x0A73,
-						      0x1CF5, 0x1CF6)))
+  else if (unlikely (hb_in_ranges (u, 0x0A72u, 0x0A73u,
+				      0x1CF5u, 0x1CF6u)))
     cat = OT_C;
   /* TODO: The following should only be allowed after a Visarga.
    * For now, just treat them like regular tone marks. */
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x1CE2, 0x1CE8)))
+  else if (unlikely (hb_in_range (u, 0x1CE2u, 0x1CE8u)))
     cat = OT_A;
   /* TODO: The following should only be allowed after some of
    * the nasalization marks, maybe only for U+1CE9..U+1CF1.
    * For now, just treat them like tone marks. */
-  else if (unlikely (u == 0x1CED))
+  else if (unlikely (u == 0x1CEDu))
     cat = OT_A;
   /* The following take marks in standalone clusters, similar to Avagraha. */
-  else if (unlikely (hb_in_ranges<hb_codepoint_t> (u, 0xA8F2, 0xA8F7,
-						      0x1CE9, 0x1CEC,
-						      0x1CEE, 0x1CF1)))
+  else if (unlikely (hb_in_ranges (u, 0xA8F2u, 0xA8F7u,
+				      0x1CE9u, 0x1CECu,
+				      0x1CEEu, 0x1CF1u)))
   {
     cat = OT_Symbol;
     ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
   }
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x17CD, 0x17D1) ||
-		     u == 0x17CB || u == 0x17D3 || u == 0x17DD)) /* Khmer Various signs */
+  else if (unlikely (hb_in_range (u, 0x17CDu, 0x17D1u) ||
+		     u == 0x17CBu || u == 0x17D3u || u == 0x17DDu)) /* Khmer Various signs */
   {
     /* These are like Top Matras. */
     cat = OT_M;
     pos = POS_ABOVE_C;
   }
-  else if (unlikely (u == 0x17C6)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
-  else if (unlikely (u == 0x17D2)) cat = OT_Coeng; /* Khmer coeng */
-  else if (unlikely (hb_in_range<hb_codepoint_t> (u, 0x2010, 0x2011)))
-				   cat = OT_PLACEHOLDER;
-  else if (unlikely (u == 0x25CC)) cat = OT_DOTTEDCIRCLE;
-  else if (unlikely (u == 0xA982)) cat = OT_SM; /* Javanese repha. */
-  else if (unlikely (u == 0xA9BE)) cat = OT_CM2; /* Javanese medial ya. */
-  else if (unlikely (u == 0xA9BD)) { cat = OT_M; pos = POS_POST_C; } /* Javanese vocalic r. */
+  else if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
+  else if (unlikely (u == 0x17D2u)) cat = OT_Coeng; /* Khmer coeng */
+  else if (unlikely (hb_in_range (u, 0x2010u, 0x2011u)))
+				    cat = OT_PLACEHOLDER;
+  else if (unlikely (u == 0x25CCu)) cat = OT_DOTTEDCIRCLE;
+  else if (unlikely (u == 0xA982u)) cat = OT_SM; /* Javanese repha. */
+  else if (unlikely (u == 0xA9BEu)) cat = OT_CM2; /* Javanese medial ya. */
+  else if (unlikely (u == 0xA9BDu)) { cat = OT_M; pos = POS_POST_C; } /* Javanese vocalic r. */
 
 
   /*
@@ -252,7 +252,7 @@ set_indic_properties (hb_glyph_info_t &info)
     pos = POS_SMVD;
   }
 
-  if (unlikely (u == 0x0B01)) pos = POS_BEFORE_SUB; /* Oriya Bindu is BeforeSub in the spec. */
+  if (unlikely (u == 0x0B01u)) pos = POS_BEFORE_SUB; /* Oriya Bindu is BeforeSub in the spec. */
 
 
 
@@ -316,20 +316,20 @@ struct indic_config_t
 static const indic_config_t indic_configs[] =
 {
   /* Default.  Should be first. */
-  {HB_SCRIPT_INVALID,	false,     0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_1},
-  {HB_SCRIPT_DEVANAGARI,true, 0x094D,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_BENGALI,	true, 0x09CD,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_GURMUKHI,	true, 0x0A4D,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_GUJARATI,	true, 0x0ACD,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_ORIYA,	true, 0x0B4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_TAMIL,	true, 0x0BCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
-  {HB_SCRIPT_TELUGU,	true, 0x0C4D,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
-  {HB_SCRIPT_KANNADA,	true, 0x0CCD,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
-  {HB_SCRIPT_MALAYALAM,	true, 0x0D4D,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
-  {HB_SCRIPT_SINHALA,	false,0x0DCA,BASE_POS_LAST_SINHALA,
-						    REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_KHMER,	false,0x17D2,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
-  {HB_SCRIPT_JAVANESE,	false,0xA9C0,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_1},
+  {HB_SCRIPT_INVALID,	false,      0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_1},
+  {HB_SCRIPT_DEVANAGARI,true, 0x094Du,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_BENGALI,	true, 0x09CDu,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_GURMUKHI,	true, 0x0A4Du,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_GUJARATI,	true, 0x0ACDu,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_ORIYA,	true, 0x0B4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_TAMIL,	true, 0x0BCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
+  {HB_SCRIPT_TELUGU,	true, 0x0C4Du,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
+  {HB_SCRIPT_KANNADA,	true, 0x0CCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
+  {HB_SCRIPT_MALAYALAM,	true, 0x0D4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
+  {HB_SCRIPT_SINHALA,	false,0x0DCAu,BASE_POS_LAST_SINHALA,
+						     REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
+  {HB_SCRIPT_KHMER,	false,0x17D2u,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
+  {HB_SCRIPT_JAVANESE,	false,0xA9C0u,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_1},
 };
 
 
@@ -553,7 +553,7 @@ data_create_indic (const hb_ot_shape_plan_t *plan)
       break;
     }
 
-  indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FF) != '2');
+  indic_plan->is_old_spec = indic_plan->config->has_old_spec && ((plan->map.chosen_script[0] & 0x000000FFu) != '2');
   indic_plan->virama_glyph = (hb_codepoint_t) -1;
 
   /* Use zero-context would_substitute() matching for new-spec of the main
@@ -1238,11 +1238,11 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
 
   hb_codepoint_t dottedcircle_glyph;
-  if (!font->get_glyph (0x25CC, 0, &dottedcircle_glyph))
+  if (!font->get_glyph (0x25CCu, 0, &dottedcircle_glyph))
     return;
 
   hb_glyph_info_t dottedcircle = {0};
-  dottedcircle.codepoint = 0x25CC;
+  dottedcircle.codepoint = 0x25CCu;
   set_indic_properties (dottedcircle);
   dottedcircle.codepoint = dottedcircle_glyph;
 
@@ -1749,37 +1749,37 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
   switch (ab)
   {
     /* Don't decompose these. */
-    case 0x0931  : return false;
-    case 0x0B94  : return false;
+    case 0x0931u  : return false;
+    case 0x0B94u  : return false;
 
 
     /*
      * Decompose split matras that don't have Unicode decompositions.
      */
 
-    case 0x0F77  : *a = 0x0FB2; *b= 0x0F81; return true;
-    case 0x0F79  : *a = 0x0FB3; *b= 0x0F81; return true;
-    case 0x17BE  : *a = 0x17C1; *b= 0x17BE; return true;
-    case 0x17BF  : *a = 0x17C1; *b= 0x17BF; return true;
-    case 0x17C0  : *a = 0x17C1; *b= 0x17C0; return true;
-    case 0x17C4  : *a = 0x17C1; *b= 0x17C4; return true;
-    case 0x17C5  : *a = 0x17C1; *b= 0x17C5; return true;
-    case 0x1925  : *a = 0x1920; *b= 0x1923; return true;
-    case 0x1926  : *a = 0x1920; *b= 0x1924; return true;
-    case 0x1B3C  : *a = 0x1B42; *b= 0x1B3C; return true;
-    case 0x1112E  : *a = 0x11127; *b= 0x11131; return true;
-    case 0x1112F  : *a = 0x11127; *b= 0x11132; return true;
+    case 0x0F77u  : *a = 0x0FB2u; *b= 0x0F81u; return true;
+    case 0x0F79u  : *a = 0x0FB3u; *b= 0x0F81u; return true;
+    case 0x17BEu  : *a = 0x17C1u; *b= 0x17BEu; return true;
+    case 0x17BFu  : *a = 0x17C1u; *b= 0x17BFu; return true;
+    case 0x17C0u  : *a = 0x17C1u; *b= 0x17C0u; return true;
+    case 0x17C4u  : *a = 0x17C1u; *b= 0x17C4u; return true;
+    case 0x17C5u  : *a = 0x17C1u; *b= 0x17C5u; return true;
+    case 0x1925u  : *a = 0x1920u; *b= 0x1923u; return true;
+    case 0x1926u  : *a = 0x1920u; *b= 0x1924u; return true;
+    case 0x1B3Cu  : *a = 0x1B42u; *b= 0x1B3Cu; return true;
+    case 0x1112Eu  : *a = 0x11127u; *b= 0x11131u; return true;
+    case 0x1112Fu  : *a = 0x11127u; *b= 0x11132u; return true;
 #if 0
     /* This one has no decomposition in Unicode, but needs no decomposition either. */
-    /* case 0x0AC9  : return false; */
-    case 0x0B57  : *a = no decomp, -> RIGHT; return true;
-    case 0x1C29  : *a = no decomp, -> LEFT; return true;
-    case 0xA9C0  : *a = no decomp, -> RIGHT; return true;
-    case 0x111BF  : *a = no decomp, -> ABOVE; return true;
+    /* case 0x0AC9u  : return false; */
+    case 0x0B57u  : *a = no decomp, -> RIGHT; return true;
+    case 0x1C29u  : *a = no decomp, -> LEFT; return true;
+    case 0xA9C0u  : *a = no decomp, -> RIGHT; return true;
+    case 0x111BuF  : *a = no decomp, -> ABOVE; return true;
 #endif
   }
 
-  if ((ab == 0x0DDA || hb_in_range<hb_codepoint_t> (ab, 0x0DDC, 0x0DDE)))
+  if ((ab == 0x0DDAu || hb_in_range (ab, 0x0DDCu, 0x0DDEu)))
   {
     /*
      * Sinhala split matras...  Let the fun begin.
@@ -1816,7 +1816,7 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
 	 indic_plan->pstf.would_substitute (&glyph, 1, c->font->face)))
     {
       /* Ok, safe to use Uniscribe-style decomposition. */
-      *a = 0x0DD9;
+      *a = 0x0DD9u;
       *b = ab;
       return true;
     }
@@ -1836,7 +1836,7 @@ compose_indic (const hb_ot_shape_normalize_context_t *c,
     return false;
 
   /* Composition-exclusion exceptions that we want to recompose. */
-  if (a == 0x09AF && b == 0x09BC) { *ab = 0x09DF; return true; }
+  if (a == 0x09AFu && b == 0x09BCu) { *ab = 0x09DFu; return true; }
 
   return c->unicode->compose (a, b, ab);
 }

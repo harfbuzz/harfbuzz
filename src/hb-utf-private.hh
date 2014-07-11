@@ -105,20 +105,20 @@ hb_utf_next (const uint16_t *text,
 {
   hb_codepoint_t c = *text++;
 
-  if (likely (!hb_in_range<hb_codepoint_t> (c, 0xd800, 0xdfff)))
+  if (likely (!hb_in_range (c, 0xD800u, 0xDFFFu)))
   {
     *unicode = c;
     return text;
   }
 
-  if (likely (hb_in_range<hb_codepoint_t> (c, 0xd800, 0xdbff)))
+  if (likely (hb_in_range (c, 0xD800u, 0xDBFFu)))
   {
     /* High-surrogate in c */
     hb_codepoint_t l;
-    if (text < end && ((l = *text), likely (hb_in_range<hb_codepoint_t> (l, 0xdc00, 0xdfff))))
+    if (text < end && ((l = *text), likely (hb_in_range (l, 0xDC00u, 0xDFFFu))))
     {
       /* Low-surrogate in l */
-      *unicode = (c << 10) + l - ((0xd800 << 10) - 0x10000 + 0xdc00);
+      *unicode = (c << 10) + l - ((0xD800u << 10) - 0x10000u + 0xDC00u);
        text++;
        return text;
     }
@@ -136,20 +136,20 @@ hb_utf_prev (const uint16_t *text,
 {
   hb_codepoint_t c = *--text;
 
-  if (likely (!hb_in_range<hb_codepoint_t> (c, 0xd800, 0xdfff)))
+  if (likely (!hb_in_range (c, 0xD800u, 0xDFFFu)))
   {
     *unicode = c;
     return text;
   }
 
-  if (likely (hb_in_range<hb_codepoint_t> (c, 0xdc00, 0xdfff)))
+  if (likely (hb_in_range (c, 0xDC00u, 0xDFFFu)))
   {
     /* Low-surrogate in c */
     hb_codepoint_t h;
-    if (start < text && ((h = *(text - 1)), likely (hb_in_range<hb_codepoint_t> (h, 0xd800, 0xdbff))))
+    if (start < text && ((h = *(text - 1)), likely (hb_in_range (h, 0xD800u, 0xDBFFu))))
     {
       /* High-surrogate in h */
-      *unicode = (h << 10) + c - ((0xd800 << 10) - 0x10000 + 0xdc00);
+      *unicode = (h << 10) + c - ((0xD800u << 10) - 0x10000u + 0xDC00u);
        text--;
        return text;
     }

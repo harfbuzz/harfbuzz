@@ -49,18 +49,18 @@ typedef Value ValueRecord[VAR];
 struct ValueFormat : USHORT
 {
   enum Flags {
-    xPlacement	= 0x0001,	/* Includes horizontal adjustment for placement */
-    yPlacement	= 0x0002,	/* Includes vertical adjustment for placement */
-    xAdvance	= 0x0004,	/* Includes horizontal adjustment for advance */
-    yAdvance	= 0x0008,	/* Includes vertical adjustment for advance */
-    xPlaDevice	= 0x0010,	/* Includes horizontal Device table for placement */
-    yPlaDevice	= 0x0020,	/* Includes vertical Device table for placement */
-    xAdvDevice	= 0x0040,	/* Includes horizontal Device table for advance */
-    yAdvDevice	= 0x0080,	/* Includes vertical Device table for advance */
-    ignored	= 0x0F00,	/* Was used in TrueType Open for MM fonts */
-    reserved	= 0xF000,	/* For future use */
+    xPlacement	= 0x0001u,	/* Includes horizontal adjustment for placement */
+    yPlacement	= 0x0002u,	/* Includes vertical adjustment for placement */
+    xAdvance	= 0x0004u,	/* Includes horizontal adjustment for advance */
+    yAdvance	= 0x0008u,	/* Includes vertical adjustment for advance */
+    xPlaDevice	= 0x0010u,	/* Includes horizontal Device table for placement */
+    yPlaDevice	= 0x0020u,	/* Includes vertical Device table for placement */
+    xAdvDevice	= 0x0040u,	/* Includes horizontal Device table for advance */
+    yAdvDevice	= 0x0080u,	/* Includes vertical Device table for advance */
+    ignored	= 0x0F00u,	/* Was used in TrueType Open for MM fonts */
+    reserved	= 0xF000u,	/* For future use */
 
-    devices	= 0x00F0	/* Mask for having any Device table */
+    devices	= 0x00F0u	/* Mask for having any Device table */
   };
 
 /* All fields are options.  Only those available advance the value pointer. */

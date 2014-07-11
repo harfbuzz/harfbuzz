@@ -610,13 +610,13 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   for (unsigned int i = 0; i < buffer->len; i++) {
     hb_codepoint_t c = buffer->info[i].codepoint;
     buffer->info[i].utf16_index() = chars_len;
-    if (likely (c < 0x10000))
+    if (likely (c <= 0xFFFFu))
       pchars[chars_len++] = c;
-    else if (unlikely (c >= 0x110000))
-      pchars[chars_len++] = 0xFFFD;
+    else if (unlikely (c > 0x10FFFFu))
+      pchars[chars_len++] = 0xFFFDu;
     else {
-      pchars[chars_len++] = 0xD800 + ((c - 0x10000) >> 10);
-      pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
+      pchars[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
+      pchars[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1 << 10) - 1));
     }
   }
 
@@ -642,7 +642,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       hb_codepoint_t c = buffer->info[i].codepoint;
       unsigned int cluster = buffer->info[i].cluster;
       log_clusters[chars_len++] = cluster;
-      if (c >= 0x10000 && c < 0x110000)
+      if (hb_in_range (c, 0x10000u, 0x10FFFFu))
 	log_clusters[chars_len++] = cluster; /* Surrogates. */
     }
 
@@ -714,10 +714,10 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
         for (CFIndex j = range.location; j < range.location + range.length; j++)
 	{
 	    UniChar ch = CFStringGetCharacterAtIndex (string_ref, j);
-	    if (hb_in_range<UniChar> (ch, 0xDC00, 0xDFFF) && range.location < j)
+	    if (hb_in_range<UniChar> (ch, 0xDC00u, 0xDFFFu) && range.location < j)
 	    {
 	      ch = CFStringGetCharacterAtIndex (string_ref, j - 1);
-	      if (hb_in_range<UniChar> (ch, 0xD800, 0xDBFF))
+	      if (hb_in_range<UniChar> (ch, 0xD800u, 0xDBFFu))
 	        /* This is the second of a surrogate pair.  Don't need .notdef
 		 * for this one. */
 	        continue;

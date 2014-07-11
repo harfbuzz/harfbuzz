@@ -138,7 +138,7 @@ struct TTCHeaderVersion1
   protected:
   Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */
   FixedVersion	version;	/* Version of the TTC Header (1.0),
-				 * 0x00010000 */
+				 * 0x00010000u */
   ArrayOf<OffsetTo<OffsetTable, ULONG>, ULONG>
 		table;		/* Array of offsets to the OffsetTable for each font
 				 * from the beginning of the file */
@@ -184,7 +184,7 @@ struct TTCHeader
   struct {
   Tag		ttcTag;		/* TrueType Collection ID string: 'ttcf' */
   FixedVersion	version;	/* Version of the TTC Header (1.0 or 2.0),
-				 * 0x00010000 or 0x00020000 */
+				 * 0x00010000u or 0x00020000u */
   }			header;
   TTCHeaderVersion1	version1;
   } u;

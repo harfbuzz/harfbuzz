@@ -213,7 +213,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
     /* Not found, not decomposible;  If codepoint is invalid Unicode and
      * font supports U+FFFD REPLACEMENT CHARACTER, use that instead. */
     hb_codepoint_t FFFD_glyph;
-    if (buffer->cur().codepoint > 0x10FFFF && c->font->get_glyph (0xFFFD, 0, &FFFD_glyph))
+    if (buffer->cur().codepoint > 0x10FFFFu && c->font->get_glyph (0xFFFDu, 0, &FFFD_glyph))
       glyph = FFFD_glyph;
     next_char (buffer, glyph); /* glyph is initialized in earlier branches. */
   }

@@ -379,7 +379,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
     OT::NameRecord &record = name.nameRecord[i];
     record.platformID.set (3);
     record.encodingID.set (1);
-    record.languageID.set (0x0409); /* English */
+    record.languageID.set (0x0409u); /* English */
     record.nameID.set (name_IDs[i]);
     record.length.set (name_str_len * 2);
     record.offset.set (0);
@@ -749,13 +749,13 @@ retry:
   {
     hb_codepoint_t c = buffer->info[i].codepoint;
     buffer->info[i].utf16_index() = chars_len;
-    if (likely (c < 0x10000))
+    if (likely (c <= 0xFFFFu))
       pchars[chars_len++] = c;
-    else if (unlikely (c >= 0x110000))
-      pchars[chars_len++] = 0xFFFD;
+    else if (unlikely (c > 0x10FFFFu))
+      pchars[chars_len++] = 0xFFFDu;
     else {
-      pchars[chars_len++] = 0xD800 + ((c - 0x10000) >> 10);
-      pchars[chars_len++] = 0xDC00 + ((c - 0x10000) & ((1 << 10) - 1));
+      pchars[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
+      pchars[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1 << 10) - 1));
     }
   }
 
@@ -771,7 +771,7 @@ retry:
       hb_codepoint_t c = buffer->info[i].codepoint;
       unsigned int cluster = buffer->info[i].cluster;
       log_clusters[chars_len++] = cluster;
-      if (c >= 0x10000 && c < 0x110000)
+      if (hb_in_range (c, 0x10000u, 0x10FFFFu))
 	log_clusters[chars_len++] = cluster; /* Surrogates. */
     }
   }

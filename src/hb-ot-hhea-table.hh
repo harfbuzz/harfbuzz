@@ -50,7 +50,7 @@ struct hhea
   }
 
   public:
-  FixedVersion	version;		/* 0x00010000 for version 1.0. */
+  FixedVersion	version;		/* 0x00010000u for version 1.0. */
   FWORD		ascender;		/* Typographic ascent. <a
 					 * href="http://developer.apple.com/fonts/TTRefMan/RM06/Chap6hhea.html">
 					 * (Distance from baseline of highest

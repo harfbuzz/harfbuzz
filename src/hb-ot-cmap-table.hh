@@ -121,7 +121,7 @@ struct CmapSubtableFormat4
       gid += idDelta[i];
     }
 
-    *glyph = gid & 0xFFFF;
+    *glyph = gid & 0xFFFFu;
     return true;
   }
 
@@ -159,7 +159,7 @@ struct CmapSubtableFormat4
   USHORT	values[VAR];
 #if 0
   USHORT	endCount[segCount];	/* End characterCode for each segment,
-					 * last=0xFFFF. */
+					 * last=0xFFFFu. */
   USHORT	reservedPad;		/* Set to 0. */
   USHORT	startCount[segCount];	/* Start character code for each segment. */
   SHORT		idDelta[segCount];	/* Delta for all character codes in segment. */

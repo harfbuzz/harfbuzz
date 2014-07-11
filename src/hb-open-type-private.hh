@@ -626,7 +626,7 @@ typedef USHORT GlyphID;
 
 /* Script/language-system/feature index */
 struct Index : USHORT {
-  static const unsigned int NOT_FOUND_INDEX = 0xFFFF;
+  static const unsigned int NOT_FOUND_INDEX = 0xFFFFu;
 };
 DEFINE_NULL_DATA (Index, "\xff\xff");
 

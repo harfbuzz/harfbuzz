@@ -57,7 +57,7 @@ hb_ot_old_tag_from_script (hb_script_t script)
   }
 
   /* Else, just change first char to lowercase and return */
-  return ((hb_tag_t) script) | 0x20000000;
+  return ((hb_tag_t) script) | 0x20000000u;
 }
 
 static hb_script_t
@@ -70,13 +70,13 @@ hb_ot_old_tag_to_script (hb_tag_t tag)
 
   /* Any spaces at the end of the tag are replaced by repeating the last
    * letter.  Eg 'nko ' -> 'Nkoo' */
-  if (unlikely ((tag & 0x0000FF00) == 0x00002000))
-    tag |= (tag >> 8) & 0x0000FF00; /* Copy second letter to third */
-  if (unlikely ((tag & 0x000000FF) == 0x00000020))
-    tag |= (tag >> 8) & 0x000000FF; /* Copy third letter to fourth */
+  if (unlikely ((tag & 0x0000FF00u) == 0x00002000u))
+    tag |= (tag >> 8) & 0x0000FF00u; /* Copy second letter to third */
+  if (unlikely ((tag & 0x000000FFu) == 0x00000020u))
+    tag |= (tag >> 8) & 0x000000FFu; /* Copy third letter to fourth */
 
   /* Change first char to uppercase and return */
-  return (hb_script_t) (tag & ~0x20000000);
+  return (hb_script_t) (tag & ~0x20000000u);
 }
 
 static hb_tag_t
@@ -146,7 +146,7 @@ hb_ot_tags_from_script (hb_script_t  script,
 hb_script_t
 hb_ot_tag_to_script (hb_tag_t tag)
 {
-  if (unlikely ((tag & 0x000000FF) == '2'))
+  if (unlikely ((tag & 0x000000FFu) == '2'))
     return hb_ot_new_tag_to_script (tag);
 
   return hb_ot_old_tag_to_script (tag);
@@ -858,7 +858,7 @@ hb_ot_tag_from_language (hb_language_t language)
     s = lang_str + strlen (lang_str);
   if (s - lang_str == 3) {
     /* Assume it's ISO-639-3 and upper-case and use it. */
-    return hb_tag_from_string (lang_str, s - lang_str) & ~0x20202000;
+    return hb_tag_from_string (lang_str, s - lang_str) & ~0x20202000u;
   }
 
   return HB_OT_TAG_DEFAULT_LANGUAGE;
@@ -877,7 +877,7 @@ hb_ot_tag_to_language (hb_tag_t tag)
       return hb_language_from_string (ot_languages[i].language, -1);
 
   /* If tag starts with ZH, it's Chinese */
-  if ((tag & 0xFFFF0000)  == 0x5A480000) {
+  if ((tag & 0xFFFF0000u)  == 0x5A480000u) {
     switch (tag) {
       case HB_TAG('Z','H','H',' '): return hb_language_from_string ("zh-hk", -1); /* Hong Kong */
       case HB_TAG('Z','H','S',' '): return hb_language_from_string ("zh-Hans", -1); /* Simplified */

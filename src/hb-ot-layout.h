@@ -92,9 +92,9 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
  * GSUB/GPOS feature query and enumeration interface
  */
 
-#define HB_OT_LAYOUT_NO_SCRIPT_INDEX		((unsigned int) 0xFFFF)
-#define HB_OT_LAYOUT_NO_FEATURE_INDEX		((unsigned int) 0xFFFF)
-#define HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX	((unsigned int) 0xFFFF)
+#define HB_OT_LAYOUT_NO_SCRIPT_INDEX		0xFFFFu
+#define HB_OT_LAYOUT_NO_FEATURE_INDEX		0xFFFFu
+#define HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX	0xFFFFu
 
 unsigned int
 hb_ot_layout_table_get_script_tags (hb_face_t    *face,

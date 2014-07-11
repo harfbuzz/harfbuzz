@@ -371,7 +371,7 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
     return HB_SCRIPT_INVALID;
 
   /* Be lenient, adjust case (one capital letter followed by three small letters) */
-  tag = (tag & 0xDFDFDFDF) | 0x00202020;
+  tag = (tag & 0xDFDFDFDFu) | 0x00202020u;
 
   switch (tag) {
 
@@ -391,7 +391,7 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
   }
 
   /* If it looks right, just use the tag as a script */
-  if (((uint32_t) tag & 0xE0E0E0E0) == 0x40606060)
+  if (((uint32_t) tag & 0xE0E0E0E0u) == 0x40606060u)
     return (hb_script_t) tag;
 
   /* Otherwise, return unknown */

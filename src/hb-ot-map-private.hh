@@ -153,10 +153,10 @@ struct hb_ot_map_t
 };
 
 enum hb_ot_map_feature_flags_t {
-  F_NONE		= 0x0000,
-  F_GLOBAL		= 0x0001,
-  F_HAS_FALLBACK	= 0x0002,
-  F_MANUAL_ZWJ		= 0x0004
+  F_NONE		= 0x0000u,
+  F_GLOBAL		= 0x0001u,
+  F_HAS_FALLBACK	= 0x0002u,
+  F_MANUAL_ZWJ		= 0x0004u
 };
 /* Macro version for where const is desired. */
 #define F_COMBINE(l,r) (hb_ot_map_feature_flags_t ((unsigned int) (l) | (unsigned int) (r)))

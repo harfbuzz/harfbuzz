@@ -44,7 +44,7 @@ struct SingleSubstFormat1
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       hb_codepoint_t glyph_id = iter.get_glyph ();
       if (c->glyphs->has (glyph_id))
-	c->glyphs->add ((glyph_id + deltaGlyphID) & 0xFFFF);
+	c->glyphs->add ((glyph_id + deltaGlyphID) & 0xFFFFu);
     }
   }
 
@@ -55,7 +55,7 @@ struct SingleSubstFormat1
     for (iter.init (this+coverage); iter.more (); iter.next ()) {
       hb_codepoint_t glyph_id = iter.get_glyph ();
       c->input->add (glyph_id);
-      c->output->add ((glyph_id + deltaGlyphID) & 0xFFFF);
+      c->output->add ((glyph_id + deltaGlyphID) & 0xFFFFu);
     }
   }
 
@@ -79,7 +79,7 @@ struct SingleSubstFormat1
 
     /* According to the Adobe Annotated OpenType Suite, result is always
      * limited to 16bit. */
-    glyph_id = (glyph_id + deltaGlyphID) & 0xFFFF;
+    glyph_id = (glyph_id + deltaGlyphID) & 0xFFFFu;
     c->replace_glyph (glyph_id);
 
     return TRACE_RETURN (true);

@@ -35,42 +35,42 @@ recategorize_combining_class (hb_codepoint_t u,
     return klass;
 
   /* Thai / Lao need some per-character work. */
-  if ((u & ~0xFF) == 0x0E00)
+  if ((u & ~0xFF) == 0x0E00u)
   {
     if (unlikely (klass == 0))
     {
       switch (u)
       {
-        case 0x0E31:
-        case 0x0E34:
-        case 0x0E35:
-        case 0x0E36:
-        case 0x0E37:
-        case 0x0E47:
-        case 0x0E4C:
-        case 0x0E4D:
-        case 0x0E4E:
+        case 0x0E31u:
+        case 0x0E34u:
+        case 0x0E35u:
+        case 0x0E36u:
+        case 0x0E37u:
+        case 0x0E47u:
+        case 0x0E4Cu:
+        case 0x0E4Du:
+        case 0x0E4Eu:
 	  klass = HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT;
 	  break;
 
-        case 0x0EB1:
-        case 0x0EB4:
-        case 0x0EB5:
-        case 0x0EB6:
-        case 0x0EB7:
-        case 0x0EBB:
-        case 0x0ECC:
-        case 0x0ECD:
+        case 0x0EB1u:
+        case 0x0EB4u:
+        case 0x0EB5u:
+        case 0x0EB6u:
+        case 0x0EB7u:
+        case 0x0EBBu:
+        case 0x0ECCu:
+        case 0x0ECDu:
 	  klass = HB_UNICODE_COMBINING_CLASS_ABOVE;
 	  break;
 
-        case 0x0EBC:
+        case 0x0EBCu:
 	  klass = HB_UNICODE_COMBINING_CLASS_BELOW;
 	  break;
       }
     } else {
       /* Thai virama is below-right */
-      if (u == 0x0E3A)
+      if (u == 0x0E3Au)
 	klass = HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT;
     }
   }

@@ -2294,7 +2294,7 @@ struct GSUBGPOS
 
   protected:
   FixedVersion	version;	/* Version of the GSUB/GPOS table--initially set
-				 * to 0x00010000 */
+				 * to 0x00010000u */
   OffsetTo<ScriptList>
 		scriptList;  	/* ScriptList table */
   OffsetTo<FeatureList>

@@ -238,11 +238,11 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
       HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     return;
 
-  if (!font->has_glyph (0x25CC))
+  if (!font->has_glyph (0x25CCu))
     return;
 
   hb_glyph_info_t dottedcircle;
-  dottedcircle.codepoint = 0x25CC;
+  dottedcircle.codepoint = 0x25CCu;
   _hb_glyph_info_set_unicode_props (&dottedcircle, buffer->unicode);
 
   buffer->clear_output ();
@@ -321,7 +321,7 @@ hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
   {
-    if (info[i].codepoint == 0x2044) /* FRACTION SLASH */
+    if (info[i].codepoint == 0x2044u) /* FRACTION SLASH */
     {
       unsigned int start = i, end = i + 1;
       while (start &&
