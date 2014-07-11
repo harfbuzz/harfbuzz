@@ -62,13 +62,11 @@ hb_utf_next (const uint8_t *text,
       unsigned int t1, t2;
       if (likely (1 < end - text &&
 		  (t1 = text[0] - 0x80u) <= 0x3Fu &&
-		  (t2 = text[1] - 0x80u) <= 0x3Fu &&
-		  (hb_in_range (c, 0xE1u, 0xECu) ||
-		   hb_in_range (c, 0xEEu, 0xEFu) ||
-		   (c == 0xE0u && t1 >= 0xA0u-0x80u) ||
-		   (c == 0xEDu && t1 <= 0x9Fu-0x80u))))
+		  (t2 = text[1] - 0x80u) <= 0x3Fu))
       {
 	c = ((c&0xFu)<<12) | (t1<<6) | t2;
+	if (unlikely (c < 0x0800u || hb_in_range (c, 0xD800u, 0xDFFFu)))
+	  goto error;
 	text += 2;
       }
       else
@@ -80,12 +78,11 @@ hb_utf_next (const uint8_t *text,
       if (likely (2 < end - text &&
 		  (t1 = text[0] - 0x80u) <= 0x3Fu &&
 		  (t2 = text[1] - 0x80u) <= 0x3Fu &&
-		  (t3 = text[2] - 0x80u) <= 0x3Fu &&
-		  (hb_in_range (c, 0xF1u, 0xF3u) ||
-		   (c == 0xF0u && t1 >= 0x90u-0x80u) ||
-		   (c == 0xF4u && t1 <= 0x8Fu-0x80u))))
+		  (t3 = text[2] - 0x80u) <= 0x3Fu))
       {
 	c = ((c&0x7u)<<18) | (t1<<12) | (t2<<6) | t3;
+	if (unlikely (!hb_in_range (c, 0x10000u, 0x10FFFFu)))
+	  goto error;
 	text += 3;
       }
       else
