@@ -185,7 +185,7 @@ for u in uu:
 				offset += ends[-1] - starts[-1]
 			print
 			print
-			print "#define indic_offset_0x%04x %d" % (start, offset)
+			print "#define indic_offset_0x%04xu %d" % (start, offset)
 			starts.append (start)
 
 	print_block (block, start, end, data)
@@ -205,14 +205,14 @@ print "  switch (u >> %d)" % page_bits
 print "  {"
 pages = set([u>>page_bits for u in starts+ends+singles.keys()])
 for p in sorted(pages):
-	print "    case 0x%0X:" % p
+	print "    case 0x%0Xu:" % p
 	for (start,end) in zip (starts, ends):
 		if p not in [start>>page_bits, end>>page_bits]: continue
-		offset = "indic_offset_0x%04x" % start
-		print "      if (0x%04X <= u && u <= 0x%04X) return indic_table[u - 0x%04X + %s];" % (start, end, start, offset)
+		offset = "indic_offset_0x%04xu" % start
+		print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return indic_table[u - 0x%04Xu + %s];" % (start, end, start, offset)
 	for u,d in singles.items ():
 		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04X)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
+		print "      if (unlikely (u == 0x%04Xu)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
 	print "      break;"
 	print ""
 print "    default:"

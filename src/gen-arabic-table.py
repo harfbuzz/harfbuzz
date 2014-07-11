@@ -90,7 +90,7 @@ def print_joining_table(f):
 	for start,end in ranges:
 
 		print
-		print "#define joining_offset_0x%04x %d" % (start, offset)
+		print "#define joining_offset_0x%04xu %d" % (start, offset)
 
 		for u in range(start, end+1):
 
@@ -130,11 +130,11 @@ def print_joining_table(f):
 	print "  {"
 	pages = set([u>>page_bits for u in [s for s,e in ranges]+[e for s,e in ranges]])
 	for p in sorted(pages):
-		print "    case 0x%0X:" % p
+		print "    case 0x%0Xu:" % p
 		for (start,end) in ranges:
 			if p not in [start>>page_bits, end>>page_bits]: continue
-			offset = "joining_offset_0x%04x" % start
-			print "      if (0x%04X <= u && u <= 0x%04X) return joining_table[u - 0x%04X + %s];" % (start, end, start, offset)
+			offset = "joining_offset_0x%04xu" % start
+			print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return joining_table[u - 0x%04Xu + %s];" % (start, end, start, offset)
 		print "      break;"
 		print ""
 	print "    default:"
@@ -195,13 +195,13 @@ def print_shaping_table(f):
 	for u in range (min_u, max_u + 1):
 		s = [shapes[u][shape] if u in shapes and shape in shapes[u] else 0
 		     for shape in  ['initial', 'medial', 'final', 'isolated']]
-		value = ', '.join ("0x%04X" % c for c in s)
+		value = ', '.join ("0x%04Xu" % c for c in s)
 		print "  {%s}, /* U+%04X %s */" % (value, u, names[u] if u in names else "")
 
 	print "};"
 	print
-	print "#define SHAPING_TABLE_FIRST	0x%04X" % min_u
-	print "#define SHAPING_TABLE_LAST	0x%04X" % max_u
+	print "#define SHAPING_TABLE_FIRST	0x%04Xu" % min_u
+	print "#define SHAPING_TABLE_LAST	0x%04Xu" % max_u
 	print
 
 	ligas = {}
@@ -231,9 +231,9 @@ def print_shaping_table(f):
 	keys.sort ()
 	for first in keys:
 
-		print "  { 0x%04X, {" % (first)
+		print "  { 0x%04Xu, {" % (first)
 		for liga in ligas[first]:
-			print "    { 0x%04X, 0x%04X }, /* %s */" % (liga[0], liga[1], names[liga[1]])
+			print "    { 0x%04Xu, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]])
 		print "  }},"
 
 	print "};"
