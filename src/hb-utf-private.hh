@@ -81,27 +81,11 @@ hb_utf_prev (const uint8_t *text,
   while (start < text && (*text & 0xc0) == 0x80 && end - text < 4)
     text--;
 
-  hb_codepoint_t c = *text, mask;
-  unsigned int len;
-
-  /* TODO check for overlong sequences? */
-
-  HB_UTF8_COMPUTE (c, mask, len);
-  if (unlikely (!len || (unsigned int) (end - text) != len)) {
-    *unicode = -1;
-    return end - 1;
-  } else {
-    hb_codepoint_t result;
-    unsigned int i;
-    result = c & mask;
-    for (i = 1; i < len; i++)
-      {
-	result <<= 6;
-	result |= (text[i] & 0x3f);
-      }
-    *unicode = result;
+  if (likely (hb_utf_next (text, end, unicode) == end))
     return text;
-  }
+
+  *unicode = -1;
+  return end - 1;
 }
 
 
