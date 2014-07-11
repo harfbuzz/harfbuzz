@@ -449,11 +449,15 @@ static const utf8_validity_test_t utf8_validity_tests[] = {
   { "\x7f", -1, 1, TRUE },
   { "\xdf\xbf", -1, 2, TRUE },
   { "\xef\xbf\xbf", -1, 0, TRUE },
-  { "\xf7\xbf\xbf\xbf", -1, 0, TRUE },
+  { "\xf4\x8f\xbf\xbf", -1, 0, TRUE },
+  { "\xf4\x90\xbf\xbf", -1, 0, FALSE },
+  { "\xf7\xbf\xbf\xbf", -1, 0, FALSE },
   { "\xfb\xbf\xbf\xbf\xbf", -1, 0, FALSE },
   { "\xfd\xbf\xbf\xbf\xbf\xbf", -1, 0, FALSE },
   /* other boundary conditions */
   { "\xed\x9f\xbf", -1, 3, TRUE },
+  { "\xed\xa0\x80", -1, 0, FALSE },
+  { "\xed\xbf\xbf", -1, 0, FALSE },
   { "\xee\x80\x80", -1, 3, TRUE },
   { "\xef\xbf\xbd", -1, 3, TRUE },
   { "\xf4\x8f\xbf\xbf", -1, 0, TRUE },
@@ -610,8 +614,6 @@ static const utf8_validity_test_t utf8_validity_tests[] = {
   /* impossible bytes */
   { "\x20\xfe\x20", -1, 1, FALSE },
   { "\x20\xff\x20", -1, 1, FALSE },
-#if 0
-  /* XXX fix these, or document that we don't detect them? */
   /* overlong sequences */
   { "\x20\xc0\xaf\x20", -1, 1, FALSE },
   { "\x20\xe0\x80\xaf\x20", -1, 1, FALSE },
@@ -644,6 +646,7 @@ static const utf8_validity_test_t utf8_validity_tests[] = {
   { "\x20\xed\xae\x80\xed\xbf\xbf\x20", -1, 1, FALSE },
   { "\x20\xed\xaf\xbf\xed\xb0\x80\x20", -1, 1, FALSE },
   { "\x20\xed\xaf\xbf\xed\xbf\xbf\x20", -1, 1, FALSE },
+#if 0 /* We don't consider U+FFFE / U+FFFF and similar invalid. */
   { "\x20\xef\xbf\xbe\x20", -1, 1, FALSE },
   { "\x20\xef\xbf\xbf\x20", -1, 1, FALSE },
 #endif

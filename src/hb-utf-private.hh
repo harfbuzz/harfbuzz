@@ -1,5 +1,5 @@
 /*
- * Copyright © 2011,2012  Google, Inc.
+ * Copyright © 2011,2012,2014  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -32,44 +32,75 @@
 
 /* UTF-8 */
 
-#define HB_UTF8_COMPUTE(Char, Mask, Len) \
-  if (Char < 128) { Len = 1; Mask = 0x7f; } \
-  else if ((Char & 0xe0) == 0xc0) { Len = 2; Mask = 0x1f; } \
-  else if ((Char & 0xf0) == 0xe0) { Len = 3; Mask = 0x0f; } \
-  else if ((Char & 0xf8) == 0xf0) { Len = 4; Mask = 0x07; } \
-  else Len = 0;
-
 static inline const uint8_t *
 hb_utf_next (const uint8_t *text,
 	     const uint8_t *end,
 	     hb_codepoint_t *unicode)
 {
-  hb_codepoint_t c = *text, mask;
-  unsigned int len;
+  /* Written to only accept well-formed sequences.
+   * Based on ideas from ICU's U8_NEXT.
+   * Generates a -1 for each ill-formed byte. */
 
-  /* TODO check for overlong sequences? */
+  hb_codepoint_t c = *text++;
 
-  HB_UTF8_COMPUTE (c, mask, len);
-  if (unlikely (!len || (unsigned int) (end - text) < len)) {
-    *unicode = -1;
-    return text + 1;
-  } else {
-    hb_codepoint_t result;
-    unsigned int i;
-    result = c & mask;
-    for (i = 1; i < len; i++)
+  if (c > 0x7Fu)
+  {
+    if (hb_in_range (c, 0xC2u, 0xDFu)) /* Two-byte */
+    {
+      unsigned int t1;
+      if (likely (text < end &&
+		  (t1 = text[0] - 0x80u) <= 0x3Fu))
       {
-	if (unlikely ((text[i] & 0xc0) != 0x80))
-	  {
-	    *unicode = -1;
-	    return text + 1;
-	  }
-	result <<= 6;
-	result |= (text[i] & 0x3f);
+	c = ((c&0x1Fu)<<6) | t1;
+	text++;
       }
-    *unicode = result;
-    return text + len;
+      else
+	goto error;
+    }
+    else if (hb_in_range (c, 0xE0u, 0xEFu)) /* Three-byte */
+    {
+      unsigned int t1, t2;
+      if (likely (1 < end - text &&
+		  (t1 = text[0] - 0x80u) <= 0x3Fu &&
+		  (t2 = text[1] - 0x80u) <= 0x3Fu &&
+		  (hb_in_range (c, 0xE1u, 0xECu) ||
+		   hb_in_range (c, 0xEEu, 0xEFu) ||
+		   (c == 0xE0u && t1 >= 0xA0u-0x80u) ||
+		   (c == 0xEDu && t1 <= 0x9Fu-0x80u))))
+      {
+	c = ((c&0xFu)<<12) | (t1<<6) | t2;
+	text += 2;
+      }
+      else
+	goto error;
+    }
+    else if (hb_in_range (c, 0xF0u, 0xF4u)) /* Four-byte */
+    {
+      unsigned int t1, t2, t3;
+      if (likely (2 < end - text &&
+		  (t1 = text[0] - 0x80u) <= 0x3Fu &&
+		  (t2 = text[1] - 0x80u) <= 0x3Fu &&
+		  (t3 = text[2] - 0x80u) <= 0x3Fu &&
+		  (hb_in_range (c, 0xF1u, 0xF3u) ||
+		   (c == 0xF0u && t1 >= 0x90u-0x80u) ||
+		   (c == 0xF4u && t1 <= 0x8Fu-0x80u))))
+      {
+	c = ((c&0x7u)<<18) | (t1<<12) | (t2<<6) | t3;
+	text += 3;
+      }
+      else
+	goto error;
+    }
+    else
+      goto error;
   }
+
+  *unicode = c;
+  return text;
+
+error:
+  *unicode = -1;
+  return text;
 }
 
 static inline const uint8_t *
