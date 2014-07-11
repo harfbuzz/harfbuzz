@@ -134,7 +134,8 @@ hb_utf_prev (const uint16_t *text,
 	     const uint16_t *start,
 	     hb_codepoint_t *unicode)
 {
-  hb_codepoint_t c = *--text;
+  const uint16_t *end = text--;
+  hb_codepoint_t c = *text;
 
   if (likely (!hb_in_range (c, 0xD800u, 0xDFFFu)))
   {
@@ -142,22 +143,14 @@ hb_utf_prev (const uint16_t *text,
     return text;
   }
 
-  if (likely (hb_in_range (c, 0xDC00u, 0xDFFFu)))
-  {
-    /* Low-surrogate in c */
-    hb_codepoint_t h;
-    if (start < text && ((h = *(text - 1)), likely (hb_in_range (h, 0xD800u, 0xDBFFu))))
-    {
-      /* High-surrogate in h */
-      *unicode = (h << 10) + c - ((0xD800u << 10) - 0x10000u + 0xDC00u);
-       text--;
-       return text;
-    }
-  }
+  if (likely (start < text && hb_in_range (c, 0xDC00u, 0xDFFFu)))
+    text--;
 
-  /* Lonely / out-of-order surrogate. */
+  if (likely (hb_utf_next (text, end, unicode) == end))
+    return text;
+
   *unicode = -1;
-  return text;
+  return end - 1;
 }
 
 
