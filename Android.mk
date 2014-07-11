@@ -14,6 +14,40 @@
 ## limitations under the License.
 ##
 
+#############################################################
+#   Note:
+#
+#   This file is used to build HarfBuzz within the Android
+#   platform itself.  If you need to compile HarfBuzz to
+#   ship with your Android NDK app, you can use the autotools
+#   build system to do so.  To do that you need to install a
+#   "standalone" toolchain with the NDK, eg:
+#
+#       ndk/build/tools/make-standalone-toolchain.sh \
+#           --platform=android-18 \
+#           --install-dir=/prefix
+#
+#   Set PLATFORM_PREFIX eng var to that prefix and make sure
+#   the cross-compile tools from PLATFORM_PREFIX are in path.
+#   Configure and install HarfBuzz:
+#
+#       ./configure --host=arm-linux-androideabi \
+#           --prefix=$PLATFORM_PREFIX \
+#           --enable-static \
+#           --with-freetype \
+#           PKG_CONFIG_LIBDIR=$PLATFORM_PREFIX/lib/pkgconfig
+#       make install
+#
+#   You can first build FreeType the same way:
+#
+#       ./configure --host=arm-linux-androideabi \
+#           --prefix=$PLATFORM_PREFIX \
+#           --enable-static \
+#           --without-png \
+#           PKG_CONFIG_LIBDIR=$PLATFORM_PREFIX/lib/pkgconfig
+#       make install
+#
+
 LOCAL_PATH:= $(call my-dir)
 
 HARFBUZZ_SRC_FILES = \
@@ -74,10 +108,9 @@ include $(BUILD_SHARED_LIBRARY)
 #############################################################
 #   build the harfbuzz static library
 #
-#   Uses UCDN instead of ICU for Unicode data, and comes with
-#   FreeType glue layer.  Most useful for NDK apps that want
-#   to bundle FreeType and HarfBuzz, though it's trivial to
-#   build for Android using the autoconf toolchain; eg:
+#   If you need to compile HarfBuzz for your NDK app, you
+#   might want to include UCDN instead of ICU for Unicode
+#   data, and you probably need hb-ft also.
 #
 # ./configure --host=arm-linux-androideabi --prefix=$PLATFORM_PREFIX
 #
