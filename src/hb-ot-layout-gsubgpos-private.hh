@@ -487,7 +487,6 @@ struct hb_apply_context_t
 	const hb_glyph_info_t &info = c->buffer->out_info[idx];
 
 	matcher_t::may_skip_t skip = matcher.may_skip (c, info);
-
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
 
