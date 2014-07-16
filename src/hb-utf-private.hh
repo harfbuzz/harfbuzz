@@ -40,7 +40,8 @@ struct hb_utf_t<uint8_t, true>
   static inline const uint8_t *
   next (const uint8_t *text,
 	const uint8_t *end,
-	hb_codepoint_t *unicode)
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement)
   {
     /* Written to only accept well-formed sequences.
      * Based on ideas from ICU's U8_NEXT.
@@ -101,23 +102,24 @@ struct hb_utf_t<uint8_t, true>
     return text;
 
   error:
-    *unicode = -1;
+    *unicode = replacement;
     return text;
   }
 
   static inline const uint8_t *
   prev (const uint8_t *text,
 	const uint8_t *start,
-	hb_codepoint_t *unicode)
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement)
   {
     const uint8_t *end = text--;
     while (start < text && (*text & 0xc0) == 0x80 && end - text < 4)
       text--;
 
-    if (likely (next (text, end, unicode) == end))
+    if (likely (next (text, end, unicode, replacement) == end))
       return text;
 
-    *unicode = -1;
+    *unicode = replacement;
     return end - 1;
   }
 
@@ -137,7 +139,8 @@ struct hb_utf_t<uint16_t, true>
   static inline const uint16_t *
   next (const uint16_t *text,
 	const uint16_t *end,
-	hb_codepoint_t *unicode)
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement)
   {
     hb_codepoint_t c = *text++;
 
@@ -161,14 +164,15 @@ struct hb_utf_t<uint16_t, true>
     }
 
     /* Lonely / out-of-order surrogate. */
-    *unicode = -1;
+    *unicode = replacement;
     return text;
   }
 
   static inline const uint16_t *
   prev (const uint16_t *text,
 	const uint16_t *start,
-	hb_codepoint_t *unicode)
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement)
   {
     const uint16_t *end = text--;
     hb_codepoint_t c = *text;
@@ -182,10 +186,10 @@ struct hb_utf_t<uint16_t, true>
     if (likely (start < text && hb_in_range (c, 0xDC00u, 0xDFFFu)))
       text--;
 
-    if (likely (next (text, end, unicode) == end))
+    if (likely (next (text, end, unicode, replacement) == end))
       return text;
 
-    *unicode = -1;
+    *unicode = replacement;
     return end - 1;
   }
 
@@ -208,7 +212,8 @@ struct hb_utf_t<uint32_t, validate>
   static inline const uint32_t *
   next (const uint32_t *text,
 	const uint32_t *end HB_UNUSED,
-	hb_codepoint_t *unicode)
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement)
   {
     hb_codepoint_t c = *text++;
     if (validate && unlikely (c > 0x10FFFFu || hb_in_range (c, 0xD800u, 0xDFFFu)))
@@ -217,16 +222,17 @@ struct hb_utf_t<uint32_t, validate>
     return text;
 
   error:
-    *unicode = -1;
+    *unicode = replacement;
     return text;
   }
 
   static inline const uint32_t *
   prev (const uint32_t *text,
 	const uint32_t *start HB_UNUSED,
-	hb_codepoint_t *unicode)
+	hb_codepoint_t *unicode,
+	hb_codepoint_t replacement)
   {
-    next (text - 1, text, unicode);
+    next (text - 1, text, unicode, replacement);
     return text - 1;
   }
 
