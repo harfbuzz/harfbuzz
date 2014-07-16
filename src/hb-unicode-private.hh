@@ -102,7 +102,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   }
 
 
-  unsigned int
+  inline unsigned int
   modified_combining_class (hb_codepoint_t unicode)
   {
     /* XXX This hack belongs to the Myanmar shaper. */
@@ -119,7 +119,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return _hb_modified_combining_class[combining_class (unicode)];
   }
 
-  inline hb_bool_t
+  static inline hb_bool_t
   is_variation_selector (hb_codepoint_t unicode)
   {
     return unlikely (hb_in_ranges (unicode,
@@ -164,7 +164,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
    * E0100..E01EF  # Mn [240] VARIATION SELECTOR-17..VARIATION SELECTOR-256
    * E01F0..E0FFF  # Cn [3600] <reserved-E01F0>..<reserved-E0FFF>
    */
-  inline hb_bool_t
+  static inline hb_bool_t
   is_default_ignorable (hb_codepoint_t ch)
   {
     hb_codepoint_t plane = ch >> 16;

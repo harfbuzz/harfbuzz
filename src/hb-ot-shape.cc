@@ -37,6 +37,7 @@
 #include "hb-ot-shape-normalize-private.hh"
 
 #include "hb-ot-layout-private.hh"
+#include "hb-unicode-private.hh"
 #include "hb-set-private.hh"
 
 
