@@ -1290,7 +1290,7 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer)
   buffer->guess_segment_properties ();
 }
 
-template <typename T>
+template <bool validate, typename T>
 static inline void
 hb_buffer_add_utf (hb_buffer_t  *buffer,
 		   const T      *text,
@@ -1298,7 +1298,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 		   unsigned int  item_offset,
 		   int           item_length)
 {
-  typedef hb_utf_t<T> utf_t;
+  typedef hb_utf_t<T, true> utf_t;
 
   assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
 	  (!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID));
@@ -1377,7 +1377,7 @@ hb_buffer_add_utf8 (hb_buffer_t  *buffer,
 		    unsigned int  item_offset,
 		    int           item_length)
 {
-  hb_buffer_add_utf (buffer, (const uint8_t *) text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<true> (buffer, (const uint8_t *) text, text_length, item_offset, item_length);
 }
 
 /**
@@ -1399,7 +1399,7 @@ hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int             item_length)
 {
-  hb_buffer_add_utf (buffer, text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<true> (buffer, text, text_length, item_offset, item_length);
 }
 
 /**
@@ -1421,7 +1421,29 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int             item_length)
 {
-  hb_buffer_add_utf (buffer, text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<true> (buffer, text, text_length, item_offset, item_length);
+}
+
+/**
+ * hb_buffer_add_codepoints:
+ * @buffer: a buffer.
+ * @text: (array length=text_length):
+ * @text_length: 
+ * @item_offset: 
+ * @item_length: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
+void
+hb_buffer_add_codepoints (hb_buffer_t          *buffer,
+			  const hb_codepoint_t *text,
+			  int                   text_length,
+			  unsigned int          item_offset,
+			  int                   item_length)
+{
+  hb_buffer_add_utf<false> (buffer, text, text_length, item_offset, item_length);
 }
 
 

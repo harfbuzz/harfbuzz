@@ -240,6 +240,14 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int             item_length);
 
+/* Like add_utf32 but does NOT check for invalid Unicode codepoints. */
+void
+hb_buffer_add_codepoints (hb_buffer_t          *buffer,
+			  const hb_codepoint_t *text,
+			  int                   text_length,
+			  unsigned int          item_offset,
+			  int                   item_length);
+
 
 /* Clears any new items added at the end */
 hb_bool_t
