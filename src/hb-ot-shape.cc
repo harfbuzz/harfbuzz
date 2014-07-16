@@ -395,8 +395,17 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
   {
     hb_ot_layout_glyph_class_mask_t klass;
 
-    klass = _hb_glyph_info_get_general_category (&info[i]) !=
-	     HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK ?
+    /* Never mark default-ignorables as marks.
+     * They won't get in the way of lookups anyway,
+     * but having them as mark will cause them to be skipped
+     * over if the lookup-flag says so, but at least for the
+     * Mongolian variation selectors, looks like Uniscribe
+     * marks them as non-mark.  Some Mongolian fonts without
+     * GDEF rely on this.  Another notable character that
+     * this applies to is COMBINING GRAPHEME JOINER. */
+    klass = (_hb_glyph_info_get_general_category (&info[i]) !=
+	     HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK ||
+	     _hb_glyph_info_is_default_ignorable (&info[i])) ?
 	    HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH :
 	    HB_OT_LAYOUT_GLYPH_PROPS_MARK;
     _hb_glyph_info_set_glyph_props (&info[i], klass);
