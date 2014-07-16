@@ -744,6 +744,60 @@ test_buffer_utf16_conversion (void)
   hb_buffer_destroy (b);
 }
 
+
+typedef struct {
+  const uint32_t utf32[8];
+  const uint32_t codepoints[8];
+} utf32_conversion_test_t;
+
+/* note: we skip the first and last item from utf32 when adding to buffer */
+static const utf32_conversion_test_t utf32_conversion_tests[] = {
+  {{0x41, 0x004D, 0x0430, 0x4E8C, 0xD800, 0xDF02, 0x61} , {0x004D, 0x0430, 0x4E8C, -1, -1}},
+  {{0x41, 0x004D, 0x0430, 0x4E8C, 0x10302, 0x61} , {0x004D, 0x0430, 0x4E8C, 0x10302}},
+  {{0x41, 0xD800, 0xDF02, 0x61}, {-1, -1}},
+  {{0x41, 0xD800, 0xDF02}, {-1}},
+  {{0x41, 0x61, 0xD800, 0xDF02}, {0x61, -1}},
+  {{0x41, 0xD800, 0x61, 0xDF02}, {-1, 0x61}},
+  {{0x41, 0xDF00, 0x61}, {-1}},
+  {{0x41, 0x10FFFF, 0x61}, {0x10FFFF}},
+  {{0x41, 0x110000, 0x61}, {-1}},
+  {{0x41, 0x61}, {0}}
+};
+
+static void
+test_buffer_utf32_conversion (void)
+{
+  hb_buffer_t *b;
+  unsigned int i;
+
+  b = hb_buffer_create ();
+
+  for (i = 0; i < G_N_ELEMENTS (utf32_conversion_tests); i++)
+  {
+    const utf32_conversion_test_t *test = &utf32_conversion_tests[i];
+    unsigned int u_len, chars, j, len;
+    hb_glyph_info_t *glyphs;
+
+    g_test_message ("UTF-32 test #%d", i);
+
+    for (u_len = 0; test->utf32[u_len]; u_len++)
+      ;
+    for (chars = 0; test->codepoints[chars]; chars++)
+      ;
+
+    hb_buffer_reset (b);
+    hb_buffer_add_utf32 (b, test->utf32, u_len,  1, u_len - 2);
+
+    glyphs = hb_buffer_get_glyph_infos (b, &len);
+    g_assert_cmpint (len, ==, chars);
+    for (j = 0; j < chars; j++)
+      g_assert_cmphex (glyphs[j].codepoint, ==, test->codepoints[j]);
+  }
+
+  hb_buffer_destroy (b);
+}
+
+
 static void
 test_empty (hb_buffer_t *b)
 {
@@ -810,6 +864,7 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_utf8_conversion);
   hb_test_add (test_buffer_utf8_validity);
   hb_test_add (test_buffer_utf16_conversion);
+  hb_test_add (test_buffer_utf32_conversion);
   hb_test_add (test_buffer_empty);
 
   return hb_test_run();

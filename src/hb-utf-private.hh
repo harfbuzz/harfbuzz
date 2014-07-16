@@ -198,7 +198,14 @@ hb_utf_next (const uint32_t *text,
 	     const uint32_t *end HB_UNUSED,
 	     hb_codepoint_t *unicode)
 {
-  *unicode = *text++;
+  hb_codepoint_t c = *text++;
+  if (unlikely (c > 0x10FFFFu || hb_in_range (c, 0xD800u, 0xDFFFu)))
+    goto error;
+  *unicode = c;
+  return text;
+
+error:
+  *unicode = -1;
   return text;
 }
 
@@ -207,8 +214,8 @@ hb_utf_prev (const uint32_t *text,
 	     const uint32_t *start HB_UNUSED,
 	     hb_codepoint_t *unicode)
 {
-  *unicode = *--text;
-  return text;
+  hb_utf_next (text - 1, text, unicode);
+  return text - 1;
 }
 
 static inline unsigned int
