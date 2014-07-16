@@ -1,6 +1,35 @@
+Overview of changes leading to 0.9.31
+Wednesday, July 16, 2014
+=====================================
+
+- Only accept valid UTF-8/16/32; we missed many cases before.
+- Better shaping of invalid UTF-8/16/32.  Falls back to
+  U+FFFD REPLACEMENT CHARACTER now.
+- With all changes in this release, the buffer will contain fully
+  valid Unicode after hb_buffer_add_utf8/16/32 no matter how
+  broken the input is.  This can be overriden though.  See below.
+- Fix Mongolian Variation Selectors for fonts without GDEF.
+- Fix minor invalid buffer access.
+- Accept zh-Hant and zh-Hans language tags.  hb_ot_tag_to_language()
+  now uses these instead of private tags.
+- Build fixes.
+- New API:
+  * hb_buffer_add_codepoints().  This does what hb_buffer_add_utf32()
+    used to do, ie. no validity check on the input at all.  add_utf32
+    now replaces invalid Unicode codepoints with the replacement
+    character (see below).
+  * hb_buffer_set_replacement_codepoint()
+  * hb_buffer_get_replacement_codepoint()
+    Previously, in hb_buffer_add_utf8 and hb_buffer_add_utf16, when
+    we detected broken input, we replaced that with (hb_codepoint_t)-1.
+    This has changed to use U+FFFD now, but can be changed using these
+    new API.
+
+
 Overview of changes leading to 0.9.30
 Wednesday, July 9, 2014
 =====================================
+
 - Update to Unicode 7.0.0:
   * New scripts Manichaean and Psalter Pahlavi are shaped using
     Arabic shaper.
