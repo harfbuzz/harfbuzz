@@ -349,11 +349,7 @@ struct hb_apply_context_t
     may_skip (const hb_apply_context_t *c,
 	      const hb_glyph_info_t    &info) const
     {
-      unsigned int property;
-
-      property = _hb_glyph_info_get_glyph_props (&info);
-
-      if (!c->match_properties (info.codepoint, property, lookup_props))
+      if (!c->check_glyph_property (&info, lookup_props))
 	return SKIP_YES;
 
       if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&
@@ -537,10 +533,12 @@ struct hb_apply_context_t
   }
 
   inline bool
-  match_properties (hb_codepoint_t  glyph,
-		    unsigned int    glyph_props,
-		    unsigned int    lookup_props) const
+  check_glyph_property (const hb_glyph_info_t *info,
+			unsigned int  lookup_props) const
   {
+    hb_codepoint_t glyph = info->codepoint;
+    unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
+
     /* Not covered, if, for example, glyph class is ligature and
      * lookup_props includes LookupFlags::IgnoreLigatures
      */
@@ -551,17 +549,6 @@ struct hb_apply_context_t
       return match_properties_mark (glyph, glyph_props, lookup_props);
 
     return true;
-  }
-
-  inline bool
-  check_glyph_property (hb_glyph_info_t *info,
-			unsigned int  lookup_props) const
-  {
-    unsigned int property;
-
-    property = _hb_glyph_info_get_glyph_props (info);
-
-    return match_properties (info->codepoint, property, lookup_props);
   }
 
   inline void _set_glyph_props (hb_codepoint_t glyph_index,
