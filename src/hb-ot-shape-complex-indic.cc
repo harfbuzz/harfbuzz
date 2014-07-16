@@ -1372,9 +1372,10 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   if (base == end && start < base &&
       is_one_of (info[base - 1], FLAG (OT_ZWJ)))
     base--;
-  while (start < base &&
-	 is_one_of (info[base], (FLAG (OT_N) | HALANT_OR_COENG_FLAGS)))
-    base--;
+  if (base < end)
+    while (start < base &&
+	   is_one_of (info[base], (FLAG (OT_N) | HALANT_OR_COENG_FLAGS)))
+      base--;
 
 
   /*   o Reorder matras:
