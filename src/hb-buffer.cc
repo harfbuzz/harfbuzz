@@ -1298,6 +1298,8 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 		   unsigned int  item_offset,
 		   int           item_length)
 {
+  typedef hb_utf_t<T> utf_t;
+
   assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
 	  (!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID));
 
@@ -1305,7 +1307,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
     return;
 
   if (text_length == -1)
-    text_length = hb_utf_strlen (text);
+    text_length = utf_t::strlen (text);
 
   if (item_length == -1)
     item_length = text_length - item_offset;
@@ -1328,7 +1330,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
     while (start < prev && buffer->context_len[0] < buffer->CONTEXT_LENGTH)
     {
       hb_codepoint_t u;
-      prev = hb_utf_prev (prev, start, &u);
+      prev = utf_t::prev (prev, start, &u);
       buffer->context[0][buffer->context_len[0]++] = u;
     }
   }
@@ -1339,7 +1341,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   {
     hb_codepoint_t u;
     const T *old_next = next;
-    next = hb_utf_next (next, end, &u);
+    next = utf_t::next (next, end, &u);
     buffer->add (u, old_next - (const T *) text);
   }
 
@@ -1349,7 +1351,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   while (next < end && buffer->context_len[1] < buffer->CONTEXT_LENGTH)
   {
     hb_codepoint_t u;
-    next = hb_utf_next (next, end, &u);
+    next = utf_t::next (next, end, &u);
     buffer->context[1][buffer->context_len[1]++] = u;
   }
 
