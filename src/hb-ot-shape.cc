@@ -391,11 +391,15 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
   unsigned int count = c->buffer->len;
   hb_glyph_info_t *info = c->buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    _hb_glyph_info_set_glyph_props (&info[i],
-				    _hb_glyph_info_get_general_category (&info[i])
-				    == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK ?
-				    HB_OT_LAYOUT_GLYPH_PROPS_MARK :
-				    HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH);
+  {
+    hb_ot_layout_glyph_class_mask_t klass;
+
+    klass = _hb_glyph_info_get_general_category (&info[i]) !=
+	     HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK ?
+	    HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH :
+	    HB_OT_LAYOUT_GLYPH_PROPS_MARK;
+    _hb_glyph_info_set_glyph_props (&info[i], klass);
+  }
 }
 
 static inline void
