@@ -20,6 +20,7 @@ EXTRA_DIST += \
 	hb-unicode-decode \
 	hb-unicode-encode \
 	hb-unicode-prettyname \
+	record-test.sh \
 	run-tests.sh \
 	texts/in-tree \
 	fonts/sha1sum \
