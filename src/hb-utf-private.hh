@@ -45,7 +45,7 @@ struct hb_utf_t<uint8_t, true>
   {
     /* Written to only accept well-formed sequences.
      * Based on ideas from ICU's U8_NEXT.
-     * Generates a -1 for each ill-formed byte. */
+     * Generates one "replacement" for each ill-formed byte. */
 
     hb_codepoint_t c = *text++;
 
