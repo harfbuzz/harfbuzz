@@ -795,7 +795,13 @@ template <> class hb_assert_unsigned_t<unsigned long> {};
 template <typename T> static inline bool
 hb_in_range (T u, T lo, T hi)
 {
-  hb_assert_unsigned_t<T> error_hb_in_range_called_with_signed_type HB_UNUSED;
+  /* The sizeof() is here to force template instantiation.
+   * I'm sure there are better ways to do this but can't think of
+   * one right now.  Declaring a variable won't work as HB_UNUSED
+   * is unsable on some platforms and unused types are less likely
+   * to generate a warning than unused variables. */
+  ASSERT_STATIC (sizeof (hb_assert_unsigned_t<T>) >= 0);
+
   return (u - lo) <= (hi - lo);
 }
 
