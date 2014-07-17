@@ -225,8 +225,6 @@ arabic_joining (hb_buffer_t *buffer)
   unsigned int count = buffer->len;
   unsigned int prev = (unsigned int) -1, state = 0;
 
-  HB_BUFFER_ALLOCATE_VAR (buffer, arabic_shaping_action);
-
   /* Check pre-context */
   if (!(buffer->flags & HB_BUFFER_FLAG_BOT))
     for (unsigned int i = 0; i < buffer->context_len[0]; i++)
@@ -253,8 +251,7 @@ arabic_joining (hb_buffer_t *buffer)
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
     if (entry->prev_action != NONE && prev != (unsigned int) -1)
-      for (; prev < i; prev++)
-	buffer->info[prev].arabic_shaping_action() = entry->prev_action;
+      buffer->info[prev].arabic_shaping_action() = entry->prev_action;
 
     buffer->info[i].arabic_shaping_action() = entry->curr_action;
 
@@ -275,9 +272,17 @@ arabic_joining (hb_buffer_t *buffer)
 	buffer->info[prev].arabic_shaping_action() = entry->prev_action;
       break;
     }
+}
 
-
-  HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
+static void
+mongolian_variation_selectors (hb_buffer_t *buffer)
+{
+  /* Copy arabic_shaping_action() from base to Mongolian variation selectors. */
+  unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
+  for (unsigned int i = 1; i < count; i++)
+    if (unlikely (hb_in_range (info[i].codepoint, 0x180Bu, 0x180Du)))
+      info[i].arabic_shaping_action() = info[i - 1].arabic_shaping_action();
 }
 
 static void
@@ -285,12 +290,19 @@ setup_masks_arabic (const hb_ot_shape_plan_t *plan,
 		    hb_buffer_t              *buffer,
 		    hb_font_t                *font HB_UNUSED)
 {
+  HB_BUFFER_ALLOCATE_VAR (buffer, arabic_shaping_action);
+
   const arabic_shape_plan_t *arabic_plan = (const arabic_shape_plan_t *) plan->data;
 
   arabic_joining (buffer);
+  if (plan->props.script == HB_SCRIPT_MONGOLIAN)
+    mongolian_variation_selectors (buffer);
+
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
     buffer->info[i].mask |= arabic_plan->mask_array[buffer->info[i].arabic_shaping_action()];
+
+  HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
 }
 
 

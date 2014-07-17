@@ -122,8 +122,9 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   static inline hb_bool_t
   is_variation_selector (hb_codepoint_t unicode)
   {
+    /* U+180B..180D MONGOLIAN FREE VARIATION SELECTORs are handled in the
+     * Arabic shaper.  No need to match them here. */
     return unlikely (hb_in_ranges (unicode,
-				   0x180Bu, 0x180Du, /* MONGOLIAN FREE VARIATION SELECTOR ONE..THREE */
 				   0xFE00u, 0xFE0Fu, /* VARIATION SELECTOR-1..16 */
 				   0xE0100u, 0xE01EFu));  /* VARIATION SELECTOR-17..256 */
   }
