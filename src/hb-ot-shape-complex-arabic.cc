@@ -184,6 +184,15 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   map->add_global_bool_feature (HB_TAG('c','a','l','t'));
   map->add_gsub_pause (NULL);
 
+  /* The spec includes 'cswh'.  Earlier versions of Windows
+   * used to enable this by default, but testing suggests
+   * that Windows 8 and later do not enable it by default,
+   * and spec now says 'Off by default'.
+   * We disabled this in ae23c24c32.
+   * Note that IranNastaliq uses this feature extensively
+   * to fixup broken glyph sequences.  Oh well...
+   * Test case: U+0643,U+0640,U+0631. */
+  map->add_global_bool_feature (HB_TAG('c','s','w','h'));
   map->add_global_bool_feature (HB_TAG('m','s','e','t'));
 }
 
