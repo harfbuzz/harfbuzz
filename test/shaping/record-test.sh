@@ -3,7 +3,10 @@
 dir=`mktemp --directory`
 
 hb_shape=$1
-fontfile=$2
+shift
+fontfile=$1
+shift
+hb_shape="$hb_shape $@"
 unicodes=`./hb-unicode-decode`
 text=`./hb-unicode-encode "$unicodes"`
 glyphs=`echo "$text" | $hb_shape "$fontfile"`
