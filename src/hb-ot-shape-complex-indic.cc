@@ -635,8 +635,9 @@ setup_masks_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
    * and setup masks later on in a pause-callback. */
 
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    set_indic_properties (buffer->info[i]);
+    set_indic_properties (info[i]);
 }
 
 static void
@@ -673,10 +674,12 @@ update_consonant_positions (const hb_ot_shape_plan_t *plan,
   {
     hb_face_t *face = font->face;
     unsigned int count = buffer->len;
+    hb_glyph_info_t *info = buffer->info;
     for (unsigned int i = 0; i < count; i++)
-      if (buffer->info[i].indic_position() == POS_BASE_C) {
-	hb_codepoint_t consonant = buffer->info[i].codepoint;
-	buffer->info[i].indic_position() = consonant_position_from_face (indic_plan, consonant, virama, face);
+      if (info[i].indic_position() == POS_BASE_C)
+      {
+	hb_codepoint_t consonant = info[i].codepoint;
+	info[i].indic_position() = consonant_position_from_face (indic_plan, consonant, virama, face);
       }
   }
 }
@@ -1228,8 +1231,10 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
   /* Note: This loop is extra overhead, but should not be measurable. */
   bool has_broken_syllables = false;
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    if ((buffer->info[i].syllable() & 0x0F) == broken_cluster) {
+    if ((info[i].syllable() & 0x0F) == broken_cluster)
+    {
       has_broken_syllables = true;
       break;
     }

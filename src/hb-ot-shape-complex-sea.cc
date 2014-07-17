@@ -174,8 +174,9 @@ setup_masks_sea (const hb_ot_shape_plan_t *plan HB_UNUSED,
    * and setup masks later on in a pause-callback. */
 
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    set_sea_properties (buffer->info[i]);
+    set_sea_properties (info[i]);
 }
 
 static void
@@ -278,8 +279,10 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
   /* Note: This loop is extra overhead, but should not be measurable. */
   bool has_broken_syllables = false;
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    if ((buffer->info[i].syllable() & 0x0F) == broken_cluster) {
+    if ((info[i].syllable() & 0x0F) == broken_cluster)
+    {
       has_broken_syllables = true;
       break;
     }

@@ -227,8 +227,9 @@ static void
 hb_set_unicode_props (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    _hb_glyph_info_set_unicode_props (&buffer->info[i], buffer->unicode);
+    _hb_glyph_info_set_unicode_props (&info[i], buffer->unicode);
 }
 
 static void
@@ -263,8 +264,9 @@ static void
 hb_form_clusters (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 1; i < count; i++)
-    if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&buffer->info[i])))
+    if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i])))
       buffer->merge_clusters (i - 1, i + 1);
 }
 
@@ -382,8 +384,9 @@ hb_ot_map_glyphs_fast (hb_buffer_t  *buffer)
 {
   /* Normalization process sets up glyph_index(), we just copy it. */
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].codepoint = buffer->info[i].glyph_index();
+    info[i].codepoint = info[i].glyph_index();
 }
 
 static inline void
@@ -483,8 +486,9 @@ static inline void
 zero_mark_widths_by_unicode (hb_buffer_t *buffer, bool adjust_offsets)
 {
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    if (_hb_glyph_info_get_general_category (&buffer->info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
+    if (_hb_glyph_info_get_general_category (&info[i]) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     {
       if (adjust_offsets)
         adjust_mark_offsets (&buffer->pos[i]);
@@ -496,8 +500,9 @@ static inline void
 zero_mark_widths_by_gdef (hb_buffer_t *buffer, bool adjust_offsets)
 {
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    if (_hb_glyph_info_is_mark (&buffer->info[i]))
+    if (_hb_glyph_info_is_mark (&info[i]))
     {
       if (adjust_offsets)
         adjust_mark_offsets (&buffer->pos[i]);
@@ -773,8 +778,9 @@ hb_ot_shape_glyphs_closure (hb_font_t          *font,
   bool mirror = hb_script_get_horizontal_direction (buffer->props.script) == HB_DIRECTION_RTL;
 
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    add_char (font, buffer->unicode, mirror, buffer->info[i].codepoint, glyphs);
+    add_char (font, buffer->unicode, mirror, info[i].codepoint, glyphs);
 
   hb_set_t lookups;
   lookups.init ();

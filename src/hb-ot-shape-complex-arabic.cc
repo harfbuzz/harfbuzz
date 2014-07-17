@@ -223,6 +223,7 @@ static void
 arabic_joining (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   unsigned int prev = (unsigned int) -1, state = 0;
 
   /* Check pre-context */
@@ -241,19 +242,19 @@ arabic_joining (hb_buffer_t *buffer)
 
   for (unsigned int i = 0; i < count; i++)
   {
-    unsigned int this_type = get_joining_type (buffer->info[i].codepoint, _hb_glyph_info_get_general_category (&buffer->info[i]));
+    unsigned int this_type = get_joining_type (info[i].codepoint, _hb_glyph_info_get_general_category (&info[i]));
 
     if (unlikely (this_type == JOINING_TYPE_T)) {
-      buffer->info[i].arabic_shaping_action() = NONE;
+      info[i].arabic_shaping_action() = NONE;
       continue;
     }
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
     if (entry->prev_action != NONE && prev != (unsigned int) -1)
-      buffer->info[prev].arabic_shaping_action() = entry->prev_action;
+      info[prev].arabic_shaping_action() = entry->prev_action;
 
-    buffer->info[i].arabic_shaping_action() = entry->curr_action;
+    info[i].arabic_shaping_action() = entry->curr_action;
 
     prev = i;
     state = entry->next_state;
@@ -269,7 +270,7 @@ arabic_joining (hb_buffer_t *buffer)
 
       const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
       if (entry->prev_action != NONE && prev != (unsigned int) -1)
-	buffer->info[prev].arabic_shaping_action() = entry->prev_action;
+	info[prev].arabic_shaping_action() = entry->prev_action;
       break;
     }
 }
@@ -299,8 +300,9 @@ setup_masks_arabic (const hb_ot_shape_plan_t *plan,
     mongolian_variation_selectors (buffer);
 
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    buffer->info[i].mask |= arabic_plan->mask_array[buffer->info[i].arabic_shaping_action()];
+    info[i].mask |= arabic_plan->mask_array[info[i].arabic_shaping_action()];
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
 }
@@ -312,9 +314,10 @@ nuke_joiners (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	      hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    if (_hb_glyph_info_is_zwj (&buffer->info[i]))
-      _hb_glyph_info_flip_joiners (&buffer->info[i]);
+    if (_hb_glyph_info_is_zwj (&info[i]))
+      _hb_glyph_info_flip_joiners (&info[i]);
 }
 
 static void
