@@ -1,3 +1,15 @@
+Overview of changes leading to 0.9.32
+Thursday, July 17, 2014
+=====================================
+
+- Apply Arabic shaping features in spec order exactly.
+- Another fix for Mongolian free variation selectors.
+- For non-Arabic scripts in Arabic shaper apply 'rlig' and 'calt'
+  together.
+- Minor adjustment to U+FFFD logic.
+- Fix hb-coretext build.
+
+
 Overview of changes leading to 0.9.31
 Wednesday, July 16, 2014
 =====================================
