@@ -788,6 +788,7 @@ struct hb_auto_trace_t<0, ret_t> {
 
 template <typename T> class hb_assert_unsigned_t;
 template <> class hb_assert_unsigned_t<unsigned char> {};
+template <> class hb_assert_unsigned_t<unsigned short> {};
 template <> class hb_assert_unsigned_t<unsigned int> {};
 template <> class hb_assert_unsigned_t<unsigned long> {};
 
