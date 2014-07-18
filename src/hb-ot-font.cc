@@ -24,9 +24,6 @@
  * Google Author(s): Behdad Esfahbod, Roozbeh Pournader
  */
 
-#include "hb-private.hh"
-
-#include "hb-ot.h"
 
 #include "hb-font-private.hh"
 
@@ -34,6 +31,9 @@
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-hmtx-table.hh"
 
+#include "hb-ot.h"
+
+#include "hb-private.hh"
 
 
 struct hb_ot_font_t
