@@ -116,6 +116,18 @@
 #define HB_FUNC __func__
 #endif
 
+#ifdef _WIN32
+   /* We need Windows Vista for both Uniscribe backend and for
+    * MemoryBarrier.  We don't support compiling on Windows XP,
+    * though we run on it fine. */
+#  if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
+#    undef _WIN32_WINNT
+#  endif
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT 0x0600
+#  endif
+#  define WIN32_LEAN_AND_MEAN
+#endif
 
 
 /* Basics */

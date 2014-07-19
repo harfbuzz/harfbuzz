@@ -24,9 +24,6 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#define _WIN32_WINNT 0x0600
-#define WIN32_LEAN_AND_MEAN
-
 #define HB_SHAPER uniscribe
 #include "hb-shaper-impl-private.hh"
 
