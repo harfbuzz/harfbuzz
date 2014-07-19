@@ -299,7 +299,7 @@ typedef enum
 
   /* Dummy value to ensure any hb_tag_t value can be passed/stored as hb_script_t
    * without risking undefined behavior. */
-  /*---*/ _HB_SCRIPT_MAX_VALUE			= HB_TAG_MAX
+  /*---*/ _HB_SCRIPT_MAX_VALUE			= HB_TAG_MAX /*< skip >*/
 
 } hb_script_t;
 
