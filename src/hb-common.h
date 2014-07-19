@@ -94,7 +94,7 @@ typedef uint32_t hb_tag_t;
 #define HB_UNTAG(tag)   ((uint8_t)((tag)>>24)), ((uint8_t)((tag)>>16)), ((uint8_t)((tag)>>8)), ((uint8_t)(tag))
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
-#define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
+#define HB_TAG_MAX HB_TAG(0x7f,0xff,0xff,0xff)
 
 /* len=-1 means str is NUL-terminated. */
 hb_tag_t
