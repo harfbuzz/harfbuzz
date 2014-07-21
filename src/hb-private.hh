@@ -116,7 +116,7 @@
 #define HB_FUNC __func__
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
    /* We need Windows Vista for both Uniscribe backend and for
     * MemoryBarrier.  We don't support compiling on Windows XP,
     * though we run on it fine. */
