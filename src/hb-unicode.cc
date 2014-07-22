@@ -310,7 +310,7 @@ hb_unicode_funcs_get_user_data (hb_unicode_funcs_t *ufuncs,
 void
 hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
 {
-  if (hb_object_is_inert (ufuncs))
+  if (unlikely (hb_object_is_inert (ufuncs)))
     return;
 
   ufuncs->immutable = true;
