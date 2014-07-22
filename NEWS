@@ -1,3 +1,13 @@
+Overview of changes leading to 0.9.33
+Tuesday, July 22, 2014
+=====================================
+
+- Turn off ARabic 'cswh' feature that was accidentally turned on.
+- Add HB_TAG_MAX_SIGNED.
+- Make hb_face_make_immutable() really make face immutable!
+- Windows build fixes.
+
+
 Overview of changes leading to 0.9.32
 Thursday, July 17, 2014
 =====================================
