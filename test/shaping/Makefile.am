@@ -38,6 +38,7 @@ CLEANFILES += \
 TESTS = \
 	tests/arabic-feature-order.tests \
 	tests/context-matching.tests \
+	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
 	tests/mongolian-variation-selector.tests \
 	$(NULL)

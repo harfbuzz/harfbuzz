@@ -921,14 +921,32 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     info[start].indic_position() = POS_RA_TO_BECOME_REPH;
 
   /* For old-style Indic script tags, move the first post-base Halant after
-   * last consonant.  Only do this if there is *not* a Halant after last
-   * consonant.  Otherwise it becomes messy. */
-  if (indic_plan->is_old_spec) {
+   * last consonant.
+   *
+   * Reports suggest that in some scripts Uniscribe does this only if there
+   * is *not* a Halant after last consonant already (eg. Kannada), while it
+   * does it unconditionally in other scripts (eg. Malayalam).  We don't
+   * currently know about other scripts, so we single out Malayalam for now.
+   *
+   * Kannada test case:
+   * U+0C9A,U+0CCD,U+0C9A,U+0CCD
+   * With some versions of Lohit Kannada.
+   * https://bugs.freedesktop.org/show_bug.cgi?id=59118
+   *
+   * Malayalam test case:
+   * U+0D38,U+0D4D,U+0D31,U+0D4D,U+0D31,U+0D4D
+   * With lohit-ttf-20121122/Lohit-Malayalam.ttf
+   */
+  if (indic_plan->is_old_spec)
+  {
+    bool disallow_double_halants = buffer->props.script != HB_SCRIPT_MALAYALAM;
     for (unsigned int i = base + 1; i < end; i++)
-      if (info[i].indic_category() == OT_H) {
+      if (info[i].indic_category() == OT_H)
+      {
         unsigned int j;
         for (j = end - 1; j > i; j--)
-	  if (is_consonant (info[j]) || info[j].indic_category() == OT_H)
+	  if (is_consonant (info[j]) ||
+	      (disallow_double_halants && info[j].indic_category() == OT_H))
 	    break;
 	if (info[j].indic_category() != OT_H && j > i) {
 	  /* Move Halant to after last consonant. */

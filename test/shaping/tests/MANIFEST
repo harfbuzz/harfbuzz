@@ -1,4 +1,5 @@
 arabic-feature-order.tests
 context-matching.tests
+indic-old-spec.tests
 indic-pref-blocking.tests
 mongolian-variation-selector.tests
