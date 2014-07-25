@@ -99,10 +99,8 @@ parse_feature_tag (const char **pp, const char *end, hb_feature_t *feature)
   const char *p = *pp;
   char c;
 
-#define ISALNUM(c) (('a' <= (c) && (c) <= 'z') || ('A' <= (c) && (c) <= 'Z') || ('0' <= (c) && (c) <= '9'))
   while (*pp < end && (c = **pp, ISALNUM(c)))
     (*pp)++;
-#undef ISALNUM
 
   if (p == *pp || *pp - p > 4)
     return false;
