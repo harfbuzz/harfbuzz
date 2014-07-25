@@ -104,7 +104,7 @@ parse_feature_tag (const char **pp, const char *end, hb_feature_t *feature)
     (*pp)++;
 #undef ISALNUM
 
-  if (p == *pp)
+  if (p == *pp || *pp - p > 4)
     return false;
 
   feature->tag = hb_tag_from_string (p, *pp - p);
