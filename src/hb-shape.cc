@@ -79,6 +79,26 @@ parse_uint (const char **pp, const char *end, unsigned int *pv)
 }
 
 static hb_bool_t
+parse_bool (const char **pp, const char *end, unsigned int *pv)
+{
+  parse_space (pp, end);
+
+  const char *p = *pp;
+  while (*pp < end && ISALPHA(**pp))
+    (*pp)++;
+
+  /* CSS allows on/off as aliases 1/0. */
+  if (*pp - p == 2 || 0 == strncmp (p, "on", 2))
+    *pv = 1;
+  else if (*pp - p == 3 || 0 == strncmp (p, "off", 2))
+    *pv = 0;
+  else
+    return false;
+
+  return true;
+}
+
+static hb_bool_t
 parse_feature_value_prefix (const char **pp, const char *end, hb_feature_t *feature)
 {
   if (parse_char (pp, end, '-'))
@@ -138,8 +158,10 @@ static hb_bool_t
 parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *feature)
 {
   bool had_equal = parse_char (pp, end, '=');
-  bool had_value = parse_uint (pp, end, &feature->value);
-  /* If there was an equal-sign, then there *must* be a value.
+  bool had_value = parse_uint (pp, end, &feature->value) ||
+                   parse_bool (pp, end, &feature->value);
+  /* CSS doesn't use equal-sign between tag and value.
+   * If there was an equal-sign, then there *must* be a value.
    * A value without an eqaul-sign is ok, but not required. */
   return !had_equal || had_value;
 }
