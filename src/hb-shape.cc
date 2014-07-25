@@ -34,12 +34,13 @@
 #include "hb-font-private.hh"
 
 
-static void
+static bool
 parse_space (const char **pp, const char *end)
 {
   char c;
   while (*pp < end && (c = **pp, ISSPACE (c)))
     (*pp)++;
+  return true;
 }
 
 static bool
@@ -174,6 +175,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
 	 parse_feature_tag (pp, end, feature) &&
 	 parse_feature_indices (pp, end, feature) &&
 	 parse_feature_value_postfix (pp, end, feature) &&
+	 parse_space (pp, end) &&
 	 *pp == end;
 }
 
