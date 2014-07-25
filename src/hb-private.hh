@@ -284,7 +284,7 @@ typedef int (*hb_compare_func_t) (const void *, const void *);
 /* arrays and maps */
 
 
-#define HB_PREALLOCED_ARRAY_INIT {0}
+#define HB_PREALLOCED_ARRAY_INIT {0, 0, NULL}
 template <typename Type, unsigned int StaticSize=16>
 struct hb_prealloced_array_t
 {

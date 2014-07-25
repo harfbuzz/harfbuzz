@@ -127,7 +127,7 @@ struct hb_ot_layout_lookup_accelerator_t
   }
 
   template <typename TLookup>
-  inline void fini (const TLookup &lookup)
+  inline void fini (const TLookup &lookup HB_UNUSED)
   {
   }
 

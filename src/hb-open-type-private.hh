@@ -289,7 +289,7 @@ template <typename Type>
 struct Sanitizer
 {
   static hb_blob_t *sanitize (hb_blob_t *blob) {
-    hb_sanitize_context_t c[1] = {{0}};
+    hb_sanitize_context_t c[1] = {{0, NULL, NULL, false, 0, NULL}};
     bool sane;
 
     /* TODO is_sane() stuff */
