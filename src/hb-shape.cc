@@ -42,7 +42,7 @@ parse_space (const char **pp, const char *end)
     (*pp)++;
 }
 
-static hb_bool_t
+static bool
 parse_char (const char **pp, const char *end, char c)
 {
   parse_space (pp, end);
@@ -54,7 +54,7 @@ parse_char (const char **pp, const char *end, char c)
   return true;
 }
 
-static hb_bool_t
+static bool
 parse_uint (const char **pp, const char *end, unsigned int *pv)
 {
   char buf[32];
@@ -78,7 +78,7 @@ parse_uint (const char **pp, const char *end, unsigned int *pv)
   return true;
 }
 
-static hb_bool_t
+static bool
 parse_bool (const char **pp, const char *end, unsigned int *pv)
 {
   parse_space (pp, end);
@@ -98,7 +98,7 @@ parse_bool (const char **pp, const char *end, unsigned int *pv)
   return true;
 }
 
-static hb_bool_t
+static bool
 parse_feature_value_prefix (const char **pp, const char *end, hb_feature_t *feature)
 {
   if (parse_char (pp, end, '-'))
@@ -111,7 +111,7 @@ parse_feature_value_prefix (const char **pp, const char *end, hb_feature_t *feat
   return true;
 }
 
-static hb_bool_t
+static bool
 parse_feature_tag (const char **pp, const char *end, hb_feature_t *feature)
 {
   parse_space (pp, end);
@@ -129,12 +129,12 @@ parse_feature_tag (const char **pp, const char *end, hb_feature_t *feature)
   return true;
 }
 
-static hb_bool_t
+static bool
 parse_feature_indices (const char **pp, const char *end, hb_feature_t *feature)
 {
   parse_space (pp, end);
 
-  hb_bool_t has_start;
+  bool has_start;
 
   feature->start = 0;
   feature->end = (unsigned int) -1;
@@ -154,7 +154,7 @@ parse_feature_indices (const char **pp, const char *end, hb_feature_t *feature)
   return parse_char (pp, end, ']');
 }
 
-static hb_bool_t
+static bool
 parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *feature)
 {
   bool had_equal = parse_char (pp, end, '=');
@@ -167,7 +167,7 @@ parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *fea
 }
 
 
-static hb_bool_t
+static bool
 parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
 {
   return parse_feature_value_prefix (pp, end, feature) &&
