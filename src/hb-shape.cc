@@ -37,8 +37,7 @@
 static bool
 parse_space (const char **pp, const char *end)
 {
-  char c;
-  while (*pp < end && (c = **pp, ISSPACE (c)))
+  while (*pp < end && ISSPACE (**pp))
     (*pp)++;
   return true;
 }
@@ -201,7 +200,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  * hb_feature_from_string:
  * @str: (array length=len):
  * @len: 
- * @feature: (out):
+ * @feature: (out) (allow-none):
  *
  * 
  *
@@ -213,10 +212,21 @@ hb_bool_t
 hb_feature_from_string (const char *str, int len,
 			hb_feature_t *feature)
 {
+  hb_feature_t feat;
+
   if (len < 0)
     len = strlen (str);
 
-  return parse_one_feature (&str, str + len, feature);
+  if (likely (parse_one_feature (&str, str + len, &feat)))
+  {
+    if (feature)
+      *feature = feat;
+    return true;
+  }
+
+  if (feature)
+    memset (feature, 0, sizeof (*feature));
+  return false;
 }
 
 /**
