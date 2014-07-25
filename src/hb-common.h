@@ -316,7 +316,7 @@ typedef enum
 hb_script_t
 hb_script_from_iso15924_tag (hb_tag_t tag);
 
-/* suger for tag_from_string() then script_from_iso15924_tag */
+/* sugar for tag_from_string() then script_from_iso15924_tag */
 /* len=-1 means s is NUL-terminated */
 hb_script_t
 hb_script_from_string (const char *s, int len);
