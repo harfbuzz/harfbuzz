@@ -139,7 +139,11 @@ parse_feature_indices (const char **pp, const char *end, hb_feature_t *feature)
 static hb_bool_t
 parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *feature)
 {
-  return !parse_char (pp, end, '=') || parse_uint (pp, end, &feature->value);
+  bool had_equal = parse_char (pp, end, '=');
+  bool had_value = parse_uint (pp, end, &feature->value);
+  /* If there was an equal-sign, then there *must* be a value.
+   * A value without an eqaul-sign is ok, but not required. */
+  return !had_equal || had_value;
 }
 
 
