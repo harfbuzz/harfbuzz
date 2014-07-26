@@ -243,7 +243,7 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
   if (!font->has_glyph (0x25CCu))
     return;
 
-  hb_glyph_info_t dottedcircle;
+  hb_glyph_info_t dottedcircle = {0};
   dottedcircle.codepoint = 0x25CCu;
   _hb_glyph_info_set_unicode_props (&dottedcircle, buffer->unicode);
 

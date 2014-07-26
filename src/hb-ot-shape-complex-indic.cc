@@ -1285,6 +1285,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
       info.cluster = buffer->cur().cluster;
       info.mask = buffer->cur().mask;
       info.syllable() = buffer->cur().syllable();
+      /* TODO Set glyph_props? */
 
       /* Insert dottedcircle after possible Repha. */
       while (buffer->idx < buffer->len &&
