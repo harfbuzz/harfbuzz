@@ -3,3 +3,4 @@ context-matching.tests
 indic-old-spec.tests
 indic-pref-blocking.tests
 mongolian-variation-selector.tests
+zero-width-marks.tests
