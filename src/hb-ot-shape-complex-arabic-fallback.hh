@@ -33,6 +33,7 @@
 #include "hb-ot-layout-gsub-table.hh"
 
 
+/* Features ordered the same as the entries in shaping_table rows. */
 static const hb_tag_t arabic_fallback_features[] =
 {
   HB_TAG('i','n','i','t'),
