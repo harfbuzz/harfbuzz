@@ -1,0 +1,328 @@
+/*
+ * Copyright © 2014  Google, Inc.
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Google Author(s): Behdad Esfahbod
+ */
+
+#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_WIN1256_HH
+
+
+/*
+ * The macros in the first part of this file are generic macros that can
+ * be used to define the bytes for OpenType table data in code in a
+ * readable manner.  We can move the macros to reside with their respective
+ * struct types, but since we only use these to define one data table, the
+ * Windows-1256 Arabic shaping table in this file, we keep them here.
+ */
+
+
+/* First we measure, then we cut. */
+#ifndef OT_MEASURE
+#define OT_MEASURE
+#define OT_TABLE_START			static const struct TABLE_NAME { char start[0
+#define OT_TABLE_END			]; }
+#define OT_LABEL(Name)			]; char Name[0
+#define OT_USHORT(u16)			+2/*bytes*/
+#define OT_DISTANCE(From,To,ItemSize)	0/*don't care */
+#else
+#undef  OT_MEASURE
+#define OT_TABLE_START			TABLE_NAME = { {
+#define OT_TABLE_END			} };
+#define OT_LABEL(Name)			}, {
+#define OT_USHORT(u16)			((u16)>>8), ((u16)&0xFF),
+#define OT_DISTANCE(From,To,ItemSize)	((offsetof (struct TABLE_NAME, To) - \
+					  offsetof (struct TABLE_NAME, From)) / (ItemSize) \
+					 /* ASSERT_STATIC_EXPR it's divisible. */)
+#endif
+
+
+/* Whenever we receive an argument that is a list, it will expand to
+ * contain commas.  That cannot be passed to another macro because the
+ * commas will throw off the preprocessor.  The solution is to wrap
+ * the passed-in argument in OT_LIST() before passing to the next macro.
+ * Unfortunately this trick requires vararg macros. */
+#define OT_LIST(Args...) Args
+
+
+/*
+ * Basic Types
+ */
+
+#define OT_OFFSET(From, To) \
+	OT_USHORT(OT_DISTANCE(From, To, 1)) // Offset from From to To in bytes
+
+#define OT_COUNT(Start, End, ItemSize) \
+	OT_USHORT(OT_DISTANCE(Start, End, ItemSize))
+#define OT_UCOUNT(Start,End) \
+	OT_COUNT(Start, End, 2) // USHORT count
+
+#define OT_GLYPHID	OT_USHORT // GlyphID
+
+#define OT_UARRAY(Name, Items) \
+	OT_LABEL(Name) \
+	OT_UCOUNT(Name##Data, Name##DataEnd) \
+	OT_LABEL(Name##Data) \
+	Items \
+	OT_LABEL(Name##DataEnd)
+
+#define OT_UHEADLESSARRAY(Name, Items) \
+	OT_LABEL(Name) \
+	OT_USHORT(OT_DISTANCE(Name##Data, Name##DataEnd, 2) + 1) \
+	OT_LABEL(Name##Data) \
+	Items \
+	OT_LABEL(Name##DataEnd)
+
+
+/*
+ * Common Types
+ */
+
+#define OT_LOOKUP(Name, LookupType, LookupFlag, SubLookupOffsets) \
+	OT_LABEL(Name) \
+	OT_USHORT(LookupType) \
+	OT_USHORT(LookupFlag) \
+	OT_UARRAY(Name##SubLookupOffsetsArray, OT_LIST(SubLookupOffsets))
+
+#define OT_SUBLOOKUP(Name, SubFormat, Items) \
+	OT_LABEL(Name) \
+	OT_USHORT(SubFormat) \
+	Items
+
+#define OT_COVERAGE1(Name, Items) \
+	OT_LABEL(Name) \
+	OT_USHORT(1) \
+	OT_UARRAY(Name##Glyphs, OT_LIST(Items))
+
+
+/*
+ * GSUB
+ */
+
+#define OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(Name, FromGlyphs, ToGlyphs) \
+	OT_SUBLOOKUP(Name, 2, \
+		OT_OFFSET(Name, Name##Coverage) \
+		OT_UARRAY(Name##Substitute, OT_LIST(ToGlyphs)) \
+	) \
+	OT_COVERAGE1(Name##Coverage, OT_LIST(FromGlyphs)) \
+	/* ASSERT_STATIC_EXPR len(FromGlyphs) == len(ToGlyphs) */
+
+#define OT_SUBLOOKUP_MULTIPLE_SUBST_FORMAT1(Name, FromGlyphs, SequenceOffsets) \
+	OT_SUBLOOKUP(Name, 1, \
+		OT_OFFSET(Name, Name##Coverage) \
+		OT_UARRAY(Name##SequenceOffsetsArray, OT_LIST(SequenceOffsets)) \
+	) \
+	OT_COVERAGE1(Name##Coverage, OT_LIST(FromGlyphs)) \
+	/* ASSERT_STATIC_EXPR len(FromGlyphs) == len(SequenceOffsets) */
+
+#define OT_SEQUENCE(Name, SubstituteGlyphs) \
+	OT_LABEL(Name) \
+	OT_UARRAY(Name##SubstituteGlyphsArray, OT_LIST(SubstituteGlyphs))
+
+#define OT_SUBLOOKUP_LIGATURE_SUBST_FORMAT1(Name, FirstGlyphs, LigatureSetOffsets) \
+	OT_SUBLOOKUP(Name, 1, \
+		OT_OFFSET(Name, Name##Coverage) \
+		OT_UARRAY(Name##LigatureSetOffsetsArray, OT_LIST(LigatureSetOffsets)) \
+	) \
+	OT_COVERAGE1(Name##Coverage, OT_LIST(FirstGlyphs)) \
+	/* ASSERT_STATIC_EXPR len(FirstGlyphs) == len(LigatureSetOffsets) */
+
+#define OT_LIGATURE_SET(Name, LigatureSetOffsets) \
+	OT_LABEL(Name) \
+	OT_UARRAY(Name##LigatureSetOffsetsArray, OT_LIST(LigatureSetOffsets))
+
+#define OT_LIGATURE(Name, Components, LigGlyph) \
+	OT_LABEL(Name) \
+	LigGlyph \
+	OT_UHEADLESSARRAY(Name##ComponentsArray, OT_LIST(Components))
+
+
+/*
+ *
+ * Start of Windows-1256 shaping table.
+ *
+ */
+
+/* Table name. */
+#define TABLE_NAME arabic_win1256_gsub_lookups
+
+/* Table manifest. */
+#define MANIFEST(Items) \
+	OT_LABEL(manifest) \
+	OT_COUNT(manifestData, manifestDataEnd, 4) \
+	OT_LABEL(manifestData) \
+	Items \
+	OT_LABEL(manifestDataEnd)
+
+#define MANIFEST_LOOKUP(FallbackType, Name) \
+	OT_USHORT(FallbackType) \
+	OT_OFFSET(manifest, Name)
+
+/* Shorthand. */
+#define G	OT_GLYPHID
+
+/* We use this to differentiate a medial-Lam from an initial-Lam.
+ * In this two-shape encoding, those two have the same glyph.  But
+ * for Lam-Alef ligature formations we need to differentiate.  As
+ * such, we add a MultipleSubst to the end of 'medi' feature to
+ * insert an extra glyph there, and we use that to replace the
+ * proper ligature later.  As long as this is the code for an
+ * isolated form, it will work fine, as an isolated form cannot
+ * happen between a Lam-Alef sequence of the shapes that form a
+ * ligature. */
+#define LAM_MEDI_MARKER	225
+
+
+/*
+ * Table Start
+ */
+OT_TABLE_START
+
+
+/*
+ * Manifest
+ */
+MANIFEST(
+	MANIFEST_LOOKUP(FALLBACK_INIT, initLookup)
+	MANIFEST_LOOKUP(FALLBACK_MEDI, mediLookup)
+	MANIFEST_LOOKUP(FALLBACK_FINA, finaLookup)
+	MANIFEST_LOOKUP(FALLBACK_RLIG, rligLookup)
+	MANIFEST_LOOKUP(FALLBACK_RLIG, rligMarksLookup)
+)
+
+/*
+ * Lookups
+ */
+OT_LOOKUP(initLookup, OT::SubstLookupSubTable::Single, OT::LookupFlag::IgnoreMarks,
+	OT_OFFSET(initLookup, initmediSubLookup)
+	OT_OFFSET(initLookup, initSubLookup)
+)
+OT_LOOKUP(mediLookup, OT::SubstLookupSubTable::Single, OT::LookupFlag::IgnoreMarks,
+	OT_OFFSET(mediLookup, initmediSubLookup)
+	OT_OFFSET(mediLookup, mediSubLookup)
+)
+OT_LOOKUP(finaLookup, OT::SubstLookupSubTable::Single, OT::LookupFlag::IgnoreMarks,
+	OT_OFFSET(finaLookup, finaSubLookup)
+)
+OT_LOOKUP(mediLamLookup, OT::SubstLookupSubTable::Multiple, OT::LookupFlag::IgnoreMarks,
+	OT_OFFSET(mediLamLookup, mediLamSubLookup)
+)
+OT_LOOKUP(rligLookup, OT::SubstLookupSubTable::Ligature, OT::LookupFlag::IgnoreMarks,
+	OT_OFFSET(rligLookup, lamAlefLigaturesSubLookup)
+)
+OT_LOOKUP(rligMarksLookup, OT::SubstLookupSubTable::Ligature, 0,
+	OT_OFFSET(rligMarksLookup, shaddaLigaturesSubLookup)
+)
+
+/*
+ * init/medi/fina forms
+ */
+OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(initmediSubLookup,
+	G(198)	G(200)	G(201)	G(202)	G(203)	G(211)	G(212)	G(213)
+	G(214)	G(223)	G(225)	G(227)	G(228)	G(236)	G(237),
+	G(162)	G(4)	G(5)	G(5)	G(6)	G(13)	G(14)	G(15)
+	G(26)	G(140)	G(141)	G(142)	G(143)	G(154)	G(154)
+)
+OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(initSubLookup,
+	G(204)	G(205)	G(206)	G(218)	G(219)	G(221)	G(222)	G(229),
+	G(7)	G(9)	G(11)	G(27)	G(30)	G(128)	G(131)	G(144)
+)
+OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(mediSubLookup,
+	G(204)	G(205)	G(206)	G(218)	G(219)	G(221)	G(222)	G(229),
+	G(8)	G(10)	G(12)	G(28)	G(31)	G(129)	G(138)	G(149)
+)
+OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(finaSubLookup,
+	G(194)	G(195)	G(197)	G(198)	G(199)	G(218)	G(219)	G(229)	G(236)	G(237),
+	G(2)	G(1)	G(3)	G(181)	G(0)	G(29)	G(127)	G(152) G(160)	G(156)
+)
+OT_SUBLOOKUP_MULTIPLE_SUBST_FORMAT1(mediLamSubLookup,
+	G(141),
+	OT_OFFSET(mediLamSubLookup, mediLamSequence)
+)
+OT_SEQUENCE(mediLamSequence, G(141) G(LAM_MEDI_MARKER))
+
+/*
+ * Lam+Alef ligatures
+ */
+OT_SUBLOOKUP_LIGATURE_SUBST_FORMAT1(lamAlefLigaturesSubLookup,
+	G(141),
+	OT_OFFSET(lamAlefLigaturesSubLookup, lamLigatureSet)
+)
+OT_LIGATURE_SET(lamLigatureSet,
+	OT_OFFSET(lamLigatureSet, lamInitLigature1)
+	OT_OFFSET(lamLigatureSet, lamInitLigature2)
+	OT_OFFSET(lamLigatureSet, lamInitLigature3)
+	OT_OFFSET(lamLigatureSet, lamInitLigature4)
+	OT_OFFSET(lamLigatureSet, lamMediLigature1)
+	OT_OFFSET(lamLigatureSet, lamMediLigature2)
+	OT_OFFSET(lamLigatureSet, lamMediLigature3)
+	OT_OFFSET(lamLigatureSet, lamMediLigature4)
+)
+OT_LIGATURE(lamInitLigature1, G(0), G(165))
+OT_LIGATURE(lamInitLigature2, G(1), G(178))
+OT_LIGATURE(lamInitLigature3, G(2), G(180))
+OT_LIGATURE(lamInitLigature4, G(3), G(252))
+OT_LIGATURE(lamMediLigature1, G(LAM_MEDI_MARKER) G(0), G(170))
+OT_LIGATURE(lamMediLigature2, G(LAM_MEDI_MARKER) G(1), G(179))
+OT_LIGATURE(lamMediLigature3, G(LAM_MEDI_MARKER) G(2), G(185))
+OT_LIGATURE(lamMediLigature4, G(LAM_MEDI_MARKER) G(3), G(255))
+
+/*
+ * Shadda ligatures
+ */
+OT_SUBLOOKUP_LIGATURE_SUBST_FORMAT1(shaddaLigaturesSubLookup,
+	G(248),
+	OT_OFFSET(shaddaLigaturesSubLookup, shaddaLigatureSet)
+)
+OT_LIGATURE_SET(shaddaLigatureSet,
+	OT_OFFSET(shaddaLigatureSet, shaddaLigature1)
+	OT_OFFSET(shaddaLigatureSet, shaddaLigature2)
+	OT_OFFSET(shaddaLigatureSet, shaddaLigature3)
+)
+OT_LIGATURE(shaddaLigature1, G(243), G(172))
+OT_LIGATURE(shaddaLigature2, G(245), G(173))
+OT_LIGATURE(shaddaLigature3, G(246), G(175))
+
+/*
+ * Table end
+ */
+OT_TABLE_END
+
+
+/*
+ * Clean up
+ */
+#undef OT_TABLE_START
+#undef OT_TABLE_END
+#undef OT_LABEL
+#undef OT_USHORT
+#undef OT_DISTANCE
+
+/*
+ * Include a second time to get the table data...
+ */
+#ifdef OT_MEASURE
+#include __FILE__
+#endif
+
+#define HB_OT_SHAPE_COMPLEX_ARABIC_WIN1256_HH
+#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_WIN1256_HH */
