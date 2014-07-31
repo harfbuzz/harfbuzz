@@ -223,7 +223,7 @@ static const arabic_fallback_plan_t arabic_fallback_plan_nil = {};
 #endif
 
 struct ManifestLookup {
-  OT::USHORT fallbackType;
+  OT::Tag tag;
   OT::OffsetTo<OT::SubstLookup> lookupOffset;
 };
 typedef OT::ArrayOf<ManifestLookup> Manifest;
@@ -252,7 +252,7 @@ arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan,
   unsigned int count = manifest.len;
   for (unsigned int i = 0; i < count; i++)
   {
-    fallback_plan->mask_array[j] = plan->map.get_1_mask (manifest[i].fallbackType);
+    fallback_plan->mask_array[j] = plan->map.get_1_mask (manifest[i].tag);
     if (fallback_plan->mask_array[j])
     {
       fallback_plan->lookup_array[j] = const_cast<OT::SubstLookup*> (&(&manifest+manifest[i].lookupOffset));

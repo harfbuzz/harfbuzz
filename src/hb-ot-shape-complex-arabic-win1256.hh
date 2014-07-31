@@ -39,78 +39,92 @@
 /* First we measure, then we cut. */
 #ifndef OT_MEASURE
 #define OT_MEASURE
-#define OT_TABLE_START			static const struct TABLE_NAME { char start[0
-#define OT_TABLE_END			]; }
-#define OT_LABEL(Name)			]; char Name[0
+#define OT_TABLE_START			static const struct TABLE_NAME {
+#define OT_TABLE_END			}
+#define OT_LABEL_START(Name)		unsigned char Name[
+#define OT_LABEL_END			];
+#define OT_BYTE(u8)			+1/*byte*/
 #define OT_USHORT(u16)			+2/*bytes*/
-#define OT_DISTANCE(From,To,ItemSize)	0/*don't care */
 #else
 #undef  OT_MEASURE
-#define OT_TABLE_START			TABLE_NAME = { {
-#define OT_TABLE_END			} };
-#define OT_LABEL(Name)			}, {
-#define OT_USHORT(u16)			((u16)>>8), ((u16)&0xFF),
-#define OT_DISTANCE(From,To,ItemSize)	((offsetof (struct TABLE_NAME, To) - \
-					  offsetof (struct TABLE_NAME, From)) / (ItemSize) \
-					 /* ASSERT_STATIC_EXPR it's divisible. */)
+#define OT_TABLE_START			TABLE_NAME = {
+#define OT_TABLE_END			};
+#define OT_LABEL_START(Name)		{
+#define OT_LABEL_END			},
+#define OT_BYTE(u8)			(u8),
+#define OT_USHORT(u16)			(unsigned char)((u16)>>8), (unsigned char)((u16)&0xFFu),
+#define OT_COUNT(Name, ItemSize)	((unsigned int) sizeof(((struct TABLE_NAME*)0)->Name) \
+					 / (unsigned int)(ItemSize) \
+					 /* OT_ASSERT it's divisible (and positive). */)
+#define OT_DISTANCE(From,To)		((unsigned int) \
+					 ((char*)(&((struct TABLE_NAME*)0)->To) - \
+					  (char*)(&((struct TABLE_NAME*)0)->From)) \
+					 /* OT_ASSERT it's positive. */)
 #endif
 
+
+#define OT_LABEL(Name) \
+	OT_LABEL_END \
+	OT_LABEL_START(Name)
 
 /* Whenever we receive an argument that is a list, it will expand to
  * contain commas.  That cannot be passed to another macro because the
  * commas will throw off the preprocessor.  The solution is to wrap
  * the passed-in argument in OT_LIST() before passing to the next macro.
  * Unfortunately this trick requires vararg macros. */
-#define OT_LIST(Args...) Args
+#define OT_LIST(...) __VA_ARGS__
 
 
 /*
  * Basic Types
  */
 
-#define OT_OFFSET(From, To) \
-	OT_USHORT(OT_DISTANCE(From, To, 1)) // Offset from From to To in bytes
+#define OT_TAG(a,b,c,d) \
+	OT_BYTE(a) OT_BYTE(b) OT_BYTE(c) OT_BYTE(d)
 
-#define OT_COUNT(Start, End, ItemSize) \
-	OT_USHORT(OT_DISTANCE(Start, End, ItemSize))
-#define OT_UCOUNT(Start,End) \
-	OT_COUNT(Start, End, 2) // USHORT count
+#define OT_OFFSET(From, To) /* Offset from From to To in bytes */ \
+	OT_USHORT(OT_DISTANCE(From, To))
 
-#define OT_GLYPHID	OT_USHORT // GlyphID
+#define OT_GLYPHID /* GlyphID */ \
+	OT_USHORT
 
 #define OT_UARRAY(Name, Items) \
-	OT_LABEL(Name) \
-	OT_UCOUNT(Name##Data, Name##DataEnd) \
+	OT_LABEL_START(Name) \
+	OT_USHORT(OT_COUNT(Name##Data, 2)) \
 	OT_LABEL(Name##Data) \
 	Items \
-	OT_LABEL(Name##DataEnd)
+	OT_LABEL_END
 
 #define OT_UHEADLESSARRAY(Name, Items) \
-	OT_LABEL(Name) \
-	OT_USHORT(OT_DISTANCE(Name##Data, Name##DataEnd, 2) + 1) \
+	OT_LABEL_START(Name) \
+	OT_USHORT(OT_COUNT(Name##Data, 2) + 1) \
 	OT_LABEL(Name##Data) \
 	Items \
-	OT_LABEL(Name##DataEnd)
+	OT_LABEL_END
 
 
 /*
  * Common Types
  */
 
+#define OT_LOOKUP_FLAG_IGNORE_MARKS	0x08u
+
 #define OT_LOOKUP(Name, LookupType, LookupFlag, SubLookupOffsets) \
-	OT_LABEL(Name) \
+	OT_LABEL_START(Name) \
 	OT_USHORT(LookupType) \
 	OT_USHORT(LookupFlag) \
+	OT_LABEL_END \
 	OT_UARRAY(Name##SubLookupOffsetsArray, OT_LIST(SubLookupOffsets))
 
 #define OT_SUBLOOKUP(Name, SubFormat, Items) \
-	OT_LABEL(Name) \
+	OT_LABEL_START(Name) \
 	OT_USHORT(SubFormat) \
 	Items
 
 #define OT_COVERAGE1(Name, Items) \
-	OT_LABEL(Name) \
+	OT_LABEL_START(Name) \
 	OT_USHORT(1) \
+	OT_LABEL_END \
 	OT_UARRAY(Name##Glyphs, OT_LIST(Items))
 
 
@@ -118,9 +132,14 @@
  * GSUB
  */
 
+#define OT_LOOKUP_TYPE_SUBST_SINGLE	1u
+#define OT_LOOKUP_TYPE_SUBST_MULTIPLE	2u
+#define OT_LOOKUP_TYPE_SUBST_LIGATURE	4u
+
 #define OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(Name, FromGlyphs, ToGlyphs) \
 	OT_SUBLOOKUP(Name, 2, \
 		OT_OFFSET(Name, Name##Coverage) \
+		OT_LABEL_END \
 		OT_UARRAY(Name##Substitute, OT_LIST(ToGlyphs)) \
 	) \
 	OT_COVERAGE1(Name##Coverage, OT_LIST(FromGlyphs)) \
@@ -129,30 +148,31 @@
 #define OT_SUBLOOKUP_MULTIPLE_SUBST_FORMAT1(Name, FromGlyphs, SequenceOffsets) \
 	OT_SUBLOOKUP(Name, 1, \
 		OT_OFFSET(Name, Name##Coverage) \
+		OT_LABEL_END \
 		OT_UARRAY(Name##SequenceOffsetsArray, OT_LIST(SequenceOffsets)) \
 	) \
 	OT_COVERAGE1(Name##Coverage, OT_LIST(FromGlyphs)) \
 	/* ASSERT_STATIC_EXPR len(FromGlyphs) == len(SequenceOffsets) */
 
 #define OT_SEQUENCE(Name, SubstituteGlyphs) \
-	OT_LABEL(Name) \
-	OT_UARRAY(Name##SubstituteGlyphsArray, OT_LIST(SubstituteGlyphs))
+	OT_UARRAY(Name, OT_LIST(SubstituteGlyphs))
 
 #define OT_SUBLOOKUP_LIGATURE_SUBST_FORMAT1(Name, FirstGlyphs, LigatureSetOffsets) \
 	OT_SUBLOOKUP(Name, 1, \
 		OT_OFFSET(Name, Name##Coverage) \
+		OT_LABEL_END \
 		OT_UARRAY(Name##LigatureSetOffsetsArray, OT_LIST(LigatureSetOffsets)) \
 	) \
 	OT_COVERAGE1(Name##Coverage, OT_LIST(FirstGlyphs)) \
 	/* ASSERT_STATIC_EXPR len(FirstGlyphs) == len(LigatureSetOffsets) */
 
 #define OT_LIGATURE_SET(Name, LigatureSetOffsets) \
-	OT_LABEL(Name) \
-	OT_UARRAY(Name##LigatureSetOffsetsArray, OT_LIST(LigatureSetOffsets))
+	OT_UARRAY(Name, OT_LIST(LigatureSetOffsets))
 
 #define OT_LIGATURE(Name, Components, LigGlyph) \
-	OT_LABEL(Name) \
+	OT_LABEL_START(Name) \
 	LigGlyph \
+	OT_LABEL_END \
 	OT_UHEADLESSARRAY(Name##ComponentsArray, OT_LIST(Components))
 
 
@@ -167,14 +187,14 @@
 
 /* Table manifest. */
 #define MANIFEST(Items) \
-	OT_LABEL(manifest) \
-	OT_COUNT(manifestData, manifestDataEnd, 4) \
+	OT_LABEL_START(manifest) \
+	OT_USHORT(OT_COUNT(manifestData, 6)) \
 	OT_LABEL(manifestData) \
 	Items \
-	OT_LABEL(manifestDataEnd)
+	OT_LABEL_END
 
-#define MANIFEST_LOOKUP(FallbackType, Name) \
-	OT_USHORT(FallbackType) \
+#define MANIFEST_LOOKUP(Tag, Name) \
+	Tag \
 	OT_OFFSET(manifest, Name)
 
 /* Shorthand. */
@@ -202,34 +222,34 @@ OT_TABLE_START
  * Manifest
  */
 MANIFEST(
-	MANIFEST_LOOKUP(FALLBACK_INIT, initLookup)
-	MANIFEST_LOOKUP(FALLBACK_MEDI, mediLookup)
-	MANIFEST_LOOKUP(FALLBACK_FINA, finaLookup)
-	MANIFEST_LOOKUP(FALLBACK_RLIG, rligLookup)
-	MANIFEST_LOOKUP(FALLBACK_RLIG, rligMarksLookup)
+	MANIFEST_LOOKUP(OT_TAG('i','n','i','t'), initLookup)
+	MANIFEST_LOOKUP(OT_TAG('m','e','d','i'), mediLookup)
+	MANIFEST_LOOKUP(OT_TAG('f','i','n','a'), finaLookup)
+	MANIFEST_LOOKUP(OT_TAG('r','l','i','g'), rligLookup)
+	MANIFEST_LOOKUP(OT_TAG('r','l','i','g'), rligMarksLookup)
 )
 
 /*
  * Lookups
  */
-OT_LOOKUP(initLookup, OT::SubstLookupSubTable::Single, OT::LookupFlag::IgnoreMarks,
+OT_LOOKUP(initLookup, OT_LOOKUP_TYPE_SUBST_SINGLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(initLookup, initmediSubLookup)
 	OT_OFFSET(initLookup, initSubLookup)
 )
-OT_LOOKUP(mediLookup, OT::SubstLookupSubTable::Single, OT::LookupFlag::IgnoreMarks,
+OT_LOOKUP(mediLookup, OT_LOOKUP_TYPE_SUBST_SINGLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(mediLookup, initmediSubLookup)
 	OT_OFFSET(mediLookup, mediSubLookup)
 )
-OT_LOOKUP(finaLookup, OT::SubstLookupSubTable::Single, OT::LookupFlag::IgnoreMarks,
+OT_LOOKUP(finaLookup, OT_LOOKUP_TYPE_SUBST_SINGLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(finaLookup, finaSubLookup)
 )
-OT_LOOKUP(mediLamLookup, OT::SubstLookupSubTable::Multiple, OT::LookupFlag::IgnoreMarks,
+OT_LOOKUP(mediLamLookup, OT_LOOKUP_TYPE_SUBST_MULTIPLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(mediLamLookup, mediLamSubLookup)
 )
-OT_LOOKUP(rligLookup, OT::SubstLookupSubTable::Ligature, OT::LookupFlag::IgnoreMarks,
+OT_LOOKUP(rligLookup, OT_LOOKUP_TYPE_SUBST_LIGATURE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(rligLookup, lamAlefLigaturesSubLookup)
 )
-OT_LOOKUP(rligMarksLookup, OT::SubstLookupSubTable::Ligature, 0,
+OT_LOOKUP(rligMarksLookup, OT_LOOKUP_TYPE_SUBST_LIGATURE, 0,
 	OT_OFFSET(rligMarksLookup, shaddaLigaturesSubLookup)
 )
 
@@ -313,9 +333,12 @@ OT_TABLE_END
  */
 #undef OT_TABLE_START
 #undef OT_TABLE_END
-#undef OT_LABEL
+#undef OT_LABEL_START
+#undef OT_LABEL_END
+#undef OT_BYTE
 #undef OT_USHORT
 #undef OT_DISTANCE
+#undef OT_COUNT
 
 /*
  * Include a second time to get the table data...
