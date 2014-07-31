@@ -27,7 +27,7 @@ glyphs_subset=`echo "$text" | $hb_shape "$dir/font.ttf.subset"`
 if ! test "x$glyphs" = "x$glyphs_subset"; then
 	echo "Subset font produced different glyphs!" >&2
 	echo "Perhaps font doesn't have glyph names; checking visually..." >&2
-	hb_view=${hb_shape//shape/view}
+	hb_view=${hb_shape/shape/view}
 	echo "$text" | $hb_view "$dir/font.ttf" --output-format=png --output-file="$dir/orig.png"
 	echo "$text" | $hb_view "$dir/font.ttf.subset" --output-format=png --output-file="$dir/subset.png"
 	if ! cmp "$dir/orig.png" "$dir/subset.png"; then
