@@ -175,7 +175,6 @@
 	OT_LABEL_END \
 	OT_UHEADLESSARRAY(Name##ComponentsArray, OT_LIST(Components))
 
-
 /*
  *
  * Start of Windows-1256 shaping table.
@@ -200,18 +199,6 @@
 /* Shorthand. */
 #define G	OT_GLYPHID
 
-/* We use this to differentiate a medial-Lam from an initial-Lam.
- * In this two-shape encoding, those two have the same glyph.  But
- * for Lam-Alef ligature formations we need to differentiate.  As
- * such, we add a MultipleSubst to the end of 'medi' feature to
- * insert an extra glyph there, and we use that to replace the
- * proper ligature later.  As long as this is the code for an
- * isolated form, it will work fine, as an isolated form cannot
- * happen between a Lam-Alef sequence of the shapes that form a
- * ligature. */
-#define LAM_MEDI_MARKER	225
-
-
 /*
  * Table Start
  */
@@ -222,11 +209,10 @@ OT_TABLE_START
  * Manifest
  */
 MANIFEST(
+	MANIFEST_LOOKUP(OT_TAG('r','l','i','g'), rligLookup)
 	MANIFEST_LOOKUP(OT_TAG('i','n','i','t'), initLookup)
 	MANIFEST_LOOKUP(OT_TAG('m','e','d','i'), mediLookup)
-	MANIFEST_LOOKUP(OT_TAG('m','e','d','i'), mediLamLookup)
 	MANIFEST_LOOKUP(OT_TAG('f','i','n','a'), finaLookup)
-	MANIFEST_LOOKUP(OT_TAG('r','l','i','g'), rligLookup)
 	MANIFEST_LOOKUP(OT_TAG('r','l','i','g'), rligMarksLookup)
 )
 
@@ -240,12 +226,14 @@ OT_LOOKUP(initLookup, OT_LOOKUP_TYPE_SUBST_SINGLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 OT_LOOKUP(mediLookup, OT_LOOKUP_TYPE_SUBST_SINGLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(mediLookup, initmediSubLookup)
 	OT_OFFSET(mediLookup, mediSubLookup)
+	OT_OFFSET(mediLookup, medifinaLamAlefSubLookup)
 )
 OT_LOOKUP(finaLookup, OT_LOOKUP_TYPE_SUBST_SINGLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(finaLookup, finaSubLookup)
-)
-OT_LOOKUP(mediLamLookup, OT_LOOKUP_TYPE_SUBST_MULTIPLE, OT_LOOKUP_FLAG_IGNORE_MARKS,
-	OT_OFFSET(mediLamLookup, mediLamSubLookup)
+	/* We don't need this one currently as the sequence inherits masks
+	 * from the first item.  Just in case we change that in the future
+	 * to be smart about Arabic masks when ligating... */
+	OT_OFFSET(finaLookup, medifinaLamAlefSubLookup)
 )
 OT_LOOKUP(rligLookup, OT_LOOKUP_TYPE_SUBST_LIGATURE, OT_LOOKUP_FLAG_IGNORE_MARKS,
 	OT_OFFSET(rligLookup, lamAlefLigaturesSubLookup)
@@ -277,17 +265,16 @@ OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(finaSubLookup,
 	G(2)	G(1)	G(3)	G(181)	G(0)	G(159)	G(8)	G(10)	G(12)
 	G(29)	G(127)	G(152) G(160)	G(156)
 )
-OT_SUBLOOKUP_MULTIPLE_SUBST_FORMAT1(mediLamSubLookup,
-	G(141),
-	OT_OFFSET(mediLamSubLookup, mediLamSequence)
+OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2(medifinaLamAlefSubLookup,
+	G(165)	G(178)	G(180)	G(252),
+	G(170)	G(179)	G(185)	G(255)
 )
-OT_SEQUENCE(mediLamSequence, G(141) G(LAM_MEDI_MARKER))
 
 /*
  * Lam+Alef ligatures
  */
 OT_SUBLOOKUP_LIGATURE_SUBST_FORMAT1(lamAlefLigaturesSubLookup,
-	G(141),
+	G(225),
 	OT_OFFSET(lamAlefLigaturesSubLookup, lamLigatureSet)
 )
 OT_LIGATURE_SET(lamLigatureSet,
@@ -295,19 +282,11 @@ OT_LIGATURE_SET(lamLigatureSet,
 	OT_OFFSET(lamLigatureSet, lamInitLigature2)
 	OT_OFFSET(lamLigatureSet, lamInitLigature3)
 	OT_OFFSET(lamLigatureSet, lamInitLigature4)
-	OT_OFFSET(lamLigatureSet, lamMediLigature1)
-	OT_OFFSET(lamLigatureSet, lamMediLigature2)
-	OT_OFFSET(lamLigatureSet, lamMediLigature3)
-	OT_OFFSET(lamLigatureSet, lamMediLigature4)
 )
-OT_LIGATURE(lamInitLigature1, G(0), G(165))
-OT_LIGATURE(lamInitLigature2, G(1), G(178))
-OT_LIGATURE(lamInitLigature3, G(2), G(180))
-OT_LIGATURE(lamInitLigature4, G(3), G(252))
-OT_LIGATURE(lamMediLigature1, G(LAM_MEDI_MARKER) G(0), G(170))
-OT_LIGATURE(lamMediLigature2, G(LAM_MEDI_MARKER) G(1), G(179))
-OT_LIGATURE(lamMediLigature3, G(LAM_MEDI_MARKER) G(2), G(185))
-OT_LIGATURE(lamMediLigature4, G(LAM_MEDI_MARKER) G(3), G(255))
+OT_LIGATURE(lamInitLigature1, G(199), G(165))
+OT_LIGATURE(lamInitLigature2, G(195), G(178))
+OT_LIGATURE(lamInitLigature3, G(194), G(180))
+OT_LIGATURE(lamInitLigature4, G(197), G(252))
 
 /*
  * Shadda ligatures

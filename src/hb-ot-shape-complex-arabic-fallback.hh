@@ -191,7 +191,7 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
     return arabic_fallback_synthesize_lookup_ligature (plan, font);
 }
 
-#define ARABIC_FALLBACK_MAX_LOOKUPS 6
+#define ARABIC_FALLBACK_MAX_LOOKUPS 5
 
 struct arabic_fallback_plan_t
 {
