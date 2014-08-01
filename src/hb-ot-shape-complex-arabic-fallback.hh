@@ -33,7 +33,8 @@
 #include "hb-ot-layout-gsub-table.hh"
 
 
-/* Features ordered the same as the entries in shaping_table rows. */
+/* Features ordered the same as the entries in shaping_table rows,
+ * followed by rlig.  Don't change. */
 static const hb_tag_t arabic_fallback_features[] =
 {
   HB_TAG('i','n','i','t'),
@@ -41,16 +42,6 @@ static const hb_tag_t arabic_fallback_features[] =
   HB_TAG('f','i','n','a'),
   HB_TAG('i','s','o','l'),
   HB_TAG('r','l','i','g'),
-};
-
-/* Same order as the fallback feature array */
-enum {
-  FALLBACK_INIT,
-  FALLBACK_MEDI,
-  FALLBACK_FINA,
-  FALLBACK_ISOL,
-  FALLBACK_RLIG,
-  ARABIC_NUM_FALLBACK_FEATURES
 };
 
 static OT::SubstLookup *
@@ -200,6 +191,8 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
     return arabic_fallback_synthesize_lookup_ligature (plan, font);
 }
 
+#define ARABIC_FALLBACK_MAX_LOOKUPS 6
+
 struct arabic_fallback_plan_t
 {
   ASSERT_POD ();
@@ -207,9 +200,9 @@ struct arabic_fallback_plan_t
   unsigned int num_lookups;
   bool free_lookups;
 
-  hb_mask_t mask_array[ARABIC_NUM_FALLBACK_FEATURES];
-  OT::SubstLookup *lookup_array[ARABIC_NUM_FALLBACK_FEATURES];
-  hb_ot_layout_lookup_accelerator_t accel_array[ARABIC_NUM_FALLBACK_FEATURES];
+  hb_mask_t mask_array[ARABIC_FALLBACK_MAX_LOOKUPS];
+  OT::SubstLookup *lookup_array[ARABIC_FALLBACK_MAX_LOOKUPS];
+  hb_ot_layout_lookup_accelerator_t accel_array[ARABIC_FALLBACK_MAX_LOOKUPS];
 };
 
 static const arabic_fallback_plan_t arabic_fallback_plan_nil = {};
@@ -245,7 +238,7 @@ arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan,
 
   const Manifest &manifest = reinterpret_cast<const Manifest&> (arabic_win1256_gsub_lookups.manifest);
   ASSERT_STATIC (sizeof (arabic_win1256_gsub_lookups.manifestData) / sizeof (ManifestLookup)
-		 <= ARABIC_NUM_FALLBACK_FEATURES);
+		 <= ARABIC_FALLBACK_MAX_LOOKUPS);
   /* TODO sanitize the table? */
 
   unsigned j = 0;
@@ -278,8 +271,9 @@ arabic_fallback_plan_init_unicode (arabic_fallback_plan_t *fallback_plan,
 				   const hb_ot_shape_plan_t *plan,
 				   hb_font_t *font)
 {
+  ASSERT_STATIC (ARRAY_LENGTH(arabic_fallback_features) <= ARABIC_FALLBACK_MAX_LOOKUPS);
   unsigned int j = 0;
-  for (unsigned int i = 0; i < ARABIC_NUM_FALLBACK_FEATURES; i++)
+  for (unsigned int i = 0; i < ARRAY_LENGTH(arabic_fallback_features) ; i++)
   {
     fallback_plan->mask_array[j] = plan->map.get_1_mask (arabic_fallback_features[i]);
     if (fallback_plan->mask_array[j])

@@ -224,6 +224,7 @@ OT_TABLE_START
 MANIFEST(
 	MANIFEST_LOOKUP(OT_TAG('i','n','i','t'), initLookup)
 	MANIFEST_LOOKUP(OT_TAG('m','e','d','i'), mediLookup)
+	MANIFEST_LOOKUP(OT_TAG('m','e','d','i'), mediLamLookup)
 	MANIFEST_LOOKUP(OT_TAG('f','i','n','a'), finaLookup)
 	MANIFEST_LOOKUP(OT_TAG('r','l','i','g'), rligLookup)
 	MANIFEST_LOOKUP(OT_TAG('r','l','i','g'), rligMarksLookup)
