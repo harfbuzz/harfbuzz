@@ -43,7 +43,6 @@
 
 static hb_tag_t common_features[] = {
   HB_TAG('c','c','m','p'),
-  HB_TAG('l','i','g','a'),
   HB_TAG('l','o','c','l'),
   HB_TAG('m','a','r','k'),
   HB_TAG('m','k','m','k'),
@@ -56,6 +55,7 @@ static hb_tag_t horizontal_features[] = {
   HB_TAG('c','l','i','g'),
   HB_TAG('c','u','r','s'),
   HB_TAG('k','e','r','n'),
+  HB_TAG('l','i','g','a'),
   HB_TAG('r','c','l','t'),
 };
 
