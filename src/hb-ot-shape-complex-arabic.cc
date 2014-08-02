@@ -248,18 +248,17 @@ arabic_joining (hb_buffer_t *buffer)
   unsigned int prev = (unsigned int) -1, state = 0;
 
   /* Check pre-context */
-  if (!(buffer->flags & HB_BUFFER_FLAG_BOT))
-    for (unsigned int i = 0; i < buffer->context_len[0]; i++)
-    {
-      unsigned int this_type = get_joining_type (buffer->context[0][i], buffer->unicode->general_category (buffer->context[0][i]));
+  for (unsigned int i = 0; i < buffer->context_len[0]; i++)
+  {
+    unsigned int this_type = get_joining_type (buffer->context[0][i], buffer->unicode->general_category (buffer->context[0][i]));
 
-      if (unlikely (this_type == JOINING_TYPE_T))
-	continue;
+    if (unlikely (this_type == JOINING_TYPE_T))
+      continue;
 
-      const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
-      state = entry->next_state;
-      break;
-    }
+    const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
+    state = entry->next_state;
+    break;
+  }
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -281,19 +280,18 @@ arabic_joining (hb_buffer_t *buffer)
     state = entry->next_state;
   }
 
-  if (!(buffer->flags & HB_BUFFER_FLAG_EOT))
-    for (unsigned int i = 0; i < buffer->context_len[1]; i++)
-    {
-      unsigned int this_type = get_joining_type (buffer->context[1][i], buffer->unicode->general_category (buffer->context[1][i]));
+  for (unsigned int i = 0; i < buffer->context_len[1]; i++)
+  {
+    unsigned int this_type = get_joining_type (buffer->context[1][i], buffer->unicode->general_category (buffer->context[1][i]));
 
-      if (unlikely (this_type == JOINING_TYPE_T))
-	continue;
+    if (unlikely (this_type == JOINING_TYPE_T))
+      continue;
 
-      const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
-      if (entry->prev_action != NONE && prev != (unsigned int) -1)
-	info[prev].arabic_shaping_action() = entry->prev_action;
-      break;
-    }
+    const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
+    if (entry->prev_action != NONE && prev != (unsigned int) -1)
+      info[prev].arabic_shaping_action() = entry->prev_action;
+    break;
+  }
 }
 
 static void

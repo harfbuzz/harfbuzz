@@ -236,6 +236,7 @@ static void
 hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
 {
   if (!(buffer->flags & HB_BUFFER_FLAG_BOT) ||
+      buffer->context_len[0] ||
       _hb_glyph_info_get_general_category (&buffer->info[0]) !=
       HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     return;
