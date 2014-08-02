@@ -1,3 +1,56 @@
+Overview of changes leading to 0.9.34
+Saturday, August 2, 2014
+=====================================
+
+- hb_feature_from_string() now accepts CSS font-feature-settings format.
+- As a result, hb-shape / hb-view --features also accept CSS-style strings.
+  Eg, "'liga' off" is accepted now.
+- Add old-spec Myanmar shaper:
+  https://bugs.freedesktop.org/show_bug.cgi?id=81775
+- Don't apply 'calt' in Hangul shaper.
+- Fix mark advance zeroing for Hebrew shaper:
+  https://bugs.freedesktop.org/show_bug.cgi?id=76767
+- Implement Windows-1256 custom Arabic shaping.  Only built on Windows,
+  and requires help from get_glyph().  Used by Firefox.
+  https://bugzilla.mozilla.org/show_bug.cgi?id=1045139
+- Disable 'liga' in vertical text.
+- Build fixes.
+- API changes:
+
+  * Make HB_BUFFER_FLAG_BOT/EOT easier to use.
+
+    Previously, we expected users to provide BOT/EOT flags when the
+    text *segment* was at paragraph boundaries.  This meant that for
+    clients that provide full paragraph to HarfBuzz (eg. Pango), they
+    had code like this:
+
+      hb_buffer_set_flags (hb_buffer,
+                           (item_offset == 0 ? HB_BUFFER_FLAG_BOT : 0) |
+                           (item_offset + item_length == paragraph_length ?
+                            HB_BUFFER_FLAG_EOT : 0));
+
+      hb_buffer_add_utf8 (hb_buffer,
+                          paragraph_text, paragraph_length,
+                          item_offset, item_length);
+
+    After this change such clients can simply say:
+
+      hb_buffer_set_flags (hb_buffer,
+                           HB_BUFFER_FLAG_BOT | HB_BUFFER_FLAG_EOT);
+
+      hb_buffer_add_utf8 (hb_buffer,
+                          paragraph_text, paragraph_length,
+                          item_offset, item_length);
+
+    Ie, HarfBuzz itself checks whether the segment is at the beginning/end
+    of the paragraph.  Clients that only pass item-at-a-time to HarfBuzz
+    continue not setting any flags whatsoever.
+
+    Another way to put it is: if there's pre-context text in the buffer,
+    HarfBuzz ignores the BOT flag.  If there's post-context, it ignores
+    EOT flag.
+
+
 Overview of changes leading to 0.9.33
 Tuesday, July 22, 2014
 =====================================
