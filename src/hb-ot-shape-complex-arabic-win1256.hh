@@ -145,18 +145,6 @@
 	OT_COVERAGE1(Name##Coverage, OT_LIST(FromGlyphs)) \
 	/* ASSERT_STATIC_EXPR len(FromGlyphs) == len(ToGlyphs) */
 
-#define OT_SUBLOOKUP_MULTIPLE_SUBST_FORMAT1(Name, FromGlyphs, SequenceOffsets) \
-	OT_SUBLOOKUP(Name, 1, \
-		OT_OFFSET(Name, Name##Coverage) \
-		OT_LABEL_END \
-		OT_UARRAY(Name##SequenceOffsetsArray, OT_LIST(SequenceOffsets)) \
-	) \
-	OT_COVERAGE1(Name##Coverage, OT_LIST(FromGlyphs)) \
-	/* ASSERT_STATIC_EXPR len(FromGlyphs) == len(SequenceOffsets) */
-
-#define OT_SEQUENCE(Name, SubstituteGlyphs) \
-	OT_UARRAY(Name, OT_LIST(SubstituteGlyphs))
-
 #define OT_SUBLOOKUP_LIGATURE_SUBST_FORMAT1(Name, FirstGlyphs, LigatureSetOffsets) \
 	OT_SUBLOOKUP(Name, 1, \
 		OT_OFFSET(Name, Name##Coverage) \
