@@ -1589,6 +1589,8 @@ GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 void
 GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 {
+  _hb_buffer_assert_gsubgpos_vars (buffer);
+
   unsigned int len;
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &len);
   hb_direction_t direction = buffer->props.direction;
@@ -1600,8 +1602,6 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
   /* Handle attachments */
   for (unsigned int i = 0; i < len; i++)
     fix_mark_attachment (pos, i, direction);
-
-  _hb_buffer_deallocate_gsubgpos_vars (buffer);
 }
 
 

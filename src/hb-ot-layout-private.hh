@@ -420,6 +420,13 @@ _hb_buffer_deallocate_unicode_vars (hb_buffer_t *buffer)
 }
 
 static inline void
+_hb_buffer_assert_unicode_vars (hb_buffer_t *buffer)
+{
+  HB_BUFFER_ASSERT_VAR (buffer, unicode_props0);
+  HB_BUFFER_ASSERT_VAR (buffer, unicode_props1);
+}
+
+static inline void
 _hb_buffer_allocate_gsubgpos_vars (hb_buffer_t *buffer)
 {
   HB_BUFFER_ALLOCATE_VAR (buffer, glyph_props);
@@ -433,6 +440,14 @@ _hb_buffer_deallocate_gsubgpos_vars (hb_buffer_t *buffer)
   HB_BUFFER_DEALLOCATE_VAR (buffer, syllable);
   HB_BUFFER_DEALLOCATE_VAR (buffer, lig_props);
   HB_BUFFER_DEALLOCATE_VAR (buffer, glyph_props);
+}
+
+static inline void
+_hb_buffer_assert_gsubgpos_vars (hb_buffer_t *buffer)
+{
+  HB_BUFFER_ASSERT_VAR (buffer, glyph_props);
+  HB_BUFFER_ASSERT_VAR (buffer, lig_props);
+  HB_BUFFER_ASSERT_VAR (buffer, syllable);
 }
 
 /* Make sure no one directly touches our props... */

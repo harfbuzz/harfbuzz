@@ -415,6 +415,8 @@ _hb_ot_shape_fallback_position (const hb_ot_shape_plan_t *plan,
 				hb_font_t *font,
 				hb_buffer_t  *buffer)
 {
+  _hb_buffer_assert_gsubgpos_vars (buffer);
+
   unsigned int start = 0;
   unsigned int last_cluster = buffer->info[0].cluster;
   unsigned int count = buffer->len;

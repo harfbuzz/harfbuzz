@@ -448,6 +448,7 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
+  _hb_buffer_allocate_gsubgpos_vars (buffer);
   hb_ot_layout_substitute_start (c->font, buffer);
 
   if (!hb_ot_layout_has_glyph_classes (c->face))
@@ -636,6 +637,8 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   if (fallback)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
+
+  _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
 }
 
 
