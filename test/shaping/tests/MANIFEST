@@ -1,3 +1,4 @@
+arabic-fallback-shaping.tests
 arabic-feature-order.tests
 context-matching.tests
 hangul-jamo.tests

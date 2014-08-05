@@ -36,6 +36,7 @@ CLEANFILES += \
 	$(NULL)
 
 TESTS = \
+	tests/arabic-fallback-shaping.tests \
 	tests/arabic-feature-order.tests \
 	tests/context-matching.tests \
 	tests/hangul-jamo.tests \

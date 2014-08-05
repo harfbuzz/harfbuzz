@@ -223,8 +223,8 @@ data_create_arabic (const hb_ot_shape_plan_t *plan)
   for (unsigned int i = 0; i < ARABIC_NUM_FEATURES; i++) {
     arabic_plan->mask_array[i] = plan->map.get_1_mask (arabic_features[i]);
     arabic_plan->do_fallback = arabic_plan->do_fallback &&
-			       !FEATURE_IS_SYRIAC (arabic_features[i]) &&
-			       plan->map.needs_fallback (arabic_features[i]);
+			       (FEATURE_IS_SYRIAC (arabic_features[i]) ||
+			        plan->map.needs_fallback (arabic_features[i]));
   }
 
   return arabic_plan;
