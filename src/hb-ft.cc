@@ -455,7 +455,7 @@ retry:
       goto retry;
     }
 
-#ifdef HAVE_ATEXIT
+#ifdef HB_USE_ATEXIT
     atexit (free_ft_library); /* First person registers atexit() callback. */
 #endif
   }

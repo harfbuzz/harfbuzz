@@ -245,7 +245,7 @@ retry:
       goto retry;
     }
 
-#ifdef HAVE_ATEXIT
+#ifdef HB_USE_ATEXIT
     atexit (free_uniscribe_funcs); /* First person registers atexit() callback. */
 #endif
   }

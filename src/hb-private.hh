@@ -130,6 +130,31 @@
 #  define STRICT
 #endif
 
+#if HAVE_ATEXIT
+/* atexit() is only safe to be called from shared libraries on certain
+ * platforms.  Whitelist.
+ * https://bugs.freedesktop.org/show_bug.cgi?id=82246 */
+#  if defined(__linux) && defined(__GLIBC_PREREQ)
+#    if __GLIBC_PREREQ(2,3)
+/* From atexit() manpage, it's safe with glibc 2.2.3 on Linux. */
+#      define HB_USE_ATEXIT 1
+#    endif
+#  elif defined(_MSC_VER) || defined(__MINGW32__)
+/* For MSVC:
+ * http://msdn.microsoft.com/en-ca/library/tze57ck3.aspx
+ * http://msdn.microsoft.com/en-ca/library/zk17ww08.aspx
+ * mingw32 headers say atexit is safe to use in shared libraries.
+ */
+#    define HB_USE_ATEXIT 1
+#  elif defined(__ANDROID__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+/* This was fixed in Android NKD r8 or r8b:
+ * https://code.google.com/p/android/issues/detail?id=6455
+ * which introduced GCC 4.6:
+ * https://developer.android.com/tools/sdk/ndk/index.html
+ */
+#    define HB_USE_ATEXIT 1
+#  endif
+#endif
 
 /* Basics */
 
