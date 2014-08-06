@@ -76,4 +76,19 @@ endif # HAVE_OT
 
 endif # HAVE_GLIB
 
+if HAVE_OT
+if HAVE_FONTCONFIG
+hb_fc_list_SOURCES = \
+	hb-fc.cc \
+	hb-fc.h \
+	hb-fc-list.c \
+	$(NULL)
+hb_fc_list_LDADD = \
+	$(LDADD) \
+	$(FONTCONFIG_LIBS) \
+	$(NULL)
+bin_PROGRAMS += hb-fc-list
+endif # HAVE_FONTCONFIG
+endif # HAVE_OT
+
 -include $(top_srcdir)/git.mk
