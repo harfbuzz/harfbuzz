@@ -661,10 +661,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     if (start != chars_len && last_range->font)
       CFAttributedStringSetAttribute (attr_string, CFRangeMake (start, chars_len - start),
 				      kCTFontAttributeName, last_range->font);
-
-    for (unsigned int i = 0; i < range_records.len; i++)
-      if (range_records[i].font)
-	CFRelease (range_records[i].font);
   }
 
   CTLineRef line = CTLineCreateWithAttributedString (attr_string);
@@ -689,11 +685,22 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
      */
     CFDictionaryRef attributes = CTRunGetAttributes (run);
     CTFontRef run_ct_font = static_cast<CTFontRef>(CFDictionaryGetValue (attributes, kCTFontAttributeName));
-    CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
-    if (!CFEqual (run_cg_font, face_data))
+    if (!CFEqual (run_ct_font, font_data->ct_font))
     {
-        CFRelease (run_cg_font);
-
+      /* The run doesn't use our main font.  See if it uses any of our subfonts
+       * created to set font features...  Only if the font didn't match any of
+       * those, consider reject the font.  What we really want is to check the
+       * underlying CGFont, but apparently there's no safe way to do that.
+       * See: http://github.com/behdad/harfbuzz/pull/36 */
+      bool matched = false;
+      for (unsigned int i = 0; i < range_records.len; i++)
+	if (range_records[i].font && CFEqual (run_ct_font, range_records[i].font))
+	{
+	  matched = true;
+	  break;
+	}
+      if (!matched)
+      {
 	CFRange range = CTRunGetStringRange (run);
 	buffer->ensure (buffer->len + range.length);
 	if (unlikely (buffer->in_error))
@@ -728,8 +735,8 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	    buffer->len++;
         }
         continue;
+      }
     }
-    CFRelease (run_cg_font);
 
     unsigned int num_glyphs = CTRunGetGlyphCount (run);
     if (num_glyphs == 0)
@@ -787,6 +794,10 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       buffer->len++;
     }
   }
+
+  for (unsigned int i = 0; i < range_records.len; i++)
+    if (range_records[i].font)
+      CFRelease (range_records[i].font);
 
   buffer->clear_positions ();
 
