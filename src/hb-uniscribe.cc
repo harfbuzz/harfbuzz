@@ -904,7 +904,7 @@ retry:
     if (unlikely (hr == E_OUTOFMEMORY))
     {
       buffer->ensure (buffer->allocated * 2);
-      if (buffer->in_error)
+      if (unlikely (buffer->in_error))
 	FAIL ("Buffer resize failed");
       goto retry;
     }
@@ -974,7 +974,7 @@ retry:
 #undef utf16_index
 
   buffer->ensure (glyphs_len);
-  if (buffer->in_error)
+  if (unlikely (buffer->in_error))
     FAIL ("Buffer in error");
 
 #undef FAIL

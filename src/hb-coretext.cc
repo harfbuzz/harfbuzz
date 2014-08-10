@@ -696,7 +696,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
 	CFRange range = CTRunGetStringRange (run);
 	buffer->ensure (buffer->len + range.length);
-	if (buffer->in_error)
+	if (unlikely (buffer->in_error))
 	  FAIL ("Buffer resize failed");
 	hb_glyph_info_t *info = buffer->info + buffer->len;
 
@@ -738,7 +738,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     /* Needed buffer size in case we end up using scratch buffer. */
     unsigned int alt_size = (sizeof (CGGlyph) + sizeof (CGPoint) + sizeof (CFIndex)) / sizeof (hb_glyph_info_t) + 2;
     buffer->ensure (MAX (buffer->len + num_glyphs, alt_size));
-    if (buffer->in_error)
+    if (unlikely (buffer->in_error))
       FAIL ("Buffer resize failed");
 
     scratch = buffer->get_scratch_buffer (&scratch_size);
