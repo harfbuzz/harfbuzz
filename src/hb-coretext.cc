@@ -659,7 +659,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       last_range = range;
     }
     if (start != chars_len && last_range->font)
-      CFAttributedStringSetAttribute (attr_string, CFRangeMake (start, chars_len - start - 1),
+      CFAttributedStringSetAttribute (attr_string, CFRangeMake (start, chars_len - start),
 				      kCTFontAttributeName, last_range->font);
 
     for (unsigned int i = 0; i < range_records.len; i++)
