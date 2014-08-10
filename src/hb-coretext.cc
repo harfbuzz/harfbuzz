@@ -675,7 +675,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
   for (unsigned int i = 0; i < num_runs; i++)
   {
-    CTRunRef run = (CTRunRef) CFArrayGetValueAtIndex (glyph_runs, i);
+    CTRunRef run = static_cast<CTRunRef>(CFArrayGetValueAtIndex (glyph_runs, i));
 
     /* CoreText does automatic font fallback (AKA "cascading") for  characters
      * not supported by the requested font, and provides no way to turn it off,
