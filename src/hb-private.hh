@@ -848,7 +848,9 @@ hb_in_range (T u, T lo, T hi)
    * to generate a warning than unused variables. */
   ASSERT_STATIC (sizeof (hb_assert_unsigned_t<T>) >= 0);
 
-  return (u - lo) <= (hi - lo);
+  /* The casts below are important as if T is smaller than int,
+   * the subtract results will become a signed int! */
+  return (T)(u - lo) <= (T)(hi - lo);
 }
 
 template <typename T> static inline bool
