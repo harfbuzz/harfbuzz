@@ -130,6 +130,14 @@
 #  define STRICT
 #endif
 
+#ifdef _WIN32_WCE
+/* Some things not defined on Windows CE. */
+#define MemoryBarrier()
+#define getenv(Name) NULL
+#define setlocale(Category, Locale) "C"
+static int errno = 0; /* Use something better? */
+#endif
+
 #if HAVE_ATEXIT
 /* atexit() is only safe to be called from shared libraries on certain
  * platforms.  Whitelist.
