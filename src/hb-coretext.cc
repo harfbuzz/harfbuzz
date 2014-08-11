@@ -758,9 +758,7 @@ retry:
 	      }
 
 	      info->codepoint = notdef;
-	      /* TODO We have to fixup clusters later.  See vis_clusters in
-	       * hb-uniscribe.cc for example. */
-	      info->cluster = j;
+	      info->cluster = log_clusters[j];
 
 	      info->mask = advance;
 	      info->var1.u32 = 0;
@@ -820,7 +818,7 @@ retry:
 	hb_glyph_info_t *info = &buffer->info[buffer->len];
 
 	info->codepoint = glyphs[j];
-	info->cluster = string_indices[j];
+	info->cluster = log_clusters[string_indices[j]];
 
 	/* Currently, we do all x-positioning by setting the advance, we never use x-offset. */
 	info->mask = advance;
