@@ -428,6 +428,22 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
   hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
 
+  /* Attach marks to their bases, to match the 'ot' shaper.
+   * Adapted from hb-ot-shape:hb_form_clusters().
+   * Note that this only makes us be closer to the 'ot' shaper,
+   * but by no means the same.  For example, if there's
+   * B1 M1 B2 M2, and B1-B2 form a ligature, M2's cluster will
+   * continue pointing to B2 even though B2 was merged into B1's
+   * cluster... */
+  {
+    hb_unicode_funcs_t *unicode = buffer->unicode;
+    unsigned int count = buffer->len;
+    hb_glyph_info_t *info = buffer->info;
+    for (unsigned int i = 1; i < count; i++)
+      if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (unicode->general_category (info[i].codepoint)))
+	buffer->merge_clusters (i - 1, i + 1);
+  }
+
   hb_auto_array_t<feature_record_t> feature_records;
   hb_auto_array_t<range_record_t> range_records;
 
