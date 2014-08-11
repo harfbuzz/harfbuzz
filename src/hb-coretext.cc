@@ -650,7 +650,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   if (0)
   {
 resize_and_retry:
-   printf ("HERE");
     /* string_ref uses the scratch-buffer for backing store, and line references
      * string_ref (via attr_string).  We must release those before resizing buffer. */
     assert (string_ref);
