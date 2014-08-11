@@ -614,6 +614,17 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
 #undef utf16_index
 
+  ALLOCATE_ARRAY (unsigned int, log_clusters, chars_len);
+  chars_len = 0;
+  for (unsigned int i = 0; i < buffer->len; i++)
+  {
+    hb_codepoint_t c = buffer->info[i].codepoint;
+    unsigned int cluster = buffer->info[i].cluster;
+    log_clusters[chars_len++] = cluster;
+    if (hb_in_range (c, 0x10000u, 0x10FFFFu))
+      log_clusters[chars_len++] = cluster; /* Surrogates. */
+  }
+
   CFStringRef string_ref = CFStringCreateWithCharactersNoCopy (NULL,
                                                                pchars, chars_len,
                                                                kCFAllocatorNull);
@@ -625,19 +636,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 
   if (num_features)
   {
-    ALLOCATE_ARRAY (unsigned int, log_clusters, chars_len);
-
-    /* Need log_clusters to assign features. */
-    chars_len = 0;
-    for (unsigned int i = 0; i < buffer->len; i++)
-    {
-      hb_codepoint_t c = buffer->info[i].codepoint;
-      unsigned int cluster = buffer->info[i].cluster;
-      log_clusters[chars_len++] = cluster;
-      if (hb_in_range (c, 0x10000u, 0x10FFFFu))
-	log_clusters[chars_len++] = cluster; /* Surrogates. */
-    }
-
     unsigned int start = 0;
     range_record_t *last_range = &range_records[0];
     for (unsigned int k = 0; k < chars_len; k++)
