@@ -713,12 +713,28 @@ retry:
 					  kCTFontAttributeName, last_range->font);
       }
 
-      line = CTLineCreateWithAttributedString (attr_string);
-      CFRelease (attr_string);
-    }
+      int level = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
+      CFNumberRef level_number = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &level);
+      CFDictionaryRef options = CFDictionaryCreate (kCFAllocatorDefault,
+						    (const void **) &kCTTypesetterOptionForcedEmbeddingLevel,
+						    (const void **) &level_number,
+						    1,
+						    &kCFTypeDictionaryKeyCallBacks,
+						    &kCFTypeDictionaryValueCallBacks);
+      if (unlikely (!options))
+        FAIL ("CFDictionaryCreate failed");
 
-    if (unlikely (!line))
-      FAIL ("CFLineCreateWithAttributedString failed");
+      CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedStringAndOptions (attr_string, options);
+      CFRelease (options);
+      CFRelease (attr_string);
+      if (unlikely (!typesetter))
+	FAIL ("CTTypesetterCreateWithAttributedStringAndOptions failed");
+
+      line = CTTypesetterCreateLine (typesetter, CFRangeMake(0, 0));
+      CFRelease (typesetter);
+      if (unlikely (!line))
+	FAIL ("CTTypesetterCreateLine failed");
+    }
 
     CFArrayRef glyph_runs = CTLineGetGlyphRuns (line);
     unsigned int num_runs = CFArrayGetCount (glyph_runs);
@@ -890,6 +906,8 @@ retry:
       }
     }
   }
+
+#undef FAIL
 
 fail:
   if (string_ref)
