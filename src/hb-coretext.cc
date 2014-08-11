@@ -819,33 +819,26 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
    * This does *not* mean we'll form the same clusters as Uniscribe
    * or the native OT backend, only that the cluster indices will be
    * monotonic in the output buffer. */
-  if (HB_DIRECTION_IS_FORWARD (buffer->props.direction)) {
-    unsigned int prev_cluster = 0;
-    for (unsigned int i = 0; i < count; i++) {
-      unsigned int curr_cluster = buffer->info[i].cluster;
-      if (curr_cluster < prev_cluster) {
-        for (unsigned int j = i; j > 0; j--) {
-          if (buffer->info[j - 1].cluster > curr_cluster)
-            buffer->info[j - 1].cluster = curr_cluster;
-          else
-            break;
-        }
+  if (count > 1)
+  {
+    hb_glyph_info_t *info = buffer->info;
+    if (HB_DIRECTION_IS_FORWARD (buffer->props.direction))
+    {
+      unsigned int cluster = info[count - 1].cluster;
+      for (unsigned int i = count - 1; i > 0; i--)
+      {
+	cluster = MIN (cluster, info[i - 1].cluster);
+	info[i - 1].cluster = cluster;
       }
-      prev_cluster = curr_cluster;
     }
-  } else {
-    unsigned int prev_cluster = (unsigned int)-1;
-    for (unsigned int i = 0; i < count; i++) {
-      unsigned int curr_cluster = buffer->info[i].cluster;
-      if (curr_cluster > prev_cluster) {
-        for (unsigned int j = i; j > 0; j--) {
-          if (buffer->info[j - 1].cluster < curr_cluster)
-            buffer->info[j - 1].cluster = curr_cluster;
-          else
-            break;
-        }
+    else
+    {
+      unsigned int cluster = info[0].cluster;
+      for (unsigned int i = 1; i < count; i++)
+      {
+	cluster = MIN (cluster, info[i].cluster);
+	info[i].cluster = cluster;
       }
-      prev_cluster = curr_cluster;
     }
   }
 
