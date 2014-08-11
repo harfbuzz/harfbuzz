@@ -903,8 +903,7 @@ retry:
       FAIL ("ScriptShapeOpenType() set fNoGlyphIndex");
     if (unlikely (hr == E_OUTOFMEMORY))
     {
-      buffer->ensure (buffer->allocated * 2);
-      if (unlikely (buffer->in_error))
+      if (unlikely (!buffer->ensure (buffer->allocated * 2)))
 	FAIL ("Buffer resize failed");
       goto retry;
     }
@@ -973,8 +972,7 @@ retry:
 
 #undef utf16_index
 
-  buffer->ensure (glyphs_len);
-  if (unlikely (buffer->in_error))
+  if (unlikely (!buffer->ensure (glyphs_len)))
     FAIL ("Buffer in error");
 
 #undef FAIL
