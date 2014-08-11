@@ -105,8 +105,11 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
       DEBUG_MSG (CORETEXT, face, "Face has empty blob");
 
     CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
-    data = CGFontCreateWithDataProvider (provider);
-    CGDataProviderRelease (provider);
+    if (likely (provider))
+    {
+      data = CGFontCreateWithDataProvider (provider);
+      CGDataProviderRelease (provider);
+    }
   }
 
   if (unlikely (!data)) {
@@ -558,7 +561,6 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	  CFRelease (attributes);
 
 	  range->font = CTFontCreateCopyWithAttributes (font_data->ct_font, 0.0, NULL, font_desc);
-
 	  CFRelease (font_desc);
 	}
 	else
