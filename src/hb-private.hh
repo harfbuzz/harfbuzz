@@ -628,6 +628,15 @@ _hb_debug_msg_va (const char *what,
 		  unsigned int level,
 		  int level_dir,
 		  const char *message,
+		  va_list ap) HB_PRINTF_FUNC(7, 0);
+template <int max_level> static inline void
+_hb_debug_msg_va (const char *what,
+		  const void *obj,
+		  const char *func,
+		  bool indented,
+		  unsigned int level,
+		  int level_dir,
+		  const char *message,
 		  va_list ap)
 {
   if (!_hb_debug (level, max_level))
