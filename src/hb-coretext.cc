@@ -659,15 +659,24 @@ resize_and_retry:
     CFRelease (line);
     string_ref = NULL;
     line = NULL;
+
+    /* Get previous start-of-scratch-area, that we use later for readjusting
+     * our existing scratch arrays. */
+    unsigned int old_scratch_used;
+    hb_buffer_t::scratch_buffer_t *old_scratch;
+    old_scratch = buffer->get_scratch_buffer (&old_scratch_used);
+    old_scratch_used = scratch - old_scratch;
+
     if (unlikely (!buffer->ensure (buffer->allocated * 2)))
       FAIL ("Buffer resize failed");
 
-    /* Adjust scratch, pchars, and log_cluster arrays.  This is ugly, but really the cleanest way to do without
-     * completely restructuring the rest of this shaper. */
-    hb_buffer_t::scratch_buffer_t *old_scratch = scratch;
+    /* Adjust scratch, pchars, and log_cluster arrays.  This is ugly, but really the
+     * cleanest way to do without completely restructuring the rest of this shaper. */
     scratch = buffer->get_scratch_buffer (&scratch_size);
     pchars = reinterpret_cast<UniChar *> (((char *) scratch + ((char *) pchars - (char *) old_scratch)));
     log_clusters = reinterpret_cast<unsigned int *> (((char *) scratch + ((char *) log_clusters - (char *) old_scratch)));
+    scratch += old_scratch_used;
+    scratch_size -= old_scratch_used;
   }
 retry:
   {
@@ -864,7 +873,7 @@ retry:
       if (num_glyphs == 0)
 	continue;
 
-      if (!buffer->ensure (buffer->len + num_glyphs))
+      if (!buffer->ensure_inplace (buffer->len + num_glyphs))
 	goto resize_and_retry;
 
       hb_glyph_info_t *run_info = buffer->info + buffer->len;
