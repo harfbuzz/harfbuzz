@@ -740,12 +740,17 @@ retry:
     unsigned int num_runs = CFArrayGetCount (glyph_runs);
 
     buffer->len = 0;
+    uint32_t status_and = ~0, status_or = 0;
 
     const CFRange range_all = CFRangeMake (0, 0);
 
     for (unsigned int i = 0; i < num_runs; i++)
     {
       CTRunRef run = static_cast<CTRunRef>(CFArrayGetValueAtIndex (glyph_runs, i));
+      CTRunStatus run_status = CTRunGetStatus (run);
+      status_or  |= run_status;
+      status_and &= run_status;
+      DEBUG_MSG (CORETEXT, run, "CTRunStatus: %x", run_status);
 
       /* CoreText does automatic font fallback (AKA "cascading") for  characters
        * not supported by the requested font, and provides no way to turn it off,
@@ -863,6 +868,11 @@ retry:
       }
     }
 
+    /* Make sure all runs had the expected direction. */
+    bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
+    assert (bool (status_and & kCTRunStatusRightToLeft) == backward);
+    assert (bool (status_or  & kCTRunStatusRightToLeft) == backward);
+
     buffer->clear_positions ();
 
     unsigned int count = buffer->len;
@@ -878,12 +888,15 @@ retry:
 
     /* Fix up clusters so that we never return out-of-order indices;
      * if core text has reordered glyphs, we'll merge them to the
-     * beginning of the reordered cluster.
+     * beginning of the reordered cluster.  CoreText is nice enough
+     * to tell us whenever it has produced nonmonotonic results...
+     * Note that we assume the input clusters were nonmonotonic to
+     * begin with.
      *
      * This does *not* mean we'll form the same clusters as Uniscribe
      * or the native OT backend, only that the cluster indices will be
      * monotonic in the output buffer. */
-    if (count > 1)
+    if (count > 1 && (status_or & kCTRunStatusNonMonotonic))
     {
       hb_glyph_info_t *info = buffer->info;
       if (HB_DIRECTION_IS_FORWARD (buffer->props.direction))
