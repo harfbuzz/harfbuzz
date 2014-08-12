@@ -678,7 +678,8 @@ retry:
 
     /* Create an attributed string, populate it, and create a line from it, then release attributed string. */
     {
-      CFMutableAttributedStringRef attr_string = CFAttributedStringCreateMutable (NULL, chars_len);
+      CFMutableAttributedStringRef attr_string = CFAttributedStringCreateMutable (kCFAllocatorDefault,
+										  chars_len);
       if (unlikely (!attr_string))
 	FAIL ("CFAttributedStringCreateMutable failed");
       CFAttributedStringReplaceString (attr_string, CFRangeMake (0, 0), string_ref);
