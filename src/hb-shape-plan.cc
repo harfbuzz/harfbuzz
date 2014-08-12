@@ -29,6 +29,12 @@
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
 
+
+#ifndef HB_DEBUG_SHAPE_PLAN
+#define HB_DEBUG_SHAPE_PLAN (HB_DEBUG+0)
+#endif
+
+
 #define HB_SHAPER_IMPLEMENT(shaper) \
 	HB_SHAPER_DATA_ENSURE_DECLARE(shaper, face) \
 	HB_SHAPER_DATA_ENSURE_DECLARE(shaper, font)
@@ -42,6 +48,11 @@ hb_shape_plan_plan (hb_shape_plan_t    *shape_plan,
 		    unsigned int        num_user_features,
 		    const char * const *shaper_list)
 {
+  DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan,
+		  "num_features=%d shaper_list=%p",
+		  num_user_features,
+		  shaper_list);
+
   const hb_shaper_pair_t *shapers = _hb_shapers_get ();
 
 #define HB_SHAPER_PLAN(shaper) \
@@ -104,6 +115,11 @@ hb_shape_plan_create (hb_face_t                     *face,
 		      unsigned int                   num_user_features,
 		      const char * const            *shaper_list)
 {
+  DEBUG_MSG_FUNC (SHAPE_PLAN, face,
+		  "num_features=%d shaper_list=%p",
+		  num_user_features,
+		  shaper_list);
+
   hb_shape_plan_t *shape_plan;
   hb_feature_t *features = NULL;
 
@@ -271,6 +287,11 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 		       const hb_feature_t *features,
 		       unsigned int        num_features)
 {
+  DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan,
+		  "num_features=%d shaper_func=%p",
+		  num_features,
+		  shape_plan->shaper_func);
+
   if (unlikely (hb_object_is_inert (shape_plan) ||
 		hb_object_is_inert (font) ||
 		hb_object_is_inert (buffer)))
@@ -383,6 +404,11 @@ hb_shape_plan_create_cached (hb_face_t                     *face,
 			     unsigned int                   num_user_features,
 			     const char * const            *shaper_list)
 {
+  DEBUG_MSG_FUNC (SHAPE_PLAN, face,
+		  "num_user_features=%d shaper_list=%p",
+		  num_user_features,
+		  shaper_list);
+
   hb_shape_plan_proposal_t proposal = {
     *props,
     shaper_list,
