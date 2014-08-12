@@ -435,7 +435,7 @@ hb_shape_plan_create_cached (hb_face_t                     *face,
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
 
-    if (unlikely (!proposal.shaper_list))
+    if (unlikely (!proposal.shaper_func))
       return hb_shape_plan_get_empty ();
   }
 
