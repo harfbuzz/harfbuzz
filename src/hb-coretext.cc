@@ -760,7 +760,7 @@ retry:
 
       /* CoreText does automatic font fallback (AKA "cascading") for  characters
        * not supported by the requested font, and provides no way to turn it off,
-       * so we detect if the returned run uses a font other than the requested
+       * so we must detect if the returned run uses a font other than the requested
        * one and fill in the buffer with .notdef glyphs instead of random glyph
        * indices from a different font.
        */
@@ -768,11 +768,34 @@ retry:
       CTFontRef run_ct_font = static_cast<CTFontRef>(CFDictionaryGetValue (attributes, kCTFontAttributeName));
       if (!CFEqual (run_ct_font, font_data->ct_font))
       {
-	/* The run doesn't use our main font.  See if it uses any of our subfonts
-	 * created to set font features...  Only if the font didn't match any of
-	 * those, consider reject the font.  What we really want is to check the
-	 * underlying CGFont, but apparently there's no safe way to do that.
-	 * See: http://github.com/behdad/harfbuzz/pull/36 */
+	/* The run doesn't use our main font instance.  We have to figure out
+	 * whether font fallback happened, or this is just CoreText giving us
+	 * another CTFont using the same underlying CGFont.  CoreText seems
+	 * to do that in a variety of situations, one of which being vertical
+	 * text, but also perhaps for caching reasons.
+	 *
+	 * First, see if it uses any of our subfonts created to set font features...
+	 *
+	 * Next, compare the CGFont to the one we used to create our fonts.
+	 * Even this doesn't work all the time.
+	 *
+	 * Finally, we compare PS names, which I don't think are unique...
+	 *
+	 * Looks like if we really want to be sure here we have to modify the
+	 * font to change the name table, similar to what we do in the uniscribe
+	 * backend.
+	 *
+	 * However, even that wouldn't work if we were passed in the CGFont to
+	 * begin with.
+	 *
+	 * Webkit uses a slightly different approach: it installs LastResort
+	 * as fallback chain, and then checks PS name of used font against
+	 * LastResort.  That one is safe for any font except for LastResort,
+	 * as opposed to ours, which can fail if we are using any uninstalled
+	 * font that has the same name as an installed font.
+	 *
+	 * See: http://github.com/behdad/harfbuzz/pull/36
+	 */
 	bool matched = false;
 	for (unsigned int i = 0; i < range_records.len; i++)
 	  if (range_records[i].font && CFEqual (run_ct_font, range_records[i].font))
@@ -780,6 +803,25 @@ retry:
 	    matched = true;
 	    break;
 	  }
+	if (!matched)
+	{
+	  CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
+	  if (run_cg_font)
+	  {
+	    matched = CFEqual (run_cg_font, face_data);
+	    CFRelease (run_cg_font);
+	  }
+	}
+	if (!matched)
+	{
+	  CFStringRef font_ps_name = CTFontCopyName (font_data->ct_font, kCTFontPostScriptNameKey);
+	  CFStringRef run_ps_name = CTFontCopyName (run_ct_font, kCTFontPostScriptNameKey);
+	  CFComparisonResult result = CFStringCompare (run_ps_name, font_ps_name, 0);
+	  CFRelease (run_ps_name);
+	  CFRelease (font_ps_name);
+	  if (result == kCFCompareEqualTo)
+	    matched = true;
+	}
 	if (!matched)
 	{
 	  CFRange range = CTRunGetStringRange (run);
