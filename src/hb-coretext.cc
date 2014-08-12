@@ -698,6 +698,18 @@ retry:
 	CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 					kCTVerticalFormsAttributeName, kCFBooleanTrue);
       }
+      if (buffer->props.language)
+      {
+        CFStringRef lang = CFStringCreateWithCStringNoCopy (kCFAllocatorDefault,
+							    hb_language_to_string (buffer->props.language),
+							    kCFStringEncodingUTF8,
+							    kCFAllocatorNull);
+	if (unlikely (!lang))
+	  FAIL ("CFStringCreateWithCStringNoCopy failed");
+	CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
+					kCTLanguageAttributeName, lang);
+	CFRelease (lang);
+      }
       CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 				      kCTFontAttributeName, font_data->ct_font);
 
