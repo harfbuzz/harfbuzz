@@ -685,6 +685,10 @@ retry:
 	FAIL ("CFAttributedStringCreateMutable failed");
       CFAttributedStringReplaceString (attr_string, CFRangeMake (0, 0), string_ref);
       CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
+				      kCTVerticalFormsAttributeName,
+				      HB_DIRECTION_IS_VERTICAL (buffer->props.direction) ?
+				      kCFBooleanTrue : kCFBooleanFalse);
+      CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 				      kCTFontAttributeName, font_data->ct_font);
 
       if (num_features)
@@ -739,6 +743,7 @@ retry:
 
     CFArrayRef glyph_runs = CTLineGetGlyphRuns (line);
     unsigned int num_runs = CFArrayGetCount (glyph_runs);
+    DEBUG_MSG (CORETEXT, NULL, "Num runs: %d", num_runs);
 
     buffer->len = 0;
     uint32_t status_and = ~0, status_or = 0;
@@ -778,6 +783,8 @@ retry:
 	if (!matched)
 	{
 	  CFRange range = CTRunGetStringRange (run);
+          DEBUG_MSG (CORETEXT, run, "Run used fallback font: %ld..%ld",
+		     range.location, range.location + range.length);
 	  if (!buffer->ensure_inplace (buffer->len + range.length))
 	    goto resize_and_retry;
 	  hb_glyph_info_t *info = buffer->info + buffer->len;
@@ -818,54 +825,73 @@ retry:
       if (!buffer->ensure (buffer->len + num_glyphs))
 	goto resize_and_retry;
 
+      hb_glyph_info_t *run_info = buffer->info + buffer->len;
+
       /* Testing used to indicate that CTRunGetGlyphsPtr, etc (almost?) always
        * succeed, and so copying data to our own buffer will be rare.  Reports
        * have it that this changed in OS X 10.10 Yosemite, and NULL is returned
        * frequently.  At any rate, we can test that codepath by setting USE_PTR
        * to false. */
 #define USE_PTR true
-
-      const CGGlyph* glyphs = USE_PTR ? CTRunGetGlyphsPtr (run) : NULL;
-      if (!glyphs) {
-	ALLOCATE_ARRAY (CGGlyph, glyph_buf, num_glyphs, goto resize_and_retry);
-	CTRunGetGlyphs (run, range_all, glyph_buf);
-	glyphs = glyph_buf;
+      {
+	const CGGlyph* glyphs = USE_PTR ? CTRunGetGlyphsPtr (run) : NULL;
+	if (!glyphs) {
+	  ALLOCATE_ARRAY (CGGlyph, glyph_buf, num_glyphs, goto resize_and_retry);
+	  CTRunGetGlyphs (run, range_all, glyph_buf);
+	  glyphs = glyph_buf;
+	}
+	const CFIndex* string_indices = USE_PTR ? CTRunGetStringIndicesPtr (run) : NULL;
+	if (!string_indices) {
+	  ALLOCATE_ARRAY (CFIndex, index_buf, num_glyphs, goto resize_and_retry);
+	  CTRunGetStringIndices (run, range_all, index_buf);
+	  string_indices = index_buf;
+	}
+	hb_glyph_info_t *info = run_info;
+	for (unsigned int j = 0; j < num_glyphs; j++)
+	{
+	  info->codepoint = glyphs[j];
+	  info->cluster = log_clusters[string_indices[j]];
+	  info++;
+	}
       }
-
-      const CGPoint* positions = USE_PTR ? CTRunGetPositionsPtr (run) : NULL;
-      if (!positions) {
-	ALLOCATE_ARRAY (CGPoint, position_buf, num_glyphs, goto resize_and_retry);
-	CTRunGetPositions (run, range_all, position_buf);
-	positions = position_buf;
+      {
+	const CGPoint* positions = USE_PTR ? CTRunGetPositionsPtr (run) : NULL;
+	if (!positions) {
+	  ALLOCATE_ARRAY (CGPoint, position_buf, num_glyphs, goto resize_and_retry);
+	  CTRunGetPositions (run, range_all, position_buf);
+	  positions = position_buf;
+	}
+	double run_advance = CTRunGetTypographicBounds (run, range_all, NULL, NULL, NULL);
+	DEBUG_MSG (CORETEXT, run, "Run advance: %g", run_advance);
+	hb_glyph_info_t *info = run_info;
+	if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+	{
+	  for (unsigned int j = 0; j < num_glyphs; j++)
+	  {
+	    double advance = (j + 1 < num_glyphs ? positions[j + 1].x : positions[0].x + run_advance) - positions[j].x;
+	    info->mask = advance;
+	    info->var1.u32 = positions[0].x; /* Yes, zero. */
+	    info->var2.u32 = positions[j].y;
+	    info++;
+	  }
+	}
+	else
+	{
+	  run_advance = -run_advance;
+	  for (unsigned int j = 0; j < num_glyphs; j++)
+	  {
+	    double advance = (j + 1 < num_glyphs ? positions[j + 1].y : positions[0].y + run_advance) - positions[j].y;
+	    info->mask = advance;
+	    info->var1.u32 = positions[j].x;
+	    info->var2.u32 = positions[0].y; /* Yes, zero. */
+	    info++;
+	  }
+	}
       }
-
-      const CFIndex* string_indices = USE_PTR ? CTRunGetStringIndicesPtr (run) : NULL;
-      if (!string_indices) {
-	ALLOCATE_ARRAY (CFIndex, index_buf, num_glyphs, goto resize_and_retry);
-	CTRunGetStringIndices (run, range_all, index_buf);
-	string_indices = index_buf;
-      }
-
 #undef USE_PTR
 #undef ALLOCATE_ARRAY
 
-      double run_width = CTRunGetTypographicBounds (run, range_all, NULL, NULL, NULL);
-
-      for (unsigned int j = 0; j < num_glyphs; j++) {
-	double advance = (j + 1 < num_glyphs ? positions[j + 1].x : positions[0].x + run_width) - positions[j].x;
-
-	hb_glyph_info_t *info = &buffer->info[buffer->len];
-
-	info->codepoint = glyphs[j];
-	info->cluster = log_clusters[string_indices[j]];
-
-	/* Currently, we do all x-positioning by setting the advance, we never use x-offset. */
-	info->mask = advance;
-	info->var1.u32 = 0;
-	info->var2.u32 = positions[j].y;
-
-	buffer->len++;
-      }
+      buffer->len += num_glyphs;
     }
 
     /* Make sure all runs had the expected direction. */
@@ -876,15 +902,24 @@ retry:
     buffer->clear_positions ();
 
     unsigned int count = buffer->len;
-    for (unsigned int i = 0; i < count; ++i) {
-      hb_glyph_info_t *info = &buffer->info[i];
-      hb_glyph_position_t *pos = &buffer->pos[i];
-
-      /* TODO vertical */
-      pos->x_advance = info->mask;
-      pos->x_offset = info->var1.u32;
-      pos->y_offset = info->var2.u32;
-    }
+    hb_glyph_info_t *info = buffer->info;
+    hb_glyph_position_t *pos = buffer->pos;
+    if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
+      for (unsigned int i = 0; i < count; i++)
+      {
+	pos->x_advance = info->mask;
+	pos->x_offset = info->var1.u32;
+	pos->y_offset = info->var2.u32;
+	info++, pos++;
+      }
+    else
+      for (unsigned int i = 0; i < count; i++)
+      {
+	pos->y_advance = info->mask;
+	pos->x_offset = info->var1.u32;
+	pos->y_offset = info->var2.u32;
+	info++, pos++;
+      }
 
     /* Fix up clusters so that we never return out-of-order indices;
      * if core text has reordered glyphs, we'll merge them to the
