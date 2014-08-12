@@ -693,10 +693,11 @@ retry:
       if (unlikely (!attr_string))
 	FAIL ("CFAttributedStringCreateMutable failed");
       CFAttributedStringReplaceString (attr_string, CFRangeMake (0, 0), string_ref);
-      CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
-				      kCTVerticalFormsAttributeName,
-				      HB_DIRECTION_IS_VERTICAL (buffer->props.direction) ?
-				      kCFBooleanTrue : kCFBooleanFalse);
+      if (HB_DIRECTION_IS_VERTICAL (buffer->props.direction))
+      {
+	CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
+					kCTVerticalFormsAttributeName, kCFBooleanTrue);
+      }
       CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 				      kCTFontAttributeName, font_data->ct_font);
 
