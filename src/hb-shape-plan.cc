@@ -418,26 +418,20 @@ hb_shape_plan_create_cached (hb_face_t                     *face,
   };
 
   if (shaper_list) {
-    /* Choose shaper.  Adapted from hb_shape_plan_plan(). */
-#define HB_SHAPER_PLAN(shaper) \
-	  { \
-	    if (hb_##shaper##_shaper_face_data_ensure (face)) \
-	    { \
-	      proposal.shaper_func = _hb_##shaper##_shape; \
-	      break; \
-	    } \
-	  }
-
+    /* Choose shaper.  Adapted from hb_shape_plan_plan().
+     * Must choose shaper exactly the same way as that function. */
     for (const char * const *shaper_item = shaper_list; *shaper_item; shaper_item++)
       if (0)
 	;
 #define HB_SHAPER_IMPLEMENT(shaper) \
-      else if (0 == strcmp (*shaper_item, #shaper)) \
-	HB_SHAPER_PLAN (shaper)
+      else if (0 == strcmp (*shaper_item, #shaper) && \
+	       hb_##shaper##_shaper_face_data_ensure (face)) \
+      { \
+	proposal.shaper_func = _hb_##shaper##_shape; \
+	break; \
+      }
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
-
-#undef HB_SHAPER_PLAN
 
     if (unlikely (!proposal.shaper_list))
       return hb_shape_plan_get_empty ();
