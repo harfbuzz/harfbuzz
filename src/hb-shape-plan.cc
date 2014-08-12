@@ -115,8 +115,9 @@ hb_shape_plan_create (hb_face_t                     *face,
 		      unsigned int                   num_user_features,
 		      const char * const            *shaper_list)
 {
-  DEBUG_MSG_FUNC (SHAPE_PLAN, face,
-		  "num_features=%d shaper_list=%p",
+  DEBUG_MSG_FUNC (SHAPE_PLAN, NULL,
+		  "face=%p num_features=%d shaper_list=%p",
+		  face,
 		  num_user_features,
 		  shaper_list);
 
@@ -404,8 +405,9 @@ hb_shape_plan_create_cached (hb_face_t                     *face,
 			     unsigned int                   num_user_features,
 			     const char * const            *shaper_list)
 {
-  DEBUG_MSG_FUNC (SHAPE_PLAN, face,
-		  "num_user_features=%d shaper_list=%p",
+  DEBUG_MSG_FUNC (SHAPE_PLAN, NULL,
+		  "face=%p num_features=%d shaper_list=%p",
+		  face,
 		  num_user_features,
 		  shaper_list);
 
@@ -442,7 +444,10 @@ retry:
   hb_face_t::plan_node_t *cached_plan_nodes = (hb_face_t::plan_node_t *) hb_atomic_ptr_get (&face->shape_plans);
   for (hb_face_t::plan_node_t *node = cached_plan_nodes; node; node = node->next)
     if (hb_shape_plan_matches (node->shape_plan, &proposal))
+    {
+      DEBUG_MSG_FUNC (SHAPE_PLAN, node->shape_plan, "fulfilled from cache");
       return hb_shape_plan_reference (node->shape_plan);
+    }
 
   /* Not found. */
 
@@ -465,6 +470,7 @@ retry:
     free (node);
     goto retry;
   }
+  DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan, "inserted into cache");
 
   return hb_shape_plan_reference (shape_plan);
 }
