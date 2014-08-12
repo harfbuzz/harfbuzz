@@ -874,8 +874,19 @@ retry:
        * have it that this changed in OS X 10.10 Yosemite, and NULL is returned
        * frequently.  At any rate, we can test that codepath by setting USE_PTR
        * to false. */
+
 #define USE_PTR true
+
+#define SCRATCH_SAVE() \
+  unsigned int scratch_size_saved = scratch_size; \
+  hb_buffer_t::scratch_buffer_t *scratch_saved = scratch
+
+#define SCRATCH_RESTORE() \
+  scratch_size = scratch_size_saved; \
+  scratch = scratch_saved;
+
       {
+        SCRATCH_SAVE();
 	const CGGlyph* glyphs = USE_PTR ? CTRunGetGlyphsPtr (run) : NULL;
 	if (!glyphs) {
 	  ALLOCATE_ARRAY (CGGlyph, glyph_buf, num_glyphs, goto resize_and_retry);
@@ -895,8 +906,10 @@ retry:
 	  info->cluster = log_clusters[string_indices[j]];
 	  info++;
 	}
+	SCRATCH_RESTORE();
       }
       {
+        SCRATCH_SAVE();
 	const CGPoint* positions = USE_PTR ? CTRunGetPositionsPtr (run) : NULL;
 	if (!positions) {
 	  ALLOCATE_ARRAY (CGPoint, position_buf, num_glyphs, goto resize_and_retry);
@@ -929,7 +942,10 @@ retry:
 	    info++;
 	  }
 	}
+	SCRATCH_RESTORE();
       }
+#undef SCRATCH_RESTORE
+#undef SCRATCH_SAVE
 #undef USE_PTR
 #undef ALLOCATE_ARRAY
 
