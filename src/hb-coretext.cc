@@ -843,6 +843,7 @@ retry:
 	  CGGlyph notdef = 0;
 	  double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font, kCTFontHorizontalOrientation, &notdef, NULL, 1);
 
+	  unsigned int old_len = buffer->len;
 	  for (CFIndex j = range.location; j < range.location + range.length; j++)
 	  {
 	      UniChar ch = CFStringGetCharacterAtIndex (string_ref, j);
@@ -865,6 +866,8 @@ retry:
 	      info++;
 	      buffer->len++;
 	  }
+	  if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+	    buffer->reverse_range (old_len, buffer->len);
 	  continue;
 	}
       }
