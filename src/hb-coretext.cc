@@ -650,6 +650,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   if (0)
   {
 resize_and_retry:
+    DEBUG_MSG (CORETEXT, buffer, "Buffer resize");
     /* string_ref uses the scratch-buffer for backing store, and line references
      * string_ref (via attr_string).  We must release those before resizing buffer. */
     assert (string_ref);
@@ -814,8 +815,7 @@ retry:
       if (num_glyphs == 0)
 	continue;
 
-      unsigned int alt_size = (sizeof (CGGlyph) + sizeof (CGPoint) + sizeof (CFIndex)) / sizeof (hb_glyph_info_t) + 2;
-      if (!buffer->ensure (MAX (buffer->len + num_glyphs, alt_size)))
+      if (!buffer->ensure (buffer->len + num_glyphs))
 	goto resize_and_retry;
 
       /* Testing used to indicate that CTRunGetGlyphsPtr, etc (almost?) always
