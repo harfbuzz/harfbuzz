@@ -96,6 +96,8 @@
 
 #if (defined(__WIN32__) && !defined(__WINE__)) || defined(_MSC_VER)
 #define snprintf _snprintf
+/* Windows CE only has _strdup, while rest of Windows has both. */
+#define strdup _strdup
 #endif
 
 #ifdef _MSC_VER
