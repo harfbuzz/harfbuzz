@@ -1,3 +1,32 @@
+Overview of changes leading to 0.9.35
+Saturday, August 13, 2014
+=====================================
+
+- Fix major shape-plan caching bug when more than one shaper were
+  provided to hb_shape_full() (as exercised by XeTeX).
+  http://www.mail-archive.com/debian-bugs-dist@lists.debian.org/msg1246370.html
+- Fix Arabic fallback shaping regression.  This was broken in 0.9.32.
+- Major hb-coretext fixes.  That backend is complete now, including
+  respecing buffer direction and language, down to vertical writing.
+- Build fixes for Windows CE.  Should build fine now.
+- Misc fixes:
+  Use atexit() only if it's safe to call from shared library
+  https://bugs.freedesktop.org/show_bug.cgi?id=82246
+  Mandaic had errors in its Unicode Joining_Type
+  https://bugs.freedesktop.org/show_bug.cgi?id=82306
+- API changes:
+
+  * hb_buffer_clear_contents() does not reset buffer flags now.
+
+    After 763e5466c0a03a7c27020e1e2598e488612529a7, one doesn't
+    need to set flags for different pieces of text.  The flags now
+    are something the client sets up once, depending on how it
+    actually uses the buffer.  As such, don't clear it in
+    clear_contents().
+
+    I don't expect any changes to be needed to any existing client.
+
+
 Overview of changes leading to 0.9.34
 Saturday, August 2, 2014
 =====================================
