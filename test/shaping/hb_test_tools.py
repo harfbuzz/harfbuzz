@@ -411,7 +411,7 @@ class Unicode:
 	def parse (s):
 		s = re.sub (r"0[xX]", " ", s)
 		s = re.sub (r"[<+>,;&#\\xXuU\n	]", " ", s)
-		return [int (x, 16) for x in s.split (' ') if len (x)]
+		return [int (x, 16) for x in s.split ()]
 
 	@staticmethod
 	def encode (s):
