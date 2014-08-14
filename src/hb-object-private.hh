@@ -106,8 +106,7 @@ struct hb_object_header_t
 
   private:
 
-  template <typename Type> friend
-  static inline Type *hb_object_create (void);
+  template <typename Type> friend Type *hb_object_create (void);
   static inline void *create (unsigned int size) {
     hb_object_header_t *obj = (hb_object_header_t *) calloc (1, size);
 
@@ -117,27 +116,23 @@ struct hb_object_header_t
     return obj;
   }
 
-  template <typename Type> friend
-  static inline void hb_object_init (Type *obj);
+  template <typename Type> friend void hb_object_init (Type *obj);
   inline void init (void) {
     ref_count.init (1);
     user_data.init ();
   }
 
-  template <typename Type> friend
-  static inline bool hb_object_is_inert (const Type *obj);
+  template <typename Type> friend bool hb_object_is_inert (const Type *obj);
   inline bool is_inert (void) const {
     return unlikely (ref_count.is_invalid ());
   }
 
-  template <typename Type> friend
-  static inline Type *hb_object_reference (Type *obj);
+  template <typename Type> friend Type *hb_object_reference (Type *obj);
   inline void reference (void) {
     ref_count.inc ();
   }
 
-  template <typename Type> friend
-  static inline bool hb_object_destroy (Type *obj);
+  template <typename Type> friend bool hb_object_destroy (Type *obj);
   inline bool destroy (void) {
     if (ref_count.dec () != 1)
       return false;
@@ -148,12 +143,11 @@ struct hb_object_header_t
     return true;
   }
 
-  template <typename Type> friend
-  static inline bool hb_object_set_user_data (Type               *obj,
-					      hb_user_data_key_t *key,
-					      void *              data,
-					      hb_destroy_func_t   destroy,
-					      hb_bool_t           replace);
+  template <typename Type> friend bool hb_object_set_user_data (Type               *obj,
+								hb_user_data_key_t *key,
+								void *              data,
+								hb_destroy_func_t   destroy,
+								hb_bool_t           replace);
   inline bool set_user_data (hb_user_data_key_t *key,
 			     void *              data,
 			     hb_destroy_func_t   destroy_func,
@@ -161,15 +155,13 @@ struct hb_object_header_t
     return user_data.set (key, data, destroy_func, replace);
   }
 
-  template <typename type> friend
-  static inline void *hb_object_get_user_data (type               *obj,
-					       hb_user_data_key_t *key);
+  template <typename type> friend void *hb_object_get_user_data (type               *obj,
+								 hb_user_data_key_t *key);
   inline void *get_user_data (hb_user_data_key_t *key) {
     return user_data.get (key);
   }
 
-  template <typename Type> friend
-  static inline void hb_object_trace (const Type *obj, const char *function);
+  template <typename Type> friend void hb_object_trace (const Type *obj, const char *function);
   inline void trace (const char *function) const {
     if (unlikely (!this)) return;
     DEBUG_MSG (OBJECT, (void *) this,
