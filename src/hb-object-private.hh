@@ -95,6 +95,74 @@ struct hb_user_data_array_t
 };
 
 
+/* object */
+
+template <typename Type>
+static inline void hb_object_trace (const Type *obj, const char *function)
+{
+  obj->header.trace (function);
+}
+
+template <typename Type>
+static inline Type *hb_object_create (void)
+{
+  Type *obj = (Type *) calloc (1, sizeof (Type));
+
+  if (unlikely (!obj))
+    return obj;
+
+  hb_object_init (obj);
+  hb_object_trace (obj, HB_FUNC);
+  return obj;
+}
+template <typename Type>
+static inline void hb_object_init (Type *obj)
+{
+  obj->header.init ();
+}
+template <typename Type>
+static inline bool hb_object_is_inert (const Type *obj)
+{
+  return unlikely (obj->header.is_inert ());
+}
+template <typename Type>
+static inline Type *hb_object_reference (Type *obj)
+{
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return obj;
+  hb_object_trace (obj, HB_FUNC);
+  obj->header.reference ();
+  return obj;
+}
+template <typename Type>
+static inline bool hb_object_destroy (Type *obj)
+{
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return false;
+  hb_object_trace (obj, HB_FUNC);
+  return obj->header.destroy ();
+}
+template <typename Type>
+static inline bool hb_object_set_user_data (Type               *obj,
+					    hb_user_data_key_t *key,
+					    void *              data,
+					    hb_destroy_func_t   destroy,
+					    hb_bool_t           replace)
+{
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return false;
+  return obj->header.set_user_data (key, data, destroy, replace);
+}
+
+template <typename Type>
+static inline void *hb_object_get_user_data (Type               *obj,
+					     hb_user_data_key_t *key)
+{
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return NULL;
+  return obj->header.get_user_data (key);
+}
+
 /* object_header */
 
 struct hb_object_header_t
@@ -105,16 +173,6 @@ struct hb_object_header_t
 #define HB_OBJECT_HEADER_STATIC {HB_REFERENCE_COUNT_INVALID, HB_USER_DATA_ARRAY_INIT}
 
   private:
-
-  template <typename Type> friend Type *hb_object_create (void);
-  static inline void *create (unsigned int size) {
-    hb_object_header_t *obj = (hb_object_header_t *) calloc (1, size);
-
-    if (likely (obj))
-      obj->init ();
-
-    return obj;
-  }
 
   template <typename Type> friend void hb_object_init (Type *obj);
   inline void init (void) {
@@ -173,69 +231,6 @@ struct hb_object_header_t
   ASSERT_POD ();
 };
 
-
-/* object */
-
-template <typename Type>
-static inline void hb_object_trace (const Type *obj, const char *function)
-{
-  obj->header.trace (function);
-}
-
-template <typename Type>
-static inline Type *hb_object_create (void)
-{
-  Type *obj = (Type *) hb_object_header_t::create (sizeof (Type));
-  hb_object_trace (obj, HB_FUNC);
-  return obj;
-}
-template <typename Type>
-static inline void hb_object_init (Type *obj)
-{
-  obj->header.init ();
-}
-template <typename Type>
-static inline bool hb_object_is_inert (const Type *obj)
-{
-  return unlikely (obj->header.is_inert ());
-}
-template <typename Type>
-static inline Type *hb_object_reference (Type *obj)
-{
-  if (unlikely (!obj || obj->header.is_inert ()))
-    return obj;
-  hb_object_trace (obj, HB_FUNC);
-  obj->header.reference ();
-  return obj;
-}
-template <typename Type>
-static inline bool hb_object_destroy (Type *obj)
-{
-  if (unlikely (!obj || obj->header.is_inert ()))
-    return false;
-  hb_object_trace (obj, HB_FUNC);
-  return obj->header.destroy ();
-}
-template <typename Type>
-static inline bool hb_object_set_user_data (Type               *obj,
-					    hb_user_data_key_t *key,
-					    void *              data,
-					    hb_destroy_func_t   destroy,
-					    hb_bool_t           replace)
-{
-  if (unlikely (!obj || obj->header.is_inert ()))
-    return false;
-  return obj->header.set_user_data (key, data, destroy, replace);
-}
-
-template <typename Type>
-static inline void *hb_object_get_user_data (Type               *obj,
-					     hb_user_data_key_t *key)
-{
-  if (unlikely (!obj || obj->header.is_inert ()))
-    return NULL;
-  return obj->header.get_user_data (key);
-}
 
 
 #endif /* HB_OBJECT_PRIVATE_HH */
