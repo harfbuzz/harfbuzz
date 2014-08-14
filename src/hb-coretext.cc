@@ -327,7 +327,7 @@ struct range_record_t {
 #define kUpperCaseType				38
 
 /* Table data courtesy of Apple. */
-struct feature_mapping_t {
+static const struct feature_mapping_t {
     FourCharCode otFeatureTag;
     uint16_t aatFeatureType;
     uint16_t selectorToEnable;
