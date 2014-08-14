@@ -129,15 +129,11 @@ struct hb_object_header_t
 
   template <typename Type> friend Type *hb_object_reference (Type *obj);
   inline void reference (void) {
-    if (unlikely (!this || this->is_inert ()))
-      return;
     ref_count.inc ();
   }
 
   template <typename Type> friend bool hb_object_destroy (Type *obj);
   inline bool destroy (void) {
-    if (unlikely (!this || this->is_inert ()))
-      return false;
     if (ref_count.dec () != 1)
       return false;
 
@@ -156,18 +152,12 @@ struct hb_object_header_t
 			     void *              data,
 			     hb_destroy_func_t   destroy_func,
 			     hb_bool_t           replace) {
-    if (unlikely (!this || this->is_inert ()))
-      return false;
-
     return user_data.set (key, data, destroy_func, replace);
   }
 
   template <typename type> friend void *hb_object_get_user_data (type               *obj,
 								 hb_user_data_key_t *key);
   inline void *get_user_data (hb_user_data_key_t *key) {
-    if (unlikely (!this || this->is_inert ()))
-      return NULL;
-
     return user_data.get (key);
   }
 
@@ -212,6 +202,8 @@ static inline bool hb_object_is_inert (const Type *obj)
 template <typename Type>
 static inline Type *hb_object_reference (Type *obj)
 {
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return obj;
   hb_object_trace (obj, HB_FUNC);
   obj->header.reference ();
   return obj;
@@ -219,6 +211,8 @@ static inline Type *hb_object_reference (Type *obj)
 template <typename Type>
 static inline bool hb_object_destroy (Type *obj)
 {
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return false;
   hb_object_trace (obj, HB_FUNC);
   return obj->header.destroy ();
 }
@@ -229,6 +223,8 @@ static inline bool hb_object_set_user_data (Type               *obj,
 					    hb_destroy_func_t   destroy,
 					    hb_bool_t           replace)
 {
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return false;
   return obj->header.set_user_data (key, data, destroy, replace);
 }
 
@@ -236,6 +232,8 @@ template <typename Type>
 static inline void *hb_object_get_user_data (Type               *obj,
 					     hb_user_data_key_t *key)
 {
+  if (unlikely (!obj || obj->header.is_inert ()))
+    return NULL;
   return obj->header.get_user_data (key);
 }
 
