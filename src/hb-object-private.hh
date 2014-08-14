@@ -95,12 +95,29 @@ struct hb_user_data_array_t
 };
 
 
+/* object_header */
+
+struct hb_object_header_t
+{
+  hb_reference_count_t ref_count;
+  hb_user_data_array_t user_data;
+
+#define HB_OBJECT_HEADER_STATIC {HB_REFERENCE_COUNT_INVALID, HB_USER_DATA_ARRAY_INIT}
+
+  private:
+  ASSERT_POD ();
+};
+
+
 /* object */
 
 template <typename Type>
 static inline void hb_object_trace (const Type *obj, const char *function)
 {
-  obj->header.trace (function);
+  DEBUG_MSG (OBJECT, (void *) obj,
+	     "%s refcount=%d",
+	     function,
+	     obj ? obj->header.ref_count.ref_count : 0);
 }
 
 template <typename Type>
@@ -118,29 +135,35 @@ static inline Type *hb_object_create (void)
 template <typename Type>
 static inline void hb_object_init (Type *obj)
 {
-  obj->header.init ();
+  obj->header.ref_count.init (1);
+  obj->header.user_data.init ();
 }
 template <typename Type>
 static inline bool hb_object_is_inert (const Type *obj)
 {
-  return unlikely (obj->header.is_inert ());
+  return unlikely (obj->header.ref_count.is_invalid ());
 }
 template <typename Type>
 static inline Type *hb_object_reference (Type *obj)
 {
-  if (unlikely (!obj || obj->header.is_inert ()))
-    return obj;
   hb_object_trace (obj, HB_FUNC);
-  obj->header.reference ();
+  if (unlikely (!obj || hb_object_is_inert (obj)))
+    return obj;
+  obj->header.ref_count.inc ();
   return obj;
 }
 template <typename Type>
 static inline bool hb_object_destroy (Type *obj)
 {
-  if (unlikely (!obj || obj->header.is_inert ()))
-    return false;
   hb_object_trace (obj, HB_FUNC);
-  return obj->header.destroy ();
+  if (unlikely (!obj || hb_object_is_inert (obj)))
+    return false;
+  if (obj->header.ref_count.dec () != 1)
+    return false;
+
+  obj->header.ref_count.finish (); /* Do this before user_data */
+  obj->header.user_data.finish ();
+  return true;
 }
 template <typename Type>
 static inline bool hb_object_set_user_data (Type               *obj,
@@ -149,88 +172,19 @@ static inline bool hb_object_set_user_data (Type               *obj,
 					    hb_destroy_func_t   destroy,
 					    hb_bool_t           replace)
 {
-  if (unlikely (!obj || obj->header.is_inert ()))
+  if (unlikely (!obj || hb_object_is_inert (obj)))
     return false;
-  return obj->header.set_user_data (key, data, destroy, replace);
+  return obj->header.user_data.set (key, data, destroy, replace);
 }
 
 template <typename Type>
 static inline void *hb_object_get_user_data (Type               *obj,
 					     hb_user_data_key_t *key)
 {
-  if (unlikely (!obj || obj->header.is_inert ()))
+  if (unlikely (!obj || hb_object_is_inert (obj)))
     return NULL;
-  return obj->header.get_user_data (key);
+  return obj->header.user_data.get (key);
 }
-
-/* object_header */
-
-struct hb_object_header_t
-{
-  hb_reference_count_t ref_count;
-  hb_user_data_array_t user_data;
-
-#define HB_OBJECT_HEADER_STATIC {HB_REFERENCE_COUNT_INVALID, HB_USER_DATA_ARRAY_INIT}
-
-  private:
-
-  template <typename Type> friend void hb_object_init (Type *obj);
-  inline void init (void) {
-    ref_count.init (1);
-    user_data.init ();
-  }
-
-  template <typename Type> friend bool hb_object_is_inert (const Type *obj);
-  inline bool is_inert (void) const {
-    return unlikely (ref_count.is_invalid ());
-  }
-
-  template <typename Type> friend Type *hb_object_reference (Type *obj);
-  inline void reference (void) {
-    ref_count.inc ();
-  }
-
-  template <typename Type> friend bool hb_object_destroy (Type *obj);
-  inline bool destroy (void) {
-    if (ref_count.dec () != 1)
-      return false;
-
-    ref_count.finish (); /* Do this before user_data */
-    user_data.finish ();
-
-    return true;
-  }
-
-  template <typename Type> friend bool hb_object_set_user_data (Type               *obj,
-								hb_user_data_key_t *key,
-								void *              data,
-								hb_destroy_func_t   destroy,
-								hb_bool_t           replace);
-  inline bool set_user_data (hb_user_data_key_t *key,
-			     void *              data,
-			     hb_destroy_func_t   destroy_func,
-			     hb_bool_t           replace) {
-    return user_data.set (key, data, destroy_func, replace);
-  }
-
-  template <typename type> friend void *hb_object_get_user_data (type               *obj,
-								 hb_user_data_key_t *key);
-  inline void *get_user_data (hb_user_data_key_t *key) {
-    return user_data.get (key);
-  }
-
-  template <typename Type> friend void hb_object_trace (const Type *obj, const char *function);
-  inline void trace (const char *function) const {
-    if (unlikely (!this)) return;
-    DEBUG_MSG (OBJECT, (void *) this,
-	       "%s refcount=%d",
-	       function,
-	       this ? ref_count.ref_count : 0);
-  }
-
-  ASSERT_POD ();
-};
-
 
 
 #endif /* HB_OBJECT_PRIVATE_HH */
