@@ -128,8 +128,12 @@
 #  ifndef _WIN32_WINNT
 #    define _WIN32_WINNT 0x0600
 #  endif
-#  define WIN32_LEAN_AND_MEAN
-#  define STRICT
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN 1
+#  endif
+#  ifndef STRICT
+#    define STRICT 1
+#  endif
 #endif
 
 #ifdef _WIN32_WCE
