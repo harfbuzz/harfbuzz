@@ -200,7 +200,7 @@ struct SingleSubst
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return TRACE_RETURN (false);
     unsigned int format = 2;
-    int delta;
+    int delta = 0;
     if (num_glyphs) {
       format = 1;
       /* TODO(serialize) check for wrap-around */
