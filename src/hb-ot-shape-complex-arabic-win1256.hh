@@ -313,6 +313,9 @@ OT_TABLE_END
 /*
  * Include a second time to get the table data...
  */
+#if 0
+#include "hb-private.hh" /* Make check-includes.sh happy. */
+#endif
 #ifdef OT_MEASURE
 #include "hb-ot-shape-complex-arabic-win1256.hh"
 #endif
