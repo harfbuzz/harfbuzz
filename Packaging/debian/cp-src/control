@@ -1,0 +1,73 @@
+Source: harfbuzz
+Section: fonts
+Priority: optional
+Maintainer: Behdad Esfahbod <behdad@behdad.org>
+Uploaders: Behdad Esfahbod <behdad@behdad.org>,
+	   Frank Trampe <frank.trampe@gmail.com>
+XS-Python-Version: all
+Build-Depends: debhelper (>= 9),
+               autotools-dev,
+               autoconf,
+               automake,
+               chrpath,
+               libtool (>= 1.9),
+               bzip2,
+               git,
+               ragel,
+               pkg-config,
+               gtk-doc-tools,
+               gobject-introspection,
+               libglib2.0-dev,
+               libicu-dev,
+               libcairo2-dev,
+               libgraphite2-dev,
+               libfreetype6-dev
+Standards-Version: 3.9.5
+Homepage: http://harfbuzz.org/
+Vcs-Git: git://github.com/behdad/harfbuzz/
+Vcs-Browser: http://github.com/behdad/harfbuzz/
+
+Package: libharfbuzz-dev
+Section: libdevel
+Architecture: any
+Depends: ${misc:Depends},
+	 libharfbuzz (= ${binary:Version})
+Description: text shaping library - runtime library (development files)
+ Harfbuzz is a text shaping library.
+ .
+ This package contains the runtime library's development files.
+
+Package: harfbuzz
+Architecture: any
+Depends: ${misc:Depends},
+	 ${shlibs:Depends},
+	 libharfbuzz (= ${binary:Version})
+Breaks: harfbuzz (<< ${binary:Version})
+Replaces: harfbuzz (<< ${binary:Version})
+Description: text shaping library
+ Harfbuzz is a text shaping library.
+ .
+
+Package: libharfbuzz
+Section: libs
+Architecture: any
+Depends: ${misc:Depends},
+	 ${shlibs:Depends}
+Breaks: libharfbuzz (<< ${binary:Version}), harfbuzz (<< ${binary:Version}), libharfbuzz-dev (<< ${binary:Version})
+Replaces: libharfbuzz (<< ${binary:Version}), harfbuzz (<< ${binary:Version}), libharfbuzz-dev (<< ${binary:Version})
+Description: text shaping library - runtime library
+ Harfbuzz is a text shaping library.
+ .
+ This package contains the runtime library. 
+
+Package: harfbuzz-dbg
+Section: debug
+Architecture: any
+Priority: extra
+Depends: ${misc:Depends},
+         harfbuzz (= ${binary:Version})
+Description: debugging symbols for harfbuzz
+ Harfbuzz is a text shaping library.
+ .
+ This package contains the debugging symbols.
+
