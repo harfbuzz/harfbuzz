@@ -1,5 +1,5 @@
 This package was debianized by Frank Trampe <frank.trampe@gmail.com> on
-Fri, 31 Aug 2001 22:51:17 -0600.
+Thu, 11 Sep 2014 16:35:22 -0600.
 
 Frank Trampe repurposed packaging support files from FontForge in order to provide automatic packaging functionality.
 
@@ -39,6 +39,9 @@ BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
 ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+pkg.mk comes from Frank Trampe and is available according to the terms
+of the preceding license as well.
 
 The configure script is subject to the GNU General public license.
 
