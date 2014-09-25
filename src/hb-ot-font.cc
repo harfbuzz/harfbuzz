@@ -35,7 +35,7 @@
 #include "hb-ot-hmtx-table.hh"
 
 
-struct metrics_accel_t
+struct hb_ot_face_metrics_accelerator_t
 {
   unsigned int num_metrics;
   unsigned int num_advances;
@@ -43,19 +43,19 @@ struct metrics_accel_t
   const OT::_mtx *table;
   hb_blob_t *blob;
 
-  inline void init (hb_font_t *font,
+  inline void init (hb_face_t *face,
 		    hb_tag_t _hea_tag, hb_tag_t _mtx_tag,
 		    unsigned int default_advance)
   {
     this->default_advance = default_advance;
-    this->num_metrics = font->face->get_num_glyphs ();
+    this->num_metrics = face->get_num_glyphs ();
 
-    hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (font->face->reference_table (_hea_tag));
+    hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (face->reference_table (_hea_tag));
     const OT::_hea *_hea = OT::Sanitizer<OT::_hea>::lock_instance (_hea_blob);
     this->num_advances = _hea->numberOfLongMetrics;
     hb_blob_destroy (_hea_blob);
 
-    this->blob = OT::Sanitizer<OT::_mtx>::sanitize (font->face->reference_table (_mtx_tag));
+    this->blob = OT::Sanitizer<OT::_mtx>::sanitize (face->reference_table (_mtx_tag));
     if (unlikely (!this->num_advances ||
 		  2 * (this->num_advances + this->num_metrics) < hb_blob_get_length (this->blob)))
     {
@@ -93,8 +93,8 @@ struct metrics_accel_t
 
 struct hb_ot_font_t
 {
-  metrics_accel_t h_metrics;
-  metrics_accel_t v_metrics;
+  hb_ot_face_metrics_accelerator_t h_metrics;
+  hb_ot_face_metrics_accelerator_t v_metrics;
 
   const OT::CmapSubtable *cmap;
   const OT::CmapSubtable *cmap_uvs;
@@ -106,17 +106,18 @@ static hb_ot_font_t *
 _hb_ot_font_create (hb_font_t *font)
 {
   hb_ot_font_t *ot_font = (hb_ot_font_t *) calloc (1, sizeof (hb_ot_font_t));
+  hb_face_t *face = font->face;
 
   if (unlikely (!ot_font))
     return NULL;
 
-  unsigned int upem = font->face->get_upem ();
+  unsigned int upem = face->get_upem ();
 
-  ot_font->h_metrics.init (font, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, upem>>1);
+  ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, upem>>1);
   /* TODO Can we do this lazily? */
-  ot_font->v_metrics.init (font, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, upem);
+  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, upem);
 
-  ot_font->cmap_blob = OT::Sanitizer<OT::cmap>::sanitize (font->face->reference_table (HB_OT_TAG_cmap));
+  ot_font->cmap_blob = OT::Sanitizer<OT::cmap>::sanitize (face->reference_table (HB_OT_TAG_cmap));
   const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (ot_font->cmap_blob);
   const OT::CmapSubtable *subtable = NULL;
   const OT::CmapSubtable *subtable_uvs = NULL;
