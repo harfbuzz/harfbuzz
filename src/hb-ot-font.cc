@@ -39,11 +39,15 @@ struct metrics_accel_t
 {
   unsigned int num_metrics;
   unsigned int num_advances;
+  unsigned int default_advance;
   const OT::_mtx *table;
   hb_blob_t *blob;
 
-  inline void init (hb_font_t *font, hb_tag_t _hea_tag, hb_tag_t _mtx_tag)
+  inline void init (hb_font_t *font,
+		    hb_tag_t _hea_tag, hb_tag_t _mtx_tag,
+		    unsigned int default_advance)
   {
+    this->default_advance = default_advance;
     this->num_metrics = font->face->get_num_glyphs ();
 
     hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (font->face->reference_table (_hea_tag));
@@ -55,6 +59,7 @@ struct metrics_accel_t
     if (unlikely (!this->num_advances ||
 		  2 * (this->num_advances + this->num_metrics) < hb_blob_get_length (this->blob)))
     {
+      this->num_metrics = this->num_advances = 0;
       hb_blob_destroy (this->blob);
       this->blob = hb_blob_get_empty ();
     }
@@ -69,7 +74,15 @@ struct metrics_accel_t
   inline unsigned int get_advance (hb_codepoint_t glyph) const
   {
     if (unlikely (glyph >= this->num_metrics))
-      return 0;
+    {
+      /* If this->num_metrics is zero, it means we don't have the metrics table
+       * for this direction: return one EM.  Otherwise, it means that the glyph
+       * index is out of bound: return zero. */
+      if (this->num_metrics)
+	return 0;
+      else
+	return this->default_advance;
+    }
 
     if (glyph >= this->num_advances)
       glyph = this->num_advances - 1;
@@ -80,8 +93,6 @@ struct metrics_accel_t
 
 struct hb_ot_font_t
 {
-  unsigned int num_glyphs;
-
   metrics_accel_t h_metrics;
   metrics_accel_t v_metrics;
 
@@ -99,11 +110,11 @@ _hb_ot_font_create (hb_font_t *font)
   if (unlikely (!ot_font))
     return NULL;
 
-  ot_font->num_glyphs = font->face->get_num_glyphs ();
+  unsigned int upem = font->face->get_upem ();
 
-  ot_font->h_metrics.init (font, HB_OT_TAG_hhea, HB_OT_TAG_hmtx);
+  ot_font->h_metrics.init (font, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, upem>>1);
   /* TODO Can we do this lazily? */
-  ot_font->v_metrics.init (font, HB_OT_TAG_vhea, HB_OT_TAG_vmtx);
+  ot_font->v_metrics.init (font, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, upem);
 
   ot_font->cmap_blob = OT::Sanitizer<OT::cmap>::sanitize (font->face->reference_table (HB_OT_TAG_cmap));
   const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (ot_font->cmap_blob);
@@ -233,6 +244,7 @@ hb_ot_get_glyph_v_kerning (hb_font_t *font HB_UNUSED,
 			   hb_codepoint_t bottom_glyph HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
+  /* OpenType doesn't have vertical-kerning other than GPOS. */
   return 0;
 }
 
