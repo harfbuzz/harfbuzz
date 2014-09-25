@@ -80,7 +80,7 @@ struct _hea
   SHORT		reserved3;		/* Set to 0. */
   SHORT		reserved4;		/* Set to 0. */
   SHORT		metricDataFormat;	/* 0 for current format. */
-  USHORT	numberOfMetrics;	/* Number of LongMetric entries in metric
+  USHORT	numberOfLongMetrics;	/* Number of LongMetric entries in metric
 					 * table. */
   public:
   DEFINE_SIZE_STATIC (36);

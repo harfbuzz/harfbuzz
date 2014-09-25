@@ -63,7 +63,7 @@ struct _mtx
   }
 
   public:
-  LongMetric	longHorMetric[VAR];	/* Paired advance width and leading
+  LongMetric	longMetric[VAR];	/* Paired advance width and leading
 					 * bearing values for each glyph. The
 					 * value numOfHMetrics comes from
 					 * the 'hhea' table. If the font is
@@ -85,7 +85,7 @@ struct _mtx
 					 * font to vary the side bearing
 					 * values for each glyph. */
   public:
-  DEFINE_SIZE_ARRAY2 (0, longHorMetric, leadingBearingX);
+  DEFINE_SIZE_ARRAY2 (0, longMetric, leadingBearingX);
 };
 
 struct hmtx : _mtx {

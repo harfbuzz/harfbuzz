@@ -35,18 +35,55 @@
 #include "hb-ot-hmtx-table.hh"
 
 
+struct metrics_accel_t
+{
+  unsigned int num_metrics;
+  unsigned int num_advances;
+  const OT::_mtx *table;
+  hb_blob_t *blob;
+
+  inline void init (hb_font_t *font, hb_tag_t _hea_tag, hb_tag_t _mtx_tag)
+  {
+    this->num_metrics = font->face->get_num_glyphs ();
+
+    hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (font->face->reference_table (_hea_tag));
+    const OT::_hea *_hea = OT::Sanitizer<OT::_hea>::lock_instance (_hea_blob);
+    this->num_advances = _hea->numberOfLongMetrics;
+    hb_blob_destroy (_hea_blob);
+
+    this->blob = OT::Sanitizer<OT::_mtx>::sanitize (font->face->reference_table (_mtx_tag));
+    if (unlikely (!this->num_advances ||
+		  2 * (this->num_advances + this->num_metrics) < hb_blob_get_length (this->blob)))
+    {
+      hb_blob_destroy (this->blob);
+      this->blob = hb_blob_get_empty ();
+    }
+    this->table = OT::Sanitizer<OT::_mtx>::lock_instance (this->blob);
+  }
+
+  inline void fini (void)
+  {
+    hb_blob_destroy (this->blob);
+  }
+
+  inline unsigned int get_advance (hb_codepoint_t glyph) const
+  {
+    if (unlikely (glyph >= this->num_metrics))
+      return 0;
+
+    if (glyph >= this->num_advances)
+      glyph = this->num_advances - 1;
+
+    return this->table->longMetric[glyph].advance;
+  }
+};
 
 struct hb_ot_font_t
 {
   unsigned int num_glyphs;
 
-  unsigned int num_hmetrics;
-  const OT::hmtx *hmtx;
-  hb_blob_t *hmtx_blob;
-
-  unsigned int num_vmetrics;
-  const OT::vmtx *vmtx;
-  hb_blob_t *vmtx_blob;
+  metrics_accel_t h_metrics;
+  metrics_accel_t v_metrics;
 
   const OT::CmapSubtable *cmap;
   const OT::CmapSubtable *cmap_uvs;
@@ -64,41 +101,9 @@ _hb_ot_font_create (hb_font_t *font)
 
   ot_font->num_glyphs = font->face->get_num_glyphs ();
 
-  /* Setup horizontal metrics. */
-  {
-    hb_blob_t *hhea_blob = OT::Sanitizer<OT::hhea>::sanitize (font->face->reference_table (HB_OT_TAG_hhea));
-    const OT::hhea *hhea = OT::Sanitizer<OT::hhea>::lock_instance (hhea_blob);
-    ot_font->num_hmetrics = hhea->numberOfMetrics;
-    hb_blob_destroy (hhea_blob);
-
-    ot_font->hmtx_blob = OT::Sanitizer<OT::hmtx>::sanitize (font->face->reference_table (HB_OT_TAG_hmtx));
-    if (unlikely (!ot_font->num_hmetrics ||
-		  2 * (ot_font->num_hmetrics + ot_font->num_glyphs) < hb_blob_get_length (ot_font->hmtx_blob)))
-    {
-      hb_blob_destroy (ot_font->hmtx_blob);
-      free (ot_font);
-      return NULL;
-    }
-    ot_font->hmtx = OT::Sanitizer<OT::hmtx>::lock_instance (ot_font->hmtx_blob);
-  }
-
-  /* Setup vertical metrics. */
-  {
-    hb_blob_t *vhea_blob = OT::Sanitizer<OT::vhea>::sanitize (font->face->reference_table (HB_OT_TAG_vhea));
-    const OT::vhea *vhea = OT::Sanitizer<OT::vhea>::lock_instance (vhea_blob);
-    ot_font->num_vmetrics = vhea->numberOfMetrics;
-    hb_blob_destroy (vhea_blob);
-
-    ot_font->vmtx_blob = OT::Sanitizer<OT::vmtx>::sanitize (font->face->reference_table (HB_TAG('v','m','t','x')));
-    if (unlikely (!ot_font->num_vmetrics ||
-		  2 * (ot_font->num_vmetrics + ot_font->num_glyphs) < hb_blob_get_length (ot_font->vmtx_blob)))
-    {
-      hb_blob_destroy (ot_font->vmtx_blob);
-      free (ot_font);
-      return NULL;
-    }
-    ot_font->vmtx = OT::Sanitizer<OT::vmtx>::lock_instance (ot_font->vmtx_blob);
-  }
+  ot_font->h_metrics.init (font, HB_OT_TAG_hhea, HB_OT_TAG_hmtx);
+  /* TODO Can we do this lazily? */
+  ot_font->v_metrics.init (font, HB_OT_TAG_vhea, HB_OT_TAG_vmtx);
 
   ot_font->cmap_blob = OT::Sanitizer<OT::cmap>::sanitize (font->face->reference_table (HB_OT_TAG_cmap));
   const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (ot_font->cmap_blob);
@@ -133,8 +138,8 @@ static void
 _hb_ot_font_destroy (hb_ot_font_t *ot_font)
 {
   hb_blob_destroy (ot_font->cmap_blob);
-  hb_blob_destroy (ot_font->hmtx_blob);
-  hb_blob_destroy (ot_font->vmtx_blob);
+  ot_font->h_metrics.fini ();
+  ot_font->v_metrics.fini ();
 
   free (ot_font);
 }
@@ -173,14 +178,7 @@ hb_ot_get_glyph_h_advance (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-
-  if (unlikely (glyph >= ot_font->num_glyphs))
-    return 0;
-
-  if (glyph >= ot_font->num_hmetrics)
-    glyph = ot_font->num_hmetrics - 1;
-
-  return font->em_scale_x (ot_font->hmtx->longHorMetric[glyph].advance);
+  return font->em_scale_x (ot_font->h_metrics.get_advance (glyph));
 }
 
 static hb_position_t
@@ -190,14 +188,7 @@ hb_ot_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-
-  if (unlikely (glyph >= ot_font->num_glyphs))
-    return 0;
-
-  if (glyph >= ot_font->num_vmetrics)
-    glyph = ot_font->num_vmetrics - 1;
-
-  return font->em_scale_y (-ot_font->vmtx->longHorMetric[glyph].advance);
+  return font->em_scale_y (-ot_font->v_metrics.get_advance (glyph));
 }
 
 static hb_bool_t
