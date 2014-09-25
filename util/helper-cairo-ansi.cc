@@ -63,10 +63,10 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
    * Find the tight image top/bottom and only print in between. */
 
   /* Use corner color as background color. */
-  uint32_t bg_color = * (uint32_t *) data;
+  uint32_t bg_color = data ? * (uint32_t *) data : 0;
 
   /* Drop first row while empty */
-  while (height) 
+  while (height)
   {
     unsigned int i;
     for (i = 0; i < width; i++)
