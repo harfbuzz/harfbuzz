@@ -4,8 +4,10 @@ compiler:
   - gcc
 env:
   global:
-    - FEATURES="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
-    - CPPFLAGS="-Werror -fprofile-arcs -ftest-coverage" LDFLAGS="-lgcov"
+    - CPPFLAGS=""
+    - CFLAGS="-Werror --coverage"
+    - CXXFLAGS="-Werror --coverage"
+    - LDFLAGS="--coverage"
 before_install:
   - sudo apt-get install pkg-config ragel gtk-doc-tools # for autogen.sh
   - sudo apt-get install libfreetype6-dev # for font functions
@@ -20,9 +22,8 @@ before_script:
   - true
 script:
   - NOCONFIGURE=1 ./autogen.sh
-  - ./configure $FEATURES CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
-  - make
-  - make check
+  - ./configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
+  - make && make check
 after_success:
   - rm -f src/.libs/NONE.gcov # coveralls chokes on this
   - touch src/NONE # see if this makes coveralls happy
