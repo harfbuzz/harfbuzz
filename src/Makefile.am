@@ -234,8 +234,8 @@ hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
 	$(AM_V_GEN) $(GLIB_MKENUMS) \
 		--identifier-prefix hb_ --symbol-prefix hb_gobject \
 		--template $^ | \
-	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@.tmp" && \
-	mv "$@.tmp" "$@" || ( $(RM) "@.tmp" && false )
+	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@" \
+	|| ($(RM) "$@"; false)
 endif
 EXTRA_DIST += \
 	harfbuzz-gobject.pc.in \
@@ -251,8 +251,8 @@ EXTRA_DIST += \
 		-e 's@%libdir%@$(libdir)@g' \
 		-e 's@%includedir%@$(includedir)@g' \
 		-e 's@%VERSION%@$(VERSION)@g' \
-	"$<" \
-	> "$@.tmp" && mv "$@.tmp" "$@" || ( $(RM) "$@.tmp"; false )
+	"$<" > "$@" \
+	|| ($(RM) "$@"; false)
 
 CLEANFILES += $(pkgconfig_DATA)
 
@@ -265,8 +265,9 @@ harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
 	sed -e 's/ (.*//' | \
 	LANG=C sort; \
 	echo LIBRARY libharfbuzz-$(HB_VERSION_MAJOR).dll; \
-	) >"$@.tmp"
-	@ ! grep -q hb_ERROR "$@.tmp" && mv "$@.tmp" "$@" || ($(RM) "$@"; false)
+	) >"$@"
+	@ ! grep -q hb_ERROR "$@" \
+	|| ($(RM) "$@"; false)
 
 
 GENERATORS = \
@@ -278,14 +279,12 @@ EXTRA_DIST += $(GENERATORS)
 unicode-tables: arabic-table indic-table
 
 indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicMatraCategory.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc.tmp && \
-	mv hb-ot-shape-complex-indic-table.cc.tmp $(srcdir)/hb-ot-shape-complex-indic-table.cc || \
-	($(RM) hb-ot-shape-complex-indic-table.cc.tmp; false)
+	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc \
+	|| ($(RM) hb-ot-shape-complex-indic-table.cc; false)
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh.tmp && \
-	mv hb-ot-shape-complex-arabic-table.hh.tmp $(srcdir)/hb-ot-shape-complex-arabic-table.hh || \
-	($(RM) hb-ot-shape-complex-arabic-table.hh.tmp; false)
+	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh \
+	|| ($(RM) hb-ot-shape-complex-arabic-table.hh; false)
 
 built-sources: $(BUILT_SOURCES)
 
@@ -306,8 +305,8 @@ EXTRA_DIST += \
 	hb-ot-shape-complex-sea-machine.rl \
 	$(NULL)
 .rl.hh:
-	$(AM_V_GEN)$(RAGEL) -e -F1 -o "$@.tmp" "$<" && \
-	mv "$@.tmp" "$@" || ( $(RM) "$@.tmp" && false )
+	$(AM_V_GEN)$(RAGEL) -e -F1 -o "$@" "$<" \
+	|| ($(RM) "$@"; false)
 
 noinst_PROGRAMS = \
 	main \
