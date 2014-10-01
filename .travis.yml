@@ -20,6 +20,12 @@ before_script:
   - true
 script:
   - NOCONFIGURE=1 ./autogen.sh
+  - echo CC=$CC
+  - echo CXX=$CXX
+  - echo CPP=$CPP
+  - echo LD=$LD
+  - echo CPPFLAGS="$CPPFLAGS"
+  - echo LDFLAGS="$LDFLAGS"
   - ./configure $FEATURES CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
   - make
   - make check
