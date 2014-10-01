@@ -20,6 +20,7 @@ script:
   - make
   - make check
 after_success:
+  - rm -f src/.libs/NONE.gcov # coveralls chokes on this
   - coveralls
 after_failure:
   - true
