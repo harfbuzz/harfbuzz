@@ -922,7 +922,7 @@ hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *), 
   } while (k);
 }
 
-template <typename T> inline void
+template <typename T> static inline void
 hb_bubble_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
 {
   hb_bubble_sort (array, len, compar, (int *) NULL);
