@@ -1,6 +1,6 @@
 language: cpp
 compiler:
-  - clang
+  #- clang
   - gcc
 before_install:
   - sudo apt-get install pkg-config ragel gtk-doc-tools # for autogen.sh
