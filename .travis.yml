@@ -25,9 +25,8 @@ script:
   - ./configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
   - make && make check
 after_success:
-  - rm -f src/.libs/NONE.gcov # coveralls chokes on this
-  - touch src/NONE # see if this makes coveralls happy
-  - coveralls
+  - rm -f src/.libs/NONE.gcov; touch src/NONE # coveralls needs some help
+  - if test $CC == gcc; then coveralls; fi # currently only gcc works
 after_failure:
   - true
 after_script:
