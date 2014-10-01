@@ -304,6 +304,13 @@ EXTRA_DIST += \
 	hb-ot-shape-complex-myanmar-machine.rl \
 	hb-ot-shape-complex-sea-machine.rl \
 	$(NULL)
+MAINTAINERCLEANFILES += \
+	hb-buffer-deserialize-json.hh \
+	hb-buffer-deserialize-text.hh \
+	hb-ot-shape-complex-indic-machine.hh \
+	hb-ot-shape-complex-myanmar-machine.hh \
+	hb-ot-shape-complex-sea-machine.hh \
+	$(NULL)
 .rl.hh:
 	$(AM_V_GEN)$(RAGEL) -e -F1 -o "$@" "$<" \
 	|| ($(RM) "$@"; false)
