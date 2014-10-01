@@ -2,6 +2,10 @@ language: cpp
 compiler:
   #- clang
   - gcc
+env:
+  global:
+    - FEATURES="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
+    - CPPFLAGS="-Werror -fprofile-arcs -ftest-coverage" LDFLAGS="-lgcov"
 before_install:
   - sudo apt-get install pkg-config ragel gtk-doc-tools # for autogen.sh
   - sudo apt-get install libfreetype6-dev # for font functions
@@ -16,11 +20,12 @@ before_script:
   - true
 script:
   - NOCONFIGURE=1 ./autogen.sh
-  - ./configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 CPPFLAGS="-Werror -fprofile-arcs -ftest-coverage" LDFLAGS=-lgcov
+  - ./configure $FEATURES CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
   - make
   - make check
 after_success:
   - rm -f src/.libs/NONE.gcov # coveralls chokes on this
+  - touch src/NONE # see if this makes coveralls happy
   - coveralls
 after_failure:
   - true
