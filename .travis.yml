@@ -2,14 +2,33 @@ language: cpp
 compiler:
   - clang
   - gcc
-install:
+before_install:
   - sudo apt-get install pkg-config ragel gtk-doc-tools # for autogen.sh
   - sudo apt-get install libfreetype6-dev # for font functions
   - sudo apt-get install libglib2.0-dev # for font functions / tests / utils
   - sudo apt-get install libcairo2-dev # for utils
   - sudo apt-get install libicu-dev # for extra unicode functions
   - sudo apt-get install libgraphite2-dev # for extra shapers
-script: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make CPPFLAGS=-Werror && make check CPPFLAGS=-Werror
+install:
+  - true
+before_script:
+  - true
+script:
+  - ./autogen.sh \
+	--with-freetype \
+	--with-glib \
+	--with-gobject \
+	--with-cairo \
+	--with-icu \
+	--with-graphite2
+  - make CPPFLAGS=-Werror
+  - make check CPPFLAGS=-Werror
+after_success:
+  - true
+after_failure:
+  - true
+after_script:
+  - true
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz@lists.freedesktop.org
