@@ -19,12 +19,12 @@ tested=false
 for suffix in so dylib; do
 	so=.libs/libharfbuzz.$suffix
 	if ! test -f "$so"; then continue; fi
-	prefix=
 	
-	EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] ' | grep -v ' _fini\>\| _init\>\| _fdata\>\| _ftext\>\| _fbss\>\| __bss_start\>\| __bss_start__\>\| __bss_end__\>\| _edata\>\| _end\>\| _bss_end__\>\| __end__\>' | cut -d' ' -f3`"
+	EXPORTED_SYMBOLS="`nm "$so" | grep ' [BCDGINRSTVW] ' | grep -v ' _fini\>\| _init\>\| _fdata\>\| _ftext\>\| _fbss\>\| __bss_start\>\| __bss_start__\>\| __bss_end__\>\| _edata\>\| _end\>\| _bss_end__\>\| __end__\>\| __gcov_flush\>\| llvm_' | cut -d' ' -f3`"
+
 	prefix=`basename "$so" | sed 's/libharfbuzz/hb/; s/-/_/g; s/[.].*//'`
 
-	# Ob mac, C symbols are prefixed with _
+	# On mac, C symbols are prefixed with _
 	if test $suffix = dylib; then prefix="_$prefix"; fi
 
 	echo "Processing $so"
