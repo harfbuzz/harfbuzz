@@ -14,13 +14,7 @@ install:
 before_script:
   - true
 script:
-  - ./autogen.sh \
-	--with-freetype \
-	--with-glib \
-	--with-gobject \
-	--with-cairo \
-	--with-icu \
-	--with-graphite2
+  - ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
   - make CPPFLAGS=-Werror
   - make check CPPFLAGS=-Werror
 after_success:
