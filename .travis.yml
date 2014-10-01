@@ -19,7 +19,7 @@ install:
 script:
   - NOCONFIGURE=1 ./autogen.sh
   - ./configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-  - make && make check && { rm -f src/.libs/NONE.gcov && touch src/NONE && test $CC == gcc && coveralls; }
+  - make && make check && { rm -f src/.libs/NONE.gcov; touch src/NONE; test $CC != gcc || coveralls; }
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz@lists.freedesktop.org
