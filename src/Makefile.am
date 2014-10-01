@@ -290,13 +290,14 @@ built-sources: $(BUILT_SOURCES)
 
 .PHONY: unicode-tables arabic-table indic-table built-sources
 
-BUILT_SOURCES += \
-	hb-buffer-deserialize-json.hh \
-	hb-buffer-deserialize-text.hh \
-	hb-ot-shape-complex-indic-machine.hh \
-	hb-ot-shape-complex-myanmar-machine.hh \
-	hb-ot-shape-complex-sea-machine.hh \
+RAGEL_GENERATED = \
+	$(srcdir)/hb-buffer-deserialize-json.hh \
+	$(srcdir)/hb-buffer-deserialize-text.hh \
+	$(srcdir)/hb-ot-shape-complex-indic-machine.hh \
+	$(srcdir)/hb-ot-shape-complex-myanmar-machine.hh \
+	$(srcdir)/hb-ot-shape-complex-sea-machine.hh \
 	$(NULL)
+BUILT_SOURCES += $(RAGEL_GENERATED)
 EXTRA_DIST += \
 	hb-buffer-deserialize-json.rl \
 	hb-buffer-deserialize-text.rl \
@@ -304,15 +305,9 @@ EXTRA_DIST += \
 	hb-ot-shape-complex-myanmar-machine.rl \
 	hb-ot-shape-complex-sea-machine.rl \
 	$(NULL)
-MAINTAINERCLEANFILES += \
-	hb-buffer-deserialize-json.hh \
-	hb-buffer-deserialize-text.hh \
-	hb-ot-shape-complex-indic-machine.hh \
-	hb-ot-shape-complex-myanmar-machine.hh \
-	hb-ot-shape-complex-sea-machine.hh \
-	$(NULL)
-.rl.hh:
-	$(AM_V_GEN)$(RAGEL) -e -F1 -o "$@" "$<" \
+MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
+$(srcdir)/%.hh: $(srcdir)/%.rl
+	$(AM_V_GEN)(cd $(srcdir) && $(RAGEL) -e -F1 -o "$*.hh" "$*.rl") \
 	|| ($(RM) "$@"; false)
 
 noinst_PROGRAMS = \
