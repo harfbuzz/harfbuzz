@@ -552,6 +552,31 @@ struct BEInt<Type, 2>
   private: uint8_t v[2];
 };
 template <typename Type>
+struct BEInt<Type, 3>
+{
+  public:
+  inline void set (Type V)
+  {
+    v[0] = (V >> 16) & 0xFF;
+    v[1] = (V >>  8) & 0xFF;
+    v[2] = (V      ) & 0xFF;
+  }
+  inline operator Type (void) const
+  {
+    return (v[0] << 16)
+         + (v[1] <<  8)
+         + (v[2]      );
+  }
+  inline bool operator == (const BEInt<Type, 3>& o) const
+  {
+    return v[0] == o.v[0]
+        && v[1] == o.v[1]
+        && v[2] == o.v[2];
+  }
+  inline bool operator != (const BEInt<Type, 3>& o) const { return !(*this == o); }
+  private: uint8_t v[3];
+};
+template <typename Type>
 struct BEInt<Type, 4>
 {
   public:
@@ -578,31 +603,6 @@ struct BEInt<Type, 4>
   }
   inline bool operator != (const BEInt<Type, 4>& o) const { return !(*this == o); }
   private: uint8_t v[4];
-};
-template <typename Type>
-struct BEInt<Type, 3>
-{
-  public:
-  inline void set (Type V)
-  {
-    v[0] = (V >> 16) & 0xFF;
-    v[1] = (V >>  8) & 0xFF;
-    v[2] = (V      ) & 0xFF;
-  }
-  inline operator Type (void) const
-  {
-    return (v[0] << 16)
-         + (v[1] <<  8)
-         + (v[2]      );
-  }
-  inline bool operator == (const BEInt<Type, 3>& o) const
-  {
-    return v[0] == o.v[0]
-        && v[1] == o.v[1]
-        && v[2] == o.v[2];
-  }
-  inline bool operator != (const BEInt<Type, 3>& o) const { return !(*this == o); }
-  private: uint8_t v[3];
 };
 
 /* Integer types in big-endian order and no alignment requirement */
