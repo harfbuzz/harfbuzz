@@ -951,12 +951,12 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 
 struct hb_options_t
 {
-  int initialized : 1;
-  int uniscribe_bug_compatible : 1;
+  unsigned int initialized : 1;
+  unsigned int uniscribe_bug_compatible : 1;
 };
 
 union hb_options_union_t {
-  int i;
+  unsigned int i;
   hb_options_t opts;
 };
 ASSERT_STATIC (sizeof (int) == sizeof (hb_options_union_t));
