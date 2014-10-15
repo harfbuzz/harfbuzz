@@ -43,6 +43,12 @@
 #endif
 
 
+static inline uint16_t hb_uint16_swap (const uint16_t v)
+{ return (v >> 8) | (v << 8); }
+static inline uint32_t hb_uint32_swap (const uint32_t v)
+{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
+
+
 typedef HRESULT (WINAPI *SIOT) /*ScriptItemizeOpenType*/(
   const WCHAR *pwcInChars,
   int cInChars,

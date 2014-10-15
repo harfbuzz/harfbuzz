@@ -539,47 +539,6 @@ struct hb_lockable_set_t
 };
 
 
-
-
-/* Big-endian handling */
-
-static inline uint16_t hb_be_uint16 (const uint16_t v)
-{
-  const uint8_t *V = (const uint8_t *) &v;
-  return (V[0] << 8) | V[1];
-}
-
-static inline uint16_t hb_uint16_swap (const uint16_t v)
-{
-  return (v >> 8) | (v << 8);
-}
-
-static inline uint32_t hb_uint32_swap (const uint32_t v)
-{
-  return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16);
-}
-
-/* Note, of the following macros, uint16_get is the one called many many times.
- * If there is any optimizations to be done, it's in that macro.  However, I
- * already confirmed that on my T400 ThinkPad at least, using bswap_16(), which
- * results in a single ror instruction, does NOT speed this up.  In fact, it
- * resulted in a minor slowdown.  At any rate, note that v may not be correctly
- * aligned, so I think the current implementation is optimal.
- */
-
-#define hb_be_uint16_put(v,V)	HB_STMT_START { v[0] = (V>>8); v[1] = (V); } HB_STMT_END
-#define hb_be_uint16_get(v)	(uint16_t) ((v[0] << 8) + v[1])
-#define hb_be_uint16_eq(a,b)	(a[0] == b[0] && a[1] == b[1])
-
-#define hb_be_uint32_put(v,V)	HB_STMT_START { v[0] = (V>>24); v[1] = (V>>16); v[2] = (V>>8); v[3] = (V); } HB_STMT_END
-#define hb_be_uint32_get(v)	(uint32_t) ((v[0] << 24) + (v[1] << 16) + (v[2] << 8) + v[3])
-#define hb_be_uint32_eq(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
-
-#define hb_be_uint24_put(v,V)	HB_STMT_START { v[0] = (V>>16); v[1] = (V>>8); v[2] = (V); } HB_STMT_END
-#define hb_be_uint24_get(v)	(uint32_t) ((v[0] << 16) + (v[1] << 8) + v[2])
-#define hb_be_uint24_eq(a,b)	(a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
-
-
 /* ASCII tag/character handling */
 
 static inline bool ISALPHA (unsigned char c)
