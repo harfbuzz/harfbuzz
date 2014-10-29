@@ -168,6 +168,10 @@ struct hb_collect_glyphs_context_t
     if (output == hb_set_get_empty ())
       return HB_VOID;
 
+    /* Return if new lookup was recursed to before. */
+    if (recursed_lookups.has (lookup_index))
+      return HB_VOID;
+
     hb_set_t *old_before = before;
     hb_set_t *old_input  = input;
     hb_set_t *old_after  = after;
@@ -181,6 +185,8 @@ struct hb_collect_glyphs_context_t
     input  = old_input;
     after  = old_after;
 
+    recursed_lookups.add (lookup_index);
+
     return HB_VOID;
   }
 
@@ -190,6 +196,7 @@ struct hb_collect_glyphs_context_t
   hb_set_t *after;
   hb_set_t *output;
   recurse_func_t recurse_func;
+  hb_set_t recursed_lookups;
   unsigned int nesting_level_left;
   unsigned int debug_depth;
 
@@ -205,8 +212,16 @@ struct hb_collect_glyphs_context_t
 			      after  (glyphs_after  ? glyphs_after  : hb_set_get_empty ()),
 			      output (glyphs_output ? glyphs_output : hb_set_get_empty ()),
 			      recurse_func (NULL),
+			      recursed_lookups (),
 			      nesting_level_left (nesting_level_left_),
-			      debug_depth (0) {}
+			      debug_depth (0)
+  {
+    recursed_lookups.init ();
+  }
+  ~hb_collect_glyphs_context_t (void)
+  {
+    recursed_lookups.fini ();
+  }
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 };
