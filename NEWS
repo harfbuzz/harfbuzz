@@ -1,3 +1,15 @@
+Overview of changes leading to 0.9.36
+Thursday, November 20, 2014
+=====================================
+
+- First time that three months went by without a release since
+  0.9.2 was released on August 10, 2012!
+- Fix performance bug in hb_ot_collect_glyphs():
+  https://bugzilla.mozilla.org/show_bug.cgi?id=1090869
+- Add basic vertical-text support to hb-ot-font.
+- Misc build fixes.
+
+
 Overview of changes leading to 0.9.35
 Saturday, August 13, 2014
 =====================================
