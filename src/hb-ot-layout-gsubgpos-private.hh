@@ -1498,6 +1498,7 @@ struct ContextFormat3
     TRACE_SANITIZE (this);
     if (!c->check_struct (this)) return TRACE_RETURN (false);
     unsigned int count = glyphCount;
+    if (!count) return TRACE_RETURN (false); /* We want to access coverage[0] freely. */
     if (!c->check_array (coverage, coverage[0].static_size, count)) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < count; i++)
       if (!coverage[i].sanitize (c, this)) return TRACE_RETURN (false);
@@ -2109,6 +2110,7 @@ struct ChainContextFormat3
     if (!backtrack.sanitize (c, this)) return TRACE_RETURN (false);
     OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     if (!input.sanitize (c, this)) return TRACE_RETURN (false);
+    if (!input.len) return TRACE_RETURN (false); /* To be consistent with Context. */
     OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     if (!lookahead.sanitize (c, this)) return TRACE_RETURN (false);
     ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
