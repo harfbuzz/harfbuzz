@@ -715,7 +715,9 @@ _hb_debug_msg<0> (const char *what HB_UNUSED,
  */
 
 template <typename T>
-struct hb_printer_t {};
+struct hb_printer_t {
+  const char *print (const T&) { return "something"; }
+};
 
 template <>
 struct hb_printer_t<bool> {
