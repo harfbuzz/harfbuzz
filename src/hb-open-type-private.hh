@@ -217,28 +217,31 @@ struct hb_sanitize_context_t
   inline bool check_range (const void *base, unsigned int len) const
   {
     const char *p = (const char *) base;
+    bool ok = this->start <= p && p <= this->end && (unsigned int) (this->end - p) >= len;
 
-    hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace
-      (&this->debug_depth, "SANITIZE", p, NULL,
-       "check_range [%p..%p] (%d bytes) in [%p..%p]",
+    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
+       "check_range [%p..%p] (%d bytes) in [%p..%p] -> %s",
        p, p + len, len,
-       this->start, this->end);
+       this->start, this->end,
+       ok ? "OK" : "OUT-OF-RANGE");
 
-    return TRACE_RETURN (likely (this->start <= p && p <= this->end && (unsigned int) (this->end - p) >= len));
+    return likely (ok);
   }
 
   inline bool check_array (const void *base, unsigned int record_size, unsigned int len) const
   {
     const char *p = (const char *) base;
     bool overflows = _hb_unsigned_int_mul_overflows (len, record_size);
+    unsigned int array_size = record_size * len;
+    bool ok = !overflows && this->check_range (base, array_size);
 
-    hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace
-      (&this->debug_depth, "SANITIZE", p, NULL,
-       "check_array [%p..%p] (%d*%d=%ld bytes) in [%p..%p]",
-       p, p + (record_size * len), record_size, len, (unsigned long) record_size * len,
-       this->start, this->end);
+    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
+       "check_array [%p..%p] (%d*%d=%d bytes) in [%p..%p] -> %s",
+       p, p + (record_size * len), record_size, len, (unsigned int) array_size,
+       this->start, this->end,
+       overflows ? "OVERFLOWS" : ok ? "OK" : "OUT-OF-RANGE");
 
-    return TRACE_RETURN (likely (!overflows && this->check_range (base, record_size * len)));
+    return likely (ok);
   }
 
   template <typename Type>
@@ -255,15 +258,14 @@ struct hb_sanitize_context_t
     const char *p = (const char *) base;
     this->edit_count++;
 
-    hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace
-      (&this->debug_depth, "SANITIZE", p, NULL,
+    DEBUG_MSG_LEVEL (SANITIZE, p, this->debug_depth+1, 0,
        "may_edit(%u) [%p..%p] (%d bytes) in [%p..%p] -> %s",
        this->edit_count,
        p, p + len, len,
        this->start, this->end,
        this->writable ? "GRANTED" : "DENIED");
 
-    return TRACE_RETURN (this->writable);
+    return this->writable;
   }
 
   template <typename Type, typename ValueType>
