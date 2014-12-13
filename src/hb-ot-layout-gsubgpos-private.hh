@@ -38,10 +38,10 @@ namespace OT {
 
 
 
-#define TRACE_DISPATCH(this) \
+#define TRACE_DISPATCH(this, format) \
 	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
-	 "");
+	 "format %d", (int) format);
 
 #ifndef HB_DEBUG_CLOSURE
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
@@ -1520,7 +1520,7 @@ struct Context
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_DISPATCH (this);
+    TRACE_DISPATCH (this, u.format);
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     case 2: return TRACE_RETURN (c->dispatch (u.format2));
@@ -2137,7 +2137,7 @@ struct ChainContext
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   {
-    TRACE_DISPATCH (this);
+    TRACE_DISPATCH (this, u.format);
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     case 2: return TRACE_RETURN (c->dispatch (u.format2));
