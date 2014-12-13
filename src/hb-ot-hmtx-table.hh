@@ -52,6 +52,8 @@ struct LongMetric
 
 struct _mtx
 {
+  static const hb_tag_t tableTag = HB_TAG('_','m','t','x');
+
   static const hb_tag_t hmtxTag	= HB_OT_TAG_hmtx;
   static const hb_tag_t vmtxTag	= HB_OT_TAG_vmtx;
 
