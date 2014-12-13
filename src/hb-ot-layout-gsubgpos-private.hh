@@ -228,10 +228,14 @@ struct hb_collect_glyphs_context_t
 
 
 
+#ifndef HB_DEBUG_GET_COVERAGE
+#define HB_DEBUG_GET_COVERAGE (HB_DEBUG+0)
+#endif
+
 struct hb_get_coverage_context_t
 {
   inline const char *get_name (void) { return "GET_COVERAGE"; }
-  static const unsigned int max_debug_depth = 0;
+  static const unsigned int max_debug_depth = HB_DEBUG_GET_COVERAGE;
   typedef const Coverage &return_t;
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.get_coverage (); }
