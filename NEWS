@@ -1,3 +1,11 @@
+Overview of changes leading to 0.9.37
+Wednesday, December 17, 2014
+=====================================
+
+- Fix out-of-bounds access in Context lookup format 3.
+- Indic: Allow ZWJ/ZWNJ before syllable modifiers.
+
+
 Overview of changes leading to 0.9.36
 Thursday, November 20, 2014
 =====================================
