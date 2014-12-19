@@ -53,6 +53,9 @@ test_blob_empty (void)
   g_assert (hb_blob_is_immutable (hb_blob_get_empty ()));
   g_assert (hb_blob_get_empty () != NULL);
   g_assert (hb_blob_get_empty () == hb_blob_create (NULL, 0, HB_MEMORY_MODE_READONLY, NULL, NULL));
+  g_assert (hb_blob_get_empty () == hb_blob_create ("asdf", 0, HB_MEMORY_MODE_READONLY, NULL, NULL));
+  g_assert (hb_blob_get_empty () == hb_blob_create (NULL, -1, HB_MEMORY_MODE_READONLY, NULL, NULL));
+  g_assert (hb_blob_get_empty () == hb_blob_create ("asdfg", -1, HB_MEMORY_MODE_READONLY, NULL, NULL));
 
   blob = hb_blob_get_empty ();
   g_assert (blob == hb_blob_get_empty ());
