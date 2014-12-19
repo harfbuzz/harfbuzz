@@ -194,6 +194,7 @@ struct hb_sanitize_context_t
   {
     this->start = hb_blob_get_data (this->blob, NULL);
     this->end = this->start + hb_blob_get_length (this->blob);
+    assert (this->start <= this->end); /* Must not overflow. */
     this->edit_count = 0;
     this->debug_depth = 0;
 
