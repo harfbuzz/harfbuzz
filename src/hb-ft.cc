@@ -51,6 +51,13 @@
  *     In particular, FT_Get_Advance() without the NO_HINTING flag seems to be
  *     buggy.
  *
+ *     FreeType works in 26.6 mode.  Clients can decide to use that mode, and everything
+ *     would work fine.  However, we also abuse this API for performing in font-space,
+ *     but don't pass the correct flags to FreeType.  We just abuse the no-hinting mode
+ *     for that, such that no rounding etc happens.  As such, we don't set ppem, and
+ *     pass NO_HINTING around.  This seems to work best, until we go ahead and add a full
+ *     load_flags API.
+ *
  *   - We don't handle / allow for emboldening / obliqueing.
  *
  *   - In the future, we should add constructors to create fonts in font space?
@@ -430,9 +437,11 @@ hb_ft_font_create (FT_Face           ft_face,
   hb_font_set_scale (font,
 		     (int) (((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM + (1<<15)) >> 16),
 		     (int) (((uint64_t) ft_face->size->metrics.y_scale * (uint64_t) ft_face->units_per_EM + (1<<15)) >> 16));
+#if 0 /* hb-ft works in no-hinting model */
   hb_font_set_ppem (font,
 		    ft_face->size->metrics.x_ppem,
 		    ft_face->size->metrics.y_ppem);
+#endif
 
   return font;
 }
