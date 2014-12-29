@@ -297,7 +297,8 @@ AC_ARG_WITH(freetype,
 	[with_freetype=auto])
 have_freetype=false
 if test "x$with_freetype" = "xyes" -o "x$with_freetype" = "xauto"; then
-	PKG_CHECK_MODULES(FREETYPE, freetype2 >= 2.3.8, have_freetype=true, :)
+	# See freetype/docs/VERSION.DLL; 9.19.13 means freetype-2.3.8
+	PKG_CHECK_MODULES(FREETYPE, freetype2 >= 9.19.3, have_freetype=true, :)
 fi
 if test "x$with_freetype" = "xyes" -a "x$have_freetype" != "xtrue"; then
 	AC_MSG_ERROR([FreeType support requested but libfreetype2 not found])
