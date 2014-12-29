@@ -70,12 +70,10 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
 {
   FT_Face ft_face = (FT_Face) font_data;
 
-#ifdef HAVE_FT_FACE_GETCHARVARIANTINDEX
   if (unlikely (variation_selector)) {
     *glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
     return *glyph != 0;
   }
-#endif
 
   *glyph = FT_Get_Char_Index (ft_face, unicode);
   return *glyph != 0;

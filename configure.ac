@@ -285,7 +285,7 @@ if test "x$with_graphite2" = "xyes" -a "x$have_graphite2" != "xtrue"; then
 	AC_MSG_ERROR([graphite2 support requested but libgraphite2 not found])
 fi
 if $have_graphite2; then
-    AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite2 library])
+	AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite2 library])
 fi
 AM_CONDITIONAL(HAVE_GRAPHITE2, $have_graphite2)
 
@@ -305,13 +305,6 @@ if test "x$with_freetype" = "xyes" -a "x$have_freetype" != "xtrue"; then
 fi
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
-	_save_libs="$LIBS"
-	_save_cflags="$CFLAGS"
-	LIBS="$LIBS $FREETYPE_LIBS"
-	CFLAGS="$CFLAGS $FREETYPE_CFLAGS"
-	AC_CHECK_FUNCS(FT_Face_GetCharVariantIndex)
-	LIBS="$_save_libs"
-	CFLAGS="$_save_cflags"
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
