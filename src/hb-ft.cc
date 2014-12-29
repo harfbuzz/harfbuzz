@@ -340,11 +340,7 @@ hb_ft_face_create (FT_Face           ft_face,
 
     blob = hb_blob_create ((const char *) ft_face->stream->base,
 			   (unsigned int) ft_face->stream->size,
-			   /* TODO: We assume that it's mmap()'ed, but FreeType code
-			    * suggests that there are cases we reach here but font is
-			    * not mmapped.  For example, when mmap() fails.  No idea
-			    * how to deal with it better here. */
-			   HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE,
+			   HB_MEMORY_MODE_READONLY,
 			   ft_face, destroy);
     face = hb_face_create (blob, ft_face->face_index);
     hb_blob_destroy (blob);
