@@ -352,6 +352,22 @@ hb_ft_face_create (FT_Face           ft_face,
   return face;
 }
 
+/**
+ * hb_ft_face_create_referenced:
+ * @ft_face:
+ *
+ * 
+ *
+ * Return value: (transfer full): 
+ * Since: 1.0
+ **/
+hb_face_t *
+hb_ft_face_create_referenced (FT_Face ft_face)
+{
+  FT_Reference_Face (ft_face);
+  return hb_ft_face_create (ft_face, (hb_destroy_func_t) FT_Done_Face);
+}
+
 static void
 hb_ft_face_finalize (FT_Face ft_face)
 {
@@ -419,6 +435,22 @@ hb_ft_font_create (FT_Face           ft_face,
 		    ft_face->size->metrics.y_ppem);
 
   return font;
+}
+
+/**
+ * hb_ft_font_create_referenced:
+ * @ft_face:
+ *
+ * 
+ *
+ * Return value: (transfer full): 
+ * Since: 1.0
+ **/
+hb_font_t *
+hb_ft_font_create_referenced (FT_Face ft_face)
+{
+  FT_Reference_Face (ft_face);
+  return hb_ft_font_create (ft_face, (hb_destroy_func_t) FT_Done_Face);
 }
 
 
