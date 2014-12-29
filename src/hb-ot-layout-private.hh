@@ -126,8 +126,7 @@ struct hb_ot_layout_lookup_accelerator_t
     lookup.add_coverage (&digest);
   }
 
-  template <typename TLookup>
-  inline void fini (const TLookup &lookup HB_UNUSED)
+  inline void fini (void)
   {
   }
 
