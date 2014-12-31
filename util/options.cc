@@ -57,6 +57,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
   msg = g_strdup_vprintf (format, vap);
   const char *prgname = g_get_prgname ();
   g_printerr ("%s: %s\n", prgname, msg);
+  va_end(vap);
   if (suggest_help)
     g_printerr ("Try `%s --help' for more information.\n", prgname);
 
