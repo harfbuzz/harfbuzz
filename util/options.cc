@@ -55,6 +55,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
   va_list vap;
   va_start (vap, format);
   msg = g_strdup_vprintf (format, vap);
+  va_end (vap);
   const char *prgname = g_get_prgname ();
   g_printerr ("%s: %s\n", prgname, msg);
   if (suggest_help)
