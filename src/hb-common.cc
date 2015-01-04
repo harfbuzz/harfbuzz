@@ -345,7 +345,7 @@ hb_language_get_default (void)
   hb_language_t language = (hb_language_t) hb_atomic_ptr_get (&default_language);
   if (unlikely (language == HB_LANGUAGE_INVALID)) {
     language = hb_language_from_string (setlocale (LC_CTYPE, NULL), -1);
-    hb_atomic_ptr_cmpexch (&default_language, HB_LANGUAGE_INVALID, language);
+    (void) hb_atomic_ptr_cmpexch (&default_language, HB_LANGUAGE_INVALID, language);
   }
 
   return default_language;
