@@ -235,7 +235,7 @@ struct hb_language_item_t {
 static hb_language_item_t *langs;
 
 #ifdef HB_USE_ATEXIT
-static inline
+static
 void free_langs (void)
 {
   while (langs) {
