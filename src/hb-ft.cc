@@ -467,11 +467,13 @@ hb_ft_font_create_referenced (FT_Face ft_face)
 
 static FT_Library ft_library;
 
-static inline
+#ifdef HB_USE_ATEXIT
+static
 void free_ft_library (void)
 {
   FT_Done_FreeType (ft_library);
 }
+#endif
 
 static FT_Library
 get_ft_library (void)
