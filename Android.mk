@@ -99,8 +99,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libutils \
 	liblog
 LOCAL_C_INCLUDES += \
-        $(LOCAL_PATH)/src \
-        external/icu/icu4c/source/common
+        $(LOCAL_PATH)/src
 LOCAL_CFLAGS += -DHB_NO_MT -DHAVE_OT -DHAVE_ICU -DHAVE_ICU_BUILTIN
 LOCAL_MODULE:= libharfbuzz_ng
 include $(BUILD_SHARED_LIBRARY)
