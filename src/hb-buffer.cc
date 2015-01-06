@@ -1400,7 +1400,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 /**
  * hb_buffer_add_utf8:
  * @buffer: a buffer.
- * @text: (array length=text_length):
+ * @text: (array length=text_length) (element-type uint8_t):
  * @text_length: 
  * @item_offset: 
  * @item_length: 
