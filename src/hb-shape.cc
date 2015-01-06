@@ -200,7 +200,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  * hb_feature_from_string:
  * @str: (array length=len):
  * @len: 
- * @feature: (out) (allow-none):
+ * @feature: (out) (optional):
  *
  * 
  *
