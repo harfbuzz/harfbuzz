@@ -19,6 +19,7 @@ def tounicode(s, encoding='utf-8'):
 		return s
 
 fontdata = open (sys.argv[1], 'rb').read ()
+text = tounicode(sys.argv[2])
 blob = hb.glib_blob_create (GLib.Bytes.new (fontdata))
 face = hb.face_create (blob, 0)
 del blob
@@ -30,7 +31,7 @@ hb.font_set_scale (font, upem, upem)
 hb.ot_font_set_funcs (font)
 
 buf = hb.buffer_create ()
-hb.buffer_add_utf8 (buf, tounicode("Hello بهداد").encode('utf-8'), 0, -1)
+hb.buffer_add_utf8 (buf, text.encode('utf-8'), 0, -1)
 hb.buffer_guess_segment_properties (buf)
 
 hb.shape (font, buf, [])
@@ -42,6 +43,8 @@ positions = hb.buffer_get_glyph_positions (buf)
 for info,pos in zip(infos, positions):
 	gid = info.codepoint
 	cluster = info.cluster
-	advance = pos.x_advance
+	x_advance = pos.x_advance
+	x_offset = pos.x_offset
+	y_offset = pos.y_offset
 
-	print(gid, cluster, advance)
+	print("gid%d=%d@%d,%d+%d" % (gid, cluster, x_advance, x_offset, y_offset))
