@@ -20,6 +20,8 @@ def tounicode(s, encoding='utf-8'):
 
 fontdata = open (sys.argv[1], 'rb').read ()
 text = tounicode(sys.argv[2])
+# Need to create GLib.Bytes explicitly until this bug is fixed:
+# https://bugzilla.gnome.org/show_bug.cgi?id=729541
 blob = hb.glib_blob_create (GLib.Bytes.new (fontdata))
 face = hb.face_create (blob, 0)
 del blob
