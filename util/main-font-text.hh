@@ -31,12 +31,12 @@
 
 /* main() body for utilities taking font and processing text.*/
 
-template <typename consumer_t>
+template <typename consumer_t, int default_font_size, int subpixel_bits>
 struct main_font_text_t
 {
   main_font_text_t (void)
 		  : options ("[FONT-FILE] [TEXT]"),
-		    font_opts (&options),
+		    font_opts (&options, default_font_size, subpixel_bits),
 		    input (&options),
 		    consumer (&options) {}
 

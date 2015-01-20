@@ -126,6 +126,6 @@ struct output_buffer_t
 int
 main (int argc, char **argv)
 {
-  main_font_text_t<shape_consumer_t<output_buffer_t> > driver;
+  main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0> driver;
   return driver.main (argc, argv);
 }
