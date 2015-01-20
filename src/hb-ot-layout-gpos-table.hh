@@ -602,12 +602,24 @@ struct PairSet
     unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = USHORT::static_size * (1 + len1 + len2);
 
-    const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
+    const PairValueRecord *record_array = CastP<PairValueRecord> (arrayZ);
     unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
+
+    /* Hand-coded bsearch. */
+    if (unlikely (!count))
+      return TRACE_RETURN (false);
+    hb_codepoint_t x = buffer->info[pos].codepoint;
+    int min = 0, max = (int) count - 1;
+    while (min <= max)
     {
-      /* TODO bsearch */
-      if (buffer->info[pos].codepoint == record->secondGlyph)
+      int mid = (min + max) / 2;
+      const PairValueRecord *record = &StructAtOffset<PairValueRecord> (record_array, record_size * mid);
+      hb_codepoint_t mid_x = record->secondGlyph;
+      if (x < mid_x)
+        max = mid - 1;
+      else if (x > mid_x)
+        min = mid + 1;
+      else
       {
 	valueFormats[0].apply_value (c->font, c->direction, this,
 				     &record->values[0], buffer->cur_pos());
@@ -618,7 +630,6 @@ struct PairSet
 	buffer->idx = pos;
 	return TRACE_RETURN (true);
       }
-      record = &StructAtOffset<PairValueRecord> (record, record_size);
     }
 
     return TRACE_RETURN (false);
