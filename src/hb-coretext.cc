@@ -871,13 +871,14 @@ retry:
 	    goto resize_and_retry;
 	  hb_glyph_info_t *info = buffer->info + buffer->len;
 
-	  CGGlyph notdef = 0;
-	  double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font,
-						       HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction) ?
-						       kCTFontHorizontalOrientation :
-						       kCTFontVerticalOrientation,
-						       &notdef, NULL, 1);
-	  /* XXX adjust sign / scale of advance. */
+	  hb_codepoint_t notdef = 0;
+	  hb_direction_t dir = buffer->props.direction;
+	  hb_position_t x_advance, y_advance, x_offset, y_offset;
+	  hb_font_get_glyph_advance_for_direction (font, notdef, dir, &x_advance, &y_advance);
+	  hb_font_get_glyph_origin_for_direction (font, notdef, dir, &x_offset, &y_offset);
+	  hb_position_t advance = x_advance + y_advance;
+	  x_offset = -x_offset;
+	  y_offset = -y_offset;
 
 	  unsigned int old_len = buffer->len;
 	  for (CFIndex j = range.location; j < range.location + range.length; j++)
@@ -896,8 +897,8 @@ retry:
 	      info->cluster = log_clusters[j];
 
 	      info->mask = advance;
-	      info->var1.u32 = 0;
-	      info->var2.u32 = 0;
+	      info->var1.u32 = x_offset;
+	      info->var2.u32 = y_offset;
 
 	      info++;
 	      buffer->len++;
