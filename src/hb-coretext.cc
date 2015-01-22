@@ -861,7 +861,12 @@ retry:
 	  hb_glyph_info_t *info = buffer->info + buffer->len;
 
 	  CGGlyph notdef = 0;
-	  double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font, kCTFontHorizontalOrientation, &notdef, NULL, 1);
+	  double advance = CTFontGetAdvancesForGlyphs (font_data->ct_font,
+						       HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction) ?
+						       kCTFontHorizontalOrientation :
+						       kCTFontVerticalOrientation,
+						       &notdef, NULL, 1);
+	  /* XXX adjust sign / scale of advance. */
 
 	  unsigned int old_len = buffer->len;
 	  for (CFIndex j = range.location; j < range.location + range.length; j++)
