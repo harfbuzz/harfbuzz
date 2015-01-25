@@ -138,7 +138,6 @@
 
 #ifdef _WIN32_WCE
 /* Some things not defined on Windows CE. */
-#define MemoryBarrier()
 #define getenv(Name) NULL
 #define setlocale(Category, Locale) "C"
 static int errno = 0; /* Use something better? */
