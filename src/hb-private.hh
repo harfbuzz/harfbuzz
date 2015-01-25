@@ -94,12 +94,6 @@
 # endif
 #endif
 
-#if (defined(__WIN32__) && !defined(__WINE__)) || defined(_MSC_VER)
-#define snprintf _snprintf
-/* Windows CE only has _strdup, while rest of Windows has both. */
-#define strdup _strdup
-#endif
-
 #ifdef _MSC_VER
 #undef inline
 #define inline __inline
@@ -134,14 +128,20 @@
 #  ifndef STRICT
 #    define STRICT 1
 #  endif
-#endif
 
-#ifdef _WIN32_WCE
-/* Some things not defined on Windows CE. */
-#define MemoryBarrier()
-#define getenv(Name) NULL
-#define setlocale(Category, Locale) "C"
+#  if defined(_WIN32_WCE)
+     /* Some things not defined on Windows CE. */
+#    define getenv(Name) NULL
+#    define setlocale(Category, Locale) "C"
 static int errno = 0; /* Use something better? */
+#  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+#    define getenv(Name) NULL
+#  endif
+#  if (defined(__WIN32__) && !defined(__WINE__)) || defined(_MSC_VER)
+#    define snprintf _snprintf
+     /* Windows CE only has _strdup, while rest of Windows has both. */
+#    define strdup _strdup
+#  endif
 #endif
 
 #if HAVE_ATEXIT
