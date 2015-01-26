@@ -1336,7 +1336,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 		   unsigned int  item_offset,
 		   int           item_length)
 {
-  typedef hb_utf_t<T, true> utf_t;
+  typedef hb_utf_t<T, validate> utf_t;
   const hb_codepoint_t replacement = buffer->replacement;
 
   assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
