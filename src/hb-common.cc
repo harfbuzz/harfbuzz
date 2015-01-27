@@ -265,6 +265,7 @@ retry:
   *lang = key;
 
   if (!hb_atomic_ptr_cmpexch (&langs, first_lang, lang)) {
+    lang->finish ();
     free (lang);
     goto retry;
   }
