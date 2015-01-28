@@ -787,6 +787,7 @@ retry:
 
     buffer->len = 0;
     uint32_t status_and = ~0, status_or = 0;
+    double advances_so_far = 0;
 
     const CFRange range_all = CFRangeMake (0, 0);
 
@@ -797,6 +798,10 @@ retry:
       status_or  |= run_status;
       status_and &= run_status;
       DEBUG_MSG (CORETEXT, run, "CTRunStatus: %x", run_status);
+      double run_advance = CTRunGetTypographicBounds (run, range_all, NULL, NULL, NULL);
+      if (HB_DIRECTION_IS_VERTICAL (buffer->props.direction))
+	  run_advance = -run_advance;
+      DEBUG_MSG (CORETEXT, run, "Run advance: %g", run_advance);
 
       /* CoreText does automatic font fallback (AKA "cascading") for  characters
        * not supported by the requested font, and provides no way to turn it off,
@@ -905,6 +910,7 @@ retry:
 	  }
 	  if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
 	    buffer->reverse_range (old_len, buffer->len);
+	  advances_so_far += run_advance;
 	  continue;
 	}
       }
@@ -934,7 +940,7 @@ retry:
   scratch_size = scratch_size_saved; \
   scratch = scratch_saved;
 
-      {
+      { /* Setup glyphs */
         SCRATCH_SAVE();
 	const CGGlyph* glyphs = USE_PTR ? CTRunGetGlyphsPtr (run) : NULL;
 	if (!glyphs) {
@@ -958,6 +964,11 @@ retry:
 	SCRATCH_RESTORE();
       }
       {
+        /* Setup positions.
+	 * Note that CoreText does not return advances for glyphs.  As such,
+	 * for all but last glyph, we use the delta position to next glyph as
+	 * advance (in the advance direction only), and for last glyph we set
+	 * whatever is needed to make the whole run's advance add up. */
         SCRATCH_SAVE();
 	const CGPoint* positions = USE_PTR ? CTRunGetPositionsPtr (run) : NULL;
 	if (!positions) {
@@ -965,34 +976,42 @@ retry:
 	  CTRunGetPositions (run, range_all, position_buf);
 	  positions = position_buf;
 	}
-	double run_advance = CTRunGetTypographicBounds (run, range_all, NULL, NULL, NULL);
-	DEBUG_MSG (CORETEXT, run, "Run advance: %g", run_advance);
 	hb_glyph_info_t *info = run_info;
 	CGFloat x_mult = font_data->x_mult, y_mult = font_data->y_mult;
 	if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	{
+	  hb_position_t x_offset = (positions[0].x - advances_so_far) * x_mult;
 	  for (unsigned int j = 0; j < num_glyphs; j++)
 	  {
-	    double advance = (j + 1 < num_glyphs ? positions[j + 1].x : positions[0].x + run_advance) - positions[j].x;
+	    double advance;
+	    if (likely (j + 1 < num_glyphs))
+	      advance = positions[j + 1].x - positions[j].x;
+	    else /* last glyph */
+	      advance = run_advance - (positions[j].x - positions[0].x);
 	    info->mask = advance * x_mult;
-	    info->var1.u32 = positions[0].x * x_mult; /* Yes, zero. */
+	    info->var1.u32 = x_offset;
 	    info->var2.u32 = positions[j].y * y_mult;
 	    info++;
 	  }
 	}
 	else
 	{
-	  run_advance = -run_advance;
+	  hb_position_t y_offset = (positions[0].y - advances_so_far) * y_mult;
 	  for (unsigned int j = 0; j < num_glyphs; j++)
 	  {
-	    double advance = (j + 1 < num_glyphs ? positions[j + 1].y : positions[0].y + run_advance) - positions[j].y;
+	    double advance;
+	    if (likely (j + 1 < num_glyphs))
+	      advance = positions[j + 1].y - positions[j].y;
+	    else /* last glyph */
+	      advance = run_advance - (positions[j].y - positions[0].y);
 	    info->mask = advance * y_mult;
 	    info->var1.u32 = positions[j].x * x_mult;
-	    info->var2.u32 = positions[0].y * y_mult; /* Yes, zero. */
+	    info->var2.u32 = y_offset;
 	    info++;
 	  }
 	}
 	SCRATCH_RESTORE();
+	advances_so_far += run_advance;
       }
 #undef SCRATCH_RESTORE
 #undef SCRATCH_SAVE
