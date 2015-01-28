@@ -897,6 +897,8 @@ retry:
 		   * for this one. */
 		  continue;
 	      }
+	      if (buffer->unicode->is_default_ignorable (ch))
+	        continue;
 
 	      info->codepoint = notdef;
 	      info->cluster = log_clusters[j];
