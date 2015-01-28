@@ -118,6 +118,9 @@ hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
   if (unlikely (FT_Get_Advance (ft_face, glyph, load_flags, &v)))
     return 0;
 
+  if (font->y_scale < 0)
+    v = -v;
+
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
   return (-v + (1<<9)) >> 10;
@@ -153,6 +156,11 @@ hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
    * have a Y growing upward.  Hence the extra negation. */
   *x = ft_face->glyph->metrics.horiBearingX -   ft_face->glyph->metrics.vertBearingX;
   *y = ft_face->glyph->metrics.horiBearingY - (-ft_face->glyph->metrics.vertBearingY);
+
+  if (font->x_scale < 0)
+    *x = -*x;
+  if (font->y_scale < 0)
+    *y = -*y;
 
   return true;
 }
