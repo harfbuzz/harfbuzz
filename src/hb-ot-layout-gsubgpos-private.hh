@@ -412,7 +412,6 @@ struct hb_apply_context_t
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
-    inline void set_syllable (unsigned int syllable) { matcher.set_syllable (syllable); }
     inline void set_match_func (matcher_t::match_func_t match_func,
 				const void *match_data,
 				const USHORT glyph_data[])
@@ -482,7 +481,6 @@ struct hb_apply_context_t
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
     inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
-    inline void set_syllable (unsigned int syllable) { matcher.set_syllable (syllable); }
     inline void set_match_func (matcher_t::match_func_t match_func,
 				const void *match_data,
 				const USHORT glyph_data[])
