@@ -420,12 +420,11 @@ struct hb_apply_context_t
       match_glyph_data = glyph_data;
     }
 
-    inline bool has_no_chance (void) const { return unlikely (num_items && idx + num_items >= end); }
     inline void reject (void) { num_items++; match_glyph_data--; }
     inline bool next (void)
     {
       assert (num_items > 0);
-      while (!has_no_chance ())
+      while (idx + num_items < end)
       {
 	idx++;
 	const hb_glyph_info_t &info = c->buffer->info[idx];
@@ -489,12 +488,11 @@ struct hb_apply_context_t
       match_glyph_data = glyph_data;
     }
 
-    inline bool has_no_chance (void) const { return unlikely (idx < num_items); }
     inline void reject (void) { num_items++; }
     inline bool prev (void)
     {
       assert (num_items > 0);
-      while (!has_no_chance ())
+      while (idx >= num_items)
       {
 	idx--;
 	const hb_glyph_info_t &info = c->buffer->out_info[idx];
@@ -741,7 +739,6 @@ static inline bool match_input (hb_apply_context_t *c,
 
   hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, count - 1);
   skippy_iter.set_match_func (match_func, match_data, input);
-  if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
   /*
    * This is perhaps the trickiest part of OpenType...  Remarks:
@@ -910,7 +907,6 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 
   hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
   skippy_iter.set_match_func (match_func, match_data, backtrack);
-  if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
   for (unsigned int i = 0; i < count; i++)
     if (!skippy_iter.prev ())
@@ -930,7 +926,6 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 
   hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
   skippy_iter.set_match_func (match_func, match_data, lookahead);
-  if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
 
   for (unsigned int i = 0; i < count; i++)
     if (!skippy_iter.next ())

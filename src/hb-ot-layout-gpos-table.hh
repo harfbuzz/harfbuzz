@@ -685,7 +685,6 @@ struct PairPosFormat1
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
-    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     return TRACE_RETURN ((this+pairSet[index]).apply (c, &valueFormat1, skippy_iter.idx));
@@ -755,7 +754,6 @@ struct PairPosFormat2
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
     hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
-    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     unsigned int len1 = valueFormat1.get_len ();
@@ -905,7 +903,6 @@ struct CursivePosFormat1
     if (!this_record.exitAnchor) return TRACE_RETURN (false);
 
     hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
-    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     const EntryExitRecord &next_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
