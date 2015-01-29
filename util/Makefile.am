@@ -6,6 +6,10 @@ CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
+# Convenience targets:
+lib:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+
 bin_PROGRAMS =
 
 AM_CPPFLAGS = \
