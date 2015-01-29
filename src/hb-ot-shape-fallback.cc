@@ -447,7 +447,7 @@ _hb_ot_shape_fallback_kern (const hb_ot_shape_plan_t *plan,
   hb_glyph_position_t *pos = buffer->pos;
   for (unsigned int idx = 0; idx < count;)
   {
-    OT::hb_apply_context_t::skipping_forward_iterator_t skippy_iter (&c, idx, 1);
+    OT::hb_apply_context_t::skipping_iterator_t skippy_iter (&c, idx, 1);
     if (!skippy_iter.next ())
     {
       idx++;

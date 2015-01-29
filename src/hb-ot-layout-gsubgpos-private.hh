@@ -390,17 +390,17 @@ struct hb_apply_context_t
     const void *match_data;
   };
 
-  struct skipping_forward_iterator_t
+  struct skipping_iterator_t
   {
-    inline skipping_forward_iterator_t (hb_apply_context_t *c_,
-					unsigned int start_index_,
-					unsigned int num_items_,
-					bool context_match = false) :
-					 idx (start_index_),
-					 c (c_),
-					 match_glyph_data (NULL),
-					 num_items (num_items_),
-					 end (c->buffer->len)
+    inline skipping_iterator_t (hb_apply_context_t *c_,
+				unsigned int start_index_,
+				unsigned int num_items_,
+				bool context_match = false) :
+				 idx (start_index_),
+				 c (c_),
+				 match_glyph_data (NULL),
+				 num_items (num_items_),
+				 end (c->buffer->len)
     {
       matcher.set_lookup_props (c->lookup_props);
       /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
@@ -421,6 +421,7 @@ struct hb_apply_context_t
     }
 
     inline void reject (void) { num_items++; match_glyph_data--; }
+
     inline bool next (void)
     {
       assert (num_items > 0);
@@ -448,47 +449,6 @@ struct hb_apply_context_t
       }
       return false;
     }
-
-    unsigned int idx;
-    protected:
-    hb_apply_context_t *c;
-    matcher_t matcher;
-    const USHORT *match_glyph_data;
-
-    unsigned int num_items;
-    unsigned int end;
-  };
-
-  struct skipping_backward_iterator_t
-  {
-    inline skipping_backward_iterator_t (hb_apply_context_t *c_,
-					 unsigned int start_index_,
-					 unsigned int num_items_,
-					 bool context_match = false) :
-					  idx (start_index_),
-					  c (c_),
-					  match_glyph_data (NULL),
-					  num_items (num_items_)
-    {
-      matcher.set_lookup_props (c->lookup_props);
-      /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
-      matcher.set_ignore_zwnj (context_match || c->table_index == 1);
-      /* Ignore ZWJ if we are matching GSUB context, or matching GPOS, or if asked to. */
-      matcher.set_ignore_zwj (context_match || c->table_index == 1 || c->auto_zwj);
-      if (!context_match)
-	matcher.set_mask (c->lookup_mask);
-      matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
-    }
-    inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
-    inline void set_match_func (matcher_t::match_func_t match_func,
-				const void *match_data,
-				const USHORT glyph_data[])
-    {
-      matcher.set_match_func (match_func, match_data);
-      match_glyph_data = glyph_data;
-    }
-
-    inline void reject (void) { num_items++; match_glyph_data--; }
     inline bool prev (void)
     {
       assert (num_items > 0);
@@ -524,6 +484,7 @@ struct hb_apply_context_t
     const USHORT *match_glyph_data;
 
     unsigned int num_items;
+    unsigned int end;
   };
 
   inline bool
@@ -737,7 +698,7 @@ static inline bool match_input (hb_apply_context_t *c,
 
   hb_buffer_t *buffer = c->buffer;
 
-  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, count - 1);
+  hb_apply_context_t::skipping_iterator_t skippy_iter (c, buffer->idx, count - 1);
   skippy_iter.set_match_func (match_func, match_data, input);
 
   /*
@@ -905,7 +866,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::skipping_backward_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
+  hb_apply_context_t::skipping_iterator_t skippy_iter (c, c->buffer->backtrack_len (), count, true);
   skippy_iter.set_match_func (match_func, match_data, backtrack);
 
   for (unsigned int i = 0; i < count; i++)
@@ -924,7 +885,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
+  hb_apply_context_t::skipping_iterator_t skippy_iter (c, c->buffer->idx + offset - 1, count, true);
   skippy_iter.set_match_func (match_func, match_data, lookahead);
 
   for (unsigned int i = 0; i < count; i++)
