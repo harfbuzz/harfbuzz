@@ -260,61 +260,6 @@ struct hb_get_coverage_context_t
 
 struct hb_apply_context_t
 {
-  inline const char *get_name (void) { return "APPLY"; }
-  static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
-  typedef bool return_t;
-  typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
-  template <typename T>
-  inline return_t dispatch (const T &obj) { return obj.apply (this); }
-  static return_t default_return_value (void) { return false; }
-  bool stop_sublookup_iteration (return_t r) const { return r; }
-  return_t recurse (unsigned int lookup_index)
-  {
-    if (unlikely (nesting_level_left == 0 || !recurse_func))
-      return default_return_value ();
-
-    nesting_level_left--;
-    bool ret = recurse_func (this, lookup_index);
-    nesting_level_left++;
-    return ret;
-  }
-
-  unsigned int table_index; /* GSUB/GPOS */
-  hb_font_t *font;
-  hb_face_t *face;
-  hb_buffer_t *buffer;
-  hb_direction_t direction;
-  hb_mask_t lookup_mask;
-  bool auto_zwj;
-  recurse_func_t recurse_func;
-  unsigned int nesting_level_left;
-  unsigned int lookup_props;
-  const GDEF &gdef;
-  bool has_glyph_classes;
-  unsigned int debug_depth;
-
-
-  hb_apply_context_t (unsigned int table_index_,
-		      hb_font_t *font_,
-		      hb_buffer_t *buffer_) :
-			table_index (table_index_),
-			font (font_), face (font->face), buffer (buffer_),
-			direction (buffer_->props.direction),
-			lookup_mask (1),
-			auto_zwj (true),
-			recurse_func (NULL),
-			nesting_level_left (MAX_NESTING_LEVEL),
-			lookup_props (0),
-			gdef (*hb_ot_layout_from_face (face)->gdef),
-			has_glyph_classes (gdef.has_glyph_classes ()),
-			debug_depth (0) {}
-
-  inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
-  inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
-  inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
-  inline void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
-  inline void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }
-
   struct matcher_t
   {
     inline matcher_t (void) :
@@ -486,6 +431,62 @@ struct hb_apply_context_t
     unsigned int num_items;
     unsigned int end;
   };
+
+
+  inline const char *get_name (void) { return "APPLY"; }
+  static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
+  typedef bool return_t;
+  typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
+  template <typename T>
+  inline return_t dispatch (const T &obj) { return obj.apply (this); }
+  static return_t default_return_value (void) { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
+  return_t recurse (unsigned int lookup_index)
+  {
+    if (unlikely (nesting_level_left == 0 || !recurse_func))
+      return default_return_value ();
+
+    nesting_level_left--;
+    bool ret = recurse_func (this, lookup_index);
+    nesting_level_left++;
+    return ret;
+  }
+
+  unsigned int table_index; /* GSUB/GPOS */
+  hb_font_t *font;
+  hb_face_t *face;
+  hb_buffer_t *buffer;
+  hb_direction_t direction;
+  hb_mask_t lookup_mask;
+  bool auto_zwj;
+  recurse_func_t recurse_func;
+  unsigned int nesting_level_left;
+  unsigned int lookup_props;
+  const GDEF &gdef;
+  bool has_glyph_classes;
+  unsigned int debug_depth;
+
+
+  hb_apply_context_t (unsigned int table_index_,
+		      hb_font_t *font_,
+		      hb_buffer_t *buffer_) :
+			table_index (table_index_),
+			font (font_), face (font->face), buffer (buffer_),
+			direction (buffer_->props.direction),
+			lookup_mask (1),
+			auto_zwj (true),
+			recurse_func (NULL),
+			nesting_level_left (MAX_NESTING_LEVEL),
+			lookup_props (0),
+			gdef (*hb_ot_layout_from_face (face)->gdef),
+			has_glyph_classes (gdef.has_glyph_classes ()),
+			debug_depth (0) {}
+
+  inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
+  inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
+  inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+  inline void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
+  inline void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }
 
   inline bool
   match_properties_mark (hb_codepoint_t  glyph,
