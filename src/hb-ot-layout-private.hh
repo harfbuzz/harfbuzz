@@ -130,6 +130,11 @@ struct hb_ot_layout_lookup_accelerator_t
   {
   }
 
+  inline bool may_have (hb_codepoint_t g) const {
+    return digest.may_have (g);
+  }
+
+  private:
   hb_set_digest_t digest;
 };
 

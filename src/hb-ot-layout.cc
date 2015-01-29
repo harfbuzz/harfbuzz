@@ -699,7 +699,7 @@ hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
 
   const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
 
-  return l.would_apply (&c, &hb_ot_layout_from_face (face)->gsub_accels[lookup_index].digest);
+  return l.would_apply (&c, &hb_ot_layout_from_face (face)->gsub_accels[lookup_index]);
 }
 
 void
@@ -861,7 +861,7 @@ apply_string (OT::hb_apply_context_t *c,
 
     while (buffer->idx < buffer->len)
     {
-      if (accel.digest.may_have (buffer->cur().codepoint) &&
+      if (accel.may_have (buffer->cur().codepoint) &&
 	  (buffer->cur().mask & c->lookup_mask) &&
 	  apply_once (c, lookup))
 	ret = true;
@@ -884,7 +884,7 @@ apply_string (OT::hb_apply_context_t *c,
     buffer->idx = buffer->len - 1;
     do
     {
-      if (accel.digest.may_have (buffer->cur().codepoint) &&
+      if (accel.may_have (buffer->cur().codepoint) &&
 	  (buffer->cur().mask & c->lookup_mask) &&
 	  apply_once (c, lookup))
 	ret = true;

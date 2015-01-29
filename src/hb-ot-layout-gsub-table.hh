@@ -1195,11 +1195,12 @@ struct SubstLookup : Lookup
     }
   }
 
-  inline bool would_apply (hb_would_apply_context_t *c, const hb_set_digest_t *digest) const
+  inline bool would_apply (hb_would_apply_context_t *c,
+			   const hb_ot_layout_lookup_accelerator_t *accel) const
   {
     TRACE_WOULD_APPLY (this);
     if (unlikely (!c->len))  return TRACE_RETURN (false);
-    if (!digest->may_have (c->glyphs[0]))  return TRACE_RETURN (false);
+    if (!accel->may_have (c->glyphs[0]))  return TRACE_RETURN (false);
       return TRACE_RETURN (dispatch (c));
   }
 
