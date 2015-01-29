@@ -488,7 +488,7 @@ struct hb_apply_context_t
       match_glyph_data = glyph_data;
     }
 
-    inline void reject (void) { num_items++; }
+    inline void reject (void) { num_items++; match_glyph_data--; }
     inline bool prev (void)
     {
       assert (num_items > 0);
