@@ -1633,7 +1633,7 @@ template <typename context_t>
   unsigned int saved_lookup_props = c->lookup_props;
   c->set_lookup (l);
   bool ret = l.apply_once (c);
-  c->lookup_props = saved_lookup_props;
+  c->set_lookup_props (saved_lookup_props);
   return ret;
 }
 
