@@ -684,7 +684,8 @@ struct PairPosFormat1
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
-    hb_apply_context_t::skipping_iterator_t skippy_iter (c, buffer->idx, 1);
+    hb_apply_context_t::skipping_iterator_t skippy_iter (c);
+    skippy_iter.reset (buffer->idx, 1);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     return TRACE_RETURN ((this+pairSet[index]).apply (c, &valueFormat1, skippy_iter.idx));
@@ -753,7 +754,8 @@ struct PairPosFormat2
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
-    hb_apply_context_t::skipping_iterator_t skippy_iter (c, buffer->idx, 1);
+    hb_apply_context_t::skipping_iterator_t skippy_iter (c);
+    skippy_iter.reset (buffer->idx, 1);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     unsigned int len1 = valueFormat1.get_len ();
@@ -902,7 +904,8 @@ struct CursivePosFormat1
     const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
     if (!this_record.exitAnchor) return TRACE_RETURN (false);
 
-    hb_apply_context_t::skipping_iterator_t skippy_iter (c, buffer->idx, 1);
+    hb_apply_context_t::skipping_iterator_t skippy_iter (c);
+    skippy_iter.reset (buffer->idx, 1);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     const EntryExitRecord &next_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
@@ -1045,7 +1048,8 @@ struct MarkBasePosFormat1
     if (likely (mark_index == NOT_COVERED)) return TRACE_RETURN (false);
 
     /* now we search backwards for a non-mark glyph */
-    hb_apply_context_t::skipping_iterator_t skippy_iter (c, buffer->idx, 1);
+    hb_apply_context_t::skipping_iterator_t skippy_iter (c);
+    skippy_iter.reset (buffer->idx, 1);
     skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
     do {
       if (!skippy_iter.prev ()) return TRACE_RETURN (false);
@@ -1149,7 +1153,8 @@ struct MarkLigPosFormat1
     if (likely (mark_index == NOT_COVERED)) return TRACE_RETURN (false);
 
     /* now we search backwards for a non-mark glyph */
-    hb_apply_context_t::skipping_iterator_t skippy_iter (c, buffer->idx, 1);
+    hb_apply_context_t::skipping_iterator_t skippy_iter (c);
+    skippy_iter.reset (buffer->idx, 1);
     skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
     if (!skippy_iter.prev ()) return TRACE_RETURN (false);
 
@@ -1265,7 +1270,8 @@ struct MarkMarkPosFormat1
     if (likely (mark1_index == NOT_COVERED)) return TRACE_RETURN (false);
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */
-    hb_apply_context_t::skipping_iterator_t skippy_iter (c, buffer->idx, 1);
+    hb_apply_context_t::skipping_iterator_t skippy_iter (c);
+    skippy_iter.reset (buffer->idx, 1);
     skippy_iter.set_lookup_props (c->lookup_props & ~LookupFlag::IgnoreFlags);
     if (!skippy_iter.prev ()) return TRACE_RETURN (false);
 
