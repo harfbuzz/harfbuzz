@@ -337,23 +337,22 @@ struct hb_apply_context_t
 
   struct skipping_iterator_t
   {
-    inline skipping_iterator_t (hb_apply_context_t *c_,
-				bool context_match = false) :
-				 idx (0),
-				 c (c_),
-				 match_glyph_data (NULL),
-				 num_items (0),
-				 end (0)
+    inline void init (hb_apply_context_t *c_, bool context_match = false)
     {
+      c = c_;
+      match_glyph_data = NULL,
+      matcher.set_match_func (NULL, NULL);
       matcher.set_lookup_props (c->lookup_props);
       /* Ignore ZWNJ if we are matching GSUB context, or matching GPOS. */
       matcher.set_ignore_zwnj (context_match || c->table_index == 1);
       /* Ignore ZWJ if we are matching GSUB context, or matching GPOS, or if asked to. */
       matcher.set_ignore_zwj (context_match || c->table_index == 1 || c->auto_zwj);
-      if (!context_match)
-	matcher.set_mask (c->lookup_mask);
+      matcher.set_mask (context_match ? -1 : c->lookup_mask);
     }
-    inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
+    inline void set_lookup_props (unsigned int lookup_props)
+    {
+      matcher.set_lookup_props (lookup_props);
+    }
     inline void set_match_func (matcher_t::match_func_t match_func,
 				const void *match_data,
 				const USHORT glyph_data[])
@@ -705,7 +704,8 @@ static inline bool match_input (hb_apply_context_t *c,
 
   hb_buffer_t *buffer = c->buffer;
 
-  hb_apply_context_t::skipping_iterator_t skippy_iter (c);
+  hb_apply_context_t::skipping_iterator_t skippy_iter;
+  skippy_iter.init (c);
   skippy_iter.reset (buffer->idx, count - 1);
   skippy_iter.set_match_func (match_func, match_data, input);
 
@@ -874,7 +874,8 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::skipping_iterator_t skippy_iter (c, true);
+  hb_apply_context_t::skipping_iterator_t skippy_iter;
+  skippy_iter.init (c, true);
   skippy_iter.reset (c->buffer->backtrack_len (), count);
   skippy_iter.set_match_func (match_func, match_data, backtrack);
 
@@ -894,7 +895,8 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::skipping_iterator_t skippy_iter (c, true);
+  hb_apply_context_t::skipping_iterator_t skippy_iter;
+  skippy_iter.init (c, true);
   skippy_iter.reset (c->buffer->idx + offset - 1, count);
   skippy_iter.set_match_func (match_func, match_data, lookahead);
 
