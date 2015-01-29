@@ -469,6 +469,7 @@ struct hb_apply_context_t
   unsigned int lookup_props;
   const GDEF &gdef;
   bool has_glyph_classes;
+  skipping_iterator_t iter_input, iter_context;
   unsigned int debug_depth;
 
 
@@ -485,13 +486,20 @@ struct hb_apply_context_t
 			lookup_props (0),
 			gdef (*hb_ot_layout_from_face (face)->gdef),
 			has_glyph_classes (gdef.has_glyph_classes ()),
+			iter_input (),
+			iter_context (),
 			debug_depth (0) {}
 
   inline void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; }
   inline void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; }
   inline void set_recurse_func (recurse_func_t func) { recurse_func = func; }
-  inline void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
-  inline void set_lookup (const Lookup &l) { lookup_props = l.get_props (); }
+  inline void set_lookup (const Lookup &l) { set_lookup_props (l.get_props ()); }
+  inline void set_lookup_props (unsigned int lookup_props_)
+  {
+    lookup_props = lookup_props_;
+    iter_input.init (this, false);
+    iter_context.init (this, true);
+  }
 
   inline bool
   match_properties_mark (hb_codepoint_t  glyph,
@@ -704,8 +712,7 @@ static inline bool match_input (hb_apply_context_t *c,
 
   hb_buffer_t *buffer = c->buffer;
 
-  hb_apply_context_t::skipping_iterator_t skippy_iter;
-  skippy_iter.init (c);
+  hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx, count - 1);
   skippy_iter.set_match_func (match_func, match_data, input);
 
@@ -874,8 +881,7 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::skipping_iterator_t skippy_iter;
-  skippy_iter.init (c, true);
+  hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (c->buffer->backtrack_len (), count);
   skippy_iter.set_match_func (match_func, match_data, backtrack);
 
@@ -895,8 +901,7 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  hb_apply_context_t::skipping_iterator_t skippy_iter;
-  skippy_iter.init (c, true);
+  hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (c->buffer->idx + offset - 1, count);
   skippy_iter.set_match_func (match_func, match_data, lookahead);
 
