@@ -681,12 +681,11 @@ struct PairPosFormat1
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
-    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
-
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
+    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
+    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     return TRACE_RETURN ((this+pairSet[index]).apply (c, &valueFormat1, skippy_iter.idx));
@@ -752,12 +751,11 @@ struct PairPosFormat2
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
-    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
-
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
 
+    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
+    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     unsigned int len1 = valueFormat1.get_len ();
@@ -903,12 +901,11 @@ struct CursivePosFormat1
     /* We don't handle mark glyphs here. */
     if (unlikely (_hb_glyph_info_is_mark (&buffer->cur()))) return TRACE_RETURN (false);
 
-    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
-    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
-
     const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
     if (!this_record.exitAnchor) return TRACE_RETURN (false);
 
+    hb_apply_context_t::skipping_forward_iterator_t skippy_iter (c, buffer->idx, 1);
+    if (skippy_iter.has_no_chance ()) return TRACE_RETURN (false);
     if (!skippy_iter.next ()) return TRACE_RETURN (false);
 
     const EntryExitRecord &next_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
