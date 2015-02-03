@@ -411,7 +411,7 @@ struct hb_apply_context_t
 	matcher.set_mask (c->lookup_mask);
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
-    inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
+    inline void set_lookup_props (unsigned int lookup_properties) { matcher.set_lookup_props (lookup_properties); }
     inline void set_syllable (unsigned int syllable) { matcher.set_syllable (syllable); }
     inline void set_match_func (matcher_t::match_func_t match_func,
 				const void *match_data,
@@ -481,7 +481,7 @@ struct hb_apply_context_t
 	matcher.set_mask (c->lookup_mask);
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
-    inline void set_lookup_props (unsigned int lookup_props) { matcher.set_lookup_props (lookup_props); }
+    inline void set_lookup_props (unsigned int lookup_properties) { matcher.set_lookup_props (lookup_properties); }
     inline void set_syllable (unsigned int syllable) { matcher.set_syllable (syllable); }
     inline void set_match_func (matcher_t::match_func_t match_func,
 				const void *match_data,
@@ -533,27 +533,27 @@ struct hb_apply_context_t
   inline bool
   match_properties_mark (hb_codepoint_t  glyph,
 			 unsigned int    glyph_props,
-			 unsigned int    lookup_props) const
+			 unsigned int    lookup_properties) const
   {
     /* If using mark filtering sets, the high short of
      * lookup_props has the set index.
      */
-    if (lookup_props & LookupFlag::UseMarkFilteringSet)
-      return gdef.mark_set_covers (lookup_props >> 16, glyph);
+    if (lookup_properties & LookupFlag::UseMarkFilteringSet)
+      return gdef.mark_set_covers (lookup_properties >> 16, glyph);
 
     /* The second byte of lookup_props has the meaning
      * "ignore marks of attachment type different than
      * the attachment type specified."
      */
-    if (lookup_props & LookupFlag::MarkAttachmentType)
-      return (lookup_props & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
+    if (lookup_properties & LookupFlag::MarkAttachmentType)
+      return (lookup_properties & LookupFlag::MarkAttachmentType) == (glyph_props & LookupFlag::MarkAttachmentType);
 
     return true;
   }
 
   inline bool
   check_glyph_property (const hb_glyph_info_t *info,
-			unsigned int  lookup_props) const
+			unsigned int  lookup_properties) const
   {
     hb_codepoint_t glyph = info->codepoint;
     unsigned int glyph_props = _hb_glyph_info_get_glyph_props (info);
@@ -561,11 +561,11 @@ struct hb_apply_context_t
     /* Not covered, if, for example, glyph class is ligature and
      * lookup_props includes LookupFlags::IgnoreLigatures
      */
-    if (glyph_props & lookup_props & LookupFlag::IgnoreFlags)
+    if (glyph_props & lookup_properties & LookupFlag::IgnoreFlags)
       return false;
 
     if (unlikely (glyph_props & HB_OT_LAYOUT_GLYPH_PROPS_MARK))
-      return match_properties_mark (glyph, glyph_props, lookup_props);
+      return match_properties_mark (glyph, glyph_props, lookup_properties);
 
     return true;
   }

@@ -1281,10 +1281,10 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
     {
       last_syllable = syllable;
 
-      hb_glyph_info_t info = dottedcircle;
-      info.cluster = buffer->cur().cluster;
-      info.mask = buffer->cur().mask;
-      info.syllable() = buffer->cur().syllable();
+      hb_glyph_info_t dottedcircle_info = dottedcircle;
+      dottedcircle_info.cluster = buffer->cur().cluster;
+      dottedcircle_info.mask = buffer->cur().mask;
+      dottedcircle_info.syllable() = buffer->cur().syllable();
       /* TODO Set glyph_props? */
 
       /* Insert dottedcircle after possible Repha. */
@@ -1293,7 +1293,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	     buffer->cur().indic_category() == OT_Repha)
         buffer->next_glyph ();
 
-      buffer->output_info (info);
+      buffer->output_info (dottedcircle_info);
     }
     else
       buffer->next_glyph ();
@@ -1666,12 +1666,12 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	    if (new_pos > start && info[new_pos - 1].indic_category() == OT_M)
 	    {
 	      unsigned int old_pos = i;
-	      for (unsigned int i = base + 1; i < old_pos; i++)
-		if (info[i].indic_category() == OT_M)
-		{
-		  new_pos--;
-		  break;
-		}
+	      for (unsigned int j = base + 1; j < old_pos; j++)
+		 if (info[j].indic_category() == OT_M)
+		 {
+		   new_pos--;
+		   break;
+		 }
 	    }
 	  }
 
