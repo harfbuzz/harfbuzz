@@ -45,9 +45,9 @@ struct hb_ot_face_metrics_accelerator_t
 
   inline void init (hb_face_t *face,
 		    hb_tag_t _hea_tag, hb_tag_t _mtx_tag,
-		    unsigned int default_advance)
+		    unsigned int default_advance_value)
   {
-    this->default_advance = default_advance;
+    this->default_advance = default_advance_value;
     this->num_metrics = face->get_num_glyphs ();
 
     hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (face->reference_table (_hea_tag));
@@ -219,7 +219,7 @@ hb_ot_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-  return font->em_scale_y (-ot_font->v_metrics.get_advance (glyph));
+  return font->em_scale_y (-(int16_t)ot_font->v_metrics.get_advance (glyph));
 }
 
 static hb_bool_t

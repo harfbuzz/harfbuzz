@@ -484,12 +484,12 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
     {
       last_syllable = syllable;
 
-      hb_glyph_info_t info = dottedcircle;
-      info.cluster = buffer->cur().cluster;
-      info.mask = buffer->cur().mask;
-      info.syllable() = buffer->cur().syllable();
+      hb_glyph_info_t dottedcircle_info = dottedcircle;
+      dottedcircle_info.cluster = buffer->cur().cluster;
+      dottedcircle_info.mask = buffer->cur().mask;
+      dottedcircle_info.syllable() = buffer->cur().syllable();
 
-      buffer->output_info (info);
+      buffer->output_info (dottedcircle_info);
     }
     else
       buffer->next_glyph ();

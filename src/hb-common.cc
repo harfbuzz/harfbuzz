@@ -215,7 +215,7 @@ struct hb_language_item_t {
   hb_language_t lang;
 
   inline bool operator == (const char *s) const {
-    return lang_equal (lang, s);
+    return lang_equal (lang, s) != 0;
   }
 
   inline hb_language_item_t & operator = (const char *s) {
@@ -518,7 +518,7 @@ hb_user_data_array_t::set (hb_user_data_key_t *key,
     }
   }
   hb_user_data_item_t item = {key, data, destroy};
-  bool ret = !!items.replace_or_insert (item, lock, replace);
+  bool ret = !!items.replace_or_insert (item, lock, replace != 0);
 
   return ret;
 }
