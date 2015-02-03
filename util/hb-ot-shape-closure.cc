@@ -110,6 +110,6 @@ struct shape_closure_consumer_t : option_group_t
 int
 main (int argc, char **argv)
 {
-  main_font_text_t<shape_closure_consumer_t> driver;
+  main_font_text_t<shape_closure_consumer_t, FONT_SIZE_NONE, 0> driver;
   return driver.main (argc, argv);
 }

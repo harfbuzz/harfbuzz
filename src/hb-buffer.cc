@@ -1328,15 +1328,15 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer)
   buffer->guess_segment_properties ();
 }
 
-template <bool validate, typename T>
+template <typename utf_t>
 static inline void
 hb_buffer_add_utf (hb_buffer_t  *buffer,
-		   const T      *text,
+		   const typename utf_t::codepoint_t *text,
 		   int           text_length,
 		   unsigned int  item_offset,
 		   int           item_length)
 {
-  typedef hb_utf_t<T, true> utf_t;
+  typedef typename utf_t::codepoint_t T;
   const hb_codepoint_t replacement = buffer->replacement;
 
   assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE ||
@@ -1400,7 +1400,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 /**
  * hb_buffer_add_utf8:
  * @buffer: a buffer.
- * @text: (array length=text_length):
+ * @text: (array length=text_length) (element-type uint8_t):
  * @text_length: 
  * @item_offset: 
  * @item_length: 
@@ -1416,7 +1416,7 @@ hb_buffer_add_utf8 (hb_buffer_t  *buffer,
 		    unsigned int  item_offset,
 		    int           item_length)
 {
-  hb_buffer_add_utf<true> (buffer, (const uint8_t *) text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<hb_utf8_t> (buffer, (const uint8_t *) text, text_length, item_offset, item_length);
 }
 
 /**
@@ -1438,7 +1438,7 @@ hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int             item_length)
 {
-  hb_buffer_add_utf<true> (buffer, text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<hb_utf16_t> (buffer, text, text_length, item_offset, item_length);
 }
 
 /**
@@ -1460,7 +1460,29 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     unsigned int    item_offset,
 		     int             item_length)
 {
-  hb_buffer_add_utf<true> (buffer, text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<hb_utf32_t<> > (buffer, text, text_length, item_offset, item_length);
+}
+
+/**
+ * hb_buffer_add_latin1:
+ * @buffer: a buffer.
+ * @text: (array length=text_length) (element-type uint8_t):
+ * @text_length: 
+ * @item_offset: 
+ * @item_length: 
+ *
+ * 
+ *
+ * Since: 1.0
+ **/
+void
+hb_buffer_add_latin1 (hb_buffer_t   *buffer,
+		      const uint8_t *text,
+		      int            text_length,
+		      unsigned int   item_offset,
+		      int            item_length)
+{
+  hb_buffer_add_utf<hb_latin1_t> (buffer, text, text_length, item_offset, item_length);
 }
 
 /**
@@ -1482,7 +1504,7 @@ hb_buffer_add_codepoints (hb_buffer_t          *buffer,
 			  unsigned int          item_offset,
 			  int                   item_length)
 {
-  hb_buffer_add_utf<false> (buffer, text, text_length, item_offset, item_length);
+  hb_buffer_add_utf<hb_utf32_t<false> > (buffer, text, text_length, item_offset, item_length);
 }
 
 

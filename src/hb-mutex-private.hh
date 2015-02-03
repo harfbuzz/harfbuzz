@@ -47,7 +47,11 @@
 #include <windows.h>
 typedef CRITICAL_SECTION hb_mutex_impl_t;
 #define HB_MUTEX_IMPL_INIT	{0}
+#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+#define hb_mutex_impl_init(M)	InitializeCriticalSectionEx (M, 0, 0)
+#else
 #define hb_mutex_impl_init(M)	InitializeCriticalSection (M)
+#endif
 #define hb_mutex_impl_lock(M)	EnterCriticalSection (M)
 #define hb_mutex_impl_unlock(M)	LeaveCriticalSection (M)
 #define hb_mutex_impl_finish(M)	DeleteCriticalSection (M)

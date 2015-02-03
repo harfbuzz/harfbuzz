@@ -55,6 +55,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
   va_list vap;
   va_start (vap, format);
   msg = g_strdup_vprintf (format, vap);
+  va_end (vap);
   const char *prgname = g_get_prgname ();
   g_printerr ("%s: %s\n", prgname, msg);
   if (suggest_help)
@@ -264,7 +265,6 @@ view_options_t::add_options (option_parser_t *parser)
     {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: " DEFAULT_FORE ")",	"rrggbb/rrggbbaa"},
     {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&this->line_space,		"Set space between lines (default: 0)",			"units"},
     {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: " G_STRINGIFY(DEFAULT_MARGIN) ")","one to four numbers"},
-    {"font-size",	0, 0, G_OPTION_ARG_DOUBLE,	&this->font_size,		"Font size (default: " G_STRINGIFY(DEFAULT_FONT_SIZE) ")","size"},
     {NULL}
   };
   parser->add_group (entries,
@@ -349,6 +349,28 @@ shape_options_t::add_options (option_parser_t *parser)
 		     this);
 }
 
+static gboolean
+parse_font_size (const char *name G_GNUC_UNUSED,
+		 const char *arg,
+		 gpointer    data,
+		 GError    **error G_GNUC_UNUSED)
+{
+  font_options_t *font_opts = (font_options_t *) data;
+  if (0 == strcmp (arg, "upem"))
+  {
+    font_opts->font_size_y = font_opts->font_size_x = FONT_SIZE_UPEM;
+    return true;
+  }
+  switch (sscanf (arg, "%lf %lf", &font_opts->font_size_x, &font_opts->font_size_y)) {
+    case 1: font_opts->font_size_y = font_opts->font_size_x;
+    case 2: return true;
+    default:
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "%s argument should be one to four space-separated numbers",
+		   name);
+      return false;
+  }
+}
 void
 font_options_t::add_options (option_parser_t *parser)
 {
@@ -369,11 +391,22 @@ font_options_t::add_options (option_parser_t *parser)
     parser->free_later (text);
   }
 
+  char *font_size_text;
+  if (default_font_size == FONT_SIZE_UPEM)
+    font_size_text = (char *) "Font size (default: upem)";
+  else
+  {
+    font_size_text = g_strdup_printf ("Font size (default: %d)", default_font_size);
+    parser->free_later (font_size_text);
+  }
+
   GOptionEntry entries[] =
   {
     {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",			"filename"},
     {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",		"index"},
-    {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,					"format"},
+    {"font-size",	0, default_font_size ? 0 : G_OPTION_FLAG_HIDDEN,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,				"1/2 numbers or 'upem'"},
+    {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,					"impl"},
     {NULL}
   };
   parser->add_group (entries,
@@ -514,8 +547,14 @@ font_options_t::get_font (void) const
 
   font = hb_font_create (face);
 
-  unsigned int upem = hb_face_get_upem (face);
-  hb_font_set_scale (font, upem, upem);
+  if (font_size_x == FONT_SIZE_UPEM)
+    font_size_x = hb_face_get_upem (face);
+  if (font_size_y == FONT_SIZE_UPEM)
+    font_size_y = hb_face_get_upem (face);
+
+  int scale_x = (int) scalbnf (font_size_x, subpixel_bits);
+  int scale_y = (int) scalbnf (font_size_y, subpixel_bits);
+  hb_font_set_scale (font, scale_x, scale_y);
   hb_face_destroy (face);
 
   void (*set_font_funcs) (hb_font_t *) = NULL;

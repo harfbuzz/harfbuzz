@@ -235,7 +235,7 @@ struct hb_language_item_t {
 static hb_language_item_t *langs;
 
 #ifdef HB_USE_ATEXIT
-static inline
+static
 void free_langs (void)
 {
   while (langs) {
@@ -265,6 +265,7 @@ retry:
   *lang = key;
 
   if (!hb_atomic_ptr_cmpexch (&langs, first_lang, lang)) {
+    lang->finish ();
     free (lang);
     goto retry;
   }
@@ -345,7 +346,7 @@ hb_language_get_default (void)
   hb_language_t language = (hb_language_t) hb_atomic_ptr_get (&default_language);
   if (unlikely (language == HB_LANGUAGE_INVALID)) {
     language = hb_language_from_string (setlocale (LC_CTYPE, NULL), -1);
-    hb_atomic_ptr_cmpexch (&default_language, HB_LANGUAGE_INVALID, language);
+    (void) hb_atomic_ptr_cmpexch (&default_language, HB_LANGUAGE_INVALID, language);
   }
 
   return default_language;

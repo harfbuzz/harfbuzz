@@ -1,3 +1,26 @@
+Overview of changes leading to 0.9.38
+Friday, January 23, 2015
+=====================================
+
+- Fix minor out-of-bounds access in Indic shaper.
+- Change New Tai Lue shaping engine from South-East Asian to default,
+  reflecting change in Unicode encoding model.
+- Add hb-shape --font-size.  Can take up to two numbers for separate
+  x / y size.
+- Fix CoreText and FreeType scale issues with negative scales.
+- Reject blobs larger than 2GB.  This might break some icu-le-hb clients
+  that need security fixes.  See:
+  http://www.icu-project.org/trac/ticket/11450
+- Avoid accessing font tables during face destruction, in casce rogue
+  clients released face data already.
+- Fix up gobject-introspection a bit.  Python bindings kinda working.
+  See README.python.
+- Misc fixes.
+- API additions:
+  hb_ft_face_create_referenced()
+  hb_ft_font_create_referenced()
+
+
 Overview of changes leading to 0.9.37
 Wednesday, December 17, 2014
 =====================================

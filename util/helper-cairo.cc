@@ -70,8 +70,7 @@ void free_ft_library (void)
 }
 
 cairo_scaled_font_t *
-helper_cairo_create_scaled_font (const font_options_t *font_opts,
-				 double font_size)
+helper_cairo_create_scaled_font (const font_options_t *font_opts)
 {
   hb_font_t *font = hb_font_reference (font_opts->get_font ());
 
@@ -105,7 +104,8 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts,
 
   cairo_matrix_init_identity (&ctm);
   cairo_matrix_init_scale (&font_matrix,
-			   font_size, font_size);
+			   font_opts->font_size_x,
+			   font_opts->font_size_y);
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
@@ -423,7 +423,7 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 			       hb_buffer_t         *buffer,
 			       const char          *text,
 			       unsigned int         text_len,
-			       double               scale,
+			       int                  scale_bits,
 			       hb_bool_t            utf8_clusters)
 {
   memset (l, 0, sizeof (*l));
@@ -456,16 +456,16 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
   for (i = 0; i < (int) l->num_glyphs; i++)
   {
     l->glyphs[i].index = hb_glyph[i].codepoint;
-    l->glyphs[i].x = ( hb_position->x_offset + x) * scale;
-    l->glyphs[i].y = (-hb_position->y_offset + y) * scale;
+    l->glyphs[i].x = scalbn ( hb_position->x_offset + x, scale_bits);
+    l->glyphs[i].y = scalbn (-hb_position->y_offset + y, scale_bits);
     x +=  hb_position->x_advance;
     y += -hb_position->y_advance;
 
     hb_position++;
   }
   l->glyphs[i].index = -1;
-  l->glyphs[i].x = x * scale;
-  l->glyphs[i].y = y * scale;
+  l->glyphs[i].x = scalbn (x, scale_bits);
+  l->glyphs[i].y = scalbn (y, scale_bits);
 
   if (l->num_clusters) {
     memset ((void *) l->clusters, 0, l->num_clusters * sizeof (l->clusters[0]));

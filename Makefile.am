@@ -10,6 +10,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	harfbuzz.doap \
 	Android.mk \
+	README.python \
 	$(NULL)
 
 MAINTAINERCLEANFILES = \
