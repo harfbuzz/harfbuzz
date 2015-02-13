@@ -94,16 +94,6 @@
 # endif
 #endif
 
-#ifdef _MSC_VER
-#undef inline
-#define inline __inline
-#endif
-
-#ifdef __STRICT_ANSI__
-#undef inline
-#define inline __inline__
-#endif
-
 #if __GNUC__ >= 3
 #define HB_FUNC __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
