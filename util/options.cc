@@ -444,9 +444,7 @@ output_options_t::add_options (option_parser_t *parser)
   else
   {
     char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
-    text = g_strdup_printf ("Set output serialization format\n\n    Supported output formats are: %s\n%s", items,
-      "      text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
-      "      json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]");
+    text = g_strdup_printf ("Set output format\n\n    Supported output formats are: %s", items);
     g_free (items);
     parser->free_later ((char *) text);
   }
@@ -459,7 +457,7 @@ output_options_t::add_options (option_parser_t *parser)
   };
   parser->add_group (entries,
 		     "output",
-		     "Output detination & format options:",
+		     "Output destination & format options:",
 		     "Options controlling the destination and form of the output",
 		     this);
 }
@@ -706,9 +704,12 @@ format_options_t::add_options (option_parser_t *parser)
     {NULL}
   };
   parser->add_group (entries,
-		     "output-content",
-		     "Output content options (refer to --help-output for output syntax):",
-		     "Options controlling the content of the output",
+		     "output-syntax",
+		     "Output syntax:\n"
+         "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
+         "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
+         "\nOutput syntax options:",
+		     "Options controlling the syntax of the output",
 		     this);
 }
 
