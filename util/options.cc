@@ -459,7 +459,7 @@ output_options_t::add_options (option_parser_t *parser)
   };
   parser->add_group (entries,
 		     "output",
-		     "Output detination & format options (refer to --help-output-content for content options):",
+		     "Output detination & format options:",
 		     "Options controlling the destination and form of the output",
 		     this);
 }
