@@ -1431,9 +1431,7 @@ struct PosLookupSubTable
 
   protected:
   union {
-  struct {
-    USHORT		sub_format;
-  } header;
+  USHORT		sub_format;
   SinglePos		single;
   PairPos		pair;
   CursivePos		cursive;
@@ -1445,7 +1443,7 @@ struct PosLookupSubTable
   ExtensionPos		extension;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, header.sub_format);
+  DEFINE_SIZE_UNION (2, sub_format);
 };
 
 

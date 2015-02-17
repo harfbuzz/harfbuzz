@@ -1131,9 +1131,7 @@ struct SubstLookupSubTable
 
   protected:
   union {
-  struct {
-    USHORT			sub_format;
-  } header;
+  USHORT			sub_format;
   SingleSubst			single;
   MultipleSubst			multiple;
   AlternateSubst		alternate;
@@ -1144,7 +1142,7 @@ struct SubstLookupSubTable
   ReverseChainSingleSubst	reverseChainContextSingle;
   } u;
   public:
-  DEFINE_SIZE_UNION (2, header.sub_format);
+  DEFINE_SIZE_UNION (2, sub_format);
 };
 
 
