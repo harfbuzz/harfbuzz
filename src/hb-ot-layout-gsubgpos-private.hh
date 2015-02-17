@@ -238,7 +238,8 @@ struct hb_collect_glyphs_context_t
 #define HB_DEBUG_GET_COVERAGE (HB_DEBUG+0)
 #endif
 
-struct hb_get_coverage_context_t
+template <typename set_t>
+struct hb_add_coverage_context_t
 {
   inline const char *get_name (void) { return "GET_COVERAGE"; }
   static const unsigned int max_debug_depth = HB_DEBUG_GET_COVERAGE;
@@ -248,10 +249,17 @@ struct hb_get_coverage_context_t
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.get_coverage (); }
   static return_t default_return_value (void) { return Null(Coverage); }
+  bool stop_sublookup_iteration (return_t r) const
+  {
+    r.add_coverage (set);
+    return false;
+  }
 
-  hb_get_coverage_context_t (void) :
+  hb_add_coverage_context_t (set_t *set_) :
+			    set (set_),
 			    debug_depth (0) {}
 
+  set_t *set;
   unsigned int debug_depth;
 };
 

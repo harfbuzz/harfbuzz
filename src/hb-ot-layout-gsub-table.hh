@@ -1200,16 +1200,8 @@ struct SubstLookup : Lookup
   template <typename set_t>
   inline void add_coverage (set_t *glyphs) const
   {
-    hb_get_coverage_context_t c;
-    const Coverage *last = NULL;
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 0; i < count; i++) {
-      const Coverage *coverage = &get_subtable (i).dispatch (&c, get_type ());
-      if (coverage != last) {
-        coverage->add_coverage (glyphs);
-        last = coverage;
-      }
-    }
+    hb_add_coverage_context_t<set_t> c (glyphs);
+    dispatch (&c);
   }
 
   inline bool would_apply (hb_would_apply_context_t *c,
