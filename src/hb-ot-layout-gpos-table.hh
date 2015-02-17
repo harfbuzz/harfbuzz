@@ -1499,7 +1499,6 @@ struct PosLookup : Lookup
   inline hb_collect_glyphs_context_t::return_t collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
-    c->set_recurse_func (NULL);
     return TRACE_RETURN (dispatch (c));
   }
 
