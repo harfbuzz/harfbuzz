@@ -63,9 +63,10 @@ struct Record
 
   struct sanitize_closure_t {
     hb_tag_t tag;
-    void *list_base;
+    const void *list_base;
   };
-  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
     TRACE_SANITIZE (this);
     const sanitize_closure_t closure = {tag, base};
     return TRACE_RETURN (c->check_struct (this) && offset.sanitize (c, base, &closure));
@@ -121,7 +122,8 @@ struct RecordListOf : RecordArrayOf<Type>
   inline const Type& operator [] (unsigned int i) const
   { return this+RecordArrayOf<Type>::operator [](i).offset; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (RecordArrayOf<Type>::sanitize (c, this));
   }
@@ -134,7 +136,8 @@ struct RangeRecord
     return g < start ? -1 : g <= end ? 0 : +1 ;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
@@ -199,7 +202,8 @@ struct LangSys
   }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<LangSys>::sanitize_closure_t * = NULL) {
+			const Record<LangSys>::sanitize_closure_t * = NULL) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && featureIndex.sanitize (c));
   }
@@ -238,7 +242,8 @@ struct Script
   inline const LangSys& get_default_lang_sys (void) const { return this+defaultLangSys; }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<Script>::sanitize_closure_t * = NULL) {
+			const Record<Script>::sanitize_closure_t * = NULL) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
   }
@@ -260,7 +265,8 @@ typedef RecordListOf<Script> ScriptList;
 /* http://www.microsoft.com/typography/otspec/features_pt.htm#size */
 struct FeatureParamsSize
 {
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this))) return TRACE_RETURN (false);
 
@@ -371,7 +377,8 @@ struct FeatureParamsSize
 /* http://www.microsoft.com/typography/otspec/features_pt.htm#ssxx */
 struct FeatureParamsStylisticSet
 {
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     /* Right now minorVersion is at zero.  Which means, any table supports
      * the uiNameID field. */
@@ -404,7 +411,8 @@ struct FeatureParamsStylisticSet
 /* http://www.microsoft.com/typography/otspec/features_ae.htm#cv01-cv99 */
 struct FeatureParamsCharacterVariants
 {
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) &&
 			 characters.sanitize (c));
@@ -444,7 +452,8 @@ struct FeatureParamsCharacterVariants
 
 struct FeatureParams
 {
-  inline bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) {
+  inline bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) const
+  {
     TRACE_SANITIZE (this);
     if (tag == HB_TAG ('s','i','z','e'))
       return TRACE_RETURN (u.size.sanitize (c));
@@ -486,7 +495,8 @@ struct Feature
   { return this+featureParams; }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<Feature>::sanitize_closure_t *closure) {
+			const Record<Feature>::sanitize_closure_t *closure) const
+  {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
       return TRACE_RETURN (false);
@@ -595,13 +605,14 @@ struct Lookup
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
     if (!(c->check_struct (this) && subTable.sanitize (c))) return TRACE_RETURN (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
-      USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
+      const USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
       if (!markFilteringSet.sanitize (c)) return TRACE_RETURN (false);
     }
     return TRACE_RETURN (true);
@@ -651,7 +662,8 @@ struct CoverageFormat1
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (glyphArray.sanitize (c));
   }
@@ -737,7 +749,8 @@ struct CoverageFormat2
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (rangeRecord.sanitize (c));
   }
@@ -832,7 +845,8 @@ struct Coverage
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -943,7 +957,8 @@ struct ClassDefFormat1
     return 0;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && classValue.sanitize (c));
   }
@@ -999,7 +1014,8 @@ struct ClassDefFormat2
     return 0;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (rangeRecord.sanitize (c));
   }
@@ -1056,7 +1072,8 @@ struct ClassDef
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1148,7 +1165,8 @@ struct Device
     return USHORT::static_size * (4 + ((endSize - startSize) >> (4 - f)));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && c->check_range (this, this->get_size ()));
   }

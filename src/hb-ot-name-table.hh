@@ -56,7 +56,8 @@ struct NameRecord
     return 0;
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
     TRACE_SANITIZE (this);
     /* We can check from base all the way up to the end of string... */
     return TRACE_RETURN (c->check_struct (this) && c->check_range ((char *) base, (unsigned int) length + offset));
@@ -110,7 +111,8 @@ struct name
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) &&
 			 likely (format == 0 || format == 1) &&

@@ -916,7 +916,8 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 
 struct LookupRecord
 {
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
@@ -1139,7 +1140,8 @@ struct Rule
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return inputCount.sanitize (c)
 	&& lookupCount.sanitize (c)
@@ -1203,7 +1205,8 @@ struct RuleSet
     return TRACE_RETURN (false);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (rule.sanitize (c, this));
   }
@@ -1285,7 +1288,8 @@ struct ContextFormat1
     return TRACE_RETURN (rule_set.apply (c, lookup_context));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
@@ -1377,7 +1381,8 @@ struct ContextFormat2
     return TRACE_RETURN (rule_set.apply (c, lookup_context));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
@@ -1465,7 +1470,8 @@ struct ContextFormat3
     return TRACE_RETURN (context_apply_lookup (c, glyphCount, (const USHORT *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!c->check_struct (this)) return TRACE_RETURN (false);
     unsigned int count = glyphCount;
@@ -1473,7 +1479,7 @@ struct ContextFormat3
     if (!c->check_array (coverageZ, coverageZ[0].static_size, count)) return TRACE_RETURN (false);
     for (unsigned int i = 0; i < count; i++)
       if (!coverageZ[i].sanitize (c, this)) return TRACE_RETURN (false);
-    LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * count);
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * count);
     return TRACE_RETURN (c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount));
   }
 
@@ -1505,7 +1511,8 @@ struct Context
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1697,14 +1704,15 @@ struct ChainRule
 						     lookup.array, lookup_context));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!backtrack.sanitize (c)) return TRACE_RETURN (false);
-    HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
+    const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     if (!input.sanitize (c)) return TRACE_RETURN (false);
-    ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
+    const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     if (!lookahead.sanitize (c)) return TRACE_RETURN (false);
-    ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return TRACE_RETURN (lookup.sanitize (c));
   }
 
@@ -1766,7 +1774,8 @@ struct ChainRuleSet
     return TRACE_RETURN (false);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (rule.sanitize (c, this));
   }
@@ -1845,7 +1854,8 @@ struct ChainContextFormat1
     return TRACE_RETURN (rule_set.apply (c, lookup_context));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
@@ -1955,7 +1965,8 @@ struct ChainContextFormat2
     return TRACE_RETURN (rule_set.apply (c, lookup_context));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && backtrackClassDef.sanitize (c, this) &&
 			 inputClassDef.sanitize (c, this) && lookaheadClassDef.sanitize (c, this) &&
@@ -2076,15 +2087,16 @@ struct ChainContextFormat3
 						     lookup.len, lookup.array, lookup_context));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!backtrack.sanitize (c, this)) return TRACE_RETURN (false);
-    OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     if (!input.sanitize (c, this)) return TRACE_RETURN (false);
     if (!input.len) return TRACE_RETURN (false); /* To be consistent with Context. */
-    OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     if (!lookahead.sanitize (c, this)) return TRACE_RETURN (false);
-    ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
     return TRACE_RETURN (lookup.sanitize (c));
   }
 
@@ -2123,7 +2135,8 @@ struct ChainContext
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -2149,7 +2162,8 @@ struct ExtensionFormat1
   inline unsigned int get_type (void) const { return extensionLookupType; }
   inline unsigned int get_offset (void) const { return extensionOffset; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
@@ -2197,7 +2211,8 @@ struct Extension
     return get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ());
   }
 
-  inline bool sanitize_self (hb_sanitize_context_t *c) {
+  inline bool sanitize_self (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -2206,7 +2221,8 @@ struct Extension
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!sanitize_self (c)) return TRACE_RETURN (false);
     unsigned int offset = get_offset ();
@@ -2262,7 +2278,8 @@ struct GSUBGPOS
   inline const Lookup& get_lookup (unsigned int i) const
   { return (this+lookupList)[i]; }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (version.sanitize (c) && likely (version.major == 1) &&
 			 scriptList.sanitize (c, this) &&

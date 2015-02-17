@@ -97,7 +97,8 @@ struct SingleSubstFormat1
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && deltaGlyphID.sanitize (c));
   }
@@ -173,7 +174,8 @@ struct SingleSubstFormat2
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && substitute.sanitize (c));
   }
@@ -230,7 +232,8 @@ struct SingleSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -312,7 +315,8 @@ struct Sequence
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (substitute.sanitize (c));
   }
@@ -384,7 +388,8 @@ struct MultipleSubstFormat1
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && sequence.sanitize (c, this));
   }
@@ -429,7 +434,8 @@ struct MultipleSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -535,7 +541,8 @@ struct AlternateSubstFormat1
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && alternateSet.sanitize (c, this));
   }
@@ -580,7 +587,8 @@ struct AlternateSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -686,7 +694,8 @@ struct Ligature
   }
 
   public:
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (ligGlyph.sanitize (c) && component.sanitize (c));
   }
@@ -764,7 +773,8 @@ struct LigatureSet
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (ligature.sanitize (c, this));
   }
@@ -848,7 +858,8 @@ struct LigatureSubstFormat1
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && ligatureSet.sanitize (c, this));
   }
@@ -896,7 +907,8 @@ struct LigatureSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1017,14 +1029,15 @@ struct ReverseChainSingleSubstFormat1
     return TRACE_RETURN (false);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!(coverage.sanitize (c, this) && backtrack.sanitize (c, this)))
       return TRACE_RETURN (false);
-    OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
     if (!lookahead.sanitize (c, this))
       return TRACE_RETURN (false);
-    ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
+    const ArrayOf<GlyphID> &substitute = StructAfter<ArrayOf<GlyphID> > (lookahead);
     return TRACE_RETURN (substitute.sanitize (c));
   }
 
@@ -1060,7 +1073,8 @@ struct ReverseChainSingleSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1114,7 +1128,8 @@ struct SubstLookupSubTable
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
+  {
     TRACE_SANITIZE (this);
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.sanitize (c));
@@ -1283,11 +1298,11 @@ struct SubstLookup : Lookup
     return TRACE_RETURN (c->default_return_value ());
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c)
+  inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
+    const OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
     if (unlikely (!list.sanitize (c, this, get_type ()))) return TRACE_RETURN (false);
 
     if (unlikely (get_type () == SubstLookupSubTable::Extension))
@@ -1321,10 +1336,11 @@ struct GSUB : GSUBGPOS
   static inline void substitute_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void substitute_finish (hb_font_t *font, hb_buffer_t *buffer);
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (unlikely (!GSUBGPOS::sanitize (c))) return TRACE_RETURN (false);
-    OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
+    const OffsetTo<SubstLookupList> &list = CastR<OffsetTo<SubstLookupList> > (lookupList);
     return TRACE_RETURN (list.sanitize (c, this));
   }
   public:

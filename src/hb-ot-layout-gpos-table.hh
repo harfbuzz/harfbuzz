@@ -146,7 +146,8 @@ struct ValueFormat : USHORT
   }
 
   private:
-  inline bool sanitize_value_devices (hb_sanitize_context_t *c, void *base, Value *values) {
+  inline bool sanitize_value_devices (hb_sanitize_context_t *c, const void *base, const Value *values) const
+  {
     unsigned int format = *this;
 
     if (format & xPlacement) values++;
@@ -177,12 +178,14 @@ struct ValueFormat : USHORT
     return (format & devices) != 0;
   }
 
-  inline bool sanitize_value (hb_sanitize_context_t *c, void *base, Value *values) {
+  inline bool sanitize_value (hb_sanitize_context_t *c, const void *base, const Value *values) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_range (values, get_size ()) && (!has_device () || sanitize_value_devices (c, base, values)));
   }
 
-  inline bool sanitize_values (hb_sanitize_context_t *c, void *base, Value *values, unsigned int count) {
+  inline bool sanitize_values (hb_sanitize_context_t *c, const void *base, const Value *values, unsigned int count) const
+  {
     TRACE_SANITIZE (this);
     unsigned int len = get_len ();
 
@@ -200,7 +203,8 @@ struct ValueFormat : USHORT
   }
 
   /* Just sanitize referenced Device tables.  Doesn't check the values themselves. */
-  inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *c, void *base, Value *values, unsigned int count, unsigned int stride) {
+  inline bool sanitize_values_stride_unsafe (hb_sanitize_context_t *c, const void *base, const Value *values, unsigned int count, unsigned int stride) const
+  {
     TRACE_SANITIZE (this);
 
     if (!has_device ()) return TRACE_RETURN (true);
@@ -225,7 +229,8 @@ struct AnchorFormat1
       *y = font->em_scale_y (yCoordinate);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
@@ -254,7 +259,8 @@ struct AnchorFormat2
       *y = ret && y_ppem ? cy : font->em_scale_y (yCoordinate);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this));
   }
@@ -282,7 +288,8 @@ struct AnchorFormat3
 	*y += (this+yDeviceTable).get_x_delta (font);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && xDeviceTable.sanitize (c, this) && yDeviceTable.sanitize (c, this));
   }
@@ -317,7 +324,8 @@ struct Anchor
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -349,7 +357,8 @@ struct AnchorMatrix
     return this+matrixZ[row * cols + col];
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int cols) {
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int cols) const
+  {
     TRACE_SANITIZE (this);
     if (!c->check_struct (this)) return TRACE_RETURN (false);
     if (unlikely (rows > 0 && cols >= ((unsigned int) -1) / rows)) return TRACE_RETURN (false);
@@ -374,7 +383,8 @@ struct MarkRecord
 {
   friend struct MarkArray;
 
-  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && markAnchor.sanitize (c, base));
   }
@@ -421,7 +431,8 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (ArrayOf<MarkRecord>::sanitize (c, this));
   }
@@ -457,9 +468,12 @@ struct SinglePosFormat1
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && valueFormat.sanitize_value (c, this, values));
+    return TRACE_RETURN (c->check_struct (this)
+        && coverage.sanitize (c, this)
+	&& valueFormat.sanitize_value (c, this, values));
   }
 
   protected:
@@ -506,9 +520,12 @@ struct SinglePosFormat2
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && coverage.sanitize (c, this) && valueFormat.sanitize_values (c, this, values, valueCount));
+    return TRACE_RETURN (c->check_struct (this)
+	&& coverage.sanitize (c, this)
+	&& valueFormat.sanitize_values (c, this, values, valueCount));
   }
 
   protected:
@@ -538,7 +555,8 @@ struct SinglePos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -636,19 +654,20 @@ struct PairSet
   }
 
   struct sanitize_closure_t {
-    void *base;
-    ValueFormat *valueFormats;
+    const void *base;
+    const ValueFormat *valueFormats;
     unsigned int len1; /* valueFormats[0].get_len() */
     unsigned int stride; /* 1 + len1 + len2 */
   };
 
-  inline bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) {
+  inline bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) const
+  {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this)
        && c->check_array (arrayZ, USHORT::static_size * closure->stride, len))) return TRACE_RETURN (false);
 
     unsigned int count = len;
-    PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
+    const PairValueRecord *record = CastP<PairValueRecord> (arrayZ);
     return TRACE_RETURN (closure->valueFormats[0].sanitize_values_stride_unsafe (c, closure->base, &record->values[0], count, closure->stride)
 		      && closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride));
   }
@@ -691,7 +710,8 @@ struct PairPosFormat1
     return TRACE_RETURN ((this+pairSet[index]).apply (c, &valueFormat1, skippy_iter.idx));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
 
     unsigned int len1 = valueFormat1.get_len ();
@@ -779,7 +799,8 @@ struct PairPosFormat2
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this)
        && coverage.sanitize (c, this)
@@ -839,7 +860,8 @@ struct PairPos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -862,7 +884,8 @@ struct EntryExitRecord
 {
   friend struct CursivePosFormat1;
 
-  inline bool sanitize (hb_sanitize_context_t *c, void *base) {
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (entryAnchor.sanitize (c, base) && exitAnchor.sanitize (c, base));
   }
@@ -975,7 +998,8 @@ struct CursivePosFormat1
     return TRACE_RETURN (true);
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (coverage.sanitize (c, this) && entryExitRecord.sanitize (c, this));
   }
@@ -1004,7 +1028,8 @@ struct CursivePos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1067,7 +1092,8 @@ struct MarkBasePosFormat1
     return TRACE_RETURN ((this+markArray).apply (c, mark_index, base_index, this+baseArray, classCount, skippy_iter.idx));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && markCoverage.sanitize (c, this) && baseCoverage.sanitize (c, this) &&
 			 markArray.sanitize (c, this) && baseArray.sanitize (c, this, (unsigned int) classCount));
@@ -1104,7 +1130,8 @@ struct MarkBasePos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1188,7 +1215,8 @@ struct MarkLigPosFormat1
     return TRACE_RETURN ((this+markArray).apply (c, mark_index, comp_index, lig_attach, classCount, j));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && markCoverage.sanitize (c, this) && ligatureCoverage.sanitize (c, this) &&
 			 markArray.sanitize (c, this) && ligatureArray.sanitize (c, this, (unsigned int) classCount));
@@ -1226,7 +1254,8 @@ struct MarkLigPos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1306,7 +1335,8 @@ struct MarkMarkPosFormat1
     return TRACE_RETURN ((this+mark1Array).apply (c, mark1_index, mark2_index, this+mark2Array, classCount, j));
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     return TRACE_RETURN (c->check_struct (this) && mark1Coverage.sanitize (c, this) &&
 			 mark2Coverage.sanitize (c, this) && mark1Array.sanitize (c, this)
@@ -1346,7 +1376,8 @@ struct MarkMarkPos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (!u.format.sanitize (c)) return TRACE_RETURN (false);
     switch (u.format) {
@@ -1413,7 +1444,8 @@ struct PosLookupSubTable
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) {
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
+  {
     TRACE_SANITIZE (this);
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.sanitize (c));
@@ -1506,10 +1538,11 @@ struct PosLookup : Lookup
     return TRACE_RETURN (c->default_return_value ());
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
+    const OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
     return TRACE_RETURN (list.sanitize (c, this, get_type ()));
   }
 };
@@ -1530,10 +1563,11 @@ struct GPOS : GSUBGPOS
   static inline void position_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void position_finish (hb_font_t *font, hb_buffer_t *buffer);
 
-  inline bool sanitize (hb_sanitize_context_t *c) {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
     TRACE_SANITIZE (this);
     if (unlikely (!GSUBGPOS::sanitize (c))) return TRACE_RETURN (false);
-    OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
+    const OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return TRACE_RETURN (list.sanitize (c, this));
   }
   public:
