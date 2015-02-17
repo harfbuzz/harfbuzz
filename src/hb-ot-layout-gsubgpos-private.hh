@@ -58,6 +58,8 @@ struct hb_closure_context_t
   static const unsigned int max_debug_depth = HB_DEBUG_CLOSURE;
   typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
+  template <typename T, typename F>
+  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { obj.closure (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
@@ -107,6 +109,8 @@ struct hb_would_apply_context_t
   inline const char *get_name (void) { return "WOULD_APPLY"; }
   static const unsigned int max_debug_depth = HB_DEBUG_WOULD_APPLY;
   typedef bool return_t;
+  template <typename T, typename F>
+  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value (void) { return false; }
@@ -146,6 +150,8 @@ struct hb_collect_glyphs_context_t
   static const unsigned int max_debug_depth = HB_DEBUG_COLLECT_GLYPHS;
   typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
+  template <typename T, typename F>
+  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
@@ -237,6 +243,8 @@ struct hb_get_coverage_context_t
   inline const char *get_name (void) { return "GET_COVERAGE"; }
   static const unsigned int max_debug_depth = HB_DEBUG_GET_COVERAGE;
   typedef const Coverage &return_t;
+  template <typename T, typename F>
+  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.get_coverage (); }
   static return_t default_return_value (void) { return Null(Coverage); }
@@ -442,6 +450,8 @@ struct hb_apply_context_t
   static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
   typedef bool return_t;
   typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
+  template <typename T, typename F>
+  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.apply (this); }
   static return_t default_return_value (void) { return false; }
@@ -1503,6 +1513,7 @@ struct Context
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
+    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     case 2: return TRACE_RETURN (c->dispatch (u.format2));
@@ -2127,6 +2138,7 @@ struct ChainContext
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
+    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     case 2: return TRACE_RETURN (c->dispatch (u.format2));
