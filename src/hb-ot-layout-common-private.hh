@@ -37,6 +37,12 @@
 namespace OT {
 
 
+#define TRACE_DISPATCH(this, format) \
+	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
+	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
+	 "format %d", (int) format);
+
+
 #define NOT_COVERED		((unsigned int) -1)
 #define MAX_NESTING_LEVEL	8
 #define MAX_CONTEXT_LENGTH	64
@@ -596,6 +602,20 @@ struct Lookup
       flag += (markFilteringSet << 16);
     }
     return flag;
+  }
+
+  template <typename SubTableType, typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    unsigned int lookup_type = get_type ();
+    TRACE_DISPATCH (this, lookup_type);
+    unsigned int count = get_subtable_count ();
+    for (unsigned int i = 0; i < count; i++) {
+      typename context_t::return_t r = get_subtable<SubTableType> (i).dispatch (c, lookup_type);
+      if (c->stop_sublookup_iteration (r))
+        return TRACE_RETURN (r);
+    }
+    return TRACE_RETURN (c->default_return_value ());
   }
 
   inline bool serialize (hb_serialize_context_t *c,

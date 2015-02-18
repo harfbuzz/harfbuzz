@@ -37,12 +37,6 @@
 namespace OT {
 
 
-
-#define TRACE_DISPATCH(this, format) \
-	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
-	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
-	 "format %d", (int) format);
-
 #ifndef HB_DEBUG_CLOSURE
 #define HB_DEBUG_CLOSURE (HB_DEBUG+0)
 #endif

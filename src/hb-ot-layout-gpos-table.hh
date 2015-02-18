@@ -1524,17 +1524,7 @@ struct PosLookup : Lookup
 
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
-  {
-    unsigned int lookup_type = get_type ();
-    TRACE_DISPATCH (this, lookup_type);
-    unsigned int count = get_subtable_count ();
-    for (unsigned int i = 0; i < count; i++) {
-      typename context_t::return_t r = get_subtable (i).dispatch (c, lookup_type);
-      if (c->stop_sublookup_iteration (r))
-        return TRACE_RETURN (r);
-    }
-    return TRACE_RETURN (c->default_return_value ());
-  }
+  { return Lookup::dispatch<PosLookupSubTable> (c); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
