@@ -1489,7 +1489,7 @@ struct PosLookupSubTable
 struct PosLookup : Lookup
 {
   inline const PosLookupSubTable& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<PosLookupSubTable> > (subTable)[i]; }
+  { return Lookup::get_subtable<PosLookupSubTable> (i); }
 
   inline bool is_reverse (void) const
   {
@@ -1540,7 +1540,7 @@ struct PosLookup : Lookup
   {
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    const OffsetArrayOf<PosLookupSubTable> &list = CastR<OffsetArrayOf<PosLookupSubTable> > (subTable);
+    const OffsetArrayOf<PosLookupSubTable> &list = get_subtables<PosLookupSubTable> ();
     return TRACE_RETURN (list.sanitize (c, this, get_type ()));
   }
 };

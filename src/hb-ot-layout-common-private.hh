@@ -571,6 +571,17 @@ struct Lookup
 {
   inline unsigned int get_subtable_count (void) const { return subTable.len; }
 
+  template <typename SubTableType>
+  inline const SubTableType& get_subtable (unsigned int i) const
+  { return this+CastR<OffsetArrayOf<SubTableType> > (subTable)[i]; }
+
+  template <typename SubTableType>
+  inline const OffsetArrayOf<SubTableType>& get_subtables (void) const
+  { return CastR<OffsetArrayOf<SubTableType> > (subTable); }
+  template <typename SubTableType>
+  inline OffsetArrayOf<SubTableType>& get_subtables (void)
+  { return CastR<OffsetArrayOf<SubTableType> > (subTable); }
+
   inline unsigned int get_type (void) const { return lookupType; }
 
   /* lookup_props is a 32-bit integer where the lower 16-bit is LookupFlag and
@@ -618,6 +629,7 @@ struct Lookup
     return TRACE_RETURN (true);
   }
 
+  private:
   USHORT	lookupType;		/* Different enumerations for GSUB and GPOS */
   USHORT	lookupFlag;		/* Lookup qualifiers */
   ArrayOf<Offset<> >

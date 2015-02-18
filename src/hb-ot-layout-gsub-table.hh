@@ -1170,7 +1170,7 @@ struct SubstLookupSubTable
 struct SubstLookup : Lookup
 {
   inline const SubstLookupSubTable& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i]; }
+  { return Lookup::get_subtable<SubstLookupSubTable> (i); }
 
   inline static bool lookup_type_is_reverse (unsigned int lookup_type)
   { return lookup_type == SubstLookupSubTable::ReverseChainSingle; }
@@ -1225,7 +1225,7 @@ struct SubstLookup : Lookup
 
   inline SubstLookupSubTable& serialize_subtable (hb_serialize_context_t *c,
 						  unsigned int i)
-  { return CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable)[i].serialize (c, this); }
+  { return get_subtables<SubstLookupSubTable> ()[i].serialize (c, this); }
 
   inline bool serialize_single (hb_serialize_context_t *c,
 				uint32_t lookup_props,
@@ -1300,7 +1300,7 @@ struct SubstLookup : Lookup
   {
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    const OffsetArrayOf<SubstLookupSubTable> &list = CastR<OffsetArrayOf<SubstLookupSubTable> > (subTable);
+    const OffsetArrayOf<SubstLookupSubTable> &list = get_subtables<SubstLookupSubTable> ();
     if (unlikely (!list.sanitize (c, this, get_type ()))) return TRACE_RETURN (false);
 
     if (unlikely (get_type () == SubstLookupSubTable::Extension))
