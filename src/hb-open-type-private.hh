@@ -549,12 +549,6 @@ struct BEInt<Type, 2>
     return (v[0] <<  8)
          + (v[1]      );
   }
-  inline bool operator == (const BEInt<Type, 2>& o) const
-  {
-    return v[0] == o.v[0]
-        && v[1] == o.v[1];
-  }
-  inline bool operator != (const BEInt<Type, 2>& o) const { return !(*this == o); }
   private: uint8_t v[2];
 };
 template <typename Type>
@@ -573,13 +567,6 @@ struct BEInt<Type, 3>
          + (v[1] <<  8)
          + (v[2]      );
   }
-  inline bool operator == (const BEInt<Type, 3>& o) const
-  {
-    return v[0] == o.v[0]
-        && v[1] == o.v[1]
-        && v[2] == o.v[2];
-  }
-  inline bool operator != (const BEInt<Type, 3>& o) const { return !(*this == o); }
   private: uint8_t v[3];
 };
 template <typename Type>
@@ -600,14 +587,6 @@ struct BEInt<Type, 4>
          + (v[2] <<  8)
          + (v[3]      );
   }
-  inline bool operator == (const BEInt<Type, 4>& o) const
-  {
-    return v[0] == o.v[0]
-        && v[1] == o.v[1]
-        && v[2] == o.v[2]
-        && v[3] == o.v[3];
-  }
-  inline bool operator != (const BEInt<Type, 4>& o) const { return !(*this == o); }
   private: uint8_t v[4];
 };
 
@@ -617,8 +596,8 @@ struct IntType
 {
   inline void set (Type i) { v.set (i); }
   inline operator Type(void) const { return v; }
-  inline bool operator == (const IntType<Type,Size> &o) const { return v == o.v; }
-  inline bool operator != (const IntType<Type,Size> &o) const { return v != o.v; }
+  inline bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
+  inline bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
   static inline int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
   inline int cmp (IntType<Type,Size> va) const { Type a = va; return cmp (va); }
   inline int cmp (Type a) const
