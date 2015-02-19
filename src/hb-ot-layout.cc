@@ -830,16 +830,15 @@ struct GPOSProxy
 
 
 template <typename Proxy>
-static inline bool
+static inline void
 apply_string (OT::hb_apply_context_t *c,
 	      const typename Proxy::Lookup &lookup,
 	      const hb_ot_layout_lookup_accelerator_t &accel)
 {
-  bool ret = false;
   hb_buffer_t *buffer = c->buffer;
 
   if (unlikely (!buffer->len || !c->lookup_mask))
-    return false;
+    return;
 
   c->set_lookup (lookup);
 
@@ -850,6 +849,7 @@ apply_string (OT::hb_apply_context_t *c,
       buffer->clear_output ();
     buffer->idx = 0;
 
+    bool ret = false;
     while (buffer->idx < buffer->len)
     {
       if (accel.may_have (buffer->cur().codepoint) &&
@@ -865,7 +865,7 @@ apply_string (OT::hb_apply_context_t *c,
       if (!Proxy::inplace)
 	buffer->swap_buffers ();
       else
-        assert (!buffer->has_separate_output ());
+	assert (!buffer->has_separate_output ());
     }
   }
   else
@@ -880,15 +880,13 @@ apply_string (OT::hb_apply_context_t *c,
 	  (buffer->cur().mask & c->lookup_mask) &&
 	  c->check_glyph_property (&c->buffer->cur(), c->lookup_props) &&
 	  lookup.apply (c))
-	ret = true;
+	/* nothing */;
       /* The reverse lookup doesn't "advance" cursor (for good reason). */
       buffer->idx--;
 
     }
     while ((int) buffer->idx >= 0);
   }
-
-  return ret;
 }
 
 template <typename Proxy>
