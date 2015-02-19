@@ -829,6 +829,50 @@ struct GPOSProxy
 };
 
 
+template <typename Obj>
+static inline bool
+apply_forward (OT::hb_apply_context_t *c,
+	       const Obj &obj,
+	       const hb_ot_layout_lookup_accelerator_t &accel)
+{
+  bool ret = false;
+  hb_buffer_t *buffer = c->buffer;
+  while (buffer->idx < buffer->len)
+  {
+    if (accel.may_have (buffer->cur().codepoint) &&
+	(buffer->cur().mask & c->lookup_mask) &&
+	c->check_glyph_property (&c->buffer->cur(), c->lookup_props) &&
+	obj.apply (c))
+      ret = true;
+    else
+      buffer->next_glyph ();
+  }
+  return ret;
+}
+
+template <typename Obj>
+static inline bool
+apply_backward (OT::hb_apply_context_t *c,
+		const Obj &obj,
+		const hb_ot_layout_lookup_accelerator_t &accel)
+{
+  bool ret = false;
+  hb_buffer_t *buffer = c->buffer;
+  do
+  {
+    if (accel.may_have (buffer->cur().codepoint) &&
+	(buffer->cur().mask & c->lookup_mask) &&
+	c->check_glyph_property (&c->buffer->cur(), c->lookup_props) &&
+	obj.apply (c))
+      ret = true;
+    /* The reverse lookup doesn't "advance" cursor (for good reason). */
+    buffer->idx--;
+
+  }
+  while ((int) buffer->idx >= 0);
+  return ret;
+}
+
 template <typename Proxy>
 static inline void
 apply_string (OT::hb_apply_context_t *c,
@@ -849,18 +893,7 @@ apply_string (OT::hb_apply_context_t *c,
       buffer->clear_output ();
     buffer->idx = 0;
 
-    bool ret = false;
-    while (buffer->idx < buffer->len)
-    {
-      if (accel.may_have (buffer->cur().codepoint) &&
-	  (buffer->cur().mask & c->lookup_mask) &&
-	  c->check_glyph_property (&c->buffer->cur(), c->lookup_props) &&
-	  lookup.apply (c))
-	ret = true;
-      else
-	buffer->next_glyph ();
-    }
-    if (ret)
+    if (apply_forward (c, lookup, accel))
     {
       if (!Proxy::inplace)
 	buffer->swap_buffers ();
@@ -874,18 +907,8 @@ apply_string (OT::hb_apply_context_t *c,
     if (Proxy::table_index == 0)
       buffer->remove_output ();
     buffer->idx = buffer->len - 1;
-    do
-    {
-      if (accel.may_have (buffer->cur().codepoint) &&
-	  (buffer->cur().mask & c->lookup_mask) &&
-	  c->check_glyph_property (&c->buffer->cur(), c->lookup_props) &&
-	  lookup.apply (c))
-	/* nothing */;
-      /* The reverse lookup doesn't "advance" cursor (for good reason). */
-      buffer->idx--;
 
-    }
-    while ((int) buffer->idx >= 0);
+    apply_backward (c, lookup, accel);
   }
 }
 
