@@ -620,7 +620,7 @@ struct IntType
   inline bool operator == (const IntType<Type,Size> &o) const { return v == o.v; }
   inline bool operator != (const IntType<Type,Size> &o) const { return v != o.v; }
   static inline int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
-  inline int cmp (IntType<Type,Size> va) const { Type a = va; Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
+  inline int cmp (IntType<Type,Size> va) const { Type a = va; return cmp (va); }
   inline int cmp (Type a) const { Type b = v; return a < b ? -1 : a == b ? 0 : +1; }
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
