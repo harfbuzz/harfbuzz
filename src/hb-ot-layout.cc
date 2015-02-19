@@ -873,6 +873,29 @@ apply_backward (OT::hb_apply_context_t *c,
   return ret;
 }
 
+struct hb_apply_forward_context_t
+{
+  inline const char *get_name (void) { return "APPLY_FORWARD"; }
+  static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
+  typedef bool return_t;
+  template <typename T, typename F>
+  inline bool may_dispatch (const T *obj, const F *format) { return true; }
+  template <typename T>
+  inline return_t dispatch (const T &obj) { return apply_forward (c, obj, accel); }
+  static return_t default_return_value (void) { return false; }
+  bool stop_sublookup_iteration (return_t r HB_UNUSED) const { return true; }
+
+  hb_apply_forward_context_t (OT::hb_apply_context_t *c_,
+			      const hb_ot_layout_lookup_accelerator_t &accel_) :
+				c (c_),
+				accel (accel_),
+				debug_depth (0) {}
+
+  OT::hb_apply_context_t *c;
+  const hb_ot_layout_lookup_accelerator_t &accel;
+  unsigned int debug_depth;
+};
+
 template <typename Proxy>
 static inline void
 apply_string (OT::hb_apply_context_t *c,
@@ -893,7 +916,15 @@ apply_string (OT::hb_apply_context_t *c,
       buffer->clear_output ();
     buffer->idx = 0;
 
-    if (apply_forward (c, lookup, accel))
+    bool ret;
+    if (lookup.get_subtable_count () == 1)
+    {
+      hb_apply_forward_context_t c_forward (c, accel);
+      ret = lookup.dispatch (&c_forward);
+    }
+    else
+      ret = apply_forward (c, lookup, accel);
+    if (ret)
     {
       if (!Proxy::inplace)
 	buffer->swap_buffers ();
