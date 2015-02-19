@@ -1147,14 +1147,6 @@ struct SubstLookup : Lookup
       return TRACE_RETURN (dispatch (c));
   }
 
-  inline bool apply_once (hb_apply_context_t *c) const
-  {
-    TRACE_APPLY (this);
-    if (!c->check_glyph_property (&c->buffer->cur(), c->lookup_props))
-      return TRACE_RETURN (false);
-    return TRACE_RETURN (dispatch (c));
-  }
-
   static bool apply_recurse_func (hb_apply_context_t *c, unsigned int lookup_index);
 
   inline SubstLookupSubTable& serialize_subtable (hb_serialize_context_t *c,
@@ -1315,7 +1307,7 @@ template <typename context_t>
   const SubstLookup &l = gsub.get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   c->set_lookup (l);
-  bool ret = l.apply_once (c);
+  bool ret = l.dispatch (c);
   c->set_lookup_props (saved_lookup_props);
   return ret;
 }
