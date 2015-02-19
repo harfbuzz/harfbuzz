@@ -1117,6 +1117,12 @@ struct SubstLookup : Lookup
     return lookup_type_is_reverse (type);
   }
 
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    return TRACE_RETURN (dispatch (c));
+  }
+
   inline hb_closure_context_t::return_t closure (hb_closure_context_t *c) const
   {
     TRACE_CLOSURE (this);

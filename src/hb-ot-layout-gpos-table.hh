@@ -1418,6 +1418,12 @@ struct PosLookup : Lookup
     return false;
   }
 
+  inline bool apply (hb_apply_context_t *c) const
+  {
+    TRACE_APPLY (this);
+    return TRACE_RETURN (dispatch (c));
+  }
+
   inline hb_collect_glyphs_context_t::return_t collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     TRACE_COLLECT_GLYPHS (this);
