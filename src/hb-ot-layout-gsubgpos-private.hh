@@ -1524,18 +1524,6 @@ struct Context
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    case 2: return TRACE_RETURN (u.format2.sanitize (c));
-    case 3: return TRACE_RETURN (u.format3.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -2149,18 +2137,6 @@ struct ChainContext
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    case 2: return TRACE_RETURN (u.format2.sanitize (c));
-    case 3: return TRACE_RETURN (u.format3.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;	/* Format identifier */
@@ -2171,15 +2147,32 @@ struct ChainContext
 };
 
 
+template <typename T>
 struct ExtensionFormat1
 {
   inline unsigned int get_type (void) const { return extensionLookupType; }
-  inline unsigned int get_offset (void) const { return extensionOffset; }
 
+  template <typename X>
+  inline const X& get_subtable (void) const
+  {
+    unsigned int offset = extensionOffset;
+    if (unlikely (!offset)) return Null(typename T::LookupSubTable);
+    return StructAtOffset<typename T::LookupSubTable> (this, offset);
+  }
+
+  template <typename context_t>
+  inline typename context_t::return_t dispatch (context_t *c) const
+  {
+    TRACE_DISPATCH (this, format);
+    if (unlikely (!c->may_dispatch (this, this))) TRACE_RETURN (c->default_return_value ());
+    return get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ());
+  }
+
+  /* This is called from may_dispatch() above with hb_sanitize_context_t. */
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this));
+    return TRACE_RETURN (c->check_struct (this) && extensionOffset != 0);
   }
 
   protected:
@@ -2203,51 +2196,30 @@ struct Extension
     default:return 0;
     }
   }
-  inline unsigned int get_offset (void) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.get_offset ();
-    default:return 0;
-    }
-  }
-
   template <typename X>
   inline const X& get_subtable (void) const
   {
-    unsigned int offset = get_offset ();
-    if (unlikely (!offset)) return Null(typename T::LookupSubTable);
-    return StructAtOffset<typename T::LookupSubTable> (this, offset);
+    switch (u.format) {
+    case 1: return u.format1.template get_subtable<typename T::LookupSubTable> ();
+    default:return Null(typename T::LookupSubTable);
+    }
   }
 
   template <typename context_t>
   inline typename context_t::return_t dispatch (context_t *c) const
   {
-    return get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ());
-  }
-
-  inline bool sanitize_self (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
+    TRACE_DISPATCH (this, u.format);
+    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
+    case 1: return TRACE_RETURN (u.format1.dispatch (c));
+    default:return TRACE_RETURN (c->default_return_value ());
     }
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!sanitize_self (c)) return TRACE_RETURN (false);
-    unsigned int offset = get_offset ();
-    if (unlikely (!offset)) return TRACE_RETURN (true);
-    return TRACE_RETURN (StructAtOffset<typename T::LookupSubTable> (this, offset).sanitize (c, get_type ()));
   }
 
   protected:
   union {
   USHORT		format;		/* Format identifier */
-  ExtensionFormat1	format1;
+  ExtensionFormat1<T>	format1;
   } u;
 };
 

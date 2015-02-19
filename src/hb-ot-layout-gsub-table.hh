@@ -233,17 +233,6 @@ struct SingleSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    case 2: return TRACE_RETURN (u.format2.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -436,16 +425,6 @@ struct MultipleSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -587,16 +566,6 @@ struct AlternateSubst
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
     }
   }
 
@@ -911,16 +880,6 @@ struct LigatureSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -1078,16 +1037,6 @@ struct ReverseChainSingleSubst
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT				format;		/* Format identifier */
@@ -1120,6 +1069,7 @@ struct SubstLookupSubTable
   inline typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type) const
   {
     TRACE_DISPATCH (this, lookup_type);
+    /* The sub_format passed to may_dispatch is unnecessary but harmless. */
     if (unlikely (!c->may_dispatch (this, &u.sub_format))) TRACE_RETURN (c->default_return_value ());
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.dispatch (c));
@@ -1131,22 +1081,6 @@ struct SubstLookupSubTable
     case Extension:		return TRACE_RETURN (u.extension.dispatch (c));
     case ReverseChainSingle:	return TRACE_RETURN (u.reverseChainContextSingle.dispatch (c));
     default:			return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
-  {
-    TRACE_SANITIZE (this);
-    switch (lookup_type) {
-    case Single:		return TRACE_RETURN (u.single.sanitize (c));
-    case Multiple:		return TRACE_RETURN (u.multiple.sanitize (c));
-    case Alternate:		return TRACE_RETURN (u.alternate.sanitize (c));
-    case Ligature:		return TRACE_RETURN (u.ligature.sanitize (c));
-    case Context:		return TRACE_RETURN (u.context.sanitize (c));
-    case ChainContext:		return TRACE_RETURN (u.chainContext.sanitize (c));
-    case Extension:		return TRACE_RETURN (u.extension.sanitize (c));
-    case ReverseChainSingle:	return TRACE_RETURN (u.reverseChainContextSingle.sanitize (c));
-    default:			return TRACE_RETURN (true);
     }
   }
 
@@ -1291,7 +1225,7 @@ struct SubstLookup : Lookup
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
     const OffsetArrayOf<SubstLookupSubTable> &list = get_subtables<SubstLookupSubTable> ();
-    if (unlikely (!list.sanitize (c, this, get_type ()))) return TRACE_RETURN (false);
+    if (unlikely (!dispatch (c))) return TRACE_RETURN (false);
 
     if (unlikely (get_type () == SubstLookupSubTable::Extension))
     {
@@ -1363,7 +1297,7 @@ GSUB::substitute_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer HB_UNUSE
 {
   unsigned int type = get_type ();
   if (unlikely (type == SubstLookupSubTable::Extension))
-    return CastR<ExtensionSubst> (get_subtable<SubstLookupSubTable>()).is_reverse ();
+    return CastR<ExtensionSubst> (get_subtable<LookupSubTable>()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
 }
 

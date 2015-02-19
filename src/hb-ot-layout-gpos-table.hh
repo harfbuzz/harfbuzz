@@ -556,17 +556,6 @@ struct SinglePos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    case 2: return TRACE_RETURN (u.format2.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -862,17 +851,6 @@ struct PairPos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    case 2: return TRACE_RETURN (u.format2.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -1031,16 +1009,6 @@ struct CursivePos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -1131,16 +1099,6 @@ struct MarkBasePos
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
     }
   }
 
@@ -1259,16 +1217,6 @@ struct MarkLigPos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -1382,16 +1330,6 @@ struct MarkMarkPos
     }
   }
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return TRACE_RETURN (false);
-    switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.sanitize (c));
-    default:return TRACE_RETURN (true);
-    }
-  }
-
   protected:
   union {
   USHORT		format;		/* Format identifier */
@@ -1436,6 +1374,7 @@ struct PosLookupSubTable
   inline typename context_t::return_t dispatch (context_t *c, unsigned int lookup_type) const
   {
     TRACE_DISPATCH (this, lookup_type);
+    /* The sub_format passed to may_dispatch is unnecessary but harmless. */
     if (unlikely (!c->may_dispatch (this, &u.sub_format))) TRACE_RETURN (c->default_return_value ());
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.dispatch (c));
@@ -1448,23 +1387,6 @@ struct PosLookupSubTable
     case ChainContext:		return TRACE_RETURN (u.chainContext.dispatch (c));
     case Extension:		return TRACE_RETURN (u.extension.dispatch (c));
     default:			return TRACE_RETURN (c->default_return_value ());
-    }
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
-  {
-    TRACE_SANITIZE (this);
-    switch (lookup_type) {
-    case Single:		return TRACE_RETURN (u.single.sanitize (c));
-    case Pair:			return TRACE_RETURN (u.pair.sanitize (c));
-    case Cursive:		return TRACE_RETURN (u.cursive.sanitize (c));
-    case MarkBase:		return TRACE_RETURN (u.markBase.sanitize (c));
-    case MarkLig:		return TRACE_RETURN (u.markLig.sanitize (c));
-    case MarkMark:		return TRACE_RETURN (u.markMark.sanitize (c));
-    case Context:		return TRACE_RETURN (u.context.sanitize (c));
-    case ChainContext:		return TRACE_RETURN (u.chainContext.sanitize (c));
-    case Extension:		return TRACE_RETURN (u.extension.sanitize (c));
-    default:			return TRACE_RETURN (true);
     }
   }
 
@@ -1531,7 +1453,7 @@ struct PosLookup : Lookup
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
     const OffsetArrayOf<PosLookupSubTable> &list = get_subtables<PosLookupSubTable> ();
-    return TRACE_RETURN (list.sanitize (c, this, get_type ()));
+    return TRACE_RETURN (dispatch (c));
   }
 };
 

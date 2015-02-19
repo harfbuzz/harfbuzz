@@ -179,10 +179,13 @@ struct hb_sanitize_context_t
   inline const char *get_name (void) { return "SANITIZE"; }
   static const unsigned int max_debug_depth = HB_DEBUG_SANITIZE;
   typedef bool return_t;
+  template <typename T, typename F>
+  inline bool may_dispatch (const T *obj, const F *format)
+  { return format->sanitize (this); }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.sanitize (this); }
   static return_t default_return_value (void) { return true; }
-  bool stop_sublookup_iteration (const return_t r HB_UNUSED) const { return false; }
+  bool stop_sublookup_iteration (const return_t r) const { return !r; }
 
   inline void init (hb_blob_t *b)
   {
