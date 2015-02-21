@@ -984,8 +984,9 @@ struct ClassDefFormat1
   private:
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
-    if (unlikely ((unsigned int) (glyph_id - startGlyph) < classValue.len))
-      return classValue[glyph_id - startGlyph];
+    unsigned int i = (unsigned int) (glyph_id - startGlyph);
+    if (unlikely (i < classValue.len))
+      return classValue[i];
     return 0;
   }
 
