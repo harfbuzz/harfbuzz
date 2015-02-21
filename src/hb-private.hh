@@ -573,6 +573,30 @@ _hb_debug (unsigned int level,
 #define DEBUG_LEVEL_ENABLED(WHAT, LEVEL) (_hb_debug ((LEVEL), HB_DEBUG_##WHAT))
 #define DEBUG_ENABLED(WHAT) (DEBUG_LEVEL_ENABLED (WHAT, 0))
 
+static inline void
+_hb_print_func (const char *func)
+{
+  if (func)
+  {
+    unsigned int func_len = strlen (func);
+    /* Skip "static" */
+    if (0 == strncmp (func, "static ", 7))
+      func += 7;
+    /* Skip "typename" */
+    if (0 == strncmp (func, "typename ", 9))
+      func += 9;
+    /* Skip return type */
+    const char *space = strchr (func, ' ');
+    if (space)
+      func = space + 1;
+    /* Skip parameter list */
+    const char *paren = strchr (func, '(');
+    if (paren)
+      func_len = paren - func;
+    fprintf (stderr, "%.*s", func_len, func);
+  }
+}
+
 template <int max_level> static inline void
 _hb_debug_msg_va (const char *what,
 		  const void *obj,
@@ -618,25 +642,13 @@ _hb_debug_msg_va (const char *what,
   } else
     fprintf (stderr, "   " VRBAR LBAR);
 
-  if (func)
-  {
-    unsigned int func_len = strlen (func);
-    /* Skip "typename" */
-    if (0 == strncmp (func, "typename ", 9))
-      func += 9;
-    /* Skip return type */
-    const char *space = strchr (func, ' ');
-    if (space)
-      func = space + 1;
-    /* Skip parameter list */
-    const char *paren = strchr (func, '(');
-    if (paren)
-      func_len = paren - func;
-    fprintf (stderr, "%.*s: ", func_len, func);
-  }
+  _hb_print_func (func);
 
   if (message)
+  {
+    fprintf (stderr, ": ");
     vfprintf (stderr, message, ap);
+  }
 
   fprintf (stderr, "\n");
 }
