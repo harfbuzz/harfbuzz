@@ -808,7 +808,7 @@ hb_in_range (T u, T lo, T hi)
   /* The sizeof() is here to force template instantiation.
    * I'm sure there are better ways to do this but can't think of
    * one right now.  Declaring a variable won't work as HB_UNUSED
-   * is unsable on some platforms and unused types are less likely
+   * is unusable on some platforms and unused types are less likely
    * to generate a warning than unused variables. */
   ASSERT_STATIC (sizeof (hb_assert_unsigned_t<T>) >= 0);
 
