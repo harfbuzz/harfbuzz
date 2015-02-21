@@ -841,7 +841,7 @@ apply_forward (OT::hb_apply_context_t *c,
   {
     if (accel.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
-	c->check_glyph_property (&c->buffer->cur(), c->lookup_props) &&
+	c->check_glyph_property (&buffer->cur(), c->lookup_props) &&
 	obj.apply (c))
       ret = true;
     else
@@ -862,7 +862,7 @@ apply_backward (OT::hb_apply_context_t *c,
   {
     if (accel.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
-	c->check_glyph_property (&c->buffer->cur(), c->lookup_props) &&
+	c->check_glyph_property (&buffer->cur(), c->lookup_props) &&
 	obj.apply (c))
       ret = true;
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
