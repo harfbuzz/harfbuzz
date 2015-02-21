@@ -1041,7 +1041,7 @@ struct ClassDefFormat2
   inline unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     int i = rangeRecord.bsearch (glyph_id);
-    if (i != -1)
+    if (unlikely (i != -1))
       return rangeRecord[i].value;
     return 0;
   }
