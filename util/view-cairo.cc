@@ -79,7 +79,7 @@ view_cairo_t::draw (cairo_t *cr)
   cairo_translate (cr, view_options.margin.l, view_options.margin.t);
   double descent;
   if (vertical)
-    descent = font_extents.height * (lines->len + .5);
+    descent = font_extents.height * (lines->len + .5) + ((lines->len - 1) * view_options.line_space);
   else
     descent = font_extents.height - font_extents.ascent;
   cairo_translate (cr, v * descent, h * -descent);
