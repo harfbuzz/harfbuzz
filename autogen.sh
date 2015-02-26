@@ -46,4 +46,3 @@ autoreconf --force --install --verbose || exit $?
 cd $olddir
 echo "running configure $@"
 test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
-make
