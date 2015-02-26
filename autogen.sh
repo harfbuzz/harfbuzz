@@ -19,17 +19,24 @@ which pkg-config || {
 	exit 1
 }
 
+echo -n "Checking for libtool... "
+which libtool || {
+    # the error message when libtool is missing may not be obvious
+    echo "*** No libtool found, please install it ***"
+    exit 1
+}
+
 echo -n "checking for gtkdocize... "
 if which gtkdocize ; then
 	gtkdocize --copy || exit 1
 else
-	echo "*** No gtkdocize found, skipping documentation ***"
+	echo "*** No gtkdocize (gtk-doc) found, skipping documentation ***"
 	echo "EXTRA_DIST = " > gtk-doc.make
 fi
 
 echo -n "checking for autoreconf... "
 which autoreconf || {
-	echo "*** No autoreconf found, please install it ***"
+	echo "*** No autoreconf (autoconf) found, please install it ***"
 	exit 1
 }
 
@@ -39,3 +46,4 @@ autoreconf --force --install --verbose || exit $?
 cd $olddir
 echo "running configure $@"
 test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
+make
