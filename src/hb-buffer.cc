@@ -454,7 +454,7 @@ hb_buffer_t::reverse_range (unsigned int start,
     info[j] = t;
   }
 
-  if (pos) {
+  if (have_positions) {
     for (i = start, j = end - 1; i < j; i++, j--) {
       hb_glyph_position_t t;
 
