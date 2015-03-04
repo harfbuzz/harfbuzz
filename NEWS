@@ -1,3 +1,13 @@
+Overview of changes leading to 0.9.39
+Wednesday, March 4, 2015
+=====================================
+
+- Critical hb-coretext fixes.
+- Optimizations and refactoring; no functional change
+  expected.
+- Misc build fixes.
+
+
 Overview of changes leading to 0.9.38
 Friday, January 23, 2015
 =====================================
