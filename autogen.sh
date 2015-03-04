@@ -20,7 +20,7 @@ which pkg-config || {
 }
 
 echo -n "checking for libtoolize... "
-which libtoolize || {
+which glibtoolize libtoolize || {
 	echo "*** No libtoolize (libtool) found, please install it ***"
 	exit 1
 }
