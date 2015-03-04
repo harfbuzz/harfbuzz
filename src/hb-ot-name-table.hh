@@ -102,7 +102,7 @@ struct name
   inline unsigned int get_size (void) const
   { return min_size + count * nameRecord[0].min_size; }
 
-  inline bool sanitize_records (hb_sanitize_context_t *c) {
+  inline bool sanitize_records (hb_sanitize_context_t *c) const {
     TRACE_SANITIZE (this);
     char *string_pool = (char *) this + stringOffset;
     unsigned int _count = count;
