@@ -198,7 +198,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
 
 /**
  * hb_feature_from_string:
- * @str: (array length=len):
+ * @str: (array length=len) (element-type uint8_t):
  * @len: 
  * @feature: (out) (optional):
  *

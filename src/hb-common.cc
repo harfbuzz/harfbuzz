@@ -57,7 +57,7 @@ _hb_options_init (void)
 
 /**
  * hb_tag_from_string:
- * @str: (array length=len): 
+ * @str: (array length=len) (element-type uint8_t): 
  * @len: 
  *
  * 
@@ -115,7 +115,7 @@ const char direction_strings[][4] = {
 
 /**
  * hb_direction_from_string:
- * @str: (array length=len): 
+ * @str: (array length=len) (element-type uint8_t): 
  * @len: 
  *
  * 
@@ -281,7 +281,7 @@ retry:
 
 /**
  * hb_language_from_string:
- * @str: (array length=len): 
+ * @str: (array length=len) (element-type uint8_t): 
  * @len: 
  *
  * 
@@ -401,7 +401,7 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
 
 /**
  * hb_script_from_string:
- * @s: (array length=len): 
+ * @s: (array length=len) (element-type uint8_t): 
  * @len: 
  *
  * 
