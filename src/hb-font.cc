@@ -814,7 +814,7 @@ hb_font_glyph_to_string (hb_font_t *font,
 /**
  * hb_font_glyph_from_string:
  * @font: a font.
- * @s: (array length=len): 
+ * @s: (array length=len) (element-type uint8_t): 
  * @len: 
  * @glyph: (out): 
  *
