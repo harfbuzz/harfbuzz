@@ -42,6 +42,11 @@
 #if 0
 
 
+#elif !defined(HB_NO_MT) && defined(HB_NO_MUTEX_IMPL)
+
+/* Defined externally, i.e. in config.h */
+
+
 #elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))
 
 #include <windows.h>
