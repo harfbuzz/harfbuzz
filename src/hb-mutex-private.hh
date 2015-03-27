@@ -122,6 +122,7 @@ typedef int hb_mutex_impl_t;
 
 
 #define HB_MUTEX_INIT		{HB_MUTEX_IMPL_INIT}
+
 struct hb_mutex_t
 {
   /* TODO Add tracing. */
