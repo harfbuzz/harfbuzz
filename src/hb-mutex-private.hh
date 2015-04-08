@@ -39,7 +39,12 @@
 
 /* We need external help for these */
 
-#if 0
+#if defined(hb_mutex_impl_init) \
+ && defined(hb_mutex_impl_lock) \
+ && defined(hb_mutex_impl_unlock) \
+ && defined(hb_mutex_impl_finish)
+
+/* Defined externally, i.e. in config.h */
 
 
 #elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))

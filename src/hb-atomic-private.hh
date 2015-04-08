@@ -39,7 +39,11 @@
 
 /* We need external help for these */
 
-#if 0
+#if defined(hb_atomic_int_add) \
+ && defined(hb_atomic_ptr_get) \
+ && defined(hb_atomic_ptr_cmpexch)
+
+/* Defined externally, i.e. in config.h */
 
 
 #elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))
