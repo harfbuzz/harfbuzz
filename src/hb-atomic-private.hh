@@ -63,6 +63,7 @@ static inline void _HBMemoryBarrier (void) {
 }
 
 typedef LONG hb_atomic_int_impl_t;
+#define HB_ATOMIC_INT_IMPL_INIT(V) (V)
 #define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd (&(AI), (V))
 
 #define hb_atomic_ptr_impl_get(P)		(_HBMemoryBarrier (), (void *) *(P))
