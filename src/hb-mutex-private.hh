@@ -39,7 +39,8 @@
 
 /* We need external help for these */
 
-#if defined(hb_mutex_impl_init) \
+#if defined(HB_MUTEX_IMPL_INIT) \
+ && defined(hb_mutex_impl_init) \
  && defined(hb_mutex_impl_lock) \
  && defined(hb_mutex_impl_unlock) \
  && defined(hb_mutex_impl_finish)
