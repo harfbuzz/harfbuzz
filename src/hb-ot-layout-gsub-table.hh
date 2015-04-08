@@ -1222,7 +1222,6 @@ struct SubstLookup : Lookup
   {
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    const OffsetArrayOf<SubstLookupSubTable> &list = get_subtables<SubstLookupSubTable> ();
     if (unlikely (!dispatch (c))) return TRACE_RETURN (false);
 
     if (unlikely (get_type () == SubstLookupSubTable::Extension))

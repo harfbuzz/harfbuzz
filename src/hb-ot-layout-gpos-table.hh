@@ -1450,7 +1450,6 @@ struct PosLookup : Lookup
   {
     TRACE_SANITIZE (this);
     if (unlikely (!Lookup::sanitize (c))) return TRACE_RETURN (false);
-    const OffsetArrayOf<PosLookupSubTable> &list = get_subtables<PosLookupSubTable> ();
     return TRACE_RETURN (dispatch (c));
   }
 };
