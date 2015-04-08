@@ -179,7 +179,7 @@ static const char canon_map[256] = {
   'p', 'q', 'r', 's', 't', 'u', 'v', 'w',  'x', 'y', 'z',  0,   0,   0,   0,   0
 };
 
-static hb_bool_t
+static bool
 lang_equal (hb_language_t  v1,
 	    const void    *v2)
 {
