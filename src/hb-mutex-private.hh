@@ -47,6 +47,11 @@
 /* Defined externally, i.e. in config.h */
 
 
+#elif !defined(HB_NO_MT) && defined(HB_NO_MUTEX_IMPL)
+
+/* Defined externally, i.e. in config.h */
+
+
 #elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))
 
 #include <windows.h>
@@ -122,6 +127,7 @@ typedef int hb_mutex_impl_t;
 
 
 #define HB_MUTEX_INIT		{HB_MUTEX_IMPL_INIT}
+
 struct hb_mutex_t
 {
   /* TODO Add tracing. */

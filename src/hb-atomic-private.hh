@@ -46,6 +46,11 @@
 /* Defined externally, i.e. in config.h */
 
 
+#elif !defined(HB_NO_MT) && defined(HB_NO_ATOMIC_IMPL)
+
+/* Defined externally, i.e. in config.h */
+
+
 #elif !defined(HB_NO_MT) && (defined(_WIN32) || defined(__CYGWIN__))
 
 #include <windows.h>
@@ -62,11 +67,13 @@ static inline void _HBMemoryBarrier (void) {
 #endif
 }
 
-typedef LONG hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	InterlockedExchangeAdd (&(AI), (V))
+#define HB_ATOMIC_IMPL_INIT(V) (V)
 
-#define hb_atomic_ptr_get(P)		(_HBMemoryBarrier (), (void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
+typedef LONG hb_atomic_int_impl_t;
+#define hb_atomic_int_impl_add(AI, V)	InterlockedExchangeAdd (&(AI), (V))
+
+#define hb_atomic_ptr_impl_get(P)		(_HBMemoryBarrier (), (void *) *(P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((void **) (P), (void *) (N), (void *) (O)) == (void *) (O))
 
 
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
@@ -78,28 +85,32 @@ typedef LONG hb_atomic_int_t;
 #include <Availability.h>
 #endif
 
-typedef int32_t hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	(OSAtomicAdd32Barrier ((V), &(AI)) - (V))
+#define HB_ATOMIC_IMPL_INIT(V) (V)
 
-#define hb_atomic_ptr_get(P)		(OSMemoryBarrier (), (void *) *(P))
+typedef int32_t hb_atomic_int_impl_t;
+#define hb_atomic_int_impl_add(AI, V)	(OSAtomicAdd32Barrier ((V), &(AI)) - (V))
+
+#define hb_atomic_ptr_impl_get(P)		(OSMemoryBarrier (), (void *) *(P))
 #if (MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4 || __IPHONE_VERSION_MIN_REQUIRED >= 20100)
-#define hb_atomic_ptr_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((void *) (O), (void *) (N), (void **) (P))
 #else
 #if __ppc64__ || __x86_64__ || __aarch64__
-#define hb_atomic_ptr_cmpexch(P,O,N)    OSAtomicCompareAndSwap64Barrier ((int64_t) (O), (int64_t) (N), (int64_t*) (P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)    OSAtomicCompareAndSwap64Barrier ((int64_t) (O), (int64_t) (N), (int64_t*) (P))
 #else
-#define hb_atomic_ptr_cmpexch(P,O,N)    OSAtomicCompareAndSwap32Barrier ((int32_t) (O), (int32_t) (N), (int32_t*) (P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)    OSAtomicCompareAndSwap32Barrier ((int32_t) (O), (int32_t) (N), (int32_t*) (P))
 #endif
 #endif
 
 
 #elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES)
 
-typedef int hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	__sync_fetch_and_add (&(AI), (V))
+#define HB_ATOMIC_IMPL_INIT(V) (V)
 
-#define hb_atomic_ptr_get(P)		(void *) (__sync_synchronize (), *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
+typedef int hb_atomic_int_impl_t;
+#define hb_atomic_int_impl_add(AI, V)	__sync_fetch_and_add (&(AI), (V))
+
+#define hb_atomic_ptr_impl_get(P)		(void *) (__sync_synchronize (), *(P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
 
 
 #elif !defined(HB_NO_MT) && defined(HAVE_SOLARIS_ATOMIC_OPS)
@@ -107,33 +118,59 @@ typedef int hb_atomic_int_t;
 #include <atomic.h>
 #include <mbarrier.h>
 
-typedef unsigned int hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	( ({__machine_rw_barrier ();}), atomic_add_int_nv (&(AI), (V)) - (V))
+#define HB_ATOMIC_IMPL_INIT(V) (V)
 
-#define hb_atomic_ptr_get(P)		( ({__machine_rw_barrier ();}), (void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false)
+typedef unsigned int hb_atomic_int_impl_t;
+#define hb_atomic_int_impl_add(AI, V)	( ({__machine_rw_barrier ();}), atomic_add_int_nv (&(AI), (V)) - (V))
+
+#define hb_atomic_ptr_impl_get(P)		( ({__machine_rw_barrier ();}), (void *) *(P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false)
 
 
 #elif !defined(HB_NO_MT)
 
 #define HB_ATOMIC_INT_NIL 1 /* Warn that fallback implementation is in use. */
-typedef volatile int hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
+#define HB_ATOMIC_IMPL_INIT(V) (V)
 
-#define hb_atomic_ptr_get(P)		((void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), true) : false)
+typedef volatile int hb_atomic_int_impl_t;
+#define hb_atomic_int_impl_add(AI, V)	(((AI) += (V)) - (V))
+
+#define hb_atomic_ptr_impl_get(P)		((void *) *(P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void * volatile *) (P) == (void *) (O) ? (* (void * volatile *) (P) = (void *) (N), true) : false)
 
 
 #else /* HB_NO_MT */
 
-typedef int hb_atomic_int_t;
-#define hb_atomic_int_add(AI, V)	(((AI) += (V)) - (V))
+#define HB_ATOMIC_IMPL_INIT(V) (V)
 
-#define hb_atomic_ptr_get(P)		((void *) *(P))
-#define hb_atomic_ptr_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
+typedef int hb_atomic_int_impl_t;
+#define hb_atomic_int_impl_add(AI, V)	(((AI) += (V)) - (V))
+
+#define hb_atomic_ptr_impl_get(P)		((void *) *(P))
+#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
 #endif
 
+
+#define HB_ATOMIC_INIT(V)		{HB_ATOMIC_IMPL_INIT(V)}
+
+struct hb_atomic_int_t
+{
+  /* TODO Add tracing. */
+
+  hb_atomic_int_impl_t ref;
+
+  inline void set_unsafe (int v) { reinterpret_cast<int &> (ref) = v; }
+  inline int get_unsafe (void) const { return reinterpret_cast<const int &> (ref); }
+  inline int inc (void) { return hb_atomic_int_impl_add (const_cast<hb_atomic_int_impl_t &> (ref),  1); }
+  inline int dec (void) { return hb_atomic_int_impl_add (const_cast<hb_atomic_int_impl_t &> (ref), -1); }
+};
+
+
 /* TODO Add tracing. */
+
+#define hb_atomic_ptr_get(P) hb_atomic_ptr_impl_get(P)
+#define hb_atomic_ptr_cmpexch(P,O,N) hb_atomic_ptr_impl_cmpexch((P),(O),(N))
+
 
 #endif /* HB_ATOMIC_PRIVATE_HH */
