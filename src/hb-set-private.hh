@@ -354,7 +354,6 @@ struct hb_frozen_set_t
       return;
     unsigned int min = set.get_min ();
     const elt_t &min_elt = set.elt (min);
-    const elt_t &max_elt = set.elt (max);
 
     start = min & ~MASK;
     count = max - start + 1;
