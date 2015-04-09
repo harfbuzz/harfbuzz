@@ -148,12 +148,12 @@ typedef int hb_atomic_int_impl_t;
 
 struct hb_atomic_int_t
 {
-  hb_atomic_int_impl_t ref;
+  hb_atomic_int_impl_t v;
 
-  inline void set_unsafe (int v) { ref = v; }
-  inline int get_unsafe (void) const { return ref; }
-  inline int inc (void) { return hb_atomic_int_impl_add (const_cast<hb_atomic_int_impl_t &> (ref),  1); }
-  inline int dec (void) { return hb_atomic_int_impl_add (const_cast<hb_atomic_int_impl_t &> (ref), -1); }
+  inline void set_unsafe (int v_) { v = v_; }
+  inline int get_unsafe (void) const { return v; }
+  inline int inc (void) { return hb_atomic_int_impl_add (const_cast<hb_atomic_int_impl_t &> (v),  1); }
+  inline int dec (void) { return hb_atomic_int_impl_add (const_cast<hb_atomic_int_impl_t &> (v), -1); }
 };
 
 
