@@ -77,12 +77,10 @@ view_cairo_t::draw (cairo_t *cr)
   cairo_font_extents_t font_extents;
   cairo_font_extents (cr, &font_extents);
   cairo_translate (cr, view_options.margin.l, view_options.margin.t);
-  double descent;
   if (vertical)
-    descent = font_extents.height * (lines->len + .5);
+    cairo_translate (cr, font_extents.height * (lines->len + .5), 0);
   else
-    descent = font_extents.height - font_extents.ascent;
-  cairo_translate (cr, v * descent, h * -descent);
+    cairo_translate (cr, 0, -(font_extents.height - font_extents.ascent));
   for (unsigned int i = 0; i < lines->len; i++)
   {
     helper_cairo_line_t &l = g_array_index (lines, helper_cairo_line_t, i);
