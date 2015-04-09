@@ -26,69 +26,71 @@
 
 #include "view-cairo.hh"
 
+#include <assert.h>
+
+
 void
-view_cairo_t::get_surface_size (cairo_scaled_font_t *scaled_font,
-				double *w, double *h)
+view_cairo_t::render (const font_options_t *font_opts)
 {
-  cairo_font_extents_t font_extents;
-
-  cairo_scaled_font_extents (scaled_font, &font_extents);
-
   bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
-  (vertical ? *w : *h) = (int) lines->len * (font_extents.height + view_options.line_space) - view_options.line_space;
-  (vertical ? *h : *w) = 0;
+  int vert  = vertical ? 1 : 0;
+  int horiz = vertical ? 0 : 1;
+
+  int x_sign = font_opts->font_size_x < 0 ? -1 : +1;
+  int y_sign = font_opts->font_size_y < 0 ? -1 : +1;
+
+  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts);
+  cairo_font_extents_t font_extents;
+  cairo_scaled_font_extents (scaled_font, &font_extents);
+  /* Looks like cairo doesn't negate the sign of font extents even if
+   * y_scale is negative.  This is probably a bug, but that's the way
+   * it is, and we code for it.  Assert, just in case this accidentally
+   * changes in the future (or is different on non-FreeType cairo font
+   * backends. */
+  assert (font_extents.height >= 0);
+  double leading = font_extents.height + view_options.line_space;
+
+  /* Calculate surface size. */
+  double w, h;
+  (vertical ? w : h) = (int) lines->len * leading - view_options.line_space;
+  (vertical ? h : w) = 0;
   for (unsigned int i = 0; i < lines->len; i++) {
     helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
     double x_advance, y_advance;
     line.get_advance (&x_advance, &y_advance);
     if (vertical)
-      *h =  MAX (*h, y_advance);
+      h =  MAX (h, y_sign * y_advance);
     else
-      *w =  MAX (*w, x_advance);
+      w =  MAX (w, x_sign * x_advance);
   }
 
-  *w += view_options.margin.l + view_options.margin.r;
-  *h += view_options.margin.t + view_options.margin.b;
-}
-
-void
-view_cairo_t::render (const font_options_t *font_opts)
-{
-  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts);
-  double w, h;
-  get_surface_size (scaled_font, &w, &h);
-  cairo_t *cr = helper_cairo_create_context (w, h, &view_options, &output_options);
+  /* Create surface. */
+  cairo_t *cr = helper_cairo_create_context (w + view_options.margin.l + view_options.margin.r,
+					     h + view_options.margin.t + view_options.margin.b,
+					     &view_options, &output_options);
   cairo_set_scaled_font (cr, scaled_font);
-  cairo_scaled_font_destroy (scaled_font);
 
-  draw (cr);
-
-  helper_cairo_destroy_context (cr);
-}
-
-void
-view_cairo_t::draw (cairo_t *cr)
-{
-  cairo_save (cr);
-
-  bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
-  int v = vertical ? 1 : 0;
-  int h = vertical ? 0 : 1;
-  cairo_font_extents_t font_extents;
-  cairo_font_extents (cr, &font_extents);
+  /* Setup coordinate system. */
   cairo_translate (cr, view_options.margin.l, view_options.margin.t);
   if (vertical)
-    cairo_translate (cr, font_extents.height * (lines->len + .5), 0);
+    cairo_translate (cr,
+		     w /* We stack lines right to left */
+		     -font_extents.height * .5 /* "ascent" for vertical */,
+		     y_sign < 0 ? h : 0);
   else
-    cairo_translate (cr, 0, -(font_extents.height - font_extents.ascent));
+   {
+    cairo_translate (cr,
+		     x_sign < 0 ? w : 0,
+		     y_sign < 0 ? font_extents.descent : font_extents.ascent);
+   }
+
+  /* Draw. */
+  cairo_translate (cr, +vert * leading, -horiz * leading);
   for (unsigned int i = 0; i < lines->len; i++)
   {
     helper_cairo_line_t &l = g_array_index (lines, helper_cairo_line_t, i);
 
-    if (i)
-      cairo_translate (cr, v * -view_options.line_space, h * view_options.line_space);
-
-    cairo_translate (cr, v * -font_extents.height, h * font_extents.height);
+    cairo_translate (cr, -vert * leading, +horiz * leading);
 
     if (view_options.annotate) {
       cairo_save (cr);
@@ -120,5 +122,7 @@ view_cairo_t::draw (cairo_t *cr)
       cairo_show_glyphs (cr, l.glyphs, l.num_glyphs);
   }
 
-  cairo_restore (cr);
+  /* Clean up. */
+  helper_cairo_destroy_context (cr);
+  cairo_scaled_font_destroy (scaled_font);
 }
