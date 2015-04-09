@@ -174,7 +174,7 @@ parse_margin (const char *name G_GNUC_UNUSED,
 {
   view_options_t *view_opts = (view_options_t *) data;
   view_options_t::margin_t &m = view_opts->margin;
-  switch (sscanf (arg, "%lf %lf %lf %lf", &m.t, &m.r, &m.b, &m.l)) {
+  switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf%*[ ,]%lf", &m.t, &m.r, &m.b, &m.l)) {
     case 1: m.r = m.t;
     case 2: m.b = m.t;
     case 3: m.l = m.r;
@@ -361,7 +361,7 @@ parse_font_size (const char *name G_GNUC_UNUSED,
     font_opts->font_size_y = font_opts->font_size_x = FONT_SIZE_UPEM;
     return true;
   }
-  switch (sscanf (arg, "%lf %lf", &font_opts->font_size_x, &font_opts->font_size_y)) {
+  switch (sscanf (arg, "%lf%*[ ,]%lf", &font_opts->font_size_x, &font_opts->font_size_y)) {
     case 1: font_opts->font_size_y = font_opts->font_size_x;
     case 2: return true;
     default:
