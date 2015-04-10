@@ -36,7 +36,7 @@ create_blob (void)
   return hb_blob_create (data, sizeof (data), HB_MEMORY_MODE_READONLY, NULL, NULL);
 }
 static void *
-create_blob_inert (void)
+create_blob_from_inert (void)
 {
   return hb_blob_create (NULL, 0, HB_MEMORY_MODE_DUPLICATE, NULL, NULL);
 }
@@ -47,7 +47,7 @@ create_buffer (void)
   return hb_buffer_create ();
 }
 static void *
-create_buffer_inert (void)
+create_buffer_from_inert (void)
 {
   return NULL;
 }
@@ -58,7 +58,7 @@ create_set (void)
   return hb_set_create ();
 }
 static void *
-create_set_inert (void)
+create_set_from_inert (void)
 {
   return NULL;
 }
@@ -72,7 +72,7 @@ create_face (void)
   return face;
 }
 static void *
-create_face_inert (void)
+create_face_from_inert (void)
 {
   return hb_face_create (hb_blob_get_empty (), 0);
 }
@@ -86,7 +86,7 @@ create_font (void)
   return font;
 }
 static void *
-create_font_inert (void)
+create_font_from_inert (void)
 {
   return hb_font_create (hb_face_get_empty ());
 }
@@ -97,7 +97,7 @@ create_font_funcs (void)
   return hb_font_funcs_create ();
 }
 static void *
-create_font_funcs_inert (void)
+create_font_funcs_from_inert (void)
 {
   return NULL;
 }
@@ -108,9 +108,9 @@ create_unicode_funcs (void)
   return hb_unicode_funcs_create (NULL);
 }
 static void *
-create_unicode_funcs_inert (void)
+create_unicode_funcs_from_inert (void)
 {
-  return hb_unicode_funcs_get_default ();
+  return hb_unicode_funcs_create (hb_unicode_funcs_get_empty ());
 }
 
 
@@ -125,7 +125,7 @@ typedef hb_bool_t (*is_immutable_func_t)   (void *obj);
 
 typedef struct {
   create_func_t          create;
-  create_func_t          create_inert;
+  create_func_t          create_from_inert;
   create_func_t          get_empty;
   reference_func_t       reference;
   destroy_func_t         destroy;
@@ -139,7 +139,7 @@ typedef struct {
 #define OBJECT_WITHOUT_IMMUTABILITY(name) \
   { \
     (create_func_t)         create_##name, \
-    (create_func_t)         create_##name##_inert, \
+    (create_func_t)         create_##name##_from_inert, \
     (create_func_t)         hb_##name##_get_empty, \
     (reference_func_t)      hb_##name##_reference, \
     (destroy_func_t)        hb_##name##_destroy, \
@@ -152,7 +152,7 @@ typedef struct {
 #define OBJECT_WITH_IMMUTABILITY(name) \
   { \
     (create_func_t)         create_##name, \
-    (create_func_t)         create_##name##_inert, \
+    (create_func_t)         create_##name##_from_inert, \
     (create_func_t)         hb_##name##_get_empty, \
     (reference_func_t)      hb_##name##_reference, \
     (destroy_func_t)        hb_##name##_destroy, \
@@ -340,8 +340,8 @@ test_object (void)
     {
       data_t data[2] = {{MAGIC0, FALSE}, {MAGIC1, FALSE}};
 
-      g_test_message ("->create_inert()");
-      obj = o->create_inert ();
+      g_test_message ("->create_from_inert()");
+      obj = o->create_from_inert ();
       if (!obj)
 	continue;
       if (obj == o->get_empty ())
@@ -351,10 +351,10 @@ test_object (void)
       o->destroy (obj);
 
       if (o->is_immutable)
-	g_assert (o->is_immutable (obj));
+	g_assert (!o->is_immutable (obj));
 
-      g_assert (!o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
-      g_assert (!o->get_user_data (obj, &key[0]));
+      g_assert (o->set_user_data (obj, &key[0], &data[0], free_up0, TRUE));
+      g_assert (o->get_user_data (obj, &key[0]));
 
       o->destroy (obj);
       o->destroy (obj);
@@ -362,7 +362,7 @@ test_object (void)
       o->destroy (obj);
       o->destroy (obj);
 
-      g_assert (!data[0].freed);
+      g_assert (data[0].freed);
     }
   }
 }
