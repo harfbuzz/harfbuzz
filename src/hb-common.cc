@@ -286,7 +286,7 @@ retry:
  *
  * 
  *
- * Return value: 
+ * Return value: (transfer none):
  *
  * Since: 1.0
  **/

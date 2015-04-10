@@ -967,7 +967,7 @@ hb_buffer_set_language (hb_buffer_t   *buffer,
  *
  * 
  *
- * Return value: 
+ * Return value: (transfer none):
  *
  * Since: 1.0
  **/
