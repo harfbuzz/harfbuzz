@@ -999,7 +999,7 @@ hb_buffer_set_segment_properties (hb_buffer_t *buffer,
 /**
  * hb_buffer_get_segment_properties:
  * @buffer: a buffer.
- * @props: 
+ * @props: (out):
  *
  * 
  *
