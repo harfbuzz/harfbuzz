@@ -123,8 +123,10 @@
      /* Some things not defined on Windows CE. */
 #    define strdup _strdup
 #    define getenv(Name) NULL
-#    define setlocale(Category, Locale) "C"
+#    if _WIN32_WCE < 0x800
+#      define setlocale(Category, Locale) "C"
 static int errno = 0; /* Use something better? */
+#    endif
 #  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
 #    define getenv(Name) NULL
 #  endif
