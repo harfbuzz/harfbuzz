@@ -440,7 +440,7 @@ output_options_t::add_options (option_parser_t *parser)
   const char *text;
 
   if (NULL == supported_formats)
-    text = "Set output format";
+    text = "Set output serialization format";
   else
   {
     char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
@@ -457,8 +457,8 @@ output_options_t::add_options (option_parser_t *parser)
   };
   parser->add_group (entries,
 		     "output",
-		     "Output options:",
-		     "Options controlling the output",
+		     "Output destination & format options:",
+		     "Options controlling the destination and form of the output",
 		     this);
 }
 
@@ -694,19 +694,22 @@ format_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Use glyph indices instead of names",	NULL},
-    {"no-positions",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_positions,		"Do not show glyph positions",		NULL},
-    {"no-clusters",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not show cluster mapping",		NULL},
-    {"show-text",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_text,		"Show input text",			NULL},
-    {"show-unicode",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_unicode,		"Show input Unicode codepoints",	NULL},
-    {"show-line-num",	0, 0,			  G_OPTION_ARG_NONE,	&this->show_line_num,		"Show line numbers",			NULL},
-    {"verbose",		0, G_OPTION_FLAG_NO_ARG,  G_OPTION_ARG_CALLBACK,(gpointer) &parse_verbose,	"Show everything",			NULL},
+    {"show-text", 0, 0, G_OPTION_ARG_NONE, &this->show_text, "Prefix each line of output with its corresponding input text", NULL},
+    {"show-unicode", 0, 0, G_OPTION_ARG_NONE, &this->show_unicode, "Prefix each line of output with its corresponding input codepoint(s)", NULL},
+    {"show-line-num", 0, 0, G_OPTION_ARG_NONE, &this->show_line_num, "Prefix each line of output with its corresponding input line number", NULL},
+    {"verbose", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &parse_verbose, "Prefix each line of output with all of the above", NULL},
+    {"no-glyph-names", 0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &this->show_glyph_names, "Output glyph indices instead of names", NULL},
+    {"no-positions", 0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &this->show_positions, "Do not output glyph positions", NULL},
+    {"no-clusters", 0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &this->show_clusters, "Do not output cluster indices", NULL},
     {NULL}
   };
   parser->add_group (entries,
-		     "format",
-		     "Format options:",
-		     "Options controlling the formatting of buffer contents",
+		     "output-syntax",
+		     "Output syntax:\n"
+         "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
+         "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
+         "\nOutput syntax options:",
+		     "Options controlling the syntax of the output",
 		     this);
 }
 
