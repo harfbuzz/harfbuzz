@@ -694,13 +694,17 @@ format_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"show-text", 0, 0, G_OPTION_ARG_NONE, &this->show_text, "Prefix each line of output with its corresponding input text", NULL},
-    {"show-unicode", 0, 0, G_OPTION_ARG_NONE, &this->show_unicode, "Prefix each line of output with its corresponding input codepoint(s)", NULL},
-    {"show-line-num", 0, 0, G_OPTION_ARG_NONE, &this->show_line_num, "Prefix each line of output with its corresponding input line number", NULL},
-    {"verbose", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &parse_verbose, "Prefix each line of output with all of the above", NULL},
-    {"no-glyph-names", 0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &this->show_glyph_names, "Output glyph indices instead of names", NULL},
-    {"no-positions", 0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &this->show_positions, "Do not output glyph positions", NULL},
-    {"no-clusters", 0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE, &this->show_clusters, "Do not output cluster indices", NULL},
+    {"show-text",	0, 0, G_OPTION_ARG_NONE,	&this->show_text,		"Prefix each line of output with its corresponding input text",		NULL},
+    {"show-unicode",	0, 0, G_OPTION_ARG_NONE,	&this->show_unicode,		"Prefix each line of output with its corresponding input codepoint(s)",	NULL},
+    {"show-line-num",	0, 0, G_OPTION_ARG_NONE,	&this->show_line_num,		"Prefix each line of output with its corresponding input line number",	NULL},
+    {"verbose",		0, G_OPTION_FLAG_NO_ARG,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_verbose,	"Prefix each line of output with all of the above",			NULL},
+    {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE,
+			      G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Output glyph indices instead of names",				NULL},
+    {"no-positions",	0, G_OPTION_FLAG_REVERSE,
+			      G_OPTION_ARG_NONE,	&this->show_positions,		"Do not output glyph positions",					NULL},
+    {"no-clusters",	0, G_OPTION_FLAG_REVERSE,
+			      G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not output cluster indices",					NULL},
     {NULL}
   };
   parser->add_group (entries,
