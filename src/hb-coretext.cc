@@ -791,7 +791,7 @@ retry:
     /* For right-to-left runs, CoreText returns the glyphs positioned such that
      * any trailing whitespace is to the left of (0,0).  Adjust coordinate system
      * to fix for that.  Test with any RTL string with trailing spaces.
-     * https://code.google.com/p/chromium/issues/detail?id=476913
+     * https://code.google.com/p/chromium/issues/detail?id=469028
      */
     if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
     {
