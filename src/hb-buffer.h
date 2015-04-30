@@ -222,6 +222,10 @@ void
 hb_buffer_reverse (hb_buffer_t *buffer);
 
 void
+hb_buffer_reverse_range (hb_buffer_t *buffer,
+			 unsigned int start, unsigned int end);
+
+void
 hb_buffer_reverse_clusters (hb_buffer_t *buffer);
 
 

@@ -1283,6 +1283,23 @@ hb_buffer_reverse (hb_buffer_t *buffer)
 }
 
 /**
+ * hb_buffer_reverse_range:
+ * @buffer: a buffer.
+ * @start: start index.
+ * @end: end index.
+ *
+ * Reverses buffer contents between  start to end.
+ *
+ * Since: 1.0
+ **/
+void
+hb_buffer_reverse_range (hb_buffer_t *buffer,
+			 unsigned int start, unsigned int end)
+{
+  buffer->reverse_range (start, end);
+}
+
+/**
  * hb_buffer_reverse_clusters:
  * @buffer: a buffer.
  *
