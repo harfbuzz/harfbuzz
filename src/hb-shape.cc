@@ -216,7 +216,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  * Parses a string into a #hb_feature_t. If @len is -1 then @str is
  * %NULL-terminated.
  *
- * Return value: %true if @str is successfully parsed, %false otherwise
+ * Return value: %TRUE if @str is successfully parsed, %FALSE otherwise
  *
  * Since: 1.0
  **/
@@ -360,7 +360,7 @@ retry:
  * shapers will be used in the given order, otherwise the default shapers list
  * will be used.
  *
- * Return value: %false if all shapers failed, %true otherwise
+ * Return value: %FALSE if all shapers failed, %TRUE otherwise
  *
  * Since: 1.0
  **/
@@ -397,7 +397,7 @@ hb_shape_full (hb_font_t          *font,
  * positioned glyphs. If @features is not %NULL, it will be used to control the
  * features applied during shaping.
  *
- * Return value: %false if all shapers failed, %true otherwise
+ * Return value: %FALSE if all shapers failed, %TRUE otherwise
  *
  * Since: 1.0
  **/
