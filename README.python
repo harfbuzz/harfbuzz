@@ -1,6 +1,10 @@
 To enable HarfBuzz bindings for Python among other languages, make sure
-you have latest version of gobject-introspection compiled, and then
-run autogen.sh (if building from git), and then:
+you have latest version of gobject-introspection available.  On Ubuntu,
+you can install that this way:
+
+  sudo apt-get install libgirepository1.0-dev
+
+And then run autogen.sh (if building from git), and then:
 
   ./configure --with-gobject --enable-introspection
 
