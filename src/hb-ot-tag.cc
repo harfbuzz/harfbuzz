@@ -542,7 +542,7 @@ static const LangTag ot_languages[] = {
   {"nr",	HB_TAG('N','D','B',' ')},	/* [South] Ndebele */
   {"nsk",	HB_TAG('N','A','S',' ')},	/* Naskapi */
   {"nso",	HB_TAG('S','O','T',' ')},	/* [Northern] Sotho */
-  {"nv",	HB_TAG('N','A','V',' ')},	/* Navajo (not standardized yet) */
+  {"nv",	HB_TAG('N','A','V',' ')},	/* Navajo */
   {"ny",	HB_TAG('C','H','I',' ')},	/* Chewa/Chichwa/Nyanja */
   {"nym",	HB_TAG('N','Y','M',' ')},	/* Nyamwezi */
   {"nyn",	HB_TAG('N','K','L',' ')},	/* Nyankole */
