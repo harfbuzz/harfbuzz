@@ -175,6 +175,11 @@ typedef struct {
  *
  * Some items still missing.  Those are commented out at the end.
  * Keep sorted for bsearch.
+ *
+ * Updated as of 2015-05-06: OT1.7 on MS website has some newer
+ * items that we don't have here, eg. Zazaki.  This is the new
+ * items in OpenType 1.7 (red items), most of which we have:
+ * http://www.microsoft.com/typography/otspec170/languagetags.htm
  */
 
 static const LangTag ot_languages[] = {
@@ -217,9 +222,9 @@ static const LangTag ot_languages[] = {
   {"bci",	HB_TAG('B','A','U',' ')},	/* Baoulé */
   {"bcl",	HB_TAG('B','I','K',' ')},	/* Central Bikol */
   {"bcq",	HB_TAG('B','C','H',' ')},	/* Bench */
-  {"be",	HB_TAG('B','E','L',' ')},  	/* Belarusian */
+  {"be",	HB_TAG('B','E','L',' ')},	/* Belarusian */
   {"bem",	HB_TAG('B','E','M',' ')},	/* Bemba (Zambia) */
-  {"ber",	HB_TAG('B','E','R',' ')},  	/* Berber [family] */
+  {"ber",	HB_TAG('B','E','R',' ')},	/* Berber [family] */
   {"bfq",	HB_TAG('B','A','D',' ')},	/* Badaga */
   {"bft",	HB_TAG('B','L','T',' ')},	/* Balti */
   {"bfy",	HB_TAG('B','A','G',' ')},	/* Baghelkhandi */
@@ -346,9 +351,9 @@ static const LangTag ot_languages[] = {
   {"gv",	HB_TAG('M','N','X',' ')},	/* Manx */
   {"ha",	HB_TAG('H','A','U',' ')},	/* Hausa */
   {"har",	HB_TAG('H','R','I',' ')},	/* Harari */
-  {"haw",	HB_TAG('H','A','W',' ')},  	/* Hawaiian */
-  {"hay",	HB_TAG('H','A','Y',' ')},  	/* Haya */
-  {"haz",	HB_TAG('H','A','Z',' ')},  	/* Hazaragi */
+  {"haw",	HB_TAG('H','A','W',' ')},	/* Hawaiian */
+  {"hay",	HB_TAG('H','A','Y',' ')},	/* Haya */
+  {"haz",	HB_TAG('H','A','Z',' ')},	/* Hazaragi */
   {"he",	HB_TAG('I','W','R',' ')},	/* Hebrew */
   {"hz",	HB_TAG('H','E','R',' ')},	/* Herero */
   {"hi",	HB_TAG('H','I','N',' ')},	/* Hindi */
