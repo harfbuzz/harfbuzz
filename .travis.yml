@@ -15,7 +15,7 @@ install:
   - sudo apt-get install libcairo2-dev # for utils
   - sudo apt-get install libicu-dev # for extra unicode functions
   - sudo apt-get install libgraphite2-dev # for extra shapers
-  - : #sudo apt-get install libgirepository1.0-dev # for gobject-introspection
+  - #sudo apt-get install libgirepository1.0-dev # for gobject-introspection
   - sudo pip install cpp-coveralls # for coveralls.io code coverage tracking
 script:
   - NOCONFIGURE=1 ./autogen.sh
