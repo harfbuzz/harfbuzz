@@ -293,19 +293,30 @@ dnl ==========================================================================
 
 AC_ARG_WITH(graphite2,
 	[AS_HELP_STRING([--with-graphite2=@<:@yes/no/auto@:>@],
-			[Use the graphite2 library @<:@default=no@:>@])],,
-	[with_graphite2=no])
+			[Use the graphite2 library @<:@default=auto@:>@])],,
+	[with_graphite2=auto])
 have_graphite2=false
-if test "x$with_graphite2" = "xyes" -o "x$with_graphite2" = "xauto"; then
+have_graphite2_static=false
+if test "x$with_graphite2" = "xyes"; then 
 	PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite2=true, :)
+    if $have_graphite2; then
+        have_graphite2_static = true
+    fi
+fi
+if test "x$with_graphite2" = "xauto"; then
+    have_graphite2=true
 fi
 if test "x$with_graphite2" = "xyes" -a "x$have_graphite2" != "xtrue"; then
 	AC_MSG_ERROR([graphite2 support requested but libgraphite2 not found])
 fi
 if $have_graphite2; then
-	AC_DEFINE(HAVE_GRAPHITE2, 1, [Have Graphite2 library])
+	AC_DEFINE(HAVE_GRAPHITE2, 1, [Use Graphite, probably via dynamic loading])
+fi
+if $have_graphite2_static; then
+    AC_DEFINE(HAVE_GRAPHITE2_STATIC, 1, [Link direct to Graphite2])
 fi
 AM_CONDITIONAL(HAVE_GRAPHITE2, $have_graphite2)
+AM_CONDITIONAL(HAVE_GRAPHITE2_STATIC, $have_graphite2_static)
 
 dnl ==========================================================================
 
