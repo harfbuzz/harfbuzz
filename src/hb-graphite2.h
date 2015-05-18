@@ -26,11 +26,9 @@
 #ifndef HB_GRAPHITE2_H
 #define HB_GRAPHITE2_H
 
-#include "hb.h"
+#include "hb-private.hh"
 
-#ifdef HAVE_GRAPHITE2_STATIC
-#include <graphite2/Font.h>
-#else
+#if !HAVE_GRAPHITE2_STATIC
 
 typedef unsigned char   gr_uint8;
 typedef gr_uint8        gr_byte;
@@ -45,17 +43,28 @@ typedef struct gr_font  gr_font;
 typedef struct gr_feature_ref   gr_feature_ref;
 typedef struct gr_feature_val   gr_feature_val;
 typedef struct gr_segment   gr_segment;
-typedef struct gr_slot      gr_slot;typedef const void *(*gr_get_table_fn)(const void* appFaceHandle, unsigned int name, size_t *len);
+typedef struct gr_slot      gr_slot;
+typedef const void *(*gr_get_table_fn)(const void* appFaceHandle, unsigned int name, size_t *len);
 typedef float (*gr_advance_fn)(const void* appFontHandle, gr_uint16 glyphid);
+enum gr_encform {
+  gr_utf8 = 1/*sizeof(uint8)*/, gr_utf16 = 2/*sizeof(uint16)*/, gr_utf32 = 4/*sizeof(uint32)*/
+};
 
+#else
+#include <graphite2/Font.h>
 #endif
 
 HB_BEGIN_DECLS
 
+#ifdef _WIN32
+#define HB_GR2_LIBRARY "graphite2.dll"
+#elif __APPLE__
+#define HB_GR2_LIBRARY "libgraphite2.dylib"
+#else
 #define HB_GR2_LIBRARY "libgraphite2.so"
+#endif
 
 #define HB_GRAPHITE2_TAG_SILF HB_TAG('S','i','l','f')
-
 
 gr_face *
 hb_graphite2_face_get_gr_face (hb_face_t *face);
@@ -63,7 +72,7 @@ hb_graphite2_face_get_gr_face (hb_face_t *face);
 gr_font *
 hb_graphite2_font_get_gr_font (hb_font_t *font);
 
-#ifndef HAVE_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
 
 #define DO_GR2_FUNCS \
     GR2_DO(gr_make_face, gr_face*, (const void* appFaceHandle/*non-NULL*/, gr_get_table_fn getTable, unsigned int faceOptions)) \
@@ -75,7 +84,7 @@ hb_graphite2_font_get_gr_font (hb_font_t *font);
     GR2_DO(gr_featureval_destroy, void, (gr_feature_val *pfeatures)) \
     GR2_DO(gr_face_find_fref, gr_feature_ref*, (const gr_face* pFace, gr_uint32 featId)) \
     GR2_DO(gr_fref_set_feature_value, int, (const gr_feature_ref* pfeatureref, gr_uint16 val, gr_feature_val* pDest)) \
-    GR2_DO(gr_make_seg, gr_segment*, (const gr_font* font, const gr_face* face, gr_uint32 script, const gr_feature_val* pFeats, int enc, const void* pStart, size_t nChars, int dir)) \
+    GR2_DO(gr_make_seg, gr_segment*, (const gr_font* font, const gr_face* face, gr_uint32 script, const gr_feature_val* pFeats, enum gr_encform enc, const void* pStart, size_t nChars, int dir)) \
     GR2_DO(gr_seg_destroy, void, (const gr_segment* pSeg)) \
     GR2_DO(gr_seg_advance_X, float, (const gr_segment* pSeg/*not NULL*/)) \
     GR2_DO(gr_seg_n_slots, int, (const gr_segment* pSeg/*not NULL*/)) \

@@ -28,17 +28,23 @@
 
 #define HB_SHAPER graphite2
 
-#ifdef HAVE_GRAPHITE2_STATIC
+#include "hb-graphite2.h"
+
+#if !HAVE_GRAPHITE2_STATIC
+#ifdef _WIN32
+    #include <windows.h>
+    #define dlopen(x)   LoadLibrary(x)
+    #define dlsym(x, y) GetProcAddress(x, y)
+    #define dlclose(x)  FreeLibrary(x)
+#else
+    #include <dlfcn.h>
+#endif
+#else
 #include <graphite2/Segment.h>
 #define hb_graphite2_shaper_font_data_t gr_font
-#else
-#include <dlfcn.h>
 #endif
 
 #include "hb-shaper-impl-private.hh"
-
-#include "hb-graphite2.h"
-
 
 HB_SHAPER_DATA_ENSURE_DECLARE(graphite2, face)
 HB_SHAPER_DATA_ENSURE_DECLARE(graphite2, font)
@@ -57,14 +63,14 @@ typedef struct hb_graphite2_tablelist_t {
 struct hb_graphite2_shaper_face_data_t {
   hb_face_t *face;
   gr_face   *grface;
-#ifndef HAS_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   void      *dlhandle;
   graphite2_funcs_t *funcs;
 #endif
   hb_graphite2_tablelist_t *tlist;
 };
 
-#ifndef HAS_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
 struct hb_graphite2_shaper_font_data_t {
   graphite2_funcs_t *funcs;
   gr_font           *font;
@@ -140,7 +146,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return NULL;
 
-#ifndef HAS_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   if (!hb_graphite2_load_gr(data))
   {
     if (data->dlhandle)
@@ -175,7 +181,7 @@ _hb_graphite2_shaper_face_data_destroy (hb_graphite2_shaper_face_data_t *data)
     free (old);
   }
 
-#ifndef HAS_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   if (data->dlhandle)
     dlclose(data->dlhandle);
   graphite2_funcs_t *grfuncs = data->funcs;
@@ -210,12 +216,12 @@ _hb_graphite2_shaper_font_data_create (hb_font_t *font)
   hb_face_t *face = font->face;
   hb_graphite2_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
-#ifndef HAVE_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   graphite2_funcs_t *grfuncs = face_data->funcs;
 #endif
   gr_font *grfont = gr_make_font_with_advance_fn (font->x_scale, (const void*)font, &hb_graphite2_get_advance, face_data->grface);
 
-#ifndef HAVE_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   hb_graphite2_shaper_font_data_t *res = (hb_graphite2_shaper_font_data_t *)calloc(1, sizeof(hb_graphite2_shaper_font_data_t));
   if (unlikely (!res))
   {
@@ -233,12 +239,12 @@ _hb_graphite2_shaper_font_data_create (hb_font_t *font)
 void
 _hb_graphite2_shaper_font_data_destroy (hb_graphite2_shaper_font_data_t *data)
 {
-#ifndef HAVE_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   graphite2_funcs_t *grfuncs = data->funcs;
-#endif
   gr_font_destroy (data->font);
-#ifndef HAVE_GRAPHITE2_STATIC
   free(data);
+#else
+  gr_font_destroy(data);
 #endif
 }
 
@@ -246,7 +252,7 @@ gr_font *
 hb_graphite2_font_get_gr_font (hb_font_t *font)
 {
   if (unlikely (!hb_graphite2_shaper_font_data_ensure (font))) return NULL;
-#ifndef HAVE_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   return HB_SHAPER_DATA_GET (font)->font;
 #else
   return HB_SHAPER_DATA_GET (font);
@@ -295,7 +301,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   gr_face *grface = HB_SHAPER_DATA_GET (face)->grface;
-#ifndef HAVE_GRAPHITE2_STATIC
+#if !HAVE_GRAPHITE2_STATIC
   graphite2_funcs_t *grfuncs = HB_SHAPER_DATA_GET(face)->funcs;
   gr_font *grfont = HB_SHAPER_DATA_GET (font)->font;
 #else
@@ -334,7 +340,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   seg = gr_make_seg (grfont, grface,
 		     script_tag[1] == HB_TAG_NONE ? script_tag[0] : script_tag[1],
 		     feats,
-		     4, chars, buffer->len,
+		     gr_utf32, chars, buffer->len,
 		     2 | (hb_buffer_get_direction (buffer) == HB_DIRECTION_RTL ? 1 : 0));
 
   if (unlikely (!seg)) {

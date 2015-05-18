@@ -300,7 +300,7 @@ have_graphite2_static=false
 if test "x$with_graphite2" = "xyes"; then 
 	PKG_CHECK_MODULES(GRAPHITE2, graphite2, have_graphite2=true, :)
     if $have_graphite2; then
-        have_graphite2_static = true
+        have_graphite2_static=true
     fi
 fi
 if test "x$with_graphite2" = "xauto"; then
@@ -470,7 +470,7 @@ Tools used for command-line utilities:
 	Fontconfig:		${have_fontconfig}
 
 Additional shapers (the more the better):
-	Graphite2:		${have_graphite2}
+	Graphite2:		${have_graphite2}   (static: ${have_graphite2_static})
 
 Platform shapers (not normally needed):
 	CoreText:		${have_coretext}
