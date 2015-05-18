@@ -28,6 +28,7 @@
 
 #define HB_SHAPER graphite2
 
+#include "hb-graphite2-private.hh"
 #include "hb-graphite2.h"
 
 #if !HAVE_GRAPHITE2_STATIC
