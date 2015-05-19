@@ -75,15 +75,19 @@ hb_ft_get_glyph (hb_font_t *font HB_UNUSED,
 		 void *user_data HB_UNUSED)
 
 {
+  unsigned int g;
   FT_Face ft_face = (FT_Face) font_data;
 
-  if (unlikely (variation_selector)) {
-    *glyph = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
-    return *glyph != 0;
-  }
+  if (likely (!variation_selector))
+    g = FT_Get_Char_Index (ft_face, unicode);
+  else
+    g = FT_Face_GetCharVariantIndex (ft_face, unicode, variation_selector);
 
-  *glyph = FT_Get_Char_Index (ft_face, unicode);
-  return *glyph != 0;
+  if (unlikely (!g))
+    return false;
+
+  *glyph = g;
+  return true;
 }
 
 static hb_position_t
