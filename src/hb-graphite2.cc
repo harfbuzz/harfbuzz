@@ -66,7 +66,7 @@ struct hb_graphite2_shaper_face_data_t {
   gr_face   *grface;
 #if !HAVE_GRAPHITE2_STATIC
   void      *dlhandle;
-  graphite2_funcs_t *funcs;
+  graphite2_funcs_t funcs;
 #endif
   hb_graphite2_tablelist_t *tlist;
 };
@@ -82,9 +82,8 @@ static bool hb_graphite2_load_gr(hb_graphite2_shaper_face_data_t *data)
     data->dlhandle = dlopen(HB_GR2_LIBRARY, RTLD_LAZY);
     if (!data->dlhandle)
         return false;
-    data->funcs = (graphite2_funcs_t *)calloc(1, sizeof(graphite2_funcs_t));
 
-#define GR2_DO(x, r, z) if (!(data->funcs->x## _p = (r(*)z)dlsym(data->dlhandle, #x))) return false;
+#define GR2_DO(x, r, z) if (!(data->funcs.x## _p = (r(*)z)dlsym(data->dlhandle, #x))) return false;
 DO_GR2_FUNCS
 #undef GR2_DO
 
@@ -155,7 +154,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
     return NULL;
   }
 
-  graphite2_funcs_t *grfuncs = data->funcs;
+  graphite2_funcs_t &grfuncs = data->funcs;
 #endif
   
   data->face = face;
@@ -185,7 +184,7 @@ _hb_graphite2_shaper_face_data_destroy (hb_graphite2_shaper_face_data_t *data)
 #if !HAVE_GRAPHITE2_STATIC
   if (data->dlhandle)
     dlclose(data->dlhandle);
-  graphite2_funcs_t *grfuncs = data->funcs;
+  graphite2_funcs_t &grfuncs = data->funcs;
 #endif
   gr_face_destroy (data->grface);
 
@@ -218,7 +217,7 @@ _hb_graphite2_shaper_font_data_create (hb_font_t *font)
   hb_graphite2_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
 #if !HAVE_GRAPHITE2_STATIC
-  graphite2_funcs_t *grfuncs = face_data->funcs;
+  graphite2_funcs_t &grfuncs = face_data->funcs;
 #endif
   gr_font *grfont = gr_make_font_with_advance_fn (font->x_scale, (const void*)font, &hb_graphite2_get_advance, face_data->grface);
 
@@ -230,7 +229,7 @@ _hb_graphite2_shaper_font_data_create (hb_font_t *font)
     return NULL;
   }
   res->font = grfont;
-  res->funcs = grfuncs;
+  res->funcs = &grfuncs;
   return res;
 #else
   return grfont;
@@ -241,11 +240,11 @@ void
 _hb_graphite2_shaper_font_data_destroy (hb_graphite2_shaper_font_data_t *data)
 {
 #if !HAVE_GRAPHITE2_STATIC
-  graphite2_funcs_t *grfuncs = data->funcs;
-  gr_font_destroy (data->font);
+  data->funcs->gr_font_destroy_p (data->font);
   free(data);
 #else
-  gr_font_destroy(data);
+#define GR2_APPLY(fn, ...) fn(__VA_ARGS__)
+  GR2_APPLY(gr_font_destroy, data);
 #endif
 }
 
@@ -303,7 +302,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   hb_face_t *face = font->face;
   gr_face *grface = HB_SHAPER_DATA_GET (face)->grface;
 #if !HAVE_GRAPHITE2_STATIC
-  graphite2_funcs_t *grfuncs = HB_SHAPER_DATA_GET(face)->funcs;
+  graphite2_funcs_t &grfuncs = HB_SHAPER_DATA_GET(face)->funcs;
   gr_font *grfont = HB_SHAPER_DATA_GET (font)->font;
 #else
   gr_font *grfont = HB_SHAPER_DATA_GET (font);
