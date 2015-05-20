@@ -81,14 +81,6 @@ GType hb_gobject_segment_properties_get_type (void);
 GType hb_gobject_user_data_key_get_type (void);
 #define HB_GOBJECT_TYPE_USER_DATA_KEY (hb_gobject_user_data_key_get_type ())
 
-/* Currently gobject-introspection doesn't understand that hb_language_t
- * can be passed by-value.  As such we box it up.  May remove in the
- * future.
- *
- *   https://bugzilla.gnome.org/show_bug.cgi?id=707656
- */
-GType hb_gobject_language_get_type (void);
-#define HB_GOBJECT_TYPE_LANGUAGE (hb_gobject_language_get_type ())
 
 HB_END_DECLS
 
