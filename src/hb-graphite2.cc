@@ -161,8 +161,9 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
   data->grface = gr_make_face (data, &hb_graphite2_get_table, 6);
 
   if (unlikely (!data->grface)) {
-#if !HAVE_GRAPHITE_STATIC
-    dlclose(data->dlhandle);
+#if !HAVE_GRAPHITE2_STATIC
+    if (data->dlhandle)
+        dlclose(data->dlhandle);
 #endif
     free (data);
     return NULL;
