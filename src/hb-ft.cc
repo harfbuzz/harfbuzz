@@ -381,7 +381,7 @@ hb_ft_face_create (FT_Face           ft_face,
  * 
  *
  * Return value: (transfer full): 
- * Since: 1.0
+ * Since: 0.9.38
  **/
 hb_face_t *
 hb_ft_face_create_referenced (FT_Face ft_face)
@@ -468,7 +468,7 @@ hb_ft_font_create (FT_Face           ft_face,
  * 
  *
  * Return value: (transfer full): 
- * Since: 1.0
+ * Since: 0.9.38
  **/
 hb_font_t *
 hb_ft_font_create_referenced (FT_Face ft_face)

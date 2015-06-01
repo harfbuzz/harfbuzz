@@ -736,6 +736,9 @@ _hb_ot_shape (hb_shape_plan_t    *shape_plan,
 }
 
 
+/**
+ * Since: 0.9.7
+ **/
 void
 hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 				  hb_tag_t         table_tag,
@@ -766,6 +769,9 @@ add_char (hb_font_t          *font,
 }
 
 
+/**
+ * Since: 0.9.2
+ **/
 void
 hb_ot_shape_glyphs_closure (hb_font_t          *font,
 			    hb_buffer_t        *buffer,
