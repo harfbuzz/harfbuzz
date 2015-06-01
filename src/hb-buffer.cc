@@ -36,6 +36,9 @@
 #endif
 
 
+/**
+ * Since: 0.9.7
+ **/
 hb_bool_t
 hb_segment_properties_equal (const hb_segment_properties_t *a,
 			     const hb_segment_properties_t *b)
@@ -48,6 +51,9 @@ hb_segment_properties_equal (const hb_segment_properties_t *a,
 
 }
 
+/**
+ * Since: 0.9.7
+ **/
 unsigned int
 hb_segment_properties_hash (const hb_segment_properties_t *p)
 {
@@ -804,7 +810,7 @@ hb_buffer_get_user_data (hb_buffer_t        *buffer,
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.5
  **/
 void
 hb_buffer_set_content_type (hb_buffer_t              *buffer,
@@ -821,7 +827,7 @@ hb_buffer_set_content_type (hb_buffer_t              *buffer,
  *
  * Return value: 
  *
- * Since: 1.0
+ * Since: 0.9.5
  **/
 hb_buffer_content_type_t
 hb_buffer_get_content_type (hb_buffer_t *buffer)
@@ -984,7 +990,7 @@ hb_buffer_get_language (hb_buffer_t *buffer)
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.7
  **/
 void
 hb_buffer_set_segment_properties (hb_buffer_t *buffer,
@@ -1003,7 +1009,7 @@ hb_buffer_set_segment_properties (hb_buffer_t *buffer,
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.7
  **/
 void
 hb_buffer_get_segment_properties (hb_buffer_t *buffer,
@@ -1020,7 +1026,7 @@ hb_buffer_get_segment_properties (hb_buffer_t *buffer,
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.7
  **/
 void
 hb_buffer_set_flags (hb_buffer_t       *buffer,
@@ -1040,7 +1046,7 @@ hb_buffer_set_flags (hb_buffer_t       *buffer,
  *
  * Return value: 
  *
- * Since: 1.0
+ * Since: 0.9.7
  **/
 hb_buffer_flags_t
 hb_buffer_get_flags (hb_buffer_t *buffer)
@@ -1056,7 +1062,7 @@ hb_buffer_get_flags (hb_buffer_t *buffer)
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.31
  **/
 void
 hb_buffer_set_replacement_codepoint (hb_buffer_t    *buffer,
@@ -1076,7 +1082,7 @@ hb_buffer_set_replacement_codepoint (hb_buffer_t    *buffer,
  *
  * Return value: 
  *
- * Since: 1.0
+ * Since: 0.9.31
  **/
 hb_codepoint_t
 hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
@@ -1105,7 +1111,7 @@ hb_buffer_reset (hb_buffer_t *buffer)
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.11
  **/
 void
 hb_buffer_clear_contents (hb_buffer_t *buffer)
@@ -1337,7 +1343,7 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
  * hb_language_get_default().  This may change in the future by
  * taking buffer script into consideration when choosing a language.
  *
- * Since: 1.0
+ * Since: 0.9.7
  **/
 void
 hb_buffer_guess_segment_properties (hb_buffer_t *buffer)
@@ -1490,7 +1496,7 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.39
  **/
 void
 hb_buffer_add_latin1 (hb_buffer_t   *buffer,
@@ -1512,7 +1518,7 @@ hb_buffer_add_latin1 (hb_buffer_t   *buffer,
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.31
  **/
 void
 hb_buffer_add_codepoints (hb_buffer_t          *buffer,
@@ -1586,7 +1592,7 @@ normalize_glyphs_cluster (hb_buffer_t *buffer,
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer)

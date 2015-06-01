@@ -218,7 +218,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  *
  * Return value: %TRUE if @str is successfully parsed, %FALSE otherwise
  *
- * Since: 1.0
+ * Since: 0.9.5
  **/
 hb_bool_t
 hb_feature_from_string (const char *str, int len,
@@ -251,7 +251,7 @@ hb_feature_from_string (const char *str, int len,
  * understood by hb_feature_from_string(). The client in responsible for
  * allocating big enough size for @buf, 128 bytes is more than enough.
  *
- * Since: 1.0
+ * Since: 0.9.5
  **/
 void
 hb_feature_to_string (hb_feature_t *feature,
@@ -309,7 +309,7 @@ void free_static_shaper_list (void)
  * Return value: (transfer none) (array zero-terminated=1): an array of
  *    constant strings
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 const char **
 hb_shape_list_shapers (void)
@@ -362,7 +362,7 @@ retry:
  *
  * Return value: %FALSE if all shapers failed, %TRUE otherwise
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 hb_bool_t
 hb_shape_full (hb_font_t          *font,

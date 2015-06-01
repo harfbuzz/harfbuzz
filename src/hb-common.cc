@@ -92,7 +92,7 @@ hb_tag_from_string (const char *str, int len)
  *
  * 
  *
- * Since: 1.0
+ * Since: 0.9.5
  **/
 void
 hb_tag_to_string (hb_tag_t tag, char *buf)
@@ -579,7 +579,7 @@ hb_version_string (void)
  *
  * Return value: 
  *
- * Since: 1.0
+ * Since: 0.9.30
  **/
 hb_bool_t
 hb_version_atleast (unsigned int major,

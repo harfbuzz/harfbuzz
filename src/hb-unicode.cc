@@ -400,7 +400,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
  *
  * Return value: 
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 hb_bool_t
 hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
@@ -422,7 +422,7 @@ hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
  *
  * Return value: 
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 hb_bool_t
 hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
@@ -443,7 +443,7 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
  *
  * Return value: 
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 unsigned int
 hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,

@@ -128,6 +128,9 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face)
   return _get_gdef (face).has_glyph_classes ();
 }
 
+/**
+ * Since: 0.9.7
+ **/
 hb_ot_layout_glyph_class_t
 hb_ot_layout_get_glyph_class (hb_face_t      *face,
 			      hb_codepoint_t  glyph)
@@ -135,6 +138,9 @@ hb_ot_layout_get_glyph_class (hb_face_t      *face,
   return (hb_ot_layout_glyph_class_t) _get_gdef (face).get_glyph_class (glyph);
 }
 
+/**
+ * Since: 0.9.7
+ **/
 void
 hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
 				  hb_ot_layout_glyph_class_t  klass,
@@ -335,6 +341,9 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
 						     NULL);
 }
 
+/**
+ * Since: 0.9.30
+ **/
 hb_bool_t
 hb_ot_layout_language_get_required_feature (hb_face_t    *face,
 					    hb_tag_t      table_tag,
@@ -419,6 +428,9 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
   return false;
 }
 
+/**
+ * Since: 0.9.7
+ **/
 unsigned int
 hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 				  hb_tag_t      table_tag,
@@ -433,6 +445,9 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
   return f.get_lookup_indexes (start_offset, lookup_count, lookup_indexes);
 }
 
+/**
+ * Since: 0.9.22
+ **/
 unsigned int
 hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
 				     hb_tag_t      table_tag)
@@ -590,6 +605,9 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
   }
 }
 
+/**
+ * Since: 0.9.8
+ **/
 void
 hb_ot_layout_collect_lookups (hb_face_t      *face,
 			      hb_tag_t        table_tag,
@@ -631,6 +649,9 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
   }
 }
 
+/**
+ * Since: 0.9.7
+ **/
 void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
@@ -676,6 +697,9 @@ hb_ot_layout_has_substitution (hb_face_t *face)
   return &_get_gsub (face) != &OT::Null(OT::GSUB);
 }
 
+/**
+ * Since: 0.9.7
+ **/
 hb_bool_t
 hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 				      unsigned int          lookup_index,
@@ -714,6 +738,9 @@ hb_ot_layout_substitute_finish (hb_font_t *font, hb_buffer_t *buffer)
   OT::GSUB::substitute_finish (font, buffer);
 }
 
+/**
+ * Since: 0.9.7
+ **/
 void
 hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 				        unsigned int  lookup_index,
@@ -748,6 +775,9 @@ hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer)
   OT::GPOS::position_finish (font, buffer);
 }
 
+/**
+ * Since: 0.9.8
+ **/
 hb_bool_t
 hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *design_size,       /* OUT.  May be NULL */

@@ -335,6 +335,9 @@ _hb_ot_get_font_funcs (void)
 }
 
 
+/**
+ * Since: 0.9.28
+ **/
 void
 hb_ot_font_set_funcs (hb_font_t *font)
 {
