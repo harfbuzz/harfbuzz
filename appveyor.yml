@@ -1,0 +1,15 @@
+platform:
+  - x64
+environment:
+  global:
+    MSYS2_BASEVER: 20150512
+  matrix:
+    - MSYS2_ARCH: x86_64
+install:
+  - appveyor DownloadFile "http://kent.dl.sourceforge.net/project/msys2/Base/%MSYS2_ARCH%/msys2-base-%MSYS2_ARCH%-%MSYS2_BASEVER%.tar.xz" -FileName "msys2.tar.xz"
+  - 7z x msys2.tar.xz
+  - 7z x msys2.tar > NUL
+  - msys64\usr\bin\bash -lc ""
+  - msys64\usr\bin\bash -lc "for i in {1..3}; do pacman --noconfirm -Suy mingw-w64-%MSYS2_ARCH%-{ragel,freetype,icu,gettext} libtool pkg-config gcc make autoconf automake perl && break || sleep 15; done"
+build_script:
+  - msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; exec 0</dev/null; ./autogen.sh --with-uniscribe; make"
