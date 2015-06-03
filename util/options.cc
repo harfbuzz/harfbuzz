@@ -30,7 +30,7 @@
 #include <hb-ft.h>
 #endif
 #ifdef HAVE_OT
-#include <hb-ot-font.h>
+#include <hb-ot.h>
 #endif
 
 struct supported_font_funcs_t {
