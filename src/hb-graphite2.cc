@@ -416,7 +416,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
     clusters[ci].num_glyphs++;
 
     if (clusters[ci].base_char + clusters[ci].num_chars < after + 1)
-	clusters[ci].num_chars = after + 1 - clusters[ci].base_char;
+	  clusters[ci].num_chars = after + 1 - clusters[ci].base_char;
   }
   ci++;
 
@@ -433,31 +433,58 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   buffer->len = glyph_count;
   //buffer->swap_buffers ();
 
-  if (HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
-    curradvx = gr_seg_advance_X(seg);
-
-  hb_glyph_position_t *pPos;
-  for (pPos = hb_buffer_get_glyph_positions (buffer, NULL), is = gr_seg_first_slot (seg);
-       is; pPos++, is = gr_slot_next_in_segment (is))
+  if (!HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
   {
-    pPos->x_offset = gr_slot_origin_X (is) - curradvx;
-    pPos->y_offset = gr_slot_origin_Y (is) - curradvy;
-    pPos->x_advance = gr_slot_advance_X (is, grface, grfont);
-    pPos->y_advance = gr_slot_advance_Y (is, grface, grfont);
-    if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
-      curradvx -= pPos->x_advance;
-    pPos->x_offset = gr_slot_origin_X (is) - curradvx;
-    if (!HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+    hb_glyph_position_t *pPos;
+    for (pPos = hb_buffer_get_glyph_positions (buffer, NULL), is = gr_seg_first_slot (seg);
+         is; pPos++, is = gr_slot_next_in_segment (is))
+    {
+      pPos->x_offset = gr_slot_origin_X (is) - curradvx;
+      pPos->y_offset = gr_slot_origin_Y (is) - curradvy;
+      pPos->x_advance = gr_slot_advance_X (is, grface, grfont);
+      pPos->y_advance = gr_slot_advance_Y (is, grface, grfont);
       curradvx += pPos->x_advance;
-    pPos->y_offset = gr_slot_origin_Y (is) - curradvy;
-    curradvy += pPos->y_advance;
-  }
-  if (!HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+      curradvy += pPos->y_advance;
+    }
     pPos[-1].x_advance += gr_seg_advance_X(seg) - curradvx;
-
-  if (HB_DIRECTION_IS_BACKWARD (buffer->props.direction))
+  }
+  else
+  {
+    //curradvx = gr_seg_advance_X (seg);
+    //curradvy = gr_seg_advance_Y (seg);
+    hb_glyph_position_t *pPos = hb_buffer_get_glyph_positions (buffer, NULL) + buffer->len - 1;
+    const hb_glyph_info_t *info = buffer->info + buffer->len - 1;
+    const hb_glyph_info_t *tinfo;
+    const gr_slot *tis;
+    int currclus = -1;
+    float clusx = 0., clusy = 0.;
+    for (is = gr_seg_last_slot (seg); is; pPos--, info--, is = gr_slot_prev_in_segment (is))
+    {
+      if (info->cluster != currclus)
+      {
+        curradvx += clusx;
+        curradvy += clusy;
+        currclus = info->cluster;
+        clusx = 0.;
+        clusy = 0.;
+        for (tis = is, tinfo = info; tis && tinfo->cluster == currclus; tis = gr_slot_prev_in_segment (tis), tinfo--)
+        {
+          clusx += gr_slot_advance_X (tis, grface, grfont);
+          clusy += gr_slot_advance_Y (tis, grface, grfont);
+        }
+        curradvx += clusx;
+        curradvy += clusy;
+      }
+      pPos->x_advance = gr_slot_advance_X (is, grface, grfont);
+      pPos->y_advance = gr_slot_advance_Y (is, grface, grfont);
+      curradvx -= pPos->x_advance;
+      curradvy -= pPos->y_advance;
+      pPos->x_offset = gr_slot_origin_X (is) - curradvx;
+      pPos->y_offset = gr_slot_origin_Y (is) - curradvy;
+    }
     hb_buffer_reverse_clusters (buffer);
-
+  }
+ 
   if (feats) gr_featureval_destroy (feats);
   gr_seg_destroy (seg);
 

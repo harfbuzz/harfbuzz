@@ -80,9 +80,12 @@ enum gr_encform {
     GR2_DO(gr_make_seg, gr_segment*, (const gr_font* font, const gr_face* face, gr_uint32 script, const gr_feature_val* pFeats, enum gr_encform enc, const void* pStart, size_t nChars, int dir)) \
     GR2_DO(gr_seg_destroy, void, (const gr_segment* pSeg)) \
     GR2_DO(gr_seg_advance_X, float, (const gr_segment* pSeg/*not NULL*/)) \
+    GR2_DO(gr_seg_advance_Y, float, (const gr_segment* pSeg/*not NULL*/)) \
     GR2_DO(gr_seg_n_slots, int, (const gr_segment* pSeg/*not NULL*/)) \
     GR2_DO(gr_seg_first_slot, gr_slot*, (gr_segment* pSeg/*not NULL*/)) \
+    GR2_DO(gr_seg_last_slot, gr_slot*, (gr_segment* pSeg/*not NULL*/)) \
     GR2_DO(gr_slot_next_in_segment, gr_slot*, (const gr_slot* p)) \
+    GR2_DO(gr_slot_prev_in_segment, gr_slot*, (const gr_slot* p)) \
     GR2_DO(gr_slot_before, int, (const gr_slot* p/*not NULL*/)) \
     GR2_DO(gr_slot_after, int, (const gr_slot* p/*not NULL*/)) \
     GR2_DO(gr_slot_can_insert_before, int, (const gr_slot *p/*not NULL*/)) \
@@ -112,9 +115,12 @@ DO_GR2_FUNCS
 #define gr_make_seg(...) grfuncs.gr_make_seg_p(__VA_ARGS__)
 #define gr_seg_destroy(...) grfuncs.gr_seg_destroy_p(__VA_ARGS__)
 #define gr_seg_advance_X(...) grfuncs.gr_seg_advance_X_p(__VA_ARGS__)
+#define gr_seg_advance_Y(...) grfuncs.gr_seg_advance_Y_p(__VA_ARGS__)
 #define gr_seg_n_slots(...) grfuncs.gr_seg_n_slots_p(__VA_ARGS__)
 #define gr_seg_first_slot(...) grfuncs.gr_seg_first_slot_p(__VA_ARGS__)
+#define gr_seg_last_slot(...) grfuncs.gr_seg_last_slot_p(__VA_ARGS__)
 #define gr_slot_next_in_segment(...) grfuncs.gr_slot_next_in_segment_p(__VA_ARGS__)
+#define gr_slot_prev_in_segment(...) grfuncs.gr_slot_prev_in_segment_p(__VA_ARGS__)
 #define gr_slot_before(...) grfuncs.gr_slot_before_p(__VA_ARGS__)
 #define gr_slot_after(...) grfuncs.gr_slot_after_p(__VA_ARGS__)
 #define gr_slot_can_insert_before(...) grfuncs.gr_slot_can_insert_before_p(__VA_ARGS__)
