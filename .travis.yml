@@ -8,6 +8,9 @@ env:
     - CFLAGS="-Werror --coverage"
     - CXXFLAGS="-Werror --coverage"
     - LDFLAGS="--coverage"
+    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+    #   via the "travis encrypt" command using the project repo's public key
+    - secure: "RoR4NtzEDTR8QKmLVuy2wN+YGXuq8VcgVvDuFJDdOdIbtX+kQStesJXDcf1y0G1T8Ripjn9JGXBd9eoUwNc8sJpxNwKZBkIPi42FuK6e/cZZRYlgUyi5df0fQJ8VSCDU7OoZJq3pAtTe8mQPeeuk5G7cKRSsJVt8e03K7PQcU6Y="
 install:
   - sudo apt-get install pkg-config ragel gtk-doc-tools # for autogen.sh
   - sudo apt-get install libfreetype6-dev # for font functions
@@ -24,3 +27,13 @@ script:
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz@lists.freedesktop.org
+
+addons:
+  coverity_scan:
+    project:
+      name: "behdad/harfbuzz"
+      description: "Build submitted via Travis CI"
+    notification_email: coverity@behdad.org
+    build_command_prepend: "./configure; make clean"
+    build_command:   "make -j 4"
+    branch_pattern: master
