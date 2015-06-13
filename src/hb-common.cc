@@ -334,7 +334,7 @@ hb_language_to_string (hb_language_t language)
  *
  * 
  *
- * Return value: 
+ * Return value: (transfer none):
  *
  * Since: 1.0
  **/
