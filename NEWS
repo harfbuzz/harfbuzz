@@ -1,3 +1,13 @@
+Overview of changes leading to 0.9.41
+Thursday, June 18, 2015
+=====================================
+
+- Fix hb-coretext with trailing whitespace in right-to-left.
+- New API: hb_buffer_reverse_range().
+- Allow implementing atomic ops in config.h.
+- Fix hb_language_t in language bindings.
+- Misc fixes.
+
 Overview of changes leading to 0.9.40
 Friday, March 20, 2015
 =====================================
