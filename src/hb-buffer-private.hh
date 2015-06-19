@@ -192,6 +192,8 @@ struct hb_buffer_t {
 				   unsigned int end);
   HB_INTERNAL void merge_out_clusters (unsigned int start,
 				       unsigned int end);
+  /* Merge clusters for deleting current glyph, and skip it. */
+  HB_INTERNAL void delete_glyph (void);
 
   /* Internal methods */
   HB_INTERNAL bool enlarge (unsigned int size);

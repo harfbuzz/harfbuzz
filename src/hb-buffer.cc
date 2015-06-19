@@ -529,7 +529,7 @@ hb_buffer_t::merge_clusters (unsigned int start,
 
   /* If we hit the start of buffer, continue in out-buffer. */
   if (idx == start)
-    for (unsigned i = out_len; i && out_info[i - 1].cluster == info[start].cluster; i--)
+    for (unsigned int i = out_len; i && out_info[i - 1].cluster == info[start].cluster; i--)
       out_info[i - 1].cluster = cluster;
 
   for (unsigned int i = start; i < end; i++)
@@ -561,11 +561,43 @@ hb_buffer_t::merge_out_clusters (unsigned int start,
 
   /* If we hit the end of out-buffer, continue in buffer. */
   if (end == out_len)
-    for (unsigned i = idx; i < len && info[i].cluster == out_info[end - 1].cluster; i++)
+    for (unsigned int i = idx; i < len && info[i].cluster == out_info[end - 1].cluster; i++)
       info[i].cluster = cluster;
 
   for (unsigned int i = start; i < end; i++)
     out_info[i].cluster = cluster;
+}
+void
+hb_buffer_t::delete_glyph ()
+{
+  unsigned int cluster = info[idx].cluster;
+  if (idx + 1 < len && cluster == info[idx + 1].cluster)
+  {
+    /* Cluster survives; do nothing. */
+    goto done;
+  }
+
+  if (out_len)
+  {
+    /* Merge cluster backward. */
+    if (cluster < out_info[out_len - 1].cluster)
+    {
+      unsigned int old_cluster = out_info[out_len - 1].cluster;
+      for (unsigned i = out_len; i && out_info[i - 1].cluster == old_cluster; i--)
+	out_info[i - 1].cluster = cluster;
+    }
+    goto done;
+  }
+
+  if (idx + 1 < len)
+  {
+    /* Merge cluster forward. */
+    merge_clusters (idx, idx + 2);
+    goto done;
+  }
+
+done:
+  skip_glyph ();
 }
 
 void

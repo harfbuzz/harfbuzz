@@ -692,7 +692,7 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
       if (!_hb_glyph_info_ligated (&info[buffer->idx]) &&
 	   _hb_glyph_info_is_default_ignorable (&info[buffer->idx]))
       {
-        buffer->skip_glyph ();
+	buffer->delete_glyph ();
 	continue;
       }
       buffer->next_glyph ();
