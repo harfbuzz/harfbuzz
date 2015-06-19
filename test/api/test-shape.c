@@ -139,6 +139,48 @@ test_shape (void)
 }
 
 static void
+test_shape_clusters (void)
+{
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_buffer_t *buffer;
+  unsigned int len;
+  hb_glyph_info_t *glyphs;
+
+  face = hb_face_create (NULL, 0);
+  font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  buffer =  hb_buffer_create ();
+  hb_buffer_set_direction (buffer, HB_DIRECTION_LTR);
+  {
+    /* https://code.google.com/p/chromium/issues/detail?id=497578 */
+    hb_codepoint_t test[] = {0xFFF1, 0xF0B6};
+    hb_buffer_add_utf32 (buffer, test, 2, 0, 2);
+  }
+
+  hb_shape (font, buffer, NULL, 0);
+
+  len = hb_buffer_get_length (buffer);
+  glyphs = hb_buffer_get_glyph_infos (buffer, NULL);
+
+  {
+    const hb_codepoint_t output_glyphs[] = {0};
+    const hb_position_t output_clusters[] = {0};
+    unsigned int i;
+    g_assert_cmpint (len, ==, 1);
+    for (i = 0; i < len; i++) {
+      g_assert_cmphex (glyphs[i].codepoint, ==, output_glyphs[i]);
+      g_assert_cmphex (glyphs[i].cluster,   ==, output_clusters[i]);
+    }
+  }
+
+  hb_buffer_destroy (buffer);
+  hb_font_destroy (font);
+}
+
+
+static void
 test_shape_list (void)
 {
   const char **shapers = hb_shape_list_shapers ();
@@ -157,6 +199,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_shape);
+  hb_test_add (test_shape_clusters);
   /* TODO test fallback shaper */
   /* TODO test shaper_full */
   hb_test_add (test_shape_list);
