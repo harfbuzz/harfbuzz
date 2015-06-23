@@ -133,7 +133,7 @@ static int errno = 0; /* Use something better? */
 #  if defined(_MSC_VER) && _MSC_VER < 1900
 #    define snprintf _snprintf
 #  elif defined(_MSC_VER) && _MSC_VER >= 1900
-#    /* Covers VC++ Error for strdup being a deprected POSIX name and to instead use _strdup instead */
+#    /* Covers VC++ Error for strdup being a deprecated POSIX name and to instead use _strdup instead */
 #    define strdup _strdup
 #  endif
 #endif
