@@ -219,7 +219,7 @@ struct hb_language_item_t {
   }
 
   inline hb_language_item_t & operator = (const char *s) {
-    lang = (hb_language_t) strdup (s);
+    lang = (hb_language_t) _strdup (s);
     for (unsigned char *p = (unsigned char *) lang; *p; p++)
       *p = canon_map[*p];
 
@@ -518,7 +518,7 @@ hb_user_data_array_t::set (hb_user_data_key_t *key,
     }
   }
   hb_user_data_item_t item = {key, data, destroy};
-  bool ret = !!items.replace_or_insert (item, lock, replace);
+  bool ret = !!items.replace_or_insert (item, lock, replace != 0);
 
   return ret;
 }

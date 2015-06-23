@@ -538,7 +538,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
   bool ret = false;
   unsigned int count = c->buffer->len;
-  bool has_positioning = hb_ot_layout_has_positioning (c->face);
+  bool has_positioning = hb_ot_layout_has_positioning (c->face) != 0;
   /* If the font has no GPOS, AND, no fallback positioning will
    * happen, AND, direction is forward, then when zeroing mark
    * widths, we shift the mark with it, such that the mark
