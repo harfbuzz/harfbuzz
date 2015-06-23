@@ -219,7 +219,7 @@ struct hb_language_item_t {
   }
 
   inline hb_language_item_t & operator = (const char *s) {
-    lang = (hb_language_t) _strdup (s);
+    lang = (hb_language_t) strdup (s);
     for (unsigned char *p = (unsigned char *) lang; *p; p++)
       *p = canon_map[*p];
 
