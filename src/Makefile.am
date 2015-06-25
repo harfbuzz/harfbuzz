@@ -148,10 +148,14 @@ HBHEADERS += hb-ft.h
 endif
 
 if HAVE_GRAPHITE2
+HBSOURCES += hb-graphite2.cc hb-graphite2-private.hh
+HBHEADERS += hb-graphite2.h
+if HAVE_GRAPHITE2_STATIC
 HBCFLAGS += $(GRAPHITE2_CFLAGS)
 HBLIBS   += $(GRAPHITE2_LIBS)
-HBSOURCES += hb-graphite2.cc
-HBHEADERS += hb-graphite2.h
+else
+HBLIBS   += -ldl
+endif
 endif
 
 if HAVE_UNISCRIBE
