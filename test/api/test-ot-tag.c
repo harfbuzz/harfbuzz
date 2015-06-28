@@ -222,6 +222,13 @@ test_ot_tag_language (void)
   test_tag_from_language ("XYZ", "xyz"); /* Unknown ISO 639-3 */
   test_tag_from_language ("XYZ", "xyz-qw"); /* Unknown ISO 639-3 */
 
+  /* International Phonetic Alphabet */
+  test_tag_from_language ("IPPH", "en-fonipa");
+  test_tag_from_language ("IPPH", "rm-CH-fonipa-sursilv-x-foobar");
+  test_tag_from_language ("IPPH", "und-fonipa");
+  test_tag_from_language ("IPPH", "zh-fonipa");
+  test_tag_to_language ("IPPH", "und-fonipa");
+
   /* Test that x-hbot overrides the base language */
   test_tag_from_language ("ABC", "fa-x-hbotabc-zxc");
   test_tag_from_language ("ABC", "fa-ir-x-hbotabc-zxc");
