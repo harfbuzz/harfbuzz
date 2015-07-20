@@ -115,8 +115,8 @@ vowel_cluster =
 	final_consonants
 ;
 
-number_joiner_terminated_cluster = N VS? (H N VS?)* H;
-numeral_cluster = N VS? (H N VS?)*;
+number_joiner_terminated_cluster = N VS? (HN N VS?)* H;
+numeral_cluster = N VS? (HN N VS?)*;
 symbol_cluster = S VS? SMAbv* SMBlw*;
 independent_cluster = (IND | O | Rsv | WJ) VS?;
 
