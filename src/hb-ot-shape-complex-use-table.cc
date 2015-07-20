@@ -19,28 +19,41 @@
 
 #define B	USE_B	/* BASE */
 #define CGJ	USE_CGJ	/* CGJ */
-#define CM	USE_CM	/* CONS_MOD */
-#define F	USE_F	/* CONS_FINAL */
 #define FM	USE_FM	/* CONS_FINAL_MOD */
 #define GB	USE_GB	/* BASE_OTHER */
 #define H	USE_H	/* HALANT */
 #define HN	USE_HN	/* HALANT_NUM */
 #define IND	USE_IND	/* BASE_IND */
 #define IV	USE_IV	/* BASE_VOWEL */
-#define M	USE_M	/* CONS_MED */
 #define N	USE_N	/* BASE_NUM */
 #define O	USE_O	/* OTHER */
 #define R	USE_R	/* REPHA */
 #define Rsv	USE_Rsv	/* Reserved */
 #define S	USE_S	/* SYM */
-#define SM	USE_SM	/* SYM_MOD */
 #define SUB	USE_SUB	/* CONS_SUB */
-#define V	USE_V	/* VOWEL */
-#define VM	USE_VM	/* VOWEL_MOD */
 #define VS	USE_VS	/* VARIATION_SELECTOR */
 #define WJ	USE_WJ	/* Word_Joiner */
 #define ZWJ	USE_ZWJ	/* ZWJ */
 #define ZWNJ	USE_ZWNJ	/* ZWNJ */
+#define CMBlw	USE_CMBlw
+#define CMAbv	USE_CMAbv
+#define FBlw	USE_FBlw
+#define FPst	USE_FPst
+#define FAbv	USE_FAbv
+#define MPre	USE_MPre
+#define MBlw	USE_MBlw
+#define MPst	USE_MPst
+#define MAbv	USE_MAbv
+#define SMBlw	USE_SMBlw
+#define SMAbv	USE_SMAbv
+#define VPre	USE_VPre
+#define VBlw	USE_VBlw
+#define VPst	USE_VPst
+#define VAbv	USE_VAbv
+#define VMPre	USE_VMPre
+#define VMBlw	USE_VMBlw
+#define VMPst	USE_VMPst
+#define VMAbv	USE_VMAbv
 
 static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
@@ -49,536 +62,574 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
 
   /* Basic Latin */
-                                                       O,   O,   O,   O,   O,  GB,   O,   O,
-  /* 0030 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+                                                                         O,     O,     O,     O,     O,    GB,     O,     O,
+  /* 0030 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
 #define use_offset_0x00a0u 24
 
 
   /* Latin-1 Supplement */
 
-  /* 00A0 */  GB,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 00B0 */   O,   O,  FM,  FM,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 00C0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 00D0 */   O,   O,   O,   O,   O,   O,   O,  GB,
+  /* 00A0 */    GB,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 00B0 */     O,     O,    FM,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 00C0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 00D0 */     O,     O,     O,     O,     O,     O,     O,    GB,
 
 #define use_offset_0x0900u 80
 
 
   /* Devanagari */
 
-  /* 0900 */  VM,  VM,  VM,  VM,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,
-  /* 0910 */  IV,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0920 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0930 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   V,   V,  CM,   B,   V,   V,
-  /* 0940 */   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   H,   V,   V,
-  /* 0950 */   O,  VM,  VM,   O,   O,   V,   V,   V,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0960 */  IV,  IV,   V,   V,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0970 */   O,   O,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,
+  /* 0900 */ VMAbv, VMAbv, VMAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
+  /* 0910 */    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0920 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0930 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VPst, CMBlw,     B,  VPst,  VPre,
+  /* 0940 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,  VPst,  VPst,  VPst,  VPst,     H,  VPre,  VPst,
+  /* 0950 */     O, VMAbv, VMBlw,     O,     O,  VAbv,  VBlw,  VBlw,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0960 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0970 */     O,     O,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,
 
   /* Bengali */
 
-  /* 0980 */   O,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,   O,  IV,
-  /* 0990 */  IV,   O,   O,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 09A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,
-  /* 09B0 */   B,   O,   B,   O,   O,   O,   B,   B,   B,   B,   O,   O,  CM,   B,   V,   V,
-  /* 09C0 */   V,   V,   V,   V,   V,   O,   O,   V,   V,   O,   O,   V,   V,   H, IND,   O,
-  /* 09D0 */   O,   O,   O,   O,   O,   O,   O,   V,   O,   O,   O,   O,   B,   B,   O,   B,
-  /* 09E0 */  IV,  IV,   V,   V,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 09F0 */   B,   B,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 0980 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,    IV,
+  /* 0990 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 09A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
+  /* 09B0 */     B,     O,     B,     O,     O,     O,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VPre,
+  /* 09C0 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,   IND,     O,
+  /* 09D0 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     B,     B,     O,     B,
+  /* 09E0 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 09F0 */     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Gurmukhi */
 
-  /* 0A00 */   O,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,   O,   O,   O,   O,  IV,
-  /* 0A10 */  IV,   O,   O,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0A20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,
-  /* 0A30 */   B,   O,   B,   B,   O,   B,   B,   O,   B,   B,   O,   O,  CM,   O,   V,   V,
-  /* 0A40 */   V,   V,   V,   O,   O,   O,   O,   V,   V,   O,   O,   V,   V,   H,   O,   O,
-  /* 0A50 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   B,   B,   B,   B,   O,   B,   O,
-  /* 0A60 */   O,   O,   O,   O,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0A70 */  VM,  CM,  GB,  GB,   O,   M,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 0A00 */     O, VMAbv, VMAbv, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,     O,     O,    IV,
+  /* 0A10 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0A20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
+  /* 0A30 */     B,     O,     B,     B,     O,     B,     B,     O,     B,     B,     O,     O, CMBlw,     O,  VPst,  VPre,
+  /* 0A40 */  VPst,  VBlw,  VBlw,     O,     O,     O,     O,  VAbv,  VAbv,     O,     O,  VAbv,  VAbv,     H,     O,     O,
+  /* 0A50 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     O,     B,     O,
+  /* 0A60 */     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0A70 */ VMAbv, CMAbv,    GB,    GB,     O,  MBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Gujarati */
 
-  /* 0A80 */   O,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,  IV,
-  /* 0A90 */  IV,  IV,   O,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0AA0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,
-  /* 0AB0 */   B,   O,   B,   B,   O,   B,   B,   B,   B,   B,   O,   O,  CM,   B,   V,   V,
-  /* 0AC0 */   V,   V,   V,   V,   V,   V,   O,   V,   V,   V,   O,   V,   V,   H,   O,   O,
-  /* 0AD0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 0AE0 */  IV,  IV,   V,   V,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0AF0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   B,   O,   O,   O,   O,   O,   O,
+  /* 0A80 */     O, VMAbv, VMAbv, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,
+  /* 0A90 */    IV,    IV,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0AA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
+  /* 0AB0 */     B,     O,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VPre,
+  /* 0AC0 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,     O,  VAbv,  VAbv,  VAbv,     O,  VPst,  VPst,     H,     O,     O,
+  /* 0AD0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 0AE0 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0AF0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     B,     O,     O,     O,     O,     O,     O,
 
   /* Oriya */
 
-  /* 0B00 */   O,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,   O,  IV,
-  /* 0B10 */  IV,   O,   O,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0B20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,
-  /* 0B30 */   B,   O,   B,   B,   O,   B,   B,   B,   B,   B,   O,   O,  CM,   B,   V,   V,
-  /* 0B40 */   V,   V,   V,   V,   V,   O,   O,   V,   V,   O,   O,   V,   V,   H,   O,   O,
-  /* 0B50 */   O,   O,   O,   O,   O,   O,   V,   V,   O,   O,   O,   O,   B,   B,   O,   B,
-  /* 0B60 */  IV,  IV,   V,   V,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0B70 */   O,   B,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 0B00 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,    IV,
+  /* 0B10 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0B20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
+  /* 0B30 */     B,     O,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VAbv,
+  /* 0B40 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,     O,     O,
+  /* 0B50 */     O,     O,     O,     O,     O,     O,  VAbv,  VAbv,     O,     O,     O,     O,     B,     B,     O,     B,
+  /* 0B60 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0B70 */     O,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Tamil */
 
-  /* 0B80 */   O,   O,  VM, IND,   O,  IV,  IV,  IV,  IV,  IV,  IV,   O,   O,   O,  IV,  IV,
-  /* 0B90 */  IV,   O,  IV,  IV,  IV,   B,   O,   O,   O,   B,   B,   O,   B,   O,   B,   B,
-  /* 0BA0 */   O,   O,   O,   B,   B,   O,   O,   O,   B,   B,   B,   O,   O,   O,   B,   B,
-  /* 0BB0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   V,   V,
-  /* 0BC0 */   V,   V,   V,   O,   O,   O,   V,   V,   V,   O,   V,   V,   V,   H,   O,   O,
-  /* 0BD0 */   O,   O,   O,   O,   O,   O,   O,   V,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 0BE0 */   O,   O,   O,   O,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0BF0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 0B80 */     O,     O, VMAbv,   IND,     O,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,     O,    IV,    IV,
+  /* 0B90 */    IV,     O,    IV,    IV,    IV,     B,     O,     O,     O,     B,     B,     O,     B,     O,     B,     B,
+  /* 0BA0 */     O,     O,     O,     B,     B,     O,     O,     O,     B,     B,     B,     O,     O,     O,     B,     B,
+  /* 0BB0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,  VPst,  VPst,
+  /* 0BC0 */  VAbv,  VPst,  VPst,     O,     O,     O,  VPre,  VPre,  VPre,     O,  VPre,  VPre,  VPre,     H,     O,     O,
+  /* 0BD0 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 0BE0 */     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0BF0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Telugu */
 
-  /* 0C00 */  VM,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,  IV,  IV,
-  /* 0C10 */  IV,   O,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0C20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,
-  /* 0C30 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   B,   V,   V,
-  /* 0C40 */   V,   V,   V,   V,   V,   O,   V,   V,   V,   O,   V,   V,   V,   H,   O,   O,
-  /* 0C50 */   O,   O,   O,   O,   O,   V,   V,   O,   B,   B,   B,   O,   O,   O,   O,   O,
-  /* 0C60 */  IV,  IV,   V,   V,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0C70 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 0C00 */ VMAbv, VMPst, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,    IV,
+  /* 0C10 */    IV,     O,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0C20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
+  /* 0C30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,  VAbv,  VAbv,
+  /* 0C40 */  VAbv,  VPst,  VPst,  VPst,  VPst,     O,  VAbv,  VAbv,  VAbv,     O,  VAbv,  VAbv,  VAbv,     H,     O,     O,
+  /* 0C50 */     O,     O,     O,     O,     O,  VAbv,  VBlw,     O,     B,     B,     B,     O,     O,     O,     O,     O,
+  /* 0C60 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0C70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Kannada */
 
-  /* 0C80 */   O,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,  IV,  IV,
-  /* 0C90 */  IV,   O,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0CA0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,
-  /* 0CB0 */   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   O,   O,  CM,   B,   V,   V,
-  /* 0CC0 */   V,   V,   V,   V,   V,   O,   V,   V,   V,   O,   V,   V,   V,   H,   O,   O,
-  /* 0CD0 */   O,   O,   O,   O,   O,   V,   V,   O,   O,   O,   O,   O,   O,   O,   B,   O,
-  /* 0CE0 */  IV,  IV,   V,   V,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0CF0 */   O,   R,   R,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 0C80 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,    IV,
+  /* 0C90 */    IV,     O,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0CA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
+  /* 0CB0 */     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VAbv,
+  /* 0CC0 */  VAbv,  VPst,  VPst,  VPst,  VPst,     O,  VAbv,  VAbv,  VAbv,     O,  VAbv,  VAbv,  VAbv,     H,     O,     O,
+  /* 0CD0 */     O,     O,     O,     O,     O,  VPst,  VPst,     O,     O,     O,     O,     O,     O,     O,     B,     O,
+  /* 0CE0 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0CF0 */     O,     R,     R,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Malayalam */
 
-  /* 0D00 */   O,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,  IV,  IV,
-  /* 0D10 */  IV,   O,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0D20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0D30 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   B,   V,   V,
-  /* 0D40 */   V,   V,   V,   V,   V,   O,   V,   V,   V,   O,   V,   V,   V,   H,   R,   O,
-  /* 0D50 */   O,   O,   O,   O,   O,   O,   O,   V,   O,   O,   O,   O,   O,   O,   O,  IV,
-  /* 0D60 */  IV,  IV,   V,   V,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0D70 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O, IND, IND, IND, IND, IND, IND,
+  /* 0D00 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,    IV,
+  /* 0D10 */    IV,     O,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0D20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0D30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     B,  VPst,  VPst,
+  /* 0D40 */  VPst,  VPst,  VPst,  VBlw,  VBlw,     O,  VPre,  VPre,  VPre,     O,  VPre,  VPre,  VPre,     H,     R,     O,
+  /* 0D50 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     O,     O,     O,    IV,
+  /* 0D60 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0D70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,   IND,   IND,   IND,   IND,   IND,   IND,
 
   /* Sinhala */
 
-  /* 0D80 */   O,   O,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,
-  /* 0D90 */  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,   O,   O,   B,   B,   B,   B,   B,   B,
-  /* 0DA0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0DB0 */   B,   B,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   O,   O,
-  /* 0DC0 */   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   H,   O,   O,   O,   O,   V,
-  /* 0DD0 */   V,   V,   V,   V,   V,   O,   V,   O,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 0DE0 */   O,   O,   O,   O,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 0DF0 */   O,   O,   V,   V,   O,   O,   O,   O,
+  /* 0D80 */     O,     O, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
+  /* 0D90 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,     O,     B,     B,     B,     B,     B,     B,
+  /* 0DA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0DB0 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     O,     O,
+  /* 0DC0 */     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     H,     O,     O,     O,     O,  VPst,
+  /* 0DD0 */  VPst,  VPst,  VAbv,  VAbv,  VBlw,     O,  VBlw,     O,  VPst,  VPre,  VPre,  VPre,  VPre,  VPre,  VPre,  VPst,
+  /* 0DE0 */     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0DF0 */     O,     O,  VPst,  VPst,     O,     O,     O,     O,
 
 #define use_offset_0x1000u 1352
 
 
   /* Myanmar */
 
-  /* 1000 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1010 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1020 */   B,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   V,   V,   V,   V,   V,
-  /* 1030 */   V,   V,   V,   V,   V,   V,  VM,  VM,  VM,   H,   V,   M,   M,   M,   M,   B,
-  /* 1040 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,  GB,   O,
-  /* 1050 */   B,   B,  IV,  IV,  IV,  IV,   V,   V,   V,   V,   B,   B,   B,   B,   M,   M,
-  /* 1060 */   M,   B,   V,  VM,  VM,   B,   B,   V,   V,  VM,  VM,  VM,  VM,  VM,   B,   B,
-  /* 1070 */   B,   V,   V,   V,   V,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1080 */   B,   B,   M,   V,   V,   V,   V,  VM,  VM,  VM,  VM,  VM,  VM,  VM,   B,  VM,
-  /* 1090 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,  VM,  VM,   V,   V,   O,   O,
+  /* 1000 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1010 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1020 */     B,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,  VPst,  VPst,  VAbv,  VAbv,  VBlw,
+  /* 1030 */  VBlw,  VPre,  VAbv,  VAbv,  VAbv,  VAbv, VMAbv, VMBlw, VMPst,     H,  VAbv,  MPst,  MPre,  MBlw,  MBlw,     B,
+  /* 1040 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,    GB,     O,
+  /* 1050 */     B,     B,    IV,    IV,    IV,    IV,  VPst,  VPst,  VBlw,  VBlw,     B,     B,     B,     B,  MBlw,  MBlw,
+  /* 1060 */  MBlw,     B,  VPst, VMPst, VMPst,     B,     B,  VPst,  VPst, VMPst, VMPst, VMPst, VMPst, VMPst,     B,     B,
+  /* 1070 */     B,  VAbv,  VAbv,  VAbv,  VAbv,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1080 */     B,     B,  MBlw,  VPst,  VPre,  VAbv,  VAbv, VMPst, VMPst, VMPst, VMPst, VMPst, VMPst, VMBlw,     B, VMPst,
+  /* 1090 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMPst, VMPst,  VPst,  VAbv,     O,     O,
 
 #define use_offset_0x1700u 1512
 
 
   /* Tagalog */
 
-  /* 1700 */  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,
-  /* 1710 */   B,   B,   V,   V,   V,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1700 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
+  /* 1710 */     B,     B,  VAbv,  VBlw,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Hanunoo */
 
-  /* 1720 */  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1730 */   B,   B,   V,   V,   V,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1720 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1730 */     B,     B,  VAbv,  VBlw,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Buhid */
 
-  /* 1740 */  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1750 */   B,   B,   V,   V,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1740 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1750 */     B,     B,  VAbv,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Tagbanwa */
 
-  /* 1760 */  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,
-  /* 1770 */   B,   O,   V,   V,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1760 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
+  /* 1770 */     B,     O,  VAbv,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Khmer */
 
-  /* 1780 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1790 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 17A0 */   B,   B,   B,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,
-  /* 17B0 */  IV,  IV,  IV,  IV,   O,   O,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 17C0 */   V,   V,   V,   V,   V,   V,  VM,  VM,   V,  VM,  VM,  FM,   F,  CM,  FM,  FM,
-  /* 17D0 */  FM,   V,   H,  FM,   O,   O,   O,   O,   O,   O,   O,   O,   B,   O,   O,   O,
-  /* 17E0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* 1780 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1790 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 17A0 */     B,     B,     B,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
+  /* 17B0 */    IV,    IV,    IV,    IV,     O,     O,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VPre,  VPre,
+  /* 17C0 */  VPre,  VPre,  VPre,  VPre,  VPre,  VPre, VMAbv, VMPst,  VPst, VMAbv, VMAbv,    FM,  FAbv, CMAbv,    FM,    FM,
+  /* 17D0 */    FM,  VAbv,     H,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     B,  VAbv,     O,     O,
+  /* 17E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
 #define use_offset_0x1900u 1752
 
 
   /* Limbu */
 
-  /* 1900 */  GB,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1910 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,
-  /* 1920 */   V,   V,   V,   V,   V,   V,   V,   V,   V, SUB, SUB, SUB,   O,   O,   O,   O,
-  /* 1930 */   F,   F,  VM,   F,   F,   F,   F,   F,   F,   F,   V,  FM,   O,   O,   O,   O,
-  /* 1940 */   O,   O,   O,   O,   O,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
+  /* 1900 */    GB,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1910 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,
+  /* 1920 */  VAbv,  VAbv,  VBlw,  VPst,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,   SUB,   SUB,   SUB,     O,     O,     O,     O,
+  /* 1930 */  FPst,  FPst, VMBlw,  FPst,  FPst,  FPst,  FPst,  FPst,  FPst,  FBlw,  VAbv,    FM,     O,     O,     O,     O,
+  /* 1940 */     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
 
   /* Tai Le */
 
-  /* 1950 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1960 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,
-  /* 1970 */   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1950 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1960 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,
+  /* 1970 */     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* New Tai Lue */
 
-  /* 1980 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1990 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 19A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,
-  /* 19B0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 19C0 */   B,   B,   B,   B,   B,   B,   B,   B,  VM,  VM,   O,   O,   O,   O,   O,   O,
-  /* 19D0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
-  /* 19E0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 19F0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1980 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1990 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 19A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
+  /* 19B0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 19C0 */     B,     B,     B,     B,     B,     B,     B,     B, VMPst, VMPst,     O,     O,     O,     O,     O,     O,
+  /* 19D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
+  /* 19E0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 19F0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Buginese */
 
-  /* 1A00 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1A10 */   B,   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,   V,   O,   O,   O,   O,
+  /* 1A00 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1A10 */     B,     B,     B,     B,     B,     B,     B,  VAbv,  VBlw,  VPre,  VPst,  VAbv,     O,     O,     O,     O,
 
   /* Tai Tham */
 
-  /* 1A20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1A30 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1A40 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,  IV,  IV,  IV,
-  /* 1A50 */  IV,  IV,  IV,   B,   B,   M,   M,   F,   F,   F,   F,   F,   F,   F,   F,   O,
-  /* 1A60 */   H,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 1A70 */   V,   V,   V,   V,   V,  VM,  VM,  VM,  VM,  VM,  FM,  FM,  FM,   O,   O,  FM,
-  /* 1A80 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
-  /* 1A90 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* 1A20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1A30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1A40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,    IV,    IV,    IV,
+  /* 1A50 */    IV,    IV,    IV,     B,     B,  MPre,  MBlw,  FPst,  FAbv,  FAbv,  FAbv,  FBlw,  FBlw,  FBlw,  FBlw,     O,
+  /* 1A60 */     H,  VPst,  VAbv,  VPst,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VAbv,  VBlw,  VPst,  VPre,  VPre,
+  /* 1A70 */  VPre,  VPre,  VPre,  VAbv,  VAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,    FM,    FM,    FM,     O,     O,    FM,
+  /* 1A80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
+  /* 1A90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
 #define use_offset_0x1b00u 2168
 
 
   /* Balinese */
 
-  /* 1B00 */  VM,  VM,  VM,   F,  VM,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,
-  /* 1B10 */  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1B20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1B30 */   B,   B,   B,   B,  CM,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 1B40 */   V,   V,   V,   V,   H,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,
-  /* 1B50 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
-  /* 1B60 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,  SM,  SM,  SM,  SM,  SM,
-  /* 1B70 */  SM,  SM,  SM,  SM,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1B00 */ VMAbv, VMAbv, VMAbv,  FAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
+  /* 1B10 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1B20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1B30 */     B,     B,     B,     B, CMAbv,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VPre,  VPre,
+  /* 1B40 */  VPre,  VPre,  VAbv,  VAbv,     H,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
+  /* 1B50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
+  /* 1B60 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O, SMAbv, SMBlw, SMAbv, SMAbv, SMAbv,
+  /* 1B70 */ SMAbv, SMAbv, SMAbv, SMAbv,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Sundanese */
 
-  /* 1B80 */  VM,   F,  VM,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,
-  /* 1B90 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1BA0 */   B, SUB, SUB, SUB,   V,   V,   V,   V,   V,   V,   V,   H, SUB, SUB,   B,   B,
-  /* 1BB0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
+  /* 1B80 */ VMAbv,  FAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,
+  /* 1B90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1BA0 */     B,   SUB,   SUB,   SUB,  VAbv,  VBlw,  VPre,  VPst,  VAbv,  VAbv,  VPst,     H,   SUB,   SUB,     B,     B,
+  /* 1BB0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
 
   /* Batak */
 
-  /* 1BC0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1BD0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1BE0 */   B,   B,   B,   B,  IV,  IV,  CM,   V,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 1BF0 */   F,   F,   V,   V,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 1BC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1BD0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1BE0 */     B,     B,     B,     B,    IV,    IV, CMAbv,  VPst,  VAbv,  VAbv,  VPst,  VPst,  VPst,  VAbv,  VPst,  VAbv,
+  /* 1BF0 */  FAbv,  FAbv,  VPst,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Lepcha */
 
-  /* 1C00 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1C10 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 1C20 */   B,   B,   B,   B, SUB, SUB,   V,   V,   V,   V,   V,   V,   V,   F,   F,   F,
-  /* 1C30 */   F,   F,   F,   F,  VM,  VM,  FM,  CM,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 1C40 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   B,   B,   B,
+  /* 1C00 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1C10 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1C20 */     B,     B,     B,     B,   SUB,   SUB,  VPst,  VPre,  VPre,  VPre,  VPst,  VPst,  VBlw,  FAbv,  FAbv,  FAbv,
+  /* 1C30 */  FAbv,  FAbv,  FAbv,  FAbv, VMPre, VMPre,    FM, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 1C40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,     B,     B,
 
 #define use_offset_0x1cd0u 2504
 
 
   /* Vedic Extensions */
 
-  /* 1CD0 */  VM,  VM,  VM,   O,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,
-  /* 1CE0 */  VM,  VM,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 1CF0 */   O,   O,  VM,  VM,  VM,   O,   O,   O,  VM,  VM,   O,   O,   O,   O,   O,   O,
+  /* 1CD0 */ VMAbv, VMAbv, VMAbv,     O, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMAbv, VMAbv, VMBlw, VMBlw, VMBlw, VMBlw,
+  /* 1CE0 */ VMAbv, VMPst, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw,     O,     O,     O,     O, VMBlw,     O,     O,
+  /* 1CF0 */     O,     O, VMPst, VMPst, VMAbv,     O,     O,     O, VMAbv, VMAbv,     O,     O,     O,     O,     O,     O,
 
 #define use_offset_0x2008u 2552
 
 
   /* General Punctuation */
-                                                       O,   O,   O,   O,ZWNJ, ZWJ,   O,   O,
-  /* 2010 */  GB,  GB,  GB,  GB,  GB,   O,   O,   O,
+                                                                         O,     O,     O,     O,  ZWNJ,   ZWJ,     O,     O,
+  /* 2010 */    GB,    GB,    GB,    GB,    GB,     O,     O,     O,
 
 #define use_offset_0x2070u 2568
 
 
   /* Superscripts and Subscripts */
 
-  /* 2070 */   O,   O,   O,   O,  FM,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 2080 */   O,   O,  FM,  FM,  FM,   O,   O,   O,
+  /* 2070 */     O,     O,     O,     O,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 2080 */     O,     O,    FM,    FM,    FM,     O,     O,     O,
 
 #define use_offset_0xa800u 2592
 
 
   /* Syloti Nagri */
 
-  /* A800 */  IV,  IV,   O,  IV,  IV,  IV,   V,   B,   B,   B,   B,  VM,   B,   B,   B,   B,
-  /* A810 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A820 */   B,   B,   B,   V,   V,   V,   V,   V,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* A830 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* A800 */    IV,    IV,     O,    IV,    IV,    IV,  VAbv,     B,     B,     B,     B, VMAbv,     B,     B,     B,     B,
+  /* A810 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A820 */     B,     B,     B,  VPst,  VPst,  VBlw,  VAbv,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* A830 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Phags-pa */
 
-  /* A840 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A850 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A860 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A870 */   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* A840 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A850 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A860 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A870 */     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Saurashtra */
 
-  /* A880 */  VM,  VM,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,
-  /* A890 */  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A8A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A8B0 */   B,   B,   B,   B,   F,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* A8C0 */   V,   V,   V,   V,   H,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* A8D0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* A880 */ VMPst, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
+  /* A890 */    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A8A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A8B0 */     B,     B,     B,     B,  FPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,
+  /* A8C0 */  VPst,  VPst,  VPst,  VPst,     H,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* A8D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
   /* Devanagari Extended */
 
-  /* A8E0 */  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,  VM,
-  /* A8F0 */  VM,  VM,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* A8E0 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,
+  /* A8F0 */ VMAbv, VMAbv,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Kayah Li */
 
-  /* A900 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A910 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A920 */   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,   V,  VM,  VM,  VM,   O,   O,
+  /* A900 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A910 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A920 */     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VAbv, VMBlw, VMBlw, VMBlw,     O,     O,
 
   /* Rejang */
 
-  /* A930 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A940 */   B,   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,   V,   V,   V,   V,   F,
-  /* A950 */   F,   F,   F,   V,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* A960 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* A970 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* A930 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A940 */     B,     B,     B,     B,     B,     B,     B,  VBlw,  VBlw,  VBlw,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  FAbv,
+  /* A950 */  FAbv,  FAbv,  FPst,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* A960 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* A970 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Javanese */
 
-  /* A980 */  VM,  VM,   F,  VM,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,  IV,  IV,  IV,   B,
-  /* A990 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A9A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A9B0 */   B,   B,   B,  CM,   V,   V,   V,   V,   V,   V,   V,   V,   V, SUB,   M,   M,
-  /* A9C0 */   H,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* A9D0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* A980 */ VMAbv, VMAbv,  FAbv, VMPst,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,    IV,    IV,    IV,     B,
+  /* A990 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A9A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A9B0 */     B,     B,     B, CMAbv,  VPst,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VPre,  VPre,  VAbv,   SUB,  MPst,  MPst,
+  /* A9C0 */     H,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* A9D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
   /* Myanmar Extended-B */
 
-  /* A9E0 */   B,   B,   B,   B,   B,   V,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* A9F0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,
+  /* A9E0 */     B,     B,     B,     B,     B,  VAbv,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A9F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,
 
   /* Cham */
 
-  /* AA00 */  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* AA10 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* AA20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,   V,   V,   V,
-  /* AA30 */   V,   V,   V,   M,   M,   M,   M,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* AA40 */   B,   B,   B,   F,   B,   B,   B,   B,   B,   B,   B,   B,   F,   F,   O,   O,
-  /* AA50 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* AA00 */    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* AA10 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* AA20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VAbv,  VPre,
+  /* AA30 */  VPre,  VAbv,  VBlw,  MPst,  MPre,  MBlw,  MBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* AA40 */     B,     B,     B,  FAbv,     B,     B,     B,     B,     B,     B,     B,     B,  FAbv,  FPst,     O,     O,
+  /* AA50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
   /* Myanmar Extended-A */
 
-  /* AA60 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* AA70 */   O,   B,   B,   B,   O,   O,   O,   O,   O,   O,   B,  VM,  VM,  VM,   B,   B,
+  /* AA60 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* AA70 */     O,     B,     B,     B,     O,     O,     O,     O,     O,     O,     B, VMPst, VMAbv, VMPst,     B,     B,
 
   /* Tai Viet */
 
-  /* AA80 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* AA90 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* AAA0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* AAB0 */   V,   B,   V,   V,   V,   B,   B,   V,   V,   B,   B,   B,   B,   B,   V,  VM,
-  /* AAC0 */   B,  VM,   B,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* AAD0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* AA80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* AA90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* AAA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* AAB0 */  VAbv,     B,  VAbv,  VAbv,  VBlw,     B,     B,  VAbv,  VAbv,     B,     B,     B,     B,     B,  VAbv, VMAbv,
+  /* AAC0 */     B, VMAbv,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* AAD0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Meetei Mayek Extensions */
 
-  /* AAE0 */  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,   V,
-  /* AAF0 */   O,   O,   O,   O,   O,  VM,   H,   O,
+  /* AAE0 */    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPre,  VBlw,  VAbv,  VPre,  VPst,
+  /* AAF0 */     O,     O,     O,     O,     O, VMPst,     H,     O,
 
 #define use_offset_0xabc0u 3352
 
 
   /* Meetei Mayek */
 
-  /* ABC0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,  IV,  IV,
-  /* ABD0 */   B,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* ABE0 */   B,   B,   B,   V,   V,   V,   V,   V,   V,   V,   V,   O,  VM,   V,   O,   O,
-  /* ABF0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* ABC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,    IV,    IV,
+  /* ABD0 */     B,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* ABE0 */     B,     B,     B,  VPst,  VPst,  VAbv,  VPst,  VPst,  VBlw,  VPst,  VPst,     O, VMPst,  VBlw,     O,     O,
+  /* ABF0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
 #define use_offset_0x10a00u 3416
 
 
   /* Kharoshthi */
 
-  /* 10A00 */   B,   V,   V,   V,   O,   V,   V,   O,   O,   O,   O,   O,   V,   V,  VM,  VM,
-  /* 10A10 */   B,   B,   B,   B,   O,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,   B,
-  /* 10A20 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 10A30 */   B,   B,   B,   B,   O,   O,   O,   O,  CM,  CM,  CM,   O,   O,   O,   O,   H,
-  /* 10A40 */   B,   B,   B,   B,   B,   B,   B,   B,
+  /* 10A00 */     B,  VBlw,  VBlw,  VBlw,     O,  VAbv,  VBlw,     O,     O,     O,     O,     O,  VBlw,  VBlw, VMBlw, VMAbv,
+  /* 10A10 */     B,     B,     B,     B,     O,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,
+  /* 10A20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 10A30 */     B,     B,     B,     B,     O,     O,     O,     O, CMAbv, CMBlw, CMBlw,     O,     O,     O,     O,     H,
+  /* 10A40 */     B,     B,     B,     B,     B,     B,     B,     B,
 
 #define use_offset_0x11000u 3488
 
 
   /* Brahmi */
 
-  /* 11000 */  VM,  VM,  VM,   R,   R,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,
-  /* 11010 */  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11020 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11030 */   B,   B,   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 11040 */   V,   V,   V,   V,   V,   V,   H,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 11050 */   O,   O,   N,   N,   N,   N,   N,   N,   N,   N,   N,   N,   N,   N,   N,   N,
-  /* 11060 */   N,   N,   N,   N,   N,   N,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11070 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 11000 */ VMPst, VMAbv, VMPst,     R,     R,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
+  /* 11010 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11020 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11030 */     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,
+  /* 11040 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,     H,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11050 */     O,     O,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,
+  /* 11060 */     N,     N,     N,     N,     N,     N,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11070 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Kaithi */
 
-  /* 11080 */  VM,  VM,  VM,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,
-  /* 11090 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 110A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 110B0 */   V,   V,   V,   V,   V,   V,   V,   V,   V,   H,  CM,   O,   O,   O,   O,   O,
+  /* 11080 */ VMAbv, VMAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,
+  /* 11090 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 110A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 110B0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VAbv,  VAbv,  VPst,  VPst,     H, CMBlw,     O,     O,     O,     O,     O,
 
 #define use_offset_0x11100u 3680
 
 
   /* Chakma */
 
-  /* 11100 */  VM,  VM,  VM,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11110 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11120 */   B,   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 11130 */   V,   V,   V,   H,   V,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11140 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 11100 */ VMAbv, VMAbv, VMAbv,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11110 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11120 */     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VPre,  VAbv,  VAbv,  VAbv,
+  /* 11130 */  VAbv,  VBlw,  VBlw,     H,  VAbv,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11140 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Mahajani */
 
-  /* 11150 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11160 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11170 */   B,   B,   B,  CM,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 11150 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11160 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11170 */     B,     B,     B, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Sharada */
 
-  /* 11180 */  VM,  VM,  VM,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,
-  /* 11190 */  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 111A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 111B0 */   B,   B,   B,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,
-  /* 111C0 */   H,   B,   R,   R,   O,   O,   O,   O,   O,   O,  CM,   V,   V,   O,   O,   O,
-  /* 111D0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* 11180 */ VMAbv, VMAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
+  /* 11190 */    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 111A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 111B0 */     B,     B,     B,  VPst,  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,
+  /* 111C0 */     H,     B,     R,     R,     O,     O,     O,     O,     O,     O, CMBlw,  VAbv,  VBlw,     O,     O,     O,
+  /* 111D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
   /* Sinhala Archaic Numbers */
 
-  /* 111E0 */   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 111F0 */   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 111E0 */     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 111F0 */     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Khojki */
 
-  /* 11200 */  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11210 */   B,   B,   O,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11220 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   V,   V,   V,   V,
-  /* 11230 */   V,   V,   V,   V,  VM,   H,  CM,  CM,
+  /* 11200 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11210 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11220 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPst,  VPst,  VBlw,
+  /* 11230 */  VAbv,  VAbv,  VAbv,  VAbv, VMAbv,     H, CMAbv, CMAbv,
 
 #define use_offset_0x11280u 3992
 
 
   /* Multani */
 
-  /* 11280 */  IV,  IV,  IV,  IV,   B,   B,   B,   O,   B,   O,   B,   B,   B,   B,   O,   B,
-  /* 11290 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,
-  /* 112A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,   O,
+  /* 11280 */    IV,    IV,    IV,    IV,     B,     B,     B,     O,     B,     O,     B,     B,     B,     B,     O,     B,
+  /* 11290 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,
+  /* 112A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,
 
   /* Khudawadi */
 
-  /* 112B0 */  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,
-  /* 112C0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 112D0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,  VM,
-  /* 112E0 */   V,   V,   V,   V,   V,   V,   V,   V,   V,  CM,   V,   O,   O,   O,   O,   O,
-  /* 112F0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* 112B0 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,
+  /* 112C0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 112D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv,
+  /* 112E0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv, CMBlw,  VBlw,     O,     O,     O,     O,     O,
+  /* 112F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
   /* Grantha */
 
-  /* 11300 */  VM,  VM,  VM,  VM,   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   O,   O,  IV,
-  /* 11310 */  IV,   O,   O,  IV,  IV,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11320 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   B,   B,   B,   B,   B,   B,
-  /* 11330 */   B,   O,   B,   B,   O,   B,   B,   B,   B,   B,   O,   O,  CM,   B,   V,   V,
-  /* 11340 */   V,   V,   V,   V,   V,   O,   O,   V,   V,   O,   O,   V,   V,   H,   O,   O,
-  /* 11350 */   O,   O,   O,   O,   O,   O,   O,   V,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 11360 */  IV,  IV,   V,   V,   O,   O,  VM,  VM,  VM,  VM,  VM,  VM,  VM,   O,   O,   O,
-  /* 11370 */  VM,  VM,  VM,  VM,  VM,   O,   O,   O,
+  /* 11300 */ VMAbv, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,    IV,
+  /* 11310 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11320 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
+  /* 11330 */     B,     O,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VPst,
+  /* 11340 */  VAbv,  VPst,  VPst,  VPst,  VPst,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,     O,     O,
+  /* 11350 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11360 */    IV,    IV,  VPst,  VPst,     O,     O, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
+  /* 11370 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
 
 #define use_offset_0x11480u 4240
 
 
   /* Tirhuta */
 
-  /* 11480 */   O,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,
-  /* 11490 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 114A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 114B0 */   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,  VM,
-  /* 114C0 */  VM,  VM,   H,  CM,   B,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 114D0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
+  /* 11480 */     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,
+  /* 11490 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 114A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 114B0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VPre,  VAbv,  VPre,  VPre,  VPst,  VPre, VMAbv,
+  /* 114C0 */ VMAbv, VMPst,     H, CMBlw,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 114D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
 #define use_offset_0x11580u 4336
 
 
   /* Siddham */
 
-  /* 11580 */  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,
-  /* 11590 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 115A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   V,
-  /* 115B0 */   V,   V,   V,   V,   V,   V,   O,   O,   V,   V,   V,   V,  VM,  VM,  VM,   H,
-  /* 115C0 */  CM,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 115D0 */   O,   O,   O,   O,   O,   O,   O,   O,  IV,  IV,  IV,  IV,   V,   V,   O,   O,
-  /* 115E0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 115F0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 11580 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,
+  /* 11590 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 115A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,
+  /* 115B0 */  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,  VPre,  VPre, VMAbv, VMAbv, VMPst,     H,
+  /* 115C0 */ CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 115D0 */     O,     O,     O,     O,     O,     O,     O,     O,    IV,    IV,    IV,    IV,  VBlw,  VBlw,     O,     O,
+  /* 115E0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 115F0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Modi */
 
-  /* 11600 */  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,
-  /* 11610 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11620 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11630 */   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,  VM,  VM,   H,
-  /* 11640 */   V,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 11650 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
-  /* 11660 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 11670 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 11600 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,
+  /* 11610 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11620 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11630 */  VPst,  VPst,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VPst,  VPst, VMAbv, VMPst,     H,
+  /* 11640 */  VAbv,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11650 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
+  /* 11660 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11670 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Takri */
 
-  /* 11680 */  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,  IV,   B,   B,   B,   B,   B,   B,
-  /* 11690 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 116A0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,  VM,  VM,   V,   V,   V,
-  /* 116B0 */   V,   V,   V,   V,   V,   V,   H,  CM,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 116C0 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,   O,   O,
-  /* 116D0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 116E0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
-  /* 116F0 */   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,   O,
+  /* 11680 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,
+  /* 11690 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 116A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv, VMPst,  VAbv,  VPre,  VPst,
+  /* 116B0 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,     H, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 116C0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
+  /* 116D0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 116E0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 116F0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Ahom */
 
-  /* 11700 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,
-  /* 11710 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   M,   M,   M,
-  /* 11720 */   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   V,   O,   O,   O,   O,
-  /* 11730 */   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   B,   O,   O,   O,   O,
+  /* 11700 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11710 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,  MBlw,  MPre,  MAbv,
+  /* 11720 */  VPst,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VPre,  VAbv,  VBlw,  VAbv,  VAbv,  VAbv,     O,     O,     O,     O,
+  /* 11730 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
 
 }; /* Table items: 4784; occupancy: 72% */
+
+#undef B
+#undef CGJ
+#undef FM
+#undef GB
+#undef H
+#undef HN
+#undef IND
+#undef IV
+#undef N
+#undef O
+#undef R
+#undef Rsv
+#undef S
+#undef SUB
+#undef VS
+#undef WJ
+#undef ZWJ
+#undef ZWNJ
+#undef CMBlw
+#undef CMAbv
+#undef FBlw
+#undef FPst
+#undef FAbv
+#undef MPre
+#undef MBlw
+#undef MPst
+#undef MAbv
+#undef SMBlw
+#undef SMAbv
+#undef VPre
+#undef VBlw
+#undef VPst
+#undef VAbv
+#undef VMPre
+#undef VMBlw
+#undef VMPst
+#undef VMAbv
 
 USE_TABLE_ELEMENT_TYPE
 hb_use_get_categories (hb_codepoint_t u)
@@ -602,7 +653,7 @@ hb_use_get_categories (hb_codepoint_t u)
     case 0x2u:
       if (hb_in_range (u, 0x2008u, 0x2017u)) return use_table[u - 0x2008u + use_offset_0x2008u];
       if (hb_in_range (u, 0x2070u, 0x2087u)) return use_table[u - 0x2070u + use_offset_0x2070u];
-      if (unlikely (u == 0x25CCu)) return GB;
+      if (unlikely (u == 0x25CCu)) return USE_GB;
       break;
 
     case 0xAu:
@@ -620,38 +671,13 @@ hb_use_get_categories (hb_codepoint_t u)
       if (hb_in_range (u, 0x11280u, 0x11377u)) return use_table[u - 0x11280u + use_offset_0x11280u];
       if (hb_in_range (u, 0x11480u, 0x114DFu)) return use_table[u - 0x11480u + use_offset_0x11480u];
       if (hb_in_range (u, 0x11580u, 0x1173Fu)) return use_table[u - 0x11580u + use_offset_0x11580u];
-      if (unlikely (u == 0x1107Fu)) return HN;
+      if (unlikely (u == 0x1107Fu)) return USE_HN;
       break;
 
     default:
       break;
   }
-  return _(x,x);
+  return USE_O;
 }
-
-#undef B
-#undef CGJ
-#undef CM
-#undef F
-#undef FM
-#undef GB
-#undef H
-#undef HN
-#undef IND
-#undef IV
-#undef M
-#undef N
-#undef O
-#undef R
-#undef Rsv
-#undef S
-#undef SM
-#undef SUB
-#undef V
-#undef VM
-#undef VS
-#undef WJ
-#undef ZWJ
-#undef ZWNJ
 
 /* == End of generated table == */

@@ -99,7 +99,7 @@ property_names = [
 	'Number',
 	'Brahmi_Joining_Number',
 	# Indic_Positional_Category
-	'Not_Applicable'
+	'Not_Applicable',
 	'Right',
 	'Left',
 	'Visual_Order_Left',
@@ -121,8 +121,7 @@ class PropertyValue(object):
 	def __str__(self):
 		return self.name
 	def __eq__(self, other):
-		assert isinstance(other, basestring)
-		return self.name == other
+		return self.name == (other if isinstance(other, basestring) else other.name)
 	def __ne__(self, other):
 		return not (self == other)
 
@@ -230,14 +229,95 @@ use_mapping = {
 	'VM':	is_VOWEL_MOD,
 }
 
+use_positions = {
+	'F': {
+		'Abv': [Top],
+		'Blw': [Bottom],
+		'Pst': [Right],
+	},
+	'M': {
+		'Abv': [Top],
+		'Blw': [Bottom],
+		'Pst': [Right],
+		'Pre': [Left],
+	},
+	'CM': {
+		'Abv': [Top],
+		'Blw': [Bottom],
+	},
+	'V': {
+		'Abv': [Top, Top_And_Bottom, Top_And_Bottom_And_Right, Top_And_Right],
+		'Blw': [Bottom, Overstruck, Bottom_And_Right],
+		'Pst': [Right],
+		'Pre': [Left, Top_And_Left, Top_And_Left_And_Right, Left_And_Right],
+	},
+	'VM': {
+		'Abv': [Top],
+		'Blw': [Bottom, Overstruck],
+		'Pst': [Right],
+		'Pre': [Left],
+	},
+	'SM': {
+		'Abv': [Top],
+		'Blw': [Bottom],
+	},
+	'H': None,
+	'B': None,
+	'FM': None,
+	'SUB': None,
+}
+
 def map_to_use(data):
 	out = {}
 	items = use_mapping.items()
 	for U,(UISC,UIPC,UGC,UBlock) in data.items():
+
+		# Resolve Indic_Syllabic_Category
+
+		# TODO: These don't have UISC assigned in Unicode 8.0, but
+		# have UIPC
+		if U == 0x17DD: UISC = Vowel_Dependent
+		if 0x1CE2 <= U <= 0x1CE8: UISC = Cantillation_Mark
+
+		# TODO: U+1CED should only be allowed after some of
+		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
+		if U == 0x1CED: UISC = Tone_Mark
+
 		evals = [(k, v(U,UISC,UGC)) for k,v in items]
 		values = [k for k,v in evals if v]
 		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
-		out[U] = (values[0], UBlock)
+		USE = values[0]
+
+		# Resolve Indic_Positional_Category
+
+		# TODO: Not in Unicode 8.0 yet, but in spec.
+		if U == 0x1B6C: UIPC = Bottom
+
+		# TODO: These should die, but have UIPC in Unicode 8.0
+		if U in [0x953, 0x954]: UIPC = Not_Applicable
+
+		# TODO: In USE's override list but not in Unicode 8.0
+		if U == 0x103C: UIPC = Left
+
+		# TODO: These are not in USE's override list that we have, nor are they in Unicode 8.0
+		if 0xA926 <= U <= 0xA92A: UIPC = Top
+		if U == 0x111CA: UIPC = Bottom
+		if U == 0x11300: UIPC = Top
+		if U == 0x1133C: UIPC = Bottom
+		if U == 0x1171E: UIPC = Left # Correct?!
+		if 0x1CF2 <= U <= 0x1CF3: UIPC = Right
+		if 0x1CF8 <= U <= 0x1CF9: UIPC = Top
+
+		assert (UIPC in [Not_Applicable, Visual_Order_Left] or
+			USE in use_positions), "%s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC)
+
+		pos_mapping = use_positions.get(USE, None)
+		if pos_mapping:
+			values = [k for k,v in pos_mapping.items() if v and UIPC in v]
+			assert len(values) == 1, "%s %s %s %s %s %s" % (hex(U), UIPC, USE, UISC, UGC, values)
+			USE = USE + values[0]
+
+		out[U] = (USE, UBlock)
 	return out
 
 defaults = ('O', 'No_Block')
@@ -275,7 +355,7 @@ def print_block (block, start, end, data):
 		print
 		print "  /* %s */" % block
 		if start % 16:
-			print ' ' * (20 + (start % 16 * 4)),
+			print ' ' * (20 + (start % 16 * 6)),
 	num = 0
 	assert start % 8 == 0
 	assert (end+1) % 8 == 0
@@ -286,7 +366,7 @@ def print_block (block, start, end, data):
 		if u in data:
 			num += 1
 		d = data.get (u, defaults)
-		sys.stdout.write ("%4s," % d[0])
+		sys.stdout.write ("%6s," % d[0])
 
 	total += end - start + 1
 	used += num
@@ -302,7 +382,13 @@ offset = 0
 starts = []
 ends = []
 for k,v in sorted(use_mapping.items()):
+	if k in use_positions and use_positions[k]: continue
 	print "#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:])
+for k,v in sorted(use_positions.items()):
+	if not v: continue
+	for suf in v.keys():
+		tag = k + suf
+		print "#define %s	USE_%s" % (tag, tag)
 print ""
 print "static const USE_TABLE_ELEMENT_TYPE use_table[] = {"
 for u in uu:
@@ -339,6 +425,15 @@ occupancy = used * 100. / total
 page_bits = 12
 print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
 print
+for k in sorted(use_mapping.keys()):
+	if k in use_positions and use_positions[k]: continue
+	print "#undef %s" % k
+for k,v in sorted(use_positions.items()):
+	if not v: continue
+	for suf in v.keys():
+		tag = k + suf
+		print "#undef %s" % tag
+print
 print "USE_TABLE_ELEMENT_TYPE"
 print "hb_use_get_categories (hb_codepoint_t u)"
 print "{"
@@ -353,17 +448,14 @@ for p in sorted(pages):
 		print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return use_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset)
 	for u,d in singles.items ():
 		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04Xu)) return %s;" % (u, d[0])
+		print "      if (unlikely (u == 0x%04Xu)) return USE_%s;" % (u, d[0])
 	print "      break;"
 	print ""
 print "    default:"
 print "      break;"
 print "  }"
-print "  return _(x,x);"
+print "  return USE_O;"
 print "}"
-print ""
-for k in sorted(use_mapping.keys()):
-	print "#undef %s" % k
 print
 print "/* == End of generated table == */"
 
