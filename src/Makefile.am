@@ -108,6 +108,10 @@ HBSOURCES += \
 	hb-ot-shape-complex-sea-machine.hh \
 	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-tibetan.cc \
+	hb-ot-shape-complex-use.cc \
+	hb-ot-shape-complex-use-machine.hh \
+	hb-ot-shape-complex-use-private.hh \
+	hb-ot-shape-complex-use-table.cc \
 	hb-ot-shape-complex-private.hh \
 	hb-ot-shape-normalize-private.hh \
 	hb-ot-shape-normalize.cc \
@@ -276,22 +280,27 @@ harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
 GENERATORS = \
 	gen-arabic-table.py \
 	gen-indic-table.py \
+	gen-use-table.py \
 	$(NULL)
 EXTRA_DIST += $(GENERATORS)
 
-unicode-tables: arabic-table indic-table
-
-indic-table: gen-indic-table.py IndicSyllabicCategory.txt IndicMatraCategory.txt Blocks.txt
-	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc \
-	|| ($(RM) hb-ot-shape-complex-indic-table.cc; false)
+unicode-tables: arabic-table indic-table use-table
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-arabic-table.hh \
 	|| ($(RM) hb-ot-shape-complex-arabic-table.hh; false)
 
+indic-table: gen-indic-table.py IndicSyllabicCategory-7.0.0.txt IndicMatraCategory-7.0.0.txt Blocks.txt
+	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc \
+	|| ($(RM) hb-ot-shape-complex-indic-table.cc; false)
+
+use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
+	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-use-table.cc \
+	|| ($(RM) hb-ot-shape-complex-use-table.cc; false)
+
 built-sources: $(BUILT_SOURCES)
 
-.PHONY: unicode-tables arabic-table indic-table built-sources
+.PHONY: unicode-tables arabic-table indic-table use-table built-sources
 
 RAGEL_GENERATED = \
 	$(srcdir)/hb-buffer-deserialize-json.hh \
@@ -299,6 +308,7 @@ RAGEL_GENERATED = \
 	$(srcdir)/hb-ot-shape-complex-indic-machine.hh \
 	$(srcdir)/hb-ot-shape-complex-myanmar-machine.hh \
 	$(srcdir)/hb-ot-shape-complex-sea-machine.hh \
+	$(srcdir)/hb-ot-shape-complex-use-machine.hh \
 	$(NULL)
 BUILT_SOURCES += $(RAGEL_GENERATED)
 EXTRA_DIST += \
@@ -307,6 +317,7 @@ EXTRA_DIST += \
 	hb-ot-shape-complex-indic-machine.rl \
 	hb-ot-shape-complex-myanmar-machine.rl \
 	hb-ot-shape-complex-sea-machine.rl \
+	hb-ot-shape-complex-use-machine.rl \
 	$(NULL)
 MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
 $(srcdir)/%.hh: $(srcdir)/%.rl
