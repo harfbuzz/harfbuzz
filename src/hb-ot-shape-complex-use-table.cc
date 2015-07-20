@@ -518,14 +518,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 2078 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* 2080 */  _(x,x),  _(x,x), _(SM,x), _(SM,x), _(SM,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define use_offset_0x25c8u 2592
-
-
-  /* Geometric Shapes */
-
-  /* 25C8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(GB,x),  _(x,x),  _(x,x),  _(x,x),
-
-#define use_offset_0xa800u 2600
+#define use_offset_0xa800u 2592
 
 
   /* Syloti Nagri */
@@ -659,7 +652,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* AAE8 */  _(C,x),  _(C,x),  _(C,x),  _(M,L),  _(M,B),  _(M,T),  _(M,L),  _(M,R),
   /* AAF0 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(Vs,R), _(IS,x),  _(x,x),
 
-#define use_offset_0xabc0u 3360
+#define use_offset_0xabc0u 3352
 
 
   /* Meetei Mayek */
@@ -673,7 +666,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* ABF0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* ABF8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define use_offset_0x10a00u 3424
+#define use_offset_0x10a00u 3416
 
 
   /* Kharoshthi */
@@ -688,7 +681,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 10A38 */  _(N,T),  _(N,B),  _(N,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(IS,x),
   /* 10A40 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
 
-#define use_offset_0x11000u 3496
+#define use_offset_0x11000u 3488
 
 
   /* Brahmi */
@@ -708,7 +701,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11060 */_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x),_(BJN,x), _(Nd,x), _(Nd,x),
   /* 11068 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 11070 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 11078 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x), _(NJ,x),
+  /* 11078 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Kaithi */
 
@@ -721,7 +714,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 110B0 */  _(M,R),  _(M,L),  _(M,R),  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,R),
   /* 110B8 */  _(M,R),  _(V,B),  _(N,B),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define use_offset_0x11100u 3688
+#define use_offset_0x11100u 3680
 
 
   /* Chakma */
@@ -778,7 +771,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11228 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(M,R),  _(M,R),  _(M,R),  _(M,B),
   /* 11230 */  _(M,T),  _(M,T), _(M,TR), _(M,TR), _(Bi,T),  _(V,R),  _(N,T), _(GM,T),
 
-#define use_offset_0x11280u 4000
+#define use_offset_0x11280u 3992
 
 
   /* Multani */
@@ -821,7 +814,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11368 */ _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T),  _(x,x),  _(x,x),  _(x,x),
   /* 11370 */ _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T),  _(x,x),  _(x,x),  _(x,x),
 
-#define use_offset_0x11480u 4248
+#define use_offset_0x11480u 4240
 
 
   /* Tirhuta */
@@ -839,7 +832,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 114D0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 114D8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define use_offset_0x11580u 4344
+#define use_offset_0x11580u 4336
 
 
   /* Siddham */
@@ -910,7 +903,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 11730 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 11738 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-}; /* Table items: 4792; occupancy: 72% */
+}; /* Table items: 4784; occupancy: 72% */
 
 USE_TABLE_ELEMENT_TYPE
 hb_use_get_categories (hb_codepoint_t u)
@@ -934,7 +927,7 @@ hb_use_get_categories (hb_codepoint_t u)
     case 0x2u:
       if (hb_in_range (u, 0x2008u, 0x2017u)) return use_table[u - 0x2008u + use_offset_0x2008u];
       if (hb_in_range (u, 0x2070u, 0x2087u)) return use_table[u - 0x2070u + use_offset_0x2070u];
-      if (hb_in_range (u, 0x25C8u, 0x25CFu)) return use_table[u - 0x25C8u + use_offset_0x25c8u];
+      if (unlikely (u == 0x25CCu)) return _(GB,x);
       break;
 
     case 0xAu:
@@ -952,6 +945,7 @@ hb_use_get_categories (hb_codepoint_t u)
       if (hb_in_range (u, 0x11280u, 0x11377u)) return use_table[u - 0x11280u + use_offset_0x11280u];
       if (hb_in_range (u, 0x11480u, 0x114DFu)) return use_table[u - 0x11480u + use_offset_0x11480u];
       if (hb_in_range (u, 0x11580u, 0x1173Fu)) return use_table[u - 0x11580u + use_offset_0x11580u];
+      if (unlikely (u == 0x1107Fu)) return _(NJ,x);
       break;
 
     default:

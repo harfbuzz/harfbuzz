@@ -57,7 +57,7 @@ num = len (data)
 
 # Remove the outliers
 singles = {}
-for u in []: # TODO [0x00A0, 0x200C, 0x200D, 0x25CC, 0x1107F]:
+for u in [0x25CC, 0x1107F]:
 	singles[u] = data[u]
 	del data[u]
 
