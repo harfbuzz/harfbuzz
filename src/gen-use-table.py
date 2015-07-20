@@ -2,15 +2,16 @@
 
 import sys
 
-if len (sys.argv) != 4:
-	print >>sys.stderr, "usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt"
+if len (sys.argv) != 5:
+	print >>sys.stderr, "usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt"
 	sys.exit (1)
 
 BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
 
 files = [file (x) for x in sys.argv[1:]]
 
-headers = [[f.readline () for i in range (2)] for f in files]
+headers = [[f.readline () for i in range (2)] for j,f in enumerate(files) if j != 2]
+headers.append (["UnicodeData.txt does not have a header."])
 
 data = [{} for f in files]
 values = [{} for f in files]
@@ -32,28 +33,183 @@ for i, f in enumerate (files):
 		else:
 			end = int (uu[1], 16)
 
-		t = fields[1]
+		t = fields[1 if i != 2 else 2]
 
 		for u in range (start, end + 1):
 			data[i][u] = t
 		values[i][t] = values[i].get (t, 0) + end - start + 1
 
 # Merge data into one dict:
-defaults = ('Other', 'Not_Applicable', 'No_Block')
+defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 for i,v in enumerate (defaults):
 	values[i][v] = values[i].get (v, 0) + 1
 combined = {}
 for i,d in enumerate (data):
 	for u,v in d.items ():
-		if i == 2 and not u in combined:
+		if i >= 2 and not u in combined:
 			continue
 		if not u in combined:
 			combined[u] = list (defaults)
 		combined[u][i] = v
-combined = {k:v for k,v in combined.items() if v[2] not in BLACKLISTED_BLOCKS}
+combined = {k:v for k,v in combined.items() if v[3] not in BLACKLISTED_BLOCKS}
 data = combined
 del combined
 num = len (data)
+
+
+property_names = [
+	# General_Category
+	'Cc', 'Cf', 'Cn', 'Co', 'Cs', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu', 'Mc',
+	'Me', 'Mn', 'Nd', 'Nl', 'No', 'Pc', 'Pd', 'Pe', 'Pf', 'Pi', 'Po',
+	'Ps', 'Sc', 'Sk', 'Sm', 'So', 'Zl', 'Zp', 'Zs',
+	# Indic_Syllabic_Category
+	'Bindu',
+	'Visarga',
+	'Avagraha',
+	'Nukta',
+	'Virama',
+	'Pure_Killer',
+	'Invisible_Stacker',
+	'Vowel_Independent',
+	'Vowel_Dependent',
+	'Vowel',
+	'Consonant_Placeholder',
+	'Consonant',
+	'Consonant_Dead',
+	'Consonant_With_Stacker',
+	'Consonant_Prefixed',
+	'Consonant_Preceding_Repha',
+	'Consonant_Succeeding_Repha',
+	'Consonant_Subjoined',
+	'Consonant_Medial',
+	'Consonant_Final',
+	'Consonant_Head_Letter',
+	'Modifying_Letter',
+	'Tone_Letter',
+	'Tone_Mark',
+	'Gemination_Mark',
+	'Cantillation_Mark',
+	'Register_Shifter',
+	'Syllable_Modifier',
+	'Consonant_Killer',
+	'Non_Joiner',
+	'Joiner',
+	'Number_Joiner',
+	'Number',
+	'Brahmi_Joining_Number',
+	# Indic_Positional_Category
+	'Right',
+	'Left',
+	'Visual_Order_Left',
+	'Left_And_Right',
+	'Top',
+	'Bottom',
+	'Top_And_Bottom',
+	'Top_And_Right',
+	'Top_And_Left',
+	'Top_And_Left_And_Right',
+	'Bottom_And_Right',
+	'Top_And_Bottom_And_Right',
+	'Overstruck',
+]
+
+class PropertyValue(object):
+	def __init__(self, name_):
+		self.name = name_
+
+property_values = {}
+
+for name in property_names:
+	value = PropertyValue(name)
+	assert value not in property_values
+	assert value not in globals()
+	property_values[name] = value
+globals().update(property_values)
+
+
+def is_BASE(U, UISC, UGC):
+	return (UISC in [Number, Consonant, Consonant_Head_Letter, Consonant_Placeholder, Tone_Letter] or
+		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
+					Consonant_Subjoined, Vowel, Vowel_Dependent]))
+def is_BASE_VOWEL(U, UISC, UGC):
+	return UISC == Vowel_Independent
+def is_BASE_IND(U, UISC, UGC):
+	return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
+def is_BASE_NUM(U, UISC, UGC):
+	return UISC == Brahmi_Joining_Number
+def is_BASE_OTHER(U, UISC, UGC):
+	return U in [0x00A0, 0x00D7, 0x2015, 0x2022, 0x25CC,
+		     0x25FB, 0x25FC, 0x25FD, 0x25FE]
+def is_CGJ(U, UISC, UGC):
+	return U == 0x034F
+def is_CONS_FINAL(U, UISC, UGC):
+	return ((UISC == Consonant_Final and UGC != Lo) or
+		UISC == Consonant_Succeeding_Repha)
+def is_CONS_FINAL_MOD(U, UISC, UGC):
+	return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
+def is_CONS_MED(U, UISC, UGC):
+	return UISC == Consonant_Medial and UGC != Lo
+def is_CONS_MOD(U, UISC, UGC):
+	return UISC in [Nukta, Gemination_Mark, Consonant_Killer]
+def is_CONS_SUB(U, UISC, UGC):
+	return UISC == Consonant_Subjoined
+def is_HALANT(U, UISC, UGC):
+	return UISC in [Virama, Invisible_Stacker]
+def is_HALANT_NUM(U, UISC, UGC):
+	return UISC == Number_Joiner
+def is_ZWNJ(U, UISC, UGC):
+	return UISC == Non_Joiner
+def is_ZWJ(U, UISC, UGC):
+	return UISC == Joiner
+def is_Word_Joiner(U, UISC, UGC):
+	return U == 0x2060
+def is_OTHER(U, UISC, UGC):
+	return UGC == Zs # or any other SCRIPT_COMMON characters
+def is_Reserved(U, UISC, UGC):
+	return UGC == 'Cn'
+def is_REPHA(U, UISC, UGC):
+	return UISC == Consonant_Preceding_Repha
+def is_SYM(U, UISC, UGC):
+	return UGC in [So, Sc] or UISC == Symbol_Letter
+def is_SYM_MOD(U, UISC, UGC):
+	return U in [0x1B6B, 0x1B6C, 0x1B6D, 0x1B6E, 0x1B6F, 0x1B70, 0x1B71, 0x1B72, 0x1B73]
+def is_VARIATION_SELECTOR(U, UISC, UGC):
+	return 0xFE00 <= U <= 0xFE0F
+def is_VOWEL(U, UISC, UGC):
+	return (UISC == Pure_Killer or
+		(UGC != Lo and UISC in [Vowel, Vowel_Dependent]))
+def is_VOWEL_MOD(U, UISC, UGC):
+	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
+		(UGC != Lo and UISC == Bindu))
+
+use_mapping = {
+	'B':	is_BASE,
+	'IV':	is_BASE_VOWEL,
+	'IND':	is_BASE_IND,
+	'N':	is_BASE_NUM,
+	'GB':	is_BASE_OTHER,
+	'CGJ':	is_CGJ,
+	'F':	is_CONS_FINAL,
+	'FM':	is_CONS_FINAL_MOD,
+	'M':	is_CONS_MED,
+	'CM':	is_CONS_MOD,
+	'SUB':	is_CONS_SUB,
+	'H':	is_HALANT,
+	'HN':	is_HALANT_NUM,
+	'ZWNJ':	is_ZWNJ,
+	'ZWJ':	is_ZWJ,
+	'WJ':	is_Word_Joiner,
+	'O':	is_OTHER,
+	'Rsv':	is_Reserved,
+	'R':	is_REPHA,
+	'S':	is_SYM,
+	'SM':	is_SYM_MOD,
+	'VS':	is_VARIATION_SELECTOR,
+	'V':	is_VOWEL,
+	'VM':	is_VOWEL_MOD,
+}
+
+#data = map_to_use(data)
 
 # Remove the outliers
 singles = {}
@@ -65,7 +221,7 @@ print "/* == Start of generated table == */"
 print "/*"
 print " * The following table is generated by running:"
 print " *"
-print " *   ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt"
+print " *   ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt"
 print " *"
 print " * on files with these headers:"
 print " *"
@@ -164,11 +320,11 @@ print "static const USE_TABLE_ELEMENT_TYPE use_table[] = {"
 for u in uu:
 	if u <= last:
 		continue
-	block = data[u][2]
+	block = data[u][3]
 
 	start = u//8*8
 	end = start+1
-	while end in uu and block == data[end][2]:
+	while end in uu and block == data[end][3]:
 		end += 1
 	end = (end-1)//8*8 + 7
 

@@ -294,7 +294,7 @@ indic-table: gen-indic-table.py IndicSyllabicCategory-7.0.0.txt IndicMatraCatego
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-indic-table.cc \
 	|| ($(RM) hb-ot-shape-complex-indic-table.cc; false)
 
-use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
+use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > hb-ot-shape-complex-use-table.cc \
 	|| ($(RM) hb-ot-shape-complex-use-table.cc; false)
 
