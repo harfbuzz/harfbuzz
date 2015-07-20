@@ -131,7 +131,7 @@ enum indic_syllabic_category_t
 };
 
 /* Categories used in IndicPositionalCategory.txt from UCD */
-enum indic_matra_category_t {
+enum indic_positional_category_t {
   INDIC_POSITIONAL_CATEGORY_BOTTOM,
   INDIC_POSITIONAL_CATEGORY_BOTTOM_AND_RIGHT,
   INDIC_POSITIONAL_CATEGORY_LEFT,
