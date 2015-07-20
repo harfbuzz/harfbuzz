@@ -63,6 +63,7 @@ property_names = [
 	'Me', 'Mn', 'Nd', 'Nl', 'No', 'Pc', 'Pd', 'Pe', 'Pf', 'Pi', 'Po',
 	'Ps', 'Sc', 'Sk', 'Sm', 'So', 'Zl', 'Zp', 'Zs',
 	# Indic_Syllabic_Category
+	'Other',
 	'Bindu',
 	'Visarga',
 	'Avagraha',
@@ -98,6 +99,7 @@ property_names = [
 	'Number',
 	'Brahmi_Joining_Number',
 	# Indic_Positional_Category
+	'Not_Applicable'
 	'Right',
 	'Left',
 	'Visual_Order_Left',
@@ -116,6 +118,13 @@ property_names = [
 class PropertyValue(object):
 	def __init__(self, name_):
 		self.name = name_
+	def __str__(self):
+		return self.name
+	def __eq__(self, other):
+		assert isinstance(other, basestring)
+		return self.name == other
+	def __ne__(self, other):
+		return not (self == other)
 
 property_values = {}
 
@@ -128,16 +137,21 @@ globals().update(property_values)
 
 
 def is_BASE(U, UISC, UGC):
-	return (UISC in [Number, Consonant, Consonant_Head_Letter, Consonant_Placeholder, Tone_Letter] or
+	return (UISC in [Number, Consonant, Consonant_Head_Letter,
+			#SPEC-OUTDATED Consonant_Placeholder,
+			Tone_Letter] or
 		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
 					Consonant_Subjoined, Vowel, Vowel_Dependent]))
 def is_BASE_VOWEL(U, UISC, UGC):
 	return UISC == Vowel_Independent
 def is_BASE_IND(U, UISC, UGC):
-	return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
+	#SPEC-BROKEN return (UISC in [Consonant_Dead, Modifying_Letter] or UGC == Po)
+	return (UISC in [Consonant_Dead, Modifying_Letter] or
+		(UGC == Po and not is_BASE_OTHER(U, UISC, UGC))) # for 104E
 def is_BASE_NUM(U, UISC, UGC):
 	return UISC == Brahmi_Joining_Number
 def is_BASE_OTHER(U, UISC, UGC):
+	if UISC == Consonant_Placeholder: return True #SPEC-OUTDATED
 	return U in [0x00A0, 0x00D7, 0x2015, 0x2022, 0x25CC,
 		     0x25FB, 0x25FC, 0x25FD, 0x25FE]
 def is_CGJ(U, UISC, UGC):
@@ -146,13 +160,15 @@ def is_CONS_FINAL(U, UISC, UGC):
 	return ((UISC == Consonant_Final and UGC != Lo) or
 		UISC == Consonant_Succeeding_Repha)
 def is_CONS_FINAL_MOD(U, UISC, UGC):
-	return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
+	#SPEC-OUTDATED return  UISC in [Consonant_Final_Modifier, Syllable_Modifier]
+	return  UISC == Syllable_Modifier
 def is_CONS_MED(U, UISC, UGC):
 	return UISC == Consonant_Medial and UGC != Lo
 def is_CONS_MOD(U, UISC, UGC):
 	return UISC in [Nukta, Gemination_Mark, Consonant_Killer]
 def is_CONS_SUB(U, UISC, UGC):
-	return UISC == Consonant_Subjoined
+	#SPEC-OUTDATED return UISC == Consonant_Subjoined
+	return UISC == Consonant_Subjoined and UGC != Lo
 def is_HALANT(U, UISC, UGC):
 	return UISC in [Virama, Invisible_Stacker]
 def is_HALANT_NUM(U, UISC, UGC):
@@ -164,13 +180,18 @@ def is_ZWJ(U, UISC, UGC):
 def is_Word_Joiner(U, UISC, UGC):
 	return U == 0x2060
 def is_OTHER(U, UISC, UGC):
-	return UGC == Zs # or any other SCRIPT_COMMON characters
+	#SPEC-OUTDATED return UGC == Zs # or any other SCRIPT_COMMON characters
+	return UISC == Other and not is_SYM_MOD(U, UISC, UGC)
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC):
-	return UISC == Consonant_Preceding_Repha
+	#return UISC == Consonant_Preceding_Repha
+	#SPEC-OUTDATED hack to categorize Consonant_With_Stacker and Consonant_Prefixed
+	return UISC in [Consonant_Preceding_Repha, Consonant_With_Stacker, Consonant_Prefixed]
 def is_SYM(U, UISC, UGC):
-	return UGC in [So, Sc] or UISC == Symbol_Letter
+	if U == 0x25CC: return False #SPEC-OUTDATED
+	#SPEC-OUTDATED return UGC in [So, Sc] or UISC == Symbol_Letter
+	return UGC in [So, Sc]
 def is_SYM_MOD(U, UISC, UGC):
 	return U in [0x1B6B, 0x1B6C, 0x1B6D, 0x1B6E, 0x1B6F, 0x1B70, 0x1B71, 0x1B72, 0x1B73]
 def is_VARIATION_SELECTOR(U, UISC, UGC):
@@ -209,7 +230,18 @@ use_mapping = {
 	'VM':	is_VOWEL_MOD,
 }
 
-#data = map_to_use(data)
+def map_to_use(data):
+	out = {}
+	items = use_mapping.items()
+	for U,(UISC,UIPC,UGC,UBlock) in data.items():
+		evals = [(k, v(U,UISC,UGC)) for k,v in items]
+		values = [k for k,v in evals if v]
+		assert len(values) == 1, "%s %s %s %s" % (hex(U), UISC, UGC, values)
+		out[U] = (values[0], UBlock)
+	return out
+
+defaults = ('O', 'No_Block')
+data = map_to_use(data)
 
 # Remove the outliers
 singles = {}
@@ -233,55 +265,6 @@ print
 print '#include "hb-ot-shape-complex-use-private.hh"'
 print
 
-# Shorten values
-short = [{
-	"Bindu":		'Bi',
-	"Cantillation_Mark":	'Ca',
-	"Joiner":		'ZWJ',
-	"Non_Joiner":		'ZWNJ',
-	"Number":		'Nd',
-	"Visarga":		'Vs',
-	"Vowel":		'Vo',
-	"Vowel_Dependent":	'M',
-	"Other":		'x',
-	"Consonant_Placeholder":'GB',
-},{
-	"Not_Applicable":	'x',
-}]
-all_shorts = [{},{}]
-
-# Add some of the values, to make them more readable, and to avoid duplicates
-
-
-for i in range (2):
-	for v,s in short[i].items ():
-		all_shorts[i][s] = v
-
-what = ["INDIC_SYLLABIC_CATEGORY", "INDIC_POSITIONAL_CATEGORY"]
-what_short = ["SC", "PC"]
-for i in range (2):
-	print
-	vv = values[i].keys ()
-	vv.sort ()
-	for v in vv:
-		v_no_and = v.replace ('_And_', '_')
-		if v in short[i]:
-			s = short[i][v]
-		else:
-			s = ''.join ([c for c in v_no_and if ord ('A') <= ord (c) <= ord ('Z')])
-			if s in all_shorts[i]:
-				raise Exception ("Duplicate short value alias", v, all_shorts[i][s])
-			all_shorts[i][s] = v
-			short[i][v] = s
-		print "#define %s_%s	%s_%s	%s/* %3d chars; %s */" % \
-			(what_short[i], s, what[i], v.upper (), \
-			'	'* ((56-1 - len (what[i]) - 1 - len (v)) / 8), \
-			values[i][v], v)
-print
-print "#define _(S,M) USE_COMBINE_CATEGORIES (SC_##S, PC_##M)"
-print
-print
-
 total = 0
 used = 0
 last_block = None
@@ -291,17 +274,19 @@ def print_block (block, start, end, data):
 		print
 		print
 		print "  /* %s */" % block
+		if start % 16:
+			print ' ' * (20 + (start % 16 * 4)),
 	num = 0
 	assert start % 8 == 0
 	assert (end+1) % 8 == 0
 	for u in range (start, end+1):
-		if u % 8 == 0:
+		if u % 16 == 0:
 			print
 			print "  /* %04X */" % u,
 		if u in data:
 			num += 1
 		d = data.get (u, defaults)
-		sys.stdout.write ("%9s" % ("_(%s,%s)," % (short[0][d[0]], short[1][d[1]])))
+		sys.stdout.write ("%4s," % d[0])
 
 	total += end - start + 1
 	used += num
@@ -316,15 +301,18 @@ num = 0
 offset = 0
 starts = []
 ends = []
+for k,v in sorted(use_mapping.items()):
+	print "#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:])
+print ""
 print "static const USE_TABLE_ELEMENT_TYPE use_table[] = {"
 for u in uu:
 	if u <= last:
 		continue
-	block = data[u][3]
+	block = data[u][1]
 
 	start = u//8*8
 	end = start+1
-	while end in uu and block == data[end][3]:
+	while end in uu and block == data[end][1]:
 		end += 1
 	end = (end-1)//8*8 + 7
 
@@ -365,7 +353,7 @@ for p in sorted(pages):
 		print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return use_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset)
 	for u,d in singles.items ():
 		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04Xu)) return _(%s,%s);" % (u, short[0][d[0]], short[1][d[1]])
+		print "      if (unlikely (u == 0x%04Xu)) return %s;" % (u, d[0])
 	print "      break;"
 	print ""
 print "    default:"
@@ -373,18 +361,12 @@ print "      break;"
 print "  }"
 print "  return _(x,x);"
 print "}"
-print
-print "#undef _"
-for i in range (2):
-	print
-	vv = values[i].keys ()
-	vv.sort ()
-	for v in vv:
-		print "#undef %s_%s" % \
-			(what_short[i], short[i][v])
+print ""
+for k in sorted(use_mapping.keys()):
+	print "#undef %s" % k
 print
 print "/* == End of generated table == */"
 
-# Maintain at least 30% occupancy in the table */
-if occupancy < 30:
+# Maintain at least 50% occupancy in the table */
+if occupancy < 50:
 	raise Exception ("Table too sparse, please investigate: ", occupancy)
