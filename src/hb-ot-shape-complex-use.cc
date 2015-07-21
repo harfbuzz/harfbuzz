@@ -42,26 +42,32 @@ basic_features[] =
 {
   /*
    * Basic features.
-   * These features are applied in order, one at a time, after initial_reordering.
+   * These features are applied all at once, before reordering.
    */
-  HB_TAG('p','r','e','f'),
+  HB_TAG('r','k','r','f'),
   HB_TAG('a','b','v','f'),
   HB_TAG('b','l','w','f'),
+  HB_TAG('h','a','l','f'),
   HB_TAG('p','s','t','f'),
+  HB_TAG('v','a','t','u'),
+  HB_TAG('c','j','c','t'),
 };
 static const hb_tag_t
 other_features[] =
 {
   /*
    * Other features.
-   * These features are applied all at once, after final_reordering.
+   * These features are applied all at once, after reordering.
    */
-  HB_TAG('p','r','e','s'),
   HB_TAG('a','b','v','s'),
   HB_TAG('b','l','w','s'),
+  HB_TAG('h','a','l','n'),
+  HB_TAG('p','r','e','s'),
   HB_TAG('p','s','t','s'),
   /* Positioning features, though we don't care about the types. */
   HB_TAG('d','i','s','t'),
+  HB_TAG('a','b','v','m'),
+  HB_TAG('b','l','w','m'),
 };
 
 static void
@@ -69,9 +75,9 @@ setup_syllables (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font,
 		 hb_buffer_t *buffer);
 static void
-reordering (const hb_ot_shape_plan_t *plan,
-	    hb_font_t *font,
-	    hb_buffer_t *buffer);
+reorder (const hb_ot_shape_plan_t *plan,
+	 hb_font_t *font,
+	 hb_buffer_t *buffer);
 
 static void
 collect_features_use (hb_ot_shape_planner_t *plan)
@@ -81,25 +87,31 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   /* Do this before any lookups have been applied. */
   map->add_gsub_pause (setup_syllables);
 
+  /* "Default glyph pre-processing group" */
   map->add_global_bool_feature (HB_TAG('l','o','c','l'));
-  /* The Indic specs do not require ccmp, but we apply it here since if
-   * there is a use of it, it's typically at the beginning. */
   map->add_global_bool_feature (HB_TAG('c','c','m','p'));
+  map->add_global_bool_feature (HB_TAG('n','u','k','t'));
+  map->add_global_bool_feature (HB_TAG('a','k','h','n'));
 
+  /* "Reordering group" */
+  map->add_gsub_pause (NULL);
+  map->add_feature (HB_TAG('r','p','h','f'), 1, F_GLOBAL | F_MANUAL_ZWJ);
+  map->add_gsub_pause (NULL);
+  map->add_feature (HB_TAG('p','r','e','f'), 1, F_GLOBAL | F_MANUAL_ZWJ);
+  map->add_gsub_pause (NULL);
+
+  /* "Orthographic unit shaping group" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
-  {
     map->add_feature (basic_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
-    map->add_gsub_pause (NULL);
-  }
-  map->add_gsub_pause (reordering);
+
+  map->add_gsub_pause (reorder);
+
+  /* "Topographical features" */
+  // TODO isol/init/medi/fina
+
+  /* "Standard typographic presentation" and "Positional feature application" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
     map->add_feature (other_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
-}
-
-static void
-override_features_use (hb_ot_shape_planner_t *plan)
-{
-  plan->map.add_feature (HB_TAG('l','i','g','a'), 0, F_GLOBAL);
 }
 
 
@@ -248,14 +260,10 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
     return;
 
 
-  hb_codepoint_t dottedcircle_glyph;
-  if (!font->get_glyph (0x25CCu, 0, &dottedcircle_glyph))
-    return;
-
   hb_glyph_info_t dottedcircle = {0};
-  dottedcircle.codepoint = 0x25CCu;
-  set_use_properties (dottedcircle);
-  dottedcircle.codepoint = dottedcircle_glyph;
+  if (!font->get_glyph (0x25CCu, 0, &dottedcircle.codepoint))
+    return;
+  dottedcircle.use_category() = hb_use_get_categories (0x25CC);
 
   buffer->clear_output ();
 
@@ -285,9 +293,9 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 static void
-reordering (const hb_ot_shape_plan_t *plan,
-	    hb_font_t *font,
-	    hb_buffer_t *buffer)
+reorder (const hb_ot_shape_plan_t *plan,
+	 hb_font_t *font,
+	 hb_buffer_t *buffer)
 {
   insert_dotted_circles (plan, font, buffer);
 
@@ -316,7 +324,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
 {
   "use",
   collect_features_use,
-  override_features_use,
+  NULL, /* override_features */
   NULL, /* data_create */
   NULL, /* data_destroy */
   NULL, /* preprocess_text */
