@@ -59,7 +59,6 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar_old) \
   HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
   HB_COMPLEX_SHAPER_IMPLEMENT (myanmar) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (sea) \
   HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
   HB_COMPLEX_SHAPER_IMPLEMENT (tibetan) \
   HB_COMPLEX_SHAPER_IMPLEMENT (use) \
@@ -273,24 +272,6 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
       else
 	return &_hb_ot_complex_shaper_default;
 
-    /* Unicode-4.1 additions */
-    case HB_SCRIPT_BUGINESE:
-
-    /* Unicode-5.1 additions */
-    case HB_SCRIPT_CHAM:
-
-    /* Unicode-5.2 additions */
-    case HB_SCRIPT_TAI_THAM:
-
-      /* If the designer designed the font for the 'DFLT' script,
-       * use the default shaper.  Otherwise, use the specific shaper.
-       * Note that for some simple scripts, there may not be *any*
-       * GSUB/GPOS needed, so there may be no scripts found! */
-      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T'))
-	return &_hb_ot_complex_shaper_default;
-      else
-	return &_hb_ot_complex_shaper_sea;
-
 
     /* Unicode-2.0 additions */
     //case HB_SCRIPT_TIBETAN:
@@ -310,7 +291,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_TAI_LE:
 
     /* Unicode-4.1 additions */
-    //case HB_SCRIPT_BUGINESE:
+    case HB_SCRIPT_BUGINESE:
     case HB_SCRIPT_KHAROSHTHI:
     case HB_SCRIPT_SYLOTI_NAGRI:
     case HB_SCRIPT_TIFINAGH:
@@ -321,7 +302,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     //case HB_SCRIPT_PHAGS_PA:
 
     /* Unicode-5.1 additions */
-    //case HB_SCRIPT_CHAM:
+    case HB_SCRIPT_CHAM:
     case HB_SCRIPT_KAYAH_LI:
     case HB_SCRIPT_LEPCHA:
     case HB_SCRIPT_REJANG:
@@ -333,7 +314,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     //case HB_SCRIPT_JAVANESE:
     case HB_SCRIPT_KAITHI:
     case HB_SCRIPT_MEETEI_MAYEK:
-    //case HB_SCRIPT_TAI_THAM:
+    case HB_SCRIPT_TAI_THAM:
     case HB_SCRIPT_TAI_VIET:
 
     /* Unicode-6.0 additions */
