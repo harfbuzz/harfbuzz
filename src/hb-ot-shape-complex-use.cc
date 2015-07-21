@@ -120,17 +120,7 @@ static inline void
 set_use_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
-  unsigned int type = hb_use_get_categories (u);
-  indic_syllabic_category_t cat = (indic_syllabic_category_t) (type & 0x7Fu);
-  indic_positional_category_t pos = (indic_positional_category_t) (type >> 8);
-  use_category_t use = USE_O;
-
-  switch (cat)
-  {
-    /* TODO */
-  }
-
-  info.use_category() = use;
+  info.use_category() = hb_use_get_categories (u);
 }
 
 
@@ -147,7 +137,7 @@ setup_masks_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    set_use_properties (info[i]);
+    info[i].use_category() = hb_use_get_categories (info[i].codepoint);
 }
 
 static void
