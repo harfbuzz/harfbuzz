@@ -462,6 +462,19 @@ reorder (const hb_ot_shape_plan_t *plan,
   HB_BUFFER_DEALLOCATE_VAR (buffer, use_category);
 }
 
+static bool
+compose_use (const hb_ot_shape_normalize_context_t *c,
+	     hb_codepoint_t  a,
+	     hb_codepoint_t  b,
+	     hb_codepoint_t *ab)
+{
+  /* Avoid recomposing split matras. */
+  if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (c->unicode->general_category (a)))
+    return false;
+
+  return c->unicode->compose (a, b, ab);
+}
+
 
 const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
 {
@@ -473,7 +486,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
   NULL, /* preprocess_text */
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   NULL, /* decompose */
-  NULL, /* compose */
+  compose_use,
   setup_masks_use,
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */
