@@ -109,7 +109,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (clear_substitution_flags);
   map->add_feature (HB_TAG('r','p','h','f'), 1, F_MANUAL_ZWJ);
   map->add_gsub_pause (record_rphf);
-  map->add_feature (HB_TAG('p','r','e','f'), 1, F_MANUAL_ZWJ);
+  map->add_feature (HB_TAG('p','r','e','f'), 1, F_GLOBAL | F_MANUAL_ZWJ);
   map->add_gsub_pause (record_pref);
 
   /* "Orthographic unit shaping group" */
@@ -131,7 +131,6 @@ struct use_shape_plan_t
   ASSERT_POD ();
 
   hb_mask_t rphf_mask;
-  hb_mask_t pref_mask;
 };
 
 static void *
@@ -142,7 +141,6 @@ data_create_use (const hb_ot_shape_plan_t *plan)
     return NULL;
 
   use_plan->rphf_mask = plan->map.get_1_mask (HB_TAG('r','p','h','f'));
-  use_plan->pref_mask = plan->map.get_1_mask (HB_TAG('p','r','e','f'));
 
   return use_plan;
 }
@@ -197,9 +195,7 @@ setup_syllable (const use_shape_plan_t *use_plan,
 {
   unsigned int limit = info[start].use_category() == USE_R ? 1 : MIN (3u, end - start);
   for (unsigned int i = start; i < start + limit; i++)
-    info[i].mask |= use_plan->rphf_mask | use_plan->pref_mask;
-  for (unsigned int i = start + limit; i < end; i++)
-    info[i].mask |= use_plan->pref_mask;
+    info[i].mask |= use_plan->rphf_mask;
 }
 
 static void
@@ -211,7 +207,7 @@ setup_syllables (const hb_ot_shape_plan_t *plan,
 
   /* Setup masks for 'rphf' and 'pref'. */
   const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
-  if (!(use_plan->rphf_mask | use_plan->pref_mask)) return;
+  if (!use_plan->rphf_mask) return;
 
   hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;
@@ -243,21 +239,14 @@ record_rphf_syllable (hb_glyph_info_t *info,
 		      unsigned int start, unsigned int end,
 		      hb_mask_t mask)
 {
-  unsigned int i = start;
-
-  if (info[i].use_category() != USE_R)
-    for (; i < end && !_hb_glyph_info_substituted (&info[i]); i++)
-      info[i].mask &= ~mask;
-
-  if (i == end)
-    return;
-
-  /* Found the one.  Don't clear its mask. */
-  i++;
-
-  /* Clear the mask on the rest. */
-  for (; i < end; i++)
-    info[i].mask &= ~mask;
+  /* Mark a substituted repha as USE_R. */
+  for (unsigned int i = start; i < end && (info[i].mask & mask); i++)
+    if (_hb_glyph_info_substituted (&info[i]))
+    {
+      /* Found the one.  Mark it as Repha.  */
+      info[i].use_category() = USE_R;
+      return;
+    }
 }
 
 static void
@@ -285,22 +274,16 @@ record_rphf (const hb_ot_shape_plan_t *plan,
 
 static void
 record_pref_syllable (hb_glyph_info_t *info,
-		      unsigned int start, unsigned int end,
-		      hb_mask_t mask)
+		      unsigned int start, unsigned int end)
 {
-  unsigned int i = start;
-  for (; i < end && !_hb_glyph_info_substituted (&info[i]); i++)
-    info[i].mask &= ~mask;
-
-  if (i == end)
-    return;
-
-  /* Found the one.  Don't clear its mask. */
-  i++;
-
-  /* Clear the mask on the rest. */
-  for (; i < end; i++)
-    info[i].mask &= ~mask;
+  /* Mark a substituted pref as VPre, as they behave the same way. */
+  for (unsigned int i = start; i < end; i++)
+    if (_hb_glyph_info_substituted (&info[i]))
+    {
+      /* Found the one.  Mark it as Repha.  */
+      info[i].use_category() = USE_VPre;
+      return;
+    }
 }
 
 static void
@@ -309,9 +292,7 @@ record_pref (const hb_ot_shape_plan_t *plan,
 	     hb_buffer_t *buffer)
 {
   const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
-  hb_mask_t mask = use_plan->pref_mask;
 
-  if (!mask) return;
   hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;
   if (unlikely (!count)) return;
@@ -319,11 +300,11 @@ record_pref (const hb_ot_shape_plan_t *plan,
   unsigned int last_syllable = info[0].syllable();
   for (unsigned int i = 1; i < count; i++)
     if (last_syllable != info[i].syllable()) {
-      record_pref_syllable (info, last, i, mask);
+      record_pref_syllable (info, last, i);
       last = i;
       last_syllable = info[last].syllable();
     }
-  record_pref_syllable (info, last, count, mask);
+  record_pref_syllable (info, last, count);
 }
 
 static void
