@@ -347,8 +347,28 @@ reorder_syllable (const hb_ot_shape_plan_t *plan,
       }
   }
 
-  /* TODO move things back. */
-
+  /* Move things back. */
+  unsigned int j = end;
+  for (unsigned int i = start; i < end; i++)
+  {
+    uint32_t flag = FLAG_UNSAFE (info[i].use_category());
+    if (flag & (HALANT_FLAGS | BASE_FLAGS))
+    {
+      /* If we hit a halant, move before it; otherwise it's a base: move to it's
+       * place, and shift things in between backward. */
+      if (info[i].use_category() == USE_H)
+	j = i + 1;
+      else
+	j = i;
+    }
+    else if (((flag) & (FLAG (USE_VPre) | FLAG (USE_VMPre))) && j < i)
+    {
+      hb_glyph_info_t t = info[i];
+      memmove (&info[j + 1], &info[j], (i - j) * sizeof (info[0]));
+      info[j] = t;
+      buffer->merge_clusters (j, i + 1);
+    }
+  }
 }
 
 static inline void

@@ -57,6 +57,7 @@ enum use_category_t {
 //  USE_CM	= 10,	/* CONS_MOD */
   USE_SUB	= 11,	/* CONS_SUB */
   USE_H		= 12,	/* HALANT */
+
   USE_HN	= 13,	/* HALANT_NUM */
   USE_ZWNJ	= 14,	/* Zero width non-joiner */
   USE_ZWJ	= 15,	/* Zero width joiner */
@@ -66,8 +67,8 @@ enum use_category_t {
   USE_S		= 19,	/* SYM */
 //  USE_SM	= 20,	/* SYM_MOD */
   USE_VS	= 21,	/* VARIATION_SELECTOR */
-//  USE_V		= 22,	/* VOWEL */
-//  USE_VM	= 23,	/* VOWEL_MOD */
+//  USE_V	= 36,	/* VOWEL */
+//  USE_VM	= 40,	/* VOWEL_MOD */
 
   USE_FAbv	= 24,	/* CONS_FINAL_ABOVE */
   USE_FBlw	= 25,	/* CONS_FINAL_BELOW */
@@ -81,11 +82,11 @@ enum use_category_t {
   USE_VAbv	= 33,	/* VOWEL_ABOVE / VOWEL_ABOVE_BELOW / VOWEL_ABOVE_BELOW_POST / VOWEL_ABOVE_POST */
   USE_VBlw	= 34,	/* VOWEL_BELOW / VOWEL_BELOW_POST */
   USE_VPst	= 35,	/* VOWEL_POST	UIPC = Right */
-  USE_VPre	= 36,	/* VOWEL_PRE / VOWEL_PRE_ABOVE / VOWEL_PRE_ABOVE_POST / VOWEL_PRE_POST */
+  USE_VPre	= 22,	/* VOWEL_PRE / VOWEL_PRE_ABOVE / VOWEL_PRE_ABOVE_POST / VOWEL_PRE_POST */
   USE_VMAbv	= 37,	/* VOWEL_MOD_ABOVE */
   USE_VMBlw	= 38,	/* VOWEL_MOD_BELOW */
   USE_VMPst	= 39,	/* VOWEL_MOD_POST */
-  USE_VMPre	= 40,	/* VOWEL_MOD_PRE */
+  USE_VMPre	= 23,	/* VOWEL_MOD_PRE */
   USE_SMAbv	= 41,	/* SYM_MOD_ABOVE */
   USE_SMBlw	= 42	/* SYM_MOD_BELOW */
 };
