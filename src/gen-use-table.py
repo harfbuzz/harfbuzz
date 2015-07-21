@@ -41,8 +41,11 @@ for i, f in enumerate (files):
 
 defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
 
-# TODO CGJ is not in Unicode Indic files, but used in USE
+# TODO Characters that are not in Unicode Indic files, but used in USE
 data[0][0x034F] = defaults[0]
+data[0][0x2060] = defaults[0]
+for u in range (0xFE00, 0xFE0F + 1):
+	data[0][u] = defaults[0]
 
 # Merge data into one dict:
 for i,v in enumerate (defaults):
@@ -187,6 +190,8 @@ def is_OTHER(U, UISC, UGC):
 	return (UISC == Other
 		and not is_SYM_MOD(U, UISC, UGC)
 		and not is_CGJ(U, UISC, UGC)
+		and not is_Word_Joiner(U, UISC, UGC)
+		and not is_VARIATION_SELECTOR(U, UISC, UGC)
 	)
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
