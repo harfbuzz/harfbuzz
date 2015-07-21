@@ -109,6 +109,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (clear_substitution_flags);
   map->add_feature (HB_TAG('r','p','h','f'), 1, F_MANUAL_ZWJ);
   map->add_gsub_pause (record_rphf);
+  map->add_gsub_pause (clear_substitution_flags);
   map->add_feature (HB_TAG('p','r','e','f'), 1, F_GLOBAL | F_MANUAL_ZWJ);
   map->add_gsub_pause (record_pref);
 
@@ -291,8 +292,6 @@ record_pref (const hb_ot_shape_plan_t *plan,
 	     hb_font_t *font,
 	     hb_buffer_t *buffer)
 {
-  const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
-
   hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;
   if (unlikely (!count)) return;
@@ -308,82 +307,48 @@ record_pref (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-reorder_virama_terminated_cluster (const hb_ot_shape_plan_t *plan,
-				   hb_face_t *face,
-				   hb_buffer_t *buffer,
-				   unsigned int start, unsigned int end)
-{
-}
-
-static void
-reorder_consonant_cluster (const hb_ot_shape_plan_t *plan,
-			   hb_face_t *face,
-			   hb_buffer_t *buffer,
-			   unsigned int start, unsigned int end)
-{
-  hb_glyph_info_t *info = buffer->info;
-
-  /* Reorder! */
-#if 0
-  unsigned int i = start;
-  for (; i < base; i++)
-    info[i].use_position() = POS_PRE_C;
-  if (i < end)
-  {
-    info[i].use_position() = POS_BASE_C;
-    i++;
-  }
-  for (; i < end; i++)
-  {
-    if (info[i].use_category() == OT_MR) /* Pre-base reordering */
-    {
-      info[i].use_position() = POS_PRE_C;
-      continue;
-    }
-    if (info[i].use_category() == OT_VPre) /* Left matra */
-    {
-      info[i].use_position() = POS_PRE_M;
-      continue;
-    }
-
-    info[i].use_position() = POS_AFTER_MAIN;
-  }
-
-  buffer->merge_clusters (start, end);
-  /* Sit tight, rock 'n roll! */
-  hb_bubble_sort (info + start, end - start, compare_use_order);
-#endif
-}
-
-static void
-reorder_vowel_cluster (const hb_ot_shape_plan_t *plan,
-		       hb_face_t *face,
-		       hb_buffer_t *buffer,
-		       unsigned int start, unsigned int end)
-{
-  reorder_consonant_cluster (plan, face, buffer, start, end);
-}
-
-static void
 reorder_syllable (const hb_ot_shape_plan_t *plan,
 		  hb_face_t *face,
 		  hb_buffer_t *buffer,
 		  unsigned int start, unsigned int end)
 {
   syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
-  switch (syllable_type) {
-#define HANDLE(X) case X: reorder_##X (plan, face, buffer, start, end); return
-    HANDLE (virama_terminated_cluster);
-    HANDLE (consonant_cluster);
-    HANDLE (vowel_cluster);
-#undef HANDLE
-#define HANDLE(X) case X: return
-    HANDLE (number_joiner_terminated_cluster);
-    HANDLE (numeral_cluster);
-    HANDLE (symbol_cluster);
-    HANDLE (independent_cluster);
-#undef HANDLE
+  /* Only a few syllable types need reordering. */
+  if (unlikely (!(FLAG_SAFE (syllable_type) &
+		  (FLAG (virama_terminated_cluster) |
+		   FLAG (consonant_cluster) |
+		   FLAG (vowel_cluster)))))
+    return;
+
+  hb_glyph_info_t *info = buffer->info;
+
+#define HALANT_FLAGS FLAG(USE_H)
+#define BASE_FLAGS (FLAG (USE_B) | FLAG (USE_GB) | FLAG (USE_IV))
+
+  /* Move things forward. */
+  if (info[start].use_category() == USE_R && end - start > 1)
+  {
+    /* Got a repha.  Reorder it to after first base, before first halant. */
+    for (unsigned int i = start + 1; i < end; i++)
+      if (FLAG_UNSAFE (info[i].use_category()) & (HALANT_FLAGS | BASE_FLAGS))
+      {
+	/* If we hit a halant, move before it; otherwise it's a base: move to it's
+	 * place, and shift things in between backward. */
+
+	if (info[i].use_category() == USE_H)
+	  i--;
+
+	hb_glyph_info_t t = info[start];
+	memmove (&info[start], &info[start + 1], (i - start) * sizeof (info[0]));
+	info[i] = t;
+	buffer->merge_clusters (start, i + 1);
+
+	break;
+      }
   }
+
+  /* TODO move things back. */
+
 }
 
 static inline void
