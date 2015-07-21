@@ -593,6 +593,56 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
 }; /* Table items: 4784; occupancy: 72% */
 
+USE_TABLE_ELEMENT_TYPE
+hb_use_get_categories (hb_codepoint_t u)
+{
+  switch (u >> 12)
+  {
+    case 0x0u:
+      if (hb_in_range (u, 0x0028u, 0x003Fu)) return use_table[u - 0x0028u + use_offset_0x0028u];
+      if (hb_in_range (u, 0x00A0u, 0x00D7u)) return use_table[u - 0x00A0u + use_offset_0x00a0u];
+      if (hb_in_range (u, 0x0900u, 0x0DF7u)) return use_table[u - 0x0900u + use_offset_0x0900u];
+      if (unlikely (u == 0x034Fu)) return CGJ;
+      break;
+
+    case 0x1u:
+      if (hb_in_range (u, 0x1000u, 0x109Fu)) return use_table[u - 0x1000u + use_offset_0x1000u];
+      if (hb_in_range (u, 0x1700u, 0x17EFu)) return use_table[u - 0x1700u + use_offset_0x1700u];
+      if (hb_in_range (u, 0x1900u, 0x1A9Fu)) return use_table[u - 0x1900u + use_offset_0x1900u];
+      if (hb_in_range (u, 0x1B00u, 0x1C4Fu)) return use_table[u - 0x1B00u + use_offset_0x1b00u];
+      if (hb_in_range (u, 0x1CD0u, 0x1CFFu)) return use_table[u - 0x1CD0u + use_offset_0x1cd0u];
+      break;
+
+    case 0x2u:
+      if (hb_in_range (u, 0x2008u, 0x2017u)) return use_table[u - 0x2008u + use_offset_0x2008u];
+      if (hb_in_range (u, 0x2070u, 0x2087u)) return use_table[u - 0x2070u + use_offset_0x2070u];
+      if (unlikely (u == 0x25CCu)) return GB;
+      break;
+
+    case 0xAu:
+      if (hb_in_range (u, 0xA800u, 0xAAF7u)) return use_table[u - 0xA800u + use_offset_0xa800u];
+      if (hb_in_range (u, 0xABC0u, 0xABFFu)) return use_table[u - 0xABC0u + use_offset_0xabc0u];
+      break;
+
+    case 0x10u:
+      if (hb_in_range (u, 0x10A00u, 0x10A47u)) return use_table[u - 0x10A00u + use_offset_0x10a00u];
+      break;
+
+    case 0x11u:
+      if (hb_in_range (u, 0x11000u, 0x110BFu)) return use_table[u - 0x11000u + use_offset_0x11000u];
+      if (hb_in_range (u, 0x11100u, 0x11237u)) return use_table[u - 0x11100u + use_offset_0x11100u];
+      if (hb_in_range (u, 0x11280u, 0x11377u)) return use_table[u - 0x11280u + use_offset_0x11280u];
+      if (hb_in_range (u, 0x11480u, 0x114DFu)) return use_table[u - 0x11480u + use_offset_0x11480u];
+      if (hb_in_range (u, 0x11580u, 0x1173Fu)) return use_table[u - 0x11580u + use_offset_0x11580u];
+      if (unlikely (u == 0x1107Fu)) return HN;
+      break;
+
+    default:
+      break;
+  }
+  return USE_O;
+}
+
 #undef B
 #undef CGJ
 #undef FM
@@ -630,55 +680,5 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 #undef VMBlw
 #undef VMPst
 #undef VMAbv
-
-USE_TABLE_ELEMENT_TYPE
-hb_use_get_categories (hb_codepoint_t u)
-{
-  switch (u >> 12)
-  {
-    case 0x0u:
-      if (hb_in_range (u, 0x0028u, 0x003Fu)) return use_table[u - 0x0028u + use_offset_0x0028u];
-      if (hb_in_range (u, 0x00A0u, 0x00D7u)) return use_table[u - 0x00A0u + use_offset_0x00a0u];
-      if (hb_in_range (u, 0x0900u, 0x0DF7u)) return use_table[u - 0x0900u + use_offset_0x0900u];
-      if (unlikely (u == 0x034Fu)) return USE_CGJ;
-      break;
-
-    case 0x1u:
-      if (hb_in_range (u, 0x1000u, 0x109Fu)) return use_table[u - 0x1000u + use_offset_0x1000u];
-      if (hb_in_range (u, 0x1700u, 0x17EFu)) return use_table[u - 0x1700u + use_offset_0x1700u];
-      if (hb_in_range (u, 0x1900u, 0x1A9Fu)) return use_table[u - 0x1900u + use_offset_0x1900u];
-      if (hb_in_range (u, 0x1B00u, 0x1C4Fu)) return use_table[u - 0x1B00u + use_offset_0x1b00u];
-      if (hb_in_range (u, 0x1CD0u, 0x1CFFu)) return use_table[u - 0x1CD0u + use_offset_0x1cd0u];
-      break;
-
-    case 0x2u:
-      if (hb_in_range (u, 0x2008u, 0x2017u)) return use_table[u - 0x2008u + use_offset_0x2008u];
-      if (hb_in_range (u, 0x2070u, 0x2087u)) return use_table[u - 0x2070u + use_offset_0x2070u];
-      if (unlikely (u == 0x25CCu)) return USE_GB;
-      break;
-
-    case 0xAu:
-      if (hb_in_range (u, 0xA800u, 0xAAF7u)) return use_table[u - 0xA800u + use_offset_0xa800u];
-      if (hb_in_range (u, 0xABC0u, 0xABFFu)) return use_table[u - 0xABC0u + use_offset_0xabc0u];
-      break;
-
-    case 0x10u:
-      if (hb_in_range (u, 0x10A00u, 0x10A47u)) return use_table[u - 0x10A00u + use_offset_0x10a00u];
-      break;
-
-    case 0x11u:
-      if (hb_in_range (u, 0x11000u, 0x110BFu)) return use_table[u - 0x11000u + use_offset_0x11000u];
-      if (hb_in_range (u, 0x11100u, 0x11237u)) return use_table[u - 0x11100u + use_offset_0x11100u];
-      if (hb_in_range (u, 0x11280u, 0x11377u)) return use_table[u - 0x11280u + use_offset_0x11280u];
-      if (hb_in_range (u, 0x11480u, 0x114DFu)) return use_table[u - 0x11480u + use_offset_0x11480u];
-      if (hb_in_range (u, 0x11580u, 0x1173Fu)) return use_table[u - 0x11580u + use_offset_0x11580u];
-      if (unlikely (u == 0x1107Fu)) return USE_HN;
-      break;
-
-    default:
-      break;
-  }
-  return USE_O;
-}
 
 /* == End of generated table == */

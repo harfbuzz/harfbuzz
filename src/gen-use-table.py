@@ -432,15 +432,6 @@ occupancy = used * 100. / total
 page_bits = 12
 print "}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy)
 print
-for k in sorted(use_mapping.keys()):
-	if k in use_positions and use_positions[k]: continue
-	print "#undef %s" % k
-for k,v in sorted(use_positions.items()):
-	if not v: continue
-	for suf in v.keys():
-		tag = k + suf
-		print "#undef %s" % tag
-print
 print "USE_TABLE_ELEMENT_TYPE"
 print "hb_use_get_categories (hb_codepoint_t u)"
 print "{"
@@ -455,7 +446,7 @@ for p in sorted(pages):
 		print "      if (hb_in_range (u, 0x%04Xu, 0x%04Xu)) return use_table[u - 0x%04Xu + %s];" % (start, end-1, start, offset)
 	for u,d in singles.items ():
 		if p != u>>page_bits: continue
-		print "      if (unlikely (u == 0x%04Xu)) return USE_%s;" % (u, d[0])
+		print "      if (unlikely (u == 0x%04Xu)) return %s;" % (u, d[0])
 	print "      break;"
 	print ""
 print "    default:"
@@ -463,6 +454,15 @@ print "      break;"
 print "  }"
 print "  return USE_O;"
 print "}"
+print
+for k in sorted(use_mapping.keys()):
+	if k in use_positions and use_positions[k]: continue
+	print "#undef %s" % k
+for k,v in sorted(use_positions.items()):
+	if not v: continue
+	for suf in v.keys():
+		tag = k + suf
+		print "#undef %s" % tag
 print
 print "/* == End of generated table == */"
 
