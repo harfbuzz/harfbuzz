@@ -39,8 +39,12 @@ for i, f in enumerate (files):
 			data[i][u] = t
 		values[i][t] = values[i].get (t, 0) + end - start + 1
 
-# Merge data into one dict:
 defaults = ('Other', 'Not_Applicable', 'Cn', 'No_Block')
+
+# TODO CGJ is not in Unicode Indic files, but used in USE
+data[0][0x034F] = defaults[0]
+
+# Merge data into one dict:
 for i,v in enumerate (defaults):
 	values[i][v] = values[i].get (v, 0) + 1
 combined = {}
@@ -180,7 +184,10 @@ def is_Word_Joiner(U, UISC, UGC):
 	return U == 0x2060
 def is_OTHER(U, UISC, UGC):
 	#SPEC-OUTDATED return UGC == Zs # or any other SCRIPT_COMMON characters
-	return UISC == Other and not is_SYM_MOD(U, UISC, UGC)
+	return (UISC == Other
+		and not is_SYM_MOD(U, UISC, UGC)
+		and not is_CGJ(U, UISC, UGC)
+	)
 def is_Reserved(U, UISC, UGC):
 	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC):
@@ -325,7 +332,7 @@ data = map_to_use(data)
 
 # Remove the outliers
 singles = {}
-for u in [0x25CC, 0x1107F]:
+for u in [0x034F, 0x25CC, 0x1107F]:
 	singles[u] = data[u]
 	del data[u]
 

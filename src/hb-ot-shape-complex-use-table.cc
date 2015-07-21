@@ -640,6 +640,7 @@ hb_use_get_categories (hb_codepoint_t u)
       if (hb_in_range (u, 0x0028u, 0x003Fu)) return use_table[u - 0x0028u + use_offset_0x0028u];
       if (hb_in_range (u, 0x00A0u, 0x00D7u)) return use_table[u - 0x00A0u + use_offset_0x00a0u];
       if (hb_in_range (u, 0x0900u, 0x0DF7u)) return use_table[u - 0x0900u + use_offset_0x0900u];
+      if (unlikely (u == 0x034Fu)) return USE_CGJ;
       break;
 
     case 0x1u:
