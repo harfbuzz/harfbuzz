@@ -116,6 +116,15 @@ vowel_cluster =
 	final_consonants
 ;
 
+broken_cluster =
+	R?
+	consonant_modifiers
+	medial_consonants
+	dependent_vowels
+	vowel_modifiers
+	final_consonants
+;
+
 number_joiner_terminated_cluster = N VS? (HN N VS?)* H;
 numeral_cluster = N VS? (HN N VS?)*;
 symbol_cluster = S VS? SMAbv* SMBlw*;
@@ -129,6 +138,7 @@ main := |*
 	number_joiner_terminated_cluster	=> { found_syllable (number_joiner_terminated_cluster); };
 	numeral_cluster				=> { found_syllable (numeral_cluster); };
 	symbol_cluster				=> { found_syllable (symbol_cluster); };
+	broken_cluster				=> { found_syllable (broken_cluster); };
 *|;
 
 

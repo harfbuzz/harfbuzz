@@ -160,6 +160,7 @@ enum syllable_type_t {
   number_joiner_terminated_cluster,
   numeral_cluster,
   symbol_cluster,
+  broken_cluster,
 };
 
 #include "hb-ot-shape-complex-use-machine.hh"
@@ -317,7 +318,9 @@ reorder_syllable (const hb_ot_shape_plan_t *plan,
   if (unlikely (!(FLAG_SAFE (syllable_type) &
 		  (FLAG (virama_terminated_cluster) |
 		   FLAG (consonant_cluster) |
-		   FLAG (vowel_cluster)))))
+		   FLAG (vowel_cluster) |
+		   FLAG (broken_cluster) |
+		   0))))
     return;
 
   hb_glyph_info_t *info = buffer->info;
@@ -376,7 +379,6 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer)
 {
-#if 0
   /* Note: This loop is extra overhead, but should not be measurable. */
   bool has_broken_syllables = false;
   unsigned int count = buffer->len;
@@ -390,6 +392,10 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
   if (likely (!has_broken_syllables))
     return;
 
+
+  hb_codepoint_t dottedcircle_glyph;
+  if (!font->get_glyph (0x25CCu, 0, &dottedcircle_glyph))
+    return;
 
   hb_glyph_info_t dottedcircle = {0};
   if (!font->get_glyph (0x25CCu, 0, &dottedcircle.codepoint))
@@ -412,6 +418,13 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
       info.cluster = buffer->cur().cluster;
       info.mask = buffer->cur().mask;
       info.syllable() = buffer->cur().syllable();
+      /* TODO Set glyph_props? */
+
+      /* Insert dottedcircle after possible Repha. */
+      while (buffer->idx < buffer->len &&
+	     last_syllable == buffer->cur().syllable() &&
+	     buffer->cur().use_category() == USE_R)
+        buffer->next_glyph ();
 
       buffer->output_info (info);
     }
@@ -420,7 +433,6 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
   }
 
   buffer->swap_buffers ();
-#endif
 }
 
 static void
