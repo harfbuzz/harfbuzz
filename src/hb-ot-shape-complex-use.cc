@@ -364,7 +364,10 @@ reorder_syllable (const hb_ot_shape_plan_t *plan,
       else
 	j = i;
     }
-    else if (((flag) & (FLAG (USE_VPre) | FLAG (USE_VMPre))) && j < i)
+    else if (((flag) & (FLAG (USE_VPre) | FLAG (USE_VMPre))) &&
+	     /* Only move the first component of a MultipleSubst. */
+	     0 == _hb_glyph_info_get_lig_comp (&info[i]) &&
+	     j < i)
     {
       hb_glyph_info_t t = info[i];
       memmove (&info[j + 1], &info[j], (i - j) * sizeof (info[0]));
