@@ -104,8 +104,6 @@ HBSOURCES += \
 	hb-ot-shape-complex-indic-table.cc \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-myanmar-machine.hh \
-	hb-ot-shape-complex-sea.cc \
-	hb-ot-shape-complex-sea-machine.hh \
 	hb-ot-shape-complex-thai.cc \
 	hb-ot-shape-complex-tibetan.cc \
 	hb-ot-shape-complex-use.cc \
@@ -307,7 +305,6 @@ RAGEL_GENERATED = \
 	$(srcdir)/hb-buffer-deserialize-text.hh \
 	$(srcdir)/hb-ot-shape-complex-indic-machine.hh \
 	$(srcdir)/hb-ot-shape-complex-myanmar-machine.hh \
-	$(srcdir)/hb-ot-shape-complex-sea-machine.hh \
 	$(srcdir)/hb-ot-shape-complex-use-machine.hh \
 	$(NULL)
 BUILT_SOURCES += $(RAGEL_GENERATED)
@@ -316,7 +313,6 @@ EXTRA_DIST += \
 	hb-buffer-deserialize-text.rl \
 	hb-ot-shape-complex-indic-machine.rl \
 	hb-ot-shape-complex-myanmar-machine.rl \
-	hb-ot-shape-complex-sea-machine.rl \
 	hb-ot-shape-complex-use-machine.rl \
 	$(NULL)
 MAINTAINERCLEANFILES += $(RAGEL_GENERATED)
