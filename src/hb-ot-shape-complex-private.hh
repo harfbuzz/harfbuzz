@@ -241,7 +241,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_JAVANESE:
 
       /* If the designer designed the font for the 'DFLT' script,
-       * use the default shaper.  Otherwise, use the Indic shaper.
+       * use the default shaper.  Otherwise, use the specific shaper.
        * Note that for some simple scripts, there may not be *any*
        * GSUB/GPOS needed, so there may be no scripts found! */
       if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T'))
@@ -283,7 +283,7 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_TAI_THAM:
 
       /* If the designer designed the font for the 'DFLT' script,
-       * use the default shaper.  Otherwise, use the Indic shaper.
+       * use the default shaper.  Otherwise, use the specific shaper.
        * Note that for some simple scripts, there may not be *any*
        * GSUB/GPOS needed, so there may be no scripts found! */
       if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T'))
@@ -359,7 +359,14 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_SIDDHAM:
     case HB_SCRIPT_TIRHUTA:
 
-      return &_hb_ot_complex_shaper_use;
+      /* If the designer designed the font for the 'DFLT' script,
+       * use the default shaper.  Otherwise, use the specific shaper.
+       * Note that for some simple scripts, there may not be *any*
+       * GSUB/GPOS needed, so there may be no scripts found! */
+      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T'))
+	return &_hb_ot_complex_shaper_default;
+      else
+	return &_hb_ot_complex_shaper_use;
   }
 }
 
