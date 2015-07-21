@@ -62,6 +62,7 @@ enum hb_ot_shape_zero_width_marks_type_t {
   HB_COMPLEX_SHAPER_IMPLEMENT (sea) \
   HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
   HB_COMPLEX_SHAPER_IMPLEMENT (tibetan) \
+  HB_COMPLEX_SHAPER_IMPLEMENT (use) \
   /* ^--- Add new shapers here */
 
 
@@ -358,6 +359,76 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_default;
       else
 	return &_hb_ot_complex_shaper_sea;
+
+
+    /* Unicode-2.0 additions */
+    //case HB_SCRIPT_TIBETAN:
+
+    /* Unicode-3.0 additions */
+    //case HB_SCRIPT_MONGOLIAN:
+    //case HB_SCRIPT_SINHALA:
+
+    /* Unicode-3.2 additions */
+    case HB_SCRIPT_BUHID:
+    case HB_SCRIPT_HANUNOO:
+    case HB_SCRIPT_TAGALOG:
+    case HB_SCRIPT_TAGBANWA:
+
+    /* Unicode-4.0 additions */
+    case HB_SCRIPT_LIMBU:
+    case HB_SCRIPT_TAI_LE:
+
+    /* Unicode-4.1 additions */
+    //case HB_SCRIPT_BUGINESE:
+    case HB_SCRIPT_KHAROSHTHI:
+    case HB_SCRIPT_SYLOTI_NAGRI:
+    case HB_SCRIPT_TIFINAGH:
+
+    /* Unicode-5.0 additions */
+    //case HB_SCRIPT_BALINESE:
+    //case HB_SCRIPT_NKO:
+    //case HB_SCRIPT_PHAGS_PA:
+
+    /* Unicode-5.1 additions */
+    //case HB_SCRIPT_CHAM:
+    case HB_SCRIPT_KAYAH_LI:
+    //case HB_SCRIPT_LEPCHA:
+    //case HB_SCRIPT_REJANG:
+    case HB_SCRIPT_SAURASHTRA:
+    //case HB_SCRIPT_SUNDANESE:
+
+    /* Unicode-5.2 additions */
+    case HB_SCRIPT_EGYPTIAN_HIEROGLYPHS:
+    //case HB_SCRIPT_JAVANESE:
+    //case HB_SCRIPT_KAITHI:
+    //case HB_SCRIPT_MEETEI_MAYEK:
+    //case HB_SCRIPT_TAI_THAM:
+    //case HB_SCRIPT_TAI_VIET:
+
+    /* Unicode-6.0 additions */
+    //case HB_SCRIPT_BATAK:
+    case HB_SCRIPT_BRAHMI:
+    //case HB_SCRIPT_MANDAIC:
+
+    /* Unicode-6.1 additions */
+    //case HB_SCRIPT_CHAKMA:
+    //case HB_SCRIPT_SHARADA:
+    //case HB_SCRIPT_TAKRI:
+
+    /* Unicode-7.0 additions */
+    case HB_SCRIPT_DUPLOYAN:
+    case HB_SCRIPT_GRANTHA:
+    case HB_SCRIPT_KHOJKI:
+    case HB_SCRIPT_KHUDAWADI:
+    case HB_SCRIPT_MAHAJANI:
+    //case HB_SCRIPT_MANICHAEAN:
+    case HB_SCRIPT_MODI:
+    case HB_SCRIPT_PAHAWH_HMONG:
+    //case HB_SCRIPT_PSALTER_PAHLAVI:
+    case HB_SCRIPT_SIDDHAM:
+    case HB_SCRIPT_TIRHUTA:
+
+      return &_hb_ot_complex_shaper_use;
   }
 }
 
