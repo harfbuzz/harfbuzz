@@ -75,6 +75,18 @@ setup_syllables (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font,
 		 hb_buffer_t *buffer);
 static void
+clear_substitution_flags (const hb_ot_shape_plan_t *plan,
+			  hb_font_t *font,
+			  hb_buffer_t *buffer);
+static void
+record_rphf (const hb_ot_shape_plan_t *plan,
+	     hb_font_t *font,
+	     hb_buffer_t *buffer);
+static void
+record_pref (const hb_ot_shape_plan_t *plan,
+	     hb_font_t *font,
+	     hb_buffer_t *buffer);
+static void
 reorder (const hb_ot_shape_plan_t *plan,
 	 hb_font_t *font,
 	 hb_buffer_t *buffer);
@@ -94,11 +106,11 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_global_bool_feature (HB_TAG('a','k','h','n'));
 
   /* "Reordering group" */
-  map->add_gsub_pause (NULL);
-  map->add_feature (HB_TAG('r','p','h','f'), 1, F_GLOBAL | F_MANUAL_ZWJ);
-  map->add_gsub_pause (NULL);
-  map->add_feature (HB_TAG('p','r','e','f'), 1, F_GLOBAL | F_MANUAL_ZWJ);
-  map->add_gsub_pause (NULL);
+  map->add_gsub_pause (clear_substitution_flags);
+  map->add_feature (HB_TAG('r','p','h','f'), 1, F_MANUAL_ZWJ);
+  map->add_gsub_pause (record_rphf);
+  map->add_feature (HB_TAG('p','r','e','f'), 1, F_MANUAL_ZWJ);
+  map->add_gsub_pause (record_pref);
 
   /* "Orthographic unit shaping group" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (basic_features); i++)
@@ -114,6 +126,32 @@ collect_features_use (hb_ot_shape_planner_t *plan)
     map->add_feature (other_features[i], 1, F_GLOBAL | F_MANUAL_ZWJ);
 }
 
+struct use_shape_plan_t
+{
+  ASSERT_POD ();
+
+  hb_mask_t rphf_mask;
+  hb_mask_t pref_mask;
+};
+
+static void *
+data_create_use (const hb_ot_shape_plan_t *plan)
+{
+  use_shape_plan_t *use_plan = (use_shape_plan_t *) calloc (1, sizeof (use_shape_plan_t));
+  if (unlikely (!use_plan))
+    return NULL;
+
+  use_plan->rphf_mask = plan->map.get_1_mask (HB_TAG('r','p','h','f'));
+  use_plan->pref_mask = plan->map.get_1_mask (HB_TAG('p','r','e','f'));
+
+  return use_plan;
+}
+
+static void
+data_destroy_use (void *data)
+{
+  free (data);
+}
 
 enum syllable_type_t {
   independent_cluster,
@@ -153,13 +191,140 @@ setup_masks_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
 }
 
 static void
-setup_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
+setup_syllable (const use_shape_plan_t *use_plan,
+		hb_glyph_info_t *info,
+		unsigned int start, unsigned int end)
+{
+  unsigned int limit = info[start].use_category() == USE_R ? 1 : MIN (3u, end - start);
+  for (unsigned int i = start; i < start + limit; i++)
+    info[i].mask |= use_plan->rphf_mask | use_plan->pref_mask;
+  for (unsigned int i = start + limit; i < end; i++)
+    info[i].mask |= use_plan->pref_mask;
+}
+
+static void
+setup_syllables (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font HB_UNUSED,
 		 hb_buffer_t *buffer)
 {
   find_syllables (buffer);
+
+  /* Setup masks for 'rphf' and 'pref'. */
+  const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
+  if (!(use_plan->rphf_mask | use_plan->pref_mask)) return;
+
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  if (unlikely (!count)) return;
+  unsigned int last = 0;
+  unsigned int last_syllable = info[0].syllable();
+  for (unsigned int i = 1; i < count; i++)
+    if (last_syllable != info[i].syllable()) {
+      setup_syllable (use_plan, info, last, i);
+      last = i;
+      last_syllable = info[last].syllable();
+    }
+  setup_syllable (use_plan, info, last, count);
 }
 
+static void
+clear_substitution_flags (const hb_ot_shape_plan_t *plan,
+			  hb_font_t *font HB_UNUSED,
+			  hb_buffer_t *buffer)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    _hb_glyph_info_clear_substituted_and_ligated_and_multiplied (&info[i]);
+}
+
+static void
+record_rphf_syllable (hb_glyph_info_t *info,
+		      unsigned int start, unsigned int end,
+		      hb_mask_t mask)
+{
+  unsigned int i = start;
+
+  if (info[i].use_category() != USE_R)
+    for (; i < end && !_hb_glyph_info_substituted (&info[i]); i++)
+      info[i].mask &= ~mask;
+
+  if (i == end)
+    return;
+
+  /* Found the one.  Don't clear its mask. */
+  i++;
+
+  /* Clear the mask on the rest. */
+  for (; i < end; i++)
+    info[i].mask &= ~mask;
+}
+
+static void
+record_rphf (const hb_ot_shape_plan_t *plan,
+	     hb_font_t *font,
+	     hb_buffer_t *buffer)
+{
+  const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
+  hb_mask_t mask = use_plan->rphf_mask;
+
+  if (!mask) return;
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  if (unlikely (!count)) return;
+  unsigned int last = 0;
+  unsigned int last_syllable = info[0].syllable();
+  for (unsigned int i = 1; i < count; i++)
+    if (last_syllable != info[i].syllable()) {
+      record_rphf_syllable (info, last, i, mask);
+      last = i;
+      last_syllable = info[last].syllable();
+    }
+  record_rphf_syllable (info, last, count, mask);
+}
+
+static void
+record_pref_syllable (hb_glyph_info_t *info,
+		      unsigned int start, unsigned int end,
+		      hb_mask_t mask)
+{
+  unsigned int i = start;
+  for (; i < end && !_hb_glyph_info_substituted (&info[i]); i++)
+    info[i].mask &= ~mask;
+
+  if (i == end)
+    return;
+
+  /* Found the one.  Don't clear its mask. */
+  i++;
+
+  /* Clear the mask on the rest. */
+  for (; i < end; i++)
+    info[i].mask &= ~mask;
+}
+
+static void
+record_pref (const hb_ot_shape_plan_t *plan,
+	     hb_font_t *font,
+	     hb_buffer_t *buffer)
+{
+  const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
+  hb_mask_t mask = use_plan->pref_mask;
+
+  if (!mask) return;
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+  if (unlikely (!count)) return;
+  unsigned int last = 0;
+  unsigned int last_syllable = info[0].syllable();
+  for (unsigned int i = 1; i < count; i++)
+    if (last_syllable != info[i].syllable()) {
+      record_pref_syllable (info, last, i, mask);
+      last = i;
+      last_syllable = info[last].syllable();
+    }
+  record_pref_syllable (info, last, count, mask);
+}
 
 static void
 reorder_virama_terminated_cluster (const hb_ot_shape_plan_t *plan,
@@ -325,8 +490,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
   "use",
   collect_features_use,
   NULL, /* override_features */
-  NULL, /* data_create */
-  NULL, /* data_destroy */
+  data_create_use,
+  data_destroy_use,
   NULL, /* preprocess_text */
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   NULL, /* decompose */

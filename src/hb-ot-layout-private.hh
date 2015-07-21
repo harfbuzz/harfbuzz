@@ -406,6 +406,14 @@ _hb_glyph_info_clear_ligated_and_multiplied (hb_glyph_info_t *info)
 			   HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED);
 }
 
+static inline void
+_hb_glyph_info_clear_substituted_and_ligated_and_multiplied (hb_glyph_info_t *info)
+{
+  info->glyph_props() &= ~(HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED |
+			   HB_OT_LAYOUT_GLYPH_PROPS_LIGATED |
+			   HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED);
+}
+
 
 /* Allocation / deallocation. */
 
