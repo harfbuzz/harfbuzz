@@ -179,6 +179,30 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout);
 #define lig_props()		var1.u8[2] /* GSUB/GPOS ligature tracking */
 #define syllable()		var1.u8[3] /* GSUB/GPOS shaping boundaries */
 
+
+/* loop over syllables */
+
+#define foreach_syllable(buffer, start, end) \
+  for (unsigned int \
+       _count = buffer->len, \
+       start = 0, end = _count ? _next_syllable (buffer, 0) : 0; \
+       start < _count; \
+       start = end, end = _next_syllable (buffer, start))
+
+static inline unsigned int
+_next_syllable (hb_buffer_t *buffer, unsigned int start)
+{
+  hb_glyph_info_t *info = buffer->info;
+  unsigned int count = buffer->len;
+
+  unsigned int syllable = info[start].syllable();
+  while (++start < count && syllable == info[start].syllable())
+    ;
+
+  return start;
+}
+
+
 /* unicode_props */
 
 enum {

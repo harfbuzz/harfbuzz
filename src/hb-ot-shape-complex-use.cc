@@ -264,38 +264,27 @@ setup_masks_use (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-setup_syllable (const use_shape_plan_t *use_plan,
-		hb_glyph_info_t *info,
-		unsigned int start, unsigned int end)
-{
-  unsigned int limit = info[start].use_category() == USE_R ? 1 : MIN (3u, end - start);
-  for (unsigned int i = start; i < start + limit; i++)
-    info[i].mask |= use_plan->rphf_mask;
-}
-
-static void
 setup_syllables (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font HB_UNUSED,
 		 hb_buffer_t *buffer)
 {
   find_syllables (buffer);
 
-  /* Setup masks for 'rphf' and 'pref'. */
+  /* Setup 'rphf' mask. */
+
   const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
-  if (!use_plan->rphf_mask) return;
+
+  hb_mask_t mask = use_plan->rphf_mask;
+  if (!mask) return;
 
   hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-  if (unlikely (!count)) return;
-  unsigned int last = 0;
-  unsigned int last_syllable = info[0].syllable();
-  for (unsigned int i = 1; i < count; i++)
-    if (last_syllable != info[i].syllable()) {
-      setup_syllable (use_plan, info, last, i);
-      last = i;
-      last_syllable = info[last].syllable();
-    }
-  setup_syllable (use_plan, info, last, count);
+
+  foreach_syllable (buffer, start, end)
+  {
+    unsigned int limit = info[start].use_category() == USE_R ? 1 : MIN (3u, end - start);
+    for (unsigned int i = start; i < start + limit; i++)
+      info[i].mask |= mask;
+  }
 }
 
 static void
@@ -310,55 +299,26 @@ clear_substitution_flags (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-record_rphf_syllable (hb_glyph_info_t *info,
-		      unsigned int start, unsigned int end,
-		      hb_mask_t mask)
-{
-  /* Mark a substituted repha as USE_R. */
-  for (unsigned int i = start; i < end && (info[i].mask & mask); i++)
-    if (_hb_glyph_info_substituted (&info[i]))
-    {
-      /* Found the one.  Mark it as Repha.  */
-      info[i].use_category() = USE_R;
-      return;
-    }
-}
-
-static void
 record_rphf (const hb_ot_shape_plan_t *plan,
 	     hb_font_t *font,
 	     hb_buffer_t *buffer)
 {
   const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
-  hb_mask_t mask = use_plan->rphf_mask;
 
+  hb_mask_t mask = use_plan->rphf_mask;
   if (!mask) return;
   hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-  if (unlikely (!count)) return;
-  unsigned int last = 0;
-  unsigned int last_syllable = info[0].syllable();
-  for (unsigned int i = 1; i < count; i++)
-    if (last_syllable != info[i].syllable()) {
-      record_rphf_syllable (info, last, i, mask);
-      last = i;
-      last_syllable = info[last].syllable();
-    }
-  record_rphf_syllable (info, last, count, mask);
-}
 
-static void
-record_pref_syllable (hb_glyph_info_t *info,
-		      unsigned int start, unsigned int end)
-{
-  /* Mark a substituted pref as VPre, as they behave the same way. */
-  for (unsigned int i = start; i < end; i++)
-    if (_hb_glyph_info_substituted (&info[i]))
-    {
-      /* Found the one.  Mark it as Repha.  */
-      info[i].use_category() = USE_VPre;
-      return;
-    }
+  foreach_syllable (buffer, start, end)
+  {
+    /* Mark a substituted repha as USE_R. */
+    for (unsigned int i = start; i < end && (info[i].mask & mask); i++)
+      if (_hb_glyph_info_substituted (&info[i]))
+      {
+	info[i].use_category() = USE_R;
+	break;
+      }
+  }
 }
 
 static void
@@ -367,24 +327,21 @@ record_pref (const hb_ot_shape_plan_t *plan,
 	     hb_buffer_t *buffer)
 {
   hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-  if (unlikely (!count)) return;
-  unsigned int last = 0;
-  unsigned int last_syllable = info[0].syllable();
-  for (unsigned int i = 1; i < count; i++)
-    if (last_syllable != info[i].syllable()) {
-      record_pref_syllable (info, last, i);
-      last = i;
-      last_syllable = info[last].syllable();
-    }
-  record_pref_syllable (info, last, count);
+
+  foreach_syllable (buffer, start, end)
+  {
+    /* Mark a substituted pref as VPre, as they behave the same way. */
+    for (unsigned int i = start; i < end; i++)
+      if (_hb_glyph_info_substituted (&info[i]))
+      {
+	info[i].use_category() = USE_VPre;
+	break;
+      }
+  }
 }
 
 static void
-reorder_syllable (const hb_ot_shape_plan_t *plan,
-		  hb_face_t *face,
-		  hb_buffer_t *buffer,
-		  unsigned int start, unsigned int end)
+reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 {
   syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   /* Only a few syllable types need reordering. */
@@ -481,6 +438,7 @@ insert_dotted_circles (const hb_ot_shape_plan_t *plan HB_UNUSED,
   buffer->clear_output ();
 
   buffer->idx = 0;
+
   unsigned int last_syllable = 0;
   while (buffer->idx < buffer->len)
   {
@@ -519,19 +477,12 @@ reorder (const hb_ot_shape_plan_t *plan,
   insert_dotted_circles (plan, font, buffer);
 
   hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-  if (unlikely (!count)) return;
-  unsigned int last = 0;
-  unsigned int last_syllable = info[0].syllable();
-  for (unsigned int i = 1; i < count; i++)
-    if (last_syllable != info[i].syllable()) {
-      reorder_syllable (plan, font->face, buffer, last, i);
-      last = i;
-      last_syllable = info[last].syllable();
-    }
-  reorder_syllable (plan, font->face, buffer, last, count);
+
+  foreach_syllable (buffer, start, end)
+    reorder_syllable (buffer, start, end);
 
   /* Zero syllables now... */
+  unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
     info[i].syllable() = 0;
 
