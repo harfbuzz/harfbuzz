@@ -27,6 +27,7 @@
  */
 
 #include "hb-ot-shape-complex-use-private.hh"
+#include "hb-ot-shape-complex-arabic-private.hh"
 
 /* buffer var allocations */
 #define use_category() complex_var_u8_0()
@@ -51,6 +52,19 @@ basic_features[] =
   HB_TAG('p','s','t','f'),
   HB_TAG('v','a','t','u'),
   HB_TAG('c','j','c','t'),
+};
+static const hb_tag_t
+arabic_features[] =
+{
+  HB_TAG('i','s','o','l'),
+  HB_TAG('i','n','i','t'),
+  HB_TAG('m','e','d','i'),
+  HB_TAG('f','i','n','a'),
+  /* The spec doesn't specify these but we apply anyway, since our Arabic shaper
+   * does.  These are only used in Syriac spec. */
+  HB_TAG('m','e','d','2'),
+  HB_TAG('f','i','n','2'),
+  HB_TAG('f','i','n','3'),
 };
 static const hb_tag_t
 other_features[] =
@@ -120,7 +134,10 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (reorder);
 
   /* "Topographical features" */
-  // TODO isol/init/medi/fina
+  for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
+    map->add_feature (arabic_features[i], 1, F_NONE);
+
+  map->add_gsub_pause (NULL);
 
   /* "Standard typographic presentation" and "Positional feature application" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
@@ -132,7 +149,40 @@ struct use_shape_plan_t
   ASSERT_POD ();
 
   hb_mask_t rphf_mask;
+
+  arabic_shape_plan_t *arabic_plan;
 };
+
+static bool
+has_arabic_joining (hb_script_t script)
+{
+  /* List of scripts that have data in arabic-table. */
+  switch ((int) script)
+  {
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_ARABIC:
+
+    /* Unicode-3.0 additions */
+    case HB_SCRIPT_MONGOLIAN:
+    case HB_SCRIPT_SYRIAC:
+
+    /* Unicode-5.0 additions */
+    case HB_SCRIPT_NKO:
+    case HB_SCRIPT_PHAGS_PA:
+
+    /* Unicode-6.0 additions */
+    case HB_SCRIPT_MANDAIC:
+
+    /* Unicode-7.0 additions */
+    case HB_SCRIPT_MANICHAEAN:
+    case HB_SCRIPT_PSALTER_PAHLAVI:
+
+      return true;
+
+    default:
+      return false;
+  }
+}
 
 static void *
 data_create_use (const hb_ot_shape_plan_t *plan)
@@ -143,12 +193,27 @@ data_create_use (const hb_ot_shape_plan_t *plan)
 
   use_plan->rphf_mask = plan->map.get_1_mask (HB_TAG('r','p','h','f'));
 
+  if (has_arabic_joining (plan->props.script))
+  {
+    use_plan->arabic_plan = (arabic_shape_plan_t *) data_create_arabic (plan);
+    if (unlikely (!use_plan->arabic_plan))
+    {
+      free (use_plan);
+      return NULL;
+    }
+  }
+
   return use_plan;
 }
 
 static void
 data_destroy_use (void *data)
 {
+  use_shape_plan_t *use_plan = (use_shape_plan_t *) data;
+
+  if (use_plan->arabic_plan)
+    data_destroy_arabic (use_plan->arabic_plan);
+
   free (data);
 }
 
@@ -175,10 +240,18 @@ set_use_properties (hb_glyph_info_t &info)
 
 
 static void
-setup_masks_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
+setup_masks_use (const hb_ot_shape_plan_t *plan,
 		 hb_buffer_t              *buffer,
 		 hb_font_t                *font HB_UNUSED)
 {
+  const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
+
+  /* Do this before allocating use_category(). */
+  if (use_plan->arabic_plan)
+  {
+    setup_masks_arabic_plan (use_plan->arabic_plan, buffer, plan->props.script);
+  }
+
   HB_BUFFER_ALLOCATE_VAR (buffer, use_category);
 
   /* We cannot setup masks here.  We save information about characters
