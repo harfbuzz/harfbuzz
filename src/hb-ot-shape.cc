@@ -264,11 +264,18 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
 static void
 hb_form_clusters (hb_buffer_t *buffer)
 {
+  unsigned int base = 0;
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 1; i < count; i++)
-    if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i])))
-      buffer->merge_clusters (i - 1, i + 1);
+  {
+    if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i]))))
+    {
+      buffer->merge_clusters (base, i);
+      base = i;
+    }
+  }
+  buffer->merge_clusters (base, count);
 }
 
 static void

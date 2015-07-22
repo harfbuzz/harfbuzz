@@ -189,7 +189,14 @@ struct hb_buffer_t {
 			      unsigned int cluster_end);
 
   HB_INTERNAL void merge_clusters (unsigned int start,
-				   unsigned int end);
+				   unsigned int end)
+  {
+    if (end - start < 2)
+      return;
+    merge_clusters_impl (start, end);
+  }
+  HB_INTERNAL void merge_clusters_impl (unsigned int start,
+					unsigned int end);
   HB_INTERNAL void merge_out_clusters (unsigned int start,
 				       unsigned int end);
   /* Merge clusters for deleting current glyph, and skip it. */

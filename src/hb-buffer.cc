@@ -504,15 +504,12 @@ hb_buffer_t::reverse_clusters (void)
 }
 
 void
-hb_buffer_t::merge_clusters (unsigned int start,
-			     unsigned int end)
+hb_buffer_t::merge_clusters_impl (unsigned int start,
+				  unsigned int end)
 {
 #ifdef HB_NO_MERGE_CLUSTERS
   return;
 #endif
-
-  if (unlikely (end - start < 2))
-    return;
 
   unsigned int cluster = info[start].cluster;
 
