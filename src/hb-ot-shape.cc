@@ -305,7 +305,7 @@ hb_ot_mirror_chars (hb_ot_shape_context_t *c)
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++) {
     hb_codepoint_t codepoint = unicode->mirroring (info[i].codepoint);
-    if (likely (codepoint == info[i].codepoint))
+    if (likely (codepoint == info[i].codepoint || !c->font->has_glyph (codepoint)))
       info[i].mask |= rtlm_mask;
     else
       info[i].codepoint = codepoint;
