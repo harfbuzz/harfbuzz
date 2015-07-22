@@ -66,6 +66,14 @@ arabic_features[] =
   HB_TAG('f','i','n','2'),
   HB_TAG('f','i','n','3'),
 };
+/* Same order as arabic_features.  Don't need Syriac stuff.*/
+enum joining_form_t {
+  ISOL,
+  INIT,
+  MEDI,
+  FINA,
+  _NONE
+};
 static const hb_tag_t
 other_features[] =
 {
@@ -136,7 +144,6 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   /* "Topographical features" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
     map->add_feature (arabic_features[i], 1, F_NONE);
-
   map->add_gsub_pause (NULL);
 
   /* "Standard typographic presentation" and "Positional feature application" */
@@ -264,14 +271,9 @@ setup_masks_use (const hb_ot_shape_plan_t *plan,
 }
 
 static void
-setup_syllables (const hb_ot_shape_plan_t *plan,
-		 hb_font_t *font HB_UNUSED,
+setup_rphf_mask (const hb_ot_shape_plan_t *plan,
 		 hb_buffer_t *buffer)
 {
-  find_syllables (buffer);
-
-  /* Setup 'rphf' mask. */
-
   const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
 
   hb_mask_t mask = use_plan->rphf_mask;
@@ -285,6 +287,77 @@ setup_syllables (const hb_ot_shape_plan_t *plan,
     for (unsigned int i = start; i < start + limit; i++)
       info[i].mask |= mask;
   }
+}
+
+static void
+setup_topographical_masks (const hb_ot_shape_plan_t *plan,
+			   hb_buffer_t *buffer)
+{
+
+  ASSERT_STATIC (INIT < 4 && ISOL < 4 && MEDI < 4 && FINA < 4);
+  hb_mask_t masks[4], all_masks = 0;
+  for (unsigned int i = 0; i < 4; i++)
+  {
+    masks[i] = plan->map.get_1_mask (arabic_features[i]);
+    if (masks[i] == plan->map.get_global_mask ())
+      masks[i] = 0;
+    all_masks |= masks[i];
+  }
+  if (!all_masks)
+    return;
+  hb_mask_t other_masks = ~all_masks;
+
+  unsigned int last_start = 0;
+  joining_form_t last_form = _NONE;
+  hb_glyph_info_t *info = buffer->info;
+  foreach_syllable (buffer, start, end)
+  {
+    syllable_type_t syllable_type = (syllable_type_t) (info[start].syllable() & 0x0F);
+    switch (syllable_type)
+    {
+      case independent_cluster:
+      case symbol_cluster:
+	/* These don't join.  Nothing to do. */
+	last_form = _NONE;
+	break;
+
+      case virama_terminated_cluster:
+      case consonant_cluster:
+      case vowel_cluster:
+      case number_joiner_terminated_cluster:
+      case numeral_cluster:
+      case broken_cluster:
+
+	bool join = last_form == FINA || last_form == ISOL;
+
+	if (join)
+	{
+	  /* Fixup previous syllable's form. */
+	  last_form = last_form == FINA ? MEDI : INIT;
+	  for (unsigned int i = last_start; i < start; i++)
+	    info[i].mask = (info[i].mask & other_masks) | masks[last_form];
+	}
+
+	/* Form for this syllable. */
+	last_form = join ? FINA : ISOL;
+	for (unsigned int i = start; i < end; i++)
+	  info[i].mask = (info[i].mask & other_masks) | masks[last_form];
+
+	break;
+    }
+
+    last_start = start;
+  }
+}
+
+static void
+setup_syllables (const hb_ot_shape_plan_t *plan,
+		 hb_font_t *font HB_UNUSED,
+		 hb_buffer_t *buffer)
+{
+  find_syllables (buffer);
+  setup_rphf_mask (plan, buffer);
+  setup_topographical_masks (plan, buffer);
 }
 
 static void
