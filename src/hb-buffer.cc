@@ -507,9 +507,8 @@ void
 hb_buffer_t::merge_clusters_impl (unsigned int start,
 				  unsigned int end)
 {
-#ifdef HB_NO_MERGE_CLUSTERS
-  return;
-#endif
+  if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+    return;
 
   unsigned int cluster = info[start].cluster;
 
@@ -536,9 +535,8 @@ void
 hb_buffer_t::merge_out_clusters (unsigned int start,
 				 unsigned int end)
 {
-#ifdef HB_NO_MERGE_CLUSTERS
-  return;
-#endif
+  if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
+    return;
 
   if (unlikely (end - start < 2))
     return;
@@ -738,6 +736,7 @@ hb_buffer_get_empty (void)
 
     const_cast<hb_unicode_funcs_t *> (&_hb_unicode_funcs_nil),
     HB_BUFFER_FLAG_DEFAULT,
+    HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
     HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
 
     HB_BUFFER_CONTENT_TYPE_INVALID,
@@ -1081,6 +1080,41 @@ hb_buffer_flags_t
 hb_buffer_get_flags (hb_buffer_t *buffer)
 {
   return buffer->flags;
+}
+
+/**
+ * hb_buffer_set_cluster_level:
+ * @buffer: a buffer.
+ * @cluster_level: 
+ *
+ * 
+ *
+ * Since: 0.9.42
+ **/
+void
+hb_buffer_set_cluster_level (hb_buffer_t       *buffer,
+		     hb_buffer_cluster_level_t  cluster_level)
+{
+  if (unlikely (hb_object_is_inert (buffer)))
+    return;
+
+  buffer->cluster_level = cluster_level;
+}
+
+/**
+ * hb_buffer_get_cluster_level:
+ * @buffer: a buffer.
+ *
+ * 
+ *
+ * Return value: 
+ *
+ * Since: 0.9.42
+ **/
+hb_buffer_cluster_level_t
+hb_buffer_get_cluster_level (hb_buffer_t *buffer)
+{
+  return buffer->cluster_level;
 }
 
 

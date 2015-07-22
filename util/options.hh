@@ -180,6 +180,7 @@ struct shape_options_t : option_group_t
     num_features = 0;
     shapers = NULL;
     utf8_clusters = false;
+    cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
     normalize_glyphs = false;
     num_iterations = 1;
 
@@ -202,6 +203,7 @@ struct shape_options_t : option_group_t
 			 (bot ? HB_BUFFER_FLAG_BOT : 0) |
 			 (eot ? HB_BUFFER_FLAG_EOT : 0) |
 			 (preserve_default_ignorables ? HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES : 0)));
+    hb_buffer_set_cluster_level (buffer, cluster_level);
     hb_buffer_guess_segment_properties (buffer);
   }
 
@@ -265,6 +267,7 @@ struct shape_options_t : option_group_t
   unsigned int num_features;
   char **shapers;
   hb_bool_t utf8_clusters;
+  hb_buffer_cluster_level_t cluster_level;
   hb_bool_t normalize_glyphs;
   unsigned int num_iterations;
 };

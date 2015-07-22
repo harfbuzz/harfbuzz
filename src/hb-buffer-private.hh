@@ -50,6 +50,7 @@ struct hb_buffer_t {
   /* Information about how the text in the buffer should be treated */
   hb_unicode_funcs_t *unicode; /* Unicode functions */
   hb_buffer_flags_t flags; /* BOT / EOT / etc. */
+  hb_buffer_cluster_level_t cluster_level;
   hb_codepoint_t replacement; /* U+FFFD or something else. */
 
   /* Buffer contents */
