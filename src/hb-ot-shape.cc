@@ -426,8 +426,7 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
   unsigned int i = 0;
   for (i = 0; i < count; i++)
   {
-    if (unlikely (!_hb_glyph_info_ligated (&info[i]) &&
-		  _hb_glyph_info_is_default_ignorable (&info[i])))
+    if (unlikely (_hb_glyph_info_is_default_ignorable (&info[i])))
       break;
   }
 
@@ -441,8 +440,7 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
     /* Replace default-ignorables with a zero-advance space glyph. */
     for (/*continue*/; i < count; i++)
     {
-      if (!_hb_glyph_info_ligated (&info[i]) &&
-	   _hb_glyph_info_is_default_ignorable (&info[i]))
+      if (_hb_glyph_info_is_default_ignorable (&info[i]))
       {
 	info[i].codepoint = space;
 	pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
@@ -457,8 +455,7 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
     buffer->next_glyphs (i);
     while (buffer->idx < buffer->len)
     {
-      if (!_hb_glyph_info_ligated (&info[buffer->idx]) &&
-	   _hb_glyph_info_is_default_ignorable (&info[buffer->idx]))
+      if (_hb_glyph_info_is_default_ignorable (&info[buffer->idx]))
       {
 	buffer->delete_glyph ();
 	continue;
