@@ -411,6 +411,22 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   }
 }
 
+static void
+hb_ot_zero_width_default_ignorables (hb_ot_shape_context_t *c)
+{
+  hb_buffer_t *buffer = c->buffer;
+
+  if (buffer->flags & HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES)
+    return;
+
+  unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
+  hb_glyph_position_t *pos = buffer->pos;
+  unsigned int i = 0;
+  for (i = 0; i < count; i++)
+    if (unlikely (_hb_glyph_info_is_default_ignorable (&info[i])))
+      pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
+}
 
 static void
 hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
@@ -441,10 +457,7 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
     for (/*continue*/; i < count; i++)
     {
       if (_hb_glyph_info_is_default_ignorable (&info[i]))
-      {
 	info[i].codepoint = space;
-	pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
-      }
     }
   }
   else
@@ -738,9 +751,7 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   hb_bool_t fallback = !hb_ot_position_complex (c);
 
-  /* Need to do this here, since position_finish and fallback positioning
-   * might be affected by width of default_ignorables. */
-  hb_ot_hide_default_ignorables (c);
+  hb_ot_zero_width_default_ignorables (c);
 
   hb_ot_layout_position_finish (c->font, c->buffer);
 
@@ -781,6 +792,8 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   hb_ot_substitute (c);
   hb_ot_position (c);
+
+  hb_ot_hide_default_ignorables (c);
 
   _hb_buffer_deallocate_unicode_vars (c->buffer);
 
