@@ -449,20 +449,46 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
   }
   else
   {
-    /* Merge clusters and delete default-ignorables. */
-    buffer->clear_output ();
-    buffer->idx = 0;
-    buffer->next_glyphs (i);
-    while (buffer->idx < buffer->len)
+    /* Merge clusters and delete default-ignorables.
+     * NOTE! We can't use out-buffer as we have positioning data. */
+    unsigned int j = i;
+    for (; i < count; i++)
     {
-      if (_hb_glyph_info_is_default_ignorable (&info[buffer->idx]))
+      if (_hb_glyph_info_is_default_ignorable (&info[i]))
       {
-	buffer->delete_glyph ();
+	/* Merge clusters.
+	 * Same logic as buffer->delete_glyph(), but for in-place removal. */
+
+	unsigned int cluster = info[i].cluster;
+	if (i + 1 < count && cluster == info[i + 1].cluster)
+	  continue; /* Cluster survives; do nothing. */
+
+	if (j)
+	{
+	  /* Merge cluster backward. */
+	  if (cluster < info[j - 1].cluster)
+	  {
+	    unsigned int old_cluster = info[j - 1].cluster;
+	    for (unsigned k = j; k && info[k - 1].cluster == old_cluster; k--)
+	      info[k - 1].cluster = cluster;
+	  }
+	  continue;
+	}
+
+	if (i + 1 < count)
+	  buffer->merge_clusters (i, i + 2); /* Merge cluster forward. */
+
 	continue;
       }
-      buffer->next_glyph ();
+
+      if (j != i)
+      {
+	info[j] = info[i];
+	pos[j] = pos[i];
+      }
+      j++;
     }
-    buffer->swap_buffers ();
+    buffer->len = j;
   }
 }
 

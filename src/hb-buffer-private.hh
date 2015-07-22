@@ -152,24 +152,6 @@ struct hb_buffer_t {
 
     idx++;
   }
-  inline void
-  next_glyphs (unsigned int count)
-  {
-    if (have_output)
-    {
-      if (unlikely (out_info != info || out_len != idx)) {
-	if (unlikely (!make_room_for (count, count))) return;
-	{
-	  while (count--)
-	    out_info[out_len++] = info[idx++];
-	  return;
-	}
-      }
-      out_len += count;
-    }
-
-    idx += count;
-  }
 
   /* Advance idx without copying to output. */
   inline void skip_glyph (void) { idx++; }
