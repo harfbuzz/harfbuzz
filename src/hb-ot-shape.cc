@@ -411,6 +411,65 @@ hb_ot_shape_setup_masks (hb_ot_shape_context_t *c)
   }
 }
 
+
+static void
+hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
+{
+  hb_buffer_t *buffer = c->buffer;
+
+  if (buffer->flags & HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES)
+    return;
+
+  unsigned int count = buffer->len;
+  hb_glyph_info_t *info = buffer->info;
+  hb_glyph_position_t *pos = buffer->pos;
+  unsigned int i = 0;
+  for (i = 0; i < count; i++)
+  {
+    if (unlikely (!_hb_glyph_info_ligated (&info[i]) &&
+		  _hb_glyph_info_is_default_ignorable (&info[i])))
+      break;
+  }
+
+  /* No default-ignorables found; return. */
+  if (i == count)
+    return;
+
+  hb_codepoint_t space;
+  if (c->font->get_glyph (' ', 0, &space))
+  {
+    /* Replace default-ignorables with a zero-advance space glyph. */
+    for (/*continue*/; i < count; i++)
+    {
+      if (!_hb_glyph_info_ligated (&info[i]) &&
+	   _hb_glyph_info_is_default_ignorable (&info[i]))
+      {
+	info[i].codepoint = space;
+	pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
+      }
+    }
+  }
+  else
+  {
+    /* Merge clusters and delete default-ignorables. */
+    buffer->clear_output ();
+    buffer->idx = 0;
+    buffer->next_glyphs (i);
+    while (buffer->idx < buffer->len)
+    {
+      if (!_hb_glyph_info_ligated (&info[buffer->idx]) &&
+	   _hb_glyph_info_is_default_ignorable (&info[buffer->idx]))
+      {
+	buffer->delete_glyph ();
+	continue;
+      }
+      buffer->next_glyph ();
+    }
+    buffer->swap_buffers ();
+  }
+}
+
+
 static inline void
 hb_ot_map_glyphs_fast (hb_buffer_t  *buffer)
 {
@@ -656,6 +715,10 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   hb_bool_t fallback = !hb_ot_position_complex (c);
 
+  /* Need to do this here, since position_finish and fallback positioning
+   * might be affected by width of default_ignorables. */
+  hb_ot_hide_default_ignorables (c);
+
   hb_ot_layout_position_finish (c->font, c->buffer);
 
   if (fallback && c->plan->shaper->fallback_position)
@@ -670,66 +733,6 @@ hb_ot_position (hb_ot_shape_context_t *c)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
-}
-
-
-/* Post-process */
-
-static void
-hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
-{
-  hb_buffer_t *buffer = c->buffer;
-
-  if (buffer->flags & HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES)
-    return;
-
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  hb_glyph_position_t *pos = buffer->pos;
-  unsigned int i = 0;
-  for (i = 0; i < count; i++)
-  {
-    if (unlikely (!_hb_glyph_info_ligated (&info[i]) &&
-		  _hb_glyph_info_is_default_ignorable (&info[i])))
-      break;
-  }
-
-  /* No default-ignorables found; return. */
-  if (i == count)
-    return;
-
-  hb_codepoint_t space;
-  if (c->font->get_glyph (' ', 0, &space))
-  {
-    /* Replace default-ignorables with a zero-advance space glyph. */
-    for (/*continue*/; i < count; i++)
-    {
-      if (!_hb_glyph_info_ligated (&info[i]) &&
-	   _hb_glyph_info_is_default_ignorable (&info[i]))
-      {
-	info[i].codepoint = space;
-	pos[i].x_advance = pos[i].y_advance = pos[i].x_offset = pos[i].y_offset = 0;
-      }
-    }
-  }
-  else
-  {
-    /* Merge clusters and delete default-ignorables. */
-    buffer->clear_output ();
-    buffer->idx = 0;
-    buffer->next_glyphs (i);
-    while (buffer->idx < buffer->len)
-    {
-      if (!_hb_glyph_info_ligated (&info[buffer->idx]) &&
-	   _hb_glyph_info_is_default_ignorable (&info[buffer->idx]))
-      {
-	buffer->delete_glyph ();
-	continue;
-      }
-      buffer->next_glyph ();
-    }
-    buffer->swap_buffers ();
-  }
 }
 
 
@@ -755,8 +758,6 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   hb_ot_substitute (c);
   hb_ot_position (c);
-
-  hb_ot_hide_default_ignorables (c);
 
   _hb_buffer_deallocate_unicode_vars (c->buffer);
 
