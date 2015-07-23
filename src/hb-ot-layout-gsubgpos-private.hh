@@ -2164,7 +2164,7 @@ struct ExtensionFormat1
   {
     TRACE_DISPATCH (this, format);
     if (unlikely (!c->may_dispatch (this, this))) TRACE_RETURN (c->default_return_value ());
-    return get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ());
+    return TRACE_RETURN (get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ()));
   }
 
   /* This is called from may_dispatch() above with hb_sanitize_context_t. */
