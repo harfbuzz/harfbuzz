@@ -719,7 +719,7 @@ static inline bool match_input (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  if (unlikely (count > MAX_CONTEXT_LENGTH)) TRACE_RETURN (false);
+  if (unlikely (count > MAX_CONTEXT_LENGTH)) return TRACE_RETURN (false);
 
   hb_buffer_t *buffer = c->buffer;
 
