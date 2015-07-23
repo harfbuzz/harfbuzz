@@ -15,9 +15,14 @@ fi
 IFS=:
 for f in "$@"; do
 	echo "Running tests in $f"
-	while read fontfile unicodes glyphs_expected; do
+	while read fontfile options unicodes glyphs_expected; do
 		echo "Testing $fontfile:$unicodes"
-		glyphs=`$srcdir/hb-unicode-encode "$unicodes" | $hb_shape "$srcdir/$fontfile"`
+		glyphs=`$srcdir/hb-unicode-encode "$unicodes" | $hb_shape $options "$srcdir/$fontfile"`
+		if test $? != 0; then
+			echo "hb-shape failed." >&2
+			fails=$((fails+1))
+			continue
+		fi
 		if ! test "x$glyphs" = "x$glyphs_expected"; then
 			echo "Actual:   $glyphs" >&2
 			echo "Expected: $glyphs_expected" >&2
