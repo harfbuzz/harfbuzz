@@ -102,7 +102,11 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			 F_HAS_FALLBACK : F_NONE));
   else
   {
-    map->add_global_bool_feature (HB_TAG('v','e','r','t'));
+    /* We really want to find a 'vert' feature if there's any in the font, no
+     * matter which script/langsys it is listed (or not) under.
+     * See various bugs referenced from:
+     * https://github.com/behdad/harfbuzz/issues/63 */
+    map->add_feature (HB_TAG ('v','e','r','t'), 1, F_GLOBAL | F_GLOBAL_SEARCH);
   }
 
   if (planner->shaper->override_features)
