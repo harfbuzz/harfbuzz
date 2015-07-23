@@ -59,10 +59,6 @@ static hb_tag_t horizontal_features[] = {
   HB_TAG('r','c','l','t'),
 };
 
-static hb_tag_t vertical_features[] = {
-  HB_TAG('v','e','r','t'),
-};
-
 
 
 static void
@@ -105,10 +101,9 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			(horizontal_features[i] == HB_TAG('k','e','r','n') ?
 			 F_HAS_FALLBACK : F_NONE));
   else
-    for (unsigned int i = 0; i < ARRAY_LENGTH (vertical_features); i++)
-      map->add_feature (vertical_features[i], 1, F_GLOBAL |
-			(vertical_features[i] == HB_TAG('v','k','r','n') ?
-			 F_HAS_FALLBACK : F_NONE));
+  {
+    map->add_global_bool_feature (HB_TAG('v','e','r','t'));
+  }
 
   if (planner->shaper->override_features)
     planner->shaper->override_features (planner);
