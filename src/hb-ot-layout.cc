@@ -905,7 +905,7 @@ apply_backward (OT::hb_apply_context_t *c,
 
 struct hb_apply_forward_context_t
 {
-  inline const char *get_name (void) { return "APPLY_FORWARD"; }
+  inline const char *get_name (void) { return "APPLY_FWD"; }
   static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
   typedef bool return_t;
   template <typename T, typename F>
