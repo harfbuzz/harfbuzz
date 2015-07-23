@@ -39,6 +39,7 @@ TESTS = \
 	tests/arabic-fallback-shaping.tests \
 	tests/arabic-feature-order.tests \
 	tests/context-matching.tests \
+	tests/default-ignorables.tests \
 	tests/hangul-jamo.tests \
 	tests/indic-joiner-candrabindu.tests \
 	tests/indic-old-spec.tests \
