@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([HarfBuzz],
-        [0.9.42],
+        [1.0.0],
         [http://bugs.freedesktop.org/enter_bug.cgi?product=harfbuzz],
         [harfbuzz],
         [http://harfbuzz.org/])
@@ -51,7 +51,7 @@ m4_if(m4_eval(hb_version_minor % 2), [1],
 m4_define([hb_libtool_age],
 	  m4_eval(hb_version_int - hb_libtool_revision))
 m4_define([hb_libtool_current],
-	  m4_eval(hb_version_major + hb_libtool_age))
+	  m4_eval(hb_libtool_age))
 HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 

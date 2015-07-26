@@ -1,3 +1,13 @@
+Overview of changes leading to 1.0.0
+Thursday, July 26, 2015
+====================================
+
+- Implement Universal Shaping Engine:
+  https://www.microsoft.com/typography/OpenTypeDev/USE/intro.htm
+  http://blogs.windows.com/bloggingwindows/2015/02/23/windows-shapes-the-worlds-languages/
+- Bump version to 1.0.0.  The soname was NOT bumped.
+
+
 Overview of changes leading to 0.9.42
 Thursday, July 26, 2015
 =====================================
