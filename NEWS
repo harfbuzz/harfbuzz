@@ -1,10 +1,21 @@
+Overview of changes leading to 0.9.42
+Thursday, July 26, 2015
+=====================================
 
+- New API to allow for retrieving finer-grained cluster
+  mappings if the client desires to handle them.  Default
+  behavior is unchanged.
+- Fix cluster merging when removing default-ignorables.
+- Update to Unicode 8.0
+- hb-graphite2 fixes.
+- Misc fixes.
 - Removed HB_NO_MERGE_CLUSTERS hack.
 - New API:
   hb_buffer_cluster_level_t enum
   hb_buffer_get_cluster_level()
   hb_buffer_set_cluster_level()
   hb-shape / hb-view --cluster-level
+
 
 Overview of changes leading to 0.9.41
 Thursday, June 18, 2015
@@ -15,6 +26,7 @@ Thursday, June 18, 2015
 - Allow implementing atomic ops in config.h.
 - Fix hb_language_t in language bindings.
 - Misc fixes.
+
 
 Overview of changes leading to 0.9.40
 Friday, March 20, 2015
