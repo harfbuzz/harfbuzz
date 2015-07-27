@@ -142,7 +142,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
   map->add_gsub_pause (reorder);
 
   /* "Topographical features" */
-  for (unsigned int i = 0; i < ARRAY_LENGTH (other_features); i++)
+  for (unsigned int i = 0; i < ARRAY_LENGTH (arabic_features); i++)
     map->add_feature (arabic_features[i], 1, F_NONE);
   map->add_gsub_pause (NULL);
 
