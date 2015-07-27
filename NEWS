@@ -1,5 +1,12 @@
+Overview of changes leading to 1.0.1
+Monday, July 27, 2015
+====================================
+
+- Fix out-of-bounds access in USE shaper.
+
+
 Overview of changes leading to 1.0.0
-Thursday, July 26, 2015
+Sunday, July 26, 2015
 ====================================
 
 - Implement Universal Shaping Engine:
