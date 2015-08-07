@@ -270,7 +270,7 @@ harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
 	$(EGREP) '^hb_.* \(' | \
 	sed -e 's/ (.*//' | \
 	LANG=C sort; \
-	echo LIBRARY libharfbuzz-$(HB_VERSION_MAJOR).dll; \
+	echo LIBRARY libharfbuzz-0.dll; \
 	) >"$@"
 	@ ! grep -q hb_ERROR "$@" \
 	|| ($(RM) "$@"; false)
