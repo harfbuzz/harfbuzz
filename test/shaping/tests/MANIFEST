@@ -1,5 +1,6 @@
 arabic-fallback-shaping.tests
 arabic-feature-order.tests
+cluster.tests
 context-matching.tests
 default-ignorables.tests
 hangul-jamo.tests
