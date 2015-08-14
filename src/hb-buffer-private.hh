@@ -50,6 +50,7 @@ struct hb_buffer_t {
   /* Information about how the text in the buffer should be treated */
   hb_unicode_funcs_t *unicode; /* Unicode functions */
   hb_buffer_flags_t flags; /* BOT / EOT / etc. */
+  hb_buffer_cluster_level_t cluster_level;
   hb_codepoint_t replacement; /* U+FFFD or something else. */
 
   /* Buffer contents */
@@ -151,24 +152,6 @@ struct hb_buffer_t {
 
     idx++;
   }
-  inline void
-  next_glyphs (unsigned int count)
-  {
-    if (have_output)
-    {
-      if (unlikely (out_info != info || out_len != idx)) {
-	if (unlikely (!make_room_for (count, count))) return;
-	{
-	  while (count--)
-	    out_info[out_len++] = info[idx++];
-	  return;
-	}
-      }
-      out_len += count;
-    }
-
-    idx += count;
-  }
 
   /* Advance idx without copying to output. */
   inline void skip_glyph (void) { idx++; }
@@ -189,7 +172,14 @@ struct hb_buffer_t {
 			      unsigned int cluster_end);
 
   HB_INTERNAL void merge_clusters (unsigned int start,
-				   unsigned int end);
+				   unsigned int end)
+  {
+    if (end - start < 2)
+      return;
+    merge_clusters_impl (start, end);
+  }
+  HB_INTERNAL void merge_clusters_impl (unsigned int start,
+					unsigned int end);
   HB_INTERNAL void merge_out_clusters (unsigned int start,
 				       unsigned int end);
   /* Merge clusters for deleting current glyph, and skip it. */

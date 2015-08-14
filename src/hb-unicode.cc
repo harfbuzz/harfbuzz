@@ -146,13 +146,8 @@ hb_unicode_funcs_get_default (void)
 }
 
 #if !defined(HB_NO_UNICODE_FUNCS) && defined(HB_UNICODE_FUNCS_NIL)
-#ifdef _MSC_VER
-#pragma error("Could not find any Unicode functions implementation, you have to provide your own.")
-#pragma error("Consider building hb-ucdn.c.  If you absolutely want to build without any, check the code.")
-#else
 #error "Could not find any Unicode functions implementation, you have to provide your own"
 #error "Consider building hb-ucdn.c.  If you absolutely want to build without any, check the code."
-#endif
 #endif
 
 /**

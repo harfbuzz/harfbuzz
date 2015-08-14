@@ -291,6 +291,28 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
   return g.get_feature_tags (start_offset, feature_count, feature_tags);
 }
 
+hb_bool_t
+hb_ot_layout_table_find_feature (hb_face_t    *face,
+				 hb_tag_t      table_tag,
+				 hb_tag_t      feature_tag,
+				 unsigned int *feature_index)
+{
+  ASSERT_STATIC (OT::Index::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_FEATURE_INDEX);
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  unsigned int num_features = g.get_feature_count ();
+  for (unsigned int i = 0; i < num_features; i++)
+  {
+    if (feature_tag == g.get_feature_tag (i)) {
+      if (feature_index) *feature_index = i;
+      return true;
+    }
+  }
+
+  if (feature_index) *feature_index = HB_OT_LAYOUT_NO_FEATURE_INDEX;
+  return false;
+}
+
 
 unsigned int
 hb_ot_layout_script_get_language_tags (hb_face_t    *face,
@@ -905,7 +927,7 @@ apply_backward (OT::hb_apply_context_t *c,
 
 struct hb_apply_forward_context_t
 {
-  inline const char *get_name (void) { return "APPLY_FORWARD"; }
+  inline const char *get_name (void) { return "APPLY_FWD"; }
   static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
   typedef bool return_t;
   template <typename T, typename F>
