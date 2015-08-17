@@ -238,14 +238,6 @@ enum syllable_type_t {
 #include "hb-ot-shape-complex-use-machine.hh"
 
 
-static inline void
-set_use_properties (hb_glyph_info_t &info)
-{
-  hb_codepoint_t u = info.codepoint;
-  info.use_category() = hb_use_get_categories (u);
-}
-
-
 static void
 setup_masks_use (const hb_ot_shape_plan_t *plan,
 		 hb_buffer_t              *buffer,
