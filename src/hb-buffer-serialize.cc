@@ -99,7 +99,8 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
 				  hb_buffer_serialize_flags_t flags)
 {
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
-  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+  hb_glyph_position_t *pos = (flags & HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS) ?
+			     NULL : hb_buffer_get_glyph_positions (buffer, NULL);
 
   *buf_consumed = 0;
   for (unsigned int i = start; i < end; i++)
@@ -172,7 +173,8 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 				  hb_buffer_serialize_flags_t flags)
 {
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, NULL);
-  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, NULL);
+  hb_glyph_position_t *pos = (flags & HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS) ?
+			     NULL : hb_buffer_get_glyph_positions (buffer, NULL);
 
   *buf_consumed = 0;
   for (unsigned int i = start; i < end; i++)
