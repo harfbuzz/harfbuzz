@@ -513,6 +513,8 @@ hb_ot_map_glyphs_fast (hb_buffer_t  *buffer)
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
     info[i].codepoint = info[i].glyph_index();
+
+  buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
 }
 
 static inline void
