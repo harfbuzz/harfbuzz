@@ -959,7 +959,7 @@ apply_string (OT::hb_apply_context_t *c,
   if (unlikely (!buffer->len || !c->lookup_mask))
     return;
 
-  c->set_lookup (lookup);
+  c->set_lookup_props (lookup.get_props ());
 
   if (likely (!lookup.is_reverse ()))
   {
@@ -1011,6 +1011,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
     for (; i < stage->last_lookup; i++)
     {
       unsigned int lookup_index = lookups[table_index][i].index;
+      c.set_lookup_index (lookup_index);
       c.set_lookup_mask (lookups[table_index][i].mask);
       c.set_auto_zwj (lookups[table_index][i].auto_zwj);
       apply_string<Proxy> (&c,
