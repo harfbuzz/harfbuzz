@@ -75,9 +75,10 @@ HARFBUZZ_SRC_FILES = \
 	src/hb-ot-shape-complex-indic.cc \
 	src/hb-ot-shape-complex-indic-table.cc \
 	src/hb-ot-shape-complex-myanmar.cc \
-	src/hb-ot-shape-complex-sea.cc \
 	src/hb-ot-shape-complex-thai.cc \
 	src/hb-ot-shape-complex-tibetan.cc \
+	src/hb-ot-shape-complex-use.cc \
+	src/hb-ot-shape-complex-use-table.cc \
 	src/hb-ot-shape-normalize.cc \
 	src/hb-ot-shape-fallback.cc \
 	$(NULL)
