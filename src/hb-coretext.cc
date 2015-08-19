@@ -156,6 +156,7 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
   /* Choose a CoreText font size and calculate multipliers to convert to HarfBuzz space. */
+  /* TODO: use upem instead of 36? */
   CGFloat font_size = 36.; /* Default... */
   /* No idea if the following is even a good idea. */
   if (font->y_ppem)
