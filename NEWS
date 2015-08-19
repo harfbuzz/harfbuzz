@@ -1,3 +1,16 @@
+Overview of changes leading to 1.0.2
+Wednesday, August 19, 2015
+====================================
+
+- Fix shaping with cluster-level > 0.
+- Fix Uniscribe backend font-size scaling.
+- Declare dependencies in harfbuzz.pc.
+  FreeType is not declared though, to avoid bugs in pkg-config
+  0.26 with recursive dependencies.
+- Slightly improved debug infrastructure.  More to come later.
+- Misc build fixes.
+
+
 Overview of changes leading to 1.0.1
 Monday, July 27, 2015
 ====================================
