@@ -1006,8 +1006,8 @@ retry:
 
     /* The rest is crap.  Let's store position info there for now. */
     info->mask = advances[i];
-    info->var1.u32 = offsets[i].du;
-    info->var2.u32 = offsets[i].dv;
+    info->var1.i32 = offsets[i].du;
+    info->var2.i32 = offsets[i].dv;
   }
 
   /* Set glyph positions */
@@ -1020,8 +1020,8 @@ retry:
 
     /* TODO vertical */
     pos->x_advance = x_mult * info->mask;
-    pos->x_offset = x_mult * (backward ? -info->var1.u32 : info->var1.u32);
-    pos->y_offset = y_mult * info->var2.u32;
+    pos->x_offset = x_mult * (backward ? -info->var1.i32 : info->var1.i32);
+    pos->y_offset = y_mult * info->var2.i32;
   }
 
   if (backward)
