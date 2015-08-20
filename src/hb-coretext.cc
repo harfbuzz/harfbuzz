@@ -916,8 +916,8 @@ retry:
 	      info->cluster = log_clusters[j];
 
 	      info->mask = advance;
-	      info->var1.u32 = x_offset;
-	      info->var2.u32 = y_offset;
+	      info->var1.i32 = x_offset;
+	      info->var2.i32 = y_offset;
 
 	      info++;
 	      buffer->len++;
@@ -1003,8 +1003,8 @@ retry:
 	    else /* last glyph */
 	      advance = run_advance - (positions[j].x - positions[0].x);
 	    info->mask = advance * x_mult;
-	    info->var1.u32 = x_offset;
-	    info->var2.u32 = positions[j].y * y_mult;
+	    info->var1.i32 = x_offset;
+	    info->var2.i32 = positions[j].y * y_mult;
 	    info++;
 	  }
 	}
@@ -1019,8 +1019,8 @@ retry:
 	    else /* last glyph */
 	      advance = run_advance - (positions[j].y - positions[0].y);
 	    info->mask = advance * y_mult;
-	    info->var1.u32 = positions[j].x * x_mult;
-	    info->var2.u32 = y_offset;
+	    info->var1.i32 = positions[j].x * x_mult;
+	    info->var2.i32 = y_offset;
 	    info++;
 	  }
 	}
@@ -1059,16 +1059,16 @@ retry:
       for (unsigned int i = 0; i < count; i++)
       {
 	pos->x_advance = info->mask;
-	pos->x_offset = info->var1.u32;
-	pos->y_offset = info->var2.u32;
+	pos->x_offset = info->var1.i32;
+	pos->y_offset = info->var2.i32;
 	info++, pos++;
       }
     else
       for (unsigned int i = 0; i < count; i++)
       {
 	pos->y_advance = info->mask;
-	pos->x_offset = info->var1.u32;
-	pos->y_offset = info->var2.u32;
+	pos->x_offset = info->var1.i32;
+	pos->y_offset = info->var2.i32;
 	info++, pos++;
       }
 
