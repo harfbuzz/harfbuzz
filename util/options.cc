@@ -706,6 +706,7 @@ format_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_NONE,	&this->show_positions,		"Do not output glyph positions",					NULL},
     {"no-clusters",	0, G_OPTION_FLAG_REVERSE,
 			      G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not output cluster indices",					NULL},
+    {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Output glyph extents",							NULL},
     {NULL}
   };
   parser->add_group (entries,

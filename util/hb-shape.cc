@@ -70,6 +70,8 @@ struct output_buffer_t
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS;
     if (!format.show_positions)
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS;
+    if (format.show_extents)
+      flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS;
     format_flags = (hb_buffer_serialize_flags_t) flags;
   }
   void new_line (void)
