@@ -140,8 +140,8 @@ struct hb_ot_face_glyf_accelerator_t
     unsigned int start_offset, end_offset;
     if (this->short_offset)
     {
-      start_offset = this->loca->u.shortsZ[glyph];
-      end_offset   = this->loca->u.shortsZ[glyph + 1];
+      start_offset = 2 * this->loca->u.shortsZ[glyph];
+      end_offset   = 2 * this->loca->u.shortsZ[glyph + 1];
     }
     else
     {
