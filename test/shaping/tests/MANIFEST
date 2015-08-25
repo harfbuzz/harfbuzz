@@ -2,6 +2,7 @@ arabic-fallback-shaping.tests
 arabic-feature-order.tests
 cluster.tests
 context-matching.tests
+cursive-positioning.tests
 default-ignorables.tests
 hangul-jamo.tests
 indic-joiner-candrabindu.tests

@@ -40,6 +40,7 @@ TESTS = \
 	tests/arabic-feature-order.tests \
 	tests/cluster.tests \
 	tests/context-matching.tests \
+	tests/cursive-positioning.tests \
 	tests/default-ignorables.tests \
 	tests/hangul-jamo.tests \
 	tests/indic-joiner-candrabindu.tests \
