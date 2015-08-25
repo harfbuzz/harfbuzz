@@ -883,6 +883,9 @@ struct EntryExitRecord
   DEFINE_SIZE_STATIC (4);
 };
 
+static void
+reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction, unsigned int new_parent);
+
 struct CursivePosFormat1
 {
   inline void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -979,6 +982,13 @@ struct CursivePosFormat1
       x_offset = -x_offset;
       y_offset = -y_offset;
     }
+
+    /* If child was already connected to someone else, walk through its old
+     * chain and reverse the link direction, such that the whole tree of its
+     * previous connection now attaches to new parent.  Watch out for case
+     * where new parent is on the path from old chain...
+     */
+    reverse_cursive_minor_offset (pos, child, c->direction, parent);
 
     pos[child].cursive_chain() = parent - child;
     if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
@@ -1494,6 +1504,30 @@ struct GPOS : GSUBGPOS
 };
 
 
+static void
+reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction, unsigned int new_parent)
+{
+  unsigned int j = pos[i].cursive_chain();
+  if (likely (!j))
+    return;
+
+  j += i;
+
+  pos[i].cursive_chain() = 0;
+
+  /* Stop if we see new parent in the chain. */
+  if (j == new_parent)
+    return;
+
+  reverse_cursive_minor_offset (pos, j, direction, new_parent);
+
+  if (HB_DIRECTION_IS_HORIZONTAL (direction))
+    pos[j].y_offset = -pos[i].y_offset;
+  else
+    pos[j].x_offset = -pos[i].x_offset;
+
+  pos[j].cursive_chain() = i - j;
+}
 static void
 fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
 {
