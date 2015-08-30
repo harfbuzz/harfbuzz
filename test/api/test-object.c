@@ -357,10 +357,6 @@ test_object (void)
       g_assert (o->get_user_data (obj, &key[0]));
 
       o->destroy (obj);
-      o->destroy (obj);
-      o->destroy (obj);
-      o->destroy (obj);
-      o->destroy (obj);
 
       g_assert (data[0].freed);
     }
