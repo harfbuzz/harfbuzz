@@ -1,4 +1,4 @@
-<sect1 id="hello-harfbuzz">
+<chapter id="hello-harfbuzz">
   <title>Hello, Harfbuzz</title>
   <para>
     Here's the simplest Harfbuzz that can possibly work. We will improve
@@ -90,7 +90,7 @@
   hb_buffer_destroy(buf);
   hb_font_destroy(hb_ft_font);
 </programlisting>
-  <sect2 id="what-harfbuzz-doesnt-do">
+  <section id="what-harfbuzz-doesnt-do">
     <title>What Harfbuzz doesn't do</title>
     <para>
       The code above will take a UTF8 string, shape it, and give you the
@@ -131,6 +131,7 @@ ABC אבג DEF
           bidi algorithm to it. Libraries such as ICU and fribidi can do
           this for you.
         </para>
+      </listitem>
       <listitem>
         <para>
           Harfbuzz won't help you with text that contains different font
@@ -178,5 +179,5 @@ ABC אבג DEF
       Harfbuzz's API to refine that example and improve our text shaping
       capabilities.
     </para>
-  </sect2>
-</sect1>
+  </section>
+</chapter>

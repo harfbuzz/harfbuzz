@@ -1,4 +1,4 @@
-<sect1 id="buffers-language-script-and-direction">
+<chapter id="buffers-language-script-and-direction">
   <title>Buffers, language, script and direction</title>
   <para>
     The input to Harfbuzz is a series of Unicode characters, stored in a
@@ -6,7 +6,7 @@
     the text that we want and then customize the properties of the
     buffer.
   </para>
-  <sect2 id="creating-and-destroying-buffers">
+  <section id="creating-and-destroying-buffers">
     <title>Creating and destroying buffers</title>
     <para>
       As we saw in our initial example, a buffer is created and
@@ -49,8 +49,8 @@ void somefunc(hb_buffer_t *buffer) {
       throw away the string in the buffer but keep the options, you can
       instead call <literal>hb_buffer_clear_contents(buffer)</literal>.
     </para>
-  </sect2>
-  <sect2 id="adding-text-to-the-buffer">
+  </section>
+  <section id="adding-text-to-the-buffer">
     <title>Adding text to the buffer</title>
     <para>
       Now we have a brand new Harfbuzz buffer. Let's start filling it
@@ -58,20 +58,20 @@ void somefunc(hb_buffer_t *buffer) {
       of Unicode codepoints, but your input string is probably in one of
       the standard Unicode character encodings (UTF-8, UTF-16, UTF-32)
     </para>
-  </sect2>
-  <sect2 id="setting-buffer-properties">
+  </section>
+  <section id="setting-buffer-properties">
     <title>Setting buffer properties</title>
     <para>
     </para>
-  </sect2>
-  <sect2 id="what-about-the-other-scripts">
+  </section>
+  <section id="what-about-the-other-scripts">
     <title>What about the other scripts?</title>
     <para>
     </para>
-  </sect2>
-  <sect2 id="customizing-unicode-functions">
+  </section>
+  <section id="customizing-unicode-functions">
     <title>Customizing Unicode functions</title>
     <para>
     </para>
-  </sect2>
-</sect1>
+  </section>
+</chapter>
