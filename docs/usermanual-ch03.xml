@@ -56,7 +56,7 @@ void somefunc(hb_buffer_t *buffer) {
       Now we have a brand new Harfbuzz buffer. Let's start filling it
       with text! From Harfbuzz's perspective, a buffer is just a stream
       of Unicode codepoints, but your input string is probably in one of
-      the standard Unicode character encodings (UTF-8, UTF-16, UTF-3 )
+      the standard Unicode character encodings (UTF-8, UTF-16, UTF-32)
     </para>
   </sect2>
   <sect2 id="setting-buffer-properties">
