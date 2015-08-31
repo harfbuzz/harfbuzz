@@ -1,11 +1,11 @@
-<sect1 id="what-is-harfbuzz">
+<chapter id="what-is-harfbuzz">
   <title>What is Harfbuzz?</title>
   <para>
     Harfbuzz is a <emphasis>text shaping engine</emphasis>. It solves
     the problem of selecting and positioning glyphs from a font given a
     Unicode string.
   </para>
-  <sect2 id="why-do-i-need-it">
+  <section id="why-do-i-need-it">
     <title>Why do I need it?</title>
     <para>
       Text shaping is an integral part of preparing text for display. It
@@ -99,8 +99,8 @@
       rest of this manual, we are going to assume that you are the
       implementor of a text layout engine.
     </para>
-  </sect2>
-  <sect2 id="why-is-it-called-harfbuzz">
+  </section>
+  <section id="why-is-it-called-harfbuzz">
     <title>Why is it called Harfbuzz?</title>
     <para>
       Harfbuzz began its life as text shaping code within the FreeType
@@ -111,5 +111,5 @@
       engine for OpenType fonts - &quot;Harfbuzz&quot; is the Persian
       for &quot;open type&quot;.
     </para>
-  </sect2>
-</sect1>
+  </section>
+</chapter>
