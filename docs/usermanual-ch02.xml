@@ -131,6 +131,7 @@ ABC אבג DEF
           bidi algorithm to it. Libraries such as ICU and fribidi can do
           this for you.
         </para>
+      </listitem>
       <listitem>
         <para>
           Harfbuzz won't help you with text that contains different font
