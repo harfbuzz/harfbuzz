@@ -442,8 +442,7 @@ test/Makefile
 test/api/Makefile
 test/shaping/Makefile
 docs/Makefile
-docs/reference/Makefile
-docs/reference/version.xml
+docs/version.xml
 ])
 
 AC_OUTPUT
