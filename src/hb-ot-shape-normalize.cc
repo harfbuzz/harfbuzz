@@ -350,7 +350,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       continue;
     }
 
-    hb_stable_sort (buffer->info + i, end - i, compare_combining_class);
+    buffer->sort (i, end, compare_combining_class);
 
     i = end;
   }

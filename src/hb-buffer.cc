@@ -1678,3 +1678,24 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
     }
   normalize_glyphs_cluster (buffer, start, end, backward);
 }
+
+void
+hb_buffer_t::sort (unsigned int start, unsigned int end, int(*compar)(const hb_glyph_info_t *, const hb_glyph_info_t *))
+{
+  assert (!have_positions);
+  for (unsigned int i = start + 1; i < end; i++)
+  {
+    unsigned int j = i;
+    while (j > start && compar (&info[j - 1], &info[i]) > 0)
+      j--;
+    if (i == j)
+      continue;
+    /* Move item i to occupy place for item j, shift what's in between. */
+    merge_clusters (j, i + 1);
+    {
+      hb_glyph_info_t t = info[i];
+      memmove (&info[j + 1], &info[j], (i - j) * sizeof (hb_glyph_info_t));
+      info[j] = t;
+    }
+  }
+}
