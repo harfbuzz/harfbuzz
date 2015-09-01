@@ -866,15 +866,13 @@ hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *), 
       continue;
     /* Move item i to occupy place for item j, shift what's in between. */
     {
-      T t;
-      t = array[i];
+      T t = array[i];
       memmove (&array[j + 1], &array[j], (i - j) * sizeof (T));
       array[j] = t;
     }
     if (array2)
     {
-      T2 t;
-      t = array2[i];
+      T2 t = array2[i];
       memmove (&array2[j + 1], &array2[j], (i - j) * sizeof (T2));
       array2[j] = t;
     }
