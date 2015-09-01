@@ -436,10 +436,10 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 	if (info[i].use_category() == USE_H)
 	  i--;
 
+	buffer->merge_clusters (start, i + 1);
 	hb_glyph_info_t t = info[start];
 	memmove (&info[start], &info[start + 1], (i - start) * sizeof (info[0]));
 	info[i] = t;
-	buffer->merge_clusters (start, i + 1);
 
 	break;
       }
@@ -464,10 +464,10 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 	     0 == _hb_glyph_info_get_lig_comp (&info[i]) &&
 	     j < i)
     {
+      buffer->merge_clusters (j, i + 1);
       hb_glyph_info_t t = info[i];
       memmove (&info[j + 1], &info[j], (i - j) * sizeof (info[0]));
       info[j] = t;
-      buffer->merge_clusters (j, i + 1);
     }
   }
 }
