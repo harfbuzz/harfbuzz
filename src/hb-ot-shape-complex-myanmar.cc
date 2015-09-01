@@ -393,7 +393,7 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
 
   buffer->merge_clusters (start, end);
   /* Sit tight, rock 'n roll! */
-  hb_bubble_sort (info + start, end - start, compare_myanmar_order);
+  hb_stable_sort (info + start, end - start, compare_myanmar_order);
 }
 
 static void
