@@ -6,6 +6,10 @@ CLEANFILES =
 DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 
+# Convenience targets:
+lib:
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+
 manifests:
 	@$(srcdir)/hb-manifest-update "$(srcdir)/texts" "$(srcdir)/fonts" "$(srcdir)/tests"
 
