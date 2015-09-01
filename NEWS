@@ -1,3 +1,14 @@
+Overview of changes leading to 1.0.3
+Tuesday, September 1, 2015
+====================================
+
+- Start of user documentation, from Simon Cozens!
+- Implement glyph_extents() for TrueType fonts in hb-ot-font.
+- Improve GPOS cursive attachments with conflicting lookups.
+- More fixes for cluster-level = 1.
+- Uniscribe positioning fix.
+
+
 Overview of changes leading to 1.0.2
 Wednesday, August 19, 2015
 ====================================
