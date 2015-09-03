@@ -798,7 +798,7 @@ hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 /**
- * Since: 0.9.8
+ * Since: 0.9.10
  **/
 hb_bool_t
 hb_ot_layout_get_size_params (hb_face_t    *face,

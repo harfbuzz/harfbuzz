@@ -877,7 +877,7 @@ hb_ot_tag_from_language (hb_language_t language)
  *
  * Return value: (transfer none):
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 hb_language_t
 hb_ot_tag_to_language (hb_tag_t tag)

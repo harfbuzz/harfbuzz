@@ -399,7 +399,7 @@ hb_shape_full (hb_font_t          *font,
  *
  * Return value: %FALSE if all shapers failed, %TRUE otherwise
  *
- * Since: 1.0
+ * Since: 0.9.2
  **/
 void
 hb_shape (hb_font_t           *font,

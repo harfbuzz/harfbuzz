@@ -347,7 +347,7 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
  * 
  *
  * Return value: (transfer full): 
- * Since: 1.0
+ * Since: 0.9.2
  **/
 hb_face_t *
 hb_ft_face_create (FT_Face           ft_face,
@@ -403,7 +403,7 @@ hb_ft_face_finalize (FT_Face ft_face)
  * 
  *
  * Return value: (transfer full): 
- * Since: 1.0
+ * Since: 0.9.2
  **/
 hb_face_t *
 hb_ft_face_create_cached (FT_Face ft_face)
@@ -434,7 +434,7 @@ _do_nothing (void)
  * 
  *
  * Return value: (transfer full): 
- * Since: 1.0
+ * Since: 0.9.2
  **/
 hb_font_t *
 hb_ft_font_create (FT_Face           ft_face,
