@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012  Google, Inc.
+ * Copyright © 2015  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,39 +20,15 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_SHAPER_LIST_HH
-#define HB_SHAPER_LIST_HH
-#endif /* HB_SHAPER_LIST_HH */ /* Dummy header guards */
+#ifndef HB_DIRECTWRITE_H
+#define HB_DIRECTWRITE_H
 
-/* v--- Add new shapers in the right place here. */
+#include "hb.h"
 
-#ifdef HAVE_GRAPHITE2
-/* Only picks up fonts that have a "Silf" table. */
-HB_SHAPER_IMPLEMENT (graphite2)
-#endif
-#ifdef HAVE_CORETEXT
-/* Only picks up fonts that have a "mort" or "morx" table. */
-HB_SHAPER_IMPLEMENT (coretext_aat)
-#endif
+HB_BEGIN_DECLS
 
-#ifdef HAVE_OT
-HB_SHAPER_IMPLEMENT (ot) /* <--- This is our main OpenType shaper. */
-#endif
+HB_END_DECLS
 
-#ifdef HAVE_UNISCRIBE
-HB_SHAPER_IMPLEMENT (uniscribe)
-#endif
-#ifdef HAVE_DIRECTWRITE
-HB_SHAPER_IMPLEMENT (directwrite)
-#endif
-#ifdef HAVE_CORETEXT
-HB_SHAPER_IMPLEMENT (coretext)
-#endif
-
-#ifdef HAVE_FALLBACK
-HB_SHAPER_IMPLEMENT (fallback) /* <--- This should be last. */
-#endif
+#endif /* HB_UNISCRIBE_H */
