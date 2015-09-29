@@ -225,7 +225,7 @@ struct SingleSubst
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     case 2: return TRACE_RETURN (c->dispatch (u.format2));
@@ -418,7 +418,7 @@ struct MultipleSubst
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
@@ -562,7 +562,7 @@ struct AlternateSubst
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
@@ -873,7 +873,7 @@ struct LigatureSubst
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
@@ -1030,7 +1030,7 @@ struct ReverseChainSingleSubst
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
     switch (u.format) {
     case 1: return TRACE_RETURN (c->dispatch (u.format1));
     default:return TRACE_RETURN (c->default_return_value ());
@@ -1070,7 +1070,7 @@ struct SubstLookupSubTable
   {
     TRACE_DISPATCH (this, lookup_type);
     /* The sub_format passed to may_dispatch is unnecessary but harmless. */
-    if (unlikely (!c->may_dispatch (this, &u.sub_format))) TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.sub_format))) return TRACE_RETURN (c->default_return_value ());
     switch (lookup_type) {
     case Single:		return TRACE_RETURN (u.single.dispatch (c));
     case Multiple:		return TRACE_RETURN (u.multiple.dispatch (c));
