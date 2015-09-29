@@ -624,7 +624,7 @@ struct IntType
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (likely (c->check_struct (this)));
+    return_trace (likely (c->check_struct (this)));
   }
   protected:
   BEInt<Type, Size> v;
@@ -652,7 +652,7 @@ struct LONGDATETIME
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (likely (c->check_struct (this)));
+    return_trace (likely (c->check_struct (this)));
   }
   protected:
   LONG major;
@@ -729,7 +729,7 @@ struct FixedVersion
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this));
+    return_trace (c->check_struct (this));
   }
 
   USHORT major;
@@ -765,21 +765,21 @@ struct OffsetTo : Offset<OffsetType>
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this))) return TRACE_RETURN (false);
+    if (unlikely (!c->check_struct (this))) return_trace (false);
     unsigned int offset = *this;
-    if (unlikely (!offset)) return TRACE_RETURN (true);
+    if (unlikely (!offset)) return_trace (true);
     const Type &obj = StructAtOffset<Type> (base, offset);
-    return TRACE_RETURN (likely (obj.sanitize (c)) || neuter (c));
+    return_trace (likely (obj.sanitize (c)) || neuter (c));
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!c->check_struct (this))) return TRACE_RETURN (false);
+    if (unlikely (!c->check_struct (this))) return_trace (false);
     unsigned int offset = *this;
-    if (unlikely (!offset)) return TRACE_RETURN (true);
+    if (unlikely (!offset)) return_trace (true);
     const Type &obj = StructAtOffset<Type> (base, offset);
-    return TRACE_RETURN (likely (obj.sanitize (c, user_data)) || neuter (c));
+    return_trace (likely (obj.sanitize (c, user_data)) || neuter (c));
   }
 
   /* Set the offset to Null */
@@ -830,10 +830,10 @@ struct ArrayOf
 			 unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
     len.set (items_len); /* TODO(serialize) Overflow? */
-    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
-    return TRACE_RETURN (true);
+    if (unlikely (!c->extend (*this))) return_trace (false);
+    return_trace (true);
   }
 
   inline bool serialize (hb_serialize_context_t *c,
@@ -841,17 +841,17 @@ struct ArrayOf
 			 unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!serialize (c, items_len))) return TRACE_RETURN (false);
+    if (unlikely (!serialize (c, items_len))) return_trace (false);
     for (unsigned int i = 0; i < items_len; i++)
       array[i] = items[i];
     items.advance (items_len);
-    return TRACE_RETURN (true);
+    return_trace (true);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
 
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
@@ -862,28 +862,28 @@ struct ArrayOf
      */
     (void) (false && array[0].sanitize (c));
 
-    return TRACE_RETURN (true);
+    return_trace (true);
   }
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!array[i].sanitize (c, base)))
-        return TRACE_RETURN (false);
-    return TRACE_RETURN (true);
+        return_trace (false);
+    return_trace (true);
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, const void *base, T user_data) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!array[i].sanitize (c, base, user_data)))
-        return TRACE_RETURN (false);
-    return TRACE_RETURN (true);
+        return_trace (false);
+    return_trace (true);
   }
 
   template <typename SearchType>
@@ -900,7 +900,7 @@ struct ArrayOf
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && c->check_array (this, Type::static_size, len));
+    return_trace (c->check_struct (this) && c->check_array (this, Type::static_size, len));
   }
 
   public:
@@ -927,13 +927,13 @@ struct OffsetListOf : OffsetArrayOf<Type>
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (OffsetArrayOf<Type>::sanitize (c, this));
+    return_trace (OffsetArrayOf<Type>::sanitize (c, this));
   }
   template <typename T>
   inline bool sanitize (hb_sanitize_context_t *c, T user_data) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (OffsetArrayOf<Type>::sanitize (c, this, user_data));
+    return_trace (OffsetArrayOf<Type>::sanitize (c, this, user_data));
   }
 };
 
@@ -955,14 +955,14 @@ struct HeadlessArrayOf
 			 unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return TRACE_RETURN (false);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
     len.set (items_len); /* TODO(serialize) Overflow? */
-    if (unlikely (!items_len)) return TRACE_RETURN (true);
-    if (unlikely (!c->extend (*this))) return TRACE_RETURN (false);
+    if (unlikely (!items_len)) return_trace (true);
+    if (unlikely (!c->extend (*this))) return_trace (false);
     for (unsigned int i = 0; i < items_len - 1; i++)
       array[i] = items[i];
     items.advance (items_len - 1);
-    return TRACE_RETURN (true);
+    return_trace (true);
   }
 
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
@@ -974,7 +974,7 @@ struct HeadlessArrayOf
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!sanitize_shallow (c))) return TRACE_RETURN (false);
+    if (unlikely (!sanitize_shallow (c))) return_trace (false);
 
     /* Note: for structs that do not reference other structs,
      * we do not need to call their sanitize() as we already did
@@ -985,7 +985,7 @@ struct HeadlessArrayOf
      */
     (void) (false && array[0].sanitize (c));
 
-    return TRACE_RETURN (true);
+    return_trace (true);
   }
 
   LenType len;

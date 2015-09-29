@@ -722,7 +722,7 @@ static inline bool match_input (hb_apply_context_t *c,
 {
   TRACE_APPLY (NULL);
 
-  if (unlikely (count > MAX_CONTEXT_LENGTH)) return TRACE_RETURN (false);
+  if (unlikely (count > MAX_CONTEXT_LENGTH)) return_trace (false);
 
   hb_buffer_t *buffer = c->buffer;
 
@@ -759,7 +759,7 @@ static inline bool match_input (hb_apply_context_t *c,
   match_positions[0] = buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
-    if (!skippy_iter.next ()) return TRACE_RETURN (false);
+    if (!skippy_iter.next ()) return_trace (false);
 
     match_positions[i] = skippy_iter.idx;
 
@@ -771,13 +771,13 @@ static inline bool match_input (hb_apply_context_t *c,
        * all subsequent components should be attached to the same ligature
        * component, otherwise we shouldn't ligate them. */
       if (first_lig_id != this_lig_id || first_lig_comp != this_lig_comp)
-	return TRACE_RETURN (false);
+	return_trace (false);
     } else {
       /* If first component was NOT attached to a previous ligature component,
        * all subsequent components should also NOT be attached to any ligature
        * component, unless they are attached to the first component itself! */
       if (this_lig_id && this_lig_comp && (this_lig_id != first_lig_id))
-	return TRACE_RETURN (false);
+	return_trace (false);
     }
 
     is_mark_ligature = is_mark_ligature && _hb_glyph_info_is_mark (&buffer->info[skippy_iter.idx]);
@@ -792,9 +792,9 @@ static inline bool match_input (hb_apply_context_t *c,
   if (p_total_component_count)
     *p_total_component_count = total_component_count;
 
-  return TRACE_RETURN (true);
+  return_trace (true);
 }
-static inline void ligate_input (hb_apply_context_t *c,
+static inline bool ligate_input (hb_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int match_positions[MAX_CONTEXT_LENGTH], /* Including the first glyph */
 				 unsigned int match_length,
@@ -884,7 +884,7 @@ static inline void ligate_input (hb_apply_context_t *c,
 	break;
     }
   }
-  TRACE_RETURN (true);
+  return_trace (true);
 }
 
 static inline bool match_backtrack (hb_apply_context_t *c,
@@ -901,9 +901,9 @@ static inline bool match_backtrack (hb_apply_context_t *c,
 
   for (unsigned int i = 0; i < count; i++)
     if (!skippy_iter.prev ())
-      return TRACE_RETURN (false);
+      return_trace (false);
 
-  return TRACE_RETURN (true);
+  return_trace (true);
 }
 
 static inline bool match_lookahead (hb_apply_context_t *c,
@@ -921,9 +921,9 @@ static inline bool match_lookahead (hb_apply_context_t *c,
 
   for (unsigned int i = 0; i < count; i++)
     if (!skippy_iter.next ())
-      return TRACE_RETURN (false);
+      return_trace (false);
 
-  return TRACE_RETURN (true);
+  return_trace (true);
 }
 
 
@@ -933,7 +933,7 @@ struct LookupRecord
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this));
+    return_trace (c->check_struct (this));
   }
 
   USHORT	sequenceIndex;		/* Index into current glyph
@@ -1034,7 +1034,7 @@ static inline bool apply_lookup (hb_apply_context_t *c,
 
   buffer->move_to (end);
 
-  return TRACE_RETURN (true);
+  return_trace (true);
 }
 
 
@@ -1143,14 +1143,14 @@ struct Rule
   {
     TRACE_WOULD_APPLY (this);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
-    return TRACE_RETURN (context_would_apply_lookup (c, inputCount, inputZ, lookupCount, lookupRecord, lookup_context));
+    return_trace (context_would_apply_lookup (c, inputCount, inputZ, lookupCount, lookupRecord, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
-    return TRACE_RETURN (context_apply_lookup (c, inputCount, inputZ, lookupCount, lookupRecord, lookup_context));
+    return_trace (context_apply_lookup (c, inputCount, inputZ, lookupCount, lookupRecord, lookup_context));
   }
 
   public:
@@ -1202,9 +1202,9 @@ struct RuleSet
     for (unsigned int i = 0; i < num_rules; i++)
     {
       if ((this+rule[i]).would_apply (c, lookup_context))
-        return TRACE_RETURN (true);
+        return_trace (true);
     }
-    return TRACE_RETURN (false);
+    return_trace (false);
   }
 
   inline bool apply (hb_apply_context_t *c, ContextApplyLookupContext &lookup_context) const
@@ -1214,15 +1214,15 @@ struct RuleSet
     for (unsigned int i = 0; i < num_rules; i++)
     {
       if ((this+rule[i]).apply (c, lookup_context))
-        return TRACE_RETURN (true);
+        return_trace (true);
     }
-    return TRACE_RETURN (false);
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (rule.sanitize (c, this));
+    return_trace (rule.sanitize (c, this));
   }
 
   protected:
@@ -1279,7 +1279,7 @@ struct ContextFormat1
       {match_glyph},
       NULL
     };
-    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
+    return_trace (rule_set.would_apply (c, lookup_context));
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1292,20 +1292,20 @@ struct ContextFormat1
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED))
-      return TRACE_RETURN (false);
+      return_trace (false);
 
     const RuleSet &rule_set = this+ruleSet[index];
     struct ContextApplyLookupContext lookup_context = {
       {match_glyph},
       NULL
     };
-    return TRACE_RETURN (rule_set.apply (c, lookup_context));
+    return_trace (rule_set.apply (c, lookup_context));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
+    return_trace (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
   protected:
@@ -1371,7 +1371,7 @@ struct ContextFormat2
       {match_class},
       &class_def
     };
-    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
+    return_trace (rule_set.would_apply (c, lookup_context));
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1383,7 +1383,7 @@ struct ContextFormat2
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const ClassDef &class_def = this+classDef;
     index = class_def.get_class (c->buffer->cur().codepoint);
@@ -1392,13 +1392,13 @@ struct ContextFormat2
       {match_class},
       &class_def
     };
-    return TRACE_RETURN (rule_set.apply (c, lookup_context));
+    return_trace (rule_set.apply (c, lookup_context));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this));
+    return_trace (coverage.sanitize (c, this) && classDef.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
   protected:
@@ -1462,7 +1462,7 @@ struct ContextFormat3
       {match_coverage},
       this
     };
-    return TRACE_RETURN (context_would_apply_lookup (c, glyphCount, (const USHORT *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
+    return_trace (context_would_apply_lookup (c, glyphCount, (const USHORT *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1474,27 +1474,27 @@ struct ContextFormat3
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverageZ[0]).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * glyphCount);
     struct ContextApplyLookupContext lookup_context = {
       {match_coverage},
       this
     };
-    return TRACE_RETURN (context_apply_lookup (c, glyphCount, (const USHORT *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
+    return_trace (context_apply_lookup (c, glyphCount, (const USHORT *) (coverageZ + 1), lookupCount, lookupRecord, lookup_context));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!c->check_struct (this)) return TRACE_RETURN (false);
+    if (!c->check_struct (this)) return_trace (false);
     unsigned int count = glyphCount;
-    if (!count) return TRACE_RETURN (false); /* We want to access coverageZ[0] freely. */
-    if (!c->check_array (coverageZ, coverageZ[0].static_size, count)) return TRACE_RETURN (false);
+    if (!count) return_trace (false); /* We want to access coverageZ[0] freely. */
+    if (!c->check_array (coverageZ, coverageZ[0].static_size, count)) return_trace (false);
     for (unsigned int i = 0; i < count; i++)
-      if (!coverageZ[i].sanitize (c, this)) return TRACE_RETURN (false);
+      if (!coverageZ[i].sanitize (c, this)) return_trace (false);
     const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * count);
-    return TRACE_RETURN (c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount));
+    return_trace (c->check_array (lookupRecord, lookupRecord[0].static_size, lookupCount));
   }
 
   protected:
@@ -1517,12 +1517,12 @@ struct Context
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->default_return_value ());
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->dispatch (u.format1));
-    case 2: return TRACE_RETURN (c->dispatch (u.format2));
-    case 3: return TRACE_RETURN (c->dispatch (u.format3));
-    default:return TRACE_RETURN (c->default_return_value ());
+    case 1: return_trace (c->dispatch (u.format1));
+    case 2: return_trace (c->dispatch (u.format2));
+    case 3: return_trace (c->dispatch (u.format3));
+    default:return_trace (c->default_return_value ());
     }
   }
 
@@ -1687,11 +1687,11 @@ struct ChainRule
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return TRACE_RETURN (chain_context_would_apply_lookup (c,
-							   backtrack.len, backtrack.array,
-							   input.len, input.array,
-							   lookahead.len, lookahead.array, lookup.len,
-							   lookup.array, lookup_context));
+    return_trace (chain_context_would_apply_lookup (c,
+						    backtrack.len, backtrack.array,
+						    input.len, input.array,
+						    lookahead.len, lookahead.array, lookup.len,
+						    lookup.array, lookup_context));
   }
 
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
@@ -1700,23 +1700,23 @@ struct ChainRule
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return TRACE_RETURN (chain_context_apply_lookup (c,
-						     backtrack.len, backtrack.array,
-						     input.len, input.array,
-						     lookahead.len, lookahead.array, lookup.len,
-						     lookup.array, lookup_context));
+    return_trace (chain_context_apply_lookup (c,
+					      backtrack.len, backtrack.array,
+					      input.len, input.array,
+					      lookahead.len, lookahead.array, lookup.len,
+					      lookup.array, lookup_context));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!backtrack.sanitize (c)) return TRACE_RETURN (false);
+    if (!backtrack.sanitize (c)) return_trace (false);
     const HeadlessArrayOf<USHORT> &input = StructAfter<HeadlessArrayOf<USHORT> > (backtrack);
-    if (!input.sanitize (c)) return TRACE_RETURN (false);
+    if (!input.sanitize (c)) return_trace (false);
     const ArrayOf<USHORT> &lookahead = StructAfter<ArrayOf<USHORT> > (input);
-    if (!lookahead.sanitize (c)) return TRACE_RETURN (false);
+    if (!lookahead.sanitize (c)) return_trace (false);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return TRACE_RETURN (lookup.sanitize (c));
+    return_trace (lookup.sanitize (c));
   }
 
   protected:
@@ -1761,9 +1761,9 @@ struct ChainRuleSet
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       if ((this+rule[i]).would_apply (c, lookup_context))
-        return TRACE_RETURN (true);
+        return_trace (true);
 
-    return TRACE_RETURN (false);
+    return_trace (false);
   }
 
   inline bool apply (hb_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
@@ -1772,15 +1772,15 @@ struct ChainRuleSet
     unsigned int num_rules = rule.len;
     for (unsigned int i = 0; i < num_rules; i++)
       if ((this+rule[i]).apply (c, lookup_context))
-        return TRACE_RETURN (true);
+        return_trace (true);
 
-    return TRACE_RETURN (false);
+    return_trace (false);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (rule.sanitize (c, this));
+    return_trace (rule.sanitize (c, this));
   }
 
   protected:
@@ -1835,7 +1835,7 @@ struct ChainContextFormat1
       {match_glyph},
       {NULL, NULL, NULL}
     };
-    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
+    return_trace (rule_set.would_apply (c, lookup_context));
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1847,20 +1847,20 @@ struct ChainContextFormat1
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const ChainRuleSet &rule_set = this+ruleSet[index];
     struct ChainContextApplyLookupContext lookup_context = {
       {match_glyph},
       {NULL, NULL, NULL}
     };
-    return TRACE_RETURN (rule_set.apply (c, lookup_context));
+    return_trace (rule_set.apply (c, lookup_context));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
+    return_trace (coverage.sanitize (c, this) && ruleSet.sanitize (c, this));
   }
 
   protected:
@@ -1939,7 +1939,7 @@ struct ChainContextFormat2
        &input_class_def,
        &lookahead_class_def}
     };
-    return TRACE_RETURN (rule_set.would_apply (c, lookup_context));
+    return_trace (rule_set.would_apply (c, lookup_context));
   }
 
   inline const Coverage &get_coverage (void) const
@@ -1951,7 +1951,7 @@ struct ChainContextFormat2
   {
     TRACE_APPLY (this);
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
     const ClassDef &input_class_def = this+inputClassDef;
@@ -1965,15 +1965,17 @@ struct ChainContextFormat2
        &input_class_def,
        &lookahead_class_def}
     };
-    return TRACE_RETURN (rule_set.apply (c, lookup_context));
+    return_trace (rule_set.apply (c, lookup_context));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (coverage.sanitize (c, this) && backtrackClassDef.sanitize (c, this) &&
-			 inputClassDef.sanitize (c, this) && lookaheadClassDef.sanitize (c, this) &&
-			 ruleSet.sanitize (c, this));
+    return_trace (coverage.sanitize (c, this) &&
+		  backtrackClassDef.sanitize (c, this) &&
+		  inputClassDef.sanitize (c, this) &&
+		  lookaheadClassDef.sanitize (c, this) &&
+		  ruleSet.sanitize (c, this));
   }
 
   protected:
@@ -2056,11 +2058,11 @@ struct ChainContextFormat3
       {match_coverage},
       {this, this, this}
     };
-    return TRACE_RETURN (chain_context_would_apply_lookup (c,
-							   backtrack.len, (const USHORT *) backtrack.array,
-							   input.len, (const USHORT *) input.array + 1,
-							   lookahead.len, (const USHORT *) lookahead.array,
-							   lookup.len, lookup.array, lookup_context));
+    return_trace (chain_context_would_apply_lookup (c,
+						    backtrack.len, (const USHORT *) backtrack.array,
+						    input.len, (const USHORT *) input.array + 1,
+						    lookahead.len, (const USHORT *) lookahead.array,
+						    lookup.len, lookup.array, lookup_context));
   }
 
   inline const Coverage &get_coverage (void) const
@@ -2075,7 +2077,7 @@ struct ChainContextFormat3
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
 
     unsigned int index = (this+input[0]).get_coverage (c->buffer->cur().codepoint);
-    if (likely (index == NOT_COVERED)) return TRACE_RETURN (false);
+    if (likely (index == NOT_COVERED)) return_trace (false);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
@@ -2083,24 +2085,24 @@ struct ChainContextFormat3
       {match_coverage},
       {this, this, this}
     };
-    return TRACE_RETURN (chain_context_apply_lookup (c,
-						     backtrack.len, (const USHORT *) backtrack.array,
-						     input.len, (const USHORT *) input.array + 1,
-						     lookahead.len, (const USHORT *) lookahead.array,
-						     lookup.len, lookup.array, lookup_context));
+    return_trace (chain_context_apply_lookup (c,
+					      backtrack.len, (const USHORT *) backtrack.array,
+					      input.len, (const USHORT *) input.array + 1,
+					      lookahead.len, (const USHORT *) lookahead.array,
+					      lookup.len, lookup.array, lookup_context));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (!backtrack.sanitize (c, this)) return TRACE_RETURN (false);
+    if (!backtrack.sanitize (c, this)) return_trace (false);
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage> > (backtrack);
-    if (!input.sanitize (c, this)) return TRACE_RETURN (false);
-    if (!input.len) return TRACE_RETURN (false); /* To be consistent with Context. */
+    if (!input.sanitize (c, this)) return_trace (false);
+    if (!input.len) return_trace (false); /* To be consistent with Context. */
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage> > (input);
-    if (!lookahead.sanitize (c, this)) return TRACE_RETURN (false);
+    if (!lookahead.sanitize (c, this)) return_trace (false);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord> > (lookahead);
-    return TRACE_RETURN (lookup.sanitize (c));
+    return_trace (lookup.sanitize (c));
   }
 
   protected:
@@ -2130,12 +2132,12 @@ struct ChainContext
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->default_return_value ());
     switch (u.format) {
-    case 1: return TRACE_RETURN (c->dispatch (u.format1));
-    case 2: return TRACE_RETURN (c->dispatch (u.format2));
-    case 3: return TRACE_RETURN (c->dispatch (u.format3));
-    default:return TRACE_RETURN (c->default_return_value ());
+    case 1: return_trace (c->dispatch (u.format1));
+    case 2: return_trace (c->dispatch (u.format2));
+    case 3: return_trace (c->dispatch (u.format3));
+    default:return_trace (c->default_return_value ());
     }
   }
 
@@ -2166,15 +2168,15 @@ struct ExtensionFormat1
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, format);
-    if (unlikely (!c->may_dispatch (this, this))) return TRACE_RETURN (c->default_return_value ());
-    return TRACE_RETURN (get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ()));
+    if (unlikely (!c->may_dispatch (this, this))) return_trace (c->default_return_value ());
+    return_trace (get_subtable<typename T::LookupSubTable> ().dispatch (c, get_type ()));
   }
 
   /* This is called from may_dispatch() above with hb_sanitize_context_t. */
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (c->check_struct (this) && extensionOffset != 0);
+    return_trace (c->check_struct (this) && extensionOffset != 0);
   }
 
   protected:
@@ -2211,10 +2213,10 @@ struct Extension
   inline typename context_t::return_t dispatch (context_t *c) const
   {
     TRACE_DISPATCH (this, u.format);
-    if (unlikely (!c->may_dispatch (this, &u.format))) return TRACE_RETURN (c->default_return_value ());
+    if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->default_return_value ());
     switch (u.format) {
-    case 1: return TRACE_RETURN (u.format1.dispatch (c));
-    default:return TRACE_RETURN (c->default_return_value ());
+    case 1: return_trace (u.format1.dispatch (c));
+    default:return_trace (c->default_return_value ());
     }
   }
 
@@ -2269,10 +2271,11 @@ struct GSUBGPOS
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return TRACE_RETURN (version.sanitize (c) && likely (version.major == 1) &&
-			 scriptList.sanitize (c, this) &&
-			 featureList.sanitize (c, this) &&
-			 lookupList.sanitize (c, this));
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  scriptList.sanitize (c, this) &&
+		  featureList.sanitize (c, this) &&
+		  lookupList.sanitize (c, this));
   }
 
   protected:
