@@ -293,8 +293,13 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 		  num_features,
 		  shape_plan->shaper_func);
 
-  if (unlikely (hb_object_is_inert (shape_plan) ||
-		hb_object_is_inert (buffer)))
+  if (unlikely (!buffer->len))
+    return true;
+
+  assert (!hb_object_is_inert (buffer));
+  assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE);
+
+  if (unlikely (hb_object_is_inert (shape_plan)))
     return false;
 
   assert (shape_plan->face_unsafe == font->face);
