@@ -113,7 +113,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 {
   hb_face_for_data_closure_t *closure;
 
-  closure = (hb_face_for_data_closure_t *) malloc (sizeof (hb_face_for_data_closure_t));
+  closure = (hb_face_for_data_closure_t *) calloc (1, sizeof (hb_face_for_data_closure_t));
   if (unlikely (!closure))
     return NULL;
 
