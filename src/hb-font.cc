@@ -885,7 +885,6 @@ hb_font_create_sub_font (hb_font_t *parent)
   if (unlikely (hb_object_is_inert (font)))
     return font;
 
-  hb_font_make_immutable (parent);
   font->parent = hb_font_reference (parent);
 
   font->x_scale = parent->x_scale;
@@ -1034,6 +1033,9 @@ hb_font_make_immutable (hb_font_t *font)
 {
   if (unlikely (hb_object_is_inert (font)))
     return;
+
+  if (font->parent)
+    hb_font_make_immutable (font->parent);
 
   font->immutable = true;
 }

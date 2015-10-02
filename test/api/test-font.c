@@ -290,9 +290,22 @@ test_fontfuncs_subclassing (void)
   x = hb_font_get_glyph_h_advance (font1, 2);
   g_assert_cmpint (x, ==, 0);
 
+  /* creating sub-font doesn't make the parent font immutable;
+   * making a font immutable however makes it's lineage immutable.
+   */
+  font2 = hb_font_create_sub_font (font1);
+  font3 = hb_font_create_sub_font (font2);
+  g_assert (!hb_font_is_immutable (font1));
+  g_assert (!hb_font_is_immutable (font2));
+  g_assert (!hb_font_is_immutable (font3));
+  hb_font_make_immutable (font3);
+  g_assert (hb_font_is_immutable (font1));
+  g_assert (hb_font_is_immutable (font2));
+  g_assert (hb_font_is_immutable (font3));
+  hb_font_destroy (font2);
+  hb_font_destroy (font3);
 
   font2 = hb_font_create_sub_font (font1);
-  g_assert (hb_font_is_immutable (font1));
   hb_font_destroy (font1);
 
   /* setup font2 to override some funcs */
@@ -316,12 +329,8 @@ test_fontfuncs_subclassing (void)
   x = hb_font_get_glyph_h_advance (font2, 2);
   g_assert_cmpint (x, ==, 0);
 
-
-  font3 = hb_font_create_sub_font (font2);
-  g_assert (hb_font_is_immutable (font2));
-  hb_font_destroy (font2);
-
   /* setup font3 to override scale */
+  font3 = hb_font_create_sub_font (font2);
   hb_font_set_scale (font3, 20, 30);
 
   x = y = 1;
