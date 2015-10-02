@@ -861,6 +861,8 @@ hb_font_create (hb_face_t *face)
   font->face = hb_face_reference (face);
   font->klass = hb_font_funcs_get_empty ();
 
+  font->x_scale = font->y_scale = hb_face_get_upem (face);
+
   return font;
 }
 

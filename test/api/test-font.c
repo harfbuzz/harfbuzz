@@ -115,6 +115,7 @@ _test_font_nil_funcs (hb_font_t *font)
   hb_codepoint_t glyph;
   hb_position_t x, y;
   hb_glyph_extents_t extents;
+  unsigned int upem = hb_face_get_upem (hb_font_get_face (font));
 
   x = y = 13;
   g_assert (!hb_font_get_glyph_contour_point (font, 17, 2, &x, &y));
@@ -122,7 +123,7 @@ _test_font_nil_funcs (hb_font_t *font)
   g_assert_cmpint (y, ==, 0);
 
   x = hb_font_get_glyph_h_advance (font, 17);
-  g_assert_cmpint (x, ==, 0);
+  g_assert_cmpint (x, ==, upem);
 
   extents.x_bearing = extents.y_bearing = 13;
   extents.width = extents.height = 15;
@@ -375,6 +376,7 @@ test_font_properties (void)
   hb_font_t *subfont;
   int x_scale, y_scale;
   unsigned int x_ppem, y_ppem;
+  unsigned int upem;
 
   blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
   face = hb_face_create (blob, 0);
@@ -389,17 +391,18 @@ test_font_properties (void)
 
   /* Check scale */
 
+  upem = hb_face_get_upem (hb_font_get_face (font));
   hb_font_get_scale (font, NULL, NULL);
   x_scale = y_scale = 13;
   hb_font_get_scale (font, &x_scale, NULL);
-  g_assert_cmpint (x_scale, ==, 0);
+  g_assert_cmpint (x_scale, ==, upem);
   x_scale = y_scale = 13;
   hb_font_get_scale (font, NULL, &y_scale);
-  g_assert_cmpint (y_scale, ==, 0);
+  g_assert_cmpint (y_scale, ==, upem);
   x_scale = y_scale = 13;
   hb_font_get_scale (font, &x_scale, &y_scale);
-  g_assert_cmpint (x_scale, ==, 0);
-  g_assert_cmpint (y_scale, ==, 0);
+  g_assert_cmpint (x_scale, ==, upem);
+  g_assert_cmpint (y_scale, ==, upem);
 
   hb_font_set_scale (font, 17, 19);
 
