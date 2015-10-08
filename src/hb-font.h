@@ -459,6 +459,10 @@ hb_font_make_immutable (hb_font_t *font);
 hb_bool_t
 hb_font_is_immutable (hb_font_t *font);
 
+void
+hb_font_set_parent (hb_font_t *font,
+		    hb_font_t *parent);
+
 hb_font_t *
 hb_font_get_parent (hb_font_t *font);
 

@@ -387,6 +387,18 @@ test_font_properties (void)
 
   g_assert (hb_font_get_face (font) == face);
   g_assert (hb_font_get_parent (font) == NULL);
+  subfont = hb_font_create_sub_font (font);
+  g_assert (hb_font_get_parent (subfont) == font);
+  hb_font_set_parent(subfont, NULL);
+  g_assert (hb_font_get_parent (subfont) == hb_font_get_empty());
+  hb_font_set_parent(subfont, font);
+  g_assert (hb_font_get_parent (subfont) == font);
+  hb_font_set_parent(subfont, NULL);
+  hb_font_make_immutable (subfont);
+  g_assert (hb_font_get_parent (subfont) == hb_font_get_empty());
+  hb_font_set_parent(subfont, font);
+  g_assert (hb_font_get_parent (subfont) == hb_font_get_empty());
+  hb_font_destroy (subfont);
 
 
   /* Check scale */

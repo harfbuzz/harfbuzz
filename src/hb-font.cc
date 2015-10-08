@@ -1059,6 +1059,32 @@ hb_font_is_immutable (hb_font_t *font)
 }
 
 /**
+ * hb_font_set_parent:
+ * @font: a font.
+ * @parent: new parent.
+ *
+ * Sets parent font of @font.
+ *
+ * Since: 1.0.5
+ **/
+void
+hb_font_set_parent (hb_font_t *font,
+		    hb_font_t *parent)
+{
+  if (font->immutable)
+    return;
+
+  if (!parent)
+    parent = hb_font_get_empty ();
+
+  hb_font_t *old = font->parent;
+
+  font->parent = hb_font_reference (parent);
+
+  hb_font_destroy (old);
+}
+
+/**
  * hb_font_get_parent:
  * @font: a font.
  *
