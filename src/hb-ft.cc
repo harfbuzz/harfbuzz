@@ -98,6 +98,15 @@ _hb_ft_font_destroy (hb_ft_font_t *ft_font)
   free (ft_font);
 }
 
+/**
+ * hb_ft_font_set_load_flags:
+ * @font:
+ * @load_flags:
+ *
+ * 
+ *
+ * Since: 1.0.5
+ **/
 void
 hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
 {
@@ -112,6 +121,15 @@ hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
   ft_font->load_flags = load_flags;
 }
 
+/**
+ * hb_ft_font_get_load_flags:
+ * @font:
+ *
+ * 
+ *
+ * Return value:
+ * Since: 1.0.5
+ **/
 int
 hb_ft_font_get_load_flags (hb_font_t *font)
 {
