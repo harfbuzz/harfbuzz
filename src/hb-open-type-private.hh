@@ -920,7 +920,7 @@ struct ArrayOf
   inline bool sanitize_shallow (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && c->check_array (this, Type::static_size, len));
+    return_trace (c->check_struct (this) && c->check_array (array, Type::static_size, len));
   }
 
   public:
