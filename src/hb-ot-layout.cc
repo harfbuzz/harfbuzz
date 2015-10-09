@@ -28,6 +28,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "hb-open-type-private.hh"
 #include "hb-ot-layout-private.hh"
 
 #include "hb-ot-layout-gdef-table.hh"
@@ -925,13 +926,10 @@ apply_backward (OT::hb_apply_context_t *c,
   return ret;
 }
 
-struct hb_apply_forward_context_t
+struct hb_apply_forward_context_t :
+       OT::hb_dispatch_context_t<hb_apply_forward_context_t, bool, HB_DEBUG_APPLY>
 {
   inline const char *get_name (void) { return "APPLY_FWD"; }
-  static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
-  typedef bool return_t;
-  template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { return apply_forward (c, obj, accel); }
   static return_t default_return_value (void) { return false; }

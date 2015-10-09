@@ -46,14 +46,11 @@ namespace OT {
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
-struct hb_closure_context_t
+struct hb_closure_context_t :
+       hb_dispatch_context_t<hb_closure_context_t, hb_void_t, HB_DEBUG_CLOSURE>
 {
   inline const char *get_name (void) { return "CLOSURE"; }
-  static const unsigned int max_debug_depth = HB_DEBUG_CLOSURE;
-  typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
-  template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { obj.closure (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
@@ -98,13 +95,10 @@ struct hb_closure_context_t
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "%d glyphs", c->len);
 
-struct hb_would_apply_context_t
+struct hb_would_apply_context_t :
+       hb_dispatch_context_t<hb_would_apply_context_t, bool, HB_DEBUG_WOULD_APPLY>
 {
   inline const char *get_name (void) { return "WOULD_APPLY"; }
-  static const unsigned int max_debug_depth = HB_DEBUG_WOULD_APPLY;
-  typedef bool return_t;
-  template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value (void) { return false; }
@@ -138,14 +132,11 @@ struct hb_would_apply_context_t
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
 	 "");
 
-struct hb_collect_glyphs_context_t
+struct hb_collect_glyphs_context_t :
+       hb_dispatch_context_t<hb_collect_glyphs_context_t, hb_void_t, HB_DEBUG_COLLECT_GLYPHS>
 {
   inline const char *get_name (void) { return "COLLECT_GLYPHS"; }
-  static const unsigned int max_debug_depth = HB_DEBUG_COLLECT_GLYPHS;
-  typedef hb_void_t return_t;
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
-  template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { obj.collect_glyphs (this); return HB_VOID; }
   static return_t default_return_value (void) { return HB_VOID; }
@@ -232,14 +223,14 @@ struct hb_collect_glyphs_context_t
 #define HB_DEBUG_GET_COVERAGE (HB_DEBUG+0)
 #endif
 
+/* XXX Can we remove this? */
+
 template <typename set_t>
-struct hb_add_coverage_context_t
+struct hb_add_coverage_context_t :
+       hb_dispatch_context_t<hb_add_coverage_context_t<set_t>, const Coverage &, HB_DEBUG_GET_COVERAGE>
 {
   inline const char *get_name (void) { return "GET_COVERAGE"; }
-  static const unsigned int max_debug_depth = HB_DEBUG_GET_COVERAGE;
   typedef const Coverage &return_t;
-  template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.get_coverage (); }
   static return_t default_return_value (void) { return Null(Coverage); }
@@ -269,7 +260,8 @@ struct hb_add_coverage_context_t
 	 "idx %d gid %u lookup %d", \
 	 c->buffer->idx, c->buffer->cur().codepoint, (int) c->lookup_index);
 
-struct hb_apply_context_t
+struct hb_apply_context_t :
+       hb_dispatch_context_t<hb_apply_context_t, bool, HB_DEBUG_APPLY>
 {
   struct matcher_t
   {
@@ -449,11 +441,7 @@ struct hb_apply_context_t
 
 
   inline const char *get_name (void) { return "APPLY"; }
-  static const unsigned int max_debug_depth = HB_DEBUG_APPLY;
-  typedef bool return_t;
   typedef return_t (*recurse_func_t) (hb_apply_context_t *c, unsigned int lookup_index);
-  template <typename T, typename F>
-  inline bool may_dispatch (const T *obj, const F *format) { return true; }
   template <typename T>
   inline return_t dispatch (const T &obj) { return obj.apply (this); }
   static return_t default_return_value (void) { return false; }
