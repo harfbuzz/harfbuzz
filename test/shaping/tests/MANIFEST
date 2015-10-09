@@ -4,6 +4,7 @@ cluster.tests
 context-matching.tests
 cursive-positioning.tests
 default-ignorables.tests
+fuzzed.tests
 hangul-jamo.tests
 indic-joiner-candrabindu.tests
 indic-old-spec.tests

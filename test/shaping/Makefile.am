@@ -46,6 +46,7 @@ TESTS = \
 	tests/context-matching.tests \
 	tests/cursive-positioning.tests \
 	tests/default-ignorables.tests \
+	tests/fuzzed.tests \
 	tests/hangul-jamo.tests \
 	tests/indic-joiner-candrabindu.tests \
 	tests/indic-old-spec.tests \
