@@ -60,10 +60,10 @@
  && defined(hb_calloc_impl) \
  && defined(hb_realloc_impl) \
  && defined(hb_free_impl)
-extern void* hb_malloc_impl(size_t size);
-extern void* hb_calloc_impl(size_t nmemb, size_t size);
-extern void* hb_realloc_impl(void *ptr, size_t size);
-extern void  hb_free_impl(void *ptr);
+extern "C" void* hb_malloc_impl(size_t size);
+extern "C" void* hb_calloc_impl(size_t nmemb, size_t size);
+extern "C" void* hb_realloc_impl(void *ptr, size_t size);
+extern "C" void  hb_free_impl(void *ptr);
 #define malloc hb_malloc_impl
 #define calloc hb_calloc_impl
 #define realloc hb_realloc_impl
