@@ -704,6 +704,8 @@ struct PairPosFormat1
   {
     TRACE_SANITIZE (this);
 
+    if (!c->check_struct (this)) return_trace (false);
+
     unsigned int len1 = valueFormat1.get_len ();
     unsigned int len2 = valueFormat2.get_len ();
     PairSet::sanitize_closure_t closure = {
@@ -713,7 +715,7 @@ struct PairPosFormat1
       1 + len1 + len2
     };
 
-    return_trace (c->check_struct (this) && coverage.sanitize (c, this) && pairSet.sanitize (c, this, &closure));
+    return_trace (coverage.sanitize (c, this) && pairSet.sanitize (c, this, &closure));
   }
 
   protected:
