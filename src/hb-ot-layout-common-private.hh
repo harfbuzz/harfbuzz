@@ -44,7 +44,7 @@ namespace OT {
 
 
 #define NOT_COVERED		((unsigned int) -1)
-#define MAX_NESTING_LEVEL	8
+#define MAX_NESTING_LEVEL	6
 #define MAX_CONTEXT_LENGTH	64
 
 
