@@ -1,3 +1,16 @@
+Overview of changes leading to 1.0.6
+Thursday, October 15, 2015
+====================================
+
+- Reduce max nesting level in OT lookups from 8 to 6.
+  Should not affect any real font as far as I know.
+- Fix memory access issue in ot-font.
+- Revert default load-flags of fonts created using hb_ft_font_create()
+  back to FT_LOAD_DEFAULT|FT_LOAD_NO_HINTING.  This was changed in
+  last release (1.0.5), but caused major issues, so revert.
+  https://github.com/behdad/harfbuzz/issues/143
+
+
 Overview of changes leading to 1.0.5
 Tuesday, October 13, 2015
 ====================================
