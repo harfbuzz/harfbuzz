@@ -1,3 +1,5 @@
+# Linux Build Configuration for Travis
+sudo: false # Use Travis docker infrastructure
 language: cpp
 compiler:
   - clang
@@ -12,14 +14,9 @@ env:
     #   via the "travis encrypt" command using the project repo's public key
     - secure: "RoR4NtzEDTR8QKmLVuy2wN+YGXuq8VcgVvDuFJDdOdIbtX+kQStesJXDcf1y0G1T8Ripjn9JGXBd9eoUwNc8sJpxNwKZBkIPi42FuK6e/cZZRYlgUyi5df0fQJ8VSCDU7OoZJq3pAtTe8mQPeeuk5G7cKRSsJVt8e03K7PQcU6Y="
 install:
-  - sudo apt-get install pkg-config ragel gtk-doc-tools # for autogen.sh
-  - sudo apt-get install libfreetype6-dev # for font functions
-  - sudo apt-get install libglib2.0-dev # for font functions / tests / utils
-  - sudo apt-get install libcairo2-dev # for utils
-  - sudo apt-get install libicu-dev # for extra unicode functions
-  - sudo apt-get install libgraphite2-dev # for extra shapers
-  - #sudo apt-get install libgirepository1.0-dev # for gobject-introspection
-  - sudo pip install cpp-coveralls # for coveralls.io code coverage tracking
+  - pip install --user nose
+  - pip install --user cpp-coveralls # for coveralls.io code coverage tracking
+  - export PATH=$HOME/.local/bin:$PATH # Make sure we can find the above Python packages
 script:
   - NOCONFIGURE=1 ./autogen.sh
   - ./configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
@@ -29,6 +26,17 @@ notifications:
   email: harfbuzz@lists.freedesktop.org
 
 addons:
+  apt:
+    packages:
+      - pkg-config # for autogen.sh
+      - ragel
+      - gtk-doc-tools
+      - libfreetype6-dev # for font function
+      - libglib2.0-dev # for font functions / tests / utils
+      - libcairo2-dev # for utils
+      - libicu-dev # for extra unicode functions
+      - libgraphite2-dev # for extra shapers
+      - # libgirepository1.0-dev # for gobject-introspection
   coverity_scan:
     project:
       name: "behdad/harfbuzz"
