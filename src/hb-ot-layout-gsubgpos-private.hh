@@ -355,11 +355,11 @@ struct hb_apply_context_t :
     {
       matcher.set_lookup_props (lookup_props);
     }
-    inline void set_match_func (matcher_t::match_func_t match_func,
-				const void *match_data,
+    inline void set_match_func (matcher_t::match_func_t match_func_,
+				const void *match_data_,
 				const USHORT glyph_data[])
     {
-      matcher.set_match_func (match_func, match_data);
+      matcher.set_match_func (match_func_, match_data_);
       match_glyph_data = glyph_data;
     }
 
