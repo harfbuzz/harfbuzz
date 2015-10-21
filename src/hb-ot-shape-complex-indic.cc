@@ -1631,8 +1631,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	    if (new_pos > start && info[new_pos - 1].indic_category() == OT_M)
 	    {
 	      unsigned int old_pos = i;
-	      for (unsigned int i = base + 1; i < old_pos; i++)
-		if (info[i].indic_category() == OT_M)
+	      for (unsigned int j = base + 1; j < old_pos; j++)
+		if (info[j].indic_category() == OT_M)
 		{
 		  new_pos--;
 		  break;
