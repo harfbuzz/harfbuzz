@@ -756,7 +756,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     {
       default:
         assert (false);
-	/* fallthrough */
+	HB_FALLTHROUGH;
 
       case BASE_POS_LAST:
       {

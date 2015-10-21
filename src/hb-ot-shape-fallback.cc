@@ -224,7 +224,7 @@ position_mark (const hb_ot_shape_plan_t *plan,
 	pos.x_offset += base_extents.x_bearing + base_extents.width - mark_extents.width / 2 - mark_extents.x_bearing;
         break;
       }
-      /* Fall through */
+      HB_FALLTHROUGH;
 
     default:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW:
@@ -259,6 +259,7 @@ position_mark (const hb_ot_shape_plan_t *plan,
     case HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT:
       /* Add gap, fall-through. */
       base_extents.height -= y_gap;
+      HB_FALLTHROUGH;
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW:
@@ -279,6 +280,7 @@ position_mark (const hb_ot_shape_plan_t *plan,
       /* Add gap, fall-through. */
       base_extents.y_bearing += y_gap;
       base_extents.height -= y_gap;
+      HB_FALLTHROUGH;
 
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE:
     case HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT:
