@@ -62,24 +62,12 @@
  *     with previous base, use that.  This needs the itemizer to have this
  *     knowledge too.  We need to provide assistance to the itemizer.
  *
- *   - When a font does not support a character but supports its decomposition,
- *     well, use the decomposition (preferring the canonical decomposition, but
- *     falling back to the compatibility decomposition if necessary).  The
- *     compatibility decomposition is really nice to have, for characters like
- *     ellipsis, or various-sized space characters.
+ *   - When a font does not support a character but supports its canonical
+ *     decomposition, well, use the decomposition.
  *
  *   - The complex shapers can customize the compose and decompose functions to
  *     offload some of their requirements to the normalizer.  For example, the
  *     Indic shaper may want to disallow recomposing of two matras.
- *
- *   - We try compatibility decomposition if decomposing through canonical
- *     decomposition alone failed to find a sequence that the font supports.
- *     We don't try compatibility decomposition recursively during the canonical
- *     decomposition phase.  This has minimal impact.  There are only a handful
- *     of Greek letter that have canonical decompositions that include characters
- *     with compatibility decomposition.  Those can be found using this command:
- *
- *     egrep  "`echo -n ';('; grep ';<' UnicodeData.txt | cut -d';' -f1 | tr '\n' '|'; echo ') '`" UnicodeData.txt
  */
 
 static bool
