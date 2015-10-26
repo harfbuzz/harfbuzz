@@ -240,9 +240,9 @@ static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
 #define _ASSERT_STATIC0(_line, _cond)	_ASSERT_STATIC1 (_line, (_cond))
 #define ASSERT_STATIC(_cond)		_ASSERT_STATIC0 (__LINE__, (_cond))
 
-/* Note: C++ allows sizeof() of variable-lengh arrays.  So, if _cond is not
- * constant, it still compiles (ouch!), but at least we'll get a -Wvla warning. */
-#define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * (unsigned int) sizeof (char[(_cond) ? 1 : -1]))
+template <unsigned int cond> class hb_assert_constant_t {};
+
+#define ASSERT_STATIC_EXPR_ZERO(_cond) (0 * (unsigned int) sizeof (hb_assert_constant_t<_cond>))
 
 #define _PASTE1(a,b) a##b
 #define PASTE(a,b) _PASTE1(a,b)
