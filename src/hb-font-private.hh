@@ -53,6 +53,7 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
+  HB_FONT_FUNC_IMPLEMENT (font_metrics) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t {
@@ -143,6 +144,14 @@ struct hb_font_t {
 
 
   /* Public getters */
+
+  inline hb_bool_t get_font_metrics (hb_font_metrics_t *metrics)
+  {
+    memset (metrics, 0, sizeof (*metrics));
+    return klass->get.font_metrics (this, user_data,
+             metrics,
+             klass->user_data.font_metrics);
+  }
 
   inline hb_bool_t has_glyph (hb_codepoint_t unicode)
   {

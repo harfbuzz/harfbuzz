@@ -216,6 +216,21 @@ hb_font_get_glyph_from_name_nil (hb_font_t *font,
 }
 
 
+static hb_bool_t
+hb_font_get_font_metrics_nil (hb_font_t *font,
+             void *font_data HB_UNUSED,
+             hb_font_metrics_t *metrics,
+             void *user_data HB_UNUSED)
+{
+  if (font->parent) {
+    return font->parent->get_font_metrics (metrics);
+  }
+
+  memset (metrics, 0, sizeof (*metrics));
+  return false;
+}
+
+
 static const hb_font_funcs_t _hb_font_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
 
@@ -788,6 +803,13 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t *font,
 					    hb_position_t *x, hb_position_t *y)
 {
   return font->get_glyph_contour_point_for_origin (glyph, point_index, direction, x, y);
+}
+
+hb_bool_t
+hb_font_get_metrics (hb_font_t *font,
+         hb_font_metrics_t *metrics)
+{
+  return font->get_font_metrics (metrics);
 }
 
 /* Generates gidDDD if glyph has no name. */
