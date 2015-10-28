@@ -43,6 +43,10 @@ struct hb_ot_face_metrics_accelerator_t
   unsigned int num_metrics;
   unsigned int num_advances;
   unsigned int default_advance;
+  unsigned short ascender;
+  unsigned short descender;
+  unsigned short linegap;
+
   const OT::_mtx *table;
   hb_blob_t *blob;
 
@@ -53,9 +57,19 @@ struct hb_ot_face_metrics_accelerator_t
     this->default_advance = default_advance_;
     this->num_metrics = face->get_num_glyphs ();
 
+    hb_blob_t *os_2_blob = OT::Sanitizer<OT::os_2>::sanitize (face->reference_table (HB_OT_TAG_os_2));
+    const OT::os_2 *os_2 = OT::Sanitizer<OT::os_2>::lock_instance (os_2_blob);
+    this->ascender = os_2->sTypoAscender;
+    this->descender = os_2->sTypoDescender;
+    this->linegap = os_2->sTypoLineGap;
+    hb_blob_destroy (os_2_blob);
+
     hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (face->reference_table (_hea_tag));
     const OT::_hea *_hea = OT::Sanitizer<OT::_hea>::lock_instance (_hea_blob);
     this->num_advances = _hea->numberOfLongMetrics;
+    if (!this->ascender) this->ascender = _hea->ascender;
+    if (!this->descender) this->descender = _hea->descender;
+    if (!this->linegap) this->linegap = _hea->lineGap;
     hb_blob_destroy (_hea_blob);
 
     this->blob = OT::Sanitizer<OT::_mtx>::sanitize (face->reference_table (_mtx_tag));
@@ -92,32 +106,6 @@ struct hb_ot_face_metrics_accelerator_t
 
     return this->table->longMetric[glyph].advance;
   }
-};
-
-struct hb_ot_face_os_2_accelerator_t
-{
-  unsigned short typo_ascender;
-  unsigned short typo_descender;
-  unsigned short typo_linegap;
-  const OT::_mtx *os_2;
-  hb_blob_t *blob;
-
-  inline void init (hb_face_t *face)
-  {
-    hb_blob_t *os_2_blob = OT::Sanitizer<OT::os_2>::sanitize (face->reference_table (HB_OT_TAG_os_2));
-    const OT::os_2 *os_2 = OT::Sanitizer<OT::os_2>::lock_instance (os_2_blob);
-    unsigned short ver = os_2->version;
-    this->typo_ascender = os_2->sTypoAscender;
-    this->typo_descender = os_2->sTypoDescender;
-    this->typo_linegap = os_2->sTypoLineGap;
-
-    hb_blob_destroy (os_2_blob);
-  }
-
-  inline void fini (void)
-  {
-  }
-
 };
 
 struct hb_ot_face_glyf_accelerator_t
@@ -261,7 +249,6 @@ struct hb_ot_font_t
   hb_ot_face_metrics_accelerator_t h_metrics;
   hb_ot_face_metrics_accelerator_t v_metrics;
   hb_ot_face_glyf_accelerator_t glyf;
-  hb_ot_face_os_2_accelerator_t os_2;
 };
 
 
@@ -279,7 +266,6 @@ _hb_ot_font_create (hb_face_t *face)
   ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, upem>>1);
   ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, upem); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
-  ot_font->os_2.init (face);
 
   return ot_font;
 }
@@ -392,15 +378,15 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_ot_get_font_metrics (hb_font_t *font HB_UNUSED,
+hb_ot_get_font_extents (hb_font_t *font HB_UNUSED,
        void *font_data,
-       hb_font_metrics_t *metrics,
+       hb_font_extents_t *metrics,
        void *user_data HB_UNUSED)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-  metrics->typo_ascender = font->em_scale_y (ot_font->os_2.typo_ascender);
-  metrics->typo_descender = font->em_scale_y (ot_font->os_2.typo_descender);
-  metrics->typo_linegap = font->em_scale_y (ot_font->os_2.typo_linegap);
+  metrics->ascender = font->em_scale_y (ot_font->h_metrics.ascender);
+  metrics->descender = font->em_scale_y (ot_font->h_metrics.descender);
+  metrics->linegap = font->em_scale_y (ot_font->h_metrics.linegap);
   return true;
 }
 

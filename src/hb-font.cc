@@ -217,13 +217,19 @@ hb_font_get_glyph_from_name_nil (hb_font_t *font,
 
 
 static hb_bool_t
-hb_font_get_font_metrics_nil (hb_font_t *font,
+hb_font_get_font_extents_nil (hb_font_t *font,
              void *font_data HB_UNUSED,
-             hb_font_metrics_t *metrics,
+             hb_font_extents_t *metrics,
              void *user_data HB_UNUSED)
 {
   if (font->parent) {
-    return font->parent->get_font_metrics (metrics);
+    hb_bool_t ret = font->parent->get_font_extents (metrics);
+    if (ret) {
+      metrics->ascender = font->parent_scale_y_distance (metrics->ascender);
+      metrics->descender = font->parent_scale_y_distance (metrics->descender);
+      metrics->linegap = font->parent_scale_y_distance (metrics->linegap);
+    }
+    return ret;
   }
 
   memset (metrics, 0, sizeof (*metrics));
@@ -806,10 +812,10 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t *font,
 }
 
 hb_bool_t
-hb_font_get_metrics (hb_font_t *font,
-         hb_font_metrics_t *metrics)
+hb_font_get_extents (hb_font_t *font,
+         hb_font_extents_t *extents)
 {
-  return font->get_font_metrics (metrics);
+  return font->get_font_extents (extents);
 }
 
 /* Generates gidDDD if glyph has no name. */
