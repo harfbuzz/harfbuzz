@@ -51,11 +51,9 @@ struct hb_ot_face_metrics_accelerator_t
   hb_blob_t *blob;
 
   inline void init (hb_face_t *face,
-		    hb_tag_t _hea_tag, hb_tag_t _mtx_tag,
-		    unsigned int default_advance_)
+		    hb_tag_t _hea_tag, hb_tag_t _mtx_tag)
   {
-    this->default_advance = default_advance_;
-    this->num_metrics = face->get_num_glyphs ();
+    this->default_advance = face->get_upem ();
 
     hb_blob_t *os_2_blob = OT::Sanitizer<OT::os_2>::sanitize (face->reference_table (HB_OT_TAG_os_2));
     const OT::os_2 *os_2 = OT::Sanitizer<OT::os_2>::lock_instance (os_2_blob);
@@ -73,8 +71,16 @@ struct hb_ot_face_metrics_accelerator_t
     hb_blob_destroy (_hea_blob);
 
     this->blob = OT::Sanitizer<OT::_mtx>::sanitize (face->reference_table (_mtx_tag));
-    if (unlikely (!this->num_advances ||
-		  2 * (this->num_advances + this->num_metrics) > hb_blob_get_length (this->blob)))
+
+    /* Cap num_metrics() and num_advances() based on table length. */
+    unsigned int len = hb_blob_get_length (this->blob);
+    if (unlikely (this->num_advances * 4 < len))
+      this->num_advances = len / 4;
+    this->num_metrics = this->num_advances + (len - 4 * this->num_advances) / 2;
+
+    /* We MUSt set num_metrics to zero if num_advances is zero.
+     * Our get_advance() depends on that. */
+    if (unlikely (!this->num_advances))
     {
       this->num_metrics = this->num_advances = 0;
       hb_blob_destroy (this->blob);
@@ -260,11 +266,9 @@ _hb_ot_font_create (hb_face_t *face)
   if (unlikely (!ot_font))
     return NULL;
 
-  unsigned int upem = face->get_upem ();
-
   ot_font->cmap.init (face);
-  ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, upem>>1);
-  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, upem); /* TODO Can we do this lazily? */
+  ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx);
+  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
 
   return ot_font;
