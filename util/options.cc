@@ -566,7 +566,7 @@ font_options_t::get_font (void) const
   else
   {
     for (unsigned int i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
-      if (0 == g_ascii_strcasecmp (font_funcs, supported_font_funcs[i].name))
+      if (0 == strcasecmp (font_funcs, supported_font_funcs[i].name))
       {
 	set_font_funcs = supported_font_funcs[i].func;
 	break;
