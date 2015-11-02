@@ -42,6 +42,7 @@
 #endif
 
 #ifdef _MSC_VER
+#if (_MSC_VER < 1800)
 static inline long int
 lround (double x)
 {
@@ -50,6 +51,10 @@ lround (double x)
   else
     return ceil (x - 0.5);
 }
+#endif
+#define ESC_E (char)27
+#else
+#define ESC_E '\e'
 #endif
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -298,7 +303,7 @@ block_best (const biimage_t &bi, bool *inverse)
     }
     if (best_s < score) {
       static const char *lower[7] = {"▁", "▂", "▃", "▄", "▅", "▆", "▇"};
-      unsigned int which = lround (((best_i + 1) * 8) / bi.height);
+      unsigned int which = lround ((float) ((best_i + 1) * 8) / bi.height);
       if (1 <= which && which <= 7) {
 	score = best_s;
 	*inverse = best_inv;
@@ -330,7 +335,7 @@ block_best (const biimage_t &bi, bool *inverse)
     }
     if (best_s < score) {
       static const char *left [7] = {"▏", "▎", "▍", "▌", "▋", "▊", "▉"};
-      unsigned int which = lround (((best_i + 1) * 8) / bi.width);
+      unsigned int which = lround ((float) ((best_i + 1) * 8) / bi.width);
       if (1 <= which && which <= 7) {
 	score = best_s;
 	*inverse = best_inv;
@@ -395,7 +400,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
       bi.set (cell);
       if (bi.unicolor) {
         if (last_bg != bi.bg) {
-	  printf ("\e[%dm", 40 + bi.bg);
+	  printf ("%c[%dm", ESC_E, 40 + bi.bg);
 	  last_bg = bi.bg;
 	}
 	printf (" ");
@@ -405,13 +410,13 @@ ansi_print_image_rgb24 (const uint32_t *data,
         const char *c = block_best (bi, &inverse);
 	if (inverse) {
 	  if (last_bg != bi.fg || last_fg != bi.bg) {
-	    printf ("\e[%d;%dm", 30 + bi.bg, 40 + bi.fg);
+	    printf ("%c[%d;%dm", ESC_E, 30 + bi.bg, 40 + bi.fg);
 	    last_bg = bi.fg;
 	    last_fg = bi.bg;
 	  }
 	} else {
 	  if (last_bg != bi.bg || last_fg != bi.fg) {
-	    printf ("\e[%d;%dm", 40 + bi.bg, 30 + bi.fg);
+	    printf ("%c[%d;%dm", ESC_E, 40 + bi.bg, 30 + bi.fg);
 	    last_bg = bi.bg;
 	    last_fg = bi.fg;
 	  }
@@ -419,7 +424,7 @@ ansi_print_image_rgb24 (const uint32_t *data,
 	printf ("%s", c);
       }
     }
-    printf ("\e[0m\n"); /* Reset */
+    printf ("%c[0m\n", ESC_E); /* Reset */
     last_bg = last_fg = -1;
   }
 }

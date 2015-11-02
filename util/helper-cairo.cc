@@ -324,25 +324,25 @@ helper_cairo_create_context (double w, double h,
   }
   if (0)
     ;
-    else if (0 == strcasecmp (extension, "ansi"))
+    else if (0 == g_ascii_strcasecmp (extension, "ansi"))
       constructor2 = _cairo_ansi_surface_create_for_stream;
   #ifdef CAIRO_HAS_PNG_FUNCTIONS
-    else if (0 == strcasecmp (extension, "png"))
+    else if (0 == g_ascii_strcasecmp (extension, "png"))
       constructor2 = _cairo_png_surface_create_for_stream;
   #endif
   #ifdef CAIRO_HAS_SVG_SURFACE
-    else if (0 == strcasecmp (extension, "svg"))
+    else if (0 == g_ascii_strcasecmp (extension, "svg"))
       constructor = cairo_svg_surface_create_for_stream;
   #endif
   #ifdef CAIRO_HAS_PDF_SURFACE
-    else if (0 == strcasecmp (extension, "pdf"))
+    else if (0 == g_ascii_strcasecmp (extension, "pdf"))
       constructor = cairo_pdf_surface_create_for_stream;
   #endif
   #ifdef CAIRO_HAS_PS_SURFACE
-    else if (0 == strcasecmp (extension, "ps"))
+    else if (0 == g_ascii_strcasecmp (extension, "ps"))
       constructor = cairo_ps_surface_create_for_stream;
    #ifdef HAS_EPS
-    else if (0 == strcasecmp (extension, "eps"))
+    else if (0 == g_ascii_strcasecmp (extension, "eps"))
       constructor = _cairo_eps_surface_create_for_stream;
    #endif
   #endif
@@ -456,16 +456,16 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
   for (i = 0; i < (int) l->num_glyphs; i++)
   {
     l->glyphs[i].index = hb_glyph[i].codepoint;
-    l->glyphs[i].x = scalbn ( hb_position->x_offset + x, scale_bits);
-    l->glyphs[i].y = scalbn (-hb_position->y_offset + y, scale_bits);
+    l->glyphs[i].x = scalbn ((double)  hb_position->x_offset + x, scale_bits);
+    l->glyphs[i].y = scalbn ((double) -hb_position->y_offset + y, scale_bits);
     x +=  hb_position->x_advance;
     y += -hb_position->y_advance;
 
     hb_position++;
   }
   l->glyphs[i].index = -1;
-  l->glyphs[i].x = scalbn (x, scale_bits);
-  l->glyphs[i].y = scalbn (y, scale_bits);
+  l->glyphs[i].x = scalbn ((double) x, scale_bits);
+  l->glyphs[i].y = scalbn ((double) y, scale_bits);
 
   if (l->num_clusters) {
     memset ((void *) l->clusters, 0, l->num_clusters * sizeof (l->clusters[0]));
