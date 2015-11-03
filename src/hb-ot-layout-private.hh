@@ -226,7 +226,6 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *uni
   unsigned int gen_cat = (unsigned int) unicode->general_category (info->codepoint);
   unsigned int props = gen_cat;
 
-  /* XXX This wouldn't be inlined, or at least not while is_default_ignorable() is inline. */
   if (unlikely (unicode->is_default_ignorable (info->codepoint)))
   {
     props |=  UPROPS_MASK_IGNORABLE;
