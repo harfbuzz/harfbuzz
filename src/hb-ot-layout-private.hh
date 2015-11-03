@@ -235,8 +235,18 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *uni
       if (u == 0x200Cu) props |= UPROPS_MASK_ZWNJ;
       if (u == 0x200Du) props |= UPROPS_MASK_ZWJ;
     }
-    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (gen_cat)))
+    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK (gen_cat)))
     {
+      /* Only Mn and Mc can have non-zero ccc:
+       * http://www.unicode.org/policies/stability_policy.html#Property_Value
+       * """
+       * Canonical_Combining_Class, General_Category
+       * All characters other than those with General_Category property values
+       * Spacing_Mark (Mc) and Nonspacing_Mark (Mn) have the Canonical_Combining_Class
+       * property value 0.
+       * 1.1.5+
+       * """
+       */
       props |= unicode->modified_combining_class (info->codepoint)<<8;
     }
   }
