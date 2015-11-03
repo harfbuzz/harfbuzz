@@ -329,4 +329,9 @@ CLEANFILES += $(gir_DATA) $(typelib_DATA)
 
 endif
 
+EXTRA_DIST += \
+	harfbuzz.symbols \
+	harfbuzz-icu.symbols \
+	harfbuzz-gobject.symbols
+
 -include $(top_srcdir)/git.mk
