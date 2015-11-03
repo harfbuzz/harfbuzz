@@ -223,19 +223,24 @@ enum {
 static inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
-  unsigned int gen_cat = (unsigned int) unicode->general_category (info->codepoint);
+  unsigned int u = info->codepoint;
+  unsigned int gen_cat = (unsigned int) unicode->general_category (u);
   unsigned int props = gen_cat;
 
-  if (unlikely (unicode->is_default_ignorable (info->codepoint)))
+  if (u >= 0x80)
   {
-    props |=  UPROPS_MASK_IGNORABLE;
-    if (info->codepoint == 0x200Cu) props |= UPROPS_MASK_ZWNJ;
-    if (info->codepoint == 0x200Du) props |= UPROPS_MASK_ZWJ;
+    if (unlikely (unicode->is_default_ignorable (u)))
+    {
+      props |=  UPROPS_MASK_IGNORABLE;
+      if (u == 0x200Cu) props |= UPROPS_MASK_ZWNJ;
+      if (u == 0x200Du) props |= UPROPS_MASK_ZWJ;
+    }
+    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (gen_cat)))
+    {
+      props |= unicode->modified_combining_class (info->codepoint)<<8;
+    }
   }
-  else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (gen_cat)))
-  {
-    props |= unicode->modified_combining_class (info->codepoint)<<8;
-  }
+
   info->unicode_props() = props;
 }
 
