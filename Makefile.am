@@ -4,7 +4,7 @@ NULL =
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src util test docs
+SUBDIRS = src util test docs build/win32
 
 EXTRA_DIST = \
 	autogen.sh \
