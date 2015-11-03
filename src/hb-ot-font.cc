@@ -74,11 +74,11 @@ struct hb_ot_face_metrics_accelerator_t
 
     /* Cap num_metrics() and num_advances() based on table length. */
     unsigned int len = hb_blob_get_length (this->blob);
-    if (unlikely (this->num_advances * 4 < len))
+    if (unlikely (this->num_advances * 4 > len))
       this->num_advances = len / 4;
     this->num_metrics = this->num_advances + (len - 4 * this->num_advances) / 2;
 
-    /* We MUSt set num_metrics to zero if num_advances is zero.
+    /* We MUST set num_metrics to zero if num_advances is zero.
      * Our get_advance() depends on that. */
     if (unlikely (!this->num_advances))
     {
