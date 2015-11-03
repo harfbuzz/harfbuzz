@@ -538,6 +538,9 @@ font_options_t::get_font (void) const
       }
     }
 
+    if (debug)
+      mm = HB_MEMORY_MODE_DUPLICATE;
+
     blob = hb_blob_create (font_data, len, mm, user_data, destroy);
   }
 
