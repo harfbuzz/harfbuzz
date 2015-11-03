@@ -835,8 +835,8 @@ static inline bool ligate_input (hb_apply_context_t *c,
     _hb_glyph_info_set_lig_props_for_ligature (&buffer->cur(), lig_id, total_component_count);
     if (_hb_glyph_info_get_general_category (&buffer->cur()) == HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK)
     {
-      _hb_glyph_info_set_general_category (&buffer->cur(), HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER);
       _hb_glyph_info_set_modified_combining_class (&buffer->cur(), 0);
+      _hb_glyph_info_set_general_category (&buffer->cur(), HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER);
     }
   }
   c->replace_glyph_with_ligature (lig_glyph, klass);
