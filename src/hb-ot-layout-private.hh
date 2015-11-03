@@ -224,12 +224,14 @@ enum {
 static inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
-  /* XXX This shouldn't be inlined, or at least not while is_default_ignorable() is inline. */
-  info->unicode_props0() = ((unsigned int) unicode->general_category (info->codepoint)) |
-			   (unicode->is_default_ignorable (info->codepoint) ? MASK0_IGNORABLE : 0) |
-			   (info->codepoint == 0x200Cu ? MASK0_ZWNJ : 0) |
-			   (info->codepoint == 0x200Du ? MASK0_ZWJ : 0);
-  info->unicode_props1() = unicode->modified_combining_class (info->codepoint);
+  unsigned int gen_cat = (unsigned int) unicode->general_category (info->codepoint);
+  /* XXX This wouldn't be inlined, or at least not while is_default_ignorable() is inline. */
+  info->unicode_props0() = gen_cat |
+       (unicode->is_default_ignorable (info->codepoint) ? MASK0_IGNORABLE : 0) |
+       (info->codepoint == 0x200Cu ? MASK0_ZWNJ : 0) |
+       (info->codepoint == 0x200Du ? MASK0_ZWJ : 0);
+  info->unicode_props1() = unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (gen_cat)) ?
+	unicode->modified_combining_class (info->codepoint) : 0;
 }
 
 static inline void
