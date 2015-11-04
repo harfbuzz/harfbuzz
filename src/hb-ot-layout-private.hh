@@ -267,6 +267,12 @@ _hb_glyph_info_get_general_category (const hb_glyph_info_t *info)
   return (hb_unicode_general_category_t) (info->unicode_props() & UPROPS_MASK_GEN_CAT);
 }
 
+static inline bool
+_hb_glyph_info_is_unicode_mark (const hb_glyph_info_t *info)
+{
+  return HB_UNICODE_GENERAL_CATEGORY_IS_MARK (info->unicode_props() & UPROPS_MASK_GEN_CAT);
+}
+
 static inline void
 _hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info,
 					     unsigned int modified_class)
