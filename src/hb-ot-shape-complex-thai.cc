@@ -330,7 +330,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
     if (unlikely (buffer->in_error))
       return;
 
-    /* Make Nikhahit be recognized as a mark when zeroing widths. */
+    /* Make Nikhahit be recognized as a ccc=0 mark when zeroing widths. */
     unsigned int end = buffer->out_len;
     _hb_glyph_info_set_general_category (&buffer->out_info[end - 2], HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK);
 

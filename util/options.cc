@@ -538,6 +538,9 @@ font_options_t::get_font (void) const
       }
     }
 
+    if (debug)
+      mm = HB_MEMORY_MODE_DUPLICATE;
+
     blob = hb_blob_create (font_data, len, mm, user_data, destroy);
   }
 
@@ -598,25 +601,26 @@ const char *
 text_options_t::get_line (unsigned int *len)
 {
   if (text) {
-    if (text_len == (unsigned int) -1)
-      text_len = strlen (text);
+    if (!line) line = text;
+    if (line_len == (unsigned int) -1)
+      line_len = strlen (line);
 
-    if (!text_len) {
+    if (!line_len) {
       *len = 0;
       return NULL;
     }
 
-    const char *ret = text;
-    const char *p = (const char *) memchr (text, '\n', text_len);
+    const char *ret = line;
+    const char *p = (const char *) memchr (line, '\n', line_len);
     unsigned int ret_len;
     if (!p) {
-      ret_len = text_len;
-      text += ret_len;
-      text_len = 0;
+      ret_len = line_len;
+      line += ret_len;
+      line_len = 0;
     } else {
       ret_len = p - ret;
-      text += ret_len + 1;
-      text_len -= ret_len + 1;
+      line += ret_len + 1;
+      line_len -= ret_len + 1;
     }
 
     *len = ret_len;
