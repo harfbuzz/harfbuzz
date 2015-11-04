@@ -258,7 +258,8 @@ static inline void
 _hb_glyph_info_set_general_category (hb_glyph_info_t *info,
 				     hb_unicode_general_category_t gen_cat)
 {
-  info->unicode_props() = (unsigned int) gen_cat | (info->unicode_props() & ~UPROPS_MASK_GEN_CAT);
+  /* Clears top-byte. */
+  info->unicode_props() = (unsigned int) gen_cat | (info->unicode_props() & (0xFF & ~UPROPS_MASK_GEN_CAT));
 }
 
 static inline hb_unicode_general_category_t
