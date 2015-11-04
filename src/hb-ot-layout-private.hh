@@ -213,11 +213,45 @@ _next_syllable (hb_buffer_t *buffer, unsigned int start)
 
 /* unicode_props */
 
+/* Design:
+ * unicode_props() is a two-byte number.  The low byte includes:
+ * - General_Category: 5 bits.
+ * - A bit each for:
+ *   * Is it Default_Ignorable(); we have a modified Default_Ignorable().
+ *   * Is it U+200D ZWJ?
+ *   * Is it U+200C ZWNJ?
+ *
+ * The high-byte has different meanings, switched by the Gen-Cat:
+ * - For Mn,Mc,Me: the modified Combining_Class.
+ * - For Ws: index of which space character this is, if space fallback
+ *   is needed, ie. we don't set this by default, only if asked to.
+ *
+ * If needed, we can use the ZWJ/ZWNJ to use the high byte as well,
+ * freeing two more bits.
+ */
+
 enum {
   UPROPS_MASK_ZWJ       = 0x20u,
   UPROPS_MASK_ZWNJ      = 0x40u,
   UPROPS_MASK_IGNORABLE = 0x80u,
   UPROPS_MASK_GEN_CAT   = 0x1Fu
+};
+
+enum space_t {
+  SPACE = 0,
+  SPACE_NBSP,
+  SPACE_EN,
+  SPACE_EM,
+  SPACE_EM_3,
+  SPACE_EM_4,
+  SPACE_EM_6,
+  SPACE_FIGURE,
+  SPACE_PUNCTUATION,
+  SPACE_THIN,
+  SPACE_HAIR,
+  SPACE_NARROW,
+  SPACE_MEDIUM,
+  SPACE_IDEOGRAPHIC,
 };
 
 static inline void
@@ -246,6 +280,9 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *uni
        * property value 0.
        * 1.1.5+
        * """
+       *
+       * Also, all Mn's that are Default_Ignorable, have ccc=0, hence
+       * the "else if".
        */
       props |= unicode->modified_combining_class (info->codepoint)<<8;
     }
@@ -273,7 +310,6 @@ _hb_glyph_info_is_unicode_mark (const hb_glyph_info_t *info)
 {
   return HB_UNICODE_GENERAL_CATEGORY_IS_MARK (info->unicode_props() & UPROPS_MASK_GEN_CAT);
 }
-
 static inline void
 _hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info,
 					     unsigned int modified_class)
@@ -282,11 +318,49 @@ _hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info,
     return;
   info->unicode_props() = (modified_class<<8) | (info->unicode_props() & 0xFF);
 }
-
 static inline unsigned int
 _hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
 {
   return _hb_glyph_info_is_unicode_mark (info) ? info->unicode_props()>>8 : 0;
+}
+
+static inline bool
+_hb_glyph_info_is_unicode_space (const hb_glyph_info_t *info)
+{
+  return _hb_glyph_info_get_general_category (info) ==
+	 HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR;
+}
+static inline void
+_hb_glyph_info_set_unicode_space_for_char (hb_glyph_info_t *info, hb_codepoint_t u)
+{
+  if (unlikely (!_hb_glyph_info_is_unicode_space (info)))
+    return;
+
+  space_t s;
+  switch (u)
+  {
+    default:      s = SPACE;		break; /* Shouldn't happen. */
+    case 0x00A0u: s = SPACE_NBSP;	break;
+    case 0x2002u: s = SPACE_EN;		break;
+    case 0x2003u: s = SPACE_EM;		break;
+    case 0x2004u: s = SPACE_EM_3;	break;
+    case 0x2005u: s = SPACE_EM_4;	break;
+    case 0x2006u: s = SPACE_EM_6;	break;
+    case 0x2007u: s = SPACE_FIGURE;	break;
+    case 0x2008u: s = SPACE_PUNCTUATION;break;
+    case 0x2009u: s = SPACE_THIN;	break;
+    case 0x200Au: s = SPACE_HAIR;	break;
+    case 0x202Fu: s = SPACE_NARROW;	break;
+    case 0x205Fu: s = SPACE_MEDIUM;	break;
+    case 0x3000u: s = SPACE_IDEOGRAPHIC;break;
+  }
+
+  info->unicode_props() = (((unsigned int) s)<<8) | (info->unicode_props() & 0xFF);
+}
+static inline space_t
+_hb_glyph_info_get_unicode_space (const hb_glyph_info_t *info)
+{
+  return _hb_glyph_info_is_unicode_space (info) ? (space_t) (info->unicode_props()>>8) : SPACE;
 }
 
 static inline bool _hb_glyph_info_ligated (const hb_glyph_info_t *info);
