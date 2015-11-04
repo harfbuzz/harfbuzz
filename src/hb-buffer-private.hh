@@ -76,8 +76,8 @@ struct hb_buffer_t {
   inline hb_glyph_position_t &cur_pos (unsigned int i = 0) { return pos[idx + i]; }
   inline hb_glyph_position_t cur_pos (unsigned int i = 0) const { return pos[idx + i]; }
 
-  inline hb_glyph_info_t &prev (void) { return out_info[out_len - 1]; }
-  inline hb_glyph_info_t prev (void) const { return out_info[out_len - 1]; }
+  inline hb_glyph_info_t &prev (void) { return out_info[out_len ? out_len - 1 : 0]; }
+  inline hb_glyph_info_t prev (void) const { return out_info[out_len ? out_len - 1 : 0]; }
 
   inline bool has_separate_output (void) const { return info != out_info; }
 
