@@ -278,13 +278,15 @@ static inline void
 _hb_glyph_info_set_modified_combining_class (hb_glyph_info_t *info,
 					     unsigned int modified_class)
 {
+  if (unlikely (!_hb_glyph_info_is_unicode_mark (info)))
+    return;
   info->unicode_props() = (modified_class<<8) | (info->unicode_props() & 0xFF);
 }
 
 static inline unsigned int
 _hb_glyph_info_get_modified_combining_class (const hb_glyph_info_t *info)
 {
-  return info->unicode_props()>>8;
+  return _hb_glyph_info_is_unicode_mark (info) ? info->unicode_props()>>8 : 0;
 }
 
 static inline bool _hb_glyph_info_ligated (const hb_glyph_info_t *info);
