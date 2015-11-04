@@ -10,5 +10,6 @@ indic-joiner-candrabindu.tests
 indic-old-spec.tests
 indic-pref-blocking.tests
 mongolian-variation-selector.tests
+spaces.tests
 vertical.tests
 zero-width-marks.tests

@@ -199,6 +199,46 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     }
   }
 
+  enum space_t {
+    NOT_SPACE = 0,
+    SPACE_NBSP,
+    SPACE_EN,
+    SPACE_EM,
+    SPACE_EM_3,
+    SPACE_EM_4,
+    SPACE_EM_6,
+    SPACE_FIGURE,
+    SPACE_PUNCTUATION,
+    SPACE_THIN,
+    SPACE_HAIR,
+    SPACE_NARROW,
+    SPACE_MEDIUM,
+    SPACE_IDEOGRAPHIC,
+  };
+  static inline space_t
+  space_fallback_type (hb_codepoint_t u)
+  {
+    switch (u)
+    {
+      /* All GC=Zs chars that can use a fallback. */
+      default:	  return NOT_SPACE; /* Shouldn't happen. */
+      case 0x00A0u: return SPACE_NBSP;
+      case 0x2000u: return SPACE_EN;
+      case 0x2001u: return SPACE_EM;
+      case 0x2002u: return SPACE_EN;
+      case 0x2003u: return SPACE_EM;
+      case 0x2004u: return SPACE_EM_3;
+      case 0x2005u: return SPACE_EM_4;
+      case 0x2006u: return SPACE_EM_6;
+      case 0x2007u: return SPACE_FIGURE;
+      case 0x2008u: return SPACE_PUNCTUATION;
+      case 0x2009u: return SPACE_THIN;
+      case 0x200Au: return SPACE_HAIR;
+      case 0x202Fu: return SPACE_NARROW;
+      case 0x205Fu: return SPACE_MEDIUM;
+      case 0x3000u: return SPACE_IDEOGRAPHIC;
+    }
+  }
 
   struct {
 #define HB_UNICODE_FUNC_IMPLEMENT(name) hb_unicode_##name##_func_t name;

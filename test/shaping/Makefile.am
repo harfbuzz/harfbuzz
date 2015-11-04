@@ -52,6 +52,7 @@ TESTS = \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
 	tests/mongolian-variation-selector.tests \
+	tests/spaces.tests \
 	tests/vertical.tests \
 	tests/zero-width-marks.tests \
 	$(NULL)

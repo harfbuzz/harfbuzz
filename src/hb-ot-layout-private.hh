@@ -237,23 +237,6 @@ enum {
   UPROPS_MASK_GEN_CAT   = 0x1Fu
 };
 
-enum space_t {
-  SPACE = 0,
-  SPACE_NBSP,
-  SPACE_EN,
-  SPACE_EM,
-  SPACE_EM_3,
-  SPACE_EM_4,
-  SPACE_EM_6,
-  SPACE_FIGURE,
-  SPACE_PUNCTUATION,
-  SPACE_THIN,
-  SPACE_HAIR,
-  SPACE_NARROW,
-  SPACE_MEDIUM,
-  SPACE_IDEOGRAPHIC,
-};
-
 static inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
 {
@@ -331,36 +314,18 @@ _hb_glyph_info_is_unicode_space (const hb_glyph_info_t *info)
 	 HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR;
 }
 static inline void
-_hb_glyph_info_set_unicode_space_for_char (hb_glyph_info_t *info, hb_codepoint_t u)
+_hb_glyph_info_set_unicode_space_fallback_type (hb_glyph_info_t *info, hb_unicode_funcs_t::space_t s)
 {
   if (unlikely (!_hb_glyph_info_is_unicode_space (info)))
     return;
-
-  space_t s;
-  switch (u)
-  {
-    default:      s = SPACE;		break; /* Shouldn't happen. */
-    case 0x00A0u: s = SPACE_NBSP;	break;
-    case 0x2002u: s = SPACE_EN;		break;
-    case 0x2003u: s = SPACE_EM;		break;
-    case 0x2004u: s = SPACE_EM_3;	break;
-    case 0x2005u: s = SPACE_EM_4;	break;
-    case 0x2006u: s = SPACE_EM_6;	break;
-    case 0x2007u: s = SPACE_FIGURE;	break;
-    case 0x2008u: s = SPACE_PUNCTUATION;break;
-    case 0x2009u: s = SPACE_THIN;	break;
-    case 0x200Au: s = SPACE_HAIR;	break;
-    case 0x202Fu: s = SPACE_NARROW;	break;
-    case 0x205Fu: s = SPACE_MEDIUM;	break;
-    case 0x3000u: s = SPACE_IDEOGRAPHIC;break;
-  }
-
   info->unicode_props() = (((unsigned int) s)<<8) | (info->unicode_props() & 0xFF);
 }
-static inline space_t
-_hb_glyph_info_get_unicode_space (const hb_glyph_info_t *info)
+static inline hb_unicode_funcs_t::space_t
+_hb_glyph_info_get_unicode_space_fallback_type (const hb_glyph_info_t *info)
 {
-  return _hb_glyph_info_is_unicode_space (info) ? (space_t) (info->unicode_props()>>8) : SPACE;
+  return _hb_glyph_info_is_unicode_space (info) ?
+	 (hb_unicode_funcs_t::space_t) (info->unicode_props()>>8) :
+	 hb_unicode_funcs_t::NOT_SPACE;
 }
 
 static inline bool _hb_glyph_info_ligated (const hb_glyph_info_t *info);
