@@ -35,7 +35,7 @@ done
 if ! $have_text; then
 	text=`cat`
 fi
-unicodes=`./hb-unicode-decode "$text"`
+unicodes=`echo "$text" | ./hb-unicode-decode`
 glyphs=`echo "$text" | $hb_shape $options "$fontfile"`
 if test $? != 0; then
 	echo "hb-shape failed." >&2
@@ -77,7 +77,18 @@ sha1sum=`sha1sum "$dir/font.ttf.subset" | cut -d' ' -f1`
 subset="fonts/sha1sum/$sha1sum.ttf"
 mv "$dir/font.ttf.subset" "$subset"
 
-echo "$subset:$options:$unicodes:$glyphs"
+# There ought to be an easier way to do this, but it escapes me...
+unicodes_file=`mktemp`
+glyphs_file=`mktemp`
+echo "$unicodes" > "$unicodes_file"
+echo "$glyphs" > "$glyphs_file"
+# Open the "file"s
+exec 3<"$unicodes_file"
+exec 4<"$glyphs_file"
+while read uline <&3 && read gline <&4; do
+	echo "$subset:$options:$uline:$gline"
+done
+
 
 rm -f "$dir/font.ttf"
 rmdir "$dir"
