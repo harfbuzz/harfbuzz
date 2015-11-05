@@ -197,6 +197,16 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
     }
   }
 
+  if (u == 0x2011u)
+  {
+    hb_codepoint_t other_glyph;
+    if (c->font->get_glyph (0x2010u, 0, &other_glyph))
+    {
+      next_char (buffer, other_glyph);
+      return;
+    }
+  }
+
   next_char (buffer, glyph); /* glyph is initialized in earlier branches. */
 }
 
