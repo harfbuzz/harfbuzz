@@ -287,6 +287,16 @@ static const hb_font_funcs_t _hb_font_funcs_nil = {
   true, /* immutable */
 
   {
+#define HB_FONT_FUNC_IMPLEMENT(name) NULL,
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
+  },
+  {
+#define HB_FONT_FUNC_IMPLEMENT(name) NULL,
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
+  },
+  {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_nil,
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
@@ -297,6 +307,16 @@ static const hb_font_funcs_t _hb_font_funcs_parent = {
 
   true, /* immutable */
 
+  {
+#define HB_FONT_FUNC_IMPLEMENT(name) NULL,
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
+  },
+  {
+#define HB_FONT_FUNC_IMPLEMENT(name) NULL,
+    HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_FONT_FUNC_IMPLEMENT
+  },
   {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_parent,
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
