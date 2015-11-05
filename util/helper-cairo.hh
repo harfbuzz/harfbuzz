@@ -35,12 +35,16 @@
 cairo_scaled_font_t *
 helper_cairo_create_scaled_font (const font_options_t *font_opts);
 
+bool
+helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font);
+
 extern const char *helper_cairo_supported_formats[];
 
 cairo_t *
 helper_cairo_create_context (double w, double h,
 			     view_options_t *view_opts,
-			     output_options_t *out_opts);
+			     output_options_t *out_opts,
+			     cairo_content_t content);
 
 void
 helper_cairo_destroy_context (cairo_t *cr);

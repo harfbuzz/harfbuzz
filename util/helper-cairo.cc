@@ -128,6 +128,22 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   return scaled_font;
 }
 
+bool
+helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
+{
+  bool ret = false;
+#ifdef FT_HAS_COLOR
+  FT_Face ft_face = cairo_ft_scaled_font_lock_face (scaled_font);
+  if (ft_face)
+  {
+    if (FT_HAS_COLOR (ft_face))
+      ret = true;
+    cairo_ft_scaled_font_unlock_face (scaled_font);
+  }
+#endif
+  return ret;
+}
+
 
 struct finalize_closure_t {
   void (*callback)(finalize_closure_t *);
@@ -295,7 +311,8 @@ const char *helper_cairo_supported_formats[] =
 cairo_t *
 helper_cairo_create_context (double w, double h,
 			     view_options_t *view_opts,
-			     output_options_t *out_opts)
+			     output_options_t *out_opts,
+			     cairo_content_t content)
 {
   cairo_surface_t *(*constructor) (cairo_write_func_t write_func,
 				   void *closure,
@@ -357,12 +374,14 @@ helper_cairo_create_context (double w, double h,
   color = view_opts->fore ? view_opts->fore : DEFAULT_FORE;
   sscanf (color + (*color=='#'), "%2x%2x%2x%2x", &fr, &fg, &fb, &fa);
 
-  cairo_content_t content;
-  if (!view_opts->annotate && ba == 255 && br == bg && bg == bb && fr == fg && fg == fb)
-    content = CAIRO_CONTENT_ALPHA;
-  else if (ba == 255)
-    content = CAIRO_CONTENT_COLOR;
-  else
+  if (content == CAIRO_CONTENT_ALPHA)
+  {
+    if (view_opts->annotate ||
+	br != bg || bg != bb ||
+	fr != fg || fg != fb)
+      content = CAIRO_CONTENT_COLOR;
+  }
+  if (ba != 255)
     content = CAIRO_CONTENT_COLOR_ALPHA;
 
   cairo_surface_t *surface;
