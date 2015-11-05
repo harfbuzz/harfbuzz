@@ -199,6 +199,8 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
 
   if (u == 0x2011u)
   {
+    /* U+2011 is the only sensible character that is a no-break version of another character
+     * and not a space.  The space ones are handled already.  Handle this lone one. */
     hb_codepoint_t other_glyph;
     if (c->font->get_glyph (0x2010u, 0, &other_glyph))
     {
