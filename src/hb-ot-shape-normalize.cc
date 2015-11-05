@@ -164,26 +164,40 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
 {
   hb_buffer_t * const buffer = c->buffer;
   hb_codepoint_t u = buffer->cur().codepoint;
-  hb_codepoint_t glyph, space_glyph;
-  hb_unicode_funcs_t::space_t space_type;
+  hb_codepoint_t glyph;
 
-  /* Kind of a cute waterfall here... */
   if (shortest && c->font->get_glyph (u, 0, &glyph))
-    next_char (buffer, glyph);
-  else if (decompose (c, shortest, u))
-    skip_char (buffer);
-  else if (!shortest && c->font->get_glyph (u, 0, &glyph))
-    next_char (buffer, glyph);
-  else if (_hb_glyph_info_is_unicode_space (&buffer->cur()) &&
-	   (space_type = buffer->unicode->space_fallback_type (u)) != hb_unicode_funcs_t::NOT_SPACE &&
-	   c->font->get_glyph (0x0020u, 0, &space_glyph))
   {
-    _hb_glyph_info_set_unicode_space_fallback_type (&buffer->cur(), space_type);
-    next_char (buffer, space_glyph);
-    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK;
+    next_char (buffer, glyph);
+    return;
   }
-  else
-    next_char (buffer, glyph); /* glyph is initialized in earlier branches. */
+
+  if (decompose (c, shortest, u))
+  {
+    skip_char (buffer);
+    return;
+  }
+
+  if (!shortest && c->font->get_glyph (u, 0, &glyph))
+  {
+    next_char (buffer, glyph);
+    return;
+  }
+
+  if (_hb_glyph_info_is_unicode_space (&buffer->cur()))
+  {
+    hb_codepoint_t space_glyph;
+    hb_unicode_funcs_t::space_t space_type = buffer->unicode->space_fallback_type (u);
+    if (space_type != hb_unicode_funcs_t::NOT_SPACE && c->font->get_glyph (0x0020u, 0, &space_glyph))
+    {
+      _hb_glyph_info_set_unicode_space_fallback_type (&buffer->cur(), space_type);
+      next_char (buffer, space_glyph);
+      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK;
+      return;
+    }
+  }
+
+  next_char (buffer, glyph); /* glyph is initialized in earlier branches. */
 }
 
 static inline void
