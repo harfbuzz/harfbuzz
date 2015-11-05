@@ -180,6 +180,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
   {
     _hb_glyph_info_set_unicode_space_fallback_type (&buffer->cur(), space_type);
     next_char (buffer, space_glyph);
+    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK;
   }
   else
     next_char (buffer, glyph); /* glyph is initialized in earlier branches. */

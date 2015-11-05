@@ -41,6 +41,12 @@ ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 template <> class hb_mark_as_flags_t<hb_buffer_flags_t> {};
 template <> class hb_mark_as_flags_t<hb_buffer_serialize_flags_t> {};
 
+enum hb_buffer_scratch_flags_t {
+  HB_BUFFER_SCRATCH_FLAG_DEFAULT			= 0x00000000u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000001u,
+};
+template <> class hb_mark_as_flags_t<hb_buffer_scratch_flags_t> {};
+
 
 /*
  * hb_buffer_t
@@ -55,6 +61,7 @@ struct hb_buffer_t {
   hb_buffer_flags_t flags; /* BOT / EOT / etc. */
   hb_buffer_cluster_level_t cluster_level;
   hb_codepoint_t replacement; /* U+FFFD or something else. */
+  hb_buffer_scratch_flags_t scratch_flags; /* Have space-flallback, etc. */
 
   /* Buffer contents */
   hb_buffer_content_type_t content_type;

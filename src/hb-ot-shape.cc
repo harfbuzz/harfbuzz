@@ -659,6 +659,8 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
 						  &pos[i].y_offset);
 
   }
+  if (c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK)
+    _hb_ot_shape_fallback_spaces (c->plan, c->font, c->buffer);
 }
 
 static inline bool
@@ -778,6 +780,7 @@ static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
   c->buffer->deallocate_var_all ();
+  c->buffer->scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
 
   /* Save the original direction, we use it later. */
   c->target_direction = c->buffer->props.direction;
