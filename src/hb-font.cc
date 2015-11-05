@@ -474,11 +474,11 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
     ffuncs->destroy.name (ffuncs->user_data.name);                       \
                                                                          \
   if (func) {                                                            \
-    ffuncs->get.name = func;                                             \
+    ffuncs->get.f.name = func;                                           \
     ffuncs->user_data.name = user_data;                                  \
     ffuncs->destroy.name = destroy;                                      \
   } else {                                                               \
-    ffuncs->get.name = hb_font_get_##name##_parent;                      \
+    ffuncs->get.f.name = hb_font_get_##name##_parent;                    \
     ffuncs->user_data.name = NULL;                                       \
     ffuncs->destroy.name = NULL;                                         \
   }                                                                      \
