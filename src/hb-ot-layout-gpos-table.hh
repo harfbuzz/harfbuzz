@@ -1602,6 +1602,9 @@ GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
   for (unsigned int i = 0; i < len; i++)
     fix_cursive_minor_offset (pos, i, direction);
 
+  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII))
+    return;
+
   /* Handle attachments */
   for (unsigned int i = 0; i < len; i++)
     fix_mark_attachment (pos, i, direction);
