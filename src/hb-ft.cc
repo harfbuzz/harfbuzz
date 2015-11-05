@@ -217,18 +217,6 @@ hb_ft_get_glyph_v_advance (hb_font_t *font HB_UNUSED,
 }
 
 static hb_bool_t
-hb_ft_get_glyph_h_origin (hb_font_t *font HB_UNUSED,
-			  void *font_data HB_UNUSED,
-			  hb_codepoint_t glyph HB_UNUSED,
-			  hb_position_t *x HB_UNUSED,
-			  hb_position_t *y HB_UNUSED,
-			  void *user_data HB_UNUSED)
-{
-  /* We always work in the horizontal coordinates. */
-  return true;
-}
-
-static hb_bool_t
 hb_ft_get_glyph_v_origin (hb_font_t *font HB_UNUSED,
 			  void *font_data,
 			  hb_codepoint_t glyph,
@@ -270,17 +258,6 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font,
     return 0;
 
   return kerningv.x;
-}
-
-static hb_position_t
-hb_ft_get_glyph_v_kerning (hb_font_t *font HB_UNUSED,
-			   void *font_data HB_UNUSED,
-			   hb_codepoint_t top_glyph HB_UNUSED,
-			   hb_codepoint_t bottom_glyph HB_UNUSED,
-			   void *user_data HB_UNUSED)
-{
-  /* FreeType API doesn't support vertical kerning */
-  return 0;
 }
 
 static hb_bool_t
@@ -403,14 +380,16 @@ retry:
     hb_font_funcs_set_glyph_func (funcs, hb_ft_get_glyph, NULL, NULL);
     hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ft_get_glyph_h_advance, NULL, NULL);
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ft_get_glyph_v_advance, NULL, NULL);
-    hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ft_get_glyph_h_origin, NULL, NULL);
+    //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ft_get_glyph_h_origin, NULL, NULL);
     hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ft_get_glyph_v_origin, NULL, NULL);
     hb_font_funcs_set_glyph_h_kerning_func (funcs, hb_ft_get_glyph_h_kerning, NULL, NULL);
-    hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ft_get_glyph_v_kerning, NULL, NULL);
+    //hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ft_get_glyph_v_kerning, NULL, NULL);
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ft_get_glyph_extents, NULL, NULL);
     hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ft_get_glyph_contour_point, NULL, NULL);
     hb_font_funcs_set_glyph_name_func (funcs, hb_ft_get_glyph_name, NULL, NULL);
     hb_font_funcs_set_glyph_from_name_func (funcs, hb_ft_get_glyph_from_name, NULL, NULL);
+
+    hb_font_funcs_make_immutable (funcs);
 
     if (!hb_atomic_ptr_cmpexch (&static_ft_funcs, NULL, funcs)) {
       hb_font_funcs_destroy (funcs);
