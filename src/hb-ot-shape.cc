@@ -654,22 +654,22 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
   if (HB_DIRECTION_IS_HORIZONTAL (direction))
   {
     for (unsigned int i = 0; i < count; i++)
-    {
       pos[i].x_advance = c->font->get_glyph_h_advance (info[i].codepoint);
-      c->font->subtract_glyph_h_origin (info[i].codepoint,
-					&pos[i].x_offset,
-					&pos[i].y_offset);
-    }
+    if (c->font->has_glyph_h_origin_func ())
+      for (unsigned int i = 0; i < count; i++)
+	c->font->subtract_glyph_h_origin (info[i].codepoint,
+					  &pos[i].x_offset,
+					  &pos[i].y_offset);
   }
   else
   {
     for (unsigned int i = 0; i < count; i++)
-    {
       pos[i].y_advance = c->font->get_glyph_v_advance (info[i].codepoint);
-      c->font->subtract_glyph_v_origin (info[i].codepoint,
-					&pos[i].x_offset,
-					&pos[i].y_offset);
-    }
+    if (c->font->has_glyph_v_origin_func ())
+      for (unsigned int i = 0; i < count; i++)
+	c->font->subtract_glyph_v_origin (info[i].codepoint,
+					  &pos[i].x_offset,
+					  &pos[i].y_offset);
   }
   if (c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK)
     _hb_ot_shape_fallback_spaces (c->plan, c->font, c->buffer);
@@ -719,17 +719,19 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 
     /* Change glyph origin to what GPOS expects (horizontal), apply GPOS, change it back. */
 
-    for (unsigned int i = 0; i < count; i++)
-      c->font->add_glyph_h_origin (info[i].codepoint,
-				   &pos[i].x_offset,
-				   &pos[i].y_offset);
+    if (c->font->has_glyph_h_origin_func ())
+      for (unsigned int i = 0; i < count; i++)
+	c->font->add_glyph_h_origin (info[i].codepoint,
+				     &pos[i].x_offset,
+				     &pos[i].y_offset);
 
     c->plan->position (c->font, c->buffer);
 
-    for (unsigned int i = 0; i < count; i++)
-      c->font->subtract_glyph_h_origin (info[i].codepoint,
-					&pos[i].x_offset,
-					&pos[i].y_offset);
+    if (c->font->has_glyph_h_origin_func ())
+      for (unsigned int i = 0; i < count; i++)
+	c->font->subtract_glyph_h_origin (info[i].codepoint,
+					  &pos[i].x_offset,
+					  &pos[i].y_offset);
 
     ret = true;
   }
