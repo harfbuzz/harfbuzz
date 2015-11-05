@@ -99,7 +99,7 @@ output_char (hb_buffer_t *buffer, hb_codepoint_t unichar, hb_codepoint_t glyph)
 {
   buffer->cur().glyph_index() = glyph;
   buffer->output_glyph (unichar); /* This is very confusing indeed. */
-  _hb_glyph_info_set_unicode_props (&buffer->prev(), buffer->unicode);
+  _hb_glyph_info_set_unicode_props (&buffer->prev(), buffer);
 }
 
 static inline void
@@ -399,7 +399,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       /* Modify starter and carry on. */
       buffer->out_info[starter].codepoint = composed;
       buffer->out_info[starter].glyph_index() = glyph;
-      _hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer->unicode);
+      _hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer);
 
       continue;
     }
