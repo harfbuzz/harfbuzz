@@ -430,22 +430,51 @@ hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 }
 
 
+static hb_font_funcs_t *static_ot_funcs = NULL;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_ot_funcs (void)
+{
+  hb_font_funcs_destroy (static_ot_funcs);
+}
+#endif
+
 static hb_font_funcs_t *
 _hb_ot_get_font_funcs (void)
 {
-  static const hb_font_funcs_t ot_ffuncs = {
-    HB_OBJECT_HEADER_STATIC,
+retry:
+  hb_font_funcs_t *funcs = (hb_font_funcs_t *) hb_atomic_ptr_get (&static_ot_funcs);
 
-    true, /* immutable */
+  if (unlikely (!funcs))
+  {
+    funcs = hb_font_funcs_create ();
 
-    {
-#define HB_FONT_FUNC_IMPLEMENT(name) hb_ot_get_##name,
-      HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
-#undef HB_FONT_FUNC_IMPLEMENT
+    hb_font_funcs_set_glyph_func (funcs, hb_ot_get_glyph, NULL, NULL);
+    hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ot_get_glyph_h_advance, NULL, NULL);
+    hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ot_get_glyph_v_advance, NULL, NULL);
+    hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ot_get_glyph_h_origin, NULL, NULL);
+    hb_font_funcs_set_glyph_v_origin_func (funcs, hb_ot_get_glyph_v_origin, NULL, NULL);
+    hb_font_funcs_set_glyph_h_kerning_func (funcs, hb_ot_get_glyph_h_kerning, NULL, NULL);
+    hb_font_funcs_set_glyph_v_kerning_func (funcs, hb_ot_get_glyph_v_kerning, NULL, NULL);
+    hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, NULL, NULL);
+    hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ot_get_glyph_contour_point, NULL, NULL);
+    hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, NULL, NULL);
+    hb_font_funcs_set_glyph_from_name_func (funcs, hb_ot_get_glyph_from_name, NULL, NULL);
+
+    hb_font_funcs_make_immutable (funcs);
+
+    if (!hb_atomic_ptr_cmpexch (&static_ot_funcs, NULL, funcs)) {
+      hb_font_funcs_destroy (funcs);
+      goto retry;
     }
+
+#ifdef HB_USE_ATEXIT
+    atexit (free_static_ot_funcs); /* First person registers atexit() callback. */
+#endif
   };
 
-  return const_cast<hb_font_funcs_t *> (&ot_ffuncs);
+  return funcs;
 }
 
 
