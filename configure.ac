@@ -443,6 +443,8 @@ test/api/Makefile
 test/shaping/Makefile
 docs/Makefile
 docs/version.xml
+build/win32/Makefile
+build/win32/config.h.win32
 ])
 
 AC_OUTPUT
