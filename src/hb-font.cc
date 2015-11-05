@@ -487,6 +487,13 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
 HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
 
+bool
+hb_font_t::has_func (unsigned int i)
+{
+  if (parent && parent != hb_font_get_empty () && parent->has_func (i))
+    return true;
+  return this->klass->get.array[i] != _hb_font_funcs_parent.get.array[i];
+}
 
 /* Public getters */
 
