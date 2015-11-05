@@ -49,7 +49,7 @@ hb_ot_layout_table_find_feature (hb_face_t    *face,
  * GDEF
  */
 
-typedef enum
+enum hb_ot_layout_glyph_props_flags_t
 {
   /* The following three match LookupFlags::Ignore* numbers. */
   HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH	= 0x02u,
@@ -64,7 +64,8 @@ typedef enum
   HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE     = HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED |
 					  HB_OT_LAYOUT_GLYPH_PROPS_LIGATED |
 					  HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED
-} hb_ot_layout_glyph_class_mask_t;
+};
+template <> class hb_mark_as_flags_t<hb_ot_layout_glyph_props_flags_t> {};
 
 
 /*
@@ -230,12 +231,13 @@ _next_syllable (hb_buffer_t *buffer, unsigned int start)
  * freeing two more bits.
  */
 
-enum {
+enum hb_unicode_props_flags_t {
   UPROPS_MASK_ZWJ       = 0x20u,
   UPROPS_MASK_ZWNJ      = 0x40u,
   UPROPS_MASK_IGNORABLE = 0x80u,
   UPROPS_MASK_GEN_CAT   = 0x1Fu
 };
+template <> class hb_mark_as_flags_t<hb_unicode_props_flags_t> {};
 
 static inline void
 _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
