@@ -1834,6 +1834,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
   data_create_indic,
   data_destroy_indic,
   NULL, /* preprocess_text */
+  NULL, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   decompose_indic,
   compose_indic,

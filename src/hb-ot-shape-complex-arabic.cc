@@ -379,7 +379,8 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   NULL, /* override_features */
   data_create_arabic,
   data_destroy_arabic,
-  NULL, /* preprocess_text_arabic */
+  NULL, /* preprocess_text */
+  NULL, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
   NULL, /* decompose */
   NULL, /* compose */
