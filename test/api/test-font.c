@@ -386,7 +386,7 @@ test_font_properties (void)
 
 
   g_assert (hb_font_get_face (font) == face);
-  g_assert (hb_font_get_parent (font) == NULL);
+  g_assert (hb_font_get_parent (font) == hb_font_get_empty ());
   subfont = hb_font_create_sub_font (font);
   g_assert (hb_font_get_parent (subfont) == font);
   hb_font_set_parent(subfont, NULL);
