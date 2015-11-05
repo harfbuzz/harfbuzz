@@ -287,20 +287,24 @@ hb_font_get_font_extents_nil (hb_font_t *font,
              hb_font_extents_t *metrics,
              void *user_data HB_UNUSED)
 {
-  if (font->parent) {
-    hb_bool_t ret = font->parent->get_font_extents (metrics);
-    if (ret) {
-      metrics->ascender = font->parent_scale_y_distance (metrics->ascender);
-      metrics->descender = font->parent_scale_y_distance (metrics->descender);
-      metrics->linegap = font->parent_scale_y_distance (metrics->linegap);
-    }
-    return ret;
-  }
-
   memset (metrics, 0, sizeof (*metrics));
   return false;
 }
 
+static hb_bool_t
+hb_font_get_font_extents_parent (hb_font_t *font,
+             void *font_data HB_UNUSED,
+             hb_font_extents_t *metrics,
+             void *user_data HB_UNUSED)
+{
+  hb_bool_t ret = font->parent->get_font_extents (metrics);
+  if (ret) {
+    metrics->ascender = font->parent_scale_y_distance (metrics->ascender);
+    metrics->descender = font->parent_scale_y_distance (metrics->descender);
+    metrics->linegap = font->parent_scale_y_distance (metrics->linegap);
+  }
+  return ret;
+}
 
 static const hb_font_funcs_t _hb_font_funcs_nil = {
   HB_OBJECT_HEADER_STATIC,
@@ -508,6 +512,13 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
 HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
 
+bool
+hb_font_t::has_func (unsigned int i)
+{
+  if (parent && parent != hb_font_get_empty () && parent->has_func (i))
+    return true;
+  return this->klass->get.array[i] != _hb_font_funcs_parent.get.array[i];
+}
 
 /* Public getters */
 
