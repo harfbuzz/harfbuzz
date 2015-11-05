@@ -346,7 +346,8 @@ hb_ot_mirror_chars (hb_ot_shape_context_t *c)
 static inline void
 hb_ot_shape_setup_masks_fraction (hb_ot_shape_context_t *c)
 {
-  if (!c->plan->has_frac)
+  if (!(c->buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII) ||
+      !c->plan->has_frac)
     return;
 
   hb_buffer_t *buffer = c->buffer;
