@@ -43,8 +43,9 @@ template <> class hb_mark_as_flags_t<hb_buffer_serialize_flags_t> {};
 
 enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_DEFAULT			= 0x00000000u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES		= 0x00000001u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000002u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII			= 0x00000001u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES		= 0x00000002u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000004u,
 };
 template <> class hb_mark_as_flags_t<hb_buffer_scratch_flags_t> {};
 
