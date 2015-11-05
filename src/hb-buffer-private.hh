@@ -48,6 +48,11 @@ enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000004u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_CURSIVE		= 0x00000008u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT		= 0x00000010u,
+  /* Reserved for complex shapers' internal use. */
+  HB_BUFFER_SCRATCH_FLAG_COMPLEX0			= 0x01000000u,
+  HB_BUFFER_SCRATCH_FLAG_COMPLEX1			= 0x02000000u,
+  HB_BUFFER_SCRATCH_FLAG_COMPLEX2			= 0x04000000u,
+  HB_BUFFER_SCRATCH_FLAG_COMPLEX3			= 0x08000000u,
 };
 template <> class hb_mark_as_flags_t<hb_buffer_scratch_flags_t> {};
 
