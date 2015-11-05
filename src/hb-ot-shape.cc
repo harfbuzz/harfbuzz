@@ -580,7 +580,6 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
-  _hb_buffer_allocate_gsubgpos_vars (buffer);
   hb_ot_layout_substitute_start (c->font, buffer);
 
   if (!hb_ot_layout_has_glyph_classes (c->face))
@@ -597,6 +596,9 @@ static inline void
 hb_ot_substitute (hb_ot_shape_context_t *c)
 {
   hb_ot_substitute_default (c);
+
+  _hb_buffer_allocate_gsubgpos_vars (c->buffer);
+
   hb_ot_substitute_complex (c);
 }
 
