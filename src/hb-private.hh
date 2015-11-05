@@ -891,6 +891,20 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 }
 
 
+/* Enable bitwise ops on enums marked as flags_t */
+template <class T> class hb_mark_as_flags_t;
+template <class T> static inline T operator | (T l, T r)
+{ hb_mark_as_flags_t<T> unused HB_UNUSED; return T ((unsigned int) l | (unsigned int) r); }
+template <class T> static inline T operator & (T l, T r)
+{ hb_mark_as_flags_t<T> unused HB_UNUSED; return T ((unsigned int) l & (unsigned int) r); }
+template <class T> static inline T operator ~ (T r)
+{ hb_mark_as_flags_t<T> unused HB_UNUSED; return T (~(unsigned int) r); }
+template <class T> static inline T& operator |= (T &l, T r)
+{ hb_mark_as_flags_t<T> unused HB_UNUSED; l = l | r; return l; }
+template <class T> static inline T& operator &= (T& l, T r)
+{ hb_mark_as_flags_t<T> unused HB_UNUSED; l = l & r; return l; }
+
+
 /* Useful for set-operations on small enums.
  * For example, for testing "x ∈ {x1, x2, x3}" use:
  * (FLAG_SAFE(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))

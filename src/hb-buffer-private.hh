@@ -38,6 +38,9 @@
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == 20);
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
+template <> class hb_mark_as_flags_t<hb_buffer_flags_t> {};
+template <> class hb_mark_as_flags_t<hb_buffer_serialize_flags_t> {};
+
 
 /*
  * hb_buffer_t

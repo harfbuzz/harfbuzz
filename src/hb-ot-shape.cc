@@ -525,7 +525,7 @@ hb_synthesize_glyph_classes (hb_ot_shape_context_t *c)
   hb_glyph_info_t *info = c->buffer->info;
   for (unsigned int i = 0; i < count; i++)
   {
-    hb_ot_layout_glyph_class_mask_t klass;
+    hb_ot_layout_glyph_props_flags_t klass;
 
     /* Never mark default-ignorables as marks.
      * They won't get in the way of lookups anyway,

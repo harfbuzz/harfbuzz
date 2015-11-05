@@ -579,6 +579,11 @@ struct LookupFlag : USHORT
   DEFINE_SIZE_STATIC (2);
 };
 
+} /* namespace OT */
+/* This has to be outside the namespace. */
+template <> class hb_mark_as_flags_t<OT::LookupFlag::Flags> {};
+namespace OT {
+
 struct Lookup
 {
   inline unsigned int get_subtable_count (void) const { return subTable.len; }
