@@ -621,6 +621,9 @@ zero_mark_width (hb_glyph_position_t *pos)
 static inline void
 zero_mark_widths_by_unicode (hb_buffer_t *buffer, bool adjust_offsets)
 {
+  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII))
+    return;
+
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
