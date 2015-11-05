@@ -553,9 +553,6 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
-  if (c->plan->shaper->preprocess_text)
-    c->plan->shaper->preprocess_text (c->plan, buffer, c->font);
-
   hb_ot_shape_initialize_masks (c);
 
   hb_ot_mirror_chars (c);
@@ -815,10 +812,16 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   hb_ensure_native_direction (c->buffer);
 
+  if (c->plan->shaper->preprocess_text)
+    c->plan->shaper->preprocess_text (c->plan, c->buffer, c->font);
+
   hb_ot_substitute (c);
   hb_ot_position (c);
 
   hb_ot_hide_default_ignorables (c);
+
+  if (c->plan->shaper->postprocess_glyphs)
+    c->plan->shaper->postprocess_glyphs (c->plan, c->buffer, c->font);
 
   _hb_buffer_deallocate_unicode_vars (c->buffer);
 

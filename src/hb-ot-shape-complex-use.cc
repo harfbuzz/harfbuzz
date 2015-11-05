@@ -576,6 +576,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_use =
   data_create_use,
   data_destroy_use,
   NULL, /* preprocess_text */
+  NULL, /* postprocess_glyphs */
   HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   NULL, /* decompose */
   compose_use,
