@@ -64,10 +64,15 @@ view_cairo_t::render (const font_options_t *font_opts)
       w =  MAX (w, x_sign * x_advance);
   }
 
+  /* See if font needs color. */
+  cairo_content_t content = CAIRO_CONTENT_ALPHA;
+  if (helper_cairo_scaled_font_has_color (scaled_font))
+    content = CAIRO_CONTENT_COLOR;
+
   /* Create surface. */
   cairo_t *cr = helper_cairo_create_context (w + view_options.margin.l + view_options.margin.r,
 					     h + view_options.margin.t + view_options.margin.b,
-					     &view_options, &output_options);
+					     &view_options, &output_options, content);
   cairo_set_scaled_font (cr, scaled_font);
 
   /* Setup coordinate system. */
