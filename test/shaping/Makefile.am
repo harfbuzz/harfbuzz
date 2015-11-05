@@ -48,6 +48,7 @@ TESTS = \
 	tests/default-ignorables.tests \
 	tests/fuzzed.tests \
 	tests/hangul-jamo.tests \
+	tests/hyphens.tests \
 	tests/indic-joiner-candrabindu.tests \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
