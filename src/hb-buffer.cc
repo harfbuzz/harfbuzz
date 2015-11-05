@@ -198,6 +198,7 @@ hb_buffer_t::clear (void)
 
   hb_segment_properties_t default_props = HB_SEGMENT_PROPERTIES_DEFAULT;
   props = default_props;
+  scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
 
   content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
   in_error = false;
@@ -738,6 +739,7 @@ hb_buffer_get_empty (void)
     HB_BUFFER_FLAG_DEFAULT,
     HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
     HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
+    HB_BUFFER_SCRATCH_FLAG_DEFAULT,
 
     HB_BUFFER_CONTENT_TYPE_INVALID,
     HB_SEGMENT_PROPERTIES_DEFAULT,
