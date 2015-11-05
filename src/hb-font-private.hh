@@ -61,7 +61,7 @@ struct hb_font_funcs_t {
 
   hb_bool_t immutable;
 
-  /* Don't access these directly.  Call hb_font_get_*() instead. */
+  /* Don't access these directly.  Call font->get_*() instead. */
 
   struct {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_func_t name;
