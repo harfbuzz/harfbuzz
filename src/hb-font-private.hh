@@ -307,6 +307,26 @@ struct hb_font_t {
     }
   }
 
+  inline void add_glyph_h_origin (hb_codepoint_t glyph,
+				  hb_position_t *x, hb_position_t *y)
+  {
+    hb_position_t origin_x, origin_y;
+
+    get_glyph_h_origin (glyph, &origin_x, &origin_y);
+
+    *x += origin_x;
+    *y += origin_y;
+  }
+  inline void add_glyph_v_origin (hb_codepoint_t glyph,
+				  hb_position_t *x, hb_position_t *y)
+  {
+    hb_position_t origin_x, origin_y;
+
+    get_glyph_v_origin (glyph, &origin_x, &origin_y);
+
+    *x += origin_x;
+    *y += origin_y;
+  }
   inline void add_glyph_origin_for_direction (hb_codepoint_t glyph,
 					      hb_direction_t direction,
 					      hb_position_t *x, hb_position_t *y)
@@ -319,6 +339,26 @@ struct hb_font_t {
     *y += origin_y;
   }
 
+  inline void subtract_glyph_h_origin (hb_codepoint_t glyph,
+				       hb_position_t *x, hb_position_t *y)
+  {
+    hb_position_t origin_x, origin_y;
+
+    get_glyph_h_origin (glyph, &origin_x, &origin_y);
+
+    *x -= origin_x;
+    *y -= origin_y;
+  }
+  inline void subtract_glyph_v_origin (hb_codepoint_t glyph,
+				       hb_position_t *x, hb_position_t *y)
+  {
+    hb_position_t origin_x, origin_y;
+
+    get_glyph_v_origin (glyph, &origin_x, &origin_y);
+
+    *x -= origin_x;
+    *y -= origin_y;
+  }
   inline void subtract_glyph_origin_for_direction (hb_codepoint_t glyph,
 						   hb_direction_t direction,
 						   hb_position_t *x, hb_position_t *y)
