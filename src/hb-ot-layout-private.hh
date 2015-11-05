@@ -240,8 +240,9 @@ enum hb_unicode_props_flags_t {
 template <> class hb_mark_as_flags_t<hb_unicode_props_flags_t> {};
 
 static inline void
-_hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *unicode)
+_hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
 {
+  hb_unicode_funcs_t *unicode = buffer->unicode;
   unsigned int u = info->codepoint;
   unsigned int gen_cat = (unsigned int) unicode->general_category (u);
   unsigned int props = gen_cat;
@@ -250,6 +251,7 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_unicode_funcs_t *uni
   {
     if (unlikely (unicode->is_default_ignorable (u)))
     {
+      buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES;
       props |=  UPROPS_MASK_IGNORABLE;
       if (u == 0x200Cu) props |= UPROPS_MASK_ZWNJ;
       if (u == 0x200Du) props |= UPROPS_MASK_ZWJ;
