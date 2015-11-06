@@ -35,6 +35,16 @@
 #include "hb-unicode-private.hh"
 
 
+#ifndef HB_BUFFER_MAX_EXPANSION_FACTOR
+#define HB_BUFFER_MAX_EXPANSION_FACTOR 32
+#endif
+#ifndef HB_BUFFER_MAX_LEN_MIN
+#define HB_BUFFER_MAX_LEN_MIN 8192
+#endif
+#ifndef HB_BUFFER_MAX_LEN_DEFAULT_
+#define HB_BUFFER_MAX_LEN_DEFAULT 0x3FFFFFFF /* Shaping more than a billion chars? Let us know! */
+#endif
+
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == 20);
 ASSERT_STATIC (sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t));
 
@@ -71,6 +81,7 @@ struct hb_buffer_t {
   hb_buffer_cluster_level_t cluster_level;
   hb_codepoint_t replacement; /* U+FFFD or something else. */
   hb_buffer_scratch_flags_t scratch_flags; /* Have space-flallback, etc. */
+  unsigned int max_len; /* Maximum allowed len. */
 
   /* Buffer contents */
   hb_buffer_content_type_t content_type;
