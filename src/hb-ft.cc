@@ -277,6 +277,16 @@ hb_ft_get_glyph_extents (hb_font_t *font HB_UNUSED,
   extents->y_bearing = ft_face->glyph->metrics.horiBearingY;
   extents->width = ft_face->glyph->metrics.width;
   extents->height = -ft_face->glyph->metrics.height;
+  if (font->x_scale < 0)
+  {
+    extents->x_bearing = -extents->x_bearing;
+    extents->width = -extents->width;
+  }
+  if (font->y_scale < 0)
+  {
+    extents->y_bearing = -extents->y_bearing;
+    extents->height = -extents->height;
+  }
   return true;
 }
 
