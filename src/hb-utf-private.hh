@@ -146,11 +146,11 @@ struct hb_utf16_t
       return text;
     }
 
-    if (likely (hb_in_range (c, 0xD800u, 0xDBFFu)))
+    if (likely (c <= 0xDBFFu && text < end))
     {
       /* High-surrogate in c */
-      hb_codepoint_t l;
-      if (text < end && ((l = *text), likely (hb_in_range (l, 0xDC00u, 0xDFFFu))))
+      hb_codepoint_t l = *text;
+      if (likely (hb_in_range (l, 0xDC00u, 0xDFFFu)))
       {
 	/* Low-surrogate in l */
 	*unicode = (c << 10) + l - ((0xD800u << 10) - 0x10000u + 0xDC00u);
@@ -211,14 +211,9 @@ struct hb_utf32_t
 	hb_codepoint_t *unicode,
 	hb_codepoint_t replacement)
   {
-    hb_codepoint_t c = *text++;
-    if (validate && unlikely (c > 0x10FFFFu || hb_in_range (c, 0xD800u, 0xDFFFu)))
-      goto error;
-    *unicode = c;
-    return text;
-
-  error:
-    *unicode = replacement;
+    hb_codepoint_t c = *unicode = *text++;
+    if (validate && unlikely (c >= 0xD800u && (c <= 0xDFFFu || c > 0x10FFFFu)))
+      *unicode = replacement;
     return text;
   }
 
