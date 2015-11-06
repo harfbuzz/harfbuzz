@@ -390,6 +390,16 @@ void free_static_ft_funcs (void)
 }
 #endif
 
+static hb_font_funcs_t *static_ft_funcs = NULL;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_ft_funcs (void)
+{
+  hb_font_funcs_destroy (static_ft_funcs);
+}
+#endif
+
 static void
 _hb_ft_font_set_funcs (hb_font_t *font, FT_Face ft_face, bool unref)
 {
