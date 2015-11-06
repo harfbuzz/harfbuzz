@@ -366,6 +366,29 @@ hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
   return *glyph != 0;
 }
 
+static hb_bool_t
+hb_ft_get_font_extents (hb_font_t *font HB_UNUSED,
+       void *font_data,
+       hb_font_extents_t *metrics,
+       void *user_data HB_UNUSED)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  FT_Face ft_face = ft_font->ft_face;
+  metrics->ascender = ft_face->ascender;
+  metrics->descender = ft_face->descender;
+  metrics->linegap = ft_face->height - (ft_face->ascender - ft_face->descender);
+  return true;
+}
+
+static hb_font_funcs_t *static_ft_funcs = NULL;
+
+#ifdef HB_USE_ATEXIT
+static
+void free_static_ft_funcs (void)
+{
+  hb_font_funcs_destroy (static_ft_funcs);
+}
+#endif
 
 static hb_font_funcs_t *static_ft_funcs = NULL;
 

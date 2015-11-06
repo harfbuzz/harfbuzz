@@ -35,6 +35,7 @@
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-hmtx-table.hh"
+#include "hb-ot-os_2-table.hh"
 
 
 struct hb_ot_face_metrics_accelerator_t
@@ -42,6 +43,10 @@ struct hb_ot_face_metrics_accelerator_t
   unsigned int num_metrics;
   unsigned int num_advances;
   unsigned int default_advance;
+  unsigned short ascender;
+  unsigned short descender;
+  unsigned short linegap;
+
   const OT::_mtx *table;
   hb_blob_t *blob;
 
@@ -50,9 +55,19 @@ struct hb_ot_face_metrics_accelerator_t
   {
     this->default_advance = face->get_upem ();
 
+    hb_blob_t *os_2_blob = OT::Sanitizer<OT::os_2>::sanitize (face->reference_table (HB_OT_TAG_os_2));
+    const OT::os_2 *os_2 = OT::Sanitizer<OT::os_2>::lock_instance (os_2_blob);
+    this->ascender = os_2->sTypoAscender;
+    this->descender = os_2->sTypoDescender;
+    this->linegap = os_2->sTypoLineGap;
+    hb_blob_destroy (os_2_blob);
+
     hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (face->reference_table (_hea_tag));
     const OT::_hea *_hea = OT::Sanitizer<OT::_hea>::lock_instance (_hea_blob);
     this->num_advances = _hea->numberOfLongMetrics;
+    if (!this->ascender) this->ascender = _hea->ascender;
+    if (!this->descender) this->descender = _hea->descender;
+    if (!this->linegap) this->linegap = _hea->lineGap;
     hb_blob_destroy (_hea_blob);
 
     this->blob = OT::Sanitizer<OT::_mtx>::sanitize (face->reference_table (_mtx_tag));
@@ -320,6 +335,18 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
   return ret;
 }
 
+static hb_bool_t
+hb_ot_get_font_extents (hb_font_t *font HB_UNUSED,
+       void *font_data,
+       hb_font_extents_t *metrics,
+       void *user_data HB_UNUSED)
+{
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
+  metrics->ascender = font->em_scale_y (ot_font->h_metrics.ascender);
+  metrics->descender = font->em_scale_y (ot_font->h_metrics.descender);
+  metrics->linegap = font->em_scale_y (ot_font->h_metrics.linegap);
+  return true;
+}
 
 static hb_font_funcs_t *static_ot_funcs = NULL;
 

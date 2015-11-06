@@ -89,8 +89,18 @@ typedef struct hb_glyph_extents_t
   hb_position_t height; /* distance from top to bottom side. */
 } hb_glyph_extents_t;
 
+typedef struct hb_font_extents_t
+{
+  short ascender; /* typographic ascender for layout. */
+  short descender; /* typographic descender (usually negative). */
+  short linegap; /* suggested line spacing. */
+} hb_font_extents_t;
 
 /* func types */
+
+typedef hb_bool_t (*hb_font_get_font_extents_func_t) (hb_font_t *font, void *font_data,
+						       hb_font_extents_t *metrics,
+						       void *user_data);
 
 typedef hb_bool_t (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_data,
 					       hb_codepoint_t unicode, hb_codepoint_t variation_selector,
@@ -136,7 +146,6 @@ typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *
 							 const char *name, int len, /* -1 means nul-terminated */
 							 hb_codepoint_t *glyph,
 							 void *user_data);
-
 
 /* func setters */
 
@@ -316,6 +325,10 @@ hb_font_funcs_set_glyph_from_name_func (hb_font_funcs_t *ffuncs,
 					hb_font_get_glyph_from_name_func_t func,
 					void *user_data, hb_destroy_func_t destroy);
 
+void
+hb_font_funcs_set_font_extents_func (hb_font_funcs_t *ffuncs,
+				      hb_font_get_font_extents_func_t func,
+				      void *user_data, hb_destroy_func_t destroy);
 
 /* func dispatch */
 
@@ -366,6 +379,9 @@ hb_font_get_glyph_from_name (hb_font_t *font,
 			     const char *name, int len, /* -1 means nul-terminated */
 			     hb_codepoint_t *glyph);
 
+
+hb_bool_t
+hb_font_get_extents (hb_font_t *font, hb_font_extents_t *extents);
 
 /* high-level funcs, with fallback */
 
