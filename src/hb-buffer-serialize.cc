@@ -26,6 +26,8 @@
 
 #include "hb-buffer-private.hh"
 
+#include <errno.h>
+
 
 static const char *serialize_formats[] = {
   "text",

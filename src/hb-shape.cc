@@ -33,6 +33,8 @@
 #include "hb-buffer-private.hh"
 #include "hb-font-private.hh"
 
+#include <errno.h>
+
 /**
  * SECTION:hb-shape
  * @title: Shaping
