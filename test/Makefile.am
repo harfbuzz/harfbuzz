@@ -1,6 +1,6 @@
 # Process this file with automake to produce Makefile.in
 
-SUBDIRS = api shaping
+SUBDIRS = api shaping fuzzing
 
 # Convenience targets:
 lib:
