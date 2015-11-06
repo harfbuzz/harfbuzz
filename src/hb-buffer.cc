@@ -91,6 +91,11 @@ hb_buffer_t::enlarge (unsigned int size)
 {
   if (unlikely (in_error))
     return false;
+  if (unlikely (size > max_len))
+  {
+    in_error = true;
+    return false;
+  }
 
   unsigned int new_allocated = allocated;
   hb_glyph_position_t *new_pos = NULL;
@@ -715,6 +720,8 @@ hb_buffer_create (void)
   if (!(buffer = hb_object_create<hb_buffer_t> ()))
     return hb_buffer_get_empty ();
 
+  buffer->max_len = HB_BUFFER_MAX_LEN_DEFAULT;
+
   buffer->reset ();
 
   return buffer;
@@ -740,6 +747,7 @@ hb_buffer_get_empty (void)
     HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
     HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
     HB_BUFFER_SCRATCH_FLAG_DEFAULT,
+    HB_BUFFER_MAX_LEN_DEFAULT,
 
     HB_BUFFER_CONTENT_TYPE_INVALID,
     HB_SEGMENT_PROPERTIES_DEFAULT,

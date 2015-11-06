@@ -39,6 +39,8 @@ hb_fuzzer_CPPFLAGS = \
 	-DMAIN \
 	-DHB_MAX_NESTING_LEVEL=3 \
 	-DHB_SANITIZE_MAX_EDITS=3 \
+	-DHB_BUFFER_MAX_EXPANSION_FACTOR=3 \
+	-DHB_BUFFER_MAX_LEN_MIN=8 \
 	$(NULL)
 
 -include $(top_srcdir)/git.mk
