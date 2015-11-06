@@ -1,6 +1,6 @@
 #include <stddef.h>
-#include "src/hb.h"
-#include "src/hb-ot.h"
+#include <hb.h>
+#include <hb-ot.h>
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   const char text[] = "ABCDEXYZ123@_%&)*$!";

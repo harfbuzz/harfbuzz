@@ -440,6 +440,7 @@ src/hb-ucdn/Makefile
 util/Makefile
 test/Makefile
 test/api/Makefile
+test/fuzzing/Makefile
 test/shaping/Makefile
 docs/Makefile
 docs/version.xml
