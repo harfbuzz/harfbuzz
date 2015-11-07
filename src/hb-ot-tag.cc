@@ -516,7 +516,6 @@ static const LangTag ot_languages[] = {
   {"lrc",	HB_TAG('L','R','C',' ')},	/* Northern Luri */
   {"lt",	HB_TAG('L','T','H',' ')},	/* Lithuanian */
   {"lu",	HB_TAG('L','U','B',' ')},	/* Luba-Katanga */
-  {"lua",	HB_TAG('L','U','A',' ')},	/* Luba-Lulua */
   {"lua",	HB_TAG('L','U','B',' ')},	/* Luba-Kasai */
   {"luo",	HB_TAG('L','U','O',' ')},	/* Luo (Kenya and Tanzania) */
   {"lus",	HB_TAG('M','I','Z',' ')},	/* Mizo */
@@ -816,6 +815,7 @@ static const LangTag ot_languages[] = {
 /*{"kca",	HB_TAG('K','H','S',' ')},*/	/* Khanty-Shurishkar */
 /*{"kca",	HB_TAG('K','H','V',' ')},*/	/* Khanty-Vakhi */
 /*{"kqs, kss",	HB_TAG('K','I','S',' ')},*/	/* Kisii */
+/*{"lua",	HB_TAG('L','U','A',' ')},*/	/* Luba-Lulua */
 /*{"crm",	HB_TAG('L','C','R',' ')},*/	/* L-Cree */
 /*{"csw",	HB_TAG('N','C','R',' ')},*/	/* N-Cree */
 /*{"csw",	HB_TAG('N','H','C',' ')},*/	/* Norway House Cree */
