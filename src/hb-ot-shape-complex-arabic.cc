@@ -541,7 +541,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 
       hb_position_t w_remaining = w_total - w_fixed - overlap;
       if (sign * w_remaining > sign * w_repeating && sign * w_repeating > 0)
-	n_copies = (sign * w_remaining + sign * w_repeating / 2) / (sign * w_repeating) - 1;
+	n_copies = (sign * w_remaining + sign * w_repeating / 4) / (sign * w_repeating) - 1;
 
       if (step == MEASURE)
       {
