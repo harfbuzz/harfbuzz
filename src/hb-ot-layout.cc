@@ -954,7 +954,7 @@ apply_string (OT::hb_apply_context_t *c,
 {
   hb_buffer_t *buffer = c->buffer;
 
-  if (unlikely (buffer->in_error || !buffer->len || !c->lookup_mask))
+  if (unlikely (!buffer->len || !c->lookup_mask))
     return;
 
   c->set_lookup_props (lookup.get_props ());
