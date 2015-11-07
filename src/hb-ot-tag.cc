@@ -811,6 +811,7 @@ static const LangTag ot_languages[] = {
    * overlap, or are architecturally weird. Needs more research. */
 
 /*{"krc",	HB_TAG('B','A','L',' ')},*/	/* Balkar */
+/*{"hy?",	HB_TAG('H','Y','E','0')},*/	/* Armenian East (ISO 639-3 hye according to Microsoft, but that’s equivalent to ISO 639-1 hy) */
 /*{"krc",	HB_TAG('K','A','R',' ')},*/	/* Karachay */
 /*{"kca",	HB_TAG('K','H','K',' ')},*/	/* Khanty-Kazim */
 /*{"kca",	HB_TAG('K','H','S',' ')},*/	/* Khanty-Shurishkar */
