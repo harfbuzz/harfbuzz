@@ -619,7 +619,6 @@ static const LangTag ot_languages[] = {
   {"pa",	HB_TAG('P','A','N',' ')},	/* Panjabi */
   {"pag",	HB_TAG('P','A','G',' ')},	/* Pangasinan */
   {"pam",	HB_TAG('P','A','M',' ')},	/* Kapampangan/Pampanga */
-  {"pap",	HB_TAG('P','A','P','0')},	/* Papiamentu */
   {"pap",	HB_TAG('P','A','P',' ')},	/* Papiamento */
   {"pau",	HB_TAG('P','A','U',' ')},	/* Palauan */
   {"pcc",	HB_TAG('P','C','C',' ')},	/* Bouyei */
@@ -820,6 +819,7 @@ static const LangTag ot_languages[] = {
 /*{"csw",	HB_TAG('N','C','R',' ')},*/	/* N-Cree */
 /*{"csw",	HB_TAG('N','H','C',' ')},*/	/* Norway House Cree */
 /*{"el-polyton",	HB_TAG('P','G','R',' ')},*/	/* Polytonic Greek */
+/*{"pap",	HB_TAG('P','A','P','0')},*/	/* Papiamentu */
 /*{"bgr, cnh, cnw, czt, sez, tcp, csy, ctd, flm, pck, tcz, zom, cmr, dao, hlt, cka, cnk, mrh, mwg, cbl, cnb, csh",	HB_TAG('Q','I','N',' ')},*/	/* Chin */
 /*{"zh-Latn-pinyin",	HB_TAG('Z','H','P',' ')},*/	/* Chinese Phonetic */
 };
