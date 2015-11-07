@@ -414,7 +414,7 @@ static const LangTag ot_languages[] = {
   {"ie",	HB_TAG('I','L','E',' ')},	/* Interlingue/Occidental */
   {"ig",	HB_TAG('I','B','O',' ')},	/* Igbo */
   {"igb",	HB_TAG('E','B','I',' ')},	/* Ebira */
-  {"iii",	HB_TAG('Y','I','M',' ')},	/* Yi Modern */
+  {"ii",	HB_TAG('Y','I','M',' ')},	/* Yi Modern */
   {"ijc",	HB_TAG('I','J','O',' ')},	/* Izon */
   {"ijo",	HB_TAG('I','J','O',' ')},	/* Ijo [family] */
   {"ik",	HB_TAG('I','P','K',' ')},	/* Inupiaq [macrolanguage] */
