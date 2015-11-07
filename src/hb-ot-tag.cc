@@ -196,8 +196,8 @@ static const LangTag ot_languages[] = {
   {"aii",	HB_TAG('S','W','A',' ')},	/* Swadaya Aramaic */
   {"aio",	HB_TAG('A','I','O',' ')},	/* Aiton */
   {"aiw",	HB_TAG('A','R','I',' ')},	/* Aari */
-  {"aka",	HB_TAG('A','K','A',' ')},	/* Akan */
   {"ak",	HB_TAG('T','W','I',' ')},	/* Akan [macrolanguage] */
+  {"aka",	HB_TAG('A','K','A',' ')},	/* Akan */
   {"alt",	HB_TAG('A','L','T',' ')},	/* [Southern] Altai */
   {"am",	HB_TAG('A','M','H',' ')},	/* Amharic */
   {"amf",	HB_TAG('H','B','N',' ')},	/* Hammer-Banna */
@@ -218,8 +218,8 @@ static const LangTag ot_languages[] = {
   {"az",	HB_TAG('A','Z','E',' ')},	/* Azerbaijani [macrolanguage] */
   {"azb",	HB_TAG('A','Z','B',' ')},	/* South Azerbaijani */
   {"azj",	HB_TAG('A','Z','E',' ')},	/* North Azerbaijani */
-  {"bad",	HB_TAG('B','A','D','0')},	/* Banda */
   {"ba",	HB_TAG('B','S','H',' ')},	/* Bashkir */
+  {"bad",	HB_TAG('B','A','D','0')},	/* Banda */
   {"bai",	HB_TAG('B','M','L',' ')},	/* Bamileke [family] */
   {"bal",	HB_TAG('B','L','I',' ')},	/* Baluchi [macrolangauge] */
   {"ban",	HB_TAG('B','A','N',' ')},	/* Balinese */
@@ -284,8 +284,8 @@ static const LangTag ot_languages[] = {
   {"ckt",	HB_TAG('C','H','K',' ')},	/* Chukchi */
   {"cop",	HB_TAG('C','O','P',' ')},	/* Coptic */
   {"cpp",	HB_TAG('C','P','P',' ')},	/* Creoles */
-  {"cre",	HB_TAG('Y','C','R',' ')},	/* Y-Cree */
   {"cr",	HB_TAG('C','R','E',' ')},	/* Cree */
+  {"cre",	HB_TAG('Y','C','R',' ')},	/* Y-Cree */
   {"crh",	HB_TAG('C','R','T',' ')},	/* Crimean Tatar */
   {"crj",	HB_TAG('E','C','R',' ')},	/* [Southern] East Cree */
   {"crk",	HB_TAG('W','C','R',' ')},	/* West-Cree */
@@ -328,8 +328,8 @@ static const LangTag ot_languages[] = {
   {"el",	HB_TAG('E','L','L',' ')},	/* Modern Greek (1453-) */
   {"emk",	HB_TAG('E','M','K',' ')},	/* Eastern Maninkakan */
   {"emk",	HB_TAG('M','N','K',' ')},	/* Eastern Maninkakan */
-  {"enf",	HB_TAG('F','N','E',' ')},	/* Forest Nenets */
   {"en",	HB_TAG('E','N','G',' ')},	/* English */
+  {"enf",	HB_TAG('F','N','E',' ')},	/* Forest Nenets */
   {"enh",	HB_TAG('T','N','E',' ')},	/* Tundra Nenets */
   {"eo",	HB_TAG('N','T','O',' ')},	/* Esperanto */
   {"eot",	HB_TAG('B','T','I',' ')},	/* Beti (Côte d'Ivoire) */
