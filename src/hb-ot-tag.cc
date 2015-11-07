@@ -480,8 +480,7 @@ static const LangTag ot_languages[] = {
   {"krl",	HB_TAG('K','R','L',' ')},	/* Karelian */
   {"kru",	HB_TAG('K','U','U',' ')},	/* Kurukh */
   {"ks",	HB_TAG('K','S','H',' ')},	/* Kashmiri */
-  {"ksh",	HB_TAG('K','S','H','0')},	/* Ripuarian */
-  {"ksh",	HB_TAG('K','S','H',' ')},	/* Kölsch */
+  {"ksh",	HB_TAG('K','S','H','0')},	/* Ripuarian, Kölsch */
 /*{"ksw",	HB_TAG('K','R','N',' ')},*/	/* S'gaw Karen (Microsoft fonts?) */
   {"ksw",	HB_TAG('K','S','W',' ')},	/* S'gaw Karen (OpenType spec and SIL fonts) */
   {"ktb",	HB_TAG('K','E','B',' ')},	/* Kebena */
