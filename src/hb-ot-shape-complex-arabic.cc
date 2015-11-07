@@ -38,6 +38,28 @@
 
 #define HB_BUFFER_SCRATCH_FLAG_ARABIC_HAS_STCH HB_BUFFER_SCRATCH_FLAG_COMPLEX0
 
+/* See:
+ * https://github.com/behdad/harfbuzz/commit/6e6f82b6f3dde0fc6c3c7d991d9ec6cfff57823d#commitcomment-14248516 */
+#define HB_ARABIC_GENERAL_CATEGORY_IS_WORD(gen_cat) \
+	(FLAG_SAFE (gen_cat) & \
+	 (FLAG (HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_PRIVATE_USE) | \
+	  /*FLAG (HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER) |*/ \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER) | \
+	  /*FLAG (HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER) |*/ \
+	  /*FLAG (HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER) |*/ \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_LETTER_NUMBER) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_NUMBER) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_MATH_SYMBOL) | \
+	  FLAG (HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL)))
+
 
 /*
  * Joining types:
@@ -501,7 +523,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
       while (context &&
 	     !hb_in_range<unsigned> (info[context - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING) &&
 	     (_hb_glyph_info_is_default_ignorable (&info[context - 1]) ||
-	      HB_UNICODE_GENERAL_CATEGORY_IS_WORD (_hb_glyph_info_get_general_category (&info[context - 1]))))
+	      HB_ARABIC_GENERAL_CATEGORY_IS_WORD (_hb_glyph_info_get_general_category (&info[context - 1]))))
       {
 	context--;
 	w_total += pos[context].x_advance;
