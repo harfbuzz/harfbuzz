@@ -212,8 +212,8 @@ static const LangTag ot_languages[] = {
   {"av",	HB_TAG('A','V','R',' ')},	/* Avaric */
   {"awa",	HB_TAG('A','W','A',' ')},	/* Awadhi */
   {"ay",	HB_TAG('A','Y','M',' ')},	/* Aymara [macrolanguage] */
-  {"azb",	HB_TAG('A','Z','B',' ')},	/* South Azerbaijani */
   {"az",	HB_TAG('A','Z','E',' ')},	/* Azerbaijani [macrolanguage] */
+  {"azb",	HB_TAG('A','Z','B',' ')},	/* South Azerbaijani */
   {"azj",	HB_TAG('A','Z','E',' ')},	/* North Azerbaijani */
   {"bad",	HB_TAG('B','A','D','0')},	/* Banda */
   {"ba",	HB_TAG('B','S','H',' ')},	/* Bashkir */
@@ -694,8 +694,8 @@ static const LangTag ot_languages[] = {
   {"suq",	HB_TAG('S','U','R',' ')},	/* Suri */
   {"sv",	HB_TAG('S','V','E',' ')},	/* Swedish */
   {"sva",	HB_TAG('S','V','A',' ')},	/* Svan */
-  {"swb",	HB_TAG('C','M','R',' ')},	/* Comorian */
   {"sw",	HB_TAG('S','W','K',' ')},	/* Swahili [macrolanguage] */
+  {"swb",	HB_TAG('C','M','R',' ')},	/* Comorian */
   {"swh",	HB_TAG('S','W','K',' ')},	/* Kiswahili/Swahili */
   {"swv",	HB_TAG('M','A','W',' ')},	/* Shekhawati */
   {"sxu",	HB_TAG('S','X','U',' ')},	/* Upper Saxon */
