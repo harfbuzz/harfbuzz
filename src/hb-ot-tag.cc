@@ -699,8 +699,8 @@ static const LangTag ot_languages[] = {
   {"smj",	HB_TAG('L','S','M',' ')},	/* Lule Sami */
   {"smn",	HB_TAG('I','S','M',' ')},	/* Inari Sami */
   {"sms",	HB_TAG('S','K','S',' ')},	/* Skolt Sami */
-  {"sna",	HB_TAG('S','N','A','0')},	/* Shona */
   {"sn",	HB_TAG('S','N','A',' ')},	/* Shona */
+  {"sna",	HB_TAG('S','N','A','0')},	/* Shona */
   {"snk",	HB_TAG('S','N','K',' ')},	/* Soninke */
   {"so",	HB_TAG('S','M','L',' ')},	/* Somali */
   {"sop",	HB_TAG('S','O','P',' ')},	/* Songe */
