@@ -798,7 +798,7 @@ static const LangTag ot_languages[] = {
   {"zgh",	HB_TAG('Z','G','H',' ')},	/* Standard Morrocan Tamazigh */
   {"zne",	HB_TAG('Z','N','D',' ')},	/* Zande */
   {"zu",	HB_TAG('Z','U','L',' ')}, 	/* Zulu */
-  {"zum",	HB_TAG('L','R','C',' ')}	/* Kumzari */
+  {"zum",	HB_TAG('L','R','C',' ')},	/* Kumzari */
   {"zza",	HB_TAG('Z','Z','A',' ')},	/* Zazaki */
 
   /* The corresponding languages IDs for the following IDs are unclear,
