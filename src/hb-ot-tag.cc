@@ -404,7 +404,6 @@ static const LangTag ot_languages[] = {
   {"hsb",	HB_TAG('U','S','B',' ')},	/* Upper Sorbian */
   {"ht",	HB_TAG('H','A','I',' ')},	/* Haitian/Haitian Creole */
   {"hu",	HB_TAG('H','U','N',' ')},	/* Hungarian */
-  {"hye",	HB_TAG('H','Y','E','0')},	/* Armenian East */
   {"hy",	HB_TAG('H','Y','E',' ')},	/* Armenian */
   {"hz",	HB_TAG('H','E','R',' ')},	/* Herero */
   {"ia",	HB_TAG('I','N','A',' ')},	/* Interlingua (International Auxiliary Language Association) */
@@ -431,7 +430,6 @@ static const LangTag ot_languages[] = {
   {"ka",	HB_TAG('K','A','T',' ')},	/* Georgian */
   {"kaa",	HB_TAG('K','R','K',' ')},	/* Karakalpak */
   {"kab",	HB_TAG('K','A','B','0')},	/* Kabyle */
-  {"kab",	HB_TAG('K','A','B',' ')},	/* Kabyle */
   {"kam",	HB_TAG('K','M','B',' ')},	/* Kamba (Kenya) */
   {"kar",	HB_TAG('K','R','N',' ')},	/* Karen [family] */
   {"kat",	HB_TAG('K','G','E',' ')},	/* Khutsuri Georgian */
@@ -699,8 +697,7 @@ static const LangTag ot_languages[] = {
   {"smj",	HB_TAG('L','S','M',' ')},	/* Lule Sami */
   {"smn",	HB_TAG('I','S','M',' ')},	/* Inari Sami */
   {"sms",	HB_TAG('S','K','S',' ')},	/* Skolt Sami */
-  {"sn",	HB_TAG('S','N','A',' ')},	/* Shona */
-  {"sna",	HB_TAG('S','N','A','0')},	/* Shona */
+  {"sn",	HB_TAG('S','N','A','0')},	/* Shona */
   {"snk",	HB_TAG('S','N','K',' ')},	/* Soninke */
   {"so",	HB_TAG('S','M','L',' ')},	/* Somali */
   {"sop",	HB_TAG('S','O','P',' ')},	/* Songe */
