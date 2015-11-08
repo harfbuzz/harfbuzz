@@ -805,19 +805,26 @@ static const LangTag ot_languages[] = {
    * overlap, or are architecturally weird. Needs more research. */
 
 /*{"krc",	HB_TAG('B','A','L',' ')},*/	/* Balkar */
+/*{"??",	HB_TAG('B','C','R',' ')},*/	/* Bible Cree */
+/*{"zh?",	HB_TAG('C','H','N',' ')},*/	/* Chinese (seen in Microsoft fonts) */
+/*{"ar-Syrc?",	HB_TAG('G','A','R',' ')},*/	/* Garshuni */
 /*{"hy?",	HB_TAG('H','Y','E','0')},*/	/* Armenian East (ISO 639-3 hye according to Microsoft, but that’s equivalent to ISO 639-1 hy) */
+/*{"ga-Latg?/"	HB_TAG('I','R','T',' ')},*/	/* Irish Traditional */
 /*{"krc",	HB_TAG('K','A','R',' ')},*/	/* Karachay */
+/*{"ka-Geok?",	HB_TAG('K','G','E',' ')},*/	/* Khutsuri Georgian */
 /*{"kca",	HB_TAG('K','H','K',' ')},*/	/* Khanty-Kazim */
 /*{"kca",	HB_TAG('K','H','S',' ')},*/	/* Khanty-Shurishkar */
 /*{"kca",	HB_TAG('K','H','V',' ')},*/	/* Khanty-Vakhi */
 /*{"kqs, kss",	HB_TAG('K','I','S',' ')},*/	/* Kisii */
 /*{"lua",	HB_TAG('L','U','A',' ')},*/	/* Luba-Lulua */
 /*{"crm",	HB_TAG('L','C','R',' ')},*/	/* L-Cree */
+/*{"??",	HB_TAG('M','A','L',' ')},*/	/* Malayalam Traditional */
 /*{"csw",	HB_TAG('N','C','R',' ')},*/	/* N-Cree */
 /*{"csw",	HB_TAG('N','H','C',' ')},*/	/* Norway House Cree */
 /*{"el-polyton",	HB_TAG('P','G','R',' ')},*/	/* Polytonic Greek */
 /*{"pap",	HB_TAG('P','A','P','0')},*/	/* Papiamentu */
 /*{"bgr, cnh, cnw, czt, sez, tcp, csy, ctd, flm, pck, tcz, zom, cmr, dao, hlt, cka, cnk, mrh, mwg, cbl, cnb, csh",	HB_TAG('Q','I','N',' ')},*/	/* Chin */
+/*{"??",	HB_TAG('Y','I','C',' ')},*/	/* Yi Classic */
 /*{"zh-Latn-pinyin",	HB_TAG('Z','H','P',' ')},*/	/* Chinese Phonetic */
 };
 
