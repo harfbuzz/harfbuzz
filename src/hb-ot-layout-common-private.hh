@@ -581,7 +581,7 @@ struct LookupFlag : USHORT
 
 } /* namespace OT */
 /* This has to be outside the namespace. */
-template <> class hb_mark_as_flags_t<OT::LookupFlag::Flags> {};
+HB_MARK_AS_FLAG_T (OT::LookupFlag::Flags);
 namespace OT {
 
 struct Lookup

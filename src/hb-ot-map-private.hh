@@ -159,7 +159,7 @@ enum hb_ot_map_feature_flags_t {
   F_MANUAL_ZWJ		= 0x0004u, /* Don't skip over ZWJ when matching. */
   F_GLOBAL_SEARCH	= 0x0008u  /* If feature not found in LangSys, look for it in global feature list and pick one. */
 };
-template <> class hb_mark_as_flags_t<hb_ot_map_feature_flags_t> {};
+HB_MARK_AS_FLAG_T (hb_ot_map_feature_flags_t);
 /* Macro version for where const is desired. */
 #define F_COMBINE(l,r) (hb_ot_map_feature_flags_t ((unsigned int) (l) | (unsigned int) (r)))
 
