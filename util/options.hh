@@ -401,7 +401,10 @@ struct output_options_t : option_group_t
     if (output_file && !output_format) {
       output_format = strrchr (output_file, '.');
       if (output_format)
+      {
 	  output_format++; /* skip the dot */
+	  output_format = strdup (output_format);
+      }
     }
 
     if (output_file && 0 == strcmp (output_file, "-"))
