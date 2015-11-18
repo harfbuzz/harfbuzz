@@ -119,15 +119,6 @@ extern "C" void  hb_free_impl(void *ptr);
 #define HB_FUNC __func__
 #endif
 
-/* Use templates for bitwise ops on enums or MSVC's DEFINE_ENUM_FLAG_OPERATORS */
-#ifdef _MSC_VER
-# pragma warning(disable:4200)
-# pragma warning(disable:4800)
-# define HB_MARK_AS_FLAG_T(flags_t)	DEFINE_ENUM_FLAG_OPERATORS (##flags_t##);
-#else
-# define HB_MARK_AS_FLAG_T(flags_t)	template <> class hb_mark_as_flags_t<flags_t> {};
-#endif
-
 /*
  * Borrowed from https://bugzilla.mozilla.org/show_bug.cgi?id=1215411
  * HB_FALLTHROUGH is an annotation to suppress compiler warnings about switch
@@ -903,8 +894,17 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 /* Enable bitwise ops on enums marked as flags_t */
 /* To my surprise, looks like the function resolver is happy to silently cast
  * one enum to another...  So this doesn't provide the type-checking that I
- * originally had in mind... :( */
-#ifndef _MSC_VER
+ * originally had in mind... :(.
+ *
+ * On MSVC use DEFINE_ENUM_FLAG_OPERATORS.  See:
+ * https://github.com/behdad/harfbuzz/pull/163
+ */
+#ifdef _MSC_VER
+# pragma warning(disable:4200)
+# pragma warning(disable:4800)
+# define HB_MARK_AS_FLAG_T(flags_t)	DEFINE_ENUM_FLAG_OPERATORS (##flags_t##);
+#else
+# define HB_MARK_AS_FLAG_T(flags_t)	template <> class hb_mark_as_flags_t<flags_t> {};
 template <class T> class hb_mark_as_flags_t;
 template <class T> static inline T operator | (T l, T r)
 { hb_mark_as_flags_t<T> unused HB_UNUSED; return T ((unsigned int) l | (unsigned int) r); }
