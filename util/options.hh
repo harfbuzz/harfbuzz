@@ -474,5 +474,22 @@ struct format_options_t : option_group_t
   hb_bool_t show_extents;
 };
 
+/* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */
+#if defined (_MSC_VER) && (_MSC_VER < 1800)
+
+#ifndef FLT_RADIX
+#define FLT_RADIX 2
+#endif
+
+__inline long double scalbn (long double x, int exp)
+{
+  return x * (pow ((long double) FLT_RADIX, exp));
+}
+
+__inline float scalbnf (float x, int exp)
+{
+  return x * (pow ((float) FLT_RADIX, exp));
+}
+#endif
 
 #endif
