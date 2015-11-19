@@ -3,10 +3,8 @@ harfbuzz/test/fuzzing/hb-fuzzer.cc with:
   - Using the most recent Clang
   - With -fsanitize=address (or =undefined, or a combination)
   - With -fsanitize-coverage=edge[,8bit-counters,trace-cmp]
-  - With various defines that limit worst case exponential behavior:
-    * -DHB_MAX_NESTING_LEVEL=3
-    * -DHB_SANITIZE_MAX_EDITS=3
-    * See Makefile.am for full list of flags
+  - With various defines that limit worst case exponential behavior.
+    See FUZZING_CPPFLAGS in harfbuzz/src/Makefile.am for the list.
   - link against libFuzzer
 
 To run the fuzzer one needs to first obtain a test corpus as a directory

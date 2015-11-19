@@ -8,7 +8,7 @@ MAINTAINERCLEANFILES =
 
 # Convenience targets:
 lib:
-	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src lib
+	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src fuzzing
 
 EXTRA_DIST += \
 	README \
@@ -25,7 +25,7 @@ AM_CPPFLAGS = \
 	-I$(top_builddir)/src/ \
 	$(NULL)
 LDADD = \
-	$(top_builddir)/src/libharfbuzz.la \
+	$(top_builddir)/src/libharfbuzz-fuzzing.la \
 	$(NULL)
 
 hb_fuzzer_SOURCES = \
@@ -37,11 +37,6 @@ hb_fuzzer_LDADD = \
 hb_fuzzer_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-DMAIN \
-	-DHB_MAX_NESTING_LEVEL=3 \
-	-DHB_SANITIZE_MAX_EDITS=3 \
-	-DHB_BUFFER_MAX_EXPANSION_FACTOR=3 \
-	-DHB_BUFFER_MAX_LEN_MIN=8 \
-	-DHB_BUFFER_MAX_LEN_DEFAULT=128 \
 	$(NULL)
 
 -include $(top_srcdir)/git.mk
