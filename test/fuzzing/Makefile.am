@@ -41,4 +41,8 @@ hb_fuzzer_CPPFLAGS = \
 	-DMAIN \
 	$(NULL)
 
+check:
+	cat $(top_srcdir)/test/shaping/tests/fuzzed.tests | \
+	cut -d: -f1 | xargs ./hb-fuzzer
+
 -include $(top_srcdir)/git.mk
