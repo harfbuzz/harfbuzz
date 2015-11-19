@@ -10,6 +10,8 @@ MAINTAINERCLEANFILES =
 lib:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src fuzzing
 
+$(top_builddir)/src/libharfbuzz-fuzzing.la: lib
+
 EXTRA_DIST += \
 	README \
 	$(NULL)
