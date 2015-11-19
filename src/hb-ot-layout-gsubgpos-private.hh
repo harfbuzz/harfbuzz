@@ -971,6 +971,11 @@ static inline bool apply_lookup (hb_apply_context_t *c,
     if (idx >= count)
       continue;
 
+    /* Don't recurse to ourself at same position.
+     * Note that this test is too naive, it doesn't catch longer loops. */
+    if (idx == 0 && lookupRecord[i].lookupListIndex == c->lookup_index)
+      continue;
+
     buffer->move_to (match_positions[idx]);
 
     unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
