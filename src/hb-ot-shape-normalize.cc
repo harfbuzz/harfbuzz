@@ -218,7 +218,7 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c, uns
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
   hb_buffer_t * const buffer = c->buffer;
   hb_font_t * const font = c->font;
-  for (; buffer->idx < end - 1;) {
+  for (; buffer->idx < end - 1 && !buffer->in_error;) {
     if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
       /* The next two lines are some ugly lines... But work. */
       if (font->get_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &buffer->cur().glyph_index()))
@@ -254,13 +254,13 @@ static inline void
 decompose_multi_char_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end, bool short_circuit)
 {
   hb_buffer_t * const buffer = c->buffer;
-  for (unsigned int i = buffer->idx; i < end; i++)
+  for (unsigned int i = buffer->idx; i < end && !buffer->in_error; i++)
     if (unlikely (buffer->unicode->is_variation_selector (buffer->info[i].codepoint))) {
       handle_variation_selector_cluster (c, end, short_circuit);
       return;
     }
 
-  while (buffer->idx < end)
+  while (buffer->idx < end && !buffer->in_error)
     decompose_current_character (c, short_circuit);
 }
 
@@ -320,7 +320,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 
   buffer->clear_output ();
   count = buffer->len;
-  for (buffer->idx = 0; buffer->idx < count;)
+  for (buffer->idx = 0; buffer->idx < count && !buffer->in_error;)
   {
     unsigned int end;
     for (end = buffer->idx + 1; end < count; end++)
@@ -370,7 +370,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   count = buffer->len;
   unsigned int starter = 0;
   buffer->next_glyph ();
-  while (buffer->idx < count)
+  while (buffer->idx < count && !buffer->in_error)
   {
     hb_codepoint_t composed, glyph;
     if (/* We don't try to compose a non-mark character with it's preceding starter.

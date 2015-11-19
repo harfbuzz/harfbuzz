@@ -188,7 +188,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
 				    */
   unsigned int count = buffer->len;
 
-  for (buffer->idx = 0; buffer->idx < count;)
+  for (buffer->idx = 0; buffer->idx < count && !buffer->in_error;)
   {
     hb_codepoint_t u = buffer->cur().codepoint;
 
