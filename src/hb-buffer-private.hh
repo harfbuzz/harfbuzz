@@ -174,11 +174,7 @@ struct hb_buffer_t {
     if (have_output)
     {
       if (unlikely (out_info != info || out_len != idx)) {
-	if (unlikely (!make_room_for (1, 1)))
-	{
-	  idx++; // So we don't hang indefinitely...
-	  return;
-	}
+	if (unlikely (!make_room_for (1, 1))) return;
 	out_info[out_len] = info[idx];
       }
       out_len++;
