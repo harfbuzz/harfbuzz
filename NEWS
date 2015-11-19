@@ -1,3 +1,25 @@
+Overview of changes leading to 1.1.0
+Wednesday, November 18, 2015
+====================================
+
+- Implement 'stch' stretch feature for Syriac Abbreviation Mark.
+  https://github.com/behdad/harfbuzz/issues/141
+- Disable use of decompose_compatibility() callback.
+- Implement "shaping" of various Unicode space characters, even
+  if the font does not support them.
+  https://github.com/behdad/harfbuzz/issues/153
+- If font does not support U+2011 NO-BREAK HYPHEN, fallback to
+  U+2010 HYPHEN.
+- Changes resulting from libFuzzer continuous fuzzing:
+  * Reject font tables that need more than 8 edits,
+  * Bound buffer growth during shaping to 32x,
+  * Fix assertions and other issues at OOM / buffer max-growth.
+- Misc fixes and optimizations.
+- API changes:
+  * All fonts created with hb_font_create() now inherit from
+    (ie. have parent) hb_font_get_empty().
+
+
 Overview of changes leading to 1.0.6
 Thursday, October 15, 2015
 ====================================
