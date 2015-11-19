@@ -44,4 +44,4 @@ addons:
     notification_email: coverity@behdad.org
     build_command_prepend: "./configure; make clean"
     build_command:   "make -j 4"
-    branch_pattern: master
+    branch_pattern: coverity_scan
