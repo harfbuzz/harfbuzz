@@ -902,16 +902,16 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 # pragma warning(disable:4200)
 # pragma warning(disable:4800)
 #endif
-# define HB_MARK_AS_FLAG_T(T) \
-extern "C++" { \
-static inline T operator | (T l, T r) { return T ((unsigned) l | (unsigned) r); } \
-static inline T operator & (T l, T r) { return T ((unsigned) l & (unsigned) r); } \
-static inline T operator ^ (T l, T r) { return T ((unsigned) l ^ (unsigned) r); } \
-static inline T operator ~ (T r) { return T (~(unsigned int) r); } \
-static inline T& operator |= (T &l, T r) { l = l | r; return l; } \
-static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
-static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
-}
+#define HB_MARK_AS_FLAG_T(T) \
+	extern "C++" { \
+	  static inline T operator | (T l, T r) { return T ((unsigned) l | (unsigned) r); } \
+	  static inline T operator & (T l, T r) { return T ((unsigned) l & (unsigned) r); } \
+	  static inline T operator ^ (T l, T r) { return T ((unsigned) l ^ (unsigned) r); } \
+	  static inline T operator ~ (T r) { return T (~(unsigned int) r); } \
+	  static inline T& operator |= (T &l, T r) { l = l | r; return l; } \
+	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
+	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
+	}
 
 
 /* Useful for set-operations on small enums.
