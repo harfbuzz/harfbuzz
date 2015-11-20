@@ -53,6 +53,10 @@
 #include <errno.h>
 #include <stdarg.h>
 
+#ifdef _MSC_VER
+#include <windows.h> /* ensure DEFINE_ENUM_FLAG_OPERATORS is defined */
+#endif
+
 
 /* Compile-time custom allocator support. */
 
