@@ -1,5 +1,8 @@
-# Linux Build Configuration for Travis
+# Build Configuration for Travis
 sudo: false # Use Travis docker infrastructure
+os:
+  - linux
+  - osx
 language: cpp
 compiler:
   - clang
@@ -11,13 +14,20 @@ env:
     - CXXFLAGS="-Werror --coverage"
     - LDFLAGS="--coverage"
 install:
-  - pip install --user nose
-  - pip install --user cpp-coveralls # for coveralls.io code coverage tracking
-  - export PATH=$HOME/.local/bin:$PATH # Make sure we can find the above Python packages
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user nose; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user cpp-coveralls; fi # for coveralls.io code coverage tracking
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export PATH=$HOME/.local/bin:$PATH; fi # Make sure we can find the above Python packages
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi;
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ragel freetype glib gobject-introspection cairo icu4c graphite2; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew link --force icu4c; fi # icu4c is keg-only
 script:
   - NOCONFIGURE=1 ./autogen.sh
-  - ./configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
-  - make && make check && { rm -f src/.libs/NONE.gcov; touch src/NONE; test $CC != gcc || coveralls; }
+  - export CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CONFIGURE_OPTS="$CONFIGURE_OPTS --with-coretext"; fi
+  - ./configure $CONFIGURE_OPTS
+  - make
+  - make check
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls; fi
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz@lists.freedesktop.org
