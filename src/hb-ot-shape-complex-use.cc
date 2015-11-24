@@ -558,7 +558,7 @@ compose_use (const hb_ot_shape_normalize_context_t *c,
   if (HB_UNICODE_GENERAL_CATEGORY_IS_MARK (c->unicode->general_category (a)))
     return false;
 
-  return c->unicode->compose (a, b, ab);
+  return (bool)c->unicode->compose (a, b, ab);
 }
 
 

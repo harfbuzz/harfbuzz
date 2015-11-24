@@ -68,7 +68,7 @@ compose_hebrew (const hb_ot_shape_normalize_context_t *c,
     0xFB4Au /* TAV */
   };
 
-  bool found = c->unicode->compose (a, b, ab);
+  bool found = c->unicode->compose (a, b, ab) != 0;
 
   if (!found && !c->plan->has_mark)
   {

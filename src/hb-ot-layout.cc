@@ -742,7 +742,7 @@ hb_ot_layout_lookup_would_substitute_fast (hb_face_t            *face,
 					   hb_bool_t             zero_context)
 {
   if (unlikely (lookup_index >= hb_ot_layout_from_face (face)->gsub_lookup_count)) return false;
-  OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, zero_context);
+  OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, zero_context != 0);
 
   const OT::SubstLookup& l = hb_ot_layout_from_face (face)->gsub->get_lookup (lookup_index);
 

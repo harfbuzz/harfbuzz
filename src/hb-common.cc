@@ -521,7 +521,7 @@ hb_user_data_array_t::set (hb_user_data_key_t *key,
     }
   }
   hb_user_data_item_t item = {key, data, destroy};
-  bool ret = !!items.replace_or_insert (item, lock, replace);
+  bool ret = !!items.replace_or_insert (item, lock, replace != 0);
 
   return ret;
 }
