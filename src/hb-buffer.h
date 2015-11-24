@@ -77,11 +77,11 @@ typedef struct hb_segment_properties_t {
 				       NULL, \
 				       NULL}
 
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_segment_properties_equal (const hb_segment_properties_t *a,
 			     const hb_segment_properties_t *b);
 
-unsigned int
+HB_EXTERN unsigned int
 hb_segment_properties_hash (const hb_segment_properties_t *p);
 
 
@@ -92,26 +92,26 @@ hb_segment_properties_hash (const hb_segment_properties_t *p);
 
 typedef struct hb_buffer_t hb_buffer_t;
 
-hb_buffer_t *
+HB_EXTERN hb_buffer_t *
 hb_buffer_create (void);
 
-hb_buffer_t *
+HB_EXTERN hb_buffer_t *
 hb_buffer_get_empty (void);
 
-hb_buffer_t *
+HB_EXTERN hb_buffer_t *
 hb_buffer_reference (hb_buffer_t *buffer);
 
-void
+HB_EXTERN void
 hb_buffer_destroy (hb_buffer_t *buffer);
 
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_buffer_set_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key,
 			 void *              data,
 			 hb_destroy_func_t   destroy,
 			 hb_bool_t           replace);
 
-void *
+HB_EXTERN void *
 hb_buffer_get_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key);
 
@@ -122,52 +122,52 @@ typedef enum {
   HB_BUFFER_CONTENT_TYPE_GLYPHS
 } hb_buffer_content_type_t;
 
-void
+HB_EXTERN void
 hb_buffer_set_content_type (hb_buffer_t              *buffer,
 			    hb_buffer_content_type_t  content_type);
 
-hb_buffer_content_type_t
+HB_EXTERN hb_buffer_content_type_t
 hb_buffer_get_content_type (hb_buffer_t *buffer);
 
 
-void
+HB_EXTERN void
 hb_buffer_set_unicode_funcs (hb_buffer_t        *buffer,
 			     hb_unicode_funcs_t *unicode_funcs);
 
-hb_unicode_funcs_t *
+HB_EXTERN hb_unicode_funcs_t *
 hb_buffer_get_unicode_funcs (hb_buffer_t        *buffer);
 
-void
+HB_EXTERN void
 hb_buffer_set_direction (hb_buffer_t    *buffer,
 			 hb_direction_t  direction);
 
-hb_direction_t
+HB_EXTERN hb_direction_t
 hb_buffer_get_direction (hb_buffer_t *buffer);
 
-void
+HB_EXTERN void
 hb_buffer_set_script (hb_buffer_t *buffer,
 		      hb_script_t  script);
 
-hb_script_t
+HB_EXTERN hb_script_t
 hb_buffer_get_script (hb_buffer_t *buffer);
 
-void
+HB_EXTERN void
 hb_buffer_set_language (hb_buffer_t   *buffer,
 			hb_language_t  language);
 
 
-hb_language_t
+HB_EXTERN hb_language_t
 hb_buffer_get_language (hb_buffer_t *buffer);
 
-void
+HB_EXTERN void
 hb_buffer_set_segment_properties (hb_buffer_t *buffer,
 				  const hb_segment_properties_t *props);
 
-void
+HB_EXTERN void
 hb_buffer_get_segment_properties (hb_buffer_t *buffer,
 				  hb_segment_properties_t *props);
 
-void
+HB_EXTERN void
 hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
 
 
@@ -181,11 +181,11 @@ typedef enum { /*< flags >*/
   HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES	= 0x00000004u
 } hb_buffer_flags_t;
 
-void
+HB_EXTERN void
 hb_buffer_set_flags (hb_buffer_t       *buffer,
 		     hb_buffer_flags_t  flags);
 
-hb_buffer_flags_t
+HB_EXTERN hb_buffer_flags_t
 hb_buffer_get_flags (hb_buffer_t *buffer);
 
 /*
@@ -198,77 +198,77 @@ typedef enum {
   HB_BUFFER_CLUSTER_LEVEL_DEFAULT = HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES
 } hb_buffer_cluster_level_t;
 
-void
+HB_EXTERN void
 hb_buffer_set_cluster_level (hb_buffer_t               *buffer,
 			     hb_buffer_cluster_level_t  cluster_level);
 
-hb_buffer_cluster_level_t
+HB_EXTERN hb_buffer_cluster_level_t
 hb_buffer_get_cluster_level (hb_buffer_t *buffer);
 
 #define HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT 0xFFFDu
 
 /* Sets codepoint used to replace invalid UTF-8/16/32 entries.
  * Default is 0xFFFDu. */
-void
+HB_EXTERN void
 hb_buffer_set_replacement_codepoint (hb_buffer_t    *buffer,
 				     hb_codepoint_t  replacement);
 
-hb_codepoint_t
+HB_EXTERN hb_codepoint_t
 hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer);
 
 
 /* Resets the buffer.  Afterwards it's as if it was just created,
  * except that it has a larger buffer allocated perhaps... */
-void
+HB_EXTERN void
 hb_buffer_reset (hb_buffer_t *buffer);
 
 /* Like reset, but does NOT clear unicode_funcs and replacement_codepoint. */
-void
+HB_EXTERN void
 hb_buffer_clear_contents (hb_buffer_t *buffer);
 
 /* Returns false if allocation failed */
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_buffer_pre_allocate (hb_buffer_t  *buffer,
 		        unsigned int  size);
 
 
 /* Returns false if allocation has failed before */
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_buffer_allocation_successful (hb_buffer_t  *buffer);
 
-void
+HB_EXTERN void
 hb_buffer_reverse (hb_buffer_t *buffer);
 
-void
+HB_EXTERN void
 hb_buffer_reverse_range (hb_buffer_t *buffer,
 			 unsigned int start, unsigned int end);
 
-void
+HB_EXTERN void
 hb_buffer_reverse_clusters (hb_buffer_t *buffer);
 
 
 /* Filling the buffer in */
 
-void
+HB_EXTERN void
 hb_buffer_add (hb_buffer_t    *buffer,
 	       hb_codepoint_t  codepoint,
 	       unsigned int    cluster);
 
-void
+HB_EXTERN void
 hb_buffer_add_utf8 (hb_buffer_t  *buffer,
 		    const char   *text,
 		    int           text_length,
 		    unsigned int  item_offset,
 		    int           item_length);
 
-void
+HB_EXTERN void
 hb_buffer_add_utf16 (hb_buffer_t    *buffer,
 		     const uint16_t *text,
 		     int             text_length,
 		     unsigned int    item_offset,
 		     int             item_length);
 
-void
+HB_EXTERN void
 hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     const uint32_t *text,
 		     int             text_length,
@@ -276,7 +276,7 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 		     int             item_length);
 
 /* Allows only access to first 256 Unicode codepoints. */
-void
+HB_EXTERN void
 hb_buffer_add_latin1 (hb_buffer_t   *buffer,
 		      const uint8_t *text,
 		      int            text_length,
@@ -284,7 +284,7 @@ hb_buffer_add_latin1 (hb_buffer_t   *buffer,
 		      int            item_length);
 
 /* Like add_utf32 but does NOT check for invalid Unicode codepoints. */
-void
+HB_EXTERN void
 hb_buffer_add_codepoints (hb_buffer_t          *buffer,
 			  const hb_codepoint_t *text,
 			  int                   text_length,
@@ -293,23 +293,23 @@ hb_buffer_add_codepoints (hb_buffer_t          *buffer,
 
 
 /* Clears any new items added at the end */
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_buffer_set_length (hb_buffer_t  *buffer,
 		      unsigned int  length);
 
 /* Return value valid as long as buffer not modified */
-unsigned int
+HB_EXTERN unsigned int
 hb_buffer_get_length (hb_buffer_t *buffer);
 
 /* Getting glyphs out of the buffer */
 
 /* Return value valid as long as buffer not modified */
-hb_glyph_info_t *
+HB_EXTERN hb_glyph_info_t *
 hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
                            unsigned int *length);
 
 /* Return value valid as long as buffer not modified */
-hb_glyph_position_t *
+HB_EXTERN hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
                                unsigned int *length);
 
@@ -317,7 +317,7 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 /* Reorders a glyph buffer to have canonical in-cluster glyph order / position.
  * The resulting clusters should behave identical to pre-reordering clusters.
  * NOTE: This has nothing to do with Unicode normalization. */
-void
+HB_EXTERN void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
 
 
@@ -343,17 +343,17 @@ typedef enum {
 } hb_buffer_serialize_format_t;
 
 /* len=-1 means str is NUL-terminated. */
-hb_buffer_serialize_format_t
+HB_EXTERN hb_buffer_serialize_format_t
 hb_buffer_serialize_format_from_string (const char *str, int len);
 
-const char *
+HB_EXTERN const char *
 hb_buffer_serialize_format_to_string (hb_buffer_serialize_format_t format);
 
-const char **
+HB_EXTERN const char **
 hb_buffer_serialize_list_formats (void);
 
 /* Returns number of items, starting at start, that were serialized. */
-unsigned int
+HB_EXTERN unsigned int
 hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 			    unsigned int start,
 			    unsigned int end,
@@ -364,7 +364,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 			    hb_buffer_serialize_format_t format,
 			    hb_buffer_serialize_flags_t flags);
 
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
 			      int buf_len, /* -1 means nul-terminated */

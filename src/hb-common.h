@@ -98,11 +98,11 @@ typedef uint32_t hb_tag_t;
 #define HB_TAG_MAX_SIGNED HB_TAG(0x7f,0xff,0xff,0xff)
 
 /* len=-1 means str is NUL-terminated. */
-hb_tag_t
+HB_EXTERN hb_tag_t
 hb_tag_from_string (const char *str, int len);
 
 /* buf should have 4 bytes. */
-void
+HB_EXTERN void
 hb_tag_to_string (hb_tag_t tag, char *buf);
 
 
@@ -117,10 +117,10 @@ typedef enum {
 } hb_direction_t;
 
 /* len=-1 means str is NUL-terminated */
-hb_direction_t
+HB_EXTERN hb_direction_t
 hb_direction_from_string (const char *str, int len);
 
-const char *
+HB_EXTERN const char *
 hb_direction_to_string (hb_direction_t direction);
 
 #define HB_DIRECTION_IS_VALID(dir)	((((unsigned int) (dir)) & ~3U) == 4)
@@ -137,15 +137,15 @@ hb_direction_to_string (hb_direction_t direction);
 typedef const struct hb_language_impl_t *hb_language_t;
 
 /* len=-1 means str is NUL-terminated */
-hb_language_t
+HB_EXTERN hb_language_t
 hb_language_from_string (const char *str, int len);
 
-const char *
+HB_EXTERN const char *
 hb_language_to_string (hb_language_t language);
 
 #define HB_LANGUAGE_INVALID ((hb_language_t) NULL)
 
-hb_language_t
+HB_EXTERN hb_language_t
 hb_language_get_default (void);
 
 
@@ -324,18 +324,18 @@ typedef enum
 
 /* Script functions */
 
-hb_script_t
+HB_EXTERN hb_script_t
 hb_script_from_iso15924_tag (hb_tag_t tag);
 
 /* sugar for tag_from_string() then script_from_iso15924_tag */
 /* len=-1 means s is NUL-terminated */
-hb_script_t
+HB_EXTERN hb_script_t
 hb_script_from_string (const char *s, int len);
 
-hb_tag_t
+HB_EXTERN hb_tag_t
 hb_script_to_iso15924_tag (hb_script_t script);
 
-hb_direction_t
+HB_EXTERN hb_direction_t
 hb_script_get_horizontal_direction (hb_script_t script);
 
 
