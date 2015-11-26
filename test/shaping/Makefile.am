@@ -54,6 +54,7 @@ TESTS = \
 	tests/indic-pref-blocking.tests \
 	tests/mongolian-variation-selector.tests \
 	tests/spaces.tests \
+	tests/simple.tests \
 	tests/vertical.tests \
 	tests/zero-width-marks.tests \
 	$(NULL)
