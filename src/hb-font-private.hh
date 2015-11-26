@@ -53,6 +53,7 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
+  HB_FONT_FUNC_IMPLEMENT (font_extents) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t {
@@ -159,6 +160,14 @@ struct hb_font_t {
   }
   HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+
+  inline hb_bool_t get_font_extents (hb_font_extents_t *metrics)
+  {
+    memset (metrics, 0, sizeof (*metrics));
+    return klass->get.f.font_extents (this, user_data,
+             metrics,
+             klass->user_data.font_extents);
+  }
 
   inline hb_bool_t has_glyph (hb_codepoint_t unicode)
   {
@@ -284,7 +293,7 @@ struct hb_font_t {
   {
     *x = get_glyph_h_advance (glyph) / 2;
 
-    /* TODO use font_metrics.ascent */
+    /* TODO use font_extents.ascent */
     *y = y_scale;
   }
 
