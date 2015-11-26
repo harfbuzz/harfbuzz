@@ -109,7 +109,7 @@ hb_font_get_glyph_h_origin_nil (hb_font_t *font HB_UNUSED,
 				void *user_data HB_UNUSED)
 {
   *x = *y = 0;
-  return false;
+  return true;
 }
 static hb_bool_t
 hb_font_get_glyph_h_origin_parent (hb_font_t *font,
