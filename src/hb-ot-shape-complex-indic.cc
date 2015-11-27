@@ -1806,7 +1806,7 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
     }
   }
 
-  return c->unicode->decompose (ab, a, b) != 0;
+  return (bool) c->unicode->decompose (ab, a, b);
 }
 
 static bool
@@ -1822,7 +1822,7 @@ compose_indic (const hb_ot_shape_normalize_context_t *c,
   /* Composition-exclusion exceptions that we want to recompose. */
   if (a == 0x09AFu && b == 0x09BCu) { *ab = 0x09DFu; return true; }
 
-  return c->unicode->compose (a, b, ab) != 0;
+  return (bool) c->unicode->compose (a, b, ab);
 }
 
 

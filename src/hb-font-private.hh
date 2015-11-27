@@ -160,7 +160,7 @@ struct hb_font_t {
   HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
 
-  inline hb_bool_t has_glyph (hb_codepoint_t unicode)
+  inline bool has_glyph (hb_codepoint_t unicode)
   {
     hb_codepoint_t glyph;
     return get_glyph (unicode, 0, &glyph);

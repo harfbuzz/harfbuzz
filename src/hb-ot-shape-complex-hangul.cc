@@ -301,7 +301,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan,
     {
       /* Have <LV>, <LVT>, or <LV,T> */
       hb_codepoint_t s = u;
-      bool has_glyph = font->has_glyph (s) != 0;
+      bool has_glyph = font->has_glyph (s);
       unsigned int lindex = (s - SBase) / NCount;
       unsigned int nindex = (s - SBase) % NCount;
       unsigned int vindex = nindex / TCount;
