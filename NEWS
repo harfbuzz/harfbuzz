@@ -1,3 +1,18 @@
+Overview of changes leading to 1.1.2
+Wednesday, November 26, 2015
+====================================
+
+- Fix badly-broken fallback shaper that affected terminology.
+  https://github.com/behdad/harfbuzz/issues/187
+- Fix y_scaling in Graphite shaper.
+- API changes:
+  * An unset glyph_h_origin() function in font-funcs now (sensibly)
+    implies horizontal origin at 0,0.  Ie, the nil callback returns
+    true instead of false.  As such, implementations that have a
+    glyph_h_origin() that simply returns true, can remove that function
+    with HarfBuzz >= 1.1.2.  This results in a tiny speedup.
+
+
 Overview of changes leading to 1.1.1
 Wednesday, November 24, 2015
 ====================================
