@@ -370,6 +370,8 @@ retry:
 
 
 /**
+ * hb_ot_font_set_funcs:
+ *
  * Since: 0.9.28
  **/
 void

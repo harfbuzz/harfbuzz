@@ -855,6 +855,8 @@ _hb_ot_shape (hb_shape_plan_t    *shape_plan,
 
 
 /**
+ * hb_ot_shape_plan_collect_lookups:
+ *
  * Since: 0.9.7
  **/
 void
@@ -888,6 +890,8 @@ add_char (hb_font_t          *font,
 
 
 /**
+ * hb_ot_shape_glyphs_closure:
+ *
  * Since: 0.9.2
  **/
 void

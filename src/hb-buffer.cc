@@ -37,6 +37,8 @@
 
 
 /**
+ * hb_segment_properties_equal:
+ *
  * Since: 0.9.7
  **/
 hb_bool_t
@@ -52,6 +54,8 @@ hb_segment_properties_equal (const hb_segment_properties_t *a,
 }
 
 /**
+ * hb_segment_properties_hash:
+ *
  * Since: 0.9.7
  **/
 unsigned int
