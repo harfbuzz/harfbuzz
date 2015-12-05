@@ -542,7 +542,18 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 
       hb_position_t w_remaining = w_total - w_fixed - overlap;
       if (sign * w_remaining > sign * w_repeating && sign * w_repeating > 0)
-	n_copies = (sign * w_remaining + sign * w_repeating / 4) / (sign * w_repeating) - 1;
+	n_copies = (sign * w_remaining) / (sign * w_repeating) - 1;
+
+      /* See if we can improve the fit by adding an extra repeat and squeezing them together a bit. */
+      hb_position_t extra_repeat_overlap = 0;
+      hb_position_t shortfall = sign * w_remaining - sign * w_repeating * (n_copies + 1);
+      if (shortfall > 0)
+      {
+        ++n_copies;
+        hb_position_t excess = (n_copies + 1) * sign * w_repeating - sign * w_remaining;
+        if (excess > 0)
+          extra_repeat_overlap = excess / (n_copies * n_repeating);
+      }
 
       if (step == MEASURE)
       {
@@ -568,6 +579,8 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 	  for (unsigned int n = 0; n < repeat; n++)
 	  {
 	    x_offset -= extents.width;
+	    if (n > 0)
+	      x_offset += extra_repeat_overlap;
 	    pos[k - 1].x_offset = x_offset;
 	    /* Append copy. */
 	    --j;
