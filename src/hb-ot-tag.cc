@@ -928,4 +928,27 @@ hb_ot_tag_to_language (hb_tag_t tag)
   }
 }
 
+static inline void
+test_langs_sorted (void)
+{
+  for (unsigned int i = 1; i < ARRAY_LENGTH (ot_languages); i++)
+  {
+    int c = lang_compare_first_component (ot_languages[i-1].language, ot_languages[i].language);
+    if (c >= 0)
+    {
+      fprintf (stderr, "ot_languages not sorted at index %d: %s %d %s\n",
+	       i, ot_languages[i-1].language, c, ot_languages[i].language);
+      abort();
+    }
+  }
+}
 
+#ifdef MAIN
+int
+main (void)
+{
+  test_langs_sorted ();
+  return 0;
+}
+
+#endif

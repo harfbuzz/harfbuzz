@@ -392,7 +392,14 @@ dist_check_SCRIPTS = \
 	check-symbols.sh \
 	$(NULL)
 
-TESTS = $(dist_check_SCRIPTS)
+check_PROGRAMS = \
+	test-ot-tag \
+	$(NULL)
+test_ot_tag_SOURCES = hb-ot-tag.cc
+test_ot_tag_CPPFLAGS = $(HBCFLAGS) -DMAIN
+test_ot_tag_LDADD = libharfbuzz.la $(HBLIBS)
+
+TESTS = $(dist_check_SCRIPTS) $(check_PROGRAMS)
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
