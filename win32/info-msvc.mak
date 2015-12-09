@@ -23,6 +23,10 @@ INC_FEATURES = $(INC_FEATURES) FreeType
 INC_FEATURES = $(INC_FEATURES) Graphite2
 !endif
 
+!if "$(DIRECTWRITE)" == "1"
+INC_FEATURES = $(INC_FEATURES) DirectWrite
+!endif
+
 !if "$(ICU)" == "1"
 BUILT_LIBRARIES = $(BUILT_LIBRARIES) HarfBuzz-ICU
 !endif
@@ -76,6 +80,9 @@ help:
 	@echo HarfBuzz DLL is built with OpenType, fallback and Uniscribe support
 	@echo with a bundled Unicode implementation (UCDN).
 	@echo ======
+	@echo DIRECTWRITE:
+	@echo Enable DirectWrite support, requires a recent enough Windows SDK.
+	@echo.
 	@echo GRAPHITE2:
 	@echo Enable graphite2 support, requires the SIL Graphite2 library
 	@echo.

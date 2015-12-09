@@ -18,6 +18,9 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 /* #undef HAVE_DLFCN_H */
 
+/* Have DirectWrite Library */
+/* #undef HAVE_DIRECTWRITE */
+
 /* Have simple TrueType Layout backend */
 #define HAVE_FALLBACK 1
 

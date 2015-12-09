@@ -68,6 +68,10 @@ ICU: Enables the build HarfBuzz-ICU, which is now the recommended layout engine
      for ICU (International Components for Unicode), which deprecated ICU LE.
      Requires the ICU libraries.
 
+DIRECTWRITE: Enable (experimental) DirectWrite platform shaper support,
+             requires a rather recent Windows SDK, and at least Windows Vista/
+             Server 2008 with SP2 and platform update.
+
 PYTHON: Full path to the Python interpretor to be used, if it is not in %PATH%.
 
 PERL: Full path to the PERL interpretor to be used, if it is not in %PATH%.

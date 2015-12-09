@@ -20,6 +20,9 @@ CAIRO_LIB = cairo.lib
 # Graphite2 is needed for building SIL Graphite2 support
 GRAPHITE2_LIB = graphite2.lib
 
+# Directwrite is needed for DirectWrite shaping support
+DIRECTWRITE_LIB = dwrite.lib
+
 # Please do not change anything beneath this line unless maintaining the NMake Makefiles
 # Bare minimum features and sources built into HarfBuzz on Windows
 HB_DEFINES =
@@ -183,6 +186,13 @@ HB_CFLAGS =	\
 	/D_CRT_NONSTDC_NO_WARNINGS
 
 HB_SOURCES = $(HB_SOURCES) $(LIBHB_UCDN_sources) $(HB_UCDN_sources)
+!endif
+
+!if "$(DIRECTWRITE)" == "1"
+HB_CFLAGS = $(HB_CFLAGS) /DHAVE_DIRECTWRITE
+HB_SOURCES = $(HB_SOURCES) $(HB_DIRECTWRITE_sources)
+HB_HEADERS = $(HB_HEADERS) $(HB_DIRECTWRITE_headers)
+HB_DEP_LIBS = $(HB_DEP_LIBS) $(DIRECTWRITE_LIB)
 !endif
 
 HB_LIB_CFLAGS = $(HB_CFLAGS) /DHB_EXTERN="__declspec (dllexport) extern"
