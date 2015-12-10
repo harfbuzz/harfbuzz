@@ -39,16 +39,14 @@ view_cairo_t::render (const font_options_t *font_opts)
   int x_sign = font_opts->font_size_x < 0 ? -1 : +1;
   int y_sign = font_opts->font_size_y < 0 ? -1 : +1;
 
-  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts);
-  cairo_font_extents_t font_extents;
-  cairo_scaled_font_extents (scaled_font, &font_extents);
-  /* Looks like cairo doesn't negate the sign of font extents even if
-   * y_scale is negative.  This is probably a bug, but that's the way
-   * it is, and we code for it.  Assert, just in case this accidentally
-   * changes in the future (or is different on non-FreeType cairo font
-   * backends. */
-  assert (font_extents.height >= 0);
-  double leading = font_extents.height + view_options.line_space;
+  hb_font_t *font = font_opts->get_font();
+  hb_font_extents_t extents;
+  hb_font_get_extents_for_direction (font, direction, &extents);
+
+  double ascent = y_sign * scalbn ((double) extents.ascender, scale_bits);
+  double descent = y_sign * -scalbn ((double) extents.descender, scale_bits);
+  double font_height = y_sign * scalbn ((double) extents.ascender - extents.descender + extents.line_gap, scale_bits);
+  double leading = font_height + view_options.line_space;
 
   /* Calculate surface size. */
   double w, h;
@@ -63,6 +61,8 @@ view_cairo_t::render (const font_options_t *font_opts)
     else
       w =  MAX (w, x_sign * x_advance);
   }
+
+  cairo_scaled_font_t *scaled_font = helper_cairo_create_scaled_font (font_opts);
 
   /* See if font needs color. */
   cairo_content_t content = CAIRO_CONTENT_ALPHA;
@@ -80,13 +80,13 @@ view_cairo_t::render (const font_options_t *font_opts)
   if (vertical)
     cairo_translate (cr,
 		     w /* We stack lines right to left */
-		     -font_extents.height * .5 /* "ascent" for vertical */,
+		     -font_height * .5 /* "ascent" for vertical */,
 		     y_sign < 0 ? h : 0);
   else
    {
     cairo_translate (cr,
 		     x_sign < 0 ? w : 0,
-		     y_sign < 0 ? font_extents.descent : font_extents.ascent);
+		     y_sign < 0 ? descent : ascent);
    }
 
   /* Draw. */

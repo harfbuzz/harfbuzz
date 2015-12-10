@@ -48,6 +48,7 @@ HBSOURCES =  \
 	hb-ot-hmtx-table.hh \
 	hb-ot-maxp-table.hh \
 	hb-ot-name-table.hh \
+	hb-ot-os2-table.hh \
 	hb-ot-tag.cc \
 	hb-private.hh \
 	hb-set-private.hh \
