@@ -75,7 +75,9 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   hb_font_t *font = hb_font_reference (font_opts->get_font ());
 
   cairo_font_face_t *cairo_face;
-  FT_Face ft_face = hb_ft_font_get_face (font);
+  /* We cannot use the FT_Face from hb_font_t, as doing so will confuse hb_font_t because
+   * cairo will reset the face size.  As such, create new face... */
+  FT_Face ft_face = NULL;//hb_ft_font_get_face (font);
   if (!ft_face)
   {
     if (!ft_library)
