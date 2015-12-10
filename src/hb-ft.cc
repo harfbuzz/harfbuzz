@@ -374,9 +374,9 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   FT_Face ft_face = ft_font->ft_face;
-  metrics->ascender = ft_face->ascender;
-  metrics->descender = ft_face->descender;
-  metrics->line_gap = ft_face->height - (ft_face->ascender - ft_face->descender);
+  metrics->ascender = ft_face->size->metrics.ascender;
+  metrics->descender = ft_face->size->metrics.descender;
+  metrics->line_gap = ft_face->size->metrics.height - (ft_face->size->metrics.ascender - ft_face->size->metrics.descender);
   if (font->y_scale < 0)
   {
     metrics->ascender = -metrics->ascender;
