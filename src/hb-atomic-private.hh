@@ -119,7 +119,7 @@ typedef unsigned int hb_atomic_int_impl_t;
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	( ({__machine_rw_barrier ();}), atomic_cas_ptr ((void **) (P), (void *) (O), (void *) (N)) == (void *) (O) ? true : false)
 
 
-#elif !defined(HB_NO_MT) && defined(_AIX)
+#elif !defined(HB_NO_MT) && defined(_AIX) && defined(__IBMCPP__)
 
 #include <builtins.h>
 
