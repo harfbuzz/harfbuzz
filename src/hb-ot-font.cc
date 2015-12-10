@@ -62,11 +62,15 @@ struct hb_ot_face_metrics_accelerator_t
     {
       hb_blob_t *os2_blob = OT::Sanitizer<OT::os2>::sanitize (face->reference_table (os2_tag));
       const OT::os2 *os2 = OT::Sanitizer<OT::os2>::lock_instance (os2_blob);
-      this->ascender = os2->sTypoAscender;
-      this->descender = os2->sTypoDescender;
-      this->line_gap = os2->sTypoLineGap;
+#define USE_TYPO_METRICS (1u<<7)
+      if (0 != (os2->fsSelection & USE_TYPO_METRICS))
+      {
+	this->ascender = os2->sTypoAscender;
+	this->descender = os2->sTypoDescender;
+	this->line_gap = os2->sTypoLineGap;
+	got_font_extents = (this->ascender | this->descender) != 0;
+      }
       hb_blob_destroy (os2_blob);
-      got_font_extents = (this->ascender | this->descender) != 0;
     }
 
     hb_blob_t *_hea_blob = OT::Sanitizer<OT::_hea>::sanitize (face->reference_table (_hea_tag));
