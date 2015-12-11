@@ -82,7 +82,7 @@ struct hb_font_funcs_t {
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
     } f;
-    void (*array[]) (void);
+    void (*array[VAR]) (void);
   } get;
 };
 
