@@ -577,7 +577,7 @@ hb_font_t::has_func (unsigned int i)
  *
  * Return value:
  *
- * Since: 1.1.2
+ * Since: 1.1.3
  **/
 hb_bool_t
 hb_font_get_h_extents (hb_font_t *font,
@@ -595,7 +595,7 @@ hb_font_get_h_extents (hb_font_t *font,
  *
  * Return value:
  *
- * Since: 1.1.2
+ * Since: 1.1.3
  **/
 hb_bool_t
 hb_font_get_v_extents (hb_font_t *font,
@@ -836,7 +836,7 @@ hb_font_get_glyph_from_name (hb_font_t *font,
  *
  *
  *
- * Since: 1.1.2
+ * Since: 1.1.3
  **/
 void
 hb_font_get_extents_for_direction (hb_font_t *font,
