@@ -10,6 +10,7 @@ hyphens.tests
 indic-joiner-candrabindu.tests
 indic-old-spec.tests
 indic-pref-blocking.tests
+ligature-id.tests
 mongolian-variation-selector.tests
 simple.tests
 spaces.tests

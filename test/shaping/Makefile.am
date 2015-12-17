@@ -52,6 +52,7 @@ TESTS = \
 	tests/indic-joiner-candrabindu.tests \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
+	tests/ligature-id.tests \
 	tests/mongolian-variation-selector.tests \
 	tests/spaces.tests \
 	tests/simple.tests \
