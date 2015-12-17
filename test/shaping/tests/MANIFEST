@@ -13,5 +13,6 @@ indic-pref-blocking.tests
 mongolian-variation-selector.tests
 simple.tests
 spaces.tests
+use.tests
 vertical.tests
 zero-width-marks.tests
