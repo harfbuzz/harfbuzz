@@ -847,7 +847,7 @@ static inline bool ligate_input (hb_apply_context_t *c,
       if (!is_mark_ligature) {
         unsigned int this_comp = _hb_glyph_info_get_lig_comp (&buffer->cur());
 	if (this_comp == 0)
-	  this_comp = 1;
+	  this_comp = last_num_components;
 	unsigned int new_lig_comp = components_so_far - last_num_components +
 				    MIN (this_comp, last_num_components);
 	  _hb_glyph_info_set_lig_props_for_mark (&buffer->cur(), lig_id, new_lig_comp);
