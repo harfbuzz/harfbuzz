@@ -919,7 +919,7 @@ retry:
 
     if (unlikely (items[i].a.fNoGlyphIndex))
       FAIL ("ScriptShapeOpenType() set fNoGlyphIndex");
-    if (unlikely (hr == E_OUTOFMEMORY))
+    if (unlikely (hr == E_OUTOFMEMORY || hr == E_NOT_SUFFICIENT_BUFFER))
     {
       if (unlikely (!buffer->ensure (buffer->allocated * 2)))
 	FAIL ("Buffer resize failed");
