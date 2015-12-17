@@ -463,10 +463,6 @@ apply_stch (const hb_ot_shape_plan_t *plan,
    * Second pass applies the stretch, copying things to the end of buffer.
    */
 
-  /* 30 = 2048 / 70.
-   * https://www.microsoft.com/typography/cursivescriptguidelines.mspx */
-  hb_position_t overlap = font->x_scale / 30;
-  DEBUG_MSG (ARABIC, NULL, "overlap for stretching is %d", overlap);
   int sign = font->x_scale < 0 ? -1 : +1;
   unsigned int extra_glyphs_needed = 0; // Set during MEASURE, used during CUT
   typedef enum { MEASURE, CUT } step_t;
@@ -504,18 +500,15 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 	     hb_in_range<unsigned> (info[i - 1].arabic_shaping_action(), STCH_FIXED, STCH_REPEATING))
       {
 	i--;
-	hb_glyph_extents_t extents;
-	if (!font->get_glyph_extents (info[i].codepoint, &extents))
-	  extents.width = 0;
-	extents.width -= overlap;
+	hb_position_t width = font->get_glyph_h_advance (info[i].codepoint);
 	if (info[i].arabic_shaping_action() == STCH_FIXED)
 	{
-	  w_fixed += extents.width;
+	  w_fixed += width;
 	  n_fixed++;
 	}
 	else
 	{
-	  w_repeating += extents.width;
+	  w_repeating += width;
 	  n_repeating++;
 	}
       }
@@ -540,7 +533,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
       /* Number of additional times to repeat each repeating tile. */
       int n_copies = 0;
 
-      hb_position_t w_remaining = w_total - w_fixed - overlap;
+      hb_position_t w_remaining = w_total - w_fixed;
       if (sign * w_remaining > sign * w_repeating && sign * w_repeating > 0)
 	n_copies = (sign * w_remaining) / (sign * w_repeating) - 1;
 
@@ -562,13 +555,10 @@ apply_stch (const hb_ot_shape_plan_t *plan,
       }
       else
       {
-        hb_position_t x_offset = -overlap;
+	hb_position_t x_offset = 0;
 	for (unsigned int k = end; k > start; k--)
 	{
-	  hb_glyph_extents_t extents;
-	  if (!font->get_glyph_extents (info[k - 1].codepoint, &extents))
-	    extents.width = 0;
-	  extents.width -= overlap;
+	  hb_position_t width = font->get_glyph_h_advance (info[k - 1].codepoint);
 
 	  unsigned int repeat = 1;
 	  if (info[k - 1].arabic_shaping_action() == STCH_REPEATING)
@@ -578,7 +568,7 @@ apply_stch (const hb_ot_shape_plan_t *plan,
 		     repeat, info[k - 1].codepoint, j);
 	  for (unsigned int n = 0; n < repeat; n++)
 	  {
-	    x_offset -= extents.width;
+	    x_offset -= width;
 	    if (n > 0)
 	      x_offset += extra_repeat_overlap;
 	    pos[k - 1].x_offset = x_offset;
