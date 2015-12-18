@@ -285,6 +285,9 @@ static void
 setup_topographical_masks (const hb_ot_shape_plan_t *plan,
 			   hb_buffer_t *buffer)
 {
+  const use_shape_plan_t *use_plan = (const use_shape_plan_t *) plan->data;
+  if (use_plan->arabic_plan)
+    return;
 
   ASSERT_STATIC (INIT < 4 && ISOL < 4 && MEDI < 4 && FINA < 4);
   hb_mask_t masks[4], all_masks = 0;
