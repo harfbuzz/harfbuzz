@@ -1336,6 +1336,25 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 	    break;
 	  }
       }
+      /* For Malayalam, skip over unformed below- (but NOT post-) forms. */
+      if (buffer->props.script == HB_SCRIPT_MALAYALAM)
+      {
+	for (unsigned int i = base + 1; i < end; i++)
+	{
+	  while (i < end && is_joiner (info[i]))
+	    i++;
+	  if (i == end || !is_halant_or_coeng (info[i]))
+	    break;
+	  i++; /* Skip halant. */
+	  while (i < end && is_joiner (info[i]))
+	    i++;
+	  if (i < end && is_consonant (info[i]) && info[i].indic_position() == POS_BELOW_C)
+	  {
+	    base = i;
+	    info[base].indic_position() = POS_BASE_C;
+	  }
+	}
+      }
 
       if (start < base && info[base].indic_position() > POS_BASE_C)
         base--;
