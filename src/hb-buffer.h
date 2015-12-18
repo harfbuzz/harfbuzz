@@ -373,6 +373,21 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      hb_buffer_serialize_format_t format);
 
 
+/*
+ * Debugging.
+ */
+
+typedef hb_bool_t	(*hb_buffer_message_func_t)	(hb_buffer_t *buffer,
+							 hb_font_t   *font,
+							 const char  *message,
+							 void        *user_data);
+
+HB_EXTERN void
+hb_buffer_set_message_func (hb_buffer_t *buffer,
+			    hb_buffer_message_func_t func,
+			    void *user_data, hb_destroy_func_t destroy);
+
+
 HB_END_DECLS
 
 #endif /* HB_BUFFER_H */

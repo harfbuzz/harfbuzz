@@ -798,6 +798,8 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 
   free (buffer->info);
   free (buffer->pos);
+  if (buffer->message_destroy)
+    buffer->message_destroy (buffer->message_data);
 
   free (buffer);
 }
@@ -1712,4 +1714,46 @@ hb_buffer_t::sort (unsigned int start, unsigned int end, int(*compar)(const hb_g
       info[j] = t;
     }
   }
+}
+
+/*
+ * Debugging.
+ */
+
+/**
+ * hb_buffer_set_message_func:
+ * @buffer: a buffer.
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy:
+ *
+ * 
+ *
+ * Since: 1.1.3
+ **/
+void
+hb_buffer_set_message_func (hb_buffer_t *buffer,
+			    hb_buffer_message_func_t func,
+			    void *user_data, hb_destroy_func_t destroy)
+{
+  if (buffer->message_destroy)
+    buffer->message_destroy (buffer->message_data);
+
+  if (func) {
+    buffer->message_func = func;
+    buffer->message_data = user_data;
+    buffer->message_destroy = destroy;
+  } else {
+    buffer->message_func = NULL;
+    buffer->message_data = NULL;
+    buffer->message_destroy = NULL;
+  }
+}
+
+bool
+hb_buffer_t::message_impl (hb_font_t *font, const char *fmt, va_list ap)
+{
+  char buf[100];
+  vsnprintf (buf, sizeof (buf),  fmt, ap);
+  return (bool) this->message_func (this, font, buf, this->message_data);
 }
