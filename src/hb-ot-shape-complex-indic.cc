@@ -176,24 +176,8 @@ set_indic_properties (hb_glyph_info_t &info)
    * Re-assign category
    */
 
-
-  /* The spec says U+0952 is OT_A.  However, testing shows that Uniscribe
-   * treats a whole bunch of characters similarly.
-   * TESTS: For example, for U+0951:
-   * U+092E,U+0947,U+0952
-   * U+092E,U+0952,U+0947
-   * U+092E,U+0947,U+0951
-   * U+092E,U+0951,U+0947
-   * U+092E,U+0951,U+0952
-   * U+092E,U+0952,U+0951
-   */
-  if (unlikely (hb_in_ranges (u, 0x0951u, 0x0952u,
-				 0x1CD0u, 0x1CD2u,
-				 0x1CD4u, 0x1CE1u) ||
-			    u == 0x1CF4u))
-    cat = OT_A;
   /* The following act more like the Bindus. */
-  else if (unlikely (hb_in_range (u, 0x0953u, 0x0954u)))
+  if (unlikely (hb_in_range (u, 0x0953u, 0x0954u)))
     cat = OT_SM;
   /* The following act like consonants. */
   else if (unlikely (hb_in_ranges (u, 0x0A72u, 0x0A73u,
@@ -216,15 +200,12 @@ set_indic_properties (hb_glyph_info_t &info)
     cat = OT_Symbol;
     ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
   }
-  else if (unlikely (hb_in_range (u, 0x17CDu, 0x17D1u) ||
-		     u == 0x17CBu || u == 0x17D3u || u == 0x17DDu)) /* Khmer Various signs */
+  else if (unlikely (u == 0x17DDu)) /* https://github.com/roozbehp/unicode-data/issues/2 */
   {
-    /* These are like Top Matras. */
     cat = OT_M;
     pos = POS_ABOVE_C;
   }
   else if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
-  else if (unlikely (u == 0x17D2u)) cat = OT_Coeng; /* Khmer coeng */
   else if (unlikely (hb_in_range (u, 0x2010u, 0x2011u)))
 				    cat = OT_PLACEHOLDER;
   else if (unlikely (u == 0x25CCu)) cat = OT_DOTTEDCIRCLE;
