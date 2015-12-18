@@ -282,6 +282,9 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
   assert ((!buffer->len && buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID) ||
 	  buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS);
 
+  if (!buffer->have_positions)
+    flags |= HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS;
+
   if (unlikely (start == end))
     return 0;
 

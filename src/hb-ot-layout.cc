@@ -1020,8 +1020,6 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 				  buf, sizeof (buf), NULL,
 				  font,
 				  HB_BUFFER_SERIALIZE_FORMAT_TEXT,
-				  Proxy::table_index == 0 ?
-				  HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS :
 				  HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
       printf ("buf: [%s]\n", buf);
 #endif
