@@ -7,11 +7,6 @@
 <book id="index">
   <bookinfo>
     <title>HarfBuzz Manual</title>
-    <releaseinfo>
-      This document is for HarfBuzz &version;.
-      <!--The latest version of this documentation can be found on-line at
-      <ulink role="online-location" url="http://[SERVER]/libharfbuzz/index.html">http://[SERVER]/libharfbuzz/</ulink>.-->
-    </releaseinfo>
     <abstract>
       <title>HarfBuzz</title>
       <graphic fileref="HarfBuzz.png" format="PNG" align="center"/>
@@ -28,7 +23,7 @@
         <ulink url="http://cgit.freedesktop.org/harfbuzz/">here</ulink>.
         Also available on
         <ulink url="https://github.com/behdad/harfbuzz">github</ulink>.
-        See below for release tarballs.
+        See <xref linkend="download" endterm="download.title"/> for release tarballs.
       </para>
       <para>
         The old HarfBuzz codebase, these days known as harfbuzz-old, was
@@ -46,6 +41,7 @@
   <part>
     <title>User's manual</title>
       <xi:include href="usermanual-what-is-harfbuzz.xml"/>
+      <xi:include href="usermanual-install-harfbuzz.xml"/>
       <xi:include href="usermanual-hello-harfbuzz.xml"/>
       <xi:include href="usermanual-buffers-language-script-and-direction.xml"/>
       <xi:include href="usermanual-fonts-and-faces.xml"/>
@@ -54,6 +50,13 @@
   </part>
 
   <part>
+    <partinfo>
+      <releaseinfo>
+        This document is for HarfBuzz &version;.
+        <!--The latest version of this documentation can be found on-line at
+        <ulink role="online-location" url="http://[SERVER]/libharfbuzz/index.html">http://[SERVER]/libharfbuzz/</ulink>.-->
+      </releaseinfo>
+    </partinfo>
     <title>Reference manual</title>
       <chapter>
         <title>Harfbuzz API</title>

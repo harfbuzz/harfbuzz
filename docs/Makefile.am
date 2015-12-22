@@ -75,6 +75,7 @@ content_files=	\
 	usermanual-fonts-and-faces.xml \
 	usermanual-glyph-information.xml \
 	usermanual-hello-harfbuzz.xml \
+	usermanual-install-harfbuzz.xml \
 	usermanual-opentype-features.xml \
 	usermanual-what-is-harfbuzz.xml \
 	version.xml
