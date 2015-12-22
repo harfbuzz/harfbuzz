@@ -45,12 +45,12 @@
 
   <part>
     <title>User's manual</title>
-      <xi:include href="usermanual-ch01.xml"/>
-      <xi:include href="usermanual-ch02.xml"/>
-      <xi:include href="usermanual-ch03.xml"/>
-      <xi:include href="usermanual-ch04.xml"/>
-      <xi:include href="usermanual-ch05.xml"/>
-      <xi:include href="usermanual-ch06.xml"/>
+      <xi:include href="usermanual-what-is-harfbuzz.xml"/>
+      <xi:include href="usermanual-hello-harfbuzz.xml"/>
+      <xi:include href="usermanual-buffers-language-script-and-direction.xml"/>
+      <xi:include href="usermanual-fonts-and-faces.xml"/>
+      <xi:include href="usermanual-opentype-features.xml"/>
+      <xi:include href="usermanual-glyph-information.xml"/>
   </part>
 
   <part>
