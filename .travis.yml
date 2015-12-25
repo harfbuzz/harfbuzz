@@ -13,7 +13,6 @@ env:
     - CFLAGS="-Werror --coverage"
     - CXXFLAGS="-Werror --coverage"
     - LDFLAGS="--coverage"
-    - secure: "EysLG1MB6WCvDVpls5jsJAYsXcbHTmSFYl11UlAQCNfU+MBv7qiuOR6im3tM4ISzt4TY+OQXxEktMFRT+8govLR4UWo8dwmZ4P/2GqMbsZNPVSLkbDEy6hVv7xe5X4mp+npHthY1Z1YOLKGAh/u1PymySZz6qAzsCZ6Fq/H5Ri8="
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user nose; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user cpp-coveralls; fi # for coveralls.io code coverage tracking
