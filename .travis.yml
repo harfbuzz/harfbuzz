@@ -13,6 +13,7 @@ env:
     - CFLAGS="-Werror --coverage"
     - CXXFLAGS="-Werror --coverage"
     - LDFLAGS="--coverage"
+    - secure: "EysLG1MB6WCvDVpls5jsJAYsXcbHTmSFYl11UlAQCNfU+MBv7qiuOR6im3tM4ISzt4TY+OQXxEktMFRT+8govLR4UWo8dwmZ4P/2GqMbsZNPVSLkbDEy6hVv7xe5X4mp+npHthY1Z1YOLKGAh/u1PymySZz6qAzsCZ6Fq/H5Ri8="
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user nose; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user cpp-coveralls; fi # for coveralls.io code coverage tracking
@@ -23,11 +24,14 @@ install:
 script:
   - NOCONFIGURE=1 ./autogen.sh
   - export CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" ]; then export CONFIGURE_OPTS="$CONFIGURE_OPTS  --enable-gtk-doc"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CONFIGURE_OPTS="$CONFIGURE_OPTS --with-coretext"; fi
   - ./configure $CONFIGURE_OPTS
   - make
   - make check
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls; fi
+after_success:
+  - bash .ci/deploy-docs.sh
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz@lists.freedesktop.org
