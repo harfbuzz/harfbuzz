@@ -8,19 +8,29 @@ hb_shape=$top_builddir/util/hb-shape$EXEEXT
 
 fails=0
 
+reference=false
+if test "x$1" = x--reference; then
+	reference=true
+	shift
+fi
+
 if test $# = 0; then
 	set /dev/stdin
 fi
 
 IFS=:
 for f in "$@"; do
-	echo "Running tests in $f"
+	$reference || echo "Running tests in $f"
 	while read fontfile options unicodes glyphs_expected; do
-		echo "Testing $fontfile:$unicodes"
+		$reference || echo "Testing $fontfile:$unicodes"
 		glyphs=`$srcdir/hb-unicode-encode "$unicodes" | $hb_shape $options "$srcdir/$fontfile"`
 		if test $? != 0; then
 			echo "hb-shape failed." >&2
 			fails=$((fails+1))
+			continue
+		fi
+		if $reference; then
+			echo "$fontfile:$options:$unicodes:$glyphs"
 			continue
 		fi
 		if ! test "x$glyphs" = "x$glyphs_expected"; then
@@ -32,8 +42,8 @@ for f in "$@"; do
 done
 
 if test $fails != 0; then
-	echo "$fails tests failed."
+	$reference || echo "$fails tests failed."
 	exit 1
 else
-	echo "All tests passed."
+	$reference || echo "All tests passed."
 fi
