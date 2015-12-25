@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>hb-font</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="HarfBuzz Manual">
+<link rel="up" href="ch07.html" title="Harfbuzz API">
+<link rel="prev" href="harfbuzz-hb-face.html" title="hb-face">
+<link rel="next" href="harfbuzz-Shaping.html" title="Shaping">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="harfbuzz-hb-face.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch07.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">HarfBuzz Manual</th>
+<td><a accesskey="n" href="harfbuzz-Shaping.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#harfbuzz-hb-font.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#harfbuzz-hb-font.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="harfbuzz-hb-font"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="harfbuzz-hb-font.top_of_page"></a>hb-font</span></h2>
+<p>hb-font</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="harfbuzz-hb-font.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-t" title="hb_font_funcs_t">hb_font_funcs_t</a>;
+<a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="returnvalue">hb_position_t</span></a>       (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-advance-func-t" title="hb_font_get_glyph_advance_func_t ()">*hb_font_get_glyph_advance_func_t</a>) (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-contour-point-func-t" title="hb_font_get_glyph_contour_point_func_t ()">*hb_font_get_glyph_contour_point_func_t</a>)
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> point_index</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *x</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *y</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-extents-func-t" title="hb_font_get_glyph_extents_func_t ()">*hb_font_get_glyph_extents_func_t</a>) (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_glyph_extents_t</span> *extents</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-from-name-func-t" title="hb_font_get_glyph_from_name_func_t ()">*hb_font_get_glyph_from_name_func_t</a>)
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-func-t" title="hb_font_get_glyph_func_t ()">*hb_font_get_glyph_func_t</a>)         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> variation_selector</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-h-advance-func-t" title="hb_font_get_glyph_h_advance_func_t">hb_font_get_glyph_h_advance_func_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-h-kerning-func-t" title="hb_font_get_glyph_h_kerning_func_t">hb_font_get_glyph_h_kerning_func_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-h-origin-func-t" title="hb_font_get_glyph_h_origin_func_t">hb_font_get_glyph_h_origin_func_t</a>;
+<a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="returnvalue">hb_position_t</span></a>       (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-kerning-func-t" title="hb_font_get_glyph_kerning_func_t ()">*hb_font_get_glyph_kerning_func_t</a>) (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> first_glyph</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> second_glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-name-func-t" title="hb_font_get_glyph_name_func_t ()">*hb_font_get_glyph_name_func_t</a>)    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> size</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-origin-func-t" title="hb_font_get_glyph_origin_func_t ()">*hb_font_get_glyph_origin_func_t</a>)  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *x</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *y</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-v-advance-func-t" title="hb_font_get_glyph_v_advance_func_t">hb_font_get_glyph_v_advance_func_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-v-kerning-func-t" title="hb_font_get_glyph_v_kerning_func_t">hb_font_get_glyph_v_kerning_func_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-glyph-v-origin-func-t" title="hb_font_get_glyph_v_origin_func_t">hb_font_get_glyph_v_origin_func_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t">hb_font_t</a>;
+<a class="link" href="harfbuzz-hb-blob.html#hb-blob-t" title="hb_blob_t"><span class="returnvalue">hb_blob_t</span></a> *         (<a class="link" href="harfbuzz-hb-font.html#hb-reference-table-func-t" title="hb_reference_table_func_t ()">*hb_reference_table_func_t</a>)        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t" title="hb_face_t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-font.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-font.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="hb-font-funcs-t"></a><h3>hb_font_funcs_t</h3>
+<pre class="programlisting">typedef struct hb_font_funcs_t hb_font_funcs_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-advance-func-t"></a><h3>hb_font_get_glyph_advance_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="returnvalue">hb_position_t</span></a>       (*hb_font_get_glyph_advance_func_t) (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-contour-point-func-t"></a><h3>hb_font_get_glyph_contour_point_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_font_get_glyph_contour_point_func_t)
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> point_index</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *x</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *y</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-extents-func-t"></a><h3>hb_font_get_glyph_extents_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_font_get_glyph_extents_func_t) (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_glyph_extents_t</span> *extents</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-from-name-func-t"></a><h3>hb_font_get_glyph_from_name_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_font_get_glyph_from_name_func_t)
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-func-t"></a><h3>hb_font_get_glyph_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_font_get_glyph_func_t)         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> variation_selector</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-h-advance-func-t"></a><h3>hb_font_get_glyph_h_advance_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_h_advance_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-h-kerning-func-t"></a><h3>hb_font_get_glyph_h_kerning_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_h_kerning_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-h-origin-func-t"></a><h3>hb_font_get_glyph_h_origin_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_glyph_origin_func_t hb_font_get_glyph_h_origin_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-kerning-func-t"></a><h3>hb_font_get_glyph_kerning_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="returnvalue">hb_position_t</span></a>       (*hb_font_get_glyph_kerning_func_t) (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> first_glyph</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> second_glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-name-func-t"></a><h3>hb_font_get_glyph_name_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_font_get_glyph_name_func_t)    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> *name</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> size</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-origin-func-t"></a><h3>hb_font_get_glyph_origin_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_font_get_glyph_origin_func_t)  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t" title="hb_font_t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> glyph</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *x</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t"><span class="type">hb_position_t</span></a> *y</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-v-advance-func-t"></a><h3>hb_font_get_glyph_v_advance_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_glyph_advance_func_t hb_font_get_glyph_v_advance_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-v-kerning-func-t"></a><h3>hb_font_get_glyph_v_kerning_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_v_kerning_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-v-origin-func-t"></a><h3>hb_font_get_glyph_v_origin_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_glyph_origin_func_t hb_font_get_glyph_v_origin_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-t"></a><h3>hb_font_t</h3>
+<pre class="programlisting">typedef struct hb_font_t hb_font_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-reference-table-func-t"></a><h3>hb_reference_table_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t" title="hb_blob_t"><span class="returnvalue">hb_blob_t</span></a> *         (*hb_reference_table_func_t)        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t" title="hb_face_t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

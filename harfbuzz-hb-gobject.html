@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>hb-gobject</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="HarfBuzz Manual">
+<link rel="up" href="ch07.html" title="Harfbuzz API">
+<link rel="prev" href="harfbuzz-hb-coretext.html" title="hb-coretext">
+<link rel="next" href="object-tree.html" title="Object Hierarchy">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="harfbuzz-hb-coretext.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch07.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">HarfBuzz Manual</th>
+<td><a accesskey="n" href="object-tree.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#harfbuzz-hb-gobject.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#harfbuzz-hb-gobject.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="harfbuzz-hb-gobject"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="harfbuzz-hb-gobject.top_of_page"></a>hb-gobject</span></h2>
+<p>hb-gobject</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="harfbuzz-hb-gobject.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BLOB:CAPS" title="HB_GOBJECT_TYPE_BLOB">HB_GOBJECT_TYPE_BLOB</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER:CAPS" title="HB_GOBJECT_TYPE_BUFFER">HB_GOBJECT_TYPE_BUFFER</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-CONTENT-TYPE:CAPS" title="HB_GOBJECT_TYPE_BUFFER_CONTENT_TYPE">HB_GOBJECT_TYPE_BUFFER_CONTENT_TYPE</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS" title="HB_GOBJECT_TYPE_BUFFER_FLAGS">HB_GOBJECT_TYPE_BUFFER_FLAGS</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FLAGS:CAPS" title="HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FLAGS">HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FLAGS</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FORMAT:CAPS" title="HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FORMAT">HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FORMAT</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-DIRECTION:CAPS" title="HB_GOBJECT_TYPE_DIRECTION">HB_GOBJECT_TYPE_DIRECTION</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FACE:CAPS" title="HB_GOBJECT_TYPE_FACE">HB_GOBJECT_TYPE_FACE</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT:CAPS" title="HB_GOBJECT_TYPE_FONT">HB_GOBJECT_TYPE_FONT</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT-FUNCS:CAPS" title="HB_GOBJECT_TYPE_FONT_FUNCS">HB_GOBJECT_TYPE_FONT_FUNCS</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-MEMORY-MODE:CAPS" title="HB_GOBJECT_TYPE_MEMORY_MODE">HB_GOBJECT_TYPE_MEMORY_MODE</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS" title="HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS">HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-SCRIPT:CAPS" title="HB_GOBJECT_TYPE_SCRIPT">HB_GOBJECT_TYPE_SCRIPT</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-SHAPE-PLAN:CAPS" title="HB_GOBJECT_TYPE_SHAPE_PLAN">HB_GOBJECT_TYPE_SHAPE_PLAN</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-UNICODE-COMBINING-CLASS:CAPS" title="HB_GOBJECT_TYPE_UNICODE_COMBINING_CLASS">HB_GOBJECT_TYPE_UNICODE_COMBINING_CLASS</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-UNICODE-FUNCS:CAPS" title="HB_GOBJECT_TYPE_UNICODE_FUNCS">HB_GOBJECT_TYPE_UNICODE_FUNCS</a>
+#define             <a class="link" href="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-UNICODE-GENERAL-CATEGORY:CAPS" title="HB_GOBJECT_TYPE_UNICODE_GENERAL_CATEGORY">HB_GOBJECT_TYPE_UNICODE_GENERAL_CATEGORY</a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-gobject.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-gobject.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-BLOB:CAPS"></a><h3>HB_GOBJECT_TYPE_BLOB</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_BLOB (hb_gobject_blob_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-BUFFER:CAPS"></a><h3>HB_GOBJECT_TYPE_BUFFER</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_BUFFER (hb_gobject_buffer_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-BUFFER-CONTENT-TYPE:CAPS"></a><h3>HB_GOBJECT_TYPE_BUFFER_CONTENT_TYPE</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_BUFFER_CONTENT_TYPE (hb_gobject_buffer_content_type_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS"></a><h3>HB_GOBJECT_TYPE_BUFFER_FLAGS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_BUFFER_FLAGS (hb_gobject_buffer_flags_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FLAGS:CAPS"></a><h3>HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FLAGS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FLAGS (hb_gobject_buffer_serialize_flags_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FORMAT:CAPS"></a><h3>HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FORMAT</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FORMAT (hb_gobject_buffer_serialize_format_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-DIRECTION:CAPS"></a><h3>HB_GOBJECT_TYPE_DIRECTION</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_DIRECTION (hb_gobject_direction_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-FACE:CAPS"></a><h3>HB_GOBJECT_TYPE_FACE</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_FACE (hb_gobject_face_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-FONT:CAPS"></a><h3>HB_GOBJECT_TYPE_FONT</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_FONT (hb_gobject_font_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-FONT-FUNCS:CAPS"></a><h3>HB_GOBJECT_TYPE_FONT_FUNCS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_FONT_FUNCS (hb_gobject_font_funcs_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-MEMORY-MODE:CAPS"></a><h3>HB_GOBJECT_TYPE_MEMORY_MODE</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_MEMORY_MODE (hb_gobject_memory_mode_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS"></a><h3>HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS (hb_gobject_ot_layout_glyph_class_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-SCRIPT:CAPS"></a><h3>HB_GOBJECT_TYPE_SCRIPT</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_SCRIPT (hb_gobject_script_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-SHAPE-PLAN:CAPS"></a><h3>HB_GOBJECT_TYPE_SHAPE_PLAN</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_SHAPE_PLAN (hb_gobject_shape_plan_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-UNICODE-COMBINING-CLASS:CAPS"></a><h3>HB_GOBJECT_TYPE_UNICODE_COMBINING_CLASS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_UNICODE_COMBINING_CLASS (hb_gobject_unicode_combining_class_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-UNICODE-FUNCS:CAPS"></a><h3>HB_GOBJECT_TYPE_UNICODE_FUNCS</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_UNICODE_FUNCS (hb_gobject_unicode_funcs_get_type ())
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-GOBJECT-TYPE-UNICODE-GENERAL-CATEGORY:CAPS"></a><h3>HB_GOBJECT_TYPE_UNICODE_GENERAL_CATEGORY</h3>
+<pre class="programlisting">#define HB_GOBJECT_TYPE_UNICODE_GENERAL_CATEGORY (hb_gobject_unicode_general_category_get_type ())
+</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

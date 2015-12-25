@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>hb-buffer</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="HarfBuzz Manual">
+<link rel="up" href="ch07.html" title="Harfbuzz API">
+<link rel="prev" href="harfbuzz-hb-unicode.html" title="hb-unicode">
+<link rel="next" href="harfbuzz-hb-blob.html" title="hb-blob">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="harfbuzz-hb-unicode.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="ch07.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">HarfBuzz Manual</th>
+<td><a accesskey="n" href="harfbuzz-hb-blob.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#harfbuzz-hb-buffer.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#harfbuzz-hb-buffer.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="harfbuzz-hb-buffer"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="harfbuzz-hb-buffer.top_of_page"></a>hb-buffer</span></h2>
+<p>hb-buffer</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="harfbuzz-hb-buffer.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-buffer.html#HB-SEGMENT-PROPERTIES-DEFAULT:CAPS" title="HB_SEGMENT_PROPERTIES_DEFAULT">HB_SEGMENT_PROPERTIES_DEFAULT</a>
+enum                <a class="link" href="harfbuzz-hb-buffer.html#hb-buffer-content-type-t" title="enum hb_buffer_content_type_t">hb_buffer_content_type_t</a>;
+enum                <a class="link" href="harfbuzz-hb-buffer.html#hb-buffer-flags-t" title="enum hb_buffer_flags_t">hb_buffer_flags_t</a>;
+enum                <a class="link" href="harfbuzz-hb-buffer.html#hb-buffer-serialize-flags-t" title="enum hb_buffer_serialize_flags_t">hb_buffer_serialize_flags_t</a>;
+enum                <a class="link" href="harfbuzz-hb-buffer.html#hb-buffer-serialize-format-t" title="enum hb_buffer_serialize_format_t">hb_buffer_serialize_format_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-buffer.html#hb-buffer-t" title="hb_buffer_t">hb_buffer_t</a>;
+                    <a class="link" href="harfbuzz-hb-buffer.html#hb-glyph-info-t" title="hb_glyph_info_t">hb_glyph_info_t</a>;
+                    <a class="link" href="harfbuzz-hb-buffer.html#hb-glyph-position-t" title="hb_glyph_position_t">hb_glyph_position_t</a>;
+                    <a class="link" href="harfbuzz-hb-buffer.html#hb-segment-properties-t" title="hb_segment_properties_t">hb_segment_properties_t</a>;
+</pre>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-buffer.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-buffer.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="HB-SEGMENT-PROPERTIES-DEFAULT:CAPS"></a><h3>HB_SEGMENT_PROPERTIES_DEFAULT</h3>
+<pre class="programlisting">#define             HB_SEGMENT_PROPERTIES_DEFAULT</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-buffer-content-type-t"></a><h3>enum hb_buffer_content_type_t</h3>
+<pre class="programlisting">typedef enum {
+  HB_BUFFER_CONTENT_TYPE_INVALID = 0,
+  HB_BUFFER_CONTENT_TYPE_UNICODE,
+  HB_BUFFER_CONTENT_TYPE_GLYPHS
+} hb_buffer_content_type_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-buffer-flags-t"></a><h3>enum hb_buffer_flags_t</h3>
+<pre class="programlisting">typedef enum {
+ /*&lt; flags &gt;*/
+  HB_BUFFER_FLAG_DEFAULT			= 0x00000000u,
+  HB_BUFFER_FLAG_BOT				= 0x00000001u, /* Beginning-of-text */
+  HB_BUFFER_FLAG_EOT				= 0x00000002u, /* End-of-text */
+  HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES = 0x00000004u
+} hb_buffer_flags_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-buffer-serialize-flags-t"></a><h3>enum hb_buffer_serialize_flags_t</h3>
+<pre class="programlisting">typedef enum {
+ /*&lt; flags &gt;*/
+  HB_BUFFER_SERIALIZE_FLAG_DEFAULT		= 0x00000000u,
+  HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS		= 0x00000001u,
+  HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS		= 0x00000002u,
+  HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES = 0x00000004u,
+  HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS = 0x00000008u
+} hb_buffer_serialize_flags_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-buffer-serialize-format-t"></a><h3>enum hb_buffer_serialize_format_t</h3>
+<pre class="programlisting">typedef enum {
+  HB_BUFFER_SERIALIZE_FORMAT_TEXT = HB_TAG('T','E','X','T'),
+  HB_BUFFER_SERIALIZE_FORMAT_JSON = HB_TAG('J','S','O','N'),
+  HB_BUFFER_SERIALIZE_FORMAT_INVALID = HB_TAG_NONE
+} hb_buffer_serialize_format_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-buffer-t"></a><h3>hb_buffer_t</h3>
+<pre class="programlisting">typedef struct hb_buffer_t hb_buffer_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-glyph-info-t"></a><h3>hb_glyph_info_t</h3>
+<pre class="programlisting">typedef struct {
+  hb_codepoint_t codepoint;
+  hb_mask_t      mask;
+  uint32_t       cluster;
+} hb_glyph_info_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-glyph-position-t"></a><h3>hb_glyph_position_t</h3>
+<pre class="programlisting">typedef struct {
+  hb_position_t  x_advance;
+  hb_position_t  y_advance;
+  hb_position_t  x_offset;
+  hb_position_t  y_offset;
+} hb_glyph_position_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-segment-properties-t"></a><h3>hb_segment_properties_t</h3>
+<pre class="programlisting">typedef struct {
+  hb_direction_t  direction;
+  hb_script_t     script;
+  hb_language_t   language;
+} hb_segment_properties_t;
+</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

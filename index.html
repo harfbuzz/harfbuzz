@@ -1,1 +1,166 @@
-IT WORKS!
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>HarfBuzz Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="description" content="HarfBuzz  HarfBuzz is an OpenType text shaping engine. The current HarfBuzz codebase, formerly known as harfbuzz-ng, is versioned 1.x.x and is stable and under active maintenance. This is what is used in latest versions of Firefox, GNOME, ChromeOS, Chrome, LibreOffice, XeTeX, Android, and KDE, among other places. The canonical source tree is available here. Also available on github. See for release tarballs. The old HarfBuzz codebase, these days known as harfbuzz-old, was derived from FreeType, Pango, and Qt and is available here. It is not actively developed or maintained, and is extremely buggy. All users are encouraged to switch over to the new HarfBuzz as soon as possible. There are no release tarballs of old HarfBuzz whatsoever.">
+<link rel="home" href="index.html" title="HarfBuzz Manual">
+<link rel="next" href="pt01.html" title="Part I. User's manual">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="book">
+<div class="titlepage">
+<div>
+<div><table class="navigation" id="top" width="100%" cellpadding="2" cellspacing="0"><tr><th valign="middle"><p class="title">HarfBuzz Manual</p></th></tr></table></div>
+<div><div class="abstract">
+<p class="title"><b>HarfBuzz</b></p>
+<div align="center"><img src="HarfBuzz.png" align="middle"></div>
+<p>
+        HarfBuzz is an <a class="ulink" href="http://www.microsoft.com/typography/otspec/" target="_top">OpenType</a>
+        text shaping engine.
+      </p>
+<p>
+        The current HarfBuzz codebase, formerly known as harfbuzz-ng, is
+        versioned 1.x.x and is stable and under active maintenance. This is
+        what is used in latest versions of Firefox, GNOME, ChromeOS, Chrome,
+        LibreOffice, XeTeX, Android, and KDE, among other places. The canonical
+        source tree is available
+        <a class="ulink" href="http://cgit.freedesktop.org/harfbuzz/" target="_top">here</a>.
+        Also available on
+        <a class="ulink" href="https://github.com/behdad/harfbuzz" target="_top">github</a>.
+        See <a class="xref" href="install-harfbuzz.html#download" title="Download">Download</a> for release tarballs.
+      </p>
+<p>
+        The old HarfBuzz codebase, these days known as harfbuzz-old, was
+        derived from <a class="ulink" href="http://freetype.org/" target="_top">FreeType</a>,
+        <a class="ulink" href="http://pango.org/" target="_top">Pango</a>, and
+        <a class="ulink" href="http://qt-project.org/" target="_top">Qt</a> and is available
+        <a class="ulink" href="http://cgit.freedesktop.org/harfbuzz.old/" target="_top">here</a>.
+        It is not actively developed or maintained, and is extremely buggy. All
+        users are encouraged to switch over to the new HarfBuzz as soon as
+        possible.  There are no release tarballs of old HarfBuzz whatsoever.
+      </p>
+</div></div>
+</div>
+<hr>
+</div>
+<div class="toc"><dl>
+<dt><span class="part"><a href="pt01.html">I. User's manual</a></span></dt>
+<dd><dl>
+<dt><span class="chapter"><a href="what-is-harfbuzz.html">What is Harfbuzz?</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="what-is-harfbuzz.html#why-do-i-need-it">Why do I need it?</a></span></dt>
+<dt><span class="section"><a href="why-is-it-called-harfbuzz.html">Why is it called Harfbuzz?</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="install-harfbuzz.html">Install Harfbuzz</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="install-harfbuzz.html#download">Download</a></span></dt>
+<dt><span class="section"><a href="building.html">Building</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="hello-harfbuzz.html">Hello, Harfbuzz</a></span></dt>
+<dd><dl><dt><span class="section"><a href="hello-harfbuzz.html#what-harfbuzz-doesnt-do">What Harfbuzz doesn't do</a></span></dt></dl></dd>
+<dt><span class="chapter"><a href="buffers-language-script-and-direction.html">Buffers, language, script and direction</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="buffers-language-script-and-direction.html#creating-and-destroying-buffers">Creating and destroying buffers</a></span></dt>
+<dt><span class="section"><a href="adding-text-to-the-buffer.html">Adding text to the buffer</a></span></dt>
+<dt><span class="section"><a href="setting-buffer-properties.html">Setting buffer properties</a></span></dt>
+<dt><span class="section"><a href="what-about-the-other-scripts.html">What about the other scripts?</a></span></dt>
+<dt><span class="section"><a href="customizing-unicode-functions.html">Customizing Unicode functions</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="fonts-and-faces.html">Fonts and faces</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="fonts-and-faces.html#using-freetype">Using FreeType</a></span></dt>
+<dt><span class="section"><a href="using-harfbuzzs-native-opentype-implementation.html">Using Harfbuzz's native OpenType implementation</a></span></dt>
+<dt><span class="section"><a href="using-your-own-font-functions.html">Using your own font functions</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="shaping-and-shape-plans.html">Shaping and shape plans</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="shaping-and-shape-plans.html#opentype-features">OpenType features</a></span></dt>
+<dt><span class="section"><a href="plans-and-caching.html">Plans and caching</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="part"><a href="pt02.html">II. Reference manual</a></span></dt>
+<dd><dl>
+<dt><span class="chapter"><a href="ch07.html">Harfbuzz API</a></span></dt>
+<dd><dl>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb.html">hb</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-common.html">hb-common</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-unicode.html">hb-unicode</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-buffer.html">hb-buffer</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-blob.html">hb-blob</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-face.html">hb-face</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-font.html">hb-font</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-Shaping.html">Shaping</a></span><span class="refpurpose"> — Conversion of text strings into positioned glyphs</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-version.html">hb-version</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-deprecated.html">hb-deprecated</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-set.html">hb-set</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-ot.html">hb-ot</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-ot-layout.html">hb-ot-layout</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-ot-tag.html">hb-ot-tag</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-shape-plan.html">hb-shape-plan</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-glib.html">hb-glib</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-icu.html">hb-icu</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-ft.html">hb-ft</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-graphite2.html">hb-graphite2</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-uniscribe.html">hb-uniscribe</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-coretext.html">hb-coretext</a></span><span class="refpurpose"></span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="harfbuzz-hb-gobject.html">hb-gobject</a></span><span class="refpurpose"></span>
+</dt>
+</dl></dd>
+<dt><span class="chapter"><a href="object-tree.html">Object Hierarchy</a></span></dt>
+<dt><span class="index"><a href="api-index-full.html">API Index</a></span></dt>
+<dt><span class="index"><a href="deprecated-api-index.html">Index of deprecated API</a></span></dt>
+</dl></dd>
+</dl></div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

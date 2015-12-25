@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>What is Harfbuzz?</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="HarfBuzz Manual">
+<link rel="up" href="pt01.html" title="Part I. User's manual">
+<link rel="prev" href="pt01.html" title="Part I. User's manual">
+<link rel="next" href="why-is-it-called-harfbuzz.html" title="Why is it called Harfbuzz?">
+<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2"><tr valign="middle">
+<td><a accesskey="p" href="pt01.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="pt01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">HarfBuzz Manual</th>
+<td><a accesskey="n" href="why-is-it-called-harfbuzz.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="chapter">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="what-is-harfbuzz"></a>What is Harfbuzz?</h2></div></div></div>
+<div class="toc"><dl>
+<dt><span class="section"><a href="what-is-harfbuzz.html#why-do-i-need-it">Why do I need it?</a></span></dt>
+<dt><span class="section"><a href="why-is-it-called-harfbuzz.html">Why is it called Harfbuzz?</a></span></dt>
+</dl></div>
+<p>
+    Harfbuzz is a <span class="emphasis"><em>text shaping engine</em></span>. It solves
+    the problem of selecting and positioning glyphs from a font given a
+    Unicode string.
+  </p>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="why-do-i-need-it"></a>Why do I need it?</h2></div></div></div>
+<p>
+      Text shaping is an integral part of preparing text for display. It
+      is a fairly low level operation; Harfbuzz is used directly by
+      graphic rendering libraries such as Pango, and the layout engines
+      in Firefox, LibreOffice and Chromium. Unless you are
+      <span class="emphasis"><em>writing</em></span> one of these layout engines yourself,
+      you will probably not need to use Harfbuzz - normally higher level
+      libraries will turn text into glyphs for you.
+    </p>
+<p>
+      However, if you <span class="emphasis"><em>are</em></span> writing a layout engine
+      or graphics library yourself, you will need to perform text
+      shaping, and this is where Harfbuzz can help you. Here are some
+      reasons why you need it:
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem"><p>
+          OpenType fonts contain a set of glyphs, indexed by glyph ID.
+          The glyph ID within the font does not necessarily relate to a
+          Unicode codepoint. For instance, some fonts have the letter
+          "a" as glyph ID 1. To pull the right glyph out of
+          the font in order to display it, you need to consult a table
+          within the font (the "cmap" table) which maps
+          Unicode codepoints to glyph IDs. Text shaping turns codepoints
+          into glyph IDs.
+        </p></li>
+<li class="listitem"><p>
+          Many OpenType fonts contain ligatures: combinations of
+          characters which are rendered together. For instance, it's
+          common for the <code class="literal">fi</code> combination to appear in
+          print as the single ligature "ﬁ". Whether you should
+          render text as <code class="literal">fi</code> or "ﬁ" does not
+          depend on the input text, but on the capabilities of the font
+          and the level of ligature application you wish to perform.
+          Text shaping involves querying the font's ligature tables and
+          determining what substitutions should be made.
+        </p></li>
+<li class="listitem"><p>
+          While ligatures like "ﬁ" are typographic
+          refinements, some languages <span class="emphasis"><em>require</em></span> such
+          substitutions to be made in order to display text correctly.
+          In Tamil, when the letter "TTA" (ட) letter is
+          followed by "U" (உ), the combination should appear
+          as the single glyph "டு". The sequence of Unicode
+          characters "டஉ" needs to be rendered as a single
+          glyph from the font - text shaping chooses the correct glyph
+          from the sequence of characters provided.
+        </p></li>
+<li class="listitem"><p>
+          Similarly, each Arabic character has four different variants:
+          within a font, there will be glyphs for the initial, medial,
+          final, and isolated forms of each letter. Unicode only encodes
+          one codepoint per character, and so a Unicode string will not
+          tell you which glyph to use. Text shaping chooses the correct
+          form of the letter and returns the correct glyph from the font
+          that you need to render.
+        </p></li>
+<li class="listitem"><p>
+          Other languages have marks and accents which need to be
+          rendered in certain positions around a base character. For
+          instance, the Moldovan language has the Cyrillic letter
+          "zhe" (ж) with a breve accent, like so: ӂ. Some
+          fonts will contain this character as an individual glyph,
+          whereas other fonts will not contain a zhe-with-breve glyph
+          but expect the rendering engine to form the character by
+          overlaying the two glyphs ж and ˘. Where you should draw the
+          combining breve depends on the height of the preceding glyph.
+          Again, for Arabic, the correct positioning of vowel marks
+          depends on the height of the character on which you are
+          placing the mark. Text shaping tells you whether you have a
+          precomposed glyph within your font or if you need to compose a
+          glyph yourself out of combining marks, and if so, where to
+          position those marks.
+        </p></li>
+</ul></div>
+<p>
+      If this is something that you need to do, then you need a text
+      shaping engine: you could use Uniscribe if you are using Windows;
+      you could use CoreText on OS X; or you could use Harfbuzz. In the
+      rest of this manual, we are going to assume that you are the
+      implementor of a text layout engine.
+    </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18</div>
+</body>
+</html>

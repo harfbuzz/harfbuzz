@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE book PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "">
+<book xmlns="http://www.devhelp.net/book" title="HarfBuzz Manual" link="index.html" author="" name="harfbuzz" version="2" language="c">
+  <chapters>
+    <sub name="User's manual" link="pt01.html">
+      <sub name="What is Harfbuzz?" link="what-is-harfbuzz.html">
+        <sub name="Why do I need it?" link="what-is-harfbuzz.html#why-do-i-need-it"/>
+        <sub name="Why is it called Harfbuzz?" link="why-is-it-called-harfbuzz.html"/>
+      </sub>
+      <sub name="Install Harfbuzz" link="install-harfbuzz.html">
+        <sub name="Download" link="install-harfbuzz.html#download"/>
+        <sub name="Building" link="building.html"/>
+      </sub>
+      <sub name="Hello, Harfbuzz" link="hello-harfbuzz.html">
+        <sub name="What Harfbuzz doesn't do" link="hello-harfbuzz.html#what-harfbuzz-doesnt-do"/>
+      </sub>
+      <sub name="Buffers, language, script and direction" link="buffers-language-script-and-direction.html">
+        <sub name="Creating and destroying buffers" link="buffers-language-script-and-direction.html#creating-and-destroying-buffers"/>
+        <sub name="Adding text to the buffer" link="adding-text-to-the-buffer.html"/>
+        <sub name="Setting buffer properties" link="setting-buffer-properties.html"/>
+        <sub name="What about the other scripts?" link="what-about-the-other-scripts.html"/>
+        <sub name="Customizing Unicode functions" link="customizing-unicode-functions.html"/>
+      </sub>
+      <sub name="Fonts and faces" link="fonts-and-faces.html">
+        <sub name="Using FreeType" link="fonts-and-faces.html#using-freetype"/>
+        <sub name="Using Harfbuzz's native OpenType implementation" link="using-harfbuzzs-native-opentype-implementation.html"/>
+        <sub name="Using your own font functions" link="using-your-own-font-functions.html"/>
+      </sub>
+      <sub name="Shaping and shape plans" link="shaping-and-shape-plans.html">
+        <sub name="OpenType features" link="shaping-and-shape-plans.html#opentype-features"/>
+        <sub name="Plans and caching" link="plans-and-caching.html"/>
+      </sub>
+      <sub name="Glyph information" link="pt01.html#glyph-information"/>
+    </sub>
+    <sub name="Reference manual" link="pt02.html">
+      <sub name="Harfbuzz API" link="ch07.html">
+        <sub name="hb" link="harfbuzz-hb.html"/>
+        <sub name="hb-common" link="harfbuzz-hb-common.html"/>
+        <sub name="hb-unicode" link="harfbuzz-hb-unicode.html"/>
+        <sub name="hb-buffer" link="harfbuzz-hb-buffer.html"/>
+        <sub name="hb-blob" link="harfbuzz-hb-blob.html"/>
+        <sub name="hb-face" link="harfbuzz-hb-face.html"/>
+        <sub name="hb-font" link="harfbuzz-hb-font.html"/>
+        <sub name="Shaping" link="harfbuzz-Shaping.html"/>
+        <sub name="hb-version" link="harfbuzz-hb-version.html"/>
+        <sub name="hb-deprecated" link="harfbuzz-hb-deprecated.html"/>
+        <sub name="hb-set" link="harfbuzz-hb-set.html"/>
+        <sub name="hb-ot" link="harfbuzz-hb-ot.html"/>
+        <sub name="hb-ot-layout" link="harfbuzz-hb-ot-layout.html"/>
+        <sub name="hb-ot-tag" link="harfbuzz-hb-ot-tag.html"/>
+        <sub name="hb-shape-plan" link="harfbuzz-hb-shape-plan.html"/>
+        <sub name="hb-glib" link="harfbuzz-hb-glib.html"/>
+        <sub name="hb-icu" link="harfbuzz-hb-icu.html"/>
+        <sub name="hb-ft" link="harfbuzz-hb-ft.html"/>
+        <sub name="hb-graphite2" link="harfbuzz-hb-graphite2.html"/>
+        <sub name="hb-uniscribe" link="harfbuzz-hb-uniscribe.html"/>
+        <sub name="hb-coretext" link="harfbuzz-hb-coretext.html"/>
+        <sub name="hb-gobject" link="harfbuzz-hb-gobject.html"/>
+      </sub>
+      <sub name="Object Hierarchy" link="object-tree.html"/>
+      <sub name="API Index" link="api-index-full.html"/>
+      <sub name="Index of deprecated API" link="deprecated-api-index.html"/>
+    </sub>
+  </chapters>
+  <functions>
+    <keyword type="macro" name="HB_DIRECTION_REVERSE()" link="harfbuzz-hb-common.html#HB-DIRECTION-REVERSE:CAPS"/>
+    <keyword type="macro" name="HB_LANGUAGE_INVALID" link="harfbuzz-hb-common.html#HB-LANGUAGE-INVALID:CAPS"/>
+    <keyword type="macro" name="HB_TAG()" link="harfbuzz-hb-common.html#HB-TAG:CAPS"/>
+    <keyword type="macro" name="HB_TAG_NONE" link="harfbuzz-hb-common.html#HB-TAG-NONE:CAPS"/>
+    <keyword type="macro" name="HB_TAG_MAX" link="harfbuzz-hb-common.html#HB-TAG-MAX:CAPS"/>
+    <keyword type="macro" name="HB_UNTAG()" link="harfbuzz-hb-common.html#HB-UNTAG:CAPS"/>
+    <keyword type="typedef" name="hb_bool_t" link="harfbuzz-hb-common.html#hb-bool-t"/>
+    <keyword type="typedef" name="hb_codepoint_t" link="harfbuzz-hb-common.html#hb-codepoint-t"/>
+    <keyword type="function" name="hb_destroy_func_t ()" link="harfbuzz-hb-common.html#hb-destroy-func-t"/>
+    <keyword type="enum" name="enum hb_direction_t" link="harfbuzz-hb-common.html#hb-direction-t"/>
+    <keyword type="typedef" name="hb_language_t" link="harfbuzz-hb-common.html#hb-language-t"/>
+    <keyword type="typedef" name="hb_mask_t" link="harfbuzz-hb-common.html#hb-mask-t"/>
+    <keyword type="typedef" name="hb_position_t" link="harfbuzz-hb-common.html#hb-position-t"/>
+    <keyword type="enum" name="enum hb_script_t" link="harfbuzz-hb-common.html#hb-script-t"/>
+    <keyword type="typedef" name="hb_tag_t" link="harfbuzz-hb-common.html#hb-tag-t"/>
+    <keyword type="struct" name="hb_user_data_key_t" link="harfbuzz-hb-common.html#hb-user-data-key-t"/>
+    <keyword type="union" name="hb_var_int_t" link="harfbuzz-hb-common.html#hb-var-int-t"/>
+    <keyword type="macro" name="HB_DIRECTION_IS_BACKWARD()" link="harfbuzz-hb-common.html#HB-DIRECTION-IS-BACKWARD:CAPS"/>
+    <keyword type="macro" name="HB_DIRECTION_IS_FORWARD()" link="harfbuzz-hb-common.html#HB-DIRECTION-IS-FORWARD:CAPS"/>
+    <keyword type="macro" name="HB_DIRECTION_IS_HORIZONTAL()" link="harfbuzz-hb-common.html#HB-DIRECTION-IS-HORIZONTAL:CAPS"/>
+    <keyword type="macro" name="HB_DIRECTION_IS_VALID()" link="harfbuzz-hb-common.html#HB-DIRECTION-IS-VALID:CAPS"/>
+    <keyword type="macro" name="HB_DIRECTION_IS_VERTICAL()" link="harfbuzz-hb-common.html#HB-DIRECTION-IS-VERTICAL:CAPS"/>
+    <keyword type="macro" name="HB_UNICODE_MAX_DECOMPOSITION_LEN" link="harfbuzz-hb-unicode.html#HB-UNICODE-MAX-DECOMPOSITION-LEN:CAPS"/>
+    <keyword type="function" name="hb_unicode_combining_class_func_t ()" link="harfbuzz-hb-unicode.html#hb-unicode-combining-class-func-t"/>
+    <keyword type="enum" name="enum hb_unicode_combining_class_t" link="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t"/>
+    <keyword type="function" name="hb_unicode_compose_func_t ()" link="harfbuzz-hb-unicode.html#hb-unicode-compose-func-t"/>
+    <keyword type="function" name="hb_unicode_decompose_func_t ()" link="harfbuzz-hb-unicode.html#hb-unicode-decompose-func-t"/>
+    <keyword type="typedef" name="hb_unicode_funcs_t" link="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"/>
+    <keyword type="function" name="hb_unicode_general_category_func_t ()" link="harfbuzz-hb-unicode.html#hb-unicode-general-category-func-t"/>
+    <keyword type="enum" name="enum hb_unicode_general_category_t" link="harfbuzz-hb-unicode.html#hb-unicode-general-category-t"/>
+    <keyword type="function" name="hb_unicode_mirroring_func_t ()" link="harfbuzz-hb-unicode.html#hb-unicode-mirroring-func-t"/>
+    <keyword type="function" name="hb_unicode_script_func_t ()" link="harfbuzz-hb-unicode.html#hb-unicode-script-func-t"/>
+    <keyword type="macro" name="HB_SEGMENT_PROPERTIES_DEFAULT" link="harfbuzz-hb-buffer.html#HB-SEGMENT-PROPERTIES-DEFAULT:CAPS"/>
+    <keyword type="enum" name="enum hb_buffer_content_type_t" link="harfbuzz-hb-buffer.html#hb-buffer-content-type-t"/>
+    <keyword type="enum" name="enum hb_buffer_flags_t" link="harfbuzz-hb-buffer.html#hb-buffer-flags-t"/>
+    <keyword type="enum" name="enum hb_buffer_serialize_flags_t" link="harfbuzz-hb-buffer.html#hb-buffer-serialize-flags-t"/>
+    <keyword type="enum" name="enum hb_buffer_serialize_format_t" link="harfbuzz-hb-buffer.html#hb-buffer-serialize-format-t"/>
+    <keyword type="typedef" name="hb_buffer_t" link="harfbuzz-hb-buffer.html#hb-buffer-t"/>
+    <keyword type="struct" name="hb_glyph_info_t" link="harfbuzz-hb-buffer.html#hb-glyph-info-t"/>
+    <keyword type="struct" name="hb_glyph_position_t" link="harfbuzz-hb-buffer.html#hb-glyph-position-t"/>
+    <keyword type="struct" name="hb_segment_properties_t" link="harfbuzz-hb-buffer.html#hb-segment-properties-t"/>
+    <keyword type="typedef" name="hb_blob_t" link="harfbuzz-hb-blob.html#hb-blob-t"/>
+    <keyword type="enum" name="enum hb_memory_mode_t" link="harfbuzz-hb-blob.html#hb-memory-mode-t"/>
+    <keyword type="typedef" name="hb_face_t" link="harfbuzz-hb-face.html#hb-face-t"/>
+    <keyword type="typedef" name="hb_font_funcs_t" link="harfbuzz-hb-font.html#hb-font-funcs-t"/>
+    <keyword type="function" name="hb_font_get_glyph_advance_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-advance-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_contour_point_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-contour-point-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_extents_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-extents-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_from_name_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-from-name-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-func-t"/>
+    <keyword type="typedef" name="hb_font_get_glyph_h_advance_func_t" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-advance-func-t"/>
+    <keyword type="typedef" name="hb_font_get_glyph_h_kerning_func_t" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-kerning-func-t"/>
+    <keyword type="typedef" name="hb_font_get_glyph_h_origin_func_t" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-origin-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_kerning_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-kerning-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_name_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-name-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_origin_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-origin-func-t"/>
+    <keyword type="typedef" name="hb_font_get_glyph_v_advance_func_t" link="harfbuzz-hb-font.html#hb-font-get-glyph-v-advance-func-t"/>
+    <keyword type="typedef" name="hb_font_get_glyph_v_kerning_func_t" link="harfbuzz-hb-font.html#hb-font-get-glyph-v-kerning-func-t"/>
+    <keyword type="typedef" name="hb_font_get_glyph_v_origin_func_t" link="harfbuzz-hb-font.html#hb-font-get-glyph-v-origin-func-t"/>
+    <keyword type="typedef" name="hb_font_t" link="harfbuzz-hb-font.html#hb-font-t"/>
+    <keyword type="function" name="hb_reference_table_func_t ()" link="harfbuzz-hb-font.html#hb-reference-table-func-t"/>
+    <keyword type="struct" name="hb_feature_t" link="harfbuzz-Shaping.html#hb-feature-t"/>
+    <keyword type="macro" name="HB_VERSION_ATLEAST()" link="harfbuzz-hb-version.html#HB-VERSION-ATLEAST:CAPS"/>
+    <keyword type="macro" name="HB_VERSION_MAJOR" link="harfbuzz-hb-version.html#HB-VERSION-MAJOR:CAPS"/>
+    <keyword type="macro" name="HB_VERSION_MICRO" link="harfbuzz-hb-version.html#HB-VERSION-MICRO:CAPS"/>
+    <keyword type="macro" name="HB_VERSION_MINOR" link="harfbuzz-hb-version.html#HB-VERSION-MINOR:CAPS"/>
+    <keyword type="macro" name="HB_VERSION_STRING" link="harfbuzz-hb-version.html#HB-VERSION-STRING:CAPS"/>
+    <keyword type="macro" name="HB_BUFFER_FLAGS_DEFAULT" link="harfbuzz-hb-deprecated.html#HB-BUFFER-FLAGS-DEFAULT:CAPS" deprecated=""/>
+    <keyword type="macro" name="HB_BUFFER_SERIALIZE_FLAGS_DEFAULT" link="harfbuzz-hb-deprecated.html#HB-BUFFER-SERIALIZE-FLAGS-DEFAULT:CAPS" deprecated=""/>
+    <keyword type="macro" name="HB_SCRIPT_CANADIAN_ABORIGINAL" link="harfbuzz-hb-deprecated.html#HB-SCRIPT-CANADIAN-ABORIGINAL:CAPS" deprecated=""/>
+    <keyword type="macro" name="HB_SET_VALUE_INVALID" link="harfbuzz-hb-set.html#HB-SET-VALUE-INVALID:CAPS"/>
+    <keyword type="typedef" name="hb_set_t" link="harfbuzz-hb-set.html#hb-set-t"/>
+    <keyword type="macro" name="HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX" link="harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-DEFAULT-LANGUAGE-INDEX:CAPS"/>
+    <keyword type="macro" name="HB_OT_LAYOUT_NO_FEATURE_INDEX" link="harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-NO-FEATURE-INDEX:CAPS"/>
+    <keyword type="macro" name="HB_OT_LAYOUT_NO_SCRIPT_INDEX" link="harfbuzz-hb-ot-layout.html#HB-OT-LAYOUT-NO-SCRIPT-INDEX:CAPS"/>
+    <keyword type="macro" name="HB_OT_TAG_GDEF" link="harfbuzz-hb-ot-layout.html#HB-OT-TAG-GDEF:CAPS"/>
+    <keyword type="macro" name="HB_OT_TAG_GPOS" link="harfbuzz-hb-ot-layout.html#HB-OT-TAG-GPOS:CAPS"/>
+    <keyword type="macro" name="HB_OT_TAG_GSUB" link="harfbuzz-hb-ot-layout.html#HB-OT-TAG-GSUB:CAPS"/>
+    <keyword type="enum" name="enum hb_ot_layout_glyph_class_t" link="harfbuzz-hb-ot-layout.html#hb-ot-layout-glyph-class-t"/>
+    <keyword type="function" name="hb_ot_layout_glyph_sequence_func_t ()" link="harfbuzz-hb-ot-layout.html#hb-ot-layout-glyph-sequence-func-t"/>
+    <keyword type="macro" name="HB_OT_TAG_DEFAULT_LANGUAGE" link="harfbuzz-hb-ot-tag.html#HB-OT-TAG-DEFAULT-LANGUAGE:CAPS"/>
+    <keyword type="macro" name="HB_OT_TAG_DEFAULT_SCRIPT" link="harfbuzz-hb-ot-tag.html#HB-OT-TAG-DEFAULT-SCRIPT:CAPS"/>
+    <keyword type="typedef" name="hb_shape_plan_t" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-t"/>
+    <keyword type="macro" name="HB_GRAPHITE2_TAG_SILF" link="harfbuzz-hb-graphite2.html#HB-GRAPHITE2-TAG-SILF:CAPS"/>
+    <keyword type="macro" name="HB_CORETEXT_TAG_MORT" link="harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORT:CAPS"/>
+    <keyword type="macro" name="HB_CORETEXT_TAG_MORX" link="harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORX:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_BLOB" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BLOB:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_CONTENT_TYPE" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-CONTENT-TYPE:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_FLAGS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-FLAGS:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FLAGS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FLAGS:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_BUFFER_SERIALIZE_FORMAT" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-BUFFER-SERIALIZE-FORMAT:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_DIRECTION" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-DIRECTION:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_FACE" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FACE:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_FONT" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_FONT_FUNCS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-FONT-FUNCS:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_MEMORY_MODE" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-MEMORY-MODE:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_OT_LAYOUT_GLYPH_CLASS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-OT-LAYOUT-GLYPH-CLASS:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_SCRIPT" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-SCRIPT:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_SHAPE_PLAN" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-SHAPE-PLAN:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_UNICODE_COMBINING_CLASS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-UNICODE-COMBINING-CLASS:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_UNICODE_FUNCS" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-UNICODE-FUNCS:CAPS"/>
+    <keyword type="macro" name="HB_GOBJECT_TYPE_UNICODE_GENERAL_CATEGORY" link="harfbuzz-hb-gobject.html#HB-GOBJECT-TYPE-UNICODE-GENERAL-CATEGORY:CAPS"/>
+  </functions>
+</book>
