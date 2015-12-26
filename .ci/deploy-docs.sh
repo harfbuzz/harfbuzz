@@ -1,6 +1,8 @@
+TAG="$(git describe --exact-match --match "[0-9]*" HEAD 2>/dev/null)"
+
 set -o errexit -o nounset
 
-if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SECURE_ENV_VARS" == "true" -a "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "master" ]
+if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SECURE_ENV_VARS" == "true" -a "$TAG" != ""]
 then
 	DOCSDIR=build-docs
 	REVISION=$(git rev-parse --short HEAD)
