@@ -28,7 +28,7 @@ script:
   - ./configure $CONFIGURE_OPTS
   - make
   - make check
-  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls -e docs; fi
 after_success:
   - bash .ci/deploy-docs.sh
 notifications:

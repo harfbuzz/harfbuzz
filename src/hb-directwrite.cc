@@ -659,7 +659,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     DWRITE_READING_DIRECTION_RIGHT_TO_LEFT :
     DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
 
-  /**
+  /*
   * There's an internal 16-bit limit on some things inside the analyzer,
   * but we never attempt to shape a word longer than 64K characters
   * in a single gfxShapedWord, so we cannot exceed that limit.
