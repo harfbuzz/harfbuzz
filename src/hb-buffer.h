@@ -115,7 +115,12 @@ HB_EXTERN void *
 hb_buffer_get_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key);
 
-
+/**
+ * hb_buffer_content_type_t:
+ * @HB_BUFFER_CONTENT_TYPE_INVALID: Initial value for new buffer.
+ * @HB_BUFFER_CONTENT_TYPE_UNICODE: The buffer contains input characters (before shaping).
+ * @HB_BUFFER_CONTENT_TYPE_GLYPHS: The buffer contains output glyphs (after shaping).
+ */
 typedef enum {
   HB_BUFFER_CONTENT_TYPE_INVALID = 0,
   HB_BUFFER_CONTENT_TYPE_UNICODE,

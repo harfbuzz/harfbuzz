@@ -787,7 +787,7 @@ hb_buffer_get_empty (void)
  * being destroyed until a matching call to hb_buffer_destroy() is made.
  *
  * Return value: (transfer full):
- * the referenced #hb_buffer_t.
+ * The referenced #hb_buffer_t.
  *
  * Since: 0.9.2
  **/
@@ -868,9 +868,10 @@ hb_buffer_get_user_data (hb_buffer_t        *buffer,
 /**
  * hb_buffer_set_content_type:
  * @buffer: an #hb_buffer_t.
- * @content_type: 
+ * @content_type: the type of buffer contents to set
  *
- * 
+ * Sets the type of @buffer contents, buffers are either empty, contain
+ * characters (before shaping) or glyphs (the result of shaping).
  *
  * Since: 0.9.5
  **/
@@ -885,9 +886,10 @@ hb_buffer_set_content_type (hb_buffer_t              *buffer,
  * hb_buffer_get_content_type:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * see hb_buffer_set_content_type().
  *
- * Return value: 
+ * Return value:
+ * The type of @buffer contents.
  *
  * Since: 0.9.5
  **/
@@ -942,9 +944,15 @@ hb_buffer_get_unicode_funcs (hb_buffer_t        *buffer)
 /**
  * hb_buffer_set_direction:
  * @buffer: an #hb_buffer_t.
- * @direction: 
+ * @direction: the #hb_direction_t of the @buffer
  *
- * 
+ * Set the text flow direction of the buffer. No shaping can happen without
+ * setting @buffer direction, and it controls the visual direction for the
+ * output glyphs; for RTL direction the glyphs will be reversed. Many layout
+ * features depend on the proper setting of the direction, for example,
+ * reversing RTL text before shaping, then shaping with LTR direction is not
+ * the same as keeping the text in logical order and shaping with RTL
+ * direction.
  *
  * Since: 0.9.2
  **/
@@ -963,9 +971,10 @@ hb_buffer_set_direction (hb_buffer_t    *buffer,
  * hb_buffer_get_direction:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * See hb_buffer_set_direction()
  *
- * Return value: 
+ * Return value:
+ * The direction of the @buffer.
  *
  * Since: 0.9.2
  **/
@@ -978,9 +987,17 @@ hb_buffer_get_direction (hb_buffer_t    *buffer)
 /**
  * hb_buffer_set_script:
  * @buffer: an #hb_buffer_t.
- * @script: 
+ * @script: an #hb_script_t to set.
  *
- * 
+ * Sets the script of @buffer to @script.
+ *
+ * Script is crucial for choosing the proper shaping behaviour for scripts that
+ * require it (e.g. Arabic) and the which OpenType features defined in the font
+ * to be applied.
+ *
+ * You can pass one of the predefined #hb_script_t values, or use
+ * hb_script_from_string() or hb_script_from_iso15924_tag() to get the
+ * corresponding script from an ISO 15924 script tag.
  *
  * Since: 0.9.2
  **/
@@ -998,9 +1015,10 @@ hb_buffer_set_script (hb_buffer_t *buffer,
  * hb_buffer_get_script:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * See hb_buffer_set_script().
  *
- * Return value: 
+ * Return value:
+ * The #hb_script_t of the @buffer.
  *
  * Since: 0.9.2
  **/
@@ -1013,9 +1031,17 @@ hb_buffer_get_script (hb_buffer_t *buffer)
 /**
  * hb_buffer_set_language:
  * @buffer: an #hb_buffer_t.
- * @language: 
+ * @language: an hb_language_t to set.
  *
- * 
+ * Sets the language of @buffer to @language.
+ *
+ * Languages are crucial for selecting which OpenType feature to apply to the
+ * buffer which can result in applying language-specific behaviour. Languages
+ * are orthogonal to the scripts, and though they are related, they are
+ * different concepts and should not be confused with each other.
+ *
+ * Use hb_language_from_string() to convert from ISO 639 language codes to
+ * #hb_language_t.
  *
  * Since: 0.9.2
  **/
@@ -1033,9 +1059,10 @@ hb_buffer_set_language (hb_buffer_t   *buffer,
  * hb_buffer_get_language:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * See hb_buffer_set_language().
  *
  * Return value: (transfer none):
+ * The #hb_language_t of the buffer. Must not be freed by the caller.
  *
  * Since: 0.9.2
  **/
@@ -1192,7 +1219,8 @@ hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
  * hb_buffer_reset:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * Resets the buffer to its initial status, just like new buffers returned from
+ * hb_buffer_create().
  *
  * Since: 0.9.2
  **/
@@ -1206,7 +1234,7 @@ hb_buffer_reset (hb_buffer_t *buffer)
  * hb_buffer_clear_contents:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * Clears the contents of the buffer without resetting other properties.
  *
  * Since: 0.9.11
  **/
@@ -1219,11 +1247,12 @@ hb_buffer_clear_contents (hb_buffer_t *buffer)
 /**
  * hb_buffer_pre_allocate:
  * @buffer: an #hb_buffer_t.
- * @size: 
+ * @size: number of items to pre allocate.
  *
- * 
+ * Pre allocates memory for @buffer to fit at least @size number of items.
  *
- * Return value: 
+ * Return value:
+ * %true if the memory pre allocation succeeded, %false otherwise.
  *
  * Since: 0.9.2
  **/
@@ -1237,9 +1266,10 @@ hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
  * hb_buffer_allocation_successful:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * Check if allocating memory for the buffer succeeded.
  *
- * Return value: 
+ * Return value:
+ * %true if memory allocation succeeded, %false otherwise.
  *
  * Since: 0.9.2
  **/
@@ -1318,7 +1348,8 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
  *
  * Returns the number of items in the buffer.
  *
- * Return value: buffer length.
+ * Return value:
+ * The @buffer length.
  *
  * Since: 0.9.2
  **/
@@ -1333,10 +1364,11 @@ hb_buffer_get_length (hb_buffer_t *buffer)
  * @buffer: an #hb_buffer_t.
  * @length: (out): output array length.
  *
- * Returns buffer glyph information array.  Returned pointer
- * is valid as long as buffer contents are not modified.
+ * Returns @buffer glyph information array.  Returned pointer
+ * is valid as long as @buffer contents are not modified.
  *
- * Return value: (transfer none) (array length=length): buffer glyph information array.
+ * Return value: (transfer none) (array length=length):
+ * The @buffer glyph information array.
  *
  * Since: 0.9.2
  **/
@@ -1355,10 +1387,11 @@ hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
  * @buffer: an #hb_buffer_t.
  * @length: (out): output length.
  *
- * Returns buffer glyph position array.  Returned pointer
- * is valid as long as buffer contents are not modified.
+ * Returns @buffer glyph position array.  Returned pointer
+ * is valid as long as @buffer contents are not modified.
  *
- * Return value: (transfer none) (array length=length): buffer glyph position array.
+ * Return value: (transfer none) (array length=length):
+ * The @buffer glyph position array.
  *
  * Since: 0.9.2
  **/
