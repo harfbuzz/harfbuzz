@@ -693,7 +693,6 @@ resize_and_retry:
     scratch += old_scratch_used;
     scratch_size -= old_scratch_used;
   }
-retry:
   {
     string_ref = CFStringCreateWithCharactersNoCopy (NULL,
 						     pchars, chars_len,
