@@ -40,7 +40,28 @@
 
 HB_BEGIN_DECLS
 
-
+/**
+ * hb_glyph_info_t:
+ * @codepoint: either a Unicode code point (before shaping) or a glyph index
+ *             (after shaping).
+ * @mask: 
+ * @cluster: the index of the character in the original text that corresponds
+ *           to this #hb_glyph_info_t, or whatever the client passes to
+ *           hb_buffer_add(). More than one #hb_glyph_info_t can have the same
+ *           @cluster value, if they resulted from the same character (e.g. one
+ *           to many glyph substitution), and when more than one character gets
+ *           merged in the same glyph (e.g. many to one glyph substitution) the
+ *           #hb_glyph_info_t will have cluster value corresponding to the
+ *           first of them. By default some characters are merged into the same
+ *           cluster (e.g. combining marks have the same cluster as their
+ *           bases) even if they are separate glyphs,
+ *           hb_buffer_set_cluster_level() allow selecting more fine-grained
+ *           cluster handling.
+ *
+ * The #hb_glyph_info_t is the structure that holds informations about the
+ * glyphs and their relation to input text.
+ *
+ */
 typedef struct hb_glyph_info_t {
   hb_codepoint_t codepoint;
   hb_mask_t      mask;
@@ -51,6 +72,22 @@ typedef struct hb_glyph_info_t {
   hb_var_int_t   var2;
 } hb_glyph_info_t;
 
+/**
+ * hb_glyph_position_t:
+ * @x_advance: how much the line advances after drawing this glyph when setting
+ *             text in horizontal direction.
+ * @y_advance: how much the line advances after drawing this glyph when setting
+ *             text in vertical direction.
+ * @x_offset: how much the glyph moves on the X-axis before drawing it, this
+ *            should not affect how much the line advances.
+ * @y_offset: how much the glyph moves on the Y-axis before drawing it, this
+ *            should not affect how much the line advances.
+ *
+ * The #hb_glyph_position_t is the structure that holds the positions of the
+ * glyph in both horizontal and vertical directions. All positions in
+ * #hb_glyph_position_t are relative to the current point.
+ *
+ */
 typedef struct hb_glyph_position_t {
   hb_position_t  x_advance;
   hb_position_t  y_advance;
@@ -176,7 +213,22 @@ HB_EXTERN void
 hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
 
 
-/*
+/**
+ * hb_buffer_flags_t:
+ * @HB_BUFFER_FLAG_DEFAULT: the default buffer flag.
+ * @HB_BUFFER_FLAG_BOT: flag indicating that special handling of the beginning
+ *                      of text can be applied to this buffer. Should usually
+ *                      be set unless you are passing to the buffer only part
+ *                      of the text without the full context.
+ * @HB_BUFFER_FLAG_EOT: flag indicating that special handling of the end of text
+ *                      can be applied to this buffer, similar to
+ *                      @HB_BUFFER_FLAG_EOT.
+ * @HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES:
+ *                      flag indication that character with Default Ignorable
+ *                      Unicode property should use the corresponding glyph
+ *                      from the font, instead of replacing them with the space
+ *                      glyph and zeroing the advance width.
+ *
  * Since: 0.9.20
  */
 typedef enum { /*< flags >*/

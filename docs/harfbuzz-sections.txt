@@ -48,6 +48,8 @@ hb_buffer_set_language
 hb_buffer_get_language
 hb_buffer_set_flags
 hb_buffer_get_flags
+hb_buffer_set_cluster_level
+hb_buffer_get_cluster_level
 hb_buffer_set_length
 hb_buffer_get_length
 hb_buffer_set_segment_properties

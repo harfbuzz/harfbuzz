@@ -1111,9 +1111,9 @@ hb_buffer_get_segment_properties (hb_buffer_t *buffer,
 /**
  * hb_buffer_set_flags:
  * @buffer: an #hb_buffer_t.
- * @flags: 
+ * @flags: the buffer flags to set.
  *
- * 
+ * Sets @buffer flags to @flags. See #hb_buffer_flags_t.
  *
  * Since: 0.9.7
  **/
@@ -1131,9 +1131,10 @@ hb_buffer_set_flags (hb_buffer_t       *buffer,
  * hb_buffer_get_flags:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * See hb_buffer_set_flags().
  *
  * Return value: 
+ * The @buffer flags.
  *
  * Since: 0.9.7
  **/
