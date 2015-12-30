@@ -1,5 +1,6 @@
 
 set -o errexit -o nounset
+set -x
 
 if test "$TRAVIS_OS_NAME" != "linux" -o "$CC" != "gcc" -o "$TRAVIS_SECURE_ENV_VARS" != "true"; then exit; fi
 
@@ -20,7 +21,10 @@ cp ../docs/html/* .
 git init
 git config user.name "Travis CI"
 git config user.email "travis@harfbuzz.org"
+set +x
+echo "git remote add upstream \"https://$$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git\""
 git remote add upstream "https://$GH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git"
+set -x
 git fetch upstream
 git reset upstream/gh-pages
 
