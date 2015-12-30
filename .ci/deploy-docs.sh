@@ -1,20 +1,15 @@
 
 set -o errexit -o nounset
 
-if [ "$TRAVIS_OS_NAME" != "linux" -o "$CC" != "gcc" -o "$TRAVIS_SECURE_ENV_VARS" != "true" ]; then
-	exit
-fi
+if test "$TRAVIS_OS_NAME" != "linux" -o "$CC" != "gcc" -o "$TRAVIS_SECURE_ENV_VARS" != "true"; then exit; fi
 
 BRANCH="$(TRAVIS_BRANCH)"
+if test "x$BRANCH" != xmaster; then exit; fi
+
 TAG="$(git describe --exact-match --match "[0-9]*" HEAD 2>/dev/null)"
 
-if [ "x$TAG" == x ]; then
-	REVISION=$(git rev-parse --short HEAD)
-else
-	REVISION=$TAG
-fi
-
 DOCSDIR=build-docs
+REVISION=$(git rev-parse --short HEAD)
 
 rm -rf $DOCSDIR || exit
 mkdir $DOCSDIR
