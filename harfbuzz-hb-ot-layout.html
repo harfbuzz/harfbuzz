@@ -45,6 +45,7 @@
 #define             <a class="link" href="harfbuzz-hb-ot-layout.html#HB-OT-TAG-GDEF:CAPS" title="HB_OT_TAG_GDEF">HB_OT_TAG_GDEF</a>
 #define             <a class="link" href="harfbuzz-hb-ot-layout.html#HB-OT-TAG-GPOS:CAPS" title="HB_OT_TAG_GPOS">HB_OT_TAG_GPOS</a>
 #define             <a class="link" href="harfbuzz-hb-ot-layout.html#HB-OT-TAG-GSUB:CAPS" title="HB_OT_TAG_GSUB">HB_OT_TAG_GSUB</a>
+#define             <a class="link" href="harfbuzz-hb-ot-layout.html#HB-OT-TAG-JSTF:CAPS" title="HB_OT_TAG_JSTF">HB_OT_TAG_JSTF</a>
 <span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-ot-layout.html#hb-ot-layout-collect-lookups" title="hb_ot_layout_collect_lookups ()">hb_ot_layout_collect_lookups</a>        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> table_tag</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> *scripts</code></em>,
@@ -171,6 +172,12 @@ unsigned <span class="returnvalue">int</span>        <a class="link" href="harfb
 <span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-ot-layout.html#hb-ot-shape-plan-collect-lookups" title="hb_ot_shape_plan_collect_lookups ()">hb_ot_shape_plan_collect_lookups</a>    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-shape-plan.html#hb-shape-plan-t"><span class="type">hb_shape_plan_t</span></a> *shape_plan</code></em>,
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> table_tag</code></em>,
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *lookup_indexes</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-ot-layout.html#hb-ot-layout-language-get-required-feature-index" title="hb_ot_layout_language_get_required_feature_index ()">hb_ot_layout_language_get_required_feature_index</a>
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> table_tag</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> script_index</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> language_index</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> *feature_index</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -218,6 +225,12 @@ unsigned <span class="returnvalue">int</span>        <a class="link" href="harfb
 <div class="refsect2">
 <a name="HB-OT-TAG-GSUB:CAPS"></a><h3>HB_OT_TAG_GSUB</h3>
 <pre class="programlisting">#define HB_OT_TAG_GSUB HB_TAG('G','S','U','B')
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-OT-TAG-JSTF:CAPS"></a><h3>HB_OT_TAG_JSTF</h3>
+<pre class="programlisting">#define HB_OT_TAG_JSTF HB_TAG('J','S','T','F')
 </pre>
 </div>
 <hr>
@@ -471,6 +484,16 @@ unsigned <span class="returnvalue">int</span>        <a class="link" href="harfb
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> table_tag</code></em>,
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *lookup_indexes</code></em>);</pre>
 <p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ot-layout-language-get-required-feature-index"></a><h3>hb_ot_layout_language_get_required_feature_index ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_ot_layout_language_get_required_feature_index
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> table_tag</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> script_index</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> language_index</code></em>,
+                                                         <em class="parameter"><code>unsigned <span class="type">int</span> *feature_index</code></em>);</pre>
 </div>
 </div>
 </div>

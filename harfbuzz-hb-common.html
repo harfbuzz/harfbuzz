@@ -72,6 +72,7 @@ enum                <a class="link" href="harfbuzz-hb-common.html#hb-script-t-en
                                                          c4)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-TAG-NONE:CAPS" title="HB_TAG_NONE">HB_TAG_NONE</a>
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-TAG-MAX:CAPS" title="HB_TAG_MAX">HB_TAG_MAX</a>
+#define             <a class="link" href="harfbuzz-hb-common.html#HB-TAG-MAX-SIGNED:CAPS" title="HB_TAG_MAX_SIGNED">HB_TAG_MAX_SIGNED</a>
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-UNTAG:CAPS" title="HB_UNTAG()">HB_UNTAG</a>                            (tag)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-REVERSE:CAPS" title="HB_DIRECTION_REVERSE()">HB_DIRECTION_REVERSE</a>                (dir)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-IS-BACKWARD:CAPS" title="HB_DIRECTION_IS_BACKWARD()">HB_DIRECTION_IS_BACKWARD</a>            (dir)
@@ -598,6 +599,12 @@ the caller. <span class="annotation">[<acronym title="Don't free data after the 
 <div class="refsect2">
 <a name="HB-TAG-MAX:CAPS"></a><h3>HB_TAG_MAX</h3>
 <pre class="programlisting">#define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-TAG-MAX-SIGNED:CAPS"></a><h3>HB_TAG_MAX_SIGNED</h3>
+<pre class="programlisting">#define HB_TAG_MAX_SIGNED HB_TAG(0x7f,0xff,0xff,0xff)
 </pre>
 </div>
 <hr>

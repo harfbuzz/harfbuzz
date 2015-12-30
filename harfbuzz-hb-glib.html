@@ -40,6 +40,7 @@
 <pre class="synopsis"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * <a class="link" href="harfbuzz-hb-glib.html#hb-glib-get-unicode-funcs" title="hb_glib_get_unicode_funcs ()">hb_glib_get_unicode_funcs</a>          (<em class="parameter"><code><span class="type">void</span></code></em>);
 <span class="returnvalue">GUnicodeScript</span>      <a class="link" href="harfbuzz-hb-glib.html#hb-glib-script-from-script" title="hb_glib_script_from_script ()">hb_glib_script_from_script</a>          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>);
 <a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         <a class="link" href="harfbuzz-hb-glib.html#hb-glib-script-to-script" title="hb_glib_script_to_script ()">hb_glib_script_to_script</a>            (<em class="parameter"><code><span class="type">GUnicodeScript</span> script</code></em>);
+<a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         <a class="link" href="harfbuzz-hb-glib.html#hb-glib-blob-create" title="hb_glib_blob_create ()">hb_glib_blob_create</a>                 (<em class="parameter"><code><span class="type">GBytes</span> *gbytes</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -60,6 +61,12 @@
 <div class="refsect2">
 <a name="hb-glib-script-to-script"></a><h3>hb_glib_script_to_script ()</h3>
 <pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         hb_glib_script_to_script            (<em class="parameter"><code><span class="type">GUnicodeScript</span> script</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-glib-blob-create"></a><h3>hb_glib_blob_create ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         hb_glib_blob_create                 (<em class="parameter"><code><span class="type">GBytes</span> *gbytes</code></em>);</pre>
+<p class="since">Since 0.9.38</p>
 </div>
 </div>
 </div>

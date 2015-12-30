@@ -285,6 +285,31 @@ typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-t">hb_fo
 <a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         (<a class="link" href="harfbuzz-hb-font.html#hb-reference-table-func-t" title="hb_reference_table_func_t ()">*hb_reference_table_func_t</a>)        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>,
                                                          <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-set-font-h-extents-func" title="hb_font_funcs_set_font_h_extents_func ()">hb_font_funcs_set_font_h_extents_func</a>
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-t"><span class="type">hb_font_funcs_t</span></a> *ffuncs</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-get-font-h-extents-func-t" title="hb_font_get_font_h_extents_func_t"><span class="type">hb_font_get_font_h_extents_func_t</span></a> func</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-set-font-v-extents-func" title="hb_font_funcs_set_font_v_extents_func ()">hb_font_funcs_set_font_v_extents_func</a>
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-t"><span class="type">hb_font_funcs_t</span></a> *ffuncs</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-get-font-v-extents-func-t" title="hb_font_get_font_v_extents_func_t"><span class="type">hb_font_get_font_v_extents_func_t</span></a> func</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-font.html#hb-font-get-extents-for-direction" title="hb_font_get_extents_for_direction ()">hb_font_get_extents_for_direction</a>   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="type">hb_direction_t</span></a> direction</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *extents</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-font.html#hb-font-get-font-extents-func-t" title="hb_font_get_font_extents_func_t ()">*hb_font_get_font_extents_func_t</a>)  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *metrics</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-font-h-extents-func-t" title="hb_font_get_font_h_extents_func_t">hb_font_get_font_h_extents_func_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-get-font-v-extents-func-t" title="hb_font_get_font_v_extents_func_t">hb_font_get_font_v_extents_func_t</a>;
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-font.html#hb-font-get-h-extents" title="hb_font_get_h_extents ()">hb_font_get_h_extents</a>               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *extents</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-font.html#hb-font-get-v-extents" title="hb_font_get_v_extents ()">hb_font_get_v_extents</a>               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *extents</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-font.html#hb-font-set-parent" title="hb_font_set_parent ()">hb_font_set_parent</a>                  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *parent</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -1604,6 +1629,154 @@ typedef             <a class="link" href="harfbuzz-hb-font.html#hb-font-t">hb_fo
 <pre class="programlisting"><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         (*hb_reference_table_func_t)        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>,
                                                          <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-funcs-set-font-h-extents-func"></a><h3>hb_font_funcs_set_font_h_extents_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_font_funcs_set_font_h_extents_func
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-t"><span class="type">hb_font_funcs_t</span></a> *ffuncs</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-get-font-h-extents-func-t" title="hb_font_get_font_h_extents_func_t"><span class="type">hb_font_get_font_h_extents_func_t</span></a> func</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>ffuncs</code></em> :</span></p></td>
+<td>font functions.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-funcs-set-font-v-extents-func"></a><h3>hb_font_funcs_set_font_v_extents_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_font_funcs_set_font_v_extents_func
+                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-t"><span class="type">hb_font_funcs_t</span></a> *ffuncs</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-get-font-v-extents-func-t" title="hb_font_get_font_v_extents_func_t"><span class="type">hb_font_get_font_v_extents_func_t</span></a> func</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>ffuncs</code></em> :</span></p></td>
+<td>font functions.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-extents-for-direction"></a><h3>hb_font_get_extents_for_direction ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_font_get_extents_for_direction   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="type">hb_direction_t</span></a> direction</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *extents</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>font</code></em> :</span></p></td>
+<td>a font.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 1.1.3</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-font-extents-func-t"></a><h3>hb_font_get_font_extents_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_font_get_font_extents_func_t)  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *metrics</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-font-h-extents-func-t"></a><h3>hb_font_get_font_h_extents_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_font_extents_func_t hb_font_get_font_h_extents_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-font-v-extents-func-t"></a><h3>hb_font_get_font_v_extents_func_t</h3>
+<pre class="programlisting">typedef hb_font_get_font_extents_func_t hb_font_get_font_v_extents_func_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-h-extents"></a><h3>hb_font_get_h_extents ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_font_get_h_extents               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *extents</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>font</code></em> :</span></p></td>
+<td>a font.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extents</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.1.3</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-v-extents"></a><h3>hb_font_get_v_extents ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_font_get_v_extents               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><span class="type">hb_font_extents_t</span> *extents</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>font</code></em> :</span></p></td>
+<td>a font.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>extents</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.1.3</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-set-parent"></a><h3>hb_font_set_parent ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_font_set_parent                  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *parent</code></em>);</pre>
+<p>
+Sets parent font of <em class="parameter"><code>font</code></em>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>font</code></em> :</span></p></td>
+<td>a font.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>parent</code></em> :</span></p></td>
+<td>new parent.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.0.5</p>
 </div>
 </div>
 </div>
