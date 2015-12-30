@@ -458,6 +458,8 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
 }
 
 /**
+ * hb_ot_layout_feature_get_lookups:
+ *
  * Since: 0.9.7
  **/
 unsigned int
@@ -475,6 +477,8 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 }
 
 /**
+ * hb_ot_layout_table_get_lookup_count:
+ *
  * Since: 0.9.22
  **/
 unsigned int
@@ -635,6 +639,8 @@ _hb_ot_layout_collect_lookups_languages (hb_face_t      *face,
 }
 
 /**
+ * hb_ot_layout_collect_lookups:
+ *
  * Since: 0.9.8
  **/
 void
@@ -679,6 +685,8 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 }
 
 /**
+ * hb_ot_layout_lookup_collect_glyphs:
+ *
  * Since: 0.9.7
  **/
 void
@@ -727,6 +735,8 @@ hb_ot_layout_has_substitution (hb_face_t *face)
 }
 
 /**
+ * hb_ot_layout_lookup_would_substitute:
+ *
  * Since: 0.9.7
  **/
 hb_bool_t
@@ -768,6 +778,8 @@ hb_ot_layout_substitute_finish (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 /**
+ * hb_ot_layout_lookup_substitute_closure:
+ *
  * Since: 0.9.7
  **/
 void
@@ -805,6 +817,8 @@ hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 /**
+ * hb_ot_layout_get_size_params:
+ *
  * Since: 0.9.10
  **/
 hb_bool_t
