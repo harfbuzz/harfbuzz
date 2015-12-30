@@ -37,13 +37,30 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="harfbuzz-hb-glib.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis"></pre>
+<pre class="synopsis"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * <a class="link" href="harfbuzz-hb-glib.html#hb-glib-get-unicode-funcs" title="hb_glib_get_unicode_funcs ()">hb_glib_get_unicode_funcs</a>          (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">GUnicodeScript</span>      <a class="link" href="harfbuzz-hb-glib.html#hb-glib-script-from-script" title="hb_glib_script_from_script ()">hb_glib_script_from_script</a>          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         <a class="link" href="harfbuzz-hb-glib.html#hb-glib-script-to-script" title="hb_glib_script_to_script ()">hb_glib_script_to_script</a>            (<em class="parameter"><code><span class="type">GUnicodeScript</span> script</code></em>);
+</pre>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-glib.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-glib.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="hb-glib-get-unicode-funcs"></a><h3>hb_glib_get_unicode_funcs ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * hb_glib_get_unicode_funcs          (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-glib-script-from-script"></a><h3>hb_glib_script_from_script ()</h3>
+<pre class="programlisting"><span class="returnvalue">GUnicodeScript</span>      hb_glib_script_from_script          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-glib-script-to-script"></a><h3>hb_glib_script_to_script ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         hb_glib_script_to_script            (<em class="parameter"><code><span class="type">GUnicodeScript</span> script</code></em>);</pre>
+</div>
 </div>
 </div>
 <div class="footer">

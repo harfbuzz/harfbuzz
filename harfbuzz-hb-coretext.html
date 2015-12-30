@@ -39,6 +39,9 @@
 <a name="harfbuzz-hb-coretext.synopsis"></a><h2>Synopsis</h2>
 <pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORT:CAPS" title="HB_CORETEXT_TAG_MORT">HB_CORETEXT_TAG_MORT</a>
 #define             <a class="link" href="harfbuzz-hb-coretext.html#HB-CORETEXT-TAG-MORX:CAPS" title="HB_CORETEXT_TAG_MORX">HB_CORETEXT_TAG_MORX</a>
+<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         <a class="link" href="harfbuzz-hb-coretext.html#hb-coretext-face-create" title="hb_coretext_face_create ()">hb_coretext_face_create</a>             (<em class="parameter"><code><span class="type">CGFontRef</span> cg_font</code></em>);
+<span class="returnvalue">CGFontRef</span>           <a class="link" href="harfbuzz-hb-coretext.html#hb-coretext-face-get-cg-font" title="hb_coretext_face_get_cg_font ()">hb_coretext_face_get_cg_font</a>        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
+<span class="returnvalue">CTFontRef</span>           <a class="link" href="harfbuzz-hb-coretext.html#hb-coretext-font-get-ct-font" title="hb_coretext_font_get_ct_font ()">hb_coretext_font_get_ct_font</a>        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -56,6 +59,21 @@
 <a name="HB-CORETEXT-TAG-MORX:CAPS"></a><h3>HB_CORETEXT_TAG_MORX</h3>
 <pre class="programlisting">#define HB_CORETEXT_TAG_MORX HB_TAG('m','o','r','x')
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-coretext-face-create"></a><h3>hb_coretext_face_create ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         hb_coretext_face_create             (<em class="parameter"><code><span class="type">CGFontRef</span> cg_font</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-coretext-face-get-cg-font"></a><h3>hb_coretext_face_get_cg_font ()</h3>
+<pre class="programlisting"><span class="returnvalue">CGFontRef</span>           hb_coretext_face_get_cg_font        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-coretext-font-get-ct-font"></a><h3>hb_coretext_font_get_ct_font ()</h3>
+<pre class="programlisting"><span class="returnvalue">CTFontRef</span>           hb_coretext_font_get_ct_font        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>);</pre>
 </div>
 </div>
 </div>

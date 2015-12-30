@@ -24,6 +24,8 @@
 <a href="#harfbuzz-hb-set.synopsis" class="shortcut">Top</a>
                    | 
                   <a href="#harfbuzz-hb-set.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#harfbuzz-hb-set.object-hierarchy" class="shortcut">Object Hierarchy</a>
 </td></tr>
 </table>
 <div class="refentry">
@@ -37,8 +39,62 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="harfbuzz-hb-set.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-set.html#HB-SET-VALUE-INVALID:CAPS" title="HB_SET_VALUE_INVALID">HB_SET_VALUE_INVALID</a>
-typedef             <a class="link" href="harfbuzz-hb-set.html#hb-set-t" title="hb_set_t">hb_set_t</a>;
+<a name="hb-set-t"></a><pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-set.html#HB-SET-VALUE-INVALID:CAPS" title="HB_SET_VALUE_INVALID">HB_SET_VALUE_INVALID</a>
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-add" title="hb_set_add ()">hb_set_add</a>                          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> codepoint</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-add-range" title="hb_set_add_range ()">hb_set_add_range</a>                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> first</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> last</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-set.html#hb-set-allocation-successful" title="hb_set_allocation_successful ()">hb_set_allocation_successful</a>        (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-clear" title="hb_set_clear ()">hb_set_clear</a>                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="returnvalue">hb_set_t</span></a> *          <a class="link" href="harfbuzz-hb-set.html#hb-set-create" title="hb_set_create ()">hb_set_create</a>                       (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-del" title="hb_set_del ()">hb_set_del</a>                          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> codepoint</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-del-range" title="hb_set_del_range ()">hb_set_del_range</a>                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> first</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> last</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-destroy" title="hb_set_destroy ()">hb_set_destroy</a>                      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="returnvalue">hb_set_t</span></a> *          <a class="link" href="harfbuzz-hb-set.html#hb-set-get-empty" title="hb_set_get_empty ()">hb_set_get_empty</a>                    (<em class="parameter"><code><span class="type">void</span></code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      <a class="link" href="harfbuzz-hb-set.html#hb-set-get-max" title="hb_set_get_max ()">hb_set_get_max</a>                      (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      <a class="link" href="harfbuzz-hb-set.html#hb-set-get-min" title="hb_set_get_min ()">hb_set_get_min</a>                      (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+unsigned <span class="returnvalue">int</span>        <a class="link" href="harfbuzz-hb-set.html#hb-set-get-population" title="hb_set_get_population ()">hb_set_get_population</a>               (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<span class="returnvalue">void</span> *              <a class="link" href="harfbuzz-hb-set.html#hb-set-get-user-data" title="hb_set_get_user_data ()">hb_set_get_user_data</a>                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-set.html#hb-set-has" title="hb_set_has ()">hb_set_has</a>                          (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> codepoint</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-intersect" title="hb_set_intersect ()">hb_set_intersect</a>                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-invert" title="hb_set_invert ()">hb_set_invert</a>                       (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-set.html#hb-set-is-empty" title="hb_set_is_empty ()">hb_set_is_empty</a>                     (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-set.html#hb-set-is-equal" title="hb_set_is_equal ()">hb_set_is_equal</a>                     (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-set.html#hb-set-next" title="hb_set_next ()">hb_set_next</a>                         (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *codepoint</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-set.html#hb-set-next-range" title="hb_set_next_range ()">hb_set_next_range</a>                   (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *first</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *last</code></em>);
+<a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="returnvalue">hb_set_t</span></a> *          <a class="link" href="harfbuzz-hb-set.html#hb-set-reference" title="hb_set_reference ()">hb_set_reference</a>                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-set" title="hb_set_set ()">hb_set_set</a>                          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-set.html#hb-set-set-user-data" title="hb_set_set_user_data ()">hb_set_set_user_data</a>                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-subtract" title="hb_set_subtract ()">hb_set_subtract</a>                     (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-symmetric-difference" title="hb_set_symmetric_difference ()">hb_set_symmetric_difference</a>         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);
+typedef             <a class="link" href="harfbuzz-hb-set.html#hb-set-t">hb_set_t</a>;
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-set.html#hb-set-union" title="hb_set_union ()">hb_set_union</a>                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-set.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GBoxed
+   +----hb_set_t
 </pre>
 </div>
 <div class="refsect1">
@@ -53,9 +109,440 @@ typedef             <a class="link" href="harfbuzz-hb-set.html#hb-set-t" title="
 </div>
 <hr>
 <div class="refsect2">
+<a name="hb-set-add"></a><h3>hb_set_add ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_add                          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> codepoint</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-add-range"></a><h3>hb_set_add_range ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_add_range                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> first</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> last</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-allocation-successful"></a><h3>hb_set_allocation_successful ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_set_allocation_successful        (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-clear"></a><h3>hb_set_clear ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_clear                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-create"></a><h3>hb_set_create ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="returnvalue">hb_set_t</span></a> *          hb_set_create                       (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-del"></a><h3>hb_set_del ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_del                          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> codepoint</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-del-range"></a><h3>hb_set_del_range ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_del_range                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> first</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> last</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-destroy"></a><h3>hb_set_destroy ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_destroy                      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-get-empty"></a><h3>hb_set_get_empty ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="returnvalue">hb_set_t</span></a> *          hb_set_get_empty                    (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-get-max"></a><h3>hb_set_get_max ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      hb_set_get_max                      (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<p>
+Finds the maximum number in the set.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>minimum of the set, or <a class="link" href="harfbuzz-hb-set.html#HB-SET-VALUE-INVALID:CAPS" title="HB_SET_VALUE_INVALID"><code class="literal">HB_SET_VALUE_INVALID</code></a> if set is empty.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-get-min"></a><h3>hb_set_get_min ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      hb_set_get_min                      (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<p>
+Finds the minimum number in the set.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>minimum of the set, or <a class="link" href="harfbuzz-hb-set.html#HB-SET-VALUE-INVALID:CAPS" title="HB_SET_VALUE_INVALID"><code class="literal">HB_SET_VALUE_INVALID</code></a> if set is empty.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-get-population"></a><h3>hb_set_get_population ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">int</span>        hb_set_get_population               (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<p>
+Returns the number of numbers in the set.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>set population.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-get-user-data"></a><h3>hb_set_get_user_data ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *              hb_set_get_user_data                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-has"></a><h3>hb_set_has ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_set_has                          (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> codepoint</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-intersect"></a><h3>hb_set_intersect ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_intersect                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-invert"></a><h3>hb_set_invert ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_invert                       (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.10</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-is-empty"></a><h3>hb_set_is_empty ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_set_is_empty                     (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-is-equal"></a><h3>hb_set_is_equal ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_set_is_equal                     (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-next"></a><h3>hb_set_next ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_set_next                         (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *codepoint</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>codepoint</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Parameter for input and for returning results. Default is transfer full."><span class="acronym">inout</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>whether there was a next value.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-next-range"></a><h3>hb_set_next_range ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_set_next_range                   (<em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *first</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *last</code></em>);</pre>
+<p>
+Gets the next consecutive range of numbers in <em class="parameter"><code>set</code></em> that
+are greater than current value of <em class="parameter"><code>last</code></em>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>first</code></em> :</span></p></td>
+<td>output first codepoint in the range. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>last</code></em> :</span></p></td>
+<td>input current last and output last codepoint in the range. <span class="annotation">[<acronym title="Parameter for input and for returning results. Default is transfer full."><span class="acronym">inout</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>whether there was a next range.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.7</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-reference"></a><h3>hb_set_reference ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="returnvalue">hb_set_t</span></a> *          hb_set_reference                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-set"></a><h3>hb_set_set ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_set                          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-set-user-data"></a><h3>hb_set_set_user_data ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_set_set_user_data                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
+<td>
+<em class="parameter"><code>destroy</code></em> (closure data):</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-subtract"></a><h3>hb_set_subtract ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_subtract                     (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-symmetric-difference"></a><h3>hb_set_symmetric_difference ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_symmetric_difference         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="hb-set-t"></a><h3>hb_set_t</h3>
 <pre class="programlisting">typedef struct hb_set_t hb_set_t;
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-set-union"></a><h3>hb_set_union ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_set_union                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *set</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="harfbuzz-hb-set.html#hb-set-t"><span class="type">hb_set_t</span></a> *other</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>set</code></em> :</span></p></td>
+<td>a set.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
 </div>
 </div>
 </div>

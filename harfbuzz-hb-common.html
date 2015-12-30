@@ -24,6 +24,8 @@
 <a href="#harfbuzz-hb-common.synopsis" class="shortcut">Top</a>
                    | 
                   <a href="#harfbuzz-hb-common.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#harfbuzz-hb-common.object-hierarchy" class="shortcut">Object Hierarchy</a>
 </td></tr>
 </table>
 <div class="refentry">
@@ -37,8 +39,33 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="harfbuzz-hb-common.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-REVERSE:CAPS" title="HB_DIRECTION_REVERSE()">HB_DIRECTION_REVERSE</a>                (dir)
-#define             <a class="link" href="harfbuzz-hb-common.html#HB-LANGUAGE-INVALID:CAPS" title="HB_LANGUAGE_INVALID">HB_LANGUAGE_INVALID</a>
+<a name="hb-direction-t"></a><a name="hb-script-t"></a><a name="hb-user-data-key-t"></a><pre class="synopsis"><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="returnvalue">hb_tag_t</span></a>            <a class="link" href="harfbuzz-hb-common.html#hb-tag-from-string" title="hb_tag_from_string ()">hb_tag_from_string</a>                  (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-common.html#hb-tag-to-string" title="hb_tag_to_string ()">hb_tag_to_string</a>                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> *buf</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="returnvalue">hb_direction_t</span></a>      <a class="link" href="harfbuzz-hb-common.html#hb-direction-from-string" title="hb_direction_from_string ()">hb_direction_from_string</a>            (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="harfbuzz-hb-common.html#hb-direction-to-string" title="hb_direction_to_string ()">hb_direction_to_string</a>              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="type">hb_direction_t</span></a> direction</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         <a class="link" href="harfbuzz-hb-common.html#hb-script-from-iso15924-tag" title="hb_script_from_iso15924_tag ()">hb_script_from_iso15924_tag</a>         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         <a class="link" href="harfbuzz-hb-common.html#hb-script-from-string" title="hb_script_from_string ()">hb_script_from_string</a>               (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="returnvalue">hb_tag_t</span></a>            <a class="link" href="harfbuzz-hb-common.html#hb-script-to-iso15924-tag" title="hb_script_to_iso15924_tag ()">hb_script_to_iso15924_tag</a>           (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="returnvalue">hb_direction_t</span></a>      <a class="link" href="harfbuzz-hb-common.html#hb-script-get-horizontal-direction" title="hb_script_get_horizontal_direction ()">hb_script_get_horizontal_direction</a>  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="returnvalue">hb_language_t</span></a>       <a class="link" href="harfbuzz-hb-common.html#hb-language-from-string" title="hb_language_from_string ()">hb_language_from_string</a>             (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);
+const <span class="returnvalue">char</span> *        <a class="link" href="harfbuzz-hb-common.html#hb-language-to-string" title="hb_language_to_string ()">hb_language_to_string</a>               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="type">hb_language_t</span></a> language</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="returnvalue">hb_language_t</span></a>       <a class="link" href="harfbuzz-hb-common.html#hb-language-get-default" title="hb_language_get_default ()">hb_language_get_default</a>             (<em class="parameter"><code><span class="type">void</span></code></em>);
+typedef             <a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t">hb_bool_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t">hb_codepoint_t</a>;
+<span class="returnvalue">void</span>                (<a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()">*hb_destroy_func_t</a>)                (<em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+enum                <a class="link" href="harfbuzz-hb-common.html#hb-direction-t-enum" title="enum hb_direction_t">hb_direction_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t">hb_language_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-common.html#hb-mask-t" title="hb_mask_t">hb_mask_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t">hb_position_t</a>;
+typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t">hb_tag_t</a>;
+enum                <a class="link" href="harfbuzz-hb-common.html#hb-script-t-enum" title="enum hb_script_t">hb_script_t</a>;
+                    <a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t-struct" title="hb_user_data_key_t">hb_user_data_key_t</a>;
+                    <a class="link" href="harfbuzz-hb-common.html#hb-var-int-t" title="hb_var_int_t">hb_var_int_t</a>;
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-TAG:CAPS" title="HB_TAG()">HB_TAG</a>                              (c1,
                                                          c2,
                                                          c3,
@@ -46,22 +73,28 @@
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-TAG-NONE:CAPS" title="HB_TAG_NONE">HB_TAG_NONE</a>
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-TAG-MAX:CAPS" title="HB_TAG_MAX">HB_TAG_MAX</a>
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-UNTAG:CAPS" title="HB_UNTAG()">HB_UNTAG</a>                            (tag)
-typedef             <a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t">hb_bool_t</a>;
-typedef             <a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t">hb_codepoint_t</a>;
-<span class="returnvalue">void</span>                (<a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()">*hb_destroy_func_t</a>)                (<em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
-enum                <a class="link" href="harfbuzz-hb-common.html#hb-direction-t" title="enum hb_direction_t">hb_direction_t</a>;
-typedef             <a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t">hb_language_t</a>;
-typedef             <a class="link" href="harfbuzz-hb-common.html#hb-mask-t" title="hb_mask_t">hb_mask_t</a>;
-typedef             <a class="link" href="harfbuzz-hb-common.html#hb-position-t" title="hb_position_t">hb_position_t</a>;
-enum                <a class="link" href="harfbuzz-hb-common.html#hb-script-t" title="enum hb_script_t">hb_script_t</a>;
-typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t">hb_tag_t</a>;
-                    <a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t" title="hb_user_data_key_t">hb_user_data_key_t</a>;
-                    <a class="link" href="harfbuzz-hb-common.html#hb-var-int-t" title="hb_var_int_t">hb_var_int_t</a>;
+#define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-REVERSE:CAPS" title="HB_DIRECTION_REVERSE()">HB_DIRECTION_REVERSE</a>                (dir)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-IS-BACKWARD:CAPS" title="HB_DIRECTION_IS_BACKWARD()">HB_DIRECTION_IS_BACKWARD</a>            (dir)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-IS-FORWARD:CAPS" title="HB_DIRECTION_IS_FORWARD()">HB_DIRECTION_IS_FORWARD</a>             (dir)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-IS-HORIZONTAL:CAPS" title="HB_DIRECTION_IS_HORIZONTAL()">HB_DIRECTION_IS_HORIZONTAL</a>          (dir)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-IS-VALID:CAPS" title="HB_DIRECTION_IS_VALID()">HB_DIRECTION_IS_VALID</a>               (dir)
 #define             <a class="link" href="harfbuzz-hb-common.html#HB-DIRECTION-IS-VERTICAL:CAPS" title="HB_DIRECTION_IS_VERTICAL()">HB_DIRECTION_IS_VERTICAL</a>            (dir)
+#define             <a class="link" href="harfbuzz-hb-common.html#HB-LANGUAGE-INVALID:CAPS" title="HB_LANGUAGE_INVALID">HB_LANGUAGE_INVALID</a>
+</pre>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-common.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GEnum
+   +----hb_direction_t
+</pre>
+<pre class="synopsis">
+  GEnum
+   +----hb_script_t
+</pre>
+<pre class="synopsis">
+  GBoxed
+   +----hb_user_data_key_t
 </pre>
 </div>
 <div class="refsect1">
@@ -70,39 +103,212 @@ typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" titl
 <div class="refsect1">
 <a name="harfbuzz-hb-common.details"></a><h2>Details</h2>
 <div class="refsect2">
-<a name="HB-DIRECTION-REVERSE:CAPS"></a><h3>HB_DIRECTION_REVERSE()</h3>
-<pre class="programlisting">#define HB_DIRECTION_REVERSE(dir) ((hb_direction_t) (((unsigned int) (dir)) ^ 1))
-</pre>
+<a name="hb-tag-from-string"></a><h3>hb_tag_from_string ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="returnvalue">hb_tag_t</span></a>            hb_tag_from_string                  (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>str</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=len][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> uint8_t]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="HB-LANGUAGE-INVALID:CAPS"></a><h3>HB_LANGUAGE_INVALID</h3>
-<pre class="programlisting">#define HB_LANGUAGE_INVALID ((hb_language_t) NULL)
-</pre>
+<a name="hb-tag-to-string"></a><h3>hb_tag_to_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_tag_to_string                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>,
+                                                         <em class="parameter"><code><span class="type">char</span> *buf</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>buf</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> fixed-size=4]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.5</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="HB-TAG:CAPS"></a><h3>HB_TAG()</h3>
-<pre class="programlisting">#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint8_t)(c1))&lt;&lt;24)|(((uint8_t)(c2))&lt;&lt;16)|(((uint8_t)(c3))&lt;&lt;8)|((uint8_t)(c4))))
-</pre>
+<a name="hb-direction-from-string"></a><h3>hb_direction_from_string ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="returnvalue">hb_direction_t</span></a>      hb_direction_from_string            (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>str</code></em> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=len][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> uint8_t]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="HB-TAG-NONE:CAPS"></a><h3>HB_TAG_NONE</h3>
-<pre class="programlisting">#define HB_TAG_NONE HB_TAG(0,0,0,0)
-</pre>
+<a name="hb-direction-to-string"></a><h3>hb_direction_to_string ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        hb_direction_to_string              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="type">hb_direction_t</span></a> direction</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="HB-TAG-MAX:CAPS"></a><h3>HB_TAG_MAX</h3>
-<pre class="programlisting">#define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
-</pre>
+<a name="hb-script-from-iso15924-tag"></a><h3>hb_script_from_iso15924_tag ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         hb_script_from_iso15924_tag         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);</pre>
+<p>
+Converts an ISO 15924 script tag to a corresponding <a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>tag</code></em> :</span></p></td>
+<td>an <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> representing an ISO 15924 tag.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>An <a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> corresponding to the ISO 15924 tag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="HB-UNTAG:CAPS"></a><h3>HB_UNTAG()</h3>
-<pre class="programlisting">#define HB_UNTAG(tag)   ((uint8_t)((tag)&gt;&gt;24)), ((uint8_t)((tag)&gt;&gt;16)), ((uint8_t)((tag)&gt;&gt;8)), ((uint8_t)(tag))
-</pre>
+<a name="hb-script-from-string"></a><h3>hb_script_from_string ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         hb_script_from_string               (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+<p>
+Converts a string <em class="parameter"><code>str</code></em> representing an ISO 15924 script tag to a
+corresponding <a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a>. Shorthand for <a class="link" href="harfbuzz-hb-common.html#hb-tag-from-string" title="hb_tag_from_string ()"><code class="function">hb_tag_from_string()</code></a> then
+<a class="link" href="harfbuzz-hb-common.html#hb-script-from-iso15924-tag" title="hb_script_from_iso15924_tag ()"><code class="function">hb_script_from_iso15924_tag()</code></a>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>str</code></em> :</span></p></td>
+<td>a string representing an
+ISO 15924 tag. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=len][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> uint8_t]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>len</code></em> :</span></p></td>
+<td>length of the <em class="parameter"><code>str</code></em>, or -1 if it is <code class="literal">NULL</code>-terminated.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>An <a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> corresponding to the ISO 15924 tag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-script-to-iso15924-tag"></a><h3>hb_script_to_iso15924_tag ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="returnvalue">hb_tag_t</span></a>            hb_script_to_iso15924_tag           (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>);</pre>
+<p>
+See <a class="link" href="harfbuzz-hb-common.html#hb-script-from-iso15924-tag" title="hb_script_from_iso15924_tag ()"><code class="function">hb_script_from_iso15924_tag()</code></a>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>script</code></em> :</span></p></td>
+<td>an <span class="type">hb_script_</span> to convert.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>An <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> representing an ISO 15924 script tag.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-script-get-horizontal-direction"></a><h3>hb_script_get_horizontal_direction ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-direction-t"><span class="returnvalue">hb_direction_t</span></a>      hb_script_get_horizontal_direction  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>);</pre>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-language-from-string"></a><h3>hb_language_from_string ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="returnvalue">hb_language_t</span></a>       hb_language_from_string             (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> len</code></em>);</pre>
+<p>
+Converts <em class="parameter"><code>str</code></em> representing an ISO 639 language code to the corresponding
+<a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="type">hb_language_t</span></a>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>str</code></em> :</span></p></td>
+<td>a string representing
+ISO 639 language code. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=len][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> uint8_t]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>len</code></em> :</span></p></td>
+<td>length of the <em class="parameter"><code>str</code></em>, or -1 if it is <code class="literal">NULL</code>-terminated.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>The <a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="type">hb_language_t</span></a> corresponding to the ISO 639 language code. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-language-to-string"></a><h3>hb_language_to_string ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *        hb_language_to_string               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="type">hb_language_t</span></a> language</code></em>);</pre>
+<p>
+See <a class="link" href="harfbuzz-hb-common.html#hb-language-from-string" title="hb_language_from_string ()"><code class="function">hb_language_from_string()</code></a>.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>language</code></em> :</span></p></td>
+<td>an <a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="type">hb_language_t</span></a> to convert.</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A <code class="literal">NULL</code>-terminated string representing the <em class="parameter"><code>language</code></em>. Must not be freed by
+the caller. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-language-get-default"></a><h3>hb_language_get_default ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="returnvalue">hb_language_t</span></a>       hb_language_get_default             (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -123,7 +329,7 @@ typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" titl
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-direction-t"></a><h3>enum hb_direction_t</h3>
+<a name="hb-direction-t-enum"></a><h3>enum hb_direction_t</h3>
 <pre class="programlisting">typedef enum {
   HB_DIRECTION_INVALID = 0,
   HB_DIRECTION_LTR = 4,
@@ -132,6 +338,36 @@ typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" titl
   HB_DIRECTION_BTT
 } hb_direction_t;
 </pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><a name="HB-DIRECTION-INVALID:CAPS"></a><span class="term"><code class="literal">HB_DIRECTION_INVALID</code></span></p></td>
+<td>Initial, unset direction.
+</td>
+</tr>
+<tr>
+<td><p><a name="HB-DIRECTION-LTR:CAPS"></a><span class="term"><code class="literal">HB_DIRECTION_LTR</code></span></p></td>
+<td>Text is set horizontally from left to right.
+</td>
+</tr>
+<tr>
+<td><p><a name="HB-DIRECTION-RTL:CAPS"></a><span class="term"><code class="literal">HB_DIRECTION_RTL</code></span></p></td>
+<td>Text is set horizontally from right to left.
+</td>
+</tr>
+<tr>
+<td><p><a name="HB-DIRECTION-TTB:CAPS"></a><span class="term"><code class="literal">HB_DIRECTION_TTB</code></span></p></td>
+<td>Text is set vertically from top to bottom.
+</td>
+</tr>
+<tr>
+<td><p><a name="HB-DIRECTION-BTT:CAPS"></a><span class="term"><code class="literal">HB_DIRECTION_BTT</code></span></p></td>
+<td>Text is set vertically from bottom to top.
+</td>
+</tr>
+</tbody>
+</table></div>
 </div>
 <hr>
 <div class="refsect2">
@@ -153,7 +389,13 @@ typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" titl
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-script-t"></a><h3>enum hb_script_t</h3>
+<a name="hb-tag-t"></a><h3>hb_tag_t</h3>
+<pre class="programlisting">typedef uint32_t hb_tag_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-script-t-enum"></a><h3>enum hb_script_t</h3>
 <pre class="programlisting">typedef enum {
   /*1.1*/ HB_SCRIPT_COMMON			= HB_TAG ('Z','y','y','y'),
   /*1.1*/ HB_SCRIPT_INHERITED			= HB_TAG ('Z','i','n','h'),
@@ -322,13 +564,7 @@ typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" titl
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-tag-t"></a><h3>hb_tag_t</h3>
-<pre class="programlisting">typedef uint32_t hb_tag_t;
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-user-data-key-t"></a><h3>hb_user_data_key_t</h3>
+<a name="hb-user-data-key-t-struct"></a><h3>hb_user_data_key_t</h3>
 <pre class="programlisting">typedef struct {
 } hb_user_data_key_t;
 </pre>
@@ -344,6 +580,36 @@ typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" titl
   uint8_t u8[4];
   int8_t i8[4];
 } hb_var_int_t;
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-TAG:CAPS"></a><h3>HB_TAG()</h3>
+<pre class="programlisting">#define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint8_t)(c1))&lt;&lt;24)|(((uint8_t)(c2))&lt;&lt;16)|(((uint8_t)(c3))&lt;&lt;8)|((uint8_t)(c4))))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-TAG-NONE:CAPS"></a><h3>HB_TAG_NONE</h3>
+<pre class="programlisting">#define HB_TAG_NONE HB_TAG(0,0,0,0)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-TAG-MAX:CAPS"></a><h3>HB_TAG_MAX</h3>
+<pre class="programlisting">#define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-UNTAG:CAPS"></a><h3>HB_UNTAG()</h3>
+<pre class="programlisting">#define HB_UNTAG(tag)   ((uint8_t)((tag)&gt;&gt;24)), ((uint8_t)((tag)&gt;&gt;16)), ((uint8_t)((tag)&gt;&gt;8)), ((uint8_t)(tag))
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-DIRECTION-REVERSE:CAPS"></a><h3>HB_DIRECTION_REVERSE()</h3>
+<pre class="programlisting">#define HB_DIRECTION_REVERSE(dir) ((hb_direction_t) (((unsigned int) (dir)) ^ 1))
 </pre>
 </div>
 <hr>
@@ -374,6 +640,12 @@ typedef             <a class="link" href="harfbuzz-hb-common.html#hb-tag-t" titl
 <div class="refsect2">
 <a name="HB-DIRECTION-IS-VERTICAL:CAPS"></a><h3>HB_DIRECTION_IS_VERTICAL()</h3>
 <pre class="programlisting">#define HB_DIRECTION_IS_VERTICAL(dir) ((((unsigned int) (dir)) &amp; ~1U) == 6)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="HB-LANGUAGE-INVALID:CAPS"></a><h3>HB_LANGUAGE_INVALID</h3>
+<pre class="programlisting">#define HB_LANGUAGE_INVALID ((hb_language_t) NULL)
 </pre>
 </div>
 </div>

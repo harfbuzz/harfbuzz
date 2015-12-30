@@ -37,13 +37,87 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="harfbuzz-hb-ft.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis"></pre>
+<pre class="synopsis"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         <a class="link" href="harfbuzz-hb-ft.html#hb-ft-face-create" title="hb_ft_face_create ()">hb_ft_face_create</a>                   (<em class="parameter"><code><span class="type">FT_Face</span> ft_face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
+<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         <a class="link" href="harfbuzz-hb-ft.html#hb-ft-face-create-cached" title="hb_ft_face_create_cached ()">hb_ft_face_create_cached</a>            (<em class="parameter"><code><span class="type">FT_Face</span> ft_face</code></em>);
+<a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="returnvalue">hb_font_t</span></a> *         <a class="link" href="harfbuzz-hb-ft.html#hb-ft-font-create" title="hb_ft_font_create ()">hb_ft_font_create</a>                   (<em class="parameter"><code><span class="type">FT_Face</span> ft_face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
+<span class="returnvalue">FT_Face</span>             <a class="link" href="harfbuzz-hb-ft.html#hb-ft-font-get-face" title="hb_ft_font_get_face ()">hb_ft_font_get_face</a>                 (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-ft.html#hb-ft-font-set-funcs" title="hb_ft_font_set_funcs ()">hb_ft_font_set_funcs</a>                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>);
+</pre>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-ft.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-ft.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="hb-ft-face-create"></a><h3>hb_ft_face_create ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         hb_ft_face_create                   (<em class="parameter"><code><span class="type">FT_Face</span> ft_face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>ft_face</code></em> :</span></p></td>
+<td>. <span class="annotation">[destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ft-face-create-cached"></a><h3>hb_ft_face_create_cached ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         hb_ft_face_create_cached            (<em class="parameter"><code><span class="type">FT_Face</span> ft_face</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ft-font-create"></a><h3>hb_ft_font_create ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="returnvalue">hb_font_t</span></a> *         hb_ft_font_create                   (<em class="parameter"><code><span class="type">FT_Face</span> ft_face</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>ft_face</code></em> :</span></p></td>
+<td>. <span class="annotation">[destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ft-font-get-face"></a><h3>hb_ft_font_get_face ()</h3>
+<pre class="programlisting"><span class="returnvalue">FT_Face</span>             hb_ft_font_get_face                 (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ft-font-set-funcs"></a><h3>hb_ft_font_set_funcs ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_ft_font_set_funcs                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>);</pre>
+</div>
 </div>
 </div>
 <div class="footer">

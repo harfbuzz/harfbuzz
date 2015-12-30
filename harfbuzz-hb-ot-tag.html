@@ -39,6 +39,12 @@
 <a name="harfbuzz-hb-ot-tag.synopsis"></a><h2>Synopsis</h2>
 <pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-ot-tag.html#HB-OT-TAG-DEFAULT-LANGUAGE:CAPS" title="HB_OT_TAG_DEFAULT_LANGUAGE">HB_OT_TAG_DEFAULT_LANGUAGE</a>
 #define             <a class="link" href="harfbuzz-hb-ot-tag.html#HB-OT-TAG-DEFAULT-SCRIPT:CAPS" title="HB_OT_TAG_DEFAULT_SCRIPT">HB_OT_TAG_DEFAULT_SCRIPT</a>
+<a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="returnvalue">hb_tag_t</span></a>            <a class="link" href="harfbuzz-hb-ot-tag.html#hb-ot-tag-from-language" title="hb_ot_tag_from_language ()">hb_ot_tag_from_language</a>             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="type">hb_language_t</span></a> language</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="returnvalue">hb_language_t</span></a>       <a class="link" href="harfbuzz-hb-ot-tag.html#hb-ot-tag-to-language" title="hb_ot_tag_to_language ()">hb_ot_tag_to_language</a>               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);
+<a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         <a class="link" href="harfbuzz-hb-ot-tag.html#hb-ot-tag-to-script" title="hb_ot_tag_to_script ()">hb_ot_tag_to_script</a>                 (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-ot-tag.html#hb-ot-tags-from-script" title="hb_ot_tags_from_script ()">hb_ot_tags_from_script</a>              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> *script_tag_1</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> *script_tag_2</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -56,6 +62,37 @@
 <a name="HB-OT-TAG-DEFAULT-SCRIPT:CAPS"></a><h3>HB_OT_TAG_DEFAULT_SCRIPT</h3>
 <pre class="programlisting">#define HB_OT_TAG_DEFAULT_SCRIPT HB_TAG ('D', 'F', 'L', 'T')
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ot-tag-from-language"></a><h3>hb_ot_tag_from_language ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="returnvalue">hb_tag_t</span></a>            hb_ot_tag_from_language             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="type">hb_language_t</span></a> language</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ot-tag-to-language"></a><h3>hb_ot_tag_to_language ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-language-t" title="hb_language_t"><span class="returnvalue">hb_language_t</span></a>       hb_ot_tag_to_language               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ot-tag-to-script"></a><h3>hb_ot_tag_to_script ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         hb_ot_tag_to_script                 (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-ot-tags-from-script"></a><h3>hb_ot_tags_from_script ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                hb_ot_tags_from_script              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="type">hb_script_t</span></a> script</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> *script_tag_1</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> *script_tag_2</code></em>);</pre>
 </div>
 </div>
 </div>
