@@ -1,13 +1,12 @@
+#!/bin/bash
 
-set -o errexit -o nounset
 set -x
+set -o errexit -o nounset
 
-if test "$TRAVIS_OS_NAME" != "linux" -o "$CC" != "gcc" -o "$TRAVIS_SECURE_ENV_VARS" != "true"; then exit; fi
-
-BRANCH="$(TRAVIS_BRANCH)"
+BRANCH="$TRAVIS_BRANCH"
 if test "x$BRANCH" != xmaster; then exit; fi
 
-TAG="$(git describe --exact-match --match "[0-9]*" HEAD 2>/dev/null)"
+TAG="$(git describe --exact-match --match "[0-9]*" HEAD 2>/dev/null || true)"
 
 DOCSDIR=build-docs
 REVISION=$(git rev-parse --short HEAD)

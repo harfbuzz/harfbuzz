@@ -30,7 +30,7 @@ script:
   - make check
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" ]; then rm -f src/.libs/NONE.gcov; touch src/NONE; coveralls -e docs; fi
 after_success:
-  - bash .ci/deploy-docs.sh
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$CC" == "gcc" -a "$TRAVIS_SECURE_ENV_VARS" == "true" ]; then bash .ci/deploy-docs.sh; fi
 notifications:
   irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz@lists.freedesktop.org
