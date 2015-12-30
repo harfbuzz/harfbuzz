@@ -723,7 +723,7 @@ void hb_buffer_t::deallocate_var_all (void)
  *
  * Return value: (transfer full):
  * A newly allocated #hb_buffer_t with a reference count of 1. The initial
- * reference count should be released with hb_buffe_destroy() when you are done
+ * reference count should be released with hb_buffer_destroy() when you are done
  * using the #hb_buffer_t. This function never returns %NULL. If memory cannot
  * be allocated, a special #hb_buffer_t object will be returned on which
  * hb_buffer_allocation_successful() returns %false.

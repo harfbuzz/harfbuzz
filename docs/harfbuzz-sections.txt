@@ -2,6 +2,7 @@
 <FILE>hb</FILE>
 <SUBSECTION Private>
 HB_H_IN
+HB_EXTERN
 </SECTION>
 
 <SECTION>
@@ -25,6 +26,7 @@ hb_memory_mode_t
 <SECTION>
 <FILE>hb-buffer</FILE>
 HB_SEGMENT_PROPERTIES_DEFAULT
+HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT
 hb_buffer_create
 hb_buffer_reference
 hb_buffer_get_empty
@@ -38,6 +40,7 @@ hb_buffer_add_codepoints
 hb_buffer_add_utf32
 hb_buffer_add_utf16
 hb_buffer_add_utf8
+hb_buffer_add_latin1
 hb_buffer_set_content_type
 hb_buffer_get_content_type
 hb_buffer_set_direction
@@ -61,8 +64,11 @@ hb_buffer_set_user_data
 hb_buffer_get_user_data
 hb_buffer_get_glyph_infos
 hb_buffer_get_glyph_positions
+hb_buffer_set_replacement_codepoint
+hb_buffer_get_replacement_codepoint
 hb_buffer_normalize_glyphs
 hb_buffer_reverse
+hb_buffer_reverse_range
 hb_buffer_reverse_clusters
 hb_buffer_serialize_glyphs
 hb_buffer_deserialize_glyphs
@@ -71,14 +77,17 @@ hb_buffer_serialize_format_to_string
 hb_buffer_serialize_list_formats
 hb_segment_properties_equal
 hb_segment_properties_hash
+hb_buffer_set_message_func
 hb_buffer_t
 hb_glyph_info_t
 hb_glyph_position_t
 hb_buffer_content_type_t
 hb_buffer_flags_t
+hb_buffer_cluster_level_t
 hb_buffer_serialize_flags_t
 hb_segment_properties_t
 hb_buffer_serialize_format_t
+hb_buffer_message_func_t
 </SECTION>
 
 <SECTION>
@@ -108,6 +117,7 @@ hb_var_int_t
 HB_TAG
 HB_TAG_NONE
 HB_TAG_MAX
+HB_TAG_MAX_SIGNED
 HB_UNTAG
 HB_DIRECTION_REVERSE
 HB_DIRECTION_IS_BACKWARD
@@ -242,14 +252,27 @@ hb_font_set_user_data
 hb_font_subtract_glyph_origin_for_direction
 hb_font_t
 hb_reference_table_func_t
+hb_font_funcs_set_font_h_extents_func
+hb_font_funcs_set_font_v_extents_func
+hb_font_get_extents_for_direction
+hb_font_get_font_extents_func_t
+hb_font_get_font_h_extents_func_t
+hb_font_get_font_v_extents_func_t
+hb_font_get_h_extents
+hb_font_get_v_extents
+hb_font_set_parent
 </SECTION>
 
 <SECTION>
 <FILE>hb-ft</FILE>
 hb_ft_face_create
 hb_ft_face_create_cached
+hb_ft_face_create_referenced
 hb_ft_font_create
+hb_ft_font_create_referenced
 hb_ft_font_get_face
+hb_ft_font_set_load_flags
+hb_ft_font_get_load_flags
 hb_ft_font_set_funcs
 </SECTION>
 
@@ -258,6 +281,7 @@ hb_ft_font_set_funcs
 hb_glib_get_unicode_funcs
 hb_glib_script_from_script
 hb_glib_script_to_script
+hb_glib_blob_create
 </SECTION>
 
 <SECTION>
@@ -279,6 +303,13 @@ HB_GOBJECT_TYPE_SHAPE_PLAN
 HB_GOBJECT_TYPE_UNICODE_COMBINING_CLASS
 HB_GOBJECT_TYPE_UNICODE_FUNCS
 HB_GOBJECT_TYPE_UNICODE_GENERAL_CATEGORY
+HB_GOBJECT_TYPE_BUFFER_CLUSTER_LEVEL
+HB_GOBJECT_TYPE_FEATURE
+HB_GOBJECT_TYPE_GLYPH_INFO
+HB_GOBJECT_TYPE_GLYPH_POSITION
+HB_GOBJECT_TYPE_SEGMENT_PROPERTIES
+HB_GOBJECT_TYPE_SET
+HB_GOBJECT_TYPE_USER_DATA_KEY
 hb_gobject_blob_get_type
 hb_gobject_buffer_content_type_get_type
 hb_gobject_buffer_flags_get_type
@@ -296,6 +327,13 @@ hb_gobject_shape_plan_get_type
 hb_gobject_unicode_combining_class_get_type
 hb_gobject_unicode_funcs_get_type
 hb_gobject_unicode_general_category_get_type
+hb_gobject_buffer_cluster_level_get_type
+hb_gobject_feature_get_type
+hb_gobject_glyph_info_get_type
+hb_gobject_glyph_position_get_type
+hb_gobject_segment_properties_get_type
+hb_gobject_set_get_type
+hb_gobject_user_data_key_get_type
 <SUBSECTION Private>
 HB_GOBJECT_H_IN
 </SECTION>
@@ -343,6 +381,7 @@ HB_OT_LAYOUT_NO_SCRIPT_INDEX
 HB_OT_TAG_GDEF
 HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB
+HB_OT_TAG_JSTF
 hb_ot_layout_collect_lookups
 hb_ot_layout_feature_get_lookups
 hb_ot_layout_get_attach_points
@@ -370,6 +409,7 @@ hb_ot_layout_table_get_feature_tags
 hb_ot_layout_table_get_script_tags
 hb_ot_layout_table_get_lookup_count
 hb_ot_shape_plan_collect_lookups
+hb_ot_layout_language_get_required_feature_index
 <SUBSECTION Private>
 Xhb_ot_layout_lookup_enumerate_sequences
 Xhb_ot_layout_lookup_position
