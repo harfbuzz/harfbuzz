@@ -47,6 +47,13 @@
 
 /**
  * hb_segment_properties_equal:
+ * @a: first #hb_segment_properties_t to compare.
+ * @b: second #hb_segment_properties_t to compare.
+ *
+ * Checks the equality of two #hb_segment_properties_t's.
+ *
+ * Return value: (transfer full):
+ * %true if all properties of @a equal those of @b, false otherwise.
  *
  * Since: 0.9.7
  **/
@@ -64,6 +71,12 @@ hb_segment_properties_equal (const hb_segment_properties_t *a,
 
 /**
  * hb_segment_properties_hash:
+ * @p: #hb_segment_properties_t to hash.
+ *
+ * Creates a hash representing @p.
+ *
+ * Return value:
+ * A hash of @p.
  *
  * Since: 0.9.7
  **/
@@ -1075,9 +1088,11 @@ hb_buffer_get_language (hb_buffer_t *buffer)
 /**
  * hb_buffer_set_segment_properties:
  * @buffer: an #hb_buffer_t.
- * @props: 
+ * @props: an #hb_segment_properties_t to use.
  *
- * 
+ * Sets the segment properties of the buffer, a shortcut for calling
+ * hb_buffer_set_direction(), hb_buffer_set_script() and
+ * hb_buffer_set_language() individually.
  *
  * Since: 0.9.7
  **/
@@ -1094,9 +1109,9 @@ hb_buffer_set_segment_properties (hb_buffer_t *buffer,
 /**
  * hb_buffer_get_segment_properties:
  * @buffer: an #hb_buffer_t.
- * @props: (out):
+ * @props: (out): the output #hb_segment_properties_t.
  *
- * 
+ * Sets @props to the #hb_segment_properties_t of @buffer.
  *
  * Since: 0.9.7
  **/
@@ -1183,9 +1198,12 @@ hb_buffer_get_cluster_level (hb_buffer_t *buffer)
 /**
  * hb_buffer_set_replacement_codepoint:
  * @buffer: an #hb_buffer_t.
- * @replacement: 
+ * @replacement: the replacement #hb_codepoint_t
  *
- * 
+ * Sets the #hb_codepoint_t that replaces invalid entries for a given encoding
+ * when adding text to @buffer.
+ *
+ * Default is %HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT.
  *
  * Since: 0.9.31
  **/
@@ -1203,9 +1221,10 @@ hb_buffer_set_replacement_codepoint (hb_buffer_t    *buffer,
  * hb_buffer_get_replacement_codepoint:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * See hb_buffer_set_replacement_codepoint().
  *
  * Return value: 
+ * The @buffer replacement #hb_codepoint_t.
  *
  * Since: 0.9.31
  **/
@@ -1220,8 +1239,8 @@ hb_buffer_get_replacement_codepoint (hb_buffer_t    *buffer)
  * hb_buffer_reset:
  * @buffer: an #hb_buffer_t.
  *
- * Resets the buffer to its initial status, just like new buffers returned from
- * hb_buffer_create().
+ * Resets the buffer to its initial status, as if it was just newly created
+ * with hb_buffer_create().
  *
  * Since: 0.9.2
  **/
@@ -1235,7 +1254,8 @@ hb_buffer_reset (hb_buffer_t *buffer)
  * hb_buffer_clear_contents:
  * @buffer: an #hb_buffer_t.
  *
- * Clears the contents of the buffer without resetting other properties.
+ * Similar to hb_buffer_reset(), but does not clear the Unicode functions and
+ * the replacement code point.
  *
  * Since: 0.9.11
  **/
@@ -1253,7 +1273,7 @@ hb_buffer_clear_contents (hb_buffer_t *buffer)
  * Pre allocates memory for @buffer to fit at least @size number of items.
  *
  * Return value:
- * %true if the memory pre allocation succeeded, %false otherwise.
+ * %true if @buffer memory allocation succeeded, %false otherwise.
  *
  * Since: 0.9.2
  **/
@@ -1270,7 +1290,7 @@ hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
  * Check if allocating memory for the buffer succeeded.
  *
  * Return value:
- * %true if memory allocation succeeded, %false otherwise.
+ * %true if @buffer memory allocation succeeded, %false otherwise.
  *
  * Since: 0.9.2
  **/
@@ -1292,6 +1312,9 @@ hb_buffer_allocation_successful (hb_buffer_t  *buffer)
  * character in the input text stream and are output in
  * #hb_glyph_info_t.cluster field.
  *
+ * This function does not check the validity of @codepoint, it is up to the
+ * caller to ensure it is a valid Unicode code point.
+ *
  * Since: 0.9.7
  **/
 void
@@ -1306,11 +1329,13 @@ hb_buffer_add (hb_buffer_t    *buffer,
 /**
  * hb_buffer_set_length:
  * @buffer: an #hb_buffer_t.
- * @length: 
+ * @length: the new length of @buffer.
  *
- * 
+ * Similar to hb_buffer_pre_allocate(), but clears any new items added at the
+ * end.
  *
  * Return value: 
+ * %true if @buffer memory allocation succeeded, %false otherwise.
  *
  * Since: 0.9.2
  **/
@@ -1351,6 +1376,7 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
  *
  * Return value:
  * The @buffer length.
+ * The value valid as long as buffer has not been modified.
  *
  * Since: 0.9.2
  **/
@@ -1370,6 +1396,7 @@ hb_buffer_get_length (hb_buffer_t *buffer)
  *
  * Return value: (transfer none) (array length=length):
  * The @buffer glyph information array.
+ * The value valid as long as buffer has not been modified.
  *
  * Since: 0.9.2
  **/
@@ -1393,6 +1420,7 @@ hb_buffer_get_glyph_infos (hb_buffer_t  *buffer,
  *
  * Return value: (transfer none) (array length=length):
  * The @buffer glyph position array.
+ * The value valid as long as buffer has not been modified.
  *
  * Since: 0.9.2
  **/
@@ -1558,13 +1586,17 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
 /**
  * hb_buffer_add_utf8:
  * @buffer: an #hb_buffer_t.
- * @text: (array length=text_length): an array of UTF-8 characters to append.
+ * @text: (array length=text_length) (element-type uint8_t): an array of UTF-8
+ *               characters to append.
  * @text_length: the length of the @text, or -1 if it is %NULL terminated.
  * @item_offset: the offset of the first character to add to the @buffer.
  * @item_length: the number of characters to add to the @buffer, or -1 for the
  *               end of @text (assuming it is %NULL terminated).
  *
  * See hb_buffer_add_codepoints().
+ *
+ * Replaces invalid UTF-8 characters with the @buffer replacement code point,
+ * see hb_buffer_set_replacement_codepoint().
  *
  * Since: 0.9.2
  **/
@@ -1589,6 +1621,9 @@ hb_buffer_add_utf8 (hb_buffer_t  *buffer,
  *
  * See hb_buffer_add_codepoints().
  *
+ * Replaces invalid UTF-16 characters with the @buffer replacement code point,
+ * see hb_buffer_set_replacement_codepoint().
+ *
  * Since: 0.9.2
  **/
 void
@@ -1612,6 +1647,9 @@ hb_buffer_add_utf16 (hb_buffer_t    *buffer,
  *
  * See hb_buffer_add_codepoints().
  *
+ * Replaces invalid UTF-32 characters with the @buffer replacement code point,
+ * see hb_buffer_set_replacement_codepoint().
+ *
  * Since: 0.9.2
  **/
 void
@@ -1627,12 +1665,17 @@ hb_buffer_add_utf32 (hb_buffer_t    *buffer,
 /**
  * hb_buffer_add_latin1:
  * @buffer: an #hb_buffer_t.
- * @text: (array length=text_length) (element-type uint8_t):
- * @text_length: 
- * @item_offset: 
- * @item_length: 
+ * @text: (array length=text_length) (element-type uint8_t): an array of UTF-8
+ *               characters to append.
+ * @text_length: the length of the @text, or -1 if it is %NULL terminated.
+ * @item_offset: the offset of the first character to add to the @buffer.
+ * @item_length: the number of characters to add to the @buffer, or -1 for the
+ *               end of @text (assuming it is %NULL terminated).
  *
- * 
+ * Similar to hb_buffer_add_codepoints(), but allows only access to first 256
+ * Unicode code points that can fit in 8-bit strings.
+ *
+ * <note>Has nothing to do with non-Unicode Latin-1 encoding.</note>
  *
  * Since: 0.9.39
  **/
@@ -1664,6 +1707,9 @@ hb_buffer_add_latin1 (hb_buffer_t   *buffer,
  * @item_length, respectively, to give HarfBuzz the full context to be able,
  * for example, to do cross-run Arabic shaping or properly handle combining
  * marks at stat of run.
+ *
+ * This function does not check the validity of @text, it is up to the caller
+ * to ensure it contains a valid Unicode code points.
  *
  * Since: 0.9.31
  **/
@@ -1737,7 +1783,10 @@ normalize_glyphs_cluster (hb_buffer_t *buffer,
  * hb_buffer_normalize_glyphs:
  * @buffer: an #hb_buffer_t.
  *
- * 
+ * Reorders a glyph buffer to have canonical in-cluster glyph order / position.
+ * The resulting clusters should behave identical to pre-reordering clusters.
+ *
+ * <note>This has nothing to do with Unicode normalization.</note>
  *
  * Since: 0.9.2
  **/
