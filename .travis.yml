@@ -1,8 +1,9 @@
 # Build Configuration for Travis
-sudo: false # Use Travis docker infrastructure
+sudo: required # For Trusty beta
 os:
   - linux
   - osx
+dist: trusty
 language: cpp
 compiler:
   - clang
@@ -11,7 +12,7 @@ env:
   global:
     - CPPFLAGS=""
     - CFLAGS="-Werror --coverage"
-    - CXXFLAGS="-Werror --coverage"
+    - CXXFLAGS="-Werror -Wno-deprecated-register --coverage" # glib uses register and clang raises a warning
     - LDFLAGS="--coverage"
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user nose; fi
