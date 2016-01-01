@@ -85,8 +85,10 @@ contains the output glyphs and their positions.
                                                          <em class="parameter"><code><span class="type">int</span> len</code></em>,
                                                          <em class="parameter"><code><a class="link" href="harfbuzz-Shaping.html#hb-feature-t"><span class="type">hb_feature_t</span></a> *feature</code></em>);</pre>
 <p>
-Parses a string into a <a class="link" href="harfbuzz-Shaping.html#hb-feature-t"><span class="type">hb_feature_t</span></a>. If <em class="parameter"><code>len</code></em> is -1 then <em class="parameter"><code>str</code></em> is
-<code class="literal">NULL</code>-terminated.
+Parses a string into a <a class="link" href="harfbuzz-Shaping.html#hb-feature-t"><span class="type">hb_feature_t</span></a>.
+</p>
+<p>
+TODO: document the syntax here.
 </p>
 <div class="variablelist"><table border="0">
 <col align="left" valign="top">
@@ -98,7 +100,7 @@ Parses a string into a <a class="link" href="harfbuzz-Shaping.html#hb-feature-t"
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>len</code></em> :</span></p></td>
-<td>length of <em class="parameter"><code>str</code></em>, or -1 if string is nul-terminated</td>
+<td>length of <em class="parameter"><code>str</code></em>, or -1 if string is <code class="literal">NULL</code> terminated</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>feature</code></em> :</span></p></td>
@@ -108,7 +110,7 @@ Parses a string into a <a class="link" href="harfbuzz-Shaping.html#hb-feature-t"
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<code class="literal">TRUE</code> if <em class="parameter"><code>str</code></em> is successfully parsed, <code class="literal">FALSE</code> otherwise</td>
+<code class="literal">true</code> if <em class="parameter"><code>str</code></em> is successfully parsed, <code class="literal">false</code> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
