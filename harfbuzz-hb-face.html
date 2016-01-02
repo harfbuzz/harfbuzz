@@ -2,32 +2,27 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>hb-face</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<title>HarfBuzz Manual: hb-face</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="HarfBuzz Manual">
 <link rel="up" href="ch07.html" title="Harfbuzz API">
 <link rel="prev" href="harfbuzz-hb-blob.html" title="hb-blob">
 <link rel="next" href="harfbuzz-hb-font.html" title="hb-font">
-<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
-<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
-<tr valign="middle">
-<td><a accesskey="p" href="harfbuzz-hb-blob.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
-<td><a accesskey="u" href="ch07.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
-<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
-<th width="100%" align="center">HarfBuzz Manual</th>
-<td><a accesskey="n" href="harfbuzz-hb-font.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
-</tr>
-<tr><td colspan="5" class="shortcuts">
-<a href="#harfbuzz-hb-face.synopsis" class="shortcut">Top</a>
-                   | 
-                  <a href="#harfbuzz-hb-face.description" class="shortcut">Description</a>
-                   | 
-                  <a href="#harfbuzz-hb-face.object-hierarchy" class="shortcut">Object Hierarchy</a>
-</td></tr>
-</table>
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#harfbuzz-hb-face.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#harfbuzz-hb-face.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch07.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="harfbuzz-hb-blob.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="harfbuzz-hb-font.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
 <div class="refentry">
 <a name="harfbuzz-hb-face"></a><div class="titlepage"></div>
 <div class="refnamediv"><table width="100%"><tr>
@@ -35,307 +30,582 @@
 <h2><span class="refentrytitle"><a name="harfbuzz-hb-face.top_of_page"></a>hb-face</span></h2>
 <p>hb-face</p>
 </td>
-<td valign="top" align="right"></td>
+<td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
-<div class="refsynopsisdiv">
-<a name="harfbuzz-hb-face.synopsis"></a><h2>Synopsis</h2>
-<a name="hb-face-t"></a><pre class="synopsis"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         <a class="link" href="harfbuzz-hb-face.html#hb-face-create" title="hb_face_create ()">hb_face_create</a>                      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="type">hb_blob_t</span></a> *blob</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> index</code></em>);
-<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         <a class="link" href="harfbuzz-hb-face.html#hb-face-create-for-tables" title="hb_face_create_for_tables ()">hb_face_create_for_tables</a>           (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-reference-table-func-t" title="hb_reference_table_func_t ()"><span class="type">hb_reference_table_func_t</span></a> reference_table_func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-face.html#hb-face-destroy" title="hb_face_destroy ()">hb_face_destroy</a>                     (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         <a class="link" href="harfbuzz-hb-face.html#hb-face-get-empty" title="hb_face_get_empty ()">hb_face_get_empty</a>                   (<em class="parameter"><code><span class="type">void</span></code></em>);
-unsigned <span class="returnvalue">int</span>        <a class="link" href="harfbuzz-hb-face.html#hb-face-get-glyph-count" title="hb_face_get_glyph_count ()">hb_face_get_glyph_count</a>             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-unsigned <span class="returnvalue">int</span>        <a class="link" href="harfbuzz-hb-face.html#hb-face-get-index" title="hb_face_get_index ()">hb_face_get_index</a>                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-unsigned <span class="returnvalue">int</span>        <a class="link" href="harfbuzz-hb-face.html#hb-face-get-upem" title="hb_face_get_upem ()">hb_face_get_upem</a>                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-<span class="returnvalue">void</span> *              <a class="link" href="harfbuzz-hb-face.html#hb-face-get-user-data" title="hb_face_get_user_data ()">hb_face_get_user_data</a>               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-face.html#hb-face-is-immutable" title="hb_face_is_immutable ()">hb_face_is_immutable</a>                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-face.html#hb-face-make-immutable" title="hb_face_make_immutable ()">hb_face_make_immutable</a>              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         <a class="link" href="harfbuzz-hb-face.html#hb-face-reference" title="hb_face_reference ()">hb_face_reference</a>                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-<a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         <a class="link" href="harfbuzz-hb-face.html#hb-face-reference-blob" title="hb_face_reference_blob ()">hb_face_reference_blob</a>              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);
-<a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         <a class="link" href="harfbuzz-hb-face.html#hb-face-reference-table" title="hb_face_reference_table ()">hb_face_reference_table</a>             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-face.html#hb-face-set-glyph-count" title="hb_face_set_glyph_count ()">hb_face_set_glyph_count</a>             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> glyph_count</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-face.html#hb-face-set-index" title="hb_face_set_index ()">hb_face_set_index</a>                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> index</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-face.html#hb-face-set-upem" title="hb_face_set_upem ()">hb_face_set_upem</a>                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> upem</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-face.html#hb-face-set-user-data" title="hb_face_set_user_data ()">hb_face_set_user_data</a>               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);
-typedef             <a class="link" href="harfbuzz-hb-face.html#hb-face-t">hb_face_t</a>;
-</pre>
+<div class="refsect1">
+<a name="harfbuzz-hb-face.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-create" title="hb_face_create ()">hb_face_create</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-create-for-tables" title="hb_face_create_for_tables ()">hb_face_create_for_tables</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-destroy" title="hb_face_destroy ()">hb_face_destroy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-get-empty" title="hb_face_get_empty ()">hb_face_get_empty</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-get-glyph-count" title="hb_face_get_glyph_count ()">hb_face_get_glyph_count</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-get-index" title="hb_face_get_index ()">hb_face_get_index</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-get-upem" title="hb_face_get_upem ()">hb_face_get_upem</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-get-user-data" title="hb_face_get_user_data ()">hb_face_get_user_data</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-is-immutable" title="hb_face_is_immutable ()">hb_face_is_immutable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-make-immutable" title="hb_face_make_immutable ()">hb_face_make_immutable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-reference" title="hb_face_reference ()">hb_face_reference</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-reference-blob" title="hb_face_reference_blob ()">hb_face_reference_blob</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-reference-table" title="hb_face_reference_table ()">hb_face_reference_table</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-set-glyph-count" title="hb_face_set_glyph_count ()">hb_face_set_glyph_count</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-set-index" title="hb_face_set_index ()">hb_face_set_index</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-set-upem" title="hb_face_set_upem ()">hb_face_set_upem</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-face.html#hb-face-set-user-data" title="hb_face_set_user_data ()">hb_face_set_user_data</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<a name="hb-face-t"></a><div class="refsect1">
+<a name="harfbuzz-hb-face.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-face.html#hb-face-t">hb_face_t</a></td>
+</tr></tbody>
+</table></div>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-face.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="synopsis">
-  GBoxed
-   +----hb_face_t
+<pre class="screen">    GBoxed
+    <span class="lineart">╰──</span> hb_face_t
 </pre>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-face.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
-<a name="harfbuzz-hb-face.details"></a><h2>Details</h2>
+<a name="harfbuzz-hb-face.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
-<a name="hb-face-create"></a><h3>hb_face_create ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         hb_face_create                      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="type">hb_blob_t</span></a> *blob</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> index</code></em>);</pre>
+<a name="hb-face-create"></a><h3>hb_face_create ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+hb_face_create (<em class="parameter"><code><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="type">hb_blob_t</span></a> *blob</code></em>,
+                <em class="parameter"><code>unsigned <span class="type">int</span> index</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-create-for-tables"></a><h3>hb_face_create_for_tables ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         hb_face_create_for_tables           (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-reference-table-func-t" title="hb_reference_table_func_t ()"><span class="type">hb_reference_table_func_t</span></a> reference_table_func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>reference_table_func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>(transfer full)</td>
-</tr>
-</tbody>
+<a name="hb-face-create-for-tables"></a><h3>hb_face_create_for_tables ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+hb_face_create_for_tables (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-reference-table-func-t" title="hb_reference_table_func_t ()"><span class="type">hb_reference_table_func_t</span></a> reference_table_func</code></em>,
+                           <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                           <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.3.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>reference_table_func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.3.5"></a><h4>Returns</h4>
+<p> (transfer full)</p>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-destroy"></a><h3>hb_face_destroy ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_face_destroy                     (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-destroy"></a><h3>hb_face_destroy ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_face_destroy (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.4.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-get-empty"></a><h3>hb_face_get_empty ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         hb_face_get_empty                   (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody><tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>(transfer full)</td>
-</tr></tbody>
-</table></div>
+<a name="hb-face-get-empty"></a><h3>hb_face_get_empty ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+hb_face_get_empty (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.5.4"></a><h4>Returns</h4>
+<p> (transfer full)</p>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-get-glyph-count"></a><h3>hb_face_get_glyph_count ()</h3>
-<pre class="programlisting">unsigned <span class="returnvalue">int</span>        hb_face_get_glyph_count             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-get-glyph-count"></a><h3>hb_face_get_glyph_count ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">int</span>
+hb_face_get_glyph_count (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.6.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.6.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.7</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-get-index"></a><h3>hb_face_get_index ()</h3>
-<pre class="programlisting">unsigned <span class="returnvalue">int</span>        hb_face_get_index                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-get-index"></a><h3>hb_face_get_index ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">int</span>
+hb_face_get_index (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.7.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.7.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-get-upem"></a><h3>hb_face_get_upem ()</h3>
-<pre class="programlisting">unsigned <span class="returnvalue">int</span>        hb_face_get_upem                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-get-upem"></a><h3>hb_face_get_upem ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">int</span>
+hb_face_get_upem (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.8.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.8.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-get-user-data"></a><h3>hb_face_get_user_data ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span> *              hb_face_get_user_data               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
-</tr>
-<tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-face-is-immutable"></a><h3>hb_face_is_immutable ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_face_is_immutable                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-get-user-data"></a><h3>hb_face_get_user_data ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+hb_face_get_user_data (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                       <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.9.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.9.5"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-make-immutable"></a><h3>hb_face_make_immutable ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_face_make_immutable              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-is-immutable"></a><h3>hb_face_is_immutable ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_face_is_immutable (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.10.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.10.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-reference"></a><h3>hb_face_reference ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *         hb_face_reference                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-make-immutable"></a><h3>hb_face_make_immutable ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_face_make_immutable (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.11.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-reference-blob"></a><h3>hb_face_reference_blob ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         hb_face_reference_blob              (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
-</tr>
-<tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-face-reference-table"></a><h3>hb_face_reference_table ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *         hb_face_reference_table             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
-</tr>
-<tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-face-set-glyph-count"></a><h3>hb_face_set_glyph_count ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_face_set_glyph_count             (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> glyph_count</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-reference"></a><h3>hb_face_reference ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="returnvalue">hb_face_t</span></a> *
+hb_face_reference (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.12.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.12.5"></a><h4>Returns</h4>
+<p></p>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-face-reference-blob"></a><h3>hb_face_reference_blob ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *
+hb_face_reference_blob (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.13.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.13.5"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-face-reference-table"></a><h3>hb_face_reference_table ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-blob.html#hb-blob-t"><span class="returnvalue">hb_blob_t</span></a> *
+hb_face_reference_table (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-tag-t" title="hb_tag_t"><span class="type">hb_tag_t</span></a> tag</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.14.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.14.5"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-face-set-glyph-count"></a><h3>hb_face_set_glyph_count ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_face_set_glyph_count (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                         <em class="parameter"><code>unsigned <span class="type">int</span> glyph_count</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.15.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
 <p class="since">Since 0.9.7</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-set-index"></a><h3>hb_face_set_index ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_face_set_index                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> index</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-set-index"></a><h3>hb_face_set_index ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_face_set_index (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                   <em class="parameter"><code>unsigned <span class="type">int</span> index</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.16.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-set-upem"></a><h3>hb_face_set_upem ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_face_set_upem                    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> upem</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-set-upem"></a><h3>hb_face_set_upem ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_face_set_upem (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                  <em class="parameter"><code>unsigned <span class="type">int</span> upem</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.17.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-face-set-user-data"></a><h3>hb_face_set_user_data ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_face_set_user_data               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-face-set-user-data"></a><h3>hb_face_set_user_data ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_face_set_user_data (<em class="parameter"><code><a class="link" href="harfbuzz-hb-face.html#hb-face-t"><span class="type">hb_face_t</span></a> *face</code></em>,
+                       <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
+                       <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                       <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
+                       <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.18.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>face</code></em> :</span></p></td>
-<td>a face.</td>
+<td class="parameter_name"><p>face</p></td>
+<td class="parameter_description"><p>a face.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.7.8.18.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
-<hr>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-face.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="hb-face-t"></a><h3>hb_face_t</h3>
 <pre class="programlisting">typedef struct hb_face_t hb_face_t;
@@ -345,6 +615,6 @@ typedef             <a class="link" href="harfbuzz-hb-face.html#hb-face-t">hb_fa
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18</div>
+          Generated by GTK-Doc V1.20</div>
 </body>
 </html>

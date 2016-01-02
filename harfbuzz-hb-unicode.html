@@ -2,32 +2,27 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>hb-unicode</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<title>HarfBuzz Manual: hb-unicode</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="HarfBuzz Manual">
 <link rel="up" href="ch07.html" title="Harfbuzz API">
 <link rel="prev" href="harfbuzz-hb-common.html" title="hb-common">
 <link rel="next" href="harfbuzz-Buffers.html" title="Buffers">
-<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
-<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
-<tr valign="middle">
-<td><a accesskey="p" href="harfbuzz-hb-common.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
-<td><a accesskey="u" href="ch07.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
-<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
-<th width="100%" align="center">HarfBuzz Manual</th>
-<td><a accesskey="n" href="harfbuzz-Buffers.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
-</tr>
-<tr><td colspan="5" class="shortcuts">
-<a href="#harfbuzz-hb-unicode.synopsis" class="shortcut">Top</a>
-                   | 
-                  <a href="#harfbuzz-hb-unicode.description" class="shortcut">Description</a>
-                   | 
-                  <a href="#harfbuzz-hb-unicode.object-hierarchy" class="shortcut">Object Hierarchy</a>
-</td></tr>
-</table>
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#harfbuzz-hb-unicode.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#harfbuzz-hb-unicode.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch07.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="harfbuzz-hb-common.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="harfbuzz-Buffers.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
 <div class="refentry">
 <a name="harfbuzz-hb-unicode"></a><div class="titlepage"></div>
 <div class="refnamediv"><table width="100%"><tr>
@@ -35,133 +30,314 @@
 <h2><span class="refentrytitle"><a name="harfbuzz-hb-unicode.top_of_page"></a>hb-unicode</span></h2>
 <p>hb-unicode</p>
 </td>
-<td valign="top" align="right"></td>
+<td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
-<div class="refsynopsisdiv">
-<a name="harfbuzz-hb-unicode.synopsis"></a><h2>Synopsis</h2>
-<a name="hb-unicode-combining-class-t"></a><a name="hb-unicode-funcs-t"></a><a name="hb-unicode-general-category-t"></a><pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-unicode.html#HB-UNICODE-MAX-DECOMPOSITION-LEN:CAPS" title="HB_UNICODE_MAX_DECOMPOSITION_LEN">HB_UNICODE_MAX_DECOMPOSITION_LEN</a>
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t"><span class="returnvalue">hb_unicode_combining_class_t</span></a> <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class" title="hb_unicode_combining_class ()">hb_unicode_combining_class</a> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t"><span class="returnvalue">hb_unicode_combining_class_t</span></a> (<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-func-t" title="hb_unicode_combining_class_func_t ()">*hb_unicode_combining_class_func_t</a>)
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
-enum                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t-enum" title="enum hb_unicode_combining_class_t">hb_unicode_combining_class_t</a>;
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-compose" title="hb_unicode_compose ()">hb_unicode_compose</a>                  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> b</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *ab</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-compose-func-t" title="hb_unicode_compose_func_t ()">*hb_unicode_compose_func_t</a>)        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> b</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *ab</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose" title="hb_unicode_decompose ()">hb_unicode_decompose</a>                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> ab</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *b</code></em>);
-unsigned <span class="returnvalue">int</span>        <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose-compatibility" title="hb_unicode_decompose_compatibility ()">hb_unicode_decompose_compatibility</a>  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> u</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *decomposed</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose-func-t" title="hb_unicode_decompose_func_t ()">*hb_unicode_decompose_func_t</a>)      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> ab</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *b</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
-unsigned <span class="returnvalue">int</span>        <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-eastasian-width" title="hb_unicode_eastasian_width ()">hb_unicode_eastasian_width</a>          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-create" title="hb_unicode_funcs_create ()">hb_unicode_funcs_create</a>            (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *parent</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-destroy" title="hb_unicode_funcs_destroy ()">hb_unicode_funcs_destroy</a>            (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-default" title="hb_unicode_funcs_get_default ()">hb_unicode_funcs_get_default</a>       (<em class="parameter"><code><span class="type">void</span></code></em>);
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-empty" title="hb_unicode_funcs_get_empty ()">hb_unicode_funcs_get_empty</a>         (<em class="parameter"><code><span class="type">void</span></code></em>);
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-parent" title="hb_unicode_funcs_get_parent ()">hb_unicode_funcs_get_parent</a>        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);
-<span class="returnvalue">void</span> *              <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-user-data" title="hb_unicode_funcs_get_user_data ()">hb_unicode_funcs_get_user_data</a>      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-is-immutable" title="hb_unicode_funcs_is_immutable ()">hb_unicode_funcs_is_immutable</a>       (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-make-immutable" title="hb_unicode_funcs_make_immutable ()">hb_unicode_funcs_make_immutable</a>     (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-reference" title="hb_unicode_funcs_reference ()">hb_unicode_funcs_reference</a>         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-combining-class-func" title="hb_unicode_funcs_set_combining_class_func ()">hb_unicode_funcs_set_combining_class_func</a>
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-func-t" title="hb_unicode_combining_class_func_t ()"><span class="type">hb_unicode_combining_class_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-compose-func" title="hb_unicode_funcs_set_compose_func ()">hb_unicode_funcs_set_compose_func</a>   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-compose-func-t" title="hb_unicode_compose_func_t ()"><span class="type">hb_unicode_compose_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-decompose-compatibility-func" title="hb_unicode_funcs_set_decompose_compatibility_func ()">hb_unicode_funcs_set_decompose_compatibility_func</a>
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><span class="type">hb_unicode_decompose_compatibility_func_t</span> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-decompose-func" title="hb_unicode_funcs_set_decompose_func ()">hb_unicode_funcs_set_decompose_func</a> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose-func-t" title="hb_unicode_decompose_func_t ()"><span class="type">hb_unicode_decompose_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-eastasian-width-func" title="hb_unicode_funcs_set_eastasian_width_func ()">hb_unicode_funcs_set_eastasian_width_func</a>
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><span class="type">hb_unicode_eastasian_width_func_t</span> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-general-category-func" title="hb_unicode_funcs_set_general_category_func ()">hb_unicode_funcs_set_general_category_func</a>
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-func-t" title="hb_unicode_general_category_func_t ()"><span class="type">hb_unicode_general_category_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-mirroring-func" title="hb_unicode_funcs_set_mirroring_func ()">hb_unicode_funcs_set_mirroring_func</a> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-mirroring-func-t" title="hb_unicode_mirroring_func_t ()"><span class="type">hb_unicode_mirroring_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-script-func" title="hb_unicode_funcs_set_script_func ()">hb_unicode_funcs_set_script_func</a>    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-script-func-t" title="hb_unicode_script_func_t ()"><span class="type">hb_unicode_script_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-user-data" title="hb_unicode_funcs_set_user_data ()">hb_unicode_funcs_set_user_data</a>      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);
-typedef             <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t">hb_unicode_funcs_t</a>;
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t"><span class="returnvalue">hb_unicode_general_category_t</span></a> <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category" title="hb_unicode_general_category ()">hb_unicode_general_category</a>
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);
-<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t"><span class="returnvalue">hb_unicode_general_category_t</span></a> (<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-func-t" title="hb_unicode_general_category_func_t ()">*hb_unicode_general_category_func_t</a>)
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
-enum                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t-enum" title="enum hb_unicode_general_category_t">hb_unicode_general_category_t</a>;
-<a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-mirroring" title="hb_unicode_mirroring ()">hb_unicode_mirroring</a>                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      (<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-mirroring-func-t" title="hb_unicode_mirroring_func_t ()">*hb_unicode_mirroring_func_t</a>)      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-script" title="hb_unicode_script ()">hb_unicode_script</a>                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         (<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-script-func-t" title="hb_unicode_script_func_t ()">*hb_unicode_script_func_t</a>)         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
-</pre>
+<div class="refsect1">
+<a name="harfbuzz-hb-unicode.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-unicode.html#HB-UNICODE-MAX-DECOMPOSITION-LEN:CAPS" title="HB_UNICODE_MAX_DECOMPOSITION_LEN">HB_UNICODE_MAX_DECOMPOSITION_LEN</a></td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t" title="enum hb_unicode_combining_class_t"><span class="returnvalue">hb_unicode_combining_class_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class" title="hb_unicode_combining_class ()">hb_unicode_combining_class</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t" title="enum hb_unicode_combining_class_t"><span class="returnvalue">hb_unicode_combining_class_t</span></a>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-func-t" title="hb_unicode_combining_class_func_t ()">*hb_unicode_combining_class_func_t</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-compose" title="hb_unicode_compose ()">hb_unicode_compose</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-compose-func-t" title="hb_unicode_compose_func_t ()">*hb_unicode_compose_func_t</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose" title="hb_unicode_decompose ()">hb_unicode_decompose</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose-compatibility" title="hb_unicode_decompose_compatibility ()">hb_unicode_decompose_compatibility</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose-func-t" title="hb_unicode_decompose_func_t ()">*hb_unicode_decompose_func_t</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-eastasian-width" title="hb_unicode_eastasian_width ()">hb_unicode_eastasian_width</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-create" title="hb_unicode_funcs_create ()">hb_unicode_funcs_create</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-destroy" title="hb_unicode_funcs_destroy ()">hb_unicode_funcs_destroy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-default" title="hb_unicode_funcs_get_default ()">hb_unicode_funcs_get_default</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-empty" title="hb_unicode_funcs_get_empty ()">hb_unicode_funcs_get_empty</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-parent" title="hb_unicode_funcs_get_parent ()">hb_unicode_funcs_get_parent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-user-data" title="hb_unicode_funcs_get_user_data ()">hb_unicode_funcs_get_user_data</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-is-immutable" title="hb_unicode_funcs_is_immutable ()">hb_unicode_funcs_is_immutable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-make-immutable" title="hb_unicode_funcs_make_immutable ()">hb_unicode_funcs_make_immutable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-reference" title="hb_unicode_funcs_reference ()">hb_unicode_funcs_reference</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-combining-class-func" title="hb_unicode_funcs_set_combining_class_func ()">hb_unicode_funcs_set_combining_class_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-compose-func" title="hb_unicode_funcs_set_compose_func ()">hb_unicode_funcs_set_compose_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-decompose-compatibility-func" title="hb_unicode_funcs_set_decompose_compatibility_func ()">hb_unicode_funcs_set_decompose_compatibility_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-decompose-func" title="hb_unicode_funcs_set_decompose_func ()">hb_unicode_funcs_set_decompose_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-eastasian-width-func" title="hb_unicode_funcs_set_eastasian_width_func ()">hb_unicode_funcs_set_eastasian_width_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-general-category-func" title="hb_unicode_funcs_set_general_category_func ()">hb_unicode_funcs_set_general_category_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-mirroring-func" title="hb_unicode_funcs_set_mirroring_func ()">hb_unicode_funcs_set_mirroring_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-script-func" title="hb_unicode_funcs_set_script_func ()">hb_unicode_funcs_set_script_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-set-user-data" title="hb_unicode_funcs_set_user_data ()">hb_unicode_funcs_set_user_data</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t" title="enum hb_unicode_general_category_t"><span class="returnvalue">hb_unicode_general_category_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category" title="hb_unicode_general_category ()">hb_unicode_general_category</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t" title="enum hb_unicode_general_category_t"><span class="returnvalue">hb_unicode_general_category_t</span></a>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-func-t" title="hb_unicode_general_category_func_t ()">*hb_unicode_general_category_func_t</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-mirroring" title="hb_unicode_mirroring ()">hb_unicode_mirroring</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-mirroring-func-t" title="hb_unicode_mirroring_func_t ()">*hb_unicode_mirroring_func_t</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-script-t" title="enum hb_script_t"><span class="returnvalue">hb_script_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-script" title="hb_unicode_script ()">hb_unicode_script</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-script-t" title="enum hb_script_t"><span class="returnvalue">hb_script_t</span></a>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-script-func-t" title="hb_unicode_script_func_t ()">*hb_unicode_script_func_t</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<a name="hb-unicode-funcs-t"></a><div class="refsect1">
+<a name="harfbuzz-hb-unicode.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t" title="enum hb_unicode_combining_class_t">hb_unicode_combining_class_t</a></td>
+</tr>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t">hb_unicode_funcs_t</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t" title="enum hb_unicode_general_category_t">hb_unicode_general_category_t</a></td>
+</tr>
+</tbody>
+</table></div>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-unicode.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="synopsis">
-  GEnum
-   +----hb_unicode_combining_class_t
-</pre>
-<pre class="synopsis">
-  GBoxed
-   +----hb_unicode_funcs_t
-</pre>
-<pre class="synopsis">
-  GEnum
-   +----hb_unicode_general_category_t
+<pre class="screen">    GBoxed
+    <span class="lineart">╰──</span> hb_unicode_funcs_t
+    GEnum
+    <span class="lineart">├──</span> hb_unicode_combining_class_t
+    <span class="lineart">╰──</span> hb_unicode_general_category_t
 </pre>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-unicode.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
-<a name="harfbuzz-hb-unicode.details"></a><h2>Details</h2>
+<a name="harfbuzz-hb-unicode.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="HB-UNICODE-MAX-DECOMPOSITION-LEN:CAPS"></a><h3>HB_UNICODE_MAX_DECOMPOSITION_LEN</h3>
 <pre class="programlisting">#define HB_UNICODE_MAX_DECOMPOSITION_LEN (18+1) /* codepoints */
@@ -169,473 +345,975 @@ enum                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-ge
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-combining-class"></a><h3>hb_unicode_combining_class ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t"><span class="returnvalue">hb_unicode_combining_class_t</span></a> hb_unicode_combining_class (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
+<a name="hb-unicode-combining-class"></a><h3>hb_unicode_combining_class ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t" title="enum hb_unicode_combining_class_t"><span class="returnvalue">hb_unicode_combining_class_t</span></a>
+hb_unicode_combining_class (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                            <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-combining-class-func-t"></a><h3>hb_unicode_combining_class_func_t ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t"><span class="returnvalue">hb_unicode_combining_class_t</span></a> (*hb_unicode_combining_class_func_t)
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+<a name="hb-unicode-combining-class-func-t"></a><h3>hb_unicode_combining_class_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t" title="enum hb_unicode_combining_class_t"><span class="returnvalue">hb_unicode_combining_class_t</span></a>
+<span class="c_punctuation">(</span>*hb_unicode_combining_class_func_t<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                      <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
+                                      <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-combining-class-t-enum"></a><h3>enum hb_unicode_combining_class_t</h3>
-<pre class="programlisting">typedef enum {
-  HB_UNICODE_COMBINING_CLASS_NOT_REORDERED = 0,
-  HB_UNICODE_COMBINING_CLASS_OVERLAY		= 1,
-  HB_UNICODE_COMBINING_CLASS_NUKTA		= 7,
-  HB_UNICODE_COMBINING_CLASS_KANA_VOICING = 8,
-  HB_UNICODE_COMBINING_CLASS_VIRAMA		= 9,
-
-  /* Hebrew */
-  HB_UNICODE_COMBINING_CLASS_CCC10 =  10,
-  HB_UNICODE_COMBINING_CLASS_CCC11 =  11,
-  HB_UNICODE_COMBINING_CLASS_CCC12 =  12,
-  HB_UNICODE_COMBINING_CLASS_CCC13 =  13,
-  HB_UNICODE_COMBINING_CLASS_CCC14 =  14,
-  HB_UNICODE_COMBINING_CLASS_CCC15 =  15,
-  HB_UNICODE_COMBINING_CLASS_CCC16 =  16,
-  HB_UNICODE_COMBINING_CLASS_CCC17 =  17,
-  HB_UNICODE_COMBINING_CLASS_CCC18 =  18,
-  HB_UNICODE_COMBINING_CLASS_CCC19 =  19,
-  HB_UNICODE_COMBINING_CLASS_CCC20 =  20,
-  HB_UNICODE_COMBINING_CLASS_CCC21 =  21,
-  HB_UNICODE_COMBINING_CLASS_CCC22 =  22,
-  HB_UNICODE_COMBINING_CLASS_CCC23 =  23,
-  HB_UNICODE_COMBINING_CLASS_CCC24 =  24,
-  HB_UNICODE_COMBINING_CLASS_CCC25 =  25,
-  HB_UNICODE_COMBINING_CLASS_CCC26 =  26,
-
-  /* Arabic */
-  HB_UNICODE_COMBINING_CLASS_CCC27 =  27,
-  HB_UNICODE_COMBINING_CLASS_CCC28 =  28,
-  HB_UNICODE_COMBINING_CLASS_CCC29 =  29,
-  HB_UNICODE_COMBINING_CLASS_CCC30 =  30,
-  HB_UNICODE_COMBINING_CLASS_CCC31 =  31,
-  HB_UNICODE_COMBINING_CLASS_CCC32 =  32,
-  HB_UNICODE_COMBINING_CLASS_CCC33 =  33,
-  HB_UNICODE_COMBINING_CLASS_CCC34 =  34,
-  HB_UNICODE_COMBINING_CLASS_CCC35 =  35,
-
-  /* Syriac */
-  HB_UNICODE_COMBINING_CLASS_CCC36 =  36,
-
-  /* Telugu */
-  HB_UNICODE_COMBINING_CLASS_CCC84 =  84,
-  HB_UNICODE_COMBINING_CLASS_CCC91 =  91,
-
-  /* Thai */
-  HB_UNICODE_COMBINING_CLASS_CCC103 = 103,
-  HB_UNICODE_COMBINING_CLASS_CCC107 = 107,
-
-  /* Lao */
-  HB_UNICODE_COMBINING_CLASS_CCC118 = 118,
-  HB_UNICODE_COMBINING_CLASS_CCC122 = 122,
-
-  /* Tibetan */
-  HB_UNICODE_COMBINING_CLASS_CCC129 = 129,
-  HB_UNICODE_COMBINING_CLASS_CCC130 = 130,
-  HB_UNICODE_COMBINING_CLASS_CCC133 = 132,
-
-
-  HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT = 200,
-  HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW		= 202,
-  HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE		= 214,
-  HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT = 216,
-  HB_UNICODE_COMBINING_CLASS_BELOW_LEFT			= 218,
-  HB_UNICODE_COMBINING_CLASS_BELOW			= 220,
-  HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT		= 222,
-  HB_UNICODE_COMBINING_CLASS_LEFT			= 224,
-  HB_UNICODE_COMBINING_CLASS_RIGHT			= 226,
-  HB_UNICODE_COMBINING_CLASS_ABOVE_LEFT			= 228,
-  HB_UNICODE_COMBINING_CLASS_ABOVE			= 230,
-  HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT		= 232,
-  HB_UNICODE_COMBINING_CLASS_DOUBLE_BELOW		= 233,
-  HB_UNICODE_COMBINING_CLASS_DOUBLE_ABOVE		= 234,
-
-  HB_UNICODE_COMBINING_CLASS_IOTA_SUBSCRIPT		= 240,
-
-  HB_UNICODE_COMBINING_CLASS_INVALID = 255
-} hb_unicode_combining_class_t;
-</pre>
+<a name="hb-unicode-compose"></a><h3>hb_unicode_compose ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_unicode_compose (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                    <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> a</code></em>,
+                    <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> b</code></em>,
+                    <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *ab</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.5.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ab</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
 </div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-compose"></a><h3>hb_unicode_compose ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_unicode_compose                  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> b</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *ab</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.5.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-compose-func-t"></a><h3>hb_unicode_compose_func_t ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_unicode_compose_func_t)        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> b</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *ab</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+<a name="hb-unicode-compose-func-t"></a><h3>hb_unicode_compose_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+<span class="c_punctuation">(</span>*hb_unicode_compose_func_t<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                              <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> a</code></em>,
+                              <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> b</code></em>,
+                              <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *ab</code></em>,
+                              <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-decompose"></a><h3>hb_unicode_decompose ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_unicode_decompose                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> ab</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *b</code></em>);</pre>
+<a name="hb-unicode-decompose"></a><h3>hb_unicode_decompose ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_unicode_decompose (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                      <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> ab</code></em>,
+                      <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *a</code></em>,
+                      <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *b</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.7.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>a</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>b</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.7.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-decompose-compatibility"></a><h3>hb_unicode_decompose_compatibility ()</h3>
-<pre class="programlisting">unsigned <span class="returnvalue">int</span>        hb_unicode_decompose_compatibility  (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> u</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *decomposed</code></em>);</pre>
+<a name="hb-unicode-decompose-compatibility"></a><h3>hb_unicode_decompose_compatibility ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">int</span>
+hb_unicode_decompose_compatibility (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                    <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> u</code></em>,
+                                    <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *decomposed</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.8.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>decomposed</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.8.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-decompose-func-t"></a><h3>hb_unicode_decompose_func_t ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           (*hb_unicode_decompose_func_t)      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> ab</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *a</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *b</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+<a name="hb-unicode-decompose-func-t"></a><h3>hb_unicode_decompose_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+<span class="c_punctuation">(</span>*hb_unicode_decompose_func_t<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> ab</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *a</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *b</code></em>,
+                                <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-eastasian-width"></a><h3>hb_unicode_eastasian_width ()</h3>
-<pre class="programlisting">unsigned <span class="returnvalue">int</span>        hb_unicode_eastasian_width          (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
+<a name="hb-unicode-eastasian-width"></a><h3>hb_unicode_eastasian_width ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">int</span>
+hb_unicode_eastasian_width (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                            <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-create"></a><h3>hb_unicode_funcs_create ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * hb_unicode_funcs_create            (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *parent</code></em>);</pre>
+<a name="hb-unicode-funcs-create"></a><h3>hb_unicode_funcs_create ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+hb_unicode_funcs_create (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *parent</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-destroy"></a><h3>hb_unicode_funcs_destroy ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_destroy            (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-unicode-funcs-destroy"></a><h3>hb_unicode_funcs_destroy ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_destroy (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.12.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>Unicode functions.</td>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-get-default"></a><h3>hb_unicode_funcs_get_default ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * hb_unicode_funcs_get_default       (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<a name="hb-unicode-funcs-get-default"></a><h3>hb_unicode_funcs_get_default ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+hb_unicode_funcs_get_default (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-get-empty"></a><h3>hb_unicode_funcs_get_empty ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * hb_unicode_funcs_get_empty         (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-unicode-funcs-get-empty"></a><h3>hb_unicode_funcs_get_empty ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+hb_unicode_funcs_get_empty (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.14.4"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-get-parent"></a><h3>hb_unicode_funcs_get_parent ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+hb_unicode_funcs_get_parent (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.15.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
-</td>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.15.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-get-parent"></a><h3>hb_unicode_funcs_get_parent ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * hb_unicode_funcs_get_parent        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-unicode-funcs-get-user-data"></a><h3>hb_unicode_funcs_get_user_data ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+hb_unicode_funcs_get_user_data (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.16.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>Unicode functions.</td>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.16.5"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-get-user-data"></a><h3>hb_unicode_funcs_get_user_data ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span> *              hb_unicode_funcs_get_user_data      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>Unicode functions.</td>
-</tr>
-<tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-is-immutable"></a><h3>hb_unicode_funcs_is_immutable ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_unicode_funcs_is_immutable       (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-unicode-funcs-is-immutable"></a><h3>hb_unicode_funcs_is_immutable ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_unicode_funcs_is_immutable (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.17.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>Unicode functions.</td>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.17.5"></a><h4>Returns</h4>
+<p></p>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-make-immutable"></a><h3>hb_unicode_funcs_make_immutable ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_make_immutable     (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-unicode-funcs-make-immutable"></a><h3>hb_unicode_funcs_make_immutable ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_make_immutable (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.18.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>Unicode functions.</td>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
 <p class="since">Since 0.9.2</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-funcs-reference"></a><h3>hb_unicode_funcs_reference ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> * hb_unicode_funcs_reference         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>Unicode functions.</td>
-</tr>
-<tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-combining-class-func"></a><h3>hb_unicode_funcs_set_combining_class_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_combining_class_func
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-func-t" title="hb_unicode_combining_class_func_t ()"><span class="type">hb_unicode_combining_class_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-compose-func"></a><h3>hb_unicode_funcs_set_compose_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_compose_func   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-compose-func-t" title="hb_unicode_compose_func_t ()"><span class="type">hb_unicode_compose_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-decompose-compatibility-func"></a><h3>hb_unicode_funcs_set_decompose_compatibility_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_decompose_compatibility_func
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><span class="type">hb_unicode_decompose_compatibility_func_t</span> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-decompose-func"></a><h3>hb_unicode_funcs_set_decompose_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_decompose_func (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose-func-t" title="hb_unicode_decompose_func_t ()"><span class="type">hb_unicode_decompose_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-eastasian-width-func"></a><h3>hb_unicode_funcs_set_eastasian_width_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_eastasian_width_func
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><span class="type">hb_unicode_eastasian_width_func_t</span> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-general-category-func"></a><h3>hb_unicode_funcs_set_general_category_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_general_category_func
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-func-t" title="hb_unicode_general_category_func_t ()"><span class="type">hb_unicode_general_category_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-mirroring-func"></a><h3>hb_unicode_funcs_set_mirroring_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_mirroring_func (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-mirroring-func-t" title="hb_unicode_mirroring_func_t ()"><span class="type">hb_unicode_mirroring_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-script-func"></a><h3>hb_unicode_funcs_set_script_func ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_unicode_funcs_set_script_func    (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-script-func-t" title="hb_unicode_script_func_t ()"><span class="type">hb_unicode_script_func_t</span></a> func</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>a Unicode function structure</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>func</code></em> :</span></p></td>
-<td>. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][destroy destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span>
-</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-funcs-set-user-data"></a><h3>hb_unicode_funcs_set_user_data ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_unicode_funcs_set_user_data      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
+<a name="hb-unicode-funcs-reference"></a><h3>hb_unicode_funcs_reference ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="returnvalue">hb_unicode_funcs_t</span></a> *
+hb_unicode_funcs_reference (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.19.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
 <tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>ufuncs</code></em> :</span></p></td>
-<td>Unicode functions.</td>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.19.5"></a><h4>Returns</h4>
+<p>. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
 <p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-combining-class-func"></a><h3>hb_unicode_funcs_set_combining_class_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_combining_class_func
+                               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-combining-class-func-t" title="hb_unicode_combining_class_func_t ()"><span class="type">hb_unicode_combining_class_func_t</span></a> func</code></em>,
+                                <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.20.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-compose-func"></a><h3>hb_unicode_funcs_set_compose_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_compose_func (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                   <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-compose-func-t" title="hb_unicode_compose_func_t ()"><span class="type">hb_unicode_compose_func_t</span></a> func</code></em>,
+                                   <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                   <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.21.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-decompose-compatibility-func"></a><h3>hb_unicode_funcs_set_decompose_compatibility_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_decompose_compatibility_func
+                               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><span class="type">hb_unicode_decompose_compatibility_func_t</span> func</code></em>,
+                                <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.22.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-decompose-func"></a><h3>hb_unicode_funcs_set_decompose_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_decompose_func (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                     <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-decompose-func-t" title="hb_unicode_decompose_func_t ()"><span class="type">hb_unicode_decompose_func_t</span></a> func</code></em>,
+                                     <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                     <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.23.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-eastasian-width-func"></a><h3>hb_unicode_funcs_set_eastasian_width_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_eastasian_width_func
+                               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><span class="type">hb_unicode_eastasian_width_func_t</span> func</code></em>,
+                                <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.24.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-general-category-func"></a><h3>hb_unicode_funcs_set_general_category_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_general_category_func
+                               (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-func-t" title="hb_unicode_general_category_func_t ()"><span class="type">hb_unicode_general_category_func_t</span></a> func</code></em>,
+                                <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.25.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-mirroring-func"></a><h3>hb_unicode_funcs_set_mirroring_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_mirroring_func (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                     <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-mirroring-func-t" title="hb_unicode_mirroring_func_t ()"><span class="type">hb_unicode_mirroring_func_t</span></a> func</code></em>,
+                                     <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                     <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.26.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-script-func"></a><h3>hb_unicode_funcs_set_script_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_unicode_funcs_set_script_func (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                  <em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-script-func-t" title="hb_unicode_script_func_t ()"><span class="type">hb_unicode_script_func_t</span></a> func</code></em>,
+                                  <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                                  <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.27.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>a Unicode function structure</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-funcs-set-user-data"></a><h3>hb_unicode_funcs_set_user_data ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_unicode_funcs_set_user_data (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-user-data-key-t"><span class="type">hb_user_data_key_t</span></a> *key</code></em>,
+                                <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="type">hb_bool_t</span></a> replace</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.28.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>ufuncs</p></td>
+<td class="parameter_description"><p>Unicode functions.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.4.8.28.5"></a><h4>Returns</h4>
+<p></p>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-general-category"></a><h3>hb_unicode_general_category ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t" title="enum hb_unicode_general_category_t"><span class="returnvalue">hb_unicode_general_category_t</span></a>
+hb_unicode_general_category (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                             <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-general-category-func-t"></a><h3>hb_unicode_general_category_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t" title="enum hb_unicode_general_category_t"><span class="returnvalue">hb_unicode_general_category_t</span></a>
+<span class="c_punctuation">(</span>*hb_unicode_general_category_func_t<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                       <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
+                                       <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-mirroring"></a><h3>hb_unicode_mirroring ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>
+hb_unicode_mirroring (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                      <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-mirroring-func-t"></a><h3>hb_unicode_mirroring_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>
+<span class="c_punctuation">(</span>*hb_unicode_mirroring_func_t<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                                <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
+                                <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-script"></a><h3>hb_unicode_script ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t" title="enum hb_script_t"><span class="returnvalue">hb_script_t</span></a>
+hb_unicode_script (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                   <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-unicode-script-func-t"></a><h3>hb_unicode_script_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t" title="enum hb_script_t"><span class="returnvalue">hb_script_t</span></a>
+<span class="c_punctuation">(</span>*hb_unicode_script_func_t<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
+                             <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
+                             <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-unicode.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="hb-unicode-combining-class-t"></a><h3>enum hb_unicode_combining_class_t</h3>
+<div class="refsect3">
+<a name="id-1.3.3.4.9.2.3"></a><h4>Members</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-NOT-REORDERED:CAPS"></a>HB_UNICODE_COMBINING_CLASS_NOT_REORDERED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-OVERLAY:CAPS"></a>HB_UNICODE_COMBINING_CLASS_OVERLAY</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-NUKTA:CAPS"></a>HB_UNICODE_COMBINING_CLASS_NUKTA</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-KANA-VOICING:CAPS"></a>HB_UNICODE_COMBINING_CLASS_KANA_VOICING</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-VIRAMA:CAPS"></a>HB_UNICODE_COMBINING_CLASS_VIRAMA</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC10:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC10</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC11:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC11</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC12:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC12</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC13:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC13</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC14:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC14</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC15:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC15</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC16:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC16</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC17:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC17</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC18:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC18</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC19:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC19</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC20:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC20</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC21:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC21</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC22:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC22</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC23:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC23</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC24:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC24</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC25:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC25</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC26:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC26</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC27:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC27</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC28:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC28</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC29:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC29</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC30:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC30</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC31:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC31</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC32:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC32</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC33:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC33</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC34:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC34</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC35:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC35</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC36:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC36</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC84:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC84</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC91:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC91</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC103:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC103</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC107:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC107</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC118:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC118</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC122:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC122</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC129:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC129</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC130:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC130</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-CCC133:CAPS"></a>HB_UNICODE_COMBINING_CLASS_CCC133</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-ATTACHED-BELOW-LEFT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-ATTACHED-BELOW:CAPS"></a>HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-ATTACHED-ABOVE:CAPS"></a>HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-ATTACHED-ABOVE-RIGHT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-BELOW-LEFT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_BELOW_LEFT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-BELOW:CAPS"></a>HB_UNICODE_COMBINING_CLASS_BELOW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-BELOW-RIGHT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-LEFT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_LEFT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-RIGHT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_RIGHT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-ABOVE-LEFT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_ABOVE_LEFT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-ABOVE:CAPS"></a>HB_UNICODE_COMBINING_CLASS_ABOVE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-ABOVE-RIGHT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-DOUBLE-BELOW:CAPS"></a>HB_UNICODE_COMBINING_CLASS_DOUBLE_BELOW</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-DOUBLE-ABOVE:CAPS"></a>HB_UNICODE_COMBINING_CLASS_DOUBLE_ABOVE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-IOTA-SUBSCRIPT:CAPS"></a>HB_UNICODE_COMBINING_CLASS_IOTA_SUBSCRIPT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-COMBINING-CLASS-INVALID:CAPS"></a>HB_UNICODE_COMBINING_CLASS_INVALID</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
 </div>
 <hr>
 <div class="refsect2">
@@ -645,89 +1323,174 @@ enum                <a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-ge
 </div>
 <hr>
 <div class="refsect2">
-<a name="hb-unicode-general-category"></a><h3>hb_unicode_general_category ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t"><span class="returnvalue">hb_unicode_general_category_t</span></a> hb_unicode_general_category
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
-<p class="since">Since 0.9.2</p>
+<a name="hb-unicode-general-category-t"></a><h3>enum hb_unicode_general_category_t</h3>
+<div class="refsect3">
+<a name="id-1.3.3.4.9.4.3"></a><h4>Members</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-CONTROL:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_CONTROL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-FORMAT:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_FORMAT</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-UNASSIGNED:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-PRIVATE-USE:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_PRIVATE_USE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-SURROGATE:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_SURROGATE</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-LOWERCASE-LETTER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-MODIFIER-LETTER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-OTHER-LETTER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-TITLECASE-LETTER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-UPPERCASE-LETTER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-SPACING-MARK:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-ENCLOSING-MARK:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-NON-SPACING-MARK:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-DECIMAL-NUMBER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-LETTER-NUMBER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_LETTER_NUMBER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-OTHER-NUMBER:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_OTHER_NUMBER</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-CONNECT-PUNCTUATION:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_CONNECT_PUNCTUATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-DASH-PUNCTUATION:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_DASH_PUNCTUATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-CLOSE-PUNCTUATION:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_CLOSE_PUNCTUATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-FINAL-PUNCTUATION:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_FINAL_PUNCTUATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-INITIAL-PUNCTUATION:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_INITIAL_PUNCTUATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-OTHER-PUNCTUATION:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_OTHER_PUNCTUATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-OPEN-PUNCTUATION:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_OPEN_PUNCTUATION</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-CURRENCY-SYMBOL:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-MODIFIER-SYMBOL:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-MATH-SYMBOL:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_MATH_SYMBOL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-OTHER-SYMBOL:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-LINE-SEPARATOR:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_LINE_SEPARATOR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-PARAGRAPH-SEPARATOR:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_PARAGRAPH_SEPARATOR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="HB-UNICODE-GENERAL-CATEGORY-SPACE-SEPARATOR:CAPS"></a>HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
 </div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-general-category-func-t"></a><h3>hb_unicode_general_category_func_t ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-general-category-t"><span class="returnvalue">hb_unicode_general_category_t</span></a> (*hb_unicode_general_category_func_t)
-                                                        (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-general-category-t-enum"></a><h3>enum hb_unicode_general_category_t</h3>
-<pre class="programlisting">typedef enum {
-  HB_UNICODE_GENERAL_CATEGORY_CONTROL,			/* Cc */
-  HB_UNICODE_GENERAL_CATEGORY_FORMAT,			/* Cf */
-  HB_UNICODE_GENERAL_CATEGORY_UNASSIGNED,		/* Cn */
-  HB_UNICODE_GENERAL_CATEGORY_PRIVATE_USE,		/* Co */
-  HB_UNICODE_GENERAL_CATEGORY_SURROGATE,		/* Cs */
-  HB_UNICODE_GENERAL_CATEGORY_LOWERCASE_LETTER,		/* Ll */
-  HB_UNICODE_GENERAL_CATEGORY_MODIFIER_LETTER,		/* Lm */
-  HB_UNICODE_GENERAL_CATEGORY_OTHER_LETTER,		/* Lo */
-  HB_UNICODE_GENERAL_CATEGORY_TITLECASE_LETTER,		/* Lt */
-  HB_UNICODE_GENERAL_CATEGORY_UPPERCASE_LETTER,		/* Lu */
-  HB_UNICODE_GENERAL_CATEGORY_SPACING_MARK,		/* Mc */
-  HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK,		/* Me */
-  HB_UNICODE_GENERAL_CATEGORY_NON_SPACING_MARK,		/* Mn */
-  HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER,		/* Nd */
-  HB_UNICODE_GENERAL_CATEGORY_LETTER_NUMBER,		/* Nl */
-  HB_UNICODE_GENERAL_CATEGORY_OTHER_NUMBER,		/* No */
-  HB_UNICODE_GENERAL_CATEGORY_CONNECT_PUNCTUATION, /* Pc */
-  HB_UNICODE_GENERAL_CATEGORY_DASH_PUNCTUATION,		/* Pd */
-  HB_UNICODE_GENERAL_CATEGORY_CLOSE_PUNCTUATION, /* Pe */
-  HB_UNICODE_GENERAL_CATEGORY_FINAL_PUNCTUATION, /* Pf */
-  HB_UNICODE_GENERAL_CATEGORY_INITIAL_PUNCTUATION, /* Pi */
-  HB_UNICODE_GENERAL_CATEGORY_OTHER_PUNCTUATION, /* Po */
-  HB_UNICODE_GENERAL_CATEGORY_OPEN_PUNCTUATION,		/* Ps */
-  HB_UNICODE_GENERAL_CATEGORY_CURRENCY_SYMBOL,		/* Sc */
-  HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL,		/* Sk */
-  HB_UNICODE_GENERAL_CATEGORY_MATH_SYMBOL,		/* Sm */
-  HB_UNICODE_GENERAL_CATEGORY_OTHER_SYMBOL,		/* So */
-  HB_UNICODE_GENERAL_CATEGORY_LINE_SEPARATOR,		/* Zl */
-  HB_UNICODE_GENERAL_CATEGORY_PARAGRAPH_SEPARATOR, /* Zp */
-  HB_UNICODE_GENERAL_CATEGORY_SPACE_SEPARATOR		/* Zs */
-} hb_unicode_general_category_t;
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-mirroring"></a><h3>hb_unicode_mirroring ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      hb_unicode_mirroring                (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-mirroring-func-t"></a><h3>hb_unicode_mirroring_func_t ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="returnvalue">hb_codepoint_t</span></a>      (*hb_unicode_mirroring_func_t)      (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-script"></a><h3>hb_unicode_script ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         hb_unicode_script                   (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>);</pre>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-unicode-script-func-t"></a><h3>hb_unicode_script_func_t ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-script-t"><span class="returnvalue">hb_script_t</span></a>         (*hb_unicode_script_func_t)         (<em class="parameter"><code><a class="link" href="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"><span class="type">hb_unicode_funcs_t</span></a> *ufuncs</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
-                                                         <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
 </div>
 </div>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18</div>
+          Generated by GTK-Doc V1.20</div>
 </body>
 </html>

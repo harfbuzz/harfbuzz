@@ -2,30 +2,27 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>hb-version</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<title>HarfBuzz Manual: hb-version</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="HarfBuzz Manual">
 <link rel="up" href="ch07.html" title="Harfbuzz API">
 <link rel="prev" href="harfbuzz-Shaping.html" title="Shaping">
 <link rel="next" href="harfbuzz-hb-deprecated.html" title="hb-deprecated">
-<meta name="generator" content="GTK-Doc V1.18 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
-<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
-<tr valign="middle">
-<td><a accesskey="p" href="harfbuzz-Shaping.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
-<td><a accesskey="u" href="ch07.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
-<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
-<th width="100%" align="center">HarfBuzz Manual</th>
-<td><a accesskey="n" href="harfbuzz-hb-deprecated.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
-</tr>
-<tr><td colspan="5" class="shortcuts">
-<a href="#harfbuzz-hb-version.synopsis" class="shortcut">Top</a>
-                   | 
-                  <a href="#harfbuzz-hb-version.description" class="shortcut">Description</a>
-</td></tr>
-</table>
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description"> <span class="dim">|</span> 
+                  <a href="#harfbuzz-hb-version.description" class="shortcut">Description</a></span><span id="nav_hierarchy"> <span class="dim">|</span> 
+                  <a href="#harfbuzz-hb-version.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch07.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="harfbuzz-Shaping.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="harfbuzz-hb-deprecated.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
 <div class="refentry">
 <a name="harfbuzz-hb-version"></a><div class="titlepage"></div>
 <div class="refnamediv"><table width="100%"><tr>
@@ -33,36 +30,159 @@
 <h2><span class="refentrytitle"><a name="harfbuzz-hb-version.top_of_page"></a>hb-version</span></h2>
 <p>hb-version</p>
 </td>
-<td valign="top" align="right"></td>
+<td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
-<div class="refsynopsisdiv">
-<a name="harfbuzz-hb-version.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis">#define             <a class="link" href="harfbuzz-hb-version.html#HB-VERSION-ATLEAST:CAPS" title="HB_VERSION_ATLEAST()">HB_VERSION_ATLEAST</a>                  (major,
-                                                         minor,
-                                                         micro)
-#define             <a class="link" href="harfbuzz-hb-version.html#HB-VERSION-MAJOR:CAPS" title="HB_VERSION_MAJOR">HB_VERSION_MAJOR</a>
-#define             <a class="link" href="harfbuzz-hb-version.html#HB-VERSION-MICRO:CAPS" title="HB_VERSION_MICRO">HB_VERSION_MICRO</a>
-#define             <a class="link" href="harfbuzz-hb-version.html#HB-VERSION-MINOR:CAPS" title="HB_VERSION_MINOR">HB_VERSION_MINOR</a>
-#define             <a class="link" href="harfbuzz-hb-version.html#HB-VERSION-STRING:CAPS" title="HB_VERSION_STRING">HB_VERSION_STRING</a>
-<span class="returnvalue">void</span>                <a class="link" href="harfbuzz-hb-version.html#hb-version" title="hb_version ()">hb_version</a>                          (<em class="parameter"><code>unsigned <span class="type">int</span> *major</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> *minor</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> *micro</code></em>);
-<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           <a class="link" href="harfbuzz-hb-version.html#hb-version-atleast" title="hb_version_atleast ()">hb_version_atleast</a>                  (<em class="parameter"><code>unsigned <span class="type">int</span> major</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> minor</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> micro</code></em>);
-const <span class="returnvalue">char</span> *        <a class="link" href="harfbuzz-hb-version.html#hb-version-string" title="hb_version_string ()">hb_version_string</a>                   (<em class="parameter"><code><span class="type">void</span></code></em>);
+<div class="refsect1">
+<a name="harfbuzz-hb-version.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-version.html#HB-VERSION-ATLEAST:CAPS" title="HB_VERSION_ATLEAST()">HB_VERSION_ATLEAST</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-version.html#hb-version" title="hb_version ()">hb_version</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-version.html#hb-version-atleast" title="hb_version_atleast ()">hb_version_atleast</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-version.html#hb-version-string" title="hb_version_string ()">hb_version_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-version.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-version.html#HB-VERSION-MAJOR:CAPS" title="HB_VERSION_MAJOR">HB_VERSION_MAJOR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-version.html#HB-VERSION-MICRO:CAPS" title="HB_VERSION_MICRO">HB_VERSION_MICRO</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-version.html#HB-VERSION-MINOR:CAPS" title="HB_VERSION_MINOR">HB_VERSION_MINOR</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="harfbuzz-hb-version.html#HB-VERSION-STRING:CAPS" title="HB_VERSION_STRING">HB_VERSION_STRING</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-version.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">
 </pre>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-version.description"></a><h2>Description</h2>
 </div>
 <div class="refsect1">
-<a name="harfbuzz-hb-version.details"></a><h2>Details</h2>
+<a name="harfbuzz-hb-version.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="HB-VERSION-ATLEAST:CAPS"></a><h3>HB_VERSION_ATLEAST()</h3>
 <pre class="programlisting">#define             HB_VERSION_ATLEAST(major,minor,micro)</pre>
 </div>
 <hr>
+<div class="refsect2">
+<a name="hb-version"></a><h3>hb_version ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_version (<em class="parameter"><code>unsigned <span class="type">int</span> *major</code></em>,
+            <em class="parameter"><code>unsigned <span class="type">int</span> *minor</code></em>,
+            <em class="parameter"><code>unsigned <span class="type">int</span> *micro</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.10.7.3.4"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>major</p></td>
+<td class="parameter_description"><p> Library major version component. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>minor</p></td>
+<td class="parameter_description"><p> Library minor version component. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>micro</p></td>
+<td class="parameter_description"><p> Library micro version component. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.3.3.10.7.3.5"></a><h4>Returns</h4>
+<p>library version as three integer components.</p>
+<p></p>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-version-atleast"></a><h3>hb_version_atleast ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+hb_version_atleast (<em class="parameter"><code>unsigned <span class="type">int</span> major</code></em>,
+                    <em class="parameter"><code>unsigned <span class="type">int</span> minor</code></em>,
+                    <em class="parameter"><code>unsigned <span class="type">int</span> micro</code></em>);</pre>
+<div class="refsect3">
+<a name="id-1.3.3.10.7.4.4"></a><h4>Returns</h4>
+<p></p>
+</div>
+<p class="since">Since 0.9.30</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-version-string"></a><h3>hb_version_string ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+hb_version_string (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Returns library version as a string with three components.</p>
+<div class="refsect3">
+<a name="id-1.3.3.10.7.5.5"></a><h4>Returns</h4>
+<p> library version string.</p>
+<p></p>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="harfbuzz-hb-version.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="HB-VERSION-MAJOR:CAPS"></a><h3>HB_VERSION_MAJOR</h3>
 <pre class="programlisting">#define HB_VERSION_MAJOR 1
@@ -86,66 +206,10 @@ const <span class="returnvalue">char</span> *        <a class="link" href="harfb
 <pre class="programlisting">#define HB_VERSION_STRING "1.1.2"
 </pre>
 </div>
-<hr>
-<div class="refsect2">
-<a name="hb-version"></a><h3>hb_version ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                hb_version                          (<em class="parameter"><code>unsigned <span class="type">int</span> *major</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> *minor</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> *micro</code></em>);</pre>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>major</code></em> :</span></p></td>
-<td>Library major version component. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>minor</code></em> :</span></p></td>
-<td>Library minor version component. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>micro</code></em> :</span></p></td>
-<td>Library micro version component. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>library version as three integer components.</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-version-atleast"></a><h3>hb_version_atleast ()</h3>
-<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>           hb_version_atleast                  (<em class="parameter"><code>unsigned <span class="type">int</span> major</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> minor</code></em>,
-                                                         <em class="parameter"><code>unsigned <span class="type">int</span> micro</code></em>);</pre>
-<p class="since">Since 0.9.30</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="hb-version-string"></a><h3>hb_version_string ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> *        hb_version_string                   (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-<p>
-Returns library version as a string with three components.
-</p>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody><tr>
-<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>library version string.</td>
-</tr></tbody>
-</table></div>
-<p class="since">Since 0.9.2</p>
-</div>
 </div>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18</div>
+          Generated by GTK-Doc V1.20</div>
 </body>
 </html>
