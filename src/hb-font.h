@@ -37,14 +37,14 @@
 HB_BEGIN_DECLS
 
 
-typedef struct hb_font_t hb_font_t;
+typedef struct hb_font hb_font_t;
 
 
 /*
  * hb_font_funcs_t
  */
 
-typedef struct hb_font_funcs_t hb_font_funcs_t;
+typedef struct hb_font_funcs hb_font_funcs_t;
 
 HB_EXTERN hb_font_funcs_t *
 hb_font_funcs_create (void);

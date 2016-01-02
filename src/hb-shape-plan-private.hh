@@ -32,7 +32,7 @@
 #include "hb-shaper-private.hh"
 
 
-struct hb_shape_plan_t
+struct hb_shape_plan
 {
   hb_object_header_t header;
   ASSERT_POD ();

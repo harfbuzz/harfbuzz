@@ -151,7 +151,7 @@ typedef hb_set_digest_combiner_t
 
 /* TODO Make this faster and memmory efficient. */
 
-struct hb_set_t
+struct hb_set
 {
   friend struct hb_frozen_set_t;
 

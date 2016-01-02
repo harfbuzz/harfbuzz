@@ -61,7 +61,7 @@ extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
   HB_UNICODE_FUNC_IMPLEMENT (hb_script_t, script) \
   /* ^--- Add new simple callbacks here */
 
-struct hb_unicode_funcs_t {
+struct hb_unicode_funcs {
   hb_object_header_t header;
   ASSERT_POD ();
 
