@@ -182,7 +182,7 @@ struct hb_dispatch_context_t
 
 /* This limits sanitizing time on really broken fonts. */
 #ifndef HB_SANITIZE_MAX_EDITS
-#define HB_SANITIZE_MAX_EDITS 8
+#define HB_SANITIZE_MAX_EDITS 32
 #endif
 
 struct hb_sanitize_context_t :
