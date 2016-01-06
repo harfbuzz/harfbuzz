@@ -1019,7 +1019,7 @@ retry:
     hb_glyph_position_t *pos = &buffer->pos[i];
 
     /* TODO vertical */
-    pos->x_advance = x_mult * info->mask;
+    pos->x_advance = x_mult * (int32_t) info->mask;
     pos->x_offset = x_mult * (backward ? -info->var1.i32 : info->var1.i32);
     pos->y_offset = y_mult * info->var2.i32;
   }
