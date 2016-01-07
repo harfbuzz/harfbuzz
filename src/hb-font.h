@@ -86,6 +86,16 @@ typedef struct hb_font_extents_t
   hb_position_t ascender; /* typographic ascender. */
   hb_position_t descender; /* typographic descender. */
   hb_position_t line_gap; /* suggested line spacing gap. */
+  /*< private >*/
+  hb_position_t reserved9;
+  hb_position_t reserved8;
+  hb_position_t reserved7;
+  hb_position_t reserved6;
+  hb_position_t reserved5;
+  hb_position_t reserved4;
+  hb_position_t reserved3;
+  hb_position_t reserved2;
+  hb_position_t reserved1;
 } hb_font_extents_t;
 
 /* Note that height is negative in coordinate systems that grow up. */
