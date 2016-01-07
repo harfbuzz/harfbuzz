@@ -6,8 +6,11 @@ Cairo, and GLib. For example, on Ubuntu / Debian, you would do:
 whereas on Fedora, RHEL, CentOS, and other Red Hat based systems you would do:
 * sudo yum install gcc gcc-c++ freetype-devel glib2-devel cairo-devel
 
-or using MacPorts:
+on the Mac, using MacPorts:
 * sudo port install freetype glib2 cairo
+
+or using Homebrew:
+* brew install freetype glib cairo
 
 If you are using a tarball, you can now proceed to running configure and make
 as with any other standard package. That should leave you with a shared
@@ -21,5 +24,8 @@ on Ubuntu / Debian:
 and on Fedora, RHEL, CentOS:
 * sudo yum install autoconf automake libtool pkgconfig ragel gtk-doc
 
-or using MacPorts:
+on the Mac, using MacPorts:
 * sudo port install autoconf automake libtool pkgconfig ragel gtk-doc
+
+or using Homebrew:
+* brew port install autoconf automake libtool pkgconfig ragel gtk-doc
