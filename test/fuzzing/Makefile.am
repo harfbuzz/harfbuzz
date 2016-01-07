@@ -16,10 +16,9 @@ EXTRA_DIST += \
 	README \
 	$(NULL)
 
-noinst_PROGRAMS = \
+check_PROGRAMS = \
 	hb-fuzzer \
 	$(NULL)
-check_PROGRAMS = $(noinst_PROGRAMS)
 
 AM_CPPFLAGS = \
 	-DHB_DISABLE_DEPRECATED \
