@@ -1,3 +1,32 @@
+Overview of changes leading to 1.1.3
+Monday, January 11, 2016
+====================================
+
+- Ported Indic shaper to Unicode 8.0 data.
+- Universal Shaping Engine fixes.
+- Speed up CoreText shaper when font fallback happens in CoreText.
+- Documentation improvements, thanks to Khaled Hosny.
+- Very rough directwrite shaper for testing, thanks to Ebrahim Byagowi.
+- Misc bug fixes.
+- New API:
+
+  * Font extents:
+      hb_font_extents_t
+      hb_font_get_font_extents_func_t
+      hb_font_get_font_h_extents_func_t
+      hb_font_get_font_v_extents_func_t
+      hb_font_funcs_set_font_h_extents_func
+      hb_font_funcs_set_font_v_extents_func
+      hb_font_get_h_extents
+      hb_font_get_v_extents
+      hb_font_get_extents_for_direction
+
+  * Buffer message (aka debug):
+      hb_buffer_message_func_t
+      hb_buffer_set_message_func()
+    Actual message protocol to be fleshed out later.
+
+
 Overview of changes leading to 1.1.2
 Wednesday, November 26, 2015
 ====================================
