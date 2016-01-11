@@ -51,12 +51,11 @@ HB_BEGIN_DECLS
  *           @cluster value, if they resulted from the same character (e.g. one
  *           to many glyph substitution), and when more than one character gets
  *           merged in the same glyph (e.g. many to one glyph substitution) the
- *           #hb_glyph_info_t will have cluster value corresponding to the
- *           first of them. By default some characters are merged into the same
- *           cluster (e.g. combining marks have the same cluster as their
- *           bases) even if they are separate glyphs,
- *           hb_buffer_set_cluster_level() allow selecting more fine-grained
- *           cluster handling.
+ *           #hb_glyph_info_t will have the smallest cluster value of them.
+ *           By default some characters are merged into the same cluster
+ *           (e.g. combining marks have the same cluster as their bases)
+ *           even if they are separate glyphs, hb_buffer_set_cluster_level()
+ *           allow selecting more fine-grained cluster handling.
  *
  * The #hb_glyph_info_t is the structure that holds information about the
  * glyphs and their relation to input text.
@@ -229,17 +228,18 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  * hb_buffer_flags_t:
  * @HB_BUFFER_FLAG_DEFAULT: the default buffer flag.
  * @HB_BUFFER_FLAG_BOT: flag indicating that special handling of the beginning
- *                      of text can be applied to this buffer. Should usually
- *                      be set unless you are passing to the buffer only part
+ *                      of text paragraph can be applied to this buffer. Should usually
+ *                      be set, unless you are passing to the buffer only part
  *                      of the text without the full context.
  * @HB_BUFFER_FLAG_EOT: flag indicating that special handling of the end of text
- *                      can be applied to this buffer, similar to
+ *                      paragraph can be applied to this buffer, similar to
  *                      @HB_BUFFER_FLAG_EOT.
  * @HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES:
- *                      flag indication that character with Default Ignorable
+ *                      flag indication that character with Default_Ignorable
  *                      Unicode property should use the corresponding glyph
- *                      from the font, instead of replacing them with the space
- *                      glyph and zeroing the advance width.
+ *                      from the font, instead of hiding them (currently done
+ *                      by replacing them with the space glyph and zeroing the
+ *                      advance width.)
  *
  * Since: 0.9.20
  */
@@ -410,7 +410,7 @@ typedef enum { /*< flags >*/
  * hb_buffer_serialize_format_t:
  * @HB_BUFFER_SERIALIZE_FORMAT_TEXT: a human-readable, plain text format.
  * @HB_BUFFER_SERIALIZE_FORMAT_JSON: a machine-readable JSON format.
- * @HB_BUFFER_SERIALIZE_FORMAT_INVALID: invalid format. 
+ * @HB_BUFFER_SERIALIZE_FORMAT_INVALID: invalid format.
  *
  * The buffer serialization and de-serialization format used in
  * hb_buffer_serialize_glyphs() and hb_buffer_deserialize_glyphs().
