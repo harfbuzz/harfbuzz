@@ -2408,12 +2408,11 @@ to this <a class="link" href="harfbuzz-Buffers.html#hb-glyph-info-t"><span class
 value, if they resulted from the same character (e.g. one
 to many glyph substitution), and when more than one character gets
 merged in the same glyph (e.g. many to one glyph substitution) the
-<a class="link" href="harfbuzz-Buffers.html#hb-glyph-info-t"><span class="type">hb_glyph_info_t</span></a> will have cluster value corresponding to the
-first of them. By default some characters are merged into the same
-cluster (e.g. combining marks have the same cluster as their
-bases) even if they are separate glyphs,
-<a class="link" href="harfbuzz-Buffers.html#hb-buffer-set-cluster-level" title="hb_buffer_set_cluster_level ()"><code class="function">hb_buffer_set_cluster_level()</code></a> allow selecting more fine-grained
-cluster handling.</p></td>
+<a class="link" href="harfbuzz-Buffers.html#hb-glyph-info-t"><span class="type">hb_glyph_info_t</span></a> will have the smallest cluster value of them.
+By default some characters are merged into the same cluster
+(e.g. combining marks have the same cluster as their bases)
+even if they are separate glyphs, <a class="link" href="harfbuzz-Buffers.html#hb-buffer-set-cluster-level" title="hb_buffer_set_cluster_level ()"><code class="function">hb_buffer_set_cluster_level()</code></a>
+allow selecting more fine-grained cluster handling.</p></td>
 <td class="struct_member_annotations"> </td>
 </tr>
 </tbody>
@@ -2530,8 +2529,8 @@ should not affect how much the line advances.</p></td>
 <td class="enum_member_name"><p><a name="HB-BUFFER-FLAG-BOT:CAPS"></a>HB_BUFFER_FLAG_BOT</p></td>
 <td class="enum_member_description">
 <p>flag indicating that special handling of the beginning
-                     of text can be applied to this buffer. Should usually
-                     be set unless you are passing to the buffer only part
+                     of text paragraph can be applied to this buffer. Should usually
+                     be set, unless you are passing to the buffer only part
                      of the text without the full context.</p>
 </td>
 <td class="enum_member_annotations"> </td>
@@ -2540,7 +2539,7 @@ should not affect how much the line advances.</p></td>
 <td class="enum_member_name"><p><a name="HB-BUFFER-FLAG-EOT:CAPS"></a>HB_BUFFER_FLAG_EOT</p></td>
 <td class="enum_member_description">
 <p>flag indicating that special handling of the end of text
-                     can be applied to this buffer, similar to
+                     paragraph can be applied to this buffer, similar to
                      <em class="parameter"><code>HB_BUFFER_FLAG_EOT</code></em>
 .</p>
 </td>
@@ -2549,10 +2548,11 @@ should not affect how much the line advances.</p></td>
 <tr>
 <td class="enum_member_name"><p><a name="HB-BUFFER-FLAG-PRESERVE-DEFAULT-IGNORABLES:CAPS"></a>HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES</p></td>
 <td class="enum_member_description">
-<p>                     flag indication that character with Default Ignorable
+<p>                     flag indication that character with Default_Ignorable
                      Unicode property should use the corresponding glyph
-                     from the font, instead of replacing them with the space
-                     glyph and zeroing the advance width.</p>
+                     from the font, instead of hiding them (currently done
+                     by replacing them with the space glyph and zeroing the
+                     advance width.)</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2668,7 +2668,7 @@ set and retrieved using <a class="link" href="harfbuzz-Buffers.html#hb-buffer-se
 <tr>
 <td class="enum_member_name"><p><a name="HB-BUFFER-SERIALIZE-FORMAT-INVALID:CAPS"></a>HB_BUFFER_SERIALIZE_FORMAT_INVALID</p></td>
 <td class="enum_member_description">
-<p>invalid format. </p>
+<p>invalid format.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
