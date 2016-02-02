@@ -73,6 +73,7 @@ HTML_IMAGES=  \
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
 content_files=	\
 	usermanual-buffers-language-script-and-direction.xml \
+	usermanual-clusters.xml \
 	usermanual-fonts-and-faces.xml \
 	usermanual-glyph-information.xml \
 	usermanual-hello-harfbuzz.xml \
