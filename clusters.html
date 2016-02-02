@@ -1,0 +1,98 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>HarfBuzz Manual: </title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="HarfBuzz Manual">
+<link rel="up" href="pt01.html" title="Part I. User's manual">
+<link rel="prev" href="using-your-own-font-functions.html" title="Using your own font functions">
+<link rel="next" href="a-clustering-example-for-levels-0-and-1.html" title="A clustering example for levels 0 and 1">
+<meta name="generator" content="GTK-Doc V1.20 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="10"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="pt01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="using-your-own-font-functions.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="a-clustering-example-for-levels-0-and-1.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="chapter">
+<div class="titlepage"></div>
+<div class="toc"><dl class="toc">
+<dt><span class="sect1"><a href="clusters.html#clusters">Clusters</a></span></dt>
+<dt><span class="sect1"><a href="a-clustering-example-for-levels-0-and-1.html">A clustering example for levels 0 and 1</a></span></dt>
+<dt><span class="sect1"><a href="reordering-in-levels-0-and-1.html">Reordering in levels 0 and 1</a></span></dt>
+<dt><span class="sect1"><a href="the-distinction-between-levels-0-and-1.html">The distinction between levels 0 and 1</a></span></dt>
+<dt><span class="sect1"><a href="level-2.html">Level 2</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="level-2.html#ligatures-with-combining-marks">Ligatures with combining marks</a></span></dt>
+<dt><span class="sect2"><a href="level-2.html#reordering">Reordering</a></span></dt>
+</dl></dd>
+</dl></div>
+<div class="sect1">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="clusters"></a>Clusters</h2></div></div></div>
+<p>
+    In shaping text, a <span class="emphasis"><em>cluster</em></span> is a sequence of
+    code points that needs to be treated as a single, indivisible unit.
+  </p>
+<p>
+    When you add text to a HB buffer, each character is associated with
+    a <span class="emphasis"><em>cluster value</em></span>. This is an arbitrary number as
+    far as HB is concerned.
+  </p>
+<p>
+    Most clients will use UTF-8, UTF-16, or UTF-32 indices, but the
+    actual number does not matter. Moreover, it is not required for the
+    cluster values to be monotonically increasing, but pretty much all
+    of HB's tests are performed on monotonically increasing cluster
+    numbers. Nevertheless, there is no such assumption in the code
+    itself. With that in mind, let's examine what happens with cluster
+    values during shaping under each cluster-level.
+  </p>
+<p>
+    HarfBuzz provides three <span class="emphasis"><em>levels</em></span> of clustering
+    support. Level 0 is the default behavior and reproduces the behavior
+    of the old HarfBuzz library. Level 1 tweaks this behavior slightly
+    to produce better results, so level 1 clustering is recommended for
+    code that is not required to implement backward compatibility with
+    the old HarfBuzz.
+  </p>
+<p>
+    Level 2 differs significantly in how it treats cluster values.
+    Levels 0 and 1 both process ligatures and glyph decomposition by
+    merging clusters; level 2 does not.
+  </p>
+<p>
+    The conceptual model for what the cluster values mean, in levels 0
+    and 1, is this:
+  </p>
+<div class="itemizedlist"><ul class="itemizedlist compact" style="list-style-type: disc; ">
+<li class="listitem"><p>
+        the sequence of cluster values will always remain monotone
+      </p></li>
+<li class="listitem"><p>
+        each value represents a single cluster
+      </p></li>
+<li class="listitem"><p>
+        each cluster contains one or more glyphs and one or more
+        characters
+      </p></li>
+</ul></div>
+<p>
+    Assuming that initial cluster numbers were monotonically increasing
+    and distinct, then all adjacent glyphs having the same cluster
+    number belong to the same cluster, and all characters belong to the
+    cluster that has the highest number not larger than their initial
+    cluster number. This will become clearer with an example.
+  </p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.20</div>
+</body>
+</html>

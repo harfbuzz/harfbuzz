@@ -26,6 +26,13 @@
         <sub name="Using Harfbuzz's native OpenType implementation" link="using-harfbuzzs-native-opentype-implementation.html"/>
         <sub name="Using your own font functions" link="using-your-own-font-functions.html"/>
       </sub>
+      <sub name="" link="clusters.html">
+        <sub name="Clusters" link="clusters.html#clusters"/>
+        <sub name="A clustering example for levels 0 and 1" link="a-clustering-example-for-levels-0-and-1.html"/>
+        <sub name="Reordering in levels 0 and 1" link="reordering-in-levels-0-and-1.html"/>
+        <sub name="The distinction between levels 0 and 1" link="the-distinction-between-levels-0-and-1.html"/>
+        <sub name="Level 2" link="level-2.html"/>
+      </sub>
       <sub name="Shaping and shape plans" link="shaping-and-shape-plans.html">
         <sub name="OpenType features" link="shaping-and-shape-plans.html#opentype-features"/>
         <sub name="Plans and caching" link="plans-and-caching.html"/>
@@ -33,7 +40,7 @@
       <sub name="Glyph information" link="pt01.html#glyph-information"/>
     </sub>
     <sub name="Reference manual" link="pt02.html">
-      <sub name="Harfbuzz API" link="ch07.html">
+      <sub name="Harfbuzz API" link="ch08.html">
         <sub name="hb" link="harfbuzz-hb.html"/>
         <sub name="hb-common" link="harfbuzz-hb-common.html"/>
         <sub name="hb-unicode" link="harfbuzz-hb-unicode.html"/>
