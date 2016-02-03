@@ -130,6 +130,9 @@ HB_GRAPHITE2_headers = hb-graphite2.h
 HB_CORETEXT_sources = hb-coretext.cc
 HB_CORETEXT_headers = hb-coretext.h
 
+HB_DIRECTWRITE_sources = hb-directwrite.cc
+HB_DIRECTWRITE_headers = hb-directwrite.h
+
 HB_UNISCRIBE_sources = hb-uniscribe.cc
 HB_UNISCRIBE_headers = hb-uniscribe.h
 
