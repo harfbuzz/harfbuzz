@@ -15,7 +15,9 @@ or using Homebrew:
 If you are using a tarball, you can now proceed to running configure and make
 as with any other standard package. That should leave you with a shared
 library in src/, and a few utility programs including hb-view and hb-shape
-under util/.
+under util/.  From the tarball, NMake Makefiles are also provided in win32/,
+which supports building HarfBuzz using Visual Studio, with a README.txt that
+gives instructions on building using NMake.
 If you are bootstraping from git, you need a few more tools before you can
 run autogen.sh for the first time. Namely, pkg-config and ragel. Again,
 on Ubuntu / Debian:

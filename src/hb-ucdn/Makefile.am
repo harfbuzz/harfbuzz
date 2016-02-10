@@ -2,11 +2,9 @@
 
 noinst_LTLIBRARIES = libhb-ucdn.la
 
+include Makefile.sources
 
-libhb_ucdn_la_SOURCES = \
-	ucdn.h \
-	ucdn.c \
-	unicodedata_db.h
+libhb_ucdn_la_SOURCES = $(LIBHB_UCDN_sources)
 libhb_ucdn_la_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \

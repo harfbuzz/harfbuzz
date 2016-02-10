@@ -1,0 +1,4 @@
+LIBHB_UCDN_sources = \
+	ucdn.h \
+	ucdn.c \
+	unicodedata_db.h
