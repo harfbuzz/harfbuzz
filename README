@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/behdad/harfbuzz.svg)](https://travis-ci.org/behdad/harfbuzz)
 [![Coverage Status](https://img.shields.io/coveralls/behdad/harfbuzz.svg)](https://coveralls.io/r/behdad/harfbuzz)
+[ABI Tracker](http://abi-laboratory.pro/tracker/timeline/harfbuzz/)
 
 This is HarfBuzz, a text shaping library.
 
