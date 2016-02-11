@@ -618,10 +618,6 @@ zero_mark_width (hb_glyph_position_t *pos)
 static inline void
 zero_mark_widths_by_gdef (hb_buffer_t *buffer, bool adjust_offsets)
 {
-  /* This one is a hack; Technically GDEF can mark ASCII glyphs as marks, but we don't listen. */
-  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_NON_ASCII))
-    return;
-
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
