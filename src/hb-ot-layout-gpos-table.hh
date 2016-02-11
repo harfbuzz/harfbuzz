@@ -1080,7 +1080,7 @@ struct MarkBasePosFormat1
     unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);
     if (likely (mark_index == NOT_COVERED)) return_trace (false);
 
-    /* now we search backwards for a non-mark glyph */
+    /* Now we search backwards for a non-mark glyph */
     hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (buffer->idx, 1);
     skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
@@ -1092,7 +1092,7 @@ struct MarkBasePosFormat1
     } while (1);
 
     /* Checking that matched glyph is actually a base glyph by GDEF is too strong; disabled */
-    if (!_hb_glyph_info_is_base_glyph (&buffer->info[skippy_iter.idx])) { /*return_trace (false);*/ }
+    //if (!_hb_glyph_info_is_base_glyph (&buffer->info[skippy_iter.idx])) { return_trace (false); }
 
     unsigned int base_index = (this+baseCoverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint);
     if (base_index == NOT_COVERED) return_trace (false);
@@ -1181,14 +1181,14 @@ struct MarkLigPosFormat1
     unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);
     if (likely (mark_index == NOT_COVERED)) return_trace (false);
 
-    /* now we search backwards for a non-mark glyph */
+    /* Now we search backwards for a non-mark glyph */
     hb_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (buffer->idx, 1);
     skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);
     if (!skippy_iter.prev ()) return_trace (false);
 
     /* Checking that matched glyph is actually a ligature by GDEF is too strong; disabled */
-    if (!_hb_glyph_info_is_ligature (&buffer->info[skippy_iter.idx])) { /*return_trace (false);*/ }
+    //if (!_hb_glyph_info_is_ligature (&buffer->info[skippy_iter.idx])) { return_trace (false); }
 
     unsigned int j = skippy_iter.idx;
     unsigned int lig_index = (this+ligatureCoverage).get_coverage  (buffer->info[j].codepoint);
