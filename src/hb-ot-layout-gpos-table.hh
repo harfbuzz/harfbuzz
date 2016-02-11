@@ -1601,8 +1601,6 @@ fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t di
 void
 GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 {
-  buffer->clear_positions ();
-
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
     buffer->pos[i].attach_chain() = buffer->pos[i].attach_type() = 0;
