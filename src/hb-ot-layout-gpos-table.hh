@@ -36,8 +36,8 @@ namespace OT {
 
 
 /* buffer **position** var allocations */
-#define attach_lookback() var.u16[0] /* number of glyphs to go back to attach this glyph to its base */
-#define cursive_chain() var.i16[1] /* character to which this connects, may be positive or negative */
+#define attach_chain() var.i16[0] /* glyph to which this attaches to, relative to current glyphs; negative for going back. */
+#define cursive_chain() var.i16[1] /* glyph to which this connects, may be positive or negative */
 
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
@@ -425,7 +425,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     hb_glyph_position_t &o = buffer->cur_pos();
     o.x_offset = base_x - mark_x;
     o.y_offset = base_y - mark_y;
-    o.attach_lookback() = buffer->idx - glyph_pos;
+    o.attach_chain() = (int) glyph_pos - (int) buffer->idx;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 
     buffer->idx++;
@@ -993,7 +993,7 @@ struct CursivePosFormat1
      */
     reverse_cursive_minor_offset (pos, child, c->direction, parent);
 
-    pos[child].cursive_chain() = parent - child;
+    pos[child].cursive_chain() = (int) parent - (int) child;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_CURSIVE;
     if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
       pos[child].y_offset = y_offset;
@@ -1561,10 +1561,11 @@ fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction
 static void
 fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
 {
-  if (likely (!(pos[i].attach_lookback())))
+  unsigned int j = pos[i].attach_chain();
+  if (likely (!j))
     return;
 
-  unsigned int j = i - pos[i].attach_lookback();
+  j += i;
 
   pos[i].x_offset += pos[j].x_offset;
   pos[i].y_offset += pos[j].y_offset;
@@ -1588,7 +1589,7 @@ GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    buffer->pos[i].attach_lookback() = buffer->pos[i].cursive_chain() = 0;
+    buffer->pos[i].attach_chain() = buffer->pos[i].cursive_chain() = 0;
 }
 
 void
@@ -1637,7 +1638,7 @@ template <typename context_t>
 }
 
 
-#undef attach_lookback
+#undef attach_chain
 #undef cursive_chain
 
 
