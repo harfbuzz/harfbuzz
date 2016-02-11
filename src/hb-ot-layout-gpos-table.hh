@@ -1005,7 +1005,7 @@ struct CursivePosFormat1
 
     pos[child].attach_type() = ATTACH_TYPE_CURSIVE;
     pos[child].attach_chain() = (int) parent - (int) child;
-    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_CURSIVE;
+    buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
     if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
       pos[child].y_offset = y_offset;
     else
@@ -1553,50 +1553,46 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direc
   pos[j].attach_type() = type;
 }
 static void
-fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
+propagate_attachment_offsets (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
 {
+  /* Adjusts offsets of attached glyphs (both cursive and mark) to accumulate
+   * offset of glyph they are attached to. */
   int chain = pos[i].attach_chain(), type = pos[i].attach_type();
-  if (likely (!chain || 0 == (type & ATTACH_TYPE_CURSIVE)))
+  if (likely (!chain))
     return;
+
+  unsigned int j = (int) i + chain;
 
   pos[i].attach_chain() = 0;
 
-  unsigned int j = (int) i + chain;
+  propagate_attachment_offsets (pos, j, direction);
 
-  fix_cursive_minor_offset (pos, j, direction);
+  assert (!!(type & ATTACH_TYPE_MARK) ^ !!(type & ATTACH_TYPE_CURSIVE));
 
-  if (HB_DIRECTION_IS_HORIZONTAL (direction))
-    pos[i].y_offset += pos[j].y_offset;
-  else
+  if (type & ATTACH_TYPE_CURSIVE)
+  {
+    if (HB_DIRECTION_IS_HORIZONTAL (direction))
+      pos[i].y_offset += pos[j].y_offset;
+    else
+      pos[i].x_offset += pos[j].x_offset;
+  }
+  else /*if (type & ATTACH_TYPE_MARK)*/
+  {
     pos[i].x_offset += pos[j].x_offset;
-}
+    pos[i].y_offset += pos[j].y_offset;
 
-static void
-fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
-{
-  int chain = pos[i].attach_chain(), type = pos[i].attach_type();
-  if (likely (!chain || 0 == (type & ATTACH_TYPE_MARK)))
-    return;
-
-  unsigned int j = (int) i + chain;
-
-  fix_mark_attachment (pos, j, direction);
-
-
-  pos[i].x_offset += pos[j].x_offset;
-  pos[i].y_offset += pos[j].y_offset;
-
-  assert (j < i);
-  if (HB_DIRECTION_IS_FORWARD (direction))
-    for (unsigned int k = j; k < i; k++) {
-      pos[i].x_offset -= pos[k].x_advance;
-      pos[i].y_offset -= pos[k].y_advance;
-    }
-  else
-    for (unsigned int k = j + 1; k < i + 1; k++) {
-      pos[i].x_offset += pos[k].x_advance;
-      pos[i].y_offset += pos[k].y_advance;
-    }
+    assert (j < i);
+    if (HB_DIRECTION_IS_FORWARD (direction))
+      for (unsigned int k = j; k < i; k++) {
+	pos[i].x_offset -= pos[k].x_advance;
+	pos[i].y_offset -= pos[k].y_advance;
+      }
+    else
+      for (unsigned int k = j + 1; k < i + 1; k++) {
+	pos[i].x_offset += pos[k].x_advance;
+	pos[i].y_offset += pos[k].y_advance;
+      }
+  }
 }
 
 void
@@ -1622,15 +1618,10 @@ GPOS::position_finish_offsets (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
   hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &len);
   hb_direction_t direction = buffer->props.direction;
 
-  /* Handle cursive connections */
-  if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_CURSIVE)
-    for (unsigned int i = 0; i < len; i++)
-      fix_cursive_minor_offset (pos, i, direction);
-
   /* Handle attachments */
   if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT)
     for (unsigned int i = 0; i < len; i++)
-      fix_mark_attachment (pos, i, direction);
+      propagate_attachment_offsets (pos, i, direction);
 }
 
 
