@@ -36,8 +36,17 @@ namespace OT {
 
 
 /* buffer **position** var allocations */
-#define attach_chain() var.i16[0] /* glyph to which this attaches to, relative to current glyphs; negative for going back. */
-#define cursive_chain() var.i16[1] /* glyph to which this connects, may be positive or negative */
+#define attach_chain() var.i16[0] /* glyph to which this attaches to, relative to current glyphs; negative for going back, positive for forward. */
+#define attach_type() var.u8[2] /* attachment type */
+/* Note! if attach_chain() is zero, the value of attach_type() is irrelevant. */
+
+enum attach_type_t {
+  ATTACH_TYPE_NONE	= 0X00,
+
+  /* Each attachment should be either a mark or a cursive; can't be both. */
+  ATTACH_TYPE_MARK	= 0X01,
+  ATTACH_TYPE_CURSIVE	= 0X02,
+};
 
 
 /* Shared Tables: ValueRecord, Anchor Table, and MarkArray */
@@ -425,6 +434,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     hb_glyph_position_t &o = buffer->cur_pos();
     o.x_offset = base_x - mark_x;
     o.y_offset = base_y - mark_y;
+    o.attach_type() = ATTACH_TYPE_MARK;
     o.attach_chain() = (int) glyph_pos - (int) buffer->idx;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 
@@ -993,7 +1003,8 @@ struct CursivePosFormat1
      */
     reverse_cursive_minor_offset (pos, child, c->direction, parent);
 
-    pos[child].cursive_chain() = (int) parent - (int) child;
+    pos[child].attach_type() = ATTACH_TYPE_CURSIVE;
+    pos[child].attach_chain() = (int) parent - (int) child;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_CURSIVE;
     if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
       pos[child].y_offset = y_offset;
@@ -1518,14 +1529,13 @@ struct GPOS : GSUBGPOS
 static void
 reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction, unsigned int new_parent)
 {
-  unsigned int j = pos[i].cursive_chain();
-  if (likely (!j))
+  int chain = pos[i].attach_chain(), type = pos[i].attach_type();
+  if (likely (!chain || 0 == (type & ATTACH_TYPE_CURSIVE)))
     return;
 
-  int old_chain = j;
-  pos[i].cursive_chain() = 0;
+  pos[i].attach_chain() = 0;
 
-  j += i;
+  unsigned int j = (int) i + chain;
 
   /* Stop if we see new parent in the chain. */
   if (j == new_parent)
@@ -1538,17 +1548,19 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direc
   else
     pos[j].x_offset = -pos[i].x_offset;
 
-  pos[j].cursive_chain() = -old_chain;
+  pos[j].attach_chain() = -chain;
+  pos[j].attach_type() = type;
 }
 static void
 fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
 {
-  unsigned int j = pos[i].cursive_chain();
-  if (likely (!j))
+  int chain = pos[i].attach_chain(), type = pos[i].attach_type();
+  if (likely (!chain || 0 == (type & ATTACH_TYPE_CURSIVE)))
     return;
-  pos[i].cursive_chain() = 0;
 
-  j += i;
+  pos[i].attach_chain() = 0;
+
+  unsigned int j = (int) i + chain;
 
   fix_cursive_minor_offset (pos, j, direction);
 
@@ -1561,15 +1573,17 @@ fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction
 static void
 fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
 {
-  unsigned int j = pos[i].attach_chain();
-  if (likely (!j))
+  int chain = pos[i].attach_chain(), type = pos[i].attach_type();
+  if (likely (!chain || 0 == (type & ATTACH_TYPE_MARK)))
     return;
 
-  j += i;
+  unsigned int j = (int) i + chain;
+
 
   pos[i].x_offset += pos[j].x_offset;
   pos[i].y_offset += pos[j].y_offset;
 
+  assert (j < i);
   if (HB_DIRECTION_IS_FORWARD (direction))
     for (unsigned int k = j; k < i; k++) {
       pos[i].x_offset -= pos[k].x_advance;
@@ -1589,7 +1603,7 @@ GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)
-    buffer->pos[i].attach_chain() = buffer->pos[i].cursive_chain() = 0;
+    buffer->pos[i].attach_chain() = buffer->pos[i].attach_type() = 0;
 }
 
 void
@@ -1639,7 +1653,7 @@ template <typename context_t>
 
 
 #undef attach_chain
-#undef cursive_chain
+#undef attach_type
 
 
 } /* namespace OT */
