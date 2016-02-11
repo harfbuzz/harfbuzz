@@ -1522,9 +1522,10 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direc
   if (likely (!j))
     return;
 
-  j += i;
-
+  int old_chain = j;
   pos[i].cursive_chain() = 0;
+
+  j += i;
 
   /* Stop if we see new parent in the chain. */
   if (j == new_parent)
@@ -1537,7 +1538,7 @@ reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direc
   else
     pos[j].x_offset = -pos[i].x_offset;
 
-  pos[j].cursive_chain() = i - j;
+  pos[j].cursive_chain() = -old_chain;
 }
 static void
 fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction)
@@ -1545,10 +1546,9 @@ fix_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction
   unsigned int j = pos[i].cursive_chain();
   if (likely (!j))
     return;
+  pos[i].cursive_chain() = 0;
 
   j += i;
-
-  pos[i].cursive_chain() = 0;
 
   fix_cursive_minor_offset (pos, j, direction);
 
