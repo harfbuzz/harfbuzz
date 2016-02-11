@@ -1579,6 +1579,8 @@ fix_mark_attachment (hb_glyph_position_t *pos, unsigned int i, hb_direction_t di
 
   unsigned int j = (int) i + chain;
 
+  fix_mark_attachment (pos, j, direction);
+
 
   pos[i].x_offset += pos[j].x_offset;
   pos[i].y_offset += pos[j].y_offset;
