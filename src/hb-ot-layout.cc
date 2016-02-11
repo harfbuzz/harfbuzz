@@ -771,12 +771,6 @@ hb_ot_layout_substitute_start (hb_font_t *font, hb_buffer_t *buffer)
   OT::GSUB::substitute_start (font, buffer);
 }
 
-void
-hb_ot_layout_substitute_finish (hb_font_t *font, hb_buffer_t *buffer)
-{
-  OT::GSUB::substitute_finish (font, buffer);
-}
-
 /**
  * hb_ot_layout_lookup_substitute_closure:
  *
@@ -811,9 +805,15 @@ hb_ot_layout_position_start (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 void
-hb_ot_layout_position_finish (hb_font_t *font, hb_buffer_t *buffer)
+hb_ot_layout_position_finish_advances (hb_font_t *font, hb_buffer_t *buffer)
 {
-  OT::GPOS::position_finish (font, buffer);
+  OT::GPOS::position_finish_advances (font, buffer);
+}
+
+void
+hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
+{
+  OT::GPOS::position_finish_offsets (font, buffer);
 }
 
 /**

@@ -1512,7 +1512,8 @@ struct GPOS : GSUBGPOS
   { return CastR<PosLookup> (GSUBGPOS::get_lookup (i)); }
 
   static inline void position_start (hb_font_t *font, hb_buffer_t *buffer);
-  static inline void position_finish (hb_font_t *font, hb_buffer_t *buffer);
+  static inline void position_finish_advances (hb_font_t *font, hb_buffer_t *buffer);
+  static inline void position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer);
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1607,7 +1608,13 @@ GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 }
 
 void
-GPOS::position_finish (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
+GPOS::position_finish_advances (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
+{
+  //_hb_buffer_assert_gsubgpos_vars (buffer);
+}
+
+void
+GPOS::position_finish_offsets (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
 {
   _hb_buffer_assert_gsubgpos_vars (buffer);
 

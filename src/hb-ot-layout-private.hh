@@ -99,21 +99,20 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
 				const hb_ot_layout_lookup_accelerator_t &accel);
 
 
-/* Should be called after all the substitute_lookup's are done */
-HB_INTERNAL void
-hb_ot_layout_substitute_finish (hb_font_t    *font,
-				hb_buffer_t  *buffer);
-
-
-/* Should be called before all the position_lookup's are done.  Resets positions to zero. */
+/* Should be called before all the position_lookup's are done. */
 HB_INTERNAL void
 hb_ot_layout_position_start (hb_font_t    *font,
 			     hb_buffer_t  *buffer);
 
-/* Should be called after all the position_lookup's are done */
+/* Should be called after all the position_lookup's are done, to finish advances. */
 HB_INTERNAL void
-hb_ot_layout_position_finish (hb_font_t    *font,
-			      hb_buffer_t  *buffer);
+hb_ot_layout_position_finish_advances (hb_font_t    *font,
+				       hb_buffer_t  *buffer);
+
+/* Should be called after hb_ot_layout_position_finish_advances, to finish offsets. */
+HB_INTERNAL void
+hb_ot_layout_position_finish_offsets (hb_font_t    *font,
+				      hb_buffer_t  *buffer);
 
 
 

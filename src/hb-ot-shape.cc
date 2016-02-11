@@ -584,8 +584,6 @@ hb_ot_substitute_complex (hb_ot_shape_context_t *c)
 
   c->plan->substitute (c->font, buffer);
 
-  hb_ot_layout_substitute_finish (c->font, buffer);
-
   return;
 }
 
@@ -733,9 +731,10 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
       break;
   }
 
+  /* Finishing off GPOS has to follow a certain order. */
+  hb_ot_layout_position_finish_advances (c->font, c->buffer);
   hb_ot_zero_width_default_ignorables (c);
-
-  hb_ot_layout_position_finish (c->font, c->buffer);
+  hb_ot_layout_position_finish_offsets (c->font, c->buffer);
 
   return ret;
 }
