@@ -437,6 +437,22 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     o.attach_type() = ATTACH_TYPE_MARK;
     o.attach_chain() = (int) glyph_pos - (int) buffer->idx;
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
+    {
+      unsigned int i = buffer->idx;
+      unsigned int j = glyph_pos;
+      hb_glyph_position_t *pos = buffer->pos;
+      assert (j < i);
+      if (HB_DIRECTION_IS_FORWARD (c->direction))
+	for (unsigned int k = j; k < i; k++) {
+	  pos[i].x_offset -= pos[k].x_advance;
+	  pos[i].y_offset -= pos[k].y_advance;
+	}
+      else
+	for (unsigned int k = j + 1; k < i + 1; k++) {
+	  pos[i].x_offset += pos[k].x_advance;
+	  pos[i].y_offset += pos[k].y_advance;
+	}
+    }
 
     buffer->idx++;
     return_trace (true);
@@ -916,9 +932,6 @@ struct CursivePosFormat1
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-
-    /* We don't handle mark glyphs here. */
-    if (unlikely (_hb_glyph_info_is_mark (&buffer->cur()))) return_trace (false);
 
     const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
     if (!this_record.exitAnchor) return_trace (false);
@@ -1580,18 +1593,6 @@ propagate_attachment_offsets (hb_glyph_position_t *pos, unsigned int i, hb_direc
   {
     pos[i].x_offset += pos[j].x_offset;
     pos[i].y_offset += pos[j].y_offset;
-
-    assert (j < i);
-    if (HB_DIRECTION_IS_FORWARD (direction))
-      for (unsigned int k = j; k < i; k++) {
-	pos[i].x_offset -= pos[k].x_advance;
-	pos[i].y_offset -= pos[k].y_advance;
-      }
-    else
-      for (unsigned int k = j + 1; k < i + 1; k++) {
-	pos[i].x_offset += pos[k].x_advance;
-	pos[i].y_offset += pos[k].y_advance;
-      }
   }
 }
 
