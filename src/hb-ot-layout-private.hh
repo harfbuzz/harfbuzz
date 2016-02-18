@@ -256,8 +256,11 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
       if (u == 0x200Cu) props |= UPROPS_MASK_ZWNJ;
       if (u == 0x200Du) props |= UPROPS_MASK_ZWJ;
     }
-    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK (gen_cat)))
+    else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK_OR_MODIFIER_SYMBOL (gen_cat)))
     {
+      /* The above check is just an optimization to let in only things we need further
+       * processing on. */
+
       /* Only Mn and Mc can have non-zero ccc:
        * http://www.unicode.org/policies/stability_policy.html#Property_Value
        * """
@@ -272,6 +275,16 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
        * the "else if".
        */
       props |= unicode->modified_combining_class (info->codepoint)<<8;
+
+      /* Recategorize emoji skin-tone modifiers as Unicode mark, so they
+       * behave correctly in non-native directionality.  They originally
+       * are MODIFIER_SYMBOL.  Fixes:
+       * https://github.com/behdad/harfbuzz/issues/169
+       */
+      if (unlikely (hb_in_range (u, 0x1F3FBu, 0x1F3FFu)))
+      {
+	props = gen_cat = HB_UNICODE_GENERAL_CATEGORY_ENCLOSING_MARK;
+      }
     }
   }
 
