@@ -1,3 +1,23 @@
+Overview of changes leading to 1.2.0
+Friday, February 19, 2016
+====================================
+
+- Fix various issues (hangs mostly) in case of memory allocation failure.
+- Change mark zeroing types of most shapers from BY_UNICODE_LATE to
+  BY_GDEF_LATE.  This seems to be what Uniscribe does.
+- Change mark zeroing of USE shaper from NONE to BY_GDEF_EARLY.  That's
+  what Windows does.
+- Allow GPOS cursive connection on marks, and fix the interaction with
+  mark attachment.  This work resulted in some changes to how mark
+  attachments work.  See:
+  https://github.com/behdad/harfbuzz/issues/211
+  https://github.com/behdad/harfbuzz/commit/86c68c7a2c971efe8e35b1f1bd99401dc8b688d2
+- Graphite2 shaper: improved negative advance handling (eg. Nastaliq).
+- Add nmake-based build system for Windows.
+- Minor speedup.
+- Misc. improvements.
+
+
 Overview of changes leading to 1.1.3
 Monday, January 11, 2016
 ====================================
