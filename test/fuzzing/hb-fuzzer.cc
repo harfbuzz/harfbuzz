@@ -45,6 +45,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 #include <assert.h>
 
 std::string FileToString(const std::string &Path) {
+  /* TODO This silently passes if file does not exist.  Fix it! */
   std::ifstream T(Path.c_str());
   return std::string((std::istreambuf_iterator<char>(T)),
                      std::istreambuf_iterator<char>());
