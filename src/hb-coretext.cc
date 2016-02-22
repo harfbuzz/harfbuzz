@@ -157,16 +157,10 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
   hb_face_t *face = font->face;
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
-  /* Choose a CoreText font size and calculate multipliers to convert to HarfBuzz space. */
-  /* TODO: use upem instead of 36? */
-  CGFloat font_size = 36.; /* Default... */
-  /* No idea if the following is even a good idea. */
-  if (font->y_ppem)
-    font_size = font->y_ppem;
-
-  if (font_size < 0)
-    font_size = -font_size;
-  data->ct_font = CTFontCreateWithGraphicsFont (face_data, font_size, NULL, NULL);
+  /* We use 36pt size instead of UPEM, because CoreText implements the 'trak' table,
+   * which can make the font too tight at large sizes.  36pt should be a good semi-neutral
+   * size. */
+  data->ct_font = CTFontCreateWithGraphicsFont (face_data, 36., NULL, NULL);
   if (unlikely (!data->ct_font)) {
     DEBUG_MSG (CORETEXT, font, "Font CTFontCreateWithGraphicsFont() failed");
     free (data);
