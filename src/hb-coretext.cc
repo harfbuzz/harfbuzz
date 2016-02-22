@@ -108,6 +108,7 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
     CFRelease (attributes);
 
     CTFontRef new_ct_font = CTFontCreateCopyWithAttributes (ct_font, 0.0, NULL, new_font_desc);
+    CFRelease (new_font_desc);
     if (new_ct_font)
     {
       CFRelease (ct_font);
