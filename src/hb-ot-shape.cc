@@ -267,7 +267,7 @@ hb_form_clusters (hb_buffer_t *buffer)
       buffer->cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
     return;
 
-  /* Loop duplicated in hb_ensure_native_direction(). */
+  /* Loop duplicated in hb_ensure_native_direction(), and in _hb-coretext.cc */
   unsigned int base = 0;
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;

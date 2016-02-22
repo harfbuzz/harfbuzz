@@ -491,6 +491,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
    * B1 M1 B2 M2, and B1-B2 form a ligature, M2's cluster will
    * continue pointing to B2 even though B2 was merged into B1's
    * cluster... */
+  if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
   {
     hb_unicode_funcs_t *unicode = buffer->unicode;
     unsigned int count = buffer->len;
