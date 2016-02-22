@@ -100,6 +100,43 @@ get_last_resort_font_desc (void)
   return font_desc;
 }
 
+static void
+release_data (void *info, const void *data, size_t size)
+{
+  assert (hb_blob_get_length ((hb_blob_t *) info) == size &&
+          hb_blob_get_data ((hb_blob_t *) info, NULL) == data);
+
+  hb_blob_destroy ((hb_blob_t *) info);
+}
+
+static CGFontRef
+create_cg_font (hb_face_t *face)
+{
+  CGFontRef cg_font = NULL;
+  if (face->destroy == (hb_destroy_func_t) CGFontRelease)
+  {
+    cg_font = CGFontRetain ((CGFontRef) face->user_data);
+  }
+  else
+  {
+    hb_blob_t *blob = hb_face_reference_blob (face);
+    unsigned int blob_length;
+    const char *blob_data = hb_blob_get_data (blob, &blob_length);
+    if (unlikely (!blob_length))
+      DEBUG_MSG (CORETEXT, face, "Face has empty blob");
+
+    CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
+    if (likely (provider))
+    {
+      cg_font = CGFontCreateWithDataProvider (provider);
+      if (unlikely (!cg_font))
+	DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
+      CGDataProviderRelease (provider);
+    }
+  }
+  return cg_font;
+}
+
 static CTFontRef
 create_ct_font (CGFontRef cg_font, CGFloat font_size)
 {
@@ -127,15 +164,6 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
  return ct_font;
 }
 
-static void
-release_data (void *info, const void *data, size_t size)
-{
-  assert (hb_blob_get_length ((hb_blob_t *) info) == size &&
-          hb_blob_get_data ((hb_blob_t *) info, NULL) == data);
-
-  hb_blob_destroy ((hb_blob_t *) info);
-}
-
 struct hb_coretext_shaper_face_data_t {
   CGFontRef cg_font;
 };
@@ -147,28 +175,10 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return NULL;
 
-  if (face->destroy == (hb_destroy_func_t) CGFontRelease)
+  data->cg_font = create_cg_font (face);
+  if (unlikely (!data->cg_font))
   {
-    data->cg_font = CGFontRetain ((CGFontRef) face->user_data);
-  }
-  else
-  {
-    hb_blob_t *blob = hb_face_reference_blob (face);
-    unsigned int blob_length;
-    const char *blob_data = hb_blob_get_data (blob, &blob_length);
-    if (unlikely (!blob_length))
-      DEBUG_MSG (CORETEXT, face, "Face has empty blob");
-
-    CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
-    if (likely (provider))
-    {
-      data->cg_font = CGFontCreateWithDataProvider (provider);
-      CGDataProviderRelease (provider);
-    }
-  }
-
-  if (unlikely (!data->cg_font)) {
-    DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
+    DEBUG_MSG (CORETEXT, face, "Failed creating CGFont.");
     free (data);
     return NULL;
   }
