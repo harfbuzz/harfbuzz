@@ -77,6 +77,29 @@ HB_SHAPER_DATA_ENSURE_DECLARE(coretext, font)
  * shaper face data
  */
 
+static CTFontDescriptorRef
+get_last_resort_font_desc (void)
+{
+  // TODO Handle allocation failures?
+  CTFontDescriptorRef last_resort = CTFontDescriptorCreateWithNameAndSize (CFSTR("LastResort"), 0);
+  CFArrayRef cascade_list = CFArrayCreate (kCFAllocatorDefault,
+					   (const void **) &last_resort,
+					   1,
+					   &kCFTypeArrayCallBacks);
+  CFRelease (last_resort);
+  CFDictionaryRef attributes = CFDictionaryCreate (kCFAllocatorDefault,
+						   (const void **) &kCTFontCascadeListAttribute,
+						   (const void **) &cascade_list,
+						   1,
+						   &kCFTypeDictionaryKeyCallBacks,
+						   &kCFTypeDictionaryValueCallBacks);
+  CFRelease (cascade_list);
+
+  CTFontDescriptorRef font_desc = CTFontDescriptorCreateWithAttributes (attributes);
+  CFRelease (attributes);
+  return font_desc;
+}
+
 static CTFontRef
 create_ct_font (CGFontRef cg_font, CGFloat font_size)
 {
@@ -89,26 +112,9 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
   /* Create font copy with cascade list that has LastResort first; this speeds up CoreText
    * font fallback which we don't need anyway. */
   {
-    // TODO Handle allocation failures?
-    CTFontDescriptorRef last_resort = CTFontDescriptorCreateWithNameAndSize(CFSTR("LastResort"), 0);
-    CFArrayRef cascade_list = CFArrayCreate (kCFAllocatorDefault,
-					     (const void **) &last_resort,
-					     1,
-					     &kCFTypeArrayCallBacks);
-    CFRelease (last_resort);
-    CFDictionaryRef attributes = CFDictionaryCreate (kCFAllocatorDefault,
-						     (const void **) &kCTFontCascadeListAttribute,
-						     (const void **) &cascade_list,
-						     1,
-						     &kCFTypeDictionaryKeyCallBacks,
-						     &kCFTypeDictionaryValueCallBacks);
-    CFRelease (cascade_list);
-
-    CTFontDescriptorRef new_font_desc = CTFontDescriptorCreateWithAttributes (attributes);
-    CFRelease (attributes);
-
-    CTFontRef new_ct_font = CTFontCreateCopyWithAttributes (ct_font, 0.0, NULL, new_font_desc);
-    CFRelease (new_font_desc);
+    CTFontDescriptorRef last_resort_font_desc = get_last_resort_font_desc ();
+    CTFontRef new_ct_font = CTFontCreateCopyWithAttributes (ct_font, 0.0, NULL, last_resort_font_desc);
+    CFRelease (last_resort_font_desc);
     if (new_ct_font)
     {
       CFRelease (ct_font);
