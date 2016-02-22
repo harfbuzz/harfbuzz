@@ -365,6 +365,12 @@ _hb_glyph_info_is_zwj (const hb_glyph_info_t *info)
   return !!(info->unicode_props() & UPROPS_MASK_ZWJ);
 }
 
+static inline hb_bool_t
+_hb_glyph_info_is_joiner (const hb_glyph_info_t *info)
+{
+  return !!(info->unicode_props() & (UPROPS_MASK_ZWNJ | UPROPS_MASK_ZWJ));
+}
+
 static inline void
 _hb_glyph_info_flip_joiners (hb_glyph_info_t *info)
 {

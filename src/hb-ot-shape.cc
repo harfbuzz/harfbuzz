@@ -273,7 +273,8 @@ hb_form_clusters (hb_buffer_t *buffer)
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 1; i < count; i++)
   {
-    if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i]))))
+    if (likely (!HB_UNICODE_GENERAL_CATEGORY_IS_MARK (_hb_glyph_info_get_general_category (&info[i])) &&
+		!_hb_glyph_info_is_joiner (&info[i])))
     {
       buffer->merge_clusters (base, i);
       base = i;
