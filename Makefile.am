@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = \
 	$(srcdir)/INSTALL \
 	$(srcdir)/ChangeLog \
 	$(srcdir)/gtk-doc.make \
+	$(srcdir)/m4/gtk-doc.m4 \
 	$(NULL)
 
 
