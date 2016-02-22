@@ -12,3 +12,5 @@ EXTRA_DIST = \
 	introspection-msvc.mak \
 	Makefile.vc \
 	README.txt
+
+-include $(top_srcdir)/git.mk
