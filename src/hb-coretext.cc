@@ -27,7 +27,6 @@
  */
 
 #define HB_SHAPER coretext
-#define hb_coretext_shaper_face_data_t CGFont
 #include "hb-shaper-impl-private.hh"
 
 #include "hb-coretext.h"
@@ -78,6 +77,49 @@ HB_SHAPER_DATA_ENSURE_DECLARE(coretext, font)
  * shaper face data
  */
 
+static CTFontRef
+create_ct_font (CGFontRef cg_font, CGFloat font_size)
+{
+  CTFontRef ct_font = CTFontCreateWithGraphicsFont (cg_font, font_size, NULL, NULL);
+  if (unlikely (!ct_font)) {
+    DEBUG_MSG (CORETEXT, cg_font, "Font CTFontCreateWithGraphicsFont() failed");
+    return NULL;
+  }
+
+  /* Create font copy with cascade list that has LastResort first; this speeds up CoreText
+   * font fallback which we don't need anyway. */
+  {
+    // TODO Handle allocation failures?
+    CTFontDescriptorRef last_resort = CTFontDescriptorCreateWithNameAndSize(CFSTR("LastResort"), 0);
+    CFArrayRef cascade_list = CFArrayCreate (kCFAllocatorDefault,
+					     (const void **) &last_resort,
+					     1,
+					     &kCFTypeArrayCallBacks);
+    CFRelease (last_resort);
+    CFDictionaryRef attributes = CFDictionaryCreate (kCFAllocatorDefault,
+						     (const void **) &kCTFontCascadeListAttribute,
+						     (const void **) &cascade_list,
+						     1,
+						     &kCFTypeDictionaryKeyCallBacks,
+						     &kCFTypeDictionaryValueCallBacks);
+    CFRelease (cascade_list);
+
+    CTFontDescriptorRef new_font_desc = CTFontDescriptorCreateWithAttributes (attributes);
+    CFRelease (attributes);
+
+    CTFontRef new_ct_font = CTFontCreateCopyWithAttributes (ct_font, 0.0, NULL, new_font_desc);
+    if (new_ct_font)
+    {
+      CFRelease (ct_font);
+      ct_font = new_ct_font;
+    }
+    else
+      DEBUG_MSG (CORETEXT, ct_font, "Font copy with empty cascade list failed");
+  }
+
+ return ct_font;
+}
+
 static void
 release_data (void *info, const void *data, size_t size)
 {
@@ -87,14 +129,20 @@ release_data (void *info, const void *data, size_t size)
   hb_blob_destroy ((hb_blob_t *) info);
 }
 
+struct hb_coretext_shaper_face_data_t {
+  CGFontRef cg_font;
+};
+
 hb_coretext_shaper_face_data_t *
 _hb_coretext_shaper_face_data_create (hb_face_t *face)
 {
-  hb_coretext_shaper_face_data_t *data = NULL;
+  hb_coretext_shaper_face_data_t *data = (hb_coretext_shaper_face_data_t *) calloc (1, sizeof (hb_coretext_shaper_face_data_t));
+  if (unlikely (!data))
+    return NULL;
 
   if (face->destroy == (hb_destroy_func_t) CGFontRelease)
   {
-    data = CGFontRetain ((CGFontRef) face->user_data);
+    data->cg_font = CGFontRetain ((CGFontRef) face->user_data);
   }
   else
   {
@@ -107,13 +155,15 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
     CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
     if (likely (provider))
     {
-      data = CGFontCreateWithDataProvider (provider);
+      data->cg_font = CGFontCreateWithDataProvider (provider);
       CGDataProviderRelease (provider);
     }
   }
 
-  if (unlikely (!data)) {
+  if (unlikely (!data->cg_font)) {
     DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
+    free (data);
+    return NULL;
   }
 
   return data;
@@ -122,7 +172,8 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
 void
 _hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
 {
-  CFRelease (data);
+  CFRelease (data->cg_font);
+  free (data);
 }
 
 /*
@@ -133,7 +184,7 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
 {
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-  return face_data;
+  return face_data->cg_font;
 }
 
 
@@ -160,46 +211,10 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
   /* We use 36pt size instead of UPEM, because CoreText implements the 'trak' table,
    * which can make the font too tight at large sizes.  36pt should be a good semi-neutral
    * size. */
-  data->ct_font = CTFontCreateWithGraphicsFont (face_data, 36., NULL, NULL);
-  if (unlikely (!data->ct_font)) {
-    DEBUG_MSG (CORETEXT, font, "Font CTFontCreateWithGraphicsFont() failed");
-    free (data);
-    return NULL;
-  }
-
-  /* Create font copy with cascade list that has LastResort first; this speeds up CoreText
-   * font fallback which we don't need anyway. */
+  data->ct_font = create_ct_font (face_data->cg_font, 36.);
+  if (unlikely (!data->ct_font))
   {
-    // TODO Handle allocation failures?
-    CTFontDescriptorRef last_resort = CTFontDescriptorCreateWithNameAndSize(CFSTR("LastResort"), 0);
-    CFArrayRef cascade_list = CFArrayCreate (kCFAllocatorDefault,
-					     (const void **) &last_resort,
-					     1,
-					     &kCFTypeArrayCallBacks);
-    CFRelease (last_resort);
-    CFDictionaryRef attributes = CFDictionaryCreate (kCFAllocatorDefault,
-						     (const void **) &kCTFontCascadeListAttribute,
-						     (const void **) &cascade_list,
-						     1,
-						     &kCFTypeDictionaryKeyCallBacks,
-						     &kCFTypeDictionaryValueCallBacks);
-    CFRelease (cascade_list);
-
-    CTFontDescriptorRef new_font_desc = CTFontDescriptorCreateWithAttributes (attributes);
-    CFRelease (attributes);
-
-    CTFontRef new_ct_font = CTFontCreateCopyWithAttributes (data->ct_font, 0.0, NULL, new_font_desc);
-    if (new_ct_font)
-    {
-      CFRelease (data->ct_font);
-      data->ct_font = new_ct_font;
-    }
-    else
-      DEBUG_MSG (CORETEXT, font, "Font copy with empty cascade list failed");
-  }
-
-  if (unlikely (!data->ct_font)) {
-    DEBUG_MSG (CORETEXT, font, "Font CTFontCreateWithGraphicsFont() failed");
+    DEBUG_MSG (CORETEXT, font, "CTFont creation failed");
     free (data);
     return NULL;
   }
@@ -898,7 +913,7 @@ resize_and_retry:
 	  CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
 	  if (run_cg_font)
 	  {
-	    matched = CFEqual (run_cg_font, face_data);
+	    matched = CFEqual (run_cg_font, face_data->cg_font);
 	    CFRelease (run_cg_font);
 	  }
 	}
