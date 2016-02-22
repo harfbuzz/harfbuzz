@@ -230,7 +230,7 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
 struct hb_coretext_shaper_font_data_t {};
 
 hb_coretext_shaper_font_data_t *
-_hb_coretext_shaper_font_data_create (hb_font_t *font)
+_hb_coretext_shaper_font_data_create (hb_font_t *font HB_UNUSED)
 {
   return (hb_coretext_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
