@@ -143,7 +143,6 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
 
 struct hb_coretext_shaper_font_data_t {
   CTFontRef ct_font;
-  CGFloat x_mult, y_mult; /* From CT space to HB space. */
 };
 
 hb_coretext_shaper_font_data_t *
@@ -167,8 +166,6 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
 
   if (font_size < 0)
     font_size = -font_size;
-  data->x_mult = (CGFloat) font->x_scale / font_size;
-  data->y_mult = (CGFloat) font->y_scale / font_size;
   data->ct_font = CTFontCreateWithGraphicsFont (face_data, font_size, NULL, NULL);
   if (unlikely (!data->ct_font)) {
     DEBUG_MSG (CORETEXT, font, "Font CTFontCreateWithGraphicsFont() failed");
@@ -482,6 +479,10 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   hb_face_t *face = font->face;
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
   hb_coretext_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
+
+  CGFloat ct_font_size = CTFontGetSize (font_data->ct_font);
+  CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
+  CGFloat y_mult = (CGFloat) font->y_scale / ct_font_size;
 
   /* Attach marks to their bases, to match the 'ot' shaper.
    * Adapted from hb-ot-shape:hb_form_clusters().
@@ -1028,7 +1029,6 @@ resize_and_retry:
 	  positions = position_buf;
 	}
 	hb_glyph_info_t *info = run_info;
-	CGFloat x_mult = font_data->x_mult, y_mult = font_data->y_mult;
 	if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	{
 	  hb_position_t x_offset = (positions[0].x - advances_so_far) * x_mult;
