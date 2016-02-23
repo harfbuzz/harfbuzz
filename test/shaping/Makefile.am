@@ -14,6 +14,7 @@ manifests:
 	@$(srcdir)/hb-manifest-update "$(srcdir)/texts" "$(srcdir)/fonts" "$(srcdir)/tests"
 
 EXTRA_DIST += \
+	README.md \
 	hb-diff \
 	hb-diff-colorize \
 	hb-diff-filter-failures \
