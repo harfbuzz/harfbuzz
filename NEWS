@@ -1,3 +1,16 @@
+Overview of changes leading to 1.2.1
+Friday, February 23, 2016
+====================================
+
+- CoreText: Fix bug with wrong scale if font scale was changed later.
+  https://github.com/libass/libass/issues/212
+- CoreText: Drastically speed up font initialization.
+- CoreText: Fix tiny leak.
+- Group ZWJ/ZWNJ with previous syllable under cluster-level=0.
+  https://github.com/behdad/harfbuzz/issues/217
+- Add test/shaping/README.md about how to add tests to the suite.
+
+
 Overview of changes leading to 1.2.0
 Friday, February 19, 2016
 ====================================
