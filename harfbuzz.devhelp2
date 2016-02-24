@@ -270,7 +270,7 @@
     <keyword type="function" name="hb_font_funcs_set_glyph_contour_point_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-contour-point-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_extents_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-extents-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_from_name_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-from-name-func" since="0.9.2"/>
-    <keyword type="function" name="hb_font_funcs_set_glyph_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-func" since="0.9.2"/>
+    <keyword type="function" name="hb_font_funcs_set_glyph_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-func" deprecated="1.2.3" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_h_advance_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-h-advance-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_h_kerning_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-h-kerning-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_h_origin_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-h-origin-func" since="0.9.2"/>
@@ -292,7 +292,7 @@
     <keyword type="function" name="hb_font_get_glyph_extents_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-extents-func-t"/>
     <keyword type="function" name="hb_font_get_glyph_from_name ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-from-name" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_from_name_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-from-name-func-t"/>
-    <keyword type="function" name="hb_font_get_glyph_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-func-t" deprecated=""/>
     <keyword type="function" name="hb_font_get_glyph_h_advance ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-advance" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_h_kerning ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-kerning" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_h_origin ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-origin" since="0.9.2"/>
