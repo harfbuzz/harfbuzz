@@ -22,6 +22,10 @@ IFS=:
 for f in "$@"; do
 	$reference || echo "Running tests in $f"
 	while read fontfile options unicodes glyphs_expected; do
+		if echo "$fontfile" | grep -q '^#'; then
+			$reference || echo "Skipping $fontfile:$unicodes"
+			continue
+		fi
 		$reference || echo "Testing $fontfile:$unicodes"
 		glyphs=`$srcdir/hb-unicode-encode "$unicodes" | $hb_shape $options "$srcdir/$fontfile"`
 		if test $? != 0; then
