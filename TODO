@@ -9,25 +9,13 @@ General fixes:
 
 - mask propagation? (when ligation, "or" the masks).
 
-- Warn at compile time (and runtime with HB_DEBUG?) if no Unicode / font
-  funcs found / set.
 
-- Do proper rounding when scaling from font space?  May be a non-issue.
-
-- Misc features:
-  * init/medi/fina/isol for non-cursive scripts
-
-
-API issues to fix before 1.0:
-============================
+API issues:
+===========
 
 - API to accept a list of languages?
 
 - Add init_func to font_funcs.  Adjust ft.
-
-- hb-ft load_flags issues.
-
-- Add pkg-config files for glue codes (harfbuzz-glib, etc)
 
 - 'const' for getter APIs? (use mutable internally)
 
