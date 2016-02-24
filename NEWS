@@ -1,5 +1,17 @@
+Overview of changes leading to 1.2.2
+Wednesday, February 24, 2016
+====================================
+
+- Fix regression with mark positioning with fonts that have
+  non-zero mark advances.  This was introduced in 1.2.0 while
+  trying to make mark and cursive attachments to work together.
+  I have partially reverted that, so this version is much more
+  like what we had before.  All clients who updated to 1.2.0
+  should update to this version.
+
+
 Overview of changes leading to 1.2.1
-Friday, February 23, 2016
+Tuesday, February 23, 2016
 ====================================
 
 - CoreText: Fix bug with wrong scale if font scale was changed later.
