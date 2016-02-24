@@ -456,7 +456,7 @@ hb_ot_hide_default_ignorables (hb_ot_shape_context_t *c)
     return;
 
   hb_codepoint_t space;
-  if (c->font->get_glyph (' ', 0, &space))
+  if (c->font->get_nominal_glyph (' ', &space))
   {
     /* Replace default-ignorables with a zero-advance space glyph. */
     for (/*continue*/; i < count; i++)
@@ -848,12 +848,12 @@ add_char (hb_font_t          *font,
 	  hb_set_t           *glyphs)
 {
   hb_codepoint_t glyph;
-  if (font->get_glyph (u, 0, &glyph))
+  if (font->get_nominal_glyph (u, &glyph))
     glyphs->add (glyph);
   if (mirror)
   {
     hb_codepoint_t m = unicode->mirroring (u);
-    if (m != u && font->get_glyph (m, 0, &glyph))
+    if (m != u && font->get_nominal_glyph (m, &glyph))
       glyphs->add (glyph);
   }
 }

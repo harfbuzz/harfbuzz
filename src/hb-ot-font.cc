@@ -242,23 +242,26 @@ struct hb_ot_face_cmap_accelerator_t
     hb_blob_destroy (this->blob);
   }
 
-  inline bool get_glyph (hb_codepoint_t  unicode,
-			 hb_codepoint_t  variation_selector,
-			 hb_codepoint_t *glyph) const
+  inline bool get_nominal_glyph (hb_codepoint_t  unicode,
+				 hb_codepoint_t *glyph) const
   {
-    if (unlikely (variation_selector))
+    return this->table->get_glyph (unicode, glyph);
+  }
+
+  inline bool get_variation_glyph (hb_codepoint_t  unicode,
+				   hb_codepoint_t  variation_selector,
+				   hb_codepoint_t *glyph) const
+  {
+    switch (this->uvs_table->get_glyph_variant (unicode,
+						variation_selector,
+						glyph))
     {
-      switch (this->uvs_table->get_glyph_variant (unicode,
-						  variation_selector,
-						  glyph))
-      {
-	case OT::GLYPH_VARIANT_NOT_FOUND:	return false;
-	case OT::GLYPH_VARIANT_FOUND:		return true;
-	case OT::GLYPH_VARIANT_USE_DEFAULT:	break;
-      }
+      case OT::GLYPH_VARIANT_NOT_FOUND:		return false;
+      case OT::GLYPH_VARIANT_FOUND:		return true;
+      case OT::GLYPH_VARIANT_USE_DEFAULT:	break;
     }
 
-    return this->table->get_glyph (unicode, glyph);
+    return get_nominal_glyph (unicode, glyph);
   }
 };
 
@@ -301,16 +304,27 @@ _hb_ot_font_destroy (hb_ot_font_t *ot_font)
 
 
 static hb_bool_t
-hb_ot_get_glyph (hb_font_t *font HB_UNUSED,
-		 void *font_data,
-		 hb_codepoint_t unicode,
-		 hb_codepoint_t variation_selector,
-		 hb_codepoint_t *glyph,
-		 void *user_data HB_UNUSED)
+hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
+			 void *font_data,
+			 hb_codepoint_t unicode,
+			 hb_codepoint_t *glyph,
+			 void *user_data HB_UNUSED)
 
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-  return ot_font->cmap.get_glyph (unicode, variation_selector, glyph);
+  return ot_font->cmap.get_nominal_glyph (unicode, glyph);
+}
+
+static hb_bool_t
+hb_ot_get_variation_glyph (hb_font_t *font HB_UNUSED,
+			   void *font_data,
+			   hb_codepoint_t unicode,
+			   hb_codepoint_t variation_selector,
+			   hb_codepoint_t *glyph,
+			   void *user_data HB_UNUSED)
+{
+  const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
+  return ot_font->cmap.get_variation_glyph (unicode, variation_selector, glyph);
 }
 
 static hb_position_t
@@ -397,7 +411,8 @@ retry:
 
     hb_font_funcs_set_font_h_extents_func (funcs, hb_ot_get_font_h_extents, NULL, NULL);
     hb_font_funcs_set_font_v_extents_func (funcs, hb_ot_get_font_v_extents, NULL, NULL);
-    hb_font_funcs_set_glyph_func (funcs, hb_ot_get_glyph, NULL, NULL);
+    hb_font_funcs_set_nominal_glyph_func (funcs, hb_ot_get_nominal_glyph, NULL, NULL);
+    hb_font_funcs_set_variation_glyph_func (funcs, hb_ot_get_variation_glyph, NULL, NULL);
     hb_font_funcs_set_glyph_h_advance_func (funcs, hb_ot_get_glyph_h_advance, NULL, NULL);
     hb_font_funcs_set_glyph_v_advance_func (funcs, hb_ot_get_glyph_v_advance, NULL, NULL);
     //hb_font_funcs_set_glyph_h_origin_func (funcs, hb_ot_get_glyph_h_origin, NULL, NULL);
