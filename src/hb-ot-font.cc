@@ -204,7 +204,7 @@ struct hb_ot_face_glyf_accelerator_t
 struct hb_ot_face_cmap_accelerator_t
 {
   const OT::CmapSubtable *table;
-  const OT::CmapSubtable *uvs_table;
+  const OT::CmapSubtableFormat14 *uvs_table;
   hb_blob_t *blob;
 
   inline void init (hb_face_t *face)
@@ -212,7 +212,7 @@ struct hb_ot_face_cmap_accelerator_t
     this->blob = OT::Sanitizer<OT::cmap>::sanitize (face->reference_table (HB_OT_TAG_cmap));
     const OT::cmap *cmap = OT::Sanitizer<OT::cmap>::lock_instance (this->blob);
     const OT::CmapSubtable *subtable = NULL;
-    const OT::CmapSubtable *subtable_uvs = NULL;
+    const OT::CmapSubtableFormat14 *subtable_uvs = NULL;
 
     /* 32-bit subtables. */
     if (!subtable) subtable = cmap->find_subtable (3, 10);
@@ -229,9 +229,14 @@ struct hb_ot_face_cmap_accelerator_t
     if (!subtable) subtable = &OT::Null(OT::CmapSubtable);
 
     /* UVS subtable. */
-    if (!subtable_uvs) subtable_uvs = cmap->find_subtable (0, 5);
+    if (!subtable_uvs)
+    {
+      const OT::CmapSubtable *st = cmap->find_subtable (0, 5);
+      if (st && st->u.format == 14)
+        subtable_uvs = &st->u.format14;
+    }
     /* Meh. */
-    if (!subtable_uvs) subtable_uvs = &OT::Null(OT::CmapSubtable);
+    if (!subtable_uvs) subtable_uvs = &OT::Null(OT::CmapSubtableFormat14);
 
     this->table = subtable;
     this->uvs_table = subtable_uvs;

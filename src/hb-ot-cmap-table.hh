@@ -388,7 +388,7 @@ struct CmapSubtableFormat14
   }
 
   protected:
-  USHORT	format;		/* Format number is set to 0. */
+  USHORT	format;		/* Format number is set to 14. */
   ULONG		lengthZ;	/* Byte length of this subtable. */
   SortedArrayOf<VariationSelectorRecord, ULONG>
 		record;		/* Variation selector records; sorted
@@ -416,16 +416,6 @@ struct CmapSubtable
     }
   }
 
-  inline glyph_variant_t get_glyph_variant (hb_codepoint_t codepoint,
-					    hb_codepoint_t variation_selector,
-					    hb_codepoint_t *glyph) const
-  {
-    switch (u.format) {
-    case 14: return u.format14.get_glyph_variant(codepoint, variation_selector, glyph);
-    default: return GLYPH_VARIANT_NOT_FOUND;
-    }
-  }
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -442,7 +432,7 @@ struct CmapSubtable
     }
   }
 
-  protected:
+  public:
   union {
   USHORT		format;		/* Format identifier */
   CmapSubtableFormat0	format0;
