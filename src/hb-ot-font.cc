@@ -201,9 +201,24 @@ struct hb_ot_face_glyf_accelerator_t
   }
 };
 
+typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
+					  hb_codepoint_t codepoint,
+					  hb_codepoint_t *glyph);
+
+template <typename Type>
+static inline bool get_glyph_from (const void *obj,
+				   hb_codepoint_t codepoint,
+				   hb_codepoint_t *glyph)
+{
+  const Type *typed_obj = (const Type *) obj;
+  return typed_obj->get_glyph (codepoint, glyph);
+}
+
 struct hb_ot_face_cmap_accelerator_t
 {
-  const OT::CmapSubtable *table;
+  hb_cmap_get_glyph_func_t get_glyph_func;
+  const void *get_glyph_data;
+
   const OT::CmapSubtableFormat14 *uvs_table;
   hb_blob_t *blob;
 
@@ -238,8 +253,10 @@ struct hb_ot_face_cmap_accelerator_t
     /* Meh. */
     if (!subtable_uvs) subtable_uvs = &OT::Null(OT::CmapSubtableFormat14);
 
-    this->table = subtable;
     this->uvs_table = subtable_uvs;
+
+    this->get_glyph_func = get_glyph_from<OT::CmapSubtable>;
+    this->get_glyph_data = subtable;
   }
 
   inline void fini (void)
@@ -250,7 +267,7 @@ struct hb_ot_face_cmap_accelerator_t
   inline bool get_nominal_glyph (hb_codepoint_t  unicode,
 				 hb_codepoint_t *glyph) const
   {
-    return this->table->get_glyph (unicode, glyph);
+    return this->get_glyph_func (this->get_glyph_data, unicode, glyph);
   }
 
   inline bool get_variation_glyph (hb_codepoint_t  unicode,
