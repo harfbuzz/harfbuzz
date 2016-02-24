@@ -18,10 +18,9 @@ if test $# = 0; then
 	set /dev/stdin
 fi
 
-IFS=:
 for f in "$@"; do
 	$reference || echo "Running tests in $f"
-	while read fontfile options unicodes glyphs_expected; do
+	while IFS=: read fontfile options unicodes glyphs_expected; do
 		if echo "$fontfile" | grep -q '^#'; then
 			$reference || echo "Skipping $fontfile:$unicodes"
 			continue
