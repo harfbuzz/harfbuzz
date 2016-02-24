@@ -101,6 +101,7 @@ LOCAL_SHARED_LIBRARIES := \
 	liblog
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/src
-LOCAL_CFLAGS += -DHB_NO_MT -DHAVE_OT -DHAVE_ICU -DHAVE_ICU_BUILTIN
+LOCAL_CFLAGS += -DHB_NO_MT -DHAVE_OT -DHAVE_ICU -DHAVE_ICU_BUILTIN \
+	-Wno-unused-parameter -Wno-missing-field-initializers
 LOCAL_MODULE:= libharfbuzz_ng
 include $(BUILD_SHARED_LIBRARY)
