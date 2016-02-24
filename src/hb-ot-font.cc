@@ -218,6 +218,7 @@ struct hb_ot_face_cmap_accelerator_t
 {
   hb_cmap_get_glyph_func_t get_glyph_func;
   const void *get_glyph_data;
+  OT::CmapSubtableFormat4::accelerator_t format4_accel;
 
   const OT::CmapSubtableFormat14 *uvs_table;
   hb_blob_t *blob;
@@ -255,8 +256,19 @@ struct hb_ot_face_cmap_accelerator_t
 
     this->uvs_table = subtable_uvs;
 
-    this->get_glyph_func = get_glyph_from<OT::CmapSubtable>;
     this->get_glyph_data = subtable;
+    switch (subtable->u.format) {
+    /* Accelerate format 4 and format 12. */
+    default: this->get_glyph_func = get_glyph_from<OT::CmapSubtable>;		break;
+    case 12: this->get_glyph_func = get_glyph_from<OT::CmapSubtableFormat12>;	break;
+    case  4:
+      {
+        this->format4_accel.init (&subtable->u.format4);
+	this->get_glyph_data = &this->format4_accel;
+        this->get_glyph_func = this->format4_accel.get_glyph_func;
+      }
+      break;
+    }
   }
 
   inline void fini (void)
