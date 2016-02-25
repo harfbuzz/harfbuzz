@@ -1,3 +1,45 @@
+Overview of changes leading to 1.2.3
+Thursday, February 25, 2016
+====================================
+
+- Blacklist GDEF table of certain versions of Times New Roman (Bold) Italic,
+  due to bug in glyph class of ASCII double-quote character.  This should
+  address "regression" introduced in 1.2.0 when we switched mark zeroing
+  in most shapers from BY_UNICODE_LATE to BY_GDEF_LATE.
+  This fourth release in a week should finally stablize things...
+
+- hb-ot-font's get_glyph() implementation saw some optimizations.  Though,
+  might be really hard to measure in real-world situations.
+
+- Also, two rather small API changes:
+
+We now disable some time-consuming internal bookkeeping if built with NDEBUG
+defined.  This is a first time that we use NDEBUG to disable debug code.  If
+there exist production systems that do NOT want to enable NDEBUG, please let
+me know and I'll add HB_NDEBUG.
+
+Added get_nominal_glyph() and get_variation_glyph() instead of get_glyph()
+
+New API:
+- hb_font_get_nominal_glyph_func_t
+- hb_font_get_variation_glyph_func_t
+- hb_font_funcs_set_nominal_glyph_func()
+- hb_font_funcs_set_variation_glyph_func()
+- hb_font_get_nominal_glyph()
+- hb_font_get_variation_glyph()
+
+Deprecated API:
+- hb_font_get_glyph_func_t
+- hb_font_funcs_set_glyph_func()
+
+Clients that implement their own font-funcs are encouraged to replace
+their get_glyph() implementation with a get_nominal_glyph() and
+get_variation_glyph() pair.  The variation version can assume that
+variation_selector argument is not zero.  Old (deprecated) functions
+will continue working indefinitely using internal gymnastics; it is
+just more efficient to use the new functions.
+
+
 Overview of changes leading to 1.2.2
 Wednesday, February 24, 2016
 ====================================
