@@ -242,11 +242,11 @@ hb_buffer_t::clear (void)
   out_info = info;
 
   serial = 0;
-  memset (allocated_var_bytes, 0, sizeof allocated_var_bytes);
-  memset (allocated_var_owner, 0, sizeof allocated_var_owner);
 
   memset (context, 0, sizeof context);
   memset (context_len, 0, sizeof context_len);
+
+  deallocate_var_all ();
 }
 
 void
@@ -661,6 +661,7 @@ hb_buffer_t::guess_segment_properties (void)
 }
 
 
+#ifndef NDEBUG
 static inline void
 dump_var_allocation (const hb_buffer_t *buffer)
 {
@@ -728,6 +729,7 @@ void hb_buffer_t::deallocate_var_all (void)
   memset (allocated_var_bytes, 0, sizeof (allocated_var_bytes));
   memset (allocated_var_owner, 0, sizeof (allocated_var_owner));
 }
+#endif /* NDEBUG */
 
 /* Public API */
 

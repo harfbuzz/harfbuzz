@@ -112,10 +112,6 @@ struct hb_buffer_t {
 
   unsigned int serial;
 
-  /* These reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
-  uint8_t allocated_var_bytes[8];
-  const char *allocated_var_owner[8];
-
   /* Text before / after the main buffer contents.
    * Always in Unicode, and ordered outward.
    * Index 0 is for "pre-context", 1 for "post-context". */
@@ -123,10 +119,23 @@ struct hb_buffer_t {
   hb_codepoint_t context[2][CONTEXT_LENGTH];
   unsigned int context_len[2];
 
-  /* Debugging */
+  /* Debugging API */
   hb_buffer_message_func_t message_func;
   void *message_data;
   hb_destroy_func_t message_destroy;
+
+#ifndef NDEBUG
+  /* Internal debugging. */
+  /* These reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
+  uint8_t allocated_var_bytes[8];
+  const char *allocated_var_owner[8];
+  HB_INTERNAL void allocate_var (unsigned int byte_i, unsigned int count, const char *owner);
+  HB_INTERNAL void deallocate_var (unsigned int byte_i, unsigned int count, const char *owner);
+  HB_INTERNAL void assert_var (unsigned int byte_i, unsigned int count, const char *owner);
+  HB_INTERNAL void deallocate_var_all (void);
+#else
+  inline void deallocate_var_all (void) {}
+#endif
 
 
   /* Methods */
@@ -139,11 +148,6 @@ struct hb_buffer_t {
   inline unsigned int lookahead_len (void) const
   { return len - idx; }
   inline unsigned int next_serial (void) { return serial++; }
-
-  HB_INTERNAL void allocate_var (unsigned int byte_i, unsigned int count, const char *owner);
-  HB_INTERNAL void deallocate_var (unsigned int byte_i, unsigned int count, const char *owner);
-  HB_INTERNAL void assert_var (unsigned int byte_i, unsigned int count, const char *owner);
-  HB_INTERNAL void deallocate_var_all (void);
 
   HB_INTERNAL void add (hb_codepoint_t  codepoint,
 			unsigned int    cluster);
@@ -256,12 +260,18 @@ struct hb_buffer_t {
 #define HB_BUFFER_XALLOCATE_VAR(b, func, var, owner) \
   b->func (offsetof (hb_glyph_info_t, var) - offsetof(hb_glyph_info_t, var1), \
 	   sizeof (b->info[0].var), owner)
+#ifndef NDEBUG
 #define HB_BUFFER_ALLOCATE_VAR(b, var) \
 	HB_BUFFER_XALLOCATE_VAR (b, allocate_var, var (), #var)
 #define HB_BUFFER_DEALLOCATE_VAR(b, var) \
 	HB_BUFFER_XALLOCATE_VAR (b, deallocate_var, var (), #var)
 #define HB_BUFFER_ASSERT_VAR(b, var) \
 	HB_BUFFER_XALLOCATE_VAR (b, assert_var, var (), #var)
+#else
+#define HB_BUFFER_ALLOCATE_VAR(b, var)
+#define HB_BUFFER_DEALLOCATE_VAR(b, var)
+#define HB_BUFFER_ASSERT_VAR(b, var)
+#endif
 
 
 #endif /* HB_BUFFER_PRIVATE_HH */
