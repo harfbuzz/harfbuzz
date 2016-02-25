@@ -124,7 +124,7 @@ struct hb_buffer_t {
   void *message_data;
   hb_destroy_func_t message_destroy;
 
-#ifndef NDEBUG
+#ifndef HB_NDEBUG
   /* Internal debugging. */
   /* These reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
   uint8_t allocated_var_bytes[8];
@@ -260,7 +260,7 @@ struct hb_buffer_t {
 #define HB_BUFFER_XALLOCATE_VAR(b, func, var, owner) \
   b->func (offsetof (hb_glyph_info_t, var) - offsetof(hb_glyph_info_t, var1), \
 	   sizeof (b->info[0].var), owner)
-#ifndef NDEBUG
+#ifndef HB_NDEBUG
 #define HB_BUFFER_ALLOCATE_VAR(b, var) \
 	HB_BUFFER_XALLOCATE_VAR (b, allocate_var, var (), #var)
 #define HB_BUFFER_DEALLOCATE_VAR(b, var) \

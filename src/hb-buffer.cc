@@ -661,7 +661,7 @@ hb_buffer_t::guess_segment_properties (void)
 }
 
 
-#ifndef NDEBUG
+#ifndef HB_NDEBUG
 static inline void
 dump_var_allocation (const hb_buffer_t *buffer)
 {
@@ -729,7 +729,7 @@ void hb_buffer_t::deallocate_var_all (void)
   memset (allocated_var_bytes, 0, sizeof (allocated_var_bytes));
   memset (allocated_var_owner, 0, sizeof (allocated_var_owner));
 }
-#endif /* NDEBUG */
+#endif /* HB_NDEBUG */
 
 /* Public API */
 
