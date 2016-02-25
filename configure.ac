@@ -197,17 +197,6 @@ m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
 	AM_CONDITIONAL([HAVE_INTROSPECTION], false)
 ])
 
-dnl ===========================================================================
-
-have_ucdn=true
-if $have_glib; then
-	have_ucdn=false
-fi
-if $have_ucdn; then
-	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
-fi
-AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
-
 dnl ==========================================================================
 
 AC_ARG_WITH(cairo,
@@ -256,11 +245,11 @@ AM_CONDITIONAL(HAVE_FONTCONFIG, $have_fontconfig)
 dnl ==========================================================================
 
 AC_ARG_WITH(icu,
-	[AS_HELP_STRING([--with-icu=@<:@yes/no/auto@:>@],
+	[AS_HELP_STRING([--with-icu=@<:@yes/no/builtin/auto@:>@],
 			[Use ICU @<:@default=auto@:>@])],,
 	[with_icu=auto])
 have_icu=false
-if test "x$with_icu" = "xyes" -o "x$with_icu" = "xauto"; then
+if test "x$with_icu" = "xyes" -o "x$with_icu" = "xbuiltin" -o "x$with_icu" = "xauto"; then
 	PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, :)
 
 	dnl Fallback to icu-config if ICU pkg-config files could not be found
@@ -282,14 +271,30 @@ if test "x$with_icu" = "xyes" -o "x$with_icu" = "xauto"; then
 		fi
 	fi
 fi
-if test "x$with_icu" = "xyes" -a "x$have_icu" != "xtrue"; then
+if test \( "x$with_icu" = "xyes" -o "x$with_icu" = "xbuiltin" \) -a "x$have_icu" != "xtrue"; then
 	AC_MSG_ERROR([icu support requested but icu-uc not found])
 fi
+
 if $have_icu; then
 	CXXFLAGS="$CXXFLAGS `$PKG_CONFIG --variable=CXXFLAGS icu-uc`"
 	AC_DEFINE(HAVE_ICU, 1, [Have ICU library])
+	if test "x$with_icu" = "xbuiltin"; then
+		AC_DEFINE(HAVE_ICU_BUILTIN, 1, [Use hb-icu Unicode callbacks])
+	fi
 fi
 AM_CONDITIONAL(HAVE_ICU, $have_icu)
+AM_CONDITIONAL(HAVE_ICU_BUILTIN, $have_icu && test "x$with_icu" = "xbuiltin")
+
+dnl ===========================================================================
+
+have_ucdn=true
+if $have_glib || $have_icu && test "x$with_icu" = "xbuiltin"; then
+	have_ucdn=false
+fi
+if $have_ucdn; then
+	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
+fi
+AM_CONDITIONAL(HAVE_UCDN, $have_ucdn)
 
 dnl ==========================================================================
 
