@@ -124,18 +124,46 @@ struct hb_buffer_t {
   void *message_data;
   hb_destroy_func_t message_destroy;
 
-#ifndef HB_NDEBUG
   /* Internal debugging. */
-  /* These reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
-  uint8_t allocated_var_bytes[8];
-  const char *allocated_var_owner[8];
-  HB_INTERNAL void allocate_var (unsigned int byte_i, unsigned int count, const char *owner);
-  HB_INTERNAL void deallocate_var (unsigned int byte_i, unsigned int count, const char *owner);
-  HB_INTERNAL void assert_var (unsigned int byte_i, unsigned int count, const char *owner);
-  HB_INTERNAL void deallocate_var_all (void);
-#else
-  inline void deallocate_var_all (void) {}
+  /* The bits here reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
+#ifndef HB_NDEBUG
+  uint8_t allocated_var_bits;
 #endif
+  inline void allocate_var (unsigned int start, unsigned int count)
+  {
+#ifndef HB_NDEBUG
+    unsigned int end = start + count;
+    assert (end <= 8);
+    unsigned int bits = (1<<end) - (1<<start);
+    assert (0 == (allocated_var_bits & bits));
+    allocated_var_bits |= bits;
+#endif
+  }
+  inline void deallocate_var (unsigned int start, unsigned int count)
+  {
+#ifndef HB_NDEBUG
+    unsigned int end = start + count;
+    assert (end <= 8);
+    unsigned int bits = (1<<end) - (1<<start);
+    assert (bits == (allocated_var_bits & bits));
+    allocated_var_bits &= ~bits;
+#endif
+  }
+  inline void assert_var (unsigned int start, unsigned int count)
+  {
+#ifndef HB_NDEBUG
+    unsigned int end = start + count;
+    assert (end <= 8);
+    unsigned int bits = (1<<end) - (1<<start);
+    assert (bits == (allocated_var_bits & bits));
+#endif
+  }
+  inline void deallocate_var_all (void)
+  {
+#ifndef HB_NDEBUG
+    allocated_var_bits = 0;
+#endif
+  }
 
 
   /* Methods */
@@ -257,21 +285,12 @@ struct hb_buffer_t {
 };
 
 
-#define HB_BUFFER_XALLOCATE_VAR(b, func, var, owner) \
+#define HB_BUFFER_XALLOCATE_VAR(b, func, var) \
   b->func (offsetof (hb_glyph_info_t, var) - offsetof(hb_glyph_info_t, var1), \
-	   sizeof (b->info[0].var), owner)
-#ifndef HB_NDEBUG
-#define HB_BUFFER_ALLOCATE_VAR(b, var) \
-	HB_BUFFER_XALLOCATE_VAR (b, allocate_var, var (), #var)
-#define HB_BUFFER_DEALLOCATE_VAR(b, var) \
-	HB_BUFFER_XALLOCATE_VAR (b, deallocate_var, var (), #var)
-#define HB_BUFFER_ASSERT_VAR(b, var) \
-	HB_BUFFER_XALLOCATE_VAR (b, assert_var, var (), #var)
-#else
-#define HB_BUFFER_ALLOCATE_VAR(b, var)
-#define HB_BUFFER_DEALLOCATE_VAR(b, var)
-#define HB_BUFFER_ASSERT_VAR(b, var)
-#endif
+	   sizeof (b->info[0].var))
+#define HB_BUFFER_ALLOCATE_VAR(b, var)		HB_BUFFER_XALLOCATE_VAR (b, allocate_var,   var ())
+#define HB_BUFFER_DEALLOCATE_VAR(b, var)	HB_BUFFER_XALLOCATE_VAR (b, deallocate_var, var ())
+#define HB_BUFFER_ASSERT_VAR(b, var)		HB_BUFFER_XALLOCATE_VAR (b, assert_var,     var ())
 
 
 #endif /* HB_BUFFER_PRIVATE_HH */
