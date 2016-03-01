@@ -1244,6 +1244,8 @@ struct VariationAxis
     int coord = i < coord_len ? coords[i] : 0;
 
     int start = startCoord, peak = peakCoord, end = endCoord;
+    //if (coord == 0) return 0;
+    //if (start < 0 && end > 0) return 0.;
     if (coord < start || coord > end) return 0.;
     if (coord == peak) return 1.;
     /* Interpolate */
@@ -1275,7 +1277,12 @@ struct VariationTuple
     float v = 1.;
     unsigned int count = axes.len;
     for (unsigned int i = 0; i < count; i++)
-      v *= (this+axes[i]).evaluate (coords, coord_len);
+    {
+      float factor = (this+axes[i]).evaluate (coords, coord_len);
+      v *= factor;
+      if (factor == 0.)
+        break;
+    }
     return v;
   }
 
