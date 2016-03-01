@@ -1165,6 +1165,8 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
 
+  /* TODO: copy variation coordinates. */
+
   return font;
 }
 
@@ -1194,8 +1196,9 @@ hb_font_get_empty (void)
     0, /* x_ppem */
     0, /* y_ppem */
 
-    NULL, /* coords */
-    0, /* coord_count */
+    0, /* num_coords */
+    NULL, /* x_coords */
+    NULL, /* y_coords */
 
     const_cast<hb_font_funcs_t *> (&_hb_font_funcs_nil), /* klass */
     NULL, /* user_data */
@@ -1250,6 +1253,8 @@ hb_font_destroy (hb_font_t *font)
   hb_font_destroy (font->parent);
   hb_face_destroy (font->face);
   hb_font_funcs_destroy (font->klass);
+
+  /* TODO: destroy variation coordinates. */
 
   free (font);
 }

@@ -109,7 +109,6 @@ struct ValueFormat : USHORT
 		    const Value          *values,
 		    hb_glyph_position_t  &glyph_pos) const
   {
-    unsigned int x_ppem, y_ppem;
     unsigned int format = *this;
     hb_bool_t horizontal = HB_DIRECTION_IS_HORIZONTAL (direction);
 
@@ -129,27 +128,28 @@ struct ValueFormat : USHORT
 
     if (!has_device ()) return;
 
-    x_ppem = font->x_ppem;
-    y_ppem = font->y_ppem;
+    bool use_x_device = font->x_ppem || font->num_coords;
+    bool use_y_device = font->y_ppem || font->num_coords;
 
-    if (!x_ppem && !y_ppem) return;
+
+    if (!use_x_device && !use_y_device) return;
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (x_ppem) glyph_pos.x_offset  += (base + get_device (values)).get_x_delta (font);
+      if (use_x_device) glyph_pos.x_offset  += (base + get_device (values)).get_x_delta (font);
       values++;
     }
     if (format & yPlaDevice) {
-      if (y_ppem) glyph_pos.y_offset  += (base + get_device (values)).get_y_delta (font);
+      if (use_y_device) glyph_pos.y_offset  += (base + get_device (values)).get_y_delta (font);
       values++;
     }
     if (format & xAdvDevice) {
-      if (horizontal && x_ppem) glyph_pos.x_advance += (base + get_device (values)).get_x_delta (font);
+      if (horizontal && use_x_device) glyph_pos.x_advance += (base + get_device (values)).get_x_delta (font);
       values++;
     }
     if (format & yAdvDevice) {
       /* y_advance values grow downward but font-space grows upward, hence negation */
-      if (!horizontal && y_ppem) glyph_pos.y_advance -= (base + get_device (values)).get_y_delta (font);
+      if (!horizontal && use_y_device) glyph_pos.y_advance -= (base + get_device (values)).get_y_delta (font);
       values++;
     }
   }
@@ -291,9 +291,9 @@ struct AnchorFormat3
       *x = font->em_scale_x (xCoordinate);
       *y = font->em_scale_y (yCoordinate);
 
-      if (font->x_ppem)
+      if (font->x_ppem || font->num_coords)
 	*x += (this+xDeviceTable).get_x_delta (font);
-      if (font->y_ppem)
+      if (font->y_ppem || font->num_coords)
 	*y += (this+yDeviceTable).get_x_delta (font);
   }
 
