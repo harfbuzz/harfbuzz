@@ -108,6 +108,10 @@ struct hb_font_t {
   unsigned int x_ppem;
   unsigned int y_ppem;
 
+  /* Font variation coordinates. */
+  int *coords;
+  unsigned int coord_count;
+
   hb_font_funcs_t   *klass;
   void              *user_data;
   hb_destroy_func_t  destroy;
@@ -120,6 +124,8 @@ struct hb_font_t {
   { return HB_DIRECTION_IS_VERTICAL(direction) ? y_scale : x_scale; }
   inline hb_position_t em_scale_x (int16_t v) { return em_scale (v, x_scale); }
   inline hb_position_t em_scale_y (int16_t v) { return em_scale (v, y_scale); }
+  inline hb_position_t em_scalef_x (float v) { return em_scalef (v, this->x_scale); }
+  inline hb_position_t em_scalef_y (float v) { return em_scalef (v, this->y_scale); }
   inline hb_position_t em_scale_dir (int16_t v, hb_direction_t direction)
   { return em_scale (v, dir_scale (direction)); }
 
@@ -514,6 +520,10 @@ struct hb_font_t {
     int64_t scaled = v * (int64_t) scale;
     scaled += scaled >= 0 ? upem/2 : -upem/2; /* Round. */
     return (hb_position_t) (scaled / upem);
+  }
+  inline hb_position_t em_scalef (float v, int scale)
+  {
+    return (hb_position_t) (v * scale / face->get_upem ());
   }
 };
 
