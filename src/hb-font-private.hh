@@ -109,8 +109,9 @@ struct hb_font_t {
   unsigned int y_ppem;
 
   /* Font variation coordinates. */
-  int *coords;
-  unsigned int coord_count;
+  unsigned int num_coords;
+  int *x_coords;
+  int *y_coords;
 
   hb_font_funcs_t   *klass;
   void              *user_data;

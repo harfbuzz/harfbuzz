@@ -1315,10 +1315,10 @@ struct VariationDevice
 {
 
   inline hb_position_t get_x_delta (hb_font_t *font) const
-  { return font->em_scalef_x (get_delta (font->coords, font->coord_count)); }
+  { return font->em_scalef_x (get_delta (font->x_coords, font->num_coords)); }
 
   inline hb_position_t get_y_delta (hb_font_t *font) const
-  { return font->em_scalef_y (get_delta (font->coords, font->coord_count)); }
+  { return font->em_scalef_y (get_delta (font->y_coords, font->num_coords)); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
