@@ -1236,6 +1236,119 @@ struct Device
 };
 
 
+struct VariationAxis
+{
+  inline float evaluate (int *coords, unsigned int coord_len) const
+  {
+    unsigned int i = axisIndex;
+    int coord = i < coord_len ? coords[i] : 0;
+
+    int start = startCoord, peak = peakCoord, end = endCoord;
+    if (coord < start || coord > end) return 0.;
+    if (coord == peak) return 1.;
+    /* Interpolate */
+    if (coord < peak)
+      return float (coord - start) / (peak - start);
+    else
+      return float (end - coord) / (end - peak);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  Index		axisIndex;
+  F2DOT14	startCoord;
+  F2DOT14	peakCoord;
+  F2DOT14	endCoord;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct VariationTuple
+{
+  inline float evaluate (int *coords, unsigned int coord_len) const
+  {
+    float v = 1.;
+    unsigned int count = axes.len;
+    for (unsigned int i = 0; i < count; i++)
+      v *= (this+axes[i]).evaluate (coords, coord_len);
+    return v;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (axes.sanitize (c, this));
+  }
+
+  OffsetArrayOf<VariationAxis>
+		axes;
+  public:
+  DEFINE_SIZE_ARRAY (2, axes);
+};
+
+struct VariationMap
+{
+  inline const VariationTuple& operator [] (unsigned int i) const
+  { return this+tuples[i]; }
+
+  inline unsigned int get_len (void) const
+  { return tuples.len; }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (tuples.sanitize (c, this));
+  }
+
+  OffsetArrayOf<VariationTuple>
+		tuples;
+  public:
+  DEFINE_SIZE_ARRAY (2, tuples);
+};
+
+struct VariationDevice
+{
+
+  inline hb_position_t get_x_delta (hb_font_t *font) const
+  { return font->em_scalef_x (get_delta (font->coords, font->coord_count)); }
+
+  inline hb_position_t get_y_delta (hb_font_t *font) const
+  { return font->em_scalef_y (get_delta (font->coords, font->coord_count)); }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && c->check_range (&deltaValue, numDeltas * SHORT::static_size));
+  }
+
+  private:
+
+  inline float get_delta (int *coords, unsigned int coord_count) const
+  {
+    float v = 0;
+    const VariationMap &map = this+variationMap;
+    unsigned int count = MIN ((unsigned int) numDeltas, map.get_len ());
+    for (unsigned int i = 0; i < count; i++)
+      v += deltaValue[i] * map[i].evaluate (coords, coord_count);
+    return v;
+  }
+
+  protected:
+  OffsetTo<VariationMap>
+		variationMap;		/* Offset to variation mapping for this table. */
+  USHORT	numDeltas;		/* Number of deltas for in this table. */
+  USHORT	deltaFormat;		/* Format identifier for this table: 0x10 */
+  SHORT		deltaValue[VAR];	/* Deltas as signed values in design space. */
+  public:
+  DEFINE_SIZE_ARRAY (6, deltaValue);
+};
+
+
 } /* namespace OT */
 
 

@@ -1194,6 +1194,9 @@ hb_font_get_empty (void)
     0, /* x_ppem */
     0, /* y_ppem */
 
+    NULL, /* coords */
+    0, /* coord_count */
+
     const_cast<hb_font_funcs_t *> (&_hb_font_funcs_nil), /* klass */
     NULL, /* user_data */
     NULL, /* destroy */
