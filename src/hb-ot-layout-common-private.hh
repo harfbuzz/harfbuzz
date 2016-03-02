@@ -1336,7 +1336,7 @@ struct VariationDevice
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && c->check_range (&deltaValue, numDeltas * SHORT::static_size));
+    return_trace (c->check_struct (this) && c->check_range (&deltaValue, deltaCount * SHORT::static_size));
   }
 
   private:
@@ -1345,7 +1345,7 @@ struct VariationDevice
   {
     float v = 0;
     const VariationMap &map = this+variationMap;
-    unsigned int count = MIN ((unsigned int) numDeltas, map.get_len ());
+    unsigned int count = MIN ((unsigned int) deltaCount, map.get_len ());
     for (unsigned int i = 0; i < count; i++)
       v += deltaValue[i] * map[i].evaluate (coords, coord_count);
     return v;
@@ -1354,7 +1354,7 @@ struct VariationDevice
   protected:
   OffsetTo<VariationMap>
 		variationMap;		/* Offset to variation mapping for this table. */
-  USHORT	numDeltas;		/* Number of deltas for in this table. */
+  USHORT	deltaCount;		/* Number of deltas in this table. */
   USHORT	deltaFormat;		/* Format identifier for this table: 0x10 */
   SHORT		deltaValue[VAR];	/* Deltas as signed values in design space. */
   public:
