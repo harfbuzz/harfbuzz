@@ -1336,7 +1336,8 @@ struct VariationDevice
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && c->check_range (&deltaValue, deltaCount * SHORT::static_size));
+    return_trace (c->check_struct (this) &&
+		  c->check_array (&deltaValue, SHORT::static_size, deltaCount));
   }
 
   private:
