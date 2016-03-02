@@ -1165,8 +1165,11 @@ struct ClassDef
  * Device Tables
  */
 
-struct Device
+struct HintingDevice
 {
+  friend struct Device;
+
+  private:
 
   inline hb_position_t get_x_delta (hb_font_t *font) const
   { return get_delta (font->x_ppem, font->x_scale); }
@@ -1320,6 +1323,9 @@ struct VariationMap
 
 struct VariationDevice
 {
+  friend struct Device;
+
+  private:
 
   inline hb_position_t get_x_delta (hb_font_t *font) const
   { return font->em_scalef_x (get_delta (font->x_coords, font->num_coords)); }
@@ -1353,6 +1359,63 @@ struct VariationDevice
   SHORT		deltaValue[VAR];	/* Deltas as signed values in design space. */
   public:
   DEFINE_SIZE_ARRAY (6, deltaValue);
+};
+
+struct Device
+{
+  inline hb_position_t get_x_delta (hb_font_t *font) const
+  {
+    switch (u.b.format)
+    {
+    case 1: case 2: case 3:
+      return u.hinting.get_x_delta (font);
+    case 0x10:
+      return u.variation.get_x_delta (font);
+    default:
+      return 0;
+    }
+  }
+  inline hb_position_t get_y_delta (hb_font_t *font) const
+  {
+    switch (u.b.format)
+    {
+    case 1: case 2: case 3:
+      return u.hinting.get_x_delta (font);
+    case 0x10:
+      return u.variation.get_x_delta (font);
+    default:
+      return 0;
+    }
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.b.format.sanitize (c)) return_trace (false);
+    switch (u.b.format) {
+    case 1: case 2: case 3:
+      return_trace (u.hinting.sanitize (c));
+    case 0x10:
+      return_trace (u.variation.sanitize (c));
+    default:
+      return_trace (true);
+    }
+  }
+
+  protected:
+  union {
+  struct {
+    USHORT		reserved1;
+    USHORT		reserved2;
+    USHORT		format;		/* Format identifier */
+    public:
+    DEFINE_SIZE_STATIC (6);
+  } b;
+  HintingDevice		hinting;
+  VariationDevice	variation;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (6, b);
 };
 
 
