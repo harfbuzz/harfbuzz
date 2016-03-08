@@ -742,10 +742,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
     switch (indic_plan->config->base_pos)
     {
-      default:
-        assert (false);
-	HB_FALLTHROUGH;
-
       case BASE_POS_LAST:
       {
 	/* -> starting from the end of the syllable, move backwards */
