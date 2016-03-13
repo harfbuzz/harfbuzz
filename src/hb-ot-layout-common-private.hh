@@ -575,6 +575,7 @@ struct LookupFlag : USHORT
     IgnoreMarks		= 0x0008u,
     IgnoreFlags		= 0x000Eu,
     UseMarkFilteringSet	= 0x0010u,
+    UseVariationAlternates= 0x0020u,
     Reserved		= 0x00E0u,
     MarkAttachmentType	= 0xFF00u
   };
@@ -586,6 +587,88 @@ struct LookupFlag : USHORT
 /* This has to be outside the namespace. */
 HB_MARK_AS_FLAG_T (OT::LookupFlag::Flags);
 namespace OT {
+
+struct VariationGridAxis
+{
+  inline int locate (int *coords, unsigned int coord_len) const
+  {
+    int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
+
+    unsigned int count = axisCoords.len;
+    unsigned int i = 0;
+    while (i + 1 < count && coord < axisCoords[i + 1])
+      i++;
+
+    return axisCoords[i] <= coord ? i : -1;
+  }
+
+  inline unsigned int get_len (void) const
+  {
+    return axisCoords.len - 1;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && axisCoords.sanitize (c));
+  }
+
+  Index				axisIndex;
+  SortedArrayOf<F2DOT14>	axisCoords;
+  public:
+  DEFINE_SIZE_ARRAY (4, axisCoords);
+};
+
+struct VariationGrid
+{
+  inline int locate (int *coords, unsigned int coord_len) const
+  {
+    int location = 0;
+    unsigned int count = axes.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const VariationGridAxis &axis = (this+axes[i]);
+      int axisLoc = axis.locate (coords, coord_len);
+      if (axisLoc == -1)
+        return -1;
+      location = location * (axis.get_len () - 1) + axisLoc; /* XXX Check for overflow?. */
+    }
+    return location;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (axes.sanitize (c, this));
+  }
+
+  OffsetArrayOf<VariationGridAxis>
+		axes;
+  public:
+  DEFINE_SIZE_ARRAY (2, axes);
+};
+
+struct VariationAlternates
+{
+  inline unsigned int get_lookup_index (int *coords, unsigned int coord_len) const
+  {
+    int location = (this+grid).locate (coords, coord_len);
+    if (location == -1)
+      return 0xFFFE; /* TODO: give it a name. */
+    return lookupIndex[location];
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (grid.sanitize (c, this) && lookupIndex.sanitize (c));
+  }
+
+  OffsetTo<VariationGrid>	grid;
+  IndexArray			lookupIndex;
+  public:
+  DEFINE_SIZE_ARRAY (4, lookupIndex);
+};
 
 struct Lookup
 {
@@ -655,10 +738,17 @@ struct Lookup
     TRACE_SANITIZE (this);
     /* Real sanitize of the subtables is done by GSUB/GPOS/... */
     if (!(c->check_struct (this) && subTable.sanitize (c))) return_trace (false);
+    const void *cursor = &StructAfter<char> (subTable);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
-      const USHORT &markFilteringSet = StructAfter<USHORT> (subTable);
+      const USHORT &markFilteringSet = CastR<USHORT> (cursor);
       if (!markFilteringSet.sanitize (c)) return_trace (false);
+      cursor = &StructAfter<char> (markFilteringSet);
+    }
+    if (lookupFlag & LookupFlag::UseVariationAlternates)
+    {
+      const OffsetTo<VariationAlternates,ULONG> &varAlts = CastR<const OffsetTo<VariationAlternates,ULONG> > (cursor);
+      if (!varAlts.sanitize (c, this)) return_trace (false);
     }
     return_trace (true);
   }
@@ -671,8 +761,13 @@ struct Lookup
   USHORT	markFilteringSetX[VAR];	/* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
 					 * UseMarkFilteringSet of lookup flags is set. */
+  OffsetTo<VariationAlternates,ULONG>
+		variationAlternatesZ[VAR];
+					/* Index (base 0) into GDEF mark glyph sets
+					 * structure. This field is only present if bit
+					 * UseMarkFilteringSet of lookup flags is set. */
   public:
-  DEFINE_SIZE_ARRAY2 (6, subTable, markFilteringSetX);
+  DEFINE_SIZE_MIN (6);
 };
 
 typedef OffsetListOf<Lookup> LookupList;
