@@ -1243,8 +1243,7 @@ struct VariationAxis
 {
   inline float evaluate (int *coords, unsigned int coord_len) const
   {
-    unsigned int i = axisIndex;
-    int coord = i < coord_len ? coords[i] : 0;
+    int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
 
     int start = startCoord, peak = peakCoord, end = endCoord;
     //if (coord == 0) return 0;
