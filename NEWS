@@ -1,3 +1,18 @@
+Overview of changes leading to 1.2.4
+Thursday, March 17, 2016
+====================================
+
+- Synthesize GDEF glyph class for any glyph that does not have one in GDEF.
+  I really hope we don't discover broken fonts that shape badly with this
+  change.
+- Misc build and other minor fixes.
+- API changes:
+  - Added HB_NDEBUG.  It's fine for production systems to define this to
+    disable high-overhead debugging checks.  However, I also reduced the
+    overhead of those checks, so it's a non-issue right now.  You can
+    forget it.  Just not defining anything at all is fine.
+
+
 Overview of changes leading to 1.2.3
 Thursday, February 25, 2016
 ====================================
