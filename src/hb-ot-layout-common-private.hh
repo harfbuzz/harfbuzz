@@ -1419,6 +1419,9 @@ struct VariationDevice
 {
   friend struct Device;
 
+  static const unsigned short FORMAT_BYTES  = 0x0100;
+  static const unsigned short FORMAT_SHORTS = 0x0101;
+
   private:
 
   inline hb_position_t get_x_delta (hb_font_t *font) const
@@ -1431,29 +1434,39 @@ struct VariationDevice
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  c->check_array (&deltaValue, SHORT::static_size, deltaCount));
+		  c->check_array (&deltaValue, get_item_size (), deltaCount));
   }
 
   private:
+
+  inline unsigned int get_item_size (void) const
+  { return deltaFormat == FORMAT_BYTES ? 1 : 2; }
 
   inline float get_delta (int *coords, unsigned int coord_count) const
   {
     float v = 0;
     const VariationMap &map = this+variationMap;
     unsigned int count = MIN ((unsigned int) deltaCount, map.get_len ());
-    for (unsigned int i = 0; i < count; i++)
-      v += deltaValue[i] * map[i].evaluate (coords, coord_count);
+    if (get_item_size () == 1)
+      for (unsigned int i = 0; i < count; i++)
+	v += deltaValue.bytesZ[i] * map[i].evaluate (coords, coord_count);
+   else
+      for (unsigned int i = 0; i < count; i++)
+	v += deltaValue.shortsZ[i] * map[i].evaluate (coords, coord_count);
     return v;
   }
 
   protected:
   OffsetTo<VariationMap>
-		variationMap;		/* Offset to variation mapping for this table. */
-  USHORT	deltaCount;		/* Number of deltas in this table. */
-  USHORT	deltaFormat;		/* Format identifier for this table: 0x10 */
-  SHORT		deltaValue[VAR];	/* Deltas as signed values in design space. */
+		variationMap;	/* Offset to variation mapping for this table. */
+  USHORT	deltaCount;	/* Number of deltas in this table. */
+  USHORT	deltaFormat;	/* Format identifier for this table: 0x0100 or 0x0101 */
+  union {
+    INT8	bytesZ[VAR];	/* Deltas as signed bytes in design space; format=0x0100 */
+    SHORT	shortsZ[VAR];	/* Deltas as signed shorts in design space; format=0x0101 */
+  } deltaValue;
   public:
-  DEFINE_SIZE_ARRAY (6, deltaValue);
+  DEFINE_SIZE_ARRAY (6, deltaValue.shortsZ);
 };
 
 struct Device
@@ -1464,7 +1477,7 @@ struct Device
     {
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
-    case 0x10:
+    case VariationDevice::FORMAT_BYTES: case VariationDevice::FORMAT_SHORTS:
       return u.variation.get_x_delta (font);
     default:
       return 0;
@@ -1476,7 +1489,7 @@ struct Device
     {
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
-    case 0x10:
+    case VariationDevice::FORMAT_BYTES: case VariationDevice::FORMAT_SHORTS:
       return u.variation.get_x_delta (font);
     default:
       return 0;
@@ -1490,7 +1503,7 @@ struct Device
     switch (u.b.format) {
     case 1: case 2: case 3:
       return_trace (u.hinting.sanitize (c));
-    case 0x10:
+    case VariationDevice::FORMAT_BYTES: case VariationDevice::FORMAT_SHORTS:
       return_trace (u.variation.sanitize (c));
     default:
       return_trace (true);
