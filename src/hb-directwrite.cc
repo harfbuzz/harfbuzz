@@ -689,8 +689,11 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   bool backward = HB_DIRECTION_IS_BACKWARD(buffer->props.direction);
 
-  wchar_t lang[4];
-  mbstowcs(lang, hb_language_to_string(buffer->props.language), 4);
+  wchar_t lang[4] = {0};
+  if (buffer->props.language != NULL) {
+    mbstowcs(lang, hb_language_to_string(buffer->props.language), 4);
+  }
+
   hr = analyzer->GetGlyphs(pchars, length,
     fontFace, FALSE,
     buffer->props.direction,
@@ -741,7 +744,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   int font_size = font->face->get_upem();
   if (font_size < 0)
-	  font_size = -font_size;
+    font_size = -font_size;
   int x_mult = (double)font->x_scale / font_size;
 
   hr = analyzer->GetGlyphPlacements(pchars,
