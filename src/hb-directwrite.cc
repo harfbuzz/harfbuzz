@@ -739,6 +739,11 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
 #undef ALLOCATE_ARRAY
 
+  int font_size = font->face->get_upem();
+  if (font_size < 0)
+	  font_size = -font_size;
+  int x_mult = (double)font->x_scale / font_size;
+
   hr = analyzer->GetGlyphPlacements(pchars,
     clusters,
     textProperties,
@@ -747,7 +752,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     glyphProperties,
     actualGlyphs,
     fontFace,
-    face->get_upem(),
+    font_size * x_mult,
     FALSE,
     FALSE,
     &runHead->mScript,
