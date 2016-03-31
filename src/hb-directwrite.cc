@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015  Ebrahim Byagowi
+ * Copyright © 2015-2016  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -367,7 +367,7 @@ public:
     for (Run *run = mRunHead.nextRun; run;) {
       Run *origRun = run;
       run = run->nextRun;
-      delete origRun;
+      free (origRun);
     }
   }
 
@@ -543,7 +543,7 @@ protected:
       // or before it. Usually the first.
       return;
     }
-    Run *newRun = new Run;
+    Run *newRun = (Run*) malloc (sizeof (Run));
 
     *newRun = *mCurrentRun;
 
@@ -575,6 +575,10 @@ protected:
   Run  mRunHead;
 };
 
+static inline uint16_t hb_uint16_swap (const uint16_t v)
+{ return (v >> 8) | (v << 8); }
+static inline uint32_t hb_uint32_swap (const uint32_t v)
+{ return (hb_uint16_swap(v) << 16) | hb_uint16_swap(v >> 16); }
 
 /*
  * shaper
@@ -670,8 +674,14 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   TextAnalysis::Run *runHead;
   hr = analysis.GenerateResults(analyzer, &runHead);
 
-  if (FAILED(hr)) {
-    //NS_WARNING("Analyzer failed to generate results.");
+#define FAIL(...) \
+  HB_STMT_START { \
+    DEBUG_MSG (DIRECTWRITE, NULL, __VA_ARGS__); \
+    return false; \
+  } HB_STMT_END;
+
+  if (FAILED (hr)) {
+    FAIL ("Analyzer failed to generate results.");
     return false;
   }
 
@@ -679,18 +689,12 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   UINT32 actualGlyphs;
 
-  bool backward = HB_DIRECTION_IS_BACKWARD(buffer->props.direction);
+  bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
 
-  const wchar_t lang[4] = {0};
+  const wchar_t lang[20] = {0};
   if (buffer->props.language != NULL) {
-    mbstowcs((wchar_t*) lang, hb_language_to_string (buffer->props.language), 4);
+    mbstowcs ((wchar_t*) lang, hb_language_to_string (buffer->props.language), 20);
   }
-
-  #define FAIL(...) \
-  HB_STMT_START { \
-    DEBUG_MSG (DIRECTWRITE, NULL, __VA_ARGS__); \
-    return false; \
-  } HB_STMT_END;
 
 retry_getglyphs:
   UINT16* clusters = (UINT16*) malloc (maxGlyphs * sizeof (UINT16));
@@ -700,10 +704,27 @@ retry_getglyphs:
   DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
     malloc (maxGlyphs * sizeof (DWRITE_SHAPING_GLYPH_PROPERTIES));
 
-  hr = analyzer->GetGlyphs(pchars, length,
+  DWRITE_TYPOGRAPHIC_FEATURES dwfeatures;
+  dwfeatures.featureCount = num_features;
+  if (num_features != 0)
+  {
+    DWRITE_FONT_FEATURE* dwfeatureArray = (DWRITE_FONT_FEATURE*)
+      malloc (sizeof (DWRITE_FONT_FEATURE) * num_features);
+    for (unsigned int i = 0; i < num_features; ++i)
+    {
+      dwfeatureArray[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
+          hb_uint32_swap (features[i].tag);
+      dwfeatureArray[i].parameter = features[i].value;
+    }
+    dwfeatures.features = dwfeatureArray;
+  }
+  const DWRITE_TYPOGRAPHIC_FEATURES* dwfeaturesArray =
+    (const DWRITE_TYPOGRAPHIC_FEATURES*) &dwfeatures;
+  const UINT32 featuresLength[] = {length};
+  hr = analyzer->GetGlyphs (pchars, length,
     fontFace, FALSE,
     backward,
-    &runHead->mScript, lang, NULL, NULL, NULL, 0,
+    &runHead->mScript, lang, NULL, &dwfeaturesArray, featuresLength, 1,
     maxGlyphs, clusters, textProperties,
     glyphs, glyphProperties, &actualGlyphs);
 
@@ -760,9 +781,9 @@ retry_getglyphs:
     backward,
     &runHead->mScript,
     lang,
-    NULL,
-    NULL,
-    0,
+    &dwfeaturesArray,
+    featuresLength,
+    1,
     advances,
     offsets);
 
@@ -779,7 +800,7 @@ retry_getglyphs:
     vis_clusters[i] = -1;
   for (unsigned int i = 0; i < buffer->len; i++) {
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
-    //*p = MIN (*p, buffer->info[i].cluster);
+    *p = MIN (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < actualGlyphs; i++)
     if (vis_clusters[i] == -1)
@@ -829,6 +850,7 @@ retry_getglyphs:
   free (glyphProperties);
   free (advances);
   free (offsets);
+  free (dwfeatures.features);
 
   /* Wow, done! */
   return true;
