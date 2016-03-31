@@ -689,15 +689,15 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   bool backward = HB_DIRECTION_IS_BACKWARD(buffer->props.direction);
 
-  wchar_t lang[4] = {0};
+  const wchar_t lang[4] = {0};
   if (buffer->props.language != NULL) {
-    mbstowcs(lang, hb_language_to_string(buffer->props.language), 4);
+    mbstowcs((wchar_t*) lang, hb_language_to_string (buffer->props.language), 4);
   }
 
   hr = analyzer->GetGlyphs(pchars, length,
     fontFace, FALSE,
-    buffer->props.direction,
-    &runHead->mScript, (const wchar_t*)lang, NULL, NULL, NULL, 0,
+    backward,
+    &runHead->mScript, lang, NULL, NULL, NULL, 0,
     maxGlyphs, clusters, textProperties,
     glyphs, glyphProperties, &actualGlyphs);
 
@@ -716,8 +716,8 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
     hr = analyzer->GetGlyphs(pchars, length,
       fontFace, FALSE,
-      buffer->props.direction,
-      &runHead->mScript, (const wchar_t*)lang, NULL, NULL, NULL, 0,
+      backward,
+      &runHead->mScript, lang, NULL, NULL, NULL, 0,
       maxGlyphs, clusters, textProperties,
       glyphs, glyphProperties, &actualGlyphs);
   }
@@ -745,7 +745,11 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   int font_size = font->face->get_upem();
   if (font_size < 0)
     font_size = -font_size;
-  int x_mult = (double)font->x_scale / font_size;
+
+  if (font_size < 0)
+	  font_size = -font_size;
+  double x_mult = (double) font->x_scale / font_size;
+  double y_mult = (double) font->y_scale / font_size;
 
   hr = analyzer->GetGlyphPlacements(pchars,
     clusters,
@@ -755,11 +759,11 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     glyphProperties,
     actualGlyphs,
     fontFace,
-    font_size * x_mult,
+    font_size,
     FALSE,
-    FALSE,
+    backward,
     &runHead->mScript,
-    NULL,
+    lang,
     NULL,
     NULL,
     0,
@@ -805,14 +809,9 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
     /* The rest is crap.  Let's store position info there for now. */
     info->mask = advances[i];
-    info->var1.u32 = offsets[i].ascenderOffset;
-    info->var2.u32 = -offsets[i].advanceOffset;
+    info->var1.i32 = offsets[i].advanceOffset;
+    info->var2.i32 = offsets[i].ascenderOffset;
   }
-
-  free(clusters);
-  free(glyphs);
-  free(textProperties);
-  free(glyphProperties);
 
   /* Set glyph positions */
   buffer->clear_positions ();
@@ -822,13 +821,18 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     hb_glyph_position_t *pos = &buffer->pos[i];
 
     /* TODO vertical */
-    pos->x_advance = info->mask;
-    pos->x_offset = backward ? -info->var1.u32 : info->var1.u32;
-    pos->y_offset = info->var2.u32;
+    pos->x_advance = x_mult * (int32_t) info->mask;
+    pos->x_offset = x_mult * (backward ? -info->var1.i32 : info->var1.i32);
+    pos->y_offset = y_mult * info->var2.i32;
   }
 
   if (backward)
     hb_buffer_reverse (buffer);
+
+  free(clusters);
+  free(glyphs);
+  free(textProperties);
+  free(glyphProperties);
 
   /* Wow, done! */
   return true;
