@@ -677,14 +677,6 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   UINT32 maxGlyphs = 3 * length / 2 + 16;
 
-#define INITIAL_GLYPH_SIZE 400
-  UINT16* clusters = (UINT16*)malloc(INITIAL_GLYPH_SIZE * sizeof(UINT16));
-  UINT16* glyphs = (UINT16*)malloc(INITIAL_GLYPH_SIZE * sizeof(UINT16));
-  DWRITE_SHAPING_TEXT_PROPERTIES* textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
-    malloc(INITIAL_GLYPH_SIZE * sizeof(DWRITE_SHAPING_TEXT_PROPERTIES));
-  DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
-    malloc(INITIAL_GLYPH_SIZE * sizeof(DWRITE_SHAPING_GLYPH_PROPERTIES));
-
   UINT32 actualGlyphs;
 
   bool backward = HB_DIRECTION_IS_BACKWARD(buffer->props.direction);
@@ -694,6 +686,20 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     mbstowcs((wchar_t*) lang, hb_language_to_string (buffer->props.language), 4);
   }
 
+  #define FAIL(...) \
+  HB_STMT_START { \
+    DEBUG_MSG (DIRECTWRITE, NULL, __VA_ARGS__); \
+    return false; \
+  } HB_STMT_END;
+
+retry_getglyphs:
+  UINT16* clusters = (UINT16*) malloc (maxGlyphs * sizeof (UINT16));
+  UINT16* glyphs = (UINT16*) malloc (maxGlyphs * sizeof (UINT16));
+  DWRITE_SHAPING_TEXT_PROPERTIES* textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
+    malloc (maxGlyphs * sizeof (DWRITE_SHAPING_TEXT_PROPERTIES));
+  DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
+    malloc (maxGlyphs * sizeof (DWRITE_SHAPING_GLYPH_PROPERTIES));
+
   hr = analyzer->GetGlyphs(pchars, length,
     fontFace, FALSE,
     backward,
@@ -701,34 +707,24 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     maxGlyphs, clusters, textProperties,
     glyphs, glyphProperties, &actualGlyphs);
 
-  if (hr == HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER)) {
-    free(clusters);
-    free(glyphs);
-    free(textProperties);
-    free(glyphProperties);
+  if (unlikely (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))) {
+    free (clusters);
+    free (glyphs);
+    free (textProperties);
+    free (glyphProperties);
 
-    clusters = (UINT16*)malloc(INITIAL_GLYPH_SIZE * sizeof(UINT16));
-    glyphs = (UINT16*)malloc(INITIAL_GLYPH_SIZE * sizeof(UINT16));
-    textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
-      malloc(INITIAL_GLYPH_SIZE * sizeof(DWRITE_SHAPING_TEXT_PROPERTIES));
-    glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
-      malloc(INITIAL_GLYPH_SIZE * sizeof(DWRITE_SHAPING_GLYPH_PROPERTIES));
+    maxGlyphs *= 2;
 
-    hr = analyzer->GetGlyphs(pchars, length,
-      fontFace, FALSE,
-      backward,
-      &runHead->mScript, lang, NULL, NULL, NULL, 0,
-      maxGlyphs, clusters, textProperties,
-      glyphs, glyphProperties, &actualGlyphs);
+    goto retry_getglyphs;
   }
-  if (FAILED(hr)) {
-    //NS_WARNING("Analyzer failed to get glyphs.");
+  if (FAILED (hr)) {
+    FAIL ("Analyzer failed to get glyphs.");
     return false;
   }
 
-  FLOAT advances[400];
-  DWRITE_GLYPH_OFFSET offsets[400];
-
+  FLOAT* advances = (FLOAT*) malloc (actualGlyphs * sizeof (FLOAT));
+  DWRITE_GLYPH_OFFSET* offsets = (DWRITE_GLYPH_OFFSET*)
+    malloc(actualGlyphs * sizeof (DWRITE_GLYPH_OFFSET));
 
   /* The -2 in the following is to compensate for possible
    * alignment needed after the WORD array.  sizeof(WORD) == 2. */
@@ -742,16 +738,16 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
 #undef ALLOCATE_ARRAY
 
-  int font_size = font->face->get_upem();
-  if (font_size < 0)
-    font_size = -font_size;
+  int fontSize = font->face->get_upem();
+  if (fontSize < 0)
+    fontSize = -fontSize;
 
-  if (font_size < 0)
-	  font_size = -font_size;
-  double x_mult = (double) font->x_scale / font_size;
-  double y_mult = (double) font->y_scale / font_size;
+  if (fontSize < 0)
+    fontSize = -fontSize;
+  double x_mult = (double) font->x_scale / fontSize;
+  double y_mult = (double) font->y_scale / fontSize;
 
-  hr = analyzer->GetGlyphPlacements(pchars,
+  hr = analyzer->GetGlyphPlacements (pchars,
     clusters,
     textProperties,
     length,
@@ -759,7 +755,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     glyphProperties,
     actualGlyphs,
     fontFace,
-    font_size,
+    fontSize,
     FALSE,
     backward,
     &runHead->mScript,
@@ -770,37 +766,35 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     advances,
     offsets);
 
-  if (FAILED(hr)) {
-    //NS_WARNING("Analyzer failed to get glyph placements.");
+  if (FAILED (hr)) {
+    FAIL ("Analyzer failed to get glyph placements.");
     return false;
   }
-
-  unsigned int glyphs_len = actualGlyphs;
 
   /* Ok, we've got everything we need, now compose output buffer,
    * very, *very*, carefully! */
 
   /* Calculate visual-clusters.  That's what we ship. */
-  for (unsigned int i = 0; i < glyphs_len; i++)
+  for (unsigned int i = 0; i < actualGlyphs; i++)
     vis_clusters[i] = -1;
   for (unsigned int i = 0; i < buffer->len; i++) {
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
     //*p = MIN (*p, buffer->info[i].cluster);
   }
-  for (unsigned int i = 1; i < glyphs_len; i++)
+  for (unsigned int i = 1; i < actualGlyphs; i++)
     if (vis_clusters[i] == -1)
       vis_clusters[i] = vis_clusters[i - 1];
 
 #undef utf16_index
 
-  //if (unlikely (!buffer->ensure (glyphs_len)))
-  //  FAIL ("Buffer in error");
+  if (unlikely (!buffer->ensure (actualGlyphs)))
+    FAIL ("Buffer in error");
 
 #undef FAIL
 
   /* Set glyph infos */
   buffer->len = 0;
-  for (unsigned int i = 0; i < glyphs_len; i++)
+  for (unsigned int i = 0; i < actualGlyphs; i++)
   {
     hb_glyph_info_t *info = &buffer->info[buffer->len++];
 
@@ -815,7 +809,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   /* Set glyph positions */
   buffer->clear_positions ();
-  for (unsigned int i = 0; i < glyphs_len; i++)
+  for (unsigned int i = 0; i < actualGlyphs; i++)
   {
     hb_glyph_info_t *info = &buffer->info[i];
     hb_glyph_position_t *pos = &buffer->pos[i];
@@ -829,10 +823,12 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   if (backward)
     hb_buffer_reverse (buffer);
 
-  free(clusters);
-  free(glyphs);
-  free(textProperties);
-  free(glyphProperties);
+  free (clusters);
+  free (glyphs);
+  free (textProperties);
+  free (glyphProperties);
+  free (advances);
+  free (offsets);
 
   /* Wow, done! */
   return true;
