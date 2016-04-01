@@ -815,7 +815,7 @@ retry_getglyphs:
   }
 
   // TODO: get lineWith from somewhere
-  FLOAT lineWidth = 15000;
+  FLOAT lineWidth = 60000;
 
   FLOAT* justifiedGlyphAdvances =
     (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
@@ -830,51 +830,73 @@ retry_getglyphs:
     return false;
   }
 
-retry_getjustifiedglyphs:
-  UINT16* modifiedClusterMap = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
-  UINT16* modifiedGlyphIndices = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
-  FLOAT* modifiedGlyphAdvances = (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
-  DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
-    malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
-  UINT32 actualGlyphsCount;
-  hr = analyzer->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
-      textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
-      glyphAdvances, justifiedGlyphAdvances, justifiedGlyphOffsets,
-      glyphProperties, &actualGlyphsCount, modifiedClusterMap, modifiedGlyphIndices,
-      modifiedGlyphAdvances, modifiedGlyphOffsets);
-
-  if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
-  {
-    maxGlyphCount = actualGlyphsCount;
-    free (modifiedClusterMap);
-    free (modifiedGlyphIndices);
-    free (modifiedGlyphAdvances);
-    free (modifiedGlyphOffsets);
-
-    maxGlyphCount = actualGlyphsCount;
-
-    goto retry_getjustifiedglyphs;
-  }
+  DWRITE_SCRIPT_PROPERTIES scriptProperties;
+  hr = analyzer->GetScriptProperties (runHead->mScript, &scriptProperties);
   if (FAILED (hr))
   {
-    FAIL ("Analyzer failed to get justified glyphs.");
+    FAIL ("Analyzer failed to get script properties.");
     return false;
   }
+  uint32_t justificationCharacter = scriptProperties.justificationCharacter;
 
-  free (clusterMap);
-  free (glyphIndices);
-  free (glyphAdvances);
-  free (glyphOffsets);
+  // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
+  if (justificationCharacter != 32)
+  {
+retry_getjustifiedglyphs:
+    UINT16* modifiedClusterMap = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
+    UINT16* modifiedGlyphIndices = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
+    FLOAT* modifiedGlyphAdvances = (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
+    DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
+      malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+    UINT32 actualGlyphsCount;
+    hr = analyzer->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
+        textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
+        glyphAdvances, justifiedGlyphAdvances, justifiedGlyphOffsets,
+        glyphProperties, &actualGlyphsCount, modifiedClusterMap, modifiedGlyphIndices,
+        modifiedGlyphAdvances, modifiedGlyphOffsets);
 
-  glyphCount = actualGlyphsCount;
-  clusterMap = modifiedClusterMap;
-  glyphIndices = modifiedGlyphIndices;
-  glyphAdvances = modifiedGlyphAdvances;
-  glyphOffsets = modifiedGlyphOffsets;
+    if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
+    {
+      maxGlyphCount = actualGlyphsCount;
+      free (modifiedClusterMap);
+      free (modifiedGlyphIndices);
+      free (modifiedGlyphAdvances);
+      free (modifiedGlyphOffsets);
+
+      maxGlyphCount = actualGlyphsCount;
+
+      goto retry_getjustifiedglyphs;
+    }
+    if (FAILED (hr))
+    {
+      FAIL ("Analyzer failed to get justified glyphs.");
+      return false;
+    }
+
+    free (clusterMap);
+    free (glyphIndices);
+    free (glyphAdvances);
+    free (glyphOffsets);
+
+    glyphCount = actualGlyphsCount;
+    clusterMap = modifiedClusterMap;
+    glyphIndices = modifiedGlyphIndices;
+    glyphAdvances = modifiedGlyphAdvances;
+    glyphOffsets = modifiedGlyphOffsets;
+
+    free(justifiedGlyphAdvances);
+    free(justifiedGlyphOffsets);
+  }
+  else
+  {
+    free(glyphAdvances);
+    free(glyphOffsets);
+
+    glyphAdvances = justifiedGlyphAdvances;
+    glyphOffsets = justifiedGlyphOffsets;
+  }
 
   free(justificationOpportunities);
-  free(justifiedGlyphAdvances);
-  free(justifiedGlyphOffsets);
 
 #endif
 
