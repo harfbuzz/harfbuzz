@@ -25,7 +25,11 @@
 #define HB_SHAPER directwrite
 #include "hb-shaper-impl-private.hh"
 
-#include <dwrite.h>
+#ifdef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
+  #include <DWrite.h>
+#else
+  #include <DWrite_1.h>
+#endif
 
 #include "hb-directwrite.h"
 
@@ -176,7 +180,8 @@ _hb_rename_font(hb_blob_t *blob, wchar_t *new_name)
 hb_directwrite_shaper_face_data_t *
 _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 {
-  hb_directwrite_shaper_face_data_t *data = (hb_directwrite_shaper_face_data_t *)calloc(1, sizeof (hb_directwrite_shaper_face_data_t));
+  hb_directwrite_shaper_face_data_t *data =
+    (hb_directwrite_shaper_face_data_t *) calloc (1, sizeof (hb_directwrite_shaper_face_data_t));
   if (unlikely (!data))
     return NULL;
 
@@ -244,26 +249,30 @@ _hb_directwrite_shaper_font_data_create (hb_font_t *font)
 {
   if (unlikely (!hb_directwrite_shaper_face_data_ensure (font->face))) return NULL;
 
-  hb_directwrite_shaper_font_data_t *data = (hb_directwrite_shaper_font_data_t *) calloc (1, sizeof (hb_directwrite_shaper_font_data_t));
+  hb_directwrite_shaper_font_data_t *data =
+    (hb_directwrite_shaper_font_data_t *) calloc (1, sizeof (hb_directwrite_shaper_font_data_t));
   if (unlikely (!data))
     return NULL;
 
   data->hdc = GetDC (NULL);
 
-  if (unlikely (!populate_log_font (&data->log_font, font))) {
+  if (unlikely (!populate_log_font (&data->log_font, font)))
+  {
     DEBUG_MSG (DIRECTWRITE, font, "Font populate_log_font() failed");
     _hb_directwrite_shaper_font_data_destroy (data);
     return NULL;
   }
 
   data->hfont = CreateFontIndirectW (&data->log_font);
-  if (unlikely (!data->hfont)) {
+  if (unlikely (!data->hfont))
+  {
     DEBUG_MSG (DIRECTWRITE, font, "Font CreateFontIndirectW() failed");
     _hb_directwrite_shaper_font_data_destroy (data);
      return NULL;
   }
 
-  if (!SelectObject (data->hdc, data->hfont)) {
+  if (!SelectObject (data->hdc, data->hfont))
+  {
     DEBUG_MSG (DIRECTWRITE, font, "Font SelectObject() failed");
     _hb_directwrite_shaper_font_data_destroy (data);
      return NULL;
@@ -388,10 +397,7 @@ public:
     mCurrentRun = &mRunHead;
 
     // Call each of the analyzers in sequence, recording their results.
-    if (SUCCEEDED(hr = textAnalyzer->AnalyzeScript(this,
-      0,
-      mTextLength,
-      this))) {
+    if (SUCCEEDED (hr = textAnalyzer->AnalyzeScript (this, 0, mTextLength, this))) {
       *runHead = &mRunHead;
     }
 
@@ -596,20 +602,30 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   hb_directwrite_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
 
   // factory probably should be cached
+#ifdef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
   IDWriteFactory* dwriteFactory;
-  DWriteCreateFactory(
+#else
+  IDWriteFactory1* dwriteFactory;
+#endif
+  DWriteCreateFactory (
     DWRITE_FACTORY_TYPE_SHARED,
-    __uuidof(IDWriteFactory),
-    reinterpret_cast<IUnknown**>(&dwriteFactory)
-    );
+    __uuidof (IDWriteFactory),
+    (IUnknown**) &dwriteFactory
+  );
 
   IDWriteGdiInterop *gdiInterop;
   dwriteFactory->GetGdiInterop (&gdiInterop);
   IDWriteFontFace* fontFace;
   gdiInterop->CreateFontFaceFromHdc (font_data->hdc, &fontFace);
 
+#ifdef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
   IDWriteTextAnalyzer* analyzer;
-  dwriteFactory->CreateTextAnalyzer (&analyzer);
+  dwriteFactory->CreateTextAnalyzer(&analyzer);
+#else
+  IDWriteTextAnalyzer* analyzer0;
+  dwriteFactory->CreateTextAnalyzer (&analyzer0);
+  IDWriteTextAnalyzer1* analyzer = (IDWriteTextAnalyzer1*) analyzer0;
+#endif
 
   unsigned int scratch_size;
   hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
@@ -624,7 +640,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
 #define utf16_index() var1.u32
 
-  ALLOCATE_ARRAY(WCHAR, pchars, buffer->len * 2);
+  ALLOCATE_ARRAY(WCHAR, textString, buffer->len * 2);
 
   unsigned int chars_len = 0;
   for (unsigned int i = 0; i < buffer->len; i++)
@@ -632,12 +648,12 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     hb_codepoint_t c = buffer->info[i].codepoint;
     buffer->info[i].utf16_index() = chars_len;
     if (likely(c <= 0xFFFFu))
-      pchars[chars_len++] = c;
+      textString[chars_len++] = c;
     else if (unlikely(c > 0x10FFFFu))
-      pchars[chars_len++] = 0xFFFDu;
+      textString[chars_len++] = 0xFFFDu;
     else {
-      pchars[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
-      pchars[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1 << 10) - 1));
+      textString[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
+      textString[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1 << 10) - 1));
     }
   }
 
@@ -668,9 +684,9 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   * but we never attempt to shape a word longer than 64K characters
   * in a single gfxShapedWord, so we cannot exceed that limit.
   */
-  UINT32 length = buffer->len;
+  UINT32 textLength = buffer->len;
 
-  TextAnalysis analysis(pchars, length, NULL, readingDirection);
+  TextAnalysis analysis(textString, textLength, NULL, readingDirection);
   TextAnalysis::Run *runHead;
   hr = analysis.GenerateResults(analyzer, &runHead);
 
@@ -680,32 +696,25 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     return false; \
   } HB_STMT_END;
 
-  if (FAILED (hr)) {
+  if (FAILED (hr))
+  {
     FAIL ("Analyzer failed to generate results.");
     return false;
   }
 
-  UINT32 maxGlyphs = 3 * length / 2 + 16;
+  UINT32 maxGlyphCount = 3 * textLength / 2 + 16;
+  UINT32 glyphCount;
+  bool isRightToLeft = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
 
-  UINT32 actualGlyphs;
-
-  bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
-
-  const wchar_t lang[20] = {0};
-  if (buffer->props.language != NULL) {
-    mbstowcs ((wchar_t*) lang, hb_language_to_string (buffer->props.language), 20);
+  const wchar_t localeName[20] = {0};
+  if (buffer->props.language != NULL)
+  {
+    mbstowcs ((wchar_t*) localeName,
+      hb_language_to_string (buffer->props.language), 20);
   }
 
-retry_getglyphs:
-  UINT16* clusters = (UINT16*) malloc (maxGlyphs * sizeof (UINT16));
-  UINT16* glyphs = (UINT16*) malloc (maxGlyphs * sizeof (UINT16));
-  DWRITE_SHAPING_TEXT_PROPERTIES* textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
-    malloc (maxGlyphs * sizeof (DWRITE_SHAPING_TEXT_PROPERTIES));
-  DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
-    malloc (maxGlyphs * sizeof (DWRITE_SHAPING_GLYPH_PROPERTIES));
-
-  DWRITE_TYPOGRAPHIC_FEATURES dwfeatures;
-  dwfeatures.featureCount = num_features;
+  DWRITE_TYPOGRAPHIC_FEATURES singleFeatures;
+  singleFeatures.featureCount = num_features;
   if (num_features != 0)
   {
     DWRITE_FONT_FEATURE* dwfeatureArray = (DWRITE_FONT_FEATURE*)
@@ -713,144 +722,224 @@ retry_getglyphs:
     for (unsigned int i = 0; i < num_features; ++i)
     {
       dwfeatureArray[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
-          hb_uint32_swap (features[i].tag);
+        hb_uint32_swap (features[i].tag);
       dwfeatureArray[i].parameter = features[i].value;
     }
-    dwfeatures.features = dwfeatureArray;
+    singleFeatures.features = dwfeatureArray;
   }
-  const DWRITE_TYPOGRAPHIC_FEATURES* dwfeaturesArray =
-    (const DWRITE_TYPOGRAPHIC_FEATURES*) &dwfeatures;
-  const UINT32 featuresLength[] = {length};
-  hr = analyzer->GetGlyphs (pchars, length,
-    fontFace, FALSE,
-    backward,
-    &runHead->mScript, lang, NULL, &dwfeaturesArray, featuresLength, 1,
-    maxGlyphs, clusters, textProperties,
-    glyphs, glyphProperties, &actualGlyphs);
+  const DWRITE_TYPOGRAPHIC_FEATURES* dwFeatures =
+    (const DWRITE_TYPOGRAPHIC_FEATURES*) &singleFeatures;
+  const UINT32 featureRangeLengths[] = { textLength };
 
-  if (unlikely (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))) {
-    free (clusters);
-    free (glyphs);
+retry_getglyphs:
+  UINT16* clusterMap = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
+  UINT16* glyphIndices = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
+  DWRITE_SHAPING_TEXT_PROPERTIES* textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
+    malloc (maxGlyphCount * sizeof (DWRITE_SHAPING_TEXT_PROPERTIES));
+  DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
+    malloc (maxGlyphCount * sizeof (DWRITE_SHAPING_GLYPH_PROPERTIES));
+
+  hr = analyzer->GetGlyphs (textString, textLength, fontFace, FALSE,
+    isRightToLeft, &runHead->mScript, localeName, NULL, &dwFeatures,
+    featureRangeLengths, 1, maxGlyphCount, clusterMap, textProperties, glyphIndices,
+    glyphProperties, &glyphCount);
+
+  if (unlikely (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER)))
+  {
+    free (clusterMap);
+    free (glyphIndices);
     free (textProperties);
     free (glyphProperties);
 
-    maxGlyphs *= 2;
+    maxGlyphCount *= 2;
 
     goto retry_getglyphs;
   }
-  if (FAILED (hr)) {
+  if (FAILED (hr))
+  {
     FAIL ("Analyzer failed to get glyphs.");
     return false;
   }
 
-  FLOAT* advances = (FLOAT*) malloc (actualGlyphs * sizeof (FLOAT));
-  DWRITE_GLYPH_OFFSET* offsets = (DWRITE_GLYPH_OFFSET*)
-    malloc(actualGlyphs * sizeof (DWRITE_GLYPH_OFFSET));
+  FLOAT* glyphAdvances = (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
+  DWRITE_GLYPH_OFFSET* glyphOffsets = (DWRITE_GLYPH_OFFSET*)
+    malloc(maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
 
   /* The -2 in the following is to compensate for possible
    * alignment needed after the WORD array.  sizeof(WORD) == 2. */
-  unsigned int glyphs_size = (scratch_size * sizeof (int)-2)
-    / (sizeof (WORD) +
-    4 + // sizeof (SCRIPT_GLYPHPROP) +
-    sizeof (int) +
-    8 + // sizeof (GOFFSET) +
-    sizeof (uint32_t));
-  ALLOCATE_ARRAY(uint32_t, vis_clusters, glyphs_size);
+  unsigned int glyphs_size = (scratch_size * sizeof(int) - 2)
+         / (sizeof(WORD) +
+            sizeof(DWRITE_SHAPING_GLYPH_PROPERTIES) +
+            sizeof(int) +
+            sizeof(DWRITE_GLYPH_OFFSET) +
+            sizeof(uint32_t));
+  ALLOCATE_ARRAY (uint32_t, vis_clusters, glyphs_size);
 
 #undef ALLOCATE_ARRAY
 
-  int fontSize = font->face->get_upem();
-  if (fontSize < 0)
-    fontSize = -fontSize;
+  int fontEmSize = font->face->get_upem();
+  if (fontEmSize < 0)
+    fontEmSize = -fontEmSize;
 
-  if (fontSize < 0)
-    fontSize = -fontSize;
-  double x_mult = (double) font->x_scale / fontSize;
-  double y_mult = (double) font->y_scale / fontSize;
+  if (fontEmSize < 0)
+    fontEmSize = -fontEmSize;
+  double x_mult = (double) font->x_scale / fontEmSize;
+  double y_mult = (double) font->y_scale / fontEmSize;
 
-  hr = analyzer->GetGlyphPlacements (pchars,
-    clusters,
-    textProperties,
-    length,
-    glyphs,
-    glyphProperties,
-    actualGlyphs,
-    fontFace,
-    fontSize,
-    FALSE,
-    backward,
-    &runHead->mScript,
-    lang,
-    &dwfeaturesArray,
-    featuresLength,
-    1,
-    advances,
-    offsets);
+  hr = analyzer->GetGlyphPlacements (textString,
+    clusterMap, textProperties, textLength, glyphIndices,
+    glyphProperties, glyphCount, fontFace, fontEmSize,
+    FALSE, isRightToLeft, &runHead->mScript, localeName,
+    &dwFeatures, featureRangeLengths, 1,
+    glyphAdvances, glyphOffsets);
 
-  if (FAILED (hr)) {
+  if (FAILED (hr))
+  {
     FAIL ("Analyzer failed to get glyph placements.");
     return false;
   }
+
+#ifndef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
+
+  DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities =
+    (DWRITE_JUSTIFICATION_OPPORTUNITY*)
+    malloc (maxGlyphCount * sizeof (DWRITE_JUSTIFICATION_OPPORTUNITY));
+  hr = analyzer->GetJustificationOpportunities (fontFace, fontEmSize,
+    runHead->mScript, textLength, glyphCount, textString, clusterMap,
+    glyphProperties, justificationOpportunities);
+
+  if (FAILED (hr))
+  {
+    FAIL ("Analyzer failed to get justification opportunities.");
+    return false;
+  }
+
+  // TODO: get lineWith from somewhere
+  FLOAT lineWidth = 15000;
+
+  FLOAT* justifiedGlyphAdvances =
+    (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
+  DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
+    malloc (glyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+  hr = analyzer->JustifyGlyphAdvances (lineWidth, glyphCount, justificationOpportunities,
+    glyphAdvances, glyphOffsets, justifiedGlyphAdvances, justifiedGlyphOffsets);
+
+  if (FAILED (hr))
+  {
+    FAIL ("Analyzer failed to get justified glyph advances.");
+    return false;
+  }
+
+retry_getjustifiedglyphs:
+  UINT16* modifiedClusterMap = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
+  UINT16* modifiedGlyphIndices = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
+  FLOAT* modifiedGlyphAdvances = (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
+  DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
+    malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+  UINT32 actualGlyphsCount;
+  hr = analyzer->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
+      textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
+      glyphAdvances, justifiedGlyphAdvances, justifiedGlyphOffsets,
+      glyphProperties, &actualGlyphsCount, modifiedClusterMap, modifiedGlyphIndices,
+      modifiedGlyphAdvances, modifiedGlyphOffsets);
+
+  if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
+  {
+    maxGlyphCount = actualGlyphsCount;
+    free (modifiedClusterMap);
+    free (modifiedGlyphIndices);
+    free (modifiedGlyphAdvances);
+    free (modifiedGlyphOffsets);
+
+    maxGlyphCount = actualGlyphsCount;
+
+    goto retry_getjustifiedglyphs;
+  }
+  if (FAILED (hr))
+  {
+    FAIL ("Analyzer failed to get justified glyphs.");
+    return false;
+  }
+
+  free (clusterMap);
+  free (glyphIndices);
+  free (glyphAdvances);
+  free (glyphOffsets);
+
+  glyphCount = actualGlyphsCount;
+  clusterMap = modifiedClusterMap;
+  glyphIndices = modifiedGlyphIndices;
+  glyphAdvances = modifiedGlyphAdvances;
+  glyphOffsets = modifiedGlyphOffsets;
+
+  free(justificationOpportunities);
+  free(justifiedGlyphAdvances);
+  free(justifiedGlyphOffsets);
+
+#endif
 
   /* Ok, we've got everything we need, now compose output buffer,
    * very, *very*, carefully! */
 
   /* Calculate visual-clusters.  That's what we ship. */
-  for (unsigned int i = 0; i < actualGlyphs; i++)
+  for (unsigned int i = 0; i < glyphCount; i++)
     vis_clusters[i] = -1;
-  for (unsigned int i = 0; i < buffer->len; i++) {
-    uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
+  for (unsigned int i = 0; i < buffer->len; i++)
+  {
+    uint32_t *p =
+      &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
     *p = MIN (*p, buffer->info[i].cluster);
   }
-  for (unsigned int i = 1; i < actualGlyphs; i++)
+  for (unsigned int i = 1; i < glyphCount; i++)
     if (vis_clusters[i] == -1)
       vis_clusters[i] = vis_clusters[i - 1];
 
 #undef utf16_index
 
-  if (unlikely (!buffer->ensure (actualGlyphs)))
+  if (unlikely (!buffer->ensure (glyphCount)))
     FAIL ("Buffer in error");
 
 #undef FAIL
 
   /* Set glyph infos */
   buffer->len = 0;
-  for (unsigned int i = 0; i < actualGlyphs; i++)
+  for (unsigned int i = 0; i < glyphCount; i++)
   {
     hb_glyph_info_t *info = &buffer->info[buffer->len++];
 
-    info->codepoint = glyphs[i];
+    info->codepoint = glyphIndices[i];
     info->cluster = vis_clusters[i];
 
     /* The rest is crap.  Let's store position info there for now. */
-    info->mask = advances[i];
-    info->var1.i32 = offsets[i].advanceOffset;
-    info->var2.i32 = offsets[i].ascenderOffset;
+    info->mask = glyphAdvances[i];
+    info->var1.i32 = glyphOffsets[i].advanceOffset;
+    info->var2.i32 = glyphOffsets[i].ascenderOffset;
   }
 
   /* Set glyph positions */
   buffer->clear_positions ();
-  for (unsigned int i = 0; i < actualGlyphs; i++)
+  for (unsigned int i = 0; i < glyphCount; i++)
   {
     hb_glyph_info_t *info = &buffer->info[i];
     hb_glyph_position_t *pos = &buffer->pos[i];
 
     /* TODO vertical */
     pos->x_advance = x_mult * (int32_t) info->mask;
-    pos->x_offset = x_mult * (backward ? -info->var1.i32 : info->var1.i32);
+    pos->x_offset =
+      x_mult * (isRightToLeft ? -info->var1.i32 : info->var1.i32);
     pos->y_offset = y_mult * info->var2.i32;
   }
 
-  if (backward)
+  if (isRightToLeft)
     hb_buffer_reverse (buffer);
 
-  free (clusters);
-  free (glyphs);
+  free (clusterMap);
+  free (glyphIndices);
   free (textProperties);
   free (glyphProperties);
-  free (advances);
-  free (offsets);
-  free (dwfeatures.features);
+  free (glyphAdvances);
+  free (glyphOffsets);
+  free (singleFeatures.features);
 
   /* Wow, done! */
   return true;
