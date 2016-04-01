@@ -342,16 +342,16 @@ public:
   // results.
   struct Run
   {
-    UINT32 mTextStart;   // starting text position of this run
-    UINT32 mTextLength;  // number of contiguous code units covered
-    UINT32 mGlyphStart;  // starting glyph in the glyphs array
-    UINT32 mGlyphCount;  // number of glyphs associated with this run of 
+    uint32_t mTextStart;   // starting text position of this run
+    uint32_t mTextLength;  // number of contiguous code units covered
+    uint32_t mGlyphStart;  // starting glyph in the glyphs array
+    uint32_t mGlyphCount;  // number of glyphs associated with this run of 
     // text
     DWRITE_SCRIPT_ANALYSIS mScript;
-    UINT8 mBidiLevel;
+    uint8_t mBidiLevel;
     bool mIsSideways;
 
-    inline bool ContainsTextPosition(UINT32 aTextPosition) const
+    inline bool ContainsTextPosition(uint32_t aTextPosition) const
     {
       return aTextPosition >= mTextStart
         && aTextPosition <  mTextStart + mTextLength;
@@ -362,7 +362,7 @@ public:
 
 public:
   TextAnalysis(const wchar_t* text,
-    UINT32 textLength,
+    uint32_t textLength,
     const wchar_t* localeName,
     DWRITE_READING_DIRECTION readingDirection)
     : mText(text)
@@ -406,9 +406,9 @@ public:
 
   // IDWriteTextAnalysisSource implementation
 
-  IFACEMETHODIMP GetTextAtPosition(UINT32 textPosition,
-    OUT WCHAR const** textString,
-    OUT UINT32* textLength)
+  IFACEMETHODIMP GetTextAtPosition(uint32_t textPosition,
+    OUT wchar_t const** textString,
+    OUT uint32_t* textLength)
   {
     if (textPosition >= mTextLength) {
       // No text at this position, valid query though.
@@ -422,9 +422,9 @@ public:
     return S_OK;
   }
 
-  IFACEMETHODIMP GetTextBeforePosition(UINT32 textPosition,
-    OUT WCHAR const** textString,
-    OUT UINT32* textLength)
+  IFACEMETHODIMP GetTextBeforePosition(uint32_t textPosition,
+    OUT wchar_t const** textString,
+    OUT uint32_t* textLength)
   {
     if (textPosition == 0 || textPosition > mTextLength) {
       // Either there is no text before here (== 0), or this
@@ -442,15 +442,15 @@ public:
   IFACEMETHODIMP_(DWRITE_READING_DIRECTION)
     GetParagraphReadingDirection() { return mReadingDirection; }
 
-  IFACEMETHODIMP GetLocaleName(UINT32 textPosition,
-    UINT32* textLength,
-    WCHAR const** localeName) {
+  IFACEMETHODIMP GetLocaleName(uint32_t textPosition,
+    uint32_t* textLength,
+    wchar_t const** localeName) {
     return S_OK;
   }
 
   IFACEMETHODIMP
-    GetNumberSubstitution(UINT32 textPosition,
-    OUT UINT32* textLength,
+    GetNumberSubstitution(uint32_t textPosition,
+    OUT uint32_t* textLength,
     OUT IDWriteNumberSubstitution** numberSubstitution)
   {
     // We do not support number substitution.
@@ -463,8 +463,8 @@ public:
   // IDWriteTextAnalysisSink implementation
 
   IFACEMETHODIMP
-    SetScriptAnalysis(UINT32 textPosition,
-    UINT32 textLength,
+    SetScriptAnalysis(uint32_t textPosition,
+    uint32_t textLength,
     DWRITE_SCRIPT_ANALYSIS const* scriptAnalysis)
   {
     SetCurrentRun(textPosition);
@@ -478,22 +478,22 @@ public:
   }
 
   IFACEMETHODIMP
-    SetLineBreakpoints(UINT32 textPosition,
-    UINT32 textLength,
+    SetLineBreakpoints(uint32_t textPosition,
+    uint32_t textLength,
     const DWRITE_LINE_BREAKPOINT* lineBreakpoints) { return S_OK; }
 
-  IFACEMETHODIMP SetBidiLevel(UINT32 textPosition,
-    UINT32 textLength,
-    UINT8 explicitLevel,
-    UINT8 resolvedLevel) { return S_OK; }
+  IFACEMETHODIMP SetBidiLevel(uint32_t textPosition,
+    uint32_t textLength,
+    uint8_t explicitLevel,
+    uint8_t resolvedLevel) { return S_OK; }
 
   IFACEMETHODIMP
-    SetNumberSubstitution(UINT32 textPosition,
-    UINT32 textLength,
+    SetNumberSubstitution(uint32_t textPosition,
+    uint32_t textLength,
     IDWriteNumberSubstitution* numberSubstitution) { return S_OK; }
 
 protected:
-  Run *FetchNextRun(IN OUT UINT32* textLength)
+  Run *FetchNextRun(IN OUT uint32_t* textLength)
   {
     // Used by the sink setters, this returns a reference to the next run.
     // Position and length are adjusted to now point after the current run
@@ -515,7 +515,7 @@ protected:
     return origRun;
   }
 
-  void SetCurrentRun(UINT32 textPosition)
+  void SetCurrentRun(uint32_t textPosition)
   {
     // Move the current run to the given position.
     // Since the analyzers generally return results in a forward manner,
@@ -536,7 +536,7 @@ protected:
             //                of our runs");
   }
 
-  void SplitCurrentRun(UINT32 splitPosition)
+  void SplitCurrentRun(uint32_t splitPosition)
   {
     if (!mCurrentRun) {
       //NS_ASSERTION(false, "SplitCurrentRun called without current run.");
@@ -558,7 +558,7 @@ protected:
     mCurrentRun->nextRun = newRun;
 
     // Adjust runs' text positions and lengths.
-    UINT32 splitPoint = splitPosition - mCurrentRun->mTextStart;
+    uint32_t splitPoint = splitPosition - mCurrentRun->mTextStart;
     newRun->mTextStart += splitPoint;
     newRun->mTextLength -= splitPoint;
     mCurrentRun->mTextLength = splitPoint;
@@ -569,9 +569,9 @@ protected:
   // Input
   // (weak references are fine here, since this class is a transient
   //  stack-based helper that doesn't need to copy data)
-  UINT32 mTextLength;
-  const WCHAR* mText;
-  const WCHAR* mLocaleName;
+  uint32_t mTextLength;
+  const wchar_t* mText;
+  const wchar_t* mLocaleName;
   DWRITE_READING_DIRECTION mReadingDirection;
 
   // Current processing state.
@@ -640,7 +640,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
 #define utf16_index() var1.u32
 
-  ALLOCATE_ARRAY(WCHAR, textString, buffer->len * 2);
+  ALLOCATE_ARRAY(wchar_t, textString, buffer->len * 2);
 
   unsigned int chars_len = 0;
   for (unsigned int i = 0; i < buffer->len; i++)
@@ -684,7 +684,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   * but we never attempt to shape a word longer than 64K characters
   * in a single gfxShapedWord, so we cannot exceed that limit.
   */
-  UINT32 textLength = buffer->len;
+  uint32_t textLength = buffer->len;
 
   TextAnalysis analysis(textString, textLength, NULL, readingDirection);
   TextAnalysis::Run *runHead;
@@ -702,8 +702,8 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     return false;
   }
 
-  UINT32 maxGlyphCount = 3 * textLength / 2 + 16;
-  UINT32 glyphCount;
+  uint32_t maxGlyphCount = 3 * textLength / 2 + 16;
+  uint32_t glyphCount;
   bool isRightToLeft = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
 
   const wchar_t localeName[20] = {0};
@@ -729,11 +729,11 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   }
   const DWRITE_TYPOGRAPHIC_FEATURES* dwFeatures =
     (const DWRITE_TYPOGRAPHIC_FEATURES*) &singleFeatures;
-  const UINT32 featureRangeLengths[] = { textLength };
+  const uint32_t featureRangeLengths[] = { textLength };
 
 retry_getglyphs:
-  UINT16* clusterMap = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
-  UINT16* glyphIndices = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
+  uint16_t* clusterMap = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
+  uint16_t* glyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
   DWRITE_SHAPING_TEXT_PROPERTIES* textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
     malloc (maxGlyphCount * sizeof (DWRITE_SHAPING_TEXT_PROPERTIES));
   DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
@@ -761,7 +761,7 @@ retry_getglyphs:
     return false;
   }
 
-  FLOAT* glyphAdvances = (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
+  float* glyphAdvances = (float*) malloc (maxGlyphCount * sizeof (float));
   DWRITE_GLYPH_OFFSET* glyphOffsets = (DWRITE_GLYPH_OFFSET*)
     malloc(maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
 
@@ -815,10 +815,10 @@ retry_getglyphs:
   }
 
   // TODO: get lineWith from somewhere
-  FLOAT lineWidth = 60000;
+  float lineWidth = 60000;
 
-  FLOAT* justifiedGlyphAdvances =
-    (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
+  float* justifiedGlyphAdvances =
+    (float*) malloc (maxGlyphCount * sizeof (float));
   DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
     malloc (glyphCount * sizeof (DWRITE_GLYPH_OFFSET));
   hr = analyzer->JustifyGlyphAdvances (lineWidth, glyphCount, justificationOpportunities,
@@ -843,12 +843,12 @@ retry_getglyphs:
   if (justificationCharacter != 32)
   {
 retry_getjustifiedglyphs:
-    UINT16* modifiedClusterMap = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
-    UINT16* modifiedGlyphIndices = (UINT16*) malloc (maxGlyphCount * sizeof (UINT16));
-    FLOAT* modifiedGlyphAdvances = (FLOAT*) malloc (maxGlyphCount * sizeof (FLOAT));
+    uint16_t* modifiedClusterMap = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
+    uint16_t* modifiedGlyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
+    float* modifiedGlyphAdvances = (float*) malloc (maxGlyphCount * sizeof (float));
     DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
       malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
-    UINT32 actualGlyphsCount;
+    uint32_t actualGlyphsCount;
     hr = analyzer->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
         textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
         glyphAdvances, justifiedGlyphAdvances, justifiedGlyphOffsets,
