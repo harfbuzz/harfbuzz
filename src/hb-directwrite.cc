@@ -25,7 +25,7 @@
 #define HB_SHAPER directwrite
 #include "hb-shaper-impl-private.hh"
 
-#ifdef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
+#ifndef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
   #include <DWrite.h>
 #else
   #include <DWrite_1.h>
@@ -602,7 +602,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   hb_directwrite_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
 
   // factory probably should be cached
-#ifdef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
+#ifndef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
   IDWriteFactory* dwriteFactory;
 #else
   IDWriteFactory1* dwriteFactory;
@@ -618,7 +618,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   IDWriteFontFace* fontFace;
   gdiInterop->CreateFontFaceFromHdc (font_data->hdc, &fontFace);
 
-#ifdef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
+#ifndef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
   IDWriteTextAnalyzer* analyzer;
   dwriteFactory->CreateTextAnalyzer(&analyzer);
 #else
@@ -799,7 +799,7 @@ retry_getglyphs:
     return false;
   }
 
-#ifndef HB_DIRECWRITE_PRE_WINDOWS8_COMPATIBLE
+#ifdef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
 
   DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities =
     (DWRITE_JUSTIFICATION_OPPORTUNITY*)
