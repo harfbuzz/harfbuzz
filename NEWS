@@ -1,3 +1,10 @@
+Overview of changes leading to 1.2.5
+Monday, April 4, 2016
+====================================
+
+- Fix GDEF mark-filtering-set, which was broken in 1.2.3.
+
+
 Overview of changes leading to 1.2.4
 Thursday, March 17, 2016
 ====================================
