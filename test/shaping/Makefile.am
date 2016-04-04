@@ -54,6 +54,7 @@ TESTS = \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
 	tests/ligature-id.tests \
+	tests/mark-filtering-sets.tests \
 	tests/mongolian-variation-selector.tests \
 	tests/spaces.tests \
 	tests/simple.tests \
