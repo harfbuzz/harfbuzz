@@ -658,7 +658,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   }
 
   ALLOCATE_ARRAY(WORD, log_clusters, chars_len);
-  if (num_features)
+  // if (num_features)
   {
     /* Need log_clusters to assign features. */
     chars_len = 0;
@@ -715,7 +715,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   DWRITE_TYPOGRAPHIC_FEATURES singleFeatures;
   singleFeatures.featureCount = num_features;
-  if (num_features != 0)
+  if (num_features)
   {
     DWRITE_FONT_FEATURE* dwfeatureArray = (DWRITE_FONT_FEATURE*)
       malloc (sizeof (DWRITE_FONT_FEATURE) * num_features);
@@ -961,7 +961,9 @@ retry_getjustifiedglyphs:
   free (glyphProperties);
   free (glyphAdvances);
   free (glyphOffsets);
-  free (singleFeatures.features);
+
+  if (num_features)
+    free (singleFeatures.features);
 
   /* Wow, done! */
   return true;
