@@ -1,3 +1,13 @@
+Overview of changes leading to 1.2.6
+Friday, April 8, 2016
+====================================
+
+- Blacklist GDEF table of another set of Times New Roman (Bold) Italic.
+- DirectWrite backend improvements.  Note: DirectWrite backend is
+  exclusively for our internal testing and should NOT be used in any
+  production system whatsoever.
+
+
 Overview of changes leading to 1.2.5
 Monday, April 4, 2016
 ====================================
