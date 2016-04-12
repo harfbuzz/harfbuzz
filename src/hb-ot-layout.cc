@@ -1208,7 +1208,7 @@ hb_ot_layout_get_math_constant (hb_font_t *font,
 }
 
 /**
- * hb_ot_layout_get_math_percent:
+ * hb_ot_layout_get_math_constant_percent:
  *
  * @font: #hb_font_t from which to retrieve the value
  * @constant: #hb_ot_math_constant_t representing a percentage

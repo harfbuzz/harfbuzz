@@ -24,8 +24,8 @@
  * Igalia Author(s): Frédéric Wang
  */
 
-#include "hb-ot-layout-math-table.hh"
 #include "hb-ot-shape-private.hh"
+#include "hb-ot-layout-math-table.hh"
 #include <algorithm>
 #include <math.h>
 

@@ -28,8 +28,8 @@
 #error "Include <hb-ot.h> instead."
 #endif
 
-#ifndef HB_OT_MATH_HH
-#define HB_OT_MATH_HH
+#ifndef HB_OT_MATH_H
+#define HB_OT_MATH_H
 
 #include "hb.h"
 
@@ -106,4 +106,4 @@ typedef enum {
 
 HB_END_DECLS
 
-#endif /* HB_OT_MATH_HH */
+#endif /* HB_OT_MATH_H */
