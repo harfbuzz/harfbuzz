@@ -308,6 +308,7 @@ set_glyph_assembly (hb_font_t           *font,
                     hb_position_t       target_size)
 {
   assert (hb_buffer_get_length (buffer) == 1);
+  if (glyphAssembly.part_count() == 0) return false;
 
   // A glyph assembly is made of a certain number of parts with start and end
   // connectors. The end connector of part i must overlap with the start
@@ -316,7 +317,7 @@ set_glyph_assembly (hb_font_t           *font,
   //
   //           Part_i                                 Part_{i+1}
   //
-  //                            Overlap_{i,i+1}
+  //                        ConnectorOverlap_{i,i+1}
   //                                ______
   //             ---               |      |
   //            /   \                                    ---
@@ -335,162 +336,159 @@ set_glyph_assembly (hb_font_t           *font,
   //                                             FullAdvance_{i+1}
   //
   // A part can be an extender, which means that it can be repeated as many
-  // times as needed to match the target size. For symmetry reason, all the
-  // extenders are repeated extRepeatCount times.
+  // times as needed to match the target size. To ensure that the width/height
+  // is distributed equally and the symmetry of the shape is preserved, all
+  // the extenders are repeated the same number of time (repeatCountExt) and
+  // all consecutive parts use the same overlap (connectorOverlap).
   //
-  // We first try with the maximum size possible that is
-  // Overlap_{i,i+1} = minConnectorOverlap. We want extRepeatCount to satisfy
+  // Ignoring the repetitions of extenders, we define the following constants:
   //
-  // FullAdvance =
-  //    extRepeatCount * sumExt + sumNonExt + minConnectorOverlap >= target_size
-  // where sumExt =
-  //  \sum_{i extender} [ (FullAdvance_i - minConnectorOverlap)]
-  // and   sumNonExt =
-  //  \sum_{i not extender} [(FullAdvance_i - minConnectorOverlap)]
+  // fullAdvanceSumNonExt = sum of the FullAdvance for non-extender parts.
+  // fullAdvanceSumExt = sum of the FullAdvance for extender parts.
+  // partCountNonExt = number of non extender parts.
+  // partCountExt = number of extender parts.
   //
-  // that is
+  // and so the number of distinct parts is partCountNonExt + partCountExt.
   //
-  // repeatCount =
-  //           ceil [ (target_size - sumNonExt - minConnectorOverlap) / sumExt ]
-
-  unsigned int extCount = 0;
-  hb_position_t sumExt = 0;
-  hb_position_t sumNonExt = 0;
+  // If we now take into account the repetitions of extenders, then the actual
+  // size of the output buffer is given by
+  //
+  // partCount = partCountNonExt + repeatCountExt * partCountExt
+  //
+  // and the actual size of the glyph assembly is given by
+  //
+  // fullAdvance
+  // = (fullAdvanceSumNonExt + repeatCountExt * fullAdvanceSumExt)
+  //   - connectorOverlap * (partCount - 1)
+  // = (fullAdvanceSumNonExt - connectorOverlap * (partCountNonExt - 1))
+  //  + repeatCountExt * (fullAdvanceSumExt - connectorOverlap * partCountExt)
+  //
+  // We want to choose connectorOverlap and repeatCountExt so that
+  //
+  // (*)  fullAdvance >= target_size and |fullAdvance - target_size| is minimal
+  //
+  // For valid input we can assume partCount >= 1 and using the constraint
+  // connectorOverlap >= minConnectorOverlap, we obtain the inequality
+  //
+  // target_size <= fullAdvance <= A + repeatCountExt * B
+  // where A, B respectively denote
+  // fullAdvanceSumNonExt - minConnectorOverlap * (partCountNonExt - 1) and
+  // fullAdvanceSumExt - minConnectorOverlap * partCountExt
+  //
+  // For valid input the value, full advances are greater than
+  // minConnectorOverlap so we can assume A, B > 0. Hence the best value of
+  // repeatCountExt to satisfy (*) is
+  //
+  // repeatCountExt = ceiling of [ (target_size - A) / B ] >= 1
+  //
+  // Now, we have
+  // target_size <= fullAdvance = C - connectorOverlap * (partCount - 1)
+  // with C = (fullAdvanceSumNonExt + repeatCountExt * fullAdvanceSumExt)
+  //        >= target_size by construction of repeatCountExt
+  //
+  // If partCount = 1, then connectorOverlap is irrelevant.
+  // Otherwise, the best value of connectorOverlap that satisfy (*) is the
+  // largest value value satisfying the constraint on
+  // StartConnector/EndConnectors and <= (C - target_size) / (partCount - 1).
+  //
+  hb_position_t fullAdvanceSumNonExt = 0;
+  hb_position_t fullAdvanceSumExt = 0;
+  unsigned int partCountNonExt = 0;
+  unsigned int partCountExt = 0;
   for (unsigned int i = 0; i < glyphAssembly.part_count(); i++) {
-    hb_position_t fullAdvanceMinusEndOverlap = glyphAssembly.full_advance(i) - minConnectorOverlap;
+    hb_position_t fullAdvance = glyphAssembly.full_advance(i);
     if (glyphAssembly.is_extender(i)) {
-      sumExt += fullAdvanceMinusEndOverlap;
-      extCount++;
+      fullAdvanceSumExt += fullAdvance;
+      partCountExt++;
     } else {
-      sumNonExt += fullAdvanceMinusEndOverlap;
+      fullAdvanceSumNonExt += fullAdvance;
+      partCountNonExt++;
     }
   }
-  if (sumExt == 0) return false; // error in the extender count or metrics
-  unsigned int extRepeatCount = 0;
-  if (sumNonExt + minConnectorOverlap < target_size)
-    extRepeatCount =
-      ceil(static_cast<float>(target_size - sumNonExt - minConnectorOverlap) /
-           sumExt);
+  hb_position_t A = fullAdvanceSumNonExt - minConnectorOverlap * (partCountNonExt - 1);
+  hb_position_t B = fullAdvanceSumExt - minConnectorOverlap * partCountExt;
+  if (B == 0) return false; // something is wrong in part count or metrics.
+  unsigned int repeatCountExt = ceil(float(target_size - A) / B);
 
   // Determine the actual number of glyphs necessary to draw this assembly at
   // the specified target size.
-  unsigned int glyphCount =
-    (glyphAssembly.part_count() - extCount) + extRepeatCount * extCount;
-  if (glyphCount == 0 ||
-      glyphCount > HB_OT_MATH_MAXIMUM_PART_COUNT_IN_GLYPH_ASSEMBLY)
-    return false;
-  if (!hb_buffer_set_length (buffer, glyphCount)) return false;
+  unsigned int partCount = partCountNonExt + repeatCountExt * partCountExt;
+  if (partCount == 0 ||
+      partCount > HB_OT_MATH_MAXIMUM_PART_COUNT_IN_GLYPH_ASSEMBLY) return false;
+  if (!hb_buffer_set_length (buffer, partCount)) return false;
   buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   buffer->have_positions = true;
 
-  // Add the glyph to the buffer and position them with the minimal overlap.
-  uint32_t initialCluster = buffer->info[0].cluster;
-  buffer->pos[0].x_offset = buffer->pos[0].y_offset = 0;
-  for (unsigned i = 0, j = 0; i < glyphAssembly.part_count(); i++) {
-    unsigned int partRepeatCount =
-      glyphAssembly.is_extender(i) ? extRepeatCount : 1;
-    for (unsigned int k = 0; k < partRepeatCount; k++, j++) {
-      buffer->info[j].codepoint = glyphAssembly.glyph(i);
+  // Determine the connector overlap if we have at least two parts.
+  hb_position_t connectorOverlap = 0;
+  if (partCount >= 2) {
+    // First determine the ideal overlap that would get closest to the target
+    // size. The following quotient is integer operation and gives the best
+    // lower approximation of the actual value with fractional pixels.
+    hb_position_t C = fullAdvanceSumNonExt + repeatCountExt * fullAdvanceSumExt;
+    connectorOverlap = (C - target_size) / (partCount - 1);
 
-      // For now, we set all advances to zero.
+    // We now consider the constraints on connectors. In general, only the
+    // start of the first part and then end of the last part are not connected
+    // so it is the minimum of StartConnector_i for all i > 0 and of
+    // EndConnector_i for all i < glyphAssembly.part_count(). However, if the
+    // first or last part is an extender then it will be connected too with
+    // a copy of itself.
+    for (unsigned int i = 0; i < glyphAssembly.part_count(); i++) {
+      bool willBeRepeated = repeatCountExt >= 2 && glyphAssembly.is_extender(i);
+      if (i < glyphAssembly.part_count() || willBeRepeated)
+        connectorOverlap =
+          std::min(connectorOverlap, glyphAssembly.end_connector_length(i));
+      else if (i > 0 || willBeRepeated)
+        connectorOverlap =
+          std::min(connectorOverlap, glyphAssembly.start_connector_length(i));
+    }
+
+    if (connectorOverlap < minConnectorOverlap) return false;
+  }
+
+  // Add the glyph to the buffer and position them.
+  buffer->pos[0].x_offset = buffer->pos[0].y_offset = 0;
+  for (unsigned int i = 0, j = 0; i < glyphAssembly.part_count(); i++) {
+    unsigned int repeatCount =
+      glyphAssembly.is_extender(i) ? repeatCountExt : 1;
+    for (unsigned int k = 0; k < repeatCount; k++, j++) {
+      buffer->info[j].codepoint = glyphAssembly.glyph(i);
+      buffer->info[j].cluster = buffer->info[0].cluster;
       buffer->pos[j].x_advance = 0;
       buffer->pos[j].y_advance = 0;
-
-      // We temporarily put each glyph in different cluster, so that we can
-      // easily retrieve the value of i from the value of j below.
-      buffer->info[j].cluster = i;
-
-      if (j < glyphCount) {
-        hb_position_t delta_offset =
-          glyphAssembly.full_advance(i) - minConnectorOverlap;
+      hb_position_t deltaOffset = glyphAssembly.full_advance(i) - connectorOverlap;
+      if (j < partCount - 1) {
         if (glyphAssembly.is_horizontal()) {
-          buffer->pos[j + 1].x_offset = buffer->pos[j].x_offset + delta_offset;
+          buffer->pos[j + 1].x_offset = buffer->pos[j].x_offset + deltaOffset;
           buffer->pos[j + 1].y_offset = 0;
         } else {
           buffer->pos[j + 1].x_offset = 0;
-          buffer->pos[j + 1].y_offset = buffer->pos[j].y_offset + delta_offset;
+          buffer->pos[j + 1].y_offset = buffer->pos[j].y_offset + deltaOffset;
         }
       }
     }
   }
-
-  // Now we try and increase the overlap between parts in order to get closer
-  // to the target size. Again, for symmetry reason we do it by browsing the
-  // from the middle and simultaneously towards the start and end.
-  if (glyphCount > 0)  {
-    hb_position_t extraSize =
-      extRepeatCount * sumExt + sumNonExt + minConnectorOverlap - target_size;
-    unsigned int glyphIndexTowardsStart = (glyphCount - 1) / 2;
-    unsigned int glyphIndexTowardsEnd = glyphCount / 2;
-    if (glyphIndexTowardsStart == glyphIndexTowardsEnd) {
-      // Handle the middle case for odd glyphCount.
-      glyphIndexTowardsStart--;
-      glyphIndexTowardsEnd++;
-    }
-    hb_position_t deltaSum = 0;
-    for (unsigned int i = 0; i < glyphCount / 2; i++) {
-      if (extraSize > 0) {
-        // Determine the maximal overlap delta applicable simulaneously to the
-        // pairs of glyphs (glyphIndexTowardsStart, glyphIndexTowardsStart+1)
-        // and (glyphIndexTowardsEnd-1, glyphIndexTowardsEnd).
-        hb_position_t overlapDelta = extraSize / 2;
-        overlapDelta = std::min(overlapDelta, glyphAssembly.end_connector_length(buffer->info[glyphIndexTowardsStart].cluster) - minConnectorOverlap);
-        overlapDelta = std::min(overlapDelta, glyphAssembly.start_connector_length(buffer->info[glyphIndexTowardsStart + 1].cluster) - minConnectorOverlap);
-        overlapDelta = std::min(overlapDelta, glyphAssembly.end_connector_length(buffer->info[glyphIndexTowardsEnd - 1].cluster) - minConnectorOverlap);
-        overlapDelta = std::min(overlapDelta, glyphAssembly.start_connector_length(buffer->info[glyphIndexTowardsEnd].cluster) - minConnectorOverlap);
-
-        if (glyphIndexTowardsStart + 1 == glyphIndexTowardsEnd) {
-          // Handle the middle case for even glyphCount.
-          overlapDelta /= 2;
-        }
-
-        if (overlapDelta > 0) {
-          deltaSum += overlapDelta;
-          extraSize -= 2 * overlapDelta;
-        }
-      }
-
-      // Update the position of the glyphs.
-      if (glyphAssembly.is_horizontal()) {
-        buffer->pos[glyphIndexTowardsStart].x_offset += deltaSum;
-        buffer->pos[glyphIndexTowardsEnd].x_offset -= deltaSum;
-      } else {
-        buffer->pos[glyphIndexTowardsStart].y_offset += deltaSum;
-        buffer->pos[glyphIndexTowardsEnd].y_offset -= deltaSum;
-      }
-
-      glyphIndexTowardsStart--;
-      glyphIndexTowardsEnd++;
-    }
+  if (!glyphAssembly.is_horizontal()) {
+    // Shift the parts to force the top glyph to be at offset 0.
+    // TODO: maybe change the API doc to avoid this loop and then update tests.
+    for (unsigned int j = 0; j < partCount; j++)
+      buffer->pos[j].y_offset -= buffer->pos[partCount - 1].y_offset;
   }
 
-  // Adjust the advance for the glyph assembly.
+  // Set the advance  the glyph assembly.
   hb_position_t max_orthogonal_advance =
     get_glyph_assembly_max_orthogonal_advance (font, glyphAssembly);
   if (glyphAssembly.is_horizontal()) {
-    buffer->pos[glyphCount - 1].x_advance =
-      buffer->pos[glyphCount - 1].x_offset -
-      buffer->pos[0].x_offset +
-      glyphAssembly.full_advance(buffer->info[glyphCount - 1].cluster);
-    buffer->pos[glyphCount - 1].y_advance = -max_orthogonal_advance;
+    buffer->pos[partCount - 1].x_advance =
+      buffer->pos[partCount - 1].x_offset - buffer->pos[0].x_offset +
+      glyphAssembly.full_advance(glyphAssembly.part_count() - 1);
+    buffer->pos[partCount - 1].y_advance = -max_orthogonal_advance;
   } else {
-    buffer->pos[glyphCount - 1].x_advance = max_orthogonal_advance;
-    buffer->pos[glyphCount - 1].y_advance =
-      -(buffer->pos[glyphCount - 1].y_offset -
-        buffer->pos[0].y_offset +
-        glyphAssembly.full_advance(buffer->info[glyphCount - 1].cluster));
-  }
-
-  // We now move all parts into the same cluster and shift the assembly to
-  // ensure that the top left glyph is located at the origin.
-  hb_position_t delta = glyphAssembly.is_horizontal() ?
-    -buffer->pos[0].x_offset : -buffer->pos[glyphCount - 1].y_offset;
-  for (unsigned int j = 0; j < glyphCount; j++) {
-    buffer->info[j].cluster = initialCluster;
-    if (glyphAssembly.is_horizontal())
-      buffer->pos[j].x_offset += delta;
-    else
-      buffer->pos[j].y_offset += delta;
+    buffer->pos[partCount - 1].x_advance = max_orthogonal_advance;
+    buffer->pos[partCount - 1].y_advance =
+      -(buffer->pos[partCount - 1].y_offset - buffer->pos[0].y_offset +
+        glyphAssembly.full_advance(glyphAssembly.part_count() - 1));
   }
 
   return true;
