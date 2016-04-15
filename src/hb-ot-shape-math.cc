@@ -98,7 +98,7 @@ get_glyph_assembly_max_orthogonal_advance (hb_font_t *font,
                                    horizontal,
                                    glyphAssembly.
                                    get_part_record(i).get_glyph());
-    max_orthogonal_advance = std::max(max_orthogonal_advance, partAdvance);
+    max_orthogonal_advance = MAX (max_orthogonal_advance, partAdvance);
   }
 
   return max_orthogonal_advance;
@@ -245,16 +245,14 @@ set_glyph_assembly (hb_font_t               *font,
         glyphAssembly.get_part_record(i).is_extender();
       if (i < glyphAssembly.part_record_count() || willBeRepeated)
         connectorOverlap =
-          std::min(connectorOverlap,
-                   glyphAssembly.
-                   get_part_record(i).
-                   get_end_connector_length(font, horizontal));
+          MIN (connectorOverlap,
+               glyphAssembly.
+               get_part_record(i).get_end_connector_length(font, horizontal));
       else if (i > 0 || willBeRepeated)
         connectorOverlap =
-          std::min(connectorOverlap,
-                   glyphAssembly.
-                   get_part_record(i).
-                   get_start_connector_length(font, horizontal));
+          MIN (connectorOverlap,
+               glyphAssembly.get_part_record(i).
+               get_start_connector_length(font, horizontal));
     }
 
     if (connectorOverlap < minConnectorOverlap) return false;
@@ -430,8 +428,8 @@ hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font_t     *font,
   // Consider the maximum orthogonal advance of the base glyph.
   hb_codepoint_t base_glyph = buffer->info[0].codepoint;
   max_orthogonal_advance =
-    std::max(max_orthogonal_advance,
-             get_glyph_orthogonal_advance(font, horizontal, base_glyph));
+    MAX (max_orthogonal_advance,
+         get_glyph_orthogonal_advance(font, horizontal, base_glyph));
 
   // Try and get a glyph construction.
   hb_position_t dummy;
@@ -448,18 +446,18 @@ hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font_t     *font,
       glyph_construction->get_glyph_variant(i);
     glyph_variant = record.get_glyph();
     max_orthogonal_advance =
-      std::max(max_orthogonal_advance,
-               get_glyph_orthogonal_advance(font, horizontal, glyph_variant));
+      MAX (max_orthogonal_advance,
+           get_glyph_orthogonal_advance(font, horizontal, glyph_variant));
   }
 
   // Consider the maximum orthogonal advance for the GlyphAssembly.
   if (glyph_construction->has_glyph_assembly()) {
     max_orthogonal_advance =
-      std::max(max_orthogonal_advance,
-               get_glyph_assembly_max_orthogonal_advance (font,
-                                                          horizontal,
-                                                          glyph_construction->
-                                                          get_glyph_assembly()));
+      MAX (max_orthogonal_advance,
+           get_glyph_assembly_max_orthogonal_advance (font,
+                                                      horizontal,
+                                                      glyph_construction->
+                                                      get_glyph_assembly()));
   }
 
   return horizontal ? max_orthogonal_advance : -max_orthogonal_advance;
