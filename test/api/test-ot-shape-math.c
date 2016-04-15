@@ -501,49 +501,49 @@ test_shape_math_stretchy_vertical_glyph_assembly (void)
   g_assert_cmpint (info[0].codepoint, ==, bottom);
   g_assert_cmpint (info[0].cluster, ==, cluster);
   g_assert_cmpint (pos[0].x_offset, ==, 0);
-  g_assert_cmpint (pos[0].y_offset, ==, -5052);
+  g_assert_cmpint (pos[0].y_offset, ==, 0);
   g_assert_cmpint (pos[0].x_advance, ==, 0);
   g_assert_cmpint (pos[0].y_advance, ==, 0);
 
   g_assert_cmpint (info[1].codepoint, ==, vertical);
   g_assert_cmpint (info[1].cluster, ==, cluster);
   g_assert_cmpint (pos[1].x_offset, ==, 0);
-  g_assert_cmpint (pos[1].y_offset, ==, -4210);
+  g_assert_cmpint (pos[1].y_offset, ==, 842);
   g_assert_cmpint (pos[1].x_advance, ==, 0);
   g_assert_cmpint (pos[1].y_advance, ==, 0);
 
   g_assert_cmpint (info[2].codepoint, ==, vertical);
   g_assert_cmpint (info[2].cluster, ==, cluster);
   g_assert_cmpint (pos[2].x_offset, ==, 0);
-  g_assert_cmpint (pos[2].y_offset, ==, -3368);
+  g_assert_cmpint (pos[2].y_offset, ==, 1684);
   g_assert_cmpint (pos[2].x_advance, ==, 0);
   g_assert_cmpint (pos[2].y_advance, ==, 0);
 
   g_assert_cmpint (info[3].codepoint, ==, center);
   g_assert_cmpint (info[3].cluster, ==, cluster);
   g_assert_cmpint (pos[3].x_offset, ==, 0);
-  g_assert_cmpint (pos[3].y_offset, ==, -2526);
+  g_assert_cmpint (pos[3].y_offset, ==, 2526);
   g_assert_cmpint (pos[3].x_advance, ==, 0);
   g_assert_cmpint (pos[3].y_advance, ==, 0);
 
   g_assert_cmpint (info[4].codepoint, ==, vertical);
   g_assert_cmpint (info[4].cluster, ==, cluster);
   g_assert_cmpint (pos[4].x_offset, ==, 0);
-  g_assert_cmpint (pos[4].y_offset, ==, -1684);
+  g_assert_cmpint (pos[4].y_offset, ==, 3368);
   g_assert_cmpint (pos[4].x_advance, ==, 0);
   g_assert_cmpint (pos[4].y_advance, ==, 0);
 
   g_assert_cmpint (info[5].codepoint, ==, vertical);
   g_assert_cmpint (info[5].cluster, ==, cluster);
   g_assert_cmpint (pos[5].x_offset, ==, 0);
-  g_assert_cmpint (pos[5].y_offset, ==, -842);
+  g_assert_cmpint (pos[5].y_offset, ==, 4210);
   g_assert_cmpint (pos[5].x_advance, ==, 0);
   g_assert_cmpint (pos[5].y_advance, ==, 0);
 
   g_assert_cmpint (info[6].codepoint, ==, top);
   g_assert_cmpint (info[6].cluster, ==, cluster);
   g_assert_cmpint (pos[6].x_offset, ==, 0);
-  g_assert_cmpint (pos[6].y_offset, ==, 0);
+  g_assert_cmpint (pos[6].y_offset, ==, 5052);
   g_assert_cmpint (pos[6].x_advance, ==, fontSize);
   g_assert_cmpint (pos[6].y_advance, ==, -6052);
 
@@ -594,35 +594,35 @@ test_shape_math_stretchy_unicode (void)
   g_assert_cmpint (info[0].codepoint, ==, bottom);
   g_assert_cmpint (info[0].cluster, ==, cluster);
   g_assert_cmpint (pos[0].x_offset, ==, 0);
-  g_assert_cmpint (pos[0].y_offset, ==, -4 * fontSize);
+  g_assert_cmpint (pos[0].y_offset, ==, 0);
   g_assert_cmpint (pos[0].x_advance, ==, 0);
   g_assert_cmpint (pos[0].y_advance, ==, 0);
 
   g_assert_cmpint (info[1].codepoint, ==, vertical);
   g_assert_cmpint (info[1].cluster, ==, cluster);
   g_assert_cmpint (pos[1].x_offset, ==, 0);
-  g_assert_cmpint (pos[1].y_offset, ==, -3 * fontSize);
+  g_assert_cmpint (pos[1].y_offset, ==, fontSize);
   g_assert_cmpint (pos[1].x_advance, ==, 0);
   g_assert_cmpint (pos[1].y_advance, ==, 0);
 
   g_assert_cmpint (info[2].codepoint, ==, center);
   g_assert_cmpint (info[2].cluster, ==, cluster);
   g_assert_cmpint (pos[2].x_offset, ==, 0);
-  g_assert_cmpint (pos[2].y_offset, ==, -2 * fontSize);
+  g_assert_cmpint (pos[2].y_offset, ==, 2 * fontSize);
   g_assert_cmpint (pos[2].x_advance, ==, 0);
   g_assert_cmpint (pos[2].y_advance, ==, 0);
 
   g_assert_cmpint (info[3].codepoint, ==, vertical);
   g_assert_cmpint (info[3].cluster, ==, cluster);
   g_assert_cmpint (pos[3].x_offset, ==, 0);
-  g_assert_cmpint (pos[3].y_offset, ==, -fontSize);
+  g_assert_cmpint (pos[3].y_offset, ==, 3 * fontSize);
   g_assert_cmpint (pos[3].x_advance, ==, 0);
   g_assert_cmpint (pos[3].y_advance, ==, 0);
 
   g_assert_cmpint (info[4].codepoint, ==, top);
   g_assert_cmpint (info[4].cluster, ==, cluster);
   g_assert_cmpint (pos[4].x_offset, ==, 0);
-  g_assert_cmpint (pos[4].y_offset, ==, 0);
+  g_assert_cmpint (pos[4].y_offset, ==, 4 * fontSize);
   g_assert_cmpint (pos[4].x_advance, ==, fontSize);
   g_assert_cmpint (pos[4].y_advance, ==, -5 * fontSize);
 

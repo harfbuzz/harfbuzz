@@ -469,12 +469,6 @@ set_glyph_assembly (hb_font_t           *font,
       }
     }
   }
-  if (!glyphAssembly.is_horizontal()) {
-    // Shift the parts to force the top glyph to be at offset 0.
-    // TODO: maybe change the API doc to avoid this loop and then update tests.
-    for (unsigned int j = 0; j < partCount; j++)
-      buffer->pos[j].y_offset -= buffer->pos[partCount - 1].y_offset;
-  }
 
   // Set the advance  the glyph assembly.
   hb_position_t max_orthogonal_advance =
@@ -529,8 +523,8 @@ set_glyph_assembly (hb_font_t           *font,
  * from the bottom to top for vertical assembly. All the glyphs have the same
  * cluster value as the element from the input buffer. All but the glyphs have
  * null advances, except the last one which holds the advance of the whole glyph
- * assembly. The top left glyph is positioned at the origin and the offsets of
- * the other glyphs are calculated relative to that glyph.
+ * assembly. The first glyph in the buffer is positioned at the origin and the
+ * offsets of the other glyphs are calculated relative to that glyph.
  *
  * If none of the option is enough to cover the target size, then the buffer is
  * set with the best one.
