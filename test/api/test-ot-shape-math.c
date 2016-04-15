@@ -554,132 +554,6 @@ test_shape_math_stretchy_vertical_glyph_assembly (void)
 }
 
 static void
-test_shape_math_stretchy_unicode (void)
-{
-  initFreeType();
-  openFont("fonts/MathTestFontFull.otf");
-
-  hb_codepoint_t underscore, brace, top, center, bottom, vertical;
-  g_assert (hb_font_get_glyph_from_name (hb_font, "underscore", -1, &underscore));
-  g_assert (hb_font_get_glyph_from_name (hb_font, "braceleft", -1, &brace));
-  g_assert (hb_font_get_glyph_from_name (hb_font, "uni23A7", -1, &top));
-  g_assert (hb_font_get_glyph_from_name (hb_font, "uni23A8", -1, &center));
-  g_assert (hb_font_get_glyph_from_name (hb_font, "uni23A9", -1, &bottom));
-  g_assert (hb_font_get_glyph_from_name (hb_font, "uni23AA", -1, &vertical));
-
-  /* base size */
-  createBuffer ('{', FALSE);
-  g_assert (hb_ot_shape_math_stretchy (hb_font, hb_buffer, FALSE, fontSize));
-  g_assert_cmpint (hb_buffer_get_content_type (hb_buffer), ==, HB_BUFFER_CONTENT_TYPE_GLYPHS);
-  getBufferData();
-  g_assert_cmpint (len, ==, 1);
-  g_assert_cmpint (info[0].codepoint, ==, brace);
-  g_assert_cmpint (info[0].cluster, ==, cluster);
-  g_assert_cmpint (pos[0].x_offset, ==, 0);
-  g_assert_cmpint (pos[0].y_offset, ==, 0);
-  g_assert_cmpint (pos[0].x_advance, ==,
-                   hb_font_get_glyph_h_advance(hb_font, info[0].codepoint));
-  g_assert_cmpint (pos[0].y_advance, ==,
-                   hb_font_get_glyph_v_advance(hb_font, info[0].codepoint));
-  destroyBuffer();
-
-  /* glyph assembly */
-  createBuffer ('{', FALSE);
-  g_assert (hb_ot_shape_math_stretchy (hb_font, hb_buffer, FALSE,
-                                       5 * fontSize));
-  g_assert_cmpint (hb_buffer_get_content_type (hb_buffer), ==, HB_BUFFER_CONTENT_TYPE_GLYPHS);
-  getBufferData();
-  g_assert_cmpint (len, ==, 5);
-
-  g_assert_cmpint (info[0].codepoint, ==, bottom);
-  g_assert_cmpint (info[0].cluster, ==, cluster);
-  g_assert_cmpint (pos[0].x_offset, ==, 0);
-  g_assert_cmpint (pos[0].y_offset, ==, 0);
-  g_assert_cmpint (pos[0].x_advance, ==, 0);
-  g_assert_cmpint (pos[0].y_advance, ==, 0);
-
-  g_assert_cmpint (info[1].codepoint, ==, vertical);
-  g_assert_cmpint (info[1].cluster, ==, cluster);
-  g_assert_cmpint (pos[1].x_offset, ==, 0);
-  g_assert_cmpint (pos[1].y_offset, ==, fontSize);
-  g_assert_cmpint (pos[1].x_advance, ==, 0);
-  g_assert_cmpint (pos[1].y_advance, ==, 0);
-
-  g_assert_cmpint (info[2].codepoint, ==, center);
-  g_assert_cmpint (info[2].cluster, ==, cluster);
-  g_assert_cmpint (pos[2].x_offset, ==, 0);
-  g_assert_cmpint (pos[2].y_offset, ==, 2 * fontSize);
-  g_assert_cmpint (pos[2].x_advance, ==, 0);
-  g_assert_cmpint (pos[2].y_advance, ==, 0);
-
-  g_assert_cmpint (info[3].codepoint, ==, vertical);
-  g_assert_cmpint (info[3].cluster, ==, cluster);
-  g_assert_cmpint (pos[3].x_offset, ==, 0);
-  g_assert_cmpint (pos[3].y_offset, ==, 3 * fontSize);
-  g_assert_cmpint (pos[3].x_advance, ==, 0);
-  g_assert_cmpint (pos[3].y_advance, ==, 0);
-
-  g_assert_cmpint (info[4].codepoint, ==, top);
-  g_assert_cmpint (info[4].cluster, ==, cluster);
-  g_assert_cmpint (pos[4].x_offset, ==, 0);
-  g_assert_cmpint (pos[4].y_offset, ==, 4 * fontSize);
-  g_assert_cmpint (pos[4].x_advance, ==, fontSize);
-  g_assert_cmpint (pos[4].y_advance, ==, -5 * fontSize);
-
-  destroyBuffer();
-
-  /* base size */
-  createBuffer ('_', FALSE);
-  g_assert (hb_ot_shape_math_stretchy (hb_font, hb_buffer, TRUE, fontSize));
-  g_assert_cmpint (hb_buffer_get_content_type (hb_buffer), ==, HB_BUFFER_CONTENT_TYPE_GLYPHS);
-  getBufferData();
-  g_assert_cmpint (len, ==, 1);
-  g_assert_cmpint (info[0].codepoint, ==, underscore);
-  g_assert_cmpint (info[0].cluster, ==, cluster);
-  g_assert_cmpint (pos[0].x_offset, ==, 0);
-  g_assert_cmpint (pos[0].y_offset, ==, 0);
-  g_assert_cmpint (pos[0].x_advance, ==,
-                   hb_font_get_glyph_h_advance(hb_font, info[0].codepoint));
-  g_assert_cmpint (pos[0].y_advance, ==,
-                   hb_font_get_glyph_v_advance(hb_font, info[0].codepoint));
-  destroyBuffer();
-
-  /* glyph assembly */
-  createBuffer ('_', FALSE);
-  g_assert (hb_ot_shape_math_stretchy (hb_font, hb_buffer, TRUE,
-                                       3 * fontSize));
-  g_assert_cmpint (hb_buffer_get_content_type (hb_buffer), ==, HB_BUFFER_CONTENT_TYPE_GLYPHS);
-  getBufferData();
-  g_assert_cmpint (len, ==, 3);
-
-  g_assert_cmpint (info[0].codepoint, ==, underscore);
-  g_assert_cmpint (info[0].cluster, ==, cluster);
-  g_assert_cmpint (pos[0].x_offset, ==, 0);
-  g_assert_cmpint (pos[0].y_offset, ==, 0);
-  g_assert_cmpint (pos[0].x_advance, ==, 0);
-  g_assert_cmpint (pos[0].y_advance, ==, 0);
-
-  g_assert_cmpint (info[1].codepoint, ==, underscore);
-  g_assert_cmpint (info[1].cluster, ==, cluster);
-  g_assert_cmpint (pos[1].x_offset, ==, fontSize);
-  g_assert_cmpint (pos[1].y_offset, ==, 0);
-  g_assert_cmpint (pos[1].x_advance, ==, 0);
-  g_assert_cmpint (pos[1].y_advance, ==, 0);
-
-  g_assert_cmpint (info[2].codepoint, ==, underscore);
-  g_assert_cmpint (info[2].cluster, ==, cluster);
-  g_assert_cmpint (pos[2].x_offset, ==, 2 * fontSize);
-  g_assert_cmpint (pos[2].y_offset, ==, 0);
-  g_assert_cmpint (pos[2].x_advance, ==, 3 * fontSize);
-  g_assert_cmpint (pos[2].y_advance, ==, -fontSize);
-
-  destroyBuffer();
-
-  closeFont();
-  cleanupFreeType();
-}
-
-static void
 test_shape_math_stretchy_edge (void)
 {
   hb_codepoint_t glyph;
@@ -696,6 +570,12 @@ test_shape_math_stretchy_edge (void)
   g_assert (!hb_ot_shape_math_stretchy (hb_font, hb_buffer, FALSE, 0));
   destroyBuffer();
 
+  // Unicode input: fail */
+  openFont("fonts/MathTestFontFull.otf");
+  createBuffer ('{', FALSE);
+  g_assert (!hb_ot_shape_math_stretchy (hb_font, hb_buffer, FALSE, fontSize));
+  closeFont();
+
   // Missing base glyph: fail.
   openFont("fonts/MathTestFontNone.otf");
   createBuffer ('{', FALSE);
@@ -703,18 +583,6 @@ test_shape_math_stretchy_edge (void)
   destroyBuffer();
   createBuffer ('{', TRUE);
   g_assert (!hb_ot_shape_math_stretchy (hb_font, hb_buffer, FALSE, fontSize));
-  destroyBuffer();
-  closeFont();
-
-  // No unicode constructions: use the base glyph.
-  openFont("fonts/MathTestFontNone.otf");
-  createBuffer (' ', FALSE);
-  g_assert (hb_ot_shape_math_stretchy (hb_font, hb_buffer, FALSE, fontSize));
-  g_assert_cmpint (hb_buffer_get_content_type (hb_buffer), ==, HB_BUFFER_CONTENT_TYPE_GLYPHS);
-  getBufferData();
-  g_assert_cmpint (len, ==, 1);
-  g_assert (hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint (info[0].codepoint, ==, glyph);
   destroyBuffer();
   closeFont();
 
@@ -795,21 +663,15 @@ test_shape_math_stretchy_max_orthogonal_advance (void)
   destroyBuffer();
 
   // Unicode
-  createBuffer ('A', FALSE);
-  g_assert_cmpint (hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font, hb_buffer, FALSE), ==, -fontSize);
-  destroyBuffer();
   createBuffer ('{', FALSE);
-  g_assert_cmpint (hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font, hb_buffer, FALSE), ==, -fontSize);
-  destroyBuffer();
-  createBuffer ('_', FALSE);
-  g_assert_cmpint (hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font, hb_buffer, TRUE), ==, fontSize);
+  g_assert_cmpint (hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font, hb_buffer, FALSE), ==, 0);
   destroyBuffer();
 
   // MATH Table
-  createBuffer (arrowdownCodePoint, FALSE);
+  createBuffer (arrowdownCodePoint, TRUE);
   g_assert_cmpint (hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font, hb_buffer, FALSE), ==, -fontSize);
   destroyBuffer();
-  createBuffer (arrowleftCodePoint, FALSE);
+  createBuffer (arrowleftCodePoint, TRUE);
   g_assert_cmpint (hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font, hb_buffer, TRUE), ==, fontSize);
   destroyBuffer();
 
@@ -827,7 +689,6 @@ main (int argc, char **argv)
   hb_test_add (test_shape_math_stretchy_vertical_glyph_variants);
   hb_test_add (test_shape_math_stretchy_horizontal_glyph_assembly);
   hb_test_add (test_shape_math_stretchy_vertical_glyph_assembly);
-  hb_test_add (test_shape_math_stretchy_unicode);
   hb_test_add (test_shape_math_stretchy_edge);
   hb_test_add (test_shape_math_stretchy_max_orthogonal_advance);
 
