@@ -79,21 +79,18 @@ struct MathConstants
     return_trace (c->check_struct (this) && sanitize_math_value_records(c));
   }
 
-  inline bool get_value (hb_font_t *font, hb_ot_math_constant_t constant,
-                         hb_position_t &value) const
+  inline hb_position_t get_value (hb_font_t *font, hb_ot_math_constant_t constant) const
   {
     switch (constant) {
     case HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT:
     case HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT:
-      value = font->em_scale_y (minHeight[constant - HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT]);
-      return true;
+      return font->em_scale_y (minHeight[constant - HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT]);
 
     case HB_OT_MATH_CONSTANT_RADICAL_KERN_AFTER_DEGREE:
     case HB_OT_MATH_CONSTANT_RADICAL_KERN_BEFORE_DEGREE:
     case HB_OT_MATH_CONSTANT_SKEWED_FRACTION_HORIZONTAL_GAP:
     case HB_OT_MATH_CONSTANT_SPACE_AFTER_SCRIPT:
-      value = mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_value(font, true, this);
-      return true;
+      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_value(font, true, this);
 
     case HB_OT_MATH_CONSTANT_ACCENT_BASE_HEIGHT:
     case HB_OT_MATH_CONSTANT_AXIS_HEIGHT:
@@ -142,30 +139,14 @@ struct MathConstants
     case HB_OT_MATH_CONSTANT_UNDERBAR_VERTICAL_GAP:
     case HB_OT_MATH_CONSTANT_UPPER_LIMIT_BASELINE_RISE_MIN:
     case HB_OT_MATH_CONSTANT_UPPER_LIMIT_GAP_MIN:
-      value = mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_value(font, false, this);
-      return true;
+      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_value(font, false, this);
 
-    case HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT:
     case HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN:
     case HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN:
-      return false;
-    }
-  }
-
-  inline bool get_value (hb_ot_math_constant_t constant, short &value) const
-  {
-    switch (constant) {
-    case HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN:
-    case HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN:
-      value = percentScaleDown[constant - HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN];
-      return true;
+      return percentScaleDown[constant - HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN];
 
     case HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT:
-      value = radicalDegreeBottomRaisePercent;
-      return true;
-
-    default:
-      return false;
+      return radicalDegreeBottomRaisePercent;
     }
   }
 

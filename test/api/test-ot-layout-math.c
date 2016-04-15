@@ -88,23 +88,6 @@ test_has_math_data (void)
 }
 
 static void
-test_get_math_constant_percent (void)
-{
-  initFreeType();
-
-  openFont("fonts/MathTestFontEmpty.otf");
-  g_assert_cmpint(hb_ot_layout_get_math_constant_percent (hb_face, HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN), ==, 0); // MathConstants not available
-  closeFont();
-
-  openFont("fonts/MathTestFontFull.otf");
-  g_assert_cmpint((hb_ot_layout_get_math_constant_percent (hb_face, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT)), ==, 0); // constant is not a percent
-  g_assert_cmpint((hb_ot_layout_get_math_constant_percent (hb_face, HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN)), ==, 87);
-  g_assert_cmpint((hb_ot_layout_get_math_constant_percent (hb_face, HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN)), ==, 76);
-  g_assert_cmpint((hb_ot_layout_get_math_constant_percent (hb_face, HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT)), ==, 65);
-  closeFont();
-}
-
-static void
 test_get_math_constant (void)
 {
   initFreeType();
@@ -114,7 +97,6 @@ test_get_math_constant (void)
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
-  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN)), ==, 0); // constant is a percent
   g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT)), ==, 100);
   g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT)), ==, 200);
   g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_MATH_LEADING)), ==, 300);
@@ -168,6 +150,9 @@ test_get_math_constant (void)
   g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_EXTRA_ASCENDER)), ==, 5400);
   g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_KERN_BEFORE_DEGREE)), ==, 5500);
   g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_KERN_AFTER_DEGREE)), ==, 5600);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN)), ==, 87);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN)), ==, 76);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT)), ==, 65);
   closeFont();
 
   cleanupFreeType();
@@ -377,7 +362,6 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_has_math_data);
-  hb_test_add (test_get_math_constant_percent);
   hb_test_add (test_get_math_constant);
   hb_test_add (test_get_math_italic_correction);
   hb_test_add (test_get_math_italic_correction_for_glyph_assembly);

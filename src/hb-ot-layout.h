@@ -310,10 +310,6 @@ HB_EXTERN hb_position_t
 hb_ot_layout_get_math_constant (hb_font_t *font,
                                 hb_ot_math_constant_t constant);
 
-HB_EXTERN short
-hb_ot_layout_get_math_constant_percent (hb_face_t *face,
-                                        hb_ot_math_constant_t constant);
-
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_italic_correction (hb_font_t *font,
                                          hb_codepoint_t glyph);
