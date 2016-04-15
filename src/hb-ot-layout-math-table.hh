@@ -620,9 +620,10 @@ struct MathVariants
   get_glyph_construction (hb_codepoint_t glyph,
                           hb_bool_t horizontal,
                           const MathGlyphConstruction *&glyph_construction) const {
-    OffsetTo<Coverage> offsetToCoverage =
-      horizontal ? horizGlyphCoverage : vertGlyphCoverage;
-    unsigned int index = (this+offsetToCoverage).get_coverage (glyph);
+    unsigned int index =
+      horizontal ?
+      (this+horizGlyphCoverage).get_coverage (glyph) :
+      (this+vertGlyphCoverage).get_coverage (glyph);
     if (likely (index == NOT_COVERED)) return false;
 
     USHORT glyphCount = horizontal ? horizGlyphCount : vertGlyphCount;
