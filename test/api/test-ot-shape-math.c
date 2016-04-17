@@ -411,42 +411,42 @@ test_shape_math_stretchy_horizontal_glyph_assembly (void)
   g_assert_cmpint (pos[0].x_offset, ==, 0);
   g_assert_cmpint (info[1].codepoint, ==, horizontal);
   g_assert_cmpint (info[1].cluster, ==, cluster);
-  g_assert_cmpint (pos[1].x_offset, ==, 877);
+  g_assert_cmpint (pos[1].x_offset, ==, 911);
   g_assert_cmpint (info[2].codepoint, ==, horizontal);
   g_assert_cmpint (info[2].cluster, ==, cluster);
-  g_assert_cmpint (pos[2].x_offset, ==, 1754);
+  g_assert_cmpint (pos[2].x_offset, ==, 1822);
   g_assert_cmpint (info[3].codepoint, ==, horizontal);
   g_assert_cmpint (info[3].cluster, ==, cluster);
-  g_assert_cmpint (pos[3].x_offset, ==, 2631);
+  g_assert_cmpint (pos[3].x_offset, ==, 2733);
   g_assert_cmpint (info[4].codepoint, ==, center);
   g_assert_cmpint (info[4].cluster, ==, cluster);
-  g_assert_cmpint (pos[4].x_offset, ==, 3508);
+  g_assert_cmpint (pos[4].x_offset, ==, 3644);
   g_assert_cmpint (info[5].codepoint, ==, horizontal);
   g_assert_cmpint (info[5].cluster, ==, cluster);
-  g_assert_cmpint (pos[5].x_offset, ==, 4385);
+  g_assert_cmpint (pos[5].x_offset, ==, 4555);
   g_assert_cmpint (info[6].codepoint, ==, horizontal);
   g_assert_cmpint (info[6].cluster, ==, cluster);
-  g_assert_cmpint (pos[6].x_offset, ==, 5262);
+  g_assert_cmpint (pos[6].x_offset, ==, 5466);
   g_assert_cmpint (info[7].codepoint, ==, horizontal);
   g_assert_cmpint (info[7].cluster, ==, cluster);
-  g_assert_cmpint (pos[7].x_offset, ==, 6139);
+  g_assert_cmpint (pos[7].x_offset, ==, 6377);
   g_assert_cmpint (info[8].codepoint, ==, center);
   g_assert_cmpint (info[8].cluster, ==, cluster);
-  g_assert_cmpint (pos[8].x_offset, ==, 7016);
+  g_assert_cmpint (pos[8].x_offset, ==, 7288);
   g_assert_cmpint (info[9].codepoint, ==, horizontal);
   g_assert_cmpint (info[9].cluster, ==, cluster);
-  g_assert_cmpint (pos[9].x_offset, ==, 7893);
+  g_assert_cmpint (pos[9].x_offset, ==, 8199);
   g_assert_cmpint (info[10].codepoint, ==, horizontal);
   g_assert_cmpint (info[10].cluster, ==, cluster);
-  g_assert_cmpint (pos[10].x_offset, ==, 8770);
+  g_assert_cmpint (pos[10].x_offset, ==, 9110);
   g_assert_cmpint (info[11].codepoint, ==, horizontal);
   g_assert_cmpint (info[11].cluster, ==, cluster);
-  g_assert_cmpint (pos[11].x_offset, ==, 9647);
+  g_assert_cmpint (pos[11].x_offset, ==, 10021);
   g_assert_cmpint (info[12].codepoint, ==, right);
   g_assert_cmpint (info[12].cluster, ==, cluster);
-  g_assert_cmpint (pos[12].x_offset, ==, 10524);
+  g_assert_cmpint (pos[12].x_offset, ==, 10932);
 
-  g_assert_cmpint (pos[12].x_advance, ==, 11524);
+  g_assert_cmpint (pos[12].x_advance, ==, 11932);
   g_assert_cmpint (pos[12].y_advance, ==, -fontSize);
 
   destroyBuffer();
@@ -519,44 +519,44 @@ test_shape_math_stretchy_vertical_glyph_assembly (void)
   g_assert_cmpint (info[1].codepoint, ==, vertical);
   g_assert_cmpint (info[1].cluster, ==, cluster);
   g_assert_cmpint (pos[1].x_offset, ==, 0);
-  g_assert_cmpint (pos[1].y_offset, ==, 842);
+  g_assert_cmpint (pos[1].y_offset, ==, 946);
   g_assert_cmpint (pos[1].x_advance, ==, 0);
   g_assert_cmpint (pos[1].y_advance, ==, 0);
 
   g_assert_cmpint (info[2].codepoint, ==, vertical);
   g_assert_cmpint (info[2].cluster, ==, cluster);
   g_assert_cmpint (pos[2].x_offset, ==, 0);
-  g_assert_cmpint (pos[2].y_offset, ==, 1684);
+  g_assert_cmpint (pos[2].y_offset, ==, 1892);
   g_assert_cmpint (pos[2].x_advance, ==, 0);
   g_assert_cmpint (pos[2].y_advance, ==, 0);
 
   g_assert_cmpint (info[3].codepoint, ==, center);
   g_assert_cmpint (info[3].cluster, ==, cluster);
   g_assert_cmpint (pos[3].x_offset, ==, 0);
-  g_assert_cmpint (pos[3].y_offset, ==, 2526);
+  g_assert_cmpint (pos[3].y_offset, ==, 2838);
   g_assert_cmpint (pos[3].x_advance, ==, 0);
   g_assert_cmpint (pos[3].y_advance, ==, 0);
 
   g_assert_cmpint (info[4].codepoint, ==, vertical);
   g_assert_cmpint (info[4].cluster, ==, cluster);
   g_assert_cmpint (pos[4].x_offset, ==, 0);
-  g_assert_cmpint (pos[4].y_offset, ==, 3368);
+  g_assert_cmpint (pos[4].y_offset, ==, 3784);
   g_assert_cmpint (pos[4].x_advance, ==, 0);
   g_assert_cmpint (pos[4].y_advance, ==, 0);
 
   g_assert_cmpint (info[5].codepoint, ==, vertical);
   g_assert_cmpint (info[5].cluster, ==, cluster);
   g_assert_cmpint (pos[5].x_offset, ==, 0);
-  g_assert_cmpint (pos[5].y_offset, ==, 4210);
+  g_assert_cmpint (pos[5].y_offset, ==, 4730);
   g_assert_cmpint (pos[5].x_advance, ==, 0);
   g_assert_cmpint (pos[5].y_advance, ==, 0);
 
   g_assert_cmpint (info[6].codepoint, ==, top);
   g_assert_cmpint (info[6].cluster, ==, cluster);
   g_assert_cmpint (pos[6].x_offset, ==, 0);
-  g_assert_cmpint (pos[6].y_offset, ==, 5052);
+  g_assert_cmpint (pos[6].y_offset, ==, 5676);
   g_assert_cmpint (pos[6].x_advance, ==, fontSize);
-  g_assert_cmpint (pos[6].y_advance, ==, -6052);
+  g_assert_cmpint (pos[6].y_advance, ==, -6676);
 
   destroyBuffer();
 
