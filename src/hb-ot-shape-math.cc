@@ -240,12 +240,12 @@ set_glyph_assembly (hb_font_t               *font,
     for (unsigned int i = 0; i < glyphAssembly.part_record_count(); i++) {
       bool willBeRepeated = repeatCountExt >= 2 &&
         glyphAssembly.get_part_record(i).is_extender();
-      if (i < glyphAssembly.part_record_count() || willBeRepeated)
+      if (i < glyphAssembly.part_record_count() - 1 || willBeRepeated)
         connectorOverlap =
           MIN (connectorOverlap,
                glyphAssembly.
                get_part_record(i).get_end_connector_length(font, horizontal));
-      else if (i > 0 || willBeRepeated)
+      if (i > 0 || willBeRepeated)
         connectorOverlap =
           MIN (connectorOverlap,
                glyphAssembly.get_part_record(i).
