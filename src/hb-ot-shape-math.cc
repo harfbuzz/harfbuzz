@@ -221,9 +221,6 @@ set_glyph_assembly (hb_font_t               *font,
   unsigned int partCount = partCountNonExt + repeatCountExt * partCountExt;
   if (partCount == 0 ||
       partCount > HB_OT_MATH_MAXIMUM_PART_COUNT_IN_GLYPH_ASSEMBLY) return false;
-  if (!hb_buffer_set_length (buffer, partCount)) return false;
-  buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
-  buffer->have_positions = true;
 
   // Determine the connector overlap if we have at least two parts.
   hb_position_t connectorOverlap = 0;
@@ -258,8 +255,12 @@ set_glyph_assembly (hb_font_t               *font,
     if (connectorOverlap < minConnectorOverlap) return false;
   }
 
-  // Add the glyph to the buffer and position them.
-  buffer->pos[0].x_offset = buffer->pos[0].y_offset = 0;
+  // Add the glyphs to the buffer and position them.
+  if (!hb_buffer_set_length (buffer, partCount)) return false;
+  buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+  buffer->have_positions = true;
+  buffer->pos[0].x_offset = 0;
+  buffer->pos[0].y_offset = 0;
   for (unsigned int i = 0, j = 0; i < glyphAssembly.part_record_count(); i++) {
     unsigned int repeatCount =
       glyphAssembly.get_part_record(i).is_extender() ? repeatCountExt : 1;
