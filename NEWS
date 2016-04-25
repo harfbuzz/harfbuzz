@@ -1,3 +1,8 @@
+Overview of changes leading to 1.2.8
+Not yet released
+====================================
+- Implemented 'CPAL' table in hb-ot-color.
+
 Overview of changes leading to 1.2.7
 Monday, May 2, 2016
 ====================================
@@ -8,7 +13,6 @@ Monday, May 2, 2016
 - Improved list of language tag mappings.
 - Unbreak build on Windows CE.
 - Make 'glyf' table loading lazy in hb-ot-font.
-
 
 Overview of changes leading to 1.2.6
 Friday, April 8, 2016

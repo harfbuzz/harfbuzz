@@ -31,6 +31,7 @@
 #include "hb-open-type-private.hh"
 #include "hb-ot-layout-private.hh"
 
+#include "hb-ot-cpal-table.hh"
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
@@ -59,6 +60,10 @@ _hb_ot_layout_create (hb_face_t *face)
 
   layout->gpos_blob = OT::Sanitizer<OT::GPOS>::sanitize (face->reference_table (HB_OT_TAG_GPOS));
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
+
+  // The CPAL table is rarely accessed, so we only try to load it in _get_cpal.
+  layout->cpal_blob = NULL;
+  layout->cpal = NULL;
 
   {
     /*
@@ -130,6 +135,8 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gdef_blob);
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
+
+  if (layout->cpal_blob) hb_blob_destroy (layout->cpal_blob);
 
   free (layout);
 }
