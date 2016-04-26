@@ -70,12 +70,18 @@ _hb_ot_layout_create (hb_face_t *face)
     unsigned int gsub_len = hb_blob_get_length (layout->gsub_blob);
     unsigned int gpos_len = hb_blob_get_length (layout->gpos_blob);
     if (0
-      || (442 == gdef_len && 42038 == gpos_len && 2874 == gsub_len) /* Windows 7? timesi.ttf */
-      || (430 == gdef_len && 40662 == gpos_len && 2874 == gsub_len) /* Windows 7? timesbi.ttf */
-      || (442 == gdef_len && 39116 == gpos_len && 2874 == gsub_len) /* Windows 7 timesi.ttf */
-      || (430 == gdef_len && 39374 == gpos_len && 2874 == gsub_len) /* Windows 7 timesbi.ttf */
-      || (490 == gdef_len && 41638 == gpos_len && 3046 == gsub_len) /* OS X 10.11.3 Times New Roman Italic.ttf */
-      || (478 == gdef_len && 41902 == gpos_len && 3046 == gsub_len) /* OS X 10.11.3 Times New Roman Bold Italic.ttf */
+      /* sha1sum:c5ee92f0bca4bfb7d06c4d03e8cf9f9cf75d2e8a Windows 7? timesi.ttf */
+      || (442 == gdef_len && 42038 == gpos_len && 2874 == gsub_len)
+      /* sha1sum:37fc8c16a0894ab7b749e35579856c73c840867b Windows 7? timesbi.ttf */
+      || (430 == gdef_len && 40662 == gpos_len && 2874 == gsub_len)
+      /* sha1sum:19fc45110ea6cd3cdd0a5faca256a3797a069a80 Windows 7 timesi.ttf */
+      || (442 == gdef_len && 39116 == gpos_len && 2874 == gsub_len)
+      /* sha1sum:6d2d3c9ed5b7de87bc84eae0df95ee5232ecde26 Windows 7 timesbi.ttf */
+      || (430 == gdef_len && 39374 == gpos_len && 2874 == gsub_len)
+      /* sha1sum:8583225a8b49667c077b3525333f84af08c6bcd8 OS X 10.11.3 Times New Roman Italic.ttf */
+      || (490 == gdef_len && 41638 == gpos_len && 3046 == gsub_len)
+      /* sha1sum:ec0f5a8751845355b7c3271d11f9918a966cb8c9 OS X 10.11.3 Times New Roman Bold Italic.ttf */
+      || (478 == gdef_len && 41902 == gpos_len && 3046 == gsub_len)
     )
     {
       /* In certain versions of Times New Roman Italic and Bold Italic,
