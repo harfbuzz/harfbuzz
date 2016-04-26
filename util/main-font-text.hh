@@ -59,7 +59,7 @@ message_func (hb_buffer_t *buffer,
 			      font,
 			      HB_BUFFER_SERIALIZE_FORMAT_TEXT,
 			      HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-  printf ("HB: buffer [%s]\n", buf);
+  fprintf (stderr, "HB: buffer [%s]\n", buf);
   return true;
 }
 
