@@ -169,6 +169,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #  if defined(_WIN32_WCE)
      /* Some things not defined on Windows CE. */
 #    define strdup _strdup
+#    define vsnprintf _vsnprintf
 #    define getenv(Name) NULL
 #    if _WIN32_WCE < 0x800
 #      define setlocale(Category, Locale) "C"
