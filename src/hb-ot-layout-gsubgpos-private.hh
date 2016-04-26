@@ -319,7 +319,7 @@ struct hb_apply_context_t :
       if (!c->check_glyph_property (&info, lookup_props))
 	return SKIP_YES;
 
-      if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&
+      if (unlikely (_hb_glyph_info_is_default_ignorable_and_not_fvs (&info) &&
 		    (ignore_zwnj || !_hb_glyph_info_is_zwnj (&info)) &&
 		    (ignore_zwj || !_hb_glyph_info_is_zwj (&info))))
 	return SKIP_MAYBE;

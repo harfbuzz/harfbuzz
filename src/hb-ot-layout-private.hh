@@ -218,7 +218,8 @@ _next_syllable (hb_buffer_t *buffer, unsigned int start)
  * - General_Category: 5 bits.
  * - A bit each for:
  *   * Is it Default_Ignorable(); we have a modified Default_Ignorable().
- *   * Two free bits right now.
+ *   * Whether it's one of the three Mongolian Free Variation Selectors.
+ *   * One free bit right now.
  *
  * The high-byte has different meanings, switched by the Gen-Cat:
  * - For Mn,Mc,Me: the modified Combining_Class.
@@ -230,6 +231,7 @@ _next_syllable (hb_buffer_t *buffer, unsigned int start)
 enum hb_unicode_props_flags_t {
   UPROPS_MASK_GEN_CAT	= 0x001Fu,
   UPROPS_MASK_IGNORABLE	= 0x0020u,
+  UPROPS_MASK_FVS	= 0x0040u, /* MONGOLIAN FREE VARIATION SELECTOR 1..3 */
 
   /* If GEN_CAT=FORMAT, top byte masks: */
   UPROPS_MASK_Cf_ZWJ	= 0x0100u,
@@ -254,6 +256,15 @@ _hb_glyph_info_set_unicode_props (hb_glyph_info_t *info, hb_buffer_t *buffer)
       props |=  UPROPS_MASK_IGNORABLE;
       if (u == 0x200Cu) props |= UPROPS_MASK_Cf_ZWNJ;
       if (u == 0x200Du) props |= UPROPS_MASK_Cf_ZWJ;
+      /* Mongolian Free Variation Selectors need to be remembered
+       * because although we need to hide them like default-ignorables,
+       * they need to non-ignorable during shaping.  This is similar to
+       * what we do for joiners in Indic-like shapers, but since the
+       * FVSes are GC=Mn, we have use a separate bit to remember them.
+       * Fixes:
+       * https://github.com/behdad/harfbuzz/issues/234
+       */
+      if (unlikely (hb_in_range (u, 0x180Bu, 0x180Du))) props |= UPROPS_MASK_FVS;
     }
     else if (unlikely (HB_UNICODE_GENERAL_CATEGORY_IS_NON_ENCLOSING_MARK_OR_MODIFIER_SYMBOL (gen_cat)))
     {
@@ -349,7 +360,15 @@ static inline bool _hb_glyph_info_ligated (const hb_glyph_info_t *info);
 static inline hb_bool_t
 _hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
 {
-  return (info->unicode_props() & UPROPS_MASK_IGNORABLE) && !_hb_glyph_info_ligated (info);
+  return (info->unicode_props() & UPROPS_MASK_IGNORABLE) &&
+	 !_hb_glyph_info_ligated (info);
+}
+static inline hb_bool_t
+_hb_glyph_info_is_default_ignorable_and_not_fvs (const hb_glyph_info_t *info)
+{
+  return ((info->unicode_props() & (UPROPS_MASK_IGNORABLE|UPROPS_MASK_FVS))
+	  == UPROPS_MASK_IGNORABLE) &&
+	 !_hb_glyph_info_ligated (info);
 }
 
 static inline bool
