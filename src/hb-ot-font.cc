@@ -300,13 +300,54 @@ struct hb_ot_face_cmap_accelerator_t
   }
 };
 
+template <typename T>
+struct hb_lazy_loader_t
+{
+  inline void init (hb_face_t *face_)
+  {
+    face = face_;
+    instance = NULL;
+  }
+
+  inline void fini (void)
+  {
+    if (instance && instance != &OT::Null(T))
+    {
+      instance->fini();
+      free (instance);
+    }
+  }
+
+  inline const T* operator-> (void) const
+  {
+  retry:
+    T *p = (T *) hb_atomic_ptr_get (&instance);
+    if (unlikely (!p))
+    {
+      p = (T *) calloc (1, sizeof (T));
+      if (unlikely (!p))
+        return &OT::Null(T);
+      p->init (face);
+      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p)))
+      {
+	p->fini ();
+	goto retry;
+      }
+    }
+    return p;
+  }
+
+  private:
+  hb_face_t *face;
+  T *instance;
+};
 
 struct hb_ot_font_t
 {
   hb_ot_face_cmap_accelerator_t cmap;
   hb_ot_face_metrics_accelerator_t h_metrics;
   hb_ot_face_metrics_accelerator_t v_metrics;
-  hb_ot_face_glyf_accelerator_t glyf;
+  hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
 };
 
 
@@ -390,7 +431,7 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
 			 void *user_data HB_UNUSED)
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
-  bool ret = ot_font->glyf.get_extents (glyph, extents);
+  bool ret = ot_font->glyf->get_extents (glyph, extents);
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);
   extents->width     = font->em_scale_x (extents->width);
