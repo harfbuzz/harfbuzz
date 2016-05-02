@@ -36,7 +36,7 @@
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-os2-table.hh"
-#include "hb-ot-post-table.hh"
+//#include "hb-ot-post-table.hh"
 
 
 struct hb_ot_face_metrics_accelerator_t
