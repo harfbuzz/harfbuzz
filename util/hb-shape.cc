@@ -74,6 +74,8 @@ struct output_buffer_t
       flags |= HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS;
     if (format.show_extents)
       flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS;
+    if (format.show_flags)
+      flags |= HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS;
     format_flags = (hb_buffer_serialize_flags_t) flags;
 
     if (format.trace)

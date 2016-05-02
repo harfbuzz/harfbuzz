@@ -781,6 +781,7 @@ format_options_t::add_options (option_parser_t *parser)
     {"no-clusters",	0, G_OPTION_FLAG_REVERSE,
 			      G_OPTION_ARG_NONE,	&this->show_clusters,		"Do not output cluster indices",					NULL},
     {"show-extents",	0, 0, G_OPTION_ARG_NONE,	&this->show_extents,		"Output glyph extents",							NULL},
+    {"show-flags",	0, 0, G_OPTION_ARG_NONE,	&this->show_flags,		"Output glyph flags",							NULL},
     {"trace",		0, 0, G_OPTION_ARG_NONE,	&this->trace,			"Output interim shaping results",					NULL},
     {NULL}
   };

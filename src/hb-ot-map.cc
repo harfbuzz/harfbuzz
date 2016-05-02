@@ -191,6 +191,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
 
   /* Allocate bits now */
   unsigned int next_bit = 1;
+  next_bit++; /* Allocate for HB_GLYPH_FLAG_UNSAFE_TO_BREAK */
+
   for (unsigned int i = 0; i < feature_infos.len; i++)
   {
     const feature_info_t *info = &feature_infos[i];

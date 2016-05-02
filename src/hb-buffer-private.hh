@@ -232,24 +232,30 @@ struct hb_buffer_t {
     for (unsigned int j = 0; j < len; j++)
       info[j].mask |= mask;
   }
-  HB_INTERNAL void set_masks (hb_mask_t value,
-			      hb_mask_t mask,
-			      unsigned int cluster_start,
-			      unsigned int cluster_end);
+  HB_INTERNAL void set_masks (hb_mask_t value, hb_mask_t mask,
+			      unsigned int cluster_start, unsigned int cluster_end);
 
-  HB_INTERNAL void merge_clusters (unsigned int start,
-				   unsigned int end)
+  inline void merge_clusters (unsigned int start, unsigned int end)
   {
     if (end - start < 2)
       return;
     merge_clusters_impl (start, end);
   }
-  HB_INTERNAL void merge_clusters_impl (unsigned int start,
-					unsigned int end);
-  HB_INTERNAL void merge_out_clusters (unsigned int start,
-				       unsigned int end);
+  HB_INTERNAL void merge_clusters_impl (unsigned int start, unsigned int end);
+  HB_INTERNAL void merge_out_clusters (unsigned int start, unsigned int end);
   /* Merge clusters for deleting current glyph, and skip it. */
   HB_INTERNAL void delete_glyph (void);
+
+  inline void unsafe_to_break (unsigned int start,
+			       unsigned int end)
+  {
+    if (end - start < 2)
+      return;
+    unsafe_to_break_impl (start, end);
+  }
+  HB_INTERNAL void unsafe_to_break_impl (unsigned int start, unsigned int end);
+  HB_INTERNAL void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end);
+
 
   /* Internal methods */
   HB_INTERNAL bool enlarge (unsigned int size);
