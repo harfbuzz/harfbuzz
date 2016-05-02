@@ -1,3 +1,15 @@
+Overview of changes leading to 1.2.7
+Monday, May 2, 2016
+====================================
+
+- Blacklist another version of Times New Roman (Bold) Italic from Windows 7.
+- Fix Mongolian Free Variation Selectors shaping with certain fonts.
+- Fix Tibetan shorthand contractions shaping.
+- Improved list of language tag mappings.
+- Unbreak build on Windows CE.
+- Make 'glyf' table loading lazy in hb-ot-font.
+
+
 Overview of changes leading to 1.2.6
 Friday, April 8, 2016
 ====================================
