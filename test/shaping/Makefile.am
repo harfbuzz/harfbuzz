@@ -47,7 +47,7 @@ TESTS = \
 	tests/context-matching.tests \
 	tests/cursive-positioning.tests \
 	tests/default-ignorables.tests \
-	tests/fallback-positioning.test \
+	tests/fallback-positioning.tests \
 	tests/fuzzed.tests \
 	tests/hangul-jamo.tests \
 	tests/hyphens.tests \
