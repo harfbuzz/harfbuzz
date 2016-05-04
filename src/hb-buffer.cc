@@ -637,31 +637,17 @@ done:
   skip_glyph ();
 }
 
-static inline void
-unsafe_to_break_two_infos (hb_glyph_info_t &info1, hb_glyph_info_t &info2)
-{
-  if (info1.cluster == info2.cluster)
-    return;
-  hb_glyph_info_t &unsafe = info1.cluster > info2.cluster ? info1 : info2;
-  unsafe.mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-}
-static void
-unsafe_to_break_infos_monotone (hb_glyph_info_t *info, unsigned int start, unsigned int end)
-{
-  for (unsigned int i = start + 1; i < end; i++)
-    unsafe_to_break_two_infos (info[i - 1], info[i]);
-}
-static unsigned int
-infos_min_cluster (const hb_glyph_info_t *info, unsigned int start, unsigned int end,
-		   unsigned int cluster)
+static int
+unsafe_to_break_find_min (const hb_glyph_info_t *info, unsigned int start, unsigned int end,
+			  unsigned int cluster)
 {
   for (unsigned int i = start; i < end; i++)
     cluster = MIN (cluster, info[i].cluster);
   return cluster;
 }
 static void
-infos_unsafe_to_break_cluster (hb_glyph_info_t *info, unsigned int start, unsigned int end,
-			       unsigned int cluster)
+unsafe_to_break_set_mask (hb_glyph_info_t *info, unsigned int start, unsigned int end,
+			  unsigned int cluster)
 {
   for (unsigned int i = start; i < end; i++)
     if (cluster != info[i].cluster)
@@ -670,16 +656,9 @@ infos_unsafe_to_break_cluster (hb_glyph_info_t *info, unsigned int start, unsign
 void
 hb_buffer_t::unsafe_to_break_impl (unsigned int start, unsigned int end)
 {
-  if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
-  {
-    unsigned int cluster = (unsigned int) -1;
-    cluster = infos_min_cluster (info, start, end, cluster);
-    infos_unsafe_to_break_cluster (info, start, end, cluster);
-    return;
-  }
-
-  /* The case of monotone clusters can be done faster. */
-  unsafe_to_break_infos_monotone (info, start, end);
+  unsigned int cluster = (unsigned int) -1;
+  cluster = unsafe_to_break_find_min (info, start, end, cluster);
+  unsafe_to_break_set_mask (info, start, end, cluster);
 }
 void
 hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end)
@@ -687,21 +666,11 @@ hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int en
   assert (start <= out_len);
   assert (idx <= end);
 
-  if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
-  {
-    unsigned int cluster = (unsigned int) -1;
-    cluster = infos_min_cluster (out_info, start, out_len, cluster);
-    cluster = infos_min_cluster (info, idx, end, cluster);
-    infos_unsafe_to_break_cluster (out_info, start, out_len, cluster);
-    infos_unsafe_to_break_cluster (info, idx, end, cluster);
-    return;
-  }
-
-  /* The case of monotone clusters can be done faster. */
-  unsafe_to_break_infos_monotone (out_info, start, out_len);
-  if (start < out_len && idx < end)
-    unsafe_to_break_two_infos (out_info[out_len - 1], info[idx]);
-  unsafe_to_break_infos_monotone (info, idx, end);
+  unsigned int cluster = (unsigned int) -1;
+  cluster = unsafe_to_break_find_min (out_info, start, out_len, cluster);
+  cluster = unsafe_to_break_find_min (info, idx, end, cluster);
+  unsafe_to_break_set_mask (out_info, start, out_len, cluster);
+  unsafe_to_break_set_mask (info, idx, end, cluster);
 }
 
 void
