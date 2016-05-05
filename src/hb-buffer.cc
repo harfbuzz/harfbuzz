@@ -663,6 +663,12 @@ hb_buffer_t::unsafe_to_break_impl (unsigned int start, unsigned int end)
 void
 hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end)
 {
+  if (!have_output)
+  {
+    unsafe_to_break_impl (start, end);
+    return;
+  }
+
   assert (start <= out_len);
   assert (idx <= end);
 
