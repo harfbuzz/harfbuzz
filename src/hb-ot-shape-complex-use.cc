@@ -184,6 +184,9 @@ has_arabic_joining (hb_script_t script)
     case HB_SCRIPT_MANICHAEAN:
     case HB_SCRIPT_PSALTER_PAHLAVI:
 
+    /* Unicode-9.0 additions */
+    case HB_SCRIPT_ADLAM:
+
       return true;
 
     default:

@@ -507,6 +507,9 @@ hb_script_get_horizontal_direction (hb_script_t script)
     /* Unicode-8.0 additions */
     case HB_SCRIPT_OLD_HUNGARIAN:
 
+    /* Unicode-9.0 additions */
+    case HB_SCRIPT_ADLAM:
+
       return HB_DIRECTION_RTL;
   }
 
