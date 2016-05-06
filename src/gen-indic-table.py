@@ -6,7 +6,30 @@ if len (sys.argv) != 4:
 	print >>sys.stderr, "usage: ./gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt"
 	sys.exit (1)
 
-BLACKLISTED_BLOCKS = ["Thai", "Lao", "Tibetan"]
+ALLOWED_SINGLES = [0x00A0, 0x25CC]
+ALLOWED_BLOCKS = [
+	'Basic Latin',
+	'Latin-1 Supplement',
+	'Devanagari',
+	'Bengali',
+	'Gurmukhi',
+	'Gujarati',
+	'Oriya',
+	'Tamil',
+	'Telugu',
+	'Kannada',
+	'Malayalam',
+	'Sinhala',
+	'Myanmar',
+	'Khmer',
+	'Vedic Extensions',
+	'General Punctuation',
+	'Superscripts and Subscripts',
+	'Devanagari Extended',
+	'Javanese',
+	'Myanmar Extended-B',
+	'Myanmar Extended-A',
+]
 
 files = [file (x) for x in sys.argv[1:]]
 
@@ -50,7 +73,7 @@ for i,d in enumerate (data):
 		if not u in combined:
 			combined[u] = list (defaults)
 		combined[u][i] = v
-combined = {k:v for k,v in combined.items() if v[2] not in BLACKLISTED_BLOCKS}
+combined = {k:v for k,v in combined.items() if k in ALLOWED_SINGLES or v[2] in ALLOWED_BLOCKS}
 data = combined
 del combined
 num = len (data)
@@ -61,7 +84,7 @@ for u in [0x17CD, 0x17CE, 0x17CF, 0x17D0, 0x17D3]:
 
 # Move the outliers NO-BREAK SPACE and DOTTED CIRCLE out
 singles = {}
-for u in [0x00A0, 0x25CC]:
+for u in ALLOWED_SINGLES:
 	singles[u] = data[u]
 	del data[u]
 
