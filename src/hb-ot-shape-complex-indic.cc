@@ -274,11 +274,6 @@ enum blwf_mode_t {
   BLWF_MODE_PRE_AND_POST, /* Below-forms feature applied to pre-base and post-base. */
   BLWF_MODE_POST_ONLY     /* Below-forms feature applied to post-base only. */
 };
-enum pref_len_t {
-  PREF_LEN_1 = 1,
-  PREF_LEN_2 = 2,
-  PREF_LEN_DONT_CARE = PREF_LEN_2
-};
 struct indic_config_t
 {
   hb_script_t     script;
@@ -288,25 +283,24 @@ struct indic_config_t
   reph_position_t reph_pos;
   reph_mode_t     reph_mode;
   blwf_mode_t     blwf_mode;
-  pref_len_t      pref_len;
 };
 
 static const indic_config_t indic_configs[] =
 {
   /* Default.  Should be first. */
-  {HB_SCRIPT_INVALID,	false,      0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_1},
-  {HB_SCRIPT_DEVANAGARI,true, 0x094Du,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_BENGALI,	true, 0x09CDu,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_GURMUKHI,	true, 0x0A4Du,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_GUJARATI,	true, 0x0ACDu,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_ORIYA,	true, 0x0B4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_TAMIL,	true, 0x0BCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
-  {HB_SCRIPT_TELUGU,	true, 0x0C4Du,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
-  {HB_SCRIPT_KANNADA,	true, 0x0CCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY,    PREF_LEN_2},
-  {HB_SCRIPT_MALAYALAM,	true, 0x0D4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
+  {HB_SCRIPT_INVALID,	false,      0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_DEVANAGARI,true, 0x094Du,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_BENGALI,	true, 0x09CDu,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_GURMUKHI,	true, 0x0A4Du,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_GUJARATI,	true, 0x0ACDu,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_ORIYA,	true, 0x0B4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_TAMIL,	true, 0x0BCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_TELUGU,	true, 0x0C4Du,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY},
+  {HB_SCRIPT_KANNADA,	true, 0x0CCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY},
+  {HB_SCRIPT_MALAYALAM,	true, 0x0D4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST},
   {HB_SCRIPT_SINHALA,	false,0x0DCAu,BASE_POS_LAST_SINHALA,
-						     REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST, PREF_LEN_DONT_CARE},
-  {HB_SCRIPT_KHMER,	false,0x17D2u,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST, PREF_LEN_2},
+						     REPH_POS_AFTER_MAIN, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_KHMER,	false,0x17D2u,BASE_POS_FIRST,REPH_POS_DONT_CARE,  REPH_MODE_VIS_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
@@ -584,12 +578,8 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
   if (indic_plan->pstf.would_substitute (glyphs  , 2, face) ||
       indic_plan->pstf.would_substitute (glyphs+1, 2, face))
     return POS_POST_C;
-  unsigned int pref_len = indic_plan->config->pref_len;
-  if ((pref_len == PREF_LEN_2 &&
-       (indic_plan->pref.would_substitute (glyphs  , 2, face) ||
-        indic_plan->pref.would_substitute (glyphs+1, 2, face)))
-   || (pref_len == PREF_LEN_1 &&
-       indic_plan->pref.would_substitute (glyphs+1, 1, face)))
+  if (indic_plan->pref.would_substitute (glyphs  , 2, face) ||
+      indic_plan->pref.would_substitute (glyphs+1, 2, face))
     return POS_POST_C;
   return POS_BASE_C;
 }
@@ -1095,10 +1085,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       }
   }
 
-  unsigned int pref_len = indic_plan->config->pref_len;
+  unsigned int pref_len = 2;
   if (indic_plan->mask_array[PREF] && base + pref_len < end)
   {
-    assert (1 <= pref_len && pref_len <= 2);
     /* Find a Halant,Ra sequence and mark it for pre-base reordering processing. */
     for (unsigned int i = base + 1; i + pref_len - 1 < end; i++) {
       hb_codepoint_t glyphs[2];
@@ -1308,7 +1297,7 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
   for (base = start; base < end; base++)
     if (info[base].indic_position() >= POS_BASE_C)
     {
-      if (try_pref && base + 1 < end && indic_plan->config->pref_len == 2)
+      if (try_pref && base + 1 < end)
       {
 	for (unsigned int i = base + 1; i < end; i++)
 	  if ((info[i].mask & indic_plan->mask_array[PREF]) != 0)
@@ -1590,7 +1579,6 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
 
   if (try_pref && base + 1 < end) /* Otherwise there can't be any pre-base reordering Ra. */
   {
-    unsigned int pref_len = indic_plan->config->pref_len;
     for (unsigned int i = base + 1; i < end; i++)
       if ((info[i].mask & indic_plan->mask_array[PREF]) != 0)
       {
@@ -1601,10 +1589,8 @@ final_reordering_syllable (const hb_ot_shape_plan_t *plan,
         /* Note: We just check that something got substituted.  We don't check that
 	 * the <pref> feature actually did it...
 	 *
-	 * If pref len is longer than one, then only reorder if it ligated.  If
-	 * pref len is one, only reorder if it didn't ligate with other things. */
-	if (_hb_glyph_info_substituted (&info[i]) &&
-	    ((pref_len == 1) ^ _hb_glyph_info_ligated_and_didnt_multiply (&info[i])))
+	 * Reorder pref only if it ligated. */
+	if (_hb_glyph_info_ligated_and_didnt_multiply (&info[i]))
 	{
 	  /*
 	   *       2. Try to find a target position the same way as for pre-base matra.
