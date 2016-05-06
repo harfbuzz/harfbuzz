@@ -236,6 +236,7 @@ enum syllable_type_t {
   numeral_cluster,
   symbol_cluster,
   broken_cluster,
+  non_cluster,
 };
 
 #include "hb-ot-shape-complex-use-machine.hh"
@@ -315,6 +316,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
     {
       case independent_cluster:
       case symbol_cluster:
+      case non_cluster:
 	/* These don't join.  Nothing to do. */
 	last_form = _NONE;
 	break;

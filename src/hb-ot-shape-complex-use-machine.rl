@@ -129,6 +129,7 @@ number_joiner_terminated_cluster = N VS? (HN N VS?)* HN;
 numeral_cluster = N VS? (HN N VS?)*;
 symbol_cluster = S VS? SMAbv* SMBlw*;
 independent_cluster = (IND | O | Rsv | WJ) VS?;
+other = any;
 
 main := |*
 	independent_cluster			=> { found_syllable (independent_cluster); };
@@ -139,6 +140,7 @@ main := |*
 	numeral_cluster				=> { found_syllable (numeral_cluster); };
 	symbol_cluster				=> { found_syllable (symbol_cluster); };
 	broken_cluster				=> { found_syllable (broken_cluster); };
+	other					=> { found_syllable (non_cluster); };
 *|;
 
 
