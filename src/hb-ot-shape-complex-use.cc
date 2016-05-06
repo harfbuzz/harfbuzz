@@ -230,8 +230,7 @@ data_destroy_use (void *data)
 enum syllable_type_t {
   independent_cluster,
   virama_terminated_cluster,
-  consonant_cluster,
-  vowel_cluster,
+  standard_cluster,
   number_joiner_terminated_cluster,
   numeral_cluster,
   symbol_cluster,
@@ -322,8 +321,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
 	break;
 
       case virama_terminated_cluster:
-      case consonant_cluster:
-      case vowel_cluster:
+      case standard_cluster:
       case number_joiner_terminated_cluster:
       case numeral_cluster:
       case broken_cluster:
@@ -426,15 +424,14 @@ reorder_syllable (hb_buffer_t *buffer, unsigned int start, unsigned int end)
   /* Only a few syllable types need reordering. */
   if (unlikely (!(FLAG_SAFE (syllable_type) &
 		  (FLAG (virama_terminated_cluster) |
-		   FLAG (consonant_cluster) |
-		   FLAG (vowel_cluster) |
+		   FLAG (standard_cluster) |
 		   FLAG (broken_cluster) |
 		   0))))
     return;
 
   hb_glyph_info_t *info = buffer->info;
 
-#define BASE_FLAGS (FLAG (USE_B) | FLAG (USE_GB) | FLAG (USE_IV))
+#define BASE_FLAGS (FLAG (USE_B) | FLAG (USE_GB))
 
   /* Move things forward. */
   if (info[start].use_category() == USE_R && end - start > 1)

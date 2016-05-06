@@ -24,7 +24,6 @@
 #define H	USE_H	/* HALANT */
 #define HN	USE_HN	/* HALANT_NUM */
 #define IND	USE_IND	/* BASE_IND */
-#define IV	USE_IV	/* BASE_VOWEL */
 #define N	USE_N	/* BASE_NUM */
 #define O	USE_O	/* OTHER */
 #define R	USE_R	/* REPHA */
@@ -80,30 +79,30 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Devanagari */
 
-  /* 0900 */ VMAbv, VMAbv, VMAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
-  /* 0910 */    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0900 */ VMAbv, VMAbv, VMAbv, VMPst,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0910 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0920 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0930 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VPst, CMBlw,     B,  VPst,  VPre,
   /* 0940 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,  VPst,  VPst,  VPst,  VPst,     H,  VPre,  VPst,
   /* 0950 */     O, VMAbv, VMBlw,     O,     O,  VAbv,  VBlw,  VBlw,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 0960 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 0970 */     O,     O,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0960 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0970 */     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
 
   /* Bengali */
 
-  /* 0980 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,    IV,
-  /* 0990 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0980 */     O, VMAbv, VMPst, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     B,
+  /* 0990 */     B,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 09A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 09B0 */     B,     O,     B,     O,     O,     O,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VPre,
   /* 09C0 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,   IND,     O,
   /* 09D0 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     B,     B,     O,     B,
-  /* 09E0 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 09E0 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 09F0 */     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Gurmukhi */
 
-  /* 0A00 */     O, VMAbv, VMAbv, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,     O,     O,    IV,
-  /* 0A10 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0A00 */     O, VMAbv, VMAbv, VMPst,     O,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     B,
+  /* 0A10 */     B,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0A20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 0A30 */     B,     O,     B,     B,     O,     B,     B,     O,     B,     B,     O,     O, CMBlw,     O,  VPst,  VPre,
   /* 0A40 */  VPst,  VBlw,  VBlw,     O,     O,     O,     O,  VAbv,  VAbv,     O,     O,  VAbv,  VAbv,     H,     O,     O,
@@ -113,30 +112,30 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Gujarati */
 
-  /* 0A80 */     O, VMAbv, VMAbv, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,
-  /* 0A90 */    IV,    IV,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0A80 */     O, VMAbv, VMAbv, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,
+  /* 0A90 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0AA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 0AB0 */     B,     O,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VPre,
   /* 0AC0 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,     O,  VAbv,  VAbv,  VAbv,     O,  VPst,  VPst,     H,     O,     O,
   /* 0AD0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
-  /* 0AE0 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0AE0 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0AF0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     B,     O,     O,     O,     O,     O,     O,
 
   /* Oriya */
 
-  /* 0B00 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,    IV,
-  /* 0B10 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0B00 */     O, VMAbv, VMPst, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     B,
+  /* 0B10 */     B,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0B20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 0B30 */     B,     O,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VAbv,
   /* 0B40 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,     O,     O,
   /* 0B50 */     O,     O,     O,     O,     O,     O,  VAbv,  VAbv,     O,     O,     O,     O,     B,     B,     O,     B,
-  /* 0B60 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0B60 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0B70 */     O,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Tamil */
 
-  /* 0B80 */     O,     O, VMAbv,   IND,     O,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,     O,    IV,    IV,
-  /* 0B90 */    IV,     O,    IV,    IV,    IV,     B,     O,     O,     O,     B,     B,     O,     B,     O,     B,     B,
+  /* 0B80 */     O,     O, VMAbv,   IND,     O,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,     B,
+  /* 0B90 */     B,     O,     B,     B,     B,     B,     O,     O,     O,     B,     B,     O,     B,     O,     B,     B,
   /* 0BA0 */     O,     O,     O,     B,     B,     O,     O,     O,     B,     B,     B,     O,     O,     O,     B,     B,
   /* 0BB0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,  VPst,  VPst,
   /* 0BC0 */  VAbv,  VPst,  VPst,     O,     O,     O,  VPre,  VPre,  VPre,     O,  VPre,  VPre,  VPre,     H,     O,     O,
@@ -146,41 +145,41 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Telugu */
 
-  /* 0C00 */ VMAbv, VMPst, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,    IV,
-  /* 0C10 */    IV,     O,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0C00 */ VMAbv, VMPst, VMPst, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
+  /* 0C10 */     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0C20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 0C30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,  VAbv,  VAbv,
   /* 0C40 */  VAbv,  VPst,  VPst,  VPst,  VPst,     O,  VAbv,  VAbv,  VAbv,     O,  VAbv,  VAbv,  VAbv,     H,     O,     O,
   /* 0C50 */     O,     O,     O,     O,     O,  VAbv,  VBlw,     O,     B,     B,     B,     O,     O,     O,     O,     O,
-  /* 0C60 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0C60 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0C70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Kannada */
 
-  /* 0C80 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,    IV,
-  /* 0C90 */    IV,     O,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0C80 */     O, VMAbv, VMPst, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
+  /* 0C90 */     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0CA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 0CB0 */     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VAbv,
   /* 0CC0 */  VAbv,  VPst,  VPst,  VPst,  VPst,     O,  VAbv,  VAbv,  VAbv,     O,  VAbv,  VAbv,  VAbv,     H,     O,     O,
   /* 0CD0 */     O,     O,     O,     O,     O,  VPst,  VPst,     O,     O,     O,     O,     O,     O,     O,     B,     O,
-  /* 0CE0 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0CE0 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0CF0 */     O,     R,     R,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Malayalam */
 
-  /* 0D00 */     O, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,    IV,
-  /* 0D10 */    IV,     O,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0D00 */     O, VMAbv, VMPst, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
+  /* 0D10 */     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0D20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0D30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     B,  VPst,  VPst,
   /* 0D40 */  VPst,  VPst,  VPst,  VBlw,  VBlw,     O,  VPre,  VPre,  VPre,     O,  VPre,  VPre,  VPre,     H,     R,     O,
-  /* 0D50 */     O,     O,     O,     O,   IND,   IND,   IND,  VPst,     O,     O,     O,     O,     O,     O,     O,    IV,
-  /* 0D60 */    IV,    IV,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0D50 */     O,     O,     O,     O,   IND,   IND,   IND,  VPst,     O,     O,     O,     O,     O,     O,     O,     B,
+  /* 0D60 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0D70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,   IND,   IND,   IND,   IND,   IND,   IND,
 
   /* Sinhala */
 
-  /* 0D80 */     O,     O, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
-  /* 0D90 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,     O,     B,     B,     B,     B,     B,     B,
+  /* 0D80 */     O,     O, VMPst, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 0D90 */     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,     B,     B,     B,     B,     B,
   /* 0DA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0DB0 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     O,     O,
   /* 0DC0 */     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     H,     O,     O,     O,     O,  VPst,
@@ -195,10 +194,10 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* 1000 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1010 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 1020 */     B,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,  VPst,  VPst,  VAbv,  VAbv,  VBlw,
+  /* 1020 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPst,  VAbv,  VAbv,  VBlw,
   /* 1030 */  VBlw,  VPre,  VAbv,  VAbv,  VAbv,  VAbv, VMAbv, VMBlw, VMPst,     H,  VAbv,  MPst,  MPre,  MBlw,  MBlw,     B,
   /* 1040 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,    GB,     O,
-  /* 1050 */     B,     B,    IV,    IV,    IV,    IV,  VPst,  VPst,  VBlw,  VBlw,     B,     B,     B,     B,  MBlw,  MBlw,
+  /* 1050 */     B,     B,     B,     B,     B,     B,  VPst,  VPst,  VBlw,  VBlw,     B,     B,     B,     B,  MBlw,  MBlw,
   /* 1060 */  MBlw,     B,  VPst, VMPst, VMPst,     B,     B,  VPst,  VPst, VMPst, VMPst, VMPst, VMPst, VMPst,     B,     B,
   /* 1070 */     B,  VAbv,  VAbv,  VAbv,  VAbv,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1080 */     B,     B,  MBlw,  VPst,  VPre,  VAbv,  VAbv, VMPst, VMPst, VMPst, VMPst, VMPst, VMPst, VMBlw,     B, VMPst,
@@ -209,30 +208,30 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Tagalog */
 
-  /* 1700 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
+  /* 1700 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
   /* 1710 */     B,     B,  VAbv,  VBlw,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Hanunoo */
 
-  /* 1720 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1720 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1730 */     B,     B,  VAbv,  VBlw,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Buhid */
 
-  /* 1740 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1740 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1750 */     B,     B,  VAbv,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Tagbanwa */
 
-  /* 1760 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
+  /* 1760 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,
   /* 1770 */     B,     O,  VAbv,  VBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Khmer */
 
   /* 1780 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1790 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 17A0 */     B,     B,     B,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
-  /* 17B0 */    IV,    IV,    IV,    IV,     O,     O,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VPre,  VPre,
+  /* 17A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 17B0 */     B,     B,     B,     B,     O,     O,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VPre,  VPre,
   /* 17C0 */  VPre,  VPre,  VPre,  VPre,  VPre,  VPre, VMAbv, VMPst,  VPst, VMAbv, VMAbv,    FM,  FAbv, CMAbv,    FM,    FM,
   /* 17D0 */    FM,  VAbv,     H,    FM,     O,     O,     O,     O,     O,     O,     O,     O,     B,  VAbv,     O,     O,
   /* 17E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
@@ -274,8 +273,8 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* 1A20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1A30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 1A40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,    IV,    IV,    IV,
-  /* 1A50 */    IV,    IV,    IV,     B,     B,  MPre,  MBlw,  FPst,  FAbv,  FAbv,  FAbv,  FBlw,  FBlw,  FBlw,  FBlw,     O,
+  /* 1A40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1A50 */     B,     B,     B,     B,     B,  MPre,  MBlw,  FPst,  FAbv,  FAbv,  FAbv,  FBlw,  FBlw,  FBlw,  FBlw,     O,
   /* 1A60 */     H,  VPst,  VAbv,  VPst,  VPst,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VAbv,  VBlw,  VPst,  VPre,  VPre,
   /* 1A70 */  VPre,  VPre,  VPre,  VAbv,  VAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,    FM,    FM,    FM,     O,     O,    FM,
   /* 1A80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
@@ -286,8 +285,8 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Balinese */
 
-  /* 1B00 */ VMAbv, VMAbv, VMAbv,  FAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
-  /* 1B10 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1B00 */ VMAbv, VMAbv, VMAbv,  FAbv, VMPst,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1B10 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1B20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1B30 */     B,     B,     B,     B, CMAbv,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VPre,  VPre,
   /* 1B40 */  VPre,  VPre,  VAbv,  VAbv,     H,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
@@ -297,7 +296,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Sundanese */
 
-  /* 1B80 */ VMAbv,  FAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,
+  /* 1B80 */ VMAbv,  FAbv, VMPst,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1B90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1BA0 */     B,   SUB,   SUB,   SUB,  VAbv,  VBlw,  VPre,  VPst,  VAbv,  VAbv,  VPst,     H,   SUB,   SUB,     B,     B,
   /* 1BB0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
@@ -306,7 +305,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* 1BC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1BD0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 1BE0 */     B,     B,     B,     B,    IV,    IV, CMAbv,  VPst,  VAbv,  VAbv,  VPst,  VPst,  VPst,  VAbv,  VPst,  VAbv,
+  /* 1BE0 */     B,     B,     B,     B,     B,     B, CMAbv,  VPst,  VAbv,  VAbv,  VPst,  VPst,  VPst,  VAbv,  VPst,  VAbv,
   /* 1BF0 */  FAbv,  FAbv,  VPst,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Lepcha */
@@ -353,7 +352,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Syloti Nagri */
 
-  /* A800 */    IV,    IV,     O,    IV,    IV,    IV,  VAbv,     B,     B,     B,     B, VMAbv,     B,     B,     B,     B,
+  /* A800 */     B,     B,     O,     B,     B,     B,  VAbv,     B,     B,     B,     B, VMAbv,     B,     B,     B,     B,
   /* A810 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* A820 */     B,     B,     B,  VPst,  VPst,  VBlw,  VAbv,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,
   /* A830 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
@@ -367,8 +366,8 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Saurashtra */
 
-  /* A880 */ VMPst, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
-  /* A890 */    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A880 */ VMPst, VMPst,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* A890 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* A8A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* A8B0 */     B,     B,     B,     B,  FPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,  VPst,
   /* A8C0 */  VPst,  VPst,  VPst,  VPst,     H, VMAbv,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
@@ -395,7 +394,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Javanese */
 
-  /* A980 */ VMAbv, VMAbv,  FAbv, VMPst,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,    IV,    IV,    IV,     B,
+  /* A980 */ VMAbv, VMAbv,  FAbv, VMPst,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* A990 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* A9A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* A9B0 */     B,     B,     B, CMAbv,  VPst,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VPre,  VPre,  VAbv,   SUB,  MPst,  MPst,
@@ -409,7 +408,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Cham */
 
-  /* AA00 */    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* AA00 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* AA10 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* AA20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VAbv,  VPre,
   /* AA30 */  VPre,  VAbv,  VBlw,  MPst,  MPre,  MBlw,  MBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,
@@ -432,7 +431,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Meetei Mayek Extensions */
 
-  /* AAE0 */    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPre,  VBlw,  VAbv,  VPre,  VPst,
+  /* AAE0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPre,  VBlw,  VAbv,  VPre,  VPst,
   /* AAF0 */     O,     O,     O,     O,     O, VMPst,     H,     O,
 
 #define use_offset_0xabc0u 3376
@@ -440,8 +439,8 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Meetei Mayek */
 
-  /* ABC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,    IV,    IV,
-  /* ABD0 */     B,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* ABC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* ABD0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* ABE0 */     B,     B,     B,  VPst,  VPst,  VAbv,  VPst,  VPst,  VBlw,  VPst,  VPst,     O, VMPst,  VBlw,     O,     O,
   /* ABF0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
@@ -468,8 +467,8 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Brahmi */
 
-  /* 11000 */ VMPst, VMAbv, VMPst,     R,     R,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
-  /* 11010 */    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11000 */ VMPst, VMAbv, VMPst,     R,     R,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11010 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11020 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11030 */     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,
   /* 11040 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,     H,     O,     O,     O,     O,     O,     O,     O,     O,     O,
@@ -479,7 +478,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Kaithi */
 
-  /* 11080 */ VMAbv, VMAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,
+  /* 11080 */ VMAbv, VMAbv, VMPst,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11090 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 110A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 110B0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VAbv,  VAbv,  VPst,  VPst,     H, CMBlw,     O,     O,     O,     O,     O,
@@ -489,7 +488,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Chakma */
 
-  /* 11100 */ VMAbv, VMAbv, VMAbv,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11100 */ VMAbv, VMAbv, VMAbv,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11110 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11120 */     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VPre,  VAbv,  VAbv,  VAbv,
   /* 11130 */  VAbv,  VBlw,  VBlw,     H,  VAbv,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
@@ -503,8 +502,8 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Sharada */
 
-  /* 11180 */ VMAbv, VMAbv, VMPst,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,
-  /* 11190 */    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11180 */ VMAbv, VMAbv, VMPst,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11190 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 111A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 111B0 */     B,     B,     B,  VPst,  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,
   /* 111C0 */     H,     B,     R,     R,     O,     O,     O,     O,     O,     O, CMBlw,  VAbv,  VBlw,     O,     O,     O,
@@ -517,7 +516,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Khojki */
 
-  /* 11200 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11200 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11210 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11220 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPst,  VPst,  VBlw,
   /* 11230 */  VAbv,  VAbv,  VAbv,  VAbv, VMAbv,     H, CMAbv, CMAbv,     O,     O,     O,     O,     O,     O, VMAbv,     O,
@@ -527,13 +526,13 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Multani */
 
-  /* 11280 */    IV,    IV,    IV,    IV,     B,     B,     B,     O,     B,     O,     B,     B,     B,     B,     O,     B,
+  /* 11280 */     B,     B,     B,     B,     B,     B,     B,     O,     B,     O,     B,     B,     B,     B,     O,     B,
   /* 11290 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,
   /* 112A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,
 
   /* Khudawadi */
 
-  /* 112B0 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,
+  /* 112B0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 112C0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 112D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv,
   /* 112E0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv, CMBlw,  VBlw,     O,     O,     O,     O,     O,
@@ -541,13 +540,13 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Grantha */
 
-  /* 11300 */ VMAbv, VMAbv, VMPst, VMPst,     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,     O,    IV,
-  /* 11310 */    IV,     O,     O,    IV,    IV,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 11300 */ VMAbv, VMAbv, VMPst, VMPst,     O,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     B,
+  /* 11310 */     B,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11320 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 11330 */     B,     O,     B,     B,     O,     B,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VPst,
   /* 11340 */  VAbv,  VPst,  VPst,  VPst,  VPst,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,     O,     O,
   /* 11350 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     O,     O,     O,     O,
-  /* 11360 */    IV,    IV,  VPst,  VPst,     O,     O, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
+  /* 11360 */     B,     B,  VPst,  VPst,     O,     O, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
   /* 11370 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
 
 #define use_offset_0x11400u 4288
@@ -555,7 +554,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Newa */
 
-  /* 11400 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,
+  /* 11400 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11410 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11420 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11430 */     B,     B,     B,     B,     B,  VPst,  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,
@@ -566,7 +565,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Tirhuta */
 
-  /* 11480 */     O,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,
+  /* 11480 */     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11490 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 114A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 114B0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VPre,  VAbv,  VPre,  VPre,  VPst,  VPre, VMAbv,
@@ -578,18 +577,18 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Siddham */
 
-  /* 11580 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,
+  /* 11580 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11590 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 115A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,
   /* 115B0 */  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,  VPre,  VPre, VMAbv, VMAbv, VMPst,     H,
   /* 115C0 */ CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
-  /* 115D0 */     O,     O,     O,     O,     O,     O,     O,     O,    IV,    IV,    IV,    IV,  VBlw,  VBlw,     O,     O,
+  /* 115D0 */     O,     O,     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,  VBlw,  VBlw,     O,     O,
   /* 115E0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 115F0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Modi */
 
-  /* 11600 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,
+  /* 11600 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11610 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11620 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11630 */  VPst,  VPst,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VPst,  VPst, VMAbv, VMPst,     H,
@@ -600,7 +599,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Takri */
 
-  /* 11680 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     B,     B,     B,     B,     B,     B,
+  /* 11680 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11690 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 116A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv, VMPst,  VAbv,  VPre,  VPst,
   /* 116B0 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,     H, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,
@@ -621,7 +620,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Bhaiksuki */
 
-  /* 11C00 */    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,    IV,     O,    IV,    IV,    IV,    IV,     B,     B,
+  /* 11C00 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 11C10 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11C20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,
   /* 11C30 */  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,     O,  VAbv,  VAbv,  VAbv,  VAbv, VMAbv, VMAbv, VMPst,     H,
@@ -702,7 +701,6 @@ hb_use_get_categories (hb_codepoint_t u)
 #undef H
 #undef HN
 #undef IND
-#undef IV
 #undef N
 #undef O
 #undef R
