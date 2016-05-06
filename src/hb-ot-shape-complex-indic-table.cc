@@ -370,23 +370,8 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* A8E8 */ _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T), _(Ca,T),
   /* A8F0 */ _(Ca,T), _(Ca,T),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
-#define indic_offset_0xa980u 1720
+#define indic_offset_0xa9e0u 1720
 
-
-  /* Javanese */
-
-  /* A980 */ _(Bi,T), _(Bi,T),_(CSR,T), _(Vs,R), _(VI,x), _(VI,x), _(VI,x), _(VI,x),
-  /* A988 */ _(VI,x),  _(C,x),  _(C,x),  _(C,x), _(VI,x), _(VI,x), _(VI,x),  _(C,x),
-  /* A990 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* A998 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* A9A0 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* A9A8 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* A9B0 */  _(C,x),  _(C,x),  _(C,x),  _(N,T),  _(M,R),  _(M,R),  _(M,T),  _(M,T),
-  /* A9B8 */  _(M,B),  _(M,B),  _(M,L),  _(M,L),  _(M,T), _(CS,R), _(CM,R), _(CM,R),
-  /* A9C0 */ _(V,BR),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* A9C8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* A9D0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
-  /* A9D8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
   /* Myanmar Extended-B */
 
@@ -395,7 +380,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* A9F0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* A9F8 */ _(Nd,x), _(Nd,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),
 
-#define indic_offset_0xaa60u 1848
+#define indic_offset_0xaa60u 1752
 
 
   /* Myanmar Extended-A */
@@ -405,7 +390,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* AA70 */  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
   /* AA78 */  _(x,x),  _(x,x),  _(C,x), _(TM,R), _(TM,T), _(TM,R),  _(C,x),  _(C,x),
 
-}; /* Table items: 1880; occupancy: 70% */
+}; /* Table items: 1784; occupancy: 69% */
 
 INDIC_TABLE_ELEMENT_TYPE
 hb_indic_get_categories (hb_codepoint_t u)
@@ -433,7 +418,7 @@ hb_indic_get_categories (hb_codepoint_t u)
 
     case 0xAu:
       if (hb_in_range (u, 0xA8E0u, 0xA8F7u)) return indic_table[u - 0xA8E0u + indic_offset_0xa8e0u];
-      if (hb_in_range (u, 0xA980u, 0xA9FFu)) return indic_table[u - 0xA980u + indic_offset_0xa980u];
+      if (hb_in_range (u, 0xA9E0u, 0xA9FFu)) return indic_table[u - 0xA9E0u + indic_offset_0xa9e0u];
       if (hb_in_range (u, 0xAA60u, 0xAA7Fu)) return indic_table[u - 0xAA60u + indic_offset_0xaa60u];
       break;
 

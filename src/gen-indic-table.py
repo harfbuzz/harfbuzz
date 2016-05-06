@@ -26,7 +26,6 @@ ALLOWED_BLOCKS = [
 	'General Punctuation',
 	'Superscripts and Subscripts',
 	'Devanagari Extended',
-	'Javanese',
 	'Myanmar Extended-B',
 	'Myanmar Extended-A',
 ]
