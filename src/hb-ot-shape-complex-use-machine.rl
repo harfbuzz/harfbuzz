@@ -125,7 +125,7 @@ broken_cluster =
 	final_consonants
 ;
 
-number_joiner_terminated_cluster = N VS? (HN N VS?)* H;
+number_joiner_terminated_cluster = N VS? (HN N VS?)* HN;
 numeral_cluster = N VS? (HN N VS?)*;
 symbol_cluster = S VS? SMAbv* SMBlw*;
 independent_cluster = (IND | O | Rsv | WJ) VS?;
