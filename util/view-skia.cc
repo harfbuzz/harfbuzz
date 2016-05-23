@@ -159,7 +159,7 @@ void view_skia_t::finish (const font_options_t *font_opts) {
   pdfDocument->close();
 
   if (memory_stream != nullptr) {
-    SkData* data = memory_stream->copyToData();
+    SkAutoDataUnref data(memory_stream->copyToData());
     fwrite(data->data(), sizeof(char), data->size(), stdout);
   }
 
