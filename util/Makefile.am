@@ -42,6 +42,19 @@ bin_PROGRAMS += hb-view
 endif # HAVE_CAIRO_FT
 endif # HAVE_FREETYPE
 
+if HAVE_SKIA
+AM_CPPFLAGS += \
+  $(SKIA_CFLAGS) \
+  $(NULL)
+
+hb_view_skia_SOURCES = $(HB_VIEW_SKIA_sources)
+hb_view_skia_LDADD = \
+	$(LDADD) \
+	$(SKIA_LIBS) \
+	$(NULL)
+bin_PROGRAMS += hb-view-skia
+endif # HAVE_SKIA
+
 hb_shape_SOURCES = $(HB_SHAPE_sources)
 bin_PROGRAMS += hb-shape
 

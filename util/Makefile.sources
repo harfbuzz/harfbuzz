@@ -16,6 +16,14 @@ HB_VIEW_sources = \
 	view-cairo.hh \
 	$(NULL)
 
+HB_VIEW_SKIA_sources = \
+	hb-view-skia.cc \
+	options.cc \
+	options.hh \
+	view-skia.cc \
+	view-skia.hh \
+	$(NULL)
+
 HB_SHAPE_sources = \
 	hb-shape.cc \
 	options.cc \
