@@ -133,8 +133,11 @@ void view_skia_t::finish (const font_options_t *font_opts) {
   double leading = font_height + view_options.line_space;
 
   // Calculate width and height of one page that fits all consumed text.
-  double h = lines->len * leading + descent + view_options.line_space;
-  double w = 0;
+  //
+  // Use (1.0f,1.0f) as minimum (width, height) so that drawPaint doesn't
+  // crash below when input is empty.
+  double h = MAX((double)1.0f, lines->len * leading + descent + view_options.line_space);
+  double w = 1.0f;
   for (unsigned int i = 0; i < lines->len; i++) {
     SkTextBlob *text_blob = g_array_index (lines, SkTextBlob*, i);
     SkRect bounds = text_blob->bounds();
@@ -143,14 +146,16 @@ void view_skia_t::finish (const font_options_t *font_opts) {
   }
 
   SkCanvas* pageCanvas = pdfDocument->beginPage(w, h);
+  printf("w=%f, h=%f\n", w, h);
   pageCanvas->drawPaint(background_paint);
 
   double current_x = 0;
   double current_y = leading;
 
   for (unsigned int i = 0; i < lines->len; i++) {
-    SkTextBlob *text_blob = g_array_index (lines, SkTextBlob*, i);
+    const SkTextBlob *text_blob = g_array_index (lines, const SkTextBlob*, i);
     pageCanvas->drawTextBlob(text_blob, current_x, current_y, glyph_paint);
+    text_blob->unref();
 
     current_y += leading;
   }
