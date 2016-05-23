@@ -146,7 +146,6 @@ void view_skia_t::finish (const font_options_t *font_opts) {
   }
 
   SkCanvas* pageCanvas = pdfDocument->beginPage(w, h);
-  printf("w=%f, h=%f\n", w, h);
   pageCanvas->drawPaint(background_paint);
 
   double current_x = 0;
