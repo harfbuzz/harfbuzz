@@ -7,7 +7,7 @@
  * on files with these headers:
  *
  * # IndicSyllabicCategory-9.0.0.txt
- * # Date: 2016-02-25, 00:48:00 GMT [RP]
+ * # Date: 2016-05-21, 02:46:00 GMT [RP]
  * # IndicPositionalCategory-9.0.0.txt
  * # Date: 2016-02-25, 00:48:00 GMT [RP]
  * # Blocks-9.0.0.txt
@@ -27,7 +27,7 @@
 #define ISC_CHL	INDIC_SYLLABIC_CATEGORY_CONSONANT_HEAD_LETTER	/*   5 chars; Consonant_Head_Letter */
 #define ISC_CK	INDIC_SYLLABIC_CATEGORY_CONSONANT_KILLER	/*   2 chars; Consonant_Killer */
 #define ISC_CM	INDIC_SYLLABIC_CATEGORY_CONSONANT_MEDIAL	/*  22 chars; Consonant_Medial */
-#define ISC_CP	INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	/*  13 chars; Consonant_Placeholder */
+#define ISC_CP	INDIC_SYLLABIC_CATEGORY_CONSONANT_PLACEHOLDER	/*  16 chars; Consonant_Placeholder */
 #define ISC_CPR	INDIC_SYLLABIC_CATEGORY_CONSONANT_PRECEDING_REPHA	/*   1 chars; Consonant_Preceding_Repha */
 #define ISC_CPrf	INDIC_SYLLABIC_CATEGORY_CONSONANT_PREFIXED	/*   2 chars; Consonant_Prefixed */
 #define ISC_CS	INDIC_SYLLABIC_CATEGORY_CONSONANT_SUBJOINED	/*  90 chars; Consonant_Subjoined */
@@ -44,7 +44,7 @@
 #define ISC_x	INDIC_SYLLABIC_CATEGORY_OTHER			/*   1 chars; Other */
 #define ISC_PK	INDIC_SYLLABIC_CATEGORY_PURE_KILLER		/*  16 chars; Pure_Killer */
 #define ISC_RS	INDIC_SYLLABIC_CATEGORY_REGISTER_SHIFTER	/*   2 chars; Register_Shifter */
-#define ISC_SM	INDIC_SYLLABIC_CATEGORY_SYLLABLE_MODIFIER	/*  21 chars; Syllable_Modifier */
+#define ISC_SM	INDIC_SYLLABIC_CATEGORY_SYLLABLE_MODIFIER	/*  22 chars; Syllable_Modifier */
 #define ISC_TL	INDIC_SYLLABIC_CATEGORY_TONE_LETTER		/*   7 chars; Tone_Letter */
 #define ISC_TM	INDIC_SYLLABIC_CATEGORY_TONE_MARK		/*  42 chars; Tone_Mark */
 #define ISC_V	INDIC_SYLLABIC_CATEGORY_VIRAMA			/*  24 chars; Virama */
@@ -328,7 +328,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
   /* 17C0 */ _(M,LR),  _(M,L),  _(M,L),  _(M,L), _(M,LR), _(M,LR), _(Bi,T), _(Vs,R),
   /* 17C8 */  _(M,R), _(RS,T), _(RS,T), _(SM,T),_(CSR,T), _(CK,T), _(SM,T), _(SM,T),
   /* 17D0 */ _(SM,T), _(PK,T), _(IS,x), _(SM,T),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
-  /* 17D8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(A,x),  _(x,T),  _(x,x),  _(x,x),
+  /* 17D8 */  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(A,x), _(SM,T),  _(x,x),  _(x,x),
   /* 17E0 */ _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x), _(Nd,x),
   /* 17E8 */ _(Nd,x), _(Nd,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
 
@@ -387,7 +387,7 @@ static const INDIC_TABLE_ELEMENT_TYPE indic_table[] = {
 
   /* AA60 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* AA68 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
-  /* AA70 */  _(x,x),  _(C,x),  _(C,x),  _(C,x),  _(x,x),  _(x,x),  _(x,x),  _(x,x),
+  /* AA70 */  _(x,x),  _(C,x),  _(C,x),  _(C,x), _(CP,x), _(CP,x), _(CP,x),  _(x,x),
   /* AA78 */  _(x,x),  _(x,x),  _(C,x), _(TM,R), _(TM,T), _(TM,R),  _(C,x),  _(C,x),
 
 }; /* Table items: 1784; occupancy: 69% */
