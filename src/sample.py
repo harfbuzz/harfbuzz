@@ -20,6 +20,7 @@ def tounicode(s, encoding='utf-8'):
 
 fontdata = open (sys.argv[1], 'rb').read ()
 text = tounicode(sys.argv[2])
+codepoints = list(map(ord, text))
 # Need to create GLib.Bytes explicitly until this bug is fixed:
 # https://bugzilla.gnome.org/show_bug.cgi?id=729541
 blob = hb.glib_blob_create (GLib.Bytes.new (fontdata))
@@ -39,7 +40,7 @@ class Debugger(object):
 		return True
 debugger = Debugger()
 hb.buffer_set_message_func (buf, debugger.message, 1, 0)
-hb.buffer_add_utf8 (buf, text.encode('utf-8'), 0, -1)
+hb.buffer_add_codepoints (buf, codepoints, 0, -1)
 hb.buffer_guess_segment_properties (buf)
 
 hb.shape (font, buf, [])
