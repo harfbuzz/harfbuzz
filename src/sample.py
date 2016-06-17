@@ -40,7 +40,7 @@ class Debugger(object):
 		return True
 debugger = Debugger()
 hb.buffer_set_message_func (buf, debugger.message, 1, 0)
-hb.buffer_add_codepoints (buf, codepoints, 0, -1)
+hb.buffer_add_utf32 (buf, codepoints, 0, -1)
 hb.buffer_guess_segment_properties (buf)
 
 hb.shape (font, buf, [])
