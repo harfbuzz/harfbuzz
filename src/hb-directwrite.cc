@@ -45,167 +45,162 @@
 HB_SHAPER_DATA_ENSURE_DECLARE(directwrite, face)
 HB_SHAPER_DATA_ENSURE_DECLARE(directwrite, font)
 
+
+/*
+ * DirectWrite font stream helpers
+ */
+
+// This is a font loader which provides only one font (unlike its original design).
+// For a better implementation which was also source of this
+// and DWriteFontFileStream, have a look at to NativeFontResourceDWrite.cpp in Mozilla
+class DWriteFontFileLoader : public IDWriteFontFileLoader
+{
+private:
+  IDWriteFontFileStream *mFontFileStream;
+public:
+  DWriteFontFileLoader (IDWriteFontFileStream *fontFileStream) {
+    mFontFileStream = fontFileStream;
+  }
+
+  // IUnknown interface
+  IFACEMETHOD(QueryInterface)(IID const& iid, OUT void** ppObject) { return S_OK; }
+  IFACEMETHOD_(ULONG, AddRef)() { return 1; }
+  IFACEMETHOD_(ULONG, Release)() { return 1; }
+
+  // IDWriteFontFileLoader methods
+  virtual HRESULT STDMETHODCALLTYPE CreateStreamFromKey(void const* fontFileReferenceKey,
+    UINT32 fontFileReferenceKeySize,
+    OUT IDWriteFontFileStream** fontFileStream)
+  {
+    *fontFileStream = mFontFileStream;
+    return S_OK;
+  }
+};
+
+class DWriteFontFileStream : public IDWriteFontFileStream
+{
+private:
+  uint8_t *mData;
+  uint32_t mSize;
+public:
+  DWriteFontFileStream(uint8_t *aData, uint32_t aSize)
+  {
+    mData = aData;
+    mSize = aSize;
+  }
+
+  // IUnknown interface
+  IFACEMETHOD(QueryInterface)(IID const& iid, OUT void** ppObject) { return S_OK; }
+  IFACEMETHOD_(ULONG, AddRef)() { return 1; }
+  IFACEMETHOD_(ULONG, Release)() { return 1; }
+
+  // IDWriteFontFileStream methods
+  virtual HRESULT STDMETHODCALLTYPE ReadFileFragment(void const** fragmentStart,
+    UINT64 fileOffset,
+    UINT64 fragmentSize,
+    OUT void** fragmentContext)
+  {
+    // We are required to do bounds checking.
+    if (fileOffset + fragmentSize > mSize) {
+      return E_FAIL;
+    }
+
+    // truncate the 64 bit fileOffset to size_t sized index into mData
+    size_t index = static_cast<size_t> (fileOffset);
+
+    // We should be alive for the duration of this.
+    *fragmentStart = &mData[index];
+    *fragmentContext = nullptr;
+    return S_OK;
+  }
+
+  virtual void STDMETHODCALLTYPE ReleaseFileFragment(void* fragmentContext) { }
+
+  virtual HRESULT STDMETHODCALLTYPE GetFileSize(OUT UINT64* fileSize)
+  {
+    *fileSize = mSize;
+    return S_OK;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetLastWriteTime(OUT UINT64* lastWriteTime)
+  {
+    return E_NOTIMPL;
+  }
+};
+
+
 /*
 * shaper face data
 */
 
 struct hb_directwrite_shaper_face_data_t {
-  HANDLE fh;
-  wchar_t face_name[LF_FACESIZE];
+  IDWriteFactory* dwriteFactory;
+  IDWriteFontFile* fontFile;
+  IDWriteFontFileLoader* fontFileLoader;
+  IDWriteFontFace* fontFace;
 };
-
-/* face_name should point to a wchar_t[LF_FACESIZE] object. */
-static void
-_hb_generate_unique_face_name(wchar_t *face_name, unsigned int *plen)
-{
-  /* We'll create a private name for the font from a UUID using a simple,
-  * somewhat base64-like encoding scheme */
-  const char *enc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
-  UUID id;
-  UuidCreate ((UUID*)&id);
-  ASSERT_STATIC (2 + 3 * (16 / 2) < LF_FACESIZE);
-  unsigned int name_str_len = 0;
-  face_name[name_str_len++] = 'F';
-  face_name[name_str_len++] = '_';
-  unsigned char *p = (unsigned char *)&id;
-  for (unsigned int i = 0; i < 16; i += 2)
-  {
-    /* Spread the 16 bits from two bytes of the UUID across three chars of face_name,
-    * using the bits in groups of 5,5,6 to select chars from enc.
-    * This will generate 24 characters; with the 'F_' prefix we already provided,
-    * the name will be 26 chars (plus the NUL terminator), so will always fit within
-    * face_name (LF_FACESIZE = 32). */
-    face_name[name_str_len++] = enc[p[i] >> 3];
-    face_name[name_str_len++] = enc[((p[i] << 2) | (p[i + 1] >> 6)) & 0x1f];
-    face_name[name_str_len++] = enc[p[i + 1] & 0x3f];
-  }
-  face_name[name_str_len] = 0;
-  if (plen)
-    *plen = name_str_len;
-}
-
-/* Destroys blob. */
-static hb_blob_t *
-_hb_rename_font(hb_blob_t *blob, wchar_t *new_name)
-{
-  /* Create a copy of the font data, with the 'name' table replaced by a
-   * table that names the font with our private F_* name created above.
-   * For simplicity, we just append a new 'name' table and update the
-   * sfnt directory; the original table is left in place, but unused.
-   *
-   * The new table will contain just 5 name IDs: family, style, unique,
-   * full, PS. All of them point to the same name data with our unique name.
-   */
-
-  blob = OT::Sanitizer<OT::OpenTypeFontFile>::sanitize (blob);
-
-  unsigned int length, new_length, name_str_len;
-  const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
-
-  _hb_generate_unique_face_name (new_name, &name_str_len);
-
-  static const uint16_t name_IDs[] = { 1, 2, 3, 4, 6 };
-
-  unsigned int name_table_length = OT::name::min_size +
-    ARRAY_LENGTH(name_IDs) * OT::NameRecord::static_size +
-    name_str_len * 2; /* for name data in UTF16BE form */
-  unsigned int name_table_offset = (length + 3) & ~3;
-
-  new_length = name_table_offset + ((name_table_length + 3) & ~3);
-  void *new_sfnt_data = calloc(1, new_length);
-  if (!new_sfnt_data)
-  {
-    hb_blob_destroy (blob);
-    return NULL;
-  }
-
-  memcpy(new_sfnt_data, orig_sfnt_data, length);
-
-  OT::name &name = OT::StructAtOffset<OT::name> (new_sfnt_data, name_table_offset);
-  name.format.set (0);
-  name.count.set (ARRAY_LENGTH (name_IDs));
-  name.stringOffset.set (name.get_size());
-  for (unsigned int i = 0; i < ARRAY_LENGTH (name_IDs); i++)
-  {
-    OT::NameRecord &record = name.nameRecord[i];
-    record.platformID.set(3);
-    record.encodingID.set(1);
-    record.languageID.set(0x0409u); /* English */
-    record.nameID.set(name_IDs[i]);
-    record.length.set(name_str_len * 2);
-    record.offset.set(0);
-  }
-
-  /* Copy string data from new_name, converting wchar_t to UTF16BE. */
-  unsigned char *p = &OT::StructAfter<unsigned char>(name);
-  for (unsigned int i = 0; i < name_str_len; i++)
-  {
-    *p++ = new_name[i] >> 8;
-    *p++ = new_name[i] & 0xff;
-  }
-
-  /* Adjust name table entry to point to new name table */
-  const OT::OpenTypeFontFile &file = *(OT::OpenTypeFontFile *) (new_sfnt_data);
-  unsigned int face_count = file.get_face_count ();
-  for (unsigned int face_index = 0; face_index < face_count; face_index++)
-  {
-    /* Note: doing multiple edits (ie. TTC) can be unsafe.  There may be
-    * toe-stepping.  But we don't really care. */
-    const OT::OpenTypeFontFace &face = file.get_face (face_index);
-    unsigned int index;
-    if (face.find_table_index (HB_OT_TAG_name, &index))
-    {
-      OT::TableRecord &record = const_cast<OT::TableRecord &> (face.get_table (index));
-      record.checkSum.set_for_data (&name, name_table_length);
-      record.offset.set (name_table_offset);
-      record.length.set (name_table_length);
-    }
-    else if (face_index == 0) /* Fail if first face doesn't have 'name' table. */
-    {
-      free (new_sfnt_data);
-      hb_blob_destroy (blob);
-      return NULL;
-    }
-  }
-
-  /* The checkSumAdjustment field in the 'head' table is now wrong,
-  * but that doesn't actually seem to cause any problems so we don't
-  * bother. */
-
-  hb_blob_destroy (blob);
-  return hb_blob_create ((const char *)new_sfnt_data, new_length,
-    HB_MEMORY_MODE_WRITABLE, NULL, free);
-}
 
 hb_directwrite_shaper_face_data_t *
 _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 {
   hb_directwrite_shaper_face_data_t *data =
-    (hb_directwrite_shaper_face_data_t *) calloc (1, sizeof (hb_directwrite_shaper_face_data_t));
+    (hb_directwrite_shaper_face_data_t *) malloc (sizeof (hb_directwrite_shaper_face_data_t));
   if (unlikely (!data))
     return NULL;
 
-  hb_blob_t *blob = hb_face_reference_blob (face);
-  if (unlikely (!hb_blob_get_length (blob)))
-    DEBUG_MSG(DIRECTWRITE, face, "Face has empty blob");
+  // TODO: factory and fontFileLoader should be cached separately
+  IDWriteFactory* dwriteFactory;
+  DWriteCreateFactory (
+    DWRITE_FACTORY_TYPE_SHARED,
+    __uuidof (IDWriteFactory),
+    (IUnknown**) &dwriteFactory
+  );
 
-  blob = _hb_rename_font (blob, data->face_name);
-  if (unlikely (!blob))
-  {
-    free(data);
-    return NULL;
+
+  HRESULT hr;
+  hb_blob_t* blob = hb_face_reference_blob (face);
+  IDWriteFontFileStream *fontFileStream = new DWriteFontFileStream (
+    (uint8_t*) hb_blob_get_data (blob, NULL), hb_blob_get_length (blob));
+
+  IDWriteFontFileLoader *fontFileLoader = new DWriteFontFileLoader (fontFileStream);
+  dwriteFactory->RegisterFontFileLoader (fontFileLoader);
+
+  IDWriteFontFile *fontFile;
+  uint64_t fontFileKey = 0;
+  hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
+      fontFileLoader, &fontFile);
+
+#define FAIL(...) \
+  HB_STMT_START { \
+    DEBUG_MSG (DIRECTWRITE, NULL, __VA_ARGS__); \
+    return false; \
+  } HB_STMT_END;
+
+  if (FAILED (hr)) {
+    FAIL ("Failed to load font file from data!");
+    return false;
   }
 
-  DWORD num_fonts_installed;
-  data->fh = AddFontMemResourceEx ((void *)hb_blob_get_data(blob, NULL),
-    hb_blob_get_length (blob),
-    0, &num_fonts_installed);
-  if (unlikely (!data->fh))
-  {
-    DEBUG_MSG (DIRECTWRITE, face, "Face AddFontMemResourceEx() failed");
-    free (data);
-    return NULL;
+  BOOL isSupported;
+  DWRITE_FONT_FILE_TYPE fileType;
+  DWRITE_FONT_FACE_TYPE faceType;
+  UINT32 numberOfFaces;
+  hr = fontFile->Analyze (&isSupported, &fileType, &faceType, &numberOfFaces);
+  if (FAILED (hr) || !isSupported) {
+    FAIL ("Font file is not supported.");
+    return false;
   }
+
+#undef FAIL
+
+  IDWriteFontFace *fontFace;
+  dwriteFactory->CreateFontFace (faceType, 1, &fontFile, 0,
+    DWRITE_FONT_SIMULATIONS_NONE, &fontFace);
+
+  data->dwriteFactory = dwriteFactory;
+  data->fontFile = fontFile;
+  data->fontFileLoader = fontFileLoader;
+  data->fontFace = fontFace;
 
   return data;
 }
@@ -213,8 +208,9 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 void
 _hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data)
 {
-  RemoveFontMemResourceEx(data->fh);
-  free(data);
+  data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
+  delete data->fontFileLoader;
+  free (data);
 }
 
 
@@ -223,26 +219,7 @@ _hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data
  */
 
 struct hb_directwrite_shaper_font_data_t {
-  HDC hdc;
-  LOGFONTW log_font;
-  HFONT hfont;
 };
-
-static bool
-populate_log_font (LOGFONTW  *lf,
-       hb_font_t *font)
-{
-  memset (lf, 0, sizeof (*lf));
-  lf->lfHeight = -font->y_scale;
-  lf->lfCharSet = DEFAULT_CHARSET;
-
-  hb_face_t *face = font->face;
-  hb_directwrite_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-
-  memcpy (lf->lfFaceName, face_data->face_name, sizeof (lf->lfFaceName));
-
-  return true;
-}
 
 hb_directwrite_shaper_font_data_t *
 _hb_directwrite_shaper_font_data_create (hb_font_t *font)
@@ -250,33 +227,9 @@ _hb_directwrite_shaper_font_data_create (hb_font_t *font)
   if (unlikely (!hb_directwrite_shaper_face_data_ensure (font->face))) return NULL;
 
   hb_directwrite_shaper_font_data_t *data =
-    (hb_directwrite_shaper_font_data_t *) calloc (1, sizeof (hb_directwrite_shaper_font_data_t));
+    (hb_directwrite_shaper_font_data_t *) malloc (sizeof (hb_directwrite_shaper_font_data_t));
   if (unlikely (!data))
     return NULL;
-
-  data->hdc = GetDC (NULL);
-
-  if (unlikely (!populate_log_font (&data->log_font, font)))
-  {
-    DEBUG_MSG (DIRECTWRITE, font, "Font populate_log_font() failed");
-    _hb_directwrite_shaper_font_data_destroy (data);
-    return NULL;
-  }
-
-  data->hfont = CreateFontIndirectW (&data->log_font);
-  if (unlikely (!data->hfont))
-  {
-    DEBUG_MSG (DIRECTWRITE, font, "Font CreateFontIndirectW() failed");
-    _hb_directwrite_shaper_font_data_destroy (data);
-     return NULL;
-  }
-
-  if (!SelectObject (data->hdc, data->hfont))
-  {
-    DEBUG_MSG (DIRECTWRITE, font, "Font SelectObject() failed");
-    _hb_directwrite_shaper_font_data_destroy (data);
-     return NULL;
-  }
 
   return data;
 }
@@ -284,27 +237,7 @@ _hb_directwrite_shaper_font_data_create (hb_font_t *font)
 void
 _hb_directwrite_shaper_font_data_destroy (hb_directwrite_shaper_font_data_t *data)
 {
-  if (data->hdc)
-    ReleaseDC (NULL, data->hdc);
-  if (data->hfont)
-    DeleteObject (data->hfont);
   free (data);
-}
-
-LOGFONTW *
-hb_directwrite_font_get_logfontw (hb_font_t *font)
-{
-  if (unlikely (!hb_directwrite_shaper_font_data_ensure (font))) return NULL;
-  hb_directwrite_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
-  return &font_data->log_font;
-}
-
-HFONT
-hb_directwrite_font_get_hfont (hb_font_t *font)
-{
-  if (unlikely (!hb_directwrite_shaper_font_data_ensure (font))) return NULL;
-  hb_directwrite_shaper_font_data_t *font_data =  HB_SHAPER_DATA_GET (font);
-  return font_data->hfont;
 }
 
 
@@ -327,7 +260,7 @@ _hb_directwrite_shaper_shape_plan_data_destroy (hb_directwrite_shaper_shape_plan
 {
 }
 
-// Most of here TextAnalysis is originally written by Bas Schouten for Mozilla project
+// Most of TextAnalysis is originally written by Bas Schouten for Mozilla project
 // but now is relicensed to MIT for HarfBuzz use
 class TextAnalysis
   : public IDWriteTextAnalysisSource, public IDWriteTextAnalysisSink
@@ -581,9 +514,9 @@ protected:
   Run  mRunHead;
 };
 
-static inline uint16_t hb_uint16_swap (const uint16_t v)
+static inline uint16_t hb_uint16_swap(const uint16_t v)
 { return (v >> 8) | (v << 8); }
-static inline uint32_t hb_uint32_swap (const uint32_t v)
+static inline uint32_t hb_uint32_swap(const uint32_t v)
 { return (hb_uint16_swap(v) << 16) | hb_uint16_swap(v >> 16); }
 
 /*
@@ -600,23 +533,8 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   hb_face_t *face = font->face;
   hb_directwrite_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
   hb_directwrite_shaper_font_data_t *font_data = HB_SHAPER_DATA_GET (font);
-
-  // factory probably should be cached
-#ifndef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
-  IDWriteFactory* dwriteFactory;
-#else
-  IDWriteFactory1* dwriteFactory;
-#endif
-  DWriteCreateFactory (
-    DWRITE_FACTORY_TYPE_SHARED,
-    __uuidof (IDWriteFactory),
-    (IUnknown**) &dwriteFactory
-  );
-
-  IDWriteGdiInterop *gdiInterop;
-  dwriteFactory->GetGdiInterop (&gdiInterop);
-  IDWriteFontFace* fontFace;
-  gdiInterop->CreateFontFaceFromHdc (font_data->hdc, &fontFace);
+  IDWriteFactory *dwriteFactory = face_data->dwriteFactory;
+  IDWriteFontFace *fontFace = face_data->fontFace;
 
 #ifndef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
   IDWriteTextAnalyzer* analyzer;
@@ -672,7 +590,6 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     }
   }
 
-  HRESULT hr;
   // TODO: Handle TEST_DISABLE_OPTIONAL_LIGATURES
 
   DWRITE_READING_DIRECTION readingDirection = buffer->props.direction ? 
@@ -688,6 +605,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
 
   TextAnalysis analysis(textString, textLength, NULL, readingDirection);
   TextAnalysis::Run *runHead;
+  HRESULT hr;
   hr = analysis.GenerateResults(analyzer, &runHead);
 
 #define FAIL(...) \
