@@ -25,11 +25,7 @@
 #define HB_SHAPER directwrite
 #include "hb-shaper-impl-private.hh"
 
-#ifndef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
-  #include <DWrite.h>
-#else
-  #include <DWrite_1.h>
-#endif
+#include <DWrite_1.h>
 
 #include "hb-directwrite.h"
 
@@ -155,7 +151,6 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
     __uuidof (IDWriteFactory),
     (IUnknown**) &dwriteFactory
   );
-
 
   HRESULT hr;
   hb_blob_t* blob = hb_face_reference_blob (face);
@@ -377,7 +372,8 @@ public:
 
   IFACEMETHODIMP GetLocaleName(uint32_t textPosition,
     uint32_t* textLength,
-    wchar_t const** localeName) {
+    wchar_t const** localeName)
+  {
     return S_OK;
   }
 
@@ -402,7 +398,8 @@ public:
   {
     SetCurrentRun(textPosition);
     SplitCurrentRun(textPosition);
-    while (textLength > 0) {
+    while (textLength > 0)
+    {
       Run *run = FetchNextRun(&textLength);
       run->mScript = *scriptAnalysis;
     }
@@ -435,10 +432,12 @@ protected:
     Run *origRun = mCurrentRun;
     // Split the tail if needed (the length remaining is less than the
     // current run's size).
-    if (*textLength < mCurrentRun->mTextLength) {
-      SplitCurrentRun(mCurrentRun->mTextStart + *textLength);
+    if (*textLength < mCurrentRun->mTextLength)
+    {
+      SplitCurrentRun (mCurrentRun->mTextStart + *textLength);
     }
-    else {
+    else
+    {
       // Just advance the current run.
       mCurrentRun = mCurrentRun->nextRun;
     }
@@ -455,12 +454,14 @@ protected:
     // this will usually just return early. If not, find the
     // corresponding run for the text position.
 
-    if (mCurrentRun && mCurrentRun->ContainsTextPosition(textPosition)) {
+    if (mCurrentRun && mCurrentRun->ContainsTextPosition (textPosition))
+    {
       return;
     }
 
     for (Run *run = &mRunHead; run; run = run->nextRun) {
-      if (run->ContainsTextPosition(textPosition)) {
+      if (run->ContainsTextPosition (textPosition))
+      {
         mCurrentRun = run;
         return;
       }
@@ -471,13 +472,15 @@ protected:
 
   void SplitCurrentRun(uint32_t splitPosition)
   {
-    if (!mCurrentRun) {
+    if (!mCurrentRun)
+    {
       //NS_ASSERTION(false, "SplitCurrentRun called without current run.");
       // Shouldn't be calling this when no current run is set!
       return;
     }
     // Split the current run.
-    if (splitPosition <= mCurrentRun->mTextStart) {
+    if (splitPosition <= mCurrentRun->mTextStart)
+    {
       // No need to split, already the start of a run
       // or before it. Usually the first.
       return;
@@ -514,9 +517,9 @@ protected:
   Run  mRunHead;
 };
 
-static inline uint16_t hb_uint16_swap(const uint16_t v)
+static inline uint16_t hb_uint16_swap (const uint16_t v)
 { return (v >> 8) | (v << 8); }
-static inline uint32_t hb_uint32_swap(const uint32_t v)
+static inline uint32_t hb_uint32_swap (const uint32_t v)
 { return (hb_uint16_swap(v) << 16) | hb_uint16_swap(v >> 16); }
 
 /*
@@ -536,14 +539,8 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
   IDWriteFactory *dwriteFactory = face_data->dwriteFactory;
   IDWriteFontFace *fontFace = face_data->fontFace;
 
-#ifndef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
   IDWriteTextAnalyzer* analyzer;
   dwriteFactory->CreateTextAnalyzer(&analyzer);
-#else
-  IDWriteTextAnalyzer* analyzer0;
-  dwriteFactory->CreateTextAnalyzer (&analyzer0);
-  IDWriteTextAnalyzer1* analyzer = (IDWriteTextAnalyzer1*) analyzer0;
-#endif
 
   unsigned int scratch_size;
   hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
@@ -717,106 +714,110 @@ retry_getglyphs:
     return false;
   }
 
-#ifdef HB_DIRECTWRITE_EXPERIMENTAL_JUSTIFICATION
-
-  DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities =
-    (DWRITE_JUSTIFICATION_OPPORTUNITY*)
-    malloc (maxGlyphCount * sizeof (DWRITE_JUSTIFICATION_OPPORTUNITY));
-  hr = analyzer->GetJustificationOpportunities (fontFace, fontEmSize,
-    runHead->mScript, textLength, glyphCount, textString, clusterMap,
-    glyphProperties, justificationOpportunities);
-
-  if (FAILED (hr))
-  {
-    FAIL ("Analyzer failed to get justification opportunities.");
-    return false;
-  }
-
   // TODO: get lineWith from somewhere
-  float lineWidth = 60000;
+  float lineWidth = 0;
 
-  float* justifiedGlyphAdvances =
-    (float*) malloc (maxGlyphCount * sizeof (float));
-  DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
-    malloc (glyphCount * sizeof (DWRITE_GLYPH_OFFSET));
-  hr = analyzer->JustifyGlyphAdvances (lineWidth, glyphCount, justificationOpportunities,
-    glyphAdvances, glyphOffsets, justifiedGlyphAdvances, justifiedGlyphOffsets);
+  IDWriteTextAnalyzer1* analyzer1;
+  analyzer->QueryInterface (&analyzer1);
 
-  if (FAILED (hr))
+  if (analyzer1 && lineWidth)
   {
-    FAIL ("Analyzer failed to get justified glyph advances.");
-    return false;
-  }
 
-  DWRITE_SCRIPT_PROPERTIES scriptProperties;
-  hr = analyzer->GetScriptProperties (runHead->mScript, &scriptProperties);
-  if (FAILED (hr))
-  {
-    FAIL ("Analyzer failed to get script properties.");
-    return false;
-  }
-  uint32_t justificationCharacter = scriptProperties.justificationCharacter;
+    DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities =
+      (DWRITE_JUSTIFICATION_OPPORTUNITY*)
+      malloc (maxGlyphCount * sizeof (DWRITE_JUSTIFICATION_OPPORTUNITY));
+    hr = analyzer1->GetJustificationOpportunities (fontFace, fontEmSize,
+      runHead->mScript, textLength, glyphCount, textString, clusterMap,
+      glyphProperties, justificationOpportunities);
 
-  // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
-  if (justificationCharacter != 32)
-  {
-retry_getjustifiedglyphs:
-    uint16_t* modifiedClusterMap = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
-    uint16_t* modifiedGlyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
-    float* modifiedGlyphAdvances = (float*) malloc (maxGlyphCount * sizeof (float));
-    DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
-      malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
-    uint32_t actualGlyphsCount;
-    hr = analyzer->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
+    if (FAILED (hr))
+    {
+      FAIL ("Analyzer failed to get justification opportunities.");
+      return false;
+    }
+
+    float* justifiedGlyphAdvances =
+      (float*) malloc (maxGlyphCount * sizeof (float));
+    DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
+      malloc (glyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+    hr = analyzer1->JustifyGlyphAdvances (lineWidth, glyphCount, justificationOpportunities,
+      glyphAdvances, glyphOffsets, justifiedGlyphAdvances, justifiedGlyphOffsets);
+
+    if (FAILED (hr))
+    {
+      FAIL("Analyzer failed to get justified glyph advances.");
+      return false;
+    }
+
+    DWRITE_SCRIPT_PROPERTIES scriptProperties;
+    hr = analyzer1->GetScriptProperties (runHead->mScript, &scriptProperties);
+    if (FAILED (hr))
+    {
+      FAIL("Analyzer failed to get script properties.");
+      return false;
+    }
+    uint32_t justificationCharacter = scriptProperties.justificationCharacter;
+
+    // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
+    if (justificationCharacter != 32)
+    {
+    retry_getjustifiedglyphs:
+      uint16_t* modifiedClusterMap = (uint16_t*) malloc (maxGlyphCount * sizeof(uint16_t));
+      uint16_t* modifiedGlyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof(uint16_t));
+      float* modifiedGlyphAdvances = (float*) malloc (maxGlyphCount * sizeof(float));
+      DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
+        malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
+      uint32_t actualGlyphsCount;
+      hr = analyzer1->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
         textLength, glyphCount, maxGlyphCount, clusterMap, glyphIndices,
         glyphAdvances, justifiedGlyphAdvances, justifiedGlyphOffsets,
         glyphProperties, &actualGlyphsCount, modifiedClusterMap, modifiedGlyphIndices,
         modifiedGlyphAdvances, modifiedGlyphOffsets);
 
-    if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
-    {
-      maxGlyphCount = actualGlyphsCount;
-      free (modifiedClusterMap);
-      free (modifiedGlyphIndices);
-      free (modifiedGlyphAdvances);
-      free (modifiedGlyphOffsets);
+      if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
+      {
+        maxGlyphCount = actualGlyphsCount;
+        free (modifiedClusterMap);
+        free (modifiedGlyphIndices);
+        free (modifiedGlyphAdvances);
+        free (modifiedGlyphOffsets);
 
-      maxGlyphCount = actualGlyphsCount;
+        maxGlyphCount = actualGlyphsCount;
 
-      goto retry_getjustifiedglyphs;
+        goto retry_getjustifiedglyphs;
+      }
+      if (FAILED (hr))
+      {
+        FAIL ("Analyzer failed to get justified glyphs.");
+        return false;
+      }
+
+      free (clusterMap);
+      free (glyphIndices);
+      free (glyphAdvances);
+      free (glyphOffsets);
+
+      glyphCount = actualGlyphsCount;
+      clusterMap = modifiedClusterMap;
+      glyphIndices = modifiedGlyphIndices;
+      glyphAdvances = modifiedGlyphAdvances;
+      glyphOffsets = modifiedGlyphOffsets;
+
+      free (justifiedGlyphAdvances);
+      free (justifiedGlyphOffsets);
     }
-    if (FAILED (hr))
+    else
     {
-      FAIL ("Analyzer failed to get justified glyphs.");
-      return false;
+      free (glyphAdvances);
+      free (glyphOffsets);
+
+      glyphAdvances = justifiedGlyphAdvances;
+      glyphOffsets = justifiedGlyphOffsets;
     }
 
-    free (clusterMap);
-    free (glyphIndices);
-    free (glyphAdvances);
-    free (glyphOffsets);
+    free (justificationOpportunities);
 
-    glyphCount = actualGlyphsCount;
-    clusterMap = modifiedClusterMap;
-    glyphIndices = modifiedGlyphIndices;
-    glyphAdvances = modifiedGlyphAdvances;
-    glyphOffsets = modifiedGlyphOffsets;
-
-    free(justifiedGlyphAdvances);
-    free(justifiedGlyphOffsets);
   }
-  else
-  {
-    free(glyphAdvances);
-    free(glyphOffsets);
-
-    glyphAdvances = justifiedGlyphAdvances;
-    glyphOffsets = justifiedGlyphOffsets;
-  }
-
-  free(justificationOpportunities);
-
-#endif
 
   /* Ok, we've got everything we need, now compose output buffer,
    * very, *very*, carefully! */
