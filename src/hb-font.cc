@@ -158,6 +158,7 @@ hb_font_get_glyph_v_advance_nil (hb_font_t *font HB_UNUSED,
 				 hb_codepoint_t glyph,
 				 void *user_data HB_UNUSED)
 {
+  /* TODO use font_extents.ascender+descender */
   return font->y_scale;
 }
 static hb_position_t

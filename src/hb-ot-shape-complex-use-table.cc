@@ -7,7 +7,7 @@
  * on files with these headers:
  *
  * # IndicSyllabicCategory-9.0.0.txt
- * # Date: 2016-02-25, 00:48:00 GMT [RP]
+ * # Date: 2016-05-21, 02:46:00 GMT [RP]
  * # IndicPositionalCategory-9.0.0.txt
  * # Date: 2016-02-25, 00:48:00 GMT [RP]
  * # Blocks-9.0.0.txt
@@ -418,7 +418,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* Myanmar Extended-A */
 
   /* AA60 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* AA70 */     O,     B,     B,     B,     O,     O,     O,     O,     O,     O,     B, VMPst, VMAbv, VMPst,     B,     B,
+  /* AA70 */     O,     B,     B,     B,    GB,    GB,    GB,     O,     O,     O,     B, VMPst, VMAbv, VMPst,     B,     B,
 
   /* Tai Viet */
 

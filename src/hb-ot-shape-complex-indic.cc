@@ -200,11 +200,6 @@ set_indic_properties (hb_glyph_info_t &info)
     cat = OT_Symbol;
     ASSERT_STATIC ((int) INDIC_SYLLABIC_CATEGORY_AVAGRAHA == OT_Symbol);
   }
-  else if (unlikely (u == 0x17DDu)) /* https://github.com/roozbehp/unicode-data/issues/2 */
-  {
-    cat = OT_M;
-    pos = POS_ABOVE_C;
-  }
   else if (unlikely (u == 0x17C6u)) cat = OT_N; /* Khmer Bindu doesn't like to be repositioned. */
   else if (unlikely (hb_in_range (u, 0x2010u, 0x2011u)))
 				    cat = OT_PLACEHOLDER;
