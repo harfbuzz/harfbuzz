@@ -134,6 +134,7 @@ struct hb_directwrite_shaper_face_data_t {
   IDWriteFontFile* fontFile;
   IDWriteFontFileLoader* fontFileLoader;
   IDWriteFontFace* fontFace;
+  hb_blob_t* faceBlob;
 };
 
 hb_directwrite_shaper_face_data_t *
@@ -153,7 +154,7 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
   );
 
   HRESULT hr;
-  hb_blob_t* blob = hb_face_reference_blob (face);
+  hb_blob_t *blob = hb_face_reference_blob (face);
   IDWriteFontFileStream *fontFileStream = new DWriteFontFileStream (
     (uint8_t*) hb_blob_get_data (blob, NULL), hb_blob_get_length (blob));
 
@@ -196,6 +197,7 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
   data->fontFile = fontFile;
   data->fontFileLoader = fontFileLoader;
   data->fontFace = fontFace;
+  data->faceBlob = blob;
 
   return data;
 }
@@ -205,6 +207,7 @@ _hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data
 {
   data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
   delete data->fontFileLoader;
+  hb_blob_destroy (data->faceBlob);
   free (data);
 }
 
