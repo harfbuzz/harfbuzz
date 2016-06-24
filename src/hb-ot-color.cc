@@ -82,7 +82,8 @@ hb_ot_color_get_palette_count (hb_face_t *face)
  * Returns: an identifier within @face's `name` table.
  * If the requested palette has no name, or if @face has no colors,
  * or if @palette is not between 0 and hb_ot_color_get_palette_count(),
- * the result is zero.
+ * the result is 0xFFFF. The implementation does not check whether
+ * the returned palette name id is actually in @face's `name` table.
  *
  * Since: 1.2.8
  */
@@ -92,22 +93,20 @@ hb_ot_color_get_palette_name_id (hb_face_t *face, unsigned int palette)
   const OT::CPAL& cpal = _get_cpal(face);
   if (unlikely (&cpal == &OT::Null(OT::CPAL) || cpal.version == 0 ||
 		palette >= cpal.numPalettes)) {
-    return 0;
+    return 0xFFFF;
   }
 
   const OT::CPALV1Tail& cpal1 = OT::StructAfter<OT::CPALV1Tail>(cpal);
   if (unlikely (&cpal1 == &OT::Null(OT::CPALV1Tail) ||
 		cpal1.paletteLabel.is_null())) {
-    return 0;
+    return 0xFFFF;
   }
 
   const OT::USHORT* name_ids = &cpal1.paletteLabel (&cpal);
   const OT::USHORT name_id = name_ids [palette];
 
   // According to the OpenType CPAL specification, 0xFFFF means name-less.
-  // We map 0xFFFF to 0 because zero is far more commonly used to indicate
-  // "no value".
-  return likely (name_id != 0xffff) ? name_id : 0;
+  return name_id;
 }
 
 
@@ -152,7 +151,7 @@ hb_ot_color_get_palette_flags (hb_face_t *face, unsigned int palette)
  * @color_count:  (inout) (optional): on input, how many colors
  *                can be maximally stored into the @colors array;
  *                on output, how many colors were actually stored.
- * @colors: (out caller-allocates) (array length=color_count) (optional):
+ * @colors: (array length=color_count) (optional):
  *                an array of #hb_ot_color_t records. After calling
  *                this function, @colors will be filled with
  *                the palette colors. If @colors is NULL, the function

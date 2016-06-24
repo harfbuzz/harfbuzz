@@ -135,19 +135,19 @@ static void
 test_hb_ot_color_get_palette_name_id_empty (void)
 {
   /* numPalettes=0, so all calls are for out-of-bounds palette indices */
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (hb_face_get_empty(), 0), ==, 0);
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (hb_face_get_empty(), 1), ==, 0);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (hb_face_get_empty(), 0), ==, 0xffff);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (hb_face_get_empty(), 1), ==, 0xffff);
 }
 
 
 static void
 test_hb_ot_color_get_palette_name_id_v0 (void)
 {
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 0), ==, 0);
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 1), ==, 0);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 0), ==, 0xffff);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 1), ==, 0xffff);
 
   /* numPalettes=2, so palette #2 is out of bounds */
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 2), ==, 0);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v0, 2), ==, 0xffff);
 }
 
 
@@ -155,11 +155,11 @@ static void
 test_hb_ot_color_get_palette_name_id_v1 (void)
 {
   g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 0), ==, 257);
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 1), ==, 0);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 1), ==, 0xffff);
   g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 2), ==, 258);
 
   /* numPalettes=3, so palette #3 is out of bounds */
-  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 3), ==, 0);
+  g_assert_cmpint (hb_ot_color_get_palette_name_id (cpal_v1, 3), ==, 0xffff);
 }
 
 static void
