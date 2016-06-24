@@ -130,11 +130,12 @@ public:
 */
 
 struct hb_directwrite_shaper_face_data_t {
-  IDWriteFactory* dwriteFactory;
-  IDWriteFontFile* fontFile;
-  IDWriteFontFileLoader* fontFileLoader;
-  IDWriteFontFace* fontFace;
-  hb_blob_t* faceBlob;
+  IDWriteFactory *dwriteFactory;
+  IDWriteFontFile *fontFile;
+  IDWriteFontFileStream *fontFileStream;
+  IDWriteFontFileLoader *fontFileLoader;
+  IDWriteFontFace *fontFace;
+  hb_blob_t *faceBlob;
 };
 
 hb_directwrite_shaper_face_data_t *
@@ -195,6 +196,7 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 
   data->dwriteFactory = dwriteFactory;
   data->fontFile = fontFile;
+  data->fontFileStream = fontFileStream;
   data->fontFileLoader = fontFileLoader;
   data->fontFace = fontFace;
   data->faceBlob = blob;
@@ -205,10 +207,23 @@ _hb_directwrite_shaper_face_data_create(hb_face_t *face)
 void
 _hb_directwrite_shaper_face_data_destroy(hb_directwrite_shaper_face_data_t *data)
 {
-  data->dwriteFactory->UnregisterFontFileLoader (data->fontFileLoader);
-  delete data->fontFileLoader;
-  hb_blob_destroy (data->faceBlob);
-  free (data);
+  if (data->fontFace)
+    data->fontFace->Release ();
+  if (data->fontFile)
+    data->fontFile->Release ();
+  if (data->dwriteFactory) {
+    if (data->fontFileLoader)
+      data->dwriteFactory->UnregisterFontFileLoader(data->fontFileLoader);
+    data->dwriteFactory->Release();
+  }
+  if (data->fontFileLoader)
+    delete data->fontFileLoader;
+  if (data->fontFileStream)
+    delete data->fontFileStream;
+  if (data->faceBlob)
+    hb_blob_destroy (data->faceBlob);
+  if (data)
+    free (data);
 }
 
 
