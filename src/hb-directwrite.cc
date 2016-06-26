@@ -664,11 +664,11 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
     (const DWRITE_TYPOGRAPHIC_FEATURES*) &singleFeatures;
   const uint32_t featureRangeLengths[] = { textLength };
 
-retry_getglyphs:
-  uint16_t* clusterMap = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
-  uint16_t* glyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
+  uint16_t* clusterMap = (uint16_t*) malloc (textLength * sizeof (uint16_t));
   DWRITE_SHAPING_TEXT_PROPERTIES* textProperties = (DWRITE_SHAPING_TEXT_PROPERTIES*)
-    malloc (maxGlyphCount * sizeof (DWRITE_SHAPING_TEXT_PROPERTIES));
+    malloc (textLength * sizeof (DWRITE_SHAPING_TEXT_PROPERTIES));
+retry_getglyphs:
+  uint16_t* glyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
   DWRITE_SHAPING_GLYPH_PROPERTIES* glyphProperties = (DWRITE_SHAPING_GLYPH_PROPERTIES*)
     malloc (maxGlyphCount * sizeof (DWRITE_SHAPING_GLYPH_PROPERTIES));
 
@@ -679,9 +679,7 @@ retry_getglyphs:
 
   if (unlikely (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER)))
   {
-    free (clusterMap);
     free (glyphIndices);
-    free (textProperties);
     free (glyphProperties);
 
     maxGlyphCount *= 2;
@@ -779,10 +777,10 @@ retry_getglyphs:
     // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
     if (justificationCharacter != 32)
     {
+      uint16_t* modifiedClusterMap = (uint16_t*) malloc (textLength * sizeof (uint16_t));
     retry_getjustifiedglyphs:
-      uint16_t* modifiedClusterMap = (uint16_t*) malloc (maxGlyphCount * sizeof(uint16_t));
-      uint16_t* modifiedGlyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof(uint16_t));
-      float* modifiedGlyphAdvances = (float*) malloc (maxGlyphCount * sizeof(float));
+      uint16_t* modifiedGlyphIndices = (uint16_t*) malloc (maxGlyphCount * sizeof (uint16_t));
+      float* modifiedGlyphAdvances = (float*) malloc (maxGlyphCount * sizeof (float));
       DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = (DWRITE_GLYPH_OFFSET*)
         malloc (maxGlyphCount * sizeof (DWRITE_GLYPH_OFFSET));
       uint32_t actualGlyphsCount;
@@ -795,7 +793,6 @@ retry_getglyphs:
       if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
       {
         maxGlyphCount = actualGlyphsCount;
-        free (modifiedClusterMap);
         free (modifiedGlyphIndices);
         free (modifiedGlyphAdvances);
         free (modifiedGlyphOffsets);
