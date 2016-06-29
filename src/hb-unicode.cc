@@ -151,7 +151,7 @@ hb_unicode_funcs_get_default (void)
 #endif
 
 /**
- * hb_unicode_funcs_create: (Xconstructor)
+ * hb_unicode_funcs_create: (constructor)
  * @parent: (nullable):
  *
  * 

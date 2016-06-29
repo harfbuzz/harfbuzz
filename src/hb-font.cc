@@ -399,7 +399,7 @@ static const hb_font_funcs_t _hb_font_funcs_parent = {
 
 
 /**
- * hb_font_funcs_create: (Xconstructor)
+ * hb_font_funcs_create: (constructor)
  *
  * 
  *
@@ -1110,7 +1110,7 @@ hb_font_glyph_from_string (hb_font_t *font,
  */
 
 /**
- * hb_font_create: (Xconstructor)
+ * hb_font_create: (constructor)
  * @face: a face.
  *
  * 

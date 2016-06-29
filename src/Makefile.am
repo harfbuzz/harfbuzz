@@ -9,6 +9,8 @@ DISTCLEANFILES =
 MAINTAINERCLEANFILES =
 DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 
+PYTHON = python
+
 # The following warning options are useful for debugging: -Wpadded
 #AM_CXXFLAGS =
 
@@ -185,7 +187,8 @@ DISTCLEANFILES += \
 	$(NULL)
 hb-gobject-enums.%: hb-gobject-enums.%.tmpl $(HBHEADERS)
 	$(AM_V_GEN) $(GLIB_MKENUMS) \
-		--identifier-prefix hb_ --symbol-prefix hb_gobject \
+		--identifier-prefix hb_ \
+		--symbol-prefix hb_gobject \
 		--template $^ | \
 	sed 's/_t_get_type/_get_type/g; s/_T (/ (/g' > "$@" \
 	|| ($(RM) "$@"; false)
@@ -328,11 +331,21 @@ if HAVE_INTROSPECTION
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = HarfBuzz-0.0.gir # What does the 0 mean anyway?!
-INTROSPECTION_SCANNER_ARGS = -I$(srcdir) -n hb --identifier-prefix=hb_ --warn-all
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 INTROSPECTION_SCANNER_ENV = CC="$(CC)"
+INTROSPECTION_SCANNER_ARGS = \
+	-I$(srcdir) \
+	-n hb \
+	--identifier-prefix=hb_ \
+	--identifier-filter-cmd="$(PYTHON) $(srcdir)/hb-gobject-identfilter.py" \
+	--warn-all \
+	$(NULL)
 
-HarfBuzz-0.0.gir: libharfbuzz.la libharfbuzz-gobject.la
+HarfBuzz-0.0.gir: \
+	libharfbuzz.la \
+	libharfbuzz-gobject.la \
+	hb-gobject-identfilter.py \
+	$(NULL)
 HarfBuzz_0_0_gir_INCLUDES = GObject-2.0
 HarfBuzz_0_0_gir_CFLAGS = \
 	$(INCLUDES) \
@@ -365,6 +378,7 @@ gir_DATA = $(INTROSPECTION_GIRS)
 typelibdir = $(libdir)/girepository-1.0
 typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
+EXTRA_DIST += hb-gobject-identfilter.py
 CLEANFILES += $(gir_DATA) $(typelib_DATA)
 
 endif

@@ -664,7 +664,7 @@ hb_buffer_t::guess_segment_properties (void)
 /* Public API */
 
 /**
- * hb_buffer_create: (Xconstructor)
+ * hb_buffer_create: (constructor)
  *
  * Creates a new #hb_buffer_t with all properties to defaults.
  *
