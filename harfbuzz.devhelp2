@@ -134,7 +134,7 @@
     <keyword type="function" name="hb_unicode_decompose_compatibility ()" link="harfbuzz-hb-unicode.html#hb-unicode-decompose-compatibility" since="0.9.2"/>
     <keyword type="function" name="hb_unicode_decompose_func_t ()" link="harfbuzz-hb-unicode.html#hb-unicode-decompose-func-t"/>
     <keyword type="function" name="hb_unicode_eastasian_width ()" link="harfbuzz-hb-unicode.html#hb-unicode-eastasian-width" since="0.9.2"/>
-    <keyword type="function" name="hb_unicode_funcs_create ()" link="harfbuzz-hb-unicode.html#hb-unicode-funcs-create"/>
+    <keyword type="function" name="hb_unicode_funcs_create ()" link="harfbuzz-hb-unicode.html#hb-unicode-funcs-create" since="0.9.2"/>
     <keyword type="function" name="hb_unicode_funcs_destroy ()" link="harfbuzz-hb-unicode.html#hb-unicode-funcs-destroy" since="0.9.2"/>
     <keyword type="function" name="hb_unicode_funcs_get_default ()" link="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-default"/>
     <keyword type="function" name="hb_unicode_funcs_get_empty ()" link="harfbuzz-hb-unicode.html#hb-unicode-funcs-get-empty" since="0.9.2"/>
@@ -161,7 +161,7 @@
     <keyword type="enum" name="enum hb_unicode_combining_class_t" link="harfbuzz-hb-unicode.html#hb-unicode-combining-class-t"/>
     <keyword type="typedef" name="hb_unicode_funcs_t" link="harfbuzz-hb-unicode.html#hb-unicode-funcs-t"/>
     <keyword type="enum" name="enum hb_unicode_general_category_t" link="harfbuzz-hb-unicode.html#hb-unicode-general-category-t"/>
-    <keyword type="function" name="hb_buffer_create ()" link="harfbuzz-Buffers.html#hb-buffer-create"/>
+    <keyword type="function" name="hb_buffer_create ()" link="harfbuzz-Buffers.html#hb-buffer-create" since="0.9.2"/>
     <keyword type="function" name="hb_buffer_reference ()" link="harfbuzz-Buffers.html#hb-buffer-reference" since="0.9.2"/>
     <keyword type="function" name="hb_buffer_get_empty ()" link="harfbuzz-Buffers.html#hb-buffer-get-empty" since="0.9.2"/>
     <keyword type="function" name="hb_buffer_destroy ()" link="harfbuzz-Buffers.html#hb-buffer-destroy" since="0.9.2"/>
@@ -238,7 +238,7 @@
     <keyword type="function" name="hb_blob_set_user_data ()" link="harfbuzz-hb-blob.html#hb-blob-set-user-data" since="0.9.2"/>
     <keyword type="typedef" name="hb_blob_t" link="harfbuzz-hb-blob.html#hb-blob-t"/>
     <keyword type="enum" name="enum hb_memory_mode_t" link="harfbuzz-hb-blob.html#hb-memory-mode-t"/>
-    <keyword type="function" name="hb_face_create ()" link="harfbuzz-hb-face.html#hb-face-create"/>
+    <keyword type="function" name="hb_face_create ()" link="harfbuzz-hb-face.html#hb-face-create" since="0.9.2"/>
     <keyword type="function" name="hb_face_create_for_tables ()" link="harfbuzz-hb-face.html#hb-face-create-for-tables" since="0.9.2"/>
     <keyword type="function" name="hb_face_destroy ()" link="harfbuzz-hb-face.html#hb-face-destroy" since="0.9.2"/>
     <keyword type="function" name="hb_face_get_empty ()" link="harfbuzz-hb-face.html#hb-face-get-empty" since="0.9.2"/>
@@ -257,10 +257,10 @@
     <keyword type="function" name="hb_face_set_user_data ()" link="harfbuzz-hb-face.html#hb-face-set-user-data" since="0.9.2"/>
     <keyword type="typedef" name="hb_face_t" link="harfbuzz-hb-face.html#hb-face-t"/>
     <keyword type="function" name="hb_font_add_glyph_origin_for_direction ()" link="harfbuzz-hb-font.html#hb-font-add-glyph-origin-for-direction" since="0.9.2"/>
-    <keyword type="function" name="hb_font_create ()" link="harfbuzz-hb-font.html#hb-font-create"/>
+    <keyword type="function" name="hb_font_create ()" link="harfbuzz-hb-font.html#hb-font-create" since="0.9.2"/>
     <keyword type="function" name="hb_font_create_sub_font ()" link="harfbuzz-hb-font.html#hb-font-create-sub-font" since="0.9.2"/>
     <keyword type="function" name="hb_font_destroy ()" link="harfbuzz-hb-font.html#hb-font-destroy" since="0.9.2"/>
-    <keyword type="function" name="hb_font_funcs_create ()" link="harfbuzz-hb-font.html#hb-font-funcs-create"/>
+    <keyword type="function" name="hb_font_funcs_create ()" link="harfbuzz-hb-font.html#hb-font-funcs-create" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_destroy ()" link="harfbuzz-hb-font.html#hb-font-funcs-destroy" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_get_empty ()" link="harfbuzz-hb-font.html#hb-font-funcs-get-empty" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_get_user_data ()" link="harfbuzz-hb-font.html#hb-font-funcs-get-user-data" since="0.9.2"/>
@@ -360,7 +360,7 @@
     <keyword type="function" name="hb_set_add_range ()" link="harfbuzz-hb-set.html#hb-set-add-range" since="0.9.7"/>
     <keyword type="function" name="hb_set_allocation_successful ()" link="harfbuzz-hb-set.html#hb-set-allocation-successful" since="0.9.2"/>
     <keyword type="function" name="hb_set_clear ()" link="harfbuzz-hb-set.html#hb-set-clear" since="0.9.2"/>
-    <keyword type="function" name="hb_set_create ()" link="harfbuzz-hb-set.html#hb-set-create"/>
+    <keyword type="function" name="hb_set_create ()" link="harfbuzz-hb-set.html#hb-set-create" since="0.9.2"/>
     <keyword type="function" name="hb_set_del ()" link="harfbuzz-hb-set.html#hb-set-del" since="0.9.2"/>
     <keyword type="function" name="hb_set_del_range ()" link="harfbuzz-hb-set.html#hb-set-del-range" since="0.9.7"/>
     <keyword type="function" name="hb_set_destroy ()" link="harfbuzz-hb-set.html#hb-set-destroy" since="0.9.2"/>
@@ -426,7 +426,7 @@
     <keyword type="macro" name="HB_OT_TAG_DEFAULT_SCRIPT" link="harfbuzz-hb-ot-tag.html#HB-OT-TAG-DEFAULT-SCRIPT:CAPS"/>
     <keyword type="function" name="hb_ot_font_set_funcs ()" link="harfbuzz-hb-ot-font.html#hb-ot-font-set-funcs" since="0.9.28"/>
     <keyword type="function" name="hb_ot_shape_glyphs_closure ()" link="harfbuzz-hb-ot-shape.html#hb-ot-shape-glyphs-closure" since="0.9.2"/>
-    <keyword type="function" name="hb_shape_plan_create ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-create"/>
+    <keyword type="function" name="hb_shape_plan_create ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-create" since="0.9.7"/>
     <keyword type="function" name="hb_shape_plan_create_cached ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-create-cached" since="0.9.7"/>
     <keyword type="function" name="hb_shape_plan_destroy ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-destroy" since="0.9.7"/>
     <keyword type="function" name="hb_shape_plan_execute ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-execute" since="0.9.7"/>
