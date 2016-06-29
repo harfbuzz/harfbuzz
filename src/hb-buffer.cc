@@ -52,7 +52,7 @@
  *
  * Checks the equality of two #hb_segment_properties_t's.
  *
- * Return value: (transfer full):
+ * Return value:
  * %true if all properties of @a equal those of @b, false otherwise.
  *
  * Since: 0.9.7
