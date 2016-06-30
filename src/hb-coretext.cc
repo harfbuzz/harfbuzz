@@ -155,15 +155,15 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
     CFRelease (last_resort_font_desc);
     if (new_ct_font)
     {
-      // The CTFontCreateCopyWithAttributes call fails to stay on the same font
-      // when reconfiguring the cascade list and may switch to a different font
-      // when there are fonts that go by the same name, since the descriptor is
-      // just name and size.
-
-      // Avoid reconfiguring the cascade lists if the new font is outside the
-      // system locations that we cannot access from the sandboxed renderer
-      // process in Blink. This can be detected by the new file URL location
-      // that the newly found font points to.
+      /* The CTFontCreateCopyWithAttributes call fails to stay on the same font
+       * when reconfiguring the cascade list and may switch to a different font
+       * when there are fonts that go by the same name, since the descriptor is
+       * just name and size.
+       *
+       * Avoid reconfiguring the cascade lists if the new font is outside the
+       * system locations that we cannot access from the sandboxed renderer
+       * process in Blink. This can be detected by the new file URL location
+       * that the newly found font points to. */
       CFURLRef new_url = (CFURLRef)CTFontCopyAttribute(new_ct_font, kCTFontURLAttribute);
       if (CFEqual(original_url, new_url)) {
         CFRelease (ct_font);
