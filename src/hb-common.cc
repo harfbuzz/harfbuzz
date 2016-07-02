@@ -88,7 +88,7 @@ hb_tag_from_string (const char *str, int len)
 /**
  * hb_tag_to_string:
  * @tag: 
- * @buf: (array fixed-size=4): 
+ * @buf: (out caller-allocates) (array fixed-size=4) (element-type uint8_t): 
  *
  * 
  *
