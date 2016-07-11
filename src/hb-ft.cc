@@ -90,10 +90,16 @@ _hb_ft_font_create (FT_Face ft_face, bool unref)
 }
 
 static void
+_hb_ft_face_destroy (FT_Face ft_face)
+{
+  FT_Done_Face (ft_face);
+}
+
+static void
 _hb_ft_font_destroy (hb_ft_font_t *ft_font)
 {
   if (ft_font->unref)
-    FT_Done_Face (ft_font->ft_face);
+    _hb_ft_face_destroy (ft_font->ft_face);
 
   free (ft_font);
 }
@@ -526,7 +532,7 @@ hb_face_t *
 hb_ft_face_create_referenced (FT_Face ft_face)
 {
   FT_Reference_Face (ft_face);
-  return hb_ft_face_create (ft_face, (hb_destroy_func_t) FT_Done_Face);
+  return hb_ft_face_create (ft_face, (hb_destroy_func_t) _hb_ft_face_destroy);
 }
 
 static void
@@ -606,7 +612,7 @@ hb_font_t *
 hb_ft_font_create_referenced (FT_Face ft_face)
 {
   FT_Reference_Face (ft_face);
-  return hb_ft_font_create (ft_face, (hb_destroy_func_t) FT_Done_Face);
+  return hb_ft_font_create (ft_face, (hb_destroy_func_t) _hb_ft_face_destroy);
 }
 
 
