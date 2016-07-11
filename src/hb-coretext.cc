@@ -164,21 +164,25 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
        * system locations that we cannot access from the sandboxed renderer
        * process in Blink. This can be detected by the new file URL location
        * that the newly found font points to. */
-      CFURLRef new_url = (CFURLRef)CTFontCopyAttribute(new_ct_font, kCTFontURLAttribute);
-      if (CFEqual(original_url, new_url)) {
+      CFURLRef new_url = (CFURLRef) CTFontCopyAttribute (new_ct_font, kCTFontURLAttribute);
+      // Keep reconfigured font if URL cannot be retrieved (seems to be the case
+      // on Mac OS 10.12 Sierra), speculative fix for crbug.com/625606
+      if (!original_url || !new_url || CFEqual (original_url, new_url)) {
         CFRelease (ct_font);
         ct_font = new_ct_font;
       } else {
-        CFRelease(new_ct_font);
+        CFRelease (new_ct_font);
         DEBUG_MSG (CORETEXT, ct_font, "Discarding reconfigured CTFont, location changed.");
       }
-      CFRelease(new_url);
+      if (new_url)
+        CFRelease (new_url);
     }
     else
       DEBUG_MSG (CORETEXT, ct_font, "Font copy with empty cascade list failed");
   }
 
-  CFRelease(original_url);
+  if (original_url)
+    CFRelease (original_url);
   return ct_font;
 }
 
