@@ -182,8 +182,8 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 	case 0x17: return hb_in_range (ch, 0x17B4u, 0x17B5u);
 	case 0x18: return hb_in_range (ch, 0x180Bu, 0x180Eu);
 	case 0x20: return hb_in_ranges (ch, 0x200Bu, 0x200Fu,
-							    0x202Au, 0x202Eu,
-							    0x2060u, 0x206Fu);
+					    0x202Au, 0x202Eu,
+					    0x2060u, 0x206Fu);
 	case 0xFE: return hb_in_range (ch, 0xFE00u, 0xFE0Fu) || ch == 0xFEFFu;
 	case 0xFF: return hb_in_range (ch, 0xFFF0u, 0xFFF8u);
 	default: return false;
