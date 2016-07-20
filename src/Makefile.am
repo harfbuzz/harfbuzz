@@ -312,6 +312,9 @@ dist_check_SCRIPTS = \
 check_PROGRAMS = \
 	test-ot-tag \
 	$(NULL)
+test_ot_color_SOURCES = hb-ot-color.cc
+test_ot_color_CPPFLAGS = $(HBCFLAGS) -DMAIN
+test_ot_color_LDADD = libharfbuzz.la $(HBLIBS)
 test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(HBCFLAGS) -DMAIN
 test_ot_tag_LDADD = libharfbuzz.la $(HBLIBS)
