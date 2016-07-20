@@ -70,11 +70,12 @@ struct hb_ft_font_t
 {
   FT_Face ft_face;
   int load_flags;
+  bool symbol; /* Whether selected cmap is symbol cmap. */
   bool unref; /* Whether to destroy ft_face when done. */
 };
 
 static hb_ft_font_t *
-_hb_ft_font_create (FT_Face ft_face, bool unref)
+_hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
 {
   hb_ft_font_t *ft_font = (hb_ft_font_t *) calloc (1, sizeof (hb_ft_font_t));
 
@@ -82,6 +83,7 @@ _hb_ft_font_create (FT_Face ft_face, bool unref)
     return NULL;
 
   ft_font->ft_face = ft_face;
+  ft_font->symbol = symbol;
   ft_font->unref = unref;
 
   ft_font->load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
@@ -171,7 +173,21 @@ hb_ft_get_nominal_glyph (hb_font_t *font HB_UNUSED,
   unsigned int g = FT_Get_Char_Index (ft_font->ft_face, unicode);
 
   if (unlikely (!g))
-    return false;
+  {
+    if (unlikely (ft_font->symbol) && unicode <= 0x00FFu)
+    {
+      /* For symbol-encoded OpenType fonts, we duplicate the
+       * U+F000..F0FF range at U+0000..U+00FF.  That's what
+       * Windows seems to do, and that's hinted about at:
+       * http://www.microsoft.com/typography/otspec/recom.htm
+       * under "Non-Standard (Symbol) Fonts". */
+      g = FT_Get_Char_Index (ft_font->ft_face, 0xF000u + unicode);
+      if (!g)
+	return false;
+    }
+    else
+      return false;
+  }
 
   *glyph = g;
   return true;
@@ -450,9 +466,11 @@ retry:
 #endif
   };
 
+  bool symbol = ft_face->charmap && ft_face->charmap->encoding == FT_ENCODING_MS_SYMBOL;
+
   hb_font_set_funcs (font,
 		     funcs,
-		     _hb_ft_font_create (ft_face, unref),
+		     _hb_ft_font_create (ft_face, symbol, unref),
 		     (hb_destroy_func_t) _hb_ft_font_destroy);
 }
 
@@ -681,7 +699,8 @@ hb_ft_font_set_funcs (hb_font_t *font)
     return;
   }
 
-  FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
+  if (FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE))
+    FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL);
 
   FT_Set_Char_Size (ft_face,
 		    abs (font->x_scale), abs (font->y_scale),
