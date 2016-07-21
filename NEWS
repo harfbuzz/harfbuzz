@@ -1,3 +1,18 @@
+Overview of changes leading to 1.3.0
+Thursday, July 21, 2016
+====================================
+
+- Update to Unicode 9.0.0
+- Move Javanese from Indic shaper to Universal Shaping Engine.
+- Allow MultipleSubst to delete a glyph (matching Windows engine).
+- Update Universal Shaping Engine to latest draft from Microsoft.
+- DirectWrite backend improvements.  Note: this backend is for testing ONLY.
+- CoreText backend improvements with unreachable fonts.
+- Implement symbol fonts (cmap 3.0.0) in hb-ft and hb-ot-font.
+- Blacklist bad GDEF of more fonts (Tahoma & others).
+- Misc fixes.
+
+
 Overview of changes leading to 1.2.7
 Monday, May 2, 2016
 ====================================
