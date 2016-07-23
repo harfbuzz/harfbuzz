@@ -145,6 +145,14 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
     DEBUG_MSG (CORETEXT, cg_font, "Font CTFontCreateWithGraphicsFont() failed");
     return NULL;
   }
+
+  /* crbug.com/576941 and crbug.com/625902 and the investigation in the latter
+   * bug indicate that the cascade list reconfiguration occasionally causes
+   * crashes in CoreText on OS X 10.9, thus let's skip this step on older
+   * operating system versions. */
+  if (&CTGetCoreTextVersion != NULL && CTGetCoreTextVersion() < kCTVersionNumber10_10)
+    return ct_font;
+
   CFURLRef original_url = (CFURLRef)CTFontCopyAttribute(ct_font, kCTFontURLAttribute);
 
   /* Create font copy with cascade list that has LastResort first; this speeds up CoreText
