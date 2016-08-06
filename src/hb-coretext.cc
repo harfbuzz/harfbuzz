@@ -716,28 +716,21 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
   }
 
   ALLOCATE_ARRAY (UniChar, pchars, buffer->len * 2, /*nothing*/);
+  ALLOCATE_ARRAY (unsigned int, log_clusters, buffer->len * 2, /*nothing*/);
   unsigned int chars_len = 0;
   for (unsigned int i = 0; i < buffer->len; i++) {
     hb_codepoint_t c = buffer->info[i].codepoint;
+    unsigned int cluster = buffer->info[i].cluster;
+    log_clusters[chars_len] = cluster;
     if (likely (c <= 0xFFFFu))
       pchars[chars_len++] = c;
     else if (unlikely (c > 0x10FFFFu))
       pchars[chars_len++] = 0xFFFDu;
     else {
       pchars[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
+      log_clusters[chars_len] = cluster;
       pchars[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1 << 10) - 1));
     }
-  }
-
-  ALLOCATE_ARRAY (unsigned int, log_clusters, chars_len, /*nothing*/);
-  chars_len = 0;
-  for (unsigned int i = 0; i < buffer->len; i++)
-  {
-    hb_codepoint_t c = buffer->info[i].codepoint;
-    unsigned int cluster = buffer->info[i].cluster;
-    log_clusters[chars_len++] = cluster;
-    if (hb_in_range (c, 0x10000u, 0x10FFFFu))
-      log_clusters[chars_len++] = cluster; /* Surrogates. */
   }
 
 #define FAIL(...) \
