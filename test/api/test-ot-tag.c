@@ -198,7 +198,10 @@ test_ot_tag_language (void)
   test_tag_from_language ("ZHS", "zh"); /* Chinese */
   test_tag_from_language ("ZHS", "zh-cn"); /* Chinese (China) */
   test_tag_from_language ("ZHS", "zh-sg"); /* Chinese (Singapore) */
-  test_tag_from_language ("ZHT", "zh-mo"); /* Chinese (Macao) */
+  test_tag_from_language ("ZHH", "zh-mo"); /* Chinese (Macao) */
+  test_tag_from_language ("ZHH", "zh-hant-mo"); /* Chinese (Macao) */
+  test_tag_from_language ("ZHH", "zh-hk"); /* Chinese (Hong Kong) */
+  test_tag_from_language ("ZHH", "zH-HanT-hK"); /* Chinese (Hong Kong) */
   test_tag_from_language ("ZHT", "zh-tw"); /* Chinese (Taiwan) */
   test_tag_from_language ("ZHS", "zh-Hans"); /* Chinese (Simplified) */
   test_tag_from_language ("ZHT", "zh-Hant"); /* Chinese (Traditional) */
