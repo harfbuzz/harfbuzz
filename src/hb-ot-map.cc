@@ -243,11 +243,11 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
       map->mask = 1;
     } else {
       map->shift = next_bit;
-      map->mask = (1 << (next_bit + bits_needed)) - (1 << next_bit);
+      map->mask = (1u << (next_bit + bits_needed)) - (1u << next_bit);
       next_bit += bits_needed;
       m.global_mask |= (info->default_value << map->shift) & map->mask;
     }
-    map->_1_mask = (1 << map->shift) & map->mask;
+    map->_1_mask = (1u << map->shift) & map->mask;
     map->needs_fallback = !found;
 
   }

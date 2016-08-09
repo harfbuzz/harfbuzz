@@ -586,7 +586,7 @@ _hb_directwrite_shape(hb_shape_plan_t    *shape_plan,
       textString[chars_len++] = 0xFFFDu;
     else {
       textString[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
-      textString[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1 << 10) - 1));
+      textString[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1u << 10) - 1));
     }
   }
 

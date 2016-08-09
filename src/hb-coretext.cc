@@ -725,7 +725,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       pchars[chars_len++] = 0xFFFDu;
     else {
       pchars[chars_len++] = 0xD800u + ((c - 0x10000u) >> 10);
-      pchars[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1 << 10) - 1));
+      pchars[chars_len++] = 0xDC00u + ((c - 0x10000u) & ((1u << 10) - 1));
     }
   }
 

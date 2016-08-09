@@ -33,6 +33,8 @@
 
 #include "hb-font-private.hh"
 
+#include "hb-cache-private.hh" // Maybe use in the future?
+
 #include FT_ADVANCES_H
 #include FT_TRUETYPE_TABLES_H
 
@@ -606,8 +608,8 @@ hb_ft_font_create (FT_Face           ft_face,
   hb_face_destroy (face);
   _hb_ft_font_set_funcs (font, ft_face, false);
   hb_font_set_scale (font,
-		     (int) (((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM + (1<<15)) >> 16),
-		     (int) (((uint64_t) ft_face->size->metrics.y_scale * (uint64_t) ft_face->units_per_EM + (1<<15)) >> 16));
+		     (int) (((uint64_t) ft_face->size->metrics.x_scale * (uint64_t) ft_face->units_per_EM + (1u<<15)) >> 16),
+		     (int) (((uint64_t) ft_face->size->metrics.y_scale * (uint64_t) ft_face->units_per_EM + (1u<<15)) >> 16));
 #if 0 /* hb-ft works in no-hinting model */
   hb_font_set_ppem (font,
 		    ft_face->size->metrics.x_ppem,
