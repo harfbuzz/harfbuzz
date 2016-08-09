@@ -833,11 +833,12 @@ static const LangTagLong ot_languages_zh[] = {
   /* Store longest-first, if one is a prefix of another. */
   {"zh-cn",	HB_TAG('Z','H','S',' ')},	/* Chinese (China) */
   {"zh-hk",	HB_TAG('Z','H','H',' ')},	/* Chinese (Hong Kong) */
-  {"zh-mo",	HB_TAG('Z','H','T',' ')},	/* Chinese (Macao) */
+  {"zh-mo",	HB_TAG('Z','H','H',' ')},	/* Chinese (Macao) */
   {"zh-sg",	HB_TAG('Z','H','S',' ')},	/* Chinese (Singapore) */
   {"zh-tw",	HB_TAG('Z','H','T',' ')},	/* Chinese (Taiwan) */
   {"zh-hans",	HB_TAG('Z','H','S',' ')},	/* Chinese (Simplified) */
   {"zh-hant-hk",HB_TAG('Z','H','H',' ')},	/* Chinese (Hong Kong) */
+  {"zh-hant-mo",HB_TAG('Z','H','H',' ')},	/* Chinese (Macao) */
   {"zh-hant",	HB_TAG('Z','H','T',' ')},	/* Chinese (Traditional) */
 };
 
