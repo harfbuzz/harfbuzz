@@ -150,7 +150,7 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
    * bug indicate that the cascade list reconfiguration occasionally causes
    * crashes in CoreText on OS X 10.9, thus let's skip this step on older
    * operating system versions. */
-  if (&CTGetCoreTextVersion != NULL && CTGetCoreTextVersion() < kCTVersionNumber10_10)
+  if (&CTGetCoreTextVersion != NULL && CTGetCoreTextVersion() <= kCTVersionNumber10_9)
     return ct_font;
 
   CFURLRef original_url = (CFURLRef)CTFontCopyAttribute(ct_font, kCTFontURLAttribute);
