@@ -19,6 +19,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install --user cpp-coveralls; fi # for coveralls.io code coverage tracking
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export PATH=$HOME/.local/bin:$PATH; fi # Make sure we can find the above Python packages
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi;
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew uninstall libtool && brew install libtool; fi # Workaround Travis/brew bug
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install ragel freetype glib gobject-introspection cairo icu4c graphite2; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew link --force icu4c; fi # icu4c is keg-only
 script:
