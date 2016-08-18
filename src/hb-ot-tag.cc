@@ -892,11 +892,19 @@ hb_ot_tag_from_language (hb_language_t language)
   }
 
   /*
-   * The International Phonetic Alphabet is a variant tag in BCP-47,
-   * which can be applied to any language.
+   * "fonipa" is a variant tag in BCP-47, meaning the International Phonetic Alphabet.
+   * It can be applied to any language.
    */
   if (strstr (lang_str, "-fonipa")) {
     return HB_TAG('I','P','P','H');  /* Phonetic transcription—IPA conventions */
+  }
+
+  /*
+   * "fonnapa" is a variant tag in BCP-47, meaning the North American Phonetic Alphabet
+   * also known as Americanist Phonetic Notation.  It can be applied to any language.
+   */
+  if (strstr (lang_str, "-fonnapa")) {
+    return HB_TAG('A','P','P','H');  /* Phonetic transcription—Americanist conventions */
   }
 
   /* Find a language matching in the first component */
@@ -970,6 +978,8 @@ hb_ot_tag_to_language (hb_tag_t tag)
 
   /* struct LangTag has only room for 3-letter language tags. */
   switch (tag) {
+  case HB_TAG('A','P','P','H'):  /* Phonetic transcription—Americanist conventions */
+    return hb_language_from_string ("und-fonnapa", -1);
   case HB_TAG('I','P','P','H'):  /* Phonetic transcription—IPA conventions */
     return hb_language_from_string ("und-fonipa", -1);
   }
