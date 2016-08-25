@@ -35,6 +35,7 @@
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-jstf-table.hh"
+#include "hb-ot-layout-math-table.hh"
 
 #include "hb-ot-map-private.hh"
 
@@ -59,6 +60,10 @@ _hb_ot_layout_create (hb_face_t *face)
 
   layout->gpos_blob = OT::Sanitizer<OT::GPOS>::sanitize (face->reference_table (HB_OT_TAG_GPOS));
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
+
+  // The MATH table is rarer so we only try and load it in _get_math
+  layout->math_blob = NULL;
+  layout->math = NULL;
 
   {
     /*
@@ -178,6 +183,8 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
 
+  if (layout->math_blob) hb_blob_destroy (layout->math_blob);
+
   free (layout);
 }
 
@@ -198,6 +205,21 @@ _get_gpos (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::GPOS);
   return *hb_ot_layout_from_face (face)->gpos;
+}
+static inline const OT::MATH&
+_get_math (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::MATH);
+
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+
+  // If the MATH table is not loaded yet, do it now.
+  if (!layout->math_blob) {
+    layout->math_blob = OT::Sanitizer<OT::MATH>::sanitize (face->reference_table (HB_OT_TAG_MATH));
+    layout->math = OT::Sanitizer<OT::MATH>::lock_instance (layout->math_blob);
+  }
+
+  return *layout->math;
 }
 
 
@@ -1189,4 +1211,27 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
 				const hb_ot_layout_lookup_accelerator_t &accel)
 {
   apply_string<GSUBProxy> (c, lookup, accel);
+}
+
+/*
+ * OT::MATH
+ */
+
+/**
+ * hb_ot_layout_has_math_data:
+ *
+ * @face: #hb_face_t to test
+ *
+ * This function allows to verify the presence of an OpenType MATH table on the
+ * face. If so, such a table will be loaded into memory and sanitized. You can
+ * then safely call other functions for math layout and shaping.
+ *
+ * Return value: #TRUE if face has a MATH table and #FALSE otherwise
+ *
+ * Since: ????
+ **/
+hb_bool_t
+hb_ot_layout_has_math_data (hb_face_t *face)
+{
+  return &_get_math (face) != &OT::Null(OT::MATH);
 }
