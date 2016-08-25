@@ -101,6 +101,7 @@ HB_OT_sources = \
 	hb-ot-shape-complex-use-private.hh \
 	hb-ot-shape-complex-use-table.cc \
 	hb-ot-shape-complex-private.hh \
+	hb-ot-shape-math.cc \
 	hb-ot-shape-normalize-private.hh \
 	hb-ot-shape-normalize.cc \
 	hb-ot-shape-fallback-private.hh \

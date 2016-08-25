@@ -102,6 +102,8 @@ typedef enum {
   HB_OT_MATH_KERN_BOTTOM_LEFT = 3
 } hb_ot_math_kern_t;
 
+#define HB_OT_MATH_MAXIMUM_PART_COUNT_IN_GLYPH_ASSEMBLY 128
+
 HB_END_DECLS
 
 #endif /* HB_OT_MATH_H */
