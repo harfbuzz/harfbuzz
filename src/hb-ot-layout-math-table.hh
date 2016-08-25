@@ -423,6 +423,245 @@ public:
   DEFINE_SIZE_STATIC (4 * 2);
 };
 
+struct MathGlyphVariantRecord
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  hb_codepoint_t get_glyph() const { return variantGlyph; }
+  inline hb_position_t get_advance_measurement (hb_font_t *font,
+                                                bool horizontal) const
+  {
+    return horizontal ?
+      font->em_scale_x (advanceMeasurement) :
+      font->em_scale_y (advanceMeasurement);
+  }
+
+protected:
+  GlyphID variantGlyph;       /* Glyph ID for the variant. */
+  USHORT  advanceMeasurement; /* Advance width/height, in design units, of the
+                                 variant, in the direction of requested
+                                 glyph extension. */
+
+public:
+  DEFINE_SIZE_STATIC (2 + 2);
+};
+
+struct PartFlags : USHORT
+{
+  enum Flags {
+    Extender = 0x0001u, /* If set, the part can be skipped or repeated. */
+  };
+
+public:
+  DEFINE_SIZE_STATIC (2);
+};
+
+struct GlyphPartRecord
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  hb_codepoint_t get_glyph() const { return glyph; }
+
+  inline hb_position_t
+  get_start_connector_length (hb_font_t *font, bool horizontal) const
+  {
+    return horizontal ?
+      font->em_scale_x (startConnectorLength) :
+      font->em_scale_y (startConnectorLength);
+  }
+
+  inline hb_position_t
+  get_end_connector_length (hb_font_t *font, bool horizontal) const
+  {
+    return horizontal ?
+      font->em_scale_x (endConnectorLength) :
+      font->em_scale_y (endConnectorLength);
+  }
+
+  inline hb_position_t
+  get_full_advance (hb_font_t *font, bool horizontal) const
+  {
+    return horizontal ?
+      font->em_scale_x (fullAdvance) :
+      font->em_scale_y (fullAdvance);
+  }
+
+  inline bool is_extender() const {
+    return partFlags & PartFlags::Flags::Extender;
+  }
+
+protected:
+  GlyphID   glyph;                /* Glyph ID for the part. */
+  USHORT    startConnectorLength; /* Advance width/ height of the straight bar
+                                     connector material, in design units, is at
+                                     the beginning of the glyph, in the
+                                     direction of the extension. */
+  USHORT    endConnectorLength;   /* Advance width/ height of the straight bar
+                                     connector material, in design units, is at
+                                     the end of the glyph, in the direction of
+                                     the extension. */
+  USHORT    fullAdvance;          /* Full advance width/height for this part,
+                                     in the direction of the extension.
+                                     In design units. */
+  PartFlags partFlags;            /* Part qualifiers. */
+
+public:
+  DEFINE_SIZE_STATIC (5 * 2);
+};
+
+struct GlyphAssembly
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  italicsCorrection.sanitize(c, this) &&
+                  partRecords.sanitize(c));
+  }
+
+  inline hb_position_t get_italic_correction (hb_font_t *font) const
+  {
+    return italicsCorrection.get_value(font, true, this);
+  }
+
+  inline unsigned int part_record_count() const { return partRecords.len; }
+  inline const GlyphPartRecord &get_part_record(unsigned int i) const {
+    assert(i < partRecords.len);
+    return partRecords[i];
+  }
+
+protected:
+  MathValueRecord          italicsCorrection; /* Italics correction of this
+                                                 GlyphAssembly. Should not
+                                                 depend on the assembly size. */
+  ArrayOf<GlyphPartRecord> partRecords;       /* Array of part records, from
+                                                 left to right and bottom to
+                                                 top. */
+
+public:
+  DEFINE_SIZE_ARRAY (4 + 2, partRecords);
+};
+
+struct MathGlyphConstruction
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  glyphAssembly.sanitize(c, this) &&
+                   mathGlyphVariantRecord.sanitize(c));
+  }
+
+  inline bool has_glyph_assembly (void) const { return glyphAssembly != 0; }
+  inline const GlyphAssembly &get_glyph_assembly (void) const {
+    return this+glyphAssembly;
+  }
+
+  inline unsigned int glyph_variant_count() const {
+    return mathGlyphVariantRecord.len;
+  }
+  inline const MathGlyphVariantRecord &get_glyph_variant(unsigned int i) const {
+    assert(i < mathGlyphVariantRecord.len);
+    return mathGlyphVariantRecord[i];
+  }
+
+protected:
+  /* Offset to GlyphAssembly table for this shape - from the beginning of
+     MathGlyphConstruction table. May be NULL. */
+  OffsetTo<GlyphAssembly>         glyphAssembly;
+
+  /* MathGlyphVariantRecords for alternative variants of the glyphs. */
+  ArrayOf<MathGlyphVariantRecord> mathGlyphVariantRecord;
+
+public:
+  DEFINE_SIZE_ARRAY (2 + 2, mathGlyphVariantRecord);
+};
+
+struct MathVariants
+{
+  inline bool sanitize_offsets (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    unsigned int count = vertGlyphCount + horizGlyphCount;
+    for (unsigned int i = 0; i < count; i++)
+      if (!glyphConstruction[i].sanitize (c, this)) return_trace (false);
+    return_trace (true);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  vertGlyphCoverage.sanitize (c, this) &&
+                  horizGlyphCoverage.sanitize (c, this) &&
+                  c->check_array (glyphConstruction,
+                                  glyphConstruction[0].static_size,
+                                  vertGlyphCount + horizGlyphCount) &&
+                  sanitize_offsets (c));
+  }
+
+  inline hb_position_t get_min_connector_overlap (hb_font_t *font,
+                                                  bool horizontal) const
+  {
+    return horizontal ?
+      font->em_scale_x (minConnectorOverlap) :
+      font->em_scale_y (minConnectorOverlap);
+  }
+
+  inline bool
+  get_glyph_construction (hb_codepoint_t glyph,
+                          hb_bool_t horizontal,
+                          const MathGlyphConstruction *&glyph_construction) const {
+    unsigned int index =
+      horizontal ?
+      (this+horizGlyphCoverage).get_coverage (glyph) :
+      (this+vertGlyphCoverage).get_coverage (glyph);
+    if (likely (index == NOT_COVERED)) return false;
+
+    USHORT glyphCount = horizontal ? horizGlyphCount : vertGlyphCount;
+    if (unlikely (index >= glyphCount)) return false;
+
+    if (horizontal)
+      index += vertGlyphCount;
+
+    glyph_construction = &(this + glyphConstruction[index]);
+    return true;
+  }
+
+protected:
+  USHORT             minConnectorOverlap; /* Minimum overlap of connecting
+                                             glyphs during glyph construction,
+                                             in design units. */
+  OffsetTo<Coverage> vertGlyphCoverage;   /* Offset to Coverage table -
+                                             from the beginning of MathVariants
+                                             table. */
+  OffsetTo<Coverage> horizGlyphCoverage;  /* Offset to Coverage table -
+                                             from the beginning of MathVariants
+                                             table. */
+  USHORT             vertGlyphCount;      /* Number of glyphs for which
+                                             information is provided for
+                                             vertically growing variants. */
+  USHORT             horizGlyphCount;     /* Number of glyphs for which
+                                             information is provided for
+                                             horizontally growing variants. */
+
+  /* Array of offsets to MathGlyphConstruction tables - from the beginning of
+     the MathVariants table, for shapes growing in vertical/horizontal
+     direction. */
+  OffsetTo<MathGlyphConstruction>       glyphConstruction[VAR];
+
+public:
+  DEFINE_SIZE_ARRAY (5 * 2, glyphConstruction);
+};
+
 /*
  * MATH -- The MATH Table
  */
@@ -437,7 +676,8 @@ struct MATH
     return_trace (version.sanitize (c) &&
                   likely (version.major == 1) &&
                   mathConstants.sanitize (c, this) &&
-                  mathGlyphInfo.sanitize (c, this));
+                  mathGlyphInfo.sanitize (c, this) &&
+                  mathVariants.sanitize (c, this));
   }
 
   inline bool has_math_constants (void) const { return mathConstants != 0; }
@@ -449,14 +689,21 @@ struct MATH
   inline const MathGlyphInfo &get_math_glyph_info (void) const {
     return this+mathGlyphInfo;
   }
+
+  inline bool has_math_variants (void) const { return mathVariants != 0; }
+  inline const MathVariants &get_math_variants (void) const {
+    return this+mathVariants;
+  }
+
 protected:
   FixedVersion<>version;                 /* Version of the MATH table
                                             initially set to 0x00010000u */
   OffsetTo<MathConstants> mathConstants; /* MathConstants table */
   OffsetTo<MathGlyphInfo> mathGlyphInfo; /* MathGlyphInfo table */
+  OffsetTo<MathVariants>  mathVariants;  /* MathVariants table */
 
 public:
-  DEFINE_SIZE_STATIC (4 + 2 * 2);
+  DEFINE_SIZE_STATIC (4 + 3 * 2);
 };
 
 } /* mathspace OT */
