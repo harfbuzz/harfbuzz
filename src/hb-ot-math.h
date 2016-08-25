@@ -95,6 +95,13 @@ typedef enum {
   HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT = 55
 } hb_ot_math_constant_t;
 
+typedef enum {
+  HB_OT_MATH_KERN_TOP_RIGHT = 0,
+  HB_OT_MATH_KERN_TOP_LEFT = 1,
+  HB_OT_MATH_KERN_BOTTOM_RIGHT = 2,
+  HB_OT_MATH_KERN_BOTTOM_LEFT = 3
+} hb_ot_math_kern_t;
+
 HB_END_DECLS
 
 #endif /* HB_OT_MATH_H */

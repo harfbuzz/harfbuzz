@@ -1260,3 +1260,117 @@ hb_ot_layout_get_math_constant (hb_font_t *font,
   return math.has_math_constants() ?
     math.get_math_constants().get_value(font, constant) : 0;
 }
+
+/**
+ * hb_ot_layout_get_math_italic_correction:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @glyph: glyph index from which to retrieve the value
+ *
+ * Return value: the italic correction of the glyph or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_italic_correction (hb_font_t *font,
+                                         hb_codepoint_t glyph)
+{
+  const OT::MATH &math = _get_math (font->face);
+  if (math.has_math_glyph_info()) {
+    const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
+    if (glyphInfo.has_math_italics_correction_info()) {
+      hb_position_t value;
+      if (glyphInfo.get_math_italics_correction_info().get_value(font, glyph,
+                                                                 value))
+        return value;
+    }
+  }
+  return 0;
+}
+
+/**
+ * hb_ot_layout_get_math_top_accent_attachment:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @glyph: glyph index from which to retrieve the value
+ *
+ * Return value: the top accent attachment of the glyph or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
+                                             hb_codepoint_t glyph)
+{
+  const OT::MATH &math = _get_math (font->face);
+  if (math.has_math_glyph_info()) {
+    const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
+    if (glyphInfo.has_math_top_accent_attachment()) {
+      hb_position_t value;
+      if (glyphInfo.get_math_top_accent_attachment().get_value(font, glyph,
+                                                               value))
+        return value;
+    }
+  }
+  return 0;
+}
+
+/**
+ * hb_ot_layout_is_math_extended_shape:
+ *
+ * @font: a #hb_font_t to test
+ * @glyph: a glyph index to test
+ *
+ * Return value: #TRUE if the glyph is an extended shape and #FALSE otherwise
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_bool_t
+hb_ot_layout_is_math_extended_shape (hb_face_t *face,
+                                     hb_codepoint_t glyph)
+{
+  const OT::MATH &math = _get_math (face);
+  return math.has_math_glyph_info() &&
+    math.get_math_glyph_info().is_extended_shape(glyph);
+}
+
+/**
+ * hb_ot_layout_get_math_kerning:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @glyph: glyph index from which to retrieve the value
+ * @kern: the #hb_ot_math_kern_t from which to retrieve the value
+ * @correction_height: the correction height to use to determine the kerning.
+ *
+ * This function tries to retrieve the MathKern table for the specified font,
+ * glyph and #hb_ot_math_kern_t. Then it browses the list of heights from the
+ * MathKern table to find one value that is greater or equal to specified
+ * correction_height. If one is found the corresponding value from the list of
+ * kerns is returned and otherwise the last kern value is returned.
+ *
+ * Return value: requested kerning or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_kerning (hb_font_t *font,
+                               hb_codepoint_t glyph,
+                               hb_ot_math_kern_t kern,
+                               hb_position_t correction_height)
+{
+  const OT::MATH &math = _get_math (font->face);
+  if (math.has_math_glyph_info()) {
+    const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
+    if (glyphInfo.has_math_kern_info()) {
+      const OT::MathKernInfo &kernInfo = glyphInfo.get_math_kern_info();
+      const OT::MathKernInfoRecord *kernInfoRecord;
+      if (kernInfo.get_math_kern_info_record(glyph, kernInfoRecord) &&
+          kernInfoRecord->has_math_kern(kern)) {
+        return kernInfoRecord->
+          get_math_kern(kern, &kernInfo).get_value(font, correction_height);
+      }
+    }
+  }
+
+  return 0;
+}

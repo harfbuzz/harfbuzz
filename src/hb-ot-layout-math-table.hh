@@ -162,6 +162,267 @@ public:
                       2);
 };
 
+struct MathItalicsCorrectionInfo
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  coverage.sanitize (c, this) &&
+                  italicsCorrection.sanitize (c, this));
+  }
+
+  inline bool get_value (hb_font_t *font, hb_codepoint_t glyph,
+                         hb_position_t &value) const
+  {
+    unsigned int index = (this+coverage).get_coverage (glyph);
+    if (likely (index == NOT_COVERED)) return false;
+    if (unlikely (index >= italicsCorrection.len)) return false;
+    value = italicsCorrection[index].get_value(font, true, this);
+    return true;
+  }
+
+protected:
+  OffsetTo<Coverage>       coverage;          /* Offset to Coverage table -
+                                                 from the beginning of
+                                                 MathItalicsCorrectionInfo
+                                                 table. */
+  ArrayOf<MathValueRecord> italicsCorrection; /* Array of MathValueRecords
+                                                 defining italics correction
+                                                 values for each
+                                                 covered glyph. */
+
+public:
+  DEFINE_SIZE_ARRAY (2 + 2, italicsCorrection);
+};
+
+struct MathTopAccentAttachment
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  topAccentCoverage.sanitize (c, this) &&
+                  topAccentAttachment.sanitize (c, this));
+  }
+
+  inline bool get_value (hb_font_t *font, hb_codepoint_t glyph,
+                         hb_position_t &value) const
+  {
+    unsigned int index = (this+topAccentCoverage).get_coverage (glyph);
+    if (likely (index == NOT_COVERED)) return false;
+    if (unlikely (index >= topAccentAttachment.len)) return false;
+    value = topAccentAttachment[index].get_value(font, true, this);
+    return true;
+  }
+
+protected:
+  OffsetTo<Coverage>       topAccentCoverage;   /* Offset to Coverage table -
+                                                   from the beginning of
+                                                   MathTopAccentAttachment
+                                                   table. */
+  ArrayOf<MathValueRecord> topAccentAttachment; /* Array of MathValueRecords
+                                                   defining top accent
+                                                   attachment points for each
+                                                   covered glyph. */
+
+public:
+  DEFINE_SIZE_ARRAY (2 + 2, topAccentAttachment);
+};
+
+struct MathKern
+{
+  inline bool sanitize_math_value_records (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    unsigned int count = 2 * heightCount + 1;
+    for (unsigned int i = 0; i < count; i++)
+      if (!mathValueRecords[i].sanitize (c, this)) return_trace (false);
+    return_trace (true);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  c->check_array (mathValueRecords,
+                                  mathValueRecords[0].static_size,
+                                  2 * heightCount + 1) &&
+                  sanitize_math_value_records (c));
+  }
+
+  inline hb_position_t get_value (hb_font_t *font,
+                                  hb_position_t &correction_height) const
+  {
+    const MathValueRecord* correctionHeight = mathValueRecords;
+    const MathValueRecord* kernValue = mathValueRecords + heightCount;
+    // The description of the MathKern table is a ambiguous, but interpreting
+    // "between the two heights found at those indexes" for 0 < i < len as
+    //
+    //   correctionHeight[i-1] < correction_height <= correctionHeight[i]
+    //
+    // makes the result consistent with the limit cases and we can just use the
+    // binary search algorithm of std::upper_bound:
+    unsigned int count = heightCount;
+    unsigned int i = 0;
+    while (count > 0) {
+      unsigned int half = count / 2;
+      hb_position_t height =
+        correctionHeight[i + half].get_value(font, false, this);
+      if (height < correction_height) {
+        i += half + 1;
+        count -= half + 1;
+      } else
+        count = half;
+    }
+    return kernValue[i].get_value(font, true, this);
+  }
+
+protected:
+  USHORT          heightCount;
+  MathValueRecord mathValueRecords[VAR]; /* Array of correction heights at
+                                            which the kern value changes.
+                                            Sorted by the height value in
+                                            design units. */
+                                         /* Array of kern values corresponding
+                                            to heights. */
+
+public:
+  DEFINE_SIZE_ARRAY (2, mathValueRecords);
+};
+
+struct MathKernInfoRecord
+{
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  mathKern[HB_OT_MATH_KERN_TOP_RIGHT].sanitize (c, base) &&
+                  mathKern[HB_OT_MATH_KERN_TOP_LEFT].sanitize (c, base) &&
+                  mathKern[HB_OT_MATH_KERN_BOTTOM_RIGHT].sanitize (c, base) &&
+                  mathKern[HB_OT_MATH_KERN_BOTTOM_LEFT].sanitize (c, base));
+  }
+
+  inline bool has_math_kern (hb_ot_math_kern_t kern) const {
+    return mathKern[kern] != 0;
+  }
+  inline const MathKern &get_math_kern (hb_ot_math_kern_t kern,
+                                        const void *base) const {
+    return base+mathKern[kern];
+  }
+
+protected:
+  /* Offset to MathKern table for each corner -
+     from the beginning of MathKernInfo table. May be NULL. */
+  OffsetTo<MathKern> mathKern[HB_OT_MATH_KERN_BOTTOM_LEFT -
+                              HB_OT_MATH_KERN_TOP_RIGHT + 1];
+
+public:
+  DEFINE_SIZE_STATIC (2 * (HB_OT_MATH_KERN_BOTTOM_LEFT -
+                           HB_OT_MATH_KERN_TOP_RIGHT + 1));
+};
+
+struct MathKernInfo
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  mathKernCoverage.sanitize (c, this) &&
+                  mathKernInfoRecords.sanitize (c, this));
+  }
+
+  inline bool
+  get_math_kern_info_record (hb_codepoint_t glyph,
+                             const MathKernInfoRecord *&record) const
+  {
+    unsigned int index = (this+mathKernCoverage).get_coverage (glyph);
+    if (likely (index == NOT_COVERED)) return false;
+    if (unlikely (index >= mathKernInfoRecords.len)) return false;
+    record = &mathKernInfoRecords[index];
+    return true;
+  }
+
+protected:
+  OffsetTo<Coverage>          mathKernCoverage;    /* Offset to Coverage table -
+                                                      from the beginning of the
+                                                      MathKernInfo table. */
+  ArrayOf<MathKernInfoRecord> mathKernInfoRecords; /* Array of
+                                                      MathKernInfoRecords,
+                                                      per-glyph information for
+                                                      mathematical positioning
+                                                      of subscripts and
+                                                      superscripts. */
+
+public:
+  DEFINE_SIZE_ARRAY (2 + 2, mathKernInfoRecords);
+};
+
+struct MathGlyphInfo
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  mathItalicsCorrectionInfo.sanitize (c, this) &&
+                  mathTopAccentAttachment.sanitize (c, this) &&
+                  extendedShapeCoverage.sanitize (c, this) &&
+                  mathKernInfo.sanitize(c, this));
+  }
+
+  inline bool has_math_italics_correction_info (void) const {
+    return mathItalicsCorrectionInfo != 0;
+  }
+  inline const MathItalicsCorrectionInfo&
+  get_math_italics_correction_info (void) const {
+    return this+mathItalicsCorrectionInfo;
+  }
+
+  inline bool has_math_top_accent_attachment (void) const {
+    return mathTopAccentAttachment != 0;
+  }
+  inline const MathTopAccentAttachment&
+  get_math_top_accent_attachment (void) const {
+    return this+mathTopAccentAttachment;
+  }
+
+  inline bool is_extended_shape (hb_codepoint_t glyph) const
+  {
+    if (likely (extendedShapeCoverage == 0)) return false;
+    unsigned int index = (this+extendedShapeCoverage).get_coverage (glyph);
+    if (likely (index == NOT_COVERED)) return false;
+    return true;
+  }
+
+  inline bool has_math_kern_info (void) const { return mathKernInfo != 0; }
+  inline const MathKernInfo &get_math_kern_info (void) const {
+    return this+mathKernInfo;
+  }
+
+protected:
+  /* Offset to MathItalicsCorrectionInfo table -
+     from the beginning of MathGlyphInfo table. */
+  OffsetTo<MathItalicsCorrectionInfo> mathItalicsCorrectionInfo;
+
+  /* Offset to MathTopAccentAttachment table -
+     from the beginning of MathGlyphInfo table. */
+  OffsetTo<MathTopAccentAttachment> mathTopAccentAttachment;
+
+  /* Offset to coverage table for Extended Shape glyphs -
+     from the beginning of MathGlyphInfo table. When the left or right glyph of
+     a box is an extended shape variant, the (ink) box (and not the default
+     position defined by values in MathConstants table) should be used for
+     vertical positioning purposes. May be NULL.. */
+  OffsetTo<Coverage> extendedShapeCoverage;
+
+   /* Offset to MathKernInfo table -
+      from the beginning of MathGlyphInfo table. */
+  OffsetTo<MathKernInfo> mathKernInfo;
+
+public:
+  DEFINE_SIZE_STATIC (4 * 2);
+};
+
 /*
  * MATH -- The MATH Table
  */
@@ -175,7 +436,8 @@ struct MATH
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
                   likely (version.major == 1) &&
-                  mathConstants.sanitize (c, this));
+                  mathConstants.sanitize (c, this) &&
+                  mathGlyphInfo.sanitize (c, this));
   }
 
   inline bool has_math_constants (void) const { return mathConstants != 0; }
@@ -183,13 +445,18 @@ struct MATH
     return this+mathConstants;
   }
 
+  inline bool has_math_glyph_info (void) const { return mathGlyphInfo != 0; }
+  inline const MathGlyphInfo &get_math_glyph_info (void) const {
+    return this+mathGlyphInfo;
+  }
 protected:
   FixedVersion<>version;                 /* Version of the MATH table
                                             initially set to 0x00010000u */
   OffsetTo<MathConstants> mathConstants; /* MathConstants table */
+  OffsetTo<MathGlyphInfo> mathGlyphInfo; /* MathGlyphInfo table */
 
 public:
-  DEFINE_SIZE_STATIC (4 + 2);
+  DEFINE_SIZE_STATIC (4 + 2 * 2);
 };
 
 } /* mathspace OT */
