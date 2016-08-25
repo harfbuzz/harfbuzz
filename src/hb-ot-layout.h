@@ -42,6 +42,7 @@ HB_BEGIN_DECLS
 #define HB_OT_TAG_GSUB HB_TAG('G','S','U','B')
 #define HB_OT_TAG_GPOS HB_TAG('G','P','O','S')
 #define HB_OT_TAG_JSTF HB_TAG('J','S','T','F')
+#define HB_OT_TAG_MATH HB_TAG('M','A','T','H')
 
 
 /*
@@ -297,6 +298,12 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *range_end          /* OUT.  May be NULL */);
 
 
+/*
+ * MATH
+ */
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_has_math_data (hb_face_t *face);
 HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_H */
