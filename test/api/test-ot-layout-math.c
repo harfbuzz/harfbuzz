@@ -160,6 +160,157 @@ test_get_math_constant (void)
   cleanupFreeType();
 }
 
+static void
+test_get_math_italic_correction (void)
+{
+  hb_codepoint_t glyph;
+  initFreeType();
+
+  openFont("fonts/MathTestFontEmpty.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // MathGlyphInfo not available
+  closeFont();
+
+  openFont("fonts/MathTestFontPartial1.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // MathGlyphInfo empty
+  closeFont();
+
+  openFont("fonts/MathTestFontPartial2.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // MathItalicsCorrectionInfo empty
+  closeFont();
+
+  openFont("fonts/MathTestFontFull.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // Glyph without italic correction.
+  g_assert(hb_font_get_glyph_from_name (hb_font, "A", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 197);
+  g_assert(hb_font_get_glyph_from_name (hb_font, "B", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 150);
+  g_assert(hb_font_get_glyph_from_name (hb_font, "C", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 452);
+  closeFont();
+
+  cleanupFreeType();
+
+}
+
+static void
+test_get_math_top_accent_attachment (void)
+{
+  hb_codepoint_t glyph;
+  initFreeType();
+
+  openFont("fonts/MathTestFontEmpty.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // MathGlyphInfo not available
+  closeFont();
+
+  openFont("fonts/MathTestFontPartial1.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // MathGlyphInfo empty
+  closeFont();
+
+  openFont("fonts/MathTestFontPartial2.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // MathTopAccentAttachment empty
+  closeFont();
+
+  openFont("fonts/MathTestFontFull.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // Glyph without top accent attachment.
+  g_assert(hb_font_get_glyph_from_name (hb_font, "D", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 374);
+  g_assert(hb_font_get_glyph_from_name (hb_font, "E", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 346);
+  g_assert(hb_font_get_glyph_from_name (hb_font, "F", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 318);
+  closeFont();
+
+  cleanupFreeType();
+}
+
+static void
+test_is_math_extended_shape (void)
+{
+  hb_codepoint_t glyph;
+  initFreeType();
+
+  openFont("fonts/MathTestFontEmpty.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert(!hb_ot_layout_is_math_extended_shape (hb_face, glyph)); // MathGlyphInfo not available
+  closeFont();
+
+  openFont("fonts/MathTestFontPartial1.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert(!hb_ot_layout_is_math_extended_shape (hb_face, glyph)); // MathGlyphInfo empty
+  closeFont();
+
+  openFont("fonts/MathTestFontFull.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "G", -1, &glyph));
+  g_assert(!hb_ot_layout_is_math_extended_shape (hb_face, glyph));
+  g_assert(hb_font_get_glyph_from_name (hb_font, "H", -1, &glyph));
+  g_assert(hb_ot_layout_is_math_extended_shape (hb_face, glyph));
+  closeFont();
+
+  cleanupFreeType();
+}
+
+static void
+test_get_math_kerning (void)
+{
+  hb_codepoint_t glyph;
+  initFreeType();
+
+  openFont("fonts/MathTestFontEmpty.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0), ==, 0); // MathGlyphInfo not available
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0), ==, 0); // MathGlyphInfo not available
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0), ==, 0); // MathGlyphInfo not available
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_LEFT, 0), ==, 0); // MathGlyphInfo not available
+  closeFont();
+
+  openFont("fonts/MathTestFontPartial2.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0), ==, 0); // MathKernInfo empty
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0), ==, 0); // MathKernInfo empty
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0), ==, 0); // MathKernInfo empty
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_LEFT, 0), ==, 0); // MathKernInfo empty
+  closeFont();
+
+  openFont("fonts/MathTestFontPartial3.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 0), ==, 0); // MathKernInfoRecords empty
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 0), ==, 0); // MathKernInfoRecords empty
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0), ==, 0); // MathKernInfoRecords empty
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_LEFT, 0), ==, 0); // MathKernInfoRecords empty
+  closeFont();
+
+  openFont("fonts/MathTestFontFull.otf");
+  g_assert(hb_font_get_glyph_from_name (hb_font, "I", -1, &glyph));
+
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 7), ==, 31); // lower than min heigth
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 14), ==, 31); // equal to min height
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 20), ==, 52);
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 23), ==, 52);
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 31), ==, 73);
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 32), ==, 73);
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 86), ==, 199); // equal to max height
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 91), ==, 220); // larger than max height
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 96), ==, 220); // larger than max height
+
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 39), ==, 94); // top right
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_LEFT, 39), ==, 55); // top left
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_RIGHT, 39), ==, 22); // bottom right
+  g_assert_cmpint(hb_ot_layout_get_math_kerning (hb_font, glyph, HB_OT_MATH_KERN_BOTTOM_LEFT, 39), ==, 50); // bottom left
+
+  closeFont();
+
+  cleanupFreeType();
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -167,6 +318,10 @@ main (int argc, char **argv)
 
   hb_test_add (test_has_math_data);
   hb_test_add (test_get_math_constant);
+  hb_test_add (test_get_math_italic_correction);
+  hb_test_add (test_get_math_top_accent_attachment);
+  hb_test_add (test_is_math_extended_shape);
+  hb_test_add (test_get_math_kerning);
 
   return hb_test_run();
 }
