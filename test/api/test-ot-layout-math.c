@@ -89,12 +89,84 @@ test_has_math_data (void)
   cleanupFreeType();
 }
 
+static void
+test_get_math_constant (void)
+{
+  initFreeType();
+
+  openFont("fonts/MathTestFontEmpty.otf");
+  g_assert_cmpint(hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT), ==, 0); // MathConstants not available
+  closeFont();
+
+  openFont("fonts/MathTestFontFull.otf");
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT)), ==, 100);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT)), ==, 200);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_MATH_LEADING)), ==, 300);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_AXIS_HEIGHT)), ==, 400);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_ACCENT_BASE_HEIGHT)), ==, 500);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FLATTENED_ACCENT_BASE_HEIGHT)), ==, 600);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUBSCRIPT_SHIFT_DOWN)), ==, 700);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUBSCRIPT_TOP_MAX)), ==, 800);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUBSCRIPT_BASELINE_DROP_MIN)), ==, 900);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUPERSCRIPT_SHIFT_UP)), ==, 1100);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUPERSCRIPT_SHIFT_UP_CRAMPED)), ==, 1200);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUPERSCRIPT_BOTTOM_MIN)), ==, 1300);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUPERSCRIPT_BASELINE_DROP_MAX)), ==, 1400);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUB_SUPERSCRIPT_GAP_MIN)), ==, 1500);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SUPERSCRIPT_BOTTOM_MAX_WITH_SUBSCRIPT)), ==, 1600);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SPACE_AFTER_SCRIPT)), ==, 1700);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_UPPER_LIMIT_GAP_MIN)), ==, 1800);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_UPPER_LIMIT_BASELINE_RISE_MIN)), ==, 1900);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_LOWER_LIMIT_GAP_MIN)), ==, 2200);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_LOWER_LIMIT_BASELINE_DROP_MIN)), ==, 2300);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STACK_TOP_SHIFT_UP)), ==, 2400);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STACK_TOP_DISPLAY_STYLE_SHIFT_UP)), ==, 2500);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STACK_BOTTOM_SHIFT_DOWN)), ==, 2600);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STACK_BOTTOM_DISPLAY_STYLE_SHIFT_DOWN)), ==, 2700);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STACK_GAP_MIN)), ==, 2800);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STACK_DISPLAY_STYLE_GAP_MIN)), ==, 2900);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STRETCH_STACK_TOP_SHIFT_UP)), ==, 3000);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STRETCH_STACK_BOTTOM_SHIFT_DOWN)), ==, 3100);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STRETCH_STACK_GAP_ABOVE_MIN)), ==, 3200);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_STRETCH_STACK_GAP_BELOW_MIN)), ==, 3300);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_NUMERATOR_SHIFT_UP)), ==, 3400);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_NUMERATOR_DISPLAY_STYLE_SHIFT_UP)), ==, 3500);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_DENOMINATOR_SHIFT_DOWN)), ==, 3600);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_DENOMINATOR_DISPLAY_STYLE_SHIFT_DOWN)), ==, 3700);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_NUMERATOR_GAP_MIN)), ==, 3800);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_NUM_DISPLAY_STYLE_GAP_MIN)), ==, 3900);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_RULE_THICKNESS)), ==, 4000);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_DENOMINATOR_GAP_MIN)), ==, 4100);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_FRACTION_DENOM_DISPLAY_STYLE_GAP_MIN)), ==, 4200);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SKEWED_FRACTION_HORIZONTAL_GAP)), ==, 4300);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SKEWED_FRACTION_VERTICAL_GAP)), ==, 4400);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_OVERBAR_VERTICAL_GAP)), ==, 4500);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_OVERBAR_RULE_THICKNESS)), ==, 4600);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_OVERBAR_EXTRA_ASCENDER)), ==, 4700);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_UNDERBAR_VERTICAL_GAP)), ==, 4800);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_UNDERBAR_RULE_THICKNESS)), ==, 4900);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_UNDERBAR_EXTRA_DESCENDER)), ==, 5000);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_VERTICAL_GAP)), ==, 5100);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_DISPLAY_STYLE_VERTICAL_GAP)), ==, 5200);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_RULE_THICKNESS)), ==, 5300);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_EXTRA_ASCENDER)), ==, 5400);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_KERN_BEFORE_DEGREE)), ==, 5500);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_KERN_AFTER_DEGREE)), ==, 5600);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN)), ==, 87);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN)), ==, 76);
+  g_assert_cmpint((hb_ot_layout_get_math_constant (hb_font, HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT)), ==, 65);
+  closeFont();
+
+  cleanupFreeType();
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_has_math_data);
+  hb_test_add (test_get_math_constant);
 
   return hb_test_run();
 }

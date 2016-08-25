@@ -33,6 +33,7 @@
 
 #include "hb.h"
 
+#include "hb-ot-math.h"
 #include "hb-ot-tag.h"
 
 HB_BEGIN_DECLS
@@ -304,6 +305,10 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_has_math_data (hb_face_t *face);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_constant (hb_font_t *font,
+                                hb_ot_math_constant_t constant);
 
 
 HB_END_DECLS

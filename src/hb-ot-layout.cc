@@ -1244,3 +1244,28 @@ hb_ot_layout_has_math_data (hb_face_t *face)
 {
   return &_get_math (face) != &OT::Null(OT::MATH);
 }
+
+/**
+ * hb_ot_layout_get_math_constant:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @constant: #hb_ot_math_constant_t the constant to retrieve
+ *
+ * This function returns the requested math constants as a #hb_position_t.
+ * If the request constant is HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN,
+ * HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN or
+ * HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN then the return value is
+ * actually an integer between 0 and 100 representing that percentage.
+ *
+ * Return value: the requested constant or 0
+ *
+ * Since: ????
+ **/
+hb_position_t
+hb_ot_layout_get_math_constant (hb_font_t *font,
+                                hb_ot_math_constant_t constant)
+{
+  const OT::MATH &math = _get_math (font->face);
+  return math.has_math_constants() ?
+    math.get_math_constants().get_value(font, constant) : 0;
+}
