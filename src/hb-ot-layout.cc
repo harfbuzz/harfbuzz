@@ -1350,3 +1350,57 @@ hb_ot_layout_get_math_kerning (hb_font_t *font,
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_glyph_info().get_kerning (glyph, kern, correction_height, font);
 }
+
+#if 0
+/**
+ * hb_ot_layout_get_math_italic_correction_for_glyph_assembly:
+ * @font: an #hb_font_t with an OpenType MATH table
+ * @base_glyph: index of the glyph to stretch
+ * @horizontal: direction of the stretching
+ *
+ * This function tries and get the italic correction associated to the glyph
+ * assembly used to stretch the base glyph in the specified direction.
+ *
+ * Return value: the italic correction of the glyph assembly or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_italic_correction_for_glyph_assembly (hb_font_t *font,
+                                                            hb_codepoint_t base_glyph,
+                                                            hb_bool_t horizontal)
+{
+  const OT::MATH &math = _get_math (font->face);
+
+  if (math.has_math_variants()) {
+    const OT::MathGlyphConstruction* glyph_construction;
+    if (math.get_math_variants().
+        get_glyph_construction(base_glyph, horizontal, glyph_construction) &&
+        glyph_construction->has_glyph_assembly())
+      return glyph_construction->
+        get_glyph_assembly().get_italic_correction(font);
+  }
+
+  return 0;
+}
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_get_math_glyph_construction (hb_font_t    *font,
+                                          hb_codepoint_t glyph,
+                                          hb_bool_t horizontal,
+                                          hb_position_t &minConnectorOverlap,
+                                          const OT::MathGlyphConstruction *&glyph_construction)
+{
+  const OT::MATH &math = _get_math (font->face);
+
+  if (!math.has_math_variants()) return false;
+
+  const OT::MathVariants &mathVariants = math.get_math_variants();
+  if (!mathVariants.get_glyph_construction(glyph, horizontal,
+                                           glyph_construction)) return false;
+
+  minConnectorOverlap = mathVariants.get_min_connector_overlap(font, horizontal);
+
+  return true;
+}
+#endif
