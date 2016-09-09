@@ -949,8 +949,8 @@ struct ArrayOf
 };
 
 /* Array of Offset's */
-template <typename Type>
-struct OffsetArrayOf : ArrayOf<OffsetTo<Type> > {};
+template <typename Type, typename OffsetType=USHORT>
+struct OffsetArrayOf : ArrayOf<OffsetTo<Type, OffsetType> > {};
 
 /* Array of offsets relative to the beginning of the array itself. */
 template <typename Type>
