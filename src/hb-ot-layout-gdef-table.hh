@@ -369,9 +369,9 @@ struct GDEF
 				      hb_position_t *caret_array /* OUT */) const
   { return (this+ligCaretList).get_lig_carets (font, direction, glyph_id, start_offset, caret_count, caret_array); }
 
-  inline bool has_mark_sets (void) const { return version.to_int () >= 0x00010002u && markGlyphSetsDef[0] != 0; }
+  inline bool has_mark_sets (void) const { return version.to_int () >= 0x00010002u && markGlyphSetsDef != 0; }
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
-  { return version.to_int () >= 0x00010002u && (this+markGlyphSetsDef[0]).covers (set_index, glyph_id); }
+  { return version.to_int () >= 0x00010002u && (this+markGlyphSetsDef).covers (set_index, glyph_id); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -382,7 +382,7 @@ struct GDEF
 		  attachList.sanitize (c, this) &&
 		  ligCaretList.sanitize (c, this) &&
 		  markAttachClassDef.sanitize (c, this) &&
-		  (version.to_int () < 0x00010002u || markGlyphSetsDef[0].sanitize (c, this)));
+		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)));
   }
 
 
@@ -428,12 +428,12 @@ struct GDEF
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be Null) */
   OffsetTo<MarkGlyphSets>
-		markGlyphSetsDef[VAR];	/* Offset to the table of mark set
+		markGlyphSetsDef;	/* Offset to the table of mark set
 					 * definitions--from beginning of GDEF
 					 * header (may be NULL).  Introduced
 					 * in version 00010002. */
   public:
-  DEFINE_SIZE_ARRAY (12, markGlyphSetsDef);
+  DEFINE_SIZE_MIN (12);
 };
 
 
