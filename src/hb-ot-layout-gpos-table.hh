@@ -231,11 +231,12 @@ struct ValueFormat : USHORT
 
 struct AnchorFormat1
 {
-  inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
+  inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = font->em_scale_x (xCoordinate);
-      *y = font->em_scale_y (yCoordinate);
+    hb_font_t *font = c->font;
+    *x = font->em_scale_x (xCoordinate);
+    *y = font->em_scale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -254,18 +255,19 @@ struct AnchorFormat1
 
 struct AnchorFormat2
 {
-  inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id,
+  inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      unsigned int x_ppem = font->x_ppem;
-      unsigned int y_ppem = font->y_ppem;
-      hb_position_t cx, cy;
-      hb_bool_t ret;
+    hb_font_t *font = c->font;
+    unsigned int x_ppem = font->x_ppem;
+    unsigned int y_ppem = font->y_ppem;
+    hb_position_t cx, cy;
+    hb_bool_t ret;
 
-      ret = (x_ppem || y_ppem) &&
-             font->get_glyph_contour_point_for_origin (glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
-      *x = ret && x_ppem ? cx : font->em_scale_x (xCoordinate);
-      *y = ret && y_ppem ? cy : font->em_scale_y (yCoordinate);
+    ret = (x_ppem || y_ppem) &&
+	   font->get_glyph_contour_point_for_origin (glyph_id, anchorPoint, HB_DIRECTION_LTR, &cx, &cy);
+    *x = ret && x_ppem ? cx : font->em_scale_x (xCoordinate);
+    *y = ret && y_ppem ? cy : font->em_scale_y (yCoordinate);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -285,16 +287,17 @@ struct AnchorFormat2
 
 struct AnchorFormat3
 {
-  inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id HB_UNUSED,
+  inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id HB_UNUSED,
 			  hb_position_t *x, hb_position_t *y) const
   {
-      *x = font->em_scale_x (xCoordinate);
-      *y = font->em_scale_y (yCoordinate);
+    hb_font_t *font = c->font;
+    *x = font->em_scale_x (xCoordinate);
+    *y = font->em_scale_y (yCoordinate);
 
-      if (font->x_ppem || font->num_coords)
-	*x += (this+xDeviceTable).get_x_delta (font);
-      if (font->y_ppem || font->num_coords)
-	*y += (this+yDeviceTable).get_x_delta (font);
+    if (font->x_ppem || font->num_coords)
+      *x += (this+xDeviceTable).get_x_delta (font);
+    if (font->y_ppem || font->num_coords)
+      *y += (this+yDeviceTable).get_x_delta (font);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -321,14 +324,14 @@ struct AnchorFormat3
 
 struct Anchor
 {
-  inline void get_anchor (hb_font_t *font, hb_codepoint_t glyph_id,
+  inline void get_anchor (hb_apply_context_t *c, hb_codepoint_t glyph_id,
 			  hb_position_t *x, hb_position_t *y) const
   {
     *x = *y = 0;
     switch (u.format) {
-    case 1: u.format1.get_anchor (font, glyph_id, x, y); return;
-    case 2: u.format2.get_anchor (font, glyph_id, x, y); return;
-    case 3: u.format3.get_anchor (font, glyph_id, x, y); return;
+    case 1: u.format1.get_anchor (c, glyph_id, x, y); return;
+    case 2: u.format2.get_anchor (c, glyph_id, x, y); return;
+    case 3: u.format3.get_anchor (c, glyph_id, x, y); return;
     default:						 return;
     }
   }
@@ -428,8 +431,8 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 
     hb_position_t mark_x, mark_y, base_x, base_y;
 
-    mark_anchor.get_anchor (c->font, buffer->cur().codepoint, &mark_x, &mark_y);
-    glyph_anchor.get_anchor (c->font, buffer->info[glyph_pos].codepoint, &base_x, &base_y);
+    mark_anchor.get_anchor (c, buffer->cur().codepoint, &mark_x, &mark_y);
+    glyph_anchor.get_anchor (c, buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
     hb_glyph_position_t &o = buffer->cur_pos();
     o.x_offset = base_x - mark_x;
@@ -931,8 +934,8 @@ struct CursivePosFormat1
     unsigned int j = skippy_iter.idx;
 
     hb_position_t entry_x, entry_y, exit_x, exit_y;
-    (this+this_record.exitAnchor).get_anchor (c->font, buffer->info[i].codepoint, &exit_x, &exit_y);
-    (this+next_record.entryAnchor).get_anchor (c->font, buffer->info[j].codepoint, &entry_x, &entry_y);
+    (this+this_record.exitAnchor).get_anchor (c, buffer->info[i].codepoint, &exit_x, &exit_y);
+    (this+next_record.entryAnchor).get_anchor (c, buffer->info[j].codepoint, &entry_x, &entry_y);
 
     hb_glyph_position_t *pos = buffer->pos;
 
