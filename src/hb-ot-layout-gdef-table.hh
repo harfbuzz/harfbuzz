@@ -373,6 +373,11 @@ struct GDEF
   inline bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return version.to_int () >= 0x00010002u && (this+markGlyphSetsDef).covers (set_index, glyph_id); }
 
+  inline bool has_var_store (void) const { return version.to_int () >= 0x00010003u && varStore != 0; }
+  inline float get_var_delta (unsigned int outer, unsigned int inner,
+			      int *coords, unsigned int coord_count) const
+  { return version.to_int () >= 0x00010003u ? (this+varStore).get_delta (outer, inner, coords, coord_count) : 0.; }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -382,7 +387,8 @@ struct GDEF
 		  attachList.sanitize (c, this) &&
 		  ligCaretList.sanitize (c, this) &&
 		  markAttachClassDef.sanitize (c, this) &&
-		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)));
+		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
+		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
   }
 
 
@@ -410,7 +416,7 @@ struct GDEF
 
   protected:
   FixedVersion<>version;		/* Version of the GDEF table--currently
-					 * 0x00010002u */
+					 * 0x00010003u */
   OffsetTo<ClassDef>
 		glyphClassDef;		/* Offset to class definition table
 					 * for glyph type--from beginning of
@@ -431,7 +437,12 @@ struct GDEF
 		markGlyphSetsDef;	/* Offset to the table of mark set
 					 * definitions--from beginning of GDEF
 					 * header (may be NULL).  Introduced
-					 * in version 00010002. */
+					 * in version 0x00010002. */
+  OffsetTo<VarStore, ULONG>
+		varStore;		/* Offset to the table of Item Variation
+					 * Store--from beginning of GDEF
+					 * header (may be NULL).  Introduced
+					 * in version 0x00010003. */
   public:
   DEFINE_SIZE_MIN (12);
 };
