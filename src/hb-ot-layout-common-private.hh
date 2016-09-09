@@ -1162,6 +1162,180 @@ struct ClassDef
 
 
 /*
+ * Item Variation Store
+ */
+
+struct VarRegionAxis
+{
+  inline float evaluate (int coord) const
+  {
+    int start = startCoord, peak = peakCoord, end = endCoord;
+
+    /* TODO Move these to sanitize(). */
+    if (unlikely (start > peak || peak > end))
+      return 1.;
+    if (unlikely (start < 0 && end > 0 && peak != 0))
+      return 1.;
+
+    if (peak == 0 || coord == peak)
+      return 1.;
+
+    if (coord <= start || end <= coord)
+      return 0.;
+
+    /* Interpolate */
+    if (coord < peak)
+      return float (coord - start) / (peak - start);
+    else
+      return float (end - coord) / (end - peak);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+    /* TODO Handle invalid start/peak/end configs, so we don't
+     * have to do that at runtime. */
+  }
+
+  public:
+  F2DOT14	startCoord;
+  F2DOT14	peakCoord;
+  F2DOT14	endCoord;
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+struct VarRegionList
+{
+  inline float evaluate (unsigned int region_index,
+			 int *coords, unsigned int coord_len) const
+  {
+    if (unlikely (region_index >= regionCount))
+      return 0.;
+
+    const VarRegionAxis *axes = axesZ + (region_index * axisCount);
+
+    float v = 1.;
+    unsigned int count = MIN (coord_len, (unsigned int) axisCount);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      float factor = axes[i].evaluate (coords[i]);
+      if (factor == 0.)
+        return 0.;
+      v *= factor;
+    }
+    return v;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  c->check_array (axesZ, axesZ[0].static_size,
+				  (unsigned int) axisCount * (unsigned int) regionCount));
+  }
+
+  protected:
+  USHORT	axisCount;
+  USHORT	regionCount;
+  VarRegionAxis	axesZ[VAR];
+  public:
+  DEFINE_SIZE_ARRAY (4, axesZ);
+};
+
+struct VarData
+{
+  inline unsigned int get_row_size (void) const
+  { return shortCount + regionIndices.len; }
+
+  inline unsigned int get_size (void) const
+  { return itemCount * get_row_size (); }
+
+  inline float get_delta (unsigned int inner,
+			  int *coords, unsigned int coord_count,
+			  const VarRegionList &regions) const
+  {
+    if (unlikely (inner >= itemCount))
+      return 0.;
+
+   unsigned int count = regionIndices.len;
+   unsigned int scount = shortCount;
+
+   const BYTE *bytes = &StructAfter<BYTE> (regionIndices);
+   const BYTE *row = bytes + inner * (scount + count);
+
+
+   float delta = 0.;
+   unsigned int i = 0;
+
+   const SHORT *scursor = reinterpret_cast<const SHORT *> (row);
+   for (; i < scount; i++)
+   {
+     float scalar = regions.evaluate (regionIndices.array[i], coords, coord_count);
+     delta += scalar * *scursor++;
+   }
+   const INT8 *bcursor = reinterpret_cast<const INT8 *> (scursor);
+   for (; i < count; i++)
+   {
+     float scalar = regions.evaluate (regionIndices.array[i], coords, coord_count);
+     delta += scalar * *bcursor++;
+   }
+
+   return delta;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  regionIndices.sanitize(c) &&
+		  shortCount <= regionIndices.len &&
+		  c->check_array (&StructAfter<BYTE> (regionIndices),
+				  get_row_size (), itemCount));
+  }
+
+  protected:
+  USHORT		itemCount;
+  USHORT		shortCount;
+  ArrayOf<USHORT>	regionIndices;
+  BYTE			bytesX[VAR];
+  public:
+  DEFINE_SIZE_ARRAY2 (6, regionIndices, bytesX);
+};
+
+struct VarStore
+{
+  inline float get_delta (unsigned int outer, unsigned int inner,
+			  int *coords, unsigned int coord_count) const
+  {
+    if (unlikely (outer >= dataSets.len))
+      return 0.;
+
+    return (this+dataSets[outer]).get_delta (inner,
+					     coords, coord_count,
+					     this+regions);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  format == 1 &&
+		  regions.sanitize (c, this) &&
+		  dataSets.sanitize (c, this));
+  }
+
+  protected:
+  USHORT				format;
+  OffsetTo<VarRegionList, ULONG>	regions;
+  OffsetArrayOf<VarData, ULONG>		dataSets;
+  public:
+  DEFINE_SIZE_ARRAY (8, dataSets);
+};
+
+
+/*
  * Device Tables
  */
 
@@ -1238,94 +1412,9 @@ struct HintingDevice
   DEFINE_SIZE_ARRAY (6, deltaValue);
 };
 
-
-struct VariationAxis
-{
-  inline float evaluate (int *coords, unsigned int coord_len) const
-  {
-    int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
-
-    int start = startCoord, peak = peakCoord, end = endCoord;
-    //if (coord == 0) return 0;
-    //if (start < 0 && end > 0) return 0.;
-    if (coord < start || coord > end) return 0.;
-    if (coord == peak) return 1.;
-    /* Interpolate */
-    if (coord < peak)
-      return float (coord - start) / (peak - start);
-    else
-      return float (end - coord) / (end - peak);
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
-  }
-
-  public:
-  Index		axisIndex;
-  F2DOT14	startCoord;
-  F2DOT14	peakCoord;
-  F2DOT14	endCoord;
-  public:
-  DEFINE_SIZE_STATIC (8);
-};
-
-struct VariationTuple
-{
-  inline float evaluate (int *coords, unsigned int coord_len) const
-  {
-    float v = 1.;
-    unsigned int count = axes.len;
-    for (unsigned int i = 0; i < count; i++)
-    {
-      float factor = (this+axes[i]).evaluate (coords, coord_len);
-      v *= factor;
-      if (factor == 0.)
-        break;
-    }
-    return v;
-  }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (axes.sanitize (c, this));
-  }
-
-  OffsetArrayOf<VariationAxis>
-		axes;
-  public:
-  DEFINE_SIZE_ARRAY (2, axes);
-};
-
-struct VariationMap
-{
-  inline const VariationTuple& operator [] (unsigned int i) const
-  { return this+tuples[i]; }
-
-  inline unsigned int get_len (void) const
-  { return tuples.len; }
-
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (tuples.sanitize (c, this));
-  }
-
-  OffsetArrayOf<VariationTuple>
-		tuples;
-  public:
-  DEFINE_SIZE_ARRAY (2, tuples);
-};
-
 struct VariationDevice
 {
   friend struct Device;
-
-  static const unsigned short FORMAT_BYTES  = 0x0100;
-  static const unsigned short FORMAT_SHORTS = 0x0101;
 
   private:
 
@@ -1338,40 +1427,24 @@ struct VariationDevice
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  c->check_array (&deltaValue, get_item_size (), deltaCount));
+    return_trace (c->check_struct (this));
   }
 
   private:
 
-  inline unsigned int get_item_size (void) const
-  { return deltaFormat == FORMAT_BYTES ? 1 : 2; }
-
   inline float get_delta (int *coords, unsigned int coord_count) const
   {
     float v = 0;
-    const VariationMap &map = this+variationMap;
-    unsigned int count = MIN ((unsigned int) deltaCount, map.get_len ());
-    if (get_item_size () == 1)
-      for (unsigned int i = 0; i < count; i++)
-	v += deltaValue.bytesZ[i] * map[i].evaluate (coords, coord_count);
-   else
-      for (unsigned int i = 0; i < count; i++)
-	v += deltaValue.shortsZ[i] * map[i].evaluate (coords, coord_count);
+    /* XXXXXXXXXXXXXXX call into GDEF. */
     return v;
   }
 
   protected:
-  OffsetTo<VariationMap>
-		variationMap;	/* Offset to variation mapping for this table. */
-  USHORT	deltaCount;	/* Number of deltas in this table. */
-  USHORT	deltaFormat;	/* Format identifier for this table: 0x0100 or 0x0101 */
-  union {
-    INT8	bytesZ[VAR];	/* Deltas as signed bytes in design space; format=0x0100 */
-    SHORT	shortsZ[VAR];	/* Deltas as signed shorts in design space; format=0x0101 */
-  } deltaValue;
+  USHORT	outerIndex;
+  USHORT	innerIndex;
+  USHORT	deltaFormat;	/* Format identifier for this table: 0x0x8000 */
   public:
-  DEFINE_SIZE_ARRAY (6, deltaValue.shortsZ);
+  DEFINE_SIZE_STATIC (6);
 };
 
 struct Device
@@ -1382,7 +1455,7 @@ struct Device
     {
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
-    case VariationDevice::FORMAT_BYTES: case VariationDevice::FORMAT_SHORTS:
+    case 0x8000:
       return u.variation.get_x_delta (font);
     default:
       return 0;
@@ -1394,8 +1467,7 @@ struct Device
     {
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
-    case VariationDevice::FORMAT_BYTES: case VariationDevice::FORMAT_SHORTS:
-      return u.variation.get_x_delta (font);
+    case 0x8000:
     default:
       return 0;
     }
@@ -1408,7 +1480,7 @@ struct Device
     switch (u.b.format) {
     case 1: case 2: case 3:
       return_trace (u.hinting.sanitize (c));
-    case VariationDevice::FORMAT_BYTES: case VariationDevice::FORMAT_SHORTS:
+    case 0x8000:
       return_trace (u.variation.sanitize (c));
     default:
       return_trace (true);
