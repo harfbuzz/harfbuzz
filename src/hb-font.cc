@@ -1254,7 +1254,10 @@ hb_font_destroy (hb_font_t *font)
   hb_face_destroy (font->face);
   hb_font_funcs_destroy (font->klass);
 
-  /* TODO: destroy variation coordinates. */
+  if (font->x_coords)
+    free (font->x_coords);
+  if (font->y_coords && font->y_coords != font->x_coords)
+    free (font->y_coords);
 
   free (font);
 }
