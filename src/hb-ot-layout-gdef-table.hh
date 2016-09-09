@@ -374,9 +374,8 @@ struct GDEF
   { return version.to_int () >= 0x00010002u && (this+markGlyphSetsDef).covers (set_index, glyph_id); }
 
   inline bool has_var_store (void) const { return version.to_int () >= 0x00010003u && varStore != 0; }
-  inline float get_var_delta (unsigned int outer, unsigned int inner,
-			      int *coords, unsigned int coord_count) const
-  { return version.to_int () >= 0x00010003u ? (this+varStore).get_delta (outer, inner, coords, coord_count) : 0.; }
+  inline const VarStore &get_var_store (void) const
+  { return version.to_int () >= 0x00010003u ? this+varStore : Null(VarStore); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
