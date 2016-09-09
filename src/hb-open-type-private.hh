@@ -630,7 +630,6 @@ struct IntType
   inline operator Type(void) const { return v; }
   inline bool operator == (const IntType<Type,Size> &o) const { return (Type) v == (Type) o.v; }
   inline bool operator != (const IntType<Type,Size> &o) const { return !(*this == o); }
-  inline unsigned int get_size (void) const { return Size; }
   static inline int cmp (const IntType<Type,Size> *a, const IntType<Type,Size> *b) { return b->cmp (*a); }
   inline int cmp (Type a) const
   {
