@@ -2271,10 +2271,10 @@ struct GSUBGPOS
   inline const Lookup& get_lookup (unsigned int i) const
   { return (this+lookupList)[i]; }
 
-  inline const FeatureTableSubstitution &
-	       get_feature_substitutions (int *coords, unsigned int coord_len) const
+  inline bool find_variations_index (const int *coords, unsigned int num_coords,
+				     unsigned int *index) const
   { return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
-	   .get_substitutions (coords, coord_len); }
+	   .find_index (coords, num_coords, index); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {

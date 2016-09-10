@@ -1342,7 +1342,7 @@ struct ConditionFormat1
   friend struct Condition;
 
   private:
-  inline bool evaluate (int *coords, unsigned int coord_len) const
+  inline bool evaluate (const int *coords, unsigned int coord_len) const
   {
     int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
     return filterRangeMinValue <= coord && coord <= filterRangeMaxValue;
@@ -1365,7 +1365,7 @@ struct ConditionFormat1
 
 struct Condition
 {
-  inline bool evaluate (int *coords, unsigned int coord_len) const
+  inline bool evaluate (const int *coords, unsigned int coord_len) const
   {
     switch (u.format) {
     case 1: return u.format1.evaluate (coords, coord_len);
@@ -1394,7 +1394,7 @@ struct Condition
 
 struct ConditionSet
 {
-  inline bool evaluate (int *coords, unsigned int coord_len) const
+  inline bool evaluate (const int *coords, unsigned int coord_len) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1470,17 +1470,21 @@ struct FeatureVariationRecord
 
 struct FeatureVariations
 {
-  inline const FeatureTableSubstitution &
-	       get_substitutions (int *coords, unsigned int coord_len) const
+  inline bool find_index (const int *coords, unsigned int coord_len,
+			  unsigned int *index) const
   {
     unsigned int count = varRecords.len;
     for (unsigned int i = 0; i < count; i++)
     {
       const FeatureVariationRecord &record = varRecords.array[i];
       if ((this+record.conditions).evaluate (coords, coord_len))
-        return (this+record.substitutions);
+      {
+	*index = i;
+	return true;
+      }
     }
-    return Null(FeatureTableSubstitution);
+    *index = 0xFFFFFFFF;
+    return false;
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

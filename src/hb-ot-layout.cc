@@ -836,6 +836,21 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 }
 
 
+/* Variations support */
+
+hb_bool_t
+hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
+					    hb_tag_t      table_tag,
+					    const int    *coords,
+					    unsigned int  num_coords,
+					    unsigned int *variations_index /* out */)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  return g.find_variations_index (coords, num_coords, variations_index);
+}
+
+
 /*
  * OT::GSUB
  */
