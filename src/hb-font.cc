@@ -1560,8 +1560,8 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   while (coords_length && !coords[coords_length - 1])
     coords_length--;
 
-  int *copy = (int *) calloc (coords_length, sizeof (coords[0]));
-  if (unlikely (!copy))
+  int *copy = coords_length ? (int *) calloc (coords_length, sizeof (coords[0])) : NULL;
+  if (unlikely (coords_length && !copy))
     return;
 
   if (font->x_coords)
@@ -1569,7 +1569,9 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   if (font->y_coords && font->y_coords != font->x_coords)
     free (font->y_coords);
 
-  memcpy (copy, coords, coords_length * sizeof (coords[0]));
+  if (coords_length)
+    memcpy (copy, coords, coords_length * sizeof (coords[0]));
+
   font->x_coords = font->y_coords = copy;
   font->num_coords = coords_length;
 }
