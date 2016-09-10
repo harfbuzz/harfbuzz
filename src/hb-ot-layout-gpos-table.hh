@@ -298,7 +298,7 @@ struct AnchorFormat3
     if (font->x_ppem || font->num_coords)
       *x += (this+xDeviceTable).get_x_delta (font, c->var_store);
     if (font->y_ppem || font->num_coords)
-      *y += (this+yDeviceTable).get_x_delta (font, c->var_store);
+      *y += (this+yDeviceTable).get_y_delta (font, c->var_store);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

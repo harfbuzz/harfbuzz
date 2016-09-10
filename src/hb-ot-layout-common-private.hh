@@ -1265,7 +1265,6 @@ struct VarData
    const BYTE *bytes = &StructAfter<BYTE> (regionIndices);
    const BYTE *row = bytes + inner * (scount + count);
 
-
    float delta = 0.;
    unsigned int i = 0;
 
