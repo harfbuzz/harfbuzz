@@ -582,10 +582,13 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 				  unsigned int *lookup_count /* IN/OUT */,
 				  unsigned int *lookup_indexes /* OUT */)
 {
-  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-  const OT::Feature &f = g.get_feature (feature_index);
-
-  return f.get_lookup_indexes (start_offset, lookup_count, lookup_indexes);
+  return hb_ot_layout_feature_with_variations_get_lookups (face,
+							   table_tag,
+							   feature_index,
+							   HB_OT_LAYOUT_NO_VARIATIONS_INDEX,
+							   start_offset,
+							   lookup_count,
+							   lookup_indexes);
 }
 
 /**
@@ -848,6 +851,23 @@ hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
 
   return g.find_variations_index (coords, num_coords, variations_index);
+}
+
+unsigned int
+hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
+						  hb_tag_t      table_tag,
+						  unsigned int  feature_index,
+						  unsigned int  variations_index,
+						  unsigned int  start_offset,
+						  unsigned int *lookup_count /* IN/OUT */,
+						  unsigned int *lookup_indexes /* OUT */)
+{
+  ASSERT_STATIC (OT::FeatureVariations::NOT_FOUND_INDEX == HB_OT_LAYOUT_NO_VARIATIONS_INDEX);
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+
+  const OT::Feature &f = g.get_feature_variation (feature_index, variations_index);
+
+  return f.get_lookup_indexes (start_offset, lookup_count, lookup_indexes);
 }
 
 
