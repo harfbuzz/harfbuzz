@@ -1475,7 +1475,7 @@ struct Device
     switch (u.b.format)
     {
     case 1: case 2: case 3:
-      return u.hinting.get_x_delta (font);
+      return u.hinting.get_y_delta (font);
     case 0x8000:
       return u.variation.get_y_delta (font, store);
     default:
