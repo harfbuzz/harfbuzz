@@ -1417,17 +1417,12 @@ struct ConditionSet
 
 struct FeatureTableSubstitutionRecord
 {
-  inline const Feature *find_substitute (unsigned int feature_index) const
-  {
-    if (featureIndex == feature_index)
-      return &(this+feature);
-    return NULL;
-  }
+  friend struct FeatureTableSubstitution;
 
-  inline bool sanitize (hb_sanitize_context_t *c) const
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && feature.sanitize (c, this));
+    return_trace (c->check_struct (this) && feature.sanitize (c, base));
   }
 
   protected:
@@ -1444,9 +1439,9 @@ struct FeatureTableSubstitution
     unsigned int count = substitutions.len;
     for (unsigned int i = 0; i < count; i++)
     {
-      const Feature *feature = (this+substitutions.array[i]).find_substitute (feature_index);
-      if (feature)
-        return feature;
+      const FeatureTableSubstitutionRecord &record = substitutions.array[i];
+      if (record.featureIndex == feature_index)
+	return &(this+record.feature);
     }
     return NULL;
   }
@@ -1461,7 +1456,7 @@ struct FeatureTableSubstitution
 
   protected:
   FixedVersion<>	version;	/* Version--0x00010000u */
-  OffsetArrayOf<FeatureTableSubstitutionRecord, ULONG>
+  ArrayOf<FeatureTableSubstitutionRecord>
 			substitutions;
   public:
   DEFINE_SIZE_ARRAY (6, substitutions);
