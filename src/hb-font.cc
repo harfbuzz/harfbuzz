@@ -1548,6 +1548,29 @@ hb_font_get_ppem (hb_font_t *font,
 }
 
 
+void
+hb_font_set_var_coords_normalized (hb_font_t *font,
+				   int *coords, /* XXX 2.14 normalized */
+				   unsigned int coords_length)
+{
+  if (font->immutable)
+    return;
+
+  int *copy = (int *) calloc (coords_length, sizeof (coords[0]));
+  if (unlikely (!copy))
+    return;
+
+  if (font->x_coords)
+    free (font->x_coords);
+  if (font->y_coords && font->y_coords != font->x_coords)
+    free (font->y_coords);
+
+  memcpy (copy, coords, coords_length * sizeof (coords[0]));
+  font->x_coords = font->y_coords = copy;
+  font->num_coords = coords_length;
+}
+
+
 #ifndef HB_DISABLE_DEPRECATED
 
 /*
