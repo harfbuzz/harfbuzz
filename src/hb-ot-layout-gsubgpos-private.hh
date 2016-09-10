@@ -2271,6 +2271,11 @@ struct GSUBGPOS
   inline const Lookup& get_lookup (unsigned int i) const
   { return (this+lookupList)[i]; }
 
+  inline const FeatureTableSubstitution &
+	       get_feature_substitutions (int *coords, unsigned int coord_len) const
+  { return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
+	   .get_substitutions (coords, coord_len); }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -2278,7 +2283,8 @@ struct GSUBGPOS
 		  likely (version.major == 1) &&
 		  scriptList.sanitize (c, this) &&
 		  featureList.sanitize (c, this) &&
-		  lookupList.sanitize (c, this));
+		  lookupList.sanitize (c, this) &&
+		  (version.to_int () < 0x00010001u || featureVars.sanitize (c, this)));
   }
 
   protected:
@@ -2290,8 +2296,13 @@ struct GSUBGPOS
 		featureList; 	/* FeatureList table */
   OffsetTo<LookupList>
 		lookupList; 	/* LookupList table */
+  OffsetTo<FeatureVariations, ULONG>
+		featureVars;	/* Offset to Feature Variations
+				   table--from beginning of table
+				 * (may be NULL).  Introduced
+				 * in version 0x00010001. */
   public:
-  DEFINE_SIZE_STATIC (10);
+  DEFINE_SIZE_MIN (10);
 };
 
 
