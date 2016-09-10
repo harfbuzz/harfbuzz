@@ -469,6 +469,7 @@ struct hb_apply_context_t :
   unsigned int lookup_props;
   const GDEF &gdef;
   bool has_glyph_classes;
+  const VarStore &var_store;
   skipping_iterator_t iter_input, iter_context;
   unsigned int lookup_index;
   unsigned int debug_depth;
@@ -487,6 +488,7 @@ struct hb_apply_context_t :
 			lookup_props (0),
 			gdef (*hb_ot_layout_from_face (face)->gdef),
 			has_glyph_classes (gdef.has_glyph_classes ()),
+			var_store (gdef.get_var_store ()),
 			iter_input (),
 			iter_context (),
 			lookup_index ((unsigned int) -1),

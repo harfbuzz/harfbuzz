@@ -103,16 +103,16 @@ struct ValueFormat : USHORT
   inline unsigned int get_size (void) const
   { return get_len () * Value::static_size; }
 
-  void apply_value (hb_font_t            *font,
-		    hb_direction_t        direction,
+  void apply_value (hb_apply_context_t   *c,
 		    const void           *base,
 		    const Value          *values,
 		    hb_glyph_position_t  &glyph_pos) const
   {
     unsigned int format = *this;
-    hb_bool_t horizontal = HB_DIRECTION_IS_HORIZONTAL (direction);
-
     if (!format) return;
+
+    hb_font_t *font = c->font;
+    hb_bool_t horizontal = HB_DIRECTION_IS_HORIZONTAL (c->direction);
 
     if (format & xPlacement) glyph_pos.x_offset  += font->em_scale_x (get_short (values++));
     if (format & yPlacement) glyph_pos.y_offset  += font->em_scale_y (get_short (values++));
@@ -131,25 +131,26 @@ struct ValueFormat : USHORT
     bool use_x_device = font->x_ppem || font->num_coords;
     bool use_y_device = font->y_ppem || font->num_coords;
 
-
     if (!use_x_device && !use_y_device) return;
+
+    const VarStore &store = c->var_store;
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (use_x_device) glyph_pos.x_offset  += (base + get_device (values)).get_x_delta (font);
+      if (use_x_device) glyph_pos.x_offset  += (base + get_device (values)).get_x_delta (font, store);
       values++;
     }
     if (format & yPlaDevice) {
-      if (use_y_device) glyph_pos.y_offset  += (base + get_device (values)).get_y_delta (font);
+      if (use_y_device) glyph_pos.y_offset  += (base + get_device (values)).get_y_delta (font, store);
       values++;
     }
     if (format & xAdvDevice) {
-      if (horizontal && use_x_device) glyph_pos.x_advance += (base + get_device (values)).get_x_delta (font);
+      if (horizontal && use_x_device) glyph_pos.x_advance += (base + get_device (values)).get_x_delta (font, store);
       values++;
     }
     if (format & yAdvDevice) {
       /* y_advance values grow downward but font-space grows upward, hence negation */
-      if (!horizontal && use_y_device) glyph_pos.y_advance -= (base + get_device (values)).get_y_delta (font);
+      if (!horizontal && use_y_device) glyph_pos.y_advance -= (base + get_device (values)).get_y_delta (font, store);
       values++;
     }
   }
@@ -295,9 +296,9 @@ struct AnchorFormat3
     *y = font->em_scale_y (yCoordinate);
 
     if (font->x_ppem || font->num_coords)
-      *x += (this+xDeviceTable).get_x_delta (font);
+      *x += (this+xDeviceTable).get_x_delta (font, c->var_store);
     if (font->y_ppem || font->num_coords)
-      *y += (this+yDeviceTable).get_x_delta (font);
+      *y += (this+yDeviceTable).get_x_delta (font, c->var_store);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -475,8 +476,7 @@ struct SinglePosFormat1
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
-    valueFormat.apply_value (c->font, c->direction, this,
-			     values, buffer->cur_pos());
+    valueFormat.apply_value (c, this, values, buffer->cur_pos());
 
     buffer->idx++;
     return_trace (true);
@@ -526,7 +526,7 @@ struct SinglePosFormat2
 
     if (likely (index >= valueCount)) return_trace (false);
 
-    valueFormat.apply_value (c->font, c->direction, this,
+    valueFormat.apply_value (c, this,
 			     &values[index * valueFormat.get_len ()],
 			     buffer->cur_pos());
 
@@ -643,10 +643,8 @@ struct PairSet
         min = mid + 1;
       else
       {
-	valueFormats[0].apply_value (c->font, c->direction, this,
-				     &record->values[0], buffer->cur_pos());
-	valueFormats[1].apply_value (c->font, c->direction, this,
-				     &record->values[len1], buffer->pos[pos]);
+	valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos());
+	valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]);
 	if (len2)
 	  pos++;
 	buffer->idx = pos;
@@ -793,10 +791,8 @@ struct PairPosFormat2
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count)) return_trace (false);
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    valueFormat1.apply_value (c->font, c->direction, this,
-			      v, buffer->cur_pos());
-    valueFormat2.apply_value (c->font, c->direction, this,
-			      v + len1, buffer->pos[skippy_iter.idx]);
+    valueFormat1.apply_value (c, this, v, buffer->cur_pos());
+    valueFormat2.apply_value (c, this, v + len1, buffer->pos[skippy_iter.idx]);
 
     buffer->idx = skippy_iter.idx;
     if (len2)
