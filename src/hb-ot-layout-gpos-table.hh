@@ -1518,8 +1518,6 @@ struct GPOS : GSUBGPOS
     const OffsetTo<PosLookupList> &list = CastR<OffsetTo<PosLookupList> > (lookupList);
     return_trace (list.sanitize (c, this));
   }
-  public:
-  DEFINE_SIZE_STATIC (10);
 };
 
 

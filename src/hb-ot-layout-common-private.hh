@@ -507,7 +507,7 @@ struct Feature
   { return this+featureParams; }
 
   inline bool sanitize (hb_sanitize_context_t *c,
-			const Record<Feature>::sanitize_closure_t *closure) const
+			const Record<Feature>::sanitize_closure_t *closure = NULL) const
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this) && lookupIndex.sanitize (c))))
@@ -1331,6 +1331,172 @@ struct VariationStore
   OffsetArrayOf<VarData, ULONG>		dataSets;
   public:
   DEFINE_SIZE_ARRAY (8, dataSets);
+};
+
+/*
+ * Feature Variations
+ */
+
+struct ConditionFormat1
+{
+  friend struct Condition;
+
+  private:
+  inline bool evaluate (int *coords, unsigned int coord_len) const
+  {
+    int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
+    return filterRangeMinValue <= coord && coord <= filterRangeMaxValue;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  protected:
+  USHORT	format;		/* Format identifier--format = 1 */
+  USHORT	axisIndex;
+  F2DOT14	filterRangeMinValue;
+  F2DOT14	filterRangeMaxValue;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct Condition
+{
+  inline bool evaluate (int *coords, unsigned int coord_len) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.evaluate (coords, coord_len);
+    default:return false;
+    }
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.format.sanitize (c)) return_trace (false);
+    switch (u.format) {
+    case 1: return_trace (u.format1.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+
+  protected:
+  union {
+  USHORT		format;		/* Format identifier */
+  ConditionFormat1	format1;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (2, format);
+};
+
+struct ConditionSet
+{
+  inline bool evaluate (int *coords, unsigned int coord_len) const
+  {
+    unsigned int count = conditions.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+conditions.array[i]).evaluate (coords, coord_len))
+        return false;
+    return true;
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
+  OffsetArrayOf<Condition, ULONG> conditions;
+  public:
+  DEFINE_SIZE_ARRAY (2, conditions);
+};
+
+struct FeatureTableSubstitutionRecord
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && feature.sanitize (c, this));
+  }
+
+  protected:
+  USHORT			featureIndex;
+  OffsetTo<Feature, ULONG>	feature;
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+struct FeatureTableSubstitution
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  substitutions.sanitize (c, this));
+  }
+
+  protected:
+  FixedVersion<>	version;	/* Version--0x00010000u */
+  OffsetArrayOf<FeatureTableSubstitutionRecord, ULONG>
+			substitutions;
+  public:
+  DEFINE_SIZE_ARRAY (6, substitutions);
+};
+
+struct FeatureVariationRecord
+{
+  friend struct FeatureVariations;
+
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, base) &&
+		  substitutions.sanitize (c, base));
+  }
+
+  protected:
+  OffsetTo<ConditionSet, ULONG>
+			conditions;
+  OffsetTo<FeatureTableSubstitution, ULONG>
+			substitutions;
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct FeatureVariations
+{
+  inline const FeatureTableSubstitution &
+	       get_substitutions (int *coords, unsigned int coord_len) const
+  {
+    unsigned int count = varRecords.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const FeatureVariationRecord &record = varRecords.array[i];
+      if ((this+record.conditions).evaluate (coords, coord_len))
+        return (this+record.substitutions);
+    }
+    return Null(FeatureTableSubstitution);
+  }
+
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  varRecords.sanitize (c, this));
+  }
+
+  protected:
+  FixedVersion<>	version;	/* Version--0x00010000u */
+  ArrayOf<FeatureVariationRecord, ULONG>
+			varRecords;
+  public:
+  DEFINE_SIZE_ARRAY (8, varRecords);
 };
 
 
