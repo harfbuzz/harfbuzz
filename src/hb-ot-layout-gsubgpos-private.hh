@@ -2281,7 +2281,8 @@ struct GSUBGPOS
     if (FeatureVariations::NOT_FOUND_INDEX != variations_index &&
 	version.to_int () >= 0x00010001u)
     {
-      const Feature *feature = (this+featureVars).find_substitute (variations_index, feature_index);
+      const Feature *feature = (this+featureVars).find_substitute (variations_index,
+								   feature_index);
       if (feature)
         return *feature;
     }
