@@ -1445,6 +1445,17 @@ struct VariationDevice
   DEFINE_SIZE_STATIC (6);
 };
 
+struct DeviceHeader
+{
+  protected:
+  USHORT		reserved1;
+  USHORT		reserved2;
+  public:
+  USHORT		format;		/* Format identifier */
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
 struct Device
 {
   inline hb_position_t get_x_delta (hb_font_t *font, const VarStore &store) const
@@ -1488,13 +1499,7 @@ struct Device
 
   protected:
   union {
-  struct {
-    USHORT		reserved1;
-    USHORT		reserved2;
-    USHORT		format;		/* Format identifier */
-    public:
-    DEFINE_SIZE_STATIC (6);
-  } b;
+  DeviceHeader		b;
   HintingDevice		hinting;
   VariationDevice	variation;
   } u;
