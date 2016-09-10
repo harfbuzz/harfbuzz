@@ -176,7 +176,9 @@ struct hb_ot_map_builder_t
   inline void add_gpos_pause (hb_ot_map_t::pause_func_t pause_func)
   { add_pause (1, pause_func); }
 
-  HB_INTERNAL void compile (hb_ot_map_t &m);
+  HB_INTERNAL void compile (hb_ot_map_t  &m,
+			    const int    *coords,
+			    unsigned int  num_coords);
 
   inline void finish (void) {
     feature_infos.finish ();
@@ -188,12 +190,13 @@ struct hb_ot_map_builder_t
 
   private:
 
-  HB_INTERNAL void add_lookups (hb_ot_map_t   &m,
-				hb_face_t     *face,
-				unsigned int   table_index,
-				unsigned int   feature_index,
-				hb_mask_t      mask,
-				bool           auto_zwj);
+  HB_INTERNAL void add_lookups (hb_ot_map_t  &m,
+				hb_face_t    *face,
+				unsigned int  table_index,
+				unsigned int  feature_index,
+				unsigned int  variations_index,
+				hb_mask_t     mask,
+				bool          auto_zwj);
 
   struct feature_info_t {
     hb_tag_t tag;

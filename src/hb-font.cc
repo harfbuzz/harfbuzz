@@ -1253,8 +1253,7 @@ hb_font_destroy (hb_font_t *font)
   hb_face_destroy (font->face);
   hb_font_funcs_destroy (font->klass);
 
-  if (font->coords)
-    free (font->coords);
+  free (font->coords);
 
   free (font);
 }
@@ -1561,8 +1560,7 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   if (unlikely (coords_length && !copy))
     return;
 
-  if (font->coords)
-    free (font->coords);
+  free (font->coords);
 
   if (coords_length)
     memcpy (copy, coords, coords_length * sizeof (coords[0]));

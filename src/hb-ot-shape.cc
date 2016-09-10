@@ -163,7 +163,9 @@ _hb_ot_shaper_font_data_destroy (hb_ot_shaper_font_data_t *data)
 hb_ot_shaper_shape_plan_data_t *
 _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 				      const hb_feature_t *user_features,
-				      unsigned int        num_user_features)
+				      unsigned int        num_user_features,
+				      const int          *coords,
+				      unsigned int        num_coords)
 {
   hb_ot_shape_plan_t *plan = (hb_ot_shape_plan_t *) calloc (1, sizeof (hb_ot_shape_plan_t));
   if (unlikely (!plan))
@@ -173,9 +175,10 @@ _hb_ot_shaper_shape_plan_data_create (hb_shape_plan_t    *shape_plan,
 
   planner.shaper = hb_ot_shape_complex_categorize (&planner);
 
-  hb_ot_shape_collect_features (&planner, &shape_plan->props, user_features, num_user_features);
+  hb_ot_shape_collect_features (&planner, &shape_plan->props,
+				user_features, num_user_features);
 
-  planner.compile (*plan);
+  planner.compile (*plan, coords, num_coords);
 
   if (plan->shaper->data_create) {
     plan->data = plan->shaper->data_create (plan);
