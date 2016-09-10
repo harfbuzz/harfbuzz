@@ -32,11 +32,12 @@
 
 
 void
-hb_ot_map_t::add_lookups (hb_face_t    *face,
-			  unsigned int  table_index,
-			  unsigned int  feature_index,
-			  hb_mask_t     mask,
-			  bool          auto_zwj)
+hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
+				  hb_face_t    *face,
+				  unsigned int  table_index,
+				  unsigned int  feature_index,
+				  hb_mask_t     mask,
+				  bool          auto_zwj)
 {
   unsigned int lookup_indices[32];
   unsigned int offset, len;
@@ -57,7 +58,7 @@ hb_ot_map_t::add_lookups (hb_face_t    *face,
     {
       if (lookup_indices[i] >= table_lookup_count)
 	continue;
-      hb_ot_map_t::lookup_map_t *lookup = lookups[table_index].push ();
+      hb_ot_map_t::lookup_map_t *lookup = m.lookups[table_index].push ();
       if (unlikely (!lookup))
         return;
       lookup->mask = mask;
@@ -268,17 +269,17 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
     {
       if (required_feature_index[table_index] != HB_OT_LAYOUT_NO_FEATURE_INDEX &&
 	  required_feature_stage[table_index] == stage)
-	m.add_lookups (face, table_index,
-		       required_feature_index[table_index],
-		       1 /* mask */,
-		       true /* auto_zwj */);
+	add_lookups (m, face, table_index,
+		     required_feature_index[table_index],
+		     1 /* mask */,
+		     true /* auto_zwj */);
 
       for (unsigned i = 0; i < m.features.len; i++)
         if (m.features[i].stage[table_index] == stage)
-	  m.add_lookups (face, table_index,
-			 m.features[i].index[table_index],
-			 m.features[i].mask,
-			 m.features[i].auto_zwj);
+	  add_lookups (m, face, table_index,
+		       m.features[i].index[table_index],
+		       m.features[i].mask,
+		       m.features[i].auto_zwj);
 
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].len)
