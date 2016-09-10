@@ -31,44 +31,12 @@
 #include "hb-ot-layout-private.hh"
 
 
-void
-hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
-				  hb_face_t    *face,
-				  unsigned int  table_index,
-				  unsigned int  feature_index,
-				  hb_mask_t     mask,
-				  bool          auto_zwj)
+void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_out) const
 {
-  unsigned int lookup_indices[32];
-  unsigned int offset, len;
-  unsigned int table_lookup_count;
-
-  table_lookup_count = hb_ot_layout_table_get_lookup_count (face, table_tags[table_index]);
-
-  offset = 0;
-  do {
-    len = ARRAY_LENGTH (lookup_indices);
-    hb_ot_layout_feature_get_lookups (face,
-				      table_tags[table_index],
-				      feature_index,
-				      offset, &len,
-				      lookup_indices);
-
-    for (unsigned int i = 0; i < len; i++)
-    {
-      if (lookup_indices[i] >= table_lookup_count)
-	continue;
-      hb_ot_map_t::lookup_map_t *lookup = m.lookups[table_index].push ();
-      if (unlikely (!lookup))
-        return;
-      lookup->mask = mask;
-      lookup->index = lookup_indices[i];
-      lookup->auto_zwj = auto_zwj;
-    }
-
-    offset += len;
-  } while (len == ARRAY_LENGTH (lookup_indices));
+  for (unsigned int i = 0; i < lookups[table_index].len; i++)
+    hb_set_add (lookups_out, lookups[table_index][i].index);
 }
+
 
 hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
 					  const hb_segment_properties_t *props_)
@@ -110,12 +78,45 @@ void hb_ot_map_builder_t::add_feature (hb_tag_t tag, unsigned int value,
   info->stage[1] = current_stage[1];
 }
 
-
-void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_out) const
+void
+hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
+				  hb_face_t    *face,
+				  unsigned int  table_index,
+				  unsigned int  feature_index,
+				  hb_mask_t     mask,
+				  bool          auto_zwj)
 {
-  for (unsigned int i = 0; i < lookups[table_index].len; i++)
-    hb_set_add (lookups_out, lookups[table_index][i].index);
+  unsigned int lookup_indices[32];
+  unsigned int offset, len;
+  unsigned int table_lookup_count;
+
+  table_lookup_count = hb_ot_layout_table_get_lookup_count (face, table_tags[table_index]);
+
+  offset = 0;
+  do {
+    len = ARRAY_LENGTH (lookup_indices);
+    hb_ot_layout_feature_get_lookups (face,
+				      table_tags[table_index],
+				      feature_index,
+				      offset, &len,
+				      lookup_indices);
+
+    for (unsigned int i = 0; i < len; i++)
+    {
+      if (lookup_indices[i] >= table_lookup_count)
+	continue;
+      hb_ot_map_t::lookup_map_t *lookup = m.lookups[table_index].push ();
+      if (unlikely (!lookup))
+        return;
+      lookup->mask = mask;
+      lookup->index = lookup_indices[i];
+      lookup->auto_zwj = auto_zwj;
+    }
+
+    offset += len;
+  } while (len == ARRAY_LENGTH (lookup_indices));
 }
+
 
 void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::pause_func_t pause_func)
 {
