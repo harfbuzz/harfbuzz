@@ -1197,8 +1197,7 @@ hb_font_get_empty (void)
     0, /* y_ppem */
 
     0, /* num_coords */
-    NULL, /* x_coords */
-    NULL, /* y_coords */
+    NULL, /* coords */
 
     const_cast<hb_font_funcs_t *> (&_hb_font_funcs_nil), /* klass */
     NULL, /* user_data */
@@ -1254,10 +1253,8 @@ hb_font_destroy (hb_font_t *font)
   hb_face_destroy (font->face);
   hb_font_funcs_destroy (font->klass);
 
-  if (font->x_coords)
-    free (font->x_coords);
-  if (font->y_coords && font->y_coords != font->x_coords)
-    free (font->y_coords);
+  if (font->coords)
+    free (font->coords);
 
   free (font);
 }
@@ -1564,15 +1561,13 @@ hb_font_set_var_coords_normalized (hb_font_t *font,
   if (unlikely (coords_length && !copy))
     return;
 
-  if (font->x_coords)
-    free (font->x_coords);
-  if (font->y_coords && font->y_coords != font->x_coords)
-    free (font->y_coords);
+  if (font->coords)
+    free (font->coords);
 
   if (coords_length)
     memcpy (copy, coords, coords_length * sizeof (coords[0]));
 
-  font->x_coords = font->y_coords = copy;
+  font->coords = copy;
   font->num_coords = coords_length;
 }
 

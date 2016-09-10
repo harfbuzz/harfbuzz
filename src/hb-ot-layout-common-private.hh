@@ -1584,10 +1584,10 @@ struct VariationDevice
   private:
 
   inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store) const
-  { return font->em_scalef_x (get_delta (store, font->x_coords, font->num_coords)); }
+  { return font->em_scalef_x (get_delta (font, store)); }
 
   inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
-  { return font->em_scalef_y (get_delta (store, font->y_coords, font->num_coords)); }
+  { return font->em_scalef_y (get_delta (font, store)); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1597,10 +1597,9 @@ struct VariationDevice
 
   private:
 
-  inline float get_delta (const VariationStore &store,
-			  int *coords, unsigned int coord_count) const
+  inline float get_delta (hb_font_t *font, const VariationStore &store) const
   {
-    return store.get_delta (outerIndex, innerIndex, coords, coord_count);
+    return store.get_delta (outerIndex, innerIndex, font->coords, font->num_coords);
   }
 
   protected:
