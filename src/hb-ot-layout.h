@@ -246,6 +246,15 @@ hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
 					    unsigned int  num_coords,
 					    unsigned int *variations_index /* out */);
 
+HB_EXTERN unsigned int
+hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
+						  hb_tag_t      table_tag,
+						  unsigned int  feature_index,
+						  unsigned int  variations_index,
+						  unsigned int  start_offset,
+						  unsigned int *lookup_count /* IN/OUT */,
+						  unsigned int *lookup_indexes /* OUT */);
+
 
 /*
  * GSUB

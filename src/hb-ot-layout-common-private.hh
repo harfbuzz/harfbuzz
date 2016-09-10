@@ -1417,6 +1417,13 @@ struct ConditionSet
 
 struct FeatureTableSubstitutionRecord
 {
+  inline const Feature *find_substitute (unsigned int feature_index) const
+  {
+    if (featureIndex == feature_index)
+      return &(this+feature);
+    return NULL;
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1432,6 +1439,18 @@ struct FeatureTableSubstitutionRecord
 
 struct FeatureTableSubstitution
 {
+  inline const Feature *find_substitute (unsigned int feature_index) const
+  {
+    unsigned int count = substitutions.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      const Feature *feature = (this+substitutions.array[i]).find_substitute (feature_index);
+      if (feature)
+        return feature;
+    }
+    return NULL;
+  }
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1470,6 +1489,8 @@ struct FeatureVariationRecord
 
 struct FeatureVariations
 {
+  static const unsigned int NOT_FOUND_INDEX = 0xFFFFFFFFu;
+
   inline bool find_index (const int *coords, unsigned int coord_len,
 			  unsigned int *index) const
   {
@@ -1483,8 +1504,15 @@ struct FeatureVariations
 	return true;
       }
     }
-    *index = 0xFFFFFFFF;
+    *index = NOT_FOUND_INDEX;
     return false;
+  }
+
+  inline const Feature *find_substitute (unsigned int variations_index,
+					 unsigned int feature_index) const
+  {
+    const FeatureVariationRecord &record = varRecords[variations_index];
+    return (this+record.substitutions).find_substitute (feature_index);
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const

@@ -2275,6 +2275,18 @@ struct GSUBGPOS
 				     unsigned int *index) const
   { return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
 	   .find_index (coords, num_coords, index); }
+  inline const Feature& get_feature_variation (unsigned int feature_index,
+					       unsigned int variations_index) const
+  {
+    if (FeatureVariations::NOT_FOUND_INDEX != variations_index &&
+	version.to_int () >= 0x00010001u)
+    {
+      const Feature *feature = (this+featureVars).find_substitute (variations_index, feature_index);
+      if (feature)
+        return *feature;
+    }
+    return get_feature (feature_index);
+  }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
