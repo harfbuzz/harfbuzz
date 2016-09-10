@@ -1303,7 +1303,7 @@ struct VarData
   DEFINE_SIZE_ARRAY2 (6, regionIndices, bytesX);
 };
 
-struct VarStore
+struct VariationStore
 {
   inline float get_delta (unsigned int outer, unsigned int inner,
 			  int *coords, unsigned int coord_count) const
@@ -1417,10 +1417,10 @@ struct VariationDevice
 
   private:
 
-  inline hb_position_t get_x_delta (hb_font_t *font, const VarStore &store) const
+  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store) const
   { return font->em_scalef_x (get_delta (store, font->x_coords, font->num_coords)); }
 
-  inline hb_position_t get_y_delta (hb_font_t *font, const VarStore &store) const
+  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
   { return font->em_scalef_y (get_delta (store, font->y_coords, font->num_coords)); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -1431,7 +1431,7 @@ struct VariationDevice
 
   private:
 
-  inline float get_delta (const VarStore &store,
+  inline float get_delta (const VariationStore &store,
 			  int *coords, unsigned int coord_count) const
   {
     return store.get_delta (outerIndex, innerIndex, coords, coord_count);
@@ -1458,7 +1458,7 @@ struct DeviceHeader
 
 struct Device
 {
-  inline hb_position_t get_x_delta (hb_font_t *font, const VarStore &store) const
+  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store) const
   {
     switch (u.b.format)
     {
@@ -1470,7 +1470,7 @@ struct Device
       return 0;
     }
   }
-  inline hb_position_t get_y_delta (hb_font_t *font, const VarStore &store) const
+  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
   {
     switch (u.b.format)
     {

@@ -146,7 +146,7 @@ struct CaretValueFormat3
 {
   friend struct CaretValue;
 
-  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, const VarStore &var_store) const
+  inline hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, const VariationStore &var_store) const
   {
     return HB_DIRECTION_IS_HORIZONTAL (direction) ?
            font->em_scale_x (coordinate) + (this+deviceTable).get_x_delta (font, var_store) :
@@ -175,7 +175,7 @@ struct CaretValue
   inline hb_position_t get_caret_value (hb_font_t *font,
 					hb_direction_t direction,
 					hb_codepoint_t glyph_id,
-					const VarStore &var_store) const
+					const VariationStore &var_store) const
   {
     switch (u.format) {
     case 1: return u.format1.get_caret_value (font, direction);
@@ -213,7 +213,7 @@ struct LigGlyph
   inline unsigned int get_lig_carets (hb_font_t *font,
 				      hb_direction_t direction,
 				      hb_codepoint_t glyph_id,
-				      const VarStore &var_store,
+				      const VariationStore &var_store,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
 				      hb_position_t *caret_array /* OUT */) const
@@ -248,7 +248,7 @@ struct LigCaretList
   inline unsigned int get_lig_carets (hb_font_t *font,
 				      hb_direction_t direction,
 				      hb_codepoint_t glyph_id,
-				      const VarStore &var_store,
+				      const VariationStore &var_store,
 				      unsigned int start_offset,
 				      unsigned int *caret_count /* IN/OUT */,
 				      hb_position_t *caret_array /* OUT */) const
@@ -381,8 +381,8 @@ struct GDEF
   { return version.to_int () >= 0x00010002u && (this+markGlyphSetsDef).covers (set_index, glyph_id); }
 
   inline bool has_var_store (void) const { return version.to_int () >= 0x00010003u && varStore != 0; }
-  inline const VarStore &get_var_store (void) const
-  { return version.to_int () >= 0x00010003u ? this+varStore : Null(VarStore); }
+  inline const VariationStore &get_var_store (void) const
+  { return version.to_int () >= 0x00010003u ? this+varStore : Null(VariationStore); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -444,7 +444,7 @@ struct GDEF
 					 * definitions--from beginning of GDEF
 					 * header (may be NULL).  Introduced
 					 * in version 0x00010002. */
-  OffsetTo<VarStore, ULONG>
+  OffsetTo<VariationStore, ULONG>
 		varStore;		/* Offset to the table of Item Variation
 					 * Store--from beginning of GDEF
 					 * header (may be NULL).  Introduced

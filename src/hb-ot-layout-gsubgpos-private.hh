@@ -469,7 +469,7 @@ struct hb_apply_context_t :
   unsigned int lookup_props;
   const GDEF &gdef;
   bool has_glyph_classes;
-  const VarStore &var_store;
+  const VariationStore &var_store;
   skipping_iterator_t iter_input, iter_context;
   unsigned int lookup_index;
   unsigned int debug_depth;

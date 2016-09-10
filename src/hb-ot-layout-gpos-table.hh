@@ -133,7 +133,7 @@ struct ValueFormat : USHORT
 
     if (!use_x_device && !use_y_device) return;
 
-    const VarStore &store = c->var_store;
+    const VariationStore &store = c->var_store;
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
