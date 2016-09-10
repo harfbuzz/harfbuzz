@@ -83,6 +83,7 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
 				  hb_face_t    *face,
 				  unsigned int  table_index,
 				  unsigned int  feature_index,
+				  unsigned int  variations_index,
 				  hb_mask_t     mask,
 				  bool          auto_zwj)
 {
@@ -95,11 +96,12 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
   offset = 0;
   do {
     len = ARRAY_LENGTH (lookup_indices);
-    hb_ot_layout_feature_get_lookups (face,
-				      table_tags[table_index],
-				      feature_index,
-				      offset, &len,
-				      lookup_indices);
+    hb_ot_layout_feature_with_variations_get_lookups (face,
+						      table_tags[table_index],
+						      feature_index,
+						      variations_index,
+						      offset, &len,
+						      lookup_indices);
 
     for (unsigned int i = 0; i < len; i++)
     {
@@ -130,7 +132,9 @@ void hb_ot_map_builder_t::add_pause (unsigned int table_index, hb_ot_map_t::paus
 }
 
 void
-hb_ot_map_builder_t::compile (hb_ot_map_t &m)
+hb_ot_map_builder_t::compile (hb_ot_map_t  &m,
+			      const int    *coords,
+			      unsigned int  num_coords)
 {
   m.global_mask = 1;
 
@@ -264,6 +268,13 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
   {
     /* Collect lookup indices for features */
 
+    unsigned int variations_index;
+    hb_ot_layout_table_find_feature_variations (face,
+						table_tags[table_index],
+						coords,
+						num_coords,
+						&variations_index);
+
     unsigned int stage_index = 0;
     unsigned int last_num_lookups = 0;
     for (unsigned stage = 0; stage < current_stage[table_index]; stage++)
@@ -272,6 +283,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
 	  required_feature_stage[table_index] == stage)
 	add_lookups (m, face, table_index,
 		     required_feature_index[table_index],
+		     variations_index,
 		     1 /* mask */,
 		     true /* auto_zwj */);
 
@@ -279,6 +291,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t &m)
         if (m.features[i].stage[table_index] == stage)
 	  add_lookups (m, face, table_index,
 		       m.features[i].index[table_index],
+		       variations_index,
 		       m.features[i].mask,
 		       m.features[i].auto_zwj);
 
