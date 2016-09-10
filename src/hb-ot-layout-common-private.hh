@@ -1418,11 +1418,11 @@ struct VariationDevice
 
   private:
 
-  inline hb_position_t get_x_delta (hb_font_t *font) const
-  { return font->em_scalef_x (get_delta (font->x_coords, font->num_coords)); }
+  inline hb_position_t get_x_delta (hb_font_t *font, const VarStore &store) const
+  { return font->em_scalef_x (get_delta (store, font->x_coords, font->num_coords)); }
 
-  inline hb_position_t get_y_delta (hb_font_t *font) const
-  { return font->em_scalef_y (get_delta (font->y_coords, font->num_coords)); }
+  inline hb_position_t get_y_delta (hb_font_t *font, const VarStore &store) const
+  { return font->em_scalef_y (get_delta (store, font->y_coords, font->num_coords)); }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1432,11 +1432,10 @@ struct VariationDevice
 
   private:
 
-  inline float get_delta (int *coords, unsigned int coord_count) const
+  inline float get_delta (const VarStore &store,
+			  int *coords, unsigned int coord_count) const
   {
-    float v = 0;
-    /* XXXXXXXXXXXXXXX call into GDEF. */
-    return v;
+    return store.get_delta (outerIndex, innerIndex, coords, coord_count);
   }
 
   protected:
@@ -1449,25 +1448,26 @@ struct VariationDevice
 
 struct Device
 {
-  inline hb_position_t get_x_delta (hb_font_t *font) const
+  inline hb_position_t get_x_delta (hb_font_t *font, const VarStore &store) const
   {
     switch (u.b.format)
     {
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
     case 0x8000:
-      return u.variation.get_x_delta (font);
+      return u.variation.get_x_delta (font, store);
     default:
       return 0;
     }
   }
-  inline hb_position_t get_y_delta (hb_font_t *font) const
+  inline hb_position_t get_y_delta (hb_font_t *font, const VarStore &store) const
   {
     switch (u.b.format)
     {
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
     case 0x8000:
+      return u.variation.get_y_delta (font, store);
     default:
       return 0;
     }
