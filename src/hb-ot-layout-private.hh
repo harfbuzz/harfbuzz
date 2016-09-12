@@ -124,6 +124,7 @@ namespace OT {
   struct GDEF;
   struct GSUB;
   struct GPOS;
+  struct MATH;
 }
 
 struct hb_ot_layout_lookup_accelerator_t
@@ -152,10 +153,12 @@ struct hb_ot_layout_t
   hb_blob_t *gdef_blob;
   hb_blob_t *gsub_blob;
   hb_blob_t *gpos_blob;
+  hb_blob_t *math_blob;
 
   const struct OT::GDEF *gdef;
   const struct OT::GSUB *gsub;
   const struct OT::GPOS *gpos;
+  const struct OT::MATH *math;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;
@@ -614,5 +617,15 @@ _hb_buffer_assert_gsubgpos_vars (hb_buffer_t *buffer)
 #undef lig_props
 #undef glyph_props
 
+namespace OT {
+  struct MathGlyphConstruction;
+};
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_get_math_glyph_construction (hb_font_t *font,
+                                          hb_codepoint_t glyph,
+                                          hb_bool_t horizontal,
+                                          hb_position_t &minConnectorOverlap,
+                                          const OT::MathGlyphConstruction *&glyph_construction);
 
 #endif /* HB_OT_LAYOUT_PRIVATE_HH */

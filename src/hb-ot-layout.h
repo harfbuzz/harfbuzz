@@ -33,6 +33,7 @@
 
 #include "hb.h"
 
+#include "hb-ot-math.h"
 #include "hb-ot-tag.h"
 
 HB_BEGIN_DECLS
@@ -42,6 +43,7 @@ HB_BEGIN_DECLS
 #define HB_OT_TAG_GSUB HB_TAG('G','S','U','B')
 #define HB_OT_TAG_GPOS HB_TAG('G','P','O','S')
 #define HB_OT_TAG_JSTF HB_TAG('J','S','T','F')
+#define HB_OT_TAG_MATH HB_TAG('M','A','T','H')
 
 
 /*
@@ -296,6 +298,40 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 			      unsigned int *range_start,       /* OUT.  May be NULL */
 			      unsigned int *range_end          /* OUT.  May be NULL */);
 
+
+/*
+ * MATH
+ */
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_has_math_data (hb_face_t *face);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_constant (hb_font_t *font,
+                                hb_ot_math_constant_t constant);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_italic_correction (hb_font_t *font,
+                                         hb_codepoint_t glyph);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_italic_correction_for_glyph_assembly (hb_font_t *font,
+                                                            hb_codepoint_t base_glyph,
+                                                            hb_bool_t horizontal);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
+                                             hb_codepoint_t glyph);
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_is_math_extended_shape (hb_face_t *face,
+                                     hb_codepoint_t glyph);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_kerning (hb_font_t *font,
+                               hb_codepoint_t glyph,
+                               hb_ot_math_kern_t kern,
+                               hb_position_t correction_height);
 
 HB_END_DECLS
 
