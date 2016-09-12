@@ -119,6 +119,9 @@ CFLAGS_ADD = /MDd /Od
 
 !if "$(PLAT)" == "x64"
 LDFLAGS_ARCH = /machine:x64
+!elseif "$(PLAT)" == "arm"
+LDFLAGS_ARCH = /machine:arm
+CFLAGS_ADD = $(CFLAGS_ADD) /DWINAPI_FAMILY=3
 !else
 LDFLAGS_ARCH = /machine:x86
 !endif
