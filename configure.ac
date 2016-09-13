@@ -344,6 +344,10 @@ if test "x$with_freetype" = "xyes" -a "x$have_freetype" != "xtrue"; then
 fi
 if $have_freetype; then
 	AC_DEFINE(HAVE_FREETYPE, 1, [Have FreeType 2 library])
+	save_libs=$LIBS
+	LIBS="$LIBS $FREETYPE_LIBS"
+	AC_CHECK_FUNCS(FT_Get_Var_Blend_Coordinates)
+	LIBS=$save_libs
 fi
 AM_CONDITIONAL(HAVE_FREETYPE, $have_freetype)
 
