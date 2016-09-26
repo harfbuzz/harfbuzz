@@ -62,9 +62,7 @@ struct MathConstants
   inline bool sanitize_math_value_records (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    unsigned int count =
-      HB_OT_MATH_CONSTANT_RADICAL_KERN_AFTER_DEGREE -
-      HB_OT_MATH_CONSTANT_MATH_LEADING + 1;
+    unsigned int count = ARRAY_LENGTH (mathValueRecords);
     for (unsigned int i = 0; i < count; i++)
       if (!mathValueRecords[i].sanitize (c, this)) return_trace (false);
     return_trace (true);
@@ -79,6 +77,11 @@ struct MathConstants
   inline hb_position_t get_value (hb_font_t *font, hb_ot_math_constant_t constant) const
   {
     switch (constant) {
+
+    case HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN:
+    case HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN:
+      return percentScaleDown[constant - HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN];
+
     case HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT:
     case HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT:
       return font->em_scale_y (minHeight[constant - HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT]);
@@ -138,27 +141,22 @@ struct MathConstants
     case HB_OT_MATH_CONSTANT_UPPER_LIMIT_GAP_MIN:
       return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_y_value(font, this);
 
-    case HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN:
-    case HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN:
-      return percentScaleDown[constant - HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN];
-
     case HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT:
       return radicalDegreeBottomRaisePercent;
+
     default:
       return 0;
     }
   }
 
 protected:
-  SHORT percentScaleDown[HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN - HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN + 1];
-  USHORT minHeight[HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT - HB_OT_MATH_CONSTANT_DELIMITED_SUB_FORMULA_MIN_HEIGHT + 1];
-  MathValueRecord mathValueRecords[HB_OT_MATH_CONSTANT_RADICAL_KERN_AFTER_DEGREE - HB_OT_MATH_CONSTANT_MATH_LEADING + 1];
+  SHORT percentScaleDown[2];
+  USHORT minHeight[2];
+  MathValueRecord mathValueRecords[51];
   SHORT radicalDegreeBottomRaisePercent;
 
 public:
-  DEFINE_SIZE_STATIC (2 * (HB_OT_MATH_CONSTANT_DISPLAY_OPERATOR_MIN_HEIGHT - HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN + 1) +
-                      4 * (HB_OT_MATH_CONSTANT_RADICAL_KERN_AFTER_DEGREE - HB_OT_MATH_CONSTANT_MATH_LEADING + 1) +
-                      2);
+  DEFINE_SIZE_STATIC (214);
 };
 
 /*
