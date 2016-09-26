@@ -308,25 +308,25 @@ hb_ot_layout_has_math_data (hb_face_t *face);
 
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_constant (hb_font_t *font,
-                                hb_ot_math_constant_t constant);
+				hb_ot_math_constant_t constant);
 
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_italic_correction (hb_font_t *font,
-                                         hb_codepoint_t glyph);
+					 hb_codepoint_t glyph);
 
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
-                                             hb_codepoint_t glyph);
+					     hb_codepoint_t glyph);
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_is_math_extended_shape (hb_face_t *face,
-                                     hb_codepoint_t glyph);
+				     hb_codepoint_t glyph);
 
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_kerning (hb_font_t *font,
-                               hb_codepoint_t glyph,
-                               hb_ot_math_kern_t kern,
-                               hb_position_t correction_height);
+			       hb_codepoint_t glyph,
+			       hb_ot_math_kern_t kern,
+			       hb_position_t correction_height);
 
 
 HB_END_DECLS

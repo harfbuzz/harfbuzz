@@ -48,10 +48,10 @@ struct MathValueRecord
   }
 
 protected:
-  SHORT            value;       /* The X or Y value in design units */
-  OffsetTo<Device> deviceTable; /* Offset to the device table - from the
-                                   beginning of parent table. May be NULL.
-                                   Suggested format for device table is 1. */
+  SHORT			value;		/* The X or Y value in design units */
+  OffsetTo<Device>	deviceTable;	/* Offset to the device table - from the
+					 * beginning of parent table. May be NULL.
+					 * Suggested format for device table is 1. */
 
 public:
   DEFINE_SIZE_STATIC (4);
@@ -62,9 +62,12 @@ struct MathConstants
   inline bool sanitize_math_value_records (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+
     unsigned int count = ARRAY_LENGTH (mathValueRecords);
     for (unsigned int i = 0; i < count; i++)
-      if (!mathValueRecords[i].sanitize (c, this)) return_trace (false);
+      if (!mathValueRecords[i].sanitize (c, this))
+	return_trace (false);
+
     return_trace (true);
   }
 
@@ -165,12 +168,12 @@ struct MathItalicsCorrectionInfo
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-                  coverage.sanitize (c, this) &&
-                  italicsCorrection.sanitize (c, this));
+		  coverage.sanitize (c, this) &&
+		  italicsCorrection.sanitize (c, this));
   }
 
   inline bool get_value (hb_font_t *font, hb_codepoint_t glyph,
-                         hb_position_t &value) const
+			 hb_position_t &value) const
   {
     unsigned int index = (this+coverage).get_coverage (glyph);
     if (likely (index == NOT_COVERED)) return false;
@@ -180,17 +183,17 @@ struct MathItalicsCorrectionInfo
   }
 
 protected:
-  OffsetTo<Coverage>       coverage;          /* Offset to Coverage table -
-                                                 from the beginning of
-                                                 MathItalicsCorrectionInfo
-                                                 table. */
-  ArrayOf<MathValueRecord> italicsCorrection; /* Array of MathValueRecords
-                                                 defining italics correction
-                                                 values for each
-                                                 covered glyph. */
+  OffsetTo<Coverage>       coverage;		/* Offset to Coverage table -
+						 * from the beginning of
+						 * MathItalicsCorrectionInfo
+						 * table. */
+  ArrayOf<MathValueRecord> italicsCorrection;	/* Array of MathValueRecords
+						 * defining italics correction
+						 * values for each
+						 * covered glyph. */
 
 public:
-  DEFINE_SIZE_ARRAY (2 + 2, italicsCorrection);
+  DEFINE_SIZE_ARRAY (4, italicsCorrection);
 };
 
 struct MathTopAccentAttachment
@@ -199,12 +202,12 @@ struct MathTopAccentAttachment
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-                  topAccentCoverage.sanitize (c, this) &&
-                  topAccentAttachment.sanitize (c, this));
+		  topAccentCoverage.sanitize (c, this) &&
+		  topAccentAttachment.sanitize (c, this));
   }
 
   inline bool get_value (hb_font_t *font, hb_codepoint_t glyph,
-                         hb_position_t &value) const
+			 hb_position_t &value) const
   {
     unsigned int index = (this+topAccentCoverage).get_coverage (glyph);
     if (likely (index == NOT_COVERED)) return false;
@@ -215,13 +218,13 @@ struct MathTopAccentAttachment
 
 protected:
   OffsetTo<Coverage>       topAccentCoverage;   /* Offset to Coverage table -
-                                                   from the beginning of
-                                                   MathTopAccentAttachment
-                                                   table. */
+						 * from the beginning of
+						 * MathTopAccentAttachment
+						 * table. */
   ArrayOf<MathValueRecord> topAccentAttachment; /* Array of MathValueRecords
-                                                   defining top accent
-                                                   attachment points for each
-                                                   covered glyph. */
+						 * defining top accent
+						 * attachment points for each
+						 * covered glyph. */
 
 public:
   DEFINE_SIZE_ARRAY (2 + 2, topAccentAttachment);
@@ -242,14 +245,14 @@ struct MathKern
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-                  c->check_array (mathValueRecords,
-                                  mathValueRecords[0].static_size,
-                                  2 * heightCount + 1) &&
-                  sanitize_math_value_records (c));
+		  c->check_array (mathValueRecords,
+				  mathValueRecords[0].static_size,
+				  2 * heightCount + 1) &&
+		  sanitize_math_value_records (c));
   }
 
   inline hb_position_t get_value (hb_font_t *font,
-                                  hb_position_t &correction_height) const
+				  hb_position_t &correction_height) const
   {
     const MathValueRecord* correctionHeight = mathValueRecords;
     const MathValueRecord* kernValue = mathValueRecords + heightCount;
@@ -265,12 +268,12 @@ struct MathKern
     while (count > 0) {
       unsigned int half = count / 2;
       hb_position_t height =
-        correctionHeight[i + half].get_y_value(font, this);
+	correctionHeight[i + half].get_y_value(font, this);
       if (height < correction_height) {
-        i += half + 1;
-        count -= half + 1;
+	i += half + 1;
+	count -= half + 1;
       } else
-        count = half;
+	count = half;
     }
     return kernValue[i].get_x_value(font, this);
   }
@@ -278,11 +281,11 @@ struct MathKern
 protected:
   USHORT          heightCount;
   MathValueRecord mathValueRecords[VAR]; /* Array of correction heights at
-                                            which the kern value changes.
-                                            Sorted by the height value in
-                                            design units. */
-                                         /* Array of kern values corresponding
-                                            to heights. */
+					  * which the kern value changes.
+					  * Sorted by the height value in
+					  * design units. */
+					 /* Array of kern values corresponding
+					  * to heights. */
 
 public:
   DEFINE_SIZE_ARRAY (2, mathValueRecords);
@@ -293,30 +296,30 @@ struct MathKernInfoRecord
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-                  mathKern[HB_OT_MATH_KERN_TOP_RIGHT].sanitize (c, base) &&
-                  mathKern[HB_OT_MATH_KERN_TOP_LEFT].sanitize (c, base) &&
-                  mathKern[HB_OT_MATH_KERN_BOTTOM_RIGHT].sanitize (c, base) &&
-                  mathKern[HB_OT_MATH_KERN_BOTTOM_LEFT].sanitize (c, base));
+
+    unsigned int count = ARRAY_LENGTH (mathKern);
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!mathKern[i].sanitize (c, base)))
+	return_trace (false);
+
+    return_trace (true);
   }
 
-  inline bool has_math_kern (hb_ot_math_kern_t kern) const {
-    return mathKern[kern] != 0;
-  }
   inline const MathKern &get_math_kern (hb_ot_math_kern_t kern,
-                                        const void *base) const {
-    return base+mathKern[kern];
+					const void *base) const
+  {
+    unsigned int idx = kern;
+    if (unlikely (idx > ARRAY_LENGTH (mathKern))) return Null(MathKern);
+    return base+mathKern[idx];
   }
 
 protected:
   /* Offset to MathKern table for each corner -
-     from the beginning of MathKernInfo table. May be NULL. */
-  OffsetTo<MathKern> mathKern[HB_OT_MATH_KERN_BOTTOM_LEFT -
-                              HB_OT_MATH_KERN_TOP_RIGHT + 1];
+   * from the beginning of MathKernInfo table. May be NULL. */
+  OffsetTo<MathKern> mathKern[4];
 
 public:
-  DEFINE_SIZE_STATIC (2 * (HB_OT_MATH_KERN_BOTTOM_LEFT -
-                           HB_OT_MATH_KERN_TOP_RIGHT + 1));
+  DEFINE_SIZE_STATIC (8);
 };
 
 struct MathKernInfo
@@ -325,34 +328,30 @@ struct MathKernInfo
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-                  mathKernCoverage.sanitize (c, this) &&
-                  mathKernInfoRecords.sanitize (c, this));
+		  mathKernCoverage.sanitize (c, this) &&
+		  mathKernInfoRecords.sanitize (c, this));
   }
 
-  inline bool
-  get_math_kern_info_record (hb_codepoint_t glyph,
-                             const MathKernInfoRecord *&record) const
+  inline const MathKernInfoRecord&
+  get_math_kern_info_record (hb_codepoint_t glyph) const
   {
     unsigned int index = (this+mathKernCoverage).get_coverage (glyph);
-    if (likely (index == NOT_COVERED)) return false;
-    if (unlikely (index >= mathKernInfoRecords.len)) return false;
-    record = &mathKernInfoRecords[index];
-    return true;
+    return mathKernInfoRecords[index];
   }
 
 protected:
-  OffsetTo<Coverage>          mathKernCoverage;    /* Offset to Coverage table -
-                                                      from the beginning of the
-                                                      MathKernInfo table. */
-  ArrayOf<MathKernInfoRecord> mathKernInfoRecords; /* Array of
-                                                      MathKernInfoRecords,
-                                                      per-glyph information for
-                                                      mathematical positioning
-                                                      of subscripts and
-                                                      superscripts. */
+  OffsetTo<Coverage>		mathKernCoverage;    /* Offset to Coverage table -
+						      * from the beginning of the
+						      * MathKernInfo table. */
+  ArrayOf<MathKernInfoRecord>	mathKernInfoRecords; /* Array of
+						      * MathKernInfoRecords,
+						      * per-glyph information for
+						      * mathematical positioning
+						      * of subscripts and
+						      * superscripts. */
 
 public:
-  DEFINE_SIZE_ARRAY (2 + 2, mathKernInfoRecords);
+  DEFINE_SIZE_ARRAY (4, mathKernInfoRecords);
 };
 
 struct MathGlyphInfo
@@ -361,10 +360,10 @@ struct MathGlyphInfo
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-                  mathItalicsCorrectionInfo.sanitize (c, this) &&
-                  mathTopAccentAttachment.sanitize (c, this) &&
-                  extendedShapeCoverage.sanitize (c, this) &&
-                  mathKernInfo.sanitize(c, this));
+		  mathItalicsCorrectionInfo.sanitize (c, this) &&
+		  mathTopAccentAttachment.sanitize (c, this) &&
+		  extendedShapeCoverage.sanitize (c, this) &&
+		  mathKernInfo.sanitize(c, this));
   }
 
   inline bool has_math_italics_correction_info (void) const {
@@ -398,27 +397,28 @@ struct MathGlyphInfo
 
 protected:
   /* Offset to MathItalicsCorrectionInfo table -
-     from the beginning of MathGlyphInfo table. */
+   * from the beginning of MathGlyphInfo table. */
   OffsetTo<MathItalicsCorrectionInfo> mathItalicsCorrectionInfo;
 
   /* Offset to MathTopAccentAttachment table -
-     from the beginning of MathGlyphInfo table. */
+   * from the beginning of MathGlyphInfo table. */
   OffsetTo<MathTopAccentAttachment> mathTopAccentAttachment;
 
   /* Offset to coverage table for Extended Shape glyphs -
-     from the beginning of MathGlyphInfo table. When the left or right glyph of
-     a box is an extended shape variant, the (ink) box (and not the default
-     position defined by values in MathConstants table) should be used for
-     vertical positioning purposes. May be NULL.. */
+   * from the beginning of MathGlyphInfo table. When the left or right glyph of
+   * a box is an extended shape variant, the (ink) box (and not the default
+   * position defined by values in MathConstants table) should be used for
+   * vertical positioning purposes. May be NULL.. */
   OffsetTo<Coverage> extendedShapeCoverage;
 
    /* Offset to MathKernInfo table -
-      from the beginning of MathGlyphInfo table. */
+    * from the beginning of MathGlyphInfo table. */
   OffsetTo<MathKernInfo> mathKernInfo;
 
 public:
-  DEFINE_SIZE_STATIC (4 * 2);
+  DEFINE_SIZE_STATIC (8);
 };
+
 
 /*
  * MATH -- The MATH Table
@@ -432,9 +432,9 @@ struct MATH
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
-                  likely (version.major == 1) &&
-                  mathConstants.sanitize (c, this) &&
-                  mathGlyphInfo.sanitize (c, this));
+		  likely (version.major == 1) &&
+		  mathConstants.sanitize (c, this) &&
+		  mathGlyphInfo.sanitize (c, this));
   }
 
   inline bool has_math_constants (void) const { return mathConstants != 0; }
@@ -447,10 +447,10 @@ struct MATH
     return this+mathGlyphInfo;
   }
 protected:
-  FixedVersion<>version;                 /* Version of the MATH table
-                                          * initially set to 0x00010000u */
-  OffsetTo<MathConstants> mathConstants; /* MathConstants table */
-  OffsetTo<MathGlyphInfo> mathGlyphInfo; /* MathGlyphInfo table */
+  FixedVersion<>version;		/* Version of the MATH table
+					 * initially set to 0x00010000u */
+  OffsetTo<MathConstants> mathConstants;/* MathConstants table */
+  OffsetTo<MathGlyphInfo> mathGlyphInfo;/* MathGlyphInfo table */
 
 public:
   DEFINE_SIZE_STATIC (8);

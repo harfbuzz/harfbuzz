@@ -1263,7 +1263,7 @@ hb_ot_layout_has_math_data (hb_face_t *face)
  **/
 hb_position_t
 hb_ot_layout_get_math_constant (hb_font_t *font,
-                                hb_ot_math_constant_t constant)
+				hb_ot_math_constant_t constant)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.has_math_constants() ?
@@ -1282,7 +1282,7 @@ hb_ot_layout_get_math_constant (hb_font_t *font,
  **/
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_italic_correction (hb_font_t *font,
-                                         hb_codepoint_t glyph)
+					 hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (font->face);
   if (math.has_math_glyph_info()) {
@@ -1290,8 +1290,8 @@ hb_ot_layout_get_math_italic_correction (hb_font_t *font,
     if (glyphInfo.has_math_italics_correction_info()) {
       hb_position_t value;
       if (glyphInfo.get_math_italics_correction_info().get_value(font, glyph,
-                                                                 value))
-        return value;
+								 value))
+	return value;
     }
   }
   return 0;
@@ -1309,7 +1309,7 @@ hb_ot_layout_get_math_italic_correction (hb_font_t *font,
  **/
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
-                                             hb_codepoint_t glyph)
+					     hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (font->face);
   if (math.has_math_glyph_info()) {
@@ -1317,8 +1317,8 @@ hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
     if (glyphInfo.has_math_top_accent_attachment()) {
       hb_position_t value;
       if (glyphInfo.get_math_top_accent_attachment().get_value(font, glyph,
-                                                               value))
-        return value;
+							       value))
+	return value;
     }
   }
   return 0;
@@ -1336,7 +1336,7 @@ hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
  **/
 HB_EXTERN hb_bool_t
 hb_ot_layout_is_math_extended_shape (hb_face_t *face,
-                                     hb_codepoint_t glyph)
+				     hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (face);
   return math.has_math_glyph_info() &&
@@ -1363,21 +1363,17 @@ hb_ot_layout_is_math_extended_shape (hb_face_t *face,
  **/
 HB_EXTERN hb_position_t
 hb_ot_layout_get_math_kerning (hb_font_t *font,
-                               hb_codepoint_t glyph,
-                               hb_ot_math_kern_t kern,
-                               hb_position_t correction_height)
+			       hb_codepoint_t glyph,
+			       hb_ot_math_kern_t kern,
+			       hb_position_t correction_height)
 {
   const OT::MATH &math = _get_math (font->face);
   if (math.has_math_glyph_info()) {
     const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
     if (glyphInfo.has_math_kern_info()) {
       const OT::MathKernInfo &kernInfo = glyphInfo.get_math_kern_info();
-      const OT::MathKernInfoRecord *kernInfoRecord;
-      if (kernInfo.get_math_kern_info_record(glyph, kernInfoRecord) &&
-          kernInfoRecord->has_math_kern(kern)) {
-        return kernInfoRecord->
-          get_math_kern(kern, &kernInfo).get_value(font, correction_height);
-      }
+      const OT::MathKernInfoRecord &kernInfoRecord = kernInfo.get_math_kern_info_record(glyph);
+      return kernInfoRecord.get_math_kern (kern, &kernInfo).get_value (font, correction_height);
     }
   }
 
