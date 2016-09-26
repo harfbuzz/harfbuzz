@@ -1348,8 +1348,5 @@ hb_ot_layout_get_math_kerning (hb_font_t *font,
 			       hb_position_t correction_height)
 {
   const OT::MATH &math = _get_math (font->face);
-  const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
-  const OT::MathKernInfo &kernInfo = glyphInfo.get_math_kern_info();
-  const OT::MathKernInfoRecord &kernInfoRecord = kernInfo.get_math_kern_info_record(glyph);
-  return kernInfoRecord.get_math_kern (kern, &kernInfo).get_value (font, correction_height);
+  return math.get_math_glyph_info().get_kerning (glyph, kern, correction_height, font);
 }

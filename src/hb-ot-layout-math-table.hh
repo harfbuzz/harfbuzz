@@ -248,8 +248,7 @@ struct MathKern
 		  sanitize_math_value_records (c));
   }
 
-  inline hb_position_t get_value (hb_font_t *font,
-				  hb_position_t &correction_height) const
+  inline hb_position_t get_value (hb_position_t correction_height, hb_font_t *font) const
   {
     const MathValueRecord* correctionHeight = mathValueRecords;
     const MathValueRecord* kernValue = mathValueRecords + heightCount;
@@ -302,12 +301,14 @@ struct MathKernInfoRecord
     return_trace (true);
   }
 
-  inline const MathKern &get_math_kern (hb_ot_math_kern_t kern,
-					const void *base) const
+  inline hb_position_t get_kerning (hb_ot_math_kern_t kern,
+				    hb_position_t correction_height,
+				    hb_font_t *font,
+				    const void *base) const
   {
     unsigned int idx = kern;
-    if (unlikely (idx > ARRAY_LENGTH (mathKern))) return Null(MathKern);
-    return base+mathKern[idx];
+    if (unlikely (idx >= ARRAY_LENGTH (mathKern))) return 0;
+    return (base+mathKern[idx]).get_value (correction_height, font);
   }
 
 protected:
@@ -329,11 +330,13 @@ struct MathKernInfo
 		  mathKernInfoRecords.sanitize (c, this));
   }
 
-  inline const MathKernInfoRecord&
-  get_math_kern_info_record (hb_codepoint_t glyph) const
+  inline hb_position_t get_kerning (hb_codepoint_t glyph,
+				    hb_ot_math_kern_t kern,
+				    hb_position_t correction_height,
+				    hb_font_t *font) const
   {
     unsigned int index = (this+mathKernCoverage).get_coverage (glyph);
-    return mathKernInfoRecords[index];
+    return mathKernInfoRecords[index].get_kerning (kern, correction_height, font, this);
   }
 
 protected:
@@ -374,9 +377,11 @@ struct MathGlyphInfo
   inline bool is_extended_shape (hb_codepoint_t glyph) const
   { return (this+extendedShapeCoverage).get_coverage (glyph) != NOT_COVERED; }
 
-  inline const MathKernInfo &get_math_kern_info (void) const {
-    return this+mathKernInfo;
-  }
+  inline hb_position_t get_kerning (hb_codepoint_t glyph,
+				    hb_ot_math_kern_t kern,
+				    hb_position_t correction_height,
+				    hb_font_t *font) const
+  { return (this+mathKernInfo).get_kerning (glyph, kern, correction_height, font); }
 
 protected:
   /* Offset to MathItalicsCorrectionInfo table -
