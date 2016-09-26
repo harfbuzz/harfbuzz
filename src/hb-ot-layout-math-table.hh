@@ -367,17 +367,11 @@ struct MathGlyphInfo
 		  mathKernInfo.sanitize(c, this));
   }
 
-  inline bool has_math_italics_correction_info (void) const {
-    return mathItalicsCorrectionInfo != 0;
-  }
   inline const MathItalicsCorrectionInfo&
   get_math_italics_correction_info (void) const {
     return this+mathItalicsCorrectionInfo;
   }
 
-  inline bool has_math_top_accent_attachment (void) const {
-    return mathTopAccentAttachment != 0;
-  }
   inline const MathTopAccentAttachment&
   get_math_top_accent_attachment (void) const {
     return this+mathTopAccentAttachment;
@@ -385,13 +379,10 @@ struct MathGlyphInfo
 
   inline bool is_extended_shape (hb_codepoint_t glyph) const
   {
-    if (likely (extendedShapeCoverage == 0)) return false;
     unsigned int index = (this+extendedShapeCoverage).get_coverage (glyph);
-    if (likely (index == NOT_COVERED)) return false;
-    return true;
+    return index != NOT_COVERED;
   }
 
-  inline bool has_math_kern_info (void) const { return mathKernInfo != 0; }
   inline const MathKernInfo &get_math_kern_info (void) const {
     return this+mathKernInfo;
   }
@@ -442,7 +433,6 @@ struct MATH
 				     hb_font_t             *font) const
   { return (this+mathConstants).get_value (constant, font); }
 
-  inline bool has_math_glyph_info (void) const { return mathGlyphInfo != 0; }
   inline const MathGlyphInfo &get_math_glyph_info (void) const {
     return this+mathGlyphInfo;
   }
