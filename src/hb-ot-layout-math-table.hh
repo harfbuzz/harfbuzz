@@ -437,7 +437,7 @@ protected:
 			       * glyph extension. */
 
 public:
-  DEFINE_SIZE_STATIC (2 + 2);
+  DEFINE_SIZE_STATIC (4);
 };
 
 struct PartFlags : USHORT
@@ -504,7 +504,7 @@ protected:
   PartFlags partFlags;		  /* Part qualifiers. */
 
 public:
-  DEFINE_SIZE_STATIC (5 * 2);
+  DEFINE_SIZE_STATIC (10);
 };
 
 struct GlyphAssembly
@@ -522,7 +522,6 @@ struct GlyphAssembly
 
   inline unsigned int part_record_count() const { return partRecords.len; }
   inline const GlyphPartRecord &get_part_record(unsigned int i) const {
-    assert(i < partRecords.len);
     return partRecords[i];
   }
 
@@ -535,7 +534,7 @@ protected:
 					       * top. */
 
 public:
-  DEFINE_SIZE_ARRAY (4 + 2, partRecords);
+  DEFINE_SIZE_ARRAY (6, partRecords);
 };
 
 struct MathGlyphConstruction
@@ -548,19 +547,6 @@ struct MathGlyphConstruction
 		  mathGlyphVariantRecord.sanitize(c));
   }
 
-  inline bool has_glyph_assembly (void) const { return glyphAssembly != 0; }
-  inline const GlyphAssembly &get_glyph_assembly (void) const {
-    return this+glyphAssembly;
-  }
-
-  inline unsigned int glyph_variant_count() const {
-    return mathGlyphVariantRecord.len;
-  }
-  inline const MathGlyphVariantRecord &get_glyph_variant(unsigned int i) const {
-    assert(i < mathGlyphVariantRecord.len);
-    return mathGlyphVariantRecord[i];
-  }
-
 protected:
   /* Offset to GlyphAssembly table for this shape - from the beginning of
      MathGlyphConstruction table. May be NULL. */
@@ -570,7 +556,7 @@ protected:
   ArrayOf<MathGlyphVariantRecord> mathGlyphVariantRecord;
 
 public:
-  DEFINE_SIZE_ARRAY (2 + 2, mathGlyphVariantRecord);
+  DEFINE_SIZE_ARRAY (4, mathGlyphVariantRecord);
 };
 
 struct MathVariants
@@ -647,7 +633,7 @@ protected:
   OffsetTo<MathGlyphConstruction>       glyphConstruction[VAR];
 
 public:
-  DEFINE_SIZE_ARRAY (5 * 2, glyphConstruction);
+  DEFINE_SIZE_ARRAY (10, glyphConstruction);
 };
 
 
@@ -673,14 +659,11 @@ struct MATH
 				     hb_font_t		   *font) const
   { return (this+mathConstants).get_value (constant, font); }
 
-  inline const MathGlyphInfo &get_math_glyph_info (void) const {
-    return this+mathGlyphInfo;
-  }
+  inline const MathGlyphInfo &get_math_glyph_info (void) const
+  { return this+mathGlyphInfo; }
 
-  inline bool has_math_variants (void) const { return mathVariants != 0; }
-  inline const MathVariants &get_math_variants (void) const {
-    return this+mathVariants;
-  }
+  inline const MathVariants &get_math_variants (void) const
+  { return this+mathVariants; }
 
 protected:
   FixedVersion<>version;		/* Version of the MATH table
