@@ -36,6 +36,14 @@
 HB_BEGIN_DECLS
 
 
+/*
+ * MATH
+ */
+
+#define HB_OT_TAG_MATH HB_TAG('M','A','T','H')
+
+/* Types */
+
 typedef enum {
   HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN = 0,
   HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN = 1,
@@ -118,6 +126,54 @@ typedef struct hb_math_glyph_part_t {
   hb_position_t full_advance;
   hb_math_glyph_part_flags_t flags;
 } hb_math_glyph_part_t;
+
+/* Methods */
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_has_math_data (hb_face_t *face);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_constant (hb_font_t *font,
+				hb_ot_math_constant_t constant);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_italics_correction (hb_font_t *font,
+					  hb_codepoint_t glyph);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
+					     hb_codepoint_t glyph);
+
+HB_EXTERN hb_bool_t
+hb_ot_layout_is_math_extended_shape (hb_face_t *face,
+				     hb_codepoint_t glyph);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_kerning (hb_font_t *font,
+			       hb_codepoint_t glyph,
+			       hb_ot_math_kern_t kern,
+			       hb_position_t correction_height);
+
+HB_EXTERN unsigned int
+hb_ot_layout_get_math_glyph_variants (hb_font_t *font,
+				      hb_codepoint_t glyph,
+				      hb_direction_t direction,
+				      unsigned int start_offset,
+				      unsigned int *variants_count, /* IN/OUT */
+				      hb_math_glyph_variant_t *variants /* OUT */);
+
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_min_connector_overlap (hb_font_t *font,
+					     hb_direction_t direction);
+
+HB_EXTERN unsigned int
+hb_ot_layout_get_math_glyph_assembly (hb_font_t *font,
+				      hb_codepoint_t glyph,
+				      hb_direction_t direction,
+				      unsigned int start_offset,
+				      unsigned int *parts_count, /* IN/OUT */
+				      hb_math_glyph_part_t *parts, /* OUT */
+				      hb_position_t *italics_correction /* OUT */);
 
 
 HB_END_DECLS
