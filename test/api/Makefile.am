@@ -50,10 +50,10 @@ TEST_PROGS += \
 
 if HAVE_FREETYPE
 TEST_PROGS += \
-	test-ot-layout-math \
+	test-ot-math \
 	$(NULL)
-test_ot_layout_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
-test_ot_layout_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
+test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
+test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 endif # HAVE_FREETYPE
 
 endif # HAVE_OT

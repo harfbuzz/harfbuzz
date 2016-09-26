@@ -1225,9 +1225,10 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
 /*
  * MATH
  */
+/* TODO Move this to hb-ot-math.cc and separate it from hb_ot_layout_t. */
 
 /**
- * hb_ot_layout_has_math_data:
+ * hb_ot_math_has_data:
  *
  * @face: #hb_face_t to test
  *
@@ -1240,13 +1241,13 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
  * Since: 1.4
  **/
 hb_bool_t
-hb_ot_layout_has_math_data (hb_face_t *face)
+hb_ot_math_has_data (hb_face_t *face)
 {
   return &_get_math (face) != &OT::Null(OT::MATH);
 }
 
 /**
- * hb_ot_layout_get_math_constant:
+ * hb_ot_math_get_constant:
  *
  * @font: #hb_font_t from which to retrieve the value
  * @constant: #hb_ot_math_constant_t the constant to retrieve
@@ -1262,15 +1263,15 @@ hb_ot_layout_has_math_data (hb_face_t *face)
  * Since: 1.4
  **/
 hb_position_t
-hb_ot_layout_get_math_constant (hb_font_t *font,
-				hb_ot_math_constant_t constant)
+hb_ot_math_get_constant (hb_font_t *font,
+			 hb_ot_math_constant_t constant)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_constant(constant, font);
 }
 
 /**
- * hb_ot_layout_get_math_italics_correction:
+ * hb_ot_math_get_glyph_italics_correction:
  *
  * @font: #hb_font_t from which to retrieve the value
  * @glyph: glyph index from which to retrieve the value
@@ -1280,15 +1281,15 @@ hb_ot_layout_get_math_constant (hb_font_t *font,
  * Since: 1.4
  **/
 hb_position_t
-hb_ot_layout_get_math_italics_correction (hb_font_t *font,
-					  hb_codepoint_t glyph)
+hb_ot_math_get_glyph_italics_correction (hb_font_t *font,
+					 hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_glyph_info().get_italics_correction (glyph, font);
 }
 
 /**
- * hb_ot_layout_get_math_top_accent_attachment:
+ * hb_ot_math_get_glyph_top_accent_attachment:
  *
  * @font: #hb_font_t from which to retrieve the value
  * @glyph: glyph index from which to retrieve the value
@@ -1298,15 +1299,15 @@ hb_ot_layout_get_math_italics_correction (hb_font_t *font,
  * Since: 1.4
  **/
 hb_position_t
-hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
-					     hb_codepoint_t glyph)
+hb_ot_math_get_glyph_top_accent_attachment (hb_font_t *font,
+					    hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_glyph_info().get_top_accent_attachment (glyph, font);
 }
 
 /**
- * hb_ot_layout_is_math_extended_shape:
+ * hb_ot_math_is_glyph_extended_shape:
  *
  * @font: a #hb_font_t to test
  * @glyph: a glyph index to test
@@ -1316,15 +1317,15 @@ hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
  * Since: 1.4
  **/
 hb_bool_t
-hb_ot_layout_is_math_extended_shape (hb_face_t *face,
-				     hb_codepoint_t glyph)
+hb_ot_math_is_glyph_extended_shape (hb_face_t *face,
+				    hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (face);
   return math.get_math_glyph_info().is_extended_shape (glyph);
 }
 
 /**
- * hb_ot_layout_get_math_kerning:
+ * hb_ot_math_get_glyph_kerning:
  *
  * @font: #hb_font_t from which to retrieve the value
  * @glyph: glyph index from which to retrieve the value
@@ -1342,22 +1343,22 @@ hb_ot_layout_is_math_extended_shape (hb_face_t *face,
  * Since: 1.4
  **/
 hb_position_t
-hb_ot_layout_get_math_kerning (hb_font_t *font,
-			       hb_codepoint_t glyph,
-			       hb_ot_math_kern_t kern,
-			       hb_position_t correction_height)
+hb_ot_math_get_glyph_kerning (hb_font_t *font,
+			      hb_codepoint_t glyph,
+			      hb_ot_math_kern_t kern,
+			      hb_position_t correction_height)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_glyph_info().get_kerning (glyph, kern, correction_height, font);
 }
 
 unsigned int
-hb_ot_layout_get_math_glyph_variants (hb_font_t *font,
-				      hb_codepoint_t glyph,
-				      hb_direction_t direction,
-				      unsigned int start_offset,
-				      unsigned int *variants_count, /* IN/OUT */
-				      hb_math_glyph_variant_t *variants /* OUT */)
+hb_ot_math_get_glyph_variants (hb_font_t *font,
+			       hb_codepoint_t glyph,
+			       hb_direction_t direction,
+			       unsigned int start_offset,
+			       unsigned int *variants_count, /* IN/OUT */
+			       hb_math_glyph_variant_t *variants /* OUT */)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_variants().get_glyph_variants (glyph, direction, font,
@@ -1367,21 +1368,21 @@ hb_ot_layout_get_math_glyph_variants (hb_font_t *font,
 }
 
 hb_position_t
-hb_ot_layout_get_math_min_connector_overlap (hb_font_t *font,
-					     hb_direction_t direction)
+hb_ot_math_get_min_connector_overlap (hb_font_t *font,
+				      hb_direction_t direction)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_variants().get_min_connector_overlap (direction, font);
 }
 
 unsigned int
-hb_ot_layout_get_math_glyph_assembly (hb_font_t *font,
-				      hb_codepoint_t glyph,
-				      hb_direction_t direction,
-				      unsigned int start_offset,
-				      unsigned int *parts_count, /* IN/OUT */
-				      hb_math_glyph_part_t *parts, /* OUT */
-				      hb_position_t *italics_correction /* OUT */)
+hb_ot_math_get_glyph_assembly (hb_font_t *font,
+			       hb_codepoint_t glyph,
+			       hb_direction_t direction,
+			       unsigned int start_offset,
+			       unsigned int *parts_count, /* IN/OUT */
+			       hb_math_glyph_part_t *parts, /* OUT */
+			       hb_position_t *italics_correction /* OUT */)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_variants().get_glyph_parts (glyph, direction, font,
