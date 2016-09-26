@@ -514,7 +514,7 @@ struct MathGlyphAssembly
 	    partRecords.sub_array (start_offset, parts_count);
       unsigned int count = *parts_count;
       for (unsigned int i = 0; i < count; i++)
-        arr[i].extract (parts[i], scale, font);
+	arr[i].extract (parts[i], scale, font);
     }
 
     if (italics_correction)
