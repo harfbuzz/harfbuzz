@@ -37,16 +37,16 @@ static FT_Face ft_face;
 static hb_font_t *hb_font;
 static hb_face_t *hb_face;
 
-static void
-initFreeType()
+static inline void
+initFreeType (void)
 {
   FT_Error ft_error;
   if ((ft_error = FT_Init_FreeType (&ft_library)))
     abort();
 }
 
-static void
-cleanupFreeType()
+static inline void
+cleanupFreeType (void)
 {
   FT_Done_FreeType (ft_library);
 }
@@ -57,15 +57,17 @@ openFont(const char* fontFile)
   FT_Error ft_error;
   if ((ft_error = FT_New_Face (ft_library, fontFile, 0, &ft_face)))
     abort();
-  unsigned int fontSize = 1000;
+
+#define fontSize 1000
+
   if ((ft_error = FT_Set_Char_Size (ft_face, fontSize, fontSize, 0, 0)))
     abort();
   hb_font = hb_ft_font_create (ft_face, NULL);
   hb_face = hb_ft_face_create_cached(ft_face);
 }
 
-static void
-closeFont()
+static inline void
+closeFont (void)
 {
   hb_font_destroy (hb_font);
   FT_Done_Face (ft_face);

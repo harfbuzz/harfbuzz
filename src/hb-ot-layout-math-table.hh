@@ -38,18 +38,18 @@ namespace OT {
 
 struct MATH
 {
-  static const hb_tag_t tableTag        = HB_OT_TAG_MATH;
+  static const hb_tag_t tableTag	= HB_OT_TAG_MATH;
 
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
-                  likely (version.major == 1));
+		  likely (version.major == 1));
   }
 
 protected:
-  FixedVersion<>version;                 /* Version of the MATH table
-                                            initially set to 0x00010000u */
+  FixedVersion<>version;		 /* Version of the MATH table
+					  * initially set to 0x00010000u */
 public:
   DEFINE_SIZE_STATIC (4);
 };

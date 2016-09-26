@@ -61,7 +61,7 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos_blob = OT::Sanitizer<OT::GPOS>::sanitize (face->reference_table (HB_OT_TAG_GPOS));
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
 
-  // The MATH table is rarer so we only try and load it in _get_math
+  /* The MATH table is rarely used, so only try and load it in _get_math. */
   layout->math_blob = NULL;
   layout->math = NULL;
 
@@ -182,8 +182,7 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gdef_blob);
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
-
-  if (layout->math_blob) hb_blob_destroy (layout->math_blob);
+  hb_blob_destroy (layout->math_blob);
 
   free (layout);
 }
@@ -213,13 +212,22 @@ _get_math (hb_face_t *face)
 
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
 
-  // If the MATH table is not loaded yet, do it now.
-  if (!layout->math_blob) {
-    layout->math_blob = OT::Sanitizer<OT::MATH>::sanitize (face->reference_table (HB_OT_TAG_MATH));
-    layout->math = OT::Sanitizer<OT::MATH>::lock_instance (layout->math_blob);
+retry:
+  const OT::MATH *math = (const OT::MATH *) hb_atomic_ptr_get (&layout->math);
+
+  if (unlikely (!math))
+  {
+    hb_blob_t *blob = OT::Sanitizer<OT::MATH>::sanitize (face->reference_table (HB_OT_TAG_MATH));
+    math = OT::Sanitizer<OT::MATH>::lock_instance (blob);
+    if (!hb_atomic_ptr_cmpexch (&layout->math, NULL, math))
+    {
+      hb_blob_destroy (blob);
+      goto retry;
+    }
+    layout->math_blob = blob;
   }
 
-  return *layout->math;
+  return *math;
 }
 
 
@@ -1213,8 +1221,9 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
   apply_string<GSUBProxy> (c, lookup, accel);
 }
 
+
 /*
- * OT::MATH
+ * MATH
  */
 
 /**
@@ -1228,7 +1237,7 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
  *
  * Return value: #TRUE if face has a MATH table and #FALSE otherwise
  *
- * Since: ????
+ * Since: 1.4
  **/
 hb_bool_t
 hb_ot_layout_has_math_data (hb_face_t *face)

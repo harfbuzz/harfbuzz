@@ -304,6 +304,8 @@ hb_ot_layout_get_size_params (hb_face_t    *face,
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_has_math_data (hb_face_t *face);
+
+
 HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_H */
