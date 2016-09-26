@@ -333,7 +333,7 @@ hb_ot_layout_get_math_glyph_variants (hb_font_t *font,
 				      hb_codepoint_t glyph,
 				      hb_direction_t direction,
 				      unsigned int start_offset,
-				      unsigned int *variant_count, /* IN/OUT */
+				      unsigned int *variants_count, /* IN/OUT */
 				      hb_math_glyph_variant_t *variants /* OUT */);
 
 HB_EXTERN hb_position_t

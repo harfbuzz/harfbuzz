@@ -47,13 +47,13 @@ struct MathValueRecord
     return_trace (c->check_struct (this) && deviceTable.sanitize (c, base));
   }
 
-protected:
+  protected:
   SHORT			value;		/* The X or Y value in design units */
   OffsetTo<Device>	deviceTable;	/* Offset to the device table - from the
 					 * beginning of parent table. May be NULL.
 					 * Suggested format for device table is 1. */
 
-public:
+  public:
   DEFINE_SIZE_STATIC (4);
 };
 
@@ -153,13 +153,13 @@ struct MathConstants
     }
   }
 
-protected:
+  protected:
   SHORT percentScaleDown[2];
   USHORT minHeight[2];
   MathValueRecord mathValueRecords[51];
   SHORT radicalDegreeBottomRaisePercent;
 
-public:
+  public:
   DEFINE_SIZE_STATIC (214);
 };
 
@@ -180,7 +180,7 @@ struct MathItalicsCorrectionInfo
     return italicsCorrection[index].get_x_value (font, this);
   }
 
-protected:
+  protected:
   OffsetTo<Coverage>       coverage;		/* Offset to Coverage table -
 						 * from the beginning of
 						 * MathItalicsCorrectionInfo
@@ -190,7 +190,7 @@ protected:
 						 * values for each
 						 * covered glyph. */
 
-public:
+  public:
   DEFINE_SIZE_ARRAY (4, italicsCorrection);
 };
 
@@ -213,7 +213,7 @@ struct MathTopAccentAttachment
     return topAccentAttachment[index].get_x_value(font, this);
   }
 
-protected:
+  protected:
   OffsetTo<Coverage>       topAccentCoverage;   /* Offset to Coverage table -
 						 * from the beginning of
 						 * MathTopAccentAttachment
@@ -223,7 +223,7 @@ protected:
 						 * attachment points for each
 						 * covered glyph. */
 
-public:
+  public:
   DEFINE_SIZE_ARRAY (2 + 2, topAccentAttachment);
 };
 
@@ -278,7 +278,7 @@ struct MathKern
     return kernValue[i].get_x_value(font, this);
   }
 
-protected:
+  protected:
   USHORT	  heightCount;
   MathValueRecord mathValueRecords[VAR]; /* Array of correction heights at
 					  * which the kern value changes.
@@ -289,7 +289,7 @@ protected:
 					  * to heights. (heightCount+1 entries).
 					  */
 
-public:
+  public:
   DEFINE_SIZE_ARRAY (2, mathValueRecords);
 };
 
@@ -317,12 +317,12 @@ struct MathKernInfoRecord
     return (base+mathKern[idx]).get_value (correction_height, font);
   }
 
-protected:
+  protected:
   /* Offset to MathKern table for each corner -
    * from the beginning of MathKernInfo table. May be NULL. */
   OffsetTo<MathKern> mathKern[4];
 
-public:
+  public:
   DEFINE_SIZE_STATIC (8);
 };
 
@@ -345,7 +345,7 @@ struct MathKernInfo
     return mathKernInfoRecords[index].get_kerning (kern, correction_height, font, this);
   }
 
-protected:
+  protected:
   OffsetTo<Coverage>		mathKernCoverage;    /* Offset to Coverage table -
 						      * from the beginning of the
 						      * MathKernInfo table. */
@@ -356,7 +356,7 @@ protected:
 						      * of subscripts and
 						      * superscripts. */
 
-public:
+  public:
   DEFINE_SIZE_ARRAY (4, mathKernInfoRecords);
 };
 
@@ -389,7 +389,7 @@ struct MathGlyphInfo
 				    hb_font_t *font) const
   { return (this+mathKernInfo).get_kerning (glyph, kern, correction_height, font); }
 
-protected:
+  protected:
   /* Offset to MathItalicsCorrectionInfo table -
    * from the beginning of MathGlyphInfo table. */
   OffsetTo<MathItalicsCorrectionInfo> mathItalicsCorrectionInfo;
@@ -409,34 +409,27 @@ protected:
     * from the beginning of MathGlyphInfo table. */
   OffsetTo<MathKernInfo> mathKernInfo;
 
-public:
+  public:
   DEFINE_SIZE_STATIC (8);
 };
 
 struct MathGlyphVariantRecord
 {
+  friend struct MathGlyphConstruction;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
-  hb_codepoint_t get_glyph() const { return variantGlyph; }
-  inline hb_position_t get_advance_measurement (hb_font_t *font,
-						bool horizontal) const
-  {
-    return horizontal ?
-      font->em_scale_x (advanceMeasurement) :
-      font->em_scale_y (advanceMeasurement);
-  }
-
-protected:
+  protected:
   GlyphID variantGlyph;       /* Glyph ID for the variant. */
   USHORT  advanceMeasurement; /* Advance width/height, in design units, of the
 			       * variant, in the direction of requested
 			       * glyph extension. */
 
-public:
+  public:
   DEFINE_SIZE_STATIC (4);
 };
 
@@ -446,49 +439,21 @@ struct PartFlags : USHORT
     Extender = 0x0001u, /* If set, the part can be skipped or repeated. */
   };
 
-public:
+  public:
   DEFINE_SIZE_STATIC (2);
 };
 
-struct GlyphPartRecord
+struct MathGlyphPartRecord
 {
+  friend struct MathGlyphAssembly;
+
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
-  hb_codepoint_t get_glyph() const { return glyph; }
-
-  inline hb_position_t
-  get_start_connector_length (hb_font_t *font, bool horizontal) const
-  {
-    return horizontal ?
-      font->em_scale_x (startConnectorLength) :
-      font->em_scale_y (startConnectorLength);
-  }
-
-  inline hb_position_t
-  get_end_connector_length (hb_font_t *font, bool horizontal) const
-  {
-    return horizontal ?
-      font->em_scale_x (endConnectorLength) :
-      font->em_scale_y (endConnectorLength);
-  }
-
-  inline hb_position_t
-  get_full_advance (hb_font_t *font, bool horizontal) const
-  {
-    return horizontal ?
-      font->em_scale_x (fullAdvance) :
-      font->em_scale_y (fullAdvance);
-  }
-
-  inline bool is_extender() const {
-    return partFlags & PartFlags::Flags::Extender;
-  }
-
-protected:
+  protected:
   GlyphID   glyph;		  /* Glyph ID for the part. */
   USHORT    startConnectorLength; /* Advance width/ height of the straight bar
 				   * connector material, in design units, is at
@@ -503,11 +468,11 @@ protected:
 				   * In design units. */
   PartFlags partFlags;		  /* Part qualifiers. */
 
-public:
+  public:
   DEFINE_SIZE_STATIC (10);
 };
 
-struct GlyphAssembly
+struct MathGlyphAssembly
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -520,20 +485,15 @@ struct GlyphAssembly
   inline hb_position_t get_italic_correction (hb_font_t *font) const
   { return italicsCorrection.get_x_value(font, this); }
 
-  inline unsigned int part_record_count() const { return partRecords.len; }
-  inline const GlyphPartRecord &get_part_record(unsigned int i) const {
-    return partRecords[i];
-  }
-
-protected:
+  protected:
   MathValueRecord	   italicsCorrection; /* Italics correction of this
-					       * GlyphAssembly. Should not
+					       * MathGlyphAssembly. Should not
 					       * depend on the assembly size. */
-  ArrayOf<GlyphPartRecord> partRecords;       /* Array of part records, from
+  ArrayOf<MathGlyphPartRecord> partRecords;   /* Array of part records, from
 					       * left to right and bottom to
 					       * top. */
 
-public:
+  public:
   DEFINE_SIZE_ARRAY (6, partRecords);
 };
 
@@ -547,15 +507,36 @@ struct MathGlyphConstruction
 		  mathGlyphVariantRecord.sanitize(c));
   }
 
-protected:
-  /* Offset to GlyphAssembly table for this shape - from the beginning of
+  inline unsigned int get_variants (hb_direction_t direction,
+				    hb_font_t *font,
+				    unsigned int start_offset,
+				    unsigned int *variants_count, /* IN/OUT */
+				    hb_math_glyph_variant_t *variants /* OUT */) const
+  {
+    if (variants_count)
+    {
+      int scale = font->dir_scale (direction);
+      const MathGlyphVariantRecord *arr =
+	    mathGlyphVariantRecord.sub_array (start_offset, variants_count);
+      unsigned int count = *variants_count;
+      for (unsigned int i = 0; i < count; i++)
+      {
+	variants[i].glyph = arr[i].variantGlyph;
+	variants[i].advance = font->em_scale (arr[i].advanceMeasurement, scale);
+      }
+    }
+    return mathGlyphVariantRecord.len;
+  }
+
+  protected:
+  /* Offset to MathGlyphAssembly table for this shape - from the beginning of
      MathGlyphConstruction table. May be NULL. */
-  OffsetTo<GlyphAssembly>	  glyphAssembly;
+  OffsetTo<MathGlyphAssembly>	  glyphAssembly;
 
   /* MathGlyphVariantRecords for alternative variants of the glyphs. */
   ArrayOf<MathGlyphVariantRecord> mathGlyphVariantRecord;
 
-public:
+  public:
   DEFINE_SIZE_ARRAY (4, mathGlyphVariantRecord);
 };
 
@@ -586,27 +567,36 @@ struct MathVariants
 						  hb_font_t *font) const
   { return font->em_scale_dir (minConnectorOverlap, direction); }
 
-  inline bool
-  get_glyph_construction (hb_codepoint_t glyph,
-			  hb_bool_t horizontal,
-			  const MathGlyphConstruction *&glyph_construction) const {
-    unsigned int index =
-      horizontal ?
-      (this+horizGlyphCoverage).get_coverage (glyph) :
-      (this+vertGlyphCoverage).get_coverage (glyph);
-    if (likely (index == NOT_COVERED)) return false;
+  inline unsigned int get_glyph_variants (hb_codepoint_t glyph,
+					  hb_direction_t direction,
+					  hb_font_t *font,
+					  unsigned int start_offset,
+					  unsigned int *variants_count, /* IN/OUT */
+					  hb_math_glyph_variant_t *variants /* OUT */) const
+  { return get_glyph_construction (glyph, direction, font)
+	   .get_variants (direction, font, start_offset, variants_count, variants); }
 
-    USHORT glyphCount = horizontal ? horizGlyphCount : vertGlyphCount;
-    if (unlikely (index >= glyphCount)) return false;
+  private:
+  inline const MathGlyphConstruction &
+		get_glyph_construction (hb_codepoint_t glyph,
+					hb_direction_t direction,
+					hb_font_t *font) const
+  {
+    bool vertical = HB_DIRECTION_IS_VERTICAL (direction);
+    unsigned int count = vertical ? vertGlyphCount : horizGlyphCount;
+    const OffsetTo<Coverage> &coverage = vertical ? vertGlyphCoverage
+						  : horizGlyphCoverage;
 
-    if (horizontal)
+    unsigned int index = (this+coverage).get_coverage (glyph);
+    if (unlikely (index >= count)) return Null(MathGlyphConstruction);
+
+    if (!vertical)
       index += vertGlyphCount;
 
-    glyph_construction = &(this + glyphConstruction[index]);
-    return true;
+    return this+glyphConstruction[index];
   }
 
-protected:
+  protected:
   USHORT	     minConnectorOverlap; /* Minimum overlap of connecting
 					   * glyphs during glyph construction,
 					   * in design units. */
@@ -626,9 +616,9 @@ protected:
   /* Array of offsets to MathGlyphConstruction tables - from the beginning of
      the MathVariants table, for shapes growing in vertical/horizontal
      direction. */
-  OffsetTo<MathGlyphConstruction>       glyphConstruction[VAR];
+  OffsetTo<MathGlyphConstruction> glyphConstruction[VAR];
 
-public:
+  public:
   DEFINE_SIZE_ARRAY (10, glyphConstruction);
 };
 
@@ -661,14 +651,14 @@ struct MATH
   inline const MathVariants &get_math_variants (void) const
   { return this+mathVariants; }
 
-protected:
+  protected:
   FixedVersion<>version;		/* Version of the MATH table
 					 * initially set to 0x00010000u */
   OffsetTo<MathConstants> mathConstants;/* MathConstants table */
   OffsetTo<MathGlyphInfo> mathGlyphInfo;/* MathGlyphInfo table */
   OffsetTo<MathVariants>  mathVariants;	/* MathVariants table */
 
-public:
+  public:
   DEFINE_SIZE_STATIC (10);
 };
 
