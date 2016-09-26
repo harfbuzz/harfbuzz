@@ -582,13 +582,9 @@ struct MathVariants
 		  sanitize_offsets (c));
   }
 
-  inline hb_position_t get_min_connector_overlap (hb_font_t *font,
-						  bool horizontal) const
-  {
-    return horizontal ?
-      font->em_scale_x (minConnectorOverlap) :
-      font->em_scale_y (minConnectorOverlap);
-  }
+  inline hb_position_t get_min_connector_overlap (hb_direction_t direction,
+						  hb_font_t *font) const
+  { return font->em_scale_dir (minConnectorOverlap, direction); }
 
   inline bool
   get_glyph_construction (hb_codepoint_t glyph,

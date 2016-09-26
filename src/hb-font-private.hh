@@ -118,6 +118,10 @@ struct hb_font_t {
   /* Convert from font-space to user-space */
   inline hb_position_t em_scale_x (int16_t v) { return em_scale (v, this->x_scale); }
   inline hb_position_t em_scale_y (int16_t v) { return em_scale (v, this->y_scale); }
+  inline hb_position_t em_scale_dir (int16_t v, hb_direction_t direction)
+  { return em_scale (v,
+		     HB_DIRECTION_IS_VERTICAL(direction) ?
+		     this->y_scale : this->x_scale); }
 
   /* Convert from parent-font user-space to our user-space */
   inline hb_position_t parent_scale_x_distance (hb_position_t v) {
