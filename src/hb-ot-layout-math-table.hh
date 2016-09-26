@@ -178,7 +178,6 @@ struct MathItalicsCorrectionInfo
   {
     unsigned int index = (this+coverage).get_coverage (glyph);
     return italicsCorrection[index].get_x_value (font, this);
-    return true;
   }
 
 protected:
@@ -205,14 +204,13 @@ struct MathTopAccentAttachment
 		  topAccentAttachment.sanitize (c, this));
   }
 
-  inline bool get_value (hb_font_t *font, hb_codepoint_t glyph,
-			 hb_position_t &value) const
+  inline hb_position_t get_value (hb_codepoint_t glyph,
+				  hb_font_t *font) const
   {
     unsigned int index = (this+topAccentCoverage).get_coverage (glyph);
-    if (likely (index == NOT_COVERED)) return false;
-    if (unlikely (index >= topAccentAttachment.len)) return false;
-    value = topAccentAttachment[index].get_x_value(font, this);
-    return true;
+    if (index == NOT_COVERED)
+      return font->get_glyph_h_advance (glyph) / 2;
+    return topAccentAttachment[index].get_x_value(font, this);
   }
 
 protected:
@@ -366,22 +364,15 @@ struct MathGlyphInfo
   }
 
   inline hb_position_t
-  get_italics_correction (hb_codepoint_t glyph,
-			  hb_font_t *font) const
-  {
-    return (this+mathItalicsCorrectionInfo).get_value (glyph, font);
-  }
+  get_italics_correction (hb_codepoint_t  glyph, hb_font_t *font) const
+  { return (this+mathItalicsCorrectionInfo).get_value (glyph, font); }
 
-  inline const MathTopAccentAttachment&
-  get_math_top_accent_attachment (void) const {
-    return this+mathTopAccentAttachment;
-  }
+  inline hb_position_t
+  get_top_accent_attachment (hb_codepoint_t  glyph, hb_font_t *font) const
+  { return (this+mathTopAccentAttachment).get_value (glyph, font); }
 
   inline bool is_extended_shape (hb_codepoint_t glyph) const
-  {
-    unsigned int index = (this+extendedShapeCoverage).get_coverage (glyph);
-    return index != NOT_COVERED;
-  }
+  { return (this+extendedShapeCoverage).get_coverage (glyph) != NOT_COVERED; }
 
   inline const MathKernInfo &get_math_kern_info (void) const {
     return this+mathKernInfo;

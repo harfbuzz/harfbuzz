@@ -204,22 +204,22 @@ test_get_math_top_accent_attachment (void)
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // MathGlyphInfo not available
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 500); // MathGlyphInfo not available
   closeFont();
 
   openFont("fonts/MathTestFontPartial1.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // MathGlyphInfo empty
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 500); // MathGlyphInfo empty
   closeFont();
 
   openFont("fonts/MathTestFontPartial2.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // MathTopAccentAttachment empty
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 500); // MathTopAccentAttachment empty
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 0); // Glyph without top accent attachment.
+  g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 500); // Glyph without top accent attachment.
   g_assert(hb_font_get_glyph_from_name (hb_font, "D", -1, &glyph));
   g_assert_cmpint(hb_ot_layout_get_math_top_accent_attachment (hb_font, glyph), ==, 374);
   g_assert(hb_font_get_glyph_from_name (hb_font, "E", -1, &glyph));

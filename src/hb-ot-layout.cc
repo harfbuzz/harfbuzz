@@ -1302,12 +1302,7 @@ hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
 					     hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (font->face);
-  const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
-  hb_position_t value;
-  if (glyphInfo.get_math_top_accent_attachment().get_value(font, glyph, value))
-    return value;
-  else
-    return 0; // XXX font->get_glyph_h_advance (glyph) / 2;
+  return math.get_math_glyph_info().get_top_accent_attachment (glyph, font);
 }
 
 /**
