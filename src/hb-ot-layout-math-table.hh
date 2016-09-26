@@ -436,7 +436,9 @@ struct MathGlyphVariantRecord
 struct PartFlags : USHORT
 {
   enum Flags {
-    Extender = 0x0001u, /* If set, the part can be skipped or repeated. */
+    Extender	= 0x0001u, /* If set, the part can be skipped or repeated. */
+
+    Defined	= 0x0001u, /* All defined flags. */
   };
 
   public:
@@ -445,12 +447,28 @@ struct PartFlags : USHORT
 
 struct MathGlyphPartRecord
 {
-  friend struct MathGlyphAssembly;
-
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
+  }
+
+  inline void extract (hb_math_glyph_part_t &out,
+		       int scale,
+		       hb_font_t *font) const
+  {
+    out.glyph			= glyph;
+
+    out.start_connector_length	= font->em_scale (startConnectorLength, scale);
+    out.end_connector_length	= font->em_scale (endConnectorLength, scale);
+    out.full_advance		= font->em_scale (fullAdvance, scale);
+
+    ASSERT_STATIC ((unsigned int) HB_MATH_GLYPH_PART_FLAG_EXTENDER ==
+		   (unsigned int) PartFlags::Extender);
+
+    out.flags = (hb_math_glyph_part_flags_t)
+		(unsigned int)
+		(partFlags & PartFlags::Defined);
   }
 
   protected:
@@ -482,8 +500,28 @@ struct MathGlyphAssembly
 		  partRecords.sanitize(c));
   }
 
-  inline hb_position_t get_italic_correction (hb_font_t *font) const
-  { return italicsCorrection.get_x_value(font, this); }
+  inline unsigned int get_parts (hb_direction_t direction,
+				 hb_font_t *font,
+				 unsigned int start_offset,
+				 unsigned int *parts_count, /* IN/OUT */
+				 hb_math_glyph_part_t *parts /* OUT */,
+				 hb_position_t *italics_correction /* OUT */) const
+  {
+    if (parts_count)
+    {
+      int scale = font->dir_scale (direction);
+      const MathGlyphPartRecord *arr =
+	    partRecords.sub_array (start_offset, parts_count);
+      unsigned int count = *parts_count;
+      for (unsigned int i = 0; i < count; i++)
+        arr[i].extract (parts[i], scale, font);
+    }
+
+    if (italics_correction)
+      *italics_correction = italicsCorrection.get_x_value (font, this);
+
+    return partRecords.len;
+  }
 
   protected:
   MathValueRecord	   italicsCorrection; /* Italics correction of this
@@ -506,6 +544,9 @@ struct MathGlyphConstruction
 		  glyphAssembly.sanitize(c, this) &&
 		  mathGlyphVariantRecord.sanitize(c));
   }
+
+  inline const MathGlyphAssembly &get_assembly (void) const
+  { return this+glyphAssembly; }
 
   inline unsigned int get_variants (hb_direction_t direction,
 				    hb_font_t *font,
@@ -575,6 +616,19 @@ struct MathVariants
 					  hb_math_glyph_variant_t *variants /* OUT */) const
   { return get_glyph_construction (glyph, direction, font)
 	   .get_variants (direction, font, start_offset, variants_count, variants); }
+
+  inline unsigned int get_glyph_parts (hb_codepoint_t glyph,
+				       hb_direction_t direction,
+				       hb_font_t *font,
+				       unsigned int start_offset,
+				       unsigned int *parts_count, /* IN/OUT */
+				       hb_math_glyph_part_t *parts /* OUT */,
+				       hb_position_t *italics_correction /* OUT */) const
+  { return get_glyph_construction (glyph, direction, font)
+	   .get_assembly ()
+	   .get_parts (direction, font,
+		       start_offset, parts_count, parts,
+		       italics_correction); }
 
   private:
   inline const MathGlyphConstruction &

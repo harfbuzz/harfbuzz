@@ -341,13 +341,13 @@ hb_ot_layout_get_math_min_connector_overlap (hb_font_t *font,
 					     hb_direction_t direction);
 
 HB_EXTERN unsigned int
-hb_ot_layout_get_math_glyph_assembly_parts (hb_font_t *font,
-					    hb_codepoint_t glyph,
-					    hb_direction_t direction,
-					    unsigned int start_offset,
-					    unsigned int *parts_count, /* IN/OUT */
-					    hb_math_glyph_part_t *parts, /* OUT */
-					    hb_position_t *italic_correction /* OUT */);
+hb_ot_layout_get_math_glyph_assembly (hb_font_t *font,
+				      hb_codepoint_t glyph,
+				      hb_direction_t direction,
+				      unsigned int start_offset,
+				      unsigned int *parts_count, /* IN/OUT */
+				      hb_math_glyph_part_t *parts, /* OUT */
+				      hb_position_t *italics_correction /* OUT */);
 
 HB_END_DECLS
 

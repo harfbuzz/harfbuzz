@@ -1341,7 +1341,7 @@ hb_ot_layout_is_math_extended_shape (hb_face_t *face,
  *
  * Since: 1.4
  **/
-HB_EXTERN hb_position_t
+hb_position_t
 hb_ot_layout_get_math_kerning (hb_font_t *font,
 			       hb_codepoint_t glyph,
 			       hb_ot_math_kern_t kern,
@@ -1351,7 +1351,7 @@ hb_ot_layout_get_math_kerning (hb_font_t *font,
   return math.get_math_glyph_info().get_kerning (glyph, kern, correction_height, font);
 }
 
-HB_EXTERN unsigned int
+unsigned int
 hb_ot_layout_get_math_glyph_variants (hb_font_t *font,
 				      hb_codepoint_t glyph,
 				      hb_direction_t direction,
@@ -1374,15 +1374,19 @@ hb_ot_layout_get_math_min_connector_overlap (hb_font_t *font,
   return math.get_math_variants().get_min_connector_overlap (direction, font);
 }
 
-HB_EXTERN unsigned int
-hb_ot_layout_get_math_glyph_assembly_parts (hb_font_t *font,
-					    hb_codepoint_t glyph,
-					    hb_direction_t direction,
-					    unsigned int start_offset,
-					    unsigned int *parts_count, /* IN/OUT */
-					    hb_math_glyph_part_t *parts, /* OUT */
-					    hb_position_t *italic_correction /* OUT */)
+unsigned int
+hb_ot_layout_get_math_glyph_assembly (hb_font_t *font,
+				      hb_codepoint_t glyph,
+				      hb_direction_t direction,
+				      unsigned int start_offset,
+				      unsigned int *parts_count, /* IN/OUT */
+				      hb_math_glyph_part_t *parts, /* OUT */
+				      hb_position_t *italics_correction /* OUT */)
 {
   const OT::MATH &math = _get_math (font->face);
-  return 0;
+  return math.get_math_variants().get_glyph_parts (glyph, direction, font,
+						   start_offset,
+						   parts_count,
+						   parts,
+						   italics_correction);
 }
