@@ -77,7 +77,8 @@ struct MathConstants
     return_trace (c->check_struct (this) && sanitize_math_value_records(c));
   }
 
-  inline hb_position_t get_value (hb_font_t *font, hb_ot_math_constant_t constant) const
+  inline hb_position_t get_value (hb_ot_math_constant_t constant,
+				  hb_font_t *font) const
   {
     switch (constant) {
 
@@ -437,10 +438,9 @@ struct MATH
 		  mathGlyphInfo.sanitize (c, this));
   }
 
-  inline bool has_math_constants (void) const { return mathConstants != 0; }
-  inline const MathConstants &get_math_constants (void) const {
-    return this+mathConstants;
-  }
+  inline hb_position_t get_constant (hb_ot_math_constant_t  constant,
+				     hb_font_t             *font) const
+  { return (this+mathConstants).get_value (constant, font); }
 
   inline bool has_math_glyph_info (void) const { return mathGlyphInfo != 0; }
   inline const MathGlyphInfo &get_math_glyph_info (void) const {

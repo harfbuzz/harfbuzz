@@ -1259,15 +1259,14 @@ hb_ot_layout_has_math_data (hb_face_t *face)
  *
  * Return value: the requested constant or 0
  *
- * Since: ????
+ * Since: 1.4
  **/
 hb_position_t
 hb_ot_layout_get_math_constant (hb_font_t *font,
 				hb_ot_math_constant_t constant)
 {
   const OT::MATH &math = _get_math (font->face);
-  return math.has_math_constants() ?
-    math.get_math_constants().get_value(font, constant) : 0;
+  return math.get_constant(constant, font);
 }
 
 /**
