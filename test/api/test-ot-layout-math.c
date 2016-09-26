@@ -54,12 +54,16 @@ cleanupFreeType (void)
 static void
 openFont(const char* fontFile)
 {
+  gchar* path = g_test_build_filename(G_TEST_DIST, fontFile, NULL);
+
   FT_Error ft_error;
-  if ((ft_error = FT_New_Face (ft_library, fontFile, 0, &ft_face)))
+  if ((ft_error = FT_New_Face (ft_library, path, 0, &ft_face))) {
+    g_free(path);
     abort();
+  }
+  g_free(path);
 
 #define fontSize 1000
-
   if ((ft_error = FT_Set_Char_Size (ft_face, fontSize, fontSize, 0, 0)))
     abort();
   hb_font = hb_ft_font_create (ft_face, NULL);

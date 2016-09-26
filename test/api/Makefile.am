@@ -83,6 +83,8 @@ TESTS_ENVIRONMENT = \
 	G_DEBUG=gc-friendly \
 	G_SLICE=always-malloc \
 	srcdir=$(srcdir) \
+	G_TEST_SRCDIR=$(abs_srcdir) \
+	G_TEST_BUILDDIR=$(abs_builddir) \
 	$(NULL)
 
 
