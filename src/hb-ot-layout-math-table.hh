@@ -36,13 +36,10 @@ namespace OT {
 
 struct MathValueRecord
 {
-  inline hb_position_t get_value (hb_font_t *font, bool horizontal,
-                                  const void *base) const
-  {
-    return horizontal ?
-      font->em_scale_x (value) + (base+deviceTable).get_x_delta (font) :
-      font->em_scale_y (value) + (base+deviceTable).get_y_delta (font);
-  }
+  inline hb_position_t get_x_value (hb_font_t *font, const void *base) const
+  { return font->em_scale_x (value) + (base+deviceTable).get_x_delta (font); }
+  inline hb_position_t get_y_value (hb_font_t *font, const void *base) const
+  { return font->em_scale_y (value) + (base+deviceTable).get_y_delta (font); }
 
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -57,7 +54,7 @@ protected:
                                    Suggested format for device table is 1. */
 
 public:
-  DEFINE_SIZE_STATIC (2 * 2);
+  DEFINE_SIZE_STATIC (4);
 };
 
 struct MathConstants
@@ -90,7 +87,7 @@ struct MathConstants
     case HB_OT_MATH_CONSTANT_RADICAL_KERN_BEFORE_DEGREE:
     case HB_OT_MATH_CONSTANT_SKEWED_FRACTION_HORIZONTAL_GAP:
     case HB_OT_MATH_CONSTANT_SPACE_AFTER_SCRIPT:
-      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_value(font, true, this);
+      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_x_value(font, this);
 
     case HB_OT_MATH_CONSTANT_ACCENT_BASE_HEIGHT:
     case HB_OT_MATH_CONSTANT_AXIS_HEIGHT:
@@ -139,7 +136,7 @@ struct MathConstants
     case HB_OT_MATH_CONSTANT_UNDERBAR_VERTICAL_GAP:
     case HB_OT_MATH_CONSTANT_UPPER_LIMIT_BASELINE_RISE_MIN:
     case HB_OT_MATH_CONSTANT_UPPER_LIMIT_GAP_MIN:
-      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_value(font, false, this);
+      return mathValueRecords[constant - HB_OT_MATH_CONSTANT_MATH_LEADING].get_y_value(font, this);
 
     case HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN:
     case HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN:
@@ -147,6 +144,8 @@ struct MathConstants
 
     case HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT:
       return radicalDegreeBottomRaisePercent;
+    default:
+      return 0;
     }
   }
 
