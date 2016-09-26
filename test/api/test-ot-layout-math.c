@@ -161,35 +161,35 @@ test_get_math_constant (void)
 }
 
 static void
-test_get_math_italic_correction (void)
+test_get_math_italics_correction (void)
 {
   hb_codepoint_t glyph;
   initFreeType();
 
   openFont("fonts/MathTestFontEmpty.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // MathGlyphInfo not available
+  g_assert_cmpint(hb_ot_layout_get_math_italics_correction (hb_font, glyph), ==, 0); // MathGlyphInfo not available
   closeFont();
 
   openFont("fonts/MathTestFontPartial1.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // MathGlyphInfo empty
+  g_assert_cmpint(hb_ot_layout_get_math_italics_correction (hb_font, glyph), ==, 0); // MathGlyphInfo empty
   closeFont();
 
   openFont("fonts/MathTestFontPartial2.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // MathItalicsCorrectionInfo empty
+  g_assert_cmpint(hb_ot_layout_get_math_italics_correction (hb_font, glyph), ==, 0); // MathItalicsCorrectionInfo empty
   closeFont();
 
   openFont("fonts/MathTestFontFull.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "space", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 0); // Glyph without italic correction.
+  g_assert_cmpint(hb_ot_layout_get_math_italics_correction (hb_font, glyph), ==, 0); // Glyph without italic correction.
   g_assert(hb_font_get_glyph_from_name (hb_font, "A", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 197);
+  g_assert_cmpint(hb_ot_layout_get_math_italics_correction (hb_font, glyph), ==, 197);
   g_assert(hb_font_get_glyph_from_name (hb_font, "B", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 150);
+  g_assert_cmpint(hb_ot_layout_get_math_italics_correction (hb_font, glyph), ==, 150);
   g_assert(hb_font_get_glyph_from_name (hb_font, "C", -1, &glyph));
-  g_assert_cmpint(hb_ot_layout_get_math_italic_correction (hb_font, glyph), ==, 452);
+  g_assert_cmpint(hb_ot_layout_get_math_italics_correction (hb_font, glyph), ==, 452);
   closeFont();
 
   cleanupFreeType();
@@ -318,7 +318,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_has_math_data);
   hb_test_add (test_get_math_constant);
-  hb_test_add (test_get_math_italic_correction);
+  hb_test_add (test_get_math_italics_correction);
   hb_test_add (test_get_math_top_accent_attachment);
   hb_test_add (test_is_math_extended_shape);
   hb_test_add (test_get_math_kerning);

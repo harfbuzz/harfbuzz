@@ -173,13 +173,11 @@ struct MathItalicsCorrectionInfo
 		  italicsCorrection.sanitize (c, this));
   }
 
-  inline bool get_value (hb_font_t *font, hb_codepoint_t glyph,
-			 hb_position_t &value) const
+  inline hb_position_t get_value (hb_codepoint_t glyph,
+				  hb_font_t *font) const
   {
     unsigned int index = (this+coverage).get_coverage (glyph);
-    if (likely (index == NOT_COVERED)) return false;
-    if (unlikely (index >= italicsCorrection.len)) return false;
-    value = italicsCorrection[index].get_x_value(font, this);
+    return italicsCorrection[index].get_x_value (font, this);
     return true;
   }
 
@@ -367,9 +365,11 @@ struct MathGlyphInfo
 		  mathKernInfo.sanitize(c, this));
   }
 
-  inline const MathItalicsCorrectionInfo&
-  get_math_italics_correction_info (void) const {
-    return this+mathItalicsCorrectionInfo;
+  inline hb_position_t
+  get_italics_correction (hb_codepoint_t glyph,
+			  hb_font_t *font) const
+  {
+    return (this+mathItalicsCorrectionInfo).get_value (glyph, font);
   }
 
   inline const MathTopAccentAttachment&

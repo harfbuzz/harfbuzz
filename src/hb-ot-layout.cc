@@ -1270,26 +1270,21 @@ hb_ot_layout_get_math_constant (hb_font_t *font,
 }
 
 /**
- * hb_ot_layout_get_math_italic_correction:
+ * hb_ot_layout_get_math_italics_correction:
  *
  * @font: #hb_font_t from which to retrieve the value
  * @glyph: glyph index from which to retrieve the value
  *
- * Return value: the italic correction of the glyph or 0
+ * Return value: the italics correction of the glyph or 0
  *
  * Since: 1.4
  **/
 HB_EXTERN hb_position_t
-hb_ot_layout_get_math_italic_correction (hb_font_t *font,
-					 hb_codepoint_t glyph)
+hb_ot_layout_get_math_italics_correction (hb_font_t *font,
+					  hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (font->face);
-  const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
-  hb_position_t value;
-  if (glyphInfo.get_math_italics_correction_info().get_value(font, glyph, value))
-    return value;
-  else
-    return 0;
+  return math.get_math_glyph_info().get_italics_correction (glyph, font);
 }
 
 /**
@@ -1330,7 +1325,7 @@ hb_ot_layout_is_math_extended_shape (hb_face_t *face,
 				     hb_codepoint_t glyph)
 {
   const OT::MATH &math = _get_math (face);
-  return math.get_math_glyph_info().is_extended_shape(glyph);
+  return math.get_math_glyph_info().is_extended_shape (glyph);
 }
 
 /**
