@@ -252,20 +252,24 @@ struct MathKern
   {
     const MathValueRecord* correctionHeight = mathValueRecords;
     const MathValueRecord* kernValue = mathValueRecords + heightCount;
-    // The description of the MathKern table is a ambiguous, but interpreting
-    // "between the two heights found at those indexes" for 0 < i < len as
-    //
-    //   correctionHeight[i-1] < correction_height <= correctionHeight[i]
-    //
-    // makes the result consistent with the limit cases and we can just use the
-    // binary search algorithm of std::upper_bound:
-    unsigned int count = heightCount;
+    int sign = font->y_scale < 0 ? -1 : +1;
+
+    /* The description of the MathKern table is a ambiguous, but interpreting
+     * "between the two heights found at those indexes" for 0 < i < len as
+     *
+     *   correctionHeight[i-1] < correction_height <= correctionHeight[i]
+     *
+     * makes the result consistent with the limit cases and we can just use the
+     * binary search algorithm of std::upper_bound:
+     */
     unsigned int i = 0;
-    while (count > 0) {
+    unsigned int count = heightCount;
+    while (count > 0)
+    {
       unsigned int half = count / 2;
-      hb_position_t height =
-	correctionHeight[i + half].get_y_value(font, this);
-      if (height < correction_height) {
+      hb_position_t height = correctionHeight[i + half].get_y_value(font, this);
+      if (sign * height < sign * correction_height)
+      {
 	i += half + 1;
 	count -= half + 1;
       } else
@@ -279,9 +283,11 @@ protected:
   MathValueRecord mathValueRecords[VAR]; /* Array of correction heights at
 					  * which the kern value changes.
 					  * Sorted by the height value in
-					  * design units. */
-					 /* Array of kern values corresponding
-					  * to heights. */
+					  * design units (heightCount entries),
+					  * Followed by:
+					  * Array of kern values corresponding
+					  * to heights. (heightCount+1 entries).
+					  */
 
 public:
   DEFINE_SIZE_ARRAY (2, mathValueRecords);
