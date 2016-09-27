@@ -33,6 +33,33 @@
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect1">
+<a name="harfbuzz-hb-deprecated.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="harfbuzz-hb-deprecated.html#hb-font-funcs-set-glyph-func" title="hb_font_funcs_set_glyph_func ()">hb_font_funcs_set_glyph_func</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="harfbuzz-hb-deprecated.html#hb-font-get-glyph-func-t" title="hb_font_get_glyph_func_t ()">*hb_font_get_glyph_func_t</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="harfbuzz-hb-deprecated.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table width="100%" border="0">
 <colgroup>
@@ -65,6 +92,52 @@
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-deprecated.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="hb-font-funcs-set-glyph-func"></a><h3>hb_font_funcs_set_glyph_func ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+hb_font_funcs_set_glyph_func (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-t"><span class="type">hb_font_funcs_t</span></a> *ffuncs</code></em>,
+                              <em class="parameter"><code><a class="link" href="harfbuzz-hb-deprecated.html#hb-font-get-glyph-func-t" title="hb_font_get_glyph_func_t ()"><span class="type">hb_font_get_glyph_func_t</span></a> func</code></em>,
+                              <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
+                              <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-destroy-func-t" title="hb_destroy_func_t ()"><span class="type">hb_destroy_func_t</span></a> destroy</code></em>);</pre>
+<div class="warning"><p><code class="literal">hb_font_funcs_set_glyph_func</code> has been deprecated since version 1.2.3 and should not be used in newly-written code.</p></div>
+<p>Deprecated.  Use <a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-set-nominal-glyph-func" title="hb_font_funcs_set_nominal_glyph_func ()"><code class="function">hb_font_funcs_set_nominal_glyph_func()</code></a> and
+<a class="link" href="harfbuzz-hb-font.html#hb-font-funcs-set-variation-glyph-func" title="hb_font_funcs_set_variation_glyph_func ()"><code class="function">hb_font_funcs_set_variation_glyph_func()</code></a> instead.</p>
+<div class="refsect3">
+<a name="id-1.3.3.11.7.2.7"></a><h4>Parameters</h4>
+<div class="informaltable"><table width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>ffuncs</p></td>
+<td class="parameter_description"><p>font functions.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>func</p></td>
+<td class="parameter_description"><p>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym> user_data][<acronym title="This parameter is a 'destroy_data', for callbacks."><span class="acronym">destroy</span></acronym> destroy][<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since 0.9.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="hb-font-get-glyph-func-t"></a><h3>hb_font_get_glyph_func_t ()</h3>
+<pre class="programlisting"><a class="link" href="harfbuzz-hb-common.html#hb-bool-t" title="hb_bool_t"><span class="returnvalue">hb_bool_t</span></a>
+<span class="c_punctuation">(</span>*hb_font_get_glyph_func_t<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="harfbuzz-hb-font.html#hb-font-t"><span class="type">hb_font_t</span></a> *font</code></em>,
+                             <em class="parameter"><code><span class="type">void</span> *font_data</code></em>,
+                             <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> unicode</code></em>,
+                             <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> variation_selector</code></em>,
+                             <em class="parameter"><code><a class="link" href="harfbuzz-hb-common.html#hb-codepoint-t" title="hb_codepoint_t"><span class="type">hb_codepoint_t</span></a> *glyph</code></em>,
+                             <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+<div class="warning"><p><code class="literal">hb_font_get_glyph_func_t</code> is deprecated and should not be used in newly-written code.</p></div>
+</div>
 </div>
 <div class="refsect1">
 <a name="harfbuzz-hb-deprecated.other_details"></a><h2>Types and Values</h2>
