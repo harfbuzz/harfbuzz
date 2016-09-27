@@ -43,10 +43,20 @@ endif
 
 
 if HAVE_OT
+
 TEST_PROGS += \
 	test-ot-tag \
 	$(NULL)
-endif
+
+if HAVE_FREETYPE
+TEST_PROGS += \
+	test-ot-math \
+	$(NULL)
+test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
+test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
+endif # HAVE_FREETYPE
+
+endif # HAVE_OT
 
 # Tests for header compilation
 TEST_PROGS += \
@@ -73,6 +83,8 @@ TESTS_ENVIRONMENT = \
 	G_DEBUG=gc-friendly \
 	G_SLICE=always-malloc \
 	srcdir=$(srcdir) \
+	G_TEST_SRCDIR=$(abs_srcdir) \
+	G_TEST_BUILDDIR=$(abs_builddir) \
 	$(NULL)
 
 
