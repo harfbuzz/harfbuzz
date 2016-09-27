@@ -1352,6 +1352,26 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
   return math.get_math_glyph_info().get_kerning (glyph, kern, correction_height, font);
 }
 
+/**
+ * hb_ot_math_get_glyph_variants:
+ *
+ * @font: #hb_font_t from which to retrieve the values
+ * @glyph: index of the glyph to stretch
+ * @direction: direction of the stretching
+ * @start_offset: offset of the first variant to retrieve
+ * @variants_count: maximum number of variants to retrieve after start_offset
+ * (IN) and actual number of variants retrieved (OUT)
+ * @variants: array of size at least @variants_count to store the result
+ *
+ * This function tries to retrieve the MathGlyphConstruction for the specified
+ * font, glyph and direction. Note that only the value of
+ * #HB_DIRECTION_IS_HORIZONTAL is considered. It provides the corresponding list
+ * of size variants as an array of hb_math_glyph_variant_t structs.
+ *
+ * Return value: the total number of size variants available or 0
+ *
+ * Since: 1.4
+ **/
 unsigned int
 hb_ot_math_get_glyph_variants (hb_font_t *font,
 			       hb_codepoint_t glyph,
@@ -1367,6 +1387,21 @@ hb_ot_math_get_glyph_variants (hb_font_t *font,
 						      variants);
 }
 
+/**
+ * hb_ot_math_get_min_connector_overlap:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @direction: direction of the stretching
+ *
+ * This function tries to retrieve the MathVariants table for the specified
+ * font and returns the minimum overlap of connecting glyphs to draw a glyph
+ * assembly in the specified direction. Note that only the value of
+ * #HB_DIRECTION_IS_HORIZONTAL is considered.
+ *
+ * Return value: requested min connector overlap or 0
+ *
+ * Since: 1.4
+ **/
 hb_position_t
 hb_ot_math_get_min_connector_overlap (hb_font_t *font,
 				      hb_direction_t direction)
@@ -1375,6 +1410,27 @@ hb_ot_math_get_min_connector_overlap (hb_font_t *font,
   return math.get_math_variants().get_min_connector_overlap (direction, font);
 }
 
+/**
+ * hb_ot_math_get_glyph_assembly:
+ *
+ * @font: #hb_font_t from which to retrieve the values
+ * @glyph: index of the glyph to stretch
+ * @direction: direction of the stretching
+ * @start_offset: offset of the first glyph part to retrieve
+ * @parts_count: maximum number of glyph parts to retrieve after start_offset
+ * (IN) and actual number of parts retrieved (OUT)
+ * @parts: array of size at least @parts_count to store the result
+ * @italics_correction: italic correction of the glyph assembly
+ *
+ * This function tries to retrieve the GlyphAssembly for the specified font,
+ * glyph and direction. Note that only the value of #HB_DIRECTION_IS_HORIZONTAL
+ * is considered. It provides the information necessary to draw the glyph
+ * assembly as an array of #hb_math_glyph_part_t.
+ *
+ * Return value: the total number of parts in the glyph assembly
+ *
+ * Since: 1.4
+ **/
 unsigned int
 hb_ot_math_get_glyph_assembly (hb_font_t *font,
 			       hb_codepoint_t glyph,
