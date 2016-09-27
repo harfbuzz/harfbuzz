@@ -144,6 +144,8 @@ uint8_t
 HB_BUFFER_FLAGS_DEFAULT
 HB_BUFFER_SERIALIZE_FLAGS_DEFAULT
 HB_SCRIPT_CANADIAN_ABORIGINAL
+hb_font_funcs_set_glyph_func
+hb_font_get_glyph_func_t
 </SECTION>
 
 <SECTION>
@@ -193,7 +195,6 @@ hb_font_funcs_reference
 hb_font_funcs_set_glyph_contour_point_func
 hb_font_funcs_set_glyph_extents_func
 hb_font_funcs_set_glyph_from_name_func
-hb_font_funcs_set_glyph_func
 hb_font_funcs_set_glyph_h_advance_func
 hb_font_funcs_set_glyph_h_kerning_func
 hb_font_funcs_set_glyph_h_origin_func
@@ -201,7 +202,9 @@ hb_font_funcs_set_glyph_name_func
 hb_font_funcs_set_glyph_v_advance_func
 hb_font_funcs_set_glyph_v_kerning_func
 hb_font_funcs_set_glyph_v_origin_func
+hb_font_funcs_set_nominal_glyph_func
 hb_font_funcs_set_user_data
+hb_font_funcs_set_variation_glyph_func
 hb_font_funcs_t
 hb_font_get_empty
 hb_font_get_face
@@ -216,7 +219,6 @@ hb_font_get_glyph_extents_for_origin
 hb_font_get_glyph_extents_func_t
 hb_font_get_glyph_from_name
 hb_font_get_glyph_from_name_func_t
-hb_font_get_glyph_func_t
 hb_font_get_glyph_h_advance
 hb_font_get_glyph_h_advance_func_t
 hb_font_get_glyph_h_kerning
@@ -235,10 +237,14 @@ hb_font_get_glyph_v_kerning
 hb_font_get_glyph_v_kerning_func_t
 hb_font_get_glyph_v_origin
 hb_font_get_glyph_v_origin_func_t
+hb_font_get_nominal_glyph
+hb_font_get_nominal_glyph_func_t
 hb_font_get_parent
 hb_font_get_ppem
 hb_font_get_scale
 hb_font_get_user_data
+hb_font_get_variation_glyph
+hb_font_get_variation_glyph_func_t
 hb_font_glyph_from_string
 hb_font_glyph_to_string
 hb_font_is_immutable
@@ -414,6 +420,26 @@ hb_ot_layout_language_get_required_feature_index
 Xhb_ot_layout_lookup_enumerate_sequences
 Xhb_ot_layout_lookup_position
 Xhb_ot_layout_lookup_substitute
+</SECTION>
+
+<SECTION>
+<FILE>hb-ot-math</FILE>
+HB_OT_TAG_MATH
+HB_OT_MATH_SCRIPT
+hb_math_glyph_part_flags_t
+hb_math_glyph_part_t
+hb_math_glyph_variant_t
+hb_ot_math_constant_t
+hb_ot_math_get_constant
+hb_ot_math_get_glyph_assembly
+hb_ot_math_get_glyph_italics_correction
+hb_ot_math_get_glyph_kerning
+hb_ot_math_get_glyph_top_accent_attachment
+hb_ot_math_get_glyph_variants
+hb_ot_math_get_min_connector_overlap
+hb_ot_math_has_data
+hb_ot_math_is_glyph_extended_shape
+hb_ot_math_kern_t
 </SECTION>
 
 <SECTION>
