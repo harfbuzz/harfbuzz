@@ -57,7 +57,6 @@
         <sub name="hb-ot-tag" link="harfbuzz-hb-ot-tag.html"/>
         <sub name="hb-ot-font" link="harfbuzz-hb-ot-font.html"/>
         <sub name="hb-ot-shape" link="harfbuzz-hb-ot-shape.html"/>
-        <sub name="hb-ot-math" link="harfbuzz-hb-ot-math.html"/>
         <sub name="hb-shape-plan" link="harfbuzz-hb-shape-plan.html"/>
         <sub name="hb-glib" link="harfbuzz-hb-glib.html"/>
         <sub name="hb-icu" link="harfbuzz-hb-icu.html"/>
@@ -87,8 +86,6 @@
       <sub name="Index of new symbols in 1.0.5" link="api-index-1-0-5.html"/>
       <sub name="Index of new symbols in 1.1.2" link="api-index-1-1-2.html"/>
       <sub name="Index of new symbols in 1.1.3" link="api-index-1-1-3.html"/>
-      <sub name="Index of new symbols in 1.2.3" link="api-index-1-2-3.html"/>
-      <sub name="Index of new symbols in 1.4.0" link="api-index-1-4-0.html"/>
       <sub name="Index of deprecated API" link="deprecated-api-index.html"/>
       <sub name="Annotation Glossary" link="annotation-glossary.html"/>
     </sub>
@@ -273,6 +270,7 @@
     <keyword type="function" name="hb_font_funcs_set_glyph_contour_point_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-contour-point-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_extents_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-extents-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_from_name_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-from-name-func" since="0.9.2"/>
+    <keyword type="function" name="hb_font_funcs_set_glyph_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-func" deprecated="1.2.3" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_h_advance_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-h-advance-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_h_kerning_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-h-kerning-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_h_origin_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-h-origin-func" since="0.9.2"/>
@@ -280,9 +278,7 @@
     <keyword type="function" name="hb_font_funcs_set_glyph_v_advance_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-v-advance-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_v_kerning_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-v-kerning-func" since="0.9.2"/>
     <keyword type="function" name="hb_font_funcs_set_glyph_v_origin_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-glyph-v-origin-func" since="0.9.2"/>
-    <keyword type="function" name="hb_font_funcs_set_nominal_glyph_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-nominal-glyph-func" since="1.2.3"/>
     <keyword type="function" name="hb_font_funcs_set_user_data ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-user-data" since="0.9.2"/>
-    <keyword type="function" name="hb_font_funcs_set_variation_glyph_func ()" link="harfbuzz-hb-font.html#hb-font-funcs-set-variation-glyph-func" since="1.2.3"/>
     <keyword type="function" name="hb_font_get_empty ()" link="harfbuzz-hb-font.html#hb-font-get-empty" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_face ()" link="harfbuzz-hb-font.html#hb-font-get-face" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph ()" link="harfbuzz-hb-font.html#hb-font-get-glyph" since="0.9.2"/>
@@ -296,6 +292,7 @@
     <keyword type="function" name="hb_font_get_glyph_extents_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-extents-func-t"/>
     <keyword type="function" name="hb_font_get_glyph_from_name ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-from-name" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_from_name_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-from-name-func-t"/>
+    <keyword type="function" name="hb_font_get_glyph_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-func-t" deprecated=""/>
     <keyword type="function" name="hb_font_get_glyph_h_advance ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-advance" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_h_kerning ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-kerning" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_h_origin ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-h-origin" since="0.9.2"/>
@@ -308,14 +305,10 @@
     <keyword type="function" name="hb_font_get_glyph_v_advance ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-v-advance" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_v_kerning ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-v-kerning" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_glyph_v_origin ()" link="harfbuzz-hb-font.html#hb-font-get-glyph-v-origin" since="0.9.2"/>
-    <keyword type="function" name="hb_font_get_nominal_glyph ()" link="harfbuzz-hb-font.html#hb-font-get-nominal-glyph" since="1.2.3"/>
-    <keyword type="function" name="hb_font_get_nominal_glyph_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-nominal-glyph-func-t"/>
     <keyword type="function" name="hb_font_get_parent ()" link="harfbuzz-hb-font.html#hb-font-get-parent" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_ppem ()" link="harfbuzz-hb-font.html#hb-font-get-ppem" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_scale ()" link="harfbuzz-hb-font.html#hb-font-get-scale" since="0.9.2"/>
     <keyword type="function" name="hb_font_get_user_data ()" link="harfbuzz-hb-font.html#hb-font-get-user-data" since="0.9.2"/>
-    <keyword type="function" name="hb_font_get_variation_glyph ()" link="harfbuzz-hb-font.html#hb-font-get-variation-glyph" since="1.2.3"/>
-    <keyword type="function" name="hb_font_get_variation_glyph_func_t ()" link="harfbuzz-hb-font.html#hb-font-get-variation-glyph-func-t"/>
     <keyword type="function" name="hb_font_glyph_from_string ()" link="harfbuzz-hb-font.html#hb-font-glyph-from-string" since="0.9.2"/>
     <keyword type="function" name="hb_font_glyph_to_string ()" link="harfbuzz-hb-font.html#hb-font-glyph-to-string" since="0.9.2"/>
     <keyword type="function" name="hb_font_is_immutable ()" link="harfbuzz-hb-font.html#hb-font-is-immutable" since="0.9.2"/>
@@ -359,8 +352,6 @@
     <keyword type="macro" name="HB_VERSION_MICRO" link="harfbuzz-hb-version.html#HB-VERSION-MICRO:CAPS"/>
     <keyword type="macro" name="HB_VERSION_MINOR" link="harfbuzz-hb-version.html#HB-VERSION-MINOR:CAPS"/>
     <keyword type="macro" name="HB_VERSION_STRING" link="harfbuzz-hb-version.html#HB-VERSION-STRING:CAPS"/>
-    <keyword type="function" name="hb_font_funcs_set_glyph_func ()" link="harfbuzz-hb-deprecated.html#hb-font-funcs-set-glyph-func" deprecated="1.2.3" since="0.9.2"/>
-    <keyword type="function" name="hb_font_get_glyph_func_t ()" link="harfbuzz-hb-deprecated.html#hb-font-get-glyph-func-t" deprecated=""/>
     <keyword type="macro" name="HB_BUFFER_FLAGS_DEFAULT" link="harfbuzz-hb-deprecated.html#HB-BUFFER-FLAGS-DEFAULT:CAPS" deprecated=""/>
     <keyword type="macro" name="HB_BUFFER_SERIALIZE_FLAGS_DEFAULT" link="harfbuzz-hb-deprecated.html#HB-BUFFER-SERIALIZE-FLAGS-DEFAULT:CAPS" deprecated=""/>
     <keyword type="macro" name="HB_SCRIPT_CANADIAN_ABORIGINAL" link="harfbuzz-hb-deprecated.html#HB-SCRIPT-CANADIAN-ABORIGINAL:CAPS" deprecated=""/>
@@ -435,22 +426,6 @@
     <keyword type="macro" name="HB_OT_TAG_DEFAULT_SCRIPT" link="harfbuzz-hb-ot-tag.html#HB-OT-TAG-DEFAULT-SCRIPT:CAPS"/>
     <keyword type="function" name="hb_ot_font_set_funcs ()" link="harfbuzz-hb-ot-font.html#hb-ot-font-set-funcs" since="0.9.28"/>
     <keyword type="function" name="hb_ot_shape_glyphs_closure ()" link="harfbuzz-hb-ot-shape.html#hb-ot-shape-glyphs-closure" since="0.9.2"/>
-    <keyword type="function" name="hb_ot_math_get_constant ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-get-constant" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_get_glyph_assembly ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-get-glyph-assembly" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_get_glyph_italics_correction ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-get-glyph-italics-correction" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_get_glyph_kerning ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-get-glyph-kerning" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_get_glyph_top_accent_attachment ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-get-glyph-top-accent-attachment" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_get_glyph_variants ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-get-glyph-variants" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_get_min_connector_overlap ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-get-min-connector-overlap" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_has_data ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-has-data" since="1.4.0"/>
-    <keyword type="function" name="hb_ot_math_is_glyph_extended_shape ()" link="harfbuzz-hb-ot-math.html#hb-ot-math-is-glyph-extended-shape" since="1.4.0"/>
-    <keyword type="macro" name="HB_OT_TAG_MATH" link="harfbuzz-hb-ot-math.html#HB-OT-TAG-MATH:CAPS"/>
-    <keyword type="macro" name="HB_OT_MATH_SCRIPT" link="harfbuzz-hb-ot-math.html#HB-OT-MATH-SCRIPT:CAPS"/>
-    <keyword type="enum" name="enum hb_ot_math_constant_t" link="harfbuzz-hb-ot-math.html#hb-ot-math-constant-t" since="1.4.0"/>
-    <keyword type="enum" name="enum hb_ot_math_glyph_part_flags_t" link="harfbuzz-hb-ot-math.html#hb-ot-math-glyph-part-flags-t" since="1.4.0"/>
-    <keyword type="struct" name="hb_ot_math_glyph_part_t" link="harfbuzz-hb-ot-math.html#hb-ot-math-glyph-part-t" since="1.4.0"/>
-    <keyword type="struct" name="hb_ot_math_glyph_variant_t" link="harfbuzz-hb-ot-math.html#hb-ot-math-glyph-variant-t" since="1.4.0"/>
-    <keyword type="enum" name="enum hb_ot_math_kern_t" link="harfbuzz-hb-ot-math.html#hb-ot-math-kern-t" since="1.4.0"/>
     <keyword type="function" name="hb_shape_plan_create ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-create"/>
     <keyword type="function" name="hb_shape_plan_create_cached ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-create-cached" since="0.9.7"/>
     <keyword type="function" name="hb_shape_plan_destroy ()" link="harfbuzz-hb-shape-plan.html#hb-shape-plan-destroy" since="0.9.7"/>
