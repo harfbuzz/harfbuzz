@@ -47,6 +47,11 @@ HB_BEGIN_DECLS
 
 /* Types */
 
+/**
+ * hb_ot_math_constant_t:
+ *
+ * Since: 1.4.0
+ */
 typedef enum {
   HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN = 0,
   HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN = 1,
@@ -106,6 +111,11 @@ typedef enum {
   HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT = 55
 } hb_ot_math_constant_t;
 
+/**
+ * hb_ot_math_kern_t:
+ *
+ * Since: 1.4.0
+ */
 typedef enum {
   HB_OT_MATH_KERN_TOP_RIGHT = 0,
   HB_OT_MATH_KERN_TOP_LEFT = 1,
@@ -113,15 +123,30 @@ typedef enum {
   HB_OT_MATH_KERN_BOTTOM_LEFT = 3
 } hb_ot_math_kern_t;
 
+/**
+ * hb_ot_math_glyph_variant_t:
+ *
+ * Since: 1.4.0
+ */
 typedef struct hb_ot_math_glyph_variant_t {
   hb_codepoint_t glyph;
   hb_position_t advance;
 } hb_ot_math_glyph_variant_t;
 
+/**
+ * hb_ot_math_glyph_part_flags_t:
+ *
+ * Since: 1.4.0
+ */
 typedef enum { /*< flags >*/
   HB_MATH_GLYPH_PART_FLAG_EXTENDER	= 0x00000001u  /* Extender glyph */
 } hb_ot_math_glyph_part_flags_t;
 
+/**
+ * hb_ot_math_glyph_part_t:
+ *
+ * Since: 1.4.0
+ */
 typedef struct hb_ot_math_glyph_part_t {
   hb_codepoint_t glyph;
   hb_position_t start_connector_length;
