@@ -426,10 +426,10 @@ Xhb_ot_layout_lookup_substitute
 <FILE>hb-ot-math</FILE>
 HB_OT_TAG_MATH
 HB_OT_MATH_SCRIPT
-hb_math_glyph_part_flags_t
-hb_math_glyph_part_t
-hb_math_glyph_variant_t
 hb_ot_math_constant_t
+hb_ot_math_glyph_part_flags_t
+hb_ot_math_glyph_part_t
+hb_ot_math_glyph_variant_t
 hb_ot_math_get_constant
 hb_ot_math_get_glyph_assembly
 hb_ot_math_get_glyph_italics_correction

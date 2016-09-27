@@ -113,22 +113,22 @@ typedef enum {
   HB_OT_MATH_KERN_BOTTOM_LEFT = 3
 } hb_ot_math_kern_t;
 
-typedef struct hb_math_glyph_variant_t {
+typedef struct hb_ot_math_glyph_variant_t {
   hb_codepoint_t glyph;
   hb_position_t advance;
-} hb_math_glyph_variant_t;
+} hb_ot_math_glyph_variant_t;
 
 typedef enum { /*< flags >*/
   HB_MATH_GLYPH_PART_FLAG_EXTENDER	= 0x00000001u  /* Extender glyph */
-} hb_math_glyph_part_flags_t;
+} hb_ot_math_glyph_part_flags_t;
 
-typedef struct hb_math_glyph_part_t {
+typedef struct hb_ot_math_glyph_part_t {
   hb_codepoint_t glyph;
   hb_position_t start_connector_length;
   hb_position_t end_connector_length;
   hb_position_t full_advance;
-  hb_math_glyph_part_flags_t flags;
-} hb_math_glyph_part_t;
+  hb_ot_math_glyph_part_flags_t flags;
+} hb_ot_math_glyph_part_t;
 
 /* Methods */
 
@@ -163,7 +163,7 @@ hb_ot_math_get_glyph_variants (hb_font_t *font,
 			       hb_direction_t direction,
 			       unsigned int start_offset,
 			       unsigned int *variants_count, /* IN/OUT */
-			       hb_math_glyph_variant_t *variants /* OUT */);
+			       hb_ot_math_glyph_variant_t *variants /* OUT */);
 
 HB_EXTERN hb_position_t
 hb_ot_math_get_min_connector_overlap (hb_font_t *font,
@@ -175,7 +175,7 @@ hb_ot_math_get_glyph_assembly (hb_font_t *font,
 			       hb_direction_t direction,
 			       unsigned int start_offset,
 			       unsigned int *parts_count, /* IN/OUT */
-			       hb_math_glyph_part_t *parts, /* OUT */
+			       hb_ot_math_glyph_part_t *parts, /* OUT */
 			       hb_position_t *italics_correction /* OUT */);
 
 

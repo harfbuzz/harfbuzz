@@ -453,7 +453,7 @@ struct MathGlyphPartRecord
     return_trace (c->check_struct (this));
   }
 
-  inline void extract (hb_math_glyph_part_t &out,
+  inline void extract (hb_ot_math_glyph_part_t &out,
 		       int scale,
 		       hb_font_t *font) const
   {
@@ -466,7 +466,7 @@ struct MathGlyphPartRecord
     ASSERT_STATIC ((unsigned int) HB_MATH_GLYPH_PART_FLAG_EXTENDER ==
 		   (unsigned int) PartFlags::Extender);
 
-    out.flags = (hb_math_glyph_part_flags_t)
+    out.flags = (hb_ot_math_glyph_part_flags_t)
 		(unsigned int)
 		(partFlags & PartFlags::Defined);
   }
@@ -504,7 +504,7 @@ struct MathGlyphAssembly
 				 hb_font_t *font,
 				 unsigned int start_offset,
 				 unsigned int *parts_count, /* IN/OUT */
-				 hb_math_glyph_part_t *parts /* OUT */,
+				 hb_ot_math_glyph_part_t *parts /* OUT */,
 				 hb_position_t *italics_correction /* OUT */) const
   {
     if (parts_count)
@@ -552,7 +552,7 @@ struct MathGlyphConstruction
 				    hb_font_t *font,
 				    unsigned int start_offset,
 				    unsigned int *variants_count, /* IN/OUT */
-				    hb_math_glyph_variant_t *variants /* OUT */) const
+				    hb_ot_math_glyph_variant_t *variants /* OUT */) const
   {
     if (variants_count)
     {
@@ -613,7 +613,7 @@ struct MathVariants
 					  hb_font_t *font,
 					  unsigned int start_offset,
 					  unsigned int *variants_count, /* IN/OUT */
-					  hb_math_glyph_variant_t *variants /* OUT */) const
+					  hb_ot_math_glyph_variant_t *variants /* OUT */) const
   { return get_glyph_construction (glyph, direction, font)
 	   .get_variants (direction, font, start_offset, variants_count, variants); }
 
@@ -622,7 +622,7 @@ struct MathVariants
 				       hb_font_t *font,
 				       unsigned int start_offset,
 				       unsigned int *parts_count, /* IN/OUT */
-				       hb_math_glyph_part_t *parts /* OUT */,
+				       hb_ot_math_glyph_part_t *parts /* OUT */,
 				       hb_position_t *italics_correction /* OUT */) const
   { return get_glyph_construction (glyph, direction, font)
 	   .get_assembly ()

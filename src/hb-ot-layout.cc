@@ -1366,7 +1366,7 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
  * This function tries to retrieve the MathGlyphConstruction for the specified
  * font, glyph and direction. Note that only the value of
  * #HB_DIRECTION_IS_HORIZONTAL is considered. It provides the corresponding list
- * of size variants as an array of hb_math_glyph_variant_t structs.
+ * of size variants as an array of hb_ot_math_glyph_variant_t structs.
  *
  * Return value: the total number of size variants available or 0
  *
@@ -1378,7 +1378,7 @@ hb_ot_math_get_glyph_variants (hb_font_t *font,
 			       hb_direction_t direction,
 			       unsigned int start_offset,
 			       unsigned int *variants_count, /* IN/OUT */
-			       hb_math_glyph_variant_t *variants /* OUT */)
+			       hb_ot_math_glyph_variant_t *variants /* OUT */)
 {
   const OT::MATH &math = _get_math (font->face);
   return math.get_math_variants().get_glyph_variants (glyph, direction, font,
@@ -1425,7 +1425,7 @@ hb_ot_math_get_min_connector_overlap (hb_font_t *font,
  * This function tries to retrieve the GlyphAssembly for the specified font,
  * glyph and direction. Note that only the value of #HB_DIRECTION_IS_HORIZONTAL
  * is considered. It provides the information necessary to draw the glyph
- * assembly as an array of #hb_math_glyph_part_t.
+ * assembly as an array of #hb_ot_math_glyph_part_t.
  *
  * Return value: the total number of parts in the glyph assembly
  *
@@ -1437,7 +1437,7 @@ hb_ot_math_get_glyph_assembly (hb_font_t *font,
 			       hb_direction_t direction,
 			       unsigned int start_offset,
 			       unsigned int *parts_count, /* IN/OUT */
-			       hb_math_glyph_part_t *parts, /* OUT */
+			       hb_ot_math_glyph_part_t *parts, /* OUT */
 			       hb_position_t *italics_correction /* OUT */)
 {
   const OT::MATH &math = _get_math (font->face);

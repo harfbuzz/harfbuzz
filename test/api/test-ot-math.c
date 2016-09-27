@@ -459,7 +459,7 @@ test_get_glyph_variants (void)
                                                  NULL), ==, 0);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowleft", -1, &glyph));
-  hb_math_glyph_variant_t variants[20];
+  hb_ot_math_glyph_variant_t variants[20];
   unsigned variantsSize = sizeof (variants) / sizeof (variants[0]);
   unsigned int count;
   unsigned int offset = 0;
@@ -586,7 +586,7 @@ test_get_glyph_assembly (void)
                                                  NULL), ==, 0);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowright", -1, &glyph));
-  hb_math_glyph_part_t parts[20];
+  hb_ot_math_glyph_part_t parts[20];
   unsigned partsSize = sizeof (parts) / sizeof (parts[0]);
   unsigned int count;
   unsigned int offset = 0;
