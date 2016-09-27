@@ -307,6 +307,16 @@ GRAPHITE2_DEPS="graphite2"
 AC_SUBST(GRAPHITE2_DEPS)
 if test "x$with_graphite2" = "xyes" -o "x$with_graphite2" = "xauto"; then
 	PKG_CHECK_MODULES(GRAPHITE2, $GRAPHITE2_DEPS, have_graphite2=true, :)
+	if test "x$have_graphite2" != "xtrue"; then
+                # If pkg-config is not available, graphite2 can still be there
+		ac_save_CFLAGS="$CFLAGS"
+		ac_save_CPPFLAGS="$CPPFLAGS"
+		CFLAGS="$CFLAGS $GRAPHITE2_CFLAGS"
+		CPPFLAGS="$CPPFLAGS $GRAPHITE2_CFLAGS"
+		AC_CHECK_HEADER(graphite2/Segment.h, have_graphite2=true, :)
+		CPPFLAGS="$ac_save_CPPFLAGS"
+		CFLAGS="$ac_save_CFLAGS"
+	fi
 fi
 if test "x$with_graphite2" = "xyes" -a "x$have_graphite2" != "xtrue"; then
 	AC_MSG_ERROR([graphite2 support requested but libgraphite2 not found])
