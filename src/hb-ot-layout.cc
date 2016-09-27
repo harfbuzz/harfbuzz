@@ -35,6 +35,7 @@
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-jstf-table.hh"
+#include "hb-ot-layout-math-table.hh"
 
 #include "hb-ot-map-private.hh"
 
@@ -59,6 +60,10 @@ _hb_ot_layout_create (hb_face_t *face)
 
   layout->gpos_blob = OT::Sanitizer<OT::GPOS>::sanitize (face->reference_table (HB_OT_TAG_GPOS));
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
+
+  // The MATH table is rarer so we only try and load it in _get_math
+  layout->math_blob = NULL;
+  layout->math = NULL;
 
   {
     /*
@@ -178,6 +183,8 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
 
+  if (layout->math_blob) hb_blob_destroy (layout->math_blob);
+
   free (layout);
 }
 
@@ -198,6 +205,21 @@ _get_gpos (hb_face_t *face)
 {
   if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::GPOS);
   return *hb_ot_layout_from_face (face)->gpos;
+}
+static inline const OT::MATH&
+_get_math (hb_face_t *face)
+{
+  if (unlikely (!hb_ot_shaper_face_data_ensure (face))) return OT::Null(OT::MATH);
+
+  hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
+
+  // If the MATH table is not loaded yet, do it now.
+  if (!layout->math_blob) {
+    layout->math_blob = OT::Sanitizer<OT::MATH>::sanitize (face->reference_table (HB_OT_TAG_MATH));
+    layout->math = OT::Sanitizer<OT::MATH>::lock_instance (layout->math_blob);
+  }
+
+  return *layout->math;
 }
 
 
@@ -1190,3 +1212,218 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
 {
   apply_string<GSUBProxy> (c, lookup, accel);
 }
+
+/*
+ * OT::MATH
+ */
+
+/**
+ * hb_ot_layout_has_math_data:
+ *
+ * @face: #hb_face_t to test
+ *
+ * This function allows to verify the presence of an OpenType MATH table on the
+ * face. If so, such a table will be loaded into memory and sanitized. You can
+ * then safely call other functions for math layout and shaping.
+ *
+ * Return value: #TRUE if face has a MATH table and #FALSE otherwise
+ *
+ * Since: ????
+ **/
+hb_bool_t
+hb_ot_layout_has_math_data (hb_face_t *face)
+{
+  return &_get_math (face) != &OT::Null(OT::MATH);
+}
+
+/**
+ * hb_ot_layout_get_math_constant:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @constant: #hb_ot_math_constant_t the constant to retrieve
+ *
+ * This function returns the requested math constants as a #hb_position_t.
+ * If the request constant is HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN,
+ * HB_OT_MATH_CONSTANT_SCRIPT_SCRIPT_PERCENT_SCALE_DOWN or
+ * HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN then the return value is
+ * actually an integer between 0 and 100 representing that percentage.
+ *
+ * Return value: the requested constant or 0
+ *
+ * Since: ????
+ **/
+hb_position_t
+hb_ot_layout_get_math_constant (hb_font_t *font,
+                                hb_ot_math_constant_t constant)
+{
+  const OT::MATH &math = _get_math (font->face);
+  return math.has_math_constants() ?
+    math.get_math_constants().get_value(font, constant) : 0;
+}
+
+/**
+ * hb_ot_layout_get_math_italic_correction:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @glyph: glyph index from which to retrieve the value
+ *
+ * Return value: the italic correction of the glyph or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_italic_correction (hb_font_t *font,
+                                         hb_codepoint_t glyph)
+{
+  const OT::MATH &math = _get_math (font->face);
+  if (math.has_math_glyph_info()) {
+    const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
+    if (glyphInfo.has_math_italics_correction_info()) {
+      hb_position_t value;
+      if (glyphInfo.get_math_italics_correction_info().get_value(font, glyph,
+                                                                 value))
+        return value;
+    }
+  }
+  return 0;
+}
+
+/**
+ * hb_ot_layout_get_math_top_accent_attachment:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @glyph: glyph index from which to retrieve the value
+ *
+ * Return value: the top accent attachment of the glyph or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_top_accent_attachment (hb_font_t *font,
+                                             hb_codepoint_t glyph)
+{
+  const OT::MATH &math = _get_math (font->face);
+  if (math.has_math_glyph_info()) {
+    const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
+    if (glyphInfo.has_math_top_accent_attachment()) {
+      hb_position_t value;
+      if (glyphInfo.get_math_top_accent_attachment().get_value(font, glyph,
+                                                               value))
+        return value;
+    }
+  }
+  return 0;
+}
+
+/**
+ * hb_ot_layout_is_math_extended_shape:
+ *
+ * @font: a #hb_font_t to test
+ * @glyph: a glyph index to test
+ *
+ * Return value: #TRUE if the glyph is an extended shape and #FALSE otherwise
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_bool_t
+hb_ot_layout_is_math_extended_shape (hb_face_t *face,
+                                     hb_codepoint_t glyph)
+{
+  const OT::MATH &math = _get_math (face);
+  return math.has_math_glyph_info() &&
+    math.get_math_glyph_info().is_extended_shape(glyph);
+}
+
+/**
+ * hb_ot_layout_get_math_kerning:
+ *
+ * @font: #hb_font_t from which to retrieve the value
+ * @glyph: glyph index from which to retrieve the value
+ * @kern: the #hb_ot_math_kern_t from which to retrieve the value
+ * @correction_height: the correction height to use to determine the kerning.
+ *
+ * This function tries to retrieve the MathKern table for the specified font,
+ * glyph and #hb_ot_math_kern_t. Then it browses the list of heights from the
+ * MathKern table to find one value that is greater or equal to specified
+ * correction_height. If one is found the corresponding value from the list of
+ * kerns is returned and otherwise the last kern value is returned.
+ *
+ * Return value: requested kerning or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_kerning (hb_font_t *font,
+                               hb_codepoint_t glyph,
+                               hb_ot_math_kern_t kern,
+                               hb_position_t correction_height)
+{
+  const OT::MATH &math = _get_math (font->face);
+  if (math.has_math_glyph_info()) {
+    const OT::MathGlyphInfo &glyphInfo = math.get_math_glyph_info();
+    if (glyphInfo.has_math_kern_info()) {
+      const OT::MathKernInfo &kernInfo = glyphInfo.get_math_kern_info();
+      const OT::MathKernInfoRecord *kernInfoRecord;
+      if (kernInfo.get_math_kern_info_record(glyph, kernInfoRecord) &&
+          kernInfoRecord->has_math_kern(kern)) {
+        return kernInfoRecord->
+          get_math_kern(kern, &kernInfo).get_value(font, correction_height);
+      }
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * hb_ot_layout_get_math_italic_correction_for_glyph_assembly:
+ * @font: an #hb_font_t with an OpenType MATH table
+ * @base_glyph: index of the glyph to stretch
+ * @horizontal: direction of the stretching
+ *
+ * This function tries and get the italic correction associated to the glyph
+ * assembly used to stretch the base glyph in the specified direction.
+ *
+ * Return value: the italic correction of the glyph assembly or 0
+ *
+ * Since: ????
+ **/
+HB_EXTERN hb_position_t
+hb_ot_layout_get_math_italic_correction_for_glyph_assembly (hb_font_t *font,
+                                                            hb_codepoint_t base_glyph,
+                                                            hb_bool_t horizontal)
+{
+  const OT::MATH &math = _get_math (font->face);
+
+  if (math.has_math_variants()) {
+    const OT::MathGlyphConstruction* glyph_construction;
+    if (math.get_math_variants().
+        get_glyph_construction(base_glyph, horizontal, glyph_construction) &&
+        glyph_construction->has_glyph_assembly())
+      return glyph_construction->
+        get_glyph_assembly().get_italic_correction(font);
+  }
+
+  return 0;
+}
+
+HB_INTERNAL hb_bool_t
+hb_ot_layout_get_math_glyph_construction (hb_font_t    *font,
+                                          hb_codepoint_t glyph,
+                                          hb_bool_t horizontal,
+                                          hb_position_t &minConnectorOverlap,
+                                          const OT::MathGlyphConstruction *&glyph_construction)
+{
+  const OT::MATH &math = _get_math (font->face);
+
+  if (!math.has_math_variants()) return false;
+
+  const OT::MathVariants &mathVariants = math.get_math_variants();
+  if (!mathVariants.get_glyph_construction(glyph, horizontal,
+                                           glyph_construction)) return false;
+
+  minConnectorOverlap = mathVariants.get_min_connector_overlap(font, horizontal);
+
+  return true;
+}
+

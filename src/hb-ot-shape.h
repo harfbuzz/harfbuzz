@@ -48,6 +48,17 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 				  hb_tag_t         table_tag,
 				  hb_set_t        *lookup_indexes /* OUT */);
 
+HB_EXTERN hb_bool_t
+hb_ot_shape_math_stretchy (hb_font_t           *font,
+                           hb_buffer_t         *buffer,
+                           hb_bool_t           horizontal,
+                           hb_position_t       target_size);
+
+HB_EXTERN hb_position_t
+hb_ot_shape_math_stretchy_max_orthogonal_advance (hb_font_t     *font,
+                                                  hb_buffer_t   *buffer,
+                                                  hb_bool_t     horizontal);
+
 HB_END_DECLS
 
 #endif /* HB_OT_SHAPE_H */

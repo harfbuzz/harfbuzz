@@ -43,10 +43,29 @@ endif
 
 
 if HAVE_OT
+
 TEST_PROGS += \
 	test-ot-tag \
 	$(NULL)
-endif
+
+if HAVE_FREETYPE
+TEST_PROGS += \
+	test-ot-layout-math \
+	$(NULL)
+test_ot_layout_math_LDADD = $(LDADD)
+test_ot_layout_math_CPPFLAGS = $(AM_CPPFLAGS)
+test_ot_layout_math_CPPFLAGS += $(FREETYPE_CFLAGS)
+test_ot_layout_math_LDADD += $(FREETYPE_LIBS)
+TEST_PROGS += \
+	test-ot-shape-math \
+	$(NULL)
+test_ot_shape_math_LDADD = $(LDADD)
+test_ot_shape_math_CPPFLAGS = $(AM_CPPFLAGS)
+test_ot_shape_math_CPPFLAGS += $(FREETYPE_CFLAGS)
+test_ot_shape_math_LDADD += $(FREETYPE_LIBS)
+endif # HAVE_FREETYPE
+
+endif # HAVE_OT
 
 # Tests for header compilation
 TEST_PROGS += \
@@ -73,6 +92,8 @@ TESTS_ENVIRONMENT = \
 	G_DEBUG=gc-friendly \
 	G_SLICE=always-malloc \
 	srcdir=$(srcdir) \
+	G_TEST_SRCDIR=$(abs_srcdir) \
+	G_TEST_BUILDDIR=$(abs_builddir) \
 	$(NULL)
 
 
