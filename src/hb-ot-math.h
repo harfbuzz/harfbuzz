@@ -42,6 +42,9 @@ HB_BEGIN_DECLS
 
 #define HB_OT_TAG_MATH HB_TAG('M','A','T','H')
 
+/* Use with hb_buffer_set_script() for math shaping. */
+#define HB_OT_MATH_SCRIPT HB_TAG('m','a','t','h')
+
 /* Types */
 
 typedef enum {
