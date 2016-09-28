@@ -1650,7 +1650,7 @@ struct DeviceHeader
 
 struct Device
 {
-  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store) const
+  inline hb_position_t get_x_delta (hb_font_t *font, const VariationStore &store=Null(VariationStore)) const
   {
     switch (u.b.format)
     {
@@ -1662,7 +1662,7 @@ struct Device
       return 0;
     }
   }
-  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
+  inline hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store=Null(VariationStore)) const
   {
     switch (u.b.format)
     {
