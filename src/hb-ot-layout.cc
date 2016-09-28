@@ -1237,7 +1237,7 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
  *
  * Return value: #TRUE if face has a MATH table and #FALSE otherwise
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 hb_bool_t
 hb_ot_math_has_data (hb_face_t *face)
@@ -1258,7 +1258,7 @@ hb_ot_math_has_data (hb_face_t *face)
  *
  * Return value: the requested constant or 0
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 hb_position_t
 hb_ot_math_get_constant (hb_font_t *font,
@@ -1275,7 +1275,7 @@ hb_ot_math_get_constant (hb_font_t *font,
  *
  * Return value: the italics correction of the glyph or 0
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 hb_position_t
 hb_ot_math_get_glyph_italics_correction (hb_font_t *font,
@@ -1292,7 +1292,7 @@ hb_ot_math_get_glyph_italics_correction (hb_font_t *font,
  *
  * Return value: the top accent attachment of the glyph or 0
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 hb_position_t
 hb_ot_math_get_glyph_top_accent_attachment (hb_font_t *font,
@@ -1309,7 +1309,7 @@ hb_ot_math_get_glyph_top_accent_attachment (hb_font_t *font,
  *
  * Return value: #TRUE if the glyph is an extended shape and #FALSE otherwise
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 hb_bool_t
 hb_ot_math_is_glyph_extended_shape (hb_face_t *face,
@@ -1334,7 +1334,7 @@ hb_ot_math_is_glyph_extended_shape (hb_face_t *face,
  *
  * Return value: requested kerning or 0
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 hb_position_t
 hb_ot_math_get_glyph_kerning (hb_font_t *font,
@@ -1363,7 +1363,7 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
  *
  * Return value: the total number of size variants available or 0
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 unsigned int
 hb_ot_math_get_glyph_variants (hb_font_t *font,
@@ -1392,7 +1392,7 @@ hb_ot_math_get_glyph_variants (hb_font_t *font,
  *
  * Return value: requested min connector overlap or 0
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 hb_position_t
 hb_ot_math_get_min_connector_overlap (hb_font_t *font,
@@ -1420,7 +1420,7 @@ hb_ot_math_get_min_connector_overlap (hb_font_t *font,
  *
  * Return value: the total number of parts in the glyph assembly
  *
- * Since: 1.4.0
+ * Since: 1.3.3
  **/
 unsigned int
 hb_ot_math_get_glyph_assembly (hb_font_t *font,
