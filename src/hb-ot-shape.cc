@@ -69,6 +69,9 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 {
   hb_ot_map_builder_t *map = &planner->map;
 
+  map->add_global_bool_feature (HB_TAG('r','v','r','n'));
+  map->add_gsub_pause (NULL);
+
   switch (props->direction) {
     case HB_DIRECTION_LTR:
       map->add_global_bool_feature (HB_TAG ('l','t','r','a'));
