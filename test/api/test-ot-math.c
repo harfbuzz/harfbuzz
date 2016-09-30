@@ -54,7 +54,11 @@ cleanupFreeType (void)
 static void
 openFont(const char* fontFile)
 {
+#if GLIB_CHECK_VERSION(2,37,2)
   gchar* path = g_test_build_filename(G_TEST_DIST, fontFile, NULL);
+#else
+  gchar* path = g_strdup(fontFile);
+#endif
 
   FT_Error ft_error;
   if ((ft_error = FT_New_Face (ft_library, path, 0, &ft_face))) {
