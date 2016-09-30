@@ -1229,7 +1229,6 @@ hb_ot_layout_substitute_lookup (OT::hb_apply_context_t *c,
 
 /**
  * hb_ot_math_has_data:
- *
  * @face: #hb_face_t to test
  *
  * This function allows to verify the presence of an OpenType MATH table on the
@@ -1248,7 +1247,6 @@ hb_ot_math_has_data (hb_face_t *face)
 
 /**
  * hb_ot_math_get_constant:
- *
  * @font: #hb_font_t from which to retrieve the value
  * @constant: #hb_ot_math_constant_t the constant to retrieve
  *
@@ -1272,7 +1270,6 @@ hb_ot_math_get_constant (hb_font_t *font,
 
 /**
  * hb_ot_math_get_glyph_italics_correction:
- *
  * @font: #hb_font_t from which to retrieve the value
  * @glyph: glyph index from which to retrieve the value
  *
@@ -1290,7 +1287,6 @@ hb_ot_math_get_glyph_italics_correction (hb_font_t *font,
 
 /**
  * hb_ot_math_get_glyph_top_accent_attachment:
- *
  * @font: #hb_font_t from which to retrieve the value
  * @glyph: glyph index from which to retrieve the value
  *
@@ -1308,7 +1304,6 @@ hb_ot_math_get_glyph_top_accent_attachment (hb_font_t *font,
 
 /**
  * hb_ot_math_is_glyph_extended_shape:
- *
  * @font: a #hb_font_t to test
  * @glyph: a glyph index to test
  *
@@ -1326,7 +1321,6 @@ hb_ot_math_is_glyph_extended_shape (hb_face_t *face,
 
 /**
  * hb_ot_math_get_glyph_kerning:
- *
  * @font: #hb_font_t from which to retrieve the value
  * @glyph: glyph index from which to retrieve the value
  * @kern: the #hb_ot_math_kern_t from which to retrieve the value
@@ -1354,7 +1348,6 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
 
 /**
  * hb_ot_math_get_glyph_variants:
- *
  * @font: #hb_font_t from which to retrieve the values
  * @glyph: index of the glyph to stretch
  * @direction: direction of the stretching
@@ -1389,7 +1382,6 @@ hb_ot_math_get_glyph_variants (hb_font_t *font,
 
 /**
  * hb_ot_math_get_min_connector_overlap:
- *
  * @font: #hb_font_t from which to retrieve the value
  * @direction: direction of the stretching
  *
@@ -1412,7 +1404,6 @@ hb_ot_math_get_min_connector_overlap (hb_font_t *font,
 
 /**
  * hb_ot_math_get_glyph_assembly:
- *
  * @font: #hb_font_t from which to retrieve the values
  * @glyph: index of the glyph to stretch
  * @direction: direction of the stretching
