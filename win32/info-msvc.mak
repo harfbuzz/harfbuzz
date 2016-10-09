@@ -1,6 +1,6 @@
 # NMake Makefile portion for displaying config info
 
-INC_FEATURES = Uniscribe Fallback OT
+INC_FEATURES = Fallback OT
 BUILT_TOOLS =
 BUILT_LIBRARIES = HarfBuzz
 
@@ -21,6 +21,10 @@ INC_FEATURES = $(INC_FEATURES) FreeType
 
 !if "$(GRAPHITE2)" == "1"
 INC_FEATURES = $(INC_FEATURES) Graphite2
+!endif
+
+!if "$(UNISCRIBE)" == "1"
+INC_FEATURES = $(INC_FEATURES) Uniscribe
 !endif
 
 !if "$(DIRECTWRITE)" == "1"
@@ -77,9 +81,12 @@ help:
 	@echo.
 	@echo OPTION: Optional, may be any of the following, use OPTION=1 to enable;
 	@echo multiple OPTION's may be used.  If no OPTION is specified, a default
-	@echo HarfBuzz DLL is built with OpenType, fallback and Uniscribe support
+	@echo HarfBuzz DLL is built with OpenType and fallback support
 	@echo with a bundled Unicode implementation (UCDN).
 	@echo ======
+	@echo UNISCRIBE:
+	@echo Enable Uniscribe support.
+	@echo.
 	@echo DIRECTWRITE:
 	@echo Enable DirectWrite support, requires a recent enough Windows SDK.
 	@echo.

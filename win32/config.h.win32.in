@@ -115,7 +115,7 @@
 #define HAVE_UCDN 1
 
 /* Have Uniscribe library */
-#define HAVE_UNISCRIBE 1
+/* #undef HAVE_UNISCRIBE */
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #ifndef _MSC_VER
