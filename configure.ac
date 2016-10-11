@@ -414,7 +414,8 @@ if test "x$with_coretext" = "xyes" -o "x$with_coretext" = "xauto"; then
 	else
 		# On iOS CoreText and CoreGraphics are stand-alone frameworks
 		if test "x$have_coretext" != "xtrue"; then
-			AC_CHECK_TYPE(CTFontRef, have_coretext=true,, [#include <CoreText/CoreText.h>])
+			# Check for a different symbol to avoid getting cached result.
+			AC_CHECK_TYPE(CTRunRef, have_coretext=true,, [#include <CoreText/CoreText.h>])
 		fi
 
 		if $have_coretext; then
