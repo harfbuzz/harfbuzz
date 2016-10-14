@@ -7,11 +7,10 @@ Makefiles.
 The following are instructions for performing such a build, as there is a
 number of build configurations supported for the build.  Note that for all
 build configurations, the OpenType and Simple TrueType layout (fallback)
-backends are enabled, as well as the Uniscribe platform shaper, and this
-is the base configuration that is built if no options (see below) are
-specified.  A 'clean' target is provided-it is recommended that one cleans
-the build and redo the build if any configuration option changed.  An
-'install' target is also provided to copy the built items in their appropriate
+backends are enabled, and this is the base configuration that is built if no
+options (see below) are specified.  A 'clean' target is provided-it is recommended
+that one cleans the build and redo the build if any configuration option changed.
+An 'install' target is also provided to copy the built items in their appropriate
 locations under $(PREFIX), which is described below.
 
 Invoke the build by issuing the command:
@@ -68,7 +67,9 @@ ICU: Enables the build HarfBuzz-ICU, which is now the recommended layout engine
      for ICU (International Components for Unicode), which deprecated ICU LE.
      Requires the ICU libraries.
 
-DIRECTWRITE: Enable (experimental) DirectWrite platform shaper support,
+UNISCRIBE: Enable Uniscribe platform shaper support.
+
+DIRECTWRITE: Enable DirectWrite platform shaper support,
              requires a rather recent Windows SDK, and at least Windows Vista/
              Server 2008 with SP2 and platform update.
 
