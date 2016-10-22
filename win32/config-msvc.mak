@@ -12,7 +12,11 @@ HB_GLIB_LIBS = glib-2.0.lib
 HB_GOBJECT_DEP_LIBS = gobject-2.0.lib $(HB_GLIB_LIBS)
 
 # Freetype is needed for building FreeType support and hb-view
+!if "$(CFG)" == "debug"
+FREETYPE_LIB = freetyped.lib
+!else
 FREETYPE_LIB = freetype.lib
+!endif
 
 # Cairo is needed for building hb-view
 CAIRO_LIB = cairo.lib
@@ -125,6 +129,9 @@ HB_DEFINES = $(HB_DEFINES) /DHAVE_CAIRO=1
 
 # Enable freetype if desired
 !if "$(FREETYPE)" == "1"
+!if "$(FREETYPE_DIR)" != ""
+HB_CFLAGS = $(HB_CFLAGS) /I$(FREETYPE_DIR)
+!endif
 HB_DEFINES = $(HB_DEFINES) /DHAVE_FREETYPE=1
 HB_SOURCES = $(HB_SOURCES) $(HB_FT_sources)
 HB_HEADERS = $(HB_HEADERS) $(HB_FT_headers)

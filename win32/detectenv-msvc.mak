@@ -130,6 +130,9 @@ LDFLAGS_ARCH = /machine:x86
 CFLAGS = $(CFLAGS_ADD) /W3 /Zi /I.. /I..\src /I. /I$(PREFIX)\include
 
 LDFLAGS_BASE = $(LDFLAGS_ARCH) /libpath:$(PREFIX)\lib /DEBUG
+!if "$(ADDITIONAL_LIB_DIR)" != ""
+LDFLAGS_BASE = $(LDFLAGS_ARCH) /libpath:$(ADDITIONAL_LIB_DIR)
+!endif
 
 !if "$(CFG)" == "debug"
 LDFLAGS = $(LDFLAGS_BASE)
