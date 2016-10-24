@@ -57,7 +57,6 @@ test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 EXTRA_DIST += \
 	fonts/MathTestFontEmpty.otf \
 	fonts/MathTestFontFull.otf \
-	fonts/MathTestFontFull.ttx \
 	fonts/MathTestFontNone.otf \
 	fonts/MathTestFontPartial1.otf \
 	fonts/MathTestFontPartial2.otf \
