@@ -9,8 +9,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/harfbuzz.pc.in])
 AC_CONFIG_HEADERS([config.h])
 
-AC_USE_SYSTEM_EXTENSIONS
-
 AM_INIT_AUTOMAKE([1.11.1 gnits tar-ustar dist-bzip2 no-dist-gzip -Wall no-define color-tests -Wno-portability])
 AM_CONDITIONAL(AUTOMAKE_OLDER_THAN_1_13, test $am__api_version = 1.11 -o $am__api_version = 1.12)
 AM_SILENT_RULES([yes])
@@ -21,6 +19,7 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
 # Check for programs
+AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_CXX
