@@ -337,14 +337,15 @@ struct hb_font_t {
     }
   }
 
-  /* Internal only */
   inline void guess_v_origin_minus_h_origin (hb_codepoint_t glyph,
 					     hb_position_t *x, hb_position_t *y)
   {
     *x = get_glyph_h_advance (glyph) / 2;
 
-    /* TODO use font_extents.ascender */
-    *y = y_scale;
+    /* TODO cache this somehow?! */
+    hb_font_extents_t extents;
+    get_h_extents_with_fallback (&extents);
+    *y = extents.ascender;
   }
 
   inline void get_glyph_h_origin_with_fallback (hb_codepoint_t glyph,
