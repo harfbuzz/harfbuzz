@@ -55,9 +55,10 @@ struct hb_ot_face_metrics_accelerator_t
   inline void init (hb_face_t *face,
 		    hb_tag_t _hea_tag,
 		    hb_tag_t _mtx_tag,
-		    hb_tag_t os2_tag)
+		    hb_tag_t os2_tag,
+		    unsigned int default_advance = 0)
   {
-    this->default_advance = face->get_upem ();
+    this->default_advance = default_advance ? default_advance : face->get_upem ();
 
     bool got_font_extents = false;
     if (os2_tag)
@@ -391,7 +392,8 @@ _hb_ot_font_create (hb_face_t *face)
 
   ot_font->cmap.init (face);
   ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, HB_OT_TAG_os2);
-  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_TAG_NONE); /* TODO Can we do this lazily? */
+  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_TAG_NONE,
+			   ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
 
   return ot_font;
