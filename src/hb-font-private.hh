@@ -296,24 +296,32 @@ struct hb_font_t {
 
   /* A bit higher-level, and with fallback */
 
+  inline void get_h_extents_with_fallback (hb_font_extents_t *extents)
+  {
+    if (!get_font_h_extents (extents))
+    {
+      extents->ascender = y_scale * .8;
+      extents->descender = extents->ascender - y_scale;
+      extents->line_gap = 0;
+    }
+  }
+  inline void get_v_extents_with_fallback (hb_font_extents_t *extents)
+  {
+    if (!get_font_v_extents (extents))
+    {
+      extents->ascender = x_scale / 2;
+      extents->descender = extents->ascender - x_scale;
+      extents->line_gap = 0;
+    }
+  }
+
   inline void get_extents_for_direction (hb_direction_t direction,
 					 hb_font_extents_t *extents)
   {
-    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction))) {
-      if (!get_font_h_extents (extents))
-      {
-	extents->ascender = y_scale * .8;
-	extents->descender = extents->ascender - y_scale;
-	extents->line_gap = 0;
-      }
-    } else {
-      if (!get_font_v_extents (extents))
-      {
-	extents->ascender = x_scale / 2;
-	extents->descender = extents->ascender - x_scale;
-	extents->line_gap = 0;
-      }
-    }
+    if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
+      get_h_extents_with_fallback (extents);
+    else
+      get_v_extents_with_fallback (extents);
   }
 
   inline void get_glyph_advance_for_direction (hb_codepoint_t glyph,
