@@ -36,7 +36,7 @@ install:
   - 'if "%compiler%"=="msvc" cd vcpkg'
   - 'if "%compiler%"=="msvc" powershell -exec bypass scripts\bootstrap.ps1'
   - 'if "%compiler%"=="msvc" vcpkg install freetype:%VCPKG_ARCH%'
-  - 'if "%compiler%"=="msvc" copy installed\%VCPKG_ARCH%\debug\lib\freetyped.lib installed\%VCPKG_ARCH%\lib"
+  - 'if "%compiler%"=="msvc" copy installed\%VCPKG_ARCH%\debug\lib\freetyped.lib installed\%VCPKG_ARCH%\lib'
   - 'if "%compiler%"=="msvc" cd ..'
 
 build_script:
