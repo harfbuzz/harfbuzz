@@ -303,14 +303,14 @@ struct hb_font_t {
       if (!get_font_h_extents (extents))
       {
 	extents->ascender = y_scale * .8;
-	extents->descender = y_scale - extents->ascender;
+	extents->descender = extents->ascender - y_scale;
 	extents->line_gap = 0;
       }
     } else {
       if (!get_font_v_extents (extents))
       {
 	extents->ascender = x_scale / 2;
-	extents->descender = x_scale - extents->ascender;
+	extents->descender = extents->ascender - x_scale;
 	extents->line_gap = 0;
       }
     }
