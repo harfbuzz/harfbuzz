@@ -339,30 +339,37 @@ struct hb_font_t {
     *y = y_scale;
   }
 
+  inline void get_glyph_h_origin_with_fallback (hb_codepoint_t glyph,
+						hb_position_t *x, hb_position_t *y)
+  {
+    if (!get_glyph_h_origin (glyph, x, y) &&
+	 get_glyph_v_origin (glyph, x, y))
+    {
+      hb_position_t dx, dy;
+      guess_v_origin_minus_h_origin (glyph, &dx, &dy);
+      *x -= dx; *y -= dy;
+    }
+  }
+  inline void get_glyph_v_origin_with_fallback (hb_codepoint_t glyph,
+						hb_position_t *x, hb_position_t *y)
+  {
+    if (!get_glyph_v_origin (glyph, x, y) &&
+	 get_glyph_h_origin (glyph, x, y))
+    {
+      hb_position_t dx, dy;
+      guess_v_origin_minus_h_origin (glyph, &dx, &dy);
+      *x += dx; *y += dy;
+    }
+  }
+
   inline void get_glyph_origin_for_direction (hb_codepoint_t glyph,
 					      hb_direction_t direction,
 					      hb_position_t *x, hb_position_t *y)
   {
     if (likely (HB_DIRECTION_IS_HORIZONTAL (direction)))
-    {
-      if (!get_glyph_h_origin (glyph, x, y) &&
-	   get_glyph_v_origin (glyph, x, y))
-      {
-	hb_position_t dx, dy;
-	guess_v_origin_minus_h_origin (glyph, &dx, &dy);
-	*x -= dx; *y -= dy;
-      }
-    }
+      get_glyph_h_origin_with_fallback (glyph, x, y);
     else
-    {
-      if (!get_glyph_v_origin (glyph, x, y) &&
-	   get_glyph_h_origin (glyph, x, y))
-      {
-	hb_position_t dx, dy;
-	guess_v_origin_minus_h_origin (glyph, &dx, &dy);
-	*x += dx; *y += dy;
-      }
-    }
+      get_glyph_v_origin_with_fallback (glyph, x, y);
   }
 
   inline void add_glyph_h_origin (hb_codepoint_t glyph,
@@ -370,7 +377,7 @@ struct hb_font_t {
   {
     hb_position_t origin_x, origin_y;
 
-    get_glyph_h_origin (glyph, &origin_x, &origin_y);
+    get_glyph_h_origin_with_fallback (glyph, &origin_x, &origin_y);
 
     *x += origin_x;
     *y += origin_y;
@@ -380,7 +387,7 @@ struct hb_font_t {
   {
     hb_position_t origin_x, origin_y;
 
-    get_glyph_v_origin (glyph, &origin_x, &origin_y);
+    get_glyph_v_origin_with_fallback (glyph, &origin_x, &origin_y);
 
     *x += origin_x;
     *y += origin_y;
@@ -402,7 +409,7 @@ struct hb_font_t {
   {
     hb_position_t origin_x, origin_y;
 
-    get_glyph_h_origin (glyph, &origin_x, &origin_y);
+    get_glyph_h_origin_with_fallback (glyph, &origin_x, &origin_y);
 
     *x -= origin_x;
     *y -= origin_y;
@@ -412,7 +419,7 @@ struct hb_font_t {
   {
     hb_position_t origin_x, origin_y;
 
-    get_glyph_v_origin (glyph, &origin_x, &origin_y);
+    get_glyph_v_origin_with_fallback (glyph, &origin_x, &origin_y);
 
     *x -= origin_x;
     *y -= origin_y;
