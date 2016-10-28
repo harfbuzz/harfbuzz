@@ -43,6 +43,7 @@ build_script:
   - 'if "%compiler%"=="msvc" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh; make distdir"'
   - 'if "%compiler%"=="msvc" cd harfbuzz-*\win32'
   - 'if "%compiler%"=="msvc" nmake /f Makefile.vc CFG=%CFG% UNISCRIBE=1 DIRECTWRITE=1 FREETYPE=1 FREETYPE_DIR=..\..\vcpkg\installed\%VCPKG_ARCH%\include ADDITIONAL_LIB_DIR=..\..\vcpkg\installed\%VCPKG_ARCH%\lib'
+  - 'if "%compiler%"=="msvc" nmake /f Makefile.vc CFG=%CFG% UNISCRIBE=1 DIRECTWRITE=1 FREETYPE=1 install'
 
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config}"'
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --build=$MINGW_CHOST --host=$MINGW_CHOST --prefix=$MINGW_PREFIX; make; make check"'
