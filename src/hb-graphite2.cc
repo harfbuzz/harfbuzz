@@ -164,9 +164,10 @@ _hb_graphite2_shaper_font_data_create (hb_font_t *font)
   if (unlikely (!hb_graphite2_shaper_face_data_ensure (font->face))) return NULL;
 
   hb_face_t *face = font->face;
+  unsigned int upem = hb_face_get_upem (face);
   hb_graphite2_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
 
-  return gr_make_font_with_advance_fn (font->x_scale, font, &hb_graphite2_get_advance, face_data->grface);
+  return gr_make_font_with_advance_fn (upem, font, &hb_graphite2_get_advance, face_data->grface);
 }
 
 void
@@ -230,7 +231,6 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
 {
   hb_face_t *face = font->face;
   gr_face *grface = HB_SHAPER_DATA_GET (face)->grface;
-  gr_font *grfont = HB_SHAPER_DATA_GET (font);
 
   const char *lang = hb_language_to_string (hb_buffer_get_language (buffer));
   const char *lang_end = lang ? strchr (lang, '-') : NULL;
@@ -262,7 +262,7 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   hb_tag_t script_tag[2];
   hb_ot_tags_from_script (hb_buffer_get_script (buffer), &script_tag[0], &script_tag[1]);
 
-  seg = gr_make_seg (grfont, grface,
+  seg = gr_make_seg (NULL, grface,
 		     script_tag[1] == HB_TAG_NONE ? script_tag[0] : script_tag[1],
 		     feats,
 		     gr_utf32, chars, buffer->len,
@@ -373,7 +373,10 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
   }
   buffer->len = glyph_count;
 
-  float yscale = font->y_scale / font->x_scale;
+  unsigned int upem = hb_face_get_upem (face);
+  float xscale = (float) font->x_scale / upem;
+  float yscale = (float) font->y_scale / upem;
+  yscale *= yscale / xscale;
   /* Positioning. */
   if (!HB_DIRECTION_IS_BACKWARD(buffer->props.direction))
   {
@@ -383,16 +386,16 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
     curradvx = 0;
     for (is = gr_seg_first_slot (seg); is; pPos++, ++info, is = gr_slot_next_in_segment (is))
     {
-      pPos->x_offset = gr_slot_origin_X (is) - curradvx;
+      pPos->x_offset = gr_slot_origin_X (is) * xscale - curradvx;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
       if (info->cluster != currclus) {
-        pPos->x_advance = info->var1.i32;
+        pPos->x_advance = info->var1.i32 * xscale;
         curradvx += pPos->x_advance;
         currclus = info->cluster;
       } else
         pPos->x_advance = 0.;
 
-      pPos->y_advance = gr_slot_advance_Y (is, grface, grfont) * yscale;
+      pPos->y_advance = gr_slot_advance_Y (is, grface, NULL) * yscale;
       curradvy += pPos->y_advance;
     }
   }
@@ -401,20 +404,20 @@ _hb_graphite2_shape (hb_shape_plan_t    *shape_plan,
     int currclus = -1;
     const hb_glyph_info_t *info = buffer->info;
     hb_glyph_position_t *pPos = hb_buffer_get_glyph_positions (buffer, NULL);
-    curradvx = gr_seg_advance_X(seg);
+    curradvx = gr_seg_advance_X(seg) * xscale;
     for (is = gr_seg_first_slot (seg); is; pPos++, info++, is = gr_slot_next_in_segment (is))
     {
       if (info->cluster != currclus)
       {
-        pPos->x_advance = info->var1.i32;
-        if (currclus != -1) curradvx -= info[-1].var1.i32;
+        pPos->x_advance = info->var1.i32 * xscale;
+        if (currclus != -1) curradvx -= info[-1].var1.i32 * xscale;
         currclus = info->cluster;
       } else
       pPos->x_advance = 0.;
 
-      pPos->y_advance = gr_slot_advance_Y (is, grface, grfont) * yscale;
+      pPos->y_advance = gr_slot_advance_Y (is, grface, NULL) * yscale;
       curradvy -= pPos->y_advance;
-      pPos->x_offset = gr_slot_origin_X (is) - curradvx + pPos->x_advance;
+      pPos->x_offset = gr_slot_origin_X (is) * xscale - curradvx + pPos->x_advance;
       pPos->y_offset = gr_slot_origin_Y (is) * yscale - curradvy;
     }
     hb_buffer_reverse_clusters (buffer);
