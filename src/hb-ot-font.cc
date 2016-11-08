@@ -47,6 +47,7 @@ struct hb_ot_face_metrics_accelerator_t
   unsigned short ascender;
   unsigned short descender;
   unsigned short line_gap;
+  bool has_font_extents;
 
   const OT::_mtx *table;
   hb_blob_t *blob;
@@ -54,9 +55,10 @@ struct hb_ot_face_metrics_accelerator_t
   inline void init (hb_face_t *face,
 		    hb_tag_t _hea_tag,
 		    hb_tag_t _mtx_tag,
-		    hb_tag_t os2_tag)
+		    hb_tag_t os2_tag,
+		    unsigned int default_advance = 0)
   {
-    this->default_advance = face->get_upem ();
+    this->default_advance = default_advance ? default_advance : face->get_upem ();
 
     bool got_font_extents = false;
     if (os2_tag)
@@ -82,8 +84,11 @@ struct hb_ot_face_metrics_accelerator_t
       this->ascender = _hea->ascender;
       this->descender = _hea->descender;
       this->line_gap = _hea->lineGap;
+      got_font_extents = (this->ascender | this->descender) != 0;
     }
     hb_blob_destroy (_hea_blob);
+
+    this->has_font_extents = got_font_extents;
 
     this->blob = OT::Sanitizer<OT::_mtx>::sanitize (face->reference_table (_mtx_tag));
 
@@ -387,7 +392,8 @@ _hb_ot_font_create (hb_face_t *face)
 
   ot_font->cmap.init (face);
   ot_font->h_metrics.init (face, HB_OT_TAG_hhea, HB_OT_TAG_hmtx, HB_OT_TAG_os2);
-  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_TAG_NONE); /* TODO Can we do this lazily? */
+  ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_TAG_NONE,
+			   ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
 
   return ot_font;
@@ -475,7 +481,7 @@ hb_ot_get_font_h_extents (hb_font_t *font HB_UNUSED,
   metrics->ascender = font->em_scale_y (ot_font->h_metrics.ascender);
   metrics->descender = font->em_scale_y (ot_font->h_metrics.descender);
   metrics->line_gap = font->em_scale_y (ot_font->h_metrics.line_gap);
-  return true;
+  return ot_font->h_metrics.has_font_extents;
 }
 
 static hb_bool_t
@@ -488,7 +494,7 @@ hb_ot_get_font_v_extents (hb_font_t *font HB_UNUSED,
   metrics->ascender = font->em_scale_x (ot_font->v_metrics.ascender);
   metrics->descender = font->em_scale_x (ot_font->v_metrics.descender);
   metrics->line_gap = font->em_scale_x (ot_font->v_metrics.line_gap);
-  return true;
+  return ot_font->v_metrics.has_font_extents;
 }
 
 static hb_font_funcs_t *static_ot_funcs = NULL;

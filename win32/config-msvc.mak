@@ -12,13 +12,20 @@ HB_GLIB_LIBS = glib-2.0.lib
 HB_GOBJECT_DEP_LIBS = gobject-2.0.lib $(HB_GLIB_LIBS)
 
 # Freetype is needed for building FreeType support and hb-view
+!if "$(CFG)" == "debug"
+FREETYPE_LIB = freetyped.lib
+!else
 FREETYPE_LIB = freetype.lib
+!endif
 
 # Cairo is needed for building hb-view
 CAIRO_LIB = cairo.lib
 
 # Graphite2 is needed for building SIL Graphite2 support
 GRAPHITE2_LIB = graphite2.lib
+
+# Uniscribe is needed for Uniscribe shaping support
+UNISCRIBE_LIB = usp10.lib gdi32.lib rpcrt4.lib user32.lib
 
 # Directwrite is needed for DirectWrite shaping support
 DIRECTWRITE_LIB = dwrite.lib
@@ -31,17 +38,15 @@ HB_UCDN_CFLAGS = /I..\src\hb-ucdn
 HB_SOURCES =	\
 	$(HB_BASE_sources)		\
 	$(HB_FALLBACK_sources)	\
-	$(HB_OT_sources)		\
-	$(HB_UNISCRIBE_sources)	\
+	$(HB_OT_sources)
 
 HB_HEADERS =	\
 	$(HB_BASE_headers)		\
 	$(HB_NODIST_headers)	\
-	$(HB_OT_headers)		\
-	$(HB_UNISCRIBE_headers)
+	$(HB_OT_headers)
 
 # Minimal set of (system) libraries needed for the HarfBuzz DLL
-HB_DEP_LIBS = usp10.lib gdi32.lib rpcrt4.lib user32.lib
+HB_DEP_LIBS =
 
 # We build the HarfBuzz DLL/LIB at least
 HB_LIBS = $(CFG)\$(PLAT)\harfbuzz.lib
@@ -124,6 +129,9 @@ HB_DEFINES = $(HB_DEFINES) /DHAVE_CAIRO=1
 
 # Enable freetype if desired
 !if "$(FREETYPE)" == "1"
+!if "$(FREETYPE_DIR)" != ""
+HB_CFLAGS = $(HB_CFLAGS) /I$(FREETYPE_DIR)
+!endif
 HB_DEFINES = $(HB_DEFINES) /DHAVE_FREETYPE=1
 HB_SOURCES = $(HB_SOURCES) $(HB_FT_sources)
 HB_HEADERS = $(HB_HEADERS) $(HB_FT_headers)
@@ -186,6 +194,13 @@ HB_CFLAGS =	\
 	/D_CRT_NONSTDC_NO_WARNINGS
 
 HB_SOURCES = $(HB_SOURCES) $(LIBHB_UCDN_sources) $(HB_UCDN_sources)
+!endif
+
+!if "$(UNISCRIBE)" == "1"
+HB_CFLAGS = $(HB_CFLAGS) /DHAVE_UNISCRIBE
+HB_SOURCES = $(HB_SOURCES) $(HB_UNISCRIBE_sources)
+HB_HEADERS = $(HB_HEADERS) $(HB_UNISCRIBE_headers)
+HB_DEP_LIBS = $(HB_DEP_LIBS) $(UNISCRIBE_LIB)
 !endif
 
 !if "$(DIRECTWRITE)" == "1"

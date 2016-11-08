@@ -54,6 +54,15 @@ TEST_PROGS += \
 	$(NULL)
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
+EXTRA_DIST += \
+	fonts/MathTestFontEmpty.otf \
+	fonts/MathTestFontFull.otf \
+	fonts/MathTestFontNone.otf \
+	fonts/MathTestFontPartial1.otf \
+	fonts/MathTestFontPartial2.otf \
+	fonts/MathTestFontPartial3.otf \
+	fonts/MathTestFontPartial4.otf \
+	$(NULL)
 endif # HAVE_FREETYPE
 
 endif # HAVE_OT
