@@ -27,7 +27,6 @@
  */
 
 #define HB_SHAPER graphite2
-#define hb_graphite2_shaper_font_data_t gr_font
 #include "hb-shaper-impl-private.hh"
 
 #include "hb-graphite2.h"
@@ -153,27 +152,17 @@ hb_graphite2_face_get_gr_face (hb_face_t *face)
  * shaper font data
  */
 
-static float hb_graphite2_get_advance (const void *hb_font, unsigned short gid)
-{
-  return ((hb_font_t *) hb_font)->get_glyph_h_advance (gid);
-}
+struct hb_graphite2_shaper_font_data_t {};
 
 hb_graphite2_shaper_font_data_t *
-_hb_graphite2_shaper_font_data_create (hb_font_t *font)
+_hb_graphite2_shaper_font_data_create (hb_font_t *font HB_UNUSED)
 {
-  if (unlikely (!hb_graphite2_shaper_face_data_ensure (font->face))) return NULL;
-
-  hb_face_t *face = font->face;
-  unsigned int upem = hb_face_get_upem (face);
-  hb_graphite2_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-
-  return gr_make_font_with_advance_fn (upem, font, &hb_graphite2_get_advance, face_data->grface);
+  return (hb_graphite2_shaper_font_data_t *) HB_SHAPER_DATA_SUCCEEDED;
 }
 
 void
-_hb_graphite2_shaper_font_data_destroy (hb_graphite2_shaper_font_data_t *data)
+_hb_graphite2_shaper_font_data_destroy (hb_graphite2_shaper_font_data_t *data HB_UNUSED)
 {
-  gr_font_destroy (data);
 }
 
 /*
@@ -182,8 +171,7 @@ _hb_graphite2_shaper_font_data_destroy (hb_graphite2_shaper_font_data_t *data)
 gr_font *
 hb_graphite2_font_get_gr_font (hb_font_t *font)
 {
-  if (unlikely (!hb_graphite2_shaper_font_data_ensure (font))) return NULL;
-  return HB_SHAPER_DATA_GET (font);
+  return NULL;
 }
 
 
