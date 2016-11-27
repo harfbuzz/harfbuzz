@@ -1,6 +1,7 @@
 /*
  * Copyright © 2012,2013  Mozilla Foundation.
  * Copyright © 2012,2013  Google, Inc.
+ * Copyright © 2016  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -47,8 +48,8 @@ release_table_data (void *user_data)
 static hb_blob_t *
 reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
-  CGFontRef cg_font = reinterpret_cast<CGFontRef> (user_data);
-  CFDataRef cf_data = CGFontCopyTableForTag (cg_font, tag);
+  CTFontRef ct_font = reinterpret_cast<CTFontRef> (user_data);
+  CFDataRef cf_data = CTFontCopyTable (ct_font, tag, kCTFontTableOptionNoOptions);
   if (unlikely (!cf_data))
     return NULL;
 
@@ -62,10 +63,34 @@ reference_table  (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 			 release_table_data);
 }
 
+static void
+hb_face_ct_font_destroyer (void *user_data)
+{
+  CTFontRef ct_font = reinterpret_cast<CTFontRef> (user_data);
+  CFRelease (ct_font);
+}
+
+/*
+ * Since: 0.9.27
+ */
 hb_face_t *
 hb_coretext_face_create (CGFontRef cg_font)
 {
-  return hb_face_create_for_tables (reference_table, CGFontRetain (cg_font), (hb_destroy_func_t) CGFontRelease);
+  return hb_face_create_for_tables (reference_table,
+                                    (void*) CTFontCreateWithGraphicsFont (cg_font, 36., 0, 0),
+                                    hb_face_ct_font_destroyer);
+
+}
+
+/*
+ * Since: 1.3.4
+ */
+hb_face_t *
+hb_coretext_face_create_from_ct_font (CTFontRef ct_font)
+{
+  return hb_face_create_for_tables (reference_table,
+                                    (void*) CFRetain (ct_font),
+                                    hb_face_ct_font_destroyer);
 }
 
 
@@ -100,49 +125,12 @@ get_last_resort_font_desc (void)
   return font_desc;
 }
 
-static void
-release_data (void *info, const void *data, size_t size)
-{
-  assert (hb_blob_get_length ((hb_blob_t *) info) == size &&
-          hb_blob_get_data ((hb_blob_t *) info, NULL) == data);
-
-  hb_blob_destroy ((hb_blob_t *) info);
-}
-
-static CGFontRef
-create_cg_font (hb_face_t *face)
-{
-  CGFontRef cg_font = NULL;
-  if (face->destroy == (hb_destroy_func_t) CGFontRelease)
-  {
-    cg_font = CGFontRetain ((CGFontRef) face->user_data);
-  }
-  else
-  {
-    hb_blob_t *blob = hb_face_reference_blob (face);
-    unsigned int blob_length;
-    const char *blob_data = hb_blob_get_data (blob, &blob_length);
-    if (unlikely (!blob_length))
-      DEBUG_MSG (CORETEXT, face, "Face has empty blob");
-
-    CGDataProviderRef provider = CGDataProviderCreateWithData (blob, blob_data, blob_length, &release_data);
-    if (likely (provider))
-    {
-      cg_font = CGFontCreateWithDataProvider (provider);
-      if (unlikely (!cg_font))
-	DEBUG_MSG (CORETEXT, face, "Face CGFontCreateWithDataProvider() failed");
-      CGDataProviderRelease (provider);
-    }
-  }
-  return cg_font;
-}
-
 static CTFontRef
-create_ct_font (CGFontRef cg_font, CGFloat font_size)
+create_ct_font (CTFontDescriptorRef ct_font_descriptor, CGFloat font_size)
 {
-  CTFontRef ct_font = CTFontCreateWithGraphicsFont (cg_font, font_size, NULL, NULL);
+  CTFontRef ct_font = CTFontCreateWithFontDescriptor (ct_font_descriptor, font_size, NULL);
   if (unlikely (!ct_font)) {
-    DEBUG_MSG (CORETEXT, cg_font, "Font CTFontCreateWithGraphicsFont() failed");
+    DEBUG_MSG (CORETEXT, ct_font_descriptor, "Font CTFontCreateWithFontDescriptor() failed");
     return NULL;
   }
 
@@ -203,8 +191,8 @@ create_ct_font (CGFontRef cg_font, CGFloat font_size)
 }
 
 struct hb_coretext_shaper_face_data_t {
-  CGFontRef cg_font;
   CTFontRef ct_font;
+  hb_blob_t *blob;
 };
 
 hb_coretext_shaper_face_data_t *
@@ -214,10 +202,38 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return NULL;
 
-  data->cg_font = create_cg_font (face);
-  if (unlikely (!data->cg_font))
+  if (face->destroy == hb_face_ct_font_destroyer)
   {
-    DEBUG_MSG (CORETEXT, face, "CGFont creation failed..");
+    data->ct_font = reinterpret_cast<CTFontRef> (CFRetain (face->user_data));
+    return data;
+  }
+
+  data->blob = hb_face_reference_blob (face);
+  unsigned int blob_length;
+  const char *blob_data = hb_blob_get_data (data->blob, &blob_length);
+  if (unlikely (!blob_length))
+  {
+    DEBUG_MSG (CORETEXT, face, "Face has empty blob");
+    free (data);
+    return NULL;
+  }
+
+  CFDataRef cf_data = CFDataCreateWithBytesNoCopy (kCFAllocatorDefault,
+                                                   reinterpret_cast<const UInt8*> (blob_data),
+                                                   blob_length,
+                                                   kCFAllocatorNull);
+  if (unlikely (!cf_data))
+  {
+    DEBUG_MSG (CORETEXT, face, "CFDataRef creation failed.");
+    free (data);
+    return NULL;
+  }
+
+  CTFontDescriptorRef ct_font_descriptor = CTFontManagerCreateFontDescriptorFromData (cf_data);
+  if (unlikely (!ct_font_descriptor))
+  {
+    DEBUG_MSG (CORETEXT, face, "CTFontDescriptorRef creation failed.");
+    CFRelease (cf_data);
     free (data);
     return NULL;
   }
@@ -229,14 +245,19 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
    * Since we always create CTFont at a fixed size, our CTFont lives in face_data
    * instead of font_data.  Which is good, because when people change scale on
    * hb_font_t, we won't need to update our CTFont. */
-  data->ct_font = create_ct_font (data->cg_font, 36.);
+  data->ct_font = create_ct_font (ct_font_descriptor, 36.);
   if (unlikely (!data->ct_font))
   {
     DEBUG_MSG (CORETEXT, face, "CTFont creation failed.");
-    CFRelease (data->cg_font);
+    CFRelease (ct_font_descriptor);
+    CFRelease (cf_data);
+    hb_blob_destroy (data->blob);
     free (data);
     return NULL;
   }
+
+  CFRelease (ct_font_descriptor);
+  CFRelease (cf_data);
 
   return data;
 }
@@ -244,8 +265,10 @@ _hb_coretext_shaper_face_data_create (hb_face_t *face)
 void
 _hb_coretext_shaper_face_data_destroy (hb_coretext_shaper_face_data_t *data)
 {
-  CFRelease (data->ct_font);
-  CFRelease (data->cg_font);
+  if (data->ct_font)
+    CFRelease (data->ct_font);
+  if (data->blob)
+    hb_blob_destroy (data->blob);
   free (data);
 }
 
@@ -257,7 +280,7 @@ hb_coretext_face_get_cg_font (hb_face_t *face)
 {
   if (unlikely (!hb_coretext_shaper_face_data_ensure (face))) return NULL;
   hb_coretext_shaper_face_data_t *face_data = HB_SHAPER_DATA_GET (face);
-  return face_data->cg_font;
+  return CTFontCopyGraphicsFont (face_data->ct_font, NULL);
 }
 
 
@@ -298,6 +321,9 @@ _hb_coretext_shaper_shape_plan_data_destroy (hb_coretext_shaper_shape_plan_data_
 {
 }
 
+/*
+ * Since: 0.9.2
+ */
 CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font)
 {
@@ -791,7 +817,7 @@ resize_and_retry:
     scratch_size -= old_scratch_used;
   }
   {
-    string_ref = CFStringCreateWithCharactersNoCopy (NULL,
+    string_ref = CFStringCreateWithCharactersNoCopy (kCFAllocatorDefault,
 						     pchars, chars_len,
 						     kCFAllocatorNull);
     if (unlikely (!string_ref))
@@ -823,7 +849,10 @@ resize_and_retry:
 							    kCFStringEncodingUTF8,
 							    kCFAllocatorNull);
 	if (unlikely (!lang))
+	{
+	  CFRelease (attr_string);
 	  FAIL ("CFStringCreateWithCStringNoCopy failed");
+	}
 	CFAttributedStringSetAttribute (attr_string, CFRangeMake (0, chars_len),
 					kCTLanguageAttributeName, lang);
 	CFRelease (lang);
@@ -867,7 +896,10 @@ resize_and_retry:
 						    &kCFTypeDictionaryKeyCallBacks,
 						    &kCFTypeDictionaryValueCallBacks);
       if (unlikely (!options))
+      {
+        CFRelease (attr_string);
         FAIL ("CFDictionaryCreate failed");
+      }
 
       CTTypesetterRef typesetter = CTTypesetterCreateWithAttributedStringAndOptions (attr_string, options);
       CFRelease (options);
@@ -957,12 +989,7 @@ resize_and_retry:
 	  }
 	if (!matched)
 	{
-	  CGFontRef run_cg_font = CTFontCopyGraphicsFont (run_ct_font, 0);
-	  if (run_cg_font)
-	  {
-	    matched = CFEqual (run_cg_font, face_data->cg_font);
-	    CFRelease (run_cg_font);
-	  }
+	  matched = CFEqual (run_ct_font, face_data->ct_font);
 	}
 	if (!matched)
 	{
