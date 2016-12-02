@@ -35,26 +35,26 @@ struct SmallGlyphMetrics
 {
   BYTE height;
   BYTE width;
-  int8_t bearingX;
-  int8_t bearingY;
+  CHAR bearingX;
+  CHAR bearingY;
   BYTE advance;
 
   DEFINE_SIZE_STATIC(5);
 };
 
 struct SBitLineMetrics {
-  int8_t ascender;
-  int8_t decender;
+  CHAR ascender;
+  CHAR decender;
   BYTE widthMax;
-  int8_t caretSlopeNumerator;
-  int8_t caretSlopeDenominator;
-  int8_t caretOffset;
-  int8_t minOriginSB;
-  int8_t minAdvanceSB;
-  int8_t maxBeforeBL;
-  int8_t minAfterBL;
-  int8_t padding1;
-  int8_t padding2;
+  CHAR caretSlopeNumerator;
+  CHAR caretSlopeDenominator;
+  CHAR caretOffset;
+  CHAR minOriginSB;
+  CHAR minAdvanceSB;
+  CHAR maxBeforeBL;
+  CHAR minAfterBL;
+  CHAR padding1;
+  CHAR padding2;
 
   DEFINE_SIZE_STATIC(12);
 };
@@ -72,7 +72,7 @@ struct BitmapSizeTable
   BYTE ppemX;
   BYTE ppemY;
   BYTE bitDepth;
-  int8_t flags;
+  CHAR flags;
 
   DEFINE_SIZE_STATIC(48);
 };
