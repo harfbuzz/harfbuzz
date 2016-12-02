@@ -31,6 +31,7 @@
 #include "hb-font-private.hh"
 
 #include "hb-ot-cmap-table.hh"
+#include "hb-ot-ebdt-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hhea-table.hh"
@@ -202,6 +203,96 @@ struct hb_ot_face_glyf_accelerator_t
     extents->y_bearing = MAX (glyph_header.yMin, glyph_header.yMax);
     extents->width     = MAX (glyph_header.xMin, glyph_header.xMax) - extents->x_bearing;
     extents->height    = MIN (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing;
+
+    return true;
+  }
+};
+
+struct hb_ot_face_ebdt_accelerator_t
+{
+  hb_blob_t *cblc_blob = NULL;
+  hb_blob_t *cbdt_blob = NULL;
+  const OT::CBLC *cblc = NULL;
+  const OT::CBDT *cbdt = NULL;
+
+  float upem = 0.0f;
+
+  inline void init (hb_face_t *face)
+  {
+    this->cblc_blob = OT::Sanitizer<OT::CBLC>::sanitize (face->reference_table (HB_OT_TAG_CBLC));
+    this->cbdt_blob = OT::Sanitizer<OT::CBDT>::sanitize (face->reference_table (HB_OT_TAG_CBDT));
+
+    if (hb_blob_get_length (this->cblc_blob) == 0) {
+      return;  /* Not a bitmap font. */
+    }
+    cblc = OT::Sanitizer<OT::CBLC>::lock_instance (this->cblc_blob);
+    cbdt = OT::Sanitizer<OT::CBDT>::lock_instance (this->cbdt_blob);
+
+    upem = face->get_upem();
+  }
+
+  inline void fini (void)
+  {
+    if (this->cblc_blob) {
+      hb_blob_destroy (this->cblc_blob);
+      hb_blob_destroy (this->cbdt_blob);
+    }
+  }
+
+  inline bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+  {
+    if (cblc == NULL) {
+      return false;  // Not a color bitmap font.
+    }
+
+    const OT::BitmapSizeTable* sizeTable = this->cblc->find_table(glyph);
+    if (sizeTable == NULL) {
+      return false;
+    }
+
+    const OT::IndexSubtableArray& subtables =
+            OT::StructAtOffset<OT::IndexSubtableArray> (this->cblc, sizeTable->indexSubtableArrayOffset);
+    const OT::IndexSubtable* subtable = subtables.find_table(glyph, sizeTable->numberOfIndexSubtables);
+    if (subtable == NULL) {
+      return false;
+    }
+
+    unsigned int offsetToSubtable = sizeTable->indexSubtableArrayOffset + subtable->offsetToSubtable;
+    const OT::IndexSubHeader& header =
+            OT::StructAtOffset<OT::IndexSubHeader> (this->cblc, offsetToSubtable);
+
+    unsigned int imageDataOffset = header.imageDataOffset;
+    switch (header.indexFormat) {
+      case 1: {
+        const OT::IndexSubtableFormat1& format1 =
+            OT::StructAtOffset<OT::IndexSubtableFormat1> (this->cblc, offsetToSubtable);
+        imageDataOffset += format1.offsetArray[glyph - subtable->firstGlyphIndex];
+        switch (header.imageFormat) {
+          case 17: {
+            const OT::GlyphBitmapDataFormat17& glyphFormat17 =
+                OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, imageDataOffset);
+            extents->x_bearing = glyphFormat17.glyphMetrics.bearingX;
+            extents->y_bearing = glyphFormat17.glyphMetrics.bearingY;
+            extents->width = glyphFormat17.glyphMetrics.width;
+            extents->height = -glyphFormat17.glyphMetrics.height;
+          }
+          break;
+          default:
+            // TODO: Support other image formats.
+            return false;
+        }
+      }
+      break;
+      default:
+        // TODO: Support other index subtable format.
+        return false;
+    }
+
+    // Convert to the font units.
+    extents->x_bearing *= upem / (float)(sizeTable->ppemX);
+    extents->y_bearing *= upem / (float)(sizeTable->ppemY);
+    extents->width *= upem / (float)(sizeTable->ppemX);
+    extents->height *= upem / (float)(sizeTable->ppemY);
 
     return true;
   }
@@ -379,6 +470,7 @@ struct hb_ot_font_t
   hb_ot_face_metrics_accelerator_t h_metrics;
   hb_ot_face_metrics_accelerator_t v_metrics;
   hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
+  hb_lazy_loader_t<hb_ot_face_ebdt_accelerator_t> ebdt;
 };
 
 
@@ -395,6 +487,7 @@ _hb_ot_font_create (hb_face_t *face)
   ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_TAG_NONE,
 			   ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
+  ot_font->ebdt.init (face);
 
   return ot_font;
 }
@@ -406,6 +499,7 @@ _hb_ot_font_destroy (hb_ot_font_t *ot_font)
   ot_font->h_metrics.fini ();
   ot_font->v_metrics.fini ();
   ot_font->glyf.fini ();
+  ot_font->ebdt.fini ();
 
   free (ot_font);
 }
@@ -464,6 +558,8 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   bool ret = ot_font->glyf->get_extents (glyph, extents);
+  if ( !ret )
+    ret = ot_font->ebdt->get_extents (glyph, extents);
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);
   extents->width     = font->em_scale_x (extents->width);

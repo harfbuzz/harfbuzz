@@ -21,6 +21,7 @@ HB_BASE_sources = \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
 	hb-ot-cmap-table.hh \
+	hb-ot-ebdt-table.hh \
 	hb-ot-glyf-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
