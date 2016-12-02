@@ -31,7 +31,7 @@
 #include "hb-font-private.hh"
 
 #include "hb-ot-cmap-table.hh"
-#include "hb-ot-ebdt-table.hh"
+#include "hb-ot-cbdt-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hhea-table.hh"
@@ -208,7 +208,7 @@ struct hb_ot_face_glyf_accelerator_t
   }
 };
 
-struct hb_ot_face_ebdt_accelerator_t
+struct hb_ot_face_cbdt_accelerator_t
 {
   hb_blob_t *cblc_blob = NULL;
   hb_blob_t *cbdt_blob = NULL;
@@ -470,7 +470,7 @@ struct hb_ot_font_t
   hb_ot_face_metrics_accelerator_t h_metrics;
   hb_ot_face_metrics_accelerator_t v_metrics;
   hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
-  hb_lazy_loader_t<hb_ot_face_ebdt_accelerator_t> ebdt;
+  hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
 };
 
 
@@ -487,7 +487,7 @@ _hb_ot_font_create (hb_face_t *face)
   ot_font->v_metrics.init (face, HB_OT_TAG_vhea, HB_OT_TAG_vmtx, HB_TAG_NONE,
 			   ot_font->h_metrics.ascender - ot_font->h_metrics.descender); /* TODO Can we do this lazily? */
   ot_font->glyf.init (face);
-  ot_font->ebdt.init (face);
+  ot_font->cbdt.init (face);
 
   return ot_font;
 }
@@ -499,7 +499,7 @@ _hb_ot_font_destroy (hb_ot_font_t *ot_font)
   ot_font->h_metrics.fini ();
   ot_font->v_metrics.fini ();
   ot_font->glyf.fini ();
-  ot_font->ebdt.fini ();
+  ot_font->cbdt.fini ();
 
   free (ot_font);
 }
@@ -559,7 +559,7 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   bool ret = ot_font->glyf->get_extents (glyph, extents);
   if ( !ret )
-    ret = ot_font->ebdt->get_extents (glyph, extents);
+    ret = ot_font->cbdt->get_extents (glyph, extents);
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);
   extents->width     = font->em_scale_x (extents->width);

@@ -20,8 +20,8 @@ HB_BASE_sources = \
 	hb-object-private.hh \
 	hb-open-file-private.hh \
 	hb-open-type-private.hh \
+	hb-ot-cbdt-table.hh \
 	hb-ot-cmap-table.hh \
-	hb-ot-ebdt-table.hh \
 	hb-ot-glyf-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \

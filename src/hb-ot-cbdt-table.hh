@@ -24,8 +24,8 @@
  * Google Author(s): Seigo Nonaka
  */
 
-#ifndef HB_OT_EBDT_TABLE_HH
-#define HB_OT_EBDT_TABLE_HH
+#ifndef HB_OT_CBDT_TABLE_HH
+#define HB_OT_CBDT_TABLE_HH
 
 #include "hb-open-type-private.hh"
 
@@ -190,4 +190,4 @@ struct CBDT
 
 } /* namespace OT */
 
-#endif /* HB_OT_EBDT_TABLE_HH */
+#endif /* HB_OT_CBDT_TABLE_HH */
