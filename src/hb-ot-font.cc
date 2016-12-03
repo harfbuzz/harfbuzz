@@ -262,30 +262,34 @@ struct hb_ot_face_cbdt_accelerator_t
             OT::StructAtOffset<OT::IndexSubHeader> (this->cblc, offsetToSubtable);
 
     unsigned int imageDataOffset = header.imageDataOffset;
-    switch (header.indexFormat) {
-      case 1: {
-        const OT::IndexSubtableFormat1& format1 =
-            OT::StructAtOffset<OT::IndexSubtableFormat1> (this->cblc, offsetToSubtable);
-        imageDataOffset += format1.offsetArrayZ[glyph - subtable->firstGlyphIndex];
-        switch (header.imageFormat) {
-          case 17: {
-            const OT::GlyphBitmapDataFormat17& glyphFormat17 =
-                OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, imageDataOffset);
-            extents->x_bearing = glyphFormat17.glyphMetrics.bearingX;
-            extents->y_bearing = glyphFormat17.glyphMetrics.bearingY;
-            extents->width = glyphFormat17.glyphMetrics.width;
-            extents->height = -glyphFormat17.glyphMetrics.height;
-          }
-          break;
-          default:
-            // TODO: Support other image formats.
-            return false;
-        }
+    switch (header.indexFormat)
+    {
+      case 1:
+	{
+	  const OT::IndexSubtableFormat1& format1 =
+	      OT::StructAtOffset<OT::IndexSubtableFormat1> (this->cblc, offsetToSubtable);
+	  imageDataOffset += format1.offsetArrayZ[glyph - subtable->firstGlyphIndex];
+	}
+	break;
+      default:
+	// TODO: Support other index subtable format.
+	return false;
+    }
+
+    switch (header.imageFormat)
+    {
+      case 17: {
+	const OT::GlyphBitmapDataFormat17& glyphFormat17 =
+	    OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, imageDataOffset);
+	extents->x_bearing = glyphFormat17.glyphMetrics.bearingX;
+	extents->y_bearing = glyphFormat17.glyphMetrics.bearingY;
+	extents->width = glyphFormat17.glyphMetrics.width;
+	extents->height = -glyphFormat17.glyphMetrics.height;
       }
       break;
       default:
-        // TODO: Support other index subtable format.
-        return false;
+	// TODO: Support other image formats.
+	return false;
     }
 
     /* Convert to the font units. */

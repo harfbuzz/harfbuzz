@@ -72,32 +72,6 @@ struct SBitLineMetrics
   DEFINE_SIZE_STATIC(12);
 };
 
-struct BitmapSizeTable
-{
-  inline bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  horizontal.sanitize (c) &&
-		  vertical.sanitize (c));
-  }
-
-  ULONG indexSubtableArrayOffset;
-  ULONG indexTablesSize;
-  ULONG numberOfIndexSubtables;
-  ULONG colorRef;
-  SBitLineMetrics horizontal;
-  SBitLineMetrics vertical;
-  USHORT startGlyphIndex;
-  USHORT endGlyphIndex;
-  BYTE ppemX;
-  BYTE ppemY;
-  BYTE bitDepth;
-  CHAR flags;
-
-  DEFINE_SIZE_STATIC(48);
-};
-
 /*
  * Index Subtables.
  */
@@ -142,6 +116,12 @@ struct GlyphBitmapDataFormat17
 
 struct IndexSubtableArray
 {
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this)); // XXX
+  }
+
   public:
   const IndexSubtable* find_table (hb_codepoint_t glyph, unsigned int numTables) const
   {
@@ -158,6 +138,37 @@ struct IndexSubtableArray
 
   protected:
   IndexSubtable indexSubtablesZ[VAR];
+
+  public:
+  DEFINE_SIZE_ARRAY(0, indexSubtablesZ);
+};
+
+struct BitmapSizeTable
+{
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  indexSubtableArrayOffset.sanitize (c, base, numberOfIndexSubtables) &&
+		  c->check_range (&(base+indexSubtableArrayOffset), indexTablesSize) &&
+		  horizontal.sanitize (c) &&
+		  vertical.sanitize (c));
+  }
+
+  OffsetTo<IndexSubtableArray, ULONG> indexSubtableArrayOffset;
+  ULONG indexTablesSize;
+  ULONG numberOfIndexSubtables;
+  ULONG colorRef;
+  SBitLineMetrics horizontal;
+  SBitLineMetrics vertical;
+  USHORT startGlyphIndex;
+  USHORT endGlyphIndex;
+  BYTE ppemX;
+  BYTE ppemY;
+  BYTE bitDepth;
+  CHAR flags;
+
+  DEFINE_SIZE_STATIC(48);
 };
 
 /*
@@ -175,7 +186,7 @@ struct CBLC
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  likely (version.major == 2 || version.major == 3) &&
-		  sizeTables.sanitize (c));
+		  sizeTables.sanitize (c, this));
   }
 
   public:
