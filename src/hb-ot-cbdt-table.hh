@@ -33,6 +33,12 @@ namespace OT {
 
 struct SmallGlyphMetrics
 {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
   BYTE height;
   BYTE width;
   CHAR bearingX;
@@ -42,7 +48,14 @@ struct SmallGlyphMetrics
   DEFINE_SIZE_STATIC(5);
 };
 
-struct SBitLineMetrics {
+struct SBitLineMetrics
+{
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
   CHAR ascender;
   CHAR decender;
   BYTE widthMax;
@@ -61,6 +74,14 @@ struct SBitLineMetrics {
 
 struct BitmapSizeTable
 {
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  horizontal.sanitize (c) &&
+		  vertical.sanitize (c));
+  }
+
   ULONG indexSubtableArrayOffset;
   ULONG indexTablesSize;
   ULONG numberOfIndexSubtables;
@@ -94,41 +115,49 @@ struct IndexSubHeader
   USHORT indexFormat;
   USHORT imageFormat;
   ULONG imageDataOffset;
+
+  DEFINE_SIZE_STATIC(8);
 };
 
 struct IndexSubtableFormat1
 {
   IndexSubHeader header;
-  ULONG offsetArray[VAR];
+  ULONG offsetArrayZ[VAR];
+
+  DEFINE_SIZE_ARRAY(8, offsetArrayZ);
 };
 
 /*
  * Glyph Bitmap Data Formats.
  */
+
 struct GlyphBitmapDataFormat17
 {
   SmallGlyphMetrics glyphMetrics;
   ULONG dataLen;
-  BYTE data[VAR];
+  BYTE dataZ[VAR];
+
+  DEFINE_SIZE_ARRAY(9, dataZ);
 };
 
 struct IndexSubtableArray
 {
   public:
-  const IndexSubtable* find_table(hb_codepoint_t glyph, unsigned int numTables) const
+  const IndexSubtable* find_table (hb_codepoint_t glyph, unsigned int numTables) const
   {
-    for (unsigned int i = 0; i < numTables; ++i) {
-      unsigned int firstGlyphIndex = indexSubtables[i].firstGlyphIndex;
-      unsigned int lastGlyphIndex = indexSubtables[i].lastGlyphIndex;
+    for (unsigned int i = 0; i < numTables; ++i)
+    {
+      unsigned int firstGlyphIndex = indexSubtablesZ[i].firstGlyphIndex;
+      unsigned int lastGlyphIndex = indexSubtablesZ[i].lastGlyphIndex;
       if (firstGlyphIndex <= glyph && glyph <= lastGlyphIndex) {
-        return &indexSubtables[i];
+        return &indexSubtablesZ[i];
       }
     }
     return NULL;
   }
 
   protected:
-  IndexSubtable indexSubtables[VAR];
+  IndexSubtable indexSubtablesZ[VAR];
 };
 
 /*
@@ -144,17 +173,19 @@ struct CBLC
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (true);
+    return_trace (c->check_struct (this) &&
+		  likely (version.major == 2 || version.major == 3) &&
+		  sizeTables.sanitize (c));
   }
 
   public:
-  const BitmapSizeTable* find_table(hb_codepoint_t glyph) const
+  const BitmapSizeTable* find_table (hb_codepoint_t glyph) const
   {
     // TODO: Make it possible to select strike.
-    const uint32_t tableSize = numSizes;
-    for (uint32_t i = 0; i < tableSize; ++i) {
-      unsigned int startGlyphIndex = sizeTables[i].startGlyphIndex;
-      unsigned int endGlyphIndex = sizeTables[i].endGlyphIndex;
+    unsigned int count = sizeTables.len;
+    for (uint32_t i = 0; i < count; ++i) {
+      unsigned int startGlyphIndex = sizeTables.array[i].startGlyphIndex;
+      unsigned int endGlyphIndex = sizeTables.array[i].endGlyphIndex;
       if (startGlyphIndex <= glyph && glyph <= endGlyphIndex) {
         return &sizeTables[i];
       }
@@ -163,10 +194,11 @@ struct CBLC
   }
 
   protected:
-  ULONG version;
-  ULONG numSizes;
+  FixedVersion<>version;
+  ArrayOf<BitmapSizeTable, ULONG> sizeTables;
 
-  BitmapSizeTable sizeTables[VAR];
+  public:
+  DEFINE_SIZE_ARRAY(8, sizeTables);
 };
 
 /*
@@ -181,11 +213,16 @@ struct CBDT
   inline bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (true);
+    return_trace (c->check_struct (this) &&
+		  likely (version.major == 2 || version.major == 3));
   }
 
   protected:
-  BYTE data[VAR];
+  FixedVersion<>version;
+  BYTE dataZ[VAR];
+
+  public:
+  DEFINE_SIZE_ARRAY(4, dataZ);
 };
 
 } /* namespace OT */

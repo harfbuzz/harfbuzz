@@ -210,10 +210,10 @@ struct hb_ot_face_glyf_accelerator_t
 
 struct hb_ot_face_cbdt_accelerator_t
 {
-  hb_blob_t *cblc_blob = NULL;
-  hb_blob_t *cbdt_blob = NULL;
-  const OT::CBLC *cblc = NULL;
-  const OT::CBDT *cbdt = NULL;
+  hb_blob_t *cblc_blob;
+  hb_blob_t *cbdt_blob;
+  const OT::CBLC *cblc;
+  const OT::CBDT *cbdt;
 
   float upem = 0.0f;
 
@@ -223,6 +223,8 @@ struct hb_ot_face_cbdt_accelerator_t
     this->cbdt_blob = OT::Sanitizer<OT::CBDT>::sanitize (face->reference_table (HB_OT_TAG_CBDT));
 
     if (hb_blob_get_length (this->cblc_blob) == 0) {
+      cblc = NULL;
+      cbdt = NULL;
       return;  /* Not a bitmap font. */
     }
     cblc = OT::Sanitizer<OT::CBLC>::lock_instance (this->cblc_blob);
@@ -233,10 +235,8 @@ struct hb_ot_face_cbdt_accelerator_t
 
   inline void fini (void)
   {
-    if (this->cblc_blob) {
-      hb_blob_destroy (this->cblc_blob);
-      hb_blob_destroy (this->cbdt_blob);
-    }
+    hb_blob_destroy (this->cblc_blob);
+    hb_blob_destroy (this->cbdt_blob);
   }
 
   inline bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
@@ -266,7 +266,7 @@ struct hb_ot_face_cbdt_accelerator_t
       case 1: {
         const OT::IndexSubtableFormat1& format1 =
             OT::StructAtOffset<OT::IndexSubtableFormat1> (this->cblc, offsetToSubtable);
-        imageDataOffset += format1.offsetArray[glyph - subtable->firstGlyphIndex];
+        imageDataOffset += format1.offsetArrayZ[glyph - subtable->firstGlyphIndex];
         switch (header.imageFormat) {
           case 17: {
             const OT::GlyphBitmapDataFormat17& glyphFormat17 =
@@ -288,7 +288,7 @@ struct hb_ot_face_cbdt_accelerator_t
         return false;
     }
 
-    // Convert to the font units.
+    /* Convert to the font units. */
     extents->x_bearing *= upem / (float)(sizeTable->ppemX);
     extents->y_bearing *= upem / (float)(sizeTable->ppemY);
     extents->width *= upem / (float)(sizeTable->ppemX);
@@ -558,7 +558,7 @@ hb_ot_get_glyph_extents (hb_font_t *font HB_UNUSED,
 {
   const hb_ot_font_t *ot_font = (const hb_ot_font_t *) font_data;
   bool ret = ot_font->glyf->get_extents (glyph, extents);
-  if ( !ret )
+  if (!ret)
     ret = ot_font->cbdt->get_extents (glyph, extents);
   extents->x_bearing = font->em_scale_x (extents->x_bearing);
   extents->y_bearing = font->em_scale_y (extents->y_bearing);
