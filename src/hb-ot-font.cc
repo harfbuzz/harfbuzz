@@ -215,22 +215,25 @@ struct hb_ot_face_cbdt_accelerator_t
   const OT::CBLC *cblc;
   const OT::CBDT *cbdt;
 
-  float upem = 0.0f;
+  unsigned int cbdt_len;
+  float upem;
 
   inline void init (hb_face_t *face)
   {
-    this->cblc_blob = OT::Sanitizer<OT::CBLC>::sanitize (face->reference_table (HB_OT_TAG_CBLC));
-    this->cbdt_blob = OT::Sanitizer<OT::CBDT>::sanitize (face->reference_table (HB_OT_TAG_CBDT));
+    upem = face->get_upem();
 
-    if (hb_blob_get_length (this->cblc_blob) == 0) {
+    cblc_blob = OT::Sanitizer<OT::CBLC>::sanitize (face->reference_table (HB_OT_TAG_CBLC));
+    cbdt_blob = OT::Sanitizer<OT::CBDT>::sanitize (face->reference_table (HB_OT_TAG_CBDT));
+    cbdt_len = hb_blob_get_length (cbdt_blob);
+
+    if (hb_blob_get_length (cblc_blob) == 0) {
       cblc = NULL;
       cbdt = NULL;
       return;  /* Not a bitmap font. */
     }
-    cblc = OT::Sanitizer<OT::CBLC>::lock_instance (this->cblc_blob);
-    cbdt = OT::Sanitizer<OT::CBDT>::lock_instance (this->cbdt_blob);
+    cblc = OT::Sanitizer<OT::CBLC>::lock_instance (cblc_blob);
+    cbdt = OT::Sanitizer<OT::CBDT>::lock_instance (cbdt_blob);
 
-    upem = face->get_upem();
   }
 
   inline void fini (void)
@@ -263,9 +266,15 @@ struct hb_ot_face_cbdt_accelerator_t
     if (!subtable_record->get_image_data (glyph, &image_offset, &image_length, &image_format))
       return false;
 
+    if (unlikely (image_offset > cbdt_len || cbdt_len - image_offset < image_length))
+      return false;
+
     switch (image_format)
     {
       case 17: {
+	if (unlikely (image_length < OT::GlyphBitmapDataFormat17::min_size))
+	  return false;
+
 	const OT::GlyphBitmapDataFormat17& glyphFormat17 =
 	    OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, image_offset);
 	glyphFormat17.glyphMetrics.get_extents (extents);
