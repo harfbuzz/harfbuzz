@@ -806,6 +806,7 @@ struct OffsetTo : Offset<OffsetType>
     if (unlikely (!c->check_struct (this))) return_trace (false);
     unsigned int offset = *this;
     if (unlikely (!offset)) return_trace (true);
+    if (unlikely (!c->check_range (base, offset))) return_trace (false);
     const Type &obj = StructAtOffset<Type> (base, offset);
     return_trace (likely (obj.sanitize (c)) || neuter (c));
   }
@@ -816,6 +817,7 @@ struct OffsetTo : Offset<OffsetType>
     if (unlikely (!c->check_struct (this))) return_trace (false);
     unsigned int offset = *this;
     if (unlikely (!offset)) return_trace (true);
+    if (unlikely (!c->check_range (base, offset))) return_trace (false);
     const Type &obj = StructAtOffset<Type> (base, offset);
     return_trace (likely (obj.sanitize (c, user_data)) || neuter (c));
   }
