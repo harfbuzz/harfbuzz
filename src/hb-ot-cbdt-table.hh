@@ -39,6 +39,14 @@ struct SmallGlyphMetrics
     return_trace (c->check_struct (this));
   }
 
+  inline void get_extents (hb_glyph_extents_t *extents) const
+  {
+    extents->x_bearing = bearingX;
+    extents->y_bearing = bearingY;
+    extents->width = width;
+    extents->height = height;
+  }
+
   BYTE height;
   BYTE width;
   CHAR bearingX;
@@ -75,17 +83,14 @@ struct SBitLineMetrics
 /*
  * Index Subtables.
  */
-struct IndexSubtable
+struct IndexSubtableHeader
 {
-  USHORT firstGlyphIndex;
-  USHORT lastGlyphIndex;
-  ULONG offsetToSubtable;
+  inline bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
 
-  DEFINE_SIZE_STATIC(8);
-};
-
-struct IndexSubHeader
-{
   USHORT indexFormat;
   USHORT imageFormat;
   ULONG imageDataOffset;
@@ -95,10 +100,106 @@ struct IndexSubHeader
 
 struct IndexSubtableFormat1
 {
-  IndexSubHeader header;
-  ULONG offsetArrayZ[VAR];
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int glyph_count) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  c->check_array (offsetArrayZ, offsetArrayZ[0].static_size, glyph_count + 1));
+  }
+
+  bool get_image_data (unsigned int idx,
+		       unsigned int *offset,
+		       unsigned int *length) const
+  {
+    if (unlikely (offsetArrayZ[idx + 1] <= offsetArrayZ[idx]))
+      return false;
+
+    *offset = header.imageDataOffset + offsetArrayZ[idx];
+    *length = offsetArrayZ[idx + 1] - offsetArrayZ[idx];
+    return true;
+  }
+
+  IndexSubtableHeader header;
+  Offset<ULONG> offsetArrayZ[VAR];
 
   DEFINE_SIZE_ARRAY(8, offsetArrayZ);
+};
+
+struct IndexSubtable
+{
+  inline bool sanitize (hb_sanitize_context_t *c, unsigned int glyph_count) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.header.sanitize (c)) return_trace (false);
+    switch (u.header.indexFormat) {
+    case 1: return_trace (u.format1.sanitize (c, glyph_count));
+    default:return_trace (true);
+    }
+  }
+
+  inline bool get_extents (hb_glyph_extents_t *extents) const
+  {
+    switch (u.header.indexFormat) {
+    case 2: case 5: /* TODO */
+    case 1: case 3: case 4: /* Variable-metrics formats do not have metrics here. */
+    default:return (false);
+    }
+  }
+
+  bool get_image_data (unsigned int idx,
+		       unsigned int *offset,
+		       unsigned int *length,
+		       unsigned int *format) const
+  {
+    *format = u.header.imageFormat;
+    switch (u.header.indexFormat) {
+    case 1: return u.format1.get_image_data (idx, offset, length);
+    default: return false;
+    }
+  }
+
+  protected:
+  union {
+  IndexSubtableHeader	header;
+  IndexSubtableFormat1	format1;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (8, header);
+};
+
+struct IndexSubtableRecord
+{
+  inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  firstGlyphIndex <= lastGlyphIndex &&
+		  offsetToSubtable.sanitize (c, this, lastGlyphIndex - firstGlyphIndex + 1));
+  }
+
+  inline bool get_extents (hb_glyph_extents_t *extents) const
+  {
+    return (this+offsetToSubtable).get_extents (extents);
+  }
+
+  bool get_image_data (unsigned int gid,
+		       unsigned int *offset,
+		       unsigned int *length,
+		       unsigned int *format) const
+  {
+    if (gid < firstGlyphIndex || gid > lastGlyphIndex)
+    {
+      return false;
+    }
+    return (this+offsetToSubtable).get_image_data (gid - firstGlyphIndex,
+						   offset, length, format);
+  }
+
+  USHORT firstGlyphIndex;
+  USHORT lastGlyphIndex;
+  OffsetTo<IndexSubtable, ULONG> offsetToSubtable;
+
+  DEFINE_SIZE_STATIC(8);
 };
 
 /*
@@ -119,11 +220,16 @@ struct IndexSubtableArray
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this)); // XXX
+    if (unlikely (!c->check_array (&indexSubtablesZ, indexSubtablesZ[0].static_size, sizeof (count))))
+      return_trace (false);
+    for (unsigned int i = 0; i < count; i++)
+      if (unlikely (!indexSubtablesZ[i].sanitize (c, this)))
+	return_trace (false);
+    return_trace (true);
   }
 
   public:
-  const IndexSubtable* find_table (hb_codepoint_t glyph, unsigned int numTables) const
+  const IndexSubtableRecord* find_table (hb_codepoint_t glyph, unsigned int numTables) const
   {
     for (unsigned int i = 0; i < numTables; ++i)
     {
@@ -137,7 +243,7 @@ struct IndexSubtableArray
   }
 
   protected:
-  IndexSubtable indexSubtablesZ[VAR];
+  IndexSubtableRecord indexSubtablesZ[VAR];
 
   public:
   DEFINE_SIZE_ARRAY(0, indexSubtablesZ);

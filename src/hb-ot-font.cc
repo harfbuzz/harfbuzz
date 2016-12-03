@@ -250,41 +250,25 @@ struct hb_ot_face_cbdt_accelerator_t
       return false;
     }
 
-    const OT::IndexSubtableArray& subtables =
-            OT::StructAtOffset<OT::IndexSubtableArray> (this->cblc, sizeTable->indexSubtableArrayOffset);
-    const OT::IndexSubtable* subtable = subtables.find_table(glyph, sizeTable->numberOfIndexSubtables);
-    if (subtable == NULL) {
+    const OT::IndexSubtableArray& subtables = this->cblc + sizeTable->indexSubtableArrayOffset;
+    const OT::IndexSubtableRecord *subtable_record = subtables.find_table (glyph, sizeTable->numberOfIndexSubtables);
+    if (subtable_record == NULL) {
       return false;
     }
 
-    unsigned int offsetToSubtable = sizeTable->indexSubtableArrayOffset + subtable->offsetToSubtable;
-    const OT::IndexSubHeader& header =
-            OT::StructAtOffset<OT::IndexSubHeader> (this->cblc, offsetToSubtable);
+    if (subtable_record->get_extents (extents))
+      return true;
 
-    unsigned int imageDataOffset = header.imageDataOffset;
-    switch (header.indexFormat)
-    {
-      case 1:
-	{
-	  const OT::IndexSubtableFormat1& format1 =
-	      OT::StructAtOffset<OT::IndexSubtableFormat1> (this->cblc, offsetToSubtable);
-	  imageDataOffset += format1.offsetArrayZ[glyph - subtable->firstGlyphIndex];
-	}
-	break;
-      default:
-	// TODO: Support other index subtable format.
-	return false;
-    }
+    unsigned int image_offset = 0, image_length = 0, image_format = 0;
+    if (!subtable_record->get_image_data (glyph, &image_offset, &image_length, &image_format))
+      return false;
 
-    switch (header.imageFormat)
+    switch (image_format)
     {
       case 17: {
 	const OT::GlyphBitmapDataFormat17& glyphFormat17 =
-	    OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, imageDataOffset);
-	extents->x_bearing = glyphFormat17.glyphMetrics.bearingX;
-	extents->y_bearing = glyphFormat17.glyphMetrics.bearingY;
-	extents->width = glyphFormat17.glyphMetrics.width;
-	extents->height = -glyphFormat17.glyphMetrics.height;
+	    OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, image_offset);
+	glyphFormat17.glyphMetrics.get_extents (extents);
       }
       break;
       default:
