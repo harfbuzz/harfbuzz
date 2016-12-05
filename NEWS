@@ -1,3 +1,11 @@
+Overview of changes leading to 1.3.4
+Monday, December 5, 2016
+====================================
+
+- Fix vertical glyph origin in hb-ot-font.
+- Implement CBDT/CBLC color font glyph extents in hb-ot-font.
+
+
 Overview of changes leading to 1.3.3
 Wednesday, September 28, 2016
 ====================================
