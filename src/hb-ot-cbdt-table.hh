@@ -56,6 +56,15 @@ struct SmallGlyphMetrics
   DEFINE_SIZE_STATIC(5);
 };
 
+struct BigGlyphMetrics : SmallGlyphMetrics
+{
+  CHAR vertBearingX;
+  CHAR vertBearingY;
+  BYTE vertAdvance;
+
+  DEFINE_SIZE_STATIC(8);
+};
+
 struct SBitLineMetrics
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -171,6 +180,7 @@ struct IndexSubtable
   IndexSubtableHeader	header;
   IndexSubtableFormat1	format1;
   IndexSubtableFormat3	format3;
+  /* TODO: Format 2, 4, 5. */
   } u;
   public:
   DEFINE_SIZE_UNION (8, header);
@@ -321,7 +331,6 @@ struct CBLC
   {
     /* TODO: Make it possible to select strike. */
 
-    const BitmapSizeTable *sizeTable = &Null(BitmapSizeTable);
     unsigned int count = sizeTables.len;
     for (uint32_t i = 0; i < count; ++i)
     {
@@ -329,15 +338,13 @@ struct CBLC
       unsigned int endGlyphIndex = sizeTables.array[i].endGlyphIndex;
       if (startGlyphIndex <= glyph && glyph <= endGlyphIndex)
       {
-	sizeTable = &sizeTables[i];
-	break;
+	*x_ppem = sizeTables[i].ppemX;
+	*y_ppem = sizeTables[i].ppemY;
+	return sizeTables[i].find_table (glyph, this);
       }
     }
 
-    *x_ppem = sizeTable->ppemX;
-    *y_ppem = sizeTable->ppemY;
-
-    return sizeTable->find_table (glyph, this);
+    return NULL;
   }
 
   protected:

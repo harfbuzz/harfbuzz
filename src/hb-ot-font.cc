@@ -246,14 +246,12 @@ struct hb_ot_face_cbdt_accelerator_t
   {
     unsigned int x_ppem = upem, y_ppem = upem; /* TODO Use font ppem if available. */
 
-    if (cblc == NULL) {
+    if (cblc == NULL)
       return false;  // Not a color bitmap font.
-    }
 
     const OT::IndexSubtableRecord *subtable_record = this->cblc->find_table(glyph, &x_ppem, &y_ppem);
-    if (subtable_record == NULL) {
+    if (subtable_record == NULL)
       return false;
-    }
 
     if (subtable_record->get_extents (extents))
       return true;
@@ -262,23 +260,27 @@ struct hb_ot_face_cbdt_accelerator_t
     if (!subtable_record->get_image_data (glyph, &image_offset, &image_length, &image_format))
       return false;
 
-    if (unlikely (image_offset > cbdt_len || cbdt_len - image_offset < image_length))
-      return false;
-
-    switch (image_format)
     {
-      case 17: {
-	if (unlikely (image_length < OT::GlyphBitmapDataFormat17::min_size))
-	  return false;
+      /* TODO Move the following into CBDT struct when adding more formats. */
 
-	const OT::GlyphBitmapDataFormat17& glyphFormat17 =
-	    OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, image_offset);
-	glyphFormat17.glyphMetrics.get_extents (extents);
-      }
-      break;
-      default:
-	// TODO: Support other image formats.
+      if (unlikely (image_offset > cbdt_len || cbdt_len - image_offset < image_length))
 	return false;
+
+      switch (image_format)
+      {
+	case 17: {
+	  if (unlikely (image_length < OT::GlyphBitmapDataFormat17::min_size))
+	    return false;
+
+	  const OT::GlyphBitmapDataFormat17& glyphFormat17 =
+	      OT::StructAtOffset<OT::GlyphBitmapDataFormat17> (this->cbdt, image_offset);
+	  glyphFormat17.glyphMetrics.get_extents (extents);
+	}
+	break;
+	default:
+	  // TODO: Support other image formats.
+	  return false;
+      }
     }
 
     /* Convert to the font units. */
