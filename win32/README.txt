@@ -63,9 +63,7 @@ CAIRO_FT: Enable the build of the hb-view tool, which makes use of Cairo, and
 
 GRAPHITE2: Enable the Graphite2 shaper, requires the SIL Graphite2 library.
 
-ICU: Enables the build HarfBuzz-ICU, which is now the recommended layout engine
-     for ICU (International Components for Unicode), which deprecated ICU LE.
-     Requires the ICU libraries.
+ICU: Enables the build of ICU Unicode functions. Requires the ICU libraries.
 
 UNISCRIBE: Enable Uniscribe platform shaper support.
 
