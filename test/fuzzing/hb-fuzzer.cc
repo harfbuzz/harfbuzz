@@ -28,6 +28,19 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     hb_buffer_add_utf32(buffer, text32, sizeof(text32)/sizeof(text32[0]), 0, -1);
     hb_buffer_guess_segment_properties(buffer);
     hb_shape(font, buffer, NULL, 0);
+
+    unsigned int len = hb_buffer_get_length (buffer);
+    hb_glyph_info_t *infos = hb_buffer_get_glyph_infos (buffer, NULL);
+    //hb_glyph_position_t *positions = hb_buffer_get_glyph_positions (buffer, NULL);
+    for (unsigned int i = 0; i < len; i++)
+    {
+      hb_glyph_info_t info = infos[i];
+      //hb_glyph_position_t pos = positions[i];
+
+      hb_glyph_extents_t extents;
+      hb_font_get_glyph_extents (font, info.codepoint, &extents);
+    }
+
     hb_buffer_destroy(buffer);
   }
 
