@@ -244,17 +244,13 @@ struct hb_ot_face_cbdt_accelerator_t
 
   inline bool get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
+    unsigned int x_ppem = upem, y_ppem = upem; /* TODO Use font ppem if available. */
+
     if (cblc == NULL) {
       return false;  // Not a color bitmap font.
     }
 
-    const OT::BitmapSizeTable* sizeTable = this->cblc->find_table(glyph);
-    if (sizeTable == NULL) {
-      return false;
-    }
-
-    const OT::IndexSubtableArray& subtables = this->cblc + sizeTable->indexSubtableArrayOffset;
-    const OT::IndexSubtableRecord *subtable_record = subtables.find_table (glyph, sizeTable->numberOfIndexSubtables);
+    const OT::IndexSubtableRecord *subtable_record = this->cblc->find_table(glyph, &x_ppem, &y_ppem);
     if (subtable_record == NULL) {
       return false;
     }
@@ -286,10 +282,10 @@ struct hb_ot_face_cbdt_accelerator_t
     }
 
     /* Convert to the font units. */
-    extents->x_bearing *= upem / (float)(sizeTable->ppemX);
-    extents->y_bearing *= upem / (float)(sizeTable->ppemY);
-    extents->width *= upem / (float)(sizeTable->ppemX);
-    extents->height *= upem / (float)(sizeTable->ppemY);
+    extents->x_bearing *= upem / (float) x_ppem;
+    extents->y_bearing *= upem / (float) y_ppem;
+    extents->width *= upem / (float) x_ppem;
+    extents->height *= upem / (float) y_ppem;
 
     return true;
   }

@@ -80,9 +80,11 @@ struct SBitLineMetrics
   DEFINE_SIZE_STATIC(12);
 };
 
+
 /*
  * Index Subtables.
  */
+
 struct IndexSubtableHeader
 {
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -202,19 +204,6 @@ struct IndexSubtableRecord
   DEFINE_SIZE_STATIC(8);
 };
 
-/*
- * Glyph Bitmap Data Formats.
- */
-
-struct GlyphBitmapDataFormat17
-{
-  SmallGlyphMetrics glyphMetrics;
-  ULONG dataLen;
-  BYTE dataZ[VAR];
-
-  DEFINE_SIZE_ARRAY(9, dataZ);
-};
-
 struct IndexSubtableArray
 {
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int count) const
@@ -251,6 +240,8 @@ struct IndexSubtableArray
 
 struct BitmapSizeTable
 {
+  friend struct CBLC;
+
   inline bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -261,6 +252,12 @@ struct BitmapSizeTable
 		  vertical.sanitize (c));
   }
 
+  const IndexSubtableRecord *find_table (hb_codepoint_t glyph, const void *base) const
+  {
+    return (base+indexSubtableArrayOffset).find_table (glyph, numberOfIndexSubtables);
+  }
+
+  protected:
   OffsetTo<IndexSubtableArray, ULONG> indexSubtableArrayOffset;
   ULONG indexTablesSize;
   ULONG numberOfIndexSubtables;
@@ -274,8 +271,24 @@ struct BitmapSizeTable
   BYTE bitDepth;
   CHAR flags;
 
+public:
   DEFINE_SIZE_STATIC(48);
 };
+
+
+/*
+ * Glyph Bitmap Data Formats.
+ */
+
+struct GlyphBitmapDataFormat17
+{
+  SmallGlyphMetrics glyphMetrics;
+  ULONG dataLen;
+  BYTE dataZ[VAR];
+
+  DEFINE_SIZE_ARRAY(9, dataZ);
+};
+
 
 /*
  * CBLC -- Color Bitmap Location Table
@@ -296,18 +309,28 @@ struct CBLC
   }
 
   public:
-  const BitmapSizeTable* find_table (hb_codepoint_t glyph) const
+  const IndexSubtableRecord *find_table (hb_codepoint_t glyph,
+					 unsigned int *x_ppem, unsigned int *y_ppem) const
   {
-    // TODO: Make it possible to select strike.
+    /* TODO: Make it possible to select strike. */
+
+    const BitmapSizeTable *sizeTable = &Null(BitmapSizeTable);
     unsigned int count = sizeTables.len;
-    for (uint32_t i = 0; i < count; ++i) {
+    for (uint32_t i = 0; i < count; ++i)
+    {
       unsigned int startGlyphIndex = sizeTables.array[i].startGlyphIndex;
       unsigned int endGlyphIndex = sizeTables.array[i].endGlyphIndex;
-      if (startGlyphIndex <= glyph && glyph <= endGlyphIndex) {
-        return &sizeTables[i];
+      if (startGlyphIndex <= glyph && glyph <= endGlyphIndex)
+      {
+	sizeTable = &sizeTables[i];
+	break;
       }
     }
-    return NULL;
+
+    *x_ppem = sizeTable->ppemX;
+    *y_ppem = sizeTable->ppemY;
+
+    return sizeTable->find_table (glyph, this);
   }
 
   protected:
