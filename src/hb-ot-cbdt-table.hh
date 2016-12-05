@@ -44,7 +44,7 @@ struct SmallGlyphMetrics
     extents->x_bearing = bearingX;
     extents->y_bearing = bearingY;
     extents->width = width;
-    extents->height = height;
+    extents->height = -height;
   }
 
   BYTE height;
