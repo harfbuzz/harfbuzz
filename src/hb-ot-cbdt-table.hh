@@ -100,7 +100,8 @@ struct IndexSubtableHeader
   DEFINE_SIZE_STATIC(8);
 };
 
-struct IndexSubtableFormat1
+template <typename OffsetType>
+struct IndexSubtableFormat1Or3
 {
   inline bool sanitize (hb_sanitize_context_t *c, unsigned int glyph_count) const
   {
@@ -122,10 +123,13 @@ struct IndexSubtableFormat1
   }
 
   IndexSubtableHeader header;
-  Offset<ULONG> offsetArrayZ[VAR];
+  Offset<OffsetType> offsetArrayZ[VAR];
 
   DEFINE_SIZE_ARRAY(8, offsetArrayZ);
 };
+
+struct IndexSubtableFormat1 : IndexSubtableFormat1Or3<ULONG> {};
+struct IndexSubtableFormat3 : IndexSubtableFormat1Or3<USHORT> {};
 
 struct IndexSubtable
 {
@@ -135,6 +139,7 @@ struct IndexSubtable
     if (!u.header.sanitize (c)) return_trace (false);
     switch (u.header.indexFormat) {
     case 1: return_trace (u.format1.sanitize (c, glyph_count));
+    case 3: return_trace (u.format3.sanitize (c, glyph_count));
     default:return_trace (true);
     }
   }
@@ -156,6 +161,7 @@ struct IndexSubtable
     *format = u.header.imageFormat;
     switch (u.header.indexFormat) {
     case 1: return u.format1.get_image_data (idx, offset, length);
+    case 3: return u.format3.get_image_data (idx, offset, length);
     default: return false;
     }
   }
@@ -164,6 +170,7 @@ struct IndexSubtable
   union {
   IndexSubtableHeader	header;
   IndexSubtableFormat1	format1;
+  IndexSubtableFormat3	format3;
   } u;
   public:
   DEFINE_SIZE_UNION (8, header);
