@@ -47,7 +47,7 @@ GOBJECT: Enable building the HarfBuzz-GObject DLL, and thus implies GLib
 INTROSPECTION: Enable build of introspection files, for making HarfBuzz
                bindings for other programming languages available, such as
                Python, available.  This requires the GObject-Introspection
-               libraries and tools, along with the Python interpretor that was
+               libraries and tools, along with the Python interpreter that was
                used during the build of GObject-Introspection.  Please see
                $(srcroot)\README.python for more related details.  This implies
                the build of the HarfBuzz-GObject DLL, along with GLib support.
@@ -63,7 +63,11 @@ CAIRO_FT: Enable the build of the hb-view tool, which makes use of Cairo, and
 
 GRAPHITE2: Enable the Graphite2 shaper, requires the SIL Graphite2 library.
 
-ICU: Enables the build of ICU Unicode functions. Requires the ICU libraries.
+ICU_BUILTIN: Enables building ICU Unicode functions into the HarfBuzz DLL.
+             Requires the ICU libraries.
+
+ICU: Enables the build of ICU Unicode functions in a separate DLL. Requires
+     the ICU libraries.
 
 UNISCRIBE: Enable Uniscribe platform shaper support.
 
@@ -71,8 +75,8 @@ DIRECTWRITE: Enable DirectWrite platform shaper support,
              requires a rather recent Windows SDK, and at least Windows Vista/
              Server 2008 with SP2 and platform update.
 
-PYTHON: Full path to the Python interpretor to be used, if it is not in %PATH%.
+PYTHON: Full path to the Python interpreter to be used, if it is not in %PATH%.
 
-PERL: Full path to the PERL interpretor to be used, if it is not in %PATH%.
+PERL: Full path to the PERL interpreter to be used, if it is not in %PATH%.
 
 LIBTOOL_DLL_NAME: Enable libtool-style DLL names.

@@ -181,6 +181,20 @@ HB_TESTS = \
 	$(CFG)\$(PLAT)\test-unicode.exe				\
 	$(CFG)\$(PLAT)\test-version.exe
 
+!elseif "$(ICU_BUILTIN)" == "1"
+# use ICU for Unicode functions
+# and define some of the macros in GLib's msvc_recommended_pragmas.h
+# to reduce some unneeded build-time warnings
+HB_DEFINES = $(HB_DEFINES) /DHAVE_ICU=1 /DHAVE_ICU_BUILTIN=1
+HB_CFLAGS =	\
+	$(HB_CFLAGS)					\
+	/wd4244							\
+	/D_CRT_SECURE_NO_WARNINGS		\
+	/D_CRT_NONSTDC_NO_WARNINGS
+
+HB_SOURCES = $(HB_SOURCES) $(HB_ICU_sources)
+HB_HEADERS = $(HB_HEADERS) $(HB_ICU_headers)
+HB_DEP_LIBS = $(HB_DEP_LIBS) $(HB_ICU_DEP_LIBS)
 !else
 # If there is no GLib support, use the built-in UCDN
 # and define some of the macros in GLib's msvc_recommended_pragmas.h
