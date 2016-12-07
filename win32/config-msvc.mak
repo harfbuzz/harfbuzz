@@ -60,27 +60,10 @@ HB_TESTS_DEP_LIBS = $(HB_GLIB_LIBS)
 # Use libtool-style DLL names, if desired
 !if "$(LIBTOOL_DLL_NAME)" == "1"
 HARFBUZZ_DLL_FILENAME = $(CFG)\$(PLAT)\libharfbuzz-0
-HARFBUZZ_ICU_DLL_FILENAME = $(CFG)\$(PLAT)\libharfbuzz-icu-0
 HARFBUZZ_GOBJECT_DLL_FILENAME = $(CFG)\$(PLAT)\libharfbuzz-gobject-0
 !else
 HARFBUZZ_DLL_FILENAME = $(CFG)\$(PLAT)\harfbuzz-vs$(VSVER)
-HARFBUZZ_ICU_DLL_FILENAME = $(CFG)\$(PLAT)\harfbuzz-icu-vs$(VSVER)
 HARFBUZZ_GOBJECT_DLL_FILENAME = $(CFG)\$(PLAT)\harfbuzz-gobject-vs$(VSVER)
-!endif
-
-# Enable HarfBuzz-ICU, if desired
-!if "$(ICU)" == "1"
-HB_ICU_CFLAGS =
-HB_LIBS =	\
-	$(HB_LIBS)	\
-	$(CFG)\$(PLAT)\harfbuzz-icu.lib
-
-# We don't want to re-define int8_t Visual Studio 2008, will cause build breakage
-# as we define it in hb-common.h, and we ought to use the definitions there.
-!if "$(VSVER)" == "9"
-HB_ICU_CFLAGS = /DU_HAVE_INT8_T
-!endif
-
 !endif
 
 # Enable Introspection (enables HarfBuzz-Gobject as well)
@@ -181,6 +164,26 @@ HB_TESTS = \
 	$(CFG)\$(PLAT)\test-unicode.exe				\
 	$(CFG)\$(PLAT)\test-version.exe
 
+!elseif "$(ICU)" == "1"
+# use ICU for Unicode functions
+# and define some of the macros in GLib's msvc_recommended_pragmas.h
+# to reduce some unneeded build-time warnings
+HB_DEFINES = $(HB_DEFINES) /DHAVE_ICU=1 /DHAVE_ICU_BUILTIN=1
+HB_CFLAGS =	\
+	$(HB_CFLAGS)					\
+	/wd4244							\
+	/D_CRT_SECURE_NO_WARNINGS		\
+	/D_CRT_NONSTDC_NO_WARNINGS
+
+# We don't want ICU to re-define int8_t in VS 2008, will cause build breakage
+# as we define it in hb-common.h, and we ought to use the definitions there.
+!if "$(VSVER)" == "9"
+HB_CFLAGS =	$(HB_CFLAGS) /DU_HAVE_INT8_T
+!endif
+
+HB_SOURCES = $(HB_SOURCES) $(HB_ICU_sources)
+HB_HEADERS = $(HB_HEADERS) $(HB_ICU_headers)
+HB_DEP_LIBS = $(HB_DEP_LIBS) $(HB_ICU_DEP_LIBS)
 !else
 # If there is no GLib support, use the built-in UCDN
 # and define some of the macros in GLib's msvc_recommended_pragmas.h

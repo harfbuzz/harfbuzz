@@ -8,9 +8,6 @@ install: all
 	@copy /b $(HARFBUZZ_DLL_FILENAME).dll $(PREFIX)\bin
 	@copy /b $(HARFBUZZ_DLL_FILENAME).pdb $(PREFIX)\bin
 	@copy /b $(CFG)\$(PLAT)\harfbuzz.lib $(PREFIX)\lib
-	@if exist $(HARFBUZZ_ICU_DLL_FILENAME).dll copy /b $(HARFBUZZ_ICU_DLL_FILENAME).dll $(PREFIX)\bin
-	@if exist $(HARFBUZZ_ICU_DLL_FILENAME).dll copy /b $(HARFBUZZ_ICU_DLL_FILENAME).pdb $(PREFIX)\bin
-	@if exist $(HARFBUZZ_ICU_DLL_FILENAME).dll copy /b $(CFG)\$(PLAT)\harfbuzz-icu.lib $(PREFIX)\lib
 	@if exist $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll copy /b $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll $(PREFIX)\bin
 	@if exist $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll copy /b $(HARFBUZZ_GOBJECT_DLL_FILENAME).pdb $(PREFIX)\bin
 	@if exist $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll copy /b $(CFG)\$(PLAT)\harfbuzz-gobject.lib $(PREFIX)\lib
@@ -21,7 +18,6 @@ install: all
 	@if exist $(CFG)\$(PLAT)\hb-shape.exe copy /b $(CFG)\$(PLAT)\hb-shape.exe $(PREFIX)\bin
 	@if exist $(CFG)\$(PLAT)\hb-shape.exe copy /b $(CFG)\$(PLAT)\hb-shape.pdb $(PREFIX)\bin
 	@for %h in ($(HB_ACTUAL_HEADERS)) do @copy %h $(PREFIX)\include\harfbuzz
-	@if exist $(HARFBUZZ_ICU_DLL_FILENAME).dll for %h in ($(HB_ICU_headers)) do @copy ..\src\%h $(PREFIX)\include\harfbuzz
 	@if exist $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll for %h in ($(HB_GOBJECT_headers)) do @copy ..\src\%h $(PREFIX)\include\harfbuzz
 	@if exist $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll copy $(CFG)\$(PLAT)\harfbuzz-gobject\hb-gobject-enums.h $(PREFIX)\include\harfbuzz
 	@rem Copy the generated introspection files

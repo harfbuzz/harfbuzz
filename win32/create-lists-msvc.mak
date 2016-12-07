@@ -59,19 +59,6 @@ NULL=
 !endif
 !endif
 
-# For HarfBuzz-ICU
-!if "$(ICU)" == "1"
-
-!if [call create-lists.bat header hb_objs.mak harfbuzz_icu_OBJS]
-!endif
-
-!if [for %c in ($(HB_ICU_sources)) do @if "%~xc" == ".cc" @call create-lists.bat file hb_objs.mak ^$(CFG)\^$(PLAT)\harfbuzz-icu\%~nc.obj]
-!endif
-
-!if [call create-lists.bat footer hb_objs.mak]
-!endif
-!endif
-
 # For the utility programs (GLib support is required)
 !if "$(GLIB)" == "1"
 

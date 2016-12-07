@@ -23,11 +23,6 @@ $<
 $<
 <<
 
-{..\src\}.cc{$(CFG)\$(PLAT)\harfbuzz-icu\}.obj::
-	$(CXX) $(CFLAGS) $(HB_LIB_CFLAGS) $(HB_ICU_CFLAGS) /Fo$(CFG)\$(PLAT)\harfbuzz-icu\ /c @<<
-$<
-<<
-
 {..\util\}.cc{$(CFG)\$(PLAT)\util\}.obj::
 	$(CXX) $(CFLAGS) $(HB_DEFINES) $(HB_CFLAGS) /Fo$(CFG)\$(PLAT)\util\ /c @<<
 $<
@@ -48,7 +43,6 @@ $<
 
 # Rules for building .lib files
 $(CFG)\$(PLAT)\harfbuzz.lib: $(HARFBUZZ_DLL_FILENAME).dll
-$(CFG)\$(PLAT)\harfbuzz-icu.lib: $(HARFBUZZ_ICU_DLL_FILENAME).dll
 $(CFG)\$(PLAT)\harfbuzz-gobject.lib: $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll
 
 # Rules for linking DLLs
@@ -61,12 +55,6 @@ $(CFG)\$(PLAT)\harfbuzz-gobject.lib: $(HARFBUZZ_GOBJECT_DLL_FILENAME).dll
 $(HARFBUZZ_DLL_FILENAME).dll: config.h $(harfbuzz_dll_OBJS) $(CFG)\$(PLAT)\harfbuzz
 	link /DLL $(LDFLAGS) $(HB_DEP_LIBS) /implib:$(CFG)\$(PLAT)\harfbuzz.lib -out:$@ @<<
 $(harfbuzz_dll_OBJS)
-<<
-	@-if exist $@.manifest mt /manifest $@.manifest /outputresource:$@;2
-
-$(HARFBUZZ_ICU_DLL_FILENAME).dll: $(CFG)\$(PLAT)\harfbuzz.lib $(harfbuzz_icu_OBJS) $(CFG)\$(PLAT)\harfbuzz-icu
-	link /DLL $(LDFLAGS) $(CFG)\$(PLAT)\harfbuzz.lib $(HB_ICU_DEP_LIBS) /implib:$(CFG)\$(PLAT)\harfbuzz-icu.lib -out:$@ @<<
-$(harfbuzz_icu_OBJS)
 <<
 	@-if exist $@.manifest mt /manifest $@.manifest /outputresource:$@;2
 
@@ -131,7 +119,6 @@ clean:
 	@-del /f /q $(CFG)\$(PLAT)\*.obj
 	@-if exist $(CFG)\$(PLAT)\util del /f /q $(CFG)\$(PLAT)\util\*.obj
 	@-if exist $(CFG)\$(PLAT)\harfbuzz-gobject del /f /q $(CFG)\$(PLAT)\harfbuzz-gobject\*.obj
-	@-if exist $(CFG)\$(PLAT)\harfbuzz-icu del /f /q $(CFG)\$(PLAT)\harfbuzz-icu\*.obj
 	@-del /f /q $(CFG)\$(PLAT)\harfbuzz\*.obj
 	@-rmdir /s /q $(CFG)\$(PLAT)
 	@-if exist $(CFG)\$(PLAT)\harfbuzz-gobject\hb-gobject-enums.h del $(CFG)\$(PLAT)\harfbuzz-gobject\hb-gobject-enums.h
