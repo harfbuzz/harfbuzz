@@ -22,5 +22,5 @@ $(HB_GOBJECT_ENUM_GENERATED_SOURCES): ..\src\hb-gobject-enums.h.tmpl ..\src\hb-g
 !endif
 
 # Create the build directories
-$(CFG)\$(PLAT)\harfbuzz $(CFG)\$(PLAT)\harfbuzz-icu $(CFG)\$(PLAT)\harfbuzz-gobject $(CFG)\$(PLAT)\util:
+$(CFG)\$(PLAT)\harfbuzz $(CFG)\$(PLAT)\harfbuzz-gobject $(CFG)\$(PLAT)\util:
 	@-md $@
