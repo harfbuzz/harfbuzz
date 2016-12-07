@@ -11,6 +11,8 @@ BUILT_TOOLS = hb-shape.exe hb-ot-shape-closure.exe
 !if "$(CAIRO_FT)" == "1"
 BUILT_TOOLS = hb-view.exe $(BUILT_TOOLS)
 !endif
+!elseif "$(ICU)" == "1"
+UNICODE_IMPL = ICU
 !else
 UNICODE_IMPL = ucdn
 !endif
@@ -29,10 +31,6 @@ INC_FEATURES = $(INC_FEATURES) Uniscribe
 
 !if "$(DIRECTWRITE)" == "1"
 INC_FEATURES = $(INC_FEATURES) DirectWrite
-!endif
-
-!if "$(ICU)" == "1"
-BUILT_LIBRARIES = $(BUILT_LIBRARIES) HarfBuzz-ICU
 !endif
 
 !if "$(GOBJECT)" == "1"
@@ -101,20 +99,20 @@ help:
 	@echo library.  Enables the build of utility programs.
 	@echo.
 	@echo ICU:
-	@echo Enable the HarfBuzz-ICU layout library, requires the International
+	@echo Enable build with ICU Unicode functions, requires the International
 	@echo Components for Unicode (ICU) libraries.
 	@echo.
 	@echo GOBJECT:
 	@echo Enable the HarfBuzz-GObject library, also implies GLib2 support,
 	@echo requires the GNOME GLib2 libraries and tools, notably the glib-mkenums
-	@echo tool script, which will require a PERL interpretor (use
+	@echo tool script, which will require a PERL interpreter (use
 	@echo PERL=^$(PATH_TO_PERL_INTERPRETOR)) if it is not already in your PATH).
 	@echo.
 	@echo INTROSPECTION:
 	@echo Enable the build of introspection files, also implies GObject/GLib2 support,
 	@echo requires the GNOME gobject-introspection libraries and tools.  You will need
 	@echo to ensure the pkg-config (.pc) files can be found for GObject-2.0 and the
-	@echo Python interpretor (that was used to build the gobject-introsoection tools)
+	@echo Python interpreter (that was used to build the gobject-introspection tools)
 	@echo can be found by setting PKG_CONFIG_PATH beforehand, and passing in PYTHON=
 	@echo ^$(PATH_TO_PYTHON_INTERPRETOR) respectively, if python.exe is not already
 	@echo in your PATH.
