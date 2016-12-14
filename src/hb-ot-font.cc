@@ -355,7 +355,11 @@ struct hb_ot_face_cmap_accelerator_t
     if (!subtable) subtable = cmap->find_subtable (0, 2);
     if (!subtable) subtable = cmap->find_subtable (0, 1);
     if (!subtable) subtable = cmap->find_subtable (0, 0);
-    if (!subtable)(subtable = cmap->find_subtable (3, 0)) && (symbol = true);
+    if (!subtable)
+    {
+      subtable = cmap->find_subtable (3, 0);
+      if (subtable) symbol = true;
+    }
     /* Meh. */
     if (!subtable) subtable = &OT::Null(OT::CmapSubtable);
 

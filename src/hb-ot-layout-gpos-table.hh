@@ -689,7 +689,7 @@ struct PairPosFormat1
     (this+coverage).add_coverage (c->input);
     unsigned int count = pairSet.len;
     for (unsigned int i = 0; i < count; i++)
-      (this+pairSet[i]).collect_glyphs (c, &valueFormat1);
+      (this+pairSet[i]).collect_glyphs (c, valueFormat);
   }
 
   inline const Coverage &get_coverage (void) const
@@ -708,7 +708,7 @@ struct PairPosFormat1
     skippy_iter.reset (buffer->idx, 1);
     if (!skippy_iter.next ()) return_trace (false);
 
-    return_trace ((this+pairSet[index]).apply (c, &valueFormat1, skippy_iter.idx));
+    return_trace ((this+pairSet[index]).apply (c, valueFormat, skippy_iter.idx));
   }
 
   inline bool sanitize (hb_sanitize_context_t *c) const
@@ -717,11 +717,11 @@ struct PairPosFormat1
 
     if (!c->check_struct (this)) return_trace (false);
 
-    unsigned int len1 = valueFormat1.get_len ();
-    unsigned int len2 = valueFormat2.get_len ();
+    unsigned int len1 = valueFormat[0].get_len ();
+    unsigned int len2 = valueFormat[1].get_len ();
     PairSet::sanitize_closure_t closure = {
       this,
-      &valueFormat1,
+      valueFormat,
       len1,
       1 + len1 + len2
     };
@@ -734,10 +734,10 @@ struct PairPosFormat1
   OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
-  ValueFormat	valueFormat1;		/* Defines the types of data in
+  ValueFormat	valueFormat[2];		/* [0] Defines the types of data in
 					 * ValueRecord1--for the first glyph
 					 * in the pair--may be zero (0) */
-  ValueFormat	valueFormat2;		/* Defines the types of data in
+					/* [1] Defines the types of data in
 					 * ValueRecord2--for the second glyph
 					 * in the pair--may be zero (0) */
   OffsetArrayOf<PairSet>
