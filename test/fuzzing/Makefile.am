@@ -30,14 +30,15 @@ LDADD = \
 	$(NULL)
 
 hb_fuzzer_SOURCES = \
+	hb-fuzzer.hh \
 	hb-fuzzer.cc \
+	main.cc \
 	$(NULL)
 hb_fuzzer_LDADD = \
 	$(LDADD) \
 	$(NULL)
 hb_fuzzer_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-DMAIN \
 	$(NULL)
 hb_fuzzer_DEPENDENCIES = \
 	lib \
