@@ -731,8 +731,8 @@ struct CoverageFormat1
     inline void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; };
     inline bool more (void) { return i < c->glyphArray.len; }
     inline void next (void) { i++; }
-    inline uint16_t get_glyph (void) { return c->glyphArray[i]; }
-    inline uint16_t get_coverage (void) { return i; }
+    inline hb_codepoint_t get_glyph (void) { return c->glyphArray[i]; }
+    inline unsigned int get_coverage (void) { return i; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -829,26 +829,33 @@ struct CoverageFormat2
 
   public:
   /* Older compilers need this to be public. */
-  struct Iter {
-    inline void init (const CoverageFormat2 &c_) {
+  struct Iter
+  {
+    inline void init (const CoverageFormat2 &c_)
+    {
       c = &c_;
       coverage = 0;
       i = 0;
       j = c->rangeRecord.len ? c_.rangeRecord[0].start : 0;
     }
     inline bool more (void) { return i < c->rangeRecord.len; }
-    inline void next (void) {
-      coverage++;
-      if (j == c->rangeRecord[i].end) {
+    inline void next (void)
+    {
+      if (j >= c->rangeRecord[i].end)
+      {
         i++;
 	if (more ())
+	{
 	  j = c->rangeRecord[i].start;
+	  coverage = c->rangeRecord[i].value;
+	}
 	return;
       }
+      coverage++;
       j++;
     }
-    inline uint16_t get_glyph (void) { return j; }
-    inline uint16_t get_coverage (void) { return coverage; }
+    inline hb_codepoint_t get_glyph (void) { return j; }
+    inline unsigned int get_coverage (void) { return coverage; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -957,14 +964,14 @@ struct Coverage
       default:                   break;
       }
     }
-    inline uint16_t get_glyph (void) {
+    inline hb_codepoint_t get_glyph (void) {
       switch (format) {
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
       default:return 0;
       }
     }
-    inline uint16_t get_coverage (void) {
+    inline unsigned int get_coverage (void) {
       switch (format) {
       case 1: return u.format1.get_coverage ();
       case 2: return u.format2.get_coverage ();
