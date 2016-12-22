@@ -218,6 +218,8 @@ struct hb_ot_shape_context_t
   unsigned int        num_user_features;
 
   /* Transient stuff */
+  bool fallback_positioning;
+  bool fallback_glyph_classes;
   hb_direction_t target_direction;
 };
 
@@ -571,7 +573,7 @@ hb_ot_substitute_default (hb_ot_shape_context_t *c)
   hb_ot_shape_setup_masks (c);
 
   /* This is unfortunate to go here, but necessary... */
-  if (!hb_ot_layout_has_positioning (c->face))
+  if (c->fallback_positioning)
     _hb_ot_shape_fallback_position_recategorize_marks (c->plan, c->font, buffer);
 
   hb_ot_map_glyphs_fast (buffer);
@@ -667,14 +669,12 @@ hb_ot_position_default (hb_ot_shape_context_t *c)
     _hb_ot_shape_fallback_spaces (c->plan, c->font, c->buffer);
 }
 
-static inline bool
+static inline void
 hb_ot_position_complex (hb_ot_shape_context_t *c)
 {
   hb_ot_layout_position_start (c->font, c->buffer);
 
-  bool ret = false;
   unsigned int count = c->buffer->len;
-  bool has_positioning = (bool) hb_ot_layout_has_positioning (c->face);
 
   /* If the font has no GPOS, AND, no fallback positioning will
    * happen, AND, direction is forward, then when zeroing mark
@@ -685,8 +685,9 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
    * If fallback positinoing happens or GPOS is present, we don't
    * care.
    */
-  bool adjust_offsets_when_zeroing = !(has_positioning || c->plan->shaper->fallback_position ||
-                                       HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction));
+  bool adjust_offsets_when_zeroing = c->fallback_positioning &&
+				     !c->plan->shaper->fallback_position &&
+				     HB_DIRECTION_IS_FORWARD (c->buffer->props.direction);
 
   switch (c->plan->shaper->zero_width_marks)
   {
@@ -700,7 +701,7 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
       break;
   }
 
-  if (has_positioning)
+  if (likely (!c->fallback_positioning))
   {
     hb_glyph_info_t *info = c->buffer->info;
     hb_glyph_position_t *pos = c->buffer->pos;
@@ -723,7 +724,6 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
 					  &pos[i].x_offset,
 					  &pos[i].y_offset);
 
-    ret = true;
   }
 
   switch (c->plan->shaper->zero_width_marks)
@@ -742,8 +742,6 @@ hb_ot_position_complex (hb_ot_shape_context_t *c)
   hb_ot_layout_position_finish_advances (c->font, c->buffer);
   hb_ot_zero_width_default_ignorables (c);
   hb_ot_layout_position_finish_offsets (c->font, c->buffer);
-
-  return ret;
 }
 
 static inline void
@@ -753,9 +751,9 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   hb_ot_position_default (c);
 
-  hb_bool_t fallback = !hb_ot_position_complex (c);
+  hb_ot_position_complex (c);
 
-  if (fallback && c->plan->shaper->fallback_position)
+  if (c->fallback_positioning && c->plan->shaper->fallback_position)
     _hb_ot_shape_fallback_position (c->plan, c->font, c->buffer);
 
   if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
@@ -763,7 +761,7 @@ hb_ot_position (hb_ot_shape_context_t *c)
 
   /* Visual fallback goes here. */
 
-  if (fallback)
+  if (c->fallback_positioning)
     _hb_ot_shape_fallback_kern (c->plan, c->font, c->buffer);
 
   _hb_buffer_deallocate_gsubgpos_vars (c->buffer);
@@ -782,6 +780,11 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
     c->buffer->max_len = MAX (c->buffer->len * HB_BUFFER_MAX_EXPANSION_FACTOR,
 			      (unsigned) HB_BUFFER_MAX_LEN_MIN);
   }
+
+  bool disable_otl = c->plan->shaper->disable_otl && c->plan->shaper->disable_otl (c->plan);
+  //c->fallback_substitute     = disable_otl || !hb_ot_layout_has_substitution (c->face);
+  c->fallback_positioning    = disable_otl || !hb_ot_layout_has_positioning (c->face);
+  c->fallback_glyph_classes  = disable_otl || !hb_ot_layout_has_glyph_classes (c->face);
 
   /* Save the original direction, we use it later. */
   c->target_direction = c->buffer->props.direction;
