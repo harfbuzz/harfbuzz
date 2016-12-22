@@ -213,4 +213,19 @@ HB_HEADERS = $(HB_HEADERS) $(HB_DIRECTWRITE_headers)
 HB_DEP_LIBS = $(HB_DEP_LIBS) $(DIRECTWRITE_LIB)
 !endif
 
+# For release builds, enable HB_NDEBUG unless RELEASE_USE_NDEBUG
+# is specified, where NDEBUG is used instead, to further reduce
+# the debug items built into the binaries.
+!if "$(CFG)" == "release"
+!if "$(RELEASE_USE_NDEBUG)" == "1"
+HB_CFLAGS = $(HB_CFLAGS) /DNDEBUG
+!else
+HB_CFLAGS = $(HB_CFLAGS) /DHB_NDEBUG
+!endif
+!else
+!if "$(VSVER)" != "9"
+HB_CFLAGS = $(HB_CFLAGS) /DHB_DEBUG=1
+!endif
+!endif
+
 HB_LIB_CFLAGS = $(HB_CFLAGS) /DHB_EXTERN="__declspec (dllexport) extern"

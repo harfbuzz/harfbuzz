@@ -76,3 +76,8 @@ PYTHON: Full path to the Python interpretor to be used, if it is not in %PATH%.
 PERL: Full path to the PERL interpretor to be used, if it is not in %PATH%.
 
 LIBTOOL_DLL_NAME: Enable libtool-style DLL names.
+
+RELEASE_USE_NDEBUG: For release builds, further reduce the amount of debug items
+                    built into the resulting build, making the build more
+                    optimized for production.  This option has no effect on debug
+                    builds.
