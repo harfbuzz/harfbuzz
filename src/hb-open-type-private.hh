@@ -104,9 +104,15 @@ static inline Type& StructAfter(TObject &X)
   static const unsigned int min_size = (size); \
   inline unsigned int get_size (void) const { return (size); }
 
+#if defined(__ghs)
+#define DEFINE_SIZE_UNION(size, _member) \
+  DEFINE_INSTANCE_ASSERTION (sizeof(this->u._member) == (size)); \
+  static const unsigned int min_size = (size)
+#else
 #define DEFINE_SIZE_UNION(size, _member) \
   DEFINE_INSTANCE_ASSERTION (this->u._member.static_size == (size)); \
   static const unsigned int min_size = (size)
+#endif
 
 #define DEFINE_SIZE_MIN(size) \
   DEFINE_INSTANCE_ASSERTION (sizeof (*this) >= (size)); \
