@@ -1739,6 +1739,10 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
     /* Balinese */
     case 0x1B3Cu  : *a = 0x1B42u; *b= 0x1B3Cu; return true;
 
+    /* Chakma */
+    case 0x1112Eu  : *a = 0x11127u; *b= 0x11131u; return true;
+    case 0x1112Fu  : *a = 0x11127u; *b= 0x11132u; return true;
+
 #if 0
     /* Gujarati */
     /* This one has no decomposition in Unicode, but needs no decomposition either. */
