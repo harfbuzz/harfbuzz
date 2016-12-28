@@ -1721,10 +1721,6 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
      * Decompose split matras that don't have Unicode decompositions.
      */
 
-    /* Tibetan */
-    case 0x0F77u  : *a = 0x0FB2u; *b= 0x0F81u; return true;
-    case 0x0F79u  : *a = 0x0FB3u; *b= 0x0F81u; return true;
-
     /* Khmer */
     case 0x17BEu  : *a = 0x17C1u; *b= 0x17BEu; return true;
     case 0x17BFu  : *a = 0x17C1u; *b= 0x17BFu; return true;
