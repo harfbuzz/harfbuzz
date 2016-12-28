@@ -1732,13 +1732,6 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
     case 0x17C4u  : *a = 0x17C1u; *b= 0x17C4u; return true;
     case 0x17C5u  : *a = 0x17C1u; *b= 0x17C5u; return true;
 
-    /* Limbu */
-    case 0x1925u  : *a = 0x1920u; *b= 0x1923u; return true;
-    case 0x1926u  : *a = 0x1920u; *b= 0x1924u; return true;
-
-    /* Balinese */
-    case 0x1B3Cu  : *a = 0x1B42u; *b= 0x1B3Cu; return true;
-
 #if 0
     /* Gujarati */
     /* This one has no decomposition in Unicode, but needs no decomposition either. */
@@ -1746,15 +1739,6 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
 
     /* Oriya */
     case 0x0B57u  : *a = no decomp, -> RIGHT; return true;
-
-    /* Lepcha */
-    case 0x1C29u  : *a = no decomp, -> LEFT; return true;
-
-    /* Javanese */
-    case 0xA9C0u  : *a = no decomp, -> RIGHT; return true;
-
-    /* Sharada */
-    case 0x111BFu  : *a = no decomp, -> ABOVE; return true;
 #endif
   }
 
