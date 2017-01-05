@@ -1,3 +1,37 @@
+Overview of changes leading to 1.4.0
+Thursday, January 5, 2017
+====================================
+
+- Merged "OpenType GX" branch which adds core of support for
+  OpenType 1.8 Font Variations.  To that extent, the relevant
+  new API is:
+
+New API:
+hb_font_set_var_coords_normalized()
+
+  with supporting API:
+
+New API:
+HB_OT_LAYOUT_NO_VARIATIONS_INDEX
+hb_ot_layout_table_find_feature_variations()
+hb_ot_layout_feature_with_variations_get_lookups()
+hb_shape_plan_create2()
+hb_shape_plan_create_cached2()
+
+  Currently variations in GSUB/GPOS/GDEF are fully supported,
+  and no other tables are supported.  In particular, fvar/avar
+  are NOT supported, hence the hb_font_set_var_coords_normalized()
+  taking normalized coordinates.  API to take design coordinates
+  will be added in the future.
+
+  HVAR/VVAR/MVAR support will also be added to hb-ot-font in the
+  future.
+
+- Fix regression in GDEF glyph class processing.
+- Add decompositions for Chakma, Limbu, and Balinese in USE shaper.
+- Misc fixes.
+
+
 Overview of changes leading to 1.3.4
 Monday, December 5, 2016
 ====================================
