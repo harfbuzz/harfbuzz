@@ -289,9 +289,13 @@ AM_CONDITIONAL(HAVE_ICU_BUILTIN, $have_icu && test "x$with_icu" = "xbuiltin")
 
 dnl ===========================================================================
 
-have_ucdn=true
-if $have_glib || test \( $have_icu -a "x$with_icu" = "xbuiltin" \); then
-	have_ucdn=false
+AC_ARG_WITH(ucdn,
+	[AS_HELP_STRING([--with-ucdn=@<:@yes/no@:>@],
+			[Use builtin UCDN library @<:@default=yes@:>@])],,
+	[with_ucdn=yes])
+have_ucdn=false
+if test "x$with_ucdn" = "xyes"; then
+	have_ucdn=true
 fi
 if $have_ucdn; then
 	AC_DEFINE(HAVE_UCDN, 1, [Have UCDN Unicode functions])
@@ -501,9 +505,9 @@ AC_MSG_NOTICE([
 Build configuration:
 
 Unicode callbacks (you want at least one):
+	Builtin (UCDN):		${have_ucdn}
 	Glib:			${have_glib}
 	ICU:			${have_icu}
-	UCDN:			${have_ucdn}
 
 Font callbacks (the more the better):
 	FreeType:		${have_freetype}
