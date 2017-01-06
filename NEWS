@@ -1,3 +1,13 @@
+Overview of changes leading to 1.4.1
+Thursday, January 5, 2017
+====================================
+
+- Always build and use UCDN for Unicode data by default.
+  Reduces dependence on version of Unicode data in glib,
+  specially in the Windows bundles we are shipping, which
+  have very old glib.
+
+
 Overview of changes leading to 1.4.0
 Thursday, January 5, 2017
 ====================================
