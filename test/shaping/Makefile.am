@@ -62,6 +62,7 @@ TESTS = \
 	tests/spaces.tests \
 	tests/simple.tests \
 	tests/use.tests \
+	tests/use-marchen.tests \
 	tests/vertical.tests \
 	tests/zero-width-marks.tests \
 	$(NULL)
