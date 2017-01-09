@@ -184,9 +184,10 @@ HB_CFLAGS =	$(HB_CFLAGS) /DU_HAVE_INT8_T
 HB_SOURCES = $(HB_SOURCES) $(HB_ICU_sources)
 HB_HEADERS = $(HB_HEADERS) $(HB_ICU_headers)
 HB_DEP_LIBS = $(HB_DEP_LIBS) $(HB_ICU_DEP_LIBS)
-!else
-# If there is no GLib support, use the built-in UCDN
-# and define some of the macros in GLib's msvc_recommended_pragmas.h
+!endif
+
+!if "$(UCDN)" != "0"
+# Define some of the macros in GLib's msvc_recommended_pragmas.h
 # to reduce some unneeded build-time warnings
 HB_DEFINES = $(HB_DEFINES) /DHAVE_UCDN=1
 HB_CFLAGS =	\
