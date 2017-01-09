@@ -716,7 +716,7 @@ struct MATH
   DEFINE_SIZE_STATIC (10);
 };
 
-} /* mathspace OT */
+} /* namespace OT */
 
 
 #endif /* HB_OT_LAYOUT_MATH_TABLE_HH */
