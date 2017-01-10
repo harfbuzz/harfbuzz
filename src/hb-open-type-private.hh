@@ -30,6 +30,7 @@
 #define HB_OPEN_TYPE_PRIVATE_HH
 
 #include "hb-private.hh"
+#include "hb-face-private.hh"
 
 
 namespace OT {
@@ -1105,6 +1106,45 @@ struct hb_lazy_loader_t
   private:
   hb_face_t *face;
   T *instance;
+};
+
+template <typename T>
+struct hb_lazy_table_loader_t
+{
+  inline void init (hb_face_t *face_)
+  {
+    face = face_;
+    instance = NULL;
+    blob = NULL;
+  }
+
+  inline void fini (void)
+  {
+    hb_blob_destroy (blob);
+  }
+
+  inline const T* operator-> (void) const
+  {
+  retry:
+    T *p = (T *) hb_atomic_ptr_get (&instance);
+    if (unlikely (!p))
+    {
+      hb_blob_t *blob_ = OT::Sanitizer<T>::sanitize (face->reference_table (T::tableTag));
+      p = OT::Sanitizer<T>::lock_instance (blob);
+      if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p))
+      {
+	hb_blob_destroy (blob_);
+	goto retry;
+      }
+      blob = blob_;
+    }
+    return p;
+  }
+
+  private:
+  hb_face_t *face;
+  T *instance;
+  hb_blob_t *blob;
 };
 
 
