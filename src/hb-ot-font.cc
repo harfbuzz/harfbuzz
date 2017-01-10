@@ -447,11 +447,13 @@ struct hb_lazy_loader_t
     {
       p = (T *) calloc (1, sizeof (T));
       if (unlikely (!p))
-        return &OT::Null(T);
-      p->init (face);
+        p = const_cast<T *> (&OT::Null(T));
+      else
+	p->init (face);
       if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p)))
       {
-	p->fini ();
+	if (p != &OT::Null(T))
+	  p->fini ();
 	goto retry;
       }
     }
