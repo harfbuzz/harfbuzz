@@ -76,11 +76,11 @@ HB_OT_sources = \
 	hb-ot-layout-gsubgpos-private.hh \
 	hb-ot-layout-gsub-table.hh \
 	hb-ot-layout-jstf-table.hh \
-	hb-ot-layout-math-table.hh \
 	hb-ot-layout-private.hh \
 	hb-ot-map.cc \
 	hb-ot-map-private.hh \
 	hb-ot-math.cc \
+	hb-ot-math-table.hh \
 	hb-ot-shape.cc \
 	hb-ot-shape-complex-arabic.cc \
 	hb-ot-shape-complex-arabic-fallback.hh \

@@ -26,7 +26,7 @@
 
 #include "hb-open-type-private.hh"
 
-#include "hb-ot-layout-math-table.hh"
+#include "hb-ot-math-table.hh"
 
 HB_SHAPER_DATA_ENSURE_DECLARE(ot, face)
 
