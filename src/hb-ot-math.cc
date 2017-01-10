@@ -37,22 +37,7 @@ _get_math (hb_face_t *face)
 
   hb_ot_layout_t * layout = hb_ot_layout_from_face (face);
 
-retry:
-  const OT::MATH *math = (const OT::MATH *) hb_atomic_ptr_get (&layout->math);
-
-  if (unlikely (!math))
-  {
-    hb_blob_t *blob = OT::Sanitizer<OT::MATH>::sanitize (face->reference_table (HB_OT_TAG_MATH));
-    math = OT::Sanitizer<OT::MATH>::lock_instance (blob);
-    if (!hb_atomic_ptr_cmpexch (&layout->math, NULL, math))
-    {
-      hb_blob_destroy (blob);
-      goto retry;
-    }
-    layout->math_blob = blob;
-  }
-
-  return *math;
+  return *(layout->math.get ());
 }
 
 /*

@@ -34,6 +34,7 @@
 #include "hb-font-private.hh"
 #include "hb-buffer-private.hh"
 #include "hb-set-private.hh"
+#include "hb-open-type-private.hh"
 
 
 /* Private API corresponding to hb-ot-layout.h: */
@@ -153,12 +154,11 @@ struct hb_ot_layout_t
   hb_blob_t *gdef_blob;
   hb_blob_t *gsub_blob;
   hb_blob_t *gpos_blob;
-  hb_blob_t *math_blob;
 
   const struct OT::GDEF *gdef;
   const struct OT::GSUB *gsub;
   const struct OT::GPOS *gpos;
-  const struct OT::MATH *math;
+  OT::hb_lazy_table_loader_t<struct OT::MATH> math;
 
   unsigned int gsub_lookup_count;
   unsigned int gpos_lookup_count;

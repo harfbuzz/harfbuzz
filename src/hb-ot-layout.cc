@@ -60,9 +60,7 @@ _hb_ot_layout_create (hb_face_t *face)
   layout->gpos_blob = OT::Sanitizer<OT::GPOS>::sanitize (face->reference_table (HB_OT_TAG_GPOS));
   layout->gpos = OT::Sanitizer<OT::GPOS>::lock_instance (layout->gpos_blob);
 
-  /* The MATH table is rarely used, so only try and load it in _get_math. */
-  layout->math_blob = NULL;
-  layout->math = NULL;
+  layout->math.init (face);
 
   {
     /*
@@ -181,7 +179,8 @@ _hb_ot_layout_destroy (hb_ot_layout_t *layout)
   hb_blob_destroy (layout->gdef_blob);
   hb_blob_destroy (layout->gsub_blob);
   hb_blob_destroy (layout->gpos_blob);
-  hb_blob_destroy (layout->math_blob);
+
+  layout->math.fini ();
 
   free (layout);
 }

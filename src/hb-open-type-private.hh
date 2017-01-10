@@ -1064,6 +1064,7 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
 
 /* Lazy struct and blob loaders. */
 
+/* Logic is shared between hb_lazy_loader_t and hb_lazy_table_loader_t */
 template <typename T>
 struct hb_lazy_loader_t
 {
@@ -1082,7 +1083,7 @@ struct hb_lazy_loader_t
     }
   }
 
-  inline const T* operator-> (void) const
+  inline const T* get (void) const
   {
   retry:
     T *p = (T *) hb_atomic_ptr_get (&instance);
@@ -1103,11 +1104,17 @@ struct hb_lazy_loader_t
     return p;
   }
 
+  inline const T* operator-> (void) const
+  {
+    return get ();
+  }
+
   private:
   hb_face_t *face;
   T *instance;
 };
 
+/* Logic is shared between hb_lazy_loader_t and hb_lazy_table_loader_t */
 template <typename T>
 struct hb_lazy_table_loader_t
 {
@@ -1123,14 +1130,14 @@ struct hb_lazy_table_loader_t
     hb_blob_destroy (blob);
   }
 
-  inline const T* operator-> (void) const
+  inline const T* get (void) const
   {
   retry:
-    T *p = (T *) hb_atomic_ptr_get (&instance);
+    const T *p = (T *) hb_atomic_ptr_get (&instance);
     if (unlikely (!p))
     {
       hb_blob_t *blob_ = OT::Sanitizer<T>::sanitize (face->reference_table (T::tableTag));
-      p = OT::Sanitizer<T>::lock_instance (blob);
+      p = OT::Sanitizer<T>::lock_instance (blob_);
       if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p))
       {
 	hb_blob_destroy (blob_);
@@ -1141,10 +1148,15 @@ struct hb_lazy_table_loader_t
     return p;
   }
 
+  inline const T* operator-> (void) const
+  {
+    return get();
+  }
+
   private:
   hb_face_t *face;
   T *instance;
-  hb_blob_t *blob;
+  mutable hb_blob_t *blob;
 };
 
 
