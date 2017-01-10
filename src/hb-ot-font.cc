@@ -421,57 +421,13 @@ struct hb_ot_face_cmap_accelerator_t
   }
 };
 
-template <typename T>
-struct hb_lazy_loader_t
-{
-  inline void init (hb_face_t *face_)
-  {
-    face = face_;
-    instance = NULL;
-  }
-
-  inline void fini (void)
-  {
-    if (instance && instance != &OT::Null(T))
-    {
-      instance->fini();
-      free (instance);
-    }
-  }
-
-  inline const T* operator-> (void) const
-  {
-  retry:
-    T *p = (T *) hb_atomic_ptr_get (&instance);
-    if (unlikely (!p))
-    {
-      p = (T *) calloc (1, sizeof (T));
-      if (unlikely (!p))
-        p = const_cast<T *> (&OT::Null(T));
-      else
-	p->init (face);
-      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p)))
-      {
-	if (p != &OT::Null(T))
-	  p->fini ();
-	goto retry;
-      }
-    }
-    return p;
-  }
-
-  private:
-  hb_face_t *face;
-  T *instance;
-};
-
 struct hb_ot_font_t
 {
   hb_ot_face_cmap_accelerator_t cmap;
   hb_ot_face_metrics_accelerator_t h_metrics;
   hb_ot_face_metrics_accelerator_t v_metrics;
-  hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
-  hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
+  OT::hb_lazy_loader_t<hb_ot_face_glyf_accelerator_t> glyf;
+  OT::hb_lazy_loader_t<hb_ot_face_cbdt_accelerator_t> cbdt;
 };
 
 

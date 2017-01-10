@@ -1061,6 +1061,53 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
 };
 
 
+/* Lazy struct and blob loaders. */
+
+template <typename T>
+struct hb_lazy_loader_t
+{
+  inline void init (hb_face_t *face_)
+  {
+    face = face_;
+    instance = NULL;
+  }
+
+  inline void fini (void)
+  {
+    if (instance && instance != &OT::Null(T))
+    {
+      instance->fini();
+      free (instance);
+    }
+  }
+
+  inline const T* operator-> (void) const
+  {
+  retry:
+    T *p = (T *) hb_atomic_ptr_get (&instance);
+    if (unlikely (!p))
+    {
+      p = (T *) calloc (1, sizeof (T));
+      if (unlikely (!p))
+        p = const_cast<T *> (&OT::Null(T));
+      else
+	p->init (face);
+      if (unlikely (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p)))
+      {
+	if (p != &OT::Null(T))
+	  p->fini ();
+	goto retry;
+      }
+    }
+    return p;
+  }
+
+  private:
+  hb_face_t *face;
+  T *instance;
+};
+
+
 } /* namespace OT */
 
 
