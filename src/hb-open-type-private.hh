@@ -1133,11 +1133,11 @@ struct hb_lazy_table_loader_t
   inline const T* get (void) const
   {
   retry:
-    const T *p = (T *) hb_atomic_ptr_get (&instance);
+    T *p = (T *) hb_atomic_ptr_get (&instance);
     if (unlikely (!p))
     {
       hb_blob_t *blob_ = OT::Sanitizer<T>::sanitize (face->reference_table (T::tableTag));
-      p = OT::Sanitizer<T>::lock_instance (blob_);
+      p = const_cast<T *>(OT::Sanitizer<T>::lock_instance (blob_));
       if (!hb_atomic_ptr_cmpexch (const_cast<T **>(&instance), NULL, p))
       {
 	hb_blob_destroy (blob_);
